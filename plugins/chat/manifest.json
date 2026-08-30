@@ -1,0 +1,10 @@
+{
+  "id": "chat",
+  "name": "Chat",
+  "description": "Displays AG-UI messages and sends user input through runtime actions.",
+  "version": "1.0.0",
+  "capabilities": ["messages", "message-input"],
+  "data": {
+    "messages": true
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "file-preview",
+  "name": "File Preview",
+  "description": "Displays the selected file from Agent state.",
+  "version": "1.0.0",
+  "capabilities": ["file-preview"],
+  "data": {
+    "state": true
+  }
+}

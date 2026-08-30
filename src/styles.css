@@ -29,37 +29,3 @@ body {
   height: 100vh;
   padding: 1rem;
 }
-
-.development-preview-slot {
-  display: flex;
-  height: 100%;
-  min-height: 14rem;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 1.25rem;
-  overflow: hidden;
-  border: 1px solid #d7dee8;
-  border-radius: 0.9rem;
-  background: #ffffff;
-  box-shadow: 0 0.75rem 2.5rem rgb(50 63 82 / 8%);
-}
-
-.development-preview-slot span {
-  color: #667085;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.development-preview-slot h2 {
-  margin: 0.35rem 0 0;
-  font-size: 1.1rem;
-}
-
-.development-preview-slot p {
-  margin: 0;
-  color: #667085;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.78rem;
-}

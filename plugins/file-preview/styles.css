@@ -1,0 +1,76 @@
+.file-preview-plugin {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid #d7dee8;
+  border-radius: 0.9rem;
+  color: #d0d5dd;
+  background: #101828;
+  box-shadow: 0 0.75rem 2.5rem rgb(16 24 40 / 16%);
+}
+
+.file-preview-plugin[data-show-header="false"] {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.file-preview-plugin-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #344054;
+}
+
+.file-preview-plugin-header div {
+  min-width: 0;
+}
+
+.file-preview-plugin-header span {
+  color: #98a2b3;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.file-preview-plugin-header h2 {
+  margin: 0.25rem 0 0;
+  overflow: hidden;
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-preview-plugin-header strong {
+  padding: 0.25rem 0.45rem;
+  border-radius: 0.4rem;
+  color: #b2ddff;
+  background: #194185;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.file-preview-plugin-content {
+  min-height: 0;
+  margin: 0;
+  padding: 1rem;
+  overflow: auto;
+  color: #e4e7ec;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.76rem;
+  line-height: 1.65;
+  tab-size: 2;
+  white-space: pre;
+}
+
+.file-preview-plugin-empty {
+  margin: auto;
+  padding: 1rem;
+  color: #98a2b3;
+  text-align: center;
+}

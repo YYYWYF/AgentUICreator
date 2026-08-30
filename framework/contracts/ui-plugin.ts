@@ -1,4 +1,5 @@
 import type { Message } from "@ag-ui/core";
+import type { ComponentType } from "react";
 import { z } from "zod";
 
 import type { PluginInstance } from "./app-ui-model";
@@ -29,6 +30,15 @@ export interface UIPluginContext {
   state: unknown;
   instance: PluginInstance;
   actions: UIPluginActions;
+}
+
+export interface UIPluginComponentProps {
+  context: UIPluginContext;
+}
+
+export interface UIPluginDefinition {
+  manifest: UIPluginManifest;
+  Component: ComponentType<UIPluginComponentProps>;
 }
 
 const nonBlankStringSchema = z
