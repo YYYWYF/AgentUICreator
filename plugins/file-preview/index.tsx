@@ -1,9 +1,6 @@
 import type {
   UIPluginComponentProps,
-  UIPluginDefinition,
 } from "../../framework/contracts/ui-plugin";
-import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
-import manifestJson from "./manifest.json";
 
 import "./styles.css";
 
@@ -65,6 +62,7 @@ export function FilePreviewPlugin({ context }: UIPluginComponentProps) {
 
   return (
     <section
+      aria-label="File preview"
       className="file-preview-plugin"
       data-show-header={showHeader}
       data-ui-plugin="file-preview"
@@ -91,8 +89,3 @@ export function FilePreviewPlugin({ context }: UIPluginComponentProps) {
     </section>
   );
 }
-
-export const filePreviewPlugin: UIPluginDefinition = {
-  manifest: parseUIPluginManifest(manifestJson),
-  Component: FilePreviewPlugin,
-};

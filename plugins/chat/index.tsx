@@ -3,10 +3,7 @@ import { useState, type FormEvent } from "react";
 import type {
   AGUIMessage,
   UIPluginComponentProps,
-  UIPluginDefinition,
 } from "../../framework/contracts/ui-plugin";
-import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
-import manifestJson from "./manifest.json";
 
 import "./styles.css";
 
@@ -64,7 +61,11 @@ export function ChatPlugin({ context }: UIPluginComponentProps) {
   };
 
   return (
-    <section className="chat-plugin" data-ui-plugin="chat">
+    <section
+      aria-label="Agent conversation"
+      className="chat-plugin"
+      data-ui-plugin="chat"
+    >
       <header className="chat-plugin-header">
         <div>
           <span>Agent</span>
@@ -107,8 +108,3 @@ export function ChatPlugin({ context }: UIPluginComponentProps) {
     </section>
   );
 }
-
-export const chatPlugin: UIPluginDefinition = {
-  manifest: parseUIPluginManifest(manifestJson),
-  Component: ChatPlugin,
-};
