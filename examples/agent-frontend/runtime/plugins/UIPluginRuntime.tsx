@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import type {
   AppUIModel,
+  LayoutNode,
   PluginInstance,
   SlotNode,
 } from "../../framework/contracts/app-ui-model";
@@ -22,6 +23,10 @@ import {
   createInstanceActions,
   type UIPluginRuntimeActions,
 } from "./PluginServiceRuntime";
+import {
+  PluginErrorBoundary,
+  type PluginRenderFailure,
+} from "./PluginErrorBoundary";
 
 import "./plugin-runtime.css";
 
@@ -43,6 +48,8 @@ interface PluginSlotProps {
   state: unknown;
   run: UIPluginRunState;
   actions: UIPluginRuntimeActions;
+  onPluginError(failure: PluginRenderFailure): void;
+  onPluginReset(instanceId: string): void;
 }
 
 function PluginRuntimeError({ children }: { children: ReactNode }) {
@@ -50,6 +57,35 @@ function PluginRuntimeError({ children }: { children: ReactNode }) {
     <div className="app-ui-plugin-error" role="alert">
       {children}
     </div>
+  );
+}
+
+function createPropsResetKey(
+  props: PluginInstance["props"],
+): string | PluginInstance["props"] {
+  try {
+    return JSON.stringify(props ?? null);
+  } catch {
+    return props;
+  }
+}
+
+function collectMountedPluginInstanceIds(
+  node: LayoutNode,
+  mounted: Set<string>,
+): void {
+  if (node.type === "slot") {
+    node.pluginInstanceIds.forEach((instanceId) => mounted.add(instanceId));
+    return;
+  }
+
+  if (node.type === "panel") {
+    collectMountedPluginInstanceIds(node.child, mounted);
+    return;
+  }
+
+  node.children.forEach((child) =>
+    collectMountedPluginInstanceIds(child, mounted),
   );
 }
 
@@ -61,6 +97,8 @@ function PluginSlot({
   state,
   run,
   actions,
+  onPluginError,
+  onPluginReset,
 }: PluginSlotProps) {
   const serviceRuntime = usePluginServiceRuntime();
   usePluginServiceRuntimeRevision();
@@ -141,19 +179,33 @@ function PluginSlot({
         };
         const PluginComponent = definition.Component;
         const activationKey =
-          activation?.status === "active"
+          requiresActivation && activation?.status === "active"
             ? `${instance.id}:${activation.activationId}`
             : instance.id;
 
         return (
-          <div
-            className="app-ui-plugin-instance"
-            data-plugin-id={definition.manifest.id}
-            data-plugin-instance-id={instance.id}
+          <PluginErrorBoundary
+            instanceId={instance.id}
             key={activationKey}
+            onError={onPluginError}
+            onReset={onPluginReset}
+            pluginId={definition.manifest.id}
+            pluginName={definition.manifest.name}
+            resetKeys={[
+              PluginComponent,
+              activationKey,
+              instance.pluginId,
+              createPropsResetKey(instance.props),
+            ]}
           >
-            <PluginComponent context={context} />
-          </div>
+            <div
+              className="app-ui-plugin-instance"
+              data-plugin-id={definition.manifest.id}
+              data-plugin-instance-id={instance.id}
+            >
+              <PluginComponent context={context} />
+            </div>
+          </PluginErrorBoundary>
         );
       })}
     </div>
@@ -169,22 +221,109 @@ function UIPluginRuntimeContent({
   actions,
   className,
 }: UIPluginRuntimeProps) {
+  const [pluginFailures, setPluginFailures] = useState<
+    Record<string, PluginRenderFailure>
+  >({});
+  const reportPluginFailure = useCallback((failure: PluginRenderFailure) => {
+    setPluginFailures((current) => ({
+      ...current,
+      [failure.instanceId]: failure,
+    }));
+  }, []);
+  const clearPluginFailure = useCallback((instanceId: string) => {
+    setPluginFailures((current) => {
+      if (current[instanceId] === undefined) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next[instanceId];
+      return next;
+    });
+  }, []);
+  const failures = Object.values(pluginFailures);
+
+  useEffect(() => {
+    setPluginFailures((current) => {
+      const mountedInstanceIds = new Set<string>();
+      collectMountedPluginInstanceIds(model.root, mountedInstanceIds);
+      const staleInstanceIds = Object.keys(current).filter((instanceId) => {
+        const instance = model.pluginInstances[instanceId];
+        return (
+          instance === undefined ||
+          !instance.enabled ||
+          !mountedInstanceIds.has(instanceId)
+        );
+      });
+
+      if (staleInstanceIds.length === 0) {
+        return current;
+      }
+
+      const next = { ...current };
+      staleInstanceIds.forEach((instanceId) => delete next[instanceId]);
+      return next;
+    });
+  }, [model]);
+
   return (
-    <LayoutRenderer
-      className={className}
-      model={model}
-      renderSlot={(slot) => (
-        <PluginSlot
-          actions={actions}
-          messages={messages}
-          model={model}
-          registry={registry}
-          run={run}
-          slot={slot}
-          state={state}
-        />
-      )}
-    />
+    <>
+      <LayoutRenderer
+        className={className}
+        model={model}
+        renderSlot={(slot) => (
+          <PluginSlot
+            actions={actions}
+            messages={messages}
+            model={model}
+            onPluginError={reportPluginFailure}
+            onPluginReset={clearPluginFailure}
+            registry={registry}
+            run={run}
+            slot={slot}
+            state={state}
+          />
+        )}
+      />
+
+      {failures.length > 0 ? (
+        <section
+          aria-label="插件错误通知"
+          aria-live="polite"
+          className="app-ui-plugin-notifications"
+        >
+          {failures.map((failure) => (
+            <div
+              className="app-ui-plugin-error app-ui-plugin-notification"
+              data-plugin-id={failure.pluginId}
+              data-plugin-instance-id={failure.instanceId}
+              data-plugin-state="error"
+              key={failure.instanceId}
+              role="alert"
+            >
+              <span className="app-ui-plugin-error-icon" aria-hidden="true">
+                !
+              </span>
+              <span className="app-ui-plugin-error-body">
+                <strong>插件运行失败</strong>
+                <span className="app-ui-plugin-error-identity">
+                  {failure.pluginName} · {failure.instanceId}
+                </span>
+                <code>{failure.errorMessage}</code>
+              </span>
+              <button
+                aria-label={`关闭 ${failure.pluginName} 错误提示`}
+                className="app-ui-plugin-notification-close"
+                onClick={() => clearPluginFailure(failure.instanceId)}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </section>
+      ) : null}
+    </>
   );
 }
 

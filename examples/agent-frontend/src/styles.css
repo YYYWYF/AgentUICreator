@@ -25,6 +25,15 @@ body {
 }
 
 .development-preview {
+  --app-ui-plugin-error-background: linear-gradient(
+    135deg,
+    rgb(86 20 36 / 78%),
+    rgb(55 18 30 / 82%)
+  );
+  --app-ui-plugin-error-border: rgb(255 107 138 / 35%);
+  --app-ui-plugin-error-identity: #ff879e;
+  --app-ui-plugin-error-icon: #ec5f7b;
+  --app-ui-plugin-error-text: #ffb5c3;
   --ui-text-primary: #f4f6ff;
   --ui-text-secondary: #9ba8c3;
   --ui-text-muted: #7585a3;
@@ -59,6 +68,11 @@ body {
 }
 
 .development-preview[data-agent-ui-theme="light"] {
+  --app-ui-plugin-error-background: linear-gradient(135deg, #fff6f5, #fef3f2);
+  --app-ui-plugin-error-border: rgb(240 68 56 / 34%);
+  --app-ui-plugin-error-identity: #912018;
+  --app-ui-plugin-error-icon: #d92d20;
+  --app-ui-plugin-error-text: #b42318;
   --ui-text-primary: #18213a;
   --ui-text-secondary: #65708a;
   --ui-text-muted: #7a849e;

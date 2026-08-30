@@ -15,12 +15,94 @@
 }
 
 .app-ui-plugin-error {
+  min-width: 0;
   padding: 1rem;
-  border: 1px solid #fda29b;
+  border: 1px solid
+    var(--app-ui-plugin-error-border, rgb(240 68 56 / 34%));
   border-radius: 0.75rem;
-  color: #b42318;
-  background: #fef3f2;
+  color: var(--app-ui-plugin-error-text, #b42318);
+  background: var(
+    --app-ui-plugin-error-background,
+    linear-gradient(135deg, #fff6f5, #fef3f2)
+  );
   font-size: 0.875rem;
+}
+
+.app-ui-plugin-notifications {
+  position: fixed;
+  z-index: 1000;
+  top: 1rem;
+  right: 1rem;
+  display: grid;
+  width: min(24rem, calc(100vw - 2rem));
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.app-ui-plugin-notification {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.75rem;
+  pointer-events: auto;
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 28%);
+  backdrop-filter: blur(1rem);
+}
+
+.app-ui-plugin-error-icon {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--app-ui-plugin-error-icon, #d92d20);
+  font-weight: 700;
+}
+
+.app-ui-plugin-error-body {
+  display: grid;
+  min-width: 0;
+  gap: 0.25rem;
+}
+
+.app-ui-plugin-error-identity {
+  color: var(--app-ui-plugin-error-identity, #912018);
+  font-size: 0.75rem;
+}
+
+.app-ui-plugin-error code {
+  overflow-wrap: anywhere;
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+}
+
+.app-ui-plugin-notification-close {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  place-items: center;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.app-ui-plugin-notification-close:hover {
+  background: rgb(255 255 255 / 10%);
+}
+
+.app-ui-plugin-notification-close:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 .app-ui-plugin-pending {

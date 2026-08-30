@@ -1,0 +1,63 @@
+.plugin-boundary-preview-toolbar {
+  position: fixed;
+  z-index: 100;
+  right: 1rem;
+  bottom: 1rem;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.45rem;
+  border: 1px solid rgb(139 124 255 / 28%);
+  border-radius: 0.875rem;
+  color: #f4f6ff;
+  background: rgb(13 25 43 / 92%);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 32%);
+  backdrop-filter: blur(1rem);
+}
+
+.plugin-boundary-preview-toolbar[data-open="true"] {
+  width: 12rem;
+  padding: 0.75rem;
+}
+
+.plugin-boundary-preview-toolbar button {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgb(139 124 255 / 26%);
+  border-radius: 0.55rem;
+  color: #f4f6ff;
+  background: #263550;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+  text-align: left;
+}
+
+.plugin-boundary-preview-toolbar .plugin-boundary-preview-toggle {
+  color: #b9b0ff;
+  font-weight: 700;
+  text-align: center;
+}
+
+.plugin-boundary-preview-controls {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.plugin-boundary-preview-toolbar button:hover {
+  border-color: #8b7cff;
+  background: #334465;
+}
+
+.plugin-boundary-runtime-fixture-layout {
+  display: none !important;
+}
+
+@media (max-width: 58rem) {
+  .plugin-boundary-preview-toolbar {
+    right: 0.5rem;
+    bottom: 0.5rem;
+  }
+
+  .plugin-boundary-preview-toolbar[data-open="true"] {
+    width: 11rem;
+  }
+}
