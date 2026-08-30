@@ -1,0 +1,60 @@
+.app-ui-layout-root,
+.app-ui-layout-node {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+}
+
+.app-ui-layout-root {
+  width: 100%;
+  height: 100%;
+}
+
+.app-ui-layout-row,
+.app-ui-layout-column {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  align-items: stretch;
+}
+
+.app-ui-layout-panel {
+  width: 100%;
+  height: 100%;
+}
+
+.app-ui-layout-panel > .app-ui-layout-node,
+.app-ui-layout-stack > .app-ui-layout-node {
+  width: 100%;
+  height: 100%;
+}
+
+.app-ui-layout-stack,
+.app-ui-layout-slot {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.app-ui-layout-slot-placeholder {
+  display: grid;
+  height: 100%;
+  min-height: 8rem;
+  place-content: center;
+  gap: 0.35rem;
+  border: 1px dashed var(--app-ui-placeholder-border, #9aa4b2);
+  border-radius: 0.75rem;
+  color: var(--app-ui-placeholder-text, #667085);
+  text-align: center;
+}
+
+.app-ui-layout-slot-placeholder span {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.app-ui-layout-slot-placeholder strong {
+  color: var(--app-ui-placeholder-heading, #344054);
+  font-size: 0.95rem;
+}
