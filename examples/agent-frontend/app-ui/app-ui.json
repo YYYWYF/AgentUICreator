@@ -1,0 +1,114 @@
+{
+  "version": "1",
+  "root": {
+    "type": "column",
+    "id": "agent-interface",
+    "gap": 0,
+    "sizes": ["auto", "minmax(0, 1fr)", "auto", "auto"],
+    "children": [
+      {
+        "type": "row",
+        "id": "agent-header",
+        "gap": 0,
+        "sizes": ["minmax(0, 1fr)", "auto"],
+        "children": [
+          {
+            "type": "slot",
+            "id": "agent-welcome-slot-node",
+            "slotId": "agent-welcome",
+            "pluginInstanceIds": ["agent-welcome-main"]
+          },
+          {
+            "type": "slot",
+            "id": "agent-theme-switch-slot-node",
+            "slotId": "agent-theme-switch",
+            "pluginInstanceIds": ["agent-theme-switch-main"]
+          }
+        ]
+      },
+      {
+        "type": "slot",
+        "id": "agent-messages-slot-node",
+        "slotId": "agent-messages",
+        "pluginInstanceIds": ["agent-messages-main"]
+      },
+      {
+        "type": "slot",
+        "id": "agent-prompts-slot-node",
+        "slotId": "agent-prompts",
+        "pluginInstanceIds": ["agent-prompts-main"]
+      },
+      {
+        "type": "slot",
+        "id": "agent-sender-slot-node",
+        "slotId": "agent-sender",
+        "pluginInstanceIds": ["agent-sender-main"]
+      }
+    ]
+  },
+  "pluginInstances": {
+    "agent-theme-provider-main": {
+      "id": "agent-theme-provider-main",
+      "pluginId": "antd-x-theme-provider",
+      "enabled": true,
+      "props": {
+        "mode": "dark"
+      }
+    },
+    "agent-theme-switch-main": {
+      "id": "agent-theme-switch-main",
+      "pluginId": "antd-x-theme-switch",
+      "enabled": true
+    },
+    "agent-welcome-main": {
+      "id": "agent-welcome-main",
+      "pluginId": "antd-x-welcome",
+      "enabled": true,
+      "props": {
+        "title": "Agent Frontend",
+        "description": "通过 AG-UI 与一个 Agent Runtime 连接，由可复用 UI Plugin 确定性渲染。"
+      }
+    },
+    "agent-messages-main": {
+      "id": "agent-messages-main",
+      "pluginId": "antd-x-message-list",
+      "enabled": true,
+      "props": {
+        "emptyText": "开始一段新对话"
+      }
+    },
+    "agent-prompts-main": {
+      "id": "agent-prompts-main",
+      "pluginId": "antd-x-prompts",
+      "enabled": true,
+      "props": {
+        "title": "你可以这样开始",
+        "items": [
+          {
+            "key": "summarize",
+            "label": "总结当前上下文",
+            "description": "提炼目标、约束与下一步"
+          },
+          {
+            "key": "explain",
+            "label": "解释界面结构",
+            "description": "说明 AppUIModel 与插件的关系"
+          },
+          {
+            "key": "next",
+            "label": "建议下一步",
+            "description": "给出一个可执行的后续动作"
+          }
+        ]
+      }
+    },
+    "agent-sender-main": {
+      "id": "agent-sender-main",
+      "pluginId": "antd-x-sender",
+      "enabled": true,
+      "props": {
+        "placeholder": "给智能体发送消息，Enter 发送"
+      }
+    }
+  }
+}

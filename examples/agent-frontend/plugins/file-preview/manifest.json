@@ -1,0 +1,10 @@
+{
+  "id": "file-preview",
+  "name": "文件预览",
+  "description": "显示智能体状态中选中的文件。",
+  "version": "1.0.0",
+  "capabilities": ["file-preview"],
+  "data": {
+    "state": true
+  }
+}

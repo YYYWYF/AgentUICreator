@@ -1,0 +1,137 @@
+.antd-x-prompts-plugin {
+  position: relative;
+  padding: 0.65rem 1.4rem 0.85rem;
+  border-top: 1px solid rgb(139 124 255 / 8%);
+  background: rgb(8 18 32 / 96%);
+}
+
+.development-preview[data-agent-ui-theme="light"] .antd-x-prompts-plugin {
+  border-top-color: rgb(99 86 204 / 8%);
+  background: rgb(249 250 254 / 97%);
+}
+
+.antd-x-prompts-plugin .ant-prompts {
+  max-width: 100%;
+}
+
+.antd-x-prompts-plugin .ant-prompts-title {
+  margin-bottom: 0.55rem;
+  color: #7888a6;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-prompts-plugin
+  .ant-prompts-title {
+  color: #707a93;
+}
+
+.antd-x-prompts-plugin .ant-prompts-list {
+  gap: 0.65rem;
+}
+
+.antd-x-prompts-plugin .ant-prompts-item {
+  min-width: 0;
+  flex: 1 1 0;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid rgb(139 124 255 / 14%);
+  border-radius: 0.9rem;
+  background:
+    linear-gradient(135deg, rgb(139 124 255 / 7%), transparent 58%),
+    rgb(17 30 50 / 76%);
+  box-shadow: inset 0 1px rgb(255 255 255 / 3%);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-prompts-plugin
+  .ant-prompts-item {
+  border-color: rgb(100 82 203 / 13%);
+  background:
+    linear-gradient(135deg, rgb(119 100 224 / 6%), transparent 58%),
+    rgb(255 255 255 / 90%);
+  box-shadow:
+    0 0.45rem 1.25rem rgb(55 61 94 / 5%),
+    inset 0 1px rgb(255 255 255 / 90%);
+}
+
+.antd-x-prompts-plugin .ant-prompts-item:hover {
+  border-color: rgb(139 124 255 / 48%);
+  box-shadow:
+    0 0.8rem 1.8rem rgb(0 0 0 / 18%),
+    0 0 1.4rem rgb(139 124 255 / 8%);
+  transform: translateY(-2px);
+}
+
+.antd-x-prompts-plugin .ant-prompts-icon {
+  display: grid;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(139 124 255 / 20%);
+  border-radius: 0.65rem;
+  color: #b2a8ff;
+  background: rgb(139 124 255 / 12%);
+}
+
+.antd-x-prompts-plugin .ant-prompts-item:nth-child(2) .ant-prompts-icon {
+  border-color: rgb(79 224 208 / 20%);
+  color: #72e8dc;
+  background: rgb(79 224 208 / 10%);
+}
+
+.antd-x-prompts-plugin .ant-prompts-item:nth-child(3) .ant-prompts-icon {
+  border-color: rgb(99 174 255 / 20%);
+  color: #89c5ff;
+  background: rgb(99 174 255 / 10%);
+}
+
+.antd-x-prompts-plugin .ant-prompts-label {
+  color: #dce3f5;
+  font-size: 0.78rem;
+  font-weight: 620;
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-prompts-plugin
+  .ant-prompts-label {
+  color: #25304a;
+}
+
+.antd-x-prompts-plugin .ant-prompts-desc {
+  margin-top: 0.12rem;
+  color: #7888a6;
+  font-size: 0.66rem;
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-prompts-plugin
+  .ant-prompts-desc {
+  color: #717c95;
+}
+
+.antd-x-prompts-plugin[data-agent-run-status="running"] {
+  opacity: 0.62;
+}
+
+@media (max-width: 44rem) {
+  .antd-x-prompts-plugin {
+    padding-inline: 0.9rem;
+    overflow-x: auto;
+  }
+
+  .antd-x-prompts-plugin .ant-prompts-list {
+    flex-wrap: nowrap;
+  }
+
+  .antd-x-prompts-plugin .ant-prompts-item {
+    min-width: 12rem;
+  }
+}

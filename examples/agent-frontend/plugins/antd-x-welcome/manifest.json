@@ -1,0 +1,7 @@
+{
+  "id": "antd-x-welcome",
+  "name": "Ant Design X 欢迎区",
+  "description": "使用 Ant Design X Welcome 展示 Agent 身份与运行状态。",
+  "version": "1.0.0",
+  "capabilities": ["agent-welcome", "run-status"]
+}

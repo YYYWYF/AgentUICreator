@@ -428,6 +428,11 @@ interface UIPluginContext {
 
   state: unknown
 
+  run: {
+    status: "idle" | "running" | "error"
+    errorMessage: string | undefined
+  }
+
   instance: PluginInstance
 
   actions: UIPluginActions
@@ -440,13 +445,62 @@ Actions 第一版保持少量：
 interface UIPluginActions {
   sendMessage(input: string): Promise<void>
 
+  abortRun(): void
+
   updateInstanceProps(
     props: Record<string, unknown>
   ): void
 }
 ```
 
+`run` 由 UI Runtime 从 AG-UI Run 生命周期投影为稳定的前端状态。Plugin 不直接订阅底层 Run Event。
+
 不要过早加入大量 Runtime API。
+
+## 8.1 Plugin Services
+
+当 UI Plugin 之间存在真实逻辑依赖时，使用具名 Plugin Service，而不是把业务专用函数继续扩进 `UIPluginContext.actions`。
+
+```ts
+interface UIPluginDefinition {
+  manifest: UIPluginManifest
+  inject?: readonly string[]
+  setup?: (context: UIPluginSetupContext) => void | (() => void)
+  Component: ComponentType<UIPluginComponentProps>
+}
+```
+
+提供方在实例生命周期的 `setup` 中注册函数或对象：
+
+```ts
+setup({ services }) {
+  services.provide("agent-ui.theme", {
+    setMode(mode) {},
+    toggle() {}
+  })
+}
+```
+
+消费方通过 `inject` 声明硬依赖，并在组件内读取：
+
+```ts
+inject: ["agent-ui.theme"]
+
+const theme = context.services.get("agent-ui.theme")
+theme?.toggle()
+```
+
+约束：
+
+- `manifest.capabilities` 仍是描述性元数据，不承担运行时函数调用。
+- 硬依赖未满足时，Plugin Instance 保持 pending；可选能力只在使用处调用 `services.get()` 探测。
+- 服务名在一个 Agent Frontend 内是具名命名空间；重复提供必须确定性失败。
+- 服务归提供它的 Plugin Instance 所有；实例禁用、替换或移除时，服务和 setup disposer 一起清理。
+- 服务消失时，硬依赖消费者必须失效；服务恢复后以新的激活身份重新挂载，不能继续持有已卸载提供者。
+- 依赖解析不得依赖 AppUIModel 对象顺序或 Layout 中的视觉顺序。
+- 服务用于直接调用共享能力；广播事件如未来需要，应建立独立事件机制，不混入 Service Contract。
+
+这个机制借鉴 DeepSeek Harness / Cordis 的 `provide`、`inject`、`get` 与 fiber-owned lifecycle 语义，但只实现适合当前确定性 React UI Plugin Runtime 的最小子集，不引入 Cordis 依赖。
 
 ---
 
@@ -525,7 +579,7 @@ Agent Backend
 @ag-ui/client
       │
       ▼
-messages / state
+messages / state / run state
       │
       ▼
 UI Plugin Runtime
@@ -539,6 +593,7 @@ UI Plugin 优先消费：
 ```text
 messages
 state
+run state
 ```
 
 而不是直接绑定大量底层 Event Hook。
@@ -746,33 +801,27 @@ Creator 可以自主选择工具。
 
 # 16. 项目目录
 
-第一版建议：
+第一版采用 pnpm workspace，把可发布的 Creator、独立目标前端和开发组合壳分开：
 
 ```text
-project/
-│
-├── app-ui/
-│   └── app-ui.json
-│
-├── plugins/
-│   ├── chat/
-│   │   ├── manifest.json
-│   │   ├── index.tsx
-│   │   └── styles.css
-│   │
-│   └── ...
-│
-├── creator/
-│   ├── prompt/
-│   ├── skills/
-│   └── tools/
-│
-├── runtime/
-│
-├── framework/
-│
-└── build/
+workspace/
+├── packages/
+│   └── creator/                 # 可发布的开发工具
+│       ├── src/                 # Agent、CLI、Vite 适配、Creator UI
+│       ├── skills/
+│       └── package.json
+├── examples/
+│   └── agent-frontend/          # 可独立构建、部署的目标应用
+│       ├── app-ui/
+│       ├── plugins/
+│       ├── runtime/
+│       ├── framework/
+│       └── package.json
+└── apps/
+    └── creator-workbench/       # 仅开发时组合 Creator 与目标应用
 ```
+
+Creator 通过显式 `projectRoot` 操作目标前端；目标前端不依赖 Creator package。CLI、Vite 适配器与 Creator UI 复用同一 Creator Core，但都不进入目标前端的生产 Bundle。
 
 权限：
 
@@ -897,13 +946,14 @@ File Preview Plugin
 ```text
 messages
 state
+run state
 ```
 
 注入 UIPluginContext。
 
 验收：
 
-Chat Plugin 能通过真实或 Mock AG-UI 数据展示 Agent 消息。
+Chat Plugin 能通过真实或 Mock AG-UI 数据展示 Agent 消息，并响应 running / error 状态。
 
 ---
 
@@ -912,6 +962,14 @@ Chat Plugin 能通过真实或 Mock AG-UI 数据展示 Agent 消息。
 使用现有前端构建能力，例如 Vite。
 
 完成：
+
+```text
+Vite Development Server
+React Fast Refresh
+Plugin Component / Definition 分离
+```
+
+开发链路：
 
 ```text
 修改 Plugin
@@ -932,6 +990,44 @@ Preview 更新
 # 22. Phase 6：Creator Agent 基础版
 
 接入 DeepAgents。
+
+完成：
+
+```text
+DeepAgents Creator Factory
+Creator System Prompt
+Project-scoped Filesystem / Search / Edit
+Allowlisted validation commands
+```
+
+Creator 作为独立开发态 Node package 存在，模型实例由工具宿主注入，不进入目标前端的 Vite 生产 Bundle。它既可由 CLI 运行，也可通过开发工作台的 Vite 适配器运行。
+
+```ts
+const creator = createCreatorAgent({
+  model,
+  projectRoot,
+})
+
+await creator.invoke({
+  messages: [{ role: "user", content: request }],
+})
+```
+
+文件与命令边界：
+
+```text
+/project/*
+  读取 / 搜索
+
+/project/app-ui/app-ui.json
+  允许写入
+
+其他文件
+  禁止写入
+
+Command
+  仅允许固定的只读或验证命令
+```
 
 先给予：
 

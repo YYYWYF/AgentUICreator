@@ -1,0 +1,156 @@
+.antd-x-message-list-plugin {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  padding: 1.2rem 1.4rem 0.8rem;
+  overflow: auto;
+  background:
+    radial-gradient(circle at 5% 0%, rgb(139 124 255 / 6%), transparent 18rem),
+    linear-gradient(180deg, rgb(10 21 37 / 82%), rgb(8 18 32 / 96%));
+  scrollbar-color: rgb(139 124 255 / 30%) transparent;
+  scrollbar-width: thin;
+}
+
+.development-preview[data-agent-ui-theme="light"] .antd-x-message-list-plugin {
+  background:
+    radial-gradient(circle at 5% 0%, rgb(118 99 226 / 7%), transparent 18rem),
+    linear-gradient(180deg, rgb(251 252 255 / 88%), rgb(246 248 253 / 98%));
+  scrollbar-color: rgb(104 87 207 / 22%) transparent;
+}
+
+.antd-x-message-list-plugin::before {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgb(151 164 195 / 10%) 0.7px, transparent 0.7px);
+  background-size: 1.25rem 1.25rem;
+  mask-image: linear-gradient(to right, black, transparent 70%);
+  content: "";
+  pointer-events: none;
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-message-list-plugin::before {
+  background-image: radial-gradient(
+    rgb(98 107 139 / 10%) 0.7px,
+    transparent 0.7px
+  );
+}
+
+.antd-x-message-list-plugin > * {
+  position: relative;
+  z-index: 1;
+}
+
+.antd-x-message-list-plugin > .ant-empty {
+  display: grid;
+  height: 100%;
+  min-height: 10rem;
+  place-content: center;
+}
+
+.antd-x-message-list-plugin .ant-bubble-list-scroll-content {
+  gap: 1.05rem;
+}
+
+.antd-x-message-list-plugin .ant-bubble-header {
+  margin-bottom: 0.32rem;
+}
+
+.antd-x-message-list-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #7f8eaa;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.antd-x-message-list-role-dot {
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: #4fe0d0;
+  box-shadow: 0 0 0.7rem #4fe0d0;
+}
+
+.antd-x-message-list-avatar--agent,
+.antd-x-message-list-avatar--user {
+  border: 1px solid rgb(255 255 255 / 12%);
+  box-shadow: 0 0.5rem 1.2rem rgb(0 0 0 / 24%);
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-message-list-avatar--user {
+  color: #59657f;
+  background: #e6e9f2;
+}
+
+.antd-x-message-list-avatar--agent {
+  color: #ffffff;
+  background: linear-gradient(145deg, #8b7cff, #5848d5);
+}
+
+.antd-x-message-list-avatar--user {
+  color: #d8e2f5;
+  background: #1b2a42;
+}
+
+.antd-x-message-list-bubble--agent .ant-bubble-content {
+  border: 1px solid rgb(139 124 255 / 15%);
+  color: #e6eafa;
+  background:
+    linear-gradient(135deg, rgb(139 124 255 / 11%), transparent 62%),
+    #121f34;
+  box-shadow: 0 0.7rem 1.8rem rgb(0 0 0 / 15%);
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-message-list-bubble--agent
+  .ant-bubble-content {
+  border-color: rgb(98 80 200 / 12%);
+  color: #25304a;
+  background:
+    linear-gradient(135deg, rgb(124 104 229 / 8%), transparent 62%),
+    #ffffff;
+  box-shadow: 0 0.7rem 1.8rem rgb(54 60 90 / 8%);
+}
+
+.antd-x-message-list-bubble--user .ant-bubble-content {
+  border: 1px solid rgb(122 104 255 / 42%);
+  color: #ffffff;
+  background: linear-gradient(135deg, #7666f3, #5546c9);
+  box-shadow: 0 0.7rem 1.8rem rgb(73 54 190 / 24%);
+}
+
+.antd-x-message-list-bubble--system .ant-bubble-content {
+  color: #91a0bd;
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-message-list-bubble--system
+  .ant-bubble-content {
+  color: #6f7991;
+}
+
+.antd-x-message-list-plugin .ant-bubble-content {
+  max-width: min(42rem, 82%);
+  padding: 0.75rem 0.95rem;
+  line-height: 1.65;
+}
+
+.antd-x-message-list-plugin .ant-bubble-loading .ant-bubble-dot-item {
+  background: #8b7cff;
+  box-shadow: 0 0 0.6rem rgb(139 124 255 / 55%);
+}
+
+@media (max-width: 44rem) {
+  .antd-x-message-list-plugin {
+    padding: 0.9rem 0.9rem 0.6rem;
+  }
+
+  .antd-x-message-list-plugin .ant-bubble-content {
+    max-width: 88%;
+  }
+}

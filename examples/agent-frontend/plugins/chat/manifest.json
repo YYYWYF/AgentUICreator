@@ -1,0 +1,10 @@
+{
+  "id": "chat",
+  "name": "对话",
+  "description": "显示 AG-UI 消息，并通过运行时操作发送用户输入。",
+  "version": "1.0.0",
+  "capabilities": ["messages", "message-input"],
+  "data": {
+    "messages": true
+  }
+}

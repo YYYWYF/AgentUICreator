@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "types": ["node", "vite/client"],
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@agent-ui/creator/ui": ["../../packages/creator/src/ui/CreatorWorkbench.tsx"],
+      "@agent-ui/example-agent-frontend/App": ["../../examples/agent-frontend/src/App.tsx"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "vite.config.ts",
+    "../../packages/creator/src/ui/**/*.tsx",
+    "../../examples/agent-frontend/app-ui/**/*.json",
+    "../../examples/agent-frontend/framework/**/*.ts",
+    "../../examples/agent-frontend/plugins/**/*.ts",
+    "../../examples/agent-frontend/plugins/**/*.tsx",
+    "../../examples/agent-frontend/runtime/**/*.ts",
+    "../../examples/agent-frontend/runtime/**/*.tsx",
+    "../../examples/agent-frontend/src/App.tsx",
+    "../../examples/agent-frontend/src/preview-data.ts"
+  ]
+}

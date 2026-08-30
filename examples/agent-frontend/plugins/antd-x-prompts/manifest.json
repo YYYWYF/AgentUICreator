@@ -1,0 +1,7 @@
+{
+  "id": "antd-x-prompts",
+  "name": "Ant Design X 快捷提示",
+  "description": "使用 Ant Design X Prompts 渲染可配置的快捷消息入口。",
+  "version": "1.0.0",
+  "capabilities": ["message-prompts", "message-send"]
+}

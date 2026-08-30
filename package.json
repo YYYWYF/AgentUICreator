@@ -1,34 +1,19 @@
 {
-  "name": "agent-ui-creator",
+  "name": "agent-ui-creator-workspace",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
   "packageManager": "pnpm@10.15.1",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "@ag-ui/client": "^0.0.59",
-    "@ag-ui/core": "^0.0.59",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "zod": "^4.5.4"
-  },
-  "devDependencies": {
-    "@types/node": "^20.19.43",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.5",
-    "@vitejs/plugin-react": "^6.1.1",
-    "typescript": "^7.0.2",
-    "vite": "^8.2.2",
-    "vitest": "^4.1.11"
+    "dev": "pnpm --filter @agent-ui/creator-workbench dev",
+    "dev:app": "pnpm --filter @agent-ui/example-agent-frontend dev",
+    "build": "pnpm --filter @agent-ui/creator build && pnpm --filter @agent-ui/example-agent-frontend build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "test:watch": "pnpm --filter @agent-ui/example-agent-frontend test:watch",
+    "creator": "pnpm --filter @agent-ui/creator build && node packages/creator/dist/cli.js --project examples/agent-frontend --config-root .",
+    "verify:creator:live": "pnpm --filter @agent-ui/creator verify:live"
   }
 }

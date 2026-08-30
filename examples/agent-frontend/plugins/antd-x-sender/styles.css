@@ -1,0 +1,163 @@
+.antd-x-sender-plugin {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.8rem 1.4rem 1.25rem;
+  border-top: 1px solid rgb(139 124 255 / 9%);
+  background:
+    linear-gradient(180deg, rgb(8 18 32 / 88%), #081220 38%),
+    #081220;
+}
+
+.development-preview[data-agent-ui-theme="light"] .antd-x-sender-plugin {
+  border-top-color: rgb(99 86 204 / 8%);
+  background:
+    linear-gradient(180deg, rgb(249 250 254 / 91%), #f7f9fd 38%),
+    #f7f9fd;
+}
+
+.antd-x-sender-plugin .ant-alert {
+  border-color: rgb(255 107 138 / 24%);
+  background: rgb(255 107 138 / 8%);
+}
+
+.antd-x-sender-plugin .ant-sender {
+  border: 1px solid rgb(139 124 255 / 20%);
+  border-radius: 1.25rem;
+  background:
+    linear-gradient(135deg, rgb(139 124 255 / 8%), transparent 52%),
+    rgb(16 29 49 / 92%);
+  box-shadow:
+    0 1rem 2.5rem rgb(0 0 0 / 28%),
+    inset 0 1px rgb(255 255 255 / 5%);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-sender-plugin
+  .ant-sender {
+  border-color: rgb(100 82 203 / 17%);
+  background:
+    linear-gradient(135deg, rgb(116 96 222 / 6%), transparent 52%),
+    rgb(255 255 255 / 94%);
+  box-shadow:
+    0 1rem 2.5rem rgb(53 59 91 / 10%),
+    inset 0 1px rgb(255 255 255 / 90%);
+}
+
+.antd-x-sender-plugin .ant-sender:focus-within {
+  border-color: rgb(139 124 255 / 66%);
+  box-shadow:
+    0 1rem 2.8rem rgb(0 0 0 / 32%),
+    0 0 0 3px rgb(139 124 255 / 9%),
+    0 0 2.5rem rgb(139 124 255 / 11%);
+}
+
+.antd-x-sender-plugin .ant-sender-input {
+  color: #eef2ff;
+  font-size: 0.86rem;
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-sender-plugin
+  .ant-sender-input {
+  color: #202a43;
+}
+
+.antd-x-sender-plugin .ant-sender-input::placeholder {
+  color: #667693;
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-sender-plugin
+  .ant-sender-input::placeholder {
+  color: #9099ad;
+}
+
+.antd-x-sender-plugin .ant-sender-actions-btn {
+  border: 1px solid rgb(255 255 255 / 13%);
+  color: #ffffff;
+  background: linear-gradient(135deg, #8b7cff, #5b4bd5);
+  box-shadow: 0 0.55rem 1.2rem rgb(80 61 199 / 28%);
+}
+
+.antd-x-sender-plugin .ant-sender-actions-btn:disabled {
+  border-color: rgb(139 124 255 / 10%);
+  color: #62708c;
+  background: #18253a;
+  box-shadow: none;
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-sender-plugin
+  .ant-sender-actions-btn:disabled {
+  border-color: rgb(91 81 178 / 9%);
+  color: #98a1b5;
+  background: #e8ebf3;
+  box-shadow: inset 0 1px rgb(255 255 255 / 78%);
+}
+
+.antd-x-sender-plugin-prefix {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border: 1px solid rgb(79 224 208 / 17%);
+  border-radius: 0.6rem;
+  color: #69e5d8;
+  background: rgb(79 224 208 / 8%);
+}
+
+.antd-x-sender-plugin-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.antd-x-sender-plugin-channel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #7585a3;
+  font-size: 0.63rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-sender-plugin-channel,
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-sender-plugin
+  .ant-typography {
+  color: #78839b;
+}
+
+.antd-x-sender-plugin-channel > span {
+  width: 0.32rem;
+  height: 0.32rem;
+  border-radius: 50%;
+  background: #57e6a5;
+  box-shadow: 0 0 0.65rem #57e6a5;
+}
+
+.antd-x-sender-plugin .ant-typography {
+  color: #64738f;
+  font-size: 0.67rem;
+}
+
+@media (max-width: 44rem) {
+  .antd-x-sender-plugin {
+    padding: 0.7rem 0.9rem 0.9rem;
+  }
+
+  .antd-x-sender-plugin-channel {
+    display: none;
+  }
+
+  .antd-x-sender-plugin-footer {
+    justify-content: flex-end;
+  }
+}

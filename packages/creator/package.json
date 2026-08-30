@@ -1,0 +1,69 @@
+{
+  "name": "@agent-ui/creator",
+  "version": "0.1.0",
+  "description": "Development-time Creator Agent for AG-UI frontend projects",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "agent-ui-creator": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./vite": {
+      "types": "./dist/vitePlugin.d.ts",
+      "import": "./dist/vitePlugin.js"
+    },
+    "./ui": {
+      "types": "./dist/ui/CreatorWorkbench.d.ts",
+      "import": "./dist/ui/CreatorWorkbench.js"
+    },
+    "./ui.css": "./dist/ui/creator-workbench.css"
+  },
+  "files": [
+    "dist",
+    "skills"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "cli": "node dist/cli.js",
+    "verify:live": "tsx scripts/verify-creator-live.ts"
+  },
+  "dependencies": {
+    "@ag-ui/client": "0.0.59",
+    "@ag-ui/core": "0.0.59",
+    "@ag-ui/encoder": "0.0.59",
+    "@langchain/core": "1.2.9",
+    "@langchain/openai": "1.4.1",
+    "deepagents": "1.13.2",
+    "diff": "9.0.0",
+    "react-markdown": "10.1.0",
+    "remark-gfm": "4.0.1"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@types/react": "^19.2.18",
+    "react": "^19.2.8",
+    "tsx": "4.20.6",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11"
+  }
+}

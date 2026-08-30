@@ -1,0 +1,7 @@
+{
+  "id": "antd-x-sender",
+  "name": "Ant Design X 消息输入",
+  "description": "使用 Ant Design X Sender 发送消息并停止当前运行。",
+  "version": "1.0.0",
+  "capabilities": ["message-input", "message-send", "run-abort"]
+}

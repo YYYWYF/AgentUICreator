@@ -1,0 +1,7 @@
+{
+  "id": "antd-x-theme-switch",
+  "name": "Ant Design X Theme Switch",
+  "description": "Calls the shared theme service exposed by another UI plugin.",
+  "version": "1.0.0",
+  "capabilities": ["theme-control", "plugin-service-consumer"]
+}

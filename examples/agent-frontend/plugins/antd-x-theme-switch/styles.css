@@ -1,0 +1,69 @@
+.antd-x-theme-switch-plugin {
+  display: flex;
+  height: auto;
+  min-width: 10.5rem;
+  align-self: center;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin: 0.65rem 1rem 0.65rem 0.35rem;
+  padding: 0.55rem 0.65rem 0.55rem 0.8rem;
+  border: 1px solid var(--ui-theme-switch-border);
+  border-radius: 1rem;
+  background: var(--ui-theme-switch-surface);
+  box-shadow: var(--ui-theme-switch-shadow);
+  backdrop-filter: blur(0.9rem) saturate(120%);
+  transition:
+    border-color 180ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.antd-x-theme-switch-plugin-copy {
+  display: grid;
+  gap: 0.14rem;
+  text-align: right;
+}
+
+.antd-x-theme-switch-plugin-copy strong {
+  color: var(--ui-text-primary);
+  font-size: 0.73rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.antd-x-theme-switch-plugin-eyebrow {
+  color: var(--ui-text-muted);
+  font-size: 0.52rem;
+  font-weight: 760;
+  letter-spacing: 0.15em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.antd-x-theme-switch-plugin-control.ant-switch {
+  min-width: 3.1rem;
+  border: 1px solid var(--ui-control-border);
+  background: var(--ui-control-background);
+  box-shadow: inset 0 1px var(--ui-inset-highlight);
+}
+
+.antd-x-theme-switch-plugin-control.ant-switch-checked {
+  background: linear-gradient(135deg, #8b7cff, #5d50d8);
+  box-shadow:
+    0 0 1.25rem rgb(108 91 232 / 24%),
+    inset 0 1px rgb(255 255 255 / 22%);
+}
+
+@media (max-width: 44rem) {
+  .antd-x-theme-switch-plugin {
+    min-width: auto;
+    margin: 0.55rem 0.75rem 0.55rem 0.15rem;
+    padding: 0.45rem 0.5rem;
+    border-radius: 0.85rem;
+  }
+
+  .antd-x-theme-switch-plugin-copy {
+    display: none;
+  }
+}
