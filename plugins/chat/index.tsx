@@ -42,6 +42,7 @@ function messageText(message: AGUIMessage): string {
 export function ChatPlugin({ context }: UIPluginComponentProps) {
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string>();
 
   const submitMessage = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -52,9 +53,12 @@ export function ChatPlugin({ context }: UIPluginComponentProps) {
     }
 
     setIsSending(true);
+    setSendError(undefined);
     try {
       await context.actions.sendMessage(message);
       setInput("");
+    } catch (error) {
+      setSendError(error instanceof Error ? error.message : String(error));
     } finally {
       setIsSending(false);
     }
@@ -92,6 +96,11 @@ export function ChatPlugin({ context }: UIPluginComponentProps) {
       </div>
 
       <form className="chat-plugin-form" onSubmit={submitMessage}>
+        {sendError === undefined ? null : (
+          <p className="chat-plugin-error" role="alert">
+            {sendError}
+          </p>
+        )}
         <label htmlFor={`${context.instance.id}-input`}>Message</label>
         <div>
           <input

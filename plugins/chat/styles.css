@@ -85,6 +85,12 @@
   border-top: 1px solid #e4e9f0;
 }
 
+.chat-plugin-error {
+  margin: 0 0 0.6rem;
+  color: #b42318;
+  font-size: 0.78rem;
+}
+
 .chat-plugin-form > label {
   position: absolute;
   width: 1px;

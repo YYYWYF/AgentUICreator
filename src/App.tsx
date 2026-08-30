@@ -2,8 +2,8 @@ import { useCallback, useState } from "react";
 
 import appUIJson from "../app-ui/app-ui.json";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
-import type { AGUIMessage } from "../framework/contracts/ui-plugin";
 import { pluginDefinitions } from "../plugins";
+import { createAgentRuntime, useAgentRuntime } from "../runtime/ag-ui";
 import { createPluginRegistry, UIPluginRuntime } from "../runtime/plugins";
 import {
   initialPreviewMessages,
@@ -14,23 +14,17 @@ import "./styles.css";
 
 const initialAppUIModel = parseAppUIModel(appUIJson);
 const pluginRegistry = createPluginRegistry(pluginDefinitions);
+const agentRuntime = createAgentRuntime({
+  endpoint: import.meta.env.VITE_AGENT_ENDPOINT,
+  mock: {
+    initialMessages: initialPreviewMessages,
+    initialState: previewAgentState,
+  },
+});
 
 export function App() {
   const [model, setModel] = useState(initialAppUIModel);
-  const [messages, setMessages] = useState<AGUIMessage[]>(
-    initialPreviewMessages,
-  );
-
-  const sendMessage = useCallback(async (input: string) => {
-    setMessages((current) => [
-      ...current,
-      {
-        id: `preview-user-${crypto.randomUUID()}`,
-        role: "user",
-        content: input,
-      },
-    ]);
-  }, []);
+  const agent = useAgentRuntime(agentRuntime);
 
   const updateInstanceProps = useCallback(
     (instanceId: string, props: Record<string, unknown>) => {
@@ -57,13 +51,19 @@ export function App() {
   );
 
   return (
-    <main className="development-preview">
+    <main
+      className="development-preview"
+      data-agent-runtime={agentRuntime.mode}
+    >
       <UIPluginRuntime
-        actions={{ sendMessage, updateInstanceProps }}
-        messages={messages}
+        actions={{
+          sendMessage: (input) => agentRuntime.sendMessage(input),
+          updateInstanceProps,
+        }}
+        messages={agent.messages}
         model={model}
         registry={pluginRegistry}
-        state={previewAgentState}
+        state={agent.state}
       />
     </main>
   );
