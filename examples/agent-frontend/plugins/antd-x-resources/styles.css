@@ -1,0 +1,71 @@
+.antd-x-resources-plugin {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: rgb(8 18 32 / 70%);
+}
+
+.development-preview[data-agent-ui-theme="light"] .antd-x-resources-plugin {
+  background: rgb(250 251 255 / 82%);
+}
+
+.antd-x-resources-plugin > .ant-tabs {
+  height: 100%;
+}
+
+.antd-x-resources-plugin .ant-tabs-nav {
+  margin: 0;
+  padding: 0 0.7rem;
+}
+
+.antd-x-resources-plugin .ant-tabs-tab {
+  padding-block: 0.75rem;
+  font-size: 0.68rem;
+}
+
+.antd-x-resources-plugin .ant-tabs-tab span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.antd-x-resources-plugin .ant-tabs-content-holder,
+.antd-x-resources-plugin .ant-tabs-content,
+.antd-x-resources-plugin .ant-tabs-tabpane {
+  height: 100%;
+  min-height: 0;
+}
+
+.antd-x-resources-plugin .ant-tabs-tabpane {
+  padding: 0.75rem;
+  overflow: auto;
+}
+
+.antd-x-resources-plugin .ant-folder {
+  height: 100%;
+  min-height: 17rem;
+  border: 1px solid rgb(139 124 255 / 11%);
+  border-radius: 0.8rem;
+  overflow: hidden;
+}
+
+.antd-x-resources-plugin .ant-folder-directory-tree,
+.antd-x-resources-plugin .ant-folder-file-preview {
+  min-width: 0;
+}
+
+.antd-x-resources-plugin .ant-code-highlighter {
+  height: 100%;
+  max-height: 19rem;
+  overflow: auto;
+  font-size: 0.64rem;
+}
+
+.antd-x-resources-plugin .ant-file-card-list {
+  align-content: flex-start;
+}
+
+.antd-x-resources-diagrams {
+  display: grid;
+  gap: 0.75rem;
+}

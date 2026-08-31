@@ -1,0 +1,10 @@
+{
+  "id": "antd-x-resources",
+  "name": "Ant Design X 资源面板",
+  "description": "使用 Folder、CodeHighlighter、FileCard、Sources 与 Mermaid 展示 Agent 资源和产物。",
+  "version": "1.0.0",
+  "capabilities": ["file-browser", "code-preview", "artifacts", "sources", "diagram"],
+  "data": {
+    "state": true
+  }
+}

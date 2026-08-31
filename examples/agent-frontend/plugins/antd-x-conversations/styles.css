@@ -1,0 +1,77 @@
+.antd-x-conversations-plugin {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border-right: 1px solid rgb(139 124 255 / 12%);
+  background: rgb(7 16 29 / 72%);
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-conversations-plugin {
+  border-right-color: rgb(99 86 204 / 11%);
+  background: rgb(247 248 253 / 78%);
+}
+
+.antd-x-conversations-plugin-header {
+  display: flex;
+  min-height: 5.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid rgb(139 124 255 / 10%);
+}
+
+.antd-x-conversations-plugin-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.65rem;
+  color: #8b7cff;
+}
+
+.antd-x-conversations-plugin-title > span {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.antd-x-conversations-plugin-title .ant-typography {
+  color: var(--ui-text-muted);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.antd-x-conversations-plugin-title strong {
+  overflow: hidden;
+  color: var(--ui-text-primary);
+  font-size: 0.86rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.antd-x-conversations-plugin .ant-conversations {
+  min-height: 0;
+  padding: 0.8rem 0.65rem;
+  overflow: auto;
+}
+
+.antd-x-conversations-plugin .ant-conversations-creation {
+  font-size: 0.72rem;
+}
+
+.antd-x-conversations-plugin .ant-conversations-item {
+  font-size: 0.78rem;
+}
+
+.antd-x-conversations-plugin-footer {
+  padding: 0.8rem 0.9rem 1rem;
+  border-top: 1px solid rgb(139 124 255 / 9%);
+  color: var(--ui-text-muted);
+  font-size: 0.62rem;
+  line-height: 1.55;
+}

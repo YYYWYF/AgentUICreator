@@ -155,7 +155,7 @@ export function App() {
 
   useEffect(() => {
     setModel(initialAppUIModel);
-  }, []);
+  }, [initialAppUIModel]);
 
   const updateInstanceProps = useCallback(
     (instanceId: string, props: Record<string, unknown>) => {
@@ -184,6 +184,7 @@ export function App() {
   const pluginActions = useMemo<UIPluginRuntimeActions>(
     () => ({
       sendMessage: (input) => agentRuntime.sendMessage(input),
+      startNewConversation: () => agentRuntime.startNewConversation(),
       abortRun: () => agentRuntime.abort(),
       updateInstanceProps,
     }),

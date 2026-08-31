@@ -29,6 +29,7 @@ export interface UIPluginManifest {
 
 export interface UIPluginActions {
   sendMessage(input: string): Promise<void>;
+  startNewConversation(): Promise<void>;
   abortRun(): void;
   updateInstanceProps(props: Record<string, unknown>): void;
 }

@@ -44,12 +44,16 @@ describe("AppUIModel", () => {
     const model = parseAppUIModelJson(json);
 
     expect(model.version).toBe("1");
-    expect(model.root.type).toBe("column");
+    expect(model.root.type).toBe("row");
     expect(Object.keys(model.pluginInstances)).toEqual([
       "agent-theme-provider-main",
+      "agent-new-conversation-main",
       "agent-theme-switch-main",
       "agent-welcome-main",
       "agent-messages-main",
+      "agent-run-timeline-main",
+      "agent-tool-detail-main",
+      "agent-resources-main",
       "agent-prompts-main",
       "agent-sender-main",
     ]);

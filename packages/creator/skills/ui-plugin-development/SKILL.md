@@ -13,8 +13,9 @@ Inspect project conventions before deciding that Plugin source must change:
 - `/project/plugins/*/definition.ts` joins a validated manifest to a React component.
 - `/project/plugins/*/index.tsx` implements the component.
 - `/project/plugins/*/styles.css` owns Plugin-specific presentation when that stack uses CSS.
-- `/project/plugins/index.ts` shows static registration conventions.
+- `/project/plugins/index.ts` is the production registry and explicitly imports only selected Plugin definitions.
 - `/project/framework/contracts/ui-plugin.ts` is the Plugin Contract.
+- `/project/services/*` contains stable project-owned Service seams when multiple Plugins share one capability. Treat these seams as read-only unless the host explicitly authorizes capability-contract work.
 
 ## Reuse decision
 
@@ -30,15 +31,18 @@ Inspect project conventions before deciding that Plugin source must change:
 3. Create `index.tsx` with a named React component that accepts `UIPluginComponentProps` and narrows unknown AG-UI data safely.
 4. Create `definition.ts` that validates the manifest and exports a `UIPluginDefinition`.
 5. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
-6. Register and export the definition through the existing `/project/plugins/index.ts` convention.
+6. Register the definition through the existing `/project/plugins/index.ts` convention. Keep production imports explicit; do not spread a template catalog into the production registry.
 7. Add exactly one PluginInstance and mount it in the intended AppUIModel Slot.
 8. Run `pnpm typecheck` and `pnpm test`.
 
 ## Contract boundaries
 
 - A Plugin receives `messages`, `state`, `run`, its `instance`, and runtime-provided `actions` through `UIPluginContext`.
-- Use `context.actions.sendMessage`, `abortRun`, and `updateInstanceProps`; never create a separate Agent Runtime inside a Plugin.
+- Use `context.actions.sendMessage`, `startNewConversation`, `abortRun`, and `updateInstanceProps`; never create a separate Agent Runtime inside a Plugin.
 - Keep Plugin dependencies in the generated project and follow its current UI stack and versions.
+- For a hard Plugin capability dependency, import its stable Service seam and declare `inject` on `UIPluginDefinition`; do not import the concrete Provider Plugin's source.
+- Provide the implementation from the Provider's `setup` with the same stable service name. A missing hard dependency remains pending; optional capabilities omit `inject` and probe with `services.get()`.
+- When multiple Plugins share a project-owned capability, reuse its service name and type from `/project/services/*`. If no seam exists, report the missing capability contract instead of placing it inside a concrete Provider directory.
 - Do not couple a generated Plugin to Creator packages or Creator UI dependencies.
 - Do not modify `/project/runtime` or `/project/framework` for Plugin-specific behavior.
 - Do not delete existing Plugins or rewrite unrelated registration entries.

@@ -1,0 +1,90 @@
+.antd-x-tool-detail-plugin {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border-bottom: 1px solid rgb(139 124 255 / 12%);
+  background: rgb(10 20 35 / 76%);
+}
+
+.development-preview[data-agent-ui-theme="light"] .antd-x-tool-detail-plugin {
+  border-bottom-color: rgb(99 86 204 / 11%);
+  background: rgb(250 251 255 / 80%);
+}
+
+.antd-x-tool-detail-header,
+.antd-x-tool-detail-summary,
+.antd-x-tool-detail-summary > div {
+  display: flex;
+  align-items: center;
+}
+
+.antd-x-tool-detail-header {
+  min-height: 3.6rem;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid rgb(139 124 255 / 9%);
+}
+
+.antd-x-tool-detail-header > span,
+.antd-x-tool-detail-summary > div {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.antd-x-tool-detail-header > span,
+.antd-x-tool-detail-status-icon {
+  color: #8b7cff;
+}
+
+.antd-x-tool-detail-header strong,
+.antd-x-tool-detail-summary strong {
+  color: var(--ui-text-primary);
+  font-size: 0.82rem;
+}
+
+.antd-x-tool-detail-header .ant-tag,
+.antd-x-tool-detail-summary .ant-tag {
+  margin: 0;
+}
+
+.antd-x-tool-detail-content {
+  display: grid;
+  min-height: 0;
+  align-content: start;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  overflow: auto;
+}
+
+.antd-x-tool-detail-content > .ant-select {
+  width: 100%;
+}
+
+.antd-x-tool-detail-summary {
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.antd-x-tool-detail-content > .ant-typography {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--ui-text-muted);
+  font-size: 0.65rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.antd-x-tool-detail-content .ant-code-highlighter {
+  max-height: 14rem;
+  overflow: auto;
+  font-size: 0.66rem;
+}
+
+.antd-x-tool-detail-plugin .ant-mermaid .antd-x-tool-detail-mermaid-graph > svg {
+  flex: 0 0 auto;
+  max-width: none;
+  max-height: none;
+}

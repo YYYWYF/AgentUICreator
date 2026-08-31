@@ -11,6 +11,30 @@
   scrollbar-width: thin;
 }
 
+.antd-x-message-list-rich-content {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.antd-x-message-list-rich-content > p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.antd-x-message-list-rich-content .ant-file-card-list {
+  margin-top: 0.25rem;
+}
+
+.antd-x-message-list-actions {
+  opacity: 0.58;
+  transition: opacity 160ms ease;
+}
+
+.ant-bubble:hover .antd-x-message-list-actions,
+.antd-x-message-list-actions:focus-within {
+  opacity: 1;
+}
+
 .development-preview[data-agent-ui-theme="light"] .antd-x-message-list-plugin {
   background:
     radial-gradient(circle at 5% 0%, rgb(118 99 226 / 7%), transparent 18rem),

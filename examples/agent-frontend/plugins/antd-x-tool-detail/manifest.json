@@ -1,0 +1,10 @@
+{
+  "id": "antd-x-tool-detail",
+  "name": "Ant Design X 工具详情",
+  "description": "独立展示当前会话中的 AG-UI tool call 参数、状态、结果与错误。",
+  "version": "1.0.0",
+  "capabilities": ["tool-call-rendering", "tool-result-rendering"],
+  "data": {
+    "messages": true
+  }
+}

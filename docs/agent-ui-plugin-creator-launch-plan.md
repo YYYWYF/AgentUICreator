@@ -445,6 +445,8 @@ Actions 第一版保持少量：
 interface UIPluginActions {
   sendMessage(input: string): Promise<void>
 
+  startNewConversation(): Promise<void>
+
   abortRun(): void
 
   updateInstanceProps(
@@ -460,6 +462,15 @@ interface UIPluginActions {
 ## 8.1 Plugin Services
 
 当 UI Plugin 之间存在真实逻辑依赖时，使用具名 Plugin Service，而不是把业务专用函数继续扩进 `UIPluginContext.actions`。
+
+沿用 DeepSeek Harness 的 Service seam / concrete provider 分层：稳定的 Service name、类型与行为合同属于能力所有者，放在具体 Provider Plugin 目录之外；具体 Plugin 只负责在生命周期内提供实现。Consumer 只导入稳定 seam 并声明 `inject`，不得导入 Provider 源码。对于生成项目内由多个 Plugin 共享的第一方能力，可使用独立的 `services/*` 目录；这不代表把该能力提升为 UI Runtime 核心 API。
+
+```text
+services/conversations.ts            # stable service seam
+plugins/antd-x-conversations/        # concrete provider
+plugins/antd-x-message-list/         # optional consumer
+plugins/antd-x-run-timeline/         # optional consumer
+```
 
 ```ts
 interface UIPluginDefinition {
@@ -490,6 +501,15 @@ const theme = context.services.get("agent-ui.theme")
 theme?.toggle()
 ```
 
+如果能力只是增强而不是运行前提，省略 `inject`，只在使用处探测：
+
+```ts
+const conversations = context.services.get("agent-ui.conversations")
+const messages = conversations
+  ? context.messages.filter(conversations.includesMessage)
+  : context.messages
+```
+
 约束：
 
 - `manifest.capabilities` 仍是描述性元数据，不承担运行时函数调用。
@@ -499,6 +519,10 @@ theme?.toggle()
 - 服务消失时，硬依赖消费者必须失效；服务恢复后以新的激活身份重新挂载，不能继续持有已卸载提供者。
 - 依赖解析不得依赖 AppUIModel 对象顺序或 Layout 中的视觉顺序。
 - 服务用于直接调用共享能力；广播事件如未来需要，应建立独立事件机制，不混入 Service Contract。
+- Consumer 与 Provider 通过同一个稳定 Service name 关联，不通过具体 Plugin id 或源码路径关联。
+- 独立 seam 可以进入 Consumer Bundle，但不得反向导入具体 Provider；未选择 Provider 时，其组件、样式和实现源码不应因 Consumer 的 import graph 被带入产物。
+
+`startNewConversation()` 属于 Agent Runtime 的通用会话动作，不属于历史会话 Plugin Service。HTTP Runtime 必须切换到新的 AG-UI `threadId` 并清空消息/状态上下文；按钮 Plugin 只调用该 Action，不得自行创建或持有 Agent Client。
 
 这个机制借鉴 DeepSeek Harness / Cordis 的 `provide`、`inject`、`get` 与 fiber-owned lifecycle 语义，但只实现适合当前确定性 React UI Plugin Runtime 的最小子集，不引入 Cordis 依赖。
 
@@ -553,6 +577,8 @@ interface PluginRegistry {
 UI Runtime 只从 Registry 加载 Plugin。
 
 不要直接根据文件路径动态 import 任意源码。
+
+生成项目的生产 Registry 必须显式导入当前选择的 Plugin definitions，不得为了方便而展开包含全部模板的 catalog/barrel。Catalog 可以用于开发期发现与预览，但不能成为生产 import graph 的根；否则从 AppUIModel 移除实例并不能让未选择 Plugin 的组件、样式和实现离开 Bundle。
 
 ---
 

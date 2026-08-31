@@ -111,8 +111,8 @@ body {
 .agent-template-shell {
   position: relative;
   z-index: 1;
-  width: min(68rem, 100%);
-  height: min(52rem, calc(100svh - 3rem));
+  width: min(94rem, 100%);
+  height: min(56rem, calc(100svh - 3rem));
   min-height: 38rem;
   overflow: hidden;
   border: 1px solid var(--ui-shell-border);
@@ -124,6 +124,14 @@ body {
     border-color 220ms ease,
     background 220ms ease,
     box-shadow 220ms ease;
+}
+
+.agent-template-shell [data-layout-node-id="agent-conversation-surface"] {
+  min-width: 28rem;
+}
+
+.agent-template-shell [data-layout-node-id="agent-insights"] {
+  border-left: 1px solid var(--ui-header-border);
 }
 
 .agent-template-shell::after {
@@ -154,6 +162,22 @@ body {
   background:
     radial-gradient(circle at 72% -55%, rgb(44 189 176 / 11%), transparent 20rem),
     linear-gradient(120deg, rgb(115 95 224 / 9%), transparent 58%);
+}
+
+@media (max-width: 74rem) {
+  .agent-template-shell [data-layout-node-id="agent-workspace"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .agent-template-shell [data-layout-node-id="agent-insights"] {
+    display: none;
+  }
+}
+
+@media (max-width: 52rem) {
+  .agent-template-shell [data-layout-node-id="agent-conversation-surface"] {
+    min-width: 0;
+  }
 }
 
 @media (max-width: 44rem), (max-height: 44rem) {

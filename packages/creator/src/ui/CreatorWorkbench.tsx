@@ -2,8 +2,10 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type FormEvent,
   type KeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
 import { HttpAgent, MessageSchema, type Message } from "@ag-ui/client";
@@ -20,6 +22,21 @@ import type {
 import { CREATOR_API_PATH } from "../shared.js";
 
 const STORAGE_KEY = "agent-ui-creator-conversation";
+const CREATOR_PANEL_MIN_WIDTH = 280;
+const CREATOR_PANEL_MAX_WIDTH = 720;
+const CREATOR_PREVIEW_MIN_WIDTH = 320;
+const CREATOR_PANEL_KEYBOARD_STEP = 16;
+
+function clampCreatorPanelWidth(width: number): number {
+  const availableWidth = Math.max(
+    CREATOR_PANEL_MIN_WIDTH,
+    window.innerWidth - CREATOR_PREVIEW_MIN_WIDTH,
+  );
+  return Math.min(
+    Math.max(width, CREATOR_PANEL_MIN_WIDTH),
+    Math.min(CREATOR_PANEL_MAX_WIDTH, availableWidth),
+  );
+}
 
 interface CreatorWorkbenchProps {
   children: ReactNode;
@@ -382,8 +399,16 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
   );
   const [input, setInput] = useState("");
   const [isOpen, setIsOpen] = useState(true);
+  const [isResizing, setIsResizing] = useState(false);
+  const [panelWidth, setPanelWidth] = useState<number | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const messageList = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLElement>(null);
+  const resizeStart = useRef<{
+    pointerId: number;
+    x: number;
+    width: number;
+  } | null>(null);
   const itemsRef = useRef(items);
   const agentRef = useRef<HttpAgent | null>(null);
 
@@ -422,6 +447,39 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
     },
     [],
   );
+
+  useEffect(() => {
+    const handlePointerMove = (event: PointerEvent) => {
+      const start = resizeStart.current;
+      if (start === null || start.pointerId !== event.pointerId) {
+        return;
+      }
+      setPanelWidth(
+        clampCreatorPanelWidth(start.width + start.x - event.clientX),
+      );
+    };
+    const finishResize = () => {
+      resizeStart.current = null;
+      setIsResizing(false);
+    };
+    const handlePointerEnd = (event: PointerEvent) => {
+      if (resizeStart.current?.pointerId !== event.pointerId) {
+        return;
+      }
+      finishResize();
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerEnd);
+    window.addEventListener("pointercancel", handlePointerEnd);
+    window.addEventListener("blur", finishResize);
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerEnd);
+      window.removeEventListener("pointercancel", handlePointerEnd);
+      window.removeEventListener("blur", finishResize);
+    };
+  }, []);
 
   const submit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
@@ -624,14 +682,68 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
     }
   };
 
+  const startPanelResize = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const currentWidth = panel.current?.getBoundingClientRect().width;
+    if (currentWidth === undefined) {
+      return;
+    }
+    event.preventDefault();
+    resizeStart.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      width: currentWidth,
+    };
+    setIsResizing(true);
+  };
+
+  const resizePanelWithKeyboard = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+      return;
+    }
+    event.preventDefault();
+    const currentWidth =
+      panelWidth ?? panel.current?.getBoundingClientRect().width;
+    if (currentWidth === undefined) {
+      return;
+    }
+    const direction = event.key === "ArrowLeft" ? 1 : -1;
+    setPanelWidth(
+      clampCreatorPanelWidth(
+        currentWidth + direction * CREATOR_PANEL_KEYBOARD_STEP,
+      ),
+    );
+  };
+
   return (
-    <div className="creator-workbench" data-creator-panel-open={isOpen}>
+    <div
+      className="creator-workbench"
+      data-creator-panel-open={isOpen}
+      data-creator-panel-resizing={isResizing}
+      style={
+        panelWidth === null
+          ? undefined
+          : ({
+              "--creator-panel-width": `${panelWidth}px`,
+            } as CSSProperties)
+      }
+    >
       <section className="creator-workbench-preview" aria-label="智能体前端预览">
         {children}
       </section>
 
       {isOpen ? (
-        <aside className="creator-panel" aria-label="Creator 智能体">
+        <aside className="creator-panel" aria-label="Creator 智能体" ref={panel}>
+          <div
+            aria-label="调整 Creator 面板宽度"
+            aria-orientation="vertical"
+            className="creator-panel-resizer"
+            onDoubleClick={() => setPanelWidth(null)}
+            onKeyDown={resizePanelWithKeyboard}
+            onPointerDown={startPanelResize}
+            role="separator"
+            tabIndex={0}
+            title="拖动调整宽度，双击恢复默认"
+          />
           <header className="creator-panel-header">
             <div>
               <span>仅用于开发</span>

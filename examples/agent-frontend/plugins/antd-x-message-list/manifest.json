@@ -1,9 +1,9 @@
 {
   "id": "antd-x-message-list",
   "name": "Ant Design X 消息流",
-  "description": "使用 Ant Design X Bubble.List 渲染共享 AG-UI 消息。",
+  "description": "使用 Ant Design X Bubble.List、Actions、FileCard 与 Sources 渲染共享 AG-UI 消息。",
   "version": "1.0.0",
-  "capabilities": ["messages", "streaming-feedback"],
+  "capabilities": ["messages", "streaming-feedback", "message-copy", "multimodal-content", "sources"],
   "data": {
     "messages": true
   }

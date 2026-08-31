@@ -1,0 +1,10 @@
+{
+  "id": "antd-x-run-timeline",
+  "name": "Ant Design X 执行链",
+  "description": "将 AG-UI reasoning、activity、tool call 与 tool result 渲染为可折叠执行链。",
+  "version": "1.0.0",
+  "capabilities": ["reasoning", "activity", "tool-call-rendering", "tool-result-rendering"],
+  "data": {
+    "messages": true
+  }
+}

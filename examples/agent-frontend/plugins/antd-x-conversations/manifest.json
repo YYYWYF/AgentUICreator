@@ -1,0 +1,11 @@
+{
+  "id": "antd-x-conversations",
+  "name": "Ant Design X 会话历史",
+  "description": "使用 Ant Design X Conversations 展示并切换 Agent 会话历史。",
+  "version": "1.0.0",
+  "capabilities": ["conversation-history", "conversation-selection", "plugin-service-provider"],
+  "data": {
+    "messages": true,
+    "state": true
+  }
+}

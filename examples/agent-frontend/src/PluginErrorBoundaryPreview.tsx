@@ -70,6 +70,7 @@ const previewRegistry = createPluginRegistry(previewPlugins);
 const previewActions: UIPluginRuntimeActions = {
   abortRun: () => undefined,
   sendMessage: async () => undefined,
+  startNewConversation: async () => undefined,
   updateInstanceProps: () => undefined,
 };
 

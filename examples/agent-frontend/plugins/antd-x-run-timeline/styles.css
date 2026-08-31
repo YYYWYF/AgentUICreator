@@ -1,0 +1,79 @@
+.antd-x-run-timeline-plugin {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border-bottom: 1px solid rgb(139 124 255 / 12%);
+  background: rgb(10 20 35 / 76%);
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-run-timeline-plugin {
+  border-bottom-color: rgb(99 86 204 / 11%);
+  background: rgb(250 251 255 / 80%);
+}
+
+.antd-x-run-timeline-header {
+  display: flex;
+  min-height: 3.6rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid rgb(139 124 255 / 9%);
+}
+
+.antd-x-run-timeline-header > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #8b7cff;
+}
+
+.antd-x-run-timeline-header strong {
+  color: var(--ui-text-primary);
+  font-size: 0.82rem;
+}
+
+.antd-x-run-timeline-header .ant-tag {
+  margin: 0;
+  color: var(--ui-text-muted);
+  background: rgb(139 124 255 / 9%);
+  font-size: 0.58rem;
+  text-transform: uppercase;
+}
+
+.antd-x-run-timeline-content {
+  min-height: 0;
+  padding: 0.85rem;
+  overflow: auto;
+}
+
+.antd-x-run-timeline-content .ant-think {
+  margin-bottom: 0.75rem;
+}
+
+.antd-x-run-timeline-content .ant-typography {
+  margin: 0;
+  color: var(--ui-text-secondary);
+  font-size: 0.72rem;
+  line-height: 1.65;
+}
+
+.antd-x-run-timeline-content .ant-thought-chain-item-title,
+.antd-x-run-timeline-content .ant-thought-chain-item-description {
+  font-size: 0.72rem;
+}
+
+.antd-x-run-timeline-payload {
+  display: grid;
+  gap: 0.65rem;
+  padding-top: 0.45rem;
+}
+
+.antd-x-run-timeline-payload .ant-code-highlighter {
+  max-height: 13rem;
+  overflow: auto;
+  font-size: 0.66rem;
+}

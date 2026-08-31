@@ -1,0 +1,10 @@
+{
+  "id": "antd-x-activity-feed",
+  "name": "Ant Design X 活动流",
+  "description": "将当前会话中的 AG-UI activity message 渲染为带状态的独立活动流。",
+  "version": "1.0.0",
+  "capabilities": ["activity"],
+  "data": {
+    "messages": true
+  }
+}

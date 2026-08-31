@@ -1,0 +1,11 @@
+{
+  "id": "antd-x-sources",
+  "name": "Ant Design X 来源",
+  "description": "聚合当前会话消息与 Frontend State 中的来源并渲染为独立引用面板。",
+  "version": "1.0.0",
+  "capabilities": ["sources", "citations"],
+  "data": {
+    "messages": true,
+    "state": true
+  }
+}

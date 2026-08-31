@@ -12,6 +12,7 @@ import type { PluginRegistry } from "./PluginRegistry";
 
 export interface UIPluginRuntimeActions {
   sendMessage(input: string): Promise<void>;
+  startNewConversation(): Promise<void>;
   abortRun(): void;
   updateInstanceProps(
     instanceId: string,
@@ -59,6 +60,7 @@ export function createInstanceActions(
 ): UIPluginActions {
   return {
     sendMessage: actions.sendMessage,
+    startNewConversation: actions.startNewConversation,
     abortRun: actions.abortRun,
     updateInstanceProps: (props) => {
       actions.updateInstanceProps(instance.id, props);

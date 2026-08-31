@@ -1,0 +1,11 @@
+{
+  "id": "antd-x-attachments",
+  "name": "Ant Design X 只读附件",
+  "description": "聚合当前会话输入与 Frontend State 中的附件并进行只读展示，不提供未接入 Runtime 的上传行为。",
+  "version": "1.0.0",
+  "capabilities": ["attachment-rendering", "readonly"],
+  "data": {
+    "messages": true,
+    "state": true
+  }
+}

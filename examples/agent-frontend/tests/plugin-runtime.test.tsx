@@ -8,15 +8,26 @@ import type {
   UIPluginDefinition,
   UIPluginRunState,
 } from "../framework/contracts/ui-plugin";
+import { pluginDefinitions } from "../plugins";
 import {
   antdXTemplatePlugins,
+  antdXActivityFeedPlugin,
+  antdXAttachmentsPlugin,
+  antdXNewConversationPlugin,
+  antdXReasoningPlugin,
+  antdXResourcesPlugin,
+  antdXRunTimelinePlugin,
+  antdXSourcesPlugin,
+  antdXToolDetailPlugin,
   antdXWelcomePlugin,
-  pluginDefinitions,
-} from "../plugins";
+} from "../plugins/antd-x-template-library";
 import {
   createPluginRegistry,
+  PluginServiceRuntime,
+  PluginServiceRuntimeContext,
   StaticPluginRegistry,
   UIPluginRuntime,
+  type UIPluginRuntimeProps,
 } from "../runtime/plugins";
 import {
   initialPreviewMessages,
@@ -25,6 +36,7 @@ import {
 
 const runtimeActions = {
   sendMessage: vi.fn(async () => undefined),
+  startNewConversation: vi.fn(async () => undefined),
   abortRun: vi.fn(),
   updateInstanceProps: vi.fn(),
 };
@@ -34,11 +46,35 @@ const idleRun: UIPluginRunState = {
   errorMessage: undefined,
 };
 
+function renderPluginRuntime(props: UIPluginRuntimeProps): string {
+  const serviceRuntime = new PluginServiceRuntime();
+  serviceRuntime.reconcile(props.model, props.registry, props.actions);
+
+  try {
+    return renderToStaticMarkup(
+      <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
+        <UIPluginRuntime {...props} />
+      </PluginServiceRuntimeContext.Provider>,
+    );
+  } finally {
+    serviceRuntime.dispose();
+  }
+}
+
 describe("StaticPluginRegistry", () => {
   it("registers and lists statically imported plugin definitions", () => {
     const registry = createPluginRegistry(pluginDefinitions);
 
     expect(registry.get("antd-x-welcome")).toBe(antdXWelcomePlugin);
+    expect(registry.get("antd-x-new-conversation")).toBe(
+      antdXNewConversationPlugin,
+    );
+    expect(registry.get("antd-x-conversations")).toBeUndefined();
+    expect(registry.get("antd-x-run-timeline")).toBe(
+      antdXRunTimelinePlugin,
+    );
+    expect(registry.get("antd-x-tool-detail")).toBe(antdXToolDetailPlugin);
+    expect(registry.get("antd-x-resources")).toBe(antdXResourcesPlugin);
     expect(registry.list()).toEqual([...pluginDefinitions]);
   });
 
@@ -70,32 +106,147 @@ describe("UIPluginRuntime", () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
 
-    const html = renderToStaticMarkup(
-      <UIPluginRuntime
-        actions={runtimeActions}
-        messages={initialPreviewMessages}
-        model={model}
-        registry={registry}
-        run={idleRun}
-        state={previewAgentState}
-      />,
-    );
+    const html = renderPluginRuntime({
+      actions: runtimeActions,
+      messages: initialPreviewMessages,
+      model,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    });
 
+    const newConversationPosition = html.indexOf(
+      'data-ui-plugin="antd-x-new-conversation"',
+    );
     const welcomePosition = html.indexOf('data-ui-plugin="antd-x-welcome"');
     const messagesPosition = html.indexOf(
       'data-ui-plugin="antd-x-message-list"',
     );
     const promptsPosition = html.indexOf('data-ui-plugin="antd-x-prompts"');
     const senderPosition = html.indexOf('data-ui-plugin="antd-x-sender"');
+    const timelinePosition = html.indexOf(
+      'data-ui-plugin="antd-x-run-timeline"',
+    );
+    const toolDetailPosition = html.indexOf(
+      'data-ui-plugin="antd-x-tool-detail"',
+    );
+    const resourcesPosition = html.indexOf(
+      'data-ui-plugin="antd-x-resources"',
+    );
 
     expect(welcomePosition).toBeGreaterThan(-1);
+    expect(newConversationPosition).toBeGreaterThan(welcomePosition);
     expect(messagesPosition).toBeGreaterThan(welcomePosition);
     expect(promptsPosition).toBeGreaterThan(messagesPosition);
     expect(senderPosition).toBeGreaterThan(promptsPosition);
+    expect(timelinePosition).toBeGreaterThan(senderPosition);
+    expect(toolDetailPosition).toBeGreaterThan(timelinePosition);
+    expect(resourcesPosition).toBeGreaterThan(toolDetailPosition);
     expect(html).toContain("Agent Frontend");
-    expect(html).toContain("Ant Design X 模板插件");
+    expect(html).toContain("顶部可以新建会话");
+    expect(html).toContain("新建会话");
+    expect(html).not.toContain('data-ui-plugin="antd-x-conversations"');
+    expect(html).toContain("list_ui_plugins");
+    expect(html).toContain("render_ui_diagram");
+    expect(html).toContain("tool-call-render-diagram");
+    expect(html).toContain("Files");
     expect(html).toContain("总结当前上下文");
-    expect(html).toContain("给智能体发送消息，Enter 发送");
+    expect(html).toContain("给智能体发送消息，输入 / 唤出快捷指令");
+  });
+
+  it("renders the granular inspection plugins as independent slot capabilities", () => {
+    const model = parseAppUIModel({
+      version: "1",
+      root: {
+        type: "column",
+        id: "inspection-layout",
+        children: [
+          {
+            type: "slot",
+            id: "tool-slot-node",
+            slotId: "tool-slot",
+            pluginInstanceIds: ["tool-main"],
+          },
+          {
+            type: "slot",
+            id: "reasoning-slot-node",
+            slotId: "reasoning-slot",
+            pluginInstanceIds: ["reasoning-main"],
+          },
+          {
+            type: "slot",
+            id: "activity-slot-node",
+            slotId: "activity-slot",
+            pluginInstanceIds: ["activity-main"],
+          },
+          {
+            type: "slot",
+            id: "sources-slot-node",
+            slotId: "sources-slot",
+            pluginInstanceIds: ["sources-main"],
+          },
+          {
+            type: "slot",
+            id: "attachments-slot-node",
+            slotId: "attachments-slot",
+            pluginInstanceIds: ["attachments-main"],
+          },
+        ],
+      },
+      pluginInstances: {
+        "tool-main": {
+          id: "tool-main",
+          pluginId: "antd-x-tool-detail",
+          enabled: true,
+        },
+        "reasoning-main": {
+          id: "reasoning-main",
+          pluginId: "antd-x-reasoning",
+          enabled: true,
+        },
+        "activity-main": {
+          id: "activity-main",
+          pluginId: "antd-x-activity-feed",
+          enabled: true,
+        },
+        "sources-main": {
+          id: "sources-main",
+          pluginId: "antd-x-sources",
+          enabled: true,
+        },
+        "attachments-main": {
+          id: "attachments-main",
+          pluginId: "antd-x-attachments",
+          enabled: true,
+        },
+      },
+    });
+    const registry = createPluginRegistry([
+      antdXToolDetailPlugin,
+      antdXReasoningPlugin,
+      antdXActivityFeedPlugin,
+      antdXSourcesPlugin,
+      antdXAttachmentsPlugin,
+    ]);
+
+    const html = renderPluginRuntime({
+      actions: runtimeActions,
+      messages: initialPreviewMessages,
+      model,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    });
+
+    expect(html).toContain('data-ui-plugin="antd-x-tool-detail"');
+    expect(html).toContain('data-ui-plugin="antd-x-reasoning"');
+    expect(html).toContain('data-ui-plugin="antd-x-activity-feed"');
+    expect(html).toContain('data-ui-plugin="antd-x-sources"');
+    expect(html).toContain('data-ui-plugin="antd-x-attachments"');
+    expect(html).toContain("render_ui_diagram");
+    expect(html).toContain("插件组合检查完成");
+    expect(html).toContain("Ant Design X 组件总览");
+    expect(html).toContain("只读 · 2");
   });
 
   it("does not render disabled plugin instances", () => {
@@ -111,16 +262,14 @@ describe("UIPluginRuntime", () => {
     });
     const registry = createPluginRegistry(antdXTemplatePlugins);
 
-    const html = renderToStaticMarkup(
-      <UIPluginRuntime
-        actions={runtimeActions}
-        messages={initialPreviewMessages}
-        model={model}
-        registry={registry}
-        run={idleRun}
-        state={previewAgentState}
-      />,
-    );
+    const html = renderPluginRuntime({
+      actions: runtimeActions,
+      messages: initialPreviewMessages,
+      model,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    });
 
     expect(html).toContain('data-ui-plugin="antd-x-message-list"');
     expect(html).not.toContain('data-ui-plugin="antd-x-prompts"');
@@ -139,16 +288,14 @@ describe("UIPluginRuntime", () => {
     });
     const registry = createPluginRegistry(antdXTemplatePlugins);
 
-    const html = renderToStaticMarkup(
-      <UIPluginRuntime
-        actions={runtimeActions}
-        messages={initialPreviewMessages}
-        model={model}
-        registry={registry}
-        run={idleRun}
-        state={previewAgentState}
-      />,
-    );
+    const html = renderPluginRuntime({
+      actions: runtimeActions,
+      messages: initialPreviewMessages,
+      model,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    });
 
     expect(html).toContain('data-ui-plugin="antd-x-sender"');
     expect(html).toContain("输入一条自定义消息");
@@ -162,16 +309,14 @@ describe("UIPluginRuntime", () => {
       errorMessage: undefined,
     };
 
-    const html = renderToStaticMarkup(
-      <UIPluginRuntime
-        actions={runtimeActions}
-        messages={initialPreviewMessages}
-        model={model}
-        registry={registry}
-        run={running}
-        state={previewAgentState}
-      />,
-    );
+    const html = renderPluginRuntime({
+      actions: runtimeActions,
+      messages: initialPreviewMessages,
+      model,
+      registry,
+      run: running,
+      state: previewAgentState,
+    });
 
     expect(html).toContain('data-agent-run-status="running"');
     expect(html).toContain("ant-bubble-loading");
@@ -210,6 +355,7 @@ describe("UIPluginRuntime", () => {
     });
     const actions = {
       sendMessage: vi.fn(async () => undefined),
+      startNewConversation: vi.fn(async () => undefined),
       abortRun: vi.fn(),
       updateInstanceProps: vi.fn(),
     };
@@ -218,16 +364,14 @@ describe("UIPluginRuntime", () => {
       errorMessage: "Agent endpoint is unavailable",
     };
 
-    renderToStaticMarkup(
-      <UIPluginRuntime
-        actions={actions}
-        messages={[]}
-        model={model}
-        registry={createPluginRegistry([probePlugin])}
-        run={failedRun}
-        state={null}
-      />,
-    );
+    renderPluginRuntime({
+      actions,
+      messages: [],
+      model,
+      registry: createPluginRegistry([probePlugin]),
+      run: failedRun,
+      state: null,
+    });
 
     if (capturedContext === undefined) {
       throw new Error("Plugin context was not injected");
@@ -235,10 +379,12 @@ describe("UIPluginRuntime", () => {
 
     expect(capturedContext.run).toBe(failedRun);
     await capturedContext.actions.sendMessage("hello");
+    await capturedContext.actions.startNewConversation();
     capturedContext.actions.abortRun();
     capturedContext.actions.updateInstanceProps({ compact: true });
 
     expect(actions.sendMessage).toHaveBeenCalledWith("hello");
+    expect(actions.startNewConversation).toHaveBeenCalledOnce();
     expect(actions.abortRun).toHaveBeenCalledOnce();
     expect(actions.updateInstanceProps).toHaveBeenCalledWith("probe-main", {
       compact: true,
@@ -249,16 +395,14 @@ describe("UIPluginRuntime", () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins.slice(0, 3));
 
-    const html = renderToStaticMarkup(
-      <UIPluginRuntime
-        actions={runtimeActions}
-        messages={initialPreviewMessages}
-        model={model}
-        registry={registry}
-        run={idleRun}
-        state={previewAgentState}
-      />,
-    );
+    const html = renderPluginRuntime({
+      actions: runtimeActions,
+      messages: initialPreviewMessages,
+      model,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    });
 
     expect(html).toContain('role="alert"');
     expect(html).toContain(

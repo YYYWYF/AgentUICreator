@@ -1,48 +1,92 @@
 {
   "version": "1",
   "root": {
-    "type": "column",
-    "id": "agent-interface",
+    "type": "row",
+    "id": "agent-workspace",
     "gap": 0,
-    "sizes": ["auto", "minmax(0, 1fr)", "auto", "auto"],
+    "sizes": ["minmax(0, 1fr)", "21rem"],
     "children": [
       {
-        "type": "row",
-        "id": "agent-header",
+        "type": "column",
+        "id": "agent-conversation-surface",
         "gap": 0,
-        "sizes": ["minmax(0, 1fr)", "auto"],
+        "sizes": ["auto", "minmax(0, 1fr)", "auto", "auto"],
         "children": [
           {
-            "type": "slot",
-            "id": "agent-welcome-slot-node",
-            "slotId": "agent-welcome",
-            "pluginInstanceIds": ["agent-welcome-main"]
+            "type": "row",
+            "id": "agent-header",
+            "gap": 0,
+            "sizes": ["minmax(0, 1fr)", "auto", "auto"],
+            "children": [
+              {
+                "type": "slot",
+                "id": "agent-welcome-slot-node",
+                "slotId": "agent-welcome",
+                "pluginInstanceIds": ["agent-welcome-main"]
+              },
+              {
+                "type": "slot",
+                "id": "agent-new-conversation-slot-node",
+                "slotId": "agent-new-conversation",
+                "pluginInstanceIds": ["agent-new-conversation-main"]
+              },
+              {
+                "type": "slot",
+                "id": "agent-theme-switch-slot-node",
+                "slotId": "agent-theme-switch",
+                "pluginInstanceIds": ["agent-theme-switch-main"]
+              }
+            ]
           },
           {
             "type": "slot",
-            "id": "agent-theme-switch-slot-node",
-            "slotId": "agent-theme-switch",
-            "pluginInstanceIds": ["agent-theme-switch-main"]
+            "id": "agent-messages-slot-node",
+            "slotId": "agent-messages",
+            "pluginInstanceIds": ["agent-messages-main"]
+          },
+          {
+            "type": "slot",
+            "id": "agent-prompts-slot-node",
+            "slotId": "agent-prompts",
+            "pluginInstanceIds": ["agent-prompts-main"]
+          },
+          {
+            "type": "slot",
+            "id": "agent-sender-slot-node",
+            "slotId": "agent-sender",
+            "pluginInstanceIds": ["agent-sender-main"]
           }
         ]
       },
       {
-        "type": "slot",
-        "id": "agent-messages-slot-node",
-        "slotId": "agent-messages",
-        "pluginInstanceIds": ["agent-messages-main"]
-      },
-      {
-        "type": "slot",
-        "id": "agent-prompts-slot-node",
-        "slotId": "agent-prompts",
-        "pluginInstanceIds": ["agent-prompts-main"]
-      },
-      {
-        "type": "slot",
-        "id": "agent-sender-slot-node",
-        "slotId": "agent-sender",
-        "pluginInstanceIds": ["agent-sender-main"]
+        "type": "column",
+        "id": "agent-insights",
+        "gap": 0,
+        "sizes": [
+          "minmax(0, 0.8fr)",
+          "minmax(0, 1.15fr)",
+          "minmax(0, 1.05fr)"
+        ],
+        "children": [
+          {
+            "type": "slot",
+            "id": "agent-run-timeline-slot-node",
+            "slotId": "agent-run-timeline",
+            "pluginInstanceIds": ["agent-run-timeline-main"]
+          },
+          {
+            "type": "slot",
+            "id": "agent-tool-detail-slot-node",
+            "slotId": "agent-tool-detail",
+            "pluginInstanceIds": ["agent-tool-detail-main"]
+          },
+          {
+            "type": "slot",
+            "id": "agent-resources-slot-node",
+            "slotId": "agent-resources",
+            "pluginInstanceIds": ["agent-resources-main"]
+          }
+        ]
       }
     ]
   },
@@ -51,9 +95,12 @@
       "id": "agent-theme-provider-main",
       "pluginId": "antd-x-theme-provider",
       "enabled": true,
-      "props": {
-        "mode": "dark"
-      }
+      "props": { "mode": "dark" }
+    },
+    "agent-new-conversation-main": {
+      "id": "agent-new-conversation-main",
+      "pluginId": "antd-x-new-conversation",
+      "enabled": true
     },
     "agent-theme-switch-main": {
       "id": "agent-theme-switch-main",
@@ -73,9 +120,23 @@
       "id": "agent-messages-main",
       "pluginId": "antd-x-message-list",
       "enabled": true,
-      "props": {
-        "emptyText": "开始一段新对话"
-      }
+      "props": { "emptyText": "开始一段新对话" }
+    },
+    "agent-run-timeline-main": {
+      "id": "agent-run-timeline-main",
+      "pluginId": "antd-x-run-timeline",
+      "enabled": true
+    },
+    "agent-tool-detail-main": {
+      "id": "agent-tool-detail-main",
+      "pluginId": "antd-x-tool-detail",
+      "enabled": true,
+      "props": { "toolCallId": "tool-call-render-diagram" }
+    },
+    "agent-resources-main": {
+      "id": "agent-resources-main",
+      "pluginId": "antd-x-resources",
+      "enabled": true
     },
     "agent-prompts-main": {
       "id": "agent-prompts-main",
@@ -106,9 +167,7 @@
       "id": "agent-sender-main",
       "pluginId": "antd-x-sender",
       "enabled": true,
-      "props": {
-        "placeholder": "给智能体发送消息，Enter 发送"
-      }
+      "props": { "placeholder": "给智能体发送消息，输入 / 唤出快捷指令" }
     }
   }
 }

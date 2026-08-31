@@ -5,6 +5,8 @@ import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 import {
   createAgentUIThemeService,
 } from "../plugins/antd-x-theme-provider/theme-service";
+import { antdXMessageListPlugin } from "../plugins/antd-x-message-list/definition";
+import { antdXRunTimelinePlugin } from "../plugins/antd-x-run-timeline/definition";
 import {
   createPluginRegistry,
   PluginServiceRuntime,
@@ -12,6 +14,7 @@ import {
 
 const runtimeActions = {
   sendMessage: vi.fn(async () => undefined),
+  startNewConversation: vi.fn(async () => undefined),
   abortRun: vi.fn(),
   updateInstanceProps: vi.fn(),
 };
@@ -59,6 +62,55 @@ function createServiceModel(providerEnabled = true) {
 }
 
 describe("PluginServiceRuntime", () => {
+  it("activates conversation-aware displays without an optional provider", () => {
+    const model = parseAppUIModel({
+      version: "1",
+      root: {
+        type: "column",
+        id: "conversation-consumers",
+        children: [
+          {
+            type: "slot",
+            id: "messages-slot-node",
+            slotId: "messages-slot",
+            pluginInstanceIds: ["messages-main"],
+          },
+          {
+            type: "slot",
+            id: "timeline-slot-node",
+            slotId: "timeline-slot",
+            pluginInstanceIds: ["timeline-main"],
+          },
+        ],
+      },
+      pluginInstances: {
+        "messages-main": {
+          id: "messages-main",
+          pluginId: "antd-x-message-list",
+          enabled: true,
+        },
+        "timeline-main": {
+          id: "timeline-main",
+          pluginId: "antd-x-run-timeline",
+          enabled: true,
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      model,
+      createPluginRegistry([
+        antdXMessageListPlugin,
+        antdXRunTimelinePlugin,
+      ]),
+      runtimeActions,
+    );
+
+    expect(runtime.getActivation("messages-main")?.status).toBe("active");
+    expect(runtime.getActivation("timeline-main")?.status).toBe("active");
+  });
+
   it("activates hard consumers after their named service becomes available", () => {
     let greeting: string | undefined;
     const provider = createDefinition("provider", {

@@ -108,6 +108,24 @@ describe("MockAgentRuntime", () => {
       ],
     });
   });
+
+  it("clears messages, state, and errors for a new conversation", async () => {
+    const runtime = new MockAgentRuntime({
+      initialMessages: [
+        { id: "assistant-1", role: "assistant", content: "Old context" },
+      ],
+      initialState: { selectedFile: "old.tsx" },
+    });
+
+    await runtime.startNewConversation();
+
+    expect(runtime.getSnapshot()).toEqual({
+      messages: [],
+      state: {},
+      isRunning: false,
+      error: undefined,
+    });
+  });
 });
 
 describe("HttpAgentRuntime", () => {
@@ -122,9 +140,12 @@ describe("HttpAgentRuntime", () => {
     await runtime.sendMessage("Hello Agent");
 
     expect(createClient).toHaveBeenCalledOnce();
-    expect(createClient).toHaveBeenCalledWith({
-      endpoint: "https://agent.example.test/ag-ui",
-    });
+    expect(createClient).toHaveBeenCalledWith(
+      expect.objectContaining({
+        endpoint: "https://agent.example.test/ag-ui",
+        threadId: expect.any(String),
+      }),
+    );
     expect(agent.messagesSeenAtRun[0]).toMatchObject([
       { role: "user", content: "Hello Agent" },
     ]);
@@ -173,6 +194,47 @@ describe("HttpAgentRuntime", () => {
       error: failure,
     });
     expect(agent.abortRun).toHaveBeenCalledOnce();
+  });
+
+  it("creates a fresh AG-UI client and thread for a new conversation", async () => {
+    const firstAgent = new FakeAgentClient();
+    firstAgent.messages = [
+      { id: "assistant-old", role: "assistant", content: "Old context" },
+    ];
+    firstAgent.state = { selectedFile: "old.tsx" };
+    const secondAgent = new FakeAgentClient();
+    const createClient = vi
+      .fn()
+      .mockReturnValueOnce(firstAgent)
+      .mockReturnValueOnce(secondAgent);
+    const runtime = new HttpAgentRuntime(
+      { endpoint: "https://agent.example.test/ag-ui" },
+      createClient,
+    );
+
+    await runtime.startNewConversation();
+
+    const firstThreadId = createClient.mock.calls[0]?.[0].threadId;
+    const secondThreadId = createClient.mock.calls[1]?.[0].threadId;
+    expect(firstThreadId).toEqual(expect.any(String));
+    expect(secondThreadId).toEqual(expect.any(String));
+    expect(secondThreadId).not.toBe(firstThreadId);
+    expect(runtime.getSnapshot()).toEqual({
+      messages: [],
+      state: {},
+      isRunning: false,
+      error: undefined,
+    });
+
+    firstAgent.emitMessages([
+      { id: "stale", role: "assistant", content: "Stale update" },
+    ]);
+    expect(runtime.getSnapshot().messages).toEqual([]);
+
+    await runtime.sendMessage("Fresh context");
+    expect(secondAgent.messagesSeenAtRun[0]).toMatchObject([
+      { role: "user", content: "Fresh context" },
+    ]);
   });
 });
 

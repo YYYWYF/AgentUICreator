@@ -1,0 +1,10 @@
+{
+  "id": "antd-x-reasoning",
+  "name": "Ant Design X 思考过程",
+  "description": "将当前会话中的 AG-UI reasoning message 渲染为独立、可折叠的思考面板。",
+  "version": "1.0.0",
+  "capabilities": ["reasoning"],
+  "data": {
+    "messages": true
+  }
+}

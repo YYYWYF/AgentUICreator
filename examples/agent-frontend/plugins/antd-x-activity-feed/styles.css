@@ -1,0 +1,55 @@
+.antd-x-activity-feed-plugin {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  background: rgb(10 20 35 / 76%);
+}
+
+.development-preview[data-agent-ui-theme="light"] .antd-x-activity-feed-plugin {
+  background: rgb(250 251 255 / 80%);
+}
+
+.antd-x-activity-feed-header {
+  display: flex;
+  min-height: 3.6rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid rgb(139 124 255 / 9%);
+}
+
+.antd-x-activity-feed-header > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #8b7cff;
+}
+
+.antd-x-activity-feed-header strong {
+  color: var(--ui-text-primary);
+  font-size: 0.82rem;
+}
+
+.antd-x-activity-feed-header .ant-tag {
+  margin: 0;
+}
+
+.antd-x-activity-feed-content {
+  min-height: 0;
+  padding: 0.85rem;
+  overflow: auto;
+}
+
+.antd-x-activity-feed-content .ant-thought-chain-item-title,
+.antd-x-activity-feed-content .ant-thought-chain-item-description {
+  font-size: 0.72rem;
+}
+
+.antd-x-activity-feed-content .ant-code-highlighter {
+  max-height: 13rem;
+  overflow: auto;
+  font-size: 0.66rem;
+}
