@@ -36,6 +36,46 @@ describe("UIPluginManifest", () => {
     }
   });
 
+  it("parses static child Slot contracts", () => {
+    const manifest = parseUIPluginManifest({
+      id: "conversation",
+      name: "Conversation",
+      description: "Owns the conversation surface",
+      version: "1.0.0",
+      slots: {
+        children: ["owner.header", "owner.body"],
+      },
+    });
+
+    expect(manifest.slots?.children).toEqual(["owner.header", "owner.body"]);
+  });
+
+  it("rejects blank and duplicate child Slot ids", () => {
+    const blank = uiPluginManifestSchema.safeParse({
+      id: "conversation",
+      name: "Conversation",
+      description: "Owns the conversation surface",
+      version: "1.0.0",
+      slots: { children: ["owner.header", " "] },
+    });
+    const duplicate = uiPluginManifestSchema.safeParse({
+      id: "conversation",
+      name: "Conversation",
+      description: "Owns the conversation surface",
+      version: "1.0.0",
+      slots: { children: ["owner.body", "owner.body"] },
+    });
+
+    expect(blank.success).toBe(false);
+    if (!blank.success) {
+      expect(blank.error.issues[0]?.path).toEqual(["slots", "children", 1]);
+    }
+    expect(duplicate.success).toBe(false);
+    if (!duplicate.success) {
+      expect(duplicate.error.issues[0]?.path).toEqual(["slots", "children", 1]);
+    }
+  });
+
   it("uses the official AG-UI Message type", () => {
     expectTypeOf<AGUIMessage>().toEqualTypeOf<Message>();
   });

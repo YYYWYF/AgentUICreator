@@ -26,6 +26,7 @@ const runtimeActions = {
 function createDefinition(
   id: string,
   definition: Pick<UIPluginDefinition, "inject" | "setup"> = {},
+  childSlots?: readonly string[],
 ): UIPluginDefinition {
   return {
     manifest: {
@@ -34,6 +35,7 @@ function createDefinition(
       description: `${id} test plugin`,
       version: "1.0.0",
       ...(definition.setup === undefined ? {} : { capabilities: ["headless"] }),
+      ...(childSlots === undefined ? {} : { slots: { children: childSlots } }),
     },
     ...definition,
     Component: () => null,
@@ -404,6 +406,153 @@ describe("PluginServiceRuntime", () => {
     runtime.reconcile(mounted, registry, runtimeActions);
     runtime.dispose();
     expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+  });
+
+  it("binds child declarations to their owner contribution lifetime", () => {
+    const setupCleanup = vi.fn();
+    const setup = vi.fn(() => setupCleanup);
+    const owner = createDefinition("owner", { setup }, ["owner.child"]);
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "owner-main": {
+          id: "owner-main",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      model,
+      createPluginRegistry([owner]),
+      runtimeActions,
+    );
+    const activation = runtime.getActivation("owner-main");
+
+    expect(activation?.status).toBe("active");
+    expect(setup).toHaveBeenCalledOnce();
+    expect(runtime.slots.getContributions("root")).toEqual([]);
+    expect(runtime.slots.getDeclaration("owner.child")).toBeUndefined();
+
+    const disposeRoot = runtime.slots.declare({
+      slotId: "root",
+      owner: { kind: "layout", nodeId: "root-node" },
+    });
+
+    expect(runtime.slots.getContributions("root")).toEqual([
+      { instanceId: "owner-main", slotId: "root" },
+    ]);
+    expect(runtime.slots.getDeclaration("owner.child")).toEqual({
+      slotId: "owner.child",
+      owner: { kind: "plugin", instanceId: "owner-main" },
+    });
+
+    disposeRoot();
+
+    expect(runtime.slots.getContributions("root")).toEqual([]);
+    expect(runtime.slots.getDeclaration("owner.child")).toBeUndefined();
+    expect(runtime.getActivation("owner-main")).toEqual(activation);
+    expect(setup).toHaveBeenCalledOnce();
+    expect(setupCleanup).not.toHaveBeenCalled();
+
+    runtime.slots.declare({
+      slotId: "root",
+      owner: { kind: "layout", nodeId: "replacement-root-node" },
+    });
+
+    expect(runtime.slots.getContributions("root")).toEqual([
+      { instanceId: "owner-main", slotId: "root" },
+    ]);
+    expect(runtime.slots.getDeclaration("owner.child")).toEqual({
+      slotId: "owner.child",
+      owner: { kind: "plugin", instanceId: "owner-main" },
+    });
+    expect(runtime.getActivation("owner-main")).toEqual(activation);
+    expect(setup).toHaveBeenCalledOnce();
+  });
+
+  it("declares and removes every child Slot as one contribution lifetime", () => {
+    const owner = createDefinition("owner", {}, [
+      "owner.header",
+      "owner.body",
+      "owner.footer",
+    ]);
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "owner-main": {
+          id: "owner-main",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(model, createPluginRegistry([owner]), runtimeActions);
+    const disposeRoot = runtime.slots.declare({
+      slotId: "root",
+      owner: { kind: "layout", nodeId: "root-node" },
+    });
+
+    for (const slotId of ["owner.header", "owner.body", "owner.footer"]) {
+      expect(runtime.slots.getDeclaration(slotId)).toEqual({
+        slotId,
+        owner: { kind: "plugin", instanceId: "owner-main" },
+      });
+    }
+
+    disposeRoot();
+
+    for (const slotId of ["owner.header", "owner.body", "owner.footer"]) {
+      expect(runtime.slots.getDeclaration(slotId)).toBeUndefined();
+    }
+  });
+
+  it("rolls back the contribution and all new child declarations on collision", () => {
+    const owner = createDefinition("owner", {}, [
+      "owner.header",
+      "owner.body",
+      "owner.footer",
+    ]);
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "owner-main": {
+          id: "owner-main",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+    const existingBody = {
+      slotId: "owner.body",
+      owner: { kind: "layout" as const, nodeId: "existing-body-node" },
+    };
+    runtime.slots.declare(existingBody);
+    runtime.reconcile(model, createPluginRegistry([owner]), runtimeActions);
+
+    expect(() =>
+      runtime.slots.declare({
+        slotId: "root",
+        owner: { kind: "layout", nodeId: "root-node" },
+      }),
+    ).toThrow('Slot "owner.body" already has a live declaration');
+
+    expect(runtime.slots.getContributions("root")).toEqual([]);
+    expect(runtime.slots.getDeclaration("owner.header")).toBeUndefined();
+    expect(runtime.slots.getDeclaration("owner.footer")).toBeUndefined();
+    expect(runtime.slots.getDeclaration("owner.body")).toEqual(existingBody);
+    expect(runtime.getActivation("owner-main")?.status).toBe("active");
   });
 
   it("orders multiple contributions by order and then instanceId", () => {

@@ -19,6 +19,11 @@ export interface UIPluginManifest {
   description: string;
   version: string;
   capabilities?: string[] | undefined;
+  slots?:
+    | {
+        children?: readonly string[] | undefined;
+      }
+    | undefined;
   data?:
     | {
         messages?: boolean | undefined;
@@ -103,6 +108,11 @@ const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
   description: nonBlankStringSchema,
   version: nonBlankStringSchema,
   capabilities: z.array(nonBlankStringSchema).optional(),
+  slots: z
+    .strictObject({
+      children: z.array(nonBlankStringSchema).optional(),
+    })
+    .optional(),
   data: z
     .strictObject({
       messages: z.boolean().optional(),
@@ -124,6 +134,19 @@ export const uiPluginManifestSchema = manifestShapeSchema.superRefine(
         });
       }
       capabilities.add(capability);
+    });
+
+    const childSlots = new Set<string>();
+    manifest.slots?.children?.forEach((slotId, index) => {
+      if (childSlots.has(slotId)) {
+        context.addIssue({
+          code: "custom",
+          path: ["slots", "children", index],
+          message: `Duplicate child Slot "${slotId}"`,
+          input: slotId,
+        });
+      }
+      childSlots.add(slotId);
     });
   },
 );

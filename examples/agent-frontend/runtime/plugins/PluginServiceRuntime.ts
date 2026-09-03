@@ -254,13 +254,43 @@ export class PluginServiceRuntime {
       if (instance.mount !== undefined) {
         const mount = instance.mount;
         record.cleanups.push(
-          this.slots.inject(mount.slotId, () =>
-            this.slots.register({
-              instanceId: instance.id,
-              slotId: mount.slotId,
-              ...(mount.order === undefined ? {} : { order: mount.order }),
-            }),
-          ),
+          this.slots.inject(mount.slotId, () => {
+            const contributionCleanups: Array<() => void> = [];
+            const cleanupContribution = (): void => {
+              for (const cleanup of [...contributionCleanups].reverse()) {
+                try {
+                  cleanup();
+                } catch {
+                  // Complete rollback even when one child declaration has a
+                  // faulty injection cleanup.
+                }
+              }
+              contributionCleanups.length = 0;
+            };
+
+            try {
+              contributionCleanups.push(
+                this.slots.register({
+                  instanceId: instance.id,
+                  slotId: mount.slotId,
+                  ...(mount.order === undefined ? {} : { order: mount.order }),
+                }),
+              );
+              for (const slotId of definition.manifest.slots?.children ?? []) {
+                contributionCleanups.push(
+                  this.slots.declare({
+                    slotId,
+                    owner: { kind: "plugin", instanceId: instance.id },
+                  }),
+                );
+              }
+            } catch (error) {
+              cleanupContribution();
+              throw error;
+            }
+
+            return cleanupContribution;
+          }),
         );
       }
 
