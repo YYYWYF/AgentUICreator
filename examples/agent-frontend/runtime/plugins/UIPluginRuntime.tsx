@@ -89,6 +89,17 @@ function PluginSlot({
 }: PluginSlotProps) {
   const serviceRuntime = usePluginServiceRuntime();
   const slots = serviceRuntime.slots;
+  useEffect(
+    () =>
+      slots.declare({
+        slotId: slot.slotId,
+        owner: {
+          kind: "layout",
+          nodeId: slot.id,
+        },
+      }),
+    [slot.id, slot.slotId, slots],
+  );
   const getSnapshot = useCallback(
     () => slots.getContributions(slot.slotId),
     [slots, slot.slotId],
