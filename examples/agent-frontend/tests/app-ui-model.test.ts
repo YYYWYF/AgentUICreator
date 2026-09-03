@@ -11,12 +11,21 @@ import {
 
 function createMinimalModel(): AppUIModel {
   return {
-    version: "1",
+    version: "2",
     root: {
       type: "slot",
       id: "main-slot-node",
       slotId: "main",
-      pluginInstanceIds: ["chat-main"],
+    },
+    slots: {
+      main: {
+        id: "main",
+        kind: "single",
+        scope: "thread-maybe",
+        description: "Primary conversation surface.",
+        owner: { type: "layout", nodeId: "main-slot-node" },
+        occupants: [{ instanceId: "chat-main" }],
+      },
     },
     pluginInstances: {
       "chat-main": {
@@ -43,7 +52,7 @@ describe("AppUIModel", () => {
 
     const model = parseAppUIModelJson(json);
 
-    expect(model.version).toBe("1");
+    expect(model.version).toBe("2");
     expect(model.root.type).toBe("row");
     expect(Object.keys(model.pluginInstances)).toEqual([
       "agent-theme-provider-main",
@@ -56,6 +65,7 @@ describe("AppUIModel", () => {
       "agent-resources-main",
       "agent-prompts-main",
       "agent-sender-main",
+      "agent-conversations-main",
     ]);
   });
 
@@ -64,7 +74,7 @@ describe("AppUIModel", () => {
   });
 
   it("rejects unsupported model versions", () => {
-    const input = { ...createMinimalModel(), version: "2" };
+    const input = { ...createMinimalModel(), version: "1" };
 
     expect(() => parseAppUIModel(input)).toThrow();
   });
@@ -86,15 +96,56 @@ describe("AppUIModel", () => {
 
   it("rejects dangling plugin instance references", () => {
     const input = createMinimalModel();
-    if (input.root.type !== "slot") {
-      throw new Error("Expected a slot fixture");
-    }
-    input.root.pluginInstanceIds = ["missing-instance"];
+    input.slots.main!.occupants = [{ instanceId: "missing-instance" }];
 
     expect(issuePaths(input)).toContainEqual([
-      "root",
-      "pluginInstanceIds",
+      "slots",
+      "main",
+      "occupants",
       0,
+      "instanceId",
+    ]);
+  });
+
+  it("validates Slot cardinality, owner fallback, and nested scope", () => {
+    const invalidList = createMinimalModel();
+    invalidList.slots.main = {
+      ...invalidList.slots.main!,
+      kind: "list",
+      occupants: [{ instanceId: "chat-main" }],
+    };
+    expect(issuePaths(invalidList)).toContainEqual([
+      "slots",
+      "main",
+      "occupants",
+      0,
+    ]);
+
+    const layoutFallback = createMinimalModel();
+    layoutFallback.slots.main!.fallback = "owner";
+    expect(issuePaths(layoutFallback)).toContainEqual([
+      "slots",
+      "main",
+      "fallback",
+    ]);
+
+    const broadChild = createMinimalModel();
+    broadChild.slots["chat.tools"] = {
+      id: "chat.tools",
+      kind: "single",
+      scope: "root",
+      description: "Nested tool fixture.",
+      owner: {
+        type: "plugin-instance",
+        instanceId: "chat-main",
+        outlet: "tools",
+      },
+      occupants: [],
+    };
+    expect(issuePaths(broadChild)).toContainEqual([
+      "slots",
+      "chat.tools",
+      "scope",
     ]);
   });
 
@@ -109,26 +160,42 @@ describe("AppUIModel", () => {
             type: "slot",
             id: "duplicate",
             slotId: "left",
-            pluginInstanceIds: ["chat-main"],
           },
           {
             type: "slot",
             id: "duplicate",
             slotId: "right",
-            pluginInstanceIds: ["chat-main"],
           },
         ],
+      },
+      slots: {
+        left: {
+          id: "left",
+          kind: "single",
+          scope: "root",
+          description: "Left region.",
+          owner: { type: "layout", nodeId: "duplicate" },
+          occupants: [{ instanceId: "chat-main" }],
+        },
+        right: {
+          id: "right",
+          kind: "single",
+          scope: "root",
+          description: "Right region.",
+          owner: { type: "layout", nodeId: "duplicate" },
+          occupants: [{ instanceId: "chat-main" }],
+        },
       },
     };
 
     const paths = issuePaths(input);
     expect(paths).toContainEqual(["root", "children", 1, "id"]);
     expect(paths).toContainEqual([
-      "root",
-      "children",
-      1,
-      "pluginInstanceIds",
+      "slots",
+      "right",
+      "occupants",
       0,
+      "instanceId",
     ]);
   });
 
@@ -144,7 +211,6 @@ describe("AppUIModel", () => {
             type: "slot",
             id: "main-slot-node",
             slotId: "main",
-            pluginInstanceIds: ["chat-main"],
           },
         ],
       },
@@ -165,7 +231,6 @@ describe("AppUIModel", () => {
             type: "slot",
             id: "main-slot-node",
             slotId: "main",
-            pluginInstanceIds: ["chat-main"],
           },
         ],
       },
@@ -186,7 +251,6 @@ describe("AppUIModel", () => {
           type: "slot",
           id: "main-slot-node",
           slotId: "main",
-          pluginInstanceIds: ["chat-main"],
         },
       },
     };

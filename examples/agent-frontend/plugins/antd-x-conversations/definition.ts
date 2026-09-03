@@ -15,3 +15,5 @@ export const antdXConversationsPlugin: UIPluginDefinition = {
   },
   Component: AntdXConversationsPlugin,
 };
+
+export default antdXConversationsPlugin;

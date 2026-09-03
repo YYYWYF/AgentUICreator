@@ -7,3 +7,5 @@ export const antdXWelcomePlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   Component: AntdXWelcomePlugin,
 };
+
+export default antdXWelcomePlugin;

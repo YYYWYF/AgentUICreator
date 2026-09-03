@@ -38,8 +38,14 @@ function clampCreatorPanelWidth(width: number): number {
   );
 }
 
+export interface CreatorWorkbenchContext {
+  threadId: string;
+}
+
 interface CreatorWorkbenchProps {
-  children: ReactNode;
+  children:
+    | ReactNode
+    | ((context: CreatorWorkbenchContext) => ReactNode);
 }
 
 interface CreatorMessage {
@@ -78,6 +84,7 @@ const roleLabels: Record<CreatorMessage["role"], string> = {
 const fileStatusLabels: Record<CreatorFileChangeReceipt["status"], string> = {
   created: "已创建",
   modified: "已修改",
+  deleted: "已删除",
 };
 
 const validationStatusLabels: Record<
@@ -86,6 +93,16 @@ const validationStatusLabels: Record<
 > = {
   passed: "通过",
   failed: "失败",
+};
+
+const verificationStatusLabels: Record<
+  NonNullable<CreatorRunReceipt["verification"]>["status"],
+  string
+> = {
+  "not-run": "未执行完成验证",
+  "changed-and-verified": "修改已验证",
+  "no-project-change": "无需项目修改",
+  failed: "完成验证失败",
 };
 
 const toolStatusLabels: Record<CreatorToolActivity["status"], string> = {
@@ -115,7 +132,9 @@ function isCreatorRunReceipt(value: unknown): value is CreatorRunReceipt {
       (file) =>
         isRecord(file) &&
         typeof file.path === "string" &&
-        (file.status === "created" || file.status === "modified") &&
+        (file.status === "created" ||
+          file.status === "modified" ||
+          file.status === "deleted") &&
         typeof file.diff === "string" &&
         typeof file.truncated === "boolean",
     ) &&
@@ -127,8 +146,35 @@ function isCreatorRunReceipt(value: unknown): value is CreatorRunReceipt {
         (typeof validation.exitCode === "number" ||
           validation.exitCode === null) &&
         typeof validation.output === "string" &&
-        typeof validation.truncated === "boolean",
-    )
+        typeof validation.truncated === "boolean" &&
+        (validation.revision === undefined ||
+          typeof validation.revision === "number"),
+    ) &&
+    (value.verification === undefined ||
+      (isRecord(value.verification) &&
+        (value.verification.status === "not-run" ||
+          value.verification.status === "changed-and-verified" ||
+          value.verification.status === "no-project-change" ||
+          value.verification.status === "failed") &&
+        typeof value.verification.projectRevision === "number" &&
+        typeof value.verification.auditAttempts === "number" &&
+        Array.isArray(value.verification.checks) &&
+        value.verification.checks.every(
+          (check) =>
+            isRecord(check) &&
+            typeof check.id === "string" &&
+            (check.status === "passed" || check.status === "failed") &&
+            typeof check.evidence === "string",
+        ))) &&
+    (value.diagnosticLog === undefined ||
+      (isRecord(value.diagnosticLog) &&
+        value.diagnosticLog.format === "jsonl" &&
+        typeof value.diagnosticLog.path === "string" &&
+        value.diagnosticLog.schemaVersion === 1)) &&
+    (value.transaction === undefined ||
+      (isRecord(value.transaction) &&
+        typeof value.transaction.runId === "string" &&
+        typeof value.transaction.undoable === "boolean"))
   );
 }
 
@@ -283,6 +329,11 @@ function CreatorMarkdown({ content }: { content: string }) {
 }
 
 function CreatorReceipt({ receipt }: { receipt: CreatorRunReceipt }) {
+  const verification = receipt.verification;
+  const verificationPassed =
+    verification?.status === "changed-and-verified" ||
+    verification?.status === "no-project-change";
+
   return (
     <section className="creator-receipt" aria-label="修改回执">
       <header className="creator-receipt-header">
@@ -291,6 +342,71 @@ function CreatorReceipt({ receipt }: { receipt: CreatorRunReceipt }) {
           {receipt.files.length} 个文件 · {receipt.validations.length} 项验证
         </span>
       </header>
+
+      {receipt.transaction === undefined ? null : (
+        <div className="creator-receipt-section">
+          <h2>安全撤销</h2>
+          <div className="creator-receipt-meta">
+            <span
+              className={`creator-receipt-status creator-receipt-status--${
+                receipt.transaction.undoable ? "passed" : "failed"
+              }`}
+            >
+              {receipt.transaction.undoable ? "当前可撤销" : "当前不可撤销"}
+            </span>{" "}
+            · Run <code>{receipt.transaction.runId}</code>
+          </div>
+          <div className="creator-receipt-note">
+            撤销执行时会再次检查所有文件；后续人工修改不会被覆盖。
+          </div>
+        </div>
+      )}
+
+      {verification === undefined ? null : (
+        <div className="creator-receipt-section">
+          <h2>完成验证</h2>
+          <div className="creator-receipt-meta">
+            <span
+              className={`creator-receipt-status creator-receipt-status--${
+                verificationPassed ? "passed" : "failed"
+              }`}
+            >
+              {verificationStatusLabels[verification.status]}
+            </span>{" "}
+            · Revision {verification.projectRevision} · 复核 {verification.auditAttempts} 次
+          </div>
+          {verification.checks.map((check) => (
+            <details className="creator-receipt-item" key={check.id}>
+              <summary>
+                <span
+                  className={`creator-receipt-status creator-receipt-status--${check.status}`}
+                >
+                  {validationStatusLabels[check.status]}
+                </span>
+                <code>{check.id}</code>
+              </summary>
+              <pre>
+                <code>{check.evidence}</code>
+              </pre>
+            </details>
+          ))}
+        </div>
+      )}
+
+      {receipt.diagnosticLog === undefined ? null : (
+        <div className="creator-receipt-section">
+          <h2>诊断日志</h2>
+          <div className="creator-receipt-meta">
+            Creator 已把本次模型、工具和验证链路保存在项目本地：
+          </div>
+          <pre aria-label="Creator 诊断日志路径">
+            <code>{receipt.diagnosticLog.path}</code>
+          </pre>
+          <div className="creator-receipt-note">
+            日志可能包含用户请求、项目内容和工具输出；对外分享前请先检查。
+          </div>
+        </div>
+      )}
 
       <div className="creator-receipt-section">
         <h2>文件修改</h2>
@@ -335,7 +451,8 @@ function CreatorReceipt({ receipt }: { receipt: CreatorRunReceipt }) {
                 <code>{validation.command}</code>
               </summary>
               <div className="creator-receipt-meta">
-                退出码：{validation.exitCode ?? "不可用"}
+                Revision：{validation.revision ?? "旧版回执"} · 退出码：
+                {validation.exitCode ?? "不可用"}
               </div>
               <pre aria-label={`${validation.command} 输出`}>
                 <code>{validation.output || "（命令无输出）"}</code>
@@ -402,6 +519,7 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
   const [isResizing, setIsResizing] = useState(false);
   const [panelWidth, setPanelWidth] = useState<number | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [threadId, setThreadId] = useState(initialConversation.threadId);
   const messageList = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLElement>(null);
   const resizeStart = useRef<{
@@ -675,6 +793,24 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
     }
   };
 
+  const startNewConversation = () => {
+    if (isRunning) {
+      return;
+    }
+    const nextThreadId = crypto.randomUUID();
+    const agent = new HttpAgent({
+      url: CREATOR_API_PATH,
+      threadId: nextThreadId,
+      initialMessages: [],
+    });
+    agentRef.current = agent;
+    itemsRef.current = [];
+    setItems([]);
+    setInput("");
+    setThreadId(nextThreadId);
+    saveConversation(agent, []);
+  };
+
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -728,7 +864,7 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
       }
     >
       <section className="creator-workbench-preview" aria-label="智能体前端预览">
-        {children}
+        {typeof children === "function" ? children({ threadId }) : children}
       </section>
 
       {isOpen ? (
@@ -749,13 +885,25 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
               <span>仅用于开发</span>
               <h1>Creator 智能体</h1>
             </div>
-            <button
-              aria-label="关闭 Creator 面板"
-              onClick={() => setIsOpen(false)}
-              type="button"
-            >
-              ×
-            </button>
+            <div className="creator-panel-header-actions">
+              <button
+                aria-label="新建 Creator 会话"
+                className="creator-panel-new-conversation"
+                disabled={isRunning}
+                onClick={startNewConversation}
+                title="清空上下文并新建会话"
+                type="button"
+              >
+                新建会话
+              </button>
+              <button
+                aria-label="关闭 Creator 面板"
+                onClick={() => setIsOpen(false)}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
           </header>
 
           <div className="creator-panel-messages" ref={messageList}>

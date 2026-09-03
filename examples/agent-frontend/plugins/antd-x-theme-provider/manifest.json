@@ -3,5 +3,5 @@
   "name": "Ant Design X Theme Provider",
   "description": "Provides the shared light and dark theme service to other UI plugins.",
   "version": "1.0.0",
-  "capabilities": ["plugin-service-provider", "theme"]
+  "capabilities": ["plugin-service-provider", "theme", "headless"]
 }

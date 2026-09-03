@@ -27,6 +27,10 @@ export default defineConfig({
         workspaceRoot,
         "packages/creator/src/ui/CreatorWorkbench.tsx",
       ),
+      "@agent-ui/creator/runtime-diagnostics": path.join(
+        workspaceRoot,
+        "packages/creator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts",
+      ),
       "@agent-ui/example-agent-frontend/App": path.join(
         frontendRoot,
         "src/App.tsx",

@@ -9,3 +9,5 @@ export const antdXThemeSwitchPlugin: UIPluginDefinition = {
   inject: [AGENT_UI_THEME_SERVICE],
   Component: AntdXThemeSwitchPlugin,
 };
+
+export default antdXThemeSwitchPlugin;

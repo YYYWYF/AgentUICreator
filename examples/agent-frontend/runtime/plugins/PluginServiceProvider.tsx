@@ -12,6 +12,7 @@ import {
   PluginServiceRuntime,
   type UIPluginRuntimeActions,
 } from "./PluginServiceRuntime";
+import { useOptionalPluginDiagnosticContext } from "../diagnostics";
 
 export interface PluginServiceProviderProps {
   model: AppUIModel;
@@ -27,10 +28,11 @@ export function PluginServiceProvider({
   children,
 }: PluginServiceProviderProps) {
   const [runtime] = useState(() => new PluginServiceRuntime());
+  const diagnostics = useOptionalPluginDiagnosticContext();
 
   useLayoutEffect(() => {
-    runtime.reconcile(model, registry, actions);
-  }, [actions, model, registry, runtime]);
+    runtime.reconcile(model, registry, actions, diagnostics);
+  }, [actions, diagnostics, model, registry, runtime]);
 
   useEffect(
     () => () => {

@@ -7,3 +7,5 @@ export const antdXReasoningPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   Component: AntdXReasoningPlugin,
 };
+
+export default antdXReasoningPlugin;

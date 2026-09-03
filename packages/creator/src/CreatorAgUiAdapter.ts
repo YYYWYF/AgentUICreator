@@ -16,7 +16,9 @@ import {
 
 import { CreatorActivityRecorder } from "./CreatorActivityRecorder.js";
 import {
+  clearCreatorSummarizationEvent,
   createCreatorAgent,
+  takeCreatorSummarizationEvent,
   type CreatorAgent,
 } from "./createCreatorAgent.js";
 import {
@@ -24,7 +26,13 @@ import {
   loadCreatorModelConfig,
 } from "./modelConfig.js";
 import type { CreateProjectCreatorSessionOptions } from "./createProjectCreatorSession.js";
+import { finalCreatorMessage } from "./CreatorSession.js";
+import {
+  CreatorRunLogger,
+  withCreatorDiagnosticLog,
+} from "./CreatorRunLogger.js";
 import { createCreatorToolCallId } from "./toolCallIds.js";
+import type { CreatorRuntimeDiagnosticSession } from "./runtime-diagnostics/CreatorRuntimeDiagnosticStore.js";
 
 const MAX_TOOL_RESULT_CHARACTERS = 12_000;
 
@@ -286,6 +294,131 @@ export function creatorLangChainMessages(messages: Message[]): BaseMessage[] {
   return result;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function messageId(message: BaseMessage): string {
+  return message.id?.trim() || randomUUID();
+}
+
+function toolArguments(value: unknown): string {
+  try {
+    return JSON.stringify(value) ?? "{}";
+  } catch {
+    return "{}";
+  }
+}
+
+export function creatorAgUiMessages(messages: BaseMessage[]): Message[] {
+  const usedToolCallIds = new Set<string>();
+  return messages.flatMap((message): Message[] => {
+    if (HumanMessage.isInstance(message)) {
+      return [
+        {
+          id: messageId(message),
+          role: "user",
+          content: contentText(message.content),
+        },
+      ];
+    }
+    if (AIMessage.isInstance(message)) {
+      return [
+        {
+          id: messageId(message),
+          role: "assistant",
+          content: contentText(message.content),
+          ...(message.tool_calls === undefined || message.tool_calls.length === 0
+            ? {}
+            : {
+                toolCalls: message.tool_calls.map((toolCall) => ({
+                  id:
+                    toolCall.id === undefined ||
+                    toolCall.id.trim() === "" ||
+                    usedToolCallIds.has(toolCall.id)
+                      ? createCreatorToolCallId(usedToolCallIds)
+                      : toolCall.id,
+                  type: "function" as const,
+                  function: {
+                    name: toolCall.name,
+                    arguments: toolArguments(toolCall.args),
+                  },
+                })).map((toolCall) => {
+                  usedToolCallIds.add(toolCall.id);
+                  return toolCall;
+                }),
+              }),
+        },
+      ];
+    }
+    if (ToolMessage.isInstance(message)) {
+      return [
+        {
+          id: messageId(message),
+          role: "tool",
+          toolCallId: message.tool_call_id,
+          content: contentText(message.content),
+        },
+      ];
+    }
+    if (SystemMessage.isInstance(message)) {
+      return [
+        {
+          id: messageId(message),
+          role: "system",
+          content: contentText(message.content),
+        },
+      ];
+    }
+    return [];
+  });
+}
+
+export function compactedCreatorMessages(
+  output: unknown,
+  summarizationEvent?: unknown,
+): Message[] | undefined {
+  if (!isRecord(output) || !Array.isArray(output.messages)) {
+    return undefined;
+  }
+  const event = summarizationEvent ?? output._summarizationEvent;
+  if (
+    !isRecord(event) ||
+    !Number.isInteger(event.cutoffIndex) ||
+    (event.cutoffIndex as number) < 0 ||
+    !HumanMessage.isInstance(event.summaryMessage)
+  ) {
+    return undefined;
+  }
+
+  const cutoffIndex = Math.min(event.cutoffIndex as number, output.messages.length);
+  const preservedMessages = output.messages
+    .slice(cutoffIndex)
+    .filter((message): message is BaseMessage =>
+      HumanMessage.isInstance(message) ||
+      AIMessage.isInstance(message) ||
+      ToolMessage.isInstance(message) ||
+      SystemMessage.isInstance(message),
+    );
+  const [summary, ...preserved] = creatorAgUiMessages([
+    event.summaryMessage,
+    ...preservedMessages,
+  ]);
+  if (summary === undefined) {
+    return undefined;
+  }
+  return [
+    {
+      ...summary,
+      metadata: {
+        ...(summary.metadata ?? {}),
+        creatorContext: "summary",
+      },
+    },
+    ...preserved,
+  ];
+}
+
 function serializeToolValue(value: unknown): {
   content: string;
   truncated: boolean;
@@ -310,40 +443,39 @@ function serializeToolValue(value: unknown): {
   };
 }
 
-async function streamMessages(
+async function drainMessages(
   messages: AsyncIterable<MessageStream>,
-  emit: (event: AGUIEvent) => void,
 ): Promise<void> {
   for await (const message of messages) {
-    const messageId = randomUUID();
-    let started = false;
-
     for await (const delta of message.text) {
-      if (delta === "") {
-        continue;
-      }
-      if (!started) {
-        started = true;
-        emit({
-          type: EventType.TEXT_MESSAGE_START,
-          messageId,
-          role: "assistant",
-        });
-      }
-      emit({
-        type: EventType.TEXT_MESSAGE_CONTENT,
-        messageId,
-        delta,
-      });
-    }
-
-    if (started) {
-      emit({
-        type: EventType.TEXT_MESSAGE_END,
-        messageId,
-      });
+      void delta;
     }
   }
+}
+
+function emitAcceptedMessage(
+  output: unknown,
+  emit: (event: AGUIEvent) => void,
+): string {
+  const messageId = randomUUID();
+  const text = finalCreatorMessage(
+    output as { messages?: unknown[] | undefined },
+  );
+  emit({
+    type: EventType.TEXT_MESSAGE_START,
+    messageId,
+    role: "assistant",
+  });
+  emit({
+    type: EventType.TEXT_MESSAGE_CONTENT,
+    messageId,
+    delta: text,
+  });
+  emit({
+    type: EventType.TEXT_MESSAGE_END,
+    messageId,
+  });
+  return text;
 }
 
 async function streamToolCalls(
@@ -408,6 +540,8 @@ export class CreatorAgUiAdapter {
   constructor(
     private readonly agent: CreatorAgent,
     private readonly activity: CreatorActivityRecorder,
+    private readonly runLogger?: CreatorRunLogger | undefined,
+    private readonly runtimeDiagnostics?: CreatorRuntimeDiagnosticSession | undefined,
   ) {}
 
   async *run(
@@ -430,7 +564,15 @@ export class CreatorAgUiAdapter {
     }
 
     this.running = true;
-    this.activity.begin();
+    this.runtimeDiagnostics?.beginThread(input.threadId);
+    clearCreatorSummarizationEvent(this.agent);
+    this.activity.begin(input.runId);
+    await this.runLogger?.begin({
+      source: "ag-ui",
+      threadId: input.threadId,
+      runId: input.runId,
+      messages: input.messages,
+    });
 
     try {
       const run = await this.agent.streamEvents(
@@ -447,12 +589,33 @@ export class CreatorAgUiAdapter {
       );
       const events = new AsyncEventQueue<AGUIEvent>();
       const execution = Promise.all([
-        streamMessages(run.messages, (event) => events.push(event)),
+        drainMessages(run.messages),
         streamToolCalls(run.toolCalls, (event) => events.push(event)),
         run.output,
       ])
-        .then(async () => {
-          const receipt = await this.activity.finish();
+        .then(async ([, , output]) => {
+          const finalMessage = emitAcceptedMessage(output, (event) =>
+            events.push(event),
+          );
+          const compactedMessages = compactedCreatorMessages(
+            output,
+            takeCreatorSummarizationEvent(this.agent),
+          );
+          if (compactedMessages !== undefined) {
+            events.push({
+              type: EventType.MESSAGES_SNAPSHOT,
+              messages: compactedMessages,
+              metadata: { source: "deepagents-summarization" },
+            });
+          }
+          const receipt = withCreatorDiagnosticLog(
+            await this.activity.finish(),
+            this.runLogger,
+          );
+          await this.runLogger?.finish("success", {
+            finalMessage,
+            receipt,
+          });
           events.push({
             type: EventType.RUN_FINISHED,
             threadId: input.threadId,
@@ -472,6 +635,21 @@ export class CreatorAgUiAdapter {
         await execution;
       }
     } catch (error) {
+      let receipt;
+      try {
+        receipt = withCreatorDiagnosticLog(
+          await this.activity.finish(),
+          this.runLogger,
+        );
+      } catch (transactionError) {
+        await this.runLogger?.record("transaction_persist_error", {
+          error: transactionError,
+        });
+      }
+      await this.runLogger?.finish(
+        options.signal?.aborted ? "aborted" : "error",
+        { error, receipt },
+      );
       if (!options.signal?.aborted) {
         yield {
           type: EventType.RUN_ERROR,
@@ -489,14 +667,29 @@ export function createProjectCreatorAgUiAdapter({
   projectRoot,
   configRoot = process.cwd(),
   environment,
+  runtimeDiagnostics,
 }: CreateProjectCreatorSessionOptions): CreatorAgUiAdapter {
-  const model = createCreatorChatModel(
-    loadCreatorModelConfig({
-      configRoot,
-      ...(environment === undefined ? {} : { environment }),
-    }),
-  );
+  const config = loadCreatorModelConfig({
+    configRoot,
+    ...(environment === undefined ? {} : { environment }),
+  });
+  const model = createCreatorChatModel(config);
   const activity = new CreatorActivityRecorder(projectRoot);
-  const agent = createCreatorAgent({ model, projectRoot, activity });
-  return new CreatorAgUiAdapter(agent, activity);
+  const runLogger = new CreatorRunLogger({
+    projectRoot,
+    modelName: config.modelName,
+  });
+  const agent = createCreatorAgent({
+    model,
+    projectRoot,
+    activity,
+    runLogger,
+    runtimeDiagnostics,
+  });
+  return new CreatorAgUiAdapter(
+    agent,
+    activity,
+    runLogger,
+    runtimeDiagnostics,
+  );
 }

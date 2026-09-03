@@ -1,8 +1,17 @@
-import { StrictMode } from "react";
+import { StrictMode, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 
 import { CreatorWorkbench } from "@agent-ui/creator/ui";
+import { createCreatorRuntimeDiagnosticReporter } from "@agent-ui/creator/runtime-diagnostics";
 import { App } from "@agent-ui/example-agent-frontend/App";
+
+function TargetPreview({ threadId }: { threadId: string }) {
+  const onRuntimeDiagnostic = useMemo(
+    () => createCreatorRuntimeDiagnosticReporter({ threadId }),
+    [threadId],
+  );
+  return <App onRuntimeDiagnostic={onRuntimeDiagnostic} />;
+}
 
 const rootElement = document.getElementById("root");
 
@@ -13,7 +22,7 @@ if (rootElement === null) {
 createRoot(rootElement).render(
   <StrictMode>
     <CreatorWorkbench>
-      <App />
+      {({ threadId }) => <TargetPreview threadId={threadId} />}
     </CreatorWorkbench>
   </StrictMode>,
 );

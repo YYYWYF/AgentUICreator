@@ -179,7 +179,10 @@ function bubbleRole(role: string): string {
   return "system";
 }
 
-function toBubbleItem(message: AGUIMessage): BubbleItemType {
+function toBubbleItem(
+  message: AGUIMessage,
+  renderAssistantActions: (messageId: string, text: string) => React.ReactNode,
+): BubbleItemType {
   const text = messageText(message);
   return {
     key: message.id,
@@ -195,14 +198,14 @@ function toBubbleItem(message: AGUIMessage): BubbleItemType {
     ),
     ...(message.role === "assistant"
       ? {
-          footer: <MessageActions text={text} />,
+          footer: renderAssistantActions(message.id, text),
           footerPlacement: "outer-start" as const,
         }
       : {}),
   };
 }
 
-const bubbleRoles: BubbleListProps["role"] = {
+const bubbleRoles: NonNullable<BubbleListProps["role"]> = {
   ai: {
     avatar: (
       <Avatar className="antd-x-message-list-avatar--agent" icon={<RobotOutlined />} />
@@ -250,7 +253,15 @@ export function AntdXMessageListPlugin({
         message.role !== "reasoning" &&
         message.role !== "activity",
     )
-    .map(toBubbleItem);
+    .map((message) =>
+      toBubbleItem(message, (messageId, text) =>
+        context.slots.render(
+          "assistant-actions",
+          { messageId, text },
+          { fallback: <MessageActions text={text} /> },
+        ),
+      ),
+    );
   const emptyText =
     typeof context.instance.props?.emptyText === "string"
       ? context.instance.props.emptyText

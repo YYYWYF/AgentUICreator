@@ -10,6 +10,9 @@ export {
   CREATOR_FILESYSTEM_PERMISSIONS,
   CREATOR_SKILLS_ROOT,
   CREATOR_SKILLS_SOURCE,
+  CREATOR_SUMMARIZATION_KEEP_MESSAGES,
+  CREATOR_SUMMARIZATION_TRIGGER_MESSAGES,
+  CREATOR_SUMMARIZATION_TRIGGER_TOKENS,
   createCreatorAgent,
   type CreatorAgent,
   type CreateCreatorAgentOptions,
@@ -40,15 +43,132 @@ export {
 } from "./createProjectCreatorSession.js";
 export {
   CreatorAgUiAdapter,
+  compactedCreatorMessages,
   createProjectCreatorAgUiAdapter,
+  creatorAgUiMessages,
   creatorLangChainMessages,
   type CreatorAgUiRunOptions,
 } from "./CreatorAgUiAdapter.js";
 export { CreatorActivityRecorder } from "./CreatorActivityRecorder.js";
+export {
+  CreatorFileObservationError,
+  CreatorFileObservationStore,
+  type CreatorFileObservation,
+} from "./files/CreatorFileObservationStore.js";
+export {
+  CREATOR_TRANSACTION_DIRECTORY,
+  CREATOR_TRANSACTION_SCHEMA_VERSION,
+  MAX_CREATOR_TRANSACTION_BYTES,
+  MAX_CREATOR_TRANSACTION_FILES,
+  CreatorTransactionError,
+  CreatorTransactionStore,
+  type CreatorTransactionFileInput,
+  type CreatorTransactionFileRecord,
+  type CreatorTransactionFileStatus,
+  type CreatorTransactionRecord,
+  type CreatorTransactionStatus,
+  type CreatorUndoResult,
+} from "./transactions/CreatorTransactionStore.js";
+export {
+  createCreatorUndoTool,
+  executeCreatorUndo,
+  type CreatorUndoToolInput,
+} from "./transactions/creatorUndoTool.js";
+export {
+  CREATOR_COMPLETION_REVIEW_TOOL,
+  CreatorCompletionGate,
+  createCreatorCompletionGateMiddleware,
+  type CreatorCompletionGateOptions,
+} from "./CreatorCompletionGate.js";
+export {
+  CREATOR_DIAGNOSTIC_DIRECTORY,
+  CREATOR_DIAGNOSTIC_LOG_SCHEMA_VERSION,
+  CreatorRunLogger,
+  createCreatorRunLoggerMiddleware,
+  withCreatorDiagnosticLog,
+  type CreatorRunLoggerOptions,
+  type CreatorRunLogOutcome,
+  type CreatorRunLogSource,
+  type CreatorRunLogStart,
+} from "./CreatorRunLogger.js";
 export type {
+  CreatorDiagnosticLogReceipt,
   CreatorFileChangeReceipt,
   CreatorRunReceipt,
   CreatorValidationReceipt,
+  CreatorVerificationCheck,
+  CreatorVerificationReceipt,
 } from "./receiptTypes.js";
-export { CREATOR_API_PATH } from "./shared.js";
+export {
+  CREATOR_API_PATH,
+  CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
+} from "./shared.js";
+export {
+  CREATOR_RUNTIME_DIAGNOSTIC_SCHEMA_VERSION,
+  CREATOR_RUNTIME_DIAGNOSTIC_TTL_MS,
+  MAX_CREATOR_RUNTIME_DIAGNOSTICS_PER_SCOPE,
+  MAX_CREATOR_RUNTIME_DIAGNOSTIC_RESULTS,
+  MAX_CREATOR_RUNTIME_DIAGNOSTIC_SCOPES,
+  CreatorRuntimeDiagnosticSchemaError,
+  CreatorRuntimeDiagnosticSession,
+  CreatorRuntimeDiagnosticStore,
+  createCreatorRuntimeDiagnosticProjectId,
+  parseCreatorRuntimeDiagnostic,
+  type CreatorRuntimeDiagnostic,
+  type CreatorRuntimeDiagnosticInspection,
+  type CreatorRuntimeDiagnosticKind,
+  type CreatorRuntimeDiagnosticStatus,
+  type CreatorRuntimeDiagnosticSummary,
+  type StoredCreatorRuntimeDiagnostic,
+} from "./runtime-diagnostics/CreatorRuntimeDiagnosticStore.js";
+export { createRuntimeDiagnosticTool } from "./runtime-diagnostics/runtimeDiagnosticTool.js";
 export { CREATOR_SYSTEM_PROMPT } from "./prompt/system.js";
+export {
+  MAX_PROJECT_CONTROL_OUTPUT_BYTES,
+  PROJECT_CONTROL_ENTRY_PATH,
+  PROJECT_CONTROL_TIMEOUT_MS,
+  ProjectControlAdapter,
+  ProjectControlAdapterError,
+  type ProjectControlAdapterOptions,
+} from "./project-control/ProjectControlAdapter.js";
+export {
+  MAX_CREATOR_PROJECT_TOOL_RESULT_CHARACTERS,
+  createCreatorProjectControlMiddleware,
+  createCreatorProjectTools,
+} from "./project-control/creatorProjectTools.js";
+export {
+  CREATOR_PLUGIN_SOURCE_DELETE_ENABLED_BY_DEFAULT,
+  createDeleteUIPluginSourceTool,
+  executeDeleteUIPluginSource,
+  type CreatorPluginSourceDeleteAuthorization,
+  type CreatorPluginSourceDeleteAuthorizationProvider,
+  type DeleteUIPluginSourceInput,
+} from "./project-control/deleteUIPluginSourceTool.js";
+export {
+  MAX_PROJECT_SNAPSHOT_ASSETS,
+  MAX_PROJECT_SNAPSHOT_INSTANCES,
+  MAX_PROJECT_SNAPSHOT_LAYOUT_DEPTH,
+  MAX_PROJECT_SNAPSHOT_LAYOUT_NODES,
+  MAX_PROJECT_SNAPSHOT_PROMPT_CHARACTERS,
+  MAX_PROJECT_SNAPSHOT_PROP_KEYS,
+  MAX_PROJECT_SNAPSHOT_SLOTS,
+  createProjectSnapshot,
+  formatProjectSnapshotForPrompt,
+  loadProjectSnapshot,
+  type CreatorProjectSnapshot,
+} from "./project-control/projectSnapshot.js";
+export {
+  CREATOR_PROJECT_CONTROL_SCHEMA_VERSION,
+  parsePluginSourceReferenceInspection,
+  parseProjectControlResponse,
+  parseUIProjectInspection,
+  ProjectControlSchemaError,
+  type CreatorProjectControlMetadata,
+  type CreatorProjectValidationMetadata,
+  type CreatorProjectVerificationMetadata,
+  type ProjectControlOperation,
+  type ProjectPluginSourceReference,
+  type ProjectPluginSourceReferenceInspection,
+  type ProjectControlRequest,
+  type UIProjectInspection,
+} from "./project-control/types.js";

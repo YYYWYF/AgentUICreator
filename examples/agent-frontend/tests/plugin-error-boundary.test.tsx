@@ -87,16 +87,28 @@ const registry = createPluginRegistry([
 ]);
 
 function createModel(
-  pluginInstanceIds: string[],
+  occupantInstanceIds: string[],
   renderShouldFail = true,
 ) {
   return parseAppUIModel({
-    version: "1",
+    version: "2",
     root: {
       type: "slot",
       id: "boundary-slot-node",
       slotId: "boundary-slot",
-      pluginInstanceIds,
+    },
+    slots: {
+      "boundary-slot": {
+        id: "boundary-slot",
+        kind: "list",
+        scope: "root",
+        description: "Error boundary fixture plugins",
+        owner: { type: "layout", nodeId: "boundary-slot-node" },
+        occupants: occupantInstanceIds.map((instanceId) => ({
+          id: instanceId,
+          instanceId,
+        })),
+      },
     },
     pluginInstances: {
       "healthy-main": {

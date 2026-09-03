@@ -23,6 +23,14 @@ function createContext(
       abortRun: () => undefined,
       updateInstanceProps: () => undefined,
     },
+    slot: {
+      id: "main",
+      kind: "single",
+      scope: "root",
+      ownerProps: {},
+      occupant: { instanceId: "new-conversation-main" },
+    },
+    slots: { render: () => null },
     services: { get: () => undefined },
   };
 }

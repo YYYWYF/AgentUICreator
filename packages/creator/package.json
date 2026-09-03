@@ -22,6 +22,10 @@
       "types": "./dist/ui/CreatorWorkbench.d.ts",
       "import": "./dist/ui/CreatorWorkbench.js"
     },
+    "./runtime-diagnostics": {
+      "types": "./dist/runtime-diagnostics/runtimeDiagnosticReporter.d.ts",
+      "import": "./dist/runtime-diagnostics/runtimeDiagnosticReporter.js"
+    },
     "./ui.css": "./dist/ui/creator-workbench.css"
   },
   "files": [

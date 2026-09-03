@@ -53,12 +53,21 @@ async function createFixtureProject(): Promise<string> {
     path.join(projectRoot, "app-ui", "app-ui.json"),
     `${JSON.stringify(
       {
-        version: "1",
+        version: "2",
         root: {
           type: "slot",
           id: "chat-slot-node",
           slotId: "chat",
-          pluginInstanceIds: ["chat-main"],
+        },
+        slots: {
+          chat: {
+            id: "chat",
+            kind: "single",
+            scope: "thread-maybe",
+            description: "Primary chat fixture",
+            owner: { type: "layout", nodeId: "chat-slot-node" },
+            occupants: [{ instanceId: "chat-main" }],
+          },
         },
         pluginInstances: {
           "chat-main": {
@@ -153,8 +162,9 @@ assert.ok(model.root.children.length >= 2, "The layout must keep chat and add a 
 const rightRegion = model.root.children.at(-1);
 assert.equal(rightRegion?.type, "panel");
 assert.equal(rightRegion.child?.type, "slot");
-assert.ok(rightRegion.child.pluginInstanceIds.includes(pluginInstance.id), "The right Slot must mount the tool-call-details instance");
-assert.ok(JSON.stringify(model.root).includes("chat-main"), "The existing chat instance must remain mounted");
+const rightSlot = model.slots[rightRegion.child.slotId];
+assert.ok(rightSlot?.occupants.some((occupant) => occupant.instanceId === pluginInstance.id), "The right semantic Slot must mount the tool-call-details instance");
+assert.ok(model.slots.chat.occupants.some((occupant) => occupant.instanceId === "chat-main"), "The existing chat instance must remain mounted");
 console.log("UI Plugin and AppUIModel validation passed");
 `,
   );
@@ -304,9 +314,13 @@ async function main(): Promise<void> {
         type: unknown;
         children?: Array<{
           type?: unknown;
-          child?: { type?: unknown; pluginInstanceIds?: unknown };
+          child?: { type?: unknown; slotId?: unknown };
         }>;
       };
+      slots: Record<
+        string,
+        { occupants?: Array<{ instanceId?: unknown }> }
+      >;
       pluginInstances: Record<
         string,
         { id: string; pluginId: string; enabled: boolean }
@@ -324,9 +338,13 @@ async function main(): Promise<void> {
     const rightRegion = updatedModel.root.children?.at(-1);
     assert.equal(rightRegion?.type, "panel");
     assert.equal(rightRegion.child?.type, "slot");
+    const rightSlotId = rightRegion.child?.slotId;
+    const rightSlot =
+      typeof rightSlotId === "string" ? updatedModel.slots[rightSlotId] : undefined;
     assert(
-      Array.isArray(rightRegion.child.pluginInstanceIds) &&
-        rightRegion.child.pluginInstanceIds.includes(pluginInstance.id),
+      rightSlot?.occupants?.some(
+        (occupant) => occupant.instanceId === pluginInstance.id,
+      ) === true,
       "Creator did not mount the tool-call-details instance in the right Slot.",
     );
 

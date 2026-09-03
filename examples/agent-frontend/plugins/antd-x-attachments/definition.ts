@@ -7,3 +7,5 @@ export const antdXAttachmentsPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   Component: AntdXAttachmentsPlugin,
 };
+
+export default antdXAttachmentsPlugin;

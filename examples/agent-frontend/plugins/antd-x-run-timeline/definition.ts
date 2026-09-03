@@ -7,3 +7,5 @@ export const antdXRunTimelinePlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   Component: AntdXRunTimelinePlugin,
 };
+
+export default antdXRunTimelinePlugin;

@@ -7,3 +7,5 @@ export const antdXSenderPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   Component: AntdXSenderPlugin,
 };
+
+export default antdXSenderPlugin;

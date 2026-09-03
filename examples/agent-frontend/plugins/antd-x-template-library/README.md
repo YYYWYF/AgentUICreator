@@ -20,6 +20,6 @@
 - `antd-x-prompts`：用 `Prompts` 提供可配置且可直接发送的快捷提示。
 - `antd-x-sender`：用 `Sender` 和 `Suggestion` 发送消息、唤出快捷指令，并在运行期间提供停止操作。
 
-`index.ts` 导出的 `antdXTemplatePlugins` 是开发期 catalog，可用于预览整套模板。生产入口的 `plugins/index.ts` 必须显式导入当前项目选择的 definition，不能展开整个 catalog；这样未选择的 Plugin 才能从静态 import graph 和 Bundle 中消失。模板只消费 `UIPluginContext`，不会创建或持有 Agent Runtime。布局、顺序和实例 props 都由 `app-ui/app-ui.json` 决定。主题硬依赖和可选会话能力都通过稳定 Service name 关联 Provider 与 Consumer；Consumer 不导入具体 Provider 源码。
+`index.ts` 导出的 `antdXTemplatePlugins` 是开发期 catalog，可用于预览整套模板。生产入口的 `plugins/index.ts` 只转出 `registry.generated.ts`；目标项目的 `generate:registry` 根据 AppUIModel 引用和各插件 manifest 生成显式静态 import，不能展开整个 catalog。这样未选择的 Plugin 才能从静态 import graph 和 Bundle 中消失。模板只消费 `UIPluginContext`，不会创建或持有 Agent Runtime。布局、顺序和实例 props 都由 `app-ui/app-ui.json` 决定。主题硬依赖和可选会话能力都通过稳定 Service name 关联 Provider 与 Consumer；Consumer 不导入具体 Provider 源码。
 
 没有机械包装全部 Ant Design X 组件：`Notification` 会触发系统通知权限；附件插件也明确保持只读，因为当前 `sendMessage` 仍是字符串输入。HITL 审批、Generative UI 和附件上传需要先有 Runtime action / renderer contract，在合同补齐前不伪装成可用能力。聚合插件与细粒度插件可以同时存在于开发期 catalog，但生成项目的生产 Registry 只显式导入 AppUIModel 实际选择的插件。

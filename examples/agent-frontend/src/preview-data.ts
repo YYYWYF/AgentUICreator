@@ -129,7 +129,7 @@ export const previewAgentState: unknown = {
       language: "json",
       content: JSON.stringify(
         {
-          version: "1",
+          version: "2",
           layout: "chat + insights",
         },
         null,

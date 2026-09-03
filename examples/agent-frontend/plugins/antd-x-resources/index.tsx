@@ -28,8 +28,8 @@ interface FileRecord {
 interface SourceRecord {
   key: string;
   title: string;
-  url: string | undefined;
-  description: string | undefined;
+  url?: string;
+  description?: string;
 }
 
 interface AttachmentRecord {
@@ -99,12 +99,14 @@ function readSources(value: unknown): SourceRecord[] {
     if (title === undefined) {
       return [];
     }
+    const url = asString(record?.url);
+    const description = asString(record?.description);
     return [
       {
         key: asString(record?.key) ?? `source-${index}`,
         title,
-        url: asString(record?.url),
-        description: asString(record?.description),
+        ...(url === undefined ? {} : { url }),
+        ...(description === undefined ? {} : { description }),
       },
     ];
   });

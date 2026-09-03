@@ -20,3 +20,5 @@ export const antdXThemeProviderPlugin: UIPluginDefinition = {
   },
   Component: AntdXThemeProviderPlugin,
 };
+
+export default antdXThemeProviderPlugin;

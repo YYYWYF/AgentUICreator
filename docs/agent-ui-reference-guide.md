@@ -19,7 +19,7 @@ Frontend Agent State
       ↓
    UI Plugin
       ↓
- Ant Design
+Generated Project UI Stack
 ```
 
 其中：
@@ -27,11 +27,11 @@ Frontend Agent State
 * **AG-UI** 定义 Agent 与前端之间的运行时语义。
 * **Frontend State** 负责把事件转换成稳定的 UI 状态。
 * **UI Plugin** 根据状态决定展示什么。
-* **Ant Design** 负责最终组件实现。
+* **Generated Project UI Stack** 负责最终组件实现。
 
-Ant Design 是实现底座，不定义 Agent Runtime 或 Agent UI 数据模型。
+UI 技术栈由生成项目选择并持有。Ant Design、MUI、Tailwind 或其他方案都不定义 Agent Runtime 或 Agent UI 数据模型，Creator 也不固定其中任何一个及其 major version。
 
-开发时使用当前项目安装的 AntD API，不针对 AntD 5、AntD 6 或未来某个特定大版本进行设计。
+开发时先检查目标项目已安装的 UI Library、样式方案和版本，再使用其稳定 API。只有目标项目已经选择 Ant Design 时，才应用本文的 Ant Design X / Ant Design 表达层参考。
 
 ---
 
@@ -48,10 +48,10 @@ Agent UX
 assistant-ui
 UI Primitive
     ↓
-Ant Design X
+Ant Design X（仅 AntD 项目）
 AntD Interaction
     ↓
-Ant Design
+Generated Project UI Stack
 Implementation
 
 
@@ -217,11 +217,13 @@ Artifact
 
 ---
 
-# 5. Ant Design X
+# 5. Ant Design X（条件参考）
 
 ## 定位
 
 **Ant Design 风格 Agent UI Reference**
+
+本节只适用于已经选择 Ant Design 的生成项目。使用其他 UI Stack 时，保持前面确定的 Agent 语义和组件结构，在该项目的现有组件与样式系统中实现，不引入 Ant Design 或 `@ant-design/x`。
 
 主要解决：
 
@@ -443,7 +445,9 @@ Composer 怎么布局？
 参考：
 
 ```text
-Ant Design X
+目标项目的现有 UI Stack
+
+若项目使用 Ant Design，再参考 Ant Design X
 ```
 
 ---
@@ -502,9 +506,9 @@ ToolCall
  └─ Actions
 ```
 
-### ③ AntD UI 表现
+### ③ 目标项目 UI 表现
 
-参考 Ant Design X：
+如果目标项目使用 Ant Design，参考 Ant Design X：
 
 ```text
 Pending
@@ -518,7 +522,7 @@ Action placement
 Result presentation
 ```
 
-然后使用当前项目的 AntD 实现。
+然后使用目标项目当前安装版本的 AntD 实现。若目标项目使用其他 UI Stack，则保持相同状态和信息层级，用其现有组件、tokens 与样式约定表达。
 
 ### ④ AG-UI State Mapping
 
@@ -551,7 +555,7 @@ ToolCallState
   ↓
 ToolCallPlugin
   ↓
-AntD
+Generated Project UI Stack
 ```
 
 ---
@@ -594,7 +598,7 @@ Reference Project 的职责是提供答案：
 3. Plugin Contract
 4. Project Frontend State
 5. Reference Projects
-6. Current AntD API
+6. Current Project UI Library API
 ```
 
 当参考项目与项目自身架构冲突时，以本项目设计为准。
@@ -606,7 +610,7 @@ Reference Project 的职责是提供答案：
         ↓
 形成自己的 Agent UI Model
         ↓
-使用 AntD 实现
+使用生成项目选择的 UI Stack 实现
 ```
 
 而不是构建 CopilotKit UI、assistant-ui UI、Ant Design X UI 或 TDesign UI 的复制品。

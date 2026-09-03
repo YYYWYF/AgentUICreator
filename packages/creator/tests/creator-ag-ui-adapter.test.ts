@@ -2,7 +2,11 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { AIMessage, ToolMessage } from "@langchain/core/messages";
+import {
+  AIMessage,
+  HumanMessage,
+  ToolMessage,
+} from "@langchain/core/messages";
 import { fakeModel } from "@langchain/core/testing";
 import { EventType, RunAgentInputSchema } from "@ag-ui/core";
 import { afterEach, describe, expect, it } from "vitest";
@@ -10,6 +14,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   CreatorActivityRecorder,
   CreatorAgUiAdapter,
+  compactedCreatorMessages,
   createCreatorAgent,
   creatorLangChainMessages,
 } from "../src/index.js";
@@ -26,7 +31,7 @@ async function createTemporaryProject(): Promise<string> {
     path.join(projectRoot, "app-ui", "app-ui.json"),
     JSON.stringify(
       {
-        version: "1",
+        version: "2",
         root: {
           type: "panel",
           id: "main-panel",
@@ -35,7 +40,16 @@ async function createTemporaryProject(): Promise<string> {
             type: "slot",
             id: "chat-slot",
             slotId: "chat",
-            pluginInstanceIds: [],
+          },
+        },
+        slots: {
+          chat: {
+            id: "chat",
+            kind: "single",
+            scope: "thread-maybe",
+            description: "Chat fixture",
+            owner: { type: "layout", nodeId: "chat-slot" },
+            occupants: [],
           },
         },
         pluginInstances: {},
@@ -153,7 +167,102 @@ describe("creatorLangChainMessages", () => {
   });
 });
 
+describe("compactedCreatorMessages", () => {
+  it("turns the DeepAgents summary event into a compact AG-UI history", () => {
+    const compacted = compactedCreatorMessages(
+      {
+        messages: [
+          new HumanMessage({ id: "old-user", content: "Old request" }),
+          new AIMessage({ id: "old-assistant", content: "Old response" }),
+          new HumanMessage({ id: "recent-user", content: "Recent request" }),
+          new AIMessage({ id: "recent-assistant", content: "Recent response" }),
+        ],
+      },
+      {
+        cutoffIndex: 2,
+        summaryMessage: new HumanMessage({
+          id: "creator-summary",
+          content: "Earlier context summarized.",
+        }),
+        filePath: "/conversation_history/creator-thread.md",
+      },
+    );
+
+    expect(compacted).toEqual([
+      expect.objectContaining({
+        id: "creator-summary",
+        role: "user",
+        content: "Earlier context summarized.",
+        metadata: { creatorContext: "summary" },
+      }),
+      expect.objectContaining({
+        id: "recent-user",
+        role: "user",
+        content: "Recent request",
+      }),
+      expect.objectContaining({
+        id: "recent-assistant",
+        role: "assistant",
+        content: "Recent response",
+      }),
+    ]);
+  });
+});
+
 describe("CreatorAgUiAdapter", () => {
+  it("publishes DeepAgents compaction back to the AG-UI client", async () => {
+    const projectRoot = await createTemporaryProject();
+    const activity = new CreatorActivityRecorder(projectRoot);
+    const model = fakeModel()
+      .respond(new AIMessage("Earlier Creator context summarized."))
+      .respond(new AIMessage("Continued with compact context."));
+    const agent = createCreatorAgent({
+      model,
+      projectRoot,
+      activity,
+      completionGate: false,
+    });
+    const adapter = new CreatorAgUiAdapter(agent, activity);
+    const input = RunAgentInputSchema.parse({
+      threadId: "creator-long-thread",
+      runId: "creator-long-run",
+      messages: Array.from({ length: 24 }, (_, index) => ({
+        id: `history-${index}`,
+        role: index % 2 === 0 ? ("user" as const) : ("assistant" as const),
+        content: `History message ${index}`,
+      })),
+      tools: [],
+      context: [],
+      state: {},
+    });
+    const events = [];
+
+    for await (const event of adapter.run(input)) {
+      events.push(event);
+    }
+
+    const snapshot = events.find(
+      (event) => event.type === EventType.MESSAGES_SNAPSHOT,
+    );
+    expect(snapshot).toMatchObject({
+      type: EventType.MESSAGES_SNAPSHOT,
+      metadata: { source: "deepagents-summarization" },
+    });
+    if (snapshot?.type !== EventType.MESSAGES_SNAPSHOT) {
+      throw new Error("Expected a Creator messages snapshot.");
+    }
+    expect(snapshot.messages[0]).toMatchObject({
+      role: "user",
+      content: expect.stringContaining("Earlier Creator context summarized."),
+      metadata: { creatorContext: "summary" },
+    });
+    expect(snapshot.messages.length).toBeLessThan(input.messages.length);
+    expect(snapshot.messages.at(-1)).toMatchObject({
+      role: "assistant",
+      content: "Continued with compact context.",
+    });
+  });
+
   it("projects DeepAgents v3 text, tools, and the real modification receipt", async () => {
     const projectRoot = await createTemporaryProject();
     const activity = new CreatorActivityRecorder(projectRoot);
@@ -176,7 +285,12 @@ describe("CreatorAgUiAdapter", () => {
         },
       ])
       .respond(new AIMessage("# 宽度已更新\n\n- 右侧区域现在是 `360px`。"));
-    const agent = createCreatorAgent({ model, projectRoot, activity });
+    const agent = createCreatorAgent({
+      model,
+      projectRoot,
+      activity,
+      completionGate: false,
+    });
     const adapter = new CreatorAgUiAdapter(agent, activity);
     const input = RunAgentInputSchema.parse({
       threadId: "creator-thread",
@@ -255,6 +369,10 @@ describe("CreatorAgUiAdapter", () => {
             }),
           ],
           validations: [],
+          transaction: {
+            runId: "creator-run",
+            undoable: true,
+          },
         },
       },
     });
@@ -272,5 +390,62 @@ describe("CreatorAgUiAdapter", () => {
     expect(
       firstModelCall.find((message) => message.id === "current-user")?.text,
     ).toBe("把它改成 360px。");
+  });
+
+  it("persists recovery data under the AG-UI run id when a run fails after writing", async () => {
+    const projectRoot = await createTemporaryProject();
+    const activity = new CreatorActivityRecorder(projectRoot);
+    const model = fakeModel().respondWithTools([
+      {
+        name: "write_file",
+        args: {
+          file_path: "/project/plugins/incomplete.ts",
+          content: "export const incomplete = true;\n",
+        },
+      },
+    ]);
+    const agent = createCreatorAgent({
+      model,
+      projectRoot,
+      activity,
+      completionGate: false,
+    });
+    const adapter = new CreatorAgUiAdapter(agent, activity);
+    const events = [];
+
+    for await (const event of adapter.run(
+      RunAgentInputSchema.parse({
+        threadId: "creator-thread",
+        runId: "failed-after-write",
+        messages: [
+          {
+            id: "request",
+            role: "user",
+            content: "创建一个文件后模拟模型故障。",
+          },
+        ],
+        tools: [],
+        context: [],
+        state: {},
+      }),
+    )) {
+      events.push(event);
+    }
+
+    expect(events.at(-1)).toMatchObject({
+      type: EventType.RUN_ERROR,
+      code: "CREATOR_RUN_FAILED",
+    });
+    await expect(
+      activity.transactions.load("failed-after-write"),
+    ).resolves.toMatchObject({
+      runId: "failed-after-write",
+      files: [
+        expect.objectContaining({
+          path: "plugins/incomplete.ts",
+          status: "created",
+        }),
+      ],
+    });
   });
 });

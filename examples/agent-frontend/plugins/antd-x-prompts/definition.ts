@@ -7,3 +7,5 @@ export const antdXPromptsPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   Component: AntdXPromptsPlugin,
 };
+
+export default antdXPromptsPlugin;

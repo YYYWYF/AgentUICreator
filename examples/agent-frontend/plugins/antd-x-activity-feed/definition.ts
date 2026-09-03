@@ -7,3 +7,5 @@ export const antdXActivityFeedPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   Component: AntdXActivityFeedPlugin,
 };
+
+export default antdXActivityFeedPlugin;

@@ -111,7 +111,7 @@ export function AntdXConversationsPlugin({
         <Empty description="暂无历史会话" image={Empty.PRESENTED_IMAGE_SIMPLE} />
       ) : (
         <Conversations
-          activeKey={activeKey}
+          {...(activeKey === undefined ? {} : { activeKey })}
           groupable={{ collapsible: true, defaultExpandedKeys: groups }}
           items={items}
           onActiveChange={(key: string) => {

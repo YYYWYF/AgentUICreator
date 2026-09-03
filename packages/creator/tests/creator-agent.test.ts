@@ -2,13 +2,18 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { AIMessage, ToolMessage } from "@langchain/core/messages";
+import {
+  AIMessage,
+  HumanMessage,
+  ToolMessage,
+} from "@langchain/core/messages";
 import { fakeModel } from "@langchain/core/testing";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
   CREATOR_FILESYSTEM_PERMISSIONS,
   CREATOR_SKILLS_SOURCE,
+  CREATOR_SUMMARIZATION_TRIGGER_MESSAGES,
   CreatorActivityRecorder,
   CreatorSkillsBackend,
   ProjectCommandBackend,
@@ -29,13 +34,13 @@ async function createTemporaryProject(): Promise<string> {
     path.join(projectRoot, "app-ui", "app-ui.json"),
     JSON.stringify(
       {
-        version: "1",
+        version: "2",
         root: {
           type: "row",
           id: "main-layout",
           sizes: ["1fr", "320px"],
           children: [
-            { type: "slot", id: "left", slotId: "chat", pluginInstanceIds: [] },
+            { type: "slot", id: "left", slotId: "chat" },
             {
               type: "panel",
               id: "right",
@@ -44,10 +49,27 @@ async function createTemporaryProject(): Promise<string> {
                 type: "slot",
                 id: "right-slot",
                 slotId: "preview",
-                pluginInstanceIds: [],
               },
             },
           ],
+        },
+        slots: {
+          chat: {
+            id: "chat",
+            kind: "single",
+            scope: "thread-maybe",
+            description: "Chat fixture",
+            owner: { type: "layout", nodeId: "left" },
+            occupants: [],
+          },
+          preview: {
+            id: "preview",
+            kind: "single",
+            scope: "root",
+            description: "Preview fixture",
+            owner: { type: "layout", nodeId: "right-slot" },
+            occupants: [],
+          },
         },
         pluginInstances: {},
       },
@@ -176,9 +198,69 @@ describe("ProjectCreatorBackend", () => {
       "pnpm typecheck",
     ]);
   });
+
+  it("records target-owned Registry generation as a mutation only when bytes change", async () => {
+    const projectRoot = await createTemporaryProject();
+    await writeFile(
+      path.join(projectRoot, "package.json"),
+      JSON.stringify({
+        scripts: {
+          "generate:registry":
+            "node -e \"require('node:fs').writeFileSync('plugins/registry.generated.ts', 'generated\\n')\"",
+        },
+      }),
+    );
+    const activity = new CreatorActivityRecorder(projectRoot);
+    const backend = new ProjectCommandBackend({ projectRoot, activity });
+
+    activity.begin();
+    const first = await backend.execute("pnpm generate:registry");
+    const revisionAfterFirst = activity.revision;
+    const second = await backend.execute("pnpm run generate:registry");
+    const receipt = await activity.finish();
+
+    expect(first.exitCode).toBe(0);
+    expect(second.exitCode).toBe(0);
+    expect(revisionAfterFirst).toBe(1);
+    expect(activity.revision).toBe(1);
+    expect(receipt.validations).toEqual([]);
+    expect(receipt.files).toEqual([
+      expect.objectContaining({
+        path: "plugins/registry.generated.ts",
+        status: "created",
+      }),
+    ]);
+  });
 });
 
 describe("createCreatorAgent", () => {
+  it("uses the DeepAgents summarization middleware before long history reaches the model", async () => {
+    const projectRoot = await createTemporaryProject();
+    const model = fakeModel()
+      .respond(new AIMessage("Earlier Creator decisions summarized."))
+      .respond(new AIMessage("Continued from the compacted context."));
+    const agent = createCreatorAgent({ model, projectRoot });
+    const messages = Array.from(
+      { length: CREATOR_SUMMARIZATION_TRIGGER_MESSAGES },
+      (_, index) =>
+        index % 2 === 0
+          ? ({ role: "user" as const, content: `Request ${index}` })
+          : ({ role: "assistant" as const, content: `Response ${index}` }),
+    );
+
+    const result = await agent.invoke({ messages });
+
+    expect(model.callCount).toBe(2);
+    expect(finalCreatorMessage(result)).toBe(
+      "Continued from the compacted context.",
+    );
+    expect(
+      model.calls.at(-1)?.messages.some((message) =>
+        message.text.includes("Earlier Creator decisions summarized."),
+      ),
+    ).toBe(true);
+  });
+
   it("exposes model text through the DeepAgents v3 message stream", async () => {
     const projectRoot = await createTemporaryProject();
     const model = fakeModel().respond(
@@ -256,7 +338,12 @@ describe("createCreatorAgent", () => {
         },
       ])
       .respond(new AIMessage("Validation passed."));
-    const agent = createCreatorAgent({ model, projectRoot, activity });
+    const agent = createCreatorAgent({
+      model,
+      projectRoot,
+      activity,
+      completionGate: false,
+    });
 
     activity.begin();
     const result = await agent.invoke({
@@ -304,7 +391,12 @@ describe("createCreatorAgent", () => {
         },
       ])
       .respond(new AIMessage("Updated the right region to 360px."));
-    const agent = createCreatorAgent({ model, projectRoot, activity });
+    const agent = createCreatorAgent({
+      model,
+      projectRoot,
+      activity,
+      completionGate: false,
+    });
 
     activity.begin();
     await agent.invoke({
@@ -394,6 +486,36 @@ export function ToolCallDetailsPlugin({ context }: UIPluginComponentProps) {
     await expect(readFile(runtimePath, "utf8")).resolves.toBe(originalRuntime);
   });
 
+  it("rejects direct edits to the generated production Registry", async () => {
+    const projectRoot = await createTemporaryProject();
+    const registryPath = path.join(
+      projectRoot,
+      "plugins",
+      "registry.generated.ts",
+    );
+    await writeFile(registryPath, "export const pluginDefinitions = [];\n");
+    const model = fakeModel()
+      .respondWithTools([
+        {
+          name: "write_file",
+          args: {
+            file_path: "/project/plugins/registry.generated.ts",
+            content: "export const pluginDefinitions = ['manual'];\n",
+          },
+        },
+      ])
+      .respond(new AIMessage("Generated files remain script-owned."));
+    const agent = createCreatorAgent({ model, projectRoot });
+
+    await agent.invoke({
+      messages: [{ role: "user", content: "直接修改生成 Registry。" }],
+    });
+
+    await expect(readFile(registryPath, "utf8")).resolves.toBe(
+      "export const pluginDefinitions = [];\n",
+    );
+  });
+
   it("advertises all Creator skills and loads full instructions on demand", async () => {
     const projectRoot = await createTemporaryProject();
     const model = fakeModel()
@@ -423,7 +545,9 @@ export function ToolCallDetailsPlugin({ context }: UIPluginComponentProps) {
     expect(firstCallText).toContain("ui-plugin-development");
     expect(firstCallText).toContain("ag-ui-frontend");
     expect(firstCallText).toContain("ui-debugging");
-    expect(firstCallText).toContain("This is the Phase 8 Creator");
+    expect(firstCallText).toContain("inspect_ui_project");
+    expect(firstCallText).toContain("<ui-project-snapshot>");
+    expect(firstCallText).toContain("CONTROL_ENTRY_MISSING");
     expect(firstCallText).toContain("stream-friendly Markdown");
     expect(firstCallText).toContain("names only commands actually run");
     expect(firstCallText).toContain("observed results");
@@ -460,6 +584,14 @@ export function ToolCallDetailsPlugin({ context }: UIPluginComponentProps) {
       {
         operations: ["write"],
         paths: ["/project/app-ui/app-ui.json"],
+      },
+      {
+        operations: ["write"],
+        paths: [
+          "/project/plugins/index.ts",
+          "/project/plugins/registry.generated.ts",
+        ],
+        mode: "deny",
       },
       {
         operations: ["write"],

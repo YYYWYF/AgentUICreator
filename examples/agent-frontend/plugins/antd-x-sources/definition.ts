@@ -7,3 +7,5 @@ export const antdXSourcesPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   Component: AntdXSourcesPlugin,
 };
+
+export default antdXSourcesPlugin;

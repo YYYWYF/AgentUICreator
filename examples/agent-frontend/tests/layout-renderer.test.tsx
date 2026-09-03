@@ -16,14 +16,18 @@ describe("LayoutRenderer", () => {
       <LayoutRenderer
         model={model}
         renderSlot={(slot) => (
-          <article>{slot.pluginInstanceIds.join(",")}</article>
+          <article>
+            {model.slots[slot.slotId]?.occupants
+              .map((occupant) => occupant.instanceId)
+              .join(",")}
+          </article>
         )}
       />,
     );
 
     expect(html).toContain('data-layout-type="column"');
     expect(html).toContain(
-      'style="gap:0;grid-template-rows:auto minmax(0, 1fr) auto auto"',
+      'style="gap:0;grid-template-rows:auto auto minmax(0, 1fr) auto auto"',
     );
     expect(html).toContain('data-slot-id="agent-welcome"');
     expect(html).toContain('data-slot-id="agent-messages"');
@@ -35,7 +39,7 @@ describe("LayoutRenderer", () => {
 
   it("maps numeric Column sizes to fractional grid tracks", () => {
     const model: AppUIModel = {
-      version: "1",
+      version: "2",
       root: {
         type: "column",
         id: "main-column",
@@ -45,15 +49,31 @@ describe("LayoutRenderer", () => {
             type: "slot",
             id: "top-slot-node",
             slotId: "top",
-            pluginInstanceIds: [],
           },
           {
             type: "slot",
             id: "bottom-slot-node",
             slotId: "bottom",
-            pluginInstanceIds: [],
           },
         ],
+      },
+      slots: {
+        top: {
+          id: "top",
+          kind: "single",
+          scope: "root",
+          description: "Top region.",
+          owner: { type: "layout", nodeId: "top-slot-node" },
+          occupants: [],
+        },
+        bottom: {
+          id: "bottom",
+          kind: "single",
+          scope: "root",
+          description: "Bottom region.",
+          owner: { type: "layout", nodeId: "bottom-slot-node" },
+          occupants: [],
+        },
       },
       pluginInstances: {},
     };
@@ -67,7 +87,7 @@ describe("LayoutRenderer", () => {
 
   it("renders only the active Stack child", () => {
     const model: AppUIModel = {
-      version: "1",
+      version: "2",
       root: {
         type: "stack",
         id: "preview-stack",
@@ -77,15 +97,31 @@ describe("LayoutRenderer", () => {
             type: "slot",
             id: "left-slot-node",
             slotId: "left-content",
-            pluginInstanceIds: [],
           },
           {
             type: "slot",
             id: "right-slot-node",
             slotId: "right-content",
-            pluginInstanceIds: [],
           },
         ],
+      },
+      slots: {
+        "left-content": {
+          id: "left-content",
+          kind: "single",
+          scope: "root",
+          description: "Left Stack child.",
+          owner: { type: "layout", nodeId: "left-slot-node" },
+          occupants: [],
+        },
+        "right-content": {
+          id: "right-content",
+          kind: "single",
+          scope: "root",
+          description: "Right Stack child.",
+          owner: { type: "layout", nodeId: "right-slot-node" },
+          occupants: [],
+        },
       },
       pluginInstances: {},
     };
@@ -99,12 +135,21 @@ describe("LayoutRenderer", () => {
 
   it("renders a deterministic placeholder when no slot renderer is provided", () => {
     const model: AppUIModel = {
-      version: "1",
+      version: "2",
       root: {
         type: "slot",
         id: "empty-slot-node",
         slotId: "empty-slot",
-        pluginInstanceIds: [],
+      },
+      slots: {
+        "empty-slot": {
+          id: "empty-slot",
+          kind: "single",
+          scope: "root",
+          description: "Empty region.",
+          owner: { type: "layout", nodeId: "empty-slot-node" },
+          occupants: [],
+        },
       },
       pluginInstances: {},
     };

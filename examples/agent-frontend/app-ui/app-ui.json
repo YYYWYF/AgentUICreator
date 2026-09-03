@@ -1,101 +1,221 @@
 {
-  "version": "1",
+  "version": "2",
   "root": {
     "type": "row",
     "id": "agent-workspace",
-    "gap": 0,
-    "sizes": ["minmax(0, 1fr)", "21rem"],
     "children": [
       {
         "type": "column",
         "id": "agent-conversation-surface",
-        "gap": 0,
-        "sizes": ["auto", "minmax(0, 1fr)", "auto", "auto"],
         "children": [
+          {
+            "type": "slot",
+            "id": "agent-conversations-slot-node",
+            "slotId": "agent-conversations"
+          },
           {
             "type": "row",
             "id": "agent-header",
-            "gap": 0,
-            "sizes": ["minmax(0, 1fr)", "auto", "auto"],
             "children": [
               {
                 "type": "slot",
                 "id": "agent-welcome-slot-node",
-                "slotId": "agent-welcome",
-                "pluginInstanceIds": ["agent-welcome-main"]
+                "slotId": "agent-welcome"
               },
               {
                 "type": "slot",
                 "id": "agent-new-conversation-slot-node",
-                "slotId": "agent-new-conversation",
-                "pluginInstanceIds": ["agent-new-conversation-main"]
+                "slotId": "agent-new-conversation"
               },
               {
                 "type": "slot",
                 "id": "agent-theme-switch-slot-node",
-                "slotId": "agent-theme-switch",
-                "pluginInstanceIds": ["agent-theme-switch-main"]
+                "slotId": "agent-theme-switch"
               }
+            ],
+            "gap": 0,
+            "sizes": [
+              "minmax(0, 1fr)",
+              "auto",
+              "auto"
             ]
           },
           {
             "type": "slot",
             "id": "agent-messages-slot-node",
-            "slotId": "agent-messages",
-            "pluginInstanceIds": ["agent-messages-main"]
+            "slotId": "agent-messages"
           },
           {
             "type": "slot",
             "id": "agent-prompts-slot-node",
-            "slotId": "agent-prompts",
-            "pluginInstanceIds": ["agent-prompts-main"]
+            "slotId": "agent-prompts"
           },
           {
             "type": "slot",
             "id": "agent-sender-slot-node",
-            "slotId": "agent-sender",
-            "pluginInstanceIds": ["agent-sender-main"]
+            "slotId": "agent-sender"
           }
+        ],
+        "gap": 0,
+        "sizes": [
+          "auto",
+          "auto",
+          "minmax(0, 1fr)",
+          "auto",
+          "auto"
         ]
       },
       {
         "type": "column",
         "id": "agent-insights",
+        "children": [
+          {
+            "type": "slot",
+            "id": "agent-run-timeline-slot-node",
+            "slotId": "agent-run-timeline"
+          },
+          {
+            "type": "slot",
+            "id": "agent-tool-detail-slot-node",
+            "slotId": "agent-tool-detail"
+          },
+          {
+            "type": "slot",
+            "id": "agent-resources-slot-node",
+            "slotId": "agent-resources"
+          }
+        ],
         "gap": 0,
         "sizes": [
           "minmax(0, 0.8fr)",
           "minmax(0, 1.15fr)",
           "minmax(0, 1.05fr)"
-        ],
-        "children": [
-          {
-            "type": "slot",
-            "id": "agent-run-timeline-slot-node",
-            "slotId": "agent-run-timeline",
-            "pluginInstanceIds": ["agent-run-timeline-main"]
-          },
-          {
-            "type": "slot",
-            "id": "agent-tool-detail-slot-node",
-            "slotId": "agent-tool-detail",
-            "pluginInstanceIds": ["agent-tool-detail-main"]
-          },
-          {
-            "type": "slot",
-            "id": "agent-resources-slot-node",
-            "slotId": "agent-resources",
-            "pluginInstanceIds": ["agent-resources-main"]
-          }
         ]
       }
+    ],
+    "gap": 0,
+    "sizes": [
+      "minmax(0, 1fr)",
+      "21rem"
     ]
+  },
+  "slots": {
+    "agent-conversations": {
+      "id": "agent-conversations",
+      "kind": "single",
+      "scope": "root",
+      "description": "Conversation and workspace history region above the active conversation.",
+      "owner": { "type": "layout", "nodeId": "agent-conversations-slot-node" },
+      "occupants": [{ "instanceId": "agent-conversations-main" }]
+    },
+    "agent-welcome": {
+      "id": "agent-welcome",
+      "kind": "single",
+      "scope": "thread-maybe",
+      "description": "Welcome or active-thread heading at the start of the conversation header.",
+      "owner": { "type": "layout", "nodeId": "agent-welcome-slot-node" },
+      "occupants": [{ "instanceId": "agent-welcome-main" }]
+    },
+    "agent-new-conversation": {
+      "id": "agent-new-conversation",
+      "kind": "single",
+      "scope": "root",
+      "description": "Action that starts a fresh Agent Runtime thread.",
+      "owner": { "type": "layout", "nodeId": "agent-new-conversation-slot-node" },
+      "occupants": [{ "instanceId": "agent-new-conversation-main" }]
+    },
+    "agent-theme-switch": {
+      "id": "agent-theme-switch",
+      "kind": "single",
+      "scope": "root",
+      "description": "Application theme control in the conversation header.",
+      "owner": { "type": "layout", "nodeId": "agent-theme-switch-slot-node" },
+      "occupants": [{ "instanceId": "agent-theme-switch-main" }]
+    },
+    "agent-messages": {
+      "id": "agent-messages",
+      "kind": "single",
+      "scope": "thread",
+      "description": "Primary transcript renderer for the active Agent thread.",
+      "owner": { "type": "layout", "nodeId": "agent-messages-slot-node" },
+      "occupants": [{ "instanceId": "agent-messages-main" }]
+    },
+    "conversation.message.assistant-actions": {
+      "id": "conversation.message.assistant-actions",
+      "kind": "list",
+      "scope": "thread",
+      "description": "Ordered actions rendered under each finalized assistant message.",
+      "owner": {
+        "type": "plugin-instance",
+        "instanceId": "agent-messages-main",
+        "outlet": "assistant-actions"
+      },
+      "ownerProps": [
+        {
+          "name": "messageId",
+          "type": "string",
+          "description": "Stable AG-UI message identifier.",
+          "required": true
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "description": "Plain-text projection used by message actions.",
+          "required": true
+        }
+      ],
+      "fallback": "owner",
+      "occupants": []
+    },
+    "agent-prompts": {
+      "id": "agent-prompts",
+      "kind": "single",
+      "scope": "thread-maybe",
+      "description": "Suggested prompts shown near the active conversation.",
+      "owner": { "type": "layout", "nodeId": "agent-prompts-slot-node" },
+      "occupants": [{ "instanceId": "agent-prompts-main" }]
+    },
+    "agent-sender": {
+      "id": "agent-sender",
+      "kind": "single",
+      "scope": "thread-maybe",
+      "description": "Composer that sends user messages to the Agent Runtime.",
+      "owner": { "type": "layout", "nodeId": "agent-sender-slot-node" },
+      "occupants": [{ "instanceId": "agent-sender-main" }]
+    },
+    "agent-run-timeline": {
+      "id": "agent-run-timeline",
+      "kind": "single",
+      "scope": "thread",
+      "description": "Timeline projection of the active AG-UI run.",
+      "owner": { "type": "layout", "nodeId": "agent-run-timeline-slot-node" },
+      "occupants": [{ "instanceId": "agent-run-timeline-main" }]
+    },
+    "agent-tool-detail": {
+      "id": "agent-tool-detail",
+      "kind": "single",
+      "scope": "thread",
+      "description": "Detail view for the selected Agent tool call.",
+      "owner": { "type": "layout", "nodeId": "agent-tool-detail-slot-node" },
+      "occupants": [{ "instanceId": "agent-tool-detail-main" }]
+    },
+    "agent-resources": {
+      "id": "agent-resources",
+      "kind": "single",
+      "scope": "thread",
+      "description": "Resources and references associated with the active thread.",
+      "owner": { "type": "layout", "nodeId": "agent-resources-slot-node" },
+      "occupants": [{ "instanceId": "agent-resources-main" }]
+    }
   },
   "pluginInstances": {
     "agent-theme-provider-main": {
       "id": "agent-theme-provider-main",
       "pluginId": "antd-x-theme-provider",
       "enabled": true,
-      "props": { "mode": "dark" }
+      "props": {
+        "mode": "dark"
+      }
     },
     "agent-new-conversation-main": {
       "id": "agent-new-conversation-main",
@@ -120,7 +240,9 @@
       "id": "agent-messages-main",
       "pluginId": "antd-x-message-list",
       "enabled": true,
-      "props": { "emptyText": "开始一段新对话" }
+      "props": {
+        "emptyText": "开始一段新对话"
+      }
     },
     "agent-run-timeline-main": {
       "id": "agent-run-timeline-main",
@@ -131,7 +253,9 @@
       "id": "agent-tool-detail-main",
       "pluginId": "antd-x-tool-detail",
       "enabled": true,
-      "props": { "toolCallId": "tool-call-render-diagram" }
+      "props": {
+        "toolCallId": "tool-call-render-diagram"
+      }
     },
     "agent-resources-main": {
       "id": "agent-resources-main",
@@ -167,7 +291,29 @@
       "id": "agent-sender-main",
       "pluginId": "antd-x-sender",
       "enabled": true,
-      "props": { "placeholder": "给智能体发送消息，输入 / 唤出快捷指令" }
+      "props": {
+        "placeholder": "给智能体发送消息，输入 / 唤出快捷指令"
+      }
+    },
+    "agent-conversations-main": {
+      "id": "agent-conversations-main",
+      "pluginId": "antd-x-conversations",
+      "enabled": true,
+      "props": {
+        "activeKey": "default",
+        "items": [
+          {
+            "key": "default",
+            "label": "默认会话",
+            "group": "今天"
+          },
+          {
+            "key": "previous",
+            "label": "之前的对话",
+            "group": "昨天"
+          }
+        ]
+      }
     }
   }
 }

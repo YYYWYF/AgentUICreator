@@ -7,3 +7,5 @@ export const filePreviewPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   Component: FilePreviewPlugin,
 };
+
+export default filePreviewPlugin;

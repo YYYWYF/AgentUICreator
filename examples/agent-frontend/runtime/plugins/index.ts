@@ -3,3 +3,4 @@ export * from "./PluginServiceContext";
 export * from "./PluginServiceProvider";
 export * from "./PluginServiceRuntime";
 export * from "./UIPluginRuntime";
+export * from "../diagnostics";

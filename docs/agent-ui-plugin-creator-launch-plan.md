@@ -1,4 +1,8 @@
-# Agent UI Plugin Creator 启动计划
+# Agent UI Plugin Creator 最终设计与启动计划
+
+> 文档状态：Canonical。本文合并原始启动设计、当前代码实现、DeepSeek Harness Creator/Cordis 机制评估，以及 Creator 控制面复核结论。若专题实施细节与本文冲突，以本文和仓库根目录 `AGENTS.md` 为准。
+>
+> 配套实施文档：[Creator 开发控制面实施计划](./creator-control-plane-implementation-plan.md)
 
 ## 1. 项目目标
 
@@ -158,6 +162,93 @@ Main Agent Runtime
 
 ---
 
+## 3.5 Creator 是开发控制面，不是生产运行时
+
+Creator 负责：
+
+```text
+观察目标项目
+理解用户意图
+修改 AppUIModel 与 UI Plugin 源码
+验证修改
+反馈证据
+```
+
+Creator 不进入生成应用的生产依赖。项目观察、语义化修改、撤销、澄清、诊断收集和完成门禁都属于开发控制面；确定性渲染、AG-UI Client、Plugin Runtime 和 Plugin 实现属于生成项目。
+
+不要为了提升 Creator 的开发体验，把动态 Package Runner、任意运行时源码加载器或 Creator 私有协议带入最终应用。
+
+---
+
+## 3.6 Inspect first，按需渐进展开
+
+每次 Creator run 开始时，Harness 注入一个有大小上限的项目摘要，至少包含：
+
+```text
+AppUIModel hash 与本次 mutation revision
+Layout Tree / Slot 摘要
+PluginInstance、enabled 状态与挂载位置
+生产 Registry 选择结果
+未选择的 Plugin 资产与开发期 Catalog
+目标项目 UI 技术栈与版本
+最近一次验证和运行时诊断是否仍匹配当前 revision
+```
+
+摘要只负责导航，不代替真实项目文件。Creator 需要精确信息时，通过 `inspect_app_ui_model`、`inspect_ui_plugin`、`inspect_runtime_errors` 等工具渐进查询，不把整个项目或全部插件源码重复注入上下文。
+
+这借鉴 DeepSeek Harness 的 progressive Inspect，但项目文件、AppUIModel、Plugin Contract 和目标项目依赖仍是本项目的事实源。
+
+---
+
+## 3.7 AppUIModel 使用语义化事务修改
+
+Plugin 源码继续由通用 Coding Agent 在权限范围内编辑；AppUIModel 的组合关系优先通过领域操作修改，不再主要依赖模型对 JSON 做字符串级编辑。
+
+一次语义操作必须：
+
+1. 校验调用方观察到的 `appUIModelHash`，并持有当前项目的事务锁；
+2. 在内存中应用一个或一组组合操作；
+3. 完整解析 AppUIModel 并检查跨字段关系；
+4. 重新计算由 AppUIModel 派生的生产 Registry；
+5. 在落盘前生成 AppUIModel 与 Registry 的结构化 diff；
+6. 以临时文件和原子 rename 写入，任何一步失败都恢复修改前内容；
+7. 成功后递增当前 run 的 mutation revision，并返回新的 hash。
+
+`mutationRevision` 是完成门禁在一个 run 内使用的证据序号；`appUIModelHash` 是 AppUIModel 文件精确字节内容的 hash，用作跨 run 和外部编辑的乐观并发令牌，也供验证与运行时诊断关联同一模型版本。Plugin 等其他文件分别使用自己的 observed content hash。revision 与 hash 不能互相替代。
+
+---
+
+## 3.8 移除、停用与删除源码必须分开
+
+用户意图按以下语义解释：
+
+| 用户意图 | AppUIModel | Registry | Plugin 源码 |
+| --- | --- | --- | --- |
+| 暂时隐藏、先不要显示 | 从 Slot 卸载并设为 `enabled: false` | 保留 | 保留 |
+| 移除这个功能 | 从 Slot 和 `pluginInstances` 移除 | 最后一个实例移除后自动退出 | 保留 |
+| 替换这个功能 | 新实例就位后移除旧实例 | 根据最终实例集合自动更新 | 新旧源码都保留 |
+| 连插件代码一起删除 | 先检查引用，再执行受限删除 | 自动更新 | 仅在用户已明确授权时删除 |
+
+默认的“移除”绝不等于删除源码。删除源码只能通过受限领域工具执行，不能开放任意文件删除；若当前请求没有明确授权，Creator 必须先使用同一 run 内的澄清工具。
+
+---
+
+## 3.9 观察后写入与安全撤销
+
+对通用文件编辑启用 read-before-edit 与内容 hash 检查：已有文件未被当前 run 观察时不得覆盖；文件在读取后被外部修改时，写入以 stale-version 冲突失败并要求重新读取。
+
+每次有修改的 run 保存受控范围内的 before 内容、after hash 和验证 revision。撤销时只有所有目标文件仍等于记录的 after hash，才允许整体恢复；任一文件之后被用户或其他任务修改，撤销必须整体拒绝并报告冲突。
+
+不得使用 `git checkout -- app-ui plugins`、`git reset` 或 stash 作为 Creator 撤销实现，因为它们会覆盖不属于当前 run 的用户改动。
+
+---
+
+## 3.10 完成证据必须与当前 revision 一致
+
+项目快照、验证结果、运行时诊断和最终回执都必须携带其对应的 mutation revision 与 AppUIModel hash。旧 revision 的成功结果只能展示为历史信息，不能作为当前修改已完成的证据。
+
+---
+
 # 4. AppUIModel
 
 整个前端组合关系只使用一个统一模型。
@@ -175,9 +266,11 @@ Runtime 统一读取：
 
 ```ts
 interface AppUIModel {
-  version: string
+  version: "2"
 
   root: LayoutNode
+
+  slots: Record<string, UISlot>
 
   pluginInstances: Record<string, PluginInstance>
 
@@ -308,7 +401,7 @@ interface PanelNode {
 
 ## Slot
 
-Plugin 的挂载位置。
+Slot 分成两个正交概念：`SlotNode` 只表示 Layout Tree 中的物理出口；`AppUIModel.slots` 中的 `UISlot` 才是可查询、可嵌套、可替换的语义扩展契约。Plugin 的挂载关系只存在于 `UISlot.occupants`，不再存进 LayoutNode。
 
 ```ts
 interface SlotNode {
@@ -317,12 +410,46 @@ interface SlotNode {
   id: string
 
   slotId: string
-
-  pluginInstanceIds: string[]
 }
 ```
 
-Slot 本身不负责业务逻辑。
+语义契约：
+
+```ts
+type UISlotKind = "single" | "list" | "keyed" | "chain"
+type UISlotScope = "root" | "thread-maybe" | "thread"
+
+interface UISlot {
+  id: string
+  kind: UISlotKind
+  scope: UISlotScope
+  description: string
+  owner:
+    | { type: "layout"; nodeId: string }
+    | { type: "plugin-instance"; instanceId: string; outlet: string }
+  ownerProps?: Array<{
+    name: string
+    type: string
+    description: string
+    required: boolean
+  }>
+  fallback?: "none" | "owner"
+  occupants: Array<{
+    instanceId: string
+    id?: string
+    key?: string
+    order?: number
+  }>
+}
+```
+
+- `single` 最多一个 occupant；替换可能覆盖当前 occupant 或 owner fallback。
+- `list` 使用稳定 `id`，按 `order` 和声明顺序渲染多个 occupant。
+- `keyed` 使用唯一 `key`，由 owner 在每次 occurrence 上指定目标 key。
+- `chain` 依次调用 occupant definition 的 `selectSlot(ownerProps)`，由第一个接受者渲染。
+- `root` 不依赖 thread；`thread-maybe` 可在没有 thread 时出现；`thread` 只用于活动 thread 内语义。
+
+Layout-owned Slot 形成根节点。PluginInstance 可以通过 definition 中声明的本地 outlet 拥有子 Slot，因此 Slot 拓扑可以递归嵌套。模型校验必须拒绝不存在的 owner、重复挂载、重复 outlet、不可达 Slot 和所有权环。
 
 ---
 
@@ -385,9 +512,25 @@ interface PluginInstance {
 plugins/
 └── file-preview/
     ├── manifest.json
+    ├── slots.json
+    ├── definition.ts
     ├── index.tsx
     └── styles.css
 ```
+
+`styles.css` 与 `slots.json` 都是可选文件；只有声明子 Slot 的 Plugin 才需要 `slots.json`。`manifest.json` 与 `definition.ts` 是可进入生产 Registry 的 Plugin 资产最小入口。`slots.json` 是可由 Project Control 与 `verify:ui` 在不执行 React/CSS 模块的情况下读取的机器契约，`definition.ts` 必须用 `parseUIPluginSlotDefinitions` 加载同一份声明，避免检查契约与运行时契约分叉。`definition.ts` 必须提供默认导出的 `UIPluginDefinition`，可以同时保留有意义的 named export：
+
+```ts
+export const filePreviewPlugin: UIPluginDefinition = {
+  manifest,
+  slots: parseUIPluginSlotDefinitions(slotsJson),
+  Component: FilePreviewPlugin,
+}
+
+export default filePreviewPlugin
+```
+
+默认导出是 Registry 生成契约，不要求不同 Plugin 共享 Creator 的 UI 依赖或具体 UI Library。
 
 Manifest：
 
@@ -436,6 +579,22 @@ interface UIPluginContext {
   instance: PluginInstance
 
   actions: UIPluginActions
+
+  slot: {
+    id: string
+    kind: UISlotKind
+    scope: UISlotScope
+    ownerProps: object
+    occupant: UISlotOccupant
+  }
+
+  slots: {
+    render(
+      outlet: string,
+      ownerProps?: object,
+      options?: { key?: string; fallback?: ReactNode }
+    ): ReactNode
+  }
 }
 ```
 
@@ -537,15 +696,15 @@ UI Runtime 负责：
       ↓
 解析 Layout Tree
       ↓
-找到 Slot
+找到 Layout-owned Slot 契约
       ↓
-解析 PluginInstance
+按 kind 解析 occupant 与 PluginInstance
       ↓
 加载 Plugin Definition
       ↓
 注入 UIPluginContext
       ↓
-Render
+Render，并递归解析 Plugin-owned child Slot
 ```
 
 Runtime 不负责：
@@ -579,6 +738,43 @@ UI Runtime 只从 Registry 加载 Plugin。
 不要直接根据文件路径动态 import 任意源码。
 
 生成项目的生产 Registry 必须显式导入当前选择的 Plugin definitions，不得为了方便而展开包含全部模板的 catalog/barrel。Catalog 可以用于开发期发现与预览，但不能成为生产 import graph 的根；否则从 AppUIModel 移除实例并不能让未选择 Plugin 的组件、样式和实现离开 Bundle。
+
+## 10.1 Registry 是 AppUIModel 的确定性派生物
+
+生产 Registry 不再由 Creator 手工维护 import 与数组条目，而由目标项目自己的生成器根据以下输入生成：
+
+```text
+AppUIModel.pluginInstances 中出现的 pluginId
+        +
+plugins/*/manifest.json
+        +
+对应目录 definition.ts 的默认导出契约
+        ↓
+plugins/registry.generated.ts
+```
+
+`plugins/index.ts` 只稳定地转出生成结果，应用代码仍从统一入口获取 `pluginDefinitions`。
+
+选择规则：
+
+- 只要 PluginInstance 仍存在，其 `pluginId` 就进入生产 Registry；`enabled` 或是否挂载不影响选择。
+- 因此暂时隐藏的实例保留 definition，headless Plugin 也通过其 PluginInstance 被选择。
+- 当某个 `pluginId` 的最后一个实例被移除时，它才退出生产 Registry 和生产 Bundle。
+- 未被选择的 Plugin 源码目录是合法开发资产，不是孤儿错误，也不进入生产 import graph。
+- 开发期 Catalog 只用于发现、预览和复制模板，不得被生成 Registry 引用。
+- Catalog 与 `_shared` 等非 Plugin 目录必须由目标项目配置显式声明，扫描器不得靠目录命名规则猜测或静默忽略未知目录。
+
+生成器必须：
+
+- 对 Plugin id 去重并输出稳定顺序；
+- 检查重复 manifest id、缺少 manifest、缺少 definition、无默认导出及引用不存在；
+- 输出带“generated, do not edit”说明的显式静态 import；
+- 位于目标项目中，并可在没有 Creator package 和 Workbench 时独立运行；
+- 提供纯计算入口，使验证器可以在内存中计算期望内容。
+
+生成是显式修改动作，不是验证动作。Creator 的 AppUIModel 事务在同一次受控提交中同步生成 Registry；人工直接修改 AppUIModel 后可运行目标项目自己的 `generate:registry`。`registry.generated.ts` 是需要提交的目标项目源码，使干净 checkout 无需先运行 Creator 或 codegen 就能构建。`verify:ui` 只比较磁盘内容与内存期望结果并报告 stale Registry，绝不能在验证期间写文件；`typecheck` 和 `build` 也不得隐式改写 Registry。
+
+这仍然满足生产 Registry 的静态 import 约束；它消除的是模型重复 bookkeeping，不是把加载链改成运行时动态发现。
 
 ---
 
@@ -662,6 +858,16 @@ LLM
 
 由模型自主决定下一步。
 
+这里借鉴 DeepSeek Harness Creator/Cordis 的是“通用 Agent + 可观察控制面”，不是动态 Package 生命周期本身：
+
+- 先读取紧凑目录，再精确 Inspect；
+- 先观察文件版本，再修改；
+- 把停用、运行、更新和永久删除表达为不同操作；
+- 仅在检查项目仍无法消除的用户侧歧义上提问；
+- 将运行时失败作为下一步可读诊断返回给 Agent。
+
+不要把这些能力串成不可跳过的 Workflow。Creator 仍然根据用户请求和项目状态自主决定需要哪些工具。
+
 ---
 
 # 13. Creator Agent Prompt
@@ -687,7 +893,16 @@ You work with:
 
 Prefer changing AppUIModel when the request is purely structural or layout-related.
 
+Inspect the compact project snapshot first. Query exact model, Plugin, or
+runtime details only when needed. Resolve discoverable facts from the project;
+ask at most one concise question only for user-owned ambiguity that inspection
+cannot answer.
+
 Modify or create UI Plugin code when custom UI behavior is required.
+
+Treat hiding, removing an instance, replacing a feature, and deleting Plugin
+source as different operations. Never delete Plugin source for an ordinary
+remove request.
 
 You may inspect and modify the project inside the allowed project sandbox.
 
@@ -740,6 +955,8 @@ Plugin Context
 Plugin 目录规范
 Component 规范
 Plugin 创建方式
+Plugin definition 默认导出约定
+停用 / 移除实例 / 删除源码语义
 ```
 
 ---
@@ -793,7 +1010,7 @@ Plugin Load Error
 
 # 15. Creator Tools
 
-第一版提供通用 Coding Agent 工具：
+保留通用 Coding Agent 工具：
 
 ```text
 read_file
@@ -804,20 +1021,56 @@ list_directory
 run_command
 ```
 
-再增加专项工具：
+增加只读观察工具：
 
 ```text
+inspect_ui_project
 inspect_app_ui_model
-update_app_ui_model
-
 list_ui_plugins
 inspect_ui_plugin
-
 inspect_runtime_errors
-
 run_typecheck
 run_build
 ```
+
+`inspect_ui_project` 返回有大小上限的项目摘要；其余工具按需返回精确信息。最近验证结果和运行时错误必须明确标记是否匹配当前 revision。
+
+增加 AppUIModel 语义修改操作：
+
+```text
+add_instance
+update_instance_props
+set_instance_enabled
+mount_instance
+unmount_instance
+move_instance
+replace_instance
+remove_instance
+
+insert_layout_node
+update_layout_node_props
+move_layout_node
+replace_layout_node
+remove_layout_node
+```
+
+模型侧优先只暴露一个 `mutate_app_ui_model` 工具，上述名称作为其 discriminated operation types，避免让固定 Tool Catalog 膨胀。工具接收 `appUIModelHash` 与 `operations[]`；需要多步共同满足不变量时，在一个调用中原子提交一组操作。不要提供接受任意完整 JSON 的 `update_layout` 作为语义工具替代品。
+
+增加受控恢复和交互工具：
+
+```text
+undo_creator_run
+ask_creator_user
+delete_ui_plugin_source
+```
+
+- `undo_creator_run` 只能撤销由 after hash 证明未被后续修改的完整 run。
+- `ask_creator_user` 在当前 Agent loop 内等待答案并继续，不把澄清伪装成最终答复；普通请求最多问一个简短问题。
+- `delete_ui_plugin_source` 只允许删除 `plugins/<plugin-id>/`，先验证已无 AppUIModel 引用和跨 Plugin 源码引用，并要求当前用户请求已有明确授权或有效的澄清确认。
+
+生产 Registry 由 AppUIModel 事务自动生成，因此不再向模型暴露 `register_plugin` / `unregister_plugin` bookkeeping 工具。
+
+专项工具通过目标项目自带的 Project Control Adapter 使用目标项目自己的 Schema、Registry generator 和验证逻辑。Creator package 负责模型工具、权限、事务编排与回执，不在自身复制一份 AppUIModel 或 Plugin Contract；目标项目也不反向依赖 Creator。Adapter 使用固定入口和结构化 JSON 输入输出，不能退化成可由模型传入任意 shell 命令的执行器。
 
 Creator 可以自主选择工具。
 
@@ -1011,6 +1264,17 @@ Preview 更新
 
 修改 Plugin JSX 后不重新启动应用即可看到结果。
 
+HMR 先验证现有 Vite / React Fast Refresh 行为，再决定是否增加机制。至少分别验证：
+
+```text
+只修改 Plugin Component
+修改 AppUIModel
+新增 Plugin 并更新生成 Registry
+移除最后一个 PluginInstance
+```
+
+记录每种变化是组件热更新、应用重渲染还是整页刷新，以及 Agent 会话、Plugin 局部状态和 Runtime 状态是否保留。只有复现了无法接受的状态丢失后，才增加最小的开发期 model/registry 更新通道；不得为了“真正热插拔”预先把生产加载链改成 `import.meta.glob` 或动态 Package Runner。
+
 ---
 
 # 22. Phase 6：Creator Agent 基础版
@@ -1123,6 +1387,7 @@ Creator 能判断：
 创建 React Component
 创建 style
 修改 AppUIModel
+生成静态 Plugin Registry
 ```
 
 验收需求：
@@ -1142,10 +1407,36 @@ Creator 能：
 ↓
 插入 Slot
 ↓
+生成显式静态 Registry
+↓
 通过 TypeScript Check
 ↓
 Preview 正常显示
 ```
+
+Creator 在这一阶段同时具备项目快照和 AppUIModel 事务工具。Plugin 源码仍由 Coding Agent 自主创建和修改；组合、挂载、停用、替换和实例移除通过语义工具执行。新 Plugin 的 `definition.ts` 使用默认导出契约，Registry 不再由模型手改。
+
+完成边界由 Creator Harness 的 Verified Completion Gate 负责，不依赖模型自行声称成功：
+
+```text
+候选最终答复
+↓
+生成项目自己的 verify:ui + typecheck
+↓
+验证结果绑定当前 mutation revision
+↓
+同模型根据真实 Diff 和验证证据完成一次复核
+↓
+通过后才向用户发送最终答复与权威回执
+```
+
+`verify:ui` 属于生成项目，负责检查 AppUIModel、Plugin Registry、PluginInstance 与 Slot 挂载关系；它必须能在没有 Creator package 或 Workbench 的情况下独立运行。Creator 只在停止边界调用验证并反馈证据，不把 Agent 的自主工具选择改成固定 Workflow。
+
+`verify:ui` 还必须检查生成 Registry 是否与当前 AppUIModel 一致，但保持严格只读。未选择的 Plugin 源码与开发期 Catalog 不属于错误；enabled 的可视实例未挂载仍然是错误，disabled 且未挂载的实例以及有明确 headless capability 的实例是合法状态。
+
+如果当前 revision 未产生真实文件变化、验证失败、验证后又发生写入，或者复核未通过，Harness 必须拒绝候选答复并允许 Creator 继续修复。候选成功文本在完成门禁通过前不得进入 AG-UI 对话历史。
+
+Creator Harness 必须把每次 run 的诊断链路以 JSONL 保存在目标项目本地的 `.agentuicreator/logs/`。日志至少包含用户请求、每次模型请求与原始返回、结构化工具调用及结果、Completion Gate 反馈、最终回执和异常；日志只用于开发诊断，不进入生成应用的生产 Bundle，也不得自动上传。`.agentuicreator` 内部应默认由本地 ignore 文件排除，避免把包含项目内容的诊断数据提交到版本库。
 
 ---
 
@@ -1159,6 +1450,22 @@ Build Error
 Runtime Error
 Plugin Load Error
 ```
+
+开发期增加结构化运行时诊断桥：
+
+```text
+Plugin Error Boundary / setup 激活失败 / 明确标记的浏览器错误
+        ↓
+pluginId + instanceId + Slot 路径 + AppUIModel hash/revision
+        ↓
+Creator 开发服务器的有界诊断缓冲区
+        ↓
+inspect_runtime_errors
+```
+
+诊断桥是可选的开发能力，不成为生成应用的生产依赖。全局 console error 不能自动归因给某个 Plugin；只采集带来源标识或发生在受控 Plugin 边界内的错误，并进行大小限制、去重和过期清理。
+
+目标 App / UI Runtime 只暴露可选的通用诊断 callback，不导入 Creator，也不知道 Creator endpoint。`apps/creator-workbench` 作为开发组合层把 Creator-owned reporter 传给目标 App；独立运行或生产构建时不传 reporter。这样运行时错误可以进入 Creator，又不让生成项目依赖 Creator runtime service。
 
 形成：
 
@@ -1175,6 +1482,8 @@ Creator 继续修改
 验收：
 
 故意制造 Plugin TypeScript Error，Creator 可以自主修复。
+
+再故意制造一个 typecheck 能通过但 Plugin 渲染失败的错误，Creator 可以通过 `inspect_runtime_errors` 找到准确实例和 revision，修复后旧诊断不再被当作当前错误。
 
 ---
 
@@ -1239,6 +1548,14 @@ Creator 自动视觉验收
 远程 Plugin
 
 多协议适配层
+
+DeepSeek/Cordis 动态 Package Runner
+
+生产环境动态 Plugin discovery / import
+
+强制每个请求先澄清再执行
+
+把未选择的 Plugin 源码目录当成验证错误
 ```
 
 ---
@@ -1292,6 +1609,30 @@ Creator 只修改 AppUIModel。
 
 Creator 修改 Plugin Source。
 
+用户继续：
+
+```text
+“这个详情面板先不要显示。”
+```
+
+Creator 从 Slot 卸载实例并设为 disabled，保留 Plugin 源码和 Registry 选择。
+
+用户继续：
+
+```text
+“把这个功能移除，但代码留着。”
+```
+
+Creator 删除 PluginInstance；如果这是最后一个实例，生成 Registry 自动移除其静态 import，源码目录仍然保留。
+
+用户继续：
+
+```text
+“把刚才这次修改撤销。”
+```
+
+Creator 只在相关文件仍匹配该 run 的 after hash 时整体恢复；有后续编辑时拒绝覆盖并报告冲突。
+
 最终：
 
 ```text
@@ -1335,3 +1676,7 @@ Creator 是开发者。
 UI Runtime 是运行基础设施。
 
 最终 Agent Frontend 不依赖 Creator。
+
+Creator 控制面的最终原则：
+
+> 让 Agent 准确观察项目、语义化修改组合、可恢复地操作用户资产，并用当前 revision 的验证和运行时证据证明结果；不要用额外运行时复杂度弥补开发控制面的缺失。

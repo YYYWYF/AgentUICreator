@@ -7,3 +7,5 @@ export const antdXToolDetailPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   Component: AntdXToolDetailPlugin,
 };
+
+export default antdXToolDetailPlugin;

@@ -129,7 +129,6 @@ function LayoutNodeView({ node, renderSlot }: LayoutNodeViewProps) {
       className="app-ui-layout-node app-ui-layout-slot"
       data-layout-node-id={node.id}
       data-layout-type={node.type}
-      data-plugin-instance-ids={node.pluginInstanceIds.join(" ")}
       data-slot-id={node.slotId}
     >
       {renderSlot === undefined ? (

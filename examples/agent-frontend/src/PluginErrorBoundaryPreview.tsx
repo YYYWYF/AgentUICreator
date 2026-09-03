@@ -77,33 +77,54 @@ const previewActions: UIPluginRuntimeActions = {
 function createPreviewModel(state: PreviewState) {
   if (state === "none") {
     return parseAppUIModel({
-      version: "1",
+      version: "2",
       root: {
         type: "slot",
         id: "runtime-fault-fixture-slot-node",
         slotId: "runtime-fault-fixture",
-        pluginInstanceIds: [],
+      },
+      slots: {
+        "runtime-fault-fixture": {
+          id: "runtime-fault-fixture",
+          kind: "list",
+          scope: "root",
+          description: "Runtime fault preview plugins",
+          owner: { type: "layout", nodeId: "runtime-fault-fixture-slot-node" },
+          occupants: [],
+        },
       },
       pluginInstances: {},
     });
   }
 
-  const pluginInstanceIds: string[] = [];
+  const occupantInstanceIds: string[] = [];
 
   if (state === "render-error" || state === "both" || state === "repaired") {
-    pluginInstanceIds.push("preview-render-failure-main");
+    occupantInstanceIds.push("preview-render-failure-main");
   }
   if (state === "mount-error" || state === "both") {
-    pluginInstanceIds.push("preview-mount-failure-main");
+    occupantInstanceIds.push("preview-mount-failure-main");
   }
 
   return parseAppUIModel({
-    version: "1",
+    version: "2",
     root: {
       type: "slot",
       id: "runtime-fault-fixture-slot-node",
       slotId: "runtime-fault-fixture",
-      pluginInstanceIds,
+    },
+    slots: {
+      "runtime-fault-fixture": {
+        id: "runtime-fault-fixture",
+        kind: "list",
+        scope: "root",
+        description: "Runtime fault preview plugins",
+        owner: { type: "layout", nodeId: "runtime-fault-fixture-slot-node" },
+        occupants: occupantInstanceIds.map((instanceId) => ({
+          id: instanceId,
+          instanceId,
+        })),
+      },
     },
     pluginInstances: {
       "preview-render-failure-main": {

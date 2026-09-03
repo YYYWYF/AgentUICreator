@@ -15,6 +15,7 @@ interface PluginErrorBoundaryProps {
 }
 
 export interface PluginRenderFailure {
+  componentStack?: string | undefined;
   errorMessage: string;
   instanceId: string;
   pluginId: string;
@@ -56,8 +57,11 @@ export class PluginErrorBoundary extends Component<
     }
   }
 
-  componentDidCatch(error: unknown, _info: ErrorInfo): void {
+  componentDidCatch(error: unknown, info: ErrorInfo): void {
     this.props.onError({
+      ...(info.componentStack === null
+        ? {}
+        : { componentStack: info.componentStack }),
       errorMessage: toErrorMessage(error),
       instanceId: this.props.instanceId,
       pluginId: this.props.pluginId,

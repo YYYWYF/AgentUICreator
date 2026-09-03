@@ -8,8 +8,11 @@ import {
 import { XProvider } from "@ant-design/x";
 import { theme as antdTheme } from "antd";
 
-import appUIJson from "../app-ui/app-ui.json";
-import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import appUIJsonSource from "../app-ui/app-ui.json?raw";
+import {
+  parseAppUIModel,
+  parseAppUIModelJson,
+} from "../framework/contracts/app-ui-model";
 import type { UIPluginRunState } from "../framework/contracts/ui-plugin";
 import { pluginDefinitions } from "../plugins";
 import {
@@ -30,13 +33,18 @@ import {
   type UIPluginRuntimeActions,
 } from "../runtime/plugins";
 import {
+  PluginDiagnosticProvider,
+  sha256Text,
+  type RuntimeDiagnosticReporter,
+} from "../runtime/diagnostics";
+import {
   initialPreviewMessages,
   previewAgentState,
 } from "./preview-data";
 
 import "./styles.css";
 
-const initialAppUIModel = parseAppUIModel(appUIJson);
+const initialAppUIModel = parseAppUIModelJson(appUIJsonSource);
 const pluginRegistry = createPluginRegistry(pluginDefinitions);
 const endpoint = import.meta.env.VITE_AGENT_ENDPOINT?.trim();
 const agentRuntime =
@@ -141,8 +149,13 @@ function AgentFrontendSurface({
   );
 }
 
-export function App() {
+export interface AppProps {
+  onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
+}
+
+export function App({ onRuntimeDiagnostic }: AppProps = {}) {
   const [model, setModel] = useState(initialAppUIModel);
+  const [appUIModelHash, setAppUIModelHash] = useState<string>();
   const agent = useAgentRuntime(agentRuntime);
   const run: UIPluginRunState = {
     status: agent.isRunning
@@ -156,6 +169,18 @@ export function App() {
   useEffect(() => {
     setModel(initialAppUIModel);
   }, [initialAppUIModel]);
+
+  useEffect(() => {
+    let active = true;
+    void sha256Text(appUIJsonSource).then((hash) => {
+      if (active) {
+        setAppUIModelHash(hash);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const updateInstanceProps = useCallback(
     (instanceId: string, props: Record<string, unknown>) => {
@@ -191,19 +216,29 @@ export function App() {
     [updateInstanceProps],
   );
 
+  if (appUIModelHash === undefined) {
+    return <main className="development-preview" aria-busy="true" />;
+  }
+
   return (
-    <PluginServiceProvider
-      actions={pluginActions}
+    <PluginDiagnosticProvider
+      appUIModelHash={appUIModelHash}
       model={model}
-      registry={pluginRegistry}
+      onRuntimeDiagnostic={onRuntimeDiagnostic}
     >
-      <AgentFrontendSurface
+      <PluginServiceProvider
         actions={pluginActions}
-        messages={agent.messages}
         model={model}
-        run={run}
-        state={agent.state}
-      />
-    </PluginServiceProvider>
+        registry={pluginRegistry}
+      >
+        <AgentFrontendSurface
+          actions={pluginActions}
+          messages={agent.messages}
+          model={model}
+          run={run}
+          state={agent.state}
+        />
+      </PluginServiceProvider>
+    </PluginDiagnosticProvider>
   );
 }

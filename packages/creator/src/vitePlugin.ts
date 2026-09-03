@@ -14,9 +14,22 @@ import {
   type CreatorAgUiAdapter,
 } from "./CreatorAgUiAdapter.js";
 import { CREATOR_API_PATH } from "./shared.js";
+import { CREATOR_RUNTIME_DIAGNOSTICS_API_PATH } from "./shared.js";
+import {
+  CreatorRuntimeDiagnosticSession,
+  CreatorRuntimeDiagnosticStore,
+  createCreatorRuntimeDiagnosticProjectId,
+} from "./runtime-diagnostics/CreatorRuntimeDiagnosticStore.js";
 
-export { CREATOR_API_PATH } from "./shared.js";
-const MAX_REQUEST_BYTES = 64 * 1024;
+export {
+  CREATOR_API_PATH,
+  CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
+} from "./shared.js";
+// Keep a bounded recovery window above the early DeepAgents summarization
+// threshold. The AG-UI client replaces its history when the summary snapshot
+// arrives, so ordinary follow-up requests stay well below this ceiling.
+const MAX_REQUEST_BYTES = 512 * 1024;
+const MAX_RUNTIME_DIAGNOSTIC_REQUEST_BYTES = 64 * 1024;
 
 export interface CreatorDevServerPluginOptions {
   projectRoot: string;
@@ -25,15 +38,18 @@ export interface CreatorDevServerPluginOptions {
 
 export type CreatorAgUiRunner = Pick<CreatorAgUiAdapter, "run">;
 
-async function readRequestBody(request: IncomingMessage): Promise<unknown> {
+async function readRequestBody(
+  request: IncomingMessage,
+  maximumBytes = MAX_REQUEST_BYTES,
+): Promise<unknown> {
   const chunks: Buffer[] = [];
   let bytes = 0;
 
   for await (const chunk of request) {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     bytes += buffer.byteLength;
-    if (bytes > MAX_REQUEST_BYTES) {
-      throw new Error("Creator 请求内容过大。");
+    if (bytes > maximumBytes) {
+      throw new Error("Creator 请求内容过大，请新建会话后重试。");
     }
     chunks.push(buffer);
   }
@@ -42,6 +58,42 @@ async function readRequestBody(request: IncomingMessage): Promise<unknown> {
     return JSON.parse(Buffer.concat(chunks).toString("utf8"));
   } catch {
     throw new Error("Creator 请求体必须是有效的 JSON。");
+  }
+}
+
+export async function handleCreatorRuntimeDiagnosticRequest(
+  request: IncomingMessage,
+  response: ServerResponse,
+  store: CreatorRuntimeDiagnosticStore,
+  projectId: string,
+): Promise<void> {
+  if (request.method !== "POST") {
+    sendJson(response, 405, { error: "不支持此请求方法。" });
+    return;
+  }
+
+  try {
+    const input = await readRequestBody(
+      request,
+      MAX_RUNTIME_DIAGNOSTIC_REQUEST_BYTES,
+    );
+    if (typeof input !== "object" || input === null || Array.isArray(input)) {
+      throw new Error("运行时诊断请求体必须是对象。");
+    }
+    const source = input as Record<string, unknown>;
+    if (typeof source.threadId !== "string") {
+      throw new Error("运行时诊断请求缺少 threadId。");
+    }
+    const result = store.record(
+      projectId,
+      source.threadId,
+      source.diagnostic,
+    );
+    sendJson(response, 202, result);
+  } catch (error) {
+    sendJson(response, 400, {
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -135,6 +187,13 @@ export function createCreatorDevServerPlugin({
   configRoot,
 }: CreatorDevServerPluginOptions): Plugin {
   let agent: CreatorAgUiAdapter | undefined;
+  const runtimeDiagnosticStore = new CreatorRuntimeDiagnosticStore();
+  const runtimeDiagnosticProjectId =
+    createCreatorRuntimeDiagnosticProjectId(projectRoot);
+  const runtimeDiagnostics = new CreatorRuntimeDiagnosticSession(
+    runtimeDiagnosticStore,
+    runtimeDiagnosticProjectId,
+  );
 
   const getAgent = (): CreatorAgUiAdapter => {
     if (agent !== undefined) {
@@ -144,6 +203,7 @@ export function createCreatorDevServerPlugin({
     agent = createProjectCreatorAgUiAdapter({
       projectRoot,
       ...(configRoot === undefined ? {} : { configRoot }),
+      runtimeDiagnostics,
     });
     return agent;
   };
@@ -152,6 +212,17 @@ export function createCreatorDevServerPlugin({
     name: "agent-ui-creator-dev-server",
     apply: "serve",
     configureServer(server) {
+      server.middlewares.use(
+        CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
+        async (request, response) => {
+          await handleCreatorRuntimeDiagnosticRequest(
+            request,
+            response,
+            runtimeDiagnosticStore,
+            runtimeDiagnosticProjectId,
+          );
+        },
+      );
       server.middlewares.use(
         CREATOR_API_PATH,
         async (request, response) => {

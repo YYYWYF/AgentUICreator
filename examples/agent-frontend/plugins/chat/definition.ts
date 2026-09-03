@@ -7,3 +7,5 @@ export const chatPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   Component: ChatPlugin,
 };
+
+export default chatPlugin;

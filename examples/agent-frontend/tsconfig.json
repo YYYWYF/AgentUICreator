@@ -21,6 +21,7 @@
     "framework/**/*.ts",
     "runtime/**/*.ts",
     "runtime/**/*.tsx",
+    "scripts/**/*.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
     "tests/**/*.ts",

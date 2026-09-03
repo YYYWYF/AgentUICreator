@@ -29,6 +29,7 @@ function createDefinition(
       name: id,
       description: `${id} test plugin`,
       version: "1.0.0",
+      ...(definition.setup === undefined ? {} : { capabilities: ["headless"] }),
     },
     ...definition,
     Component: () => null,
@@ -37,12 +38,21 @@ function createDefinition(
 
 function createServiceModel(providerEnabled = true) {
   return parseAppUIModel({
-    version: "1",
+    version: "2",
     root: {
       type: "slot",
       id: "services-slot-node",
       slotId: "services-slot",
-      pluginInstanceIds: ["consumer-main"],
+    },
+    slots: {
+      "services-slot": {
+        id: "services-slot",
+        kind: "single",
+        scope: "root",
+        description: "Service consumer fixture",
+        owner: { type: "layout", nodeId: "services-slot-node" },
+        occupants: [{ instanceId: "consumer-main" }],
+      },
     },
     pluginInstances: {
       // Deliberately list the consumer first: dependency resolution must not
@@ -62,9 +72,62 @@ function createServiceModel(providerEnabled = true) {
 }
 
 describe("PluginServiceRuntime", () => {
+  it("does not activate visual descendants beneath a disabled Slot owner", () => {
+    const owner = createDefinition("owner");
+    const child = createDefinition("child");
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root-slot" },
+      slots: {
+        "root-slot": {
+          id: "root-slot",
+          kind: "single",
+          scope: "root",
+          description: "Disabled owner fixture",
+          owner: { type: "layout", nodeId: "root-node" },
+          occupants: [{ instanceId: "owner-main" }],
+        },
+        "owner.child": {
+          id: "owner.child",
+          kind: "single",
+          scope: "thread-maybe",
+          description: "Nested child fixture",
+          owner: {
+            type: "plugin-instance",
+            instanceId: "owner-main",
+            outlet: "child",
+          },
+          occupants: [{ instanceId: "child-main" }],
+        },
+      },
+      pluginInstances: {
+        "owner-main": {
+          id: "owner-main",
+          pluginId: "owner",
+          enabled: false,
+        },
+        "child-main": {
+          id: "child-main",
+          pluginId: "child",
+          enabled: true,
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      model,
+      createPluginRegistry([owner, child]),
+      runtimeActions,
+    );
+
+    expect(runtime.getActivation("owner-main")).toBeUndefined();
+    expect(runtime.getActivation("child-main")).toBeUndefined();
+  });
+
   it("activates conversation-aware displays without an optional provider", () => {
     const model = parseAppUIModel({
-      version: "1",
+      version: "2",
       root: {
         type: "column",
         id: "conversation-consumers",
@@ -73,15 +136,31 @@ describe("PluginServiceRuntime", () => {
             type: "slot",
             id: "messages-slot-node",
             slotId: "messages-slot",
-            pluginInstanceIds: ["messages-main"],
           },
           {
             type: "slot",
             id: "timeline-slot-node",
             slotId: "timeline-slot",
-            pluginInstanceIds: ["timeline-main"],
           },
         ],
+      },
+      slots: {
+        "messages-slot": {
+          id: "messages-slot",
+          kind: "single",
+          scope: "root",
+          description: "Messages fixture",
+          owner: { type: "layout", nodeId: "messages-slot-node" },
+          occupants: [{ instanceId: "messages-main" }],
+        },
+        "timeline-slot": {
+          id: "timeline-slot",
+          kind: "single",
+          scope: "root",
+          description: "Timeline fixture",
+          owner: { type: "layout", nodeId: "timeline-slot-node" },
+          occupants: [{ instanceId: "timeline-main" }],
+        },
       },
       pluginInstances: {
         "messages-main": {
@@ -153,12 +232,24 @@ describe("PluginServiceRuntime", () => {
       },
     });
     const model = parseAppUIModel({
-      version: "1",
+      version: "2",
       root: {
         type: "slot",
         id: "duplicate-slot-node",
         slotId: "duplicate-slot",
-        pluginInstanceIds: ["z-provider", "a-provider"],
+      },
+      slots: {
+        "duplicate-slot": {
+          id: "duplicate-slot",
+          kind: "list",
+          scope: "root",
+          description: "Duplicate service provider fixtures",
+          owner: { type: "layout", nodeId: "duplicate-slot-node" },
+          occupants: [
+            { id: "z-provider", instanceId: "z-provider" },
+            { id: "a-provider", instanceId: "a-provider" },
+          ],
+        },
       },
       pluginInstances: {
         "z-provider": {

@@ -2,6 +2,7 @@ import type {
   AppUIModel,
   PluginInstance,
 } from "../../framework/contracts/app-ui-model";
+import { collectReachablePluginInstanceIds } from "../../framework/contracts/app-ui-model";
 import type {
   UIPluginActions,
   UIPluginDefinition,
@@ -9,6 +10,7 @@ import type {
   UIPluginServices,
 } from "../../framework/contracts/ui-plugin";
 import type { PluginRegistry } from "./PluginRegistry";
+import type { PluginDiagnosticContextValue } from "../diagnostics";
 
 export interface UIPluginRuntimeActions {
   sendMessage(input: string): Promise<void>;
@@ -107,16 +109,30 @@ export class PluginServiceRuntime {
     model: AppUIModel,
     registry: PluginRegistry,
     actions: UIPluginRuntimeActions,
+    diagnostics?: PluginDiagnosticContextValue | null,
   ): void {
+    const previouslyFailed = new Set(
+      [...this.#activations]
+        .filter(([, activation]) => activation.status === "failed")
+        .map(([instanceId]) => instanceId),
+    );
     this.#deactivateAll();
 
     const pending = new Map<
       string,
       { instance: PluginInstance; definition: UIPluginDefinition }
     >();
+    const reachableInstanceIds = collectReachablePluginInstanceIds(model);
 
     Object.values(model.pluginInstances)
-      .filter((instance) => instance.enabled)
+      .filter((instance) => {
+        if (!instance.enabled) return false;
+        const definition = registry.get(instance.pluginId);
+        return (
+          reachableInstanceIds.has(instance.id) ||
+          definition?.manifest.capabilities?.includes("headless") === true
+        );
+      })
       .sort((left, right) =>
         left.id < right.id ? -1 : left.id > right.id ? 1 : 0,
       )
@@ -141,7 +157,13 @@ export class PluginServiceRuntime {
         }
 
         pending.delete(instanceId);
-        this.#activate(candidate.instance, candidate.definition, actions);
+        this.#activate(
+          candidate.instance,
+          candidate.definition,
+          actions,
+          diagnostics,
+          previouslyFailed.has(instanceId),
+        );
         madeProgress = true;
       }
     }
@@ -175,6 +197,8 @@ export class PluginServiceRuntime {
     instance: PluginInstance,
     definition: UIPluginDefinition,
     actions: UIPluginRuntimeActions,
+    diagnostics?: PluginDiagnosticContextValue | null,
+    reportResolution = false,
   ): void {
     const record: ActivePluginRecord = {
       instanceId: instance.id,
@@ -231,6 +255,15 @@ export class PluginServiceRuntime {
         status: "active",
         activationId: ++this.#activationCounter,
       });
+      if (reportResolution) {
+        diagnostics?.report({
+          kind: "plugin-activation",
+          status: "resolved",
+          pluginId: definition.manifest.id,
+          pluginName: definition.manifest.name,
+          instanceId: instance.id,
+        });
+      }
     } catch (error) {
       this.#runCleanups(record);
       const recordIndex = this.#activePlugins.indexOf(record);
@@ -239,6 +272,14 @@ export class PluginServiceRuntime {
       }
       this.#activations.set(instance.id, {
         status: "failed",
+        errorMessage: toErrorMessage(error),
+      });
+      diagnostics?.report({
+        kind: "plugin-activation",
+        status: "error",
+        pluginId: definition.manifest.id,
+        pluginName: definition.manifest.name,
+        instanceId: instance.id,
         errorMessage: toErrorMessage(error),
       });
     }

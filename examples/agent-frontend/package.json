@@ -12,8 +12,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "generate:registry": "tsx scripts/generate-plugin-registry.ts",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
+    "verify:ui": "tsx scripts/verify-ui.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -34,6 +36,7 @@
     "@types/react-test-renderer": "19.1.0",
     "@vitejs/plugin-react": "^6.1.1",
     "react-test-renderer": "19.2.8",
+    "tsx": "4.20.6",
     "typescript": "^7.0.2",
     "vite": "^8.2.2",
     "vitest": "^4.1.11"

@@ -7,3 +7,5 @@ export const antdXNewConversationPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   Component: AntdXNewConversationPlugin,
 };
+
+export default antdXNewConversationPlugin;
