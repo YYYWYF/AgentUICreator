@@ -46,8 +46,8 @@ export interface UIPluginRuntimeProps {
   onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
 }
 
-interface PluginSlotProps {
-  slot: SlotNode;
+interface SlotContentProps {
+  slotId: string;
   model: AppUIModel;
   registry: PluginRegistry;
   messages: AGUIMessage[];
@@ -76,8 +76,8 @@ function createPropsResetKey(
   }
 }
 
-function PluginSlot({
-  slot,
+function SlotContent({
+  slotId,
   model,
   registry,
   messages,
@@ -86,23 +86,12 @@ function PluginSlot({
   actions,
   onPluginError,
   onPluginReset,
-}: PluginSlotProps) {
+}: SlotContentProps) {
   const serviceRuntime = usePluginServiceRuntime();
   const slots = serviceRuntime.slots;
-  useEffect(
-    () =>
-      slots.declare({
-        slotId: slot.slotId,
-        owner: {
-          kind: "layout",
-          nodeId: slot.id,
-        },
-      }),
-    [slot.id, slot.slotId, slots],
-  );
   const getSnapshot = useCallback(
-    () => slots.getContributions(slot.slotId),
-    [slots, slot.slotId],
+    () => slots.getContributions(slotId),
+    [slots, slotId],
   );
   const contributions = useSyncExternalStore(slots.subscribe, getSnapshot, getSnapshot);
 
@@ -111,7 +100,7 @@ function PluginSlot({
   return (
     <div
       className="app-ui-plugin-slot-content"
-      data-slot-id={slot.slotId}
+      data-slot-id={slotId}
     >
       {contributions.map(({ instanceId }) => {
         const instance = model.pluginInstances[instanceId];
@@ -124,7 +113,7 @@ function PluginSlot({
           );
         }
 
-        if (!instance.enabled || instance.mount?.slotId !== slot.slotId) {
+        if (!instance.enabled || instance.mount?.slotId !== slotId) {
           return null;
         }
 
@@ -150,6 +139,27 @@ function PluginSlot({
           services: serviceRuntime.services,
         };
         const PluginComponent = definition.Component;
+        const renderSlot = (requestedSlotId: string): ReactNode => {
+          const childSlots = definition.manifest.slots?.children ?? [];
+          if (!childSlots.includes(requestedSlotId)) {
+            throw new Error(
+              `Plugin instance "${instance.id}" cannot render undeclared child Slot "${requestedSlotId}"`,
+            );
+          }
+          return (
+            <SlotContent
+              actions={actions}
+              messages={messages}
+              model={model}
+              onPluginError={onPluginError}
+              onPluginReset={onPluginReset}
+              registry={registry}
+              run={run}
+              slotId={requestedSlotId}
+              state={state}
+            />
+          );
+        };
         const activationKey =
           definition.setup !== undefined || (definition.inject?.length ?? 0) > 0
             ? `${instance.id}:${activation.activationId}`
@@ -175,13 +185,30 @@ function PluginSlot({
               data-plugin-id={definition.manifest.id}
               data-plugin-instance-id={instance.id}
             >
-              <PluginComponent context={context} />
+              <PluginComponent context={context} renderSlot={renderSlot} />
             </div>
           </PluginErrorBoundary>
         );
       })}
     </div>
   );
+}
+
+interface LayoutSlotOutletProps extends Omit<SlotContentProps, "slotId"> {
+  slot: SlotNode;
+}
+
+function LayoutSlotOutlet({ slot, ...props }: LayoutSlotOutletProps) {
+  const slots = usePluginServiceRuntime().slots;
+  useEffect(
+    () =>
+      slots.declare({
+        slotId: slot.slotId,
+        owner: { kind: "layout", nodeId: slot.id },
+      }),
+    [slot.id, slot.slotId, slots],
+  );
+  return <SlotContent {...props} slotId={slot.slotId} />;
 }
 
 function UIPluginRuntimeContent({
@@ -291,7 +318,7 @@ function UIPluginRuntimeContent({
         className={className}
         model={model}
         renderSlot={(slot: SlotNode) => (
-          <PluginSlot
+          <LayoutSlotOutlet
             actions={actions}
             messages={messages}
             model={model}

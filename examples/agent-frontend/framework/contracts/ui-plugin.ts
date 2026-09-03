@@ -1,5 +1,5 @@
 import type { Message } from "@ag-ui/core";
-import type { ComponentType } from "react";
+import type { ComponentType, ReactNode } from "react";
 import { z } from "zod";
 
 import type { PluginInstance } from "./app-ui-model";
@@ -85,6 +85,7 @@ export interface UIPluginContext {
 
 export interface UIPluginComponentProps {
   context: UIPluginContext;
+  renderSlot(slotId: string): ReactNode;
 }
 
 export interface UIPluginDefinition {
