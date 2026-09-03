@@ -14,7 +14,10 @@ import type {
   AGUIMessage,
   UIPluginComponentProps,
 } from "../../framework/contracts/ui-plugin";
-import { AGENT_UI_CONVERSATION_SERVICE } from "../../services/conversations";
+import {
+  AGENT_UI_CONVERSATION_SERVICE,
+  getVisibleConversationMessages,
+} from "../../services/conversations";
 
 import "./styles.css";
 
@@ -240,19 +243,7 @@ export function AntdXMessageListPlugin({
   const conversation = context.services.get(
     AGENT_UI_CONVERSATION_SERVICE,
   );
-  const messages =
-    conversation === undefined
-      ? context.messages
-      : context.messages.filter((message) =>
-          conversation.includesMessage(message),
-        );
-  const items = messages
-    .filter(
-      (message) =>
-        message.role !== "tool" &&
-        message.role !== "reasoning" &&
-        message.role !== "activity",
-    )
+  const items = getVisibleConversationMessages(context.messages, conversation)
     .map((message) =>
       toBubbleItem(message, (_messageId, text) => <MessageActions text={text} />),
     );

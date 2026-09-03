@@ -13,6 +13,7 @@ import {
   type LayoutNode,
 } from "../framework/contracts/app-ui-model";
 import type {
+  AGUIMessage,
   UIPluginComponentProps,
   UIPluginContext,
   UIPluginDefinition,
@@ -57,6 +58,13 @@ const idleRun: UIPluginRunState = {
   status: "idle",
   errorMessage: undefined,
 };
+
+const defaultConversationMessages: AGUIMessage[] = initialPreviewMessages.map(
+  (message) => ({
+    ...message,
+    metadata: { ...message.metadata, conversationId: "default" },
+  }),
+);
 
 interface MountedPluginRuntime {
   renderer: ReactTestRenderer;
@@ -233,7 +241,7 @@ describe("UIPluginRuntime", () => {
 
     const html = await renderPluginRuntime({
       actions: runtimeActions,
-      messages: initialPreviewMessages,
+      messages: defaultConversationMessages,
       model,
       registry,
       run: idleRun,
@@ -277,13 +285,20 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain("给智能体发送消息，输入 / 唤出快捷指令");
   });
 
-  it("renders the empty conversation and composer through ConversationSurface", async () => {
+  it("renders the empty conversation when only another conversation has messages", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
 
     const html = await renderPluginRuntime({
       actions: runtimeActions,
-      messages: [],
+      messages: [
+        {
+          id: "other-conversation-message",
+          role: "assistant",
+          content: "另一会话的消息",
+          metadata: { conversationId: "other" },
+        },
+      ],
       model,
       registry,
       run: idleRun,
@@ -298,6 +313,74 @@ describe("UIPluginRuntime", () => {
     expect(html).not.toContain('data-ui-plugin="antd-x-message-list"');
     expect(html).toContain("Agent Frontend");
     expect(html).toContain("总结当前上下文");
+  });
+
+  it("keeps non-chat messages from turning the current conversation into a timeline", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const registry = createPluginRegistry(antdXTemplatePlugins);
+    const messages: AGUIMessage[] = [
+      {
+        id: "tool-only",
+        role: "tool",
+        toolCallId: "tool-call-only",
+        content: "工具结果",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "reasoning-only",
+        role: "reasoning",
+        content: "思考过程",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "activity-only",
+        role: "activity",
+        activityType: "progress",
+        content: { title: "处理中" },
+        metadata: { conversationId: "default" },
+      },
+    ];
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      messages,
+      model,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    });
+
+    expect(html).toContain('data-conversation-state="empty"');
+    expect(html).toContain('data-ui-plugin="antd-x-welcome"');
+    expect(html).toContain('data-ui-plugin="antd-x-prompts"');
+    expect(html).toContain('data-ui-plugin="antd-x-sender"');
+    expect(html).not.toContain('data-ui-plugin="antd-x-message-list"');
+  });
+
+  it("renders the running timeline when the current conversation has no chat messages", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const registry = createPluginRegistry(antdXTemplatePlugins);
+    const running: UIPluginRunState = {
+      status: "running",
+      errorMessage: undefined,
+    };
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      messages: [],
+      model,
+      registry,
+      run: running,
+      state: previewAgentState,
+    });
+
+    expect(html).toContain('data-conversation-state="timeline"');
+    expect(html).toContain('data-ui-plugin="antd-x-message-list"');
+    expect(html).toContain('data-agent-run-status="running"');
+    expect(html).toContain("ant-bubble-loading");
+    expect(html).toContain('data-ui-plugin="antd-x-sender"');
+    expect(html).not.toContain('data-ui-plugin="antd-x-welcome"');
+    expect(html).not.toContain('data-ui-plugin="antd-x-prompts"');
   });
 
   it("renders the granular inspection plugins as independent slot capabilities", async () => {
@@ -410,7 +493,7 @@ describe("UIPluginRuntime", () => {
 
     const html = await renderPluginRuntime({
       actions: runtimeActions,
-      messages: initialPreviewMessages,
+      messages: defaultConversationMessages,
       model,
       registry,
       run: idleRun,
@@ -457,7 +540,7 @@ describe("UIPluginRuntime", () => {
 
     const html = await renderPluginRuntime({
       actions: runtimeActions,
-      messages: initialPreviewMessages,
+      messages: defaultConversationMessages,
       model,
       registry,
       run: running,
@@ -466,7 +549,7 @@ describe("UIPluginRuntime", () => {
 
     expect(html).toContain('data-agent-run-status="running"');
     expect(html).toContain("ant-bubble-loading");
-    expect(html).toContain("运行中");
+    expect(html).toContain("正在思考");
   });
 
   it("binds run state and instance-aware actions into UIPluginContext", async () => {
