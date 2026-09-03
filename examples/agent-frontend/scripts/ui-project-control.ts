@@ -137,6 +137,7 @@ async function listUIPlugins(projectRoot: string): Promise<unknown> {
       id: instance.id,
       pluginId: instance.pluginId,
       enabled: instance.enabled,
+      ...(instance.mount === undefined ? {} : { mount: instance.mount }),
       ...(instance.mountedSlotId === undefined
         ? {}
         : { mountedSlotId: instance.mountedSlotId }),
@@ -159,25 +160,9 @@ async function inspectUISlots(
       `Slot "${root}" does not exist.`,
     );
   }
-  const compact = (slotId: string): unknown => {
-    const slot = byId.get(slotId)!;
-    return {
-      slotId: slot.slotId,
-      kind: slot.kind,
-      scope: slot.scope,
-      description: slot.description,
-      replaceRisk: slot.replaceRisk,
-      children: slot.childSlotIds.map(compact),
-    };
-  };
-  const roots = root === undefined
-    ? inspection.appUIModel.slots
-        .filter((slot) => slot.parentSlotId === undefined)
-        .map((slot) => slot.slotId)
-    : [root];
   return {
     appUIModelHash: inspection.appUIModel.hash,
-    trees: roots.map(compact),
+    slots: root === undefined ? inspection.appUIModel.slots : [byId.get(root)!],
     ...(root === undefined ? {} : { selected: byId.get(root) }),
   };
 }

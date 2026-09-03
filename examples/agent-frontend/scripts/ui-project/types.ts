@@ -1,7 +1,6 @@
 import type {
   LayoutSize,
   PluginInstance,
-  UISlot,
 } from "../../framework/contracts/app-ui-model";
 
 export interface ProjectIssue {
@@ -55,30 +54,15 @@ export interface CompactLayoutNode {
 
 export interface InspectedSlot {
   slotId: string;
-  kind: UISlot["kind"];
-  scope: UISlot["scope"];
-  description: string;
-  owner: UISlot["owner"];
-  declarer:
-    | { type: "layout"; nodeId: string }
-    | { type: "plugin"; pluginId: string; instanceId: string; outlet: string };
-  declarationStatus: "layout" | "verified" | "missing" | "mismatch" | "invalid";
-  declarationSource?: string | undefined;
-  ownerProps: NonNullable<UISlot["ownerProps"]>;
-  fallback: NonNullable<UISlot["fallback"]>;
-  occupants: Array<
-    UISlot["occupants"][number] & { pluginId: string; enabled: boolean }
-  >;
-  parentSlotId?: string | undefined;
-  childSlotIds: string[];
-  nodeId?: string | undefined;
-  nodePath?: string | undefined;
-  replaceRisk:
-    | "none"
-    | "replaces-owner-fallback"
-    | "replaces-occupant"
-    | "changes-chain-resolution"
-    | "removes-descendant-slots";
+  nodeId: string;
+  nodePath: string;
+  /** Configured mounts only; activation determines runtime contributions. */
+  mounts: Array<{
+    instanceId: string;
+    pluginId: string;
+    enabled: boolean;
+    order?: number | undefined;
+  }>;
 }
 
 export interface InspectedPluginInstance extends PluginInstance {

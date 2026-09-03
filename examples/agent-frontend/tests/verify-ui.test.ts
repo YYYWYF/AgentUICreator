@@ -52,21 +52,12 @@ async function createProject(options: {
       id: "main-slot-node",
       slotId: "main",
     },
-    slots: {
-      main: {
-        id: "main",
-        kind: "single",
-        scope: "root",
-        description: "Main fixture slot",
-        owner: { type: "layout", nodeId: "main-slot-node" },
-        occupants: options.mounted ? [{ instanceId: "sample-main" }] : [],
-      },
-    },
     pluginInstances: {
       "sample-main": {
         id: "sample-main",
         pluginId: options.instancePluginId,
         enabled: true,
+        ...(options.mounted ? { mount: { slotId: "main" } } : {}),
       },
     },
   };
@@ -99,7 +90,7 @@ afterEach(async () => {
 });
 
 describe("verifyUIProject", () => {
-  it("rejects an enabled visual PluginInstance that is not mounted", async () => {
+  it("allows an enabled visual instance without ordinary mount and reports it as inactive", async () => {
     const projectRoot = await createProject({
       instancePluginId: "sample",
       mounted: false,
@@ -107,8 +98,8 @@ describe("verifyUIProject", () => {
 
     const result = await verifyUIProject(projectRoot, fixtureConfig);
 
-    expect(result.status).toBe("failed");
-    expect(result.errors).toContainEqual(
+    expect(result.status).toBe("passed");
+    expect(result.warnings).toContainEqual(
       expect.objectContaining({ code: "unmounted-enabled-instance" }),
     );
   });
@@ -162,33 +153,21 @@ describe("verifyUIProject", () => {
     expect(await readFile(registryPath, "utf8")).toBe("// stale\n");
   });
 
-  it("rejects a Plugin-owned Slot without a matching machine declaration", async () => {
+  it("rejects mount targets absent from the Layout Tree", async () => {
     const projectRoot = await createProject({
       instancePluginId: "sample",
       mounted: true,
     });
     const modelPath = path.join(projectRoot, "app-ui", "app-ui.json");
     const model = JSON.parse(await readFile(modelPath, "utf8")) as AppUIModel;
-    model.slots["sample.actions"] = {
-      id: "sample.actions",
-      kind: "list",
-      scope: "thread",
-      description: "Sample actions",
-      owner: {
-        type: "plugin-instance",
-        instanceId: "sample-main",
-        outlet: "actions",
-      },
-      fallback: "owner",
-      occupants: [],
-    };
+    model.pluginInstances["sample-main"]!.mount = { slotId: "missing" };
     await writeFile(modelPath, JSON.stringify(model));
 
     const result = await verifyUIProject(projectRoot, fixtureConfig);
 
     expect(result.status).toBe("failed");
     expect(result.errors).toContainEqual(
-      expect.objectContaining({ code: "slot-declaration-missing" }),
+      expect.objectContaining({ code: "app-ui-model" }),
     );
   });
 });

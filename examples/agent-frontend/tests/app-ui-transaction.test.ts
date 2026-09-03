@@ -63,21 +63,12 @@ async function createProject(): Promise<{
       id: "main-node",
       slotId: "main",
     },
-    slots: {
-      main: {
-        id: "main",
-        kind: "list",
-        scope: "root",
-        description: "Main fixture slot",
-        owner: { type: "layout", nodeId: "main-node" },
-        occupants: [{ id: "primary", instanceId: "sample-main" }],
-      },
-    },
     pluginInstances: {
       "sample-main": {
         id: "sample-main",
         pluginId: "sample",
         enabled: true,
+        mount: { slotId: "main" },
         props: { title: "Before" },
       },
     },
@@ -124,7 +115,6 @@ describe("AppUIModel transaction", () => {
           type: "mount_instance",
           instanceId: "sample-secondary",
           slotId: "main",
-          id: "secondary",
         },
       ],
     });
@@ -173,10 +163,10 @@ describe("AppUIModel transaction", () => {
       mutateAppUIModel(projectRoot, {
         appUIModelHash: hash(appUIModelSource),
         operations: [
-          { type: "unmount_instance", instanceId: "sample-main" },
+          { type: "move_instance", instanceId: "sample-main", slotId: "missing" },
         ],
       }),
-    ).rejects.toMatchObject({ code: "ENABLED_VISUAL_INSTANCE_UNMOUNTED" });
+    ).rejects.toMatchObject({ code: "SLOT_NOT_FOUND" });
     await expect(
       mutateAppUIModel(projectRoot, {
         appUIModelHash: hash(appUIModelSource),

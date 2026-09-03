@@ -99,115 +99,6 @@
       "21rem"
     ]
   },
-  "slots": {
-    "agent-conversations": {
-      "id": "agent-conversations",
-      "kind": "single",
-      "scope": "root",
-      "description": "Conversation and workspace history region above the active conversation.",
-      "owner": { "type": "layout", "nodeId": "agent-conversations-slot-node" },
-      "occupants": [{ "instanceId": "agent-conversations-main" }]
-    },
-    "agent-welcome": {
-      "id": "agent-welcome",
-      "kind": "single",
-      "scope": "thread-maybe",
-      "description": "Welcome or active-thread heading at the start of the conversation header.",
-      "owner": { "type": "layout", "nodeId": "agent-welcome-slot-node" },
-      "occupants": [{ "instanceId": "agent-welcome-main" }]
-    },
-    "agent-new-conversation": {
-      "id": "agent-new-conversation",
-      "kind": "single",
-      "scope": "root",
-      "description": "Action that starts a fresh Agent Runtime thread.",
-      "owner": { "type": "layout", "nodeId": "agent-new-conversation-slot-node" },
-      "occupants": [{ "instanceId": "agent-new-conversation-main" }]
-    },
-    "agent-theme-switch": {
-      "id": "agent-theme-switch",
-      "kind": "single",
-      "scope": "root",
-      "description": "Application theme control in the conversation header.",
-      "owner": { "type": "layout", "nodeId": "agent-theme-switch-slot-node" },
-      "occupants": [{ "instanceId": "agent-theme-switch-main" }]
-    },
-    "agent-messages": {
-      "id": "agent-messages",
-      "kind": "single",
-      "scope": "thread",
-      "description": "Primary transcript renderer for the active Agent thread.",
-      "owner": { "type": "layout", "nodeId": "agent-messages-slot-node" },
-      "occupants": [{ "instanceId": "agent-messages-main" }]
-    },
-    "conversation.message.assistant-actions": {
-      "id": "conversation.message.assistant-actions",
-      "kind": "list",
-      "scope": "thread",
-      "description": "Ordered actions rendered under each finalized assistant message.",
-      "owner": {
-        "type": "plugin-instance",
-        "instanceId": "agent-messages-main",
-        "outlet": "assistant-actions"
-      },
-      "ownerProps": [
-        {
-          "name": "messageId",
-          "type": "string",
-          "description": "Stable AG-UI message identifier.",
-          "required": true
-        },
-        {
-          "name": "text",
-          "type": "string",
-          "description": "Plain-text projection used by message actions.",
-          "required": true
-        }
-      ],
-      "fallback": "owner",
-      "occupants": []
-    },
-    "agent-prompts": {
-      "id": "agent-prompts",
-      "kind": "single",
-      "scope": "thread-maybe",
-      "description": "Suggested prompts shown near the active conversation.",
-      "owner": { "type": "layout", "nodeId": "agent-prompts-slot-node" },
-      "occupants": [{ "instanceId": "agent-prompts-main" }]
-    },
-    "agent-sender": {
-      "id": "agent-sender",
-      "kind": "single",
-      "scope": "thread-maybe",
-      "description": "Composer that sends user messages to the Agent Runtime.",
-      "owner": { "type": "layout", "nodeId": "agent-sender-slot-node" },
-      "occupants": [{ "instanceId": "agent-sender-main" }]
-    },
-    "agent-run-timeline": {
-      "id": "agent-run-timeline",
-      "kind": "single",
-      "scope": "thread",
-      "description": "Timeline projection of the active AG-UI run.",
-      "owner": { "type": "layout", "nodeId": "agent-run-timeline-slot-node" },
-      "occupants": [{ "instanceId": "agent-run-timeline-main" }]
-    },
-    "agent-tool-detail": {
-      "id": "agent-tool-detail",
-      "kind": "single",
-      "scope": "thread",
-      "description": "Detail view for the selected Agent tool call.",
-      "owner": { "type": "layout", "nodeId": "agent-tool-detail-slot-node" },
-      "occupants": [{ "instanceId": "agent-tool-detail-main" }]
-    },
-    "agent-resources": {
-      "id": "agent-resources",
-      "kind": "single",
-      "scope": "thread",
-      "description": "Resources and references associated with the active thread.",
-      "owner": { "type": "layout", "nodeId": "agent-resources-slot-node" },
-      "occupants": [{ "instanceId": "agent-resources-main" }]
-    }
-  },
   "pluginInstances": {
     "agent-theme-provider-main": {
       "id": "agent-theme-provider-main",
@@ -220,12 +111,18 @@
     "agent-new-conversation-main": {
       "id": "agent-new-conversation-main",
       "pluginId": "antd-x-new-conversation",
-      "enabled": true
+      "enabled": true,
+      "mount": {
+        "slotId": "agent-new-conversation"
+      }
     },
     "agent-theme-switch-main": {
       "id": "agent-theme-switch-main",
       "pluginId": "antd-x-theme-switch",
-      "enabled": true
+      "enabled": true,
+      "mount": {
+        "slotId": "agent-theme-switch"
+      }
     },
     "agent-welcome-main": {
       "id": "agent-welcome-main",
@@ -234,6 +131,9 @@
       "props": {
         "title": "Agent Frontend",
         "description": "通过 AG-UI 与一个 Agent Runtime 连接，由可复用 UI Plugin 确定性渲染。"
+      },
+      "mount": {
+        "slotId": "agent-welcome"
       }
     },
     "agent-messages-main": {
@@ -242,12 +142,18 @@
       "enabled": true,
       "props": {
         "emptyText": "开始一段新对话"
+      },
+      "mount": {
+        "slotId": "agent-messages"
       }
     },
     "agent-run-timeline-main": {
       "id": "agent-run-timeline-main",
       "pluginId": "antd-x-run-timeline",
-      "enabled": true
+      "enabled": true,
+      "mount": {
+        "slotId": "agent-run-timeline"
+      }
     },
     "agent-tool-detail-main": {
       "id": "agent-tool-detail-main",
@@ -255,12 +161,18 @@
       "enabled": true,
       "props": {
         "toolCallId": "tool-call-render-diagram"
+      },
+      "mount": {
+        "slotId": "agent-tool-detail"
       }
     },
     "agent-resources-main": {
       "id": "agent-resources-main",
       "pluginId": "antd-x-resources",
-      "enabled": true
+      "enabled": true,
+      "mount": {
+        "slotId": "agent-resources"
+      }
     },
     "agent-prompts-main": {
       "id": "agent-prompts-main",
@@ -285,6 +197,9 @@
             "description": "给出一个可执行的后续动作"
           }
         ]
+      },
+      "mount": {
+        "slotId": "agent-prompts"
       }
     },
     "agent-sender-main": {
@@ -293,6 +208,9 @@
       "enabled": true,
       "props": {
         "placeholder": "给智能体发送消息，输入 / 唤出快捷指令"
+      },
+      "mount": {
+        "slotId": "agent-sender"
       }
     },
     "agent-conversations-main": {
@@ -313,6 +231,9 @@
             "group": "昨天"
           }
         ]
+      },
+      "mount": {
+        "slotId": "agent-conversations"
       }
     }
   }

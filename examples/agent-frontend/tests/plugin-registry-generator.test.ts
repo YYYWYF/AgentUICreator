@@ -22,16 +22,6 @@ function modelFor(pluginIds: readonly string[]): AppUIModel {
       type: "slot",
       slotId: "main",
     },
-    slots: {
-      main: {
-        id: "main",
-        kind: "single",
-        scope: "root",
-        description: "Main fixture slot",
-        owner: { type: "layout", nodeId: "main-node" },
-        occupants: pluginIds.length === 0 ? [] : [{ instanceId: "instance-0" }],
-      },
-    },
     pluginInstances: Object.fromEntries(
       pluginIds.map((pluginId, index) => [
         `instance-${index}`,
@@ -39,6 +29,7 @@ function modelFor(pluginIds: readonly string[]): AppUIModel {
           id: `instance-${index}`,
           pluginId,
           enabled: index === 0,
+          ...(index === 0 ? { mount: { slotId: "main" } } : {}),
         },
       ]),
     ),

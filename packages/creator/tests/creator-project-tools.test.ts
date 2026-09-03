@@ -48,25 +48,15 @@ function inspectionFixture(): UIProjectInspection {
       slots: [
         {
           slotId: "history",
-          kind: "single",
-          scope: "root",
-          description: "Conversation history fixture",
-          owner: { type: "layout", nodeId: "history-slot-node" },
-          declarer: { type: "layout", nodeId: "history-slot-node" },
-          declarationStatus: "layout",
-          ownerProps: [],
-          fallback: "none",
-          occupants: [
+          nodeId: "history-slot-node",
+          nodePath: "root.child",
+          mounts: [
             {
               instanceId: "history-main",
               pluginId: "conversation-history",
               enabled: true,
             },
           ],
-          childSlotIds: [],
-          nodeId: "history-slot-node",
-          nodePath: "root.child",
-          replaceRisk: "replaces-occupant",
         },
       ],
     },
@@ -75,6 +65,7 @@ function inspectionFixture(): UIProjectInspection {
         id: "history-main",
         pluginId: "conversation-history",
         enabled: true,
+        mount: { slotId: "history" },
         mountedSlotId: "history",
         props: { activeKey: "current", privateLargeValue: "x".repeat(20_000) },
       },

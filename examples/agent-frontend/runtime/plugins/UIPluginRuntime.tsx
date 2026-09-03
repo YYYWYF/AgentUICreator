@@ -1,20 +1,15 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 
 import type {
   AppUIModel,
   PluginInstance,
   SlotNode,
-  UISlot,
-  UISlotOccupant,
 } from "../../framework/contracts/app-ui-model";
 import type {
   AGUIMessage,
-  UIPluginDefinition,
   UIPluginContext,
   UIPluginRunState,
-  UIPluginSlotRenderOptions,
 } from "../../framework/contracts/ui-plugin";
-import { assertUIPluginSlotContract } from "../../framework/contracts/ui-plugin";
 import { LayoutRenderer } from "../layout";
 import type { PluginRegistry } from "./PluginRegistry";
 import {
@@ -52,16 +47,13 @@ export interface UIPluginRuntimeProps {
 }
 
 interface PluginSlotProps {
-  slot: UISlot;
+  slot: SlotNode;
   model: AppUIModel;
   registry: PluginRegistry;
   messages: AGUIMessage[];
   state: unknown;
   run: UIPluginRunState;
   actions: UIPluginRuntimeActions;
-  ownerProps?: object | undefined;
-  options?: UIPluginSlotRenderOptions | undefined;
-  ancestors?: ReadonlySet<string> | undefined;
   onPluginError(failure: PluginRenderFailure): void;
   onPluginReset(instanceId: string): void;
 }
@@ -84,73 +76,6 @@ function createPropsResetKey(
   }
 }
 
-function collectMountedPluginInstanceIds(model: AppUIModel): Set<string> {
-  return new Set(
-    Object.values(model.slots).flatMap((slot) =>
-      slot.occupants.map((occupant) => occupant.instanceId),
-    ),
-  );
-}
-
-function orderedOccupants(slot: UISlot): UISlotOccupant[] {
-  if (slot.kind !== "list" && slot.kind !== "chain") {
-    return [...slot.occupants];
-  }
-  return slot.occupants
-    .map((occupant, index) => ({ occupant, index }))
-    .sort(
-      (left, right) =>
-        (left.occupant.order ?? 0) - (right.occupant.order ?? 0) ||
-        left.index - right.index,
-    )
-    .map(({ occupant }) => occupant);
-}
-
-function declaredChildSlot(
-  model: AppUIModel,
-  instanceId: string,
-  outlet: string,
-): UISlot | undefined {
-  return Object.values(model.slots).find(
-    (slot) =>
-      slot.owner.type === "plugin-instance" &&
-      slot.owner.instanceId === instanceId &&
-      slot.owner.outlet === outlet,
-  );
-}
-
-function assertOwnerProps(slot: UISlot, ownerProps: object): void {
-  const contracts = slot.ownerProps ?? [];
-  const values = ownerProps as Record<string, unknown>;
-  const declaredNames = new Set(contracts.map((contract) => contract.name));
-  const unexpected = Object.keys(values).filter((name) => !declaredNames.has(name));
-  if (unexpected.length > 0) {
-    throw new Error(
-      `Slot "${slot.id}" received undeclared owner props: ${unexpected.join(", ")}.`,
-    );
-  }
-  for (const contract of contracts) {
-    const value = values[contract.name];
-    if (contract.required && value === undefined) {
-      throw new Error(
-        `Slot "${slot.id}" requires owner prop "${contract.name}".`,
-      );
-    }
-    if (value === undefined) continue;
-    const matches = contract.type === "array"
-      ? Array.isArray(value)
-      : contract.type === "object"
-        ? typeof value === "object" && value !== null && !Array.isArray(value)
-        : !["string", "number", "boolean"].includes(contract.type) ||
-          typeof value === contract.type;
-    if (!matches) {
-      throw new Error(
-        `Slot "${slot.id}" owner prop "${contract.name}" must be ${contract.type}.`,
-      );
-    }
-  }
-}
-
 function PluginSlot({
   slot,
   model,
@@ -159,67 +84,25 @@ function PluginSlot({
   state,
   run,
   actions,
-  ownerProps = {},
-  options,
-  ancestors = new Set(),
   onPluginError,
   onPluginReset,
 }: PluginSlotProps) {
   const serviceRuntime = usePluginServiceRuntime();
-  usePluginServiceRuntimeRevision();
+  const slots = serviceRuntime.slots;
+  const getSnapshot = useCallback(
+    () => slots.getContributions(slot.slotId),
+    [slots, slot.slotId],
+  );
+  const contributions = useSyncExternalStore(slots.subscribe, getSnapshot, getSnapshot);
 
-  if (ancestors.has(slot.id)) {
-    return (
-      <PluginRuntimeError>
-        Slot ownership cycle reached &quot;{slot.id}&quot;.
-      </PluginRuntimeError>
-    );
-  }
-
-  const nextAncestors = new Set(ancestors);
-  nextAncestors.add(slot.id);
-  assertOwnerProps(slot, ownerProps);
-  if (slot.kind === "keyed" && options?.key === undefined) {
-    throw new Error(`Keyed Slot "${slot.id}" requires a render key.`);
-  }
-  if (slot.kind !== "keyed" && options?.key !== undefined) {
-    throw new Error(`Only keyed Slot "${slot.id}" may receive a render key.`);
-  }
-  const candidates = orderedOccupants(slot).filter((occupant) => {
-    const instance = model.pluginInstances[occupant.instanceId];
-    if (instance?.enabled !== true) return false;
-    return slot.kind === "keyed" ? occupant.key === options?.key : true;
-  });
-  const selected = slot.kind === "chain"
-    ? candidates.flatMap((occupant) => {
-        const instance = model.pluginInstances[occupant.instanceId];
-        const definition = instance === undefined
-          ? undefined
-          : registry.get(instance.pluginId);
-        if (definition !== undefined && definition.selectSlot === undefined) {
-          throw new Error(
-            `UI plugin "${definition.manifest.id}" must define selectSlot when mounted in chain Slot "${slot.id}".`,
-          );
-        }
-        if (definition === undefined) return [];
-        const matched = definition.selectSlot!(ownerProps);
-        return matched === null ? [] : [{ occupant, matched }];
-      }).slice(0, 1)
-    : candidates.map((occupant) => ({ occupant, matched: undefined }));
-
-  if (selected.length === 0) {
-    return slot.fallback === "owner" ? (options?.fallback ?? null) : null;
-  }
+  if (contributions.length === 0) return null;
 
   return (
     <div
       className="app-ui-plugin-slot-content"
-      data-slot-id={slot.id}
-      data-slot-kind={slot.kind}
-      data-slot-scope={slot.scope}
+      data-slot-id={slot.slotId}
     >
-      {selected.map(({ occupant, matched }) => {
-        const instanceId = occupant.instanceId;
+      {contributions.map(({ instanceId }) => {
         const instance = model.pluginInstances[instanceId];
 
         if (instance === undefined) {
@@ -230,7 +113,7 @@ function PluginSlot({
           );
         }
 
-        if (!instance.enabled) {
+        if (!instance.enabled || instance.mount?.slotId !== slot.slotId) {
           return null;
         }
 
@@ -245,43 +128,7 @@ function PluginSlot({
         }
 
         const activation = serviceRuntime.getActivation(instance.id);
-        const requiresActivation =
-          definition.setup !== undefined ||
-          (definition.inject?.length ?? 0) > 0;
-
-        if (
-          activation?.status === "pending" ||
-          (activation === undefined && requiresActivation)
-        ) {
-          const missingServices =
-            activation?.status === "pending"
-              ? activation.missingServices
-              : (definition.inject ?? []);
-
-          return (
-            <div
-              className="app-ui-plugin-pending"
-              data-plugin-instance-id={instance.id}
-              data-plugin-state="pending"
-              key={instance.id}
-              role="status"
-            >
-              Waiting for plugin service
-              {missingServices.length === 0
-                ? "."
-                : `: ${missingServices.join(", ")}`}
-            </div>
-          );
-        }
-
-        if (activation?.status === "failed") {
-          return (
-            <PluginRuntimeError key={instance.id}>
-              UI plugin &quot;{instance.pluginId}&quot; failed to activate: {" "}
-              {activation.errorMessage}
-            </PluginRuntimeError>
-          );
-        }
+        if (activation?.status !== "active") return null;
 
         const context: UIPluginContext = {
           messages,
@@ -290,45 +137,10 @@ function PluginSlot({
           instance,
           actions: createInstanceActions(instance, actions),
           services: serviceRuntime.services,
-          slot: {
-            id: slot.id,
-            kind: slot.kind,
-            scope: slot.scope,
-            ownerProps,
-            occupant,
-            ...(matched === undefined ? {} : { matched }),
-          },
-          slots: {
-            render: (outlet, childOwnerProps = {}, childOptions) => {
-              const childSlot = declaredChildSlot(model, instance.id, outlet);
-              if (childSlot === undefined) {
-                throw new Error(
-                  `Plugin instance "${instance.id}" has no configured child Slot for outlet "${outlet}".`,
-                );
-              }
-              assertUIPluginSlotContract(childSlot, outlet, definition);
-              return (
-                <PluginSlot
-                  actions={actions}
-                  ancestors={nextAncestors}
-                  messages={messages}
-                  model={model}
-                  onPluginError={onPluginError}
-                  onPluginReset={onPluginReset}
-                  options={childOptions}
-                  ownerProps={childOwnerProps}
-                  registry={registry}
-                  run={run}
-                  slot={childSlot}
-                  state={state}
-                />
-              );
-            },
-          },
         };
         const PluginComponent = definition.Component;
         const activationKey =
-          requiresActivation && activation?.status === "active"
+          definition.setup !== undefined || (definition.inject?.length ?? 0) > 0
             ? `${instance.id}:${activation.activationId}`
             : instance.id;
 
@@ -371,6 +183,8 @@ function UIPluginRuntimeContent({
   className,
 }: UIPluginRuntimeProps) {
   const diagnostics = useOptionalPluginDiagnosticContext();
+  const serviceRuntime = usePluginServiceRuntime();
+  usePluginServiceRuntimeRevision();
   const [pluginFailures, setPluginFailures] = useState<
     Record<string, PluginRenderFailure>
   >({});
@@ -428,13 +242,12 @@ function UIPluginRuntimeContent({
   const failures = Object.values(pluginFailures);
 
   useEffect(() => {
-    const mountedInstanceIds = collectMountedPluginInstanceIds(model);
     const staleFailures = Object.values(pluginFailures).filter((failure) => {
       const instance = model.pluginInstances[failure.instanceId];
       return (
         instance === undefined ||
         !instance.enabled ||
-        !mountedInstanceIds.has(failure.instanceId)
+        instance.mount === undefined
       );
     });
     if (staleFailures.length === 0) {
@@ -466,27 +279,55 @@ function UIPluginRuntimeContent({
       <LayoutRenderer
         className={className}
         model={model}
-        renderSlot={(slotNode: SlotNode) => {
-          const slot = model.slots[slotNode.slotId];
-          return slot === undefined ? (
-            <PluginRuntimeError>
-              Slot &quot;{slotNode.slotId}&quot; does not exist.
-            </PluginRuntimeError>
-          ) : (
-            <PluginSlot
-              actions={actions}
-              messages={messages}
-              model={model}
-              onPluginError={reportPluginFailure}
-              onPluginReset={resolvePluginFailure}
-              registry={registry}
-              run={run}
-              slot={slot}
-              state={state}
-            />
-          );
-        }}
+        renderSlot={(slot: SlotNode) => (
+          <PluginSlot
+            actions={actions}
+            messages={messages}
+            model={model}
+            onPluginError={reportPluginFailure}
+            onPluginReset={resolvePluginFailure}
+            registry={registry}
+            run={run}
+            slot={slot}
+            state={state}
+          />
+        )}
       />
+
+      {/* Activation failures have no contribution. Report them outside Slot rendering. */}
+      {Object.values(model.pluginInstances).map((instance) => {
+        if (!instance.enabled || instance.mount === undefined) return null;
+        const definition = registry.get(instance.pluginId);
+        if (definition === undefined) {
+          return (
+            <PluginRuntimeError key={instance.id}>
+              UI plugin &quot;{instance.pluginId}&quot; is not registered.
+            </PluginRuntimeError>
+          );
+        }
+        const activation = serviceRuntime.getActivation(instance.id);
+        if (activation?.status === "failed") {
+          return (
+            <PluginRuntimeError key={instance.id}>
+              UI plugin &quot;{instance.pluginId}&quot; failed to activate: {activation.errorMessage}
+            </PluginRuntimeError>
+          );
+        }
+        if (activation?.status === "pending") {
+          return (
+            <div
+              className="app-ui-plugin-pending"
+              data-plugin-instance-id={instance.id}
+              data-plugin-state="pending"
+              key={instance.id}
+              role="status"
+            >
+              Waiting for plugin service: {activation.missingServices.join(", ")}
+            </div>
+          );
+        }
+        return null;
+      })}
 
       {failures.length > 0 ? (
         <section

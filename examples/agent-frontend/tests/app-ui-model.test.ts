@@ -17,21 +17,12 @@ function createMinimalModel(): AppUIModel {
       id: "main-slot-node",
       slotId: "main",
     },
-    slots: {
-      main: {
-        id: "main",
-        kind: "single",
-        scope: "thread-maybe",
-        description: "Primary conversation surface.",
-        owner: { type: "layout", nodeId: "main-slot-node" },
-        occupants: [{ instanceId: "chat-main" }],
-      },
-    },
     pluginInstances: {
       "chat-main": {
         id: "chat-main",
         pluginId: "chat",
         enabled: true,
+        mount: { slotId: "main" },
       },
     },
   };
@@ -94,109 +85,43 @@ describe("AppUIModel", () => {
     ]);
   });
 
-  it("rejects dangling plugin instance references", () => {
+  it("rejects missing mount targets, including disabled instances", () => {
+    for (const enabled of [true, false]) {
+      const input = createMinimalModel();
+      input.pluginInstances["chat-main"]!.enabled = enabled;
+      input.pluginInstances["chat-main"]!.mount = { slotId: "missing" };
+      expect(issuePaths(input)).toContainEqual(["pluginInstances", "chat-main", "mount", "slotId"]);
+    }
+  });
+
+  it("allows multiple mounts in one Slot and instances without an ordinary mount", () => {
     const input = createMinimalModel();
-    input.slots.main!.occupants = [{ instanceId: "missing-instance" }];
-
-    expect(issuePaths(input)).toContainEqual([
-      "slots",
-      "main",
-      "occupants",
-      0,
-      "instanceId",
-    ]);
+    input.pluginInstances.second = { id: "second", pluginId: "chat", enabled: true, mount: { slotId: "main", order: -2 } };
+    input.pluginInstances.unmounted = { id: "unmounted", pluginId: "chat", enabled: true };
+    expect(parseAppUIModel(input).pluginInstances.second?.mount).toEqual({ slotId: "main", order: -2 });
   });
 
-  it("validates Slot cardinality, owner fallback, and nested scope", () => {
-    const invalidList = createMinimalModel();
-    invalidList.slots.main = {
-      ...invalidList.slots.main!,
-      kind: "list",
-      occupants: [{ instanceId: "chat-main" }],
-    };
-    expect(issuePaths(invalidList)).toContainEqual([
-      "slots",
-      "main",
-      "occupants",
-      0,
-    ]);
-
-    const layoutFallback = createMinimalModel();
-    layoutFallback.slots.main!.fallback = "owner";
-    expect(issuePaths(layoutFallback)).toContainEqual([
-      "slots",
-      "main",
-      "fallback",
-    ]);
-
-    const broadChild = createMinimalModel();
-    broadChild.slots["chat.tools"] = {
-      id: "chat.tools",
-      kind: "single",
-      scope: "root",
-      description: "Nested tool fixture.",
-      owner: {
-        type: "plugin-instance",
-        instanceId: "chat-main",
-        outlet: "tools",
-      },
-      occupants: [],
-    };
-    expect(issuePaths(broadChild)).toContainEqual([
-      "slots",
-      "chat.tools",
-      "scope",
-    ]);
+  it("rejects blank mount targets and non-finite orders", () => {
+    for (const mount of [{ slotId: " " }, { slotId: "main", order: Infinity }]) {
+      const input = createMinimalModel();
+      input.pluginInstances["chat-main"]!.mount = mount;
+      expect(() => parseAppUIModel(input)).toThrow();
+    }
   });
 
-  it("rejects duplicate node ids and repeated mounts", () => {
-    const input: AppUIModel = {
-      ...createMinimalModel(),
-      root: {
-        type: "row",
-        id: "layout",
-        children: [
-          {
-            type: "slot",
-            id: "duplicate",
-            slotId: "left",
-          },
-          {
-            type: "slot",
-            id: "duplicate",
-            slotId: "right",
-          },
-        ],
-      },
-      slots: {
-        left: {
-          id: "left",
-          kind: "single",
-          scope: "root",
-          description: "Left region.",
-          owner: { type: "layout", nodeId: "duplicate" },
-          occupants: [{ instanceId: "chat-main" }],
-        },
-        right: {
-          id: "right",
-          kind: "single",
-          scope: "root",
-          description: "Right region.",
-          owner: { type: "layout", nodeId: "duplicate" },
-          occupants: [{ instanceId: "chat-main" }],
-        },
-      },
+  it("rejects duplicate node ids and duplicate Layout slot ids", () => {
+    const input = createMinimalModel();
+    input.root = {
+      type: "row",
+      id: "layout",
+      children: [
+        { type: "slot", id: "duplicate", slotId: "main" },
+        { type: "slot", id: "duplicate", slotId: "main" },
+      ],
     };
-
     const paths = issuePaths(input);
     expect(paths).toContainEqual(["root", "children", 1, "id"]);
-    expect(paths).toContainEqual([
-      "slots",
-      "right",
-      "occupants",
-      0,
-      "instanceId",
-    ]);
+    expect(paths).toContainEqual(["root", "children", 1, "slotId"]);
   });
 
   it("requires one size for each row or column child", () => {

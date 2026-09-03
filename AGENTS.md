@@ -9,9 +9,9 @@ Users modify the frontend through a Creator Agent. The final app connects to **o
 Keep responsibilities separate:
 
 - **Creator Agent**: understands requests and edits the UI project.
-- **AppUIModel**: defines layout, slots, plugin instances, and bindings.
+- **AppUIModel**: defines generated layout and plugin instance configuration.
 - **UI Plugin**: implements frontend behavior.
-- **UI Runtime**: renders AppUIModel deterministically.
+- **UI Runtime**: owns runtime slot composition and renders deterministically.
 - **AG-UI**: provides Agent messages/state.
 
 Creator Agent is a general coding agent specialized with prompts, skills, tools, and context. Do not turn it into a fixed workflow.
@@ -73,7 +73,9 @@ Do not introduce:
 
 ## Rules
 
-- `AppUIModel` is the single source of truth for UI composition.
+- `AppUIModel` is the source of truth for generated layout and plugin instance configuration.
+- Runtime `SlotRegistry` owns the runtime relationship between slots and plugin contributions.
+- Layout `SlotNode` must not contain Plugin instance ids.
 - Use Layout Tree concepts such as Row, Column, Stack, Panel, and Slot.
 - Prefer editing AppUIModel for layout, size, placement, and composition changes.
 - Edit or create UI Plugin code only when custom behavior is needed.

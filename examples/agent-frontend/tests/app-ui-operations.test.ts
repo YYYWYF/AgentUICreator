@@ -43,29 +43,12 @@ function baseModel(): AppUIModel {
         },
       ],
     },
-    slots: {
-      main: {
-        id: "main",
-        kind: "list",
-        scope: "root",
-        description: "Primary list Slot.",
-        owner: { type: "layout", nodeId: "main-node" },
-        occupants: [{ instanceId: "sample-main", id: "primary" }],
-      },
-      "aside-slot": {
-        id: "aside-slot",
-        kind: "single",
-        scope: "root",
-        description: "Secondary Slot.",
-        owner: { type: "layout", nodeId: "aside-node" },
-        occupants: [],
-      },
-    },
     pluginInstances: {
       "sample-main": {
         id: "sample-main",
         pluginId: "sample",
         enabled: true,
+        mount: { slotId: "main" },
       },
     },
   };
@@ -108,7 +91,6 @@ describe("AppUIModel semantic operations", () => {
         instanceId: "secondary",
         slotId: "main",
         index: 0,
-        id: "secondary",
       },
     ]);
 
@@ -116,25 +98,12 @@ describe("AppUIModel semantic operations", () => {
       enabled: true,
       props: { title: "Secondary", count: 2 },
     });
-    expect(result.slots.main?.occupants).toEqual([
-      { instanceId: "secondary", id: "secondary" },
-      { instanceId: "sample-main", id: "primary" },
-    ]);
+    expect(result.pluginInstances.secondary?.mount).toEqual({ slotId: "main", order: 0 });
+    expect(result.pluginInstances["sample-main"]?.mount).toEqual({ slotId: "main", order: 1 });
   });
 
   it("keeps row and column sizes aligned while inserting, moving, and removing nodes", () => {
     const result = applyAppUIOperations(baseModel(), [
-      {
-        type: "add_slot",
-        slot: {
-          id: "temporary",
-          kind: "single",
-          scope: "root",
-          description: "Temporary Layout Slot.",
-          owner: { type: "layout", nodeId: "temporary-node" },
-          occupants: [],
-        },
-      },
       {
         type: "insert_layout_node",
         parentNodeId: "root",
@@ -188,28 +157,12 @@ describe("AppUIModel semantic operations", () => {
         },
       },
       {
-        type: "add_slot",
-        slot: {
-          id: "replacement-main",
-          kind: "list",
-          scope: "root",
-          description: "Replacement Layout Slot.",
-          owner: { type: "layout", nodeId: "replacement-main-node" },
-          occupants: [],
-        },
-      },
-      {
-        type: "move_instance",
-        instanceId: "sample-replacement",
-        slotId: "replacement-main",
-      },
-      {
         type: "replace_layout_node",
         nodeId: "main-node",
         node: {
           type: "slot",
           id: "replacement-main-node",
-          slotId: "replacement-main",
+          slotId: "main",
         },
       },
     ]);
@@ -222,17 +175,8 @@ describe("AppUIModel semantic operations", () => {
       "replacement-main-node",
     )?.node;
     expect(replacementNode?.type).toBe("slot");
-    expect(
-      replacementNode?.type === "slot"
-        ? {
-            slotId: replacementNode.slotId,
-            occupants: result.slots[replacementNode.slotId]?.occupants,
-          }
-        : undefined,
-    ).toEqual({
-      slotId: "replacement-main",
-      occupants: [{ instanceId: "sample-replacement", id: "primary" }],
-    });
+    expect(replacementNode).toMatchObject({ slotId: "main" });
+    expect(result.pluginInstances["sample-replacement"]?.mount).toEqual({ slotId: "main" });
   });
 
   it("requires explicit handling before a mounted Layout subtree disappears", () => {
@@ -246,7 +190,6 @@ describe("AppUIModel semantic operations", () => {
     const result = applyAppUIOperations(baseModel(), [
       { type: "unmount_instance", instanceId: "sample-main" },
       { type: "remove_layout_node", nodeId: "main-node" },
-      { type: "remove_slot", slotId: "main" },
       { type: "remove_instance", instanceId: "sample-main" },
     ]);
     expect(buildLayoutNodeIndex(result.root).has("main-node")).toBe(false);

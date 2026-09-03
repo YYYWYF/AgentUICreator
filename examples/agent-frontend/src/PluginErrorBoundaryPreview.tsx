@@ -83,27 +83,17 @@ function createPreviewModel(state: PreviewState) {
         id: "runtime-fault-fixture-slot-node",
         slotId: "runtime-fault-fixture",
       },
-      slots: {
-        "runtime-fault-fixture": {
-          id: "runtime-fault-fixture",
-          kind: "list",
-          scope: "root",
-          description: "Runtime fault preview plugins",
-          owner: { type: "layout", nodeId: "runtime-fault-fixture-slot-node" },
-          occupants: [],
-        },
-      },
       pluginInstances: {},
     });
   }
 
-  const occupantInstanceIds: string[] = [];
+  const mountedInstanceIds: string[] = [];
 
   if (state === "render-error" || state === "both" || state === "repaired") {
-    occupantInstanceIds.push("preview-render-failure-main");
+    mountedInstanceIds.push("preview-render-failure-main");
   }
   if (state === "mount-error" || state === "both") {
-    occupantInstanceIds.push("preview-mount-failure-main");
+    mountedInstanceIds.push("preview-mount-failure-main");
   }
 
   return parseAppUIModel({
@@ -113,30 +103,23 @@ function createPreviewModel(state: PreviewState) {
       id: "runtime-fault-fixture-slot-node",
       slotId: "runtime-fault-fixture",
     },
-    slots: {
-      "runtime-fault-fixture": {
-        id: "runtime-fault-fixture",
-        kind: "list",
-        scope: "root",
-        description: "Runtime fault preview plugins",
-        owner: { type: "layout", nodeId: "runtime-fault-fixture-slot-node" },
-        occupants: occupantInstanceIds.map((instanceId) => ({
-          id: instanceId,
-          instanceId,
-        })),
-      },
-    },
     pluginInstances: {
       "preview-render-failure-main": {
         id: "preview-render-failure-main",
         pluginId: "preview-render-failure",
         enabled: true,
+        ...(mountedInstanceIds.includes("preview-render-failure-main")
+          ? { mount: { slotId: "runtime-fault-fixture", order: 0 } }
+          : {}),
         props: { shouldFail: state !== "repaired" },
       },
       "preview-mount-failure-main": {
         id: "preview-mount-failure-main",
         pluginId: "preview-mount-failure",
         enabled: true,
+        ...(mountedInstanceIds.includes("preview-mount-failure-main")
+          ? { mount: { slotId: "runtime-fault-fixture", order: 1 } }
+          : {}),
       },
     },
   });

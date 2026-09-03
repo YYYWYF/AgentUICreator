@@ -10,6 +10,7 @@ import { antdXRunTimelinePlugin } from "../plugins/antd-x-run-timeline/definitio
 import {
   createPluginRegistry,
   PluginServiceRuntime,
+  SlotRegistry,
 } from "../runtime/plugins";
 
 const runtimeActions = {
@@ -44,16 +45,6 @@ function createServiceModel(providerEnabled = true) {
       id: "services-slot-node",
       slotId: "services-slot",
     },
-    slots: {
-      "services-slot": {
-        id: "services-slot",
-        kind: "single",
-        scope: "root",
-        description: "Service consumer fixture",
-        owner: { type: "layout", nodeId: "services-slot-node" },
-        occupants: [{ instanceId: "consumer-main" }],
-      },
-    },
     pluginInstances: {
       // Deliberately list the consumer first: dependency resolution must not
       // depend on AppUIModel object order or layout order.
@@ -61,6 +52,7 @@ function createServiceModel(providerEnabled = true) {
         id: "consumer-main",
         pluginId: "consumer",
         enabled: true,
+        mount: { slotId: "services-slot" },
       },
       "provider-main": {
         id: "provider-main",
@@ -72,57 +64,22 @@ function createServiceModel(providerEnabled = true) {
 }
 
 describe("PluginServiceRuntime", () => {
-  it("does not activate visual descendants beneath a disabled Slot owner", () => {
-    const owner = createDefinition("owner");
-    const child = createDefinition("child");
-    const model = parseAppUIModel({
-      version: "2",
-      root: { type: "slot", id: "root-node", slotId: "root-slot" },
-      slots: {
-        "root-slot": {
-          id: "root-slot",
-          kind: "single",
-          scope: "root",
-          description: "Disabled owner fixture",
-          owner: { type: "layout", nodeId: "root-node" },
-          occupants: [{ instanceId: "owner-main" }],
-        },
-        "owner.child": {
-          id: "owner.child",
-          kind: "single",
-          scope: "thread-maybe",
-          description: "Nested child fixture",
-          owner: {
-            type: "plugin-instance",
-            instanceId: "owner-main",
-            outlet: "child",
-          },
-          occupants: [{ instanceId: "child-main" }],
-        },
-      },
-      pluginInstances: {
-        "owner-main": {
-          id: "owner-main",
-          pluginId: "owner",
-          enabled: false,
-        },
-        "child-main": {
-          id: "child-main",
-          pluginId: "child",
-          enabled: true,
-        },
-      },
-    });
+  it("rejects multiple ordinary contributions from the same instance", () => {
+    const slots = new SlotRegistry();
+    slots.register({ instanceId: "one", slotId: "left" });
+
+    expect(() =>
+      slots.register({ instanceId: "one", slotId: "right" }),
+    ).toThrow('Plugin instance "one" already has a Slot contribution');
+  });
+
+  it("does not activate an enabled visual instance without mount", () => {
+    const model = createServiceModel();
+    delete model.pluginInstances["consumer-main"]!.mount;
     const runtime = new PluginServiceRuntime();
-
-    runtime.reconcile(
-      model,
-      createPluginRegistry([owner, child]),
-      runtimeActions,
-    );
-
-    expect(runtime.getActivation("owner-main")).toBeUndefined();
-    expect(runtime.getActivation("child-main")).toBeUndefined();
+    runtime.reconcile(model, createPluginRegistry([createDefinition("consumer")]), runtimeActions);
+    expect(runtime.getActivation("consumer-main")).toBeUndefined();
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
   });
 
   it("activates conversation-aware displays without an optional provider", () => {
@@ -144,34 +101,18 @@ describe("PluginServiceRuntime", () => {
           },
         ],
       },
-      slots: {
-        "messages-slot": {
-          id: "messages-slot",
-          kind: "single",
-          scope: "root",
-          description: "Messages fixture",
-          owner: { type: "layout", nodeId: "messages-slot-node" },
-          occupants: [{ instanceId: "messages-main" }],
-        },
-        "timeline-slot": {
-          id: "timeline-slot",
-          kind: "single",
-          scope: "root",
-          description: "Timeline fixture",
-          owner: { type: "layout", nodeId: "timeline-slot-node" },
-          occupants: [{ instanceId: "timeline-main" }],
-        },
-      },
       pluginInstances: {
         "messages-main": {
           id: "messages-main",
           pluginId: "antd-x-message-list",
           enabled: true,
+          mount: { slotId: "messages-slot" },
         },
         "timeline-main": {
           id: "timeline-main",
           pluginId: "antd-x-run-timeline",
           enabled: true,
+          mount: { slotId: "timeline-slot" },
         },
       },
     });
@@ -237,19 +178,6 @@ describe("PluginServiceRuntime", () => {
         type: "slot",
         id: "duplicate-slot-node",
         slotId: "duplicate-slot",
-      },
-      slots: {
-        "duplicate-slot": {
-          id: "duplicate-slot",
-          kind: "list",
-          scope: "root",
-          description: "Duplicate service provider fixtures",
-          owner: { type: "layout", nodeId: "duplicate-slot-node" },
-          occupants: [
-            { id: "z-provider", instanceId: "z-provider" },
-            { id: "a-provider", instanceId: "a-provider" },
-          ],
-        },
       },
       pluginInstances: {
         "z-provider": {
@@ -331,6 +259,75 @@ describe("PluginServiceRuntime", () => {
         firstActivation.activationId,
       );
     }
+  });
+
+  it("registers and removes Slot contributions with Plugin activation", () => {
+    const runtime = new PluginServiceRuntime();
+    const registry = createPluginRegistry([createDefinition("consumer")]);
+    const mounted = createServiceModel();
+    delete mounted.pluginInstances["provider-main"];
+
+    runtime.reconcile(mounted, registry, runtimeActions);
+    expect(runtime.slots.getContributions("services-slot")).toEqual([
+      { instanceId: "consumer-main", slotId: "services-slot" },
+    ]);
+
+    const disabled = structuredClone(mounted);
+    disabled.pluginInstances["consumer-main"]!.enabled = false;
+    runtime.reconcile(disabled, registry, runtimeActions);
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+
+    const removed = structuredClone(mounted);
+    delete removed.pluginInstances["consumer-main"];
+    runtime.reconcile(mounted, registry, runtimeActions);
+    expect(runtime.slots.getContributions("services-slot")).toHaveLength(1);
+    runtime.reconcile(removed, registry, runtimeActions);
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+
+    runtime.reconcile(mounted, registry, runtimeActions);
+    runtime.dispose();
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+  });
+
+  it("orders multiple contributions by order and then instanceId", () => {
+    const runtime = new PluginServiceRuntime();
+    const definition = createDefinition("visual");
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "list-node", slotId: "list" },
+      pluginInstances: {
+        "z-last": { id: "z-last", pluginId: "visual", enabled: true, mount: { slotId: "list", order: 5 } },
+        "b-second": { id: "b-second", pluginId: "visual", enabled: true, mount: { slotId: "list", order: 1 } },
+        "a-first": { id: "a-first", pluginId: "visual", enabled: true, mount: { slotId: "list", order: 1 } },
+      },
+    });
+
+    runtime.reconcile(model, createPluginRegistry([definition]), runtimeActions);
+
+    expect(
+      runtime.slots.getContributions("list").map(({ instanceId }) => instanceId),
+    ).toEqual(["a-first", "b-second", "z-last"]);
+  });
+
+  it("activates a headless Plugin without an ordinary mount", () => {
+    const headless = createDefinition("headless", { setup: () => undefined });
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "unused-node", slotId: "unused" },
+      pluginInstances: {
+        background: {
+          id: "background",
+          pluginId: "headless",
+          enabled: true,
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(model, createPluginRegistry([headless]), runtimeActions);
+
+    expect(runtime.getActivation("background")?.status).toBe("active");
+    expect(runtime.slots.getContributions("unused")).toEqual([]);
   });
 });
 

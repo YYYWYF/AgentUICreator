@@ -2,7 +2,7 @@ import type {
   AppUIModel,
   PluginInstance,
 } from "../../framework/contracts/app-ui-model";
-import { collectReachablePluginInstanceIds } from "../../framework/contracts/app-ui-model";
+import { SlotRegistry } from "../slots/SlotRegistry";
 import type {
   UIPluginActions,
   UIPluginDefinition,
@@ -79,6 +79,7 @@ export function createInstanceActions(
  * any newly satisfied dependant receives a fresh activation id.
  */
 export class PluginServiceRuntime {
+  readonly slots = new SlotRegistry();
   readonly #services = new Map<string, ServiceRecord>();
   readonly #activations = new Map<string, PluginActivationState>();
   readonly #listeners = new Set<() => void>();
@@ -122,14 +123,13 @@ export class PluginServiceRuntime {
       string,
       { instance: PluginInstance; definition: UIPluginDefinition }
     >();
-    const reachableInstanceIds = collectReachablePluginInstanceIds(model);
 
     Object.values(model.pluginInstances)
       .filter((instance) => {
         if (!instance.enabled) return false;
         const definition = registry.get(instance.pluginId);
         return (
-          reachableInstanceIds.has(instance.id) ||
+          instance.mount !== undefined ||
           definition?.manifest.capabilities?.includes("headless") === true
         );
       })
@@ -249,6 +249,14 @@ export class PluginServiceRuntime {
 
       if (cleanup !== undefined) {
         record.cleanups.push(cleanup);
+      }
+
+      if (instance.mount !== undefined) {
+        record.cleanups.push(this.slots.register({
+          instanceId: instance.id,
+          slotId: instance.mount.slotId,
+          ...(instance.mount.order === undefined ? {} : { order: instance.mount.order }),
+        }));
       }
 
       this.#activations.set(instance.id, {

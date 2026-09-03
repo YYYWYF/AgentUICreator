@@ -67,21 +67,12 @@ async function createProject(definitionSource = "export default {};\n") {
       id: "main-node",
       slotId: "main",
     },
-    slots: {
-      main: {
-        id: "main",
-        kind: "single",
-        scope: "root",
-        description: "Main fixture slot",
-        owner: { type: "layout", nodeId: "main-node" },
-        occupants: [{ instanceId: "sample-main" }],
-      },
-    },
     pluginInstances: {
       "sample-main": {
         id: "sample-main",
         pluginId: "sample",
         enabled: true,
+        mount: { slotId: "main" },
         props: { title: "Sample title" },
       },
     },
@@ -153,7 +144,7 @@ describe("ui-project-control", () => {
     });
   });
 
-  it("returns compact Slot trees and exact Slot contracts", async () => {
+  it("returns Layout Slot locations and configured mounts", async () => {
     const { projectRoot } = await createProject();
 
     const response = await handleUIProjectControlRequest(
@@ -168,24 +159,22 @@ describe("ui-project-control", () => {
     expect(response).toMatchObject({
       ok: true,
       result: {
-        trees: [
+        slots: [
           expect.objectContaining({
             slotId: "main",
-            kind: "single",
-            scope: "root",
+            nodeId: "main-node",
+            mounts: [
+              expect.objectContaining({
+                instanceId: "sample-main",
+                pluginId: "sample",
+                enabled: true,
+              }),
+            ],
           }),
         ],
         selected: expect.objectContaining({
           slotId: "main",
-          declarer: { type: "layout", nodeId: "main-node" },
-          occupants: [
-            expect.objectContaining({
-              instanceId: "sample-main",
-              pluginId: "sample",
-              enabled: true,
-            }),
-          ],
-          replaceRisk: "replaces-occupant",
+          nodeId: "main-node",
         }),
       },
     });

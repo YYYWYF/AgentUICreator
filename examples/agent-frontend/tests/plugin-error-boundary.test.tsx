@@ -87,7 +87,7 @@ const registry = createPluginRegistry([
 ]);
 
 function createModel(
-  occupantInstanceIds: string[],
+  mountedInstanceIds: string[],
   renderShouldFail = true,
 ) {
   return parseAppUIModel({
@@ -97,33 +97,29 @@ function createModel(
       id: "boundary-slot-node",
       slotId: "boundary-slot",
     },
-    slots: {
-      "boundary-slot": {
-        id: "boundary-slot",
-        kind: "list",
-        scope: "root",
-        description: "Error boundary fixture plugins",
-        owner: { type: "layout", nodeId: "boundary-slot-node" },
-        occupants: occupantInstanceIds.map((instanceId) => ({
-          id: instanceId,
-          instanceId,
-        })),
-      },
-    },
     pluginInstances: {
       "healthy-main": {
         id: "healthy-main",
+        ...(mountedInstanceIds.includes("healthy-main")
+          ? { mount: { slotId: "boundary-slot", order: mountedInstanceIds.indexOf("healthy-main") } }
+          : {}),
         pluginId: "healthy",
         enabled: true,
       },
       "render-failure-main": {
         id: "render-failure-main",
+        ...(mountedInstanceIds.includes("render-failure-main")
+          ? { mount: { slotId: "boundary-slot", order: mountedInstanceIds.indexOf("render-failure-main") } }
+          : {}),
         pluginId: "render-failure",
         enabled: true,
         props: { shouldFail: renderShouldFail },
       },
       "mount-failure-main": {
         id: "mount-failure-main",
+        ...(mountedInstanceIds.includes("mount-failure-main")
+          ? { mount: { slotId: "boundary-slot", order: mountedInstanceIds.indexOf("mount-failure-main") } }
+          : {}),
         pluginId: "mount-failure",
         enabled: true,
       },

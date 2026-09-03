@@ -6,11 +6,6 @@ import {
   parseAppUIModelJson,
   type LayoutNode,
 } from "../../framework/contracts/app-ui-model";
-import {
-  assertUIPluginSlotContract,
-  parseUIPluginSlotDefinitions,
-  type UIPluginDefinition,
-} from "../../framework/contracts/ui-plugin";
 import { pathExists } from "./plugin-assets";
 import { uiProjectControlConfig } from "./project-config";
 import {
@@ -113,39 +108,6 @@ export async function inspectUIProject(
   );
   const model = parseAppUIModelJson(appUIModelSource);
   const generation = await generatePluginRegistry(projectRoot, model, config);
-  const slotDeclarations = new Map<
-    string,
-    {
-      sourcePath: string;
-      definition?: UIPluginDefinition | undefined;
-      invalid?: boolean | undefined;
-    }
-  >();
-  for (const asset of generation.assets.filter((candidate) =>
-    generation.selectedPluginIds.includes(candidate.pluginId),
-  )) {
-    const sourcePath = `plugins/${asset.directory}/slots.json`;
-    const source = await readOptional(path.join(projectRoot, sourcePath));
-    if (source === undefined) continue;
-    try {
-      const slots = parseUIPluginSlotDefinitions(JSON.parse(source));
-      slotDeclarations.set(asset.pluginId, {
-        sourcePath,
-        definition: {
-          manifest: {
-            id: asset.pluginId,
-            name: asset.pluginId,
-            description: "Static Slot contract inspection",
-            version: "0",
-          },
-          slots,
-          Component: () => null,
-        },
-      });
-    } catch {
-      slotDeclarations.set(asset.pluginId, { sourcePath, invalid: true });
-    }
-  }
   const generatedSource = await readOptional(
     path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
   );
@@ -168,99 +130,25 @@ export async function inspectUIProject(
     );
   };
   collectLayoutLocations(model.root, "root");
-  const mountedSlots = new Map<string, string>();
-  for (const slot of Object.values(model.slots)) {
-    for (const occupant of slot.occupants) {
-      mountedSlots.set(occupant.instanceId, slot.id);
-    }
-  }
-  const childSlots = new Map<string, string[]>();
-  Object.values(model.slots).forEach((slot) => {
-    if (slot.owner.type !== "plugin-instance") return;
-    const children = childSlots.get(slot.owner.instanceId) ?? [];
-    children.push(slot.id);
-    childSlots.set(slot.owner.instanceId, children);
-  });
-  const slots: InspectedSlot[] = Object.values(model.slots)
-    .sort((left, right) => left.id.localeCompare(right.id))
-    .map((slot) => {
-      const layoutLocation = layoutLocations.get(slot.id);
-      const parentSlotId = slot.owner.type === "plugin-instance"
-        ? mountedSlots.get(slot.owner.instanceId)
-        : undefined;
-      const descendants = slot.occupants.flatMap(
-        (occupant) => childSlots.get(occupant.instanceId) ?? [],
-      );
-      let declarationStatus: InspectedSlot["declarationStatus"] = "layout";
-      let declarationSource: string | undefined;
-      if (slot.owner.type === "plugin-instance") {
-        const pluginId = model.pluginInstances[slot.owner.instanceId]?.pluginId;
-        const declaration = pluginId === undefined
-          ? undefined
-          : slotDeclarations.get(pluginId);
-        declarationSource = declaration?.sourcePath;
-        if (declaration?.invalid === true) {
-          declarationStatus = "invalid";
-        } else if (declaration?.definition === undefined) {
-          declarationStatus = "missing";
-        } else {
-          try {
-            assertUIPluginSlotContract(
-              slot,
-              slot.owner.outlet,
-              declaration.definition,
-            );
-            declarationStatus = "verified";
-          } catch {
-            declarationStatus =
-              declaration.definition.slots?.[slot.owner.outlet] === undefined
-                ? "missing"
-                : "mismatch";
-          }
-        }
-      }
-      const replaceRisk = descendants.length > 0 && slot.kind === "single"
-          ? "removes-descendant-slots" as const
-          : slot.kind === "chain" && slot.occupants.length > 0
-            ? "changes-chain-resolution" as const
-            : slot.kind === "single" && slot.occupants.length > 0
-            ? "replaces-occupant" as const
-            : slot.occupants.length === 0 && slot.fallback === "owner"
-              ? "replaces-owner-fallback" as const
-              : "none" as const;
-      return {
-        slotId: slot.id,
-        kind: slot.kind,
-        scope: slot.scope,
-        description: slot.description,
-        owner: structuredClone(slot.owner),
-        declarer: slot.owner.type === "layout"
-          ? { type: "layout" as const, nodeId: slot.owner.nodeId }
-          : {
-              type: "plugin" as const,
-              pluginId:
-                model.pluginInstances[slot.owner.instanceId]?.pluginId ?? "unknown",
-              instanceId: slot.owner.instanceId,
-              outlet: slot.owner.outlet,
-            },
-        declarationStatus,
-        ...(declarationSource === undefined ? {} : { declarationSource }),
-        ownerProps: structuredClone(slot.ownerProps ?? []),
-        fallback: slot.fallback ?? "none",
-        occupants: slot.occupants.map((occupant) => {
-          const instance = model.pluginInstances[occupant.instanceId]!;
-          return {
-            ...structuredClone(occupant),
-            pluginId: instance.pluginId,
-            enabled: instance.enabled,
-          };
-        }),
-        ...(parentSlotId === undefined ? {} : { parentSlotId }),
-        childSlotIds: descendants.sort(),
-        ...(layoutLocation === undefined ? {} : layoutLocation),
-        replaceRisk,
-      };
-    });
+  // This is a static configuration view, not a snapshot of active contributions.
+  const slots: InspectedSlot[] = [...layoutLocations]
+    .sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)
+    .map(([slotId, location]) => ({
+      slotId,
+      ...location,
+      mounts: Object.values(model.pluginInstances)
+        .filter((instance) => instance.mount?.slotId === slotId)
+        .sort((left, right) =>
+          (left.mount?.order ?? 0) - (right.mount?.order ?? 0) ||
+          (left.id < right.id ? -1 : left.id > right.id ? 1 : 0),
+        )
+        .map((instance) => ({
+          instanceId: instance.id,
+          pluginId: instance.pluginId,
+          enabled: instance.enabled,
+          ...(instance.mount?.order === undefined ? {} : { order: instance.mount.order }),
+        })),
+    }));
   const packageJson = JSON.parse(
     await readFile(path.join(projectRoot, "package.json"), "utf8"),
   ) as unknown;
@@ -278,8 +166,8 @@ export async function inspectUIProject(
       .sort((left, right) => left.id.localeCompare(right.id))
       .map((instance) => ({
         ...instance,
-        ...(mountedSlots.has(instance.id)
-          ? { mountedSlotId: mountedSlots.get(instance.id) }
+        ...(instance.mount !== undefined
+          ? { mountedSlotId: instance.mount.slotId }
           : {}),
       })),
     registry: {

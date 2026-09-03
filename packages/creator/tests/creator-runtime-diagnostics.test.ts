@@ -53,25 +53,15 @@ function inspectionFixture(hash = hashA): UIProjectInspection {
       slots: [
         {
           slotId: "history",
-          kind: "single",
-          scope: "root",
-          description: "Conversation history fixture",
-          owner: { type: "layout", nodeId: "history-slot-node" },
-          declarer: { type: "layout", nodeId: "history-slot-node" },
-          declarationStatus: "layout",
-          ownerProps: [],
-          fallback: "none",
-          occupants: [
+          nodeId: "history-slot-node",
+          nodePath: "root",
+          mounts: [
             {
               instanceId: "history-main",
               pluginId: "conversation-history",
               enabled: true,
             },
           ],
-          childSlotIds: [],
-          nodeId: "history-slot-node",
-          nodePath: "root",
-          replaceRisk: "replaces-occupant",
         },
       ],
     },
@@ -80,6 +70,7 @@ function inspectionFixture(hash = hashA): UIProjectInspection {
         id: "history-main",
         pluginId: "conversation-history",
         enabled: true,
+        mount: { slotId: "history" },
         mountedSlotId: "history",
       },
     ],

@@ -59,37 +59,13 @@ export function createPluginLocationIndex(
   const locations = new Map<string, RuntimePluginLocation>();
   const slotPaths = new Map<string, string>();
   indexPluginLocations(model.root, "root", slotPaths);
-  const childSlots = new Map<string, string[]>();
-  Object.values(model.slots).forEach((slot) => {
-    if (slot.owner.type !== "plugin-instance") return;
-    const owned = childSlots.get(slot.owner.instanceId) ?? [];
-    owned.push(slot.id);
-    childSlots.set(slot.owner.instanceId, owned);
-  });
-
-  const visitSlot = (slotId: string, slotPath: string, seen: Set<string>): void => {
-    if (seen.has(slotId)) return;
-    const slot = model.slots[slotId];
-    if (slot === undefined) return;
-    const branch = new Set(seen);
-    branch.add(slotId);
-    slot.occupants.forEach((occupant) => {
-      locations.set(occupant.instanceId, { slotId, slotPath });
-      (childSlots.get(occupant.instanceId) ?? []).forEach((childSlotId) => {
-        const child = model.slots[childSlotId];
-        const outlet = child?.owner.type === "plugin-instance"
-          ? child.owner.outlet
-          : childSlotId;
-        visitSlot(
-          childSlotId,
-          `${slotPath}.occupants[${occupant.instanceId}].slots[${outlet}]`,
-          branch,
-        );
-      });
-    });
-  };
-
-  slotPaths.forEach((slotPath, slotId) => visitSlot(slotId, slotPath, new Set()));
+  for (const instance of Object.values(model.pluginInstances)) {
+    if (instance.mount === undefined) continue;
+    const slotPath = slotPaths.get(instance.mount.slotId);
+    if (slotPath !== undefined) {
+      locations.set(instance.id, { slotId: instance.mount.slotId, slotPath });
+    }
+  }
   return locations;
 }
 

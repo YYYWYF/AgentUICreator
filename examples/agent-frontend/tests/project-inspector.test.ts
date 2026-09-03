@@ -58,17 +58,6 @@ describe("inspectUIProject", () => {
       path.join(projectRoot, "plugins", "sample", "definition.ts"),
       "const plugin = {};\nexport default plugin;\n",
     );
-    await writeFile(
-      path.join(projectRoot, "plugins", "sample", "slots.json"),
-      JSON.stringify({
-        actions: {
-          kind: "list",
-          scope: "thread",
-          description: "Nested sample actions",
-          fallback: "owner",
-        },
-      }),
-    );
     const model: AppUIModel = {
       version: "2",
       root: {
@@ -83,34 +72,12 @@ describe("inspectUIProject", () => {
           },
         ],
       },
-      slots: {
-        main: {
-          id: "main",
-          kind: "single",
-          scope: "root",
-          description: "Main fixture slot",
-          owner: { type: "layout", nodeId: "main-node" },
-          occupants: [{ instanceId: "sample-main" }],
-        },
-        "sample.actions": {
-          id: "sample.actions",
-          kind: "list",
-          scope: "thread",
-          description: "Nested sample actions",
-          owner: {
-            type: "plugin-instance",
-            instanceId: "sample-main",
-            outlet: "actions",
-          },
-          fallback: "owner",
-          occupants: [],
-        },
-      },
       pluginInstances: {
         "sample-main": {
           id: "sample-main",
           pluginId: "sample",
           enabled: true,
+          mount: { slotId: "main" },
         },
       },
     };
@@ -135,41 +102,12 @@ describe("inspectUIProject", () => {
     const result = await inspectUIProject(projectRoot, fixtureConfig);
 
     expect(result.appUIModel.hash).toMatch(/^[a-f0-9]{64}$/u);
-    expect(result.appUIModel.slots).toEqual([
-      expect.objectContaining({
-        slotId: "main",
-        kind: "single",
-        scope: "root",
-        owner: { type: "layout", nodeId: "main-node" },
-        occupants: [
-          {
-            instanceId: "sample-main",
-            pluginId: "sample",
-            enabled: true,
-          },
-        ],
-        nodeId: "main-node",
-        nodePath: "root.children[0]",
-        childSlotIds: ["sample.actions"],
-        replaceRisk: "removes-descendant-slots",
-      }),
-      expect.objectContaining({
-        slotId: "sample.actions",
-        kind: "list",
-        scope: "thread",
-        declarer: {
-          type: "plugin",
-          pluginId: "sample",
-          instanceId: "sample-main",
-          outlet: "actions",
-        },
-        declarationStatus: "verified",
-        declarationSource: "plugins/sample/slots.json",
-        parentSlotId: "main",
-        fallback: "owner",
-        replaceRisk: "replaces-owner-fallback",
-      }),
-    ]);
+    expect(result.appUIModel.slots).toEqual([{
+      slotId: "main",
+      nodeId: "main-node",
+      nodePath: "root.children[0]",
+      mounts: [{ instanceId: "sample-main", pluginId: "sample", enabled: true }],
+    }]);
     expect(result.pluginInstances).toContainEqual(
       expect.objectContaining({
         id: "sample-main",

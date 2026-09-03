@@ -52,20 +52,7 @@
 
 ### 3.2 已知基线问题
 
-截至本计划形成时，目标项目自己的 `verify:ui` 不是绿线：
-
-```text
-unmounted-enabled-instance: agent-conversations-main
-```
-
-它在 AppUIModel 中是 `enabled: true`，但没有挂到任何 Slot。该状态早于本控制面实施，不应被计为新实现回归。
-
-Phase 0 必须先由项目所有者确认其产品意图并二选一：
-
-- 需要显示：挂入正确 Slot；
-- 暂不显示：从 Slot 保持卸载并改为 `enabled: false`。
-
-实施人员不得为了让测试变绿擅自删除实例或 Plugin 源码。
+`mount === undefined` 现在明确表示没有普通 UI mount；只有带 `mount` 的普通 UI Plugin 或声明为 headless 的 Plugin 会进入 activation graph。实施人员不得为了让检查通过擅自删除实例或 Plugin 源码。
 
 ### 3.3 工作树保护
 
@@ -155,24 +142,21 @@ interface CreatorProjectSnapshot {
     layout: CompactLayoutNode
     slots: Array<{
       slotId: string
-      kind: "single" | "list" | "keyed" | "chain"
-      scope: "root" | "thread-maybe" | "thread"
-      description: string
-      owner: SlotOwner
-      declarer: SlotDeclarer
-      declarationStatus: "layout" | "verified" | "missing" | "mismatch" | "invalid"
-      ownerProps: SlotOwnerProp[]
-      occupants: SlotOccupant[]
-      parentSlotId?: string
-      childSlotIds: string[]
-      nodePath?: string
-      replaceRisk: string
+      nodeId: string
+      nodePath: string
+      mounts: Array<{
+        instanceId: string
+        pluginId: string
+        enabled: boolean
+        order?: number
+      }>
     }>
   }
   pluginInstances: Array<{
     id: string
     pluginId: string
     enabled: boolean
+    mount?: { slotId: string; order?: number }
     mountedSlotId?: string
   }>
   registry: {

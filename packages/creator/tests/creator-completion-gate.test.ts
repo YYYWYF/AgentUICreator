@@ -37,16 +37,6 @@ async function createTemporaryProject(): Promise<string> {
             slotId: "right",
           },
         },
-        slots: {
-          right: {
-            id: "right",
-            kind: "single",
-            scope: "root",
-            description: "Right fixture",
-            owner: { type: "layout", nodeId: "right-slot-node" },
-            occupants: [],
-          },
-        },
         pluginInstances: {},
       },
       null,

@@ -17,9 +17,7 @@ describe("LayoutRenderer", () => {
         model={model}
         renderSlot={(slot) => (
           <article>
-            {model.slots[slot.slotId]?.occupants
-              .map((occupant) => occupant.instanceId)
-              .join(",")}
+            {slot.slotId}
           </article>
         )}
       />,
@@ -33,8 +31,8 @@ describe("LayoutRenderer", () => {
     expect(html).toContain('data-slot-id="agent-messages"');
     expect(html).toContain('data-slot-id="agent-prompts"');
     expect(html).toContain('data-slot-id="agent-sender"');
-    expect(html).toContain("agent-welcome-main");
-    expect(html).toContain("agent-sender-main");
+    expect(html).toContain("<article>agent-welcome</article>");
+    expect(html).toContain("<article>agent-sender</article>");
   });
 
   it("maps numeric Column sizes to fractional grid tracks", () => {
@@ -56,24 +54,6 @@ describe("LayoutRenderer", () => {
             slotId: "bottom",
           },
         ],
-      },
-      slots: {
-        top: {
-          id: "top",
-          kind: "single",
-          scope: "root",
-          description: "Top region.",
-          owner: { type: "layout", nodeId: "top-slot-node" },
-          occupants: [],
-        },
-        bottom: {
-          id: "bottom",
-          kind: "single",
-          scope: "root",
-          description: "Bottom region.",
-          owner: { type: "layout", nodeId: "bottom-slot-node" },
-          occupants: [],
-        },
       },
       pluginInstances: {},
     };
@@ -105,24 +85,6 @@ describe("LayoutRenderer", () => {
           },
         ],
       },
-      slots: {
-        "left-content": {
-          id: "left-content",
-          kind: "single",
-          scope: "root",
-          description: "Left Stack child.",
-          owner: { type: "layout", nodeId: "left-slot-node" },
-          occupants: [],
-        },
-        "right-content": {
-          id: "right-content",
-          kind: "single",
-          scope: "root",
-          description: "Right Stack child.",
-          owner: { type: "layout", nodeId: "right-slot-node" },
-          occupants: [],
-        },
-      },
       pluginInstances: {},
     };
 
@@ -140,16 +102,6 @@ describe("LayoutRenderer", () => {
         type: "slot",
         id: "empty-slot-node",
         slotId: "empty-slot",
-      },
-      slots: {
-        "empty-slot": {
-          id: "empty-slot",
-          kind: "single",
-          scope: "root",
-          description: "Empty region.",
-          owner: { type: "layout", nodeId: "empty-slot-node" },
-          occupants: [],
-        },
       },
       pluginInstances: {},
     };

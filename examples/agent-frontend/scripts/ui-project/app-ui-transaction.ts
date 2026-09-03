@@ -362,42 +362,13 @@ function selectedPluginIds(model: AppUIModel): string[] {
     .sort();
 }
 
-function mountedInstanceIds(model: AppUIModel): Set<string> {
-  return new Set(
-    Object.values(model.slots).flatMap((slot) =>
-      slot.occupants.map((occupant) => occupant.instanceId),
-    ),
-  );
-}
-
-function validateMountSemantics(
-  model: AppUIModel,
-  headlessPluginIds: readonly string[],
-): ProjectIssue[] {
-  const mounted = mountedInstanceIds(model);
-  const headless = new Set(headlessPluginIds);
-  const invalid = Object.values(model.pluginInstances)
-    .filter(
-      (instance) =>
-        instance.enabled &&
-        !mounted.has(instance.id) &&
-        !headless.has(instance.pluginId),
-    )
-    .map((instance) => instance.id)
-    .sort();
-  if (invalid.length > 0) {
-    throw new AppUITransactionError(
-      "ENABLED_VISUAL_INSTANCE_UNMOUNTED",
-      "Enabled visual PluginInstances must be mounted in a Slot.",
-      { instanceIds: invalid },
-    );
-  }
-
+function validateMountSemantics(model: AppUIModel): ProjectIssue[] {
+  // An enabled instance without mount is valid but contributes no ordinary UI.
   return Object.values(model.pluginInstances)
-    .filter((instance) => !instance.enabled && mounted.has(instance.id))
+    .filter((instance) => !instance.enabled && instance.mount !== undefined)
     .map((instance) => ({
       code: "disabled-instance-mounted",
-      message: `Disabled PluginInstance "${instance.id}" remains mounted and will not render.`,
+      message: `Disabled PluginInstance "${instance.id}" has a mount target but will not render.`,
     }));
 }
 
@@ -421,7 +392,9 @@ function mapLayoutNodes(root: LayoutNode): Map<string, string> {
 
 function mapSlots(model: AppUIModel): Map<string, string> {
   return new Map(
-    Object.entries(model.slots).map(([id, slot]) => [id, JSON.stringify(slot)]),
+    [...buildLayoutNodeIndex(model.root).values()]
+      .filter(({ node }) => node.type === "slot")
+      .map(({ node }) => [(node as import("../../framework/contracts/app-ui-model").SlotNode).slotId, JSON.stringify(node)]),
   );
 }
 
@@ -560,7 +533,7 @@ async function runTransaction(
       { issues: registry.errors },
     );
   }
-  const warnings = validateMountSemantics(afterModel, registry.headlessPluginIds);
+  const warnings = validateMountSemantics(afterModel);
   const afterModelSource = semanticModelSource(
     beforeModel,
     beforeModelSource,

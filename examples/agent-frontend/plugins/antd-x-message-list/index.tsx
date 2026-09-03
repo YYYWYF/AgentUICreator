@@ -254,13 +254,7 @@ export function AntdXMessageListPlugin({
         message.role !== "activity",
     )
     .map((message) =>
-      toBubbleItem(message, (messageId, text) =>
-        context.slots.render(
-          "assistant-actions",
-          { messageId, text },
-          { fallback: <MessageActions text={text} /> },
-        ),
-      ),
+      toBubbleItem(message, (_messageId, text) => <MessageActions text={text} />),
     );
   const emptyText =
     typeof context.instance.props?.emptyText === "string"

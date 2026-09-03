@@ -42,16 +42,6 @@ async function createTemporaryProject(): Promise<string> {
             slotId: "chat",
           },
         },
-        slots: {
-          chat: {
-            id: "chat",
-            kind: "single",
-            scope: "thread-maybe",
-            description: "Chat fixture",
-            owner: { type: "layout", nodeId: "chat-slot" },
-            occupants: [],
-          },
-        },
         pluginInstances: {},
       },
       null,

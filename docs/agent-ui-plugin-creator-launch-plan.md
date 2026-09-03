@@ -224,8 +224,8 @@ Plugin 源码继续由通用 Coding Agent 在权限范围内编辑；AppUIModel 
 
 | 用户意图 | AppUIModel | Registry | Plugin 源码 |
 | --- | --- | --- | --- |
-| 暂时隐藏、先不要显示 | 从 Slot 卸载并设为 `enabled: false` | 保留 | 保留 |
-| 移除这个功能 | 从 Slot 和 `pluginInstances` 移除 | 最后一个实例移除后自动退出 | 保留 |
+| 暂时隐藏、先不要显示 | 删除 `mount` 并设为 `enabled: false` | 保留 | 保留 |
+| 移除这个功能 | 删除 `mount` 和 `pluginInstances` 条目 | 最后一个实例移除后自动退出 | 保留 |
 | 替换这个功能 | 新实例就位后移除旧实例 | 根据最终实例集合自动更新 | 新旧源码都保留 |
 | 连插件代码一起删除 | 先检查引用，再执行受限删除 | 自动更新 | 仅在用户已明确授权时删除 |
 
@@ -269,8 +269,6 @@ interface AppUIModel {
   version: "2"
 
   root: LayoutNode
-
-  slots: Record<string, UISlot>
 
   pluginInstances: Record<string, PluginInstance>
 
@@ -401,7 +399,7 @@ interface PanelNode {
 
 ## Slot
 
-Slot 分成两个正交概念：`SlotNode` 只表示 Layout Tree 中的物理出口；`AppUIModel.slots` 中的 `UISlot` 才是可查询、可嵌套、可替换的语义扩展契约。Plugin 的挂载关系只存在于 `UISlot.occupants`，不再存进 LayoutNode。
+本阶段 `SlotNode` 只表示 Layout Tree 中存在一个可渲染位置。它不保存 Plugin instance id，也不保存运行时 contribution。
 
 ```ts
 interface SlotNode {
@@ -413,43 +411,7 @@ interface SlotNode {
 }
 ```
 
-语义契约：
-
-```ts
-type UISlotKind = "single" | "list" | "keyed" | "chain"
-type UISlotScope = "root" | "thread-maybe" | "thread"
-
-interface UISlot {
-  id: string
-  kind: UISlotKind
-  scope: UISlotScope
-  description: string
-  owner:
-    | { type: "layout"; nodeId: string }
-    | { type: "plugin-instance"; instanceId: string; outlet: string }
-  ownerProps?: Array<{
-    name: string
-    type: string
-    description: string
-    required: boolean
-  }>
-  fallback?: "none" | "owner"
-  occupants: Array<{
-    instanceId: string
-    id?: string
-    key?: string
-    order?: number
-  }>
-}
-```
-
-- `single` 最多一个 occupant；替换可能覆盖当前 occupant 或 owner fallback。
-- `list` 使用稳定 `id`，按 `order` 和声明顺序渲染多个 occupant。
-- `keyed` 使用唯一 `key`，由 owner 在每次 occurrence 上指定目标 key。
-- `chain` 依次调用 occupant definition 的 `selectSlot(ownerProps)`，由第一个接受者渲染。
-- `root` 不依赖 thread；`thread-maybe` 可在没有 thread 时出现；`thread` 只用于活动 thread 内语义。
-
-Layout-owned Slot 形成根节点。PluginInstance 可以通过 definition 中声明的本地 outlet 拥有子 Slot，因此 Slot 拓扑可以递归嵌套。模型校验必须拒绝不存在的 owner、重复挂载、重复 outlet、不可达 Slot 和所有权环。
+运行时由独立 `SlotRegistry` 保存 `SlotContribution`。贡献的注册和清理必须进入现有 `PluginServiceRuntime` activation / cleanup 生命周期。本阶段不实现 child slots、slot kind、slot scope 或 Plugin 自声明 outlet。
 
 ---
 
@@ -483,6 +445,11 @@ interface PluginInstance {
 
   enabled: boolean
 
+  mount?: {
+    slotId: string
+    order?: number
+  }
+
   props?: Record<string, unknown>
 }
 ```
@@ -494,6 +461,9 @@ interface PluginInstance {
   "id": "file-preview-right",
   "pluginId": "file-preview",
   "enabled": true,
+  "mount": {
+    "slotId": "file-preview"
+  },
   "props": {
     "showHeader": true
   }
@@ -512,18 +482,16 @@ interface PluginInstance {
 plugins/
 └── file-preview/
     ├── manifest.json
-    ├── slots.json
     ├── definition.ts
     ├── index.tsx
     └── styles.css
 ```
 
-`styles.css` 与 `slots.json` 都是可选文件；只有声明子 Slot 的 Plugin 才需要 `slots.json`。`manifest.json` 与 `definition.ts` 是可进入生产 Registry 的 Plugin 资产最小入口。`slots.json` 是可由 Project Control 与 `verify:ui` 在不执行 React/CSS 模块的情况下读取的机器契约，`definition.ts` 必须用 `parseUIPluginSlotDefinitions` 加载同一份声明，避免检查契约与运行时契约分叉。`definition.ts` 必须提供默认导出的 `UIPluginDefinition`，可以同时保留有意义的 named export：
+`styles.css` 是可选文件。`manifest.json` 与 `definition.ts` 是可进入生产 Registry 的 Plugin 资产最小入口。`definition.ts` 必须提供默认导出的 `UIPluginDefinition`，可以同时保留有意义的 named export：
 
 ```ts
 export const filePreviewPlugin: UIPluginDefinition = {
   manifest,
-  slots: parseUIPluginSlotDefinitions(slotsJson),
   Component: FilePreviewPlugin,
 }
 
@@ -580,21 +548,6 @@ interface UIPluginContext {
 
   actions: UIPluginActions
 
-  slot: {
-    id: string
-    kind: UISlotKind
-    scope: UISlotScope
-    ownerProps: object
-    occupant: UISlotOccupant
-  }
-
-  slots: {
-    render(
-      outlet: string,
-      ownerProps?: object,
-      options?: { key?: string; fallback?: ReactNode }
-    ): ReactNode
-  }
 }
 ```
 
@@ -696,15 +649,15 @@ UI Runtime 负责：
       ↓
 解析 Layout Tree
       ↓
-找到 Layout-owned Slot 契约
+PluginServiceRuntime 激活 enabled 且有 mount 的实例，或 headless 实例
       ↓
-按 kind 解析 occupant 与 PluginInstance
+在同一 activation 生命周期注册 SlotContribution
       ↓
-加载 Plugin Definition
+Layout SlotNode 按 slotId 查询 SlotRegistry
       ↓
-注入 UIPluginContext
+按 order、instanceId 稳定排序并解析 PluginInstance / Plugin Definition
       ↓
-Render，并递归解析 Plugin-owned child Slot
+注入 UIPluginContext 并 Render
 ```
 
 Runtime 不负责：
@@ -1432,7 +1385,7 @@ Creator 在这一阶段同时具备项目快照和 AppUIModel 事务工具。Plu
 
 `verify:ui` 属于生成项目，负责检查 AppUIModel、Plugin Registry、PluginInstance 与 Slot 挂载关系；它必须能在没有 Creator package 或 Workbench 的情况下独立运行。Creator 只在停止边界调用验证并反馈证据，不把 Agent 的自主工具选择改成固定 Workflow。
 
-`verify:ui` 还必须检查生成 Registry 是否与当前 AppUIModel 一致，但保持严格只读。未选择的 Plugin 源码与开发期 Catalog 不属于错误；enabled 的可视实例未挂载仍然是错误，disabled 且未挂载的实例以及有明确 headless capability 的实例是合法状态。
+`verify:ui` 还必须检查生成 Registry 是否与当前 AppUIModel 一致，但保持严格只读。未选择的 Plugin 源码与开发期 Catalog 不属于错误；`mount === undefined` 表示没有普通 UI mount，headless Plugin 可在没有 mount 时继续激活。
 
 如果当前 revision 未产生真实文件变化、验证失败、验证后又发生写入，或者复核未通过，Harness 必须拒绝候选答复并允许 Creator 继续修复。候选成功文本在完成门禁通过前不得进入 AG-UI 对话历史。
 
@@ -1615,7 +1568,7 @@ Creator 修改 Plugin Source。
 “这个详情面板先不要显示。”
 ```
 
-Creator 从 Slot 卸载实例并设为 disabled，保留 Plugin 源码和 Registry 选择。
+Creator 删除实例的 `mount` 并设为 disabled，保留 Plugin 源码和 Registry 选择。
 
 用户继续：
 

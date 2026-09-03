@@ -6,11 +6,6 @@ import {
   parseAppUIModelJson,
   type AppUIModel,
 } from "../framework/contracts/app-ui-model.ts";
-import {
-  inspectUIPluginSlotContracts,
-  parseUIPluginSlotDefinitions,
-  type UIPluginDefinition,
-} from "../framework/contracts/ui-plugin.ts";
 import { uiProjectControlConfig } from "./ui-project/project-config";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
@@ -67,10 +62,11 @@ function verifyInstances(
   errors: VerificationIssue[];
   warnings: VerificationIssue[];
 } {
-  const mounted = new Set<string>();
-  Object.values(model.slots).forEach((slot) => {
-    slot.occupants.forEach((occupant) => mounted.add(occupant.instanceId));
-  });
+  const mounted = new Set(
+    Object.values(model.pluginInstances)
+      .filter((instance) => instance.mount !== undefined)
+      .map((instance) => instance.id),
+  );
   const errors: VerificationIssue[] = [];
   const warnings: VerificationIssue[] = [];
 
@@ -100,9 +96,9 @@ function verifyInstances(
     .map((instance) => instance.id)
     .sort();
   for (const instance of unmountedEnabledInstances) {
-    errors.push({
+    warnings.push({
       code: "unmounted-enabled-instance",
-      message: `Enabled visual PluginInstance "${instance.id}" is not mounted. Add it to a Slot or declare UI plugin "${instance.pluginId}" with the "headless" capability.`,
+      message: `Enabled visual PluginInstance "${instance.id}" has no ordinary UI mount and will remain inactive.`,
     });
   }
 
@@ -117,7 +113,6 @@ function verifyInstances(
 export async function verifyUIProject(
   projectRoot: string,
   config: UIProjectControlConfig = uiProjectControlConfig,
-  definitions?: readonly UIPluginDefinition[],
 ): Promise<UIProjectVerification> {
   const errors: VerificationIssue[] = [];
   const warnings: VerificationIssue[] = [];
@@ -142,40 +137,6 @@ export async function verifyUIProject(
     errors.push(...registry.errors);
     pluginIds = registry.registeredPluginIds;
     headlessPluginIds = registry.headlessPluginIds;
-
-    const slotContractDefinitions: UIPluginDefinition[] = [];
-    for (const asset of registry.assets.filter((candidate) =>
-      registry.selectedPluginIds.includes(candidate.pluginId),
-    )) {
-      const contractPath = path.join(
-        projectRoot,
-        "plugins",
-        asset.directory,
-        "slots.json",
-      );
-      const contractSource = await readOptional(contractPath);
-      let slots: UIPluginDefinition["slots"];
-      if (contractSource !== undefined) {
-        try {
-          slots = parseUIPluginSlotDefinitions(JSON.parse(contractSource));
-        } catch (error) {
-          errors.push({
-            code: "plugin-slot-contract-invalid",
-            message: `${path.relative(projectRoot, contractPath)} is invalid: ${error instanceof Error ? error.message : String(error)}`,
-          });
-        }
-      }
-      slotContractDefinitions.push({
-        manifest: {
-          id: asset.pluginId,
-          name: asset.pluginId,
-          description: "Static Slot contract inspection",
-          version: "0",
-        },
-        ...(slots === undefined ? {} : { slots }),
-        Component: () => null,
-      });
-    }
 
     const generatedSource = await readOptional(
       path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
@@ -208,13 +169,7 @@ export async function verifyUIProject(
       registry.errors.length === 0 &&
       generatedSource === registry.source &&
       entrySource === PLUGIN_REGISTRY_ENTRY_SOURCE;
-    errors.push(
-      ...inspectUIPluginSlotContracts(
-        model,
-        definitions ?? slotContractDefinitions,
-        { checkChainSelectors: definitions !== undefined },
-      ),
-    );
+
   }
 
   const instances =

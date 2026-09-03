@@ -15,12 +15,12 @@ Express composition through the AppUIModel Layout Tree rather than DOM manipulat
 - `column`: lays out children vertically. Optional `sizes` correspond by index to `children`.
 - `stack`: overlays or switches among children; `active` names a direct child id.
 - `panel`: wraps one child and may define width, height, min/max width, or resizing.
-- `slot`: provides a physical outlet by `slotId`; cardinality, scope, owner, fallback, and occupants belong to the corresponding top-level semantic Slot contract.
+- `slot`: provides a physical outlet by `slotId`; active Plugin contributions are resolved from Runtime SlotRegistry.
 
 ## Layout rules
 
 - Preserve existing child order and regions unless the request says otherwise.
-- Use stable, descriptive, unique node and Slot ids. Do not store occupant ids on Layout nodes.
+- Use stable, descriptive, unique node and Slot ids. Do not store Plugin instance ids on Layout nodes.
 - For a fixed right region, use a Row with the main content first and a right Panel second.
 - When a Row `sizes` entry and a child Panel `width` describe the same fixed dimension, update both consistently.
 - Use a nested Column for vertical subdivision and Stack only when overlapping or active-view behavior is intended.

@@ -7,48 +7,22 @@ export interface ProjectIssue {
 
 export interface ProjectSlot {
   slotId: string;
-  kind: "single" | "list" | "keyed" | "chain";
-  scope: "root" | "thread-maybe" | "thread";
-  description: string;
-  owner:
-    | { type: "layout"; nodeId: string }
-    | { type: "plugin-instance"; instanceId: string; outlet: string };
-  declarer:
-    | { type: "layout"; nodeId: string }
-    | { type: "plugin"; pluginId: string; instanceId: string; outlet: string };
-  declarationStatus: "layout" | "verified" | "missing" | "mismatch" | "invalid";
-  declarationSource?: string | undefined;
-  ownerProps: Array<{
-    name: string;
-    type: string;
-    description: string;
-    required: boolean;
-  }>;
-  fallback: "none" | "owner";
-  occupants: Array<{
+  nodeId: string;
+  nodePath: string;
+  /** Configured mounts only; activation determines runtime contributions. */
+  mounts: Array<{
     instanceId: string;
     pluginId: string;
     enabled: boolean;
-    id?: string | undefined;
-    key?: string | undefined;
     order?: number | undefined;
   }>;
-  parentSlotId?: string | undefined;
-  childSlotIds: string[];
-  nodeId?: string | undefined;
-  nodePath?: string | undefined;
-  replaceRisk:
-    | "none"
-    | "replaces-owner-fallback"
-    | "replaces-occupant"
-    | "changes-chain-resolution"
-    | "removes-descendant-slots";
 }
 
 export interface ProjectPluginInstance {
   id: string;
   pluginId: string;
   enabled: boolean;
+  mount?: { slotId: string; order?: number | undefined } | undefined;
   props?: Record<string, unknown> | undefined;
   mountedSlotId?: string | undefined;
 }
@@ -274,117 +248,27 @@ function parseIssue(input: unknown, path: string): ProjectIssue {
 
 function parseSlot(input: unknown, path: string): ProjectSlot {
   const source = record(input, path);
-  const owner = record(source.owner, `${path}.owner`);
-  const ownerType = literal(
-    owner.type,
-    ["layout", "plugin-instance"] as const,
-    `${path}.owner.type`,
-  );
-  const declarer = record(source.declarer, `${path}.declarer`);
-  const declarerType = literal(
-    declarer.type,
-    ["layout", "plugin"] as const,
-    `${path}.declarer.type`,
-  );
   return {
     slotId: string(source.slotId, `${path}.slotId`),
-    kind: literal(
-      source.kind,
-      ["single", "list", "keyed", "chain"] as const,
-      `${path}.kind`,
-    ),
-    scope: literal(
-      source.scope,
-      ["root", "thread-maybe", "thread"] as const,
-      `${path}.scope`,
-    ),
-    description: string(source.description, `${path}.description`),
-    owner: ownerType === "layout"
-      ? {
-          type: "layout",
-          nodeId: string(owner.nodeId, `${path}.owner.nodeId`),
-        }
-      : {
-          type: "plugin-instance",
-          instanceId: string(owner.instanceId, `${path}.owner.instanceId`),
-          outlet: string(owner.outlet, `${path}.owner.outlet`),
-        },
-    declarer: declarerType === "layout"
-      ? {
-          type: "layout",
-          nodeId: string(declarer.nodeId, `${path}.declarer.nodeId`),
-        }
-      : {
-          type: "plugin",
-          pluginId: string(declarer.pluginId, `${path}.declarer.pluginId`),
-          instanceId: string(declarer.instanceId, `${path}.declarer.instanceId`),
-          outlet: string(declarer.outlet, `${path}.declarer.outlet`),
-        },
-    declarationStatus: literal(
-      source.declarationStatus,
-      ["layout", "verified", "missing", "mismatch", "invalid"] as const,
-      `${path}.declarationStatus`,
-    ),
-    ...(source.declarationSource === undefined
-      ? {}
-      : {
-          declarationSource: string(
-            source.declarationSource,
-            `${path}.declarationSource`,
-          ),
-        }),
-    ownerProps: array(source.ownerProps, `${path}.ownerProps`, (item, itemPath) => {
-      const prop = record(item, itemPath);
+    nodeId: string(source.nodeId, `${path}.nodeId`),
+    nodePath: string(source.nodePath, `${path}.nodePath`),
+    mounts: array(source.mounts, `${path}.mounts`, (item, itemPath) => {
+      const mount = record(item, itemPath);
       return {
-        name: string(prop.name, `${itemPath}.name`),
-        type: string(prop.type, `${itemPath}.type`),
-        description: string(prop.description, `${itemPath}.description`),
-        required: boolean(prop.required, `${itemPath}.required`),
+        instanceId: string(mount.instanceId, `${itemPath}.instanceId`),
+        pluginId: string(mount.pluginId, `${itemPath}.pluginId`),
+        enabled: boolean(mount.enabled, `${itemPath}.enabled`),
+        ...(mount.order === undefined ? {} : { order: finiteNumber(mount.order, `${itemPath}.order`) }),
       };
     }),
-    fallback: literal(
-      source.fallback,
-      ["none", "owner"] as const,
-      `${path}.fallback`,
-    ),
-    occupants: array(source.occupants, `${path}.occupants`, (item, itemPath) => {
-      const occupant = record(item, itemPath);
-      return {
-        instanceId: string(occupant.instanceId, `${itemPath}.instanceId`),
-        pluginId: string(occupant.pluginId, `${itemPath}.pluginId`),
-        enabled: boolean(occupant.enabled, `${itemPath}.enabled`),
-        ...(occupant.id === undefined
-          ? {}
-          : { id: string(occupant.id, `${itemPath}.id`) }),
-        ...(occupant.key === undefined
-          ? {}
-          : { key: string(occupant.key, `${itemPath}.key`) }),
-        ...(occupant.order === undefined
-          ? {}
-          : { order: finiteNumber(occupant.order, `${itemPath}.order`) }),
-      };
-    }),
-    ...(source.parentSlotId === undefined
-      ? {}
-      : { parentSlotId: string(source.parentSlotId, `${path}.parentSlotId`) }),
-    childSlotIds: strings(source.childSlotIds, `${path}.childSlotIds`),
-    ...(source.nodeId === undefined
-      ? {}
-      : { nodeId: string(source.nodeId, `${path}.nodeId`) }),
-    ...(source.nodePath === undefined
-      ? {}
-      : { nodePath: string(source.nodePath, `${path}.nodePath`) }),
-    replaceRisk: literal(
-      source.replaceRisk,
-      [
-        "none",
-        "replaces-owner-fallback",
-        "replaces-occupant",
-        "changes-chain-resolution",
-        "removes-descendant-slots",
-      ] as const,
-      `${path}.replaceRisk`,
-    ),
+  };
+}
+
+function parseMount(input: unknown, path: string): NonNullable<ProjectPluginInstance["mount"]> {
+  const source = record(input, path);
+  return {
+    slotId: string(source.slotId, `${path}.slotId`),
+    ...(source.order === undefined ? {} : { order: finiteNumber(source.order, `${path}.order`) }),
   };
 }
 
@@ -397,6 +281,7 @@ function parsePluginInstance(
     id: string(source.id, `${path}.id`),
     pluginId: string(source.pluginId, `${path}.pluginId`),
     enabled: boolean(source.enabled, `${path}.enabled`),
+    ...(source.mount === undefined ? {} : { mount: parseMount(source.mount, `${path}.mount`) }),
     ...(source.props === undefined
       ? {}
       : { props: record(source.props, `${path}.props`) }),

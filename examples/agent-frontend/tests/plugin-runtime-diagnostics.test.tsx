@@ -53,21 +53,12 @@ function createModel(shouldFail = true) {
         slotId: "diagnostic-slot",
       },
     },
-    slots: {
-      "diagnostic-slot": {
-        id: "diagnostic-slot",
-        kind: "single",
-        scope: "root",
-        description: "Diagnostic fixture slot",
-        owner: { type: "layout", nodeId: "diagnostic-slot-node" },
-        occupants: [{ instanceId: "diagnostic-main" }],
-      },
-    },
     pluginInstances: {
       "diagnostic-main": {
         id: "diagnostic-main",
         pluginId: "diagnostic-plugin",
         enabled: true,
+        mount: { slotId: "diagnostic-slot" },
         props: { shouldFail },
       },
     },

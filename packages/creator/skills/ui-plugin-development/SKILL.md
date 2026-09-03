@@ -11,7 +11,6 @@ Inspect project conventions before deciding that Plugin source must change:
 
 - `/project/plugins/*/manifest.json` declares identity, purpose, capabilities, and data needs.
 - `/project/plugins/*/definition.ts` joins a validated manifest to a React component.
-- `/project/plugins/*/slots.json` is the optional machine-readable child Slot declaration. `definition.ts` must load that same file with `parseUIPluginSlotDefinitions`.
 - `/project/plugins/*/index.tsx` implements the component.
 - `/project/plugins/*/styles.css` owns Plugin-specific presentation when that stack uses CSS.
 - `/project/plugins/registry.generated.ts` is the generated production registry and statically imports only definitions selected by AppUIModel. Never edit it or `/project/plugins/index.ts` by hand.
@@ -38,8 +37,7 @@ Inspect project conventions before deciding that Plugin source must change:
 1. Read `/project/framework/contracts/ui-plugin.ts` and one existing Plugin end to end.
 2. Create `/project/plugins/<plugin-id>/manifest.json` with a unique id, useful description, version, capabilities when applicable, and accurate `data.messages` or `data.state` flags.
 3. Create `index.tsx` with a named React component that accepts `UIPluginComponentProps` and narrows unknown AG-UI data safely.
-4. If the Plugin owns child extension points, create `slots.json` with their kind, scope, description, owner props, and fallback, then load it from `definition.ts` with `parseUIPluginSlotDefinitions`.
-5. Create `definition.ts` that validates the manifest and exports a `UIPluginDefinition`.
+4. Create `definition.ts` that validates the manifest and exports a `UIPluginDefinition`.
 6. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
 7. Default-export the definition so the target-owned generator can include it in the static Registry. Do not spread a template catalog into the production registry.
 8. Add exactly one PluginInstance and mount it in the intended AppUIModel Slot through `mutate_app_ui_model`; that transaction updates the generated Registry.
@@ -48,8 +46,7 @@ Inspect project conventions before deciding that Plugin source must change:
 ## Contract boundaries
 
 - A Plugin receives `messages`, `state`, `run`, its `instance`, and runtime-provided `actions` through `UIPluginContext`.
-- A Plugin that owns nested extension points declares each local outlet in `UIPluginDefinition.slots` and renders it with `context.slots.render(outlet, ownerProps, options)`. The AppUIModel child Slot must match the declaration exactly.
-- Read occurrence-specific owner props from `context.slot.ownerProps`. A chain occupant must implement `selectSlot(ownerProps)` and return `null` when it declines the occurrence.
+- Child Slots and Plugin-declared outlets are intentionally out of scope in this phase.
 - Use `context.actions.sendMessage`, `startNewConversation`, `abortRun`, and `updateInstanceProps`; never create a separate Agent Runtime inside a Plugin.
 - Keep Plugin dependencies in the generated project and follow its current UI stack and versions.
 - For a hard Plugin capability dependency, import its stable Service seam and declare `inject` on `UIPluginDefinition`; do not import the concrete Provider Plugin's source.

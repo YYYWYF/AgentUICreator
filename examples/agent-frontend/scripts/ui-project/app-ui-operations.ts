@@ -4,7 +4,6 @@ import {
   layoutNodeSchema,
   layoutSizeSchema,
   pluginInstanceSchema,
-  uiSlotSchema,
   type AppUIModel,
   type LayoutNode,
   type LayoutSize,
@@ -14,8 +13,6 @@ import {
   type StackNode,
   type PanelNode,
   type SlotNode,
-  type UISlot,
-  type UISlotOccupant,
 } from "../../framework/contracts/app-ui-model";
 
 const nonBlankStringSchema = z.string().trim().min(1).max(200);
@@ -39,20 +36,10 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
     enabled: z.boolean(),
   }),
   z.strictObject({
-    type: z.literal("add_slot"),
-    slot: uiSlotSchema,
-  }),
-  z.strictObject({
-    type: z.literal("remove_slot"),
-    slotId: nonBlankStringSchema,
-  }),
-  z.strictObject({
     type: z.literal("mount_instance"),
     instanceId: nonBlankStringSchema,
     slotId: nonBlankStringSchema,
     index: indexSchema,
-    id: nonBlankStringSchema.optional(),
-    key: nonBlankStringSchema.optional(),
     order: z.number().finite().optional(),
   }),
   z.strictObject({
@@ -64,8 +51,6 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
     instanceId: nonBlankStringSchema,
     slotId: nonBlankStringSchema,
     index: indexSchema,
-    id: nonBlankStringSchema.optional(),
-    key: nonBlankStringSchema.optional(),
     order: z.number().finite().optional(),
   }),
   z.strictObject({
@@ -74,8 +59,6 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
     replacement: pluginInstanceSchema,
     slotId: nonBlankStringSchema.optional(),
     index: indexSchema,
-    id: nonBlankStringSchema.optional(),
-    key: nonBlankStringSchema.optional(),
     order: z.number().finite().optional(),
   }),
   z.strictObject({
@@ -124,12 +107,6 @@ interface NodeIndexEntry {
   parent?: LayoutNode | undefined;
   parentKind: "root" | "children" | "panel";
   index?: number | undefined;
-}
-
-interface MountedInstanceLocation {
-  slot: UISlot;
-  index: number;
-  occupant: UISlotOccupant;
 }
 
 export class AppUIOperationError extends Error {
@@ -214,35 +191,14 @@ function requiredInstance(model: AppUIModel, instanceId: string): PluginInstance
   return instance;
 }
 
-function requiredSlot(model: AppUIModel, slotId: string): UISlot {
-  const slot = model.slots[slotId];
+function requiredSlot(model: AppUIModel, slotId: string): SlotNode {
+  const slot = [...buildLayoutNodeIndex(model.root).values()]
+    .map(({ node }) => node)
+    .find((node): node is SlotNode => node.type === "slot" && node.slotId === slotId);
   if (slot === undefined) {
-    operationError("SLOT_NOT_FOUND", `Slot "${slotId}" does not exist.`);
+    operationError("SLOT_NOT_FOUND", `Slot "${slotId}" does not exist in the Layout Tree.`);
   }
   return slot;
-}
-
-function mountedInstanceLocation(
-  model: AppUIModel,
-  instanceId: string,
-): MountedInstanceLocation | undefined {
-  let result: MountedInstanceLocation | undefined;
-  for (const slot of Object.values(model.slots)) {
-    const instanceIndex = slot.occupants.findIndex(
-      (occupant) => occupant.instanceId === instanceId,
-    );
-    if (instanceIndex < 0) {
-      continue;
-    }
-    if (result !== undefined) {
-      operationError(
-        "PLUGIN_INSTANCE_MOUNTED_MULTIPLE_TIMES",
-        `Plugin instance "${instanceId}" is mounted more than once.`,
-      );
-    }
-    result = { slot, index: instanceIndex, occupant: slot.occupants[instanceIndex]! };
-  }
-  return result;
 }
 
 function insertAt<T>(items: T[], item: T, index: number | undefined, label: string): void {
@@ -261,26 +217,39 @@ function mountInstance(
   instanceId: string,
   slotId: string,
   index?: number,
-  occupantOptions: Omit<UISlotOccupant, "instanceId"> = {},
+  order?: number,
 ): void {
-  requiredInstance(model, instanceId);
-  const location = mountedInstanceLocation(model, instanceId);
-  if (location !== undefined) {
+  const instance = requiredInstance(model, instanceId);
+  if (instance.mount !== undefined) {
     operationError(
       "PLUGIN_INSTANCE_ALREADY_MOUNTED",
-      `Plugin instance "${instanceId}" is already mounted in Slot "${location.slot.id}".`,
+      `Plugin instance "${instanceId}" is already mounted in Slot "${instance.mount.slotId}".`,
     );
   }
-  const occupant = { instanceId, ...occupantOptions };
-  insertAt(requiredSlot(model, slotId).occupants, occupant, index, "Slot");
+  requiredSlot(model, slotId);
+  if (index !== undefined && order !== undefined) {
+    operationError("AMBIGUOUS_MOUNT_ORDER", "Specify either index or order, not both.");
+  }
+  if (index === undefined) {
+    instance.mount = { slotId, ...(order === undefined ? {} : { order }) };
+    return;
+  }
+  // Preserve the existing index-based editing operation by persisting explicit
+  // orders; neither activation nor rendering depends on object insertion order.
+  const peers = Object.values(model.pluginInstances)
+    .filter((candidate) => candidate.mount?.slotId === slotId)
+    .sort((left, right) =>
+      (left.mount?.order ?? 0) - (right.mount?.order ?? 0) ||
+      (left.id < right.id ? -1 : left.id > right.id ? 1 : 0),
+    );
+  insertAt(peers, instance, index, "Slot");
+  peers.forEach((candidate, position) => {
+    candidate.mount = { slotId, order: position };
+  });
 }
 
 function unmountInstance(model: AppUIModel, instanceId: string): void {
-  requiredInstance(model, instanceId);
-  const location = mountedInstanceLocation(model, instanceId);
-  if (location !== undefined) {
-    location.slot.occupants.splice(location.index, 1);
-  }
+  delete requiredInstance(model, instanceId).mount;
 }
 
 function childContainer(node: LayoutNode, operation: string): ChildrenNode {
@@ -372,24 +341,11 @@ function subtreeSlotIds(node: LayoutNode): Set<string> {
 }
 
 function mountedUnderSlots(model: AppUIModel, roots: ReadonlySet<string>): Set<string> {
-  const result = new Set<string>();
-  const visitSlot = (slotId: string): void => {
-    const slot = model.slots[slotId];
-    if (slot === undefined) return;
-    slot.occupants.forEach((occupant) => {
-      if (result.has(occupant.instanceId)) return;
-      result.add(occupant.instanceId);
-      Object.values(model.slots)
-        .filter(
-          (child) =>
-            child.owner.type === "plugin-instance" &&
-            child.owner.instanceId === occupant.instanceId,
-        )
-        .forEach((child) => visitSlot(child.id));
-    });
-  };
-  roots.forEach(visitSlot);
-  return result;
+  return new Set(
+    Object.values(model.pluginInstances)
+      .filter((instance) => instance.mount !== undefined && roots.has(instance.mount.slotId))
+      .map((instance) => instance.id),
+  );
 }
 
 function assertSubtreeCanDisappear(
@@ -493,52 +449,20 @@ function applyOperation(model: AppUIModel, operation: AppUIOperation): void {
     case "set_instance_enabled":
       requiredInstance(model, operation.instanceId).enabled = operation.enabled;
       return;
-    case "add_slot": {
-      if (model.slots[operation.slot.id] !== undefined) {
-        operationError("SLOT_ALREADY_EXISTS", `Slot "${operation.slot.id}" already exists.`);
-      }
-      model.slots[operation.slot.id] = structuredClone(operation.slot);
-      return;
-    }
-    case "remove_slot": {
-      const slot = requiredSlot(model, operation.slotId);
-      if (slot.occupants.length > 0) {
-        operationError(
-          "SLOT_HAS_OCCUPANTS",
-          `Unmount Slot "${operation.slotId}" occupants before removing it.`,
-          { instanceIds: slot.occupants.map((occupant) => occupant.instanceId) },
-        );
-      }
-      delete model.slots[operation.slotId];
-      return;
-    }
     case "mount_instance":
-      mountInstance(model, operation.instanceId, operation.slotId, operation.index, {
-        ...(operation.id === undefined ? {} : { id: operation.id }),
-        ...(operation.key === undefined ? {} : { key: operation.key }),
-        ...(operation.order === undefined ? {} : { order: operation.order }),
-      });
+      mountInstance(model, operation.instanceId, operation.slotId, operation.index, operation.order);
       return;
     case "unmount_instance":
       unmountInstance(model, operation.instanceId);
       return;
     case "move_instance": {
-      requiredInstance(model, operation.instanceId);
-      const previous = mountedInstanceLocation(model, operation.instanceId);
-      if (previous !== undefined) {
-        previous.slot.occupants.splice(previous.index, 1);
-      }
-      mountInstance(model, operation.instanceId, operation.slotId, operation.index, {
-        ...((operation.id ?? previous?.occupant.id) === undefined
-          ? {}
-          : { id: operation.id ?? previous?.occupant.id }),
-        ...((operation.key ?? previous?.occupant.key) === undefined
-          ? {}
-          : { key: operation.key ?? previous?.occupant.key }),
-        ...((operation.order ?? previous?.occupant.order) === undefined
-          ? {}
-          : { order: operation.order ?? previous?.occupant.order }),
-      });
+      const instance = requiredInstance(model, operation.instanceId);
+      const previous = instance.mount;
+      delete instance.mount;
+      mountInstance(
+        model, operation.instanceId, operation.slotId, operation.index,
+        operation.index === undefined ? (operation.order ?? previous?.order) : operation.order,
+      );
       return;
     }
     case "replace_instance": {
@@ -555,55 +479,31 @@ function applyOperation(model: AppUIModel, operation: AppUIOperation): void {
           `Plugin instance "${operation.replacement.id}" already exists.`,
         );
       }
-      const previous = mountedInstanceLocation(model, operation.instanceId);
-      if (previous !== undefined) {
-        previous.slot.occupants.splice(previous.index, 1);
-      }
-      model.pluginInstances[operation.replacement.id] = structuredClone(
-        operation.replacement,
-      );
+      const previous = requiredInstance(model, operation.instanceId).mount;
+      const replacement = structuredClone(operation.replacement);
+      const destination = replacement.mount ?? previous;
+      delete replacement.mount;
+      model.pluginInstances[replacement.id] = replacement;
       delete model.pluginInstances[operation.instanceId];
-      const destinationSlotId = operation.slotId ?? previous?.slot.id;
-      if (destinationSlotId === undefined && operation.index !== undefined) {
-        operationError(
-          "REPLACEMENT_MOUNT_REQUIRED",
-          "replace_instance index requires slotId or an existing mount.",
-        );
+      const slotId = operation.slotId ?? destination?.slotId;
+      if (slotId === undefined && (operation.index !== undefined || operation.order !== undefined)) {
+        operationError("REPLACEMENT_MOUNT_REQUIRED", "Replacement placement requires a Slot target.");
       }
-      if (destinationSlotId !== undefined) {
-        const destinationIndex =
-          operation.index ??
-          (previous?.slot.id === destinationSlotId
-            ? previous?.index
-            : undefined);
+      if (slotId !== undefined) {
         mountInstance(
-          model,
-          operation.replacement.id,
-          destinationSlotId,
-          destinationIndex,
-          {
-            ...((operation.id ?? previous?.occupant.id) === undefined
-              ? {}
-              : { id: operation.id ?? previous?.occupant.id }),
-            ...((operation.key ?? previous?.occupant.key) === undefined
-              ? {}
-              : { key: operation.key ?? previous?.occupant.key }),
-            ...((operation.order ?? previous?.occupant.order) === undefined
-              ? {}
-              : { order: operation.order ?? previous?.occupant.order }),
-          },
+          model, replacement.id, slotId, operation.index,
+          operation.index === undefined ? (operation.order ?? destination?.order) : operation.order,
         );
       }
       return;
     }
     case "remove_instance": {
-      requiredInstance(model, operation.instanceId);
-      const location = mountedInstanceLocation(model, operation.instanceId);
-      if (location !== undefined) {
+      const instance = requiredInstance(model, operation.instanceId);
+      if (instance.mount !== undefined) {
         operationError(
           "PLUGIN_INSTANCE_STILL_MOUNTED",
           `Unmount plugin instance "${operation.instanceId}" before removing it.`,
-          { slotId: location.slot.id },
+          { slotId: instance.mount.slotId },
         );
       }
       delete model.pluginInstances[operation.instanceId];

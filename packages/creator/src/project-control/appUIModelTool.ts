@@ -16,6 +16,12 @@ const pluginInstanceSchema = {
     id: idSchema,
     pluginId: idSchema,
     enabled: { type: "boolean" },
+    mount: {
+      type: "object",
+      properties: { slotId: idSchema, order: { type: "number" } },
+      required: ["slotId"],
+      additionalProperties: false,
+    },
     props: { type: "object" },
   },
   required: ["id", "pluginId", "enabled"],
@@ -25,67 +31,6 @@ const layoutNodeSchema = {
   type: "object",
   description:
     "A complete AppUIModel LayoutNode (row, column, stack, panel, or slot), including its subtree.",
-} as const;
-const slotOwnerPropSchema = {
-  type: "object",
-  properties: {
-    name: idSchema,
-    type: idSchema,
-    description: { type: "string", minLength: 1, maxLength: 2000 },
-    required: { type: "boolean" },
-  },
-  required: ["name", "type", "description", "required"],
-  additionalProperties: false,
-} as const;
-const slotOccupantSchema = {
-  type: "object",
-  properties: {
-    instanceId: idSchema,
-    id: idSchema,
-    key: idSchema,
-    order: { type: "number" },
-  },
-  required: ["instanceId"],
-  additionalProperties: false,
-} as const;
-const uiSlotSchema = {
-  type: "object",
-  properties: {
-    id: idSchema,
-    kind: { type: "string", enum: ["single", "list", "keyed", "chain"] },
-    scope: { type: "string", enum: ["root", "thread-maybe", "thread"] },
-    description: { type: "string", minLength: 1, maxLength: 2000 },
-    owner: {
-      oneOf: [
-        {
-          type: "object",
-          properties: { type: { const: "layout" }, nodeId: idSchema },
-          required: ["type", "nodeId"],
-          additionalProperties: false,
-        },
-        {
-          type: "object",
-          properties: {
-            type: { const: "plugin-instance" },
-            instanceId: idSchema,
-            outlet: idSchema,
-          },
-          required: ["type", "instanceId", "outlet"],
-          additionalProperties: false,
-        },
-      ],
-    },
-    ownerProps: { type: "array", items: slotOwnerPropSchema, maxItems: 100 },
-    fallback: { type: "string", enum: ["none", "owner"] },
-    occupants: { type: "array", items: slotOccupantSchema, maxItems: 200 },
-  },
-  required: ["id", "kind", "scope", "description", "owner", "occupants"],
-  additionalProperties: false,
-} as const;
-const occupantPlacementProperties = {
-  id: idSchema,
-  key: idSchema,
-  order: { type: "number" },
 } as const;
 const patchProperties = {
   set: { type: "object" },
@@ -123,18 +68,6 @@ const operationSchema = {
       required: ["type", "instanceId", "enabled"],
       additionalProperties: false,
     },
-    {
-      type: "object",
-      properties: { type: { const: "add_slot" }, slot: uiSlotSchema },
-      required: ["type", "slot"],
-      additionalProperties: false,
-    },
-    {
-      type: "object",
-      properties: { type: { const: "remove_slot" }, slotId: idSchema },
-      required: ["type", "slotId"],
-      additionalProperties: false,
-    },
     ...["mount_instance", "move_instance"].map((type) => ({
       type: "object",
       properties: {
@@ -142,7 +75,7 @@ const operationSchema = {
         instanceId: idSchema,
         slotId: idSchema,
         index: indexSchema,
-        ...occupantPlacementProperties,
+        order: { type: "number" },
       },
       required: ["type", "instanceId", "slotId"],
       additionalProperties: false,
@@ -161,7 +94,7 @@ const operationSchema = {
         replacement: pluginInstanceSchema,
         slotId: idSchema,
         index: indexSchema,
-        ...occupantPlacementProperties,
+        order: { type: "number" },
       },
       required: ["type", "instanceId", "replacement"],
       additionalProperties: false,

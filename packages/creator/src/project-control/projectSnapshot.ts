@@ -138,38 +138,15 @@ export function createProjectSnapshot(
   const slots = limited(
     inspection.appUIModel.slots.map((slot) => ({
       slotId: safeText(slot.slotId),
-      kind: slot.kind,
-      scope: slot.scope,
-      description: safeText(slot.description),
-      owner: slot.owner,
-      declarer: slot.declarer,
-      declarationStatus: slot.declarationStatus,
-      ...(slot.declarationSource === undefined
-        ? {}
-        : { declarationSource: safeText(slot.declarationSource) }),
-      fallback: slot.fallback,
-      replaceRisk: slot.replaceRisk,
-      ...(slot.parentSlotId === undefined
-        ? {}
-        : { parentSlotId: safeText(slot.parentSlotId) }),
-      childSlotIds: slot.childSlotIds.map(safeText),
-      ...(slot.nodeId === undefined ? {} : { nodeId: safeText(slot.nodeId) }),
-      ...(slot.nodePath === undefined ? {} : { nodePath: safeText(slot.nodePath) }),
-      ownerProps: slot.ownerProps.map((prop) => ({
-        name: safeText(prop.name),
-        type: safeText(prop.type),
-        description: safeText(prop.description),
-        required: prop.required,
-      })),
-      occupants: slot.occupants
+      nodeId: safeText(slot.nodeId),
+      nodePath: safeText(slot.nodePath),
+      mounts: slot.mounts
         .slice(0, MAX_PROJECT_SNAPSHOT_INSTANCES)
-        .map((occupant) => ({
-          instanceId: safeText(occupant.instanceId),
-          pluginId: safeText(occupant.pluginId),
-          enabled: occupant.enabled,
-          ...(occupant.id === undefined ? {} : { id: safeText(occupant.id) }),
-          ...(occupant.key === undefined ? {} : { key: safeText(occupant.key) }),
-          ...(occupant.order === undefined ? {} : { order: occupant.order }),
+        .map((mount) => ({
+          instanceId: safeText(mount.instanceId),
+          pluginId: safeText(mount.pluginId),
+          enabled: mount.enabled,
+          ...(mount.order === undefined ? {} : { order: mount.order }),
         })),
     })),
     MAX_PROJECT_SNAPSHOT_SLOTS,
@@ -182,6 +159,12 @@ export function createProjectSnapshot(
         id: safeText(instance.id),
         pluginId: safeText(instance.pluginId),
         enabled: instance.enabled,
+        ...(instance.mount === undefined ? {} : {
+          mount: {
+            slotId: safeText(instance.mount.slotId),
+            ...(instance.mount.order === undefined ? {} : { order: instance.mount.order }),
+          },
+        }),
         headless: asset?.capabilities.includes("headless") ?? false,
         ...(instance.mountedSlotId === undefined
           ? {}

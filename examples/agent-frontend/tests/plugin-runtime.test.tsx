@@ -153,134 +153,6 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain("给智能体发送消息，输入 / 唤出快捷指令");
   });
 
-  it("renders plugin-declared child Slots with owner props and owner fallback", () => {
-    const ownerPlugin: UIPluginDefinition = {
-      manifest: {
-        id: "slot-owner",
-        name: "Slot owner",
-        description: "Declares a nested action outlet",
-        version: "1.0.0",
-      },
-      slots: {
-        actions: {
-          kind: "list",
-          scope: "thread",
-          description: "Actions for the current message",
-          ownerProps: [
-            {
-              name: "messageId",
-              type: "string",
-              description: "Current message id",
-              required: true,
-            },
-          ],
-          fallback: "owner",
-        },
-      },
-      Component: ({ context }) => (
-        <article>
-          {context.slots.render(
-            "actions",
-            { messageId: "message-7" },
-            { fallback: <span>Owner action</span> },
-          )}
-        </article>
-      ),
-    };
-    const actionPlugin: UIPluginDefinition = {
-      manifest: {
-        id: "slot-action",
-        name: "Slot action",
-        description: "Consumes a nested Slot occurrence",
-        version: "1.0.0",
-      },
-      Component: ({ context }) => (
-        <button>
-          {String(
-            (context.slot.ownerProps as { messageId?: unknown }).messageId,
-          )}
-        </button>
-      ),
-    };
-    const createNestedModel = (withOccupant: boolean) => parseAppUIModel({
-      version: "2",
-      root: { type: "slot", id: "root-slot-node", slotId: "root-slot" },
-      slots: {
-        "root-slot": {
-          id: "root-slot",
-          kind: "single",
-          scope: "root",
-          description: "Root owner fixture",
-          owner: { type: "layout", nodeId: "root-slot-node" },
-          occupants: [{ instanceId: "owner-main" }],
-        },
-        "message-actions": {
-          id: "message-actions",
-          kind: "list",
-          scope: "thread",
-          description: "Actions for the current message",
-          owner: {
-            type: "plugin-instance",
-            instanceId: "owner-main",
-            outlet: "actions",
-          },
-          ownerProps: [
-            {
-              name: "messageId",
-              type: "string",
-              description: "Current message id",
-              required: true,
-            },
-          ],
-          fallback: "owner",
-          occupants: withOccupant
-            ? [{ id: "action", instanceId: "action-main" }]
-            : [],
-        },
-      },
-      pluginInstances: {
-        "owner-main": {
-          id: "owner-main",
-          pluginId: "slot-owner",
-          enabled: true,
-        },
-        "action-main": {
-          id: "action-main",
-          pluginId: "slot-action",
-          enabled: withOccupant,
-        },
-      },
-    });
-    const registry = createPluginRegistry([ownerPlugin, actionPlugin]);
-    const render = (withOccupant: boolean) => renderPluginRuntime({
-      actions: runtimeActions,
-      messages: [],
-      model: createNestedModel(withOccupant),
-      registry,
-      run: idleRun,
-      state: null,
-    });
-
-    expect(render(true)).toContain(
-      '<div class="app-ui-plugin-slot-content" data-slot-id="message-actions"',
-    );
-    expect(render(true)).toContain("message-7");
-    expect(render(false)).toContain("Owner action");
-
-    const mismatched = createNestedModel(true);
-    mismatched.slots["message-actions"]!.description = "Different contract";
-    expect(() =>
-      renderPluginRuntime({
-        actions: runtimeActions,
-        messages: [],
-        model: mismatched,
-        registry,
-        run: idleRun,
-        state: null,
-      }),
-    ).toThrow("contract does not match");
-  });
-
   it("renders the granular inspection plugins as independent slot capabilities", () => {
     const model = parseAppUIModel({
       version: "2",
@@ -315,48 +187,34 @@ describe("UIPluginRuntime", () => {
           },
         ],
       },
-      slots: Object.fromEntries(
-        [
-          ["tool-slot", "tool-slot-node", "tool-main"],
-          ["reasoning-slot", "reasoning-slot-node", "reasoning-main"],
-          ["activity-slot", "activity-slot-node", "activity-main"],
-          ["sources-slot", "sources-slot-node", "sources-main"],
-          ["attachments-slot", "attachments-slot-node", "attachments-main"],
-        ].map(([slotId, nodeId, instanceId]) => [
-          slotId,
-          {
-            id: slotId,
-            kind: "single",
-            scope: "root",
-            description: `${slotId} fixture`,
-            owner: { type: "layout", nodeId },
-            occupants: [{ instanceId }],
-          },
-        ]),
-      ),
       pluginInstances: {
         "tool-main": {
           id: "tool-main",
+          mount: { slotId: "tool-slot" },
           pluginId: "antd-x-tool-detail",
           enabled: true,
         },
         "reasoning-main": {
           id: "reasoning-main",
+          mount: { slotId: "reasoning-slot" },
           pluginId: "antd-x-reasoning",
           enabled: true,
         },
         "activity-main": {
           id: "activity-main",
+          mount: { slotId: "activity-slot" },
           pluginId: "antd-x-activity-feed",
           enabled: true,
         },
         "sources-main": {
           id: "sources-main",
+          mount: { slotId: "sources-slot" },
           pluginId: "antd-x-sources",
           enabled: true,
         },
         "attachments-main": {
           id: "attachments-main",
+          mount: { slotId: "attachments-slot" },
           pluginId: "antd-x-attachments",
           enabled: true,
         },
@@ -485,21 +343,12 @@ describe("UIPluginRuntime", () => {
         id: "probe-slot-node",
         slotId: "probe-slot",
       },
-      slots: {
-        "probe-slot": {
-          id: "probe-slot",
-          kind: "single",
-          scope: "root",
-          description: "Runtime context probe",
-          owner: { type: "layout", nodeId: "probe-slot-node" },
-          occupants: [{ instanceId: "probe-main" }],
-        },
-      },
       pluginInstances: {
         "probe-main": {
           id: "probe-main",
           pluginId: "probe",
           enabled: true,
+          mount: { slotId: "probe-slot" },
         },
       },
     });

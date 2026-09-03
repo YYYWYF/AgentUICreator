@@ -101,7 +101,7 @@ export function createCreatorProjectTools(
     {
       name: "inspect_ui_slots",
       description:
-        "Inspect the configured AppUIModel Slot topology. Omit root for the compact tree; provide an exact Slot id for cardinality, scope, owner props, configured occupants with plugin and enabled state, declarer, descendants, and replacement risk.",
+        "Inspect Layout Slot locations and configured PluginInstance mounts. Provide an exact Slot id to inspect its configured mounts and stable order. This is static configuration, not live SlotRegistry contribution state.",
       schema: {
         type: "object",
         properties: {

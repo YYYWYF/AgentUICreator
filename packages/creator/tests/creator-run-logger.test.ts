@@ -32,16 +32,6 @@ async function createTemporaryProject(): Promise<string> {
         id: "main-slot",
         slotId: "main",
       },
-      slots: {
-        main: {
-          id: "main",
-          kind: "list",
-          scope: "root",
-          description: "Main fixture",
-          owner: { type: "layout", nodeId: "main-slot" },
-          occupants: [],
-        },
-      },
       pluginInstances: {},
     }),
   );
@@ -76,8 +66,8 @@ describe("CreatorRunLogger", () => {
           name: "edit_file",
           args: {
             file_path: "/project/app-ui/app-ui.json",
-            old_string: '"occupants":[]',
-            new_string: '"occupants":[{"id":"history","instanceId":"history-main"}]',
+            old_string: '"pluginInstances":{}',
+            new_string: '"pluginInstances":{"history-main":{"id":"history-main","pluginId":"history","enabled":true,"mount":{"slotId":"main"}}}',
             replace_all: false,
           },
         },
