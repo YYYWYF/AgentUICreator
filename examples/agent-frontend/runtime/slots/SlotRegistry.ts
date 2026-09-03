@@ -126,6 +126,11 @@ export class SlotRegistry {
     if (contribution.order !== undefined && !Number.isFinite(contribution.order)) {
       throw new Error("Slot contribution order must be finite");
     }
+    if (!this.#declarations.has(contribution.slotId)) {
+      throw new Error(
+        `Cannot register contribution for undeclared Slot "${contribution.slotId}"`,
+      );
+    }
     if (this.#byInstance.has(contribution.instanceId)) {
       throw new Error(`Plugin instance "${contribution.instanceId}" already has a Slot contribution`);
     }

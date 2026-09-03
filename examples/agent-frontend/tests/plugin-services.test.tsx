@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
-import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
+import type {
+  UIPluginDefinition,
+  UIPluginSetupContext,
+} from "../framework/contracts/ui-plugin";
 import {
   createAgentUIThemeService,
 } from "../plugins/antd-x-theme-provider/theme-service";
@@ -64,8 +67,24 @@ function createServiceModel(providerEnabled = true) {
 }
 
 describe("PluginServiceRuntime", () => {
+  it("rejects contributions to an undeclared Slot deterministically", () => {
+    const slots = new SlotRegistry();
+
+    expect(() =>
+      slots.register({ instanceId: "one", slotId: "messages" }),
+    ).toThrow('Cannot register contribution for undeclared Slot "messages"');
+  });
+
   it("rejects multiple ordinary contributions from the same instance", () => {
     const slots = new SlotRegistry();
+    slots.declare({
+      slotId: "left",
+      owner: { kind: "layout", nodeId: "left-node" },
+    });
+    slots.declare({
+      slotId: "right",
+      owner: { kind: "layout", nodeId: "right-node" },
+    });
     slots.register({ instanceId: "one", slotId: "left" });
 
     expect(() =>
@@ -259,6 +278,76 @@ describe("PluginServiceRuntime", () => {
         firstActivation.activationId,
       );
     }
+  });
+
+  it("keeps setup and services alive across Slot declaration lifetimes", () => {
+    const service = { id: "stable-slot-service" };
+    const setupCleanup = vi.fn();
+    const setup = vi.fn(({ services }: UIPluginSetupContext) => {
+      services.provide("test.slot-survival", service);
+      return setupCleanup;
+    });
+    const visual = createDefinition("visual", { setup });
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "test-slot-node", slotId: "test-slot" },
+      pluginInstances: {
+        "visual-main": {
+          id: "visual-main",
+          pluginId: "visual",
+          enabled: true,
+          mount: { slotId: "test-slot" },
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+    const registry = createPluginRegistry([visual]);
+
+    runtime.reconcile(model, registry, runtimeActions);
+    const activation = runtime.getActivation("visual-main");
+
+    expect(activation?.status).toBe("active");
+    expect(setup).toHaveBeenCalledOnce();
+    expect(runtime.get("test.slot-survival")).toBe(service);
+    expect(runtime.slots.getContributions("test-slot")).toEqual([]);
+
+    const disposeFirstDeclaration = runtime.slots.declare({
+      slotId: "test-slot",
+      owner: { kind: "layout", nodeId: "test-slot-node" },
+    });
+
+    expect(runtime.slots.getContributions("test-slot")).toEqual([
+      { instanceId: "visual-main", slotId: "test-slot" },
+    ]);
+    expect(setup).toHaveBeenCalledOnce();
+    expect(runtime.getActivation("visual-main")).toEqual(activation);
+
+    disposeFirstDeclaration();
+
+    expect(runtime.slots.getContributions("test-slot")).toEqual([]);
+    expect(runtime.getActivation("visual-main")).toEqual(activation);
+    expect(runtime.get("test.slot-survival")).toBe(service);
+    expect(setupCleanup).not.toHaveBeenCalled();
+
+    runtime.slots.declare({
+      slotId: "test-slot",
+      owner: { kind: "layout", nodeId: "replacement-test-slot-node" },
+    });
+
+    expect(runtime.slots.getContributions("test-slot")).toEqual([
+      { instanceId: "visual-main", slotId: "test-slot" },
+    ]);
+    expect(setup).toHaveBeenCalledOnce();
+    expect(runtime.get("test.slot-survival")).toBe(service);
+    expect(runtime.getActivation("visual-main")).toEqual(activation);
+
+    const disabled = structuredClone(model);
+    disabled.pluginInstances["visual-main"]!.enabled = false;
+    runtime.reconcile(disabled, registry, runtimeActions);
+
+    expect(setupCleanup).toHaveBeenCalledOnce();
+    expect(runtime.get("test.slot-survival")).toBeUndefined();
+    expect(runtime.slots.getContributions("test-slot")).toEqual([]);
   });
 
   it("binds a mount contribution to Plugin activation and Slot declaration", () => {
