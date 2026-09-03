@@ -16,12 +16,14 @@ html,
 body,
 #root {
   min-width: 20rem;
-  min-height: 100%;
+  height: 100%;
+  min-height: 0;
   margin: 0;
+  overflow: hidden;
 }
 
 body {
-  min-height: 100vh;
+  height: 100dvh;
 }
 
 .development-preview {
@@ -56,11 +58,11 @@ body {
   --ui-shell-shadow:
     0 2.5rem 7rem rgb(0 0 0 / 48%), inset 0 1px rgb(255 255 255 / 8%);
   position: relative;
-  display: grid;
+  display: block;
   width: 100%;
-  min-height: 100svh;
-  place-items: center;
-  padding: 1.5rem;
+  height: 100dvh;
+  min-height: 0;
+  padding: 0;
   overflow: hidden;
   color: var(--ui-text-primary);
   background: var(--ui-preview-background);
@@ -111,71 +113,112 @@ body {
 .agent-template-shell {
   position: relative;
   z-index: 1;
-  width: min(94rem, 100%);
-  height: min(56rem, calc(100svh - 3rem));
-  min-height: 38rem;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
-  border: 1px solid var(--ui-shell-border);
-  border-radius: 1.75rem;
+  border: 0;
+  border-radius: 0;
   background: var(--ui-shell-background);
-  box-shadow: var(--ui-shell-shadow);
-  backdrop-filter: blur(1.5rem) saturate(125%);
+  box-shadow: none;
   transition:
     border-color 220ms ease,
     background 220ms ease,
     box-shadow 220ms ease;
 }
 
-.agent-template-shell [data-layout-node-id="agent-conversation-surface"] {
-  min-width: 28rem;
-}
-
-.agent-template-shell [data-layout-node-id="agent-insights"] {
-  border-left: 1px solid var(--ui-header-border);
-}
-
-.agent-template-shell::after {
-  position: absolute;
-  z-index: 4;
-  top: 0;
-  right: 16%;
-  left: 16%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #a89cff, transparent);
-  box-shadow: 0 0 1.5rem #8b7cff;
-  content: "";
-  pointer-events: none;
-}
-
-.agent-template-shell [data-layout-node-id="agent-header"] {
-  position: relative;
+.agent-template-shell [data-layout-node-id="agent-workspace"],
+.agent-template-shell [data-layout-node-id="agent-sidebar"],
+.agent-template-shell [data-layout-node-id="agent-conversation"],
+.agent-template-shell [data-layout-node-id="agent-inspector"] {
+  min-width: 0;
+  min-height: 0;
   overflow: hidden;
-  border-bottom: 1px solid var(--ui-header-border);
-  background:
-    radial-gradient(circle at 72% -55%, rgb(79 224 208 / 13%), transparent 20rem),
-    linear-gradient(120deg, rgb(139 124 255 / 12%), transparent 58%);
+}
+
+.agent-template-shell [data-layout-node-id="agent-sidebar"] {
+  border-right: 1px solid var(--ui-header-border);
+  background: rgb(7 16 29 / 72%);
 }
 
 .development-preview[data-agent-ui-theme="light"]
   .agent-template-shell
-  [data-layout-node-id="agent-header"] {
-  background:
-    radial-gradient(circle at 72% -55%, rgb(44 189 176 / 11%), transparent 20rem),
-    linear-gradient(120deg, rgb(115 95 224 / 9%), transparent 58%);
+  [data-layout-node-id="agent-sidebar"] {
+  background: rgb(247 248 253 / 78%);
+}
+
+.agent-template-shell [data-layout-node-id="agent-conversations-slot-node"],
+.agent-template-shell [data-layout-node-id="agent-messages-slot-node"] {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.agent-template-shell
+  [data-layout-node-id="agent-messages-slot-node"]
+  .antd-x-message-list-plugin {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.agent-template-shell
+  [data-layout-node-id="agent-sidebar"]
+  .antd-x-conversations-plugin {
+  border-right: 0;
+}
+
+.agent-template-shell [data-layout-node-id="agent-inspector"] {
+  border-left: 1px solid var(--ui-header-border);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: rgb(139 124 255 / 30%) transparent;
+  scrollbar-width: thin;
+}
+
+.agent-template-shell
+  [data-layout-node-id="agent-new-conversation-slot-node"] {
+  border-bottom: 1px solid var(--ui-header-border);
+}
+
+.agent-template-shell
+  [data-layout-node-id="agent-theme-switch-slot-node"] {
+  border-top: 1px solid var(--ui-header-border);
+}
+
+.agent-template-shell
+  [data-layout-node-id="agent-new-conversation-slot-node"]
+  .antd-x-new-conversation-plugin,
+.agent-template-shell
+  [data-layout-node-id="agent-theme-switch-slot-node"]
+  .antd-x-theme-switch-plugin {
+  margin-inline: 0.75rem;
+}
+
+.agent-template-shell
+  [data-layout-node-id="agent-new-conversation-slot-node"]
+  .antd-x-new-conversation-plugin-button.ant-btn {
+  width: 100%;
+}
+
+.agent-template-shell
+  [data-layout-node-id="agent-theme-switch-slot-node"]
+  .antd-x-theme-switch-plugin {
+  justify-content: space-between;
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .agent-template-shell
+  [data-layout-node-id="agent-inspector"] {
+  scrollbar-color: rgb(104 87 207 / 22%) transparent;
 }
 
 @media (max-width: 74rem) {
   .agent-template-shell [data-layout-node-id="agent-workspace"] {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  .agent-template-shell [data-layout-node-id="agent-insights"] {
-    display: none;
+    grid-template-columns: 240px minmax(0, 1fr) 320px !important;
   }
 }
 
 @media (max-width: 52rem) {
-  .agent-template-shell [data-layout-node-id="agent-conversation-surface"] {
+  .agent-template-shell [data-layout-node-id="agent-conversation"] {
     min-width: 0;
   }
 }
@@ -187,8 +230,8 @@ body {
 
   .agent-template-shell {
     width: 100%;
-    height: 100svh;
-    min-height: 32rem;
+    height: 100dvh;
+    min-height: 0;
     border: 0;
     border-radius: 0;
   }
