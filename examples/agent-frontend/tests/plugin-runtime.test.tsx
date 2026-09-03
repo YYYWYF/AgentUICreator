@@ -1,9 +1,19 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import {
+  act,
+  create,
+  type ReactTestInstance,
+  type ReactTestRenderer,
+} from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
 import appUIJson from "../app-ui/app-ui.json";
-import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import {
+  parseAppUIModel,
+  type LayoutNode,
+} from "../framework/contracts/app-ui-model";
 import type {
+  UIPluginComponentProps,
   UIPluginContext,
   UIPluginDefinition,
   UIPluginRunState,
@@ -47,11 +57,79 @@ const idleRun: UIPluginRunState = {
   errorMessage: undefined,
 };
 
-function renderPluginRuntime(props: UIPluginRuntimeProps): string {
+interface MountedPluginRuntime {
+  renderer: ReactTestRenderer;
+  dispose(): Promise<void>;
+}
+
+async function mountPluginRuntime(
+  props: UIPluginRuntimeProps,
+): Promise<MountedPluginRuntime> {
+  (
+    globalThis as typeof globalThis & {
+      IS_REACT_ACT_ENVIRONMENT: boolean;
+    }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
   const serviceRuntime = new PluginServiceRuntime();
   serviceRuntime.reconcile(props.model, props.registry, props.actions);
+  let renderer: ReactTestRenderer | undefined;
 
   try {
+    await act(async () => {
+      renderer = create(
+        <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
+          <UIPluginRuntime {...props} />
+        </PluginServiceRuntimeContext.Provider>,
+      );
+    });
+  } catch (error) {
+    serviceRuntime.dispose();
+    throw error;
+  }
+
+  if (renderer === undefined) {
+    serviceRuntime.dispose();
+    throw new Error("Plugin Runtime test renderer was not created");
+  }
+
+  return {
+    renderer,
+    dispose: async () => {
+      await act(async () => renderer?.unmount());
+      serviceRuntime.dispose();
+    },
+  };
+}
+
+function declareLayoutSlots(
+  node: LayoutNode,
+  runtime: PluginServiceRuntime,
+  cleanups: Array<() => void>,
+): void {
+  if (node.type === "slot") {
+    cleanups.push(
+      runtime.slots.declare({
+        slotId: node.slotId,
+        owner: { kind: "layout", nodeId: node.id },
+      }),
+    );
+    return;
+  }
+  if (node.type === "panel") {
+    declareLayoutSlots(node.child, runtime, cleanups);
+    return;
+  }
+  node.children.forEach((child) =>
+    declareLayoutSlots(child, runtime, cleanups),
+  );
+}
+
+function renderPluginRuntime(props: UIPluginRuntimeProps): string {
+  const serviceRuntime = new PluginServiceRuntime();
+  const declarationCleanups: Array<() => void> = [];
+  try {
+    declareLayoutSlots(props.model.root, serviceRuntime, declarationCleanups);
+    serviceRuntime.reconcile(props.model, props.registry, props.actions);
     return renderToStaticMarkup(
       <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
         <UIPluginRuntime {...props} />
@@ -59,7 +137,47 @@ function renderPluginRuntime(props: UIPluginRuntimeProps): string {
     );
   } finally {
     serviceRuntime.dispose();
+    declarationCleanups.reverse().forEach((cleanup) => cleanup());
   }
+}
+
+function getText(node: ReactTestInstance): string {
+  return node.children
+    .map((child) => (typeof child === "string" ? child : getText(child)))
+    .join("");
+}
+
+function createFixtureDefinition(
+  id: string,
+  Component: UIPluginDefinition["Component"],
+  childSlots: readonly string[] = [],
+): UIPluginDefinition {
+  return {
+    manifest: {
+      id,
+      name: id,
+      description: `${id} composition fixture`,
+      version: "1.0.0",
+      ...(childSlots.length === 0
+        ? {}
+        : { slots: { children: [...childSlots] } }),
+    },
+    Component,
+  };
+}
+
+function fixtureRuntimeProps(
+  model: UIPluginRuntimeProps["model"],
+  definitions: readonly UIPluginDefinition[],
+): UIPluginRuntimeProps {
+  return {
+    actions: runtimeActions,
+    messages: [],
+    model,
+    registry: createPluginRegistry(definitions),
+    run: idleRun,
+    state: null,
+  };
 }
 
 describe("StaticPluginRegistry", () => {
@@ -105,11 +223,11 @@ describe("StaticPluginRegistry", () => {
 });
 
 describe("UIPluginRuntime", () => {
-  it("assembles the Ant Design X template plugins through AppUIModel slots", () => {
+  it("assembles the Ant Design X template plugins through AppUIModel slots", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
 
-    const html = renderPluginRuntime({
+    const html = await renderPluginRuntime({
       actions: runtimeActions,
       messages: initialPreviewMessages,
       model,
@@ -153,7 +271,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain("给智能体发送消息，输入 / 唤出快捷指令");
   });
 
-  it("renders the granular inspection plugins as independent slot capabilities", () => {
+  it("renders the granular inspection plugins as independent slot capabilities", async () => {
     const model = parseAppUIModel({
       version: "2",
       root: {
@@ -228,7 +346,7 @@ describe("UIPluginRuntime", () => {
       antdXAttachmentsPlugin,
     ]);
 
-    const html = renderPluginRuntime({
+    const html = await renderPluginRuntime({
       actions: runtimeActions,
       messages: initialPreviewMessages,
       model,
@@ -248,7 +366,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain("只读 · 2");
   });
 
-  it("does not render disabled plugin instances", () => {
+  it("does not render disabled plugin instances", async () => {
     const model = parseAppUIModel({
       ...appUIJson,
       pluginInstances: {
@@ -261,7 +379,7 @@ describe("UIPluginRuntime", () => {
     });
     const registry = createPluginRegistry(antdXTemplatePlugins);
 
-    const html = renderPluginRuntime({
+    const html = await renderPluginRuntime({
       actions: runtimeActions,
       messages: initialPreviewMessages,
       model,
@@ -274,7 +392,7 @@ describe("UIPluginRuntime", () => {
     expect(html).not.toContain('data-ui-plugin="antd-x-prompts"');
   });
 
-  it("honors Sender instance props", () => {
+  it("honors Sender instance props", async () => {
     const model = parseAppUIModel({
       ...appUIJson,
       pluginInstances: {
@@ -287,7 +405,7 @@ describe("UIPluginRuntime", () => {
     });
     const registry = createPluginRegistry(antdXTemplatePlugins);
 
-    const html = renderPluginRuntime({
+    const html = await renderPluginRuntime({
       actions: runtimeActions,
       messages: initialPreviewMessages,
       model,
@@ -300,7 +418,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain("输入一条自定义消息");
   });
 
-  it("renders the shared Agent run state through the template plugins", () => {
+  it("renders the shared Agent run state through the template plugins", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
     const running: UIPluginRunState = {
@@ -308,7 +426,7 @@ describe("UIPluginRuntime", () => {
       errorMessage: undefined,
     };
 
-    const html = renderPluginRuntime({
+    const html = await renderPluginRuntime({
       actions: runtimeActions,
       messages: initialPreviewMessages,
       model,
@@ -363,7 +481,7 @@ describe("UIPluginRuntime", () => {
       errorMessage: "Agent endpoint is unavailable",
     };
 
-    renderPluginRuntime({
+    await renderPluginRuntime({
       actions,
       messages: [],
       model,
@@ -390,11 +508,11 @@ describe("UIPluginRuntime", () => {
     });
   });
 
-  it("surfaces a deterministic error for an unregistered plugin", () => {
+  it("surfaces a deterministic error for an unregistered plugin", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins.slice(0, 3));
 
-    const html = renderPluginRuntime({
+    const html = await renderPluginRuntime({
       actions: runtimeActions,
       messages: initialPreviewMessages,
       model,
@@ -407,5 +525,324 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain(
       'UI plugin &quot;antd-x-sender&quot; is not registered.',
     );
+  });
+});
+
+describe("recursive React Plugin composition", () => {
+  it("renders a child contribution inside its owner Plugin subtree", async () => {
+    let consumerContext: UIPluginContext | undefined;
+    const Owner = ({ renderSlot }: UIPluginComponentProps) => (
+      <section data-fixture="owner">
+        OWNER
+        {renderSlot("owner.child")}
+      </section>
+    );
+    const Consumer = ({ context }: UIPluginComponentProps) => {
+      consumerContext = context;
+      return <span data-fixture="consumer">CONSUMER</span>;
+    };
+    const definitions = [
+      createFixtureDefinition("owner", Owner, ["owner.child"]),
+      createFixtureDefinition("consumer", Consumer),
+    ];
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "owner-main": {
+          id: "owner-main",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+        "consumer-main": {
+          id: "consumer-main",
+          pluginId: "consumer",
+          enabled: true,
+          mount: { slotId: "owner.child" },
+        },
+      },
+    });
+    const mounted = await mountPluginRuntime(
+      fixtureRuntimeProps(model, definitions),
+    );
+
+    try {
+      const owner = mounted.renderer.root.findByProps({
+        "data-fixture": "owner",
+      });
+      const consumer = owner.findByProps({ "data-fixture": "consumer" });
+      expect(getText(owner)).toContain("OWNER");
+      expect(getText(consumer)).toBe("CONSUMER");
+      expect(consumerContext?.instance.id).toBe("consumer-main");
+      expect(consumerContext?.messages).toEqual([]);
+      expect(consumerContext?.run).toBe(idleRun);
+      expect(consumerContext?.services).toBeDefined();
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("recursively renders A to B to C as nested Plugin subtrees", async () => {
+    const A = ({ renderSlot }: UIPluginComponentProps) => (
+      <section data-fixture="a">A{renderSlot("a.child")}</section>
+    );
+    const B = ({ renderSlot }: UIPluginComponentProps) => (
+      <section data-fixture="b">B{renderSlot("b.child")}</section>
+    );
+    const C = () => <span data-fixture="c">C</span>;
+    const definitions = [
+      createFixtureDefinition("a", A, ["a.child"]),
+      createFixtureDefinition("b", B, ["b.child"]),
+      createFixtureDefinition("c", C),
+    ];
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "a-main": {
+          id: "a-main",
+          pluginId: "a",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+        "b-main": {
+          id: "b-main",
+          pluginId: "b",
+          enabled: true,
+          mount: { slotId: "a.child" },
+        },
+        "c-main": {
+          id: "c-main",
+          pluginId: "c",
+          enabled: true,
+          mount: { slotId: "b.child" },
+        },
+      },
+    });
+    const mounted = await mountPluginRuntime(
+      fixtureRuntimeProps(model, definitions),
+    );
+
+    try {
+      const a = mounted.renderer.root.findByProps({ "data-fixture": "a" });
+      const b = a.findByProps({ "data-fixture": "b" });
+      const c = b.findByProps({ "data-fixture": "c" });
+      expect(getText(a)).toContain("ABC");
+      expect(getText(b)).toContain("BC");
+      expect(getText(c)).toBe("C");
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("captures an unauthorized renderSlot call in the owner boundary", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const Owner = ({ renderSlot }: UIPluginComponentProps) => (
+      <section>{renderSlot("owner.forbidden")}</section>
+    );
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "owner-main": {
+          id: "owner-main",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+      },
+    });
+    let mounted: MountedPluginRuntime | undefined;
+
+    try {
+      mounted = await mountPluginRuntime(
+        fixtureRuntimeProps(model, [
+          createFixtureDefinition("owner", Owner, ["owner.allowed"]),
+        ]),
+      );
+      const [failure] = mounted.renderer.root.findAll(
+        (node) => node.props["data-plugin-state"] === "error",
+      );
+      expect(failure).toBeDefined();
+      expect(failure?.props["data-plugin-instance-id"]).toBe("owner-main");
+      expect(getText(failure!)).toContain("owner-main");
+      expect(getText(failure!)).toContain("owner.forbidden");
+      expect(mounted.renderer.root).toBeDefined();
+    } finally {
+      await mounted?.dispose();
+      consoleError.mockRestore();
+    }
+  });
+
+  it("isolates a broken child without removing its owner or sibling", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const Owner = ({ renderSlot }: UIPluginComponentProps) => (
+      <section data-fixture="owner">
+        OWNER
+        {renderSlot("owner.child")}
+      </section>
+    );
+    const Broken = () => {
+      throw new Error("child exploded");
+    };
+    const Healthy = () => <span data-fixture="healthy">healthy child</span>;
+    const definitions = [
+      createFixtureDefinition("owner", Owner, ["owner.child"]),
+      createFixtureDefinition("broken", Broken),
+      createFixtureDefinition("healthy", Healthy),
+    ];
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "owner-main": {
+          id: "owner-main",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+        "broken-main": {
+          id: "broken-main",
+          pluginId: "broken",
+          enabled: true,
+          mount: { slotId: "owner.child" },
+        },
+        "healthy-main": {
+          id: "healthy-main",
+          pluginId: "healthy",
+          enabled: true,
+          mount: { slotId: "owner.child" },
+        },
+      },
+    });
+    let mounted: MountedPluginRuntime | undefined;
+
+    try {
+      mounted = await mountPluginRuntime(
+        fixtureRuntimeProps(model, definitions),
+      );
+      const owner = mounted.renderer.root.findByProps({
+        "data-fixture": "owner",
+      });
+      expect(getText(owner)).toContain("OWNER");
+      expect(getText(owner.findByProps({ "data-fixture": "healthy" }))).toBe(
+        "healthy child",
+      );
+      expect(
+        owner.findAllByProps({ "data-plugin-instance-id": "broken-main" }),
+      ).toHaveLength(0);
+      const [failure] = mounted.renderer.root.findAll(
+        (node) => node.props["data-plugin-state"] === "error",
+      );
+      expect(failure?.props["data-plugin-instance-id"]).toBe("broken-main");
+      expect(getText(failure!)).toContain("child exploded");
+    } finally {
+      await mounted?.dispose();
+      consoleError.mockRestore();
+    }
+  });
+
+  it("renders child contributions in Registry order", async () => {
+    const Owner = ({ renderSlot }: UIPluginComponentProps) => (
+      <section data-fixture="owner">{renderSlot("owner.child")}</section>
+    );
+    const Child = ({ context }: UIPluginComponentProps) => (
+      <span>{context.instance.id}</span>
+    );
+    const definitions = [
+      createFixtureDefinition("owner", Owner, ["owner.child"]),
+      createFixtureDefinition("child", Child),
+    ];
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "owner-main": {
+          id: "owner-main",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+        "z-child": {
+          id: "z-child",
+          pluginId: "child",
+          enabled: true,
+          mount: { slotId: "owner.child", order: 5 },
+        },
+        "b-child": {
+          id: "b-child",
+          pluginId: "child",
+          enabled: true,
+          mount: { slotId: "owner.child", order: 1 },
+        },
+        "a-child": {
+          id: "a-child",
+          pluginId: "child",
+          enabled: true,
+          mount: { slotId: "owner.child", order: 1 },
+        },
+      },
+    });
+    const mounted = await mountPluginRuntime(
+      fixtureRuntimeProps(model, definitions),
+    );
+
+    try {
+      const owner = mounted.renderer.root.findByProps({
+        "data-fixture": "owner",
+      });
+      const childSlot = owner.findByProps({ "data-slot-id": "owner.child" });
+      const instanceIds = childSlot
+        .findAll(
+          (node) => node.props.className === "app-ui-plugin-instance",
+        )
+        .map((node) => node.props["data-plugin-instance-id"]);
+      expect(instanceIds).toEqual(["a-child", "b-child", "z-child"]);
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("allows an owner to render an empty declared child Slot", async () => {
+    const Owner = ({ renderSlot }: UIPluginComponentProps) => (
+      <section data-fixture="owner">
+        OWNER
+        {renderSlot("owner.empty")}
+      </section>
+    );
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "owner-main": {
+          id: "owner-main",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+      },
+    });
+    const mounted = await mountPluginRuntime(
+      fixtureRuntimeProps(model, [
+        createFixtureDefinition("owner", Owner, ["owner.empty"]),
+      ]),
+    );
+
+    try {
+      const owner = mounted.renderer.root.findByProps({
+        "data-fixture": "owner",
+      });
+      expect(getText(owner)).toBe("OWNER");
+      expect(
+        owner.findAllByProps({ "data-slot-id": "owner.empty" }),
+      ).toHaveLength(0);
+    } finally {
+      await mounted.dispose();
+    }
   });
 });

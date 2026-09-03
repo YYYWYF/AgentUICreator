@@ -31,7 +31,10 @@ function readButtonProps(context: UIPluginContext): {
   disabled?: boolean;
   onClick(): void;
 } {
-  const section = AntdXNewConversationPlugin({ context });
+  const section = AntdXNewConversationPlugin({
+    context,
+    renderSlot: () => null,
+  });
   const tooltip = (section.props as { children: ReactNode }).children;
   if (!isValidElement(tooltip)) {
     throw new Error("Expected the new-conversation tooltip");
