@@ -49,6 +49,7 @@ describe("AppUIModel", () => {
       "agent-theme-provider-main",
       "agent-new-conversation-main",
       "agent-theme-switch-main",
+      "agent-conversation-surface-main",
       "agent-welcome-main",
       "agent-messages-main",
       "agent-run-timeline-main",

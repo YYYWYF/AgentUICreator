@@ -37,31 +37,13 @@
         "children": [
           {
             "type": "slot",
-            "id": "agent-welcome-slot-node",
-            "slotId": "agent-welcome"
-          },
-          {
-            "type": "slot",
-            "id": "agent-messages-slot-node",
-            "slotId": "agent-messages"
-          },
-          {
-            "type": "slot",
-            "id": "agent-prompts-slot-node",
-            "slotId": "agent-prompts"
-          },
-          {
-            "type": "slot",
-            "id": "agent-sender-slot-node",
-            "slotId": "agent-sender"
+            "id": "workspace-conversation-slot-node",
+            "slotId": "workspace.conversation"
           }
         ],
         "gap": 0,
         "sizes": [
-          "auto",
-          "minmax(0, 1fr)",
-          "auto",
-          "auto"
+          "minmax(0, 1fr)"
         ]
       },
       {
@@ -124,6 +106,14 @@
         "slotId": "agent-theme-switch"
       }
     },
+    "agent-conversation-surface-main": {
+      "id": "agent-conversation-surface-main",
+      "pluginId": "conversation-surface",
+      "enabled": true,
+      "mount": {
+        "slotId": "workspace.conversation"
+      }
+    },
     "agent-welcome-main": {
       "id": "agent-welcome-main",
       "pluginId": "antd-x-welcome",
@@ -133,7 +123,8 @@
         "description": "通过 AG-UI 与一个 Agent Runtime 连接，由可复用 UI Plugin 确定性渲染。"
       },
       "mount": {
-        "slotId": "agent-welcome"
+        "slotId": "conversation.empty",
+        "order": 0
       }
     },
     "agent-messages-main": {
@@ -144,7 +135,7 @@
         "emptyText": "开始一段新对话"
       },
       "mount": {
-        "slotId": "agent-messages"
+        "slotId": "conversation.timeline"
       }
     },
     "agent-run-timeline-main": {
@@ -199,7 +190,8 @@
         ]
       },
       "mount": {
-        "slotId": "agent-prompts"
+        "slotId": "conversation.empty",
+        "order": 10
       }
     },
     "agent-sender-main": {
@@ -210,7 +202,7 @@
         "placeholder": "给智能体发送消息，输入 / 唤出快捷指令"
       },
       "mount": {
-        "slotId": "agent-sender"
+        "slotId": "conversation.composer"
       }
     },
     "agent-conversations-main": {

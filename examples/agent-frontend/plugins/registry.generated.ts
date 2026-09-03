@@ -13,6 +13,7 @@ import pluginDefinition7 from "./antd-x-theme-provider/definition";
 import pluginDefinition8 from "./antd-x-theme-switch/definition";
 import pluginDefinition9 from "./antd-x-tool-detail/definition";
 import pluginDefinition10 from "./antd-x-welcome/definition";
+import pluginDefinition11 from "./conversation-surface/definition";
 
 export const pluginDefinitions = [
   pluginDefinition0,
@@ -26,4 +27,5 @@ export const pluginDefinitions = [
   pluginDefinition8,
   pluginDefinition9,
   pluginDefinition10,
+  pluginDefinition11,
 ] as const;

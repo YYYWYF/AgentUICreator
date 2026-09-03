@@ -31,6 +31,7 @@ import {
   antdXSourcesPlugin,
   antdXToolDetailPlugin,
   antdXWelcomePlugin,
+  conversationSurfacePlugin,
 } from "../plugins/antd-x-template-library";
 import {
   createPluginRegistry,
@@ -196,6 +197,9 @@ describe("StaticPluginRegistry", () => {
     );
     expect(registry.get("antd-x-tool-detail")).toBe(antdXToolDetailPlugin);
     expect(registry.get("antd-x-resources")).toBe(antdXResourcesPlugin);
+    expect(registry.get("conversation-surface")).toBe(
+      conversationSurfacePlugin,
+    );
     expect(registry.list()).toEqual([...pluginDefinitions]);
   });
 
@@ -223,7 +227,7 @@ describe("StaticPluginRegistry", () => {
 });
 
 describe("UIPluginRuntime", () => {
-  it("assembles the Ant Design X template plugins through AppUIModel slots", async () => {
+  it("renders the message timeline and composer through ConversationSurface", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
 
@@ -240,6 +244,9 @@ describe("UIPluginRuntime", () => {
       'data-ui-plugin="antd-x-new-conversation"',
     );
     const welcomePosition = html.indexOf('data-ui-plugin="antd-x-welcome"');
+    const surfacePosition = html.indexOf(
+      'data-ui-plugin="conversation-surface"',
+    );
     const messagesPosition = html.indexOf(
       'data-ui-plugin="antd-x-message-list"',
     );
@@ -255,20 +262,42 @@ describe("UIPluginRuntime", () => {
       'data-ui-plugin="antd-x-resources"',
     );
 
-    expect(welcomePosition).toBeGreaterThan(-1);
-    expect(newConversationPosition).toBeGreaterThan(welcomePosition);
-    expect(messagesPosition).toBeGreaterThan(welcomePosition);
-    expect(promptsPosition).toBeGreaterThan(messagesPosition);
-    expect(senderPosition).toBeGreaterThan(promptsPosition);
+    expect(newConversationPosition).toBeGreaterThan(-1);
+    expect(surfacePosition).toBeGreaterThan(newConversationPosition);
+    expect(messagesPosition).toBeGreaterThan(surfacePosition);
+    expect(senderPosition).toBeGreaterThan(messagesPosition);
     expect(timelinePosition).toBeGreaterThan(senderPosition);
     expect(toolDetailPosition).toBeGreaterThan(timelinePosition);
     expect(resourcesPosition).toBeGreaterThan(toolDetailPosition);
-    expect(html).toContain("Agent Frontend");
+    expect(welcomePosition).toBe(-1);
+    expect(promptsPosition).toBe(-1);
     expect(html).toContain("新建会话");
     expect(html).toContain('data-ui-plugin="antd-x-conversations"');
     expect(html).toContain("Files");
-    expect(html).toContain("总结当前上下文");
     expect(html).toContain("给智能体发送消息，输入 / 唤出快捷指令");
+  });
+
+  it("renders the empty conversation and composer through ConversationSurface", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const registry = createPluginRegistry(antdXTemplatePlugins);
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      messages: [],
+      model,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    });
+
+    expect(html).toContain('data-ui-plugin="conversation-surface"');
+    expect(html).toContain('data-conversation-state="empty"');
+    expect(html).toContain('data-ui-plugin="antd-x-welcome"');
+    expect(html).toContain('data-ui-plugin="antd-x-prompts"');
+    expect(html).toContain('data-ui-plugin="antd-x-sender"');
+    expect(html).not.toContain('data-ui-plugin="antd-x-message-list"');
+    expect(html).toContain("Agent Frontend");
+    expect(html).toContain("总结当前上下文");
   });
 
   it("renders the granular inspection plugins as independent slot capabilities", async () => {
@@ -510,7 +539,11 @@ describe("UIPluginRuntime", () => {
 
   it("surfaces a deterministic error for an unregistered plugin", async () => {
     const model = parseAppUIModel(appUIJson);
-    const registry = createPluginRegistry(antdXTemplatePlugins.slice(0, 3));
+    const registry = createPluginRegistry(
+      antdXTemplatePlugins.filter(
+        (definition) => definition.manifest.id !== "antd-x-sender",
+      ),
+    );
 
     const html = await renderPluginRuntime({
       actions: runtimeActions,

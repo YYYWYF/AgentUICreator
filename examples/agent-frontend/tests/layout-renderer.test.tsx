@@ -9,7 +9,7 @@ import {
 import { LayoutRenderer } from "../runtime/layout";
 
 describe("LayoutRenderer", () => {
-  it("renders the checked-in Agent interface column and slots", () => {
+  it("keeps conversation internals out of the checked-in Layout Tree", () => {
     const model = parseAppUIModel(appUIJson);
 
     const html = renderToStaticMarkup(
@@ -24,15 +24,12 @@ describe("LayoutRenderer", () => {
     );
 
     expect(html).toContain('data-layout-type="column"');
-    expect(html).toContain(
-      'style="gap:0;grid-template-rows:auto auto minmax(0, 1fr) auto auto"',
-    );
-    expect(html).toContain('data-slot-id="agent-welcome"');
-    expect(html).toContain('data-slot-id="agent-messages"');
-    expect(html).toContain('data-slot-id="agent-prompts"');
-    expect(html).toContain('data-slot-id="agent-sender"');
-    expect(html).toContain("<article>agent-welcome</article>");
-    expect(html).toContain("<article>agent-sender</article>");
+    expect(html).toContain('data-slot-id="workspace.conversation"');
+    expect(html).toContain("<article>workspace.conversation</article>");
+    expect(html).not.toContain('data-slot-id="agent-welcome"');
+    expect(html).not.toContain('data-slot-id="agent-messages"');
+    expect(html).not.toContain('data-slot-id="agent-prompts"');
+    expect(html).not.toContain('data-slot-id="agent-sender"');
   });
 
   it("maps numeric Column sizes to fractional grid tracks", () => {
