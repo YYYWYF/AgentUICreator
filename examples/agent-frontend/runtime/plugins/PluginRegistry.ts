@@ -3,6 +3,7 @@ import {
   parseUIPluginManifest,
   type UIPluginDefinition,
 } from "../../framework/contracts/ui-plugin";
+import type { PluginSlotCatalog } from "../../framework/contracts/app-ui-composition";
 
 export interface PluginRegistry {
   register(plugin: UIPluginDefinition): void;
@@ -41,4 +42,15 @@ export function createPluginRegistry(
   plugins: readonly UIPluginDefinition[] = [],
 ): PluginRegistry {
   return new StaticPluginRegistry(plugins);
+}
+
+export function createPluginSlotCatalog(
+  registry: PluginRegistry,
+): PluginSlotCatalog {
+  return Object.fromEntries(
+    registry.list().map((definition) => [
+      definition.manifest.id,
+      [...(definition.manifest.slots?.children ?? [])],
+    ] as const),
+  );
 }

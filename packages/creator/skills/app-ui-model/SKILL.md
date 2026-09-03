@@ -25,7 +25,7 @@ Treat `/project/app-ui/app-ui.json` as the source of truth for generated layout 
 - A Stack `active` value must name one of its direct children.
 - A Panel `minWidth` must not exceed `maxWidth`.
 - Each `pluginInstances` key must equal that instance's `id`.
-- A PluginInstance has at most one ordinary `mount`; its `mount.slotId` must reference a SlotNode in the Layout Tree.
+- A PluginInstance has at most one ordinary `mount`; its `mount.slotId` must reference either a Layout SlotNode or a Plugin child Slot reachable from the Layout-rooted composition graph.
 - `mount === undefined` means the instance has no ordinary UI mount. Headless instances remain supported.
 - Use `mount.order` when multiple instances target one Slot; runtime order is `order`, then `instanceId`.
 

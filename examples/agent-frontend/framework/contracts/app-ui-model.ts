@@ -215,17 +215,6 @@ export const appUIModelSchema = appUIModelShapeSchema.superRefine(
     };
 
     visitNode(model.root, ["root"]);
-
-    // Phase one: mount targets must be physical outlets in this Layout Tree.
-    for (const [instanceKey, instance] of Object.entries(model.pluginInstances)) {
-      if (instance.mount !== undefined && !layoutSlotNodes.has(instance.mount.slotId)) {
-        addIssue(
-          context,
-          ["pluginInstances", instanceKey, "mount", "slotId"],
-          `Mount Slot "${instance.mount.slotId}" does not exist in the Layout Tree`,
-        );
-      }
-    }
   },
 );
 

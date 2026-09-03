@@ -25,6 +25,7 @@ async function createPlugin(
   projectRoot: string,
   pluginId: string,
   capability: "visual" | "headless",
+  childSlots: readonly string[] = [],
 ): Promise<void> {
   const pluginRoot = path.join(projectRoot, "plugins", pluginId);
   await mkdir(pluginRoot, { recursive: true });
@@ -36,6 +37,7 @@ async function createPlugin(
       description: "Fixture",
       version: "1.0.0",
       capabilities: [capability],
+      ...(childSlots.length === 0 ? {} : { slots: { children: childSlots } }),
     }),
   );
   await writeFile(
@@ -56,6 +58,8 @@ async function createProject(): Promise<{
   await createPlugin(projectRoot, "sample", "visual");
   await createPlugin(projectRoot, "replacement", "visual");
   await createPlugin(projectRoot, "background", "headless");
+  await createPlugin(projectRoot, "owner", "visual", ["owner.child"]);
+  await createPlugin(projectRoot, "consumer", "visual");
   const model: AppUIModel = {
     version: "2",
     root: {
@@ -166,7 +170,18 @@ describe("AppUIModel transaction", () => {
           { type: "move_instance", instanceId: "sample-main", slotId: "missing" },
         ],
       }),
-    ).rejects.toMatchObject({ code: "SLOT_NOT_FOUND" });
+    ).rejects.toMatchObject({
+      code: "PLUGIN_REGISTRY_GENERATION_FAILED",
+      details: {
+        issues: expect.arrayContaining([
+          expect.objectContaining({
+            code: "mount-slot-unreachable",
+            instanceId: "sample-main",
+            slotId: "missing",
+          }),
+        ]),
+      },
+    });
     await expect(
       mutateAppUIModel(projectRoot, {
         appUIModelHash: hash(appUIModelSource),
@@ -188,6 +203,54 @@ describe("AppUIModel transaction", () => {
     expect(
       await readFile(path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH), "utf8"),
     ).toBe(registrySource);
+  });
+
+  it("mounts a PluginInstance into a reachable Plugin child Slot", async () => {
+    const { projectRoot, appUIModelSource } = await createProject();
+
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(appUIModelSource),
+      operations: [
+        {
+          type: "add_instance",
+          instance: {
+            id: "owner-main",
+            pluginId: "owner",
+            enabled: true,
+          },
+        },
+        {
+          type: "mount_instance",
+          instanceId: "owner-main",
+          slotId: "main",
+        },
+        {
+          type: "add_instance",
+          instance: {
+            id: "consumer-main",
+            pluginId: "consumer",
+            enabled: true,
+          },
+        },
+        {
+          type: "mount_instance",
+          instanceId: "consumer-main",
+          slotId: "owner.child",
+        },
+      ],
+    });
+
+    expect(result.registry.selectedPluginIds).toEqual([
+      "consumer",
+      "owner",
+      "sample",
+    ]);
+    const model = JSON.parse(
+      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
+    ) as AppUIModel;
+    expect(model.pluginInstances["consumer-main"]?.mount).toEqual({
+      slotId: "owner.child",
+    });
   });
 
   it("allows disabled visual and enabled headless instances to remain unmounted", async () => {

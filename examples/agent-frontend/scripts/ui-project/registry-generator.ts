@@ -10,6 +10,11 @@ import {
 import { API, ModifierFlags } from "typescript/unstable/sync";
 
 import type { AppUIModel } from "../../framework/contracts/app-ui-model";
+import {
+  AppUICompositionError,
+  validateAppUIComposition,
+  type PluginSlotCatalog,
+} from "../../framework/contracts/app-ui-composition";
 import { uiProjectControlConfig } from "./project-config";
 import { collectPluginAssets } from "./plugin-assets";
 import type {
@@ -97,6 +102,19 @@ export async function generatePluginRegistry(
   }
 
   const registeredAssets: PluginAsset[] = [];
+  const slotCatalogEntries: Array<readonly [string, readonly string[]]> = [];
+  for (const pluginId of selectedPluginIds) {
+    const matches = assetsById.get(pluginId) ?? [];
+    if (matches.length === 1) {
+      slotCatalogEntries.push([
+        pluginId,
+        [...(matches[0]?.childSlots ?? [])],
+      ]);
+    }
+  }
+  const slotCatalog: PluginSlotCatalog = Object.fromEntries(
+    slotCatalogEntries,
+  );
   const selectedAssets: Array<{
     asset: PluginAsset;
     definitionPath: string;
@@ -182,6 +200,16 @@ export async function generatePluginRegistry(
     }
   }
 
+  try {
+    validateAppUIComposition(model, slotCatalog);
+  } catch (error) {
+    if (error instanceof AppUICompositionError) {
+      errors.push(...error.issues);
+    } else {
+      throw error;
+    }
+  }
+
   return {
     source: registrySource(registeredAssets),
     selectedPluginIds,
@@ -189,6 +217,7 @@ export async function generatePluginRegistry(
     headlessPluginIds: registeredAssets
       .filter((asset) => asset.capabilities.includes("headless"))
       .map((asset) => asset.pluginId),
+    slotCatalog,
     assets: inventory.assets,
     errors,
   };

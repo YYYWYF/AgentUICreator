@@ -12,7 +12,6 @@ import {
   type ColumnNode,
   type StackNode,
   type PanelNode,
-  type SlotNode,
 } from "../../framework/contracts/app-ui-model";
 
 const nonBlankStringSchema = z.string().trim().min(1).max(200);
@@ -191,16 +190,6 @@ function requiredInstance(model: AppUIModel, instanceId: string): PluginInstance
   return instance;
 }
 
-function requiredSlot(model: AppUIModel, slotId: string): SlotNode {
-  const slot = [...buildLayoutNodeIndex(model.root).values()]
-    .map(({ node }) => node)
-    .find((node): node is SlotNode => node.type === "slot" && node.slotId === slotId);
-  if (slot === undefined) {
-    operationError("SLOT_NOT_FOUND", `Slot "${slotId}" does not exist in the Layout Tree.`);
-  }
-  return slot;
-}
-
 function insertAt<T>(items: T[], item: T, index: number | undefined, label: string): void {
   const targetIndex = index ?? items.length;
   if (targetIndex > items.length) {
@@ -226,7 +215,6 @@ function mountInstance(
       `Plugin instance "${instanceId}" is already mounted in Slot "${instance.mount.slotId}".`,
     );
   }
-  requiredSlot(model, slotId);
   if (index !== undefined && order !== undefined) {
     operationError("AMBIGUOUS_MOUNT_ORDER", "Specify either index or order, not both.");
   }

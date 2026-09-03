@@ -153,7 +153,7 @@ describe("verifyUIProject", () => {
     expect(await readFile(registryPath, "utf8")).toBe("// stale\n");
   });
 
-  it("rejects mount targets absent from the Layout Tree", async () => {
+  it("rejects mount targets unreachable from the Layout-rooted composition", async () => {
     const projectRoot = await createProject({
       instancePluginId: "sample",
       mounted: true,
@@ -167,7 +167,11 @@ describe("verifyUIProject", () => {
 
     expect(result.status).toBe("failed");
     expect(result.errors).toContainEqual(
-      expect.objectContaining({ code: "app-ui-model" }),
+      expect.objectContaining({
+        code: "mount-slot-unreachable",
+        instanceId: "sample-main",
+        slotId: "missing",
+      }),
     );
   });
 });

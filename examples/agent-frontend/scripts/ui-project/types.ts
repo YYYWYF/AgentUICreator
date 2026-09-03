@@ -2,6 +2,7 @@ import type {
   LayoutSize,
   PluginInstance,
 } from "../../framework/contracts/app-ui-model";
+import type { PluginSlotCatalog } from "../../framework/contracts/app-ui-composition";
 
 export interface ProjectIssue {
   code: string;
@@ -20,6 +21,7 @@ export interface PluginAsset {
   manifestPath: string;
   definitionPath: string;
   capabilities: string[];
+  childSlots?: string[] | undefined;
 }
 
 export interface PluginAssetInventory {
@@ -32,6 +34,7 @@ export interface GeneratePluginRegistryResult {
   selectedPluginIds: string[];
   registeredPluginIds: string[];
   headlessPluginIds: string[];
+  slotCatalog: PluginSlotCatalog;
   assets: PluginAsset[];
   errors: ProjectIssue[];
 }

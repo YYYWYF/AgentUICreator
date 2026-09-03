@@ -47,7 +47,11 @@ async function createPlugin(
   projectRoot: string,
   directory: string,
   pluginId: string,
-  options: { headless?: boolean; defaultExport?: boolean } = {},
+  options: {
+    headless?: boolean;
+    defaultExport?: boolean;
+    childSlots?: readonly string[];
+  } = {},
 ): Promise<void> {
   const pluginRoot = path.join(projectRoot, "plugins", directory);
   await mkdir(pluginRoot, { recursive: true });
@@ -59,6 +63,9 @@ async function createPlugin(
       description: "Fixture plugin",
       version: "1.0.0",
       capabilities: options.headless ? ["headless"] : ["visual"],
+      ...(options.childSlots === undefined
+        ? {}
+        : { slots: { children: options.childSlots } }),
     }),
   );
   await writeFile(
@@ -110,6 +117,24 @@ describe("generatePluginRegistry", () => {
     );
     expect(first.source).not.toContain("catalog-only");
     expect(first.source).not.toContain("unselected");
+  });
+
+  it("builds a pure child Slot catalog from selected manifests", async () => {
+    const projectRoot = await createProject();
+    await createPlugin(projectRoot, "owner", "owner", {
+      childSlots: ["owner.body", "owner.header"],
+    });
+
+    const result = await generatePluginRegistry(
+      projectRoot,
+      modelFor(["owner"]),
+      fixtureConfig,
+    );
+
+    expect(result.errors).toEqual([]);
+    expect(result.slotCatalog).toEqual({
+      owner: ["owner.body", "owner.header"],
+    });
   });
 
   it("removes an asset from the output after its last instance is removed", async () => {

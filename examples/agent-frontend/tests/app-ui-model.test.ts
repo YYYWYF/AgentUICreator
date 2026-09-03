@@ -85,12 +85,14 @@ describe("AppUIModel", () => {
     ]);
   });
 
-  it("rejects missing mount targets, including disabled instances", () => {
+  it("leaves cross-manifest mount reachability to composition validation", () => {
     for (const enabled of [true, false]) {
       const input = createMinimalModel();
       input.pluginInstances["chat-main"]!.enabled = enabled;
       input.pluginInstances["chat-main"]!.mount = { slotId: "missing" };
-      expect(issuePaths(input)).toContainEqual(["pluginInstances", "chat-main", "mount", "slotId"]);
+      expect(parseAppUIModel(input).pluginInstances["chat-main"]?.mount).toEqual({
+        slotId: "missing",
+      });
     }
   });
 

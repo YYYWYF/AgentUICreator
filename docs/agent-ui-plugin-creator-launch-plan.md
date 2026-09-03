@@ -411,7 +411,7 @@ interface SlotNode {
 }
 ```
 
-运行时由独立 `SlotRegistry` 保存 `SlotContribution`。贡献的注册和清理必须进入现有 `PluginServiceRuntime` activation / cleanup 生命周期。本阶段不实现 child slots、slot kind、slot scope 或 Plugin 自声明 outlet。
+运行时由独立 `SlotRegistry` 保存 `SlotContribution`。贡献的注册和清理必须进入现有 `PluginServiceRuntime` activation / cleanup 生命周期。Plugin Manifest 可以静态声明 child Slot；child Slot 随 Owner contribution 出现和消失，但此阶段仍不实现 `renderSlot()`、slot kind、slot scope 或动态 `ctx.slots.declare()`。
 
 ---
 
@@ -471,6 +471,8 @@ interface PluginInstance {
 ```
 
 未来同一个 Plugin 可以创建多个实例。
+
+`mount.slotId` 可以指向 Layout Slot，也可以指向从 Layout Slot 出发、经 reachable Owner Plugin 声明的 child Slot。跨 Manifest 的组合合法性由独立 validator 使用纯 `PluginSlotCatalog` 做 fixed-point reachability 计算，不由 AppUIModel shape parser 依赖 Runtime Registry。`enabled` 不影响结构合法性；无 Layout root 路径的孤儿 mount、rootless cycle、重复 child owner，以及 Layout/child Slot 重名都必须拒绝。
 
 ---
 

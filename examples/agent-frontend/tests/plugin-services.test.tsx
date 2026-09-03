@@ -475,6 +475,96 @@ describe("PluginServiceRuntime", () => {
     expect(setup).toHaveBeenCalledOnce();
   });
 
+  it("composes child mounts independently of activation order and Slot lifetime", () => {
+    const ownerService = { id: "stable-owner-service" };
+    const consumerService = { id: "stable-consumer-service" };
+    const ownerSetup = vi.fn(({ services }: UIPluginSetupContext) => {
+      services.provide("test.owner-lifetime", ownerService);
+    });
+    const consumerSetup = vi.fn(({ services }: UIPluginSetupContext) => {
+      services.provide("test.consumer-lifetime", consumerService);
+    });
+    const owner = createDefinition(
+      "owner",
+      { setup: ownerSetup },
+      ["owner.child"],
+    );
+    const consumer = createDefinition("consumer", { setup: consumerSetup });
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "a-consumer": {
+          id: "a-consumer",
+          pluginId: "consumer",
+          enabled: true,
+          mount: { slotId: "owner.child" },
+        },
+        "z-owner": {
+          id: "z-owner",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      model,
+      createPluginRegistry([consumer, owner]),
+      runtimeActions,
+    );
+    const ownerActivation = runtime.getActivation("z-owner");
+    const consumerActivation = runtime.getActivation("a-consumer");
+
+    expect(ownerActivation?.status).toBe("active");
+    expect(consumerActivation?.status).toBe("active");
+    expect(runtime.slots.getContributions("root")).toEqual([]);
+    expect(runtime.slots.getDeclaration("owner.child")).toBeUndefined();
+    expect(runtime.slots.getContributions("owner.child")).toEqual([]);
+
+    const disposeRoot = runtime.slots.declare({
+      slotId: "root",
+      owner: { kind: "layout", nodeId: "root-node" },
+    });
+
+    expect(runtime.slots.getContributions("root")).toEqual([
+      { instanceId: "z-owner", slotId: "root" },
+    ]);
+    expect(runtime.slots.getContributions("owner.child")).toEqual([
+      { instanceId: "a-consumer", slotId: "owner.child" },
+    ]);
+
+    disposeRoot();
+
+    expect(runtime.slots.getContributions("root")).toEqual([]);
+    expect(runtime.slots.getDeclaration("owner.child")).toBeUndefined();
+    expect(runtime.slots.getContributions("owner.child")).toEqual([]);
+    expect(runtime.getActivation("z-owner")).toEqual(ownerActivation);
+    expect(runtime.getActivation("a-consumer")).toEqual(consumerActivation);
+    expect(runtime.get("test.owner-lifetime")).toBe(ownerService);
+    expect(runtime.get("test.consumer-lifetime")).toBe(consumerService);
+    expect(ownerSetup).toHaveBeenCalledOnce();
+    expect(consumerSetup).toHaveBeenCalledOnce();
+
+    runtime.slots.declare({
+      slotId: "root",
+      owner: { kind: "layout", nodeId: "replacement-root-node" },
+    });
+
+    expect(runtime.slots.getContributions("root")).toEqual([
+      { instanceId: "z-owner", slotId: "root" },
+    ]);
+    expect(runtime.slots.getContributions("owner.child")).toEqual([
+      { instanceId: "a-consumer", slotId: "owner.child" },
+    ]);
+    expect(runtime.getActivation("z-owner")).toEqual(ownerActivation);
+    expect(runtime.getActivation("a-consumer")).toEqual(consumerActivation);
+    expect(ownerSetup).toHaveBeenCalledOnce();
+    expect(consumerSetup).toHaveBeenCalledOnce();
+  });
+
   it("declares and removes every child Slot as one contribution lifetime", () => {
     const owner = createDefinition("owner", {}, [
       "owner.header",

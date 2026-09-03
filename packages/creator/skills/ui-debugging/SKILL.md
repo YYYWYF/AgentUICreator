@@ -12,7 +12,7 @@ Start from the concrete failure and preserve layer boundaries.
 ## Diagnostic order
 
 1. Read the exact error and the directly implicated model or source file.
-2. For AppUIModel errors, check schema invariants, ids, `sizes`, Panel bounds, instances, and whether every `mount.slotId` references a Layout SlotNode. Use `inspect_ui_slots` for Slot locations and configured mounts.
+2. For AppUIModel errors, check schema invariants, ids, `sizes`, Panel bounds, instances, and whether every `mount.slotId` is reachable through a Layout SlotNode or Plugin child Slot. Use `inspect_ui_slots` for Slot locations and configured mounts.
 3. For Plugin load errors, check manifest validation, registration, `pluginId`, and instance references.
 4. For TypeScript errors, inspect the first relevant error and the local contract before editing.
 5. For Runtime errors, call `inspect_runtime_errors` and use only diagnostics matching the current AppUIModel hash. A source-attributed render failure includes its Plugin, instance, Slot path, and component stack; an activation failure identifies the setup instance. Use `includeStale` only for history, and do not attribute ordinary console errors to a Plugin.

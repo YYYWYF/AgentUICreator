@@ -85,6 +85,7 @@ export async function collectPluginAssets(
           path.join(directoryPath, "definition.ts"),
         ),
         capabilities: [...(manifest.capabilities ?? [])].sort(),
+        childSlots: [...(manifest.slots?.children ?? [])].sort(),
       });
     } catch (error) {
       errors.push({

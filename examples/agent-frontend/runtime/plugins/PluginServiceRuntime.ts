@@ -2,6 +2,7 @@ import type {
   AppUIModel,
   PluginInstance,
 } from "../../framework/contracts/app-ui-model";
+import { validateAppUIComposition } from "../../framework/contracts/app-ui-composition";
 import { SlotRegistry } from "../slots/SlotRegistry";
 import type {
   UIPluginActions,
@@ -9,7 +10,10 @@ import type {
   UIPluginServiceRegistrar,
   UIPluginServices,
 } from "../../framework/contracts/ui-plugin";
-import type { PluginRegistry } from "./PluginRegistry";
+import {
+  createPluginSlotCatalog,
+  type PluginRegistry,
+} from "./PluginRegistry";
 import type { PluginDiagnosticContextValue } from "../diagnostics";
 
 export interface UIPluginRuntimeActions {
@@ -112,6 +116,8 @@ export class PluginServiceRuntime {
     actions: UIPluginRuntimeActions,
     diagnostics?: PluginDiagnosticContextValue | null,
   ): void {
+    validateAppUIComposition(model, createPluginSlotCatalog(registry));
+
     const previouslyFailed = new Set(
       [...this.#activations]
         .filter(([, activation]) => activation.status === "failed")
