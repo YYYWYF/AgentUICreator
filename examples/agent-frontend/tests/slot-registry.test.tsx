@@ -91,6 +91,54 @@ describe("SlotRegistry declarations", () => {
     dispose();
     expect(listener).toHaveBeenCalledTimes(2);
   });
+
+  it("binds an injection effect to repeated declaration lifetimes", () => {
+    const slots = new SlotRegistry();
+    const cleanup = vi.fn();
+    const effect = vi.fn(() => cleanup);
+    slots.inject("messages", effect);
+
+    expect(effect).not.toHaveBeenCalled();
+
+    const disposeFirstDeclaration = slots.declare({
+      slotId: "messages",
+      owner: { kind: "layout", nodeId: "messages-node" },
+    });
+    expect(effect).toHaveBeenCalledOnce();
+
+    disposeFirstDeclaration();
+    expect(cleanup).toHaveBeenCalledOnce();
+
+    slots.declare({
+      slotId: "messages",
+      owner: { kind: "layout", nodeId: "replacement-messages-node" },
+    });
+    expect(effect).toHaveBeenCalledTimes(2);
+  });
+
+  it("disposes an active injection and prevents later reactivation", () => {
+    const slots = new SlotRegistry();
+    const disposeDeclaration = slots.declare({
+      slotId: "messages",
+      owner: { kind: "layout", nodeId: "messages-node" },
+    });
+    const cleanup = vi.fn();
+    const effect = vi.fn(() => cleanup);
+    const disposeInjection = slots.inject("messages", effect);
+
+    expect(effect).toHaveBeenCalledOnce();
+
+    disposeInjection();
+    expect(cleanup).toHaveBeenCalledOnce();
+
+    disposeDeclaration();
+    slots.declare({
+      slotId: "messages",
+      owner: { kind: "layout", nodeId: "replacement-messages-node" },
+    });
+    expect(effect).toHaveBeenCalledOnce();
+    expect(cleanup).toHaveBeenCalledOnce();
+  });
 });
 
 describe("Layout Slot declarations", () => {

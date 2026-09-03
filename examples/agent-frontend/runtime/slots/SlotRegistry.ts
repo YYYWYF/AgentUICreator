@@ -19,6 +19,12 @@ export interface SlotDeclaration {
   readonly owner: SlotDeclarationOwner;
 }
 
+interface SlotInjection {
+  readonly effect: () => void | (() => void);
+  active: boolean;
+  cleanup?: (() => void) | undefined;
+}
+
 const EMPTY_CONTRIBUTIONS: readonly SlotContribution[] = Object.freeze([]);
 
 /** Runtime Slot declarations and contributions; Plugin lifecycle remains external. */
@@ -26,6 +32,7 @@ export class SlotRegistry {
   readonly #byInstance = new Map<string, SlotContribution>();
   readonly #bySlot = new Map<string, readonly SlotContribution[]>();
   readonly #declarations = new Map<string, SlotDeclaration>();
+  readonly #injections = new Map<string, Set<SlotInjection>>();
   readonly #listeners = new Set<() => void>();
 
   readonly subscribe = (listener: () => void): (() => void) => {
@@ -60,12 +67,55 @@ export class SlotRegistry {
       owner: Object.freeze({ ...declaration.owner }),
     });
     this.#declarations.set(record.slotId, record);
+    try {
+      this.#activateInjections(record.slotId);
+    } catch (error) {
+      this.#declarations.delete(record.slotId);
+      this.#deactivateInjections(record.slotId);
+      throw error;
+    }
     this.#notify();
 
     return () => {
       if (this.#declarations.get(record.slotId) !== record) return;
       this.#declarations.delete(record.slotId);
+      this.#deactivateInjections(record.slotId);
       this.#notify();
+    };
+  }
+
+  inject(
+    slotId: string,
+    effect: () => void | (() => void),
+  ): () => void {
+    if (!slotId.trim()) {
+      throw new Error("Slot injection slotId must not be blank");
+    }
+
+    const injection: SlotInjection = { effect, active: false };
+    const injections = this.#injections.get(slotId) ?? new Set<SlotInjection>();
+    injections.add(injection);
+    this.#injections.set(slotId, injections);
+
+    try {
+      if (this.#declarations.has(slotId)) {
+        this.#activateInjection(injection);
+      }
+    } catch (error) {
+      injections.delete(injection);
+      if (injections.size === 0) {
+        this.#injections.delete(slotId);
+      }
+      throw error;
+    }
+
+    return () => {
+      const current = this.#injections.get(slotId);
+      if (current === undefined || !current.delete(injection)) return;
+      if (current.size === 0) {
+        this.#injections.delete(slotId);
+      }
+      this.#deactivateInjection(injection);
     };
   }
 
@@ -104,6 +154,38 @@ export class SlotRegistry {
       this.#bySlot.set(slotId, Object.freeze(contributions));
     }
     this.#notify();
+  }
+
+  #activateInjections(slotId: string): void {
+    for (const injection of this.#injections.get(slotId) ?? []) {
+      this.#activateInjection(injection);
+    }
+  }
+
+  #activateInjection(injection: SlotInjection): void {
+    if (injection.active) return;
+    injection.active = true;
+    try {
+      injection.cleanup = injection.effect() ?? undefined;
+    } catch (error) {
+      injection.active = false;
+      injection.cleanup = undefined;
+      throw error;
+    }
+  }
+
+  #deactivateInjections(slotId: string): void {
+    for (const injection of this.#injections.get(slotId) ?? []) {
+      this.#deactivateInjection(injection);
+    }
+  }
+
+  #deactivateInjection(injection: SlotInjection): void {
+    if (!injection.active) return;
+    injection.active = false;
+    const cleanup = injection.cleanup;
+    injection.cleanup = undefined;
+    cleanup?.();
   }
 
   #notify(): void {

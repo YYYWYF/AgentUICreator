@@ -261,20 +261,48 @@ describe("PluginServiceRuntime", () => {
     }
   });
 
-  it("registers and removes Slot contributions with Plugin activation", () => {
+  it("binds a mount contribution to Plugin activation and Slot declaration", () => {
     const runtime = new PluginServiceRuntime();
     const registry = createPluginRegistry([createDefinition("consumer")]);
     const mounted = createServiceModel();
     delete mounted.pluginInstances["provider-main"];
 
     runtime.reconcile(mounted, registry, runtimeActions);
+    const activation = runtime.getActivation("consumer-main");
+    expect(activation?.status).toBe("active");
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+
+    const disposeDeclaration = runtime.slots.declare({
+      slotId: "services-slot",
+      owner: { kind: "layout", nodeId: "services-slot-node" },
+    });
     expect(runtime.slots.getContributions("services-slot")).toEqual([
       { instanceId: "consumer-main", slotId: "services-slot" },
     ]);
 
+    disposeDeclaration();
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+    expect(runtime.getActivation("consumer-main")).toEqual(activation);
+
+    const disposeReplacementDeclaration = runtime.slots.declare({
+      slotId: "services-slot",
+      owner: { kind: "layout", nodeId: "replacement-services-slot-node" },
+    });
+    expect(runtime.slots.getContributions("services-slot")).toEqual([
+      { instanceId: "consumer-main", slotId: "services-slot" },
+    ]);
+    expect(runtime.getActivation("consumer-main")).toEqual(activation);
+
     const disabled = structuredClone(mounted);
     disabled.pluginInstances["consumer-main"]!.enabled = false;
     runtime.reconcile(disabled, registry, runtimeActions);
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+
+    disposeReplacementDeclaration();
+    runtime.slots.declare({
+      slotId: "services-slot",
+      owner: { kind: "layout", nodeId: "third-services-slot-node" },
+    });
     expect(runtime.slots.getContributions("services-slot")).toEqual([]);
 
     const removed = structuredClone(mounted);
@@ -300,6 +328,10 @@ describe("PluginServiceRuntime", () => {
         "b-second": { id: "b-second", pluginId: "visual", enabled: true, mount: { slotId: "list", order: 1 } },
         "a-first": { id: "a-first", pluginId: "visual", enabled: true, mount: { slotId: "list", order: 1 } },
       },
+    });
+    runtime.slots.declare({
+      slotId: "list",
+      owner: { kind: "layout", nodeId: "list-node" },
     });
 
     runtime.reconcile(model, createPluginRegistry([definition]), runtimeActions);

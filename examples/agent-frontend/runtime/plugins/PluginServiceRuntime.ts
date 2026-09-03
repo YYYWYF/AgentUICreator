@@ -252,11 +252,16 @@ export class PluginServiceRuntime {
       }
 
       if (instance.mount !== undefined) {
-        record.cleanups.push(this.slots.register({
-          instanceId: instance.id,
-          slotId: instance.mount.slotId,
-          ...(instance.mount.order === undefined ? {} : { order: instance.mount.order }),
-        }));
+        const mount = instance.mount;
+        record.cleanups.push(
+          this.slots.inject(mount.slotId, () =>
+            this.slots.register({
+              instanceId: instance.id,
+              slotId: mount.slotId,
+              ...(mount.order === undefined ? {} : { order: mount.order }),
+            }),
+          ),
+        );
       }
 
       this.#activations.set(instance.id, {
