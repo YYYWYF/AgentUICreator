@@ -1260,6 +1260,12 @@ handshake、流式代理和 diagnostics 代理；不得在 transport 稳定前�
 `scripts/ui-project-control.ts` JSON 协议，AppUIModel mutation engine 不得在 Python
 重复实现。
 
+第二阶段只在显式 `CREATOR_PYTHON_AGENT_MODE=minimal` 下接入预初始化的
+OpenAI-compatible `ChatOpenAI` 与 DeepAgents，用受限的 read/edit/grep 文件工具验证
+MiMo 连续结构化工具调用。默认 Python 模式仍为 echo。该阶段不得迁移 Project
+Control、Composition Fast Path、Snapshot、Validation、Completion、Skills 或业务
+状态机；开发模式写入只允许 `plugins/**`，且不得修改生成 Registry 或 AppUIModel。
+
 ```ts
 const creator = createCreatorAgent({
   model,

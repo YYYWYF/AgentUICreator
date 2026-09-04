@@ -117,6 +117,82 @@ async function createProxyServer(
   return `http://127.0.0.1:${address.port}`;
 }
 
+async function createMockChatCompletionsServer(): Promise<string> {
+  let call = 0;
+  const server = createServer((request, response) => {
+    if (request.method !== "POST" || request.url !== "/v1/chat/completions") {
+      response.statusCode = 404;
+      response.end();
+      return;
+    }
+    request.resume();
+    request.once("end", () => {
+      call += 1;
+      const toolCalls = [
+        {
+          id: "call-read-before",
+          type: "function",
+          function: {
+            name: "read_file",
+            arguments: JSON.stringify({ file_path: "/plugins/activity.ts" }),
+          },
+        },
+        {
+          id: "call-edit",
+          type: "function",
+          function: {
+            name: "edit_file",
+            arguments: JSON.stringify({
+              file_path: "/plugins/activity.ts",
+              old_string: '"old"',
+              new_string: '"new"',
+            }),
+          },
+        },
+        {
+          id: "call-read-after",
+          type: "function",
+          function: {
+            name: "read_file",
+            arguments: JSON.stringify({ file_path: "/plugins/activity.ts" }),
+          },
+        },
+      ];
+      const selected = toolCalls[call - 1];
+      const body = JSON.stringify({
+        id: `completion-${call}`,
+        object: "chat.completion",
+        created: 1,
+        model: "mimo-v2.5-pro",
+        choices: [
+          {
+            index: 0,
+            message:
+              selected === undefined
+                ? { role: "assistant", content: "Updated and verified activity.ts." }
+                : { role: "assistant", content: null, tool_calls: [selected] },
+            finish_reason: selected === undefined ? "stop" : "tool_calls",
+          },
+        ],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      });
+      response.statusCode = 200;
+      response.setHeader("Content-Type", "application/json");
+      response.end(body);
+    });
+  });
+  servers.push(server);
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      server.removeListener("error", reject);
+      resolve();
+    });
+  });
+  const address = server.address() as AddressInfo;
+  return `http://127.0.0.1:${address.port}/v1`;
+}
+
 async function readSseEvents(response: Response): Promise<{
   events: SseEvent[];
   chunksRead: number;
@@ -192,7 +268,7 @@ afterEach(async () => {
       pythonExecutable,
       [
         "-c",
-        "import sys, fastapi, httpx, pydantic, uvicorn; assert sys.version_info >= (3, 11)",
+        "import sys, deepagents, fastapi, httpx, langchain_openai, langgraph, pydantic, uvicorn; assert sys.version_info >= (3, 11)",
       ],
       { encoding: "utf8" },
     );
@@ -279,6 +355,70 @@ afterEach(async () => {
       delta: "hello-python-sidecar-测试",
     });
   }, 30_000);
+
+  it("runs Node to Vite proxy to Python minimal agent with real file tools", async () => {
+    const fixtureRoot = await mkdtemp(path.join(tmpdir(), "creator-minimal-project-"));
+    temporaryDirectories.push(fixtureRoot);
+    await mkdir(path.join(fixtureRoot, "plugins"));
+    const target = path.join(fixtureRoot, "plugins", "activity.ts");
+    await writeFile(target, 'export const activity = "old";\n');
+    const modelBaseUrl = await createMockChatCompletionsServer();
+    const processManager = manager({
+      projectRoot: fixtureRoot,
+      environment: {
+        ...process.env,
+        CREATOR_PYTHON_AGENT_MODE: "minimal",
+        CREATOR_MODEL_NAME: "mimo-v2.5-pro",
+        CREATOR_MODEL_BASE_URL: modelBaseUrl,
+        CREATOR_MODEL_API_KEY: "test-api-key",
+      },
+    });
+    const proxyRoot = await createProxyServer(processManager);
+    const response = await fetch(`${proxyRoot}/creator`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        threadId: "minimal-thread",
+        runId: "minimal-run",
+        messages: [
+          {
+            role: "user",
+            content: "Read plugins/activity.ts, change old to new, then read it again.",
+          },
+        ],
+      }),
+    });
+    const { events } = await readSseEvents(response);
+
+    expect(events.map((event) => event.type)).toEqual([
+      "RUN_STARTED",
+      "TOOL_CALL_START",
+      "TOOL_CALL_ARGS",
+      "TOOL_CALL_END",
+      "TOOL_CALL_RESULT",
+      "TOOL_CALL_START",
+      "TOOL_CALL_ARGS",
+      "TOOL_CALL_END",
+      "TOOL_CALL_RESULT",
+      "TOOL_CALL_START",
+      "TOOL_CALL_ARGS",
+      "TOOL_CALL_END",
+      "TOOL_CALL_RESULT",
+      "TEXT_MESSAGE_START",
+      "TEXT_MESSAGE_CONTENT",
+      "TEXT_MESSAGE_END",
+      "RUN_FINISHED",
+    ]);
+    expect(await readFile(target, "utf8")).toContain('"new"');
+    expect(events.at(-1)?.result).toMatchObject({
+      phase: "minimal-agent",
+      toolProtocol: {
+        modelCalls: 4,
+        toolCalls: 3,
+        validToolCalls: 3,
+      },
+    });
+  }, 60_000);
 
   it("forwards runtime diagnostics through the production proxy", async () => {
     const processManager = manager();

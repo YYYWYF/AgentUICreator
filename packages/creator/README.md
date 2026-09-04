@@ -44,8 +44,8 @@ Vite 开发服务适配器由 `@agent-ui/creator/vite` 导出，React 工作台�
 
 ## Python sidecar（迁移期）
 
-Creator 当前保留 TypeScript Agent Runtime 作为默认路径。要仅验证 Python
-sidecar transport，可先安装 `packages/creator-python` 的锁定环境，然后设置：
+Creator 当前保留 TypeScript Agent Runtime 作为默认路径。Python sidecar 默认仍为
+transport echo；可先安装 `packages/creator-python` 的锁定环境，然后设置：
 
 ```env
 CREATOR_AGENT_RUNTIME=python
@@ -53,8 +53,19 @@ CREATOR_PYTHON_EXECUTABLE=/absolute/path/to/python
 ```
 
 Vite 插件会按项目惰性启动一个 Python 进程，透明代理 AG-UI 与运行时诊断流，
-并在开发服务器关闭时终止 sidecar。此开关目前只提供 Phase 1 transport echo，
-不会启动 Python Agent；不支持静默回退到 TypeScript。
+并在开发服务器关闭时终止 sidecar，不支持静默回退到 TypeScript。
+
+Phase 2 的实验性 Python Minimal Agent 需要额外设置：
+
+```env
+CREATOR_PYTHON_AGENT_MODE=minimal
+CREATOR_MODEL_NAME=mimo-v2.5-pro
+CREATOR_MODEL_BASE_URL=https://example.com/v1
+CREATOR_MODEL_API_KEY=your-key
+```
+
+该模式只验证受限的 read/edit/grep 工具协议，不包含 AppUIModel、Project Control、
+Fast Path、Validation 或 Completion 业务能力。
 
 仓库根目录的 `pnpm test` 会先运行 Python unit/contract tests，再运行
 TypeScript tests（其中包含真实 sidecar 进程集成测试）。可以使用

@@ -16,6 +16,11 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from .config import CREATOR_PYTHON_PROTOCOL_VERSION, CreatorServerSettings
+from .model_settings import (
+    CreatorModelConfigurationError,
+    CreatorModelSettings,
+    load_python_agent_mode,
+)
 from .runtime_diagnostics import RuntimeDiagnosticEnvelope, RuntimeDiagnosticStore
 
 MAX_CREATOR_REQUEST_BYTES = 512 * 1024
@@ -64,7 +69,35 @@ def _echo_text(run_input: AgUiRunInput) -> str:
     return ""
 
 
+async def _minimal_agent_result(settings: CreatorServerSettings, prompt: str):
+    # Agent dependencies stay lazy so echo mode remains a transport-only path.
+    from .minimal_agent import create_minimal_creator_agent
+    from .model_factory import create_creator_chat_model
+
+    model_settings = CreatorModelSettings.from_environment(
+        config_root=settings.config_root
+    )
+    model = create_creator_chat_model(model_settings)
+    agent = create_minimal_creator_agent(
+        model=model,
+        workspace=settings.project_root,
+        mode="development",
+        raw_trace=model_settings.raw_trace,
+    )
+    return await agent.run(prompt)
+
+
+def _error_code(error: Exception) -> str:
+    code = getattr(error, "code", None)
+    if isinstance(code, str) and code:
+        return code
+    if isinstance(error, CreatorModelConfigurationError):
+        return "MODEL_CONFIGURATION_ERROR"
+    return "CREATOR_MINIMAL_AGENT_ERROR"
+
+
 def create_app(settings: CreatorServerSettings) -> FastAPI:
+    agent_mode = load_python_agent_mode(config_root=settings.config_root)
     app = FastAPI(
         title="Agent UI Creator Python Control Plane",
         docs_url=None,
@@ -91,7 +124,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
             "status": "ok",
             "protocolVersion": CREATOR_PYTHON_PROTOCOL_VERSION,
             "projectRoot": str(settings.project_root),
-            "phase": "sidecar-skeleton",
+            "phase": "minimal-agent" if agent_mode == "minimal" else "sidecar-skeleton",
+            "agentMode": agent_mode,
         }
 
     @app.post("/runtime-diagnostics")
@@ -123,6 +157,74 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                         "runId": run_input.runId,
                     }
                 )
+                if agent_mode == "minimal":
+                    try:
+                        result = await _minimal_agent_result(
+                            settings, _echo_text(run_input)
+                        )
+                    except Exception as error:
+                        yield _sse(
+                            {
+                                "type": "RUN_ERROR",
+                                "threadId": run_input.threadId,
+                                "runId": run_input.runId,
+                                "code": _error_code(error),
+                                "message": str(error),
+                            }
+                        )
+                        return
+                    for activity in result.activities:
+                        yield _sse(
+                            {
+                                "type": "TOOL_CALL_START",
+                                "toolCallId": activity.callId,
+                                "toolCallName": activity.name,
+                            }
+                        )
+                        yield _sse(
+                            {
+                                "type": "TOOL_CALL_ARGS",
+                                "toolCallId": activity.callId,
+                                "delta": json.dumps(
+                                    activity.arguments,
+                                    ensure_ascii=False,
+                                    separators=(",", ":"),
+                                ),
+                            }
+                        )
+                        yield _sse(
+                            {
+                                "type": "TOOL_CALL_END",
+                                "toolCallId": activity.callId,
+                            }
+                        )
+                        yield _sse(
+                            {
+                                "type": "TOOL_CALL_RESULT",
+                                "messageId": str(uuid4()),
+                                "toolCallId": activity.callId,
+                                "role": "tool",
+                                "content": activity.result,
+                                "metadata": {
+                                    "status": (
+                                        "error"
+                                        if activity.status == "error"
+                                        else "finished"
+                                    )
+                                },
+                            }
+                        )
+                    response_text = result.text
+                    run_result = {
+                        "phase": "minimal-agent",
+                        "toolProtocol": result.metrics.to_dict(),
+                    }
+                else:
+                    response_text = _echo_text(run_input)
+                    run_result = {
+                        "phase": "sidecar-skeleton",
+                        "echo": True,
+                    }
                 yield _sse(
                     {
                         "type": "TEXT_MESSAGE_START",
@@ -134,22 +236,17 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                     {
                         "type": "TEXT_MESSAGE_CONTENT",
                         "messageId": message_id,
-                        "delta": _echo_text(run_input),
+                        "delta": response_text,
                     }
                 )
-                yield _sse(
-                    {"type": "TEXT_MESSAGE_END", "messageId": message_id}
-                )
+                yield _sse({"type": "TEXT_MESSAGE_END", "messageId": message_id})
                 yield _sse(
                     {
                         "type": "RUN_FINISHED",
                         "threadId": run_input.threadId,
                         "runId": run_input.runId,
                         "outcome": {"type": "success"},
-                        "result": {
-                            "phase": "sidecar-skeleton",
-                            "echo": True,
-                        },
+                        "result": run_result,
                     }
                 )
 

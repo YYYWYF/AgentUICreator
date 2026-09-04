@@ -9,15 +9,18 @@ description = "Python control plane sidecar for Agent UI Creator"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+  "deepagents>=0.7.11,<0.8.0",
   "fastapi==0.141.1",
   "httpx==0.28.1",
+  "langchain-openai==1.3.3",
+  "langgraph>=1.2.11,<2.0.0",
   "pydantic==2.13.5",
   "uvicorn==0.52.4",
 ]
 
 [project.optional-dependencies]
 test = [
-  "jsonschema==4.25.1",
+  "jsonschema==4.26.0",
   "pytest==9.0.2",
 ]
 
@@ -26,3 +29,6 @@ packages = ["agent_ui_creator"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+  "live_model: invokes the configured external MiMo model",
+]

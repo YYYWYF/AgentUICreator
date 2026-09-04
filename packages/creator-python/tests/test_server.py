@@ -1,6 +1,9 @@
 from fastapi.testclient import TestClient
+from types import SimpleNamespace
 
 from agent_ui_creator.config import CreatorServerSettings
+from agent_ui_creator.model_protocol import ToolProtocolMetrics
+from agent_ui_creator.model_protocol.errors import ModelToolProtocolError
 from agent_ui_creator.server import create_app
 
 
@@ -62,3 +65,76 @@ def test_runtime_diagnostics_are_authenticated_and_accepted(tmp_path):
     )
     assert accepted.status_code == 202
     assert accepted.json() == {"accepted": True}
+
+
+def test_minimal_mode_streams_tool_activity_and_protocol_metrics(tmp_path, monkeypatch):
+    monkeypatch.setenv("CREATOR_PYTHON_AGENT_MODE", "minimal")
+    settings = CreatorServerSettings(
+        project_root=tmp_path,
+        skills_root=tmp_path,
+        auth_token="x" * 32,
+    )
+    metrics = ToolProtocolMetrics(modelCalls=2, toolCalls=1, validToolCalls=1)
+
+    async def fake_result(_settings, _prompt):
+        return SimpleNamespace(
+            text="Updated and verified.",
+            metrics=metrics,
+            activities=(
+                SimpleNamespace(
+                    callId="call-1",
+                    name="read_file",
+                    arguments={"file_path": "/plugins/a.ts"},
+                    status="success",
+                    result="1: old",
+                ),
+            ),
+        )
+
+    monkeypatch.setattr("agent_ui_creator.server._minimal_agent_result", fake_result)
+    client = TestClient(
+        create_app(settings), headers={"Authorization": f"Bearer {settings.auth_token}"}
+    )
+    response = client.post(
+        "/creator",
+        json={
+            "threadId": "thread-1",
+            "runId": "run-1",
+            "messages": [{"role": "user", "content": "edit"}],
+        },
+    )
+
+    assert '"type":"TOOL_CALL_START"' in response.text
+    assert '"toolCallName":"read_file"' in response.text
+    assert '"delta":"Updated and verified."' in response.text
+    assert '"phase":"minimal-agent"' in response.text
+    assert '"validToolCalls":1' in response.text
+
+
+def test_minimal_mode_propagates_protocol_failure_as_run_error(tmp_path, monkeypatch):
+    monkeypatch.setenv("CREATOR_PYTHON_AGENT_MODE", "minimal")
+    settings = CreatorServerSettings(
+        project_root=tmp_path,
+        skills_root=tmp_path,
+        auth_token="x" * 32,
+    )
+
+    async def fail(_settings, _prompt):
+        raise ModelToolProtocolError("malformed twice")
+
+    monkeypatch.setattr("agent_ui_creator.server._minimal_agent_result", fail)
+    client = TestClient(
+        create_app(settings), headers={"Authorization": f"Bearer {settings.auth_token}"}
+    )
+    response = client.post(
+        "/creator",
+        json={
+            "threadId": "thread-1",
+            "runId": "run-1",
+            "messages": [{"role": "user", "content": "edit"}],
+        },
+    )
+
+    assert '"type":"RUN_ERROR"' in response.text
+    assert '"code":"MODEL_TOOL_PROTOCOL_ERROR"' in response.text
+    assert '"type":"RUN_FINISHED"' not in response.text
