@@ -2,7 +2,10 @@ import { StrictMode, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 
 import { CreatorWorkbench } from "@agent-ui/creator/ui";
-import { createCreatorRuntimeDiagnosticReporter } from "@agent-ui/creator/runtime-diagnostics";
+import {
+  createCreatorRuntimeCompositionReporter,
+  createCreatorRuntimeDiagnosticReporter,
+} from "@agent-ui/creator/runtime-diagnostics";
 import { App } from "@agent-ui/example-agent-frontend/App";
 
 function TargetPreview({ threadId }: { threadId: string }) {
@@ -10,7 +13,16 @@ function TargetPreview({ threadId }: { threadId: string }) {
     () => createCreatorRuntimeDiagnosticReporter({ threadId }),
     [threadId],
   );
-  return <App onRuntimeDiagnostic={onRuntimeDiagnostic} />;
+  const onRuntimeComposition = useMemo(
+    () => createCreatorRuntimeCompositionReporter({ threadId }),
+    [threadId],
+  );
+  return (
+    <App
+      onRuntimeComposition={onRuntimeComposition}
+      onRuntimeDiagnostic={onRuntimeDiagnostic}
+    />
+  );
 }
 
 const rootElement = document.getElementById("root");

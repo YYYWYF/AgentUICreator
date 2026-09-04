@@ -12,6 +12,7 @@ import {
 } from "./projectSnapshot.js";
 import type { CreatorRuntimeDiagnosticSession } from "../runtime-diagnostics/CreatorRuntimeDiagnosticStore.js";
 import { createRuntimeDiagnosticTool } from "../runtime-diagnostics/runtimeDiagnosticTool.js";
+import { createRuntimeCompositionTool } from "../runtime-diagnostics/runtimeCompositionTool.js";
 
 export const MAX_CREATOR_PROJECT_TOOL_RESULT_CHARACTERS = 48_000;
 
@@ -151,7 +152,10 @@ export function createCreatorProjectTools(
     mutateAppUIModelTool,
     ...(runtimeDiagnostics === undefined
       ? []
-      : [createRuntimeDiagnosticTool(adapter, runtimeDiagnostics)]),
+      : [
+          createRuntimeDiagnosticTool(adapter, runtimeDiagnostics),
+          createRuntimeCompositionTool(adapter, runtimeDiagnostics),
+        ]),
   ];
   return activity === undefined
     ? projectTools

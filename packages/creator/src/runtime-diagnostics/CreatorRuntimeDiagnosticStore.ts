@@ -4,7 +4,10 @@ export const CREATOR_RUNTIME_DIAGNOSTIC_SCHEMA_VERSION = 1 as const;
 export const MAX_CREATOR_RUNTIME_DIAGNOSTIC_SCOPES = 50;
 export const MAX_CREATOR_RUNTIME_DIAGNOSTICS_PER_SCOPE = 200;
 export const MAX_CREATOR_RUNTIME_DIAGNOSTIC_RESULTS = 20;
+export const MAX_CREATOR_RUNTIME_COMPOSITIONS_PER_SCOPE = 20;
+export const MAX_CREATOR_RUNTIME_COMPOSITION_INSTANCES = 500;
 export const CREATOR_RUNTIME_DIAGNOSTIC_TTL_MS = 24 * 60 * 60 * 1_000;
+export const CREATOR_RUNTIME_COMPOSITION_SCHEMA_VERSION = 1 as const;
 
 export type CreatorRuntimeDiagnosticKind =
   | "plugin-render"
@@ -60,6 +63,44 @@ export interface CreatorRuntimeDiagnosticSummary {
   latestAt?: string | undefined;
 }
 
+export interface CreatorRuntimeCompositionInstance {
+  instanceId: string;
+  pluginId: string;
+  slotId: string;
+  slotPath?: string | undefined;
+}
+
+export interface CreatorRuntimeComposition {
+  schemaVersion: typeof CREATOR_RUNTIME_COMPOSITION_SCHEMA_VERSION;
+  appUIModelHash: string;
+  observedAt: string;
+  instances: CreatorRuntimeCompositionInstance[];
+}
+
+export interface CreatorRuntimeCompositionRecord
+  extends CreatorRuntimeComposition {
+  receivedAt: string;
+}
+
+interface StoredCompositionRecord extends CreatorRuntimeCompositionRecord {
+  sequence: number;
+}
+
+export type CreatorRuntimeCompositionStatus =
+  | "synced"
+  | "stale"
+  | "unavailable";
+
+export interface CreatorRuntimeCompositionInspection {
+  currentAppUIModelHash: string;
+  runtimeAppUIModelHash?: string | undefined;
+  runtimeStatus: CreatorRuntimeCompositionStatus;
+  synchronized: boolean;
+  observedAt?: string | undefined;
+  receivedAt?: string | undefined;
+  instances: CreatorRuntimeCompositionInstance[];
+}
+
 interface DiagnosticRecord extends CreatorRuntimeDiagnostic {
   id: string;
   firstSeenAt: string;
@@ -71,6 +112,8 @@ interface DiagnosticRecord extends CreatorRuntimeDiagnostic {
 interface DiagnosticScope {
   lastAccessMs: number;
   records: DiagnosticRecord[];
+  compositionSnapshots: StoredCompositionRecord[];
+  nextCompositionSequence: number;
 }
 
 export class CreatorRuntimeDiagnosticSchemaError extends Error {
@@ -222,6 +265,102 @@ export function parseCreatorRuntimeDiagnostic(
   };
 }
 
+export function parseCreatorRuntimeComposition(
+  input: unknown,
+): CreatorRuntimeComposition {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+    throw new CreatorRuntimeDiagnosticSchemaError(
+      "composition must be an object.",
+    );
+  }
+  const source = input as Record<string, unknown>;
+  if (source.schemaVersion !== CREATOR_RUNTIME_COMPOSITION_SCHEMA_VERSION) {
+    throw new CreatorRuntimeDiagnosticSchemaError(
+      `composition.schemaVersion must be ${CREATOR_RUNTIME_COMPOSITION_SCHEMA_VERSION}.`,
+    );
+  }
+  const appUIModelHash = boundedString(
+    source.appUIModelHash,
+    "composition.appUIModelHash",
+    64,
+  )!;
+  if (!/^[a-f0-9]{64}$/u.test(appUIModelHash)) {
+    throw new CreatorRuntimeDiagnosticSchemaError(
+      "composition.appUIModelHash must be a lowercase SHA-256 hash.",
+    );
+  }
+  const observedAt = boundedString(
+    source.observedAt,
+    "composition.observedAt",
+    64,
+  )!;
+  if (!Number.isFinite(Date.parse(observedAt))) {
+    throw new CreatorRuntimeDiagnosticSchemaError(
+      "composition.observedAt must be an ISO date-time.",
+    );
+  }
+  if (!Array.isArray(source.instances)) {
+    throw new CreatorRuntimeDiagnosticSchemaError(
+      "composition.instances must be an array.",
+    );
+  }
+  if (source.instances.length > MAX_CREATOR_RUNTIME_COMPOSITION_INSTANCES) {
+    throw new CreatorRuntimeDiagnosticSchemaError(
+      `composition.instances exceeds ${MAX_CREATOR_RUNTIME_COMPOSITION_INSTANCES} entries.`,
+    );
+  }
+  const seenInstanceIds = new Set<string>();
+  const instances = source.instances.map((value, index) => {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
+      throw new CreatorRuntimeDiagnosticSchemaError(
+        `composition.instances[${index}] must be an object.`,
+      );
+    }
+    const instance = value as Record<string, unknown>;
+    const instanceId = boundedString(
+      instance.instanceId,
+      `composition.instances[${index}].instanceId`,
+      200,
+    )!;
+    if (seenInstanceIds.has(instanceId)) {
+      throw new CreatorRuntimeDiagnosticSchemaError(
+        `composition.instances contains duplicate instanceId "${instanceId}".`,
+      );
+    }
+    seenInstanceIds.add(instanceId);
+    const slotPath = optionalString(
+      instance.slotPath,
+      `composition.instances[${index}].slotPath`,
+      1_000,
+    );
+    return {
+      instanceId,
+      pluginId: boundedString(
+        instance.pluginId,
+        `composition.instances[${index}].pluginId`,
+        200,
+      )!,
+      slotId: boundedString(
+        instance.slotId,
+        `composition.instances[${index}].slotId`,
+        200,
+      )!,
+      ...(slotPath === undefined ? {} : { slotPath }),
+    };
+  });
+  instances.sort(
+    (left, right) =>
+      left.slotId.localeCompare(right.slotId) ||
+      left.instanceId.localeCompare(right.instanceId),
+  );
+  return {
+    schemaVersion: CREATOR_RUNTIME_COMPOSITION_SCHEMA_VERSION,
+    appUIModelHash,
+    observedAt,
+    instances,
+  };
+}
+
 function scopeKey(projectId: string, threadId: string): string {
   return `${projectId}\u0000${threadId}`;
 }
@@ -310,6 +449,70 @@ export class CreatorRuntimeDiagnosticStore {
     return { accepted: true, resolvedCount: 0 };
   }
 
+  recordComposition(
+    projectId: string,
+    threadId: string,
+    input: unknown,
+  ): { accepted: true } {
+    boundedString(projectId, "projectId", 200);
+    boundedString(threadId, "threadId", 200);
+    const composition = parseCreatorRuntimeComposition(input);
+    const nowMs = Date.now();
+    this.#prune(nowMs);
+    const scope = this.#getScope(scopeKey(projectId, threadId), nowMs);
+    const sequence = scope.nextCompositionSequence;
+    scope.nextCompositionSequence += 1;
+    scope.compositionSnapshots.push({
+      ...composition,
+      receivedAt: new Date(nowMs).toISOString(),
+      sequence,
+    });
+    scope.compositionSnapshots.sort(
+      (left, right) =>
+        Date.parse(right.observedAt) - Date.parse(left.observedAt) ||
+        right.sequence - left.sequence,
+    );
+    scope.compositionSnapshots.splice(
+      MAX_CREATOR_RUNTIME_COMPOSITIONS_PER_SCOPE,
+    );
+    return { accepted: true };
+  }
+
+  inspectComposition(
+    projectId: string,
+    threadId: string,
+    currentAppUIModelHash: string,
+  ): CreatorRuntimeCompositionInspection {
+    boundedString(projectId, "projectId", 200);
+    boundedString(threadId, "threadId", 200);
+    boundedString(currentAppUIModelHash, "currentAppUIModelHash", 64);
+    const nowMs = Date.now();
+    this.#prune(nowMs);
+    const scope = this.#scopes.get(scopeKey(projectId, threadId));
+    if (scope !== undefined) {
+      scope.lastAccessMs = nowMs;
+    }
+    const snapshot = scope?.compositionSnapshots[0];
+    if (snapshot === undefined) {
+      return {
+        currentAppUIModelHash,
+        runtimeStatus: "unavailable",
+        synchronized: false,
+        instances: [],
+      };
+    }
+    const synchronized = snapshot.appUIModelHash === currentAppUIModelHash;
+    return {
+      currentAppUIModelHash,
+      runtimeAppUIModelHash: snapshot.appUIModelHash,
+      runtimeStatus: synchronized ? "synced" : "stale",
+      synchronized,
+      observedAt: snapshot.observedAt,
+      receivedAt: snapshot.receivedAt,
+      instances: snapshot.instances,
+    };
+  }
+
   inspect(
     projectId: string,
     threadId: string,
@@ -383,7 +586,12 @@ export class CreatorRuntimeDiagnosticStore {
       existing.lastAccessMs = nowMs;
       return existing;
     }
-    const scope: DiagnosticScope = { lastAccessMs: nowMs, records: [] };
+    const scope: DiagnosticScope = {
+      lastAccessMs: nowMs,
+      records: [],
+      compositionSnapshots: [],
+      nextCompositionSequence: 0,
+    };
     this.#scopes.set(key, scope);
     if (this.#scopes.size > MAX_CREATOR_RUNTIME_DIAGNOSTIC_SCOPES) {
       const oldest = [...this.#scopes.entries()].sort(
@@ -449,6 +657,39 @@ export class CreatorRuntimeDiagnosticSession {
       currentAppUIModelHash,
       options,
     );
+  }
+
+  inspectComposition(
+    currentAppUIModelHash: string,
+  ): CreatorRuntimeCompositionInspection {
+    if (this.#threadId === undefined) {
+      return {
+        currentAppUIModelHash,
+        runtimeStatus: "unavailable",
+        synchronized: false,
+        instances: [],
+      };
+    }
+    return this.store.inspectComposition(
+      this.projectId,
+      this.#threadId,
+      currentAppUIModelHash,
+    );
+  }
+
+  async waitForComposition(
+    expectedAppUIModelHash: string,
+    timeoutMs: number,
+  ): Promise<CreatorRuntimeCompositionInspection> {
+    const deadline = Date.now() + timeoutMs;
+    let inspection = this.inspectComposition(expectedAppUIModelHash);
+    while (!inspection.synchronized && Date.now() < deadline) {
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, Math.min(50, Math.max(0, deadline - Date.now())));
+      });
+      inspection = this.inspectComposition(expectedAppUIModelHash);
+    }
+    return inspection;
   }
 
   summary(currentAppUIModelHash: string): CreatorRuntimeDiagnosticSummary {

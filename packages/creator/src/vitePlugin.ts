@@ -84,11 +84,14 @@ export async function handleCreatorRuntimeDiagnosticRequest(
     if (typeof source.threadId !== "string") {
       throw new Error("运行时诊断请求缺少 threadId。");
     }
-    const result = store.record(
-      projectId,
-      source.threadId,
-      source.diagnostic,
-    );
+    const hasDiagnostic = source.diagnostic !== undefined;
+    const hasComposition = source.composition !== undefined;
+    if (hasDiagnostic === hasComposition) {
+      throw new Error("运行时请求必须且只能包含 diagnostic 或 composition。");
+    }
+    const result = hasDiagnostic
+      ? store.record(projectId, source.threadId, source.diagnostic)
+      : store.recordComposition(projectId, source.threadId, source.composition);
     sendJson(response, 202, result);
   } catch (error) {
     sendJson(response, 400, {

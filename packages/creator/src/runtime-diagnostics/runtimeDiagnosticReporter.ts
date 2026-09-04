@@ -18,7 +18,36 @@ export function createCreatorRuntimeDiagnosticReporter({
     } catch {
       return;
     }
-    if (new TextEncoder().encode(body).byteLength > MAX_CREATOR_RUNTIME_DIAGNOSTIC_REPORT_BYTES) {
+    if (
+      new TextEncoder().encode(body).byteLength >
+      MAX_CREATOR_RUNTIME_DIAGNOSTIC_REPORT_BYTES
+    ) {
+      return;
+    }
+    void fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+      keepalive: true,
+    }).catch(() => undefined);
+  };
+}
+
+export function createCreatorRuntimeCompositionReporter({
+  threadId,
+  endpoint = CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
+}: CreatorRuntimeDiagnosticReporterOptions): (composition: object) => void {
+  return (composition: object) => {
+    let body: string;
+    try {
+      body = JSON.stringify({ threadId, composition });
+    } catch {
+      return;
+    }
+    if (
+      new TextEncoder().encode(body).byteLength >
+      MAX_CREATOR_RUNTIME_DIAGNOSTIC_REPORT_BYTES
+    ) {
       return;
     }
     void fetch(endpoint, {

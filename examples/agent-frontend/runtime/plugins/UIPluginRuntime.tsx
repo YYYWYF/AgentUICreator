@@ -29,6 +29,8 @@ import {
 import {
   PluginDiagnosticProvider,
   useOptionalPluginDiagnosticContext,
+  type RuntimeCompositionInstance,
+  type RuntimeCompositionReporter,
   type RuntimeDiagnosticReporter,
 } from "../diagnostics";
 
@@ -43,6 +45,7 @@ export interface UIPluginRuntimeProps {
   actions: UIPluginRuntimeActions;
   className?: string | undefined;
   appUIModelHash?: string | undefined;
+  onRuntimeComposition?: RuntimeCompositionReporter | undefined;
   onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
 }
 
@@ -74,6 +77,32 @@ function createPropsResetKey(
   } catch {
     return props;
   }
+}
+
+function RuntimePluginMountProbe({
+  children,
+  instanceId,
+  pluginId,
+  slotId,
+}: {
+  children: ReactNode;
+  instanceId: string;
+  pluginId: string;
+  slotId: string;
+}) {
+  const diagnostics = useOptionalPluginDiagnosticContext();
+  useEffect(() => {
+    if (diagnostics === null) return undefined;
+    const slotPath = diagnostics?.locationFor(instanceId)?.slotPath;
+    const instance: RuntimeCompositionInstance = {
+      instanceId,
+      pluginId,
+      slotId,
+      ...(slotPath === undefined ? {} : { slotPath }),
+    };
+    return diagnostics.registerMountedInstance(instance);
+  }, [diagnostics, instanceId, pluginId, slotId]);
+  return children;
 }
 
 function SlotContent({
@@ -164,7 +193,6 @@ function SlotContent({
           definition.setup !== undefined || (definition.inject?.length ?? 0) > 0
             ? `${instance.id}:${activation.activationId}`
             : instance.id;
-
         return (
           <PluginErrorBoundary
             instanceId={instance.id}
@@ -180,13 +208,19 @@ function SlotContent({
               createPropsResetKey(instance.props),
             ]}
           >
-            <div
-              className="app-ui-plugin-instance"
-              data-plugin-id={definition.manifest.id}
-              data-plugin-instance-id={instance.id}
+            <RuntimePluginMountProbe
+              instanceId={instance.id}
+              pluginId={definition.manifest.id}
+              slotId={slotId}
             >
-              <PluginComponent context={context} renderSlot={renderSlot} />
-            </div>
+              <div
+                className="app-ui-plugin-instance"
+                data-plugin-id={definition.manifest.id}
+                data-plugin-instance-id={instance.id}
+              >
+                <PluginComponent context={context} renderSlot={renderSlot} />
+              </div>
+            </RuntimePluginMountProbe>
           </PluginErrorBoundary>
         );
       })}
@@ -417,6 +451,7 @@ export function UIPluginRuntime(props: UIPluginRuntimeProps) {
       <PluginDiagnosticProvider
         appUIModelHash={props.appUIModelHash}
         model={props.model}
+        onRuntimeComposition={props.onRuntimeComposition}
         onRuntimeDiagnostic={props.onRuntimeDiagnostic}
       >
         <UIPluginRuntime {...props} appUIModelHash={undefined} />

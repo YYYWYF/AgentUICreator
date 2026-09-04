@@ -1,4 +1,5 @@
 export const RUNTIME_DIAGNOSTIC_SCHEMA_VERSION = 1 as const;
+export const RUNTIME_COMPOSITION_SCHEMA_VERSION = 1 as const;
 
 export type RuntimeDiagnosticKind = "plugin-render" | "plugin-activation";
 export type RuntimeDiagnosticStatus = "error" | "resolved";
@@ -20,6 +21,24 @@ export interface RuntimeDiagnostic {
 
 export type RuntimeDiagnosticReporter = (
   diagnostic: RuntimeDiagnostic,
+) => void;
+
+export interface RuntimeCompositionInstance {
+  instanceId: string;
+  pluginId: string;
+  slotId: string;
+  slotPath?: string | undefined;
+}
+
+export interface RuntimeCompositionSnapshot {
+  schemaVersion: typeof RUNTIME_COMPOSITION_SCHEMA_VERSION;
+  appUIModelHash: string;
+  observedAt: string;
+  instances: RuntimeCompositionInstance[];
+}
+
+export type RuntimeCompositionReporter = (
+  snapshot: RuntimeCompositionSnapshot,
 ) => void;
 
 export type RuntimeDiagnosticEvent = Omit<

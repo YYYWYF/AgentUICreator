@@ -104,8 +104,11 @@ export {
   CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
 } from "./shared.js";
 export {
+  CREATOR_RUNTIME_COMPOSITION_SCHEMA_VERSION,
   CREATOR_RUNTIME_DIAGNOSTIC_SCHEMA_VERSION,
   CREATOR_RUNTIME_DIAGNOSTIC_TTL_MS,
+  MAX_CREATOR_RUNTIME_COMPOSITIONS_PER_SCOPE,
+  MAX_CREATOR_RUNTIME_COMPOSITION_INSTANCES,
   MAX_CREATOR_RUNTIME_DIAGNOSTICS_PER_SCOPE,
   MAX_CREATOR_RUNTIME_DIAGNOSTIC_RESULTS,
   MAX_CREATOR_RUNTIME_DIAGNOSTIC_SCOPES,
@@ -113,7 +116,13 @@ export {
   CreatorRuntimeDiagnosticSession,
   CreatorRuntimeDiagnosticStore,
   createCreatorRuntimeDiagnosticProjectId,
+  parseCreatorRuntimeComposition,
   parseCreatorRuntimeDiagnostic,
+  type CreatorRuntimeComposition,
+  type CreatorRuntimeCompositionInspection,
+  type CreatorRuntimeCompositionInstance,
+  type CreatorRuntimeCompositionRecord,
+  type CreatorRuntimeCompositionStatus,
   type CreatorRuntimeDiagnostic,
   type CreatorRuntimeDiagnosticInspection,
   type CreatorRuntimeDiagnosticKind,
@@ -122,6 +131,14 @@ export {
   type StoredCreatorRuntimeDiagnostic,
 } from "./runtime-diagnostics/CreatorRuntimeDiagnosticStore.js";
 export { createRuntimeDiagnosticTool } from "./runtime-diagnostics/runtimeDiagnosticTool.js";
+export {
+  DEFAULT_RUNTIME_COMPOSITION_WAIT_MS,
+  MAX_RUNTIME_COMPOSITION_WAIT_MS,
+  createRuntimeCompositionTool,
+  type RuntimeCompositionCheckStatus,
+  type RuntimeCompositionExpectation,
+  type RuntimeCompositionToolInput,
+} from "./runtime-diagnostics/runtimeCompositionTool.js";
 export { CREATOR_SYSTEM_PROMPT } from "./prompt/system.js";
 export {
   MAX_PROJECT_CONTROL_OUTPUT_BYTES,

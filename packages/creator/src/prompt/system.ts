@@ -57,6 +57,17 @@ render or activation failures that static validation cannot see. Its default
 result is scoped to the current AppUIModel hash; do not treat stale history or
 an unrelated browser console error as a current Plugin failure. Runtime
 diagnostics are supporting evidence and never replace verify:ui or typecheck.
+A semantic AppUIModel mutation that mounts, moves, enables, disables, adds,
+replaces, unmounts, or removes a PluginInstance must be followed by
+inspect_runtime_composition. Pass result.appUIModel.afterHash as
+expectedAppUIModelHash and provide expectations for the instances changed by
+that mutation. The tool verifies that the Preview Runtime loaded that exact
+model and that the target instances actually committed in their runtime Slots;
+it also supports mounted=false expectations. If its runtimeStatus is stale or
+unavailable, state explicitly that Runtime verification is incomplete and do
+not claim that the change rendered correctly. inspect_runtime_composition is
+runtime evidence; it does not replace the static verify:ui check or TypeScript
+typecheck.
 A missing or incompatible control entry is a diagnostic error; do not replace
 it with guesses. mutate_app_ui_model validates and updates the generated static
 Registry in the same transaction. Never edit registry.generated.ts or

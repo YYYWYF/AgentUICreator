@@ -35,6 +35,7 @@ import {
 import {
   PluginDiagnosticProvider,
   sha256Text,
+  type RuntimeCompositionReporter,
   type RuntimeDiagnosticReporter,
 } from "../runtime/diagnostics";
 import {
@@ -150,10 +151,14 @@ function AgentFrontendSurface({
 }
 
 export interface AppProps {
+  onRuntimeComposition?: RuntimeCompositionReporter | undefined;
   onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
 }
 
-export function App({ onRuntimeDiagnostic }: AppProps = {}) {
+export function App({
+  onRuntimeComposition,
+  onRuntimeDiagnostic,
+}: AppProps = {}) {
   const [model, setModel] = useState(initialAppUIModel);
   const [appUIModelHash, setAppUIModelHash] = useState<string>();
   const agent = useAgentRuntime(agentRuntime);
@@ -167,20 +172,17 @@ export function App({ onRuntimeDiagnostic }: AppProps = {}) {
   };
 
   useEffect(() => {
-    setModel(initialAppUIModel);
-  }, [initialAppUIModel]);
-
-  useEffect(() => {
     let active = true;
     void sha256Text(appUIJsonSource).then((hash) => {
       if (active) {
+        setModel(initialAppUIModel);
         setAppUIModelHash(hash);
       }
     });
     return () => {
       active = false;
     };
-  }, []);
+  }, [appUIJsonSource]);
 
   const updateInstanceProps = useCallback(
     (instanceId: string, props: Record<string, unknown>) => {
@@ -224,6 +226,7 @@ export function App({ onRuntimeDiagnostic }: AppProps = {}) {
     <PluginDiagnosticProvider
       appUIModelHash={appUIModelHash}
       model={model}
+      onRuntimeComposition={onRuntimeComposition}
       onRuntimeDiagnostic={onRuntimeDiagnostic}
     >
       <PluginServiceProvider
