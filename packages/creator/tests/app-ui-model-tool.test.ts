@@ -9,7 +9,7 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   CreatorActivityRecorder,
@@ -131,5 +131,55 @@ describe("mutate_app_ui_model Creator tool", () => {
     expect(output).toContain('"mutationRevision":0');
     expect(activity.revision).toBe(0);
     expect((await activity.finish()).files).toEqual([]);
+  });
+
+  it("invalidates prompt state only for an AppUIModel hash conflict", async () => {
+    const projectRoot = await createMutationProject(false);
+    const activity = new CreatorActivityRecorder(projectRoot);
+    activity.begin();
+    const onStateInvalidated = vi.fn();
+    const input = {
+      appUIModelHash: "a".repeat(64),
+      operations: [
+        {
+          type: "remove_instance",
+          instanceId: "sample-main",
+        },
+      ],
+    };
+    const conflictAdapter = {
+      async request() {
+        throw Object.assign(new Error("AppUIModel changed externally."), {
+          code: "APP_UI_MODEL_HASH_CONFLICT",
+        });
+      },
+    };
+
+    const conflict = await executeAppUIModelMutation(
+      conflictAdapter,
+      activity,
+      input,
+      { onStateInvalidated },
+    );
+    expect(conflict).toContain('"code":"APP_UI_MODEL_HASH_CONFLICT"');
+    expect(onStateInvalidated).toHaveBeenCalledOnce();
+    expect(onStateInvalidated).toHaveBeenCalledWith("hash_conflict");
+    expect(activity.revision).toBe(0);
+
+    onStateInvalidated.mockClear();
+    const ordinaryFailureAdapter = {
+      async request() {
+        throw Object.assign(new Error("Invalid operation."), {
+          code: "APP_UI_MODEL_OPERATION_INVALID",
+        });
+      },
+    };
+    await executeAppUIModelMutation(
+      ordinaryFailureAdapter,
+      activity,
+      input,
+      { onStateInvalidated },
+    );
+    expect(onStateInvalidated).not.toHaveBeenCalled();
   });
 });

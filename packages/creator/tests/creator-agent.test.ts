@@ -528,7 +528,8 @@ export function ToolCallDetailsPlugin({ context }: UIPluginComponentProps) {
     expect(firstCallText).toContain("ag-ui-frontend");
     expect(firstCallText).toContain("ui-debugging");
     expect(firstCallText).toContain("inspect_ui_project");
-    expect(firstCallText).toContain("<ui-project-snapshot>");
+    expect(firstCallText).toContain("<ui-project-navigation-snapshot>");
+    expect(firstCallText).toContain("<creator-current-state>");
     expect(firstCallText).toContain("CONTROL_ENTRY_MISSING");
     expect(firstCallText).toContain("stream-friendly Markdown");
     expect(firstCallText).toContain("names only commands actually run");

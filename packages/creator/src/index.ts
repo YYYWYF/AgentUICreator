@@ -182,6 +182,11 @@ export {
   createCreatorProjectTools,
 } from "./project-control/creatorProjectTools.js";
 export {
+  CreatorProjectPromptContext,
+  type CreatorProjectPromptContextMetrics,
+  type CreatorProjectPromptContextValue,
+} from "./project-control/CreatorProjectPromptContext.js";
+export {
   CREATOR_PLUGIN_SOURCE_DELETE_ENABLED_BY_DEFAULT,
   createDeleteUIPluginSourceTool,
   executeDeleteUIPluginSource,
@@ -198,8 +203,11 @@ export {
   MAX_PROJECT_SNAPSHOT_PROP_KEYS,
   MAX_PROJECT_SNAPSHOT_SLOTS,
   createProjectSnapshot,
+  formatCreatorCurrentStateForPrompt,
+  formatProjectNavigationSnapshotForPrompt,
   formatProjectSnapshotForPrompt,
   loadProjectSnapshot,
+  type CreatorCurrentStatePromptInput,
   type CreatorProjectSnapshot,
 } from "./project-control/projectSnapshot.js";
 export {

@@ -223,10 +223,15 @@ export interface CreatorAppUIModelMutationInput {
   operations: unknown[];
 }
 
+export interface AppUIModelMutationHooks {
+  onStateInvalidated?: (reason: "hash_conflict") => void;
+}
+
 export async function executeAppUIModelMutation(
   adapter: Pick<ProjectControlAdapter, "request">,
   activity: CreatorActivityRecorder | undefined,
   input: CreatorAppUIModelMutationInput,
+  hooks: AppUIModelMutationHooks = {},
 ): Promise<string> {
   try {
     await Promise.all(
@@ -238,6 +243,14 @@ export async function executeAppUIModelMutation(
     }
     return successResult(result, activity);
   } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "APP_UI_MODEL_HASH_CONFLICT"
+    ) {
+      hooks.onStateInvalidated?.("hash_conflict");
+    }
     return codedError(error);
   }
 }
@@ -245,10 +258,11 @@ export async function executeAppUIModelMutation(
 export function createAppUIModelTool(
   adapter: ProjectControlAdapter,
   activity?: CreatorActivityRecorder | undefined,
+  hooks: AppUIModelMutationHooks = {},
 ) {
   return tool(
     async (input: CreatorAppUIModelMutationInput) =>
-      executeAppUIModelMutation(adapter, activity, input),
+      executeAppUIModelMutation(adapter, activity, input, hooks),
     {
       name: "mutate_app_ui_model",
       description:

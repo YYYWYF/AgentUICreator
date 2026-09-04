@@ -11,6 +11,7 @@ import {
   CompositionFastPath,
   CreatorActivityRecorder,
   CreatorAgUiAdapter,
+  CreatorProjectPromptContext,
   compileCompositionOperations,
   createCreatorAgent,
   isCompositionFastPathCandidate,
@@ -96,7 +97,11 @@ function inspection(summary: CompositionSummary, hash: string): UIProjectInspect
 
 function testHarness(
   plan: CompositionFastPathPlan | Error,
-  options: { conflict?: boolean; runtimePass?: boolean } = {},
+  options: {
+    conflict?: boolean;
+    runtimePass?: boolean;
+    activity?: CreatorActivityRecorder;
+  } = {},
 ) {
   let current = composition();
   let currentHash = beforeHash;
@@ -200,10 +205,12 @@ function testHarness(
   const fastPath = new CompositionFastPath({
     planner,
     adapter,
+    activity: options.activity,
     runtimeDiagnostics,
   });
   return {
     fastPath,
+    adapter,
     counts: () => ({ plannerCalls, mutationCount, runtimeVerificationCount }),
   };
 }
@@ -489,5 +496,32 @@ describe("Composition Fast Path AG-UI integration", () => {
 
     expect(model.callCount).toBe(1);
     expect(model.calls[0]?.messages.some((message) => message.text === request)).toBe(true);
+  });
+
+  it("gives the fallback General Agent a post-mutation navigation snapshot", async () => {
+    const projectRoot = await createTemporaryProject();
+    const activity = new CreatorActivityRecorder(projectRoot);
+    activity.begin("fast-path-fallback-run");
+    const harness = testHarness(
+      {
+        mode: "composition",
+        intents: [{ action: "remove", target: "Plugin A" }],
+      },
+      { runtimePass: false, activity },
+    );
+
+    const fastPathResult = await harness.fastPath.tryHandle("remove plugin A");
+    expect(fastPathResult).toMatchObject({ handled: false });
+    expect(activity.revision).toBeGreaterThan(0);
+
+    const promptContext = new CreatorProjectPromptContext(
+      harness.adapter,
+      activity,
+    );
+    const context = await promptContext.current();
+    const prompt = `${context.navigationPrompt}\n\n${context.currentStatePrompt}`;
+    expect(prompt).toContain(afterHash);
+    expect(prompt).not.toContain(beforeHash);
+    expect(prompt).not.toContain("plugin-a-main");
   });
 });

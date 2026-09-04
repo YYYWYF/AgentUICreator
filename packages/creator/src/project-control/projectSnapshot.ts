@@ -33,6 +33,13 @@ export interface CreatorProjectSnapshot {
   truncated: boolean;
 }
 
+export interface CreatorCurrentStatePromptInput {
+  snapshot: CreatorProjectSnapshot;
+  snapshotRevision: number;
+  activity?: CreatorActivityRecorder | undefined;
+  runtimeDiagnostics?: CreatorRuntimeDiagnosticSession | undefined;
+}
+
 function defaultMetadata(): CreatorProjectControlMetadata {
   return {
     runId: "unavailable",
@@ -225,7 +232,7 @@ export function createProjectSnapshot(
 }
 
 export async function loadProjectSnapshot(
-  adapter: ProjectControlAdapter,
+  adapter: Pick<ProjectControlAdapter, "request">,
   activity?: CreatorActivityRecorder | undefined,
   runtimeDiagnostics?: CreatorRuntimeDiagnosticSession | undefined,
 ): Promise<CreatorProjectSnapshot> {
@@ -271,13 +278,23 @@ export async function loadProjectSnapshot(
   }
 }
 
-export function formatProjectSnapshotForPrompt(
+export function formatProjectNavigationSnapshotForPrompt(
   snapshot: CreatorProjectSnapshot,
 ): string {
-  const prefix = `Current target UI project snapshot (navigation summary only; use inspect tools for exact details):\n`;
-  const serialized = JSON.stringify(snapshot);
-  if (prefix.length + serialized.length <= MAX_PROJECT_SNAPSHOT_PROMPT_CHARACTERS) {
-    return `${prefix}<ui-project-snapshot>${serialized}</ui-project-snapshot>`;
+  const prefix = `Current target UI project navigation snapshot (use inspect tools for exact details):\n`;
+  const navigationSnapshot = {
+    schemaVersion: snapshot.schemaVersion,
+    status: snapshot.status,
+    project: snapshot.project,
+    error: snapshot.error,
+    truncated: snapshot.truncated,
+  };
+  const serialized = JSON.stringify(navigationSnapshot);
+  if (
+    prefix.length + serialized.length <=
+    MAX_PROJECT_SNAPSHOT_PROMPT_CHARACTERS
+  ) {
+    return `${prefix}<ui-project-navigation-snapshot>${serialized}</ui-project-navigation-snapshot>`;
   }
 
   const project = snapshot.project;
@@ -286,7 +303,6 @@ export function formatProjectSnapshotForPrompt(
   const fallback = {
     schemaVersion: 1,
     status: snapshot.status,
-    creator: snapshot.creator,
     appUIModel: {
       hash: appUIModel?.hash,
       version: appUIModel?.version,
@@ -297,5 +313,37 @@ export function formatProjectSnapshotForPrompt(
     error: snapshot.error,
     truncated: true,
   };
-  return `${prefix}<ui-project-snapshot>${JSON.stringify(fallback)}</ui-project-snapshot>`;
+  return `${prefix}<ui-project-navigation-snapshot>${JSON.stringify(fallback)}</ui-project-navigation-snapshot>`;
+}
+
+export function formatCreatorCurrentStateForPrompt({
+  snapshot,
+  snapshotRevision,
+  activity,
+  runtimeDiagnostics,
+}: CreatorCurrentStatePromptInput): string {
+  const metadata = activity?.projectControlMetadata() ?? snapshot.creator;
+  const project = snapshot.project;
+  const appUIModel = recordValue(project?.appUIModel);
+  const appUIModelHash = appUIModel?.hash;
+  const runtimeSummary =
+    runtimeDiagnostics !== undefined && typeof appUIModelHash === "string"
+      ? runtimeDiagnostics.summary(appUIModelHash)
+      : metadata.runtimeDiagnostics;
+  const currentState = {
+    runId: metadata.runId,
+    mutationRevision: metadata.mutationRevision,
+    snapshotRevision,
+    ...(typeof appUIModelHash === "string" ? { appUIModelHash } : {}),
+    validations: metadata.validations,
+    verification: metadata.verification,
+    runtimeDiagnostics: runtimeSummary,
+  };
+  return `Current host-observed Creator state. This block is authoritative for this model call.\n<creator-current-state>${JSON.stringify(currentState)}</creator-current-state>`;
+}
+
+export function formatProjectSnapshotForPrompt(
+  snapshot: CreatorProjectSnapshot,
+): string {
+  return formatProjectNavigationSnapshotForPrompt(snapshot);
 }

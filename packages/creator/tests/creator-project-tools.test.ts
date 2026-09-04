@@ -202,7 +202,8 @@ describe("Creator project snapshot and tools", () => {
       (message: unknown) =>
         ToolMessage.isInstance(message) && message.name === "inspect_ui_project",
     ) as ToolMessage | undefined;
-    expect(firstCall).toContain("<ui-project-snapshot>");
+    expect(firstCall).toContain("<ui-project-navigation-snapshot>");
+    expect(firstCall).toContain("<creator-current-state>");
     expect(firstCall).toContain("right-panel");
     expect(firstCall).toContain("conversation-history");
     expect(firstCall).not.toContain("privateLargeValue\":\"xxxx");
@@ -231,6 +232,7 @@ describe("Creator project snapshot and tools", () => {
     );
     expect(snapshot.truncated).toBe(true);
     expect(prompt).not.toContain("privateLargeValue\":\"xxxx");
+    expect(prompt).not.toContain('"creator"');
   });
 
   it("marks validation evidence stale after the project revision changes", async () => {

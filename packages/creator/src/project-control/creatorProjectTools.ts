@@ -4,12 +4,10 @@ import type { CreateDeepAgentParams } from "deepagents";
 
 import type { CreatorActivityRecorder } from "../CreatorActivityRecorder.js";
 import type { ProjectControlAdapter } from "./ProjectControlAdapter.js";
+import { CreatorProjectPromptContext } from "./CreatorProjectPromptContext.js";
 import { createAppUIModelTool } from "./appUIModelTool.js";
 import { createCreatorUndoTool } from "../transactions/creatorUndoTool.js";
-import {
-  formatProjectSnapshotForPrompt,
-  loadProjectSnapshot,
-} from "./projectSnapshot.js";
+import { loadProjectSnapshot } from "./projectSnapshot.js";
 import type { CreatorRuntimeDiagnosticSession } from "../runtime-diagnostics/CreatorRuntimeDiagnosticStore.js";
 import { createRuntimeDiagnosticTool } from "../runtime-diagnostics/runtimeDiagnosticTool.js";
 import { createRuntimeCompositionTool } from "../runtime-diagnostics/runtimeCompositionTool.js";
@@ -54,9 +52,12 @@ async function toolRequest(
   operation: Parameters<ProjectControlAdapter["request"]>[0],
   adapter: ProjectControlAdapter,
   input: Record<string, unknown> = {},
+  onSuccess?: (result: unknown) => void,
 ): Promise<string> {
   try {
-    return boundedResult(await adapter.request(operation, input));
+    const result = await adapter.request(operation, input);
+    onSuccess?.(result);
+    return boundedResult(result);
   } catch (error) {
     return errorResult(error);
   }
@@ -66,12 +67,18 @@ export function createCreatorProjectTools(
   adapter: ProjectControlAdapter,
   activity?: CreatorActivityRecorder | undefined,
   runtimeDiagnostics?: CreatorRuntimeDiagnosticSession | undefined,
+  promptContext?: CreatorProjectPromptContext | undefined,
 ) {
   const inspectProjectTool = tool(
-    async () =>
-      boundedResult(
-        await loadProjectSnapshot(adapter, activity, runtimeDiagnostics),
-      ),
+    async () => {
+      const snapshot = await loadProjectSnapshot(
+        adapter,
+        activity,
+        runtimeDiagnostics,
+      );
+      promptContext?.observeSnapshot(snapshot);
+      return boundedResult(snapshot);
+    },
     {
       name: "inspect_ui_project",
       description:
@@ -84,7 +91,10 @@ export function createCreatorProjectTools(
     },
   );
   const inspectAppUIModelTool = tool(
-    async () => toolRequest("inspect_app_ui_model", adapter),
+    async () =>
+      toolRequest("inspect_app_ui_model", adapter, {}, () => {
+        promptContext?.invalidate("explicit_exact_inspection");
+      }),
     {
       name: "inspect_app_ui_model",
       description:
@@ -142,7 +152,13 @@ export function createCreatorProjectTools(
       },
     },
   );
-  const mutateAppUIModelTool = createAppUIModelTool(adapter, activity);
+  const mutateAppUIModelTool = createAppUIModelTool(adapter, activity, {
+    onStateInvalidated(reason) {
+      if (reason === "hash_conflict") {
+        promptContext?.invalidate("app_ui_model_hash_conflict");
+      }
+    },
+  });
   const projectTools = [
     inspectProjectTool,
     inspectAppUIModelTool,
@@ -167,36 +183,39 @@ export function createCreatorProjectControlMiddleware(
   activity?: CreatorActivityRecorder | undefined,
   runtimeDiagnostics?: CreatorRuntimeDiagnosticSession | undefined,
 ): CreatorMiddleware {
-  let observedRunId: string | undefined;
-  let snapshotPrompt: string | undefined;
+  const promptContext = new CreatorProjectPromptContext(
+    adapter,
+    activity,
+    runtimeDiagnostics,
+  );
 
   return {
     name: "creator-project-control",
-    tools: createCreatorProjectTools(adapter, activity, runtimeDiagnostics),
+    tools: createCreatorProjectTools(
+      adapter,
+      activity,
+      runtimeDiagnostics,
+      promptContext,
+    ),
     async wrapModelCall(request, handler) {
-      const runId = activity?.runId ?? "unavailable";
-      if (snapshotPrompt === undefined || observedRunId !== runId) {
-        observedRunId = runId;
-        snapshotPrompt = formatProjectSnapshotForPrompt(
-          await loadProjectSnapshot(adapter, activity, runtimeDiagnostics),
-        );
-      }
+      const context = await promptContext.current();
+      const prompt = `${context.navigationPrompt}\n\n${context.currentStatePrompt}`;
 
       if (typeof request.systemPrompt === "string") {
         return handler({
           ...request,
-          systemPrompt: `${request.systemPrompt}\n\n${snapshotPrompt}`,
+          systemPrompt: `${request.systemPrompt}\n\n${prompt}`,
         });
       }
       if (request.systemMessage !== undefined) {
         return handler({
           ...request,
           systemMessage: new SystemMessage(
-            `${request.systemMessage.text}\n\n${snapshotPrompt}`,
+            `${request.systemMessage.text}\n\n${prompt}`,
           ),
         });
       }
-      return handler({ ...request, systemPrompt: snapshotPrompt });
+      return handler({ ...request, systemPrompt: prompt });
     },
   };
 }
