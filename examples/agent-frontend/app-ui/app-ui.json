@@ -106,24 +106,24 @@
       "id": "agent-welcome-main",
       "pluginId": "antd-x-welcome",
       "enabled": true,
-      "props": {
-        "title": "Agent Frontend",
-        "description": "通过 AG-UI 与一个 Agent Runtime 连接，由可复用 UI Plugin 确定性渲染。"
-      },
       "mount": {
         "slotId": "conversation.empty",
         "order": 0
+      },
+      "props": {
+        "title": "Agent Frontend",
+        "description": "通过 AG-UI 与一个 Agent Runtime 连接，由可复用 UI Plugin 确定性渲染。"
       }
     },
     "agent-messages-main": {
       "id": "agent-messages-main",
       "pluginId": "antd-x-message-list",
       "enabled": true,
-      "props": {
-        "emptyText": "开始一段新对话"
-      },
       "mount": {
         "slotId": "conversation.timeline"
+      },
+      "props": {
+        "emptyText": "开始一段新对话"
       }
     },
     "agent-inspector-main": {
@@ -134,23 +134,15 @@
         "slotId": "workspace.inspector"
       }
     },
-    "agent-run-timeline-main": {
-      "id": "agent-run-timeline-main",
-      "pluginId": "antd-x-run-timeline",
-      "enabled": true,
-      "mount": {
-        "slotId": "inspector.activity"
-      }
-    },
     "agent-tool-detail-main": {
       "id": "agent-tool-detail-main",
       "pluginId": "antd-x-tool-detail",
       "enabled": true,
-      "props": {
-        "toolCallId": "tool-call-render-diagram"
-      },
       "mount": {
         "slotId": "inspector.tool"
+      },
+      "props": {
+        "toolCallId": "tool-call-render-diagram"
       }
     },
     "agent-resources-main": {
@@ -165,6 +157,10 @@
       "id": "agent-prompts-main",
       "pluginId": "antd-x-prompts",
       "enabled": true,
+      "mount": {
+        "slotId": "conversation.empty",
+        "order": 10
+      },
       "props": {
         "title": "你可以这样开始",
         "items": [
@@ -184,27 +180,26 @@
             "description": "给出一个可执行的后续动作"
           }
         ]
-      },
-      "mount": {
-        "slotId": "conversation.empty",
-        "order": 10
       }
     },
     "agent-sender-main": {
       "id": "agent-sender-main",
       "pluginId": "antd-x-sender",
       "enabled": true,
-      "props": {
-        "placeholder": "给智能体发送消息，输入 / 唤出快捷指令"
-      },
       "mount": {
         "slotId": "conversation.composer"
+      },
+      "props": {
+        "placeholder": "给智能体发送消息，输入 / 唤出快捷指令"
       }
     },
     "agent-conversations-main": {
       "id": "agent-conversations-main",
       "pluginId": "antd-x-conversations",
       "enabled": true,
+      "mount": {
+        "slotId": "agent-conversations"
+      },
       "props": {
         "activeKey": "default",
         "items": [
@@ -219,9 +214,6 @@
             "group": "昨天"
           }
         ]
-      },
-      "mount": {
-        "slotId": "agent-conversations"
       }
     }
   }

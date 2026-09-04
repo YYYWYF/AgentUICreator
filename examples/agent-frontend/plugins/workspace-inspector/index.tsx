@@ -1,8 +1,4 @@
-import {
-  ApiOutlined,
-  FolderOpenOutlined,
-  ThunderboltOutlined,
-} from "@ant-design/icons";
+import { ApiOutlined, FolderOpenOutlined } from "@ant-design/icons";
 import { Tabs, type TabsProps } from "antd";
 import { useState, type ReactNode } from "react";
 
@@ -10,18 +6,9 @@ import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin
 
 import "./styles.css";
 
-type InspectorTab = "activity" | "tool" | "resources";
+type InspectorTab = "tool" | "resources";
 
-const inspectorTabs: TabsProps["items"] = [
-  {
-    key: "activity",
-    label: (
-      <span>
-        <ThunderboltOutlined />
-        Activity
-      </span>
-    ),
-  },
+const inspectorTabs: NonNullable<TabsProps["items"]> = [
   {
     key: "tool",
     label: (
@@ -47,8 +34,6 @@ function renderActiveSlot(
   renderSlot: UIPluginComponentProps["renderSlot"],
 ): ReactNode {
   switch (activeTab) {
-    case "activity":
-      return renderSlot("inspector.activity");
     case "tool":
       return renderSlot("inspector.tool");
     case "resources":
@@ -57,13 +42,13 @@ function renderActiveSlot(
 }
 
 function isInspectorTab(key: string): key is InspectorTab {
-  return key === "activity" || key === "tool" || key === "resources";
+  return key === "tool" || key === "resources";
 }
 
 export function WorkspaceInspectorPlugin({
   renderSlot,
 }: UIPluginComponentProps) {
-  const [activeTab, setActiveTab] = useState<InspectorTab>("activity");
+  const [activeTab, setActiveTab] = useState<InspectorTab>("tool");
 
   return (
     <aside
