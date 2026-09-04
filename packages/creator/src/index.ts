@@ -154,8 +154,27 @@ export type {
 } from "./receiptTypes.js";
 export {
   CREATOR_API_PATH,
+  CREATOR_AGENT_RUNTIME_ENV,
+  CREATOR_AGENT_RUNTIMES,
   CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
+  type CreatorAgentRuntime,
 } from "./shared.js";
+export {
+  CREATOR_PYTHON_PROTOCOL_VERSION,
+  CREATOR_PYTHON_START_TIMEOUT_MS,
+  CREATOR_PYTHON_STOP_TIMEOUT_MS,
+  PythonCreatorProcessManager,
+  PythonCreatorRuntimeError,
+  type PythonCreatorEndpoint,
+  type PythonCreatorProcessManagerOptions,
+} from "./PythonCreatorProcessManager.js";
+export { proxyPythonCreatorRequest } from "./PythonCreatorProxy.js";
+export {
+  CREATOR_HOST_ENV_FILE,
+  readCreatorHostConfigValue,
+  resolveCreatorAgentRuntime,
+  type LoadCreatorAgentRuntimeOptions,
+} from "./creatorRuntimeConfig.js";
 export {
   CREATOR_RUNTIME_COMPOSITION_SCHEMA_VERSION,
   CREATOR_RUNTIME_DIAGNOSTIC_SCHEMA_VERSION,

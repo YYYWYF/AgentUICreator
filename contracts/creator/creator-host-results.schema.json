@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-ui.local/contracts/creator-host-results.schema.json",
+  "title": "Creator host validation and fast-path results",
+  "$defs": {
+    "validationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["revision", "status", "checks"],
+      "properties": {
+        "revision": { "type": "integer", "minimum": 0 },
+        "status": { "enum": ["passed", "failed", "stale"] },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["command", "status", "exitCode", "output", "truncated", "revision", "source"],
+            "properties": {
+              "command": { "enum": ["pnpm verify:ui", "pnpm typecheck"] },
+              "status": { "enum": ["passed", "failed"] },
+              "exitCode": { "type": ["integer", "null"] },
+              "output": { "type": "string" },
+              "truncated": { "type": "boolean" },
+              "revision": { "type": "integer", "minimum": 0 },
+              "source": { "enum": ["cached", "executed"] }
+            }
+          }
+        }
+      }
+    },
+    "fastPathResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["handled", "metrics"],
+      "properties": {
+        "handled": { "type": "boolean" },
+        "message": { "type": "string" },
+        "reason": { "type": "string" },
+        "diagnostic": { "type": "object" },
+        "metrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["attempted", "handled", "actionCount", "operationCount", "durationMs", "planner", "generalAgentCalls", "mutationCount", "runtimeVerificationCount", "hostValidationCount"],
+          "properties": {
+            "attempted": { "const": true },
+            "handled": { "type": "boolean" },
+            "fallbackReason": { "type": "string" },
+            "actionCount": { "type": "integer", "minimum": 0 },
+            "operationCount": { "type": "integer", "minimum": 0 },
+            "durationMs": { "type": "number", "minimum": 0 },
+            "planner": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["modelCalls"],
+              "properties": { "modelCalls": { "enum": [0, 1] } }
+            },
+            "generalAgentCalls": { "enum": [0, 1] },
+            "mutationCount": { "enum": [0, 1] },
+            "runtimeVerificationCount": { "enum": [0, 1] },
+            "hostValidationCount": { "enum": [0, 1] }
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "properties": { "handled": { "const": true } },
+          "required": ["message"]
+        },
+        {
+          "properties": { "handled": { "const": false } },
+          "required": ["reason"]
+        }
+      ]
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/validationResult" },
+    { "$ref": "#/$defs/fastPathResult" }
+  ]
+}

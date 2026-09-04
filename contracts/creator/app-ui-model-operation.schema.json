@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-ui.local/contracts/app-ui-model-operation.schema.json",
+  "title": "AppUIModel operation",
+  "$defs": {
+    "nonBlankString": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "layoutSize": {
+      "oneOf": [
+        { "type": "number", "minimum": 0 },
+        { "$ref": "#/$defs/nonBlankString" }
+      ]
+    },
+    "layoutNode": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "id", "children"],
+          "properties": {
+            "type": { "enum": ["row", "column"] },
+            "id": { "$ref": "#/$defs/nonBlankString" },
+            "children": { "type": "array", "items": { "$ref": "#/$defs/layoutNode" } },
+            "gap": { "type": "number", "minimum": 0 },
+            "sizes": { "type": "array", "items": { "$ref": "#/$defs/layoutSize" } }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "id", "children"],
+          "properties": {
+            "type": { "const": "stack" },
+            "id": { "$ref": "#/$defs/nonBlankString" },
+            "children": { "type": "array", "items": { "$ref": "#/$defs/layoutNode" } },
+            "active": { "$ref": "#/$defs/nonBlankString" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "id", "child"],
+          "properties": {
+            "type": { "const": "panel" },
+            "id": { "$ref": "#/$defs/nonBlankString" },
+            "child": { "$ref": "#/$defs/layoutNode" },
+            "width": { "$ref": "#/$defs/layoutSize" },
+            "height": { "$ref": "#/$defs/layoutSize" },
+            "minWidth": { "type": "number", "minimum": 0 },
+            "maxWidth": { "type": "number", "minimum": 0 },
+            "resizable": { "type": "boolean" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "id", "slotId"],
+          "properties": {
+            "type": { "const": "slot" },
+            "id": { "$ref": "#/$defs/nonBlankString" },
+            "slotId": { "$ref": "#/$defs/nonBlankString" }
+          }
+        }
+      ]
+    },
+    "pluginInstance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "pluginId", "enabled"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonBlankString" },
+        "pluginId": { "$ref": "#/$defs/nonBlankString" },
+        "enabled": { "type": "boolean" },
+        "mount": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["slotId"],
+          "properties": {
+            "slotId": { "$ref": "#/$defs/nonBlankString" },
+            "order": { "type": "number" }
+          }
+        },
+        "props": { "type": "object" }
+      }
+    },
+    "index": { "type": "integer", "minimum": 0 },
+    "removeKeys": {
+      "type": "array",
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/nonBlankString" }
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "instance"],
+      "properties": { "type": { "const": "add_instance" }, "instance": { "$ref": "#/$defs/pluginInstance" } }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "instanceId"],
+      "properties": {
+        "type": { "const": "update_instance_props" },
+        "instanceId": { "$ref": "#/$defs/nonBlankString" },
+        "set": { "type": "object" },
+        "removeKeys": { "$ref": "#/$defs/removeKeys" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "instanceId", "enabled"],
+      "properties": {
+        "type": { "const": "set_instance_enabled" },
+        "instanceId": { "$ref": "#/$defs/nonBlankString" },
+        "enabled": { "type": "boolean" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "instanceId", "slotId"],
+      "properties": {
+        "type": { "enum": ["mount_instance", "move_instance"] },
+        "instanceId": { "$ref": "#/$defs/nonBlankString" },
+        "slotId": { "$ref": "#/$defs/nonBlankString" },
+        "index": { "$ref": "#/$defs/index" },
+        "order": { "type": "number" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "instanceId"],
+      "properties": {
+        "type": { "enum": ["unmount_instance", "remove_instance"] },
+        "instanceId": { "$ref": "#/$defs/nonBlankString" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "instanceId", "replacement"],
+      "properties": {
+        "type": { "const": "replace_instance" },
+        "instanceId": { "$ref": "#/$defs/nonBlankString" },
+        "replacement": { "$ref": "#/$defs/pluginInstance" },
+        "slotId": { "$ref": "#/$defs/nonBlankString" },
+        "index": { "$ref": "#/$defs/index" },
+        "order": { "type": "number" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "parentNodeId", "node"],
+      "properties": {
+        "type": { "const": "insert_layout_node" },
+        "parentNodeId": { "$ref": "#/$defs/nonBlankString" },
+        "node": { "$ref": "#/$defs/layoutNode" },
+        "index": { "$ref": "#/$defs/index" },
+        "size": { "$ref": "#/$defs/layoutSize" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "nodeId"],
+      "properties": {
+        "type": { "const": "update_layout_node_props" },
+        "nodeId": { "$ref": "#/$defs/nonBlankString" },
+        "set": { "type": "object" },
+        "removeKeys": { "$ref": "#/$defs/removeKeys" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "nodeId", "newParentNodeId"],
+      "properties": {
+        "type": { "const": "move_layout_node" },
+        "nodeId": { "$ref": "#/$defs/nonBlankString" },
+        "newParentNodeId": { "$ref": "#/$defs/nonBlankString" },
+        "index": { "$ref": "#/$defs/index" },
+        "size": { "$ref": "#/$defs/layoutSize" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "nodeId", "node"],
+      "properties": {
+        "type": { "const": "replace_layout_node" },
+        "nodeId": { "$ref": "#/$defs/nonBlankString" },
+        "node": { "$ref": "#/$defs/layoutNode" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "nodeId"],
+      "properties": {
+        "type": { "const": "remove_layout_node" },
+        "nodeId": { "$ref": "#/$defs/nonBlankString" }
+      }
+    }
+  ]
+}

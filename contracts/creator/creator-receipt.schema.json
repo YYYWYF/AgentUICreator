@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-ui.local/contracts/creator-receipt.schema.json",
+  "title": "Creator run receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["files", "validations"],
+  "properties": {
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "status", "diff", "truncated"],
+        "properties": {
+          "path": { "type": "string" },
+          "status": { "enum": ["created", "modified", "deleted"] },
+          "diff": { "type": "string" },
+          "truncated": { "type": "boolean" }
+        }
+      }
+    },
+    "validations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["command", "status", "exitCode", "output", "truncated"],
+        "properties": {
+          "command": { "type": "string" },
+          "status": { "enum": ["passed", "failed"] },
+          "exitCode": { "type": ["integer", "null"] },
+          "output": { "type": "string" },
+          "truncated": { "type": "boolean" },
+          "revision": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "projectRevision", "auditAttempts", "checks"],
+      "properties": {
+        "status": { "enum": ["not-run", "changed-and-verified", "no-project-change", "failed"] },
+        "projectRevision": { "type": "integer", "minimum": 0 },
+        "auditAttempts": { "type": "integer", "minimum": 0 },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "status", "evidence"],
+            "properties": {
+              "id": { "type": "string" },
+              "status": { "enum": ["passed", "failed"] },
+              "evidence": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "diagnosticLog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "path", "schemaVersion"],
+      "properties": {
+        "format": { "const": "jsonl" },
+        "path": { "type": "string" },
+        "schemaVersion": { "const": 1 }
+      }
+    },
+    "transaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runId", "undoable"],
+      "properties": {
+        "runId": { "type": "string" },
+        "undoable": { "type": "boolean" }
+      }
+    }
+  }
+}

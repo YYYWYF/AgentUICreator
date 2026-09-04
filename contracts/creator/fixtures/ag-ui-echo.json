@@ -1,0 +1,19 @@
+{
+  "request": {
+    "threadId": "creator-thread",
+    "runId": "creator-run",
+    "messages": [
+      { "id": "user-message", "role": "user", "content": "echo" }
+    ],
+    "tools": [],
+    "context": [],
+    "state": {}
+  },
+  "eventTypes": [
+    "RUN_STARTED",
+    "TEXT_MESSAGE_START",
+    "TEXT_MESSAGE_CONTENT",
+    "TEXT_MESSAGE_END",
+    "RUN_FINISHED"
+  ]
+}

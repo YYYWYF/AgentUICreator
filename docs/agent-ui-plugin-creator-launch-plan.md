@@ -1247,6 +1247,19 @@ Allowlisted validation commands
 
 Creator 作为独立开发态 Node package 存在，模型实例由工具宿主注入，不进入目标前端的 Vite 生产 Bundle。它既可由 CLI 运行，也可通过开发工作台的 Vite 适配器运行。
 
+Creator Agent 控制面允许按阶段迁移到独立 Python sidecar，但不能把整个 Creator
+npm package 或生成项目改造成 Python 应用。长期职责边界是：React Workbench、
+Vite 集成和浏览器诊断 reporter 留在 TypeScript；模型、Agent loop、项目工具编排、
+验证、完成策略、回执与运行态诊断存储归 Python。浏览器继续访问原有 AG-UI HTTP
+路径，Vite 只负责项目级 Python 进程生命周期与透明流代理。
+
+迁移期间必须保留 `typescript` / `python` 双运行时，默认继续使用 TypeScript。
+第一阶段仅建立版本化合同、Python FastAPI health/echo sidecar、随机端口鉴权
+handshake、流式代理和 diagnostics 代理；不得在 transport 稳定前迁移 Agent，
+也不得静默 fallback。Project Control 继续调用目标项目固定的
+`scripts/ui-project-control.ts` JSON 协议，AppUIModel mutation engine 不得在 Python
+重复实现。
+
 ```ts
 const creator = createCreatorAgent({
   model,

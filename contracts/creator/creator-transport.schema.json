@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-ui.local/contracts/creator-transport.schema.json",
+  "title": "Creator TypeScript to Python transport v1",
+  "$defs": {
+    "handshake": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "port", "protocolVersion"],
+      "properties": {
+        "type": { "const": "creator_ready" },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "protocolVersion": { "const": "1" }
+      }
+    },
+    "health": {
+      "type": "object",
+      "required": ["status", "protocolVersion"],
+      "properties": {
+        "status": { "const": "ok" },
+        "protocolVersion": { "const": "1" }
+      }
+    },
+    "agUiRunInput": {
+      "type": "object",
+      "required": ["threadId", "runId", "messages", "tools", "context", "state"],
+      "properties": {
+        "threadId": { "type": "string", "minLength": 1 },
+        "runId": { "type": "string", "minLength": 1 },
+        "messages": { "type": "array" },
+        "tools": { "type": "array" },
+        "context": { "type": "array" }
+      }
+    },
+    "runtimeDiagnosticEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["threadId"],
+      "properties": {
+        "threadId": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "diagnostic": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schemaVersion", "kind", "status", "appUIModelHash", "occurredAt", "pluginId", "instanceId"],
+          "properties": {
+            "schemaVersion": { "const": 1 },
+            "kind": { "enum": ["plugin-render", "plugin-activation"] },
+            "status": { "enum": ["error", "resolved"] },
+            "appUIModelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "occurredAt": { "type": "string", "format": "date-time", "maxLength": 64 },
+            "pluginId": { "type": "string", "minLength": 1, "maxLength": 200 },
+            "instanceId": { "type": "string", "minLength": 1, "maxLength": 200 },
+            "pluginName": { "type": "string", "maxLength": 200 },
+            "slotId": { "type": "string", "maxLength": 200 },
+            "slotPath": { "type": "string", "maxLength": 1000 },
+            "errorMessage": { "type": "string", "maxLength": 2000 },
+            "componentStack": { "type": "string", "maxLength": 8000 }
+          },
+          "allOf": [
+            {
+              "if": { "properties": { "status": { "const": "error" } } },
+              "then": { "required": ["errorMessage"] }
+            }
+          ]
+        },
+        "composition": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schemaVersion", "appUIModelHash", "observedAt", "instances"],
+          "properties": {
+            "schemaVersion": { "const": 1 },
+            "appUIModelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "observedAt": { "type": "string", "format": "date-time", "maxLength": 64 },
+            "instances": {
+              "type": "array",
+              "maxItems": 500,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["instanceId", "pluginId", "slotId"],
+                "properties": {
+                  "instanceId": { "type": "string", "minLength": 1, "maxLength": 200 },
+                  "pluginId": { "type": "string", "minLength": 1, "maxLength": 200 },
+                  "slotId": { "type": "string", "minLength": 1, "maxLength": 200 },
+                  "slotPath": { "type": "string", "maxLength": 1000 }
+                }
+              }
+            }
+          }
+        }
+      },
+      "oneOf": [
+        { "required": ["diagnostic"], "not": { "required": ["composition"] } },
+        { "required": ["composition"], "not": { "required": ["diagnostic"] } }
+      ]
+    },
+    "phaseOneEvent": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "enum": ["RUN_STARTED", "TEXT_MESSAGE_START", "TEXT_MESSAGE_CONTENT", "TEXT_MESSAGE_END", "RUN_FINISHED", "RUN_ERROR"]
+        }
+      }
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/handshake" },
+    { "$ref": "#/$defs/health" },
+    { "$ref": "#/$defs/agUiRunInput" },
+    { "$ref": "#/$defs/runtimeDiagnosticEnvelope" },
+    { "$ref": "#/$defs/phaseOneEvent" }
+  ]
+}

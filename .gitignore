@@ -4,3 +4,7 @@ coverage/
 *.tsbuildinfo
 .DS_Store
 .env.creator.local
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc

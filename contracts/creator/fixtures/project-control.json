@@ -1,0 +1,32 @@
+{
+  "request": {
+    "schemaVersion": 2,
+    "operation": "mutate_app_ui_model",
+    "input": {
+      "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "operations": [
+        {
+          "type": "mount_instance",
+          "instanceId": "activity-main",
+          "slotId": "inspector.activity"
+        }
+      ]
+    }
+  },
+  "success": {
+    "schemaVersion": 2,
+    "ok": true,
+    "result": {
+      "changed": true,
+      "changedPaths": ["app-ui/app-ui.json", "plugins/registry.generated.ts"]
+    }
+  },
+  "failure": {
+    "schemaVersion": 2,
+    "ok": false,
+    "error": {
+      "code": "APP_UI_MODEL_STALE",
+      "message": "AppUIModel changed after inspection."
+    }
+  }
+}

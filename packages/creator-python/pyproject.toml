@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling==1.29.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agent-ui-creator-core"
+version = "0.1.0"
+description = "Python control plane sidecar for Agent UI Creator"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi==0.141.1",
+  "httpx==0.28.1",
+  "pydantic==2.13.5",
+  "uvicorn==0.52.4",
+]
+
+[project.optional-dependencies]
+test = ["pytest==9.0.2"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["agent_ui_creator"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

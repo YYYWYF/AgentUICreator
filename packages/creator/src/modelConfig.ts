@@ -3,7 +3,9 @@ import path from "node:path";
 
 import { ChatOpenAI } from "@langchain/openai";
 
-export const CREATOR_MODEL_ENV_FILE = ".env.creator.local";
+import { CREATOR_HOST_ENV_FILE } from "./creatorRuntimeConfig.js";
+
+export const CREATOR_MODEL_ENV_FILE = CREATOR_HOST_ENV_FILE;
 export const CREATOR_MODEL_NAME = "mimo-v2.5-pro";
 
 export interface CreatorModelConfig {

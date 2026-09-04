@@ -1,0 +1,53 @@
+{
+  "validation": {
+    "revision": 2,
+    "status": "passed",
+    "checks": [
+      {
+        "command": "pnpm verify:ui",
+        "status": "passed",
+        "exitCode": 0,
+        "output": "UI verification passed.",
+        "truncated": false,
+        "revision": 2,
+        "source": "executed"
+      },
+      {
+        "command": "pnpm typecheck",
+        "status": "passed",
+        "exitCode": 0,
+        "output": "",
+        "truncated": false,
+        "revision": 2,
+        "source": "executed"
+      }
+    ]
+  },
+  "fastPath": {
+    "handled": true,
+    "message": "已移除目标插件实例。",
+    "metrics": {
+      "attempted": true,
+      "handled": true,
+      "actionCount": 1,
+      "operationCount": 1,
+      "durationMs": 42,
+      "planner": { "modelCalls": 1 },
+      "generalAgentCalls": 0,
+      "mutationCount": 1,
+      "runtimeVerificationCount": 1,
+      "hostValidationCount": 1
+    }
+  },
+  "receipt": {
+    "files": [
+      {
+        "path": "app-ui/app-ui.json",
+        "status": "modified",
+        "diff": "--- before\n+++ after",
+        "truncated": false
+      }
+    ],
+    "validations": []
+  }
+}

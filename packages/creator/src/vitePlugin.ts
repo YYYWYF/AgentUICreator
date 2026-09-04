@@ -15,6 +15,13 @@ import {
 } from "./CreatorAgUiAdapter.js";
 import { CREATOR_API_PATH } from "./shared.js";
 import { CREATOR_RUNTIME_DIAGNOSTICS_API_PATH } from "./shared.js";
+import type { CreatorAgentRuntime } from "./shared.js";
+import { resolveCreatorAgentRuntime } from "./creatorRuntimeConfig.js";
+import {
+  PythonCreatorProcessManager,
+  type PythonCreatorProcessManagerOptions,
+} from "./PythonCreatorProcessManager.js";
+import { proxyPythonCreatorRequest } from "./PythonCreatorProxy.js";
 import {
   CreatorRuntimeDiagnosticSession,
   CreatorRuntimeDiagnosticStore,
@@ -25,6 +32,13 @@ export {
   CREATOR_API_PATH,
   CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
 } from "./shared.js";
+export { resolveCreatorAgentRuntime } from "./creatorRuntimeConfig.js";
+export {
+  PythonCreatorProcessManager,
+  PythonCreatorRuntimeError,
+  type PythonCreatorEndpoint,
+  type PythonCreatorProcessManagerOptions,
+} from "./PythonCreatorProcessManager.js";
 // Keep a bounded recovery window above the early DeepAgents summarization
 // threshold. The AG-UI client replaces its history when the summary snapshot
 // arrives, so ordinary follow-up requests stay well below this ceiling.
@@ -34,6 +48,13 @@ const MAX_RUNTIME_DIAGNOSTIC_REQUEST_BYTES = 64 * 1024;
 export interface CreatorDevServerPluginOptions {
   projectRoot: string;
   configRoot?: string | undefined;
+  runtime?: CreatorAgentRuntime | undefined;
+  python?:
+    | Omit<
+        PythonCreatorProcessManagerOptions,
+        "projectRoot" | "configRoot"
+      >
+    | undefined;
 }
 
 export type CreatorAgUiRunner = Pick<CreatorAgUiAdapter, "run">;
@@ -188,15 +209,34 @@ export async function handleCreatorRequest(
 export function createCreatorDevServerPlugin({
   projectRoot,
   configRoot,
+  runtime: configuredRuntime,
+  python,
 }: CreatorDevServerPluginOptions): Plugin {
+  const runtime =
+    configuredRuntime ?? resolveCreatorAgentRuntime({ configRoot });
   let agent: CreatorAgUiAdapter | undefined;
-  const runtimeDiagnosticStore = new CreatorRuntimeDiagnosticStore();
+  const runtimeDiagnosticStore =
+    runtime === "typescript" ? new CreatorRuntimeDiagnosticStore() : undefined;
   const runtimeDiagnosticProjectId =
-    createCreatorRuntimeDiagnosticProjectId(projectRoot);
-  const runtimeDiagnostics = new CreatorRuntimeDiagnosticSession(
-    runtimeDiagnosticStore,
-    runtimeDiagnosticProjectId,
-  );
+    runtime === "typescript"
+      ? createCreatorRuntimeDiagnosticProjectId(projectRoot)
+      : undefined;
+  const runtimeDiagnostics =
+    runtimeDiagnosticStore === undefined ||
+    runtimeDiagnosticProjectId === undefined
+      ? undefined
+      : new CreatorRuntimeDiagnosticSession(
+          runtimeDiagnosticStore,
+          runtimeDiagnosticProjectId,
+        );
+  const pythonManager =
+    runtime === "python"
+      ? new PythonCreatorProcessManager({
+          projectRoot,
+          ...(configRoot === undefined ? {} : { configRoot }),
+          ...(python ?? {}),
+        })
+      : undefined;
 
   const getAgent = (): CreatorAgUiAdapter => {
     if (agent !== undefined) {
@@ -206,7 +246,7 @@ export function createCreatorDevServerPlugin({
     agent = createProjectCreatorAgUiAdapter({
       projectRoot,
       ...(configRoot === undefined ? {} : { configRoot }),
-      runtimeDiagnostics,
+      ...(runtimeDiagnostics === undefined ? {} : { runtimeDiagnostics }),
     });
     return agent;
   };
@@ -215,20 +255,46 @@ export function createCreatorDevServerPlugin({
     name: "agent-ui-creator-dev-server",
     apply: "serve",
     configureServer(server) {
+      if (pythonManager !== undefined) {
+        server.httpServer?.once("close", () => {
+          void pythonManager.dispose();
+        });
+        server.watcher.once("close", () => {
+          void pythonManager.dispose();
+        });
+      }
       server.middlewares.use(
         CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
         async (request, response) => {
+          if (pythonManager !== undefined) {
+            await proxyPythonCreatorRequest(
+              request,
+              response,
+              pythonManager,
+              "/runtime-diagnostics",
+            );
+            return;
+          }
           await handleCreatorRuntimeDiagnosticRequest(
             request,
             response,
-            runtimeDiagnosticStore,
-            runtimeDiagnosticProjectId,
+            runtimeDiagnosticStore!,
+            runtimeDiagnosticProjectId!,
           );
         },
       );
       server.middlewares.use(
         CREATOR_API_PATH,
         async (request, response) => {
+          if (pythonManager !== undefined) {
+            await proxyPythonCreatorRequest(
+              request,
+              response,
+              pythonManager,
+              "/creator",
+            );
+            return;
+          }
           await handleCreatorRequest(request, response, getAgent());
         },
       );
