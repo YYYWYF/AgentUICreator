@@ -10,6 +10,7 @@ const repositoryRoot = path.resolve(
 );
 const pythonPackageRoot = path.join(repositoryRoot, "packages/creator-python");
 const requirementsPath = path.join(pythonPackageRoot, "requirements.lock");
+const creatorEnvironmentPath = path.join(repositoryRoot, ".env.creator.local");
 const virtualEnvironmentRoot = path.join(pythonPackageRoot, ".venv");
 const virtualEnvironmentPython =
   process.platform === "win32"
@@ -67,6 +68,65 @@ export function createPytestEnvironment({
       .join(path.delimiter),
     ...(liveModel ? { CREATOR_RUN_LIVE_MODEL: "1" } : {}),
   };
+}
+
+export function parseEnvironmentFile(source) {
+  const values = {};
+  for (const [index, rawLine] of source.split(/\r?\n/u).entries()) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex === -1) {
+      throw new Error(
+        `.env.creator.local line ${String(index + 1)} is not a valid assignment.`,
+      );
+    }
+
+    const key = line.slice(0, separatorIndex).trim();
+    let value = line.slice(separatorIndex + 1).trim();
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/u.test(key)) {
+      throw new Error(
+        `.env.creator.local line ${String(index + 1)} has an invalid key.`,
+      );
+    }
+    if (
+      value.length >= 2 &&
+      ((value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'")))
+    ) {
+      value = value.slice(1, -1);
+    }
+    values[key] = value;
+  }
+  return values;
+}
+
+export function mergeEnvironmentFileValues(environment, fileValues) {
+  const merged = { ...environment };
+  for (const [key, value] of Object.entries(fileValues)) {
+    if (!environment[key]?.trim()) {
+      merged[key] = value;
+    }
+  }
+  return merged;
+}
+
+async function loadLiveModelEnvironment(environment) {
+  try {
+    const source = await readFile(creatorEnvironmentPath, "utf8");
+    return mergeEnvironmentFileValues(
+      environment,
+      parseEnvironmentFile(source),
+    );
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return environment;
+    }
+    throw error;
+  }
 }
 
 function run(command, arguments_, environment = process.env) {
@@ -135,10 +195,13 @@ export async function main(arguments_ = process.argv.slice(2)) {
   }
 
   if (!options.setupOnly) {
+    const testEnvironment = options.liveModel
+      ? await loadLiveModelEnvironment(process.env)
+      : process.env;
     await run(
       virtualEnvironmentPython,
       createPytestArguments(options),
-      createPytestEnvironment({ ...options, environment: process.env }),
+      createPytestEnvironment({ ...options, environment: testEnvironment }),
     );
   }
 }

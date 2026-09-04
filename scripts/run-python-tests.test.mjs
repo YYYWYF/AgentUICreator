@@ -7,7 +7,9 @@ import { fileURLToPath } from "node:url";
 import {
   createPytestArguments,
   createPytestEnvironment,
+  mergeEnvironmentFileValues,
   parseArguments,
+  parseEnvironmentFile,
 } from "./run-python-tests.mjs";
 
 const repositoryRoot = path.resolve(
@@ -67,6 +69,33 @@ test("regular and live-model modes use the same PYTHONPATH", () => {
   assert.equal(regular.CREATOR_RUN_LIVE_MODEL, undefined);
   assert.equal(live.CREATOR_RUN_LIVE_MODEL, "1");
   assert.equal(live.UNRELATED, "preserved");
+});
+
+test("loads live model settings from the Creator host environment file", () => {
+  const fileValues = parseEnvironmentFile(`
+# Creator model settings
+CREATOR_MODEL_BASE_URL = "https://example.test/v1"
+CREATOR_MODEL_API_KEY='file-key'
+CREATOR_MODEL_NAME=mimo-v2.5-pro
+`);
+  const environment = mergeEnvironmentFileValues(
+    {
+      CREATOR_MODEL_API_KEY: "process-key",
+      CREATOR_MODEL_NAME: "",
+      UNRELATED: "preserved",
+    },
+    fileValues,
+  );
+
+  assert.deepEqual(fileValues, {
+    CREATOR_MODEL_BASE_URL: "https://example.test/v1",
+    CREATOR_MODEL_API_KEY: "file-key",
+    CREATOR_MODEL_NAME: "mimo-v2.5-pro",
+  });
+  assert.equal(environment.CREATOR_MODEL_BASE_URL, "https://example.test/v1");
+  assert.equal(environment.CREATOR_MODEL_API_KEY, "process-key");
+  assert.equal(environment.CREATOR_MODEL_NAME, "mimo-v2.5-pro");
+  assert.equal(environment.UNRELATED, "preserved");
 });
 
 test("package live-model script delegates portably to the Node runner", async () => {
