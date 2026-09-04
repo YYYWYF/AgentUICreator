@@ -2,3 +2,8 @@ packages:
   - "apps/*"
   - "examples/*"
   - "packages/*"
+
+# Keep scripts runnable when the pinned pnpm cannot be fetched, without letting
+# a fallback pnpm rewrite an existing node_modules tree automatically.
+pmOnFail: warn
+verifyDepsBeforeRun: warn
