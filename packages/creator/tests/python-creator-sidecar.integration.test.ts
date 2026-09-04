@@ -328,6 +328,28 @@ afterEach(async () => {
     expect(wrongToken.status).toBe(401);
   }, 30_000);
 
+  it("starts from the managed virtual environment without an explicit executable", async () => {
+    const logs: string[] = [];
+    const environment = { ...process.env };
+    delete environment.CREATOR_PYTHON_EXECUTABLE;
+    const processManager = manager({
+      pythonExecutable: undefined,
+      environment,
+      log: (message) => logs.push(message),
+    });
+
+    const endpoint = await processManager.ensureStarted();
+    const health = await fetch(
+      `http://${endpoint.host}:${endpoint.port}/health`,
+      { headers: { Authorization: `Bearer ${endpoint.authToken}` } },
+    );
+
+    expect(health.status).toBe(200);
+    expect(logs).toContain(
+      `python runtime: source=managed_venv executable=${virtualEnvironmentPython}`,
+    );
+  }, 30_000);
+
   it("streams the exact Unicode AG-UI lifecycle through the production proxy", async () => {
     const processManager = manager();
     const proxyRoot = await createProxyServer(processManager);
@@ -371,6 +393,7 @@ afterEach(async () => {
         CREATOR_MODEL_NAME: "mimo-v2.5-pro",
         CREATOR_MODEL_BASE_URL: modelBaseUrl,
         CREATOR_MODEL_API_KEY: "test-api-key",
+        CREATOR_MODEL_RAW_TRACE: "1",
       },
     });
     const proxyRoot = await createProxyServer(processManager);
@@ -416,6 +439,17 @@ afterEach(async () => {
         modelCalls: 4,
         toolCalls: 3,
         validToolCalls: 3,
+        traces: expect.arrayContaining([
+          expect.objectContaining({
+            providerResponse: expect.objectContaining({
+              statusCode: 200,
+              toolCallCount: 1,
+              toolCallNames: ["read_file"],
+            }),
+            translationMismatch: null,
+            toolCallOrigin: "provider",
+          }),
+        ]),
       },
     });
   }, 60_000);

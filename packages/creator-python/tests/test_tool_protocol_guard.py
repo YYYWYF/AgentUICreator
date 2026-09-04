@@ -1,3 +1,4 @@
+import httpx
 import pytest
 from langchain.agents.middleware import ModelRequest, ModelResponse
 from langchain_core.messages import AIMessage
@@ -5,6 +6,7 @@ from langchain_core.tools import tool
 
 from agent_ui_creator.model_protocol import (
     ModelToolProtocolError,
+    ProviderResponseTraceCollector,
     ToolProtocolGuard,
     ToolProtocolMetrics,
     ToolProtocolMiddleware,
@@ -188,3 +190,184 @@ def test_model_trace_observes_reasoning_and_retention():
     assert trace.reasoningContentRetained is True
     assert trace.inputTokens == 10
     assert trace.outputTokens == 2
+
+
+def _capture_provider(collector, payload, *, status_code=200):
+    collector.on_response(
+        httpx.Response(
+            status_code,
+            request=httpx.Request(
+                "POST", "https://model.example/v1/chat/completions"
+            ),
+            json=payload,
+        )
+    )
+
+
+def test_model_trace_pairs_final_success_after_retry_and_detects_no_mismatch():
+    collector = ProviderResponseTraceCollector(enabled=True)
+    _capture_provider(
+        collector,
+        {"error": {"type": "rate_limit"}},
+        status_code=429,
+    )
+    _capture_provider(
+        collector,
+        {
+            "choices": [
+                {
+                    "finish_reason": "tool_calls",
+                    "message": {
+                        "content": None,
+                        "tool_calls": [
+                            {
+                                "function": {
+                                    "name": "read_file",
+                                    "arguments": '{"file_path":"/x"}',
+                                }
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
+    )
+    middleware = ToolProtocolMiddleware(
+        raw_trace=True, provider_trace_collector=collector
+    )
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    response = ModelResponse(
+        result=[
+            AIMessage(
+                content="",
+                tool_calls=[
+                    {"name": "read_file", "args": {"file_path": "/x"}, "id": "call-1"}
+                ],
+            )
+        ]
+    )
+
+    middleware.wrap_model_call(request, lambda _request: response)
+    trace = middleware.metrics.traces[0]
+
+    assert trace.providerResponse["statusCode"] == 200
+    assert trace.providerResponse["httpErrorStatusCodes"] == [429]
+    assert trace.translationMismatch is None
+    assert trace.toolCallOrigin == "provider"
+    assert trace.langChainProviderMetadata is not None
+
+
+def test_model_trace_classifies_provider_tool_calls_lost_by_langchain():
+    collector = ProviderResponseTraceCollector(enabled=True)
+    _capture_provider(
+        collector,
+        {
+            "choices": [
+                {
+                    "finish_reason": "tool_calls",
+                    "message": {
+                        "content": None,
+                        "tool_calls": [
+                            {
+                                "function": {
+                                    "name": "read_file",
+                                    "arguments": '{"file_path":"/x"}',
+                                }
+                            }
+                        ],
+                    },
+                }
+            ]
+        },
+    )
+    middleware = ToolProtocolMiddleware(
+        raw_trace=True, provider_trace_collector=collector
+    )
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+
+    middleware.wrap_model_call(
+        request, lambda _request: ModelResponse(result=[AIMessage(content="done")])
+    )
+
+    assert (
+        middleware.metrics.traces[0].translationMismatch
+        == "provider_tool_calls_lost"
+    )
+
+
+def test_model_trace_attributes_pseudo_tool_intent_to_provider():
+    collector = ProviderResponseTraceCollector(enabled=True)
+    pseudo_content = [
+        {"type": "text", "name": "read_file", "args": {"file_path": "/x"}}
+    ]
+    _capture_provider(
+        collector,
+        {
+            "choices": [
+                {
+                    "finish_reason": "stop",
+                    "message": {"content": pseudo_content},
+                }
+            ]
+        },
+    )
+    middleware = ToolProtocolMiddleware(
+        raw_trace=True, provider_trace_collector=collector
+    )
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+
+    middleware.wrap_model_call(
+        request,
+        lambda _request: ModelResponse(result=[AIMessage(content=pseudo_content)]),
+    )
+    trace = middleware.metrics.traces[0]
+
+    assert trace.translationMismatch is None
+    assert trace.toolCallOrigin == "provider"
+    assert trace.langChainPseudoToolNames == ("read_file",)
+
+
+def test_model_trace_classifies_unexpected_langchain_tool_call():
+    collector = ProviderResponseTraceCollector(enabled=True)
+    _capture_provider(
+        collector,
+        {"choices": [{"finish_reason": "stop", "message": {"content": "done"}}]},
+    )
+    middleware = ToolProtocolMiddleware(
+        raw_trace=True, provider_trace_collector=collector
+    )
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    response = ModelResponse(
+        result=[
+            AIMessage(
+                content="",
+                tool_calls=[
+                    {"name": "read_file", "args": {"file_path": "/x"}, "id": "call-1"}
+                ],
+            )
+        ]
+    )
+
+    middleware.wrap_model_call(request, lambda _request: response)
+
+    assert (
+        middleware.metrics.traces[0].translationMismatch
+        == "langchain_created_unexpected_tool_call"
+    )
+    assert middleware.metrics.traces[0].toolCallOrigin == "langchain"
+
+
+def test_raw_trace_disabled_leaves_provider_and_langchain_summaries_empty():
+    collector = ProviderResponseTraceCollector(enabled=False)
+    middleware = ToolProtocolMiddleware(
+        raw_trace=False, provider_trace_collector=collector
+    )
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+
+    middleware.wrap_model_call(
+        request, lambda _request: ModelResponse(result=[AIMessage(content="done")])
+    )
+
+    trace = middleware.metrics.traces[0]
+    assert trace.providerResponse is None
+    assert trace.langChainProviderMetadata is None

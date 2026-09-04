@@ -19,6 +19,7 @@ from langchain_core.messages import AIMessage
 from langgraph.errors import GraphRecursionError
 
 from ..model_protocol.errors import AgentNoProgressError, ModelTimeoutError
+from ..model_protocol.provider_trace import ProviderResponseTraceCollector
 from ..model_protocol.tool_protocol_guard import ToolProtocolMiddleware
 from ..model_protocol.trace import ToolProtocolMetrics
 from .path_policy import MinimalAgentPathPolicy, PolicyFilesystemBackend
@@ -114,6 +115,7 @@ def create_minimal_creator_agent(
     workspace: str | Path,
     mode: Literal["development", "conformance"] = "development",
     raw_trace: bool = False,
+    provider_trace_collector: ProviderResponseTraceCollector | None = None,
 ) -> CreatorMinimalAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -123,7 +125,11 @@ def create_minimal_creator_agent(
     )
     backend = PolicyFilesystemBackend(workspace, policy)
     metrics = ToolProtocolMetrics()
-    protocol = ToolProtocolMiddleware(metrics=metrics, raw_trace=raw_trace)
+    protocol = ToolProtocolMiddleware(
+        metrics=metrics,
+        raw_trace=raw_trace,
+        provider_trace_collector=provider_trace_collector,
+    )
     runtime = MinimalAgentRuntimeGuard(backend)
     filesystem = FilesystemMiddleware(
         backend=backend,

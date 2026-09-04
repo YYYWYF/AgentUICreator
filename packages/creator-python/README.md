@@ -73,8 +73,13 @@ Minimal Agent 每轮只暴露 `ls`、`read_file`、`glob`、`grep`、`edit_file`
 
 每次 `RUN_FINISHED.result.toolProtocol` 包含模型调用、有效/无效工具调用、pseudo
 call 恢复、单次 protocol repair、参数解析、缺失 ID、token 和有界 model trace
-统计。设置 `CREATOR_MODEL_RAW_TRACE=1` 会额外向 stderr 写入 LangChain 暴露的
-provider metadata 摘要，不记录完整 Prompt、源码或工具结果。
+统计。设置 `CREATOR_MODEL_RAW_TRACE=1` 会在 HTTPX response hook 中读取已缓存的
+Chat Completions response body，并只保存有界的协议结构摘要（状态码、request id、
+finish reason、content 形态、tool call 名称与 arguments 长度/JSON 有效性、重试状态），
+随后与 LangChain `AIMessage` 摘要配对。不会保存 prompt、完整 content、完整 tool
+arguments、源码、Authorization header 或 API key。原先容易误解为 provider raw response
+的 LangChain 元数据现命名为 `langChainProviderMetadata`；真实的 pre-LangChain 摘要位于
+`providerResponse`。关闭该开关时不会安装 response hook，也不会读取或解析响应 body。
 
 当前锁定的 Agent 栈为 Python 3.11+、`langchain-openai 1.3.3`、
 `langchain-core 1.6.1`、`langchain 1.3.18`、`langgraph 1.2.11`、

@@ -30,6 +30,63 @@ export interface PythonCreatorProcessManagerOptions {
   log?: ((message: string) => void) | undefined;
 }
 
+export type CreatorPythonExecutableSource =
+  | "configured"
+  | "managed_venv"
+  | "system";
+
+export interface ResolvedCreatorPythonExecutable {
+  executable: string;
+  source: CreatorPythonExecutableSource;
+}
+
+export function resolveConfiguredCreatorPythonExecutable({
+  optionExecutable,
+  environmentExecutable,
+  hostConfigExecutable,
+}: {
+  optionExecutable?: string | undefined;
+  environmentExecutable?: string | undefined;
+  hostConfigExecutable?: string | undefined;
+}): string | undefined {
+  return (
+    optionExecutable?.trim() ||
+    environmentExecutable?.trim() ||
+    hostConfigExecutable?.trim() ||
+    undefined
+  );
+}
+
+export async function resolveCreatorPythonExecutable({
+  configuredExecutable,
+  pythonPackageRoot,
+  platform = process.platform,
+}: {
+  configuredExecutable?: string | undefined;
+  pythonPackageRoot: string;
+  platform?: NodeJS.Platform | undefined;
+}): Promise<ResolvedCreatorPythonExecutable> {
+  const configured = configuredExecutable?.trim();
+  if (configured) {
+    return { executable: configured, source: "configured" };
+  }
+  const managedExecutable = path.join(
+    pythonPackageRoot,
+    ".venv",
+    platform === "win32" ? "Scripts" : "bin",
+    platform === "win32" ? "python.exe" : "python",
+  );
+  try {
+    await access(managedExecutable);
+    return { executable: managedExecutable, source: "managed_venv" };
+  } catch {
+    return {
+      executable: platform === "win32" ? "python" : "python3",
+      source: "system",
+    };
+  }
+}
+
 export class PythonCreatorRuntimeError extends Error {
   readonly code: string;
   readonly details: unknown;
@@ -102,7 +159,7 @@ export class PythonCreatorProcessManager {
   readonly #projectRoot: string;
   readonly #configRoot: string | undefined;
   readonly #skillsRoot: string;
-  readonly #pythonExecutable: string;
+  readonly #configuredPythonExecutable: string | undefined;
   readonly #pythonPackageRoot: string;
   readonly #environment: NodeJS.ProcessEnv;
   readonly #startupTimeoutMs: number;
@@ -129,14 +186,18 @@ export class PythonCreatorProcessManager {
     this.#configRoot =
       configRoot === undefined ? undefined : path.resolve(configRoot);
     this.#skillsRoot = path.resolve(skillsRoot);
-    this.#pythonExecutable =
-      pythonExecutable?.trim() ||
-      environment.CREATOR_PYTHON_EXECUTABLE?.trim() ||
-      readCreatorHostConfigValue(
-        this.#configRoot,
-        "CREATOR_PYTHON_EXECUTABLE",
-      ) ||
-      (process.platform === "win32" ? "python" : "python3");
+    const directlyConfiguredExecutable = resolveConfiguredCreatorPythonExecutable({
+      optionExecutable: pythonExecutable,
+      environmentExecutable: environment.CREATOR_PYTHON_EXECUTABLE,
+    });
+    this.#configuredPythonExecutable =
+      directlyConfiguredExecutable ??
+      resolveConfiguredCreatorPythonExecutable({
+        hostConfigExecutable: readCreatorHostConfigValue(
+          this.#configRoot,
+          "CREATOR_PYTHON_EXECUTABLE",
+        ),
+      });
     this.#pythonPackageRoot = path.resolve(pythonPackageRoot);
     this.#environment = environment;
     this.#startupTimeoutMs = startupTimeoutMs;
@@ -200,6 +261,14 @@ export class PythonCreatorProcessManager {
       );
     }
 
+    const pythonRuntime = await resolveCreatorPythonExecutable({
+      configuredExecutable: this.#configuredPythonExecutable,
+      pythonPackageRoot: this.#pythonPackageRoot,
+    });
+    this.#log(
+      `python runtime: source=${pythonRuntime.source} executable=${pythonRuntime.executable}`,
+    );
+
     const authToken = randomBytes(32).toString("hex");
     const args = [
       "-m",
@@ -220,7 +289,7 @@ export class PythonCreatorProcessManager {
     ];
     const packagePath = this.#pythonPackageRoot;
     const existingPythonPath = this.#environment.PYTHONPATH?.trim();
-    const child = spawn(this.#pythonExecutable, args, {
+    const child = spawn(pythonRuntime.executable, args, {
       cwd: this.#projectRoot,
       env: {
         ...this.#environment,
@@ -295,7 +364,7 @@ export class PythonCreatorProcessManager {
       if (systemError.code === "ENOENT") {
         throw new PythonCreatorRuntimeError(
           "CREATOR_PYTHON_RUNTIME_MISSING",
-          `Python executable "${this.#pythonExecutable}" is unavailable. Configure CREATOR_PYTHON_EXECUTABLE with a Python 3.11+ environment containing agent-ui-creator-core dependencies.`,
+          `Python executable "${pythonRuntime.executable}" is unavailable. Run \`pnpm test:python:setup\` to create the managed packages/creator-python/.venv environment, or configure CREATOR_PYTHON_EXECUTABLE explicitly with a Python 3.11+ environment containing agent-ui-creator-core dependencies.`,
         );
       }
       throw new PythonCreatorRuntimeError(

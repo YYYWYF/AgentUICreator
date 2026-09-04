@@ -17,12 +17,17 @@ class ModelCallTrace:
     reasoningContentRetained: bool
     inputTokens: int | None
     outputTokens: int | None
-    rawProvider: dict[str, Any] | None = None
+    providerResponse: dict[str, Any] | None = None
+    langChainProviderMetadata: dict[str, Any] | None = None
+    langChainPseudoToolNames: tuple[str, ...] = ()
+    translationMismatch: str | None = None
+    toolCallOrigin: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         value = asdict(self)
         value["contentBlockTypes"] = list(self.contentBlockTypes)
         value["toolCallNames"] = list(self.toolCallNames)
+        value["langChainPseudoToolNames"] = list(self.langChainPseudoToolNames)
         return value
 
 

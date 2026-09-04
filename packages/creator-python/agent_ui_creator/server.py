@@ -73,16 +73,24 @@ async def _minimal_agent_result(settings: CreatorServerSettings, prompt: str):
     # Agent dependencies stay lazy so echo mode remains a transport-only path.
     from .minimal_agent import create_minimal_creator_agent
     from .model_factory import create_creator_chat_model
+    from .model_protocol.provider_trace import ProviderResponseTraceCollector
 
     model_settings = CreatorModelSettings.from_environment(
         config_root=settings.config_root
     )
-    model = create_creator_chat_model(model_settings)
+    provider_trace_collector = ProviderResponseTraceCollector(
+        enabled=model_settings.raw_trace
+    )
+    model = create_creator_chat_model(
+        model_settings,
+        provider_trace_collector=provider_trace_collector,
+    )
     agent = create_minimal_creator_agent(
         model=model,
         workspace=settings.project_root,
         mode="development",
         raw_trace=model_settings.raw_trace,
+        provider_trace_collector=provider_trace_collector,
     )
     return await agent.run(prompt)
 

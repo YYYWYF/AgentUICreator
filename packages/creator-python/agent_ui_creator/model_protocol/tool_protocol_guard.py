@@ -13,6 +13,7 @@ from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResp
 from langchain_core.messages import AIMessage, HumanMessage
 
 from .errors import AgentNoProgressError, ModelToolProtocolError
+from .provider_trace import ProviderResponseTrace, ProviderResponseTraceCollector
 from .trace import ModelCallTrace, ToolProtocolMetrics
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,16 @@ _TEXT_TOOL_PATTERNS = (
     re.compile(r"\b(?:read_file|edit_file|grep|glob|ls)\s*\(\s*[{\[]", re.IGNORECASE),
     re.compile(r"^[`\s]*(?:read_file|edit_file|grep|glob|ls)\s*\{", re.IGNORECASE | re.MULTILINE),
 )
+_MAX_TRACE_ITEMS = 64
+_MAX_TRACE_LABEL_LENGTH = 120
+
+
+def _trace_label(value: Any) -> str:
+    return str(value)[:_MAX_TRACE_LABEL_LENGTH]
+
+
+def _trace_keys(value: Mapping[Any, Any]) -> list[str]:
+    return sorted(_trace_label(key) for key in value)[:_MAX_TRACE_ITEMS]
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,8 +101,10 @@ def _content_block_types(message: AIMessage) -> tuple[str, ...]:
     if isinstance(message.content, str):
         return ("text",) if message.content else ()
     return tuple(
-        str(block.get("type") or "unknown") if isinstance(block, Mapping) else "text"
-        for block in message.content
+        _trace_label(block.get("type") or "unknown")
+        if isinstance(block, Mapping)
+        else "text"
+        for block in message.content[:_MAX_TRACE_ITEMS]
     )
 
 
@@ -105,6 +118,51 @@ def _has_reasoning(message: AIMessage) -> bool:
         isinstance(block, Mapping) and block.get("type") in {"reasoning", "thinking"}
         for block in message.content
     )
+
+
+def _pseudo_tool_names(message: AIMessage) -> tuple[str, ...]:
+    if not isinstance(message.content, list):
+        return ()
+    return tuple(
+        _trace_label(block.get("name"))
+        for block in message.content[:_MAX_TRACE_ITEMS]
+        if isinstance(block, Mapping)
+        and block.get("type") == "text"
+        and isinstance(block.get("name"), str)
+        and "args" in block
+    )
+
+
+def _translation_mismatch(
+    provider_response: ProviderResponseTrace | None,
+    langchain_tool_call_count: int,
+) -> str | None:
+    if provider_response is None:
+        return None
+    if provider_response.toolCallCount > langchain_tool_call_count:
+        return "provider_tool_calls_lost"
+    if (
+        provider_response.toolCallCount == 0
+        and not provider_response.pseudoToolIntent
+        and langchain_tool_call_count > 0
+    ):
+        return "langchain_created_unexpected_tool_call"
+    return None
+
+
+def _tool_call_origin(
+    provider_response: ProviderResponseTrace | None,
+    *,
+    langchain_tool_call_count: int,
+    langchain_pseudo_tool_names: tuple[str, ...],
+) -> str | None:
+    if provider_response is None:
+        return None
+    if provider_response.toolCallCount or provider_response.pseudoToolIntent:
+        return "provider"
+    if langchain_tool_call_count or langchain_pseudo_tool_names:
+        return "langchain"
+    return None
 
 
 def _reasoning_retained(messages: Sequence[Any]) -> bool:
@@ -252,11 +310,13 @@ class ToolProtocolMiddleware(AgentMiddleware):
         metrics: ToolProtocolMetrics | None = None,
         max_model_calls: int = 12,
         raw_trace: bool = False,
+        provider_trace_collector: ProviderResponseTraceCollector | None = None,
     ) -> None:
         self.metrics = metrics or ToolProtocolMetrics()
         self.guard = ToolProtocolGuard(self.metrics)
         self.max_model_calls = max_model_calls
         self.raw_trace = raw_trace
+        self.provider_trace_collector = provider_trace_collector
 
     def _before_call(self) -> None:
         if self.metrics.modelCalls >= self.max_model_calls:
@@ -271,6 +331,11 @@ class ToolProtocolMiddleware(AgentMiddleware):
         started_at: float,
     ) -> None:
         self.metrics.modelCalls += 1
+        provider_response = (
+            self.provider_trace_collector.pop_successful_completion()
+            if self.raw_trace and self.provider_trace_collector is not None
+            else None
+        )
         message = _ai_message(response)
         if message is None:
             return
@@ -284,32 +349,58 @@ class ToolProtocolMiddleware(AgentMiddleware):
         finish_reason = message.response_metadata.get("finish_reason")
         if finish_reason is None:
             finish_reason = message.response_metadata.get("stop_reason")
-        raw_provider = None
+        langchain_provider_metadata = None
         if self.raw_trace:
-            raw_provider = {
-                "responseMetadata": _bounded_json(message.response_metadata),
-                "additionalKwargs": _bounded_json(message.additional_kwargs),
+            langchain_provider_metadata = {
+                "responseMetadataKeys": _trace_keys(message.response_metadata),
+                "additionalKwargsKeys": _trace_keys(message.additional_kwargs),
                 "contentType": type(message.content).__name__,
                 "hasToolCalls": bool(message.tool_calls),
             }
-            logger.info(
+            logger.debug(
                 "creator_model_raw_trace %s",
-                _bounded_json({"sequence": self.metrics.modelCalls, **raw_provider}),
+                _bounded_json(
+                    {
+                        "sequence": self.metrics.modelCalls,
+                        "providerResponse": (
+                            None
+                            if provider_response is None
+                            else provider_response.to_dict()
+                        ),
+                        "langChainProviderMetadata": langchain_provider_metadata,
+                    }
+                ),
             )
+        langchain_pseudo_tool_names = _pseudo_tool_names(message)
         self.metrics.traces.append(
             ModelCallTrace(
                 sequence=self.metrics.modelCalls,
                 durationMs=round((time.monotonic() - started_at) * 1000),
                 finishReason=None if finish_reason is None else str(finish_reason),
                 contentBlockTypes=_content_block_types(message),
-                toolCallNames=tuple(str(call.get("name") or "") for call in message.tool_calls),
+                toolCallNames=tuple(
+                    _trace_label(call.get("name") or "")
+                    for call in message.tool_calls[:_MAX_TRACE_ITEMS]
+                ),
                 toolCallCount=len(message.tool_calls),
                 invalidToolCallCount=len(message.invalid_tool_calls),
                 hasReasoningContent=_has_reasoning(message),
                 reasoningContentRetained=_reasoning_retained(request.messages),
                 inputTokens=input_tokens if isinstance(input_tokens, int) else None,
                 outputTokens=output_tokens if isinstance(output_tokens, int) else None,
-                rawProvider=raw_provider,
+                providerResponse=(
+                    None if provider_response is None else provider_response.to_dict()
+                ),
+                langChainProviderMetadata=langchain_provider_metadata,
+                langChainPseudoToolNames=langchain_pseudo_tool_names,
+                translationMismatch=_translation_mismatch(
+                    provider_response, len(message.tool_calls)
+                ),
+                toolCallOrigin=_tool_call_origin(
+                    provider_response,
+                    langchain_tool_call_count=len(message.tool_calls),
+                    langchain_pseudo_tool_names=langchain_pseudo_tool_names,
+                ),
             )
         )
 

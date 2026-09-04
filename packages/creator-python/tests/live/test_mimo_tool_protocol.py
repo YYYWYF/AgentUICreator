@@ -8,6 +8,7 @@ import pytest
 
 from agent_ui_creator.minimal_agent import create_minimal_creator_agent
 from agent_ui_creator.model_factory import create_creator_chat_model
+from agent_ui_creator.model_protocol import ProviderResponseTraceCollector
 from agent_ui_creator.model_settings import CreatorModelSettings
 
 _RUNS = []
@@ -20,6 +21,12 @@ def conformance_report():
         return
     settings = CreatorModelSettings.from_environment()
     metrics = [run.metrics for run in _RUNS]
+    traces = [trace for item in metrics for trace in item.traces]
+    provider_responses = [
+        trace.providerResponse
+        for trace in traces
+        if trace.providerResponse is not None
+    ]
     report = {
         "model": settings.model_name,
         "base URL provider": settings.base_url,
@@ -39,6 +46,15 @@ def conformance_report():
         "valid tool calls": sum(item.validToolCalls for item in metrics),
         "invalid tool calls": sum(item.invalidToolCalls for item in metrics),
         "pseudo tool calls": sum(item.pseudoToolCallsDetected for item in metrics),
+        "pseudo tool calls originated from provider": sum(
+            response["pseudoToolCount"] for response in provider_responses
+        ),
+        "pseudo tool calls originated after provider parsing": sum(
+            len(trace.langChainPseudoToolNames)
+            for trace in traces
+            if trace.providerResponse is not None
+            and not trace.providerResponse["pseudoToolIntent"]
+        ),
         "pseudo recovered": sum(item.pseudoToolCallsRecovered for item in metrics),
         "repair attempts": sum(item.protocolRepairAttempts for item in metrics),
         "repair succeeded": sum(item.protocolRepairSuccesses for item in metrics),
@@ -50,6 +66,30 @@ def conformance_report():
         "failed runs": 30 - len(_RUNS),
         "input tokens": sum(item.inputTokens for item in metrics),
         "output tokens": sum(item.outputTokens for item in metrics),
+        "provider responses": len(provider_responses),
+        "provider structured tool calls": sum(
+            response["toolCallCount"] for response in provider_responses
+        ),
+        "provider pseudo tool intents": sum(
+            response["pseudoToolCount"] for response in provider_responses
+        ),
+        "provider -> LangChain mismatches": {
+            "provider_tool_calls_lost": sum(
+                trace.translationMismatch == "provider_tool_calls_lost"
+                for trace in traces
+            ),
+            "langchain_created_unexpected_tool_call": sum(
+                trace.translationMismatch
+                == "langchain_created_unexpected_tool_call"
+                for trace in traces
+            ),
+        },
+        "provider HTTP retries": sum(
+            max(response["attemptCount"] - 1, 0) for response in provider_responses
+        ),
+        "provider HTTP errors": sum(
+            response["httpErrorCount"] for response in provider_responses
+        ),
     }
     print("\nMiMo Tool Protocol Conformance Report")
     print(json.dumps(report, ensure_ascii=False, indent=2))
@@ -102,12 +142,17 @@ def test_mimo_multi_turn_tool_protocol(tmp_path, scenario, repeat):
     del repeat
     prompt, expected = _fixture(tmp_path, scenario)
     settings = CreatorModelSettings.from_environment()
+    provider_trace_collector = ProviderResponseTraceCollector(enabled=True)
     result = asyncio.run(
         create_minimal_creator_agent(
-            model=create_creator_chat_model(settings),
+            model=create_creator_chat_model(
+                settings,
+                provider_trace_collector=provider_trace_collector,
+            ),
             workspace=tmp_path,
             mode="conformance",
-            raw_trace=settings.raw_trace,
+            raw_trace=True,
+            provider_trace_collector=provider_trace_collector,
         ).run(prompt)
     )
     _RUNS.append(result)

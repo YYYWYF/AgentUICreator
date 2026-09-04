@@ -49,8 +49,13 @@ transport echo；可先安装 `packages/creator-python` 的锁定环境，然后
 
 ```env
 CREATOR_AGENT_RUNTIME=python
-CREATOR_PYTHON_EXECUTABLE=/absolute/path/to/python
 ```
+
+未显式配置 executable 时，sidecar 优先使用 `packages/creator-python/.venv`（Windows
+为 `.venv/Scripts/python.exe`，macOS/Linux 为 `.venv/bin/python`），不存在时才回退
+到系统 `python` / `python3`。`pythonExecutable` option、环境变量
+`CREATOR_PYTHON_EXECUTABLE` 和 host config 中的同名配置依次优先于 managed `.venv`；
+显式路径不可用时会直接报错，不会静默回退。
 
 Vite 插件会按项目惰性启动一个 Python 进程，透明代理 AG-UI 与运行时诊断流，
 并在开发服务器关闭时终止 sidecar，不支持静默回退到 TypeScript。
