@@ -1,0 +1,33 @@
+{
+  "diagnosticEnvelope": {
+    "threadId": "creator-thread",
+    "diagnostic": {
+      "schemaVersion": 1,
+      "kind": "plugin-render",
+      "status": "error",
+      "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "occurredAt": "2026-09-04T00:00:00.000Z",
+      "pluginId": "antd-x-message-list",
+      "instanceId": "messages-main",
+      "slotId": "conversation.messages",
+      "slotPath": "workspace.conversation/conversation.messages",
+      "errorMessage": "Golden render failure"
+    }
+  },
+  "compositionEnvelope": {
+    "threadId": "creator-thread",
+    "composition": {
+      "schemaVersion": 1,
+      "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "observedAt": "2026-09-04T00:00:00.000Z",
+      "instances": [
+        {
+          "instanceId": "messages-main",
+          "pluginId": "antd-x-message-list",
+          "slotId": "conversation.messages",
+          "slotPath": "workspace.conversation/conversation.messages"
+        }
+      ]
+    }
+  }
+}

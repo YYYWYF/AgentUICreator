@@ -1,9 +1,23 @@
 {
+  "handshake": {
+    "type": "creator_ready",
+    "port": 43123,
+    "protocolVersion": "1"
+  },
+  "health": {
+    "status": "ok",
+    "protocolVersion": "1",
+    "phase": "sidecar-skeleton"
+  },
   "request": {
     "threadId": "creator-thread",
     "runId": "creator-run",
     "messages": [
-      { "id": "user-message", "role": "user", "content": "echo" }
+      {
+        "id": "user-message",
+        "role": "user",
+        "content": "hello-python-sidecar-测试"
+      }
     ],
     "tools": [],
     "context": [],
@@ -15,5 +29,31 @@
     "TEXT_MESSAGE_CONTENT",
     "TEXT_MESSAGE_END",
     "RUN_FINISHED"
+  ],
+  "events": [
+    {
+      "type": "RUN_STARTED",
+      "threadId": "creator-thread",
+      "runId": "creator-run"
+    },
+    {
+      "type": "TEXT_MESSAGE_START",
+      "messageId": "assistant-message",
+      "role": "assistant"
+    },
+    {
+      "type": "TEXT_MESSAGE_CONTENT",
+      "messageId": "assistant-message",
+      "delta": "hello-python-sidecar-测试"
+    },
+    {
+      "type": "TEXT_MESSAGE_END",
+      "messageId": "assistant-message"
+    },
+    {
+      "type": "RUN_FINISHED",
+      "threadId": "creator-thread",
+      "runId": "creator-run"
+    }
   ]
 }

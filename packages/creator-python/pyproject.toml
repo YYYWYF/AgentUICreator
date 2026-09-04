@@ -16,7 +16,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest==9.0.2"]
+test = [
+  "jsonschema==4.25.1",
+  "pytest==9.0.2",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["agent_ui_creator"]

@@ -11,7 +11,11 @@
     "dev:app": "pnpm --filter @agent-ui/example-agent-frontend dev",
     "build": "pnpm --filter @agent-ui/creator build && pnpm --filter @agent-ui/example-agent-frontend build",
     "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm -r --if-present test",
+    "test": "pnpm test:python && pnpm test:ts",
+    "test:ts": "pnpm -r --if-present test",
+    "test:python:setup": "node scripts/run-python-tests.mjs --setup-only",
+    "test:python": "node scripts/run-python-tests.mjs",
+    "test:python-sidecar": "pnpm test:python:setup && pnpm --filter @agent-ui/creator test:python-sidecar",
     "test:watch": "pnpm --filter @agent-ui/example-agent-frontend test:watch",
     "creator": "pnpm --filter @agent-ui/creator build && node packages/creator/dist/cli.js --project examples/agent-frontend --config-root .",
     "verify:creator:live": "pnpm --filter @agent-ui/creator verify:live"

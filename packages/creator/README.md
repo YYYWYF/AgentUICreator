@@ -55,3 +55,7 @@ CREATOR_PYTHON_EXECUTABLE=/absolute/path/to/python
 Vite 插件会按项目惰性启动一个 Python 进程，透明代理 AG-UI 与运行时诊断流，
 并在开发服务器关闭时终止 sidecar。此开关目前只提供 Phase 1 transport echo，
 不会启动 Python Agent；不支持静默回退到 TypeScript。
+
+仓库根目录的 `pnpm test` 会先运行 Python unit/contract tests，再运行
+TypeScript tests（其中包含真实 sidecar 进程集成测试）。可以使用
+`pnpm test:python-sidecar` 单独运行跨语言链路验收。

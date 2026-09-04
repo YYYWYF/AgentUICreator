@@ -17,3 +17,7 @@ AG-UI 的完整消息与事件定义仍由 `@ag-ui/core` / `ag-ui-protocol` 所�
 Creator transport 使用的 envelope 和 Phase 1 echo lifecycle，不复制完整 AG-UI
 规范。AppUIModel 的完整业务不变量仍由目标项目 Zod contract 和
 `ui-project-control.ts` 唯一实现。
+
+`fixtures/` 是 TypeScript 与 Python 共同消费的 golden source。两侧测试都会对
+这些值执行 Draft 2020-12 JSON Schema validation；fixture 与 schema 任一侧漂移
+都必须使统一测试门禁失败。

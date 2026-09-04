@@ -144,6 +144,10 @@ export class PythonCreatorProcessManager {
     this.#log = log;
   }
 
+  get processId(): number | undefined {
+    return this.#child?.pid;
+  }
+
   async ensureStarted(): Promise<PythonCreatorEndpoint> {
     if (this.#disposed) {
       throw new PythonCreatorRuntimeError(
@@ -170,21 +174,10 @@ export class PythonCreatorProcessManager {
     const child = this.#child;
     this.#child = undefined;
     this.#endpoint = undefined;
-    if (child === undefined || child.exitCode !== null) {
+    if (child === undefined) {
       return;
     }
-
-    child.kill("SIGTERM");
-    const stopped = await new Promise<boolean>((resolve) => {
-      const timeout = setTimeout(() => resolve(false), this.#stopTimeoutMs);
-      child.once("exit", () => {
-        clearTimeout(timeout);
-        resolve(true);
-      });
-    });
-    if (!stopped && child.exitCode === null) {
-      child.kill("SIGKILL");
-    }
+    await this.#terminateChild(child);
   }
 
   async #start(): Promise<PythonCreatorEndpoint> {
@@ -217,6 +210,8 @@ export class PythonCreatorProcessManager {
       "0",
       "--auth-token",
       authToken,
+      "--parent-pid",
+      String(process.pid),
       "--skills-root",
       this.#skillsRoot,
       ...(this.#configRoot === undefined
@@ -288,9 +283,11 @@ export class PythonCreatorProcessManager {
       this.#endpoint = endpoint;
       return endpoint;
     } catch (error) {
-      if (child.exitCode === null) {
-        child.kill("SIGTERM");
+      if (this.#child === child) {
+        this.#child = undefined;
+        this.#endpoint = undefined;
       }
+      await this.#terminateChild(child);
       if (error instanceof PythonCreatorRuntimeError) {
         throw error;
       }
@@ -306,6 +303,45 @@ export class PythonCreatorProcessManager {
         error instanceof Error ? error.message : String(error),
       );
     }
+  }
+
+  async #terminateChild(child: ChildProcess): Promise<void> {
+    if (
+      child.pid === undefined ||
+      child.exitCode !== null ||
+      child.signalCode !== null
+    ) {
+      return;
+    }
+    child.kill("SIGTERM");
+    if (await this.#waitForChildExit(child, this.#stopTimeoutMs)) {
+      return;
+    }
+    if (child.exitCode === null && child.signalCode === null) {
+      child.kill("SIGKILL");
+      await this.#waitForChildExit(child, this.#stopTimeoutMs);
+    }
+  }
+
+  #waitForChildExit(child: ChildProcess, timeoutMs: number): Promise<boolean> {
+    if (child.exitCode !== null || child.signalCode !== null) {
+      return Promise.resolve(true);
+    }
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        cleanup();
+        resolve(false);
+      }, timeoutMs);
+      const cleanup = (): void => {
+        clearTimeout(timeout);
+        child.removeListener("exit", onExit);
+      };
+      const onExit = (): void => {
+        cleanup();
+        resolve(true);
+      };
+      child.once("exit", onExit);
+    });
   }
 
   #waitForHandshake(

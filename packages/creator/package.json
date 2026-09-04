@@ -39,6 +39,7 @@
     "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:python-sidecar": "vitest run tests/python-creator-sidecar.integration.test.ts",
     "cli": "node dist/cli.js",
     "verify:live": "tsx scripts/verify-creator-live.ts"
   },
@@ -64,6 +65,8 @@
   "devDependencies": {
     "@types/node": "^20.19.43",
     "@types/react": "^19.2.18",
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1",
     "react": "^19.2.8",
     "tsx": "4.20.6",
     "typescript": "^7.0.2",
