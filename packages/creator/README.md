@@ -70,7 +70,14 @@ CREATOR_MODEL_API_KEY=your-key
 ```
 
 该模式只验证受限的 read/edit/grep 工具协议，不包含 AppUIModel、Project Control、
-Fast Path、Validation 或 Completion 业务能力。
+Fast Path、Validation 或 Completion 业务能力。Phase 3A 的实验性只读领域模式改用：
+
+```env
+CREATOR_PYTHON_AGENT_MODE=domain-read
+```
+
+Domain Read 模式复用相同模型栈，并通过正式 ProjectControl v2 入口开放六个只读领域工具；
+不会开放 `mutate_app_ui_model`，默认仍保持 transport echo。
 
 仓库根目录的 `pnpm test` 会先运行 Python unit/contract tests，再运行
 TypeScript tests（其中包含真实 sidecar 进程集成测试）。可以使用

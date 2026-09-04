@@ -1,4 +1,4 @@
-# Phase 2 runtime and test lock. Re-run MiMo conformance after changing Agent dependencies.
+# Phase 3A runtime and test lock. Re-run MiMo conformance after changing Agent dependencies.
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anthropic==1.2.0

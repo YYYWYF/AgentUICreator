@@ -25,10 +25,15 @@ Re-issue only the intended action using the provided structured tool interface.
 
 Do not explain the error in prose."""
 
+_TOOL_INTENT_NAMES = (
+    "read_file|edit_file|grep|glob|ls|inspect_ui_project|inspect_app_ui_model|"
+    "list_ui_plugins|inspect_ui_slots|inspect_ui_plugin|"
+    "inspect_ui_plugin_source_references"
+)
 _TEXT_TOOL_PATTERNS = (
     re.compile(r"<function_call\b", re.IGNORECASE),
-    re.compile(r"\b(?:read_file|edit_file|grep|glob|ls)\s*\(\s*[{\[]", re.IGNORECASE),
-    re.compile(r"^[`\s]*(?:read_file|edit_file|grep|glob|ls)\s*\{", re.IGNORECASE | re.MULTILINE),
+    re.compile(rf"\b(?:{_TOOL_INTENT_NAMES})\s*\(\s*[{{\[]", re.IGNORECASE),
+    re.compile(rf"^[`\s]*(?:{_TOOL_INTENT_NAMES})\s*\{{", re.IGNORECASE | re.MULTILINE),
 )
 _MAX_TRACE_ITEMS = 64
 _MAX_TRACE_LABEL_LENGTH = 120

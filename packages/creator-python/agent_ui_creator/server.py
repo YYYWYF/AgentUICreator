@@ -95,13 +95,38 @@ async def _minimal_agent_result(settings: CreatorServerSettings, prompt: str):
     return await agent.run(prompt)
 
 
+async def _domain_read_agent_result(settings: CreatorServerSettings, prompt: str):
+    from .domain_agent import create_domain_read_creator_agent
+    from .model_factory import create_creator_chat_model
+    from .model_protocol.provider_trace import ProviderResponseTraceCollector
+
+    model_settings = CreatorModelSettings.from_environment(
+        config_root=settings.config_root
+    )
+    provider_trace_collector = ProviderResponseTraceCollector(
+        enabled=model_settings.raw_trace
+    )
+    model = create_creator_chat_model(
+        model_settings,
+        provider_trace_collector=provider_trace_collector,
+    )
+    agent = create_domain_read_creator_agent(
+        model=model,
+        workspace=settings.project_root,
+        mode="development",
+        raw_trace=model_settings.raw_trace,
+        provider_trace_collector=provider_trace_collector,
+    )
+    return await agent.run(prompt)
+
+
 def _error_code(error: Exception) -> str:
     code = getattr(error, "code", None)
     if isinstance(code, str) and code:
         return code
     if isinstance(error, CreatorModelConfigurationError):
         return "MODEL_CONFIGURATION_ERROR"
-    return "CREATOR_MINIMAL_AGENT_ERROR"
+    return "CREATOR_PYTHON_AGENT_ERROR"
 
 
 def create_app(settings: CreatorServerSettings) -> FastAPI:
@@ -132,7 +157,11 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
             "status": "ok",
             "protocolVersion": CREATOR_PYTHON_PROTOCOL_VERSION,
             "projectRoot": str(settings.project_root),
-            "phase": "minimal-agent" if agent_mode == "minimal" else "sidecar-skeleton",
+            "phase": (
+                "domain-read-agent"
+                if agent_mode == "domain-read"
+                else "minimal-agent" if agent_mode == "minimal" else "sidecar-skeleton"
+            ),
             "agentMode": agent_mode,
         }
 
@@ -165,10 +194,12 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                         "runId": run_input.runId,
                     }
                 )
-                if agent_mode == "minimal":
+                if agent_mode in {"minimal", "domain-read"}:
                     try:
-                        result = await _minimal_agent_result(
-                            settings, _echo_text(run_input)
+                        result = await (
+                            _domain_read_agent_result(settings, _echo_text(run_input))
+                            if agent_mode == "domain-read"
+                            else _minimal_agent_result(settings, _echo_text(run_input))
                         )
                     except Exception as error:
                         yield _sse(
@@ -223,10 +254,22 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             }
                         )
                     response_text = result.text
-                    run_result = {
-                        "phase": "minimal-agent",
-                        "toolProtocol": result.metrics.to_dict(),
-                    }
+                    if agent_mode == "domain-read":
+                        run_result = {
+                            "phase": "domain-read-agent",
+                            "toolProtocol": result.metrics.to_dict(),
+                            "projectControl": {
+                                **result.project_control.to_dict(),
+                                "repeatedProjectControlReads": (
+                                    result.repeated_project_control_reads
+                                ),
+                            },
+                        }
+                    else:
+                        run_result = {
+                            "phase": "minimal-agent",
+                            "toolProtocol": result.metrics.to_dict(),
+                        }
                 else:
                     response_text = _echo_text(run_input)
                     run_result = {

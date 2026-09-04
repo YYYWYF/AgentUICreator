@@ -193,6 +193,77 @@ async function createMockChatCompletionsServer(): Promise<string> {
   return `http://127.0.0.1:${address.port}/v1`;
 }
 
+async function createDomainReadMockChatCompletionsServer(): Promise<string> {
+  let call = 0;
+  const server = createServer((request, response) => {
+    if (request.method !== "POST" || request.url !== "/v1/chat/completions") {
+      response.statusCode = 404;
+      response.end();
+      return;
+    }
+    request.resume();
+    request.once("end", () => {
+      call += 1;
+      const toolCalls = [
+        {
+          id: "call-inspect-project",
+          type: "function",
+          function: { name: "inspect_ui_project", arguments: "{}" },
+        },
+        {
+          id: "call-inspect-plugin",
+          type: "function",
+          function: {
+            name: "inspect_ui_plugin",
+            arguments: JSON.stringify({ pluginId: "workspace-inspector" }),
+          },
+        },
+        {
+          id: "call-read-manifest",
+          type: "function",
+          function: {
+            name: "read_file",
+            arguments: JSON.stringify({
+              file_path: "/plugins/workspace-inspector/manifest.json",
+            }),
+          },
+        },
+      ];
+      const selected = toolCalls[call - 1];
+      const body = JSON.stringify({
+        id: `domain-completion-${call}`,
+        object: "chat.completion",
+        created: 1,
+        model: "mimo-v2.5-pro",
+        choices: [
+          {
+            index: 0,
+            message:
+              selected === undefined
+                ? { role: "assistant", content: "Inspected authoritative plugin state." }
+                : { role: "assistant", content: null, tool_calls: [selected] },
+            finish_reason: selected === undefined ? "stop" : "tool_calls",
+          },
+        ],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      });
+      response.statusCode = 200;
+      response.setHeader("Content-Type", "application/json");
+      response.end(body);
+    });
+  });
+  servers.push(server);
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      server.removeListener("error", reject);
+      resolve();
+    });
+  });
+  const address = server.address() as AddressInfo;
+  return `http://127.0.0.1:${address.port}/v1`;
+}
+
 async function readSseEvents(response: Response): Promise<{
   events: SseEvent[];
   chunksRead: number;
@@ -450,6 +521,57 @@ afterEach(async () => {
             toolCallOrigin: "provider",
           }),
         ]),
+      },
+    });
+  }, 60_000);
+
+  it("runs the domain-read agent through a mock provider and real target control entry", async () => {
+    const modelBaseUrl = await createDomainReadMockChatCompletionsServer();
+    const processManager = manager({
+      environment: {
+        ...process.env,
+        CREATOR_PYTHON_AGENT_MODE: "domain-read",
+        CREATOR_MODEL_NAME: "mimo-v2.5-pro",
+        CREATOR_MODEL_BASE_URL: modelBaseUrl,
+        CREATOR_MODEL_API_KEY: "test-api-key",
+      },
+    });
+    const proxyRoot = await createProxyServer(processManager);
+    const response = await fetch(`${proxyRoot}/creator`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        threadId: "domain-thread",
+        runId: "domain-run",
+        messages: [
+          {
+            role: "user",
+            content: "Inspect the workspace-inspector plugin and its manifest.",
+          },
+        ],
+      }),
+    });
+    const { events } = await readSseEvents(response);
+    const toolStarts = events
+      .filter((event) => event.type === "TOOL_CALL_START")
+      .map((event) => event.toolCallName);
+
+    expect(toolStarts).toEqual([
+      "inspect_ui_project",
+      "inspect_ui_plugin",
+      "read_file",
+    ]);
+    expect(toolStarts).not.toContain("mutate_app_ui_model");
+    expect(events.at(-1)?.result).toMatchObject({
+      phase: "domain-read-agent",
+      toolProtocol: { modelCalls: 4, toolCalls: 3, validToolCalls: 3 },
+      projectControl: {
+        requests: 2,
+        byOperation: {
+          inspect_ui_project: 1,
+          inspect_ui_plugin: 1,
+        },
+        failures: 0,
       },
     });
   }, 60_000);

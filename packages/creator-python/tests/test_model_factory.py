@@ -3,6 +3,7 @@ from langchain_openai import ChatOpenAI
 import agent_ui_creator.minimal_agent.agent as agent_module
 from agent_ui_creator.model_factory import create_creator_chat_model
 from agent_ui_creator.model_settings import CreatorModelSettings
+from agent_ui_creator.model_settings import load_python_agent_mode
 
 
 def test_model_factory_owns_explicit_chat_completions_configuration():
@@ -65,3 +66,10 @@ def test_deep_agent_receives_the_preinitialized_model_instance(tmp_path, monkeyp
 
     assert captured["model"] is model
     assert not isinstance(captured["model"], str)
+
+
+def test_python_agent_mode_accepts_domain_read_without_changing_default():
+    assert load_python_agent_mode(environment={}) == "echo"
+    assert load_python_agent_mode(
+        environment={"CREATOR_PYTHON_AGENT_MODE": "domain-read"}
+    ) == "domain-read"

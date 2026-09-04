@@ -2,8 +2,10 @@
 
 Agent UI Creator 的 Python 控制面。Phase 2 在经过鉴权的 FastAPI sidecar、
 AG-UI stream 和 runtime diagnostics 基础上，增加独立的 Minimal Agent，用于验证
-MiMo 在 `langchain-openai + deepagents` 下的连续结构化工具调用。Project Control、
-Fast Path、Snapshot、Validation 和 Completion 尚未迁移。
+MiMo 在 `langchain-openai + deepagents` 下的连续结构化工具调用。Phase 3A 额外提供
+实验性的 Domain Read Agent，通过正式 ProjectControl v2 协议读取 AppUIModel、Plugin、
+Slot 和 Registry。ProjectControl mutation、Fast Path、Snapshot、Validation 和
+Completion 尚未迁移。
 
 此包是开发时依赖，不进入生成的 Agent Frontend。
 
@@ -60,6 +62,24 @@ CREATOR_MODEL_TIMEOUT_SECONDS=120
 CREATOR_MODEL_MAX_RETRIES=1
 ```
 
+只读领域模式使用相同模型配置，并设置：
+
+```env
+CREATOR_PYTHON_AGENT_MODE=domain-read
+```
+
+该模式在 Minimal Agent 的 `ls`、`read_file`、`glob`、`grep`、`edit_file` 之外，
+新增 `inspect_ui_project`、`inspect_app_ui_model`、`list_ui_plugins`、
+`inspect_ui_slots`、`inspect_ui_plugin` 和
+`inspect_ui_plugin_source_references`。领域事实只通过目标工程固定的
+`scripts/ui-project-control.ts` 获取；不会自动向每轮模型调用注入全量 snapshot。
+
+`ProjectControlClient` 固定从目标工程的 `node_modules/.bin/tsx`（Windows 为
+`tsx.cmd`）启动该入口，`cwd` 为目标工程，环境固定 `CI=1`、`FORCE_COLOR=0`，
+超时 15 秒，stdout/stderr 合计上限 1,000,000 bytes。请求和响应均通过
+`contracts/creator/project-control.schema.json` 验证，并严格要求 schemaVersion 2。
+Client 的公开 API 只有上述六个 read operation；没有 `mutate_app_ui_model`。
+
 `CREATOR_*` 的模型配置优先于兼容的 `MODEL_API_NAME` / `MODEL_NAME`、
 `MODEL_BASE_URL`、`MODEL_API_KEY` 和 `OPENAI_API_KEY`。模型请求固定使用
 OpenAI-compatible Chat Completions、`streaming=false`，并把预初始化的
@@ -70,6 +90,11 @@ Minimal Agent 每轮只暴露 `ls`、`read_file`、`glob`、`grep`、`edit_file`
 读取项目内非敏感文件，但拒绝 `.env*`、`.git`、`node_modules`、`dist`、`build`、
 `coverage` 和 `cache`；写入只允许 `plugins/**`，并额外拒绝
 `plugins/registry.generated.ts` 和 `app-ui/app-ui.json`。
+
+Domain Read Agent 复用相同 PathPolicy，因此仍不能直接写
+`plugins/registry.generated.ts` 或 `app-ui/app-ui.json`。普通 Plugin 源码修改仍可通过
+`edit_file` 完成；涉及注册、挂载、移动或删除实例的 composition mutation 会被明确拒绝，
+等待 Phase 3B 迁移 Activity、transaction/undo 和 mutation ownership 后再开放。
 
 每次 `RUN_FINISHED.result.toolProtocol` 包含模型调用、有效/无效工具调用、pseudo
 call 恢复、单次 protocol repair、参数解析、缺失 ID、token 和有界 model trace

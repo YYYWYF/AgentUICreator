@@ -138,3 +138,48 @@ def test_minimal_mode_propagates_protocol_failure_as_run_error(tmp_path, monkeyp
     assert '"type":"RUN_ERROR"' in response.text
     assert '"code":"MODEL_TOOL_PROTOCOL_ERROR"' in response.text
     assert '"type":"RUN_FINISHED"' not in response.text
+
+
+def test_domain_read_mode_streams_project_control_metrics(tmp_path, monkeypatch):
+    monkeypatch.setenv("CREATOR_PYTHON_AGENT_MODE", "domain-read")
+    settings = CreatorServerSettings(
+        project_root=tmp_path,
+        skills_root=tmp_path,
+        auth_token="x" * 32,
+    )
+    metrics = ToolProtocolMetrics(modelCalls=2, toolCalls=1, validToolCalls=1)
+
+    async def fake_result(_settings, _prompt):
+        return SimpleNamespace(
+            text="Inspected.",
+            metrics=metrics,
+            project_control=SimpleNamespace(
+                to_dict=lambda: {
+                    "requests": 1,
+                    "byOperation": {"inspect_ui_project": 1},
+                    "failures": 0,
+                    "durationMs": 12,
+                }
+            ),
+            repeated_project_control_reads=0,
+            activities=(),
+        )
+
+    monkeypatch.setattr(
+        "agent_ui_creator.server._domain_read_agent_result", fake_result
+    )
+    client = TestClient(
+        create_app(settings), headers={"Authorization": f"Bearer {settings.auth_token}"}
+    )
+    response = client.post(
+        "/creator",
+        json={
+            "threadId": "thread-1",
+            "runId": "run-1",
+            "messages": [{"role": "user", "content": "inspect"}],
+        },
+    )
+
+    assert '"phase":"domain-read-agent"' in response.text
+    assert '"inspect_ui_project":1' in response.text
+    assert '"repeatedProjectControlReads":0' in response.text
