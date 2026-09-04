@@ -27,6 +27,10 @@ import type {
 
 const MAX_FAST_PATH_INSTANCES = 80;
 const MAX_FAST_PATH_SLOTS = 40;
+const COMPOSITION_ACTION_PATTERN =
+  /(?:\b(?:remove|delete|enable|disable|hide|show|mount|unmount|move)\b|移除|删除|删掉|去掉|启用|禁用|隐藏|显示|挂载|卸载|移动|移到|挪到)/iu;
+const SOURCE_CHANGE_PATTERN =
+  /(?:\b(?:tsx?|jsx?|css|source|code|manifest|props?|component|function|file|style|layout)\b|源码|代码|样式|颜色|字体|组件|函数|逻辑|文件|新建|创建|布局)/iu;
 
 interface CompositionPlanner {
   plan(
@@ -59,6 +63,15 @@ interface MutableMetrics {
 interface MutationSuccess {
   beforeHash: string;
   afterHash: string;
+}
+
+export function isCompositionFastPathCandidate(request: string): boolean {
+  const normalized = request.normalize("NFKC").trim();
+  return (
+    normalized !== "" &&
+    COMPOSITION_ACTION_PATTERN.test(normalized) &&
+    !SOURCE_CHANGE_PATTERN.test(normalized)
+  );
 }
 
 function record(value: unknown): Record<string, unknown> | undefined {
@@ -238,6 +251,10 @@ export class CompositionFastPath implements CompositionFastPathHandler {
     await this.options.runLogger?.record("fast_path_attempted", {
       fastPath: { attempted: true },
     });
+
+    if (!isCompositionFastPathCandidate(request)) {
+      return this.fallback("not_composition_request", startedAt, metrics);
+    }
 
     if (this.options.runtimeDiagnostics === undefined) {
       return this.fallback(

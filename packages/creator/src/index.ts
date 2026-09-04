@@ -45,6 +45,7 @@ export {
   CompositionFastPath,
   createCompositionSummary,
   formatCompositionFastPathDiagnostic,
+  isCompositionFastPathCandidate,
   type CompositionFastPathOptions,
 } from "./composition-fast-path/CompositionFastPath.js";
 export {

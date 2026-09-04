@@ -55,9 +55,6 @@ function resolveTarget(
   | { ok: true; instance: CompositionSummaryInstance }
   | { ok: false; reason: CompositionFastPathFallbackReason } {
   const targetForms = normalizedTargetForms(target);
-  if (targetForms.has("activity") || targetForms.has("活动")) {
-    return { ok: false, reason: "requires_source_change" };
-  }
   const matches = composition.instances.filter((instance) =>
     [...targetForms].some((form) => targetAliases(instance).has(form)),
   );

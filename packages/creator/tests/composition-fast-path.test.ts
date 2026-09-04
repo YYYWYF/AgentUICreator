@@ -13,6 +13,7 @@ import {
   CreatorAgUiAdapter,
   compileCompositionOperations,
   createCreatorAgent,
+  isCompositionFastPathCandidate,
   resolveCompositionTargets,
   type CompositionFastPathPlan,
   type CompositionSummary,
@@ -302,11 +303,36 @@ describe("Composition Fast Path deterministic resolution and compilation", () =>
     )).toEqual({ ok: false, reason: "ambiguous_slot" });
   });
 
-  it("keeps visual Activity removal on the source-changing fallback path", () => {
-    expect(resolveCompositionTargets(
+  it("treats Activity like any other uniquely resolvable instance", () => {
+    const resolved = resolveCompositionTargets(
       { mode: "composition", intents: [{ action: "remove", target: "Activity" }] },
-      composition(),
-    )).toEqual({ ok: false, reason: "requires_source_change" });
+      composition([
+        {
+          instanceId: "activity-main",
+          pluginId: "activity",
+          displayName: "Activity",
+          semanticNames: ["Activity"],
+          enabled: true,
+          mountedSlotId: "workspace.main",
+        },
+      ]),
+    );
+    expect(resolved).toMatchObject({
+      ok: true,
+      intents: [{ instance: { instanceId: "activity-main" } }],
+    });
+  });
+});
+
+describe("Composition Fast Path candidate gate", () => {
+  it("admits supported instance-level composition wording", () => {
+    expect(isCompositionFastPathCandidate("把 Plugin A 移到 inspector.tool")).toBe(true);
+    expect(isCompositionFastPathCandidate("disable plugin A")).toBe(true);
+  });
+
+  it("rejects obvious coding work before the Planner", () => {
+    expect(isCompositionFastPathCandidate("把 Activity 标签的字体改成红色")).toBe(false);
+    expect(isCompositionFastPathCandidate("删除 CSS 里的旧样式代码")).toBe(false);
   });
 });
 
@@ -376,10 +402,15 @@ describe("Composition Fast Path routing", () => {
     });
   });
 
-  it("honors a source-change Planner fallback without mutation", async () => {
+  it("skips the Planner for an obvious source change", async () => {
     const harness = testHarness({ mode: "fallback", reason: "requires_source_change" });
     const result = await harness.fastPath.tryHandle("把 Activity 标签的字体改成红色");
-    expect(result).toMatchObject({ handled: false, reason: "requires_source_change" });
+    expect(result).toMatchObject({
+      handled: false,
+      reason: "not_composition_request",
+      metrics: { planner: { modelCalls: 0 } },
+    });
+    expect(harness.counts().plannerCalls).toBe(0);
     expect(harness.counts().mutationCount).toBe(0);
   });
 });
