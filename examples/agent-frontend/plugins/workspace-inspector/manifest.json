@@ -1,0 +1,14 @@
+{
+  "id": "workspace-inspector",
+  "name": "Workspace Inspector",
+  "description": "组合右侧辅助工作区的 Activity、Tool 与 Resources 上下文，只管理本地 Tab 状态。",
+  "version": "1.0.0",
+  "capabilities": ["inspector-container"],
+  "slots": {
+    "children": [
+      "inspector.activity",
+      "inspector.tool",
+      "inspector.resources"
+    ]
+  }
+}

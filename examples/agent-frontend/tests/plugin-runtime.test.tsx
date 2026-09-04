@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import { Tabs } from "antd";
 import {
   act,
   create,
@@ -33,6 +34,7 @@ import {
   antdXToolDetailPlugin,
   antdXWelcomePlugin,
   conversationSurfacePlugin,
+  workspaceInspectorPlugin,
 } from "../plugins/antd-x-template-library";
 import {
   createPluginRegistry,
@@ -68,6 +70,7 @@ const defaultConversationMessages: AGUIMessage[] = initialPreviewMessages.map(
 
 interface MountedPluginRuntime {
   renderer: ReactTestRenderer;
+  serviceRuntime: PluginServiceRuntime;
   dispose(): Promise<void>;
 }
 
@@ -103,6 +106,7 @@ async function mountPluginRuntime(
 
   return {
     renderer,
+    serviceRuntime,
     dispose: async () => {
       await act(async () => renderer?.unmount());
       serviceRuntime.dispose();
@@ -208,6 +212,9 @@ describe("StaticPluginRegistry", () => {
     expect(registry.get("conversation-surface")).toBe(
       conversationSurfacePlugin,
     );
+    expect(registry.get("workspace-inspector")).toBe(
+      workspaceInspectorPlugin,
+    );
     expect(registry.list()).toEqual([...pluginDefinitions]);
   });
 
@@ -255,6 +262,9 @@ describe("UIPluginRuntime", () => {
     const surfacePosition = html.indexOf(
       'data-ui-plugin="conversation-surface"',
     );
+    const inspectorPosition = html.indexOf(
+      'data-ui-plugin="workspace-inspector"',
+    );
     const messagesPosition = html.indexOf(
       'data-ui-plugin="antd-x-message-list"',
     );
@@ -274,15 +284,103 @@ describe("UIPluginRuntime", () => {
     expect(surfacePosition).toBeGreaterThan(newConversationPosition);
     expect(messagesPosition).toBeGreaterThan(surfacePosition);
     expect(senderPosition).toBeGreaterThan(messagesPosition);
-    expect(timelinePosition).toBeGreaterThan(senderPosition);
-    expect(toolDetailPosition).toBeGreaterThan(timelinePosition);
-    expect(resourcesPosition).toBeGreaterThan(toolDetailPosition);
+    expect(inspectorPosition).toBeGreaterThan(senderPosition);
+    expect(timelinePosition).toBeGreaterThan(inspectorPosition);
+    expect(toolDetailPosition).toBe(-1);
+    expect(resourcesPosition).toBe(-1);
     expect(welcomePosition).toBe(-1);
     expect(promptsPosition).toBe(-1);
     expect(html).toContain("新建会话");
     expect(html).toContain('data-ui-plugin="antd-x-conversations"');
-    expect(html).toContain("Files");
+    expect(html).toContain("Activity");
+    expect(html).toContain("Tool");
+    expect(html).toContain("Resources");
     expect(html).toContain("给智能体发送消息，输入 / 唤出快捷指令");
+  });
+
+  it("renders only the active Inspector child while keeping every contribution active", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const mounted = await mountPluginRuntime({
+      actions: runtimeActions,
+      messages: defaultConversationMessages,
+      model,
+      registry: createPluginRegistry(antdXTemplatePlugins),
+      run: idleRun,
+      state: previewAgentState,
+    });
+
+    const renderedPluginIds = () =>
+      mounted.renderer.root
+        .findAll(
+          (node) =>
+            typeof node.props["data-ui-plugin"] === "string",
+        )
+        .map((node) => node.props["data-ui-plugin"] as string);
+    const contributionInstanceIds = (slotId: string) =>
+      mounted.serviceRuntime.slots
+        .getContributions(slotId)
+        .map((contribution) => contribution.instanceId);
+    const inspectorActivation = mounted.serviceRuntime.getActivation(
+      "agent-inspector-main",
+    );
+    const leafActivations = [
+      "agent-run-timeline-main",
+      "agent-tool-detail-main",
+      "agent-resources-main",
+    ].map((instanceId) => mounted.serviceRuntime.getActivation(instanceId));
+
+    try {
+      expect(renderedPluginIds()).toContain("workspace-inspector");
+      expect(renderedPluginIds()).toContain("antd-x-run-timeline");
+      expect(renderedPluginIds()).not.toContain("antd-x-tool-detail");
+      expect(renderedPluginIds()).not.toContain("antd-x-resources");
+      expect(contributionInstanceIds("inspector.activity")).toEqual([
+        "agent-run-timeline-main",
+      ]);
+      expect(contributionInstanceIds("inspector.tool")).toEqual([
+        "agent-tool-detail-main",
+      ]);
+      expect(contributionInstanceIds("inspector.resources")).toEqual([
+        "agent-resources-main",
+      ]);
+
+      const inspector = mounted.renderer.root.findByProps({
+        "data-ui-plugin": "workspace-inspector",
+      });
+      const tabs = inspector.findByType(Tabs);
+      await act(async () => tabs.props.onChange("tool"));
+
+      expect(renderedPluginIds()).not.toContain("antd-x-run-timeline");
+      expect(renderedPluginIds()).toContain("antd-x-tool-detail");
+      expect(renderedPluginIds()).not.toContain("antd-x-resources");
+
+      await act(async () => tabs.props.onChange("resources"));
+
+      expect(renderedPluginIds()).not.toContain("antd-x-run-timeline");
+      expect(renderedPluginIds()).not.toContain("antd-x-tool-detail");
+      expect(renderedPluginIds()).toContain("antd-x-resources");
+      expect(
+        mounted.serviceRuntime.getActivation("agent-inspector-main"),
+      ).toBe(inspectorActivation);
+      expect(
+        [
+          "agent-run-timeline-main",
+          "agent-tool-detail-main",
+          "agent-resources-main",
+        ].map((instanceId) => mounted.serviceRuntime.getActivation(instanceId)),
+      ).toEqual(leafActivations);
+      expect(contributionInstanceIds("inspector.activity")).toEqual([
+        "agent-run-timeline-main",
+      ]);
+      expect(contributionInstanceIds("inspector.tool")).toEqual([
+        "agent-tool-detail-main",
+      ]);
+      expect(contributionInstanceIds("inspector.resources")).toEqual([
+        "agent-resources-main",
+      ]);
+    } finally {
+      await mounted.dispose();
+    }
   });
 
   it("renders the empty conversation when only another conversation has messages", async () => {

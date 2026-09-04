@@ -52,6 +52,7 @@ describe("AppUIModel", () => {
       "agent-conversation-surface-main",
       "agent-welcome-main",
       "agent-messages-main",
+      "agent-inspector-main",
       "agent-run-timeline-main",
       "agent-tool-detail-main",
       "agent-resources-main",
@@ -59,6 +60,37 @@ describe("AppUIModel", () => {
       "agent-sender-main",
       "agent-conversations-main",
     ]);
+    expect(model.root).toMatchObject({
+      type: "row",
+      children: [
+        {},
+        {},
+        {
+          type: "column",
+          id: "agent-inspector",
+          children: [
+            {
+              type: "slot",
+              id: "workspace-inspector-slot-node",
+              slotId: "workspace.inspector",
+            },
+          ],
+          sizes: ["minmax(0, 1fr)"],
+        },
+      ],
+    });
+    expect(model.pluginInstances["agent-inspector-main"]?.mount).toEqual({
+      slotId: "workspace.inspector",
+    });
+    expect(model.pluginInstances["agent-run-timeline-main"]?.mount).toEqual({
+      slotId: "inspector.activity",
+    });
+    expect(model.pluginInstances["agent-tool-detail-main"]?.mount).toEqual({
+      slotId: "inspector.tool",
+    });
+    expect(model.pluginInstances["agent-resources-main"]?.mount).toEqual({
+      slotId: "inspector.resources",
+    });
   });
 
   it("rejects malformed JSON", () => {

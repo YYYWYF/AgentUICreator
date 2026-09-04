@@ -161,10 +161,7 @@ body {
 
 .agent-template-shell [data-layout-node-id="agent-inspector"] {
   border-left: 1px solid var(--ui-header-border);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-color: rgb(139 124 255 / 30%) transparent;
-  scrollbar-width: thin;
+  overflow: hidden;
 }
 
 .agent-template-shell
@@ -196,12 +193,6 @@ body {
   [data-layout-node-id="agent-theme-switch-slot-node"]
   .antd-x-theme-switch-plugin {
   justify-content: space-between;
-}
-
-.development-preview[data-agent-ui-theme="light"]
-  .agent-template-shell
-  [data-layout-node-id="agent-inspector"] {
-  scrollbar-color: rgb(104 87 207 / 22%) transparent;
 }
 
 @media (max-width: 74rem) {

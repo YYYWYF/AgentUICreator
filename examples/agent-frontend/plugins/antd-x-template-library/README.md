@@ -5,6 +5,7 @@
 当前模板：
 
 - `conversation-surface`：作为中栏 Container Plugin，只根据共享消息是否为空组合 `conversation.empty`、`conversation.timeline` 与始终存在的 `conversation.composer`，不持有会话服务或 Agent Runtime。
+- `workspace-inspector`：作为右栏 Container Plugin，用本地 Tab 状态在 `inspector.activity`、`inspector.tool` 与 `inspector.resources` 中一次只渲染一个上下文，不改变叶子插件的激活和贡献生命周期。
 - `antd-x-theme-provider`：通过插件服务注册表提供 `agent-ui.theme` 能力，不直接渲染 UI。
 - `antd-x-theme-switch`：声明 `inject: ["agent-ui.theme"]`，调用另一个插件暴露的主题函数。
 - `antd-x-conversations`：用 `Conversations` 展示历史会话，并提供独立的 `agent-ui.conversations` Service seam；真正的创建、重命名、删除仍属于 Runtime。
