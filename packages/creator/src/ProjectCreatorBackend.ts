@@ -1,6 +1,4 @@
-import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
@@ -18,72 +16,44 @@ import {
 } from "deepagents";
 
 import type { CreatorActivityRecorder } from "./CreatorActivityRecorder.js";
+import {
+  CREATOR_AGENT_ALLOWED_COMMANDS,
+  CREATOR_COMMAND_SPECS,
+  CreatorCommandRunner,
+  normalizeCreatorCommand,
+  type CreatorCommandExecutor,
+  type CreatorKnownCommand,
+} from "./CreatorCommandRunner.js";
 import { CreatorFileObservationStore } from "./files/CreatorFileObservationStore.js";
 import {
   CreatorFileStateConflictError,
   createCreatorFileAtomically,
   replaceCreatorFileAtomically,
 } from "./files/creatorFileState.js";
+import { CREATOR_COMPLETION_VALIDATIONS } from "./validation/types.js";
 
-interface CommandSpec {
-  executable: string;
-  args: string[];
-  kind: "validation" | "mutation";
-  mutationPaths?: string[] | undefined;
-}
+const CREATOR_AGENT_ALLOWED_COMMAND_SET = new Set<string>(
+  CREATOR_AGENT_ALLOWED_COMMANDS,
+);
+const CREATOR_HOST_VALIDATION_COMMAND_SET = new Set<string>(
+  CREATOR_COMPLETION_VALIDATIONS,
+);
 
-const MAX_COMMAND_OUTPUT_BYTES = 100_000;
-const COMMAND_TIMEOUT_MS = 120_000;
-
-export const CREATOR_ALLOWED_COMMANDS: Readonly<Record<string, CommandSpec>> = {
-  "git diff --check": {
-    executable: "git",
-    args: ["diff", "--check"],
-    kind: "validation",
-  },
-  "pnpm generate:registry": {
-    executable: "pnpm",
-    args: ["generate:registry"],
-    kind: "mutation",
-    mutationPaths: ["/project/plugins/registry.generated.ts"],
-  },
-  "pnpm test": {
-    executable: "pnpm",
-    args: ["test"],
-    kind: "validation",
-  },
-  "pnpm typecheck": {
-    executable: "pnpm",
-    args: ["typecheck"],
-    kind: "validation",
-  },
-  "pnpm verify:ui": {
-    executable: "pnpm",
-    args: ["verify:ui"],
-    kind: "validation",
-  },
-};
-
-const CREATOR_COMMAND_ALIASES: Readonly<Record<string, string>> = {
-  "pnpm run test": "pnpm test",
-  "pnpm run typecheck": "pnpm typecheck",
-  "pnpm run verify:ui": "pnpm verify:ui",
-  "pnpm run generate:registry": "pnpm generate:registry",
-};
-
-function normalizeCreatorCommand(command: string): string {
-  const normalized = command
-    .normalize("NFKC")
-    .replace(/[\u200B-\u200D\u2060\uFEFF]/gu, "")
-    .trim()
-    .replace(/\s+/gu, " ");
-
-  return CREATOR_COMMAND_ALIASES[normalized] ?? normalized;
-}
+export const CREATOR_ALLOWED_COMMANDS = Object.fromEntries(
+  CREATOR_AGENT_ALLOWED_COMMANDS.map((command) => [
+    command,
+    CREATOR_COMMAND_SPECS[command],
+  ]),
+);
 
 export interface ProjectCreatorBackendOptions {
   projectRoot: string;
   activity?: CreatorActivityRecorder | undefined;
+}
+
+export interface ProjectCommandBackendOptions
+  extends ProjectCreatorBackendOptions {
+  runner?: CreatorCommandExecutor | undefined;
 }
 
 export interface CreatorSkillsBackendOptions {
@@ -270,12 +240,11 @@ export class CreatorSkillsBackend extends FilesystemBackend {
 export class ProjectCommandBackend implements SandboxBackendProtocolV2 {
   readonly id = `agent-ui-creator-command-${randomUUID()}`;
 
-  private readonly projectRoot: string;
-  private readonly activity: CreatorActivityRecorder | undefined;
+  private readonly runner: CreatorCommandExecutor;
 
-  constructor({ projectRoot, activity }: ProjectCreatorBackendOptions) {
-    this.projectRoot = path.resolve(projectRoot);
-    this.activity = activity;
+  constructor({ projectRoot, activity, runner }: ProjectCommandBackendOptions) {
+    this.runner =
+      runner ?? new CreatorCommandRunner({ projectRoot, activity });
   }
 
   async ls(filePath: string): Promise<LsResult> {
@@ -315,13 +284,20 @@ export class ProjectCommandBackend implements SandboxBackendProtocolV2 {
 
   async execute(command: string): Promise<ExecuteResponse> {
     const normalizedCommand = normalizeCreatorCommand(command);
-    const spec = CREATOR_ALLOWED_COMMANDS[normalizedCommand];
-
-    if (spec === undefined) {
+    if (CREATOR_HOST_VALIDATION_COMMAND_SET.has(normalizedCommand)) {
+      return {
+        output: `Command is Host-owned completion validation (${JSON.stringify(
+          normalizedCommand,
+        )}). The Creator Host will run it automatically when you submit a candidate completion.`,
+        exitCode: 126,
+        truncated: false,
+      };
+    }
+    if (!CREATOR_AGENT_ALLOWED_COMMAND_SET.has(normalizedCommand)) {
       return {
         output: `Command is not allowed (${JSON.stringify(
           normalizedCommand,
-        )}). Run exactly one of: ${Object.keys(CREATOR_ALLOWED_COMMANDS).join(
+        )}). Run exactly one of: ${CREATOR_AGENT_ALLOWED_COMMANDS.join(
           ", ",
         )}`,
         exitCode: 126,
@@ -329,111 +305,9 @@ export class ProjectCommandBackend implements SandboxBackendProtocolV2 {
       };
     }
 
-    const mutationBefore = new Map<string, string | undefined>();
-    if (spec.kind === "mutation") {
-      for (const filePath of spec.mutationPaths ?? []) {
-        await this.activity?.captureBefore(filePath);
-        mutationBefore.set(filePath, await this.readMutationFile(filePath));
-      }
-    }
-
-    return new Promise((resolve) => {
-      const child = spawn(spec.executable, spec.args, {
-        cwd: this.projectRoot,
-        env: {
-          CI: "1",
-          FORCE_COLOR: "0",
-          PATH: process.env.PATH ?? "",
-        },
-        stdio: ["ignore", "pipe", "pipe"],
-      });
-
-      let output = "";
-      let settled = false;
-      let truncated = false;
-      let timedOut = false;
-
-      const finish = async (result: ExecuteResponse): Promise<void> => {
-        if (settled) {
-          return;
-        }
-        settled = true;
-        if (spec.kind === "validation") {
-          this.activity?.recordValidation(normalizedCommand, result);
-        } else if (result.exitCode === 0) {
-          for (const filePath of spec.mutationPaths ?? []) {
-            if (
-              mutationBefore.get(filePath) !==
-              (await this.readMutationFile(filePath))
-            ) {
-              this.activity?.touch(filePath);
-            }
-          }
-        }
-        resolve(result);
-      };
-
-      const appendOutput = (chunk: Buffer): void => {
-        if (output.length >= MAX_COMMAND_OUTPUT_BYTES) {
-          truncated = true;
-          return;
-        }
-
-        const remainingBytes = MAX_COMMAND_OUTPUT_BYTES - output.length;
-        const text = chunk.toString("utf8");
-        output += text.slice(0, remainingBytes);
-        truncated ||= text.length > remainingBytes;
-      };
-
-      child.stdout.on("data", appendOutput);
-      child.stderr.on("data", appendOutput);
-
-      const timeout = setTimeout(() => {
-        timedOut = true;
-        child.kill("SIGTERM");
-      }, COMMAND_TIMEOUT_MS);
-
-      child.on("error", (error) => {
-        clearTimeout(timeout);
-        void finish({
-          output: error.message,
-          exitCode: null,
-          truncated,
-        });
-      });
-
-      child.on("close", (exitCode) => {
-        clearTimeout(timeout);
-        void finish({
-          output: timedOut
-            ? `${output}\nCommand timed out after ${COMMAND_TIMEOUT_MS}ms.`
-            : output,
-          exitCode,
-          truncated,
-        });
-      });
-    });
-  }
-
-  private async readMutationFile(filePath: string): Promise<string | undefined> {
-    const relativePath = filePath
-      .replace(/^\/project\//u, "")
-      .replace(/^\/+/, "");
-    const absolutePath = path.resolve(this.projectRoot, relativePath);
-    if (
-      absolutePath !== this.projectRoot &&
-      !absolutePath.startsWith(`${this.projectRoot}${path.sep}`)
-    ) {
-      return undefined;
-    }
-    try {
-      return await readFile(absolutePath, "utf8");
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-        return undefined;
-      }
-      throw error;
-    }
+    return this.runner.executeKnownCommand(
+      normalizedCommand as CreatorKnownCommand,
+    );
   }
 
   private filesystemUnavailable(filePath: string): { error: string } {

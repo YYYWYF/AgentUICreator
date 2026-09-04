@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   CreatorActivityRecorder,
-  ProjectCommandBackend,
+  CreatorCommandRunner,
   ProjectCreatorBackend,
   executeCreatorUndo,
 } from "../src/index.js";
@@ -50,7 +50,7 @@ describe("undo_creator_run", () => {
     const originalReceipt = await activity.finish();
 
     activity.begin("undo-run");
-    const commands = new ProjectCommandBackend({ projectRoot, activity });
+    const commands = new CreatorCommandRunner({ projectRoot, activity });
     const output = JSON.parse(
       await executeCreatorUndo(activity, commands, { runId: "original-run" }),
     ) as {

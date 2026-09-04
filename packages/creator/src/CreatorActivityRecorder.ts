@@ -150,7 +150,11 @@ export class CreatorActivityRecorder {
     this.mutationRevision += 1;
   }
 
-  recordValidation(command: string, result: ExecuteResponse): void {
+  recordValidation(
+    command: string,
+    result: ExecuteResponse,
+    revision = this.mutationRevision,
+  ): void {
     const output = truncate(
       result.output.trim(),
       MAX_VALIDATION_OUTPUT_CHARACTERS,
@@ -162,7 +166,7 @@ export class CreatorActivityRecorder {
       exitCode: result.exitCode,
       output: output.text,
       truncated: result.truncated || output.truncated,
-      revision: this.mutationRevision,
+      revision,
     };
     this.validations.push(validation);
     this.lastValidationByCommand.set(command, {
@@ -174,12 +178,19 @@ export class CreatorActivityRecorder {
   validationAtCurrentRevision(
     command: string,
   ): CreatorValidationReceipt | undefined {
+    return this.validationAtRevision(command, this.mutationRevision);
+  }
+
+  validationAtRevision(
+    command: string,
+    revision: number,
+  ): CreatorValidationReceipt | undefined {
     return [...this.validations]
       .reverse()
       .find(
         (validation) =>
           validation.command === command &&
-          validation.revision === this.mutationRevision,
+          validation.revision === revision,
       );
   }
 

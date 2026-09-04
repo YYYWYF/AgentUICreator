@@ -41,6 +41,7 @@ import {
 } from "./CreatorRunLogger.js";
 import { createCreatorToolCallId } from "./toolCallIds.js";
 import type { CreatorRuntimeDiagnosticSession } from "./runtime-diagnostics/CreatorRuntimeDiagnosticStore.js";
+import { CreatorValidationService } from "./validation/CreatorValidationService.js";
 import { ProjectControlAdapter } from "./project-control/ProjectControlAdapter.js";
 
 const MAX_TOOL_RESULT_CHARACTERS = 12_000;
@@ -733,12 +734,18 @@ export function createProjectCreatorAgUiAdapter({
     projectRoot,
     modelName: config.modelName,
   });
+  const validationService = new CreatorValidationService({
+    projectRoot,
+    activity,
+    runLogger,
+  });
   const agent = createCreatorAgent({
     model,
     projectRoot,
     activity,
     runLogger,
     runtimeDiagnostics,
+    validationService,
   });
   const compositionFastPath = new CompositionFastPath({
     model,
@@ -746,6 +753,7 @@ export function createProjectCreatorAgUiAdapter({
     activity,
     runLogger,
     runtimeDiagnostics,
+    validationService,
   });
   return new CreatorAgUiAdapter(
     agent,

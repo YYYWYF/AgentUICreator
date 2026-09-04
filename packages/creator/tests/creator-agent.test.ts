@@ -11,9 +11,11 @@ import { fakeModel } from "@langchain/core/testing";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  CREATOR_AGENT_ALLOWED_COMMANDS,
   CREATOR_FILESYSTEM_PERMISSIONS,
   CREATOR_SKILLS_SOURCE,
   CREATOR_SUMMARIZATION_TRIGGER_MESSAGES,
+  CREATOR_SYSTEM_PROMPT,
   CreatorActivityRecorder,
   CreatorSkillsBackend,
   ProjectCommandBackend,
@@ -121,64 +123,60 @@ describe("ProjectCreatorBackend", () => {
     await expect(readFile(skillPath, "utf8")).resolves.toBe(originalSkill);
   });
 
-  it("records the real exit code and output of validation commands", async () => {
+  it("refuses Host-owned completion validations without executing a child process", async () => {
     const projectRoot = await createTemporaryProject();
-    await writeFile(
-      path.join(projectRoot, "package.json"),
-      JSON.stringify({
-        scripts: {
-          typecheck: "node -e \"console.log('types ok')\"",
-        },
-      }),
-    );
     const activity = new CreatorActivityRecorder(projectRoot);
-    const backend = new ProjectCommandBackend({ projectRoot, activity });
+    const calls: string[] = [];
+    const backend = new ProjectCommandBackend({
+      projectRoot,
+      activity,
+      runner: {
+        async executeKnownCommand(command) {
+          calls.push(command);
+          return { output: "executed", exitCode: 0, truncated: false };
+        },
+      },
+    });
 
     activity.begin();
-    const result = await backend.execute("pnpm typecheck");
+    const typecheck = await backend.execute("pnpm typecheck");
+    const typecheckAlias = await backend.execute("pnpm run typecheck");
+    const verify = await backend.execute("pnpm verify:ui");
     const receipt = await activity.finish();
 
-    expect(result.exitCode).toBe(0);
-    expect(receipt.validations).toEqual([
-      expect.objectContaining({
-        command: "pnpm typecheck",
-        status: "passed",
-        exitCode: 0,
-        output: expect.stringContaining("types ok"),
-      }),
+    expect([typecheck.exitCode, typecheckAlias.exitCode, verify.exitCode]).toEqual([
+      126,
+      126,
+      126,
     ]);
+    expect(typecheck.output).toContain("Host-owned completion validation");
+    expect(calls).toEqual([]);
+    expect(receipt.validations).toEqual([]);
   });
 
-  it("normalizes safe validation command variants without opening the shell", async () => {
+  it("keeps diagnostic commands Agent-facing and hides Host commands from policy errors", async () => {
     const projectRoot = await createTemporaryProject();
-    await writeFile(
-      path.join(projectRoot, "package.json"),
-      JSON.stringify({
-        scripts: {
-          typecheck: "node -e \"console.log('types ok')\"",
+    const calls: string[] = [];
+    const backend = new ProjectCommandBackend({
+      projectRoot,
+      runner: {
+        async executeKnownCommand(command) {
+          calls.push(command);
+          return { output: "ok", exitCode: 0, truncated: false };
         },
-      }),
-    );
-    const activity = new CreatorActivityRecorder(projectRoot);
-    const backend = new ProjectCommandBackend({ projectRoot, activity });
+      },
+    });
 
-    activity.begin();
-    const unicodeWhitespaceResult = await backend.execute(
-      "pnpm\u00a0typecheck\u200b",
-    );
-    const runAliasResult = await backend.execute("pnpm run typecheck");
-    const chainedCommandResult = await backend.execute(
-      "pnpm typecheck && echo unsafe",
-    );
-    const receipt = await activity.finish();
+    const test = await backend.execute("pnpm run test");
+    const diff = await backend.execute("git diff --check");
+    const unsupported = await backend.execute("pnpm lint");
 
-    expect(unicodeWhitespaceResult.exitCode).toBe(0);
-    expect(runAliasResult.exitCode).toBe(0);
-    expect(chainedCommandResult.exitCode).toBe(126);
-    expect(receipt.validations.map((validation) => validation.command)).toEqual([
-      "pnpm typecheck",
-      "pnpm typecheck",
-    ]);
+    expect(test.exitCode).toBe(0);
+    expect(diff.exitCode).toBe(0);
+    expect(calls).toEqual(["pnpm test", "git diff --check"]);
+    expect(unsupported.output).toContain(CREATOR_AGENT_ALLOWED_COMMANDS.join(", "));
+    expect(unsupported.output).not.toContain("pnpm typecheck");
+    expect(unsupported.output).not.toContain("pnpm verify:ui");
   });
 
   it("records target-owned Registry generation as a mutation only when bytes change", async () => {
@@ -301,7 +299,7 @@ describe("createCreatorAgent", () => {
     expect(toolResult?.tool_call_id).toBe(toolCallId);
   });
 
-  it("executes an allowlisted validation command through the full Agent tool path", async () => {
+  it("returns the Host-owned refusal through the full Agent tool path", async () => {
     const projectRoot = await createTemporaryProject();
     await writeFile(
       path.join(projectRoot, "package.json"),
@@ -338,17 +336,21 @@ describe("createCreatorAgent", () => {
     ) as ToolMessage | undefined;
 
     expect(validationResult?.status).toBe("success");
-    expect(validationResult?.text).toContain("types ok");
-    expect(validationResult?.text).toContain(
-      "[Command succeeded with exit code 0]",
+    expect(validationResult?.text).toContain("Host-owned completion validation");
+    expect(validationResult?.text).toContain("exit code 126");
+    expect(receipt.validations).toEqual([]);
+  });
+
+  it("states Host validation ownership in the system prompt", () => {
+    expect(CREATOR_SYSTEM_PROMPT).not.toContain(
+      "use the available validation commands after meaningful edits",
     );
-    expect(receipt.validations).toEqual([
-      expect.objectContaining({
-        command: "pnpm typecheck",
-        status: "passed",
-        exitCode: 0,
-      }),
-    ]);
+    expect(CREATOR_SYSTEM_PROMPT).toContain(
+      "The Creator Host owns the required completion validations",
+    );
+    expect(CREATOR_SYSTEM_PROMPT).toContain("Do not proactively");
+    expect(CREATOR_SYSTEM_PROMPT).toContain("`pnpm verify:ui`");
+    expect(CREATOR_SYSTEM_PROMPT).toContain("`pnpm typecheck`");
   });
 
   it("uses DeepAgents tools to apply a natural-language layout change", async () => {

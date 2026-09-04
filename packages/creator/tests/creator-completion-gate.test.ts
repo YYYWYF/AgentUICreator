@@ -140,7 +140,7 @@ describe("CreatorCompletionGate", () => {
     ).resolves.toContain("360px");
   });
 
-  it("revalidates after a write makes an earlier typecheck stale", async () => {
+  it("refuses Agent typecheck and validates the repaired revision through the Host", async () => {
     const projectRoot = await createTemporaryProject();
     const activity = new CreatorActivityRecorder(projectRoot);
     const model = fakeModel()
@@ -186,7 +186,7 @@ describe("CreatorCompletionGate", () => {
       (validation) => validation.command === "pnpm typecheck",
     );
 
-    expect(typechecks.map((validation) => validation.revision)).toEqual([0, 1]);
+    expect(typechecks.map((validation) => validation.revision)).toEqual([1]);
     expect(receipt.verification?.status).toBe("changed-and-verified");
   });
 
@@ -213,6 +213,97 @@ describe("CreatorCompletionGate", () => {
     );
     expect(receipt.verification?.status).toBe("no-project-change");
     expect(receipt.files).toEqual([]);
+  });
+
+  it("returns bounded Host failure evidence and revalidates after an Agent repair", async () => {
+    const projectRoot = await createTemporaryProject();
+    await writeFile(
+      path.join(projectRoot, "package.json"),
+      JSON.stringify({
+        scripts: {
+          "verify:ui": "node -e \"console.log('ui composition ok')\"",
+          typecheck:
+            "node -e \"const fs=require('node:fs');const s=fs.readFileSync('app-ui/app-ui.json','utf8');if(s.includes('360px')){console.error('width 360 is rejected');process.exit(1)}console.log('types ok')\"",
+        },
+      }),
+    );
+    const activity = new CreatorActivityRecorder(projectRoot);
+    const model = fakeModel()
+      .respondWithTools([
+        {
+          name: "read_file",
+          args: { file_path: "/project/app-ui/app-ui.json" },
+        },
+      ])
+      .respondWithTools([
+        {
+          name: "edit_file",
+          args: {
+            file_path: "/project/app-ui/app-ui.json",
+            old_string: '"320px"',
+            new_string: '"360px"',
+            replace_all: false,
+          },
+        },
+      ])
+      .respond(new AIMessage("宽度已经更新。"))
+      .respondWithTools([
+        {
+          name: "edit_file",
+          args: {
+            file_path: "/project/app-ui/app-ui.json",
+            old_string: '"360px"',
+            new_string: '"361px"',
+            replace_all: false,
+          },
+        },
+      ])
+      .respond(new AIMessage("已经根据 Host evidence 修复。"))
+      .respond(
+        new AIMessage(
+          "[creator-verification:revision=2]\n宽度已经更新并通过 Host 验证。",
+        ),
+      );
+    const agent = createCreatorAgent({ model, projectRoot, activity });
+
+    activity.begin();
+    const result = await agent.invoke({
+      messages: [{ role: "user", content: "更新右侧区域宽度。" }],
+    });
+    const receipt = await activity.finish();
+    const reviews = result.messages.filter(
+      (message: unknown) =>
+        ToolMessage.isInstance(message) &&
+        message.name === CREATOR_COMPLETION_REVIEW_TOOL,
+    ) as ToolMessage[];
+
+    expect(reviews).toHaveLength(2);
+    expect(reviews[0]?.text).toContain(
+      "The Creator Host validation rejected the candidate for project revision 1",
+    );
+    expect(reviews[0]?.text).toContain("width 360 is rejected");
+    expect(reviews[0]?.text).toContain(
+      "The Creator Host will validate the latest revision automatically",
+    );
+    expect(reviews[0]?.text).not.toContain(
+      "Use the available tools until both validations pass",
+    );
+    expect(
+      receipt.validations
+        .filter((validation) => validation.command === "pnpm typecheck")
+        .map((validation) => ({
+          revision: validation.revision,
+          status: validation.status,
+        })),
+    ).toEqual([
+      { revision: 1, status: "failed" },
+      { revision: 2, status: "passed" },
+    ]);
+    expect(receipt.verification).toMatchObject({
+      status: "changed-and-verified",
+      projectRevision: 2,
+      auditAttempts: 1,
+    });
   });
 
   it("replaces repeated unverifiable success claims with a truthful failure", async () => {

@@ -11,6 +11,7 @@ import {
 } from "../project-control/types.js";
 import type { CreatorRuntimeDiagnosticSession } from "../runtime-diagnostics/CreatorRuntimeDiagnosticStore.js";
 import { createRuntimeCompositionTool } from "../runtime-diagnostics/runtimeCompositionTool.js";
+import type { CreatorValidationService } from "../validation/CreatorValidationService.js";
 import { compileCompositionOperations } from "./CompositionOperationCompiler.js";
 import { CompositionFastPathPlanner } from "./CompositionFastPathPlanner.js";
 import { resolveCompositionTargets } from "./CompositionTargetResolver.js";
@@ -50,6 +51,10 @@ export interface CompositionFastPathOptions {
     CreatorRuntimeDiagnosticSession,
     "waitForComposition" | "inspectComposition" | "inspect"
   > | undefined;
+  validationService: Pick<
+    CreatorValidationService,
+    "ensureCurrentRevisionValidated"
+  >;
 }
 
 interface MutableMetrics {
@@ -58,6 +63,7 @@ interface MutableMetrics {
   plannerModelCalls: 0 | 1;
   mutationCount: 0 | 1;
   runtimeVerificationCount: 0 | 1;
+  hostValidationCount: 0 | 1;
 }
 
 interface MutationSuccess {
@@ -219,9 +225,13 @@ function successMessage(intents: ResolvedCompositionIntent[]): string {
 export function formatCompositionFastPathDiagnostic(
   diagnostic: CompositionFastPathMutationDiagnostic,
 ): string {
+  const explanation =
+    diagnostic.hostValidationFailure === undefined
+      ? "Fast Path 已修改 AppUIModel，但 Runtime verification 未满足预期。"
+      : "Fast Path 已修改 AppUIModel，Runtime verification 已通过，但 Creator Host static validation 未通过。";
   return `<composition-fast-path-diagnostic>${JSON.stringify(
     diagnostic,
-  )}</composition-fast-path-diagnostic>\nFast Path 已修改 AppUIModel，但 Runtime verification 未满足预期。请基于当前状态诊断，不要盲目重复相同 mutation。`;
+  )}</composition-fast-path-diagnostic>\n${explanation}请基于当前状态和 validation evidence 修复，不要重复相同 mutation，也不要主动运行 Host-owned completion validations。`;
 }
 
 export class CompositionFastPath implements CompositionFastPathHandler {
@@ -247,6 +257,7 @@ export class CompositionFastPath implements CompositionFastPathHandler {
       plannerModelCalls: 0,
       mutationCount: 0,
       runtimeVerificationCount: 0,
+      hostValidationCount: 0,
     };
     await this.options.runLogger?.record("fast_path_attempted", {
       fastPath: { attempted: true },
@@ -355,7 +366,27 @@ export class CompositionFastPath implements CompositionFastPathHandler {
           beforeHash: mutation.mutation.beforeHash,
           afterHash: mutation.mutation.afterHash,
           operations: compiled.mutation.operations,
-          verificationFailure: verification.detail,
+          runtimeVerificationFailure: verification.detail,
+        },
+      );
+    }
+
+    metrics.hostValidationCount = 1;
+    const hostValidation =
+      await this.options.validationService.ensureCurrentRevisionValidated(
+        options,
+      );
+    if (hostValidation.status !== "passed") {
+      return this.fallback(
+        "host_validation_failed",
+        startedAt,
+        metrics,
+        {
+          mutationApplied: true,
+          beforeHash: mutation.mutation.beforeHash,
+          afterHash: mutation.mutation.afterHash,
+          operations: compiled.mutation.operations,
+          hostValidationFailure: hostValidation,
         },
       );
     }
@@ -388,6 +419,7 @@ export class CompositionFastPath implements CompositionFastPathHandler {
       generalAgentCalls: handled ? 0 : 1,
       mutationCount: metrics.mutationCount,
       runtimeVerificationCount: metrics.runtimeVerificationCount,
+      hostValidationCount: metrics.hostValidationCount,
     };
   }
 

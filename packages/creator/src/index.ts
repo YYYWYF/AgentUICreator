@@ -4,8 +4,19 @@ export {
   ProjectCommandBackend,
   ProjectCreatorBackend,
   type CreatorSkillsBackendOptions,
+  type ProjectCommandBackendOptions,
   type ProjectCreatorBackendOptions,
 } from "./ProjectCreatorBackend.js";
+export {
+  CREATOR_AGENT_ALLOWED_COMMANDS,
+  CREATOR_COMMAND_SPECS,
+  CreatorCommandRunner,
+  normalizeCreatorCommand,
+  type CreatorCommandExecutor,
+  type CreatorCommandRunnerOptions,
+  type CreatorKnownCommand,
+  type ExecuteKnownCommandOptions,
+} from "./CreatorCommandRunner.js";
 export {
   CREATOR_FILESYSTEM_PERMISSIONS,
   CREATOR_SKILLS_ROOT,
@@ -109,6 +120,16 @@ export {
   type CreatorCompletionGateOptions,
 } from "./CreatorCompletionGate.js";
 export {
+  CreatorValidationService,
+  type CreatorValidationServiceOptions,
+} from "./validation/CreatorValidationService.js";
+export {
+  CREATOR_COMPLETION_VALIDATIONS,
+  type CreatorValidationCheck,
+  type CreatorValidationCommand,
+  type CreatorValidationResult,
+} from "./validation/types.js";
+export {
   CREATOR_DIAGNOSTIC_DIRECTORY,
   CREATOR_DIAGNOSTIC_LOG_SCHEMA_VERSION,
   CreatorRunLogger,
@@ -119,6 +140,10 @@ export {
   type CreatorRunLogSource,
   type CreatorRunLogStart,
 } from "./CreatorRunLogger.js";
+export {
+  CREATOR_COMPLETION_FORMAT_INSTRUCTIONS,
+  CREATOR_SYSTEM_PROMPT,
+} from "./prompt/system.js";
 export type {
   CreatorDiagnosticLogReceipt,
   CreatorFileChangeReceipt,

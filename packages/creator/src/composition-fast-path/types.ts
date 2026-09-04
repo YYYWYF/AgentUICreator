@@ -1,4 +1,5 @@
 import type { RuntimeCompositionExpectation } from "../runtime-diagnostics/runtimeCompositionTool.js";
+import type { CreatorValidationResult } from "../validation/types.js";
 
 export type CompositionIntent =
   | { action: "remove"; target: string }
@@ -45,7 +46,8 @@ export type CompositionFastPathFallbackReason =
   | "mutation_conflict"
   | "mutation_failed"
   | "runtime_verification_unavailable"
-  | "runtime_verification_failed";
+  | "runtime_verification_failed"
+  | "host_validation_failed";
 
 export interface ResolvedCompositionIntent {
   action: CompositionIntent["action"];
@@ -69,6 +71,7 @@ export interface CompositionFastPathMetrics {
   generalAgentCalls: 0 | 1;
   mutationCount: 0 | 1;
   runtimeVerificationCount: 0 | 1;
+  hostValidationCount: 0 | 1;
 }
 
 export interface CompositionFastPathMutationDiagnostic {
@@ -76,7 +79,8 @@ export interface CompositionFastPathMutationDiagnostic {
   beforeHash: string;
   afterHash: string;
   operations: unknown[];
-  verificationFailure: unknown;
+  runtimeVerificationFailure?: unknown;
+  hostValidationFailure?: CreatorValidationResult;
 }
 
 export type CompositionFastPathResult =

@@ -28,6 +28,7 @@ import { ProjectControlAdapter } from "./project-control/ProjectControlAdapter.j
 import { createCreatorProjectControlMiddleware } from "./project-control/creatorProjectTools.js";
 import { ensureCreatorToolCallIds } from "./toolCallIds.js";
 import type { CreatorRuntimeDiagnosticSession } from "./runtime-diagnostics/CreatorRuntimeDiagnosticStore.js";
+import { CreatorValidationService } from "./validation/CreatorValidationService.js";
 
 export const CREATOR_SKILLS_SOURCE = "/skills/";
 export const CREATOR_SUMMARIZATION_TRIGGER_TOKENS = 12_000;
@@ -81,6 +82,10 @@ export interface CreateCreatorAgentOptions {
   completionGate?: boolean | undefined;
   runLogger?: CreatorRunLogger | undefined;
   runtimeDiagnostics?: CreatorRuntimeDiagnosticSession | undefined;
+  validationService?: Pick<
+    CreatorValidationService,
+    "ensureCurrentRevisionValidated"
+  > | undefined;
 }
 
 export type CreatorAgent = ReturnType<typeof createDeepAgent>;
@@ -121,6 +126,7 @@ export function createCreatorAgent({
   completionGate = activity !== undefined,
   runLogger,
   runtimeDiagnostics,
+  validationService,
 }: CreateCreatorAgentOptions): CreatorAgent {
   const conversationHistoryBackend = new StateBackend();
   const backend = new CompositeBackend(
@@ -195,7 +201,16 @@ export function createCreatorAgent({
     }
     middleware.push(
       createCreatorCompletionGateMiddleware(
-        new CreatorCompletionGate({ activity, projectRoot }),
+        new CreatorCompletionGate({
+          activity,
+          validationService:
+            validationService ??
+            new CreatorValidationService({
+              projectRoot,
+              activity,
+              runLogger,
+            }),
+        }),
       ),
     );
   }

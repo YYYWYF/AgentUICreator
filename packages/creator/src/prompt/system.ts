@@ -41,7 +41,14 @@ when custom Plugin behavior is needed. Inspect existing
 Plugin manifests, definitions, components, styles, registration, contracts, and
 the project's current UI stack before creating or changing a Plugin. Keep the
 AppUIModel valid, follow existing Plugin conventions, preserve unrelated values,
-and use the available validation commands after meaningful edits.
+and use Agent-facing commands only when they help the current edit.
+
+The Creator Host owns the required completion validations. Do not proactively
+run the Host-owned completion validations `pnpm verify:ui` or `pnpm typecheck`.
+When you believe the requested project change is complete, produce a candidate
+completion response. The Host will validate the current project revision
+automatically. If Host validation fails, use the supplied bounded failure
+evidence to fix the current revision, then submit another candidate completion.
 
 Generic Plugin source edits are optimistic and run-scoped. Read an existing file
 in the current run before editing or overwriting it. If a tool reports
@@ -56,7 +63,9 @@ details are needed. Use inspect_runtime_errors for source-attributed Plugin
 render or activation failures that static validation cannot see. Its default
 result is scoped to the current AppUIModel hash; do not treat stale history or
 an unrelated browser console error as a current Plugin failure. Runtime
-diagnostics are supporting evidence and never replace verify:ui or typecheck.
+diagnostics are supporting evidence and never replace the Host-owned static
+completion validations. The Creator Host will run verify:ui and typecheck
+automatically before accepting completion.
 A semantic AppUIModel mutation that mounts, moves, enables, disables, adds,
 replaces, unmounts, or removes a PluginInstance must be followed by
 inspect_runtime_composition. Pass result.appUIModel.afterHash as
@@ -66,8 +75,8 @@ model and that the target instances actually committed in their runtime Slots;
 it also supports mounted=false expectations. If its runtimeStatus is stale or
 unavailable, state explicitly that Runtime verification is incomplete and do
 not claim that the change rendered correctly. inspect_runtime_composition is
-runtime evidence; it does not replace the static verify:ui check or TypeScript
-typecheck.
+runtime evidence; it does not replace the Host-owned static completion
+validations.
 A missing or incompatible control entry is a diagnostic error; do not replace
 it with guesses. mutate_app_ui_model validates and updates the generated static
 Registry in the same transaction. Never edit registry.generated.ts or

@@ -14,8 +14,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   MAX_CREATOR_TRANSACTION_BYTES,
   CreatorActivityRecorder,
+  CreatorCommandRunner,
   PROJECT_CONTROL_ENTRY_PATH,
-  ProjectCommandBackend,
   ProjectControlAdapter,
   executeDeleteUIPluginSource,
   type CreatorPluginSourceDeleteAuthorization,
@@ -159,7 +159,7 @@ async function execute(
     await executeDeleteUIPluginSource(
       new ProjectControlAdapter({ projectRoot }),
       activity,
-      new ProjectCommandBackend({ projectRoot, activity }),
+      new CreatorCommandRunner({ projectRoot, activity }),
       { pluginId: "sample" },
       providedAuthorization,
     ),

@@ -5,20 +5,18 @@ import { tool } from "@langchain/core/tools";
 import type { CreateDeepAgentParams } from "deepagents";
 
 import { CreatorActivityRecorder } from "./CreatorActivityRecorder.js";
-import { ProjectCommandBackend } from "./ProjectCreatorBackend.js";
 import { createCreatorToolCallId } from "./toolCallIds.js";
-import type {
-  CreatorRunReceipt,
-  CreatorVerificationCheck,
-} from "./receiptTypes.js";
+import type { CreatorVerificationCheck } from "./receiptTypes.js";
+import type { CreatorValidationService } from "./validation/CreatorValidationService.js";
+import {
+  CREATOR_COMPLETION_VALIDATIONS,
+  type CreatorValidationResult,
+} from "./validation/types.js";
 
 export const CREATOR_COMPLETION_REVIEW_TOOL = "creator_completion_review";
 
-const REQUIRED_COMPLETION_VALIDATIONS = [
-  "pnpm verify:ui",
-  "pnpm typecheck",
-] as const;
-const MAX_COMPLETION_REJECTIONS = 3;
+const MAX_VALIDATION_REPAIR_ATTEMPTS = 3;
+const MAX_COMPLETION_AUDIT_REJECTIONS = 3;
 const READ_ONLY_MARKER = "[creator-verification:read-only]";
 const REVISION_MARKER_PATTERN =
   /^\s*\[creator-verification:revision=(\d+)\]\s*/iu;
@@ -29,7 +27,10 @@ type CreatorMiddleware = NonNullable<
 
 export interface CreatorCompletionGateOptions {
   activity: CreatorActivityRecorder;
-  projectRoot: string;
+  validationService: Pick<
+    CreatorValidationService,
+    "ensureCurrentRevisionValidated"
+  >;
 }
 
 interface GateRejection {
@@ -74,38 +75,55 @@ function stripRevisionMarker(
 }
 
 function validationChecks(
-  receipt: CreatorRunReceipt,
-  revision: number,
+  validation: CreatorValidationResult,
 ): CreatorVerificationCheck[] {
-  return REQUIRED_COMPLETION_VALIDATIONS.map((command) => {
-    const validation = [...receipt.validations]
-      .reverse()
-      .find(
-        (candidate) =>
-          candidate.command === command &&
-          candidate.revision === revision,
-      );
+  return CREATOR_COMPLETION_VALIDATIONS.map((command) => {
+    const check = validation.checks.find(
+      (candidate) => candidate.command === command,
+    );
     return {
       id: command,
-      status: validation?.status ?? "failed",
+      status: check?.status ?? "failed",
       evidence:
-        validation === undefined
-          ? `No validation result exists for revision ${revision}.`
-          : `exitCode=${validation.exitCode ?? "null"}; revision=${validation.revision}`,
+        check === undefined
+          ? `No validation result exists for revision ${validation.revision}.`
+          : `exitCode=${check.exitCode ?? "null"}; revision=${check.revision}; source=${check.source}`,
     };
   });
 }
 
+function formatValidationFailureForAgent(
+  validation: CreatorValidationResult,
+  currentRevision: number,
+): string {
+  const evidence = validation.checks
+    .map((check) => {
+      const output = check.output.trim();
+      return `${check.command}\n${check.status.toUpperCase()} (exitCode=${check.exitCode ?? "null"}, revision=${check.revision}, source=${check.source}, truncated=${check.truncated})${
+        output === "" ? "" : `\n${output}`
+      }`;
+    })
+    .join("\n\n");
+  if (validation.status === "stale") {
+    return `The Creator Host validation result for project revision ${validation.revision} became stale because the current revision is ${currentRevision}.\n\nHost validation:\n\n${evidence}\n\nReview the current project state and finish the requested repair. Do not manually run Host-owned completion validations. When you believe the current project is ready, submit another candidate completion. The Creator Host will validate the latest revision automatically.`;
+  }
+  return `The Creator Host validation rejected the candidate for project revision ${validation.revision}.\n\nHost validation:\n\n${evidence}\n\nFix the current project based on this evidence. Do not manually run Host-owned completion validations. When you believe the project is fixed, submit another candidate completion. The Creator Host will validate the latest revision automatically.`;
+}
+
 export class CreatorCompletionGate {
   private readonly activity: CreatorActivityRecorder;
-  private readonly commands: ProjectCommandBackend;
+  private readonly validationService: Pick<
+    CreatorValidationService,
+    "ensureCurrentRevisionValidated"
+  >;
   private readonly pendingFeedback = new Map<string, string>();
   private observedRunId: string | undefined;
-  private rejectionCount = 0;
+  private validationRepairCount = 0;
+  private completionAuditRejectionCount = 0;
 
-  constructor({ activity, projectRoot }: CreatorCompletionGateOptions) {
+  constructor({ activity, validationService }: CreatorCompletionGateOptions) {
     this.activity = activity;
-    this.commands = new ProjectCommandBackend({ projectRoot, activity });
+    this.validationService = validationService;
   }
 
   consumeFeedback(token: string): string {
@@ -129,30 +147,16 @@ export class CreatorCompletionGate {
       return this.reviewNoChange(message);
     }
 
-    await this.ensureCurrentValidations();
+    const validation =
+      await this.validationService.ensureCurrentRevisionValidated();
     const receipt = await this.activity.snapshot();
-    const failedValidations = REQUIRED_COMPLETION_VALIDATIONS.flatMap(
-      (command) => {
-        const validation = this.activity.validationAtCurrentRevision(command);
-        return validation?.status === "passed" ? [] : [validation];
-      },
-    );
-
-    if (failedValidations.length > 0) {
-      const evidence = REQUIRED_COMPLETION_VALIDATIONS.map((command) => {
-        const validation = this.activity.validationAtCurrentRevision(command);
-        if (validation === undefined) {
-          return `- ${command}: not run for revision ${this.activity.revision}`;
-        }
-        const output = validation.output.trim();
-        return `- ${command}: ${validation.status} at revision ${validation.revision}${
-          output === "" ? "" : `\n${output}`
-        }`;
-      }).join("\n");
-
+    if (validation.status !== "passed") {
       return this.rejectOrFail(message, {
-        feedback: `The Creator completion gate rejected the candidate response.\n\nThe current project revision is ${this.activity.revision}, and required validation did not pass:\n${evidence}\n\nUse the available tools to fix the current project. Do not claim completion or emit a creator-verification marker until both validations pass for the latest revision.`,
-      });
+        feedback: formatValidationFailureForAgent(
+          validation,
+          this.activity.revision,
+        ),
+      }, "validation");
     }
 
     const marked = stripRevisionMarker(message.text);
@@ -167,7 +171,7 @@ export class CreatorCompletionGate {
           status: "passed",
           evidence: `${receipt.files.length} net changed file(s).`,
         },
-        ...validationChecks(receipt, this.activity.revision),
+        ...validationChecks(validation),
         {
           id: "same-model-completion-audit",
           status: "passed",
@@ -177,7 +181,7 @@ export class CreatorCompletionGate {
       this.activity.recordVerification({
         status: "changed-and-verified",
         projectRevision: this.activity.revision,
-        auditAttempts: this.rejectionCount,
+        auditAttempts: this.completionAuditRejectionCount,
         checks,
       });
       return cloneWithText(message, marked.text);
@@ -186,16 +190,18 @@ export class CreatorCompletionGate {
     const files = receipt.files
       .map((file) => `- ${file.status}: ${file.path}\n${file.diff}`)
       .join("\n");
-    const validations = REQUIRED_COMPLETION_VALIDATIONS.map((command) => {
-      const validation = this.activity.validationAtCurrentRevision(command);
-      return `- ${command}: ${validation?.status ?? "missing"}${
-        validation?.output.trim() ? `\n${validation.output.trim()}` : ""
+    const validations = CREATOR_COMPLETION_VALIDATIONS.map((command) => {
+      const check = validation.checks.find(
+        (candidate) => candidate.command === command,
+      );
+      return `- ${command}: ${check?.status ?? "missing"}${
+        check?.output.trim() ? `\n${check.output.trim()}` : ""
       }`;
     }).join("\n");
 
     return this.rejectOrFail(message, {
       feedback: `The hard checks passed for project revision ${this.activity.revision}, but this revision still needs a completion audit.\n\nNet project changes:\n${files}\n\nHost-observed validation:\n${validations}\n\nRe-read the original user request and compare it with the actual current files and evidence above. If anything is incomplete, continue using tools. If the request is fully satisfied, respond with the final user-facing report starting exactly with:\n[creator-verification:revision=${this.activity.revision}]\n\nDo not include that marker unless you have completed this audit.`,
-    });
+    }, "audit");
   }
 
   private async reviewNoChange(message: AIMessage): Promise<AIMessage> {
@@ -204,7 +210,7 @@ export class CreatorCompletionGate {
       this.activity.recordVerification({
         status: "no-project-change",
         projectRevision: this.activity.revision,
-        auditAttempts: this.rejectionCount,
+        auditAttempts: this.completionAuditRejectionCount,
         checks: [
           {
             id: "net-project-change",
@@ -223,27 +229,32 @@ export class CreatorCompletionGate {
 
     return this.rejectOrFail(message, {
       feedback: `The Creator completion gate found no net project file changes.\n\nReview the original user request before stopping:\n- If the request asked you to change the Agent frontend, continue using tools and verify the actual result. Discovering an existing Plugin or describing a solution is not a project change.\n- If the request was genuinely read-only, answer it again and start the final response exactly with:\n${READ_ONLY_MARKER}\n\nThe marker is a host protocol and will be removed before the response is shown to the user.`,
-    });
-  }
-
-  private async ensureCurrentValidations(): Promise<void> {
-    for (const command of REQUIRED_COMPLETION_VALIDATIONS) {
-      if (this.activity.validationAtCurrentRevision(command) === undefined) {
-        await this.commands.execute(command);
-      }
-    }
+    }, "audit");
   }
 
   private rejectOrFail(
     candidate: AIMessage,
     rejection: GateRejection,
+    kind: "validation" | "audit",
   ): AIMessage {
-    this.rejectionCount += 1;
-    if (this.rejectionCount > MAX_COMPLETION_REJECTIONS) {
+    if (kind === "validation") {
+      this.validationRepairCount += 1;
+    } else {
+      this.completionAuditRejectionCount += 1;
+    }
+    const attempts =
+      kind === "validation"
+        ? this.validationRepairCount
+        : this.completionAuditRejectionCount;
+    const maximum =
+      kind === "validation"
+        ? MAX_VALIDATION_REPAIR_ATTEMPTS
+        : MAX_COMPLETION_AUDIT_REJECTIONS;
+    if (attempts > maximum) {
       this.activity.recordVerification({
         status: "failed",
         projectRevision: this.activity.revision,
-        auditAttempts: this.rejectionCount - 1,
+        auditAttempts: this.completionAuditRejectionCount,
         checks: [
           {
             id: "completion-gate",
@@ -254,7 +265,9 @@ export class CreatorCompletionGate {
       });
       return cloneWithText(
         candidate,
-        "无法确认本次修改已经完成：Creator 在三次完成复核后仍未满足当前项目 revision 的验证要求。请查看修改回执中的失败证据。",
+        kind === "validation"
+          ? "无法确认本次修改已经完成：Creator Host 在三次修复后仍未获得当前项目 revision 的完整验证证据。请查看修改回执中的失败证据。"
+          : "无法确认本次修改已经完成：Creator 在三次完成复核后仍未满足当前项目 revision 的验证要求。请查看修改回执中的失败证据。",
       );
     }
 
@@ -278,7 +291,8 @@ export class CreatorCompletionGate {
       return;
     }
     this.observedRunId = this.activity.runId;
-    this.rejectionCount = 0;
+    this.validationRepairCount = 0;
+    this.completionAuditRejectionCount = 0;
     this.pendingFeedback.clear();
   }
 }

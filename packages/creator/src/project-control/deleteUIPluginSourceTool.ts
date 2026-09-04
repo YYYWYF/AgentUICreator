@@ -4,7 +4,11 @@ import path from "node:path";
 import { tool } from "@langchain/core/tools";
 
 import type { CreatorActivityRecorder } from "../CreatorActivityRecorder.js";
-import { ProjectCommandBackend } from "../ProjectCreatorBackend.js";
+import {
+  CreatorCommandRunner,
+  type CreatorCommandExecutor,
+} from "../CreatorCommandRunner.js";
+import { CREATOR_COMPLETION_VALIDATIONS } from "../validation/types.js";
 import {
   createCreatorFileAtomically,
   creatorContentHash,
@@ -20,7 +24,6 @@ import {
 } from "./types.js";
 
 export const CREATOR_PLUGIN_SOURCE_DELETE_ENABLED_BY_DEFAULT = false;
-const DELETE_VALIDATION_COMMANDS = ["pnpm verify:ui", "pnpm typecheck"] as const;
 const MAX_DELETE_RESULT_CHARACTERS = 24_000;
 
 export interface DeleteUIPluginSourceInput {
@@ -208,7 +211,7 @@ async function restoreDeletedFiles(
 async function executeDeleteUIPluginSourceUnlocked(
   adapter: ProjectControlAdapter,
   activity: CreatorActivityRecorder,
-  commands: ProjectCommandBackend,
+  commands: CreatorCommandExecutor,
   input: DeleteUIPluginSourceInput,
   authorization?: CreatorPluginSourceDeleteAuthorization | undefined,
 ): Promise<string> {
@@ -332,8 +335,8 @@ async function executeDeleteUIPluginSourceUnlocked(
     }
 
     const validations = [];
-    for (const command of DELETE_VALIDATION_COMMANDS) {
-      const result = await commands.execute(command);
+    for (const command of CREATOR_COMPLETION_VALIDATIONS) {
+      const result = await commands.executeKnownCommand(command);
       validations.push({
         command,
         status: result.exitCode === 0 ? "passed" : "failed",
@@ -387,7 +390,7 @@ async function executeDeleteUIPluginSourceUnlocked(
 export async function executeDeleteUIPluginSource(
   adapter: ProjectControlAdapter,
   activity: CreatorActivityRecorder,
-  commands: ProjectCommandBackend,
+  commands: CreatorCommandExecutor,
   input: DeleteUIPluginSourceInput,
   authorization?: CreatorPluginSourceDeleteAuthorization | undefined,
 ): Promise<string> {
@@ -407,7 +410,7 @@ export function createDeleteUIPluginSourceTool(
   activity: CreatorActivityRecorder,
   authorizationProvider: CreatorPluginSourceDeleteAuthorizationProvider,
 ) {
-  const commands = new ProjectCommandBackend({
+  const commands = new CreatorCommandRunner({
     projectRoot: activity.projectRootPath,
     activity,
   });

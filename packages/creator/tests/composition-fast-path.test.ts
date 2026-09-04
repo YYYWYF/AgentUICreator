@@ -18,6 +18,7 @@ import {
   resolveCompositionTargets,
   type CompositionFastPathPlan,
   type CompositionSummary,
+  type CreatorValidationResult,
   type UIProjectInspection,
 } from "../src/index.js";
 
@@ -101,6 +102,10 @@ function testHarness(
     conflict?: boolean;
     runtimePass?: boolean;
     activity?: CreatorActivityRecorder;
+    hostValidationStatus?: "passed" | "failed" | "stale";
+    validationService?: {
+      ensureCurrentRevisionValidated(): Promise<CreatorValidationResult>;
+    };
   } = {},
 ) {
   let current = composition();
@@ -108,6 +113,7 @@ function testHarness(
   let plannerCalls = 0;
   let mutationCount = 0;
   let runtimeVerificationCount = 0;
+  let hostValidationCount = 0;
   const adapter = {
     async request(operation: string, input: Record<string, unknown> = {}) {
       if (operation === "inspect_ui_project") {
@@ -202,16 +208,49 @@ function testHarness(
       return plan;
     },
   };
+  const validationService: {
+    ensureCurrentRevisionValidated(): Promise<CreatorValidationResult>;
+  } = {
+    async ensureCurrentRevisionValidated() {
+      const revision = options.activity?.revision ?? 0;
+      const status = options.hostValidationStatus ?? "passed";
+      return {
+        revision,
+        status,
+        checks: ["pnpm verify:ui", "pnpm typecheck"].map((command) => ({
+          command: command as "pnpm verify:ui" | "pnpm typecheck",
+          status: status === "passed" ? "passed" as const : "failed" as const,
+          exitCode: status === "passed" ? 0 : 1,
+          output: status === "passed" ? "ok" : "static validation failed",
+          truncated: false,
+          revision,
+          source: "executed" as const,
+        })),
+      };
+    },
+  };
+  const validationOwner = options.validationService ?? validationService;
   const fastPath = new CompositionFastPath({
     planner,
     adapter,
     activity: options.activity,
     runtimeDiagnostics,
+    validationService: {
+      async ensureCurrentRevisionValidated() {
+        hostValidationCount += 1;
+        return validationOwner.ensureCurrentRevisionValidated();
+      },
+    },
   });
   return {
     fastPath,
     adapter,
-    counts: () => ({ plannerCalls, mutationCount, runtimeVerificationCount }),
+    counts: () => ({
+      plannerCalls,
+      mutationCount,
+      runtimeVerificationCount,
+      hostValidationCount,
+    }),
   };
 }
 
@@ -219,6 +258,7 @@ async function createTemporaryProject(): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), "composition-fast-path-"));
   temporaryProjects.push(root);
   await mkdir(path.join(root, "app-ui"));
+  await mkdir(path.join(root, "plugins"));
   await writeFile(
     path.join(root, "app-ui", "app-ui.json"),
     `${JSON.stringify({ version: "2", root: { type: "slot", id: "root", slotId: "workspace.main" }, pluginInstances: {} }, null, 2)}\n`,
@@ -360,6 +400,7 @@ describe("Composition Fast Path routing", () => {
         generalAgentCalls: 0,
         mutationCount: 1,
         runtimeVerificationCount: 1,
+        hostValidationCount: 1,
       },
     });
     expect(generalAgentCalls).toBe(0);
@@ -367,6 +408,7 @@ describe("Composition Fast Path routing", () => {
       plannerCalls: 1,
       mutationCount: 1,
       runtimeVerificationCount: 1,
+      hostValidationCount: 1,
     });
   });
 
@@ -378,6 +420,7 @@ describe("Composition Fast Path routing", () => {
       plannerCalls: 1,
       mutationCount: 0,
       runtimeVerificationCount: 0,
+      hostValidationCount: 0,
     });
   });
 
@@ -406,6 +449,48 @@ describe("Composition Fast Path routing", () => {
         afterHash,
         operations: [{ type: "move_instance", instanceId: "plugin-a-main", slotId: "inspector.tool" }],
       },
+    });
+    expect(harness.counts().hostValidationCount).toBe(0);
+  });
+
+  it("falls back after Runtime passes but Host validation fails without repeating mutation", async () => {
+    const harness = testHarness(
+      {
+        mode: "composition",
+        intents: [{ action: "disable", target: "Plugin A" }],
+      },
+      { hostValidationStatus: "failed" },
+    );
+
+    const result = await harness.fastPath.tryHandle("disable plugin A");
+
+    expect(result).toMatchObject({
+      handled: false,
+      reason: "host_validation_failed",
+      diagnostic: {
+        mutationApplied: true,
+        beforeHash,
+        afterHash,
+        operations: [
+          {
+            type: "set_instance_enabled",
+            instanceId: "plugin-a-main",
+            enabled: false,
+          },
+        ],
+        hostValidationFailure: { status: "failed" },
+      },
+      metrics: {
+        mutationCount: 1,
+        runtimeVerificationCount: 1,
+        hostValidationCount: 1,
+        generalAgentCalls: 1,
+      },
+    });
+    expect(harness.counts()).toMatchObject({
+      mutationCount: 1,
+      runtimeVerificationCount: 1,
+      hostValidationCount: 1,
     });
   });
 
@@ -523,5 +608,128 @@ describe("Composition Fast Path AG-UI integration", () => {
     expect(prompt).toContain(afterHash);
     expect(prompt).not.toContain(beforeHash);
     expect(prompt).not.toContain("plugin-a-main");
+  });
+
+  it("uses the same Host validation owner after Fast Path fallback and General Agent repair", async () => {
+    const projectRoot = await createTemporaryProject();
+    const activity = new CreatorActivityRecorder(projectRoot);
+    let hostValidationCycles = 0;
+    const validationService = {
+      async ensureCurrentRevisionValidated() {
+        hostValidationCycles += 1;
+        const revision = activity.revision;
+        const existing = ["pnpm verify:ui", "pnpm typecheck"].map(
+          (command) => activity.validationAtCurrentRevision(command),
+        );
+        if (existing.every((validation) => validation?.status === "passed")) {
+          return {
+            revision,
+            status: "passed" as const,
+            checks: existing.map((validation) => ({
+              command: validation?.command as
+                | "pnpm verify:ui"
+                | "pnpm typecheck",
+              status: "passed" as const,
+              exitCode: validation?.exitCode ?? null,
+              output: validation?.output ?? "",
+              truncated: validation?.truncated ?? false,
+              revision,
+              source: "cached" as const,
+            })),
+          };
+        }
+        const passed = hostValidationCycles > 1;
+        const checks = ["pnpm verify:ui", "pnpm typecheck"].map(
+          (command) => {
+            const failed = !passed && command === "pnpm typecheck";
+            const result = {
+              output: failed ? "repair required" : "ok",
+              exitCode: failed ? 1 : 0,
+              truncated: false,
+            };
+            activity.recordValidation(command, result, revision);
+            return {
+              command: command as "pnpm verify:ui" | "pnpm typecheck",
+              status: failed ? "failed" as const : "passed" as const,
+              exitCode: result.exitCode,
+              output: result.output,
+              truncated: false,
+              revision,
+              source: "executed" as const,
+            };
+          },
+        );
+        return {
+          revision,
+          status: passed ? "passed" as const : "failed" as const,
+          checks,
+        };
+      },
+    };
+    const model = fakeModel()
+      .respondWithTools([
+        {
+          name: "write_file",
+          args: {
+            file_path: "/project/plugins/host-validation-fix.ts",
+            content: "export const hostValidationFix = true;\n",
+          },
+        },
+      ])
+      .respond(new AIMessage("已经修复 Host validation failure。"))
+      .respond(
+        new AIMessage(
+          "[creator-verification:revision=2]\nFast Path 修改及后续修复已完成。",
+        ),
+      );
+    const agent = createCreatorAgent({
+      model,
+      projectRoot,
+      activity,
+      validationService,
+    });
+    const harness = testHarness(
+      {
+        mode: "composition",
+        intents: [{ action: "disable", target: "Plugin A" }],
+      },
+      { activity, validationService },
+    );
+    const adapter = new CreatorAgUiAdapter(
+      agent,
+      activity,
+      undefined,
+      undefined,
+      harness.fastPath,
+    );
+    const input = RunAgentInputSchema.parse({
+      threadId: "host-validation-repair-thread",
+      runId: "host-validation-repair-run",
+      messages: [{ id: "request", role: "user", content: "disable plugin A" }],
+      tools: [],
+      context: [],
+      state: {},
+    });
+
+    for await (const _event of adapter.run(input)) void _event;
+    const receipt = await activity.finish();
+
+    expect(hostValidationCycles).toBe(3);
+    expect(harness.counts()).toMatchObject({
+      mutationCount: 1,
+      runtimeVerificationCount: 1,
+      hostValidationCount: 1,
+    });
+    expect(model.callCount).toBe(3);
+    expect(activity.revision).toBe(2);
+    expect(receipt.verification).toMatchObject({
+      status: "changed-and-verified",
+      projectRevision: 2,
+    });
+    expect(
+      receipt.validations
+        .filter((validation) => validation.command === "pnpm typecheck")
+        .map((validation) => validation.revision),
+    ).toEqual([1, 2]);
   });
 });

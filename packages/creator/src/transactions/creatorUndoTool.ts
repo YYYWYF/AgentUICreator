@@ -1,9 +1,12 @@
 import { tool } from "@langchain/core/tools";
 
 import type { CreatorActivityRecorder } from "../CreatorActivityRecorder.js";
-import { ProjectCommandBackend } from "../ProjectCreatorBackend.js";
+import {
+  CreatorCommandRunner,
+  type CreatorCommandExecutor,
+} from "../CreatorCommandRunner.js";
+import { CREATOR_COMPLETION_VALIDATIONS } from "../validation/types.js";
 
-const UNDO_VALIDATION_COMMANDS = ["pnpm verify:ui", "pnpm typecheck"] as const;
 const MAX_UNDO_TOOL_RESULT_CHARACTERS = 24_000;
 
 export interface CreatorUndoToolInput {
@@ -34,7 +37,7 @@ function errorResult(error: unknown): string {
 
 export async function executeCreatorUndo(
   activity: CreatorActivityRecorder,
-  commands: ProjectCommandBackend,
+  commands: CreatorCommandExecutor,
   input: CreatorUndoToolInput,
 ): Promise<string> {
   try {
@@ -62,8 +65,8 @@ export async function executeCreatorUndo(
     }
 
     const validations = [];
-    for (const command of UNDO_VALIDATION_COMMANDS) {
-      const result = await commands.execute(command);
+    for (const command of CREATOR_COMPLETION_VALIDATIONS) {
+      const result = await commands.executeKnownCommand(command);
       validations.push({
         command,
         status: result.exitCode === 0 ? "passed" : "failed",
@@ -103,7 +106,7 @@ export async function executeCreatorUndo(
 }
 
 export function createCreatorUndoTool(activity: CreatorActivityRecorder) {
-  const commands = new ProjectCommandBackend({
+  const commands = new CreatorCommandRunner({
     projectRoot: activity.projectRootPath,
     activity,
   });

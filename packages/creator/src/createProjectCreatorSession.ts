@@ -23,6 +23,7 @@ import {
 import type { CompositionFastPathResult } from "./composition-fast-path/types.js";
 import { ProjectControlAdapter } from "./project-control/ProjectControlAdapter.js";
 import type { CreatorRuntimeDiagnosticSession } from "./runtime-diagnostics/CreatorRuntimeDiagnosticStore.js";
+import { CreatorValidationService } from "./validation/CreatorValidationService.js";
 
 export interface CreateProjectCreatorSessionOptions {
   projectRoot: string;
@@ -47,12 +48,18 @@ export function createProjectCreatorSession({
     projectRoot,
     modelName: config.modelName,
   });
+  const validationService = new CreatorValidationService({
+    projectRoot,
+    activity,
+    runLogger,
+  });
   const compositionFastPath = new CompositionFastPath({
     model,
     adapter: new ProjectControlAdapter({ projectRoot }),
     activity,
     runLogger,
     runtimeDiagnostics,
+    validationService,
   });
   const agent = createCreatorAgent({
     model,
@@ -60,6 +67,7 @@ export function createProjectCreatorSession({
     activity,
     runLogger,
     runtimeDiagnostics,
+    validationService,
   });
 
   const invoke = async (messages: Parameters<CreatorStreamInvoker>[0]) => {
