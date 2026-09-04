@@ -28,11 +28,20 @@ import {
 import type { CreateProjectCreatorSessionOptions } from "./createProjectCreatorSession.js";
 import { finalCreatorMessage } from "./CreatorSession.js";
 import {
+  CompositionFastPath,
+  formatCompositionFastPathDiagnostic,
+} from "./composition-fast-path/CompositionFastPath.js";
+import type {
+  CompositionFastPathHandler,
+  CompositionFastPathResult,
+} from "./composition-fast-path/types.js";
+import {
   CreatorRunLogger,
   withCreatorDiagnosticLog,
 } from "./CreatorRunLogger.js";
 import { createCreatorToolCallId } from "./toolCallIds.js";
 import type { CreatorRuntimeDiagnosticSession } from "./runtime-diagnostics/CreatorRuntimeDiagnosticStore.js";
+import { ProjectControlAdapter } from "./project-control/ProjectControlAdapter.js";
 
 const MAX_TOOL_RESULT_CHARACTERS = 12_000;
 
@@ -542,6 +551,7 @@ export class CreatorAgUiAdapter {
     private readonly activity: CreatorActivityRecorder,
     private readonly runLogger?: CreatorRunLogger | undefined,
     private readonly runtimeDiagnostics?: CreatorRuntimeDiagnosticSession | undefined,
+    private readonly compositionFastPath?: CompositionFastPathHandler | undefined,
   ) {}
 
   async *run(
@@ -575,8 +585,52 @@ export class CreatorAgUiAdapter {
     });
 
     try {
+      const request = [...input.messages]
+        .reverse()
+        .find((message) => message.role === "user");
+      const fastPathResult =
+        this.compositionFastPath === undefined || request === undefined
+          ? undefined
+          : await this.compositionFastPath.tryHandle(
+              contentText(request.content),
+              options,
+            );
+      if (fastPathResult?.handled) {
+        const messageId = randomUUID();
+        yield {
+          type: EventType.TEXT_MESSAGE_START,
+          messageId,
+          role: "assistant",
+        };
+        yield {
+          type: EventType.TEXT_MESSAGE_CONTENT,
+          messageId,
+          delta: fastPathResult.message,
+        };
+        yield { type: EventType.TEXT_MESSAGE_END, messageId };
+        const receipt = withCreatorDiagnosticLog(
+          await this.activity.finish(),
+          this.runLogger,
+        );
+        await this.runLogger?.finish("success", {
+          finalMessage: fastPathResult.message,
+          receipt,
+        });
+        yield {
+          type: EventType.RUN_FINISHED,
+          threadId: input.threadId,
+          runId: input.runId,
+          outcome: { type: "success" },
+          result: { receipt },
+        };
+        return;
+      }
+      const agentMessages = generalAgentMessages(
+        creatorLangChainMessages(input.messages),
+        fastPathResult,
+      );
       const run = await this.agent.streamEvents(
-        { messages: creatorLangChainMessages(input.messages) },
+        { messages: agentMessages },
         {
           version: "v3",
           recursionLimit: 96,
@@ -686,10 +740,41 @@ export function createProjectCreatorAgUiAdapter({
     runLogger,
     runtimeDiagnostics,
   });
+  const compositionFastPath = new CompositionFastPath({
+    model,
+    adapter: new ProjectControlAdapter({ projectRoot }),
+    activity,
+    runLogger,
+    runtimeDiagnostics,
+  });
   return new CreatorAgUiAdapter(
     agent,
     activity,
     runLogger,
     runtimeDiagnostics,
+    compositionFastPath,
   );
+}
+
+function generalAgentMessages(
+  messages: BaseMessage[],
+  fastPathResult: CompositionFastPathResult | undefined,
+): BaseMessage[] {
+  if (fastPathResult?.handled !== false || fastPathResult.diagnostic === undefined) {
+    return messages;
+  }
+  const augmented = [...messages];
+  const currentRequestIndex = augmented.reduce(
+    (latest, message, index) =>
+      HumanMessage.isInstance(message) ? index : latest,
+    -1,
+  );
+  augmented.splice(
+    Math.max(0, currentRequestIndex),
+    0,
+    new SystemMessage(
+      formatCompositionFastPathDiagnostic(fastPathResult.diagnostic),
+    ),
+  );
+  return augmented;
 }

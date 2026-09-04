@@ -42,6 +42,33 @@ export {
   type CreateProjectCreatorSessionOptions,
 } from "./createProjectCreatorSession.js";
 export {
+  CompositionFastPath,
+  createCompositionSummary,
+  formatCompositionFastPathDiagnostic,
+  type CompositionFastPathOptions,
+} from "./composition-fast-path/CompositionFastPath.js";
+export {
+  CompositionFastPathPlanner,
+  parseCompositionFastPathPlan,
+} from "./composition-fast-path/CompositionFastPathPlanner.js";
+export { compileCompositionOperations } from "./composition-fast-path/CompositionOperationCompiler.js";
+export { resolveCompositionTargets } from "./composition-fast-path/CompositionTargetResolver.js";
+export type {
+  CompiledCompositionMutation,
+  CompositionFastPathFallbackReason,
+  CompositionFastPathHandleOptions,
+  CompositionFastPathHandler,
+  CompositionFastPathMetrics,
+  CompositionFastPathMutationDiagnostic,
+  CompositionFastPathPlan,
+  CompositionFastPathResult,
+  CompositionIntent,
+  CompositionPlannerFallbackReason,
+  CompositionSummary,
+  CompositionSummaryInstance,
+  ResolvedCompositionIntent,
+} from "./composition-fast-path/types.js";
+export {
   CreatorAgUiAdapter,
   compactedCreatorMessages,
   createProjectCreatorAgUiAdapter,

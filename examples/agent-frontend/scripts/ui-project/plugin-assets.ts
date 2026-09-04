@@ -78,6 +78,7 @@ export async function collectPluginAssets(
       const manifest = parseUIPluginManifest(JSON.parse(source) as unknown);
       assets.push({
         pluginId: manifest.id,
+        name: manifest.name,
         directory: entry.name,
         manifestPath: projectPath(projectRoot, manifestPath),
         definitionPath: projectPath(

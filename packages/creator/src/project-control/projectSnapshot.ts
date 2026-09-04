@@ -183,6 +183,7 @@ export function createProjectSnapshot(
   const assets = limited(
     inspection.pluginAssets.map((asset) => ({
       pluginId: safeText(asset.pluginId),
+      ...(asset.name === undefined ? {} : { name: safeText(asset.name) }),
       directory: safeText(asset.directory),
       selected: asset.selected,
       capabilities: asset.capabilities.map(safeText),

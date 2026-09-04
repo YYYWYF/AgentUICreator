@@ -51,8 +51,11 @@ function truncate(
 }
 
 export function createRuntimeCompositionTool(
-  adapter: ProjectControlAdapter,
-  diagnostics: CreatorRuntimeDiagnosticSession,
+  adapter: Pick<ProjectControlAdapter, "request">,
+  diagnostics: Pick<
+    CreatorRuntimeDiagnosticSession,
+    "waitForComposition" | "inspectComposition" | "inspect"
+  >,
 ) {
   return tool(
     async (input: RuntimeCompositionToolInput) => {

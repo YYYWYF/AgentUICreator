@@ -29,6 +29,7 @@ export interface ProjectPluginInstance {
 
 export interface ProjectPluginAsset {
   pluginId: string;
+  name?: string | undefined;
   directory: string;
   manifestPath: string;
   definitionPath: string;
@@ -303,6 +304,9 @@ function parsePluginAsset(
   const source = record(input, path);
   return {
     pluginId: string(source.pluginId, `${path}.pluginId`),
+    ...(source.name === undefined
+      ? {}
+      : { name: string(source.name, `${path}.name`) }),
     directory: string(source.directory, `${path}.directory`),
     manifestPath: string(source.manifestPath, `${path}.manifestPath`),
     definitionPath: string(source.definitionPath, `${path}.definitionPath`),

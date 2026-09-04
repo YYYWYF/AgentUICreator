@@ -224,7 +224,7 @@ export interface CreatorAppUIModelMutationInput {
 }
 
 export async function executeAppUIModelMutation(
-  adapter: ProjectControlAdapter,
+  adapter: Pick<ProjectControlAdapter, "request">,
   activity: CreatorActivityRecorder | undefined,
   input: CreatorAppUIModelMutationInput,
 ): Promise<string> {

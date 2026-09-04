@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { AIMessage, SystemMessage } from "@langchain/core/messages";
 
 import { CreatorActivityRecorder } from "./CreatorActivityRecorder.js";
 import {
@@ -15,6 +16,12 @@ import {
   createCreatorChatModel,
   loadCreatorModelConfig,
 } from "./modelConfig.js";
+import {
+  CompositionFastPath,
+  formatCompositionFastPathDiagnostic,
+} from "./composition-fast-path/CompositionFastPath.js";
+import type { CompositionFastPathResult } from "./composition-fast-path/types.js";
+import { ProjectControlAdapter } from "./project-control/ProjectControlAdapter.js";
 import type { CreatorRuntimeDiagnosticSession } from "./runtime-diagnostics/CreatorRuntimeDiagnosticStore.js";
 
 export interface CreateProjectCreatorSessionOptions {
@@ -40,6 +47,13 @@ export function createProjectCreatorSession({
     projectRoot,
     modelName: config.modelName,
   });
+  const compositionFastPath = new CompositionFastPath({
+    model,
+    adapter: new ProjectControlAdapter({ projectRoot }),
+    activity,
+    runLogger,
+    runtimeDiagnostics,
+  });
   const agent = createCreatorAgent({
     model,
     projectRoot,
@@ -57,12 +71,24 @@ export function createProjectCreatorSession({
       messages,
     });
     try {
+      const fastPathResult = await compositionFastPath.tryHandle(
+        messages.at(-1)?.content ?? "",
+      );
+      if (fastPathResult.handled) {
+        const result = { messages: [new AIMessage(fastPathResult.message)] };
+        const receipt = withCreatorDiagnosticLog(
+          await activity.finish(),
+          runLogger,
+        );
+        await runLogger.finish("success", {
+          finalMessage: fastPathResult.message,
+          receipt,
+        });
+        return { ...result, receipt };
+      }
       const result = await agent.invoke(
         {
-          messages: messages.map(({ role, content }) => ({
-            type: role,
-            content,
-          })),
+          messages: generalAgentMessages(messages, fastPathResult),
         },
         { recursionLimit: 96 },
       );
@@ -103,12 +129,29 @@ export function createProjectCreatorSession({
       messages,
     });
     try {
+      const fastPathResult = await compositionFastPath.tryHandle(
+        messages.at(-1)?.content ?? "",
+        options,
+      );
+      if (fastPathResult.handled) {
+        const messageId = randomUUID();
+        observer.onTextMessageStart(messageId);
+        observer.onTextMessageContent(messageId, fastPathResult.message);
+        observer.onTextMessageEnd(messageId);
+        const result = { messages: [new AIMessage(fastPathResult.message)] };
+        const receipt = withCreatorDiagnosticLog(
+          await activity.finish(),
+          runLogger,
+        );
+        await runLogger.finish("success", {
+          finalMessage: fastPathResult.message,
+          receipt,
+        });
+        return { ...result, receipt };
+      }
       const run = await agent.streamEvents(
         {
-          messages: messages.map(({ role, content }) => ({
-            type: role,
-            content,
-          })),
+          messages: generalAgentMessages(messages, fastPathResult),
         },
         {
           version: "v3",
@@ -159,4 +202,24 @@ export function createProjectCreatorSession({
   };
 
   return new CreatorSession(invoke, streamInvoke);
+}
+
+function generalAgentMessages(
+  messages: Parameters<CreatorStreamInvoker>[0],
+  fastPathResult: Extract<CompositionFastPathResult, { handled: false }>,
+) {
+  const mapped: Array<
+    | { type: "user" | "assistant"; content: string }
+    | SystemMessage
+  > = messages.map(({ role, content }) => ({ type: role, content }));
+  if (fastPathResult.diagnostic !== undefined) {
+    mapped.splice(
+      Math.max(0, mapped.length - 1),
+      0,
+      new SystemMessage(
+        formatCompositionFastPathDiagnostic(fastPathResult.diagnostic),
+      ),
+    );
+  }
+  return mapped;
 }
