@@ -315,6 +315,30 @@ describe("Creator runtime diagnostics", () => {
     });
   });
 
+  it("does not report verificationPassed when no expectations were provided", async () => {
+    const store = new CreatorRuntimeDiagnosticStore();
+    const session = new CreatorRuntimeDiagnosticSession(store, "project-a");
+    session.beginThread("thread-a");
+    store.recordComposition("project-a", "thread-a", composition());
+    const adapter = {
+      request: vi.fn(async () => inspectionFixture()),
+    } as unknown as ProjectControlAdapter;
+    const runtimeTool = createRuntimeCompositionTool(adapter, session) as unknown as {
+      invoke(input: Record<string, unknown>): Promise<unknown>;
+    };
+
+    const result = JSON.parse(
+      String(await runtimeTool.invoke({ waitForSyncMs: 0 })),
+    );
+
+    expect(result.result).toMatchObject({
+      synchronized: true,
+      checks: [],
+      verificationPerformed: false,
+      verificationPassed: false,
+    });
+  });
+
   it("does not evaluate expectations against stale or unavailable runtime state", async () => {
     const adapter = {
       request: vi.fn(async () => inspectionFixture(hashB)),

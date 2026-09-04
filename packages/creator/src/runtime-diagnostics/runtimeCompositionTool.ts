@@ -155,6 +155,7 @@ export function createRuntimeCompositionTool(
             actual,
           };
         });
+        const verificationPerformed = checks.length > 0;
         return JSON.stringify({
           ok: true,
           result: {
@@ -174,8 +175,11 @@ export function createRuntimeCompositionTool(
             instances: composition.instances,
             checks,
             currentErrors,
+            verificationPerformed,
             verificationPassed:
-              canEvaluate && checks.every((check) => check.status === "passed"),
+              canEvaluate &&
+              verificationPerformed &&
+              checks.every((check) => check.status === "passed"),
           },
         });
       } catch (error) {
