@@ -5,6 +5,11 @@ AG-UI stream、runtime diagnostics、ProjectControl v2 领域读取，以及由 
 拥有 transaction / receipt / undo 的 AppUIModel semantic mutation。Runtime
 Verification、Host Validation、Completion 和 Fast Path 尚未迁移。
 
+HTTP wire event 由锁定的 `ag-ui-protocol` 官方模型和 `EventEncoder` 产生。每次
+`POST /creator` 都创建独立的 bounded `CreatorEventBus`；RuntimeGuard 在 tool handler
+执行前发布调用定义，在 handler 返回或抛错后发布有界结果，server 并发消费并立即输出，
+不会在 Agent 完成后从 `activities` 重放工具事件。
+
 此包是开发时依赖，不进入生成的 Agent Frontend。
 
 ## 测试门禁
@@ -129,5 +134,5 @@ arguments、源码、Authorization header 或 API key。原先容易误解为 pr
 
 当前锁定的 Agent 栈为 Python 3.11+、`langchain-openai 1.3.3`、
 `langchain-core 1.6.1`、`langchain 1.3.18`、`langgraph 1.2.11`、
-`deepagents 0.7.11` 和 `openai 2.54.0`。升级其中任意依赖后必须重新运行 live
+`deepagents 0.7.11`、`openai 2.54.0` 和 `ag-ui-protocol 0.1.22`。升级其中任意依赖后必须重新运行 live
 tool protocol conformance。

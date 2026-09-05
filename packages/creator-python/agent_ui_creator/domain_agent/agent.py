@@ -34,6 +34,7 @@ from ..model_protocol.provider_trace import ProviderResponseTraceCollector
 from ..model_protocol.tool_protocol_guard import ToolProtocolMiddleware
 from ..model_protocol.trace import ToolProtocolMetrics
 from ..project_control import ProjectControlClient, ProjectControlMetrics
+from ..streaming.runtime_events import CreatorEventSink
 from .prompt import DOMAIN_READ_AGENT_PROMPT, DOMAIN_WRITE_AGENT_PROMPT
 from .runtime_guard import RepeatedProjectControlReadGuard
 from .tool_policy import DomainReadToolPolicyMiddleware, DomainWriteToolPolicyMiddleware
@@ -124,6 +125,7 @@ def create_domain_read_creator_agent(
     provider_trace_collector: ProviderResponseTraceCollector | None = None,
     project_control: ProjectControlClient | None = None,
     activity: CreatorActivityRecorder | None = None,
+    event_sink: CreatorEventSink | None = None,
 ) -> CreatorDomainReadAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -145,7 +147,7 @@ def create_domain_read_creator_agent(
         raw_trace=raw_trace,
         provider_trace_collector=provider_trace_collector,
     )
-    runtime = MinimalAgentRuntimeGuard(backend)
+    runtime = MinimalAgentRuntimeGuard(backend, event_sink=event_sink)
     repeated_read_guard = RepeatedProjectControlReadGuard(backend)
     filesystem = FilesystemMiddleware(
         backend=backend,
@@ -195,6 +197,7 @@ def create_domain_write_creator_agent(
     project_control: ProjectControlClient | None = None,
     activity: CreatorActivityRecorder | None = None,
     mutation_coordinator: ProjectMutationCoordinator | None = None,
+    event_sink: CreatorEventSink | None = None,
 ) -> CreatorDomainWriteAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -225,7 +228,7 @@ def create_domain_write_creator_agent(
         raw_trace=raw_trace,
         provider_trace_collector=provider_trace_collector,
     )
-    runtime = MinimalAgentRuntimeGuard(backend)
+    runtime = MinimalAgentRuntimeGuard(backend, event_sink=event_sink)
     repeated_read_guard = RepeatedProjectControlReadGuard(backend)
     filesystem = FilesystemMiddleware(
         backend=backend,

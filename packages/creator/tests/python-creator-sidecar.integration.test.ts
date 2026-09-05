@@ -17,6 +17,7 @@ import type { AddressInfo } from "node:net";
 import { fileURLToPath } from "node:url";
 
 import { afterEach, describe, expect, it } from "vitest";
+import { EventSchemas } from "@ag-ui/core";
 
 import {
   CREATOR_PYTHON_PROTOCOL_VERSION,
@@ -443,7 +444,7 @@ afterEach(async () => {
       pythonExecutable,
       [
         "-c",
-        "import sys, deepagents, fastapi, httpx, langchain_openai, langgraph, pydantic, uvicorn; assert sys.version_info >= (3, 11)",
+        "import sys, ag_ui, deepagents, fastapi, httpx, langchain_openai, langgraph, pydantic, uvicorn; assert sys.version_info >= (3, 11)",
       ],
       { encoding: "utf8" },
     );
@@ -566,6 +567,95 @@ afterEach(async () => {
     });
   }, 30_000);
 
+  it("forwards tool start before a delayed upstream tool result", async () => {
+    const fixturePackage = await fakePythonPackage(`
+import argparse, json, time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+parser = argparse.ArgumentParser()
+parser.add_argument("--auth-token", required=True)
+arguments, _ = parser.parse_known_args()
+class Handler(BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.1"
+    def authorized(self):
+        return self.headers.get("Authorization") == "Bearer " + arguments.auth_token
+    def do_GET(self):
+        if self.path != "/health" or not self.authorized():
+            self.send_response(401)
+            self.end_headers()
+            return
+        body = json.dumps({"status": "ok", "runtime": "python", "agentMode": "domain-write", "protocolVersion": "1"}).encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+    def do_POST(self):
+        if self.path != "/creator" or not self.authorized():
+            self.send_response(401)
+            self.end_headers()
+            return
+        self.rfile.read(int(self.headers.get("Content-Length", "0")))
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache, no-transform")
+        self.send_header("Connection", "close")
+        self.end_headers()
+        first = "".join([
+            'data: {"type":"RUN_STARTED","threadId":"thread","runId":"run"}\\n\\n',
+            'data: {"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"read_file"}\\n\\n',
+            'data: {"type":"TOOL_CALL_ARGS","toolCallId":"call-1","delta":"{}"}\\n\\n',
+            'data: {"type":"TOOL_CALL_END","toolCallId":"call-1"}\\n\\n',
+        ]).encode()
+        self.wfile.write(first)
+        self.wfile.flush()
+        time.sleep(0.75)
+        second = "".join([
+            'data: {"type":"TOOL_CALL_RESULT","messageId":"result-1","toolCallId":"call-1","content":"done","role":"tool"}\\n\\n',
+            'data: {"type":"RUN_FINISHED","threadId":"thread","runId":"run","result":{}}\\n\\n',
+        ]).encode()
+        self.wfile.write(second)
+        self.wfile.flush()
+        self.close_connection = True
+    def log_message(self, _format, *args):
+        return
+server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+print(json.dumps({"type": "creator_ready", "port": server.server_address[1], "protocolVersion": "1"}), flush=True)
+server.serve_forever()
+`);
+    const processManager = manager({
+      pythonPackageRoot: fixturePackage.packageRoot,
+    });
+    await processManager.ensureStarted();
+    const proxyRoot = await createProxyServer(processManager);
+    const startedAt = Date.now();
+    const response = await fetch(`${proxyRoot}/creator`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: [] }),
+    });
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    const first = await reader.read();
+    const firstText = decoder.decode(first.value, { stream: true });
+
+    expect(Date.now() - startedAt).toBeLessThan(700);
+    expect(firstText).toContain('"type":"TOOL_CALL_START"');
+    expect(firstText).toContain('"type":"TOOL_CALL_END"');
+    expect(firstText).not.toContain('"type":"TOOL_CALL_RESULT"');
+
+    let remaining = "";
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) {
+        remaining += decoder.decode();
+        break;
+      }
+      remaining += decoder.decode(chunk.value, { stream: true });
+    }
+    expect(remaining).toContain('"type":"TOOL_CALL_RESULT"');
+    expect(remaining).toContain('"type":"RUN_FINISHED"');
+  }, 30_000);
+
   it("runs Node to Vite proxy to Python minimal agent with real file tools", async () => {
     const fixtureRoot = await mkdtemp(path.join(tmpdir(), "creator-minimal-project-"));
     temporaryDirectories.push(fixtureRoot);
@@ -600,6 +690,10 @@ afterEach(async () => {
       }),
     });
     const { events } = await readSseEvents(response);
+
+    for (const event of events) {
+      expect(() => EventSchemas.parse(event)).not.toThrow();
+    }
 
     expect(events.map((event) => event.type)).toEqual([
       "RUN_STARTED",

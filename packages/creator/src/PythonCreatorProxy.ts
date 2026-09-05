@@ -77,6 +77,7 @@ export async function proxyPythonCreatorRequest(
               response.setHeader(name, value);
             }
           }
+          response.flushHeaders();
           upstreamResponse.on("error", reject);
           upstreamResponse.on("end", resolve);
           upstreamResponse.pipe(response);

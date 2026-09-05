@@ -23,6 +23,7 @@ from ..model_protocol.errors import AgentNoProgressError, ModelTimeoutError
 from ..model_protocol.provider_trace import ProviderResponseTraceCollector
 from ..model_protocol.tool_protocol_guard import ToolProtocolMiddleware
 from ..model_protocol.trace import ToolProtocolMetrics
+from ..streaming.runtime_events import CreatorEventSink
 from .path_policy import MinimalAgentPathPolicy, PolicyFilesystemBackend
 from .prompt import MINIMAL_AGENT_PROMPT
 from .runtime_guard import MinimalAgentRuntimeGuard, ToolActivity
@@ -119,6 +120,7 @@ def create_minimal_creator_agent(
     raw_trace: bool = False,
     provider_trace_collector: ProviderResponseTraceCollector | None = None,
     activity: CreatorActivityRecorder | None = None,
+    event_sink: CreatorEventSink | None = None,
 ) -> CreatorMinimalAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -133,7 +135,7 @@ def create_minimal_creator_agent(
         raw_trace=raw_trace,
         provider_trace_collector=provider_trace_collector,
     )
-    runtime = MinimalAgentRuntimeGuard(backend)
+    runtime = MinimalAgentRuntimeGuard(backend, event_sink=event_sink)
     filesystem = FilesystemMiddleware(
         backend=backend,
         tools=list(ALLOWED_MINIMAL_TOOLS),
