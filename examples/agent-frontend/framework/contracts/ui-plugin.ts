@@ -1,17 +1,20 @@
-import type { AgentMessage } from "@agent-ui/runtime-core";
+import type {
+  AgentConversation,
+  AgentMessage,
+  AgentRunState,
+  AgentUserInput,
+} from "@agent-ui/runtime-core";
 import type { ComponentType, ReactNode } from "react";
 import { z } from "zod";
 
 import type { PluginInstance } from "./app-ui-model";
 
-export type { AgentMessage } from "@agent-ui/runtime-core";
-
-export type UIPluginRunStatus = "idle" | "running" | "error";
-
-export interface UIPluginRunState {
-  status: UIPluginRunStatus;
-  errorMessage: string | undefined;
-}
+export type {
+  AgentConversation,
+  AgentMessage,
+  AgentRunState,
+  AgentUserInput,
+} from "@agent-ui/runtime-core";
 
 export interface UIPluginManifest {
   id: string;
@@ -33,7 +36,7 @@ export interface UIPluginManifest {
 }
 
 export interface UIPluginActions {
-  sendMessage(input: string): Promise<void>;
+  sendMessage(input: string | AgentUserInput): Promise<void>;
   startNewConversation(): Promise<void>;
   abortRun(): void;
   updateInstanceProps(props: Record<string, unknown>): void;
@@ -74,21 +77,22 @@ export interface UIPluginSetupContext {
 
 export type UIPluginSetupCleanup = void | (() => void);
 
-export interface UIPluginContext {
+export interface UIPluginContext<TState = unknown> {
+  conversation: AgentConversation;
   messages: AgentMessage[];
-  state: unknown;
-  run: UIPluginRunState;
+  state: TState;
+  run: AgentRunState;
   instance: PluginInstance;
   actions: UIPluginActions;
   services: UIPluginServices;
 }
 
-export interface UIPluginComponentProps {
-  context: UIPluginContext;
+export interface UIPluginComponentProps<TState = unknown> {
+  context: UIPluginContext<TState>;
   renderSlot(slotId: string): ReactNode;
 }
 
-export interface UIPluginDefinition {
+export interface UIPluginDefinition<TState = unknown> {
   manifest: UIPluginManifest;
   /** Named services that must exist before this plugin instance becomes active. */
   inject?: readonly string[] | undefined;
@@ -96,7 +100,7 @@ export interface UIPluginDefinition {
   setup?:
     | ((context: UIPluginSetupContext) => UIPluginSetupCleanup)
     | undefined;
-  Component: ComponentType<UIPluginComponentProps>;
+  Component: ComponentType<UIPluginComponentProps<TState>>;
 }
 
 const nonBlankStringSchema = z

@@ -17,8 +17,8 @@ import type { ReactNode } from "react";
 
 import type {
   AgentMessage,
+  AgentRunState,
   UIPluginComponentProps,
-  UIPluginRunState,
 } from "../../framework/contracts/ui-plugin";
 import { AGENT_UI_CONVERSATION_SERVICE } from "../../services/conversations";
 
@@ -40,7 +40,7 @@ function readableJSON(value: string): string {
 
 function statusForTool(
   result: Extract<AgentMessage, { role: "tool" }> | undefined,
-  run: UIPluginRunState,
+  run: AgentRunState,
 ): "loading" | "success" | "error" | "abort" {
   if (result?.error !== undefined) {
     return "error";
@@ -104,7 +104,7 @@ function activityDescription(message: Extract<AgentMessage, { role: "activity" }
 
 function timelineItems(
   messages: AgentMessage[],
-  run: UIPluginRunState,
+  run: AgentRunState,
 ): ThoughtChainItemType[] {
   const results = new Map(
     messages

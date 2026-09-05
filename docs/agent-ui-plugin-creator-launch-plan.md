@@ -533,18 +533,17 @@ Plugin 放在哪里由 AppUIModel 决定。
 
 Plugin 通过统一 Context 获取运行数据。
 
-第一版：
+基础 Runtime Contract：
 
 ```ts
-interface UIPluginContext {
-  messages: AGUIMessage[]
+interface UIPluginContext<TState = unknown> {
+  conversation: AgentConversation
 
-  state: unknown
+  messages: AgentMessage[]
 
-  run: {
-    status: "idle" | "running" | "error"
-    errorMessage: string | undefined
-  }
+  state: TState
+
+  run: AgentRunState
 
   instance: PluginInstance
 
@@ -557,7 +556,7 @@ Actions 第一版保持少量：
 
 ```ts
 interface UIPluginActions {
-  sendMessage(input: string): Promise<void>
+  sendMessage(input: string | AgentUserInput): Promise<void>
 
   startNewConversation(): Promise<void>
 
@@ -569,7 +568,7 @@ interface UIPluginActions {
 }
 ```
 
-`run` 由 UI Runtime 从 AG-UI Run 生命周期投影为稳定的前端状态。Plugin 不直接订阅底层 Run Event。
+`conversation`、`messages`、`state` 与 `run` 由 Agent Runtime 提供稳定、协议无关的前端状态。AG-UI 的 `threadId`、`runId` 和 Event 类型只允许存在于 `@agent-ui/runtime-agui`；Plugin 不直接订阅底层 Run Event。
 
 不要过早加入大量 Runtime API。
 

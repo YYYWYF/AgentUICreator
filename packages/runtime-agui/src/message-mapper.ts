@@ -15,7 +15,15 @@ function mapContentPart(
       : {}),
     ...("url" in part && part.url !== undefined ? { url: part.url } : {}),
     ...("source" in part
-      ? { source: { type: part.source.type, value: part.source.value } }
+      ? {
+          source: {
+            type: part.source.type,
+            value: part.source.value,
+            ...(part.source.mimeType === undefined
+              ? {}
+              : { mimeType: part.source.mimeType }),
+          },
+        }
       : {}),
     ...("metadata" in part && part.metadata !== undefined
       ? { metadata: structuredClone(part.metadata) }

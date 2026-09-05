@@ -78,11 +78,12 @@ function RuntimeFixture({
     <UIPluginRuntime
       actions={runtimeActions}
       appUIModelHash={appUIModelHash}
+      conversation={{ id: "diagnostics-test" }}
       messages={[]}
       model={model}
       onRuntimeDiagnostic={reporter}
       registry={createPluginRegistry([definition])}
-      run={{ status: "idle", errorMessage: undefined }}
+      run={{ status: "idle" }}
       state={null}
     />
   );

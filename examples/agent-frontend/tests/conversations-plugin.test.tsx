@@ -12,9 +12,10 @@ function createContext(
   status: UIPluginContext["run"]["status"] = "idle",
 ): UIPluginContext {
   return {
+    conversation: { id: "current" },
     messages: [],
     state: {},
-    run: { status, errorMessage: undefined },
+    run: { status },
     instance: {
       id: "conversations-main",
       pluginId: "antd-x-conversations",

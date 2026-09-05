@@ -1,5 +1,5 @@
 import type { AbstractAgent, AgentSubscriber } from "@ag-ui/client";
-import type { Message, State } from "@ag-ui/core";
+import { EventType, type Message, type State } from "@ag-ui/core";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -54,6 +54,53 @@ class FakeAgentClient {
     });
   }
 
+  emitRunStarted(threadId: string, runId: string): void {
+    this.isRunning = true;
+    this.subscribers.forEach((subscriber) => {
+      const listener = subscriber.onRunStartedEvent;
+      if (listener === undefined) return;
+      void listener({
+        event: { type: EventType.RUN_STARTED, threadId, runId },
+        messages: this.messages,
+        state: this.state,
+        agent: this as unknown as AbstractAgent,
+      } as Parameters<typeof listener>[0]);
+    });
+  }
+
+  emitRunFinished(threadId: string, runId: string): void {
+    this.isRunning = false;
+    this.subscribers.forEach((subscriber) => {
+      const listener = subscriber.onRunFinishedEvent;
+      if (listener === undefined) return;
+      void listener({
+        event: { type: EventType.RUN_FINISHED, threadId, runId },
+        outcome: "success",
+        messages: this.messages,
+        state: this.state,
+        agent: this as unknown as AbstractAgent,
+      } as Parameters<typeof listener>[0]);
+    });
+  }
+
+  emitRunError(message: string, code?: string): void {
+    this.isRunning = false;
+    this.subscribers.forEach((subscriber) => {
+      const listener = subscriber.onRunErrorEvent;
+      if (listener === undefined) return;
+      void listener({
+        event: {
+          type: EventType.RUN_ERROR,
+          message,
+          ...(code === undefined ? {} : { code }),
+        },
+        messages: this.messages,
+        state: this.state,
+        agent: this as unknown as AbstractAgent,
+      } as Parameters<typeof listener>[0]);
+    });
+  }
+
   private emitMessagesChanged(): void {
     this.subscribers.forEach((subscriber) => {
       void subscriber.onMessagesChanged?.({
@@ -77,8 +124,8 @@ describe("AgUiTransport", () => {
     const listener = vi.fn();
     transport.subscribe(listener);
 
-    const send = transport.sendMessage("Hello");
-    expect(transport.getSnapshot().isRunning).toBe(true);
+    const send = transport.sendMessage({ content: "Hello" });
+    expect(transport.getSnapshot().run.status).toBe("running");
     const assistant: Message = { id: "stream", role: "assistant", content: "H" };
     agent.emitMessages([...agent.messages, assistant]);
     const partial = transport.getSnapshot();
@@ -86,13 +133,13 @@ describe("AgUiTransport", () => {
     agent.emitMessages(agent.messages);
     expect(partial.messages.at(-1)?.content).toBe("H");
     expect(transport.getSnapshot().messages.at(-1)?.content).toBe("Hello back");
-    expect(transport.getSnapshot().isRunning).toBe(true);
+    expect(transport.getSnapshot().run.status).toBe("running");
     expect(listener).toHaveBeenCalled();
 
     agent.isRunning = false;
     finishRun();
     await send;
-    expect(transport.getSnapshot().isRunning).toBe(false);
+    expect(transport.getSnapshot().run.status).toBe("idle");
   });
 
   it("detaches SDK subscriptions and aborts once on disposal", () => {
@@ -109,7 +156,7 @@ describe("AgUiTransport", () => {
     expect(listener).not.toHaveBeenCalled();
   });
 
-  it("wraps one endpoint and adds the user message before running the agent", async () => {
+  it("maps the client thread to conversation and adds input before running", async () => {
     const agent = new FakeAgentClient();
     const createClient = vi.fn(() => agent);
     const runtime = new AgUiTransport(
@@ -117,27 +164,26 @@ describe("AgUiTransport", () => {
       createClient,
     );
 
-    await runtime.sendMessage("Hello Agent");
+    await runtime.sendMessage({ content: "Hello Agent" });
 
-    expect(createClient).toHaveBeenCalledOnce();
-    expect(createClient).toHaveBeenCalledWith(
-      expect.objectContaining({
-        endpoint: "https://agent.example.test/ag-ui",
-        threadId: expect.any(String),
-      }),
-    );
+    const threadId = createClient.mock.calls[0]?.[0].threadId;
+    expect(createClient).toHaveBeenCalledWith({
+      endpoint: "https://agent.example.test/ag-ui",
+      threadId,
+    });
+    expect(runtime.getSnapshot().conversation).toEqual({ id: threadId });
     expect(agent.messagesSeenAtRun[0]).toMatchObject([
       { role: "user", content: "Hello Agent" },
     ]);
-    expect(runtime.getSnapshot()).toMatchObject({
-      isRunning: false,
-      error: undefined,
-    });
+    expect(runtime.getSnapshot().run).toEqual({ status: "idle" });
   });
 
-  it("projects AG-UI message and state subscriber updates", () => {
+  it("projects typed AG-UI state subscriber updates", () => {
+    interface AppState {
+      selectedFile?: string;
+    }
     const agent = new FakeAgentClient();
-    const runtime = new AgUiTransport(
+    const runtime = new AgUiTransport<AppState>(
       { endpoint: "https://agent.example.test/ag-ui" },
       () => agent,
     );
@@ -146,12 +192,50 @@ describe("AgUiTransport", () => {
       { id: "assistant-2", role: "assistant", content: "Updated" },
     ]);
     agent.emitState({ selectedFile: "plugins/chat/index.tsx" });
+    const selectedFile: string | undefined =
+      runtime.getSnapshot().state.selectedFile;
 
     expect(runtime.getSnapshot()).toMatchObject({
       messages: [
         { id: "assistant-2", role: "assistant", content: "Updated" },
       ],
       state: { selectedFile: "plugins/chat/index.tsx" },
+    });
+    expect(selectedFile).toBe("plugins/chat/index.tsx");
+  });
+
+  it("maps run lifecycle ids, errors, and recovery into the runtime contract", () => {
+    const agent = new FakeAgentClient();
+    const runtime = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui" },
+      () => agent,
+    );
+
+    agent.emitRunStarted("server-thread", "run-1");
+    expect(runtime.getSnapshot()).toMatchObject({
+      conversation: { id: "server-thread" },
+      run: { id: "run-1", status: "running" },
+    });
+
+    agent.emitRunError("Agent endpoint is unavailable", "UNAVAILABLE");
+    expect(runtime.getSnapshot().run).toEqual({
+      id: "run-1",
+      status: "error",
+      error: {
+        message: "Agent endpoint is unavailable",
+        code: "UNAVAILABLE",
+      },
+    });
+
+    agent.emitRunStarted("server-thread", "run-2");
+    expect(runtime.getSnapshot().run).toEqual({
+      id: "run-2",
+      status: "running",
+    });
+    agent.emitRunFinished("server-thread", "run-2");
+    expect(runtime.getSnapshot().run).toEqual({
+      id: "run-2",
+      status: "idle",
     });
   });
 
@@ -166,17 +250,30 @@ describe("AgUiTransport", () => {
       () => agent,
     );
 
-    await expect(runtime.sendMessage("Hello")).rejects.toThrow(failure);
+    await expect(runtime.sendMessage({ content: "Hello" })).rejects.toThrow(failure);
     runtime.abort();
 
-    expect(runtime.getSnapshot()).toMatchObject({
-      isRunning: false,
-      error: failure,
+    expect(runtime.getSnapshot().run).toEqual({
+      status: "error",
+      error: { message: failure.message },
     });
     expect(agent.abortRun).toHaveBeenCalledOnce();
   });
 
-  it("creates a fresh AG-UI client and thread for a new conversation", async () => {
+  it("settles an aborted running snapshot", () => {
+    const agent = new FakeAgentClient();
+    const runtime = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui" },
+      () => agent,
+    );
+    agent.emitRunStarted("thread", "run");
+
+    runtime.abort();
+
+    expect(runtime.getSnapshot().run).toEqual({ id: "run", status: "idle" });
+  });
+
+  it("creates a fresh AG-UI client and conversation", async () => {
     const firstAgent = new FakeAgentClient();
     firstAgent.messages = [
       { id: "assistant-old", role: "assistant", content: "Old context" },
@@ -191,19 +288,19 @@ describe("AgUiTransport", () => {
       { endpoint: "https://agent.example.test/ag-ui" },
       createClient,
     );
+    const oldId = runtime.getSnapshot().conversation.id;
 
     await runtime.startNewConversation();
 
     const firstThreadId = createClient.mock.calls[0]?.[0].threadId;
     const secondThreadId = createClient.mock.calls[1]?.[0].threadId;
-    expect(firstThreadId).toEqual(expect.any(String));
-    expect(secondThreadId).toEqual(expect.any(String));
+    expect(firstThreadId).toBe(oldId);
     expect(secondThreadId).not.toBe(firstThreadId);
     expect(runtime.getSnapshot()).toEqual({
+      conversation: { id: secondThreadId },
       messages: [],
       state: {},
-      isRunning: false,
-      error: undefined,
+      run: { status: "idle" },
     });
 
     firstAgent.emitMessages([
@@ -211,7 +308,7 @@ describe("AgUiTransport", () => {
     ]);
     expect(runtime.getSnapshot().messages).toEqual([]);
 
-    await runtime.sendMessage("Fresh context");
+    await runtime.sendMessage({ content: "Fresh context" });
     expect(secondAgent.messagesSeenAtRun[0]).toMatchObject([
       { role: "user", content: "Fresh context" },
     ]);

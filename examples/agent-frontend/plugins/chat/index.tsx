@@ -99,9 +99,9 @@ export function ChatPlugin({ context }: UIPluginComponentProps) {
       </div>
 
       <form className="chat-plugin-form" onSubmit={submitMessage}>
-        {context.run.errorMessage === undefined ? null : (
+        {context.run.error === undefined ? null : (
           <p className="chat-plugin-error" role="alert">
-            {context.run.errorMessage}
+            {context.run.error.message}
           </p>
         )}
         <label htmlFor={`${context.instance.id}-input`}>消息</label>

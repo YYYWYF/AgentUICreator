@@ -1,4 +1,5 @@
 import type { AgentMessage } from "../framework/contracts/ui-plugin";
+import type { AppAgentState } from "../agent-contract/agent-state";
 
 export const initialPreviewMessages: AgentMessage[] = [
   {
@@ -102,7 +103,7 @@ export const initialPreviewMessages: AgentMessage[] = [
   },
 ];
 
-export const previewAgentState: unknown = {
+export const previewAgentState: AppAgentState = {
   selectedFile: "src/App.tsx",
   files: {
     "src/App.tsx": {
@@ -112,8 +113,10 @@ export const previewAgentState: unknown = {
     <UIPluginRuntime
       model={model}
       registry={pluginRegistry}
+      conversation={conversation}
       messages={messages}
       state={agentState}
+      run={run}
       actions={actions}
     />
   );

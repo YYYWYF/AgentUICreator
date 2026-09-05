@@ -135,10 +135,11 @@ function RuntimeFixture({
   return (
     <UIPluginRuntime
       actions={runtimeActions}
+      conversation={{ id: "error-boundary-test" }}
       messages={[]}
       model={model}
       registry={registry}
-      run={{ status: "idle", errorMessage: undefined }}
+      run={{ status: "idle" }}
       state={null}
     />
   );

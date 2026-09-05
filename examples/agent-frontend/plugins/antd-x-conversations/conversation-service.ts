@@ -16,11 +16,9 @@ export function messageBelongsToConversation(
   }
 
   const metadata = message.metadata;
-  const conversationKey =
-    readConversationKey(metadata?.conversationId) ??
-    readConversationKey(metadata?.threadId);
+  const conversationKey = readConversationKey(metadata?.conversationId);
 
-  // A live AG-UI runtime normally exposes only the current thread. Messages
+  // A live runtime normally exposes only the current conversation. Messages
   // without explicit history metadata therefore remain visible.
   return conversationKey === undefined || conversationKey === activeKey;
 }

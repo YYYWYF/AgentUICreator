@@ -11,7 +11,11 @@ export interface AgentMessagePart {
   text?: string | undefined;
   filename?: string | undefined;
   url?: string | undefined;
-  source?: { type: string; value: string } | undefined;
+  source?: {
+    type: string;
+    value: string;
+    mimeType?: string | undefined;
+  } | undefined;
   metadata?: unknown;
 }
 

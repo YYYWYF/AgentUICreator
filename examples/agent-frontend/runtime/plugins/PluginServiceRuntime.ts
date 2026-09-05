@@ -5,6 +5,7 @@ import type {
 import { validateAppUIComposition } from "../../framework/contracts/app-ui-composition";
 import { SlotRegistry } from "../slots/SlotRegistry";
 import type {
+  AgentUserInput,
   UIPluginActions,
   UIPluginDefinition,
   UIPluginServiceRegistrar,
@@ -17,7 +18,7 @@ import {
 import type { PluginDiagnosticContextValue } from "../diagnostics";
 
 export interface UIPluginRuntimeActions {
-  sendMessage(input: string): Promise<void>;
+  sendMessage(input: string | AgentUserInput): Promise<void>;
   startNewConversation(): Promise<void>;
   abortRun(): void;
   updateInstanceProps(
@@ -110,9 +111,9 @@ export class PluginServiceRuntime {
     return this.#activations.get(instanceId);
   }
 
-  reconcile(
+  reconcile<TState = unknown>(
     model: AppUIModel,
-    registry: PluginRegistry,
+    registry: PluginRegistry<TState>,
     actions: UIPluginRuntimeActions,
     diagnostics?: PluginDiagnosticContextValue | null,
   ): void {
@@ -127,7 +128,7 @@ export class PluginServiceRuntime {
 
     const pending = new Map<
       string,
-      { instance: PluginInstance; definition: UIPluginDefinition }
+      { instance: PluginInstance; definition: UIPluginDefinition<TState> }
     >();
 
     Object.values(model.pluginInstances)
@@ -199,9 +200,9 @@ export class PluginServiceRuntime {
     this.#emit();
   }
 
-  #activate(
+  #activate<TState = unknown>(
     instance: PluginInstance,
-    definition: UIPluginDefinition,
+    definition: UIPluginDefinition<TState>,
     actions: UIPluginRuntimeActions,
     diagnostics?: PluginDiagnosticContextValue | null,
     reportResolution = false,

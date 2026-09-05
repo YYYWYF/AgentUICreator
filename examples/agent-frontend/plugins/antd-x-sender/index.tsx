@@ -68,7 +68,7 @@ export function AntdXSenderPlugin({ context }: UIPluginComponentProps) {
       await context.actions.sendMessage(message);
       setValue("");
     } catch {
-      // The runtime error is projected back through context.run.errorMessage.
+      // The runtime error is projected back through context.run.error.
     }
   };
 
@@ -79,10 +79,10 @@ export function AntdXSenderPlugin({ context }: UIPluginComponentProps) {
       data-agent-run-status={context.run.status}
       data-ui-plugin="antd-x-sender"
     >
-      {context.run.errorMessage === undefined ? null : (
+      {context.run.error === undefined ? null : (
         <Alert
           closable
-          message={context.run.errorMessage}
+          message={context.run.error.message}
           showIcon
           type="error"
         />

@@ -1,19 +1,21 @@
+import type { AgentUserInput } from "./agent-input.js";
 import type {
   AgentTransport,
   AgentTransportSnapshot,
 } from "./agent-transport.js";
 
-export abstract class ObservableAgentTransport implements AgentTransport {
+export abstract class ObservableAgentTransport<TState = unknown>
+  implements AgentTransport<TState> {
   abstract readonly mode: string;
 
-  protected snapshot: AgentTransportSnapshot;
+  protected snapshot: AgentTransportSnapshot<TState>;
   private readonly listeners = new Set<() => void>();
 
-  protected constructor(snapshot: AgentTransportSnapshot) {
+  protected constructor(snapshot: AgentTransportSnapshot<TState>) {
     this.snapshot = snapshot;
   }
 
-  getSnapshot = (): AgentTransportSnapshot => this.snapshot;
+  getSnapshot = (): AgentTransportSnapshot<TState> => this.snapshot;
 
   subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
@@ -22,7 +24,7 @@ export abstract class ObservableAgentTransport implements AgentTransport {
     };
   };
 
-  protected publish(snapshot: AgentTransportSnapshot): void {
+  protected publish(snapshot: AgentTransportSnapshot<TState>): void {
     this.snapshot = snapshot;
     this.listeners.forEach((listener) => listener());
   }
@@ -32,7 +34,7 @@ export abstract class ObservableAgentTransport implements AgentTransport {
     this.abort();
   }
 
-  abstract sendMessage(input: string): Promise<void>;
+  abstract sendMessage(input: AgentUserInput): Promise<void>;
   abstract startNewConversation(): Promise<void>;
   abstract abort(): void;
 }

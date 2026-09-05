@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createAgentRuntime,
   type AgentTransport,
+  type AgentUserInput,
 } from "../src/index.js";
 import { MockAgentTransport } from "../src/testing/index.js";
 
@@ -28,13 +29,51 @@ describe("protocol-independent runtime delegation", () => {
     expect(dispose).toHaveBeenCalledOnce();
   });
 
+  it("normalizes string shorthand and preserves structured input", async () => {
+    const sendMessage = vi.fn(async (_input: AgentUserInput) => undefined);
+    const transport: AgentTransport<{ ready: boolean }> = {
+      mode: "recording",
+      getSnapshot: () => ({
+        conversation: { id: "conversation" },
+        messages: [],
+        state: { ready: true },
+        run: { status: "idle" },
+      }),
+      subscribe: () => () => undefined,
+      sendMessage,
+      startNewConversation: async () => undefined,
+      abort: () => undefined,
+    };
+    const runtime = createAgentRuntime({ transport });
+    const structured: AgentUserInput = {
+      content: [
+        { type: "text", text: "Inspect" },
+        {
+          type: "image",
+          source: {
+            type: "url",
+            value: "https://example.test/image.png",
+            mimeType: "image/png",
+          },
+          name: "image.png",
+        },
+      ],
+    };
+
+    await runtime.sendMessage("hello");
+    await runtime.sendMessage(structured);
+
+    expect(sendMessage).toHaveBeenNthCalledWith(1, { content: "hello" });
+    expect(sendMessage).toHaveBeenNthCalledWith(2, structured);
+  });
+
   it("aborts a pending mock reply without appending it to a new conversation", async () => {
     const runtime = createAgentRuntime({ transport: new MockAgentTransport() });
     const send = runtime.sendMessage("Old request");
-    expect(runtime.getSnapshot().isRunning).toBe(true);
+    expect(runtime.getSnapshot().run.status).toBe("running");
 
     runtime.abort();
-    expect(runtime.getSnapshot().isRunning).toBe(false);
+    expect(runtime.getSnapshot().run.status).toBe("idle");
     await runtime.startNewConversation();
     await send;
     expect(runtime.getSnapshot().messages).toEqual([]);
@@ -61,8 +100,13 @@ describe("protocol-independent runtime delegation", () => {
   });
 
   it("accepts a transport with an arbitrary mode and no dispose method", async () => {
-    const snapshot = { messages: [], state: { ready: true }, isRunning: false, error: undefined };
-    const transport: AgentTransport = {
+    const snapshot = {
+      conversation: { id: "memory" },
+      messages: [],
+      state: { ready: true },
+      run: { status: "idle" as const },
+    };
+    const transport: AgentTransport<{ ready: boolean }> = {
       mode: "in-memory-test",
       getSnapshot() { return snapshot; },
       subscribe: vi.fn(() => () => undefined),
@@ -77,14 +121,14 @@ describe("protocol-independent runtime delegation", () => {
     await runtime.startNewConversation();
     runtime.abort();
     runtime.dispose();
-    expect(transport.sendMessage).toHaveBeenCalledWith("Hello");
+    expect(transport.sendMessage).toHaveBeenCalledWith({ content: "Hello" });
     expect(transport.startNewConversation).toHaveBeenCalledOnce();
     expect(transport.abort).toHaveBeenCalledOnce();
   });
 });
 
 describe("Runtime Core with MockAgentTransport", () => {
-  it("starts with the configured frontend messages and state", () => {
+  it("starts with a conversation, configured state, and an idle run", () => {
     const runtime = createAgentRuntime({ transport: new MockAgentTransport({
       initialMessages: [
         { id: "assistant-1", role: "assistant", content: "Ready" },
@@ -94,12 +138,12 @@ describe("Runtime Core with MockAgentTransport", () => {
 
     expect(runtime.mode).toBe("mock");
     expect(runtime.getSnapshot()).toMatchObject({
+      conversation: { id: expect.any(String) },
       messages: [
         { id: "assistant-1", role: "assistant", content: "Ready" },
       ],
       state: { selectedFile: "src/App.tsx" },
-      isRunning: false,
-      error: undefined,
+      run: { status: "idle" },
     });
   });
 
@@ -115,7 +159,7 @@ describe("Runtime Core with MockAgentTransport", () => {
 
     expect(snapshots).toEqual([1, 2]);
     expect(runtime.getSnapshot()).toMatchObject({
-      isRunning: false,
+      run: { status: "idle", id: expect.any(String) },
       messages: [
         { role: "user", content: "inspect the UI" },
         {
@@ -126,21 +170,23 @@ describe("Runtime Core with MockAgentTransport", () => {
     });
   });
 
-  it("clears messages, state, and errors for a new conversation", async () => {
+  it("creates a fresh conversation and resets messages, state, and run", async () => {
     const runtime = createAgentRuntime({ transport: new MockAgentTransport({
       initialMessages: [
         { id: "assistant-1", role: "assistant", content: "Old context" },
       ],
       initialState: { selectedFile: "old.tsx" },
     }) });
+    const oldId = runtime.getSnapshot().conversation.id;
 
     await runtime.startNewConversation();
 
     expect(runtime.getSnapshot()).toEqual({
+      conversation: { id: expect.any(String) },
       messages: [],
       state: {},
-      isRunning: false,
-      error: undefined,
+      run: { status: "idle" },
     });
+    expect(runtime.getSnapshot().conversation.id).not.toBe(oldId);
   });
 });

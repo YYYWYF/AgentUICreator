@@ -6,9 +6,10 @@ import type {
   SlotNode,
 } from "../../framework/contracts/app-ui-model";
 import type {
+  AgentConversation,
   AgentMessage,
+  AgentRunState,
   UIPluginContext,
-  UIPluginRunState,
 } from "../../framework/contracts/ui-plugin";
 import { LayoutRenderer } from "../layout";
 import type { PluginRegistry } from "./PluginRegistry";
@@ -36,12 +37,13 @@ import {
 
 import "./plugin-runtime.css";
 
-export interface UIPluginRuntimeProps {
+export interface UIPluginRuntimeProps<TState = unknown> {
   model: AppUIModel;
-  registry: PluginRegistry;
+  registry: PluginRegistry<TState>;
+  conversation: AgentConversation;
   messages: AgentMessage[];
-  state: unknown;
-  run: UIPluginRunState;
+  state: TState;
+  run: AgentRunState;
   actions: UIPluginRuntimeActions;
   className?: string | undefined;
   appUIModelHash?: string | undefined;
@@ -49,13 +51,14 @@ export interface UIPluginRuntimeProps {
   onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
 }
 
-interface SlotContentProps {
+interface SlotContentProps<TState = unknown> {
   slotId: string;
   model: AppUIModel;
-  registry: PluginRegistry;
+  registry: PluginRegistry<TState>;
+  conversation: AgentConversation;
   messages: AgentMessage[];
-  state: unknown;
-  run: UIPluginRunState;
+  state: TState;
+  run: AgentRunState;
   actions: UIPluginRuntimeActions;
   onPluginError(failure: PluginRenderFailure): void;
   onPluginReset(instanceId: string): void;
@@ -105,17 +108,18 @@ function RuntimePluginMountProbe({
   return children;
 }
 
-function SlotContent({
+function SlotContent<TState = unknown>({
   slotId,
   model,
   registry,
+  conversation,
   messages,
   state,
   run,
   actions,
   onPluginError,
   onPluginReset,
-}: SlotContentProps) {
+}: SlotContentProps<TState>) {
   const serviceRuntime = usePluginServiceRuntime();
   const slots = serviceRuntime.slots;
   const getSnapshot = useCallback(
@@ -159,7 +163,8 @@ function SlotContent({
         const activation = serviceRuntime.getActivation(instance.id);
         if (activation?.status !== "active") return null;
 
-        const context: UIPluginContext = {
+        const context: UIPluginContext<TState> = {
+          conversation,
           messages,
           state,
           run,
@@ -178,6 +183,7 @@ function SlotContent({
           return (
             <SlotContent
               actions={actions}
+              conversation={conversation}
               messages={messages}
               model={model}
               onPluginError={onPluginError}
@@ -228,11 +234,15 @@ function SlotContent({
   );
 }
 
-interface LayoutSlotOutletProps extends Omit<SlotContentProps, "slotId"> {
+interface LayoutSlotOutletProps<TState = unknown>
+  extends Omit<SlotContentProps<TState>, "slotId"> {
   slot: SlotNode;
 }
 
-function LayoutSlotOutlet({ slot, ...props }: LayoutSlotOutletProps) {
+function LayoutSlotOutlet<TState = unknown>({
+  slot,
+  ...props
+}: LayoutSlotOutletProps<TState>) {
   const slots = usePluginServiceRuntime().slots;
   useEffect(
     () =>
@@ -245,15 +255,16 @@ function LayoutSlotOutlet({ slot, ...props }: LayoutSlotOutletProps) {
   return <SlotContent {...props} slotId={slot.slotId} />;
 }
 
-function UIPluginRuntimeContent({
+function UIPluginRuntimeContent<TState = unknown>({
   model,
   registry,
+  conversation,
   messages,
   state,
   run,
   actions,
   className,
-}: UIPluginRuntimeProps) {
+}: UIPluginRuntimeProps<TState>) {
   const diagnostics = useOptionalPluginDiagnosticContext();
   const serviceRuntime = usePluginServiceRuntime();
   usePluginServiceRuntimeRevision();
@@ -354,6 +365,7 @@ function UIPluginRuntimeContent({
         renderSlot={(slot: SlotNode) => (
           <LayoutSlotOutlet
             actions={actions}
+            conversation={conversation}
             messages={messages}
             model={model}
             onPluginError={reportPluginFailure}
@@ -442,7 +454,9 @@ function UIPluginRuntimeContent({
   );
 }
 
-export function UIPluginRuntime(props: UIPluginRuntimeProps) {
+export function UIPluginRuntime<TState = unknown>(
+  props: UIPluginRuntimeProps<TState>,
+) {
   const inheritedServiceRuntime = useOptionalPluginServiceRuntime();
   const inheritedDiagnostics = useOptionalPluginDiagnosticContext();
 

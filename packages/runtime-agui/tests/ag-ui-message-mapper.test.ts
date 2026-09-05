@@ -77,7 +77,15 @@ describe("mapAgUiMessage", () => {
       id: "user-files", role: "user",
       content: [
         { type: "text", text: "Inspect these" },
-        { type: "image", source: { type: "url", value: "https://example.test/image.png" }, metadata: { filename: "image.png" } },
+        {
+          type: "image",
+          source: {
+            type: "url",
+            value: "https://example.test/image.png",
+            mimeType: "image/png",
+          },
+          metadata: { filename: "image.png" },
+        },
         { type: "binary", mimeType: "application/pdf", url: "https://example.test/report.pdf", filename: "report.pdf" },
       ],
     });
@@ -87,7 +95,11 @@ describe("mapAgUiMessage", () => {
         { type: "text", text: "Inspect these" },
         {
           type: "image",
-          source: { type: "url", value: "https://example.test/image.png" },
+          source: {
+            type: "url",
+            value: "https://example.test/image.png",
+            mimeType: "image/png",
+          },
           metadata: { filename: "image.png" },
         },
         {

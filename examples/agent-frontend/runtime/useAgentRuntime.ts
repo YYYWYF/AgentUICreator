@@ -5,7 +5,9 @@ import type {
   AgentRuntimeSnapshot,
 } from "@agent-ui/runtime-core";
 
-export function useAgentRuntime(runtime: AgentRuntime): AgentRuntimeSnapshot {
+export function useAgentRuntime<TState = unknown>(
+  runtime: AgentRuntime<TState>,
+): AgentRuntimeSnapshot<TState> {
   return useSyncExternalStore(
     runtime.subscribe,
     runtime.getSnapshot,

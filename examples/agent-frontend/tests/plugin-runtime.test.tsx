@@ -15,10 +15,10 @@ import {
 } from "../framework/contracts/app-ui-model";
 import type {
   AgentMessage,
+  AgentRunState,
   UIPluginComponentProps,
   UIPluginContext,
   UIPluginDefinition,
-  UIPluginRunState,
 } from "../framework/contracts/ui-plugin";
 import { pluginDefinitions } from "../plugins";
 import { antdXConversationsPlugin } from "../plugins/antd-x-conversations/definition";
@@ -55,9 +55,8 @@ const runtimeActions = {
   updateInstanceProps: vi.fn(),
 };
 
-const idleRun: UIPluginRunState = {
+const idleRun: AgentRunState = {
   status: "idle",
-  errorMessage: undefined,
 };
 
 const defaultConversationMessages: AgentMessage[] = initialPreviewMessages.map(
@@ -184,6 +183,7 @@ function fixtureRuntimeProps(
 ): UIPluginRuntimeProps {
   return {
     actions: runtimeActions,
+    conversation: { id: "default" },
     messages: [],
     model,
     registry: createPluginRegistry(definitions),
@@ -244,6 +244,7 @@ describe("UIPluginRuntime", () => {
 
     const html = await renderPluginRuntime({
       actions: runtimeActions,
+      conversation: { id: "default" },
       messages: defaultConversationMessages,
       model,
       registry,
@@ -298,6 +299,7 @@ describe("UIPluginRuntime", () => {
     const model = parseAppUIModel(appUIJson);
     const mounted = await mountPluginRuntime({
       actions: runtimeActions,
+      conversation: { id: "default" },
       messages: defaultConversationMessages,
       model,
       registry: createPluginRegistry(antdXTemplatePlugins),
@@ -385,6 +387,7 @@ describe("UIPluginRuntime", () => {
 
     const html = await renderPluginRuntime({
       actions: runtimeActions,
+      conversation: { id: "default" },
       messages: [
         {
           id: "other-conversation-message",
@@ -437,6 +440,7 @@ describe("UIPluginRuntime", () => {
 
     const html = await renderPluginRuntime({
       actions: runtimeActions,
+      conversation: { id: "default" },
       messages,
       model,
       registry,
@@ -454,13 +458,13 @@ describe("UIPluginRuntime", () => {
   it("renders the running timeline when the current conversation has no chat messages", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
-    const running: UIPluginRunState = {
+    const running: AgentRunState = {
       status: "running",
-      errorMessage: undefined,
     };
 
     const html = await renderPluginRuntime({
       actions: runtimeActions,
+      conversation: { id: "default" },
       messages: [],
       model,
       registry,
@@ -554,6 +558,7 @@ describe("UIPluginRuntime", () => {
 
     const html = await renderPluginRuntime({
       actions: runtimeActions,
+      conversation: { id: "default" },
       messages: initialPreviewMessages,
       model,
       registry,
@@ -587,6 +592,7 @@ describe("UIPluginRuntime", () => {
 
     const html = await renderPluginRuntime({
       actions: runtimeActions,
+      conversation: { id: "default" },
       messages: defaultConversationMessages,
       model,
       registry,
@@ -613,6 +619,7 @@ describe("UIPluginRuntime", () => {
 
     const html = await renderPluginRuntime({
       actions: runtimeActions,
+      conversation: { id: "default" },
       messages: initialPreviewMessages,
       model,
       registry,
@@ -627,13 +634,13 @@ describe("UIPluginRuntime", () => {
   it("renders the shared Agent run state through the template plugins", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
-    const running: UIPluginRunState = {
+    const running: AgentRunState = {
       status: "running",
-      errorMessage: undefined,
     };
 
     const html = await renderPluginRuntime({
       actions: runtimeActions,
+      conversation: { id: "default" },
       messages: defaultConversationMessages,
       model,
       registry,
@@ -682,13 +689,14 @@ describe("UIPluginRuntime", () => {
       abortRun: vi.fn(),
       updateInstanceProps: vi.fn(),
     };
-    const failedRun: UIPluginRunState = {
+    const failedRun: AgentRunState = {
       status: "error",
-      errorMessage: "Agent endpoint is unavailable",
+      error: { message: "Agent endpoint is unavailable" },
     };
 
     await renderPluginRuntime({
       actions,
+      conversation: { id: "default" },
       messages: [],
       model,
       registry: createPluginRegistry([probePlugin]),
@@ -701,6 +709,7 @@ describe("UIPluginRuntime", () => {
     }
 
     expect(capturedContext.run).toBe(failedRun);
+    expect(capturedContext.conversation).toEqual({ id: "default" });
     await capturedContext.actions.sendMessage("hello");
     await capturedContext.actions.startNewConversation();
     capturedContext.actions.abortRun();
@@ -724,6 +733,7 @@ describe("UIPluginRuntime", () => {
 
     const html = await renderPluginRuntime({
       actions: runtimeActions,
+      conversation: { id: "default" },
       messages: initialPreviewMessages,
       model,
       registry,

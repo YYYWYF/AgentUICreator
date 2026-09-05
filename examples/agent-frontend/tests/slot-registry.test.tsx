@@ -176,10 +176,11 @@ describe("Layout Slot declarations", () => {
         <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
           <UIPluginRuntime
             actions={runtimeActions}
+            conversation={{ id: "slot-registry-test" }}
             messages={[]}
             model={model}
             registry={createPluginRegistry([])}
-            run={{ status: "idle", errorMessage: undefined }}
+            run={{ status: "idle" }}
             state={null}
           />
         </PluginServiceRuntimeContext.Provider>,

@@ -131,10 +131,11 @@ function RuntimeFaultFixture({ model }: { model: ReturnType<typeof createPreview
       <UIPluginRuntime
         actions={previewActions}
         className="plugin-boundary-runtime-fixture-layout"
+        conversation={{ id: "preview-runtime-faults" }}
         messages={[]}
         model={model}
         registry={previewRegistry}
-        run={{ status: "idle", errorMessage: undefined }}
+        run={{ status: "idle" }}
         state={null}
       />
     </div>

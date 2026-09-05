@@ -14,19 +14,19 @@ import {
 } from "./PluginServiceRuntime";
 import { useOptionalPluginDiagnosticContext } from "../diagnostics";
 
-export interface PluginServiceProviderProps {
+export interface PluginServiceProviderProps<TState = unknown> {
   model: AppUIModel;
-  registry: PluginRegistry;
+  registry: PluginRegistry<TState>;
   actions: UIPluginRuntimeActions;
   children: ReactNode;
 }
 
-export function PluginServiceProvider({
+export function PluginServiceProvider<TState = unknown>({
   model,
   registry,
   actions,
   children,
-}: PluginServiceProviderProps) {
+}: PluginServiceProviderProps<TState>) {
   const [runtime] = useState(() => new PluginServiceRuntime());
   const diagnostics = useOptionalPluginDiagnosticContext();
 

@@ -5,20 +5,21 @@ import {
 } from "../../framework/contracts/ui-plugin";
 import type { PluginSlotCatalog } from "../../framework/contracts/app-ui-composition";
 
-export interface PluginRegistry {
-  register(plugin: UIPluginDefinition): void;
-  get(pluginId: string): UIPluginDefinition | undefined;
-  list(): UIPluginDefinition[];
+export interface PluginRegistry<TState = unknown> {
+  register(plugin: UIPluginDefinition<TState>): void;
+  get(pluginId: string): UIPluginDefinition<TState> | undefined;
+  list(): UIPluginDefinition<TState>[];
 }
 
-export class StaticPluginRegistry implements PluginRegistry {
-  readonly #plugins = new Map<string, UIPluginDefinition>();
+export class StaticPluginRegistry<TState = unknown>
+  implements PluginRegistry<TState> {
+  readonly #plugins = new Map<string, UIPluginDefinition<TState>>();
 
-  constructor(plugins: readonly UIPluginDefinition[] = []) {
+  constructor(plugins: readonly UIPluginDefinition<TState>[] = []) {
     plugins.forEach((plugin) => this.register(plugin));
   }
 
-  register(plugin: UIPluginDefinition): void {
+  register(plugin: UIPluginDefinition<TState>): void {
     const manifest = parseUIPluginManifest(plugin.manifest);
     parseUIPluginInject(plugin.inject ?? []);
 
@@ -29,23 +30,29 @@ export class StaticPluginRegistry implements PluginRegistry {
     this.#plugins.set(manifest.id, plugin);
   }
 
-  get(pluginId: string): UIPluginDefinition | undefined {
+  get(pluginId: string): UIPluginDefinition<TState> | undefined {
     return this.#plugins.get(pluginId);
   }
 
-  list(): UIPluginDefinition[] {
+  list(): UIPluginDefinition<TState>[] {
     return [...this.#plugins.values()];
   }
 }
 
-export function createPluginRegistry(
-  plugins: readonly UIPluginDefinition[] = [],
-): PluginRegistry {
-  return new StaticPluginRegistry(plugins);
+export function createPluginRegistry<TState = unknown>(
+  plugins:
+    | readonly UIPluginDefinition<TState>[]
+    | readonly UIPluginDefinition<unknown>[] = [],
+): PluginRegistry<TState> {
+  // Definitions typed with `unknown` are state-agnostic and can safely join a
+  // registry whose composition root supplies a concrete application state.
+  return new StaticPluginRegistry<TState>(
+    plugins as readonly UIPluginDefinition<TState>[],
+  );
 }
 
-export function createPluginSlotCatalog(
-  registry: PluginRegistry,
+export function createPluginSlotCatalog<TState = unknown>(
+  registry: PluginRegistry<TState>,
 ): PluginSlotCatalog {
   return Object.fromEntries(
     registry.list().map((definition) => [

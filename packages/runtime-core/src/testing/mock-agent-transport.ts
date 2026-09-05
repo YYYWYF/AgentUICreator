@@ -1,37 +1,62 @@
+import type { AgentInputPart, AgentUserInput } from "../agent-input.js";
 import type { AgentMessage } from "../agent-message.js";
 import { ObservableAgentTransport } from "../observable-agent-transport.js";
 
-export interface MockAgentTransportConfig {
+export interface MockAgentTransportConfig<TState = unknown> {
   initialMessages?: AgentMessage[] | undefined;
-  initialState?: unknown;
+  initialState?: TState | undefined;
 }
 
 function createMessageId(prefix: string): string {
   return `${prefix}-${crypto.randomUUID()}`;
 }
 
-export class MockAgentTransport extends ObservableAgentTransport {
+function inputContentForMessage(
+  content: AgentUserInput["content"],
+): string | AgentInputPart[] | undefined {
+  if (typeof content === "string") {
+    const text = content.trim();
+    return text.length === 0 ? undefined : text;
+  }
+  return content.length === 0 ? undefined : structuredClone(content);
+}
+
+function describeInput(content: string | AgentInputPart[]): string {
+  if (typeof content === "string") return content;
+  const text = content
+    .filter((part): part is Extract<AgentInputPart, { type: "text" }> =>
+      part.type === "text")
+    .map((part) => part.text.trim())
+    .filter(Boolean)
+    .join(" ");
+  const mediaCount =
+    content.length - content.filter((part) => part.type === "text").length;
+  return text || `${mediaCount} media attachment${mediaCount === 1 ? "" : "s"}`;
+}
+
+export class MockAgentTransport<TState = unknown>
+  extends ObservableAgentTransport<TState> {
   readonly mode = "mock" as const;
 
   private runVersion = 0;
 
-  constructor(config: MockAgentTransportConfig = {}) {
+  constructor(config: MockAgentTransportConfig<TState> = {}) {
     super({
+      conversation: { id: crypto.randomUUID() },
       messages: [...(config.initialMessages ?? [])],
-      state: config.initialState ?? {},
-      isRunning: false,
-      error: undefined,
+      state: config.initialState ?? ({} as TState),
+      run: { status: "idle" },
     });
   }
 
-  async sendMessage(input: string): Promise<void> {
-    const message = input.trim();
+  async sendMessage(input: AgentUserInput): Promise<void> {
+    const content = inputContentForMessage(input.content);
 
-    if (message.length === 0) {
+    if (content === undefined) {
       return;
     }
 
-    if (this.snapshot.isRunning) {
+    if (this.snapshot.run.status === "running") {
       throw new Error("智能体运行时正在处理另一条消息。");
     }
 
@@ -44,11 +69,10 @@ export class MockAgentTransport extends ObservableAgentTransport {
         {
           id: createMessageId("mock-user"),
           role: "user",
-          content: message,
+          content,
         },
       ],
-      isRunning: true,
-      error: undefined,
+      run: { id: crypto.randomUUID(), status: "running" },
     });
 
     await Promise.resolve();
@@ -64,32 +88,35 @@ export class MockAgentTransport extends ObservableAgentTransport {
         {
           id: createMessageId("mock-assistant"),
           role: "assistant",
-          content: `Mock agent received: ${message}`,
+          content: `Mock agent received: ${describeInput(content)}`,
         },
       ],
-      isRunning: false,
+      run: { ...this.snapshot.run, status: "idle" },
     });
   }
 
   async startNewConversation(): Promise<void> {
-    if (this.snapshot.isRunning) {
+    if (this.snapshot.run.status === "running") {
       throw new Error("智能体运行时正在处理另一条消息。");
     }
 
     this.publish({
+      conversation: { id: crypto.randomUUID() },
       messages: [],
-      state: {},
-      isRunning: false,
-      error: undefined,
+      state: {} as TState,
+      run: { status: "idle" },
     });
   }
 
   abort(): void {
-    if (!this.snapshot.isRunning) {
+    if (this.snapshot.run.status !== "running") {
       return;
     }
 
     this.runVersion += 1;
-    this.publish({ ...this.snapshot, isRunning: false });
+    this.publish({
+      ...this.snapshot,
+      run: { ...this.snapshot.run, status: "idle" },
+    });
   }
 }

@@ -8,15 +8,19 @@ import {
 import { XProvider } from "@ant-design/x";
 import { theme as antdTheme } from "antd";
 import { createAgUiTransport } from "@agent-ui/runtime-agui";
-import { createAgentRuntime } from "@agent-ui/runtime-core";
+import {
+  createAgentRuntime,
+  type AgentConversation,
+  type AgentRunState,
+} from "@agent-ui/runtime-core";
 import { MockAgentTransport } from "@agent-ui/runtime-core/testing";
 
 import appUIJsonSource from "../app-ui/app-ui.json?raw";
+import type { AppAgentState } from "../agent-contract/agent-state";
 import {
   parseAppUIModel,
   parseAppUIModelJson,
 } from "../framework/contracts/app-ui-model";
-import type { UIPluginRunState } from "../framework/contracts/ui-plugin";
 import { pluginDefinitions } from "../plugins";
 import {
   AGENT_UI_THEME_SERVICE,
@@ -45,16 +49,18 @@ import {
 import "./styles.css";
 
 const initialAppUIModel = parseAppUIModelJson(appUIJsonSource);
-const pluginRegistry = createPluginRegistry(pluginDefinitions);
+const pluginRegistry = createPluginRegistry<AppAgentState>(pluginDefinitions);
 const endpoint = import.meta.env.VITE_AGENT_ENDPOINT?.trim();
 const agentTransport =
   import.meta.env.DEV && !endpoint
-    ? new MockAgentTransport({
+    ? new MockAgentTransport<AppAgentState>({
         initialMessages: initialPreviewMessages,
         initialState: previewAgentState,
       })
-    : createAgUiTransport({ endpoint });
-const agentRuntime = createAgentRuntime({ transport: agentTransport });
+    : createAgUiTransport<AppAgentState>({ endpoint });
+const agentRuntime = createAgentRuntime<AppAgentState>({
+  transport: agentTransport,
+});
 
 const sharedThemeTokens = {
   colorPrimary: "#7565ea",
@@ -105,16 +111,18 @@ const getDefaultThemeMode = (): AgentUIThemeMode => "dark";
 
 function AgentFrontendSurface({
   actions,
+  conversation,
   messages,
   model,
   run,
   state,
 }: {
   actions: UIPluginRuntimeActions;
+  conversation: AgentConversation;
   messages: ReturnType<typeof useAgentRuntime>["messages"];
   model: typeof initialAppUIModel;
-  run: UIPluginRunState;
-  state: unknown;
+  run: AgentRunState;
+  state: AppAgentState;
 }) {
   const themeService = usePluginService<AgentUIThemeService>(
     AGENT_UI_THEME_SERVICE,
@@ -139,6 +147,7 @@ function AgentFrontendSurface({
         <UIPluginRuntime
           actions={actions}
           className="agent-template-shell"
+          conversation={conversation}
           messages={messages}
           model={model}
           registry={pluginRegistry}
@@ -162,14 +171,6 @@ export function App({
   const [model, setModel] = useState(initialAppUIModel);
   const [appUIModelHash, setAppUIModelHash] = useState<string>();
   const agent = useAgentRuntime(agentRuntime);
-  const run: UIPluginRunState = {
-    status: agent.isRunning
-      ? "running"
-      : agent.error === undefined
-        ? "idle"
-        : "error",
-    errorMessage: agent.error?.message,
-  };
 
   useEffect(() => {
     let active = true;
@@ -236,9 +237,10 @@ export function App({
       >
         <AgentFrontendSurface
           actions={pluginActions}
+          conversation={agent.conversation}
           messages={agent.messages}
           model={model}
-          run={run}
+          run={agent.run}
           state={agent.state}
         />
       </PluginServiceProvider>

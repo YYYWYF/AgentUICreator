@@ -1,4 +1,8 @@
-import type { AgentMessage } from "@agent-ui/runtime-core";
+import type {
+  AgentConversation,
+  AgentMessage,
+  AgentRunState,
+} from "@agent-ui/runtime-core";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import {
@@ -78,5 +82,17 @@ describe("UIPluginManifest", () => {
 
   it("exposes frontend-owned messages in the plugin context", () => {
     expectTypeOf<UIPluginContext["messages"]>().toEqualTypeOf<AgentMessage[]>();
+    expectTypeOf<UIPluginContext["conversation"]>()
+      .toEqualTypeOf<AgentConversation>();
+    expectTypeOf<UIPluginContext["run"]>().toEqualTypeOf<AgentRunState>();
+  });
+
+  it("propagates application-owned state through the plugin context", () => {
+    interface AppState {
+      selectedFile: string;
+    }
+
+    expectTypeOf<UIPluginContext<AppState>["state"]>()
+      .toEqualTypeOf<AppState>();
   });
 });

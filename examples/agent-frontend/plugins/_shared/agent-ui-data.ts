@@ -1,6 +1,6 @@
 import type {
+  AgentRunState,
   AgentMessage,
-  UIPluginRunState,
 } from "../../framework/contracts/ui-plugin";
 
 export type InspectionStatus = "loading" | "success" | "error" | "abort";
@@ -67,7 +67,7 @@ export function stateSurface(value: unknown): Record<string, unknown> {
 
 function toolStatus(
   result: Extract<AgentMessage, { role: "tool" }> | undefined,
-  run: UIPluginRunState,
+  run: AgentRunState,
 ): InspectionStatus {
   if (result?.error !== undefined) {
     return "error";
@@ -83,7 +83,7 @@ function toolStatus(
 
 export function inspectToolCalls(
   messages: AgentMessage[],
-  run: UIPluginRunState,
+  run: AgentRunState,
 ): ToolCallInspection[] {
   const results = new Map(
     messages
@@ -114,7 +114,7 @@ export function inspectToolCalls(
 
 function activityStatus(
   content: Record<string, unknown>,
-  run: UIPluginRunState,
+  run: AgentRunState,
 ): InspectionStatus {
   const rawStatus = asString(content.status)?.toLowerCase();
   if (rawStatus === "error" || rawStatus === "failed") {
@@ -145,7 +145,7 @@ function activityStatus(
 
 export function inspectActivities(
   messages: AgentMessage[],
-  run: UIPluginRunState,
+  run: AgentRunState,
 ): ActivityInspection[] {
   return messages.flatMap((message) => {
     if (message.role !== "activity") {
