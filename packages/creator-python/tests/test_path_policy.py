@@ -1,3 +1,5 @@
+import agent_ui_creator.minimal_agent.path_policy as path_policy_module
+
 from agent_ui_creator.minimal_agent.path_policy import (
     MinimalAgentPathPolicy,
     PathPolicyViolation,
@@ -73,3 +75,45 @@ def test_backend_rejects_stale_edit_without_touching_activity(tmp_path):
     assert "stale-version" in result.error
     assert target.read_text(encoding="utf-8") == "external\n"
     assert backend.mutation_revision == 0
+
+
+def test_write_new_file_fails_closed_when_external_process_creates_it_before_commit(
+    tmp_path, monkeypatch
+):
+    plugins = tmp_path / "plugins"
+    plugins.mkdir()
+    target = plugins / "new.ts"
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    assert backend.read("/plugins/new.ts").error is not None
+    real_create = path_policy_module.create_creator_file_atomically
+
+    def conflicting_create(project_root, file_path, content):
+        target.write_text("external\n", encoding="utf-8")
+        return real_create(project_root, file_path, content)
+
+    monkeypatch.setattr(
+        path_policy_module, "create_creator_file_atomically", conflicting_create
+    )
+
+    result = backend.write("/plugins/new.ts", "creator\n")
+
+    assert "stale-version" in result.error
+    assert target.read_text(encoding="utf-8") == "external\n"
+    assert backend.mutation_revision == 0
+    assert backend.activity.snapshot()["files"] == []
+    assert "transaction" not in backend.activity.finish()
+
+
+def test_write_existing_file_still_replaces_it(tmp_path):
+    plugins = tmp_path / "plugins"
+    plugins.mkdir()
+    target = plugins / "existing.ts"
+    target.write_text("before\n", encoding="utf-8")
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    assert backend.read("/plugins/existing.ts").error is None
+
+    result = backend.write("/plugins/existing.ts", "after\n")
+
+    assert result.error is None
+    assert target.read_text(encoding="utf-8") == "after\n"
+    assert backend.mutation_revision == 1

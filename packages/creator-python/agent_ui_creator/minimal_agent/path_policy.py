@@ -18,8 +18,12 @@ from deepagents.backends.protocol import (
 from deepagents.backends.utils import perform_string_replacement
 
 from ..activity import CreatorActivityRecorder
-from ..files import CreatorFileObservationError, CreatorFileStateConflictError
-from ..files import replace_creator_file_atomically
+from ..files import (
+    CreatorFileObservationError,
+    CreatorFileStateConflictError,
+    create_creator_file_atomically,
+    replace_creator_file_atomically,
+)
 from ..transactions import CreatorTransactionError
 
 _DENIED_DIRECTORY_NAMES = frozenset(
@@ -220,9 +224,12 @@ class PolicyFilesystemBackend(FilesystemBackend):
             if current.exists and current.content == content:
                 return WriteResult(path=file_path)
             self.activity.capture_before_content(authorized, current.content)
-            replace_creator_file_atomically(
-                self.cwd, authorized, content, expected=current
-            )
+            if current.exists:
+                replace_creator_file_atomically(
+                    self.cwd, authorized, content, expected=current
+                )
+            else:
+                create_creator_file_atomically(self.cwd, authorized, content)
             self.activity.file_observations.observe(authorized)
             self.activity.touch(authorized)
             return WriteResult(path=file_path)
