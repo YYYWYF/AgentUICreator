@@ -6,7 +6,13 @@ import shutil
 from pathlib import Path
 
 from agent_ui_creator.activity import CreatorActivityRecorder
-from agent_ui_creator.app_ui_model import AppUIModelMutationService, ProjectMutationCoordinator
+from agent_ui_creator.app_ui_model import (
+    APP_UI_MODEL_PATH,
+    REGISTRY_PATH,
+    AppUIModelMutationService,
+    ProjectMutationCoordinator,
+)
+from agent_ui_creator.files import read_creator_file_state
 from agent_ui_creator.project_control import ProjectControlClient
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
@@ -86,39 +92,123 @@ def test_real_target_mutation_uses_temp_copy_and_python_transaction(tmp_path):
     assert restored["hash"] == inspection["hash"]
 
 
-def test_real_target_two_path_registry_mutation_and_undo(tmp_path):
-    project_root = _copy_target(tmp_path, "two-path")
-    client, activity, service = _mutation_service(project_root, "python-two-path")
-    inspection = asyncio.run(client.inspect_ui_project())
-    selected = set(inspection["registry"]["selectedPluginIds"])
-    asset = next(
-        asset for asset in inspection["pluginAssets"] if asset["pluginId"] not in selected
+def test_real_add_instance_updates_app_ui_and_registry_and_is_undoable(tmp_path):
+    run_id = "python-real-app-ui-registry-undo"
+    instance_id = "agent-activity-feed-main"
+    plugin_id = "antd-x-activity-feed"
+    changed_paths = {APP_UI_MODEL_PATH, REGISTRY_PATH}
+    source_app_ui_path = TARGET_PROJECT / APP_UI_MODEL_PATH
+    source_registry_path = TARGET_PROJECT / REGISTRY_PATH
+    source_app_ui_content = source_app_ui_path.read_bytes()
+    source_registry_content = source_registry_path.read_bytes()
+
+    project_root = _copy_target(tmp_path, "real-app-ui-registry-undo")
+    app_ui_path = project_root / APP_UI_MODEL_PATH
+    registry_path = project_root / REGISTRY_PATH
+    original_app_ui_content = app_ui_path.read_bytes()
+    original_registry_content = registry_path.read_bytes()
+    original_registry_hash = read_creator_file_state(
+        project_root, REGISTRY_PATH
+    ).hash
+    client, activity, service = _mutation_service(project_root, run_id)
+
+    before = asyncio.run(client.inspect_app_ui_model())
+    before_project = asyncio.run(client.inspect_ui_project())
+    matching_assets = [
+        asset
+        for asset in before_project["pluginAssets"]
+        if asset["pluginId"] == plugin_id
+    ]
+    assert len(matching_assets) == 1, (
+        "Real two-path fixture drifted: antd-x-activity-feed must exist as exactly "
+        "one Plugin asset."
+    )
+    assert instance_id not in before["model"]["pluginInstances"], (
+        "Real two-path fixture drifted: agent-activity-feed-main must be absent "
+        "from AppUIModel."
+    )
+    assert plugin_id not in before_project["registry"]["selectedPluginIds"], (
+        "Real two-path fixture drifted: antd-x-activity-feed must be absent from "
+        "the selected Registry."
+    )
+    assert plugin_id not in original_registry_content.decode("utf-8"), (
+        "Real two-path fixture drifted: registry.generated.ts must not contain "
+        "antd-x-activity-feed."
     )
 
+    operation = {
+        "type": "add_instance",
+        "instance": {
+            "id": instance_id,
+            "pluginId": plugin_id,
+            "enabled": True,
+            "mount": {"slotId": "inspector.activity"},
+        },
+    }
     result = asyncio.run(
         service.mutate(
-            app_ui_model_hash=inspection["appUIModel"]["hash"],
-            operations=[
-                {
-                    "type": "add_instance",
-                    "instance": {
-                        "id": "phase-3b2-two-path",
-                        "pluginId": asset["pluginId"],
-                        "enabled": False,
-                    },
-                }
-            ],
+            app_ui_model_hash=before["hash"],
+            operations=[operation],
         )
     )
-    receipt = activity.finish()
+    target_result = result.target_result
+    after = asyncio.run(client.inspect_app_ui_model())
+    after_project = asyncio.run(client.inspect_ui_project())
+    added_instance = after["model"]["pluginInstances"][instance_id]
+    registry_state = read_creator_file_state(project_root, REGISTRY_PATH)
+    registry_content = registry_path.read_text(encoding="utf-8")
 
-    assert result.target_result["changedPaths"] == [
-        "app-ui/app-ui.json",
-        "plugins/registry.generated.ts",
-    ]
+    assert target_result["changed"] is True
+    assert set(target_result["changedPaths"]) == changed_paths
+    assert result.mutation_revision == 2
     assert activity.revision == 2
-    assert len(receipt["files"]) == 2
-    activity.transactions.undo("python-two-path")
+    assert added_instance == operation["instance"]
+    assert plugin_id in after_project["registry"]["selectedPluginIds"]
+    assert plugin_id in after_project["registry"]["registeredPluginIds"]
+    assert after_project["registry"]["generatedFileFresh"] is True
+    assert f'"./{plugin_id}/definition"' in registry_content
+    assert target_result["appUIModel"]["beforeHash"] == before["hash"]
+    assert target_result["appUIModel"]["afterHash"] == after["hash"]
+    assert target_result["snapshotToken"]["appUIModelHash"] == after["hash"]
+    assert target_result["snapshotToken"]["registryHash"] == registry_state.hash
+    assert service.metrics.to_dict() == {
+        "requests": 1,
+        "operations": 1,
+        "hashConflicts": 0,
+        "changedPaths": 2,
+        "resultMismatches": 0,
+    }
+    assert client.metrics.requestsByOperation["mutate_app_ui_model"] == 1
+    assert client.metrics.requestsByOperation["inspect_app_ui_model"] >= 1
+
+    receipt = activity.finish()
+    assert {file["path"] for file in receipt["files"]} == changed_paths
+    assert all(file["status"] == "modified" for file in receipt["files"])
+    assert receipt["verification"]["status"] == "not-run"
+    assert receipt["transaction"] == {"runId": run_id, "undoable": True}
+
+    transaction = activity.transactions.load(run_id)
+    assert transaction.mutation_revision == 2
+    assert {file.path for file in transaction.files} == changed_paths
+    assert all(file.status == "modified" for file in transaction.files)
+    assert activity.transactions.status(run_id).undoable is True
+
+    undo = activity.transactions.undo(run_id)
+    assert set(undo.changed_paths) == changed_paths
+    assert app_ui_path.read_bytes() == original_app_ui_content
+    assert registry_path.read_bytes() == original_registry_content
+    assert activity.transactions.status(run_id).undoable is False
+
+    restored = asyncio.run(client.inspect_app_ui_model())
+    assert restored["hash"] == before["hash"]
+    assert instance_id not in restored["model"]["pluginInstances"]
+    assert (
+        read_creator_file_state(project_root, REGISTRY_PATH).hash
+        == original_registry_hash
+    )
+    assert client.metrics.requestsByOperation["mutate_app_ui_model"] == 1
+    assert source_app_ui_path.read_bytes() == source_app_ui_content
+    assert source_registry_path.read_bytes() == source_registry_content
 
 
 def test_real_target_invalid_operation_and_registry_failure_leave_disk_unchanged(tmp_path):
