@@ -6,6 +6,8 @@
   },
   "health": {
     "status": "ok",
+    "runtime": "python",
+    "agentMode": "echo",
     "protocolVersion": "1",
     "phase": "sidecar-skeleton"
   },

@@ -6,7 +6,9 @@ from agent_ui_creator.observability import CreatorRunLogger
 
 def test_lightweight_run_log_records_mutation_transaction_undo_and_metrics(tmp_path):
     logger = CreatorRunLogger(tmp_path)
-    logger.begin(run_id="run-1", thread_id="thread-1")
+    logger.begin(
+        run_id="run-1", thread_id="thread-1", agent_mode="domain-write"
+    )
     activity = CreatorActivityRecorder(tmp_path, logger=logger)
     activity.begin("run-1")
     target = tmp_path / "plugins" / "foo.ts"
@@ -33,3 +35,9 @@ def test_lightweight_run_log_records_mutation_transaction_undo_and_metrics(tmp_p
         "modelCalls": 2,
         "toolCalls": 1,
     }
+    assert entries[0]["data"] == {
+        "runtime": "python",
+        "agentMode": "domain-write",
+    }
+    assert entries[-1]["data"]["runtime"] == "python"
+    assert entries[-1]["data"]["agentMode"] == "domain-write"

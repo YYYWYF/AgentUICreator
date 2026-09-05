@@ -622,7 +622,11 @@ export class CreatorAgUiAdapter {
           threadId: input.threadId,
           runId: input.runId,
           outcome: { type: "success" },
-          result: { receipt },
+          result: {
+            runtime: "typescript",
+            agentMode: "legacy",
+            receipt,
+          },
         };
         return;
       }
@@ -676,7 +680,11 @@ export class CreatorAgUiAdapter {
             threadId: input.threadId,
             runId: input.runId,
             outcome: { type: "success" },
-            result: { receipt },
+            result: {
+              runtime: "typescript",
+              agentMode: "legacy",
+              receipt,
+            },
           });
           events.close();
         })

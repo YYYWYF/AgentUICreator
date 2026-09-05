@@ -1253,7 +1253,8 @@ Vite 集成和浏览器诊断 reporter 留在 TypeScript；模型、Agent loop�
 验证、完成策略、回执与运行态诊断存储归 Python。浏览器继续访问原有 AG-UI HTTP
 路径，Vite 只负责项目级 Python 进程生命周期与透明流代理。
 
-迁移期间必须保留 `typescript` / `python` 双运行时，默认继续使用 TypeScript。
+迁移期间必须保留 `typescript` / `python` 双运行时。Python 是默认控制面并默认使用
+`domain-write`；TypeScript 仅作为显式 legacy fallback 保留。
 第一阶段仅建立版本化合同、Python FastAPI health/echo sidecar、随机端口鉴权
 handshake、流式代理和 diagnostics 代理；不得在 transport 稳定前迁移 Agent，
 也不得静默 fallback。Project Control 继续调用目标项目固定的
@@ -1262,9 +1263,11 @@ handshake、流式代理和 diagnostics 代理；不得在 transport 稳定前�
 
 第二阶段只在显式 `CREATOR_PYTHON_AGENT_MODE=minimal` 下接入预初始化的
 OpenAI-compatible `ChatOpenAI` 与 DeepAgents，用受限的 read/edit/grep 文件工具验证
-MiMo 连续结构化工具调用。默认 Python 模式仍为 echo。该阶段不得迁移 Project
+MiMo 连续结构化工具调用。该历史阶段当时默认 Python 模式仍为 echo。该阶段不得迁移 Project
 Control、Composition Fast Path、Snapshot、Validation、Completion、Skills 或业务
 状态机；开发模式写入只允许 `plugins/**`，且不得修改生成 Registry 或 AppUIModel。
+该历史阶段完成后，默认 mode 已翻转为 `domain-write`；`echo`、`minimal` 和
+`domain-read` 继续作为显式测试/诊断模式。
 
 ```ts
 const creator = createCreatorAgent({

@@ -120,7 +120,13 @@ describe("CreatorRunLogger", () => {
     const entries = source
       .trim()
       .split("\n")
-      .map((line) => JSON.parse(line) as { type: string; data: unknown });
+      .map(
+        (line) =>
+          JSON.parse(line) as {
+            type: string;
+            data: Record<string, unknown>;
+          },
+      );
     const eventTypes = entries.map((entry) => entry.type);
 
     expect(eventTypes[0]).toBe("run_started");
@@ -130,6 +136,14 @@ describe("CreatorRunLogger", () => {
     expect(eventTypes).toContain("tool_call_started");
     expect(eventTypes).toContain("tool_call_finished");
     expect(eventTypes.at(-1)).toBe("run_finished");
+    expect(entries[0]?.data).toMatchObject({
+      runtime: "typescript",
+      agentMode: "legacy",
+    });
+    expect(entries.at(-1)?.data).toMatchObject({
+      runtime: "typescript",
+      agentMode: "legacy",
+    });
     expect(source).toContain("edit_file");
     expect(source).toContain("history-main");
     expect(source).toContain("历史会话入口已更新");

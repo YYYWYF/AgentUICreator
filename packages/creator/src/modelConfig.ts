@@ -59,15 +59,29 @@ function parseEnvironmentFile(filePath: string): Record<string, string> {
   return values;
 }
 
+function configuredValue(
+  names: readonly string[],
+  environment: NodeJS.ProcessEnv,
+  fileValues: Record<string, string>,
+): string | undefined {
+  for (const name of names) {
+    const value = environment[name]?.trim() || fileValues[name]?.trim();
+    if (value !== undefined && value !== "") {
+      return value;
+    }
+  }
+  return undefined;
+}
+
 function requiredValue(
-  name: string,
+  names: readonly string[],
   environment: NodeJS.ProcessEnv,
   fileValues: Record<string, string>,
 ): string {
-  const value = environment[name]?.trim() || fileValues[name]?.trim();
+  const value = configuredValue(names, environment, fileValues);
   if (value === undefined || value === "") {
     throw new Error(
-      `Creator 模型需要在 ${CREATOR_MODEL_ENV_FILE} 中配置 ${name}。`,
+      `Creator 模型需要在 ${CREATOR_MODEL_ENV_FILE} 中配置 ${names.join(" 或 ")}。`,
     );
   }
   return value;
@@ -90,7 +104,12 @@ export function loadCreatorModelConfig({
   const fileValues = parseEnvironmentFile(
     path.join(configRoot, CREATOR_MODEL_ENV_FILE),
   );
-  const provider = requiredValue("MODEL_PROVIDER", environment, fileValues);
+  const provider =
+    configuredValue(
+      ["CREATOR_MODEL_PROVIDER", "MODEL_PROVIDER"],
+      environment,
+      fileValues,
+    ) ?? "openai";
 
   if (provider !== "openai") {
     throw new Error(
@@ -98,13 +117,25 @@ export function loadCreatorModelConfig({
     );
   }
 
-  const modelName = requiredValue("MODEL_NAME", environment, fileValues);
+  const modelName = requiredValue(
+    ["CREATOR_MODEL_NAME", "MODEL_NAME"],
+    environment,
+    fileValues,
+  );
   assertCreatorModelName(modelName);
 
   return {
     provider,
-    baseURL: requiredValue("MODEL_BASE_URL", environment, fileValues),
-    apiKey: requiredValue("MODEL_API_KEY", environment, fileValues),
+    baseURL: requiredValue(
+      ["CREATOR_MODEL_BASE_URL", "MODEL_BASE_URL"],
+      environment,
+      fileValues,
+    ),
+    apiKey: requiredValue(
+      ["CREATOR_MODEL_API_KEY", "MODEL_API_KEY"],
+      environment,
+      fileValues,
+    ),
     modelName,
   };
 }

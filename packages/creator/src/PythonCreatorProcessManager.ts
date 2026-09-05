@@ -6,6 +6,10 @@ import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 
 import { readCreatorHostConfigValue } from "./creatorRuntimeConfig.js";
+import {
+  CREATOR_PYTHON_AGENT_MODES,
+  type CreatorPythonAgentMode,
+} from "./shared.js";
 
 export const CREATOR_PYTHON_PROTOCOL_VERSION = "1" as const;
 export const CREATOR_PYTHON_START_TIMEOUT_MS = 15_000;
@@ -16,6 +20,7 @@ export interface PythonCreatorEndpoint {
   port: number;
   authToken: string;
   protocolVersion: typeof CREATOR_PYTHON_PROTOCOL_VERSION;
+  agentMode: CreatorPythonAgentMode;
 }
 
 export interface PythonCreatorProcessManagerOptions {
@@ -256,7 +261,7 @@ export class PythonCreatorProcessManager {
     } catch (error) {
       throw new PythonCreatorRuntimeError(
         "CREATOR_PYTHON_RUNTIME_MISSING",
-        `Creator Python package is unavailable at ${this.#pythonPackageRoot}. Install the packages/creator-python environment before selecting the Python runtime.`,
+        `Python Creator runtime is required by default, but its package is unavailable at ${this.#pythonPackageRoot}. Run \`pnpm test:python:setup\` to install the managed environment.`,
         { cause: error instanceof Error ? error.message : String(error) },
       );
     }
@@ -336,21 +341,25 @@ export class PythonCreatorProcessManager {
           this.#log(`unexpected stdout: ${message}`);
         }
       });
-      const endpoint: PythonCreatorEndpoint = {
+      const endpoint: Omit<PythonCreatorEndpoint, "agentMode"> = {
         host: "127.0.0.1",
         port: handshake.port,
         authToken,
         protocolVersion: handshake.protocolVersion,
       };
-      await this.#waitForHealth(endpoint);
+      const agentMode = await this.#waitForHealth(endpoint);
       if (child.exitCode !== null) {
         throw new PythonCreatorRuntimeError(
           "CREATOR_PYTHON_START_FAILED",
           `Creator Python runtime exited during startup with code ${child.exitCode}.`,
         );
       }
-      this.#endpoint = endpoint;
-      return endpoint;
+      const readyEndpoint = { ...endpoint, agentMode };
+      this.#endpoint = readyEndpoint;
+      this.#log(
+        `python sidecar ready pid=${String(child.pid)} port=${readyEndpoint.port} pythonSource=${pythonRuntime.source} agentMode=${agentMode}`,
+      );
+      return readyEndpoint;
     } catch (error) {
       if (this.#child === child) {
         this.#child = undefined;
@@ -481,7 +490,9 @@ export class PythonCreatorProcessManager {
     });
   }
 
-  async #waitForHealth(endpoint: PythonCreatorEndpoint): Promise<void> {
+  async #waitForHealth(
+    endpoint: Omit<PythonCreatorEndpoint, "agentMode">,
+  ): Promise<CreatorPythonAgentMode> {
     const deadline = Date.now() + this.#startupTimeoutMs;
     let lastError: unknown;
     while (Date.now() < deadline) {
@@ -497,12 +508,25 @@ export class PythonCreatorProcessManager {
           const body = (await response.json()) as Record<string, unknown>;
           if (
             body.status === "ok" &&
-            body.protocolVersion === CREATOR_PYTHON_PROTOCOL_VERSION
+            body.runtime === "python" &&
+            body.protocolVersion === CREATOR_PYTHON_PROTOCOL_VERSION &&
+            typeof body.agentMode === "string" &&
+            (CREATOR_PYTHON_AGENT_MODES as readonly string[]).includes(
+              body.agentMode,
+            )
           ) {
-            return;
+            return body.agentMode as CreatorPythonAgentMode;
           }
+          throw new PythonCreatorRuntimeError(
+            "CREATOR_PYTHON_PROTOCOL_MISMATCH",
+            "Creator Python health response does not identify a supported python runtime and agent mode.",
+            { health: body },
+          );
         }
       } catch (error) {
+        if (error instanceof PythonCreatorRuntimeError) {
+          throw error;
+        }
         lastError = error;
       }
       await new Promise<void>((resolve) => setTimeout(resolve, 50));

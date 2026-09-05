@@ -50,6 +50,25 @@ describe("loadCreatorModelConfig", () => {
     });
   });
 
+  it("keeps the legacy runtime compatible with primary Creator model names", async () => {
+    const projectRoot = await createConfigProject(
+      [
+        "CREATOR_MODEL_BASE_URL=https://models.example.test/v1",
+        "CREATOR_MODEL_API_KEY=test-key",
+        `CREATOR_MODEL_NAME=${CREATOR_MODEL_NAME}`,
+      ].join("\n"),
+    );
+
+    expect(
+      loadCreatorModelConfig({ configRoot: projectRoot, environment: {} }),
+    ).toEqual({
+      provider: "openai",
+      baseURL: "https://models.example.test/v1",
+      apiKey: "test-key",
+      modelName: CREATOR_MODEL_NAME,
+    });
+  });
+
   it("rejects every model other than the configured Creator model", async () => {
     const projectRoot = await createConfigProject(
       [

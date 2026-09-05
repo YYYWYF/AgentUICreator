@@ -10,7 +10,7 @@ CREATOR_HOST_ENV_FILE = ".env.creator.local"
 
 
 class CreatorModelConfigurationError(ValueError):
-    """Raised when minimal-agent model settings are incomplete or invalid."""
+    """Raised when Creator model settings are incomplete or invalid."""
 
 
 def _parse_environment_file(config_root: Path | None) -> dict[str, str]:
@@ -50,7 +50,10 @@ def load_python_agent_mode(
 ) -> str:
     environment = os.environ if environment is None else environment
     file_values = _parse_environment_file(config_root)
-    mode = _first_value(environment, file_values, "CREATOR_PYTHON_AGENT_MODE") or "echo"
+    mode = (
+        _first_value(environment, file_values, "CREATOR_PYTHON_AGENT_MODE")
+        or "domain-write"
+    )
     if mode not in {"echo", "minimal", "domain-read", "domain-write"}:
         raise CreatorModelConfigurationError(
             "CREATOR_PYTHON_AGENT_MODE must be echo, minimal, domain-read, or domain-write."
@@ -114,7 +117,7 @@ class CreatorModelSettings:
         provider = _first_value(environment, file_values, "CREATOR_MODEL_PROVIDER", "MODEL_PROVIDER")
         if provider is not None and provider != "openai":
             raise CreatorModelConfigurationError(
-                "Creator minimal agent requires an OpenAI-compatible provider."
+                "Python Creator requires an OpenAI-compatible provider."
             )
 
         model_name = _first_value(

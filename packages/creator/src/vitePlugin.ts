@@ -16,7 +16,10 @@ import {
 import { CREATOR_API_PATH } from "./shared.js";
 import { CREATOR_RUNTIME_DIAGNOSTICS_API_PATH } from "./shared.js";
 import type { CreatorAgentRuntime } from "./shared.js";
-import { resolveCreatorAgentRuntime } from "./creatorRuntimeConfig.js";
+import {
+  resolveCreatorAgentRuntime,
+  resolveCreatorPythonAgentMode,
+} from "./creatorRuntimeConfig.js";
 import {
   PythonCreatorProcessManager,
   type PythonCreatorProcessManagerOptions,
@@ -32,7 +35,10 @@ export {
   CREATOR_API_PATH,
   CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
 } from "./shared.js";
-export { resolveCreatorAgentRuntime } from "./creatorRuntimeConfig.js";
+export {
+  resolveCreatorAgentRuntime,
+  resolveCreatorPythonAgentMode,
+} from "./creatorRuntimeConfig.js";
 export {
   PythonCreatorProcessManager,
   PythonCreatorRuntimeError,
@@ -214,6 +220,22 @@ export function createCreatorDevServerPlugin({
 }: CreatorDevServerPluginOptions): Plugin {
   const runtime =
     configuredRuntime ?? resolveCreatorAgentRuntime({ configRoot });
+  const creatorLog =
+    python?.log ?? ((message: string) => console.error(`[Creator] ${message}`));
+  const agentMode =
+    runtime === "python"
+      ? resolveCreatorPythonAgentMode({
+          configRoot,
+          environment: python?.environment ?? process.env,
+        })
+      : "legacy";
+  if (runtime === "python") {
+    creatorLog(`runtime=python agentMode=${agentMode}`);
+  } else {
+    creatorLog(
+      "WARNING: TypeScript Creator runtime is legacy. Python is the default Creator control plane.",
+    );
+  }
   let agent: CreatorAgUiAdapter | undefined;
   const runtimeDiagnosticStore =
     runtime === "typescript" ? new CreatorRuntimeDiagnosticStore() : undefined;
@@ -235,6 +257,7 @@ export function createCreatorDevServerPlugin({
           projectRoot,
           ...(configRoot === undefined ? {} : { configRoot }),
           ...(python ?? {}),
+          log: creatorLog,
         })
       : undefined;
 

@@ -160,8 +160,11 @@ export {
   CREATOR_API_PATH,
   CREATOR_AGENT_RUNTIME_ENV,
   CREATOR_AGENT_RUNTIMES,
+  CREATOR_PYTHON_AGENT_MODE_ENV,
+  CREATOR_PYTHON_AGENT_MODES,
   CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
   type CreatorAgentRuntime,
+  type CreatorPythonAgentMode,
 } from "./shared.js";
 export {
   CREATOR_PYTHON_PROTOCOL_VERSION,
@@ -177,6 +180,7 @@ export {
   CREATOR_HOST_ENV_FILE,
   readCreatorHostConfigValue,
   resolveCreatorAgentRuntime,
+  resolveCreatorPythonAgentMode,
   type LoadCreatorAgentRuntimeOptions,
 } from "./creatorRuntimeConfig.js";
 export {

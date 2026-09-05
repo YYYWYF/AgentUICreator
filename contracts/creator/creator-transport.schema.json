@@ -15,9 +15,11 @@
     },
     "health": {
       "type": "object",
-      "required": ["status", "protocolVersion"],
+      "required": ["status", "runtime", "agentMode", "protocolVersion"],
       "properties": {
         "status": { "const": "ok" },
+        "runtime": { "const": "python" },
+        "agentMode": { "enum": ["echo", "minimal", "domain-read", "domain-write"] },
         "protocolVersion": { "const": "1" }
       }
     },

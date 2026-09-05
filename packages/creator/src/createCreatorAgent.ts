@@ -1,3 +1,5 @@
+// Legacy Creator runtime. Do not add new Creator agent capabilities here.
+// New agent-control-plane work belongs to creator-python.
 import {
   CompositeBackend,
   createDeepAgent,

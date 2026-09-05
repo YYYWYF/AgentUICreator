@@ -42,10 +42,18 @@ class CreatorRunLogger:
         self.thread_id: str | None = None
         self.sequence = 0
         self.path: Path | None = None
+        self.agent_mode = "domain-write"
 
-    def begin(self, *, run_id: str, thread_id: str | None = None) -> None:
+    def begin(
+        self,
+        *,
+        run_id: str,
+        thread_id: str | None = None,
+        agent_mode: str = "domain-write",
+    ) -> None:
         self.run_id = run_id
         self.thread_id = thread_id
+        self.agent_mode = agent_mode
         self.sequence = 0
         try:
             directory = self.project_root / ".agentuicreator" / "logs"
@@ -62,7 +70,10 @@ class CreatorRunLogger:
             timestamp = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
             timestamp = timestamp.replace("+00:00", "Z").replace(":", "-").replace(".", "-")
             self.path = directory / f"{timestamp}_{_safe_segment(run_id)}.jsonl"
-            self.record("run_started", {})
+            self.record(
+                "run_started",
+                {"runtime": "python", "agentMode": self.agent_mode},
+            )
         except (OSError, ValueError):
             self.path = None
 
@@ -104,6 +115,8 @@ class CreatorRunLogger:
         self.record(
             "run_finished",
             {
+                "runtime": "python",
+                "agentMode": self.agent_mode,
                 "outcome": outcome,
                 **({"modelToolMetrics": dict(metrics)} if metrics is not None else {}),
                 **({"error": str(error)} if error is not None else {}),

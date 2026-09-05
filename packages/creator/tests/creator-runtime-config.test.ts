@@ -4,7 +4,10 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { resolveCreatorAgentRuntime } from "../src/creatorRuntimeConfig.js";
+import {
+  resolveCreatorAgentRuntime,
+  resolveCreatorPythonAgentMode,
+} from "../src/creatorRuntimeConfig.js";
 
 const temporaryDirectories: string[] = [];
 
@@ -17,21 +20,45 @@ afterEach(async () => {
 });
 
 describe("Creator runtime selection", () => {
-  it("keeps TypeScript as the migration default", () => {
-    expect(resolveCreatorAgentRuntime({ environment: {} })).toBe("typescript");
+  it("uses Python as the default runtime", () => {
+    expect(resolveCreatorAgentRuntime({ environment: {} })).toBe("python");
   });
 
-  it("reads the Python feature flag from Creator host configuration", async () => {
+  it("allows TypeScript only as an explicit environment fallback", () => {
+    expect(
+      resolveCreatorAgentRuntime({
+        environment: { CREATOR_AGENT_RUNTIME: "typescript" },
+      }),
+    ).toBe("typescript");
+  });
+
+  it("reads the TypeScript fallback from Creator host configuration", async () => {
     const configRoot = await mkdtemp(path.join(tmpdir(), "creator-runtime-"));
     temporaryDirectories.push(configRoot);
     await writeFile(
       path.join(configRoot, ".env.creator.local"),
-      "MODEL_NAME=mimo-v2.5-pro\nCREATOR_AGENT_RUNTIME=python\n",
+      "MODEL_NAME=mimo-v2.5-pro\nCREATOR_AGENT_RUNTIME=typescript\n",
     );
 
     expect(resolveCreatorAgentRuntime({ configRoot, environment: {} })).toBe(
-      "python",
+      "typescript",
     );
+  });
+
+  it("gives the process environment priority over Creator host configuration", async () => {
+    const configRoot = await mkdtemp(path.join(tmpdir(), "creator-runtime-"));
+    temporaryDirectories.push(configRoot);
+    await writeFile(
+      path.join(configRoot, ".env.creator.local"),
+      "CREATOR_AGENT_RUNTIME=typescript\n",
+    );
+
+    expect(
+      resolveCreatorAgentRuntime({
+        configRoot,
+        environment: { CREATOR_AGENT_RUNTIME: "python" },
+      }),
+    ).toBe("python");
   });
 
   it("rejects unsupported runtimes without silently falling back", () => {
@@ -40,5 +67,32 @@ describe("Creator runtime selection", () => {
         environment: { CREATOR_AGENT_RUNTIME: "other" },
       }),
     ).toThrow(/typescript, python/u);
+  });
+});
+
+describe("Python Creator agent mode selection", () => {
+  it("uses domain-write by default", () => {
+    expect(resolveCreatorPythonAgentMode({ environment: {} })).toBe(
+      "domain-write",
+    );
+  });
+
+  it.each(["echo", "minimal", "domain-read", "domain-write"] as const)(
+    "accepts the explicit %s diagnostic mode",
+    (mode) => {
+      expect(
+        resolveCreatorPythonAgentMode({
+          environment: { CREATOR_PYTHON_AGENT_MODE: mode },
+        }),
+      ).toBe(mode);
+    },
+  );
+
+  it("rejects unsupported modes without silently selecting a default", () => {
+    expect(() =>
+      resolveCreatorPythonAgentMode({
+        environment: { CREATOR_PYTHON_AGENT_MODE: "other" },
+      }),
+    ).toThrow(/echo, minimal, domain-read, domain-write/u);
   });
 });

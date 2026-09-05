@@ -4,7 +4,10 @@ import path from "node:path";
 import {
   CREATOR_AGENT_RUNTIME_ENV,
   CREATOR_AGENT_RUNTIMES,
+  CREATOR_PYTHON_AGENT_MODE_ENV,
+  CREATOR_PYTHON_AGENT_MODES,
   type CreatorAgentRuntime,
+  type CreatorPythonAgentMode,
 } from "./shared.js";
 
 export const CREATOR_HOST_ENV_FILE = ".env.creator.local";
@@ -58,11 +61,29 @@ export function resolveCreatorAgentRuntime(
   const runtime =
     environment[CREATOR_AGENT_RUNTIME_ENV]?.trim() ||
     readCreatorHostConfigValue(configRoot, CREATOR_AGENT_RUNTIME_ENV) ||
-    "typescript";
+    "python";
   if (!(CREATOR_AGENT_RUNTIMES as readonly string[]).includes(runtime)) {
     throw new Error(
       `${CREATOR_AGENT_RUNTIME_ENV} must be one of: ${CREATOR_AGENT_RUNTIMES.join(", ")}.`,
     );
   }
   return runtime as CreatorAgentRuntime;
+}
+
+export function resolveCreatorPythonAgentMode(
+  {
+    configRoot,
+    environment = process.env,
+  }: LoadCreatorAgentRuntimeOptions = {},
+): CreatorPythonAgentMode {
+  const mode =
+    environment[CREATOR_PYTHON_AGENT_MODE_ENV]?.trim() ||
+    readCreatorHostConfigValue(configRoot, CREATOR_PYTHON_AGENT_MODE_ENV) ||
+    "domain-write";
+  if (!(CREATOR_PYTHON_AGENT_MODES as readonly string[]).includes(mode)) {
+    throw new Error(
+      `${CREATOR_PYTHON_AGENT_MODE_ENV} must be one of: ${CREATOR_PYTHON_AGENT_MODES.join(", ")}.`,
+    );
+  }
+  return mode as CreatorPythonAgentMode;
 }

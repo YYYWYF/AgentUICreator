@@ -216,6 +216,8 @@ export class CreatorRunLogger {
         ...(start.threadId === undefined ? {} : { threadId: start.threadId }),
       };
       await this.record("run_started", {
+        runtime: "typescript",
+        agentMode: "legacy",
         messages: start.messages,
         modelName: this.modelName,
         privacy:
@@ -275,6 +277,8 @@ export class CreatorRunLogger {
     },
   ): Promise<void> {
     await this.record("run_finished", {
+      runtime: "typescript",
+      agentMode: "legacy",
       outcome,
       ...(data.finalMessage === undefined
         ? {}

@@ -57,11 +57,14 @@ const temporaryDirectories: string[] = [];
 function manager(
   options: Partial<ConstructorParameters<typeof PythonCreatorProcessManager>[0]> = {},
 ): PythonCreatorProcessManager {
+  const defaultEnvironment = { ...process.env };
+  delete defaultEnvironment.CREATOR_PYTHON_AGENT_MODE;
   const instance = new PythonCreatorProcessManager({
     projectRoot,
     pythonPackageRoot,
     pythonExecutable,
     skillsRoot,
+    environment: defaultEnvironment,
     log: () => undefined,
     ...options,
   });
@@ -460,6 +463,7 @@ afterEach(async () => {
     expect(second.processId).toBeGreaterThan(0);
     expect(firstEndpoint).toMatchObject({
       host: "127.0.0.1",
+      agentMode: "domain-write",
       protocolVersion: CREATOR_PYTHON_PROTOCOL_VERSION,
     });
     expect(firstEndpoint.port).toBeGreaterThan(0);
@@ -473,6 +477,8 @@ afterEach(async () => {
     expect(health.status).toBe(200);
     await expect(health.json()).resolves.toMatchObject({
       status: "ok",
+      runtime: "python",
+      agentMode: "domain-write",
       protocolVersion: CREATOR_PYTHON_PROTOCOL_VERSION,
     });
 
@@ -520,10 +526,20 @@ afterEach(async () => {
     expect(logs).toContain(
       `python runtime: source=managed_venv executable=${virtualEnvironmentPython}`,
     );
+    expect(logs).toContainEqual(
+      expect.stringMatching(
+        /^python sidecar ready pid=\d+ port=\d+ pythonSource=managed_venv agentMode=domain-write$/u,
+      ),
+    );
   }, 30_000);
 
   it("streams the exact Unicode AG-UI lifecycle through the production proxy", async () => {
-    const processManager = manager();
+    const processManager = manager({
+      environment: {
+        ...process.env,
+        CREATOR_PYTHON_AGENT_MODE: "echo",
+      },
+    });
     const proxyRoot = await createProxyServer(processManager);
     const golden = await fixture("ag-ui-echo.json");
     const response = await fetch(`${proxyRoot}/creator`, {
@@ -677,7 +693,7 @@ afterEach(async () => {
     });
   }, 60_000);
 
-  it("runs Node to Python domain-write through inspect and one semantic mutation", async () => {
+  it("runs default Python domain-write through inspect and one semantic mutation", async () => {
     const fixtureRoot = await copyTargetProject("domain-write-project");
     const appUIModelPath = path.join(fixtureRoot, "app-ui/app-ui.json");
     const beforeSource = await readFile(appUIModelPath, "utf8");
@@ -699,7 +715,7 @@ afterEach(async () => {
       projectRoot: fixtureRoot,
       environment: {
         ...process.env,
-        CREATOR_PYTHON_AGENT_MODE: "domain-write",
+        CREATOR_PYTHON_AGENT_MODE: "",
         CREATOR_MODEL_NAME: "mimo-v2.5-pro",
         CREATOR_MODEL_BASE_URL: modelBaseUrl,
         CREATOR_MODEL_API_KEY: "test-api-key",
@@ -734,6 +750,8 @@ afterEach(async () => {
       '"phase3B2NodePython": true',
     );
     expect(events.at(-1)?.result).toMatchObject({
+      runtime: "python",
+      agentMode: "domain-write",
       phase: "domain-write-agent",
       toolProtocol: { modelCalls: 3, toolCalls: 2, validToolCalls: 2 },
       projectControl: {
@@ -861,7 +879,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(401)
             self.end_headers()
             return
-        body = json.dumps({"status": "ok", "protocolVersion": "1"}).encode("utf-8")
+        body = json.dumps({"status": "ok", "runtime": "python", "agentMode": "domain-write", "protocolVersion": "1"}).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))

@@ -350,6 +350,8 @@ describe("CreatorAgUiAdapter", () => {
       threadId: "creator-thread",
       runId: "creator-run",
       result: {
+        runtime: "typescript",
+        agentMode: "legacy",
         receipt: {
           files: [
             expect.objectContaining({

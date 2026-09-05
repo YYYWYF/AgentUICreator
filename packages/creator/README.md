@@ -42,13 +42,16 @@ await creator.run("右侧增加一个文件预览区域");
 
 Vite 开发服务适配器由 `@agent-ui/creator/vite` 导出，React 工作台面板由 `@agent-ui/creator/ui` 导出。它们是可选的开发时集成，不属于生成应用的生产运行时。
 
-## Python sidecar（迁移期）
+## Python Creator（默认控制面）
 
-Creator 当前保留 TypeScript Agent Runtime 作为默认路径。Python sidecar 默认仍为
-transport echo；可先安装 `packages/creator-python` 的锁定环境，然后设置：
+Python Creator 是默认 runtime，默认 agent mode 为 `domain-write`。正常开发只需配置
+模型，无需设置 `CREATOR_AGENT_RUNTIME=python` 或
+`CREATOR_PYTHON_AGENT_MODE=domain-write`：
 
 ```env
-CREATOR_AGENT_RUNTIME=python
+CREATOR_MODEL_NAME=mimo-v2.5-pro
+CREATOR_MODEL_BASE_URL=https://example.com/v1
+CREATOR_MODEL_API_KEY=your-key
 ```
 
 未显式配置 executable 时，sidecar 优先使用 `packages/creator-python/.venv`（Windows
@@ -58,9 +61,16 @@ CREATOR_AGENT_RUNTIME=python
 显式路径不可用时会直接报错，不会静默回退。
 
 Vite 插件会按项目惰性启动一个 Python 进程，透明代理 AG-UI 与运行时诊断流，
-并在开发服务器关闭时终止 sidecar，不支持静默回退到 TypeScript。
+并在开发服务器关闭时终止 sidecar。Python 启动或模型配置失败会明确失败，绝不静默
+回退到 TypeScript。
 
-Phase 2 的实验性 Python Minimal Agent 需要额外设置：
+TypeScript Creator 仅作为 troubleshooting / emergency legacy fallback 保留：
+
+```env
+CREATOR_AGENT_RUNTIME=typescript
+```
+
+Minimal Agent 仅作为工具协议诊断模式保留：
 
 ```env
 CREATOR_PYTHON_AGENT_MODE=minimal
@@ -77,9 +87,9 @@ CREATOR_PYTHON_AGENT_MODE=domain-read
 ```
 
 Domain Read 模式复用相同模型栈，并通过正式 ProjectControl v2 入口开放六个只读领域工具；
-不会开放 `mutate_app_ui_model`，默认仍保持 transport echo。
+不会开放 `mutate_app_ui_model`。
 
-Phase 3B-2 的静态组合写模式使用：
+默认的静态组合写模式也可以显式写成：
 
 ```env
 CREATOR_PYTHON_AGENT_MODE=domain-write

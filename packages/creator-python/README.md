@@ -1,11 +1,9 @@
 # agent-ui-creator-core
 
-Agent UI Creator 的 Python 控制面。Phase 2 在经过鉴权的 FastAPI sidecar、
-AG-UI stream 和 runtime diagnostics 基础上，增加独立的 Minimal Agent，用于验证
-MiMo 在 `langchain-openai + deepagents` 下的连续结构化工具调用。Phase 3A 额外提供
-实验性的 Domain Read Agent，通过正式 ProjectControl v2 协议读取 AppUIModel、Plugin、
-Slot 和 Registry。ProjectControl mutation、Fast Path、Snapshot、Validation 和
-Completion 尚未迁移。
+Agent UI Creator 的默认 Python 控制面。它通过经过鉴权的 FastAPI sidecar 提供
+AG-UI stream、runtime diagnostics、ProjectControl v2 领域读取，以及由 Python Host
+拥有 transaction / receipt / undo 的 AppUIModel semantic mutation。Runtime
+Verification、Host Validation、Completion 和 Fast Path 尚未迁移。
 
 此包是开发时依赖，不进入生成的 Agent Frontend。
 
@@ -47,12 +45,10 @@ packages/creator-python/.venv/bin/python -m agent_ui_creator.server \
 服务启动后，stdout 第一行是版本化的 `creator_ready` JSON handshake；普通
 运行日志只写 stderr。
 
-默认 `CREATOR_PYTHON_AGENT_MODE=echo`，不会调用模型。实验性 Minimal Agent 配置：
+默认 `CREATOR_PYTHON_AGENT_MODE=domain-write`，无需显式配置 runtime 或 agent mode。
+正常配置只需要：
 
 ```env
-CREATOR_AGENT_RUNTIME=python
-CREATOR_PYTHON_AGENT_MODE=minimal
-
 CREATOR_MODEL_NAME=mimo-v2.5-pro
 CREATOR_MODEL_BASE_URL=https://example.com/v1
 CREATOR_MODEL_API_KEY=your-key
@@ -60,6 +56,18 @@ CREATOR_MODEL_TEMPERATURE=0.2
 CREATOR_MODEL_MAX_TOKENS=2048
 CREATOR_MODEL_TIMEOUT_SECONDS=120
 CREATOR_MODEL_MAX_RETRIES=1
+```
+
+如需紧急使用 legacy TypeScript Creator，在 Vite Host 配置：
+
+```env
+CREATOR_AGENT_RUNTIME=typescript
+```
+
+Minimal Agent 仅作为工具协议诊断模式保留：
+
+```env
+CREATOR_PYTHON_AGENT_MODE=minimal
 ```
 
 只读领域模式使用相同模型配置，并设置：
@@ -74,7 +82,7 @@ CREATOR_PYTHON_AGENT_MODE=domain-read
 `inspect_ui_plugin_source_references`。领域事实只通过目标工程固定的
 `scripts/ui-project-control.ts` 获取；不会自动向每轮模型调用注入全量 snapshot。
 
-可写领域模式在上述工具面上增加唯一的组合写入口：
+默认的可写领域模式在上述工具面上增加唯一的组合写入口：
 
 ```env
 CREATOR_PYTHON_AGENT_MODE=domain-write

@@ -1,9 +1,13 @@
+import pytest
 from langchain_openai import ChatOpenAI
 
 import agent_ui_creator.minimal_agent.agent as agent_module
 from agent_ui_creator.model_factory import create_creator_chat_model
-from agent_ui_creator.model_settings import CreatorModelSettings
-from agent_ui_creator.model_settings import load_python_agent_mode
+from agent_ui_creator.model_settings import (
+    CreatorModelConfigurationError,
+    CreatorModelSettings,
+    load_python_agent_mode,
+)
 
 
 def test_model_factory_owns_explicit_chat_completions_configuration():
@@ -68,11 +72,30 @@ def test_deep_agent_receives_the_preinitialized_model_instance(tmp_path, monkeyp
     assert not isinstance(captured["model"], str)
 
 
-def test_python_agent_mode_accepts_domain_read_without_changing_default():
-    assert load_python_agent_mode(environment={}) == "echo"
+def test_python_agent_mode_defaults_to_domain_write():
+    assert load_python_agent_mode(environment={}) == "domain-write"
+
+
+def test_python_agent_mode_keeps_all_diagnostic_overrides():
+    for mode in ("echo", "minimal", "domain-read", "domain-write"):
+        assert load_python_agent_mode(
+            environment={"CREATOR_PYTHON_AGENT_MODE": mode}
+        ) == mode
+
+
+def test_python_agent_mode_prefers_environment_over_host_config(tmp_path):
+    (tmp_path / ".env.creator.local").write_text(
+        "CREATOR_PYTHON_AGENT_MODE=domain-read\n", encoding="utf-8"
+    )
+
     assert load_python_agent_mode(
-        environment={"CREATOR_PYTHON_AGENT_MODE": "domain-read"}
-    ) == "domain-read"
-    assert load_python_agent_mode(
-        environment={"CREATOR_PYTHON_AGENT_MODE": "domain-write"}
-    ) == "domain-write"
+        config_root=tmp_path,
+        environment={"CREATOR_PYTHON_AGENT_MODE": "minimal"},
+    ) == "minimal"
+
+
+def test_python_agent_mode_rejects_invalid_values():
+    with pytest.raises(CreatorModelConfigurationError):
+        load_python_agent_mode(
+            environment={"CREATOR_PYTHON_AGENT_MODE": "other"}
+        )

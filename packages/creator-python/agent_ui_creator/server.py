@@ -201,6 +201,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
     async def health() -> dict[str, Any]:
         return {
             "status": "ok",
+            "runtime": "python",
             "protocolVersion": CREATOR_PYTHON_PROTOCOL_VERSION,
             "projectRoot": str(settings.project_root),
             "phase": (
@@ -237,7 +238,11 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                 activity: CreatorActivityRecorder | None = None
                 if agent_mode in {"minimal", "domain-read", "domain-write"}:
                     logger = CreatorRunLogger(settings.project_root)
-                    logger.begin(run_id=run_input.runId, thread_id=run_input.threadId)
+                    logger.begin(
+                        run_id=run_input.runId,
+                        thread_id=run_input.threadId,
+                        agent_mode=agent_mode,
+                    )
                     activity = CreatorActivityRecorder(
                         settings.project_root, logger=logger
                     )
@@ -329,6 +334,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                     response_text = result.text
                     if agent_mode in {"domain-read", "domain-write"}:
                         run_result = {
+                            "runtime": "python",
+                            "agentMode": agent_mode,
                             "phase": f"{agent_mode}-agent",
                             "toolProtocol": result.metrics.to_dict(),
                             "projectControl": {
@@ -344,6 +351,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             )
                     else:
                         run_result = {
+                            "runtime": "python",
+                            "agentMode": agent_mode,
                             "phase": "minimal-agent",
                             "toolProtocol": result.metrics.to_dict(),
                         }
@@ -374,6 +383,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                 else:
                     response_text = _echo_text(run_input)
                     run_result = {
+                        "runtime": "python",
+                        "agentMode": "echo",
                         "phase": "sidecar-skeleton",
                         "echo": True,
                     }
