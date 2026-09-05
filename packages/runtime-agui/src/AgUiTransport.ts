@@ -1,9 +1,11 @@
 import { HttpAgent, type AgentSubscriber } from "@ag-ui/client";
 import type { Message, State } from "@ag-ui/core";
+import {
+  ObservableAgentTransport,
+  type AgentTransportSnapshot,
+} from "@agent-ui/runtime-core";
 
-import type { AgentTransportSnapshot } from "../core/agent-transport";
-import { ObservableAgentTransport } from "../core/observable-agent-transport";
-import { mapAgUiMessage } from "./message-mapper";
+import { mapAgUiMessage } from "./message-mapper.js";
 
 export interface AgUiTransportConfig {
   endpoint: string;

@@ -19,7 +19,12 @@
       "@agent-ui/creator/runtime-diagnostics": [
         "../../packages/creator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts"
       ],
-      "@agent-ui/example-agent-frontend/App": ["../../examples/agent-frontend/src/App.tsx"]
+      "@agent-ui/example-agent-frontend/App": ["../../examples/agent-frontend/src/App.tsx"],
+      "@agent-ui/runtime-agui": ["../../packages/runtime-agui/src/index.ts"],
+      "@agent-ui/runtime-core": ["../../packages/runtime-core/src/index.ts"],
+      "@agent-ui/runtime-core/testing": [
+        "../../packages/runtime-core/src/testing/index.ts"
+      ]
     }
   },
   "include": [
@@ -36,6 +41,8 @@
     "../../examples/agent-frontend/runtime/**/*.ts",
     "../../examples/agent-frontend/runtime/**/*.tsx",
     "../../examples/agent-frontend/src/App.tsx",
-    "../../examples/agent-frontend/src/preview-data.ts"
+    "../../examples/agent-frontend/src/preview-data.ts",
+    "../../packages/runtime-agui/src/**/*.ts",
+    "../../packages/runtime-core/src/**/*.ts"
   ]
 }

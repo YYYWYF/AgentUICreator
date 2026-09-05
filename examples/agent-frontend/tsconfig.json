@@ -15,7 +15,14 @@
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "paths": {
+      "@agent-ui/runtime-agui": ["../../packages/runtime-agui/src/index.ts"],
+      "@agent-ui/runtime-core": ["../../packages/runtime-core/src/index.ts"],
+      "@agent-ui/runtime-core/testing": [
+        "../../packages/runtime-core/src/testing/index.ts"
+      ]
+    }
   },
   "include": [
     "framework/**/*.ts",

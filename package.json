@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "pnpm --filter @agent-ui/creator-workbench dev",
     "dev:app": "pnpm --filter @agent-ui/example-agent-frontend dev",
-    "build": "pnpm --filter @agent-ui/creator build && pnpm --filter @agent-ui/example-agent-frontend build",
+    "build": "pnpm --filter @agent-ui/runtime-core build && pnpm --filter @agent-ui/runtime-agui build && pnpm --filter @agent-ui/creator build && pnpm --filter @agent-ui/example-agent-frontend build",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm test:python && pnpm test:ts",
     "test:ts": "node --test scripts/run-python-tests.test.mjs && pnpm -r --if-present test",

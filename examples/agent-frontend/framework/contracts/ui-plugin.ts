@@ -1,10 +1,10 @@
-import type { AgentMessage } from "../../runtime/core/agent-message";
+import type { AgentMessage } from "@agent-ui/runtime-core";
 import type { ComponentType, ReactNode } from "react";
 import { z } from "zod";
 
 import type { PluginInstance } from "./app-ui-model";
 
-export type { AgentMessage } from "../../runtime/core/agent-message";
+export type { AgentMessage } from "@agent-ui/runtime-core";
 
 export type UIPluginRunStatus = "idle" | "running" | "error";
 

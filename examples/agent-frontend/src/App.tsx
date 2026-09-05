@@ -7,6 +7,9 @@ import {
 } from "react";
 import { XProvider } from "@ant-design/x";
 import { theme as antdTheme } from "antd";
+import { createAgUiTransport } from "@agent-ui/runtime-agui";
+import { createAgentRuntime } from "@agent-ui/runtime-core";
+import { MockAgentTransport } from "@agent-ui/runtime-core/testing";
 
 import appUIJsonSource from "../app-ui/app-ui.json?raw";
 import {
@@ -20,12 +23,7 @@ import {
   type AgentUIThemeMode,
   type AgentUIThemeService,
 } from "../plugins/antd-x-theme-provider/theme-service";
-import {
-  createAgentRuntime,
-  MockAgentTransport,
-  useAgentRuntime,
-} from "../runtime/core";
-import { createAgUiTransport } from "../runtime/ag-ui";
+import { useAgentRuntime } from "../runtime/useAgentRuntime";
 import {
   createPluginRegistry,
   PluginServiceProvider,

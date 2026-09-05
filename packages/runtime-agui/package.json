@@ -1,0 +1,39 @@
+{
+  "name": "@agent-ui/runtime-agui",
+  "version": "0.1.0",
+  "description": "Official AG-UI transport adapter for Agent UI frontends",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ag-ui/client": "0.0.59",
+    "@ag-ui/core": "0.0.59"
+  },
+  "peerDependencies": {
+    "@agent-ui/runtime-core": "^0.1.0"
+  },
+  "devDependencies": {
+    "@agent-ui/runtime-core": "workspace:^",
+    "@types/node": "^20.19.43",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  }
+}

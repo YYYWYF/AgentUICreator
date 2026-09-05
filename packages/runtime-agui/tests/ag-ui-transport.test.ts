@@ -2,7 +2,10 @@ import type { AbstractAgent, AgentSubscriber } from "@ag-ui/client";
 import type { Message, State } from "@ag-ui/core";
 import { describe, expect, it, vi } from "vitest";
 
-import { AgUiTransport, createAgUiTransport } from "./AgUiTransport";
+import {
+  AgUiTransport,
+  createAgUiTransport,
+} from "../src/AgUiTransport.js";
 
 class FakeAgentClient {
   messages: Message[] = [];

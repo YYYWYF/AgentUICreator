@@ -1,4 +1,7 @@
-import type { AgentTransport, AgentTransportSnapshot } from "./agent-transport";
+import type {
+  AgentTransport,
+  AgentTransportSnapshot,
+} from "./agent-transport.js";
 
 export type AgentRuntimeSnapshot = AgentTransportSnapshot;
 

@@ -35,6 +35,18 @@ export default defineConfig({
         frontendRoot,
         "src/App.tsx",
       ),
+      "@agent-ui/runtime-agui": path.join(
+        workspaceRoot,
+        "packages/runtime-agui/src/index.ts",
+      ),
+      "@agent-ui/runtime-core/testing": path.join(
+        workspaceRoot,
+        "packages/runtime-core/src/testing/index.ts",
+      ),
+      "@agent-ui/runtime-core": path.join(
+        workspaceRoot,
+        "packages/runtime-core/src/index.ts",
+      ),
     },
     dedupe: ["react", "react-dom"],
   },

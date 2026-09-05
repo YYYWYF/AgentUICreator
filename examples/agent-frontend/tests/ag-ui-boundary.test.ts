@@ -3,12 +3,27 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-const projectRoot = fileURLToPath(new URL("../", import.meta.url));
-const adapterRoot = path.join(projectRoot, "runtime/ag-ui");
+const workspaceRoot = fileURLToPath(new URL("../../..", import.meta.url));
+const projectRoot = path.join(workspaceRoot, "examples/agent-frontend");
+const coreRoot = path.join(workspaceRoot, "packages/runtime-core");
+const adapterRoot = path.join(workspaceRoot, "packages/runtime-agui");
+const protectedRoots = [
+  coreRoot,
+  path.join(projectRoot, "framework"),
+  path.join(projectRoot, "runtime"),
+  path.join(projectRoot, "plugins"),
+  path.join(projectRoot, "services"),
+  path.join(projectRoot, "src"),
+];
 const ignoredDirectories = new Set(["node_modules", "dist", ".git", ".creator", "coverage"]);
 
 async function sourceFiles(directory: string): Promise<string[]> {
-  const entries = await readdir(directory, { withFileTypes: true });
+  const entries = await readdir(directory, { withFileTypes: true }).catch(
+    (error: NodeJS.ErrnoException) => {
+      if (error.code === "ENOENT") return [];
+      throw error;
+    },
+  );
   return (await Promise.all(entries.map(async (entry) => {
     const filename = path.join(directory, entry.name);
     if (entry.isDirectory()) {
@@ -47,20 +62,73 @@ describe("generated app AG-UI dependency boundary", () => {
     `)).toEqual(["@ag-ui/core", "@ag-ui/client", "@ag-ui/side-effect", "@ag-ui/dynamic", "@ag-ui/legacy"]);
   });
 
-  it("allows SDK imports only in runtime/ag-ui and keeps adapter imports out of core and plugins", async () => {
+  it("keeps AG-UI SDK imports inside runtime-agui", async () => {
     const violations: string[] = [];
-    for (const filename of await sourceFiles(projectRoot)) {
-      const relative = path.relative(projectRoot, filename).split(path.sep).join("/");
-      const inAdapter = filename.startsWith(`${adapterRoot}${path.sep}`);
-      const protectedLayer = /^(framework|runtime\/(core|plugins)|plugins|services|app-ui)\//.test(relative);
+    for (const filename of (await Promise.all(
+      protectedRoots.map(sourceFiles),
+    )).flat()) {
+      const relative = path.relative(workspaceRoot, filename).split(path.sep).join("/");
       for (const specifier of moduleReferences(await readFile(filename, "utf8"))) {
-        if (specifier.startsWith("@ag-ui/") && !inAdapter) {
+        if (specifier.startsWith("@ag-ui/")) {
           violations.push(`${relative}: SDK import ${specifier}`);
         }
-        const resolved = path.resolve(path.dirname(filename), specifier);
-        if (protectedLayer && specifier.startsWith(".") &&
-            (resolved === adapterRoot || resolved.startsWith(`${adapterRoot}${path.sep}`))) {
-          violations.push(`${relative}: adapter import ${specifier}`);
+        if (
+          filename.startsWith(`${coreRoot}${path.sep}`) &&
+          specifier.startsWith("@agent-ui/runtime-agui")
+        ) {
+          violations.push(`${relative}: core imports adapter ${specifier}`);
+        }
+        if (
+          /\/examples\/agent-frontend\/(framework|plugins)\//.test(filename) &&
+          specifier.startsWith("@agent-ui/runtime-agui")
+        ) {
+          violations.push(`${relative}: plugin layer imports adapter ${specifier}`);
+        }
+      }
+    }
+    expect(violations).toEqual([]);
+  });
+
+  it("enforces package dependency ownership and direction", async () => {
+    const readPackage = async (filename: string): Promise<Record<string, unknown>> =>
+      JSON.parse(await readFile(filename, "utf8")) as Record<string, unknown>;
+    const corePackage = await readPackage(path.join(coreRoot, "package.json"));
+    const adapterPackage = await readPackage(path.join(adapterRoot, "package.json"));
+    const appPackage = await readPackage(path.join(projectRoot, "package.json"));
+    const dependencyNames = (manifest: Record<string, unknown>): string[] =>
+      [
+        "dependencies",
+        "devDependencies",
+        "peerDependencies",
+        "optionalDependencies",
+      ]
+        .flatMap((field) => Object.keys(
+          (manifest[field] as Record<string, string> | undefined) ?? {},
+        ));
+
+    expect(dependencyNames(corePackage)).not.toContain("@agent-ui/runtime-agui");
+    expect(dependencyNames(corePackage).filter((name) => name.startsWith("@ag-ui/"))).toEqual([]);
+    expect(dependencyNames(appPackage).filter((name) => name.startsWith("@ag-ui/"))).toEqual([]);
+    expect(adapterPackage.dependencies).toMatchObject({
+      "@ag-ui/client": "0.0.59",
+      "@ag-ui/core": "0.0.59",
+    });
+    expect(adapterPackage.peerDependencies).toMatchObject({
+      "@agent-ui/runtime-core": "^0.1.0",
+    });
+  });
+
+  it("uses only the runtime package public entry points across package boundaries", async () => {
+    const violations: string[] = [];
+    for (const filename of await sourceFiles(adapterRoot)) {
+      const relative = path.relative(workspaceRoot, filename).split(path.sep).join("/");
+      for (const specifier of moduleReferences(await readFile(filename, "utf8"))) {
+        if (
+          specifier.startsWith("@agent-ui/runtime-core/") ||
+          specifier.includes("runtime-core/src") ||
+          specifier.includes("runtime-core/dist")
+        ) {
+          violations.push(`${relative}: private core import ${specifier}`);
         }
       }
     }

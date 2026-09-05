@@ -1,4 +1,4 @@
-import type { AgentMessage } from "../runtime/core/agent-message";
+import type { AgentMessage } from "@agent-ui/runtime-core";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import {

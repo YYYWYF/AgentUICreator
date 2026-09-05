@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createAgentRuntime } from "../runtime/core/agent-runtime";
-import { MockAgentTransport } from "../runtime/core/mock-agent-transport";
-import type { AgentTransport } from "../runtime/core/agent-transport";
+import {
+  createAgentRuntime,
+  type AgentTransport,
+} from "../src/index.js";
+import { MockAgentTransport } from "../src/testing/index.js";
 
 describe("protocol-independent runtime delegation", () => {
   it("retains cached snapshots, releases subscriptions and delegates disposal", async () => {

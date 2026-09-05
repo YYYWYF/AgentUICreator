@@ -1,4 +1,7 @@
-import type { AgentTransport, AgentTransportSnapshot } from "./agent-transport";
+import type {
+  AgentTransport,
+  AgentTransportSnapshot,
+} from "./agent-transport.js";
 
 export abstract class ObservableAgentTransport implements AgentTransport {
   abstract readonly mode: string;

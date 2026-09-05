@@ -1,5 +1,5 @@
-import type { AgentMessage } from "./agent-message";
-import { ObservableAgentTransport } from "./observable-agent-transport";
+import type { AgentMessage } from "../agent-message.js";
+import { ObservableAgentTransport } from "../observable-agent-transport.js";
 
 export interface MockAgentTransportConfig {
   initialMessages?: AgentMessage[] | undefined;

@@ -1,6 +1,5 @@
 import type { Message } from "@ag-ui/core";
-
-import type { AgentMessage, AgentMessagePart } from "../core/agent-message";
+import type { AgentMessage, AgentMessagePart } from "@agent-ui/runtime-core";
 
 function mapContentPart(
   part: Extract<Extract<Message, { role: "user" }>["content"], unknown[]>[number],

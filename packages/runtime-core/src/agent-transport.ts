@@ -1,4 +1,4 @@
-import type { AgentMessage } from "./agent-message";
+import type { AgentMessage } from "./agent-message.js";
 
 export interface AgentTransportSnapshot {
   messages: AgentMessage[];
