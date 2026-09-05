@@ -13,11 +13,7 @@ from ..model_protocol.errors import (
     ModelToolProtocolError,
     ToolPermissionDeniedError,
 )
-from ..streaming.runtime_events import (
-    CreatorEventSink,
-    ToolInvocationFinished,
-    ToolInvocationStarted,
-)
+from ..streaming.runtime_events import CreatorEventSink
 from .path_policy import PolicyFilesystemBackend
 
 
@@ -73,25 +69,15 @@ class MinimalAgentRuntimeGuard(AgentMiddleware):
     def _before(self, request: Any) -> tuple[dict[str, Any], str]:
         self.assert_runnable()
         call = dict(request.tool_call)
+        if not isinstance(call.get("id"), str) or not call["id"]:
+            raise ModelToolProtocolError(
+                "Structured tool call is missing the required correlation id."
+            )
         arguments = call.get("args") if isinstance(call.get("args"), dict) else {}
         signature = json.dumps(
             [call.get("name"), arguments], ensure_ascii=False, sort_keys=True, default=str
         )
         return call, signature
-
-    def _started_event(self, call: dict[str, Any]) -> ToolInvocationStarted:
-        call_id = str(call.get("id") or "")
-        if not call_id:
-            raise ModelToolProtocolError(
-                "Structured tool call is missing the required correlation id."
-            )
-        return ToolInvocationStarted(
-            call_id=call_id,
-            name=str(call.get("name") or ""),
-            arguments=(
-                call.get("args") if isinstance(call.get("args"), dict) else {}
-            ),
-        )
 
     def _after(self, call: dict[str, Any], signature: str, result: Any) -> Any:
         self._record_activity(
@@ -133,64 +119,34 @@ class MinimalAgentRuntimeGuard(AgentMiddleware):
 
     def wrap_tool_call(self, request: Any, handler: Callable[[Any], Any]) -> Any:
         call, signature = self._before(request)
-        started = self._started_event(call)
-        if self.event_sink is not None:
-            self.event_sink.publish_nowait(started)
         try:
             result = handler(request)
         except BaseException as error:
             content = _bounded(str(error) or type(error).__name__)
             self._record_activity(call, signature, "error", content)
-            if self.event_sink is not None:
-                self.event_sink.publish_nowait(
-                    ToolInvocationFinished(started.call_id, content, "error")
-                )
-                if self.event_sink.cancel_requested:
-                    raise asyncio.CancelledError from error
+            if self.event_sink is not None and self.event_sink.cancel_requested:
+                raise asyncio.CancelledError from error
             raise
         result = self._after(call, signature, result)
-        if self.event_sink is not None:
-            self.event_sink.publish_nowait(
-                ToolInvocationFinished(
-                    started.call_id,
-                    self.activities[-1].result,
-                    self.activities[-1].status,
-                )
-            )
-            if self.event_sink.cancel_requested:
-                raise asyncio.CancelledError
+        if self.event_sink is not None and self.event_sink.cancel_requested:
+            raise asyncio.CancelledError
         return result
 
     async def awrap_tool_call(
         self, request: Any, handler: Callable[[Any], Awaitable[Any]]
     ) -> Any:
         call, signature = self._before(request)
-        started = self._started_event(call)
-        if self.event_sink is not None:
-            await self.event_sink.publish(started)
         try:
             result = await handler(request)
         except BaseException as error:
             content = _bounded(str(error) or type(error).__name__)
             self._record_activity(call, signature, "error", content)
-            if self.event_sink is not None:
-                await self.event_sink.publish(
-                    ToolInvocationFinished(started.call_id, content, "error")
-                )
-                if self.event_sink.cancel_requested:
-                    raise asyncio.CancelledError from error
+            if self.event_sink is not None and self.event_sink.cancel_requested:
+                raise asyncio.CancelledError from error
             raise
         result = self._after(call, signature, result)
-        if self.event_sink is not None:
-            await self.event_sink.publish(
-                ToolInvocationFinished(
-                    started.call_id,
-                    self.activities[-1].result,
-                    self.activities[-1].status,
-                )
-            )
-            if self.event_sink.cancel_requested:
-                raise asyncio.CancelledError
+        if self.event_sink is not None and self.event_sink.cancel_requested:
+            raise asyncio.CancelledError
         return result
 
     def wrap_model_call(self, request: Any, handler: Callable[[Any], Any]) -> Any:

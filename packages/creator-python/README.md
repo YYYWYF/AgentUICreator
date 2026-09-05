@@ -6,9 +6,12 @@ AG-UI stream、runtime diagnostics、ProjectControl v2 领域读取，以及由 
 Verification、Host Validation、Completion 和 Fast Path 尚未迁移。
 
 HTTP wire event 由锁定的 `ag-ui-protocol` 官方模型和 `EventEncoder` 产生。每次
-`POST /creator` 都创建独立的 bounded `CreatorEventBus`；RuntimeGuard 在 tool handler
-执行前发布调用定义，在 handler 返回或抛错后发布有界结果，server 并发消费并立即输出，
-不会在 Agent 完成后从 `activities` 重放工具事件。
+`POST /creator` 都创建独立的 bounded `CreatorEventBus`。Minimal / Domain Agent 通过
+`DeepAgentV3Runner` 从同一次 `astream_events(version="v3")` 并发消费官方
+`tool_calls` 投影与 final output；`DeepAgentToolStreamAdapter` 在 tool handle 出现时立即
+发布调用定义，在官方 tool lifecycle 结束后发布有界结果。RuntimeGuard 只保留
+no-progress、permission、activity、mutation revision 和 terminal error 责任，不再生成 UI 事件。
+server 仍只消费内部 EventBus 并映射为官方 AG-UI 事件。
 
 此包是开发时依赖，不进入生成的 Agent Frontend。
 

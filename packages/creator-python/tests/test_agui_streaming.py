@@ -85,7 +85,7 @@ def test_runtime_guard_rejects_missing_tool_call_id_before_handler(tmp_path):
     assert handler_called is False
 
 
-def test_runtime_guard_publishes_start_before_delayed_handler_finishes(tmp_path):
+def test_runtime_guard_records_delayed_handler_without_publishing_ui_events(tmp_path):
     async def scenario() -> None:
         bus = CreatorEventBus()
         guard = MinimalAgentRuntimeGuard(
@@ -104,22 +104,19 @@ def test_runtime_guard_publishes_start_before_delayed_handler_finishes(tmp_path)
             tool_call={"name": "read_file", "args": {"file_path": "/a"}, "id": "call-1"}
         )
         task = asyncio.create_task(guard.awrap_tool_call(request, handler))
-        started = await asyncio.wait_for(bus.next_event(), timeout=0.5)
-
-        assert isinstance(started, ToolInvocationStarted)
+        await asyncio.wait_for(handler_started.wait(), timeout=0.5)
         assert handler_started.is_set()
         assert not task.done()
         allow_finish.set()
         await task
-        finished = await asyncio.wait_for(bus.next_event(), timeout=0.5)
-        assert isinstance(finished, ToolInvocationFinished)
-        assert finished.call_id == started.call_id
-        assert finished.result == "done"
+        assert bus.metrics().tool_events_published == 0
+        assert guard.activities[0].callId == "call-1"
+        assert guard.activities[0].result == "done"
 
     asyncio.run(scenario())
 
 
-def test_runtime_guard_publishes_result_when_handler_raises(tmp_path):
+def test_runtime_guard_records_error_without_publishing_ui_events(tmp_path):
     async def scenario() -> None:
         bus = CreatorEventBus()
         guard = MinimalAgentRuntimeGuard(
@@ -135,13 +132,10 @@ def test_runtime_guard_publishes_result_when_handler_raises(tmp_path):
         )
         with pytest.raises(RuntimeError, match="tool failed"):
             await guard.awrap_tool_call(request, handler)
-        started = await bus.next_event()
-        finished = await bus.next_event()
-        assert isinstance(started, ToolInvocationStarted)
-        assert isinstance(finished, ToolInvocationFinished)
-        assert finished.call_id == "call-error"
-        assert finished.status == "error"
-        assert finished.result == "tool failed"
+        assert bus.metrics().tool_events_published == 0
+        assert guard.activities[0].callId == "call-error"
+        assert guard.activities[0].status == "error"
+        assert guard.activities[0].result == "tool failed"
 
     asyncio.run(scenario())
 
@@ -154,9 +148,11 @@ def test_cancel_request_waits_for_active_tool_result_then_stops(tmp_path):
             event_sink=bus,
         )
         allow_finish = asyncio.Event()
+        handler_started = asyncio.Event()
         handler_finished = asyncio.Event()
 
         async def handler(_request):
+            handler_started.set()
             await allow_finish.wait()
             handler_finished.set()
             return SimpleNamespace(content="committed", status="success")
@@ -165,15 +161,14 @@ def test_cancel_request_waits_for_active_tool_result_then_stops(tmp_path):
             tool_call={"name": "edit_file", "args": {}, "id": "call-write"}
         )
         task = asyncio.create_task(guard.awrap_tool_call(request, handler))
-        assert isinstance(await bus.next_event(), ToolInvocationStarted)
+        await asyncio.wait_for(handler_started.wait(), timeout=0.5)
         bus.request_cancel()
         assert not task.done()
         allow_finish.set()
         with pytest.raises(asyncio.CancelledError):
             await task
         assert handler_finished.is_set()
-        finished = await bus.next_event()
-        assert isinstance(finished, ToolInvocationFinished)
-        assert finished.result == "committed"
+        assert bus.metrics().tool_events_published == 0
+        assert guard.activities[0].result == "committed"
 
     asyncio.run(scenario())

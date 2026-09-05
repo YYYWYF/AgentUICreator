@@ -34,6 +34,7 @@ from ..model_protocol.provider_trace import ProviderResponseTraceCollector
 from ..model_protocol.tool_protocol_guard import ToolProtocolMiddleware
 from ..model_protocol.trace import ToolProtocolMetrics
 from ..project_control import ProjectControlClient, ProjectControlMetrics
+from ..streaming.deepagent_v3_runner import DeepAgentV3Runner
 from ..streaming.runtime_events import CreatorEventSink
 from .prompt import DOMAIN_READ_AGENT_PROMPT, DOMAIN_WRITE_AGENT_PROMPT
 from .runtime_guard import RepeatedProjectControlReadGuard
@@ -78,9 +79,11 @@ class CreatorDomainReadAgent:
 
     async def run(self, prompt: str) -> DomainReadAgentResult:
         try:
-            state = await self.graph.ainvoke(
-                {"messages": [{"role": "user", "content": prompt}]},
+            state = await DeepAgentV3Runner().run(
+                graph=self.graph,
+                input={"messages": [{"role": "user", "content": prompt}]},
                 config={"recursion_limit": 30},
+                event_sink=self.runtime.event_sink,
             )
         except GraphRecursionError as error:
             self.protocol.metrics.repeatedToolLoops += int(self.runtime.no_progress)

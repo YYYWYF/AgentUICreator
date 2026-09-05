@@ -24,3 +24,6 @@ class ToolPermissionDeniedError(CreatorAgentError):
 class ModelTimeoutError(CreatorAgentError):
     code = "MODEL_TIMEOUT"
 
+
+class DeepAgentEventStreamUnavailableError(CreatorAgentError):
+    code = "DEEPAGENT_EVENT_STREAM_UNAVAILABLE"

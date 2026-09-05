@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import {
+  chmod,
   cp,
   mkdir,
   mkdtemp,
@@ -367,6 +368,28 @@ async function copyTargetProject(label: string): Promise<string> {
   });
   await symlink(path.join(projectRoot, "node_modules"), path.join(root, "node_modules"));
   return root;
+}
+
+async function delayProjectControl(root: string, delaySeconds: number): Promise<void> {
+  if (process.platform === "win32") {
+    throw new Error("The delayed Project Control fixture requires a POSIX shell.");
+  }
+  const nodeModules = path.join(root, "node_modules");
+  await rm(nodeModules, { force: true });
+  await mkdir(path.join(nodeModules, ".bin"), { recursive: true });
+  for (const dependency of ["typescript", "zod"]) {
+    await symlink(
+      path.join(projectRoot, "node_modules", dependency),
+      path.join(nodeModules, dependency),
+    );
+  }
+  const executable = path.join(nodeModules, ".bin", "tsx");
+  const realExecutable = path.join(projectRoot, "node_modules", ".bin", "tsx");
+  await writeFile(
+    executable,
+    `#!/bin/sh\nsleep ${delaySeconds}\nexec "${realExecutable}" "$@"\n`,
+  );
+  await chmod(executable, 0o755);
 }
 
 async function readSseEvents(response: Response): Promise<{
@@ -786,6 +809,62 @@ server.serve_forever()
       },
     });
   }, 60_000);
+
+  it.skipIf(process.platform === "win32")(
+    "streams a real DeepAgents tool start through the proxy before delayed Project Control finishes",
+    async () => {
+      const fixtureRoot = await copyTargetProject("delayed-domain-read");
+      await delayProjectControl(fixtureRoot, 1.5);
+      const modelBaseUrl = await createDomainReadMockChatCompletionsServer();
+      const processManager = manager({
+        projectRoot: fixtureRoot,
+        environment: {
+          ...process.env,
+          CREATOR_PYTHON_AGENT_MODE: "domain-read",
+          CREATOR_MODEL_NAME: "mimo-v2.5-pro",
+          CREATOR_MODEL_BASE_URL: modelBaseUrl,
+          CREATOR_MODEL_API_KEY: "test-api-key",
+        },
+      });
+      const proxyRoot = await createProxyServer(processManager);
+      const response = await fetch(`${proxyRoot}/creator`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          threadId: "delayed-domain-thread",
+          runId: "delayed-domain-run",
+          messages: [{ role: "user", content: "Inspect the project." }],
+        }),
+      });
+      const reader = response.body?.getReader();
+      expect(reader).toBeDefined();
+      const decoder = new TextDecoder();
+      let beforeToolResult = "";
+      while (!beforeToolResult.includes('"type":"TOOL_CALL_START"')) {
+        const chunk = await reader!.read();
+        expect(chunk.done).toBe(false);
+        beforeToolResult += decoder.decode(chunk.value, { stream: true });
+      }
+
+      expect(beforeToolResult).toContain('"toolCallId":"call-inspect-project"');
+      expect(beforeToolResult).not.toContain('"type":"TOOL_CALL_RESULT"');
+
+      let remainder = "";
+      while (true) {
+        const chunk = await reader!.read();
+        if (chunk.done) {
+          remainder += decoder.decode();
+          break;
+        }
+        remainder += decoder.decode(chunk.value, { stream: true });
+      }
+      const completeWire = beforeToolResult + remainder;
+      expect(completeWire.match(/"type":"TOOL_CALL_START"/gu)).toHaveLength(3);
+      expect(completeWire.match(/"type":"TOOL_CALL_RESULT"/gu)).toHaveLength(3);
+      expect(completeWire).toContain('"type":"RUN_FINISHED"');
+    },
+    60_000,
+  );
 
   it("runs default Python domain-write through inspect and one semantic mutation", async () => {
     const fixtureRoot = await copyTargetProject("domain-write-project");
