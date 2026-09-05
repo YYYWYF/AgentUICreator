@@ -10,10 +10,17 @@ from ..minimal_agent.tool_policy import ALLOWED_MINIMAL_TOOLS, tool_name
 
 ALLOWED_DOMAIN_READ_TOOLS = (*ALLOWED_MINIMAL_TOOLS, *DOMAIN_READ_TOOL_NAMES)
 _ALLOWED_DOMAIN_READ_TOOL_SET = frozenset(ALLOWED_DOMAIN_READ_TOOLS)
+DOMAIN_WRITE_TOOL_NAMES = (*DOMAIN_READ_TOOL_NAMES, "mutate_app_ui_model")
+ALLOWED_DOMAIN_WRITE_TOOLS = (*ALLOWED_MINIMAL_TOOLS, *DOMAIN_WRITE_TOOL_NAMES)
+_ALLOWED_DOMAIN_WRITE_TOOL_SET = frozenset(ALLOWED_DOMAIN_WRITE_TOOLS)
 
 
 def filter_domain_read_tools(tools: Sequence[Any]) -> list[Any]:
     return [tool for tool in tools if tool_name(tool) in _ALLOWED_DOMAIN_READ_TOOL_SET]
+
+
+def filter_domain_write_tools(tools: Sequence[Any]) -> list[Any]:
+    return [tool for tool in tools if tool_name(tool) in _ALLOWED_DOMAIN_WRITE_TOOL_SET]
 
 
 class DomainReadToolPolicyMiddleware(AgentMiddleware):
@@ -33,3 +40,20 @@ class DomainReadToolPolicyMiddleware(AgentMiddleware):
     ) -> ModelResponse:
         return await handler(request.override(tools=filter_domain_read_tools(request.tools)))
 
+
+class DomainWriteToolPolicyMiddleware(AgentMiddleware):
+    """Expose bounded filesystem, domain reads, and semantic AppUIModel mutation."""
+
+    def wrap_model_call(
+        self,
+        request: ModelRequest,
+        handler: Callable[[ModelRequest], ModelResponse],
+    ) -> ModelResponse:
+        return handler(request.override(tools=filter_domain_write_tools(request.tools)))
+
+    async def awrap_model_call(
+        self,
+        request: ModelRequest,
+        handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
+    ) -> ModelResponse:
+        return await handler(request.override(tools=filter_domain_write_tools(request.tools)))

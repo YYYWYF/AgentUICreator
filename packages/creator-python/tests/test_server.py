@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from agent_ui_creator.config import CreatorServerSettings
 from agent_ui_creator.model_protocol import ToolProtocolMetrics
 from agent_ui_creator.model_protocol.errors import ModelToolProtocolError
+from agent_ui_creator.app_ui_model import AppUIModelMutationMetrics
 from agent_ui_creator.server import create_app
 
 
@@ -186,3 +187,56 @@ def test_domain_read_mode_streams_project_control_metrics(tmp_path, monkeypatch)
     assert '"phase":"domain-read-agent"' in response.text
     assert '"inspect_ui_project":1' in response.text
     assert '"repeatedProjectControlReads":0' in response.text
+
+
+def test_domain_write_mode_streams_mutation_metrics_and_not_run_receipt(tmp_path, monkeypatch):
+    monkeypatch.setenv("CREATOR_PYTHON_AGENT_MODE", "domain-write")
+    settings = CreatorServerSettings(
+        project_root=tmp_path,
+        skills_root=tmp_path,
+        auth_token="x" * 32,
+    )
+    metrics = ToolProtocolMetrics(modelCalls=3, toolCalls=2, validToolCalls=2)
+
+    async def fake_result(_settings, _prompt, _activity, _coordinator):
+        return SimpleNamespace(
+            text="Static composition committed.",
+            metrics=metrics,
+            project_control=SimpleNamespace(
+                to_dict=lambda: {
+                    "requests": 2,
+                    "byOperation": {
+                        "inspect_app_ui_model": 1,
+                        "mutate_app_ui_model": 1,
+                    },
+                    "failures": 0,
+                    "durationMs": 12,
+                }
+            ),
+            repeated_project_control_reads=0,
+            app_ui_model_mutations=AppUIModelMutationMetrics(
+                requests=1, operations=1, changedPaths=2
+            ),
+            activities=(),
+        )
+
+    monkeypatch.setattr(
+        "agent_ui_creator.server._domain_write_agent_result", fake_result
+    )
+    client = TestClient(
+        create_app(settings), headers={"Authorization": f"Bearer {settings.auth_token}"}
+    )
+    response = client.post(
+        "/creator",
+        json={
+            "threadId": "thread-1",
+            "runId": "run-1",
+            "messages": [{"role": "user", "content": "register plugin"}],
+        },
+    )
+
+    assert '"phase":"domain-write-agent"' in response.text
+    assert '"mutate_app_ui_model":1' in response.text
+    assert '"appUIModelMutations":{"requests":1,"operations":1' in response.text
+    assert '"changedPaths":2' in response.text
+    assert '"status":"not-run"' in response.text

@@ -6,7 +6,9 @@ from langchain_core.messages import AIMessage
 
 from agent_ui_creator.domain_agent import (
     ALLOWED_DOMAIN_READ_TOOLS,
+    ALLOWED_DOMAIN_WRITE_TOOLS,
     DomainReadToolPolicyMiddleware,
+    DomainWriteToolPolicyMiddleware,
 )
 
 
@@ -33,3 +35,21 @@ def test_domain_read_policy_exposes_only_filesystem_and_read_domain_tools():
     assert observed == list(ALLOWED_DOMAIN_READ_TOOLS)
     assert "mutate_app_ui_model" not in observed
 
+
+def test_domain_write_policy_adds_only_semantic_mutation_to_read_surface():
+    tools = [
+        SimpleNamespace(name=name)
+        for name in ("task", "execute", "write_todos", *ALLOWED_DOMAIN_WRITE_TOOLS)
+    ]
+    request = ModelRequest(model=Mock(), messages=[], tools=tools)
+    observed = []
+
+    def handler(filtered):
+        observed.extend(tool.name for tool in filtered.tools)
+        return ModelResponse(result=[AIMessage(content="done")])
+
+    DomainWriteToolPolicyMiddleware().wrap_model_call(request, handler)
+
+    assert observed == list(ALLOWED_DOMAIN_WRITE_TOOLS)
+    assert "mutate_app_ui_model" in observed
+    assert not {"task", "execute", "write_todos", "write_file"}.intersection(observed)

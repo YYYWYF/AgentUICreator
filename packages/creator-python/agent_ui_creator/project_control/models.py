@@ -17,6 +17,11 @@ ReadProjectControlOperation: TypeAlias = Literal[
     "inspect_ui_plugin_source_references",
 ]
 
+MutationProjectControlOperation: TypeAlias = Literal["mutate_app_ui_model"]
+ProjectControlOperation: TypeAlias = (
+    ReadProjectControlOperation | MutationProjectControlOperation
+)
+
 
 @dataclass(slots=True)
 class ProjectControlMetrics:
@@ -25,7 +30,7 @@ class ProjectControlMetrics:
     failures: int = 0
     durationMs: int = 0
 
-    def record(self, operation: ReadProjectControlOperation, duration_ms: int, failed: bool) -> None:
+    def record(self, operation: ProjectControlOperation, duration_ms: int, failed: bool) -> None:
         self.requests += 1
         self.requestsByOperation[operation] = self.requestsByOperation.get(operation, 0) + 1
         self.durationMs += duration_ms
@@ -35,4 +40,3 @@ class ProjectControlMetrics:
         value = asdict(self)
         value["byOperation"] = value.pop("requestsByOperation")
         return value
-

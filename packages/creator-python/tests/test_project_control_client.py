@@ -61,6 +61,35 @@ print(json.dumps({"schemaVersion": 2, "ok": True, "result": request}))
     assert slots["input"] == {"root": "workspace"}
 
 
+def test_mutation_transport_sends_exact_protocol_v2_request(tmp_path):
+    source = """
+import json
+import sys
+request = json.loads(sys.stdin.read())
+print(json.dumps({"schemaVersion": 2, "ok": True, "result": request}))
+"""
+    _root, client = _control_project(tmp_path, source)
+    input = {
+        "appUIModelHash": "a" * 64,
+        "operations": [
+            {
+                "type": "set_instance_enabled",
+                "instanceId": "sample-main",
+                "enabled": False,
+            }
+        ],
+    }
+
+    result = asyncio.run(client.request_app_ui_model_mutation(input))
+
+    assert result == {
+        "schemaVersion": 2,
+        "operation": "mutate_app_ui_model",
+        "input": input,
+    }
+    assert client.metrics.to_dict()["byOperation"] == {"mutate_app_ui_model": 1}
+
+
 def test_missing_entry_and_runtime_have_stable_codes(tmp_path):
     project_root = tmp_path / "project"
     project_root.mkdir()

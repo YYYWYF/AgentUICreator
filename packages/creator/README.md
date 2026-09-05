@@ -79,6 +79,17 @@ CREATOR_PYTHON_AGENT_MODE=domain-read
 Domain Read 模式复用相同模型栈，并通过正式 ProjectControl v2 入口开放六个只读领域工具；
 不会开放 `mutate_app_ui_model`，默认仍保持 transport echo。
 
+Phase 3B-2 的静态组合写模式使用：
+
+```env
+CREATOR_PYTHON_AGENT_MODE=domain-write
+```
+
+它在 Domain Read 工具面上增加 `mutate_app_ui_model`，由 Python Host 负责 project lock、
+capture-before、changedPaths 对账、Activity revision、receipt、transaction 与 undo。
+`app-ui/app-ui.json` 和 `plugins/registry.generated.ts` 仍禁止通用文件工具直接编辑。
+本模式尚不迁移 Runtime Verification、Host Validation、Completion 或 Fast Path。
+
 仓库根目录的 `pnpm test` 会先运行 Python unit/contract tests，再运行
 TypeScript tests（其中包含真实 sidecar 进程集成测试）。可以使用
 `pnpm test:python-sidecar` 单独运行跨语言链路验收。

@@ -11,6 +11,8 @@ from uuid import uuid4
 
 from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResponse
 from langchain_core.messages import AIMessage, HumanMessage
+from jsonschema import Draft202012Validator
+from jsonschema.exceptions import ValidationError
 
 from .errors import AgentNoProgressError, ModelToolProtocolError
 from .provider_trace import ProviderResponseTrace, ProviderResponseTraceCollector
@@ -28,7 +30,7 @@ Do not explain the error in prose."""
 _TOOL_INTENT_NAMES = (
     "read_file|edit_file|grep|glob|ls|inspect_ui_project|inspect_app_ui_model|"
     "list_ui_plugins|inspect_ui_slots|inspect_ui_plugin|"
-    "inspect_ui_plugin_source_references"
+    "inspect_ui_plugin_source_references|mutate_app_ui_model"
 )
 _TEXT_TOOL_PATTERNS = (
     re.compile(r"<function_call\b", re.IGNORECASE),
@@ -69,6 +71,10 @@ def _arguments_are_valid(tool: Any, arguments: Any) -> bool:
     if not isinstance(arguments, Mapping):
         return False
     try:
+        args_schema = getattr(tool, "args_schema", None)
+        if isinstance(args_schema, Mapping):
+            Draft202012Validator(dict(args_schema)).validate(dict(arguments))
+            return True
         if hasattr(tool, "get_input_schema"):
             tool.get_input_schema().model_validate(dict(arguments))
             return True
@@ -90,7 +96,7 @@ def _arguments_are_valid(tool: Any, arguments: Any) -> bool:
                     if expected == "array" and not isinstance(value, list):
                         return False
             return True
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, ValidationError):
         return False
     return True
 

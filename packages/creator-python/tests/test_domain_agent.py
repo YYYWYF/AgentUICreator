@@ -16,7 +16,7 @@ from agent_ui_creator.model_protocol.errors import (
     ToolPermissionDeniedError,
 )
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 TARGET_PROJECT = REPOSITORY_ROOT / "examples" / "agent-frontend"
 
 

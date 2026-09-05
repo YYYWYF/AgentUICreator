@@ -1,6 +1,15 @@
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  cp,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
 import { createServer, type Server } from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -262,6 +271,98 @@ async function createDomainReadMockChatCompletionsServer(): Promise<string> {
   });
   const address = server.address() as AddressInfo;
   return `http://127.0.0.1:${address.port}/v1`;
+}
+
+async function createDomainWriteMockChatCompletionsServer(
+  appUIModelHash: string,
+  instanceId: string,
+): Promise<string> {
+  let call = 0;
+  const server = createServer((request, response) => {
+    if (request.method !== "POST" || request.url !== "/v1/chat/completions") {
+      response.statusCode = 404;
+      response.end();
+      return;
+    }
+    request.resume();
+    request.once("end", () => {
+      call += 1;
+      const toolCalls = [
+        {
+          id: "call-inspect-app-ui-model",
+          type: "function",
+          function: { name: "inspect_app_ui_model", arguments: "{}" },
+        },
+        {
+          id: "call-mutate-app-ui-model",
+          type: "function",
+          function: {
+            name: "mutate_app_ui_model",
+            arguments: JSON.stringify({
+              appUIModelHash,
+              operations: [
+                {
+                  type: "update_instance_props",
+                  instanceId,
+                  set: { phase3B2NodePython: true },
+                },
+              ],
+            }),
+          },
+        },
+      ];
+      const selected = toolCalls[call - 1];
+      response.statusCode = 200;
+      response.setHeader("Content-Type", "application/json");
+      response.end(
+        JSON.stringify({
+          id: `domain-write-completion-${call}`,
+          object: "chat.completion",
+          created: 1,
+          model: "mimo-v2.5-pro",
+          choices: [
+            {
+              index: 0,
+              message:
+                selected === undefined
+                  ? {
+                      role: "assistant",
+                      content:
+                        "AppUIModel static composition committed; runtime verification was not run.",
+                    }
+                  : { role: "assistant", content: null, tool_calls: [selected] },
+              finish_reason: selected === undefined ? "stop" : "tool_calls",
+            },
+          ],
+          usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+        }),
+      );
+    });
+  });
+  servers.push(server);
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      server.removeListener("error", reject);
+      resolve();
+    });
+  });
+  const address = server.address() as AddressInfo;
+  return `http://127.0.0.1:${address.port}/v1`;
+}
+
+async function copyTargetProject(label: string): Promise<string> {
+  const root = await mkdtemp(path.join(tmpdir(), `creator-${label}-`));
+  temporaryDirectories.push(root);
+  await cp(projectRoot, root, {
+    recursive: true,
+    filter: (entry) =>
+      !["node_modules", "dist", ".agentuicreator"].includes(
+        path.basename(entry),
+      ),
+  });
+  await symlink(path.join(projectRoot, "node_modules"), path.join(root, "node_modules"));
+  return root;
 }
 
 async function readSseEvents(response: Response): Promise<{
@@ -572,6 +673,86 @@ afterEach(async () => {
           inspect_ui_plugin: 1,
         },
         failures: 0,
+      },
+    });
+  }, 60_000);
+
+  it("runs Node to Python domain-write through inspect and one semantic mutation", async () => {
+    const fixtureRoot = await copyTargetProject("domain-write-project");
+    const appUIModelPath = path.join(fixtureRoot, "app-ui/app-ui.json");
+    const beforeSource = await readFile(appUIModelPath, "utf8");
+    const appUIModelHash = createHash("sha256")
+      .update(beforeSource)
+      .digest("hex");
+    const model = JSON.parse(beforeSource) as {
+      pluginInstances: Record<string, unknown>;
+    };
+    const instanceId = Object.keys(model.pluginInstances)[0];
+    if (!instanceId) {
+      throw new Error("Domain-write fixture requires one PluginInstance.");
+    }
+    const modelBaseUrl = await createDomainWriteMockChatCompletionsServer(
+      appUIModelHash,
+      instanceId,
+    );
+    const processManager = manager({
+      projectRoot: fixtureRoot,
+      environment: {
+        ...process.env,
+        CREATOR_PYTHON_AGENT_MODE: "domain-write",
+        CREATOR_MODEL_NAME: "mimo-v2.5-pro",
+        CREATOR_MODEL_BASE_URL: modelBaseUrl,
+        CREATOR_MODEL_API_KEY: "test-api-key",
+      },
+    });
+    const proxyRoot = await createProxyServer(processManager);
+    const response = await fetch(`${proxyRoot}/creator`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        threadId: "domain-write-thread",
+        runId: "domain-write-run",
+        messages: [
+          {
+            role: "user",
+            content: "Update the existing instance using semantic AppUIModel mutation.",
+          },
+        ],
+      }),
+    });
+    const { events } = await readSseEvents(response);
+    const toolStarts = events
+      .filter((event) => event.type === "TOOL_CALL_START")
+      .map((event) => event.toolCallName);
+
+    expect(toolStarts).toEqual([
+      "inspect_app_ui_model",
+      "mutate_app_ui_model",
+    ]);
+    expect(toolStarts).not.toContain("edit_file");
+    expect(await readFile(appUIModelPath, "utf8")).toContain(
+      '"phase3B2NodePython": true',
+    );
+    expect(events.at(-1)?.result).toMatchObject({
+      phase: "domain-write-agent",
+      toolProtocol: { modelCalls: 3, toolCalls: 2, validToolCalls: 2 },
+      projectControl: {
+        requests: 2,
+        byOperation: {
+          inspect_app_ui_model: 1,
+          mutate_app_ui_model: 1,
+        },
+      },
+      appUIModelMutations: {
+        requests: 1,
+        operations: 1,
+        hashConflicts: 0,
+        changedPaths: 1,
+        resultMismatches: 0,
+      },
+      receipt: {
+        verification: { status: "not-run", projectRevision: 1 },
+        transaction: { runId: "domain-write-run", undoable: true },
       },
     });
   }, 60_000);

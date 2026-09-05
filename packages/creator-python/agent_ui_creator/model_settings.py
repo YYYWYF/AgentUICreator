@@ -51,9 +51,9 @@ def load_python_agent_mode(
     environment = os.environ if environment is None else environment
     file_values = _parse_environment_file(config_root)
     mode = _first_value(environment, file_values, "CREATOR_PYTHON_AGENT_MODE") or "echo"
-    if mode not in {"echo", "minimal", "domain-read"}:
+    if mode not in {"echo", "minimal", "domain-read", "domain-write"}:
         raise CreatorModelConfigurationError(
-            "CREATOR_PYTHON_AGENT_MODE must be echo, minimal, or domain-read."
+            "CREATOR_PYTHON_AGENT_MODE must be echo, minimal, domain-read, or domain-write."
         )
     return mode
 

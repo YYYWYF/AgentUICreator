@@ -1,6 +1,15 @@
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  cp,
+  mkdtemp,
+  mkdir,
+  readFile,
+  rm,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,6 +20,7 @@ import {
   CREATOR_MISSING_FILE_HASH,
   CreatorActivityRecorder,
   CreatorTransactionStore,
+  ProjectControlAdapter,
   creatorContentHash,
 } from "../src/index.js";
 
@@ -55,6 +65,21 @@ async function projectFixture(): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), "creator-transaction-parity-"));
   temporaryDirectories.push(root);
   await mkdir(path.join(root, "plugins"));
+  return root;
+}
+
+async function targetProjectCopy(label: string): Promise<string> {
+  const root = await mkdtemp(path.join(tmpdir(), `creator-${label}-`));
+  temporaryDirectories.push(root);
+  const source = path.join(repositoryRoot, "examples/agent-frontend");
+  await cp(source, root, {
+    recursive: true,
+    filter: (entry) =>
+      !["node_modules", "dist", ".agentuicreator"].includes(
+        path.basename(entry),
+      ),
+  });
+  await symlink(path.join(source, "node_modules"), path.join(root, "node_modules"));
   return root;
 }
 
@@ -151,6 +176,100 @@ afterEach(async () => {
       expect(result.status.undoable).toBe(true);
       expect(result.undo.changedPaths).toEqual(["plugins/activity.ts"]);
       expect(await readFile(target, "utf8")).toContain('"old"');
+    });
+
+    it("keeps TypeScript and Python AppUIModel mutation results and files equivalent", async () => {
+      const typescriptRoot = await targetProjectCopy("mutation-ts");
+      const pythonRoot = await targetProjectCopy("mutation-py");
+      const initialSource = await readFile(
+        path.join(typescriptRoot, "app-ui/app-ui.json"),
+        "utf8",
+      );
+      const initialModel = JSON.parse(initialSource) as {
+        pluginInstances: Record<string, unknown>;
+      };
+      const instanceId = Object.keys(initialModel.pluginInstances)[0];
+      if (!instanceId) {
+        throw new Error("Mutation parity fixture requires one PluginInstance.");
+      }
+      const appUIModelHash = createHash("sha256")
+        .update(initialSource)
+        .digest("hex");
+      const operations = [
+        {
+          type: "update_instance_props",
+          instanceId,
+          set: { phase3B2Parity: true },
+        },
+      ];
+      const typescript = (await new ProjectControlAdapter({
+        projectRoot: typescriptRoot,
+      }).request("mutate_app_ui_model", {
+        appUIModelHash,
+        operations,
+      })) as {
+        changed: boolean;
+        changedPaths: string[];
+        appUIModel: { beforeHash: string; afterHash: string };
+        registry: {
+          selectedPluginIds: string[];
+          registeredPluginIds: string[];
+        };
+      };
+      const pythonMutation = python(
+        [
+          "import asyncio, json, sys",
+          "from pathlib import Path",
+          "from agent_ui_creator.activity import CreatorActivityRecorder",
+          "from agent_ui_creator.app_ui_model import AppUIModelMutationService, ProjectMutationCoordinator",
+          "from agent_ui_creator.project_control import ProjectControlClient",
+          "root = Path(sys.argv[1])",
+          "activity = CreatorActivityRecorder(root)",
+          "activity.begin('python-app-ui-mutation')",
+          "client = ProjectControlClient(project_root=root)",
+          "service = AppUIModelMutationService(project_root=root, project_control=client, activity=activity, mutation_coordinator=ProjectMutationCoordinator())",
+          "result = asyncio.run(service.mutate(app_ui_model_hash=sys.argv[2], operations=json.loads(sys.argv[3])))",
+          "print(json.dumps({'result': result.target_result, 'receipt': activity.finish()}, ensure_ascii=False))",
+        ].join("\n"),
+        pythonRoot,
+        appUIModelHash,
+        JSON.stringify(operations),
+      ) as {
+        result: typeof typescript;
+        receipt: { transaction: { runId: string; undoable: boolean } };
+      };
+
+      expect(pythonMutation.result.changed).toBe(typescript.changed);
+      expect(pythonMutation.result.changedPaths).toEqual(typescript.changedPaths);
+      expect(pythonMutation.result.appUIModel).toEqual(typescript.appUIModel);
+      expect(pythonMutation.result.registry).toEqual(typescript.registry);
+      expect(
+        await readFile(path.join(pythonRoot, "app-ui/app-ui.json"), "utf8"),
+      ).toBe(
+        await readFile(path.join(typescriptRoot, "app-ui/app-ui.json"), "utf8"),
+      );
+      expect(
+        await readFile(
+          path.join(pythonRoot, "plugins/registry.generated.ts"),
+          "utf8",
+        ),
+      ).toBe(
+        await readFile(
+          path.join(typescriptRoot, "plugins/registry.generated.ts"),
+          "utf8",
+        ),
+      );
+      expect(pythonMutation.receipt.transaction).toEqual({
+        runId: "python-app-ui-mutation",
+        undoable: true,
+      });
+
+      await new CreatorTransactionStore(pythonRoot).undo(
+        "python-app-ui-mutation",
+      );
+      expect(
+        await readFile(path.join(pythonRoot, "app-ui/app-ui.json"), "utf8"),
+      ).toBe(initialSource);
     });
   },
 );

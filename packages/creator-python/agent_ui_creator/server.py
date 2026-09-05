@@ -17,6 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from .config import CREATOR_PYTHON_PROTOCOL_VERSION, CreatorServerSettings
 from .activity import CreatorActivityRecorder
+from .app_ui_model import ProjectMutationCoordinator
 from .model_settings import (
     CreatorModelConfigurationError,
     CreatorModelSettings,
@@ -132,6 +133,38 @@ async def _domain_read_agent_result(
     return await agent.run(prompt)
 
 
+async def _domain_write_agent_result(
+    settings: CreatorServerSettings,
+    prompt: str,
+    activity: CreatorActivityRecorder,
+    mutation_coordinator: ProjectMutationCoordinator,
+):
+    from .domain_agent import create_domain_write_creator_agent
+    from .model_factory import create_creator_chat_model
+    from .model_protocol.provider_trace import ProviderResponseTraceCollector
+
+    model_settings = CreatorModelSettings.from_environment(
+        config_root=settings.config_root
+    )
+    provider_trace_collector = ProviderResponseTraceCollector(
+        enabled=model_settings.raw_trace
+    )
+    model = create_creator_chat_model(
+        model_settings,
+        provider_trace_collector=provider_trace_collector,
+    )
+    agent = create_domain_write_creator_agent(
+        model=model,
+        workspace=settings.project_root,
+        mode="development",
+        raw_trace=model_settings.raw_trace,
+        provider_trace_collector=provider_trace_collector,
+        activity=activity,
+        mutation_coordinator=mutation_coordinator,
+    )
+    return await agent.run(prompt)
+
+
 def _error_code(error: Exception) -> str:
     code = getattr(error, "code", None)
     if isinstance(code, str) and code:
@@ -151,6 +184,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
     )
     diagnostics = RuntimeDiagnosticStore()
     writing_run_lock = asyncio.Lock()
+    mutation_coordinator = ProjectMutationCoordinator()
 
     @app.middleware("http")
     async def authorize(request: Request, call_next: Any):
@@ -170,8 +204,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
             "protocolVersion": CREATOR_PYTHON_PROTOCOL_VERSION,
             "projectRoot": str(settings.project_root),
             "phase": (
-                "domain-read-agent"
-                if agent_mode == "domain-read"
+                f"{agent_mode}-agent"
+                if agent_mode in {"domain-read", "domain-write"}
                 else "minimal-agent" if agent_mode == "minimal" else "sidecar-skeleton"
             ),
             "agentMode": agent_mode,
@@ -201,7 +235,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                 message_id = str(uuid4())
                 logger: CreatorRunLogger | None = None
                 activity: CreatorActivityRecorder | None = None
-                if agent_mode in {"minimal", "domain-read"}:
+                if agent_mode in {"minimal", "domain-read", "domain-write"}:
                     logger = CreatorRunLogger(settings.project_root)
                     logger.begin(run_id=run_input.runId, thread_id=run_input.threadId)
                     activity = CreatorActivityRecorder(
@@ -215,17 +249,23 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                         "runId": run_input.runId,
                     }
                 )
-                if agent_mode in {"minimal", "domain-read"}:
+                if agent_mode in {"minimal", "domain-read", "domain-write"}:
                     try:
-                        result = await (
-                            _domain_read_agent_result(
+                        if agent_mode == "domain-write":
+                            result = await _domain_write_agent_result(
+                                settings,
+                                _echo_text(run_input),
+                                activity,
+                                mutation_coordinator,
+                            )
+                        elif agent_mode == "domain-read":
+                            result = await _domain_read_agent_result(
                                 settings, _echo_text(run_input), activity
                             )
-                            if agent_mode == "domain-read"
-                            else _minimal_agent_result(
+                        else:
+                            result = await _minimal_agent_result(
                                 settings, _echo_text(run_input), activity
                             )
-                        )
                     except Exception as error:
                         receipt = None
                         try:
@@ -287,9 +327,9 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             }
                         )
                     response_text = result.text
-                    if agent_mode == "domain-read":
+                    if agent_mode in {"domain-read", "domain-write"}:
                         run_result = {
-                            "phase": "domain-read-agent",
+                            "phase": f"{agent_mode}-agent",
                             "toolProtocol": result.metrics.to_dict(),
                             "projectControl": {
                                 **result.project_control.to_dict(),
@@ -298,6 +338,10 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                 ),
                             },
                         }
+                        if agent_mode == "domain-write":
+                            run_result["appUIModelMutations"] = (
+                                result.app_ui_model_mutations.to_dict()
+                            )
                     else:
                         run_result = {
                             "phase": "minimal-agent",

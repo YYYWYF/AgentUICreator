@@ -18,7 +18,7 @@ from .models import (
     PROJECT_CONTROL_SCHEMA_VERSION,
     PROJECT_CONTROL_TIMEOUT_SECONDS,
     ProjectControlMetrics,
-    ReadProjectControlOperation,
+    ProjectControlOperation,
 )
 
 _ERROR_DETAIL_LIMIT = 2_000
@@ -47,7 +47,7 @@ class _OutputLimitExceeded(Exception):
 
 
 class ProjectControlClient:
-    """Read-only Python client for the target project's protocol-v2 control entry."""
+    """JSON protocol transport for the target project's fixed control entry."""
 
     def __init__(
         self,
@@ -89,9 +89,15 @@ class ProjectControlClient:
             "inspect_ui_plugin_source_references", {"pluginId": plugin_id}
         )
 
+    async def request_app_ui_model_mutation(
+        self, input: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Internal transport used only by AppUIModelMutationService."""
+        return await self._request("mutate_app_ui_model", input)
+
     async def _request(
         self,
-        operation: ReadProjectControlOperation,
+        operation: ProjectControlOperation,
         input: dict[str, Any],
     ) -> dict[str, Any]:
         started_at = time.monotonic()

@@ -73,3 +73,6 @@ def test_python_agent_mode_accepts_domain_read_without_changing_default():
     assert load_python_agent_mode(
         environment={"CREATOR_PYTHON_AGENT_MODE": "domain-read"}
     ) == "domain-read"
+    assert load_python_agent_mode(
+        environment={"CREATOR_PYTHON_AGENT_MODE": "domain-write"}
+    ) == "domain-write"
