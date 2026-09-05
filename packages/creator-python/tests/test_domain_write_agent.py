@@ -55,9 +55,10 @@ class MutationClient:
         self.metrics.record("inspect_app_ui_model", 1, False)
         return {
             "schemaVersion": 2,
-            "appUIModel": {
-                "hash": read_creator_file_state(self.root, APP_UI_MODEL_PATH).hash
-            },
+            "hash": read_creator_file_state(self.root, APP_UI_MODEL_PATH).hash,
+            "model": json.loads(
+                (self.root / APP_UI_MODEL_PATH).read_text(encoding="utf-8")
+            ),
         }
 
     async def request_app_ui_model_mutation(self, input):
@@ -105,7 +106,6 @@ class MutationClient:
 
 def test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation(tmp_path):
     root = _project(tmp_path)
-    app_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
     client = MutationClient(root)
     model = ToolCallingFakeModel(
         responses=[
@@ -113,7 +113,6 @@ def test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation(tmp_
             call(
                 "mutate_app_ui_model",
                 {
-                    "appUIModelHash": app_hash,
                     "operations": [
                         {
                             "type": "add_instance",
@@ -157,6 +156,14 @@ def test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation(tmp_
         "hashConflicts": 0,
         "changedPaths": 1,
         "resultMismatches": 0,
+    }
+    assert result.domain_observations.to_dict() == {
+        "updates": 2,
+        "hashReuses": 1,
+        "invalidations": 0,
+        "observationRequiredErrors": 0,
+        "explicitHashMatches": 0,
+        "explicitHashMismatches": 0,
     }
     assert receipt["files"][0]["path"] == APP_UI_MODEL_PATH
     assert receipt["transaction"]["undoable"] is True

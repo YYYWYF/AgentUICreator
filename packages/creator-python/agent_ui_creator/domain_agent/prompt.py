@@ -19,11 +19,16 @@ PluginInstance, Slot, Registry, and composition state.
 
 For composition changes, always use mutate_app_ui_model. Never edit
 app-ui/app-ui.json or plugins/registry.generated.ts directly. Before mutation,
-obtain a current AppUIModel hash from inspect_ui_project or inspect_app_ui_model.
-Prefer one atomic mutation containing all operations required by one user intent.
+inspect authoritative ProjectControl state so the Creator Host has a current
+AppUIModel observation. The Creator Host owns the AppUIModel hash used for
+mutation. Do not repeat an inspection only to refresh or copy the hash when no
+project mutation has occurred. Call mutate_app_ui_model with the required semantic
+operations; the Host will use its most recent valid observation. Prefer one atomic
+mutation containing all operations required by one user intent.
 
-If mutate_app_ui_model returns APP_UI_MODEL_HASH_CONFLICT, inspect again before
-deciding whether to retry. Never retry with the same stale hash.
+If mutate_app_ui_model returns APP_UI_MODEL_HASH_CONFLICT or
+APP_UI_MODEL_OBSERVATION_REQUIRED, inspect current state again before deciding
+whether to retry. Never retry from stale state.
 
 A successful AppUIModel mutation is only a static composition commit. Runtime
 verification and Host validation are not available in this phase, so do not claim

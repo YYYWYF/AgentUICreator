@@ -344,6 +344,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                     result.repeated_project_control_reads
                                 ),
                             },
+                            "domainObservations": result.domain_observations.to_dict(),
                         }
                         if agent_mode == "domain-write":
                             run_result["appUIModelMutations"] = (

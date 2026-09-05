@@ -206,7 +206,7 @@ Plugin 源码继续由通用 Coding Agent 在权限范围内编辑；AppUIModel 
 
 一次语义操作必须：
 
-1. 校验调用方观察到的 `appUIModelHash`，并持有当前项目的事务锁；
+1. 由 Creator Host 校验当前 run 中已观察到的 `appUIModelHash`，并持有当前项目的事务锁；
 2. 在内存中应用一个或一组组合操作；
 3. 完整解析 AppUIModel 并检查跨字段关系；
 4. 重新计算由 AppUIModel 派生的生产 Registry；
@@ -1009,7 +1009,7 @@ replace_layout_node
 remove_layout_node
 ```
 
-模型侧优先只暴露一个 `mutate_app_ui_model` 工具，上述名称作为其 discriminated operation types，避免让固定 Tool Catalog 膨胀。工具接收 `appUIModelHash` 与 `operations[]`；需要多步共同满足不变量时，在一个调用中原子提交一组操作。不要提供接受任意完整 JSON 的 `update_layout` 作为语义工具替代品。
+模型侧优先只暴露一个 `mutate_app_ui_model` 工具，上述名称作为其 discriminated operation types，避免让固定 Tool Catalog 膨胀。工具要求 `operations[]`；Creator Host 使用当前 run 中最近一次仍有效的权威观察 hash 作为 CAS token。模型可暂时提供 optional `appUIModelHash` 兼容旧轨迹，但它只能与 Host observation 做一致性校验，不能成为 mutation authority。需要多步共同满足不变量时，在一个调用中原子提交一组操作。不要提供接受任意完整 JSON 的 `update_layout` 作为语义工具替代品。
 
 增加受控恢复和交互工具：
 

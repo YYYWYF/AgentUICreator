@@ -22,6 +22,8 @@ from agent_ui_creator.app_ui_model.mutation_tool import (
     load_app_ui_model_mutation_tool_schema,
 )
 from agent_ui_creator.files import creator_content_hash, read_creator_file_state
+from agent_ui_creator.domain_state import DomainObservationContext
+from agent_ui_creator.domain_tools import create_project_control_tools
 from agent_ui_creator.project_control import ProjectControlError
 from agent_ui_creator.model_protocol import ToolProtocolGuard, ToolProtocolMetrics
 from agent_ui_creator.transactions import CreatorTransactionError
@@ -64,9 +66,11 @@ class FakeMutationClient:
         self.reported_paths = reported_paths
         self.result = result
         self.calls = 0
+        self.inputs = []
 
     async def request_app_ui_model_mutation(self, input):
         self.calls += 1
+        self.inputs.append(copy.deepcopy(input))
         before_hash = read_creator_file_state(self.root, APP_UI_MODEL_PATH).hash
         for path in self.changed_paths:
             target = self.root / path
@@ -104,6 +108,16 @@ def _mutate(service, app_hash):
             ],
         )
     )
+
+
+def _observations(service, app_hash):
+    observations = DomainObservationContext()
+    observations.observe_app_ui_model(
+        hash=app_hash,
+        revision=service.activity.revision,
+        source="inspect_app_ui_model",
+    )
+    return observations
 
 
 def test_single_path_mutation_advances_one_revision_and_is_undoable(tmp_path):
@@ -372,13 +386,16 @@ def test_tool_schema_is_sourced_from_operation_contract_and_tool_errors_are_stru
     assert schema == APP_UI_MODEL_MUTATION_TOOL_SCHEMA
     assert schema["properties"]["operations"]["items"]["oneOf"] == contract["oneOf"]
     assert schema["$defs"] == contract["$defs"]
+    assert schema["required"] == ["operations"]
+    assert schema["additionalProperties"] is False
 
     service, _activity = _service(root, FakeMutationClient(root, result={"bad": True}))
-    tool = create_app_ui_model_mutation_tool(service)
+    app_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
+    tool = create_app_ui_model_mutation_tool(service, _observations(service, app_hash))
     output = asyncio.run(
         tool.ainvoke(
             {
-                "appUIModelHash": read_creator_file_state(root, APP_UI_MODEL_PATH).hash,
+                "appUIModelHash": app_hash,
                 "operations": [{"type": "remove_instance", "instanceId": "sample-main"}],
             }
         )
@@ -392,7 +409,7 @@ def test_tool_replaces_oversized_success_with_bounded_error(tmp_path):
     huge_result = _result(root, app_hash, [])
     huge_result["diff"] = "x" * MAX_MUTATION_RESULT_CHARACTERS
     service, _activity = _service(root, FakeMutationClient(root, result=huge_result))
-    tool = create_app_ui_model_mutation_tool(service)
+    tool = create_app_ui_model_mutation_tool(service, _observations(service, app_hash))
 
     output = asyncio.run(
         tool.ainvoke(
@@ -416,7 +433,7 @@ def test_tool_replaces_oversized_success_with_bounded_error(tmp_path):
 def test_tool_protocol_guard_validates_mutation_against_formal_schema(tmp_path):
     root = _create_project(tmp_path)
     service, _activity = _service(root, FakeMutationClient(root))
-    tool = create_app_ui_model_mutation_tool(service)
+    tool = create_app_ui_model_mutation_tool(service, _observations(service, "a" * 64))
     decision = ToolProtocolGuard(ToolProtocolMetrics()).inspect(
         ModelResponse(
             result=[
@@ -439,3 +456,294 @@ def test_tool_protocol_guard_validates_mutation_against_formal_schema(tmp_path):
     )
 
     assert decision.status == "repair"
+
+
+def test_tool_protocol_guard_accepts_operations_without_hash(tmp_path):
+    root = _create_project(tmp_path)
+    service, _activity = _service(root, FakeMutationClient(root))
+    app_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
+    tool = create_app_ui_model_mutation_tool(service, _observations(service, app_hash))
+    decision = ToolProtocolGuard(ToolProtocolMetrics()).inspect(
+        ModelResponse(
+            result=[
+                AIMessage(
+                    content="",
+                    tool_calls=[
+                        {
+                            "name": "mutate_app_ui_model",
+                            "args": {
+                                "operations": [
+                                    {"type": "remove_instance", "instanceId": "sample-main"}
+                                ]
+                            },
+                            "id": "host-hash-mutation",
+                        }
+                    ],
+                )
+            ]
+        ),
+        [tool],
+    )
+
+    assert decision.status == "tool_call"
+
+
+def test_tool_protocol_guard_rejects_missing_operations(tmp_path):
+    root = _create_project(tmp_path)
+    service, _activity = _service(root, FakeMutationClient(root))
+    tool = create_app_ui_model_mutation_tool(
+        service, _observations(service, "a" * 64)
+    )
+    decision = ToolProtocolGuard(ToolProtocolMetrics()).inspect(
+        ModelResponse(
+            result=[
+                AIMessage(
+                    content="",
+                    tool_calls=[
+                        {
+                            "name": "mutate_app_ui_model",
+                            "args": {"appUIModelHash": "a" * 64},
+                            "id": "missing-operations",
+                        }
+                    ],
+                )
+            ]
+        ),
+        [tool],
+    )
+
+    assert decision.status == "repair"
+
+
+def test_mutation_without_observation_fails_before_target_call(tmp_path):
+    root = _create_project(tmp_path)
+    client = FakeMutationClient(root)
+    service, _activity = _service(root, client)
+    tool = create_app_ui_model_mutation_tool(service, DomainObservationContext())
+
+    output = asyncio.run(
+        tool.ainvoke(
+            {
+                "operations": [
+                    {"type": "remove_instance", "instanceId": "sample-main"}
+                ]
+            }
+        )
+    )
+
+    assert json.loads(output)["error"]["code"] == "APP_UI_MODEL_OBSERVATION_REQUIRED"
+    assert client.calls == 0
+
+
+def test_explicit_hash_must_match_host_observation(tmp_path):
+    root = _create_project(tmp_path)
+    client = FakeMutationClient(root)
+    service, _activity = _service(root, client)
+    observations = _observations(service, "a" * 64)
+    tool = create_app_ui_model_mutation_tool(service, observations)
+
+    output = asyncio.run(
+        tool.ainvoke(
+            {
+                "appUIModelHash": "b" * 64,
+                "operations": [
+                    {"type": "remove_instance", "instanceId": "sample-main"}
+                ],
+            }
+        )
+    )
+
+    assert json.loads(output)["error"]["code"] == (
+        "APP_UI_MODEL_OBSERVATION_HASH_MISMATCH"
+    )
+    assert client.calls == 0
+    assert observations.current_hash(current_revision=0) == "a" * 64
+    assert observations.metrics.explicitHashMismatches == 1
+
+
+def test_matching_explicit_hash_is_accepted_but_host_remains_authority(tmp_path):
+    root = _create_project(tmp_path)
+    client = FakeMutationClient(root)
+    service, _activity = _service(root, client)
+    app_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
+    observations = _observations(service, app_hash)
+    tool = create_app_ui_model_mutation_tool(service, observations)
+
+    output = json.loads(
+        asyncio.run(
+            tool.ainvoke(
+                {
+                    "appUIModelHash": app_hash,
+                    "operations": [
+                        {"type": "remove_instance", "instanceId": "sample-main"}
+                    ],
+                }
+            )
+        )
+    )
+
+    assert output["ok"] is True
+    assert client.inputs[0]["appUIModelHash"] == app_hash
+    assert observations.metrics.explicitHashMatches == 1
+
+
+def test_stale_activity_revision_requires_new_observation(tmp_path):
+    root = _create_project(tmp_path)
+    client = FakeMutationClient(root)
+    service, activity = _service(root, client)
+    app_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
+    observations = _observations(service, app_hash)
+    activity.touch("plugins/source.ts")
+    tool = create_app_ui_model_mutation_tool(service, observations)
+
+    output = asyncio.run(
+        tool.ainvoke(
+            {
+                "operations": [
+                    {"type": "remove_instance", "instanceId": "sample-main"}
+                ]
+            }
+        )
+    )
+
+    error = json.loads(output)["error"]
+    assert error["code"] == "APP_UI_MODEL_OBSERVATION_REQUIRED"
+    assert error["details"] == {"currentRevision": 1, "observedRevision": 0}
+    assert client.calls == 0
+
+
+def test_success_advances_observation_and_second_mutation_reuses_after_hash(tmp_path):
+    root = _create_project(tmp_path)
+    client = FakeMutationClient(root, changed_paths=(APP_UI_MODEL_PATH,))
+    service, _activity = _service(root, client)
+    initial_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
+    observations = _observations(service, initial_hash)
+    tool = create_app_ui_model_mutation_tool(service, observations)
+    arguments = {
+        "operations": [
+            {
+                "type": "set_instance_enabled",
+                "instanceId": "sample-main",
+                "enabled": False,
+            }
+        ]
+    }
+
+    first = json.loads(asyncio.run(tool.ainvoke(arguments)))
+    first_after_hash = first["result"]["appUIModel"]["afterHash"]
+    second = json.loads(asyncio.run(tool.ainvoke(arguments)))
+
+    assert first["ok"] is True
+    assert second["ok"] is True
+    assert client.calls == 2
+    assert client.inputs[0]["appUIModelHash"] == initial_hash
+    assert client.inputs[1]["appUIModelHash"] == first_after_hash
+    assert observations.snapshot()["appUIModel"] == {
+        "hash": second["result"]["appUIModel"]["afterHash"],
+        "revision": 2,
+        "source": "mutation_result",
+    }
+    assert observations.metrics.hashReuses == 2
+
+
+def test_mutation_error_invalidates_observation_until_new_inspection(tmp_path):
+    root = _create_project(tmp_path)
+
+    class ConflictClient:
+        def __init__(self):
+            self.calls = 0
+
+        async def request_app_ui_model_mutation(self, _input):
+            self.calls += 1
+            raise ProjectControlError("APP_UI_MODEL_HASH_CONFLICT", "stale")
+
+    client = ConflictClient()
+    service, _activity = _service(root, client)
+    observations = _observations(service, "a" * 64)
+    tool = create_app_ui_model_mutation_tool(service, observations)
+    arguments = {
+        "operations": [
+            {"type": "remove_instance", "instanceId": "sample-main"}
+        ]
+    }
+
+    first = json.loads(asyncio.run(tool.ainvoke(arguments)))
+    second = json.loads(asyncio.run(tool.ainvoke(arguments)))
+
+    assert first["error"]["code"] == "APP_UI_MODEL_HASH_CONFLICT"
+    assert second["error"]["code"] == "APP_UI_MODEL_OBSERVATION_REQUIRED"
+    assert client.calls == 1
+    assert observations.metrics.invalidations == 1
+
+
+def test_conflict_then_inspect_allows_retry_with_new_host_hash(tmp_path):
+    root = _create_project(tmp_path)
+    initial_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
+
+    class ConflictThenSuccessClient:
+        def __init__(self):
+            self.calls = 0
+            self.inputs = []
+
+        async def inspect_app_ui_model(self):
+            return {
+                "schemaVersion": 2,
+                "hash": read_creator_file_state(root, APP_UI_MODEL_PATH).hash,
+                "model": {},
+            }
+
+        async def request_app_ui_model_mutation(self, input):
+            self.calls += 1
+            self.inputs.append(copy.deepcopy(input))
+            current_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
+            if input["appUIModelHash"] != current_hash:
+                raise ProjectControlError("APP_UI_MODEL_HASH_CONFLICT", "stale")
+            return _result(root, current_hash, [])
+
+        async def inspect_ui_project(self):
+            raise AssertionError("not used")
+
+        async def list_ui_plugins(self):
+            raise AssertionError("not used")
+
+        async def inspect_ui_slots(self, *, root=None):
+            raise AssertionError("not used")
+
+        async def inspect_ui_plugin(self, plugin_id):
+            raise AssertionError("not used")
+
+        async def inspect_ui_plugin_source_references(self, plugin_id):
+            raise AssertionError("not used")
+
+    client = ConflictThenSuccessClient()
+    service, activity = _service(root, client)
+    observations = _observations(service, initial_hash)
+    mutation_tool = create_app_ui_model_mutation_tool(service, observations)
+    read_tools = create_project_control_tools(
+        client,
+        observations=observations,
+        activity=activity,
+    )
+    arguments = {
+        "operations": [
+            {"type": "remove_instance", "instanceId": "sample-main"}
+        ]
+    }
+    app_ui_path = root / APP_UI_MODEL_PATH
+    app_ui_path.write_text(
+        app_ui_path.read_text(encoding="utf-8") + "// external\n",
+        encoding="utf-8",
+    )
+    external_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
+
+    conflict = json.loads(asyncio.run(mutation_tool.ainvoke(arguments)))
+    asyncio.run(read_tools[1].ainvoke({}))
+    retry = json.loads(asyncio.run(mutation_tool.ainvoke(arguments)))
+
+    assert conflict["error"]["code"] == "APP_UI_MODEL_HASH_CONFLICT"
+    assert retry["ok"] is True
+    assert client.calls == 2
+    assert client.inputs == [
+        {"appUIModelHash": initial_hash, "operations": arguments["operations"]},
+        {"appUIModelHash": external_hash, "operations": arguments["operations"]},
+    ]

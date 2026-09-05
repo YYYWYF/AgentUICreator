@@ -20,6 +20,7 @@ from ..app_ui_model import (
 )
 from ..app_ui_model.mutation_tool import create_app_ui_model_mutation_tool
 from ..domain_tools import create_project_control_tools
+from ..domain_state import DomainObservationContext, DomainObservationMetrics
 from ..minimal_agent.agent import (
     _NoSummaryMiddleware,
     _message_text,
@@ -45,6 +46,7 @@ class DomainReadAgentResult:
     project_control: ProjectControlMetrics
     repeated_project_control_reads: int
     activities: tuple[ToolActivity, ...]
+    domain_observations: DomainObservationMetrics
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,6 +63,7 @@ class CreatorDomainReadAgent:
         runtime: MinimalAgentRuntimeGuard,
         repeated_read_guard: RepeatedProjectControlReadGuard,
         project_control: ProjectControlClient,
+        observations: DomainObservationContext,
         mutation_service: AppUIModelMutationService | None = None,
     ) -> None:
         self.graph = graph
@@ -68,6 +71,7 @@ class CreatorDomainReadAgent:
         self.runtime = runtime
         self.repeated_read_guard = repeated_read_guard
         self.project_control = project_control
+        self.observations = observations
         self.mutation_service = mutation_service
         self.activity = runtime.backend.activity
 
@@ -104,6 +108,7 @@ class CreatorDomainReadAgent:
             project_control=self.project_control.metrics,
             repeated_project_control_reads=self.repeated_read_guard.repeated_reads,
             activities=tuple(self.runtime.activities),
+            domain_observations=self.observations.metrics,
         )
         if self.mutation_service is not None:
             values["app_ui_model_mutations"] = self.mutation_service.metrics
@@ -128,7 +133,12 @@ def create_domain_read_creator_agent(
     )
     backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
     client = project_control or ProjectControlClient(project_root=Path(workspace))
-    domain_tools = create_project_control_tools(client)
+    observations = DomainObservationContext()
+    domain_tools = create_project_control_tools(
+        client,
+        observations=observations,
+        activity=backend.activity,
+    )
     metrics = ToolProtocolMetrics()
     protocol = ToolProtocolMiddleware(
         metrics=metrics,
@@ -167,6 +177,7 @@ def create_domain_read_creator_agent(
         runtime=runtime,
         repeated_read_guard=repeated_read_guard,
         project_control=client,
+        observations=observations,
     )
 
 
@@ -199,9 +210,14 @@ def create_domain_write_creator_agent(
         activity=backend.activity,
         mutation_coordinator=mutation_coordinator or ProjectMutationCoordinator(),
     )
+    observations = DomainObservationContext()
     domain_tools = (
-        *create_project_control_tools(client),
-        create_app_ui_model_mutation_tool(service),
+        *create_project_control_tools(
+            client,
+            observations=observations,
+            activity=backend.activity,
+        ),
+        create_app_ui_model_mutation_tool(service, observations),
     )
     metrics = ToolProtocolMetrics()
     protocol = ToolProtocolMiddleware(
@@ -241,5 +257,6 @@ def create_domain_write_creator_agent(
         runtime=runtime,
         repeated_read_guard=repeated_read_guard,
         project_control=client,
+        observations=observations,
         mutation_service=service,
     )

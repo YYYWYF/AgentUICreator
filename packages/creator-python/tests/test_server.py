@@ -5,6 +5,7 @@ from agent_ui_creator.config import CreatorServerSettings
 from agent_ui_creator.model_protocol import ToolProtocolMetrics
 from agent_ui_creator.model_protocol.errors import ModelToolProtocolError
 from agent_ui_creator.app_ui_model import AppUIModelMutationMetrics
+from agent_ui_creator.domain_state import DomainObservationMetrics
 from agent_ui_creator.server import create_app
 
 
@@ -203,6 +204,7 @@ def test_domain_read_mode_streams_project_control_metrics(tmp_path, monkeypatch)
                 }
             ),
             repeated_project_control_reads=0,
+            domain_observations=DomainObservationMetrics(updates=1),
             activities=(),
         )
 
@@ -251,6 +253,9 @@ def test_default_mode_runs_domain_write_with_runtime_identity(tmp_path, monkeypa
                 }
             ),
             repeated_project_control_reads=0,
+            domain_observations=DomainObservationMetrics(
+                updates=2, hashReuses=1
+            ),
             app_ui_model_mutations=AppUIModelMutationMetrics(
                 requests=1, operations=1, changedPaths=2
             ),
@@ -277,5 +282,6 @@ def test_default_mode_runs_domain_write_with_runtime_identity(tmp_path, monkeypa
     assert '"agentMode":"domain-write"' in response.text
     assert '"mutate_app_ui_model":1' in response.text
     assert '"appUIModelMutations":{"requests":1,"operations":1' in response.text
+    assert '"domainObservations":{"updates":2,"hashReuses":1' in response.text
     assert '"changedPaths":2' in response.text
     assert '"status":"not-run"' in response.text

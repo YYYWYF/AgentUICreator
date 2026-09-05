@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import shutil
 from pathlib import Path
@@ -12,6 +13,11 @@ from agent_ui_creator.app_ui_model import (
     AppUIModelMutationService,
     ProjectMutationCoordinator,
 )
+from agent_ui_creator.app_ui_model.mutation_tool import (
+    create_app_ui_model_mutation_tool,
+)
+from agent_ui_creator.domain_state import DomainObservationContext
+from agent_ui_creator.domain_tools import create_project_control_tools
 from agent_ui_creator.files import read_creator_file_state
 from agent_ui_creator.project_control import ProjectControlClient
 
@@ -90,6 +96,48 @@ def test_real_target_mutation_uses_temp_copy_and_python_transaction(tmp_path):
     activity.transactions.undo("python-real-target-mutation")
     restored = asyncio.run(client.inspect_app_ui_model())
     assert restored["hash"] == inspection["hash"]
+
+
+def test_real_agent_tools_inspect_once_then_mutate_with_host_owned_hash(tmp_path):
+    project_root = _copy_target(tmp_path, "host-owned-hash")
+    client, activity, service = _mutation_service(
+        project_root, "python-host-owned-hash"
+    )
+    observations = DomainObservationContext()
+    read_tools = create_project_control_tools(
+        client,
+        observations=observations,
+        activity=activity,
+    )
+    mutation_tool = create_app_ui_model_mutation_tool(service, observations)
+
+    inspection = json.loads(asyncio.run(read_tools[1].ainvoke({})))
+    instance_id = next(iter(inspection["result"]["model"]["pluginInstances"]))
+    mutation = json.loads(
+        asyncio.run(
+            mutation_tool.ainvoke(
+                {
+                    "operations": [
+                        {
+                            "type": "update_instance_props",
+                            "instanceId": instance_id,
+                            "set": {"hostOwnedHashIntegration": True},
+                        }
+                    ]
+                }
+            )
+        )
+    )
+
+    assert mutation["ok"] is True
+    assert client.metrics.requestsByOperation["inspect_app_ui_model"] == 1
+    assert client.metrics.requestsByOperation["mutate_app_ui_model"] == 1
+    assert observations.snapshot()["appUIModel"] == {
+        "hash": mutation["result"]["appUIModel"]["afterHash"],
+        "revision": 1,
+        "source": "mutation_result",
+    }
+    assert observations.metrics.hashReuses == 1
 
 
 def test_real_add_instance_updates_app_ui_and_registry_and_is_undoable(tmp_path):

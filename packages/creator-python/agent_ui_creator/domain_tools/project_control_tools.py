@@ -5,6 +5,8 @@ from typing import Any
 
 from langchain_core.tools import BaseTool, tool
 
+from ..activity import CreatorActivityRecorder
+from ..domain_state import DomainObservationContext, ObservationSource
 from ..project_control import ProjectControlClient, ProjectControlError
 
 MAX_DOMAIN_TOOL_RESULT_CHARS = 48_000
@@ -72,12 +74,28 @@ def _render_error(error: ProjectControlError) -> str:
     )
 
 
-def create_project_control_tools(client: ProjectControlClient) -> tuple[BaseTool, ...]:
+def create_project_control_tools(
+    client: ProjectControlClient,
+    *,
+    observations: DomainObservationContext | None = None,
+    activity: CreatorActivityRecorder | None = None,
+) -> tuple[BaseTool, ...]:
+    def observe(hash: Any, source: ObservationSource) -> None:
+        if observations is None or activity is None:
+            return
+        observations.observe_app_ui_model(
+            hash=hash,
+            revision=activity.revision,
+            source=source,
+        )
+
     @tool("inspect_ui_project")
     async def inspect_ui_project() -> str:
         """Inspect the target project's authoritative UI composition and registry state."""
         try:
-            return _render_result(await client.inspect_ui_project())
+            result = await client.inspect_ui_project()
+            observe(result.get("appUIModel", {}).get("hash"), "inspect_ui_project")
+            return _render_result(result)
         except ProjectControlError as error:
             return _render_error(error)
 
@@ -85,7 +103,9 @@ def create_project_control_tools(client: ProjectControlClient) -> tuple[BaseTool
     async def inspect_app_ui_model() -> str:
         """Inspect the authoritative AppUIModel without modifying it."""
         try:
-            return _render_result(await client.inspect_app_ui_model())
+            result = await client.inspect_app_ui_model()
+            observe(result.get("hash"), "inspect_app_ui_model")
+            return _render_result(result)
         except ProjectControlError as error:
             return _render_error(error)
 
@@ -93,7 +113,9 @@ def create_project_control_tools(client: ProjectControlClient) -> tuple[BaseTool
     async def list_ui_plugins() -> str:
         """List UI plugins from the target project's authoritative registry."""
         try:
-            return _render_result(await client.list_ui_plugins())
+            result = await client.list_ui_plugins()
+            observe(result.get("appUIModelHash"), "list_ui_plugins")
+            return _render_result(result)
         except ProjectControlError as error:
             return _render_error(error)
 
@@ -101,7 +123,9 @@ def create_project_control_tools(client: ProjectControlClient) -> tuple[BaseTool
     async def inspect_ui_slots(root: str | None = None) -> str:
         """Inspect authoritative slot state, optionally below one slot root."""
         try:
-            return _render_result(await client.inspect_ui_slots(root=root))
+            result = await client.inspect_ui_slots(root=root)
+            observe(result.get("appUIModelHash"), "inspect_ui_slots")
+            return _render_result(result)
         except ProjectControlError as error:
             return _render_error(error)
 
