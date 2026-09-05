@@ -5,6 +5,49 @@ import { describe, expect, it, vi } from "vitest";
 import { formatCreatorAgUiEvent } from "../src/vitePlugin.js";
 
 describe("Creator AG-UI stream", () => {
+  it("sends the previous user request and streamed clarification on the next run", async () => {
+    const requests: ReturnType<typeof RunAgentInputSchema.parse>[] = [];
+    const question = "已有 session-manager，你想恢复还是新建？";
+    const fetch = vi.fn(async (_url: string, request: RequestInit) => {
+      const input = RunAgentInputSchema.parse(JSON.parse(String(request.body)));
+      requests.push(input);
+      const messageId = `assistant-${requests.length}`;
+      const events = [
+        { type: EventType.RUN_STARTED, threadId: input.threadId, runId: input.runId },
+        { type: EventType.TEXT_MESSAGE_START, messageId, role: "assistant" as const },
+        {
+          type: EventType.TEXT_MESSAGE_CONTENT,
+          messageId,
+          delta: requests.length === 1 ? question : "明白，恢复已有插件。",
+        },
+        { type: EventType.TEXT_MESSAGE_END, messageId },
+        { type: EventType.RUN_FINISHED, threadId: input.threadId, runId: input.runId },
+      ];
+      return new Response(events.map(formatCreatorAgUiEvent).join(""), {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      });
+    });
+    // Match CreatorWorkbench: keep one HttpAgent and add only the new user message.
+    const agent = new HttpAgent({
+      url: "http://creator.test/run",
+      threadId: "creator-thread",
+      fetch,
+    });
+    agent.addMessage({ id: "user-1", role: "user", content: "我要历史会话功能" });
+    await agent.runAgent({});
+    agent.addMessage({ id: "user-2", role: "user", content: "第一个" });
+    await agent.runAgent({});
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(requests[1]?.threadId).toBe(requests[0]?.threadId);
+    expect(requests[1]?.messages.map(({ role, content }) => ({ role, content }))).toEqual([
+      { role: "user", content: "我要历史会话功能" },
+      { role: "assistant", content: question },
+      { role: "user", content: "第一个" },
+    ]);
+  });
+
   it("is consumed by the official HttpAgent as tool activity, incremental text, and a receipt", async () => {
     const receipt = {
       files: [

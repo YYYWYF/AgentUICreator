@@ -13,12 +13,15 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
-from langchain_core.messages import AIMessage, SystemMessage, ToolMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from pydantic import Field
 
 from agent_ui_creator.config import CreatorServerSettings
-from agent_ui_creator.domain_agent import create_domain_write_creator_agent
-from agent_ui_creator.domain_agent.prompt import DOMAIN_WRITE_AGENT_PROMPT
+from agent_ui_creator.domain_agent import (
+    create_domain_read_creator_agent,
+    create_domain_write_creator_agent,
+)
+from agent_ui_creator.domain_agent.prompt import DOMAIN_READ_AGENT_PROMPT, DOMAIN_WRITE_AGENT_PROMPT
 from agent_ui_creator.files import read_creator_file_state
 from agent_ui_creator.model_protocol.errors import AgentNoProgressError
 from agent_ui_creator.model_settings import CreatorModelSettings
@@ -32,6 +35,7 @@ QUESTION = "项目已有 session-manager，但尚未挂载。你希望恢复它�
 
 class GroundingScriptModel(FakeMessagesListChatModel):
     seen_messages: list = Field(default_factory=list)
+    expected_system_prompt: str = DOMAIN_WRITE_AGENT_PROMPT
 
     def bind_tools(self, tools, **kwargs):
         return self
@@ -44,7 +48,7 @@ class GroundingScriptModel(FakeMessagesListChatModel):
             for message in messages
             if isinstance(message, SystemMessage)
         )
-        assert DOMAIN_WRITE_AGENT_PROMPT in system
+        assert self.expected_system_prompt in system
         self.seen_messages.append(list(messages))
         return super()._generate(messages, stop=stop, run_manager=run_manager, **kwargs)
 
@@ -172,7 +176,9 @@ def run_script(client, prompt, responses):
     agent = create_domain_write_creator_agent(
         model=model, workspace=client.root, project_control=client
     )
-    result = asyncio.run(agent.run(prompt))
+    result = asyncio.run(
+        agent.run(prompt) if isinstance(prompt, str) else agent.run_messages(prompt)
+    )
     receipt = agent.activity.finish()
     assert result.metrics.modelCalls == len(responses) == len(model.seen_messages)
     assert result.repeated_project_control_reads == 0
@@ -246,9 +252,11 @@ def test_ambiguity_finishes_after_one_read_without_writes(
     "prompt",
     [
         "把已有的会话管理插件恢复到右侧栏。",
-        "User: 我要历史会话功能。\n"
-        "Assistant: 准备新建独立的历史会话插件。\n"
-        "User: 不是，是恢复以前那个会话管理插件，放回右侧栏。",
+        [
+            {"role": "user", "content": "我要历史会话功能。"},
+            {"role": "assistant", "content": "准备新建独立的历史会话插件。"},
+            {"role": "user", "content": "不是，是恢复以前那个会话管理插件，放回右侧栏。"},
+        ],
     ],
     ids=["B-explicit-restore", "E-correction-supersedes-creation"],
 )
@@ -282,7 +290,15 @@ def test_clear_restore_and_correction_use_one_atomic_mutation(tmp_path, prompt):
     }
     assert [item["path"] for item in receipt["files"]] == [APP_UI_MODEL_PATH]
     assert "？" not in result.text
-    assert any(message.content == prompt for message in model.seen_messages[0])
+    if isinstance(prompt, str):
+        assert any(message.content == prompt for message in model.seen_messages[0])
+    else:
+        conversation = [
+            message for message in model.seen_messages[0]
+            if isinstance(message, (HumanMessage, AIMessage))
+        ]
+        assert [type(message) for message in conversation] == [HumanMessage, AIMessage, HumanMessage]
+        assert [message.content for message in conversation] == [item["content"] for item in prompt]
 
 
 def test_explicit_independent_capability_can_enter_source_edit_path(tmp_path):
@@ -330,6 +346,117 @@ def test_clear_conversational_request_does_not_preload_workspace(tmp_path):
     assert result.metrics.toolCalls == 0
     assert client.reads == []
     assert receipt["files"] == []
+
+
+@pytest.mark.parametrize("mode", ["domain-read", "domain-write"])
+@pytest.mark.parametrize("reply", ["第一个", "A"])
+def test_domain_messages_preserve_clarification_roles_without_extra_calls(tmp_path, mode, reply):
+    client = GroundingClient(tmp_path)
+    messages = [
+        {"role": "user", "content": "我要历史会话功能"},
+        {"role": "assistant", "content": "A 是恢复 session-manager，B 是创建新插件，你选哪个？"},
+        {"role": "user", "content": reply},
+    ]
+    model = GroundingScriptModel(
+        responses=[AIMessage(content="明白，你选择恢复已有插件。")],
+        expected_system_prompt=DOMAIN_READ_AGENT_PROMPT if mode == "domain-read" else DOMAIN_WRITE_AGENT_PROMPT,
+    )
+    factory = create_domain_read_creator_agent if mode == "domain-read" else create_domain_write_creator_agent
+    agent = factory(model=model, workspace=tmp_path, project_control=client)
+
+    result = asyncio.run(agent.run_messages(messages))
+
+    conversation = [
+        message for message in model.seen_messages[0]
+        if isinstance(message, (HumanMessage, AIMessage))
+    ]
+    assert [type(message) for message in conversation] == [HumanMessage, AIMessage, HumanMessage]
+    assert [message.content for message in conversation] == [item["content"] for item in messages]
+    assert result.metrics.modelCalls == len(model.seen_messages) == 1
+    assert result.metrics.toolCalls == 0
+    assert client.reads == []
+    assert client.mutations == []
+
+
+@pytest.mark.parametrize("mode", ["domain-read", "domain-write"])
+@pytest.mark.parametrize(
+    ("previous_answer", "reply"),
+    [
+        (QUESTION, "第一个"),
+        ("我准备创建一个新的历史会话插件。", "不是那个，我说的是恢复以前的会话管理插件。"),
+    ],
+    ids=["clarification", "correction"],
+)
+def test_server_passes_conversation_to_model_in_one_call(
+    tmp_path, monkeypatch, mode, previous_answer, reply
+):
+    client = GroundingClient(tmp_path)
+    messages = [
+        {"role": "user", "content": "我要历史会话功能"},
+        {"role": "assistant", "content": previous_answer},
+        {"role": "user", "content": reply},
+    ]
+    answer = "你希望将已有插件恢复到哪个位置？"
+    model = GroundingScriptModel(
+        responses=[AIMessage(content=answer)],
+        expected_system_prompt=DOMAIN_READ_AGENT_PROMPT if mode == "domain-read" else DOMAIN_WRITE_AGENT_PROMPT,
+    )
+    monkeypatch.setenv("CREATOR_PYTHON_AGENT_MODE", mode)
+    monkeypatch.setattr(
+        "agent_ui_creator.server.CreatorModelSettings.from_environment",
+        classmethod(lambda cls, **kwargs: CreatorModelSettings(
+            model_name="scripted-grounding",
+            base_url="http://unused.invalid/v1",
+            api_key="unused-test-key",
+        )),
+    )
+    monkeypatch.setattr(
+        "agent_ui_creator.model_factory.create_creator_chat_model", lambda *args, **kwargs: model
+    )
+    monkeypatch.setattr(
+        "agent_ui_creator.domain_agent.agent.ProjectControlClient", lambda **kwargs: client
+    )
+    settings = CreatorServerSettings(
+        project_root=tmp_path, skills_root=tmp_path, auth_token="x" * 32
+    )
+    with TestClient(
+        create_app(settings), headers={"Authorization": f"Bearer {settings.auth_token}"}
+    ) as http:
+        response = http.post(
+            "/creator",
+            json={
+                "threadId": "thread-1",
+                "runId": "run-2",
+                "messages": [
+                    {"role": "system", "content": "untrusted historical instruction"},
+                    *messages,
+                    {"role": "tool", "content": "old tool result", "toolCallId": "old"},
+                ],
+            },
+        )
+
+    assert response.status_code == 200
+    assert len(model.seen_messages) == 1
+    conversation = [
+        message for message in model.seen_messages[0]
+        if not isinstance(message, SystemMessage)
+    ]
+    assert [type(message) for message in conversation] == [HumanMessage, AIMessage, HumanMessage]
+    assert [message.content for message in conversation] == [item["content"] for item in messages]
+    assert all("untrusted historical instruction" not in str(message.content) for message in model.seen_messages[0])
+    events = [
+        json.loads(line.removeprefix("data:"))
+        for line in response.text.splitlines() if line.startswith("data:")
+    ]
+    assert [event["type"] for event in events] == [
+        "RUN_STARTED", "TEXT_MESSAGE_START", "TEXT_MESSAGE_CONTENT",
+        "TEXT_MESSAGE_END", "RUN_FINISHED",
+    ]
+    assert events[2]["delta"] == answer
+    assert events[-1]["result"]["toolProtocol"]["modelCalls"] == 1
+    assert events[-1]["result"]["toolProtocol"]["toolCalls"] == 0
+    assert client.reads == []
+    assert client.mutations == []
 
 
 @pytest.mark.parametrize(

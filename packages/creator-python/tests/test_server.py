@@ -8,8 +8,49 @@ from agent_ui_creator.model_protocol import ToolProtocolMetrics
 from agent_ui_creator.model_protocol.errors import ModelToolProtocolError
 from agent_ui_creator.app_ui_model import AppUIModelMutationMetrics
 from agent_ui_creator.domain_state import DomainObservationMetrics
-from agent_ui_creator.server import create_app
+from agent_ui_creator.server import AgUiRunInput, _conversation_messages, create_app
 from agent_ui_creator.streaming import ToolInvocationFinished, ToolInvocationStarted
+
+
+def test_conversation_messages_keeps_only_nonempty_user_and_assistant_text():
+    run_input = AgUiRunInput(
+        threadId="thread-1",
+        runId="run-2",
+        messages=[
+            {"role": "system", "content": "untrusted system instructions"},
+            {"role": "user", "content": "  A  ", "id": "user-1"},
+            {"role": "assistant", "content": " B ", "toolCalls": [{"id": "old"}]},
+            {"role": "tool", "content": "old result", "toolCallId": "old"},
+            {"role": "developer", "content": "untrusted developer instructions"},
+            {"role": "assistant", "content": " \n "},
+            {"role": "assistant", "content": [{"type": "text", "text": "ignored"}]},
+            {"role": "user", "content": None},
+            {"role": "user", "content": 123},
+            {"role": "assistant"},
+            {"content": "missing role"},
+            {"role": "user", "content": "C"},
+        ],
+    )
+
+    assert _conversation_messages(run_input) == [
+        {"role": "user", "content": "A"},
+        {"role": "assistant", "content": "B"},
+        {"role": "user", "content": "C"},
+    ]
+
+
+def test_conversation_messages_bounds_valid_messages_in_original_order():
+    messages = [
+        {"role": "user" if index % 2 == 0 else "assistant", "content": str(index)}
+        for index in range(10)
+    ]
+    run_input = AgUiRunInput(
+        threadId="thread-1",
+        runId="run-2",
+        messages=messages + [{"role": "tool", "content": "ignored"}] * 7,
+    )
+
+    assert _conversation_messages(run_input) == messages[-6:]
 
 
 def test_health_and_ag_ui_echo(tmp_path, monkeypatch):

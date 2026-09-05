@@ -78,10 +78,15 @@ class CreatorDomainReadAgent:
         self.activity = runtime.backend.activity
 
     async def run(self, prompt: str) -> DomainReadAgentResult:
+        return await self.run_messages([{"role": "user", "content": prompt}])
+
+    async def run_messages(
+        self, messages: list[dict[str, str]]
+    ) -> DomainReadAgentResult:
         try:
             state = await DeepAgentV3Runner().run(
                 graph=self.graph,
-                input={"messages": [{"role": "user", "content": prompt}]},
+                input={"messages": messages},
                 config={"recursion_limit": 30},
                 event_sink=self.runtime.event_sink,
             )

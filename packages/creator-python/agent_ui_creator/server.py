@@ -41,6 +41,7 @@ from .observability import CreatorRunLogger
 from .streaming import CreatorEventBus, CreatorEventSink, map_runtime_event
 
 MAX_CREATOR_REQUEST_BYTES = 512 * 1024
+MAX_CREATOR_CONVERSATION_MESSAGES = 6
 MAX_RUNTIME_DIAGNOSTIC_REQUEST_BYTES = 64 * 1024
 
 
@@ -80,6 +81,20 @@ def _echo_text(run_input: AgUiRunInput) -> str:
     return ""
 
 
+def _conversation_messages(run_input: AgUiRunInput) -> list[dict[str, str]]:
+    messages: list[dict[str, str]] = []
+    for message in run_input.messages:
+        role = message.get("role")
+        content = message.get("content")
+        if role not in ("user", "assistant") or not isinstance(content, str):
+            continue
+        content = content.strip()
+        if content:
+            # Replay text only, without historical tool calls or client instructions.
+            messages.append({"role": role, "content": content})
+    return messages[-MAX_CREATOR_CONVERSATION_MESSAGES:]
+
+
 async def _minimal_agent_result(
     settings: CreatorServerSettings,
     prompt: str,
@@ -115,7 +130,7 @@ async def _minimal_agent_result(
 
 async def _domain_read_agent_result(
     settings: CreatorServerSettings,
-    prompt: str,
+    messages: list[dict[str, str]],
     activity: CreatorActivityRecorder,
     event_sink: CreatorEventSink,
 ):
@@ -142,12 +157,12 @@ async def _domain_read_agent_result(
         activity=activity,
         event_sink=event_sink,
     )
-    return await agent.run(prompt)
+    return await agent.run_messages(messages)
 
 
 async def _domain_write_agent_result(
     settings: CreatorServerSettings,
-    prompt: str,
+    messages: list[dict[str, str]],
     activity: CreatorActivityRecorder,
     mutation_coordinator: ProjectMutationCoordinator,
     event_sink: CreatorEventSink,
@@ -176,7 +191,7 @@ async def _domain_write_agent_result(
         mutation_coordinator=mutation_coordinator,
         event_sink=event_sink,
     )
-    return await agent.run(prompt)
+    return await agent.run_messages(messages)
 
 
 def _error_code(error: Exception) -> str:
@@ -318,7 +333,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                     if agent_mode == "domain-write":
                         agent_result = _domain_write_agent_result(
                             settings,
-                            _echo_text(run_input),
+                            _conversation_messages(run_input),
                             activity,
                             mutation_coordinator,
                             event_bus,
@@ -326,7 +341,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                     elif agent_mode == "domain-read":
                         agent_result = _domain_read_agent_result(
                             settings,
-                            _echo_text(run_input),
+                            _conversation_messages(run_input),
                             activity,
                             event_bus,
                         )
