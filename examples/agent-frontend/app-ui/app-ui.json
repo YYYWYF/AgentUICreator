@@ -10,8 +10,8 @@
         "children": [
           {
             "type": "slot",
-            "id": "agent-new-conversation-slot-node",
-            "slotId": "agent-new-conversation"
+            "id": "agent-conversations-slot-node",
+            "slotId": "agent-conversations"
           },
           {
             "type": "slot",
@@ -21,7 +21,7 @@
         ],
         "gap": 0,
         "sizes": [
-          "4.5rem",
+          "minmax(0, 1fr)",
           "4.5rem"
         ]
       },
@@ -72,12 +72,12 @@
         "mode": "dark"
       }
     },
-    "agent-new-conversation-main": {
-      "id": "agent-new-conversation-main",
-      "pluginId": "antd-x-new-conversation",
+    "agent-conversations-main": {
+      "id": "agent-conversations-main",
+      "pluginId": "antd-x-conversations",
       "enabled": true,
       "mount": {
-        "slotId": "agent-new-conversation"
+        "slotId": "agent-conversations"
       }
     },
     "agent-theme-switch-main": {

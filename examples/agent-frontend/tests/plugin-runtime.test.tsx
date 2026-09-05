@@ -26,7 +26,6 @@ import {
   antdXTemplatePlugins,
   antdXActivityFeedPlugin,
   antdXAttachmentsPlugin,
-  antdXNewConversationPlugin,
   antdXReasoningPlugin,
   antdXResourcesPlugin,
   antdXRunTimelinePlugin,
@@ -198,9 +197,6 @@ describe("StaticPluginRegistry", () => {
     const registry = createPluginRegistry(pluginDefinitions);
 
     expect(registry.get("antd-x-welcome")).toBe(antdXWelcomePlugin);
-    expect(registry.get("antd-x-new-conversation")).toBe(
-      antdXNewConversationPlugin,
-    );
     expect(registry.get("antd-x-conversations")).toBe(
       antdXConversationsPlugin,
     );
@@ -255,8 +251,8 @@ describe("UIPluginRuntime", () => {
       state: previewAgentState,
     });
 
-    const newConversationPosition = html.indexOf(
-      'data-ui-plugin="antd-x-new-conversation"',
+    const conversationsPosition = html.indexOf(
+      'data-ui-plugin="antd-x-conversations"',
     );
     const welcomePosition = html.indexOf('data-ui-plugin="antd-x-welcome"');
     const surfacePosition = html.indexOf(
@@ -280,8 +276,8 @@ describe("UIPluginRuntime", () => {
       'data-ui-plugin="antd-x-resources"',
     );
 
-    expect(newConversationPosition).toBeGreaterThan(-1);
-    expect(surfacePosition).toBeGreaterThan(newConversationPosition);
+    expect(conversationsPosition).toBeGreaterThan(-1);
+    expect(surfacePosition).toBeGreaterThan(conversationsPosition);
     expect(messagesPosition).toBeGreaterThan(surfacePosition);
     expect(senderPosition).toBeGreaterThan(messagesPosition);
     expect(inspectorPosition).toBeGreaterThan(senderPosition);

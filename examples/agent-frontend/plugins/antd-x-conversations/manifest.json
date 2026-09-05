@@ -1,9 +1,9 @@
 {
   "id": "antd-x-conversations",
-  "name": "Ant Design X 会话历史",
-  "description": "使用 Ant Design X Conversations 展示并切换 Agent 会话历史。",
+  "name": "Ant Design X 会话管理",
+  "description": "统一提供新建会话、历史列表与会话选择，通过共享 Runtime 动作创建 AG-UI 会话。",
   "version": "1.0.0",
-  "capabilities": ["conversation-history", "conversation-selection", "plugin-service-provider"],
+  "capabilities": ["conversation-create", "conversation-history", "conversation-selection", "agent-runtime-action", "plugin-service-provider"],
   "data": {
     "messages": true,
     "state": true

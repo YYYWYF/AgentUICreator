@@ -2,7 +2,6 @@ import { antdXActivityFeedPlugin } from "../antd-x-activity-feed/definition";
 import { antdXAttachmentsPlugin } from "../antd-x-attachments/definition";
 import { antdXConversationsPlugin } from "../antd-x-conversations/definition";
 import { antdXMessageListPlugin } from "../antd-x-message-list/definition";
-import { antdXNewConversationPlugin } from "../antd-x-new-conversation/definition";
 import { antdXPromptsPlugin } from "../antd-x-prompts/definition";
 import { antdXReasoningPlugin } from "../antd-x-reasoning/definition";
 import { antdXResourcesPlugin } from "../antd-x-resources/definition";
@@ -20,7 +19,6 @@ export const antdXTemplatePlugins = [
   antdXThemeProviderPlugin,
   antdXThemeSwitchPlugin,
   antdXConversationsPlugin,
-  antdXNewConversationPlugin,
   antdXWelcomePlugin,
   antdXMessageListPlugin,
   antdXRunTimelinePlugin,
@@ -41,7 +39,6 @@ export {
   antdXAttachmentsPlugin,
   antdXConversationsPlugin,
   antdXMessageListPlugin,
-  antdXNewConversationPlugin,
   antdXPromptsPlugin,
   antdXReasoningPlugin,
   antdXResourcesPlugin,
@@ -60,7 +57,6 @@ export { AntdXActivityFeedPlugin } from "../antd-x-activity-feed";
 export { AntdXAttachmentsPlugin } from "../antd-x-attachments";
 export { AntdXConversationsPlugin } from "../antd-x-conversations";
 export { AntdXMessageListPlugin } from "../antd-x-message-list";
-export { AntdXNewConversationPlugin } from "../antd-x-new-conversation";
 export { AntdXPromptsPlugin } from "../antd-x-prompts";
 export { AntdXReasoningPlugin } from "../antd-x-reasoning";
 export { AntdXResourcesPlugin } from "../antd-x-resources";

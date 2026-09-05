@@ -47,18 +47,17 @@ describe("AppUIModel", () => {
     expect(model.root.type).toBe("row");
     expect(Object.keys(model.pluginInstances)).toEqual([
       "agent-theme-provider-main",
-      "agent-new-conversation-main",
+      "agent-conversations-main",
       "agent-theme-switch-main",
       "agent-conversation-surface-main",
       "agent-welcome-main",
       "agent-messages-main",
       "agent-inspector-main",
-      "agent-run-timeline-main",
       "agent-tool-detail-main",
       "agent-resources-main",
       "agent-prompts-main",
       "agent-sender-main",
-      "agent-conversations-main",
+      "agent-activity-feed-main",
     ]);
     expect(model.root).toMatchObject({
       type: "row",
@@ -82,7 +81,7 @@ describe("AppUIModel", () => {
     expect(model.pluginInstances["agent-inspector-main"]?.mount).toEqual({
       slotId: "workspace.inspector",
     });
-    expect(model.pluginInstances["agent-run-timeline-main"]?.mount).toEqual({
+    expect(model.pluginInstances["agent-activity-feed-main"]?.mount).toEqual({
       slotId: "inspector.activity",
     });
     expect(model.pluginInstances["agent-tool-detail-main"]?.mount).toEqual({

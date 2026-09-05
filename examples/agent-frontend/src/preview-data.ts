@@ -5,7 +5,7 @@ export const initialPreviewMessages: AgentMessage[] = [
     id: "preview-assistant-1",
     role: "assistant",
     content:
-      "你好，我是你的前端智能体。顶部可以新建会话，右侧会同步展示思考、工具执行和 Agent 产物。",
+      "你好，我是你的前端智能体。左侧可以新建和管理会话，右侧会同步展示思考、工具执行和 Agent 产物。",
     metadata: { conversationId: "current" },
   },
   {
@@ -51,7 +51,7 @@ export const initialPreviewMessages: AgentMessage[] = [
     toolCallId: "tool-call-list-plugins",
     content: JSON.stringify({
       plugins: [
-        "antd-x-new-conversation",
+        "antd-x-conversations",
         "antd-x-message-list",
         "antd-x-run-timeline",
         "antd-x-resources",
@@ -87,7 +87,7 @@ export const initialPreviewMessages: AgentMessage[] = [
     id: "preview-assistant-2",
     role: "assistant",
     content:
-      "检查完成：新建会话、消息、执行链、资源、快捷提示和输入都是独立插件，共享同一个 AG-UI Runtime。Ant Design X 只负责当前生成项目的 UI 表达。",
+      "检查完成：会话管理（含新建会话）、消息、执行链、资源、快捷提示和输入由各自插件提供，共享同一个 AG-UI Runtime。Ant Design X 只负责当前生成项目的 UI 表达。",
     metadata: {
       conversationId: "current",
       sources: [

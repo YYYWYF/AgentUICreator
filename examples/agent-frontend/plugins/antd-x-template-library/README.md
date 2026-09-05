@@ -8,8 +8,7 @@
 - `workspace-inspector`：作为右栏 Container Plugin，用本地 Tab 状态在 `inspector.activity`、`inspector.tool` 与 `inspector.resources` 中一次只渲染一个上下文，不改变叶子插件的激活和贡献生命周期。
 - `antd-x-theme-provider`：通过插件服务注册表提供 `agent-ui.theme` 能力，不直接渲染 UI。
 - `antd-x-theme-switch`：声明 `inject: ["agent-ui.theme"]`，调用另一个插件暴露的主题函数。
-- `antd-x-conversations`：用 `Conversations` 展示历史会话，并提供独立的 `agent-ui.conversations` Service seam；真正的创建、重命名、删除仍属于 Runtime。
-- `antd-x-new-conversation`：调用 `context.actions.startNewConversation()` 创建新的 AG-UI thread；按钮本身不持有 Agent Runtime，也不依赖历史会话插件。
+- `antd-x-conversations`：在同一插件内提供新建会话、历史列表与会话选择，并提供 `agent-ui.conversations` Service seam。新建按钮调用 `context.actions.startNewConversation()`，成功后清除历史选择；运行期间禁用新建。插件不持有 Agent Runtime。
 - `antd-x-welcome`：用 `Welcome` 展示 Agent 身份与共享运行状态。
 - `antd-x-message-list`：可选探测 `agent-ui.conversations` Service；存在时过滤当前历史会话，不存在时直接渲染 Runtime 的全部消息。使用 `Bubble.List`、`Actions.Copy`、`FileCard`、`Sources` 呈现内容；没有反馈提交合同前不伪造点赞/点踩。
 - `antd-x-run-timeline`：同样可选探测会话 Service，再用 `Think` 和 `ThoughtChain` 映射 AG-UI reasoning、activity、tool call 与 tool result；没有历史会话插件时仍展示当前 Runtime 的完整执行链。

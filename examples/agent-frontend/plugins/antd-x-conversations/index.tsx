@@ -1,9 +1,9 @@
-import { HistoryOutlined, MessageOutlined } from "@ant-design/icons";
+import { HistoryOutlined, MessageOutlined, PlusOutlined } from "@ant-design/icons";
 import {
   Conversations,
   type ConversationItemType,
 } from "@ant-design/x";
-import { Badge, Empty, Typography } from "antd";
+import { Badge, Button, Empty, Tooltip, Typography } from "antd";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { AGENT_UI_CONVERSATION_SERVICE } from "../../services/conversations";
@@ -68,6 +68,7 @@ function conversationsFromContext(
 export function AntdXConversationsPlugin({
   context,
 }: UIPluginComponentProps) {
+  const isRunning = context.run.status === "running";
   const conversations = conversationsFromContext(
     context.state,
     context.instance.props,
@@ -92,8 +93,9 @@ export function AntdXConversationsPlugin({
 
   return (
     <aside
-      aria-label="会话历史"
+      aria-label="会话管理"
       className="antd-x-conversations-plugin"
+      data-agent-run-status={context.run.status}
       data-ui-plugin="antd-x-conversations"
     >
       <header className="antd-x-conversations-plugin-header">
@@ -101,11 +103,34 @@ export function AntdXConversationsPlugin({
           <HistoryOutlined />
           <span>
             <Typography.Text type="secondary">Workspace</Typography.Text>
-            <strong>会话历史</strong>
+            <strong>会话管理</strong>
           </span>
         </span>
         <Badge count={items.length} overflowCount={99} />
       </header>
+
+      <div className="antd-x-conversations-plugin-create">
+        <Tooltip
+          title={
+            isRunning ? "请等待当前运行结束后再新建会话" : "清空上下文并新建会话"
+          }
+        >
+          <Button
+            aria-label="新建会话"
+            className="antd-x-conversations-plugin-create-button"
+            disabled={isRunning}
+            icon={<PlusOutlined />}
+            loading={isRunning}
+            onClick={() => {
+              void context.actions.startNewConversation()
+                .then(() => context.actions.updateInstanceProps({ activeKey: null }))
+                .catch(() => undefined);
+            }}
+          >
+            新建会话
+          </Button>
+        </Tooltip>
+      </div>
 
       {items.length === 0 ? (
         <Empty description="暂无历史会话" image={Empty.PRESENTED_IMAGE_SIMPLE} />
@@ -120,9 +145,6 @@ export function AntdXConversationsPlugin({
         />
       )}
 
-      <footer className="antd-x-conversations-plugin-footer">
-        历史会话选择只负责切换前端快照；新建会话由独立插件调用 Agent Runtime。
-      </footer>
     </aside>
   );
 }

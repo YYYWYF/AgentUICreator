@@ -165,28 +165,14 @@ body {
 }
 
 .agent-template-shell
-  [data-layout-node-id="agent-new-conversation-slot-node"] {
-  border-bottom: 1px solid var(--ui-header-border);
-}
-
-.agent-template-shell
   [data-layout-node-id="agent-theme-switch-slot-node"] {
   border-top: 1px solid var(--ui-header-border);
 }
 
 .agent-template-shell
-  [data-layout-node-id="agent-new-conversation-slot-node"]
-  .antd-x-new-conversation-plugin,
-.agent-template-shell
   [data-layout-node-id="agent-theme-switch-slot-node"]
   .antd-x-theme-switch-plugin {
   margin-inline: 0.75rem;
-}
-
-.agent-template-shell
-  [data-layout-node-id="agent-new-conversation-slot-node"]
-  .antd-x-new-conversation-plugin-button.ant-btn {
-  width: 100%;
 }
 
 .agent-template-shell
