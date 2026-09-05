@@ -18,6 +18,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage
 from langgraph.errors import GraphRecursionError
 
+from ..activity import CreatorActivityRecorder
 from ..model_protocol.errors import AgentNoProgressError, ModelTimeoutError
 from ..model_protocol.provider_trace import ProviderResponseTraceCollector
 from ..model_protocol.tool_protocol_guard import ToolProtocolMiddleware
@@ -64,6 +65,7 @@ class CreatorMinimalAgent:
         self.graph = graph
         self.protocol = protocol
         self.runtime = runtime
+        self.activity = runtime.backend.activity
 
     async def run(self, prompt: str) -> MinimalAgentResult:
         try:
@@ -116,6 +118,7 @@ def create_minimal_creator_agent(
     mode: Literal["development", "conformance"] = "development",
     raw_trace: bool = False,
     provider_trace_collector: ProviderResponseTraceCollector | None = None,
+    activity: CreatorActivityRecorder | None = None,
 ) -> CreatorMinimalAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -123,7 +126,7 @@ def create_minimal_creator_agent(
         if mode == "development"
         else MinimalAgentPathPolicy.conformance()
     )
-    backend = PolicyFilesystemBackend(workspace, policy)
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
     metrics = ToolProtocolMetrics()
     protocol = ToolProtocolMiddleware(
         metrics=metrics,

@@ -165,3 +165,72 @@ def test_domain_read_golden_scenarios_are_targeted(
         activity.name not in {"edit_file", "mutate_app_ui_model"}
         for activity in result.activities
     )
+
+
+def test_domain_agent_source_edit_finishes_with_undoable_receipt(tmp_path):
+    plugins = tmp_path / "plugins"
+    plugins.mkdir()
+    target = plugins / "activity.ts"
+    target.write_text('export const activity = "old";\n', encoding="utf-8")
+    model = ToolCallingFakeModel(
+        responses=[
+            call("read_file", {"file_path": "/plugins/activity.ts"}, "read-1"),
+            call(
+                "edit_file",
+                {
+                    "file_path": "/plugins/activity.ts",
+                    "old_string": '"old"',
+                    "new_string": '"new"',
+                },
+                "edit-1",
+            ),
+            call("read_file", {"file_path": "/plugins/activity.ts"}, "read-2"),
+            AIMessage(content="Source updated."),
+        ]
+    )
+    agent = create_domain_read_creator_agent(model=model, workspace=tmp_path)
+    agent.activity.begin("domain-edit-run")
+
+    result = asyncio.run(agent.run("Update the plugin source."))
+    receipt = agent.activity.finish()
+
+    assert [activity.name for activity in result.activities] == [
+        "read_file",
+        "edit_file",
+        "read_file",
+    ]
+    assert agent.activity.revision == 1
+    assert receipt["files"] == [
+        {
+            "path": "plugins/activity.ts",
+            "status": "modified",
+            "diff": receipt["files"][0]["diff"],
+            "truncated": False,
+        }
+    ]
+    assert receipt["transaction"] == {
+        "runId": "domain-edit-run",
+        "undoable": True,
+    }
+    agent.activity.transactions.undo("domain-edit-run")
+    assert target.read_text(encoding="utf-8") == 'export const activity = "old";\n'
+
+
+def test_plain_file_read_does_not_reset_repeated_domain_read_epoch(tmp_path):
+    plugins = tmp_path / "plugins"
+    plugins.mkdir()
+    (plugins / "foo.ts").write_text("export {};\n", encoding="utf-8")
+    model = ToolCallingFakeModel(
+        responses=[
+            call("inspect_ui_project", {}, "domain-1"),
+            call("read_file", {"file_path": "/plugins/foo.ts"}, "file-1"),
+            call("inspect_ui_project", {}, "domain-2"),
+            call("inspect_ui_project", {}, "domain-3"),
+        ]
+    )
+    agent = create_domain_read_creator_agent(model=model, workspace=tmp_path)
+
+    with pytest.raises(AgentNoProgressError):
+        asyncio.run(agent.run("Repeat without a mutation."))
+
+    assert agent.repeated_read_guard.repeated_reads == 2

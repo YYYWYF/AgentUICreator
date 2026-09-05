@@ -95,6 +95,10 @@ export {
   type CreatorFileObservation,
 } from "./files/CreatorFileObservationStore.js";
 export {
+  CREATOR_MISSING_FILE_HASH,
+  creatorContentHash,
+} from "./files/creatorFileState.js";
+export {
   CREATOR_TRANSACTION_DIRECTORY,
   CREATOR_TRANSACTION_SCHEMA_VERSION,
   MAX_CREATOR_TRANSACTION_BYTES,

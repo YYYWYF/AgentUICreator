@@ -44,3 +44,32 @@ def test_conformance_policy_allows_fixture_edits_outside_plugins(tmp_path):
     assert backend.edit("/src/activity.ts", '"old"', '"new"').error is None
     assert '"new"' in target.read_text(encoding="utf-8")
 
+
+def test_backend_revision_comes_from_activity_and_noop_does_not_increment(tmp_path):
+    plugins = tmp_path / "plugins"
+    plugins.mkdir()
+    target = plugins / "foo.ts"
+    target.write_text("old\n", encoding="utf-8")
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+
+    assert backend.read("/plugins/foo.ts").error is None
+    assert backend.edit("/plugins/foo.ts", "old", "old").error is None
+    assert backend.mutation_revision == 0
+    assert backend.edit("/plugins/foo.ts", "old", "new").error is None
+    assert backend.mutation_revision == backend.activity.revision == 1
+
+
+def test_backend_rejects_stale_edit_without_touching_activity(tmp_path):
+    plugins = tmp_path / "plugins"
+    plugins.mkdir()
+    target = plugins / "foo.ts"
+    target.write_text("old\n", encoding="utf-8")
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+
+    assert backend.read("/plugins/foo.ts").error is None
+    target.write_text("external\n", encoding="utf-8")
+    result = backend.edit("/plugins/foo.ts", "old", "new")
+
+    assert "stale-version" in result.error
+    assert target.read_text(encoding="utf-8") == "external\n"
+    assert backend.mutation_revision == 0

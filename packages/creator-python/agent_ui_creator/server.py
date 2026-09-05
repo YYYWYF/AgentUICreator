@@ -16,12 +16,14 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from .config import CREATOR_PYTHON_PROTOCOL_VERSION, CreatorServerSettings
+from .activity import CreatorActivityRecorder
 from .model_settings import (
     CreatorModelConfigurationError,
     CreatorModelSettings,
     load_python_agent_mode,
 )
 from .runtime_diagnostics import RuntimeDiagnosticEnvelope, RuntimeDiagnosticStore
+from .observability import CreatorRunLogger
 
 MAX_CREATOR_REQUEST_BYTES = 512 * 1024
 MAX_RUNTIME_DIAGNOSTIC_REQUEST_BYTES = 64 * 1024
@@ -69,7 +71,11 @@ def _echo_text(run_input: AgUiRunInput) -> str:
     return ""
 
 
-async def _minimal_agent_result(settings: CreatorServerSettings, prompt: str):
+async def _minimal_agent_result(
+    settings: CreatorServerSettings,
+    prompt: str,
+    activity: CreatorActivityRecorder,
+):
     # Agent dependencies stay lazy so echo mode remains a transport-only path.
     from .minimal_agent import create_minimal_creator_agent
     from .model_factory import create_creator_chat_model
@@ -91,11 +97,16 @@ async def _minimal_agent_result(settings: CreatorServerSettings, prompt: str):
         mode="development",
         raw_trace=model_settings.raw_trace,
         provider_trace_collector=provider_trace_collector,
+        activity=activity,
     )
     return await agent.run(prompt)
 
 
-async def _domain_read_agent_result(settings: CreatorServerSettings, prompt: str):
+async def _domain_read_agent_result(
+    settings: CreatorServerSettings,
+    prompt: str,
+    activity: CreatorActivityRecorder,
+):
     from .domain_agent import create_domain_read_creator_agent
     from .model_factory import create_creator_chat_model
     from .model_protocol.provider_trace import ProviderResponseTraceCollector
@@ -116,6 +127,7 @@ async def _domain_read_agent_result(settings: CreatorServerSettings, prompt: str
         mode="development",
         raw_trace=model_settings.raw_trace,
         provider_trace_collector=provider_trace_collector,
+        activity=activity,
     )
     return await agent.run(prompt)
 
@@ -187,6 +199,15 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
         async def events() -> AsyncIterator[bytes]:
             async with writing_run_lock:
                 message_id = str(uuid4())
+                logger: CreatorRunLogger | None = None
+                activity: CreatorActivityRecorder | None = None
+                if agent_mode in {"minimal", "domain-read"}:
+                    logger = CreatorRunLogger(settings.project_root)
+                    logger.begin(run_id=run_input.runId, thread_id=run_input.threadId)
+                    activity = CreatorActivityRecorder(
+                        settings.project_root, logger=logger
+                    )
+                    activity.begin(run_input.runId)
                 yield _sse(
                     {
                         "type": "RUN_STARTED",
@@ -197,11 +218,22 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                 if agent_mode in {"minimal", "domain-read"}:
                     try:
                         result = await (
-                            _domain_read_agent_result(settings, _echo_text(run_input))
+                            _domain_read_agent_result(
+                                settings, _echo_text(run_input), activity
+                            )
                             if agent_mode == "domain-read"
-                            else _minimal_agent_result(settings, _echo_text(run_input))
+                            else _minimal_agent_result(
+                                settings, _echo_text(run_input), activity
+                            )
                         )
                     except Exception as error:
+                        receipt = None
+                        try:
+                            receipt = activity.finish()
+                        except Exception:
+                            pass
+                        if logger is not None:
+                            logger.finish("error", error=error)
                         yield _sse(
                             {
                                 "type": "RUN_ERROR",
@@ -209,23 +241,24 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                 "runId": run_input.runId,
                                 "code": _error_code(error),
                                 "message": str(error),
+                                **({"receipt": receipt} if receipt is not None else {}),
                             }
                         )
                         return
-                    for activity in result.activities:
+                    for tool_activity in result.activities:
                         yield _sse(
                             {
                                 "type": "TOOL_CALL_START",
-                                "toolCallId": activity.callId,
-                                "toolCallName": activity.name,
+                                "toolCallId": tool_activity.callId,
+                                "toolCallName": tool_activity.name,
                             }
                         )
                         yield _sse(
                             {
                                 "type": "TOOL_CALL_ARGS",
-                                "toolCallId": activity.callId,
+                                "toolCallId": tool_activity.callId,
                                 "delta": json.dumps(
-                                    activity.arguments,
+                                    tool_activity.arguments,
                                     ensure_ascii=False,
                                     separators=(",", ":"),
                                 ),
@@ -234,20 +267,20 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                         yield _sse(
                             {
                                 "type": "TOOL_CALL_END",
-                                "toolCallId": activity.callId,
+                                "toolCallId": tool_activity.callId,
                             }
                         )
                         yield _sse(
                             {
                                 "type": "TOOL_CALL_RESULT",
                                 "messageId": str(uuid4()),
-                                "toolCallId": activity.callId,
+                                "toolCallId": tool_activity.callId,
                                 "role": "tool",
-                                "content": activity.result,
+                                "content": tool_activity.result,
                                 "metadata": {
                                     "status": (
                                         "error"
-                                        if activity.status == "error"
+                                        if tool_activity.status == "error"
                                         else "finished"
                                     )
                                 },
@@ -270,6 +303,30 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             "phase": "minimal-agent",
                             "toolProtocol": result.metrics.to_dict(),
                         }
+                    try:
+                        receipt = activity.finish()
+                    except Exception as error:
+                        if logger is not None:
+                            logger.finish(
+                                "error",
+                                metrics=result.metrics.to_dict(),
+                                error=error,
+                            )
+                        yield _sse(
+                            {
+                                "type": "RUN_ERROR",
+                                "threadId": run_input.threadId,
+                                "runId": run_input.runId,
+                                "code": _error_code(error),
+                                "message": str(error),
+                            }
+                        )
+                        return
+                    run_result["receipt"] = receipt
+                    if logger is not None:
+                        logger.finish(
+                            "success", metrics=result.metrics.to_dict()
+                        )
                 else:
                     response_text = _echo_text(run_input)
                     run_result = {

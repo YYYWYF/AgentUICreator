@@ -4,6 +4,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Literal
+from uuid import uuid4
 
 from deepagents.backends import FilesystemBackend
 from deepagents.backends.protocol import (
@@ -14,6 +15,12 @@ from deepagents.backends.protocol import (
     ReadResult,
     WriteResult,
 )
+from deepagents.backends.utils import perform_string_replacement
+
+from ..activity import CreatorActivityRecorder
+from ..files import CreatorFileObservationError, CreatorFileStateConflictError
+from ..files import replace_creator_file_atomically
+from ..transactions import CreatorTransactionError
 
 _DENIED_DIRECTORY_NAMES = frozenset(
     {".git", "node_modules", "dist", "build", "coverage", "cache"}
@@ -77,10 +84,28 @@ class MinimalAgentPathPolicy:
 class PolicyFilesystemBackend(FilesystemBackend):
     """FilesystemBackend with Creator-owned read/write policy and virtual paths."""
 
-    def __init__(self, root_dir: str | Path, policy: MinimalAgentPathPolicy):
+    def __init__(
+        self,
+        root_dir: str | Path,
+        policy: MinimalAgentPathPolicy,
+        *,
+        activity: CreatorActivityRecorder | None = None,
+        enforce_observations: bool | None = None,
+    ):
         super().__init__(root_dir=root_dir, virtual_mode=True)
         self.policy = policy
-        self.mutation_revision = 0
+        self.activity = activity or CreatorActivityRecorder(self.cwd)
+        if activity is None:
+            self.activity.begin(str(uuid4()))
+        self.enforce_observations = (
+            policy.mode != "conformance"
+            if enforce_observations is None
+            else enforce_observations
+        )
+
+    @property
+    def mutation_revision(self) -> int:
+        return self.activity.revision
 
     def _authorize(self, path: str, operation: Literal["read", "write"]) -> str:
         requested = (
@@ -121,10 +146,21 @@ class PolicyFilesystemBackend(FilesystemBackend):
 
     def read(self, file_path: str, offset: int = 0, limit: int = 2000) -> ReadResult:
         try:
-            self._authorize(file_path, "read")
+            authorized = self._authorize(file_path, "read")
         except PathPolicyViolation as error:
             return ReadResult(error=self._denied(error))
-        return super().read(file_path, offset=offset, limit=limit)
+        if not self.enforce_observations:
+            return super().read(authorized, offset=offset, limit=limit)
+        try:
+            return self.activity.file_observations.observe_stable_read(
+                authorized,
+                lambda: super(PolicyFilesystemBackend, self).read(
+                    authorized, offset=offset, limit=limit
+                ),
+                lambda result: result.error is None,
+            )
+        except (CreatorFileObservationError, OSError, UnicodeError, ValueError) as error:
+            return ReadResult(error=str(error))
 
     def edit(
         self,
@@ -134,23 +170,72 @@ class PolicyFilesystemBackend(FilesystemBackend):
         replace_all: bool = False,
     ) -> EditResult:
         try:
-            self._authorize(file_path, "write")
+            authorized = self._authorize(file_path, "write")
         except PathPolicyViolation as error:
             return EditResult(error=self._denied(error))
-        result = super().edit(file_path, old_string, new_string, replace_all=replace_all)
-        if result.error is None:
-            self.mutation_revision += 1
-        return result
+        try:
+            if not self.enforce_observations:
+                self.activity.file_observations.observe(authorized)
+            current = self.activity.file_observations.assert_fresh_for_edit(authorized)
+            content = current.content
+            if content is None:
+                return EditResult(error=f"Error: File '{file_path}' not found")
+            normalized_old = old_string.replace("\r\n", "\n").replace("\r", "\n")
+            normalized_new = new_string.replace("\r\n", "\n").replace("\r", "\n")
+            replacement = perform_string_replacement(
+                content, normalized_old, normalized_new, replace_all
+            )
+            if isinstance(replacement, str):
+                return EditResult(error=replacement)
+            new_content, occurrences = replacement
+            if new_content == content:
+                return EditResult(path=file_path, occurrences=int(occurrences))
+            self.activity.capture_before_content(authorized, content)
+            replace_creator_file_atomically(
+                self.cwd, authorized, new_content, expected=current
+            )
+            self.activity.file_observations.observe(authorized)
+            self.activity.touch(authorized)
+            return EditResult(path=file_path, occurrences=int(occurrences))
+        except CreatorFileStateConflictError:
+            return EditResult(
+                error=f"stale-version: {file_path} changed before Creator could commit the edit. Read it again."
+            )
+        except CreatorFileObservationError as error:
+            return EditResult(error=str(error))
+        except CreatorTransactionError as error:
+            return EditResult(error=f"{error.code}: {error}")
+        except (OSError, UnicodeError, ValueError) as error:
+            return EditResult(error=f"Error editing file '{file_path}': {error}")
 
     def write(self, file_path: str, content: str) -> WriteResult:
         try:
-            self._authorize(file_path, "write")
+            authorized = self._authorize(file_path, "write")
         except PathPolicyViolation as error:
             return WriteResult(error=self._denied(error))
-        result = super().write(file_path, content)
-        if result.error is None:
-            self.mutation_revision += 1
-        return result
+        try:
+            if not self.enforce_observations:
+                self.activity.file_observations.observe(authorized)
+            current = self.activity.file_observations.assert_fresh_for_write(authorized)
+            if current.exists and current.content == content:
+                return WriteResult(path=file_path)
+            self.activity.capture_before_content(authorized, current.content)
+            replace_creator_file_atomically(
+                self.cwd, authorized, content, expected=current
+            )
+            self.activity.file_observations.observe(authorized)
+            self.activity.touch(authorized)
+            return WriteResult(path=file_path)
+        except CreatorFileStateConflictError:
+            return WriteResult(
+                error=f"stale-version: {file_path} changed before Creator could commit the write. Read it again."
+            )
+        except CreatorFileObservationError as error:
+            return WriteResult(error=str(error))
+        except CreatorTransactionError as error:
+            return WriteResult(error=f"{error.code}: {error}")
+        except (OSError, UnicodeError, ValueError) as error:
+            return WriteResult(error=f"Error writing file '{file_path}': {error}")
 
     def grep(
         self,

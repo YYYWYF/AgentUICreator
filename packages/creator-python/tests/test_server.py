@@ -76,7 +76,7 @@ def test_minimal_mode_streams_tool_activity_and_protocol_metrics(tmp_path, monke
     )
     metrics = ToolProtocolMetrics(modelCalls=2, toolCalls=1, validToolCalls=1)
 
-    async def fake_result(_settings, _prompt):
+    async def fake_result(_settings, _prompt, _activity):
         return SimpleNamespace(
             text="Updated and verified.",
             metrics=metrics,
@@ -109,6 +109,8 @@ def test_minimal_mode_streams_tool_activity_and_protocol_metrics(tmp_path, monke
     assert '"delta":"Updated and verified."' in response.text
     assert '"phase":"minimal-agent"' in response.text
     assert '"validToolCalls":1' in response.text
+    assert '"receipt":{"files":[],"validations":[]' in response.text
+    assert '"status":"not-run"' in response.text
 
 
 def test_minimal_mode_propagates_protocol_failure_as_run_error(tmp_path, monkeypatch):
@@ -119,7 +121,7 @@ def test_minimal_mode_propagates_protocol_failure_as_run_error(tmp_path, monkeyp
         auth_token="x" * 32,
     )
 
-    async def fail(_settings, _prompt):
+    async def fail(_settings, _prompt, _activity):
         raise ModelToolProtocolError("malformed twice")
 
     monkeypatch.setattr("agent_ui_creator.server._minimal_agent_result", fail)
@@ -137,6 +139,7 @@ def test_minimal_mode_propagates_protocol_failure_as_run_error(tmp_path, monkeyp
 
     assert '"type":"RUN_ERROR"' in response.text
     assert '"code":"MODEL_TOOL_PROTOCOL_ERROR"' in response.text
+    assert '"receipt":{"files":[],"validations":[]' in response.text
     assert '"type":"RUN_FINISHED"' not in response.text
 
 
@@ -149,7 +152,7 @@ def test_domain_read_mode_streams_project_control_metrics(tmp_path, monkeypatch)
     )
     metrics = ToolProtocolMetrics(modelCalls=2, toolCalls=1, validToolCalls=1)
 
-    async def fake_result(_settings, _prompt):
+    async def fake_result(_settings, _prompt, _activity):
         return SimpleNamespace(
             text="Inspected.",
             metrics=metrics,

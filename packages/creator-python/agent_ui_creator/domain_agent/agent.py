@@ -12,6 +12,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage
 from langgraph.errors import GraphRecursionError
 
+from ..activity import CreatorActivityRecorder
 from ..domain_tools import create_project_control_tools
 from ..minimal_agent.agent import (
     _NoSummaryMiddleware,
@@ -55,6 +56,7 @@ class CreatorDomainReadAgent:
         self.runtime = runtime
         self.repeated_read_guard = repeated_read_guard
         self.project_control = project_control
+        self.activity = runtime.backend.activity
 
     async def run(self, prompt: str) -> DomainReadAgentResult:
         try:
@@ -95,6 +97,7 @@ def create_domain_read_creator_agent(
     raw_trace: bool = False,
     provider_trace_collector: ProviderResponseTraceCollector | None = None,
     project_control: ProjectControlClient | None = None,
+    activity: CreatorActivityRecorder | None = None,
 ) -> CreatorDomainReadAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -102,7 +105,7 @@ def create_domain_read_creator_agent(
         if mode == "development"
         else MinimalAgentPathPolicy.conformance()
     )
-    backend = PolicyFilesystemBackend(workspace, policy)
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
     client = project_control or ProjectControlClient(project_root=Path(workspace))
     domain_tools = create_project_control_tools(client)
     metrics = ToolProtocolMetrics()
@@ -144,4 +147,3 @@ def create_domain_read_creator_agent(
         repeated_read_guard=repeated_read_guard,
         project_control=client,
     )
-

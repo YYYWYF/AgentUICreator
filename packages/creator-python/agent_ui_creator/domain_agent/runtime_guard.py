@@ -25,9 +25,11 @@ class RepeatedProjectControlReadGuard(AgentMiddleware):
         call = dict(request.tool_call)
         name = str(call.get("name") or "")
         if name not in DOMAIN_READ_TOOL_NAMES:
-            self._last_signature = None
-            self._repeat_count = 0
-            self._last_revision = self.backend.mutation_revision
+            revision = self.backend.mutation_revision
+            if revision != self._last_revision:
+                self._last_signature = None
+                self._repeat_count = 0
+                self._last_revision = revision
             return
         arguments = call.get("args") if isinstance(call.get("args"), dict) else {}
         signature = json.dumps([name, arguments], ensure_ascii=False, sort_keys=True)
@@ -53,4 +55,3 @@ class RepeatedProjectControlReadGuard(AgentMiddleware):
     ) -> Any:
         self._before(request)
         return await handler(request)
-
