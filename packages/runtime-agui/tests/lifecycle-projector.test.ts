@@ -300,6 +300,339 @@ describe("LifecycleProjector", () => {
     ]);
   });
 
+  it("interrupts direct active executions when a subagent errors", () => {
+    const projector = new LifecycleProjector();
+
+    projector.onSubagentStarted({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "subagent-a",
+      name: "Researcher",
+    });
+    projector.onToolCallStart({
+      type: EventType.TOOL_CALL_START,
+      toolCallId: "tool-a",
+      toolCallName: "search",
+      subagentRunId: "subagent-a",
+    });
+    projector.onReasoningStart({
+      type: EventType.REASONING_START,
+      messageId: "reasoning-a",
+      subagentRunId: "subagent-a",
+    });
+    projector.onStepStarted({
+      type: EventType.STEP_STARTED,
+      stepName: "collect",
+      subagentRunId: "subagent-a",
+    });
+
+    projector.onSubagentError({
+      type: EventType.SUBAGENT_ERROR,
+      subagentRunId: "subagent-a",
+      message: "Research failed",
+    });
+
+    const executions = projector.getExecutions();
+    expect(executions.find((execution) => execution.id === "subagent-a"))
+      .toMatchObject({ status: "error" });
+    expect(executions.find((execution) => execution.id === "tool-a"))
+      .toMatchObject({ status: "interrupted" });
+    expect(executions.find((execution) => execution.id === "reasoning-a"))
+      .toMatchObject({ status: "interrupted" });
+    expect(executions.find((execution) =>
+      execution.type === "step" && execution.name === "collect"
+    )).toMatchObject({ status: "interrupted" });
+  });
+
+  it("recursively interrupts an active nested subagent subtree", () => {
+    const projector = new LifecycleProjector();
+
+    projector.onSubagentStarted({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "subagent-a",
+      name: "Coordinator",
+    });
+    projector.onSubagentStarted({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "subagent-b",
+      name: "Researcher",
+      parentSubagentRunId: "subagent-a",
+    });
+    projector.onToolCallStart({
+      type: EventType.TOOL_CALL_START,
+      toolCallId: "tool-c",
+      toolCallName: "search",
+      subagentRunId: "subagent-b",
+    });
+    projector.onReasoningStart({
+      type: EventType.REASONING_START,
+      messageId: "reasoning-d",
+      subagentRunId: "subagent-b",
+    });
+
+    projector.onSubagentError({
+      type: EventType.SUBAGENT_ERROR,
+      subagentRunId: "subagent-a",
+      message: "Coordination failed",
+    });
+
+    expect(projector.getExecutions()).toMatchObject([
+      { id: "subagent-a", status: "error" },
+      { id: "subagent-b", status: "interrupted" },
+      { id: "tool-c", status: "interrupted" },
+      { id: "reasoning-d", status: "interrupted" },
+    ]);
+  });
+
+  it("does not interrupt sibling subagents or their executions", () => {
+    const projector = new LifecycleProjector();
+
+    for (const subagentId of ["subagent-a", "subagent-b"]) {
+      projector.onSubagentStarted({
+        type: EventType.SUBAGENT_STARTED,
+        subagentRunId: subagentId,
+        name: subagentId,
+      });
+      projector.onToolCallStart({
+        type: EventType.TOOL_CALL_START,
+        toolCallId: `tool-${subagentId}`,
+        toolCallName: "search",
+        subagentRunId: subagentId,
+      });
+    }
+
+    projector.onSubagentError({
+      type: EventType.SUBAGENT_ERROR,
+      subagentRunId: "subagent-a",
+      message: "A failed",
+    });
+
+    expect(projector.getExecutions()).toMatchObject([
+      { id: "subagent-a", status: "error" },
+      { id: "tool-subagent-a", status: "interrupted" },
+      { id: "subagent-b", status: "running" },
+      { id: "tool-subagent-b", status: "preparing" },
+    ]);
+  });
+
+  it("keeps root activity running when a subagent succeeds", () => {
+    const projector = new LifecycleProjector();
+
+    projector.onReasoningStart({
+      type: EventType.REASONING_START,
+      messageId: "root-reasoning",
+    });
+    projector.onSubagentStarted({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "subagent-a",
+      name: "Worker",
+    });
+    projector.onToolCallStart({
+      type: EventType.TOOL_CALL_START,
+      toolCallId: "tool-a",
+      toolCallName: "compose",
+      subagentRunId: "subagent-a",
+    });
+
+    projector.onSubagentFinished({
+      type: EventType.SUBAGENT_FINISHED,
+      subagentRunId: "subagent-a",
+      outcome: { type: "success" },
+    });
+
+    expect(projector.getExecutions()).toMatchObject([
+      { id: "root-reasoning", status: "running" },
+      { id: "subagent-a", status: "completed" },
+      { id: "tool-a", status: "interrupted" },
+    ]);
+  });
+
+  it("interrupts active children when a subagent is suspended", () => {
+    const projector = new LifecycleProjector();
+
+    projector.onSubagentStarted({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "subagent-a",
+      name: "Worker",
+    });
+    projector.onStepStarted({
+      type: EventType.STEP_STARTED,
+      stepName: "approval",
+      subagentRunId: "subagent-a",
+    });
+
+    projector.onSubagentFinished({
+      type: EventType.SUBAGENT_FINISHED,
+      subagentRunId: "subagent-a",
+      outcome: { type: "suspended" },
+    });
+
+    expect(projector.getExecutions()).toMatchObject([
+      { id: "subagent-a", status: "suspended" },
+      { type: "step", name: "approval", status: "interrupted" },
+    ]);
+  });
+
+  it("allows late terminal evidence to correct interrupted executions", () => {
+    const projector = new LifecycleProjector();
+
+    projector.onSubagentStarted({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "subagent-a",
+      name: "Worker",
+    });
+    projector.onToolCallStart({
+      type: EventType.TOOL_CALL_START,
+      toolCallId: "tool-a",
+      toolCallName: "search",
+      subagentRunId: "subagent-a",
+    });
+    projector.onToolCallEnd({
+      type: EventType.TOOL_CALL_END,
+      toolCallId: "tool-a",
+      subagentRunId: "subagent-a",
+    });
+    projector.onReasoningStart({
+      type: EventType.REASONING_START,
+      messageId: "reasoning-a",
+      subagentRunId: "subagent-a",
+    });
+    projector.onStepStarted({
+      type: EventType.STEP_STARTED,
+      stepName: "collect",
+      subagentRunId: "subagent-a",
+    });
+    projector.onSubagentError({
+      type: EventType.SUBAGENT_ERROR,
+      subagentRunId: "subagent-a",
+      message: "Worker failed",
+    });
+
+    projector.onToolCallResult({
+      type: EventType.TOOL_CALL_RESULT,
+      messageId: "tool-result-a",
+      toolCallId: "tool-a",
+      content: "late result",
+      subagentRunId: "subagent-a",
+    });
+    projector.onReasoningEnd({
+      type: EventType.REASONING_END,
+      messageId: "reasoning-a",
+      subagentRunId: "subagent-a",
+    });
+    projector.onStepFinished({
+      type: EventType.STEP_FINISHED,
+      stepName: "collect",
+      subagentRunId: "subagent-a",
+    });
+
+    const corrected = projector.getExecutions();
+    expect(corrected.find((execution) => execution.id === "tool-a"))
+      .toMatchObject({ status: "completed" });
+    expect(corrected.find((execution) => execution.id === "reasoning-a"))
+      .toMatchObject({ status: "completed" });
+    expect(corrected.find((execution) =>
+      execution.type === "step" && execution.name === "collect"
+    )).toMatchObject({ status: "completed" });
+  });
+
+  it("does not reactivate interrupted tools from late non-terminal events", () => {
+    const projector = new LifecycleProjector();
+
+    projector.onSubagentStarted({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "subagent-a",
+      name: "Worker",
+    });
+    projector.onToolCallStart({
+      type: EventType.TOOL_CALL_START,
+      toolCallId: "tool-a",
+      toolCallName: "search",
+      subagentRunId: "subagent-a",
+    });
+    projector.onSubagentError({
+      type: EventType.SUBAGENT_ERROR,
+      subagentRunId: "subagent-a",
+      message: "Worker failed",
+    });
+
+    projector.onToolCallStart({
+      type: EventType.TOOL_CALL_START,
+      toolCallId: "tool-a",
+      toolCallName: "late-start",
+      subagentRunId: "subagent-a",
+    });
+    projector.onToolCallArgs({
+      type: EventType.TOOL_CALL_ARGS,
+      toolCallId: "tool-a",
+      delta: '{"late":true}',
+      subagentRunId: "subagent-a",
+    });
+    projector.onToolCallEnd({
+      type: EventType.TOOL_CALL_END,
+      toolCallId: "tool-a",
+      subagentRunId: "subagent-a",
+    });
+
+    expect(projector.getExecutions().find(
+      (execution) => execution.id === "tool-a",
+    )).toMatchObject({
+      name: "search",
+      status: "interrupted",
+      arguments: "",
+    });
+  });
+
+  it("completes message streams produced by a terminal subagent subtree", () => {
+    const projector = new LifecycleProjector();
+
+    projector.onSubagentStarted({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "subagent-a",
+      name: "Worker",
+    });
+    projector.onReasoningStart({
+      type: EventType.REASONING_START,
+      messageId: "reasoning-a",
+      subagentRunId: "subagent-a",
+    });
+    projector.onTextMessageStart({
+      type: EventType.TEXT_MESSAGE_START,
+      messageId: "message-a",
+      role: "assistant",
+      subagentRunId: "subagent-a",
+    });
+    projector.onReasoningMessageStart({
+      type: EventType.REASONING_MESSAGE_START,
+      messageId: "message-b",
+      role: "reasoning",
+      subagentRunId: "subagent-a",
+    });
+
+    projector.onSubagentError({
+      type: EventType.SUBAGENT_ERROR,
+      subagentRunId: "subagent-a",
+      message: "Worker failed",
+    });
+
+    expect(projector.projectMessages([
+      {
+        id: "message-a",
+        role: "assistant",
+        content: "Partial answer",
+        subagentRunId: "subagent-a",
+      },
+      {
+        id: "message-b",
+        role: "reasoning",
+        content: "Partial thought",
+        subagentRunId: "subagent-a",
+      },
+    ])).toMatchObject([
+      { id: "message-a", streamStatus: "completed" },
+      { id: "message-b", streamStatus: "completed" },
+    ]);
+  });
+
   it("keeps activity in messages and settles active loading on terminal paths", () => {
     const projector = new LifecycleProjector();
     projector.onToolCallStart({

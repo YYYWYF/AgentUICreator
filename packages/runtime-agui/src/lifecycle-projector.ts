@@ -153,6 +153,9 @@ export class LifecycleProjector {
   }
 
   onToolCallStart(event: ToolCallStartEvent): void {
+    const current = this.findExecution("tool", event.toolCallId);
+    if (current !== undefined && !isActive(current)) return;
+
     const execution: AgentToolExecution = {
       type: "tool",
       id: event.toolCallId,
@@ -168,18 +171,21 @@ export class LifecycleProjector {
   }
 
   onToolCallArgs(event: ToolCallArgsEvent): void {
-    this.updateExecution("tool", event.toolCallId, (execution) => ({
-      ...execution,
-      arguments: execution.arguments + event.delta,
-      status: "preparing",
-    }));
+    this.updateExecution("tool", event.toolCallId, (execution) =>
+      isActive(execution)
+        ? {
+            ...execution,
+            arguments: execution.arguments + event.delta,
+            status: "preparing",
+          }
+        : execution);
   }
 
   onToolCallEnd(event: ToolCallEndEvent): void {
-    this.updateExecution("tool", event.toolCallId, (execution) => ({
-      ...execution,
-      status: "awaiting-result",
-    }));
+    this.updateExecution("tool", event.toolCallId, (execution) =>
+      isActive(execution)
+        ? { ...execution, status: "awaiting-result" }
+        : execution);
   }
 
   onToolCallResult(event: ToolCallResultEvent): void {
@@ -256,13 +262,30 @@ export class LifecycleProjector {
   onStepFinished(event: StepFinishedEvent): void {
     const producer = producerFor(event.subagentRunId);
     const key = activeStepKey(producer, event.stepName);
-    const executionId = this.activeSteps.get(key);
+    const trackedExecutionId = this.activeSteps.get(key);
+    let executionId = trackedExecutionId;
+    if (executionId === undefined) {
+      for (let index = this.executions.length - 1; index >= 0; index -= 1) {
+        const execution = this.executions[index];
+        if (
+          execution?.type === "step" &&
+          producerKey(execution.producer) === producerKey(producer) &&
+          execution.name === event.stepName &&
+          execution.status === "interrupted"
+        ) {
+          executionId = execution.id;
+          break;
+        }
+      }
+    }
     if (executionId === undefined) return;
     this.updateExecution("step", executionId, (execution) => ({
       ...execution,
       status: "completed",
     }));
-    this.activeSteps.delete(key);
+    if (trackedExecutionId === executionId) {
+      this.activeSteps.delete(key);
+    }
   }
 
   onSubagentStarted(event: SubagentStartedEvent): void {
@@ -289,6 +312,7 @@ export class LifecycleProjector {
   }
 
   onSubagentFinished(event: SubagentFinishedEvent): void {
+    this.interruptSubagentTree(event.subagentRunId);
     this.updateExecution("subagent", event.subagentRunId, (execution) => ({
       ...execution,
       status: event.outcome?.type === "suspended" ? "suspended" : "completed",
@@ -296,6 +320,7 @@ export class LifecycleProjector {
   }
 
   onSubagentError(event: SubagentErrorEvent): void {
+    this.interruptSubagentTree(event.subagentRunId);
     this.updateExecution("subagent", event.subagentRunId, (execution) => ({
       ...execution,
       status: "error",
@@ -319,6 +344,71 @@ export class LifecycleProjector {
   private completeStreamingMessages(): void {
     for (const [messageId, status] of this.messageStreamStatuses) {
       if (status === "streaming") {
+        this.messageStreamStatuses.set(messageId, "completed");
+      }
+    }
+  }
+
+  private interruptSubagentTree(subagentId: string): void {
+    const affectedSubagentIds = new Set<string>([subagentId]);
+    let changed = true;
+
+    while (changed) {
+      changed = false;
+      for (const execution of this.executions) {
+        if (
+          execution.type === "subagent" &&
+          execution.producer.type === "subagent" &&
+          affectedSubagentIds.has(execution.producer.id) &&
+          isActive(execution) &&
+          !affectedSubagentIds.has(execution.id)
+        ) {
+          affectedSubagentIds.add(execution.id);
+          changed = true;
+        }
+      }
+    }
+
+    let executionsChanged = false;
+    const nextExecutions = this.executions.map((execution) => {
+      if (
+        execution.producer.type !== "subagent" ||
+        !affectedSubagentIds.has(execution.producer.id)
+      ) {
+        return execution;
+      }
+      const next = interrupt(execution);
+      executionsChanged ||= next !== execution;
+      return next;
+    });
+    if (executionsChanged) {
+      this.executions = nextExecutions;
+    }
+
+    for (const affectedSubagentId of affectedSubagentIds) {
+      this.activeReasoningByProducer.delete(producerKey({
+        type: "subagent",
+        id: affectedSubagentId,
+      }));
+    }
+    for (const execution of this.executions) {
+      if (
+        execution.type === "step" &&
+        execution.producer.type === "subagent" &&
+        affectedSubagentIds.has(execution.producer.id)
+      ) {
+        this.activeSteps.delete(activeStepKey(
+          execution.producer,
+          execution.name,
+        ));
+      }
+    }
+    for (const [messageId, producer] of this.messageProducers) {
+      if (
+        producer.type === "subagent" &&
+        affectedSubagentIds.has(producer.id) &&
+        this.messageStreamStatuses.get(messageId) === "streaming"
+      ) {
         this.messageStreamStatuses.set(messageId, "completed");
       }
     }
