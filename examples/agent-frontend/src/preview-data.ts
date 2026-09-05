@@ -1,6 +1,6 @@
-import type { AGUIMessage } from "../framework/contracts/ui-plugin";
+import type { AgentMessage } from "../framework/contracts/ui-plugin";
 
-export const initialPreviewMessages: AGUIMessage[] = [
+export const initialPreviewMessages: AgentMessage[] = [
   {
     id: "preview-assistant-1",
     role: "assistant",

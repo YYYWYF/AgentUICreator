@@ -16,7 +16,7 @@ import { Empty, Tag, Typography } from "antd";
 import type { ReactNode } from "react";
 
 import type {
-  AGUIMessage,
+  AgentMessage,
   UIPluginComponentProps,
   UIPluginRunState,
 } from "../../framework/contracts/ui-plugin";
@@ -39,7 +39,7 @@ function readableJSON(value: string): string {
 }
 
 function statusForTool(
-  result: Extract<AGUIMessage, { role: "tool" }> | undefined,
+  result: Extract<AgentMessage, { role: "tool" }> | undefined,
   run: UIPluginRunState,
 ): "loading" | "success" | "error" | "abort" {
   if (result?.error !== undefined) {
@@ -60,7 +60,7 @@ function ToolPayload({
   result,
 }: {
   argumentsText: string;
-  result: Extract<AGUIMessage, { role: "tool" }> | undefined;
+  result: Extract<AgentMessage, { role: "tool" }> | undefined;
 }) {
   const agentUI = asRecord(result?.metadata?.agentUI);
   const renderType = agentUI?.render;
@@ -88,7 +88,7 @@ function ToolPayload({
   );
 }
 
-function activityDescription(message: Extract<AGUIMessage, { role: "activity" }>) {
+function activityDescription(message: Extract<AgentMessage, { role: "activity" }>) {
   const title = message.content.title;
   const description = message.content.description;
 
@@ -103,13 +103,13 @@ function activityDescription(message: Extract<AGUIMessage, { role: "activity" }>
 }
 
 function timelineItems(
-  messages: AGUIMessage[],
+  messages: AgentMessage[],
   run: UIPluginRunState,
 ): ThoughtChainItemType[] {
   const results = new Map(
     messages
       .filter(
-        (message): message is Extract<AGUIMessage, { role: "tool" }> =>
+        (message): message is Extract<AgentMessage, { role: "tool" }> =>
           message.role === "tool",
       )
       .map((message) => [message.toolCallId, message]),
@@ -173,10 +173,10 @@ function timelineItems(
   return items;
 }
 
-function reasoningContent(messages: AGUIMessage[]): ReactNode {
+function reasoningContent(messages: AgentMessage[]): ReactNode {
   const reasoning = messages
     .filter(
-      (message): message is Extract<AGUIMessage, { role: "reasoning" }> =>
+      (message): message is Extract<AgentMessage, { role: "reasoning" }> =>
         message.role === "reasoning",
     )
     .map((message) => message.content.trim())

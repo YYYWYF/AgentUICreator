@@ -1,4 +1,4 @@
-import type { AGUIMessage } from "../../framework/contracts/ui-plugin";
+import type { AgentMessage } from "../../framework/contracts/ui-plugin";
 import type { AgentUIConversationService } from "../../services/conversations";
 
 export function readConversationKey(value: unknown): string | undefined {
@@ -8,7 +8,7 @@ export function readConversationKey(value: unknown): string | undefined {
 }
 
 export function messageBelongsToConversation(
-  message: AGUIMessage,
+  message: AgentMessage,
   activeKey: string | undefined,
 ): boolean {
   if (activeKey === undefined) {

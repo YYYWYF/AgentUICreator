@@ -6,7 +6,7 @@ import type {
   SlotNode,
 } from "../../framework/contracts/app-ui-model";
 import type {
-  AGUIMessage,
+  AgentMessage,
   UIPluginContext,
   UIPluginRunState,
 } from "../../framework/contracts/ui-plugin";
@@ -39,7 +39,7 @@ import "./plugin-runtime.css";
 export interface UIPluginRuntimeProps {
   model: AppUIModel;
   registry: PluginRegistry;
-  messages: AGUIMessage[];
+  messages: AgentMessage[];
   state: unknown;
   run: UIPluginRunState;
   actions: UIPluginRuntimeActions;
@@ -53,7 +53,7 @@ interface SlotContentProps {
   slotId: string;
   model: AppUIModel;
   registry: PluginRegistry;
-  messages: AGUIMessage[];
+  messages: AgentMessage[];
   state: unknown;
   run: UIPluginRunState;
   actions: UIPluginRuntimeActions;

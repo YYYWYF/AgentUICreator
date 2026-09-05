@@ -2,11 +2,11 @@ import { useSyncExternalStore } from "react";
 
 import type {
   AgentRuntimeSnapshot,
-  AgentRuntimeTransport,
-} from "./AgentRuntime";
+  AgentRuntime,
+} from "./agent-runtime";
 
 export function useAgentRuntime(
-  runtime: AgentRuntimeTransport,
+  runtime: AgentRuntime,
 ): AgentRuntimeSnapshot {
   return useSyncExternalStore(
     runtime.subscribe,

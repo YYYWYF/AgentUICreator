@@ -22,9 +22,10 @@ import {
 } from "../plugins/antd-x-theme-provider/theme-service";
 import {
   createAgentRuntime,
-  MockAgentRuntime,
+  MockAgentTransport,
   useAgentRuntime,
-} from "../runtime/ag-ui";
+} from "../runtime/core";
+import { createAgUiTransport } from "../runtime/ag-ui";
 import {
   createPluginRegistry,
   PluginServiceProvider,
@@ -48,13 +49,14 @@ import "./styles.css";
 const initialAppUIModel = parseAppUIModelJson(appUIJsonSource);
 const pluginRegistry = createPluginRegistry(pluginDefinitions);
 const endpoint = import.meta.env.VITE_AGENT_ENDPOINT?.trim();
-const agentRuntime =
+const agentTransport =
   import.meta.env.DEV && !endpoint
-    ? new MockAgentRuntime({
+    ? new MockAgentTransport({
         initialMessages: initialPreviewMessages,
         initialState: previewAgentState,
       })
-    : createAgentRuntime({ endpoint });
+    : createAgUiTransport({ endpoint });
+const agentRuntime = createAgentRuntime({ transport: agentTransport });
 
 const sharedThemeTokens = {
   colorPrimary: "#7565ea",

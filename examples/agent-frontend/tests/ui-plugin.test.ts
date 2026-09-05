@@ -1,10 +1,10 @@
-import type { Message } from "@ag-ui/core";
+import type { AgentMessage } from "../runtime/core/agent-message";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import {
   parseUIPluginManifest,
   uiPluginManifestSchema,
-  type AGUIMessage,
+  type UIPluginContext,
 } from "../framework/contracts/ui-plugin";
 
 describe("UIPluginManifest", () => {
@@ -76,7 +76,7 @@ describe("UIPluginManifest", () => {
     }
   });
 
-  it("uses the official AG-UI Message type", () => {
-    expectTypeOf<AGUIMessage>().toEqualTypeOf<Message>();
+  it("exposes frontend-owned messages in the plugin context", () => {
+    expectTypeOf<UIPluginContext["messages"]>().toEqualTypeOf<AgentMessage[]>();
   });
 });

@@ -11,7 +11,7 @@ import {
 import { Avatar, Empty } from "antd";
 
 import type {
-  AGUIMessage,
+  AgentMessage,
   UIPluginComponentProps,
 } from "../../framework/contracts/ui-plugin";
 import {
@@ -28,7 +28,7 @@ const roleLabels: Record<string, string> = {
   tool: "工具",
 };
 
-function messageText(message: AGUIMessage): string {
+function messageText(message: AgentMessage): string {
   if (!("content" in message)) {
     return "";
   }
@@ -66,7 +66,7 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
     : undefined;
 }
 
-function messageFiles(message: AGUIMessage): FileCardProps[] {
+function messageFiles(message: AgentMessage): FileCardProps[] {
   if (message.role !== "user" || !Array.isArray(message.content)) {
     return [];
   }
@@ -109,7 +109,7 @@ function messageFiles(message: AGUIMessage): FileCardProps[] {
   });
 }
 
-function messageSources(message: AGUIMessage) {
+function messageSources(message: AgentMessage) {
   const agentUI = asRecord(message.metadata?.agentUI);
   const value = message.metadata?.sources ?? agentUI?.sources;
 
@@ -144,7 +144,7 @@ function MessageActions({ text }: { text: string }) {
   return <Actions.Copy rootClassName="antd-x-message-list-actions" text={text} />;
 }
 
-function messageContent(message: AGUIMessage) {
+function messageContent(message: AgentMessage) {
   const text = messageText(message);
   const files = messageFiles(message);
   const sources = messageSources(message);
@@ -183,7 +183,7 @@ function bubbleRole(role: string): string {
 }
 
 function toBubbleItem(
-  message: AGUIMessage,
+  message: AgentMessage,
   renderAssistantActions: (messageId: string, text: string) => React.ReactNode,
 ): BubbleItemType {
   const text = messageText(message);

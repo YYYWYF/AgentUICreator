@@ -14,7 +14,7 @@ import {
   type LayoutNode,
 } from "../framework/contracts/app-ui-model";
 import type {
-  AGUIMessage,
+  AgentMessage,
   UIPluginComponentProps,
   UIPluginContext,
   UIPluginDefinition,
@@ -61,7 +61,7 @@ const idleRun: UIPluginRunState = {
   errorMessage: undefined,
 };
 
-const defaultConversationMessages: AGUIMessage[] = initialPreviewMessages.map(
+const defaultConversationMessages: AgentMessage[] = initialPreviewMessages.map(
   (message) => ({
     ...message,
     metadata: { ...message.metadata, conversationId: "default" },
@@ -416,7 +416,7 @@ describe("UIPluginRuntime", () => {
   it("keeps non-chat messages from turning the current conversation into a timeline", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
-    const messages: AGUIMessage[] = [
+    const messages: AgentMessage[] = [
       {
         id: "tool-only",
         role: "tool",

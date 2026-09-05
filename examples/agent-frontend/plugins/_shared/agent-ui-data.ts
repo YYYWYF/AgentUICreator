@@ -1,5 +1,5 @@
 import type {
-  AGUIMessage,
+  AgentMessage,
   UIPluginRunState,
 } from "../../framework/contracts/ui-plugin";
 
@@ -9,7 +9,7 @@ export interface ToolCallInspection {
   id: string;
   name: string;
   argumentsText: string;
-  result: Extract<AGUIMessage, { role: "tool" }> | undefined;
+  result: Extract<AgentMessage, { role: "tool" }> | undefined;
   status: InspectionStatus;
 }
 
@@ -66,7 +66,7 @@ export function stateSurface(value: unknown): Record<string, unknown> {
 }
 
 function toolStatus(
-  result: Extract<AGUIMessage, { role: "tool" }> | undefined,
+  result: Extract<AgentMessage, { role: "tool" }> | undefined,
   run: UIPluginRunState,
 ): InspectionStatus {
   if (result?.error !== undefined) {
@@ -82,13 +82,13 @@ function toolStatus(
 }
 
 export function inspectToolCalls(
-  messages: AGUIMessage[],
+  messages: AgentMessage[],
   run: UIPluginRunState,
 ): ToolCallInspection[] {
   const results = new Map(
     messages
       .filter(
-        (message): message is Extract<AGUIMessage, { role: "tool" }> =>
+        (message): message is Extract<AgentMessage, { role: "tool" }> =>
           message.role === "tool",
       )
       .map((message) => [message.toolCallId, message]),
@@ -144,7 +144,7 @@ function activityStatus(
 }
 
 export function inspectActivities(
-  messages: AGUIMessage[],
+  messages: AgentMessage[],
   run: UIPluginRunState,
 ): ActivityInspection[] {
   return messages.flatMap((message) => {
@@ -166,7 +166,7 @@ export function inspectActivities(
   });
 }
 
-export function inspectReasoning(messages: AGUIMessage[]): string[] {
+export function inspectReasoning(messages: AgentMessage[]): string[] {
   return messages.flatMap((message) =>
     message.role === "reasoning" && message.content.trim().length > 0
       ? [message.content.trim()]
@@ -197,7 +197,7 @@ function readSourceList(value: unknown, prefix: string): SourceInspection[] {
 }
 
 export function inspectSources(
-  messages: AGUIMessage[],
+  messages: AgentMessage[],
   state: unknown,
 ): SourceInspection[] {
   const messageSources = messages.flatMap((message) => {
@@ -263,7 +263,7 @@ function readStateAttachments(value: unknown): AttachmentInspection[] {
   });
 }
 
-function readMessageAttachments(message: AGUIMessage): AttachmentInspection[] {
+function readMessageAttachments(message: AgentMessage): AttachmentInspection[] {
   if (message.role !== "user" || !Array.isArray(message.content)) {
     return [];
   }
@@ -302,7 +302,7 @@ function readMessageAttachments(message: AGUIMessage): AttachmentInspection[] {
 }
 
 export function inspectAttachments(
-  messages: AGUIMessage[],
+  messages: AgentMessage[],
   state: unknown,
 ): AttachmentInspection[] {
   const unique = new Map<string, AttachmentInspection>();

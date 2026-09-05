@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { AGUIMessage } from "../framework/contracts/ui-plugin";
+import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import {
   createAgentUIConversationService,
   readConversationKey,
@@ -18,7 +18,7 @@ describe("Ant Design X conversation adapter", () => {
   });
 
   it("filters tagged history without hiding live untagged messages", () => {
-    const messages: AGUIMessage[] = [
+    const messages: AgentMessage[] = [
       {
         id: "current",
         role: "assistant",

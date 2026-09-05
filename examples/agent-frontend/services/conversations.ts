@@ -1,4 +1,4 @@
-import type { AGUIMessage } from "../framework/contracts/ui-plugin";
+import type { AgentMessage } from "../framework/contracts/ui-plugin";
 
 /**
  * Stable conversation capability seam shared by providers and consumers.
@@ -11,13 +11,13 @@ export const AGENT_UI_CONVERSATION_SERVICE = "agent-ui.conversations";
 
 export interface AgentUIConversationService {
   readonly activeKey: string | undefined;
-  includesMessage(message: AGUIMessage): boolean;
+  includesMessage(message: AgentMessage): boolean;
 }
 
 export function getVisibleConversationMessages(
-  messages: readonly AGUIMessage[],
+  messages: readonly AgentMessage[],
   conversation: AgentUIConversationService | undefined,
-): AGUIMessage[] {
+): AgentMessage[] {
   return messages.filter(
     (message) =>
       (conversation === undefined || conversation.includesMessage(message)) &&

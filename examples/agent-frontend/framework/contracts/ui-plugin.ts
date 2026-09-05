@@ -1,10 +1,10 @@
-import type { Message } from "@ag-ui/core";
+import type { AgentMessage } from "../../runtime/core/agent-message";
 import type { ComponentType, ReactNode } from "react";
 import { z } from "zod";
 
 import type { PluginInstance } from "./app-ui-model";
 
-export type AGUIMessage = Message;
+export type { AgentMessage } from "../../runtime/core/agent-message";
 
 export type UIPluginRunStatus = "idle" | "running" | "error";
 
@@ -75,7 +75,7 @@ export interface UIPluginSetupContext {
 export type UIPluginSetupCleanup = void | (() => void);
 
 export interface UIPluginContext {
-  messages: AGUIMessage[];
+  messages: AgentMessage[];
   state: unknown;
   run: UIPluginRunState;
   instance: PluginInstance;

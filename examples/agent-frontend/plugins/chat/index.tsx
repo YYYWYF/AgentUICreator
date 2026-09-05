@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 
 import type {
-  AGUIMessage,
+  AgentMessage,
   UIPluginComponentProps,
 } from "../../framework/contracts/ui-plugin";
 
@@ -14,7 +14,7 @@ const roleLabels: Record<string, string> = {
   tool: "工具",
 };
 
-function messageText(message: AGUIMessage): string {
+function messageText(message: AgentMessage): string {
   if (!("content" in message)) {
     return "";
   }

@@ -1,79 +1,94 @@
-import type { AbstractAgent, AgentSubscriber } from "@ag-ui/client";
-import type { Message, State } from "@ag-ui/core";
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  createAgentRuntime,
-  HttpAgentRuntime,
-  MockAgentRuntime,
-} from "../runtime/ag-ui";
+import { createAgentRuntime } from "../runtime/core/agent-runtime";
+import { MockAgentTransport } from "../runtime/core/mock-agent-transport";
+import type { AgentTransport } from "../runtime/core/agent-transport";
 
-class FakeAgentClient {
-  messages: Message[] = [];
-  state: State = {};
-  isRunning = false;
-  readonly abortRun = vi.fn();
-  readonly messagesSeenAtRun: Message[][] = [];
+describe("protocol-independent runtime delegation", () => {
+  it("retains cached snapshots, releases subscriptions and delegates disposal", async () => {
+    const transport = new MockAgentTransport();
+    const dispose = vi.spyOn(transport, "dispose");
+    const runtime = createAgentRuntime({ transport });
+    const listener = vi.fn();
+    const unsubscribe = runtime.subscribe(listener);
 
-  private readonly subscribers: AgentSubscriber[] = [];
+    expect(runtime.getSnapshot()).toBe(runtime.getSnapshot());
+    expect(runtime.getSnapshot()).toBe(transport.getSnapshot());
+    const before = runtime.getSnapshot();
+    await runtime.sendMessage("Hello");
+    expect(runtime.getSnapshot()).not.toBe(before);
+    expect(listener).toHaveBeenCalledTimes(2);
 
-  subscribe(subscriber: AgentSubscriber): { unsubscribe(): void } {
-    this.subscribers.push(subscriber);
-    return {
-      unsubscribe: () => {
-        const index = this.subscribers.indexOf(subscriber);
-        if (index >= 0) {
-          this.subscribers.splice(index, 1);
-        }
-      },
+    unsubscribe();
+    await runtime.startNewConversation();
+    expect(listener).toHaveBeenCalledTimes(2);
+    runtime.dispose();
+    expect(dispose).toHaveBeenCalledOnce();
+  });
+
+  it("aborts a pending mock reply without appending it to a new conversation", async () => {
+    const runtime = createAgentRuntime({ transport: new MockAgentTransport() });
+    const send = runtime.sendMessage("Old request");
+    expect(runtime.getSnapshot().isRunning).toBe(true);
+
+    runtime.abort();
+    expect(runtime.getSnapshot().isRunning).toBe(false);
+    await runtime.startNewConversation();
+    await send;
+    expect(runtime.getSnapshot().messages).toEqual([]);
+
+    await runtime.sendMessage("New request");
+    expect(runtime.getSnapshot().messages.map((message) => message.content)).toEqual([
+      "New request",
+      "Mock AG-UI received: New request",
+    ]);
+  });
+
+  it("ignores blank input and rejects concurrent send and reset actions", async () => {
+    const runtime = createAgentRuntime({ transport: new MockAgentTransport() });
+    const before = runtime.getSnapshot();
+    await runtime.sendMessage("   ");
+    expect(runtime.getSnapshot()).toBe(before);
+
+    const send = runtime.sendMessage("Hello");
+    const concurrentSend = runtime.sendMessage("Another request");
+    const reset = runtime.startNewConversation();
+    await expect(concurrentSend).rejects.toThrow("智能体运行时正在处理另一条消息。");
+    await expect(reset).rejects.toThrow("智能体运行时正在处理另一条消息。");
+    await send;
+  });
+
+  it("accepts a transport with an arbitrary mode and no dispose method", async () => {
+    const snapshot = { messages: [], state: { ready: true }, isRunning: false, error: undefined };
+    const transport: AgentTransport = {
+      mode: "in-memory-test",
+      getSnapshot() { return snapshot; },
+      subscribe: vi.fn(() => () => undefined),
+      sendMessage: vi.fn(async () => undefined),
+      startNewConversation: vi.fn(async () => undefined),
+      abort: vi.fn(),
     };
-  }
+    const runtime = createAgentRuntime({ transport });
+    expect(runtime.mode).toBe("in-memory-test");
+    expect(runtime.getSnapshot()).toBe(snapshot);
+    await runtime.sendMessage("Hello");
+    await runtime.startNewConversation();
+    runtime.abort();
+    runtime.dispose();
+    expect(transport.sendMessage).toHaveBeenCalledWith("Hello");
+    expect(transport.startNewConversation).toHaveBeenCalledOnce();
+    expect(transport.abort).toHaveBeenCalledOnce();
+  });
+});
 
-  addMessage(message: Message): void {
-    this.messages.push(message);
-    this.emitMessagesChanged();
-  }
-
-  async runAgent(): Promise<unknown> {
-    this.messagesSeenAtRun.push([...this.messages]);
-    return undefined;
-  }
-
-  emitMessages(messages: Message[]): void {
-    this.messages = messages;
-    this.emitMessagesChanged();
-  }
-
-  emitState(state: State): void {
-    this.state = state;
-    this.subscribers.forEach((subscriber) => {
-      void subscriber.onStateChanged?.({
-        messages: this.messages,
-        state: this.state,
-        agent: this as unknown as AbstractAgent,
-      });
-    });
-  }
-
-  private emitMessagesChanged(): void {
-    this.subscribers.forEach((subscriber) => {
-      void subscriber.onMessagesChanged?.({
-        messages: this.messages,
-        state: this.state,
-        agent: this as unknown as AbstractAgent,
-      });
-    });
-  }
-}
-
-describe("MockAgentRuntime", () => {
-  it("starts with the configured AG-UI messages and state", () => {
-    const runtime = new MockAgentRuntime({
+describe("Runtime Core with MockAgentTransport", () => {
+  it("starts with the configured frontend messages and state", () => {
+    const runtime = createAgentRuntime({ transport: new MockAgentTransport({
       initialMessages: [
         { id: "assistant-1", role: "assistant", content: "Ready" },
       ],
       initialState: { selectedFile: "src/App.tsx" },
-    });
+    }) });
 
     expect(runtime.mode).toBe("mock");
     expect(runtime.getSnapshot()).toMatchObject({
@@ -87,7 +102,7 @@ describe("MockAgentRuntime", () => {
   });
 
   it("publishes user and assistant messages through the runtime boundary", async () => {
-    const runtime = new MockAgentRuntime();
+    const runtime = createAgentRuntime({ transport: new MockAgentTransport() });
     const snapshots: number[] = [];
     const unsubscribe = runtime.subscribe(() => {
       snapshots.push(runtime.getSnapshot().messages.length);
@@ -110,12 +125,12 @@ describe("MockAgentRuntime", () => {
   });
 
   it("clears messages, state, and errors for a new conversation", async () => {
-    const runtime = new MockAgentRuntime({
+    const runtime = createAgentRuntime({ transport: new MockAgentTransport({
       initialMessages: [
         { id: "assistant-1", role: "assistant", content: "Old context" },
       ],
       initialState: { selectedFile: "old.tsx" },
-    });
+    }) });
 
     await runtime.startNewConversation();
 
@@ -125,123 +140,5 @@ describe("MockAgentRuntime", () => {
       isRunning: false,
       error: undefined,
     });
-  });
-});
-
-describe("HttpAgentRuntime", () => {
-  it("wraps one endpoint and adds the user message before running the agent", async () => {
-    const agent = new FakeAgentClient();
-    const createClient = vi.fn(() => agent);
-    const runtime = new HttpAgentRuntime(
-      { endpoint: "https://agent.example.test/ag-ui" },
-      createClient,
-    );
-
-    await runtime.sendMessage("Hello Agent");
-
-    expect(createClient).toHaveBeenCalledOnce();
-    expect(createClient).toHaveBeenCalledWith(
-      expect.objectContaining({
-        endpoint: "https://agent.example.test/ag-ui",
-        threadId: expect.any(String),
-      }),
-    );
-    expect(agent.messagesSeenAtRun[0]).toMatchObject([
-      { role: "user", content: "Hello Agent" },
-    ]);
-    expect(runtime.getSnapshot()).toMatchObject({
-      isRunning: false,
-      error: undefined,
-    });
-  });
-
-  it("projects AG-UI message and state subscriber updates", () => {
-    const agent = new FakeAgentClient();
-    const runtime = new HttpAgentRuntime(
-      { endpoint: "https://agent.example.test/ag-ui" },
-      () => agent,
-    );
-
-    agent.emitMessages([
-      { id: "assistant-2", role: "assistant", content: "Updated" },
-    ]);
-    agent.emitState({ selectedFile: "plugins/chat/index.tsx" });
-
-    expect(runtime.getSnapshot()).toMatchObject({
-      messages: [
-        { id: "assistant-2", role: "assistant", content: "Updated" },
-      ],
-      state: { selectedFile: "plugins/chat/index.tsx" },
-    });
-  });
-
-  it("retains a failed run as runtime state and can abort the agent", async () => {
-    const agent = new FakeAgentClient();
-    const failure = new Error("Agent endpoint is unavailable");
-    agent.runAgent = vi.fn(async () => {
-      throw failure;
-    });
-    const runtime = new HttpAgentRuntime(
-      { endpoint: "https://agent.example.test/ag-ui" },
-      () => agent,
-    );
-
-    await expect(runtime.sendMessage("Hello")).rejects.toThrow(failure);
-    runtime.abort();
-
-    expect(runtime.getSnapshot()).toMatchObject({
-      isRunning: false,
-      error: failure,
-    });
-    expect(agent.abortRun).toHaveBeenCalledOnce();
-  });
-
-  it("creates a fresh AG-UI client and thread for a new conversation", async () => {
-    const firstAgent = new FakeAgentClient();
-    firstAgent.messages = [
-      { id: "assistant-old", role: "assistant", content: "Old context" },
-    ];
-    firstAgent.state = { selectedFile: "old.tsx" };
-    const secondAgent = new FakeAgentClient();
-    const createClient = vi
-      .fn()
-      .mockReturnValueOnce(firstAgent)
-      .mockReturnValueOnce(secondAgent);
-    const runtime = new HttpAgentRuntime(
-      { endpoint: "https://agent.example.test/ag-ui" },
-      createClient,
-    );
-
-    await runtime.startNewConversation();
-
-    const firstThreadId = createClient.mock.calls[0]?.[0].threadId;
-    const secondThreadId = createClient.mock.calls[1]?.[0].threadId;
-    expect(firstThreadId).toEqual(expect.any(String));
-    expect(secondThreadId).toEqual(expect.any(String));
-    expect(secondThreadId).not.toBe(firstThreadId);
-    expect(runtime.getSnapshot()).toEqual({
-      messages: [],
-      state: {},
-      isRunning: false,
-      error: undefined,
-    });
-
-    firstAgent.emitMessages([
-      { id: "stale", role: "assistant", content: "Stale update" },
-    ]);
-    expect(runtime.getSnapshot().messages).toEqual([]);
-
-    await runtime.sendMessage("Fresh context");
-    expect(secondAgent.messagesSeenAtRun[0]).toMatchObject([
-      { role: "user", content: "Fresh context" },
-    ]);
-  });
-});
-
-describe("createAgentRuntime", () => {
-  it("rejects a missing endpoint", () => {
-    expect(() => createAgentRuntime({ endpoint: "   " })).toThrow(
-      "必须配置智能体运行时端点。",
-    );
   });
 });
