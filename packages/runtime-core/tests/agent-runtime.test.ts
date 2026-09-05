@@ -2,10 +2,24 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   createAgentRuntime,
+  type AgentExecution,
   type AgentTransport,
   type AgentUserInput,
 } from "../src/index.js";
 import { MockAgentTransport } from "../src/testing/index.js";
+
+function describeExecution(execution: AgentExecution): string {
+  switch (execution.type) {
+    case "tool":
+      return `${execution.name}:${execution.arguments}`;
+    case "reasoning":
+      return execution.messageIds.join(",");
+    case "step":
+      return execution.name;
+    case "subagent":
+      return execution.description ?? execution.name;
+  }
+}
 
 describe("protocol-independent runtime delegation", () => {
   it("retains cached snapshots, releases subscriptions and delegates disposal", async () => {
@@ -38,6 +52,7 @@ describe("protocol-independent runtime delegation", () => {
         messages: [],
         state: { ready: true },
         run: { status: "idle" },
+        executions: [],
       }),
       subscribe: () => () => undefined,
       sendMessage,
@@ -105,6 +120,7 @@ describe("protocol-independent runtime delegation", () => {
       messages: [],
       state: { ready: true },
       run: { status: "idle" as const },
+      executions: [],
     };
     const transport: AgentTransport<{ ready: boolean }> = {
       mode: "in-memory-test",
@@ -128,10 +144,60 @@ describe("protocol-independent runtime delegation", () => {
 });
 
 describe("Runtime Core with MockAgentTransport", () => {
+  it("passes injected semantic executions through without conversion", () => {
+    const executions: AgentExecution[] = [
+      {
+        type: "tool",
+        id: "tool-1",
+        producer: { type: "root" },
+        name: "search",
+        status: "awaiting-result",
+        arguments: '{"query":"AG-UI"}',
+      },
+      {
+        type: "reasoning",
+        id: "reasoning-1",
+        producer: { type: "root" },
+        status: "completed",
+        messageIds: ["reasoning-message-1"],
+      },
+      {
+        type: "step",
+        id: "step-1",
+        producer: { type: "subagent", id: "researcher" },
+        name: "research",
+        status: "running",
+      },
+      {
+        type: "subagent",
+        id: "researcher",
+        producer: { type: "root" },
+        name: "Researcher",
+        status: "running",
+      },
+    ];
+    const runtime = createAgentRuntime({
+      transport: new MockAgentTransport({ initialExecutions: executions }),
+    });
+
+    expect(runtime.getSnapshot().executions).toEqual(executions);
+    expect(executions.map(describeExecution)).toEqual([
+      'search:{"query":"AG-UI"}',
+      "reasoning-message-1",
+      "research",
+      "Researcher",
+    ]);
+  });
+
   it("starts with a conversation, configured state, and an idle run", () => {
     const runtime = createAgentRuntime({ transport: new MockAgentTransport({
       initialMessages: [
-        { id: "assistant-1", role: "assistant", content: "Ready" },
+        {
+          id: "assistant-1",
+          producer: { type: "root" },
+          role: "assistant",
+          content: "Ready",
+        },
       ],
       initialState: { selectedFile: "src/App.tsx" },
     }) });
@@ -144,6 +210,7 @@ describe("Runtime Core with MockAgentTransport", () => {
       ],
       state: { selectedFile: "src/App.tsx" },
       run: { status: "idle" },
+      executions: [],
     });
   });
 
@@ -173,7 +240,12 @@ describe("Runtime Core with MockAgentTransport", () => {
   it("creates a fresh conversation and resets messages, state, and run", async () => {
     const runtime = createAgentRuntime({ transport: new MockAgentTransport({
       initialMessages: [
-        { id: "assistant-1", role: "assistant", content: "Old context" },
+        {
+          id: "assistant-1",
+          producer: { type: "root" },
+          role: "assistant",
+          content: "Old context",
+        },
       ],
       initialState: { selectedFile: "old.tsx" },
     }) });
@@ -186,6 +258,7 @@ describe("Runtime Core with MockAgentTransport", () => {
       messages: [],
       state: {},
       run: { status: "idle" },
+      executions: [],
     });
     expect(runtime.getSnapshot().conversation.id).not.toBe(oldId);
   });

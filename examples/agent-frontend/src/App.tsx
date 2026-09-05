@@ -112,6 +112,7 @@ const getDefaultThemeMode = (): AgentUIThemeMode => "dark";
 function AgentFrontendSurface({
   actions,
   conversation,
+  executions,
   messages,
   model,
   run,
@@ -119,6 +120,7 @@ function AgentFrontendSurface({
 }: {
   actions: UIPluginRuntimeActions;
   conversation: AgentConversation;
+  executions: ReturnType<typeof useAgentRuntime>["executions"];
   messages: ReturnType<typeof useAgentRuntime>["messages"];
   model: typeof initialAppUIModel;
   run: AgentRunState;
@@ -148,6 +150,7 @@ function AgentFrontendSurface({
           actions={actions}
           className="agent-template-shell"
           conversation={conversation}
+          executions={executions}
           messages={messages}
           model={model}
           registry={pluginRegistry}
@@ -238,6 +241,7 @@ export function App({
         <AgentFrontendSurface
           actions={pluginActions}
           conversation={agent.conversation}
+          executions={agent.executions}
           messages={agent.messages}
           model={model}
           run={agent.run}

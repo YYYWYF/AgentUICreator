@@ -79,6 +79,7 @@ function RuntimeFixture({
       actions={runtimeActions}
       appUIModelHash={appUIModelHash}
       conversation={{ id: "diagnostics-test" }}
+      executions={[]}
       messages={[]}
       model={model}
       onRuntimeDiagnostic={reporter}

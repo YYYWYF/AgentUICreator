@@ -184,6 +184,7 @@ function fixtureRuntimeProps(
   return {
     actions: runtimeActions,
     conversation: { id: "default" },
+    executions: [],
     messages: [],
     model,
     registry: createPluginRegistry(definitions),
@@ -245,6 +246,7 @@ describe("UIPluginRuntime", () => {
     const html = await renderPluginRuntime({
       actions: runtimeActions,
       conversation: { id: "default" },
+      executions: [],
       messages: defaultConversationMessages,
       model,
       registry,
@@ -300,6 +302,7 @@ describe("UIPluginRuntime", () => {
     const mounted = await mountPluginRuntime({
       actions: runtimeActions,
       conversation: { id: "default" },
+      executions: [],
       messages: defaultConversationMessages,
       model,
       registry: createPluginRegistry(antdXTemplatePlugins),
@@ -388,9 +391,11 @@ describe("UIPluginRuntime", () => {
     const html = await renderPluginRuntime({
       actions: runtimeActions,
       conversation: { id: "default" },
+      executions: [],
       messages: [
         {
           id: "other-conversation-message",
+          producer: { type: "root" },
           role: "assistant",
           content: "另一会话的消息",
           metadata: { conversationId: "other" },
@@ -418,6 +423,7 @@ describe("UIPluginRuntime", () => {
     const messages: AgentMessage[] = [
       {
         id: "tool-only",
+        producer: { type: "root" },
         role: "tool",
         toolCallId: "tool-call-only",
         content: "工具结果",
@@ -425,12 +431,14 @@ describe("UIPluginRuntime", () => {
       },
       {
         id: "reasoning-only",
+        producer: { type: "root" },
         role: "reasoning",
         content: "思考过程",
         metadata: { conversationId: "default" },
       },
       {
         id: "activity-only",
+        producer: { type: "root" },
         role: "activity",
         activityType: "progress",
         content: { title: "处理中" },
@@ -441,6 +449,7 @@ describe("UIPluginRuntime", () => {
     const html = await renderPluginRuntime({
       actions: runtimeActions,
       conversation: { id: "default" },
+      executions: [],
       messages,
       model,
       registry,
@@ -465,6 +474,7 @@ describe("UIPluginRuntime", () => {
     const html = await renderPluginRuntime({
       actions: runtimeActions,
       conversation: { id: "default" },
+      executions: [],
       messages: [],
       model,
       registry,
@@ -559,6 +569,7 @@ describe("UIPluginRuntime", () => {
     const html = await renderPluginRuntime({
       actions: runtimeActions,
       conversation: { id: "default" },
+      executions: [],
       messages: initialPreviewMessages,
       model,
       registry,
@@ -593,6 +604,7 @@ describe("UIPluginRuntime", () => {
     const html = await renderPluginRuntime({
       actions: runtimeActions,
       conversation: { id: "default" },
+      executions: [],
       messages: defaultConversationMessages,
       model,
       registry,
@@ -620,6 +632,7 @@ describe("UIPluginRuntime", () => {
     const html = await renderPluginRuntime({
       actions: runtimeActions,
       conversation: { id: "default" },
+      executions: [],
       messages: initialPreviewMessages,
       model,
       registry,
@@ -641,6 +654,7 @@ describe("UIPluginRuntime", () => {
     const html = await renderPluginRuntime({
       actions: runtimeActions,
       conversation: { id: "default" },
+      executions: [],
       messages: defaultConversationMessages,
       model,
       registry,
@@ -693,10 +707,18 @@ describe("UIPluginRuntime", () => {
       status: "error",
       error: { message: "Agent endpoint is unavailable" },
     };
+    const executions: UIPluginContext["executions"] = [{
+      type: "step",
+      id: "step-probe",
+      producer: { type: "root" },
+      name: "probe",
+      status: "completed",
+    }];
 
     await renderPluginRuntime({
       actions,
       conversation: { id: "default" },
+      executions,
       messages: [],
       model,
       registry: createPluginRegistry([probePlugin]),
@@ -709,6 +731,7 @@ describe("UIPluginRuntime", () => {
     }
 
     expect(capturedContext.run).toBe(failedRun);
+    expect(capturedContext.executions).toBe(executions);
     expect(capturedContext.conversation).toEqual({ id: "default" });
     await capturedContext.actions.sendMessage("hello");
     await capturedContext.actions.startNewConversation();
@@ -734,6 +757,7 @@ describe("UIPluginRuntime", () => {
     const html = await renderPluginRuntime({
       actions: runtimeActions,
       conversation: { id: "default" },
+      executions: [],
       messages: initialPreviewMessages,
       model,
       registry,

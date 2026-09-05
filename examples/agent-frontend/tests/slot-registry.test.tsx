@@ -177,6 +177,7 @@ describe("Layout Slot declarations", () => {
           <UIPluginRuntime
             actions={runtimeActions}
             conversation={{ id: "slot-registry-test" }}
+            executions={[]}
             messages={[]}
             model={model}
             registry={createPluginRegistry([])}

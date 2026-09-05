@@ -9,7 +9,7 @@ import {
 } from "@agent-ui/runtime-core";
 
 import { mapAgentUserInput } from "./input-mapper.js";
-import { mapAgUiMessage } from "./message-mapper.js";
+import { LifecycleProjector } from "./lifecycle-projector.js";
 
 export interface AgUiTransportConfig {
   endpoint: string;
@@ -87,6 +87,7 @@ export class AgUiTransport<TState = unknown>
   readonly mode = "http" as const;
 
   private agent: AgentClient;
+  private readonly projector: LifecycleProjector;
   private readonly config: AgUiTransportConfig;
   private readonly createClient: AgentClientFactory;
   private unsubscribeFromAgent: (() => void) | undefined;
@@ -99,12 +100,15 @@ export class AgUiTransport<TState = unknown>
   ) {
     const conversationId = crypto.randomUUID();
     const agent = createClient({ ...config, threadId: conversationId });
+    const projector = new LifecycleProjector();
     super({
       conversation: { id: conversationId },
-      messages: agent.messages.map(mapAgUiMessage),
+      messages: projector.projectMessages(agent.messages),
       state: agent.state as TState,
       run: createRunState(agent.isRunning ? "running" : "idle"),
+      executions: projector.getExecutions(),
     });
+    this.projector = projector;
     this.config = config;
     this.createClient = createClient;
     this.agent = agent;
@@ -119,16 +123,21 @@ export class AgUiTransport<TState = unknown>
         this.syncFromAgent(agent, {
           run: createRunState("running", this.snapshot.run.id),
         }),
-      onRunStartedEvent: ({ event }) =>
+      onRunStartedEvent: ({ event }) => {
+        this.projector.resetForRun();
         this.syncFromAgent(agent, {
           conversation: { id: event.threadId },
           run: createRunState("running", event.runId),
-        }),
-      onRunFinishedEvent: ({ event }) =>
+        });
+      },
+      onRunFinishedEvent: ({ event }) => {
+        this.projector.interruptActive();
         this.syncFromAgent(agent, {
           run: createRunState("idle", event.runId),
-        }),
-      onRunErrorEvent: ({ event }) =>
+        });
+      },
+      onRunErrorEvent: ({ event }) => {
+        this.projector.interruptActive();
         this.syncFromAgent(agent, {
           run: createRunState(
             "error",
@@ -138,23 +147,95 @@ export class AgUiTransport<TState = unknown>
               ...(event.code === undefined ? {} : { code: event.code }),
             },
           ),
-        }),
-      onRunFailed: ({ error }) =>
+        });
+      },
+      onRunFailed: ({ error }) => {
+        this.projector.interruptActive();
         this.syncFromAgent(agent, {
           run: createRunState(
             "error",
             this.snapshot.run.id,
             retainProtocolError(this.snapshot.run, error),
           ),
-        }),
+        });
+      },
       onRunFinalized: () => {
         if (this.snapshot.run.status === "running") {
+          this.projector.interruptActive();
           this.syncFromAgent(agent, {
             run: createRunState("idle", this.snapshot.run.id),
           });
         } else {
           this.syncFromAgent(agent);
         }
+      },
+      onTextMessageStartEvent: ({ event }) => {
+        this.projector.onTextMessageStart(event);
+        this.syncFromAgent(agent);
+      },
+      onTextMessageContentEvent: ({ event }) => {
+        this.projector.onTextMessageContent(event);
+        this.syncFromAgent(agent);
+      },
+      onTextMessageEndEvent: ({ event }) => {
+        this.projector.onTextMessageEnd(event);
+        this.syncFromAgent(agent);
+      },
+      onToolCallStartEvent: ({ event }) => {
+        this.projector.onToolCallStart(event);
+        this.syncFromAgent(agent);
+      },
+      onToolCallArgsEvent: ({ event }) => {
+        this.projector.onToolCallArgs(event);
+        this.syncFromAgent(agent);
+      },
+      onToolCallEndEvent: ({ event }) => {
+        this.projector.onToolCallEnd(event);
+        this.syncFromAgent(agent);
+      },
+      onToolCallResultEvent: ({ event }) => {
+        this.projector.onToolCallResult(event);
+        this.syncFromAgent(agent);
+      },
+      onReasoningStartEvent: ({ event }) => {
+        this.projector.onReasoningStart(event);
+        this.syncFromAgent(agent);
+      },
+      onReasoningMessageStartEvent: ({ event }) => {
+        this.projector.onReasoningMessageStart(event);
+        this.syncFromAgent(agent);
+      },
+      onReasoningMessageContentEvent: ({ event }) => {
+        this.projector.onReasoningMessageContent(event);
+        this.syncFromAgent(agent);
+      },
+      onReasoningMessageEndEvent: ({ event }) => {
+        this.projector.onReasoningMessageEnd(event);
+        this.syncFromAgent(agent);
+      },
+      onReasoningEndEvent: ({ event }) => {
+        this.projector.onReasoningEnd(event);
+        this.syncFromAgent(agent);
+      },
+      onStepStartedEvent: ({ event }) => {
+        this.projector.onStepStarted(event);
+        this.syncFromAgent(agent);
+      },
+      onStepFinishedEvent: ({ event }) => {
+        this.projector.onStepFinished(event);
+        this.syncFromAgent(agent);
+      },
+      onSubagentStartedEvent: ({ event }) => {
+        this.projector.onSubagentStarted(event);
+        this.syncFromAgent(agent);
+      },
+      onSubagentFinishedEvent: ({ event }) => {
+        this.projector.onSubagentFinished(event);
+        this.syncFromAgent(agent);
+      },
+      onSubagentErrorEvent: ({ event }) => {
+        this.projector.onSubagentError(event);
+        this.syncFromAgent(agent);
       },
     });
 
@@ -180,6 +261,7 @@ export class AgUiTransport<TState = unknown>
       await run;
     } catch (error) {
       const runError = toError(error);
+      this.projector.interruptActive();
       this.syncFromAgent(agent, {
         run: createRunState(
           "error",
@@ -190,6 +272,7 @@ export class AgUiTransport<TState = unknown>
       throw runError;
     } finally {
       if (this.snapshot.run.status === "running") {
+        this.projector.interruptActive();
         this.syncFromAgent(agent, {
           run: createRunState("idle", this.snapshot.run.id),
         });
@@ -219,23 +302,27 @@ export class AgUiTransport<TState = unknown>
     }
 
     this.unsubscribeFromAgent?.();
+    this.projector.resetConversation();
     this.agent = nextAgent;
     this.unsubscribeFromAgent = this.subscribeToAgent(nextAgent);
     this.publish({
       conversation: { id: conversationId },
-      messages: nextAgent.messages.map(mapAgUiMessage),
+      messages: this.projector.projectMessages(nextAgent.messages),
       state: nextAgent.state as TState,
       run: createRunState(nextAgent.isRunning ? "running" : "idle"),
+      executions: this.projector.getExecutions(),
     });
   }
 
   abort(): void {
     this.agent.abortRun();
+    this.projector.interruptActive();
     if (this.snapshot.run.status === "running") {
-      this.publish({
-        ...this.snapshot,
+      this.syncFromAgent(this.agent, {
         run: createRunState("idle", this.snapshot.run.id),
       });
+    } else {
+      this.syncFromAgent(this.agent);
     }
   }
 
@@ -257,9 +344,10 @@ export class AgUiTransport<TState = unknown>
 
     this.publish({
       conversation: overrides.conversation ?? this.snapshot.conversation,
-      messages: agent.messages.map(mapAgUiMessage),
+      messages: this.projector.projectMessages(agent.messages),
       state: agent.state as TState,
       run: overrides.run ?? this.snapshot.run,
+      executions: this.projector.getExecutions(),
     });
   }
 }

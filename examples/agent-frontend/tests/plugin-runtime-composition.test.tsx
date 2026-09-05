@@ -90,6 +90,7 @@ function RuntimeFixture({
       actions={runtimeActions}
       appUIModelHash={appUIModelHash}
       conversation={{ id: "composition-test" }}
+      executions={[]}
       messages={[]}
       model={createModel(enabled)}
       onRuntimeComposition={reporter}

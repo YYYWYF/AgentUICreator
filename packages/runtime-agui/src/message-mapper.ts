@@ -35,6 +35,9 @@ function mapContentPart(
 export function mapAgUiMessage(message: Message): AgentMessage {
   const base = {
     id: message.id,
+    producer: message.subagentRunId === undefined
+      ? { type: "root" as const }
+      : { type: "subagent" as const, id: message.subagentRunId },
     ...(message.metadata === undefined
       ? {}
       : { metadata: structuredClone(message.metadata) }),

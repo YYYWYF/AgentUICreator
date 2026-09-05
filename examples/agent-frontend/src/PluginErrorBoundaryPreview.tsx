@@ -132,6 +132,7 @@ function RuntimeFaultFixture({ model }: { model: ReturnType<typeof createPreview
         actions={previewActions}
         className="plugin-boundary-runtime-fixture-layout"
         conversation={{ id: "preview-runtime-faults" }}
+        executions={[]}
         messages={[]}
         model={model}
         registry={previewRegistry}

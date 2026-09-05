@@ -545,6 +545,8 @@ interface UIPluginContext<TState = unknown> {
 
   run: AgentRunState
 
+  executions: AgentExecution[]
+
   instance: PluginInstance
 
   actions: UIPluginActions
@@ -568,7 +570,7 @@ interface UIPluginActions {
 }
 ```
 
-`conversation`、`messages`、`state` 与 `run` 由 Agent Runtime 提供稳定、协议无关的前端状态。AG-UI 的 `threadId`、`runId` 和 Event 类型只允许存在于 `@agent-ui/runtime-agui`；Plugin 不直接订阅底层 Run Event。
+`conversation`、`messages`、`state`、`run` 与 `executions` 由 Agent Runtime 提供稳定、协议无关的前端状态。`run` 表示整个请求，`executions` 是当前 Run 内 Tool、Reasoning、Step 与 Subagent 的实时语义投影，完成项保留到下一次 Run 开始，但不作为历史记录持久化。Message 通过 `producer` 保留 Root/Subagent 归属，并只在观察到标准流式生命周期时携带 `streamStatus`。AG-UI 的 `threadId`、`runId`、`subagentRunId` 和 Event 类型只允许存在于 `@agent-ui/runtime-agui`；Plugin 不直接订阅底层 Run Event。
 
 不要过早加入大量 Runtime API。
 

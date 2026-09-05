@@ -1,6 +1,13 @@
+import type { AgentProducer } from "./agent-producer.js";
+
+export type AgentMessageStreamStatus = "streaming" | "completed";
+
 /** Frontend-owned message data used by the existing UI plugins. */
 interface AgentMessageBase {
   id: string;
+  producer: AgentProducer;
+  /** Present only when a standard message streaming lifecycle was observed. */
+  streamStatus?: AgentMessageStreamStatus | undefined;
   // Conversation ids, sources and rendering hints are application-owned data.
   metadata?: Record<string, unknown> | undefined;
 }

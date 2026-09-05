@@ -4,6 +4,7 @@ import type { AppAgentState } from "../agent-contract/agent-state";
 export const initialPreviewMessages: AgentMessage[] = [
   {
     id: "preview-assistant-1",
+    producer: { type: "root" },
     role: "assistant",
     content:
       "你好，我是你的前端智能体。左侧可以新建和管理会话，右侧会同步展示思考、工具执行和 Agent 产物。",
@@ -11,12 +12,14 @@ export const initialPreviewMessages: AgentMessage[] = [
   },
   {
     id: "preview-user-1",
+    producer: { type: "root" },
     role: "user",
     content: "检查一下这个 Agent 前端目前有哪些插件，并给我一张结构图。",
     metadata: { conversationId: "current" },
   },
   {
     id: "preview-reasoning-1",
+    producer: { type: "root" },
     role: "reasoning",
     content:
       "先读取 AppUIModel 与插件注册表，确认布局和实例，再把结果整理成一张可视化结构图。",
@@ -24,6 +27,7 @@ export const initialPreviewMessages: AgentMessage[] = [
   },
   {
     id: "preview-tool-request-1",
+    producer: { type: "root" },
     role: "assistant",
     content: "我会先检查当前插件，再生成结构图。",
     toolCalls: [
@@ -48,6 +52,7 @@ export const initialPreviewMessages: AgentMessage[] = [
   },
   {
     id: "preview-tool-result-1",
+    producer: { type: "root" },
     role: "tool",
     toolCallId: "tool-call-list-plugins",
     content: JSON.stringify({
@@ -64,6 +69,7 @@ export const initialPreviewMessages: AgentMessage[] = [
   },
   {
     id: "preview-tool-result-2",
+    producer: { type: "root" },
     role: "tool",
     toolCallId: "tool-call-render-diagram",
     content:
@@ -75,6 +81,7 @@ export const initialPreviewMessages: AgentMessage[] = [
   },
   {
     id: "preview-activity-1",
+    producer: { type: "root" },
     role: "activity",
     activityType: "ui_analysis",
     content: {
@@ -86,6 +93,7 @@ export const initialPreviewMessages: AgentMessage[] = [
   },
   {
     id: "preview-assistant-2",
+    producer: { type: "root" },
     role: "assistant",
     content:
       "检查完成：会话管理（含新建会话）、消息、执行链、资源、快捷提示和输入由各自插件提供，共享同一个 AG-UI Runtime。Ant Design X 只负责当前生成项目的 UI 表达。",
@@ -114,6 +122,7 @@ export const previewAgentState: AppAgentState = {
       model={model}
       registry={pluginRegistry}
       conversation={conversation}
+      executions={executions}
       messages={messages}
       state={agentState}
       run={run}

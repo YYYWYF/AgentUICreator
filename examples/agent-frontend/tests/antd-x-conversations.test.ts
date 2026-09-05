@@ -21,17 +21,24 @@ describe("Ant Design X conversation adapter", () => {
     const messages: AgentMessage[] = [
       {
         id: "current",
+        producer: { type: "root" },
         role: "assistant",
         content: "Current",
         metadata: { conversationId: "current" },
       },
       {
         id: "illustration",
+        producer: { type: "root" },
         role: "assistant",
         content: "Illustration",
         metadata: { conversationId: "illustration" },
       },
-      { id: "live", role: "assistant", content: "Live" },
+      {
+        id: "live",
+        producer: { type: "root" },
+        role: "assistant",
+        content: "Live",
+      },
     ];
     const currentService = createAgentUIConversationService("current");
     const illustrationService =

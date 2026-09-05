@@ -301,6 +301,7 @@ describe("AgUiTransport", () => {
       messages: [],
       state: {},
       run: { status: "idle" },
+      executions: [],
     });
 
     firstAgent.emitMessages([

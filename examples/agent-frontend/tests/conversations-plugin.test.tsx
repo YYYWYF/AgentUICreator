@@ -16,6 +16,7 @@ function createContext(
     messages: [],
     state: {},
     run: { status },
+    executions: [],
     instance: {
       id: "conversations-main",
       pluginId: "antd-x-conversations",

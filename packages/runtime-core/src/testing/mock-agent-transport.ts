@@ -1,10 +1,12 @@
 import type { AgentInputPart, AgentUserInput } from "../agent-input.js";
+import type { AgentExecution } from "../agent-execution.js";
 import type { AgentMessage } from "../agent-message.js";
 import { ObservableAgentTransport } from "../observable-agent-transport.js";
 
 export interface MockAgentTransportConfig<TState = unknown> {
   initialMessages?: AgentMessage[] | undefined;
   initialState?: TState | undefined;
+  initialExecutions?: AgentExecution[] | undefined;
 }
 
 function createMessageId(prefix: string): string {
@@ -46,6 +48,7 @@ export class MockAgentTransport<TState = unknown>
       messages: [...(config.initialMessages ?? [])],
       state: config.initialState ?? ({} as TState),
       run: { status: "idle" },
+      executions: [...(config.initialExecutions ?? [])],
     });
   }
 
@@ -68,11 +71,13 @@ export class MockAgentTransport<TState = unknown>
         ...this.snapshot.messages,
         {
           id: createMessageId("mock-user"),
+          producer: { type: "root" },
           role: "user",
           content,
         },
       ],
       run: { id: crypto.randomUUID(), status: "running" },
+      executions: [],
     });
 
     await Promise.resolve();
@@ -87,6 +92,7 @@ export class MockAgentTransport<TState = unknown>
         ...this.snapshot.messages,
         {
           id: createMessageId("mock-assistant"),
+          producer: { type: "root" },
           role: "assistant",
           content: `Mock agent received: ${describeInput(content)}`,
         },
@@ -105,6 +111,7 @@ export class MockAgentTransport<TState = unknown>
       messages: [],
       state: {} as TState,
       run: { status: "idle" },
+      executions: [],
     });
   }
 

@@ -12,7 +12,7 @@ describe("mapAgUiMessage", () => {
     { id: "tool", role: "tool", toolCallId: "call-1", content: "Result" },
   ] satisfies Message[])("maps $role messages into new frontend objects", (message) => {
     const mapped = mapAgUiMessage(message);
-    expect(mapped).toEqual(message);
+    expect(mapped).toEqual({ ...message, producer: { type: "root" } });
     expect(mapped).not.toBe(message);
   });
 
@@ -36,7 +36,9 @@ describe("mapAgUiMessage", () => {
     ];
     const mapped = messages.map(mapAgUiMessage);
     expect(mapped[0]).toEqual({
-      id: "assistant", role: "assistant",
+      id: "assistant",
+      producer: { type: "subagent", id: "sdk-routing-only" },
+      role: "assistant",
       toolCalls: [{ id: "call-1", type: "function", function: { name: "render", arguments: '{"format":' } }],
     });
     const assistant = messages[0];

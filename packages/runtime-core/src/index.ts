@@ -1,8 +1,21 @@
 export type {
   AgentMessage,
+  AgentMessageStreamStatus,
   AgentMessagePart,
   AgentToolCall,
 } from "./agent-message.js";
+export type { AgentProducer } from "./agent-producer.js";
+export type {
+  AgentExecution,
+  AgentReasoningExecution,
+  AgentReasoningExecutionStatus,
+  AgentStepExecution,
+  AgentStepExecutionStatus,
+  AgentSubagentExecution,
+  AgentSubagentExecutionStatus,
+  AgentToolExecution,
+  AgentToolExecutionStatus,
+} from "./agent-execution.js";
 export type {
   AgentRuntimeError,
   AgentRunState,

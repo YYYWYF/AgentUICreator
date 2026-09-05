@@ -1,5 +1,6 @@
 import type {
   AgentConversation,
+  AgentExecution,
   AgentMessage,
   AgentRunState,
   AgentUserInput,
@@ -11,6 +12,7 @@ import type { PluginInstance } from "./app-ui-model";
 
 export type {
   AgentConversation,
+  AgentExecution,
   AgentMessage,
   AgentRunState,
   AgentUserInput,
@@ -82,6 +84,7 @@ export interface UIPluginContext<TState = unknown> {
   messages: AgentMessage[];
   state: TState;
   run: AgentRunState;
+  executions: AgentExecution[];
   instance: PluginInstance;
   actions: UIPluginActions;
   services: UIPluginServices;
