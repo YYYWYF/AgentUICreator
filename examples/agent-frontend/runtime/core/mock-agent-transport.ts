@@ -64,7 +64,7 @@ export class MockAgentTransport extends ObservableAgentTransport {
         {
           id: createMessageId("mock-assistant"),
           role: "assistant",
-          content: `Mock AG-UI received: ${message}`,
+          content: `Mock agent received: ${message}`,
         },
       ],
       isRunning: false,

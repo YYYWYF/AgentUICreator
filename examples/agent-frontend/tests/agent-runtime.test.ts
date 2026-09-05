@@ -40,7 +40,7 @@ describe("protocol-independent runtime delegation", () => {
     await runtime.sendMessage("New request");
     expect(runtime.getSnapshot().messages.map((message) => message.content)).toEqual([
       "New request",
-      "Mock AG-UI received: New request",
+      "Mock agent received: New request",
     ]);
   });
 
@@ -118,7 +118,7 @@ describe("Runtime Core with MockAgentTransport", () => {
         { role: "user", content: "inspect the UI" },
         {
           role: "assistant",
-          content: "Mock AG-UI received: inspect the UI",
+          content: "Mock agent received: inspect the UI",
         },
       ],
     });
