@@ -56,18 +56,9 @@ OPERATIONS = [
         "instance": {
             "id": "session-manager-restored",
             "pluginId": "session-manager",
-            "enabled": False,
+            "enabled": True,
+            "mount": {"slotId": "sidebar.right"},
         },
-    },
-    {
-        "type": "set_instance_enabled",
-        "instanceId": "session-manager-restored",
-        "enabled": True,
-    },
-    {
-        "type": "mount_instance",
-        "instanceId": "session-manager-restored",
-        "slotId": "sidebar.right",
     },
 ]
 
@@ -139,18 +130,19 @@ class BatchClient(GroundingClient):
                 model["pluginInstances"][instance["id"]] = instance
             elif kind == "set_instance_enabled":
                 model["pluginInstances"][operation["instanceId"]]["enabled"] = operation["enabled"]
-            elif kind == "mount_instance":
+            elif kind in {"mount_instance", "move_instance"}:
                 model["pluginInstances"][operation["instanceId"]]["mount"] = {
                     "slotId": operation["slotId"]
                 }
             else:
                 raise AssertionError(f"Unexpected scripted operation: {kind}")
         (self.root / APP_UI_MODEL_PATH).write_text(json.dumps(model) + "\n", encoding="utf-8")
+        changed = before_hash != self.hash()
         return {
             "schemaVersion": 1,
             "transactionId": "batch-restore",
-            "changed": True,
-            "changedPaths": [APP_UI_MODEL_PATH],
+            "changed": changed,
+            "changedPaths": [APP_UI_MODEL_PATH] if changed else [],
             "appUIModel": {"beforeHash": before_hash, "afterHash": self.hash()},
             "snapshotToken": {
                 "appUIModelHash": self.hash(),
@@ -379,7 +371,7 @@ def test_restore_round_trip_budget_one_atomic_mutation_without_confirmation_read
     assert result.metrics.toolCalls == 3
     assert len(client.mutations) == result.app_ui_model_mutations.requests == 1
     assert client.mutations[0]["operations"] == OPERATIONS
-    assert result.app_ui_model_mutations.operations == 3
+    assert result.app_ui_model_mutations.operations == 1
     assert result.app_ui_model_mutations.resultMismatches == 0
     assert [trace.toolCallCount for trace in result.metrics.traces] == [2, 1, 0]
     assert [item.name for item in result.activities][2:] == ["mutate_app_ui_model"]

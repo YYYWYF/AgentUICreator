@@ -533,6 +533,9 @@ def test_mutation_without_observation_fails_before_target_call(tmp_path):
 
     assert json.loads(output)["error"]["code"] == "APP_UI_MODEL_OBSERVATION_REQUIRED"
     assert client.calls == 0
+    assert service.metrics.requests == 1
+    assert service.metrics.operationsPerMutation == [1]
+    assert service.metrics.successfulRequests == 0
 
 
 def test_explicit_hash_must_match_host_observation(tmp_path):
@@ -559,6 +562,8 @@ def test_explicit_hash_must_match_host_observation(tmp_path):
     assert client.calls == 0
     assert observations.current_hash(current_revision=0) == "a" * 64
     assert observations.metrics.explicitHashMismatches == 1
+    assert service.metrics.requests == 1
+    assert service.metrics.successfulRequests == 0
 
 
 def test_matching_explicit_hash_is_accepted_but_host_remains_authority(tmp_path):

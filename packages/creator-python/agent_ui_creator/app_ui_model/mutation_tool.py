@@ -46,6 +46,11 @@ def load_app_ui_model_mutation_tool_schema() -> dict[str, Any]:
             },
             "operations": {
                 "type": "array",
+                "description": (
+                    "All semantic AppUIModel changes already known to be required for "
+                    "the current resolved user intent. Prefer one complete transaction "
+                    "rather than multiple mutate_app_ui_model calls."
+                ),
                 "minItems": 1,
                 "maxItems": 100,
                 "items": operation_schema,
@@ -97,6 +102,19 @@ def create_app_ui_model_mutation_tool(
         "mutate_app_ui_model",
         args_schema=APP_UI_MODEL_MUTATION_TOOL_SCHEMA,
         description=(
+            "This is an atomic transaction tool, not a single-step mutation API. "
+            "For one resolved user intent, derive the complete desired state of the "
+            "AppUIModel from current authoritative observations before calling. Submit "
+            "all already-determinable semantic changes together in one operations array. "
+            "Do not call this tool once per semantic operation. Prefer the most "
+            "expressive operation: add_instance can include final enabled, mount, and "
+            "props in instance; do not create first and separately enable or mount. "
+            "For an existing instance, enable and mount in one transaction. Prefer "
+            "move_instance over unmount + mount, and replace_instance with a complete "
+            "replacement over remove + add + enable + mount. A second successful "
+            "mutation for the same resolved user intent should be exceptional. "
+            "After success, assess whether the result satisfies the goal and finish "
+            "if so. ok=true with changed=false is not a reason to retry. "
             "Atomically apply semantic AppUIModel operations using the Creator Host's most "
             "recent valid AppUIModel observation. Inspect current ProjectControl state "
             "before the first mutation, but do not repeat inspection solely to refresh the "
@@ -140,6 +158,7 @@ def create_app_ui_model_mutation_tool(
                 },
             )
         except DomainObservationError as error:
+            service.record_observation_failure(operations=operations, error=error)
             return _bounded_error(error.code, str(error), error.details)
         except AppUIModelMutationError as error:
             observations.invalidate_app_ui_model(reason=error.code)

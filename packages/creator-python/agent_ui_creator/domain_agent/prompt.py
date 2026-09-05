@@ -69,11 +69,26 @@ Never combine edit_file or mutate_app_ui_model with another tool call, including
 another write. DeepAgent executes the read batch; do not introduce a separate plan
 or delegate these operations.
 
-Before mutate_app_ui_model, form the complete desired composition change. Prefer
-one atomic mutation containing all semantic operations required by the single user
-intent instead of performing incremental mutations. For example, when restoring
-an existing plugin requires creating an instance, enabling it, and mounting it to
-the resolved slot, include all required operations in one operations array.
+Before the first mutate_app_ui_model call, derive the complete desired composition
+state determinable from current authoritative observations. Treat this tool as the
+transaction boundary for one resolved user intent, not a step-by-step mutation API.
+Plan within the existing model response after grounding; do not add a planning LLM
+call. Prefer one atomic mutation containing all semantic operations required by
+the single user intent.
+
+Choose the smallest semantic representation of that final state. add_instance.instance
+already supports final enabled, mount, and props: include them directly when known.
+For existing instances, enable and mount in the same operations array. Prefer
+move_instance to unmount + mount, and replace_instance with final enabled, props,
+and mount in replacement to remove + add + enable + mount. Include already-known
+layout insertion, node adjustment, and instance movement in the same transaction.
+Do not intentionally submit a partial successful mutation merely to observe its
+result and decide the next already-predictable mutation.
+
+BAD: mutate(add_instance) -> model -> mutate(enable) -> model -> mutate(mount).
+GOOD, new: mutate(operations=[add_instance(instance={..., enabled:true,
+mount:{slotId:targetSlot}, props:finalProps})]).
+GOOD, existing: mutate(operations=[set_instance_enabled, mount_instance]).
 
 After a successful mutate_app_ui_model call, use its returned result and the
 updated authoritative observation. Do not immediately re-inspect the AppUIModel
@@ -83,6 +98,14 @@ when it reports a stale observation, hash conflict, another recoverable error, o
 when a genuinely new fact is needed for the next operation. Refresh only the
 necessary facts and retry from the fresh observation; this recovery may need
 another mutation and is not subject to a one-mutation hard limit.
+
+ok=true with changed=false can mean the requested state is already satisfied or
+there is no file difference. Assess the result and current observation; do not
+retry a same or similar mutation merely because changed=false. A second successful
+mutation for the same resolved intent is exceptional: a previously unpredictable
+new fact must actually determine its parameters. Wanting confirmation, creating
+first, enabling next, or mounting later is not a new dependency when the needed
+facts were already known before the first mutation.
 
 If relevant workspace facts still leave two or more reasonable interpretations
 that would cause materially different side effects, do not call edit_file,

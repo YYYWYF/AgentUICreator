@@ -220,7 +220,14 @@ async def _execute_agent_run(
     try:
         result = await agent_result
         receipt = activity.finish()
-        logger.finish("success", metrics=result.metrics.to_dict())
+        logger.finish(
+            "success",
+            metrics=result.metrics.to_dict(),
+            mutation_metrics=(
+                result.app_ui_model_mutations.summary()
+                if hasattr(result, "app_ui_model_mutations") else None
+            ),
+        )
         return _AgentExecution(result=result, receipt=receipt)
     except BaseException as error:
         try:
@@ -416,6 +423,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             run_result["appUIModelMutations"] = (
                                 result.app_ui_model_mutations.to_dict()
                             )
+                            run_result.update(result.app_ui_model_mutations.summary())
                     else:
                         run_result = {
                             "runtime": "python",

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any
 
 APP_UI_MODEL_PATH = "app-ui/app-ui.json"
@@ -26,9 +26,25 @@ class AppUIModelMutationMetrics:
     hashConflicts: int = 0
     changedPaths: int = 0
     resultMismatches: int = 0
+    operationsPerMutation: list[int] = field(default_factory=list)
+    successfulRequests: int = 0
 
-    def to_dict(self) -> dict[str, int]:
-        return asdict(self)
+    def begin_request(self, operation_count: int) -> int:
+        self.requests += 1
+        self.operations += operation_count
+        self.operationsPerMutation.append(operation_count)
+        return self.requests
+
+    def summary(self) -> dict[str, Any]:
+        return {
+            "mutationRequests": self.requests,
+            "mutationOperations": self.operations,
+            "operationsPerMutation": list(self.operationsPerMutation),
+            "multiSuccessfulMutationRun": self.successfulRequests >= 2,
+        }
+
+    def to_dict(self) -> dict[str, Any]:
+        return {**asdict(self), "multiSuccessfulMutationRun": self.successfulRequests >= 2}
 
 
 @dataclass(frozen=True, slots=True)

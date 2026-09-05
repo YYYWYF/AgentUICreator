@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from ..activity import CreatorActivityRecorder
+from ..domain_state import DomainObservationError
 from ..files import CreatorFileState, read_creator_file_state
 from ..project_control import ProjectControlClient, ProjectControlError
 from .mutation_lock import ProjectMutationCoordinator
@@ -73,6 +74,54 @@ class AppUIModelMutationService:
         app_ui_model_hash: str,
         operations: list[dict[str, Any]],
     ) -> AppUIModelMutationResult:
+        request_index = self.metrics.begin_request(len(operations))
+        try:
+            result = await self._mutate(
+                app_ui_model_hash=app_ui_model_hash, operations=operations
+            )
+        except BaseException as error:
+            self._record_request(request_index, operations, error=error)
+            raise
+        self.metrics.successfulRequests += 1
+        self._record_request(request_index, operations, result=result)
+        return result
+
+    def record_observation_failure(
+        self, *, operations: list[dict[str, Any]], error: DomainObservationError
+    ) -> None:
+        # A tool request rejected before dispatch still counts as a request.
+        request_index = self.metrics.begin_request(len(operations))
+        self._record_request(request_index, operations, error=error)
+
+    def _record_request(
+        self,
+        request_index: int,
+        operations: list[dict[str, Any]],
+        *,
+        result: AppUIModelMutationResult | None = None,
+        error: BaseException | None = None,
+    ) -> None:
+        if self.activity.logger is None:
+            return
+        target = result.target_result if result is not None else {}
+        self.activity.logger.record(
+            "app_ui_model_mutation",
+            {
+                "requestIndex": request_index,
+                "operationCount": len(operations),
+                "operationTypes": [operation.get("type") for operation in operations],
+                "result": {"ok": result is not None, "changed": target.get("changed")},
+                "changedPaths": target.get("changedPaths", []),
+                **({"errorCode": getattr(error, "code", type(error).__name__)} if error is not None else {}),
+            },
+        )
+
+    async def _mutate(
+        self,
+        *,
+        app_ui_model_hash: str,
+        operations: list[dict[str, Any]],
+    ) -> AppUIModelMutationResult:
         signature = json.dumps(
             [app_ui_model_hash, operations],
             ensure_ascii=False,
@@ -112,8 +161,6 @@ class AppUIModelMutationService:
             for path in MUTABLE_PATHS:
                 self.activity.capture_before(path)
             before_states = self._read_mutable_states()
-            self.metrics.requests += 1
-            self.metrics.operations += len(operations)
             try:
                 raw_result = await self.project_control.request_app_ui_model_mutation(
                     {
