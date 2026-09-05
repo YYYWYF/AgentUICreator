@@ -42,6 +42,9 @@ class ToolProtocolMetrics:
     protocolRepairAttempts: int = 0
     protocolRepairSuccesses: int = 0
     protocolRepairFailures: int = 0
+    batchPolicyViolations: int = 0
+    batchPolicyRepairAttempts: int = 0
+    batchPolicyRepairSuccesses: int = 0
     toolArgumentParseFailures: int = 0
     missingToolCallIds: int = 0
     repeatedToolLoops: int = 0

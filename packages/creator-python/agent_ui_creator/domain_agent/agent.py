@@ -38,6 +38,7 @@ from ..streaming.deepagent_v3_runner import DeepAgentV3Runner
 from ..streaming.runtime_events import CreatorEventSink
 from .prompt import DOMAIN_READ_AGENT_PROMPT, DOMAIN_WRITE_AGENT_PROMPT
 from .runtime_guard import RepeatedProjectControlReadGuard
+from .tool_batch_policy import DomainToolBatchPolicyMiddleware
 from .tool_policy import DomainReadToolPolicyMiddleware, DomainWriteToolPolicyMiddleware
 
 
@@ -257,6 +258,8 @@ def create_domain_write_creator_agent(
             DomainWriteToolPolicyMiddleware(),
             repeated_read_guard,
             runtime,
+            # Outer wrapper: every batch repair re-enters protocol accounting.
+            DomainToolBatchPolicyMiddleware(metrics=metrics),
             protocol,
             _NoSummaryMiddleware(),
         ],

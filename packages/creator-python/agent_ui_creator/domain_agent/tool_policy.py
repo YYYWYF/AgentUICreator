@@ -14,6 +14,10 @@ DOMAIN_WRITE_TOOL_NAMES = (*DOMAIN_READ_TOOL_NAMES, "mutate_app_ui_model")
 ALLOWED_DOMAIN_WRITE_TOOLS = (*ALLOWED_MINIMAL_TOOLS, *DOMAIN_WRITE_TOOL_NAMES)
 _ALLOWED_DOMAIN_WRITE_TOOL_SET = frozenset(ALLOWED_DOMAIN_WRITE_TOOLS)
 
+# Every future side-effecting domain tool must be explicitly classified here.
+SIDE_EFFECT_TOOL_NAMES = frozenset({"edit_file", "mutate_app_ui_model"})
+READ_ONLY_TOOL_NAMES = _ALLOWED_DOMAIN_WRITE_TOOL_SET - SIDE_EFFECT_TOOL_NAMES
+
 
 def filter_domain_read_tools(tools: Sequence[Any]) -> list[Any]:
     return [tool for tool in tools if tool_name(tool) in _ALLOWED_DOMAIN_READ_TOOL_SET]
