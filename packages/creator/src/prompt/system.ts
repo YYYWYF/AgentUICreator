@@ -44,7 +44,7 @@ AppUIModel valid, follow existing Plugin conventions, preserve unrelated values,
 and use Agent-facing commands only when they help the current edit.
 
 The Creator Host owns the required completion validations. Do not proactively
-run the Host-owned completion validations `pnpm verify:ui` or `pnpm typecheck`.
+run the Host-owned completion validations \`pnpm verify:ui\` or \`pnpm typecheck\`.
 When you believe the requested project change is complete, produce a candidate
 completion response. The Host will validate the current project revision
 automatically. If Host validation fails, use the supplied bounded failure

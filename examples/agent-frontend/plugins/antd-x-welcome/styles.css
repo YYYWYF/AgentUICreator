@@ -32,9 +32,12 @@
 
 .antd-x-welcome-plugin .ant-welcome-title-wrapper {
   align-items: center;
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
 }
 
 .antd-x-welcome-plugin .ant-welcome-title {
+  min-width: max-content;
   margin: 0;
   font-size: 1.25rem;
   font-weight: 650;

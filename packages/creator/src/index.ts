@@ -162,6 +162,8 @@ export {
   CREATOR_AGENT_RUNTIMES,
   CREATOR_PYTHON_AGENT_MODE_ENV,
   CREATOR_PYTHON_AGENT_MODES,
+  CREATOR_PYTHON_AUTH_TOKEN_ENV,
+  CREATOR_PYTHON_ENDPOINT_ENV,
   CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
   type CreatorAgentRuntime,
   type CreatorPythonAgentMode,
@@ -172,7 +174,9 @@ export {
   CREATOR_PYTHON_STOP_TIMEOUT_MS,
   PythonCreatorProcessManager,
   PythonCreatorRuntimeError,
+  resolveConfiguredCreatorPythonEndpoint,
   type PythonCreatorEndpoint,
+  type PythonCreatorExternalEndpoint,
   type PythonCreatorProcessManagerOptions,
 } from "./PythonCreatorProcessManager.js";
 export { proxyPythonCreatorRequest } from "./PythonCreatorProxy.js";

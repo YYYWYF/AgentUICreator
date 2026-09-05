@@ -7,7 +7,9 @@ import { fileURLToPath } from "node:url";
 
 import { readCreatorHostConfigValue } from "./creatorRuntimeConfig.js";
 import {
+  CREATOR_PYTHON_AUTH_TOKEN_ENV,
   CREATOR_PYTHON_AGENT_MODES,
+  CREATOR_PYTHON_ENDPOINT_ENV,
   type CreatorPythonAgentMode,
 } from "./shared.js";
 
@@ -35,6 +37,12 @@ export interface PythonCreatorProcessManagerOptions {
   log?: ((message: string) => void) | undefined;
 }
 
+export interface PythonCreatorExternalEndpoint {
+  host: "127.0.0.1";
+  port: number;
+  authToken: string;
+}
+
 export type CreatorPythonExecutableSource =
   | "configured"
   | "managed_venv"
@@ -43,6 +51,65 @@ export type CreatorPythonExecutableSource =
 export interface ResolvedCreatorPythonExecutable {
   executable: string;
   source: CreatorPythonExecutableSource;
+}
+
+export function resolveConfiguredCreatorPythonEndpoint({
+  endpoint,
+  authToken,
+}: {
+  endpoint?: string | undefined;
+  authToken?: string | undefined;
+}): PythonCreatorExternalEndpoint | undefined {
+  const configuredEndpoint = endpoint?.trim();
+  const configuredAuthToken = authToken?.trim();
+  if (!configuredEndpoint && !configuredAuthToken) {
+    return undefined;
+  }
+  if (!configuredEndpoint || !configuredAuthToken) {
+    throw new PythonCreatorRuntimeError(
+      "CREATOR_PYTHON_ENDPOINT_INVALID",
+      `${CREATOR_PYTHON_ENDPOINT_ENV} and ${CREATOR_PYTHON_AUTH_TOKEN_ENV} must be configured together.`,
+    );
+  }
+  if (configuredAuthToken.length < 32) {
+    throw new PythonCreatorRuntimeError(
+      "CREATOR_PYTHON_ENDPOINT_INVALID",
+      `${CREATOR_PYTHON_AUTH_TOKEN_ENV} must contain at least 32 characters.`,
+    );
+  }
+
+  let url: URL;
+  try {
+    url = new URL(configuredEndpoint);
+  } catch {
+    throw new PythonCreatorRuntimeError(
+      "CREATOR_PYTHON_ENDPOINT_INVALID",
+      `${CREATOR_PYTHON_ENDPOINT_ENV} must be a valid URL.`,
+    );
+  }
+  if (
+    url.protocol !== "http:" ||
+    url.hostname !== "127.0.0.1" ||
+    url.port === "" ||
+    url.username !== "" ||
+    url.password !== "" ||
+    (url.pathname !== "" && url.pathname !== "/") ||
+    url.search !== "" ||
+    url.hash !== ""
+  ) {
+    throw new PythonCreatorRuntimeError(
+      "CREATOR_PYTHON_ENDPOINT_INVALID",
+      `${CREATOR_PYTHON_ENDPOINT_ENV} must be an http://127.0.0.1:<port> origin.`,
+    );
+  }
+  const port = Number(url.port);
+  if (!Number.isInteger(port) || port < 1 || port > 65_535) {
+    throw new PythonCreatorRuntimeError(
+      "CREATOR_PYTHON_ENDPOINT_INVALID",
+      `${CREATOR_PYTHON_ENDPOINT_ENV} must include a valid port.`,
+    );
+  }
+  return { host: "127.0.0.1", port, authToken: configuredAuthToken };
 }
 
 export function resolveConfiguredCreatorPythonExecutable({
@@ -170,6 +237,7 @@ export class PythonCreatorProcessManager {
   readonly #startupTimeoutMs: number;
   readonly #stopTimeoutMs: number;
   readonly #log: (message: string) => void;
+  readonly #externalEndpoint: PythonCreatorExternalEndpoint | undefined;
 
   #child: ChildProcess | undefined;
   #endpoint: PythonCreatorEndpoint | undefined;
@@ -205,6 +273,17 @@ export class PythonCreatorProcessManager {
       });
     this.#pythonPackageRoot = path.resolve(pythonPackageRoot);
     this.#environment = environment;
+    this.#externalEndpoint = resolveConfiguredCreatorPythonEndpoint({
+      endpoint:
+        environment[CREATOR_PYTHON_ENDPOINT_ENV]?.trim() ||
+        readCreatorHostConfigValue(this.#configRoot, CREATOR_PYTHON_ENDPOINT_ENV),
+      authToken:
+        environment[CREATOR_PYTHON_AUTH_TOKEN_ENV]?.trim() ||
+        readCreatorHostConfigValue(
+          this.#configRoot,
+          CREATOR_PYTHON_AUTH_TOKEN_ENV,
+        ),
+    });
     this.#startupTimeoutMs = startupTimeoutMs;
     this.#stopTimeoutMs = stopTimeoutMs;
     this.#log = log;
@@ -221,7 +300,10 @@ export class PythonCreatorProcessManager {
         "Creator Python runtime manager has already been disposed.",
       );
     }
-    if (this.#endpoint !== undefined && this.#child?.exitCode === null) {
+    if (
+      this.#endpoint !== undefined &&
+      (this.#externalEndpoint !== undefined || this.#child?.exitCode === null)
+    ) {
       return this.#endpoint;
     }
     if (this.#starting !== undefined) {
@@ -247,6 +329,20 @@ export class PythonCreatorProcessManager {
   }
 
   async #start(): Promise<PythonCreatorEndpoint> {
+    if (this.#externalEndpoint !== undefined) {
+      const endpoint = {
+        ...this.#externalEndpoint,
+        protocolVersion: CREATOR_PYTHON_PROTOCOL_VERSION,
+      };
+      const agentMode = await this.#waitForHealth(endpoint);
+      const readyEndpoint = { ...endpoint, agentMode };
+      this.#endpoint = readyEndpoint;
+      this.#log(
+        `python sidecar attached host=${readyEndpoint.host} port=${readyEndpoint.port} agentMode=${agentMode}`,
+      );
+      return readyEndpoint;
+    }
+
     const serverModule = path.join(
       this.#pythonPackageRoot,
       "agent_ui_creator",

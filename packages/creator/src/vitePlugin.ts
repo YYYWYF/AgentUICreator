@@ -42,7 +42,9 @@ export {
 export {
   PythonCreatorProcessManager,
   PythonCreatorRuntimeError,
+  resolveConfiguredCreatorPythonEndpoint,
   type PythonCreatorEndpoint,
+  type PythonCreatorExternalEndpoint,
   type PythonCreatorProcessManagerOptions,
 } from "./PythonCreatorProcessManager.js";
 // Keep a bounded recovery window above the early DeepAgents summarization

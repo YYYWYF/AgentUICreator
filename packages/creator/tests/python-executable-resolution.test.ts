@@ -5,6 +5,8 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  PythonCreatorRuntimeError,
+  resolveConfiguredCreatorPythonEndpoint,
   resolveConfiguredCreatorPythonExecutable,
   resolveCreatorPythonExecutable,
 } from "../src/PythonCreatorProcessManager.js";
@@ -37,6 +39,33 @@ afterEach(async () => {
 });
 
 describe("Creator Python executable resolution", () => {
+  it("resolves an authenticated loopback endpoint for an external sidecar", () => {
+    expect(
+      resolveConfiguredCreatorPythonEndpoint({
+        endpoint: "http://127.0.0.1:8010",
+        authToken: "development-only-token-1234567890",
+      }),
+    ).toEqual({
+      host: "127.0.0.1",
+      port: 8010,
+      authToken: "development-only-token-1234567890",
+    });
+  });
+
+  it("rejects incomplete or non-loopback external endpoint configuration", () => {
+    expect(() =>
+      resolveConfiguredCreatorPythonEndpoint({
+        endpoint: "http://127.0.0.1:8010",
+      }),
+    ).toThrow(PythonCreatorRuntimeError);
+    expect(() =>
+      resolveConfiguredCreatorPythonEndpoint({
+        endpoint: "http://localhost:8010",
+        authToken: "development-only-token-1234567890",
+      }),
+    ).toThrow(/http:\/\/127\.0\.0\.1:<port>/u);
+  });
+
   it("uses the managed Unix virtual environment when there is no configuration", async () => {
     const fixture = await packageRootWithManagedPython("darwin");
 

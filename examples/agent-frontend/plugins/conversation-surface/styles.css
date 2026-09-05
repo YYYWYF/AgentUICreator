@@ -28,7 +28,7 @@
   height: auto;
   min-height: 100%;
   grid-auto-rows: auto;
-  align-content: center;
+  align-content: space-between;
   gap: 1rem;
 }
 

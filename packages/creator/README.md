@@ -64,6 +64,17 @@ Vite 插件会按项目惰性启动一个 Python 进程，透明代理 AG-UI 与
 并在开发服务器关闭时终止 sidecar。Python 启动或模型配置失败会明确失败，绝不静默
 回退到 TypeScript。
 
+如需让 Vite Host 连接已在本机启动的 sidecar，而不再创建和管理子进程，可在
+`.env.creator.local` 同时配置：
+
+```env
+CREATOR_PYTHON_ENDPOINT=http://127.0.0.1:8010
+CREATOR_PYTHON_AUTH_TOKEN=development-only-token-1234567890
+```
+
+外部 endpoint 只允许 `http://127.0.0.1:<port>`。Vite 会在首次请求前校验 health、
+协议版本与 agent mode，关闭开发服务器时不会终止外部 sidecar。
+
 TypeScript Creator 仅作为 troubleshooting / emergency legacy fallback 保留：
 
 ```env

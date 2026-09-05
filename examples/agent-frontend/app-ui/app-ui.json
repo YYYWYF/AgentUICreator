@@ -15,11 +15,6 @@
           },
           {
             "type": "slot",
-            "id": "agent-conversations-slot-node",
-            "slotId": "agent-conversations"
-          },
-          {
-            "type": "slot",
             "id": "agent-theme-switch-slot-node",
             "slotId": "agent-theme-switch"
           }
@@ -27,7 +22,6 @@
         "gap": 0,
         "sizes": [
           "4.5rem",
-          "minmax(0, 1fr)",
           "4.5rem"
         ]
       },
@@ -193,27 +187,12 @@
         "placeholder": "给智能体发送消息，输入 / 唤出快捷指令"
       }
     },
-    "agent-conversations-main": {
-      "id": "agent-conversations-main",
-      "pluginId": "antd-x-conversations",
+    "agent-activity-feed-main": {
+      "id": "agent-activity-feed-main",
+      "pluginId": "antd-x-activity-feed",
       "enabled": true,
       "mount": {
-        "slotId": "agent-conversations"
-      },
-      "props": {
-        "activeKey": "default",
-        "items": [
-          {
-            "key": "default",
-            "label": "默认会话",
-            "group": "今天"
-          },
-          {
-            "key": "previous",
-            "label": "之前的对话",
-            "group": "昨天"
-          }
-        ]
+        "slotId": "inspector.activity"
       }
     }
   }
