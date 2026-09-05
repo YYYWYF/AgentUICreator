@@ -3,8 +3,6 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from langgraph.prebuilt import ToolCallTransformer
-
 from ..model_protocol.errors import DeepAgentEventStreamUnavailableError
 from .deepagent_tool_stream import DeepAgentToolStreamAdapter
 from .runtime_events import CreatorEventSink
@@ -22,11 +20,12 @@ class DeepAgentV3Runner:
         event_sink: CreatorEventSink | None,
     ) -> dict[str, Any] | None:
         try:
+            # DeepAgents registers tool-call projections on the compiled graph.
+            # Call-site transformers are additive and must not register them again.
             stream = await graph.astream_events(
                 input,
                 config=config,
                 version="v3",
-                transformers=[ToolCallTransformer],
             )
         except (AttributeError, TypeError) as error:
             raise DeepAgentEventStreamUnavailableError(
