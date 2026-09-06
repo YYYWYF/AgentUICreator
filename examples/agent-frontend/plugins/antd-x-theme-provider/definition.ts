@@ -10,6 +10,7 @@ import {
 
 export const antdXThemeProviderPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
+  provides: [AGENT_UI_THEME_SERVICE],
   setup: ({ instance, actions, services }) => {
     const theme = createAgentUIThemeService(
       readAgentUIThemeMode(instance.props?.mode),

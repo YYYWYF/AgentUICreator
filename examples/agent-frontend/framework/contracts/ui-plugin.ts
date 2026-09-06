@@ -54,6 +54,11 @@ export interface UIPluginActions {
   updateInstanceProps(props: Record<string, unknown>): void;
 }
 
+export interface UIPluginObservableService<TSnapshot> {
+  getSnapshot(): TSnapshot;
+  subscribe(listener: () => void): () => void;
+}
+
 /**
  * Plugins may augment this interface to type their named services.
  *
@@ -119,6 +124,8 @@ export interface UIPluginComponentProps<TState = unknown> {
 
 export interface UIPluginDefinition<TState = unknown> {
   manifest: UIPluginManifest;
+  /** Named capabilities provided by this plugin instance. */
+  provides?: readonly string[] | undefined;
   /** Named services that must exist before this plugin instance becomes active. */
   inject?: readonly string[] | undefined;
   /** Instance-lifetime setup. Services provided here are removed on deactivation. */
@@ -131,6 +138,33 @@ export interface UIPluginDefinition<TState = unknown> {
 const nonBlankStringSchema = z
   .string()
   .refine((value) => value.trim().length > 0, "Must not be blank");
+
+const serviceNameSchema = z
+  .string()
+  .refine((value) => value.trim().length > 0, "Must not be blank")
+  .refine(
+    (value) =>
+      /^(?:[a-z0-9]+(?:-[a-z0-9]+)*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)*)$/.test(
+        value,
+      ),
+    "Must be lowercase dot-separated (for example: editor, workspace.files)",
+  );
+
+const serviceNameListSchema = z.array(serviceNameSchema).superRefine((names, context) => {
+  const seen = new Set<string>();
+
+  names.forEach((name, index) => {
+    if (seen.has(name)) {
+      context.addIssue({
+        code: "custom",
+        path: [index],
+        message: `Duplicate service name "${name}"`,
+        input: name,
+      });
+    }
+    seen.add(name);
+  });
+});
 
 const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
   id: nonBlankStringSchema,
@@ -195,28 +229,18 @@ export const uiPluginManifestSchema = manifestShapeSchema.superRefine(
   },
 );
 
-export const uiPluginInjectSchema = z
-  .array(nonBlankStringSchema)
-  .superRefine((names, context) => {
-    const seen = new Set<string>();
+export const uiPluginInjectSchema = serviceNameListSchema;
 
-    names.forEach((name, index) => {
-      if (seen.has(name)) {
-        context.addIssue({
-          code: "custom",
-          path: [index],
-          message: `Duplicate injected service "${name}"`,
-          input: name,
-        });
-      }
-      seen.add(name);
-    });
-  });
+export const uiPluginProvidesSchema = serviceNameListSchema;
 
 export function parseUIPluginManifest(input: unknown): UIPluginManifest {
   return uiPluginManifestSchema.parse(input);
 }
 
 export function parseUIPluginInject(input: unknown): string[] {
-  return uiPluginInjectSchema.parse(input);
+  return serviceNameListSchema.parse(input);
+}
+
+export function parseUIPluginProvides(input: unknown): string[] {
+  return serviceNameListSchema.parse(input);
 }

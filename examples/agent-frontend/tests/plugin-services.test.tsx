@@ -1,7 +1,9 @@
+import { act, create } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import type {
+  UIPluginObservableService,
   UIPluginDefinition,
   UIPluginSetupContext,
 } from "../framework/contracts/ui-plugin";
@@ -14,6 +16,7 @@ import {
   createPluginRegistry,
   PluginServiceRuntime,
   SlotRegistry,
+  usePluginServiceSnapshot,
 } from "../runtime/plugins";
 
 const runtimeActions = {
@@ -26,7 +29,10 @@ const runtimeActions = {
 
 function createDefinition(
   id: string,
-  definition: Pick<UIPluginDefinition, "inject" | "setup"> = {},
+  definition: Pick<
+    UIPluginDefinition,
+    "inject" | "setup" | "provides"
+  > = {},
   childSlots?: readonly string[],
 ): UIPluginDefinition {
   return {
@@ -156,6 +162,7 @@ describe("PluginServiceRuntime", () => {
   it("activates hard consumers after their named service becomes available", () => {
     let greeting: string | undefined;
     const provider = createDefinition("provider", {
+      provides: ["test.greeter"],
       setup: ({ services }) => {
         services.provide("test.greeter", {
           greet: (who: string) => `Hello, ${who}!`,
@@ -185,11 +192,13 @@ describe("PluginServiceRuntime", () => {
 
   it("rejects duplicate service providers deterministically", () => {
     const first = createDefinition("first", {
+      provides: ["test.shared"],
       setup: ({ services }) => {
         services.provide("test.shared", { owner: "first" });
       },
     });
     const second = createDefinition("second", {
+      provides: ["test.shared"],
       setup: ({ services }) => {
         services.provide("test.shared", { owner: "second" });
       },
@@ -233,11 +242,98 @@ describe("PluginServiceRuntime", () => {
     });
   });
 
+  it("fails when a plugin calls provide for an undeclared service", () => {
+    const provider = createDefinition("provider", {
+      setup: ({ services }) => {
+        services.provide("test.secret", {});
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      createServiceModel(),
+      createPluginRegistry([provider]),
+      runtimeActions,
+    );
+
+    expect(runtime.getActivation("provider-main")).toEqual({
+      status: "failed",
+      errorMessage:
+        'Plugin "provider" did not declare service "test.secret" in provides',
+    });
+    expect(runtime.get("test.secret")).toBeUndefined();
+  });
+
+  it("fails when declared services are not provided during activation", () => {
+    const provider = createDefinition("provider", {
+      provides: ["test.editor"],
+      setup: vi.fn(),
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      createServiceModel(),
+      createPluginRegistry([provider]),
+      runtimeActions,
+    );
+
+    expect(runtime.getActivation("provider-main")).toEqual({
+      status: "failed",
+      errorMessage:
+        'Plugin "provider" did not provide required service "test.editor" during activation',
+    });
+    expect(runtime.get("test.editor")).toBeUndefined();
+  });
+
+  it("updates snapshot consumers through service subscribe lifecycle", () => {
+    interface TestSnapshot {
+      value: number;
+    }
+
+    const listeners = new Set<() => void>();
+    let snapshot: TestSnapshot = { value: 0 };
+
+    const service: UIPluginObservableService<TestSnapshot> = {
+      getSnapshot: () => snapshot,
+      subscribe: (listener) => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+    };
+
+    function Counter({
+      currentService,
+    }: { currentService: UIPluginObservableService<TestSnapshot> | undefined }) {
+      const current = usePluginServiceSnapshot(currentService, { value: -1 });
+      return <span>{current.value}</span>;
+    }
+
+    const renderer = create(<Counter currentService={service} />);
+
+    expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
+
+    act(() => {
+      snapshot = { value: 1 };
+      listeners.forEach((listener) => listener());
+    });
+
+    expect(renderer.toJSON()).toHaveProperty("children", ["1"]);
+
+    act(() => {
+      snapshot = { value: 2 };
+      listeners.forEach((listener) => listener());
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["2"]);
+
+    renderer.unmount();
+  });
+
   it("cleans provider and consumer lifetimes before a dependency disappears", () => {
     const providerCleanup = vi.fn();
     const consumerCleanup = vi.fn();
     let providerSequence = 0;
     const provider = createDefinition("provider", {
+      provides: ["test.replaceable"],
       setup: ({ services }) => {
         const service = { sequence: ++providerSequence };
         services.provide("test.replaceable", service);
@@ -290,7 +386,10 @@ describe("PluginServiceRuntime", () => {
       services.provide("test.slot-survival", service);
       return setupCleanup;
     });
-    const visual = createDefinition("visual", { setup });
+    const visual = createDefinition("visual", {
+      provides: ["test.slot-survival"],
+      setup,
+    });
     const model = parseAppUIModel({
       version: "2",
       root: { type: "slot", id: "test-slot-node", slotId: "test-slot" },
@@ -487,10 +586,13 @@ describe("PluginServiceRuntime", () => {
     });
     const owner = createDefinition(
       "owner",
-      { setup: ownerSetup },
+      { provides: ["test.owner-lifetime"], setup: ownerSetup },
       ["owner.child"],
     );
-    const consumer = createDefinition("consumer", { setup: consumerSetup });
+    const consumer = createDefinition("consumer", {
+      provides: ["test.consumer-lifetime"],
+      setup: consumerSetup,
+    });
     const model = parseAppUIModel({
       version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },

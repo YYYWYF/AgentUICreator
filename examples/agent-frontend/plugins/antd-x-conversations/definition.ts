@@ -7,6 +7,7 @@ import { createAgentUIConversationService } from "./conversation-service";
 
 export const antdXConversationsPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
+  provides: [AGENT_UI_CONVERSATION_SERVICE],
   setup: ({ instance, services }) => {
     services.provide(
       AGENT_UI_CONVERSATION_SERVICE,

@@ -238,6 +238,39 @@ describe("StaticPluginRegistry", () => {
 
     expect(() => new StaticPluginRegistry([invalidPlugin])).toThrow();
   });
+
+  it("validates duplicate service declarations", () => {
+    const invalidPlugin: UIPluginDefinition = {
+      manifest: {
+        id: "bad",
+        name: "Bad Plugin",
+        description: "Invalid service declaration fixture",
+        version: "1.0.0",
+      },
+      provides: ["test.shared", "test.shared"],
+      Component: () => null,
+    };
+
+    expect(() => new StaticPluginRegistry([invalidPlugin])).toThrow();
+  });
+
+  it("rejects plugins that inject and provide the same service", () => {
+    const invalidPlugin: UIPluginDefinition = {
+      manifest: {
+        id: "misrouted",
+        name: "Misrouted Plugin",
+        description: "Invalid service declaration fixture",
+        version: "1.0.0",
+      },
+      provides: ["editor"],
+      inject: ["editor"],
+      Component: () => null,
+    };
+
+    expect(() => new StaticPluginRegistry([invalidPlugin])).toThrow(
+      'UI plugin "misrouted" cannot both provide and inject "editor"',
+    );
+  });
 });
 
 describe("UIPluginRuntime", () => {

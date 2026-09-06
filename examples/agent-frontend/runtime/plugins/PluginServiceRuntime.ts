@@ -60,8 +60,14 @@ function toErrorMessage(error: unknown): string {
 }
 
 function assertServiceName(name: string): void {
-  if (name.trim().length === 0) {
-    throw new Error("UI plugin service names must not be blank");
+  if (
+    /^(?:[a-z0-9]+(?:-[a-z0-9]+)*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)*)$/.test(
+      name,
+    ) === false
+  ) {
+    throw new Error(
+      `UI plugin service name "${name}" must use lowercase dot-separated format`,
+    );
   }
 }
 
@@ -228,12 +234,19 @@ export class PluginServiceRuntime {
       instanceId: instance.id,
       cleanups: [],
     };
+    const declaredProvides = [...(definition.provides ?? [])];
+    const providedByThisInstance = new Set<string>();
     this.#activePlugins.push(record);
 
     const registrar: UIPluginServiceRegistrar = {
       get: <T = unknown>(name: string): T | undefined => this.get<T>(name),
       provide: <T>(name: string, value: T): (() => void) => {
         assertServiceName(name);
+        if (!declaredProvides.includes(name)) {
+          throw new Error(
+            `Plugin "${definition.manifest.id}" did not declare service "${name}" in provides`,
+          );
+        }
 
         const current = this.#services.get(name);
         if (current !== undefined) {
@@ -246,7 +259,13 @@ export class PluginServiceRuntime {
           ownerInstanceId: instance.id,
           value,
         };
+        if (providedByThisInstance.has(name)) {
+          throw new Error(
+            `Plugin "${definition.manifest.id}" already provided service "${name}" in this activation`,
+          );
+        }
         this.#services.set(name, serviceRecord);
+        providedByThisInstance.add(name);
 
         let active = true;
         const disposeService = (): void => {
@@ -332,6 +351,14 @@ export class PluginServiceRuntime {
         );
       }
 
+      for (const name of declaredProvides) {
+        const recordValue = this.#services.get(name);
+        if (recordValue === undefined || recordValue.ownerInstanceId !== instance.id) {
+          throw new Error(
+            `Plugin "${definition.manifest.id}" did not provide required service "${name}" during activation`,
+          );
+        }
+      }
       this.#activations.set(instance.id, {
         status: "active",
         activationId: ++this.#activationCounter,

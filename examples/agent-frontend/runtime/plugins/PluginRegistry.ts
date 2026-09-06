@@ -1,4 +1,5 @@
 import {
+  parseUIPluginProvides,
   parseUIPluginInject,
   parseUIPluginManifest,
   type UIPluginDefinition,
@@ -21,13 +22,26 @@ export class StaticPluginRegistry<TState = unknown>
 
   register(plugin: UIPluginDefinition<TState>): void {
     const manifest = parseUIPluginManifest(plugin.manifest);
-    parseUIPluginInject(plugin.inject ?? []);
+    const inject = parseUIPluginInject(plugin.inject ?? []);
+    const provides = parseUIPluginProvides(plugin.provides ?? []);
+
+    const providedNames = new Set(provides);
+    const overlap = inject.find((name) => providedNames.has(name));
+    if (overlap !== undefined) {
+      throw new Error(
+        `UI plugin "${manifest.id}" cannot both provide and inject "${overlap}"`,
+      );
+    }
 
     if (this.#plugins.has(manifest.id)) {
       throw new Error(`UI plugin "${manifest.id}" is already registered`);
     }
 
-    this.#plugins.set(manifest.id, plugin);
+    this.#plugins.set(manifest.id, {
+      ...plugin,
+      inject,
+      provides,
+    });
   }
 
   get(pluginId: string): UIPluginDefinition<TState> | undefined {
