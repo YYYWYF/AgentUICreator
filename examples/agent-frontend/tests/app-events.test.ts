@@ -1,3 +1,4 @@
+import type { AgentApplicationEvent } from "@agent-ui/runtime-core";
 import { MockAgentTransport } from "@agent-ui/runtime-core/testing";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
@@ -141,6 +142,7 @@ describe("AppEventRuntime", () => {
     source.emitApplicationEvent(event("change-1"));
 
     expect(listener).toHaveBeenCalledTimes(2);
+    expect(listener.mock.calls[0]?.[0].producer).toEqual({ type: "root" });
     expect(diagnostics).toHaveBeenNthCalledWith(1, expect.objectContaining({
       kind: "application-event-unknown",
       eventName: "unknown.event",
@@ -240,30 +242,63 @@ describe("AppEventRuntime", () => {
     appEvents.setDiagnosticReporter(diagnostics);
     const pluginAEvents: string[][] = [];
     const pluginBEvents: string[][] = [];
+    let pluginAProducer: AgentApplicationEvent["producer"] | undefined;
+    let pluginBProducer: AgentApplicationEvent["producer"] | undefined;
     const pluginA = headlessDefinition("plugin-a", ({ events }) =>
       events.subscribe<{ changeId: string; files: string[] }>(
         "workspace.patch.applied",
-        ({ payload }) => {
-          payload.files.push("plugin-a-only.ts");
-          pluginAEvents.push(payload.files);
+        (event) => {
+          pluginAProducer = event.producer;
+          if (event.producer.type === "subagent") {
+            event.producer.id = "plugin-a-mutated";
+          }
+          event.payload.files.push("plugin-a-only.ts");
+          pluginAEvents.push(event.payload.files);
           throw new Error("plugin A failed");
         },
       ));
     const pluginB = headlessDefinition("plugin-b", ({ events }) =>
       events.subscribe<{ changeId: string; files: string[] }>(
         "workspace.patch.applied",
-        ({ payload }) => {
-          pluginBEvents.push(payload.files);
+        (event) => {
+          pluginBProducer = event.producer;
+          pluginBEvents.push(event.payload.files);
         },
       ));
     const pluginRuntime = new PluginServiceRuntime(appEvents);
     const registry = createPluginRegistry([pluginA, pluginB]);
     pluginRuntime.reconcile(headlessModel(), registry, runtimeActions);
 
-    source.emitApplicationEvent(event("change-1"));
+    const sourceEvent = {
+      name: "workspace.patch.applied",
+      payload: {
+        changeId: "change-1",
+        files: ["src/App.tsx"],
+      },
+      producer: {
+        type: "subagent" as const,
+        id: "researcher",
+      },
+    };
+    source.emitApplicationEvent(sourceEvent);
 
     expect(pluginAEvents).toEqual([["src/App.tsx", "plugin-a-only.ts"]]);
     expect(pluginBEvents).toEqual([["src/App.tsx"]]);
+    expect(pluginAProducer).toEqual({
+      type: "subagent",
+      id: "plugin-a-mutated",
+    });
+    expect(pluginBProducer).toEqual({
+      type: "subagent",
+      id: "researcher",
+    });
+    expect(sourceEvent.producer).toEqual({
+      type: "subagent",
+      id: "researcher",
+    });
+    expect(pluginAProducer).not.toBe(pluginBProducer);
+    expect(pluginAProducer).not.toBe(sourceEvent.producer);
+    expect(pluginBProducer).not.toBe(sourceEvent.producer);
     expect(diagnostics).toHaveBeenCalledWith(expect.objectContaining({
       kind: "plugin-event-handler-error",
       pluginId: "plugin-a",

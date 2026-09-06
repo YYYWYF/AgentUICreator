@@ -184,7 +184,7 @@ export class AppEventRuntime {
         const listenerEvent: AgentApplicationEvent = {
           name: decoded.event.name,
           payload: structuredClone(decoded.event.payload),
-          producer: decoded.event.producer,
+          producer: structuredClone(decoded.event.producer),
         };
         void Promise.resolve(record.listener(listenerEvent)).catch((error) => {
           this.#reportHandlerError(decoded.event.name, record, error);
