@@ -483,13 +483,14 @@ describe("PluginServiceRuntime", () => {
     act(() => {
       renderer.update(<Counter service={secondService} />);
     });
+    expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
     expect(firstService.listenerCount).toBe(0);
     expect(secondService.listenerCount).toBe(1);
 
     act(() => {
       firstService.increment();
     });
-    expect(renderer.toJSON()).toHaveProperty("children", ["1"]);
+    expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
 
     act(() => {
       secondService.increment();
