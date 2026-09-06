@@ -1,6 +1,7 @@
 import type {
   AgentConversation,
   AgentExecution,
+  AgentInterrupt,
   AgentMessage,
   AgentRunState,
 } from "@agent-ui/runtime-core";
@@ -88,6 +89,8 @@ describe("UIPluginManifest", () => {
     expectTypeOf<UIPluginContext["run"]>().toEqualTypeOf<AgentRunState>();
     expectTypeOf<UIPluginContext["executions"]>()
       .toEqualTypeOf<AgentExecution[]>();
+    expectTypeOf<UIPluginContext["interrupts"]>()
+      .toEqualTypeOf<AgentInterrupt[]>();
   });
 
   it("propagates application-owned state through the plugin context", () => {

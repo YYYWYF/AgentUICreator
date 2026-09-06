@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createAgentRuntime,
   type AgentExecution,
+  type AgentInterrupt,
   type AgentTransport,
   type AgentUserInput,
 } from "../src/index.js";
@@ -53,9 +54,11 @@ describe("protocol-independent runtime delegation", () => {
         state: { ready: true },
         run: { status: "idle" },
         executions: [],
+        interrupts: [],
       }),
       subscribe: () => () => undefined,
       sendMessage,
+      resumeInterrupts: async () => undefined,
       startNewConversation: async () => undefined,
       abort: () => undefined,
     };
@@ -121,12 +124,14 @@ describe("protocol-independent runtime delegation", () => {
       state: { ready: true },
       run: { status: "idle" as const },
       executions: [],
+      interrupts: [],
     };
     const transport: AgentTransport<{ ready: boolean }> = {
       mode: "in-memory-test",
       getSnapshot() { return snapshot; },
       subscribe: vi.fn(() => () => undefined),
       sendMessage: vi.fn(async () => undefined),
+      resumeInterrupts: vi.fn(async () => undefined),
       startNewConversation: vi.fn(async () => undefined),
       abort: vi.fn(),
     };
@@ -211,6 +216,7 @@ describe("Runtime Core with MockAgentTransport", () => {
       state: { selectedFile: "src/App.tsx" },
       run: { status: "idle" },
       executions: [],
+      interrupts: [],
     });
   });
 
@@ -259,7 +265,116 @@ describe("Runtime Core with MockAgentTransport", () => {
       state: {},
       run: { status: "idle" },
       executions: [],
+      interrupts: [],
     });
     expect(runtime.getSnapshot().conversation.id).not.toBe(oldId);
+  });
+
+  it("projects pending interrupts and resumes only with exact coverage", async () => {
+    const interrupts: AgentInterrupt[] = [
+      {
+        id: "approval-a",
+        reason: "tool-approval",
+        message: "Approve the tool?",
+        producer: { type: "root" },
+        toolExecutionId: "tool-a",
+      },
+      {
+        id: "approval-b",
+        reason: "human-input",
+        producer: { type: "subagent", id: "researcher" },
+      },
+    ];
+    const transport = new MockAgentTransport({ initialInterrupts: interrupts });
+    const resume = vi.spyOn(transport, "resumeInterrupts");
+    const runtime = createAgentRuntime({ transport });
+
+    expect(runtime.getSnapshot()).toMatchObject({
+      run: { status: "awaiting-input" },
+      interrupts,
+    });
+    await expect(runtime.sendMessage("continue"))
+      .rejects.toThrow("pending interrupts");
+    await expect(runtime.resumeInterrupts([
+      { interruptId: "approval-a", status: "resolved" },
+      { interruptId: "approval-a", status: "cancelled" },
+    ])).rejects.toThrow("duplicate IDs");
+    await expect(runtime.resumeInterrupts([
+      { interruptId: "approval-a", status: "resolved" },
+      { interruptId: "unknown", status: "cancelled" },
+    ])).rejects.toThrow("Unknown interrupt response ID");
+    await expect(runtime.resumeInterrupts([
+      { interruptId: "approval-a", status: "resolved" },
+    ])).rejects.toThrow("Missing response for pending interrupt");
+
+    const responses = [
+      {
+        interruptId: "approval-a",
+        status: "resolved" as const,
+        payload: { approved: true },
+      },
+      { interruptId: "approval-b", status: "cancelled" as const },
+    ];
+    await runtime.resumeInterrupts(responses);
+
+    expect(resume).toHaveBeenCalledWith(responses);
+    expect(runtime.getSnapshot().run.status).toBe("idle");
+    expect(runtime.getSnapshot().interrupts).toEqual([]);
+  });
+
+  it("preserves executions across mock resume and clears them for a fresh message", async () => {
+    const executions: AgentExecution[] = [{
+      type: "tool",
+      id: "tool-a",
+      producer: { type: "root" },
+      name: "delete_files",
+      status: "interrupted",
+      arguments: "{}",
+    }];
+    const transport = new MockAgentTransport({
+      initialExecutions: executions,
+      initialInterrupts: [{
+        id: "approval-a",
+        reason: "tool-approval",
+        producer: { type: "root" },
+        toolExecutionId: "tool-a",
+      }],
+    });
+    const runtime = createAgentRuntime({ transport });
+    const statuses: string[] = [];
+    runtime.subscribe(() => statuses.push(runtime.getSnapshot().run.status));
+
+    runtime.abort();
+    expect(runtime.getSnapshot().run.status).toBe("awaiting-input");
+    expect(runtime.getSnapshot().interrupts).toHaveLength(1);
+    await runtime.resumeInterrupts([
+      { interruptId: "approval-a", status: "resolved" },
+    ]);
+    expect(statuses).toEqual(["running", "idle"]);
+    expect(runtime.getSnapshot().executions).toEqual(executions);
+
+    await runtime.sendMessage("new task");
+    expect(runtime.getSnapshot().executions).toEqual([]);
+  });
+
+  it("allows abandoning pending interrupts by starting a new conversation", async () => {
+    const runtime = createAgentRuntime({
+      transport: new MockAgentTransport({
+        initialInterrupts: [{
+          id: "approval",
+          reason: "tool-approval",
+          producer: { type: "root" },
+        }],
+      }),
+    });
+
+    await runtime.startNewConversation();
+
+    expect(runtime.getSnapshot()).toMatchObject({
+      messages: [],
+      executions: [],
+      interrupts: [],
+      run: { status: "idle" },
+    });
   });
 });

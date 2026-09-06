@@ -1,4 +1,4 @@
-export type AgentRunStatus = "idle" | "running" | "error";
+export type AgentRunStatus = "idle" | "running" | "awaiting-input" | "error";
 
 export interface AgentRuntimeError {
   message: string;

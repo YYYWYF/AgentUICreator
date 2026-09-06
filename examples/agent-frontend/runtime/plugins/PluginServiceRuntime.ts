@@ -6,6 +6,7 @@ import { validateAppUIComposition } from "../../framework/contracts/app-ui-compo
 import { SlotRegistry } from "../slots/SlotRegistry";
 import type {
   AgentUserInput,
+  AgentInterruptResponse,
   UIPluginActions,
   UIPluginDefinition,
   UIPluginServiceRegistrar,
@@ -19,6 +20,7 @@ import type { PluginDiagnosticContextValue } from "../diagnostics";
 
 export interface UIPluginRuntimeActions {
   sendMessage(input: string | AgentUserInput): Promise<void>;
+  resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void>;
   startNewConversation(): Promise<void>;
   abortRun(): void;
   updateInstanceProps(
@@ -67,6 +69,7 @@ export function createInstanceActions(
 ): UIPluginActions {
   return {
     sendMessage: actions.sendMessage,
+    resumeInterrupts: actions.resumeInterrupts,
     startNewConversation: actions.startNewConversation,
     abortRun: actions.abortRun,
     updateInstanceProps: (props) => {

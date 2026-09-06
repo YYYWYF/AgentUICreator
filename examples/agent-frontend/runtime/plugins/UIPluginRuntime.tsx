@@ -8,6 +8,7 @@ import type {
 import type {
   AgentConversation,
   AgentExecution,
+  AgentInterrupt,
   AgentMessage,
   AgentRunState,
   UIPluginContext,
@@ -46,6 +47,7 @@ export interface UIPluginRuntimeProps<TState = unknown> {
   state: TState;
   run: AgentRunState;
   executions: AgentExecution[];
+  interrupts: AgentInterrupt[];
   actions: UIPluginRuntimeActions;
   className?: string | undefined;
   appUIModelHash?: string | undefined;
@@ -62,6 +64,7 @@ interface SlotContentProps<TState = unknown> {
   state: TState;
   run: AgentRunState;
   executions: AgentExecution[];
+  interrupts: AgentInterrupt[];
   actions: UIPluginRuntimeActions;
   onPluginError(failure: PluginRenderFailure): void;
   onPluginReset(instanceId: string): void;
@@ -120,6 +123,7 @@ function SlotContent<TState = unknown>({
   state,
   run,
   executions,
+  interrupts,
   actions,
   onPluginError,
   onPluginReset,
@@ -173,6 +177,7 @@ function SlotContent<TState = unknown>({
           state,
           run,
           executions,
+          interrupts,
           instance,
           actions: createInstanceActions(instance, actions),
           services: serviceRuntime.services,
@@ -196,6 +201,7 @@ function SlotContent<TState = unknown>({
               registry={registry}
               run={run}
               executions={executions}
+              interrupts={interrupts}
               slotId={requestedSlotId}
               state={state}
             />
@@ -269,6 +275,7 @@ function UIPluginRuntimeContent<TState = unknown>({
   state,
   run,
   executions,
+  interrupts,
   actions,
   className,
 }: UIPluginRuntimeProps<TState>) {
@@ -380,6 +387,7 @@ function UIPluginRuntimeContent<TState = unknown>({
             registry={registry}
             run={run}
             executions={executions}
+            interrupts={interrupts}
             slot={slot}
             state={state}
           />

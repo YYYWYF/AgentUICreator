@@ -51,7 +51,8 @@ function readSuggestions(value: unknown): SuggestionItem[] {
 
 export function AntdXSenderPlugin({ context }: UIPluginComponentProps) {
   const [value, setValue] = useState("");
-  const isRunning = context.run.status === "running";
+  const isRunning =
+    context.run.status === "running" || context.interrupts.length > 0;
   const placeholder =
     typeof context.instance.props?.placeholder === "string"
       ? context.instance.props.placeholder

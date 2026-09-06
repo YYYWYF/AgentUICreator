@@ -17,6 +17,7 @@ function createContext(
     state: {},
     run: { status },
     executions: [],
+    interrupts: [],
     instance: {
       id: "conversations-main",
       pluginId: "antd-x-conversations",
@@ -24,6 +25,7 @@ function createContext(
     },
     actions: {
       sendMessage: async () => undefined,
+      resumeInterrupts: async () => undefined,
       startNewConversation,
       abortRun: () => undefined,
       updateInstanceProps: () => undefined,

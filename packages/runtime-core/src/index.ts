@@ -6,6 +6,11 @@ export type {
 } from "./agent-message.js";
 export type { AgentProducer } from "./agent-producer.js";
 export type {
+  AgentInterrupt,
+  AgentInterruptResponse,
+  AgentInterruptResponseStatus,
+} from "./agent-interrupt.js";
+export type {
   AgentExecution,
   AgentReasoningExecution,
   AgentReasoningExecutionStatus,

@@ -77,7 +77,8 @@ function readPrompts(value: unknown): TemplatePrompt[] {
 
 export function AntdXPromptsPlugin({ context }: UIPluginComponentProps) {
   const prompts = readPrompts(context.instance.props?.items);
-  const isRunning = context.run.status === "running";
+  const isRunning =
+    context.run.status === "running" || context.interrupts.length > 0;
   const title =
     typeof context.instance.props?.title === "string"
       ? context.instance.props.title

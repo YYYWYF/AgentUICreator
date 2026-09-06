@@ -70,6 +70,7 @@ const previewRegistry = createPluginRegistry(previewPlugins);
 const previewActions: UIPluginRuntimeActions = {
   abortRun: () => undefined,
   sendMessage: async () => undefined,
+  resumeInterrupts: async () => undefined,
   startNewConversation: async () => undefined,
   updateInstanceProps: () => undefined,
 };
@@ -133,6 +134,7 @@ function RuntimeFaultFixture({ model }: { model: ReturnType<typeof createPreview
         className="plugin-boundary-runtime-fixture-layout"
         conversation={{ id: "preview-runtime-faults" }}
         executions={[]}
+        interrupts={[]}
         messages={[]}
         model={model}
         registry={previewRegistry}

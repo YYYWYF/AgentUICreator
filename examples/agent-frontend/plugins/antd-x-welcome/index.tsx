@@ -20,6 +20,7 @@ function readStringProp(
 const runStatus = {
   idle: { badge: "success", label: "已就绪" },
   running: { badge: "processing", label: "运行中" },
+  "awaiting-input": { badge: "warning", label: "等待输入" },
   error: { badge: "error", label: "需要处理" },
 } as const;
 

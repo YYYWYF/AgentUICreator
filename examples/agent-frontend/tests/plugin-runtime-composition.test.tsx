@@ -17,6 +17,7 @@ import {
 const appUIModelHash = "c".repeat(64);
 const runtimeActions = {
   sendMessage: vi.fn(async () => undefined),
+  resumeInterrupts: vi.fn(async () => undefined),
   startNewConversation: vi.fn(async () => undefined),
   abortRun: vi.fn(),
   updateInstanceProps: vi.fn(),
@@ -91,6 +92,7 @@ function RuntimeFixture({
       appUIModelHash={appUIModelHash}
       conversation={{ id: "composition-test" }}
       executions={[]}
+      interrupts={[]}
       messages={[]}
       model={createModel(enabled)}
       onRuntimeComposition={reporter}

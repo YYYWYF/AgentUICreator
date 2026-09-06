@@ -1,14 +1,24 @@
-import { HttpAgent, type AgentSubscriber } from "@ag-ui/client";
+import {
+  HttpAgent,
+  type AgentSubscriber,
+  type RunAgentParameters,
+} from "@ag-ui/client";
 import type { Message, State } from "@ag-ui/core";
 import {
   ObservableAgentTransport,
   type AgentConversation,
+  type AgentInterrupt,
+  type AgentInterruptResponse,
   type AgentRunState,
   type AgentRuntimeError,
   type AgentUserInput,
 } from "@agent-ui/runtime-core";
 
 import { mapAgentUserInput } from "./input-mapper.js";
+import {
+  mapAgUiInterrupt,
+  mapInterruptResponse,
+} from "./interrupt-mapper.js";
 import { LifecycleProjector } from "./lifecycle-projector.js";
 
 export interface AgUiTransportConfig {
@@ -21,7 +31,7 @@ interface AgentClient {
   readonly isRunning: boolean;
   subscribe(subscriber: AgentSubscriber): { unsubscribe(): void };
   addMessage(message: Message): void;
-  runAgent(): Promise<unknown>;
+  runAgent(parameters?: RunAgentParameters): Promise<unknown>;
   abortRun(): void;
 }
 
@@ -34,7 +44,10 @@ type AgentClientFactory = (config: AgentClientConfig) => AgentClient;
 interface SnapshotOverrides {
   conversation?: AgentConversation | undefined;
   run?: AgentRunState | undefined;
+  interrupts?: AgentInterrupt[] | undefined;
 }
+
+type PendingRunKind = "fresh" | "resume";
 
 function createMessageId(prefix: string): string {
   return `${prefix}-${crypto.randomUUID()}`;
@@ -92,6 +105,7 @@ export class AgUiTransport<TState = unknown>
   private readonly createClient: AgentClientFactory;
   private unsubscribeFromAgent: (() => void) | undefined;
   private disposed = false;
+  private pendingRunKind: PendingRunKind | undefined;
 
   constructor(
     config: AgUiTransportConfig,
@@ -107,6 +121,7 @@ export class AgUiTransport<TState = unknown>
       state: agent.state as TState,
       run: createRunState(agent.isRunning ? "running" : "idle"),
       executions: projector.getExecutions(),
+      interrupts: [],
     });
     this.projector = projector;
     this.config = config;
@@ -123,18 +138,36 @@ export class AgUiTransport<TState = unknown>
         this.syncFromAgent(agent, {
           run: createRunState("running", this.snapshot.run.id),
         }),
-      onRunStartedEvent: ({ event }) => {
-        this.projector.resetForRun();
+      onRunStartedEvent: ({ event, input }) => {
+        const runKind: PendingRunKind =
+          (input?.resume?.length ?? 0) > 0 || this.pendingRunKind === "resume"
+            ? "resume"
+            : "fresh";
+        this.pendingRunKind = undefined;
+        if (runKind === "resume") {
+          this.projector.startContinuationRun();
+        } else {
+          this.projector.resetForFreshRun();
+        }
         this.syncFromAgent(agent, {
           conversation: { id: event.threadId },
           run: createRunState("running", event.runId),
         });
       },
-      onRunFinishedEvent: ({ event }) => {
+      onRunFinishedEvent: (parameters) => {
+        const { event } = parameters;
         this.projector.interruptActive();
-        this.syncFromAgent(agent, {
-          run: createRunState("idle", event.runId),
-        });
+        if (parameters.outcome === "interrupt") {
+          this.syncFromAgent(agent, {
+            run: createRunState("awaiting-input", event.runId),
+            interrupts: parameters.interrupts.map(mapAgUiInterrupt),
+          });
+        } else {
+          this.syncFromAgent(agent, {
+            run: createRunState("idle", event.runId),
+            interrupts: [],
+          });
+        }
       },
       onRunErrorEvent: ({ event }) => {
         this.projector.interruptActive();
@@ -164,6 +197,7 @@ export class AgUiTransport<TState = unknown>
           this.projector.interruptActive();
           this.syncFromAgent(agent, {
             run: createRunState("idle", this.snapshot.run.id),
+            interrupts: [],
           });
         } else {
           this.syncFromAgent(agent);
@@ -243,6 +277,12 @@ export class AgUiTransport<TState = unknown>
   }
 
   async sendMessage(input: AgentUserInput): Promise<void> {
+    if (this.snapshot.interrupts.length > 0) {
+      throw new Error(
+        "当前会话正在等待用户响应，请先处理 pending interrupts。",
+      );
+    }
+
     if (isEmptyInput(input)) {
       return;
     }
@@ -256,6 +296,7 @@ export class AgUiTransport<TState = unknown>
     agent.addMessage(mapAgentUserInput(input, createMessageId("user")));
 
     try {
+      this.pendingRunKind = "fresh";
       this.syncFromAgent(agent, { run: createRunState("running") });
       const run = agent.runAgent();
       await run;
@@ -275,8 +316,48 @@ export class AgUiTransport<TState = unknown>
         this.projector.interruptActive();
         this.syncFromAgent(agent, {
           run: createRunState("idle", this.snapshot.run.id),
+          interrupts: [],
         });
       }
+      this.pendingRunKind = undefined;
+    }
+  }
+
+  async resumeInterrupts(
+    responses: AgentInterruptResponse[],
+  ): Promise<void> {
+    const agent = this.agent;
+    if (this.snapshot.interrupts.length === 0) {
+      throw new Error("No pending interrupts");
+    }
+    if (this.snapshot.run.status === "running" || agent.isRunning) {
+      throw new Error("Cannot resume interrupts while the agent is running");
+    }
+
+    try {
+      this.pendingRunKind = "resume";
+      this.syncFromAgent(agent, { run: createRunState("running") });
+      await agent.runAgent({ resume: responses.map(mapInterruptResponse) });
+    } catch (error) {
+      const runError = toError(error);
+      this.projector.interruptActive();
+      this.syncFromAgent(agent, {
+        run: createRunState(
+          "error",
+          this.snapshot.run.id,
+          retainProtocolError(this.snapshot.run, runError),
+        ),
+      });
+      throw runError;
+    } finally {
+      if (this.snapshot.run.status === "running") {
+        this.projector.interruptActive();
+        this.syncFromAgent(agent, {
+          run: createRunState("idle", this.snapshot.run.id),
+          interrupts: [],
+        });
+      }
+      this.pendingRunKind = undefined;
     }
   }
 
@@ -311,10 +392,14 @@ export class AgUiTransport<TState = unknown>
       state: nextAgent.state as TState,
       run: createRunState(nextAgent.isRunning ? "running" : "idle"),
       executions: this.projector.getExecutions(),
+      interrupts: [],
     });
   }
 
   abort(): void {
+    if (this.snapshot.run.status === "awaiting-input") {
+      return;
+    }
     this.agent.abortRun();
     this.projector.interruptActive();
     if (this.snapshot.run.status === "running") {
@@ -348,6 +433,7 @@ export class AgUiTransport<TState = unknown>
       state: agent.state as TState,
       run: overrides.run ?? this.snapshot.run,
       executions: this.projector.getExecutions(),
+      interrupts: overrides.interrupts ?? this.snapshot.interrupts,
     });
   }
 }

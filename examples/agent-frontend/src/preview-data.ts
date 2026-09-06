@@ -123,6 +123,7 @@ export const previewAgentState: AppAgentState = {
       registry={pluginRegistry}
       conversation={conversation}
       executions={executions}
+      interrupts={interrupts}
       messages={messages}
       state={agentState}
       run={run}

@@ -71,6 +71,7 @@ export class LifecycleProjector {
   private readonly messageProducers = new Map<string, AgentProducer>();
   private readonly activeReasoningByProducer = new Map<string, string>();
   private readonly activeSteps = new Map<string, string>();
+  private continuationRun = false;
 
   getExecutions(): AgentExecution[] {
     return this.executions;
@@ -110,14 +111,20 @@ export class LifecycleProjector {
     return projected;
   }
 
-  resetForRun(): void {
+  resetForFreshRun(): void {
+    this.continuationRun = false;
     this.completeStreamingMessages();
     this.executions = [];
     this.activeReasoningByProducer.clear();
     this.activeSteps.clear();
   }
 
+  startContinuationRun(): void {
+    this.continuationRun = true;
+  }
+
   resetConversation(): void {
+    this.continuationRun = false;
     this.executions = [];
     this.messageStreamStatuses.clear();
     this.messageProducers.clear();
@@ -153,6 +160,7 @@ export class LifecycleProjector {
   }
 
   onToolCallStart(event: ToolCallStartEvent): void {
+    this.reactivateProducer(producerFor(event.subagentRunId));
     const current = this.findExecution("tool", event.toolCallId);
     if (current !== undefined && !isActive(current)) return;
 
@@ -171,6 +179,7 @@ export class LifecycleProjector {
   }
 
   onToolCallArgs(event: ToolCallArgsEvent): void {
+    this.reactivateProducer(producerFor(event.subagentRunId));
     this.updateExecution("tool", event.toolCallId, (execution) =>
       isActive(execution)
         ? {
@@ -182,6 +191,7 @@ export class LifecycleProjector {
   }
 
   onToolCallEnd(event: ToolCallEndEvent): void {
+    this.reactivateProducer(producerFor(event.subagentRunId));
     this.updateExecution("tool", event.toolCallId, (execution) =>
       isActive(execution)
         ? { ...execution, status: "awaiting-result" }
@@ -189,6 +199,7 @@ export class LifecycleProjector {
   }
 
   onToolCallResult(event: ToolCallResultEvent): void {
+    this.reactivateProducer(producerFor(event.subagentRunId));
     this.messageProducers.set(
       event.messageId,
       producerFor(event.subagentRunId),
@@ -202,6 +213,7 @@ export class LifecycleProjector {
 
   onReasoningStart(event: ReasoningStartEvent): void {
     const producer = producerFor(event.subagentRunId);
+    this.reactivateProducer(producer);
     const execution: AgentReasoningExecution = {
       type: "reasoning",
       id: event.messageId,
@@ -236,6 +248,7 @@ export class LifecycleProjector {
 
   onReasoningEnd(event: ReasoningEndEvent): void {
     const producer = producerFor(event.subagentRunId);
+    this.reactivateProducer(producer);
     this.updateExecution("reasoning", event.messageId, (execution) => ({
       ...execution,
       status: "completed",
@@ -248,6 +261,7 @@ export class LifecycleProjector {
 
   onStepStarted(event: StepStartedEvent): void {
     const producer = producerFor(event.subagentRunId);
+    this.reactivateProducer(producer);
     const execution: AgentStepExecution = {
       type: "step",
       id: `step-${crypto.randomUUID()}`,
@@ -261,6 +275,7 @@ export class LifecycleProjector {
 
   onStepFinished(event: StepFinishedEvent): void {
     const producer = producerFor(event.subagentRunId);
+    this.reactivateProducer(producer);
     const key = activeStepKey(producer, event.stepName);
     const trackedExecutionId = this.activeSteps.get(key);
     let executionId = trackedExecutionId;
@@ -289,6 +304,7 @@ export class LifecycleProjector {
   }
 
   onSubagentStarted(event: SubagentStartedEvent): void {
+    this.reactivateProducer(producerFor(event.parentSubagentRunId));
     const execution: AgentSubagentExecution = {
       type: "subagent",
       id: event.subagentRunId,
@@ -312,6 +328,7 @@ export class LifecycleProjector {
   }
 
   onSubagentFinished(event: SubagentFinishedEvent): void {
+    this.reactivateProducer({ type: "subagent", id: event.subagentRunId });
     this.interruptSubagentTree(event.subagentRunId);
     this.updateExecution("subagent", event.subagentRunId, (execution) => ({
       ...execution,
@@ -320,6 +337,7 @@ export class LifecycleProjector {
   }
 
   onSubagentError(event: SubagentErrorEvent): void {
+    this.reactivateProducer({ type: "subagent", id: event.subagentRunId });
     this.interruptSubagentTree(event.subagentRunId);
     this.updateExecution("subagent", event.subagentRunId, (execution) => ({
       ...execution,
@@ -332,11 +350,13 @@ export class LifecycleProjector {
   }
 
   private markMessageStreaming(messageId: string, subagentId?: string): void {
+    this.reactivateProducer(producerFor(subagentId));
     this.messageStreamStatuses.set(messageId, "streaming");
     this.messageProducers.set(messageId, producerFor(subagentId));
   }
 
   private completeMessageStream(messageId: string, subagentId?: string): void {
+    this.reactivateProducer(producerFor(subagentId));
     this.messageStreamStatuses.set(messageId, "completed");
     this.messageProducers.set(messageId, producerFor(subagentId));
   }
@@ -347,6 +367,31 @@ export class LifecycleProjector {
         this.messageStreamStatuses.set(messageId, "completed");
       }
     }
+  }
+
+  private reactivateProducer(producer: AgentProducer): void {
+    if (!this.continuationRun || producer.type === "root") return;
+
+    const subagentIds = new Set<string>();
+    let subagentId: string | undefined = producer.id;
+    while (subagentId !== undefined && !subagentIds.has(subagentId)) {
+      subagentIds.add(subagentId);
+      const execution = this.findExecution("subagent", subagentId);
+      subagentId = execution?.producer.type === "subagent"
+        ? execution.producer.id
+        : undefined;
+    }
+
+    this.executions = this.executions.map((execution) => {
+      if (
+        execution.type !== "subagent" ||
+        !subagentIds.has(execution.id) ||
+        (execution.status !== "suspended" && execution.status !== "interrupted")
+      ) {
+        return execution;
+      }
+      return { ...execution, status: "running" as const };
+    });
   }
 
   private interruptSubagentTree(subagentId: string): void {

@@ -21,6 +21,7 @@ import { sha256Text } from "../runtime/diagnostics";
 const appUIModelHash = "a".repeat(64);
 const runtimeActions = {
   sendMessage: vi.fn(async () => undefined),
+  resumeInterrupts: vi.fn(async () => undefined),
   startNewConversation: vi.fn(async () => undefined),
   abortRun: vi.fn(),
   updateInstanceProps: vi.fn(),
@@ -80,6 +81,7 @@ function RuntimeFixture({
       appUIModelHash={appUIModelHash}
       conversation={{ id: "diagnostics-test" }}
       executions={[]}
+      interrupts={[]}
       messages={[]}
       model={model}
       onRuntimeDiagnostic={reporter}

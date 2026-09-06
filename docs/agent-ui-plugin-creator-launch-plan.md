@@ -547,6 +547,8 @@ interface UIPluginContext<TState = unknown> {
 
   executions: AgentExecution[]
 
+  interrupts: AgentInterrupt[]
+
   instance: PluginInstance
 
   actions: UIPluginActions
@@ -560,6 +562,10 @@ Actions 第一版保持少量：
 interface UIPluginActions {
   sendMessage(input: string | AgentUserInput): Promise<void>
 
+  resumeInterrupts(
+    responses: AgentInterruptResponse[]
+  ): Promise<void>
+
   startNewConversation(): Promise<void>
 
   abortRun(): void
@@ -570,7 +576,9 @@ interface UIPluginActions {
 }
 ```
 
-`conversation`、`messages`、`state`、`run` 与 `executions` 由 Agent Runtime 提供稳定、协议无关的前端状态。`run` 表示整个请求，`executions` 是当前 Run 内 Tool、Reasoning、Step 与 Subagent 的实时语义投影，完成项保留到下一次 Run 开始，但不作为历史记录持久化。Message 通过 `producer` 保留 Root/Subagent 归属，并只在观察到标准流式生命周期时携带 `streamStatus`。AG-UI 的 `threadId`、`runId`、`subagentRunId` 和 Event 类型只允许存在于 `@agent-ui/runtime-agui`；Plugin 不直接订阅底层 Run Event。
+`conversation`、`messages`、`state`、`run`、`executions` 与 `interrupts` 由 Agent Runtime 提供稳定、协议无关的前端状态。`run` 表示一个 wire request；当标准 structured interrupt 暂停执行时，其状态为 `awaiting-input`。`interrupts` 只包含当前 Conversation 尚待处理的输入，不是历史记录。`executions` 是当前 fresh user turn 的 live execution projection：普通 `sendMessage` 开始新的 execution chain 并清理上一条 chain，由 Interrupt 触发的 `resumeInterrupts` 是原 chain 的 continuation，因此 Tool、Reasoning、Step 与 Subagent execution 跨多个 resume run 保留，直到下一次 fresh user turn；它仍然不是持久化 execution history。Message 通过 `producer` 保留 Root/Subagent 归属，并只在观察到标准流式生命周期时携带 `streamStatus`。
+
+标准 HITL 只通过 `RUN_FINISHED` 的 structured interrupt outcome 映射为 `AgentInterrupt[]`，并通过 `AgentInterruptResponse[]` 映射到新 Run 的 `RunAgentInput.resume[]`。Plugin 必须一次覆盖全部 pending interrupt，可通过 `producer` 关联 Root/Subagent、通过 `toolExecutionId` 关联 Tool，但不得直接消费 AG-UI 类型、SDK pending object、CUSTOM/RAW event，也不得把响应伪装成普通 UserMessage。AG-UI 的 `threadId`、`runId`、`subagentRunId`、`Interrupt`、`ResumeEntry` 和 Event 类型只允许存在于 `@agent-ui/runtime-agui`；Plugin 不直接订阅底层 Run Event。
 
 不要过早加入大量 Runtime API。
 

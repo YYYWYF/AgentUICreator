@@ -1,5 +1,15 @@
-import type { AbstractAgent, AgentSubscriber } from "@ag-ui/client";
-import { EventType, type Message, type State } from "@ag-ui/core";
+import type {
+  AbstractAgent,
+  AgentSubscriber,
+  RunAgentParameters,
+} from "@ag-ui/client";
+import {
+  EventType,
+  type Interrupt,
+  type Message,
+  type ResumeEntry,
+  type State,
+} from "@ag-ui/core";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -13,6 +23,7 @@ class FakeAgentClient {
   isRunning = false;
   readonly abortRun = vi.fn();
   readonly messagesSeenAtRun: Message[][] = [];
+  readonly runParametersSeen: Array<RunAgentParameters | undefined> = [];
 
   private readonly subscribers: AgentSubscriber[] = [];
 
@@ -33,8 +44,9 @@ class FakeAgentClient {
     this.emitMessagesChanged();
   }
 
-  async runAgent(): Promise<unknown> {
+  async runAgent(parameters?: RunAgentParameters): Promise<unknown> {
     this.messagesSeenAtRun.push([...this.messages]);
+    this.runParametersSeen.push(parameters);
     return undefined;
   }
 
@@ -54,13 +66,18 @@ class FakeAgentClient {
     });
   }
 
-  emitRunStarted(threadId: string, runId: string): void {
+  emitRunStarted(
+    threadId: string,
+    runId: string,
+    resume?: ResumeEntry[],
+  ): void {
     this.isRunning = true;
     this.subscribers.forEach((subscriber) => {
       const listener = subscriber.onRunStartedEvent;
       if (listener === undefined) return;
       void listener({
         event: { type: EventType.RUN_STARTED, threadId, runId },
+        input: { ...(resume === undefined ? {} : { resume }) },
         messages: this.messages,
         state: this.state,
         agent: this as unknown as AbstractAgent,
@@ -68,14 +85,59 @@ class FakeAgentClient {
     });
   }
 
-  emitRunFinished(threadId: string, runId: string): void {
+  emitRunFinished(
+    threadId: string,
+    runId: string,
+    interrupts?: Interrupt[],
+  ): void {
     this.isRunning = false;
     this.subscribers.forEach((subscriber) => {
       const listener = subscriber.onRunFinishedEvent;
       if (listener === undefined) return;
+      const outcome = interrupts === undefined
+        ? { type: "success" as const }
+        : { type: "interrupt" as const, interrupts };
       void listener({
-        event: { type: EventType.RUN_FINISHED, threadId, runId },
-        outcome: "success",
+        event: { type: EventType.RUN_FINISHED, threadId, runId, outcome },
+        outcome: outcome.type,
+        ...(outcome.type === "interrupt" ? { interrupts } : {}),
+        messages: this.messages,
+        state: this.state,
+        agent: this as unknown as AbstractAgent,
+      } as Parameters<typeof listener>[0]);
+    });
+  }
+
+  emitToolStart(toolCallId: string, subagentRunId?: string): void {
+    this.subscribers.forEach((subscriber) => {
+      const listener = subscriber.onToolCallStartEvent;
+      if (listener === undefined) return;
+      void listener({
+        event: {
+          type: EventType.TOOL_CALL_START,
+          toolCallId,
+          toolCallName: "delete_files",
+          ...(subagentRunId === undefined ? {} : { subagentRunId }),
+        },
+        messages: this.messages,
+        state: this.state,
+        agent: this as unknown as AbstractAgent,
+      } as Parameters<typeof listener>[0]);
+    });
+  }
+
+  emitToolResult(toolCallId: string, subagentRunId?: string): void {
+    this.subscribers.forEach((subscriber) => {
+      const listener = subscriber.onToolCallResultEvent;
+      if (listener === undefined) return;
+      void listener({
+        event: {
+          type: EventType.TOOL_CALL_RESULT,
+          toolCallId,
+          messageId: `${toolCallId}-result`,
+          content: "completed",
+          ...(subagentRunId === undefined ? {} : { subagentRunId }),
+        },
         messages: this.messages,
         state: this.state,
         agent: this as unknown as AbstractAgent,
@@ -273,6 +335,189 @@ describe("AgUiTransport", () => {
     expect(runtime.getSnapshot().run).toEqual({ id: "run", status: "idle" });
   });
 
+  it("maps structured root and subagent interrupts into awaiting input", () => {
+    const agent = new FakeAgentClient();
+    const runtime = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui" },
+      () => agent,
+    );
+    agent.emitRunStarted("thread", "run-1");
+    agent.emitToolStart("delete-files", "researcher");
+    agent.emitRunFinished("thread", "run-1", [
+      {
+        id: "root-input",
+        reason: "human-input",
+        message: "Choose a destination",
+      },
+      {
+        id: "tool-approval",
+        reason: "tool-approval",
+        toolCallId: "delete-files",
+        subagentRunId: "researcher",
+      },
+    ]);
+
+    expect(runtime.getSnapshot()).toMatchObject({
+      run: { id: "run-1", status: "awaiting-input" },
+      interrupts: [
+        {
+          id: "root-input",
+          producer: { type: "root" },
+        },
+        {
+          id: "tool-approval",
+          producer: { type: "subagent", id: "researcher" },
+          toolExecutionId: "delete-files",
+        },
+      ],
+      executions: [{ id: "delete-files", status: "interrupted" }],
+    });
+  });
+
+  it("replaces interrupts across resume chains and preserves executions", () => {
+    const agent = new FakeAgentClient();
+    const runtime = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui" },
+      () => agent,
+    );
+    agent.emitRunStarted("thread", "run-1");
+    agent.emitToolStart("tool-a");
+    agent.emitRunFinished("thread", "run-1", [{
+      id: "interrupt-a",
+      reason: "approval-a",
+      toolCallId: "tool-a",
+    }]);
+    agent.emitRunStarted("thread", "run-2", [{
+      interruptId: "interrupt-a",
+      status: "resolved",
+    }]);
+    agent.emitRunFinished("thread", "run-2", [{
+      id: "interrupt-b",
+      reason: "approval-b",
+    }]);
+
+    expect(runtime.getSnapshot()).toMatchObject({
+      run: { id: "run-2", status: "awaiting-input" },
+      interrupts: [{ id: "interrupt-b" }],
+      executions: [{ id: "tool-a" }],
+    });
+
+    agent.emitRunStarted("thread", "run-3", [{
+      interruptId: "interrupt-b",
+      status: "cancelled",
+    }]);
+    agent.emitRunFinished("thread", "run-3");
+
+    expect(runtime.getSnapshot()).toMatchObject({
+      run: { id: "run-3", status: "idle" },
+      interrupts: [],
+      executions: [{ id: "tool-a" }],
+    });
+  });
+
+  it("does not treat abort as resolution while awaiting input", () => {
+    const agent = new FakeAgentClient();
+    const runtime = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui" },
+      () => agent,
+    );
+    agent.emitRunStarted("thread", "run-1");
+    agent.emitRunFinished("thread", "run-1", [{
+      id: "approval",
+      reason: "tool-approval",
+    }]);
+
+    runtime.abort();
+
+    expect(agent.abortRun).not.toHaveBeenCalled();
+    expect(runtime.getSnapshot()).toMatchObject({
+      run: { id: "run-1", status: "awaiting-input" },
+      interrupts: [{ id: "approval" }],
+    });
+  });
+
+  it("resumes with RunAgentInput.resume and preserves the execution chain", async () => {
+    const agent = new FakeAgentClient();
+    let finishResume: () => void = () => undefined;
+    agent.runAgent = vi.fn((parameters?: RunAgentParameters) => {
+      agent.runParametersSeen.push(parameters);
+      agent.isRunning = true;
+      return new Promise<void>((resolve) => {
+        finishResume = resolve;
+      });
+    });
+    const runtime = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui" },
+      () => agent,
+    );
+    agent.emitRunStarted("thread", "run-1");
+    agent.emitToolStart("delete-files");
+    agent.emitRunFinished("thread", "run-1", [{
+      id: "approval",
+      reason: "tool-approval",
+      toolCallId: "delete-files",
+    }]);
+
+    const responses = [{
+      interruptId: "approval",
+      status: "resolved" as const,
+      payload: { approved: true },
+      metadata: { source: "tool-card" },
+    }];
+    const resume = runtime.resumeInterrupts(responses);
+    expect(agent.runParametersSeen).toEqual([{ resume: responses }]);
+    expect(runtime.getSnapshot()).toMatchObject({
+      run: { status: "running" },
+      interrupts: [{ id: "approval" }],
+      executions: [{ id: "delete-files", status: "interrupted" }],
+    });
+
+    agent.emitRunStarted("thread", "run-2", responses);
+    expect(runtime.getSnapshot().executions).toMatchObject([
+      { id: "delete-files", status: "interrupted" },
+    ]);
+    agent.emitToolResult("delete-files");
+    expect(runtime.getSnapshot().executions).toMatchObject([
+      { id: "delete-files", status: "completed" },
+    ]);
+    agent.emitRunFinished("thread", "run-2");
+    finishResume();
+    await resume;
+
+    expect(runtime.getSnapshot()).toMatchObject({
+      run: { id: "run-2", status: "idle" },
+      interrupts: [],
+      executions: [{ id: "delete-files", status: "completed" }],
+    });
+    expect(agent.messages).toEqual([]);
+  });
+
+  it("retains pending interrupts when a resume run fails", async () => {
+    const agent = new FakeAgentClient();
+    const failure = new Error("resume failed");
+    const runtime = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui" },
+      () => agent,
+    );
+    agent.emitRunStarted("thread", "run-1");
+    agent.emitRunFinished("thread", "run-1", [{
+      id: "approval",
+      reason: "tool-approval",
+    }]);
+    agent.runAgent = vi.fn(async () => {
+      throw failure;
+    });
+
+    await expect(runtime.resumeInterrupts([
+      { interruptId: "approval", status: "cancelled" },
+    ])).rejects.toThrow(failure);
+
+    expect(runtime.getSnapshot()).toMatchObject({
+      run: { status: "error", error: { message: "resume failed" } },
+      interrupts: [{ id: "approval" }],
+    });
+  });
+
   it("creates a fresh AG-UI client and conversation", async () => {
     const firstAgent = new FakeAgentClient();
     firstAgent.messages = [
@@ -302,6 +547,7 @@ describe("AgUiTransport", () => {
       state: {},
       run: { status: "idle" },
       executions: [],
+      interrupts: [],
     });
 
     firstAgent.emitMessages([

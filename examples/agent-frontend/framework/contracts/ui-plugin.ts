@@ -1,6 +1,8 @@
 import type {
   AgentConversation,
   AgentExecution,
+  AgentInterrupt,
+  AgentInterruptResponse,
   AgentMessage,
   AgentRunState,
   AgentUserInput,
@@ -13,6 +15,9 @@ import type { PluginInstance } from "./app-ui-model";
 export type {
   AgentConversation,
   AgentExecution,
+  AgentInterrupt,
+  AgentInterruptResponse,
+  AgentInterruptResponseStatus,
   AgentMessage,
   AgentRunState,
   AgentUserInput,
@@ -39,6 +44,7 @@ export interface UIPluginManifest {
 
 export interface UIPluginActions {
   sendMessage(input: string | AgentUserInput): Promise<void>;
+  resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void>;
   startNewConversation(): Promise<void>;
   abortRun(): void;
   updateInstanceProps(props: Record<string, unknown>): void;
@@ -85,6 +91,7 @@ export interface UIPluginContext<TState = unknown> {
   state: TState;
   run: AgentRunState;
   executions: AgentExecution[];
+  interrupts: AgentInterrupt[];
   instance: PluginInstance;
   actions: UIPluginActions;
   services: UIPluginServices;

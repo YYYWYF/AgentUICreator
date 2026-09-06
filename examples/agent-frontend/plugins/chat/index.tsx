@@ -48,7 +48,8 @@ function messageText(message: AgentMessage): string {
 
 export function ChatPlugin({ context }: UIPluginComponentProps) {
   const [input, setInput] = useState("");
-  const isSending = context.run.status === "running";
+  const isSending =
+    context.run.status === "running" || context.interrupts.length > 0;
 
   const submitMessage = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

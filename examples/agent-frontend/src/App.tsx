@@ -113,6 +113,7 @@ function AgentFrontendSurface({
   actions,
   conversation,
   executions,
+  interrupts,
   messages,
   model,
   run,
@@ -121,6 +122,7 @@ function AgentFrontendSurface({
   actions: UIPluginRuntimeActions;
   conversation: AgentConversation;
   executions: ReturnType<typeof useAgentRuntime>["executions"];
+  interrupts: ReturnType<typeof useAgentRuntime>["interrupts"];
   messages: ReturnType<typeof useAgentRuntime>["messages"];
   model: typeof initialAppUIModel;
   run: AgentRunState;
@@ -151,6 +153,7 @@ function AgentFrontendSurface({
           className="agent-template-shell"
           conversation={conversation}
           executions={executions}
+          interrupts={interrupts}
           messages={messages}
           model={model}
           registry={pluginRegistry}
@@ -215,6 +218,7 @@ export function App({
   const pluginActions = useMemo<UIPluginRuntimeActions>(
     () => ({
       sendMessage: (input) => agentRuntime.sendMessage(input),
+      resumeInterrupts: (responses) => agentRuntime.resumeInterrupts(responses),
       startNewConversation: () => agentRuntime.startNewConversation(),
       abortRun: () => agentRuntime.abort(),
       updateInstanceProps,
@@ -242,6 +246,7 @@ export function App({
           actions={pluginActions}
           conversation={agent.conversation}
           executions={agent.executions}
+          interrupts={agent.interrupts}
           messages={agent.messages}
           model={model}
           run={agent.run}

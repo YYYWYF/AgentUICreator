@@ -472,6 +472,47 @@ describe("LifecycleProjector", () => {
     ]);
   });
 
+  it("reactivates suspended subagents and ancestors from continuation evidence", () => {
+    const projector = new LifecycleProjector();
+    projector.onSubagentStarted({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "coordinator",
+      name: "Coordinator",
+    });
+    projector.onSubagentStarted({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "researcher",
+      parentSubagentRunId: "coordinator",
+      name: "Researcher",
+    });
+    projector.onToolCallStart({
+      type: EventType.TOOL_CALL_START,
+      toolCallId: "approval-tool",
+      toolCallName: "delete_files",
+      subagentRunId: "researcher",
+    });
+    projector.onSubagentFinished({
+      type: EventType.SUBAGENT_FINISHED,
+      subagentRunId: "coordinator",
+      outcome: { type: "suspended" },
+    });
+    projector.startContinuationRun();
+
+    projector.onToolCallResult({
+      type: EventType.TOOL_CALL_RESULT,
+      toolCallId: "approval-tool",
+      messageId: "approval-tool-result",
+      content: "approved",
+      subagentRunId: "researcher",
+    });
+
+    expect(projector.getExecutions()).toMatchObject([
+      { id: "coordinator", status: "running" },
+      { id: "researcher", status: "running" },
+      { id: "approval-tool", status: "completed" },
+    ]);
+  });
+
   it("allows late terminal evidence to correct interrupted executions", () => {
     const projector = new LifecycleProjector();
 
@@ -682,7 +723,7 @@ describe("LifecycleProjector", () => {
       content: "Partial",
     }])).toMatchObject([{ streamStatus: "completed" }]);
 
-    projector.resetForRun();
+    projector.resetForFreshRun();
     expect(projector.getExecutions()).toEqual([]);
     expect(projector.projectMessages([{
       id: "text-active",

@@ -50,6 +50,7 @@ import {
 
 const runtimeActions = {
   sendMessage: vi.fn(async () => undefined),
+  resumeInterrupts: vi.fn(async () => undefined),
   startNewConversation: vi.fn(async () => undefined),
   abortRun: vi.fn(),
   updateInstanceProps: vi.fn(),
@@ -185,6 +186,7 @@ function fixtureRuntimeProps(
     actions: runtimeActions,
     conversation: { id: "default" },
     executions: [],
+    interrupts: [],
     messages: [],
     model,
     registry: createPluginRegistry(definitions),
@@ -247,6 +249,7 @@ describe("UIPluginRuntime", () => {
       actions: runtimeActions,
       conversation: { id: "default" },
       executions: [],
+      interrupts: [],
       messages: defaultConversationMessages,
       model,
       registry,
@@ -303,6 +306,7 @@ describe("UIPluginRuntime", () => {
       actions: runtimeActions,
       conversation: { id: "default" },
       executions: [],
+      interrupts: [],
       messages: defaultConversationMessages,
       model,
       registry: createPluginRegistry(antdXTemplatePlugins),
@@ -392,6 +396,7 @@ describe("UIPluginRuntime", () => {
       actions: runtimeActions,
       conversation: { id: "default" },
       executions: [],
+      interrupts: [],
       messages: [
         {
           id: "other-conversation-message",
@@ -450,6 +455,7 @@ describe("UIPluginRuntime", () => {
       actions: runtimeActions,
       conversation: { id: "default" },
       executions: [],
+      interrupts: [],
       messages,
       model,
       registry,
@@ -475,6 +481,7 @@ describe("UIPluginRuntime", () => {
       actions: runtimeActions,
       conversation: { id: "default" },
       executions: [],
+      interrupts: [],
       messages: [],
       model,
       registry,
@@ -570,6 +577,7 @@ describe("UIPluginRuntime", () => {
       actions: runtimeActions,
       conversation: { id: "default" },
       executions: [],
+      interrupts: [],
       messages: initialPreviewMessages,
       model,
       registry,
@@ -605,6 +613,7 @@ describe("UIPluginRuntime", () => {
       actions: runtimeActions,
       conversation: { id: "default" },
       executions: [],
+      interrupts: [],
       messages: defaultConversationMessages,
       model,
       registry,
@@ -633,6 +642,7 @@ describe("UIPluginRuntime", () => {
       actions: runtimeActions,
       conversation: { id: "default" },
       executions: [],
+      interrupts: [],
       messages: initialPreviewMessages,
       model,
       registry,
@@ -655,6 +665,7 @@ describe("UIPluginRuntime", () => {
       actions: runtimeActions,
       conversation: { id: "default" },
       executions: [],
+      interrupts: [],
       messages: defaultConversationMessages,
       model,
       registry,
@@ -699,6 +710,7 @@ describe("UIPluginRuntime", () => {
     });
     const actions = {
       sendMessage: vi.fn(async () => undefined),
+      resumeInterrupts: vi.fn(async () => undefined),
       startNewConversation: vi.fn(async () => undefined),
       abortRun: vi.fn(),
       updateInstanceProps: vi.fn(),
@@ -719,6 +731,11 @@ describe("UIPluginRuntime", () => {
       actions,
       conversation: { id: "default" },
       executions,
+      interrupts: [{
+        id: "approval",
+        reason: "tool-approval",
+        producer: { type: "root" },
+      }],
       messages: [],
       model,
       registry: createPluginRegistry([probePlugin]),
@@ -732,13 +749,28 @@ describe("UIPluginRuntime", () => {
 
     expect(capturedContext.run).toBe(failedRun);
     expect(capturedContext.executions).toBe(executions);
+    expect(capturedContext.interrupts).toEqual([{
+      id: "approval",
+      reason: "tool-approval",
+      producer: { type: "root" },
+    }]);
     expect(capturedContext.conversation).toEqual({ id: "default" });
     await capturedContext.actions.sendMessage("hello");
+    await capturedContext.actions.resumeInterrupts([{
+      interruptId: "approval",
+      status: "resolved",
+      payload: { approved: true },
+    }]);
     await capturedContext.actions.startNewConversation();
     capturedContext.actions.abortRun();
     capturedContext.actions.updateInstanceProps({ compact: true });
 
     expect(actions.sendMessage).toHaveBeenCalledWith("hello");
+    expect(actions.resumeInterrupts).toHaveBeenCalledWith([{
+      interruptId: "approval",
+      status: "resolved",
+      payload: { approved: true },
+    }]);
     expect(actions.startNewConversation).toHaveBeenCalledOnce();
     expect(actions.abortRun).toHaveBeenCalledOnce();
     expect(actions.updateInstanceProps).toHaveBeenCalledWith("probe-main", {
@@ -758,6 +790,7 @@ describe("UIPluginRuntime", () => {
       actions: runtimeActions,
       conversation: { id: "default" },
       executions: [],
+      interrupts: [],
       messages: initialPreviewMessages,
       model,
       registry,
