@@ -17,13 +17,13 @@ export function mapAgUiInterrupt(interrupt: Interrupt): AgentInterrupt {
       : { toolExecutionId: interrupt.toolCallId }),
     ...(interrupt.responseSchema === undefined
       ? {}
-      : { responseSchema: interrupt.responseSchema }),
+      : { responseSchema: structuredClone(interrupt.responseSchema) }),
     ...(interrupt.expiresAt === undefined
       ? {}
       : { expiresAt: interrupt.expiresAt }),
     ...(interrupt.metadata === undefined
       ? {}
-      : { metadata: interrupt.metadata }),
+      : { metadata: structuredClone(interrupt.metadata) }),
   };
 }
 
@@ -33,7 +33,11 @@ export function mapInterruptResponse(
   return {
     interruptId: response.interruptId,
     status: response.status,
-    ...(response.payload === undefined ? {} : { payload: response.payload }),
-    ...(response.metadata === undefined ? {} : { metadata: response.metadata }),
+    ...(response.payload === undefined
+      ? {}
+      : { payload: structuredClone(response.payload) }),
+    ...(response.metadata === undefined
+      ? {}
+      : { metadata: structuredClone(response.metadata) }),
   };
 }
