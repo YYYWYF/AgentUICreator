@@ -328,6 +328,178 @@ describe("PluginServiceRuntime", () => {
     renderer.unmount();
   });
 
+  it("supports class-based observable services without losing this", () => {
+    const EMPTY_SNAPSHOT = { value: 0 };
+    class CounterService
+      implements UIPluginObservableService<typeof EMPTY_SNAPSHOT>
+    {
+      private snapshot = EMPTY_SNAPSHOT;
+      private readonly listeners = new Set<() => void>();
+
+      getSnapshot() {
+        return this.snapshot;
+      }
+
+      subscribe(listener: () => void) {
+        this.listeners.add(listener);
+
+        return () => this.listeners.delete(listener);
+      }
+
+      increment() {
+        this.snapshot = {
+          value: this.snapshot.value + 1,
+        };
+        this.listeners.forEach((listener) => listener());
+      }
+    }
+
+    const service = new CounterService();
+
+    function Counter({
+      service: pluginService,
+    }: {
+      service: CounterService | undefined;
+    }) {
+      const snapshot = usePluginServiceSnapshot(pluginService, EMPTY_SNAPSHOT);
+
+      return <span>{snapshot.value}</span>;
+    }
+
+    const renderer = create(<Counter service={service} />);
+
+    expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
+
+    act(() => {
+      service.increment();
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["1"]);
+
+    act(() => {
+      service.increment();
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["2"]);
+
+    renderer.unmount();
+  });
+
+  it("unsubscribes class service listeners on unmount", () => {
+    const EMPTY_SNAPSHOT = { value: 0 };
+    class CounterService
+      implements UIPluginObservableService<typeof EMPTY_SNAPSHOT>
+    {
+      private snapshot = EMPTY_SNAPSHOT;
+      private readonly listeners = new Set<() => void>();
+
+      getSnapshot() {
+        return this.snapshot;
+      }
+
+      subscribe(listener: () => void) {
+        this.listeners.add(listener);
+
+        return () => this.listeners.delete(listener);
+      }
+
+      get listenerCount() {
+        return this.listeners.size;
+      }
+    }
+
+    const service = new CounterService();
+
+    function Counter({
+      service: pluginService,
+    }: {
+      service: CounterService | undefined;
+    }) {
+      const snapshot = usePluginServiceSnapshot(pluginService, EMPTY_SNAPSHOT);
+
+      return <span>{snapshot.value}</span>;
+    }
+
+    const renderer = create(<Counter service={service} />);
+
+    expect(service.listenerCount).toBe(1);
+    expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
+
+    renderer.unmount();
+    expect(service.listenerCount).toBe(0);
+  });
+
+  it("rebinds to a replacement observable service instance", () => {
+    const EMPTY_SNAPSHOT = { value: 0 };
+    class CounterService
+      implements UIPluginObservableService<typeof EMPTY_SNAPSHOT>
+    {
+      private snapshot = EMPTY_SNAPSHOT;
+      private readonly listeners = new Set<() => void>();
+
+      getSnapshot() {
+        return this.snapshot;
+      }
+
+      subscribe(listener: () => void) {
+        this.listeners.add(listener);
+
+        return () => this.listeners.delete(listener);
+      }
+
+      increment() {
+        this.snapshot = {
+          value: this.snapshot.value + 1,
+        };
+        this.listeners.forEach((listener) => listener());
+      }
+
+      get listenerCount() {
+        return this.listeners.size;
+      }
+    }
+
+    const firstService = new CounterService();
+    const secondService = new CounterService();
+
+    function Counter({
+      service: pluginService,
+    }: {
+      service: CounterService | undefined;
+    }) {
+      const snapshot = usePluginServiceSnapshot(pluginService, EMPTY_SNAPSHOT);
+
+      return <span>{snapshot.value}</span>;
+    }
+
+    const renderer = create(<Counter service={firstService} />);
+
+    expect(firstService.listenerCount).toBe(1);
+    expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
+
+    act(() => {
+      firstService.increment();
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["1"]);
+
+    act(() => {
+      renderer.update(<Counter service={secondService} />);
+    });
+    expect(firstService.listenerCount).toBe(0);
+    expect(secondService.listenerCount).toBe(1);
+
+    act(() => {
+      firstService.increment();
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["1"]);
+
+    act(() => {
+      secondService.increment();
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["1"]);
+
+    renderer.unmount();
+    expect(secondService.listenerCount).toBe(0);
+  });
+
   it("cleans provider and consumer lifetimes before a dependency disappears", () => {
     const providerCleanup = vi.fn();
     const consumerCleanup = vi.fn();
