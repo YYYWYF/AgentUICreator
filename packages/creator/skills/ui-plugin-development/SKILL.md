@@ -16,6 +16,7 @@ Inspect project conventions before deciding that Plugin source must change:
 - `/project/plugins/registry.generated.ts` is the generated production registry and statically imports only definitions selected by AppUIModel. Never edit it or `/project/plugins/index.ts` by hand.
 - `/project/framework/contracts/ui-plugin.ts` is the Plugin Contract.
 - `/project/agent-contract/agent-events.ts` is the application-owned registry for backend Application Event names and payload schemas.
+- `/project/agent-contract/agent-tools.ts` is the application-owned allowlist for capability operations exposed to the Agent.
 - `/project/services/*` contains stable project-owned Service seams when multiple Plugins share one capability. Treat these seams as read-only unless the host explicitly authorizes capability-contract work.
 
 ## Reuse decision
@@ -52,7 +53,8 @@ Inspect project conventions before deciding that Plugin source must change:
 - Child Slots and Plugin-declared outlets are intentionally out of scope in this phase.
 - Use `context.actions.sendMessage`, `startNewConversation`, `abortRun`, and `updateInstanceProps`; never create a separate Agent Runtime inside a Plugin.
 - Keep Plugin dependencies in the generated project and follow its current UI stack and versions.
-- Service contracts are owned by the runtime, not individual Plugins:
+- Service contracts are stable project-owned capability seams, not concrete
+  Provider Plugins or Runtime Core actions:
   - `provides` means this Plugin owns and declares one or more capabilities for the current activation lifecycle.
   - `inject` means this Plugin requires a hard capability dependency before activation.
   - `services.get()` is runtime capability lookup for optional access.
@@ -65,6 +67,12 @@ Inspect project conventions before deciding that Plugin source must change:
 - `UIPluginObservableService` requires `getSnapshot()` + `subscribe()`; otherwise prefer a structural interface with explicit methods.
 - Structural interface service examples are acceptable, and `EventEmitter`-style ad-hoc emitters should remain project-local, not runtime API additions.
 - Do not place capability implementations into `context.actions`.
+- A Frontend Tool is an Agent-facing adapter for a selected capability operation; it is not a Plugin capability and is not registered by a Plugin.
+- When the product explicitly asks the Agent to invoke frontend behavior, first reuse an existing stable Service seam. Create a new Service only when the capability does not exist, have the Provider Plugin declare `provides`, and expose the selected operation from `/project/agent-contract/agent-tools.ts`.
+- Frontend Tool names use `lower_snake_case`, inputs use `z.strictObject(...)`, descriptions explain when to call the Tool plus what it does and does not do, and results stay short, structured, and serializable.
+- Frontend Tool handlers call `services.get(...)` and must tolerate a capability disappearing before execution. Never bind a Tool to a React component, ref, DOM query, Plugin instance, or concrete Provider implementation.
+- Do not automatically expose every Service method. A Service may have zero, one, or many explicitly authorized Frontend Tools.
+- Never generate `context.tools.register(...)`, `services.registerTool(...)`, `plugin.registerTool(...)`, or another Plugin self-registration API. Frontend Tool exposure is an Application permission boundary.
 - Provider implementation lifetime is the Plugin activation lifetime; consumers should always read through runtime services instead of direct imports.
 - Do not couple a generated Plugin to Creator packages or Creator UI dependencies.
 - Do not modify `/project/runtime` or `/project/framework` for Plugin-specific behavior.

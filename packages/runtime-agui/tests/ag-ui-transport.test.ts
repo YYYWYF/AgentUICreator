@@ -10,6 +10,7 @@ import {
   type ResumeEntry,
   type State,
 } from "@ag-ui/core";
+import type { AgentFrontendToolSource } from "@agent-ui/runtime-core";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -108,7 +109,12 @@ class FakeAgentClient {
     });
   }
 
-  emitToolStart(toolCallId: string, subagentRunId?: string): void {
+  emitToolStart(
+    toolCallId: string,
+    subagentRunId?: string,
+    toolCallName = "delete_files",
+    parentMessageId?: string,
+  ): void {
     this.subscribers.forEach((subscriber) => {
       const listener = subscriber.onToolCallStartEvent;
       if (listener === undefined) return;
@@ -116,7 +122,47 @@ class FakeAgentClient {
         event: {
           type: EventType.TOOL_CALL_START,
           toolCallId,
-          toolCallName: "delete_files",
+          toolCallName,
+          ...(subagentRunId === undefined ? {} : { subagentRunId }),
+          ...(parentMessageId === undefined ? {} : { parentMessageId }),
+        },
+        messages: this.messages,
+        state: this.state,
+        agent: this as unknown as AbstractAgent,
+      } as Parameters<typeof listener>[0]);
+    });
+  }
+
+  emitToolArgs(
+    toolCallId: string,
+    delta: string,
+    subagentRunId?: string,
+  ): void {
+    this.subscribers.forEach((subscriber) => {
+      const listener = subscriber.onToolCallArgsEvent;
+      if (listener === undefined) return;
+      void listener({
+        event: {
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId,
+          delta,
+          ...(subagentRunId === undefined ? {} : { subagentRunId }),
+        },
+        messages: this.messages,
+        state: this.state,
+        agent: this as unknown as AbstractAgent,
+      } as Parameters<typeof listener>[0]);
+    });
+  }
+
+  emitToolEnd(toolCallId: string, subagentRunId?: string): void {
+    this.subscribers.forEach((subscriber) => {
+      const listener = subscriber.onToolCallEndEvent;
+      if (listener === undefined) return;
+      void listener({
+        event: {
+          type: EventType.TOOL_CALL_END,
+          toolCallId,
           ...(subagentRunId === undefined ? {} : { subagentRunId }),
         },
         messages: this.messages,
@@ -543,7 +589,10 @@ describe("AgUiTransport", () => {
       metadata: { source: "tool-card" },
     }];
     const resume = runtime.resumeInterrupts(responses);
-    expect(agent.runParametersSeen).toEqual([{ resume: responses }]);
+    expect(agent.runParametersSeen).toEqual([{
+      resume: responses,
+      tools: [],
+    }]);
     expect(runtime.getSnapshot()).toMatchObject({
       run: { status: "running" },
       interrupts: [{ id: "approval" }],
@@ -636,6 +685,306 @@ describe("AgUiTransport", () => {
     await runtime.sendMessage({ content: "Fresh context" });
     expect(secondAgent.messagesSeenAtRun[0]).toMatchObject([
       { role: "user", content: "Fresh context" },
+    ]);
+  });
+
+  it("advertises current frontend tools and completes a subagent tool chain", async () => {
+    const agent = new FakeAgentClient();
+    const execute = vi.fn<AgentFrontendToolSource["execute"]>(async (call) => ({
+      content: JSON.stringify({ opened: call.input }),
+    }));
+    const listTools = vi.fn(() => [{
+      name: "editor_open_file",
+      description: "Open an existing file without modifying it.",
+      inputSchema: {
+        type: "object",
+        properties: { path: { type: "string" } },
+        required: ["path"],
+        additionalProperties: false,
+      },
+    }]);
+    const frontendTools: AgentFrontendToolSource = { listTools, execute };
+    let runCount = 0;
+    agent.runAgent = vi.fn(async (parameters?: RunAgentParameters) => {
+      agent.runParametersSeen.push(parameters);
+      runCount += 1;
+      agent.emitRunStarted("thread", `run-${runCount}`);
+      if (runCount === 1) {
+        agent.emitToolStart(
+          "frontend-call",
+          "researcher",
+          "editor_open_file",
+          "assistant-message",
+        );
+        agent.emitToolArgs("frontend-call", '{"path":', "researcher");
+        agent.emitToolArgs("frontend-call", '"src/App.tsx"}', "researcher");
+        agent.emitToolEnd("frontend-call", "researcher");
+      }
+      agent.emitRunFinished("thread", `run-${runCount}`);
+    });
+    const transport = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui", frontendTools },
+      () => agent,
+    );
+
+    await transport.sendMessage({ content: "Open src/App.tsx" });
+
+    expect(listTools).toHaveBeenCalledTimes(2);
+    expect(agent.runParametersSeen).toHaveLength(2);
+    expect(agent.runParametersSeen[0]).toEqual({
+      tools: [{
+        name: "editor_open_file",
+        description: "Open an existing file without modifying it.",
+        parameters: {
+          type: "object",
+          properties: { path: { type: "string" } },
+          required: ["path"],
+          additionalProperties: false,
+        },
+      }],
+    });
+    expect(agent.runParametersSeen[1]).toEqual(agent.runParametersSeen[0]);
+    expect(execute).toHaveBeenCalledOnce();
+    expect(execute.mock.calls[0]?.[0]).toEqual({
+      id: "frontend-call",
+      name: "editor_open_file",
+      input: { path: "src/App.tsx" },
+      producer: { type: "subagent", id: "researcher" },
+      parentMessageId: "assistant-message",
+    });
+    expect(agent.messages).toMatchObject([
+      { role: "user", content: "Open src/App.tsx" },
+      {
+        role: "tool",
+        toolCallId: "frontend-call",
+        subagentRunId: "researcher",
+      },
+    ]);
+    expect(agent.messages.filter((message) => message.role === "user"))
+      .toHaveLength(1);
+    expect(transport.getSnapshot()).toMatchObject({
+      run: { status: "idle" },
+      executions: [{
+        type: "tool",
+        id: "frontend-call",
+        status: "completed",
+        producer: { type: "subagent", id: "researcher" },
+      }],
+    });
+  });
+
+  it("returns malformed frontend arguments as a tool error and continues", async () => {
+    const agent = new FakeAgentClient();
+    const execute = vi.fn<AgentFrontendToolSource["execute"]>();
+    const frontendTools: AgentFrontendToolSource = {
+      listTools: () => [{
+        name: "editor_open_file",
+        description: "Open an existing file without modifying it.",
+        inputSchema: { type: "object" },
+      }],
+      execute,
+    };
+    let runCount = 0;
+    agent.runAgent = vi.fn(async (parameters?: RunAgentParameters) => {
+      agent.runParametersSeen.push(parameters);
+      runCount += 1;
+      agent.emitRunStarted("thread", `run-${runCount}`);
+      if (runCount === 1) {
+        agent.emitToolStart("bad-args", undefined, "editor_open_file");
+        agent.emitToolArgs("bad-args", '{"path":');
+        agent.emitToolEnd("bad-args");
+      }
+      agent.emitRunFinished("thread", `run-${runCount}`);
+    });
+    const transport = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui", frontendTools },
+      () => agent,
+    );
+
+    await transport.sendMessage({ content: "Open it" });
+
+    expect(execute).not.toHaveBeenCalled();
+    expect(agent.runParametersSeen).toHaveLength(2);
+    expect(agent.messages.at(-1)).toMatchObject({
+      role: "tool",
+      toolCallId: "bad-args",
+      content: "Invalid frontend tool arguments",
+      error: expect.stringContaining("Invalid frontend tool arguments"),
+    });
+    expect(transport.getSnapshot()).toMatchObject({
+      run: { status: "idle" },
+      executions: [{ id: "bad-args", status: "error" }],
+    });
+  });
+
+  it("lets a server tool result win and ignores non-advertised tools", async () => {
+    const agent = new FakeAgentClient();
+    const execute = vi.fn<AgentFrontendToolSource["execute"]>();
+    const frontendTools: AgentFrontendToolSource = {
+      listTools: () => [{
+        name: "editor_open_file",
+        description: "Open an existing file without modifying it.",
+        inputSchema: { type: "object" },
+      }],
+      execute,
+    };
+    agent.runAgent = vi.fn(async (parameters?: RunAgentParameters) => {
+      agent.runParametersSeen.push(parameters);
+      agent.emitRunStarted("thread", "run-1");
+      agent.emitToolStart("server-wins", undefined, "editor_open_file");
+      agent.emitToolEnd("server-wins");
+      agent.emitToolResult("server-wins");
+      agent.emitToolStart("server-only", undefined, "database_search");
+      agent.emitToolEnd("server-only");
+      agent.emitRunFinished("thread", "run-1");
+    });
+    const transport = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui", frontendTools },
+      () => agent,
+    );
+
+    await transport.sendMessage({ content: "Run tools" });
+
+    expect(execute).not.toHaveBeenCalled();
+    expect(agent.runParametersSeen).toHaveLength(1);
+    expect(transport.getSnapshot().executions).toMatchObject([
+      { id: "server-wins", status: "completed" },
+      { id: "server-only", status: "interrupted" },
+    ]);
+  });
+
+  it("does not execute frontend tools when a structured interrupt wins", async () => {
+    const agent = new FakeAgentClient();
+    const execute = vi.fn<AgentFrontendToolSource["execute"]>();
+    const frontendTools: AgentFrontendToolSource = {
+      listTools: () => [{
+        name: "editor_open_file",
+        description: "Open an existing file without modifying it.",
+        inputSchema: { type: "object" },
+      }],
+      execute,
+    };
+    agent.runAgent = vi.fn(async (parameters?: RunAgentParameters) => {
+      agent.runParametersSeen.push(parameters);
+      agent.emitRunStarted("thread", "run-1");
+      agent.emitToolStart("pending-tool", undefined, "editor_open_file");
+      agent.emitToolEnd("pending-tool");
+      agent.emitRunFinished("thread", "run-1", [{
+        id: "approval",
+        reason: "human-input",
+      }]);
+    });
+    const transport = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui", frontendTools },
+      () => agent,
+    );
+
+    await transport.sendMessage({ content: "Open it" });
+
+    expect(execute).not.toHaveBeenCalled();
+    expect(agent.runParametersSeen).toHaveLength(1);
+    expect(transport.getSnapshot()).toMatchObject({
+      run: { status: "awaiting-input" },
+      interrupts: [{ id: "approval" }],
+      executions: [{ id: "pending-tool", status: "interrupted" }],
+    });
+  });
+
+  it("executes a frontend tool batch in event order with one continuation", async () => {
+    const agent = new FakeAgentClient();
+    const executionOrder: string[] = [];
+    const frontendTools: AgentFrontendToolSource = {
+      listTools: () => [
+        {
+          name: "editor_open_file",
+          description: "Open an existing file without modifying it.",
+          inputSchema: { type: "object" },
+        },
+        {
+          name: "editor_reveal_range",
+          description: "Reveal a range in the currently visible editor.",
+          inputSchema: { type: "object" },
+        },
+      ],
+      execute: async (call) => {
+        executionOrder.push(call.name);
+        return { content: call.name };
+      },
+    };
+    let runCount = 0;
+    agent.runAgent = vi.fn(async (parameters?: RunAgentParameters) => {
+      agent.runParametersSeen.push(parameters);
+      runCount += 1;
+      agent.emitRunStarted("thread", `run-${runCount}`);
+      if (runCount === 1) {
+        agent.emitToolStart("call-a", undefined, "editor_open_file");
+        agent.emitToolEnd("call-a");
+        agent.emitToolStart("call-b", undefined, "editor_reveal_range");
+        agent.emitToolEnd("call-b");
+      } else {
+        // Replayed IDs from a continuation never execute twice.
+        agent.emitToolStart("call-a", undefined, "editor_open_file");
+        agent.emitToolEnd("call-a");
+      }
+      agent.emitRunFinished("thread", `run-${runCount}`);
+    });
+    const transport = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui", frontendTools },
+      () => agent,
+    );
+
+    await transport.sendMessage({ content: "Open and reveal" });
+
+    expect(executionOrder).toEqual([
+      "editor_open_file",
+      "editor_reveal_range",
+    ]);
+    expect(agent.messages.filter((message) => message.role === "tool"))
+      .toMatchObject([
+        { toolCallId: "call-a", content: "editor_open_file" },
+        { toolCallId: "call-b", content: "editor_reveal_range" },
+      ]);
+    expect(agent.runParametersSeen).toHaveLength(2);
+  });
+
+  it("aborts local frontend execution without adding a late result", async () => {
+    const agent = new FakeAgentClient();
+    let resolveTool: (result: { content: string }) => void = () => undefined;
+    const execute = vi.fn<AgentFrontendToolSource["execute"]>(() =>
+      new Promise((resolve) => {
+        resolveTool = resolve;
+      }));
+    const frontendTools: AgentFrontendToolSource = {
+      listTools: () => [{
+        name: "editor_open_file",
+        description: "Open an existing file without modifying it.",
+        inputSchema: { type: "object" },
+      }],
+      execute,
+    };
+    agent.runAgent = vi.fn(async (parameters?: RunAgentParameters) => {
+      agent.runParametersSeen.push(parameters);
+      agent.emitRunStarted("thread", "run-1");
+      agent.emitToolStart("slow-tool", undefined, "editor_open_file");
+      agent.emitToolEnd("slow-tool");
+      agent.emitRunFinished("thread", "run-1");
+    });
+    const transport = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui", frontendTools },
+      () => agent,
+    );
+
+    const send = transport.sendMessage({ content: "Open it" });
+    await vi.waitFor(() => expect(execute).toHaveBeenCalledOnce());
+    transport.abort();
+    resolveTool({ content: "late success" });
+    await send;
+
+    expect(agent.messages.filter((message) => message.role === "tool"))
+      .toHaveLength(0);
+    expect(agent.runParametersSeen).toHaveLength(1);
+    expect(transport.getSnapshot().executions).toMatchObject([
+      { id: "slow-tool", status: "interrupted" },
     ]);
   });
 });

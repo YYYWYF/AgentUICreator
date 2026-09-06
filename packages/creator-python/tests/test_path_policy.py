@@ -7,18 +7,28 @@ from agent_ui_creator.minimal_agent.path_policy import (
 )
 
 
-def test_development_path_policy_allows_reads_but_only_plugin_edits(tmp_path):
+def test_development_path_policy_allows_frontend_capability_contract_edits(tmp_path):
     plugins = tmp_path / "plugins"
     plugins.mkdir()
     (plugins / "foo.ts").write_text('export const value = "old";\n', encoding="utf-8")
     (plugins / "registry.generated.ts").write_text("generated\n", encoding="utf-8")
     (tmp_path / "app-ui").mkdir()
     (tmp_path / "app-ui" / "app-ui.json").write_text("{}\n", encoding="utf-8")
+    services = tmp_path / "services"
+    services.mkdir()
+    (services / "editor.ts").write_text("old\n", encoding="utf-8")
+    agent_contract = tmp_path / "agent-contract"
+    agent_contract.mkdir()
+    (agent_contract / "agent-tools.ts").write_text("old\n", encoding="utf-8")
     backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
 
     assert backend.read("/plugins/foo.ts").error is None
     assert backend.edit(
         "/plugins/foo.ts", '"old"', '"new"'
+    ).error is None
+    assert backend.edit("/services/editor.ts", "old", "new").error is None
+    assert backend.edit(
+        "/agent-contract/agent-tools.ts", "old", "new"
     ).error is None
     assert "TOOL_PERMISSION_DENIED" in backend.edit(
         "/plugins/registry.generated.ts", "generated", "changed"

@@ -60,7 +60,14 @@ export const CREATOR_FILESYSTEM_PERMISSIONS: FilesystemPermission[] = [
   },
   {
     operations: ["write"],
-    paths: ["/project/agent-contract/agent-events.ts"],
+    paths: [
+      "/project/agent-contract/agent-events.ts",
+      "/project/agent-contract/agent-tools.ts",
+    ],
+  },
+  {
+    operations: ["write"],
+    paths: ["/project/services/**"],
   },
   {
     operations: ["write"],

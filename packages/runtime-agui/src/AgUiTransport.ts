@@ -3,10 +3,12 @@ import {
   type AgentSubscriber,
   type RunAgentParameters,
 } from "@ag-ui/client";
-import type { Message, State } from "@ag-ui/core";
+import type { Message, State, Tool, ToolMessage } from "@ag-ui/core";
 import {
   ObservableAgentTransport,
   type AgentConversation,
+  type AgentFrontendToolResult,
+  type AgentFrontendToolSource,
   type AgentInterrupt,
   type AgentInterruptResponse,
   type AgentRunState,
@@ -20,9 +22,15 @@ import {
   mapInterruptResponse,
 } from "./interrupt-mapper.js";
 import { LifecycleProjector } from "./lifecycle-projector.js";
+import {
+  FrontendToolCoordinator,
+  type CollectedFrontendToolCall,
+} from "./frontend-tool-coordinator.js";
+import { mapFrontendToolDefinition } from "./frontend-tool-mapper.js";
 
 export interface AgUiTransportConfig {
   endpoint: string;
+  frontendTools?: AgentFrontendToolSource | undefined;
 }
 
 interface AgentClient {
@@ -35,7 +43,8 @@ interface AgentClient {
   abortRun(): void;
 }
 
-interface AgentClientConfig extends AgUiTransportConfig {
+interface AgentClientConfig {
+  endpoint: string;
   threadId: string;
 }
 
@@ -47,7 +56,14 @@ interface SnapshotOverrides {
   interrupts?: AgentInterrupt[] | undefined;
 }
 
-type PendingRunKind = "fresh" | "resume";
+type PendingRunKind = "fresh" | "resume" | "tool-continuation";
+
+interface LogicalOperation {
+  agent: AgentClient;
+  controller: AbortController;
+}
+
+const abortedOperation = Symbol("aborted-operation");
 
 function createMessageId(prefix: string): string {
   return `${prefix}-${crypto.randomUUID()}`;
@@ -95,17 +111,39 @@ function createRunState(
   };
 }
 
+function waitForAbort<T>(
+  promise: Promise<T>,
+  signal: AbortSignal,
+): Promise<T | typeof abortedOperation> {
+  if (signal.aborted) {
+    return Promise.resolve(abortedOperation);
+  }
+
+  return new Promise((resolve, reject) => {
+    const onAbort = (): void => {
+      resolve(abortedOperation);
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(resolve, reject).finally(() => {
+      signal.removeEventListener("abort", onAbort);
+    });
+  });
+}
+
 export class AgUiTransport<TState = unknown>
   extends ObservableAgentTransport<TState> {
   readonly mode = "http" as const;
 
   private agent: AgentClient;
   private readonly projector: LifecycleProjector;
+  private readonly frontendToolCoordinator = new FrontendToolCoordinator();
   private readonly config: AgUiTransportConfig;
   private readonly createClient: AgentClientFactory;
   private unsubscribeFromAgent: (() => void) | undefined;
   private disposed = false;
   private pendingRunKind: PendingRunKind | undefined;
+  private pendingFrontendCalls: CollectedFrontendToolCall[] = [];
+  private operation: LogicalOperation | undefined;
 
   constructor(
     config: AgUiTransportConfig,
@@ -113,7 +151,10 @@ export class AgUiTransport<TState = unknown>
       new HttpAgent({ url: endpoint, threadId }),
   ) {
     const conversationId = crypto.randomUUID();
-    const agent = createClient({ ...config, threadId: conversationId });
+    const agent = createClient({
+      endpoint: config.endpoint,
+      threadId: conversationId,
+    });
     const projector = new LifecycleProjector();
     super({
       conversation: { id: conversationId },
@@ -139,12 +180,11 @@ export class AgUiTransport<TState = unknown>
           run: createRunState("running", this.snapshot.run.id),
         }),
       onRunStartedEvent: ({ event, input }) => {
-        const runKind: PendingRunKind =
-          (input?.resume?.length ?? 0) > 0 || this.pendingRunKind === "resume"
-            ? "resume"
-            : "fresh";
+        const runKind: PendingRunKind = (input?.resume?.length ?? 0) > 0
+          ? "resume"
+          : this.pendingRunKind ?? "fresh";
         this.pendingRunKind = undefined;
-        if (runKind === "resume") {
+        if (runKind === "resume" || runKind === "tool-continuation") {
           this.projector.startContinuationRun();
         } else {
           this.projector.resetForFreshRun();
@@ -156,13 +196,22 @@ export class AgUiTransport<TState = unknown>
       },
       onRunFinishedEvent: (parameters) => {
         const { event } = parameters;
-        this.projector.interruptActive();
         if (parameters.outcome === "interrupt") {
+          this.frontendToolCoordinator.discardWireRun();
+          this.pendingFrontendCalls = [];
+          this.projector.interruptActive();
           this.syncFromAgent(agent, {
             run: createRunState("awaiting-input", event.runId),
             interrupts: parameters.interrupts.map(mapAgUiInterrupt),
           });
         } else {
+          this.pendingFrontendCalls =
+            this.frontendToolCoordinator.finishSuccessfulWireRun();
+          this.projector.interruptActive({
+            preserveToolIds: new Set(
+              this.pendingFrontendCalls.map(({ call }) => call.id),
+            ),
+          });
           this.syncFromAgent(agent, {
             run: createRunState("idle", event.runId),
             interrupts: [],
@@ -170,6 +219,8 @@ export class AgUiTransport<TState = unknown>
         }
       },
       onRunErrorEvent: ({ event }) => {
+        this.frontendToolCoordinator.discardWireRun();
+        this.pendingFrontendCalls = [];
         this.projector.interruptActive();
         this.syncFromAgent(agent, {
           run: createRunState(
@@ -183,6 +234,8 @@ export class AgUiTransport<TState = unknown>
         });
       },
       onRunFailed: ({ error }) => {
+        this.frontendToolCoordinator.discardWireRun();
+        this.pendingFrontendCalls = [];
         this.projector.interruptActive();
         this.syncFromAgent(agent, {
           run: createRunState(
@@ -216,18 +269,22 @@ export class AgUiTransport<TState = unknown>
         this.syncFromAgent(agent);
       },
       onToolCallStartEvent: ({ event }) => {
+        this.frontendToolCoordinator.onToolCallStart(event);
         this.projector.onToolCallStart(event);
         this.syncFromAgent(agent);
       },
       onToolCallArgsEvent: ({ event }) => {
+        this.frontendToolCoordinator.onToolCallArgs(event);
         this.projector.onToolCallArgs(event);
         this.syncFromAgent(agent);
       },
       onToolCallEndEvent: ({ event }) => {
+        this.frontendToolCoordinator.onToolCallEnd(event);
         this.projector.onToolCallEnd(event);
         this.syncFromAgent(agent);
       },
       onToolCallResultEvent: ({ event }) => {
+        this.frontendToolCoordinator.onToolCallResult(event);
         this.projector.onToolCallResult(event);
         this.syncFromAgent(agent);
       },
@@ -301,38 +358,17 @@ export class AgUiTransport<TState = unknown>
 
     const agent = this.agent;
 
-    if (this.snapshot.run.status === "running" || agent.isRunning) {
+    if (
+      this.operation !== undefined ||
+      this.snapshot.run.status === "running" ||
+      agent.isRunning
+    ) {
       throw new Error("智能体运行时正在处理另一条消息。");
     }
 
+    this.frontendToolCoordinator.resetLogicalChain();
     agent.addMessage(mapAgentUserInput(input, createMessageId("user")));
-
-    try {
-      this.pendingRunKind = "fresh";
-      this.syncFromAgent(agent, { run: createRunState("running") });
-      const run = agent.runAgent();
-      await run;
-    } catch (error) {
-      const runError = toError(error);
-      this.projector.interruptActive();
-      this.syncFromAgent(agent, {
-        run: createRunState(
-          "error",
-          this.snapshot.run.id,
-          retainProtocolError(this.snapshot.run, runError),
-        ),
-      });
-      throw runError;
-    } finally {
-      if (this.snapshot.run.status === "running") {
-        this.projector.interruptActive();
-        this.syncFromAgent(agent, {
-          run: createRunState("idle", this.snapshot.run.id),
-          interrupts: [],
-        });
-      }
-      this.pendingRunKind = undefined;
-    }
+    await this.runLogicalOperation(agent, "fresh");
   }
 
   async resumeInterrupts(
@@ -342,39 +378,24 @@ export class AgUiTransport<TState = unknown>
     if (this.snapshot.interrupts.length === 0) {
       throw new Error("No pending interrupts");
     }
-    if (this.snapshot.run.status === "running" || agent.isRunning) {
+    if (
+      this.operation !== undefined ||
+      this.snapshot.run.status === "running" ||
+      agent.isRunning
+    ) {
       throw new Error("Cannot resume interrupts while the agent is running");
     }
-
-    try {
-      this.pendingRunKind = "resume";
-      this.syncFromAgent(agent, { run: createRunState("running") });
-      await agent.runAgent({ resume: responses.map(mapInterruptResponse) });
-    } catch (error) {
-      const runError = toError(error);
-      this.projector.interruptActive();
-      this.syncFromAgent(agent, {
-        run: createRunState(
-          "error",
-          this.snapshot.run.id,
-          retainProtocolError(this.snapshot.run, runError),
-        ),
-      });
-      throw runError;
-    } finally {
-      if (this.snapshot.run.status === "running") {
-        this.projector.interruptActive();
-        this.syncFromAgent(agent, {
-          run: createRunState("idle", this.snapshot.run.id),
-          interrupts: [],
-        });
-      }
-      this.pendingRunKind = undefined;
-    }
+    await this.runLogicalOperation(agent, "resume", {
+      resume: responses.map(mapInterruptResponse),
+    });
   }
 
   async startNewConversation(): Promise<void> {
-    if (this.snapshot.run.status === "running" || this.agent.isRunning) {
+    if (
+      this.operation !== undefined ||
+      this.snapshot.run.status === "running" ||
+      this.agent.isRunning
+    ) {
       throw new Error("智能体运行时正在处理另一条消息。");
     }
 
@@ -382,7 +403,7 @@ export class AgUiTransport<TState = unknown>
     let nextAgent: AgentClient;
     try {
       nextAgent = this.createClient({
-        ...this.config,
+        endpoint: this.config.endpoint,
         threadId: conversationId,
       });
     } catch (error) {
@@ -395,6 +416,8 @@ export class AgUiTransport<TState = unknown>
     }
 
     this.unsubscribeFromAgent?.();
+    this.frontendToolCoordinator.resetLogicalChain();
+    this.pendingFrontendCalls = [];
     this.projector.resetConversation();
     this.agent = nextAgent;
     this.unsubscribeFromAgent = this.subscribeToAgent(nextAgent);
@@ -412,7 +435,10 @@ export class AgUiTransport<TState = unknown>
     if (this.snapshot.run.status === "awaiting-input") {
       return;
     }
+    this.operation?.controller.abort();
     this.agent.abortRun();
+    this.frontendToolCoordinator.discardWireRun();
+    this.pendingFrontendCalls = [];
     this.projector.interruptActive();
     if (this.snapshot.run.status === "running") {
       this.syncFromAgent(this.agent, {
@@ -426,6 +452,7 @@ export class AgUiTransport<TState = unknown>
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.operation?.controller.abort();
     this.unsubscribeFromAgent?.();
     this.unsubscribeFromAgent = undefined;
     super.dispose();
@@ -448,14 +475,187 @@ export class AgUiTransport<TState = unknown>
       interrupts: overrides.interrupts ?? this.snapshot.interrupts,
     });
   }
+
+  private async runLogicalOperation(
+    agent: AgentClient,
+    initialKind: PendingRunKind,
+    initialParameters: RunAgentParameters = {},
+  ): Promise<void> {
+    const operation: LogicalOperation = {
+      agent,
+      controller: new AbortController(),
+    };
+    this.operation = operation;
+
+    let runKind = initialKind;
+    let parameters = initialParameters;
+
+    try {
+      while (!operation.controller.signal.aborted) {
+        const definitions = this.config.frontendTools?.listTools() ?? [];
+        const tools: Tool[] = definitions.map(mapFrontendToolDefinition);
+        this.frontendToolCoordinator.startWireRun(definitions);
+        this.pendingFrontendCalls = [];
+        this.pendingRunKind = runKind;
+        this.syncFromAgent(agent, { run: createRunState("running") });
+
+        const wireResult = await waitForAbort(
+          Promise.resolve(agent.runAgent({ ...parameters, tools })),
+          operation.controller.signal,
+        );
+        if (
+          wireResult === abortedOperation ||
+          !this.isCurrentOperation(operation)
+        ) {
+          return;
+        }
+
+        const calls = this.pendingFrontendCalls;
+        this.pendingFrontendCalls = [];
+        if (calls.length === 0) {
+          return;
+        }
+
+        await this.executeFrontendTools(calls, operation);
+        if (
+          operation.controller.signal.aborted ||
+          !this.isCurrentOperation(operation)
+        ) {
+          return;
+        }
+
+        runKind = "tool-continuation";
+        parameters = {};
+      }
+    } catch (error) {
+      if (operation.controller.signal.aborted) {
+        return;
+      }
+      const runError = toError(error);
+      this.frontendToolCoordinator.discardWireRun();
+      this.pendingFrontendCalls = [];
+      this.projector.interruptActive();
+      this.syncFromAgent(agent, {
+        run: createRunState(
+          "error",
+          this.snapshot.run.id,
+          retainProtocolError(this.snapshot.run, runError),
+        ),
+      });
+      throw runError;
+    } finally {
+      if (this.isCurrentOperation(operation)) {
+        this.operation = undefined;
+      }
+      if (this.snapshot.run.status === "running") {
+        this.projector.interruptActive();
+        this.syncFromAgent(agent, {
+          run: createRunState("idle", this.snapshot.run.id),
+          interrupts: [],
+        });
+      }
+      this.pendingRunKind = undefined;
+    }
+  }
+
+  private async executeFrontendTools(
+    calls: readonly CollectedFrontendToolCall[],
+    operation: LogicalOperation,
+  ): Promise<void> {
+    const source = this.config.frontendTools;
+    if (source === undefined) return;
+
+    for (const collected of calls) {
+      if (
+        operation.controller.signal.aborted ||
+        !this.isCurrentOperation(operation)
+      ) {
+        return;
+      }
+
+      let result: AgentFrontendToolResult;
+      let input: unknown;
+      try {
+        input = collected.rawArguments.trim().length === 0
+          ? {}
+          : JSON.parse(collected.rawArguments);
+      } catch (error) {
+        result = {
+          content: "Invalid frontend tool arguments",
+          error: `Invalid frontend tool arguments: ${toError(error).message}`,
+        };
+        this.addFrontendToolMessage(collected, result, operation);
+        continue;
+      }
+
+      try {
+        const execution = waitForAbort(
+          Promise.resolve(source.execute(
+            { ...collected.call, input },
+            { signal: operation.controller.signal },
+          )),
+          operation.controller.signal,
+        );
+        const executionResult = await execution;
+        if (executionResult === abortedOperation) return;
+        result = executionResult;
+      } catch (error) {
+        const message = toError(error).message;
+        result = {
+          content: `Frontend tool execution failed: ${message}`,
+          error: message,
+        };
+      }
+
+      this.addFrontendToolMessage(collected, result, operation);
+    }
+  }
+
+  private addFrontendToolMessage(
+    collected: CollectedFrontendToolCall,
+    result: AgentFrontendToolResult,
+    operation: LogicalOperation,
+  ): void {
+    if (
+      operation.controller.signal.aborted ||
+      !this.isCurrentOperation(operation)
+    ) {
+      return;
+    }
+
+    const message: ToolMessage = {
+      id: createMessageId("tool"),
+      role: "tool",
+      toolCallId: collected.call.id,
+      content: result.content,
+      ...(result.error === undefined ? {} : { error: result.error }),
+      ...(collected.call.producer.type === "subagent"
+        ? { subagentRunId: collected.call.producer.id }
+        : {}),
+    };
+    operation.agent.addMessage(message);
+    this.syncFromAgent(operation.agent);
+  }
+
+  private isCurrentOperation(operation: LogicalOperation): boolean {
+    return !this.disposed &&
+      this.operation === operation &&
+      this.agent === operation.agent;
+  }
 }
 
 export function createAgUiTransport<TState = unknown>(options: {
   endpoint?: string | undefined;
+  frontendTools?: AgentFrontendToolSource | undefined;
 }): AgUiTransport<TState> {
   const endpoint = options.endpoint?.trim();
   if (!endpoint) {
     throw new Error("必须配置智能体运行时端点。");
   }
-  return new AgUiTransport<TState>({ endpoint });
+  return new AgUiTransport<TState>({
+    endpoint,
+    ...(options.frontendTools === undefined
+      ? {}
+      : { frontendTools: options.frontendTools }),
+  });
 }

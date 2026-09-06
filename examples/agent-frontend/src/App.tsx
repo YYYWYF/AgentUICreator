@@ -18,6 +18,7 @@ import { MockAgentTransport } from "@agent-ui/runtime-core/testing";
 import appUIJsonSource from "../app-ui/app-ui.json?raw";
 import type { AppAgentState } from "../agent-contract/agent-state";
 import { appEventSchemas } from "../agent-contract/agent-events";
+import { appFrontendTools } from "../agent-contract/agent-tools";
 import {
   parseAppUIModel,
   parseAppUIModelJson,
@@ -30,6 +31,10 @@ import {
 } from "../plugins/antd-x-theme-provider/theme-service";
 import { useAgentRuntime } from "../runtime/useAgentRuntime";
 import { AppEventRegistry } from "../runtime/events";
+import {
+  AppFrontendToolRegistry,
+  AppFrontendToolRuntime,
+} from "../runtime/tools";
 import {
   createPluginRegistry,
   PluginServiceProvider,
@@ -53,6 +58,10 @@ import "./styles.css";
 const initialAppUIModel = parseAppUIModelJson(appUIJsonSource);
 const pluginRegistry = createPluginRegistry<AppAgentState>(pluginDefinitions);
 const appEventRegistry = new AppEventRegistry(appEventSchemas);
+const appFrontendToolRegistry = new AppFrontendToolRegistry(appFrontendTools);
+const appFrontendToolRuntime = new AppFrontendToolRuntime(
+  appFrontendToolRegistry,
+);
 const endpoint = import.meta.env.VITE_AGENT_ENDPOINT?.trim();
 const agentTransport =
   import.meta.env.DEV && !endpoint
@@ -60,7 +69,10 @@ const agentTransport =
         initialMessages: initialPreviewMessages,
         initialState: previewAgentState,
       })
-    : createAgUiTransport<AppAgentState>({ endpoint });
+    : createAgUiTransport<AppAgentState>({
+        endpoint,
+        frontendTools: appFrontendToolRuntime,
+      });
 const agentRuntime = createAgentRuntime<AppAgentState>({
   transport: agentTransport,
 });
@@ -244,6 +256,7 @@ export function App({
         actions={pluginActions}
         applicationEventRegistry={appEventRegistry}
         applicationEventSource={agentRuntime}
+        frontendTools={appFrontendToolRuntime}
         model={model}
         registry={pluginRegistry}
       >

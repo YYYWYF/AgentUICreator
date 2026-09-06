@@ -654,6 +654,16 @@ const messages = conversations
 
 这个机制借鉴 DeepSeek Harness / Cordis 的 `provide`、`inject`、`get` 与 fiber-owned lifecycle 语义，但只实现适合当前确定性 React UI Plugin Runtime 的最小子集，不引入 Cordis 依赖。
 
+## 8.2 Frontend Tool Bridge
+
+Frontend Tool 是 Generated Application 明确授权给 Agent 的 Capability adapter，不是 Plugin API。Plugin 只通过 activation-scoped Service 提供能力；Application 在 `agent-contract/agent-tools.ts` 选择允许暴露的操作，Tool handler 通过 `UIPluginServices` 解析能力，不能直接调用 React、DOM、Plugin Instance 或具体 Provider。
+
+协议无关的 `AgentFrontendToolSource` 合同属于 Runtime Core，但它是 transport composition dependency，不扩展 `AgentRuntime` command API。AG-UI Adapter 在每次 wire run 前动态读取可用 Tool，将 JSON Schema 映射到 `RunAgentInput.tools[]`，并只收集当次实际广告名称对应的标准 `TOOL_CALL_*`。Backend 已返回 `TOOL_CALL_RESULT`、structured interrupt、Run error 或未完成的 Tool Call 都不会触发前端执行。
+
+成功 wire run 中确认的 Frontend Tool 按事件顺序串行执行，统一写入 `ToolMessage`，随后整批只启动一次不含 UserMessage 和 `resume` 的 continuation run。Tool continuation 与 HITL resume 都保留当前 fresh user turn 的 execution chain；下一次普通 `sendMessage` 或新 Conversation 才重置 handled Tool Call IDs。Operation-level cancellation 同时覆盖 wire run、本地 handler、late result 与自动 continuation，UI 继续用 `AgentToolExecution.status = awaiting-result` 表达本地执行中的 busy 状态。
+
+Generated Application 使用 Zod strict object 作为 Tool 输入校验和 JSON Schema 的单一来源。Tool 名称遵循 `^[a-z][a-z0-9_]{0,63}$`，`requires` 决定当前 Capability 是否足以广告 Tool，并在执行前再次检查。Capability ownership 与 Agent exposure permission 始终分离；不会因为 Service 存在就自动生成 Tool，也不允许 Plugin self-registration、CUSTOM bridge 或伪造 `TOOL_CALL_RESULT`。
+
 ---
 
 # 9. UI Runtime

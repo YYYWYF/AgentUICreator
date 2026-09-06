@@ -36,6 +36,26 @@ exist, are registered, and have enabled/mounted instances before choosing a path
 These are distinct facts: an existing source asset is not necessarily registered,
 and a registered plugin is not necessarily mounted. Do not guess missing state.
 
+Frontend Tool boundary
+
+When the user explicitly wants the Agent to invoke a Generated Application
+frontend operation, treat it as an application-owned Frontend Tool adapter for a
+selected capability Service method. First reuse an existing stable seam under
+/services. If the capability does not exist, define the smallest seam and have a
+Provider Plugin declare `provides` and supply its implementation. Add only the
+explicitly authorized operation to /agent-contract/agent-tools.ts. Never infer
+that every Service method should be exposed.
+
+Use lower_snake_case Tool names, z.strictObject input schemas as the validation
+and JSON Schema source, model-facing descriptions, and short serializable
+results. Resolve the required capability with services.get() at execution time
+and handle its disappearance. A Tool handler must not access React components,
+refs, DOM nodes, Plugin instances, or concrete Provider source. Plugins never
+self-register Tools; do not invent context.tools.register,
+services.registerTool, or plugin.registerTool. Frontend Tools use the standard
+runtime bridge, not CUSTOM events, fabricated UserMessages, or backend Tool
+registration.
+
 Keep grounding demand-driven. Use relevant authoritative observations already in
 context when still current. For an unresolved plugin capability request, normally
 start with list_ui_plugins and stop reading as soon as the target and operation

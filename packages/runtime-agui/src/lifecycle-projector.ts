@@ -132,9 +132,17 @@ export class LifecycleProjector {
     this.activeSteps.clear();
   }
 
-  interruptActive(): void {
+  interruptActive(options: {
+    preserveToolIds?: ReadonlySet<string> | undefined;
+  } = {}): void {
     let changed = false;
     const nextExecutions = this.executions.map((execution) => {
+      if (
+        execution.type === "tool" &&
+        options.preserveToolIds?.has(execution.id) === true
+      ) {
+        return execution;
+      }
       const next = interrupt(execution);
       changed ||= next !== execution;
       return next;

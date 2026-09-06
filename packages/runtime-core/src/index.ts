@@ -6,6 +6,13 @@ export type {
 } from "./agent-message.js";
 export type { AgentProducer } from "./agent-producer.js";
 export type {
+  AgentFrontendToolCall,
+  AgentFrontendToolDefinition,
+  AgentFrontendToolExecuteOptions,
+  AgentFrontendToolResult,
+  AgentFrontendToolSource,
+} from "./agent-frontend-tool.js";
+export type {
   AgentApplicationEvent,
   AgentApplicationEventListener,
 } from "./agent-application-event.js";

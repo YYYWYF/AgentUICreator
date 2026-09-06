@@ -74,9 +74,16 @@ class MinimalAgentPathPolicy:
     def assert_write(self, path: str) -> str:
         normalized = self.assert_read(path)
         if self.mode == "development":
-            if not normalized.startswith("/plugins/"):
+            writable = (
+                normalized.startswith("/plugins/")
+                or normalized.startswith("/services/")
+                or normalized == "/agent-contract/agent-tools.ts"
+            )
+            if not writable:
                 raise PathPolicyViolation(
-                    f"TOOL_PERMISSION_DENIED: writes are limited to /plugins/**, not {normalized}."
+                    "TOOL_PERMISSION_DENIED: writes are limited to /plugins/**, "
+                    "/services/**, and /agent-contract/agent-tools.ts, "
+                    f"not {normalized}."
                 )
             if normalized == "/plugins/registry.generated.ts":
                 raise PathPolicyViolation(

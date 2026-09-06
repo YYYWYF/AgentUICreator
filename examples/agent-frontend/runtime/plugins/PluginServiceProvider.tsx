@@ -18,6 +18,7 @@ import {
   AppEventRuntime,
   type ApplicationEventSource,
 } from "../events";
+import type { AppFrontendToolRuntime } from "../tools";
 
 export interface PluginServiceProviderProps<TState = unknown> {
   model: AppUIModel;
@@ -25,6 +26,7 @@ export interface PluginServiceProviderProps<TState = unknown> {
   actions: UIPluginRuntimeActions;
   applicationEventRegistry?: AppEventRegistry | undefined;
   applicationEventSource?: ApplicationEventSource | undefined;
+  frontendTools?: AppFrontendToolRuntime | undefined;
   children: ReactNode;
 }
 
@@ -34,6 +36,7 @@ export function PluginServiceProvider<TState = unknown>({
   actions,
   applicationEventRegistry,
   applicationEventSource,
+  frontendTools,
   children,
 }: PluginServiceProviderProps<TState>) {
   const [eventRuntime] = useState(
@@ -54,6 +57,11 @@ export function PluginServiceProvider<TState = unknown>({
       ? undefined
       : eventRuntime.connect(applicationEventSource),
     [applicationEventSource, eventRuntime],
+  );
+
+  useLayoutEffect(
+    () => frontendTools?.connectServices(runtime.services),
+    [frontendTools, runtime],
   );
 
   useLayoutEffect(() => {

@@ -572,7 +572,14 @@ export function ToolCallDetailsPlugin({ context }: UIPluginComponentProps) {
       },
       {
         operations: ["write"],
-        paths: ["/project/agent-contract/agent-events.ts"],
+        paths: [
+          "/project/agent-contract/agent-events.ts",
+          "/project/agent-contract/agent-tools.ts",
+        ],
+      },
+      {
+        operations: ["write"],
+        paths: ["/project/services/**"],
       },
       {
         operations: ["write"],
