@@ -1,6 +1,7 @@
 import type {
   UIPluginComponentProps,
 } from "../../framework/contracts/ui-plugin";
+import { useAgentState, usePluginInstance } from "../../runtime/context";
 
 import "./styles.css";
 
@@ -56,9 +57,11 @@ function readPreviewFile(
   };
 }
 
-export function FilePreviewPlugin({ context }: UIPluginComponentProps) {
-  const preview = readPreviewFile(context.state, context.instance.props);
-  const showHeader = context.instance.props?.showHeader !== false;
+export function FilePreviewPlugin(_props: UIPluginComponentProps) {
+  const state = useAgentState();
+  const instance = usePluginInstance();
+  const preview = readPreviewFile(state, instance.props);
+  const showHeader = instance.props?.showHeader !== false;
 
   return (
     <section

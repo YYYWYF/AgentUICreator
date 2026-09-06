@@ -38,7 +38,7 @@ Inspect project conventions before deciding that Plugin source must change:
 
 1. Read `/project/framework/contracts/ui-plugin.ts` and one existing Plugin end to end.
 2. Create `/project/plugins/<plugin-id>/manifest.json` with a unique id, useful description, version, capabilities when applicable, and accurate `data.messages`, `data.state`, or `data.events` declarations.
-3. Create `index.tsx` with a named React component that accepts `UIPluginComponentProps` and narrows unknown AG-UI data safely.
+3. Create `index.tsx` with a named React component. Accept `UIPluginComponentProps` only when it needs `renderSlot`; read Agent and instance data through Runtime Context hooks and narrow unknown state safely.
 4. Create `definition.ts` that validates the manifest and exports a `UIPluginDefinition`.
 6. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
 7. Default-export the definition so the target-owned generator can include it in the static Registry. Do not spread a template catalog into the production registry.
@@ -47,26 +47,27 @@ Inspect project conventions before deciding that Plugin source must change:
 
 ## Contract boundaries
 
-- A Plugin receives `conversation`, `messages`, `state`, `run`, `executions`, `interrupts`, scoped `events`, its `instance`, runtime-provided `actions`, and frontend `services` through `UIPluginContext`.
+- Read Agent data through the domain hooks exported by `/project/runtime/context`: `useAgentConversation`, `useAgentMessages`, `useAgentState`, `useAgentRun`, `useAgentExecutions`, and `useAgentInterrupts`. Use `useAgentRuntimeSnapshot` only when the component genuinely needs the complete snapshot.
+- Read the current instance scope through `usePluginInstance`, `usePluginActions`, and `usePluginEvents`. Never recreate a combined context prop or pass Runtime snapshot fields through component props.
 - Before a Plugin consumes a backend Application Event, add its lowercase dot-separated name and strict payload schema to `/project/agent-contract/agent-events.ts`, then declare the same name in `manifest.data.events`. A manifest declaration consumes an application-owned contract; it does not register one.
-- Subscribe through `context.events.subscribe`. Never import AG-UI protocol event types into Plugin code, invent a schema inside a Plugin, emit an Application Event from the frontend, or use this channel for persistent state, standard lifecycle, Activity, or local Plugin communication.
+- Subscribe through `usePluginEvents().subscribe`. Never import AG-UI protocol event types into Plugin code, invent a schema inside a Plugin, emit an Application Event from the frontend, or use this channel for persistent state, standard lifecycle, Activity, or local Plugin communication.
 - Child Slots and Plugin-declared outlets are intentionally out of scope in this phase.
-- Use `context.actions.sendMessage`, `startNewConversation`, `abortRun`, and `updateInstanceProps`; never create a separate Agent Runtime inside a Plugin.
+- Use `usePluginActions()` for instance-scoped actions including `updateInstanceProps`; `useAgentRuntimeActions()` is available when only Agent commands are needed. Never create a separate Agent Runtime inside a Plugin.
 - Keep Plugin dependencies in the generated project and follow its current UI stack and versions.
 - Service contracts are stable project-owned capability seams, not concrete
   Provider Plugins or Runtime Core actions:
   - `provides` means this Plugin owns and declares one or more capabilities for the current activation lifecycle.
   - `inject` means this Plugin requires a hard capability dependency before activation.
-  - `services.get()` is runtime capability lookup for optional access.
+  - `usePluginService()` is runtime capability lookup for component access; `setup({ services })` remains the non-React activation API.
 - Provider rules are strict: if `setup` calls `services.provide`, the Plugin **must** declare the same Service Name in `UIPluginDefinition.provides`.
 - For a hard capability dependency, import its stable Service seam from `/project/services/*` and declare `inject` on `UIPluginDefinition`; do not import concrete Provider Plugin source.
 - Provider implementations must be exposed only through `setup({ services })` + `services.provide(...)`, and the same Service Name must be declared in `provides`.
-- Optional dependency behavior must not use `inject`; call `services.get(...)` at runtime and tolerate `undefined`.
+- Optional dependency behavior must not use `inject`; call `usePluginService(...)` in the component and tolerate `undefined`.
 - When multiple Plugins share a capability, reuse an existing seam name/type from `/project/services/*` and never invent a synonym service contract.
 - Prefer `UIPluginObservableService` only when other Plugins need sustained observation of service-owned state.
 - `UIPluginObservableService` requires `getSnapshot()` + `subscribe()`; otherwise prefer a structural interface with explicit methods.
 - Structural interface service examples are acceptable, and `EventEmitter`-style ad-hoc emitters should remain project-local, not runtime API additions.
-- Do not place capability implementations into `context.actions`.
+- Do not place capability implementations into Plugin actions or Agent Runtime actions.
 - A Frontend Tool is an Agent-facing adapter for a selected capability operation; it is not a Plugin capability and is not registered by a Plugin.
 - When the product explicitly asks the Agent to invoke frontend behavior, first reuse an existing stable Service seam. Create a new Service only when the capability does not exist, have the Provider Plugin declare `provides`, and expose the selected operation from `/project/agent-contract/agent-tools.ts`.
 - Frontend Tool names use `lower_snake_case`, inputs use `z.strictObject(...)`, descriptions explain when to call the Tool plus what it does and does not do, and results stay short, structured, and serializable.

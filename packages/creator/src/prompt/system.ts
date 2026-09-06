@@ -100,7 +100,9 @@ by hand.
 Do not create backend Agent Tools, Skills, Models, Runtime Plugins, backend logic,
 multiple pages, or multiple Agent Runtime connections. UI Plugins consume AG-UI
 messages, state, lifecycle projections, and validated Application Events only
-through the runtime-provided UIPluginContext. When a Plugin needs a backend
+through runtime domain hooks and instance-scoped hooks. Never generate a
+`context` component prop or manually thread Runtime snapshots. When a Plugin
+needs a backend
 Application Event, define its schema first in agent-contract/agent-events.ts
 and then declare consumption in manifest.data.events; never expose raw AG-UI
 CUSTOM types to Plugin code.

@@ -16,10 +16,16 @@ import { Empty, Tag, Typography } from "antd";
 import type { ReactNode } from "react";
 
 import type {
+  AgentExecution,
   AgentMessage,
-  AgentRunState,
   UIPluginComponentProps,
 } from "../../framework/contracts/ui-plugin";
+import {
+  useAgentExecutions,
+  useAgentMessages,
+  useAgentRun,
+} from "../../runtime/context";
+import { usePluginService } from "../../runtime/plugins";
 import { AGENT_UI_CONVERSATION_SERVICE } from "../../services/conversations";
 
 import "./styles.css";
@@ -40,18 +46,23 @@ function readableJSON(value: string): string {
 
 function statusForTool(
   result: Extract<AgentMessage, { role: "tool" }> | undefined,
-  run: AgentRunState,
+  execution: Extract<AgentExecution, { type: "tool" }> | undefined,
 ): "loading" | "success" | "error" | "abort" {
-  if (result?.error !== undefined) {
-    return "error";
+  switch (execution?.status) {
+    case "preparing":
+    case "awaiting-result":
+      return "loading";
+    case "completed":
+      return "success";
+    case "error":
+      return "error";
+    case "interrupted":
+      return "abort";
   }
-  if (result !== undefined) {
-    return "success";
-  }
-  return run.status === "running"
-    ? "loading"
-    : run.status === "error"
-      ? "error"
+  return result?.error !== undefined
+    ? "error"
+    : result !== undefined
+      ? "success"
       : "abort";
 }
 
@@ -104,7 +115,7 @@ function activityDescription(message: Extract<AgentMessage, { role: "activity" }
 
 function timelineItems(
   messages: AgentMessage[],
-  run: AgentRunState,
+  executions: AgentExecution[],
 ): ThoughtChainItemType[] {
   const results = new Map(
     messages
@@ -114,13 +125,18 @@ function timelineItems(
       )
       .map((message) => [message.toolCallId, message]),
   );
+  const toolExecutions = new Map(
+    executions.flatMap((execution) =>
+      execution.type === "tool" ? [[execution.id, execution] as const] : [],
+    ),
+  );
   const items: ThoughtChainItemType[] = [];
 
   messages.forEach((message) => {
     if (message.role === "assistant") {
       message.toolCalls?.forEach((toolCall) => {
         const result = results.get(toolCall.id);
-        const status = statusForTool(result, run);
+        const status = statusForTool(result, toolExecutions.get(toolCall.id));
         items.push({
           key: toolCall.id,
           title: toolCall.function.name,
@@ -185,27 +201,41 @@ function reasoningContent(messages: AgentMessage[]): ReactNode {
   return reasoning.length === 0 ? undefined : reasoning.join("\n\n");
 }
 
-export function AntdXRunTimelinePlugin({
-  context,
-}: UIPluginComponentProps) {
-  const conversation = context.services.get(
+export function AntdXRunTimelinePlugin(_props: UIPluginComponentProps) {
+  const allMessages = useAgentMessages();
+  const executions = useAgentExecutions();
+  const run = useAgentRun();
+  const conversation = usePluginService(
     AGENT_UI_CONVERSATION_SERVICE,
   );
   const messages =
     conversation === undefined
-      ? context.messages
-      : context.messages.filter((message) =>
+      ? allMessages
+      : allMessages.filter((message) =>
           conversation.includesMessage(message),
         );
   const reasoning = reasoningContent(messages);
-  const items = timelineItems(messages, context.run);
+  const items = timelineItems(messages, executions);
+  const visibleReasoningMessageIds = new Set(
+    messages.flatMap((message) =>
+      message.role === "reasoning" ? [message.id] : [],
+    ),
+  );
+  const reasoningRunning = executions.some(
+    (execution) =>
+      execution.type === "reasoning" &&
+      execution.status === "running" &&
+      execution.messageIds.some((messageId) =>
+        visibleReasoningMessageIds.has(messageId),
+      ),
+  );
   const hasContent = reasoning !== undefined || items.length > 0;
 
   return (
     <section
       aria-label="Agent 执行链"
       className="antd-x-run-timeline-plugin"
-      data-agent-run-status={context.run.status}
+      data-agent-run-status={run.status}
       data-ui-plugin="antd-x-run-timeline"
     >
       <header className="antd-x-run-timeline-header">
@@ -224,8 +254,8 @@ export function AntdXRunTimelinePlugin({
             {reasoning === undefined ? null : (
               <Think
                 defaultExpanded
-                loading={context.run.status === "running"}
-                title={context.run.status === "running" ? "正在思考" : "思考过程"}
+                loading={reasoningRunning}
+                title={reasoningRunning ? "正在思考" : "思考过程"}
               >
                 <Typography.Paragraph>{reasoning}</Typography.Paragraph>
               </Think>

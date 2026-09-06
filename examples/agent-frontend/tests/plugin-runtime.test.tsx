@@ -14,10 +14,10 @@ import {
   type LayoutNode,
 } from "../framework/contracts/app-ui-model";
 import type {
+  AgentExecution,
   AgentMessage,
   AgentRunState,
   UIPluginComponentProps,
-  UIPluginContext,
   UIPluginDefinition,
 } from "../framework/contracts/ui-plugin";
 import { pluginDefinitions } from "../plugins";
@@ -40,9 +40,21 @@ import {
   PluginServiceRuntime,
   PluginServiceRuntimeContext,
   StaticPluginRegistry,
-  UIPluginRuntime,
-  type UIPluginRuntimeProps,
 } from "../runtime/plugins";
+import {
+  useAgentConversation,
+  useAgentExecutions,
+  useAgentInterrupts,
+  useAgentMessages,
+  useAgentRun,
+  usePluginActions,
+  usePluginEvents,
+  usePluginInstance,
+} from "../runtime/context";
+import {
+  PluginRuntimeFixture,
+  type PluginRuntimeFixtureProps,
+} from "./agent-runtime-fixture";
 import {
   initialPreviewMessages,
   previewAgentState,
@@ -74,7 +86,7 @@ interface MountedPluginRuntime {
 }
 
 async function mountPluginRuntime(
-  props: UIPluginRuntimeProps,
+  props: PluginRuntimeFixtureProps,
 ): Promise<MountedPluginRuntime> {
   (
     globalThis as typeof globalThis & {
@@ -89,7 +101,7 @@ async function mountPluginRuntime(
     await act(async () => {
       renderer = create(
         <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
-          <UIPluginRuntime {...props} />
+          <PluginRuntimeFixture {...props} />
         </PluginServiceRuntimeContext.Provider>,
       );
     });
@@ -136,7 +148,7 @@ function declareLayoutSlots(
   );
 }
 
-function renderPluginRuntime(props: UIPluginRuntimeProps): string {
+function renderPluginRuntime(props: PluginRuntimeFixtureProps): string {
   const serviceRuntime = new PluginServiceRuntime();
   const declarationCleanups: Array<() => void> = [];
   try {
@@ -144,7 +156,7 @@ function renderPluginRuntime(props: UIPluginRuntimeProps): string {
     serviceRuntime.reconcile(props.model, props.registry, props.actions);
     return renderToStaticMarkup(
       <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
-        <UIPluginRuntime {...props} />
+        <PluginRuntimeFixture {...props} />
       </PluginServiceRuntimeContext.Provider>,
     );
   } finally {
@@ -179,9 +191,9 @@ function createFixtureDefinition(
 }
 
 function fixtureRuntimeProps(
-  model: UIPluginRuntimeProps["model"],
+  model: PluginRuntimeFixtureProps["model"],
   definitions: readonly UIPluginDefinition[],
-): UIPluginRuntimeProps {
+): PluginRuntimeFixtureProps {
   return {
     actions: runtimeActions,
     conversation: { id: "default" },
@@ -697,7 +709,13 @@ describe("UIPluginRuntime", () => {
     const html = await renderPluginRuntime({
       actions: runtimeActions,
       conversation: { id: "default" },
-      executions: [],
+      executions: [{
+        type: "reasoning",
+        id: "reasoning-running",
+        producer: { type: "root" },
+        messageIds: ["preview-reasoning-1"],
+        status: "running",
+      }],
       interrupts: [],
       messages: defaultConversationMessages,
       model,
@@ -711,8 +729,16 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain("正在思考");
   });
 
-  it("binds run state and instance-aware actions into UIPluginContext", async () => {
-    let capturedContext: UIPluginContext | undefined;
+  it("binds runtime hooks and instance-aware actions into their providers", async () => {
+    let captured:
+      | {
+          conversation: ReturnType<typeof useAgentConversation>;
+          executions: ReturnType<typeof useAgentExecutions>;
+          interrupts: ReturnType<typeof useAgentInterrupts>;
+          run: ReturnType<typeof useAgentRun>;
+          actions: ReturnType<typeof usePluginActions>;
+        }
+      | undefined;
     const probePlugin: UIPluginDefinition = {
       manifest: {
         id: "probe",
@@ -720,8 +746,14 @@ describe("UIPluginRuntime", () => {
         description: "Captures runtime context for testing",
         version: "1.0.0",
       },
-      Component: ({ context }) => {
-        capturedContext = context;
+      Component: () => {
+        captured = {
+          conversation: useAgentConversation(),
+          executions: useAgentExecutions(),
+          interrupts: useAgentInterrupts(),
+          run: useAgentRun(),
+          actions: usePluginActions(),
+        };
         return <div>Probe</div>;
       },
     };
@@ -752,7 +784,7 @@ describe("UIPluginRuntime", () => {
       status: "error",
       error: { message: "Agent endpoint is unavailable" },
     };
-    const executions: UIPluginContext["executions"] = [{
+    const executions: AgentExecution[] = [{
       type: "step",
       id: "step-probe",
       producer: { type: "root" },
@@ -776,27 +808,27 @@ describe("UIPluginRuntime", () => {
       state: null,
     });
 
-    if (capturedContext === undefined) {
-      throw new Error("Plugin context was not injected");
+    if (captured === undefined) {
+      throw new Error("Plugin providers were not injected");
     }
 
-    expect(capturedContext.run).toBe(failedRun);
-    expect(capturedContext.executions).toBe(executions);
-    expect(capturedContext.interrupts).toEqual([{
+    expect(captured.run).toBe(failedRun);
+    expect(captured.executions).toBe(executions);
+    expect(captured.interrupts).toEqual([{
       id: "approval",
       reason: "tool-approval",
       producer: { type: "root" },
     }]);
-    expect(capturedContext.conversation).toEqual({ id: "default" });
-    await capturedContext.actions.sendMessage("hello");
-    await capturedContext.actions.resumeInterrupts([{
+    expect(captured.conversation).toEqual({ id: "default" });
+    await captured.actions.sendMessage("hello");
+    await captured.actions.resumeInterrupts([{
       interruptId: "approval",
       status: "resolved",
       payload: { approved: true },
     }]);
-    await capturedContext.actions.startNewConversation();
-    capturedContext.actions.abortRun();
-    capturedContext.actions.updateInstanceProps({ compact: true });
+    await captured.actions.startNewConversation();
+    captured.actions.abortRun();
+    captured.actions.updateInstanceProps({ compact: true });
 
     expect(actions.sendMessage).toHaveBeenCalledWith("hello");
     expect(actions.resumeInterrupts).toHaveBeenCalledWith([{
@@ -840,15 +872,27 @@ describe("UIPluginRuntime", () => {
 
 describe("recursive React Plugin composition", () => {
   it("renders a child contribution inside its owner Plugin subtree", async () => {
-    let consumerContext: UIPluginContext | undefined;
+    let consumerContext:
+      | {
+          instanceId: string;
+          messages: AgentMessage[];
+          run: AgentRunState;
+          events: ReturnType<typeof usePluginEvents>;
+        }
+      | undefined;
     const Owner = ({ renderSlot }: UIPluginComponentProps) => (
       <section data-fixture="owner">
         OWNER
         {renderSlot("owner.child")}
       </section>
     );
-    const Consumer = ({ context }: UIPluginComponentProps) => {
-      consumerContext = context;
+    const Consumer = () => {
+      consumerContext = {
+        instanceId: usePluginInstance().id,
+        messages: useAgentMessages(),
+        run: useAgentRun(),
+        events: usePluginEvents(),
+      };
       return <span data-fixture="consumer">CONSUMER</span>;
     };
     const definitions = [
@@ -884,10 +928,9 @@ describe("recursive React Plugin composition", () => {
       const consumer = owner.findByProps({ "data-fixture": "consumer" });
       expect(getText(owner)).toContain("OWNER");
       expect(getText(consumer)).toBe("CONSUMER");
-      expect(consumerContext?.instance.id).toBe("consumer-main");
+      expect(consumerContext?.instanceId).toBe("consumer-main");
       expect(consumerContext?.messages).toEqual([]);
       expect(consumerContext?.run).toBe(idleRun);
-      expect(consumerContext?.services).toBeDefined();
       expect(consumerContext?.events).toBeDefined();
     } finally {
       await mounted.dispose();
@@ -1062,9 +1105,7 @@ describe("recursive React Plugin composition", () => {
     const Owner = ({ renderSlot }: UIPluginComponentProps) => (
       <section data-fixture="owner">{renderSlot("owner.child")}</section>
     );
-    const Child = ({ context }: UIPluginComponentProps) => (
-      <span>{context.instance.id}</span>
-    );
+    const Child = () => <span>{usePluginInstance().id}</span>;
     const definitions = [
       createFixtureDefinition("owner", Owner, ["owner.child"]),
       createFixtureDefinition("child", Child),

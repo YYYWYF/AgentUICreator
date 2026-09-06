@@ -1,4 +1,6 @@
 import { Component, useMemo, useState } from "react";
+import { createAgentRuntime } from "@agent-ui/runtime-core";
+import { MockAgentTransport } from "@agent-ui/runtime-core/testing";
 
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import type {
@@ -10,6 +12,10 @@ import {
   UIPluginRuntime,
   type UIPluginRuntimeActions,
 } from "../runtime/plugins";
+import {
+  AgentRuntimeProvider,
+  usePluginInstance,
+} from "../runtime/context";
 import { App } from "./App";
 
 import "./plugin-error-boundary-preview.css";
@@ -21,8 +27,9 @@ type PreviewState =
   | "both"
   | "repaired";
 
-function RenderFailurePreviewPlugin({ context }: UIPluginComponentProps) {
-  if (context.instance.props?.shouldFail !== false) {
+function RenderFailurePreviewPlugin(_props: UIPluginComponentProps) {
+  const instance = usePluginInstance();
+  if (instance.props?.shouldFail !== false) {
     throw new Error("The dynamically loaded insights plugin failed to render.");
   }
 
@@ -74,6 +81,9 @@ const previewActions: UIPluginRuntimeActions = {
   startNewConversation: async () => undefined,
   updateInstanceProps: () => undefined,
 };
+const previewAgentRuntime = createAgentRuntime({
+  transport: new MockAgentTransport(),
+});
 
 function createPreviewModel(state: PreviewState) {
   if (state === "none") {
@@ -129,18 +139,14 @@ function createPreviewModel(state: PreviewState) {
 function RuntimeFaultFixture({ model }: { model: ReturnType<typeof createPreviewModel> }) {
   return (
     <div className="plugin-boundary-runtime-fixture">
-      <UIPluginRuntime
-        actions={previewActions}
-        className="plugin-boundary-runtime-fixture-layout"
-        conversation={{ id: "preview-runtime-faults" }}
-        executions={[]}
-        interrupts={[]}
-        messages={[]}
-        model={model}
-        registry={previewRegistry}
-        run={{ status: "idle" }}
-        state={null}
-      />
+      <AgentRuntimeProvider runtime={previewAgentRuntime}>
+        <UIPluginRuntime
+          actions={previewActions}
+          className="plugin-boundary-runtime-fixture-layout"
+          model={model}
+          registry={previewRegistry}
+        />
+      </AgentRuntimeProvider>
     </div>
   );
 }

@@ -4,6 +4,13 @@ import type {
   AgentMessage,
   UIPluginComponentProps,
 } from "../../framework/contracts/ui-plugin";
+import {
+  useAgentInterrupts,
+  useAgentMessages,
+  useAgentRun,
+  usePluginActions,
+  usePluginInstance,
+} from "../../runtime/context";
 
 import "./styles.css";
 
@@ -46,10 +53,14 @@ function messageText(message: AgentMessage): string {
   return "";
 }
 
-export function ChatPlugin({ context }: UIPluginComponentProps) {
+export function ChatPlugin(_props: UIPluginComponentProps) {
   const [input, setInput] = useState("");
-  const isSending =
-    context.run.status === "running" || context.interrupts.length > 0;
+  const messages = useAgentMessages();
+  const run = useAgentRun();
+  const interrupts = useAgentInterrupts();
+  const actions = usePluginActions();
+  const instance = usePluginInstance();
+  const isSending = run.status === "running" || interrupts.length > 0;
 
   const submitMessage = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -60,7 +71,7 @@ export function ChatPlugin({ context }: UIPluginComponentProps) {
     }
 
     try {
-      await context.actions.sendMessage(message);
+      await actions.sendMessage(message);
       setInput("");
     } catch {
       // The shared run state projects the runtime error back into this plugin.
@@ -71,7 +82,7 @@ export function ChatPlugin({ context }: UIPluginComponentProps) {
     <section
       aria-label="智能体对话"
       className="chat-plugin"
-      data-agent-run-status={context.run.status}
+      data-agent-run-status={run.status}
       data-ui-plugin="chat"
     >
       <header className="chat-plugin-header">
@@ -79,14 +90,14 @@ export function ChatPlugin({ context }: UIPluginComponentProps) {
           <span>智能体</span>
           <h2>对话</h2>
         </div>
-        <strong>{context.messages.length}</strong>
+        <strong>{messages.length}</strong>
       </header>
 
       <div className="chat-plugin-messages" aria-live="polite">
-        {context.messages.length === 0 ? (
+        {messages.length === 0 ? (
           <p className="chat-plugin-empty">还没有消息。</p>
         ) : (
-          context.messages.map((message) => (
+          messages.map((message) => (
             <article
               className={`chat-plugin-message chat-plugin-message--${message.role}`}
               data-message-role={message.role}
@@ -100,15 +111,15 @@ export function ChatPlugin({ context }: UIPluginComponentProps) {
       </div>
 
       <form className="chat-plugin-form" onSubmit={submitMessage}>
-        {context.run.error === undefined ? null : (
+        {run.error === undefined ? null : (
           <p className="chat-plugin-error" role="alert">
-            {context.run.error.message}
+            {run.error.message}
           </p>
         )}
-        <label htmlFor={`${context.instance.id}-input`}>消息</label>
+        <label htmlFor={`${instance.id}-input`}>消息</label>
         <div>
           <input
-            id={`${context.instance.id}-input`}
+            id={`${instance.id}-input`}
             disabled={isSending}
             onChange={(event) => setInput(event.target.value)}
             placeholder="给智能体发送消息"

@@ -7,20 +7,24 @@ import {
 import { Empty, Tag } from "antd";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import { useAgentMessages, useAgentRun } from "../../runtime/context";
+import { usePluginService } from "../../runtime/plugins";
 import { AGENT_UI_CONVERSATION_SERVICE } from "../../services/conversations";
 import { inspectActivities } from "../_shared/agent-ui-data";
 
 import "./styles.css";
 
-export function AntdXActivityFeedPlugin({ context }: UIPluginComponentProps) {
-  const conversation = context.services.get(AGENT_UI_CONVERSATION_SERVICE);
+export function AntdXActivityFeedPlugin(_props: UIPluginComponentProps) {
+  const allMessages = useAgentMessages();
+  const run = useAgentRun();
+  const conversation = usePluginService(AGENT_UI_CONVERSATION_SERVICE);
   const messages =
     conversation === undefined
-      ? context.messages
-      : context.messages.filter((message) =>
+      ? allMessages
+      : allMessages.filter((message) =>
           conversation.includesMessage(message),
         );
-  const activities = inspectActivities(messages, context.run);
+  const activities = inspectActivities(messages, run);
   const items: ThoughtChainItemType[] = activities.map((activity) => ({
     key: activity.id,
     title: activity.title,
@@ -39,7 +43,7 @@ export function AntdXActivityFeedPlugin({ context }: UIPluginComponentProps) {
     <section
       aria-label="Agent 活动流"
       className="antd-x-activity-feed-plugin"
-      data-agent-run-status={context.run.status}
+      data-agent-run-status={run.status}
       data-ui-plugin="antd-x-activity-feed"
     >
       <header className="antd-x-activity-feed-header">

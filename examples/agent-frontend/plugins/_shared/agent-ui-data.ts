@@ -1,4 +1,5 @@
 import type {
+  AgentExecution,
   AgentRunState,
   AgentMessage,
 } from "../../framework/contracts/ui-plugin";
@@ -67,23 +68,29 @@ export function stateSurface(value: unknown): Record<string, unknown> {
 
 function toolStatus(
   result: Extract<AgentMessage, { role: "tool" }> | undefined,
-  run: AgentRunState,
+  execution: Extract<AgentExecution, { type: "tool" }> | undefined,
 ): InspectionStatus {
-  if (result?.error !== undefined) {
-    return "error";
+  switch (execution?.status) {
+    case "preparing":
+    case "awaiting-result":
+      return "loading";
+    case "completed":
+      return "success";
+    case "error":
+      return "error";
+    case "interrupted":
+      return "abort";
   }
-  if (result !== undefined) {
-    return "success";
-  }
-  if (run.status === "running") {
-    return "loading";
-  }
-  return run.status === "error" ? "error" : "abort";
+  return result?.error !== undefined
+    ? "error"
+    : result !== undefined
+      ? "success"
+      : "abort";
 }
 
 export function inspectToolCalls(
   messages: AgentMessage[],
-  run: AgentRunState,
+  executions: AgentExecution[],
 ): ToolCallInspection[] {
   const results = new Map(
     messages
@@ -92,6 +99,11 @@ export function inspectToolCalls(
           message.role === "tool",
       )
       .map((message) => [message.toolCallId, message]),
+  );
+  const toolExecutions = new Map(
+    executions.flatMap((execution) =>
+      execution.type === "tool" ? [[execution.id, execution] as const] : [],
+    ),
   );
 
   return messages.flatMap((message) => {
@@ -106,7 +118,7 @@ export function inspectToolCalls(
         name: toolCall.function.name,
         argumentsText: toolCall.function.arguments,
         result,
-        status: toolStatus(result, run),
+        status: toolStatus(result, toolExecutions.get(toolCall.id)),
       };
     });
   });

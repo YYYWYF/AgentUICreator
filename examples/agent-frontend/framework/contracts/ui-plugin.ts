@@ -1,11 +1,6 @@
 import type {
   AgentApplicationEvent,
-  AgentConversation,
-  AgentExecution,
-  AgentInterrupt,
   AgentInterruptResponse,
-  AgentMessage,
-  AgentRunState,
   AgentUserInput,
 } from "@agent-ui/runtime-core";
 import type { ComponentType, ReactNode } from "react";
@@ -104,21 +99,7 @@ export interface UIPluginSetupContext {
 
 export type UIPluginSetupCleanup = void | (() => void);
 
-export interface UIPluginContext<TState = unknown> {
-  conversation: AgentConversation;
-  messages: AgentMessage[];
-  state: TState;
-  run: AgentRunState;
-  executions: AgentExecution[];
-  interrupts: AgentInterrupt[];
-  instance: PluginInstance;
-  actions: UIPluginActions;
-  events: UIPluginEvents;
-  services: UIPluginServices;
-}
-
-export interface UIPluginComponentProps<TState = unknown> {
-  context: UIPluginContext<TState>;
+export interface UIPluginComponentProps {
   renderSlot(slotId: string): ReactNode;
 }
 
@@ -132,7 +113,7 @@ export interface UIPluginDefinition<TState = unknown> {
   setup?:
     | ((context: UIPluginSetupContext) => UIPluginSetupCleanup)
     | undefined;
-  Component: ComponentType<UIPluginComponentProps<TState>>;
+  Component: ComponentType<UIPluginComponentProps>;
 }
 
 const nonBlankStringSchema = z

@@ -6,6 +6,12 @@ import {
 import { Prompts, type PromptsItemType } from "@ant-design/x";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import {
+  useAgentInterrupts,
+  useAgentRun,
+  usePluginActions,
+  usePluginInstance,
+} from "../../runtime/context";
 
 import "./styles.css";
 
@@ -75,13 +81,16 @@ function readPrompts(value: unknown): TemplatePrompt[] {
   return prompts.length > 0 ? prompts : defaultPrompts;
 }
 
-export function AntdXPromptsPlugin({ context }: UIPluginComponentProps) {
-  const prompts = readPrompts(context.instance.props?.items);
-  const isRunning =
-    context.run.status === "running" || context.interrupts.length > 0;
+export function AntdXPromptsPlugin(_props: UIPluginComponentProps) {
+  const run = useAgentRun();
+  const interrupts = useAgentInterrupts();
+  const instance = usePluginInstance();
+  const actions = usePluginActions();
+  const prompts = readPrompts(instance.props?.items);
+  const isRunning = run.status === "running" || interrupts.length > 0;
   const title =
-    typeof context.instance.props?.title === "string"
-      ? context.instance.props.title
+    typeof instance.props?.title === "string"
+      ? instance.props.title
       : "你可以这样开始";
   const items: PromptsItemType[] = prompts.map((prompt, index) => ({
     key: prompt.key,
@@ -97,7 +106,7 @@ export function AntdXPromptsPlugin({ context }: UIPluginComponentProps) {
     <section
       aria-label="快捷提示"
       className="antd-x-prompts-plugin"
-      data-agent-run-status={context.run.status}
+      data-agent-run-status={run.status}
       data-ui-plugin="antd-x-prompts"
     >
       <Prompts
@@ -106,7 +115,7 @@ export function AntdXPromptsPlugin({ context }: UIPluginComponentProps) {
         onItemClick={({ data }: { data: PromptsItemType }) => {
           const prompt = prompts.find((item) => item.key === data.key);
           if (prompt !== undefined && !isRunning) {
-            void context.actions.sendMessage(prompt.text).catch(() => {
+            void actions.sendMessage(prompt.text).catch(() => {
               // Shared run state exposes the runtime error to the sender plugin.
             });
           }

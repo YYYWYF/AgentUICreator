@@ -4,6 +4,13 @@ import { Alert, Typography } from "antd";
 import { useState } from "react";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import {
+  useAgentExecutions,
+  useAgentInterrupts,
+  useAgentRun,
+  usePluginActions,
+  usePluginInstance,
+} from "../../runtime/context";
 
 import "./styles.css";
 
@@ -49,22 +56,27 @@ function readSuggestions(value: unknown): SuggestionItem[] {
   return items.length > 0 ? items : defaultSuggestions;
 }
 
-export function AntdXSenderPlugin({ context }: UIPluginComponentProps) {
+export function AntdXSenderPlugin(_props: UIPluginComponentProps) {
   const [value, setValue] = useState("");
-  const hasPendingTool = context.executions.some(
+  const executions = useAgentExecutions();
+  const interrupts = useAgentInterrupts();
+  const run = useAgentRun();
+  const instance = usePluginInstance();
+  const actions = usePluginActions();
+  const hasPendingTool = executions.some(
     (execution) =>
       execution.type === "tool" &&
       execution.status === "awaiting-result",
   );
   const isRunning =
-    context.run.status === "running" ||
-    context.interrupts.length > 0 ||
+    run.status === "running" ||
+    interrupts.length > 0 ||
     hasPendingTool;
   const placeholder =
-    typeof context.instance.props?.placeholder === "string"
-      ? context.instance.props.placeholder
+    typeof instance.props?.placeholder === "string"
+      ? instance.props.placeholder
       : "给智能体发送消息";
-  const suggestions = readSuggestions(context.instance.props?.suggestions);
+  const suggestions = readSuggestions(instance.props?.suggestions);
 
   const sendMessage = async (input: string): Promise<void> => {
     const message = input.trim();
@@ -73,10 +85,10 @@ export function AntdXSenderPlugin({ context }: UIPluginComponentProps) {
     }
 
     try {
-      await context.actions.sendMessage(message);
+      await actions.sendMessage(message);
       setValue("");
     } catch {
-      // The runtime error is projected back through context.run.error.
+      // The Runtime projects the error back through useAgentRun().
     }
   };
 
@@ -84,13 +96,13 @@ export function AntdXSenderPlugin({ context }: UIPluginComponentProps) {
     <section
       aria-label="消息输入"
       className="antd-x-sender-plugin"
-      data-agent-run-status={context.run.status}
+      data-agent-run-status={run.status}
       data-ui-plugin="antd-x-sender"
     >
-      {context.run.error === undefined ? null : (
+      {run.error === undefined ? null : (
         <Alert
           closable
-          message={context.run.error.message}
+          message={run.error.message}
           showIcon
           type="error"
         />
@@ -115,7 +127,7 @@ export function AntdXSenderPlugin({ context }: UIPluginComponentProps) {
               </span>
             }
             loading={isRunning}
-            onCancel={() => context.actions.abortRun()}
+            onCancel={() => actions.abortRun()}
             onChange={(nextValue: string) => {
               setValue(nextValue);
               if (nextValue === "/") {

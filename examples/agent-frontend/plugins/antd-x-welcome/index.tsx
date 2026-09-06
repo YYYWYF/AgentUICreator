@@ -3,6 +3,7 @@ import { Welcome } from "@ant-design/x";
 import { Badge, Space, Tag } from "antd";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import { useAgentRun, usePluginInstance } from "../../runtime/context";
 
 import "./styles.css";
 
@@ -24,24 +25,26 @@ const runStatus = {
   error: { badge: "error", label: "需要处理" },
 } as const;
 
-export function AntdXWelcomePlugin({ context }: UIPluginComponentProps) {
+export function AntdXWelcomePlugin(_props: UIPluginComponentProps) {
+  const run = useAgentRun();
+  const instance = usePluginInstance();
   const title = readStringProp(
-    context.instance.props,
+    instance.props,
     "title",
     "Agent Frontend",
   );
   const description = readStringProp(
-    context.instance.props,
+    instance.props,
     "description",
     "一个由 AppUIModel 组合的 AG-UI 智能体前端。",
   );
-  const status = runStatus[context.run.status];
+  const status = runStatus[run.status];
 
   return (
     <section
       aria-label="智能体欢迎区"
       className="antd-x-welcome-plugin"
-      data-agent-run-status={context.run.status}
+      data-agent-run-status={run.status}
       data-ui-plugin="antd-x-welcome"
     >
       <Welcome

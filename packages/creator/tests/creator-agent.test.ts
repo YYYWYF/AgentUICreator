@@ -413,10 +413,11 @@ describe("createCreatorAgent", () => {
 
   it("allows Phase 8 Creator to create UI Plugin source", async () => {
     const projectRoot = await createTemporaryProject();
-    const pluginSource = `import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+    const pluginSource = `import { useAgentMessages } from "../../runtime/context";
 
-export function ToolCallDetailsPlugin({ context }: UIPluginComponentProps) {
-  return <div>{context.messages.length}</div>;
+export function ToolCallDetailsPlugin() {
+  const messages = useAgentMessages();
+  return <div>{messages.length}</div>;
 }
 `;
     const model = fakeModel()

@@ -13,10 +13,11 @@ import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 import {
   createPluginRegistry,
-  UIPluginRuntime,
   type RuntimeDiagnostic,
 } from "../runtime/plugins";
+import { usePluginInstance } from "../runtime/context";
 import { sha256Text } from "../runtime/diagnostics";
+import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
 const appUIModelHash = "a".repeat(64);
 const runtimeActions = {
@@ -76,7 +77,7 @@ function RuntimeFixture({
   reporter(diagnostic: RuntimeDiagnostic): void;
 }) {
   return (
-    <UIPluginRuntime
+    <PluginRuntimeFixture
       actions={runtimeActions}
       appUIModelHash={appUIModelHash}
       conversation={{ id: "diagnostics-test" }}
@@ -116,8 +117,8 @@ describe("plugin runtime diagnostics", () => {
   it("attributes render failures and recovery to the exact plugin, instance, Slot, and model hash", async () => {
     const diagnostics: RuntimeDiagnostic[] = [];
     const definition = createDefinition("diagnostic-plugin", {
-      Component: ({ context }) => {
-        if (context.instance.props?.shouldFail === true) {
+      Component: () => {
+        if (usePluginInstance().props?.shouldFail === true) {
           throw new Error("Diagnostic render failed.");
         }
         return <div>Recovered</div>;

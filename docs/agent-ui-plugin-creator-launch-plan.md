@@ -530,32 +530,44 @@ Plugin 放在哪里由 AppUIModel 决定。
 
 ---
 
-# 8. UI Plugin Context
+# 8. UI Plugin Runtime Context
 
-Plugin 通过统一 Context 获取运行数据。
+Plugin 不接收聚合的 `context` Component Prop。React 树由三层职责独立的 Provider 组成：
 
-基础 Runtime Contract：
+```text
+AgentRuntimeProvider    = Agent 当前发生了什么
+PluginServiceProvider  = 插件生态中有什么能力
+PluginInstanceProvider = 当前是哪一个插件实例
+```
+
+`AgentRuntimeProvider` 只把稳定的 `AgentRuntime` 引用放入 React Context，不保存 Snapshot 副本，也不重新解释 AG-UI lifecycle。Plugin 通过细粒度 Hook 直接订阅 Runtime：
 
 ```ts
-interface UIPluginContext<TState = unknown> {
-  conversation: AgentConversation
+useAgentConversation()
+useAgentMessages()
+useAgentState<TState>()
+useAgentRun()
+useAgentExecutions()
+useAgentInterrupts()
+useAgentRuntimeSnapshot<TState>()
+useAgentRuntimeActions()
+```
 
-  messages: AgentMessage[]
+当前实例作用域使用：
 
-  state: TState
+```ts
+usePluginInstance()
+usePluginActions()
+usePluginEvents()
+```
 
-  run: AgentRunState
+具名 Plugin Service 继续使用 `usePluginService()`；非 React 的 `setup()` 生命周期继续接收 `UIPluginSetupContext`，不与 React Context 合并。
 
-  executions: AgentExecution[]
+Plugin Component Contract 只保留递归 Slot 渲染能力：
 
-  interrupts: AgentInterrupt[]
-
-  events: UIPluginEvents
-
-  instance: PluginInstance
-
-  actions: UIPluginActions
-
+```ts
+interface UIPluginComponentProps {
+  renderSlot(slotId: string): ReactNode
 }
 ```
 
@@ -589,7 +601,7 @@ interface UIPluginActions {
 
 ## 8.1 Plugin Services
 
-当 UI Plugin 之间存在真实逻辑依赖时，使用具名 Plugin Service，而不是把业务专用函数继续扩进 `UIPluginContext.actions`。
+当 UI Plugin 之间存在真实逻辑依赖时，使用具名 Plugin Service，而不是把业务专用函数扩进 Plugin Actions 或 Agent Runtime Actions。
 
 沿用 DeepSeek Harness 的 Service seam / concrete provider 分层：稳定的 Service name、类型与行为合同属于能力所有者，放在具体 Provider Plugin 目录之外；具体 Plugin 只负责在生命周期内提供实现。Consumer 只导入稳定 seam 并声明 `inject`，不得导入 Provider 源码。对于生成项目内由多个 Plugin 共享的第一方能力，可使用独立的 `services/*` 目录；这不代表把该能力提升为 UI Runtime 核心 API。
 
@@ -625,23 +637,24 @@ setup({ services }) {
 ```ts
 inject: ["agent-ui.theme"]
 
-const theme = context.services.get("agent-ui.theme")
+const theme = usePluginService("agent-ui.theme")
 theme?.toggle()
 ```
 
 如果能力只是增强而不是运行前提，省略 `inject`，只在使用处探测：
 
 ```ts
-const conversations = context.services.get("agent-ui.conversations")
+const conversations = usePluginService("agent-ui.conversations")
+const allMessages = useAgentMessages()
 const messages = conversations
-  ? context.messages.filter(conversations.includesMessage)
-  : context.messages
+  ? allMessages.filter(conversations.includesMessage)
+  : allMessages
 ```
 
 约束：
 
 - `manifest.capabilities` 仍是描述性元数据，不承担运行时函数调用。
-- 硬依赖未满足时，Plugin Instance 保持 pending；可选能力只在使用处调用 `services.get()` 探测。
+- 硬依赖未满足时，Plugin Instance 保持 pending；可选能力只在组件内调用 `usePluginService()` 探测。
 - 服务名在一个 Agent Frontend 内是具名命名空间；重复提供必须确定性失败。
 - 服务归提供它的 Plugin Instance 所有；实例禁用、替换或移除时，服务和 setup disposer 一起清理。
 - 服务消失时，硬依赖消费者必须失效；服务恢复后以新的激活身份重新挂载，不能继续持有已卸载提供者。
@@ -683,7 +696,7 @@ Layout SlotNode 按 slotId 查询 SlotRegistry
       ↓
 按 order、instanceId 稳定排序并解析 PluginInstance / Plugin Definition
       ↓
-注入 UIPluginContext 并 Render
+注入 PluginInstanceContext 并 Render
 ```
 
 Runtime 不负责：
@@ -1116,7 +1129,7 @@ AppUIModel
 LayoutNode
 PluginInstance
 UIPluginManifest
-UIPluginContext
+Runtime Context Hooks
 ```
 
 并加入 Schema 校验。
@@ -1177,7 +1190,8 @@ Row
 Plugin Registry
 Plugin Loading
 PluginInstance
-UIPluginContext
+AgentRuntimeProvider
+PluginInstanceProvider
 Slot Rendering
 ```
 
@@ -1210,7 +1224,7 @@ state
 run state
 ```
 
-注入 UIPluginContext。
+由 AgentRuntime 投影，并通过 `AgentRuntimeProvider` 的领域 Hook 暴露给 Plugin。
 
 验收：
 

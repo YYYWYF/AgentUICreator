@@ -8,7 +8,7 @@
 - `workspace-inspector`：作为右栏 Container Plugin，用本地 Tab 状态在 `inspector.activity`、`inspector.tool` 与 `inspector.resources` 中一次只渲染一个上下文，不改变叶子插件的激活和贡献生命周期。
 - `antd-x-theme-provider`：通过插件服务注册表提供 `agent-ui.theme` 能力，不直接渲染 UI。
 - `antd-x-theme-switch`：声明 `inject: ["agent-ui.theme"]`，调用另一个插件暴露的主题函数。
-- `antd-x-conversations`：在同一插件内提供新建会话、历史列表与会话选择，并提供 `agent-ui.conversations` Service seam。新建按钮调用 `context.actions.startNewConversation()`，成功后清除历史选择；运行期间禁用新建。插件不持有 Agent Runtime。
+- `antd-x-conversations`：在同一插件内提供新建会话、历史列表与会话选择，并提供 `agent-ui.conversations` Service seam。新建按钮通过 `usePluginActions()` 调用 `startNewConversation()`，成功后清除历史选择；运行期间禁用新建。插件不持有 Agent Runtime。
 - `antd-x-welcome`：用 `Welcome` 展示 Agent 身份与共享运行状态。
 - `antd-x-message-list`：可选探测 `agent-ui.conversations` Service；存在时过滤当前历史会话，不存在时直接渲染 Runtime 的全部消息。使用 `Bubble.List`、`Actions.Copy`、`FileCard`、`Sources` 呈现内容；没有反馈提交合同前不伪造点赞/点踩。
 - `antd-x-run-timeline`：同样可选探测会话 Service，再用 `Think` 和 `ThoughtChain` 映射 AG-UI reasoning、activity、tool call 与 tool result；没有历史会话插件时仍展示当前 Runtime 的完整执行链。
@@ -21,6 +21,6 @@
 - `antd-x-prompts`：用 `Prompts` 提供可配置且可直接发送的快捷提示。
 - `antd-x-sender`：用 `Sender` 和 `Suggestion` 发送消息、唤出快捷指令，并在运行期间提供停止操作。
 
-`index.ts` 导出的 `antdXTemplatePlugins` 是开发期 catalog，可用于预览整套模板。生产入口的 `plugins/index.ts` 只转出 `registry.generated.ts`；目标项目的 `generate:registry` 根据 AppUIModel 引用和各插件 manifest 生成显式静态 import，不能展开整个 catalog。这样未选择的 Plugin 才能从静态 import graph 和 Bundle 中消失。模板只消费 `UIPluginContext`，不会创建或持有 Agent Runtime。布局、顺序和实例 props 都由 `app-ui/app-ui.json` 决定。主题硬依赖和可选会话能力都通过稳定 Service name 关联 Provider 与 Consumer；Consumer 不导入具体 Provider 源码。
+`index.ts` 导出的 `antdXTemplatePlugins` 是开发期 catalog，可用于预览整套模板。生产入口的 `plugins/index.ts` 只转出 `registry.generated.ts`；目标项目的 `generate:registry` 根据 AppUIModel 引用和各插件 manifest 生成显式静态 import，不能展开整个 catalog。这样未选择的 Plugin 才能从静态 import graph 和 Bundle 中消失。模板通过 `runtime/context` 的领域 Hook 读取 Agent Runtime 与当前实例，通过 `usePluginService()` 读取插件能力，不会创建或持有 Agent Runtime。布局、顺序和实例 props 都由 `app-ui/app-ui.json` 决定。主题硬依赖和可选会话能力都通过稳定 Service name 关联 Provider 与 Consumer；Consumer 不导入具体 Provider 源码。
 
 没有机械包装全部 Ant Design X 组件：`Notification` 会触发系统通知权限；附件插件也明确保持只读，因为当前 `sendMessage` 仍是字符串输入。HITL 审批、Generative UI 和附件上传需要先有 Runtime action / renderer contract，在合同补齐前不伪装成可用能力。聚合插件与细粒度插件可以同时存在于开发期 catalog，但生成项目的生产 Registry 只显式导入 AppUIModel 实际选择的插件。

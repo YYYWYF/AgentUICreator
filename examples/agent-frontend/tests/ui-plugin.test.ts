@@ -10,8 +10,16 @@ import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   parseUIPluginManifest,
   uiPluginManifestSchema,
-  type UIPluginContext,
 } from "../framework/contracts/ui-plugin";
+import {
+  useAgentConversation,
+  useAgentExecutions,
+  useAgentInterrupts,
+  useAgentMessages,
+  useAgentRun,
+  useAgentState,
+  usePluginEvents,
+} from "../runtime/context";
 
 describe("UIPluginManifest", () => {
   it("validates a manifest", () => {
@@ -107,24 +115,23 @@ describe("UIPluginManifest", () => {
     }
   });
 
-  it("exposes frontend-owned messages in the plugin context", () => {
-    expectTypeOf<UIPluginContext["messages"]>().toEqualTypeOf<AgentMessage[]>();
-    expectTypeOf<UIPluginContext["conversation"]>()
+  it("exposes frontend-owned runtime semantics through domain hooks", () => {
+    expectTypeOf(useAgentMessages).returns.toEqualTypeOf<AgentMessage[]>();
+    expectTypeOf(useAgentConversation).returns
       .toEqualTypeOf<AgentConversation>();
-    expectTypeOf<UIPluginContext["run"]>().toEqualTypeOf<AgentRunState>();
-    expectTypeOf<UIPluginContext["executions"]>()
+    expectTypeOf(useAgentRun).returns.toEqualTypeOf<AgentRunState>();
+    expectTypeOf(useAgentExecutions).returns
       .toEqualTypeOf<AgentExecution[]>();
-    expectTypeOf<UIPluginContext["interrupts"]>()
+    expectTypeOf(useAgentInterrupts).returns
       .toEqualTypeOf<AgentInterrupt[]>();
-    expectTypeOf<UIPluginContext["events"]["subscribe"]>().toBeFunction();
+    expectTypeOf<ReturnType<typeof usePluginEvents>["subscribe"]>().toBeFunction();
   });
 
-  it("propagates application-owned state through the plugin context", () => {
+  it("propagates application-owned state through the state hook", () => {
     interface AppState {
       selectedFile: string;
     }
 
-    expectTypeOf<UIPluginContext<AppState>["state"]>()
-      .toEqualTypeOf<AppState>();
+    expectTypeOf(useAgentState<AppState>).returns.toEqualTypeOf<AppState>();
   });
 });

@@ -6,6 +6,13 @@ import {
 import { Badge, Button, Empty, Tooltip, Typography } from "antd";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import {
+  useAgentRun,
+  useAgentState,
+  usePluginActions,
+  usePluginInstance,
+} from "../../runtime/context";
+import { usePluginService } from "../../runtime/plugins";
 import { AGENT_UI_CONVERSATION_SERVICE } from "../../services/conversations";
 import { readConversationKey } from "./conversation-service";
 
@@ -65,17 +72,19 @@ function conversationsFromContext(
     : readConversationRecords(props?.items);
 }
 
-export function AntdXConversationsPlugin({
-  context,
-}: UIPluginComponentProps) {
-  const isRunning = context.run.status === "running";
+export function AntdXConversationsPlugin(_props: UIPluginComponentProps) {
+  const run = useAgentRun();
+  const state = useAgentState();
+  const instance = usePluginInstance();
+  const actions = usePluginActions();
+  const isRunning = run.status === "running";
   const conversations = conversationsFromContext(
-    context.state,
-    context.instance.props,
+    state,
+    instance.props,
   );
-  const service = context.services.get(AGENT_UI_CONVERSATION_SERVICE);
+  const service = usePluginService(AGENT_UI_CONVERSATION_SERVICE);
   const activeKey =
-    service?.activeKey ?? readConversationKey(context.instance.props?.activeKey);
+    service?.activeKey ?? readConversationKey(instance.props?.activeKey);
   const items: ConversationItemType[] = conversations.map((conversation) => ({
     key: conversation.key,
     label: conversation.label,
@@ -95,7 +104,7 @@ export function AntdXConversationsPlugin({
     <aside
       aria-label="会话管理"
       className="antd-x-conversations-plugin"
-      data-agent-run-status={context.run.status}
+      data-agent-run-status={run.status}
       data-ui-plugin="antd-x-conversations"
     >
       <header className="antd-x-conversations-plugin-header">
@@ -122,8 +131,8 @@ export function AntdXConversationsPlugin({
             icon={<PlusOutlined />}
             loading={isRunning}
             onClick={() => {
-              void context.actions.startNewConversation()
-                .then(() => context.actions.updateInstanceProps({ activeKey: null }))
+              void actions.startNewConversation()
+                .then(() => actions.updateInstanceProps({ activeKey: null }))
                 .catch(() => undefined);
             }}
           >
@@ -140,7 +149,7 @@ export function AntdXConversationsPlugin({
           groupable={{ collapsible: true, defaultExpandedKeys: groups }}
           items={items}
           onActiveChange={(key: string) => {
-            context.actions.updateInstanceProps({ activeKey: key });
+            actions.updateInstanceProps({ activeKey: key });
           }}
         />
       )}

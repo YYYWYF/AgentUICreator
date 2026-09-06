@@ -5,15 +5,8 @@ import type {
   PluginInstance,
   SlotNode,
 } from "../../framework/contracts/app-ui-model";
-import type {
-  AgentConversation,
-  AgentExecution,
-  AgentInterrupt,
-  AgentMessage,
-  AgentRunState,
-  UIPluginContext,
-} from "../../framework/contracts/ui-plugin";
 import { LayoutRenderer } from "../layout";
+import { PluginInstanceProvider } from "../context";
 import type { PluginRegistry } from "./PluginRegistry";
 import {
   useOptionalPluginServiceRuntime,
@@ -46,12 +39,6 @@ import "./plugin-runtime.css";
 export interface UIPluginRuntimeProps<TState = unknown> {
   model: AppUIModel;
   registry: PluginRegistry<TState>;
-  conversation: AgentConversation;
-  messages: AgentMessage[];
-  state: TState;
-  run: AgentRunState;
-  executions: AgentExecution[];
-  interrupts: AgentInterrupt[];
   actions: UIPluginRuntimeActions;
   applicationEventRegistry?: AppEventRegistry | undefined;
   applicationEventSource?: ApplicationEventSource | undefined;
@@ -65,12 +52,6 @@ interface SlotContentProps<TState = unknown> {
   slotId: string;
   model: AppUIModel;
   registry: PluginRegistry<TState>;
-  conversation: AgentConversation;
-  messages: AgentMessage[];
-  state: TState;
-  run: AgentRunState;
-  executions: AgentExecution[];
-  interrupts: AgentInterrupt[];
   actions: UIPluginRuntimeActions;
   onPluginError(failure: PluginRenderFailure): void;
   onPluginReset(instanceId: string): void;
@@ -124,12 +105,6 @@ function SlotContent<TState = unknown>({
   slotId,
   model,
   registry,
-  conversation,
-  messages,
-  state,
-  run,
-  executions,
-  interrupts,
   actions,
   onPluginError,
   onPluginReset,
@@ -179,18 +154,7 @@ function SlotContent<TState = unknown>({
         const events = serviceRuntime.getEvents(instance.id);
         if (events === undefined) return null;
 
-        const context: UIPluginContext<TState> = {
-          conversation,
-          messages,
-          state,
-          run,
-          executions,
-          interrupts,
-          instance,
-          actions: createInstanceActions(instance, actions),
-          events,
-          services: serviceRuntime.services,
-        };
+        const instanceActions = createInstanceActions(instance, actions);
         const PluginComponent = definition.Component;
         const renderSlot = (requestedSlotId: string): ReactNode => {
           const childSlots = definition.manifest.slots?.children ?? [];
@@ -202,17 +166,11 @@ function SlotContent<TState = unknown>({
           return (
             <SlotContent
               actions={actions}
-              conversation={conversation}
-              messages={messages}
               model={model}
               onPluginError={onPluginError}
               onPluginReset={onPluginReset}
               registry={registry}
-              run={run}
-              executions={executions}
-              interrupts={interrupts}
               slotId={requestedSlotId}
-              state={state}
             />
           );
         };
@@ -245,7 +203,13 @@ function SlotContent<TState = unknown>({
                 data-plugin-id={definition.manifest.id}
                 data-plugin-instance-id={instance.id}
               >
-                <PluginComponent context={context} renderSlot={renderSlot} />
+                <PluginInstanceProvider
+                  actions={instanceActions}
+                  events={events}
+                  instance={instance}
+                >
+                  <PluginComponent renderSlot={renderSlot} />
+                </PluginInstanceProvider>
               </div>
             </RuntimePluginMountProbe>
           </PluginErrorBoundary>
@@ -279,12 +243,6 @@ function LayoutSlotOutlet<TState = unknown>({
 function UIPluginRuntimeContent<TState = unknown>({
   model,
   registry,
-  conversation,
-  messages,
-  state,
-  run,
-  executions,
-  interrupts,
   actions,
   className,
 }: UIPluginRuntimeProps<TState>) {
@@ -388,17 +346,11 @@ function UIPluginRuntimeContent<TState = unknown>({
         renderSlot={(slot: SlotNode) => (
           <LayoutSlotOutlet
             actions={actions}
-            conversation={conversation}
-            messages={messages}
             model={model}
             onPluginError={reportPluginFailure}
             onPluginReset={resolvePluginFailure}
             registry={registry}
-            run={run}
-            executions={executions}
-            interrupts={interrupts}
             slot={slot}
-            state={state}
           />
         )}
       />

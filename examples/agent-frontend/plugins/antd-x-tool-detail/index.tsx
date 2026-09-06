@@ -10,6 +10,13 @@ import { Alert, Empty, Select, Tag, Typography } from "antd";
 import { useState, type ReactNode } from "react";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import {
+  useAgentExecutions,
+  useAgentMessages,
+  useAgentRun,
+  usePluginInstance,
+} from "../../runtime/context";
+import { usePluginService } from "../../runtime/plugins";
 import { AGENT_UI_CONVERSATION_SERVICE } from "../../services/conversations";
 import {
   asRecord,
@@ -99,20 +106,22 @@ function ToolResult({ call }: { call: ToolCallInspection }) {
   );
 }
 
-export function AntdXToolDetailPlugin({
-  context,
-}: UIPluginComponentProps) {
-  const conversation = context.services.get(AGENT_UI_CONVERSATION_SERVICE);
+export function AntdXToolDetailPlugin(_props: UIPluginComponentProps) {
+  const allMessages = useAgentMessages();
+  const executions = useAgentExecutions();
+  const run = useAgentRun();
+  const instance = usePluginInstance();
+  const conversation = usePluginService(AGENT_UI_CONVERSATION_SERVICE);
   const messages =
     conversation === undefined
-      ? context.messages
-      : context.messages.filter((message) =>
+      ? allMessages
+      : allMessages.filter((message) =>
           conversation.includesMessage(message),
         );
-  const calls = inspectToolCalls(messages, context.run);
+  const calls = inspectToolCalls(messages, executions);
   const requestedToolCallId =
-    typeof context.instance.props?.toolCallId === "string"
-      ? context.instance.props.toolCallId
+    typeof instance.props?.toolCallId === "string"
+      ? instance.props.toolCallId
       : undefined;
   const [selectedToolCallId, setSelectedToolCallId] = useState<
     string | undefined
@@ -126,7 +135,7 @@ export function AntdXToolDetailPlugin({
     <section
       aria-label="工具调用详情"
       className="antd-x-tool-detail-plugin"
-      data-agent-run-status={context.run.status}
+      data-agent-run-status={run.status}
       data-ui-plugin="antd-x-tool-detail"
     >
       <header className="antd-x-tool-detail-header">

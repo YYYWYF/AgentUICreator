@@ -3,20 +3,24 @@ import { Attachments, type AttachmentsProps } from "@ant-design/x";
 import { Empty, Tag } from "antd";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import { useAgentMessages, useAgentState } from "../../runtime/context";
+import { usePluginService } from "../../runtime/plugins";
 import { AGENT_UI_CONVERSATION_SERVICE } from "../../services/conversations";
 import { inspectAttachments } from "../_shared/agent-ui-data";
 
 import "./styles.css";
 
-export function AntdXAttachmentsPlugin({ context }: UIPluginComponentProps) {
-  const conversation = context.services.get(AGENT_UI_CONVERSATION_SERVICE);
+export function AntdXAttachmentsPlugin(_props: UIPluginComponentProps) {
+  const allMessages = useAgentMessages();
+  const state = useAgentState();
+  const conversation = usePluginService(AGENT_UI_CONVERSATION_SERVICE);
   const messages =
     conversation === undefined
-      ? context.messages
-      : context.messages.filter((message) =>
+      ? allMessages
+      : allMessages.filter((message) =>
           conversation.includesMessage(message),
         );
-  const attachments = inspectAttachments(messages, context.state);
+  const attachments = inspectAttachments(messages, state);
   const items: NonNullable<AttachmentsProps["items"]> = attachments.map(
     (attachment) => ({
       "aria-label": attachment.name,

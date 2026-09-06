@@ -1,4 +1,6 @@
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import { useAgentMessages, useAgentRun } from "../../runtime/context";
+import { usePluginService } from "../../runtime/plugins";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
   getVisibleConversationMessages,
@@ -7,18 +9,18 @@ import {
 import "./styles.css";
 
 export function ConversationSurfacePlugin({
-  context,
   renderSlot,
 }: UIPluginComponentProps) {
-  const conversation = context.services.get(
+  const messages = useAgentMessages();
+  const run = useAgentRun();
+  const conversation = usePluginService(
     AGENT_UI_CONVERSATION_SERVICE,
   );
   const visibleMessages = getVisibleConversationMessages(
-    context.messages,
+    messages,
     conversation,
   );
-  const showTimeline =
-    context.run.status === "running" || visibleMessages.length > 0;
+  const showTimeline = run.status === "running" || visibleMessages.length > 0;
 
   return (
     <main

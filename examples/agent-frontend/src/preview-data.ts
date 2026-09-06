@@ -118,24 +118,23 @@ export const previewAgentState: AppAgentState = {
       language: "tsx",
       content: `export function App() {
   return (
-    <UIPluginRuntime
-      model={model}
-      registry={pluginRegistry}
-      conversation={conversation}
-      executions={executions}
-      interrupts={interrupts}
-      messages={messages}
-      state={agentState}
-      run={run}
-      actions={actions}
-    />
+    <AgentRuntimeProvider runtime={agentRuntime}>
+      <PluginServiceProvider model={model} registry={pluginRegistry} actions={actions}>
+        <UIPluginRuntime
+          model={model}
+          registry={pluginRegistry}
+          actions={actions}
+        />
+      </PluginServiceProvider>
+    </AgentRuntimeProvider>
   );
 }`,
     },
     "plugins/tool-renderer/index.tsx": {
       language: "tsx",
-      content: `export function ToolRenderer({ context }) {
-  return <ThoughtChain items={toToolItems(context.messages)} />;
+      content: `export function ToolRenderer() {
+  const messages = useAgentMessages();
+  return <ThoughtChain items={toToolItems(messages)} />;
 }`,
     },
     "app-ui/app-ui.json": {

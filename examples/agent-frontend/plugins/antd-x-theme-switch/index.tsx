@@ -3,6 +3,8 @@ import { Switch, Tooltip } from "antd";
 import { useSyncExternalStore } from "react";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import { usePluginInstance } from "../../runtime/context";
+import { usePluginService } from "../../runtime/plugins";
 import {
   AGENT_UI_THEME_SERVICE,
   type AgentUIThemeService,
@@ -10,14 +12,15 @@ import {
 
 import "./styles.css";
 
-export function AntdXThemeSwitchPlugin({ context }: UIPluginComponentProps) {
-  const theme = context.services.get(AGENT_UI_THEME_SERVICE);
+export function AntdXThemeSwitchPlugin(_props: UIPluginComponentProps) {
+  const instance = usePluginInstance();
+  const theme = usePluginService<AgentUIThemeService>(AGENT_UI_THEME_SERVICE);
 
   if (theme === undefined) {
     return null;
   }
 
-  return <ThemeSwitch contextId={context.instance.id} theme={theme} />;
+  return <ThemeSwitch contextId={instance.id} theme={theme} />;
 }
 
 function ThemeSwitch({

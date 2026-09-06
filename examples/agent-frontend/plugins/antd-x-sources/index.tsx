@@ -3,20 +3,24 @@ import { Sources } from "@ant-design/x";
 import { Empty, Tag } from "antd";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import { useAgentMessages, useAgentState } from "../../runtime/context";
+import { usePluginService } from "../../runtime/plugins";
 import { AGENT_UI_CONVERSATION_SERVICE } from "../../services/conversations";
 import { inspectSources } from "../_shared/agent-ui-data";
 
 import "./styles.css";
 
-export function AntdXSourcesPlugin({ context }: UIPluginComponentProps) {
-  const conversation = context.services.get(AGENT_UI_CONVERSATION_SERVICE);
+export function AntdXSourcesPlugin(_props: UIPluginComponentProps) {
+  const allMessages = useAgentMessages();
+  const state = useAgentState();
+  const conversation = usePluginService(AGENT_UI_CONVERSATION_SERVICE);
   const messages =
     conversation === undefined
-      ? context.messages
-      : context.messages.filter((message) =>
+      ? allMessages
+      : allMessages.filter((message) =>
           conversation.includesMessage(message),
         );
-  const sources = inspectSources(messages, context.state);
+  const sources = inspectSources(messages, state);
 
   return (
     <section

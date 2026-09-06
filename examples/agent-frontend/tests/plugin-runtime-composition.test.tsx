@@ -10,9 +10,9 @@ import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 import {
   createPluginRegistry,
-  UIPluginRuntime,
   type RuntimeCompositionSnapshot,
 } from "../runtime/plugins";
+import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
 const appUIModelHash = "c".repeat(64);
 const runtimeActions = {
@@ -87,7 +87,7 @@ function RuntimeFixture({
   reporter(snapshot: RuntimeCompositionSnapshot): void;
 }) {
   return (
-    <UIPluginRuntime
+    <PluginRuntimeFixture
       actions={runtimeActions}
       appUIModelHash={appUIModelHash}
       conversation={{ id: "composition-test" }}

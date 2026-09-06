@@ -15,6 +15,12 @@ import type {
   UIPluginComponentProps,
 } from "../../framework/contracts/ui-plugin";
 import {
+  useAgentMessages,
+  useAgentRun,
+  usePluginInstance,
+} from "../../runtime/context";
+import { usePluginService } from "../../runtime/plugins";
+import {
   AGENT_UI_CONVERSATION_SERVICE,
   getVisibleConversationMessages,
 } from "../../services/conversations";
@@ -237,24 +243,25 @@ const bubbleRoles: NonNullable<BubbleListProps["role"]> = {
   },
 };
 
-export function AntdXMessageListPlugin({
-  context,
-}: UIPluginComponentProps) {
-  const conversation = context.services.get(
+export function AntdXMessageListPlugin(_props: UIPluginComponentProps) {
+  const messages = useAgentMessages();
+  const run = useAgentRun();
+  const instance = usePluginInstance();
+  const conversation = usePluginService(
     AGENT_UI_CONVERSATION_SERVICE,
   );
-  const items = getVisibleConversationMessages(context.messages, conversation)
+  const items = getVisibleConversationMessages(messages, conversation)
     .map((message) =>
       toBubbleItem(message, (_messageId, text) => <MessageActions text={text} />),
     );
   const emptyText =
-    typeof context.instance.props?.emptyText === "string"
-      ? context.instance.props.emptyText
+    typeof instance.props?.emptyText === "string"
+      ? instance.props.emptyText
       : "开始一段新对话";
 
-  if (context.run.status === "running") {
+  if (run.status === "running") {
     items.push({
-      key: `${context.instance.id}-running`,
+      key: `${instance.id}-running`,
       role: "ai",
       content: "智能体正在处理…",
       header: "智能体",
@@ -267,7 +274,7 @@ export function AntdXMessageListPlugin({
     <section
       aria-label="智能体消息"
       className="antd-x-message-list-plugin"
-      data-agent-run-status={context.run.status}
+      data-agent-run-status={run.status}
       data-ui-plugin="antd-x-message-list"
     >
       {items.length === 0 ? (

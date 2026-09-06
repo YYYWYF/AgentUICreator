@@ -7,8 +7,8 @@ import {
   PluginServiceRuntime,
   PluginServiceRuntimeContext,
   SlotRegistry,
-  UIPluginRuntime,
 } from "../runtime/plugins";
+import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
 const runtimeActions = {
   sendMessage: vi.fn(async () => undefined),
@@ -175,7 +175,7 @@ describe("Layout Slot declarations", () => {
     await act(async () => {
       renderer = create(
         <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
-          <UIPluginRuntime
+          <PluginRuntimeFixture
             actions={runtimeActions}
             conversation={{ id: "slot-registry-test" }}
             executions={[]}

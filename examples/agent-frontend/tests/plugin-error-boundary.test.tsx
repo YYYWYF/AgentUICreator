@@ -14,8 +14,9 @@ import type {
 } from "../framework/contracts/ui-plugin";
 import {
   createPluginRegistry,
-  UIPluginRuntime,
 } from "../runtime/plugins";
+import { usePluginInstance } from "../runtime/context";
+import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
 const runtimeActions = {
   sendMessage: vi.fn(async () => undefined),
@@ -39,8 +40,9 @@ function HealthyPlugin() {
   return <button type="button">Healthy plugin action</button>;
 }
 
-function RenderFailurePlugin({ context }: UIPluginComponentProps) {
-  if (context.instance.props?.shouldFail !== false) {
+function RenderFailurePlugin(_props: UIPluginComponentProps) {
+  const instance = usePluginInstance();
+  if (instance.props?.shouldFail !== false) {
     throw new Error("Render fixture failed.");
   }
 
@@ -134,7 +136,7 @@ function RuntimeFixture({
   model: ReturnType<typeof createModel>;
 }) {
   return (
-    <UIPluginRuntime
+    <PluginRuntimeFixture
       actions={runtimeActions}
       conversation={{ id: "error-boundary-test" }}
       executions={[]}

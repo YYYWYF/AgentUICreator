@@ -17,6 +17,7 @@ import { Empty, Tabs, type TabsProps } from "antd";
 import { useMemo, useState, type ReactNode } from "react";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import { useAgentState } from "../../runtime/context";
 
 import "./styles.css";
 
@@ -198,8 +199,9 @@ function iconForFile(name: string): FileCardProps["icon"] {
   return "default";
 }
 
-export function AntdXResourcesPlugin({ context }: UIPluginComponentProps) {
-  const surface = stateSurface(context.state);
+export function AntdXResourcesPlugin(_props: UIPluginComponentProps) {
+  const state = useAgentState();
+  const surface = stateSurface(state);
   const files = readFiles(surface.files);
   const sources = readSources(surface.sources);
   const attachments = readAttachments(surface.attachments);
