@@ -1,4 +1,5 @@
 import type { AgentInputPart, AgentUserInput } from "../agent-input.js";
+import type { AgentApplicationEvent } from "../agent-application-event.js";
 import type { AgentExecution } from "../agent-execution.js";
 import type {
   AgentInterrupt,
@@ -57,6 +58,10 @@ export class MockAgentTransport<TState = unknown>
       executions: [...(config.initialExecutions ?? [])],
       interrupts,
     });
+  }
+
+  emitApplicationEvent(event: AgentApplicationEvent): void {
+    super.emitApplicationEvent(event);
   }
 
   async sendMessage(input: AgentUserInput): Promise<void> {

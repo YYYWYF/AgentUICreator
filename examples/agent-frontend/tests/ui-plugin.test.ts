@@ -21,10 +21,15 @@ describe("UIPluginManifest", () => {
       description: "Displays the selected file",
       version: "1.0.0",
       capabilities: ["file-preview"],
-      data: { messages: true, state: true },
+      data: {
+        messages: true,
+        state: true,
+        events: ["workspace.patch.applied"],
+      },
     });
 
     expect(manifest.id).toBe("file-preview");
+    expect(manifest.data?.events).toEqual(["workspace.patch.applied"]);
   });
 
   it("rejects duplicate capabilities", () => {
@@ -39,6 +44,26 @@ describe("UIPluginManifest", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0]?.path).toEqual(["capabilities", 1]);
+    }
+  });
+
+  it("rejects duplicate application event declarations", () => {
+    const result = uiPluginManifestSchema.safeParse({
+      id: "file-preview",
+      name: "File preview",
+      description: "Displays the selected file",
+      version: "1.0.0",
+      data: {
+        events: [
+          "workspace.patch.applied",
+          "workspace.patch.applied",
+        ],
+      },
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["data", "events", 1]);
     }
   });
 
@@ -91,6 +116,7 @@ describe("UIPluginManifest", () => {
       .toEqualTypeOf<AgentExecution[]>();
     expectTypeOf<UIPluginContext["interrupts"]>()
       .toEqualTypeOf<AgentInterrupt[]>();
+    expectTypeOf<UIPluginContext["events"]["subscribe"]>().toBeFunction();
   });
 
   it("propagates application-owned state through the plugin context", () => {

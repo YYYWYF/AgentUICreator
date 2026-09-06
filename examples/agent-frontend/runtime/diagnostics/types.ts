@@ -1,7 +1,13 @@
 export const RUNTIME_DIAGNOSTIC_SCHEMA_VERSION = 1 as const;
 export const RUNTIME_COMPOSITION_SCHEMA_VERSION = 1 as const;
 
-export type RuntimeDiagnosticKind = "plugin-render" | "plugin-activation";
+export type RuntimeDiagnosticKind =
+  | "plugin-render"
+  | "plugin-activation"
+  | "application-event-unknown"
+  | "application-event-invalid-payload"
+  | "plugin-event-undeclared-subscription"
+  | "plugin-event-handler-error";
 export type RuntimeDiagnosticStatus = "error" | "resolved";
 
 export interface RuntimeDiagnostic {
@@ -10,9 +16,11 @@ export interface RuntimeDiagnostic {
   status: RuntimeDiagnosticStatus;
   appUIModelHash: string;
   occurredAt: string;
-  pluginId: string;
-  instanceId: string;
+  pluginId?: string | undefined;
+  instanceId?: string | undefined;
   pluginName?: string | undefined;
+  eventName?: string | undefined;
+  issuePaths?: readonly string[] | undefined;
   slotId?: string | undefined;
   slotPath?: string | undefined;
   errorMessage?: string | undefined;

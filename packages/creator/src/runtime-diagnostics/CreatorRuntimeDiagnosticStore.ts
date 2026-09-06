@@ -11,7 +11,11 @@ export const CREATOR_RUNTIME_COMPOSITION_SCHEMA_VERSION = 1 as const;
 
 export type CreatorRuntimeDiagnosticKind =
   | "plugin-render"
-  | "plugin-activation";
+  | "plugin-activation"
+  | "application-event-unknown"
+  | "application-event-invalid-payload"
+  | "plugin-event-undeclared-subscription"
+  | "plugin-event-handler-error";
 export type CreatorRuntimeDiagnosticStatus = "error" | "resolved";
 
 export interface CreatorRuntimeDiagnostic {
@@ -20,9 +24,11 @@ export interface CreatorRuntimeDiagnostic {
   status: CreatorRuntimeDiagnosticStatus;
   appUIModelHash: string;
   occurredAt: string;
-  pluginId: string;
-  instanceId: string;
+  pluginId?: string | undefined;
+  instanceId?: string | undefined;
   pluginName?: string | undefined;
+  eventName?: string | undefined;
+  issuePaths?: readonly string[] | undefined;
   slotId?: string | undefined;
   slotPath?: string | undefined;
   errorMessage?: string | undefined;
@@ -171,7 +177,11 @@ export function parseCreatorRuntimeDiagnostic(
   }
   if (
     source.kind !== "plugin-render" &&
-    source.kind !== "plugin-activation"
+    source.kind !== "plugin-activation" &&
+    source.kind !== "application-event-unknown" &&
+    source.kind !== "application-event-invalid-payload" &&
+    source.kind !== "plugin-event-undeclared-subscription" &&
+    source.kind !== "plugin-event-handler-error"
   ) {
     throw new CreatorRuntimeDiagnosticSchemaError(
       "diagnostic.kind is unsupported.",
@@ -212,6 +222,49 @@ export function parseCreatorRuntimeDiagnostic(
       "An error diagnostic must include errorMessage.",
     );
   }
+  const pluginScoped =
+    source.kind === "plugin-render" ||
+    source.kind === "plugin-activation" ||
+    source.kind === "plugin-event-undeclared-subscription" ||
+    source.kind === "plugin-event-handler-error";
+  const eventScoped =
+    source.kind === "application-event-unknown" ||
+    source.kind === "application-event-invalid-payload" ||
+    source.kind === "plugin-event-undeclared-subscription" ||
+    source.kind === "plugin-event-handler-error";
+  const pluginId = boundedString(
+    source.pluginId,
+    "diagnostic.pluginId",
+    200,
+    pluginScoped,
+  );
+  const instanceId = boundedString(
+    source.instanceId,
+    "diagnostic.instanceId",
+    200,
+    pluginScoped,
+  );
+  const eventName = boundedString(
+    source.eventName,
+    "diagnostic.eventName",
+    300,
+    eventScoped,
+  );
+  let issuePaths: string[] | undefined;
+  if (source.issuePaths !== undefined) {
+    if (!Array.isArray(source.issuePaths) || source.issuePaths.length > 100) {
+      throw new CreatorRuntimeDiagnosticSchemaError(
+        "diagnostic.issuePaths must be an array with at most 100 entries.",
+      );
+    }
+    issuePaths = source.issuePaths.map((path, index) =>
+      boundedString(
+        path,
+        `diagnostic.issuePaths[${index}]`,
+        500,
+      )!,
+    );
+  }
 
   return {
     schemaVersion: CREATOR_RUNTIME_DIAGNOSTIC_SCHEMA_VERSION,
@@ -219,12 +272,10 @@ export function parseCreatorRuntimeDiagnostic(
     status: source.status,
     appUIModelHash,
     occurredAt,
-    pluginId: boundedString(source.pluginId, "diagnostic.pluginId", 200)!,
-    instanceId: boundedString(
-      source.instanceId,
-      "diagnostic.instanceId",
-      200,
-    )!,
+    ...(pluginId === undefined ? {} : { pluginId }),
+    ...(instanceId === undefined ? {} : { instanceId }),
+    ...(eventName === undefined ? {} : { eventName }),
+    ...(issuePaths === undefined ? {} : { issuePaths }),
     ...(optionalString(source.pluginName, "diagnostic.pluginName", 200) ===
     undefined
       ? {}
@@ -371,6 +422,8 @@ function diagnosticFingerprint(diagnostic: CreatorRuntimeDiagnostic): string {
     diagnostic.appUIModelHash,
     diagnostic.pluginId,
     diagnostic.instanceId,
+    diagnostic.eventName ?? null,
+    diagnostic.issuePaths ?? null,
     diagnostic.slotId ?? null,
     diagnostic.slotPath ?? null,
     diagnostic.errorMessage ?? null,
@@ -414,7 +467,8 @@ export class CreatorRuntimeDiagnosticStore {
           record.kind === diagnostic.kind &&
           record.appUIModelHash === diagnostic.appUIModelHash &&
           record.pluginId === diagnostic.pluginId &&
-          record.instanceId === diagnostic.instanceId
+          record.instanceId === diagnostic.instanceId &&
+          record.eventName === diagnostic.eventName
         ) {
           record.status = "resolved";
           record.lastSeenAt = nowText;

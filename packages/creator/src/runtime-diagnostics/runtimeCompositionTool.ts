@@ -86,7 +86,10 @@ export function createRuntimeCompositionTool(
           currentAppUIModelHash,
         );
         const currentErrors = diagnosticInspection.currentErrors
-          .filter((error) => expectedInstanceIds.has(error.instanceId))
+          .filter(
+            (error) => error.instanceId !== undefined &&
+              expectedInstanceIds.has(error.instanceId),
+          )
           .map((error) => ({
             ...error,
             ...(error.errorMessage === undefined

@@ -109,6 +109,30 @@ function inspectionFixture(hash = hashA): UIProjectInspection {
 }
 
 describe("Creator runtime diagnostics", () => {
+  it("accepts application-event diagnostics without plugin identity", () => {
+    const store = new CreatorRuntimeDiagnosticStore();
+
+    store.record("project-a", "thread-a", diagnostic({
+      kind: "application-event-invalid-payload",
+      pluginId: undefined,
+      instanceId: undefined,
+      pluginName: undefined,
+      slotId: undefined,
+      slotPath: undefined,
+      componentStack: undefined,
+      eventName: "workspace.patch.applied",
+      issuePaths: ["changeId"],
+      errorMessage: "Invalid application event payload",
+    }));
+
+    expect(store.inspect("project-a", "thread-a", hashA).currentErrors[0])
+      .toMatchObject({
+        kind: "application-event-invalid-payload",
+        eventName: "workspace.patch.applied",
+        issuePaths: ["changeId"],
+      });
+  });
+
   it("deduplicates repeated errors and preserves resolved audit state", () => {
     const store = new CreatorRuntimeDiagnosticStore();
 

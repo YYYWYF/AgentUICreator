@@ -13,11 +13,18 @@ import {
   type UIPluginRuntimeActions,
 } from "./PluginServiceRuntime";
 import { useOptionalPluginDiagnosticContext } from "../diagnostics";
+import {
+  AppEventRegistry,
+  AppEventRuntime,
+  type ApplicationEventSource,
+} from "../events";
 
 export interface PluginServiceProviderProps<TState = unknown> {
   model: AppUIModel;
   registry: PluginRegistry<TState>;
   actions: UIPluginRuntimeActions;
+  applicationEventRegistry?: AppEventRegistry | undefined;
+  applicationEventSource?: ApplicationEventSource | undefined;
   children: ReactNode;
 }
 
@@ -25,10 +32,29 @@ export function PluginServiceProvider<TState = unknown>({
   model,
   registry,
   actions,
+  applicationEventRegistry,
+  applicationEventSource,
   children,
 }: PluginServiceProviderProps<TState>) {
-  const [runtime] = useState(() => new PluginServiceRuntime());
+  const [eventRuntime] = useState(
+    () => new AppEventRuntime(
+      applicationEventRegistry ?? new AppEventRegistry({}),
+    ),
+  );
+  const [runtime] = useState(() => new PluginServiceRuntime(eventRuntime));
   const diagnostics = useOptionalPluginDiagnosticContext();
+
+  useLayoutEffect(
+    () => eventRuntime.setDiagnosticReporter(diagnostics?.report),
+    [diagnostics, eventRuntime],
+  );
+
+  useLayoutEffect(
+    () => applicationEventSource === undefined
+      ? undefined
+      : eventRuntime.connect(applicationEventSource),
+    [applicationEventSource, eventRuntime],
+  );
 
   useLayoutEffect(() => {
     runtime.reconcile(model, registry, actions, diagnostics);

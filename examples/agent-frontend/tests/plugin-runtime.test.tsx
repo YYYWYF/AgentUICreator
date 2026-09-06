@@ -855,6 +855,7 @@ describe("recursive React Plugin composition", () => {
       expect(consumerContext?.messages).toEqual([]);
       expect(consumerContext?.run).toBe(idleRun);
       expect(consumerContext?.services).toBeDefined();
+      expect(consumerContext?.events).toBeDefined();
     } finally {
       await mounted.dispose();
     }

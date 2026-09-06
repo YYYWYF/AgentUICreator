@@ -1,4 +1,5 @@
 import type { AgentConversation } from "./agent-conversation.js";
+import type { AgentApplicationEventListener } from "./agent-application-event.js";
 import type { AgentExecution } from "./agent-execution.js";
 import type {
   AgentInterrupt,
@@ -23,6 +24,7 @@ export interface AgentTransport<TState = unknown> {
   readonly mode: string;
   getSnapshot(): AgentTransportSnapshot<TState>;
   subscribe(listener: () => void): () => void;
+  subscribeApplicationEvents(listener: AgentApplicationEventListener): () => void;
   sendMessage(input: AgentUserInput): Promise<void>;
   resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void>;
   startNewConversation(): Promise<void>;

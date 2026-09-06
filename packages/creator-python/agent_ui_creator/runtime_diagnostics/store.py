@@ -16,13 +16,22 @@ class RuntimeDiagnostic(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     schemaVersion: Literal[1]
-    kind: Literal["plugin-render", "plugin-activation"]
+    kind: Literal[
+        "plugin-render",
+        "plugin-activation",
+        "application-event-unknown",
+        "application-event-invalid-payload",
+        "plugin-event-undeclared-subscription",
+        "plugin-event-handler-error",
+    ]
     status: Literal["error", "resolved"]
     appUIModelHash: str = Field(pattern=r"^[a-f0-9]{64}$")
     occurredAt: datetime
-    pluginId: str = Field(min_length=1, max_length=200)
-    instanceId: str = Field(min_length=1, max_length=200)
+    pluginId: str | None = Field(default=None, min_length=1, max_length=200)
+    instanceId: str | None = Field(default=None, min_length=1, max_length=200)
     pluginName: str | None = Field(default=None, max_length=200)
+    eventName: str | None = Field(default=None, min_length=1, max_length=300)
+    issuePaths: list[str] | None = Field(default=None, max_length=100)
     slotId: str | None = Field(default=None, max_length=200)
     slotPath: str | None = Field(default=None, max_length=1_000)
     errorMessage: str | None = Field(default=None, max_length=2_000)
@@ -32,6 +41,26 @@ class RuntimeDiagnostic(BaseModel):
     def require_error_message(self) -> "RuntimeDiagnostic":
         if self.status == "error" and self.errorMessage is None:
             raise ValueError("An error diagnostic must include errorMessage.")
+        plugin_scoped = self.kind in {
+            "plugin-render",
+            "plugin-activation",
+            "plugin-event-undeclared-subscription",
+            "plugin-event-handler-error",
+        }
+        event_scoped = self.kind in {
+            "application-event-unknown",
+            "application-event-invalid-payload",
+            "plugin-event-undeclared-subscription",
+            "plugin-event-handler-error",
+        }
+        if plugin_scoped and (self.pluginId is None or self.instanceId is None):
+            raise ValueError("A plugin-scoped diagnostic must include plugin identity.")
+        if event_scoped and self.eventName is None:
+            raise ValueError("An event diagnostic must include eventName.")
+        if self.issuePaths is not None and any(
+            not path or len(path) > 500 for path in self.issuePaths
+        ):
+            raise ValueError("diagnostic.issuePaths entries must be 1-500 characters.")
         return self
 
 
@@ -111,6 +140,7 @@ class RuntimeDiagnosticStore:
                     and record.get("appUIModelHash") == diagnostic.appUIModelHash
                     and record.get("pluginId") == diagnostic.pluginId
                     and record.get("instanceId") == diagnostic.instanceId
+                    and record.get("eventName") == diagnostic.eventName
                 ):
                     record["status"] = "resolved"
                     resolved_count += 1
@@ -122,6 +152,8 @@ class RuntimeDiagnosticStore:
             "appUIModelHash",
             "pluginId",
             "instanceId",
+            "eventName",
+            "issuePaths",
             "slotId",
             "slotPath",
             "errorMessage",

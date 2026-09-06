@@ -89,6 +89,28 @@ describe("generated app AG-UI dependency boundary", () => {
     expect(violations).toEqual([]);
   });
 
+  it("keeps wire-level custom event details out of Plugin code", async () => {
+    const forbidden = [
+      "EventType.CUSTOM",
+      "CustomEvent",
+      "BaseEvent",
+      "rawEvent",
+    ];
+    const violations: string[] = [];
+
+    for (const filename of await sourceFiles(path.join(projectRoot, "plugins"))) {
+      const source = await readFile(filename, "utf8");
+      const relative = path.relative(workspaceRoot, filename).split(path.sep).join("/");
+      forbidden.forEach((token) => {
+        if (source.includes(token)) {
+          violations.push(`${relative}: wire event token ${token}`);
+        }
+      });
+    }
+
+    expect(violations).toEqual([]);
+  });
+
   it("enforces package dependency ownership and direction", async () => {
     const readPackage = async (filename: string): Promise<Record<string, unknown>> =>
       JSON.parse(await readFile(filename, "utf8")) as Record<string, unknown>;

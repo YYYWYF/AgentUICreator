@@ -9,6 +9,7 @@ import type {
   AgentInterruptResponse,
   UIPluginActions,
   UIPluginDefinition,
+  UIPluginEvents,
   UIPluginServiceRegistrar,
   UIPluginServices,
 } from "../../framework/contracts/ui-plugin";
@@ -17,6 +18,7 @@ import {
   type PluginRegistry,
 } from "./PluginRegistry";
 import type { PluginDiagnosticContextValue } from "../diagnostics";
+import { AppEventRegistry, AppEventRuntime } from "../events";
 
 export interface UIPluginRuntimeActions {
   sendMessage(input: string | AgentUserInput): Promise<void>;
@@ -88,12 +90,20 @@ export function createInstanceActions(
  */
 export class PluginServiceRuntime {
   readonly slots = new SlotRegistry();
+  readonly applicationEvents: AppEventRuntime;
   readonly #services = new Map<string, ServiceRecord>();
+  readonly #eventScopes = new Map<string, UIPluginEvents>();
   readonly #activations = new Map<string, PluginActivationState>();
   readonly #listeners = new Set<() => void>();
   readonly #activePlugins: ActivePluginRecord[] = [];
   #activationCounter = 0;
   #revision = 0;
+
+  constructor(
+    applicationEvents = new AppEventRuntime(new AppEventRegistry({})),
+  ) {
+    this.applicationEvents = applicationEvents;
+  }
 
   readonly services: UIPluginServices = {
     get: <T = unknown>(name: string): T | undefined => this.get<T>(name),
@@ -112,6 +122,10 @@ export class PluginServiceRuntime {
 
   getActivation(instanceId: string): PluginActivationState | undefined {
     return this.#activations.get(instanceId);
+  }
+
+  getEvents(instanceId: string): UIPluginEvents | undefined {
+    return this.#eventScopes.get(instanceId);
   }
 
   reconcile<TState = unknown>(
@@ -251,9 +265,23 @@ export class PluginServiceRuntime {
     };
 
     try {
+      const eventScope = this.applicationEvents.createPluginEvents({
+        pluginId: definition.manifest.id,
+        instanceId: instance.id,
+        declaredEventNames: definition.manifest.data?.events ?? [],
+      });
+      this.#eventScopes.set(instance.id, eventScope);
+      record.cleanups.push(() => {
+        eventScope.dispose();
+        if (this.#eventScopes.get(instance.id) === eventScope) {
+          this.#eventScopes.delete(instance.id);
+        }
+      });
+
       const cleanup = definition.setup?.({
         instance,
         actions: createInstanceActions(instance, actions),
+        events: eventScope,
         services: registrar,
       });
 
@@ -344,6 +372,7 @@ export class PluginServiceRuntime {
     }
     this.#activePlugins.length = 0;
     this.#services.clear();
+    this.#eventScopes.clear();
     this.#activations.clear();
   }
 

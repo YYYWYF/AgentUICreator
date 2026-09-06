@@ -103,7 +103,9 @@ export function PluginDiagnosticProvider({
       if (onRuntimeDiagnostic === undefined) {
         return;
       }
-      const location = locations.get(event.instanceId);
+      const location = event.instanceId === undefined
+        ? undefined
+        : locations.get(event.instanceId);
       try {
         onRuntimeDiagnostic({
           schemaVersion: RUNTIME_DIAGNOSTIC_SCHEMA_VERSION,

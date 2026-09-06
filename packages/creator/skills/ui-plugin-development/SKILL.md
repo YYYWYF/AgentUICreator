@@ -15,6 +15,7 @@ Inspect project conventions before deciding that Plugin source must change:
 - `/project/plugins/*/styles.css` owns Plugin-specific presentation when that stack uses CSS.
 - `/project/plugins/registry.generated.ts` is the generated production registry and statically imports only definitions selected by AppUIModel. Never edit it or `/project/plugins/index.ts` by hand.
 - `/project/framework/contracts/ui-plugin.ts` is the Plugin Contract.
+- `/project/agent-contract/agent-events.ts` is the application-owned registry for backend Application Event names and payload schemas.
 - `/project/services/*` contains stable project-owned Service seams when multiple Plugins share one capability. Treat these seams as read-only unless the host explicitly authorizes capability-contract work.
 
 ## Reuse decision
@@ -35,7 +36,7 @@ Inspect project conventions before deciding that Plugin source must change:
 ## Creating a Plugin
 
 1. Read `/project/framework/contracts/ui-plugin.ts` and one existing Plugin end to end.
-2. Create `/project/plugins/<plugin-id>/manifest.json` with a unique id, useful description, version, capabilities when applicable, and accurate `data.messages` or `data.state` flags.
+2. Create `/project/plugins/<plugin-id>/manifest.json` with a unique id, useful description, version, capabilities when applicable, and accurate `data.messages`, `data.state`, or `data.events` declarations.
 3. Create `index.tsx` with a named React component that accepts `UIPluginComponentProps` and narrows unknown AG-UI data safely.
 4. Create `definition.ts` that validates the manifest and exports a `UIPluginDefinition`.
 6. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
@@ -45,7 +46,9 @@ Inspect project conventions before deciding that Plugin source must change:
 
 ## Contract boundaries
 
-- A Plugin receives `messages`, `state`, `run`, its `instance`, and runtime-provided `actions` through `UIPluginContext`.
+- A Plugin receives `conversation`, `messages`, `state`, `run`, `executions`, `interrupts`, scoped `events`, its `instance`, runtime-provided `actions`, and frontend `services` through `UIPluginContext`.
+- Before a Plugin consumes a backend Application Event, add its lowercase dot-separated name and strict payload schema to `/project/agent-contract/agent-events.ts`, then declare the same name in `manifest.data.events`. A manifest declaration consumes an application-owned contract; it does not register one.
+- Subscribe through `context.events.subscribe`. Never import AG-UI protocol event types into Plugin code, invent a schema inside a Plugin, emit an Application Event from the frontend, or use this channel for persistent state, standard lifecycle, Activity, or local Plugin communication.
 - Child Slots and Plugin-declared outlets are intentionally out of scope in this phase.
 - Use `context.actions.sendMessage`, `startNewConversation`, `abortRun`, and `updateInstanceProps`; never create a separate Agent Runtime inside a Plugin.
 - Keep Plugin dependencies in the generated project and follow its current UI stack and versions.

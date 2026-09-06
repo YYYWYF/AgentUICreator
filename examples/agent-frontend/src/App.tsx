@@ -17,6 +17,7 @@ import { MockAgentTransport } from "@agent-ui/runtime-core/testing";
 
 import appUIJsonSource from "../app-ui/app-ui.json?raw";
 import type { AppAgentState } from "../agent-contract/agent-state";
+import { appEventSchemas } from "../agent-contract/agent-events";
 import {
   parseAppUIModel,
   parseAppUIModelJson,
@@ -28,6 +29,7 @@ import {
   type AgentUIThemeService,
 } from "../plugins/antd-x-theme-provider/theme-service";
 import { useAgentRuntime } from "../runtime/useAgentRuntime";
+import { AppEventRegistry } from "../runtime/events";
 import {
   createPluginRegistry,
   PluginServiceProvider,
@@ -50,6 +52,7 @@ import "./styles.css";
 
 const initialAppUIModel = parseAppUIModelJson(appUIJsonSource);
 const pluginRegistry = createPluginRegistry<AppAgentState>(pluginDefinitions);
+const appEventRegistry = new AppEventRegistry(appEventSchemas);
 const endpoint = import.meta.env.VITE_AGENT_ENDPOINT?.trim();
 const agentTransport =
   import.meta.env.DEV && !endpoint
@@ -239,6 +242,8 @@ export function App({
     >
       <PluginServiceProvider
         actions={pluginActions}
+        applicationEventRegistry={appEventRegistry}
+        applicationEventSource={agentRuntime}
         model={model}
         registry={pluginRegistry}
       >

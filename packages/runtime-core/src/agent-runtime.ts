@@ -1,5 +1,6 @@
 import type { AgentUserInput } from "./agent-input.js";
 import type { AgentInterruptResponse } from "./agent-interrupt.js";
+import type { AgentApplicationEventListener } from "./agent-application-event.js";
 import type {
   AgentTransport,
   AgentTransportSnapshot,
@@ -12,6 +13,7 @@ export interface AgentRuntime<TState = unknown> {
   readonly mode: string;
   getSnapshot(): AgentRuntimeSnapshot<TState>;
   subscribe(listener: () => void): () => void;
+  subscribeApplicationEvents(listener: AgentApplicationEventListener): () => void;
   sendMessage(input: string | AgentUserInput): Promise<void>;
   resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void>;
   startNewConversation(): Promise<void>;
@@ -65,6 +67,8 @@ export function createAgentRuntime<TState = unknown>({
     // Keep method receivers and the transport's cached snapshot identity intact.
     getSnapshot: () => transport.getSnapshot(),
     subscribe: (listener) => transport.subscribe(listener),
+    subscribeApplicationEvents: (listener) =>
+      transport.subscribeApplicationEvents(listener),
     sendMessage: (input) => {
       if (transport.getSnapshot().interrupts.length > 0) {
         return Promise.reject(new Error(

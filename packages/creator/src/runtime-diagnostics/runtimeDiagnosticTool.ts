@@ -68,7 +68,7 @@ export function createRuntimeDiagnosticTool(
     {
       name: "inspect_runtime_errors",
       description:
-        "Inspect bounded, source-attributed plugin render and activation diagnostics for the current AppUIModel hash. Set includeStale only when historical diagnostics from older hashes are needed.",
+        "Inspect bounded plugin render, activation, and application-event diagnostics for the current AppUIModel hash. Set includeStale only when historical diagnostics from older hashes are needed.",
       schema: {
         type: "object",
         properties: {

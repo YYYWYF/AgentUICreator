@@ -1,4 +1,5 @@
 import type {
+  AgentApplicationEvent,
   AgentConversation,
   AgentExecution,
   AgentInterrupt,
@@ -13,6 +14,7 @@ import { z } from "zod";
 import type { PluginInstance } from "./app-ui-model";
 
 export type {
+  AgentApplicationEvent,
   AgentConversation,
   AgentExecution,
   AgentInterrupt,
@@ -38,6 +40,8 @@ export interface UIPluginManifest {
     | {
         messages?: boolean | undefined;
         state?: boolean | undefined;
+        /** Declares consumption; schemas are registered by agent-contract. */
+        events?: readonly string[] | undefined;
       }
     | undefined;
 }
@@ -69,6 +73,15 @@ export interface UIPluginServices {
   get<T = unknown>(name: string): T | undefined;
 }
 
+export interface UIPluginEvents {
+  subscribe<TPayload = unknown>(
+    name: string,
+    listener: (
+      event: AgentApplicationEvent<TPayload>,
+    ) => void | Promise<void>,
+  ): () => void;
+}
+
 export interface UIPluginServiceRegistrar extends UIPluginServices {
   provide<K extends keyof UIPluginServiceMap & string>(
     name: K,
@@ -80,6 +93,7 @@ export interface UIPluginServiceRegistrar extends UIPluginServices {
 export interface UIPluginSetupContext {
   instance: PluginInstance;
   actions: UIPluginActions;
+  events: UIPluginEvents;
   services: UIPluginServiceRegistrar;
 }
 
@@ -94,6 +108,7 @@ export interface UIPluginContext<TState = unknown> {
   interrupts: AgentInterrupt[];
   instance: PluginInstance;
   actions: UIPluginActions;
+  events: UIPluginEvents;
   services: UIPluginServices;
 }
 
@@ -132,6 +147,7 @@ const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
     .strictObject({
       messages: z.boolean().optional(),
       state: z.boolean().optional(),
+      events: z.array(nonBlankStringSchema).optional(),
     })
     .optional(),
 });
@@ -162,6 +178,19 @@ export const uiPluginManifestSchema = manifestShapeSchema.superRefine(
         });
       }
       childSlots.add(slotId);
+    });
+
+    const applicationEvents = new Set<string>();
+    manifest.data?.events?.forEach((eventName, index) => {
+      if (applicationEvents.has(eventName)) {
+        context.addIssue({
+          code: "custom",
+          path: ["data", "events", index],
+          message: `Duplicate application event declaration "${eventName}"`,
+          input: eventName,
+        });
+      }
+      applicationEvents.add(eventName);
     });
   },
 );

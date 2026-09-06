@@ -519,6 +519,7 @@ interface UIPluginManifest {
   data?: {
     messages?: boolean
     state?: boolean
+    events?: readonly string[]
   }
 }
 ```
@@ -549,6 +550,8 @@ interface UIPluginContext<TState = unknown> {
 
   interrupts: AgentInterrupt[]
 
+  events: UIPluginEvents
+
   instance: PluginInstance
 
   actions: UIPluginActions
@@ -577,6 +580,8 @@ interface UIPluginActions {
 ```
 
 `conversation`、`messages`、`state`、`run`、`executions` 与 `interrupts` 由 Agent Runtime 提供稳定、协议无关的前端状态。`run` 表示一个 wire request；当标准 structured interrupt 暂停执行时，其状态为 `awaiting-input`。`interrupts` 只包含当前 Conversation 尚待处理的输入，不是历史记录。`executions` 是当前 fresh user turn 的 live execution projection：普通 `sendMessage` 开始新的 execution chain 并清理上一条 chain，由 Interrupt 触发的 `resumeInterrupts` 是原 chain 的 continuation，因此 Tool、Reasoning、Step 与 Subagent execution 跨多个 resume run 保留，直到下一次 fresh user turn；它仍然不是持久化 execution history。Message 通过 `producer` 保留 Root/Subagent 归属，并只在观察到标准流式生命周期时携带 `streamStatus`。
+
+`events` 是 Backend-originated、application-specific、live-only 的瞬时 Application Event 通道。AG-UI `CUSTOM` 只存在于 `@agent-ui/runtime-agui`；Generated Application 在 `agent-contract/agent-events.ts` 统一注册名称和 payload schema，Plugin Manifest 的 `data.events` 只声明消费权限。未知名称、非法 payload 和未声明订阅必须丢弃并产生无 payload 的诊断；每个 listener 获得独立 payload clone，handler 错误不得影响其他 listener 或 Agent Run。Event 不 replay、不持久化、不进入 Snapshot，也不得替代 State、Activity 或标准 lifecycle。
 
 标准 HITL 只通过 `RUN_FINISHED` 的 structured interrupt outcome 映射为 `AgentInterrupt[]`，并通过 `AgentInterruptResponse[]` 映射到新 Run 的 `RunAgentInput.resume[]`。Plugin 必须一次覆盖全部 pending interrupt，可通过 `producer` 关联 Root/Subagent、通过 `toolExecutionId` 关联 Tool，但不得直接消费 AG-UI 类型、SDK pending object、CUSTOM/RAW event，也不得把响应伪装成普通 UserMessage。AG-UI 的 `threadId`、`runId`、`subagentRunId`、`Interrupt`、`ResumeEntry` 和 Event 类型只允许存在于 `@agent-ui/runtime-agui`；Plugin 不直接订阅底层 Run Event。
 
@@ -766,6 +771,7 @@ Agent Backend
       │
       ▼
 messages / state / run state
+      + validated application events
       │
       ▼
 UI Plugin Runtime
@@ -783,6 +789,8 @@ run state
 ```
 
 而不是直接绑定大量底层 Event Hook。
+
+当 Backend 发送 AG-UI `CUSTOM` 时，Adapter 只投影为协议无关的 `AgentApplicationEvent { name, payload, producer }`，并通过独立于 Snapshot subscription 的 event channel 交给 Generated Application。应用级 Registry whitelist + schema validation 通过后，Runtime 才向声明了该名称的 Plugin activation scope 发布。该通道仅用于没有标准 AG-UI 语义、且无需晚挂载恢复的瞬时 occurrence；持续活动使用 Activity，持久信息使用 State，Plugin 间本地通信使用 Services。
 
 ---
 

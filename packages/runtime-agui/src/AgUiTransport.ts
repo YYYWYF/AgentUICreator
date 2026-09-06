@@ -271,6 +271,18 @@ export class AgUiTransport<TState = unknown>
         this.projector.onSubagentError(event);
         this.syncFromAgent(agent);
       },
+      onCustomEvent: ({ event }) => {
+        if (this.disposed || agent !== this.agent) {
+          return;
+        }
+        this.emitApplicationEvent({
+          name: event.name,
+          payload: structuredClone(event.value),
+          producer: event.subagentRunId === undefined
+            ? { type: "root" }
+            : { type: "subagent", id: event.subagentRunId },
+        });
+      },
     });
 
     return () => subscription.unsubscribe();

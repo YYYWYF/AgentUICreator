@@ -57,6 +57,7 @@ describe("protocol-independent runtime delegation", () => {
         interrupts: [],
       }),
       subscribe: () => () => undefined,
+      subscribeApplicationEvents: () => () => undefined,
       sendMessage,
       resumeInterrupts: async () => undefined,
       startNewConversation: async () => undefined,
@@ -130,6 +131,7 @@ describe("protocol-independent runtime delegation", () => {
       mode: "in-memory-test",
       getSnapshot() { return snapshot; },
       subscribe: vi.fn(() => () => undefined),
+      subscribeApplicationEvents: vi.fn(() => () => undefined),
       sendMessage: vi.fn(async () => undefined),
       resumeInterrupts: vi.fn(async () => undefined),
       startNewConversation: vi.fn(async () => undefined),
@@ -149,6 +151,55 @@ describe("protocol-independent runtime delegation", () => {
 });
 
 describe("Runtime Core with MockAgentTransport", () => {
+  it("keeps transient application events separate from snapshots", () => {
+    const transport = new MockAgentTransport({
+      initialState: { selectedFile: "src/App.tsx" },
+    });
+    const runtime = createAgentRuntime({ transport });
+    const snapshot = runtime.getSnapshot();
+    const snapshotListener = vi.fn();
+    const applicationEventListener = vi.fn();
+    runtime.subscribe(snapshotListener);
+    const unsubscribe = runtime.subscribeApplicationEvents(
+      applicationEventListener,
+    );
+
+    transport.emitApplicationEvent({
+      name: "workspace.patch.applied",
+      payload: { changeId: "change-1" },
+      producer: { type: "root" },
+    });
+
+    expect(applicationEventListener).toHaveBeenCalledOnce();
+    expect(snapshotListener).not.toHaveBeenCalled();
+    expect(runtime.getSnapshot()).toBe(snapshot);
+    expect(runtime.getSnapshot()).toMatchObject({
+      messages: [],
+      state: { selectedFile: "src/App.tsx" },
+      run: { status: "idle" },
+      executions: [],
+      interrupts: [],
+    });
+
+    unsubscribe();
+    transport.emitApplicationEvent({
+      name: "workspace.patch.applied",
+      payload: { changeId: "change-2" },
+      producer: { type: "root" },
+    });
+    expect(applicationEventListener).toHaveBeenCalledOnce();
+
+    const disposedListener = vi.fn();
+    runtime.subscribeApplicationEvents(disposedListener);
+    runtime.dispose();
+    transport.emitApplicationEvent({
+      name: "workspace.patch.applied",
+      payload: { changeId: "change-3" },
+      producer: { type: "root" },
+    });
+    expect(disposedListener).not.toHaveBeenCalled();
+  });
+
   it("passes injected semantic executions through without conversion", () => {
     const executions: AgentExecution[] = [
       {

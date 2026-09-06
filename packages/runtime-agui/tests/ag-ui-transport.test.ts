@@ -163,6 +163,30 @@ class FakeAgentClient {
     });
   }
 
+  emitCustom(
+    name: string,
+    value: unknown,
+    subagentRunId?: string,
+  ): void {
+    this.subscribers.forEach((subscriber) => {
+      const listener = subscriber.onCustomEvent;
+      if (listener === undefined) return;
+      void listener({
+        event: {
+          type: EventType.CUSTOM,
+          name,
+          value,
+          ...(subagentRunId === undefined ? {} : { subagentRunId }),
+          metadata: { privateWireMetadata: true },
+          rawEvent: { privateWireEvent: true },
+        },
+        messages: this.messages,
+        state: this.state,
+        agent: this as unknown as AbstractAgent,
+      } as Parameters<typeof listener>[0]);
+    });
+  }
+
   private emitMessagesChanged(): void {
     this.subscribers.forEach((subscriber) => {
       void subscriber.onMessagesChanged?.({
@@ -175,6 +199,60 @@ class FakeAgentClient {
 }
 
 describe("AgUiTransport", () => {
+  it("projects CUSTOM into a cloned root application event without changing snapshots", () => {
+    const agent = new FakeAgentClient();
+    const transport = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui" },
+      () => agent,
+    );
+    const snapshot = transport.getSnapshot();
+    const snapshotListener = vi.fn();
+    const eventListener = vi.fn();
+    transport.subscribe(snapshotListener);
+    transport.subscribeApplicationEvents(eventListener);
+    const value = { changeId: "change-1", files: ["src/App.tsx"] };
+
+    agent.emitCustom("workspace.patch.applied", value);
+
+    expect(eventListener).toHaveBeenCalledWith({
+      name: "workspace.patch.applied",
+      payload: { changeId: "change-1", files: ["src/App.tsx"] },
+      producer: { type: "root" },
+    });
+    expect(snapshotListener).not.toHaveBeenCalled();
+    expect(transport.getSnapshot()).toBe(snapshot);
+
+    value.files.push("src/late.tsx");
+    const projected = eventListener.mock.calls[0]?.[0] as {
+      payload: { files: string[] };
+    };
+    expect(projected.payload.files).toEqual(["src/App.tsx"]);
+    projected.payload.files.push("src/runtime.tsx");
+    expect(value.files).toEqual(["src/App.tsx", "src/late.tsx"]);
+  });
+
+  it("preserves subagent ownership for CUSTOM application events", () => {
+    const agent = new FakeAgentClient();
+    const transport = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui" },
+      () => agent,
+    );
+    const listener = vi.fn();
+    transport.subscribeApplicationEvents(listener);
+
+    agent.emitCustom(
+      "artifact.export.ready",
+      { artifactId: "artifact-1" },
+      "researcher",
+    );
+
+    expect(listener).toHaveBeenCalledWith({
+      name: "artifact.export.ready",
+      payload: { artifactId: "artifact-1" },
+      producer: { type: "subagent", id: "researcher" },
+    });
+  });
+
   it("publishes streaming text with stable old snapshots and running state", async () => {
     const agent = new FakeAgentClient();
     let finishRun: () => void = () => undefined;

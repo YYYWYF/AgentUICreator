@@ -30,6 +30,7 @@ function createContext(
       abortRun: () => undefined,
       updateInstanceProps: () => undefined,
     },
+    events: { subscribe: () => () => undefined },
     services: { get: () => undefined },
   };
 }

@@ -36,6 +36,10 @@ import {
   type RuntimeCompositionReporter,
   type RuntimeDiagnosticReporter,
 } from "../diagnostics";
+import type {
+  AppEventRegistry,
+  ApplicationEventSource,
+} from "../events";
 
 import "./plugin-runtime.css";
 
@@ -49,6 +53,8 @@ export interface UIPluginRuntimeProps<TState = unknown> {
   executions: AgentExecution[];
   interrupts: AgentInterrupt[];
   actions: UIPluginRuntimeActions;
+  applicationEventRegistry?: AppEventRegistry | undefined;
+  applicationEventSource?: ApplicationEventSource | undefined;
   className?: string | undefined;
   appUIModelHash?: string | undefined;
   onRuntimeComposition?: RuntimeCompositionReporter | undefined;
@@ -170,6 +176,8 @@ function SlotContent<TState = unknown>({
 
         const activation = serviceRuntime.getActivation(instance.id);
         if (activation?.status !== "active") return null;
+        const events = serviceRuntime.getEvents(instance.id);
+        if (events === undefined) return null;
 
         const context: UIPluginContext<TState> = {
           conversation,
@@ -180,6 +188,7 @@ function SlotContent<TState = unknown>({
           interrupts,
           instance,
           actions: createInstanceActions(instance, actions),
+          events,
           services: serviceRuntime.services,
         };
         const PluginComponent = definition.Component;
@@ -493,6 +502,8 @@ export function UIPluginRuntime<TState = unknown>(
     return (
       <PluginServiceProvider
         actions={props.actions}
+        applicationEventRegistry={props.applicationEventRegistry}
+        applicationEventSource={props.applicationEventSource}
         model={props.model}
         registry={props.registry}
       >
