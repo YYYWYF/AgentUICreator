@@ -53,9 +53,16 @@ export class FrontendToolCoordinator {
   onToolCallStart(event: ToolCallStartEvent): void {
     if (
       !this.#advertisedToolNames.has(event.toolCallName) ||
-      this.#handledToolCallIds.has(event.toolCallId) ||
-      this.#pendingById.has(event.toolCallId)
+      this.#handledToolCallIds.has(event.toolCallId)
     ) {
+      return;
+    }
+
+    const existing = this.#pendingById.get(event.toolCallId);
+    if (existing !== undefined) {
+      if (existing.ended) {
+        existing.ended = false;
+      }
       return;
     }
 

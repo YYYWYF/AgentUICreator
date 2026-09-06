@@ -170,7 +170,15 @@ export class LifecycleProjector {
   onToolCallStart(event: ToolCallStartEvent): void {
     this.reactivateProducer(producerFor(event.subagentRunId));
     const current = this.findExecution("tool", event.toolCallId);
-    if (current !== undefined && !isActive(current)) return;
+    if (current !== undefined) {
+      if (current.status === "awaiting-result") {
+        this.updateExecution("tool", event.toolCallId, (execution) => ({
+          ...execution,
+          status: "preparing",
+        }));
+      }
+      return;
+    }
 
     const execution: AgentToolExecution = {
       type: "tool",

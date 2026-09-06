@@ -773,6 +773,63 @@ describe("AgUiTransport", () => {
     });
   });
 
+  it("supports reopened frontend tool calls", async () => {
+    const agent = new FakeAgentClient();
+    const execute = vi.fn<AgentFrontendToolSource["execute"]>(async () => ({
+      content: "opened",
+    }));
+    const frontendTools: AgentFrontendToolSource = {
+      listTools: () => [{
+        name: "editor_open_file",
+        description: "Open an existing file without modifying it.",
+        inputSchema: { type: "object" },
+      }],
+      execute,
+    };
+    let runCount = 0;
+    agent.runAgent = vi.fn(async (parameters?: RunAgentParameters) => {
+      agent.runParametersSeen.push(parameters);
+      runCount += 1;
+      agent.emitRunStarted("thread", `run-${runCount}`);
+      if (runCount === 1) {
+        agent.emitToolStart(
+          "frontend-call",
+          undefined,
+          "editor_open_file",
+        );
+        agent.emitToolArgs("frontend-call", '{"path":"src/');
+        agent.emitToolEnd("frontend-call");
+        agent.emitToolStart(
+          "frontend-call",
+          undefined,
+          "editor_open_file",
+        );
+        agent.emitToolArgs("frontend-call", 'App.tsx"}');
+        agent.emitToolEnd("frontend-call");
+      }
+      agent.emitRunFinished("thread", `run-${runCount}`);
+    });
+    const transport = new AgUiTransport(
+      { endpoint: "https://agent.example.test/ag-ui", frontendTools },
+      () => agent,
+    );
+
+    await transport.sendMessage({ content: "Open src/App.tsx" });
+
+    expect(execute).toHaveBeenCalledOnce();
+    expect(execute.mock.calls[0]?.[0].input).toEqual({
+      path: "src/App.tsx",
+    });
+    expect(transport.getSnapshot().executions).toMatchObject([{
+      id: "frontend-call",
+      arguments: '{"path":"src/App.tsx"}',
+      status: "completed",
+    }]);
+    expect(agent.messages.filter((message) => message.role === "tool"))
+      .toHaveLength(1);
+    expect(agent.runParametersSeen).toHaveLength(2);
+  });
+
   it("returns malformed frontend arguments as a tool error and continues", async () => {
     const agent = new FakeAgentClient();
     const execute = vi.fn<AgentFrontendToolSource["execute"]>();

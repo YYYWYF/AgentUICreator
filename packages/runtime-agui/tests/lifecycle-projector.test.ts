@@ -79,6 +79,71 @@ describe("LifecycleProjector", () => {
     });
   });
 
+  it("reopens an awaiting tool call without replacing accumulated state", () => {
+    const projector = new LifecycleProjector();
+
+    projector.onToolCallStart({
+      type: EventType.TOOL_CALL_START,
+      toolCallId: "tool-a",
+      toolCallName: "editor_open_file",
+      parentMessageId: "assistant-a",
+      subagentRunId: "designer",
+    });
+    projector.onToolCallArgs({
+      type: EventType.TOOL_CALL_ARGS,
+      toolCallId: "tool-a",
+      delta: '{"path":"src/',
+      subagentRunId: "designer",
+    });
+    projector.onToolCallEnd({
+      type: EventType.TOOL_CALL_END,
+      toolCallId: "tool-a",
+      subagentRunId: "designer",
+    });
+    expect(projector.getExecutions()).toMatchObject([{
+      id: "tool-a",
+      status: "awaiting-result",
+      arguments: '{"path":"src/',
+    }]);
+
+    projector.onToolCallStart({
+      type: EventType.TOOL_CALL_START,
+      toolCallId: "tool-a",
+      toolCallName: "conflicting_name",
+      parentMessageId: "assistant-b",
+      subagentRunId: "other-producer",
+    });
+    expect(projector.getExecutions()).toMatchObject([{
+      id: "tool-a",
+      producer: { type: "subagent", id: "designer" },
+      name: "editor_open_file",
+      parentMessageId: "assistant-a",
+      status: "preparing",
+      arguments: '{"path":"src/',
+    }]);
+
+    projector.onToolCallArgs({
+      type: EventType.TOOL_CALL_ARGS,
+      toolCallId: "tool-a",
+      delta: 'App.tsx"}',
+      subagentRunId: "designer",
+    });
+    projector.onToolCallEnd({
+      type: EventType.TOOL_CALL_END,
+      toolCallId: "tool-a",
+      subagentRunId: "designer",
+    });
+
+    expect(projector.getExecutions()).toMatchObject([{
+      id: "tool-a",
+      producer: { type: "subagent", id: "designer" },
+      name: "editor_open_file",
+      parentMessageId: "assistant-a",
+      status: "awaiting-result",
+      arguments: '{"path":"src/App.tsx"}',
+    }]);
+  });
+
   it("keeps reasoning phases separate from reasoning and text message streams", () => {
     const projector = new LifecycleProjector();
 
