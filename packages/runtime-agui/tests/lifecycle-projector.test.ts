@@ -803,4 +803,145 @@ describe("LifecycleProjector", () => {
       content: "Partial",
     }])[0]).not.toHaveProperty("streamStatus");
   });
+
+  it("reuses message projection identity when semantic content is unchanged", () => {
+    const projector = new LifecycleProjector();
+    const first = projector.projectMessages([
+      {
+        id: "message-1",
+        role: "user",
+        metadata: {
+          topic: { name: "intro" },
+        },
+        content: [{
+          type: "text",
+          text: "Hello",
+          metadata: {
+            source: { file: "input.txt" },
+          },
+        }],
+      },
+    ]);
+    const second = projector.projectMessages([
+      {
+        id: "message-1",
+        role: "user",
+        metadata: {
+          topic: { name: "intro" },
+        },
+        content: [{
+          type: "text",
+          text: "Hello",
+          metadata: {
+            source: { file: "input.txt" },
+          },
+        }],
+      },
+    ]);
+
+    expect(second).toBe(first);
+    expect(second[0]).toBe(first[0]);
+  });
+
+  it("preserves unrelated message identities when one message changes", () => {
+    const projector = new LifecycleProjector();
+    const previous = projector.projectMessages([
+      { id: "message-a", role: "assistant", content: "Old" },
+      { id: "message-b", role: "assistant", content: "Keep" },
+    ]);
+    const next = projector.projectMessages([
+      { id: "message-a", role: "assistant", content: "Updated" },
+      { id: "message-b", role: "assistant", content: "Keep" },
+    ]);
+
+    expect(next).not.toBe(previous);
+    expect(next[0]).not.toBe(previous[0]);
+    expect(next[1]).toBe(previous[1]);
+  });
+
+  it("updates message identity for reasoning streaming state transitions", () => {
+    const projector = new LifecycleProjector();
+    const before = projector.projectMessages([{
+      id: "reasoning-a",
+      role: "reasoning",
+      content: "Plan",
+    }]);
+    projector.onReasoningMessageStart({
+      type: EventType.REASONING_MESSAGE_START,
+      messageId: "reasoning-a",
+      role: "reasoning",
+    });
+    const streaming = projector.projectMessages([{
+      id: "reasoning-a",
+      role: "reasoning",
+      content: "Plan",
+    }]);
+
+    expect(streaming).not.toBe(before);
+    expect(streaming[0]).not.toBe(before[0]);
+    expect(streaming[0]).toMatchObject({ streamStatus: "streaming" });
+
+    projector.onReasoningMessageEnd({
+      type: EventType.REASONING_MESSAGE_END,
+      messageId: "reasoning-a",
+    });
+    const completed = projector.projectMessages([{
+      id: "reasoning-a",
+      role: "reasoning",
+      content: "Plan",
+    }]);
+
+    expect(completed).not.toBe(streaming);
+    expect(completed[0]).not.toBe(streaming[0]);
+    expect(completed[0]).toMatchObject({ streamStatus: "completed" });
+  });
+
+  it("preserves object identity for unchanged messages when appending", () => {
+    const projector = new LifecycleProjector();
+    const previous = projector.projectMessages([
+      { id: "message-a", role: "assistant", content: "A" },
+      { id: "message-b", role: "assistant", content: "B" },
+    ]);
+    const next = projector.projectMessages([
+      { id: "message-a", role: "assistant", content: "A" },
+      { id: "message-b", role: "assistant", content: "B" },
+      { id: "message-c", role: "assistant", content: "C" },
+    ]);
+
+    expect(next).not.toBe(previous);
+    expect(next[0]).toBe(previous[0]);
+    expect(next[1]).toBe(previous[1]);
+  });
+
+  it("avoids execution-array churn for repeated tool result projection", () => {
+    const projector = new LifecycleProjector();
+    projector.onToolCallStart({
+      type: EventType.TOOL_CALL_START,
+      toolCallId: "tool-a",
+      toolCallName: "search",
+    });
+    projector.onToolCallResult({
+      type: EventType.TOOL_CALL_RESULT,
+      toolCallId: "tool-a",
+      messageId: "tool-message",
+      content: "results",
+    });
+
+    projector.projectMessages([{
+      id: "tool-message",
+      role: "tool",
+      content: "results",
+      toolCallId: "tool-a",
+    }]);
+
+    const executions = projector.getExecutions();
+    projector.projectMessages([{
+      id: "tool-message",
+      role: "tool",
+      content: "results",
+      toolCallId: "tool-a",
+    }]);
+
+    expect(projector.getExecutions()).toBe(executions);
+  });
 });

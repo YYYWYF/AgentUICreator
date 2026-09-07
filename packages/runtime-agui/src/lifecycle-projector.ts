@@ -21,12 +21,13 @@ import type {
 import type {
   AgentExecution,
   AgentMessage,
+  AgentMessagePart,
+  AgentToolExecution,
   AgentMessageStreamStatus,
   AgentProducer,
   AgentReasoningExecution,
   AgentStepExecution,
   AgentSubagentExecution,
-  AgentToolExecution,
 } from "@agent-ui/runtime-core";
 
 import { mapAgUiMessage } from "./message-mapper.js";
@@ -39,6 +40,206 @@ function producerFor(subagentId?: string): AgentProducer {
 
 function producerKey(producer: AgentProducer): string {
   return producer.type === "root" ? "root" : `subagent:${producer.id}`;
+}
+
+function equalProjectedProducer(
+  left: AgentProducer,
+  right: AgentProducer,
+): boolean {
+  if (left.type !== right.type) return false;
+  return left.type === "root" ? true : left.id === right.id;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (Object.prototype.toString.call(value) !== "[object Object]") {
+    return false;
+  }
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === null || prototype === Object.prototype;
+}
+
+function equalStructuredValue(
+  left: unknown,
+  right: unknown,
+): boolean {
+  if (Object.is(left, right)) return true;
+
+  if (
+    left === null ||
+    right === null ||
+    typeof left !== "object" ||
+    typeof right !== "object"
+  ) {
+    return false;
+  }
+
+  if (Array.isArray(left) && Array.isArray(right)) {
+    if (left.length !== right.length) return false;
+    return left.every((value, index) => equalStructuredValue(value, right[index]));
+  }
+
+  if (Array.isArray(left) !== Array.isArray(right)) {
+    return false;
+  }
+
+  if (isPlainObject(left) && isPlainObject(right)) {
+    const leftKeys = Object.keys(left);
+    if (leftKeys.length !== Object.keys(right).length) return false;
+
+    return leftKeys.every((key) =>
+      Object.prototype.hasOwnProperty.call(right, key) &&
+      equalStructuredValue(left[key], right[key]),
+    );
+  }
+
+  return false;
+}
+
+function equalAgentMessagePart(
+  left: AgentMessagePart,
+  right: AgentMessagePart,
+): boolean {
+  const leftText = left.text;
+  const rightText = right.text;
+  const leftFilename = left.filename;
+  const rightFilename = right.filename;
+  const leftUrl = left.url;
+  const rightUrl = right.url;
+
+  return left.type === right.type
+    && leftText === rightText
+    && leftFilename === rightFilename
+    && leftUrl === rightUrl
+    && equalStructuredValue(left.metadata, right.metadata)
+    && equalStructuredValue(left.source, right.source);
+}
+
+function equalProjectedToolExecution(
+  current: AgentToolExecution,
+  message: Extract<AgentMessage, { role: "tool" }>,
+): boolean {
+  const expectedError = message.error === undefined
+    ? undefined
+    : { message: message.error };
+
+  return equalProjectedProducer(current.producer, message.producer)
+    && current.status === (message.error === undefined ? "completed" : "error")
+    && current.result?.messageId === message.id
+    && current.result?.content === message.content
+    && current.error?.message === expectedError?.message;
+}
+
+function equalProjectedMessage(
+  left: AgentMessage,
+  right: AgentMessage,
+): boolean {
+  if (
+    left.id !== right.id ||
+    left.role !== right.role ||
+    left.streamStatus !== right.streamStatus ||
+    !equalProjectedProducer(left.producer, right.producer)
+  ) {
+    return false;
+  }
+
+  if (!equalStructuredValue(left.metadata, right.metadata)) {
+    return false;
+  }
+
+  switch (left.role) {
+    case "user": {
+      if (right.role !== "user") return false;
+      if (typeof left.content !== typeof right.content) return false;
+
+      if (typeof left.content === "string") {
+        return left.content === right.content;
+      }
+
+      return left.content.length === right.content.length
+        && left.content.every((part, index) => {
+          const nextPart = right.content[index];
+          return nextPart !== undefined
+            && equalAgentMessagePart(part, nextPart);
+        });
+    }
+    case "assistant": {
+      if (right.role !== "assistant") return false;
+      const leftContent = left.content;
+      const rightContent = right.content;
+      if (
+        (leftContent === undefined && rightContent !== undefined)
+        || (leftContent !== undefined
+          && rightContent !== undefined
+          && typeof leftContent !== typeof rightContent)
+      ) {
+        return false;
+      }
+      if (
+        typeof leftContent === "string"
+        || rightContent === undefined
+      ) {
+        return leftContent === rightContent;
+      }
+      if (leftContent.length !== rightContent.length) return false;
+      if (!leftContent.every((part, index) => {
+        const nextPart = rightContent[index];
+        return nextPart !== undefined
+          && equalAgentMessagePart(part, nextPart);
+      })) return false;
+      if (
+        (left.toolCalls === undefined) !== (right.toolCalls === undefined)
+      ) return false;
+      const leftToolCalls = left.toolCalls ?? [];
+      const rightToolCalls = right.toolCalls ?? [];
+      return leftToolCalls.length === rightToolCalls.length
+        && leftToolCalls.every((leftCall, index) => {
+          const rightCall = rightToolCalls[index];
+          return rightCall !== undefined
+            && leftCall.id === rightCall.id
+            && leftCall.type === rightCall.type
+            && leftCall.function.name === rightCall.function.name
+            && leftCall.function.arguments === rightCall.function.arguments;
+        });
+    }
+    case "system":
+    case "developer":
+    case "reasoning":
+      return left.content === right.content;
+    case "tool": {
+      if (right.role !== "tool") return false;
+      return left.toolCallId === right.toolCallId
+        && left.content === right.content
+        && left.error === right.error;
+    }
+    case "activity": {
+      if (right.role !== "activity") return false;
+      return left.activityType === right.activityType
+        && equalStructuredValue(left.content, right.content);
+    }
+    default:
+      return false;
+  }
+}
+
+function reconcileProjectedMessages(
+  previous: readonly AgentMessage[],
+  next: readonly AgentMessage[],
+): AgentMessage[] {
+  const previousById = new Map(previous.map((message) => [message.id, message]));
+  const stable = next.map((message) => {
+    const old = previousById.get(message.id);
+    return old !== undefined && equalProjectedMessage(old, message) ? old : message;
+  });
+
+  if (
+    stable.length === previous.length && stable.every((message, index) =>
+      message === previous[index]
+    )
+  ) {
+    return previous as AgentMessage[];
+  }
+
+  return stable;
 }
 
 function activeStepKey(producer: AgentProducer, name: string): string {
@@ -66,6 +267,7 @@ function interrupt(execution: AgentExecution): AgentExecution {
 /** Private AG-UI adapter state; public consumers receive only its projections. */
 export class LifecycleProjector {
   private executions: AgentExecution[] = [];
+  private projectedMessages: AgentMessage[] = [];
   private readonly messageStreamStatuses =
     new Map<string, AgentMessageStreamStatus>();
   private readonly messageProducers = new Map<string, AgentProducer>();
@@ -93,28 +295,37 @@ export class LifecycleProjector {
       } as AgentMessage;
     });
 
-    for (const message of projected) {
+    const stable = reconcileProjectedMessages(this.projectedMessages, projected);
+    this.projectedMessages = stable;
+
+    for (const message of stable) {
       if (message.role !== "tool") continue;
       const execution = this.findExecution("tool", message.toolCallId);
       if (execution === undefined) continue;
       this.updateExecution("tool", execution.id, (current) => ({
-        ...current,
-        producer: message.producer,
-        status: message.error === undefined ? "completed" : "error",
-        result: { messageId: message.id, content: message.content },
-        ...(message.error === undefined
-          ? { error: undefined }
-          : { error: { message: message.error } }),
+        ...(equalProjectedToolExecution(current, message)
+          ? current
+          : {
+              ...current,
+              producer: message.producer,
+              status: message.error === undefined ? "completed" : "error",
+              result: { messageId: message.id, content: message.content },
+              ...(message.error === undefined
+                ? { error: undefined }
+                : { error: { message: message.error } }),
+            }),
       }));
     }
 
-    return projected;
+    return stable;
   }
 
   resetForFreshRun(): void {
     this.continuationRun = false;
     this.completeStreamingMessages();
-    this.executions = [];
+    if (this.executions.length > 0) {
+      this.executions = [];
+    }
     this.activeReasoningByProducer.clear();
     this.activeSteps.clear();
   }
@@ -126,6 +337,7 @@ export class LifecycleProjector {
   resetConversation(): void {
     this.continuationRun = false;
     this.executions = [];
+    this.projectedMessages = [];
     this.messageStreamStatuses.clear();
     this.messageProducers.clear();
     this.activeReasoningByProducer.clear();
@@ -398,7 +610,8 @@ export class LifecycleProjector {
         : undefined;
     }
 
-    this.executions = this.executions.map((execution) => {
+    let changed = false;
+    const nextExecutions = this.executions.map((execution) => {
       if (
         execution.type !== "subagent" ||
         !subagentIds.has(execution.id) ||
@@ -406,8 +619,12 @@ export class LifecycleProjector {
       ) {
         return execution;
       }
+      changed = true;
       return { ...execution, status: "running" as const };
     });
+    if (!changed) return;
+
+    this.executions = nextExecutions;
   }
 
   private interruptSubagentTree(subagentId: string): void {
@@ -511,6 +728,9 @@ export class LifecycleProjector {
     const current = this.executions[index];
     if (current?.type !== type) return;
     const next = update(current as Extract<AgentExecution, { type: TType }>);
+    if (next === current) {
+      return;
+    }
     this.executions = this.executions.map((execution, currentIndex) =>
       currentIndex === index ? next : execution);
   }

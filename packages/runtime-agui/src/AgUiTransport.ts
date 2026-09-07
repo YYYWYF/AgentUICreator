@@ -466,14 +466,29 @@ export class AgUiTransport<TState = unknown>
       return;
     }
 
-    this.publish({
+    const nextMessages = this.projector.projectMessages(agent.messages);
+    const nextExecutions = this.projector.getExecutions();
+    const nextSnapshot = {
       conversation: overrides.conversation ?? this.snapshot.conversation,
-      messages: this.projector.projectMessages(agent.messages),
+      messages: nextMessages,
       state: agent.state as TState,
       run: overrides.run ?? this.snapshot.run,
-      executions: this.projector.getExecutions(),
+      executions: nextExecutions,
       interrupts: overrides.interrupts ?? this.snapshot.interrupts,
-    });
+    };
+
+    if (
+      nextSnapshot.conversation === this.snapshot.conversation &&
+      nextSnapshot.messages === this.snapshot.messages &&
+      nextSnapshot.state === this.snapshot.state &&
+      nextSnapshot.run === this.snapshot.run &&
+      nextSnapshot.executions === this.snapshot.executions &&
+      nextSnapshot.interrupts === this.snapshot.interrupts
+    ) {
+      return;
+    }
+
+    this.publish(nextSnapshot);
   }
 
   private async runLogicalOperation(

@@ -233,6 +233,23 @@ class FakeAgentClient {
     });
   }
 
+  emitReasoningStart(messageId: string, subagentRunId?: string): void {
+    this.subscribers.forEach((subscriber) => {
+      const listener = subscriber.onReasoningStartEvent;
+      if (listener === undefined) return;
+      void listener({
+        event: {
+          type: EventType.REASONING_START,
+          messageId,
+          ...(subagentRunId === undefined ? {} : { subagentRunId }),
+        },
+        messages: this.messages,
+        state: this.state,
+        agent: this as unknown as AbstractAgent,
+      } as Parameters<typeof listener>[0]);
+    });
+  }
+
   private emitMessagesChanged(): void {
     this.subscribers.forEach((subscriber) => {
       void subscriber.onMessagesChanged?.({
@@ -1042,6 +1059,75 @@ describe("AgUiTransport", () => {
     expect(agent.runParametersSeen).toHaveLength(1);
     expect(transport.getSnapshot().executions).toMatchObject([
       { id: "slow-tool", status: "interrupted" },
+    ]);
+  });
+
+  it("keeps message identity when only run state changes", () => {
+    const agent = new FakeAgentClient();
+    agent.messages = [{ id: "assistant-1", role: "assistant", content: "Hi" }];
+    const runtime = new AgUiTransport({
+      endpoint: "https://agent.example.test/ag-ui",
+    }, () => agent);
+    const before = runtime.getSnapshot();
+    const beforeMessages = before.messages;
+
+    agent.emitRunStarted("thread-1", "run-1");
+
+    expect(runtime.getSnapshot().run).toEqual({ id: "run-1", status: "running" });
+    expect(runtime.getSnapshot().messages).toBe(beforeMessages);
+  });
+
+  it("keeps message identity when only state changes", () => {
+    const agent = new FakeAgentClient();
+    agent.messages = [{ id: "assistant-1", role: "assistant", content: "Hi" }];
+    const runtime = new AgUiTransport({
+      endpoint: "https://agent.example.test/ag-ui",
+    }, () => agent);
+    const before = runtime.getSnapshot();
+
+    agent.emitState({ selectedFile: "src/App.tsx" });
+
+    expect(runtime.getSnapshot().state).toEqual({ selectedFile: "src/App.tsx" });
+    expect(runtime.getSnapshot().messages).toBe(before.messages);
+  });
+
+  it("keeps message identity for tool lifecycle updates", () => {
+    const agent = new FakeAgentClient();
+    agent.messages = [{ id: "assistant-1", role: "assistant", content: "Hi" }];
+    const runtime = new AgUiTransport({
+      endpoint: "https://agent.example.test/ag-ui",
+    }, () => agent);
+
+    const beforeMessages = runtime.getSnapshot().messages;
+    const beforeExecutions = runtime.getSnapshot().executions;
+    agent.emitToolStart("tool-a");
+
+    expect(runtime.getSnapshot().messages).toBe(beforeMessages);
+    expect(runtime.getSnapshot().executions).not.toBe(beforeExecutions);
+
+    const afterToolStart = runtime.getSnapshot().executions;
+    agent.emitToolArgs("tool-a", "{\"query\":\"x\"}");
+    expect(runtime.getSnapshot().messages).toBe(beforeMessages);
+    expect(runtime.getSnapshot().executions).not.toBe(afterToolStart);
+  });
+
+  it("does not mutate message identities on reasoning lifecycle updates", () => {
+    const agent = new FakeAgentClient();
+    agent.messages = [{ id: "assistant-1", role: "assistant", content: "Hi" }];
+    const runtime = new AgUiTransport({
+      endpoint: "https://agent.example.test/ag-ui",
+    }, () => agent);
+    const beforeMessages = runtime.getSnapshot().messages;
+
+    agent.emitReasoningStart("reasoning-1");
+
+    expect(runtime.getSnapshot().messages).toBe(beforeMessages);
+    expect(runtime.getSnapshot().executions).toMatchObject([
+      {
+        type: "reasoning",
+        id: "reasoning-1",
+        status: "running",
+      },
     ]);
   });
 });
