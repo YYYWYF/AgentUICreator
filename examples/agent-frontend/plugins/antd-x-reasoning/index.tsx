@@ -1,7 +1,7 @@
 import { BulbOutlined } from "@ant-design/icons";
 import { Think } from "@ant-design/x";
 import { Typography } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { usePluginInstance } from "../../runtime/context";
@@ -13,13 +13,27 @@ export function AntdXReasoningPlugin(_props: UIPluginComponentProps) {
   const { execution, message, running, turnId } = useReasoningRenderContext();
   const instance = usePluginInstance();
   const defaultExpanded = instance.props?.defaultExpanded !== false;
+  const collapseOnComplete = instance.props?.collapseOnComplete !== false;
   const [expanded, setExpanded] = useState(running || defaultExpanded);
+  const previousRunningRef = useRef(running);
+  const status = execution?.status ?? (running ? "running" : "completed");
 
   useEffect(() => {
-    if (running) setExpanded(true);
-  }, [running]);
+    const wasRunning = previousRunningRef.current;
 
-  const status = execution?.status ?? (running ? "running" : "completed");
+    if (running) {
+      setExpanded(true);
+    } else if (
+      wasRunning &&
+      status === "completed" &&
+      collapseOnComplete
+    ) {
+      setExpanded(false);
+    }
+
+    previousRunningRef.current = running;
+  }, [collapseOnComplete, running, status]);
+
   const title =
     status === "running"
       ? "正在思考"

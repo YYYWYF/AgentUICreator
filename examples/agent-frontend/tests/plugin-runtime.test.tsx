@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import { Think } from "@ant-design/x";
 import { Tabs } from "antd";
 import {
   act,
@@ -60,6 +61,12 @@ import {
   initialPreviewMessages,
   previewAgentState,
 } from "../src/preview-data";
+import {
+  AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
+  AGENT_UI_CONVERSATION_SERVICE,
+  type AgentUIConversationService,
+  type ConversationDataSource,
+} from "../services/conversations";
 
 const runtimeActions = {
   sendMessage: vi.fn(async () => undefined),
@@ -83,6 +90,7 @@ const defaultConversationMessages: AgentMessage[] = initialPreviewMessages.map(
 interface MountedPluginRuntime {
   renderer: ReactTestRenderer;
   serviceRuntime: PluginServiceRuntime;
+  update(props: PluginRuntimeFixtureProps): Promise<void>;
   dispose(): Promise<void>;
 }
 
@@ -119,6 +127,15 @@ async function mountPluginRuntime(
   return {
     renderer,
     serviceRuntime,
+    update: async (nextProps) => {
+      await act(async () => {
+        renderer?.update(
+          <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
+            <PluginRuntimeFixture {...nextProps} />
+          </PluginServiceRuntimeContext.Provider>,
+        );
+      });
+    },
     dispose: async () => {
       await act(async () => renderer?.unmount());
       serviceRuntime.dispose();
@@ -1046,6 +1063,197 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain('data-reasoning-status="running"');
   });
 
+  it("collapses reasoning after the same occurrence completes", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const registry = createPluginRegistry(antdXTemplatePlugins);
+    const messages: AgentMessage[] = [
+      {
+        id: "reasoning-transition-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "分析项目",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "reasoning-transition",
+        producer: { type: "root" },
+        role: "reasoning",
+        content: "读取项目结构",
+        metadata: { conversationId: "default" },
+      },
+    ];
+    const execution: Extract<AgentExecution, { type: "reasoning" }> = {
+      type: "reasoning",
+      id: "reasoning-transition-execution",
+      producer: { type: "root" },
+      messageIds: ["reasoning-transition"],
+      status: "running",
+    };
+    const runningProps: PluginRuntimeFixtureProps = {
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [execution],
+      interrupts: [],
+      messages,
+      model,
+      registry,
+      run: { status: "running" },
+      state: previewAgentState,
+    };
+    const mounted = await mountPluginRuntime(runningProps);
+
+    try {
+      let reasoning = mounted.renderer.root.findByType(Think);
+      expect(reasoning.props["data-reasoning-status"]).toBe("running");
+      expect(reasoning.props.loading).toBe(true);
+      expect(reasoning.props.expanded).toBe(true);
+
+      await mounted.update({
+        ...runningProps,
+        executions: [{ ...execution, status: "completed" }],
+        run: idleRun,
+      });
+
+      reasoning = mounted.renderer.root.findByType(Think);
+      expect(reasoning.props["data-reasoning-status"]).toBe("completed");
+      expect(reasoning.props.loading).toBe(false);
+      expect(reasoning.props.expanded).toBe(false);
+
+      await act(async () => reasoning.props.onExpand(true));
+      await mounted.update({
+        ...runningProps,
+        executions: [{ ...execution, status: "completed" }],
+        run: idleRun,
+        state: { updated: true },
+      });
+
+      reasoning = mounted.renderer.root.findByType(Think);
+      expect(reasoning.props.expanded).toBe(true);
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("keeps completed reasoning expanded when collapseOnComplete is disabled", async () => {
+    const model = parseAppUIModel({
+      ...appUIJson,
+      pluginInstances: {
+        ...appUIJson.pluginInstances,
+        "agent-reasoning-main": {
+          ...appUIJson.pluginInstances["agent-reasoning-main"],
+          props: { collapseOnComplete: false },
+        },
+      },
+    });
+    const registry = createPluginRegistry(antdXTemplatePlugins);
+    const messages: AgentMessage[] = [
+      {
+        id: "reasoning-config-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "分析项目",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "reasoning-config",
+        producer: { type: "root" },
+        role: "reasoning",
+        content: "读取项目结构",
+        metadata: { conversationId: "default" },
+      },
+    ];
+    const execution: Extract<AgentExecution, { type: "reasoning" }> = {
+      type: "reasoning",
+      id: "reasoning-config-execution",
+      producer: { type: "root" },
+      messageIds: ["reasoning-config"],
+      status: "running",
+    };
+    const runningProps: PluginRuntimeFixtureProps = {
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [execution],
+      interrupts: [],
+      messages,
+      model,
+      registry,
+      run: { status: "running" },
+      state: previewAgentState,
+    };
+    const mounted = await mountPluginRuntime(runningProps);
+
+    try {
+      await mounted.update({
+        ...runningProps,
+        executions: [{ ...execution, status: "completed" }],
+        run: idleRun,
+      });
+
+      const reasoning = mounted.renderer.root.findByType(Think);
+      expect(reasoning.props["data-reasoning-status"]).toBe("completed");
+      expect(reasoning.props.loading).toBe(false);
+      expect(reasoning.props.expanded).toBe(true);
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("keeps interrupted reasoning expanded after it stops loading", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const registry = createPluginRegistry(antdXTemplatePlugins);
+    const messages: AgentMessage[] = [
+      {
+        id: "reasoning-interrupted-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "分析项目",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "reasoning-interrupted",
+        producer: { type: "root" },
+        role: "reasoning",
+        content: "读取项目结构",
+        metadata: { conversationId: "default" },
+      },
+    ];
+    const execution: Extract<AgentExecution, { type: "reasoning" }> = {
+      type: "reasoning",
+      id: "reasoning-interrupted-execution",
+      producer: { type: "root" },
+      messageIds: ["reasoning-interrupted"],
+      status: "running",
+    };
+    const runningProps: PluginRuntimeFixtureProps = {
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [execution],
+      interrupts: [],
+      messages,
+      model,
+      registry,
+      run: { status: "running" },
+      state: previewAgentState,
+    };
+    const mounted = await mountPluginRuntime(runningProps);
+
+    try {
+      await mounted.update({
+        ...runningProps,
+        executions: [{ ...execution, status: "interrupted" }],
+        run: idleRun,
+      });
+
+      const reasoning = mounted.renderer.root.findByType(Think);
+      expect(reasoning.props["data-reasoning-status"]).toBe("interrupted");
+      expect(reasoning.props.loading).toBe(false);
+      expect(reasoning.props.expanded).toBe(true);
+      expect(reasoning.props.title).toBe("思考已停止");
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
   it("uses one configured renderer instance for multiple reasoning messages", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
@@ -1191,6 +1399,136 @@ describe("UIPluginRuntime", () => {
         html.indexOf(content),
       );
     });
+  });
+
+  it("reuses reasoning and tool child renderers for history without executions", async () => {
+    const historyMessages: AgentMessage[] = [
+      {
+        id: "history-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "分析项目",
+        metadata: { conversationId: "history" },
+      },
+      {
+        id: "history-reasoning",
+        producer: { type: "root" },
+        role: "reasoning",
+        content: "读取项目结构",
+        metadata: { conversationId: "history" },
+      },
+      {
+        id: "history-tool-call-message",
+        producer: { type: "root" },
+        role: "assistant",
+        toolCalls: [{
+          id: "history-tool-call",
+          type: "function",
+          function: { name: "inspect_ui_project", arguments: "{}" },
+        }],
+        metadata: { conversationId: "history" },
+      },
+      {
+        id: "history-tool-result",
+        producer: { type: "root" },
+        role: "tool",
+        toolCallId: "history-tool-call",
+        content: "project inspected",
+        metadata: { conversationId: "history" },
+      },
+      {
+        id: "history-final",
+        producer: { type: "root" },
+        role: "assistant",
+        content: "分析完成",
+        metadata: { conversationId: "history" },
+      },
+    ];
+    const dataSource: ConversationDataSource = {
+      list: async () => [{ id: "history", title: "历史会话" }],
+      get: async () => ({
+        id: "history",
+        title: "历史会话",
+        messages: historyMessages,
+      }),
+    };
+    const historyDataSourcePlugin: UIPluginDefinition = {
+      manifest: {
+        id: "conversation-data-source",
+        name: "History Conversation DataSource Fixture",
+        description: "Provides deterministic history renderer fixtures.",
+        version: "1.0.0",
+        capabilities: ["headless"],
+      },
+      provides: [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE],
+      setup: ({ services }) => {
+        services.provide(AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, dataSource);
+      },
+      Component: () => null,
+    };
+    const model = parseAppUIModel(appUIJson);
+    const registry = createPluginRegistry(
+      antdXTemplatePlugins.map((definition) =>
+        definition.manifest.id === "conversation-data-source"
+          ? historyDataSourcePlugin
+          : definition,
+      ),
+    );
+    const mounted = await mountPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [],
+      interrupts: [],
+      messages: [],
+      model,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    });
+
+    try {
+      const conversation = mounted.serviceRuntime.get<AgentUIConversationService>(
+        AGENT_UI_CONVERSATION_SERVICE,
+      );
+      if (conversation === undefined) {
+        throw new Error("Conversation Service fixture was not activated");
+      }
+      await act(async () => {
+        await conversation.selectConversation("history");
+      });
+
+      const messageList = mounted.renderer.root.findByProps({
+        "data-ui-plugin": "antd-x-message-list",
+      });
+      const reasoning = mounted.renderer.root.findByType(Think);
+      const tool = mounted.renderer.root.find(
+        (node) =>
+          node.props["data-ui-plugin"] === "antd-x-tool-message" &&
+          node.props["data-tool-call-id"] === "history-tool-call",
+      );
+      const content = getText(messageList);
+      const orderedContent = [
+        "读取项目结构",
+        "inspect_ui_project",
+        "project inspected",
+        "分析完成",
+      ];
+
+      expect(messageList.props["data-conversation-mode"]).toBe("history");
+      expect(reasoning.props["data-ui-plugin"]).toBe("antd-x-reasoning");
+      expect(reasoning.props["data-reasoning-status"]).toBe("completed");
+      expect(reasoning.props.loading).toBe(false);
+      expect(reasoning.props.expanded).toBe(true);
+      expect(tool.props["data-tool-status"]).toBe("success");
+      expect(countOccurrences(content, "project inspected")).toBe(1);
+      orderedContent.slice(1).forEach((item, index) => {
+        expect(content.indexOf(orderedContent[index]!)).toBeLessThan(
+          content.indexOf(item),
+        );
+      });
+    } finally {
+      await mounted.dispose();
+    }
   });
 
   it("updates the same tool block to an error state", async () => {
