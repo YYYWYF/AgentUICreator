@@ -20,6 +20,24 @@ const liveMessages: AgentMessage[] = [
 ];
 const historyMessages: AgentMessage[] = [
   {
+    id: "history-system",
+    producer: { type: "root" },
+    role: "system",
+    content: "Internal instructions",
+  },
+  {
+    id: "history-developer",
+    producer: { type: "root" },
+    role: "developer",
+    content: "Internal context",
+  },
+  {
+    id: "history-user",
+    producer: { type: "root" },
+    role: "user",
+    content: "Question",
+  },
+  {
     id: "history",
     producer: { type: "root" },
     role: "assistant",
@@ -31,6 +49,19 @@ const historyMessages: AgentMessage[] = [
     role: "tool",
     toolCallId: "tool-1",
     content: "Hidden",
+  },
+  {
+    id: "history-reasoning",
+    producer: { type: "root" },
+    role: "reasoning",
+    content: "Hidden reasoning",
+  },
+  {
+    id: "history-activity",
+    producer: { type: "root" },
+    role: "activity",
+    activityType: "status",
+    content: { message: "Hidden activity" },
   },
 ];
 
@@ -52,11 +83,11 @@ describe("conversation view messages", () => {
     expect(
       getConversationViewMessages(liveMessages, snapshot)
         .map((message) => message.id),
-    ).toEqual(["history", "history-tool"]);
+    ).toEqual(historyMessages.map((message) => message.id));
     expect(
       getVisibleConversationMessages(liveMessages, snapshot)
         .map((message) => message.id),
-    ).toEqual(["history"]);
+    ).toEqual(["history-user", "history"]);
   });
 
   it("makes the message list and sender hard consumers of conversation mode", () => {

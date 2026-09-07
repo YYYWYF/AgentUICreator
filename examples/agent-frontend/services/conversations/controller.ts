@@ -203,15 +203,24 @@ export function getConversationViewMessages(
     : [...liveMessages];
 }
 
+export type ChatVisibleMessage = Extract<
+  AgentMessage,
+  { role: "user" | "assistant" }
+>;
+
+/** Ordinary chat content; system and developer messages remain internal context. */
+export function isChatVisibleMessage(
+  message: AgentMessage,
+): message is ChatVisibleMessage {
+  return message.role === "user" || message.role === "assistant";
+}
+
 export function getVisibleConversationMessages(
   liveMessages: readonly AgentMessage[],
   snapshot: ConversationSnapshot,
-): AgentMessage[] {
+): ChatVisibleMessage[] {
   return getConversationViewMessages(liveMessages, snapshot).filter(
-    (message) =>
-      message.role !== "tool" &&
-      message.role !== "reasoning" &&
-      message.role !== "activity",
+    isChatVisibleMessage,
   );
 }
 

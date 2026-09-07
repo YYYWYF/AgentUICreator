@@ -31,6 +31,7 @@ import {
   AGENT_UI_CONVERSATION_SERVICE,
   EMPTY_CONVERSATION_SNAPSHOT,
   getConversationViewMessages,
+  isChatVisibleMessage,
   type AgentUIConversationService,
 } from "../../services/conversations";
 
@@ -381,11 +382,9 @@ export function AntdXMessageListPlugin(_props: UIPluginComponentProps) {
   );
   const { leadingMessages, turns } = projectAgentTurns(conversationMessages);
   const items = leadingMessages
+    .filter(isChatVisibleMessage)
     .filter(
       (message) =>
-        message.role !== "tool" &&
-        message.role !== "reasoning" &&
-        message.role !== "activity" &&
         !(
           message.role === "assistant" &&
           !hasRenderableAssistantContent(message)

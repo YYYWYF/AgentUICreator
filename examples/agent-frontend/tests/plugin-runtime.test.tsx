@@ -466,6 +466,152 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain("智能体正在处理");
   });
 
+  it("hides leading internal context while rendering chat messages", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const registry = createPluginRegistry(antdXTemplatePlugins);
+    const messages: AgentMessage[] = [
+      {
+        id: "leading-system",
+        producer: { type: "root" },
+        role: "system",
+        content: "Hidden system context",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "leading-developer",
+        producer: { type: "root" },
+        role: "developer",
+        content: "Hidden developer context",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "visible-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "Visible question",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "visible-assistant",
+        producer: { type: "root" },
+        role: "assistant",
+        content: "Visible answer",
+        metadata: { conversationId: "default" },
+      },
+    ];
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [],
+      interrupts: [],
+      messages,
+      model,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    });
+
+    expect(countOccurrences(html, "antd-x-message-list-bubble--user")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-bubble--agent")).toBe(1);
+    expect(html).toContain("Visible question");
+    expect(html).toContain("Visible answer");
+    expect(html).not.toContain("Hidden system context");
+    expect(html).not.toContain("Hidden developer context");
+  });
+
+  it("hides internal context inside a turn without splitting assistant content", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const registry = createPluginRegistry(antdXTemplatePlugins);
+    const messages: AgentMessage[] = [
+      {
+        id: "context-turn-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "Visible turn question",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "assistant-before-context",
+        producer: { type: "root" },
+        role: "assistant",
+        content: "Assistant segment A",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "turn-system",
+        producer: { type: "root" },
+        role: "system",
+        content: "Hidden turn system context",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "turn-developer",
+        producer: { type: "root" },
+        role: "developer",
+        content: "Hidden turn developer context",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "assistant-after-context",
+        producer: { type: "root" },
+        role: "assistant",
+        content: "Assistant segment B",
+        metadata: { conversationId: "default" },
+      },
+    ];
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [],
+      interrupts: [],
+      messages,
+      model,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    });
+
+    expect(countOccurrences(html, "antd-x-message-list-bubble--user")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-bubble--agent")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-turn-segment")).toBe(2);
+    expect(html.indexOf("Assistant segment A")).toBeLessThan(
+      html.indexOf("Assistant segment B"),
+    );
+    expect(html).not.toContain("Hidden turn system context");
+    expect(html).not.toContain("Hidden turn developer context");
+  });
+
+  it("renders a leading assistant message without a user turn", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const registry = createPluginRegistry(antdXTemplatePlugins);
+    const messages: AgentMessage[] = [
+      {
+        id: "leading-assistant",
+        producer: { type: "root" },
+        role: "assistant",
+        content: "Welcome from assistant",
+        metadata: { conversationId: "default" },
+      },
+    ];
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [],
+      interrupts: [],
+      messages,
+      model,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    });
+
+    expect(countOccurrences(html, "antd-x-message-list-bubble--agent")).toBe(1);
+    expect(html).toContain("Welcome from assistant");
+  });
+
   it("renders only the active Inspector child while keeping every contribution active", async () => {
     const model = parseAppUIModel(appUIJson);
     const mounted = await mountPluginRuntime({
