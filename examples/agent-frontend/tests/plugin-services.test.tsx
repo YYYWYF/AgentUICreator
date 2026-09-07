@@ -110,7 +110,7 @@ describe("PluginServiceRuntime", () => {
     expect(runtime.slots.getContributions("services-slot")).toEqual([]);
   });
 
-  it("keeps the message list pending until its conversation service exists", () => {
+  it("activates the message list without the optional conversation service", () => {
     const model = parseAppUIModel({
       version: "2",
       root: {
@@ -155,10 +155,7 @@ describe("PluginServiceRuntime", () => {
       runtimeActions,
     );
 
-    expect(runtime.getActivation("messages-main")).toEqual({
-      status: "pending",
-      missingServices: ["agent-ui.conversations"],
-    });
+    expect(runtime.getActivation("messages-main")?.status).toBe("active");
     expect(runtime.getActivation("timeline-main")?.status).toBe("active");
   });
 
