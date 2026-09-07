@@ -1,43 +1,37 @@
-import type { AgentMessage } from "../framework/contracts/ui-plugin";
-
-/**
- * Stable conversation capability seam shared by providers and consumers.
- *
- * Concrete UI plugins provide this service through the plugin runtime. Other
- * plugins import this seam, then either inject it as a hard dependency or
- * probe it as an optional capability without importing a provider's source.
- */
-export const AGENT_UI_CONVERSATION_SERVICE = "agent-ui.conversations";
-
-export interface AgentUIConversationService {
-  readonly activeKey: string | undefined;
-  includesMessage(message: AgentMessage): boolean;
-}
-
-export function getConversationMessages(
-  messages: readonly AgentMessage[],
-  conversation: AgentUIConversationService | undefined,
-): AgentMessage[] {
-  return messages.filter(
-    (message) =>
-      conversation === undefined || conversation.includesMessage(message),
-  );
-}
-
-export function getVisibleConversationMessages(
-  messages: readonly AgentMessage[],
-  conversation: AgentUIConversationService | undefined,
-): AgentMessage[] {
-  return getConversationMessages(messages, conversation).filter(
-    (message) =>
-      message.role !== "tool" &&
-      message.role !== "reasoning" &&
-      message.role !== "activity",
-  );
-}
-
-declare module "../framework/contracts/ui-plugin" {
-  interface UIPluginServiceMap {
-    [AGENT_UI_CONVERSATION_SERVICE]: AgentUIConversationService;
-  }
-}
+export {
+  conversationDetailResponseSchema,
+  conversationHistoryMessageDtoSchema,
+  conversationListResponseSchema,
+  conversationSummarySchema,
+  type ConversationDetail,
+  type ConversationDetailResponse,
+  type ConversationHistoryMessageDto,
+  type ConversationListResponse,
+  type ConversationSummary,
+} from "./conversations/contract";
+export {
+  AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
+  createUnavailableConversationDataSource,
+  type ConversationDataSource,
+  type ConversationDataSourceOptions,
+} from "./conversations/data-source";
+export {
+  createHttpConversationDataSource,
+  type HttpConversationDataSourceOptions,
+} from "./conversations/http-data-source";
+export {
+  resolveConversationDataEndpoint,
+  type ResolveConversationDataEndpointOptions,
+} from "./conversations/endpoint";
+export {
+  AGENT_UI_CONVERSATION_SERVICE,
+  EMPTY_CONVERSATION_SNAPSHOT,
+  createConversationController,
+  getConversationViewMessages,
+  getVisibleConversationMessages,
+  type AgentUIConversationService,
+  type ConversationControllerOptions,
+  type ConversationLoadStatus,
+  type ConversationSnapshot,
+  type ConversationViewMode,
+} from "./conversations/controller";

@@ -4,8 +4,13 @@ import { Empty, Tag } from "antd";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useAgentMessages, useAgentState } from "../../runtime/context";
-import { usePluginService } from "../../runtime/plugins";
-import { AGENT_UI_CONVERSATION_SERVICE } from "../../services/conversations";
+import { usePluginService, usePluginServiceSnapshot } from "../../runtime/plugins";
+import {
+  AGENT_UI_CONVERSATION_SERVICE,
+  EMPTY_CONVERSATION_SNAPSHOT,
+  getConversationViewMessages,
+  type AgentUIConversationService,
+} from "../../services/conversations";
 import { inspectAttachments } from "../_shared/agent-ui-data";
 
 import "./styles.css";
@@ -13,13 +18,14 @@ import "./styles.css";
 export function AntdXAttachmentsPlugin(_props: UIPluginComponentProps) {
   const allMessages = useAgentMessages();
   const state = useAgentState();
-  const conversation = usePluginService(AGENT_UI_CONVERSATION_SERVICE);
-  const messages =
-    conversation === undefined
-      ? allMessages
-      : allMessages.filter((message) =>
-          conversation.includesMessage(message),
-        );
+  const conversation = usePluginService<AgentUIConversationService>(
+    AGENT_UI_CONVERSATION_SERVICE,
+  );
+  const snapshot = usePluginServiceSnapshot(
+    conversation,
+    EMPTY_CONVERSATION_SNAPSHOT,
+  );
+  const messages = getConversationViewMessages(allMessages, snapshot);
   const attachments = inspectAttachments(messages, state);
   const items: NonNullable<AttachmentsProps["items"]> = attachments.map(
     (attachment) => ({

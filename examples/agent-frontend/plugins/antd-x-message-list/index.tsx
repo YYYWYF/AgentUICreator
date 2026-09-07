@@ -8,7 +8,7 @@ import {
   type BubbleListProps,
   type FileCardProps,
 } from "@ant-design/x";
-import { Avatar, Empty } from "antd";
+import { Alert, Avatar, Empty, Spin } from "antd";
 import {
   projectAgentTurns,
   type AgentTurn,
@@ -23,10 +23,15 @@ import {
   useAgentRun,
   usePluginInstance,
 } from "../../runtime/context";
-import { usePluginService } from "../../runtime/plugins";
+import {
+  usePluginService,
+  usePluginServiceSnapshot,
+} from "../../runtime/plugins";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
-  getConversationMessages,
+  EMPTY_CONVERSATION_SNAPSHOT,
+  getConversationViewMessages,
+  type AgentUIConversationService,
 } from "../../services/conversations";
 
 import "./styles.css";
@@ -363,10 +368,17 @@ export function AntdXMessageListPlugin(_props: UIPluginComponentProps) {
   const messages = useAgentMessages();
   const run = useAgentRun();
   const instance = usePluginInstance();
-  const conversation = usePluginService(
+  const conversation = usePluginService<AgentUIConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
   );
-  const conversationMessages = getConversationMessages(messages, conversation);
+  const conversationSnapshot = usePluginServiceSnapshot(
+    conversation,
+    EMPTY_CONVERSATION_SNAPSHOT,
+  );
+  const conversationMessages = getConversationViewMessages(
+    messages,
+    conversationSnapshot,
+  );
   const { leadingMessages, turns } = projectAgentTurns(conversationMessages);
   const items = leadingMessages
     .filter(
@@ -389,7 +401,10 @@ export function AntdXMessageListPlugin(_props: UIPluginComponentProps) {
     items.push(
       ...toTurnBubbleItems({
         turn,
-        running: run.status === "running" && index === turns.length - 1,
+        running:
+          conversationSnapshot.mode === "live" &&
+          run.status === "running" &&
+          index === turns.length - 1,
       }),
     );
   });
@@ -403,9 +418,22 @@ export function AntdXMessageListPlugin(_props: UIPluginComponentProps) {
       aria-label="智能体消息"
       className="antd-x-message-list-plugin"
       data-agent-run-status={run.status}
+      data-conversation-mode={conversationSnapshot.mode}
       data-ui-plugin="antd-x-message-list"
     >
-      {items.length === 0 ? (
+      {conversationSnapshot.mode === "history" &&
+      conversationSnapshot.detailStatus === "loading" ? (
+        <Spin tip="历史会话加载中">
+          <div aria-label="历史会话加载中" className="antd-x-message-list-history-status" />
+        </Spin>
+      ) : conversationSnapshot.mode === "history" &&
+        conversationSnapshot.detailStatus === "error" ? (
+        <Alert
+          message={conversationSnapshot.detailError ?? "历史会话加载失败"}
+          showIcon
+          type="error"
+        />
+      ) : items.length === 0 ? (
         <Empty description={emptyText} image={Empty.PRESENTED_IMAGE_SIMPLE} />
       ) : (
         <Bubble.List autoScroll items={items} role={bubbleRoles} />

@@ -22,6 +22,7 @@ import type {
 } from "../framework/contracts/ui-plugin";
 import { pluginDefinitions } from "../plugins";
 import { antdXConversationsPlugin } from "../plugins/antd-x-conversations/definition";
+import { conversationDataSourcePlugin } from "../plugins/conversation-data-source/definition";
 import {
   antdXTemplatePlugins,
   antdXActivityFeedPlugin,
@@ -218,6 +219,9 @@ describe("StaticPluginRegistry", () => {
     expect(registry.get("antd-x-welcome")).toBe(antdXWelcomePlugin);
     expect(registry.get("antd-x-conversations")).toBe(
       antdXConversationsPlugin,
+    );
+    expect(registry.get("conversation-data-source")).toBe(
+      conversationDataSourcePlugin,
     );
     expect(registry.get("antd-x-run-timeline")).toBe(
       antdXRunTimelinePlugin,

@@ -16,8 +16,13 @@ import {
   useAgentRun,
   usePluginInstance,
 } from "../../runtime/context";
-import { usePluginService } from "../../runtime/plugins";
-import { AGENT_UI_CONVERSATION_SERVICE } from "../../services/conversations";
+import { usePluginService, usePluginServiceSnapshot } from "../../runtime/plugins";
+import {
+  AGENT_UI_CONVERSATION_SERVICE,
+  EMPTY_CONVERSATION_SNAPSHOT,
+  getConversationViewMessages,
+  type AgentUIConversationService,
+} from "../../services/conversations";
 import {
   asRecord,
   inspectToolCalls,
@@ -111,13 +116,14 @@ export function AntdXToolDetailPlugin(_props: UIPluginComponentProps) {
   const executions = useAgentExecutions();
   const run = useAgentRun();
   const instance = usePluginInstance();
-  const conversation = usePluginService(AGENT_UI_CONVERSATION_SERVICE);
-  const messages =
-    conversation === undefined
-      ? allMessages
-      : allMessages.filter((message) =>
-          conversation.includesMessage(message),
-        );
+  const conversation = usePluginService<AgentUIConversationService>(
+    AGENT_UI_CONVERSATION_SERVICE,
+  );
+  const snapshot = usePluginServiceSnapshot(
+    conversation,
+    EMPTY_CONVERSATION_SNAPSHOT,
+  );
+  const messages = getConversationViewMessages(allMessages, snapshot);
   const calls = inspectToolCalls(messages, executions);
   const requestedToolCallId =
     typeof instance.props?.toolCallId === "string"

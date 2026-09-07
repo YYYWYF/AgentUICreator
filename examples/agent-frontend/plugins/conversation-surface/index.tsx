@@ -1,9 +1,14 @@
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useAgentMessages, useAgentRun } from "../../runtime/context";
-import { usePluginService } from "../../runtime/plugins";
+import {
+  usePluginService,
+  usePluginServiceSnapshot,
+} from "../../runtime/plugins";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
+  EMPTY_CONVERSATION_SNAPSHOT,
   getVisibleConversationMessages,
+  type AgentUIConversationService,
 } from "../../services/conversations";
 
 import "./styles.css";
@@ -13,18 +18,26 @@ export function ConversationSurfacePlugin({
 }: UIPluginComponentProps) {
   const messages = useAgentMessages();
   const run = useAgentRun();
-  const conversation = usePluginService(
+  const conversation = usePluginService<AgentUIConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
+  );
+  const conversationSnapshot = usePluginServiceSnapshot(
+    conversation,
+    EMPTY_CONVERSATION_SNAPSHOT,
   );
   const visibleMessages = getVisibleConversationMessages(
     messages,
-    conversation,
+    conversationSnapshot,
   );
-  const showTimeline = run.status === "running" || visibleMessages.length > 0;
+  const showTimeline =
+    conversationSnapshot.mode === "history" ||
+    run.status === "running" ||
+    visibleMessages.length > 0;
 
   return (
     <main
       className="conversation-surface-plugin"
+      data-conversation-mode={conversationSnapshot.mode}
       data-conversation-state={showTimeline ? "timeline" : "empty"}
       data-ui-plugin="conversation-surface"
     >

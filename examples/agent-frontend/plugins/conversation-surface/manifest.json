@@ -1,7 +1,7 @@
 {
   "id": "conversation-surface",
   "name": "Conversation Surface",
-  "description": "组合会话空状态、消息时间线与输入区，不持有 Agent Runtime 或会话服务。",
+  "description": "组合 Live 与只读 History 会话的空状态、消息时间线与输入区。",
   "version": "1.0.0",
   "capabilities": ["conversation-surface"],
   "slots": {

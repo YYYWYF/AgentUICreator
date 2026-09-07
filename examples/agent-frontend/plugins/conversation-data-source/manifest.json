@@ -1,0 +1,7 @@
+{
+  "id": "conversation-data-source",
+  "name": "Conversation Data Source",
+  "description": "Provides conversation history data through an application-owned API.",
+  "version": "1.0.0",
+  "capabilities": ["headless"]
+}

@@ -64,6 +64,11 @@
     ]
   },
   "pluginInstances": {
+    "agent-conversation-data-main": {
+      "id": "agent-conversation-data-main",
+      "pluginId": "conversation-data-source",
+      "enabled": true
+    },
     "agent-theme-provider-main": {
       "id": "agent-theme-provider-main",
       "pluginId": "antd-x-theme-provider",

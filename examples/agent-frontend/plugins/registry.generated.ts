@@ -12,8 +12,9 @@ import pluginDefinition6 from "./antd-x-theme-provider/definition";
 import pluginDefinition7 from "./antd-x-theme-switch/definition";
 import pluginDefinition8 from "./antd-x-tool-detail/definition";
 import pluginDefinition9 from "./antd-x-welcome/definition";
-import pluginDefinition10 from "./conversation-surface/definition";
-import pluginDefinition11 from "./workspace-inspector/definition";
+import pluginDefinition10 from "./conversation-data-source/definition";
+import pluginDefinition11 from "./conversation-surface/definition";
+import pluginDefinition12 from "./workspace-inspector/definition";
 
 export const pluginDefinitions = [
   pluginDefinition0,
@@ -28,4 +29,5 @@ export const pluginDefinitions = [
   pluginDefinition9,
   pluginDefinition10,
   pluginDefinition11,
+  pluginDefinition12,
 ] as const;

@@ -54,10 +54,22 @@
   white-space: nowrap;
 }
 
-.antd-x-conversations-plugin .ant-conversations {
+.antd-x-conversations-plugin-list {
   min-height: 0;
-  padding: 0.8rem 0.65rem;
   overflow: auto;
+}
+
+.antd-x-conversations-plugin-list > .ant-alert {
+  margin: 0.25rem 0.75rem;
+}
+
+.antd-x-conversations-plugin-list .ant-spin-nested-loading,
+.antd-x-conversations-plugin-list .ant-spin-container {
+  min-height: 100%;
+}
+
+.antd-x-conversations-plugin .ant-conversations {
+  padding: 0.8rem 0.65rem;
 }
 
 .antd-x-conversations-plugin .ant-conversations-creation {

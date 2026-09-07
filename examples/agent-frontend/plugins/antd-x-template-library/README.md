@@ -4,13 +4,14 @@
 
 当前模板：
 
-- `conversation-surface`：作为中栏 Container Plugin，只根据共享消息是否为空组合 `conversation.empty`、`conversation.timeline` 与始终存在的 `conversation.composer`，不持有会话服务或 Agent Runtime。
+- `conversation-data-source`：Headless Provider，在开发期连接 application-owned Mock Conversation API，在生产配置存在时连接真实业务 API。
+- `conversation-surface`：作为中栏 Container Plugin，根据 Conversation Controller 的 Live / History 模式组合 `conversation.empty`、`conversation.timeline` 与始终存在的 `conversation.composer`。
 - `workspace-inspector`：作为右栏 Container Plugin，用本地 Tab 状态在 `inspector.activity`、`inspector.tool` 与 `inspector.resources` 中一次只渲染一个上下文，不改变叶子插件的激活和贡献生命周期。
 - `antd-x-theme-provider`：通过插件服务注册表提供 `agent-ui.theme` 能力，不直接渲染 UI。
 - `antd-x-theme-switch`：声明 `inject: ["agent-ui.theme"]`，调用另一个插件暴露的主题函数。
-- `antd-x-conversations`：在同一插件内提供新建会话、历史列表与会话选择，并提供 `agent-ui.conversations` Service seam。新建按钮通过 `usePluginActions()` 调用 `startNewConversation()`，成功后清除历史选择；运行期间禁用新建。插件不持有 Agent Runtime。
+- `antd-x-conversations`：注入 `agent-ui.conversation-data-source`，提供可观察的 `agent-ui.conversations` Controller；历史会话只读，新建成功后返回 Live 模式。
 - `antd-x-welcome`：用 `Welcome` 展示 Agent 身份与共享运行状态。
-- `antd-x-message-list`：可选探测 `agent-ui.conversations` Service；存在时过滤当前历史会话，不存在时直接渲染 Runtime 的全部消息。使用 `Bubble.List`、`Actions.Copy`、`FileCard`、`Sources` 呈现内容；没有反馈提交合同前不伪造点赞/点踩。
+- `antd-x-message-list`：Live 模式读取 Runtime messages，History 模式只读取 Conversation Detail messages，并展示详情 loading / error。使用 `Bubble.List`、`Actions.Copy`、`FileCard`、`Sources` 呈现内容；没有反馈提交合同前不伪造点赞/点踩。
 - `antd-x-run-timeline`：同样可选探测会话 Service，再用 `Think` 和 `ThoughtChain` 映射 AG-UI reasoning、activity、tool call 与 tool result；没有历史会话插件时仍展示当前 Runtime 的完整执行链。
 - `antd-x-tool-detail`：独立工具调用详情面板，可按 `toolCallId` 定位调用，并展示增量参数的最终投影、执行状态、结果或错误；用于右侧 Inspector 等独立 Slot。
 - `antd-x-reasoning`：只渲染当前会话的 AG-UI reasoning messages，适合需要独立思考区域但不需要完整执行链的布局。
@@ -19,7 +20,7 @@
 - `antd-x-attachments`：聚合当前会话输入与 Frontend State 中的附件，仅做只读展示；在 Runtime 提供多模态发送合同前不开放上传入口。
 - `antd-x-resources`：用 `Folder`、`CodeHighlighter`、`FileCard`、`Sources` 与 `Mermaid` 展示项目文件、产物、引用和图表。
 - `antd-x-prompts`：用 `Prompts` 提供可配置且可直接发送的快捷提示。
-- `antd-x-sender`：用 `Sender` 和 `Suggestion` 发送消息、唤出快捷指令，并在运行期间提供停止操作。
+- `antd-x-sender`：用 `Sender` 和 `Suggestion` 发送 Live 消息、唤出快捷指令，并在 History 模式进入只读状态。
 
 `index.ts` 导出的 `antdXTemplatePlugins` 是开发期 catalog，可用于预览整套模板。生产入口的 `plugins/index.ts` 只转出 `registry.generated.ts`；目标项目的 `generate:registry` 根据 AppUIModel 引用和各插件 manifest 生成显式静态 import，不能展开整个 catalog。这样未选择的 Plugin 才能从静态 import graph 和 Bundle 中消失。模板通过 `runtime/context` 的领域 Hook 读取 Agent Runtime 与当前实例，通过 `usePluginService()` 读取插件能力，不会创建或持有 Agent Runtime。布局、顺序和实例 props 都由 `app-ui/app-ui.json` 决定。主题硬依赖和可选会话能力都通过稳定 Service name 关联 Provider 与 Consumer；Consumer 不导入具体 Provider 源码。
 

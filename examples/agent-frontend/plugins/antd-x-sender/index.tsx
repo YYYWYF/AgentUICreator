@@ -11,6 +11,15 @@ import {
   usePluginActions,
   usePluginInstance,
 } from "../../runtime/context";
+import {
+  usePluginService,
+  usePluginServiceSnapshot,
+} from "../../runtime/plugins";
+import {
+  AGENT_UI_CONVERSATION_SERVICE,
+  EMPTY_CONVERSATION_SNAPSHOT,
+  type AgentUIConversationService,
+} from "../../services/conversations";
 
 import "./styles.css";
 
@@ -63,6 +72,14 @@ export function AntdXSenderPlugin(_props: UIPluginComponentProps) {
   const run = useAgentRun();
   const instance = usePluginInstance();
   const actions = usePluginActions();
+  const conversation = usePluginService<AgentUIConversationService>(
+    AGENT_UI_CONVERSATION_SERVICE,
+  );
+  const conversationSnapshot = usePluginServiceSnapshot(
+    conversation,
+    EMPTY_CONVERSATION_SNAPSHOT,
+  );
+  const historyMode = conversationSnapshot.mode === "history";
   const hasPendingTool = executions.some(
     (execution) =>
       execution.type === "tool" &&
@@ -72,15 +89,16 @@ export function AntdXSenderPlugin(_props: UIPluginComponentProps) {
     run.status === "running" ||
     interrupts.length > 0 ||
     hasPendingTool;
-  const placeholder =
-    typeof instance.props?.placeholder === "string"
+  const placeholder = historyMode
+    ? "历史会话为只读，请返回当前会话或新建会话"
+    : typeof instance.props?.placeholder === "string"
       ? instance.props.placeholder
       : "给智能体发送消息";
   const suggestions = readSuggestions(instance.props?.suggestions);
 
   const sendMessage = async (input: string): Promise<void> => {
     const message = input.trim();
-    if (message.length === 0 || isRunning) {
+    if (message.length === 0 || isRunning || historyMode) {
       return;
     }
 
@@ -97,6 +115,7 @@ export function AntdXSenderPlugin(_props: UIPluginComponentProps) {
       aria-label="消息输入"
       className="antd-x-sender-plugin"
       data-agent-run-status={run.status}
+      data-conversation-mode={conversationSnapshot.mode}
       data-ui-plugin="antd-x-sender"
     >
       {run.error === undefined ? null : (
@@ -110,12 +129,15 @@ export function AntdXSenderPlugin(_props: UIPluginComponentProps) {
       <Suggestion
         block
         items={suggestions}
-        onSelect={(nextValue: string) => setValue(`${nextValue} `)}
+        onSelect={(nextValue: string) => {
+          if (!historyMode) setValue(`${nextValue} `);
+        }}
         role="menu"
       >
         {({ onKeyDown, onTrigger, open }) => (
           <Sender
             autoSize={{ minRows: 1, maxRows: 5 }}
+            disabled={historyMode}
             footer={
               <span className="antd-x-sender-plugin-footer">
                 <span className="antd-x-sender-plugin-channel">
@@ -139,6 +161,7 @@ export function AntdXSenderPlugin(_props: UIPluginComponentProps) {
             onKeyDown={onKeyDown}
             onSubmit={(message: string) => {
               onTrigger(false);
+              if (historyMode) return;
               void sendMessage(message);
             }}
             placeholder={placeholder}

@@ -25,8 +25,13 @@ import {
   useAgentMessages,
   useAgentRun,
 } from "../../runtime/context";
-import { usePluginService } from "../../runtime/plugins";
-import { AGENT_UI_CONVERSATION_SERVICE } from "../../services/conversations";
+import { usePluginService, usePluginServiceSnapshot } from "../../runtime/plugins";
+import {
+  AGENT_UI_CONVERSATION_SERVICE,
+  EMPTY_CONVERSATION_SNAPSHOT,
+  getConversationViewMessages,
+  type AgentUIConversationService,
+} from "../../services/conversations";
 
 import "./styles.css";
 
@@ -205,15 +210,14 @@ export function AntdXRunTimelinePlugin(_props: UIPluginComponentProps) {
   const allMessages = useAgentMessages();
   const executions = useAgentExecutions();
   const run = useAgentRun();
-  const conversation = usePluginService(
+  const conversation = usePluginService<AgentUIConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
   );
-  const messages =
-    conversation === undefined
-      ? allMessages
-      : allMessages.filter((message) =>
-          conversation.includesMessage(message),
-        );
+  const snapshot = usePluginServiceSnapshot(
+    conversation,
+    EMPTY_CONVERSATION_SNAPSHOT,
+  );
+  const messages = getConversationViewMessages(allMessages, snapshot);
   const reasoning = reasoningContent(messages);
   const items = timelineItems(messages, executions);
   const visibleReasoningMessageIds = new Set(

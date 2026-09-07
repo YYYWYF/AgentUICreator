@@ -13,9 +13,11 @@ import { antdXThemeSwitchPlugin } from "../antd-x-theme-switch/definition";
 import { antdXToolDetailPlugin } from "../antd-x-tool-detail/definition";
 import { antdXWelcomePlugin } from "../antd-x-welcome/definition";
 import { conversationSurfacePlugin } from "../conversation-surface/definition";
+import { conversationDataSourcePlugin } from "../conversation-data-source/definition";
 import { workspaceInspectorPlugin } from "../workspace-inspector/definition";
 
 export const antdXTemplatePlugins = [
+  conversationDataSourcePlugin,
   antdXThemeProviderPlugin,
   antdXThemeSwitchPlugin,
   antdXConversationsPlugin,
@@ -49,6 +51,7 @@ export {
   antdXThemeSwitchPlugin,
   antdXToolDetailPlugin,
   antdXWelcomePlugin,
+  conversationDataSourcePlugin,
   conversationSurfacePlugin,
   workspaceInspectorPlugin,
 };
@@ -68,5 +71,6 @@ export { AntdXThemeSwitchPlugin } from "../antd-x-theme-switch";
 export { AntdXToolDetailPlugin } from "../antd-x-tool-detail";
 export { AntdXWelcomePlugin } from "../antd-x-welcome";
 export { ConversationSurfacePlugin } from "../conversation-surface";
+export { ConversationDataSourcePlugin } from "../conversation-data-source";
 export { WorkspaceInspectorPlugin } from "../workspace-inspector";
 export * from "../antd-x-theme-provider/theme-service";

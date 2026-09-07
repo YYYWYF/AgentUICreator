@@ -11,6 +11,10 @@
   scrollbar-width: thin;
 }
 
+.antd-x-message-list-history-status {
+  min-height: 8rem;
+}
+
 .antd-x-message-list-rich-content {
   display: grid;
   gap: 0.65rem;

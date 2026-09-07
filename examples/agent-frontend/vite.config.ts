@@ -8,6 +8,7 @@ import {
 } from "../../packages/mock-agent/src/index";
 import { defineConfig, loadEnv } from "vite";
 
+import { createMockConversationApiVitePlugin } from "./dev-mock/conversations/vite-plugin";
 import { previewAgentState } from "./src/preview-data";
 
 const workspaceRoot = fileURLToPath(new URL("../..", import.meta.url));
@@ -31,6 +32,9 @@ export default defineConfig(async ({ command, mode }) => {
           initialState: previewAgentState,
         })),
         defaultScenarioId: "reasoning-tool-success",
+      }),
+      createMockConversationApiVitePlugin({
+        endpoint: "/__agent-ui/mock-data",
       }),
     ],
     resolve: {

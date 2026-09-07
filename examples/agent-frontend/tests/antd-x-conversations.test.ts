@@ -1,66 +1,70 @@
 import { describe, expect, it } from "vitest";
 
 import type { AgentMessage } from "../framework/contracts/ui-plugin";
-import {
-  createAgentUIConversationService,
-  readConversationKey,
-} from "../plugins/antd-x-conversations/conversation-service";
 import { antdXMessageListPlugin } from "../plugins/antd-x-message-list/definition";
-import { antdXReasoningPlugin } from "../plugins/antd-x-reasoning/definition";
-import { antdXRunTimelinePlugin } from "../plugins/antd-x-run-timeline/definition";
-import { antdXToolDetailPlugin } from "../plugins/antd-x-tool-detail/definition";
+import { antdXSenderPlugin } from "../plugins/antd-x-sender/definition";
+import {
+  AGENT_UI_CONVERSATION_SERVICE,
+  EMPTY_CONVERSATION_SNAPSHOT,
+  getConversationViewMessages,
+  getVisibleConversationMessages,
+} from "../services/conversations";
 
-describe("Ant Design X conversation adapter", () => {
-  it("reads non-blank conversation keys", () => {
-    expect(readConversationKey("current")).toBe("current");
-    expect(readConversationKey("  ")).toBeUndefined();
-    expect(readConversationKey(null)).toBeUndefined();
+const liveMessages: AgentMessage[] = [
+  {
+    id: "live",
+    producer: { type: "root" },
+    role: "assistant",
+    content: "Live",
+  },
+];
+const historyMessages: AgentMessage[] = [
+  {
+    id: "history",
+    producer: { type: "root" },
+    role: "assistant",
+    content: "History",
+  },
+  {
+    id: "history-tool",
+    producer: { type: "root" },
+    role: "tool",
+    toolCallId: "tool-1",
+    content: "Hidden",
+  },
+];
+
+describe("conversation view messages", () => {
+  it("uses Runtime messages in live mode", () => {
+    expect(
+      getConversationViewMessages(liveMessages, EMPTY_CONVERSATION_SNAPSHOT)
+        .map((message) => message.id),
+    ).toEqual(["live"]);
   });
 
-  it("filters tagged history without hiding live untagged messages", () => {
-    const messages: AgentMessage[] = [
-      {
-        id: "current",
-        producer: { type: "root" },
-        role: "assistant",
-        content: "Current",
-        metadata: { conversationId: "current" },
-      },
-      {
-        id: "illustration",
-        producer: { type: "root" },
-        role: "assistant",
-        content: "Illustration",
-        metadata: { conversationId: "illustration" },
-      },
-      {
-        id: "live",
-        producer: { type: "root" },
-        role: "assistant",
-        content: "Live",
-      },
-    ];
-    const currentService = createAgentUIConversationService("current");
-    const illustrationService =
-      createAgentUIConversationService("illustration");
-    const current = messages.filter((message) =>
-      currentService.includesMessage(message),
-    );
-    const illustration = messages.filter((message) =>
-      illustrationService.includesMessage(message),
-    );
+  it("uses only history messages in history mode", () => {
+    const snapshot = {
+      ...EMPTY_CONVERSATION_SNAPSHOT,
+      mode: "history" as const,
+      historyMessages,
+      detailStatus: "ready" as const,
+    };
+    expect(
+      getConversationViewMessages(liveMessages, snapshot)
+        .map((message) => message.id),
+    ).toEqual(["history", "history-tool"]);
+    expect(
+      getVisibleConversationMessages(liveMessages, snapshot)
+        .map((message) => message.id),
+    ).toEqual(["history"]);
+  });
 
-    expect(current.map((message) => message.id)).toEqual(["current", "live"]);
-    expect(illustration.map((message) => message.id)).toEqual([
-      "illustration",
-      "live",
+  it("makes the message list and sender hard consumers of conversation mode", () => {
+    expect(antdXMessageListPlugin.inject).toEqual([
+      AGENT_UI_CONVERSATION_SERVICE,
     ]);
-  });
-
-  it("keeps conversation filtering optional for single-conversation apps", () => {
-    expect(antdXMessageListPlugin.inject).toBeUndefined();
-    expect(antdXRunTimelinePlugin.inject).toBeUndefined();
-    expect(antdXToolDetailPlugin.inject).toBeUndefined();
-    expect(antdXReasoningPlugin.inject).toBeUndefined();
+    expect(antdXSenderPlugin.inject).toEqual([
+      AGENT_UI_CONVERSATION_SERVICE,
+    ]);
   });
 });

@@ -46,6 +46,7 @@ describe("AppUIModel", () => {
     expect(model.version).toBe("2");
     expect(model.root.type).toBe("row");
     expect(Object.keys(model.pluginInstances)).toEqual([
+      "agent-conversation-data-main",
       "agent-theme-provider-main",
       "agent-conversations-main",
       "agent-theme-switch-main",
