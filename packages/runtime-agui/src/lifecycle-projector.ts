@@ -164,27 +164,7 @@ function equalProjectedMessage(
     }
     case "assistant": {
       if (right.role !== "assistant") return false;
-      const leftContent = left.content;
-      const rightContent = right.content;
-      if (
-        (leftContent === undefined && rightContent !== undefined)
-        || (leftContent !== undefined
-          && rightContent !== undefined
-          && typeof leftContent !== typeof rightContent)
-      ) {
-        return false;
-      }
-      const contentEqual = leftContent === rightContent || (
-        typeof leftContent !== "string"
-        && rightContent !== undefined
-        && leftContent !== undefined
-        && leftContent.length === rightContent.length
-        && leftContent.every((part, index) => {
-          const nextPart = rightContent[index];
-          return nextPart !== undefined
-            && equalAgentMessagePart(part, nextPart);
-        })
-      );
+      const contentEqual = left.content === right.content;
       if (!contentEqual) return false;
       if (
         (left.toolCalls === undefined) !== (right.toolCalls === undefined)
