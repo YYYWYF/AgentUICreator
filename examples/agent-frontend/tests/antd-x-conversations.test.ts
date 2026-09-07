@@ -4,7 +4,6 @@ import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import { antdXMessageListPlugin } from "../plugins/antd-x-message-list/definition";
 import { antdXSenderPlugin } from "../plugins/antd-x-sender/definition";
 import {
-  AGENT_UI_CONVERSATION_SERVICE,
   EMPTY_CONVERSATION_SNAPSHOT,
   getConversationViewMessages,
   getVisibleConversationMessages,
@@ -90,12 +89,8 @@ describe("conversation view messages", () => {
     ).toEqual(["history-user", "history"]);
   });
 
-  it("makes the message list and sender hard consumers of conversation mode", () => {
-    expect(antdXMessageListPlugin.inject).toEqual([
-      AGENT_UI_CONVERSATION_SERVICE,
-    ]);
-    expect(antdXSenderPlugin.inject).toEqual([
-      AGENT_UI_CONVERSATION_SERVICE,
-    ]);
+  it("keeps basic chat independent from conversation service", () => {
+    expect(antdXMessageListPlugin.inject).toBeUndefined();
+    expect(antdXSenderPlugin.inject).toBeUndefined();
   });
 });
