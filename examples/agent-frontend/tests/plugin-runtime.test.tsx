@@ -171,6 +171,10 @@ function getText(node: ReactTestInstance): string {
     .join("");
 }
 
+function countOccurrences(value: string, search: string): number {
+  return value.split(search).length - 1;
+}
+
 function createFixtureDefinition(
   id: string,
   Component: UIPluginDefinition["Component"],
@@ -345,6 +349,119 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain("给智能体发送消息，输入 / 唤出快捷指令");
   });
 
+  it("renders one assistant bubble for a turn that crosses a tool call", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const registry = createPluginRegistry(antdXTemplatePlugins);
+    const messages: AgentMessage[] = [
+      {
+        id: "user-turn",
+        producer: { type: "root" },
+        role: "user",
+        content: "你能做什么",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "assistant-tool-call",
+        producer: { type: "root" },
+        role: "assistant",
+        toolCalls: [
+          {
+            id: "inspect-call",
+            type: "function",
+            function: { name: "inspect", arguments: "{}" },
+          },
+        ],
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "inspect-result",
+        producer: { type: "root" },
+        role: "tool",
+        toolCallId: "inspect-call",
+        content: "done",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "assistant-final",
+        producer: { type: "root" },
+        role: "assistant",
+        content: "检查完成，我找到了 AG-UI Transport 和生命周期投影相关实现。",
+        metadata: { conversationId: "default" },
+      },
+    ];
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [],
+      interrupts: [],
+      messages,
+      model,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    });
+
+    expect(countOccurrences(html, "antd-x-message-list-bubble--user")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-bubble--agent")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-avatar--agent")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-role-dot")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-actions")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-turn-segment")).toBe(1);
+    expect(html).toContain("检查完成，我找到了 AG-UI Transport");
+    expect(html).not.toContain("已发起 1 个工具调用，请在执行链中查看。");
+  });
+
+  it("keeps multiple streaming assistant messages in one running turn bubble", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const registry = createPluginRegistry(antdXTemplatePlugins);
+    const messages: AgentMessage[] = [
+      {
+        id: "streaming-user-turn",
+        producer: { type: "root" },
+        role: "user",
+        content: "检查项目",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "assistant-stream-1",
+        producer: { type: "root" },
+        role: "assistant",
+        content: "检查项目...",
+        streamStatus: "completed",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "assistant-stream-2",
+        producer: { type: "root" },
+        role: "assistant",
+        content: "发现相关实现...",
+        streamStatus: "streaming",
+        metadata: { conversationId: "default" },
+      },
+    ];
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [],
+      interrupts: [],
+      messages,
+      model,
+      registry,
+      run: { status: "running" },
+      state: previewAgentState,
+    });
+
+    expect(countOccurrences(html, "antd-x-message-list-bubble--agent")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-turn-segment")).toBe(2);
+    expect(countOccurrences(html, 'data-agent-turn-id="streaming-user-turn"')).toBe(2);
+    expect(html).toContain("检查项目...");
+    expect(html).toContain("发现相关实现...");
+    expect(html).toContain("ant-bubble-loading");
+    expect(html).toContain("智能体正在处理");
+  });
+
   it("renders only the active Inspector child while keeping every contribution active", async () => {
     const model = parseAppUIModel(appUIJson);
     const mounted = await mountPluginRuntime({
@@ -515,7 +632,7 @@ describe("UIPluginRuntime", () => {
     expect(html).not.toContain('data-ui-plugin="antd-x-message-list"');
   });
 
-  it("renders the running timeline when the current conversation has no chat messages", async () => {
+  it("renders the running turn after the initiating user message arrives", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
     const running: AgentRunState = {
@@ -527,7 +644,15 @@ describe("UIPluginRuntime", () => {
       conversation: { id: "default" },
       executions: [],
       interrupts: [],
-      messages: [],
+      messages: [
+        {
+          id: "running-user-turn",
+          producer: { type: "root" },
+          role: "user",
+          content: "开始检查",
+          metadata: { conversationId: "default" },
+        },
+      ],
       model,
       registry,
       run: running,
@@ -538,6 +663,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain('data-ui-plugin="antd-x-message-list"');
     expect(html).toContain('data-agent-run-status="running"');
     expect(html).toContain("ant-bubble-loading");
+    expect(html).toContain("智能体正在处理");
     expect(html).toContain('data-ui-plugin="antd-x-sender"');
     expect(html).not.toContain('data-ui-plugin="antd-x-welcome"');
     expect(html).not.toContain('data-ui-plugin="antd-x-prompts"');

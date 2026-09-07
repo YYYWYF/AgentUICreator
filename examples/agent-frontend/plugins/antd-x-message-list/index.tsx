@@ -9,6 +9,10 @@ import {
   type FileCardProps,
 } from "@ant-design/x";
 import { Avatar, Empty } from "antd";
+import {
+  projectAgentTurns,
+  type AgentTurn,
+} from "@agent-ui/runtime-core";
 
 import type {
   AgentMessage,
@@ -22,7 +26,7 @@ import {
 import { usePluginService } from "../../runtime/plugins";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
-  getVisibleConversationMessages,
+  getConversationMessages,
 } from "../../services/conversations";
 
 import "./styles.css";
@@ -159,9 +163,6 @@ function messageContent(message: AgentMessage) {
     if (text.length > 0) {
       return text;
     }
-    if (message.role === "assistant" && (message.toolCalls?.length ?? 0) > 0) {
-      return `已发起 ${message.toolCalls?.length ?? 0} 个工具调用，请在执行链中查看。`;
-    }
     return "暂不支持此消息内容";
   }
 
@@ -188,7 +189,7 @@ function bubbleRole(role: string): string {
   return "system";
 }
 
-function toBubbleItem(
+function toLeadingBubbleItem(
   message: AgentMessage,
   renderAssistantActions: (messageId: string, text: string) => React.ReactNode,
 ): BubbleItemType {
@@ -212,6 +213,121 @@ function toBubbleItem(
         }
       : {}),
   };
+}
+
+type AgentAssistantMessage = Extract<AgentMessage, { role: "assistant" }>;
+
+function isAssistantMessage(
+  message: AgentMessage,
+): message is AgentAssistantMessage {
+  return message.role === "assistant";
+}
+
+function hasRenderableAssistantContent(
+  message: AgentAssistantMessage,
+): boolean {
+  return messageText(message).length > 0 || messageSources(message).length > 0;
+}
+
+function assistantTurnText(turn: AgentTurn): string {
+  return turn.responseMessages
+    .filter(isAssistantMessage)
+    .map(messageText)
+    .filter((text) => text.length > 0)
+    .join("\n\n");
+}
+
+function AssistantTurnLoading() {
+  return (
+    <span
+      aria-label="智能体正在处理"
+      className="antd-x-message-list-turn-loading"
+    >
+      <span aria-hidden="true" className="ant-bubble-dot">
+        <i className="ant-bubble-dot-item" />
+        <i className="ant-bubble-dot-item" />
+        <i className="ant-bubble-dot-item" />
+      </span>
+    </span>
+  );
+}
+
+function AssistantTurnContent({
+  turn,
+  running,
+}: {
+  turn: AgentTurn;
+  running: boolean;
+}) {
+  const messages = turn.responseMessages
+    .filter(isAssistantMessage)
+    .filter(hasRenderableAssistantContent);
+
+  return (
+    <div className="antd-x-message-list-turn-content">
+      {messages.map((message) => (
+        <div
+          className="antd-x-message-list-turn-segment"
+          key={message.id}
+        >
+          {messageContent(message)}
+        </div>
+      ))}
+      {running ? <AssistantTurnLoading /> : null}
+    </div>
+  );
+}
+
+function toTurnBubbleItems({
+  turn,
+  running,
+}: {
+  turn: AgentTurn;
+  running: boolean;
+}): BubbleItemType[] {
+  const userBubble: BubbleItemType = {
+    key: turn.userMessage.id,
+    role: "user",
+    content: messageContent(turn.userMessage),
+    header: (
+      <span className="antd-x-message-list-role">
+        {roleLabels.user}
+      </span>
+    ),
+    "data-agent-turn-id": turn.id,
+    "data-agent-turn-role": "user",
+  };
+  const assistantMessages = turn.responseMessages
+    .filter(isAssistantMessage)
+    .filter(hasRenderableAssistantContent);
+
+  if (assistantMessages.length === 0 && !running) {
+    return [userBubble];
+  }
+
+  const text = assistantTurnText(turn);
+  const assistantBubble: BubbleItemType = {
+    key: `assistant-turn:${turn.id}`,
+    role: "ai",
+    content: <AssistantTurnContent running={running} turn={turn} />,
+    header: (
+      <span className="antd-x-message-list-role">
+        <span className="antd-x-message-list-role-dot" />
+        {roleLabels.assistant}
+      </span>
+    ),
+    ...(text.length > 0
+      ? {
+          footer: <MessageActions text={text} />,
+          footerPlacement: "outer-start" as const,
+        }
+      : {}),
+    ...(running ? { status: "loading" as const } : {}),
+    "data-agent-turn-id": turn.id,
+    "data-agent-turn-role": "assistant",
+  };
+
+  return [userBubble, assistantBubble];
 }
 
 const bubbleRoles: NonNullable<BubbleListProps["role"]> = {
@@ -250,25 +366,37 @@ export function AntdXMessageListPlugin(_props: UIPluginComponentProps) {
   const conversation = usePluginService(
     AGENT_UI_CONVERSATION_SERVICE,
   );
-  const items = getVisibleConversationMessages(messages, conversation)
+  const conversationMessages = getConversationMessages(messages, conversation);
+  const { leadingMessages, turns } = projectAgentTurns(conversationMessages);
+  const items = leadingMessages
+    .filter(
+      (message) =>
+        message.role !== "tool" &&
+        message.role !== "reasoning" &&
+        message.role !== "activity" &&
+        !(
+          message.role === "assistant" &&
+          !hasRenderableAssistantContent(message)
+        ),
+    )
     .map((message) =>
-      toBubbleItem(message, (_messageId, text) => <MessageActions text={text} />),
+      toLeadingBubbleItem(message, (_messageId, text) => (
+        <MessageActions text={text} />
+      )),
     );
+
+  turns.forEach((turn, index) => {
+    items.push(
+      ...toTurnBubbleItems({
+        turn,
+        running: run.status === "running" && index === turns.length - 1,
+      }),
+    );
+  });
   const emptyText =
     typeof instance.props?.emptyText === "string"
       ? instance.props.emptyText
       : "开始一段新对话";
-
-  if (run.status === "running") {
-    items.push({
-      key: `${instance.id}-running`,
-      role: "ai",
-      content: "智能体正在处理…",
-      header: "智能体",
-      loading: true,
-      status: "loading",
-    });
-  }
 
   return (
     <section

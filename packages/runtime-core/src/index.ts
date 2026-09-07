@@ -4,6 +4,12 @@ export type {
   AgentMessagePart,
   AgentToolCall,
 } from "./agent-message.js";
+export type {
+  AgentTurn,
+  AgentTurnProjection,
+  AgentUserMessage,
+} from "./agent-turn.js";
+export { projectAgentTurns } from "./agent-turn.js";
 export type { AgentProducer } from "./agent-producer.js";
 export type {
   AgentFrontendToolCall,

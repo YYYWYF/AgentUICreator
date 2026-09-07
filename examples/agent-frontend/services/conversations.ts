@@ -14,13 +14,22 @@ export interface AgentUIConversationService {
   includesMessage(message: AgentMessage): boolean;
 }
 
-export function getVisibleConversationMessages(
+export function getConversationMessages(
   messages: readonly AgentMessage[],
   conversation: AgentUIConversationService | undefined,
 ): AgentMessage[] {
   return messages.filter(
     (message) =>
-      (conversation === undefined || conversation.includesMessage(message)) &&
+      conversation === undefined || conversation.includesMessage(message),
+  );
+}
+
+export function getVisibleConversationMessages(
+  messages: readonly AgentMessage[],
+  conversation: AgentUIConversationService | undefined,
+): AgentMessage[] {
+  return getConversationMessages(messages, conversation).filter(
+    (message) =>
       message.role !== "tool" &&
       message.role !== "reasoning" &&
       message.role !== "activity",

@@ -25,6 +25,25 @@
   margin-top: 0.25rem;
 }
 
+.antd-x-message-list-turn-content {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.antd-x-message-list-turn-segment {
+  min-width: 0;
+}
+
+.antd-x-message-list-turn-segment > p {
+  margin: 0;
+}
+
+.antd-x-message-list-turn-loading {
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
+}
+
 .antd-x-message-list-actions {
   opacity: 0.58;
   transition: opacity 160ms ease;
