@@ -23,9 +23,40 @@ export interface ToolRenderContext {
   running: boolean;
 }
 
+export type ToolPresentationStatus =
+  | "loading"
+  | "success"
+  | "error"
+  | "abort";
+
+export interface ToolPresentationItem {
+  toolCall: AgentToolCall;
+  result?: Extract<AgentMessage, { role: "tool" }> | undefined;
+  execution?: Extract<AgentExecution, { type: "tool" }> | undefined;
+  status: ToolPresentationStatus;
+}
+
+export type ToolPresentation = "grouped" | "flat";
+
+export type ToolActivityStatus =
+  | "running"
+  | "completed"
+  | "error"
+  | "interrupted";
+
+export interface ToolActivityRenderContext {
+  kind: "tool-activity";
+  turnId: string;
+  presentation: ToolPresentation;
+  items: readonly ToolPresentationItem[];
+  status: ToolActivityStatus;
+  activeToolCallIds: readonly string[];
+}
+
 export type MessageRenderContext =
   | ReasoningRenderContext
-  | ToolRenderContext;
+  | ToolRenderContext
+  | ToolActivityRenderContext;
 
 const MessageRenderReactContext =
   createContext<MessageRenderContext | null>(null);
@@ -68,6 +99,16 @@ export function useToolRenderContext(): ToolRenderContext {
   const context = useMessageRenderContext();
   if (context.kind !== "tool") {
     throw new Error(`Tool renderer received message render kind "${context.kind}"`);
+  }
+  return context;
+}
+
+export function useToolActivityRenderContext(): ToolActivityRenderContext {
+  const context = useMessageRenderContext();
+  if (context.kind !== "tool-activity") {
+    throw new Error(
+      `Tool activity renderer received message render kind "${context.kind}"`,
+    );
   }
   return context;
 }

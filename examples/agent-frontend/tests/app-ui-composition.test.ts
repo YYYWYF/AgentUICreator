@@ -42,7 +42,7 @@ function mounted(
 }
 
 describe("AppUIModel composition", () => {
-  it("reaches reasoning and tool renderers through the MessageList child Slots", () => {
+  it("reaches reasoning and tool renderers through nested presentation Slots", () => {
     const model = createModel({
       "agent-messages-main": mounted(
         "agent-messages-main",
@@ -54,10 +54,15 @@ describe("AppUIModel composition", () => {
         "antd-x-reasoning",
         "conversation.message.reasoning",
       ),
+      "agent-tool-activity-main": mounted(
+        "agent-tool-activity-main",
+        "antd-x-tool-activity",
+        "conversation.message.tool-activity",
+      ),
       "agent-tool-message-main": mounted(
         "agent-tool-message-main",
         "antd-x-tool-message",
-        "conversation.message.tool",
+        "conversation.message.tool-item",
       ),
     }, ["conversation.timeline"]);
 
@@ -65,9 +70,10 @@ describe("AppUIModel composition", () => {
       validateAppUIComposition(model, {
         "antd-x-message-list": [
           "conversation.message.reasoning",
-          "conversation.message.tool",
+          "conversation.message.tool-activity",
         ],
         "antd-x-reasoning": [],
+        "antd-x-tool-activity": ["conversation.message.tool-item"],
         "antd-x-tool-message": [],
       }),
     ).not.toThrow();

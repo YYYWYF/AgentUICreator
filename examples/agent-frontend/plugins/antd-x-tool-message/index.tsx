@@ -13,6 +13,7 @@ import type {
   AgentMessage,
   UIPluginComponentProps,
 } from "../../framework/contracts/ui-plugin";
+import { usePluginInstance } from "../../runtime/context";
 import { useToolRenderContext } from "../../runtime/message-rendering";
 import { readableJSON, type InspectionStatus } from "../_shared/agent-ui-data";
 
@@ -63,17 +64,24 @@ function statusIcon(status: InspectionStatus): ReactNode {
 export function AntdXToolMessagePlugin(_props: UIPluginComponentProps) {
   const { execution, result, running, toolCall, turnId } =
     useToolRenderContext();
+  const instance = usePluginInstance();
+  const defaultExpanded = instance.props?.defaultExpanded === true;
+  const showArguments = instance.props?.showArguments !== false;
+  const showResult = instance.props?.showResult !== false;
   const status = inspectionStatus(result, execution, running);
   const details: CollapseProps["items"] = [
     {
       key: "details",
+      forceRender: true,
       label: "参数与结果",
       children: (
         <div className="antd-x-tool-message-details">
-          <div>
-            <span>Arguments</span>
-            <pre>{readableJSON(toolCall.function.arguments)}</pre>
-          </div>
+          {showArguments ? (
+            <div>
+              <span>Arguments</span>
+              <pre>{readableJSON(toolCall.function.arguments)}</pre>
+            </div>
+          ) : null}
           {result?.error !== undefined || execution?.error !== undefined ? (
             <Alert
               description={result?.error ?? execution?.error?.message}
@@ -81,7 +89,7 @@ export function AntdXToolMessagePlugin(_props: UIPluginComponentProps) {
               showIcon
               type="error"
             />
-          ) : result === undefined ? (
+          ) : !showResult ? null : result === undefined ? (
             <Typography.Text type="secondary">
               {status === "loading" ? "等待工具返回结果…" : "工具没有返回结果"}
             </Typography.Text>
@@ -116,9 +124,7 @@ export function AntdXToolMessagePlugin(_props: UIPluginComponentProps) {
       </header>
       <Collapse
         bordered={false}
-        defaultActiveKey={
-          result !== undefined || status === "error" ? ["details"] : []
-        }
+        defaultActiveKey={defaultExpanded ? ["details"] : []}
         ghost
         items={details}
         size="small"

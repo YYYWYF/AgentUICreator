@@ -122,7 +122,8 @@
         "slotId": "conversation.timeline"
       },
       "props": {
-        "emptyText": "开始一段新对话"
+        "emptyText": "开始一段新对话",
+        "toolPresentation": "grouped"
       }
     },
     "agent-reasoning-main": {
@@ -133,12 +134,20 @@
         "slotId": "conversation.message.reasoning"
       }
     },
+    "agent-tool-activity-main": {
+      "id": "agent-tool-activity-main",
+      "pluginId": "antd-x-tool-activity",
+      "enabled": true,
+      "mount": {
+        "slotId": "conversation.message.tool-activity"
+      }
+    },
     "agent-tool-message-main": {
       "id": "agent-tool-message-main",
       "pluginId": "antd-x-tool-message",
       "enabled": true,
       "mount": {
-        "slotId": "conversation.message.tool"
+        "slotId": "conversation.message.tool-item"
       }
     },
     "agent-inspector-main": {

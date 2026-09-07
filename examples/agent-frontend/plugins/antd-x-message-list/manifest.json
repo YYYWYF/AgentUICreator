@@ -7,7 +7,7 @@
   "slots": {
     "children": [
       "conversation.message.reasoning",
-      "conversation.message.tool"
+      "conversation.message.tool-activity"
     ]
   },
   "data": {

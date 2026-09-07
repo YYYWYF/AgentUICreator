@@ -11,12 +11,13 @@ import pluginDefinition5 from "./antd-x-resources/definition";
 import pluginDefinition6 from "./antd-x-sender/definition";
 import pluginDefinition7 from "./antd-x-theme-provider/definition";
 import pluginDefinition8 from "./antd-x-theme-switch/definition";
-import pluginDefinition9 from "./antd-x-tool-detail/definition";
-import pluginDefinition10 from "./antd-x-tool-message/definition";
-import pluginDefinition11 from "./antd-x-welcome/definition";
-import pluginDefinition12 from "./conversation-data-source/definition";
-import pluginDefinition13 from "./conversation-surface/definition";
-import pluginDefinition14 from "./workspace-inspector/definition";
+import pluginDefinition9 from "./antd-x-tool-activity/definition";
+import pluginDefinition10 from "./antd-x-tool-detail/definition";
+import pluginDefinition11 from "./antd-x-tool-message/definition";
+import pluginDefinition12 from "./antd-x-welcome/definition";
+import pluginDefinition13 from "./conversation-data-source/definition";
+import pluginDefinition14 from "./conversation-surface/definition";
+import pluginDefinition15 from "./workspace-inspector/definition";
 
 export const pluginDefinitions = [
   pluginDefinition0,
@@ -34,4 +35,5 @@ export const pluginDefinitions = [
   pluginDefinition12,
   pluginDefinition13,
   pluginDefinition14,
+  pluginDefinition15,
 ] as const;

@@ -31,6 +31,7 @@ import {
   antdXResourcesPlugin,
   antdXRunTimelinePlugin,
   antdXSourcesPlugin,
+  antdXToolActivityPlugin,
   antdXToolDetailPlugin,
   antdXToolMessagePlugin,
   antdXWelcomePlugin,
@@ -244,6 +245,7 @@ describe("StaticPluginRegistry", () => {
       antdXRunTimelinePlugin,
     );
     expect(registry.get("antd-x-tool-detail")).toBe(antdXToolDetailPlugin);
+    expect(registry.get("antd-x-tool-activity")).toBe(antdXToolActivityPlugin);
     expect(registry.get("antd-x-tool-message")).toBe(antdXToolMessagePlugin);
     expect(registry.get("antd-x-resources")).toBe(antdXResourcesPlugin);
     expect(registry.get("conversation-surface")).toBe(
@@ -1391,6 +1393,8 @@ describe("UIPluginRuntime", () => {
     ];
 
     expect(countOccurrences(html, 'data-ui-plugin="antd-x-reasoning"')).toBe(2);
+    expect(countOccurrences(html, 'data-ui-plugin="antd-x-tool-activity"')).toBe(2);
+    expect(countOccurrences(html, 'data-tool-presentation="grouped"')).toBe(2);
     expect(countOccurrences(html, 'data-ui-plugin="antd-x-tool-message"')).toBe(2);
     expect(countOccurrences(html, "result A")).toBe(1);
     expect(countOccurrences(html, "result B")).toBe(1);
@@ -1399,6 +1403,110 @@ describe("UIPluginRuntime", () => {
         html.indexOf(content),
       );
     });
+  });
+
+  it("switches one tool activity between grouped and flat without changing tool data", async () => {
+    const groupedModel = parseAppUIModel(appUIJson);
+    const flatModel = parseAppUIModel({
+      ...appUIJson,
+      pluginInstances: {
+        ...appUIJson.pluginInstances,
+        "agent-messages-main": {
+          ...appUIJson.pluginInstances["agent-messages-main"],
+          props: {
+            ...appUIJson.pluginInstances["agent-messages-main"].props,
+            toolPresentation: "flat",
+          },
+        },
+      },
+    });
+    const messages: AgentMessage[] = [
+      {
+        id: "presentation-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "执行两个工具",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "presentation-tool-call-a",
+        producer: { type: "root" },
+        role: "assistant",
+        toolCalls: [{
+          id: "presentation-tool-a",
+          type: "function",
+          function: { name: "tool_A", arguments: "{}" },
+        }],
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "presentation-tool-result-a",
+        producer: { type: "root" },
+        role: "tool",
+        toolCallId: "presentation-tool-a",
+        content: "result A",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "presentation-tool-call-b",
+        producer: { type: "root" },
+        role: "assistant",
+        toolCalls: [{
+          id: "presentation-tool-b",
+          type: "function",
+          function: { name: "tool_B", arguments: "{}" },
+        }],
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "presentation-tool-result-b",
+        producer: { type: "root" },
+        role: "tool",
+        toolCallId: "presentation-tool-b",
+        content: "result B",
+        metadata: { conversationId: "default" },
+      },
+    ];
+    const registry = createPluginRegistry(antdXTemplatePlugins);
+    const props = {
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [],
+      interrupts: [],
+      messages,
+      model: groupedModel,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    } satisfies PluginRuntimeFixtureProps;
+    const mounted = await mountPluginRuntime(props);
+
+    try {
+      let activity = mounted.renderer.root.findByProps({
+        "data-ui-plugin": "antd-x-tool-activity",
+      });
+      expect(activity.props["data-tool-presentation"]).toBe("grouped");
+      expect(getText(activity)).toContain("使用了 2 个工具");
+      expect(activity.findAllByProps({
+        "data-ui-plugin": "antd-x-tool-message",
+      })).toHaveLength(2);
+      expect(getText(activity).match(/result A/gu)).toHaveLength(1);
+      expect(getText(activity).match(/result B/gu)).toHaveLength(1);
+
+      await mounted.update({ ...props, model: flatModel });
+
+      activity = mounted.renderer.root.findByProps({
+        "data-ui-plugin": "antd-x-tool-activity",
+      });
+      expect(activity.props["data-tool-presentation"]).toBe("flat");
+      expect(activity.findAllByProps({
+        "data-ui-plugin": "antd-x-tool-message",
+      })).toHaveLength(2);
+      expect(getText(activity).match(/result A/gu)).toHaveLength(1);
+      expect(getText(activity).match(/result B/gu)).toHaveLength(1);
+    } finally {
+      await mounted.dispose();
+    }
   });
 
   it("reuses reasoning and tool child renderers for history without executions", async () => {

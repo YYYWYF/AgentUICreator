@@ -1,6 +1,7 @@
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -29,6 +30,48 @@ afterEach(async () => {
 });
 
 describe("inspectUIProject", () => {
+  it("discovers the nested Tool Activity and Tool Item Slots", async () => {
+    const projectRoot = path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "..",
+    );
+
+    const result = await inspectUIProject(projectRoot);
+
+    expect(result.appUIModel.slots).toContainEqual(
+      expect.objectContaining({
+        slotId: "conversation.message.tool-activity",
+        owner: expect.objectContaining({
+          kind: "plugin",
+          instanceId: "agent-messages-main",
+          pluginId: "antd-x-message-list",
+        }),
+        mounts: [
+          expect.objectContaining({
+            instanceId: "agent-tool-activity-main",
+            pluginId: "antd-x-tool-activity",
+          }),
+        ],
+      }),
+    );
+    expect(result.appUIModel.slots).toContainEqual(
+      expect.objectContaining({
+        slotId: "conversation.message.tool-item",
+        owner: expect.objectContaining({
+          kind: "plugin",
+          instanceId: "agent-tool-activity-main",
+          pluginId: "antd-x-tool-activity",
+        }),
+        mounts: [
+          expect.objectContaining({
+            instanceId: "agent-tool-message-main",
+            pluginId: "antd-x-tool-message",
+          }),
+        ],
+      }),
+    );
+  });
+
   it("returns a compact, revision-bound project snapshot", async () => {
     const projectRoot = await mkdtemp(path.join(tmpdir(), "inspect-agent-ui-"));
     temporaryProjects.push(projectRoot);

@@ -1,0 +1,70 @@
+.antd-x-tool-activity-plugin {
+  min-width: 0;
+}
+
+.antd-x-tool-activity-plugin--flat,
+.antd-x-tool-activity-items {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.antd-x-tool-activity-plugin--grouped {
+  overflow: hidden;
+  border: 1px solid rgb(139 124 255 / 16%);
+  border-radius: 0.65rem;
+  background: rgb(139 124 255 / 7%);
+}
+
+.antd-x-tool-activity-plugin--error {
+  border-color: rgb(255 105 118 / 38%);
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-tool-activity-plugin--grouped {
+  border-color: rgb(99 86 204 / 12%);
+  background: rgb(99 86 204 / 5%);
+}
+
+.antd-x-tool-activity-collapse > .ant-collapse-item > .ant-collapse-header {
+  align-items: center;
+  padding: 0.55rem 0.65rem;
+}
+
+.antd-x-tool-activity-collapse .ant-collapse-content-box {
+  padding: 0 0.45rem 0.45rem;
+}
+
+.antd-x-tool-activity-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--ui-text-primary);
+}
+
+.antd-x-tool-activity-plugin--running .antd-x-tool-activity-summary {
+  color: #62d7ca;
+}
+
+.antd-x-tool-activity-plugin--error .antd-x-tool-activity-summary {
+  color: #ff8793;
+}
+
+.antd-x-tool-activity-item-fallback {
+  padding: 0.45rem 0.55rem;
+}
+
+.antd-x-tool-activity-item-fallback summary {
+  display: flex;
+  cursor: pointer;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.antd-x-tool-activity-item-fallback pre {
+  margin: 0.25rem 0 0;
+  overflow: auto;
+  color: var(--ui-text-secondary);
+  font: 0.68rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

@@ -1,0 +1,19 @@
+{
+  "id": "antd-x-tool-activity",
+  "name": "Ant Design X 工具活动",
+  "description": "将连续 Agent 工具调用按 grouped 或 flat 策略组织，并通过 child Slot 复用单工具渲染器。",
+  "version": "1.0.0",
+  "capabilities": [
+    "message-renderer",
+    "tool-activity-rendering",
+    "tool-group-rendering"
+  ],
+  "slots": {
+    "children": [
+      "conversation.message.tool-item"
+    ]
+  },
+  "data": {
+    "messages": true
+  }
+}

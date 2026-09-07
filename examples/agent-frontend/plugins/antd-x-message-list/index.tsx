@@ -17,7 +17,6 @@ import {
 import type {
   AgentExecution,
   AgentMessage,
-  AgentToolCall,
   UIPluginComponentProps,
 } from "../../framework/contracts/ui-plugin";
 import {
@@ -26,7 +25,12 @@ import {
   useAgentRun,
   usePluginInstance,
 } from "../../runtime/context";
-import { MessageRenderProvider } from "../../runtime/message-rendering";
+import {
+  MessageRenderProvider,
+  type ToolActivityStatus,
+  type ToolPresentation,
+  type ToolPresentationItem,
+} from "../../runtime/message-rendering";
 import {
   usePluginService,
   usePluginServiceSnapshot,
@@ -42,6 +46,10 @@ import {
   inspectToolCalls,
   type ToolCallInspection,
 } from "../_shared/agent-ui-data";
+import {
+  projectTurnToolActivities,
+  type AssistantTurnPresentationSegment,
+} from "./tool-presentation";
 
 import "./styles.css";
 
@@ -274,44 +282,40 @@ function SegmentLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function LegacyToolMessageRenderer({
-  result,
-  running,
-  toolCall,
+function LegacyToolActivityRenderer({
+  items,
 }: {
-  result: Extract<AgentMessage, { role: "tool" }> | undefined;
-  running: boolean;
-  toolCall: AgentToolCall;
+  items: readonly ToolPresentationItem[];
 }) {
   return (
-    <div
-      className={`antd-x-message-list-tool-result${
-        result?.error === undefined
-          ? ""
-          : " antd-x-message-list-tool-result--error"
-      }`}
-    >
-      <SegmentLabel>工具调用</SegmentLabel>
-      <div className="antd-x-message-list-tool-call">
-        <span aria-hidden="true">🔧</span>
-        <strong>{toolCall.function.name}</strong>
-        <span>{running ? "正在执行…" : result?.error === undefined ? "已完成" : "失败"}</span>
-      </div>
-      <div>{result?.error ?? result?.content ?? "工具没有返回结果"}</div>
+    <div className="antd-x-message-list-tool-result">
+      <SegmentLabel>工具活动</SegmentLabel>
+      {items.map((item) => (
+        <div className="antd-x-message-list-tool-call" key={item.toolCall.id}>
+          <span aria-hidden="true">🔧</span>
+          <strong>{item.toolCall.function.name}</strong>
+          <span>
+            {item.status === "loading"
+              ? "正在执行…"
+              : item.status === "success"
+                ? "已完成"
+                : item.status === "error"
+                  ? "失败"
+                  : "未完成"}
+          </span>
+          <span>
+            {item.result?.error ?? item.result?.content ?? "工具没有返回结果"}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
 
 function AssistantMessageSegment({
   message,
-  renderSlot,
-  toolInspectionById,
-  turnId,
 }: {
   message: AgentAssistantMessage;
-  renderSlot: UIPluginComponentProps["renderSlot"];
-  toolInspectionById: ReadonlyMap<string, ToolCallInspection>;
-  turnId: string;
 }) {
   const text = messageText(message);
   const sources = messageSources(message);
@@ -320,34 +324,6 @@ function AssistantMessageSegment({
   return (
     <>
       {hasContent ? messageContent(message) : null}
-      {message.toolCalls?.map((toolCall) => {
-        const inspection = toolInspectionById.get(toolCall.id);
-        const result = inspection?.result;
-        const execution = inspection?.execution;
-        const running = inspection?.status === "loading";
-        return (
-          <MessageRenderProvider
-            key={toolCall.id}
-            value={{
-              kind: "tool",
-              turnId,
-              toolCall,
-              result,
-              execution,
-              running,
-            }}
-          >
-            {renderSlot(
-              "conversation.message.tool",
-              <LegacyToolMessageRenderer
-                result={result}
-                running={running}
-                toolCall={toolCall}
-              />,
-            )}
-          </MessageRenderProvider>
-        );
-      })}
       {!hasContent && (message.toolCalls?.length ?? 0) === 0
         ? messageContent(message)
         : null}
@@ -429,38 +405,23 @@ function ContextMessageSegment({
 
 function TurnMessageSegment({
   message,
-  pairedToolCallIds,
   reasoningExecutionByMessageId,
   renderSlot,
-  toolInspectionById,
   turnId,
 }: {
   message: AgentMessage;
-  pairedToolCallIds: ReadonlySet<string>;
   reasoningExecutionByMessageId: ReadonlyMap<
     string,
     Extract<AgentExecution, { type: "reasoning" }>
   >;
   renderSlot: UIPluginComponentProps["renderSlot"];
-  toolInspectionById: ReadonlyMap<string, ToolCallInspection>;
   turnId: string;
 }) {
-  if (message.role === "tool" && pairedToolCallIds.has(message.toolCallId)) {
-    return null;
-  }
-
   let content: React.ReactNode;
 
   switch (message.role) {
     case "assistant":
-      content = (
-        <AssistantMessageSegment
-          message={message}
-          renderSlot={renderSlot}
-          toolInspectionById={toolInspectionById}
-          turnId={turnId}
-        />
-      );
+      content = <AssistantMessageSegment message={message} />;
       break;
     case "tool":
       content = <GenericToolResultSegment message={message} />;
@@ -510,15 +471,109 @@ function TurnMessageSegment({
   );
 }
 
+function deriveToolActivityStatus(
+  items: readonly ToolPresentationItem[],
+): {
+  status: ToolActivityStatus;
+  activeToolCallIds: readonly string[];
+} {
+  const activeToolCallIds = items.flatMap((item) =>
+    item.status === "loading" ? [item.toolCall.id] : [],
+  );
+  if (activeToolCallIds.length > 0) {
+    return { status: "running", activeToolCallIds };
+  }
+  if (items.some((item) => item.status === "error")) {
+    return { status: "error", activeToolCallIds };
+  }
+  if (items.some((item) => item.status === "abort")) {
+    return { status: "interrupted", activeToolCallIds };
+  }
+  return { status: "completed", activeToolCallIds };
+}
+
+function ToolActivitySegment({
+  items,
+  presentation,
+  renderSlot,
+  turnId,
+}: {
+  items: readonly ToolPresentationItem[];
+  presentation: ToolPresentation;
+  renderSlot: UIPluginComponentProps["renderSlot"];
+  turnId: string;
+}) {
+  const { activeToolCallIds, status } = deriveToolActivityStatus(items);
+  return (
+    <MessageRenderProvider
+      value={{
+        kind: "tool-activity",
+        turnId,
+        presentation,
+        items,
+        status,
+        activeToolCallIds,
+      }}
+    >
+      {renderSlot(
+        "conversation.message.tool-activity",
+        <LegacyToolActivityRenderer items={items} />,
+      )}
+    </MessageRenderProvider>
+  );
+}
+
+function TurnPresentationSegment({
+  presentation,
+  reasoningExecutionByMessageId,
+  renderSlot,
+  segment,
+  turnId,
+}: {
+  presentation: ToolPresentation;
+  reasoningExecutionByMessageId: ReadonlyMap<
+    string,
+    Extract<AgentExecution, { type: "reasoning" }>
+  >;
+  renderSlot: UIPluginComponentProps["renderSlot"];
+  segment: AssistantTurnPresentationSegment;
+  turnId: string;
+}) {
+  if (segment.kind === "tool-activity") {
+    return (
+      <div
+        className="antd-x-message-list-turn-segment antd-x-message-list-segment--tool-activity"
+        data-tool-activity-id={segment.id}
+      >
+        <ToolActivitySegment
+          items={segment.items}
+          presentation={presentation}
+          renderSlot={renderSlot}
+          turnId={turnId}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <TurnMessageSegment
+      message={segment.message}
+      reasoningExecutionByMessageId={reasoningExecutionByMessageId}
+      renderSlot={renderSlot}
+      turnId={turnId}
+    />
+  );
+}
+
 function AssistantTurnContent({
-  pairedToolCallIds,
+  presentation,
   reasoningExecutionByMessageId,
   renderSlot,
   toolInspectionById,
   turn,
   running,
 }: {
-  pairedToolCallIds: ReadonlySet<string>;
+  presentation: ToolPresentation;
   reasoningExecutionByMessageId: ReadonlyMap<
     string,
     Extract<AgentExecution, { type: "reasoning" }>
@@ -528,16 +583,19 @@ function AssistantTurnContent({
   turn: AgentTurn;
   running: boolean;
 }) {
+  const segments = projectTurnToolActivities(
+    turn.responseMessages,
+    toolInspectionById,
+  );
   return (
     <div className="antd-x-message-list-turn-content">
-      {turn.responseMessages.map((message) => (
-        <TurnMessageSegment
-          key={message.id}
-          message={message}
-          pairedToolCallIds={pairedToolCallIds}
+      {segments.map((segment) => (
+        <TurnPresentationSegment
+          key={segment.id}
+          presentation={presentation}
           reasoningExecutionByMessageId={reasoningExecutionByMessageId}
           renderSlot={renderSlot}
-          toolInspectionById={toolInspectionById}
+          segment={segment}
           turnId={turn.id}
         />
       ))}
@@ -547,14 +605,14 @@ function AssistantTurnContent({
 }
 
 function toTurnBubbleItems({
-  pairedToolCallIds,
+  presentation,
   reasoningExecutionByMessageId,
   renderSlot,
   toolInspectionById,
   turn,
   running,
 }: {
-  pairedToolCallIds: ReadonlySet<string>;
+  presentation: ToolPresentation;
   reasoningExecutionByMessageId: ReadonlyMap<
     string,
     Extract<AgentExecution, { type: "reasoning" }>
@@ -586,7 +644,7 @@ function toTurnBubbleItems({
     role: "ai",
     content: (
       <AssistantTurnContent
-        pairedToolCallIds={pairedToolCallIds}
+        presentation={presentation}
         reasoningExecutionByMessageId={reasoningExecutionByMessageId}
         renderSlot={renderSlot}
         running={running}
@@ -668,7 +726,8 @@ export function AntdXMessageListPlugin({
       inspection,
     ]),
   );
-  const pairedToolCallIds = new Set(toolInspectionById.keys());
+  const toolPresentation: ToolPresentation =
+    instance.props?.toolPresentation === "flat" ? "flat" : "grouped";
   const reasoningExecutionByMessageId = new Map<
     string,
     Extract<AgentExecution, { type: "reasoning" }>
@@ -697,7 +756,7 @@ export function AntdXMessageListPlugin({
   turns.forEach((turn, index) => {
     items.push(
       ...toTurnBubbleItems({
-        pairedToolCallIds,
+        presentation: toolPresentation,
         reasoningExecutionByMessageId,
         renderSlot,
         turn,
