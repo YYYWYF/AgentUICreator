@@ -174,24 +174,24 @@ function equalProjectedMessage(
       ) {
         return false;
       }
-      if (
-        typeof leftContent === "string"
-        || rightContent === undefined
-      ) {
-        return leftContent === rightContent;
-      }
-      if (leftContent.length !== rightContent.length) return false;
-      if (!leftContent.every((part, index) => {
-        const nextPart = rightContent[index];
-        return nextPart !== undefined
-          && equalAgentMessagePart(part, nextPart);
-      })) return false;
+      const contentEqual = leftContent === rightContent || (
+        typeof leftContent !== "string"
+        && rightContent !== undefined
+        && leftContent !== undefined
+        && leftContent.length === rightContent.length
+        && leftContent.every((part, index) => {
+          const nextPart = rightContent[index];
+          return nextPart !== undefined
+            && equalAgentMessagePart(part, nextPart);
+        })
+      );
+      if (!contentEqual) return false;
       if (
         (left.toolCalls === undefined) !== (right.toolCalls === undefined)
       ) return false;
       const leftToolCalls = left.toolCalls ?? [];
       const rightToolCalls = right.toolCalls ?? [];
-      return leftToolCalls.length === rightToolCalls.length
+      const toolCallsEqual = leftToolCalls.length === rightToolCalls.length
         && leftToolCalls.every((leftCall, index) => {
           const rightCall = rightToolCalls[index];
           return rightCall !== undefined
@@ -200,6 +200,7 @@ function equalProjectedMessage(
             && leftCall.function.name === rightCall.function.name
             && leftCall.function.arguments === rightCall.function.arguments;
         });
+      return contentEqual && toolCallsEqual;
     }
     case "system":
     case "developer":
@@ -302,8 +303,8 @@ export class LifecycleProjector {
       if (message.role !== "tool") continue;
       const execution = this.findExecution("tool", message.toolCallId);
       if (execution === undefined) continue;
-      this.updateExecution("tool", execution.id, (current) => ({
-        ...(equalProjectedToolExecution(current, message)
+      this.updateExecution("tool", execution.id, (current) =>
+        equalProjectedToolExecution(current, message)
           ? current
           : {
               ...current,
@@ -313,8 +314,7 @@ export class LifecycleProjector {
               ...(message.error === undefined
                 ? { error: undefined }
                 : { error: { message: message.error } }),
-            }),
-      }));
+            });
     }
 
     return stable;

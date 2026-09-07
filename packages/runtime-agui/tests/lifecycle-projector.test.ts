@@ -859,6 +859,116 @@ describe("LifecycleProjector", () => {
     expect(next[1]).toBe(previous[1]);
   });
 
+  it("changes assistant identity when toolCalls change but content does not", () => {
+    const projector = new LifecycleProjector();
+    const unchangedUndefinedContent = projector.projectMessages([
+      {
+        id: "assistant-a",
+        role: "assistant",
+        toolCalls: [
+          {
+            id: "call-a",
+            type: "function",
+            function: { name: "search", arguments: "{\"q\":" },
+          },
+        ],
+      },
+    ]);
+    const changedUndefinedContent = projector.projectMessages([
+      {
+        id: "assistant-a",
+        role: "assistant",
+        toolCalls: [
+          {
+            id: "call-a",
+            type: "function",
+            function: { name: "search", arguments: "{\"q\":\"abc\"}" },
+          },
+        ],
+      },
+    ]);
+    expect(changedUndefinedContent).not.toBe(unchangedUndefinedContent);
+    expect(changedUndefinedContent[0]).not.toBe(unchangedUndefinedContent[0]);
+
+    const baseStringContent = projector.projectMessages([
+      {
+        id: "assistant-b",
+        role: "assistant",
+        content: "Search",
+        toolCalls: [
+          {
+            id: "call-b",
+            type: "function",
+            function: { name: "search", arguments: "{\"q\":" },
+          },
+        ],
+      },
+    ]);
+    const changedStringArguments = projector.projectMessages([
+      {
+        id: "assistant-b",
+        role: "assistant",
+        content: "Search",
+        toolCalls: [
+          {
+            id: "call-b",
+            type: "function",
+            function: { name: "search", arguments: "{\"q\":\"abc\"}" },
+          },
+        ],
+      },
+    ]);
+    expect(changedStringArguments).not.toBe(baseStringContent);
+    expect(changedStringArguments[0]).not.toBe(baseStringContent[0]);
+
+    const repeatedNoChange = projector.projectMessages([
+      {
+        id: "assistant-b",
+        role: "assistant",
+        content: "Search",
+        toolCalls: [
+          {
+            id: "call-b",
+            type: "function",
+            function: { name: "search", arguments: "{\"q\":\"abc\"}" },
+          },
+        ],
+      },
+    ]);
+    expect(repeatedNoChange).toBe(changedStringArguments);
+    expect(repeatedNoChange[0]).toBe(changedStringArguments[0]);
+
+    const addedToolCall = projector.projectMessages([
+      {
+        id: "assistant-b",
+        role: "assistant",
+        content: "Search",
+        toolCalls: [
+          {
+            id: "call-b",
+            type: "function",
+            function: { name: "search", arguments: "{\"q\":\"abc\"}" },
+          },
+          {
+            id: "call-c",
+            type: "function",
+            function: { name: "render", arguments: "{\"format\":\"mermaid\"}" },
+          },
+        ],
+      },
+    ]);
+    expect(addedToolCall[0]).not.toBe(changedStringArguments[0]);
+
+    const removedToolCall = projector.projectMessages([
+      {
+        id: "assistant-b",
+        role: "assistant",
+        content: "Search",
+      },
+    ]);
+    expect(removedToolCall[0]).not.toBe(addedToolCall[0]);
+  });
+
   it("updates message identity for reasoning streaming state transitions", () => {
     const projector = new LifecycleProjector();
     const before = projector.projectMessages([{
