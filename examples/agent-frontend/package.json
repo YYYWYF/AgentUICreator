@@ -30,6 +30,7 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@agent-ui/mock-agent": "workspace:^",
     "@types/node": "^20.19.43",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",

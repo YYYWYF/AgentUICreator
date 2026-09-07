@@ -2,7 +2,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import react from "@vitejs/plugin-react";
+import {
+  createMockAgentVitePlugin,
+  reasoningToolSuccessScenario,
+} from "../../packages/mock-agent/src/index";
 import { defineConfig, loadEnv } from "vite";
+
+import { previewAgentState } from "./src/preview-data";
 
 const workspaceRoot = fileURLToPath(new URL("../..", import.meta.url));
 
@@ -16,7 +22,16 @@ export default defineConfig(async ({ command, mode }) => {
   }
 
   return {
-    plugins: [react()],
+    plugins: [
+      react(),
+      createMockAgentVitePlugin({
+        endpoint: "/__agent-ui/mock",
+        scenario: {
+          ...reasoningToolSuccessScenario,
+          initialState: previewAgentState,
+        },
+      }),
+    ],
     resolve: {
       alias: {
         "@agent-ui/runtime-agui": path.join(

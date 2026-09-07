@@ -9,7 +9,6 @@ import { XProvider } from "@ant-design/x";
 import { theme as antdTheme } from "antd";
 import { createAgUiTransport } from "@agent-ui/runtime-agui";
 import { createAgentRuntime } from "@agent-ui/runtime-core";
-import { MockAgentTransport } from "@agent-ui/runtime-core/testing";
 
 import appUIJsonSource from "../app-ui/app-ui.json?raw";
 import type { AppAgentState } from "../agent-contract/agent-state";
@@ -44,11 +43,6 @@ import {
   type RuntimeCompositionReporter,
   type RuntimeDiagnosticReporter,
 } from "../runtime/diagnostics";
-import {
-  initialPreviewMessages,
-  previewAgentState,
-} from "./preview-data";
-
 import "./styles.css";
 
 const initialAppUIModel = parseAppUIModelJson(appUIJsonSource);
@@ -58,17 +52,12 @@ const appFrontendToolRegistry = new AppFrontendToolRegistry(appFrontendTools);
 const appFrontendToolRuntime = new AppFrontendToolRuntime(
   appFrontendToolRegistry,
 );
-const endpoint = import.meta.env.VITE_AGENT_ENDPOINT?.trim();
-const agentTransport =
-  import.meta.env.DEV && !endpoint
-    ? new MockAgentTransport<AppAgentState>({
-        initialMessages: initialPreviewMessages,
-        initialState: previewAgentState,
-      })
-    : createAgUiTransport<AppAgentState>({
-        endpoint,
-        frontendTools: appFrontendToolRuntime,
-      });
+const endpoint = import.meta.env.VITE_AGENT_ENDPOINT?.trim()
+  || (import.meta.env.DEV ? "/__agent-ui/mock" : undefined);
+const agentTransport = createAgUiTransport<AppAgentState>({
+  endpoint,
+  frontendTools: appFrontendToolRuntime,
+});
 const agentRuntime = createAgentRuntime<AppAgentState>({
   transport: agentTransport,
 });

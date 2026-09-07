@@ -17,6 +17,7 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "paths": {
+      "@agent-ui/mock-agent": ["../../packages/mock-agent/src/index.ts"],
       "@agent-ui/runtime-agui": ["../../packages/runtime-agui/src/index.ts"],
       "@agent-ui/runtime-core": ["../../packages/runtime-core/src/index.ts"],
       "@agent-ui/runtime-core/testing": [
