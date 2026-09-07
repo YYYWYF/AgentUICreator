@@ -2,13 +2,13 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { EventSchemas, RunAgentInputSchema } from "@ag-ui/core";
 
-import type { MockScenario } from "./scenario.js";
+import type { MockScenarioRegistry } from "./scenario-registry.js";
 import { runMockScenario } from "./scenario-runner.js";
 
 const MAX_REQUEST_BYTES = 1024 * 1024;
 
 export interface MockAgentHttpHandlerOptions {
-  scenario: MockScenario;
+  registry: MockScenarioRegistry;
 }
 
 export type MockAgentHttpHandler = (
@@ -46,14 +46,61 @@ function sendJsonError(
   response.end(JSON.stringify({ error: message }));
 }
 
+function sendJson(
+  response: ServerResponse,
+  statusCode: number,
+  value: unknown,
+): void {
+  response.statusCode = statusCode;
+  response.setHeader("Content-Type", "application/json; charset=utf-8");
+  response.end(JSON.stringify(value));
+}
+
+function parseRequestUrl(request: IncomingMessage): URL {
+  return new URL(request.url ?? "/", "http://mock-agent.local");
+}
+
+function isScenarioListRequest(url: URL): boolean {
+  return url.pathname.endsWith("/scenarios");
+}
+
 /** Creates a Node HTTP handler compatible with @ag-ui/client HttpAgent. */
 export function createMockAgentHttpHandler({
-  scenario,
+  registry,
 }: MockAgentHttpHandlerOptions): MockAgentHttpHandler {
   return async (request, response) => {
+    const requestUrl = parseRequestUrl(request);
+
+    if (isScenarioListRequest(requestUrl)) {
+      if (request.method !== "GET") {
+        response.setHeader("Allow", "GET");
+        sendJsonError(
+          response,
+          405,
+          "Mock Agent scenario list endpoint only accepts GET.",
+        );
+        return;
+      }
+
+      sendJson(response, 200, {
+        defaultScenarioId: registry.defaultScenarioId,
+        scenarios: registry.list(),
+      });
+      return;
+    }
+
     if (request.method !== "POST") {
       response.setHeader("Allow", "POST");
       sendJsonError(response, 405, "Mock Agent endpoint only accepts POST.");
+      return;
+    }
+
+    const scenarioId = requestUrl.searchParams.get("scenario");
+    const scenario = scenarioId === null
+      ? registry.getDefault()
+      : registry.get(scenarioId);
+    if (scenario === undefined) {
+      sendJsonError(response, 404, `Unknown mock scenario: ${scenarioId}`);
       return;
     }
 

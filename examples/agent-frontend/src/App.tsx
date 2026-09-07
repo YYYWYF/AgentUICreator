@@ -43,6 +43,7 @@ import {
   type RuntimeCompositionReporter,
   type RuntimeDiagnosticReporter,
 } from "../runtime/diagnostics";
+import { resolveAgentEndpoint } from "./agent-endpoint";
 import "./styles.css";
 
 const initialAppUIModel = parseAppUIModelJson(appUIJsonSource);
@@ -52,8 +53,11 @@ const appFrontendToolRegistry = new AppFrontendToolRegistry(appFrontendTools);
 const appFrontendToolRuntime = new AppFrontendToolRuntime(
   appFrontendToolRegistry,
 );
-const endpoint = import.meta.env.VITE_AGENT_ENDPOINT?.trim()
-  || (import.meta.env.DEV ? "/__agent-ui/mock" : undefined);
+const endpoint = resolveAgentEndpoint({
+  configuredEndpoint: import.meta.env.VITE_AGENT_ENDPOINT,
+  isDev: import.meta.env.DEV,
+  search: window.location.search,
+});
 const agentTransport = createAgUiTransport<AppAgentState>({
   endpoint,
   frontendTools: appFrontendToolRuntime,

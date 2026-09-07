@@ -4,6 +4,12 @@ export {
   type MockScenarioStep,
 } from "./scenario.js";
 export {
+  createScenarioRegistry,
+  type CreateScenarioRegistryOptions,
+  type MockScenarioRegistry,
+  type MockScenarioSummary,
+} from "./scenario-registry.js";
+export {
   runMockScenario,
   type MockScenarioRunnerOptions,
 } from "./scenario-runner.js";
@@ -16,4 +22,10 @@ export {
   createMockAgentVitePlugin,
   type MockAgentVitePluginOptions,
 } from "./vite-plugin.js";
-export { reasoningToolSuccessScenario } from "./builtins/reasoning-tool-success.js";
+export {
+  builtinMockScenarios,
+  multiToolScenario,
+  reasoningChatScenario,
+  reasoningToolSuccessScenario,
+  simpleChatScenario,
+} from "./builtins/index.js";

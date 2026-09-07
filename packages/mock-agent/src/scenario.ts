@@ -1,5 +1,7 @@
 export interface MockScenario {
   id: string;
+  title: string;
+  description?: string | undefined;
   initialState?: Record<string, unknown> | undefined;
   steps: MockScenarioStep[];
 }

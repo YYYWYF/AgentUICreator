@@ -18,6 +18,7 @@ describe("runMockScenario", () => {
   it("converts scenario steps into ordered standard AG-UI lifecycles", async () => {
     const scenario = defineScenario({
       id: "runner-test",
+      title: "Runner Test",
       initialState: { selectedFile: "src/App.tsx" },
       steps: [
         { type: "reasoning", text: "分析", durationMs: 0 },

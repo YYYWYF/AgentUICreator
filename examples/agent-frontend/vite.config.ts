@@ -3,8 +3,8 @@ import { fileURLToPath } from "node:url";
 
 import react from "@vitejs/plugin-react";
 import {
+  builtinMockScenarios,
   createMockAgentVitePlugin,
-  reasoningToolSuccessScenario,
 } from "../../packages/mock-agent/src/index";
 import { defineConfig, loadEnv } from "vite";
 
@@ -26,10 +26,11 @@ export default defineConfig(async ({ command, mode }) => {
       react(),
       createMockAgentVitePlugin({
         endpoint: "/__agent-ui/mock",
-        scenario: {
-          ...reasoningToolSuccessScenario,
+        scenarios: builtinMockScenarios.map((scenario) => ({
+          ...scenario,
           initialState: previewAgentState,
-        },
+        })),
+        defaultScenarioId: "reasoning-tool-success",
       }),
     ],
     resolve: {
