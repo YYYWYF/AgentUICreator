@@ -15,6 +15,7 @@ export type MockScenarioStep =
       name: string;
       args: unknown;
       result: unknown;
+      prepareDurationMs?: number | undefined;
       durationMs?: number | undefined;
     }
   | {

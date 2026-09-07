@@ -43,6 +43,7 @@ function integrationScenario(): MockScenario {
         name: "search_files",
         args: { keyword: "AG-UI" },
         result: { files: ["AgUiTransport.ts"] },
+        prepareDurationMs: 4,
         durationMs: 8,
       },
       { type: "message", text: "完成", intervalMs: 2 },
@@ -108,9 +109,13 @@ describe("Mock Agent HTTP endpoint", () => {
     expect(runtime.getSnapshot().run.status).toBe("idle");
     expect(statusesFor("reasoning")).toContain("running");
     expect(statusesFor("reasoning")).toContain("completed");
-    expect(statusesFor("tool")).toContain("preparing");
-    expect(statusesFor("tool")).toContain("awaiting-result");
-    expect(statusesFor("tool")).toContain("completed");
+    const toolStatuses = statusesFor("tool");
+    expect(toolStatuses).toContain("preparing");
+    expect(toolStatuses).toContain("awaiting-result");
+    expect(toolStatuses).toContain("completed");
+    expect(toolStatuses.indexOf("preparing")).toBeLessThan(
+      toolStatuses.indexOf("awaiting-result"),
+    );
     expect(snapshots.some(({ messages }) => messages.some((message) =>
       message.role === "assistant" && message.streamStatus === "streaming"
     ))).toBe(true);

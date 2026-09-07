@@ -26,6 +26,7 @@ describe("runMockScenario", () => {
           name: "search_files",
           args: { keyword: "AG-UI" },
           result: { files: ["AgUiTransport.ts"] },
+          prepareDurationMs: 0,
           durationMs: 0,
         },
         { type: "message", text: "完成", intervalMs: 0 },

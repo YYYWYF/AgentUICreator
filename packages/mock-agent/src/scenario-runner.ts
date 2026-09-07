@@ -9,6 +9,7 @@ import {
 import type { MockScenario } from "./scenario.js";
 
 const DEFAULT_REASONING_DURATION_MS = 600;
+const DEFAULT_TOOL_PREPARE_DURATION_MS = 400;
 const DEFAULT_TOOL_DURATION_MS = 800;
 const DEFAULT_MESSAGE_INTERVAL_MS = 30;
 
@@ -132,6 +133,13 @@ export async function* runMockScenario(
         toolCallId,
         delta: serializeToolValue(step.args),
       };
+      if (!await waitForDelay(
+        normalizeDelay(
+          step.prepareDurationMs,
+          DEFAULT_TOOL_PREPARE_DURATION_MS,
+        ),
+        signal,
+      )) return;
       yield { type: EventType.TOOL_CALL_END, toolCallId };
       if (!await waitForDelay(
         normalizeDelay(step.durationMs, DEFAULT_TOOL_DURATION_MS),

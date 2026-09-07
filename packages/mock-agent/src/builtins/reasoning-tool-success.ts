@@ -18,6 +18,7 @@ export const reasoningToolSuccessScenario = defineScenario({
           "packages/runtime-agui/src/lifecycle-projector.ts",
         ],
       },
+      prepareDurationMs: 600,
       durationMs: 1800,
     },
     {
