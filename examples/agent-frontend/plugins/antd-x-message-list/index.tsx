@@ -15,14 +15,18 @@ import {
 } from "@agent-ui/runtime-core";
 
 import type {
+  AgentExecution,
   AgentMessage,
+  AgentToolCall,
   UIPluginComponentProps,
 } from "../../framework/contracts/ui-plugin";
 import {
+  useAgentExecutions,
   useAgentMessages,
   useAgentRun,
   usePluginInstance,
 } from "../../runtime/context";
+import { MessageRenderProvider } from "../../runtime/message-rendering";
 import {
   usePluginService,
   usePluginServiceSnapshot,
@@ -34,6 +38,10 @@ import {
   isChatVisibleMessage,
   type AgentUIConversationService,
 } from "../../services/conversations";
+import {
+  inspectToolCalls,
+  type ToolCallInspection,
+} from "../_shared/agent-ui-data";
 
 import "./styles.css";
 
@@ -266,10 +274,44 @@ function SegmentLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+function LegacyToolMessageRenderer({
+  result,
+  running,
+  toolCall,
+}: {
+  result: Extract<AgentMessage, { role: "tool" }> | undefined;
+  running: boolean;
+  toolCall: AgentToolCall;
+}) {
+  return (
+    <div
+      className={`antd-x-message-list-tool-result${
+        result?.error === undefined
+          ? ""
+          : " antd-x-message-list-tool-result--error"
+      }`}
+    >
+      <SegmentLabel>工具调用</SegmentLabel>
+      <div className="antd-x-message-list-tool-call">
+        <span aria-hidden="true">🔧</span>
+        <strong>{toolCall.function.name}</strong>
+        <span>{running ? "正在执行…" : result?.error === undefined ? "已完成" : "失败"}</span>
+      </div>
+      <div>{result?.error ?? result?.content ?? "工具没有返回结果"}</div>
+    </div>
+  );
+}
+
 function AssistantMessageSegment({
   message,
+  renderSlot,
+  toolInspectionById,
+  turnId,
 }: {
   message: AgentAssistantMessage;
+  renderSlot: UIPluginComponentProps["renderSlot"];
+  toolInspectionById: ReadonlyMap<string, ToolCallInspection>;
+  turnId: string;
 }) {
   const text = messageText(message);
   const sources = messageSources(message);
@@ -278,17 +320,34 @@ function AssistantMessageSegment({
   return (
     <>
       {hasContent ? messageContent(message) : null}
-      {(message.toolCalls?.length ?? 0) === 0 ? null : (
-        <div className="antd-x-message-list-tool-call-segment">
-          <SegmentLabel>工具调用</SegmentLabel>
-          {message.toolCalls?.map((call) => (
-            <div className="antd-x-message-list-tool-call" key={call.id}>
-              <span aria-hidden="true">🔧</span>
-              <strong>{call.function.name}</strong>
-            </div>
-          ))}
-        </div>
-      )}
+      {message.toolCalls?.map((toolCall) => {
+        const inspection = toolInspectionById.get(toolCall.id);
+        const result = inspection?.result;
+        const execution = inspection?.execution;
+        const running = inspection?.status === "loading";
+        return (
+          <MessageRenderProvider
+            key={toolCall.id}
+            value={{
+              kind: "tool",
+              turnId,
+              toolCall,
+              result,
+              execution,
+              running,
+            }}
+          >
+            {renderSlot(
+              "conversation.message.tool",
+              <LegacyToolMessageRenderer
+                result={result}
+                running={running}
+                toolCall={toolCall}
+              />,
+            )}
+          </MessageRenderProvider>
+        );
+      })}
       {!hasContent && (message.toolCalls?.length ?? 0) === 0
         ? messageContent(message)
         : null}
@@ -296,7 +355,7 @@ function AssistantMessageSegment({
   );
 }
 
-function ToolMessageSegment({
+function GenericToolResultSegment({
   message,
 }: {
   message: Extract<AgentMessage, { role: "tool" }>;
@@ -317,7 +376,7 @@ function ToolMessageSegment({
   );
 }
 
-function ReasoningMessageSegment({
+function LegacyReasoningMessageRenderer({
   message,
 }: {
   message: Extract<AgentMessage, { role: "reasoning" }>;
@@ -368,19 +427,65 @@ function ContextMessageSegment({
   );
 }
 
-function TurnMessageSegment({ message }: { message: AgentMessage }) {
+function TurnMessageSegment({
+  message,
+  pairedToolCallIds,
+  reasoningExecutionByMessageId,
+  renderSlot,
+  toolInspectionById,
+  turnId,
+}: {
+  message: AgentMessage;
+  pairedToolCallIds: ReadonlySet<string>;
+  reasoningExecutionByMessageId: ReadonlyMap<
+    string,
+    Extract<AgentExecution, { type: "reasoning" }>
+  >;
+  renderSlot: UIPluginComponentProps["renderSlot"];
+  toolInspectionById: ReadonlyMap<string, ToolCallInspection>;
+  turnId: string;
+}) {
+  if (message.role === "tool" && pairedToolCallIds.has(message.toolCallId)) {
+    return null;
+  }
+
   let content: React.ReactNode;
 
   switch (message.role) {
     case "assistant":
-      content = <AssistantMessageSegment message={message} />;
+      content = (
+        <AssistantMessageSegment
+          message={message}
+          renderSlot={renderSlot}
+          toolInspectionById={toolInspectionById}
+          turnId={turnId}
+        />
+      );
       break;
     case "tool":
-      content = <ToolMessageSegment message={message} />;
+      content = <GenericToolResultSegment message={message} />;
       break;
-    case "reasoning":
-      content = <ReasoningMessageSegment message={message} />;
+    case "reasoning": {
+      const execution = reasoningExecutionByMessageId.get(message.id);
+      const running = execution?.status === "running";
+      content = (
+        <MessageRenderProvider
+          value={{
+            kind: "reasoning",
+            turnId,
+            message,
+            execution,
+            running,
+          }}
+        >
+          {renderSlot(
+            "conversation.message.reasoning",
+            <LegacyReasoningMessageRenderer message={message} />,
+          )}
+        </MessageRenderProvider>
+      );
       break;
+    }
     case "activity":
       content = <ActivityMessageSegment message={message} />;
       break;
@@ -406,16 +511,35 @@ function TurnMessageSegment({ message }: { message: AgentMessage }) {
 }
 
 function AssistantTurnContent({
+  pairedToolCallIds,
+  reasoningExecutionByMessageId,
+  renderSlot,
+  toolInspectionById,
   turn,
   running,
 }: {
+  pairedToolCallIds: ReadonlySet<string>;
+  reasoningExecutionByMessageId: ReadonlyMap<
+    string,
+    Extract<AgentExecution, { type: "reasoning" }>
+  >;
+  renderSlot: UIPluginComponentProps["renderSlot"];
+  toolInspectionById: ReadonlyMap<string, ToolCallInspection>;
   turn: AgentTurn;
   running: boolean;
 }) {
   return (
     <div className="antd-x-message-list-turn-content">
       {turn.responseMessages.map((message) => (
-        <TurnMessageSegment key={message.id} message={message} />
+        <TurnMessageSegment
+          key={message.id}
+          message={message}
+          pairedToolCallIds={pairedToolCallIds}
+          reasoningExecutionByMessageId={reasoningExecutionByMessageId}
+          renderSlot={renderSlot}
+          toolInspectionById={toolInspectionById}
+          turnId={turn.id}
+        />
       ))}
       {running ? <AssistantTurnLoading /> : null}
     </div>
@@ -423,9 +547,20 @@ function AssistantTurnContent({
 }
 
 function toTurnBubbleItems({
+  pairedToolCallIds,
+  reasoningExecutionByMessageId,
+  renderSlot,
+  toolInspectionById,
   turn,
   running,
 }: {
+  pairedToolCallIds: ReadonlySet<string>;
+  reasoningExecutionByMessageId: ReadonlyMap<
+    string,
+    Extract<AgentExecution, { type: "reasoning" }>
+  >;
+  renderSlot: UIPluginComponentProps["renderSlot"];
+  toolInspectionById: ReadonlyMap<string, ToolCallInspection>;
   turn: AgentTurn;
   running: boolean;
 }): BubbleItemType[] {
@@ -449,7 +584,16 @@ function toTurnBubbleItems({
   const assistantBubble: BubbleItemType = {
     key: `assistant-turn:${turn.id}`,
     role: "ai",
-    content: <AssistantTurnContent running={running} turn={turn} />,
+    content: (
+      <AssistantTurnContent
+        pairedToolCallIds={pairedToolCallIds}
+        reasoningExecutionByMessageId={reasoningExecutionByMessageId}
+        renderSlot={renderSlot}
+        running={running}
+        toolInspectionById={toolInspectionById}
+        turn={turn}
+      />
+    ),
     header: (
       <span className="antd-x-message-list-role">
         <span className="antd-x-message-list-role-dot" />
@@ -499,8 +643,11 @@ const bubbleRoles: NonNullable<BubbleListProps["role"]> = {
   },
 };
 
-export function AntdXMessageListPlugin(_props: UIPluginComponentProps) {
+export function AntdXMessageListPlugin({
+  renderSlot,
+}: UIPluginComponentProps) {
   const messages = useAgentMessages();
+  const executions = useAgentExecutions();
   const run = useAgentRun();
   const instance = usePluginInstance();
   const conversation = usePluginService<AgentUIConversationService>(
@@ -515,6 +662,23 @@ export function AntdXMessageListPlugin(_props: UIPluginComponentProps) {
     conversationSnapshot,
   );
   const { leadingMessages, turns } = projectAgentTurns(conversationMessages);
+  const toolInspectionById = new Map(
+    inspectToolCalls(conversationMessages, executions).map((inspection) => [
+      inspection.id,
+      inspection,
+    ]),
+  );
+  const pairedToolCallIds = new Set(toolInspectionById.keys());
+  const reasoningExecutionByMessageId = new Map<
+    string,
+    Extract<AgentExecution, { type: "reasoning" }>
+  >();
+  executions.forEach((execution) => {
+    if (execution.type !== "reasoning") return;
+    execution.messageIds.forEach((messageId) => {
+      reasoningExecutionByMessageId.set(messageId, execution);
+    });
+  });
   const items = leadingMessages
     .filter(isChatVisibleMessage)
     .filter(
@@ -533,7 +697,11 @@ export function AntdXMessageListPlugin(_props: UIPluginComponentProps) {
   turns.forEach((turn, index) => {
     items.push(
       ...toTurnBubbleItems({
+        pairedToolCallIds,
+        reasoningExecutionByMessageId,
+        renderSlot,
         turn,
+        toolInspectionById,
         running:
           conversationSnapshot.mode === "live" &&
           run.status === "running" &&

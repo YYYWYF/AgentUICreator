@@ -145,6 +145,18 @@ export function createProjectSnapshot(
   const slots = limited(
     inspection.appUIModel.slots.map((slot) => ({
       slotId: safeText(slot.slotId),
+      owner:
+        slot.owner.kind === "layout"
+          ? {
+              kind: "layout",
+              nodeId: safeText(slot.owner.nodeId),
+              nodePath: safeText(slot.owner.nodePath),
+            }
+          : {
+              kind: "plugin",
+              instanceId: safeText(slot.owner.instanceId),
+              pluginId: safeText(slot.owner.pluginId),
+            },
       nodeId: safeText(slot.nodeId),
       nodePath: safeText(slot.nodePath),
       mounts: slot.mounts

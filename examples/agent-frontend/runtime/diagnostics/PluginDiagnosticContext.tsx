@@ -87,7 +87,7 @@ export function PluginDiagnosticProvider({
   const mountedInstances = useRef(
     new Map<
       string,
-      { instance: RuntimeCompositionInstance; registration: symbol }
+      Map<symbol, RuntimeCompositionInstance>
     >(),
   );
   const snapshotScheduled = useRef(false);
@@ -129,7 +129,10 @@ export function PluginDiagnosticProvider({
       const reporter = currentCompositionReporter.current;
       if (reporter === undefined) return;
       const instances = [...mountedInstances.current.values()]
-        .map(({ instance }) => instance)
+        .flatMap((occurrences) => {
+          const instance = occurrences.values().next().value;
+          return instance === undefined ? [] : [instance];
+        })
         .sort(
           (left, right) =>
             left.slotId.localeCompare(right.slotId) ||
@@ -151,15 +154,18 @@ export function PluginDiagnosticProvider({
   const registerMountedInstance = useCallback(
     (instance: RuntimeCompositionInstance) => {
       const registration = Symbol(instance.instanceId);
-      mountedInstances.current.set(instance.instanceId, {
-        instance,
-        registration,
-      });
+      const occurrences =
+        mountedInstances.current.get(instance.instanceId) ??
+        new Map<symbol, RuntimeCompositionInstance>();
+      occurrences.set(registration, instance);
+      mountedInstances.current.set(instance.instanceId, occurrences);
       scheduleCompositionSnapshot();
       return () => {
         const current = mountedInstances.current.get(instance.instanceId);
-        if (current?.registration === registration) {
-          mountedInstances.current.delete(instance.instanceId);
+        if (current?.delete(registration)) {
+          if (current.size === 0) {
+            mountedInstances.current.delete(instance.instanceId);
+          }
           scheduleCompositionSnapshot();
         }
       };

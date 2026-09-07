@@ -50,6 +50,7 @@ export interface UIPluginRuntimeProps<TState = unknown> {
 
 interface SlotContentProps<TState = unknown> {
   slotId: string;
+  fallback?: ReactNode | undefined;
   model: AppUIModel;
   registry: PluginRegistry<TState>;
   actions: UIPluginRuntimeActions;
@@ -103,6 +104,7 @@ function RuntimePluginMountProbe({
 
 function SlotContent<TState = unknown>({
   slotId,
+  fallback,
   model,
   registry,
   actions,
@@ -117,7 +119,7 @@ function SlotContent<TState = unknown>({
   );
   const contributions = useSyncExternalStore(slots.subscribe, getSnapshot, getSnapshot);
 
-  if (contributions.length === 0) return null;
+  if (contributions.length === 0) return fallback ?? null;
 
   return (
     <div
@@ -156,7 +158,10 @@ function SlotContent<TState = unknown>({
 
         const instanceActions = createInstanceActions(instance, actions);
         const PluginComponent = definition.Component;
-        const renderSlot = (requestedSlotId: string): ReactNode => {
+        const renderSlot = (
+          requestedSlotId: string,
+          requestedFallback?: ReactNode,
+        ): ReactNode => {
           const childSlots = definition.manifest.slots?.children ?? [];
           if (!childSlots.includes(requestedSlotId)) {
             throw new Error(
@@ -166,6 +171,7 @@ function SlotContent<TState = unknown>({
           return (
             <SlotContent
               actions={actions}
+              fallback={requestedFallback}
               model={model}
               onPluginError={onPluginError}
               onPluginReset={onPluginReset}

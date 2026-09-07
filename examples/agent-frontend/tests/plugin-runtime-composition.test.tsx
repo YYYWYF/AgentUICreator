@@ -48,7 +48,10 @@ function createModel(enabled = true) {
   });
 }
 
-function definitions(childThrows = false): UIPluginDefinition[] {
+function definitions(
+  childThrows = false,
+  renderChildTwice = false,
+): UIPluginDefinition[] {
   return [
     {
       manifest: {
@@ -59,7 +62,10 @@ function definitions(childThrows = false): UIPluginDefinition[] {
         slots: { children: ["owner.child"] },
       },
       Component: ({ renderSlot }) => (
-        <section>{renderSlot("owner.child")}</section>
+        <section>
+          {renderSlot("owner.child")}
+          {renderChildTwice ? renderSlot("owner.child") : null}
+        </section>
       ),
     },
     {
@@ -80,10 +86,12 @@ function definitions(childThrows = false): UIPluginDefinition[] {
 function RuntimeFixture({
   childThrows = false,
   enabled = true,
+  renderChildTwice = false,
   reporter,
 }: {
   childThrows?: boolean | undefined;
   enabled?: boolean | undefined;
+  renderChildTwice?: boolean | undefined;
   reporter(snapshot: RuntimeCompositionSnapshot): void;
 }) {
   return (
@@ -96,7 +104,7 @@ function RuntimeFixture({
       messages={[]}
       model={createModel(enabled)}
       onRuntimeComposition={reporter}
-      registry={createPluginRegistry(definitions(childThrows))}
+      registry={createPluginRegistry(definitions(childThrows, renderChildTwice))}
       run={{ status: "idle" }}
       state={null}
     />
@@ -151,6 +159,25 @@ describe("plugin runtime composition", () => {
         },
       ],
     });
+  });
+
+  it("reports one configured instance when its child renderer has multiple React occurrences", async () => {
+    const snapshots: RuntimeCompositionSnapshot[] = [];
+    await act(async () => {
+      renderer = create(
+        <RuntimeFixture
+          renderChildTwice
+          reporter={(snapshot) => snapshots.push(snapshot)}
+        />,
+      );
+      await Promise.resolve();
+    });
+
+    expect(
+      snapshots
+        .at(-1)
+        ?.instances.filter((instance) => instance.instanceId === "child-main"),
+    ).toHaveLength(1);
   });
 
   it("does not report a PluginComponent whose render failed before commit", async () => {

@@ -11,6 +11,7 @@ import { antdXSourcesPlugin } from "../antd-x-sources/definition";
 import { antdXThemeProviderPlugin } from "../antd-x-theme-provider/definition";
 import { antdXThemeSwitchPlugin } from "../antd-x-theme-switch/definition";
 import { antdXToolDetailPlugin } from "../antd-x-tool-detail/definition";
+import { antdXToolMessagePlugin } from "../antd-x-tool-message/definition";
 import { antdXWelcomePlugin } from "../antd-x-welcome/definition";
 import { conversationSurfacePlugin } from "../conversation-surface/definition";
 import { conversationDataSourcePlugin } from "../conversation-data-source/definition";
@@ -23,6 +24,7 @@ export const antdXTemplatePlugins = [
   antdXConversationsPlugin,
   antdXWelcomePlugin,
   antdXMessageListPlugin,
+  antdXToolMessagePlugin,
   antdXRunTimelinePlugin,
   antdXToolDetailPlugin,
   antdXReasoningPlugin,
@@ -50,6 +52,7 @@ export {
   antdXThemeProviderPlugin,
   antdXThemeSwitchPlugin,
   antdXToolDetailPlugin,
+  antdXToolMessagePlugin,
   antdXWelcomePlugin,
   conversationDataSourcePlugin,
   conversationSurfacePlugin,
@@ -69,6 +72,7 @@ export { AntdXSourcesPlugin } from "../antd-x-sources";
 export { AntdXThemeProviderPlugin } from "../antd-x-theme-provider";
 export { AntdXThemeSwitchPlugin } from "../antd-x-theme-switch";
 export { AntdXToolDetailPlugin } from "../antd-x-tool-detail";
+export { AntdXToolMessagePlugin } from "../antd-x-tool-message";
 export { AntdXWelcomePlugin } from "../antd-x-welcome";
 export { ConversationSurfacePlugin } from "../conversation-surface";
 export { ConversationDataSourcePlugin } from "../conversation-data-source";

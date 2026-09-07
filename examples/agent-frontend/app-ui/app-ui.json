@@ -125,6 +125,22 @@
         "emptyText": "开始一段新对话"
       }
     },
+    "agent-reasoning-main": {
+      "id": "agent-reasoning-main",
+      "pluginId": "antd-x-reasoning",
+      "enabled": true,
+      "mount": {
+        "slotId": "conversation.message.reasoning"
+      }
+    },
+    "agent-tool-message-main": {
+      "id": "agent-tool-message-main",
+      "pluginId": "antd-x-tool-message",
+      "enabled": true,
+      "mount": {
+        "slotId": "conversation.message.tool"
+      }
+    },
     "agent-inspector-main": {
       "id": "agent-inspector-main",
       "pluginId": "workspace-inspector",

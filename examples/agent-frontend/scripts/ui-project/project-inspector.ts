@@ -6,6 +6,7 @@ import {
   parseAppUIModelJson,
   type LayoutNode,
 } from "../../framework/contracts/app-ui-model";
+import { resolveAppUIComposition } from "../../framework/contracts/app-ui-composition";
 import { pathExists } from "./plugin-assets";
 import { uiProjectControlConfig } from "./project-config";
 import {
@@ -130,12 +131,29 @@ export async function inspectUIProject(
     );
   };
   collectLayoutLocations(model.root, "root");
+  const composition = resolveAppUIComposition(model, generation.slotCatalog);
   // This is a static configuration view, not a snapshot of active contributions.
-  const slots: InspectedSlot[] = [...layoutLocations]
-    .sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)
-    .map(([slotId, location]) => ({
+  const slots: InspectedSlot[] = [...composition.reachableSlots]
+    .sort((left, right) => left < right ? -1 : left > right ? 1 : 0)
+    .flatMap((slotId) => {
+      const resolvedOwner = composition.slotOwners.get(slotId);
+      if (resolvedOwner === undefined) return [];
+      const location = layoutLocations.get(slotId);
+      if (resolvedOwner.kind === "layout" && location === undefined) {
+        throw new Error(`Layout Slot "${slotId}" has no Layout Tree location.`);
+      }
+      const owner: InspectedSlot["owner"] =
+        resolvedOwner.kind === "layout"
+          ? {
+              kind: "layout",
+              nodeId: resolvedOwner.nodeId,
+              nodePath: location!.nodePath,
+            }
+          : resolvedOwner;
+      return [{
       slotId,
-      ...location,
+      owner,
+      ...(location === undefined ? {} : location),
       mounts: Object.values(model.pluginInstances)
         .filter((instance) => instance.mount?.slotId === slotId)
         .sort((left, right) =>
@@ -148,7 +166,8 @@ export async function inspectUIProject(
           enabled: instance.enabled,
           ...(instance.mount?.order === undefined ? {} : { order: instance.mount.order }),
         })),
-    }));
+      }];
+    });
   const packageJson = JSON.parse(
     await readFile(path.join(projectRoot, "package.json"), "utf8"),
   ) as unknown;

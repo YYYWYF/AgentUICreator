@@ -32,6 +32,11 @@ function inspection(
       slots: [
         {
           slotId: "workspace.main",
+          owner: {
+            kind: "layout",
+            nodeId: "root-slot",
+            nodePath: "root",
+          },
           nodeId: "root-slot",
           nodePath: "root",
           mounts: instances.map((instance) => ({

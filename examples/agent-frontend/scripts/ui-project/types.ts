@@ -58,8 +58,19 @@ export interface CompactLayoutNode {
 
 export interface InspectedSlot {
   slotId: string;
-  nodeId: string;
-  nodePath: string;
+  owner:
+    | {
+        kind: "layout";
+        nodeId: string;
+        nodePath: string;
+      }
+    | {
+        kind: "plugin";
+        instanceId: string;
+        pluginId: string;
+      };
+  nodeId?: string | undefined;
+  nodePath?: string | undefined;
   /** Configured mounts only; activation determines runtime contributions. */
   mounts: Array<{
     instanceId: string;

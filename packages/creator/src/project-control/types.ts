@@ -7,8 +7,19 @@ export interface ProjectIssue {
 
 export interface ProjectSlot {
   slotId: string;
-  nodeId: string;
-  nodePath: string;
+  owner:
+    | {
+        kind: "layout";
+        nodeId: string;
+        nodePath: string;
+      }
+    | {
+        kind: "plugin";
+        instanceId: string;
+        pluginId: string;
+      };
+  nodeId?: string | undefined;
+  nodePath?: string | undefined;
   /** Configured mounts only; activation determines runtime contributions. */
   mounts: Array<{
     instanceId: string;
@@ -249,10 +260,45 @@ function parseIssue(input: unknown, path: string): ProjectIssue {
 
 function parseSlot(input: unknown, path: string): ProjectSlot {
   const source = record(input, path);
+  const ownerSource =
+    source.owner === undefined
+      ? {
+          kind: "layout",
+          nodeId: source.nodeId,
+          nodePath: source.nodePath,
+        }
+      : record(source.owner, `${path}.owner`);
+  const ownerKind = string(ownerSource.kind, `${path}.owner.kind`);
+  const owner: ProjectSlot["owner"] =
+    ownerKind === "layout"
+      ? {
+          kind: "layout",
+          nodeId: string(ownerSource.nodeId, `${path}.owner.nodeId`),
+          nodePath: string(ownerSource.nodePath, `${path}.owner.nodePath`),
+        }
+      : ownerKind === "plugin"
+        ? {
+            kind: "plugin",
+            instanceId: string(
+              ownerSource.instanceId,
+              `${path}.owner.instanceId`,
+            ),
+            pluginId: string(ownerSource.pluginId, `${path}.owner.pluginId`),
+          }
+        : (() => {
+            throw new ProjectControlSchemaError(
+              `${path}.owner.kind must be layout or plugin.`,
+            );
+          })();
   return {
     slotId: string(source.slotId, `${path}.slotId`),
-    nodeId: string(source.nodeId, `${path}.nodeId`),
-    nodePath: string(source.nodePath, `${path}.nodePath`),
+    owner,
+    ...(source.nodeId === undefined
+      ? {}
+      : { nodeId: string(source.nodeId, `${path}.nodeId`) }),
+    ...(source.nodePath === undefined
+      ? {}
+      : { nodePath: string(source.nodePath, `${path}.nodePath`) }),
     mounts: array(source.mounts, `${path}.mounts`, (item, itemPath) => {
       const mount = record(item, itemPath);
       return {

@@ -42,6 +42,37 @@ function mounted(
 }
 
 describe("AppUIModel composition", () => {
+  it("reaches reasoning and tool renderers through the MessageList child Slots", () => {
+    const model = createModel({
+      "agent-messages-main": mounted(
+        "agent-messages-main",
+        "antd-x-message-list",
+        "conversation.timeline",
+      ),
+      "agent-reasoning-main": mounted(
+        "agent-reasoning-main",
+        "antd-x-reasoning",
+        "conversation.message.reasoning",
+      ),
+      "agent-tool-message-main": mounted(
+        "agent-tool-message-main",
+        "antd-x-tool-message",
+        "conversation.message.tool",
+      ),
+    }, ["conversation.timeline"]);
+
+    expect(() =>
+      validateAppUIComposition(model, {
+        "antd-x-message-list": [
+          "conversation.message.reasoning",
+          "conversation.message.tool",
+        ],
+        "antd-x-reasoning": [],
+        "antd-x-tool-message": [],
+      }),
+    ).not.toThrow();
+  });
+
   it("allows Layout mounts and one-level child Slot mounts", () => {
     const model = createModel({
       owner: mounted("owner", "owner-plugin", "root"),

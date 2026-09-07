@@ -27,11 +27,11 @@ import {
   antdXTemplatePlugins,
   antdXActivityFeedPlugin,
   antdXAttachmentsPlugin,
-  antdXReasoningPlugin,
   antdXResourcesPlugin,
   antdXRunTimelinePlugin,
   antdXSourcesPlugin,
   antdXToolDetailPlugin,
+  antdXToolMessagePlugin,
   antdXWelcomePlugin,
   conversationSurfacePlugin,
   workspaceInspectorPlugin,
@@ -227,6 +227,7 @@ describe("StaticPluginRegistry", () => {
       antdXRunTimelinePlugin,
     );
     expect(registry.get("antd-x-tool-detail")).toBe(antdXToolDetailPlugin);
+    expect(registry.get("antd-x-tool-message")).toBe(antdXToolMessagePlugin);
     expect(registry.get("antd-x-resources")).toBe(antdXResourcesPlugin);
     expect(registry.get("conversation-surface")).toBe(
       conversationSurfacePlugin,
@@ -411,10 +412,10 @@ describe("UIPluginRuntime", () => {
     expect(countOccurrences(html, "antd-x-message-list-avatar--agent")).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-role-dot")).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-actions")).toBe(1);
-    expect(countOccurrences(html, "antd-x-message-list-turn-segment ")).toBe(3);
-    expect(html).toContain("工具调用");
+    expect(countOccurrences(html, "antd-x-message-list-turn-segment ")).toBe(2);
+    expect(html).toContain('data-ui-plugin="antd-x-tool-message"');
     expect(html).toContain("inspect");
-    expect(html).toContain("工具结果");
+    expect(html).toContain("已完成");
     expect(html).toContain("done");
     expect(html).toContain("检查完成，我找到了 AG-UI Transport");
     expect(html.indexOf("inspect")).toBeLessThan(html.indexOf("done"));
@@ -616,7 +617,7 @@ describe("UIPluginRuntime", () => {
     expect(countOccurrences(html, "antd-x-message-list-bubble--agent")).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-avatar--agent")).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-actions")).toBe(1);
-    expect(countOccurrences(html, "antd-x-message-list-turn-segment ")).toBe(7);
+    expect(countOccurrences(html, "antd-x-message-list-turn-segment ")).toBe(6);
 
     const expectedContent = [
       "inspect_project",
@@ -871,7 +872,7 @@ describe("UIPluginRuntime", () => {
     expect(html).not.toContain('data-ui-plugin="antd-x-prompts"');
   });
 
-  it("renders the granular inspection plugins as independent slot capabilities", async () => {
+  it("renders the granular Inspector plugins as independent slot capabilities", async () => {
     const model = parseAppUIModel({
       version: "2",
       root: {
@@ -882,11 +883,6 @@ describe("UIPluginRuntime", () => {
             type: "slot",
             id: "tool-slot-node",
             slotId: "tool-slot",
-          },
-          {
-            type: "slot",
-            id: "reasoning-slot-node",
-            slotId: "reasoning-slot",
           },
           {
             type: "slot",
@@ -912,12 +908,6 @@ describe("UIPluginRuntime", () => {
           pluginId: "antd-x-tool-detail",
           enabled: true,
         },
-        "reasoning-main": {
-          id: "reasoning-main",
-          mount: { slotId: "reasoning-slot" },
-          pluginId: "antd-x-reasoning",
-          enabled: true,
-        },
         "activity-main": {
           id: "activity-main",
           mount: { slotId: "activity-slot" },
@@ -940,7 +930,6 @@ describe("UIPluginRuntime", () => {
     });
     const registry = createPluginRegistry([
       antdXToolDetailPlugin,
-      antdXReasoningPlugin,
       antdXActivityFeedPlugin,
       antdXSourcesPlugin,
       antdXAttachmentsPlugin,
@@ -959,7 +948,6 @@ describe("UIPluginRuntime", () => {
     });
 
     expect(html).toContain('data-ui-plugin="antd-x-tool-detail"');
-    expect(html).toContain('data-ui-plugin="antd-x-reasoning"');
     expect(html).toContain('data-ui-plugin="antd-x-activity-feed"');
     expect(html).toContain('data-ui-plugin="antd-x-sources"');
     expect(html).toContain('data-ui-plugin="antd-x-attachments"');
@@ -1055,6 +1043,293 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain('data-agent-run-status="running"');
     expect(html).toContain("ant-bubble-loading");
     expect(html).toContain("正在思考");
+    expect(html).toContain('data-reasoning-status="running"');
+  });
+
+  it("uses one configured renderer instance for multiple reasoning messages", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const registry = createPluginRegistry(antdXTemplatePlugins);
+    const messages: AgentMessage[] = [
+      {
+        id: "reasoning-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "分析两步",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "reasoning-a",
+        producer: { type: "root" },
+        role: "reasoning",
+        content: "第一步",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "reasoning-b",
+        producer: { type: "root" },
+        role: "reasoning",
+        content: "第二步",
+        metadata: { conversationId: "default" },
+      },
+    ];
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [],
+      interrupts: [],
+      messages,
+      model,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    });
+
+    expect(countOccurrences(html, 'data-plugin-instance-id="agent-reasoning-main"')).toBe(2);
+    expect(countOccurrences(html, 'data-ui-plugin="antd-x-reasoning"')).toBe(2);
+    expect(html.indexOf("第一步")).toBeLessThan(html.indexOf("第二步"));
+  });
+
+  it("keeps reasoning, merged tool blocks, and final text in projected order", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const messages: AgentMessage[] = [
+      {
+        id: "interleave-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "按步骤执行",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "interleave-reasoning-a",
+        producer: { type: "root" },
+        role: "reasoning",
+        content: "reasoning A",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "interleave-tool-a-call",
+        producer: { type: "root" },
+        role: "assistant",
+        toolCalls: [{
+          id: "tool-a",
+          type: "function",
+          function: { name: "tool_A", arguments: "{}" },
+        }],
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "interleave-tool-a-result",
+        producer: { type: "root" },
+        role: "tool",
+        toolCallId: "tool-a",
+        content: "result A",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "interleave-reasoning-b",
+        producer: { type: "root" },
+        role: "reasoning",
+        content: "reasoning B",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "interleave-tool-b-call",
+        producer: { type: "root" },
+        role: "assistant",
+        toolCalls: [{
+          id: "tool-b",
+          type: "function",
+          function: { name: "tool_B", arguments: "{}" },
+        }],
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "interleave-tool-b-result",
+        producer: { type: "root" },
+        role: "tool",
+        toolCallId: "tool-b",
+        content: "result B",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "interleave-final",
+        producer: { type: "root" },
+        role: "assistant",
+        content: "assistant final",
+        metadata: { conversationId: "default" },
+      },
+    ];
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [],
+      interrupts: [],
+      messages,
+      model,
+      registry: createPluginRegistry(antdXTemplatePlugins),
+      run: idleRun,
+      state: previewAgentState,
+    });
+    const orderedContent = [
+      "reasoning A",
+      "tool_A",
+      "result A",
+      "reasoning B",
+      "tool_B",
+      "result B",
+      "assistant final",
+    ];
+
+    expect(countOccurrences(html, 'data-ui-plugin="antd-x-reasoning"')).toBe(2);
+    expect(countOccurrences(html, 'data-ui-plugin="antd-x-tool-message"')).toBe(2);
+    expect(countOccurrences(html, "result A")).toBe(1);
+    expect(countOccurrences(html, "result B")).toBe(1);
+    orderedContent.slice(1).forEach((content, index) => {
+      expect(html.indexOf(orderedContent[index]!)).toBeLessThan(
+        html.indexOf(content),
+      );
+    });
+  });
+
+  it("updates the same tool block to an error state", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const messages: AgentMessage[] = [
+      {
+        id: "tool-error-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "执行失败工具",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "tool-error-call-message",
+        producer: { type: "root" },
+        role: "assistant",
+        toolCalls: [{
+          id: "tool-error-call",
+          type: "function",
+          function: { name: "failing_tool", arguments: "{}" },
+        }],
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "tool-error-result",
+        producer: { type: "root" },
+        role: "tool",
+        toolCallId: "tool-error-call",
+        content: "failed",
+        error: "permission denied",
+        metadata: { conversationId: "default" },
+      },
+    ];
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [{
+        type: "tool",
+        id: "tool-error-call",
+        producer: { type: "root" },
+        name: "failing_tool",
+        status: "error",
+        arguments: "{}",
+        error: { message: "permission denied" },
+      }],
+      interrupts: [],
+      messages,
+      model,
+      registry: createPluginRegistry(antdXTemplatePlugins),
+      run: idleRun,
+      state: previewAgentState,
+    });
+
+    expect(countOccurrences(html, 'data-tool-call-id="tool-error-call"')).toBe(1);
+    expect(html).toContain('data-tool-status="error"');
+    expect(countOccurrences(html, "permission denied")).toBe(1);
+  });
+
+  it("renders an unfinished tool call as one loading tool block", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const messages: AgentMessage[] = [
+      {
+        id: "tool-loading-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "执行工具",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "tool-loading-call-message",
+        producer: { type: "root" },
+        role: "assistant",
+        toolCalls: [{
+          id: "tool-loading-call",
+          type: "function",
+          function: { name: "loading_tool", arguments: "{\"query\":\"x\"}" },
+        }],
+        metadata: { conversationId: "default" },
+      },
+    ];
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [{
+        type: "tool",
+        id: "tool-loading-call",
+        producer: { type: "root" },
+        name: "loading_tool",
+        status: "awaiting-result",
+        arguments: "{\"query\":\"x\"}",
+      }],
+      interrupts: [],
+      messages,
+      model,
+      registry: createPluginRegistry(antdXTemplatePlugins),
+      run: { status: "running" },
+      state: previewAgentState,
+    });
+
+    expect(countOccurrences(html, 'data-tool-call-id="tool-loading-call"')).toBe(1);
+    expect(html).toContain('data-tool-status="loading"');
+    expect(html).toContain("执行中");
+  });
+
+  it("falls back without losing reasoning or tool content when child renderers are disabled", async () => {
+    const model = parseAppUIModel({
+      ...appUIJson,
+      pluginInstances: {
+        ...appUIJson.pluginInstances,
+        "agent-reasoning-main": {
+          ...appUIJson.pluginInstances["agent-reasoning-main"],
+          enabled: false,
+        },
+        "agent-tool-message-main": {
+          ...appUIJson.pluginInstances["agent-tool-message-main"],
+          enabled: false,
+        },
+      },
+    });
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "current" },
+      executions: [],
+      interrupts: [],
+      messages: initialPreviewMessages,
+      model,
+      registry: createPluginRegistry(antdXTemplatePlugins),
+      run: idleRun,
+      state: previewAgentState,
+    });
+
+    expect(html).toContain("先读取 AppUIModel 与插件注册表");
+    expect(html).toContain("list_ui_plugins");
+    expect(html).toContain("runtimeCount");
+    expect(html).not.toContain('data-ui-plugin="antd-x-reasoning"');
+    expect(html).not.toContain('data-ui-plugin="antd-x-tool-message"');
   });
 
   it("binds runtime hooks and instance-aware actions into their providers", async () => {
@@ -1521,6 +1796,39 @@ describe("recursive React Plugin composition", () => {
       expect(
         owner.findAllByProps({ "data-slot-id": "owner.empty" }),
       ).toHaveLength(0);
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("renders an owner fallback for an empty declared child Slot", async () => {
+    const Owner = ({ renderSlot }: UIPluginComponentProps) => (
+      <section data-fixture="owner">
+        {renderSlot("owner.empty", <span data-fixture="fallback">fallback</span>)}
+      </section>
+    );
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "owner-main": {
+          id: "owner-main",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+      },
+    });
+    const mounted = await mountPluginRuntime(
+      fixtureRuntimeProps(model, [
+        createFixtureDefinition("owner", Owner, ["owner.empty"]),
+      ]),
+    );
+
+    try {
+      expect(
+        getText(mounted.renderer.root.findByProps({ "data-fixture": "fallback" })),
+      ).toBe("fallback");
     } finally {
       await mounted.dispose();
     }

@@ -75,6 +75,11 @@ function inspectionFixture(hash = hashA): UIProjectInspection {
       slots: [
         {
           slotId: "history",
+          owner: {
+            kind: "layout",
+            nodeId: "history-slot-node",
+            nodePath: "root",
+          },
           nodeId: "history-slot-node",
           nodePath: "root",
           mounts: [

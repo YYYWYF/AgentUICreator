@@ -112,7 +112,7 @@ export function createCreatorProjectTools(
     {
       name: "inspect_ui_slots",
       description:
-        "Inspect Layout Slot locations and configured PluginInstance mounts. Provide an exact Slot id to inspect its configured mounts and stable order. This is static configuration, not live SlotRegistry contribution state.",
+        "Inspect reachable Layout and Plugin child Slots, their declaring owner, configured PluginInstance mounts, and stable order. Provide an exact Slot id to inspect one extension point. This is static configuration, not live SlotRegistry contribution state.",
       schema: {
         type: "object",
         properties: {

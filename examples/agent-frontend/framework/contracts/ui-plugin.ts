@@ -17,6 +17,7 @@ export type {
   AgentInterruptResponseStatus,
   AgentMessage,
   AgentRunState,
+  AgentToolCall,
   AgentUserInput,
 } from "@agent-ui/runtime-core";
 
@@ -100,7 +101,7 @@ export interface UIPluginSetupContext {
 export type UIPluginSetupCleanup = void | (() => void);
 
 export interface UIPluginComponentProps {
-  renderSlot(slotId: string): ReactNode;
+  renderSlot(slotId: string, fallback?: ReactNode): ReactNode;
 }
 
 export interface UIPluginDefinition<TState = unknown> {

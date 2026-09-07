@@ -36,6 +36,9 @@ describe("inspectUIProject", () => {
     await mkdir(path.join(projectRoot, "plugins", "sample"), {
       recursive: true,
     });
+    await mkdir(path.join(projectRoot, "plugins", "renderer"), {
+      recursive: true,
+    });
     await mkdir(path.join(projectRoot, "plugins", "catalog"));
     await writeFile(
       path.join(projectRoot, "package.json"),
@@ -52,10 +55,24 @@ describe("inspectUIProject", () => {
         description: "Fixture plugin",
         version: "1.0.0",
         capabilities: ["visual"],
+        slots: { children: ["sample.message"] },
       }),
     );
     await writeFile(
       path.join(projectRoot, "plugins", "sample", "definition.ts"),
+      "const plugin = {};\nexport default plugin;\n",
+    );
+    await writeFile(
+      path.join(projectRoot, "plugins", "renderer", "manifest.json"),
+      JSON.stringify({
+        id: "renderer",
+        name: "Renderer",
+        description: "Fixture child renderer",
+        version: "1.0.0",
+      }),
+    );
+    await writeFile(
+      path.join(projectRoot, "plugins", "renderer", "definition.ts"),
       "const plugin = {};\nexport default plugin;\n",
     );
     const model: AppUIModel = {
@@ -78,6 +95,12 @@ describe("inspectUIProject", () => {
           pluginId: "sample",
           enabled: true,
           mount: { slotId: "main" },
+        },
+        "renderer-main": {
+          id: "renderer-main",
+          pluginId: "renderer",
+          enabled: true,
+          mount: { slotId: "sample.message" },
         },
       },
     };
@@ -102,12 +125,28 @@ describe("inspectUIProject", () => {
     const result = await inspectUIProject(projectRoot, fixtureConfig);
 
     expect(result.appUIModel.hash).toMatch(/^[a-f0-9]{64}$/u);
-    expect(result.appUIModel.slots).toEqual([{
-      slotId: "main",
-      nodeId: "main-node",
-      nodePath: "root.children[0]",
-      mounts: [{ instanceId: "sample-main", pluginId: "sample", enabled: true }],
-    }]);
+    expect(result.appUIModel.slots).toEqual([
+      {
+        slotId: "main",
+        owner: {
+          kind: "layout",
+          nodeId: "main-node",
+          nodePath: "root.children[0]",
+        },
+        nodeId: "main-node",
+        nodePath: "root.children[0]",
+        mounts: [{ instanceId: "sample-main", pluginId: "sample", enabled: true }],
+      },
+      {
+        slotId: "sample.message",
+        owner: {
+          kind: "plugin",
+          instanceId: "sample-main",
+          pluginId: "sample",
+        },
+        mounts: [{ instanceId: "renderer-main", pluginId: "renderer", enabled: true }],
+      },
+    ]);
     expect(result.pluginInstances).toContainEqual(
       expect.objectContaining({
         id: "sample-main",

@@ -48,6 +48,11 @@ function inspectionFixture(): UIProjectInspection {
       slots: [
         {
           slotId: "history",
+          owner: {
+            kind: "layout",
+            nodeId: "history-slot-node",
+            nodePath: "root.child",
+          },
           nodeId: "history-slot-node",
           nodePath: "root.child",
           mounts: [

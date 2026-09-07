@@ -133,8 +133,8 @@ export const previewAgentState: AppAgentState = {
     "plugins/tool-renderer/index.tsx": {
       language: "tsx",
       content: `export function ToolRenderer() {
-  const messages = useAgentMessages();
-  return <ThoughtChain items={toToolItems(messages)} />;
+  const { toolCall, result, running } = useToolRenderContext();
+  return <ToolBlock call={toolCall} result={result} running={running} />;
 }`,
     },
     "app-ui/app-ui.json": {

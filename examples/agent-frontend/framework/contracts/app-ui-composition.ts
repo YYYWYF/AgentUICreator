@@ -17,6 +17,24 @@ export interface AppUICompositionIssue {
   readonly message: string;
 }
 
+export type AppUICompositionSlotOwner =
+  | {
+      readonly kind: "layout";
+      readonly nodeId: string;
+    }
+  | {
+      readonly kind: "plugin";
+      readonly instanceId: string;
+      readonly pluginId: string;
+    };
+
+export interface AppUICompositionResolution {
+  readonly reachableSlots: ReadonlySet<string>;
+  readonly reachableInstances: ReadonlySet<string>;
+  readonly slotOwners: ReadonlyMap<string, AppUICompositionSlotOwner>;
+  readonly issues: readonly AppUICompositionIssue[];
+}
+
 export class AppUICompositionError extends Error {
   readonly issues: readonly AppUICompositionIssue[];
 
@@ -27,35 +45,41 @@ export class AppUICompositionError extends Error {
   }
 }
 
-function collectLayoutSlotIds(node: LayoutNode, result: Set<string>): void {
+function collectLayoutSlots(
+  node: LayoutNode,
+  result: Map<string, AppUICompositionSlotOwner>,
+): void {
   if (node.type === "slot") {
-    result.add(node.slotId);
+    result.set(node.slotId, { kind: "layout", nodeId: node.id });
     return;
   }
   if (node.type === "panel") {
-    collectLayoutSlotIds(node.child, result);
+    collectLayoutSlots(node.child, result);
     return;
   }
-  node.children.forEach((child) => collectLayoutSlotIds(child, result));
+  node.children.forEach((child) => collectLayoutSlots(child, result));
 }
 
 /**
- * Validates the Layout-rooted Plugin composition graph.
+ * Resolves the Layout-rooted Plugin composition graph for Runtime validation
+ * and development-time inspection.
  *
  * This deliberately ignores `enabled`: configuration validity describes the
  * potential graph, while the Runtime independently decides which instances
  * are currently live.
  */
-export function validateAppUIComposition(
+export function resolveAppUIComposition(
   model: AppUIModel,
   slotCatalog: PluginSlotCatalog,
-): void {
-  const layoutSlots = new Set<string>();
-  collectLayoutSlotIds(model.root, layoutSlots);
+): AppUICompositionResolution {
+  const layoutSlotOwners = new Map<string, AppUICompositionSlotOwner>();
+  collectLayoutSlots(model.root, layoutSlotOwners);
+  const layoutSlots = new Set(layoutSlotOwners.keys());
 
   const reachableSlots = new Set(layoutSlots);
   const reachableInstances = new Set<string>();
   const childOwners = new Map<string, string>();
+  const slotOwners = new Map(layoutSlotOwners);
   const issues: AppUICompositionIssue[] = [];
   const mountedInstances = Object.values(model.pluginInstances)
     .filter((instance) => instance.mount !== undefined)
@@ -96,6 +120,13 @@ export function validateAppUIComposition(
           });
         } else if (existingOwner === undefined) {
           childOwners.set(childSlotId, instance.id);
+          if (!layoutSlots.has(childSlotId)) {
+            slotOwners.set(childSlotId, {
+              kind: "plugin",
+              instanceId: instance.id,
+              pluginId: instance.pluginId,
+            });
+          }
         }
 
         reachableSlots.add(childSlotId);
@@ -114,7 +145,21 @@ export function validateAppUIComposition(
     }
   }
 
-  if (issues.length > 0) {
-    throw new AppUICompositionError(issues);
+  return {
+    reachableSlots,
+    reachableInstances,
+    slotOwners,
+    issues: Object.freeze(issues),
+  };
+}
+
+/** Validates the same resolution consumed by Runtime and Creator inspection. */
+export function validateAppUIComposition(
+  model: AppUIModel,
+  slotCatalog: PluginSlotCatalog,
+): void {
+  const resolution = resolveAppUIComposition(model, slotCatalog);
+  if (resolution.issues.length > 0) {
+    throw new AppUICompositionError(resolution.issues);
   }
 }

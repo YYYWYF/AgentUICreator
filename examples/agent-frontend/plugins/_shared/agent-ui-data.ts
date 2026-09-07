@@ -2,6 +2,7 @@ import type {
   AgentExecution,
   AgentRunState,
   AgentMessage,
+  AgentToolCall,
 } from "../../framework/contracts/ui-plugin";
 
 export type InspectionStatus = "loading" | "success" | "error" | "abort";
@@ -10,7 +11,9 @@ export interface ToolCallInspection {
   id: string;
   name: string;
   argumentsText: string;
+  toolCall: AgentToolCall;
   result: Extract<AgentMessage, { role: "tool" }> | undefined;
+  execution: Extract<AgentExecution, { type: "tool" }> | undefined;
   status: InspectionStatus;
 }
 
@@ -113,12 +116,15 @@ export function inspectToolCalls(
 
     return (message.toolCalls ?? []).map((toolCall) => {
       const result = results.get(toolCall.id);
+      const execution = toolExecutions.get(toolCall.id);
       return {
         id: toolCall.id,
         name: toolCall.function.name,
         argumentsText: toolCall.function.arguments,
+        toolCall,
         result,
-        status: toolStatus(result, toolExecutions.get(toolCall.id)),
+        execution,
+        status: toolStatus(result, execution),
       };
     });
   });

@@ -144,7 +144,7 @@ describe("ui-project-control", () => {
     });
   });
 
-  it("returns Layout Slot locations and configured mounts", async () => {
+  it("returns reachable Slot owners and configured mounts", async () => {
     const { projectRoot } = await createProject();
 
     const response = await handleUIProjectControlRequest(
@@ -162,6 +162,11 @@ describe("ui-project-control", () => {
         slots: [
           expect.objectContaining({
             slotId: "main",
+            owner: {
+              kind: "layout",
+              nodeId: "main-node",
+              nodePath: "root",
+            },
             nodeId: "main-node",
             mounts: [
               expect.objectContaining({
