@@ -42,6 +42,56 @@
   margin: 0;
 }
 
+.antd-x-message-list-segment-label {
+  margin-bottom: 0.2rem;
+  color: #8491ad;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.antd-x-message-list-tool-call-segment,
+.antd-x-message-list-tool-result,
+.antd-x-message-list-reasoning-segment,
+.antd-x-message-list-activity-segment,
+.antd-x-message-list-context-segment {
+  padding-left: 0.7rem;
+  border-left: 2px solid rgb(139 124 255 / 32%);
+}
+
+.antd-x-message-list-tool-call {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.antd-x-message-list-tool-result--error {
+  border-left-color: rgb(255 105 118 / 60%);
+  color: #ffafb7;
+}
+
+.antd-x-message-list-reasoning-segment,
+.antd-x-message-list-context-segment {
+  color: #aeb8cd;
+}
+
+.antd-x-message-list-activity-segment {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-message-list-tool-result--error {
+  color: #b42332;
+}
+
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-message-list-reasoning-segment,
+.development-preview[data-agent-ui-theme="light"]
+  .antd-x-message-list-context-segment {
+  color: #65708a;
+}
+
 .antd-x-message-list-turn-loading {
   display: inline-flex;
   min-height: 1.5rem;

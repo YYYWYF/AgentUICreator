@@ -258,6 +258,153 @@ function AssistantTurnLoading() {
   );
 }
 
+function SegmentLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="antd-x-message-list-segment-label">
+      {children}
+    </div>
+  );
+}
+
+function AssistantMessageSegment({
+  message,
+}: {
+  message: AgentAssistantMessage;
+}) {
+  const text = messageText(message);
+  const sources = messageSources(message);
+  const hasContent = text.length > 0 || sources.length > 0;
+
+  return (
+    <>
+      {hasContent ? messageContent(message) : null}
+      {(message.toolCalls?.length ?? 0) === 0 ? null : (
+        <div className="antd-x-message-list-tool-call-segment">
+          <SegmentLabel>工具调用</SegmentLabel>
+          {message.toolCalls?.map((call) => (
+            <div className="antd-x-message-list-tool-call" key={call.id}>
+              <span aria-hidden="true">🔧</span>
+              <strong>{call.function.name}</strong>
+            </div>
+          ))}
+        </div>
+      )}
+      {!hasContent && (message.toolCalls?.length ?? 0) === 0
+        ? messageContent(message)
+        : null}
+    </>
+  );
+}
+
+function ToolMessageSegment({
+  message,
+}: {
+  message: Extract<AgentMessage, { role: "tool" }>;
+}) {
+  return (
+    <div
+      className={`antd-x-message-list-tool-result${
+        message.error === undefined
+          ? ""
+          : " antd-x-message-list-tool-result--error"
+      }`}
+    >
+      <SegmentLabel>
+        {message.error === undefined ? "工具结果" : "工具执行失败"}
+      </SegmentLabel>
+      <div>{message.error ?? message.content}</div>
+    </div>
+  );
+}
+
+function ReasoningMessageSegment({
+  message,
+}: {
+  message: Extract<AgentMessage, { role: "reasoning" }>;
+}) {
+  return (
+    <div className="antd-x-message-list-reasoning-segment">
+      <SegmentLabel>思考</SegmentLabel>
+      <div>{message.content}</div>
+    </div>
+  );
+}
+
+function ActivityMessageSegment({
+  message,
+}: {
+  message: Extract<AgentMessage, { role: "activity" }>;
+}) {
+  const title =
+    typeof message.content.title === "string"
+      ? message.content.title
+      : message.activityType;
+  const description =
+    typeof message.content.description === "string"
+      ? message.content.description
+      : undefined;
+
+  return (
+    <div className="antd-x-message-list-activity-segment">
+      <SegmentLabel>Activity</SegmentLabel>
+      <strong>{title}</strong>
+      {description === undefined ? null : <div>{description}</div>}
+    </div>
+  );
+}
+
+function ContextMessageSegment({
+  label,
+  message,
+}: {
+  label: string;
+  message: Extract<AgentMessage, { role: "system" | "developer" }>;
+}) {
+  return (
+    <div className="antd-x-message-list-context-segment">
+      <SegmentLabel>{label}</SegmentLabel>
+      <div>{message.content}</div>
+    </div>
+  );
+}
+
+function TurnMessageSegment({ message }: { message: AgentMessage }) {
+  let content: React.ReactNode;
+
+  switch (message.role) {
+    case "assistant":
+      content = <AssistantMessageSegment message={message} />;
+      break;
+    case "tool":
+      content = <ToolMessageSegment message={message} />;
+      break;
+    case "reasoning":
+      content = <ReasoningMessageSegment message={message} />;
+      break;
+    case "activity":
+      content = <ActivityMessageSegment message={message} />;
+      break;
+    case "system":
+      content = <ContextMessageSegment label="系统" message={message} />;
+      break;
+    case "developer":
+      content = <ContextMessageSegment label="开发者" message={message} />;
+      break;
+    case "user":
+      content = messageContent(message);
+      break;
+  }
+
+  return (
+    <div
+      className={`antd-x-message-list-turn-segment antd-x-message-list-segment--${message.role}`}
+      data-agent-message-id={message.id}
+    >
+      {content}
+    </div>
+  );
+}
+
 function AssistantTurnContent({
   turn,
   running,
@@ -265,19 +412,10 @@ function AssistantTurnContent({
   turn: AgentTurn;
   running: boolean;
 }) {
-  const messages = turn.responseMessages
-    .filter(isAssistantMessage)
-    .filter(hasRenderableAssistantContent);
-
   return (
     <div className="antd-x-message-list-turn-content">
-      {messages.map((message) => (
-        <div
-          className="antd-x-message-list-turn-segment"
-          key={message.id}
-        >
-          {messageContent(message)}
-        </div>
+      {turn.responseMessages.map((message) => (
+        <TurnMessageSegment key={message.id} message={message} />
       ))}
       {running ? <AssistantTurnLoading /> : null}
     </div>
@@ -303,11 +441,7 @@ function toTurnBubbleItems({
     "data-agent-turn-id": turn.id,
     "data-agent-turn-role": "user",
   };
-  const assistantMessages = turn.responseMessages
-    .filter(isAssistantMessage)
-    .filter(hasRenderableAssistantContent);
-
-  if (assistantMessages.length === 0 && !running) {
+  if (turn.responseMessages.length === 0 && !running) {
     return [userBubble];
   }
 

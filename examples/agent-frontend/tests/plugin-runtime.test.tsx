@@ -411,9 +411,16 @@ describe("UIPluginRuntime", () => {
     expect(countOccurrences(html, "antd-x-message-list-avatar--agent")).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-role-dot")).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-actions")).toBe(1);
-    expect(countOccurrences(html, "antd-x-message-list-turn-segment")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-turn-segment ")).toBe(3);
+    expect(html).toContain("工具调用");
+    expect(html).toContain("inspect");
+    expect(html).toContain("工具结果");
+    expect(html).toContain("done");
     expect(html).toContain("检查完成，我找到了 AG-UI Transport");
-    expect(html).not.toContain("已发起 1 个工具调用，请在执行链中查看。");
+    expect(html.indexOf("inspect")).toBeLessThan(html.indexOf("done"));
+    expect(html.indexOf("done")).toBeLessThan(
+      html.indexOf("检查完成，我找到了 AG-UI Transport"),
+    );
   });
 
   it("keeps multiple streaming assistant messages in one running turn bubble", async () => {
@@ -520,7 +527,7 @@ describe("UIPluginRuntime", () => {
     expect(html).not.toContain("Hidden developer context");
   });
 
-  it("hides internal context inside a turn without splitting assistant content", async () => {
+  it("renders every response message in source order inside one turn bubble", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
     const messages: AgentMessage[] = [
@@ -532,31 +539,63 @@ describe("UIPluginRuntime", () => {
         metadata: { conversationId: "default" },
       },
       {
-        id: "assistant-before-context",
+        id: "assistant-tool-call",
         producer: { type: "root" },
         role: "assistant",
-        content: "Assistant segment A",
+        toolCalls: [
+          {
+            id: "inspect-project-call",
+            type: "function",
+            function: { name: "inspect_project", arguments: "{}" },
+          },
+        ],
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "inspect-project-result",
+        producer: { type: "root" },
+        role: "tool",
+        toolCallId: "inspect-project-call",
+        content: "project inspected",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "turn-reasoning",
+        producer: { type: "root" },
+        role: "reasoning",
+        content: "analyzing project",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "turn-activity",
+        producer: { type: "root" },
+        role: "activity",
+        activityType: "project.scan",
+        content: {
+          title: "Scanning",
+          description: "Reading frontend files",
+        },
         metadata: { conversationId: "default" },
       },
       {
         id: "turn-system",
         producer: { type: "root" },
         role: "system",
-        content: "Hidden turn system context",
+        content: "system message inside turn",
         metadata: { conversationId: "default" },
       },
       {
         id: "turn-developer",
         producer: { type: "root" },
         role: "developer",
-        content: "Hidden turn developer context",
+        content: "developer message inside turn",
         metadata: { conversationId: "default" },
       },
       {
-        id: "assistant-after-context",
+        id: "assistant-final",
         producer: { type: "root" },
         role: "assistant",
-        content: "Assistant segment B",
+        content: "检查完成",
         metadata: { conversationId: "default" },
       },
     ];
@@ -575,12 +614,25 @@ describe("UIPluginRuntime", () => {
 
     expect(countOccurrences(html, "antd-x-message-list-bubble--user")).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-bubble--agent")).toBe(1);
-    expect(countOccurrences(html, "antd-x-message-list-turn-segment")).toBe(2);
-    expect(html.indexOf("Assistant segment A")).toBeLessThan(
-      html.indexOf("Assistant segment B"),
-    );
-    expect(html).not.toContain("Hidden turn system context");
-    expect(html).not.toContain("Hidden turn developer context");
+    expect(countOccurrences(html, "antd-x-message-list-avatar--agent")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-actions")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-turn-segment ")).toBe(7);
+
+    const expectedContent = [
+      "inspect_project",
+      "project inspected",
+      "analyzing project",
+      "Scanning",
+      "system message inside turn",
+      "developer message inside turn",
+      "检查完成",
+    ];
+    expectedContent.forEach((content) => expect(html).toContain(content));
+    expectedContent.slice(1).forEach((content, index) => {
+      expect(html.indexOf(expectedContent[index])).toBeLessThan(
+        html.indexOf(content),
+      );
+    });
   });
 
   it("renders a leading assistant message without a user turn", async () => {
