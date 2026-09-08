@@ -16,6 +16,7 @@ DOMAIN_READ_TOOL_NAMES = (
     "list_ui_plugins",
     "inspect_ui_slots",
     "inspect_ui_plugin",
+    "inspect_ui_services",
     "inspect_ui_plugin_source_references",
 )
 
@@ -137,6 +138,16 @@ def create_project_control_tools(
         except ProjectControlError as error:
             return _render_error(error)
 
+    @tool("inspect_ui_services")
+    async def inspect_ui_services() -> str:
+        """Inspect declared Service providers, required consumers, optional consumers, and current availability."""
+        try:
+            result = await client.inspect_ui_services()
+            observe(result.get("appUIModelHash"), "inspect_ui_services")
+            return _render_result(result)
+        except ProjectControlError as error:
+            return _render_error(error)
+
     @tool("inspect_ui_plugin_source_references")
     async def inspect_ui_plugin_source_references(pluginId: str) -> str:
         """Locate one UI plugin's authoritative source entry and related files."""
@@ -153,5 +164,6 @@ def create_project_control_tools(
         list_ui_plugins,
         inspect_ui_slots,
         inspect_ui_plugin,
+        inspect_ui_services,
         inspect_ui_plugin_source_references,
     )

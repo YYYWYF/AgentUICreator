@@ -23,7 +23,7 @@ import {
   AGENT_UI_THEME_SERVICE,
   type AgentUIThemeMode,
   type AgentUIThemeService,
-} from "../plugins/antd-x-theme-provider/theme-service";
+} from "../services/agent-ui-theme";
 import { AgentRuntimeProvider } from "../runtime/context";
 import { AppEventRegistry } from "../runtime/events";
 import {

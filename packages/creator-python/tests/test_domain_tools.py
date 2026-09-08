@@ -28,6 +28,14 @@ class StubClient:
     async def inspect_ui_plugin(self, plugin_id):
         return {"pluginId": plugin_id}
 
+    async def inspect_ui_services(self):
+        return {
+            "appUIModelHash": "e" * 64,
+            "services": [],
+            "plugins": [],
+            "issues": [],
+        }
+
     async def inspect_ui_plugin_source_references(self, plugin_id):
         return {"pluginId": plugin_id, "entry": "definition.ts"}
 
@@ -86,6 +94,7 @@ def test_authoritative_domain_reads_update_shared_observation(tmp_path):
         (1, "b" * 64, "inspect_app_ui_model"),
         (2, "c" * 64, "list_ui_plugins"),
         (3, "d" * 64, "inspect_ui_slots"),
+        (5, "e" * 64, "inspect_ui_services"),
     ):
         asyncio.run(tools[index].ainvoke({}))
         snapshot = observations.snapshot()["appUIModel"]

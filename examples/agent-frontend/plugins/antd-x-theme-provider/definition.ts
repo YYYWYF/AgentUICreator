@@ -2,8 +2,8 @@ import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
 import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
 import { AntdXThemeProviderPlugin } from "./index";
 import manifestJson from "./manifest.json";
+import { AGENT_UI_THEME_SERVICE } from "../../services/agent-ui-theme";
 import {
-  AGENT_UI_THEME_SERVICE,
   createAgentUIThemeService,
   readAgentUIThemeMode,
 } from "./theme-service";

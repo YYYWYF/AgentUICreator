@@ -9,6 +9,16 @@ import { PluginServiceRuntime } from "./PluginServiceRuntime";
 export const PluginServiceRuntimeContext =
   createContext<PluginServiceRuntime | null>(null);
 
+export interface PluginServiceConsumerScope {
+  pluginId: string;
+  instanceId: string;
+  inject: readonly string[];
+  optionalInject: readonly string[];
+}
+
+export const PluginServiceConsumerContext =
+  createContext<PluginServiceConsumerScope | null>(null);
+
 export function useOptionalPluginServiceRuntime(): PluginServiceRuntime | null {
   return useContext(PluginServiceRuntimeContext);
 }
@@ -32,6 +42,16 @@ export function usePluginServiceRuntimeRevision(): number {
 
 export function usePluginService<T = unknown>(name: string): T | undefined {
   const runtime = usePluginServiceRuntime();
+  const consumer = useContext(PluginServiceConsumerContext);
   usePluginServiceRuntimeRevision();
+  if (
+    consumer !== null &&
+    !consumer.inject.includes(name) &&
+    !consumer.optionalInject.includes(name)
+  ) {
+    throw new Error(
+      `Plugin "${consumer.pluginId}" instance "${consumer.instanceId}" accessed undeclared service "${name}"`,
+    );
+  }
   return runtime.get<T>(name);
 }

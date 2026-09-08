@@ -8,6 +8,7 @@ ObservationSource = Literal[
     "inspect_app_ui_model",
     "list_ui_plugins",
     "inspect_ui_slots",
+    "inspect_ui_services",
     "mutation_result",
 ]
 
@@ -16,6 +17,7 @@ _OBSERVATION_SOURCES = {
     "inspect_app_ui_model",
     "list_ui_plugins",
     "inspect_ui_slots",
+    "inspect_ui_services",
     "mutation_result",
 }
 _SHA256_LENGTH = 64

@@ -34,6 +34,17 @@ async function createProject(options: {
     recursive: true,
   });
   await writeFile(
+    path.join(projectRoot, "tsconfig.json"),
+    JSON.stringify({
+      compilerOptions: {
+        module: "ESNext",
+        moduleResolution: "Bundler",
+        target: "ES2022",
+      },
+      include: ["plugins/**/*.ts", "plugins/**/*.tsx", "services/**/*.ts"],
+    }),
+  );
+  await writeFile(
     path.join(projectRoot, "plugins", "sample", "manifest.json"),
     JSON.stringify({
       id: "sample",
@@ -48,7 +59,7 @@ async function createProject(options: {
   );
   await writeFile(
     path.join(projectRoot, "plugins", "sample", "definition.ts"),
-    "const samplePlugin = {};\nexport default samplePlugin;\n",
+    "const Component = () => null;\nconst samplePlugin = { manifest: {}, Component };\nexport default samplePlugin;\n",
   );
   if (options.pluginSource !== undefined) {
     await writeFile(

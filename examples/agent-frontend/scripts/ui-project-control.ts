@@ -13,6 +13,9 @@ import {
 } from "./ui-project/app-ui-transaction";
 import { inspectUIProject } from "./ui-project/project-inspector";
 import { inspectPluginSourceReferences } from "./ui-project/plugin-source-references";
+import { collectPluginAssets } from "./ui-project/plugin-assets";
+import { uiProjectControlConfig } from "./ui-project/project-config";
+import { inspectUIServiceDependencies } from "./ui-project/service-dependency-inspector";
 
 export const UI_PROJECT_CONTROL_SCHEMA_VERSION = 2 as const;
 export const MAX_UI_PROJECT_CONTROL_INPUT_BYTES = 64_000;
@@ -46,6 +49,11 @@ const requestSchema = z.discriminatedUnion("operation", [
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("list_ui_plugins"),
+    input: emptyInputSchema,
+  }),
+  z.strictObject({
+    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
+    operation: z.literal("inspect_ui_services"),
     input: emptyInputSchema,
   }),
   z.strictObject({
@@ -225,6 +233,10 @@ async function inspectUIPlugin(
     path.join(projectRoot, asset.definitionPath),
     "utf8",
   );
+  const serviceInspection = await inspectUIServices(projectRoot);
+  const serviceDeclaration = serviceInspection.plugins.find(
+    (plugin) => plugin.pluginId === pluginId,
+  );
 
   return {
     appUIModelHash: inspection.appUIModel.hash,
@@ -238,8 +250,35 @@ async function inspectUIPlugin(
       definitionSource,
       MAX_PLUGIN_SOURCE_CHARACTERS,
     ),
+    services: {
+      provides: serviceDeclaration?.provides ?? [],
+      required: serviceDeclaration?.inject ?? [],
+      optional: serviceDeclaration?.optionalInject ?? [],
+    },
     files,
     filesTruncated: allEntries.length > MAX_PLUGIN_FILES,
+  };
+}
+
+async function inspectUIServices(projectRoot: string) {
+  const appUIModelSource = await readFile(
+    path.join(projectRoot, "app-ui", "app-ui.json"),
+    "utf8",
+  );
+  const model = parseAppUIModelJson(appUIModelSource);
+  const inventory = await collectPluginAssets(
+    projectRoot,
+    uiProjectControlConfig,
+  );
+  const inspection = inspectUIServiceDependencies(
+    projectRoot,
+    model,
+    inventory.assets,
+  );
+  return {
+    appUIModelHash: createHash("sha256").update(appUIModelSource).digest("hex"),
+    ...inspection,
+    issues: [...inventory.errors, ...inspection.issues],
   };
 }
 
@@ -279,6 +318,8 @@ async function executeRequest(
       return inspectUISlots(projectRoot, request.input.root);
     case "list_ui_plugins":
       return listUIPlugins(projectRoot);
+    case "inspect_ui_services":
+      return inspectUIServices(projectRoot);
     case "inspect_ui_plugin":
       return inspectUIPlugin(projectRoot, request.input.pluginId);
     case "inspect_ui_plugin_source_references":

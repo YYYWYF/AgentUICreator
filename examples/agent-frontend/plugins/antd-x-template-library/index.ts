@@ -81,4 +81,4 @@ export { AntdXWelcomePlugin } from "../antd-x-welcome";
 export { ConversationSurfacePlugin } from "../conversation-surface";
 export { ConversationDataSourcePlugin } from "../conversation-data-source";
 export { WorkspaceInspectorPlugin } from "../workspace-inspector";
-export * from "../antd-x-theme-provider/theme-service";
+export * from "../../services/agent-ui-theme";

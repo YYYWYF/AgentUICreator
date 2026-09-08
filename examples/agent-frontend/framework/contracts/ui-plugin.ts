@@ -110,6 +110,8 @@ export interface UIPluginDefinition<TState = unknown> {
   provides?: readonly string[] | undefined;
   /** Named services that must exist before this plugin instance becomes active. */
   inject?: readonly string[] | undefined;
+  /** Named enhancement services that never gate plugin activation. */
+  optionalInject?: readonly string[] | undefined;
   /** Instance-lifetime setup. Services provided here are removed on deactivation. */
   setup?:
     | ((context: UIPluginSetupContext) => UIPluginSetupCleanup)
@@ -215,6 +217,8 @@ export const uiPluginInjectSchema = serviceNameListSchema;
 
 export const uiPluginProvidesSchema = serviceNameListSchema;
 
+export const uiPluginOptionalInjectSchema = serviceNameListSchema;
+
 export function parseUIPluginManifest(input: unknown): UIPluginManifest {
   return uiPluginManifestSchema.parse(input);
 }
@@ -224,5 +228,9 @@ export function parseUIPluginInject(input: unknown): string[] {
 }
 
 export function parseUIPluginProvides(input: unknown): string[] {
+  return serviceNameListSchema.parse(input);
+}
+
+export function parseUIPluginOptionalInject(input: unknown): string[] {
   return serviceNameListSchema.parse(input);
 }

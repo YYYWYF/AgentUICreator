@@ -51,6 +51,7 @@ print(json.dumps({"schemaVersion": 2, "ok": True, "result": request}))
     _root, client = _control_project(tmp_path, source)
 
     plugin = asyncio.run(client.inspect_ui_plugin("workspace-inspector"))
+    services = asyncio.run(client.inspect_ui_services())
     slots = asyncio.run(client.inspect_ui_slots(root="workspace"))
 
     assert plugin == {
@@ -59,6 +60,11 @@ print(json.dumps({"schemaVersion": 2, "ok": True, "result": request}))
         "input": {"pluginId": "workspace-inspector"},
     }
     assert slots["input"] == {"root": "workspace"}
+    assert services == {
+        "schemaVersion": 2,
+        "operation": "inspect_ui_services",
+        "input": {},
+    }
 
 
 def test_mutation_transport_sends_exact_protocol_v2_request(tmp_path):

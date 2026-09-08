@@ -98,6 +98,19 @@ class PluginProjectControl:
         self.root = root
         self.diagnostics = diagnostics
         self.runtime_error = runtime_error
+        self.service_topology = {
+            "services": [
+                {
+                    "name": "agent-ui.theme",
+                    "status": "available",
+                    "providers": [{"pluginId": "theme-provider", "selected": True}],
+                    "requiredConsumers": [],
+                    "optionalConsumers": [],
+                }
+            ],
+            "plugins": [],
+            "issues": [],
+        }
         self.metrics = ProjectControlMetrics()
 
     def hash(self) -> str:
@@ -120,6 +133,10 @@ class PluginProjectControl:
     async def inspect_ui_plugin(self, plugin_id):
         self.record("inspect_ui_plugin")
         return {"pluginId": plugin_id, "instances": []}
+
+    async def inspect_ui_services(self):
+        self.record("inspect_ui_services")
+        return {"appUIModelHash": self.hash(), **self.service_topology}
 
     async def inspect_ui_slots(self, *, root=None):
         self.record("inspect_ui_slots")
@@ -401,6 +418,9 @@ def test_full_plugin_creation_golden_scenario(tmp_path):
     receipt = agent.activity.finish()
 
     assert (tmp_path / "plugins/task-status/manifest.json").is_file()
+    assert "provides" not in (
+        tmp_path / "plugins/task-status/definition.ts"
+    ).read_text(encoding="utf-8")
     assert client.model()["pluginInstances"]["task-status-main"]["enabled"] is True
     assert "taskStatus" in (tmp_path / REGISTRY_PATH).read_text(encoding="utf-8")
     assert agent.validation.current_result().status == "passed"
@@ -514,6 +534,143 @@ def test_existing_plugin_multi_file_change_uses_one_atomic_mutation(tmp_path):
         tmp_path / "plugins/task-status/styles.css"
     ).read_text()
     assert result.text == "Task Status source updated and verified."
+
+
+def test_existing_optional_service_is_reused_without_ownership_question(tmp_path):
+    responses = [
+        call("inspect_ui_services", {}, "inspect-services"),
+        batch(
+            call(
+                "inspect_ui_plugin",
+                {"pluginId": "task-status"},
+                "inspect-task-status",
+            ),
+            call(
+                "inspect_ui_plugin_source_references",
+                {"pluginId": "task-status"},
+                "inspect-task-status-source",
+            ),
+        ),
+        batch(
+            call(
+                "read_file",
+                {"file_path": "/plugins/task-status/definition.ts"},
+                "read-definition",
+            ),
+            call(
+                "read_file",
+                {"file_path": "/plugins/task-status/index.tsx"},
+                "read-index",
+            ),
+        ),
+        call(
+            "mutate_ui_plugin_source",
+            {
+                "pluginId": "task-status",
+                "changes": [
+                    {
+                        "type": "edit",
+                        "relativePath": "definition.ts",
+                        "edits": [
+                            {
+                                "oldText": 'import manifest from "./manifest.json";\n',
+                                "newText": (
+                                    'import manifest from "./manifest.json";\n'
+                                    'import { AGENT_UI_THEME_SERVICE } from "../../services/agent-ui-theme";\n'
+                                ),
+                            },
+                            {
+                                "oldText": "export default defineUIPlugin({ manifest, component: TaskStatus });",
+                                "newText": (
+                                    "export default defineUIPlugin({ manifest, "
+                                    "optionalInject: [AGENT_UI_THEME_SERVICE], component: TaskStatus });"
+                                ),
+                            },
+                        ],
+                    },
+                    {
+                        "type": "edit",
+                        "relativePath": "index.tsx",
+                        "edits": [
+                            {
+                                "oldText": "export function TaskStatus() { return <section>Ready</section>; }",
+                                "newText": (
+                                    'import { usePluginService } from "../../runtime/plugins";\n'
+                                    'import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService } from "../../services/agent-ui-theme";\n'
+                                    "export function TaskStatus() { const theme = usePluginService<AgentUIThemeService>(AGENT_UI_THEME_SERVICE); "
+                                    'return <section data-theme={theme?.getMode() ?? "default"}>Ready</section>; }'
+                                ),
+                            }
+                        ],
+                    },
+                ],
+            },
+            "mutate-theme-support",
+        ),
+        call("validate_creator_changes", {}, "validate-theme-support"),
+        call("inspect_runtime_errors", {}, "runtime-theme-support"),
+        AIMessage(content="Task Status now optionally follows the existing Theme Service."),
+    ]
+    agent, _client, _diagnostics, _validation = make_agent(
+        tmp_path, responses, already_satisfied=True
+    )
+
+    result = asyncio.run(agent.run("让 Task Status 跟随系统主题。"))
+
+    names = [item.name for item in agent.runtime.activities]
+    assert names[0] == "inspect_ui_services"
+    assert names.count("mutate_ui_plugin_source") == 1
+    assert "optionalInject: [AGENT_UI_THEME_SERVICE]" in (
+        tmp_path / "plugins/task-status/definition.ts"
+    ).read_text(encoding="utf-8")
+    assert result.text == "Task Status now optionally follows the existing Theme Service."
+
+
+def test_missing_shared_service_stops_for_ownership_clarification(tmp_path):
+    responses = [
+        call("inspect_ui_services", {}, "inspect-services"),
+        AIMessage(
+            content=(
+                "当前 Search Plugin 需要会话跳转能力，但项目没有对应 Service。"
+                "建议由 conversation-history 提供 ConversationNavigationService，"
+                "Search Plugin 通过 inject 使用。是否按这个方式继续？"
+            )
+        ),
+    ]
+    agent, client, _diagnostics, validation = make_agent(tmp_path, responses)
+    client.service_topology = {"services": [], "plugins": [], "issues": []}
+
+    result = asyncio.run(agent.run("让 Search Plugin 点击结果后切换历史会话。"))
+
+    assert [item.name for item in agent.runtime.activities] == ["inspect_ui_services"]
+    assert validation.calls == []
+    assert not (tmp_path / "plugins/task-status").exists()
+    assert result.text.endswith("是否按这个方式继续？")
+
+
+def test_explicit_service_ownership_does_not_repeat_confirmation(tmp_path):
+    responses = [
+        call("inspect_ui_services", {}, "inspect-services"),
+        AIMessage(
+            content=(
+                "Ownership 已明确；当前阶段尚未开放 Service contract 创建工具，"
+                "因此没有使用通用文件写入绕过门禁。"
+            )
+        ),
+    ]
+    agent, client, _diagnostics, validation = make_agent(tmp_path, responses)
+    client.service_topology = {"services": [], "plugins": [], "issues": []}
+
+    result = asyncio.run(
+        agent.run(
+            "让 conversation-history 提供 ConversationNavigationService，再让 Search Plugin 使用。"
+        )
+    )
+
+    assert [item.name for item in agent.runtime.activities] == ["inspect_ui_services"]
+    assert validation.calls == []
+    assert "是否" not in result.text
+    assert "尚未开放" in result.text
 
 
 def test_existing_plugin_single_file_change_still_uses_edit_file(tmp_path):

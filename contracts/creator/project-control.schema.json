@@ -18,7 +18,7 @@
           "required": ["schemaVersion", "operation", "input"],
           "properties": {
             "schemaVersion": { "const": 2 },
-            "operation": { "enum": ["inspect_ui_project", "inspect_app_ui_model", "list_ui_plugins"] },
+            "operation": { "enum": ["inspect_ui_project", "inspect_app_ui_model", "list_ui_plugins", "inspect_ui_services"] },
             "input": { "$ref": "#/$defs/emptyInput" }
           }
         },

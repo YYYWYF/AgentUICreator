@@ -24,7 +24,10 @@ const fixtureConfig: UIProjectControlConfig = {
   uiPackages: ["react"],
 };
 
-async function createProject(definitionSource = "export default {};\n") {
+async function createProject(
+  definitionSource =
+    "const Component = () => null;\nexport default { manifest: {}, Component };\n",
+) {
   const projectRoot = await mkdtemp(path.join(tmpdir(), "ui-control-"));
   temporaryProjects.push(projectRoot);
   await mkdir(path.join(projectRoot, "app-ui"));
@@ -245,6 +248,67 @@ describe("ui-project-control", () => {
           truncated: true,
           content: expect.any(String),
         },
+      },
+    });
+  });
+
+  it("returns a Plugin Service dependency summary", async () => {
+    const { projectRoot } = await createProject(
+      "const REQUIRED = \"workspace.files\" as const;\n" +
+        "const OPTIONAL = \"agent-ui.theme\" as const;\n" +
+        "const Component = () => null;\n" +
+        "export default { manifest: {}, inject: [REQUIRED], optionalInject: [OPTIONAL], Component };\n",
+    );
+
+    const response = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 2,
+        operation: "inspect_ui_plugin",
+        input: { pluginId: "sample" },
+      },
+      projectRoot,
+    );
+
+    expect(response).toMatchObject({
+      ok: true,
+      result: {
+        services: {
+          provides: [],
+          required: ["workspace.files"],
+          optional: ["agent-ui.theme"],
+        },
+      },
+    });
+  });
+
+  it("routes the complete Service topology inspection", async () => {
+    const { projectRoot } = await createProject(
+      "const OPTIONAL = \"agent-ui.theme\" as const;\n" +
+        "const Component = () => null;\n" +
+        "export default { manifest: {}, optionalInject: [OPTIONAL], Component };\n",
+    );
+
+    const response = await handleUIProjectControlRequest(
+      { schemaVersion: 2, operation: "inspect_ui_services", input: {} },
+      projectRoot,
+    );
+
+    expect(response).toMatchObject({
+      ok: true,
+      result: {
+        services: [
+          expect.objectContaining({
+            name: "agent-ui.theme",
+            status: "optional-unavailable",
+          }),
+        ],
+        plugins: [
+          expect.objectContaining({
+            pluginId: "sample",
+            optionalInject: ["agent-ui.theme"],
+          }),
+        ],
+        issues: [],
       },
     });
   });

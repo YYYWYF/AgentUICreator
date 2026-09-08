@@ -82,6 +82,9 @@ class ProjectControlClient:
     async def inspect_ui_plugin(self, plugin_id: str) -> dict[str, Any]:
         return await self._request("inspect_ui_plugin", {"pluginId": plugin_id})
 
+    async def inspect_ui_services(self) -> dict[str, Any]:
+        return await self._request("inspect_ui_services", {})
+
     async def inspect_ui_plugin_source_references(
         self, plugin_id: str
     ) -> dict[str, Any]:

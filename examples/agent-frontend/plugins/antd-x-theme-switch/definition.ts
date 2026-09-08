@@ -1,6 +1,6 @@
 import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
 import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
-import { AGENT_UI_THEME_SERVICE } from "../antd-x-theme-provider/theme-service";
+import { AGENT_UI_THEME_SERVICE } from "../../services/agent-ui-theme";
 import { AntdXThemeSwitchPlugin } from "./index";
 import manifestJson from "./manifest.json";
 

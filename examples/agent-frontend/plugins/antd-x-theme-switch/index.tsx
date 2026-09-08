@@ -8,7 +8,7 @@ import { usePluginService } from "../../runtime/plugins";
 import {
   AGENT_UI_THEME_SERVICE,
   type AgentUIThemeService,
-} from "../antd-x-theme-provider/theme-service";
+} from "../../services/agent-ui-theme";
 
 import "./styles.css";
 

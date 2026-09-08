@@ -14,7 +14,9 @@ import {
   PLUGIN_REGISTRY_ENTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
 } from "./ui-project/registry-generator";
+import { inspectUIServiceDependencies } from "./ui-project/service-dependency-inspector";
 import type {
+  InspectedService,
   ProjectIssue,
   UIProjectControlConfig,
 } from "./ui-project/types";
@@ -33,6 +35,7 @@ export interface UIProjectVerification {
     headlessPluginIds: string[];
     generatedFileFresh: boolean;
   };
+  services: InspectedService[];
   errors: VerificationIssue[];
   warnings: VerificationIssue[];
 }
@@ -133,10 +136,18 @@ export async function verifyUIProject(
   let pluginIds: string[] = [];
   let headlessPluginIds: string[] = [];
   let generatedFileFresh = false;
+  let services: InspectedService[] = [];
   if (model !== undefined) {
     const registry = await generatePluginRegistry(projectRoot, model, config);
     errors.push(...registry.errors);
     errors.push(...(await verifyPluginChildSlots(projectRoot, registry.assets)));
+    const serviceInspection = inspectUIServiceDependencies(
+      projectRoot,
+      model,
+      registry.assets,
+    );
+    services = serviceInspection.services;
+    errors.push(...serviceInspection.issues);
     pluginIds = registry.registeredPluginIds;
     headlessPluginIds = registry.headlessPluginIds;
 
@@ -202,6 +213,7 @@ export async function verifyUIProject(
       headlessPluginIds,
       generatedFileFresh,
     },
+    services,
     errors,
     warnings,
   };

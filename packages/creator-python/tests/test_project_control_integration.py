@@ -58,6 +58,7 @@ def test_real_target_project_read_operations_execute_through_tsx():
     slots = asyncio.run(client.inspect_ui_slots())
     plugin_id = plugins["pluginAssets"][0]["pluginId"]
     plugin = asyncio.run(client.inspect_ui_plugin(plugin_id))
+    services = asyncio.run(client.inspect_ui_services())
     references = asyncio.run(client.inspect_ui_plugin_source_references(plugin_id))
 
     assert project["schemaVersion"] == 2
@@ -65,6 +66,8 @@ def test_real_target_project_read_operations_execute_through_tsx():
     assert plugins["appUIModelHash"] == app_ui_model["hash"]
     assert slots["appUIModelHash"] == app_ui_model["hash"]
     assert plugin["asset"]["pluginId"] == plugin_id
+    assert services["appUIModelHash"] == app_ui_model["hash"]
+    assert isinstance(services["services"], list)
     assert references["pluginId"] == plugin_id
 
 

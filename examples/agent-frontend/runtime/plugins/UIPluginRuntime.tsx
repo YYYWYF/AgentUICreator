@@ -9,6 +9,7 @@ import { LayoutRenderer } from "../layout";
 import { PluginInstanceProvider } from "../context";
 import type { PluginRegistry } from "./PluginRegistry";
 import {
+  PluginServiceConsumerContext,
   useOptionalPluginServiceRuntime,
   usePluginServiceRuntime,
   usePluginServiceRuntimeRevision,
@@ -209,13 +210,22 @@ function SlotContent<TState = unknown>({
                 data-plugin-id={definition.manifest.id}
                 data-plugin-instance-id={instance.id}
               >
-                <PluginInstanceProvider
-                  actions={instanceActions}
-                  events={events}
-                  instance={instance}
+                <PluginServiceConsumerContext.Provider
+                  value={{
+                    pluginId: definition.manifest.id,
+                    instanceId: instance.id,
+                    inject: definition.inject ?? [],
+                    optionalInject: definition.optionalInject ?? [],
+                  }}
                 >
-                  <PluginComponent renderSlot={renderSlot} />
-                </PluginInstanceProvider>
+                  <PluginInstanceProvider
+                    actions={instanceActions}
+                    events={events}
+                    instance={instance}
+                  >
+                    <PluginComponent renderSlot={renderSlot} />
+                  </PluginInstanceProvider>
+                </PluginServiceConsumerContext.Provider>
               </div>
             </RuntimePluginMountProbe>
           </PluginErrorBoundary>

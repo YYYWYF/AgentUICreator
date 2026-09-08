@@ -2,6 +2,7 @@ import {
   parseUIPluginProvides,
   parseUIPluginInject,
   parseUIPluginManifest,
+  parseUIPluginOptionalInject,
   type UIPluginDefinition,
 } from "../../framework/contracts/ui-plugin";
 import type { PluginSlotCatalog } from "../../framework/contracts/app-ui-composition";
@@ -24,12 +25,34 @@ export class StaticPluginRegistry<TState = unknown>
     const manifest = parseUIPluginManifest(plugin.manifest);
     const inject = parseUIPluginInject(plugin.inject ?? []);
     const provides = parseUIPluginProvides(plugin.provides ?? []);
+    const optionalInject = parseUIPluginOptionalInject(
+      plugin.optionalInject ?? [],
+    );
 
     const providedNames = new Set(provides);
-    const overlap = inject.find((name) => providedNames.has(name));
-    if (overlap !== undefined) {
+    const providedRequiredOverlap = inject.find((name) =>
+      providedNames.has(name),
+    );
+    if (providedRequiredOverlap !== undefined) {
       throw new Error(
-        `UI plugin "${manifest.id}" cannot both provide and inject "${overlap}"`,
+        `UI plugin "${manifest.id}" cannot both provide and inject "${providedRequiredOverlap}"`,
+      );
+    }
+    const providedOptionalOverlap = optionalInject.find((name) =>
+      providedNames.has(name),
+    );
+    if (providedOptionalOverlap !== undefined) {
+      throw new Error(
+        `UI plugin "${manifest.id}" cannot both provide and optionalInject "${providedOptionalOverlap}"`,
+      );
+    }
+    const requiredNames = new Set(inject);
+    const requiredOptionalOverlap = optionalInject.find((name) =>
+      requiredNames.has(name),
+    );
+    if (requiredOptionalOverlap !== undefined) {
+      throw new Error(
+        `UI plugin "${manifest.id}" cannot both inject and optionalInject "${requiredOptionalOverlap}"`,
       );
     }
 
@@ -41,6 +64,7 @@ export class StaticPluginRegistry<TState = unknown>
       ...plugin,
       inject,
       provides,
+      optionalInject,
     });
   }
 

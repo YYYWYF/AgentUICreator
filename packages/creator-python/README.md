@@ -80,7 +80,7 @@ CREATOR_PYTHON_AGENT_MODE=domain-read
 
 该模式在 Minimal Agent 的 `ls`、`read_file`、`glob`、`grep`、`edit_file` 之外，
 新增 `inspect_ui_project`、`inspect_app_ui_model`、`list_ui_plugins`、
-`inspect_ui_slots`、`inspect_ui_plugin` 和
+`inspect_ui_slots`、`inspect_ui_plugin`、`inspect_ui_services` 和
 `inspect_ui_plugin_source_references`。领域事实只通过目标工程固定的
 `scripts/ui-project-control.ts` 获取；不会自动向每轮模型调用注入全量 snapshot。
 

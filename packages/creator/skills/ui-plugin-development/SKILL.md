@@ -2,7 +2,7 @@
 name: ui-plugin-development
 description: Use to inspect, create, or modify UI Plugin manifests, definitions, React components, styles, contexts, and registration when existing Plugins cannot provide the requested frontend behavior.
 compatibility: Agent UI Plugin Creator Phase 8 permits writes under project plugins and AppUIModel composition.
-allowed-tools: read_file ls glob grep edit_file create_ui_plugin mutate_ui_plugin_source inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin inspect_ui_plugin_source_references mutate_app_ui_model validate_creator_changes inspect_runtime_errors
+allowed-tools: read_file ls glob grep edit_file create_ui_plugin mutate_ui_plugin_source inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin inspect_ui_services inspect_ui_plugin_source_references mutate_app_ui_model validate_creator_changes inspect_runtime_errors
 ---
 
 # UI Plugin Development
@@ -25,6 +25,29 @@ Inspect project conventions before deciding that Plugin source must change:
 2. If one already supplies the requested behavior, reuse its `manifest.id` in a PluginInstance and change only AppUIModel.
 3. If behavior is missing, create the smallest Plugin that follows the project's existing directory and registration conventions.
 4. Add its PluginInstance and Slot composition through AppUIModel. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
+
+## Service dependency and ownership decision
+
+When a Plugin needs another capability, call `inspect_ui_services` instead of
+guessing a Provider from Plugin names or source proximity.
+
+```text
+Plugin needs capability X
+-> inspect_ui_services
+-> existing Service?
+   -> yes: classify core requirement as inject, enhancement as optionalInject
+   -> no: is a cross-boundary shared Service actually necessary?
+      -> no: keep the behavior private to the Plugin
+      -> yes: resolve the natural Owner, explain the current fact, recommended
+              ownership, and impact, then ask one confirmation question
+```
+
+- `inject` is only for a capability without which the Plugin's core behavior cannot work.
+- `optionalInject` is for an enhancement with a complete fallback when the Service is unavailable.
+- A missing optional Service is not permission to create it. Omit the dependency unless the user explicitly authorizes a new shared capability.
+- A new Plugin does not declare `provides` merely because another Plugin might use its behavior later.
+- If the user already explicitly identifies the Service Owner and Consumer, do not repeat the ownership confirmation. If Service-contract mutation tooling is unavailable, state that boundary instead of using generic file writes.
+- A public Service is justified only across a real boundary: multiple Plugins, another Plugin caller, Application Shell, or a Frontend Tool/Agent adapter. Private state and helpers stay inside the Plugin.
 
 ## Safe source editing
 
@@ -88,11 +111,14 @@ When adding, removing, or renaming a child `renderSlot(...)` outlet in a contain
   Provider Plugins or Runtime Core actions:
   - `provides` means this Plugin owns and declares one or more capabilities for the current activation lifecycle.
   - `inject` means this Plugin requires a hard capability dependency before activation.
+  - `optionalInject` means this Plugin can use an enhancement but remains complete and active without it.
   - `usePluginService()` is runtime capability lookup for component access; `setup({ services })` remains the non-React activation API.
 - Provider rules are strict: if `setup` calls `services.provide`, the Plugin **must** declare the same Service Name in `UIPluginDefinition.provides`.
 - For a hard capability dependency, import its stable Service seam from `/services/*` and declare `inject` on `UIPluginDefinition`; do not import concrete Provider Plugin source.
 - Provider implementations must be exposed only through `setup({ services })` + `services.provide(...)`, and the same Service Name must be declared in `provides`.
-- Optional dependency behavior must not use `inject`; call `usePluginService(...)` in the component and tolerate `undefined`.
+- Optional dependency behavior must declare `optionalInject`, call `usePluginService(...)`, and tolerate `undefined` with a complete fallback.
+- Both `setup({ services }).get(X)` and component `usePluginService(X)` require X to appear in `inject` or `optionalInject`. Application-owned lookup is not subject to this Plugin declaration rule.
+- `provides`, `inject`, and `optionalInject` are pairwise disjoint.
 - When multiple Plugins share a capability, reuse an existing seam name/type from `/services/*` and never invent a synonym service contract.
 - Prefer `UIPluginObservableService` only when other Plugins need sustained observation of service-owned state.
 - `UIPluginObservableService` requires `getSnapshot()` + `subscribe()`; otherwise prefer a structural interface with explicit methods.

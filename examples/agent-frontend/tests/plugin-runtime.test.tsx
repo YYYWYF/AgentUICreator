@@ -311,6 +311,42 @@ describe("StaticPluginRegistry", () => {
       'UI plugin "misrouted" cannot both provide and inject "editor"',
     );
   });
+
+  it("rejects plugins that provide and optionalInject the same service", () => {
+    const invalidPlugin: UIPluginDefinition = {
+      manifest: {
+        id: "misrouted-optional-provider",
+        name: "Misrouted Optional Provider",
+        description: "Invalid optional service declaration fixture",
+        version: "1.0.0",
+      },
+      provides: ["editor"],
+      optionalInject: ["editor"],
+      Component: () => null,
+    };
+
+    expect(() => new StaticPluginRegistry([invalidPlugin])).toThrow(
+      'UI plugin "misrouted-optional-provider" cannot both provide and optionalInject "editor"',
+    );
+  });
+
+  it("rejects plugins that inject and optionalInject the same service", () => {
+    const invalidPlugin: UIPluginDefinition = {
+      manifest: {
+        id: "misrouted-optional-consumer",
+        name: "Misrouted Optional Consumer",
+        description: "Invalid optional service declaration fixture",
+        version: "1.0.0",
+      },
+      inject: ["editor"],
+      optionalInject: ["editor"],
+      Component: () => null,
+    };
+
+    expect(() => new StaticPluginRegistry([invalidPlugin])).toThrow(
+      'UI plugin "misrouted-optional-consumer" cannot both inject and optionalInject "editor"',
+    );
+  });
 });
 
 describe("UIPluginRuntime", () => {

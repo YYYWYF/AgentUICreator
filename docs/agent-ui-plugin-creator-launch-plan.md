@@ -615,7 +615,9 @@ plugins/antd-x-run-timeline/         # optional consumer
 ```ts
 interface UIPluginDefinition {
   manifest: UIPluginManifest
+  provides?: readonly string[]
   inject?: readonly string[]
+  optionalInject?: readonly string[]
   setup?: (context: UIPluginSetupContext) => void | (() => void)
   Component: ComponentType<UIPluginComponentProps>
 }
@@ -641,9 +643,11 @@ const theme = usePluginService("agent-ui.theme")
 theme?.toggle()
 ```
 
-如果能力只是增强而不是运行前提，省略 `inject`，只在使用处探测：
+如果能力只是增强而不是运行前提，显式声明 `optionalInject` 并在使用处提供 fallback：
 
 ```ts
+optionalInject: ["agent-ui.conversations"]
+
 const conversations = usePluginService("agent-ui.conversations")
 const allMessages = useAgentMessages()
 const messages = conversations
@@ -654,7 +658,9 @@ const messages = conversations
 约束：
 
 - `manifest.capabilities` 仍是描述性元数据，不承担运行时函数调用。
-- 硬依赖未满足时，Plugin Instance 保持 pending；可选能力只在组件内调用 `usePluginService()` 探测。
+- 硬依赖未满足时，Plugin Instance 保持 pending；可选能力通过 `optionalInject` 声明，只参与激活软排序而不阻止最终 activation。
+- `provides`、`inject` 与 `optionalInject` 必须两两互斥；Plugin 的 `setup().services.get()` 和组件 `usePluginService()` 只能读取显式声明在 `inject` 或 `optionalInject` 中的 Service，Application-owned lookup 不受此限制。
+- 新公共 Service 必须先确认真实跨边界需要并解析 Ownership；除非用户已明确指定 Owner，否则 Creator 在任何写入前说明推荐 Owner 与影响范围并等待确认。P0-D 不开放通用 Service 创建或修改工具。
 - 服务名在一个 Agent Frontend 内是具名命名空间；重复提供必须确定性失败。
 - 服务归提供它的 Plugin Instance 所有；实例禁用、替换或移除时，服务和 setup disposer 一起清理。
 - 服务消失时，硬依赖消费者必须失效；服务恢复后以新的激活身份重新挂载，不能继续持有已卸载提供者。

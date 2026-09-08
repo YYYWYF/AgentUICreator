@@ -14,8 +14,11 @@ import { antdXMessageListPlugin } from "../plugins/antd-x-message-list/definitio
 import { antdXRunTimelinePlugin } from "../plugins/antd-x-run-timeline/definition";
 import {
   createPluginRegistry,
+  PluginServiceConsumerContext,
   PluginServiceRuntime,
+  PluginServiceRuntimeContext,
   SlotRegistry,
+  usePluginService,
   usePluginServiceSnapshot,
 } from "../runtime/plugins";
 
@@ -31,7 +34,7 @@ function createDefinition(
   id: string,
   definition: Pick<
     UIPluginDefinition,
-    "inject" | "setup" | "provides"
+    "inject" | "optionalInject" | "setup" | "provides"
   > = {},
   childSlots?: readonly string[],
 ): UIPluginDefinition {
@@ -188,6 +191,250 @@ describe("PluginServiceRuntime", () => {
     expect(greeting).toBe("Hello, Agent!");
     expect(runtime.getActivation("provider-main")?.status).toBe("active");
     expect(runtime.getActivation("consumer-main")?.status).toBe("active");
+  });
+
+  it("soft-orders an available optional Provider before Consumer setup", () => {
+    let observed: unknown;
+    const provider = createDefinition("provider", {
+      provides: ["test.optional"],
+      setup: ({ services }) => {
+        services.provide("test.optional", { available: true });
+      },
+    });
+    const consumer = createDefinition("consumer", {
+      optionalInject: ["test.optional"],
+      setup: ({ services }) => {
+        observed = services.get("test.optional");
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      createServiceModel(),
+      createPluginRegistry([consumer, provider]),
+      runtimeActions,
+    );
+
+    expect(observed).toEqual({ available: true });
+    expect(runtime.getActivation("consumer-main")?.status).toBe("active");
+  });
+
+  it("keeps a Consumer active when its optional Service is unavailable", () => {
+    let observed: unknown = "not-called";
+    const consumer = createDefinition("consumer", {
+      optionalInject: ["test.optional"],
+      setup: ({ services }) => {
+        observed = services.get("test.optional");
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      createServiceModel(false),
+      createPluginRegistry([consumer]),
+      runtimeActions,
+    );
+
+    expect(observed).toBeUndefined();
+    expect(runtime.getActivation("consumer-main")?.status).toBe("active");
+  });
+
+  it("breaks optional cycles without blocking activation", () => {
+    const first = createDefinition("first", {
+      provides: ["test.first"],
+      optionalInject: ["test.second"],
+      setup: ({ services }) => {
+        services.get("test.second");
+        services.provide("test.first", {});
+      },
+    });
+    const second = createDefinition("second", {
+      provides: ["test.second"],
+      optionalInject: ["test.first"],
+      setup: ({ services }) => {
+        services.get("test.first");
+        services.provide("test.second", {});
+      },
+    });
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        first: { id: "first", pluginId: "first", enabled: true },
+        second: { id: "second", pluginId: "second", enabled: true },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(model, createPluginRegistry([first, second]), runtimeActions);
+
+    expect(runtime.getActivation("first")?.status).toBe("active");
+    expect(runtime.getActivation("second")?.status).toBe("active");
+  });
+
+  it("breaks hard plus optional cycles without blocking activation", () => {
+    const first = createDefinition("first", {
+      provides: ["test.first"],
+      optionalInject: ["test.second"],
+      setup: ({ services }) => {
+        services.get("test.second");
+        services.provide("test.first", {});
+      },
+    });
+    const second = createDefinition("second", {
+      provides: ["test.second"],
+      inject: ["test.first"],
+      setup: ({ services }) => {
+        services.get("test.first");
+        services.provide("test.second", {});
+      },
+    });
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        first: { id: "first", pluginId: "first", enabled: true },
+        second: { id: "second", pluginId: "second", enabled: true },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(model, createPluginRegistry([first, second]), runtimeActions);
+
+    expect(runtime.getActivation("first")?.status).toBe("active");
+    expect(runtime.getActivation("second")?.status).toBe("active");
+  });
+
+  it("fails setup that reads an undeclared Service", () => {
+    const consumer = createDefinition("consumer", {
+      setup: ({ services }) => {
+        services.get("test.secret");
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      createServiceModel(false),
+      createPluginRegistry([consumer]),
+      runtimeActions,
+    );
+
+    expect(runtime.getActivation("consumer-main")).toEqual({
+      status: "failed",
+      errorMessage:
+        'Plugin "consumer" instance "consumer-main" accessed undeclared service "test.secret"',
+    });
+  });
+
+  it("enforces component declarations but leaves application lookup unrestricted", () => {
+    const runtime = new PluginServiceRuntime();
+    function Probe() {
+      usePluginService("test.secret");
+      return null;
+    }
+
+    expect(() =>
+      create(
+        <PluginServiceRuntimeContext.Provider value={runtime}>
+          <PluginServiceConsumerContext.Provider
+            value={{
+              pluginId: "consumer",
+              instanceId: "consumer-main",
+              inject: [],
+              optionalInject: [],
+            }}
+          >
+            <Probe />
+          </PluginServiceConsumerContext.Provider>
+        </PluginServiceRuntimeContext.Provider>,
+      ),
+    ).toThrow(
+      'Plugin "consumer" instance "consumer-main" accessed undeclared service "test.secret"',
+    );
+
+    expect(() =>
+      create(
+        <PluginServiceRuntimeContext.Provider value={runtime}>
+          <Probe />
+        </PluginServiceRuntimeContext.Provider>,
+      ),
+    ).not.toThrow();
+  });
+
+  it("emits a revision when a Provider disposes a Service outside reconcile", () => {
+    let disposeService: (() => void) | undefined;
+    const provider = createDefinition("provider", {
+      provides: ["test.disposable"],
+      setup: ({ services }) => {
+        disposeService = services.provide("test.disposable", {});
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+    runtime.reconcile(
+      createServiceModel(),
+      createPluginRegistry([provider]),
+      runtimeActions,
+    );
+    const revision = runtime.getRevision();
+
+    disposeService?.();
+
+    expect(runtime.get("test.disposable")).toBeUndefined();
+    expect(runtime.getRevision()).toBe(revision + 1);
+  });
+
+  it("reactively enhances and restores an optional component fallback", () => {
+    const provider = createDefinition("provider", {
+      provides: ["test.optional"],
+      setup: ({ services }) => {
+        services.provide("test.optional", { enhanced: true });
+      },
+    });
+    const registry = createPluginRegistry([provider]);
+    const runtime = new PluginServiceRuntime();
+    const providerModel = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "provider-main": {
+          id: "provider-main",
+          pluginId: "provider",
+          enabled: true,
+        },
+      },
+    });
+    function Probe() {
+      const service = usePluginService<{ enhanced: boolean }>("test.optional");
+      return <span>{service?.enhanced === true ? "enhanced" : "fallback"}</span>;
+    }
+    const renderer = create(
+      <PluginServiceRuntimeContext.Provider value={runtime}>
+        <PluginServiceConsumerContext.Provider
+          value={{
+            pluginId: "consumer",
+            instanceId: "consumer-main",
+            inject: [],
+            optionalInject: ["test.optional"],
+          }}
+        >
+          <Probe />
+        </PluginServiceConsumerContext.Provider>
+      </PluginServiceRuntimeContext.Provider>,
+    );
+    expect(renderer.toJSON()).toHaveProperty("children", ["fallback"]);
+
+    act(() => {
+      runtime.reconcile(providerModel, registry, runtimeActions);
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["enhanced"]);
+
+    act(() => {
+      const disabledProviderModel = structuredClone(providerModel);
+      disabledProviderModel.pluginInstances["provider-main"]!.enabled = false;
+      runtime.reconcile(disabledProviderModel, registry, runtimeActions);
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["fallback"]);
+    renderer.unmount();
   });
 
   it("rejects duplicate service providers deterministically", () => {

@@ -7,6 +7,48 @@ import type { PluginSlotCatalog } from "../../framework/contracts/app-ui-composi
 export interface ProjectIssue {
   code: string;
   message: string;
+  pluginId?: string | undefined;
+  property?: "provides" | "inject" | "optionalInject" | undefined;
+  service?: string | undefined;
+  providerInstances?: string[] | undefined;
+}
+
+export interface PluginServiceDeclaration {
+  pluginId: string;
+  provides: string[];
+  inject: string[];
+  optionalInject: string[];
+}
+
+export interface InspectedServiceInstance {
+  instanceId: string;
+  enabled: boolean;
+  activeCandidate: boolean;
+}
+
+export interface InspectedServicePlugin {
+  pluginId: string;
+  selected: boolean;
+  instances: InspectedServiceInstance[];
+}
+
+export interface InspectedService {
+  name: string;
+  status:
+    | "available"
+    | "inactive"
+    | "required-missing"
+    | "optional-unavailable"
+    | "provider-collision";
+  providers: InspectedServicePlugin[];
+  requiredConsumers: InspectedServicePlugin[];
+  optionalConsumers: InspectedServicePlugin[];
+}
+
+export interface UIServiceDependencyInspection {
+  services: InspectedService[];
+  plugins: PluginServiceDeclaration[];
+  issues: ProjectIssue[];
 }
 
 export interface UIProjectControlConfig {

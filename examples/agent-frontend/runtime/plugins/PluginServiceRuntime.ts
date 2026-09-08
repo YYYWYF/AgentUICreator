@@ -104,6 +104,8 @@ export class PluginServiceRuntime {
   readonly #activePlugins: ActivePluginRecord[] = [];
   #activationCounter = 0;
   #revision = 0;
+  #mutationBatchDepth = 0;
+  #serviceMutationPending = false;
 
   constructor(
     applicationEvents = new AppEventRuntime(new AppEventRegistry({})),
@@ -142,50 +144,66 @@ export class PluginServiceRuntime {
   ): void {
     validateAppUIComposition(model, createPluginSlotCatalog(registry));
 
-    const previouslyFailed = new Set(
-      [...this.#activations]
-        .filter(([, activation]) => activation.status === "failed")
-        .map(([instanceId]) => instanceId),
-    );
-    this.#deactivateAll();
+    this.#beginMutationBatch();
+    try {
+      const previouslyFailed = new Set(
+        [...this.#activations]
+          .filter(([, activation]) => activation.status === "failed")
+          .map(([instanceId]) => instanceId),
+      );
+      this.#deactivateAll();
 
-    const pending = new Map<
-      string,
-      { instance: PluginInstance; definition: UIPluginDefinition<TState> }
-    >();
+      const pending = new Map<
+        string,
+        { instance: PluginInstance; definition: UIPluginDefinition<TState> }
+      >();
 
-    Object.values(model.pluginInstances)
-      .filter((instance) => {
-        if (!instance.enabled) return false;
-        const definition = registry.get(instance.pluginId);
-        return (
-          instance.mount !== undefined ||
-          definition?.manifest.capabilities?.includes("headless") === true
+      Object.values(model.pluginInstances)
+        .filter((instance) => {
+          if (!instance.enabled) return false;
+          const definition = registry.get(instance.pluginId);
+          return (
+            instance.mount !== undefined ||
+            definition?.manifest.capabilities?.includes("headless") === true
+          );
+        })
+        .sort((left, right) =>
+          left.id < right.id ? -1 : left.id > right.id ? 1 : 0,
+        )
+        .forEach((instance) => {
+          const definition = registry.get(instance.pluginId);
+          if (definition !== undefined) {
+            pending.set(instance.id, { instance, definition });
+          }
+        });
+
+      while (pending.size > 0) {
+        const hardReady = [...pending].filter(([, candidate]) =>
+          (candidate.definition.inject ?? []).every((name) =>
+            this.#services.has(name),
+          ),
         );
-      })
-      .sort((left, right) =>
-        left.id < right.id ? -1 : left.id > right.id ? 1 : 0,
-      )
-      .forEach((instance) => {
-        const definition = registry.get(instance.pluginId);
-        if (definition !== undefined) {
-          pending.set(instance.id, { instance, definition });
+        if (hardReady.length === 0) {
+          break;
         }
-      });
 
-    let madeProgress = true;
-    while (pending.size > 0 && madeProgress) {
-      madeProgress = false;
-
-      for (const [instanceId, candidate] of [...pending]) {
-        const missingServices = (candidate.definition.inject ?? []).filter(
-          (name) => !this.#services.has(name),
+        const preferred = hardReady.filter(([, candidate]) =>
+          (candidate.definition.optionalInject ?? []).every(
+            (name) =>
+              this.#services.has(name) ||
+              ![...pending.values()].some((pendingCandidate) =>
+                (pendingCandidate.definition.provides ?? []).includes(name),
+              ),
+          ),
         );
-
-        if (missingServices.length > 0) {
-          continue;
+        // Optional dependencies are only a stable ordering hint. If every
+        // hard-ready candidate is waiting on another pending candidate,
+        // activate the first one to guarantee progress through optional cycles.
+        const selected = preferred[0] ?? hardReady[0];
+        if (selected === undefined) {
+          break;
         }
-
+        const [instanceId, candidate] = selected;
         pending.delete(instanceId);
         this.#activate(
           candidate.instance,
@@ -194,20 +212,19 @@ export class PluginServiceRuntime {
           diagnostics,
           previouslyFailed.has(instanceId),
         );
-        madeProgress = true;
       }
-    }
 
-    for (const [instanceId, candidate] of pending) {
-      this.#activations.set(instanceId, {
-        status: "pending",
-        missingServices: (candidate.definition.inject ?? []).filter(
-          (name) => !this.#services.has(name),
-        ),
-      });
+      for (const [instanceId, candidate] of pending) {
+        this.#activations.set(instanceId, {
+          status: "pending",
+          missingServices: (candidate.definition.inject ?? []).filter(
+            (name) => !this.#services.has(name),
+          ),
+        });
+      }
+    } finally {
+      this.#endMutationBatch(true);
     }
-
-    this.#emit();
   }
 
   dispose(): void {
@@ -219,8 +236,12 @@ export class PluginServiceRuntime {
       return;
     }
 
-    this.#deactivateAll();
-    this.#emit();
+    this.#beginMutationBatch();
+    try {
+      this.#deactivateAll();
+    } finally {
+      this.#endMutationBatch(true);
+    }
   }
 
   #activate<TState = unknown>(
@@ -235,11 +256,23 @@ export class PluginServiceRuntime {
       cleanups: [],
     };
     const declaredProvides = [...(definition.provides ?? [])];
+    const declaredConsumes = new Set([
+      ...(definition.inject ?? []),
+      ...(definition.optionalInject ?? []),
+    ]);
     const providedByThisInstance = new Set<string>();
     this.#activePlugins.push(record);
 
     const registrar: UIPluginServiceRegistrar = {
-      get: <T = unknown>(name: string): T | undefined => this.get<T>(name),
+      get: <T = unknown>(name: string): T | undefined => {
+        assertServiceName(name);
+        if (!declaredConsumes.has(name)) {
+          throw new Error(
+            `Plugin "${definition.manifest.id}" instance "${instance.id}" accessed undeclared service "${name}"`,
+          );
+        }
+        return this.get<T>(name);
+      },
       provide: <T>(name: string, value: T): (() => void) => {
         assertServiceName(name);
         if (!declaredProvides.includes(name)) {
@@ -266,6 +299,7 @@ export class PluginServiceRuntime {
         }
         this.#services.set(name, serviceRecord);
         providedByThisInstance.add(name);
+        this.#serviceMutated();
 
         let active = true;
         const disposeService = (): void => {
@@ -276,6 +310,7 @@ export class PluginServiceRuntime {
 
           if (this.#services.get(name) === serviceRecord) {
             this.#services.delete(name);
+            this.#serviceMutated();
           }
         };
         record.cleanups.push(disposeService);
@@ -398,7 +433,10 @@ export class PluginServiceRuntime {
       this.#runCleanups(record);
     }
     this.#activePlugins.length = 0;
-    this.#services.clear();
+    if (this.#services.size > 0) {
+      this.#services.clear();
+      this.#serviceMutated();
+    }
     this.#eventScopes.clear();
     this.#activations.clear();
   }
@@ -418,5 +456,29 @@ export class PluginServiceRuntime {
   #emit(): void {
     this.#revision += 1;
     this.#listeners.forEach((listener) => listener());
+  }
+
+  #beginMutationBatch(): void {
+    this.#mutationBatchDepth += 1;
+  }
+
+  #endMutationBatch(forceEmit = false): void {
+    this.#mutationBatchDepth -= 1;
+    if (this.#mutationBatchDepth !== 0) {
+      return;
+    }
+    const shouldEmit = forceEmit || this.#serviceMutationPending;
+    this.#serviceMutationPending = false;
+    if (shouldEmit) {
+      this.#emit();
+    }
+  }
+
+  #serviceMutated(): void {
+    if (this.#mutationBatchDepth > 0) {
+      this.#serviceMutationPending = true;
+      return;
+    }
+    this.#emit();
   }
 }

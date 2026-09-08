@@ -10,16 +10,12 @@ import {
 import { Alert, Badge, Button, Empty, Spin, Tooltip, Typography } from "antd";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
-import { useAgentRun } from "../../runtime/context";
+import { useAgentRun, usePluginInstance } from "../../runtime/context";
+import { usePluginServiceSnapshot } from "../../runtime/plugins";
 import {
-  usePluginService,
-  usePluginServiceSnapshot,
-} from "../../runtime/plugins";
-import {
-  AGENT_UI_CONVERSATION_SERVICE,
   EMPTY_CONVERSATION_SNAPSHOT,
-  type AgentUIConversationService,
 } from "../../services/conversations";
+import { useConversationController } from "./controller-store";
 
 import "./styles.css";
 
@@ -27,9 +23,8 @@ const LIVE_CONVERSATION_KEY = "__agent-ui-live-conversation__";
 
 export function AntdXConversationsPlugin(_props: UIPluginComponentProps) {
   const run = useAgentRun();
-  const conversation = usePluginService<AgentUIConversationService>(
-    AGENT_UI_CONVERSATION_SERVICE,
-  );
+  const instance = usePluginInstance();
+  const conversation = useConversationController(instance.id);
   const snapshot = usePluginServiceSnapshot(
     conversation,
     EMPTY_CONVERSATION_SNAPSHOT,
