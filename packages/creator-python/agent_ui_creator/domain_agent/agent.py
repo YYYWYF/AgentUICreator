@@ -442,6 +442,7 @@ def create_domain_write_creator_agent(
             validation=validation,
             runtime=runtime_inspection,
             repair_state=repair_state,
+            service_authorization_finalizer=service_verifier,
         ),
         automatic_completion_repair=automatic_completion_repair,
         service_contract_authorizations=service_authorizations,

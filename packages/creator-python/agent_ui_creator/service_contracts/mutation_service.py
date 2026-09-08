@@ -17,6 +17,7 @@ from ..source_tools.models import PluginSourceEdit
 from ..transactions import CreatorTransactionError
 from .authorization_store import ServiceContractAuthorizationStore
 from .models import ServiceContractError
+from .reconciliation import reconcile_service_contract_residual
 from .topology import normalize_contract_path, spec_from_existing_service
 
 
@@ -141,20 +142,33 @@ class UIServiceContractMutationService:
                 )
             transitioned = record.status == "authorized"
             if transitioned:
-                self.store.update_status(record, "applied")
+                self.store.mark_applied(record)
             if content != current.content:
-                applied = False
                 try:
                     self.activity.capture_before_content(virtual_path, current.content)
                     replace_creator_file_atomically(
                         self.project_root, virtual_path, content, expected=current
                     )
-                    applied = True
                     self.activity.file_observations.observe(virtual_path)
                     self.activity.touch(virtual_path)
                 except BaseException as error:
                     rollback_error: BaseException | None = None
-                    if applied:
+                    residual_changed = False
+                    residual_state_unknown = False
+                    try:
+                        after_commit_error = read_creator_file_state(
+                            self.project_root, virtual_path
+                        )
+                    except BaseException:
+                        after_commit_error = None
+                        residual_state_unknown = True
+                    if (
+                        after_commit_error is not None
+                        and (
+                            after_commit_error.exists != current.exists
+                            or after_commit_error.hash != current.hash
+                        )
+                    ):
                         try:
                             replace_creator_file_atomically(
                                 self.project_root,
@@ -167,21 +181,37 @@ class UIServiceContractMutationService:
                             self.activity.file_observations.observe(virtual_path)
                         except BaseException as candidate:
                             rollback_error = candidate
-                    if transitioned:
+                    try:
+                        residual = reconcile_service_contract_residual(
+                            project_root=self.project_root,
+                            activity=self.activity,
+                            path=virtual_path,
+                            before=current,
+                        )
+                        residual_changed = residual.changed
+                        residual_state_unknown = False
+                    except BaseException:
+                        residual_state_unknown = True
+                    rollback_incomplete = residual_changed or residual_state_unknown
+                    if not rollback_incomplete and transitioned:
                         try:
-                            self.store.update_status(
-                                self.store.get_proposal(record.proposal_id), "authorized"
-                            )
+                            self.store.restore_authorized_after_clean_rollback(record)
                         except BaseException:
                             pass
-                    if rollback_error is not None:
+                    if rollback_incomplete:
+                        details: dict[str, object] = {
+                            "contractPath": spec.contract_path,
+                            "cause": str(error),
+                            "residualChanged": residual_changed,
+                        }
+                        if rollback_error is not None:
+                            details["rollbackError"] = str(rollback_error)
+                        if residual_state_unknown:
+                            details["residualStateUnknown"] = True
                         raise ServiceContractError(
                             "SERVICE_CONTRACT_MUTATION_ROLLBACK_FAILED",
                             "Service Contract mutation failed and rollback was incomplete.",
-                            {
-                                "cause": str(error),
-                                "rollbackError": str(rollback_error),
-                            },
+                            details,
                         ) from error
                     if isinstance(error, CreatorFileStateConflictError):
                         raise ServiceContractError(

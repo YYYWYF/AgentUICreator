@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+from typing import Protocol
 
 from ..activity import CreatorActivityRecorder
 from ..runtime_diagnostics import RuntimeDiagnosticInspectionService
@@ -16,6 +17,12 @@ class CompletionDecision:
     feedback: str | None = None
 
 
+class ServiceAuthorizationFinalizer(Protocol):
+    def has_current_applied(self) -> bool: ...
+
+    def complete_current_applied(self) -> None: ...
+
+
 class CreatorDevelopmentCompletionGate:
     """Prevent a final success claim without current static and Runtime evidence."""
 
@@ -26,11 +33,13 @@ class CreatorDevelopmentCompletionGate:
         validation: CreatorValidationService,
         runtime: RuntimeDiagnosticInspectionService,
         repair_state: CreatorRepairState,
+        service_authorization_finalizer: ServiceAuthorizationFinalizer | None = None,
     ) -> None:
         self.activity = activity
         self.validation = validation
         self.runtime = runtime
         self.repair_state = repair_state
+        self.service_authorization_finalizer = service_authorization_finalizer
 
     @staticmethod
     def _check(identifier: str, passed: bool, evidence: str) -> dict[str, str]:
@@ -47,6 +56,32 @@ class CreatorDevelopmentCompletionGate:
         receipt = self.activity.snapshot()
         if not receipt["files"]:
             if self.activity.semantic_noop_satisfied:
+                if (
+                    self.service_authorization_finalizer is not None
+                    and self.service_authorization_finalizer.has_current_applied()
+                ):
+                    self.activity.record_verification(
+                        {
+                            "status": "failed",
+                            "projectRevision": self.activity.revision,
+                            "auditAttempts": self.repair_state.repair_rounds,
+                            "checks": [
+                                self._check(
+                                    "service-authorization",
+                                    False,
+                                    "Applied Service authorization requires current Host validation.",
+                                )
+                            ],
+                        }
+                    )
+                    return CompletionDecision(
+                        False,
+                        "无法确认请求已经完成：当前 Service authorization 尚未完成最终验证。",
+                        (
+                            "Applied Service authorization cannot be completed by a semantic noop. "
+                            "Run current-revision Host validation and Runtime verification."
+                        ),
+                    )
                 semantic_noop = self.activity.semantic_noop or {}
                 self.activity.record_verification(
                     {
@@ -225,8 +260,12 @@ class CreatorDevelopmentCompletionGate:
             }
         )
         if runtime_passed:
+            if self.service_authorization_finalizer is not None:
+                self.service_authorization_finalizer.complete_current_applied()
             return CompletionDecision(True, candidate)
         if runtime_status == "unavailable":
+            if self.service_authorization_finalizer is not None:
+                self.service_authorization_finalizer.complete_current_applied()
             return CompletionDecision(
                 True,
                 (

@@ -124,9 +124,8 @@ class CreatorValidationService:
                 break
 
         host_checks = ()
-        completable_authorizations = ()
         if self.activity.revision == target_revision and self.host_verifier is not None:
-            host_checks, completable_authorizations = await self.host_verifier.verify()
+            host_checks, _ = await self.host_verifier.verify()
 
         status = (
             "stale"
@@ -143,8 +142,6 @@ class CreatorValidationService:
             checks=tuple(checks),
             host_checks=tuple(host_checks),
         )
-        if status == "passed" and self.host_verifier is not None:
-            self.host_verifier.complete(completable_authorizations)
         self.latest_result = validation
         self.repair_state.record_result(
             target_revision, passed=status == "passed"

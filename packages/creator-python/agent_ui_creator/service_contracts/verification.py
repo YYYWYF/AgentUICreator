@@ -34,6 +34,7 @@ class ServiceContractAuthorizationVerifier:
     ) -> None:
         self.project_control = project_control
         self.store = store
+        self._verified_applied_proposal_ids: tuple[str, ...] = ()
 
     async def verify(
         self,
@@ -45,6 +46,7 @@ class ServiceContractAuthorizationVerifier:
             record for record in self.store.records() if record.status == "applied"
         )
         if not obligations:
+            self._verified_applied_proposal_ids = ()
             return (), ()
         topology = await self.project_control.inspect_ui_services()
         checks: list[ServiceContractHostCheck] = []
@@ -109,11 +111,18 @@ class ServiceContractAuthorizationVerifier:
                 )
             )
             passed.append(record)
+        self._verified_applied_proposal_ids = tuple(
+            record.proposal_id for record in passed
+        )
         return tuple(checks), tuple(passed)
 
     def complete(self, records: tuple[ServiceAuthorizationRecord, ...]) -> None:
         for record in records:
-            current = self.store.get_proposal(record.proposal_id)
-            if current.status == "applied":
-                self.store.update_status(current, "completed")
+            self.store.mark_completed(record)
 
+    def has_current_applied(self) -> bool:
+        return self.store.has_current_applied()
+
+    def complete_current_applied(self) -> None:
+        for proposal_id in self._verified_applied_proposal_ids:
+            self.store.mark_completed(self.store.get_proposal(proposal_id))

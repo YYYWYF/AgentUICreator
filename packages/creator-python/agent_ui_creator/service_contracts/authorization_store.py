@@ -187,3 +187,35 @@ class ServiceContractAuthorizationStore:
         updated = replace(record, status=status, updated_at=_now())
         self._persist(updated)
         return updated
+
+    def mark_applied(
+        self, record: ServiceAuthorizationRecord
+    ) -> ServiceAuthorizationRecord:
+        current = self.get_proposal(record.proposal_id)
+        if current.status == "applied":
+            return current
+        if current.status != "authorized":
+            raise ServiceContractError(
+                "SERVICE_CONTRACT_PROPOSAL_INVALID",
+                f"Service Contract authorization is {current.status}.",
+            )
+        return self.update_status(current, "applied")
+
+    def restore_authorized_after_clean_rollback(
+        self, record: ServiceAuthorizationRecord
+    ) -> ServiceAuthorizationRecord:
+        current = self.get_proposal(record.proposal_id)
+        if current.status != "applied":
+            return current
+        return self.update_status(current, "authorized")
+
+    def has_current_applied(self) -> bool:
+        return any(record.status == "applied" for record in self.records())
+
+    def mark_completed(
+        self, record: ServiceAuthorizationRecord
+    ) -> ServiceAuthorizationRecord:
+        current = self.get_proposal(record.proposal_id)
+        if current.status != "applied":
+            return current
+        return self.update_status(current, "completed")

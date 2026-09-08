@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ..files import resolve_creator_project_file
+from ..files import read_creator_file_state, resolve_creator_project_file
 from ..project_control import ProjectControlClient
 from ..source_tools import SourceCreationError, UISourceCreationService, UISourceFile
 from .authorization_store import ServiceContractAuthorizationStore
 from .models import ServiceContractError
+from .reconciliation import reconcile_service_contract_residual
 from .topology import available_plugin_ids, normalize_contract_path, service_by_name
 
 
@@ -52,7 +53,7 @@ class UIServiceContractCreationService:
                 "An authorized Owner or Consumer Plugin no longer exists.",
                 {"missingPluginIds": missing},
             )
-        self.store.update_status(record, "applied")
+        self.store.mark_applied(record)
 
     @staticmethod
     def _assert_safe_target(target: Path, services_root: Path) -> None:
@@ -88,6 +89,9 @@ class UIServiceContractCreationService:
                 "The services directory must be a non-symlink directory.",
             )
         self._assert_safe_target(location.absolute_path, services_root)
+        before_state = read_creator_file_state(
+            self.project_root, f"/{spec.contract_path}"
+        )
         missing_directories: list[Path] = []
         current = location.absolute_path.parent
         while current != services_root:
@@ -101,12 +105,31 @@ class UIServiceContractCreationService:
                 preflight=lambda: self._preflight(authorization_id),
             )
         except BaseException as error:
-            try:
-                current_record = self.store.get_proposal(record.proposal_id)
-                if current_record.status == "applied":
-                    self.store.update_status(current_record, "authorized")
-            except ServiceContractError:
-                pass
+            rollback_incomplete = (
+                isinstance(error, SourceCreationError)
+                and error.code == "SOURCE_CREATION_ROLLBACK_FAILED"
+            )
+            residual_changed = False
+            residual_state_unknown = False
+            if rollback_incomplete:
+                try:
+                    residual = reconcile_service_contract_residual(
+                        project_root=self.project_root,
+                        activity=self.activity,
+                        path=f"/{spec.contract_path}",
+                        before=before_state,
+                        created_directories=missing_directories,
+                    )
+                    residual_changed = residual.changed
+                    if not residual.changed:
+                        self.store.restore_authorized_after_clean_rollback(record)
+                except BaseException:
+                    residual_state_unknown = True
+            else:
+                try:
+                    self.store.restore_authorized_after_clean_rollback(record)
+                except ServiceContractError:
+                    pass
             if isinstance(error, ServiceContractError):
                 raise
             if not isinstance(error, SourceCreationError):
@@ -122,7 +145,13 @@ class UIServiceContractCreationService:
                 if error.code == "SOURCE_CREATION_ROLLBACK_FAILED"
                 else "SERVICE_CONTRACT_MUTATION_FAILED"
             )
-            raise ServiceContractError(code, str(error), error.details) from error
+            details = dict(error.details or {})
+            if rollback_incomplete:
+                details["contractPath"] = spec.contract_path
+                details["residualChanged"] = residual_changed
+                if residual_state_unknown:
+                    details["residualStateUnknown"] = True
+            raise ServiceContractError(code, str(error), details) from error
         for directory in sorted(missing_directories, key=lambda item: len(item.parts)):
             if directory.is_dir() and not directory.is_symlink():
                 self.activity.record_created_directory(

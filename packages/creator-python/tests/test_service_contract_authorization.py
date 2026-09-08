@@ -140,3 +140,54 @@ def test_confirmation_invalidates_when_service_appears(tmp_path):
     assert captured.value.code == "SERVICE_CONTRACT_AUTHORIZATION_STALE"
     assert store.get_proposal(proposed["proposalId"]).status == "invalidated"
 
+
+@pytest.mark.parametrize(
+    "service_name",
+    [
+        "editor",
+        "theme",
+        "agent-ui.theme",
+        "workspace.files",
+        "conversation.navigation",
+        "foo-bar",
+        "foo-bar.baz-qux",
+        "a",
+        "a.b",
+    ],
+)
+def test_service_name_contract_accepts_typescript_valid_corpus(
+    tmp_path, service_name
+):
+    authorization, _store, _control = service(tmp_path)
+    request = proposal().model_copy(update={"serviceName": service_name})
+
+    result = asyncio.run(authorization.prepare(request))
+
+    assert result["status"] == "confirmation-required"
+
+
+@pytest.mark.parametrize(
+    "service_name",
+    [
+        "Editor",
+        "_workspace",
+        "workspace_files",
+        ".workspace",
+        "workspace.",
+        "workspace..files",
+        "workspace.Files",
+        "foo_bar",
+        "foo/bar",
+        "foo bar",
+    ],
+)
+def test_service_name_contract_rejects_typescript_invalid_corpus(
+    tmp_path, service_name
+):
+    authorization, _store, _control = service(tmp_path)
+    request = proposal().model_copy(update={"serviceName": service_name})
+
+    with pytest.raises(ServiceContractError) as captured:
+        asyncio.run(authorization.prepare(request))
+
+    assert captured.value.code == "SERVICE_CONTRACT_PROPOSAL_INVALID"

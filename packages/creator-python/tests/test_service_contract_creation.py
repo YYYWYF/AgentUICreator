@@ -4,6 +4,8 @@ import asyncio
 
 import pytest
 
+import agent_ui_creator.source_tools.source_creation_service as source_creation_module
+
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.app_ui_model import ProjectMutationCoordinator
 from agent_ui_creator.minimal_agent.path_policy import MinimalAgentPathPolicy
@@ -105,3 +107,69 @@ def test_authorized_create_preserves_racing_file(tmp_path):
     assert target.read_text(encoding="utf-8") == "external\n"
     assert activity.revision == 0
 
+
+def test_create_clean_rollback_restores_authorization(tmp_path, monkeypatch):
+    service, store, record, activity = fixture(tmp_path)
+    assert record.authorization_id is not None
+    real_observe = activity.file_observations.observe
+    calls = 0
+
+    def fail_post_create_once(path):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise OSError("post-create observation failed")
+        return real_observe(path)
+
+    monkeypatch.setattr(activity.file_observations, "observe", fail_post_create_once)
+
+    with pytest.raises(ServiceContractError) as captured:
+        asyncio.run(service.create(record.authorization_id, "creator\n"))
+
+    assert captured.value.code == "SERVICE_CONTRACT_MUTATION_FAILED"
+    assert store.get_proposal(record.proposal_id).status == "authorized"
+    assert not (tmp_path / "services/conversations/navigation.ts").exists()
+    assert activity.revision == 0
+
+
+def test_service_contract_create_incomplete_rollback_reconciles_activity(
+    tmp_path, monkeypatch
+):
+    service, store, record, activity = fixture(tmp_path)
+    assert record.authorization_id is not None
+    real_observe = activity.file_observations.observe
+    calls = 0
+
+    def fail_post_create_once(path):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise OSError("post-create observation failed")
+        return real_observe(path)
+
+    def fail_remove(*_args, **_kwargs):
+        raise OSError("remove rollback failed")
+
+    monkeypatch.setattr(activity.file_observations, "observe", fail_post_create_once)
+    monkeypatch.setattr(source_creation_module, "remove_creator_file", fail_remove)
+
+    with pytest.raises(ServiceContractError) as captured:
+        asyncio.run(service.create(record.authorization_id, "creator\n"))
+
+    target = tmp_path / "services/conversations/navigation.ts"
+    assert captured.value.code == "SERVICE_CONTRACT_MUTATION_ROLLBACK_FAILED"
+    assert captured.value.details["residualChanged"] is True
+    assert target.read_text(encoding="utf-8") == "creator\n"
+    assert store.get_proposal(record.proposal_id).status == "applied"
+    assert activity.revision > 0
+    receipt = activity.finish()
+    assert [item["path"] for item in receipt["files"]] == [
+        "services/conversations/navigation.ts"
+    ]
+    transaction = activity.transactions.load("service-create")
+    assert transaction.created_directories == ("services/conversations",)
+    assert receipt["transaction"]["undoable"] is True
+
+    activity.transactions.undo("service-create")
+    assert not target.exists()
+    assert not target.parent.exists()

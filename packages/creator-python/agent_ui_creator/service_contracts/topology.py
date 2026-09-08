@@ -7,7 +7,7 @@ from typing import Any
 from .models import ServiceContractError, ServiceOwnershipSpec
 
 
-SERVICE_NAME_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$")
+SERVICE_NAME_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)*$")
 PLUGIN_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]{0,99}$")
 
 
