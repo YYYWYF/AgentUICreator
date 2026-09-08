@@ -176,7 +176,7 @@ def test_runtime_evidence_before_source_mutation_is_stale(tmp_path):
     assert result["runtimeStatus"] == "stale"
 
 
-def test_fresh_diagnostic_does_not_refresh_old_composition(tmp_path):
+def test_fresh_diagnostic_does_not_refresh_stale_composition(tmp_path):
     store = RuntimeDiagnosticStore()
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("composition-freshness")
@@ -193,7 +193,7 @@ def test_fresh_diagnostic_does_not_refresh_old_composition(tmp_path):
 
     assert result["diagnosticFresh"] is True
     assert result["compositionFresh"] is False
-    assert result["runtimeStatus"] == "passed"
+    assert result["runtimeStatus"] == "stale"
 
 
 def test_composition_verification_stays_stale_after_fresh_unrelated_diagnostic(
@@ -238,6 +238,25 @@ def test_composition_verification_stays_stale_after_fresh_unrelated_diagnostic(
     assert result["compositionFresh"] is False
     assert result["compositionVerified"] is False
     assert result["runtimeStatus"] == "stale"
+
+
+def test_fresh_composition_after_mutation_allows_runtime_pass(tmp_path):
+    store = RuntimeDiagnosticStore()
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("fresh-composition")
+    store.record(composition("thread-1", "a" * 64))
+    activity.capture_before_content("plugins/task-status/index.tsx", None)
+    activity.touch("plugins/task-status/index.tsx")
+    store.record(composition("thread-1", "a" * 64))
+
+    result = store.inspect(
+        thread_id="thread-1",
+        current_app_ui_model_hash="a" * 64,
+        last_mutation_at=activity.last_mutation_at,
+    )
+
+    assert result["compositionFresh"] is True
+    assert result["runtimeStatus"] == "passed"
 
 
 def test_runtime_resolved_error_allows_completion(tmp_path):

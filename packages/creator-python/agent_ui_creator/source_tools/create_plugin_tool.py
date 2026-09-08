@@ -8,7 +8,7 @@ from langchain_core.tools import BaseTool, tool
 from pydantic import ValidationError
 
 from .models import CreateUIPluginInput, SourceCreationError
-from .source_creation_service import UISourceCreationService
+from .plugin_creation_service import UIPluginCreationService
 
 
 logger = logging.getLogger(__name__)
@@ -37,24 +37,22 @@ def _error(code: str, message: str, details: Any = None) -> str:
             "ok": False,
             "error": {
                 "code": code,
-                "message": "Source creation error details exceeded the tool limit.",
+                "message": "Plugin creation error details exceeded the tool limit.",
             },
         }
     )
 
 
-def create_ui_plugin_tool(service: UISourceCreationService) -> BaseTool:
+def create_ui_plugin_tool(service: UIPluginCreationService) -> BaseTool:
     @tool(
         "create_ui_plugin",
         args_schema=CreateUIPluginInput,
         description=(
             "Create exactly one new UI Plugin in a create-only atomic operation. "
-            "Every path must be under /plugins/<pluginId>/** and the request must "
-            "include manifest.json, definition.ts, and index.tsx. manifest.id must "
-            "equal pluginId and the target Plugin directory must not exist. Existing "
-            "files cannot be overwritten. Use read_file plus edit_file for existing "
-            "Plugin source. The result returns paths and mutation revision, not source "
-            "content."
+            "Each file uses a relativePath inside /plugins/<pluginId>/. The request "
+            "must include manifest.json, definition.ts, and index.tsx; manifest.id "
+            "must equal pluginId; and the Plugin directory must not exist. Use "
+            "read_file plus edit_file for existing Plugin source."
         ),
     )
     async def create_ui_plugin(pluginId: str, files: list[dict[str, str]]) -> str:
@@ -62,17 +60,17 @@ def create_ui_plugin_tool(service: UISourceCreationService) -> BaseTool:
             request = CreateUIPluginInput.model_validate(
                 {"pluginId": pluginId, "files": files}
             )
-            result = await service.create_plugin(request.pluginId, request.files)
+            result = await service.create(request.pluginId, request.files)
             return _json({"ok": True, "result": result.to_dict()})
         except ValidationError as error:
-            return _error("SOURCE_CREATION_INPUT_INVALID", str(error))
+            return _error("PLUGIN_CREATION_INPUT_INVALID", str(error))
         except SourceCreationError as error:
             return _error(error.code, str(error), error.details)
         except Exception:
-            logger.exception("Unexpected source creation failure")
+            logger.exception("Unexpected Plugin creation failure")
             return _error(
-                "SOURCE_CREATION_FAILED",
-                "The Creator Host could not create the requested source files.",
+                "PLUGIN_CREATION_FAILED",
+                "The Creator Host could not create the requested Plugin.",
             )
 
     return create_ui_plugin

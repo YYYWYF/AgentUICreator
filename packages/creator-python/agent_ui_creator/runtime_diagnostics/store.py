@@ -117,8 +117,8 @@ class _Scope:
     def __init__(self) -> None:
         self.diagnostics: list[dict[str, Any]] = []
         self.compositions: list[dict[str, Any]] = []
-        self.latest_received_by_hash: dict[str, str] = {}
-        self.latest_observed_by_hash: dict[str, str] = {}
+        self.latest_composition_received_by_hash: dict[str, str] = {}
+        self.latest_composition_observed_by_hash: dict[str, str] = {}
         self.latest_diagnostic_received_by_hash: dict[str, str] = {}
         self.latest_diagnostic_observed_by_hash: dict[str, str] = {}
 
@@ -139,11 +139,13 @@ class RuntimeDiagnosticStore:
                 mode="json", exclude_none=True
             )
             composition["receivedAt"] = received_at
-            self._record_received_at(
-                scope, envelope.composition.appUIModelHash, received_at
+            self._record_timestamp(
+                scope.latest_composition_received_by_hash,
+                envelope.composition.appUIModelHash,
+                received_at,
             )
-            self._record_observed_at(
-                scope,
+            self._record_observed_timestamp(
+                scope.latest_composition_observed_by_hash,
                 envelope.composition.appUIModelHash,
                 str(composition["observedAt"]),
             )
@@ -161,12 +163,6 @@ class RuntimeDiagnosticStore:
         diagnostic = envelope.diagnostic
         if diagnostic is None:  # guarded by RuntimeDiagnosticEnvelope
             raise ValueError("Runtime diagnostic payload is missing.")
-        self._record_received_at(scope, diagnostic.appUIModelHash, received_at)
-        self._record_observed_at(
-            scope,
-            diagnostic.appUIModelHash,
-            str(diagnostic.model_dump(mode="json")["occurredAt"]),
-        )
         self._record_timestamp(
             scope.latest_diagnostic_received_by_hash,
             diagnostic.appUIModelHash,
@@ -267,12 +263,6 @@ class RuntimeDiagnosticStore:
             return None
 
     @staticmethod
-    def _record_received_at(scope: _Scope, app_hash: str, received_at: str) -> None:
-        RuntimeDiagnosticStore._record_timestamp(
-            scope.latest_received_by_hash, app_hash, received_at
-        )
-
-    @staticmethod
     def _record_timestamp(
         timestamps: dict[str, str], app_hash: str, value: str
     ) -> None:
@@ -280,14 +270,6 @@ class RuntimeDiagnosticStore:
         timestamps[app_hash] = value
         while len(timestamps) > MAX_RUNTIME_HASH_EVIDENCE_PER_SCOPE:
             del timestamps[next(iter(timestamps))]
-
-    @classmethod
-    def _record_observed_at(
-        cls, scope: _Scope, app_hash: str, observed_at: str
-    ) -> None:
-        cls._record_observed_timestamp(
-            scope.latest_observed_by_hash, app_hash, observed_at
-        )
 
     @classmethod
     def _record_observed_timestamp(
@@ -375,11 +357,11 @@ class RuntimeDiagnosticStore:
             ),
             None,
         )
-        latest_runtime_received_at = scope.latest_received_by_hash.get(
-            current_app_ui_model_hash
+        latest_composition_received_at = (
+            scope.latest_composition_received_by_hash.get(current_app_ui_model_hash)
         )
-        latest_runtime_observed_at = scope.latest_observed_by_hash.get(
-            current_app_ui_model_hash
+        latest_composition_observed_at = (
+            scope.latest_composition_observed_by_hash.get(current_app_ui_model_hash)
         )
         latest_diagnostic_received_at = scope.latest_diagnostic_received_by_hash.get(
             current_app_ui_model_hash
@@ -388,8 +370,11 @@ class RuntimeDiagnosticStore:
             current_app_ui_model_hash
         )
         runtime_observed = (
-            latest_runtime_received_at is not None
-            and latest_runtime_observed_at is not None
+            latest_composition_received_at is not None
+            and latest_composition_observed_at is not None
+        ) or (
+            latest_diagnostic_received_at is not None
+            and latest_diagnostic_observed_at is not None
         )
         diagnostic_received_time = self._as_datetime(latest_diagnostic_received_at)
         diagnostic_observed_time = self._as_datetime(latest_diagnostic_observed_at)
@@ -406,14 +391,12 @@ class RuntimeDiagnosticStore:
                 )
             )
         )
-        composition_received_time = self._as_datetime(
-            None if latest_composition is None else latest_composition.get("receivedAt")
-        )
-        composition_observed_time = self._as_datetime(
-            None if latest_composition is None else latest_composition.get("observedAt")
-        )
+        composition_received_time = self._as_datetime(latest_composition_received_at)
+        composition_observed_time = self._as_datetime(latest_composition_observed_at)
         composition_fresh = (
             latest_composition is not None
+            and latest_composition_received_at is not None
+            and latest_composition_observed_at is not None
             and (
                 last_mutation_at is None
                 or (
@@ -424,14 +407,13 @@ class RuntimeDiagnosticStore:
                 )
             )
         )
-        evidence_fresh = diagnostic_fresh or composition_fresh
         if not runtime_observed:
             runtime_status = (
                 "stale"
                 if scope.compositions or scope.diagnostics
                 else "unavailable"
             )
-        elif not evidence_fresh:
+        elif not composition_fresh:
             runtime_status = "stale"
         elif current_errors:
             runtime_status = "failed"

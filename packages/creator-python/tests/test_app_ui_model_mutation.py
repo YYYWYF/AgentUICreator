@@ -193,6 +193,27 @@ def test_noop_does_not_advance_revision_or_create_transaction(tmp_path):
     assert "transaction" not in receipt
 
 
+def test_completion_blocks_unsubstantiated_noop(tmp_path):
+    from agent_ui_creator.domain_agent.completion_gate import (
+        CreatorDevelopmentCompletionGate,
+    )
+    from agent_ui_creator.repair import CreatorRepairState
+
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("unsubstantiated-noop")
+    gate = CreatorDevelopmentCompletionGate(
+        activity=activity,
+        validation=object(),
+        runtime=object(),
+        repair_state=CreatorRepairState(),
+    )
+
+    decision = gate.review("The requested change is complete.")
+
+    assert decision.accepted is False
+    assert activity.snapshot()["verification"]["status"] == "failed"
+
+
 @pytest.mark.parametrize(
     ("mutator", "expected_code"),
     [

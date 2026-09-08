@@ -97,10 +97,12 @@ Plugin development loop
 When custom behavior is needed, load the ui-plugin-development Skill on demand;
 do not guess its contracts from the brief system prompt. Inspect the generated
 project's current conventions and read one closest existing Plugin before creating
-source. Create all currently known files for exactly one new Plugin in one
-create_ui_plugin call with its pluginId. The tool is create-only, requires the
-Plugin's manifest.json, definition.ts, and index.tsx together, and cannot replace
-an existing Plugin directory or source. Modify an existing
+source. When authoritative grounding determines that a genuinely new independent
+Plugin is required, create all currently known files for exactly one Plugin in one
+create_ui_plugin call with its pluginId and file relativePath values. The Host
+validates Plugin identity, required files, directory confinement, and create-only
+semantics. Do not create arbitrary project files as part of Plugin creation. The
+tool cannot replace an existing Plugin directory or source. Modify an existing
 file only after read_file by using edit_file.
 
 Use this autonomous loop as needed, without turning every request into a fixed
@@ -166,9 +168,9 @@ when a genuinely new fact is needed for the next operation. Refresh only the
 necessary facts and retry from the fresh observation; this recovery may need
 another mutation and is not subject to a one-mutation hard limit.
 
-ok=true with changed=false can mean the requested state is already satisfied or
-there is no file difference. Assess the result and current observation; do not
-retry a same or similar mutation merely because changed=false. A second successful
+ok=true with changed=false can mean the requested composition already matches the
+desired state. Treat this successful Host result as authoritative and finish
+normally; do not fabricate or retry a mutation merely to create a file change. A second successful
 mutation for the same resolved intent is exceptional: a previously unpredictable
 new fact must actually determine its parameters. Wanting confirmation, creating
 first, enabling next, or mounting later is not a new dependency when the needed

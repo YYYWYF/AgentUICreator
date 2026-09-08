@@ -148,6 +148,23 @@ class PluginProjectControl:
         model = self.model()
         operation = input["operations"][0]
         instance = copy.deepcopy(operation["instance"])
+        if model["pluginInstances"].get(instance["id"]) == instance:
+            return {
+                "schemaVersion": 1,
+                "transactionId": "plugin-golden-noop",
+                "changed": False,
+                "changedPaths": [],
+                "appUIModel": {
+                    "beforeHash": before_hash,
+                    "afterHash": before_hash,
+                },
+                "snapshotToken": {
+                    "appUIModelHash": before_hash,
+                    "registryHash": read_creator_file_state(
+                        self.root, REGISTRY_PATH
+                    ).hash,
+                },
+            }
         model["pluginInstances"][instance["id"]] = instance
         (self.root / APP_UI_MODEL_PATH).write_text(
             json.dumps(model, indent=2) + "\n", encoding="utf-8"
@@ -219,7 +236,12 @@ def create_files_message(content_by_path=TASK_PLUGIN_FILES):
         {
             "pluginId": "task-status",
             "files": [
-                {"path": path, "content": content}
+                {
+                    "relativePath": path.removeprefix(
+                        "/plugins/task-status/"
+                    ),
+                    "content": content,
+                }
                 for path, content in content_by_path.items()
             ]
         },
@@ -268,8 +290,35 @@ def composition_inspection_message():
     )
 
 
-def make_agent(tmp_path, responses, *, runtime_error=False, runner=None):
+def make_agent(
+    tmp_path,
+    responses,
+    *,
+    runtime_error=False,
+    runner=None,
+    already_satisfied=False,
+):
     root = make_project(tmp_path)
+    if already_satisfied:
+        plugin_root = root / "plugins/task-status"
+        plugin_root.mkdir()
+        for virtual_path, content in TASK_PLUGIN_FILES.items():
+            (root / virtual_path.lstrip("/")).write_text(content, encoding="utf-8")
+        model = json.loads((root / APP_UI_MODEL_PATH).read_text(encoding="utf-8"))
+        model["pluginInstances"]["task-status-main"] = {
+            "id": "task-status-main",
+            "pluginId": "task-status",
+            "enabled": True,
+            "mount": {"slotId": "right.status"},
+        }
+        (root / APP_UI_MODEL_PATH).write_text(
+            json.dumps(model, indent=2) + "\n", encoding="utf-8"
+        )
+        (root / REGISTRY_PATH).write_text(
+            'import taskStatus from "./task-status/definition";\n'
+            "export const pluginDefinitions = [taskStatus];\n",
+            encoding="utf-8",
+        )
     diagnostics = RuntimeDiagnosticStore()
     client = PluginProjectControl(
         root, diagnostics, runtime_error=runtime_error
@@ -351,6 +400,31 @@ def test_full_plugin_creation_golden_scenario(tmp_path):
         "plugin-development-golden"
     ).validation_revision == agent.activity.revision
     assert result.text == "Task Status Plugin created and verified."
+
+
+def test_already_satisfied_semantic_noop_golden_scenario(tmp_path):
+    responses = [
+        composition_inspection_message(),
+        mutation_message(),
+        AIMessage(content="Task Status is already mounted in right.status."),
+    ]
+    agent, _client, _diagnostics, validation = make_agent(
+        tmp_path,
+        responses,
+        already_satisfied=True,
+    )
+
+    result = asyncio.run(
+        agent.run("Mount Task Status in right.status if it is not already there.")
+    )
+    receipt = agent.activity.finish()
+
+    assert result.text == "Task Status is already mounted in right.status."
+    assert result.metrics.modelCalls == 3
+    assert validation.calls == []
+    assert receipt["files"] == []
+    assert receipt["semanticNoop"]["reason"] == "already-satisfied"
+    assert receipt["verification"]["status"] == "already-satisfied"
 
 
 def test_failed_validation_repairs_before_completion(tmp_path):

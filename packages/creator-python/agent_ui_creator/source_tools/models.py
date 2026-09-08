@@ -18,11 +18,18 @@ class UISourceFile(BaseModel):
     content: str = Field(max_length=MAX_SOURCE_FILE_CHARACTERS)
 
 
+class UIPluginSourceFile(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    relativePath: str = Field(min_length=1, max_length=1_000)
+    content: str = Field(max_length=MAX_SOURCE_FILE_CHARACTERS)
+
+
 class CreateUIPluginInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    pluginId: str = Field(min_length=1, max_length=200)
-    files: list[UISourceFile] = Field(
+    pluginId: str = Field(min_length=1, max_length=100)
+    files: list[UIPluginSourceFile] = Field(
         min_length=1,
         max_length=MAX_SOURCE_FILES_PER_CALL,
     )
@@ -47,6 +54,21 @@ class SourceCreationResult:
 
     def to_dict(self) -> dict[str, object]:
         return {
+            "createdPaths": list(self.created_paths),
+            "mutationRevision": self.mutation_revision,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class PluginCreationResult:
+    plugin_id: str
+    created_paths: tuple[str, ...]
+    mutation_revision: int
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "pluginId": self.plugin_id,
+            "created": True,
             "createdPaths": list(self.created_paths),
             "mutationRevision": self.mutation_revision,
         }

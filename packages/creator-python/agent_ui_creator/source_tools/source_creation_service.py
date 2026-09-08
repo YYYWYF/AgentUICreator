@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from ..activity import CreatorActivityRecorder
@@ -89,10 +88,54 @@ class UISourceCreationService:
             authorized.append((virtual_path, receipt_path, source.content))
         return authorized
 
-    async def create(self, files: list[UISourceFile]) -> SourceCreationResult:
+    async def create(
+        self,
+        files: list[UISourceFile],
+        *,
+        require_absent_directory: str | None = None,
+    ) -> SourceCreationResult:
         authorized = self._prepare(files)
         async with self.mutation_coordinator.transaction(self.project_root):
-            return self._create_authorized(authorized)
+            absent_directory = (
+                None
+                if require_absent_directory is None
+                else resolve_creator_project_file(
+                    self.project_root, require_absent_directory
+                ).absolute_path
+            )
+            if absent_directory is not None and absent_directory.exists():
+                raise SourceCreationError(
+                    "SOURCE_DIRECTORY_ALREADY_EXISTS",
+                    f"Source directory already exists: {require_absent_directory}",
+                    {"path": require_absent_directory.lstrip("/")},
+                )
+            try:
+                return self._create_authorized(authorized)
+            except BaseException:
+                if absent_directory is not None:
+                    candidate_directories = {absent_directory}
+                    for virtual_path, _receipt_path, _content in authorized:
+                        directory = resolve_creator_project_file(
+                            self.project_root, virtual_path
+                        ).absolute_path.parent
+                        while (
+                            directory == absent_directory
+                            or absent_directory in directory.parents
+                        ):
+                            candidate_directories.add(directory)
+                            if directory == absent_directory:
+                                break
+                            directory = directory.parent
+                    for directory in sorted(
+                        candidate_directories,
+                        key=lambda path: len(path.parts),
+                        reverse=True,
+                    ):
+                        try:
+                            directory.rmdir()
+                        except OSError:
+                            pass
+                raise
 
     def _create_authorized(
         self, authorized: list[tuple[str, str, str]]
@@ -167,102 +210,3 @@ class UISourceCreationService:
             created_paths=tuple(receipt_path for _, receipt_path, _ in authorized),
             mutation_revision=self.activity.revision,
         )
-
-    async def create_plugin(
-        self, plugin_id: str, files: list[UISourceFile]
-    ) -> SourceCreationResult:
-        if (
-            not plugin_id
-            or plugin_id != plugin_id.strip()
-            or plugin_id in {".", ".."}
-            or "/" in plugin_id
-            or "\\" in plugin_id
-            or "\x00" in plugin_id
-        ):
-            raise SourceCreationError(
-                "UI_PLUGIN_ID_INVALID",
-                "pluginId must be one non-blank plugins/ directory segment.",
-                {"pluginId": plugin_id},
-            )
-
-        plugin_prefix = f"plugins/{plugin_id}/"
-        authorized = self._prepare(files)
-        normalized_files: dict[str, str] = {}
-        for _virtual_path, receipt_path, content in authorized:
-            if not receipt_path.startswith(plugin_prefix):
-                raise SourceCreationError(
-                    "UI_PLUGIN_PATH_MISMATCH",
-                    "Every Plugin file must belong to /plugins/<pluginId>/**.",
-                    {"pluginId": plugin_id, "path": receipt_path},
-                )
-            normalized_files[receipt_path] = content
-
-        required_paths = {
-            f"{plugin_prefix}manifest.json",
-            f"{plugin_prefix}definition.ts",
-            f"{plugin_prefix}index.tsx",
-        }
-        missing_paths = sorted(required_paths.difference(normalized_files))
-        if missing_paths:
-            raise SourceCreationError(
-                "UI_PLUGIN_REQUIRED_FILE_MISSING",
-                "A new Plugin must include manifest.json, definition.ts, and index.tsx.",
-                {"missingPaths": missing_paths},
-            )
-
-        manifest_source = normalized_files[f"{plugin_prefix}manifest.json"]
-        try:
-            manifest = json.loads(manifest_source)
-        except json.JSONDecodeError as error:
-            raise SourceCreationError(
-                "UI_PLUGIN_MANIFEST_INVALID",
-                "Plugin manifest.json must contain valid JSON.",
-                {"path": f"{plugin_prefix}manifest.json", "cause": str(error)},
-            ) from error
-        if not isinstance(manifest, dict) or manifest.get("id") != plugin_id:
-            raise SourceCreationError(
-                "UI_PLUGIN_MANIFEST_ID_MISMATCH",
-                "Plugin manifest.id must exactly equal pluginId.",
-                {
-                    "pluginId": plugin_id,
-                    "manifestId": (
-                        manifest.get("id") if isinstance(manifest, dict) else None
-                    ),
-                },
-            )
-
-        plugin_directory = resolve_creator_project_file(
-            self.project_root, f"/plugins/{plugin_id}"
-        ).absolute_path
-        async with self.mutation_coordinator.transaction(self.project_root):
-            if plugin_directory.exists():
-                raise SourceCreationError(
-                    "UI_PLUGIN_DIRECTORY_ALREADY_EXISTS",
-                    f"Plugin directory already exists: plugins/{plugin_id}",
-                    {"pluginId": plugin_id, "path": f"plugins/{plugin_id}"},
-                )
-            try:
-                return self._create_authorized(authorized)
-            except BaseException:
-                candidate_directories = sorted(
-                    {plugin_directory}.union(
-                        {
-                            resolve_creator_project_file(
-                                self.project_root, virtual_path
-                            ).absolute_path.parent
-                            for virtual_path, _receipt_path, _content in authorized
-                        }
-                    ),
-                    key=lambda path: len(path.parts),
-                    reverse=True,
-                )
-                for directory in candidate_directories:
-                    if (
-                        directory == plugin_directory
-                        or plugin_directory in directory.parents
-                    ):
-                        try:
-                            directory.rmdir()
-                        except OSError:
-                            pass
-                raise

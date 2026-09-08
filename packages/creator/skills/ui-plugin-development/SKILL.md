@@ -42,7 +42,7 @@ Inspect project conventions before deciding that Plugin source must change:
 4. Create `definition.ts` that validates the manifest and exports a `UIPluginDefinition`.
 5. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
 6. Default-export the definition so the target-owned generator can include it in the static Registry. Do not spread a template catalog into the production registry.
-7. Submit `pluginId` and all currently known new Plugin files together in one `create_ui_plugin` call. It requires `manifest.json`, `definition.ts`, and `index.tsx`, is create-only, and transactionally rolls back the whole call on failure. Never use it to replace an existing Plugin directory or file.
+7. Submit `pluginId` and all currently known new Plugin files together in one `create_ui_plugin` call, using `relativePath` values inside that Plugin directory. It requires `manifest.json`, `definition.ts`, and `index.tsx`, is create-only, and transactionally rolls back the whole call on failure. Never use it to replace an existing Plugin directory or file.
 8. Run `validate_creator_changes`. Fix returned diagnostics with `read_file` plus `edit_file`, then validate the new revision again.
 9. Add exactly one PluginInstance and mount it in the intended AppUIModel Slot through `mutate_app_ui_model`; that transaction updates the generated Registry.
 10. Because composition changes the Activity revision, run `validate_creator_changes` again for the final revision.

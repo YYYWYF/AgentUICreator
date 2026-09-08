@@ -19,6 +19,8 @@ from agent_ui_creator.domain_agent.tool_batch_policy import (
 )
 from agent_ui_creator.source_tools import (
     SourceCreationError,
+    UIPluginCreationService,
+    UIPluginSourceFile,
     UISourceCreationService,
     UISourceFile,
 )
@@ -32,12 +34,17 @@ def source(path: str, content: str = "export {};\n") -> UISourceFile:
     return UISourceFile(path=path, content=content)
 
 
-def plugin_sources(plugin_id: str = "task-status") -> list[UISourceFile]:
-    root = f"/plugins/{plugin_id}"
+def plugin_source(
+    relative_path: str, content: str = "export {};\n"
+) -> UIPluginSourceFile:
+    return UIPluginSourceFile(relativePath=relative_path, content=content)
+
+
+def plugin_sources(plugin_id: str = "task-status") -> list[UIPluginSourceFile]:
     return [
-        source(f"{root}/manifest.json", f'{{"id":"{plugin_id}"}}\n'),
-        source(f"{root}/definition.ts"),
-        source(f"{root}/index.tsx"),
+        plugin_source("manifest.json", f'{{"id":"{plugin_id}"}}\n'),
+        plugin_source("definition.ts"),
+        plugin_source("index.tsx"),
     ]
 
 
@@ -49,6 +56,17 @@ def service(tmp_path: Path):
             project_root=tmp_path,
             activity=activity,
             mutation_coordinator=ProjectMutationCoordinator(),
+        ),
+        activity,
+    )
+
+
+def plugin_service(tmp_path: Path):
+    source_creation, activity = service(tmp_path)
+    return (
+        UIPluginCreationService(
+            project_root=tmp_path,
+            source_creation=source_creation,
         ),
         activity,
     )
@@ -80,11 +98,20 @@ def test_internal_source_primitive_creates_multiple_files_atomically(tmp_path):
 
 
 def test_create_ui_plugin_enforces_plugin_domain_and_creates_atomically(tmp_path):
-    creation, activity = service(tmp_path)
+    creation, activity = plugin_service(tmp_path)
 
-    result = asyncio.run(creation.create_plugin("task-status", plugin_sources()))
+    result = asyncio.run(creation.create("task-status", plugin_sources()))
 
-    assert result.mutation_revision == 3
+    assert result.to_dict() == {
+        "pluginId": "task-status",
+        "created": True,
+        "createdPaths": [
+            "plugins/task-status/manifest.json",
+            "plugins/task-status/definition.ts",
+            "plugins/task-status/index.tsx",
+        ],
+        "mutationRevision": 3,
+    }
     assert activity.revision == 3
     assert (tmp_path / "plugins/task-status/manifest.json").is_file()
 
@@ -94,53 +121,120 @@ def test_create_ui_plugin_enforces_plugin_domain_and_creates_atomically(tmp_path
     [
         (
             "task-status",
-            [source("/plugins/other/manifest.json", '{"id":"task-status"}\n')],
-            "UI_PLUGIN_PATH_MISMATCH",
+            [plugin_source("../other/manifest.json", '{"id":"task-status"}\n')],
+            "PLUGIN_PATH_INVALID",
+        ),
+        (
+            "task-status",
+            plugin_sources()[1:],
+            "PLUGIN_REQUIRED_FILE_MISSING",
+        ),
+        (
+            "task-status",
+            [plugin_sources()[0], plugin_sources()[2]],
+            "PLUGIN_REQUIRED_FILE_MISSING",
         ),
         (
             "task-status",
             plugin_sources()[:-1],
-            "UI_PLUGIN_REQUIRED_FILE_MISSING",
+            "PLUGIN_REQUIRED_FILE_MISSING",
         ),
         (
             "task-status",
             [
-                source("/plugins/task-status/manifest.json", "not-json"),
+                plugin_source("manifest.json", "not-json"),
                 *plugin_sources()[1:],
             ],
-            "UI_PLUGIN_MANIFEST_INVALID",
+            "PLUGIN_MANIFEST_INVALID",
         ),
         (
             "task-status",
             [
-                source("/plugins/task-status/manifest.json", '{"id":"other"}\n'),
+                plugin_source("manifest.json", "[]"),
                 *plugin_sources()[1:],
             ],
-            "UI_PLUGIN_MANIFEST_ID_MISMATCH",
+            "PLUGIN_MANIFEST_INVALID",
+        ),
+        (
+            "task-status",
+            [
+                plugin_source("manifest.json", '{"id":"other"}\n'),
+                *plugin_sources()[1:],
+            ],
+            "PLUGIN_MANIFEST_ID_MISMATCH",
         ),
     ],
 )
 def test_create_ui_plugin_rejects_invalid_domain_payloads(
     tmp_path, plugin_id, files, expected_code
 ):
-    creation, activity = service(tmp_path)
+    creation, activity = plugin_service(tmp_path)
 
     with pytest.raises(SourceCreationError) as captured:
-        asyncio.run(creation.create_plugin(plugin_id, files))
+        asyncio.run(creation.create(plugin_id, files))
 
     assert captured.value.code == expected_code
     assert activity.revision == 0
 
 
-def test_create_ui_plugin_rejects_existing_target_directory(tmp_path):
-    (tmp_path / "plugins/task-status").mkdir(parents=True)
-    creation, activity = service(tmp_path)
+@pytest.mark.parametrize("plugin_id", ["", "TaskStatus", "task_status", "a/b", ".."])
+def test_create_ui_plugin_rejects_invalid_plugin_id(tmp_path, plugin_id):
+    creation, activity = plugin_service(tmp_path)
 
     with pytest.raises(SourceCreationError) as captured:
-        asyncio.run(creation.create_plugin("task-status", plugin_sources()))
+        asyncio.run(creation.create(plugin_id, plugin_sources()))
 
-    assert captured.value.code == "UI_PLUGIN_DIRECTORY_ALREADY_EXISTS"
+    assert captured.value.code == "PLUGIN_ID_INVALID"
     assert activity.revision == 0
+
+
+def test_create_ui_plugin_rejects_existing_target_directory(tmp_path):
+    (tmp_path / "plugins/task-status").mkdir(parents=True)
+    creation, activity = plugin_service(tmp_path)
+
+    with pytest.raises(SourceCreationError) as captured:
+        asyncio.run(creation.create("task-status", plugin_sources()))
+
+    assert captured.value.code == "PLUGIN_ALREADY_EXISTS"
+    assert activity.revision == 0
+
+
+def test_create_ui_plugin_rolls_back_partial_failure(tmp_path, monkeypatch):
+    creation, activity = plugin_service(tmp_path)
+    from agent_ui_creator.source_tools import source_creation_service as module
+
+    real_create = module.create_creator_file_atomically
+    calls = 0
+
+    def fail_second(project_root, file_path, content):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise OSError("simulated disk failure")
+        real_create(project_root, file_path, content)
+
+    monkeypatch.setattr(module, "create_creator_file_atomically", fail_second)
+
+    with pytest.raises(SourceCreationError) as captured:
+        asyncio.run(creation.create("task-status", plugin_sources()))
+
+    assert captured.value.code == "SOURCE_CREATION_FAILED"
+    assert not (tmp_path / "plugins/task-status").exists()
+    assert activity.revision == 0
+
+
+def test_created_plugin_is_undoable(tmp_path):
+    creation, activity = plugin_service(tmp_path)
+
+    asyncio.run(creation.create("task-status", plugin_sources()))
+    receipt = activity.finish()
+
+    assert receipt["transaction"] == {
+        "runId": "source-create",
+        "undoable": True,
+    }
+    activity.transactions.undo("source-create")
+    assert not any((tmp_path / "plugins/task-status").iterdir())
 
 
 def test_create_source_rejects_existing_path_without_partial_write(tmp_path):
@@ -271,7 +365,7 @@ def test_create_source_is_side_effect_exclusive():
         "create_ui_plugin",
         {
             "pluginId": "x",
-            "files": [{"path": "/plugins/x/index.tsx", "content": "x"}],
+            "files": [{"relativePath": "index.tsx", "content": "x"}],
         },
         "create",
     )
@@ -309,7 +403,7 @@ def test_domain_write_loads_plugin_development_skill(tmp_path):
     assert "/skills/ui-plugin-development/SKILL.md" in system_text
 
 
-def test_plugin_development_skill_paths_read_real_project_files(tmp_path):
+def test_plugin_skill_uses_python_project_root_paths(tmp_path):
     framework = tmp_path / "framework/contracts/ui-plugin.ts"
     plugin = tmp_path / "plugins/example/index.tsx"
     framework.parent.mkdir(parents=True)
@@ -352,4 +446,7 @@ def test_plugin_development_skill_paths_read_real_project_files(tmp_path):
 
     assert "contractMarker" in observed_text
     assert "pluginMarker" in observed_text
+    assert "/project/" not in (
+        SKILLS_ROOT / "ui-plugin-development/SKILL.md"
+    ).read_text(encoding="utf-8")
     assert result.text == "Skill paths read."

@@ -105,14 +105,10 @@ class RuntimeDiagnosticInspectionService:
                 }
             )
         result["compositionChecks"] = composition_checks
-        composition_required = bool(composition_checks)
         result["compositionVerified"] = (
-            not composition_required
-            or (
-                result.get("compositionFresh") is True
-                and all(
-                    check["status"] == "passed" for check in composition_checks
-                )
+            result.get("compositionFresh") is True
+            and all(
+                check["status"] == "passed" for check in composition_checks
             )
         )
         if (

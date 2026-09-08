@@ -40,7 +40,11 @@ from ..runtime_diagnostics import (
     RuntimeDiagnosticStore,
     create_runtime_diagnostic_tool,
 )
-from ..source_tools import UISourceCreationService, create_ui_plugin_tool
+from ..source_tools import (
+    UIPluginCreationService,
+    UISourceCreationService,
+    create_ui_plugin_tool,
+)
 from ..streaming.deepagent_v3_runner import DeepAgentV3Runner
 from ..streaming.runtime_events import CreatorEventSink
 from ..validation import (
@@ -292,6 +296,10 @@ def create_domain_write_creator_agent(
         activity=backend.activity,
         mutation_coordinator=coordinator,
     )
+    plugin_creation = UIPluginCreationService(
+        project_root=workspace,
+        source_creation=source_creation,
+    )
     validation = CreatorValidationService(
         project_root=workspace,
         activity=backend.activity,
@@ -312,7 +320,7 @@ def create_domain_write_creator_agent(
             observations=observations,
             activity=backend.activity,
         ),
-        create_ui_plugin_tool(source_creation),
+        create_ui_plugin_tool(plugin_creation),
         create_app_ui_model_mutation_tool(service, observations),
         create_validation_tool(validation),
         create_runtime_diagnostic_tool(runtime_inspection),
