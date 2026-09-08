@@ -469,7 +469,7 @@ CUSTOM 怎么投影为应用自有事件？
 TDesign AIGC
 ```
 
-对于 `CUSTOM`，参考只用于理解 wire event 的接入方式。最终边界必须是 `AG-UI CUSTOM → AgentApplicationEvent → Generated Application Event Registry → scoped Plugin events`：应用统一拥有名称与 payload schema，Plugin 只声明并消费经过校验的 live event，不得看到 AG-UI raw/custom 类型，也不得用 CUSTOM 替代 State、Activity 或标准 lifecycle。
+对于 `CUSTOM`，产品能力名称统一为 **Custom Event Protocol**，参考只用于理解 wire event 的接入方式。最终边界必须是 `AG-UI CUSTOM → AgentApplicationEvent → Generated Application Event Registry → scoped Plugin events`：应用统一拥有名称与 payload schema，Plugin 只声明并消费经过校验的 live event，不得看到 AG-UI raw/custom 类型，也不得用 CUSTOM 替代 State、Activity 或标准 lifecycle。
 
 ---
 

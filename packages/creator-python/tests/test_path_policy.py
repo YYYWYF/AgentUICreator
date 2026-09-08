@@ -17,6 +17,8 @@ def test_development_path_policy_allows_frontend_capability_contract_edits(tmp_p
     agent_contract = tmp_path / "agent-contract"
     agent_contract.mkdir()
     (agent_contract / "agent-tools.ts").write_text("old\n", encoding="utf-8")
+    (agent_contract / "agent-events.ts").write_text("old\n", encoding="utf-8")
+    (agent_contract / "random.ts").write_text("old\n", encoding="utf-8")
     backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
 
     assert backend.read("/plugins/foo.ts").error is None
@@ -26,6 +28,13 @@ def test_development_path_policy_allows_frontend_capability_contract_edits(tmp_p
     assert backend.edit(
         "/agent-contract/agent-tools.ts", "old", "new"
     ).error is None
+    assert backend.edit(
+        "/agent-contract/agent-events.ts", "old", "new"
+    ).error is None
+    assert "TOOL_PERMISSION_DENIED" in backend.edit(
+        "/agent-contract/random.ts", "old", "new"
+    ).error
+    assert (agent_contract / "random.ts").read_text(encoding="utf-8") == "old\n"
     assert "TOOL_PERMISSION_DENIED" in backend.edit(
         "/plugins/registry.generated.ts", "generated", "changed"
     ).error

@@ -1,5 +1,5 @@
 import { EventType, type BaseEvent, type RunAgentInput } from "@ag-ui/core";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { runMockScenario } from "../src/scenario-runner.js";
 import { defineScenario } from "../src/scenario.js";
@@ -78,5 +78,98 @@ describe("runMockScenario", () => {
         content: '{"files":["AgUiTransport.ts"]}',
       },
     ]);
+  });
+
+  it("emits cloned root and subagent CUSTOM events without validating them", async () => {
+    const value = { id: "artifact-1", nested: { ready: true } };
+    const scenario = defineScenario({
+      id: "custom-events",
+      title: "Custom Events",
+      steps: [
+        {
+          type: "custom",
+          name: "artifact.created",
+          value,
+          delayMs: 0,
+        },
+        {
+          type: "custom",
+          name: "unknown backend event",
+          value: "raw-value",
+          subagentRunId: "researcher-1",
+        },
+      ],
+    });
+    const events: BaseEvent[] = [];
+
+    for await (const event of runMockScenario(input, scenario)) {
+      events.push(event);
+    }
+    value.nested.ready = false;
+
+    expect(events.slice(1, 3)).toEqual([
+      {
+        type: EventType.CUSTOM,
+        name: "artifact.created",
+        value: { id: "artifact-1", nested: { ready: true } },
+      },
+      {
+        type: EventType.CUSTOM,
+        name: "unknown backend event",
+        value: "raw-value",
+        subagentRunId: "researcher-1",
+      },
+    ]);
+  });
+
+  it("honors a custom step delay", async () => {
+    vi.useFakeTimers();
+    try {
+      const iterator = runMockScenario(input, defineScenario({
+        id: "delayed-custom-event",
+        title: "Delayed Custom Event",
+        steps: [{
+          type: "custom",
+          name: "artifact.created",
+          value: { id: "artifact-1" },
+          delayMs: 25,
+        }],
+      }));
+
+      await iterator.next();
+      const pendingEvent = iterator.next();
+      await vi.advanceTimersByTimeAsync(25);
+
+      expect(await pendingEvent).toEqual({
+        done: false,
+        value: {
+          type: EventType.CUSTOM,
+          name: "artifact.created",
+          value: { id: "artifact-1" },
+        },
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("stops when aborted during a custom step delay", async () => {
+    const controller = new AbortController();
+    const iterator = runMockScenario(input, defineScenario({
+      id: "aborted-custom-event",
+      title: "Aborted Custom Event",
+      steps: [{
+        type: "custom",
+        name: "artifact.created",
+        value: { id: "artifact-1" },
+        delayMs: 1_000,
+      }],
+    }), { signal: controller.signal });
+
+    await iterator.next();
+    const pendingEvent = iterator.next();
+    controller.abort();
+
+    expect(await pendingEvent).toEqual({ done: true, value: undefined });
   });
 });

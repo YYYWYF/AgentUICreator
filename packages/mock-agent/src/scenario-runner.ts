@@ -155,6 +155,22 @@ export async function* runMockScenario(
       continue;
     }
 
+    if (step.type === "custom") {
+      if (!await waitForDelay(
+        normalizeDelay(step.delayMs, 0),
+        signal,
+      )) return;
+      yield {
+        type: EventType.CUSTOM,
+        name: step.name,
+        value: structuredClone(step.value),
+        ...(step.subagentRunId === undefined
+          ? {}
+          : { subagentRunId: step.subagentRunId }),
+      };
+      continue;
+    }
+
     const messageId = createId("assistant-message");
     yield {
       type: EventType.TEXT_MESSAGE_START,

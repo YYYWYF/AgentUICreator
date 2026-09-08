@@ -75,6 +75,53 @@ describe("UIPluginManifest", () => {
     }
   });
 
+  it("preserves valid application-owned Custom Event names", () => {
+    const manifest = parseUIPluginManifest({
+      id: "file-preview",
+      name: "File preview",
+      description: "Displays the selected file",
+      version: "1.0.0",
+      data: { events: ["OrderCreated", "订单创建"] },
+    });
+
+    expect(manifest.data?.events).toEqual(["OrderCreated", "订单创建"]);
+  });
+
+  it("rejects reserved Custom Event names", () => {
+    const result = uiPluginManifestSchema.safeParse({
+      id: "file-preview",
+      name: "File preview",
+      description: "Displays the selected file",
+      version: "1.0.0",
+      data: { events: ["run.finished"] },
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.path).toEqual(["data", "events", 0]);
+      expect(result.error.issues[0]?.message)
+        .toContain("reserved Agent Runtime namespace");
+    }
+  });
+
+  it.each(["", " event.created", "event.created ", "event\u0000created"])(
+    "rejects the invalid manifest Custom Event name %j",
+    (name) => {
+      const result = uiPluginManifestSchema.safeParse({
+        id: "file-preview",
+        name: "File preview",
+        description: "Displays the selected file",
+        version: "1.0.0",
+        data: { events: [name] },
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0]?.path).toEqual(["data", "events", 0]);
+      }
+    },
+  );
+
   it("parses static child Slot contracts", () => {
     const manifest = parseUIPluginManifest({
       id: "conversation",

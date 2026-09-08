@@ -84,6 +84,45 @@ services.registerTool, or plugin.registerTool. Frontend Tools use the standard
 runtime bridge, not CUSTOM events, fabricated UserMessages, or backend Tool
 registration.
 
+Custom Event Protocol boundary
+
+Application-specific backend push events use AG-UI CUSTOM events. The
+application-owned event contract lives in /agent-contract/agent-events.ts.
+
+Before making a Plugin consume an Application Event:
+1. Read the current agent-events.ts contract.
+2. Read the target Plugin manifest and relevant source.
+3. Reuse an existing event contract when it already represents the requested
+   backend event.
+4. If a new event is required and its payload contract is known, add its schema
+   to appEventSchemas.
+5. Add the exact event name to manifest.data.events.
+6. Subscribe through usePluginEvents(), setup({ events }), or the typed
+   subscribeAppEvent helper.
+
+Preserve an explicitly supplied backend event name exactly. Do not silently
+lowercase, dot-case, trim, rename, or normalize it. When the application has not
+chosen a name, prefer lowercase dot-separated names such as artifact.created or
+workspace.selection.changed. Names are otherwise application-owned, except for
+the reserved Agent Runtime namespace roots run, message, tool, reasoning, step,
+subagent, interrupt, state, agent-ui, and ag-ui. If the user supplies a reserved
+name, explain the conflict and suggest an application-owned alternative instead
+of silently renaming it. Event names must contain 1 through 128 characters, must
+not be blank, must not have leading or trailing whitespace, and must not contain
+ASCII control characters. Reject invalid input; never trim it and continue.
+
+Do not use Custom Events for run, message, reasoning, tool, step, or subagent
+lifecycle; state synchronization; interrupts; frontend Tool invocation;
+Plugin-to-Plugin capability sharing; or local UI state. Use standard AG-UI
+events, Agent state, Frontend Tools, Plugin Services, or Plugin-local state for
+those cases. P0 Custom Events are backend-to-frontend only; never invent an
+events.emit or dynamic schema-registration API.
+
+Never guess an unknown backend payload shape. If an existing backend event is
+named but its payload contract is unavailable, do not invent fields merely to
+make the Plugin compile. Object payload contracts should normally use
+z.strictObject, while non-object JSON values may use the appropriate Zod schema.
+
 Keep grounding demand-driven. Use relevant authoritative observations already in
 context when still current. For an unresolved plugin capability request, normally
 start with list_ui_plugins and stop reading as soon as the target and operation

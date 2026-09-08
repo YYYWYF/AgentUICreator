@@ -91,12 +91,16 @@ class MinimalAgentPathPolicy:
                     self.generic_service_writes
                     and normalized.startswith("/services/")
                 )
-                or normalized == "/agent-contract/agent-tools.ts"
+                or normalized in {
+                    "/agent-contract/agent-tools.ts",
+                    "/agent-contract/agent-events.ts",
+                }
             )
             if not writable:
                 raise PathPolicyViolation(
                     "TOOL_PERMISSION_DENIED: writes are limited to /plugins/**, "
-                    "/agent-contract/agent-tools.ts, and Host-owned domain capabilities, "
+                    "/agent-contract/agent-tools.ts, /agent-contract/agent-events.ts, "
+                    "and Host-owned domain capabilities, "
                     f"not {normalized}."
                 )
             if normalized == "/plugins/registry.generated.ts":

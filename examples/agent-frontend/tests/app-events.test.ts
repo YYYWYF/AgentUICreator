@@ -106,15 +106,98 @@ describe("AppEventRegistry", () => {
     });
   });
 
-  it("rejects malformed names and standard lifecycle aliases", () => {
-    expect(() => new AppEventRegistry({ PatchApplied: z.string() }))
-      .toThrow("must be lowercase dot-separated text");
-    expect(() => new AppEventRegistry({ "run.finished": z.string() }))
-      .toThrow("duplicates a standard Agent Runtime semantic");
+  it.each([
+    "artifact.created",
+    "ArtifactCreated",
+    "ARTIFACT_CREATED",
+    "artifact-created",
+    "artifact/created",
+    "artifact:created",
+    "订单创建",
+    "订单 创建完成",
+    "a".repeat(128),
+  ])("accepts the application-owned Custom Event name %j", (name) => {
+    expect(() => new AppEventRegistry({ [name]: z.string() })).not.toThrow();
+  });
+
+  it.each([
+    ["", "must not be empty"],
+    ["   ", "must not be blank"],
+    [" artifact.created", "leading or trailing whitespace"],
+    ["artifact.created ", "leading or trailing whitespace"],
+    ["artifact\u0000created", "control characters"],
+    ["artifact\u001fcreated", "control characters"],
+    ["artifact\u007fcreated", "control characters"],
+    ["a".repeat(129), "must not exceed 128 characters"],
+  ])("rejects the invalid Custom Event name %j", (name, message) => {
+    expect(() => new AppEventRegistry({ [name]: z.string() }))
+      .toThrow(message);
+  });
+
+  it.each([
+    "run",
+    "run.finished",
+    "RUN.finished",
+    "message.delta",
+    "tool.started",
+    "reasoning.started",
+    "state.changed",
+    "agent-ui.internal",
+    "ag-ui.internal",
+  ])("rejects the reserved Custom Event name %j", (name) => {
+    expect(() => new AppEventRegistry({ [name]: z.string() }))
+      .toThrow("uses a reserved Agent Runtime namespace");
+  });
+
+  it("supports primitive payload contracts", () => {
+    const registry = new AppEventRegistry({ OrderCreated: z.number() });
+
+    expect(registry.decode({
+      name: "OrderCreated",
+      payload: 42,
+      producer: { type: "root" },
+    })).toEqual({
+      ok: true,
+      event: {
+        name: "OrderCreated",
+        payload: 42,
+        producer: { type: "root" },
+      },
+    });
   });
 });
 
 describe("AppEventRuntime", () => {
+  it("routes Custom Event names by exact string match", () => {
+    const source = new MockAgentTransport();
+    const runtime = new AppEventRuntime(new AppEventRegistry({
+      ArtifactCreated: z.string(),
+      artifactcreated: z.string(),
+    }));
+    runtime.connect(source);
+    const upperListener = vi.fn();
+    const lowerListener = vi.fn();
+    const events = runtime.createPluginEvents({
+      pluginId: "plugin-a",
+      instanceId: "a-main",
+      declaredEventNames: ["ArtifactCreated", "artifactcreated"],
+    });
+    events.subscribe("ArtifactCreated", upperListener);
+    events.subscribe("artifactcreated", lowerListener);
+
+    source.emitApplicationEvent({
+      name: "ArtifactCreated",
+      payload: "upper",
+      producer: { type: "root" },
+    });
+
+    expect(upperListener).toHaveBeenCalledWith(expect.objectContaining({
+      name: "ArtifactCreated",
+      payload: "upper",
+    }));
+    expect(lowerListener).not.toHaveBeenCalled();
+  });
+
   it("drops unknown and invalid events, reports bounded diagnostics, and delivers every valid occurrence", () => {
     const source = new MockAgentTransport();
     const runtime = new AppEventRuntime(new AppEventRegistry(eventSchemas));

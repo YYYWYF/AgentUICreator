@@ -332,6 +332,8 @@ export class AgUiTransport<TState = unknown>
         if (this.disposed || agent !== this.agent) {
           return;
         }
+        // Wire boundary for the Custom Event Protocol: keep AG-UI details here
+        // and expose only a protocol-independent, defensively cloned event.
         this.emitApplicationEvent({
           name: event.name,
           payload: structuredClone(event.value),

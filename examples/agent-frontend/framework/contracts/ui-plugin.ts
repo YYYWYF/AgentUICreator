@@ -7,6 +7,7 @@ import type { ComponentType, ReactNode } from "react";
 import { z } from "zod";
 
 import type { PluginInstance } from "./app-ui-model";
+import { customEventNameSchema } from "./custom-event-protocol";
 
 export type {
   AgentApplicationEvent,
@@ -165,7 +166,7 @@ const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
     .strictObject({
       messages: z.boolean().optional(),
       state: z.boolean().optional(),
-      events: z.array(nonBlankStringSchema).optional(),
+      events: z.array(customEventNameSchema).optional(),
     })
     .optional(),
 });

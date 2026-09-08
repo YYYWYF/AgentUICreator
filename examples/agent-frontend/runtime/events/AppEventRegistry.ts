@@ -1,6 +1,10 @@
 import type { AgentApplicationEvent } from "@agent-ui/runtime-core";
 import { z } from "zod";
 
+import {
+  customEventNameSchema,
+} from "../../framework/contracts/custom-event-protocol";
+
 export type AppEventSchemas = Readonly<Record<string, z.ZodTypeAny>>;
 
 export type AppEventDecodeResult =
@@ -15,27 +19,6 @@ export type AppEventDecodeResult =
       issuePaths?: readonly string[] | undefined;
     };
 
-const APPLICATION_EVENT_NAME_PATTERN =
-  /^[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)+$/u;
-
-const RESERVED_STANDARD_EVENT_NAMES = new Set([
-  "tool.started",
-  "tool.finished",
-  "reasoning.started",
-  "reasoning.finished",
-  "step.started",
-  "step.finished",
-  "subagent.started",
-  "subagent.finished",
-  "run.started",
-  "run.finished",
-  "run.error",
-  "interrupt.requested",
-  "interrupt.resolved",
-  "message.delta",
-  "state.changed",
-]);
-
 function formatIssuePath(path: PropertyKey[]): string {
   return path.length === 0 ? "<root>" : path.map(String).join(".");
 }
@@ -47,14 +30,12 @@ export class AppEventRegistry<
 
   constructor(schemas: TSchemas) {
     for (const name of Object.keys(schemas)) {
-      if (!APPLICATION_EVENT_NAME_PATTERN.test(name)) {
+      const result = customEventNameSchema.safeParse(name);
+      if (!result.success) {
         throw new Error(
-          `Application event name "${name}" must be lowercase dot-separated text`,
-        );
-      }
-      if (RESERVED_STANDARD_EVENT_NAMES.has(name)) {
-        throw new Error(
-          `Application event "${name}" duplicates a standard Agent Runtime semantic`,
+          `Invalid Custom Event name "${name}": ${
+            result.error.issues[0]?.message ?? "invalid event name"
+          }`,
         );
       }
     }

@@ -24,6 +24,13 @@ export type MockScenarioStep =
       type: "message";
       text: string;
       intervalMs?: number | undefined;
+    }
+  | {
+      type: "custom";
+      name: string;
+      value: unknown;
+      delayMs?: number | undefined;
+      subagentRunId?: string | undefined;
     };
 
 export function defineScenario(scenario: MockScenario): MockScenario {
