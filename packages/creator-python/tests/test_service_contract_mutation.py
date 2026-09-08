@@ -83,6 +83,7 @@ def test_mutation_requires_current_run_read(tmp_path):
 def test_exact_authorized_mutation_is_undoable(tmp_path):
     service, store, record, activity, target = fixture(tmp_path)
     assert record.authorization_id is not None
+    assert store.get_authorization(record.authorization_id).status == "authorized"
     activity.file_observations.observe("/services/conversations.ts")
 
     result = asyncio.run(service.mutate(record.authorization_id, [edit()]))
@@ -93,6 +94,48 @@ def test_exact_authorized_mutation_is_undoable(tmp_path):
     assert store.get_authorization(record.authorization_id).status == "applied"
     activity.transactions.undo("service-mutate")
     assert "focusConversation" not in target.read_text(encoding="utf-8")
+
+
+def noop_edits():
+    return [
+        PluginSourceEdit(
+            oldText="export interface Service {}",
+            newText="export interface Service { focusConversation(id: string): void }",
+        ),
+        PluginSourceEdit(
+            oldText="export interface Service { focusConversation(id: string): void }",
+            newText="export interface Service {}",
+        ),
+    ]
+
+
+def test_authorized_noop_mutation_does_not_become_applied(tmp_path):
+    service, store, record, activity, _target = fixture(tmp_path)
+    assert record.authorization_id is not None
+    activity.file_observations.observe("/services/conversations.ts")
+
+    result = asyncio.run(service.mutate(record.authorization_id, noop_edits()))
+
+    assert result["changed"] is False
+    assert store.get_authorization(record.authorization_id).status == "authorized"
+    assert activity.revision == 0
+    assert activity.snapshot()["files"] == []
+    assert activity.semantic_noop is None
+
+
+def test_applied_noop_mutation_remains_applied(tmp_path):
+    service, store, record, activity, _target = fixture(tmp_path)
+    assert record.authorization_id is not None
+    store.mark_applied(record)
+    activity.file_observations.observe("/services/conversations.ts")
+
+    result = asyncio.run(service.mutate(record.authorization_id, noop_edits()))
+
+    assert result["changed"] is False
+    assert store.get_authorization(record.authorization_id).status == "applied"
+    assert activity.revision == 0
+    assert activity.snapshot()["files"] == []
+    assert activity.semantic_noop is None
 
 
 def test_exact_mutation_rejects_ambiguous_target_without_write(tmp_path):
