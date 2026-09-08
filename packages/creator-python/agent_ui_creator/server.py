@@ -88,8 +88,7 @@ def _conversation_messages(run_input: AgUiRunInput) -> list[dict[str, str]]:
         content = message.get("content")
         if role not in ("user", "assistant") or not isinstance(content, str):
             continue
-        content = content.strip()
-        if content:
+        if content.strip():
             # Replay text only, without historical tool calls or client instructions.
             messages.append({"role": role, "content": content})
     return messages[-MAX_CREATOR_CONVERSATION_MESSAGES:]

@@ -37,6 +37,7 @@ export interface InspectedServicePlugin {
 
 export interface InspectedService {
   name: string;
+  contractPaths: string[];
   status:
     | "available"
     | "inactive"

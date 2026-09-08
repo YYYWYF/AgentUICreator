@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 
 from ..activity import CreatorActivityRecorder
@@ -32,11 +33,12 @@ class UISourceCreationService:
         project_root: str | Path,
         activity: CreatorActivityRecorder,
         mutation_coordinator: ProjectMutationCoordinator,
+        path_policy: MinimalAgentPathPolicy | None = None,
     ) -> None:
         self.project_root = Path(project_root).resolve()
         self.activity = activity
         self.mutation_coordinator = mutation_coordinator
-        self.policy = MinimalAgentPathPolicy.development()
+        self.policy = path_policy or MinimalAgentPathPolicy.development()
 
     def _authorize(self, path: str) -> tuple[str, str]:
         try:
@@ -93,9 +95,19 @@ class UISourceCreationService:
         files: list[UISourceFile],
         *,
         require_absent_directory: str | None = None,
+        preflight: Callable[[], Awaitable[None]] | None = None,
     ) -> SourceCreationResult:
         authorized = self._prepare(files)
         async with self.mutation_coordinator.transaction(self.project_root):
+            missing_directories: set[Path] = set()
+            for virtual_path, _receipt_path, _content in authorized:
+                directory = resolve_creator_project_file(
+                    self.project_root, virtual_path
+                ).absolute_path.parent
+                while directory != self.project_root:
+                    if not directory.exists():
+                        missing_directories.add(directory)
+                    directory = directory.parent
             absent_directory = (
                 None
                 if require_absent_directory is None
@@ -110,7 +122,9 @@ class UISourceCreationService:
                     {"path": require_absent_directory.lstrip("/")},
                 )
             try:
-                return self._create_authorized(authorized)
+                if preflight is not None:
+                    await preflight()
+                result = self._create_authorized(authorized)
             except BaseException:
                 if absent_directory is not None:
                     candidate_directories = {absent_directory}
@@ -127,7 +141,17 @@ class UISourceCreationService:
                                 break
                             directory = directory.parent
                     for directory in sorted(
-                        candidate_directories,
+                        candidate_directories | missing_directories,
+                        key=lambda path: len(path.parts),
+                        reverse=True,
+                    ):
+                        try:
+                            directory.rmdir()
+                        except OSError:
+                            pass
+                else:
+                    for directory in sorted(
+                        missing_directories,
                         key=lambda path: len(path.parts),
                         reverse=True,
                     ):
@@ -136,6 +160,14 @@ class UISourceCreationService:
                         except OSError:
                             pass
                 raise
+            for directory in sorted(
+                missing_directories, key=lambda path: len(path.parts)
+            ):
+                if directory.is_dir() and not directory.is_symlink():
+                    self.activity.record_created_directory(
+                        directory.relative_to(self.project_root).as_posix()
+                    )
+            return result
 
     def _create_authorized(
         self, authorized: list[tuple[str, str, str]]

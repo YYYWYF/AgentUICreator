@@ -182,6 +182,7 @@ describe("service dependency inspector", () => {
     expect(inspection.services).toContainEqual(
       expect.objectContaining({
         name: "workspace.files",
+        contractPaths: ["services/workspace-files.ts"],
         status: "available",
         providers: [expect.objectContaining({ pluginId: "provider" })],
         requiredConsumers: [expect.objectContaining({ pluginId: "required" })],

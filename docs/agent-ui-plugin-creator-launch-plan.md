@@ -660,7 +660,7 @@ const messages = conversations
 - `manifest.capabilities` 仍是描述性元数据，不承担运行时函数调用。
 - 硬依赖未满足时，Plugin Instance 保持 pending；可选能力通过 `optionalInject` 声明，只参与激活软排序而不阻止最终 activation。
 - `provides`、`inject` 与 `optionalInject` 必须两两互斥；Plugin 的 `setup().services.get()` 和组件 `usePluginService()` 只能读取显式声明在 `inject` 或 `optionalInject` 中的 Service，Application-owned lookup 不受此限制。
-- 新公共 Service 必须先确认真实跨边界需要并解析 Ownership；除非用户已明确指定 Owner，否则 Creator 在任何写入前说明推荐 Owner 与影响范围并等待确认。P0-D 不开放通用 Service 创建或修改工具。
+- 新公共 Service 必须先确认真实跨边界需要并解析 Ownership；除非用户已明确指定 Owner，否则 Creator 在任何写入前通过 Host-owned immutable proposal 说明推荐 Owner 与影响范围并等待确认。创建或修改公共 Service Contract 只允许使用绑定 project、thread、Service、path、Owner 与 Consumer scope 的 opaque authorizationId；generic filesystem 始终不能写 `/services/**`。已有 Service 的纯消费无需额外授权，已有公共 Contract API 的修改必须重新解析影响范围并授权。
 - 服务名在一个 Agent Frontend 内是具名命名空间；重复提供必须确定性失败。
 - 服务归提供它的 Plugin Instance 所有；实例禁用、替换或移除时，服务和 setup disposer 一起清理。
 - 服务消失时，硬依赖消费者必须失效；服务恢复后以新的激活身份重新挂载，不能继续持有已卸载提供者。

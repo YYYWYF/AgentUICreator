@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ..activity import CreatorActivityRecorder
 from ..repair import CreatorRepairState
+from ..service_contracts.verification import ServiceContractAuthorizationVerifier
 from .command_runner import CreatorValidationCommandRunner
 from .models import (
     CREATOR_COMPLETION_VALIDATIONS,
@@ -32,11 +33,13 @@ class CreatorValidationService:
         activity: CreatorActivityRecorder,
         runner: ValidationCommandRunner | None = None,
         repair_state: CreatorRepairState | None = None,
+        host_verifier: ServiceContractAuthorizationVerifier | None = None,
     ) -> None:
         self.activity = activity
         self.runner = runner or CreatorValidationCommandRunner(project_root)
         self.repair_state = repair_state or CreatorRepairState()
         self.latest_result: CreatorValidationResult | None = None
+        self.host_verifier = host_verifier
 
     @staticmethod
     def _bounded(output: str, truncated: bool) -> tuple[str, bool]:
@@ -120,19 +123,28 @@ class CreatorValidationService:
             if self.activity.revision != target_revision:
                 break
 
+        host_checks = ()
+        completable_authorizations = ()
+        if self.activity.revision == target_revision and self.host_verifier is not None:
+            host_checks, completable_authorizations = await self.host_verifier.verify()
+
         status = (
             "stale"
             if self.activity.revision != target_revision
             else "passed"
             if len(checks) == len(CREATOR_COMPLETION_VALIDATIONS)
             and all(check.status == "passed" for check in checks)
+            and all(check.status == "passed" for check in host_checks)
             else "failed"
         )
         validation = CreatorValidationResult(
             revision=target_revision,
             status=status,
             checks=tuple(checks),
+            host_checks=tuple(host_checks),
         )
+        if status == "passed" and self.host_verifier is not None:
+            self.host_verifier.complete(completable_authorizations)
         self.latest_result = validation
         self.repair_state.record_result(
             target_revision, passed=status == "passed"
@@ -151,6 +163,7 @@ class CreatorValidationService:
                         }
                         for check in checks
                     ],
+                    "hostChecks": [check.to_dict() for check in host_checks],
                 },
             )
         return validation

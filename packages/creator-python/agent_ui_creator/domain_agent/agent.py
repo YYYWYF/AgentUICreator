@@ -40,6 +40,14 @@ from ..runtime_diagnostics import (
     RuntimeDiagnosticStore,
     create_runtime_diagnostic_tool,
 )
+from ..service_contracts import (
+    ServiceContractAuthorizationService,
+    ServiceContractAuthorizationStore,
+    ServiceContractAuthorizationVerifier,
+    UIServiceContractCreationService,
+    UIServiceContractMutationService,
+    create_service_contract_tools,
+)
 from ..source_tools import (
     UIPluginCreationService,
     UIPluginSourceMutationService,
@@ -90,6 +98,7 @@ class CreatorDomainReadAgent:
         mutation_service: AppUIModelMutationService | None = None,
         completion_gate: CreatorDevelopmentCompletionGate | None = None,
         automatic_completion_repair: bool = False,
+        service_contract_authorizations: ServiceContractAuthorizationStore | None = None,
     ) -> None:
         self.graph = graph
         self.protocol = protocol
@@ -101,6 +110,7 @@ class CreatorDomainReadAgent:
         self.completion_gate = completion_gate
         self.automatic_completion_repair = automatic_completion_repair
         self.activity = runtime.backend.activity
+        self.service_contract_authorizations = service_contract_authorizations
 
     async def run(self, prompt: str) -> DomainReadAgentResult:
         return await self.run_messages([{"role": "user", "content": prompt}])
@@ -108,6 +118,19 @@ class CreatorDomainReadAgent:
     async def run_messages(
         self, messages: list[dict[str, str]]
     ) -> DomainReadAgentResult:
+        if self.service_contract_authorizations is not None:
+            current_user_message = next(
+                (
+                    message["content"]
+                    for message in reversed(messages)
+                    if message.get("role") == "user"
+                ),
+                "",
+            )
+            self.service_contract_authorizations.set_current_user_context(
+                current_user_message=current_user_message,
+                run_id=self.activity.run_id,
+            )
         async def invoke(input_messages: list[Any]) -> Any:
             return await DeepAgentV3Runner().run(
                 graph=self.graph,
@@ -298,6 +321,12 @@ def create_domain_write_creator_agent(
         activity=backend.activity,
         mutation_coordinator=coordinator,
     )
+    service_contract_source_creation = UISourceCreationService(
+        project_root=workspace,
+        activity=backend.activity,
+        mutation_coordinator=coordinator,
+        path_policy=MinimalAgentPathPolicy.internal_source(),
+    )
     plugin_creation = UIPluginCreationService(
         project_root=workspace,
         source_creation=source_creation,
@@ -308,11 +337,37 @@ def create_domain_write_creator_agent(
         activity=backend.activity,
         mutation_coordinator=coordinator,
     )
+    service_authorizations = ServiceContractAuthorizationStore(
+        workspace, thread_id=thread_id
+    )
+    service_authorization = ServiceContractAuthorizationService(
+        project_root=workspace,
+        project_control=client,
+        store=service_authorizations,
+    )
+    service_creation = UIServiceContractCreationService(
+        project_root=workspace,
+        project_control=client,
+        store=service_authorizations,
+        source_creation=service_contract_source_creation,
+    )
+    service_mutation = UIServiceContractMutationService(
+        project_root=workspace,
+        project_control=client,
+        store=service_authorizations,
+        activity=backend.activity,
+        mutation_coordinator=coordinator,
+    )
+    service_verifier = ServiceContractAuthorizationVerifier(
+        project_control=client,
+        store=service_authorizations,
+    )
     validation = CreatorValidationService(
         project_root=workspace,
         activity=backend.activity,
         runner=validation_runner,
         repair_state=repair_state,
+        host_verifier=service_verifier,
     )
     runtime_inspection = RuntimeDiagnosticInspectionService(
         store=diagnostics or RuntimeDiagnosticStore(),
@@ -330,6 +385,11 @@ def create_domain_write_creator_agent(
         ),
         create_ui_plugin_tool(plugin_creation),
         mutate_ui_plugin_source_tool(plugin_mutation),
+        *create_service_contract_tools(
+            service_authorization,
+            service_creation,
+            service_mutation,
+        ),
         create_app_ui_model_mutation_tool(service, observations),
         create_validation_tool(validation),
         create_runtime_diagnostic_tool(runtime_inspection),
@@ -384,9 +444,12 @@ def create_domain_write_creator_agent(
             repair_state=repair_state,
         ),
         automatic_completion_repair=automatic_completion_repair,
+        service_contract_authorizations=service_authorizations,
     )
     agent.source_creation = source_creation
     agent.plugin_mutation = plugin_mutation
+    agent.service_contract_creation = service_creation
+    agent.service_contract_mutation = service_mutation
     agent.validation = validation
     agent.runtime_inspection = runtime_inspection
     return agent

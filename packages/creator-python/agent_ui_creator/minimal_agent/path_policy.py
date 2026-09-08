@@ -27,7 +27,15 @@ from ..files import (
 from ..transactions import CreatorTransactionError
 
 _DENIED_DIRECTORY_NAMES = frozenset(
-    {".git", "node_modules", "dist", "build", "coverage", "cache"}
+    {
+        ".git",
+        ".agentuicreator",
+        "node_modules",
+        "dist",
+        "build",
+        "coverage",
+        "cache",
+    }
 )
 
 

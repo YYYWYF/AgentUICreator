@@ -17,6 +17,7 @@ from agent_ui_creator.domain_agent import (
 from agent_ui_creator.domain_agent.tool_batch_policy import (
     is_valid_domain_tool_batch,
 )
+from agent_ui_creator.minimal_agent.path_policy import MinimalAgentPathPolicy
 from agent_ui_creator.source_tools import (
     SourceCreationError,
     UIPluginCreationService,
@@ -56,6 +57,7 @@ def service(tmp_path: Path, run_id: str = "source-create"):
             project_root=tmp_path,
             activity=activity,
             mutation_coordinator=ProjectMutationCoordinator(),
+            path_policy=MinimalAgentPathPolicy.internal_source(),
         ),
         activity,
     )

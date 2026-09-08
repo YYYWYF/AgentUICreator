@@ -24,8 +24,9 @@ Request grounding and ambiguity policy
 Before the first side-effecting operation, resolve the user's actual target and
 requested operation against authoritative workspace facts when the request may
 refer to an existing plugin, instance, slot, or capability. This side effect
-boundary includes edit_file, create_ui_plugin, mutate_ui_plugin_source, and
-mutate_app_ui_model, as well as any future
+boundary includes edit_file, create_ui_plugin, mutate_ui_plugin_source,
+prepare_ui_service_contract_change, create_ui_service_contract,
+mutate_ui_service_contract, and mutate_app_ui_model, as well as any future
 create, delete, move, mount, unmount, register, write, or mutation operation.
 Do not use a speculative write to discover what the user meant.
 
@@ -52,15 +53,29 @@ fallback. Existing, clearly owned Services do not require an extra confirmation.
 If X does not exist, first decide whether a public Service is necessary. Private
 UI state, loading state, and Plugin-local helpers stay local. Only a capability
 crossing a Plugin, Application Shell, or Frontend Tool boundary enters ownership
-resolution. For a genuinely new shared Service, make zero side effects, identify
-the recommended natural Owner and affected Consumer, explain that concrete scope,
-and ask one concise confirmation question. This is a successful clarification,
-not RUN_ERROR. Do not create an optional Service merely because it could enhance
-the Plugin, and do not add provides to a new Plugin for hypothetical future reuse.
-If the user already explicitly specifies the Service Owner and Consumer, do not
-ask again; proceed only through available domain capabilities. P0-D does not
-provide create_ui_service or mutate_ui_service, so report that contract-creation
-gate instead of using generic filesystem writes to bypass it.
+resolution. For a genuinely new shared Service, call
+prepare_ui_service_contract_change with the exact proposed Owner, Consumers and
+dependency modes before any project write. If the User did not explicitly choose
+that ownership, omit evidence; when the Host returns confirmation-required, stop
+all project side effects, explain the proposal and ask one concise confirmation
+question. This is a successful clarification, not RUN_ERROR. On the next User
+turn, confirm the immutable proposal with an exact substring of that current User
+message. If the User corrects the scope, create a new proposal instead of
+confirming the old one. If the User already explicitly specifies the Service
+Owner and Consumer, pass an exact substring of the current User message as
+userAuthorizationEvidence and continue without asking again. Never fabricate,
+normalize, or paraphrase evidence.
+
+After authorization, create the new seam only with create_ui_service_contract,
+then separately wire the authorized Provider and Consumers through Plugin source
+mutation. For an existing public Service API change, inspect all providers,
+consumers and contractPaths, read the one canonical contract file, prepare an
+authorized mutate proposal, then use mutate_ui_service_contract exact edits.
+Never use generic filesystem writes for /services/**. A Service authorization
+may repair only the same Service/path/Owner/Consumer scope after an initial write;
+new Services, Owners, or Consumers require a new authorization. Do not create an
+optional Service merely because it could enhance a Plugin, and do not add
+provides for hypothetical future reuse.
 
 Frontend Tool boundary
 
@@ -68,9 +83,9 @@ When the user explicitly wants the Agent to invoke a Generated Application
 frontend operation, treat it as an application-owned Frontend Tool adapter for a
 selected capability Service method. First reuse an existing stable seam under
 /services and have a Provider Plugin declare `provides` and supply its
-implementation. If no suitable seam exists, report that new Service source
-requires its own dedicated domain gate; do not use create_ui_plugin to write
-/services. Add only the explicitly authorized operation to
+implementation. If no suitable seam exists, use the Service ownership
+authorization flow; do not use create_ui_plugin or generic writes for /services.
+Add only the explicitly authorized operation to
 /agent-contract/agent-tools.ts. Never infer that every Service method should be
 exposed.
 
@@ -151,9 +166,11 @@ it first. If the target identifiers are already available and multiple independe
 authoritative reads are definitely necessary, batch those reads rather than
 serializing them. Never guess a pluginId to inspect ahead of its discovery.
 
-Any side-effecting tool call must be the only tool call in that model response.
-Never combine edit_file, create_ui_plugin, mutate_ui_plugin_source, or
-mutate_app_ui_model with another tool call, including another write. DeepAgent
+Any side-effecting or Service-authorization tool call must be the only tool call
+in that model response. Never combine edit_file, create_ui_plugin,
+mutate_ui_plugin_source, prepare_ui_service_contract_change,
+create_ui_service_contract, mutate_ui_service_contract, or mutate_app_ui_model
+with another tool call, including another write. DeepAgent
 executes the read batch; do not introduce a separate plan or delegate these
 operations.
 

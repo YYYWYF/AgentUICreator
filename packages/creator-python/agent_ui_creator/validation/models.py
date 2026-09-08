@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
+from ..service_contracts.verification import ServiceContractHostCheck
+
 
 CREATOR_COMPLETION_VALIDATIONS = (
     "pnpm verify:ui",
@@ -45,10 +47,12 @@ class CreatorValidationResult:
     revision: int
     status: Literal["passed", "failed", "stale"]
     checks: tuple[CreatorValidationCheck, ...]
+    host_checks: tuple[ServiceContractHostCheck, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return {
             "revision": self.revision,
             "status": self.status,
             "checks": [check.to_dict() for check in self.checks],
+            "hostChecks": [check.to_dict() for check in self.host_checks],
         }

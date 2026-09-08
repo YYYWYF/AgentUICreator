@@ -2,7 +2,7 @@
 name: ui-plugin-development
 description: Use to inspect, create, or modify UI Plugin manifests, definitions, React components, styles, contexts, and registration when existing Plugins cannot provide the requested frontend behavior.
 compatibility: Agent UI Plugin Creator Phase 8 permits writes under project plugins and AppUIModel composition.
-allowed-tools: read_file ls glob grep edit_file create_ui_plugin mutate_ui_plugin_source inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin inspect_ui_services inspect_ui_plugin_source_references mutate_app_ui_model validate_creator_changes inspect_runtime_errors
+allowed-tools: read_file ls glob grep edit_file create_ui_plugin mutate_ui_plugin_source prepare_ui_service_contract_change create_ui_service_contract mutate_ui_service_contract inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin inspect_ui_services inspect_ui_plugin_source_references mutate_app_ui_model validate_creator_changes inspect_runtime_errors
 ---
 
 # UI Plugin Development
@@ -38,15 +38,21 @@ Plugin needs capability X
    -> yes: classify core requirement as inject, enhancement as optionalInject
    -> no: is a cross-boundary shared Service actually necessary?
       -> no: keep the behavior private to the Plugin
-      -> yes: resolve the natural Owner, explain the current fact, recommended
-              ownership, and impact, then ask one confirmation question
+      -> yes: resolve the natural Owner, exact Consumers and dependency modes
+              -> prepare_ui_service_contract_change
+              -> confirmation-required: ask the User and stop project writes
+              -> authorized: create_ui_service_contract
+                 -> wire Provider and Consumers
+                 -> validate, then Runtime verify
 ```
 
 - `inject` is only for a capability without which the Plugin's core behavior cannot work.
 - `optionalInject` is for an enhancement with a complete fallback when the Service is unavailable.
 - A missing optional Service is not permission to create it. Omit the dependency unless the user explicitly authorizes a new shared capability.
 - A new Plugin does not declare `provides` merely because another Plugin might use its behavior later.
-- If the user already explicitly identifies the Service Owner and Consumer, do not repeat the ownership confirmation. If Service-contract mutation tooling is unavailable, state that boundary instead of using generic file writes.
+- If the User explicitly identifies the Service Owner and Consumer, pass an exact substring of the current User message as authorization evidence and do not repeat confirmation. Never fabricate or paraphrase evidence.
+- To change an existing Service Contract, inspect all `contractPaths`, Providers and Consumers, require one canonical path, read that file, authorize the exact impact, then use `mutate_ui_service_contract` exact edits and update affected Plugins.
+- Generic `edit_file` and Plugin tools never write `/services/**`; only authorized Service Contract tools may do so.
 - A public Service is justified only across a real boundary: multiple Plugins, another Plugin caller, Application Shell, or a Frontend Tool/Agent adapter. Private state and helpers stay inside the Plugin.
 
 ## Safe source editing
@@ -125,7 +131,7 @@ When adding, removing, or renaming a child `renderSlot(...)` outlet in a contain
 - Structural interface service examples are acceptable, and `EventEmitter`-style ad-hoc emitters should remain project-local, not runtime API additions.
 - Do not place capability implementations into Plugin actions or Agent Runtime actions.
 - A Frontend Tool is an Agent-facing adapter for a selected capability operation; it is not a Plugin capability and is not registered by a Plugin.
-- When the product explicitly asks the Agent to invoke frontend behavior, first reuse an existing stable Service seam, have the Provider Plugin declare `provides`, and expose the selected operation from `/agent-contract/agent-tools.ts`. If no suitable seam exists, report that new Service source requires its own dedicated domain gate; never use `create_ui_plugin` to write `/services`.
+- When the product explicitly asks the Agent to invoke frontend behavior, first reuse an existing stable Service seam, have the Provider Plugin declare `provides`, and expose the selected operation from `/agent-contract/agent-tools.ts`. If no suitable seam exists, use the authorized Service ownership flow; never use `create_ui_plugin` or generic writes for `/services`.
 - Frontend Tool names use `lower_snake_case`, inputs use `z.strictObject(...)`, descriptions explain when to call the Tool plus what it does and does not do, and results stay short, structured, and serializable.
 - Frontend Tool handlers call `services.get(...)` and must tolerate a capability disappearing before execution. Never bind a Tool to a React component, ref, DOM query, Plugin instance, or concrete Provider implementation.
 - Do not automatically expose every Service method. A Service may have zero, one, or many explicitly authorized Frontend Tools.

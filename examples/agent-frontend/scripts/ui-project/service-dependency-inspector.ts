@@ -436,6 +436,7 @@ export function inspectUIServiceDependencies(
 
     return {
       name,
+      contractPaths: [...(declarations.seamPaths.get(name) ?? [])].sort(),
       status,
       providers,
       requiredConsumers,

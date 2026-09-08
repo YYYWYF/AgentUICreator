@@ -171,6 +171,9 @@ def test_side_effect_classification_and_round_trip_prompt_contract():
         "edit_file",
         "create_ui_plugin",
         "mutate_ui_plugin_source",
+        "prepare_ui_service_contract_change",
+        "create_ui_service_contract",
+        "mutate_ui_service_contract",
         "mutate_app_ui_model",
     }
     assert READ_ONLY_TOOL_NAMES == set(ALLOWED_DOMAIN_WRITE_TOOLS) - SIDE_EFFECT_TOOL_NAMES
@@ -183,7 +186,7 @@ def test_side_effect_classification_and_round_trip_prompt_contract():
         "arguments or necessity depend on an earlier result, wait for that result",
         "If list_ui_plugins is genuinely required to discover the target identifier, call it first",
         "Never guess a pluginId",
-        "Never combine edit_file, create_ui_plugin, mutate_ui_plugin_source, or mutate_app_ui_model",
+        "Never combine edit_file, create_ui_plugin, mutate_ui_plugin_source, prepare_ui_service_contract_change",
         "one atomic mutation containing all semantic operations",
         "updated authoritative observation",
         "Do not immediately re-inspect",

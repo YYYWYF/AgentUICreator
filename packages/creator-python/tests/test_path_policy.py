@@ -93,6 +93,20 @@ def test_path_policy_rejects_escape_and_sensitive_paths(tmp_path):
     assert "TOOL_PERMISSION_DENIED" in backend.read("/node_modules/a.js").error
 
 
+def test_creator_authorization_metadata_is_not_model_readable(tmp_path):
+    target = tmp_path / ".agentuicreator/service-authorizations/authorization.json"
+    target.parent.mkdir(parents=True)
+    target.write_text("{}\n", encoding="utf-8")
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+
+    result = backend.read(
+        "/.agentuicreator/service-authorizations/authorization.json"
+    )
+
+    assert result.error is not None
+    assert "TOOL_PERMISSION_DENIED" in result.error
+
+
 def test_conformance_policy_allows_fixture_edits_outside_plugins(tmp_path):
     (tmp_path / "src").mkdir()
     target = tmp_path / "src" / "activity.ts"
