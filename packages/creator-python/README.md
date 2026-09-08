@@ -84,7 +84,7 @@ CREATOR_PYTHON_AGENT_MODE=domain-read
 `inspect_ui_plugin_source_references`。领域事实只通过目标工程固定的
 `scripts/ui-project-control.ts` 获取；不会自动向每轮模型调用注入全量 snapshot。
 
-默认的可写领域模式在上述工具面上增加唯一的组合写入口：
+默认的可写领域模式在上述工具面上增加受限的领域写入口：
 
 ```env
 CREATOR_PYTHON_AGENT_MODE=domain-write
@@ -95,6 +95,13 @@ CREATOR_PYTHON_AGENT_MODE=domain-write
 ProjectControl transaction、真实磁盘 changedPaths 对账、Activity touch、receipt 与 undo
 证据记录。Hash conflict 不会自动重试，必须重新 inspect；成功只表示静态组合 transaction
 提交，不代表 Runtime Verification 或 Host Validation 通过。
+
+`create_ui_plugin` 以 create-only 事务创建一个完整 Plugin；已有 Plugin 的单文件小修改
+继续使用 `edit_file`，跨多个 Plugin 文件或“修改已有文件 + 创建 Plugin 内新文件”的需求
+使用 `mutate_ui_plugin_source`。后者只接受 Plugin 目录内的 exact text edit 和 create，
+要求每个 edit 目标在当前 run 已读取，并在同一个 project-level lock 内完成全部 preflight、
+原子 commit、失败回滚、Activity revision、receipt、createdDirectories 与 undo 记录；不提供
+删除、重命名、移动或跨 Plugin 写入语义。
 
 `ProjectControlClient` 固定从目标工程的 `node_modules/.bin/tsx`（Windows 为
 `tsx.cmd`）启动该入口，`cwd` 为目标工程，环境固定 `CI=1`、`FORCE_COLOR=0`，

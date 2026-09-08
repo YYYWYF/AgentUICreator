@@ -52,7 +52,8 @@ def create_ui_plugin_tool(service: UIPluginCreationService) -> BaseTool:
             "Each file uses a relativePath inside /plugins/<pluginId>/. The request "
             "must include manifest.json, definition.ts, and index.tsx; manifest.id "
             "must equal pluginId; and the Plugin directory must not exist. Use "
-            "read_file plus edit_file for existing Plugin source."
+            "edit_file for one small existing-file change and "
+            "mutate_ui_plugin_source for an existing Plugin change spanning files."
         ),
     )
     async def create_ui_plugin(pluginId: str, files: list[dict[str, str]]) -> str:

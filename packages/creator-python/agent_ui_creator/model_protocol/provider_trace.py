@@ -13,11 +13,13 @@ import httpx
 _TEXT_TOOL_PATTERNS = (
     re.compile(r"<function_call\b", re.IGNORECASE),
     re.compile(
-        r"\b(?:read_file|edit_file|grep|glob|ls)\s*\(\s*[{\[]",
+        r"\b(?:read_file|edit_file|grep|glob|ls|mutate_ui_plugin_source)"
+        r"\s*\(\s*[{\[]",
         re.IGNORECASE,
     ),
     re.compile(
-        r"^[`\s]*(?:read_file|edit_file|grep|glob|ls)\s*\{",
+        r"^[`\s]*(?:read_file|edit_file|grep|glob|ls|mutate_ui_plugin_source)"
+        r"\s*\{",
         re.IGNORECASE | re.MULTILINE,
     ),
 )

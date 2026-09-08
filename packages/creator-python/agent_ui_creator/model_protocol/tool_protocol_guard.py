@@ -30,7 +30,8 @@ Do not explain the error in prose."""
 _TOOL_INTENT_NAMES = (
     "read_file|edit_file|grep|glob|ls|inspect_ui_project|inspect_app_ui_model|"
     "list_ui_plugins|inspect_ui_slots|inspect_ui_plugin|"
-    "inspect_ui_plugin_source_references|mutate_app_ui_model"
+    "inspect_ui_plugin_source_references|mutate_ui_plugin_source|"
+    "mutate_app_ui_model"
 )
 _TEXT_TOOL_PATTERNS = (
     re.compile(r"<function_call\b", re.IGNORECASE),

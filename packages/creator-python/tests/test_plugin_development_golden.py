@@ -38,6 +38,7 @@ TASK_PLUGIN_FILES = {
     "/plugins/task-status/index.tsx": (
         'export function TaskStatus() { return <section>Ready</section>; }\n'
     ),
+    "/plugins/task-status/styles.css": ".status { padding: 8px; }\n",
 }
 
 
@@ -140,7 +141,17 @@ class PluginProjectControl:
 
     async def inspect_ui_plugin_source_references(self, plugin_id):
         self.record("inspect_ui_plugin_source_references")
-        return {"pluginId": plugin_id, "files": ["plugins/example/index.tsx"]}
+        return {
+            "pluginId": plugin_id,
+            "files": sorted(
+                path.lstrip("/")
+                for path in (
+                    TASK_PLUGIN_FILES
+                    if plugin_id == "task-status"
+                    else {"/plugins/example/index.tsx": ""}
+                )
+            ),
+        }
 
     async def request_app_ui_model_mutation(self, input):
         self.record("mutate_app_ui_model")
@@ -425,6 +436,119 @@ def test_already_satisfied_semantic_noop_golden_scenario(tmp_path):
     assert receipt["files"] == []
     assert receipt["semanticNoop"]["reason"] == "already-satisfied"
     assert receipt["verification"]["status"] == "already-satisfied"
+
+
+def test_existing_plugin_multi_file_change_uses_one_atomic_mutation(tmp_path):
+    responses = [
+        batch(
+            call(
+                "inspect_ui_plugin",
+                {"pluginId": "task-status"},
+                "inspect-task-status",
+            ),
+            call(
+                "inspect_ui_plugin_source_references",
+                {"pluginId": "task-status"},
+                "inspect-task-status-source",
+            ),
+        ),
+        batch(
+            call(
+                "read_file",
+                {"file_path": "/plugins/task-status/index.tsx"},
+                "read-index",
+            ),
+            call(
+                "read_file",
+                {"file_path": "/plugins/task-status/styles.css"},
+                "read-styles",
+            ),
+        ),
+        call(
+            "mutate_ui_plugin_source",
+            {
+                "pluginId": "task-status",
+                "changes": [
+                    {
+                        "type": "edit",
+                        "relativePath": "index.tsx",
+                        "edits": [
+                            {
+                                "oldText": "<section>Ready</section>",
+                                "newText": "<section>Current Task</section>",
+                            }
+                        ],
+                    },
+                    {
+                        "type": "edit",
+                        "relativePath": "styles.css",
+                        "edits": [
+                            {"oldText": "padding: 8px", "newText": "padding: 12px"}
+                        ],
+                    },
+                ],
+            },
+            "mutate-source",
+        ),
+        call("validate_creator_changes", {}, "validate-source"),
+        call("inspect_runtime_errors", {}, "runtime-source"),
+        AIMessage(content="Task Status source updated and verified."),
+    ]
+    agent, _client, _diagnostics, _validation = make_agent(
+        tmp_path, responses, already_satisfied=True
+    )
+
+    result = asyncio.run(
+        agent.run(
+            "把 Task Status 的标题改成 Current Task，同时把卡片 padding 从 8px 调成 12px。"
+        )
+    )
+
+    names = [item.name for item in agent.runtime.activities]
+    assert names.count("mutate_ui_plugin_source") == 1
+    assert "edit_file" not in names
+    assert "Current Task" in (
+        tmp_path / "plugins/task-status/index.tsx"
+    ).read_text()
+    assert "padding: 12px" in (
+        tmp_path / "plugins/task-status/styles.css"
+    ).read_text()
+    assert result.text == "Task Status source updated and verified."
+
+
+def test_existing_plugin_single_file_change_still_uses_edit_file(tmp_path):
+    responses = [
+        call(
+            "read_file",
+            {"file_path": "/plugins/task-status/index.tsx"},
+            "read-index",
+        ),
+        call(
+            "edit_file",
+            {
+                "file_path": "/plugins/task-status/index.tsx",
+                "old_string": "Ready",
+                "new_string": "Running",
+            },
+            "edit-index",
+        ),
+        call("validate_creator_changes", {}, "validate-source"),
+        call("inspect_runtime_errors", {}, "runtime-source"),
+        AIMessage(content="Task Status copy updated and verified."),
+    ]
+    agent, _client, _diagnostics, _validation = make_agent(
+        tmp_path, responses, already_satisfied=True
+    )
+
+    result = asyncio.run(agent.run("把 Ready 改成 Running。"))
+
+    names = [item.name for item in agent.runtime.activities]
+    assert names.count("edit_file") == 1
+    assert "mutate_ui_plugin_source" not in names
+    assert "Running" in (
+        tmp_path / "plugins/task-status/index.tsx"
+    ).read_text()
+    assert result.text == "Task Status copy updated and verified."
 
 
 def test_failed_validation_repairs_before_completion(tmp_path):
