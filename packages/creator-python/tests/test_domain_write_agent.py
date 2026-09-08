@@ -167,4 +167,4 @@ def test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation(tmp_
     }
     assert receipt["files"][0]["path"] == APP_UI_MODEL_PATH
     assert receipt["transaction"]["undoable"] is True
-    assert receipt["verification"]["status"] == "not-run"
+    assert receipt["verification"]["status"] == "failed"

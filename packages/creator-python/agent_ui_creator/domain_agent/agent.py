@@ -9,7 +9,7 @@ import openai
 from deepagents import create_deep_agent
 from deepagents.middleware.filesystem import FilesystemMiddleware
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.errors import GraphRecursionError
 
 from ..activity import CreatorActivityRecorder
@@ -34,10 +34,24 @@ from ..model_protocol.provider_trace import ProviderResponseTraceCollector
 from ..model_protocol.tool_protocol_guard import ToolProtocolMiddleware
 from ..model_protocol.trace import ToolProtocolMetrics
 from ..project_control import ProjectControlClient, ProjectControlMetrics
+from ..repair import CreatorRepairState
+from ..runtime_diagnostics import (
+    RuntimeDiagnosticInspectionService,
+    RuntimeDiagnosticStore,
+    create_runtime_diagnostic_tool,
+)
+from ..source_tools import UISourceCreationService, create_ui_source_files_tool
 from ..streaming.deepagent_v3_runner import DeepAgentV3Runner
 from ..streaming.runtime_events import CreatorEventSink
+from ..validation import (
+    CreatorValidationService,
+    ValidationCommandRunner,
+    create_validation_tool,
+)
+from .completion_gate import CreatorDevelopmentCompletionGate
 from .prompt import DOMAIN_READ_AGENT_PROMPT, DOMAIN_WRITE_AGENT_PROMPT
 from .runtime_guard import RepeatedProjectControlReadGuard
+from .skills import create_domain_skills_backend, default_creator_skills_root
 from .tool_batch_policy import DomainToolBatchPolicyMiddleware
 from .tool_policy import DomainReadToolPolicyMiddleware, DomainWriteToolPolicyMiddleware
 
@@ -68,6 +82,8 @@ class CreatorDomainReadAgent:
         project_control: ProjectControlClient,
         observations: DomainObservationContext,
         mutation_service: AppUIModelMutationService | None = None,
+        completion_gate: CreatorDevelopmentCompletionGate | None = None,
+        automatic_completion_repair: bool = False,
     ) -> None:
         self.graph = graph
         self.protocol = protocol
@@ -76,6 +92,8 @@ class CreatorDomainReadAgent:
         self.project_control = project_control
         self.observations = observations
         self.mutation_service = mutation_service
+        self.completion_gate = completion_gate
+        self.automatic_completion_repair = automatic_completion_repair
         self.activity = runtime.backend.activity
 
     async def run(self, prompt: str) -> DomainReadAgentResult:
@@ -84,13 +102,44 @@ class CreatorDomainReadAgent:
     async def run_messages(
         self, messages: list[dict[str, str]]
     ) -> DomainReadAgentResult:
-        try:
-            state = await DeepAgentV3Runner().run(
+        async def invoke(input_messages: list[Any]) -> Any:
+            return await DeepAgentV3Runner().run(
                 graph=self.graph,
-                input={"messages": messages},
+                input={"messages": input_messages},
                 config={"recursion_limit": 30},
                 event_sink=self.runtime.event_sink,
             )
+
+        completion_decision = None
+        try:
+            state = await invoke(messages)
+            for _attempt in range(3):
+                if (
+                    self.completion_gate is None
+                    or not self.automatic_completion_repair
+                ):
+                    break
+                state_messages = (
+                    state.get("messages", []) if isinstance(state, dict) else []
+                )
+                final = next(
+                    (
+                        message
+                        for message in reversed(state_messages)
+                        if isinstance(message, AIMessage)
+                    ),
+                    None,
+                )
+                candidate = "" if final is None else _message_text(final).strip()
+                completion_decision = self.completion_gate.review(candidate)
+                if completion_decision.accepted or completion_decision.feedback is None:
+                    break
+                state = await invoke(
+                    [
+                        *state_messages,
+                        HumanMessage(content=completion_decision.feedback),
+                    ]
+                )
         except GraphRecursionError as error:
             self.protocol.metrics.repeatedToolLoops += int(self.runtime.no_progress)
             raise AgentNoProgressError(
@@ -112,8 +161,13 @@ class CreatorDomainReadAgent:
             if self.mutation_service is not None
             else DomainReadAgentResult
         )
+        text = "" if final is None else _message_text(final).strip()
+        if self.completion_gate is not None:
+            if completion_decision is None or not completion_decision.accepted:
+                completion_decision = self.completion_gate.review(text)
+            text = completion_decision.text
         values = dict(
-            text="" if final is None else _message_text(final).strip(),
+            text=text,
             metrics=self.protocol.metrics,
             project_control=self.project_control.metrics,
             repeated_project_control_reads=self.repeated_read_guard.repeated_reads,
@@ -207,6 +261,11 @@ def create_domain_write_creator_agent(
     activity: CreatorActivityRecorder | None = None,
     mutation_coordinator: ProjectMutationCoordinator | None = None,
     event_sink: CreatorEventSink | None = None,
+    skills_root: str | Path | None = None,
+    diagnostics: RuntimeDiagnosticStore | None = None,
+    thread_id: str | None = None,
+    validation_runner: ValidationCommandRunner | None = None,
+    automatic_completion_repair: bool = False,
 ) -> CreatorDomainWriteAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -215,32 +274,60 @@ def create_domain_write_creator_agent(
         else MinimalAgentPathPolicy.conformance()
     )
     backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+    skills_backend = create_domain_skills_backend(
+        backend, skills_root or default_creator_skills_root()
+    )
     client = project_control or ProjectControlClient(project_root=Path(workspace))
+    coordinator = mutation_coordinator or ProjectMutationCoordinator()
     service = AppUIModelMutationService(
         project_root=workspace,
         project_control=client,
         activity=backend.activity,
-        mutation_coordinator=mutation_coordinator or ProjectMutationCoordinator(),
+        mutation_coordinator=coordinator,
     )
     observations = DomainObservationContext()
+    repair_state = CreatorRepairState()
+    source_creation = UISourceCreationService(
+        project_root=workspace,
+        activity=backend.activity,
+        mutation_coordinator=coordinator,
+    )
+    validation = CreatorValidationService(
+        project_root=workspace,
+        activity=backend.activity,
+        runner=validation_runner,
+        repair_state=repair_state,
+    )
+    runtime_inspection = RuntimeDiagnosticInspectionService(
+        store=diagnostics or RuntimeDiagnosticStore(),
+        thread_id=thread_id,
+        project_control=client,
+        observations=observations,
+        activity=backend.activity,
+        repair_state=repair_state,
+    )
     domain_tools = (
         *create_project_control_tools(
             client,
             observations=observations,
             activity=backend.activity,
         ),
+        create_ui_source_files_tool(source_creation),
         create_app_ui_model_mutation_tool(service, observations),
+        create_validation_tool(validation),
+        create_runtime_diagnostic_tool(runtime_inspection),
     )
     metrics = ToolProtocolMetrics()
     protocol = ToolProtocolMiddleware(
         metrics=metrics,
+        max_model_calls=24,
         raw_trace=raw_trace,
         provider_trace_collector=provider_trace_collector,
     )
     runtime = MinimalAgentRuntimeGuard(backend, event_sink=event_sink)
     repeated_read_guard = RepeatedProjectControlReadGuard(backend)
     filesystem = FilesystemMiddleware(
-        backend=backend,
+        backend=skills_backend,
         tools=list(ALLOWED_MINIMAL_TOOLS),
         tool_token_limit_before_evict=None,
         human_message_token_limit_before_evict=None,
@@ -249,9 +336,9 @@ def create_domain_write_creator_agent(
         model=model,
         tools=list(domain_tools),
         system_prompt=DOMAIN_WRITE_AGENT_PROMPT,
-        backend=backend,
+        backend=skills_backend,
         subagents=[],
-        skills=None,
+        skills=["/skills/"],
         memory=None,
         middleware=[
             filesystem,
@@ -265,7 +352,7 @@ def create_domain_write_creator_agent(
         ],
         name="creator-python-domain-write-agent",
     )
-    return CreatorDomainWriteAgent(
+    agent = CreatorDomainWriteAgent(
         graph=graph,
         protocol=protocol,
         runtime=runtime,
@@ -273,4 +360,15 @@ def create_domain_write_creator_agent(
         project_control=client,
         observations=observations,
         mutation_service=service,
+        completion_gate=CreatorDevelopmentCompletionGate(
+            activity=backend.activity,
+            validation=validation,
+            runtime=runtime_inspection,
+            repair_state=repair_state,
+        ),
+        automatic_completion_repair=automatic_completion_repair,
     )
+    agent.source_creation = source_creation
+    agent.validation = validation
+    agent.runtime_inspection = runtime_inspection
+    return agent

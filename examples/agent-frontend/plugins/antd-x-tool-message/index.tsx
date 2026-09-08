@@ -1,11 +1,12 @@
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
+  FileOutlined,
   LoadingOutlined,
   StopOutlined,
   ToolOutlined,
 } from "@ant-design/icons";
-import { Alert, Collapse, Tag, Typography, type CollapseProps } from "antd";
+import { Alert, Collapse, Typography, type CollapseProps } from "antd";
 import type { ReactNode } from "react";
 
 import type {
@@ -15,7 +16,7 @@ import type {
 } from "../../framework/contracts/ui-plugin";
 import { usePluginInstance } from "../../runtime/context";
 import { useToolRenderContext } from "../../runtime/message-rendering";
-import { readableJSON, type InspectionStatus } from "../_shared/agent-ui-data";
+import { type InspectionStatus } from "../_shared/agent-ui-data";
 
 import "./styles.css";
 
@@ -24,13 +25,6 @@ const statusLabels: Record<InspectionStatus, string> = {
   success: "已完成",
   error: "失败",
   abort: "未完成",
-};
-
-const statusColors: Record<InspectionStatus, string> = {
-  loading: "processing",
-  success: "success",
-  error: "error",
-  abort: "default",
 };
 
 function inspectionStatus(
@@ -61,6 +55,108 @@ function statusIcon(status: InspectionStatus): ReactNode {
   return <StopOutlined />;
 }
 
+function parseToolValue(value: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isScalar(value: unknown): value is string | number | boolean | null {
+  return (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  );
+}
+
+function looksLikeFilePath(value: string): boolean {
+  return value.includes("/") || /\.[a-z0-9]{1,8}$/iu.test(value);
+}
+
+function ScalarValue({ value }: { value: string | number | boolean | null }) {
+  const text = value === null ? "null" : String(value);
+  return (
+    <span className="antd-x-tool-message-scalar">
+      {typeof value === "string" && looksLikeFilePath(value) ? (
+        <FileOutlined aria-hidden="true" />
+      ) : null}
+      <code>{text}</code>
+    </span>
+  );
+}
+
+function StructuredValue({ value }: { value: unknown }) {
+  if (isScalar(value)) {
+    return <ScalarValue value={value} />;
+  }
+
+  if (Array.isArray(value) && value.every(isScalar)) {
+    return (
+      <ul className="antd-x-tool-message-value-list">
+        {value.map((item, index) => (
+          <li key={`${String(item)}:${index}`}>
+            <ScalarValue value={item} />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  if (isRecord(value)) {
+    return (
+      <dl className="antd-x-tool-message-object">
+        {Object.entries(value).map(([key, item]) => (
+          <div className="antd-x-tool-message-field" key={key}>
+            <dt>{key}</dt>
+            <dd>
+              <StructuredValue value={item} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+    );
+  }
+
+  return (
+    <pre className="antd-x-tool-message-raw-value">
+      {JSON.stringify(value, null, 2)}
+    </pre>
+  );
+}
+
+function resultCount(value: unknown): number | undefined {
+  if (Array.isArray(value)) {
+    return value.length;
+  }
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  const arrays = Object.values(value).filter(Array.isArray);
+  return arrays.length === 1 ? arrays[0]?.length : undefined;
+}
+
+function toolSummary(
+  status: InspectionStatus,
+  result: Extract<AgentMessage, { role: "tool" }> | undefined,
+): string {
+  if (status === "loading") return "工具调用 · 正在执行";
+  if (status === "error") return "工具调用 · 执行失败";
+  if (status === "abort") return "工具调用 · 未返回结果";
+  if (result === undefined) return "工具调用 · 已完成";
+
+  const count = resultCount(parseToolValue(result.content));
+  return count === undefined
+    ? "工具调用 · 已返回结果"
+    : `工具调用 · ${count} 个结果`;
+}
+
 export function AntdXToolMessagePlugin(_props: UIPluginComponentProps) {
   const { execution, result, running, toolCall, turnId } =
     useToolRenderContext();
@@ -69,24 +165,43 @@ export function AntdXToolMessagePlugin(_props: UIPluginComponentProps) {
   const showArguments = instance.props?.showArguments !== false;
   const showResult = instance.props?.showResult !== false;
   const status = inspectionStatus(result, execution, running);
+  const summary = toolSummary(status, result);
   const details: CollapseProps["items"] = [
     {
       key: "details",
       forceRender: true,
-      label: "参数与结果",
+      label: (
+        <span className="antd-x-tool-message-identity">
+          <span className="antd-x-tool-message-icon" aria-hidden="true">
+            <ToolOutlined />
+          </span>
+          <span className="antd-x-tool-message-title">
+            <strong>{toolCall.function.name}</strong>
+            <small>{summary}</small>
+          </span>
+        </span>
+      ),
+      extra: (
+        <span className="antd-x-tool-message-status">
+          {statusIcon(status)}
+          {statusLabels[status]}
+        </span>
+      ),
       children: (
         <div className="antd-x-tool-message-details">
           {showArguments ? (
-            <div>
-              <span>Arguments</span>
-              <pre>{readableJSON(toolCall.function.arguments)}</pre>
-            </div>
+            <section className="antd-x-tool-message-detail-section">
+              <h4>输入</h4>
+              <StructuredValue
+                value={parseToolValue(toolCall.function.arguments)}
+              />
+            </section>
           ) : null}
           {result?.error !== undefined || execution?.error !== undefined ? (
             <Alert
               description={result?.error ?? execution?.error?.message}
-              message="工具执行失败"
               showIcon
+              title="工具执行失败"
               type="error"
             />
           ) : !showResult ? null : result === undefined ? (
@@ -94,10 +209,10 @@ export function AntdXToolMessagePlugin(_props: UIPluginComponentProps) {
               {status === "loading" ? "等待工具返回结果…" : "工具没有返回结果"}
             </Typography.Text>
           ) : (
-            <div>
-              <span>Result</span>
-              <pre>{readableJSON(result.content)}</pre>
-            </div>
+            <section className="antd-x-tool-message-detail-section">
+              <h4>输出</h4>
+              <StructuredValue value={parseToolValue(result.content)} />
+            </section>
           )}
         </div>
       ),
@@ -113,20 +228,13 @@ export function AntdXToolMessagePlugin(_props: UIPluginComponentProps) {
       data-tool-status={status}
       data-ui-plugin="antd-x-tool-message"
     >
-      <header className="antd-x-tool-message-summary">
-        <span>
-          <ToolOutlined />
-          <strong>{toolCall.function.name}</strong>
-        </span>
-        <Tag color={statusColors[status]} icon={statusIcon(status)}>
-          {statusLabels[status]}
-        </Tag>
-      </header>
       <Collapse
         bordered={false}
         defaultActiveKey={defaultExpanded ? ["details"] : []}
+        expandIconPlacement="end"
         ghost
         items={details}
+        rootClassName="antd-x-tool-message-collapse"
         size="small"
       />
     </section>

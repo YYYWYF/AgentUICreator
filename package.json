@@ -19,6 +19,6 @@
     "test:python-sidecar": "pnpm test:python:setup && pnpm --filter @agent-ui/creator test:python-sidecar",
     "test:watch": "pnpm --filter @agent-ui/example-agent-frontend test:watch",
     "creator": "pnpm --filter @agent-ui/creator build && node packages/creator/dist/cli.js --project examples/agent-frontend --config-root .",
-    "verify:creator:live": "pnpm --filter @agent-ui/creator verify:live"
+    "verify:creator:live": "node scripts/run-python-tests.mjs --live-model"
   }
 }

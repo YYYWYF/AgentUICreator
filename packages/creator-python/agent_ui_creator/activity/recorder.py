@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import difflib
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -14,6 +15,7 @@ from .receipt import CreatorFileChangeReceipt
 
 
 MAX_DIFF_CHARACTERS = 20_000
+MAX_VALIDATION_OUTPUT_CHARACTERS = 8_000
 
 
 def _unified_diff(file_path: str, before: str | None, after: str | None) -> tuple[str, bool]:
@@ -44,17 +46,33 @@ class CreatorActivityRecorder:
         )
         self._before_by_path: dict[str, str | None] = {}
         self._touched_paths: set[str] = set()
+        self._validations: list[dict[str, Any]] = []
         self._revision = 0
         self._run_id = "unstarted"
         self._before_content_bytes = 0
         self._completed_receipt: dict[str, Any] | None = None
+        self._last_mutation_at: datetime | None = None
+        self._verification: dict[str, Any] = {
+            "status": "not-run",
+            "projectRevision": 0,
+            "auditAttempts": 0,
+            "checks": [],
+        }
 
     def begin(self, run_id: str | None = None) -> None:
         self._before_by_path.clear()
         self._touched_paths.clear()
+        self._validations.clear()
         self._revision = 0
         self._before_content_bytes = 0
         self._completed_receipt = None
+        self._last_mutation_at = None
+        self._verification = {
+            "status": "not-run",
+            "projectRevision": 0,
+            "auditAttempts": 0,
+            "checks": [],
+        }
         self._run_id = run_id or str(uuid4())
         self.file_observations.begin(self._run_id)
 
@@ -65,6 +83,10 @@ class CreatorActivityRecorder:
     @property
     def revision(self) -> int:
         return self._revision
+
+    @property
+    def last_mutation_at(self) -> datetime | None:
+        return self._last_mutation_at
 
     def capture_before(self, file_path: str) -> None:
         state = read_creator_file_state(self.project_root, file_path)
@@ -94,10 +116,59 @@ class CreatorActivityRecorder:
         path = resolve_creator_project_file(self.project_root, file_path).receipt_path
         self._touched_paths.add(path)
         self._revision += 1
+        self._last_mutation_at = datetime.now(timezone.utc)
         if self.logger is not None:
             self.logger.record(
-                "file_mutation", {"path": path, "mutationRevision": self._revision}
+                "file_mutation",
+                {
+                    "path": path,
+                    "mutationRevision": self._revision,
+                    "mutatedAt": self._last_mutation_at.isoformat(
+                        timespec="milliseconds"
+                    ).replace("+00:00", "Z"),
+                },
             )
+
+    def record_validation(
+        self,
+        command: str,
+        *,
+        exit_code: int | None,
+        output: str,
+        truncated: bool,
+        revision: int | None = None,
+    ) -> None:
+        normalized = output.strip()
+        output_truncated = truncated
+        if len(normalized) > MAX_VALIDATION_OUTPUT_CHARACTERS:
+            normalized = (
+                normalized[:MAX_VALIDATION_OUTPUT_CHARACTERS]
+                + "\n… 验证输出过长，已截断"
+            )
+            output_truncated = True
+        validation = {
+            "command": command,
+            "status": "passed" if exit_code == 0 else "failed",
+            "exitCode": exit_code,
+            "output": normalized,
+            "truncated": output_truncated,
+            "revision": self._revision if revision is None else revision,
+        }
+        self._validations.append(validation)
+
+    def validation_at_revision(
+        self, command: str, revision: int
+    ) -> dict[str, Any] | None:
+        for validation in reversed(self._validations):
+            if (
+                validation["command"] == command
+                and validation["revision"] == revision
+            ):
+                return copy.deepcopy(validation)
+        return None
+
+    def record_verification(self, verification: dict[str, Any]) -> None:
+        self._verification = copy.deepcopy(verification)
 
     def snapshot(self) -> dict[str, Any]:
         receipt, _ = self._collect_receipt()
@@ -110,7 +181,14 @@ class CreatorActivityRecorder:
         transaction = self.transactions.persist_run(
             run_id=self._run_id,
             mutation_revision=self._revision,
-            validation_revision=None,
+            validation_revision=(
+                self._revision
+                if any(
+                    validation["revision"] == self._revision
+                    for validation in self._validations
+                )
+                else None
+            ),
             files=transaction_files,
         )
         if transaction is not None:
@@ -143,14 +221,12 @@ class CreatorActivityRecorder:
             transaction_files.append(
                 CreatorTransactionFileInput(file_path, before, after)
             )
+        verification = copy.deepcopy(self._verification)
+        if verification.get("status") == "not-run":
+            verification["projectRevision"] = self._revision
         receipt: dict[str, Any] = {
             "files": [file.to_dict() for file in files],
-            "validations": [],
-            "verification": {
-                "status": "not-run",
-                "projectRevision": self._revision,
-                "auditAttempts": 0,
-                "checks": [],
-            },
+            "validations": copy.deepcopy(self._validations),
+            "verification": verification,
         }
         return receipt, tuple(transaction_files)

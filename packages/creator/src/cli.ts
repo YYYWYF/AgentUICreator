@@ -6,9 +6,9 @@ import process from "node:process";
 import { createInterface } from "node:readline/promises";
 import { parseArgs } from "node:util";
 
-import { createProjectCreatorSession } from "./createProjectCreatorSession.js";
+import { createPythonCreatorClient } from "./PythonCreatorClient.js";
 
-const HELP = `Agent UI Creator
+const HELP = `Agent UI Creator (Python)
 
 用法：
   agent-ui-creator --project <目录>
@@ -40,38 +40,45 @@ if (values.help === true) {
 
   try {
     await access(projectRoot);
-    const session = createProjectCreatorSession({ projectRoot, configRoot });
+    const creator = createPythonCreatorClient({ projectRoot, configRoot });
+    try {
+      if (values.message !== undefined) {
+        const result = await creator.run(values.message);
+        process.stdout.write(`${result.message}\n`);
+      } else {
+        const terminal = createInterface({
+          input: process.stdin,
+          output: process.stdout,
+        });
+        process.stdout.write(
+          `Python Creator 已连接项目：${projectRoot}\n输入需求开始修改；输入 /exit 退出。\n`,
+        );
 
-    if (values.message !== undefined) {
-      const result = await session.run(values.message);
-      process.stdout.write(`${result.message}\n`);
-    } else {
-      const terminal = createInterface({ input: process.stdin, output: process.stdout });
-      process.stdout.write(
-        `Creator 已连接项目：${projectRoot}\n输入需求开始修改；输入 /exit 退出。\n`,
-      );
+        try {
+          while (true) {
+            const request = (await terminal.question("Creator> ")).trim();
+            if (request === "/exit" || request === "/quit") {
+              break;
+            }
+            if (request === "") {
+              continue;
+            }
 
-      try {
-        while (true) {
-          const request = (await terminal.question("Creator> ")).trim();
-          if (request === "/exit" || request === "/quit") {
-            break;
+            try {
+              const result = await creator.run(request);
+              process.stdout.write(`${result.message}\n`);
+            } catch (error) {
+              const message =
+                error instanceof Error ? error.message : String(error);
+              process.stderr.write(`错误：${message}\n`);
+            }
           }
-          if (request === "") {
-            continue;
-          }
-
-          try {
-            const result = await session.run(request);
-            process.stdout.write(`${result.message}\n`);
-          } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            process.stderr.write(`错误：${message}\n`);
-          }
+        } finally {
+          terminal.close();
         }
-      } finally {
-        terminal.close();
       }
+    } finally {
+      await creator.dispose();
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

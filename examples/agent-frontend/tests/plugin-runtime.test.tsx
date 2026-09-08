@@ -428,7 +428,8 @@ describe("UIPluginRuntime", () => {
 
     expect(countOccurrences(html, "antd-x-message-list-bubble--user")).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-bubble--agent")).toBe(1);
-    expect(countOccurrences(html, "antd-x-message-list-avatar--agent")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-avatar--agent")).toBe(0);
+    expect(countOccurrences(html, "antd-x-message-list-avatar--user")).toBe(0);
     expect(countOccurrences(html, "antd-x-message-list-role-dot")).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-actions")).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-turn-segment ")).toBe(2);
@@ -634,7 +635,8 @@ describe("UIPluginRuntime", () => {
 
     expect(countOccurrences(html, "antd-x-message-list-bubble--user")).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-bubble--agent")).toBe(1);
-    expect(countOccurrences(html, "antd-x-message-list-avatar--agent")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-avatar--agent")).toBe(0);
+    expect(countOccurrences(html, "antd-x-message-list-avatar--user")).toBe(0);
     expect(countOccurrences(html, "antd-x-message-list-actions")).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-turn-segment ")).toBe(6);
 

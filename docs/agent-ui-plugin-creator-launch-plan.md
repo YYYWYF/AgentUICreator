@@ -1286,16 +1286,16 @@ Project-scoped Filesystem / Search / Edit
 Allowlisted validation commands
 ```
 
-Creator 作为独立开发态 Node package 存在，模型实例由工具宿主注入，不进入目标前端的 Vite 生产 Bundle。它既可由 CLI 运行，也可通过开发工作台的 Vite 适配器运行。
+Creator 的模型与 Agent 控制面作为独立开发态 Python package 存在，不进入目标前端的 Vite 生产 Bundle。Node package 只提供 CLI client、Python 进程生命周期、Vite 透明代理、React Workbench 与浏览器诊断 reporter；CLI 和开发工作台都调用同一个 Python sidecar。
 
-Creator Agent 控制面允许按阶段迁移到独立 Python sidecar，但不能把整个 Creator
-npm package 或生成项目改造成 Python 应用。长期职责边界是：React Workbench、
+Creator Agent 控制面使用独立 Python sidecar，但不能把整个 Creator npm package 或
+生成项目改造成 Python 应用。职责边界是：React Workbench、
 Vite 集成和浏览器诊断 reporter 留在 TypeScript；模型、Agent loop、项目工具编排、
 验证、完成策略、回执与运行态诊断存储归 Python。浏览器继续访问原有 AG-UI HTTP
 路径，Vite 只负责项目级 Python 进程生命周期与透明流代理。
 
-迁移期间必须保留 `typescript` / `python` 双运行时。Python 是默认控制面并默认使用
-`domain-write`；TypeScript 仅作为显式 legacy fallback 保留。
+迁移完成后只保留 Python Creator 控制面并默认使用 `domain-write`；不再提供备用
+Agent 控制面。Python 启动失败必须显式失败，不得切换到另一套 Agent。
 第一阶段仅建立版本化合同、Python FastAPI health/echo sidecar、随机端口鉴权
 handshake、流式代理和 diagnostics 代理；不得在 transport 稳定前迁移 Agent，
 也不得静默 fallback。Project Control 继续调用目标项目固定的
@@ -1311,14 +1311,13 @@ Control、Composition Fast Path、Snapshot、Validation、Completion、Skills �
 `domain-read` 继续作为显式测试/诊断模式。
 
 ```ts
-const creator = createCreatorAgent({
-  model,
+const creator = createPythonCreatorClient({
   projectRoot,
+  configRoot,
 })
 
-await creator.invoke({
-  messages: [{ role: "user", content: request }],
-})
+await creator.run(request)
+await creator.dispose()
 ```
 
 文件与命令边界：

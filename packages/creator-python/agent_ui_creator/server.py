@@ -165,6 +165,8 @@ async def _domain_write_agent_result(
     messages: list[dict[str, str]],
     activity: CreatorActivityRecorder,
     mutation_coordinator: ProjectMutationCoordinator,
+    diagnostics: RuntimeDiagnosticStore,
+    thread_id: str,
     event_sink: CreatorEventSink,
 ):
     from .domain_agent import create_domain_write_creator_agent
@@ -189,6 +191,10 @@ async def _domain_write_agent_result(
         provider_trace_collector=provider_trace_collector,
         activity=activity,
         mutation_coordinator=mutation_coordinator,
+        skills_root=settings.skills_root,
+        diagnostics=diagnostics,
+        thread_id=thread_id,
+        automatic_completion_repair=True,
         event_sink=event_sink,
     )
     return await agent.run_messages(messages)
@@ -257,6 +263,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
         openapi_url=None,
     )
     diagnostics = RuntimeDiagnosticStore()
+    app.state.runtime_diagnostics = diagnostics
     writing_run_lock = asyncio.Lock()
     mutation_coordinator = ProjectMutationCoordinator()
 
@@ -343,6 +350,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             _conversation_messages(run_input),
                             activity,
                             mutation_coordinator,
+                            diagnostics,
+                            run_input.threadId,
                             event_bus,
                         )
                     elif agent_mode == "domain-read":

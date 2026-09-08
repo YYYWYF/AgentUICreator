@@ -10,12 +10,20 @@ from ..minimal_agent.tool_policy import ALLOWED_MINIMAL_TOOLS, tool_name
 
 ALLOWED_DOMAIN_READ_TOOLS = (*ALLOWED_MINIMAL_TOOLS, *DOMAIN_READ_TOOL_NAMES)
 _ALLOWED_DOMAIN_READ_TOOL_SET = frozenset(ALLOWED_DOMAIN_READ_TOOLS)
-DOMAIN_WRITE_TOOL_NAMES = (*DOMAIN_READ_TOOL_NAMES, "mutate_app_ui_model")
+DOMAIN_WRITE_TOOL_NAMES = (
+    *DOMAIN_READ_TOOL_NAMES,
+    "create_ui_source_files",
+    "mutate_app_ui_model",
+    "validate_creator_changes",
+    "inspect_runtime_errors",
+)
 ALLOWED_DOMAIN_WRITE_TOOLS = (*ALLOWED_MINIMAL_TOOLS, *DOMAIN_WRITE_TOOL_NAMES)
 _ALLOWED_DOMAIN_WRITE_TOOL_SET = frozenset(ALLOWED_DOMAIN_WRITE_TOOLS)
 
 # Every future side-effecting domain tool must be explicitly classified here.
-SIDE_EFFECT_TOOL_NAMES = frozenset({"edit_file", "mutate_app_ui_model"})
+SIDE_EFFECT_TOOL_NAMES = frozenset(
+    {"edit_file", "create_ui_source_files", "mutate_app_ui_model"}
+)
 READ_ONLY_TOOL_NAMES = _ALLOWED_DOMAIN_WRITE_TOOL_SET - SIDE_EFFECT_TOOL_NAMES
 
 

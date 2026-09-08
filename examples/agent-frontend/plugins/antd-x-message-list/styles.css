@@ -31,11 +31,29 @@
 
 .antd-x-message-list-turn-content {
   display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   gap: 0.7rem;
 }
 
 .antd-x-message-list-turn-segment {
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
+}
+
+.antd-x-message-list-segment--assistant,
+.antd-x-message-list-segment--reasoning,
+.antd-x-message-list-segment--activity,
+.antd-x-message-list-segment--system,
+.antd-x-message-list-segment--developer {
+  max-width: 42rem;
+}
+
+.antd-x-message-list-segment--tool,
+.antd-x-message-list-segment--tool-activity {
+  max-width: none;
 }
 
 .antd-x-message-list-turn-segment > p {
@@ -171,46 +189,37 @@
   box-shadow: 0 0 0.7rem #4fe0d0;
 }
 
-.antd-x-message-list-avatar--agent,
-.antd-x-message-list-avatar--user {
-  border: 1px solid rgb(255 255 255 / 12%);
-  box-shadow: 0 0.5rem 1.2rem rgb(0 0 0 / 24%);
+.antd-x-message-list-bubble--agent,
+.antd-x-message-list-bubble--user {
+  width: 100%;
 }
 
-.development-preview[data-agent-ui-theme="light"]
-  .antd-x-message-list-avatar--user {
-  color: #59657f;
-  background: #e6e9f2;
+.antd-x-message-list-bubble--agent .ant-bubble-body {
+  width: min(100%, 48rem);
+  max-width: 100%;
+  min-width: 0;
 }
 
-.antd-x-message-list-avatar--agent {
-  color: #ffffff;
-  background: linear-gradient(145deg, #8b7cff, #5848d5);
-}
-
-.antd-x-message-list-avatar--user {
-  color: #d8e2f5;
-  background: #1b2a42;
+.antd-x-message-list-bubble--user .ant-bubble-body {
+  width: fit-content;
+  max-width: min(80%, 42rem);
+  min-width: 0;
 }
 
 .antd-x-message-list-bubble--agent .ant-bubble-content {
-  border: 1px solid rgb(139 124 255 / 15%);
+  width: 100%;
+  min-width: 0;
+  border: 0;
   color: #e6eafa;
-  background:
-    linear-gradient(135deg, rgb(139 124 255 / 11%), transparent 62%),
-    #121f34;
-  box-shadow: 0 0.7rem 1.8rem rgb(0 0 0 / 15%);
+  background: transparent;
+  box-shadow: none;
 }
 
 .development-preview[data-agent-ui-theme="light"]
   .antd-x-message-list-bubble--agent
   .ant-bubble-content {
-  border-color: rgb(98 80 200 / 12%);
   color: #25304a;
-  background:
-    linear-gradient(135deg, rgb(124 104 229 / 8%), transparent 62%),
-    #ffffff;
-  box-shadow: 0 0.7rem 1.8rem rgb(54 60 90 / 8%);
+  background: transparent;
 }
 
 .antd-x-message-list-bubble--user .ant-bubble-content {
@@ -231,7 +240,7 @@
 }
 
 .antd-x-message-list-plugin .ant-bubble-content {
-  max-width: min(42rem, 82%);
+  max-width: 100%;
   padding: 0.75rem 0.95rem;
   line-height: 1.65;
 }
@@ -244,9 +253,5 @@
 @media (max-width: 44rem) {
   .antd-x-message-list-plugin {
     padding: 0.9rem 0.9rem 0.6rem;
-  }
-
-  .antd-x-message-list-plugin .ant-bubble-content {
-    max-width: 88%;
   }
 }

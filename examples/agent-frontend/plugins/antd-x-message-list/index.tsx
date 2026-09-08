@@ -1,4 +1,3 @@
-import { RobotOutlined, UserOutlined } from "@ant-design/icons";
 import {
   Actions,
   Bubble,
@@ -8,7 +7,7 @@ import {
   type BubbleListProps,
   type FileCardProps,
 } from "@ant-design/x";
-import { Alert, Avatar, Empty, Spin } from "antd";
+import { Alert, Empty, Spin } from "antd";
 import {
   projectAgentTurns,
   type AgentTurn,
@@ -674,21 +673,11 @@ function toTurnBubbleItems({
 
 const bubbleRoles: NonNullable<BubbleListProps["role"]> = {
   ai: {
-    avatar: (
-      <Avatar className="antd-x-message-list-avatar--agent" icon={<RobotOutlined />} />
-    ),
     placement: "start",
     rootClassName: "antd-x-message-list-bubble--agent",
-    shape: "corner",
-    variant: "filled",
+    variant: "borderless",
   },
   user: {
-    avatar: (
-      <Avatar
-        className="antd-x-message-list-avatar--user"
-        icon={<UserOutlined />}
-      />
-    ),
     placement: "end",
     rootClassName: "antd-x-message-list-bubble--user",
     shape: "corner",

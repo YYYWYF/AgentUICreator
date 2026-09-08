@@ -2,7 +2,7 @@
 name: ui-plugin-development
 description: Use to inspect, create, or modify UI Plugin manifests, definitions, React components, styles, contexts, and registration when existing Plugins cannot provide the requested frontend behavior.
 compatibility: Agent UI Plugin Creator Phase 8 permits writes under project plugins and AppUIModel composition.
-allowed-tools: read_file ls glob grep edit_file write_file inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin mutate_app_ui_model undo_creator_run execute
+allowed-tools: read_file ls glob grep edit_file create_ui_source_files inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin inspect_ui_plugin_source_references mutate_app_ui_model validate_creator_changes inspect_runtime_errors
 ---
 
 # UI Plugin Development
@@ -28,22 +28,46 @@ Inspect project conventions before deciding that Plugin source must change:
 
 ## Safe source editing
 
-- Read every existing Plugin source file in the current run before editing it or replacing it with `write_file`.
+- Read every existing Plugin source file in the current run before editing it with `edit_file`.
 - A prior run, project snapshot, `inspect_ui_plugin` result, or remembered source is not a current file observation for generic edit tools.
 - If an edit reports `stale-version`, read the file again and reconcile the concurrent content; do not retry the old replacement unchanged.
 - A new path is created without overwriting a file that appeared concurrently.
-- Use `undo_creator_run` for run-level recovery. Never use Git checkout, reset, or stash to overwrite the user's working tree.
+- Source creation and edits are recorded in the Creator transaction receipt for Host-level undo. Never use Git checkout, reset, or stash to overwrite the user's working tree.
 
 ## Creating a Plugin
 
-1. Read `/project/framework/contracts/ui-plugin.ts` and one existing Plugin end to end.
+1. Read `/project/framework/contracts/ui-plugin.ts` and one closest existing Plugin end to end.
 2. Create `/project/plugins/<plugin-id>/manifest.json` with a unique id, useful description, version, capabilities when applicable, and accurate `data.messages`, `data.state`, or `data.events` declarations.
 3. Create `index.tsx` with a named React component. Accept `UIPluginComponentProps` only when it needs `renderSlot`; read Agent and instance data through Runtime Context hooks and narrow unknown state safely.
 4. Create `definition.ts` that validates the manifest and exports a `UIPluginDefinition`.
-6. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
-7. Default-export the definition so the target-owned generator can include it in the static Registry. Do not spread a template catalog into the production registry.
-8. Add exactly one PluginInstance and mount it in the intended AppUIModel Slot through `mutate_app_ui_model`; that transaction updates the generated Registry.
-9. Run `pnpm typecheck` and `pnpm test`.
+5. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
+6. Default-export the definition so the target-owned generator can include it in the static Registry. Do not spread a template catalog into the production registry.
+7. Submit all currently known new Plugin files together in one `create_ui_source_files` call. It is create-only and transactionally rolls back the whole call on failure. Never use it to replace an existing file.
+8. Run `validate_creator_changes`. Fix returned diagnostics with `read_file` plus `edit_file`, then validate the new revision again.
+9. Add exactly one PluginInstance and mount it in the intended AppUIModel Slot through `mutate_app_ui_model`; that transaction updates the generated Registry.
+10. Because composition changes the Activity revision, run `validate_creator_changes` again for the final revision.
+11. Call `inspect_runtime_errors`. Fresh current-hash evidence with zero current errors is required before claiming Runtime success.
+
+## Development completion loop
+
+Use the following loop autonomously when Plugin code is required:
+
+```text
+Reuse
+-> Modify/Create source
+-> Static Validation
+-> Composition
+-> Static Validation for the final revision
+-> Runtime Verification
+-> Repair when needed
+-> Completion
+```
+
+- A static validation failure is normal development evidence, not a Tool failure. Read its bounded diagnostics, repair the relevant source, and validate the new revision.
+- A current Runtime error requires source inspection, repair, another current-revision static validation, and fresh Runtime verification.
+- Runtime evidence received before the latest source mutation is stale even when the AppUIModel hash did not change.
+- Stop after two unsuccessful automatic repair rounds and report passed checks plus remaining diagnostics.
+- When Runtime is unavailable in a headless or CLI session, state exactly that static validation passed but no Runtime verification evidence is available. Never claim Runtime success without fresh evidence.
 
 ## Contract boundaries
 

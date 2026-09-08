@@ -167,7 +167,11 @@ def run(agent):
 
 
 def test_side_effect_classification_and_round_trip_prompt_contract():
-    assert SIDE_EFFECT_TOOL_NAMES == {"edit_file", "mutate_app_ui_model"}
+    assert SIDE_EFFECT_TOOL_NAMES == {
+        "edit_file",
+        "create_ui_source_files",
+        "mutate_app_ui_model",
+    }
     assert READ_ONLY_TOOL_NAMES == set(ALLOWED_DOMAIN_WRITE_TOOLS) - SIDE_EFFECT_TOOL_NAMES
     prompt = " ".join(DOMAIN_WRITE_AGENT_PROMPT.split())
     for rule in (
@@ -178,7 +182,7 @@ def test_side_effect_classification_and_round_trip_prompt_contract():
         "arguments or necessity depend on an earlier result, wait for that result",
         "If list_ui_plugins is genuinely required to discover the target identifier, call it first",
         "Never guess a pluginId",
-        "Never combine edit_file or mutate_app_ui_model with another tool call",
+        "Never combine edit_file, create_ui_source_files, or mutate_app_ui_model",
         "one atomic mutation containing all semantic operations",
         "updated authoritative observation",
         "Do not immediately re-inspect",
@@ -287,7 +291,7 @@ def test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_mode
     assert result.metrics.invalidToolCalls == 0
     assert result.metrics.toolArgumentParseFailures == 0
     assert result.metrics.protocolRepairAttempts == 0
-    assert agent.protocol.max_model_calls == 12
+    assert agent.protocol.max_model_calls == 24
 
 
 def test_second_invalid_batch_fails_without_dispatch_or_protocol_metric_pollution(tmp_path):
@@ -386,7 +390,7 @@ def test_restore_round_trip_budget_one_atomic_mutation_without_confirmation_read
     assert client.model()["pluginInstances"]["session-manager-restored"]["mount"] == {"slotId": "sidebar.right"}
     assert receipt["files"][0]["path"] == APP_UI_MODEL_PATH
     assert receipt["transaction"]["undoable"] is True
-    assert receipt["verification"]["status"] == "not-run"
+    assert receipt["verification"]["status"] == "failed"
 
 
 def test_dependent_plugin_discovery_remains_sequential(tmp_path):

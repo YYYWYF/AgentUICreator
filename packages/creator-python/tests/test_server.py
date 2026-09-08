@@ -415,7 +415,13 @@ def test_default_mode_runs_domain_write_with_runtime_identity(tmp_path, monkeypa
     metrics = ToolProtocolMetrics(modelCalls=3, toolCalls=2, validToolCalls=2)
 
     async def fake_result(
-        _settings, _prompt, _activity, _coordinator, _event_sink
+        _settings,
+        _prompt,
+        _activity,
+        _coordinator,
+        _diagnostics,
+        _thread_id,
+        _event_sink,
     ):
         return SimpleNamespace(
             text="Static composition committed.",

@@ -1,9 +1,9 @@
 # agent-ui-creator-core
 
-Agent UI Creator 的默认 Python 控制面。它通过经过鉴权的 FastAPI sidecar 提供
+Agent UI Creator 的唯一 Python 控制面。它通过经过鉴权的 FastAPI sidecar 提供
 AG-UI stream、runtime diagnostics、ProjectControl v2 领域读取，以及由 Python Host
-拥有 transaction / receipt / undo 的 AppUIModel semantic mutation。Runtime
-Verification、Host Validation、Completion 和 Fast Path 尚未迁移。
+拥有 transaction / receipt / undo 的 AppUIModel semantic mutation，以及 Runtime
+Verification、Host Validation 和 Completion Gate。
 
 HTTP wire event 由锁定的 `ag-ui-protocol` 官方模型和 `EventEncoder` 产生。每次
 `POST /creator` 都创建独立的 bounded `CreatorEventBus`。Minimal / Domain Agent 通过
@@ -27,7 +27,7 @@ pnpm test:python
 # 真实 Node → Python sidecar 进程 / Proxy / SSE 测试
 pnpm test:python-sidecar
 
-# Python + TypeScript + sidecar integration 统一门禁
+# Python + Node host + sidecar integration 统一门禁
 pnpm test
 
 # 显式调用真实 MiMo，运行 A/B/C 各十次共 30 个 conformance run
@@ -64,12 +64,6 @@ CREATOR_MODEL_TEMPERATURE=0.2
 CREATOR_MODEL_MAX_TOKENS=2048
 CREATOR_MODEL_TIMEOUT_SECONDS=120
 CREATOR_MODEL_MAX_RETRIES=1
-```
-
-如需紧急使用 legacy TypeScript Creator，在 Vite Host 配置：
-
-```env
-CREATOR_AGENT_RUNTIME=typescript
 ```
 
 Minimal Agent 仅作为工具协议诊断模式保留：

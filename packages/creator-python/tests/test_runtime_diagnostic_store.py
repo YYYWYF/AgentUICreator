@@ -1,9 +1,48 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from agent_ui_creator.runtime_diagnostics import (
     RuntimeDiagnosticEnvelope,
     RuntimeDiagnosticStore,
 )
+from agent_ui_creator.activity import CreatorActivityRecorder
+
+
+def composition(thread_id: str, app_hash: str):
+    return RuntimeDiagnosticEnvelope.model_validate(
+        {
+            "threadId": thread_id,
+            "composition": {
+                "schemaVersion": 1,
+                "appUIModelHash": app_hash,
+                "observedAt": datetime.now(timezone.utc).isoformat(),
+                "instances": [],
+            },
+        }
+    )
+
+
+def diagnostic(thread_id: str, app_hash: str, status: str = "error"):
+    return RuntimeDiagnosticEnvelope.model_validate(
+        {
+            "threadId": thread_id,
+            "diagnostic": {
+                "schemaVersion": 1,
+                "kind": "plugin-render",
+                "status": status,
+                "appUIModelHash": app_hash,
+                "occurredAt": datetime.now(timezone.utc).isoformat(),
+                "pluginId": "task-status",
+                "instanceId": "task-status-main",
+                **(
+                    {"errorMessage": "render failed"}
+                    if status == "error"
+                    else {}
+                ),
+            },
+        }
+    )
 
 
 def test_runtime_diagnostic_store_records_forwarded_composition():
@@ -59,3 +98,96 @@ def test_runtime_diagnostic_store_accepts_application_event_diagnostics():
         "workspace.patch.applied"
     )
     assert "pluginId" not in store._scopes["thread-1"].diagnostics[0]
+
+
+def test_runtime_errors_filters_current_hash():
+    store = RuntimeDiagnosticStore()
+    store.record(diagnostic("thread-1", "a" * 64))
+    store.record(diagnostic("thread-1", "b" * 64))
+    store.record(composition("thread-1", "a" * 64))
+
+    result = store.inspect(
+        thread_id="thread-1",
+        current_app_ui_model_hash="a" * 64,
+        include_stale=True,
+    )
+
+    assert {item["appUIModelHash"] for item in result["currentErrors"]} == {
+        "a" * 64
+    }
+    assert {item["appUIModelHash"] for item in result["stale"]} == {"b" * 64}
+
+
+def test_runtime_errors_excludes_stale_by_default():
+    store = RuntimeDiagnosticStore()
+    store.record(diagnostic("thread-1", "b" * 64))
+    store.record(composition("thread-1", "a" * 64))
+
+    result = store.inspect(
+        thread_id="thread-1",
+        current_app_ui_model_hash="a" * 64,
+    )
+
+    assert result["stale"] == []
+    assert result["summary"]["staleOpenCount"] == 1
+
+
+def test_runtime_verification_requires_current_composition():
+    store = RuntimeDiagnosticStore()
+    unavailable = store.inspect(
+        thread_id="thread-1",
+        current_app_ui_model_hash="a" * 64,
+    )
+    store.record(composition("thread-1", "b" * 64))
+    stale = store.inspect(
+        thread_id="thread-1",
+        current_app_ui_model_hash="a" * 64,
+    )
+    store.record(composition("thread-1", "a" * 64))
+    current = store.inspect(
+        thread_id="thread-1",
+        current_app_ui_model_hash="a" * 64,
+    )
+
+    assert unavailable["runtimeStatus"] == "unavailable"
+    assert stale["runtimeStatus"] == "stale"
+    assert current["runtimeStatus"] == "passed"
+
+
+def test_runtime_evidence_before_source_mutation_is_stale(tmp_path):
+    store = RuntimeDiagnosticStore()
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("runtime-freshness")
+    store.record(composition("thread-1", "a" * 64))
+    activity.capture_before_content("plugins/task-status/index.tsx", None)
+    activity.touch("plugins/task-status/index.tsx")
+
+    result = store.inspect(
+        thread_id="thread-1",
+        current_app_ui_model_hash="a" * 64,
+        last_mutation_at=activity.last_mutation_at,
+    )
+
+    assert result["runtimeObserved"] is True
+    assert result["runtimeStatus"] == "stale"
+
+
+def test_runtime_resolved_error_allows_completion(tmp_path):
+    store = RuntimeDiagnosticStore()
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("runtime-resolution")
+    activity.capture_before_content("plugins/task-status/index.tsx", None)
+    activity.touch("plugins/task-status/index.tsx")
+    store.record(composition("thread-1", "a" * 64))
+    store.record(diagnostic("thread-1", "a" * 64))
+    store.record(diagnostic("thread-1", "a" * 64, status="resolved"))
+
+    result = store.inspect(
+        thread_id="thread-1",
+        current_app_ui_model_hash="a" * 64,
+        last_mutation_at=activity.last_mutation_at,
+    )
+
+    assert result["runtimeStatus"] == "passed"
+    assert result["currentErrors"] == []
+    assert len(result["resolvedCurrent"]) == 1

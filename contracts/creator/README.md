@@ -1,12 +1,12 @@
 # Creator cross-language contracts
 
-这些 JSON Schema 冻结 Creator TypeScript host、Python sidecar 与目标项目之间的
+这些 JSON Schema 冻结 Creator Node host、Python sidecar 与目标项目之间的
 Phase 0 边界。协议版本变化必须先更新这里的 schema 与 golden fixtures，再修改
 任一语言实现。
 
 - `creator-transport.schema.json`：Vite 与 Python sidecar 的 handshake、health、
   AG-UI request/event stream 和 runtime diagnostics envelope。
-- `project-control.schema.json`：Python/TypeScript Creator 与目标项目固定脚本之间的
+- `project-control.schema.json`：Python Creator 与目标项目固定 TypeScript 脚本之间的
   stdin/stdout 协议。
 - `app-ui-model-operation.schema.json`：`mutate_app_ui_model` 的领域操作。
 - `creator-receipt.schema.json`：Creator 完成回执。

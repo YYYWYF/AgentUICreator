@@ -1,17 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const runtimeMocks = vi.hoisted(() => ({
-  createTypeScriptAgent: vi.fn(() => ({ run: vi.fn() })),
   managerInstances: [] as Array<{
     ensureStarted: ReturnType<typeof vi.fn>;
     dispose: ReturnType<typeof vi.fn>;
   }>,
   nextStartupError: undefined as Error | undefined,
   proxyPythonRequest: vi.fn(),
-}));
-
-vi.mock("../src/CreatorAgUiAdapter.js", () => ({
-  createProjectCreatorAgUiAdapter: runtimeMocks.createTypeScriptAgent,
 }));
 
 vi.mock("../src/PythonCreatorProcessManager.js", () => {
@@ -94,20 +89,18 @@ function responseDouble() {
 
 afterEach(() => {
   vi.unstubAllEnvs();
-  runtimeMocks.createTypeScriptAgent.mockClear();
   runtimeMocks.managerInstances.splice(0);
   runtimeMocks.nextStartupError = undefined;
   runtimeMocks.proxyPythonRequest.mockReset();
 });
 
-describe("Creator Vite runtime routing", () => {
-  it("routes default run and diagnostics requests only through Python", async () => {
-    vi.stubEnv("CREATOR_AGENT_RUNTIME", "");
+describe("Creator Vite Python routing", () => {
+  it("routes run and diagnostics requests only through Python", async () => {
     vi.stubEnv("CREATOR_PYTHON_AGENT_MODE", "");
     const log = vi.fn();
     runtimeMocks.proxyPythonRequest.mockResolvedValue(undefined);
     const middlewares = configuredMiddlewares({
-      projectRoot: "/tmp/default-python-project",
+      projectRoot: "/tmp/python-project",
       python: { environment: {}, log },
     });
     const request = {};
@@ -134,12 +127,10 @@ describe("Creator Vite runtime routing", () => {
       runtimeMocks.managerInstances[0],
       "/runtime-diagnostics",
     );
-    expect(runtimeMocks.createTypeScriptAgent).not.toHaveBeenCalled();
     expect(log).toHaveBeenCalledWith("runtime=python agentMode=domain-write");
   });
 
-  it("does not instantiate TypeScript when Python startup fails", async () => {
-    vi.stubEnv("CREATOR_AGENT_RUNTIME", "");
+  it("surfaces Python startup failures without another runtime fallback", async () => {
     runtimeMocks.nextStartupError = new Error("python startup failed");
     runtimeMocks.proxyPythonRequest.mockImplementation(
       async (
@@ -164,26 +155,6 @@ describe("Creator Vite runtime routing", () => {
     await middlewares.get(CREATOR_API_PATH)!({}, response);
 
     expect(response.statusCode).toBe(503);
-    expect(runtimeMocks.createTypeScriptAgent).not.toHaveBeenCalled();
-  });
-
-  it("keeps TypeScript available only through an explicit legacy override", async () => {
-    vi.stubEnv("CREATOR_AGENT_RUNTIME", "python");
-    const log = vi.fn();
-    const middlewares = configuredMiddlewares({
-      projectRoot: "/tmp/legacy-typescript-project",
-      runtime: "typescript",
-      python: { log },
-    });
-    const response = responseDouble();
-
-    await middlewares.get(CREATOR_API_PATH)!({ method: "GET" }, response);
-
-    expect(runtimeMocks.managerInstances).toHaveLength(0);
-    expect(runtimeMocks.proxyPythonRequest).not.toHaveBeenCalled();
-    expect(runtimeMocks.createTypeScriptAgent).toHaveBeenCalledTimes(1);
-    expect(log).toHaveBeenCalledWith(
-      "WARNING: TypeScript Creator runtime is legacy. Python is the default Creator control plane.",
-    );
+    expect(runtimeMocks.managerInstances).toHaveLength(1);
   });
 });

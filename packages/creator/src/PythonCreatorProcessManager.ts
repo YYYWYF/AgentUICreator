@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { spawn, type ChildProcess } from "node:child_process";
+import { existsSync } from "node:fs";
 import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import { createInterface } from "node:readline";
@@ -178,10 +179,14 @@ interface CreatorReadyHandshake {
 }
 
 function defaultPythonPackageRoot(): string {
-  return path.resolve(
-    path.dirname(fileURLToPath(import.meta.url)),
+  const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
+  const workspacePackageRoot = path.resolve(
+    moduleDirectory,
     "../../creator-python",
   );
+  return existsSync(path.join(workspacePackageRoot, "pyproject.toml"))
+    ? workspacePackageRoot
+    : path.resolve(moduleDirectory, "python");
 }
 
 function defaultSkillsRoot(): string {

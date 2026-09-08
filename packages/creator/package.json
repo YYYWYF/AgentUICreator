@@ -1,7 +1,7 @@
 {
   "name": "@agent-ui/creator",
   "version": "0.1.0",
-  "description": "Development-time Creator Agent for AG-UI frontend projects",
+  "description": "Development-time host and Workbench for the Python Agent UI Creator",
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -36,21 +36,15 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
+    "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:python-sidecar": "vitest run tests/python-creator-sidecar.integration.test.ts",
-    "cli": "node dist/cli.js",
-    "verify:live": "tsx scripts/verify-creator-live.ts"
+    "cli": "node dist/cli.js"
   },
   "dependencies": {
     "@ag-ui/client": "0.0.59",
     "@ag-ui/core": "0.0.59",
-    "@ag-ui/encoder": "0.0.59",
-    "@langchain/core": "1.2.9",
-    "@langchain/openai": "1.4.1",
-    "deepagents": "1.13.2",
-    "diff": "9.0.0",
     "react-markdown": "10.1.0",
     "remark-gfm": "4.0.1"
   },
@@ -65,10 +59,7 @@
   "devDependencies": {
     "@types/node": "^20.19.43",
     "@types/react": "^19.2.18",
-    "ajv": "8.17.1",
-    "ajv-formats": "3.0.1",
     "react": "^19.2.8",
-    "tsx": "4.20.6",
     "typescript": "^7.0.2",
     "vite": "^8.2.2",
     "vitest": "^4.1.11"

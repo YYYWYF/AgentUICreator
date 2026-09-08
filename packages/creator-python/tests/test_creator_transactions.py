@@ -53,7 +53,7 @@ def test_transaction_schema_fails_closed(mutate):
         parse_transaction_record(value)
 
 
-def test_transaction_schema_constants_match_typescript():
+def test_transaction_schema_constants_remain_stable():
     assert CREATOR_TRANSACTION_SCHEMA_VERSION == 1
     assert CREATOR_MISSING_FILE_HASH == creator_content_hash("<missing>")
 

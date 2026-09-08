@@ -1,11 +1,11 @@
 .antd-x-reasoning-plugin {
-  border: 1px solid rgb(139 124 255 / 16%);
-  background: rgb(139 124 255 / 7%);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .development-preview[data-agent-ui-theme="light"] .antd-x-reasoning-plugin {
-  border-color: rgb(99 86 204 / 12%);
-  background: rgb(99 86 204 / 5%);
+  background: transparent;
 }
 
 .antd-x-reasoning-plugin .ant-typography {

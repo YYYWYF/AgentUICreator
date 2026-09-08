@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agent-ui.local/contracts/creator-transport.schema.json",
-  "title": "Creator TypeScript to Python transport v1",
+  "title": "Creator Node host to Python transport v1",
   "$defs": {
     "handshake": {
       "type": "object",

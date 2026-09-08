@@ -2,17 +2,14 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import {
-  CREATOR_AGENT_RUNTIME_ENV,
-  CREATOR_AGENT_RUNTIMES,
   CREATOR_PYTHON_AGENT_MODE_ENV,
   CREATOR_PYTHON_AGENT_MODES,
-  type CreatorAgentRuntime,
   type CreatorPythonAgentMode,
 } from "./shared.js";
 
 export const CREATOR_HOST_ENV_FILE = ".env.creator.local";
 
-export interface LoadCreatorAgentRuntimeOptions {
+export interface LoadCreatorHostConfigOptions {
   configRoot?: string | undefined;
   environment?: NodeJS.ProcessEnv | undefined;
 }
@@ -52,29 +49,11 @@ export function readCreatorHostConfigValue(
   return undefined;
 }
 
-export function resolveCreatorAgentRuntime(
-  {
-    configRoot,
-    environment = process.env,
-  }: LoadCreatorAgentRuntimeOptions = {},
-): CreatorAgentRuntime {
-  const runtime =
-    environment[CREATOR_AGENT_RUNTIME_ENV]?.trim() ||
-    readCreatorHostConfigValue(configRoot, CREATOR_AGENT_RUNTIME_ENV) ||
-    "python";
-  if (!(CREATOR_AGENT_RUNTIMES as readonly string[]).includes(runtime)) {
-    throw new Error(
-      `${CREATOR_AGENT_RUNTIME_ENV} must be one of: ${CREATOR_AGENT_RUNTIMES.join(", ")}.`,
-    );
-  }
-  return runtime as CreatorAgentRuntime;
-}
-
 export function resolveCreatorPythonAgentMode(
   {
     configRoot,
     environment = process.env,
-  }: LoadCreatorAgentRuntimeOptions = {},
+  }: LoadCreatorHostConfigOptions = {},
 ): CreatorPythonAgentMode {
   const mode =
     environment[CREATOR_PYTHON_AGENT_MODE_ENV]?.trim() ||

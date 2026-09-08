@@ -1,6 +1,6 @@
 # Creator 开发控制面实施计划
 
-> 状态：Approved design companion / Phase 1–6 已实施；Phase 0 自动化基线完成、HMR 对照待补；Phase 7–9 待实施
+> 状态：Approved design companion / Creator 控制面已完成 Python-only 收口；React Workbench、Vite 代理和浏览器 reporter 继续保留在 TypeScript
 >
 > 设计依据：[Agent UI Plugin Creator 最终设计与启动计划](./agent-ui-plugin-creator-launch-plan.md) 与仓库根目录 `AGENTS.md`。本文负责把最终设计落实为可执行的工程阶段，不建立新的产品架构。
 
@@ -43,11 +43,11 @@
 | --- | --- | --- |
 | AppUIModel Zod 与跨字段校验 | `examples/agent-frontend/framework/contracts/app-ui-model.ts` | 继续作为目标项目事实源，不在 Creator 复制 Schema |
 | Plugin Contract 与 Service 生命周期 | `framework/contracts/ui-plugin.ts`、`runtime/plugins/PluginServiceRuntime.ts` | 保留，不引入动态 Package 模型 |
-| Creator 文件和命令权限 | `packages/creator/src/ProjectCreatorBackend.ts`、`createCreatorAgent.ts` | 在此基础上增加观察版本和领域工具 |
-| mutation revision 与修改回执 | `CreatorActivityRecorder.ts` | 扩展为稳定 run id、hash、删除和事务记录 |
-| Verified Completion Gate | `CreatorCompletionGate.ts` | 保留，并增加 Registry freshness 与 runtime diagnostics 证据 |
-| AG-UI 流、压缩快照和新会话 | `CreatorAgUiAdapter.ts`、`CreatorWorkbench.tsx` | 复用流通道承载澄清交互 |
-| 本地 JSONL 诊断日志 | `CreatorRunLogger.ts` | 与 transaction journal 分开保存 |
+| Creator 文件和命令权限 | `packages/creator-python/agent_ui_creator/minimal_agent/`、`domain_agent/` | Python PathPolicy 与领域工具统一拥有 |
+| mutation revision 与修改回执 | `packages/creator-python/agent_ui_creator/activity/recorder.py` | 稳定 run id、hash 与 transaction 记录 |
+| Verified Completion Gate | `packages/creator-python/agent_ui_creator/domain_agent/completion_gate.py` | 绑定当前 revision 的验证与 runtime diagnostics 证据 |
+| AG-UI 流、压缩快照和新会话 | `packages/creator-python/agent_ui_creator/streaming/`、`packages/creator/src/ui/CreatorWorkbench.tsx` | Python 发流，Workbench 消费并保存会话 |
+| 本地 JSONL 诊断日志 | `packages/creator-python/agent_ui_creator/observability/run_logger.py` | 与 transaction journal 分开保存 |
 | Plugin Error Boundary | `runtime/plugins/PluginErrorBoundary.tsx` | 增加开发期结构化上报出口 |
 
 ### 3.2 已知基线问题
@@ -424,12 +424,12 @@ examples/agent-frontend/package.json
 建议新增：
 
 ```text
-packages/creator/src/project-control/ProjectControlAdapter.ts
-packages/creator/src/project-control/projectSnapshot.ts
-packages/creator/src/project-control/creatorProjectTools.ts
-packages/creator/src/project-control/types.ts
-packages/creator/tests/project-control-adapter.test.ts
-packages/creator/tests/creator-project-tools.test.ts
+packages/creator-python/agent_ui_creator/project_control/client.py
+packages/creator-python/agent_ui_creator/project_control/models.py
+packages/creator-python/agent_ui_creator/domain_tools/project_control_tools.py
+packages/creator-python/agent_ui_creator/domain_state/observation_context.py
+packages/creator-python/tests/test_project_control_client.py
+packages/creator-python/tests/test_domain_tools.py
 ```
 
 目标项目增加固定 JSON 控制入口：
@@ -450,11 +450,11 @@ examples/agent-frontend/scripts/ui-project-control.ts
 需要修改：
 
 ```text
-packages/creator/src/createCreatorAgent.ts
-packages/creator/src/createProjectCreatorSession.ts
-packages/creator/src/CreatorAgUiAdapter.ts
-packages/creator/src/prompt/system.ts
-packages/creator/src/index.ts
+packages/creator-python/agent_ui_creator/domain_agent/agent.py
+packages/creator-python/agent_ui_creator/server.py
+packages/creator-python/agent_ui_creator/streaming/deepagent_v3_runner.py
+packages/creator-python/agent_ui_creator/domain_agent/prompt.py
+packages/creator/src/PythonCreatorClient.ts
 ```
 
 测试矩阵：
@@ -490,8 +490,8 @@ examples/agent-frontend/tests/app-ui-transaction.test.ts
 Creator 建议新增：
 
 ```text
-packages/creator/src/project-control/appUIModelTool.ts
-packages/creator/tests/app-ui-model-tool.test.ts
+packages/creator-python/agent_ui_creator/app_ui_model/mutation_tool.py
+packages/creator-python/tests/test_app_ui_model_mutation.py
 ```
 
 实施步骤：
@@ -503,7 +503,7 @@ packages/creator/tests/app-ui-model-tool.test.ts
 5. 在内存完成 model parse、关系校验与 Registry generation；
 6. 捕获两个目标文件 before 状态；
 7. 先写 transaction journal 和两个临时文件，再依次 rename；普通失败时恢复 before，进程异常退出后由下一次控制入口根据未完成 journal 恢复或完成提交；
-8. Adapter 把实际 changed paths 交给 `CreatorActivityRecorder`，只对真实变化递增 revision；
+8. Python mutation service 把实际 changed paths 交给 `CreatorActivityRecorder`，只对真实变化递增 revision；
 9. 工具返回结构化 diff 与新 snapshot token；
 10. 从 prompt/skill 中取消“直接手改 app-ui.json / plugins/index.ts”的首选指导。
 
@@ -534,22 +534,22 @@ packages/creator/tests/app-ui-model-tool.test.ts
 建议新增：
 
 ```text
-packages/creator/src/files/CreatorFileObservationStore.ts
-packages/creator/src/transactions/CreatorTransactionStore.ts
-packages/creator/src/transactions/creatorUndoTool.ts
-packages/creator/tests/creator-file-observation.test.ts
-packages/creator/tests/creator-transaction-store.test.ts
-packages/creator/tests/creator-undo-tool.test.ts
+packages/creator-python/agent_ui_creator/files/observation_store.py
+packages/creator-python/agent_ui_creator/transactions/store.py
+packages/creator-python/agent_ui_creator/transactions/
+packages/creator-python/tests/test_creator_file_state.py
+packages/creator-python/tests/test_creator_transactions.py
+packages/creator-python/tests/test_creator_activity.py
 ```
 
 建议修改：
 
 ```text
-packages/creator/src/ProjectCreatorBackend.ts
-packages/creator/src/CreatorActivityRecorder.ts
+packages/creator-python/agent_ui_creator/minimal_agent/
+packages/creator-python/agent_ui_creator/activity/recorder.py
 packages/creator/src/receiptTypes.ts
-packages/creator/src/createProjectCreatorSession.ts
-packages/creator/src/CreatorAgUiAdapter.ts
+packages/creator/src/PythonCreatorClient.ts
+packages/creator-python/agent_ui_creator/streaming/
 packages/creator/src/ui/CreatorWorkbench.tsx
 ```
 
@@ -601,8 +601,8 @@ packages/creator/src/ui/CreatorWorkbench.tsx
 源码删除建议新增：
 
 ```text
-packages/creator/src/project-control/deleteUIPluginSourceTool.ts
-packages/creator/tests/delete-ui-plugin-source-tool.test.ts
+packages/creator-python/agent_ui_creator/source_tools/
+packages/creator-python/tests/test_plugin_source_deletion.py
 ```
 
 Phase 5 完成删除 preflight、transaction 和测试，但 `CREATOR_PLUGIN_SOURCE_DELETE` 保持关闭；等 Phase 7 的同 run 确认通道完成后再对真实 Creator 会话启用。
@@ -620,7 +620,7 @@ Phase 5 完成删除 preflight、transaction 和测试，但 `CREATOR_PLUGIN_SOU
 需要同步更新：
 
 ```text
-packages/creator/src/prompt/system.ts
+packages/creator-python/agent_ui_creator/domain_agent/prompt.py
 packages/creator/skills/app-ui-model/SKILL.md
 packages/creator/skills/ui-plugin-development/SKILL.md
 packages/creator/skills/ui-debugging/SKILL.md
@@ -660,11 +660,11 @@ examples/agent-frontend/tests/plugin-runtime-diagnostics.test.tsx
 Creator 建议新增或修改：
 
 ```text
-packages/creator/src/runtime-diagnostics/CreatorRuntimeDiagnosticStore.ts
-packages/creator/src/runtime-diagnostics/runtimeDiagnosticTool.ts
+packages/creator-python/agent_ui_creator/runtime_diagnostics/store.py
+packages/creator-python/agent_ui_creator/runtime_diagnostics/tool.py
 packages/creator/src/vitePlugin.ts
-packages/creator/src/createCreatorAgent.ts
-packages/creator/tests/creator-runtime-diagnostics.test.ts
+packages/creator-python/agent_ui_creator/domain_agent/agent.py
+packages/creator-python/tests/test_runtime_diagnostic_store.py
 apps/creator-workbench/src/main.tsx
 ```
 
@@ -707,21 +707,21 @@ apps/creator-workbench/src/main.tsx
 建议新增：
 
 ```text
-packages/creator/src/user-questions/CreatorUserQuestionBroker.ts
-packages/creator/src/user-questions/creatorAskUserTool.ts
-packages/creator/src/user-questions/types.ts
-packages/creator/tests/creator-user-questions.test.ts
+packages/creator-python/agent_ui_creator/user_questions/broker.py
+packages/creator-python/agent_ui_creator/user_questions/tool.py
+packages/creator-python/agent_ui_creator/user_questions/models.py
+packages/creator-python/tests/test_creator_user_questions.py
 ```
 
 建议修改：
 
 ```text
-packages/creator/src/CreatorAgUiAdapter.ts
+packages/creator-python/agent_ui_creator/streaming/
 packages/creator/src/vitePlugin.ts
 packages/creator/src/shared.ts
 packages/creator/src/ui/CreatorWorkbench.tsx
 packages/creator/src/ui/creator-workbench.css
-packages/creator/src/prompt/system.ts
+packages/creator-python/agent_ui_creator/domain_agent/prompt.py
 ```
 
 传输设计：
@@ -770,15 +770,15 @@ packages/creator/src/prompt/system.ts
 建议修改：
 
 ```text
-packages/creator/src/CreatorCompletionGate.ts
-packages/creator/src/CreatorActivityRecorder.ts
+packages/creator-python/agent_ui_creator/domain_agent/completion_gate.py
+packages/creator-python/agent_ui_creator/activity/recorder.py
 packages/creator/src/receiptTypes.ts
-packages/creator/src/modelConfig.ts
+packages/creator-python/agent_ui_creator/model_factory.py
 packages/creator/src/ui/CreatorWorkbench.tsx
-packages/creator/src/prompt/system.ts
+packages/creator-python/agent_ui_creator/domain_agent/prompt.py
 packages/creator/skills/*/SKILL.md
-packages/creator/tests/creator-completion-gate.test.ts
-packages/creator/tests/creator-model-config.test.ts
+packages/creator-python/tests/test_plugin_development_golden.py
+packages/creator-python/tests/test_model_factory.py
 ```
 
 验收场景：
@@ -833,9 +833,10 @@ pnpm test
 pnpm build
 ```
 
-Creator package 改动：
+Creator 控制面或 Node host 改动：
 
 ```text
+pnpm test:python
 pnpm --filter @agent-ui/creator typecheck
 pnpm --filter @agent-ui/creator test
 pnpm --filter @agent-ui/creator build
