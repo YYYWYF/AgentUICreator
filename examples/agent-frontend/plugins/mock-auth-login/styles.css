@@ -1,0 +1,60 @@
+.mock-auth-login-plugin {
+  display: grid;
+  width: 100%;
+  min-height: 100%;
+  place-items: center;
+  padding: clamp(1rem, 4vw, 3rem);
+  color: #172033;
+  background:
+    radial-gradient(circle at 50% 10%, rgb(124 108 255 / 16%), transparent 34rem),
+    #f4f6fb;
+}
+
+.mock-auth-login-card.ant-card {
+  width: min(100%, 25rem);
+  border: 1px solid rgb(23 32 51 / 9%);
+  border-radius: 1.25rem;
+  box-shadow: 0 1.5rem 4rem rgb(48 52 88 / 14%);
+}
+
+.mock-auth-login-card > .ant-card-body {
+  padding: clamp(1.5rem, 5vw, 2.25rem);
+}
+
+.mock-auth-login-heading {
+  display: grid;
+  gap: 0.3rem;
+  margin-bottom: 1.75rem;
+  text-align: center;
+}
+
+.mock-auth-login-heading .ant-typography {
+  margin: 0;
+}
+
+.mock-auth-login-form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.mock-auth-login-form label {
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.mock-auth-login-form .ant-input,
+.mock-auth-login-form .ant-input-affix-wrapper {
+  min-height: 2.75rem;
+}
+
+.mock-auth-login-form .ant-btn {
+  margin-top: 0.8rem;
+}
+
+.mock-auth-login-note.ant-typography {
+  display: block;
+  margin-top: 1.25rem;
+  font-size: 0.72rem;
+  text-align: center;
+}

@@ -1,32 +1,55 @@
-import { MoonOutlined, SunOutlined } from "@ant-design/icons";
-import { Switch, Tooltip } from "antd";
+import { LogoutOutlined, MoonOutlined, SunOutlined } from "@ant-design/icons";
+import { Button, Switch, Tooltip } from "antd";
 import { useSyncExternalStore } from "react";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { usePluginInstance } from "../../runtime/context";
-import { usePluginService } from "../../runtime/plugins";
+import {
+  usePluginService,
+  usePluginServiceSnapshot,
+} from "../../runtime/plugins";
 import {
   AGENT_UI_THEME_SERVICE,
   type AgentUIThemeService,
 } from "../../services/agent-ui-theme";
+import {
+  AUTH_SESSION_SERVICE,
+  type AuthSessionService,
+  type AuthSessionSnapshot,
+} from "../../services/auth-session";
 
 import "./styles.css";
+
+const ANONYMOUS_SESSION: AuthSessionSnapshot = { authenticated: false };
 
 export function AntdXThemeSwitchPlugin(_props: UIPluginComponentProps) {
   const instance = usePluginInstance();
   const theme = usePluginService<AgentUIThemeService>(AGENT_UI_THEME_SERVICE);
+  const auth = usePluginService<AuthSessionService>(AUTH_SESSION_SERVICE);
+  const authSnapshot = usePluginServiceSnapshot(auth, ANONYMOUS_SESSION);
 
   if (theme === undefined) {
     return null;
   }
 
-  return <ThemeSwitch contextId={instance.id} theme={theme} />;
+  return (
+    <ThemeSwitch
+      auth={auth}
+      authSnapshot={authSnapshot}
+      contextId={instance.id}
+      theme={theme}
+    />
+  );
 }
 
 function ThemeSwitch({
+  auth,
+  authSnapshot,
   contextId,
   theme,
 }: {
+  auth: AuthSessionService | undefined;
+  authSnapshot: AuthSessionSnapshot;
   contextId: string;
   theme: AgentUIThemeService;
 }) {
@@ -60,6 +83,21 @@ function ThemeSwitch({
           unCheckedChildren={<SunOutlined />}
         />
       </Tooltip>
+      {authSnapshot.authenticated ? (
+        <Tooltip
+          title={`退出 ${authSnapshot.session?.displayName ?? "Demo User"}`}
+        >
+          <Button
+            aria-label="退出 Mock 登录"
+            className="antd-x-theme-switch-plugin-logout"
+            icon={<LogoutOutlined />}
+            onClick={() => auth?.logout()}
+            shape="circle"
+            size="small"
+            type="text"
+          />
+        </Tooltip>
+      ) : null}
     </section>
   );
 }

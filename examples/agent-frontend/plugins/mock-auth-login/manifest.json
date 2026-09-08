@@ -1,0 +1,12 @@
+{
+  "id": "mock-auth-login",
+  "name": "Mock Authentication",
+  "description": "Blocks the Workspace until a local mock session exists.",
+  "version": "1.0.0",
+  "application": {
+    "gate": {
+      "service": "auth.gate",
+      "priority": 100
+    }
+  }
+}

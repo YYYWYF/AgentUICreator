@@ -16,7 +16,8 @@ import pluginDefinition10 from "./antd-x-tool-message/definition";
 import pluginDefinition11 from "./antd-x-welcome/definition";
 import pluginDefinition12 from "./conversation-data-source/definition";
 import pluginDefinition13 from "./conversation-surface/definition";
-import pluginDefinition14 from "./workspace-inspector/definition";
+import pluginDefinition14 from "./mock-auth-login/definition";
+import pluginDefinition15 from "./workspace-inspector/definition";
 
 export const pluginDefinitions = [
   pluginDefinition0,
@@ -34,4 +35,5 @@ export const pluginDefinitions = [
   pluginDefinition12,
   pluginDefinition13,
   pluginDefinition14,
+  pluginDefinition15,
 ] as const;

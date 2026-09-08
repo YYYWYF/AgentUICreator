@@ -55,6 +55,16 @@
     inset 0 1px rgb(255 255 255 / 22%);
 }
 
+.antd-x-theme-switch-plugin-logout.ant-btn {
+  flex: none;
+  color: var(--ui-text-muted);
+}
+
+.antd-x-theme-switch-plugin-logout.ant-btn:hover {
+  color: var(--ui-text-primary);
+  background: var(--ui-control-background);
+}
+
 @media (max-width: 44rem) {
   .antd-x-theme-switch-plugin {
     min-width: auto;

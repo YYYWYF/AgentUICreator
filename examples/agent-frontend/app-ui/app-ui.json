@@ -64,6 +64,11 @@
     ]
   },
   "pluginInstances": {
+    "mock-auth-login-main": {
+      "id": "mock-auth-login-main",
+      "pluginId": "mock-auth-login",
+      "enabled": true
+    },
     "agent-conversation-data-main": {
       "id": "agent-conversation-data-main",
       "pluginId": "conversation-data-source",
