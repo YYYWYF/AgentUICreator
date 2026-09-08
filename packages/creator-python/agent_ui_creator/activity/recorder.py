@@ -52,6 +52,7 @@ class CreatorActivityRecorder:
         self._before_content_bytes = 0
         self._completed_receipt: dict[str, Any] | None = None
         self._last_mutation_at: datetime | None = None
+        self._semantic_noop: dict[str, str] | None = None
         self._verification: dict[str, Any] = {
             "status": "not-run",
             "projectRevision": 0,
@@ -67,6 +68,7 @@ class CreatorActivityRecorder:
         self._before_content_bytes = 0
         self._completed_receipt = None
         self._last_mutation_at = None
+        self._semantic_noop = None
         self._verification = {
             "status": "not-run",
             "projectRevision": 0,
@@ -87,6 +89,14 @@ class CreatorActivityRecorder:
     @property
     def last_mutation_at(self) -> datetime | None:
         return self._last_mutation_at
+
+    @property
+    def semantic_noop_satisfied(self) -> bool:
+        return self._semantic_noop is not None
+
+    @property
+    def semantic_noop(self) -> dict[str, str] | None:
+        return copy.deepcopy(self._semantic_noop)
 
     def capture_before(self, file_path: str) -> None:
         state = read_creator_file_state(self.project_root, file_path)
@@ -128,6 +138,11 @@ class CreatorActivityRecorder:
                     ).replace("+00:00", "Z"),
                 },
             )
+
+    def record_semantic_noop(self, *, source: str, reason: str) -> None:
+        self._semantic_noop = {"source": source, "reason": reason}
+        if self.logger is not None:
+            self.logger.record("semantic_noop", self._semantic_noop)
 
     def record_validation(
         self,
@@ -229,4 +244,6 @@ class CreatorActivityRecorder:
             "validations": copy.deepcopy(self._validations),
             "verification": verification,
         }
+        if self._semantic_noop is not None:
+            receipt["semanticNoop"] = copy.deepcopy(self._semantic_noop)
         return receipt, tuple(transaction_files)

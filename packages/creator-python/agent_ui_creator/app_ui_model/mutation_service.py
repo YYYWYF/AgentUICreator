@@ -198,6 +198,11 @@ class AppUIModelMutationService:
             except AppUIModelMutationError:
                 self.metrics.resultMismatches += 1
                 raise
+            if raw_result["changed"] is False:
+                self.activity.record_semantic_noop(
+                    source="mutate_app_ui_model",
+                    reason="already-satisfied",
+                )
             return AppUIModelMutationResult(raw_result, self.activity.revision)
 
     def _read_mutable_states(self) -> dict[str, CreatorFileState]:

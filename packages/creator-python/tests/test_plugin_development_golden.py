@@ -215,8 +215,9 @@ class ValidationScript:
 
 def create_files_message(content_by_path=TASK_PLUGIN_FILES):
     return call(
-        "create_ui_source_files",
+        "create_ui_plugin",
         {
+            "pluginId": "task-status",
             "files": [
                 {"path": path, "content": content}
                 for path, content in content_by_path.items()

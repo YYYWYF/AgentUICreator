@@ -193,7 +193,7 @@ def test_grounding_prompt_preserves_decision_and_write_boundaries():
         "Reuse -> Restore -> Reconfigure -> Modify -> Create",
         "two or more reasonable interpretations",
         "materially different side effects",
-        "do not call edit_file, create_ui_source_files, mutate_app_ui_model",
+        "do not call edit_file, create_ui_plugin, mutate_app_ui_model",
         "successful assistant response, not an error",
         "Do not ask for confirmation when the target and operation are sufficiently clear",
         "new independent plugin must not be blocked",

@@ -7,7 +7,7 @@ from typing import Any
 from langchain_core.tools import BaseTool, tool
 from pydantic import ValidationError
 
-from .models import CreateUISourceFilesInput, SourceCreationError
+from .models import CreateUIPluginInput, SourceCreationError
 from .source_creation_service import UISourceCreationService
 
 
@@ -43,24 +43,26 @@ def _error(code: str, message: str, details: Any = None) -> str:
     )
 
 
-def create_ui_source_files_tool(service: UISourceCreationService) -> BaseTool:
+def create_ui_plugin_tool(service: UISourceCreationService) -> BaseTool:
     @tool(
-        "create_ui_source_files",
-        args_schema=CreateUISourceFilesInput,
+        "create_ui_plugin",
+        args_schema=CreateUIPluginInput,
         description=(
-            "Create all currently known new UI Plugin or Service source files in one "
-            "create-only atomic operation. Paths are limited to /plugins/** and "
-            "/services/**. Existing files, app-ui/**, runtime/**, framework/**, "
-            "node_modules/**, environment files, and plugins/registry.generated.ts "
-            "cannot be created or overwritten. Use read_file plus edit_file for an "
-            "existing source file. The result returns paths and mutation revision, "
-            "not the source content."
+            "Create exactly one new UI Plugin in a create-only atomic operation. "
+            "Every path must be under /plugins/<pluginId>/** and the request must "
+            "include manifest.json, definition.ts, and index.tsx. manifest.id must "
+            "equal pluginId and the target Plugin directory must not exist. Existing "
+            "files cannot be overwritten. Use read_file plus edit_file for existing "
+            "Plugin source. The result returns paths and mutation revision, not source "
+            "content."
         ),
     )
-    async def create_ui_source_files(files: list[dict[str, str]]) -> str:
+    async def create_ui_plugin(pluginId: str, files: list[dict[str, str]]) -> str:
         try:
-            request = CreateUISourceFilesInput.model_validate({"files": files})
-            result = await service.create(request.files)
+            request = CreateUIPluginInput.model_validate(
+                {"pluginId": pluginId, "files": files}
+            )
+            result = await service.create_plugin(request.pluginId, request.files)
             return _json({"ok": True, "result": result.to_dict()})
         except ValidationError as error:
             return _error("SOURCE_CREATION_INPUT_INVALID", str(error))
@@ -73,4 +75,4 @@ def create_ui_source_files_tool(service: UISourceCreationService) -> BaseTool:
                 "The Creator Host could not create the requested source files.",
             )
 
-    return create_ui_source_files
+    return create_ui_plugin

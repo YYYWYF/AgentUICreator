@@ -21,7 +21,7 @@ Start from the concrete failure and preserve layer boundaries.
 ## Phase 8 repair boundary
 
 - Repair AppUIModel when the failure is model composition and the requested edit is allowed.
-- Repair Plugin source when the failure is inside `/project/plugins/` and the change preserves the Plugin Contract.
+- Repair Plugin source when the failure is inside `/plugins/` and the change preserves the Plugin Contract.
 - Runtime and Framework remain read-only; diagnose and report an infrastructure change rather than bypassing the boundary.
 - Available validation commands include `pnpm verify:ui`, `pnpm test`, `pnpm typecheck`, and `git diff --check`.
 - Run the narrowest relevant validation, then expand only when justified.

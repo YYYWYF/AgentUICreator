@@ -166,8 +166,31 @@ def test_noop_does_not_advance_revision_or_create_transaction(tmp_path):
     result = _mutate(service, app_hash)
 
     assert result.mutation_revision == 0
-    assert activity.finish()["files"] == []
-    assert "transaction" not in activity.finish()
+    assert activity.semantic_noop == {
+        "source": "mutate_app_ui_model",
+        "reason": "already-satisfied",
+    }
+
+    from agent_ui_creator.domain_agent.completion_gate import (
+        CreatorDevelopmentCompletionGate,
+    )
+    from agent_ui_creator.repair import CreatorRepairState
+
+    gate = CreatorDevelopmentCompletionGate(
+        activity=activity,
+        validation=object(),
+        runtime=object(),
+        repair_state=CreatorRepairState(),
+    )
+    decision = gate.review("The requested state is already satisfied.")
+    receipt = activity.finish()
+
+    assert decision.accepted is True
+    assert decision.text == "The requested state is already satisfied."
+    assert receipt["files"] == []
+    assert receipt["semanticNoop"]["reason"] == "already-satisfied"
+    assert receipt["verification"]["status"] == "already-satisfied"
+    assert "transaction" not in receipt
 
 
 @pytest.mark.parametrize(

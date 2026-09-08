@@ -18,9 +18,10 @@ class UISourceFile(BaseModel):
     content: str = Field(max_length=MAX_SOURCE_FILE_CHARACTERS)
 
 
-class CreateUISourceFilesInput(BaseModel):
+class CreateUIPluginInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    pluginId: str = Field(min_length=1, max_length=200)
     files: list[UISourceFile] = Field(
         min_length=1,
         max_length=MAX_SOURCE_FILES_PER_CALL,

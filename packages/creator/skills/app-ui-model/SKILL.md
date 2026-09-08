@@ -7,14 +7,14 @@ allowed-tools: read_file ls glob grep inspect_ui_project inspect_app_ui_model in
 
 # AppUIModel
 
-Treat `/project/app-ui/app-ui.json` as the source of truth for generated layout and PluginInstance configuration. Runtime SlotRegistry owns active contributions. Use the bounded project snapshot for navigation and call `inspect_app_ui_model` when exact current content is needed. Submit composition changes through `mutate_app_ui_model` with that inspection's exact hash; do not edit the JSON with generic file tools.
+Treat `/app-ui/app-ui.json` as the source of truth for generated layout and PluginInstance configuration. Runtime SlotRegistry owns active contributions. Use the bounded project snapshot for navigation and call `inspect_app_ui_model` when exact current content is needed. Submit composition changes through `mutate_app_ui_model` with that inspection's exact hash; do not edit the JSON with generic file tools.
 
 ## Decide the change layer
 
 - Change only AppUIModel for layout, size, placement, enabled state, instance props, or composition.
 - Reuse an existing UI Plugin by adding a `PluginInstance` and mounting its instance id in a `Slot`.
 - Do not change Plugin source for a structural request when an existing Plugin already provides the behavior.
-- If new behavior requires Plugin source, use the `ui-plugin-development` skill and keep the change under `/project/plugins/`.
+- If new behavior requires Plugin source, use the `ui-plugin-development` skill and keep the change under `/plugins/`.
 
 ## AppUIModel v2 invariants
 
@@ -31,7 +31,7 @@ Treat `/project/app-ui/app-ui.json` as the source of truth for generated layout 
 
 ## Adding a region
 
-1. Inspect `/project/plugins/` to determine whether a suitable Plugin exists.
+1. Inspect `/plugins/` to determine whether a suitable Plugin exists.
 2. Inspect its manifest to learn its `pluginId`, data needs, and purpose.
 3. In one `mutate_app_ui_model` transaction, add or reuse exactly one PluginInstance.
 4. Add the appropriate Panel and physical SlotNode in the Layout Tree.

@@ -1,9 +1,9 @@
-from .create_source_tool import create_ui_source_files_tool
+from .create_source_tool import create_ui_plugin_tool
 from .models import (
     MAX_SOURCE_FILE_CHARACTERS,
     MAX_SOURCE_FILES_PER_CALL,
     MAX_SOURCE_TOTAL_BYTES,
-    CreateUISourceFilesInput,
+    CreateUIPluginInput,
     SourceCreationError,
     SourceCreationResult,
     UISourceFile,
@@ -14,10 +14,10 @@ __all__ = [
     "MAX_SOURCE_FILE_CHARACTERS",
     "MAX_SOURCE_FILES_PER_CALL",
     "MAX_SOURCE_TOTAL_BYTES",
-    "CreateUISourceFilesInput",
+    "CreateUIPluginInput",
     "SourceCreationError",
     "SourceCreationResult",
     "UISourceCreationService",
     "UISourceFile",
-    "create_ui_source_files_tool",
+    "create_ui_plugin_tool",
 ]

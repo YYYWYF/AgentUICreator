@@ -22,7 +22,7 @@ Request grounding and ambiguity policy
 Before the first side-effecting operation, resolve the user's actual target and
 requested operation against authoritative workspace facts when the request may
 refer to an existing plugin, instance, slot, or capability. This side effect
-boundary includes edit_file, create_ui_source_files, and mutate_app_ui_model,
+boundary includes edit_file, create_ui_plugin, and mutate_app_ui_model,
 as well as any future
 create, delete, move, mount, unmount, register, write, or mutation operation.
 Do not use a speculative write to discover what the user meant.
@@ -42,10 +42,12 @@ Frontend Tool boundary
 When the user explicitly wants the Agent to invoke a Generated Application
 frontend operation, treat it as an application-owned Frontend Tool adapter for a
 selected capability Service method. First reuse an existing stable seam under
-/services. If the capability does not exist, define the smallest seam and have a
-Provider Plugin declare `provides` and supply its implementation. Add only the
-explicitly authorized operation to /agent-contract/agent-tools.ts. Never infer
-that every Service method should be exposed.
+/services and have a Provider Plugin declare `provides` and supply its
+implementation. If no suitable seam exists, report that new Service source
+requires its own dedicated domain gate; do not use create_ui_plugin to write
+/services. Add only the explicitly authorized operation to
+/agent-contract/agent-tools.ts. Never infer that every Service method should be
+exposed.
 
 Use lower_snake_case Tool names, z.strictObject input schemas as the validation
 and JSON Schema source, model-facing descriptions, and short serializable
@@ -86,7 +88,7 @@ authoritative reads are definitely necessary, batch those reads rather than
 serializing them. Never guess a pluginId to inspect ahead of its discovery.
 
 Any side-effecting tool call must be the only tool call in that model response.
-Never combine edit_file, create_ui_source_files, or mutate_app_ui_model with
+Never combine edit_file, create_ui_plugin, or mutate_app_ui_model with
 another tool call, including another write. DeepAgent executes the read batch;
 do not introduce a separate plan or delegate these operations.
 
@@ -95,8 +97,10 @@ Plugin development loop
 When custom behavior is needed, load the ui-plugin-development Skill on demand;
 do not guess its contracts from the brief system prompt. Inspect the generated
 project's current conventions and read one closest existing Plugin before creating
-source. Create all currently known new files in one create_ui_source_files call.
-The tool is create-only and cannot replace existing source. Modify an existing
+source. Create all currently known files for exactly one new Plugin in one
+create_ui_plugin call with its pluginId. The tool is create-only, requires the
+Plugin's manifest.json, definition.ts, and index.tsx together, and cannot replace
+an existing Plugin directory or source. Modify an existing
 file only after read_file by using edit_file.
 
 Use this autonomous loop as needed, without turning every request into a fixed
@@ -172,7 +176,7 @@ facts were already known before the first mutation.
 
 If relevant workspace facts still leave two or more reasonable interpretations
 that would cause materially different side effects, do not call edit_file,
-create_ui_source_files, mutate_app_ui_model, or any other side-effecting tool.
+create_ui_plugin, mutate_app_ui_model, or any other side-effecting tool.
 Ask one concise clarifying question describing the known facts and the concrete alternatives, then finish
 the current run normally. Missing decisive business information also calls for
 clarification, not a guessed implementation. Do not invent alternatives when the

@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timezone
 
+from agent_ui_creator.activity import CreatorActivityRecorder
+from agent_ui_creator.domain_state import DomainObservationContext
+from agent_ui_creator.project_control import ProjectControlMetrics
 from agent_ui_creator.runtime_diagnostics import (
     RuntimeDiagnosticEnvelope,
+    RuntimeDiagnosticInspectionService,
     RuntimeDiagnosticStore,
 )
-from agent_ui_creator.activity import CreatorActivityRecorder
 
 
 def composition(thread_id: str, app_hash: str):
@@ -169,6 +173,70 @@ def test_runtime_evidence_before_source_mutation_is_stale(tmp_path):
     )
 
     assert result["runtimeObserved"] is True
+    assert result["runtimeStatus"] == "stale"
+
+
+def test_fresh_diagnostic_does_not_refresh_old_composition(tmp_path):
+    store = RuntimeDiagnosticStore()
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("composition-freshness")
+    store.record(composition("thread-1", "a" * 64))
+    activity.capture_before_content("plugins/task-status/index.tsx", None)
+    activity.touch("plugins/task-status/index.tsx")
+    store.record(diagnostic("thread-1", "a" * 64, status="resolved"))
+
+    result = store.inspect(
+        thread_id="thread-1",
+        current_app_ui_model_hash="a" * 64,
+        last_mutation_at=activity.last_mutation_at,
+    )
+
+    assert result["diagnosticFresh"] is True
+    assert result["compositionFresh"] is False
+    assert result["runtimeStatus"] == "passed"
+
+
+def test_composition_verification_stays_stale_after_fresh_unrelated_diagnostic(
+    tmp_path,
+):
+    app_hash = "a" * 64
+    store = RuntimeDiagnosticStore()
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("composition-inspection-freshness")
+    store.record(composition("thread-1", app_hash))
+    activity.capture_before_content("plugins/task-status/index.tsx", None)
+    activity.touch("plugins/task-status/index.tsx")
+    store.record(diagnostic("thread-1", app_hash, status="resolved"))
+
+    class ProjectControl:
+        metrics = ProjectControlMetrics()
+
+        async def inspect_ui_project(self):
+            return {
+                "appUIModel": {"hash": app_hash},
+                "pluginInstances": [
+                    {
+                        "id": "task-status-main",
+                        "pluginId": "task-status",
+                        "enabled": True,
+                        "mount": {"slotId": "right.status"},
+                    }
+                ],
+            }
+
+    inspection = RuntimeDiagnosticInspectionService(
+        store=store,
+        thread_id="thread-1",
+        project_control=ProjectControl(),
+        observations=DomainObservationContext(),
+        activity=activity,
+    )
+
+    result = asyncio.run(inspection.inspect())
+
+    assert result["diagnosticFresh"] is True
+    assert result["compositionFresh"] is False
+    assert result["compositionVerified"] is False
     assert result["runtimeStatus"] == "stale"
 
 

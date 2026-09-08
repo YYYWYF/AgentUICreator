@@ -46,6 +46,27 @@ class CreatorDevelopmentCompletionGate:
     def review(self, candidate: str) -> CompletionDecision:
         receipt = self.activity.snapshot()
         if not receipt["files"]:
+            if self.activity.semantic_noop_satisfied:
+                semantic_noop = self.activity.semantic_noop or {}
+                self.activity.record_verification(
+                    {
+                        "status": "already-satisfied",
+                        "projectRevision": self.activity.revision,
+                        "auditAttempts": self.repair_state.repair_rounds,
+                        "checks": [
+                            self._check(
+                                "semantic-noop",
+                                True,
+                                (
+                                    "Host-validated semantic mutation reported changed=false; "
+                                    f"source={semantic_noop.get('source', 'unknown')}; "
+                                    f"reason={semantic_noop.get('reason', 'already-satisfied')}."
+                                ),
+                            )
+                        ],
+                    }
+                )
+                return CompletionDecision(True, candidate)
             read_only_marker = "[creator-verification:read-only]"
             stripped = candidate.strip()
             is_clarification = stripped.endswith("?") or stripped.endswith("？")

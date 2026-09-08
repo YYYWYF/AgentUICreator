@@ -32,6 +32,15 @@ def source(path: str, content: str = "export {};\n") -> UISourceFile:
     return UISourceFile(path=path, content=content)
 
 
+def plugin_sources(plugin_id: str = "task-status") -> list[UISourceFile]:
+    root = f"/plugins/{plugin_id}"
+    return [
+        source(f"{root}/manifest.json", f'{{"id":"{plugin_id}"}}\n'),
+        source(f"{root}/definition.ts"),
+        source(f"{root}/index.tsx"),
+    ]
+
+
 def service(tmp_path: Path):
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("source-create")
@@ -45,7 +54,7 @@ def service(tmp_path: Path):
     )
 
 
-def test_create_multiple_plugin_files_atomically(tmp_path):
+def test_internal_source_primitive_creates_multiple_files_atomically(tmp_path):
     creation, activity = service(tmp_path)
 
     result = asyncio.run(
@@ -68,6 +77,70 @@ def test_create_multiple_plugin_files_atomically(tmp_path):
     }
     assert activity.revision == 3
     assert (tmp_path / "plugins/task-status/index.tsx").is_file()
+
+
+def test_create_ui_plugin_enforces_plugin_domain_and_creates_atomically(tmp_path):
+    creation, activity = service(tmp_path)
+
+    result = asyncio.run(creation.create_plugin("task-status", plugin_sources()))
+
+    assert result.mutation_revision == 3
+    assert activity.revision == 3
+    assert (tmp_path / "plugins/task-status/manifest.json").is_file()
+
+
+@pytest.mark.parametrize(
+    ("plugin_id", "files", "expected_code"),
+    [
+        (
+            "task-status",
+            [source("/plugins/other/manifest.json", '{"id":"task-status"}\n')],
+            "UI_PLUGIN_PATH_MISMATCH",
+        ),
+        (
+            "task-status",
+            plugin_sources()[:-1],
+            "UI_PLUGIN_REQUIRED_FILE_MISSING",
+        ),
+        (
+            "task-status",
+            [
+                source("/plugins/task-status/manifest.json", "not-json"),
+                *plugin_sources()[1:],
+            ],
+            "UI_PLUGIN_MANIFEST_INVALID",
+        ),
+        (
+            "task-status",
+            [
+                source("/plugins/task-status/manifest.json", '{"id":"other"}\n'),
+                *plugin_sources()[1:],
+            ],
+            "UI_PLUGIN_MANIFEST_ID_MISMATCH",
+        ),
+    ],
+)
+def test_create_ui_plugin_rejects_invalid_domain_payloads(
+    tmp_path, plugin_id, files, expected_code
+):
+    creation, activity = service(tmp_path)
+
+    with pytest.raises(SourceCreationError) as captured:
+        asyncio.run(creation.create_plugin(plugin_id, files))
+
+    assert captured.value.code == expected_code
+    assert activity.revision == 0
+
+
+def test_create_ui_plugin_rejects_existing_target_directory(tmp_path):
+    (tmp_path / "plugins/task-status").mkdir(parents=True)
+    creation, activity = service(tmp_path)
+
+    with pytest.raises(SourceCreationError) as captured:
+        asyncio.run(creation.create_plugin("task-status", plugin_sources()))
+
+    assert captured.value.code == "UI_PLUGIN_DIRECTORY_ALREADY_EXISTS"
+    assert activity.revision == 0
 
 
 def test_create_source_rejects_existing_path_without_partial_write(tmp_path):
@@ -176,7 +249,7 @@ def call(name, arguments, call_id):
     )
 
 
-def test_domain_write_exposes_create_ui_source_files(tmp_path):
+def test_domain_write_exposes_create_ui_plugin(tmp_path):
     model = CapturingModel(responses=[AIMessage(content="No change needed.")])
     agent = create_domain_write_creator_agent(
         model=model,
@@ -187,15 +260,19 @@ def test_domain_write_exposes_create_ui_source_files(tmp_path):
     asyncio.run(agent.run("Inspect whether a change is needed."))
 
     assert set(model.bound_tool_names) == set(ALLOWED_DOMAIN_WRITE_TOOLS)
-    assert "create_ui_source_files" in model.bound_tool_names
+    assert "create_ui_plugin" in model.bound_tool_names
+    assert "create_ui_source_files" not in model.bound_tool_names
     assert "write_file" not in model.bound_tool_names
     assert "execute" not in model.bound_tool_names
 
 
 def test_create_source_is_side_effect_exclusive():
     create = call(
-        "create_ui_source_files",
-        {"files": [{"path": "/plugins/x/index.tsx", "content": "x"}]},
+        "create_ui_plugin",
+        {
+            "pluginId": "x",
+            "files": [{"path": "/plugins/x/index.tsx", "content": "x"}],
+        },
         "create",
     )
     read = call("read_file", {"file_path": "/plugins/x/index.tsx"}, "read")
@@ -230,3 +307,49 @@ def test_domain_write_loads_plugin_development_skill(tmp_path):
     )
     assert "ui-plugin-development" in system_text
     assert "/skills/ui-plugin-development/SKILL.md" in system_text
+
+
+def test_plugin_development_skill_paths_read_real_project_files(tmp_path):
+    framework = tmp_path / "framework/contracts/ui-plugin.ts"
+    plugin = tmp_path / "plugins/example/index.tsx"
+    framework.parent.mkdir(parents=True)
+    plugin.parent.mkdir(parents=True)
+    framework.write_text("export const contractMarker = true;\n", encoding="utf-8")
+    plugin.write_text("export const pluginMarker = true;\n", encoding="utf-8")
+    model = CapturingModel(
+        responses=[
+            call(
+                "read_file",
+                {"file_path": "/skills/ui-plugin-development/SKILL.md"},
+                "read-skill",
+            ),
+            AIMessage(
+                content="",
+                tool_calls=[
+                    call(
+                        "read_file",
+                        {"file_path": "/framework/contracts/ui-plugin.ts"},
+                        "read-contract",
+                    ).tool_calls[0],
+                    call(
+                        "read_file",
+                        {"file_path": "/plugins/example/index.tsx"},
+                        "read-plugin",
+                    ).tool_calls[0],
+                ],
+            ),
+            AIMessage(content="[creator-verification:read-only]Skill paths read."),
+        ]
+    )
+    agent = create_domain_write_creator_agent(
+        model=model,
+        workspace=tmp_path,
+        skills_root=SKILLS_ROOT,
+    )
+
+    result = asyncio.run(agent.run("Load the Plugin development Skill and inspect its paths."))
+    observed_text = "\n".join(str(message.content) for message in model.seen_messages)
+
+    assert "contractMarker" in observed_text
+    assert "pluginMarker" in observed_text
+    assert result.text == "Skill paths read."

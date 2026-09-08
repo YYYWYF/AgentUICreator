@@ -169,7 +169,7 @@ def run(agent):
 def test_side_effect_classification_and_round_trip_prompt_contract():
     assert SIDE_EFFECT_TOOL_NAMES == {
         "edit_file",
-        "create_ui_source_files",
+        "create_ui_plugin",
         "mutate_app_ui_model",
     }
     assert READ_ONLY_TOOL_NAMES == set(ALLOWED_DOMAIN_WRITE_TOOLS) - SIDE_EFFECT_TOOL_NAMES
@@ -182,7 +182,7 @@ def test_side_effect_classification_and_round_trip_prompt_contract():
         "arguments or necessity depend on an earlier result, wait for that result",
         "If list_ui_plugins is genuinely required to discover the target identifier, call it first",
         "Never guess a pluginId",
-        "Never combine edit_file, create_ui_source_files, or mutate_app_ui_model",
+        "Never combine edit_file, create_ui_plugin, or mutate_app_ui_model",
         "one atomic mutation containing all semantic operations",
         "updated authoritative observation",
         "Do not immediately re-inspect",
