@@ -48,9 +48,9 @@ def plugin_sources(plugin_id: str = "task-status") -> list[UIPluginSourceFile]:
     ]
 
 
-def service(tmp_path: Path):
+def service(tmp_path: Path, run_id: str = "source-create"):
     activity = CreatorActivityRecorder(tmp_path)
-    activity.begin("source-create")
+    activity.begin(run_id)
     return (
         UISourceCreationService(
             project_root=tmp_path,
@@ -61,12 +61,13 @@ def service(tmp_path: Path):
     )
 
 
-def plugin_service(tmp_path: Path):
-    source_creation, activity = service(tmp_path)
+def plugin_service(tmp_path: Path, run_id: str = "source-create"):
+    source_creation, activity = service(tmp_path, run_id)
     return (
         UIPluginCreationService(
             project_root=tmp_path,
             source_creation=source_creation,
+            activity=activity,
         ),
         activity,
     )
@@ -233,8 +234,53 @@ def test_created_plugin_is_undoable(tmp_path):
         "runId": "source-create",
         "undoable": True,
     }
+    assert activity.transactions.load("source-create").created_directories == (
+        "plugins/task-status",
+    )
     activity.transactions.undo("source-create")
-    assert not any((tmp_path / "plugins/task-status").iterdir())
+    assert not (tmp_path / "plugins/task-status").exists()
+    assert (tmp_path / "plugins").is_dir()
+
+
+def test_created_plugin_undo_restores_absent_plugin_directory(tmp_path):
+    creation, activity = plugin_service(tmp_path)
+    files = [*plugin_sources(), plugin_source("components/Status.tsx")]
+
+    asyncio.run(creation.create("task-status", files))
+    assert (tmp_path / "plugins/task-status/components").is_dir()
+    activity.finish()
+
+    activity.transactions.undo("source-create")
+
+    assert not (tmp_path / "plugins/task-status").exists()
+
+
+def test_created_plugin_can_be_recreated_after_undo(tmp_path):
+    creation, activity = plugin_service(tmp_path)
+
+    asyncio.run(creation.create("task-status", plugin_sources()))
+    activity.finish()
+    activity.transactions.undo("source-create")
+
+    recreated, recreated_activity = plugin_service(tmp_path, "source-recreate")
+    result = asyncio.run(recreated.create("task-status", plugin_sources()))
+
+    assert result.plugin_id == "task-status"
+    assert recreated_activity.revision == 3
+
+
+def test_plugin_undo_does_not_remove_user_added_files(tmp_path):
+    creation, activity = plugin_service(tmp_path)
+
+    asyncio.run(creation.create("task-status", plugin_sources()))
+    activity.finish()
+    user_file = tmp_path / "plugins/task-status/user-note.txt"
+    user_file.write_text("keep me\n", encoding="utf-8")
+
+    activity.transactions.undo("source-create")
+
+    assert user_file.read_text(encoding="utf-8") == "keep me\n"
+    assert (tmp_path / "plugins/task-status").is_dir()
 
 
 def test_create_source_rejects_existing_path_without_partial_write(tmp_path):
@@ -320,6 +366,7 @@ def test_created_source_is_undoable(tmp_path):
         "runId": "source-create",
         "undoable": True,
     }
+    assert activity.transactions.load("source-create").created_directories == ()
     activity.transactions.undo("source-create")
     assert not target.exists()
 

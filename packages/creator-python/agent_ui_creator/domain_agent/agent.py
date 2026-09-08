@@ -299,6 +299,7 @@ def create_domain_write_creator_agent(
     plugin_creation = UIPluginCreationService(
         project_root=workspace,
         source_creation=source_creation,
+        activity=backend.activity,
     )
     validation = CreatorValidationService(
         project_root=workspace,

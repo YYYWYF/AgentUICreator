@@ -46,6 +46,7 @@ class CreatorActivityRecorder:
         )
         self._before_by_path: dict[str, str | None] = {}
         self._touched_paths: set[str] = set()
+        self._created_directories: set[str] = set()
         self._validations: list[dict[str, Any]] = []
         self._revision = 0
         self._run_id = "unstarted"
@@ -63,6 +64,7 @@ class CreatorActivityRecorder:
     def begin(self, run_id: str | None = None) -> None:
         self._before_by_path.clear()
         self._touched_paths.clear()
+        self._created_directories.clear()
         self._validations.clear()
         self._revision = 0
         self._before_content_bytes = 0
@@ -139,6 +141,12 @@ class CreatorActivityRecorder:
                 },
             )
 
+    def record_created_directory(self, directory_path: str) -> None:
+        path = resolve_creator_project_file(
+            self.project_root, directory_path
+        ).receipt_path
+        self._created_directories.add(path)
+
     def record_semantic_noop(self, *, source: str, reason: str) -> None:
         self._semantic_noop = {"source": source, "reason": reason}
         if self.logger is not None:
@@ -205,6 +213,7 @@ class CreatorActivityRecorder:
                 else None
             ),
             files=transaction_files,
+            created_directories=sorted(self._created_directories),
         )
         if transaction is not None:
             status = self.transactions.status(transaction.run_id)

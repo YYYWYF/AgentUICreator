@@ -51,6 +51,7 @@ class CreatorTransactionRecord:
     mutation_revision: int
     validation_revision: int | None
     files: tuple[CreatorTransactionFileRecord, ...]
+    created_directories: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -60,6 +61,7 @@ class CreatorTransactionRecord:
             "mutationRevision": self.mutation_revision,
             "validationRevision": self.validation_revision,
             "files": [file.to_dict() for file in self.files],
+            "createdDirectories": list(self.created_directories),
         }
 
 

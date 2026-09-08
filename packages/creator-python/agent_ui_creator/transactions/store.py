@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import threading
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
 from ..files import (
@@ -63,6 +64,27 @@ def _required_revision(value: Any, label: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise _invalid(f"{label} must be a non-negative integer.")
     return value
+
+
+def _created_directory_path(value: Any, label: str) -> str:
+    path = _required_string(value, label)
+    normalized = PurePosixPath(path)
+    if (
+        not path
+        or path != path.strip()
+        or path.startswith("/")
+        or "\\" in path
+        or "\x00" in path
+        or path == "."
+        or ".." in normalized.parts
+        or normalized.is_absolute()
+        or bool(PureWindowsPath(path).drive)
+        or normalized.as_posix() != path
+    ):
+        raise _invalid(
+            f"{label} must be a canonical project-relative directory path."
+        )
+    return path
 
 
 def _file_state(
@@ -138,6 +160,17 @@ def parse_transaction_record(
 
     if len({file.path for file in files}) != len(files):
         raise _invalid("Creator transaction contains duplicate file paths.")
+    raw_created_directories = value.get("createdDirectories", [])
+    if not isinstance(raw_created_directories, list):
+        raise _invalid("Creator transaction createdDirectories must be an array.")
+    created_directories = tuple(
+        _created_directory_path(
+            directory, f"transaction.createdDirectories[{index}]"
+        )
+        for index, directory in enumerate(raw_created_directories)
+    )
+    if len(set(created_directories)) != len(created_directories):
+        raise _invalid("Creator transaction contains duplicate created directories.")
     validation_revision = value.get("validationRevision")
     if validation_revision is not None:
         validation_revision = _required_revision(
@@ -152,6 +185,7 @@ def parse_transaction_record(
         ),
         validation_revision=validation_revision,
         files=tuple(files),
+        created_directories=created_directories,
     )
 
 
@@ -199,6 +233,7 @@ class CreatorTransactionStore:
         mutation_revision: int,
         validation_revision: int | None,
         files: Sequence[CreatorTransactionFileInput],
+        created_directories: Sequence[str] = (),
     ) -> CreatorTransactionRecord | None:
         changed = sorted(
             (file for file in files if file.before != file.after),
@@ -226,13 +261,26 @@ class CreatorTransactionStore:
                     CreatorTransactionFileState(after.exists, after.hash),
                 )
             )
+        canonical_directories = tuple(
+            sorted(
+                self._canonical_created_directory(directory)
+                for directory in created_directories
+            )
+        )
+        if len(set(canonical_directories)) != len(canonical_directories):
+            raise _invalid(
+                "Creator transaction contains duplicate created directories."
+            )
         record = CreatorTransactionRecord(
             CREATOR_TRANSACTION_SCHEMA_VERSION,
             run_id,
-            datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            datetime.now(timezone.utc)
+            .isoformat(timespec="milliseconds")
+            .replace("+00:00", "Z"),
             mutation_revision,
             validation_revision,
             tuple(records),
+            canonical_directories,
         )
         source = json.dumps(
             record.to_dict(), ensure_ascii=False, indent=2, separators=(",", ": ")
@@ -252,6 +300,7 @@ class CreatorTransactionStore:
                 "runId": run_id,
                 "mutationRevision": mutation_revision,
                 "changedPaths": [file.path for file in records],
+                "createdDirectories": list(record.created_directories),
             },
         )
         return record
@@ -414,6 +463,7 @@ class CreatorTransactionStore:
                         {"cause": str(error), "rollbackCause": str(rollback_error)},
                     ) from rollback_error
                 raise
+            self._cleanup_created_directories(record.created_directories)
             changed_paths = tuple(sorted(file.path for file in record.files))
             self._record(
                 "undo", {"runId": record.run_id, "changedPaths": list(changed_paths)}
@@ -463,3 +513,61 @@ class CreatorTransactionStore:
                     "CREATOR_TRANSACTION_INVALID",
                     f'Creator transaction path "{file.path}" is not canonical.',
                 )
+        for directory in record.created_directories:
+            self._canonical_created_directory(directory)
+
+    def _canonical_created_directory(self, directory_path: str) -> str:
+        try:
+            parsed = _created_directory_path(
+                directory_path, "transaction.createdDirectories[]"
+            )
+            location = resolve_creator_project_file(self.project_root, parsed)
+        except (CreatorTransactionError, ValueError) as error:
+            if isinstance(error, CreatorTransactionError):
+                raise
+            raise CreatorTransactionError(
+                "CREATOR_TRANSACTION_INVALID",
+                f'Creator transaction directory path "{directory_path}" is invalid.',
+            ) from error
+        if location.receipt_path != parsed:
+            raise CreatorTransactionError(
+                "CREATOR_TRANSACTION_INVALID",
+                f'Creator transaction directory path "{directory_path}" is not canonical.',
+            )
+        return location.receipt_path
+
+    def _cleanup_created_directories(
+        self, created_directories: Sequence[str]
+    ) -> None:
+        for directory_path in sorted(
+            created_directories,
+            key=lambda path: len(PurePosixPath(path).parts),
+            reverse=True,
+        ):
+            directory = resolve_creator_project_file(
+                self.project_root, directory_path
+            ).absolute_path
+            if (
+                not directory.exists()
+                or directory.is_symlink()
+                or not directory.is_dir()
+            ):
+                continue
+            try:
+                directory.resolve(strict=True).relative_to(
+                    self.project_root.resolve(strict=True)
+                )
+            except (FileNotFoundError, ValueError):
+                continue
+            for current_root, child_directories, _files in os.walk(
+                directory, topdown=False, followlinks=False
+            ):
+                for child_directory in child_directories:
+                    try:
+                        (Path(current_root) / child_directory).rmdir()
+                    except OSError:
+                        pass
+            try:
+                directory.rmdir()
+            except OSError:
+                pass

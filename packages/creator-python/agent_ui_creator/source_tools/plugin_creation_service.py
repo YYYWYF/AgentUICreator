@@ -4,6 +4,7 @@ import json
 import re
 from pathlib import Path, PurePosixPath
 
+from ..activity import CreatorActivityRecorder
 from ..files import resolve_creator_project_file
 from .models import (
     PluginCreationResult,
@@ -26,9 +27,11 @@ class UIPluginCreationService:
         *,
         project_root: str | Path,
         source_creation: UISourceCreationService,
+        activity: CreatorActivityRecorder,
     ) -> None:
         self.project_root = Path(project_root).resolve()
         self.source_creation = source_creation
+        self.activity = activity
 
     @staticmethod
     def _normalize_relative_path(relative_path: str) -> str:
@@ -137,6 +140,7 @@ class UIPluginCreationService:
                     {"pluginId": plugin_id, "path": f"plugins/{plugin_id}"},
                 ) from error
             raise
+        self.activity.record_created_directory(plugin_directory)
         return PluginCreationResult(
             plugin_id=plugin_id,
             created_paths=result.created_paths,

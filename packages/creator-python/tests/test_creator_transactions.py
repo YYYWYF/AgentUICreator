@@ -58,6 +58,31 @@ def test_transaction_schema_constants_remain_stable():
     assert CREATOR_MISSING_FILE_HASH == creator_content_hash("<missing>")
 
 
+def test_transaction_schema_accepts_legacy_record_without_created_directories():
+    record = parse_transaction_record(valid_record())
+
+    assert record.created_directories == ()
+
+
+@pytest.mark.parametrize(
+    "created_directories",
+    [
+        [""],
+        ["."],
+        ["/plugins/task-status"],
+        ["C:/plugins/task-status"],
+        ["plugins/../outside"],
+        ["plugins/task-status", "plugins/task-status"],
+    ],
+)
+def test_transaction_schema_rejects_invalid_created_directories(created_directories):
+    value = valid_record()
+    value["createdDirectories"] = created_directories
+
+    with pytest.raises(CreatorTransactionError):
+        parse_transaction_record(value)
+
+
 def test_transaction_schema_rejects_file_count_and_json_byte_overflow(tmp_path):
     value = valid_record()
     value["files"] = [
