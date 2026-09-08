@@ -249,7 +249,9 @@ function isActiveCandidate(
 ): boolean {
   return (
     instance.enabled &&
-    (instance.mount !== undefined || asset.capabilities.includes("headless"))
+    (instance.mount !== undefined ||
+      asset.capabilities.includes("headless") ||
+      asset.applicationGate !== undefined)
   );
 }
 

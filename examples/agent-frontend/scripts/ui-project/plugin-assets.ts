@@ -86,6 +86,14 @@ export async function collectPluginAssets(
           path.join(directoryPath, "definition.ts"),
         ),
         capabilities: [...(manifest.capabilities ?? [])].sort(),
+        ...(manifest.application?.gate === undefined
+          ? {}
+          : {
+              applicationGate: {
+                service: manifest.application.gate.service,
+                priority: manifest.application.gate.priority ?? 0,
+              },
+            }),
         childSlots: [...(manifest.slots?.children ?? [])].sort(),
       });
     } catch (error) {

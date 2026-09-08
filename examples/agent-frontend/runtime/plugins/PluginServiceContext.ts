@@ -12,6 +12,7 @@ export const PluginServiceRuntimeContext =
 export interface PluginServiceConsumerScope {
   pluginId: string;
   instanceId: string;
+  provides: readonly string[];
   inject: readonly string[];
   optionalInject: readonly string[];
 }
@@ -46,6 +47,7 @@ export function usePluginService<T = unknown>(name: string): T | undefined {
   usePluginServiceRuntimeRevision();
   if (
     consumer !== null &&
+    !consumer.provides.includes(name) &&
     !consumer.inject.includes(name) &&
     !consumer.optionalInject.includes(name)
   ) {

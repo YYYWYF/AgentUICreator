@@ -24,7 +24,8 @@ Inspect project conventions before deciding that Plugin source must change:
 1. List and inspect existing Plugins.
 2. If one already supplies the requested behavior, reuse its `manifest.id` in a PluginInstance and change only AppUIModel.
 3. If behavior is missing, create the smallest Plugin that follows the project's existing directory and registration conventions.
-4. Add its PluginInstance and Slot composition through AppUIModel. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
+4. For an ordinary Plugin, add its PluginInstance and Slot composition through AppUIModel. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
+5. When the user requires login, License, organization selection, onboarding, or initialization before the Workspace can be used, prefer a first-class `manifest.application.gate` Plugin. An Application Gate instance is enabled and deliberately has no `mount`; it is an Application lifecycle surface, not Slot composition.
 
 ## Service dependency and ownership decision
 
@@ -76,7 +77,7 @@ Plugin needs capability X
 6. Default-export the definition so the target-owned generator can include it in the static Registry. Do not spread a template catalog into the production registry.
 7. Submit `pluginId` and all currently known new Plugin files together in one `create_ui_plugin` call, using `relativePath` values inside that Plugin directory. It requires `manifest.json`, `definition.ts`, and `index.tsx`, is create-only, and transactionally rolls back the whole call on failure. Never use it to replace an existing Plugin directory or file.
 8. Run `validate_creator_changes`. Fix returned diagnostics with `read_file` plus `edit_file`, then validate the new revision again.
-9. Add exactly one PluginInstance and mount it in the intended AppUIModel Slot through `mutate_app_ui_model`; that transaction updates the generated Registry.
+9. Add exactly one PluginInstance through `mutate_app_ui_model`; mount an ordinary Plugin in the intended Slot, but leave an Application Gate instance enabled and unmounted. That transaction updates the generated Registry in both cases.
 10. Because composition changes the Activity revision, run `validate_creator_changes` again for the final revision.
 11. Call `inspect_runtime_errors`. Fresh current-hash evidence with zero current errors is required before claiming Runtime success.
 
@@ -103,6 +104,20 @@ Reuse
 
 ## Contract boundaries
 
+### Application Gate contract
+
+Use `manifest.application.gate` when entry to the Workspace must be denied until a condition is ready. Do not model this requirement as a modal, overlay, root/main Slot contribution, dedicated Login Slot, or high-z-index element, and do not change the Layout Tree merely to host it.
+
+- The Gate manifest names one observable Service and may assign a numeric priority. Do not also add an `app-gate` capability; `application.gate` is the single source of truth and is distinct from `headless`.
+- The definition declares the Gate Service in `provides`, and `setup()` synchronously provides it with an initial `checking`, `blocked`, `ready`, or `error` snapshot. Async session recovery begins only after the observable Service is available.
+- A Gate PluginInstance is `enabled: true` with no `mount`. A Gate manifest must not declare child Slots.
+- Gate hard dependencies use `inject`. Every Provider in that dependency closure must be an unmounted `headless` Plugin or another Application Gate. `optionalInject` never expands the startup dependency closure.
+- The Gate component may read its own provided Gate Service with `usePluginService()`. This self-read permission applies to Components only; `setup({ services }).get()` still reads only `inject` and `optionalInject` dependencies.
+- Multiple Gates all must become `ready`. Priority selects which non-ready Gate surface is currently displayed; it does not weaken the all-ready rule.
+- Gate state is frontend Application lifecycle state. Never add AG-UI custom events or modify Agent protocol semantics to control it.
+
+For requests such as “不登录不能进入应用”, “打开应用必须先登录”, “没有 License 不能使用”, “必须先选择组织”, or “初始化完成前不能进入工作台”, inspect existing Gate/Auth assets and Services first, then create or reuse an Application Gate without introducing a Login Slot or Layout overlay.
+
 ### Child Slot contract
 
 When adding, removing, or renaming a child `renderSlot(...)` outlet in a container Plugin, update `manifest.json` `slots.children` in the same task. Child Slot ids must be static string literals; do not create dynamic `renderSlot(slotId)` outlets. Host verification treats the Plugin source and manifest child Slot sets as an exact contract.
@@ -123,7 +138,7 @@ When adding, removing, or renaming a child `renderSlot(...)` outlet in a contain
 - For a hard capability dependency, import its stable Service seam from `/services/*` and declare `inject` on `UIPluginDefinition`; do not import concrete Provider Plugin source.
 - Provider implementations must be exposed only through `setup({ services })` + `services.provide(...)`, and the same Service Name must be declared in `provides`.
 - Optional dependency behavior must declare `optionalInject`, call `usePluginService(...)`, and tolerate `undefined` with a complete fallback.
-- Both `setup({ services }).get(X)` and component `usePluginService(X)` require X to appear in `inject` or `optionalInject`. Application-owned lookup is not subject to this Plugin declaration rule.
+- `setup({ services }).get(X)` requires X to appear in `inject` or `optionalInject`. A component `usePluginService(X)` may also read a Service declared by its own definition in `provides`; Application-owned lookup remains unrestricted.
 - `provides`, `inject`, and `optionalInject` are pairwise disjoint.
 - When multiple Plugins share a capability, reuse an existing seam name/type from `/services/*` and never invent a synonym service contract.
 - Prefer `UIPluginObservableService` only when other Plugins need sustained observation of service-owned state.

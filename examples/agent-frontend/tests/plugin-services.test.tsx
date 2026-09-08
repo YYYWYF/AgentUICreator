@@ -340,6 +340,7 @@ describe("PluginServiceRuntime", () => {
             value={{
               pluginId: "consumer",
               instanceId: "consumer-main",
+              provides: [],
               inject: [],
               optionalInject: [],
             }}
@@ -351,6 +352,24 @@ describe("PluginServiceRuntime", () => {
     ).toThrow(
       'Plugin "consumer" instance "consumer-main" accessed undeclared service "test.secret"',
     );
+
+    expect(() =>
+      create(
+        <PluginServiceRuntimeContext.Provider value={runtime}>
+          <PluginServiceConsumerContext.Provider
+            value={{
+              pluginId: "provider",
+              instanceId: "provider-main",
+              provides: ["test.secret"],
+              inject: [],
+              optionalInject: [],
+            }}
+          >
+            <Probe />
+          </PluginServiceConsumerContext.Provider>
+        </PluginServiceRuntimeContext.Provider>,
+      ),
+    ).not.toThrow();
 
     expect(() =>
       create(
@@ -413,6 +432,7 @@ describe("PluginServiceRuntime", () => {
           value={{
             pluginId: "consumer",
             instanceId: "consumer-main",
+            provides: [],
             inject: [],
             optionalInject: ["test.optional"],
           }}

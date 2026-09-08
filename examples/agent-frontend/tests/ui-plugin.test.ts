@@ -55,6 +55,36 @@ describe("UIPluginManifest", () => {
     }
   });
 
+  it("parses an Application Gate declaration", () => {
+    const manifest = parseUIPluginManifest({
+      id: "auth-login",
+      name: "Authentication",
+      description: "Blocks the Workspace until authentication is ready",
+      version: "1.0.0",
+      application: {
+        gate: { service: "auth.gate", priority: 100 },
+      },
+    });
+
+    expect(manifest.application?.gate).toEqual({
+      service: "auth.gate",
+      priority: 100,
+    });
+  });
+
+  it("rejects a duplicate app-gate capability declaration", () => {
+    const result = uiPluginManifestSchema.safeParse({
+      id: "auth-login",
+      name: "Authentication",
+      description: "Blocks the Workspace until authentication is ready",
+      version: "1.0.0",
+      capabilities: ["app-gate"],
+      application: { gate: { service: "auth.gate" } },
+    });
+
+    expect(result.success).toBe(false);
+  });
+
   it("rejects duplicate application event declarations", () => {
     const result = uiPluginManifestSchema.safeParse({
       id: "file-preview",

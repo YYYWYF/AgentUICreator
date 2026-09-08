@@ -19,6 +19,7 @@ import {
   type ApplicationEventSource,
 } from "../events";
 import type { AppFrontendToolRuntime } from "../tools";
+import { ApplicationLifecycleProvider } from "../application/ApplicationLifecycleContext";
 
 export interface PluginServiceProviderProps<TState = unknown> {
   model: AppUIModel;
@@ -77,7 +78,9 @@ export function PluginServiceProvider<TState = unknown>({
 
   return (
     <PluginServiceRuntimeContext.Provider value={runtime}>
-      {children}
+      <ApplicationLifecycleProvider runtime={runtime.applicationLifecycle}>
+        {children}
+      </ApplicationLifecycleProvider>
     </PluginServiceRuntimeContext.Provider>
   );
 }

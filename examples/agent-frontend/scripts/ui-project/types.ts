@@ -69,6 +69,10 @@ export interface PluginAsset {
   manifestPath: string;
   definitionPath: string;
   capabilities: string[];
+  applicationGate?: {
+    service: string;
+    priority: number;
+  } | undefined;
   childSlots?: string[] | undefined;
 }
 

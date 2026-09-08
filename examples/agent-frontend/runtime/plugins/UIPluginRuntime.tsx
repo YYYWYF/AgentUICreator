@@ -1,32 +1,28 @@
-import { useCallback, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 
 import type {
   AppUIModel,
-  PluginInstance,
   SlotNode,
 } from "../../framework/contracts/app-ui-model";
 import { LayoutRenderer } from "../layout";
-import { PluginInstanceProvider } from "../context";
 import type { PluginRegistry } from "./PluginRegistry";
 import {
-  PluginServiceConsumerContext,
   useOptionalPluginServiceRuntime,
   usePluginServiceRuntime,
   usePluginServiceRuntimeRevision,
 } from "./PluginServiceContext";
 import { PluginServiceProvider } from "./PluginServiceProvider";
-import {
-  createInstanceActions,
-  type UIPluginRuntimeActions,
-} from "./PluginServiceRuntime";
-import {
-  PluginErrorBoundary,
-  type PluginRenderFailure,
-} from "./PluginErrorBoundary";
+import { type UIPluginRuntimeActions } from "./PluginServiceRuntime";
+import { type PluginRenderFailure } from "./PluginErrorBoundary";
 import {
   PluginDiagnosticProvider,
   useOptionalPluginDiagnosticContext,
-  type RuntimeCompositionInstance,
   type RuntimeCompositionReporter,
   type RuntimeDiagnosticReporter,
 } from "../diagnostics";
@@ -34,6 +30,13 @@ import type {
   AppEventRegistry,
   ApplicationEventSource,
 } from "../events";
+import { ApplicationGateSurface } from "../application/ApplicationGateSurface";
+import {
+  ApplicationLifecycleProvider,
+  useApplicationLifecycle,
+  useOptionalApplicationLifecycleRuntime,
+} from "../application/ApplicationLifecycleContext";
+import { PluginInstanceRenderer } from "./PluginInstanceRenderer";
 
 import "./plugin-runtime.css";
 
@@ -65,42 +68,6 @@ function PluginRuntimeError({ children }: { children: ReactNode }) {
       {children}
     </div>
   );
-}
-
-function createPropsResetKey(
-  props: PluginInstance["props"],
-): string | PluginInstance["props"] {
-  try {
-    return JSON.stringify(props ?? null);
-  } catch {
-    return props;
-  }
-}
-
-function RuntimePluginMountProbe({
-  children,
-  instanceId,
-  pluginId,
-  slotId,
-}: {
-  children: ReactNode;
-  instanceId: string;
-  pluginId: string;
-  slotId: string;
-}) {
-  const diagnostics = useOptionalPluginDiagnosticContext();
-  useEffect(() => {
-    if (diagnostics === null) return undefined;
-    const slotPath = diagnostics?.locationFor(instanceId)?.slotPath;
-    const instance: RuntimeCompositionInstance = {
-      instanceId,
-      pluginId,
-      slotId,
-      ...(slotPath === undefined ? {} : { slotPath }),
-    };
-    return diagnostics.registerMountedInstance(instance);
-  }, [diagnostics, instanceId, pluginId, slotId]);
-  return children;
 }
 
 function SlotContent<TState = unknown>({
@@ -157,8 +124,6 @@ function SlotContent<TState = unknown>({
         const events = serviceRuntime.getEvents(instance.id);
         if (events === undefined) return null;
 
-        const instanceActions = createInstanceActions(instance, actions);
-        const PluginComponent = definition.Component;
         const renderSlot = (
           requestedSlotId: string,
           requestedFallback?: ReactNode,
@@ -181,54 +146,19 @@ function SlotContent<TState = unknown>({
             />
           );
         };
-        const activationKey =
-          definition.setup !== undefined || (definition.inject?.length ?? 0) > 0
-            ? `${instance.id}:${activation.activationId}`
-            : instance.id;
         return (
-          <PluginErrorBoundary
-            instanceId={instance.id}
-            key={activationKey}
-            onError={onPluginError}
-            onReset={onPluginReset}
-            pluginId={definition.manifest.id}
-            pluginName={definition.manifest.name}
-            resetKeys={[
-              PluginComponent,
-              activationKey,
-              instance.pluginId,
-              createPropsResetKey(instance.props),
-            ]}
-          >
-            <RuntimePluginMountProbe
-              instanceId={instance.id}
-              pluginId={definition.manifest.id}
-              slotId={slotId}
-            >
-              <div
-                className="app-ui-plugin-instance"
-                data-plugin-id={definition.manifest.id}
-                data-plugin-instance-id={instance.id}
-              >
-                <PluginServiceConsumerContext.Provider
-                  value={{
-                    pluginId: definition.manifest.id,
-                    instanceId: instance.id,
-                    inject: definition.inject ?? [],
-                    optionalInject: definition.optionalInject ?? [],
-                  }}
-                >
-                  <PluginInstanceProvider
-                    actions={instanceActions}
-                    events={events}
-                    instance={instance}
-                  >
-                    <PluginComponent renderSlot={renderSlot} />
-                  </PluginInstanceProvider>
-                </PluginServiceConsumerContext.Provider>
-              </div>
-            </RuntimePluginMountProbe>
-          </PluginErrorBoundary>
+          <PluginInstanceRenderer
+            actions={actions}
+            activation={activation}
+            definition={definition}
+            events={events}
+            instance={instance}
+            key={instance.id}
+            mountSlotId={slotId}
+            onPluginError={onPluginError}
+            onPluginReset={onPluginReset}
+            renderSlot={renderSlot}
+          />
         );
       })}
     </div>
@@ -265,6 +195,7 @@ function UIPluginRuntimeContent<TState = unknown>({
   const diagnostics = useOptionalPluginDiagnosticContext();
   const serviceRuntime = usePluginServiceRuntime();
   usePluginServiceRuntimeRevision();
+  const application = useApplicationLifecycle();
   const [pluginFailures, setPluginFailures] = useState<
     Record<string, PluginRenderFailure>
   >({});
@@ -308,7 +239,7 @@ function UIPluginRuntimeContent<TState = unknown>({
       delete next[instanceId];
       return next;
     });
-  }, [diagnostics, model, pluginFailures]);
+  }, [diagnostics, model, pluginFailures, registry]);
   const dismissPluginFailure = useCallback((instanceId: string) => {
     setPluginFailures((current) => {
       if (current[instanceId] === undefined) {
@@ -327,7 +258,9 @@ function UIPluginRuntimeContent<TState = unknown>({
       return (
         instance === undefined ||
         !instance.enabled ||
-        instance.mount === undefined
+        (instance.mount === undefined &&
+          registry.get(instance.pluginId)?.manifest.application?.gate ===
+            undefined)
       );
     });
     if (staleFailures.length === 0) {
@@ -354,26 +287,42 @@ function UIPluginRuntimeContent<TState = unknown>({
     );
   }, [diagnostics, model, pluginFailures]);
 
+  const applicationSurface = application.phase === "ready" ? (
+    <LayoutRenderer
+      className={className}
+      model={model}
+      renderSlot={(slot: SlotNode) => (
+        <LayoutSlotOutlet
+          actions={actions}
+          model={model}
+          onPluginError={reportPluginFailure}
+          onPluginReset={resolvePluginFailure}
+          registry={registry}
+          slot={slot}
+        />
+      )}
+    />
+  ) : (
+    <ApplicationGateSurface
+      actions={actions}
+      model={model}
+      onPluginError={reportPluginFailure}
+      onPluginReset={resolvePluginFailure}
+      registry={registry}
+    />
+  );
+
   return (
     <>
-      <LayoutRenderer
-        className={className}
-        model={model}
-        renderSlot={(slot: SlotNode) => (
-          <LayoutSlotOutlet
-            actions={actions}
-            model={model}
-            onPluginError={reportPluginFailure}
-            onPluginReset={resolvePluginFailure}
-            registry={registry}
-            slot={slot}
-          />
-        )}
-      />
+      {applicationSurface}
 
       {/* Activation failures have no contribution. Report them outside Slot rendering. */}
       {Object.values(model.pluginInstances).map((instance) => {
-        if (!instance.enabled || instance.mount === undefined) return null;
+        if (
+          application.phase !== "ready" ||
+          !instance.enabled ||
+          instance.mount === undefined
+        ) return null;
         const definition = registry.get(instance.pluginId);
         if (definition === undefined) {
           return (
@@ -452,6 +401,8 @@ export function UIPluginRuntime<TState = unknown>(
 ) {
   const inheritedServiceRuntime = useOptionalPluginServiceRuntime();
   const inheritedDiagnostics = useOptionalPluginDiagnosticContext();
+  const inheritedApplicationLifecycle =
+    useOptionalApplicationLifecycleRuntime();
 
   if (inheritedDiagnostics === null && props.appUIModelHash !== undefined) {
     return (
@@ -477,6 +428,16 @@ export function UIPluginRuntime<TState = unknown>(
       >
         <UIPluginRuntimeContent {...props} />
       </PluginServiceProvider>
+    );
+  }
+
+  if (inheritedApplicationLifecycle === null) {
+    return (
+      <ApplicationLifecycleProvider
+        runtime={inheritedServiceRuntime.applicationLifecycle}
+      >
+        <UIPluginRuntimeContent {...props} />
+      </ApplicationLifecycleProvider>
     );
   }
 

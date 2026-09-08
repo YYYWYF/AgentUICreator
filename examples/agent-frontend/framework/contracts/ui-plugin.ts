@@ -28,6 +28,16 @@ export interface UIPluginManifest {
   description: string;
   version: string;
   capabilities?: string[] | undefined;
+  application?:
+    | {
+        gate?:
+          | {
+              service: string;
+              priority?: number | undefined;
+            }
+          | undefined;
+      }
+    | undefined;
   slots?:
     | {
         children?: readonly string[] | undefined;
@@ -55,6 +65,20 @@ export interface UIPluginObservableService<TSnapshot> {
   getSnapshot(): TSnapshot;
   subscribe(listener: () => void): () => void;
 }
+
+export type UIApplicationGateStatus =
+  | "checking"
+  | "blocked"
+  | "ready"
+  | "error";
+
+export interface UIApplicationGateSnapshot {
+  status: UIApplicationGateStatus;
+  message?: string | undefined;
+}
+
+export interface UIApplicationGateService
+  extends UIPluginObservableService<UIApplicationGateSnapshot> {}
 
 /**
  * Plugins may augment this interface to type their named services.
@@ -157,6 +181,16 @@ const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
   description: nonBlankStringSchema,
   version: nonBlankStringSchema,
   capabilities: z.array(nonBlankStringSchema).optional(),
+  application: z
+    .strictObject({
+      gate: z
+        .strictObject({
+          service: serviceNameSchema,
+          priority: z.number().finite().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
   slots: z
     .strictObject({
       children: z.array(nonBlankStringSchema).optional(),
@@ -185,6 +219,17 @@ export const uiPluginManifestSchema = manifestShapeSchema.superRefine(
       }
       capabilities.add(capability);
     });
+    if (
+      manifest.application?.gate !== undefined &&
+      capabilities.has("app-gate")
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["capabilities"],
+        message: 'Use application.gate as the sole Gate declaration; do not add capability "app-gate"',
+        input: manifest.capabilities,
+      });
+    }
 
     const childSlots = new Set<string>();
     manifest.slots?.children?.forEach((slotId, index) => {

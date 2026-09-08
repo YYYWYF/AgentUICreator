@@ -14,9 +14,11 @@ import {
   AppUICompositionError,
   validateAppUIComposition,
   type PluginSlotCatalog,
+  type PluginCompositionCatalog,
 } from "../../framework/contracts/app-ui-composition";
 import { uiProjectControlConfig } from "./project-config";
 import { collectPluginAssets } from "./plugin-assets";
+import { analyzePluginServiceDeclarations } from "./service-dependency-inspector";
 import type {
   GeneratePluginRegistryResult,
   PluginAsset,
@@ -200,8 +202,40 @@ export async function generatePluginRegistry(
     }
   }
 
+  const hasSelectedGate = registeredAssets.some(
+    (asset) => asset.applicationGate !== undefined,
+  );
+  let compositionCatalog: PluginCompositionCatalog = slotCatalog;
+  if (hasSelectedGate) {
+    const declarations = analyzePluginServiceDeclarations(
+      projectRoot,
+      registeredAssets,
+    );
+    errors.push(...declarations.issues);
+    const declarationsByPluginId = new Map(
+      declarations.plugins.map((declaration) => [declaration.pluginId, declaration]),
+    );
+    compositionCatalog = Object.fromEntries(
+      registeredAssets.map((asset) => {
+        const declaration = declarationsByPluginId.get(asset.pluginId);
+        return [
+          asset.pluginId,
+          {
+            childSlots: asset.childSlots ?? [],
+            ...(asset.applicationGate === undefined
+              ? {}
+              : { applicationGate: asset.applicationGate }),
+            capabilities: asset.capabilities,
+            provides: declaration?.provides ?? [],
+            inject: declaration?.inject ?? [],
+          },
+        ] as const;
+      }),
+    );
+  }
+
   try {
-    validateAppUIComposition(model, slotCatalog);
+    validateAppUIComposition(model, compositionCatalog);
   } catch (error) {
     if (error instanceof AppUICompositionError) {
       errors.push(...error.issues);

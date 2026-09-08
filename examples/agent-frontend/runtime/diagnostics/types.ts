@@ -4,6 +4,7 @@ export const RUNTIME_COMPOSITION_SCHEMA_VERSION = 1 as const;
 export type RuntimeDiagnosticKind =
   | "plugin-render"
   | "plugin-activation"
+  | "application-gate"
   | "application-event-unknown"
   | "application-event-invalid-payload"
   | "plugin-event-undeclared-subscription"

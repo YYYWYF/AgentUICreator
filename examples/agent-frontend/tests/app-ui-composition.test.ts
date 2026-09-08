@@ -92,6 +92,39 @@ describe("AppUIModel composition", () => {
     expect(() => validateAppUIComposition(model, catalog)).not.toThrow();
   });
 
+  it("rejects a mounted Application Gate", () => {
+    const model = createModel({
+      gate: mounted("gate", "auth-gate", "root"),
+    });
+
+    expect(() =>
+      validateAppUIComposition(model, {
+        "auth-gate": {
+          applicationGate: { service: "auth.gate", priority: 100 },
+          provides: ["auth.gate"],
+        },
+      }),
+    ).toThrow("must not mount");
+  });
+
+  it("rejects a mounted UI Provider in the Gate dependency closure", () => {
+    const model = createModel({
+      gate: { id: "gate", pluginId: "auth-gate", enabled: true },
+      provider: mounted("provider", "visual-provider", "root"),
+    });
+
+    expect(() =>
+      validateAppUIComposition(model, {
+        "auth-gate": {
+          applicationGate: { service: "auth.gate", priority: 100 },
+          provides: ["auth.gate"],
+          inject: ["secure-storage"],
+        },
+        "visual-provider": { provides: ["secure-storage"] },
+      }),
+    ).toThrow("must be an unmounted headless or Application Gate plugin");
+  });
+
   it("reaches multi-level child Slots by fixed point", () => {
     const model = createModel({
       // Consumer-first ordering must not affect reachability.

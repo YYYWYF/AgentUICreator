@@ -5,7 +5,10 @@ import {
   parseUIPluginOptionalInject,
   type UIPluginDefinition,
 } from "../../framework/contracts/ui-plugin";
-import type { PluginSlotCatalog } from "../../framework/contracts/app-ui-composition";
+import type {
+  PluginCompositionCatalog,
+  PluginSlotCatalog,
+} from "../../framework/contracts/app-ui-composition";
 
 export interface PluginRegistry<TState = unknown> {
   register(plugin: UIPluginDefinition<TState>): void;
@@ -96,6 +99,30 @@ export function createPluginSlotCatalog<TState = unknown>(
     registry.list().map((definition) => [
       definition.manifest.id,
       [...(definition.manifest.slots?.children ?? [])],
+    ] as const),
+  );
+}
+
+export function createPluginCompositionCatalog<TState = unknown>(
+  registry: PluginRegistry<TState>,
+): PluginCompositionCatalog {
+  return Object.fromEntries(
+    registry.list().map((definition) => [
+      definition.manifest.id,
+      {
+        childSlots: [...(definition.manifest.slots?.children ?? [])],
+        ...(definition.manifest.application?.gate === undefined
+          ? {}
+          : {
+              applicationGate: {
+                service: definition.manifest.application.gate.service,
+                priority: definition.manifest.application.gate.priority ?? 0,
+              },
+            }),
+        capabilities: [...(definition.manifest.capabilities ?? [])],
+        provides: [...(definition.provides ?? [])],
+        inject: [...(definition.inject ?? [])],
+      },
     ] as const),
   );
 }

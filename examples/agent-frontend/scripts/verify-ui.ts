@@ -135,6 +135,7 @@ export async function verifyUIProject(
 
   let pluginIds: string[] = [];
   let headlessPluginIds: string[] = [];
+  let applicationGatePluginIds: string[] = [];
   let generatedFileFresh = false;
   let services: InspectedService[] = [];
   if (model !== undefined) {
@@ -150,6 +151,9 @@ export async function verifyUIProject(
     errors.push(...serviceInspection.issues);
     pluginIds = registry.registeredPluginIds;
     headlessPluginIds = registry.headlessPluginIds;
+    applicationGatePluginIds = registry.assets
+      .filter((asset) => asset.applicationGate !== undefined)
+      .map((asset) => asset.pluginId);
 
     const generatedSource = await readOptional(
       path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
@@ -196,7 +200,7 @@ export async function verifyUIProject(
       : verifyInstances(
           model,
           new Set(pluginIds),
-          new Set(headlessPluginIds),
+          new Set([...headlessPluginIds, ...applicationGatePluginIds]),
         );
   errors.push(...instances.errors);
   warnings.push(...instances.warnings);
