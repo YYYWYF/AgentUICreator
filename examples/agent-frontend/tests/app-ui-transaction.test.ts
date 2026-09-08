@@ -26,6 +26,7 @@ async function createPlugin(
   pluginId: string,
   capability: "visual" | "headless",
   childSlots: readonly string[] = [],
+  renderedChildSlots: readonly string[] = childSlots,
 ): Promise<void> {
   const pluginRoot = path.join(projectRoot, "plugins", pluginId);
   await mkdir(pluginRoot, { recursive: true });
@@ -43,6 +44,18 @@ async function createPlugin(
   await writeFile(
     path.join(pluginRoot, "definition.ts"),
     "const definition = {};\nexport default definition;\n",
+  );
+  await writeFile(
+    path.join(pluginRoot, "index.tsx"),
+    [
+      "export function Plugin({ renderSlot }) {",
+      ...renderedChildSlots.map(
+        (slotId) => `  renderSlot(${JSON.stringify(slotId)});`,
+      ),
+      "  return null;",
+      "}",
+      "",
+    ].join("\n"),
   );
 }
 
@@ -203,6 +216,78 @@ describe("AppUIModel transaction", () => {
     expect(
       await readFile(path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH), "utf8"),
     ).toBe(registrySource);
+  });
+
+  it("rejects a selected Plugin with an inconsistent child Slot contract before writing", async () => {
+    const { projectRoot, appUIModelSource, registrySource } =
+      await createProject();
+    await createPlugin(
+      projectRoot,
+      "broken-container",
+      "visual",
+      ["broken.child"],
+      [],
+    );
+
+    await expect(
+      mutateAppUIModel(projectRoot, {
+        appUIModelHash: hash(appUIModelSource),
+        operations: [
+          {
+            type: "add_instance",
+            instance: {
+              id: "broken-main",
+              pluginId: "broken-container",
+              enabled: true,
+              mount: { slotId: "main" },
+            },
+          },
+        ],
+      }),
+    ).rejects.toMatchObject({
+      code: "PLUGIN_CHILD_SLOT_CONTRACT_INVALID",
+      details: {
+        issues: expect.arrayContaining([
+          expect.objectContaining({
+            code: "plugin-child-slot-declared-not-rendered",
+          }),
+        ]),
+      },
+    });
+    expect(
+      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
+    ).toBe(appUIModelSource);
+    expect(
+      await readFile(
+        path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
+        "utf8",
+      ),
+    ).toBe(registrySource);
+  });
+
+  it("does not let an unselected Plugin with a bad child Slot contract block a transaction", async () => {
+    const { projectRoot, appUIModelSource } = await createProject();
+    await createPlugin(
+      projectRoot,
+      "unused-broken-container",
+      "visual",
+      ["unused.child"],
+      [],
+    );
+
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(appUIModelSource),
+      operations: [
+        {
+          type: "update_instance_props",
+          instanceId: "sample-main",
+          set: { title: "After" },
+        },
+      ],
+    });
+
+    expect(result.changed).toBe(true);
+    expect(result.registry.selectedPluginIds).toEqual(["sample"]);
   });
 
   it("mounts a PluginInstance into a reachable Plugin child Slot", async () => {

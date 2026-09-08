@@ -26,6 +26,7 @@ import {
   GENERATED_PLUGIN_REGISTRY_PATH,
   generatePluginRegistry,
 } from "./registry-generator";
+import { verifyPluginChildSlots } from "./plugin-child-slot-verifier";
 import type { ProjectIssue } from "./types";
 
 const APP_UI_MODEL_PATH = "app-ui/app-ui.json";
@@ -531,6 +532,18 @@ async function runTransaction(
       "PLUGIN_REGISTRY_GENERATION_FAILED",
       "The transaction cannot resolve a complete static Plugin Registry.",
       { issues: registry.errors },
+    );
+  }
+  const selectedPluginIds = new Set(registry.selectedPluginIds);
+  const childSlotIssues = await verifyPluginChildSlots(
+    projectRoot,
+    registry.assets.filter((asset) => selectedPluginIds.has(asset.pluginId)),
+  );
+  if (childSlotIssues.length > 0) {
+    throw new AppUITransactionError(
+      "PLUGIN_CHILD_SLOT_CONTRACT_INVALID",
+      "Selected UI plugins contain inconsistent child Slot contracts.",
+      { issues: childSlotIssues },
     );
   }
   const warnings = validateMountSemantics(afterModel);

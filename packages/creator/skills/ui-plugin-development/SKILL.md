@@ -74,11 +74,14 @@ Reuse
 
 ## Contract boundaries
 
+### Child Slot contract
+
+When adding, removing, or renaming a child `renderSlot(...)` outlet in a container Plugin, update `manifest.json` `slots.children` in the same task. Child Slot ids must be static string literals; do not create dynamic `renderSlot(slotId)` outlets. Host verification treats the Plugin source and manifest child Slot sets as an exact contract.
+
 - Read Agent data through the domain hooks exported by `/runtime/context`: `useAgentConversation`, `useAgentMessages`, `useAgentState`, `useAgentRun`, `useAgentExecutions`, and `useAgentInterrupts`. Use `useAgentRuntimeSnapshot` only when the component genuinely needs the complete snapshot.
 - Read the current instance scope through `usePluginInstance`, `usePluginActions`, and `usePluginEvents`. Never recreate a combined context prop or pass Runtime snapshot fields through component props.
 - Before a Plugin consumes a backend Application Event, add its lowercase dot-separated name and strict payload schema to `/agent-contract/agent-events.ts`, then declare the same name in `manifest.data.events`. A manifest declaration consumes an application-owned contract; it does not register one.
 - Subscribe through `usePluginEvents().subscribe`. Never import AG-UI protocol event types into Plugin code, invent a schema inside a Plugin, emit an Application Event from the frontend, or use this channel for persistent state, standard lifecycle, Activity, or local Plugin communication.
-- Child Slots and Plugin-declared outlets are intentionally out of scope in this phase.
 - Use `usePluginActions()` for instance-scoped actions including `updateInstanceProps`; `useAgentRuntimeActions()` is available when only Agent commands are needed. Never create a separate Agent Runtime inside a Plugin.
 - Keep Plugin dependencies in the generated project and follow its current UI stack and versions.
 - Service contracts are stable project-owned capability seams, not concrete

@@ -7,6 +7,7 @@ import {
   type AppUIModel,
 } from "../framework/contracts/app-ui-model.ts";
 import { uiProjectControlConfig } from "./ui-project/project-config";
+import { verifyPluginChildSlots } from "./ui-project/plugin-child-slot-verifier";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
   generatePluginRegistry,
@@ -135,6 +136,7 @@ export async function verifyUIProject(
   if (model !== undefined) {
     const registry = await generatePluginRegistry(projectRoot, model, config);
     errors.push(...registry.errors);
+    errors.push(...(await verifyPluginChildSlots(projectRoot, registry.assets)));
     pluginIds = registry.registeredPluginIds;
     headlessPluginIds = registry.headlessPluginIds;
 

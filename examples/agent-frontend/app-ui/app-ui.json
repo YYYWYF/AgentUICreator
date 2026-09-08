@@ -216,14 +216,6 @@
       "props": {
         "placeholder": "给智能体发送消息，输入 / 唤出快捷指令"
       }
-    },
-    "agent-activity-feed-main": {
-      "id": "agent-activity-feed-main",
-      "pluginId": "antd-x-activity-feed",
-      "enabled": true,
-      "mount": {
-        "slotId": "inspector.activity"
-      }
     }
   }
 }

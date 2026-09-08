@@ -24,6 +24,8 @@ async function createProject(options: {
   instancePluginId: string;
   mounted: boolean;
   headless?: boolean;
+  childSlots?: readonly string[];
+  pluginSource?: string;
 }): Promise<string> {
   const projectRoot = await mkdtemp(path.join(tmpdir(), "verify-agent-ui-"));
   temporaryProjects.push(projectRoot);
@@ -39,12 +41,21 @@ async function createProject(options: {
       description: "Fixture",
       version: "1.0.0",
       capabilities: options.headless ? ["headless"] : ["visual"],
+      ...(options.childSlots === undefined
+        ? {}
+        : { slots: { children: options.childSlots } }),
     }),
   );
   await writeFile(
     path.join(projectRoot, "plugins", "sample", "definition.ts"),
     "const samplePlugin = {};\nexport default samplePlugin;\n",
   );
+  if (options.pluginSource !== undefined) {
+    await writeFile(
+      path.join(projectRoot, "plugins", "sample", "index.tsx"),
+      options.pluginSource,
+    );
+  }
   const model: AppUIModel = {
     version: "2",
     root: {
@@ -171,6 +182,74 @@ describe("verifyUIProject", () => {
         code: "mount-slot-unreachable",
         instanceId: "sample-main",
         slotId: "missing",
+      }),
+    );
+  });
+
+  it("accepts matching manifest and rendered child Slots", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+      childSlots: ["sample.child"],
+      pluginSource:
+        'export function Sample({ renderSlot }) {\n  return renderSlot("sample.child");\n}\n',
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("passed");
+  });
+
+  it("rejects child Slots declared by the manifest but not rendered", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+      childSlots: ["sample.child"],
+      pluginSource: "export function Sample() { return null; }\n",
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "plugin-child-slot-declared-not-rendered",
+      }),
+    );
+  });
+
+  it("rejects rendered child Slots missing from the manifest", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+      pluginSource:
+        'export function Sample(props) {\n  return props.renderSlot("sample.child");\n}\n',
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "plugin-child-slot-rendered-not-declared",
+      }),
+    );
+  });
+
+  it("rejects dynamic child Slot identifiers", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+      pluginSource:
+        "export function Sample({ renderSlot, slotId }) {\n  return renderSlot(slotId);\n}\n",
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "plugin-child-slot-dynamic-render-unsupported",
       }),
     );
   });
