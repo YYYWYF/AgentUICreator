@@ -25,6 +25,7 @@ class RuntimeDiagnostic(BaseModel):
     kind: Literal[
         "plugin-render",
         "plugin-activation",
+        "application-gate",
         "application-event-unknown",
         "application-event-invalid-payload",
         "plugin-event-undeclared-subscription",
@@ -50,6 +51,7 @@ class RuntimeDiagnostic(BaseModel):
         plugin_scoped = self.kind in {
             "plugin-render",
             "plugin-activation",
+            "application-gate",
             "plugin-event-undeclared-subscription",
             "plugin-event-handler-error",
         }
@@ -79,12 +81,28 @@ class RuntimeCompositionInstance(BaseModel):
     slotPath: str | None = Field(default=None, max_length=1_000)
 
 
+class RuntimeCompositionApplication(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    phase: Literal[
+        "bootstrapping",
+        "resolving-gates",
+        "blocked",
+        "ready",
+        "error",
+    ]
+    activeGateInstanceId: str | None = Field(
+        default=None, min_length=1, max_length=200
+    )
+
+
 class RuntimeComposition(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     schemaVersion: Literal[1]
     appUIModelHash: str = Field(pattern=r"^[a-f0-9]{64}$")
     observedAt: datetime
+    application: RuntimeCompositionApplication | None = None
     instances: list[RuntimeCompositionInstance] = Field(
         max_length=MAX_COMPOSITION_INSTANCES
     )
@@ -442,6 +460,12 @@ class RuntimeDiagnosticStore:
                 []
                 if latest_composition is None
                 else latest_composition.get("instances", [])
+            ),
+            **(
+                {}
+                if latest_composition is None
+                or latest_composition.get("application") is None
+                else {"application": latest_composition["application"]}
             ),
             **(
                 {}

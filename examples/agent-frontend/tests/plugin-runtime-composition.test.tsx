@@ -145,6 +145,7 @@ describe("plugin runtime composition", () => {
 
     expect(snapshots.at(-1)).toMatchObject({
       appUIModelHash,
+      application: { phase: "ready" },
       instances: [
         {
           instanceId: "child-main",

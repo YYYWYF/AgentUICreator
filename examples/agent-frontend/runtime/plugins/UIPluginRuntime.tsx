@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useState,
   useSyncExternalStore,
   type ReactNode,
@@ -196,6 +197,18 @@ function UIPluginRuntimeContent<TState = unknown>({
   const serviceRuntime = usePluginServiceRuntime();
   usePluginServiceRuntimeRevision();
   const application = useApplicationLifecycle();
+  useLayoutEffect(() => {
+    diagnostics?.updateApplicationLifecycle({
+      phase: application.phase,
+      ...(application.activeGateInstanceId === undefined
+        ? {}
+        : { activeGateInstanceId: application.activeGateInstanceId }),
+    });
+  }, [
+    application.activeGateInstanceId,
+    application.phase,
+    diagnostics,
+  ]);
   const [pluginFailures, setPluginFailures] = useState<
     Record<string, PluginRenderFailure>
   >({});

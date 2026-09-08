@@ -71,9 +71,19 @@ class RuntimeDiagnosticInspectionService:
             if isinstance(instance, dict)
             and isinstance(instance.get("instanceId"), str)
         }
+        application = result.get("application")
+        application_phase = (
+            application.get("phase") if isinstance(application, dict) else None
+        )
+        workspace_composition_required = application_phase in {None, "ready"}
         composition_checks: list[dict[str, Any]] = []
         plugin_instances = project.get("pluginInstances")
-        for instance in plugin_instances if isinstance(plugin_instances, list) else []:
+        instances_to_check = (
+            plugin_instances
+            if workspace_composition_required and isinstance(plugin_instances, list)
+            else []
+        )
+        for instance in instances_to_check:
             if not isinstance(instance, dict) or instance.get("enabled") is not True:
                 continue
             mount = instance.get("mount")
@@ -107,6 +117,7 @@ class RuntimeDiagnosticInspectionService:
         result["compositionChecks"] = composition_checks
         result["compositionVerified"] = (
             result.get("compositionFresh") is True
+            and application_phase != "error"
             and all(
                 check["status"] == "passed" for check in composition_checks
             )

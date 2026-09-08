@@ -108,12 +108,69 @@ def test_runtime_diagnostics_are_authenticated_and_accepted(tmp_path):
                 "schemaVersion": 1,
                 "appUIModelHash": "a" * 64,
                 "observedAt": "2026-09-04T00:00:00.000Z",
+                "application": {
+                    "phase": "blocked",
+                    "activeGateInstanceId": "auth-gate-main",
+                },
                 "instances": [],
             },
         },
     )
     assert accepted.status_code == 202
     assert accepted.json() == {"accepted": True}
+
+
+def test_runtime_diagnostics_accept_and_resolve_application_gate_errors(tmp_path):
+    settings = CreatorServerSettings(
+        project_root=tmp_path,
+        skills_root=tmp_path,
+        auth_token="x" * 32,
+    )
+    app = create_app(settings)
+    client = TestClient(
+        app, headers={"Authorization": f"Bearer {settings.auth_token}"}
+    )
+    diagnostic = {
+        "schemaVersion": 1,
+        "kind": "application-gate",
+        "status": "error",
+        "appUIModelHash": "a" * 64,
+        "occurredAt": "2026-09-08T00:00:00.000Z",
+        "pluginId": "auth-gate",
+        "instanceId": "auth-gate-main",
+        "errorMessage": "Session recovery failed",
+    }
+
+    failed = client.post(
+        "/runtime-diagnostics",
+        json={"threadId": "thread-1", "diagnostic": diagnostic},
+    )
+    failed_result = app.state.runtime_diagnostics.inspect(
+        thread_id="thread-1",
+        current_app_ui_model_hash="a" * 64,
+    )
+    resolved = client.post(
+        "/runtime-diagnostics",
+        json={
+            "threadId": "thread-1",
+            "diagnostic": {
+                **diagnostic,
+                "status": "resolved",
+                "occurredAt": "2026-09-08T00:01:00.000Z",
+                "errorMessage": None,
+            },
+        },
+    )
+
+    assert failed.status_code == 202
+    assert failed_result["currentErrors"][0]["kind"] == "application-gate"
+    assert resolved.status_code == 202
+    result = app.state.runtime_diagnostics.inspect(
+        thread_id="thread-1",
+        current_app_ui_model_hash="a" * 64,
+    )
+    assert result["currentErrors"] == []
+    assert result["resolvedCurrent"][0]["kind"] == "application-gate"
 
 
 def test_default_model_configuration_failure_is_explicit(tmp_path, monkeypatch):

@@ -15,6 +15,10 @@ import {
   UIPluginRuntime,
   usePluginService,
 } from "../runtime/plugins";
+import type {
+  PluginDiagnosticContextValue,
+  RuntimeDiagnosticEvent,
+} from "../runtime/diagnostics";
 
 const runtimeActions = {
   sendMessage: vi.fn(async () => undefined),
@@ -102,6 +106,63 @@ function gateModel(workspaceProps: Record<string, unknown> = {}) {
 }
 
 describe("Application Gate lifecycle", () => {
+  it("reports blocked and ready phases with their actual Workspace composition", async () => {
+    const gate = new TestGateService("blocked");
+    const registry = createPluginRegistry([
+      definition("auth-gate", {
+        gate: { service: "auth.gate" },
+        provides: ["auth.gate"],
+        setup: ({ services }) => services.provide("auth.gate", gate),
+      }),
+      definition("workspace", {
+        Component: () => createElement("div", null, "Workspace"),
+      }),
+    ]);
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "main-node", slotId: "main" },
+      pluginInstances: {
+        gate: { id: "gate", pluginId: "auth-gate", enabled: true },
+        workspace: {
+          id: "workspace",
+          pluginId: "workspace",
+          enabled: true,
+          mount: { slotId: "main" },
+        },
+      },
+    });
+    const snapshots: Array<{
+      application?: { phase: string };
+      instances: Array<{ instanceId: string }>;
+    }> = [];
+    let renderer: ReturnType<typeof create> | undefined;
+
+    await act(async () => {
+      renderer = create(createElement(UIPluginRuntime, {
+        model,
+        registry,
+        actions: runtimeActions,
+        appUIModelHash: "a".repeat(64),
+        onRuntimeComposition: (snapshot) => snapshots.push(snapshot),
+      }));
+      await Promise.resolve();
+    });
+    expect(snapshots.at(-1)).toMatchObject({
+      application: { phase: "blocked" },
+      instances: [],
+    });
+
+    await act(async () => {
+      gate.set("ready");
+      await Promise.resolve();
+    });
+    expect(snapshots.at(-1)).toMatchObject({
+      application: { phase: "ready" },
+      instances: [{ instanceId: "workspace" }],
+    });
+    act(() => renderer?.unmount());
+  });
+
   it("renders the Gate surface and Layout mutually exclusively", () => {
     const gate = new TestGateService("blocked");
     function GateComponent() {
@@ -299,6 +360,59 @@ describe("Application Gate lifecycle", () => {
 
     expect(runtime.applicationLifecycle.getSnapshot().phase).toBe("error");
     expect(runtime.getActivation("workspace")).toBeUndefined();
+  });
+
+  it("reports a persistent Gate failure once for each AppUIModel hash", () => {
+    const gate = new TestGateService("error");
+    const registry = createPluginRegistry([
+      definition("auth-gate", {
+        gate: { service: "auth.gate" },
+        provides: ["auth.gate"],
+        setup: ({ services }) => services.provide("auth.gate", gate),
+      }),
+      definition("workspace"),
+      definition("secure-storage", { headless: true }),
+      definition("telemetry", { headless: true }),
+    ]);
+    const events: Array<{ hash: string; event: RuntimeDiagnosticEvent }> = [];
+    const diagnosticsFor = (hash: string): PluginDiagnosticContextValue => ({
+      appUIModelHash: hash,
+      locationFor: () => undefined,
+      registerMountedInstance: () => () => undefined,
+      updateApplicationLifecycle: () => undefined,
+      report: (event) => events.push({ hash, event }),
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      gateModel({ workspaceRevision: 1 }),
+      registry,
+      runtimeActions,
+      diagnosticsFor("a".repeat(64)),
+    );
+    runtime.reconcile(
+      gateModel({ workspaceRevision: 2 }),
+      registry,
+      runtimeActions,
+      diagnosticsFor("b".repeat(64)),
+    );
+
+    expect(
+      events
+        .filter(({ event }) => event.status === "error")
+        .map(({ hash }) => hash),
+    ).toEqual(["a".repeat(64), "b".repeat(64)]);
+
+    gate.set("ready");
+    expect(events.at(-1)).toMatchObject({
+      hash: "b".repeat(64),
+      event: {
+        kind: "application-gate",
+        status: "resolved",
+        instanceId: "gate",
+        pluginId: "auth-gate",
+      },
+    });
   });
 
   it("fails closed when activation does not synchronously provide the Gate service", () => {

@@ -17,6 +17,7 @@ import {
   RUNTIME_COMPOSITION_SCHEMA_VERSION,
   RUNTIME_DIAGNOSTIC_SCHEMA_VERSION,
   type RuntimeCompositionInstance,
+  type RuntimeCompositionApplication,
   type RuntimeCompositionReporter,
   type RuntimeDiagnosticEvent,
   type RuntimeDiagnosticReporter,
@@ -27,6 +28,7 @@ export interface PluginDiagnosticContextValue {
   appUIModelHash: string;
   locationFor(instanceId: string): RuntimePluginLocation | undefined;
   registerMountedInstance(instance: RuntimeCompositionInstance): () => void;
+  updateApplicationLifecycle(application: RuntimeCompositionApplication): void;
   report(event: RuntimeDiagnosticEvent): void;
 }
 
@@ -93,6 +95,7 @@ export function PluginDiagnosticProvider({
   const snapshotScheduled = useRef(false);
   const currentHash = useRef(appUIModelHash);
   const currentCompositionReporter = useRef(onRuntimeComposition);
+  const currentApplication = useRef<RuntimeCompositionApplication>();
   const locations = useMemo(() => createPluginLocationIndex(model), [model]);
   const locationFor = useCallback(
     (instanceId: string) => locations.get(instanceId),
@@ -143,6 +146,9 @@ export function PluginDiagnosticProvider({
           schemaVersion: RUNTIME_COMPOSITION_SCHEMA_VERSION,
           appUIModelHash: currentHash.current,
           observedAt: new Date().toISOString(),
+          ...(currentApplication.current === undefined
+            ? {}
+            : { application: currentApplication.current }),
           instances,
         });
       } catch {
@@ -172,6 +178,20 @@ export function PluginDiagnosticProvider({
     },
     [scheduleCompositionSnapshot],
   );
+  const updateApplicationLifecycle = useCallback(
+    (application: RuntimeCompositionApplication) => {
+      const current = currentApplication.current;
+      if (
+        current?.phase === application.phase &&
+        current.activeGateInstanceId === application.activeGateInstanceId
+      ) {
+        return;
+      }
+      currentApplication.current = application;
+      scheduleCompositionSnapshot();
+    },
+    [scheduleCompositionSnapshot],
+  );
 
   useLayoutEffect(() => {
     currentHash.current = appUIModelHash;
@@ -183,8 +203,20 @@ export function PluginDiagnosticProvider({
   }, [appUIModelHash, onRuntimeComposition, scheduleCompositionSnapshot]);
 
   const value = useMemo<PluginDiagnosticContextValue>(
-    () => ({ appUIModelHash, locationFor, registerMountedInstance, report }),
-    [appUIModelHash, locationFor, registerMountedInstance, report],
+    () => ({
+      appUIModelHash,
+      locationFor,
+      registerMountedInstance,
+      updateApplicationLifecycle,
+      report,
+    }),
+    [
+      appUIModelHash,
+      locationFor,
+      registerMountedInstance,
+      report,
+      updateApplicationLifecycle,
+    ],
   );
 
   return (

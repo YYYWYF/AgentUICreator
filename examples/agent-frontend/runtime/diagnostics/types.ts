@@ -39,10 +39,21 @@ export interface RuntimeCompositionInstance {
   slotPath?: string | undefined;
 }
 
+export interface RuntimeCompositionApplication {
+  phase:
+    | "bootstrapping"
+    | "resolving-gates"
+    | "blocked"
+    | "ready"
+    | "error";
+  activeGateInstanceId?: string | undefined;
+}
+
 export interface RuntimeCompositionSnapshot {
   schemaVersion: typeof RUNTIME_COMPOSITION_SCHEMA_VERSION;
   appUIModelHash: string;
   observedAt: string;
+  application?: RuntimeCompositionApplication | undefined;
   instances: RuntimeCompositionInstance[];
 }
 

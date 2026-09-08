@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 
+import pytest
+
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.domain_state import DomainObservationContext
 from agent_ui_creator.project_control import ProjectControlMetrics
@@ -13,7 +15,13 @@ from agent_ui_creator.runtime_diagnostics import (
 )
 
 
-def composition(thread_id: str, app_hash: str):
+def composition(
+    thread_id: str,
+    app_hash: str,
+    *,
+    application_phase: str | None = None,
+    instances: list[dict[str, str]] | None = None,
+):
     return RuntimeDiagnosticEnvelope.model_validate(
         {
             "threadId": thread_id,
@@ -21,7 +29,22 @@ def composition(thread_id: str, app_hash: str):
                 "schemaVersion": 1,
                 "appUIModelHash": app_hash,
                 "observedAt": datetime.now(timezone.utc).isoformat(),
-                "instances": [],
+                **(
+                    {}
+                    if application_phase is None
+                    else {
+                        "application": {
+                            "phase": application_phase,
+                            **(
+                                {"activeGateInstanceId": "auth-gate-main"}
+                                if application_phase
+                                in {"resolving-gates", "blocked"}
+                                else {}
+                            ),
+                        }
+                    }
+                ),
+                "instances": instances or [],
             },
         }
     )
@@ -102,6 +125,52 @@ def test_runtime_diagnostic_store_accepts_application_event_diagnostics():
         "workspace.patch.applied"
     )
     assert "pluginId" not in store._scopes["thread-1"].diagnostics[0]
+
+
+def test_runtime_diagnostic_store_accepts_and_resolves_application_gate_errors():
+    store = RuntimeDiagnosticStore()
+    error = RuntimeDiagnosticEnvelope.model_validate(
+        {
+            "threadId": "thread-1",
+            "diagnostic": {
+                "schemaVersion": 1,
+                "kind": "application-gate",
+                "status": "error",
+                "appUIModelHash": "a" * 64,
+                "occurredAt": "2026-09-08T00:00:00.000Z",
+                "pluginId": "auth-gate",
+                "instanceId": "auth-gate-main",
+                "errorMessage": "Session recovery failed",
+            },
+        }
+    )
+    resolved = RuntimeDiagnosticEnvelope.model_validate(
+        {
+            "threadId": "thread-1",
+            "diagnostic": {
+                "schemaVersion": 1,
+                "kind": "application-gate",
+                "status": "resolved",
+                "appUIModelHash": "a" * 64,
+                "occurredAt": "2026-09-08T00:01:00.000Z",
+                "pluginId": "auth-gate",
+                "instanceId": "auth-gate-main",
+            },
+        }
+    )
+
+    assert store.record(error) == {"accepted": True, "resolvedCount": 0}
+    assert store.inspect(
+        thread_id="thread-1",
+        current_app_ui_model_hash="a" * 64,
+    )["currentErrors"][0]["kind"] == "application-gate"
+    assert store.record(resolved) == {"accepted": True, "resolvedCount": 1}
+    result = store.inspect(
+        thread_id="thread-1",
+        current_app_ui_model_hash="a" * 64,
+    )
+    assert result["currentErrors"] == []
+    assert result["resolvedCurrent"][0]["kind"] == "application-gate"
 
 
 def test_runtime_errors_filters_current_hash():
@@ -238,6 +307,91 @@ def test_composition_verification_stays_stale_after_fresh_unrelated_diagnostic(
     assert result["compositionFresh"] is False
     assert result["compositionVerified"] is False
     assert result["runtimeStatus"] == "stale"
+
+
+@pytest.mark.parametrize("application_phase", ["blocked", "resolving-gates"])
+def test_non_ready_application_does_not_require_workspace_composition(
+    tmp_path, application_phase
+):
+    app_hash = "a" * 64
+    store = RuntimeDiagnosticStore()
+    store.record(
+        composition("thread-1", app_hash, application_phase=application_phase)
+    )
+
+    class ProjectControl:
+        metrics = ProjectControlMetrics()
+
+        async def inspect_ui_project(self):
+            return {
+                "appUIModel": {"hash": app_hash},
+                "pluginInstances": [
+                    {
+                        "id": "workspace-main",
+                        "pluginId": "workspace",
+                        "enabled": True,
+                        "mount": {"slotId": "main"},
+                    }
+                ],
+            }
+
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("non-ready-application")
+    inspection = RuntimeDiagnosticInspectionService(
+        store=store,
+        thread_id="thread-1",
+        project_control=ProjectControl(),
+        observations=DomainObservationContext(),
+        activity=activity,
+    )
+
+    result = asyncio.run(inspection.inspect())
+
+    assert result["application"] == {
+        "phase": application_phase,
+        "activeGateInstanceId": "auth-gate-main",
+    }
+    assert result["compositionChecks"] == []
+    assert result["compositionVerified"] is True
+    assert result["runtimeStatus"] == "passed"
+
+
+def test_ready_application_still_requires_workspace_composition(tmp_path):
+    app_hash = "a" * 64
+    store = RuntimeDiagnosticStore()
+    store.record(composition("thread-1", app_hash, application_phase="ready"))
+
+    class ProjectControl:
+        metrics = ProjectControlMetrics()
+
+        async def inspect_ui_project(self):
+            return {
+                "appUIModel": {"hash": app_hash},
+                "pluginInstances": [
+                    {
+                        "id": "workspace-main",
+                        "pluginId": "workspace",
+                        "enabled": True,
+                        "mount": {"slotId": "main"},
+                    }
+                ],
+            }
+
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("ready-application")
+    inspection = RuntimeDiagnosticInspectionService(
+        store=store,
+        thread_id="thread-1",
+        project_control=ProjectControl(),
+        observations=DomainObservationContext(),
+        activity=activity,
+    )
+
+    result = asyncio.run(inspection.inspect())
+
+    assert result["compositionChecks"][0]["status"] == "missing"
+    assert result["compositionVerified"] is False
+    assert result["runtimeStatus"] == "failed"
 
 
 def test_fresh_composition_after_mutation_allows_runtime_pass(tmp_path):

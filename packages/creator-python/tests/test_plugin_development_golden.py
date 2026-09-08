@@ -43,6 +43,31 @@ TASK_PLUGIN_FILES = {
     ),
     "/plugins/task-status/styles.css": ".status { padding: 8px; }\n",
 }
+GATE_PLUGIN_FILES = {
+    "/plugins/auth-gate/manifest.json": (
+        '{"id":"auth-gate","name":"Authentication Gate","version":"1.0.0",'
+        '"description":"Blocks the Workspace until authentication is ready",'
+        '"application":{"gate":{"service":"auth.gate","priority":100}}}\n'
+    ),
+    "/plugins/auth-gate/definition.ts": (
+        'import { defineUIPlugin } from "../../framework/contracts/ui-plugin";\n'
+        'import manifest from "./manifest.json";\n'
+        'import { AuthGate, authGateService } from "./index";\n'
+        'export default defineUIPlugin({\n'
+        '  manifest,\n'
+        '  provides: ["auth.gate"],\n'
+        '  setup: ({ services }) => services.provide("auth.gate", authGateService),\n'
+        '  component: AuthGate,\n'
+        '});\n'
+    ),
+    "/plugins/auth-gate/index.tsx": (
+        'export const authGateService = {\n'
+        '  getSnapshot: () => ({ status: "blocked" as const }),\n'
+        '  subscribe: () => () => undefined,\n'
+        '};\n'
+        'export function AuthGate() { return <section>Please sign in</section>; }\n'
+    ),
+}
 SERVICE_NAME = "conversation.navigation"
 SERVICE_PATH = "services/conversation-navigation.ts"
 SERVICE_CONTENT = (
@@ -304,6 +329,43 @@ class ServiceProjectControl(PluginProjectControl):
         }
 
 
+class GateProjectControl(PluginProjectControl):
+    async def request_app_ui_model_mutation(self, input):
+        self.record("mutate_app_ui_model")
+        before_hash = self.hash()
+        model = self.model()
+        operation = input["operations"][0]
+        instance = copy.deepcopy(operation["instance"])
+        assert instance == {
+            "id": "auth-gate-main",
+            "pluginId": "auth-gate",
+            "enabled": True,
+        }
+        model["pluginInstances"][instance["id"]] = instance
+        (self.root / APP_UI_MODEL_PATH).write_text(
+            json.dumps(model, indent=2) + "\n", encoding="utf-8"
+        )
+        (self.root / REGISTRY_PATH).write_text(
+            'import authGate from "./auth-gate/definition";\n'
+            "export const pluginDefinitions = [authGate];\n",
+            encoding="utf-8",
+        )
+        after_hash = self.hash()
+        return {
+            "schemaVersion": 1,
+            "transactionId": "application-gate-golden",
+            "changed": True,
+            "changedPaths": [APP_UI_MODEL_PATH, REGISTRY_PATH],
+            "appUIModel": {"beforeHash": before_hash, "afterHash": after_hash},
+            "snapshotToken": {
+                "appUIModelHash": after_hash,
+                "registryHash": read_creator_file_state(
+                    self.root, REGISTRY_PATH
+                ).hash,
+            },
+        }
+
+
 def runtime_diagnostic(app_hash: str, status: str):
     return RuntimeDiagnosticEnvelope.model_validate(
         {
@@ -380,6 +442,42 @@ def mutation_message():
             ]
         },
         "compose",
+    )
+
+
+def gate_create_files_message():
+    return call(
+        "create_ui_plugin",
+        {
+            "pluginId": "auth-gate",
+            "files": [
+                {
+                    "relativePath": path.removeprefix("/plugins/auth-gate/"),
+                    "content": content,
+                }
+                for path, content in GATE_PLUGIN_FILES.items()
+            ],
+        },
+        "create-gate-source",
+    )
+
+
+def gate_mutation_message():
+    return call(
+        "mutate_app_ui_model",
+        {
+            "operations": [
+                {
+                    "type": "add_instance",
+                    "instance": {
+                        "id": "auth-gate-main",
+                        "pluginId": "auth-gate",
+                        "enabled": True,
+                    },
+                }
+            ]
+        },
+        "compose-gate",
     )
 
 
@@ -497,6 +595,51 @@ def make_service_project(tmp_path: Path) -> Path:
     return root
 
 
+def make_gate_agent(tmp_path, responses):
+    root = make_project(tmp_path)
+    diagnostics = RuntimeDiagnosticStore()
+    client = GateProjectControl(root, diagnostics)
+    validation = ValidationScript()
+
+    def publish_runtime(_call_count, command, result):
+        if (
+            command == "pnpm typecheck"
+            and result.exit_code == 0
+            and "auth-gate-main" in client.model()["pluginInstances"]
+        ):
+            diagnostics.record(
+                RuntimeDiagnosticEnvelope.model_validate(
+                    {
+                        "threadId": "golden-thread",
+                        "composition": {
+                            "schemaVersion": 1,
+                            "appUIModelHash": client.hash(),
+                            "observedAt": datetime.now(timezone.utc).isoformat(),
+                            "application": {
+                                "phase": "blocked",
+                                "activeGateInstanceId": "auth-gate-main",
+                            },
+                            "instances": [],
+                        },
+                    }
+                )
+            )
+
+    validation.after = publish_runtime
+    agent = create_domain_write_creator_agent(
+        model=ScriptModel(responses=responses),
+        workspace=root,
+        project_control=client,
+        skills_root=SKILLS_ROOT,
+        diagnostics=diagnostics,
+        thread_id="golden-thread",
+        validation_runner=validation,
+        automatic_completion_repair=True,
+    )
+    agent.activity.begin("application-gate-golden")
+    return agent, client
+
+
 def make_service_agent(
     root,
     client,
@@ -569,6 +712,37 @@ def test_full_plugin_creation_golden_scenario(tmp_path):
         "plugin-development-golden"
     ).validation_revision == agent.activity.revision
     assert result.text == "Task Status Plugin created and verified."
+
+
+def test_application_gate_creation_golden_keeps_layout_unchanged(tmp_path):
+    responses = [
+        *discovery_messages(),
+        gate_create_files_message(),
+        call("validate_creator_changes", {}, "validate-gate-source"),
+        composition_inspection_message(),
+        gate_mutation_message(),
+        call("validate_creator_changes", {}, "validate-gate-final"),
+        call("inspect_runtime_errors", {}, "runtime-gate-final"),
+        AIMessage(content="Authentication Gate created and verified."),
+    ]
+    agent, client = make_gate_agent(tmp_path, responses)
+    layout_before = copy.deepcopy(client.model()["layout"])
+
+    result = asyncio.run(agent.run("不登录不能进入应用。"))
+    receipt = agent.activity.finish()
+    model = client.model()
+
+    assert model["pluginInstances"]["auth-gate-main"] == {
+        "id": "auth-gate-main",
+        "pluginId": "auth-gate",
+        "enabled": True,
+    }
+    assert model["layout"] == layout_before
+    assert "mount" not in model["pluginInstances"]["auth-gate-main"]
+    assert agent.validation.current_result().status == "passed"
+    assert agent.runtime_inspection.current_result()["runtimeStatus"] == "passed"
+    assert receipt["verification"]["status"] == "changed-and-verified"
+    assert result.text == "Authentication Gate created and verified."
 
 
 def test_already_satisfied_semantic_noop_golden_scenario(tmp_path):

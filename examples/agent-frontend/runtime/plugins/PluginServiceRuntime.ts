@@ -136,7 +136,11 @@ export class PluginServiceRuntime {
   #currentState: ReconcileState | undefined;
   #workspaceReconciled = false;
   #gateSubscriptionCleanups: Array<() => void> = [];
-  #reportedGateFailures = new Set<string>();
+  #reportedGateFailures = new Map<
+    string,
+    { instanceId: string; pluginId: string }
+  >();
+  #reportedGateFailureHash: string | undefined;
   readonly #definitionIds = new WeakMap<object, number>();
   #definitionCounter = 0;
 
@@ -488,7 +492,10 @@ export class PluginServiceRuntime {
         definition.manifest.application?.gate !== undefined &&
         diagnostics != null
       ) {
-        this.#reportedGateFailures.add(instance.id);
+        this.#reportedGateFailures.set(
+          this.#gateFailureKey(diagnostics, instance.id),
+          { instanceId: instance.id, pluginId: definition.manifest.id },
+        );
       }
     }
   }
@@ -814,16 +821,20 @@ export class PluginServiceRuntime {
     diagnostics: PluginDiagnosticContextValue | null | undefined,
     gates: readonly ApplicationGateRuntimeEntry[] = [],
   ): void {
-    const key = failure.instanceId ?? failure.pluginId ?? "application";
-    if (!this.#reportedGateFailures.has(key)) {
-      diagnostics?.report({
-        kind: "application-gate",
-        status: "error",
-        ...(failure.instanceId === undefined ? {} : { instanceId: failure.instanceId }),
-        ...(failure.pluginId === undefined ? {} : { pluginId: failure.pluginId }),
-        errorMessage: failure.message,
-      });
-      this.#reportedGateFailures.add(key);
+    const instanceId = failure.instanceId;
+    const pluginId = failure.pluginId;
+    if (instanceId !== undefined && pluginId !== undefined) {
+      const key = this.#gateFailureKey(diagnostics, instanceId);
+      if (!this.#reportedGateFailures.has(key)) {
+        diagnostics?.report({
+          kind: "application-gate",
+          status: "error",
+          instanceId,
+          pluginId,
+          errorMessage: failure.message,
+        });
+        this.#reportedGateFailures.set(key, { instanceId, pluginId });
+      }
     }
     this.applicationLifecycle.update({ phase: "error", gates, failure });
   }
@@ -833,18 +844,37 @@ export class PluginServiceRuntime {
     diagnostics: PluginDiagnosticContextValue | null | undefined,
   ): void {
     const identities = new Map(gates.map((gate) => [gate.instanceId, gate]));
-    for (const key of [...this.#reportedGateFailures]) {
-      const gate = identities.get(key);
+    const prefix = `${this.#synchronizeGateFailureHash(diagnostics)}:`;
+    for (const [key, failure] of [...this.#reportedGateFailures]) {
+      if (!key.startsWith(prefix)) continue;
+      const identity = key.slice(prefix.length);
+      const gate = identities.get(identity);
       diagnostics?.report({
         kind: "application-gate",
         status: "resolved",
-        ...(gate === undefined ? {} : {
-          instanceId: gate.instanceId,
-          pluginId: gate.pluginId,
-        }),
+        instanceId: gate?.instanceId ?? failure.instanceId,
+        pluginId: gate?.pluginId ?? failure.pluginId,
       });
       this.#reportedGateFailures.delete(key);
     }
+  }
+
+  #gateFailureKey(
+    diagnostics: PluginDiagnosticContextValue | null | undefined,
+    identity: string,
+  ): string {
+    return `${this.#synchronizeGateFailureHash(diagnostics)}:${identity}`;
+  }
+
+  #synchronizeGateFailureHash(
+    diagnostics: PluginDiagnosticContextValue | null | undefined,
+  ): string {
+    const appUIModelHash = diagnostics?.appUIModelHash ?? "unknown";
+    if (this.#reportedGateFailureHash !== appUIModelHash) {
+      this.#reportedGateFailures.clear();
+      this.#reportedGateFailureHash = appUIModelHash;
+    }
+    return appUIModelHash;
   }
 
   #runCleanups(record: ActivePluginRecord): void {
