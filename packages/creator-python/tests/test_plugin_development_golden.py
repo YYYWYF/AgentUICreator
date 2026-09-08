@@ -673,6 +673,48 @@ def test_explicit_service_ownership_does_not_repeat_confirmation(tmp_path):
     assert "尚未开放" in result.text
 
 
+def test_generic_edit_cannot_bypass_service_ownership_gate(tmp_path):
+    services = tmp_path / "services"
+    services.mkdir()
+    target = services / "conversations.ts"
+    original = 'export const CONVERSATIONS_SERVICE = "agent-ui.conversations";\n'
+    target.write_text(original, encoding="utf-8")
+    responses = [
+        call("inspect_ui_services", {}, "inspect-services"),
+        call(
+            "read_file",
+            {"file_path": "/services/conversations.ts"},
+            "read-service",
+        ),
+        call(
+            "edit_file",
+            {
+                "file_path": "/services/conversations.ts",
+                "old_string": original,
+                "new_string": original + "export interface ConversationNavigationService {}\n",
+            },
+            "edit-service",
+        ),
+        AIMessage(content="当前尚未开放 Service contract mutation capability。"),
+    ]
+    agent, client, _diagnostics, validation = make_agent(tmp_path, responses)
+    client.service_topology = {"services": [], "plugins": [], "issues": []}
+
+    result = asyncio.run(
+        agent.run("给 conversation-history 增加一个新的导航 Service。")
+    )
+
+    names = [item.name for item in agent.runtime.activities]
+    assert names == ["inspect_ui_services", "read_file", "edit_file"]
+    edit_result = next(
+        item.result for item in agent.runtime.activities if item.name == "edit_file"
+    )
+    assert "TOOL_PERMISSION_DENIED" in edit_result
+    assert target.read_text(encoding="utf-8") == original
+    assert validation.calls == []
+    assert "尚未开放" in result.text
+
+
 def test_existing_plugin_single_file_change_still_uses_edit_file(tmp_path):
     responses = [
         call(

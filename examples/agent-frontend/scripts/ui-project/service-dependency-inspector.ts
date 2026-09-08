@@ -27,6 +27,18 @@ interface AnalyzedDeclarations {
   seamPaths: Map<string, Set<string>>;
 }
 
+interface ServiceActivationCandidate {
+  instanceId: string;
+  pluginId: string;
+  provides: readonly string[];
+  inject: readonly string[];
+}
+
+interface HardServiceActivationResolution {
+  resolvedInstanceIds: ReadonlySet<string>;
+  missingRequiredServicesByInstance: ReadonlyMap<string, readonly string[]>;
+}
+
 function projectPath(projectRoot: string, filePath: string): string {
   return path.relative(projectRoot, filePath).split(path.sep).join("/");
 }
@@ -231,23 +243,73 @@ export function analyzePluginServiceDeclarations(
   return { plugins, issues, seamPaths };
 }
 
+function isActiveCandidate(
+  instance: AppUIModel["pluginInstances"][string],
+  asset: PluginAsset,
+): boolean {
+  return (
+    instance.enabled &&
+    (instance.mount !== undefined || asset.capabilities.includes("headless"))
+  );
+}
+
+export function resolveHardServiceActivation(
+  candidates: readonly ServiceActivationCandidate[],
+): HardServiceActivationResolution {
+  const resolvedInstanceIds = new Set<string>();
+  const availableServices = new Set<string>();
+  let progressed = true;
+
+  while (progressed) {
+    progressed = false;
+    for (const candidate of candidates) {
+      if (
+        resolvedInstanceIds.has(candidate.instanceId) ||
+        !candidate.inject.every((service) => availableServices.has(service))
+      ) {
+        continue;
+      }
+      resolvedInstanceIds.add(candidate.instanceId);
+      candidate.provides.forEach((service) => availableServices.add(service));
+      progressed = true;
+    }
+  }
+
+  const missingRequiredServicesByInstance = new Map<string, readonly string[]>();
+  for (const candidate of candidates) {
+    if (resolvedInstanceIds.has(candidate.instanceId)) continue;
+    missingRequiredServicesByInstance.set(
+      candidate.instanceId,
+      candidate.inject.filter((service) => !availableServices.has(service)),
+    );
+  }
+  return { resolvedInstanceIds, missingRequiredServicesByInstance };
+}
+
 function pluginState(
-  pluginId: string,
+  declaration: PluginServiceDeclaration,
   model: AppUIModel,
   asset: PluginAsset,
+  resolution: HardServiceActivationResolution,
 ): InspectedServicePlugin {
   const instances = Object.values(model.pluginInstances)
-    .filter((instance) => instance.pluginId === pluginId)
+    .filter((instance) => instance.pluginId === declaration.pluginId)
     .sort((left, right) => left.id.localeCompare(right.id))
-    .map((instance) => ({
-      instanceId: instance.id,
-      enabled: instance.enabled,
-      activeCandidate:
-        instance.enabled &&
-        (instance.mount !== undefined || asset.capabilities.includes("headless")),
-    }));
+    .map((instance) => {
+      const activeCandidate = isActiveCandidate(instance, asset);
+      return {
+        instanceId: instance.id,
+        enabled: instance.enabled,
+        activeCandidate,
+        resolved:
+          activeCandidate && resolution.resolvedInstanceIds.has(instance.id),
+        missingRequiredServices: activeCandidate
+          ? [...(resolution.missingRequiredServicesByInstance.get(instance.id) ?? [])]
+          : [],
+      };
+    });
   return {
-    pluginId,
+    pluginId: declaration.pluginId,
     selected: instances.length > 0,
     instances,
   };
@@ -266,6 +328,23 @@ export function inspectUIServiceDependencies(
   const assetsByPluginId = new Map(
     assets.map((asset) => [asset.pluginId, asset]),
   );
+  const activationCandidates = declarations.plugins.flatMap((declaration) => {
+    const asset = assetsByPluginId.get(declaration.pluginId);
+    if (asset === undefined) return [];
+    return Object.values(model.pluginInstances)
+      .filter(
+        (instance) =>
+          instance.pluginId === declaration.pluginId &&
+          isActiveCandidate(instance, asset),
+      )
+      .map((instance) => ({
+        instanceId: instance.id,
+        pluginId: declaration.pluginId,
+        provides: declaration.provides,
+        inject: declaration.inject,
+      }));
+  });
+  const activation = resolveHardServiceActivation(activationCandidates);
   const serviceNames = new Set<string>();
   for (const plugin of declarations.plugins) {
     plugin.provides.forEach((name) => serviceNames.add(name));
@@ -282,7 +361,7 @@ export function inspectUIServiceDependencies(
         const asset = assetsByPluginId.get(plugin.pluginId);
         return asset === undefined
           ? []
-          : [pluginState(plugin.pluginId, model, asset)];
+          : [pluginState(plugin, model, asset, activation)];
       });
     const providers = participants("provides");
     const requiredConsumers = participants("inject");
@@ -292,17 +371,44 @@ export function inspectUIServiceDependencies(
         .filter((instance) => instance.activeCandidate)
         .map((instance) => instance.instanceId),
     );
+    const resolvedProviderInstances = providers.flatMap((provider) =>
+      provider.instances
+        .filter((instance) => instance.resolved)
+        .map((instance) => instance.instanceId),
+    );
     const hasActiveRequiredConsumer = requiredConsumers.some(hasActiveCandidate);
     const hasActiveOptionalConsumer = optionalConsumers.some(hasActiveCandidate);
     let status: UIServiceDependencyInspection["services"][number]["status"] =
-      activeProviderInstances.length === 1 ? "available" : "inactive";
-    if (activeProviderInstances.length > 1) {
+      resolvedProviderInstances.length === 1 ? "available" : "inactive";
+    if (resolvedProviderInstances.length > 1) {
       status = "provider-collision";
       issues.push({
         code: "service-provider-collision",
-        message: `Service "${name}" has multiple active Provider candidates: ${activeProviderInstances.join(", ")}.`,
+        message: `Service "${name}" has multiple resolved Provider candidates: ${resolvedProviderInstances.join(", ")}.`,
+        service: name,
+        providerInstances: resolvedProviderInstances,
+      });
+    } else if (
+      resolvedProviderInstances.length === 0 &&
+      activeProviderInstances.length > 0
+    ) {
+      status = "dependency-blocked";
+      const missingRequiredServices = providers.flatMap((provider) =>
+        provider.instances
+          .filter(
+            (instance) => instance.activeCandidate && !instance.resolved,
+          )
+          .flatMap((instance) => instance.missingRequiredServices),
+      );
+      const uniqueMissingRequiredServices = [
+        ...new Set(missingRequiredServices),
+      ].sort();
+      issues.push({
+        code: "service-provider-dependency-blocked",
+        message: `Service "${name}" has active Provider candidates blocked by required Services: ${uniqueMissingRequiredServices.join(", ")}.`,
         service: name,
         providerInstances: activeProviderInstances,
+        missingRequiredServices: uniqueMissingRequiredServices,
       });
     } else if (activeProviderInstances.length === 0 && hasActiveRequiredConsumer) {
       status = "required-missing";

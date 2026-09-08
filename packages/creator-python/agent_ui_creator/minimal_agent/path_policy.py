@@ -38,10 +38,15 @@ class PathPolicyViolation(ValueError):
 @dataclass(frozen=True, slots=True)
 class MinimalAgentPathPolicy:
     mode: Literal["development", "conformance"] = "development"
+    generic_service_writes: bool = False
 
     @classmethod
     def development(cls) -> "MinimalAgentPathPolicy":
         return cls(mode="development")
+
+    @classmethod
+    def internal_source(cls) -> "MinimalAgentPathPolicy":
+        return cls(mode="development", generic_service_writes=True)
 
     @classmethod
     def conformance(cls) -> "MinimalAgentPathPolicy":
@@ -74,15 +79,24 @@ class MinimalAgentPathPolicy:
     def assert_write(self, path: str) -> str:
         normalized = self.assert_read(path)
         if self.mode == "development":
+            if normalized.startswith("/services/") and not self.generic_service_writes:
+                raise PathPolicyViolation(
+                    "TOOL_PERMISSION_DENIED: Service contracts under /services/** "
+                    "are read-only to generic filesystem tools. Use the dedicated "
+                    "Service contract domain capability when available."
+                )
             writable = (
                 normalized.startswith("/plugins/")
-                or normalized.startswith("/services/")
+                or (
+                    self.generic_service_writes
+                    and normalized.startswith("/services/")
+                )
                 or normalized == "/agent-contract/agent-tools.ts"
             )
             if not writable:
                 raise PathPolicyViolation(
                     "TOOL_PERMISSION_DENIED: writes are limited to /plugins/**, "
-                    "/services/**, and /agent-contract/agent-tools.ts, "
+                    "/agent-contract/agent-tools.ts, and Host-owned domain capabilities, "
                     f"not {normalized}."
                 )
             if normalized == "/plugins/registry.generated.ts":

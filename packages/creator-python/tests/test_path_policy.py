@@ -14,9 +14,6 @@ def test_development_path_policy_allows_frontend_capability_contract_edits(tmp_p
     (plugins / "registry.generated.ts").write_text("generated\n", encoding="utf-8")
     (tmp_path / "app-ui").mkdir()
     (tmp_path / "app-ui" / "app-ui.json").write_text("{}\n", encoding="utf-8")
-    services = tmp_path / "services"
-    services.mkdir()
-    (services / "editor.ts").write_text("old\n", encoding="utf-8")
     agent_contract = tmp_path / "agent-contract"
     agent_contract.mkdir()
     (agent_contract / "agent-tools.ts").write_text("old\n", encoding="utf-8")
@@ -26,7 +23,6 @@ def test_development_path_policy_allows_frontend_capability_contract_edits(tmp_p
     assert backend.edit(
         "/plugins/foo.ts", '"old"', '"new"'
     ).error is None
-    assert backend.edit("/services/editor.ts", "old", "new").error is None
     assert backend.edit(
         "/agent-contract/agent-tools.ts", "old", "new"
     ).error is None
@@ -36,6 +32,47 @@ def test_development_path_policy_allows_frontend_capability_contract_edits(tmp_p
     assert "TOOL_PERMISSION_DENIED" in backend.edit(
         "/app-ui/app-ui.json", "{}", '{"changed":true}'
     ).error
+
+
+def test_domain_edit_file_cannot_modify_service_contract(tmp_path):
+    services = tmp_path / "services"
+    services.mkdir()
+    target = services / "test-service.ts"
+    target.write_text("before\n", encoding="utf-8")
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+
+    assert backend.read("/services/test-service.ts").error is None
+    result = backend.edit("/services/test-service.ts", "before", "after")
+
+    assert "TOOL_PERMISSION_DENIED" in result.error
+    assert "read-only to generic filesystem tools" in result.error
+    assert target.read_text(encoding="utf-8") == "before\n"
+
+
+def test_domain_edit_file_can_still_modify_plugin_source(tmp_path):
+    target = tmp_path / "plugins" / "example" / "index.tsx"
+    target.parent.mkdir(parents=True)
+    target.write_text("before\n", encoding="utf-8")
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+
+    assert backend.read("/plugins/example/index.tsx").error is None
+    assert backend.edit(
+        "/plugins/example/index.tsx", "before", "after"
+    ).error is None
+    assert target.read_text(encoding="utf-8") == "after\n"
+
+
+def test_internal_source_policy_can_modify_service_contract(tmp_path):
+    target = tmp_path / "services" / "test-service.ts"
+    target.parent.mkdir()
+    target.write_text("before\n", encoding="utf-8")
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.internal_source())
+
+    assert backend.read("/services/test-service.ts").error is None
+    assert backend.edit(
+        "/services/test-service.ts", "before", "after"
+    ).error is None
+    assert target.read_text(encoding="utf-8") == "after\n"
 
 
 def test_path_policy_rejects_escape_and_sensitive_paths(tmp_path):

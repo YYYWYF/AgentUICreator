@@ -65,6 +65,69 @@ async function createServiceProject() {
   return { projectRoot, assets: inventory.assets };
 }
 
+interface GraphPluginDefinition {
+  pluginId: string;
+  provides?: readonly string[];
+  inject?: readonly string[];
+  optionalInject?: readonly string[];
+}
+
+async function createDependencyGraphProject(
+  definitions: readonly GraphPluginDefinition[],
+) {
+  const projectRoot = await mkdtemp(path.join(tmpdir(), "ui-service-graph-"));
+  temporaryProjects.push(projectRoot);
+  await writeFile(
+    path.join(projectRoot, "tsconfig.json"),
+    JSON.stringify({
+      compilerOptions: {
+        module: "ESNext",
+        moduleResolution: "Bundler",
+        target: "ES2022",
+      },
+      include: ["plugins/**/*.ts"],
+    }),
+  );
+  const pluginInstances: AppUIModel["pluginInstances"] = {};
+  for (const definition of definitions) {
+    const pluginRoot = path.join(projectRoot, "plugins", definition.pluginId);
+    await mkdir(pluginRoot, { recursive: true });
+    await writeFile(
+      path.join(pluginRoot, "manifest.json"),
+      JSON.stringify({
+        id: definition.pluginId,
+        name: definition.pluginId,
+        description: `${definition.pluginId} fixture`,
+        version: "1.0.0",
+        capabilities: ["headless"],
+      }),
+    );
+    const property = (name: keyof GraphPluginDefinition): string => {
+      const values = definition[name];
+      return Array.isArray(values)
+        ? `${name}: ${JSON.stringify(values)}, `
+        : "";
+    };
+    await writeFile(
+      path.join(pluginRoot, "definition.ts"),
+      "const Component = () => null;\n" +
+        `export default { manifest: {}, ${property("provides")}${property("inject")}${property("optionalInject")}Component };\n`,
+    );
+    pluginInstances[definition.pluginId] = {
+      id: definition.pluginId,
+      pluginId: definition.pluginId,
+      enabled: true,
+    };
+  }
+  const inventory = await collectPluginAssets(projectRoot, config);
+  const graphModel: AppUIModel = {
+    version: "2",
+    root: { type: "slot", id: "root", slotId: "root" },
+    pluginInstances,
+  };
+  return { projectRoot, assets: inventory.assets, graphModel };
+}
+
 function model(providerEnabled = true): AppUIModel {
   return {
     version: "2",
@@ -165,6 +228,122 @@ describe("service dependency inspector", () => {
     expect(collision.services[0]?.status).toBe("provider-collision");
     expect(collision.issues).toContainEqual(
       expect.objectContaining({ code: "service-provider-collision" }),
+    );
+  });
+
+  it("does not report a hard Service cycle as available", async () => {
+    const { projectRoot, assets, graphModel } =
+      await createDependencyGraphProject([
+        { pluginId: "a", provides: ["x"], inject: ["y"] },
+        { pluginId: "b", provides: ["y"], inject: ["x"] },
+      ]);
+
+    const inspection = inspectUIServiceDependencies(
+      projectRoot,
+      graphModel,
+      assets,
+    );
+
+    expect(inspection.services).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "x", status: "dependency-blocked" }),
+        expect.objectContaining({ name: "y", status: "dependency-blocked" }),
+      ]),
+    );
+    expect(inspection.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "service-provider-dependency-blocked",
+          service: "x",
+          missingRequiredServices: ["y"],
+        }),
+        expect.objectContaining({
+          code: "service-provider-dependency-blocked",
+          service: "y",
+          missingRequiredServices: ["x"],
+        }),
+      ]),
+    );
+  });
+
+  it("resolves a normal hard Service dependency chain", async () => {
+    const { projectRoot, assets, graphModel } =
+      await createDependencyGraphProject([
+        { pluginId: "a", provides: ["x"] },
+        { pluginId: "b", provides: ["y"], inject: ["x"] },
+        { pluginId: "c", inject: ["y"] },
+      ]);
+
+    const inspection = inspectUIServiceDependencies(
+      projectRoot,
+      graphModel,
+      assets,
+    );
+
+    expect(inspection.services).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "x", status: "available" }),
+        expect.objectContaining({ name: "y", status: "available" }),
+      ]),
+    );
+  });
+
+  it("keeps optionalInject outside the hard dependency graph", async () => {
+    const { projectRoot, assets, graphModel } =
+      await createDependencyGraphProject([
+        { pluginId: "a", provides: ["x"], optionalInject: ["y"] },
+        { pluginId: "b", provides: ["y"], inject: ["x"] },
+      ]);
+
+    const inspection = inspectUIServiceDependencies(
+      projectRoot,
+      graphModel,
+      assets,
+    );
+
+    expect(inspection.services).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "x", status: "available" }),
+        expect.objectContaining({ name: "y", status: "available" }),
+      ]),
+    );
+  });
+
+  it("reports an active Provider blocked by a missing hard dependency", async () => {
+    const { projectRoot, assets, graphModel } =
+      await createDependencyGraphProject([
+        { pluginId: "a", provides: ["x"], inject: ["missing.service"] },
+      ]);
+
+    const inspection = inspectUIServiceDependencies(
+      projectRoot,
+      graphModel,
+      assets,
+    );
+    const service = inspection.services.find(({ name }) => name === "x");
+
+    expect(service).toEqual(
+      expect.objectContaining({
+        status: "dependency-blocked",
+        providers: [
+          expect.objectContaining({
+            instances: [
+              expect.objectContaining({
+                resolved: false,
+                missingRequiredServices: ["missing.service"],
+              }),
+            ],
+          }),
+        ],
+      }),
+    );
+    expect(inspection.issues).toContainEqual(
+      expect.objectContaining({
+        code: "service-provider-dependency-blocked",
+        service: "x",
+        providerInstances: ["a"],
+        missingRequiredServices: ["missing.service"],
+      }),
     );
   });
 });

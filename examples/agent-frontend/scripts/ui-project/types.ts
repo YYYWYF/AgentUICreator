@@ -11,6 +11,7 @@ export interface ProjectIssue {
   property?: "provides" | "inject" | "optionalInject" | undefined;
   service?: string | undefined;
   providerInstances?: string[] | undefined;
+  missingRequiredServices?: string[] | undefined;
 }
 
 export interface PluginServiceDeclaration {
@@ -24,6 +25,8 @@ export interface InspectedServiceInstance {
   instanceId: string;
   enabled: boolean;
   activeCandidate: boolean;
+  resolved: boolean;
+  missingRequiredServices: string[];
 }
 
 export interface InspectedServicePlugin {
@@ -39,7 +42,8 @@ export interface InspectedService {
     | "inactive"
     | "required-missing"
     | "optional-unavailable"
-    | "provider-collision";
+    | "provider-collision"
+    | "dependency-blocked";
   providers: InspectedServicePlugin[];
   requiredConsumers: InspectedServicePlugin[];
   optionalConsumers: InspectedServicePlugin[];

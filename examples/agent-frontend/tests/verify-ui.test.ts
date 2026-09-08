@@ -26,6 +26,7 @@ async function createProject(options: {
   headless?: boolean;
   childSlots?: readonly string[];
   pluginSource?: string;
+  definitionSource?: string;
 }): Promise<string> {
   const projectRoot = await mkdtemp(path.join(tmpdir(), "verify-agent-ui-"));
   temporaryProjects.push(projectRoot);
@@ -59,7 +60,8 @@ async function createProject(options: {
   );
   await writeFile(
     path.join(projectRoot, "plugins", "sample", "definition.ts"),
-    "const Component = () => null;\nconst samplePlugin = { manifest: {}, Component };\nexport default samplePlugin;\n",
+    options.definitionSource ??
+      "const Component = () => null;\nconst samplePlugin = { manifest: {}, Component };\nexport default samplePlugin;\n",
   );
   if (options.pluginSource !== undefined) {
     await writeFile(
@@ -138,6 +140,28 @@ describe("verifyUIProject", () => {
     expect(result.status).toBe("passed");
     expect(result.registry.headlessPluginIds).toEqual(["sample"]);
     expect(result.registry.generatedFileFresh).toBe(true);
+  });
+
+  it("fails when an active Service Provider is dependency-blocked", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: false,
+      headless: true,
+      definitionSource:
+        "const Component = () => null;\n" +
+        'const samplePlugin = { manifest: {}, provides: ["x"], inject: ["missing.service"], Component };\n' +
+        "export default samplePlugin;\n",
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "service-provider-dependency-blocked",
+        service: "x",
+      }),
+    );
   });
 
   it("rejects PluginInstances whose plugin asset does not exist", async () => {
