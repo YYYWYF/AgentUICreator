@@ -23,13 +23,29 @@ const config: UIProjectControlConfig = {
 };
 const temporaryProjects: string[] = [];
 
-async function createProject(): Promise<string> {
+async function writeInstalledPackage(
+  projectRoot: string,
+  packageName: string,
+  version: string,
+): Promise<void> {
+  const packageRoot = path.join(projectRoot, "node_modules", ...packageName.split("/"));
+  await mkdir(packageRoot, { recursive: true });
+  await writeFile(path.join(packageRoot, "package.json"), JSON.stringify({ name: packageName, version }));
+}
+
+async function createProject(
+  options: { declared?: string; installed?: string | null } = {},
+): Promise<string> {
   const projectRoot = await mkdtemp(path.join(tmpdir(), "agent-ui-source-project-"));
   temporaryProjects.push(projectRoot);
+  const declared = options.declared ?? "^1.8.0";
   await writeFile(
     path.join(projectRoot, "package.json"),
-    JSON.stringify({ dependencies: { "@base-ui/react": "1.8.0" } }),
+    JSON.stringify({ dependencies: { "@base-ui/react": declared } }),
   );
+  if (options.installed !== null) {
+    await writeInstalledPackage(projectRoot, "@base-ui/react", options.installed ?? "1.8.4");
+  }
   return projectRoot;
 }
 
@@ -54,6 +70,44 @@ function fixtureRegistry(
     })),
   };
   return { root: "/registry", items: [item], byId: new Map([[item.id, item]]) };
+}
+
+function dependencyFixtureRegistry(version: string): LoadedAgentUISourceRegistry {
+  const createItem = (
+    id: string,
+    target: string,
+    content: string,
+    requires?: string[],
+  ): LoadedAgentUISourceItem => ({
+    schemaVersion: 1,
+    id,
+    version,
+    kind: id.startsWith("foundation/") ? "foundation" : "primitive",
+    description: `${id} fixture`,
+    ...(requires === undefined ? {} : { requires }),
+    files: [{ source: `files/${target}`, target }],
+    itemRoot: `/registry/items/${id.replace("/", "-")}`,
+    manifestPath: `/registry/items/${id.replace("/", "-")}/item.json`,
+    loadedFiles: [{
+      source: `files/${target}`,
+      target,
+      absolutePath: `/registry/items/${id.replace("/", "-")}/files/${target}`,
+      content: Buffer.from(content),
+    }],
+  });
+  const foundation = createItem(
+    "foundation/core",
+    "foundation/core.ts",
+    `export const foundationVersion = "${version}";\n`,
+  );
+  const dialog = createItem(
+    "primitive/dialog",
+    "primitives/dialog.ts",
+    `export const dialogVersion = "${version}";\n`,
+    ["foundation/core"],
+  );
+  const items = [foundation, dialog];
+  return { root: "/registry", items, byId: new Map(items.map((item) => [item.id, item])) };
 }
 
 afterEach(async () => {
@@ -143,23 +197,165 @@ describe("Agent UI source ownership", () => {
     ).rejects.toMatchObject({ code: "AGENT_UI_SOURCE_PARTIAL" });
   });
 
-  it("reports missing and incompatible package requirements without installing them", async () => {
-    const missingRoot = await mkdtemp(path.join(tmpdir(), "agent-ui-source-package-"));
-    temporaryProjects.push(missingRoot);
-    await writeFile(path.join(missingRoot, "package.json"), JSON.stringify({ dependencies: {} }));
+  it.each([
+    ["^1.8.0", "1.8.4"],
+    ["~1.8.0", "1.8.2"],
+    [">=1.8.0 <2", "1.9.0"],
+  ])("uses the installed package version for compatibility with declared range %s", async (declared, installed) => {
+    const projectRoot = await createProject({ declared, installed });
+    const inspection = await inspectAgentUISources(projectRoot, config);
+    expect(
+      inspection.items.find((item) => item.id === "primitive/dialog")?.requirements,
+    ).toContainEqual({
+      name: "@base-ui/react",
+      required: ">=1.8.0 <2",
+      declared,
+      installed,
+      compatible: true,
+    });
+  });
+
+  it("scopes package health to installed items and blocks apply on missing packages", async () => {
+    const missingRoot = await createProject({ installed: null });
     const missing = await inspectAgentUISources(missingRoot, config);
-    expect(missing.issues).toContainEqual(
+    expect(missing.issues).not.toContainEqual(
+      expect.objectContaining({ code: "AGENT_UI_PACKAGE_MISSING" }),
+    );
+    expect(
+      missing.items.find((item) => item.id === "primitive/dialog")?.requirements,
+    ).toContainEqual(expect.objectContaining({
+      name: "@base-ui/react",
+      declared: "^1.8.0",
+      compatible: false,
+    }));
+    await expect(
+      applyAgentUISourceItem(
+        missingRoot,
+        { itemId: "primitive/dialog", expectedStateHash: missing.stateHash },
+        config,
+      ),
+    ).rejects.toMatchObject({ code: "AGENT_UI_PACKAGE_MISSING" });
+    await expect(
+      readFile(path.join(missingRoot, ".agent-ui/source-transaction.json")),
+    ).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(
+      readFile(path.join(missingRoot, ".agent-ui/source-lock.json")),
+    ).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(
+      readFile(path.join(missingRoot, "agent-ui/primitives/dialog.tsx")),
+    ).rejects.toMatchObject({ code: "ENOENT" });
+
+    const installedRoot = await createProject();
+    const beforeInstall = await inspectAgentUISources(installedRoot, config);
+    await applyAgentUISourceItem(
+      installedRoot,
+      { itemId: "primitive/dialog", expectedStateHash: beforeInstall.stateHash },
+      config,
+    );
+    await rm(path.join(installedRoot, "node_modules/@base-ui/react"), { recursive: true });
+    const unhealthy = await inspectAgentUISources(installedRoot, config);
+    expect(unhealthy.issues).toContainEqual(
       expect.objectContaining({ code: "AGENT_UI_PACKAGE_MISSING", packageName: "@base-ui/react" }),
     );
+  });
 
-    await writeFile(
-      path.join(missingRoot, "package.json"),
-      JSON.stringify({ dependencies: { "@base-ui/react": "2.0.0" } }),
+  it("blocks apply when the installed package version is incompatible", async () => {
+    const projectRoot = await createProject({ installed: "2.0.0" });
+    const inspection = await inspectAgentUISources(projectRoot, config);
+    expect(
+      inspection.items.find((item) => item.id === "primitive/dialog")?.requirements,
+    ).toContainEqual(
+      expect.objectContaining({
+        name: "@base-ui/react",
+        installed: "2.0.0",
+        compatible: false,
+      }),
     );
-    const incompatible = await inspectAgentUISources(missingRoot, config);
-    expect(incompatible.issues).toContainEqual(
-      expect.objectContaining({ code: "AGENT_UI_PACKAGE_INCOMPATIBLE" }),
+    await expect(
+      applyAgentUISourceItem(
+        projectRoot,
+        { itemId: "primitive/dialog", expectedStateHash: inspection.stateHash },
+        config,
+      ),
+    ).rejects.toMatchObject({ code: "AGENT_UI_PACKAGE_INCOMPATIBLE" });
+    await expect(
+      readFile(path.join(projectRoot, ".agent-ui/source-transaction.json")),
+    ).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(
+      readFile(path.join(projectRoot, ".agent-ui/source-lock.json")),
+    ).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(
+      readFile(path.join(projectRoot, "agent-ui/primitives/dialog.tsx")),
+    ).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("blocks an item before transaction when a customized dependency is an older version", async () => {
+    const projectRoot = await createProject();
+    const v1 = dependencyFixtureRegistry("0.1.0");
+    const v2 = dependencyFixtureRegistry("0.2.0");
+    const empty = await inspectAgentUISources(projectRoot, config, v1);
+    await applyAgentUISourceItem(
+      projectRoot,
+      { itemId: "primitive/dialog", expectedStateHash: empty.stateHash },
+      config,
+      v1,
     );
+    const dependencyPath = path.join(projectRoot, "agent-ui/foundation/core.ts");
+    await writeFile(dependencyPath, "// user-customized foundation\n");
+    const requestedPath = path.join(projectRoot, "agent-ui/primitives/dialog.ts");
+    const lockPath = path.join(projectRoot, ".agent-ui/source-lock.json");
+    const before = {
+      dependency: await readFile(dependencyPath, "utf8"),
+      requested: await readFile(requestedPath, "utf8"),
+      lock: await readFile(lockPath, "utf8"),
+    };
+    const inspection = await inspectAgentUISources(projectRoot, config, v2);
+
+    await expect(
+      applyAgentUISourceItem(
+        projectRoot,
+        { itemId: "primitive/dialog", expectedStateHash: inspection.stateHash },
+        config,
+        v2,
+      ),
+    ).rejects.toMatchObject({
+      code: "AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY",
+      details: {
+        requestedItemId: "primitive/dialog",
+        dependencyItemId: "foundation/core",
+        installedVersion: "0.1.0",
+        requiredVersion: "0.2.0",
+      },
+    });
+    expect(await readFile(dependencyPath, "utf8")).toBe(before.dependency);
+    expect(await readFile(requestedPath, "utf8")).toBe(before.requested);
+    expect(await readFile(lockPath, "utf8")).toBe(before.lock);
+    await expect(
+      readFile(path.join(projectRoot, ".agent-ui/source-transaction.json")),
+    ).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("keeps a customized dependency when its installed version matches the Registry", async () => {
+    const projectRoot = await createProject();
+    const registry = dependencyFixtureRegistry("0.2.0");
+    const empty = await inspectAgentUISources(projectRoot, config, registry);
+    await applyAgentUISourceItem(
+      projectRoot,
+      { itemId: "foundation/core", expectedStateHash: empty.stateHash },
+      config,
+      registry,
+    );
+    const dependencyPath = path.join(projectRoot, "agent-ui/foundation/core.ts");
+    await writeFile(dependencyPath, "// user-customized current foundation\n");
+    const customized = await inspectAgentUISources(projectRoot, config, registry);
+    const result = await applyAgentUISourceItem(
+      projectRoot,
+      { itemId: "primitive/dialog", expectedStateHash: customized.stateHash },
+      config,
+      registry,
+    );
+    expect(result.changedItems).toEqual(["primitive/dialog"]);
+    expect(await readFile(dependencyPath, "utf8")).toBe("// user-customized current foundation\n");
   });
 
   it("recovers the old source and lock after a simulated crash", async () => {

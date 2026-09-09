@@ -205,12 +205,14 @@ export interface AgentUISourceItemInspection {
   availableVersion: string;
   status: AgentUISourceStatus;
   files: AgentUISourceFileInspection[];
+  requirements: AgentUISourcePackageInspection[];
   issues: AgentUISourceIssue[];
 }
 
 export interface AgentUISourcePackageInspection {
   name: string;
   required: string;
+  declared?: string;
   installed?: string;
   compatible: boolean;
 }

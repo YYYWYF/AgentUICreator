@@ -388,6 +388,75 @@ describe("ui-project-control", () => {
     });
   });
 
+  it("returns customized dependency conflicts through protocol v3", async () => {
+    const { projectRoot } = await createProject();
+    const initial = await handleUIProjectControlRequest(
+      { schemaVersion: 3, operation: "inspect_agent_ui_sources", input: {} },
+      projectRoot,
+    );
+    if (!initial.ok) throw new Error("Expected Agent UI source inspection.");
+    await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "apply_agent_ui_source_item",
+        input: {
+          itemId: "foundation/core",
+          expectedStateHash: (initial.result as { stateHash: string }).stateHash,
+        },
+      },
+      projectRoot,
+    );
+    const dependencyPath = path.join(projectRoot, "agent-ui/foundation/context.ts");
+    await writeFile(
+      dependencyPath,
+      `${await readFile(dependencyPath, "utf8")}\n// customized\n`,
+    );
+    const lockPath = path.join(projectRoot, ".agent-ui/source-lock.json");
+    const lock = JSON.parse(await readFile(lockPath, "utf8")) as {
+      items: Record<string, { version: string }>;
+    };
+    lock.items["foundation/core"]!.version = "0.0.0";
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
+    const beforeDependency = await readFile(dependencyPath, "utf8");
+    const beforeLock = await readFile(lockPath, "utf8");
+    const inspected = await handleUIProjectControlRequest(
+      { schemaVersion: 3, operation: "inspect_agent_ui_sources", input: {} },
+      projectRoot,
+    );
+    if (!inspected.ok) throw new Error("Expected Agent UI source inspection.");
+
+    const response = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "apply_agent_ui_source_item",
+        input: {
+          itemId: "primitive/dialog",
+          expectedStateHash: (inspected.result as { stateHash: string }).stateHash,
+        },
+      },
+      projectRoot,
+    );
+
+    expect(response).toMatchObject({
+      schemaVersion: 3,
+      ok: false,
+      error: {
+        code: "AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY",
+        details: {
+          requestedItemId: "primitive/dialog",
+          dependencyItemId: "foundation/core",
+          installedVersion: "0.0.0",
+          requiredVersion: "0.1.0",
+        },
+      },
+    });
+    expect(await readFile(dependencyPath, "utf8")).toBe(beforeDependency);
+    expect(await readFile(lockPath, "utf8")).toBe(beforeLock);
+    await expect(
+      readFile(path.join(projectRoot, ".agent-ui/source-transaction.json")),
+    ).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("reports incompatible requests and missing plugins as structured errors", async () => {
     const { projectRoot } = await createProject();
 

@@ -6,6 +6,7 @@ import {
   type LoadedAgentUISourceItem,
   type LoadedAgentUISourceRegistry,
 } from "@agent-ui/source-registry";
+import { satisfies as satisfiesSemver } from "semver";
 
 import { uiProjectControlConfig } from "../project-config";
 import type {
@@ -81,52 +82,11 @@ function aggregateStatus(
   return "managed";
 }
 
-function exactVersion(
-  value: string | undefined,
-  allowPartial = false,
-): [number, number, number] | undefined {
-  const match = value?.match(
-    allowPartial
-      ? /^(?:npm:)?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:[-+].*)?$/
-      : /^(?:npm:)?(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/,
-  );
-  return match === null || match === undefined
-    ? undefined
-    : [Number(match[1]), Number(match[2] ?? 0), Number(match[3] ?? 0)];
-}
-
-function compareVersion(
-  left: [number, number, number],
-  right: [number, number, number],
-): number {
-  return left[0] - right[0] || left[1] - right[1] || left[2] - right[2];
-}
-
 export function satisfiesAgentUIPackageRange(
   installed: string | undefined,
   range: string,
 ): boolean {
-  const current = exactVersion(installed);
-  if (current === undefined) return false;
-  const comparators = range.trim().split(/\s+/);
-  return comparators.every((comparator) => {
-    const match = comparator.match(
-      /^(>=|<=|>|<|\^|~)?(\d+(?:\.\d+){0,2}(?:[-+].*)?)$/,
-    );
-    if (match === null) return false;
-    const wanted = exactVersion(match[2], true);
-    if (wanted === undefined) return false;
-    const comparison = compareVersion(current, wanted);
-    switch (match[1] ?? "=") {
-      case ">=": return comparison >= 0;
-      case "<=": return comparison <= 0;
-      case ">": return comparison > 0;
-      case "<": return comparison < 0;
-      case "^": return current[0] === wanted[0] && comparison >= 0;
-      case "~": return current[0] === wanted[0] && current[1] === wanted[1] && comparison >= 0;
-      default: return comparison === 0;
-    }
-  });
+  return installed !== undefined && satisfiesSemver(installed, range);
 }
 
 function dependencyVersions(packageJson: unknown): Record<string, string> {
@@ -140,6 +100,34 @@ function dependencyVersions(packageJson: unknown): Record<string, string> {
     }
   }
   return result;
+}
+
+async function installedPackageVersion(
+  projectRoot: string,
+  packageName: string,
+): Promise<{ exists: boolean; version?: string }> {
+  const packagePath = path.join(
+    projectRoot,
+    "node_modules",
+    ...packageName.split("/"),
+    "package.json",
+  );
+  try {
+    const packageJson = JSON.parse(await readFile(packagePath, "utf8")) as unknown;
+    const version =
+      typeof packageJson === "object" &&
+      packageJson !== null &&
+      !Array.isArray(packageJson) &&
+      typeof (packageJson as Record<string, unknown>).version === "string"
+        ? (packageJson as Record<string, string>).version
+        : undefined;
+    return { exists: true, ...(version === undefined ? {} : { version }) };
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return { exists: false };
+    }
+    throw error;
+  }
 }
 
 export async function inspectAgentUIPackages(
@@ -159,17 +147,28 @@ export async function inspectAgentUIPackages(
   const packages: AgentUISourcePackageInspection[] = [];
   const issues: AgentUISourceIssue[] = [];
   for (const [name, ranges] of [...requirements].sort(([left], [right]) => left.localeCompare(right))) {
+    const declared = versions[name];
+    const installedPackage = await installedPackageVersion(projectRoot, name);
     for (const required of [...ranges].sort()) {
-      const installed = versions[name];
+      const installed = installedPackage.version;
       const compatible = satisfiesAgentUIPackageRange(installed, required);
-      packages.push({ name, required, ...(installed === undefined ? {} : { installed }), compatible });
+      packages.push({
+        name,
+        required,
+        ...(declared === undefined ? {} : { declared }),
+        ...(installed === undefined ? {} : { installed }),
+        compatible,
+      });
       if (!compatible) {
+        const missing = !installedPackage.exists;
         issues.push({
-          code: installed === undefined ? "AGENT_UI_PACKAGE_MISSING" : "AGENT_UI_PACKAGE_INCOMPATIBLE",
+          code: missing ? "AGENT_UI_PACKAGE_MISSING" : "AGENT_UI_PACKAGE_INCOMPATIBLE",
           message:
-            installed === undefined
+            missing
               ? `Agent UI source requires package ${name} ${required}.`
-              : `Agent UI source requires ${name} ${required}, but package.json declares ${installed}.`,
+              : installed === undefined
+                ? `Agent UI source requires ${name} ${required}, but its installed package has no valid version.`
+                : `Agent UI source requires ${name} ${required}, but node_modules contains ${installed}.`,
           packageName: name,
         });
       }
@@ -206,6 +205,7 @@ export async function inspectAgentUISources(
       ),
     );
     const status = aggregateStatus(locked !== undefined, files);
+    const packageInspection = await inspectAgentUIPackages(projectRoot, [item]);
     const itemIssues: AgentUISourceIssue[] = [];
     if (status !== "managed" && status !== "not-installed") {
       itemIssues.push({
@@ -225,6 +225,7 @@ export async function inspectAgentUISources(
       availableVersion: item.version,
       status,
       files,
+      requirements: packageInspection.packages,
       issues: itemIssues,
     });
     issues.push(...itemIssues);
@@ -239,7 +240,23 @@ export async function inspectAgentUISources(
       });
     }
   }
-  const packageInspection = await inspectAgentUIPackages(projectRoot, loadedRegistry.items);
+  const installedItems = new Map<string, LoadedAgentUISourceItem>();
+  const visitInstalled = (item: LoadedAgentUISourceItem): void => {
+    if (installedItems.has(item.id)) return;
+    installedItems.set(item.id, item);
+    for (const requiredId of item.requires ?? []) {
+      const required = loadedRegistry.byId.get(requiredId);
+      if (required !== undefined) visitInstalled(required);
+    }
+  };
+  for (const itemId of Object.keys(lock.items)) {
+    const item = loadedRegistry.byId.get(itemId);
+    if (item !== undefined) visitInstalled(item);
+  }
+  const packageInspection = await inspectAgentUIPackages(
+    projectRoot,
+    [...installedItems.values()],
+  );
   issues.push(...packageInspection.issues);
   const body = {
     sourceRoot: config.agentUI.sourceRoot,

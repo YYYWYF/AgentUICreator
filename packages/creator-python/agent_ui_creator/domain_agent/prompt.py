@@ -196,6 +196,11 @@ specific boundary; do not bypass it with edit_file. Never edit or delete
 user requests source customization; this intentionally changes the managed item
 to customized and leaves source-lock unchanged.
 
+If apply_agent_ui_source_item reports AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY,
+do not bypass it with edit_file. Stop automatic installation and explain that
+the dependency was customized by the user and its installed Source Item version
+is older than the Registry version required by the requested item.
+
 When custom behavior is needed, load the ui-plugin-development Skill on demand;
 do not guess its contracts from the brief system prompt. Inspect the generated
 project's current conventions and read one closest existing Plugin before creating

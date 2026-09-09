@@ -96,9 +96,26 @@ export async function applyAgentUISourceItem(
   }
   const byId = new Map(before.items.map((item) => [item.id, item]));
   for (const item of closure) {
-    const status = byId.get(item.id)?.status;
+    const inspection = byId.get(item.id);
+    const status = inspection?.status;
     if (status === "blocked" || status === "partial") throw stateError(item.id, status);
     if (status === "customized" && item.id === input.itemId) throw stateError(item.id, status);
+    if (
+      status === "customized" &&
+      item.id !== input.itemId &&
+      inspection?.installedVersion !== item.version
+    ) {
+      throw new AgentUISourceError(
+        "AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY",
+        `Agent UI source dependency ${item.id} was customized by the project and cannot be synchronized automatically; ${input.itemId} cannot be installed against a different dependency version.`,
+        {
+          requestedItemId: input.itemId,
+          dependencyItemId: item.id,
+          installedVersion: inspection?.installedVersion,
+          requiredVersion: item.version,
+        },
+      );
+    }
   }
   const packageInspection = await inspectAgentUIPackages(projectRoot, closure);
   const packageIssue = packageInspection.issues[0];
