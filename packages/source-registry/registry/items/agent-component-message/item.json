@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "agent-component/message",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Props-driven message surface for Agent UI conversations",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
+  "requires": [
+    "foundation/core"
+  ],
+  "files": [
+    {
+      "source": "files/components/message.tsx",
+      "target": "components/message.tsx"
+    },
+    {
+      "source": "files/components/message.module.css",
+      "target": "components/message.module.css"
+    }
+  ]
+}

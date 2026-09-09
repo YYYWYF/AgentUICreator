@@ -5,6 +5,7 @@ import {
   AgentComposerSuggestions,
   getAgentComposerSuggestionOptionId,
 } from "../../agent-ui/components/composer-suggestions";
+import { AgentMessage } from "../../agent-ui/components/message";
 import { AgentUIRoot, type AgentUITheme } from "../../agent-ui/foundation/AgentUIRoot";
 import { Avatar, AvatarBadge, AvatarFallback } from "../../agent-ui/primitives/avatar";
 import { Badge } from "../../agent-ui/primitives/badge";
@@ -155,6 +156,88 @@ function ComposerSuggestionsFixture({ theme }: { theme: AgentUITheme }) {
   );
 }
 
+function MessageGallery() {
+  return (
+    <div className={styles.messageGrid}>
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>User</span>
+        <AgentMessage role="user">
+          Can you summarize what changed in the project today?
+        </AgentMessage>
+      </article>
+
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Assistant</span>
+        <AgentMessage role="assistant" header="Assistant">
+          The Composer migration is complete.
+        </AgentMessage>
+      </article>
+
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Assistant multiline</span>
+        <AgentMessage role="assistant" header="Assistant">
+          <div className={styles.messageParagraphs}>
+            <p>The new message surface keeps the response focused on its content.</p>
+            <p>Additional paragraphs follow the same open reading flow without becoming a card.</p>
+            <p>The component path packages/source-registry/registry/items/agent-component-message/files/components/message.tsx wraps safely.</p>
+          </div>
+        </AgentMessage>
+      </article>
+
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Streaming</span>
+        <AgentMessage
+          role="assistant"
+          status="streaming"
+          footer={<span>Generating…</span>}
+        >
+          I’m analyzing the current implementation…
+        </AgentMessage>
+      </article>
+
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Error</span>
+        <AgentMessage
+          role="assistant"
+          status="error"
+          footer={<span>Generation failed</span>}
+          actions={(
+            <Button type="button" variant="ghost" size="sm">
+              Retry
+            </Button>
+          )}
+        >
+          Partial response before the error.
+        </AgentMessage>
+      </article>
+
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>With meta / actions</span>
+        <AgentMessage
+          role="assistant"
+          header="Assistant"
+          footer="Just now"
+          actions={(
+            <>
+              <Button type="button" variant="ghost" size="sm">Copy</Button>
+              <Button type="button" variant="ghost" size="sm">Retry</Button>
+            </>
+          )}
+        >
+          Hover this message or move keyboard focus into its actions.
+        </AgentMessage>
+      </article>
+
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>System</span>
+        <AgentMessage role="system">
+          Conversation context updated
+        </AgentMessage>
+      </article>
+    </div>
+  );
+}
+
 function ThemeGallery({ theme }: { theme: AgentUITheme }) {
   const inputId = `${theme}-gallery-input`;
 
@@ -241,6 +324,9 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
 
       <section className={styles.section}>
         <h2>Agent Components</h2>
+        <h3 className={styles.componentHeading}>Agent Message</h3>
+        <MessageGallery />
+        <h3 className={styles.componentHeading}>Agent Composer</h3>
         <div className={styles.composerGrid}>
           <ComposerFixture label="Empty" />
           <ComposerFixture label="Draft" initialValue="Summarize the latest project activity." />

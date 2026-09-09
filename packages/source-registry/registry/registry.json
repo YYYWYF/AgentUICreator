@@ -80,6 +80,10 @@
     {
       "id": "agent-component/composer-suggestions",
       "path": "items/agent-component-composer-suggestions/item.json"
+    },
+    {
+      "id": "agent-component/message",
+      "path": "items/agent-component-message/item.json"
     }
   ]
 }

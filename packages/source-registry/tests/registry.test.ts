@@ -295,4 +295,17 @@ describe("Agent UI Source Registry contract", () => {
       },
     });
   });
+
+  it("registers Agent Message as an original, foundation-only Agent Component", async () => {
+    const registry = await loadAgentUISourceRegistry();
+    expect(registry.byId.get("agent-component/message")).toMatchObject({
+      version: "0.1.0",
+      kind: "agent-component",
+      requires: ["foundation/core"],
+      upstream: {
+        project: "AgentUICreator",
+        mode: "original",
+      },
+    });
+  });
 });

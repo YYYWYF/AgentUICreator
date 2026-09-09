@@ -1,0 +1,121 @@
+.root {
+  display: flex;
+  min-width: 0;
+  width: 100%;
+  align-items: flex-start;
+  gap: var(--aui-space-3);
+  color: var(--aui-fg);
+}
+
+.avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--aui-space-2);
+}
+
+.header {
+  color: var(--aui-fg-muted);
+  font-size: var(--aui-font-size-sm);
+  font-weight: var(--aui-font-weight-medium);
+  line-height: var(--aui-line-height-tight);
+}
+
+.content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: var(--aui-line-height-normal);
+}
+
+.footerRow {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--aui-space-3);
+}
+
+.footer {
+  min-width: 0;
+  color: var(--aui-fg-subtle);
+  font-size: var(--aui-font-size-xs);
+  line-height: var(--aui-line-height-tight);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--aui-space-1);
+  opacity: 0;
+  transition: opacity var(--aui-duration-fast) var(--aui-ease-standard);
+}
+
+.root:hover .actions,
+.root:focus-within .actions {
+  opacity: 1;
+}
+
+.root[data-role="user"] {
+  justify-content: flex-end;
+}
+
+.root[data-role="user"] .avatar {
+  order: 2;
+}
+
+.root[data-role="user"] .body {
+  max-width: 85%;
+  flex: 0 1 auto;
+  align-items: flex-end;
+}
+
+.root[data-role="user"] .content {
+  padding: var(--aui-space-2) var(--aui-space-3);
+  border: 1px solid var(--aui-border);
+  border-radius: var(--aui-radius-lg);
+  background: var(--aui-bg-muted);
+}
+
+.root[data-role="user"] .footerRow {
+  width: 100%;
+}
+
+.root[data-role="assistant"] .body {
+  width: 100%;
+}
+
+.root[data-role="system"] .body {
+  width: 100%;
+  gap: var(--aui-space-1);
+}
+
+.root[data-role="system"] .content {
+  color: var(--aui-fg-muted);
+  font-size: var(--aui-font-size-sm);
+}
+
+.root[data-status="error"] .footer {
+  color: var(--aui-danger);
+}
+
+@media (hover: none) {
+  .actions {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actions {
+    transition: none;
+  }
+}

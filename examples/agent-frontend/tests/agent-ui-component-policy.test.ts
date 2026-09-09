@@ -86,6 +86,59 @@ describe("Agent UI component source policy", () => {
     expect(source).not.toMatch(/@base-ui\/react|@radix-ui\/|@ant-design\/x|\bantd\b|tailwindcss|class-variance-authority/u);
   });
 
+  it("keeps Agent Message presentation-only and dependency-free", async () => {
+    const messageRoot = path.join(
+      registryRoot,
+      "items/agent-component-message/files/components",
+    );
+    const source = await readFile(path.join(messageRoot, "message.tsx"), "utf8");
+    const specifiers = importSpecifiers(source);
+    expect(specifiers).toContain("react");
+    expect(specifiers.every((specifier) => specifier === "react" || specifier.startsWith(".")))
+      .toBe(true);
+    expect(source).not.toMatch(
+      /@assistant-ui\/|@base-ui\/react|@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|tailwindcss|class-variance-authority|lucide-react|@radix-ui\//u,
+    );
+    expect(source).not.toMatch(
+      /@agent-ui\/runtime-core|@agent-ui\/runtime-agui|(?:^|["'/])runtime\/|services\/conversations|framework\/contracts\/ui-plugin/u,
+    );
+    expect(source).not.toMatch(/messageId|threadId|runId|toolCalls|reasoning|attachments|sources/u);
+  });
+
+  it("keeps Agent Message colors tokenized and CSS isolated", async () => {
+    const css = await readFile(
+      path.join(
+        registryRoot,
+        "items/agent-component-message/files/components/message.module.css",
+      ),
+      "utf8",
+    );
+    expect(css).not.toMatch(/#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\(/u);
+    expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
+    expect(css).not.toMatch(
+      /(?:^|\})\s*(?:body|html)\s*(?:,|\{)|\[data-agent-ui-root\]|:global|\.ant-/gmu,
+    );
+    expect(css).toMatch(/var\(--aui-/u);
+  });
+
+  it("keeps the managed Agent Message copy byte-identical to Registry source", async () => {
+    for (const fileName of ["message.tsx", "message.module.css"]) {
+      const registrySource = await readFile(
+        path.join(
+          registryRoot,
+          "items/agent-component-message/files/components",
+          fileName,
+        ),
+        "utf8",
+      );
+      const installedSource = await readFile(
+        path.join(projectRoot, "agent-ui/components", fileName),
+        "utf8",
+      );
+      expect(installedSource).toBe(registrySource);
+    }
+  });
+
   it("keeps the Composer plugin implementation free of Ant Design UI", async () => {
     const composerRoot = path.join(projectRoot, "plugins/agent-composer");
     const composerFiles = await collectFiles(

@@ -24,6 +24,17 @@
         }
       }
     },
+    "agent-component/message": {
+      "version": "0.1.0",
+      "files": {
+        "components/message.module.css": {
+          "sha256": "a72687b1879a8723b714d7007e24d8f739cbe93d4cce500dd0b4fe9b82a36284"
+        },
+        "components/message.tsx": {
+          "sha256": "cc28750e8a3fefd00d0bebf5f9b7dafea6023efcde8d7fd36cea74f7ce7da9bd"
+        }
+      }
+    },
     "foundation/core": {
       "version": "0.2.2",
       "files": {
