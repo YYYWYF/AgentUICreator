@@ -255,7 +255,7 @@ describe("Agent UI Source Registry contract", () => {
   it("requires provenance on every production primitive", async () => {
     const registry = await loadAgentUISourceRegistry();
     const primitives = registry.items.filter((entry) => entry.kind === "primitive");
-    expect(primitives).toHaveLength(9);
+    expect(primitives).toHaveLength(17);
     for (const primitive of primitives) {
       expect(primitive.upstream, primitive.id).toMatchObject({
         project: expect.any(String),

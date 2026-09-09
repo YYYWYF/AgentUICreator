@@ -40,6 +40,38 @@
     {
       "id": "primitive/popover",
       "path": "items/primitive-popover/item.json"
+    },
+    {
+      "id": "primitive/tabs",
+      "path": "items/primitive-tabs/item.json"
+    },
+    {
+      "id": "primitive/dropdown-menu",
+      "path": "items/primitive-dropdown-menu/item.json"
+    },
+    {
+      "id": "primitive/collapsible",
+      "path": "items/primitive-collapsible/item.json"
+    },
+    {
+      "id": "primitive/scroll-area",
+      "path": "items/primitive-scroll-area/item.json"
+    },
+    {
+      "id": "primitive/switch",
+      "path": "items/primitive-switch/item.json"
+    },
+    {
+      "id": "primitive/avatar",
+      "path": "items/primitive-avatar/item.json"
+    },
+    {
+      "id": "primitive/badge",
+      "path": "items/primitive-badge/item.json"
+    },
+    {
+      "id": "primitive/skeleton",
+      "path": "items/primitive-skeleton/item.json"
     }
   ]
 }

@@ -3,7 +3,7 @@
   "sourceRoot": "agent-ui",
   "items": {
     "foundation/core": {
-      "version": "0.2.0",
+      "version": "0.2.1",
       "files": {
         "foundation/AgentUIRoot.tsx": {
           "sha256": "72491c31fa94bec330ec42b2df7148ffb6fa3ad33dd407efe907d510bc482b80"
@@ -21,7 +21,29 @@
           "sha256": "e77894e090b8340cf5f3cba1e00a2459599ba96a68668ae4055e1d4ef3c2d183"
         },
         "THIRD_PARTY_NOTICES.md": {
-          "sha256": "2cb36ac95ba031172c426cbcdb3b38bf077b22c18a2613794c47879ccf3ca372"
+          "sha256": "5bfe67e07ca67aad91d1ef7ae888d41b8f2256109f9b5ee67591b5640e9b0577"
+        }
+      }
+    },
+    "primitive/avatar": {
+      "version": "0.1.0",
+      "files": {
+        "primitives/avatar.module.css": {
+          "sha256": "f4476542d7d0027cd2fa804c98bc73ead2439d6d9026ae8e123d67f2824cc118"
+        },
+        "primitives/avatar.tsx": {
+          "sha256": "30ae71b4e0634f10fff222e41ebded3f90b7ac3793d4924775023d82097dd587"
+        }
+      }
+    },
+    "primitive/badge": {
+      "version": "0.1.0",
+      "files": {
+        "primitives/badge.module.css": {
+          "sha256": "6c1f22c3471780fba572cfe898b965c1777593ddedb3cc279919f11c86396f12"
+        },
+        "primitives/badge.tsx": {
+          "sha256": "ddcd7e08a729ac320c64350780dc2bc2f8c9401c991688907eb1b5ba9f9808a4"
         }
       }
     },
@@ -36,14 +58,36 @@
         }
       }
     },
+    "primitive/collapsible": {
+      "version": "0.1.0",
+      "files": {
+        "primitives/collapsible.module.css": {
+          "sha256": "1ac3da69a89be62ce897de3ccd92b2fda042068692c63164b7b1f7291dbf7c3b"
+        },
+        "primitives/collapsible.tsx": {
+          "sha256": "9c49a89e64014c4b2380b017c267b5a4c3bd5e83b0edc0f16100b61b142c8d8d"
+        }
+      }
+    },
     "primitive/dialog": {
-      "version": "0.2.0",
+      "version": "0.2.1",
       "files": {
         "primitives/dialog.module.css": {
-          "sha256": "b65d0dd240732f96bc0630ca85ab1fee6daace309d5f5b7dca29cf86185bd1ae"
+          "sha256": "5289df9c1670861bed506244b41fc9ac824b64708ad11a80522c3bf96dc399f6"
         },
         "primitives/dialog.tsx": {
           "sha256": "5d1faafadbf81fb849f86f25570efda23db687424b04136f56301b1cedc2b11b"
+        }
+      }
+    },
+    "primitive/dropdown-menu": {
+      "version": "0.1.1",
+      "files": {
+        "primitives/dropdown-menu.module.css": {
+          "sha256": "285366971b3e890ca091e272362cd11aa9fbfa9bca7827aa439b585bd2c0b7fd"
+        },
+        "primitives/dropdown-menu.tsx": {
+          "sha256": "fec7116bfb25099e7f07f1c584b14a75419c5e287d93d6e96e9815cc36849195"
         }
       }
     },
@@ -70,13 +114,24 @@
       }
     },
     "primitive/popover": {
-      "version": "0.2.0",
+      "version": "0.2.1",
       "files": {
         "primitives/popover.module.css": {
-          "sha256": "6b879fd80095498f6e39312b10a09cbd0fd0900149c4e111bc7b66a869d40913"
+          "sha256": "3a73886af47d4af23b0cb53f73ed20b8a5c3e7e2ef99b4de8422ff3d4bdf013e"
         },
         "primitives/popover.tsx": {
           "sha256": "0d4fd5264543b55dd844ce7e878d6edde54e116cb1cca5049a48f5d8d7ff66c1"
+        }
+      }
+    },
+    "primitive/scroll-area": {
+      "version": "0.1.0",
+      "files": {
+        "primitives/scroll-area.module.css": {
+          "sha256": "72960898773ccb2e25d559179f53f3a562d19e9a705fb9a4046e1661f05ca74f"
+        },
+        "primitives/scroll-area.tsx": {
+          "sha256": "503df8e823c96b116886b58e82f0e2540299eaa4eb817a63b9cf804499141d99"
         }
       }
     },
@@ -91,6 +146,17 @@
         }
       }
     },
+    "primitive/skeleton": {
+      "version": "0.1.0",
+      "files": {
+        "primitives/skeleton.module.css": {
+          "sha256": "0e63e510f458c391e4684451b27acf9d651f519d26a3d37eba343ef9940f7179"
+        },
+        "primitives/skeleton.tsx": {
+          "sha256": "d1c00a23429e76693847f23051a3d3f446e66998827342bd1b3f8ca6c6f029ea"
+        }
+      }
+    },
     "primitive/spinner": {
       "version": "0.2.0",
       "files": {
@@ -99,6 +165,28 @@
         },
         "primitives/spinner.tsx": {
           "sha256": "3b0dfae033d8cd1d394e8f7a0df756e5d0dbb783503235064781cf5bf2c61b2d"
+        }
+      }
+    },
+    "primitive/switch": {
+      "version": "0.1.0",
+      "files": {
+        "primitives/switch.module.css": {
+          "sha256": "c03d0041e615ae9a80ea144eb64662e1ad64a186577d65656b504e8c2ca7d17a"
+        },
+        "primitives/switch.tsx": {
+          "sha256": "c012bda6f1d74d1a8fe024dbcfa0a42870d1fb67cf1ce82a7d9c15b896e1abad"
+        }
+      }
+    },
+    "primitive/tabs": {
+      "version": "0.1.0",
+      "files": {
+        "primitives/tabs.module.css": {
+          "sha256": "7ba9ff60f8726b4258d9d392a6c805c3ae436c5c67562edcc2cad8d846ec3f8a"
+        },
+        "primitives/tabs.tsx": {
+          "sha256": "e8ac18d23b1ef279ea14804e599974272618598b6011379e26657af7f9059879"
         }
       }
     },
@@ -114,10 +202,10 @@
       }
     },
     "primitive/tooltip": {
-      "version": "0.2.0",
+      "version": "0.2.1",
       "files": {
         "primitives/tooltip.module.css": {
-          "sha256": "c15ba8dbabc59860dbfec710ad02e21e551644272b1cccd703c381c027ddb30f"
+          "sha256": "17360427a1702e9830dd3f7219f380ea330dc777fa61412cec423c5dc83e80c9"
         },
         "primitives/tooltip.tsx": {
           "sha256": "a5c22ee84e2c2d9c1e6c728e04c868464b22b723ca80337180e69b63409633e5"

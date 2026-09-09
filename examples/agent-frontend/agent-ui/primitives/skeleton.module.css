@@ -1,0 +1,23 @@
+.root {
+  min-width: 0;
+  min-height: var(--aui-space-4);
+  border-radius: var(--aui-radius-sm);
+  background: var(--aui-bg-muted);
+  animation: pulse var(--aui-duration-slow) var(--aui-ease-standard) infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    background: var(--aui-bg-muted);
+  }
+
+  to {
+    background: var(--aui-bg-hover);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    animation: none;
+  }
+}

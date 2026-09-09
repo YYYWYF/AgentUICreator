@@ -1,19 +1,13 @@
 .trigger {
   display: inline-flex;
-  min-height: var(--aui-control-height-sm);
   align-items: center;
   justify-content: center;
-  padding: 0 var(--aui-space-2);
   border: 0;
-  border-radius: var(--aui-radius-sm);
-  color: var(--aui-fg);
+  border-radius: var(--aui-radius-xs);
+  color: inherit;
   font: inherit;
   background: transparent;
-  cursor: help;
-}
-
-.trigger:hover {
-  background: var(--aui-bg-hover);
+  cursor: pointer;
 }
 
 .trigger:focus-visible {

@@ -1,9 +1,5 @@
-import { lazy, StrictMode, Suspense } from "react";
+import { StrictMode, type ComponentType } from "react";
 import { createRoot } from "react-dom/client";
-
-import { App } from "./App";
-
-import "antd/dist/reset.css";
 
 const rootElement = document.getElementById("root");
 
@@ -17,22 +13,22 @@ const previewPluginErrors =
 const previewAgentUIPrimitiveGallery =
   import.meta.env.DEV &&
   new URLSearchParams(window.location.search).has("agent-ui-gallery");
-const RootComponent = previewAgentUIPrimitiveGallery
-  ? lazy(async () => {
-      const module = await import("./dev/AgentUIPrimitiveGallery");
-      return { default: module.AgentUIPrimitiveGallery };
-    })
-  : previewPluginErrors
-  ? lazy(async () => {
-      const module = await import("./PluginErrorBoundaryPreview");
-      return { default: module.PluginErrorBoundaryPreview };
-    })
-  : App;
+async function loadRootComponent(): Promise<ComponentType> {
+  if (previewAgentUIPrimitiveGallery) {
+    return (await import("./dev/AgentUIPrimitiveGallery")).AgentUIPrimitiveGallery;
+  }
 
-createRoot(rootElement).render(
-  <StrictMode>
-    <Suspense fallback={null}>
+  await import("antd/dist/reset.css");
+  if (previewPluginErrors) {
+    return (await import("./PluginErrorBoundaryPreview")).PluginErrorBoundaryPreview;
+  }
+  return (await import("./App")).App;
+}
+
+void loadRootComponent().then((RootComponent) => {
+  createRoot(rootElement).render(
+    <StrictMode>
       <RootComponent />
-    </Suspense>
-  </StrictMode>,
-);
+    </StrictMode>,
+  );
+});

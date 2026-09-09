@@ -1,4 +1,15 @@
-.trigger,
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--aui-radius-xs);
+  color: inherit;
+  font: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
 .close {
   display: inline-flex;
   min-height: var(--aui-control-height-md);
@@ -13,7 +24,6 @@
   cursor: pointer;
 }
 
-.trigger:hover,
 .close:hover {
   background: var(--aui-bg-hover);
 }

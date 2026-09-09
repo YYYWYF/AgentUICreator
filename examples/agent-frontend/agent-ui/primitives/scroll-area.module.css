@@ -1,0 +1,70 @@
+.root {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.viewport {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  outline: none;
+}
+
+.viewport:focus-visible {
+  outline: 2px solid var(--aui-focus);
+  outline-offset: -2px;
+}
+
+.content {
+  min-width: 100%;
+}
+
+.scrollbar {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  padding: 2px;
+  border-radius: var(--aui-radius-full);
+  background: transparent;
+  touch-action: none;
+  user-select: none;
+  transition: background-color var(--aui-duration-fast) var(--aui-ease-standard);
+}
+
+.scrollbar[data-orientation="vertical"] {
+  top: 0;
+  right: 0;
+  bottom: var(--scroll-area-corner-height);
+  width: 0.625rem;
+}
+
+.scrollbar[data-orientation="horizontal"] {
+  right: var(--scroll-area-corner-width);
+  bottom: 0;
+  left: 0;
+  height: 0.625rem;
+  flex-direction: column;
+}
+
+.scrollbar[data-hovering],
+.scrollbar[data-scrolling] {
+  background: var(--aui-bg-subtle);
+}
+
+.thumb {
+  flex: 1;
+  border-radius: var(--aui-radius-full);
+  background: var(--aui-border-strong);
+}
+
+.corner {
+  background: var(--aui-bg-subtle);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrollbar {
+    transition-duration: 0ms;
+  }
+}

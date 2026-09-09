@@ -119,6 +119,15 @@ afterEach(async () => {
 });
 
 describe("Agent UI source ownership", () => {
+  it("keeps every Source Item installed by the example fully managed", async () => {
+    const inspection = await inspectAgentUISources(projectRoot, config);
+    const installed = inspection.items.filter((item) => item.installedVersion !== undefined);
+    expect(installed.length).toBeGreaterThan(0);
+    expect(installed.map((item) => [item.id, item.status])).toEqual(
+      installed.map((item) => [item.id, "managed"]),
+    );
+  });
+
   it("installs dependencies atomically and refuses to overwrite customization", async () => {
     const projectRoot = await createProject();
     const before = await inspectAgentUISources(projectRoot, config);

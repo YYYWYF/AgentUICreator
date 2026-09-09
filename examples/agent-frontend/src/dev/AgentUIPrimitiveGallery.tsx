@@ -1,5 +1,12 @@
 import { AgentUIRoot, type AgentUITheme } from "../../agent-ui/foundation/AgentUIRoot";
+import { Avatar, AvatarBadge, AvatarFallback } from "../../agent-ui/primitives/avatar";
+import { Badge } from "../../agent-ui/primitives/badge";
 import { Button } from "../../agent-ui/primitives/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../../agent-ui/primitives/collapsible";
 import {
   Dialog,
   DialogClose,
@@ -10,6 +17,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../agent-ui/primitives/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "../../agent-ui/primitives/dropdown-menu";
 import { Input } from "../../agent-ui/primitives/input";
 import { Label } from "../../agent-ui/primitives/label";
 import {
@@ -22,7 +45,11 @@ import {
   PopoverTrigger,
 } from "../../agent-ui/primitives/popover";
 import { Separator } from "../../agent-ui/primitives/separator";
+import { Skeleton } from "../../agent-ui/primitives/skeleton";
 import { Spinner } from "../../agent-ui/primitives/spinner";
+import { ScrollArea, ScrollBar } from "../../agent-ui/primitives/scroll-area";
+import { Switch } from "../../agent-ui/primitives/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../agent-ui/primitives/tabs";
 import { Textarea } from "../../agent-ui/primitives/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../agent-ui/primitives/tooltip";
 import styles from "./agent-ui-primitive-gallery.module.css";
@@ -122,7 +149,7 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
         <h2>Overlays</h2>
         <div className={styles.row}>
           <Dialog>
-            <DialogTrigger>Open dialog</DialogTrigger>
+            <DialogTrigger render={<Button variant="outline" />}>Open dialog</DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Configure agent</DialogTitle>
@@ -142,12 +169,14 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
           </Dialog>
 
           <Tooltip>
-            <TooltipTrigger delay={0}>Focus or hover</TooltipTrigger>
+            <TooltipTrigger render={<Button variant="ghost" size="sm" />} delay={0}>
+              Focus or hover
+            </TooltipTrigger>
             <TooltipContent>Root-scoped tooltip content</TooltipContent>
           </Tooltip>
 
           <Popover>
-            <PopoverTrigger>Open popover</PopoverTrigger>
+            <PopoverTrigger render={<Button variant="outline" />}>Open popover</PopoverTrigger>
             <PopoverContent>
               <PopoverHeader>
                 <PopoverTitle>Run details</PopoverTitle>
@@ -160,6 +189,121 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
           </Popover>
 
           <span className={styles.spinnerSample}><Spinner aria-label="Loading" /> Loading</span>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <h2>Workbench primitives</h2>
+        <div className={styles.workbench}>
+          <div className={styles.workbenchHeader}>
+            <div className={styles.agentIdentity}>
+              <Avatar size="sm">
+                <AvatarFallback>AR</AvatarFallback>
+                <AvatarBadge aria-label="Agent running" />
+              </Avatar>
+              <div>
+                <strong>Agent workspace</strong>
+                <span>Interaction primitives</span>
+              </div>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>
+                Actions
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Agent</DropdownMenuLabel>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    Rename
+                    <DropdownMenuShortcut>↵</DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem defaultChecked>
+                  Show tool details
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuRadioGroup defaultValue="compact">
+                  <DropdownMenuRadioItem value="compact">Compact density</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="comfortable">Comfortable density</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>Move to</DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem>Research</DropdownMenuItem>
+                    <DropdownMenuItem>Archive</DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="danger">Delete</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <Tabs defaultValue="chat">
+            <TabsList>
+              <TabsTrigger value="chat">Chat</TabsTrigger>
+              <TabsTrigger value="files">Files</TabsTrigger>
+              <TabsTrigger value="tools">Tools</TabsTrigger>
+              <TabsTrigger value="disabled" disabled>Disabled</TabsTrigger>
+            </TabsList>
+            <TabsContent value="chat">
+              <ScrollArea className={styles.workbenchScroll}>
+                <div className={styles.timeline}>
+                  <div className={styles.timelineRow}>
+                    <Avatar>
+                      <AvatarFallback>AI</AvatarFallback>
+                      <AvatarBadge className={styles.runningBadge} />
+                    </Avatar>
+                    <div className={styles.timelineBody}>
+                      <div className={styles.timelineTitle}>
+                        <strong>Research agent</strong>
+                        <Badge variant="success">Ready</Badge>
+                      </div>
+                      <span>Workbench primitives are available as local source.</span>
+                    </div>
+                  </div>
+                  <Collapsible defaultOpen>
+                    <CollapsibleTrigger className={styles.disclosureTrigger}>
+                      <span aria-hidden="true">⌄</span> Tool details
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className={styles.toolDetails}>
+                        <code>inspect_agent_ui_sources</code>
+                        <Badge variant="info">Managed</Badge>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <div className={styles.settingRow}>
+                    <Label htmlFor={`${theme}-tools-switch`}>Enable frontend tools</Label>
+                    <Switch id={`${theme}-tools-switch`} defaultChecked />
+                  </div>
+                  <div className={styles.badgeRow}>
+                    <Badge>Beta</Badge>
+                    <Badge variant="secondary">Queued</Badge>
+                    <Badge variant="outline">3 items</Badge>
+                    <Badge variant="warning">Needs input</Badge>
+                    <Badge variant="danger">Error</Badge>
+                  </div>
+                  <div className={styles.skeletonGroup}>
+                    <Skeleton className={styles.skeletonTitle} />
+                    <Skeleton className={styles.skeletonLine} />
+                    <Skeleton className={styles.skeletonShort} />
+                  </div>
+                  {Array.from({ length: 5 }, (_, index) => (
+                    <div className={styles.resourceRow} key={index}>
+                      <span>Resource {index + 1}</span>
+                      <Badge variant="outline">Source</Badge>
+                    </div>
+                  ))}
+                </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+            </TabsContent>
+            <TabsContent value="files">Files panel</TabsContent>
+            <TabsContent value="tools">Tools panel</TabsContent>
+            <TabsContent value="disabled">Disabled panel</TabsContent>
+          </Tabs>
         </div>
       </section>
     </AgentUIRoot>

@@ -189,6 +189,11 @@ the development Registry and manually reproduce its templates.
 Installed Agent UI primitives are reusable local project source. Inspect the
 existing primitive before using or modifying it rather than guessing its API.
 
+Before creating local equivalents of common interaction UI, inspect Agent UI
+source items and reuse installed or available primitives such as tabs,
+dropdown-menu, collapsible, scroll-area, switch, avatar, badge, and skeleton.
+Read the installed primitive source before using its API.
+
 apply_agent_ui_source_item installs or safely synchronizes one Registry item. It
 never overwrites customized managed files, partial installations, or untracked
 collisions. If it reports AGENT_UI_SOURCE_STATE_CONFLICT, inspect current source

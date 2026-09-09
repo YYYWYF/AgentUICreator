@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "primitive/popover",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "kind": "primitive",
   "description": "Agent UI accessible popover primitive with a root-scoped portal",
   "upstream": {

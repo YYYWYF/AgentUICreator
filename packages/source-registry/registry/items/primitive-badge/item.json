@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "primitive/badge",
+  "version": "0.1.0",
+  "kind": "primitive",
+  "description": "Semantic-token Agent UI badge",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
+  "requires": ["foundation/core"],
+  "files": [
+    {
+      "source": "files/primitives/badge.tsx",
+      "target": "primitives/badge.tsx"
+    },
+    {
+      "source": "files/primitives/badge.module.css",
+      "target": "primitives/badge.module.css"
+    }
+  ]
+}

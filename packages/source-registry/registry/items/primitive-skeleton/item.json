@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "primitive/skeleton",
+  "version": "0.1.0",
+  "kind": "primitive",
+  "description": "Reduced-motion-aware Agent UI loading skeleton",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
+  "requires": ["foundation/core"],
+  "files": [
+    {
+      "source": "files/primitives/skeleton.tsx",
+      "target": "primitives/skeleton.tsx"
+    },
+    {
+      "source": "files/primitives/skeleton.module.css",
+      "target": "primitives/skeleton.module.css"
+    }
+  ]
+}
