@@ -2,6 +2,7 @@ import type {
   LayoutSize,
   PluginInstance,
 } from "../../framework/contracts/app-ui-model";
+import type { AgentUIMode } from "../../framework/contracts/agent-ui-mode";
 import type { PluginSlotCatalog } from "../../framework/contracts/app-ui-composition";
 
 export interface ProjectIssue {
@@ -141,6 +142,11 @@ export interface InspectedPluginInstance extends PluginInstance {
 
 export interface UIProjectInspection {
   schemaVersion: 3;
+  mode: AgentUIMode;
+  modeResolution: {
+    legacy: boolean;
+    configPath: string;
+  };
   appUIModel: {
     hash: string;
     version: string;

@@ -249,6 +249,16 @@ Plugin 源码继续由通用 Coding Agent 在权限范围内编辑；AppUIModel 
 
 ---
 
+## 3.11 Mode 是独立的项目级产品形态
+
+Agent UI 项目只支持 `assistant`、`embedded` 和 `platform` 三种 Mode。Mode 负责声明项目整体产品形态并提供一个全新的 Initial AppUIModel；不同 Mode 可以拥有不同的 Layout Tree 和 Slot topology。
+
+Mode 保存在 `.agent-ui/project.json`，不进入 AppUIModel。没有该配置的旧项目解析为 `platform`，但项目检查结果必须标记其来自 legacy fallback。已有 `app-ui/app-ui.json` 时，应用启动只读取 Mode 和当前模型，绝不能调用 Mode Blueprint 覆盖用户已经修改的 composition。
+
+Mode Registry 只负责注册和查找 Mode Definition，不是新的 Plugin 系统。UI Plugin、SlotRegistry、LayoutRenderer 和 UIPluginRuntime 均不感知 Mode；第一阶段也不引入 Host、surface、density、`supportsModes`、Template、DOM 注入或 Mode 迁移规则。
+
+---
+
 # 4. AppUIModel
 
 整个前端组合关系只使用一个统一模型。

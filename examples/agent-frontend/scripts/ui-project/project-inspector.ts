@@ -9,6 +9,7 @@ import {
 import { resolveAppUIComposition } from "../../framework/contracts/app-ui-composition";
 import { pathExists } from "./plugin-assets";
 import { uiProjectControlConfig } from "./project-config";
+import { readAgentUIProjectConfig } from "./project-mode";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
   generatePluginRegistry,
@@ -107,6 +108,10 @@ export async function inspectUIProject(
   projectRoot: string,
   config: UIProjectControlConfig = uiProjectControlConfig,
 ): Promise<UIProjectInspection> {
+  const projectConfig = await readAgentUIProjectConfig(
+    projectRoot,
+    config.agentUI.metadataRoot,
+  );
   const appUIModelSource = await readFile(
     path.join(projectRoot, "app-ui", "app-ui.json"),
     "utf8",
@@ -182,6 +187,11 @@ export async function inspectUIProject(
 
   return {
     schemaVersion: 3,
+    mode: projectConfig.config.mode,
+    modeResolution: {
+      legacy: projectConfig.legacy,
+      configPath: projectConfig.path,
+    },
     appUIModel: {
       hash: createHash("sha256").update(appUIModelSource).digest("hex"),
       version: model.version,

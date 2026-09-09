@@ -93,7 +93,7 @@ def create_project_control_tools(
 
     @tool("inspect_ui_project")
     async def inspect_ui_project() -> str:
-        """Inspect the target project's authoritative UI composition and registry state."""
+        """Inspect the target project's Mode, UI composition, and registry state."""
         try:
             result = await client.inspect_ui_project()
             observe(result.get("appUIModel", {}).get("hash"), "inspect_ui_project")

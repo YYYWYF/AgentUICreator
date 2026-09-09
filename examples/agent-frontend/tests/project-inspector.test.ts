@@ -39,6 +39,11 @@ describe("inspectUIProject", () => {
 
     const result = await inspectUIProject(projectRoot);
 
+    expect(result.mode).toBe("platform");
+    expect(result.modeResolution).toEqual({
+      legacy: false,
+      configPath: ".agent-ui/project.json",
+    });
     expect(result.appUIModel.slots).toContainEqual(
       expect.objectContaining({
         slotId: "conversation.message.tool-activity",
@@ -166,8 +171,24 @@ describe("inspectUIProject", () => {
       PLUGIN_REGISTRY_ENTRY_SOURCE,
     );
 
-    const result = await inspectUIProject(projectRoot, fixtureConfig);
+    const legacyResult = await inspectUIProject(projectRoot, fixtureConfig);
 
+    expect(legacyResult.mode).toBe("platform");
+    expect(legacyResult.modeResolution).toEqual({
+      legacy: true,
+      configPath: ".agent-ui/project.json",
+    });
+    await mkdir(path.join(projectRoot, ".agent-ui"));
+    await writeFile(
+      path.join(projectRoot, ".agent-ui", "project.json"),
+      JSON.stringify({ version: "1", mode: "assistant" }),
+    );
+    const result = await inspectUIProject(projectRoot, fixtureConfig);
+    expect(result.mode).toBe("assistant");
+    expect(result.modeResolution).toEqual({
+      legacy: false,
+      configPath: ".agent-ui/project.json",
+    });
     expect(result.appUIModel.hash).toMatch(/^[a-f0-9]{64}$/u);
     expect(result.appUIModel.slots).toEqual([
       {

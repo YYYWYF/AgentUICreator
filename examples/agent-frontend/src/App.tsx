@@ -18,6 +18,7 @@ import {
   parseAppUIModel,
   parseAppUIModelJson,
 } from "../framework/contracts/app-ui-model";
+import { resolveAgentUIProjectConfig } from "../framework/contracts/agent-ui-project";
 import { pluginDefinitions } from "../plugins";
 import {
   AGENT_UI_THEME_SERVICE,
@@ -47,6 +48,17 @@ import { AgentUIRoot } from "../agent-ui/foundation/AgentUIRoot";
 import { resolveAgentEndpoint } from "./agent-endpoint";
 import "./preview-shell.css";
 
+const projectConfigSources = import.meta.glob<string>(
+  "../.agent-ui/project.json",
+  { eager: true, import: "default", query: "?raw" },
+);
+const projectConfigJsonSource =
+  projectConfigSources["../.agent-ui/project.json"];
+export const currentAgentUIMode = resolveAgentUIProjectConfig(
+  projectConfigJsonSource === undefined
+    ? undefined
+    : JSON.parse(projectConfigJsonSource),
+).config.mode;
 const initialAppUIModel = parseAppUIModelJson(appUIJsonSource);
 const pluginRegistry = createPluginRegistry<AppAgentState>(pluginDefinitions);
 const appEventRegistry = new AppEventRegistry(appEventSchemas);
@@ -124,7 +136,7 @@ function AgentFrontendSurface({
   const themeService = usePluginService<AgentUIThemeService>(
     AGENT_UI_THEME_SERVICE,
   );
-  const mode = useSyncExternalStore(
+  const themeMode = useSyncExternalStore(
     themeService?.subscribe ?? subscribeToNothing,
     themeService?.getMode ?? getDefaultThemeMode,
     themeService?.getMode ?? getDefaultThemeMode,
@@ -132,11 +144,11 @@ function AgentFrontendSurface({
 
   return (
     <AgentUIRoot
-      theme={mode}
+      theme={themeMode}
       className="development-preview"
       data-agent-runtime={agentRuntime.mode}
     >
-      <XProvider theme={agentFrontendThemes[mode]}>
+      <XProvider theme={agentFrontendThemes[themeMode]}>
         <UIPluginRuntime
           actions={actions}
           className="agent-template-shell"
