@@ -189,6 +189,12 @@ the development Registry and manually reproduce its templates.
 Installed Agent UI primitives are reusable local project source. Inspect the
 existing primitive before using or modifying it rather than guessing its API.
 
+Agent Components are reusable local React source under /agent-ui/components.
+Before creating common agent surfaces such as a composer, message, reasoning
+view, or tool activity view, inspect available Agent UI Source Items and reuse
+them. Read installed source before using it. Do not introduce assistant-ui as a
+project dependency; assistant-ui may be an upstream design reference only.
+
 Before creating local equivalents of common interaction UI, inspect Agent UI
 source items and reuse installed or available primitives such as tabs,
 dropdown-menu, collapsible, scroll-area, switch, avatar, badge, and skeleton.

@@ -2,8 +2,19 @@
   "schemaVersion": 1,
   "sourceRoot": "agent-ui",
   "items": {
+    "agent-component/composer": {
+      "version": "0.1.0",
+      "files": {
+        "components/composer.module.css": {
+          "sha256": "dcbf3a0cea14db561f6c28fdf27f651099e4ee0969ef8bd24495df559864b962"
+        },
+        "components/composer.tsx": {
+          "sha256": "afced05b962a3f13965a4e4b4a64f9b255b54128ff29594868dc618d57d5def2"
+        }
+      }
+    },
     "foundation/core": {
-      "version": "0.2.1",
+      "version": "0.2.2",
       "files": {
         "foundation/AgentUIRoot.tsx": {
           "sha256": "72491c31fa94bec330ec42b2df7148ffb6fa3ad33dd407efe907d510bc482b80"
@@ -21,7 +32,7 @@
           "sha256": "e77894e090b8340cf5f3cba1e00a2459599ba96a68668ae4055e1d4ef3c2d183"
         },
         "THIRD_PARTY_NOTICES.md": {
-          "sha256": "5bfe67e07ca67aad91d1ef7ae888d41b8f2256109f9b5ee67591b5640e9b0577"
+          "sha256": "691876965504990cf1fd517c30668b7e6120789bf1cf4c51f755689401024d16"
         }
       }
     },
@@ -48,13 +59,13 @@
       }
     },
     "primitive/button": {
-      "version": "0.2.0",
+      "version": "0.2.1",
       "files": {
         "primitives/button.module.css": {
           "sha256": "75cf38b470d256542fc2a02dba6df095023f966329f82d58fdcb351173601d7b"
         },
         "primitives/button.tsx": {
-          "sha256": "46dedd30b0a1c0290832e296bc195a65048a69964b4881b55da62d92cdb621ef"
+          "sha256": "bcc602a0504f59773fcfe02502738fee0ed16e4da5fdf3c051bd7db681a59734"
         }
       }
     },
@@ -191,13 +202,13 @@
       }
     },
     "primitive/textarea": {
-      "version": "0.2.0",
+      "version": "0.2.1",
       "files": {
         "primitives/textarea.module.css": {
-          "sha256": "5d6fdc08a5405490a4af7b237c1ae59adf7d2a478af7d9751edbded620565120"
+          "sha256": "30e1c0a2c8400bdf7ac7e489c698e6c43ebb6751c46e7b5760910d3c804dad34"
         },
         "primitives/textarea.tsx": {
-          "sha256": "b506274398750a6e11fbc9eadeef16b2eb37581d31a9fbcec850a2e64790b109"
+          "sha256": "8ada7e4ffc5ed597693b3f3e95e3092a034aa5b97ecf8a2ddab7a45ffc81d65c"
         }
       }
     },

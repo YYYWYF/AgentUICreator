@@ -39,6 +39,29 @@
   border-color: var(--aui-danger);
 }
 
+.root[data-variant="bare"] {
+  min-height: var(--aui-control-height-md);
+  padding: 0;
+  resize: none;
+  border-color: transparent;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.root[data-variant="bare"]:hover:not(:disabled),
+.root[data-variant="bare"][aria-invalid="true"] {
+  border-color: transparent;
+}
+
+.root[data-variant="bare"]:focus-visible {
+  outline: none;
+}
+
+.root[data-variant="bare"]:disabled {
+  background: transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .root {
     transition-duration: 0ms;

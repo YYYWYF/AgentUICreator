@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "agent-component/composer",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Props-driven Agent UI composer",
+  "upstream": {
+    "project": "assistant-ui/assistant-ui",
+    "component": "elements-composer",
+    "implementation": "react",
+    "revision": "3a45a01c0d6141102638ecd4f32d1af4d01fb510",
+    "mode": "adapted",
+    "license": "MIT"
+  },
+  "requires": [
+    "foundation/core",
+    "primitive/button",
+    "primitive/textarea"
+  ],
+  "files": [
+    {
+      "source": "files/components/composer.tsx",
+      "target": "components/composer.tsx"
+    },
+    {
+      "source": "files/components/composer.module.css",
+      "target": "components/composer.module.css"
+    }
+  ]
+}

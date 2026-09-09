@@ -1,3 +1,6 @@
+import { useState, type ReactNode } from "react";
+
+import { AgentComposer } from "../../agent-ui/components/composer";
 import { AgentUIRoot, type AgentUITheme } from "../../agent-ui/foundation/AgentUIRoot";
 import { Avatar, AvatarBadge, AvatarFallback } from "../../agent-ui/primitives/avatar";
 import { Badge } from "../../agent-ui/primitives/badge";
@@ -62,6 +65,39 @@ const swatches = [
   ["Danger", "--aui-danger"],
   ["Border", "--aui-border"],
 ] as const;
+
+interface ComposerFixtureProps {
+  label: string;
+  initialValue?: string;
+  running?: boolean;
+  disabled?: boolean;
+  actions?: ReactNode;
+}
+
+function ComposerFixture({
+  label,
+  initialValue = "",
+  running = false,
+  disabled = false,
+  actions,
+}: ComposerFixtureProps) {
+  const [value, setValue] = useState(initialValue);
+
+  return (
+    <article className={styles.composerFixture}>
+      <span className={styles.fixtureLabel}>{label}</span>
+      <AgentComposer
+        value={value}
+        onValueChange={setValue}
+        onSubmit={() => undefined}
+        running={running}
+        onStop={running ? () => undefined : undefined}
+        disabled={disabled}
+        actions={actions}
+      />
+    </article>
+  );
+}
 
 function ThemeGallery({ theme }: { theme: AgentUITheme }) {
   const inputId = `${theme}-gallery-input`;
@@ -144,6 +180,30 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
             <Label>Invalid textarea</Label>
             <Textarea defaultValue="Needs revision" aria-invalid />
           </div>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <h2>Agent Components</h2>
+        <div className={styles.composerGrid}>
+          <ComposerFixture label="Empty" />
+          <ComposerFixture label="Draft" initialValue="Summarize the latest project activity." />
+          <ComposerFixture
+            label="Multiline"
+            initialValue={"Compare the current plan with the implementation.\nCall out the important differences.\nSuggest the smallest next step."}
+          />
+          <ComposerFixture label="Running" initialValue="Continue the analysis" running />
+          <ComposerFixture label="Disabled" initialValue="This composer is unavailable." disabled />
+          <ComposerFixture
+            label="With Actions"
+            initialValue="Ask with additional context"
+            actions={(
+              <>
+                <Button type="button" variant="ghost" size="sm">Attach</Button>
+                <Button type="button" variant="ghost" size="sm">Context</Button>
+              </>
+            )}
+          />
         </div>
       </section>
 

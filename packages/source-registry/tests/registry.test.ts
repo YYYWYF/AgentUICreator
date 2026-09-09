@@ -268,4 +268,22 @@ describe("Agent UI Source Registry contract", () => {
       }
     }
   });
+
+  it("registers the Composer as a pinned Agent Component with local dependencies", async () => {
+    const registry = await loadAgentUISourceRegistry();
+    const composer = registry.byId.get("agent-component/composer");
+    expect(composer).toMatchObject({
+      version: "0.1.0",
+      kind: "agent-component",
+      requires: ["foundation/core", "primitive/button", "primitive/textarea"],
+      upstream: {
+        project: "assistant-ui/assistant-ui",
+        component: "elements-composer",
+        implementation: "react",
+        revision: "3a45a01c0d6141102638ecd4f32d1af4d01fb510",
+        mode: "adapted",
+        license: "MIT",
+      },
+    });
+  });
 });

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "primitive/textarea",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "kind": "primitive",
   "description": "Agent UI textarea primitive",
   "upstream": {

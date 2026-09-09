@@ -72,6 +72,10 @@
     {
       "id": "primitive/skeleton",
       "path": "items/primitive-skeleton/item.json"
+    },
+    {
+      "id": "agent-component/composer",
+      "path": "items/agent-component-composer/item.json"
     }
   ]
 }
