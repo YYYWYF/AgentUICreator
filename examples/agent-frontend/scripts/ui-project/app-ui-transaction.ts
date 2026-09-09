@@ -12,7 +12,7 @@ import { z } from "zod";
 
 import {
   parseAppUIModel,
-  parseAppUIModelJsonWithMigrations,
+  parseAppUIModelJson,
   type AppUIModel,
   type LayoutNode,
 } from "../../framework/contracts/app-ui-model";
@@ -479,9 +479,8 @@ function semanticModelSource(
   before: AppUIModel,
   beforeSource: string,
   after: AppUIModel,
-  forceCanonicalWrite: boolean,
 ): string {
-  return !forceCanonicalWrite && JSON.stringify(before) === JSON.stringify(after)
+  return JSON.stringify(before) === JSON.stringify(after)
     ? beforeSource
     : `${JSON.stringify(after, null, 2)}\n`;
 }
@@ -506,11 +505,8 @@ async function runTransaction(
 
   let beforeModel: AppUIModel;
   let afterModel: AppUIModel;
-  let forceCanonicalWrite = false;
   try {
-    const parsedBefore = parseAppUIModelJsonWithMigrations(beforeModelSource);
-    beforeModel = parsedBefore.model;
-    forceCanonicalWrite = parsedBefore.migrations.length > 0;
+    beforeModel = parseAppUIModelJson(beforeModelSource);
     afterModel = parseAppUIModel(
       applyAppUIOperations(beforeModel, input.operations as AppUIOperation[]),
     );
@@ -555,7 +551,6 @@ async function runTransaction(
     beforeModel,
     beforeModelSource,
     afterModel,
-    forceCanonicalWrite,
   );
   const beforeRegistrySource = await readOptional(registryPath);
   const changes = [

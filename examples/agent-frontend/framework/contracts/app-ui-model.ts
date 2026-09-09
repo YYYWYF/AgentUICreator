@@ -1,10 +1,5 @@
 import { z } from "zod";
 
-import {
-  migratePersistedAppUIModelInput,
-  type PersistedAppUIModelMigration,
-} from "./app-ui-model-migrations";
-
 export const APP_UI_MODEL_VERSION = "2" as const;
 
 export type LayoutSize = number | string;
@@ -228,16 +223,5 @@ export function parseAppUIModel(input: unknown): AppUIModel {
 }
 
 export function parseAppUIModelJson(source: string): AppUIModel {
-  return parseAppUIModelJsonWithMigrations(source).model;
-}
-
-export function parseAppUIModelJsonWithMigrations(source: string): {
-  model: AppUIModel;
-  migrations: PersistedAppUIModelMigration[];
-} {
-  const migrated = migratePersistedAppUIModelInput(JSON.parse(source) as unknown);
-  return {
-    model: parseAppUIModel(migrated.input),
-    migrations: migrated.migrations,
-  };
+  return parseAppUIModel(JSON.parse(source));
 }
