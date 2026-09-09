@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "primitive/tooltip",
+  "version": "0.2.0",
+  "kind": "primitive",
+  "description": "Agent UI accessible tooltip primitive with a root-scoped portal",
+  "upstream": {
+    "project": "shadcn/ui",
+    "component": "tooltip",
+    "implementation": "base-ui",
+    "revision": "3ba91b1cc83e1bbe4ab35a422ff2a694849c5048",
+    "mode": "adapted",
+    "license": "MIT"
+  },
+  "requires": ["foundation/core"],
+  "packages": {
+    "@base-ui/react": ">=1.8.0 <2"
+  },
+  "files": [
+    {
+      "source": "files/primitives/tooltip.tsx",
+      "target": "primitives/tooltip.tsx"
+    },
+    {
+      "source": "files/primitives/tooltip.module.css",
+      "target": "primitives/tooltip.module.css"
+    }
+  ]
+}

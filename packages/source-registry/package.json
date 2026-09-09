@@ -14,7 +14,9 @@
   },
   "files": [
     "dist",
-    "registry/**"
+    "registry/**",
+    "THIRD_PARTY_NOTICES.md",
+    "UPSTREAM_ADAPTATION.md"
   ],
   "publishConfig": {
     "access": "public"

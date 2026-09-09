@@ -186,6 +186,9 @@ apply_agent_ui_source_item call using the returned stateHash. The Host resolves
 declared source-item dependencies and performs the copy transaction. Never read
 the development Registry and manually reproduce its templates.
 
+Installed Agent UI primitives are reusable local project source. Inspect the
+existing primitive before using or modifying it rather than guessing its API.
+
 apply_agent_ui_source_item installs or safely synchronizes one Registry item. It
 never overwrites customized managed files, partial installations, or untracked
 collisions. If it reports AGENT_UI_SOURCE_STATE_CONFLICT, inspect current source

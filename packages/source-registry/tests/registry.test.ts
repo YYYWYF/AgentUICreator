@@ -218,4 +218,54 @@ describe("Agent UI Source Registry contract", () => {
       code: "AGENT_UI_SOURCE_ITEM_LIMIT_EXCEEDED",
     });
   });
+
+  it("validates optional upstream provenance without changing schemaVersion", () => {
+    expect(parseSourceItem(item("primitive/original", {
+      upstream: { project: "AgentUICreator", mode: "original" },
+    }), "item.json")).toMatchObject({
+      schemaVersion: 1,
+      upstream: { project: "AgentUICreator", mode: "original" },
+    });
+
+    const adapted = {
+      project: "shadcn/ui",
+      component: "dialog",
+      implementation: "base-ui",
+      revision: "3ba91b1cc83e1bbe4ab35a422ff2a694849c5048",
+      mode: "adapted",
+      license: "MIT",
+    };
+    expect(parseSourceItem(item("primitive/adapted", { upstream: adapted }), "item.json"))
+      .toMatchObject({ upstream: adapted });
+
+    for (const upstream of [
+      { project: "shadcn/ui", mode: "adapted" },
+      { ...adapted, revision: "abc123" },
+      { ...adapted, revision: "latest" },
+      { ...adapted, revision: "main" },
+      { ...adapted, revision: "master" },
+    ]) {
+      expect(() => parseSourceItem(
+        item("primitive/invalid-upstream", { upstream }),
+        "item.json",
+      )).toThrow(AgentUISourceRegistryError);
+    }
+  });
+
+  it("requires provenance on every production primitive", async () => {
+    const registry = await loadAgentUISourceRegistry();
+    const primitives = registry.items.filter((entry) => entry.kind === "primitive");
+    expect(primitives).toHaveLength(9);
+    for (const primitive of primitives) {
+      expect(primitive.upstream, primitive.id).toMatchObject({
+        project: expect.any(String),
+        mode: expect.stringMatching(/^(adapted|original)$/u),
+      });
+      if (primitive.upstream?.mode === "adapted") {
+        expect(primitive.upstream.component, primitive.id).toBeTruthy();
+        expect(primitive.upstream.license, primitive.id).toBeTruthy();
+        expect(primitive.upstream.revision, primitive.id).toMatch(/^[a-f0-9]{40}$/u);
+      }
+    }
+  });
 });

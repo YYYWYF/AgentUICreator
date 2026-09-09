@@ -1,0 +1,45 @@
+.root {
+  width: 100%;
+  height: var(--aui-control-height-md);
+  padding: 0 var(--aui-space-3);
+  border: 1px solid var(--aui-border);
+  border-radius: var(--aui-radius-sm);
+  color: var(--aui-fg);
+  font-family: var(--aui-font-sans);
+  font-size: var(--aui-font-size-sm);
+  line-height: var(--aui-line-height-normal);
+  background: var(--aui-bg-elevated);
+  transition:
+    background-color var(--aui-duration-fast) var(--aui-ease-standard),
+    border-color var(--aui-duration-fast) var(--aui-ease-standard),
+    box-shadow var(--aui-duration-fast) var(--aui-ease-standard);
+}
+
+.root:hover:not(:disabled) {
+  border-color: var(--aui-border-strong);
+}
+
+.root::placeholder {
+  color: var(--aui-fg-subtle);
+}
+
+.root:focus-visible {
+  outline: 2px solid var(--aui-focus);
+  outline-offset: 2px;
+}
+
+.root:disabled {
+  cursor: not-allowed;
+  color: var(--aui-fg-disabled);
+  background: var(--aui-bg-muted);
+}
+
+.root[aria-invalid="true"] {
+  border-color: var(--aui-danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    transition-duration: 0ms;
+  }
+}

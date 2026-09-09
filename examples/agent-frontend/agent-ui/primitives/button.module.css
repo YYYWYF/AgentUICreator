@@ -1,16 +1,33 @@
 .root {
-  min-height: 2.25rem;
-  padding: var(--aui-space-2) var(--aui-space-3);
-  border: 1px solid var(--aui-border);
+  display: inline-flex;
+  min-width: 0;
+  height: var(--aui-control-height-md);
+  align-items: center;
+  justify-content: center;
+  gap: var(--aui-space-2);
+  padding: 0 var(--aui-space-4);
+  border: 1px solid transparent;
   border-radius: var(--aui-radius-sm);
-  color: var(--aui-fg);
-  font: inherit;
-  background: var(--aui-bg);
+  color: var(--aui-fg-on-accent);
+  font-family: var(--aui-font-sans);
+  font-size: var(--aui-font-size-sm);
+  font-weight: var(--aui-font-weight-medium);
+  line-height: var(--aui-line-height-tight);
+  background: var(--aui-accent);
   cursor: pointer;
+  transition:
+    color var(--aui-duration-fast) var(--aui-ease-standard),
+    background-color var(--aui-duration-fast) var(--aui-ease-standard),
+    border-color var(--aui-duration-fast) var(--aui-ease-standard),
+    box-shadow var(--aui-duration-fast) var(--aui-ease-standard);
 }
 
 .root:hover:not(:disabled) {
-  background: var(--aui-bg-subtle);
+  background: var(--aui-accent-hover);
+}
+
+.root:active:not(:disabled) {
+  background: var(--aui-accent-active);
 }
 
 .root:focus-visible {
@@ -20,5 +37,66 @@
 
 .root:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  color: var(--aui-fg-disabled);
+  background: var(--aui-bg-muted);
+}
+
+.root[data-variant="secondary"] {
+  color: var(--aui-fg);
+  background: var(--aui-bg-muted);
+}
+
+.root[data-variant="secondary"]:hover:not(:disabled),
+.root[data-variant="outline"]:hover:not(:disabled),
+.root[data-variant="ghost"]:hover:not(:disabled) {
+  background: var(--aui-bg-hover);
+}
+
+.root[data-variant="secondary"]:active:not(:disabled),
+.root[data-variant="outline"]:active:not(:disabled),
+.root[data-variant="ghost"]:active:not(:disabled) {
+  background: var(--aui-bg-active);
+}
+
+.root[data-variant="outline"] {
+  border-color: var(--aui-border);
+  color: var(--aui-fg);
+  background: var(--aui-bg-elevated);
+}
+
+.root[data-variant="ghost"] {
+  color: var(--aui-fg);
+  background: transparent;
+}
+
+.root[data-variant="danger"] {
+  color: var(--aui-danger-fg);
+  background: var(--aui-danger);
+}
+
+.root[data-variant="danger"]:hover:not(:disabled) {
+  background: var(--aui-danger-hover);
+}
+
+.root[data-size="sm"] {
+  height: var(--aui-control-height-sm);
+  padding: 0 var(--aui-space-3);
+  font-size: var(--aui-font-size-xs);
+}
+
+.root[data-size="lg"] {
+  height: var(--aui-control-height-lg);
+  padding: 0 var(--aui-space-5);
+  font-size: var(--aui-font-size-md);
+}
+
+.root[data-size="icon"] {
+  width: var(--aui-control-height-md);
+  padding: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    transition-duration: 0ms;
+  }
 }

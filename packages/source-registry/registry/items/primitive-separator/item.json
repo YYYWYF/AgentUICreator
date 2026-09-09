@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "primitive/separator",
+  "version": "0.2.0",
+  "kind": "primitive",
+  "description": "Agent UI horizontal and vertical separator primitive",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
+  "requires": ["foundation/core"],
+  "files": [
+    {
+      "source": "files/primitives/separator.tsx",
+      "target": "primitives/separator.tsx"
+    },
+    {
+      "source": "files/primitives/separator.module.css",
+      "target": "primitives/separator.module.css"
+    }
+  ]
+}

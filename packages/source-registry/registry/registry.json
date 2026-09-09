@@ -10,12 +10,36 @@
       "path": "items/primitive-button/item.json"
     },
     {
+      "id": "primitive/input",
+      "path": "items/primitive-input/item.json"
+    },
+    {
       "id": "primitive/textarea",
       "path": "items/primitive-textarea/item.json"
     },
     {
+      "id": "primitive/label",
+      "path": "items/primitive-label/item.json"
+    },
+    {
+      "id": "primitive/separator",
+      "path": "items/primitive-separator/item.json"
+    },
+    {
+      "id": "primitive/spinner",
+      "path": "items/primitive-spinner/item.json"
+    },
+    {
       "id": "primitive/dialog",
       "path": "items/primitive-dialog/item.json"
+    },
+    {
+      "id": "primitive/tooltip",
+      "path": "items/primitive-tooltip/item.json"
+    },
+    {
+      "id": "primitive/popover",
+      "path": "items/primitive-popover/item.json"
     }
   ]
 }

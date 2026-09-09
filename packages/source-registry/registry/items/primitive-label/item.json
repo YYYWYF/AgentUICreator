@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "primitive/label",
+  "version": "0.2.0",
+  "kind": "primitive",
+  "description": "Agent UI form label primitive",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
+  "requires": ["foundation/core"],
+  "files": [
+    {
+      "source": "files/primitives/label.tsx",
+      "target": "primitives/label.tsx"
+    },
+    {
+      "source": "files/primitives/label.module.css",
+      "target": "primitives/label.module.css"
+    }
+  ]
+}

@@ -30,9 +30,14 @@ export function AgentUIRoot({
 
   return (
     <AgentUIRootContext.Provider value={context}>
-      <div {...rootProps} data-agent-ui-root data-agent-ui-theme={theme}>
+      <div
+        {...rootProps}
+        data-agent-ui-root
+        data-agent-ui-theme={theme}
+        data-slot="agent-ui-root"
+      >
         {portalContainer === null ? null : children}
-        <div ref={portalRef} data-agent-ui-portal-host />
+        <div ref={portalRef} data-agent-ui-portal-host data-slot="agent-ui-portal-host" />
       </div>
     </AgentUIRootContext.Provider>
   );

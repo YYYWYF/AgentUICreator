@@ -1,0 +1,22 @@
+.root {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: none;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--aui-radius-full);
+  animation: aui-spinner-rotate var(--aui-duration-slow) linear infinite;
+}
+
+@keyframes aui-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    animation-duration: calc(var(--aui-duration-slow) * 4);
+  }
+}

@@ -1,0 +1,12 @@
+.root {
+  color: var(--aui-fg);
+  font-family: var(--aui-font-sans);
+  font-size: var(--aui-font-size-sm);
+  font-weight: var(--aui-font-weight-medium);
+  line-height: var(--aui-line-height-normal);
+}
+
+.root[data-state="disabled"] {
+  color: var(--aui-fg-disabled);
+  cursor: not-allowed;
+}

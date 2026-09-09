@@ -1,9 +1,13 @@
 {
   "schemaVersion": 1,
   "id": "foundation/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "kind": "foundation",
   "description": "Scoped Agent UI root, context, utilities, tokens, and reset",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
   "files": [
     {
       "source": "files/foundation/AgentUIRoot.tsx",
@@ -24,6 +28,10 @@
     {
       "source": "files/styles/reset.css",
       "target": "styles/reset.css"
+    },
+    {
+      "source": "files/THIRD_PARTY_NOTICES.md",
+      "target": "THIRD_PARTY_NOTICES.md"
     }
   ]
 }

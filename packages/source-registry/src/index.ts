@@ -15,6 +15,7 @@ export type {
   AgentUISourceFile,
   AgentUISourceItem,
   AgentUISourceItemKind,
+  AgentUISourceUpstream,
   AgentUISourceRegistryManifest,
   LoadedAgentUISourceFile,
   LoadedAgentUISourceItem,

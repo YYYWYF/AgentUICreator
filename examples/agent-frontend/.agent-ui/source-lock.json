@@ -3,10 +3,10 @@
   "sourceRoot": "agent-ui",
   "items": {
     "foundation/core": {
-      "version": "0.1.0",
+      "version": "0.2.0",
       "files": {
         "foundation/AgentUIRoot.tsx": {
-          "sha256": "1b022cefd402f21fb00d7d5b178421aa99dd8f74032866c549a97d7bb5137a9e"
+          "sha256": "72491c31fa94bec330ec42b2df7148ffb6fa3ad33dd407efe907d510bc482b80"
         },
         "foundation/context.ts": {
           "sha256": "da1b9cafab4ed5e017fbf6856610b17c186b7c31b42450579ed357cb6c6bafcf"
@@ -18,40 +18,109 @@
           "sha256": "70b915d327ea634b2859551a99b14b866cfc8c48dc8b152c2015f4e74577d038"
         },
         "styles/tokens.css": {
-          "sha256": "293ed2b49ded006491bf48644e9050267e70e510a680ec5e239e8298110358d4"
+          "sha256": "e77894e090b8340cf5f3cba1e00a2459599ba96a68668ae4055e1d4ef3c2d183"
+        },
+        "THIRD_PARTY_NOTICES.md": {
+          "sha256": "2cb36ac95ba031172c426cbcdb3b38bf077b22c18a2613794c47879ccf3ca372"
         }
       }
     },
     "primitive/button": {
-      "version": "0.1.0",
+      "version": "0.2.0",
       "files": {
         "primitives/button.module.css": {
-          "sha256": "d524965315310630fe85d5376aa8090f1d0be0bfe0ffce5ad10638908c52067e"
+          "sha256": "75cf38b470d256542fc2a02dba6df095023f966329f82d58fdcb351173601d7b"
         },
         "primitives/button.tsx": {
-          "sha256": "a9a05a85bdb2fe564cc2edec0f134b29a2f5f60ccbe54c45e5a9153be9e4ec2b"
+          "sha256": "46dedd30b0a1c0290832e296bc195a65048a69964b4881b55da62d92cdb621ef"
         }
       }
     },
     "primitive/dialog": {
-      "version": "0.1.0",
+      "version": "0.2.0",
       "files": {
         "primitives/dialog.module.css": {
-          "sha256": "78ae774a588437b9b855867c353a1f76e03f2100090ab6118407fbe111faf20f"
+          "sha256": "b65d0dd240732f96bc0630ca85ab1fee6daace309d5f5b7dca29cf86185bd1ae"
         },
         "primitives/dialog.tsx": {
-          "sha256": "b9f530d105eca6b07deeaa7384f1446a30a9d6f02f23c17fb5b05883c7b4a9c6"
+          "sha256": "5d1faafadbf81fb849f86f25570efda23db687424b04136f56301b1cedc2b11b"
+        }
+      }
+    },
+    "primitive/input": {
+      "version": "0.2.0",
+      "files": {
+        "primitives/input.module.css": {
+          "sha256": "140ef91f23d151add63458ec3549997afc5bf4d8167785903124ff7dad54de1c"
+        },
+        "primitives/input.tsx": {
+          "sha256": "7a300ce3f8741e219f2c3f283443755de82e852a449509e4edf912ecea508e14"
+        }
+      }
+    },
+    "primitive/label": {
+      "version": "0.2.0",
+      "files": {
+        "primitives/label.module.css": {
+          "sha256": "e3871854ced026b394ee2f6539f02d860820111d7cbb47a84f7f4592c61eb5a5"
+        },
+        "primitives/label.tsx": {
+          "sha256": "57271a7ac0f5f811bde7f0078480ab6e35f728d3dd6d2c6a959af8ad8e71db0c"
+        }
+      }
+    },
+    "primitive/popover": {
+      "version": "0.2.0",
+      "files": {
+        "primitives/popover.module.css": {
+          "sha256": "6b879fd80095498f6e39312b10a09cbd0fd0900149c4e111bc7b66a869d40913"
+        },
+        "primitives/popover.tsx": {
+          "sha256": "0d4fd5264543b55dd844ce7e878d6edde54e116cb1cca5049a48f5d8d7ff66c1"
+        }
+      }
+    },
+    "primitive/separator": {
+      "version": "0.2.0",
+      "files": {
+        "primitives/separator.module.css": {
+          "sha256": "76b772a55f28a062b04182b0796d03d268997a5250fc43243f5414440702570d"
+        },
+        "primitives/separator.tsx": {
+          "sha256": "d4e4e16af569456c34e5a036ed6739f41ca738b7393ccd34f5cac9b3f482a243"
+        }
+      }
+    },
+    "primitive/spinner": {
+      "version": "0.2.0",
+      "files": {
+        "primitives/spinner.module.css": {
+          "sha256": "b451d2bb5f2a7b516d4115fcc5086c5c4892ce6da9c41706a100a6b5390a34b5"
+        },
+        "primitives/spinner.tsx": {
+          "sha256": "3b0dfae033d8cd1d394e8f7a0df756e5d0dbb783503235064781cf5bf2c61b2d"
         }
       }
     },
     "primitive/textarea": {
-      "version": "0.1.0",
+      "version": "0.2.0",
       "files": {
         "primitives/textarea.module.css": {
-          "sha256": "90a8be9d6323517a88bd476ea0798205d492460df19de4bc4e4d45bf6e0cc4ba"
+          "sha256": "5d6fdc08a5405490a4af7b237c1ae59adf7d2a478af7d9751edbded620565120"
         },
         "primitives/textarea.tsx": {
-          "sha256": "53f5788a20124903434abb2b26e7bc86279d55e6a813e8c4f712b79de5459988"
+          "sha256": "b506274398750a6e11fbc9eadeef16b2eb37581d31a9fbcec850a2e64790b109"
+        }
+      }
+    },
+    "primitive/tooltip": {
+      "version": "0.2.0",
+      "files": {
+        "primitives/tooltip.module.css": {
+          "sha256": "c15ba8dbabc59860dbfec710ad02e21e551644272b1cccd703c381c027ddb30f"
+        },
+        "primitives/tooltip.tsx": {
+          "sha256": "a5c22ee84e2c2d9c1e6c728e04c868464b22b723ca80337180e69b63409633e5"
         }
       }
     }

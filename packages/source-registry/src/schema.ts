@@ -13,6 +13,8 @@ const ITEM_ID = /^[a-z0-9]+(?:[/-][a-z0-9]+)*$/;
 const PACKAGE_NAME = /^(?:@[a-z0-9._-]+\/[a-z0-9._-]+|[a-z0-9._-]+)$/i;
 const SEMVER = /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 const SEMVER_RANGE = /^(?:[~^]|>=?|<=?)?\s*(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*))?(?:\.(?:0|[1-9]\d*))?(?:-[0-9A-Za-z.-]+)?(?:\s+(?:>=?|<=?)\s*(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*))?(?:\.(?:0|[1-9]\d*))?(?:-[0-9A-Za-z.-]+)?)*$/;
+const GIT_COMMIT_SHA = /^[a-f0-9]{40}$/;
+const FORBIDDEN_UPSTREAM_REVISIONS = new Set(["latest", "main", "master"]);
 
 export class AgentUISourceRegistryError extends Error {
   readonly code: string;
@@ -117,6 +119,58 @@ export function parseSourceItem(value: unknown, manifestPath: string): AgentUISo
       `${manifestPath} must have a description.`,
     );
   }
+  let upstream: AgentUISourceItem["upstream"];
+  if (value.upstream !== undefined) {
+    if (
+      !isRecord(value.upstream) ||
+      typeof value.upstream.project !== "string" ||
+      value.upstream.project.trim().length === 0 ||
+      !(value.upstream.mode === "adapted" || value.upstream.mode === "original")
+    ) {
+      throw new AgentUISourceRegistryError(
+        "AGENT_UI_SOURCE_ITEM_INVALID",
+        `${manifestPath} has invalid upstream metadata.`,
+      );
+    }
+    for (const field of ["component", "implementation", "revision", "license"] as const) {
+      const fieldValue = value.upstream[field];
+      if (fieldValue !== undefined && (typeof fieldValue !== "string" || fieldValue.trim().length === 0)) {
+        throw new AgentUISourceRegistryError(
+          "AGENT_UI_SOURCE_ITEM_INVALID",
+          `${manifestPath} upstream.${field} must be a non-empty string.`,
+        );
+      }
+    }
+    if (
+      typeof value.upstream.revision === "string" &&
+      FORBIDDEN_UPSTREAM_REVISIONS.has(value.upstream.revision.toLowerCase())
+    ) {
+      throw new AgentUISourceRegistryError(
+        "AGENT_UI_SOURCE_ITEM_INVALID",
+        `${manifestPath} must pin an exact upstream revision.`,
+      );
+    }
+    if (
+      value.upstream.mode === "adapted" &&
+      (typeof value.upstream.component !== "string" ||
+        typeof value.upstream.revision !== "string" ||
+        !GIT_COMMIT_SHA.test(value.upstream.revision) ||
+        typeof value.upstream.license !== "string")
+    ) {
+      throw new AgentUISourceRegistryError(
+        "AGENT_UI_SOURCE_ITEM_INVALID",
+        `${manifestPath} adapted upstream metadata requires component, revision, and license.`,
+      );
+    }
+    upstream = {
+      project: value.upstream.project,
+      mode: value.upstream.mode,
+      ...(value.upstream.component === undefined ? {} : { component: value.upstream.component }),
+      ...(value.upstream.implementation === undefined ? {} : { implementation: value.upstream.implementation }),
+      ...(value.upstream.revision === undefined ? {} : { revision: value.upstream.revision }),
+      ...(value.upstream.license === undefined ? {} : { license: value.upstream.license }),
+    };
+  }
   if (!Array.isArray(value.files) || value.files.length === 0) {
     throw new AgentUISourceRegistryError(
       "AGENT_UI_SOURCE_ITEM_INVALID",
@@ -176,6 +230,7 @@ export function parseSourceItem(value: unknown, manifestPath: string): AgentUISo
     version: value.version,
     kind: value.kind as AgentUISourceItem["kind"],
     description: value.description,
+    ...(upstream === undefined ? {} : { upstream }),
     ...(requires === undefined ? {} : { requires }),
     ...(packages === undefined ? {} : { packages }),
     files,

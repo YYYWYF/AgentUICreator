@@ -8,12 +8,22 @@ export interface AgentUISourceFile {
   target: string;
 }
 
+export interface AgentUISourceUpstream {
+  project: string;
+  component?: string;
+  implementation?: string;
+  revision?: string;
+  mode: "adapted" | "original";
+  license?: string;
+}
+
 export interface AgentUISourceItem {
   schemaVersion: 1;
   id: string;
   version: string;
   kind: AgentUISourceItemKind;
   description: string;
+  upstream?: AgentUISourceUpstream;
   requires?: string[];
   packages?: Record<string, string>;
   files: AgentUISourceFile[];

@@ -1,9 +1,17 @@
 {
   "schemaVersion": 1,
   "id": "primitive/dialog",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "kind": "primitive",
   "description": "Agent UI dialog primitive with a root-scoped portal",
+  "upstream": {
+    "project": "shadcn/ui",
+    "component": "dialog",
+    "implementation": "base-ui",
+    "revision": "3ba91b1cc83e1bbe4ab35a422ff2a694849c5048",
+    "mode": "adapted",
+    "license": "MIT"
+  },
   "requires": ["foundation/core"],
   "packages": {
     "@base-ui/react": ">=1.8.0 <2"

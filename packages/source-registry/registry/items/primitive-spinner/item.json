@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "primitive/spinner",
+  "version": "0.2.0",
+  "kind": "primitive",
+  "description": "Agent UI loading spinner primitive",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
+  "requires": ["foundation/core"],
+  "files": [
+    {
+      "source": "files/primitives/spinner.tsx",
+      "target": "primitives/spinner.tsx"
+    },
+    {
+      "source": "files/primitives/spinner.module.css",
+      "target": "primitives/spinner.module.css"
+    }
+  ]
+}

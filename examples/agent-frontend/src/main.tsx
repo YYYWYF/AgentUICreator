@@ -14,7 +14,15 @@ if (rootElement === null) {
 const previewPluginErrors =
   import.meta.env.DEV &&
   new URLSearchParams(window.location.search).has("plugin-error-boundary");
-const RootComponent = previewPluginErrors
+const previewAgentUIPrimitiveGallery =
+  import.meta.env.DEV &&
+  new URLSearchParams(window.location.search).has("agent-ui-gallery");
+const RootComponent = previewAgentUIPrimitiveGallery
+  ? lazy(async () => {
+      const module = await import("./dev/AgentUIPrimitiveGallery");
+      return { default: module.AgentUIPrimitiveGallery };
+    })
+  : previewPluginErrors
   ? lazy(async () => {
       const module = await import("./PluginErrorBoundaryPreview");
       return { default: module.PluginErrorBoundaryPreview };

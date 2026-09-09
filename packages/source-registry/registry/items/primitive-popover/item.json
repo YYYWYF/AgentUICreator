@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "primitive/popover",
+  "version": "0.2.0",
+  "kind": "primitive",
+  "description": "Agent UI accessible popover primitive with a root-scoped portal",
+  "upstream": {
+    "project": "shadcn/ui",
+    "component": "popover",
+    "implementation": "base-ui",
+    "revision": "3ba91b1cc83e1bbe4ab35a422ff2a694849c5048",
+    "mode": "adapted",
+    "license": "MIT"
+  },
+  "requires": ["foundation/core"],
+  "packages": {
+    "@base-ui/react": ">=1.8.0 <2"
+  },
+  "files": [
+    {
+      "source": "files/primitives/popover.tsx",
+      "target": "primitives/popover.tsx"
+    },
+    {
+      "source": "files/primitives/popover.module.css",
+      "target": "primitives/popover.module.css"
+    }
+  ]
+}
