@@ -387,7 +387,7 @@ describe("UIPluginRuntime", () => {
       'data-ui-plugin="antd-x-message-list"',
     );
     const promptsPosition = html.indexOf('data-ui-plugin="antd-x-prompts"');
-    const senderPosition = html.indexOf('data-ui-plugin="antd-x-sender"');
+    const senderPosition = html.indexOf('data-ui-plugin="agent-composer"');
     const timelinePosition = html.indexOf(
       'data-ui-plugin="antd-x-run-timeline"',
     );
@@ -845,7 +845,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain('data-conversation-state="empty"');
     expect(html).toContain('data-ui-plugin="antd-x-welcome"');
     expect(html).toContain('data-ui-plugin="antd-x-prompts"');
-    expect(html).toContain('data-ui-plugin="antd-x-sender"');
+    expect(html).toContain('data-ui-plugin="agent-composer"');
     expect(html).not.toContain('data-ui-plugin="antd-x-message-list"');
     expect(html).toContain("Agent Frontend");
     expect(html).toContain("总结当前上下文");
@@ -895,7 +895,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain('data-conversation-state="empty"');
     expect(html).toContain('data-ui-plugin="antd-x-welcome"');
     expect(html).toContain('data-ui-plugin="antd-x-prompts"');
-    expect(html).toContain('data-ui-plugin="antd-x-sender"');
+    expect(html).toContain('data-ui-plugin="agent-composer"');
     expect(html).not.toContain('data-ui-plugin="antd-x-message-list"');
   });
 
@@ -931,7 +931,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain('data-agent-run-status="running"');
     expect(html).toContain("ant-bubble-loading");
     expect(html).toContain("智能体正在处理");
-    expect(html).toContain('data-ui-plugin="antd-x-sender"');
+    expect(html).toContain('data-ui-plugin="agent-composer"');
     expect(html).not.toContain('data-ui-plugin="antd-x-welcome"');
     expect(html).not.toContain('data-ui-plugin="antd-x-prompts"');
   });
@@ -1075,7 +1075,7 @@ describe("UIPluginRuntime", () => {
       state: previewAgentState,
     });
 
-    expect(html).toContain('data-ui-plugin="antd-x-sender"');
+    expect(html).toContain('data-ui-plugin="agent-composer"');
     expect(html).toContain("输入一条自定义消息");
   });
 
@@ -1941,7 +1941,7 @@ describe("UIPluginRuntime", () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(
       antdXTemplatePlugins.filter(
-        (definition) => definition.manifest.id !== "antd-x-sender",
+        (definition) => definition.manifest.id !== "agent-composer",
       ),
     );
 
@@ -1959,7 +1959,7 @@ describe("UIPluginRuntime", () => {
 
     expect(html).toContain('role="alert"');
     expect(html).toContain(
-      'UI plugin &quot;antd-x-sender&quot; is not registered.',
+      'UI plugin &quot;agent-composer&quot; is not registered.',
     );
   });
 });

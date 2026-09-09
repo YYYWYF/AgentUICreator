@@ -12,7 +12,7 @@ import type {
   AgentRunState,
   AgentUserInput,
 } from "../framework/contracts/ui-plugin";
-import { agentComposerPlugin } from "../plugins/antd-x-sender/definition";
+import { agentComposerPlugin } from "../plugins/agent-composer/definition";
 import { createPluginRegistry } from "../runtime/plugins";
 import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
@@ -22,7 +22,7 @@ const model = parseAppUIModel({
   pluginInstances: {
     sender: {
       id: "sender",
-      pluginId: "antd-x-sender",
+      pluginId: "agent-composer",
       enabled: true,
       mount: { slotId: "sender" },
     },

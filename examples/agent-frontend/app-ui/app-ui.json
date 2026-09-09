@@ -213,7 +213,7 @@
     },
     "agent-sender-main": {
       "id": "agent-sender-main",
-      "pluginId": "antd-x-sender",
+      "pluginId": "agent-composer",
       "enabled": true,
       "mount": {
         "slotId": "conversation.composer"

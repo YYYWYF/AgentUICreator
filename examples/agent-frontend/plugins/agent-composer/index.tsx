@@ -76,7 +76,7 @@ export function AgentComposerPlugin(_props: UIPluginComponentProps) {
       className="agent-composer-plugin"
       data-agent-run-status={binding.runStatus}
       data-conversation-mode={binding.historyMode ? "history" : "live"}
-      data-ui-plugin="antd-x-sender"
+      data-ui-plugin="agent-composer"
     >
       {binding.error === undefined ? null : (
         <div

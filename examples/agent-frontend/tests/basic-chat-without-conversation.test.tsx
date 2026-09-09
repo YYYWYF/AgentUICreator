@@ -15,7 +15,7 @@ import type {
 } from "../framework/contracts/ui-plugin";
 import { antdXConversationsPlugin } from "../plugins/antd-x-conversations/definition";
 import { antdXMessageListPlugin } from "../plugins/antd-x-message-list/definition";
-import { agentComposerPlugin } from "../plugins/antd-x-sender/definition";
+import { agentComposerPlugin } from "../plugins/agent-composer/definition";
 import { conversationSurfacePlugin } from "../plugins/conversation-surface/definition";
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
@@ -51,7 +51,7 @@ const basicChatModel = parseAppUIModel({
     },
     "agent-sender-main": {
       id: "agent-sender-main",
-      pluginId: "antd-x-sender",
+      pluginId: "agent-composer",
       enabled: true,
       mount: { slotId: "conversation.composer" },
     },

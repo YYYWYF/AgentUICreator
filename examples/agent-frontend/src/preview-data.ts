@@ -61,7 +61,7 @@ export const initialPreviewMessages: AgentMessage[] = [
         "antd-x-message-list",
         "antd-x-run-timeline",
         "antd-x-resources",
-        "antd-x-sender",
+        "agent-composer",
       ],
       runtimeCount: 1,
     }),

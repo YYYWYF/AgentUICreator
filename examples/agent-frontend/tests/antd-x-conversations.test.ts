@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import { antdXMessageListPlugin } from "../plugins/antd-x-message-list/definition";
-import { agentComposerPlugin } from "../plugins/antd-x-sender/definition";
+import { agentComposerPlugin } from "../plugins/agent-composer/definition";
 import {
   EMPTY_CONVERSATION_SNAPSHOT,
   getConversationViewMessages,

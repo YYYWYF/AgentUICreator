@@ -1,5 +1,5 @@
 {
-  "id": "antd-x-sender",
+  "id": "agent-composer",
   "name": "Agent Composer",
   "description": "Agent UI Composer 消息输入，支持运行中止与快捷建议。",
   "version": "1.2.0",

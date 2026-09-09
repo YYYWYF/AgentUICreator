@@ -7,11 +7,11 @@ import { describe, expect, it, vi } from "vitest";
 import { AgentUIRoot } from "../agent-ui/foundation/AgentUIRoot";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
-import { agentComposerPlugin } from "../plugins/antd-x-sender/definition";
+import { agentComposerPlugin } from "../plugins/agent-composer/definition";
 import {
   useComposerSuggestions,
   type ComposerSuggestionsController,
-} from "../plugins/antd-x-sender/use-composer-suggestions";
+} from "../plugins/agent-composer/use-composer-suggestions";
 import { createPluginRegistry } from "../runtime/plugins";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
@@ -63,7 +63,7 @@ describe("AgentComposerPlugin history mode", () => {
         },
         sender: {
           id: "sender",
-          pluginId: "antd-x-sender",
+          pluginId: "agent-composer",
           enabled: true,
           mount: { slotId: "sender" },
         },

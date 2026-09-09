@@ -86,21 +86,19 @@ describe("Agent UI component source policy", () => {
     expect(source).not.toMatch(/@base-ui\/react|@radix-ui\/|@ant-design\/x|\bantd\b|tailwindcss|class-variance-authority/u);
   });
 
-  it("keeps the Sender plugin implementation free of Ant Design UI", async () => {
-    const senderRoot = path.join(projectRoot, "plugins/antd-x-sender");
-    const senderFiles = await collectFiles(
-      senderRoot,
+  it("keeps the Composer plugin implementation free of Ant Design UI", async () => {
+    const composerRoot = path.join(projectRoot, "plugins/agent-composer");
+    const composerFiles = await collectFiles(
+      composerRoot,
       (filePath) => /\.(?:css|tsx?)$/u.test(filePath),
     );
-    for (const senderPath of senderFiles) {
-      const source = (await readFile(senderPath, "utf8"))
-        .replaceAll('"antd-x-sender"', '""')
-        .replaceAll("'antd-x-sender'", "''");
-      expect(source, senderPath).not.toMatch(
+    for (const composerPath of composerFiles) {
+      const source = await readFile(composerPath, "utf8");
+      expect(source, composerPath).not.toMatch(
         /@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|\.ant-|antd-/u,
       );
     }
-    const senderCss = await readFile(path.join(senderRoot, "styles.css"), "utf8");
-    expect(senderCss).not.toMatch(/#[0-9a-f]{3,8}\b|\b(?:rgb|hsl|oklch)\s*\(/iu);
+    const composerCss = await readFile(path.join(composerRoot, "styles.css"), "utf8");
+    expect(composerCss).not.toMatch(/#[0-9a-f]{3,8}\b|\b(?:rgb|hsl|oklch)\s*\(/iu);
   });
 });

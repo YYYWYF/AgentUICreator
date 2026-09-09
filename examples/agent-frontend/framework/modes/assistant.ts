@@ -33,7 +33,7 @@ export const assistantMode: AgentUIModeDefinition = {
         },
         "assistant-composer-main": {
           id: "assistant-composer-main",
-          pluginId: "antd-x-sender",
+          pluginId: "agent-composer",
           enabled: true,
           mount: { slotId: "assistant.composer" },
         },
