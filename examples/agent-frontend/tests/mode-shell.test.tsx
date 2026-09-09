@@ -44,6 +44,24 @@ describe("ModeShell", () => {
     },
   );
 
+  it("keeps Embedded sizing scoped to its host container", async () => {
+    const modeShellCss = await readFile(
+      new URL("../runtime/mode-shell/mode-shell.css", import.meta.url),
+      "utf8",
+    );
+    const embeddedShellRule = modeShellCss.match(
+      /\.agent-ui-embedded-shell\s*\{(?<declarations>[^}]*)\}/u,
+    )?.groups?.declarations;
+    const embeddedPreviewRule = modeShellCss.match(
+      /\.agent-ui-embedded-shell\s*>\s*\.development-preview\s*\{(?<declarations>[^}]*)\}/u,
+    )?.groups?.declarations;
+
+    expect(embeddedShellRule).toMatch(/width:\s*100%;/u);
+    expect(embeddedShellRule).toMatch(/height:\s*100%;/u);
+    expect(embeddedPreviewRule).toMatch(/height:\s*100%;/u);
+    expect(embeddedPreviewRule).not.toMatch(/height:\s*100dvh;/u);
+  });
+
   it("toggles the Assistant panel without remounting its UI subtree", async () => {
     const mounted = vi.fn();
     const unmounted = vi.fn();
