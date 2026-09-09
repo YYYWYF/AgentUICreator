@@ -70,7 +70,9 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
     <AgentUIRoot theme={theme} className={styles.theme}>
       <header className={styles.themeHeader}>
         <div>
-          <p className={styles.eyebrow}>Agent UI Foundation 0.2.0</p>
+          <p className={styles.eyebrow}>
+            Agent UI Foundation
+          </p>
           <h1>{theme === "light" ? "Light" : "Dark"} theme</h1>
         </div>
         <span className={styles.status}>Development fixture</span>

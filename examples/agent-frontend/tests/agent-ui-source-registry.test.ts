@@ -1,6 +1,7 @@
 import { mkdtemp, mkdir, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -16,6 +17,10 @@ import {
 } from "../scripts/ui-project/source-registry";
 import type { UIProjectControlConfig } from "../scripts/ui-project/types";
 
+const exampleProjectRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 const config: UIProjectControlConfig = {
   catalogs: [],
   uiPackages: [],
@@ -120,7 +125,10 @@ afterEach(async () => {
 
 describe("Agent UI source ownership", () => {
   it("keeps every Source Item installed by the example fully managed", async () => {
-    const inspection = await inspectAgentUISources(projectRoot, config);
+    const inspection = await inspectAgentUISources(
+      exampleProjectRoot,
+      config,
+    );
     const installed = inspection.items.filter((item) => item.installedVersion !== undefined);
     expect(installed.length).toBeGreaterThan(0);
     expect(installed.map((item) => [item.id, item.status])).toEqual(
