@@ -86,14 +86,21 @@ describe("Agent UI component source policy", () => {
     expect(source).not.toMatch(/@base-ui\/react|@radix-ui\/|@ant-design\/x|\bantd\b|tailwindcss|class-variance-authority/u);
   });
 
-  it("keeps Suggestion as the Sender plugin's only legacy Ant Design bridge", async () => {
-    const senderPath = path.join(
-      projectRoot,
-      "plugins/antd-x-sender/index.tsx",
+  it("keeps the Sender plugin implementation free of Ant Design UI", async () => {
+    const senderRoot = path.join(projectRoot, "plugins/antd-x-sender");
+    const senderFiles = await collectFiles(
+      senderRoot,
+      (filePath) => /\.(?:css|tsx?)$/u.test(filePath),
     );
-    const source = await readFile(senderPath, "utf8");
-    expect(source).toContain('import { Suggestion } from "@ant-design/x";');
-    expect(source).not.toMatch(/<Sender\b|import\s*\{[^}]*\bSender\b/u);
-    expect(source).not.toMatch(/@ant-design\/icons|from\s*["']antd["']/u);
+    for (const senderPath of senderFiles) {
+      const source = (await readFile(senderPath, "utf8"))
+        .replaceAll('"antd-x-sender"', '""')
+        .replaceAll("'antd-x-sender'", "''");
+      expect(source, senderPath).not.toMatch(
+        /@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|\.ant-|antd-/u,
+      );
+    }
+    const senderCss = await readFile(path.join(senderRoot, "styles.css"), "utf8");
+    expect(senderCss).not.toMatch(/#[0-9a-f]{3,8}\b|\b(?:rgb|hsl|oklch)\s*\(/iu);
   });
 });

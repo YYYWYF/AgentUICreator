@@ -1,21 +1,13 @@
-.antd-x-sender-plugin {
+.agent-composer-plugin {
+  position: relative;
   display: grid;
-  gap: 0.65rem;
-  padding: 0.8rem 1.4rem 1.25rem;
-  border-top: 1px solid rgb(139 124 255 / 9%);
-  background:
-    linear-gradient(180deg, rgb(8 18 32 / 88%), #081220 38%),
-    #081220;
+  gap: var(--aui-space-2);
+  padding: var(--aui-space-3) var(--aui-space-4) var(--aui-space-4);
+  border: 0;
+  background: transparent;
 }
 
-.development-preview[data-agent-ui-theme="light"] .antd-x-sender-plugin {
-  border-top-color: rgb(99 86 204 / 8%);
-  background:
-    linear-gradient(180deg, rgb(249 250 254 / 91%), #f7f9fd 38%),
-    #f7f9fd;
-}
-
-.antd-x-sender-plugin-error {
+.agent-composer-plugin-error {
   padding: var(--aui-space-3) var(--aui-space-4);
   border: 1px solid var(--aui-danger);
   border-radius: var(--aui-radius-md);
@@ -23,8 +15,7 @@
   background: var(--aui-bg-subtle);
 }
 
-@media (max-width: 44rem) {
-  .antd-x-sender-plugin {
-    padding: 0.7rem 0.9rem 0.9rem;
-  }
+.agent-composer-plugin-control {
+  position: relative;
+  min-width: 0;
 }

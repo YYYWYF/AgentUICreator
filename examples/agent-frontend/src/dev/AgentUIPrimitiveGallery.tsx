@@ -1,6 +1,10 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 
 import { AgentComposer } from "../../agent-ui/components/composer";
+import {
+  AgentComposerSuggestions,
+  getAgentComposerSuggestionOptionId,
+} from "../../agent-ui/components/composer-suggestions";
 import { AgentUIRoot, type AgentUITheme } from "../../agent-ui/foundation/AgentUIRoot";
 import { Avatar, AvatarBadge, AvatarFallback } from "../../agent-ui/primitives/avatar";
 import { Badge } from "../../agent-ui/primitives/badge";
@@ -95,6 +99,58 @@ function ComposerFixture({
         disabled={disabled}
         actions={actions}
       />
+    </article>
+  );
+}
+
+function ComposerSuggestionsFixture({ theme }: { theme: AgentUITheme }) {
+  const [value, setValue] = useState("/");
+  const [activeIndex, setActiveIndex] = useState(0);
+  const anchor = useRef<HTMLElement>(null);
+  const listId = `${theme}-composer-suggestions`;
+  const items = [
+    {
+      id: "summary",
+      label: "总结当前会话",
+      value: "请总结当前会话，并列出下一步。",
+      description: "提炼目标、约束和下一步",
+    },
+    {
+      id: "tool",
+      label: "解释最近一次工具调用",
+      value: "请解释最近一次工具调用的输入、输出和结论。",
+    },
+  ];
+
+  return (
+    <article className={styles.composerFixture}>
+      <span className={styles.fixtureLabel}>Composer Suggestions</span>
+      <div ref={anchor}>
+        <AgentComposer
+          value={value}
+          onValueChange={setValue}
+          onSubmit={() => undefined}
+          inputProps={{
+            "aria-autocomplete": "list",
+            "aria-haspopup": "listbox",
+            "aria-expanded": true,
+            "aria-controls": listId,
+            "aria-activedescendant": getAgentComposerSuggestionOptionId(
+              listId,
+              items[activeIndex]!.id,
+            ),
+          }}
+        />
+        <AgentComposerSuggestions
+          open
+          items={items}
+          activeIndex={activeIndex}
+          anchor={anchor}
+          listId={listId}
+          onActiveIndexChange={setActiveIndex}
+          onSelect={(item) => setValue(`${item.value} `)}
+        />
+      </div>
     </article>
   );
 }
@@ -204,6 +260,7 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
               </>
             )}
           />
+          <ComposerSuggestionsFixture theme={theme} />
         </div>
       </section>
 

@@ -194,6 +194,8 @@ Before creating common agent surfaces such as a composer, message, reasoning
 view, or tool activity view, inspect available Agent UI Source Items and reuse
 them. Read installed source before using it. Do not introduce assistant-ui as a
 project dependency; assistant-ui may be an upstream design reference only.
+Composer prompt or suggestion UI should reuse agent-component/composer and
+agent-component/composer-suggestions when available.
 
 Before creating local equivalents of common interaction UI, inspect Agent UI
 source items and reuse installed or available primitives such as tabs,

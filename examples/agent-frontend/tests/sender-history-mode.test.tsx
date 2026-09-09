@@ -1,17 +1,23 @@
-import { Suggestion } from "@ant-design/x";
-import { act, create, type ReactTestRenderer } from "react-test-renderer";
+// @vitest-environment jsdom
+
+import { act } from "react";
+import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
 
-import { AgentComposer } from "../agent-ui/components/composer";
+import { AgentUIRoot } from "../agent-ui/foundation/AgentUIRoot";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
-import { antdXSenderPlugin } from "../plugins/antd-x-sender/definition";
+import { agentComposerPlugin } from "../plugins/antd-x-sender/definition";
+import {
+  useComposerSuggestions,
+  type ComposerSuggestionsController,
+} from "../plugins/antd-x-sender/use-composer-suggestions";
+import { createPluginRegistry } from "../runtime/plugins";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
   EMPTY_CONVERSATION_SNAPSHOT,
   type AgentUIConversationService,
 } from "../services/conversations";
-import { createPluginRegistry } from "../runtime/plugins";
 import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
 const historyService: AgentUIConversationService = {
@@ -43,8 +49,8 @@ const historyProvider: UIPluginDefinition = {
   Component: () => null,
 };
 
-describe("AntdXSenderPlugin history mode", () => {
-  it("disables input and guards submission while history is visible", async () => {
+describe("AgentComposerPlugin history mode", () => {
+  it("disables input and guards suggestion, selection, and submission paths", async () => {
     const sendMessage = vi.fn(async () => undefined);
     const model = parseAppUIModel({
       version: "2",
@@ -63,35 +69,98 @@ describe("AntdXSenderPlugin history mode", () => {
         },
       },
     });
-    let renderer: ReactTestRenderer | undefined;
+    const container = document.createElement("div");
+    document.body.append(container);
+    const root = createRoot(container);
     await act(async () => {
-      renderer = create(
-        <PluginRuntimeFixture
-          actions={{
-            sendMessage,
-            resumeInterrupts: async () => undefined,
-            startNewConversation: async () => undefined,
-            abortRun: () => undefined,
-            updateInstanceProps: () => undefined,
-          }}
-          conversation={{ id: "live" }}
-          executions={[]}
-          interrupts={[]}
-          messages={[]}
-          model={model}
-          registry={createPluginRegistry([historyProvider, antdXSenderPlugin])}
-          run={{ status: "idle" }}
-          state={{}}
-        />,
+      root.render(
+        <AgentUIRoot>
+          <PluginRuntimeFixture
+            actions={{
+              sendMessage,
+              resumeInterrupts: async () => undefined,
+              startNewConversation: async () => undefined,
+              abortRun: () => undefined,
+              updateInstanceProps: () => undefined,
+            }}
+            conversation={{ id: "live" }}
+            executions={[]}
+            interrupts={[]}
+            messages={[]}
+            model={model}
+            registry={createPluginRegistry([historyProvider, agentComposerPlugin])}
+            run={{ status: "idle" }}
+            state={{}}
+          />
+        </AgentUIRoot>,
       );
     });
-    if (renderer === undefined) throw new Error("Renderer was not created");
-    const composer = renderer.root.findByType(AgentComposer);
-    expect(composer.props.disabled).toBe(true);
-    expect(composer.props.placeholder).toContain("历史会话为只读");
-    composer.props.onSubmit("must not send");
+
+    const textarea = container.querySelector("textarea") as HTMLTextAreaElement;
+    expect(textarea.disabled).toBe(true);
+    expect(textarea.placeholder).toContain("历史会话为只读");
+    const valueSetter = Object.getOwnPropertyDescriptor(
+      HTMLTextAreaElement.prototype,
+      "value",
+    )?.set;
+    await act(async () => {
+      valueSetter?.call(textarea, "/");
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      textarea.dispatchEvent(new KeyboardEvent("keydown", {
+        key: "Enter",
+        bubbles: true,
+        cancelable: true,
+      }));
+    });
+    expect(container.querySelector('[role="listbox"]')).toBeNull();
     expect(sendMessage).not.toHaveBeenCalled();
-    renderer.root.findByType(Suggestion).props.onSelect("must stay read-only");
-    expect(renderer.root.findByType(AgentComposer).props.value).toBe("");
+    await act(async () => root.unmount());
+    container.remove();
+  });
+
+  it("keeps every history-mode controller mutation path inert", async () => {
+    const onValueChange = vi.fn();
+    const onSubmit = vi.fn();
+    let controller: ComposerSuggestionsController | undefined;
+
+    function ControllerFixture() {
+      controller = useComposerSuggestions({
+        binding: {
+          value: "",
+          onValueChange,
+          running: false,
+          disabled: true,
+          placeholder: "History",
+          onSubmit,
+          onStop: () => undefined,
+          historyMode: true,
+          runStatus: "idle",
+          error: undefined,
+        },
+        suggestions: [{ id: "summary", label: "Summary", value: "Summarize" }],
+      });
+      return null;
+    }
+
+    const container = document.createElement("div");
+    document.body.append(container);
+    const root = createRoot(container);
+    await act(async () => root.render(<ControllerFixture />));
+    if (controller === undefined) throw new Error("Controller was not created");
+    const readyController = controller;
+    await act(async () => {
+      readyController.onValueChange("/");
+      readyController.onOpenChange(true);
+      readyController.onSelect(
+        { id: "summary", label: "Summary", value: "Summarize" },
+        0,
+      );
+      readyController.onSubmit("must not send");
+    });
+    expect(readyController.open).toBe(false);
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
+    await act(async () => root.unmount());
+    container.remove();
   });
 });

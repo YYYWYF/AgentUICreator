@@ -6,7 +6,7 @@ import { antdXPromptsPlugin } from "../antd-x-prompts/definition";
 import { antdXReasoningPlugin } from "../antd-x-reasoning/definition";
 import { antdXResourcesPlugin } from "../antd-x-resources/definition";
 import { antdXRunTimelinePlugin } from "../antd-x-run-timeline/definition";
-import { antdXSenderPlugin } from "../antd-x-sender/definition";
+import { agentComposerPlugin } from "../antd-x-sender/definition";
 import { antdXSourcesPlugin } from "../antd-x-sources/definition";
 import { antdXThemeProviderPlugin } from "../antd-x-theme-provider/definition";
 import { antdXThemeSwitchPlugin } from "../antd-x-theme-switch/definition";
@@ -35,7 +35,7 @@ export const antdXTemplatePlugins = [
   antdXAttachmentsPlugin,
   antdXResourcesPlugin,
   antdXPromptsPlugin,
-  antdXSenderPlugin,
+  agentComposerPlugin,
   conversationSurfacePlugin,
   workspaceInspectorPlugin,
 ] as const;
@@ -49,7 +49,7 @@ export {
   antdXReasoningPlugin,
   antdXResourcesPlugin,
   antdXRunTimelinePlugin,
-  antdXSenderPlugin,
+  agentComposerPlugin,
   antdXSourcesPlugin,
   antdXThemeProviderPlugin,
   antdXThemeSwitchPlugin,
@@ -70,7 +70,7 @@ export { AntdXPromptsPlugin } from "../antd-x-prompts";
 export { AntdXReasoningPlugin } from "../antd-x-reasoning";
 export { AntdXResourcesPlugin } from "../antd-x-resources";
 export { AntdXRunTimelinePlugin } from "../antd-x-run-timeline";
-export { AntdXSenderPlugin } from "../antd-x-sender";
+export { AgentComposerPlugin } from "../antd-x-sender";
 export { AntdXSourcesPlugin } from "../antd-x-sources";
 export { AntdXThemeProviderPlugin } from "../antd-x-theme-provider";
 export { AntdXThemeSwitchPlugin } from "../antd-x-theme-switch";

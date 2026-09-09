@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import { antdXMessageListPlugin } from "../plugins/antd-x-message-list/definition";
-import { antdXSenderPlugin } from "../plugins/antd-x-sender/definition";
+import { agentComposerPlugin } from "../plugins/antd-x-sender/definition";
 import {
   EMPTY_CONVERSATION_SNAPSHOT,
   getConversationViewMessages,
@@ -91,6 +91,6 @@ describe("conversation view messages", () => {
 
   it("keeps basic chat independent from conversation service", () => {
     expect(antdXMessageListPlugin.inject).toBeUndefined();
-    expect(antdXSenderPlugin.inject).toBeUndefined();
+    expect(agentComposerPlugin.inject).toBeUndefined();
   });
 });

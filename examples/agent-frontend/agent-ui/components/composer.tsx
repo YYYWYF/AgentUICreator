@@ -11,7 +11,7 @@ import {
 
 import { cx } from "../foundation/cx";
 import { Button } from "../primitives/button";
-import { Textarea } from "../primitives/textarea";
+import { Textarea, type TextareaProps } from "../primitives/textarea";
 import styles from "./composer.module.css";
 
 const MAX_INPUT_HEIGHT_PX = 192;
@@ -40,10 +40,30 @@ export interface AgentComposerProps {
   placeholder?: string;
   autoFocus?: boolean;
   actions?: ReactNode;
+  inputProps?: AgentComposerInputProps;
   onInputKeyDown?: KeyboardEventHandler<HTMLTextAreaElement>;
   labels?: Partial<AgentComposerLabels>;
   className?: string;
 }
+
+export type AgentComposerInputProps = Omit<
+  TextareaProps,
+  | "value"
+  | "defaultValue"
+  | "onChange"
+  | "onKeyDown"
+  | "onCompositionStart"
+  | "onCompositionEnd"
+  | "disabled"
+  | "placeholder"
+  | "autoFocus"
+  | "rows"
+  | "ref"
+  | "variant"
+  | "aria-label"
+  | "className"
+  | "enterKeyHint"
+>;
 
 function SendIcon() {
   return (
@@ -71,6 +91,7 @@ export function AgentComposer({
   placeholder = "Write a message...",
   autoFocus = false,
   actions,
+  inputProps,
   onInputKeyDown,
   labels,
   className,
@@ -136,6 +157,7 @@ export function AgentComposer({
     >
       <div data-slot="agent-composer-input" className={styles.inputRegion}>
         <Textarea
+          {...inputProps}
           ref={textareaRef}
           variant="bare"
           rows={1}

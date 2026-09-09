@@ -76,6 +76,10 @@
     {
       "id": "agent-component/composer",
       "path": "items/agent-component-composer/item.json"
+    },
+    {
+      "id": "agent-component/composer-suggestions",
+      "path": "items/agent-component-composer-suggestions/item.json"
     }
   ]
 }

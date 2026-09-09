@@ -1,0 +1,51 @@
+.root {
+  display: grid;
+  width: var(--anchor-width);
+  max-width: calc(100vw - (var(--aui-space-4) * 2));
+  gap: var(--aui-space-1);
+  padding: var(--aui-space-1);
+}
+
+.option {
+  display: grid;
+  width: 100%;
+  gap: var(--aui-space-1);
+  padding: var(--aui-space-2) var(--aui-space-3);
+  border: 0;
+  border-radius: var(--aui-radius-sm);
+  color: var(--aui-fg);
+  font: inherit;
+  line-height: var(--aui-line-height-normal);
+  text-align: left;
+  background: transparent;
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--aui-bg-hover);
+}
+
+.option[data-active] {
+  background: var(--aui-bg-active);
+}
+
+.option:focus-visible {
+  outline: 2px solid var(--aui-focus);
+  outline-offset: -2px;
+}
+
+.label,
+.description {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.label {
+  font-size: var(--aui-font-size-sm);
+  font-weight: var(--aui-font-weight-medium);
+}
+
+.description {
+  color: var(--aui-fg-muted);
+  font-size: var(--aui-font-size-xs);
+}

@@ -3,13 +3,24 @@
   "sourceRoot": "agent-ui",
   "items": {
     "agent-component/composer": {
-      "version": "0.1.1",
+      "version": "0.1.2",
       "files": {
         "components/composer.module.css": {
           "sha256": "86ab08dc4163f185f016e48ea93a5b36318ff1a702d5126096a6f621c7d47b48"
         },
         "components/composer.tsx": {
-          "sha256": "033f9cfad636aea822f055e4f1b14522625ccf370d93bd3341502f549d63b917"
+          "sha256": "063c32e259f9e1396131da4da512b2b341de0435ee9920107940434bf8ca8b8f"
+        }
+      }
+    },
+    "agent-component/composer-suggestions": {
+      "version": "0.1.0",
+      "files": {
+        "components/composer-suggestions.module.css": {
+          "sha256": "ce1a0ecca3636e7466549e7faf8559f4da7a40b18313395ec54bbfc9aa258297"
+        },
+        "components/composer-suggestions.tsx": {
+          "sha256": "e3cdca68ac7e96f419821a493676df6508c7a8d56815561ae029034881baf905"
         }
       }
     },
@@ -125,13 +136,13 @@
       }
     },
     "primitive/popover": {
-      "version": "0.2.1",
+      "version": "0.2.2",
       "files": {
         "primitives/popover.module.css": {
           "sha256": "3a73886af47d4af23b0cb53f73ed20b8a5c3e7e2ef99b4de8422ff3d4bdf013e"
         },
         "primitives/popover.tsx": {
-          "sha256": "0d4fd5264543b55dd844ce7e878d6edde54e116cb1cca5049a48f5d8d7ff66c1"
+          "sha256": "02f801e2d229be0e417f21cce85e48fcdc80cbd0ebae0459465d452094826c6e"
         }
       }
     },

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "agent-component/composer",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "kind": "agent-component",
   "description": "Props-driven Agent UI composer",
   "upstream": {

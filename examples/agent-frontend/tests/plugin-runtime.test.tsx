@@ -9,6 +9,7 @@ import {
 } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
+import { AgentUIRootContext } from "../agent-ui/foundation/context";
 import appUIJson from "../app-ui/app-ui.json";
 import {
   parseAppUIModel,
@@ -110,9 +111,11 @@ async function mountPluginRuntime(
   try {
     await act(async () => {
       renderer = create(
-        <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
-          <PluginRuntimeFixture {...props} />
-        </PluginServiceRuntimeContext.Provider>,
+        <AgentUIRootContext.Provider value={{ portalContainer: null }}>
+          <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
+            <PluginRuntimeFixture {...props} />
+          </PluginServiceRuntimeContext.Provider>
+        </AgentUIRootContext.Provider>,
       );
     });
   } catch (error) {
@@ -131,9 +134,11 @@ async function mountPluginRuntime(
     update: async (nextProps) => {
       await act(async () => {
         renderer?.update(
-          <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
-            <PluginRuntimeFixture {...nextProps} />
-          </PluginServiceRuntimeContext.Provider>,
+          <AgentUIRootContext.Provider value={{ portalContainer: null }}>
+            <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
+              <PluginRuntimeFixture {...nextProps} />
+            </PluginServiceRuntimeContext.Provider>
+          </AgentUIRootContext.Provider>,
         );
       });
     },
@@ -174,9 +179,11 @@ function renderPluginRuntime(props: PluginRuntimeFixtureProps): string {
     declareLayoutSlots(props.model.root, serviceRuntime, declarationCleanups);
     serviceRuntime.reconcile(props.model, props.registry, props.actions);
     return renderToStaticMarkup(
-      <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
-        <PluginRuntimeFixture {...props} />
-      </PluginServiceRuntimeContext.Provider>,
+      <AgentUIRootContext.Provider value={{ portalContainer: null }}>
+        <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
+          <PluginRuntimeFixture {...props} />
+        </PluginServiceRuntimeContext.Provider>
+      </AgentUIRootContext.Provider>,
     );
   } finally {
     serviceRuntime.dispose();

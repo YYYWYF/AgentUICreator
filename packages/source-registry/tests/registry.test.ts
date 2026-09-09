@@ -273,7 +273,7 @@ describe("Agent UI Source Registry contract", () => {
     const registry = await loadAgentUISourceRegistry();
     const composer = registry.byId.get("agent-component/composer");
     expect(composer).toMatchObject({
-      version: "0.1.1",
+      version: "0.1.2",
       kind: "agent-component",
       requires: ["foundation/core", "primitive/button", "primitive/textarea"],
       upstream: {
@@ -283,6 +283,15 @@ describe("Agent UI Source Registry contract", () => {
         revision: "3a45a01c0d6141102638ecd4f32d1af4d01fb510",
         mode: "adapted",
         license: "MIT",
+      },
+    });
+    expect(registry.byId.get("agent-component/composer-suggestions")).toMatchObject({
+      version: "0.1.0",
+      kind: "agent-component",
+      requires: ["foundation/core", "primitive/popover"],
+      upstream: {
+        project: "AgentUICreator",
+        mode: "original",
       },
     });
   });

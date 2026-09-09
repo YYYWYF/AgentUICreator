@@ -1,13 +1,13 @@
 import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
 import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
 import { AGENT_UI_CONVERSATION_SERVICE } from "../../services/conversations";
-import { AntdXSenderPlugin } from "./index";
+import { AgentComposerPlugin } from "./index";
 import manifestJson from "./manifest.json";
 
-export const antdXSenderPlugin: UIPluginDefinition = {
+export const agentComposerPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   optionalInject: [AGENT_UI_CONVERSATION_SERVICE],
-  Component: AntdXSenderPlugin,
+  Component: AgentComposerPlugin,
 };
 
-export default antdXSenderPlugin;
+export default agentComposerPlugin;

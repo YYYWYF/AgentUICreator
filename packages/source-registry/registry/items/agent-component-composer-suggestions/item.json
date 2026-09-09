@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "agent-component/composer-suggestions",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Controlled suggestion list for Agent Composer",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
+  "requires": [
+    "foundation/core",
+    "primitive/popover"
+  ],
+  "files": [
+    {
+      "source": "files/components/composer-suggestions.tsx",
+      "target": "components/composer-suggestions.tsx"
+    },
+    {
+      "source": "files/components/composer-suggestions.module.css",
+      "target": "components/composer-suggestions.module.css"
+    }
+  ]
+}

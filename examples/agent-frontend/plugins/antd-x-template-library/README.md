@@ -22,7 +22,7 @@
 - `antd-x-attachments`：聚合当前会话输入与 Frontend State 中的附件，仅做只读展示；在 Runtime 提供多模态发送合同前不开放上传入口。
 - `antd-x-resources`：用 `Folder`、`CodeHighlighter`、`FileCard`、`Sources` 与 `Mermaid` 展示项目文件、产物、引用和图表。
 - `antd-x-prompts`：用 `Prompts` 提供可配置且可直接发送的快捷提示。
-- `antd-x-sender`：用 `Sender` 和 `Suggestion` 发送 Live 消息、唤出快捷指令，并在 History 模式进入只读状态。
+- `antd-x-sender`：以兼容 ID 提供 Agent Composer，使用本地 Composer Suggestions 发送 Live 消息、唤出快捷建议，并在 History 模式进入只读状态。
 
 `index.ts` 导出的 `antdXTemplatePlugins` 是开发期 catalog，可用于预览整套模板。生产入口的 `plugins/index.ts` 只转出 `registry.generated.ts`；目标项目的 `generate:registry` 根据 AppUIModel 引用和各插件 manifest 生成显式静态 import，不能展开整个 catalog。这样未选择的 Plugin 才能从静态 import graph 和 Bundle 中消失。模板通过 `runtime/context` 的领域 Hook 读取 Agent Runtime 与当前实例，通过 `usePluginService()` 读取插件能力，不会创建或持有 Agent Runtime。布局、顺序和实例 props 都由 `app-ui/app-ui.json` 决定。主题硬依赖和可选会话能力都通过稳定 Service name 关联 Provider 与 Consumer；Consumer 不导入具体 Provider 源码。
 

@@ -1,4 +1,3 @@
-import { Sender } from "@ant-design/x";
 import {
   act,
   create,
@@ -7,6 +6,8 @@ import {
 } from "react-test-renderer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { AgentComposer } from "../agent-ui/components/composer";
+import { AgentUIRootContext } from "../agent-ui/foundation/context";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import type {
   AgentMessage,
@@ -14,7 +15,7 @@ import type {
 } from "../framework/contracts/ui-plugin";
 import { antdXConversationsPlugin } from "../plugins/antd-x-conversations/definition";
 import { antdXMessageListPlugin } from "../plugins/antd-x-message-list/definition";
-import { antdXSenderPlugin } from "../plugins/antd-x-sender/definition";
+import { agentComposerPlugin } from "../plugins/antd-x-sender/definition";
 import { conversationSurfacePlugin } from "../plugins/conversation-surface/definition";
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
@@ -60,7 +61,7 @@ const basicChatModel = parseAppUIModel({
 const basicChatRegistry = createPluginRegistry([
   conversationSurfacePlugin,
   antdXMessageListPlugin,
-  antdXSenderPlugin,
+  agentComposerPlugin,
 ]);
 
 const liveMessages: AgentMessage[] = [
@@ -99,19 +100,21 @@ async function mountBasicChat(messages: AgentMessage[]) {
 
   await act(async () => {
     renderer = create(
-      <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
-        <PluginRuntimeFixture
-          actions={actions}
-          conversation={{ id: "live" }}
-          executions={[]}
-          interrupts={[]}
-          messages={messages}
-          model={basicChatModel}
-          registry={basicChatRegistry}
-          run={{ status: "idle" }}
-          state={{}}
-        />
-      </PluginServiceRuntimeContext.Provider>,
+      <AgentUIRootContext.Provider value={{ portalContainer: null }}>
+        <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
+          <PluginRuntimeFixture
+            actions={actions}
+            conversation={{ id: "live" }}
+            executions={[]}
+            interrupts={[]}
+            messages={messages}
+            model={basicChatModel}
+            registry={basicChatRegistry}
+            run={{ status: "idle" }}
+            state={{}}
+          />
+        </PluginServiceRuntimeContext.Provider>
+      </AgentUIRootContext.Provider>,
     );
   });
 
@@ -235,7 +238,7 @@ describe("basic chat without Conversation Service", () => {
       expect(getText(messageList)).toContain("你好");
       expect(getText(messageList)).toContain("你好，有什么可以帮你？");
 
-      const sender = mounted.renderer.root.findByType(Sender);
+      const sender = mounted.renderer.root.findByType(AgentComposer);
       expect(sender.props.disabled).toBe(false);
       await act(async () => {
         sender.props.onSubmit("hello");
@@ -264,7 +267,7 @@ describe("basic chat without Conversation Service", () => {
           "data-ui-plugin": "antd-x-message-list",
         }),
       ).toHaveLength(0);
-      expect(mounted.renderer.root.findByType(Sender).props.disabled).toBe(
+      expect(mounted.renderer.root.findByType(AgentComposer).props.disabled).toBe(
         false,
       );
     } finally {
@@ -285,7 +288,7 @@ describe("basic chat without Conversation Service", () => {
       antdXConversationsPlugin,
       conversationSurfacePlugin,
       antdXMessageListPlugin,
-      antdXSenderPlugin,
+      agentComposerPlugin,
     ]);
     const runtime = new PluginServiceRuntime();
 

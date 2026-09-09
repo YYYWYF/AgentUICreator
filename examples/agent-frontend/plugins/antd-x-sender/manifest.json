@@ -1,7 +1,7 @@
 {
   "id": "antd-x-sender",
-  "name": "Ant Design X 消息输入",
-  "description": "使用 Agent UI Composer 发送当前会话消息，并在只读历史模式阻止输入；Suggestions 暂保留 legacy adapter。",
-  "version": "1.1.0",
+  "name": "Agent Composer",
+  "description": "Agent UI Composer 消息输入，支持运行中止与快捷建议。",
+  "version": "1.2.0",
   "capabilities": ["message-input", "message-send", "run-abort", "suggestions"]
 }

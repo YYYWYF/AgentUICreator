@@ -20,6 +20,7 @@ export function PopoverTrigger({ className, ...props }: BasePopover.Trigger.Prop
 }
 
 export interface PopoverContentProps extends BasePopover.Popup.Props {
+  anchor?: BasePopover.Positioner.Props["anchor"];
   align?: BasePopover.Positioner.Props["align"];
   alignOffset?: BasePopover.Positioner.Props["alignOffset"];
   side?: BasePopover.Positioner.Props["side"];
@@ -27,6 +28,7 @@ export interface PopoverContentProps extends BasePopover.Popup.Props {
 }
 
 export function PopoverContent({
+  anchor,
   align = "center",
   alignOffset = 0,
   className,
@@ -39,6 +41,7 @@ export function PopoverContent({
   return (
     <BasePopover.Portal container={portalContainer} data-slot="popover-portal">
       <BasePopover.Positioner
+        anchor={anchor}
         align={align}
         alignOffset={alignOffset}
         side={side}

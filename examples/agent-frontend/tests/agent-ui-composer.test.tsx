@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   AgentComposer,
+  type AgentComposerInputProps,
   type AgentComposerProps,
 } from "../agent-ui/components/composer";
 
@@ -105,6 +106,33 @@ describe("AgentComposer", () => {
     });
     expect(onInputKeyDown).toHaveBeenCalledOnce();
     expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("forwards generic input metadata without yielding controlled ownership", async () => {
+    const onSubmit = vi.fn();
+    const bypassKeyDown = vi.fn();
+    const { textarea } = await renderComposer({
+      value: "authoritative",
+      onSubmit,
+      inputProps: {
+        "aria-controls": "test-list",
+        "aria-expanded": true,
+        "aria-activedescendant": "option-1",
+        "aria-autocomplete": "list",
+        value: "override",
+        onKeyDown: bypassKeyDown,
+      } as unknown as AgentComposerInputProps,
+    });
+    expect(textarea.value).toBe("authoritative");
+    expect(textarea.getAttribute("aria-controls")).toBe("test-list");
+    expect(textarea.getAttribute("aria-expanded")).toBe("true");
+    expect(textarea.getAttribute("aria-activedescendant")).toBe("option-1");
+    expect(textarea.getAttribute("aria-autocomplete")).toBe("list");
+    await act(async () => {
+      dispatchKey(textarea, { key: "Enter" });
+    });
+    expect(bypassKeyDown).not.toHaveBeenCalled();
+    expect(onSubmit).toHaveBeenCalledWith("authoritative");
   });
 
   it("leaves Shift+Enter as a newline and does not submit", async () => {
