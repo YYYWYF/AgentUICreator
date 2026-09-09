@@ -257,6 +257,8 @@ Mode 保存在 `.agent-ui/project.json`，不进入 AppUIModel。没有该配置
 
 Mode Registry 只负责注册和查找 Mode Definition，不是新的 Plugin 系统。UI Plugin、SlotRegistry、LayoutRenderer 和 UIPluginRuntime 均不感知 Mode；第一阶段也不引入 Host、surface、density、`supportsModes`、Template、DOM 注入或 Mode 迁移规则。
 
+运行时通过 `runtime/mode-shell` 中唯一的 `ModeShell` 路由 `AssistantShell`、`EmbeddedShell` 和 `PlatformShell`。ModeShell 只决定整套 Agent UI 的外部形态，AppUIModel 继续决定壳内布局和 Plugin 组合；Shell 不创建 Slot，也不直接渲染业务 Plugin。`AgentRuntimeProvider` 与 `PluginServiceProvider` 位于 ModeShell 外部，Assistant 收起时只隐藏 Panel、保持运行时 Surface 挂载，不能销毁会话、运行状态或 Plugin Service。Mode Definition 继续只提供 Initial AppUIModel，不引用 React Shell，也不增加 ModeShell Registry。
+
 ---
 
 # 4. AppUIModel

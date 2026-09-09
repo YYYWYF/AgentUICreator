@@ -44,6 +44,7 @@ import {
   type RuntimeCompositionReporter,
   type RuntimeDiagnosticReporter,
 } from "../runtime/diagnostics";
+import { ModeShell } from "../runtime/mode-shell";
 import { AgentUIRoot } from "../agent-ui/foundation/AgentUIRoot";
 import { resolveAgentEndpoint } from "./agent-endpoint";
 import "./preview-shell.css";
@@ -240,7 +241,9 @@ export function App({
           model={model}
           registry={pluginRegistry}
         >
-          <AgentFrontendSurface actions={pluginActions} model={model} />
+          <ModeShell mode={currentAgentUIMode}>
+            <AgentFrontendSurface actions={pluginActions} model={model} />
+          </ModeShell>
         </PluginServiceProvider>
       </AgentRuntimeProvider>
     </PluginDiagnosticProvider>
