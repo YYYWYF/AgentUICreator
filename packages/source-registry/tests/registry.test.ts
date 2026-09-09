@@ -273,7 +273,7 @@ describe("Agent UI Source Registry contract", () => {
     const registry = await loadAgentUISourceRegistry();
     const composer = registry.byId.get("agent-component/composer");
     expect(composer).toMatchObject({
-      version: "0.1.0",
+      version: "0.1.1",
       kind: "agent-component",
       requires: ["foundation/core", "primitive/button", "primitive/textarea"],
       upstream: {

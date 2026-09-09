@@ -30,7 +30,6 @@
 }
 
 .input {
-  max-height: 12rem;
   color: inherit;
   line-height: var(--aui-line-height-normal);
 }

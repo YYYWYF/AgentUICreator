@@ -1,44 +1,25 @@
-import { ApiOutlined, BulbOutlined, CodeOutlined } from "@ant-design/icons";
-import { Sender, Suggestion } from "@ant-design/x";
-import { Alert, Typography } from "antd";
-import { useState } from "react";
+import { Suggestion } from "@ant-design/x";
 
+import { AgentComposer } from "../../agent-ui/components/composer";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
-import {
-  useAgentExecutions,
-  useAgentInterrupts,
-  useAgentRun,
-  usePluginActions,
-  usePluginInstance,
-} from "../../runtime/context";
-import {
-  usePluginService,
-  usePluginServiceSnapshot,
-} from "../../runtime/plugins";
-import {
-  AGENT_UI_CONVERSATION_SERVICE,
-  EMPTY_CONVERSATION_SNAPSHOT,
-  type AgentUIConversationService,
-} from "../../services/conversations";
+import { usePluginInstance } from "../../runtime/context";
+import { useAgentComposerBinding } from "./use-agent-composer-binding";
 
 import "./styles.css";
 
 interface SuggestionItem {
-  label: React.ReactNode;
+  label: string;
   value: string;
-  icon?: React.ReactNode;
 }
 
 const defaultSuggestions: SuggestionItem[] = [
   {
     label: "总结当前会话",
     value: "请总结当前会话，并列出下一步。",
-    icon: <BulbOutlined />,
   },
   {
     label: "解释最近一次工具调用",
     value: "请解释最近一次工具调用的输入、输出和结论。",
-    icon: <CodeOutlined />,
   },
 ];
 
@@ -66,112 +47,61 @@ function readSuggestions(value: unknown): SuggestionItem[] {
 }
 
 export function AntdXSenderPlugin(_props: UIPluginComponentProps) {
-  const [value, setValue] = useState("");
-  const executions = useAgentExecutions();
-  const interrupts = useAgentInterrupts();
-  const run = useAgentRun();
+  const binding = useAgentComposerBinding();
   const instance = usePluginInstance();
-  const actions = usePluginActions();
-  const conversation = usePluginService<AgentUIConversationService>(
-    AGENT_UI_CONVERSATION_SERVICE,
-  );
-  const conversationSnapshot = usePluginServiceSnapshot(
-    conversation,
-    EMPTY_CONVERSATION_SNAPSHOT,
-  );
-  const historyMode = conversationSnapshot.mode === "history";
-  const hasPendingTool = executions.some(
-    (execution) =>
-      execution.type === "tool" &&
-      execution.status === "awaiting-result",
-  );
-  const isRunning =
-    run.status === "running" ||
-    interrupts.length > 0 ||
-    hasPendingTool;
-  const placeholder = historyMode
-    ? "历史会话为只读，请返回当前会话或新建会话"
-    : typeof instance.props?.placeholder === "string"
-      ? instance.props.placeholder
-      : "给智能体发送消息";
   const suggestions = readSuggestions(instance.props?.suggestions);
-
-  const sendMessage = async (input: string): Promise<void> => {
-    const message = input.trim();
-    if (message.length === 0 || isRunning || historyMode) {
-      return;
-    }
-
-    try {
-      await actions.sendMessage(message);
-      setValue("");
-    } catch {
-      // The Runtime projects the error back through useAgentRun().
-    }
-  };
 
   return (
     <section
       aria-label="消息输入"
       className="antd-x-sender-plugin"
-      data-agent-run-status={run.status}
-      data-conversation-mode={conversationSnapshot.mode}
+      data-agent-run-status={binding.runStatus}
+      data-conversation-mode={binding.historyMode ? "history" : "live"}
       data-ui-plugin="antd-x-sender"
     >
-      {run.error === undefined ? null : (
-        <Alert
-          closable
-          message={run.error.message}
-          showIcon
-          type="error"
-        />
+      {binding.error === undefined ? null : (
+        <div
+          role="alert"
+          data-slot="agent-composer-error"
+          className="antd-x-sender-plugin-error"
+        >
+          {binding.error.message}
+        </div>
       )}
       <Suggestion
         block
         items={suggestions}
         onSelect={(nextValue: string) => {
-          if (!historyMode) setValue(`${nextValue} `);
+          if (!binding.historyMode) binding.onValueChange(`${nextValue} `);
         }}
         role="menu"
       >
         {({ onKeyDown, onTrigger, open }) => (
-          <Sender
-            autoSize={{ minRows: 1, maxRows: 5 }}
-            disabled={historyMode}
-            footer={
-              <span className="antd-x-sender-plugin-footer">
-                <span className="antd-x-sender-plugin-channel">
-                  <span /> AG-UI channel
-                </span>
-                <Typography.Text type="secondary">
-                  输入 / 唤出指令 · Enter 发送
-                </Typography.Text>
-              </span>
-            }
-            loading={isRunning}
-            onCancel={() => actions.abortRun()}
-            onChange={(nextValue: string) => {
-              setValue(nextValue);
+          <AgentComposer
+            value={binding.value}
+            onValueChange={(nextValue) => {
+              binding.onValueChange(nextValue);
               if (nextValue === "/") {
                 onTrigger();
               } else if (open) {
                 onTrigger(false);
               }
             }}
-            onKeyDown={onKeyDown}
-            onSubmit={(message: string) => {
+            onInputKeyDown={onKeyDown}
+            onSubmit={(message) => {
               onTrigger(false);
-              if (historyMode) return;
-              void sendMessage(message);
+              binding.onSubmit(message);
             }}
-            placeholder={placeholder}
-            prefix={
-              <span className="antd-x-sender-plugin-prefix" aria-hidden="true">
-                <ApiOutlined />
-              </span>
-            }
-            submitType="enter"
-            value={value}
+            running={binding.running}
+            onStop={binding.onStop}
+            disabled={binding.disabled}
+            placeholder={binding.placeholder}
+            labels={{
+              input: "消息输入",
+              send: "发送消息",
+              stop: "停止生成",
+              running: "正在生成",
+            }}
           />
         )}
       </Suggestion>

@@ -33,7 +33,7 @@ async function collectFiles(
 
 function importSpecifiers(source: string): string[] {
   return [...source.matchAll(
-    /(?:from\s*|import\s*\()\s*["']([^"']+)["']/gu,
+    /(?:from\s*|import\s*(?:\(\s*)?)["']([^"']+)["']/gu,
   )].map((match) => match[1] ?? "");
 }
 
@@ -84,5 +84,16 @@ describe("Agent UI component source policy", () => {
       .toBe(true);
     expect(source).not.toMatch(/className\s*=\s*["']/u);
     expect(source).not.toMatch(/@base-ui\/react|@radix-ui\/|@ant-design\/x|\bantd\b|tailwindcss|class-variance-authority/u);
+  });
+
+  it("keeps Suggestion as the Sender plugin's only legacy Ant Design bridge", async () => {
+    const senderPath = path.join(
+      projectRoot,
+      "plugins/antd-x-sender/index.tsx",
+    );
+    const source = await readFile(senderPath, "utf8");
+    expect(source).toContain('import { Suggestion } from "@ant-design/x";');
+    expect(source).not.toMatch(/<Sender\b|import\s*\{[^}]*\bSender\b/u);
+    expect(source).not.toMatch(/@ant-design\/icons|from\s*["']antd["']/u);
   });
 });

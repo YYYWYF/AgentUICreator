@@ -2,6 +2,7 @@ import {
   type ChangeEvent,
   type FormEvent,
   type KeyboardEvent,
+  type KeyboardEventHandler,
   type ReactNode,
   useCallback,
   useLayoutEffect,
@@ -15,6 +16,20 @@ import styles from "./composer.module.css";
 
 const MAX_INPUT_HEIGHT_PX = 192;
 
+export interface AgentComposerLabels {
+  input: string;
+  send: string;
+  stop: string;
+  running: string;
+}
+
+const defaultLabels: AgentComposerLabels = {
+  input: "Message input",
+  send: "Send message",
+  stop: "Stop generation",
+  running: "Generation in progress",
+};
+
 export interface AgentComposerProps {
   value: string;
   onValueChange: (value: string) => void;
@@ -25,6 +40,8 @@ export interface AgentComposerProps {
   placeholder?: string;
   autoFocus?: boolean;
   actions?: ReactNode;
+  onInputKeyDown?: KeyboardEventHandler<HTMLTextAreaElement>;
+  labels?: Partial<AgentComposerLabels>;
   className?: string;
 }
 
@@ -54,16 +71,20 @@ export function AgentComposer({
   placeholder = "Write a message...",
   autoFocus = false,
   actions,
+  onInputKeyDown,
+  labels,
   className,
 }: AgentComposerProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const compositionRef = useRef(false);
   const canSubmit = !disabled && !running && value.trim().length > 0;
+  const resolvedLabels = { ...defaultLabels, ...labels };
 
   const resizeTextarea = useCallback((element: HTMLTextAreaElement | null) => {
     if (element === null) return;
     element.style.height = "auto";
+    element.style.maxHeight = `${MAX_INPUT_HEIGHT_PX}px`;
     const nextHeight = Math.min(element.scrollHeight, MAX_INPUT_HEIGHT_PX);
     element.style.height = `${nextHeight}px`;
     element.style.overflowY = element.scrollHeight > MAX_INPUT_HEIGHT_PX
@@ -87,6 +108,8 @@ export function AgentComposer({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    onInputKeyDown?.(event);
+    if (event.defaultPrevented) return;
     if (event.key !== "Enter" || event.shiftKey) return;
     const nativeEvent = event.nativeEvent as globalThis.KeyboardEvent & {
       keyCode?: number;
@@ -121,7 +144,7 @@ export function AgentComposer({
           placeholder={placeholder}
           autoFocus={autoFocus}
           enterKeyHint="send"
-          aria-label="Message input"
+          aria-label={resolvedLabels.input}
           className={styles.input}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
@@ -143,7 +166,7 @@ export function AgentComposer({
               type="button"
               size="icon"
               variant="secondary"
-              aria-label={onStop === undefined ? "Generation in progress" : "Stop generation"}
+              aria-label={onStop === undefined ? resolvedLabels.running : resolvedLabels.stop}
               data-slot="agent-composer-stop"
               disabled={disabled || onStop === undefined}
               className={styles.actionButton}
@@ -155,7 +178,7 @@ export function AgentComposer({
             <Button
               type="submit"
               size="icon"
-              aria-label="Send message"
+              aria-label={resolvedLabels.send}
               data-slot="agent-composer-submit"
               disabled={!canSubmit}
               className={styles.actionButton}

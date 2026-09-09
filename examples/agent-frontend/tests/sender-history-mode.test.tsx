@@ -1,7 +1,8 @@
-import { Sender } from "@ant-design/x";
+import { Suggestion } from "@ant-design/x";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
+import { AgentComposer } from "../agent-ui/components/composer";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 import { antdXSenderPlugin } from "../plugins/antd-x-sender/definition";
@@ -85,10 +86,12 @@ describe("AntdXSenderPlugin history mode", () => {
       );
     });
     if (renderer === undefined) throw new Error("Renderer was not created");
-    const sender = renderer.root.findByType(Sender);
-    expect(sender.props.disabled).toBe(true);
-    expect(sender.props.placeholder).toContain("历史会话为只读");
-    sender.props.onSubmit("must not send");
+    const composer = renderer.root.findByType(AgentComposer);
+    expect(composer.props.disabled).toBe(true);
+    expect(composer.props.placeholder).toContain("历史会话为只读");
+    composer.props.onSubmit("must not send");
     expect(sendMessage).not.toHaveBeenCalled();
+    renderer.root.findByType(Suggestion).props.onSelect("must stay read-only");
+    expect(renderer.root.findByType(AgentComposer).props.value).toBe("");
   });
 });

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act } from "react";
+import { act, type KeyboardEvent } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -94,6 +94,19 @@ describe("AgentComposer", () => {
     expect(onSubmit).toHaveBeenCalledWith("  hello  ");
   });
 
+  it("lets an external key handler prevent Composer submission", async () => {
+    const onSubmit = vi.fn();
+    const onInputKeyDown = vi.fn((event: KeyboardEvent<HTMLTextAreaElement>) => {
+      event.preventDefault();
+    });
+    const { textarea } = await renderComposer({ onSubmit, onInputKeyDown });
+    await act(async () => {
+      dispatchKey(textarea, { key: "Enter" });
+    });
+    expect(onInputKeyDown).toHaveBeenCalledOnce();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it("leaves Shift+Enter as a newline and does not submit", async () => {
     const onSubmit = vi.fn();
     const { textarea } = await renderComposer({ onSubmit });
@@ -150,6 +163,20 @@ describe("AgentComposer", () => {
     expect(stop.getAttribute("aria-label")).toBe("Generation in progress");
   });
 
+  it("uses caller-provided accessible labels", async () => {
+    const { container, textarea } = await renderComposer({
+      labels: {
+        input: "消息输入",
+        send: "发送消息",
+        stop: "停止生成",
+        running: "正在生成",
+      },
+    });
+    expect(textarea.getAttribute("aria-label")).toBe("消息输入");
+    expect(container.querySelector('[data-slot="agent-composer-submit"]')?.getAttribute("aria-label"))
+      .toBe("发送消息");
+  });
+
   it("disables the textarea and keyboard submission", async () => {
     const onSubmit = vi.fn();
     const { container, textarea } = await renderComposer({ disabled: true, onSubmit });
@@ -177,6 +204,7 @@ describe("AgentComposer", () => {
       textarea.dispatchEvent(new Event("input", { bubbles: true }));
     });
     expect(textarea.style.height).toBe("192px");
+    expect(textarea.style.maxHeight).toBe("192px");
     expect(textarea.style.overflowY).toBe("auto");
   });
 });

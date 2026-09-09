@@ -3,13 +3,13 @@
   "sourceRoot": "agent-ui",
   "items": {
     "agent-component/composer": {
-      "version": "0.1.0",
+      "version": "0.1.1",
       "files": {
         "components/composer.module.css": {
-          "sha256": "dcbf3a0cea14db561f6c28fdf27f651099e4ee0969ef8bd24495df559864b962"
+          "sha256": "86ab08dc4163f185f016e48ea93a5b36318ff1a702d5126096a6f621c7d47b48"
         },
         "components/composer.tsx": {
-          "sha256": "afced05b962a3f13965a4e4b4a64f9b255b54128ff29594868dc618d57d5def2"
+          "sha256": "033f9cfad636aea822f055e4f1b14522625ccf370d93bd3341502f549d63b917"
         }
       }
     },
