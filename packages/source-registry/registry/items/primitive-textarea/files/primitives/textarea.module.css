@@ -1,0 +1,26 @@
+.root {
+  width: 100%;
+  min-height: 5rem;
+  padding: var(--aui-space-3);
+  resize: vertical;
+  border: 1px solid var(--aui-border);
+  border-radius: var(--aui-radius-md);
+  color: var(--aui-fg);
+  font: inherit;
+  line-height: 1.5;
+  background: var(--aui-bg);
+}
+
+.root:hover:not(:disabled) {
+  border-color: var(--aui-fg-muted);
+}
+
+.root:focus-visible {
+  outline: 2px solid var(--aui-focus);
+  outline-offset: 2px;
+}
+
+.root:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

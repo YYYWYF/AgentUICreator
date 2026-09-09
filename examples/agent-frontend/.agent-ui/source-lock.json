@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "sourceRoot": "agent-ui",
+  "items": {
+    "foundation/core": {
+      "version": "0.1.0",
+      "files": {
+        "foundation/AgentUIRoot.tsx": {
+          "sha256": "1b022cefd402f21fb00d7d5b178421aa99dd8f74032866c549a97d7bb5137a9e"
+        },
+        "foundation/context.ts": {
+          "sha256": "da1b9cafab4ed5e017fbf6856610b17c186b7c31b42450579ed357cb6c6bafcf"
+        },
+        "foundation/cx.ts": {
+          "sha256": "322a06325407ce2ff639007e945182c3234adc11146cc5160ac75d14de7492e7"
+        },
+        "styles/reset.css": {
+          "sha256": "70b915d327ea634b2859551a99b14b866cfc8c48dc8b152c2015f4e74577d038"
+        },
+        "styles/tokens.css": {
+          "sha256": "293ed2b49ded006491bf48644e9050267e70e510a680ec5e239e8298110358d4"
+        }
+      }
+    },
+    "primitive/button": {
+      "version": "0.1.0",
+      "files": {
+        "primitives/button.module.css": {
+          "sha256": "d524965315310630fe85d5376aa8090f1d0be0bfe0ffce5ad10638908c52067e"
+        },
+        "primitives/button.tsx": {
+          "sha256": "a9a05a85bdb2fe564cc2edec0f134b29a2f5f60ccbe54c45e5a9153be9e4ec2b"
+        }
+      }
+    },
+    "primitive/dialog": {
+      "version": "0.1.0",
+      "files": {
+        "primitives/dialog.module.css": {
+          "sha256": "78ae774a588437b9b855867c353a1f76e03f2100090ab6118407fbe111faf20f"
+        },
+        "primitives/dialog.tsx": {
+          "sha256": "b9f530d105eca6b07deeaa7384f1446a30a9d6f02f23c17fb5b05883c7b4a9c6"
+        }
+      }
+    },
+    "primitive/textarea": {
+      "version": "0.1.0",
+      "files": {
+        "primitives/textarea.module.css": {
+          "sha256": "90a8be9d6323517a88bd476ea0798205d492460df19de4bc4e4d45bf6e0cc4ba"
+        },
+        "primitives/textarea.tsx": {
+          "sha256": "53f5788a20124903434abb2b26e7bc86279d55e6a813e8c4f712b79de5459988"
+        }
+      }
+    }
+  }
+}

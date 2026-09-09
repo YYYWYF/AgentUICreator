@@ -18,6 +18,7 @@ const temporaryProjects: string[] = [];
 const fixtureConfig: UIProjectControlConfig = {
   catalogs: [],
   uiPackages: [],
+  agentUI: { sourceRoot: "agent-ui", metadataRoot: ".agent-ui" },
 };
 
 async function createProject(options: {

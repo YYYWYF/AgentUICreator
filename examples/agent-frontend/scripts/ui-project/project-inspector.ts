@@ -15,6 +15,10 @@ import {
   PLUGIN_REGISTRY_ENTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
 } from "./registry-generator";
+import {
+  agentUISourceSummary,
+  inspectAgentUISources,
+} from "./source-registry";
 import type {
   CompactLayoutNode,
   InspectedSlot,
@@ -172,9 +176,12 @@ export async function inspectUIProject(
     await readFile(path.join(projectRoot, "package.json"), "utf8"),
   ) as unknown;
   const versions = dependencyVersions(packageJson);
+  const agentUI = agentUISourceSummary(
+    await inspectAgentUISources(projectRoot, config),
+  );
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     appUIModel: {
       hash: createHash("sha256").update(appUIModelSource).digest("hex"),
       version: model.version,
@@ -212,5 +219,6 @@ export async function inspectUIProject(
       const version = versions[packageName];
       return version === undefined ? [] : [{ packageName, version }];
     }),
+    agentUI,
   };
 }

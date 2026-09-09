@@ -22,6 +22,7 @@
   "dependencies": {
     "@agent-ui/runtime-agui": "workspace:^",
     "@agent-ui/runtime-core": "workspace:^",
+    "@base-ui/react": "1.8.0",
     "@ant-design/icons": "^6.3.2",
     "@ant-design/x": "^2.9.0",
     "antd": "^6.6.2",
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@agent-ui/mock-agent": "workspace:^",
+    "@agent-ui/source-registry": "workspace:^",
     "@types/node": "^20.19.43",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",

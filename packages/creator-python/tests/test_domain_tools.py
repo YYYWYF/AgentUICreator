@@ -17,7 +17,7 @@ class StubClient:
         return {"project": True, "appUIModel": {"hash": "a" * 64}}
 
     async def inspect_app_ui_model(self):
-        return {"schemaVersion": 2, "hash": "b" * 64, "model": {}}
+        return {"schemaVersion": 3, "hash": "b" * 64, "model": {}}
 
     async def list_ui_plugins(self):
         return {"plugins": [], "appUIModelHash": "c" * 64}
@@ -39,11 +39,32 @@ class StubClient:
     async def inspect_ui_plugin_source_references(self, plugin_id):
         return {"pluginId": plugin_id, "entry": "definition.ts"}
 
+    async def inspect_agent_ui_sources(self):
+        return {
+            "stateHash": "f" * 64,
+            "sourceRoot": "agent-ui",
+            "metadataRoot": ".agent-ui",
+            "items": [],
+        }
+
+    async def apply_agent_ui_source_item(self, *, item_id, expected_state_hash):
+        return {
+            "schemaVersion": 1,
+            "itemId": item_id,
+            "changed": False,
+            "changedItems": [],
+            "changedPaths": [],
+            "stateHash": expected_state_hash,
+        }
+
 
 def test_domain_tools_keep_ts_names_and_bounded_success_envelopes():
     tools = create_project_control_tools(StubClient())
 
-    assert tuple(tool.name for tool in tools) == DOMAIN_READ_TOOL_NAMES
+    assert tuple(tool.name for tool in tools) == (
+        *DOMAIN_READ_TOOL_NAMES,
+        "apply_agent_ui_source_item",
+    )
     result = json.loads(asyncio.run(tools[4].ainvoke({"pluginId": "workspace-inspector"})))
     assert result == {
         "ok": True,
@@ -124,3 +145,25 @@ def test_failed_inspection_preserves_existing_observation(tmp_path):
     asyncio.run(tools[0].ainvoke({}))
 
     assert observations.current_hash(current_revision=0) == "a" * 64
+
+
+def test_agent_ui_source_tools_keep_inspection_read_only_and_apply_is_a_noop(tmp_path):
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("agent-ui-sources")
+    tools = create_project_control_tools(StubClient(), activity=activity)
+
+    inspected = json.loads(asyncio.run(tools[7].ainvoke({})))
+    applied = json.loads(
+        asyncio.run(
+            tools[8].ainvoke(
+                {"itemId": "primitive/button", "expectedStateHash": "f" * 64}
+            )
+        )
+    )
+
+    assert inspected["result"]["sourceRoot"] == "agent-ui"
+    assert applied["result"]["changed"] is False
+    assert activity.semantic_noop == {
+        "source": "apply_agent_ui_source_item",
+        "reason": "already-managed",
+    }

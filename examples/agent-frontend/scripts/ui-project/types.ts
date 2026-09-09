@@ -60,6 +60,10 @@ export interface UIProjectControlConfig {
   catalogs: readonly string[];
   nonPluginDirectories?: readonly string[] | undefined;
   uiPackages: readonly string[];
+  agentUI: {
+    sourceRoot: string;
+    metadataRoot: string;
+  };
 }
 
 export interface PluginAsset {
@@ -136,7 +140,7 @@ export interface InspectedPluginInstance extends PluginInstance {
 }
 
 export interface UIProjectInspection {
-  schemaVersion: 2;
+  schemaVersion: 3;
   appUIModel: {
     hash: string;
     version: string;
@@ -163,4 +167,59 @@ export interface UIProjectInspection {
     packageName: string;
     version: string;
   }>;
+  agentUI: {
+    stateHash: string;
+    sourceRoot: string;
+    metadataRoot: string;
+    managedItems: number;
+    customizedItems: number;
+    issues: AgentUISourceIssue[];
+  };
+}
+
+export type AgentUISourceStatus =
+  | "not-installed"
+  | "managed"
+  | "customized"
+  | "partial"
+  | "blocked";
+
+export interface AgentUISourceIssue {
+  code: string;
+  message: string;
+  itemId?: string;
+  path?: string;
+  packageName?: string;
+}
+
+export interface AgentUISourceFileInspection {
+  path: string;
+  status: AgentUISourceStatus;
+  currentSha256?: string;
+  managedSha256?: string;
+}
+
+export interface AgentUISourceItemInspection {
+  id: string;
+  installedVersion?: string;
+  availableVersion: string;
+  status: AgentUISourceStatus;
+  files: AgentUISourceFileInspection[];
+  issues: AgentUISourceIssue[];
+}
+
+export interface AgentUISourcePackageInspection {
+  name: string;
+  required: string;
+  installed?: string;
+  compatible: boolean;
+}
+
+export interface AgentUISourceInspection {
+  stateHash: string;
+  sourceRoot: string;
+  metadataRoot: string;
+  items: AgentUISourceItemInspection[];
+  packages: AgentUISourcePackageInspection[];
+  issues: AgentUISourceIssue[];
 }

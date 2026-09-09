@@ -52,4 +52,5 @@ def test_domain_write_policy_adds_only_semantic_mutation_to_read_surface():
 
     assert observed == list(ALLOWED_DOMAIN_WRITE_TOOLS)
     assert "mutate_app_ui_model" in observed
+    assert "apply_agent_ui_source_item" in observed
     assert not {"task", "execute", "write_todos", "write_file"}.intersection(observed)

@@ -9,7 +9,11 @@ import { collectPluginAssets } from "../scripts/ui-project/plugin-assets";
 import { inspectUIServiceDependencies } from "../scripts/ui-project/service-dependency-inspector";
 
 const temporaryProjects: string[] = [];
-const config = { catalogs: [], uiPackages: [] };
+const config = {
+  catalogs: [],
+  uiPackages: [],
+  agentUI: { sourceRoot: "agent-ui", metadataRoot: ".agent-ui" },
+};
 
 async function createServiceProject() {
   const projectRoot = await mkdtemp(path.join(tmpdir(), "ui-services-"));

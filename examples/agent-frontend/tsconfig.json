@@ -18,6 +18,7 @@
     "skipLibCheck": true,
     "paths": {
       "@agent-ui/mock-agent": ["../../packages/mock-agent/src/index.ts"],
+      "@agent-ui/source-registry": ["../../packages/source-registry/src/index.ts"],
       "@agent-ui/runtime-agui": ["../../packages/runtime-agui/src/index.ts"],
       "@agent-ui/runtime-core": ["../../packages/runtime-core/src/index.ts"],
       "@agent-ui/runtime-core/testing": [
@@ -26,6 +27,8 @@
     }
   },
   "include": [
+    "agent-ui/**/*.ts",
+    "agent-ui/**/*.tsx",
     "framework/**/*.ts",
     "runtime/**/*.ts",
     "runtime/**/*.tsx",

@@ -1,0 +1,221 @@
+import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
+import { afterEach, describe, expect, it } from "vitest";
+
+import {
+  AgentUISourceRegistryError,
+  MAX_AGENT_UI_SOURCE_FILES,
+  loadAgentUISourceRegistry,
+  parseSourceItem,
+} from "../src/index.js";
+
+const temporaryDirectories: string[] = [];
+
+async function registryRoot(): Promise<string> {
+  const root = await mkdtemp(path.join(tmpdir(), "agent-ui-registry-"));
+  temporaryDirectories.push(root);
+  await mkdir(path.join(root, "items"));
+  return root;
+}
+
+async function writeItem(
+  root: string,
+  directory: string,
+  item: Record<string, unknown>,
+  files: Record<string, string> = { "files/value.ts": "export {};\n" },
+): Promise<string> {
+  const itemRoot = path.join(root, "items", directory);
+  await mkdir(itemRoot, { recursive: true });
+  for (const [relativePath, content] of Object.entries(files)) {
+    const filePath = path.join(itemRoot, relativePath);
+    await mkdir(path.dirname(filePath), { recursive: true });
+    await writeFile(filePath, content);
+  }
+  const manifestPath = `items/${directory}/item.json`;
+  await writeFile(path.join(root, manifestPath), JSON.stringify(item));
+  return manifestPath;
+}
+
+function item(id: string, overrides: Record<string, unknown> = {}) {
+  return {
+    schemaVersion: 1,
+    id,
+    version: "0.1.0",
+    kind: "primitive",
+    description: id,
+    files: [{ source: "files/value.ts", target: `${id}.ts` }],
+    ...overrides,
+  };
+}
+
+afterEach(async () => {
+  await Promise.all(
+    temporaryDirectories.splice(0).map((directory) =>
+      rm(directory, { recursive: true, force: true }),
+    ),
+  );
+});
+
+describe("Agent UI Source Registry contract", () => {
+  it("rejects duplicate item ids and cross-item target ownership", async () => {
+    const duplicateRoot = await registryRoot();
+    const duplicatePath = await writeItem(duplicateRoot, "one", item("primitive/one"));
+    await writeFile(
+      path.join(duplicateRoot, "registry.json"),
+      JSON.stringify({
+        schemaVersion: 1,
+        items: [
+          { id: "primitive/one", path: duplicatePath },
+          { id: "primitive/one", path: duplicatePath },
+        ],
+      }),
+    );
+    await expect(loadAgentUISourceRegistry(duplicateRoot)).rejects.toMatchObject({
+      code: "AGENT_UI_SOURCE_DUPLICATE_ITEM",
+    });
+
+    const conflictRoot = await registryRoot();
+    const first = await writeItem(
+      conflictRoot,
+      "first",
+      item("primitive/first", {
+        files: [{ source: "files/value.ts", target: "primitives/shared.ts" }],
+      }),
+    );
+    const second = await writeItem(
+      conflictRoot,
+      "second",
+      item("primitive/second", {
+        files: [{ source: "files/value.ts", target: "primitives/shared.ts" }],
+      }),
+    );
+    await writeFile(
+      path.join(conflictRoot, "registry.json"),
+      JSON.stringify({
+        schemaVersion: 1,
+        items: [
+          { id: "primitive/first", path: first },
+          { id: "primitive/second", path: second },
+        ],
+      }),
+    );
+    await expect(loadAgentUISourceRegistry(conflictRoot)).rejects.toMatchObject({
+      code: "AGENT_UI_SOURCE_TARGET_CONFLICT",
+    });
+  });
+
+  it("rejects missing sources, path escapes, invalid semver, and excessive files", async () => {
+    const missingRoot = await registryRoot();
+    const manifestPath = await writeItem(
+      missingRoot,
+      "missing",
+      item("primitive/missing", {
+        files: [{ source: "files/absent.ts", target: "primitives/missing.ts" }],
+      }),
+      {},
+    );
+    await writeFile(
+      path.join(missingRoot, "registry.json"),
+      JSON.stringify({
+        schemaVersion: 1,
+        items: [{ id: "primitive/missing", path: manifestPath }],
+      }),
+    );
+    await expect(loadAgentUISourceRegistry(missingRoot)).rejects.toMatchObject({
+      code: "AGENT_UI_SOURCE_FILE_NOT_FOUND",
+    });
+
+    for (const invalid of [
+      item("primitive/escape", {
+        files: [{ source: "files/value.ts", target: "../escape.ts" }],
+      }),
+      item("primitive/version", { version: "latest" }),
+      item("primitive/count", {
+        files: Array.from({ length: MAX_AGENT_UI_SOURCE_FILES + 1 }, (_, index) => ({
+          source: "files/value.ts",
+          target: `primitives/${index}.ts`,
+        })),
+      }),
+    ]) {
+      expect(() => parseSourceItem(invalid, "item.json")).toThrow(
+        AgentUISourceRegistryError,
+      );
+    }
+  });
+
+  it("rejects requirement cycles and oversized source files", async () => {
+    const cycleRoot = await registryRoot();
+    const first = await writeItem(
+      cycleRoot,
+      "first",
+      item("primitive/first", { requires: ["primitive/second"] }),
+    );
+    const second = await writeItem(
+      cycleRoot,
+      "second",
+      item("primitive/second", { requires: ["primitive/first"] }),
+    );
+    await writeFile(
+      path.join(cycleRoot, "registry.json"),
+      JSON.stringify({
+        schemaVersion: 1,
+        items: [
+          { id: "primitive/first", path: first },
+          { id: "primitive/second", path: second },
+        ],
+      }),
+    );
+    await expect(loadAgentUISourceRegistry(cycleRoot)).rejects.toMatchObject({
+      code: "AGENT_UI_SOURCE_REQUIREMENT_CYCLE",
+    });
+
+    const largeRoot = await registryRoot();
+    const largePath = await writeItem(
+      largeRoot,
+      "large",
+      item("primitive/large"),
+      { "files/value.ts": "x".repeat(256 * 1024 + 1) },
+    );
+    await writeFile(
+      path.join(largeRoot, "registry.json"),
+      JSON.stringify({
+        schemaVersion: 1,
+        items: [{ id: "primitive/large", path: largePath }],
+      }),
+    );
+    await expect(loadAgentUISourceRegistry(largeRoot)).rejects.toMatchObject({
+      code: "AGENT_UI_SOURCE_ITEM_LIMIT_EXCEEDED",
+    });
+
+    const totalRoot = await registryRoot();
+    const totalFiles = Object.fromEntries(
+      Array.from({ length: 9 }, (_, index) => [
+        `files/${index}.txt`,
+        "x".repeat(240 * 1024),
+      ]),
+    );
+    const totalPath = await writeItem(
+      totalRoot,
+      "total",
+      item("primitive/total", {
+        files: Object.keys(totalFiles).map((source, index) => ({
+          source,
+          target: `primitives/${index}.txt`,
+        })),
+      }),
+      totalFiles,
+    );
+    await writeFile(
+      path.join(totalRoot, "registry.json"),
+      JSON.stringify({
+        schemaVersion: 1,
+        items: [{ id: "primitive/total", path: totalPath }],
+      }),
+    );
+    await expect(loadAgentUISourceRegistry(totalRoot)).rejects.toMatchObject({
+      code: "AGENT_UI_SOURCE_ITEM_LIMIT_EXCEEDED",
+    });
+  });
+});

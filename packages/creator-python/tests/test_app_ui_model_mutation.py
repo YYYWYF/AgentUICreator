@@ -736,7 +736,7 @@ def test_conflict_then_inspect_allows_retry_with_new_host_hash(tmp_path):
 
         async def inspect_app_ui_model(self):
             return {
-                "schemaVersion": 2,
+                "schemaVersion": 3,
                 "hash": read_creator_file_state(root, APP_UI_MODEL_PATH).hash,
                 "model": {},
             }

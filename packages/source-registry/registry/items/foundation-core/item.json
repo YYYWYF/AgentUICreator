@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "foundation/core",
+  "version": "0.1.0",
+  "kind": "foundation",
+  "description": "Scoped Agent UI root, context, utilities, tokens, and reset",
+  "files": [
+    {
+      "source": "files/foundation/AgentUIRoot.tsx",
+      "target": "foundation/AgentUIRoot.tsx"
+    },
+    {
+      "source": "files/foundation/context.ts",
+      "target": "foundation/context.ts"
+    },
+    {
+      "source": "files/foundation/cx.ts",
+      "target": "foundation/cx.ts"
+    },
+    {
+      "source": "files/styles/tokens.css",
+      "target": "styles/tokens.css"
+    },
+    {
+      "source": "files/styles/reset.css",
+      "target": "styles/reset.css"
+    }
+  ]
+}

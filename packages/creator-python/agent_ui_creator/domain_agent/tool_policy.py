@@ -18,6 +18,7 @@ DOMAIN_WRITE_TOOL_NAMES = (
     "create_ui_service_contract",
     "mutate_ui_service_contract",
     "mutate_app_ui_model",
+    "apply_agent_ui_source_item",
     "validate_creator_changes",
     "inspect_runtime_errors",
 )
@@ -34,6 +35,7 @@ SIDE_EFFECT_TOOL_NAMES = frozenset(
         "create_ui_service_contract",
         "mutate_ui_service_contract",
         "mutate_app_ui_model",
+        "apply_agent_ui_source_item",
     }
 )
 READ_ONLY_TOOL_NAMES = _ALLOWED_DOMAIN_WRITE_TOOL_SET - SIDE_EFFECT_TOOL_NAMES

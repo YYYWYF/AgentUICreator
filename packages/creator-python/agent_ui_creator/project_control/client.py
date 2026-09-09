@@ -92,6 +92,17 @@ class ProjectControlClient:
             "inspect_ui_plugin_source_references", {"pluginId": plugin_id}
         )
 
+    async def inspect_agent_ui_sources(self) -> dict[str, Any]:
+        return await self._request("inspect_agent_ui_sources", {})
+
+    async def apply_agent_ui_source_item(
+        self, *, item_id: str, expected_state_hash: str
+    ) -> dict[str, Any]:
+        return await self._request(
+            "apply_agent_ui_source_item",
+            {"itemId": item_id, "expectedStateHash": expected_state_hash},
+        )
+
     async def request_app_ui_model_mutation(
         self, input: dict[str, Any]
     ) -> dict[str, Any]:

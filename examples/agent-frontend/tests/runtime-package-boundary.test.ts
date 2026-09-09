@@ -142,4 +142,24 @@ describe("runtime package dependency direction", () => {
     expect(await pathExists(path.join(exampleRoot, "runtime/core"))).toBe(false);
     expect(await pathExists(path.join(exampleRoot, "runtime/ag-ui"))).toBe(false);
   });
+
+  it("keeps the development Source Registry out of the application runtime graph", async () => {
+    const runtimeRoots = ["src", "runtime", "plugins", "agent-ui"].map((directory) =>
+      path.join(exampleRoot, directory),
+    );
+    const violations: string[] = [];
+    for (const root of runtimeRoots) {
+      for (const filename of await sourceFiles(root)) {
+        for (const specifier of moduleReferences(await readFile(filename, "utf8"))) {
+          if (
+            specifier === "@agent-ui/source-registry" ||
+            specifier.startsWith("@agent-ui/source-registry/")
+          ) {
+            violations.push(path.relative(exampleRoot, filename));
+          }
+        }
+      }
+    }
+    expect(violations).toEqual([]);
+  });
 });

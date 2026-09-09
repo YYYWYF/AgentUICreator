@@ -1,6 +1,6 @@
 {
   "request": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "operation": "mutate_app_ui_model",
     "input": {
       "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -14,7 +14,7 @@
     }
   },
   "success": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "ok": true,
     "result": {
       "changed": true,
@@ -22,7 +22,7 @@
     }
   },
   "failure": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "ok": false,
     "error": {
       "code": "APP_UI_MODEL_STALE",

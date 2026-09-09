@@ -19,6 +19,7 @@ const temporaryProjects: string[] = [];
 const fixtureConfig: UIProjectControlConfig = {
   catalogs: ["plugins/catalog"],
   uiPackages: ["react", "antd"],
+  agentUI: { sourceRoot: "agent-ui", metadataRoot: ".agent-ui" },
 };
 
 afterEach(async () => {

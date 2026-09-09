@@ -71,6 +71,26 @@ def test_domain_edit_file_can_still_modify_plugin_source(tmp_path):
     assert target.read_text(encoding="utf-8") == "after\n"
 
 
+def test_domain_edit_file_allows_agent_ui_source_but_denies_metadata(tmp_path):
+    source = tmp_path / "agent-ui" / "primitives" / "button.css"
+    source.parent.mkdir(parents=True)
+    source.write_text("before\n", encoding="utf-8")
+    metadata = tmp_path / ".agent-ui" / "source-lock.json"
+    metadata.parent.mkdir()
+    metadata.write_text("{}\n", encoding="utf-8")
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+
+    assert backend.read("/agent-ui/primitives/button.css").error is None
+    assert backend.edit(
+        "/agent-ui/primitives/button.css", "before", "after"
+    ).error is None
+    denied = backend.edit("/.agent-ui/source-lock.json", "{}", '{"changed":true}')
+
+    assert denied.error is not None
+    assert "Host-managed metadata" in denied.error
+    assert metadata.read_text(encoding="utf-8") == "{}\n"
+
+
 def test_internal_source_policy_can_modify_service_contract(tmp_path):
     target = tmp_path / "services" / "test-service.ts"
     target.parent.mkdir()

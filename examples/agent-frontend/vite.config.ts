@@ -39,6 +39,10 @@ export default defineConfig(async ({ command, mode }) => {
     ],
     resolve: {
       alias: {
+        "@agent-ui/source-registry": path.join(
+          workspaceRoot,
+          "packages/source-registry/src/index.ts",
+        ),
         "@agent-ui/runtime-agui": path.join(
           workspaceRoot,
           "packages/runtime-agui/src/index.ts",

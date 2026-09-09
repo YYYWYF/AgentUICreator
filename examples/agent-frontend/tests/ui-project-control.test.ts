@@ -22,6 +22,7 @@ const temporaryProjects: string[] = [];
 const fixtureConfig: UIProjectControlConfig = {
   catalogs: [],
   uiPackages: ["react"],
+  agentUI: { sourceRoot: "agent-ui", metadataRoot: ".agent-ui" },
 };
 
 async function createProject(
@@ -114,13 +115,13 @@ describe("ui-project-control", () => {
     const { projectRoot } = await createProject();
 
     const response = await handleUIProjectControlRequest(
-      { schemaVersion: 2, operation: "inspect_ui_project", input: {} },
+      { schemaVersion: 3, operation: "inspect_ui_project", input: {} },
       projectRoot,
     );
 
     expect(response.ok).toBe(true);
     expect(response).toMatchObject({
-      schemaVersion: 2,
+      schemaVersion: 3,
       result: {
         appUIModel: {
           slots: [expect.objectContaining({ nodePath: "root" })],
@@ -134,7 +135,7 @@ describe("ui-project-control", () => {
     const { projectRoot, appUIModelSource } = await createProject();
 
     const response = await handleUIProjectControlRequest(
-      { schemaVersion: 2, operation: "inspect_app_ui_model", input: {} },
+      { schemaVersion: 3, operation: "inspect_app_ui_model", input: {} },
       projectRoot,
     );
 
@@ -152,7 +153,7 @@ describe("ui-project-control", () => {
 
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 2,
+        schemaVersion: 3,
         operation: "inspect_ui_slots",
         input: { root: "main" },
       },
@@ -193,7 +194,7 @@ describe("ui-project-control", () => {
 
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 2,
+        schemaVersion: 3,
         operation: "mutate_app_ui_model",
         input: {
           appUIModelHash: createHash("sha256")
@@ -231,7 +232,7 @@ describe("ui-project-control", () => {
 
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 2,
+        schemaVersion: 3,
         operation: "inspect_ui_plugin",
         input: { pluginId: "sample" },
       },
@@ -262,7 +263,7 @@ describe("ui-project-control", () => {
 
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 2,
+        schemaVersion: 3,
         operation: "inspect_ui_plugin",
         input: { pluginId: "sample" },
       },
@@ -289,7 +290,7 @@ describe("ui-project-control", () => {
     );
 
     const response = await handleUIProjectControlRequest(
-      { schemaVersion: 2, operation: "inspect_ui_services", input: {} },
+      { schemaVersion: 3, operation: "inspect_ui_services", input: {} },
       projectRoot,
     );
 
@@ -323,7 +324,7 @@ describe("ui-project-control", () => {
 
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 2,
+        schemaVersion: 3,
         operation: "inspect_ui_plugin_source_references",
         input: { pluginId: "sample" },
       },
@@ -345,16 +346,58 @@ describe("ui-project-control", () => {
     });
   });
 
+  it("inspects and applies Agent UI source items through protocol v3", async () => {
+    const { projectRoot } = await createProject();
+    const inspected = await handleUIProjectControlRequest(
+      { schemaVersion: 3, operation: "inspect_agent_ui_sources", input: {} },
+      projectRoot,
+    );
+    expect(inspected).toMatchObject({
+      ok: true,
+      result: {
+        stateHash: expect.stringMatching(/^[a-f0-9]{64}$/u),
+        sourceRoot: "agent-ui",
+      },
+    });
+    if (!inspected.ok) throw new Error("Expected Agent UI source inspection.");
+    const stateHash = (inspected.result as { stateHash: string }).stateHash;
+
+    const applied = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "apply_agent_ui_source_item",
+        input: { itemId: "primitive/button", expectedStateHash: stateHash },
+      },
+      projectRoot,
+    );
+
+    expect(applied).toMatchObject({
+      ok: true,
+      result: {
+        changed: true,
+        changedItems: ["foundation/core", "primitive/button"],
+      },
+    });
+    expect(
+      JSON.parse(
+        await readFile(path.join(projectRoot, ".agent-ui/source-lock.json"), "utf8"),
+      ),
+    ).toMatchObject({
+      schemaVersion: 1,
+      items: { "primitive/button": { version: "0.1.0" } },
+    });
+  });
+
   it("reports incompatible requests and missing plugins as structured errors", async () => {
     const { projectRoot } = await createProject();
 
     const incompatible = await handleUIProjectControlRequest(
-      { schemaVersion: 3, operation: "inspect_ui_project", input: {} },
+      { schemaVersion: 2, operation: "inspect_ui_project", input: {} },
       projectRoot,
     );
     const missing = await handleUIProjectControlRequest(
       {
-        schemaVersion: 2,
+        schemaVersion: 3,
         operation: "inspect_ui_plugin",
         input: { pluginId: "missing" },
       },

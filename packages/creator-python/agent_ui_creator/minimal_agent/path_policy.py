@@ -87,6 +87,11 @@ class MinimalAgentPathPolicy:
     def assert_write(self, path: str) -> str:
         normalized = self.assert_read(path)
         if self.mode == "development":
+            if normalized == "/.agent-ui" or normalized.startswith("/.agent-ui/"):
+                raise PathPolicyViolation(
+                    "TOOL_PERMISSION_DENIED: /.agent-ui/** is Host-managed metadata. "
+                    "Use the dedicated Agent UI source domain capability."
+                )
             if normalized.startswith("/services/") and not self.generic_service_writes:
                 raise PathPolicyViolation(
                     "TOOL_PERMISSION_DENIED: Service contracts under /services/** "
@@ -95,6 +100,7 @@ class MinimalAgentPathPolicy:
                 )
             writable = (
                 normalized.startswith("/plugins/")
+                or normalized.startswith("/agent-ui/")
                 or (
                     self.generic_service_writes
                     and normalized.startswith("/services/")
@@ -107,6 +113,7 @@ class MinimalAgentPathPolicy:
             if not writable:
                 raise PathPolicyViolation(
                     "TOOL_PERMISSION_DENIED: writes are limited to /plugins/**, "
+                    "/agent-ui/**, "
                     "/agent-contract/agent-tools.ts, /agent-contract/agent-events.ts, "
                     "and Host-owned domain capabilities, "
                     f"not {normalized}."

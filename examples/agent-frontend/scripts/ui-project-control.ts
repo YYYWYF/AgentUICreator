@@ -16,8 +16,13 @@ import { inspectPluginSourceReferences } from "./ui-project/plugin-source-refere
 import { collectPluginAssets } from "./ui-project/plugin-assets";
 import { uiProjectControlConfig } from "./ui-project/project-config";
 import { inspectUIServiceDependencies } from "./ui-project/service-dependency-inspector";
+import {
+  applyAgentUISourceItem,
+  inspectAgentUISources,
+  recoverPendingAgentUISourceTransaction,
+} from "./ui-project/source-registry";
 
-export const UI_PROJECT_CONTROL_SCHEMA_VERSION = 2 as const;
+export const UI_PROJECT_CONTROL_SCHEMA_VERSION = 3 as const;
 export const MAX_UI_PROJECT_CONTROL_INPUT_BYTES = 64_000;
 export const MAX_UI_PROJECT_CONTROL_OUTPUT_BYTES = 512_000;
 export const MAX_APP_UI_MODEL_CHARACTERS = 120_000;
@@ -70,6 +75,19 @@ const requestSchema = z.discriminatedUnion("operation", [
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("mutate_app_ui_model"),
     input: appUITransactionInputSchema,
+  }),
+  z.strictObject({
+    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
+    operation: z.literal("inspect_agent_ui_sources"),
+    input: emptyInputSchema,
+  }),
+  z.strictObject({
+    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
+    operation: z.literal("apply_agent_ui_source_item"),
+    input: z.strictObject({
+      itemId: z.string().trim().min(1).max(200),
+      expectedStateHash: z.string().regex(/^[a-f0-9]{64}$/),
+    }),
   }),
 ]);
 
@@ -329,6 +347,10 @@ async function executeRequest(
       );
     case "mutate_app_ui_model":
       return mutateAppUIModel(projectRoot, request.input);
+    case "inspect_agent_ui_sources":
+      return inspectAgentUISources(projectRoot);
+    case "apply_agent_ui_source_item":
+      return applyAgentUISourceItem(projectRoot, request.input);
   }
 }
 
@@ -385,6 +407,10 @@ export async function handleUIProjectControlRequest(
 ): Promise<UIProjectControlResponse> {
   try {
     await recoverPendingAppUITransaction(projectRoot);
+    await recoverPendingAgentUISourceTransaction(
+      projectRoot,
+      uiProjectControlConfig,
+    );
     return {
       schemaVersion: UI_PROJECT_CONTROL_SCHEMA_VERSION,
       ok: true,

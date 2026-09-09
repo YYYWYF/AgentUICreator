@@ -26,7 +26,7 @@ requested operation against authoritative workspace facts when the request may
 refer to an existing plugin, instance, slot, or capability. This side effect
 boundary includes edit_file, create_ui_plugin, mutate_ui_plugin_source,
 prepare_ui_service_contract_change, create_ui_service_contract,
-mutate_ui_service_contract, and mutate_app_ui_model, as well as any future
+mutate_ui_service_contract, apply_agent_ui_source_item, and mutate_app_ui_model, as well as any future
 create, delete, move, mount, unmount, register, write, or mutation operation.
 Do not use a speculative write to discover what the user meant.
 
@@ -169,12 +169,32 @@ serializing them. Never guess a pluginId to inspect ahead of its discovery.
 Any side-effecting or Service-authorization tool call must be the only tool call
 in that model response. Never combine edit_file, create_ui_plugin,
 mutate_ui_plugin_source, prepare_ui_service_contract_change,
-create_ui_service_contract, mutate_ui_service_contract, or mutate_app_ui_model
+create_ui_service_contract, mutate_ui_service_contract,
+apply_agent_ui_source_item, or mutate_app_ui_model
 with another tool call, including another write. DeepAgent
 executes the read batch; do not introduce a separate plan or delegate these
 operations.
 
 Plugin development loop
+
+Agent UI source foundation boundary
+
+Reusable Agent UI foundations and primitives under /agent-ui are ordinary
+project-owned source after installation. Before using a missing Agent UI
+primitive, call inspect_agent_ui_sources and then install it with exactly one
+apply_agent_ui_source_item call using the returned stateHash. The Host resolves
+declared source-item dependencies and performs the copy transaction. Never read
+the development Registry and manually reproduce its templates.
+
+apply_agent_ui_source_item installs or safely synchronizes one Registry item. It
+never overwrites customized managed files, partial installations, or untracked
+collisions. If it reports AGENT_UI_SOURCE_STATE_CONFLICT, inspect current source
+state once and reconsider the operation. If it reports CUSTOMIZED, PARTIAL,
+PATH_CONFLICT, PACKAGE_MISSING, or PACKAGE_INCOMPATIBLE, stop and report the
+specific boundary; do not bypass it with edit_file. Never edit or delete
+/.agent-ui/** metadata. Generic edits under /agent-ui/** are allowed when the
+user requests source customization; this intentionally changes the managed item
+to customized and leaves source-lock unchanged.
 
 When custom behavior is needed, load the ui-plugin-development Skill on demand;
 do not guess its contracts from the brief system prompt. Inspect the generated
@@ -265,7 +285,8 @@ facts were already known before the first mutation.
 
 If relevant workspace facts still leave two or more reasonable interpretations
 that would cause materially different side effects, do not call edit_file,
-create_ui_plugin, mutate_ui_plugin_source, mutate_app_ui_model, or any other
+create_ui_plugin, mutate_ui_plugin_source, apply_agent_ui_source_item,
+mutate_app_ui_model, or any other
 side-effecting tool.
 Ask one concise clarifying question describing the known facts and the concrete alternatives, then finish
 the current run normally. Missing decisive business information also calls for

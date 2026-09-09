@@ -30,7 +30,7 @@ def _success(result: str = '{"foo":"bar"}') -> str:
         "import json\n"
         "import sys\n"
         "request = json.loads(sys.stdin.read())\n"
-        f"print(json.dumps({{'schemaVersion': 2, 'ok': True, 'result': {result}}}))\n"
+        f"print(json.dumps({{'schemaVersion': 3, 'ok': True, 'result': {result}}}))\n"
     )
 
 
@@ -46,7 +46,7 @@ def test_plugin_and_slot_methods_send_exact_versioned_requests(tmp_path):
 import json
 import sys
 request = json.loads(sys.stdin.read())
-print(json.dumps({"schemaVersion": 2, "ok": True, "result": request}))
+print(json.dumps({"schemaVersion": 3, "ok": True, "result": request}))
 """
     _root, client = _control_project(tmp_path, source)
 
@@ -55,24 +55,24 @@ print(json.dumps({"schemaVersion": 2, "ok": True, "result": request}))
     slots = asyncio.run(client.inspect_ui_slots(root="workspace"))
 
     assert plugin == {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "operation": "inspect_ui_plugin",
         "input": {"pluginId": "workspace-inspector"},
     }
     assert slots["input"] == {"root": "workspace"}
     assert services == {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "operation": "inspect_ui_services",
         "input": {},
     }
 
 
-def test_mutation_transport_sends_exact_protocol_v2_request(tmp_path):
+def test_mutation_transport_sends_exact_protocol_v3_request(tmp_path):
     source = """
 import json
 import sys
 request = json.loads(sys.stdin.read())
-print(json.dumps({"schemaVersion": 2, "ok": True, "result": request}))
+print(json.dumps({"schemaVersion": 3, "ok": True, "result": request}))
 """
     _root, client = _control_project(tmp_path, source)
     input = {
@@ -89,11 +89,38 @@ print(json.dumps({"schemaVersion": 2, "ok": True, "result": request}))
     result = asyncio.run(client.request_app_ui_model_mutation(input))
 
     assert result == {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "operation": "mutate_app_ui_model",
         "input": input,
     }
     assert client.metrics.to_dict()["byOperation"] == {"mutate_app_ui_model": 1}
+
+
+def test_agent_ui_source_methods_send_exact_versioned_requests(tmp_path):
+    source = """
+import json
+import sys
+request = json.loads(sys.stdin.read())
+print(json.dumps({"schemaVersion": 3, "ok": True, "result": request}))
+"""
+    _root, client = _control_project(tmp_path, source)
+
+    inspection = asyncio.run(client.inspect_agent_ui_sources())
+    applied = asyncio.run(
+        client.apply_agent_ui_source_item(
+            item_id="primitive/dialog", expected_state_hash="a" * 64
+        )
+    )
+
+    assert inspection["operation"] == "inspect_agent_ui_sources"
+    assert applied == {
+        "schemaVersion": 3,
+        "operation": "apply_agent_ui_source_item",
+        "input": {
+            "itemId": "primitive/dialog",
+            "expectedStateHash": "a" * 64,
+        },
+    }
 
 
 def test_missing_entry_and_runtime_have_stable_codes(tmp_path):
@@ -164,15 +191,15 @@ time.sleep(60)
     [
         ("print('not json')\n", "CONTROL_PROTOCOL_INVALID_JSON"),
         (
-            "import json\nprint(json.dumps({'schemaVersion': 3, 'ok': True, 'result': {}}))\n",
+            "import json\nprint(json.dumps({'schemaVersion': 2, 'ok': True, 'result': {}}))\n",
             "CONTROL_PROTOCOL_INCOMPATIBLE",
         ),
         (
-            "import json\nprint(json.dumps({'schemaVersion': 2, 'ok': False, 'error': {'code': 'UI_PLUGIN_NOT_FOUND', 'message': 'missing'}}))\n",
+            "import json\nprint(json.dumps({'schemaVersion': 3, 'ok': False, 'error': {'code': 'UI_PLUGIN_NOT_FOUND', 'message': 'missing'}}))\n",
             "UI_PLUGIN_NOT_FOUND",
         ),
         (
-            "import json, sys\nprint(json.dumps({'schemaVersion': 2, 'ok': True, 'result': {}})); sys.exit(7)\n",
+            "import json, sys\nprint(json.dumps({'schemaVersion': 3, 'ok': True, 'result': {}})); sys.exit(7)\n",
             "CONTROL_ENTRY_FAILED",
         ),
     ],

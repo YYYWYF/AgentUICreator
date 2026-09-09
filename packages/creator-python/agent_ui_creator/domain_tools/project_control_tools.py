@@ -18,6 +18,7 @@ DOMAIN_READ_TOOL_NAMES = (
     "inspect_ui_plugin",
     "inspect_ui_services",
     "inspect_ui_plugin_source_references",
+    "inspect_agent_ui_sources",
 )
 
 
@@ -158,6 +159,62 @@ def create_project_control_tools(
         except ProjectControlError as error:
             return _render_error(error)
 
+    @tool("inspect_agent_ui_sources")
+    async def inspect_agent_ui_sources() -> str:
+        """Inspect Agent UI source-registry ownership, versions, dependencies, and safe apply state."""
+        try:
+            return _render_result(await client.inspect_agent_ui_sources())
+        except ProjectControlError as error:
+            return _render_error(error)
+
+    @tool("apply_agent_ui_source_item")
+    async def apply_agent_ui_source_item(
+        itemId: str, expectedStateHash: str
+    ) -> str:
+        """Install or safely synchronize one source-registry item without overwriting customized or untracked user files."""
+        candidate_paths: set[str] = set()
+        if activity is not None:
+            try:
+                inspection = await client.inspect_agent_ui_sources()
+                source_root = inspection.get("sourceRoot")
+                metadata_root = inspection.get("metadataRoot")
+                if isinstance(source_root, str):
+                    for item in inspection.get("items", []):
+                        if not isinstance(item, dict):
+                            continue
+                        for file in item.get("files", []):
+                            if isinstance(file, dict) and isinstance(file.get("path"), str):
+                                candidate_paths.add(file["path"])
+                if isinstance(metadata_root, str):
+                    candidate_paths.add(f"{metadata_root}/source-lock.json")
+                for path in sorted(candidate_paths):
+                    activity.capture_before(path)
+            except (ProjectControlError, OSError, ValueError):
+                candidate_paths.clear()
+        try:
+            result = await client.apply_agent_ui_source_item(
+                item_id=itemId,
+                expected_state_hash=expectedStateHash,
+            )
+            if activity is not None:
+                changed_paths = result.get("changedPaths", [])
+                if isinstance(changed_paths, list):
+                    for path in sorted(
+                        value for value in changed_paths if isinstance(value, str)
+                    ):
+                        if path not in candidate_paths:
+                            activity.capture_before_content(path, None)
+                        activity.file_observations.observe(path)
+                        activity.touch(path)
+                if result.get("changed") is False:
+                    activity.record_semantic_noop(
+                        source="apply_agent_ui_source_item",
+                        reason="already-managed",
+                    )
+            return _render_result(result)
+        except ProjectControlError as error:
+            return _render_error(error)
+
     return (
         inspect_ui_project,
         inspect_app_ui_model,
@@ -166,4 +223,6 @@ def create_project_control_tools(
         inspect_ui_plugin,
         inspect_ui_services,
         inspect_ui_plugin_source_references,
+        inspect_agent_ui_sources,
+        apply_agent_ui_source_item,
     )

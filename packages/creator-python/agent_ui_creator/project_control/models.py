@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Literal, TypeAlias
 
-PROJECT_CONTROL_SCHEMA_VERSION = 2
+PROJECT_CONTROL_SCHEMA_VERSION = 3
 PROJECT_CONTROL_ENTRY_PATH = "scripts/ui-project-control.ts"
 PROJECT_CONTROL_TIMEOUT_SECONDS = 15.0
 MAX_PROJECT_CONTROL_OUTPUT_BYTES = 1_000_000
@@ -16,9 +16,13 @@ ReadProjectControlOperation: TypeAlias = Literal[
     "inspect_ui_plugin",
     "inspect_ui_services",
     "inspect_ui_plugin_source_references",
+    "inspect_agent_ui_sources",
 ]
 
-MutationProjectControlOperation: TypeAlias = Literal["mutate_app_ui_model"]
+MutationProjectControlOperation: TypeAlias = Literal[
+    "mutate_app_ui_model",
+    "apply_agent_ui_source_item",
+]
 ProjectControlOperation: TypeAlias = (
     ReadProjectControlOperation | MutationProjectControlOperation
 )

@@ -12,6 +12,7 @@ const temporaryProjects: string[] = [];
 const fixtureConfig: UIProjectControlConfig = {
   catalogs: ["plugins/catalog"],
   uiPackages: [],
+  agentUI: { sourceRoot: "agent-ui", metadataRoot: ".agent-ui" },
 };
 
 function modelFor(pluginIds: readonly string[]): AppUIModel {

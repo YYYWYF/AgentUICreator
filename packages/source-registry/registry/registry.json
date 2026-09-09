@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "foundation/core",
+      "path": "items/foundation-core/item.json"
+    },
+    {
+      "id": "primitive/button",
+      "path": "items/primitive-button/item.json"
+    },
+    {
+      "id": "primitive/textarea",
+      "path": "items/primitive-textarea/item.json"
+    },
+    {
+      "id": "primitive/dialog",
+      "path": "items/primitive-dialog/item.json"
+    }
+  ]
+}

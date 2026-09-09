@@ -60,8 +60,9 @@ def test_real_target_project_read_operations_execute_through_tsx():
     plugin = asyncio.run(client.inspect_ui_plugin(plugin_id))
     services = asyncio.run(client.inspect_ui_services())
     references = asyncio.run(client.inspect_ui_plugin_source_references(plugin_id))
+    sources = asyncio.run(client.inspect_agent_ui_sources())
 
-    assert project["schemaVersion"] == 2
+    assert project["schemaVersion"] == 3
     assert app_ui_model["hash"] == project["appUIModel"]["hash"]
     assert plugins["appUIModelHash"] == app_ui_model["hash"]
     assert slots["appUIModelHash"] == app_ui_model["hash"]
@@ -69,6 +70,8 @@ def test_real_target_project_read_operations_execute_through_tsx():
     assert services["appUIModelHash"] == app_ui_model["hash"]
     assert isinstance(services["services"], list)
     assert references["pluginId"] == plugin_id
+    assert sources["sourceRoot"] == "agent-ui"
+    assert sources["metadataRoot"] == ".agent-ui"
 
 
 def test_real_target_mutation_uses_temp_copy_and_python_transaction(tmp_path):

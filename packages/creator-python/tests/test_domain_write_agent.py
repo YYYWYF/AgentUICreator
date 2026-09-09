@@ -54,7 +54,7 @@ class MutationClient:
         self.inspect_calls += 1
         self.metrics.record("inspect_app_ui_model", 1, False)
         return {
-            "schemaVersion": 2,
+            "schemaVersion": 3,
             "hash": read_creator_file_state(self.root, APP_UI_MODEL_PATH).hash,
             "model": json.loads(
                 (self.root / APP_UI_MODEL_PATH).read_text(encoding="utf-8")

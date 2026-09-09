@@ -43,8 +43,9 @@ import {
   type RuntimeCompositionReporter,
   type RuntimeDiagnosticReporter,
 } from "../runtime/diagnostics";
+import { AgentUIRoot } from "../agent-ui/foundation/AgentUIRoot";
 import { resolveAgentEndpoint } from "./agent-endpoint";
-import "./styles.css";
+import "./preview-shell.css";
 
 const initialAppUIModel = parseAppUIModelJson(appUIJsonSource);
 const pluginRegistry = createPluginRegistry<AppAgentState>(pluginDefinitions);
@@ -129,15 +130,11 @@ function AgentFrontendSurface({
     themeService?.getMode ?? getDefaultThemeMode,
   );
 
-  useEffect(() => {
-    document.documentElement.style.colorScheme = mode;
-  }, [mode]);
-
   return (
-    <main
+    <AgentUIRoot
+      theme={mode}
       className="development-preview"
       data-agent-runtime={agentRuntime.mode}
-      data-agent-ui-theme={mode}
     >
       <XProvider theme={agentFrontendThemes[mode]}>
         <UIPluginRuntime
@@ -147,7 +144,7 @@ function AgentFrontendSurface({
           registry={pluginRegistry}
         />
       </XProvider>
-    </main>
+    </AgentUIRoot>
   );
 }
 

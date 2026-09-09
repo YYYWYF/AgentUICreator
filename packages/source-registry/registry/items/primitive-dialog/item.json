@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "primitive/dialog",
+  "version": "0.1.0",
+  "kind": "primitive",
+  "description": "Agent UI dialog primitive with a root-scoped portal",
+  "requires": ["foundation/core"],
+  "packages": {
+    "@base-ui/react": ">=1.8.0 <2"
+  },
+  "files": [
+    {
+      "source": "files/primitives/dialog.tsx",
+      "target": "primitives/dialog.tsx"
+    },
+    {
+      "source": "files/primitives/dialog.module.css",
+      "target": "primitives/dialog.module.css"
+    }
+  ]
+}

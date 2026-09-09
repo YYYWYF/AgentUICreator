@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "primitive/textarea",
+  "version": "0.1.0",
+  "kind": "primitive",
+  "description": "Agent UI textarea primitive",
+  "requires": ["foundation/core"],
+  "files": [
+    {
+      "source": "files/primitives/textarea.tsx",
+      "target": "primitives/textarea.tsx"
+    },
+    {
+      "source": "files/primitives/textarea.module.css",
+      "target": "primitives/textarea.module.css"
+    }
+  ]
+}

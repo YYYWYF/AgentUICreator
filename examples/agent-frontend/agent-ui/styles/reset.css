@@ -1,0 +1,6 @@
+[data-agent-ui-root],
+[data-agent-ui-root] *,
+[data-agent-ui-root] *::before,
+[data-agent-ui-root] *::after {
+  box-sizing: border-box;
+}
