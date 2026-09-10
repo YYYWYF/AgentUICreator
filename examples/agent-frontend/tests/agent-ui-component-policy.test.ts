@@ -139,6 +139,35 @@ describe("Agent UI component source policy", () => {
     }
   });
 
+  it("binds the production message list to the managed Agent Message surface", async () => {
+    const pluginRoot = path.join(projectRoot, "plugins/antd-x-message-list");
+    const source = await readFile(path.join(pluginRoot, "index.tsx"), "utf8");
+    const css = await readFile(path.join(pluginRoot, "styles.css"), "utf8");
+
+    expect(source).toContain('from "../../agent-ui/components/message"');
+    expect(source).toMatch(/<AgentMessage\b/u);
+    expect(source).toMatch(/<Bubble\.List\b/u);
+    expect(source).toContain(
+      'rootClassName: "antd-x-message-list-bubble--surface"',
+    );
+    expect(source).not.toMatch(/placement:\s*["']end["']/u);
+    expect(source).not.toMatch(/shape:\s*["']corner["']/u);
+    expect(source).not.toMatch(/variant:\s*["']filled["']/u);
+    expect(source).not.toMatch(
+      /ant-bubble-dot|ant-bubble-loading|antd-x-message-list-role-dot/u,
+    );
+    expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
+    expect(css).not.toMatch(
+      /ant-bubble-dot|ant-bubble-loading|antd-x-message-list-role-dot/u,
+    );
+    expect(css).toMatch(
+      /\.antd-x-message-list-text\s*\{[^}]*white-space:\s*pre-wrap;/su,
+    );
+    expect(css).toMatch(
+      /\.antd-x-message-list-bubble--surface \.ant-bubble-content\s*\{[^}]*padding:\s*0;[^}]*background:\s*transparent;/su,
+    );
+  });
+
   it("keeps the Composer plugin implementation free of Ant Design UI", async () => {
     const composerRoot = path.join(projectRoot, "plugins/agent-composer");
     const composerFiles = await collectFiles(

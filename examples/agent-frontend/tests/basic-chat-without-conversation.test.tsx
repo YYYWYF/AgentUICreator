@@ -7,6 +7,9 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AgentComposer } from "../agent-ui/components/composer";
+import {
+  AgentMessage as AgentMessageSurface,
+} from "../agent-ui/components/message";
 import { AgentUIRootContext } from "../agent-ui/foundation/context";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import type {
@@ -237,6 +240,9 @@ describe("basic chat without Conversation Service", () => {
       });
       expect(getText(messageList)).toContain("你好");
       expect(getText(messageList)).toContain("你好，有什么可以帮你？");
+      expect(
+        mounted.renderer.root.findAllByType(AgentMessageSurface).length,
+      ).toBeGreaterThan(0);
 
       const sender = mounted.renderer.root.findByType(AgentComposer);
       expect(sender.props.disabled).toBe(false);

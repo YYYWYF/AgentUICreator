@@ -416,7 +416,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain("给智能体发送消息，输入 / 唤出快捷指令");
   });
 
-  it("renders one assistant bubble for a turn that crosses a tool call", async () => {
+  it("renders one assistant message for a turn that crosses a tool call", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
     const messages: AgentMessage[] = [
@@ -469,11 +469,11 @@ describe("UIPluginRuntime", () => {
       state: previewAgentState,
     });
 
-    expect(countOccurrences(html, "antd-x-message-list-bubble--user")).toBe(1);
-    expect(countOccurrences(html, "antd-x-message-list-bubble--agent")).toBe(1);
+    expect(countOccurrences(html, 'data-role="user"')).toBe(1);
+    expect(countOccurrences(html, 'data-role="assistant"')).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-avatar--agent")).toBe(0);
     expect(countOccurrences(html, "antd-x-message-list-avatar--user")).toBe(0);
-    expect(countOccurrences(html, "antd-x-message-list-role-dot")).toBe(1);
+    expect(countOccurrences(html, "antd-x-message-list-role-dot")).toBe(0);
     expect(countOccurrences(html, "antd-x-message-list-actions")).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-turn-segment ")).toBe(2);
     expect(html).toContain('data-ui-plugin="antd-x-tool-message"');
@@ -487,7 +487,7 @@ describe("UIPluginRuntime", () => {
     );
   });
 
-  it("keeps multiple streaming assistant messages in one running turn bubble", async () => {
+  it("keeps multiple streaming assistant messages in one running turn surface", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
     const messages: AgentMessage[] = [
@@ -528,16 +528,17 @@ describe("UIPluginRuntime", () => {
       state: previewAgentState,
     });
 
-    expect(countOccurrences(html, "antd-x-message-list-bubble--agent")).toBe(1);
+    expect(countOccurrences(html, 'data-role="assistant"')).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-turn-segment")).toBe(2);
     expect(countOccurrences(html, 'data-agent-turn-id="streaming-user-turn"')).toBe(2);
     expect(html).toContain("检查项目...");
     expect(html).toContain("发现相关实现...");
-    expect(html).toContain("ant-bubble-loading");
+    expect(html).toContain('data-status="streaming"');
+    expect(html).toContain('aria-busy="true"');
     expect(html).toContain("智能体正在处理");
   });
 
-  it("hides leading internal context while rendering chat messages", async () => {
+  it("maps leading context to system messages while rendering chat messages", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
     const messages: AgentMessage[] = [
@@ -583,15 +584,16 @@ describe("UIPluginRuntime", () => {
       state: previewAgentState,
     });
 
-    expect(countOccurrences(html, "antd-x-message-list-bubble--user")).toBe(1);
-    expect(countOccurrences(html, "antd-x-message-list-bubble--agent")).toBe(1);
+    expect(countOccurrences(html, 'data-role="user"')).toBe(1);
+    expect(countOccurrences(html, 'data-role="assistant"')).toBe(1);
+    expect(countOccurrences(html, 'data-role="system"')).toBe(2);
     expect(html).toContain("Visible question");
     expect(html).toContain("Visible answer");
-    expect(html).not.toContain("Hidden system context");
-    expect(html).not.toContain("Hidden developer context");
+    expect(html).toContain("Hidden system context");
+    expect(html).toContain("Hidden developer context");
   });
 
-  it("renders every response message in source order inside one turn bubble", async () => {
+  it("renders every response message in source order inside one turn surface", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
     const messages: AgentMessage[] = [
@@ -676,8 +678,8 @@ describe("UIPluginRuntime", () => {
       state: previewAgentState,
     });
 
-    expect(countOccurrences(html, "antd-x-message-list-bubble--user")).toBe(1);
-    expect(countOccurrences(html, "antd-x-message-list-bubble--agent")).toBe(1);
+    expect(countOccurrences(html, 'data-role="user"')).toBe(1);
+    expect(countOccurrences(html, 'data-role="assistant"')).toBe(1);
     expect(countOccurrences(html, "antd-x-message-list-avatar--agent")).toBe(0);
     expect(countOccurrences(html, "antd-x-message-list-avatar--user")).toBe(0);
     expect(countOccurrences(html, "antd-x-message-list-actions")).toBe(1);
@@ -725,7 +727,7 @@ describe("UIPluginRuntime", () => {
       state: previewAgentState,
     });
 
-    expect(countOccurrences(html, "antd-x-message-list-bubble--agent")).toBe(1);
+    expect(countOccurrences(html, 'data-role="assistant"')).toBe(1);
     expect(html).toContain("Welcome from assistant");
   });
 
@@ -929,7 +931,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain('data-conversation-state="timeline"');
     expect(html).toContain('data-ui-plugin="antd-x-message-list"');
     expect(html).toContain('data-agent-run-status="running"');
-    expect(html).toContain("ant-bubble-loading");
+    expect(html).toContain('data-status="streaming"');
     expect(html).toContain("智能体正在处理");
     expect(html).toContain('data-ui-plugin="agent-composer"');
     expect(html).not.toContain('data-ui-plugin="antd-x-welcome"');
@@ -1105,7 +1107,7 @@ describe("UIPluginRuntime", () => {
     });
 
     expect(html).toContain('data-agent-run-status="running"');
-    expect(html).toContain("ant-bubble-loading");
+    expect(html).toContain('data-status="streaming"');
     expect(html).toContain("正在思考");
     expect(html).toContain('data-reasoning-status="running"');
   });

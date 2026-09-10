@@ -13,9 +13,13 @@ import {
   type AgentTurn,
 } from "@agent-ui/runtime-core";
 
+import {
+  AgentMessage,
+  type AgentMessageRole,
+} from "../../agent-ui/components/message";
 import type {
   AgentExecution,
-  AgentMessage,
+  AgentMessage as RuntimeAgentMessage,
   UIPluginComponentProps,
 } from "../../framework/contracts/ui-plugin";
 import {
@@ -38,7 +42,6 @@ import {
   AGENT_UI_CONVERSATION_SERVICE,
   EMPTY_CONVERSATION_SNAPSHOT,
   getConversationViewMessages,
-  isChatVisibleMessage,
   type AgentUIConversationService,
 } from "../../services/conversations";
 import {
@@ -59,7 +62,7 @@ const roleLabels: Record<string, string> = {
   tool: "工具",
 };
 
-function messageText(message: AgentMessage): string {
+function messageText(message: RuntimeAgentMessage): string {
   if (!("content" in message)) {
     return "";
   }
@@ -97,7 +100,7 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
     : undefined;
 }
 
-function messageFiles(message: AgentMessage): FileCardProps[] {
+function messageFiles(message: RuntimeAgentMessage): FileCardProps[] {
   if (message.role !== "user" || !Array.isArray(message.content)) {
     return [];
   }
@@ -140,7 +143,7 @@ function messageFiles(message: AgentMessage): FileCardProps[] {
   });
 }
 
-function messageSources(message: AgentMessage) {
+function messageSources(message: RuntimeAgentMessage) {
   const agentUI = asRecord(message.metadata?.agentUI);
   const value = message.metadata?.sources ?? agentUI?.sources;
 
@@ -175,21 +178,24 @@ function MessageActions({ text }: { text: string }) {
   return <Actions.Copy rootClassName="antd-x-message-list-actions" text={text} />;
 }
 
-function messageContent(message: AgentMessage) {
+function messageContent(message: RuntimeAgentMessage) {
   const text = messageText(message);
   const files = messageFiles(message);
   const sources = messageSources(message);
 
-  if (files.length === 0 && sources.length === 0) {
-    if (text.length > 0) {
-      return text;
-    }
-    return "暂不支持此消息内容";
+  if (text.length === 0 && files.length === 0 && sources.length === 0) {
+    return (
+      <p className="antd-x-message-list-text">
+        暂不支持此消息内容
+      </p>
+    );
   }
 
   return (
     <div className="antd-x-message-list-rich-content">
-      {text.length === 0 ? null : <p>{text}</p>}
+      {text.length === 0 ? null : (
+        <p className="antd-x-message-list-text">{text}</p>
+      )}
       {files.length === 0 ? null : (
         <FileCard.List items={files} overflow="wrap" size="small" />
       )}
@@ -200,7 +206,29 @@ function messageContent(message: AgentMessage) {
   );
 }
 
-function bubbleRole(role: string): string {
+function presentationRole(
+  role: RuntimeAgentMessage["role"],
+): AgentMessageRole {
+  if (role === "user") {
+    return "user";
+  }
+
+  if (role === "assistant") {
+    return "assistant";
+  }
+
+  return "system";
+}
+
+function MessageRoleLabel({ role }: { role: string }) {
+  return (
+    <span className="antd-x-message-list-role">
+      {roleLabels[role] ?? role}
+    </span>
+  );
+}
+
+function bubbleRole(role: RuntimeAgentMessage["role"]): string {
   if (role === "assistant") {
     return "ai";
   }
@@ -210,36 +238,34 @@ function bubbleRole(role: string): string {
   return "system";
 }
 
-function toLeadingBubbleItem(
-  message: AgentMessage,
-  renderAssistantActions: (messageId: string, text: string) => React.ReactNode,
-): BubbleItemType {
+function toLeadingBubbleItem(message: RuntimeAgentMessage): BubbleItemType {
   const text = messageText(message);
   return {
     key: message.id,
     role: bubbleRole(message.role),
-    content: messageContent(message),
-    header: (
-      <span className="antd-x-message-list-role">
-        {message.role === "assistant" ? (
-          <span className="antd-x-message-list-role-dot" />
-        ) : null}
-        {roleLabels[message.role] ?? message.role}
-      </span>
-    ),
-    ...(message.role === "assistant"
-      ? {
-          footer: renderAssistantActions(message.id, text),
-          footerPlacement: "outer-start" as const,
+    content: (
+      <AgentMessage
+        role={presentationRole(message.role)}
+        header={<MessageRoleLabel role={message.role} />}
+        actions={
+          message.role === "assistant" && text.length > 0
+            ? <MessageActions text={text} />
+            : undefined
         }
-      : {}),
+      >
+        {messageContent(message)}
+      </AgentMessage>
+    ),
   };
 }
 
-type AgentAssistantMessage = Extract<AgentMessage, { role: "assistant" }>;
+type AgentAssistantMessage = Extract<
+  RuntimeAgentMessage,
+  { role: "assistant" }
+>;
 
 function isAssistantMessage(
-  message: AgentMessage,
+  message: RuntimeAgentMessage,
 ): message is AgentAssistantMessage {
   return message.role === "assistant";
 }
@@ -260,15 +286,8 @@ function assistantTurnText(turn: AgentTurn): string {
 
 function AssistantTurnLoading() {
   return (
-    <span
-      aria-label="智能体正在处理"
-      className="antd-x-message-list-turn-loading"
-    >
-      <span aria-hidden="true" className="ant-bubble-dot">
-        <i className="ant-bubble-dot-item" />
-        <i className="ant-bubble-dot-item" />
-        <i className="ant-bubble-dot-item" />
-      </span>
+    <span className="antd-x-message-list-turn-loading">
+      智能体正在处理…
     </span>
   );
 }
@@ -333,7 +352,7 @@ function AssistantMessageSegment({
 function GenericToolResultSegment({
   message,
 }: {
-  message: Extract<AgentMessage, { role: "tool" }>;
+  message: Extract<RuntimeAgentMessage, { role: "tool" }>;
 }) {
   return (
     <div
@@ -354,7 +373,7 @@ function GenericToolResultSegment({
 function LegacyReasoningMessageRenderer({
   message,
 }: {
-  message: Extract<AgentMessage, { role: "reasoning" }>;
+  message: Extract<RuntimeAgentMessage, { role: "reasoning" }>;
 }) {
   return (
     <div className="antd-x-message-list-reasoning-segment">
@@ -367,7 +386,7 @@ function LegacyReasoningMessageRenderer({
 function ActivityMessageSegment({
   message,
 }: {
-  message: Extract<AgentMessage, { role: "activity" }>;
+  message: Extract<RuntimeAgentMessage, { role: "activity" }>;
 }) {
   const title =
     typeof message.content.title === "string"
@@ -392,7 +411,7 @@ function ContextMessageSegment({
   message,
 }: {
   label: string;
-  message: Extract<AgentMessage, { role: "system" | "developer" }>;
+  message: Extract<RuntimeAgentMessage, { role: "system" | "developer" }>;
 }) {
   return (
     <div className="antd-x-message-list-context-segment">
@@ -408,7 +427,7 @@ function TurnMessageSegment({
   renderSlot,
   turnId,
 }: {
-  message: AgentMessage;
+  message: RuntimeAgentMessage;
   reasoningExecutionByMessageId: ReadonlyMap<
     string,
     Extract<AgentExecution, { type: "reasoning" }>
@@ -570,7 +589,6 @@ function AssistantTurnContent({
   renderSlot,
   toolInspectionById,
   turn,
-  running,
 }: {
   presentation: ToolPresentation;
   reasoningExecutionByMessageId: ReadonlyMap<
@@ -580,7 +598,6 @@ function AssistantTurnContent({
   renderSlot: UIPluginComponentProps["renderSlot"];
   toolInspectionById: ReadonlyMap<string, ToolCallInspection>;
   turn: AgentTurn;
-  running: boolean;
 }) {
   const segments = projectTurnToolActivities(
     turn.responseMessages,
@@ -598,7 +615,6 @@ function AssistantTurnContent({
           turnId={turn.id}
         />
       ))}
-      {running ? <AssistantTurnLoading /> : null}
     </div>
   );
 }
@@ -624,11 +640,13 @@ function toTurnBubbleItems({
   const userBubble: BubbleItemType = {
     key: turn.userMessage.id,
     role: "user",
-    content: messageContent(turn.userMessage),
-    header: (
-      <span className="antd-x-message-list-role">
-        {roleLabels.user}
-      </span>
+    content: (
+      <AgentMessage
+        role="user"
+        header={<MessageRoleLabel role="user" />}
+      >
+        {messageContent(turn.userMessage)}
+      </AgentMessage>
     ),
     "data-agent-turn-id": turn.id,
     "data-agent-turn-role": "user",
@@ -642,28 +660,22 @@ function toTurnBubbleItems({
     key: `assistant-turn:${turn.id}`,
     role: "ai",
     content: (
-      <AssistantTurnContent
-        presentation={presentation}
-        reasoningExecutionByMessageId={reasoningExecutionByMessageId}
-        renderSlot={renderSlot}
-        running={running}
-        toolInspectionById={toolInspectionById}
-        turn={turn}
-      />
+      <AgentMessage
+        role="assistant"
+        status={running ? "streaming" : "complete"}
+        header={<MessageRoleLabel role="assistant" />}
+        footer={running ? <AssistantTurnLoading /> : undefined}
+        actions={text.length > 0 ? <MessageActions text={text} /> : undefined}
+      >
+        <AssistantTurnContent
+          presentation={presentation}
+          reasoningExecutionByMessageId={reasoningExecutionByMessageId}
+          renderSlot={renderSlot}
+          toolInspectionById={toolInspectionById}
+          turn={turn}
+        />
+      </AgentMessage>
     ),
-    header: (
-      <span className="antd-x-message-list-role">
-        <span className="antd-x-message-list-role-dot" />
-        {roleLabels.assistant}
-      </span>
-    ),
-    ...(text.length > 0
-      ? {
-          footer: <MessageActions text={text} />,
-          footerPlacement: "outer-start" as const,
-        }
-      : {}),
-    ...(running ? { status: "loading" as const } : {}),
     "data-agent-turn-id": turn.id,
     "data-agent-turn-role": "assistant",
   };
@@ -671,23 +683,16 @@ function toTurnBubbleItems({
   return [userBubble, assistantBubble];
 }
 
+const surfaceRole = {
+  placement: "start",
+  rootClassName: "antd-x-message-list-bubble--surface",
+  variant: "borderless",
+} as const;
+
 const bubbleRoles: NonNullable<BubbleListProps["role"]> = {
-  ai: {
-    placement: "start",
-    rootClassName: "antd-x-message-list-bubble--agent",
-    variant: "borderless",
-  },
-  user: {
-    placement: "end",
-    rootClassName: "antd-x-message-list-bubble--user",
-    shape: "corner",
-    variant: "filled",
-  },
-  system: {
-    placement: "start",
-    rootClassName: "antd-x-message-list-bubble--system",
-    variant: "borderless",
-  },
+  ai: surfaceRole,
+  user: surfaceRole,
+  system: surfaceRole,
 };
 
 export function AntdXMessageListPlugin({
@@ -728,7 +733,6 @@ export function AntdXMessageListPlugin({
     });
   });
   const items = leadingMessages
-    .filter(isChatVisibleMessage)
     .filter(
       (message) =>
         !(
@@ -736,11 +740,7 @@ export function AntdXMessageListPlugin({
           !hasRenderableAssistantContent(message)
         ),
     )
-    .map((message) =>
-      toLeadingBubbleItem(message, (_messageId, text) => (
-        <MessageActions text={text} />
-      )),
-    );
+    .map(toLeadingBubbleItem);
 
   turns.forEach((turn, index) => {
     items.push(
