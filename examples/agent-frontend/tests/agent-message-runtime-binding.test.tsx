@@ -406,22 +406,94 @@ describe("Agent Message runtime binding", () => {
     }
   });
 
-  it("maps a leading system message to the system presentation role", async () => {
+  it("keeps leading system and developer context out of ordinary chat", async () => {
     const mounted = await mountMessageList({
       messages: [
         {
-          id: "leading-system",
+          id: "internal-system",
           producer: { type: "root" },
           role: "system",
-          content: "系统通知",
+          content: "SYSTEM SECRET CONTEXT",
+        },
+        {
+          id: "internal-developer",
+          producer: { type: "root" },
+          role: "developer",
+          content: "DEVELOPER SECRET CONTEXT",
+        },
+        {
+          id: "visible-user",
+          producer: { type: "root" },
+          role: "user",
+          content: "用户问题",
+        },
+        {
+          id: "visible-assistant",
+          producer: { type: "root" },
+          role: "assistant",
+          content: "智能体回答",
         },
       ],
     });
 
     try {
-      const message = mounted.renderer.root.findByType(AgentMessageSurface);
-      expect(message.props.role).toBe("system");
-      expect(textContent(message)).toContain("系统通知");
+      const messages = mounted.renderer.root.findAllByType(AgentMessageSurface);
+      const output = textContent(mounted.renderer.root);
+      expect(messages).toHaveLength(2);
+      expect(messages[0]?.props.role).toBe("user");
+      expect(messages[1]?.props.role).toBe("assistant");
+      expect(textContent(messages[0]!)).toContain("用户问题");
+      expect(textContent(messages[1]!)).toContain("智能体回答");
+      expect(output).not.toContain("SYSTEM SECRET CONTEXT");
+      expect(output).not.toContain("DEVELOPER SECRET CONTEXT");
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("keeps leading internal context hidden in history mode", async () => {
+    const historyMessages: AgentMessage[] = [
+      {
+        id: "history-internal-system",
+        producer: { type: "root" },
+        role: "system",
+        content: "HISTORY SYSTEM SECRET CONTEXT",
+      },
+      {
+        id: "history-internal-developer",
+        producer: { type: "root" },
+        role: "developer",
+        content: "HISTORY DEVELOPER SECRET CONTEXT",
+      },
+      {
+        id: "history-visible-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "历史用户问题",
+      },
+      {
+        id: "history-visible-assistant",
+        producer: { type: "root" },
+        role: "assistant",
+        content: "历史智能体回答",
+      },
+    ];
+    const mounted = await mountMessageList({
+      historyMessages,
+      messages: [],
+      run: { status: "running" },
+    });
+
+    try {
+      const messages = mounted.renderer.root.findAllByType(AgentMessageSurface);
+      const output = textContent(mounted.renderer.root);
+      expect(messages).toHaveLength(2);
+      expect(messages[0]?.props.role).toBe("user");
+      expect(messages[1]?.props.role).toBe("assistant");
+      expect(textContent(messages[0]!)).toContain("历史用户问题");
+      expect(textContent(messages[1]!)).toContain("历史智能体回答");
+      expect(output).not.toContain("HISTORY SYSTEM SECRET CONTEXT");
+      expect(output).not.toContain("HISTORY DEVELOPER SECRET CONTEXT");
     } finally {
       await mounted.dispose();
     }

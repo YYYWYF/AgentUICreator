@@ -42,6 +42,7 @@ import {
   AGENT_UI_CONVERSATION_SERVICE,
   EMPTY_CONVERSATION_SNAPSHOT,
   getConversationViewMessages,
+  isChatVisibleMessage,
   type AgentUIConversationService,
 } from "../../services/conversations";
 import {
@@ -733,6 +734,7 @@ export function AntdXMessageListPlugin({
     });
   });
   const items = leadingMessages
+    .filter(isChatVisibleMessage)
     .filter(
       (message) =>
         !(
