@@ -1,7 +1,10 @@
 import {
   Actions,
+  Bubble,
   FileCard,
   Sources,
+  type BubbleItemType,
+  type BubbleListProps,
   type FileCardProps,
 } from "@ant-design/x";
 import { Alert, Empty, Spin } from "antd";
@@ -9,12 +12,7 @@ import {
   projectAgentTurns,
   type AgentTurn,
 } from "@agent-ui/runtime-core";
-import { Fragment, useEffect, useRef, type ReactNode } from "react";
 
-import {
-  AgentMessage as AgentMessageSurface,
-  type AgentMessageRole,
-} from "../../agent-ui/components/message";
 import type {
   AgentExecution,
   AgentMessage,
@@ -202,42 +200,39 @@ function messageContent(message: AgentMessage) {
   );
 }
 
-function surfaceRole(role: AgentMessage["role"]): AgentMessageRole {
-  return role === "user" || role === "assistant" ? role : "system";
+function bubbleRole(role: string): string {
+  if (role === "assistant") {
+    return "ai";
+  }
+  if (role === "user") {
+    return "user";
+  }
+  return "system";
 }
 
-interface MessageListItem {
-  key: string;
-  content: ReactNode;
-}
-
-function toLeadingMessageItem(message: AgentMessage): MessageListItem {
+function toLeadingBubbleItem(
+  message: AgentMessage,
+  renderAssistantActions: (messageId: string, text: string) => React.ReactNode,
+): BubbleItemType {
   const text = messageText(message);
   return {
     key: message.id,
-    content: (
-      <div
-        className="antd-x-message-list-item"
-        data-agent-message-id={message.id}
-      >
-        <AgentMessageSurface
-          role={surfaceRole(message.role)}
-          header={(
-            <span className="antd-x-message-list-role">
-              {message.role === "assistant" ? (
-                <span className="antd-x-message-list-role-dot" />
-              ) : null}
-              {roleLabels[message.role] ?? message.role}
-            </span>
-          )}
-          actions={message.role === "assistant"
-            ? <MessageActions text={text} />
-            : undefined}
-        >
-          {messageContent(message)}
-        </AgentMessageSurface>
-      </div>
+    role: bubbleRole(message.role),
+    content: messageContent(message),
+    header: (
+      <span className="antd-x-message-list-role">
+        {message.role === "assistant" ? (
+          <span className="antd-x-message-list-role-dot" />
+        ) : null}
+        {roleLabels[message.role] ?? message.role}
+      </span>
     ),
+    ...(message.role === "assistant"
+      ? {
+          footer: renderAssistantActions(message.id, text),
+          footerPlacement: "outer-start" as const,
+        }
+      : {}),
   };
 }
 
@@ -269,10 +264,10 @@ function AssistantTurnLoading() {
       aria-label="智能体正在处理"
       className="antd-x-message-list-turn-loading"
     >
-      <span aria-hidden="true" className="antd-x-message-list-loading-dots">
-        <i className="antd-x-message-list-loading-dot" />
-        <i className="antd-x-message-list-loading-dot" />
-        <i className="antd-x-message-list-loading-dot" />
+      <span aria-hidden="true" className="ant-bubble-dot">
+        <i className="ant-bubble-dot-item" />
+        <i className="ant-bubble-dot-item" />
+        <i className="ant-bubble-dot-item" />
       </span>
     </span>
   );
@@ -608,7 +603,7 @@ function AssistantTurnContent({
   );
 }
 
-function toTurnMessageItems({
+function toTurnBubbleItems({
   presentation,
   reasoningExecutionByMessageId,
   renderSlot,
@@ -625,68 +620,79 @@ function toTurnMessageItems({
   toolInspectionById: ReadonlyMap<string, ToolCallInspection>;
   turn: AgentTurn;
   running: boolean;
-}): MessageListItem[] {
-  const userMessage: MessageListItem = {
+}): BubbleItemType[] {
+  const userBubble: BubbleItemType = {
     key: turn.userMessage.id,
-    content: (
-      <div
-        className="antd-x-message-list-item"
-        data-agent-turn-id={turn.id}
-        data-agent-turn-role="user"
-      >
-        <AgentMessageSurface
-          role="user"
-          header={<span className="antd-x-message-list-role">{roleLabels.user}</span>}
-        >
-          {messageContent(turn.userMessage)}
-        </AgentMessageSurface>
-      </div>
+    role: "user",
+    content: messageContent(turn.userMessage),
+    header: (
+      <span className="antd-x-message-list-role">
+        {roleLabels.user}
+      </span>
     ),
+    "data-agent-turn-id": turn.id,
+    "data-agent-turn-role": "user",
   };
   if (turn.responseMessages.length === 0 && !running) {
-    return [userMessage];
+    return [userBubble];
   }
 
   const text = assistantTurnText(turn);
-  const assistantMessage: MessageListItem = {
+  const assistantBubble: BubbleItemType = {
     key: `assistant-turn:${turn.id}`,
+    role: "ai",
     content: (
-      <div
-        className="antd-x-message-list-item"
-        data-agent-turn-id={turn.id}
-        data-agent-turn-role="assistant"
-      >
-        <AgentMessageSurface
-          role="assistant"
-          status={running ? "streaming" : "complete"}
-          header={(
-            <span className="antd-x-message-list-role">
-              <span className="antd-x-message-list-role-dot" />
-              {roleLabels.assistant}
-            </span>
-          )}
-          actions={text.length > 0 ? <MessageActions text={text} /> : undefined}
-        >
-          <AssistantTurnContent
-            presentation={presentation}
-            reasoningExecutionByMessageId={reasoningExecutionByMessageId}
-            renderSlot={renderSlot}
-            running={running}
-            toolInspectionById={toolInspectionById}
-            turn={turn}
-          />
-        </AgentMessageSurface>
-      </div>
+      <AssistantTurnContent
+        presentation={presentation}
+        reasoningExecutionByMessageId={reasoningExecutionByMessageId}
+        renderSlot={renderSlot}
+        running={running}
+        toolInspectionById={toolInspectionById}
+        turn={turn}
+      />
     ),
+    header: (
+      <span className="antd-x-message-list-role">
+        <span className="antd-x-message-list-role-dot" />
+        {roleLabels.assistant}
+      </span>
+    ),
+    ...(text.length > 0
+      ? {
+          footer: <MessageActions text={text} />,
+          footerPlacement: "outer-start" as const,
+        }
+      : {}),
+    ...(running ? { status: "loading" as const } : {}),
+    "data-agent-turn-id": turn.id,
+    "data-agent-turn-role": "assistant",
   };
 
-  return [userMessage, assistantMessage];
+  return [userBubble, assistantBubble];
 }
+
+const bubbleRoles: NonNullable<BubbleListProps["role"]> = {
+  ai: {
+    placement: "start",
+    rootClassName: "antd-x-message-list-bubble--agent",
+    variant: "borderless",
+  },
+  user: {
+    placement: "end",
+    rootClassName: "antd-x-message-list-bubble--user",
+    shape: "corner",
+    variant: "filled",
+  },
+  system: {
+    placement: "start",
+    rootClassName: "antd-x-message-list-bubble--system",
+    variant: "borderless",
+  },
+};
 
 export function AntdXMessageListPlugin({
   renderSlot,
 }: UIPluginComponentProps) {
-  const sectionRef = useRef<HTMLElement>(null);
   const messages = useAgentMessages();
   const executions = useAgentExecutions();
   const run = useAgentRun();
@@ -698,9 +704,6 @@ export function AntdXMessageListPlugin({
     conversation,
     EMPTY_CONVERSATION_SNAPSHOT,
   );
-  const scrollMessages = conversationSnapshot.mode === "history"
-    ? conversationSnapshot.historyMessages
-    : messages;
   const conversationMessages = getConversationViewMessages(
     messages,
     conversationSnapshot,
@@ -733,11 +736,15 @@ export function AntdXMessageListPlugin({
           !hasRenderableAssistantContent(message)
         ),
     )
-    .map(toLeadingMessageItem);
+    .map((message) =>
+      toLeadingBubbleItem(message, (_messageId, text) => (
+        <MessageActions text={text} />
+      )),
+    );
 
   turns.forEach((turn, index) => {
     items.push(
-      ...toTurnMessageItems({
+      ...toTurnBubbleItems({
         presentation: toolPresentation,
         reasoningExecutionByMessageId,
         renderSlot,
@@ -755,15 +762,8 @@ export function AntdXMessageListPlugin({
       ? instance.props.emptyText
       : "开始一段新对话";
 
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (section === null) return;
-    section.scrollTop = section.scrollHeight;
-  }, [scrollMessages, run.status]);
-
   return (
     <section
-      ref={sectionRef}
       aria-label="智能体消息"
       className="antd-x-message-list-plugin"
       data-agent-run-status={run.status}
@@ -785,11 +785,7 @@ export function AntdXMessageListPlugin({
       ) : items.length === 0 ? (
         <Empty description={emptyText} image={Empty.PRESENTED_IMAGE_SIMPLE} />
       ) : (
-        <div className="antd-x-message-list-scroll-content">
-          {items.map((item) => (
-            <Fragment key={item.key}>{item.content}</Fragment>
-          ))}
-        </div>
+        <Bubble.List autoScroll items={items} role={bubbleRoles} />
       )}
     </section>
   );

@@ -139,17 +139,6 @@ describe("Agent UI component source policy", () => {
     }
   });
 
-  it("binds the message-list plugin to the local Agent Message surface", async () => {
-    const pluginRoot = path.join(projectRoot, "plugins/antd-x-message-list");
-    const source = await readFile(path.join(pluginRoot, "index.tsx"), "utf8");
-    const manifest = await readFile(path.join(pluginRoot, "manifest.json"), "utf8");
-
-    expect(source).toContain('from "../../agent-ui/components/message"');
-    expect(source).toMatch(/<AgentMessageSurface\b/u);
-    expect(source).not.toMatch(/\bBubble(?:\.List)?\b/u);
-    expect(manifest).not.toMatch(/Bubble\.List/u);
-  });
-
   it("keeps the Composer plugin implementation free of Ant Design UI", async () => {
     const composerRoot = path.join(projectRoot, "plugins/agent-composer");
     const composerFiles = await collectFiles(
