@@ -123,13 +123,9 @@ describe("ModeShell", () => {
     expect(unmounted).toHaveBeenCalledOnce();
   });
 
-  it("keeps Mode dependencies out of Plugin, Layout, and Slot contracts", async () => {
+  it("keeps Mode dependencies out of project-owned Plugin and Slot contracts", async () => {
     const sourceUrls = [
       new URL("../runtime/plugins/UIPluginRuntime.tsx", import.meta.url),
-      new URL(
-        "../../../packages/runtime-react/src/layout/LayoutRenderer.tsx",
-        import.meta.url,
-      ),
       new URL("../runtime/slots/SlotRegistry.ts", import.meta.url),
       new URL("../framework/contracts/ui-plugin.ts", import.meta.url),
     ];

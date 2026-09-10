@@ -8,6 +8,11 @@ const exampleRoot = path.join(workspaceRoot, "examples/agent-frontend");
 const pluginRoot = path.join(exampleRoot, "plugins");
 const coreRoot = path.join(workspaceRoot, "packages/runtime-core");
 const adapterRoot = path.join(workspaceRoot, "packages/runtime-agui");
+const reactRuntimeRoot = path.join(workspaceRoot, "packages/runtime-react");
+const creatorRoots = [
+  path.join(workspaceRoot, "packages/creator"),
+  path.join(workspaceRoot, "packages/creator-python"),
+];
 const ignoredDirectories = new Set([
   "node_modules",
   "dist",
@@ -15,6 +20,10 @@ const ignoredDirectories = new Set([
   "coverage",
 ]);
 type PackageManifest = Record<string, Record<string, string> | undefined>;
+type RuntimePackageName =
+  | "runtime-core"
+  | "runtime-agui"
+  | "runtime-react";
 
 async function pathExists(filename: string): Promise<boolean> {
   return access(filename).then(
@@ -93,28 +102,55 @@ function targetsPlugin(filename: string, specifier: string): boolean {
     resolvesInside(filename, specifier, pluginRoot);
 }
 
+function targetsCreator(filename: string, specifier: string): boolean {
+  return specifier === "@agent-ui/creator" ||
+    specifier.startsWith("@agent-ui/creator/") ||
+    specifier.startsWith("@agent-ui/creator-") ||
+    specifier.includes("packages/creator") ||
+    creatorRoots.some((root) => resolvesInside(filename, specifier, root));
+}
+
+function sourceViolations(
+  filename: string,
+  source: string,
+  packageName: RuntimePackageName,
+): string[] {
+  const relative = path.relative(workspaceRoot, filename).split(path.sep).join("/");
+  const violations: string[] = [];
+
+  for (const specifier of moduleReferences(source)) {
+    if (targetsExample(filename, specifier)) {
+      violations.push(`${relative}: ${packageName} imports example ${specifier}`);
+    }
+    if (targetsPlugin(filename, specifier)) {
+      violations.push(`${relative}: ${packageName} imports plugin ${specifier}`);
+    }
+    if (packageName === "runtime-react" && targetsCreator(filename, specifier)) {
+      violations.push(`${relative}: runtime-react imports Creator ${specifier}`);
+    }
+    if (
+      packageName === "runtime-core" &&
+      (specifier === "@agent-ui/runtime-agui" ||
+        specifier.startsWith("@agent-ui/runtime-agui/"))
+    ) {
+      violations.push(`${relative}: runtime-core imports runtime-agui ${specifier}`);
+    }
+  }
+
+  return violations;
+}
+
 async function packageSourceViolations(
   packageRoot: string,
-  packageName: "runtime-core" | "runtime-agui",
+  packageName: RuntimePackageName,
 ): Promise<string[]> {
   const violations: string[] = [];
   for (const filename of await sourceFiles(path.join(packageRoot, "src"))) {
-    const relative = path.relative(workspaceRoot, filename).split(path.sep).join("/");
-    for (const specifier of moduleReferences(await readFile(filename, "utf8"))) {
-      if (targetsExample(filename, specifier)) {
-        violations.push(`${relative}: ${packageName} imports example ${specifier}`);
-      }
-      if (packageName === "runtime-core" && targetsPlugin(filename, specifier)) {
-        violations.push(`${relative}: runtime-core imports plugin ${specifier}`);
-      }
-      if (
-        packageName === "runtime-core" &&
-        (specifier === "@agent-ui/runtime-agui" ||
-          specifier.startsWith("@agent-ui/runtime-agui/"))
-      ) {
-        violations.push(`${relative}: runtime-core imports runtime-agui ${specifier}`);
-      }
-    }
+    violations.push(...sourceViolations(
+      filename,
+      await readFile(filename, "utf8"),
+      packageName,
+    ));
   }
   return violations;
 }
@@ -131,16 +167,31 @@ describe("runtime package dependency direction", () => {
     expect(coreDependencies.filter((name) => name.startsWith("@agent-ui/plugin-"))).toEqual([]);
   });
 
-  it("keeps both runtime packages independent from the example and plugins", async () => {
+  it("keeps Runtime packages independent from the example, plugins, and Creator", async () => {
     expect([
       ...await packageSourceViolations(coreRoot, "runtime-core"),
       ...await packageSourceViolations(adapterRoot, "runtime-agui"),
+      ...await packageSourceViolations(reactRuntimeRoot, "runtime-react"),
     ]).toEqual([]);
   });
 
-  it("does not keep compatibility copies in the generated app", async () => {
+  it("detects forbidden runtime-react imports", () => {
+    const filename = path.join(reactRuntimeRoot, "src/illegal-import.ts");
+    const exampleSpecifier = "../../../examples/agent-frontend/src/index";
+
+    expect(sourceViolations(
+      filename,
+      `import example from "${exampleSpecifier}";`,
+      "runtime-react",
+    )).toEqual([
+      `packages/runtime-react/src/illegal-import.ts: runtime-react imports example ${exampleSpecifier}`,
+    ]);
+  });
+
+  it("does not keep official Runtime compatibility copies in the generated app", async () => {
     expect(await pathExists(path.join(exampleRoot, "runtime/core"))).toBe(false);
     expect(await pathExists(path.join(exampleRoot, "runtime/ag-ui"))).toBe(false);
+    expect(await pathExists(path.join(exampleRoot, "runtime/layout"))).toBe(false);
   });
 
   it("keeps the development Source Registry out of the application runtime graph", async () => {
