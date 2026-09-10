@@ -37,6 +37,12 @@ const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 export const appUITransactionInputSchema = z.strictObject({
   appUIModelHash: z.string().regex(SHA256_PATTERN),
   operations: appUIOperationsSchema,
+  runtimeSlotWidths: z
+    .record(
+      z.string().trim().min(1).max(200),
+      z.enum(["unknown", "narrow", "wide"]),
+    )
+    .optional(),
 });
 
 export type AppUITransactionInput = z.infer<typeof appUITransactionInputSchema>;
@@ -485,6 +491,60 @@ function semanticModelSource(
     : `${JSON.stringify(after, null, 2)}\n`;
 }
 
+function widthSensitiveInstanceIds(
+  operations: readonly AppUIOperation[],
+): Set<string> {
+  return new Set(
+    operations.flatMap((operation) => {
+      switch (operation.type) {
+        case "add_instance":
+          return operation.instance.mount === undefined
+            ? []
+            : [operation.instance.id];
+        case "mount_instance":
+        case "move_instance":
+          return [operation.instanceId];
+        case "replace_instance":
+          return [operation.replacement.id];
+        default:
+          return [];
+      }
+    }),
+  );
+}
+
+function assertPluginWidthCompatibility(
+  model: AppUIModel,
+  operations: readonly AppUIOperation[],
+  assets: readonly { pluginId: string; layoutWidth?: "narrow" | "wide" }[],
+  runtimeSlotWidths: Readonly<Record<string, "unknown" | "narrow" | "wide">>,
+): void {
+  const assetsById = new Map(assets.map((asset) => [asset.pluginId, asset]));
+  for (const instanceId of widthSensitiveInstanceIds(operations)) {
+    const instance = model.pluginInstances[instanceId];
+    const slotId = instance?.mount?.slotId;
+    if (
+      instance === undefined ||
+      slotId === undefined ||
+      assetsById.get(instance.pluginId)?.layoutWidth !== "wide" ||
+      runtimeSlotWidths[slotId] !== "narrow"
+    ) {
+      continue;
+    }
+    throw new AppUITransactionError(
+      "PLUGIN_WIDTH_INCOMPATIBLE",
+      `UI plugin "${instance.pluginId}" requires a wide container, but Slot "${slotId}" is currently narrow.`,
+      {
+        pluginId: instance.pluginId,
+        instanceId,
+        slotId,
+        requiredWidth: "wide",
+        actualWidthClass: "narrow",
+      },
+    );
+  }
+}
+
 async function runTransaction(
   projectRoot: string,
   input: AppUITransactionInput,
@@ -534,6 +594,12 @@ async function runTransaction(
       { issues: registry.errors },
     );
   }
+  assertPluginWidthCompatibility(
+    afterModel,
+    input.operations as AppUIOperation[],
+    registry.assets,
+    input.runtimeSlotWidths ?? {},
+  );
   const selectedPluginIds = new Set(registry.selectedPluginIds);
   const childSlotIssues = await verifyPluginChildSlots(
     projectRoot,

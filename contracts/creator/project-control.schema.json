@@ -64,6 +64,13 @@
                   "minItems": 1,
                   "maxItems": 100,
                   "items": { "$ref": "app-ui-model-operation.schema.json" }
+                },
+                "runtimeSlotWidths": {
+                  "type": "object",
+                  "propertyNames": { "minLength": 1, "maxLength": 200 },
+                  "additionalProperties": {
+                    "enum": ["unknown", "narrow", "wide"]
+                  }
                 }
               }
             }

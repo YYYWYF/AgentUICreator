@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ..activity import CreatorActivityRecorder
 from ..domain_state import DomainObservationError
@@ -21,6 +21,9 @@ from .mutation_models import (
 
 _HASH_LENGTH = 64
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from ..runtime_diagnostics.store import RuntimeDiagnosticStore
 
 
 def _is_sha256(value: Any) -> bool:
@@ -59,11 +62,15 @@ class AppUIModelMutationService:
         project_control: ProjectControlClient,
         activity: CreatorActivityRecorder,
         mutation_coordinator: ProjectMutationCoordinator,
+        runtime_diagnostics: RuntimeDiagnosticStore | None = None,
+        thread_id: str | None = None,
     ) -> None:
         self.project_root = Path(project_root).resolve()
         self.project_control = project_control
         self.activity = activity
         self.mutation_coordinator = mutation_coordinator
+        self.runtime_diagnostics = runtime_diagnostics
+        self.thread_id = thread_id
         self.metrics = AppUIModelMutationMetrics()
         self._last_failed_signature: str | None = None
         self._consecutive_failures = 0
@@ -162,10 +169,23 @@ class AppUIModelMutationService:
                 self.activity.capture_before(path)
             before_states = self._read_mutable_states()
             try:
+                runtime_slot_widths = (
+                    {}
+                    if self.runtime_diagnostics is None or self.thread_id is None
+                    else self.runtime_diagnostics.current_slot_widths(
+                        thread_id=self.thread_id,
+                        app_ui_model_hash=app_ui_model_hash,
+                    )
+                )
                 raw_result = await self.project_control.request_app_ui_model_mutation(
                     {
                         "appUIModelHash": app_ui_model_hash,
                         "operations": operations,
+                        **(
+                            {"runtimeSlotWidths": runtime_slot_widths}
+                            if runtime_slot_widths
+                            else {}
+                        ),
                     }
                 )
             except ProjectControlError as error:

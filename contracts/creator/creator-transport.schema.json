@@ -46,7 +46,8 @@
           "required": ["schemaVersion", "kind", "status", "appUIModelHash", "occurredAt", "pluginId", "instanceId"],
           "properties": {
             "schemaVersion": { "const": 1 },
-            "kind": { "enum": ["plugin-render", "plugin-activation"] },
+            "kind": { "enum": ["plugin-render", "plugin-activation", "plugin-width-incompatible"] },
+            "code": { "const": "PLUGIN_WIDTH_INCOMPATIBLE" },
             "status": { "enum": ["error", "resolved"] },
             "appUIModelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
             "occurredAt": { "type": "string", "format": "date-time", "maxLength": 64 },
@@ -55,6 +56,8 @@
             "pluginName": { "type": "string", "maxLength": 200 },
             "slotId": { "type": "string", "maxLength": 200 },
             "slotPath": { "type": "string", "maxLength": 1000 },
+            "requiredWidth": { "const": "wide" },
+            "actualWidthClass": { "enum": ["unknown", "narrow", "wide"] },
             "errorMessage": { "type": "string", "maxLength": 2000 },
             "componentStack": { "type": "string", "maxLength": 8000 }
           },
@@ -62,6 +65,10 @@
             {
               "if": { "properties": { "status": { "const": "error" } } },
               "then": { "required": ["errorMessage"] }
+            },
+            {
+              "if": { "properties": { "kind": { "const": "plugin-width-incompatible" } } },
+              "then": { "required": ["code", "slotId", "requiredWidth", "actualWidthClass"] }
             }
           ]
         },
@@ -84,6 +91,20 @@
                   "instanceId": { "type": "string", "minLength": 1, "maxLength": 200 },
                   "pluginId": { "type": "string", "minLength": 1, "maxLength": 200 },
                   "slotId": { "type": "string", "minLength": 1, "maxLength": 200 },
+                  "slotPath": { "type": "string", "maxLength": 1000 }
+                }
+              }
+            },
+            "slots": {
+              "type": "array",
+              "maxItems": 500,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["slotId", "widthClass"],
+                "properties": {
+                  "slotId": { "type": "string", "minLength": 1, "maxLength": 200 },
+                  "widthClass": { "enum": ["unknown", "narrow", "wide"] },
                   "slotPath": { "type": "string", "maxLength": 1000 }
                 }
               }

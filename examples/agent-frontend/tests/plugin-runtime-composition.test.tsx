@@ -11,6 +11,7 @@ import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 import {
   createPluginRegistry,
   type RuntimeCompositionSnapshot,
+  type RuntimeDiagnostic,
 } from "../runtime/plugins";
 import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
@@ -51,6 +52,7 @@ function createModel(enabled = true) {
 function definitions(
   childThrows = false,
   renderChildTwice = false,
+  childWidth?: "narrow" | "wide",
 ): UIPluginDefinition[] {
   return [
     {
@@ -74,6 +76,7 @@ function definitions(
         name: "Child Plugin",
         description: "Composition child fixture",
         version: "1.0.0",
+        ...(childWidth === undefined ? {} : { layout: { width: childWidth } }),
       },
       Component: () => {
         if (childThrows) throw new Error("Child render failed.");
@@ -87,11 +90,15 @@ function RuntimeFixture({
   childThrows = false,
   enabled = true,
   renderChildTwice = false,
+  childWidth,
+  diagnosticReporter,
   reporter,
 }: {
   childThrows?: boolean | undefined;
   enabled?: boolean | undefined;
   renderChildTwice?: boolean | undefined;
+  childWidth?: "narrow" | "wide" | undefined;
+  diagnosticReporter?: ((diagnostic: RuntimeDiagnostic) => void) | undefined;
   reporter(snapshot: RuntimeCompositionSnapshot): void;
 }) {
   return (
@@ -104,7 +111,10 @@ function RuntimeFixture({
       messages={[]}
       model={createModel(enabled)}
       onRuntimeComposition={reporter}
-      registry={createPluginRegistry(definitions(childThrows, renderChildTwice))}
+      onRuntimeDiagnostic={diagnosticReporter}
+      registry={createPluginRegistry(
+        definitions(childThrows, renderChildTwice, childWidth),
+      )}
       run={{ status: "idle" }}
       state={null}
     />
@@ -132,6 +142,48 @@ describe("plugin runtime composition", () => {
     }
     renderer = undefined;
     consoleError.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  it("reports a wide Plugin mounted in a narrow child Slot without hiding it", async () => {
+    const diagnostics: RuntimeDiagnostic[] = [];
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+
+    await act(async () => {
+      renderer = create(
+        <RuntimeFixture
+          childWidth="wide"
+          diagnosticReporter={(diagnostic) => diagnostics.push(diagnostic)}
+          reporter={() => undefined}
+        />,
+        {
+          createNodeMock: () => ({
+            getBoundingClientRect: () => ({ width: 320 }),
+          }),
+        },
+      );
+      await Promise.resolve();
+    });
+
+    expect(diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "PLUGIN_WIDTH_INCOMPATIBLE",
+        kind: "plugin-width-incompatible",
+        pluginId: "child-plugin",
+        instanceId: "child-main",
+        slotId: "owner.child",
+        requiredWidth: "wide",
+        actualWidthClass: "narrow",
+      }),
+    );
+    expect(renderer.root.findByProps({ children: "Committed child" })).toBeTruthy();
   });
 
   it("reports actual React commits for a Layout Slot and a container child Slot", async () => {
@@ -157,6 +209,17 @@ describe("plugin runtime composition", () => {
           pluginId: "owner-plugin",
           slotId: "root-slot",
           slotPath: "root",
+        },
+      ],
+      slots: [
+        {
+          slotId: "owner.child",
+          widthClass: "unknown",
+        },
+        {
+          slotId: "root-slot",
+          slotPath: "root",
+          widthClass: "unknown",
         },
       ],
     });

@@ -12,6 +12,7 @@ MAX_DIAGNOSTIC_SCOPES = 50
 MAX_DIAGNOSTICS_PER_SCOPE = 200
 MAX_COMPOSITIONS_PER_SCOPE = 20
 MAX_COMPOSITION_INSTANCES = 500
+MAX_COMPOSITION_SLOTS = 500
 MAX_DIAGNOSTIC_RESULTS = 20
 MAX_RUNTIME_HASH_EVIDENCE_PER_SCOPE = (
     MAX_DIAGNOSTICS_PER_SCOPE + MAX_COMPOSITIONS_PER_SCOPE
@@ -25,12 +26,14 @@ class RuntimeDiagnostic(BaseModel):
     kind: Literal[
         "plugin-render",
         "plugin-activation",
+        "plugin-width-incompatible",
         "application-gate",
         "application-event-unknown",
         "application-event-invalid-payload",
         "plugin-event-undeclared-subscription",
         "plugin-event-handler-error",
     ]
+    code: Literal["PLUGIN_WIDTH_INCOMPATIBLE"] | None = None
     status: Literal["error", "resolved"]
     appUIModelHash: str = Field(pattern=r"^[a-f0-9]{64}$")
     occurredAt: datetime
@@ -41,6 +44,8 @@ class RuntimeDiagnostic(BaseModel):
     issuePaths: list[str] | None = Field(default=None, max_length=100)
     slotId: str | None = Field(default=None, max_length=200)
     slotPath: str | None = Field(default=None, max_length=1_000)
+    requiredWidth: Literal["wide"] | None = None
+    actualWidthClass: Literal["unknown", "narrow", "wide"] | None = None
     errorMessage: str | None = Field(default=None, max_length=2_000)
     componentStack: str | None = Field(default=None, max_length=8_000)
 
@@ -51,6 +56,7 @@ class RuntimeDiagnostic(BaseModel):
         plugin_scoped = self.kind in {
             "plugin-render",
             "plugin-activation",
+            "plugin-width-incompatible",
             "application-gate",
             "plugin-event-undeclared-subscription",
             "plugin-event-handler-error",
@@ -65,6 +71,15 @@ class RuntimeDiagnostic(BaseModel):
             raise ValueError("A plugin-scoped diagnostic must include plugin identity.")
         if event_scoped and self.eventName is None:
             raise ValueError("An event diagnostic must include eventName.")
+        if self.kind == "plugin-width-incompatible" and (
+            self.code != "PLUGIN_WIDTH_INCOMPATIBLE"
+            or self.slotId is None
+            or self.requiredWidth != "wide"
+            or self.actualWidthClass is None
+        ):
+            raise ValueError(
+                "A width compatibility diagnostic must include its code, Slot, required width, and actual width class."
+            )
         if self.issuePaths is not None and any(
             not path or len(path) > 500 for path in self.issuePaths
         ):
@@ -96,6 +111,14 @@ class RuntimeCompositionApplication(BaseModel):
     )
 
 
+class RuntimeCompositionSlot(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    slotId: str = Field(min_length=1, max_length=200)
+    widthClass: Literal["unknown", "narrow", "wide"]
+    slotPath: str | None = Field(default=None, max_length=1_000)
+
+
 class RuntimeComposition(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -106,12 +129,18 @@ class RuntimeComposition(BaseModel):
     instances: list[RuntimeCompositionInstance] = Field(
         max_length=MAX_COMPOSITION_INSTANCES
     )
+    slots: list[RuntimeCompositionSlot] = Field(
+        default_factory=list, max_length=MAX_COMPOSITION_SLOTS
+    )
 
     @model_validator(mode="after")
     def require_unique_instance_ids(self) -> "RuntimeComposition":
         instance_ids = [instance.instanceId for instance in self.instances]
         if len(instance_ids) != len(set(instance_ids)):
             raise ValueError("composition.instances contains duplicate instanceId values.")
+        slot_ids = [slot.slotId for slot in self.slots]
+        if len(slot_ids) != len(set(slot_ids)):
+            raise ValueError("composition.slots contains duplicate slotId values.")
         return self
 
 
@@ -222,6 +251,8 @@ class RuntimeDiagnosticStore:
             "issuePaths",
             "slotId",
             "slotPath",
+            "requiredWidth",
+            "actualWidthClass",
             "errorMessage",
             "componentStack",
         )
@@ -332,6 +363,8 @@ class RuntimeDiagnosticStore:
                 "runtimeStatus": "unavailable",
                 "diagnosticFresh": False,
                 "compositionFresh": False,
+                "runtimeInstances": [],
+                "runtimeSlots": [],
                 "currentErrors": [],
                 "resolvedCurrent": [],
                 "stale": [],
@@ -386,6 +419,20 @@ class RuntimeDiagnosticStore:
         )
         latest_diagnostic_observed_at = scope.latest_diagnostic_observed_by_hash.get(
             current_app_ui_model_hash
+        )
+        latest_runtime_observed_at = max(
+            filter(
+                None,
+                [latest_composition_observed_at, latest_diagnostic_observed_at],
+            ),
+            default=None,
+        )
+        latest_runtime_received_at = max(
+            filter(
+                None,
+                [latest_composition_received_at, latest_diagnostic_received_at],
+            ),
+            default=None,
         )
         runtime_observed = (
             latest_composition_received_at is not None
@@ -461,6 +508,11 @@ class RuntimeDiagnosticStore:
                 if latest_composition is None
                 else latest_composition.get("instances", [])
             ),
+            "runtimeSlots": (
+                []
+                if latest_composition is None
+                else latest_composition.get("slots", [])
+            ),
             **(
                 {}
                 if latest_composition is None
@@ -511,4 +563,28 @@ class RuntimeDiagnosticStore:
                 for item in selected_stale[:MAX_DIAGNOSTIC_RESULTS]
             ],
             "summary": summary,
+        }
+
+    def current_slot_widths(
+        self, *, thread_id: str, app_ui_model_hash: str
+    ) -> dict[str, Literal["unknown", "narrow", "wide"]]:
+        scope = self._scopes.get(thread_id)
+        if scope is None:
+            return {}
+        latest_composition = next(
+            (
+                item
+                for item in scope.compositions
+                if item.get("appUIModelHash") == app_ui_model_hash
+            ),
+            None,
+        )
+        if latest_composition is None:
+            return {}
+        return {
+            str(slot["slotId"]): slot["widthClass"]
+            for slot in latest_composition.get("slots", [])
+            if isinstance(slot, dict)
+            and isinstance(slot.get("slotId"), str)
+            and slot.get("widthClass") in {"unknown", "narrow", "wide"}
         }

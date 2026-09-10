@@ -27,6 +27,13 @@
           "slotId": "conversation.messages",
           "slotPath": "workspace.conversation/conversation.messages"
         }
+      ],
+      "slots": [
+        {
+          "slotId": "conversation.messages",
+          "widthClass": "narrow",
+          "slotPath": "workspace.conversation/conversation.messages"
+        }
       ]
     }
   }

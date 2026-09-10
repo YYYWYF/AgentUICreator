@@ -27,6 +27,10 @@ from agent_ui_creator.domain_tools import create_project_control_tools
 from agent_ui_creator.project_control import ProjectControlError
 from agent_ui_creator.model_protocol import ToolProtocolGuard, ToolProtocolMetrics
 from agent_ui_creator.transactions import CreatorTransactionError
+from agent_ui_creator.runtime_diagnostics import (
+    RuntimeDiagnosticEnvelope,
+    RuntimeDiagnosticStore,
+)
 from langchain.agents.middleware import ModelResponse
 from langchain_core.messages import AIMessage
 
@@ -81,7 +85,15 @@ class FakeMutationClient:
         return _result(self.root, before_hash, reported)
 
 
-def _service(root: Path, client, *, coordinator=None, run_id="run-1"):
+def _service(
+    root: Path,
+    client,
+    *,
+    coordinator=None,
+    run_id="run-1",
+    runtime_diagnostics=None,
+    thread_id=None,
+):
     activity = CreatorActivityRecorder(root)
     activity.begin(run_id)
     return (
@@ -90,6 +102,8 @@ def _service(root: Path, client, *, coordinator=None, run_id="run-1"):
             project_control=client,
             activity=activity,
             mutation_coordinator=coordinator or ProjectMutationCoordinator(),
+            runtime_diagnostics=runtime_diagnostics,
+            thread_id=thread_id,
         ),
         activity,
     )
@@ -108,6 +122,51 @@ def _mutate(service, app_hash):
             ],
         )
     )
+
+
+def test_mutation_forwards_current_runtime_slot_widths(tmp_path):
+    root = _create_project(tmp_path)
+    app_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
+    client = FakeMutationClient(root)
+    diagnostics = RuntimeDiagnosticStore()
+    diagnostics.record(
+        RuntimeDiagnosticEnvelope.model_validate(
+            {
+                "threadId": "thread-1",
+                "composition": {
+                    "schemaVersion": 1,
+                    "appUIModelHash": app_hash,
+                    "observedAt": "2026-09-10T00:00:00.000Z",
+                    "instances": [],
+                    "slots": [
+                        {"slotId": "main", "widthClass": "narrow"}
+                    ],
+                },
+            }
+        )
+    )
+    service, _activity = _service(
+        root,
+        client,
+        runtime_diagnostics=diagnostics,
+        thread_id="thread-1",
+    )
+
+    _mutate(service, app_hash)
+
+    assert client.inputs == [
+        {
+            "appUIModelHash": app_hash,
+            "operations": [
+                {
+                    "type": "set_instance_enabled",
+                    "instanceId": "sample-main",
+                    "enabled": False,
+                }
+            ],
+            "runtimeSlotWidths": {"main": "narrow"},
+        }
+    ]
 
 
 def _observations(service, app_hash):

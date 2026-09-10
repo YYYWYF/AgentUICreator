@@ -27,6 +27,7 @@ async function createPlugin(
   capability: "visual" | "headless",
   childSlots: readonly string[] = [],
   renderedChildSlots: readonly string[] = childSlots,
+  layoutWidth?: "narrow" | "wide",
 ): Promise<void> {
   const pluginRoot = path.join(projectRoot, "plugins", pluginId);
   await mkdir(pluginRoot, { recursive: true });
@@ -38,6 +39,7 @@ async function createPlugin(
       description: "Fixture",
       version: "1.0.0",
       capabilities: [capability],
+      ...(layoutWidth === undefined ? {} : { layout: { width: layoutWidth } }),
       ...(childSlots.length === 0 ? {} : { slots: { children: childSlots } }),
     }),
   );
@@ -73,6 +75,7 @@ async function createProject(): Promise<{
   await createPlugin(projectRoot, "background", "headless");
   await createPlugin(projectRoot, "owner", "visual", ["owner.child"]);
   await createPlugin(projectRoot, "consumer", "visual");
+  await createPlugin(projectRoot, "wide", "visual", [], [], "wide");
   const model: AppUIModel = {
     version: "2",
     root: {
@@ -114,6 +117,64 @@ afterEach(async () => {
 });
 
 describe("AppUIModel transaction", () => {
+  it("rejects mounting a wide Plugin into a known narrow Slot before writing", async () => {
+    const { projectRoot, appUIModelSource, registrySource } = await createProject();
+
+    await expect(
+      mutateAppUIModel(projectRoot, {
+        appUIModelHash: hash(appUIModelSource),
+        operations: [
+          {
+            type: "add_instance",
+            instance: {
+              id: "wide-main",
+              pluginId: "wide",
+              enabled: true,
+              mount: { slotId: "main" },
+            },
+          },
+        ],
+        runtimeSlotWidths: { main: "narrow" },
+      }),
+    ).rejects.toMatchObject({
+      code: "PLUGIN_WIDTH_INCOMPATIBLE",
+      details: {
+        instanceId: "wide-main",
+        slotId: "main",
+        requiredWidth: "wide",
+        actualWidthClass: "narrow",
+      },
+    });
+    expect(
+      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
+    ).toBe(appUIModelSource);
+    expect(
+      await readFile(path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH), "utf8"),
+    ).toBe(registrySource);
+  });
+
+  it("allows a wide Plugin when the Slot width is not known", async () => {
+    const { projectRoot, appUIModelSource } = await createProject();
+
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(appUIModelSource),
+      operations: [
+        {
+          type: "add_instance",
+          instance: {
+            id: "wide-main",
+            pluginId: "wide",
+            enabled: true,
+            mount: { slotId: "main" },
+          },
+        },
+      ],
+      runtimeSlotWidths: { main: "unknown" },
+    });
+
+    expect(result.diff.instances.added).toEqual(["wide-main"]);
+  });
+
   it("commits a valid multi-operation change and returns a structured diff", async () => {
     const { projectRoot, appUIModelSource } = await createProject();
 

@@ -22,6 +22,33 @@ import {
 } from "../runtime/context";
 
 describe("UIPluginManifest", () => {
+  it.each(["narrow", "wide"] as const)(
+    "accepts the %s width requirement",
+    (width) => {
+      const manifest = parseUIPluginManifest({
+        id: "file-preview",
+        name: "File preview",
+        description: "Displays the selected file",
+        version: "1.0.0",
+        layout: { width },
+      });
+
+      expect(manifest.layout?.width).toBe(width);
+    },
+  );
+
+  it("rejects unsupported width requirements", () => {
+    expect(() =>
+      parseUIPluginManifest({
+        id: "file-preview",
+        name: "File preview",
+        description: "Displays the selected file",
+        version: "1.0.0",
+        layout: { width: "medium" },
+      }),
+    ).toThrow();
+  });
+
   it("validates a manifest", () => {
     const manifest = parseUIPluginManifest({
       id: "file-preview",

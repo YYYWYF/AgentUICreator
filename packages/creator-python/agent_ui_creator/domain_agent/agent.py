@@ -308,11 +308,14 @@ def create_domain_write_creator_agent(
     )
     client = project_control or ProjectControlClient(project_root=Path(workspace))
     coordinator = mutation_coordinator or ProjectMutationCoordinator()
+    diagnostic_store = diagnostics or RuntimeDiagnosticStore()
     service = AppUIModelMutationService(
         project_root=workspace,
         project_control=client,
         activity=backend.activity,
         mutation_coordinator=coordinator,
+        runtime_diagnostics=diagnostic_store,
+        thread_id=thread_id,
     )
     observations = DomainObservationContext()
     repair_state = CreatorRepairState()
@@ -370,7 +373,7 @@ def create_domain_write_creator_agent(
         host_verifier=service_verifier,
     )
     runtime_inspection = RuntimeDiagnosticInspectionService(
-        store=diagnostics or RuntimeDiagnosticStore(),
+        store=diagnostic_store,
         thread_id=thread_id,
         project_control=client,
         observations=observations,

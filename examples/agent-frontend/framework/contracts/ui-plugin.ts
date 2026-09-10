@@ -28,6 +28,11 @@ export interface UIPluginManifest {
   description: string;
   version: string;
   capabilities?: string[] | undefined;
+  layout?:
+    | {
+        width?: "narrow" | "wide" | undefined;
+      }
+    | undefined;
   application?:
     | {
         gate?:
@@ -181,6 +186,11 @@ const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
   description: nonBlankStringSchema,
   version: nonBlankStringSchema,
   capabilities: z.array(nonBlankStringSchema).optional(),
+  layout: z
+    .strictObject({
+      width: z.enum(["narrow", "wide"]).optional(),
+    })
+    .optional(),
   application: z
     .strictObject({
       gate: z

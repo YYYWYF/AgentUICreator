@@ -86,6 +86,9 @@ export async function collectPluginAssets(
           path.join(directoryPath, "definition.ts"),
         ),
         capabilities: [...(manifest.capabilities ?? [])].sort(),
+        ...(manifest.layout?.width === undefined
+          ? {}
+          : { layoutWidth: manifest.layout.width }),
         ...(manifest.application?.gate === undefined
           ? {}
           : {

@@ -74,6 +74,7 @@ export interface PluginAsset {
   manifestPath: string;
   definitionPath: string;
   capabilities: string[];
+  layoutWidth?: "narrow" | "wide" | undefined;
   applicationGate?: {
     service: string;
     priority: number;

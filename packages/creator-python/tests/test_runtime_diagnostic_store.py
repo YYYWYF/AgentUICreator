@@ -21,6 +21,7 @@ def composition(
     *,
     application_phase: str | None = None,
     instances: list[dict[str, str]] | None = None,
+    slots: list[dict[str, str]] | None = None,
 ):
     return RuntimeDiagnosticEnvelope.model_validate(
         {
@@ -45,6 +46,7 @@ def composition(
                     }
                 ),
                 "instances": instances or [],
+                "slots": slots or [],
             },
         }
     )
@@ -100,6 +102,64 @@ def test_runtime_diagnostic_store_records_forwarded_composition():
             "slotId": "conversation.messages",
         }
     ]
+
+
+def test_runtime_diagnostic_store_exposes_current_slot_widths():
+    store = RuntimeDiagnosticStore()
+    store.record(
+        composition(
+            "thread-1",
+            "a" * 64,
+            slots=[
+                {
+                    "slotId": "conversation.messages",
+                    "widthClass": "narrow",
+                    "slotPath": "root.children[0]",
+                }
+            ],
+        )
+    )
+
+    assert store.current_slot_widths(
+        thread_id="thread-1", app_ui_model_hash="a" * 64
+    ) == {"conversation.messages": "narrow"}
+    assert store.inspect(
+        thread_id="thread-1", current_app_ui_model_hash="a" * 64
+    )["runtimeSlots"] == [
+        {
+            "slotId": "conversation.messages",
+            "widthClass": "narrow",
+            "slotPath": "root.children[0]",
+        }
+    ]
+
+
+def test_runtime_diagnostic_store_accepts_width_incompatibility():
+    store = RuntimeDiagnosticStore()
+    envelope = RuntimeDiagnosticEnvelope.model_validate(
+        {
+            "threadId": "thread-1",
+            "diagnostic": {
+                "schemaVersion": 1,
+                "kind": "plugin-width-incompatible",
+                "code": "PLUGIN_WIDTH_INCOMPATIBLE",
+                "status": "error",
+                "appUIModelHash": "a" * 64,
+                "occurredAt": "2026-09-10T00:00:00.000Z",
+                "pluginId": "wide-preview",
+                "instanceId": "wide-preview-main",
+                "slotId": "conversation.messages",
+                "requiredWidth": "wide",
+                "actualWidthClass": "narrow",
+                "errorMessage": "Wide Plugin cannot fit the narrow Slot.",
+            },
+        }
+    )
+
+    assert store.record(envelope) == {"accepted": True, "resolvedCount": 0}
+    assert store.inspect(
+        thread_id="thread-1", current_app_ui_model_hash="a" * 64
+    )["currentErrors"][0]["code"] == "PLUGIN_WIDTH_INCOMPATIBLE"
 
 
 def test_runtime_diagnostic_store_accepts_application_event_diagnostics():
