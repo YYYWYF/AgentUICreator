@@ -15,7 +15,6 @@ import type {
 import { LayoutRenderer } from "../layout";
 import {
   classifyContainerWidth,
-  isPluginWidthCompatible,
   type RuntimeWidthClass,
 } from "../layout/width-compatibility";
 import type { PluginRegistry } from "./PluginRegistry";
@@ -69,10 +68,8 @@ interface SlotContentProps<TState = unknown> {
   onPluginReset(instanceId: string): void;
 }
 
-interface SlotWidthProbeProps<TState = unknown> {
+interface SlotWidthProbeProps {
   children: ReactNode;
-  model: AppUIModel;
-  registry: PluginRegistry<TState>;
   slotId: string;
 }
 
@@ -84,30 +81,13 @@ function PluginRuntimeError({ children }: { children: ReactNode }) {
   );
 }
 
-function SlotWidthProbe<TState = unknown>({
+function SlotWidthProbe({
   children,
-  model,
-  registry,
   slotId,
-}: SlotWidthProbeProps<TState>) {
+}: SlotWidthProbeProps) {
   const diagnostics = useOptionalPluginDiagnosticContext();
-  const slots = usePluginServiceRuntime().slots;
   const elementRef = useRef<HTMLDivElement>(null);
-  const incompatibleInstances = useRef(
-    new Map<string, { pluginId: string; pluginName: string }>(),
-  );
   const [widthClass, setWidthClass] = useState<RuntimeWidthClass>("unknown");
-  const widthClassRef = useRef<RuntimeWidthClass>(widthClass);
-  widthClassRef.current = widthClass;
-  const getSnapshot = useCallback(
-    () => slots.getContributions(slotId),
-    [slots, slotId],
-  );
-  const contributions = useSyncExternalStore(
-    slots.subscribe,
-    getSnapshot,
-    getSnapshot,
-  );
 
   useEffect(() => {
     const element = elementRef.current;
@@ -133,75 +113,6 @@ function SlotWidthProbe<TState = unknown>({
       ...(slotPath === undefined ? {} : { slotPath }),
     });
   }, [diagnostics, slotId, widthClass]);
-
-  useEffect(() => {
-    if (diagnostics === null) return;
-    const next = new Map<string, { pluginId: string; pluginName: string }>();
-    for (const contribution of contributions) {
-      const instance = model.pluginInstances[contribution.instanceId];
-      const definition = instance === undefined
-        ? undefined
-        : registry.get(instance.pluginId);
-      if (
-        instance === undefined ||
-        definition === undefined ||
-        isPluginWidthCompatible(definition.manifest.layout?.width, widthClass)
-      ) {
-        continue;
-      }
-      next.set(instance.id, {
-        pluginId: definition.manifest.id,
-        pluginName: definition.manifest.name,
-      });
-      if (!incompatibleInstances.current.has(instance.id)) {
-        diagnostics.report({
-          kind: "plugin-width-incompatible",
-          code: "PLUGIN_WIDTH_INCOMPATIBLE",
-          status: "error",
-          pluginId: definition.manifest.id,
-          pluginName: definition.manifest.name,
-          instanceId: instance.id,
-          slotId,
-          requiredWidth: "wide",
-          actualWidthClass: "narrow",
-          errorMessage: `UI plugin "${definition.manifest.id}" requires a wide container, but Slot "${slotId}" is narrow.`,
-        });
-      }
-    }
-    for (const [instanceId, previous] of incompatibleInstances.current) {
-      if (next.has(instanceId)) continue;
-      diagnostics.report({
-        kind: "plugin-width-incompatible",
-        code: "PLUGIN_WIDTH_INCOMPATIBLE",
-        status: "resolved",
-        pluginId: previous.pluginId,
-        pluginName: previous.pluginName,
-        instanceId,
-        slotId,
-        requiredWidth: "wide",
-        actualWidthClass: widthClass,
-      });
-    }
-    incompatibleInstances.current = next;
-  }, [contributions, diagnostics, model, registry, slotId, widthClass]);
-
-  useEffect(() => () => {
-    if (diagnostics === null) return;
-    for (const [instanceId, previous] of incompatibleInstances.current) {
-      diagnostics.report({
-        kind: "plugin-width-incompatible",
-        code: "PLUGIN_WIDTH_INCOMPATIBLE",
-        status: "resolved",
-        pluginId: previous.pluginId,
-        pluginName: previous.pluginName,
-        instanceId,
-        slotId,
-        requiredWidth: "wide",
-        actualWidthClass: widthClassRef.current,
-      });
-    }
-    incompatibleInstances.current.clear();
-  }, [diagnostics, slotId]);
 
   return (
     <div
@@ -281,8 +192,6 @@ function SlotContent<TState = unknown>({
           }
           return (
             <SlotWidthProbe
-              model={model}
-              registry={registry}
               slotId={requestedSlotId}
             >
               <SlotContent
@@ -336,8 +245,6 @@ function LayoutSlotOutlet<TState = unknown>({
   );
   return (
     <SlotWidthProbe
-      model={props.model}
-      registry={props.registry}
       slotId={slot.slotId}
     >
       <SlotContent {...props} slotId={slot.slotId} />
@@ -582,6 +489,7 @@ export function UIPluginRuntime<TState = unknown>(
         model={props.model}
         onRuntimeComposition={props.onRuntimeComposition}
         onRuntimeDiagnostic={props.onRuntimeDiagnostic}
+        registry={props.registry}
       >
         <UIPluginRuntime {...props} appUIModelHash={undefined} />
       </PluginDiagnosticProvider>

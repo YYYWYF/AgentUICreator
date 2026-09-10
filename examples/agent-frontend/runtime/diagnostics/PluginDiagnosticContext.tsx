@@ -24,6 +24,8 @@ import {
   type RuntimeDiagnosticReporter,
   type RuntimePluginLocation,
 } from "./types";
+import { isPluginWidthCompatible } from "../layout/width-compatibility";
+import type { PluginRegistry } from "../plugins/PluginRegistry";
 
 export interface PluginDiagnosticContextValue {
   appUIModelHash: string;
@@ -35,12 +37,13 @@ export interface PluginDiagnosticContextValue {
   report(event: RuntimeDiagnosticEvent): void;
 }
 
-export interface PluginDiagnosticProviderProps {
+export interface PluginDiagnosticProviderProps<TState = unknown> {
   appUIModelHash: string;
   children: ReactNode;
   model: AppUIModel;
   onRuntimeComposition?: RuntimeCompositionReporter | undefined;
   onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
+  registry: PluginRegistry<TState>;
 }
 
 const PluginDiagnosticContext =
@@ -89,13 +92,25 @@ export function createSlotLocationIndex(
   return slotPaths;
 }
 
-export function PluginDiagnosticProvider({
+export function resolveEffectiveSlotWidth(
+  occurrences: Iterable<RuntimeCompositionSlot>,
+): RuntimeCompositionSlot["widthClass"] {
+  let hasWideOccurrence = false;
+  for (const occurrence of occurrences) {
+    if (occurrence.widthClass === "narrow") return "narrow";
+    if (occurrence.widthClass === "wide") hasWideOccurrence = true;
+  }
+  return hasWideOccurrence ? "wide" : "unknown";
+}
+
+export function PluginDiagnosticProvider<TState = unknown>({
   appUIModelHash,
   children,
   model,
   onRuntimeComposition,
   onRuntimeDiagnostic,
-}: PluginDiagnosticProviderProps) {
+  registry,
+}: PluginDiagnosticProviderProps<TState>) {
   const mountedInstances = useRef(
     new Map<
       string,
@@ -104,6 +119,12 @@ export function PluginDiagnosticProvider({
   );
   const observedSlots = useRef(
     new Map<string, Map<symbol, RuntimeCompositionSlot>>(),
+  );
+  const incompatibleInstances = useRef(
+    new Map<
+      string,
+      Map<string, { pluginId: string; pluginName: string }>
+    >(),
   );
   const snapshotScheduled = useRef(false);
   const currentHash = useRef(appUIModelHash);
@@ -148,6 +169,89 @@ export function PluginDiagnosticProvider({
     },
     [appUIModelHash, locations, onRuntimeDiagnostic],
   );
+  const reconcileWidthDiagnostics = useCallback(() => {
+    const next = new Map<
+      string,
+      Map<string, { pluginId: string; pluginName: string }>
+    >();
+
+    for (const [slotId, slotOccurrences] of observedSlots.current) {
+      const effectiveWidthClass = resolveEffectiveSlotWidth(
+        slotOccurrences.values(),
+      );
+      const incompatibleForSlot = new Map<
+        string,
+        { pluginId: string; pluginName: string }
+      >();
+
+      for (const [instanceId, instanceOccurrences] of mountedInstances.current) {
+        const mountedInstance = instanceOccurrences.values().next().value;
+        if (mountedInstance?.slotId !== slotId) continue;
+        const instance = model.pluginInstances[instanceId];
+        const definition = instance === undefined
+          ? undefined
+          : registry.get(instance.pluginId);
+        if (
+          instance === undefined ||
+          definition === undefined ||
+          isPluginWidthCompatible(
+            definition.manifest.layout?.width,
+            effectiveWidthClass,
+          )
+        ) {
+          continue;
+        }
+
+        const plugin = {
+          pluginId: definition.manifest.id,
+          pluginName: definition.manifest.name,
+        };
+        incompatibleForSlot.set(instanceId, plugin);
+        if (!incompatibleInstances.current.get(slotId)?.has(instanceId)) {
+          report({
+            kind: "plugin-width-incompatible",
+            code: "PLUGIN_WIDTH_INCOMPATIBLE",
+            status: "error",
+            pluginId: plugin.pluginId,
+            pluginName: plugin.pluginName,
+            instanceId,
+            slotId,
+            requiredWidth: "wide",
+            actualWidthClass: "narrow",
+            errorMessage: `UI plugin "${plugin.pluginId}" requires a wide container, but Slot "${slotId}" is narrow.`,
+          });
+        }
+      }
+
+      if (incompatibleForSlot.size > 0) {
+        next.set(slotId, incompatibleForSlot);
+      }
+    }
+
+    for (const [slotId, previousForSlot] of incompatibleInstances.current) {
+      const nextForSlot = next.get(slotId);
+      const slotOccurrences = observedSlots.current.get(slotId);
+      const effectiveWidthClass = slotOccurrences === undefined
+        ? "unknown"
+        : resolveEffectiveSlotWidth(slotOccurrences.values());
+      for (const [instanceId, previous] of previousForSlot) {
+        if (nextForSlot?.has(instanceId)) continue;
+        report({
+          kind: "plugin-width-incompatible",
+          code: "PLUGIN_WIDTH_INCOMPATIBLE",
+          status: "resolved",
+          pluginId: previous.pluginId,
+          pluginName: previous.pluginName,
+          instanceId,
+          slotId,
+          requiredWidth: "wide",
+          actualWidthClass: effectiveWidthClass,
+        });
+      }
+    }
+
+    incompatibleInstances.current = next;
+  }, [model, registry, report]);
   const scheduleCompositionSnapshot = useCallback(() => {
     if (snapshotScheduled.current) return;
     snapshotScheduled.current = true;
@@ -167,12 +271,13 @@ export function PluginDiagnosticProvider({
         );
       const slots = [...observedSlots.current.values()]
         .flatMap((occurrences) => {
-          const slot = [...occurrences.values()].sort(
-            (left, right) =>
-              ({ narrow: 0, wide: 1, unknown: 2 })[left.widthClass] -
-              ({ narrow: 0, wide: 1, unknown: 2 })[right.widthClass],
-          )[0];
-          return slot === undefined ? [] : [slot];
+          const slot = occurrences.values().next().value;
+          return slot === undefined
+            ? []
+            : [{
+                ...slot,
+                widthClass: resolveEffectiveSlotWidth(occurrences.values()),
+              }];
         })
         .sort((left, right) => left.slotId.localeCompare(right.slotId));
       try {
@@ -200,6 +305,7 @@ export function PluginDiagnosticProvider({
         new Map<symbol, RuntimeCompositionInstance>();
       occurrences.set(registration, instance);
       mountedInstances.current.set(instance.instanceId, occurrences);
+      reconcileWidthDiagnostics();
       scheduleCompositionSnapshot();
       return () => {
         const current = mountedInstances.current.get(instance.instanceId);
@@ -207,11 +313,12 @@ export function PluginDiagnosticProvider({
           if (current.size === 0) {
             mountedInstances.current.delete(instance.instanceId);
           }
+          reconcileWidthDiagnostics();
           scheduleCompositionSnapshot();
         }
       };
     },
-    [scheduleCompositionSnapshot],
+    [reconcileWidthDiagnostics, scheduleCompositionSnapshot],
   );
   const registerObservedSlot = useCallback(
     (slot: RuntimeCompositionSlot) => {
@@ -221,6 +328,7 @@ export function PluginDiagnosticProvider({
         new Map<symbol, RuntimeCompositionSlot>();
       occurrences.set(registration, slot);
       observedSlots.current.set(slot.slotId, occurrences);
+      reconcileWidthDiagnostics();
       scheduleCompositionSnapshot();
       return () => {
         const current = observedSlots.current.get(slot.slotId);
@@ -228,11 +336,12 @@ export function PluginDiagnosticProvider({
           if (current.size === 0) {
             observedSlots.current.delete(slot.slotId);
           }
+          reconcileWidthDiagnostics();
           scheduleCompositionSnapshot();
         }
       };
     },
-    [scheduleCompositionSnapshot],
+    [reconcileWidthDiagnostics, scheduleCompositionSnapshot],
   );
   const updateApplicationLifecycle = useCallback(
     (application: RuntimeCompositionApplication) => {

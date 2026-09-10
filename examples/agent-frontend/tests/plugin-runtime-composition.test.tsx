@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, useState } from "react";
 import {
   act,
   create,
@@ -10,6 +10,7 @@ import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 import {
   createPluginRegistry,
+  type PluginRegistry,
   type RuntimeCompositionSnapshot,
   type RuntimeDiagnostic,
 } from "../runtime/plugins";
@@ -92,6 +93,7 @@ function RuntimeFixture({
   renderChildTwice = false,
   childWidth,
   diagnosticReporter,
+  pluginRegistry,
   reporter,
 }: {
   childThrows?: boolean | undefined;
@@ -99,6 +101,7 @@ function RuntimeFixture({
   renderChildTwice?: boolean | undefined;
   childWidth?: "narrow" | "wide" | undefined;
   diagnosticReporter?: ((diagnostic: RuntimeDiagnostic) => void) | undefined;
+  pluginRegistry?: PluginRegistry | undefined;
   reporter(snapshot: RuntimeCompositionSnapshot): void;
 }) {
   return (
@@ -112,7 +115,7 @@ function RuntimeFixture({
       model={createModel(enabled)}
       onRuntimeComposition={reporter}
       onRuntimeDiagnostic={diagnosticReporter}
-      registry={createPluginRegistry(
+      registry={pluginRegistry ?? createPluginRegistry(
         definitions(childThrows, renderChildTwice, childWidth),
       )}
       run={{ status: "idle" }}
@@ -184,6 +187,156 @@ describe("plugin runtime composition", () => {
       }),
     );
     expect(renderer.root.findByProps({ children: "Committed child" })).toBeTruthy();
+  });
+
+  it("keeps width diagnostics open until every occurrence of a logical Slot is wide", async () => {
+    const diagnostics: RuntimeDiagnostic[] = [];
+    const snapshots: RuntimeCompositionSnapshot[] = [];
+    const observedNodes = new Map<
+      object,
+      { callback: ResizeObserverCallback; observer: ResizeObserver }
+    >();
+    const childSlotNodes: Array<{
+      width: number;
+      getBoundingClientRect(): { width: number };
+    }> = [];
+    let hideFirstOccurrence: (() => void) | undefined;
+
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        readonly callback: ResizeObserverCallback;
+
+        constructor(callback: ResizeObserverCallback) {
+          this.callback = callback;
+        }
+
+        observe(target: Element) {
+          observedNodes.set(target, {
+            callback: this.callback,
+            observer: this as unknown as ResizeObserver,
+          });
+        }
+
+        unobserve(target: Element) {
+          observedNodes.delete(target);
+        }
+
+        disconnect() {
+          for (const [target, registration] of observedNodes) {
+            if (registration.observer === this) observedNodes.delete(target);
+          }
+        }
+      },
+    );
+
+    const pluginDefinitions = definitions(false, false, "wide");
+    const ownerDefinition = pluginDefinitions[0];
+    if (ownerDefinition === undefined) {
+      throw new Error("Owner Plugin fixture is missing.");
+    }
+    pluginDefinitions[0] = {
+      ...ownerDefinition,
+      Component: function MultipleOccurrenceOwner({ renderSlot }) {
+        const [showFirstOccurrence, setShowFirstOccurrence] = useState(true);
+        hideFirstOccurrence = () => setShowFirstOccurrence(false);
+        return (
+          <section>
+            {showFirstOccurrence ? (
+              <div key="first">{renderSlot("owner.child")}</div>
+            ) : null}
+            <div key="second">{renderSlot("owner.child")}</div>
+          </section>
+        );
+      },
+    };
+    const pluginRegistry = createPluginRegistry(pluginDefinitions);
+    const emitWidth = async (
+      target: (typeof childSlotNodes)[number],
+      width: number,
+    ) => {
+      target.width = width;
+      const registration = observedNodes.get(target);
+      if (registration === undefined) {
+        throw new Error("Slot occurrence is not being observed.");
+      }
+      await act(async () => {
+        registration.callback(
+          [{ contentRect: { width } } as ResizeObserverEntry],
+          registration.observer,
+        );
+        await Promise.resolve();
+      });
+    };
+    const widthDiagnostics = () => diagnostics.filter(
+      (diagnostic) => diagnostic.code === "PLUGIN_WIDTH_INCOMPATIBLE",
+    );
+    const childSlotWidth = () => snapshots
+      .at(-1)
+      ?.slots.find((slot) => slot.slotId === "owner.child")
+      ?.widthClass;
+
+    await act(async () => {
+      renderer = create(
+        <RuntimeFixture
+          diagnosticReporter={(diagnostic) => diagnostics.push(diagnostic)}
+          pluginRegistry={pluginRegistry}
+          reporter={(snapshot) => snapshots.push(snapshot)}
+        />,
+        {
+          createNodeMock: (element) => {
+            const props = element.props as Record<string, unknown>;
+            const node = {
+              width: props["data-slot-id"] === "owner.child"
+                ? 320
+                : 640,
+              getBoundingClientRect() {
+                return { width: this.width };
+              },
+            };
+            if (props["data-slot-id"] === "owner.child") {
+              childSlotNodes.push(node);
+            }
+            return node;
+          },
+        },
+      );
+      await Promise.resolve();
+    });
+
+    expect(childSlotNodes).toHaveLength(2);
+    expect(widthDiagnostics().map(({ status }) => status)).toEqual(["error"]);
+    expect(childSlotWidth()).toBe("narrow");
+
+    await emitWidth(childSlotNodes[0], 640);
+    expect(widthDiagnostics().map(({ status }) => status)).toEqual(["error"]);
+    expect(childSlotWidth()).toBe("narrow");
+
+    await emitWidth(childSlotNodes[1], 640);
+    expect(widthDiagnostics().map(({ status }) => status)).toEqual([
+      "error",
+      "resolved",
+    ]);
+    expect(childSlotWidth()).toBe("wide");
+
+    await emitWidth(childSlotNodes[1], 320);
+    expect(widthDiagnostics().map(({ status }) => status)).toEqual([
+      "error",
+      "resolved",
+      "error",
+    ]);
+    expect(childSlotWidth()).toBe("narrow");
+
+    await act(async () => {
+      hideFirstOccurrence?.();
+      await Promise.resolve();
+    });
+    expect(widthDiagnostics().map(({ status }) => status)).toEqual([
+      "error",
+      "resolved",
+      "error",
+    ]);
+    expect(childSlotWidth()).toBe("narrow");
   });
 
   it("reports actual React commits for a Layout Slot and a container child Slot", async () => {

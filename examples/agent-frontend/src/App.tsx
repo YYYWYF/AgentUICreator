@@ -231,6 +231,7 @@ export function App({
       model={model}
       onRuntimeComposition={onRuntimeComposition}
       onRuntimeDiagnostic={onRuntimeDiagnostic}
+      registry={pluginRegistry}
     >
       <AgentRuntimeProvider runtime={agentRuntime}>
         <PluginServiceProvider
