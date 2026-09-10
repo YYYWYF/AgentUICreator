@@ -7,16 +7,16 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import {
+  LayoutRenderer,
+  type SlotNode,
+} from "@agent-ui/runtime-react";
 
-import type {
-  AppUIModel,
-  SlotNode,
-} from "../../framework/contracts/app-ui-model";
-import { LayoutRenderer } from "../layout";
+import type { AppUIModel } from "../../framework/contracts/app-ui-model";
 import {
   classifyContainerWidth,
   type RuntimeWidthClass,
-} from "../layout/width-compatibility";
+} from "../diagnostics/width-compatibility";
 import type { PluginRegistry } from "./PluginRegistry";
 import {
   useOptionalPluginServiceRuntime,
@@ -368,7 +368,9 @@ function UIPluginRuntimeContent<TState = unknown>({
   const applicationSurface = application.phase === "ready" ? (
     <LayoutRenderer
       className={className}
-      model={model}
+      root={model.root}
+      theme={model.settings?.theme}
+      version={model.version}
       renderSlot={(slot: SlotNode) => (
         <LayoutSlotOutlet
           actions={actions}

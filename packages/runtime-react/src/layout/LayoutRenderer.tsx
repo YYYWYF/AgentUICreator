@@ -1,16 +1,13 @@
 import type { CSSProperties, ReactNode } from "react";
 
-import type {
-  AppUIModel,
-  LayoutNode,
-  LayoutSize,
-  SlotNode,
-} from "../../framework/contracts/app-ui-model";
+import type { LayoutNode, LayoutSize, SlotNode } from "./types.js";
 
 import "./layout.css";
 
 export interface LayoutRendererProps {
-  model: AppUIModel;
+  root: LayoutNode;
+  version?: string | undefined;
+  theme?: string | undefined;
   renderSlot?: ((slot: SlotNode) => ReactNode) | undefined;
   className?: string | undefined;
 }
@@ -144,7 +141,9 @@ function LayoutNodeView({ node, renderSlot }: LayoutNodeViewProps) {
 }
 
 export function LayoutRenderer({
-  model,
+  root,
+  version,
+  theme,
   renderSlot,
   className,
 }: LayoutRendererProps) {
@@ -153,8 +152,12 @@ export function LayoutRenderer({
     .join(" ");
 
   return (
-    <div className={rootClassName} data-app-ui-version={model.version} data-theme={model.settings?.theme}>
-      <LayoutNodeView node={model.root} renderSlot={renderSlot} />
+    <div
+      className={rootClassName}
+      data-app-ui-version={version}
+      data-theme={theme}
+    >
+      <LayoutNodeView node={root} renderSlot={renderSlot} />
     </div>
   );
 }

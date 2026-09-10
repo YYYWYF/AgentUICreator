@@ -55,6 +55,10 @@ export default defineConfig(async ({ command, mode }) => {
           workspaceRoot,
           "packages/runtime-core/src/index.ts",
         ),
+        "@agent-ui/runtime-react": path.join(
+          workspaceRoot,
+          "packages/runtime-react/src/index.ts",
+        ),
       },
     },
   };

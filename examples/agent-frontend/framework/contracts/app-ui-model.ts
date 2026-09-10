@@ -1,56 +1,25 @@
+import type {
+  ColumnNode,
+  LayoutNode,
+  LayoutSize,
+  PanelNode,
+  RowNode,
+  SlotNode,
+  StackNode,
+} from "@agent-ui/runtime-react";
 import { z } from "zod";
 
 export const APP_UI_MODEL_VERSION = "2" as const;
 
-export type LayoutSize = number | string;
-
-export interface RowNode {
-  type: "row";
-  id: string;
-  children: LayoutNode[];
-  gap?: number | undefined;
-  sizes?: LayoutSize[] | undefined;
-}
-
-export interface ColumnNode {
-  type: "column";
-  id: string;
-  children: LayoutNode[];
-  gap?: number | undefined;
-  sizes?: LayoutSize[] | undefined;
-}
-
-export interface StackNode {
-  type: "stack";
-  id: string;
-  children: LayoutNode[];
-  active?: string | undefined;
-}
-
-export interface PanelNode {
-  type: "panel";
-  id: string;
-  child: LayoutNode;
-  width?: LayoutSize | undefined;
-  height?: LayoutSize | undefined;
-  minWidth?: number | undefined;
-  maxWidth?: number | undefined;
-  resizable?: boolean | undefined;
-}
-
-/** A physical Layout outlet. Runtime contributions belong to SlotRegistry. */
-export interface SlotNode {
-  type: "slot";
-  id: string;
-  slotId: string;
-}
-
-export type LayoutNode =
-  | RowNode
-  | ColumnNode
-  | StackNode
-  | PanelNode
-  | SlotNode;
+export type {
+  ColumnNode,
+  LayoutNode,
+  LayoutSize,
+  PanelNode,
+  RowNode,
+  SlotNode,
+  StackNode,
+} from "@agent-ui/runtime-react";
 
 export interface PluginInstance {
   id: string;

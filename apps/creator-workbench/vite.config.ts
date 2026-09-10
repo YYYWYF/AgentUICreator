@@ -47,6 +47,10 @@ export default defineConfig({
         workspaceRoot,
         "packages/runtime-core/src/index.ts",
       ),
+      "@agent-ui/runtime-react": path.join(
+        workspaceRoot,
+        "packages/runtime-react/src/index.ts",
+      ),
     },
     dedupe: ["react", "react-dom"],
   },

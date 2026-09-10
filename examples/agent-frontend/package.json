@@ -22,6 +22,7 @@
   "dependencies": {
     "@agent-ui/runtime-agui": "workspace:^",
     "@agent-ui/runtime-core": "workspace:^",
+    "@agent-ui/runtime-react": "workspace:*",
     "@base-ui/react": "1.8.0",
     "@ant-design/icons": "^6.3.2",
     "@ant-design/x": "^2.9.0",

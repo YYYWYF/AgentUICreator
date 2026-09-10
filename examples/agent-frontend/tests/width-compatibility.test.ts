@@ -4,7 +4,7 @@ import {
   WIDE_WIDTH_THRESHOLD,
   classifyContainerWidth,
   isPluginWidthCompatible,
-} from "../runtime/layout";
+} from "../runtime/diagnostics/width-compatibility";
 
 describe("Plugin width compatibility", () => {
   it("classifies actual container width at one centralized threshold", () => {

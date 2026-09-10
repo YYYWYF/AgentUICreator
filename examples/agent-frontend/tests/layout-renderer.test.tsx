@@ -1,20 +1,27 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { LayoutRenderer } from "@agent-ui/runtime-react";
 
 import appUIJson from "../app-ui/app-ui.json";
 import {
   parseAppUIModel,
   type AppUIModel,
 } from "../framework/contracts/app-ui-model";
-import { LayoutRenderer } from "../runtime/layout";
 
-describe("LayoutRenderer", () => {
-  it("keeps conversation internals out of the checked-in Layout Tree", () => {
+describe("LayoutRenderer integration", () => {
+  it("renders the checked-in three-column Platform layout through the official Runtime", () => {
     const model = parseAppUIModel(appUIJson);
+    expect(model.root.type).toBe("row");
+    if (model.root.type !== "row") {
+      throw new Error("Expected the Platform root to be a Row");
+    }
+    expect(model.root.children).toHaveLength(3);
 
     const html = renderToStaticMarkup(
       <LayoutRenderer
-        model={model}
+        root={model.root}
+        theme={model.settings?.theme}
+        version={model.version}
         renderSlot={(slot) => (
           <article>
             {slot.slotId}
@@ -25,11 +32,39 @@ describe("LayoutRenderer", () => {
 
     expect(html).toContain('data-layout-type="column"');
     expect(html).toContain('data-slot-id="workspace.conversation"');
+    expect(html).toContain('data-slot-id="workspace.inspector"');
     expect(html).toContain("<article>workspace.conversation</article>");
     expect(html).not.toContain('data-slot-id="agent-welcome"');
     expect(html).not.toContain('data-slot-id="agent-messages"');
     expect(html).not.toContain('data-slot-id="agent-prompts"');
     expect(html).not.toContain('data-slot-id="agent-sender"');
+  });
+
+  it("renders a two-column AppUIModel without changing the Layout Runtime", () => {
+    const platformModel = parseAppUIModel(appUIJson);
+    if (platformModel.root.type !== "row") {
+      throw new Error("Expected the Platform root to be a Row");
+    }
+    const model: AppUIModel = {
+      ...platformModel,
+      root: {
+        ...platformModel.root,
+        children: platformModel.root.children.slice(0, 2),
+        sizes: platformModel.root.sizes?.slice(0, 2),
+      },
+    };
+
+    const html = renderToStaticMarkup(
+      <LayoutRenderer
+        root={model.root}
+        renderSlot={(slot) => <article>{slot.slotId}</article>}
+        version={model.version}
+      />,
+    );
+
+    expect(html).toContain('data-slot-id="agent-conversations"');
+    expect(html).toContain('data-slot-id="workspace.conversation"');
+    expect(html).not.toContain('data-slot-id="workspace.inspector"');
   });
 
   it("maps numeric Column sizes to fractional grid tracks", () => {
@@ -55,7 +90,9 @@ describe("LayoutRenderer", () => {
       pluginInstances: {},
     };
 
-    const html = renderToStaticMarkup(<LayoutRenderer model={model} />);
+    const html = renderToStaticMarkup(
+      <LayoutRenderer root={model.root} version={model.version} />,
+    );
 
     expect(html).toContain('style="grid-template-rows:2fr 1fr"');
     expect(html).toContain('data-slot-id="top"');
@@ -85,7 +122,9 @@ describe("LayoutRenderer", () => {
       pluginInstances: {},
     };
 
-    const html = renderToStaticMarkup(<LayoutRenderer model={model} />);
+    const html = renderToStaticMarkup(
+      <LayoutRenderer root={model.root} version={model.version} />,
+    );
 
     expect(html).toContain('data-active-node-id="right-slot-node"');
     expect(html).toContain('data-slot-id="right-content"');
@@ -103,7 +142,9 @@ describe("LayoutRenderer", () => {
       pluginInstances: {},
     };
 
-    const html = renderToStaticMarkup(<LayoutRenderer model={model} />);
+    const html = renderToStaticMarkup(
+      <LayoutRenderer root={model.root} version={model.version} />,
+    );
 
     expect(html).toContain("app-ui-layout-slot-placeholder");
     expect(html).toContain("empty-slot");

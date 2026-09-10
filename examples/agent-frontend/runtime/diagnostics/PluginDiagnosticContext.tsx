@@ -24,7 +24,7 @@ import {
   type RuntimeDiagnosticReporter,
   type RuntimePluginLocation,
 } from "./types";
-import { isPluginWidthCompatible } from "../layout/width-compatibility";
+import { isPluginWidthCompatible } from "./width-compatibility";
 import type { PluginRegistry } from "../plugins/PluginRegistry";
 
 export interface PluginDiagnosticContextValue {

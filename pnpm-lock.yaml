@@ -50,6 +50,9 @@ importers:
       '@agent-ui/runtime-core':
         specifier: workspace:^
         version: link:../../packages/runtime-core
+      '@agent-ui/runtime-react':
+        specifier: workspace:*
+        version: link:../../packages/runtime-react
       '@ant-design/icons':
         specifier: ^6.3.2
         version: 6.3.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -204,6 +207,27 @@ importers:
 
   packages/runtime-core:
     devDependencies:
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.2.2(@types/node@20.19.43)(tsx@4.20.6)(yaml@2.9.0))
+
+  packages/runtime-react:
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.18
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: ^19.2.5
+        version: 19.2.5(@types/react@19.2.18)
+      react:
+        specifier: ^19.2.8
+        version: 19.2.8
+      react-dom:
+        specifier: ^19.2.8
+        version: 19.2.8(react@19.2.8)
       typescript:
         specifier: ^7.0.2
         version: 7.0.2

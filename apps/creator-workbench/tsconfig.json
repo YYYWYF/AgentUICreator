@@ -22,6 +22,7 @@
       "@agent-ui/example-agent-frontend/App": ["../../examples/agent-frontend/src/App.tsx"],
       "@agent-ui/runtime-agui": ["../../packages/runtime-agui/src/index.ts"],
       "@agent-ui/runtime-core": ["../../packages/runtime-core/src/index.ts"],
+      "@agent-ui/runtime-react": ["../../packages/runtime-react/src/index.ts"],
       "@agent-ui/runtime-core/testing": [
         "../../packages/runtime-core/src/testing/index.ts"
       ]
@@ -43,6 +44,8 @@
     "../../examples/agent-frontend/src/App.tsx",
     "../../examples/agent-frontend/src/preview-data.ts",
     "../../packages/runtime-agui/src/**/*.ts",
-    "../../packages/runtime-core/src/**/*.ts"
+    "../../packages/runtime-core/src/**/*.ts",
+    "../../packages/runtime-react/src/**/*.ts",
+    "../../packages/runtime-react/src/**/*.tsx"
   ]
 }

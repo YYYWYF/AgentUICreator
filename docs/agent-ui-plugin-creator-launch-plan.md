@@ -174,7 +174,7 @@ Creator 负责：
 反馈证据
 ```
 
-Creator 不进入生成应用的生产依赖。项目观察、语义化修改、撤销、澄清、诊断收集和完成门禁都属于开发控制面；确定性渲染、AG-UI Client、Plugin Runtime 和 Plugin 实现属于生成项目。
+Creator 不进入生成应用的生产依赖。项目观察、语义化修改、撤销、澄清、诊断收集和完成门禁都属于开发控制面；确定性的 Agent Runtime 领域模型、AG-UI Adapter 和 React Layout Runtime 分别由 `@agent-ui/runtime-core`、`@agent-ui/runtime-agui`、`@agent-ui/runtime-react` 提供，Plugin Runtime、AppUIModel、Plugin 实现和项目服务仍属于生成项目。三个 Runtime Library 会作为普通生产依赖编译进最终 Frontend Bundle，但不依赖 Creator。
 
 不要为了提升 Creator 的开发体验，把动态 Package Runner、任意运行时源码加载器或 Creator 私有协议带入最终应用。
 
@@ -698,6 +698,10 @@ Generated Application 使用 Zod strict object 作为 Tool 输入校验和 JSON 
 ---
 
 # 9. UI Runtime
+
+稳定的 React Layout Runtime 由官方 `@agent-ui/runtime-react` 包维护。它拥有 `Row`、`Column`、`Stack`、`Panel`、`Slot` 的 Layout Language、`LayoutRenderer` 和 Layout CSS，只接收 `root`、`version`、`theme` 与项目提供的 `renderSlot`。生成项目继续拥有 AppUIModel Schema、PluginInstance、SlotRegistry、Plugin Runtime、Services 与 Agent Contract；Layout 类型从官方包导入，不复制 Layout Engine 或 Zod Schema。
+
+Creator 改变具体布局时只通过 `mutate_app_ui_model` 修改 `app-ui/app-ui.json`。新增 Grid、Dock 等 Layout Language 才是官方 Runtime 的框架开发任务。Mode 只在项目创建时提供 Initial AppUIModel，不得在启动时覆盖用户后续修改。
 
 UI Runtime 负责：
 
