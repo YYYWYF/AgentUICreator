@@ -6,6 +6,10 @@ import {
   getAgentComposerSuggestionOptionId,
 } from "../../agent-ui/components/composer-suggestions";
 import { AgentMessage } from "../../agent-ui/components/message";
+import {
+  AgentReasoning,
+  type AgentReasoningStatus,
+} from "../../agent-ui/components/reasoning";
 import { AgentThread } from "../../agent-ui/components/thread";
 import { AgentUIRoot, type AgentUITheme } from "../../agent-ui/foundation/AgentUIRoot";
 import { Avatar, AvatarBadge, AvatarFallback } from "../../agent-ui/primitives/avatar";
@@ -239,6 +243,104 @@ function MessageGallery() {
   );
 }
 
+interface ReasoningFixtureProps {
+  fixtureLabel: string;
+  status: AgentReasoningStatus;
+  initialExpanded: boolean;
+  label: ReactNode;
+  children: ReactNode;
+}
+
+function ReasoningFixture({
+  fixtureLabel,
+  status,
+  initialExpanded,
+  label,
+  children,
+}: ReasoningFixtureProps) {
+  const [expanded, setExpanded] = useState(initialExpanded);
+
+  return (
+    <article className={styles.messageFixture}>
+      <span className={styles.fixtureLabel}>{fixtureLabel}</span>
+      <AgentMessage role="assistant" header="Assistant">
+        <AgentReasoning
+          status={status}
+          expanded={expanded}
+          onExpandedChange={setExpanded}
+          label={label}
+        >
+          {children}
+        </AgentReasoning>
+      </AgentMessage>
+    </article>
+  );
+}
+
+function ReasoningGallery() {
+  return (
+    <div className={styles.messageGrid}>
+      <ReasoningFixture
+        fixtureLabel="Running / Expanded"
+        status="running"
+        initialExpanded
+        label="正在思考"
+      >
+        {"正在读取项目结构……\n分析插件依赖……\n检查 Runtime 状态……"}
+      </ReasoningFixture>
+
+      <ReasoningFixture
+        fixtureLabel="Completed / Expanded"
+        status="completed"
+        initialExpanded
+        label="思考过程"
+      >
+        分析已经完成，组件边界与现有 Agent UI Foundation 保持一致。
+      </ReasoningFixture>
+
+      <ReasoningFixture
+        fixtureLabel="Completed / Collapsed"
+        status="completed"
+        initialExpanded={false}
+        label="思考过程"
+      >
+        完整的推理内容仍由调用方提供，并可按需重新展开。
+      </ReasoningFixture>
+
+      <ReasoningFixture
+        fixtureLabel="Interrupted"
+        status="interrupted"
+        initialExpanded
+        label="思考已停止"
+      >
+        推理被中断，已保留中断前可见的内容。
+      </ReasoningFixture>
+
+      <ReasoningFixture
+        fixtureLabel="Long Reasoning"
+        status="completed"
+        initialExpanded
+        label="详细思考过程"
+      >
+        {[
+          "读取当前 AppUIModel 与已安装 Source Item。",
+          "确认 Agent Message 已经提供 reasoning slot。",
+          "检查 ReasoningRenderContext 的现有状态集合。",
+          "保持 running、completed、interrupted 三种状态。",
+          "将展开状态继续留给调用方控制。",
+          "使用 owned Collapsible 保留 disclosure 语义。",
+          "使用 owned Spinner 表达 running 状态。",
+          "避免引入 Runtime、AG-UI 或 Plugin 类型。",
+          "让 label 保持 caller-owned，便于产品文案和本地化。",
+          "使用稳定 data-slot 暴露组件结构。",
+          "通过 semantic token 保持 Light 与 Dark 一致。",
+          "保留长内容换行，不引入 Markdown 排版职责。",
+        ].join("\n")}
+      </ReasoningFixture>
+    </div>
+  );
+}
+
 const longThreadMessages = [
   {
     role: "user",
@@ -435,6 +537,8 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
         <ThreadGallery />
         <h3 className={styles.componentHeading}>Agent Message</h3>
         <MessageGallery />
+        <h3 className={styles.componentHeading}>Agent Reasoning</h3>
+        <ReasoningGallery />
         <h3 className={styles.componentHeading}>Agent Composer</h3>
         <div className={styles.composerGrid}>
           <ComposerFixture label="Empty" />
