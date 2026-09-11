@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "agent-component/reasoning",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "kind": "agent-component",
   "description": "Controlled reasoning disclosure surface for Agent UI conversations",
   "upstream": {

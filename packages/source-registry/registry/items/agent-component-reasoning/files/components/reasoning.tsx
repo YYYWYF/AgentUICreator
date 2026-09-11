@@ -34,7 +34,10 @@ export function AgentReasoning({
   className,
 }: AgentReasoningProps) {
   return (
-    <Collapsible open={expanded} onOpenChange={onExpandedChange}>
+    <Collapsible
+      open={expanded}
+      onOpenChange={(nextExpanded) => onExpandedChange(nextExpanded)}
+    >
       <section
         data-slot="agent-reasoning"
         data-status={status}

@@ -36,13 +36,13 @@
       }
     },
     "agent-component/reasoning": {
-      "version": "0.1.0",
+      "version": "0.1.1",
       "files": {
         "components/reasoning.module.css": {
           "sha256": "ea86c629bd642b339e64599c2f7cb292262e6df0ca1bfae25918aa87292490e0"
         },
         "components/reasoning.tsx": {
-          "sha256": "121b7d0d6eedcce404409a817074eb967ff9bbfd715800aed9f9af9601d325db"
+          "sha256": "2297b5dad6a4aba5e21dfb44a627b68be313d29a70861f4e9c2dd9618e2c726b"
         }
       }
     },

@@ -312,7 +312,7 @@ describe("Agent UI Source Registry contract", () => {
   it("registers Agent Reasoning as an original Agent Component with owned primitives", async () => {
     const registry = await loadAgentUISourceRegistry();
     expect(registry.byId.get("agent-component/reasoning")).toMatchObject({
-      version: "0.1.0",
+      version: "0.1.1",
       kind: "agent-component",
       requires: [
         "foundation/core",
