@@ -1,0 +1,9 @@
+.agent-suggestions-plugin {
+  display: grid;
+  min-width: 0;
+  gap: var(--aui-space-2);
+}
+
+.agent-suggestions-plugin[data-agent-run-status="running"] {
+  opacity: 0.7;
+}

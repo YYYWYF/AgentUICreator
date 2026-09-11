@@ -47,9 +47,28 @@ export function ConversationSurfacePlugin({
           showTimeline ? "timeline" : "empty"
         }`}
       >
-        {showTimeline
-          ? renderSlot("conversation.timeline")
-          : renderSlot("conversation.empty")}
+        {showTimeline ? (
+          renderSlot("conversation.timeline")
+        ) : (
+          <div
+            className="conversation-surface-empty"
+            data-slot="conversation-empty"
+          >
+            <div
+              className="conversation-surface-empty-welcome"
+              data-slot="conversation-empty-welcome"
+            >
+              {renderSlot("conversation.empty.welcome")}
+            </div>
+
+            <div
+              className="conversation-surface-empty-suggestions"
+              data-slot="conversation-empty-suggestions"
+            >
+              {renderSlot("conversation.empty.suggestions")}
+            </div>
+          </div>
+        )}
       </section>
 
       <footer className="conversation-surface-composer">

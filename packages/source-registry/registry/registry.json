@@ -90,8 +90,16 @@
       "path": "items/agent-component-reasoning/item.json"
     },
     {
+      "id": "agent-component/suggestions",
+      "path": "items/agent-component-suggestions/item.json"
+    },
+    {
       "id": "agent-component/thread",
       "path": "items/agent-component-thread/item.json"
+    },
+    {
+      "id": "agent-component/thread-welcome",
+      "path": "items/agent-component-thread-welcome/item.json"
     },
     {
       "id": "agent-component/tool",

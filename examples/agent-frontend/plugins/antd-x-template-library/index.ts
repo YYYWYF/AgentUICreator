@@ -3,9 +3,10 @@ import { antdXAttachmentsPlugin } from "../antd-x-attachments/definition";
 import { antdXConversationsPlugin } from "../antd-x-conversations/definition";
 import { agentMessageListPlugin } from "../agent-message-list/definition";
 import { agentReasoningPlugin } from "../agent-reasoning/definition";
+import { agentSuggestionsPlugin } from "../agent-suggestions/definition";
+import { agentThreadWelcomePlugin } from "../agent-thread-welcome/definition";
 import { agentToolPlugin } from "../agent-tool/definition";
 import { agentToolActivityPlugin } from "../agent-tool-activity/definition";
-import { antdXPromptsPlugin } from "../antd-x-prompts/definition";
 import { antdXResourcesPlugin } from "../antd-x-resources/definition";
 import { antdXRunTimelinePlugin } from "../antd-x-run-timeline/definition";
 import { agentComposerPlugin } from "../agent-composer/definition";
@@ -13,7 +14,6 @@ import { antdXSourcesPlugin } from "../antd-x-sources/definition";
 import { antdXThemeProviderPlugin } from "../antd-x-theme-provider/definition";
 import { antdXThemeSwitchPlugin } from "../antd-x-theme-switch/definition";
 import { agentToolDetailPlugin } from "../agent-tool-detail/definition";
-import { antdXWelcomePlugin } from "../antd-x-welcome/definition";
 import { conversationSurfacePlugin } from "../conversation-surface/definition";
 import { conversationDataSourcePlugin } from "../conversation-data-source/definition";
 import { workspaceInspectorPlugin } from "../workspace-inspector/definition";
@@ -23,7 +23,7 @@ export const antdXTemplatePlugins = [
   antdXThemeProviderPlugin,
   antdXThemeSwitchPlugin,
   antdXConversationsPlugin,
-  antdXWelcomePlugin,
+  agentThreadWelcomePlugin,
   agentMessageListPlugin,
   agentToolActivityPlugin,
   agentToolPlugin,
@@ -34,7 +34,7 @@ export const antdXTemplatePlugins = [
   antdXSourcesPlugin,
   antdXAttachmentsPlugin,
   antdXResourcesPlugin,
-  antdXPromptsPlugin,
+  agentSuggestionsPlugin,
   agentComposerPlugin,
   conversationSurfacePlugin,
   workspaceInspectorPlugin,
@@ -46,7 +46,8 @@ export {
   antdXConversationsPlugin,
   agentMessageListPlugin,
   agentReasoningPlugin,
-  antdXPromptsPlugin,
+  agentSuggestionsPlugin,
+  agentThreadWelcomePlugin,
   antdXResourcesPlugin,
   antdXRunTimelinePlugin,
   agentComposerPlugin,
@@ -56,7 +57,6 @@ export {
   agentToolDetailPlugin,
   agentToolActivityPlugin,
   agentToolPlugin,
-  antdXWelcomePlugin,
   conversationDataSourcePlugin,
   conversationSurfacePlugin,
   workspaceInspectorPlugin,
@@ -67,7 +67,8 @@ export { AntdXAttachmentsPlugin } from "../antd-x-attachments";
 export { AntdXConversationsPlugin } from "../antd-x-conversations";
 export { AgentMessageListPlugin } from "../agent-message-list";
 export { AgentReasoningPlugin } from "../agent-reasoning";
-export { AntdXPromptsPlugin } from "../antd-x-prompts";
+export { AgentSuggestionsPlugin } from "../agent-suggestions";
+export { AgentThreadWelcomePlugin } from "../agent-thread-welcome";
 export { AntdXResourcesPlugin } from "../antd-x-resources";
 export { AntdXRunTimelinePlugin } from "../antd-x-run-timeline";
 export { AgentComposerPlugin } from "../agent-composer";
@@ -77,7 +78,6 @@ export { AntdXThemeSwitchPlugin } from "../antd-x-theme-switch";
 export { AgentToolDetailPlugin } from "../agent-tool-detail";
 export { AgentToolActivityPlugin } from "../agent-tool-activity";
 export { AgentToolPlugin } from "../agent-tool";
-export { AntdXWelcomePlugin } from "../antd-x-welcome";
 export { ConversationSurfacePlugin } from "../conversation-surface";
 export { ConversationDataSourcePlugin } from "../conversation-data-source";
 export { WorkspaceInspectorPlugin } from "../workspace-inspector";

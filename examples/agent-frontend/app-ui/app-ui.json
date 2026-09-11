@@ -108,11 +108,10 @@
     },
     "agent-welcome-main": {
       "id": "agent-welcome-main",
-      "pluginId": "antd-x-welcome",
+      "pluginId": "agent-thread-welcome",
       "enabled": true,
       "mount": {
-        "slotId": "conversation.empty",
-        "order": 0
+        "slotId": "conversation.empty.welcome"
       },
       "props": {
         "title": "Agent Frontend",
@@ -184,11 +183,10 @@
     },
     "agent-prompts-main": {
       "id": "agent-prompts-main",
-      "pluginId": "antd-x-prompts",
+      "pluginId": "agent-suggestions",
       "enabled": true,
       "mount": {
-        "slotId": "conversation.empty",
-        "order": 10
+        "slotId": "conversation.empty.suggestions"
       },
       "props": {
         "title": "你可以这样开始",

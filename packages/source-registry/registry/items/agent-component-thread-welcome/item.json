@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "agent-component/thread-welcome",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Props-driven empty thread welcome presentation for Agent UI conversations",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
+  "requires": [
+    "foundation/core"
+  ],
+  "files": [
+    {
+      "source": "files/components/thread-welcome.tsx",
+      "target": "components/thread-welcome.tsx"
+    },
+    {
+      "source": "files/components/thread-welcome.module.css",
+      "target": "components/thread-welcome.module.css"
+    }
+  ]
+}

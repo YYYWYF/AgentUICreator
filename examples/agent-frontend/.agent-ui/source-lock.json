@@ -46,6 +46,17 @@
         }
       }
     },
+    "agent-component/suggestions": {
+      "version": "0.1.0",
+      "files": {
+        "components/suggestions.module.css": {
+          "sha256": "e971c78eca9cbd44368e3437e06bd51ec5b25fb8944a4ef880688c1af394c53e"
+        },
+        "components/suggestions.tsx": {
+          "sha256": "fc8319351d6e79a7301d844f568a1339909e19a7f275ecbb98115740dbf9706e"
+        }
+      }
+    },
     "agent-component/thread": {
       "version": "0.1.0",
       "files": {
@@ -54,6 +65,17 @@
         },
         "components/thread.tsx": {
           "sha256": "d139857fbe19dff87c527687693749d2cbfe4a6d83e6c0735ab8f7b256ba57c7"
+        }
+      }
+    },
+    "agent-component/thread-welcome": {
+      "version": "0.1.0",
+      "files": {
+        "components/thread-welcome.module.css": {
+          "sha256": "bcfdcca5d1c02cecd3bbf354e33d4ddd4593d93bfcc1672c2b4b0d550eb0b767"
+        },
+        "components/thread-welcome.tsx": {
+          "sha256": "0b261000d092750a0b520fc2823ac30e5f0ef53ff956e3afd103f1762d8fcc75"
         }
       }
     },

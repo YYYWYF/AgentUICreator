@@ -32,7 +32,7 @@ import {
   antdXAttachmentsPlugin,
   antdXSourcesPlugin,
   agentToolDetailPlugin,
-  antdXWelcomePlugin,
+  agentThreadWelcomePlugin,
 } from "../plugins/antd-x-template-library";
 import {
   createPluginRegistry,
@@ -278,10 +278,10 @@ describe("StaticPluginRegistry", () => {
   });
 
   it("rejects duplicate plugin ids", () => {
-    const registry = new StaticPluginRegistry([antdXWelcomePlugin]);
+    const registry = new StaticPluginRegistry([agentThreadWelcomePlugin]);
 
-    expect(() => registry.register(antdXWelcomePlugin)).toThrow(
-      'UI plugin "antd-x-welcome" is already registered',
+    expect(() => registry.register(agentThreadWelcomePlugin)).toThrow(
+      'UI plugin "agent-thread-welcome" is already registered',
     );
   });
 
@@ -389,7 +389,7 @@ describe("UIPluginRuntime", () => {
     const conversationsPosition = html.indexOf(
       'data-ui-plugin="antd-x-conversations"',
     );
-    const welcomePosition = html.indexOf('data-ui-plugin="antd-x-welcome"');
+    const welcomePosition = html.indexOf('data-ui-plugin="agent-thread-welcome"');
     const surfacePosition = html.indexOf(
       'data-ui-plugin="conversation-surface"',
     );
@@ -399,7 +399,7 @@ describe("UIPluginRuntime", () => {
     const messagesPosition = html.indexOf(
       'data-ui-plugin="agent-message-list"',
     );
-    const promptsPosition = html.indexOf('data-ui-plugin="antd-x-prompts"');
+    const promptsPosition = html.indexOf('data-ui-plugin="agent-suggestions"');
     const senderPosition = html.indexOf('data-ui-plugin="agent-composer"');
     const toolDetailPosition = html.indexOf(
       'data-ui-plugin="agent-tool-detail"',
@@ -797,8 +797,8 @@ describe("UIPluginRuntime", () => {
 
     expect(html).toContain('data-ui-plugin="conversation-surface"');
     expect(html).toContain('data-conversation-state="empty"');
-    expect(html).toContain('data-ui-plugin="antd-x-welcome"');
-    expect(html).toContain('data-ui-plugin="antd-x-prompts"');
+    expect(html).toContain('data-ui-plugin="agent-thread-welcome"');
+    expect(html).toContain('data-ui-plugin="agent-suggestions"');
     expect(html).toContain('data-ui-plugin="agent-composer"');
     expect(html).not.toContain('data-ui-plugin="agent-message-list"');
     expect(html).toContain("Agent Frontend");
@@ -847,8 +847,8 @@ describe("UIPluginRuntime", () => {
     });
 
     expect(html).toContain('data-conversation-state="empty"');
-    expect(html).toContain('data-ui-plugin="antd-x-welcome"');
-    expect(html).toContain('data-ui-plugin="antd-x-prompts"');
+    expect(html).toContain('data-ui-plugin="agent-thread-welcome"');
+    expect(html).toContain('data-ui-plugin="agent-suggestions"');
     expect(html).toContain('data-ui-plugin="agent-composer"');
     expect(html).not.toContain('data-ui-plugin="agent-message-list"');
   });
@@ -886,8 +886,8 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain('data-status="streaming"');
     expect(html).toContain("智能体正在处理");
     expect(html).toContain('data-ui-plugin="agent-composer"');
-    expect(html).not.toContain('data-ui-plugin="antd-x-welcome"');
-    expect(html).not.toContain('data-ui-plugin="antd-x-prompts"');
+    expect(html).not.toContain('data-ui-plugin="agent-thread-welcome"');
+    expect(html).not.toContain('data-ui-plugin="agent-suggestions"');
   });
 
   it("renders the granular Inspector plugins as independent slot capabilities", async () => {
@@ -1001,7 +1001,7 @@ describe("UIPluginRuntime", () => {
     });
 
     expect(html).toContain('data-ui-plugin="agent-message-list"');
-    expect(html).not.toContain('data-ui-plugin="antd-x-prompts"');
+    expect(html).not.toContain('data-ui-plugin="agent-suggestions"');
   });
 
   it("honors Sender instance props", async () => {

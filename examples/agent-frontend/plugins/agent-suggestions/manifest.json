@@ -1,0 +1,7 @@
+{
+  "id": "agent-suggestions",
+  "name": "Agent Suggestions",
+  "description": "Renders configurable suggestions for starting an empty Agent thread.",
+  "version": "1.0.0",
+  "capabilities": ["message-suggestions", "message-send"]
+}

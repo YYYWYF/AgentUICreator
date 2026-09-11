@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "agent-component/suggestions",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Props-driven suggestion group and clickable suggestion for Agent UI empty threads",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
+  "requires": [
+    "foundation/core"
+  ],
+  "files": [
+    {
+      "source": "files/components/suggestions.tsx",
+      "target": "components/suggestions.tsx"
+    },
+    {
+      "source": "files/components/suggestions.module.css",
+      "target": "components/suggestions.module.css"
+    }
+  ]
+}

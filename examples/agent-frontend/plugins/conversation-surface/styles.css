@@ -24,22 +24,53 @@
   overscroll-behavior: contain;
 }
 
-.conversation-surface-content--empty > .app-ui-plugin-slot-content {
-  height: auto;
+/* The empty state owns two peer semantic regions, not per-plugin cards. */
+.conversation-surface-empty {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
   min-height: 100%;
-  grid-auto-rows: auto;
-  align-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--aui-space-6);
+  padding: var(--aui-space-6) var(--aui-space-5);
 }
 
-.conversation-surface-content--empty
-  > .app-ui-plugin-slot-content
-  > .app-ui-plugin-instance,
-.conversation-surface-composer > .app-ui-plugin-slot-content {
+.conversation-surface-empty-welcome,
+.conversation-surface-empty-suggestions {
+  min-width: 0;
+}
+
+.conversation-surface-empty-welcome:empty,
+.conversation-surface-empty-suggestions:empty {
+  display: none;
+}
+
+.conversation-surface-empty-welcome > .app-ui-plugin-slot-content,
+.conversation-surface-empty-suggestions > .app-ui-plugin-slot-content {
+  display: block;
+  width: 100%;
   height: auto;
-  grid-auto-rows: auto;
+  min-height: 0;
+}
+
+.conversation-surface-empty-welcome > .app-ui-plugin-slot-content {
+  justify-items: start;
 }
 
 .conversation-surface-composer {
   min-width: 0;
+}
+
+.conversation-surface-composer > .app-ui-plugin-slot-content {
+  display: block;
+  height: auto;
+  min-height: 0;
+}
+
+@media (max-width: 44rem) {
+  .conversation-surface-empty {
+    gap: var(--aui-space-5);
+    padding: var(--aui-space-5) var(--aui-space-3);
+  }
 }

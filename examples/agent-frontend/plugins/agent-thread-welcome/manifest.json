@@ -1,0 +1,7 @@
+{
+  "id": "agent-thread-welcome",
+  "name": "Agent Thread Welcome",
+  "description": "Renders the default welcome presentation for an empty Agent thread.",
+  "version": "1.0.0",
+  "capabilities": ["thread-welcome"]
+}

@@ -1,11 +1,11 @@
 import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
 import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
-import { AntdXWelcomePlugin } from "./index";
+import { AgentThreadWelcomePlugin } from "./index";
 import manifestJson from "./manifest.json";
 
-export const antdXWelcomePlugin: UIPluginDefinition = {
+export const agentThreadWelcomePlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
-  Component: AntdXWelcomePlugin,
+  Component: AgentThreadWelcomePlugin,
 };
 
-export default antdXWelcomePlugin;
+export default agentThreadWelcomePlugin;

@@ -1,0 +1,15 @@
+.agent-thread-welcome-plugin {
+  display: grid;
+  min-width: 0;
+  gap: var(--aui-space-2);
+}
+
+.agent-thread-welcome-plugin svg {
+  width: 1em;
+  height: 1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.4;
+}

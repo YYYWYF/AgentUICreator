@@ -422,6 +422,7 @@ describe("Agent UI component source policy", () => {
         pluginId?: string;
         props?: Record<string, unknown>;
       }>;
+    };
     const instance = appUI.pluginInstances?.["agent-tool-detail-main"];
     const registry = await readFile(
       path.join(projectRoot, "plugins/registry.generated.ts"),
@@ -836,5 +837,269 @@ describe("Agent UI component source policy", () => {
     }
     const composerCss = await readFile(path.join(composerRoot, "styles.css"), "utf8");
     expect(composerCss).not.toMatch(/#[0-9a-f]{3,8}\b|\b(?:rgb|hsl|oklch)\s*\(/iu);
+  });
+
+  it("keeps the canonical Empty Thread Welcome and Suggestions identities bound", async () => {
+    const appUI = JSON.parse(
+      await readFile(path.join(projectRoot, "app-ui/app-ui.json"), "utf8"),
+    ) as {
+      pluginInstances?: Record<string, {
+        pluginId?: string;
+        mount?: { slotId?: string };
+        props?: Record<string, unknown>;
+      }>;
+    };
+    const registry = await readFile(
+      path.join(projectRoot, "plugins/registry.generated.ts"),
+      "utf8",
+    );
+    const templateLibrary = await readFile(
+      path.join(projectRoot, "plugins/antd-x-template-library/index.ts"),
+      "utf8",
+    );
+    const surfaceManifest = JSON.parse(
+      await readFile(
+        path.join(projectRoot, "plugins/conversation-surface/manifest.json"),
+        "utf8",
+      ),
+    ) as { version?: string; slots?: { children?: readonly string[] } };
+
+    expect(appUI.pluginInstances?.["agent-welcome-main"]).toMatchObject({
+      pluginId: "agent-thread-welcome",
+      mount: { slotId: "conversation.empty.welcome" },
+      props: {
+        title: "Agent Frontend",
+        description:
+          "通过 AG-UI 与一个 Agent Runtime 连接，由可复用 UI Plugin 确定性渲染。",
+      },
+    });
+    expect(appUI.pluginInstances?.["agent-prompts-main"]).toMatchObject({
+      pluginId: "agent-suggestions",
+      mount: { slotId: "conversation.empty.suggestions" },
+      props: {
+        title: "你可以这样开始",
+        items: [
+          {
+            key: "summarize",
+            label: "总结当前上下文",
+            description: "提炼目标、约束与下一步",
+          },
+          {
+            key: "explain",
+            label: "解释界面结构",
+            description: "说明 AppUIModel 与插件的关系",
+          },
+          {
+            key: "next",
+            label: "建议下一步",
+            description: "给出一个可执行的后续动作",
+          },
+        ],
+      },
+    });
+    expect(surfaceManifest.version).toBe("2.0.0");
+    expect(surfaceManifest.slots?.children).toEqual([
+      "conversation.empty.welcome",
+      "conversation.empty.suggestions",
+      "conversation.timeline",
+      "conversation.composer",
+    ]);
+    expect(registry).toContain('./agent-thread-welcome/definition');
+    expect(registry).toContain('./agent-suggestions/definition');
+    expect(templateLibrary).toContain("agentThreadWelcomePlugin");
+    expect(templateLibrary).toContain("AgentThreadWelcomePlugin");
+    expect(templateLibrary).toContain("agentSuggestionsPlugin");
+    expect(templateLibrary).toContain("AgentSuggestionsPlugin");
+  });
+
+  it("keeps the canonical Empty Thread plugins independent of Ant", async () => {
+    for (const pluginDirectory of [
+      "agent-thread-welcome",
+      "agent-suggestions",
+    ]) {
+      const pluginRoot = path.join(projectRoot, "plugins", pluginDirectory);
+      const sourceFiles = await collectFiles(
+        pluginRoot,
+        (filePath) => /\.(?:css|json|ts|tsx)$/u.test(filePath),
+      );
+      expect(sourceFiles.length).toBeGreaterThan(0);
+      for (const filePath of sourceFiles) {
+        const source = await readFile(filePath, "utf8");
+        expect(source, filePath).not.toMatch(
+          /@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|\.ant-/u,
+        );
+      }
+      const css = await readFile(path.join(pluginRoot, "styles.css"), "utf8");
+      expect(css).not.toMatch(/#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\(/u);
+      expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
+      expect(css).not.toMatch(/\.ant-|development-preview|--ui-/u);
+      expect(css).toMatch(/var\(--aui-/u);
+    }
+  });
+
+  it("keeps the removed Ant Welcome and Prompts identities out of the generated project", async () => {
+    const hyphenated = [
+      ["antd", "x", "welcome"].join("-"),
+      ["antd", "x", "prompts"].join("-"),
+    ];
+    const pascal = [
+      ["Antd", "X", "Welcome"].join(""),
+      ["Antd", "X", "Prompts"].join(""),
+    ];
+    const camel = [
+      ["antd", "X", "Welcome"].join(""),
+      ["antd", "X", "Prompts"].join(""),
+    ];
+    const removedIdentities = [...hyphenated, ...pascal, ...camel];
+    const violations: string[] = [];
+
+    for (const pluginDirectory of hyphenated) {
+      await expect(
+        stat(path.join(projectRoot, "plugins", pluginDirectory)),
+      ).rejects.toMatchObject({ code: "ENOENT" });
+    }
+    for (const filePath of await collectFiles(
+      projectRoot,
+      (candidate) => /\.(?:css|json|md|ts|tsx)$/u.test(candidate),
+    )) {
+      const relative = path.relative(projectRoot, filePath);
+      if (relative.split(path.sep).includes(".agentuicreator")) continue;
+      const source = await readFile(filePath, "utf8");
+      if (removedIdentities.some((identity) => source.includes(identity))) {
+        violations.push(relative);
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+  it("keeps the Empty Thread Slots out of the removed conversation.empty contract", async () => {
+    const surfaceIndex = await readFile(
+      path.join(projectRoot, "plugins/conversation-surface/index.tsx"),
+      "utf8",
+    );
+    expect(surfaceIndex).not.toContain('renderSlot("conversation.empty")');
+    expect(surfaceIndex).toContain('renderSlot("conversation.empty.welcome")');
+    expect(surfaceIndex).toContain('renderSlot("conversation.empty.suggestions")');
+    expect(surfaceIndex).toContain('data-slot="conversation-empty-welcome"');
+    expect(surfaceIndex).toContain('data-slot="conversation-empty-suggestions"');
+  });
+
+  it("keeps Agent Thread Welcome presentation-only and runtime-independent", async () => {
+    const welcomeRoot = path.join(
+      registryRoot,
+      "items/agent-component-thread-welcome/files/components",
+    );
+    const source = await readFile(
+      path.join(welcomeRoot, "thread-welcome.tsx"),
+      "utf8",
+    );
+    const specifiers = importSpecifiers(source);
+
+    expect(specifiers).toContain("react");
+    expect(specifiers.every((specifier) => specifier === "react" || specifier.startsWith(".")))
+      .toBe(true);
+    expect(source).not.toMatch(
+      /@assistant-ui(?:\/|$)|@base-ui\/react|@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|tailwindcss|class-variance-authority|lucide-react|@radix-ui\//u,
+    );
+    expect(source).not.toMatch(
+      /@agent-ui\/runtime-core|@agent-ui\/runtime-agui|@agent-ui\/runtime-react|(?:^|["'/])runtime\/|services\/|framework\/contracts\//u,
+    );
+    expect(source).not.toMatch(
+      /\b(?:useAgent\w*|usePlugin\w*|AgentRun|AG-UI|PluginInstance|AppUIModel|sendMessage|interrupts?|runStatus)\b/u,
+    );
+  });
+
+  it("keeps Agent Thread Welcome colors tokenized and CSS isolated", async () => {
+    const css = await readFile(
+      path.join(
+        registryRoot,
+        "items/agent-component-thread-welcome/files/components/thread-welcome.module.css",
+      ),
+      "utf8",
+    );
+    expect(css).not.toMatch(/#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\(/u);
+    expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
+    expect(css).not.toMatch(
+      /(?:^|\})\s*(?:body|html)\s*(?:,|\{)|\[data-agent-ui-root\]|:global|\.ant-|development-preview|--ui-/gmu,
+    );
+    expect(css).toMatch(/var\(--aui-/u);
+  });
+
+  it("keeps the managed Agent Thread Welcome copy byte-identical to Registry source", async () => {
+    for (const fileName of ["thread-welcome.tsx", "thread-welcome.module.css"]) {
+      const registrySource = await readFile(
+        path.join(
+          registryRoot,
+          "items/agent-component-thread-welcome/files/components",
+          fileName,
+        ),
+        "utf8",
+      );
+      const installedSource = await readFile(
+        path.join(projectRoot, "agent-ui/components", fileName),
+        "utf8",
+      );
+      expect(installedSource).toBe(registrySource);
+    }
+  });
+
+  it("keeps Agent Suggestions presentation-only and runtime-independent", async () => {
+    const suggestionsRoot = path.join(
+      registryRoot,
+      "items/agent-component-suggestions/files/components",
+    );
+    const source = await readFile(
+      path.join(suggestionsRoot, "suggestions.tsx"),
+      "utf8",
+    );
+    const specifiers = importSpecifiers(source);
+
+    expect(specifiers).toContain("react");
+    expect(specifiers.every((specifier) => specifier === "react" || specifier.startsWith(".")))
+      .toBe(true);
+    expect(source).not.toMatch(
+      /@assistant-ui(?:\/|$)|@base-ui\/react|@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|tailwindcss|class-variance-authority|lucide-react|@radix-ui\//u,
+    );
+    expect(source).not.toMatch(
+      /@agent-ui\/runtime-core|@agent-ui\/runtime-agui|@agent-ui\/runtime-react|(?:^|["'/])runtime\/|services\/|framework\/contracts\//u,
+    );
+    expect(source).not.toMatch(
+      /\b(?:useAgentRun|useAgentInterrupts|usePluginActions|usePluginInstance|sendMessage|prompt|PluginInstance|AG-UI|runStatus|interrupts?)\b/u,
+    );
+  });
+
+  it("keeps Agent Suggestions colors tokenized and CSS isolated", async () => {
+    const css = await readFile(
+      path.join(
+        registryRoot,
+        "items/agent-component-suggestions/files/components/suggestions.module.css",
+      ),
+      "utf8",
+    );
+    expect(css).not.toMatch(/#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\(/u);
+    expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
+    expect(css).not.toMatch(
+      /(?:^|\})\s*(?:body|html)\s*(?:,|\{)|\[data-agent-ui-root\]|:global|\.ant-|development-preview|--ui-/gmu,
+    );
+    expect(css).toMatch(/var\(--aui-/u);
+  });
+
+  it("keeps the managed Agent Suggestions copy byte-identical to Registry source", async () => {
+    for (const fileName of ["suggestions.tsx", "suggestions.module.css"]) {
+      const registrySource = await readFile(
+        path.join(
+          registryRoot,
+          "items/agent-component-suggestions/files/components",
+          fileName,
+        ),
+        "utf8",
+      );
+      const installedSource = await readFile(
+        path.join(projectRoot, "agent-ui/components", fileName),
+        "utf8",
+      );
+      expect(installedSource).toBe(registrySource);
+    }
   });
 });

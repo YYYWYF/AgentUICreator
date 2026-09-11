@@ -1,11 +1,11 @@
 import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
 import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
-import { AntdXPromptsPlugin } from "./index";
+import { AgentSuggestionsPlugin } from "./index";
 import manifestJson from "./manifest.json";
 
-export const antdXPromptsPlugin: UIPluginDefinition = {
+export const agentSuggestionsPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
-  Component: AntdXPromptsPlugin,
+  Component: AgentSuggestionsPlugin,
 };
 
-export default antdXPromptsPlugin;
+export default agentSuggestionsPlugin;

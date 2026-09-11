@@ -74,6 +74,11 @@ import { Skeleton } from "../../agent-ui/primitives/skeleton";
 import { Spinner } from "../../agent-ui/primitives/spinner";
 import { ScrollArea, ScrollBar } from "../../agent-ui/primitives/scroll-area";
 import { Switch } from "../../agent-ui/primitives/switch";
+import {
+  AgentSuggestion,
+  AgentSuggestions,
+} from "../../agent-ui/components/suggestions";
+import { AgentThreadWelcome } from "../../agent-ui/components/thread-welcome";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../agent-ui/primitives/tabs";
 import { Textarea } from "../../agent-ui/primitives/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../agent-ui/primitives/tooltip";
@@ -902,6 +907,111 @@ function ThreadGallery() {
   );
 }
 
+function GalleryMarkIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      <path d="M12 3.5v3.2" />
+      <path d="M12 17.3v3.2" />
+      <path d="M3.5 12h3.2" />
+      <path d="M17.3 12h3.2" />
+      <circle cx="12" cy="12" r="3.4" />
+    </svg>
+  );
+}
+
+function ThreadWelcomeGallery() {
+  return (
+    <div className={styles.messageGrid}>
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Default</span>
+        <AgentThreadWelcome
+          title="Agent Frontend"
+          description="通过 AG-UI 与 Agent Runtime 连接，开始新的任务或选择一个建议。"
+        />
+      </article>
+
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Custom title / description</span>
+        <AgentThreadWelcome
+          title="研究助手"
+          description="描述目标、约束与期望输出，我会先给出一个执行计划。"
+          eyebrow="New task"
+        />
+      </article>
+
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>With optional icon / meta</span>
+        <AgentThreadWelcome
+          icon={<GalleryMarkIcon />}
+          title="Agent Frontend"
+          description="通过 AG-UI 与 Agent Runtime 连接，开始新的任务或选择一个建议。"
+          eyebrow="Connected"
+          meta="最后同步 · 刚刚"
+        />
+      </article>
+    </div>
+  );
+}
+
+function SuggestionsGallery() {
+  return (
+    <div className={styles.messageGrid}>
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Default</span>
+        <AgentSuggestions title="你可以这样开始">
+          <AgentSuggestion title="总结当前上下文" />
+          <AgentSuggestion title="解释当前界面结构" />
+          <AgentSuggestion title="建议下一步" />
+        </AgentSuggestions>
+      </article>
+
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>With descriptions</span>
+        <AgentSuggestions title="你可以这样开始">
+          <AgentSuggestion
+            title="总结当前上下文"
+            description="提炼目标、约束与下一步"
+          />
+          <AgentSuggestion
+            title="解释当前界面结构"
+            description="说明 AppUIModel 与插件的关系"
+          />
+          <AgentSuggestion
+            title="建议下一步"
+            description="给出一个可执行的后续动作"
+          />
+        </AgentSuggestions>
+      </article>
+
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Disabled</span>
+        <AgentSuggestions title="运行中">
+          <AgentSuggestion
+            title="总结当前上下文"
+            description="等待当前运行结束"
+            disabled
+          />
+          <AgentSuggestion title="解释当前界面结构" disabled />
+        </AgentSuggestions>
+      </article>
+
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Long text</span>
+        <AgentSuggestions title="长文本建议">
+          <AgentSuggestion
+            title="请根据当前 AppUIModel、Plugin 运行时与共享 AG-UI 消息，总结最近的架构调整并列出仍然存在的风险。"
+            description="说明每个结论对应的插件边界、Slot ownership 与后续验证步骤。"
+          />
+          <AgentSuggestion
+            title="请解释 conversation.empty.welcome 与 conversation.empty.suggestions 为什么必须是平级 Slot。"
+            description="用一句话说明可替换性，不要复述源码。"
+          />
+        </AgentSuggestions>
+      </article>
+    </div>
+  );
+}
+
 function ThemeGallery({ theme }: { theme: AgentUITheme }) {
   const inputId = `${theme}-gallery-input`;
 
@@ -988,6 +1098,10 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
 
       <section className={styles.section}>
         <h2>Agent Components</h2>
+        <h3 className={styles.componentHeading}>Agent Thread Welcome</h3>
+        <ThreadWelcomeGallery />
+        <h3 className={styles.componentHeading}>Agent Suggestions</h3>
+        <SuggestionsGallery />
         <h3 className={styles.componentHeading}>Agent Thread</h3>
         <ThreadGallery />
         <h3 className={styles.componentHeading}>Agent Message</h3>
