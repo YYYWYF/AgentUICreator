@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "agent-component/tool-detail",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Runtime-independent tool inspection surface for Agent UI applications",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
+  "requires": [
+    "foundation/core",
+    "primitive/spinner"
+  ],
+  "files": [
+    {
+      "source": "files/components/tool-detail.tsx",
+      "target": "components/tool-detail.tsx"
+    },
+    {
+      "source": "files/components/tool-detail.module.css",
+      "target": "components/tool-detail.module.css"
+    }
+  ]
+}

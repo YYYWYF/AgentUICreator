@@ -100,6 +100,10 @@
     {
       "id": "agent-component/tool-activity",
       "path": "items/agent-component-tool-activity/item.json"
+    },
+    {
+      "id": "agent-component/tool-detail",
+      "path": "items/agent-component-tool-detail/item.json"
     }
   ]
 }

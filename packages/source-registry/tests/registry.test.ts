@@ -360,6 +360,19 @@ describe("Agent UI Source Registry contract", () => {
     });
   });
 
+  it("registers Agent Tool Detail as an original Agent Component", async () => {
+    const registry = await loadAgentUISourceRegistry();
+    expect(registry.byId.get("agent-component/tool-detail")).toMatchObject({
+      version: "0.1.0",
+      kind: "agent-component",
+      requires: ["foundation/core", "primitive/spinner"],
+      upstream: {
+        project: "AgentUICreator",
+        mode: "original",
+      },
+    });
+  });
+
   it("registers Agent Thread as an original, foundation-only Agent Component", async () => {
     const registry = await loadAgentUISourceRegistry();
     expect(registry.byId.get("agent-component/thread")).toMatchObject({

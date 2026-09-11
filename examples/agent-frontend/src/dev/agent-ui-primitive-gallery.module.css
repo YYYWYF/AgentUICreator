@@ -253,6 +253,34 @@
   font-size: var(--aui-font-size-xs);
 }
 
+.toolDetailSection {
+  display: grid;
+  min-width: 0;
+  gap: var(--aui-space-2);
+}
+
+.toolDetailSelect {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--aui-control-height-md);
+  padding: 0 var(--aui-space-3);
+  border: 1px solid var(--aui-border);
+  border-radius: var(--aui-radius-sm);
+  color: var(--aui-fg);
+  background: var(--aui-bg);
+  font: inherit;
+}
+
+.toolDetailCode {
+  min-width: max-content;
+  margin: 0;
+  color: var(--aui-fg);
+  font-family: var(--aui-font-mono);
+  font-size: var(--aui-font-size-xs);
+  line-height: var(--aui-line-height-normal);
+  white-space: pre;
+}
+
 .spinnerSample {
   display: inline-flex;
   align-items: center;

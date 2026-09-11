@@ -19,6 +19,10 @@ import {
   AgentToolActivity,
   type AgentToolActivityStatus,
 } from "../../agent-ui/components/tool-activity";
+import {
+  AgentToolDetail,
+  type AgentToolDetailStatus,
+} from "../../agent-ui/components/tool-detail";
 import { AgentUIRoot, type AgentUITheme } from "../../agent-ui/foundation/AgentUIRoot";
 import { Avatar, AvatarBadge, AvatarFallback } from "../../agent-ui/primitives/avatar";
 import { Badge } from "../../agent-ui/primitives/badge";
@@ -508,6 +512,138 @@ function ToolGallery() {
   );
 }
 
+function ToolDetailSection({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={styles.toolDetailSection}>
+      <span className={styles.toolFieldLabel}>{label}</span>
+      {children}
+    </div>
+  );
+}
+
+function ToolDetailFixture({
+  fixtureLabel,
+  status,
+  name,
+}: {
+  fixtureLabel: string;
+  status: AgentToolDetailStatus;
+  name: string;
+}) {
+  const statusLabel = status === "running"
+    ? "执行中"
+    : status === "completed"
+      ? "已完成"
+      : status === "error"
+        ? "失败"
+        : "已中断";
+
+  return (
+    <article className={styles.messageFixture}>
+      <span className={styles.fixtureLabel}>{fixtureLabel}</span>
+      <AgentToolDetail
+        state="selected"
+        title="工具详情"
+        meta="最近一次调用"
+        status={status}
+        name={name}
+        statusLabel={statusLabel}
+        toolCallId={`Call ID · call_${name}_01`}
+        argumentsContent={(
+          <ToolDetailSection label="Arguments">
+            <pre className={styles.toolDetailCode}>{`{\n  "path": "src/App.tsx"\n}`}</pre>
+          </ToolDetailSection>
+        )}
+        resultContent={(
+          <ToolDetailSection label={status === "error" ? "Error" : "Result"}>
+            <pre className={styles.toolDetailCode}>
+              {status === "running"
+                ? "等待工具返回结果…"
+                : status === "error"
+                  ? "Permission denied"
+                  : status === "interrupted"
+                    ? "调用已停止，未返回结果。"
+                    : "读取完成：128 lines"}
+            </pre>
+          </ToolDetailSection>
+        )}
+      />
+    </article>
+  );
+}
+
+function ToolDetailGallery() {
+  return (
+    <div className={styles.messageGrid}>
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Running / Caller-owned selector</span>
+        <AgentToolDetail
+          state="selected"
+          title="工具详情"
+          meta="3 个调用"
+          selector={(
+            <select
+              aria-label="选择工具调用"
+              className={styles.toolDetailSelect}
+              defaultValue="inspect_project"
+            >
+              <option value="inspect_project">inspect_project</option>
+              <option value="search_files">search_files</option>
+              <option value="read_file">read_file</option>
+            </select>
+          )}
+          status="running"
+          name="inspect_project"
+          statusLabel="执行中"
+          toolCallId="Call ID · call_inspect_project_01"
+          argumentsContent={(
+            <ToolDetailSection label="Arguments">
+              <pre className={styles.toolDetailCode}>{`{\n  "root": "src"\n}`}</pre>
+            </ToolDetailSection>
+          )}
+          resultContent={(
+            <ToolDetailSection label="Result">
+              <span className={styles.toolPending}>等待工具返回结果…</span>
+            </ToolDetailSection>
+          )}
+        />
+      </article>
+
+      <ToolDetailFixture
+        fixtureLabel="Completed"
+        status="completed"
+        name="read_file"
+      />
+      <ToolDetailFixture
+        fixtureLabel="Error"
+        status="error"
+        name="write_file"
+      />
+      <ToolDetailFixture
+        fixtureLabel="Interrupted"
+        status="interrupted"
+        name="run_tests"
+      />
+
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Empty</span>
+        <AgentToolDetail
+          state="empty"
+          title="工具详情"
+          meta="0 个调用"
+          emptyState="当前会话还没有工具调用。"
+        />
+      </article>
+    </div>
+  );
+}
+
 interface ToolActivityFixtureProps {
   fixtureLabel: string;
   presentation: "grouped" | "flat";
@@ -862,6 +998,8 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
         <ToolGallery />
         <h3 className={styles.componentHeading}>Agent Tool Activity</h3>
         <ToolActivityGallery />
+        <h3 className={styles.componentHeading}>Agent Tool Detail</h3>
+        <ToolDetailGallery />
         <h3 className={styles.componentHeading}>Agent Composer</h3>
         <div className={styles.composerGrid}>
           <ComposerFixture label="Empty" />

@@ -317,6 +317,65 @@ describe("Agent UI component source policy", () => {
     }
   });
 
+  it("keeps Agent Tool Detail presentation-only and free of tool runtime facts", async () => {
+    const detailRoot = path.join(
+      registryRoot,
+      "items/agent-component-tool-detail/files/components",
+    );
+    const source = await readFile(
+      path.join(detailRoot, "tool-detail.tsx"),
+      "utf8",
+    );
+    const specifiers = importSpecifiers(source);
+
+    expect(specifiers).toContain("react");
+    expect(specifiers.every((specifier) => specifier === "react" || specifier.startsWith(".")))
+      .toBe(true);
+    expect(source).not.toMatch(
+      /@assistant-ui(?:\/|$)|@base-ui\/react|@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|tailwindcss|class-variance-authority|lucide-react|@radix-ui\//u,
+    );
+    expect(source).not.toMatch(
+      /@agent-ui\/runtime-core|@agent-ui\/runtime-agui|@agent-ui\/runtime-react|(?:^|["'/])runtime\/|services\/|framework\/contracts\//u,
+    );
+    expect(source).not.toMatch(
+      /\b(?:useState|useEffect|useLayoutEffect|ToolCallInspection|inspectToolCalls|AgentMessage|AgentExecution|selectedToolCallId|requestedToolCallId|argumentsText)\b|result\.error|agentUI\.render/u,
+    );
+  });
+
+  it("keeps Agent Tool Detail colors tokenized and CSS isolated", async () => {
+    const css = await readFile(
+      path.join(
+        registryRoot,
+        "items/agent-component-tool-detail/files/components/tool-detail.module.css",
+      ),
+      "utf8",
+    );
+    expect(css).not.toMatch(/#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\(/u);
+    expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
+    expect(css).not.toMatch(
+      /(?:^|\})\s*(?:body|html)\s*(?:,|\{)|\[data-agent-ui-root\]|:global|\.ant-|development-preview|--ui-/gmu,
+    );
+    expect(css).toMatch(/var\(--aui-/u);
+  });
+
+  it("keeps the managed Agent Tool Detail copy byte-identical to Registry source", async () => {
+    for (const fileName of ["tool-detail.tsx", "tool-detail.module.css"]) {
+      const registrySource = await readFile(
+        path.join(
+          registryRoot,
+          "items/agent-component-tool-detail/files/components",
+          fileName,
+        ),
+        "utf8",
+      );
+      const installedSource = await readFile(
+        path.join(projectRoot, "agent-ui/components", fileName),
+        "utf8",
+      );
+      expect(installedSource).toBe(registrySource);
+    }
+  });
+
   it("keeps the Agent Tool Activity plugin canonical and independent of Ant", async () => {
     const pluginRoot = path.join(projectRoot, "plugins/agent-tool-activity");
     const manifest = JSON.parse(
