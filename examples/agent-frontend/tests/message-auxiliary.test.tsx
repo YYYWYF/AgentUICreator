@@ -102,6 +102,9 @@ describe("message auxiliary presentation", () => {
     expect(
       container.querySelector('[data-slot="agent-message-sources"]')?.tagName,
     ).toBe("SECTION");
+    expect(
+      container.querySelectorAll('[data-slot="agent-message-source"]'),
+    ).toHaveLength(2);
     expect(container.textContent).toContain("2 个来源");
     expect(container.textContent).toContain("AG-UI");
     expect(container.textContent).toContain("Protocol reference");

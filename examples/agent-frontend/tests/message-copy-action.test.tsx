@@ -8,6 +8,16 @@ import { MessageCopyAction } from "../plugins/agent-message-list/message-copy-ac
 
 const mountedRoots: Root[] = [];
 
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, reject, resolve };
+}
+
 async function renderCopyAction(text = "完整的智能体回复") {
   const container = document.createElement("div");
   document.body.append(container);
@@ -117,4 +127,32 @@ describe("MessageCopyAction", () => {
 
     expect(clearTimeout).toHaveBeenCalled();
   });
+
+  it.each(["resolve", "reject"] as const)(
+    "does not update state or schedule a reset when a pending copy %ss after unmount",
+    async (settlement) => {
+      const clipboardWrite = deferred<void>();
+      vi.stubGlobal("navigator", {
+        clipboard: { writeText: vi.fn(() => clipboardWrite.promise) },
+      });
+      const setTimeout = vi.spyOn(window, "setTimeout");
+      const { button, root } = await renderCopyAction();
+
+      await click(button);
+      await act(async () => root.unmount());
+      mountedRoots.splice(mountedRoots.indexOf(root), 1);
+      setTimeout.mockClear();
+
+      await act(async () => {
+        if (settlement === "resolve") {
+          clipboardWrite.resolve();
+        } else {
+          clipboardWrite.reject(new Error("clipboard denied after unmount"));
+        }
+        await clipboardWrite.promise.catch(() => undefined);
+      });
+
+      expect(setTimeout).not.toHaveBeenCalled();
+    },
+  );
 });

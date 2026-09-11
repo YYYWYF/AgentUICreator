@@ -121,7 +121,11 @@ export function MessageSourceList({
         {items.map((item) => {
           const href = safeSourceHref(item.url);
           return (
-            <li className="agent-message-list-source" key={item.key}>
+            <li
+              className="agent-message-list-source"
+              data-slot="agent-message-source"
+              key={item.key}
+            >
               {href === undefined ? (
                 <span>{item.title}</span>
               ) : (

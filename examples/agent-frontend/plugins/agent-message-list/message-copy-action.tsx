@@ -16,6 +16,7 @@ const copyLabels: Record<CopyState, string> = {
 
 export function MessageCopyAction({ text }: MessageCopyActionProps) {
   const [state, setState] = useState<CopyState>("idle");
+  const mountedRef = useRef(true);
   const timerRef = useRef<number | undefined>(undefined);
 
   const scheduleReset = () => {
@@ -29,6 +30,7 @@ export function MessageCopyAction({ text }: MessageCopyActionProps) {
   };
 
   const handleCopy = async () => {
+    let nextState: CopyState;
     try {
       if (
         typeof navigator === "undefined" ||
@@ -38,16 +40,23 @@ export function MessageCopyAction({ text }: MessageCopyActionProps) {
       }
 
       await navigator.clipboard.writeText(text);
-      setState("copied");
+      nextState = "copied";
     } catch {
-      setState("error");
+      nextState = "error";
     }
 
+    if (!mountedRef.current) {
+      return;
+    }
+
+    setState(nextState);
     scheduleReset();
   };
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (timerRef.current !== undefined) {
         window.clearTimeout(timerRef.current);
       }
