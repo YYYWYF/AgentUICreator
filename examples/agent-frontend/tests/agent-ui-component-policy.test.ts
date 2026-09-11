@@ -139,6 +139,63 @@ describe("Agent UI component source policy", () => {
     }
   });
 
+  it("keeps Agent Thread presentation-only and runtime-independent", async () => {
+    const threadRoot = path.join(
+      registryRoot,
+      "items/agent-component-thread/files/components",
+    );
+    const source = await readFile(path.join(threadRoot, "thread.tsx"), "utf8");
+    const specifiers = importSpecifiers(source);
+
+    expect(specifiers).toContain("react");
+    expect(specifiers.every((specifier) => specifier === "react" || specifier.startsWith(".")))
+      .toBe(true);
+    expect(source).not.toMatch(
+      /@assistant-ui\/|@base-ui\/react|@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|tailwindcss|class-variance-authority|lucide-react|@radix-ui\//u,
+    );
+    expect(source).not.toMatch(
+      /@agent-ui\/runtime-core|@agent-ui\/runtime-agui|@agent-ui\/runtime-react|(?:^|["'/])runtime\/|services\/conversations|framework\/contracts\/ui-plugin/u,
+    );
+    expect(source).not.toMatch(
+      /\b(?:useEffect|useLayoutEffect|ResizeObserver|IntersectionObserver|MutationObserver|addEventListener|requestAnimationFrame|scrollIntoView)\b|\.scrollTo\s*\(|\.scrollTop\s*=/u,
+    );
+    expect(source).not.toMatch(/aria-live/u);
+  });
+
+  it("keeps Agent Thread colors tokenized and CSS isolated", async () => {
+    const css = await readFile(
+      path.join(
+        registryRoot,
+        "items/agent-component-thread/files/components/thread.module.css",
+      ),
+      "utf8",
+    );
+    expect(css).not.toMatch(/#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\(/u);
+    expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
+    expect(css).not.toMatch(
+      /(?:^|\})\s*(?:body|html)\s*(?:,|\{)|\[data-agent-ui-root\]|:global|\.ant-/gmu,
+    );
+    expect(css).toMatch(/var\(--aui-/u);
+  });
+
+  it("keeps the managed Agent Thread copy byte-identical to Registry source", async () => {
+    for (const fileName of ["thread.tsx", "thread.module.css"]) {
+      const registrySource = await readFile(
+        path.join(
+          registryRoot,
+          "items/agent-component-thread/files/components",
+          fileName,
+        ),
+        "utf8",
+      );
+      const installedSource = await readFile(
+        path.join(projectRoot, "agent-ui/components", fileName),
+        "utf8",
+      );
+      expect(installedSource).toBe(registrySource);
+    }
+  });
+
   it("binds the production message list to the managed Agent Message surface", async () => {
     const pluginRoot = path.join(projectRoot, "plugins/antd-x-message-list");
     const source = await readFile(path.join(pluginRoot, "index.tsx"), "utf8");

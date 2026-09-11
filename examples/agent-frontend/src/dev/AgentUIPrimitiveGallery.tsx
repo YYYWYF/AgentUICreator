@@ -6,6 +6,7 @@ import {
   getAgentComposerSuggestionOptionId,
 } from "../../agent-ui/components/composer-suggestions";
 import { AgentMessage } from "../../agent-ui/components/message";
+import { AgentThread } from "../../agent-ui/components/thread";
 import { AgentUIRoot, type AgentUITheme } from "../../agent-ui/foundation/AgentUIRoot";
 import { Avatar, AvatarBadge, AvatarFallback } from "../../agent-ui/primitives/avatar";
 import { Badge } from "../../agent-ui/primitives/badge";
@@ -238,6 +239,112 @@ function MessageGallery() {
   );
 }
 
+const longThreadMessages = [
+  {
+    role: "user",
+    content: "Review the current Agent UI foundation and identify the next structural gap.",
+  },
+  {
+    role: "assistant",
+    content: "Composer and Message are ready. The conversation still needs an owned Thread surface.",
+  },
+  {
+    role: "user",
+    content: "Keep that surface independent from Runtime and AG-UI state.",
+  },
+  {
+    role: "assistant",
+    content: "The Thread accepts React children and exposes only its viewport and content DOM refs.",
+  },
+  {
+    role: "user",
+    content: "What owns the conversation reading width?",
+  },
+  {
+    role: "assistant",
+    content: "Thread owns the centered reading track while each Message keeps responsibility for its own role presentation.",
+  },
+  {
+    role: "user",
+    content: "Does this phase include follow-latest behavior?",
+  },
+  {
+    role: "assistant",
+    content: "No. Scroll intent and follow-latest remain separate runtime binding work for the next phase.",
+  },
+] as const;
+
+function ShortThreadMessages() {
+  return (
+    <>
+      <AgentMessage role="user">
+        Help me analyze the current project.
+      </AgentMessage>
+      <AgentMessage role="assistant" header="Assistant">
+        The project now has a standalone Message surface and is ready for Thread composition.
+      </AgentMessage>
+    </>
+  );
+}
+
+function ThreadGallery() {
+  return (
+    <div className={styles.threadGrid}>
+      <article className={styles.threadFixture}>
+        <span className={styles.fixtureLabel}>Empty</span>
+        <div className={styles.threadPreview}>
+          <AgentThread
+            ariaLabel="Empty conversation preview"
+            empty={<div className={styles.threadEmpty}>Start a conversation</div>}
+          />
+        </div>
+      </article>
+
+      <article className={styles.threadFixture}>
+        <span className={styles.fixtureLabel}>Short thread</span>
+        <div className={styles.threadPreview}>
+          <AgentThread ariaLabel="Short conversation preview">
+            <ShortThreadMessages />
+          </AgentThread>
+        </div>
+      </article>
+
+      <article className={styles.threadFixture}>
+        <span className={styles.fixtureLabel}>Long thread</span>
+        <div className={styles.threadPreview}>
+          <AgentThread ariaLabel="Scrollable conversation preview">
+            {longThreadMessages.map((message, index) => (
+              <AgentMessage
+                role={message.role}
+                header={message.role === "assistant" ? "Assistant" : undefined}
+                key={index}
+              >
+                {message.content}
+              </AgentMessage>
+            ))}
+          </AgentThread>
+        </div>
+      </article>
+
+      <article className={styles.threadFixture}>
+        <span className={styles.fixtureLabel}>Scroll to bottom affordance</span>
+        <div className={styles.threadPreview}>
+          <AgentThread
+            ariaLabel="Conversation with scroll affordance preview"
+            scrollToBottom={(
+              <Button type="button" size="sm" variant="outline">
+                ↓ Back to bottom
+              </Button>
+            )}
+          >
+            <ShortThreadMessages />
+          </AgentThread>
+        </div>
+      </article>
+    </div>
+  );
+}
+
 function ThemeGallery({ theme }: { theme: AgentUITheme }) {
   const inputId = `${theme}-gallery-input`;
 
@@ -324,6 +431,8 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
 
       <section className={styles.section}>
         <h2>Agent Components</h2>
+        <h3 className={styles.componentHeading}>Agent Thread</h3>
+        <ThreadGallery />
         <h3 className={styles.componentHeading}>Agent Message</h3>
         <MessageGallery />
         <h3 className={styles.componentHeading}>Agent Composer</h3>

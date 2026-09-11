@@ -84,6 +84,10 @@
     {
       "id": "agent-component/message",
       "path": "items/agent-component-message/item.json"
+    },
+    {
+      "id": "agent-component/thread",
+      "path": "items/agent-component-thread/item.json"
     }
   ]
 }

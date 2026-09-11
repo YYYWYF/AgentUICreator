@@ -35,6 +35,17 @@
         }
       }
     },
+    "agent-component/thread": {
+      "version": "0.1.0",
+      "files": {
+        "components/thread.module.css": {
+          "sha256": "714cf1be413cc5cf929007dd97365dee694c12074589d2eef34b7556d6eb5e7e"
+        },
+        "components/thread.tsx": {
+          "sha256": "d139857fbe19dff87c527687693749d2cbfe4a6d83e6c0735ab8f7b256ba57c7"
+        }
+      }
+    },
     "foundation/core": {
       "version": "0.2.2",
       "files": {
