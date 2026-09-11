@@ -11,6 +11,10 @@ import {
   type AgentReasoningStatus,
 } from "../../agent-ui/components/reasoning";
 import { AgentThread } from "../../agent-ui/components/thread";
+import {
+  AgentTool,
+  type AgentToolStatus,
+} from "../../agent-ui/components/tool";
 import { AgentUIRoot, type AgentUITheme } from "../../agent-ui/foundation/AgentUIRoot";
 import { Avatar, AvatarBadge, AvatarFallback } from "../../agent-ui/primitives/avatar";
 import { Badge } from "../../agent-ui/primitives/badge";
@@ -341,6 +345,165 @@ function ReasoningGallery() {
   );
 }
 
+interface ToolFixtureProps {
+  fixtureLabel: string;
+  status: AgentToolStatus;
+  initialExpanded: boolean;
+  name: string;
+  statusLabel: string;
+  summary?: string;
+  children: ReactNode;
+}
+
+function ToolFixture({
+  fixtureLabel,
+  status,
+  initialExpanded,
+  name,
+  statusLabel,
+  summary,
+  children,
+}: ToolFixtureProps) {
+  const [expanded, setExpanded] = useState(initialExpanded);
+
+  return (
+    <article className={styles.messageFixture}>
+      <span className={styles.fixtureLabel}>{fixtureLabel}</span>
+      <AgentMessage role="assistant" header="Assistant">
+        <AgentTool
+          status={status}
+          expanded={expanded}
+          onExpandedChange={setExpanded}
+          name={name}
+          {...(summary === undefined ? {} : { summary })}
+          statusLabel={statusLabel}
+        >
+          <div className={styles.toolOperation}>{children}</div>
+        </AgentTool>
+      </AgentMessage>
+    </article>
+  );
+}
+
+function ToolField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className={styles.toolField}>
+      <span className={styles.toolFieldLabel}>{label}</span>
+      <span className={styles.toolFieldValue}>{value}</span>
+    </div>
+  );
+}
+
+function ToolGallery() {
+  return (
+    <div className={styles.messageGrid}>
+      <ToolFixture
+        fixtureLabel="Running / Expanded"
+        status="running"
+        initialExpanded
+        name="inspect_project"
+        summary="工具调用 · 正在执行"
+        statusLabel="执行中"
+      >
+        <ToolField label="输入" value={"path  /src"} />
+        <span className={styles.toolPending}>等待工具返回结果…</span>
+      </ToolFixture>
+
+      <ToolFixture
+        fixtureLabel="Running / Collapsed"
+        status="running"
+        initialExpanded={false}
+        name="search_files"
+        summary="工具调用 · 正在执行"
+        statusLabel="执行中"
+      >
+        <ToolField label="输入" value={"query  *.tsx"} />
+      </ToolFixture>
+
+      <ToolFixture
+        fixtureLabel="Completed / Collapsed"
+        status="completed"
+        initialExpanded={false}
+        name="search_files"
+        summary="工具调用 · 3 个结果"
+        statusLabel="已完成"
+      >
+        <ToolField label="输出" value="3 files" />
+      </ToolFixture>
+
+      <ToolFixture
+        fixtureLabel="Completed / Expanded"
+        status="completed"
+        initialExpanded
+        name="search_files"
+        summary="工具调用 · 3 个结果"
+        statusLabel="已完成"
+      >
+        <ToolField label="输入" value={"query  *.tsx"} />
+        <ToolField
+          label="输出"
+          value={
+            "src/App.tsx\nsrc/dev/AgentUIPrimitiveGallery.tsx\nsrc/main.tsx"
+          }
+        />
+      </ToolFixture>
+
+      <ToolFixture
+        fixtureLabel="Error / Expanded"
+        status="error"
+        initialExpanded
+        name="write_file"
+        summary="工具调用 · 执行失败"
+        statusLabel="失败"
+      >
+        <ToolField label="输入" value={"path  /etc/hosts"} />
+        <ToolField label="错误" value="Permission denied" />
+      </ToolFixture>
+
+      <ToolFixture
+        fixtureLabel="Interrupted / Collapsed"
+        status="interrupted"
+        initialExpanded={false}
+        name="run_tests"
+        summary="工具调用 · 未返回结果"
+        statusLabel="未完成"
+      >
+        <ToolField label="输出" value="未返回结果。" />
+      </ToolFixture>
+
+      <ToolFixture
+        fixtureLabel="Long Result / Expanded"
+        status="completed"
+        initialExpanded
+        name="read_config"
+        summary="工具调用 · 已返回结果"
+        statusLabel="已完成"
+      >
+        <ToolField label="输入" value={"path  agent-ui/app-ui.json"} />
+        <ToolField
+          label="输出"
+          value={[
+            "{",
+            '  "schemaVersion": 1,',
+            '  "root": {',
+            '    "type": "column",',
+            '    "children": [',
+            '      { "type": "slot", "slotId": "agent-messages-main" },',
+            '      { "type": "slot", "slotId": "agent-composer-main" }',
+            "    ]",
+            "  },",
+            '  "pluginInstances": {',
+            '    "agent-messages-main": { "pluginId": "agent-message-list" },',
+            '    "agent-composer-main": { "pluginId": "agent-composer" }',
+            "  }",
+            "}",
+          ].join("\n")}
+        />
+      </ToolFixture>
+    </div>
+  );
+}
+
 const longThreadMessages = [
   {
     role: "user",
@@ -539,6 +702,8 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
         <MessageGallery />
         <h3 className={styles.componentHeading}>Agent Reasoning</h3>
         <ReasoningGallery />
+        <h3 className={styles.componentHeading}>Agent Tool</h3>
+        <ToolGallery />
         <h3 className={styles.componentHeading}>Agent Composer</h3>
         <div className={styles.composerGrid}>
           <ComposerFixture label="Empty" />

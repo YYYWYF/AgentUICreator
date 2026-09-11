@@ -57,6 +57,17 @@
         }
       }
     },
+    "agent-component/tool": {
+      "version": "0.1.0",
+      "files": {
+        "components/tool.module.css": {
+          "sha256": "d3a81ef447944b3389c033feb439e3c616e60ff129a360ebcb29731d9c3d4c29"
+        },
+        "components/tool.tsx": {
+          "sha256": "a96ed94eac2b9592fc5d8def11159dc3eac99b72cfd9048f62c582b4f88f6ae2"
+        }
+      }
+    },
     "foundation/core": {
       "version": "0.2.2",
       "files": {

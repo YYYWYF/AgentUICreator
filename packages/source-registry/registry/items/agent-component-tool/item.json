@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "agent-component/tool",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Controlled single-tool execution surface for Agent UI conversations",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
+  "requires": [
+    "foundation/core",
+    "primitive/collapsible",
+    "primitive/spinner"
+  ],
+  "files": [
+    {
+      "source": "files/components/tool.tsx",
+      "target": "components/tool.tsx"
+    },
+    {
+      "source": "files/components/tool.module.css",
+      "target": "components/tool.module.css"
+    }
+  ]
+}

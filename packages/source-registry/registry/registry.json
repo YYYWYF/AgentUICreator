@@ -92,6 +92,10 @@
     {
       "id": "agent-component/thread",
       "path": "items/agent-component-thread/item.json"
+    },
+    {
+      "id": "agent-component/tool",
+      "path": "items/agent-component-tool/item.json"
     }
   ]
 }

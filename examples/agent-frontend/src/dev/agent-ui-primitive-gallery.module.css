@@ -218,6 +218,41 @@
   margin-top: var(--aui-space-5);
 }
 
+.toolOperation {
+  display: grid;
+  min-width: 0;
+  gap: var(--aui-space-3);
+}
+
+.toolField {
+  display: grid;
+  min-width: 0;
+  gap: var(--aui-space-1);
+}
+
+.toolFieldLabel {
+  color: var(--aui-fg-subtle);
+  font-size: var(--aui-font-size-xs);
+  font-weight: var(--aui-font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.toolFieldValue {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--aui-fg);
+  font-family: var(--aui-font-mono);
+  font-size: var(--aui-font-size-xs);
+  line-height: var(--aui-line-height-normal);
+  white-space: pre-wrap;
+}
+
+.toolPending {
+  color: var(--aui-fg-subtle);
+  font-size: var(--aui-font-size-xs);
+}
+
 .spinnerSample {
   display: inline-flex;
   align-items: center;

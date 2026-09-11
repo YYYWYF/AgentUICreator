@@ -195,6 +195,65 @@ describe("Agent UI component source policy", () => {
     }
   });
 
+  it("keeps Agent Tool presentation-only, controlled, and lifecycle-free", async () => {
+    const toolRoot = path.join(
+      registryRoot,
+      "items/agent-component-tool/files/components",
+    );
+    const source = await readFile(path.join(toolRoot, "tool.tsx"), "utf8");
+    const specifiers = importSpecifiers(source);
+
+    expect(specifiers).toContain("react");
+    expect(specifiers.every((specifier) => specifier === "react" || specifier.startsWith(".")))
+      .toBe(true);
+    expect(source).not.toMatch(
+      /@assistant-ui(?:\/|$)|@base-ui\/react|@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|tailwindcss|class-variance-authority|lucide-react|@radix-ui\//u,
+    );
+    expect(source).not.toMatch(
+      /@agent-ui\/runtime-core|@agent-ui\/runtime-agui|@agent-ui\/runtime-react|(?:^|["'/])runtime\/|services\/|framework\/contracts\//u,
+    );
+    expect(source).not.toMatch(
+      /\b(?:useState|useEffect|useLayoutEffect|setTimeout|clearTimeout|defaultExpanded|autoExpand|autoCollapse)\b/u,
+    );
+    expect(source).not.toMatch(
+      /\b(?:parseToolValue|StructuredValue|ScalarValue|resultCount|looksLikeFilePath|showArguments|showResult|toolCall|execution|result|turnId|InspectionStatus)\b/u,
+    );
+  });
+
+  it("keeps Agent Tool colors tokenized and CSS isolated", async () => {
+    const css = await readFile(
+      path.join(
+        registryRoot,
+        "items/agent-component-tool/files/components/tool.module.css",
+      ),
+      "utf8",
+    );
+    expect(css).not.toMatch(/#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\(/u);
+    expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
+    expect(css).not.toMatch(
+      /(?:^|\})\s*(?:body|html)\s*(?:,|\{)|\[data-agent-ui-root\]|:global|\.ant-/gmu,
+    );
+    expect(css).toMatch(/var\(--aui-/u);
+  });
+
+  it("keeps the managed Agent Tool copy byte-identical to Registry source", async () => {
+    for (const fileName of ["tool.tsx", "tool.module.css"]) {
+      const registrySource = await readFile(
+        path.join(
+          registryRoot,
+          "items/agent-component-tool/files/components",
+          fileName,
+        ),
+        "utf8",
+      );
+      const installedSource = await readFile(
+        path.join(projectRoot, "agent-ui/components", fileName),
+        "utf8",
+      );
+      expect(installedSource).toBe(registrySource);
+    }
+  });
+
   it("keeps the Agent Reasoning plugin canonical and independent of Ant", async () => {
     const pluginRoot = path.join(projectRoot, "plugins/agent-reasoning");
     const manifest = JSON.parse(
