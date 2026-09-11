@@ -1,3 +1,4 @@
+import { realpathSync } from "node:fs";
 import path from "node:path";
 
 import type { AppUIModel } from "../../framework/contracts/app-ui-model";
@@ -40,7 +41,10 @@ interface HardServiceActivationResolution {
 }
 
 function projectPath(projectRoot: string, filePath: string): string {
-  return path.relative(projectRoot, filePath).split(path.sep).join("/");
+  return path
+    .relative(realpathSync.native(projectRoot), realpathSync.native(filePath))
+    .split(path.sep)
+    .join("/");
 }
 
 function propertyName(node: Node): string | undefined {
