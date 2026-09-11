@@ -50,7 +50,7 @@ describe("inspectUIProject", () => {
         owner: expect.objectContaining({
           kind: "plugin",
           instanceId: "agent-messages-main",
-          pluginId: "antd-x-message-list",
+          pluginId: "agent-message-list",
         }),
         mounts: [
           expect.objectContaining({

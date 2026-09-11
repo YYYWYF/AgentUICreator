@@ -11,7 +11,7 @@
 - `antd-x-theme-switch`：声明 `inject: ["agent-ui.theme"]`，调用另一个插件暴露的主题函数。
 - `antd-x-conversations`：注入 `agent-ui.conversation-data-source`，提供可观察的 `agent-ui.conversations` Controller；历史会话只读，新建成功后返回 Live 模式。
 - `antd-x-welcome`：用 `Welcome` 展示 Agent 身份与共享运行状态。
-- `antd-x-message-list`：Live 模式读取 Runtime messages，History 模式只读取 Conversation Detail messages，并展示详情 loading / error。负责 Turn 顺序、Bubble、滚动、streaming 与连续 Tool Activity 投影，并通过 `conversation.message.reasoning`、`conversation.message.tool-activity` child Slots 调度消息 renderer；没有反馈提交合同前不伪造点赞/点踩。
+- `agent-message-list`：Live 模式读取 Runtime messages，History 模式只读取 Conversation Detail messages，并展示详情 loading / error。负责 Turn 顺序、Bubble、滚动、streaming 与连续 Tool Activity 投影，并通过 `conversation.message.reasoning`、`conversation.message.tool-activity` child Slots 调度消息 renderer；没有反馈提交合同前不伪造点赞/点踩。
 - `antd-x-run-timeline`：同样可选探测会话 Service，再用 `Think` 和 `ThoughtChain` 映射 AG-UI reasoning、activity、tool call 与 tool result；没有历史会话插件时仍展示当前 Runtime 的完整执行链。
 - `antd-x-tool-detail`：独立工具调用详情面板，可按 `toolCallId` 定位调用，并展示增量参数的最终投影、执行状态、结果或错误；用于右侧 Inspector 等独立 Slot。
 - `antd-x-tool-activity`：消息流中的 Tool Presentation Host，通过 `conversation.message.tool-item` child Slot 在 grouped / flat 模式下复用同一个单工具 Renderer。

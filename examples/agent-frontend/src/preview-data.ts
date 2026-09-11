@@ -58,7 +58,7 @@ export const initialPreviewMessages: AgentMessage[] = [
     content: JSON.stringify({
       plugins: [
         "antd-x-conversations",
-        "antd-x-message-list",
+        "agent-message-list",
         "antd-x-run-timeline",
         "antd-x-resources",
         "agent-composer",

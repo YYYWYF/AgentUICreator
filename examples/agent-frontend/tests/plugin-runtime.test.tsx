@@ -384,7 +384,7 @@ describe("UIPluginRuntime", () => {
       'data-ui-plugin="workspace-inspector"',
     );
     const messagesPosition = html.indexOf(
-      'data-ui-plugin="antd-x-message-list"',
+      'data-ui-plugin="agent-message-list"',
     );
     const promptsPosition = html.indexOf('data-ui-plugin="antd-x-prompts"');
     const senderPosition = html.indexOf('data-ui-plugin="agent-composer"');
@@ -471,11 +471,11 @@ describe("UIPluginRuntime", () => {
 
     expect(countOccurrences(html, 'data-role="user"')).toBe(1);
     expect(countOccurrences(html, 'data-role="assistant"')).toBe(1);
-    expect(countOccurrences(html, "antd-x-message-list-avatar--agent")).toBe(0);
-    expect(countOccurrences(html, "antd-x-message-list-avatar--user")).toBe(0);
-    expect(countOccurrences(html, "antd-x-message-list-role-dot")).toBe(0);
-    expect(countOccurrences(html, "antd-x-message-list-actions")).toBe(1);
-    expect(countOccurrences(html, "antd-x-message-list-turn-segment ")).toBe(2);
+    expect(countOccurrences(html, "agent-message-list-avatar--agent")).toBe(0);
+    expect(countOccurrences(html, "agent-message-list-avatar--user")).toBe(0);
+    expect(countOccurrences(html, "agent-message-list-role-dot")).toBe(0);
+    expect(countOccurrences(html, "agent-message-list-actions")).toBe(1);
+    expect(countOccurrences(html, "agent-message-list-turn-segment ")).toBe(2);
     expect(html).toContain('data-ui-plugin="antd-x-tool-message"');
     expect(html).toContain("inspect");
     expect(html).toContain("已完成");
@@ -529,7 +529,7 @@ describe("UIPluginRuntime", () => {
     });
 
     expect(countOccurrences(html, 'data-role="assistant"')).toBe(1);
-    expect(countOccurrences(html, "antd-x-message-list-turn-segment")).toBe(2);
+    expect(countOccurrences(html, "agent-message-list-turn-segment")).toBe(2);
     expect(countOccurrences(html, 'data-agent-turn-id="streaming-user-turn"')).toBe(2);
     expect(html).toContain("检查项目...");
     expect(html).toContain("发现相关实现...");
@@ -680,10 +680,10 @@ describe("UIPluginRuntime", () => {
 
     expect(countOccurrences(html, 'data-role="user"')).toBe(1);
     expect(countOccurrences(html, 'data-role="assistant"')).toBe(1);
-    expect(countOccurrences(html, "antd-x-message-list-avatar--agent")).toBe(0);
-    expect(countOccurrences(html, "antd-x-message-list-avatar--user")).toBe(0);
-    expect(countOccurrences(html, "antd-x-message-list-actions")).toBe(1);
-    expect(countOccurrences(html, "antd-x-message-list-turn-segment ")).toBe(6);
+    expect(countOccurrences(html, "agent-message-list-avatar--agent")).toBe(0);
+    expect(countOccurrences(html, "agent-message-list-avatar--user")).toBe(0);
+    expect(countOccurrences(html, "agent-message-list-actions")).toBe(1);
+    expect(countOccurrences(html, "agent-message-list-turn-segment ")).toBe(6);
 
     const expectedContent = [
       "inspect_project",
@@ -848,7 +848,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain('data-ui-plugin="antd-x-welcome"');
     expect(html).toContain('data-ui-plugin="antd-x-prompts"');
     expect(html).toContain('data-ui-plugin="agent-composer"');
-    expect(html).not.toContain('data-ui-plugin="antd-x-message-list"');
+    expect(html).not.toContain('data-ui-plugin="agent-message-list"');
     expect(html).toContain("Agent Frontend");
     expect(html).toContain("总结当前上下文");
   });
@@ -898,7 +898,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain('data-ui-plugin="antd-x-welcome"');
     expect(html).toContain('data-ui-plugin="antd-x-prompts"');
     expect(html).toContain('data-ui-plugin="agent-composer"');
-    expect(html).not.toContain('data-ui-plugin="antd-x-message-list"');
+    expect(html).not.toContain('data-ui-plugin="agent-message-list"');
   });
 
   it("renders the running turn after the initiating user message arrives", async () => {
@@ -929,7 +929,7 @@ describe("UIPluginRuntime", () => {
     });
 
     expect(html).toContain('data-conversation-state="timeline"');
-    expect(html).toContain('data-ui-plugin="antd-x-message-list"');
+    expect(html).toContain('data-ui-plugin="agent-message-list"');
     expect(html).toContain('data-agent-run-status="running"');
     expect(html).toContain('data-status="streaming"');
     expect(html).toContain("智能体正在处理");
@@ -1048,7 +1048,7 @@ describe("UIPluginRuntime", () => {
       state: previewAgentState,
     });
 
-    expect(html).toContain('data-ui-plugin="antd-x-message-list"');
+    expect(html).toContain('data-ui-plugin="agent-message-list"');
     expect(html).not.toContain('data-ui-plugin="antd-x-prompts"');
   });
 
@@ -1653,7 +1653,7 @@ describe("UIPluginRuntime", () => {
       });
 
       const messageList = mounted.renderer.root.findByProps({
-        "data-ui-plugin": "antd-x-message-list",
+        "data-ui-plugin": "agent-message-list",
       });
       const reasoning = mounted.renderer.root.findByType(Think);
       const tool = mounted.renderer.root.find(

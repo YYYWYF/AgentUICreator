@@ -27,7 +27,7 @@ export const assistantMode: AgentUIModeDefinition = {
       pluginInstances: {
         "assistant-messages-main": {
           id: "assistant-messages-main",
-          pluginId: "antd-x-message-list",
+          pluginId: "agent-message-list",
           enabled: true,
           mount: { slotId: "assistant.conversation" },
         },

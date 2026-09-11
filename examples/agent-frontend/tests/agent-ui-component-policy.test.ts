@@ -196,13 +196,35 @@ describe("Agent UI component source policy", () => {
     }
   });
 
-  it("binds the production message list to managed Agent Thread and Agent Message surfaces", async () => {
-    const pluginRoot = path.join(projectRoot, "plugins/antd-x-message-list");
+  it("keeps the canonical message list owned and bound to managed surfaces", async () => {
+    const pluginRoot = path.join(projectRoot, "plugins/agent-message-list");
+    const pluginFiles = await collectFiles(
+      pluginRoot,
+      (filePath) => /\.(?:css|json|tsx?)$/u.test(filePath),
+    );
     const source = await readFile(path.join(pluginRoot, "index.tsx"), "utf8");
     const css = await readFile(path.join(pluginRoot, "styles.css"), "utf8");
     const manifest = JSON.parse(
       await readFile(path.join(pluginRoot, "manifest.json"), "utf8"),
-    ) as { version?: string };
+    ) as { id?: string; version?: string };
+    const appUI = JSON.parse(
+      await readFile(path.join(projectRoot, "app-ui/app-ui.json"), "utf8"),
+    ) as {
+      pluginInstances?: Record<string, { pluginId?: string }>;
+    };
+    const registry = await readFile(
+      path.join(projectRoot, "plugins/registry.generated.ts"),
+      "utf8",
+    );
+    const templateLibrary = await readFile(
+      path.join(projectRoot, "plugins/antd-x-template-library/index.ts"),
+      "utf8",
+    );
+    const legacyIdentityPatterns = [
+      new RegExp(["antd", "x-message-list"].join("-"), "u"),
+      new RegExp(["AntdX", "MessageList"].join(""), "u"),
+      new RegExp(["antdX", "MessageList"].join(""), "u"),
+    ];
 
     expect(source).toContain('from "../../agent-ui/components/message"');
     expect(source).toContain('from "../../agent-ui/components/thread"');
@@ -215,20 +237,40 @@ describe("Agent UI component source policy", () => {
     expect(source).not.toMatch(/shape:\s*["']corner["']/u);
     expect(source).not.toMatch(/variant:\s*["']filled["']/u);
     expect(source).not.toMatch(
-      /ant-bubble-dot|ant-bubble-loading|antd-x-message-list-role-dot/u,
+      /ant-bubble-dot|ant-bubble-loading|agent-message-list-role-dot/u,
     );
     expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
     expect(css).not.toMatch(
-      /ant-bubble-|bubble--surface|antd-x-message-list-role-dot/u,
+      /ant-bubble-|bubble--surface|agent-message-list-role-dot/u,
     );
     expect(css).toMatch(
-      /\.antd-x-message-list-text\s*\{[^}]*white-space:\s*pre-wrap;/su,
+      /\.agent-message-list-text\s*\{[^}]*white-space:\s*pre-wrap;/su,
     );
     expect(css).toMatch(
-      /\.antd-x-message-list-plugin\s*\{[^}]*overflow:\s*hidden;/su,
+      /\.agent-message-list-plugin\s*\{[^}]*overflow:\s*hidden;/su,
     );
-    expect(css).toMatch(/\.antd-x-message-list-thread-item\s*\{/u);
-    expect(manifest.version).toBe("1.2.0");
+    expect(css).toMatch(/\.agent-message-list-thread-item\s*\{/u);
+    for (const filePath of pluginFiles) {
+      const pluginFile = await readFile(filePath, "utf8");
+      expect(pluginFile, filePath).not.toMatch(
+        /@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|\.ant-/u,
+      );
+      for (const legacyIdentity of legacyIdentityPatterns) {
+        expect(pluginFile, filePath).not.toMatch(legacyIdentity);
+      }
+    }
+    expect(manifest.id).toBe("agent-message-list");
+    expect(manifest.version).toBe("1.3.0");
+    expect(
+      appUI.pluginInstances?.["agent-messages-main"]?.pluginId,
+    ).toBe("agent-message-list");
+    expect(registry).toContain('./agent-message-list/definition');
+    expect(templateLibrary).toContain("agentMessageListPlugin");
+    expect(templateLibrary).toContain("AgentMessageListPlugin");
+    for (const legacyIdentity of legacyIdentityPatterns) {
+      expect(registry).not.toMatch(legacyIdentity);
+      expect(templateLibrary).not.toMatch(legacyIdentity);
+    }
   });
 
   it("keeps the Composer plugin implementation free of Ant Design UI", async () => {

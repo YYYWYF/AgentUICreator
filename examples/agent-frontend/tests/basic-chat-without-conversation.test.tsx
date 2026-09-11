@@ -18,7 +18,7 @@ import type {
   UIPluginDefinition,
 } from "../framework/contracts/ui-plugin";
 import { antdXConversationsPlugin } from "../plugins/antd-x-conversations/definition";
-import { antdXMessageListPlugin } from "../plugins/antd-x-message-list/definition";
+import { agentMessageListPlugin } from "../plugins/agent-message-list/definition";
 import { agentComposerPlugin } from "../plugins/agent-composer/definition";
 import { conversationSurfacePlugin } from "../plugins/conversation-surface/definition";
 import {
@@ -49,7 +49,7 @@ const basicChatModel = parseAppUIModel({
     },
     "agent-messages-main": {
       id: "agent-messages-main",
-      pluginId: "antd-x-message-list",
+      pluginId: "agent-message-list",
       enabled: true,
       mount: { slotId: "conversation.timeline" },
     },
@@ -64,7 +64,7 @@ const basicChatModel = parseAppUIModel({
 
 const basicChatRegistry = createPluginRegistry([
   conversationSurfacePlugin,
-  antdXMessageListPlugin,
+  agentMessageListPlugin,
   agentComposerPlugin,
 ]);
 
@@ -237,7 +237,7 @@ describe("basic chat without Conversation Service", () => {
       expect(surface.props["data-conversation-state"]).toBe("timeline");
 
       const messageList = mounted.renderer.root.findByProps({
-        "data-ui-plugin": "antd-x-message-list",
+        "data-ui-plugin": "agent-message-list",
       });
       expect(getText(messageList)).toContain("你好");
       expect(getText(messageList)).toContain("你好，有什么可以帮你？");
@@ -272,7 +272,7 @@ describe("basic chat without Conversation Service", () => {
       ).toBe("active");
       expect(
         mounted.renderer.root.findAllByProps({
-          "data-ui-plugin": "antd-x-message-list",
+          "data-ui-plugin": "agent-message-list",
         }),
       ).toHaveLength(0);
       expect(mounted.renderer.root.findByType(AgentComposer).props.disabled).toBe(
@@ -295,7 +295,7 @@ describe("basic chat without Conversation Service", () => {
       conversationDataSourcePlugin,
       antdXConversationsPlugin,
       conversationSurfacePlugin,
-      antdXMessageListPlugin,
+      agentMessageListPlugin,
       agentComposerPlugin,
     ]);
     const runtime = new PluginServiceRuntime();

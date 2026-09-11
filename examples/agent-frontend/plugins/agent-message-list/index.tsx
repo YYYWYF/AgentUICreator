@@ -1,11 +1,4 @@
 import {
-  Actions,
-  FileCard,
-  Sources,
-  type FileCardProps,
-} from "@ant-design/x";
-import { Alert, Empty, Spin } from "antd";
-import {
   projectAgentTurns,
   type AgentTurn,
 } from "@agent-ui/runtime-core";
@@ -53,6 +46,16 @@ import {
   projectTurnToolActivities,
   type AssistantTurnPresentationSegment,
 } from "./tool-presentation";
+import {
+  MessageAttachmentList,
+  MessageEmptyState,
+  MessageErrorState,
+  MessageLoadingState,
+  MessageSourceList,
+  type MessageAttachmentItem,
+  type MessageSourceItem,
+} from "./message-auxiliary";
+import { MessageCopyAction } from "./message-copy-action";
 import { useThreadFollowLatest } from "./thread-follow-latest";
 
 import "./styles.css";
@@ -102,7 +105,9 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
     : undefined;
 }
 
-function messageFiles(message: RuntimeAgentMessage): FileCardProps[] {
+function messageAttachments(
+  message: RuntimeAgentMessage,
+): MessageAttachmentItem[] {
   if (message.role !== "user" || !Array.isArray(message.content)) {
     return [];
   }
@@ -145,7 +150,7 @@ function messageFiles(message: RuntimeAgentMessage): FileCardProps[] {
   });
 }
 
-function messageSources(message: RuntimeAgentMessage) {
+function messageSources(message: RuntimeAgentMessage): MessageSourceItem[] {
   const agentUI = asRecord(message.metadata?.agentUI);
   const value = message.metadata?.sources ?? agentUI?.sources;
 
@@ -177,32 +182,36 @@ function messageSources(message: RuntimeAgentMessage) {
 }
 
 function MessageActions({ text }: { text: string }) {
-  return <Actions.Copy rootClassName="antd-x-message-list-actions" text={text} />;
+  return <MessageCopyAction text={text} />;
 }
 
 function messageContent(message: RuntimeAgentMessage) {
   const text = messageText(message);
-  const files = messageFiles(message);
+  const attachments = messageAttachments(message);
   const sources = messageSources(message);
 
-  if (text.length === 0 && files.length === 0 && sources.length === 0) {
+  if (
+    text.length === 0 &&
+    attachments.length === 0 &&
+    sources.length === 0
+  ) {
     return (
-      <p className="antd-x-message-list-text">
+      <p className="agent-message-list-text">
         暂不支持此消息内容
       </p>
     );
   }
 
   return (
-    <div className="antd-x-message-list-rich-content">
+    <div className="agent-message-list-rich-content">
       {text.length === 0 ? null : (
-        <p className="antd-x-message-list-text">{text}</p>
+        <p className="agent-message-list-text">{text}</p>
       )}
-      {files.length === 0 ? null : (
-        <FileCard.List items={files} overflow="wrap" size="small" />
+      {attachments.length === 0 ? null : (
+        <MessageAttachmentList items={attachments} />
       )}
       {sources.length === 0 ? null : (
-        <Sources inline items={sources} title={`${sources.length} 个来源`} />
+        <MessageSourceList items={sources} />
       )}
     </div>
   );
@@ -224,7 +233,7 @@ function presentationRole(
 
 function MessageRoleLabel({ role }: { role: string }) {
   return (
-    <span className="antd-x-message-list-role">
+    <span className="agent-message-list-role">
       {roleLabels[role] ?? role}
     </span>
   );
@@ -234,7 +243,7 @@ function renderLeadingThreadItem(message: RuntimeAgentMessage): ReactElement {
   const text = messageText(message);
   return (
     <div
-      className="antd-x-message-list-thread-item"
+      className="agent-message-list-thread-item"
       data-agent-message-id={message.id}
       key={message.id}
     >
@@ -280,7 +289,7 @@ function assistantTurnText(turn: AgentTurn): string {
 
 function AssistantTurnLoading() {
   return (
-    <span className="antd-x-message-list-turn-loading">
+    <span className="agent-message-list-turn-loading">
       智能体正在处理…
     </span>
   );
@@ -288,7 +297,7 @@ function AssistantTurnLoading() {
 
 function SegmentLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="antd-x-message-list-segment-label">
+    <div className="agent-message-list-segment-label">
       {children}
     </div>
   );
@@ -300,10 +309,10 @@ function LegacyToolActivityRenderer({
   items: readonly ToolPresentationItem[];
 }) {
   return (
-    <div className="antd-x-message-list-tool-result">
+    <div className="agent-message-list-tool-result">
       <SegmentLabel>工具活动</SegmentLabel>
       {items.map((item) => (
-        <div className="antd-x-message-list-tool-call" key={item.toolCall.id}>
+        <div className="agent-message-list-tool-call" key={item.toolCall.id}>
           <span aria-hidden="true">🔧</span>
           <strong>{item.toolCall.function.name}</strong>
           <span>
@@ -350,10 +359,10 @@ function GenericToolResultSegment({
 }) {
   return (
     <div
-      className={`antd-x-message-list-tool-result${
+      className={`agent-message-list-tool-result${
         message.error === undefined
           ? ""
-          : " antd-x-message-list-tool-result--error"
+          : " agent-message-list-tool-result--error"
       }`}
     >
       <SegmentLabel>
@@ -370,7 +379,7 @@ function LegacyReasoningMessageRenderer({
   message: Extract<RuntimeAgentMessage, { role: "reasoning" }>;
 }) {
   return (
-    <div className="antd-x-message-list-reasoning-segment">
+    <div className="agent-message-list-reasoning-segment">
       <SegmentLabel>思考</SegmentLabel>
       <div>{message.content}</div>
     </div>
@@ -392,7 +401,7 @@ function ActivityMessageSegment({
       : undefined;
 
   return (
-    <div className="antd-x-message-list-activity-segment">
+    <div className="agent-message-list-activity-segment">
       <SegmentLabel>Activity</SegmentLabel>
       <strong>{title}</strong>
       {description === undefined ? null : <div>{description}</div>}
@@ -408,7 +417,7 @@ function ContextMessageSegment({
   message: Extract<RuntimeAgentMessage, { role: "system" | "developer" }>;
 }) {
   return (
-    <div className="antd-x-message-list-context-segment">
+    <div className="agent-message-list-context-segment">
       <SegmentLabel>{label}</SegmentLabel>
       <div>{message.content}</div>
     </div>
@@ -475,7 +484,7 @@ function TurnMessageSegment({
 
   return (
     <div
-      className={`antd-x-message-list-turn-segment antd-x-message-list-segment--${message.role}`}
+      className={`agent-message-list-turn-segment agent-message-list-segment--${message.role}`}
       data-agent-message-id={message.id}
     >
       {content}
@@ -554,7 +563,7 @@ function TurnPresentationSegment({
   if (segment.kind === "tool-activity") {
     return (
       <div
-        className="antd-x-message-list-turn-segment antd-x-message-list-segment--tool-activity"
+        className="agent-message-list-turn-segment agent-message-list-segment--tool-activity"
         data-tool-activity-id={segment.id}
       >
         <ToolActivitySegment
@@ -598,7 +607,7 @@ function AssistantTurnContent({
     toolInspectionById,
   );
   return (
-    <div className="antd-x-message-list-turn-content">
+    <div className="agent-message-list-turn-content">
       {segments.map((segment) => (
         <TurnPresentationSegment
           key={segment.id}
@@ -633,7 +642,7 @@ function renderTurnThreadItems({
 }): ReactElement[] {
   const userThreadItem = (
     <div
-      className="antd-x-message-list-thread-item"
+      className="agent-message-list-thread-item"
       data-agent-turn-id={turn.id}
       data-agent-turn-role="user"
       key={turn.userMessage.id}
@@ -653,7 +662,7 @@ function renderTurnThreadItems({
   const text = assistantTurnText(turn);
   const assistantThreadItem = (
     <div
-      className="antd-x-message-list-thread-item"
+      className="agent-message-list-thread-item"
       data-agent-turn-id={turn.id}
       data-agent-turn-role="assistant"
       key={`assistant-turn:${turn.id}`}
@@ -679,7 +688,7 @@ function renderTurnThreadItems({
   return [userThreadItem, assistantThreadItem];
 }
 
-export function AntdXMessageListPlugin({
+export function AgentMessageListPlugin({
   renderSlot,
 }: UIPluginComponentProps) {
   const messages = useAgentMessages();
@@ -765,40 +774,25 @@ export function AntdXMessageListPlugin({
   return (
     <section
       aria-label="智能体消息"
-      className="antd-x-message-list-plugin"
+      className="agent-message-list-plugin"
       data-agent-run-status={run.status}
       data-conversation-mode={conversationSnapshot.mode}
-      data-ui-plugin="antd-x-message-list"
+      data-ui-plugin="agent-message-list"
     >
       {conversationSnapshot.mode === "history" &&
       conversationSnapshot.detailStatus === "loading" ? (
-        <div className="antd-x-message-list-state">
-          <Spin tip="历史会话加载中">
-            <div
-              aria-label="历史会话加载中"
-              className="antd-x-message-list-history-status"
-            />
-          </Spin>
-        </div>
+        <MessageLoadingState label="历史会话加载中" />
       ) : conversationSnapshot.mode === "history" &&
         conversationSnapshot.detailStatus === "error" ? (
-        <div className="antd-x-message-list-state">
-          <Alert
-            message={conversationSnapshot.detailError ?? "历史会话加载失败"}
-            showIcon
-            type="error"
-          />
-        </div>
+        <MessageErrorState
+          message={conversationSnapshot.detailError ?? "历史会话加载失败"}
+        />
       ) : (
         <AgentThread
           viewportRef={viewportRef}
           contentRef={contentRef}
           empty={
-            <Empty
-              className="antd-x-message-list-empty"
-              description={emptyText}
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-            />
+            <MessageEmptyState text={emptyText} />
           }
           scrollToBottom={
             followLatest.showScrollToBottom ? (

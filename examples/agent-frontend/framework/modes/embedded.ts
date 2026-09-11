@@ -22,7 +22,7 @@ export const embeddedMode: AgentUIModeDefinition = {
       pluginInstances: {
         "embedded-messages-main": {
           id: "embedded-messages-main",
-          pluginId: "antd-x-message-list",
+          pluginId: "agent-message-list",
           enabled: true,
           mount: { slotId: "embedded.conversation" },
         },

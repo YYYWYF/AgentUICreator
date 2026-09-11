@@ -46,7 +46,7 @@ describe("AppUIModel composition", () => {
     const model = createModel({
       "agent-messages-main": mounted(
         "agent-messages-main",
-        "antd-x-message-list",
+        "agent-message-list",
         "conversation.timeline",
       ),
       "agent-reasoning-main": mounted(
@@ -68,7 +68,7 @@ describe("AppUIModel composition", () => {
 
     expect(() =>
       validateAppUIComposition(model, {
-        "antd-x-message-list": [
+        "agent-message-list": [
           "conversation.message.reasoning",
           "conversation.message.tool-activity",
         ],

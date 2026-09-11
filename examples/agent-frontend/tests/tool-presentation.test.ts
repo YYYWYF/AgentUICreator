@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import { inspectToolCalls } from "../plugins/_shared/agent-ui-data";
-import { projectTurnToolActivities } from "../plugins/antd-x-message-list/tool-presentation";
+import { projectTurnToolActivities } from "../plugins/agent-message-list/tool-presentation";
 
 function withConversation(message: AgentMessage): AgentMessage {
   return {

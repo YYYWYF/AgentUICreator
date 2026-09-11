@@ -10,7 +10,7 @@ import type {
 import {
   createAgentUIThemeService,
 } from "../plugins/antd-x-theme-provider/theme-service";
-import { antdXMessageListPlugin } from "../plugins/antd-x-message-list/definition";
+import { agentMessageListPlugin } from "../plugins/agent-message-list/definition";
 import { antdXRunTimelinePlugin } from "../plugins/antd-x-run-timeline/definition";
 import {
   createPluginRegistry,
@@ -135,7 +135,7 @@ describe("PluginServiceRuntime", () => {
       pluginInstances: {
         "messages-main": {
           id: "messages-main",
-          pluginId: "antd-x-message-list",
+          pluginId: "agent-message-list",
           enabled: true,
           mount: { slotId: "messages-slot" },
         },
@@ -152,7 +152,7 @@ describe("PluginServiceRuntime", () => {
     runtime.reconcile(
       model,
       createPluginRegistry([
-        antdXMessageListPlugin,
+        agentMessageListPlugin,
         antdXRunTimelinePlugin,
       ]),
       runtimeActions,

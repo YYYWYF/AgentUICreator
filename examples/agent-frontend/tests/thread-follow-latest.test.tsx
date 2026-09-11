@@ -10,7 +10,7 @@ import {
   isThreadNearBottom,
   isThreadScrollable,
   useThreadFollowLatest,
-} from "../plugins/antd-x-message-list/thread-follow-latest";
+} from "../plugins/agent-message-list/thread-follow-latest";
 
 const mountedRoots: Root[] = [];
 

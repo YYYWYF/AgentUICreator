@@ -15,7 +15,7 @@ import type {
   AgentRunState,
   UIPluginDefinition,
 } from "../framework/contracts/ui-plugin";
-import { antdXMessageListPlugin } from "../plugins/antd-x-message-list/definition";
+import { agentMessageListPlugin } from "../plugins/agent-message-list/definition";
 import {
   useReasoningRenderContext,
   useToolActivityRenderContext,
@@ -113,7 +113,7 @@ function createMessageModel(includeHistoryService = false) {
         : {}),
       "agent-messages-main": {
         id: "agent-messages-main",
-        pluginId: "antd-x-message-list",
+        pluginId: "agent-message-list",
         enabled: true,
         mount: { slotId: "conversation.timeline" },
       },
@@ -135,6 +135,8 @@ function createMessageModel(includeHistoryService = false) {
 
 function historyServicePlugin(
   historyMessages: readonly AgentMessage[],
+  detailStatus: ConversationSnapshot["detailStatus"] = "ready",
+  detailError?: string,
 ): UIPluginDefinition {
   const snapshot: ConversationSnapshot = {
     mode: "history",
@@ -142,7 +144,8 @@ function historyServicePlugin(
     activeConversationId: "history",
     historyMessages: [...historyMessages],
     listStatus: "ready",
-    detailStatus: "ready",
+    detailStatus,
+    ...(detailError === undefined ? {} : { detailError }),
   };
   const service: AgentUIConversationService = {
     getSnapshot: () => snapshot,
@@ -175,10 +178,14 @@ interface MountedMessageList {
 }
 
 async function mountMessageList({
+  historyDetailError,
+  historyDetailStatus,
   historyMessages,
   messages,
   run = idleRun,
 }: {
+  historyDetailError?: string | undefined;
+  historyDetailStatus?: ConversationSnapshot["detailStatus"] | undefined;
   historyMessages?: readonly AgentMessage[] | undefined;
   messages: readonly AgentMessage[];
   run?: AgentRunState | undefined;
@@ -186,12 +193,18 @@ async function mountMessageList({
   const includeHistoryService = historyMessages !== undefined;
   const model = createMessageModel(includeHistoryService);
   const definitions: UIPluginDefinition[] = [
-    antdXMessageListPlugin,
+    agentMessageListPlugin,
     reasoningFixturePlugin,
     toolActivityFixturePlugin,
     ...(historyMessages === undefined
       ? []
-      : [historyServicePlugin(historyMessages)]),
+      : [
+          historyServicePlugin(
+            historyMessages,
+            historyDetailStatus,
+            historyDetailError,
+          ),
+        ]),
   ];
   const registry = createPluginRegistry(definitions);
   const serviceRuntime = new PluginServiceRuntime();
@@ -301,7 +314,7 @@ describe("Agent Message runtime binding", () => {
       );
       expect(
         messages[1]?.findAllByProps({
-          className: "antd-x-message-list-text",
+          className: "agent-message-list-text",
         }),
       ).toHaveLength(2);
     } finally {
@@ -498,6 +511,132 @@ describe("Agent Message runtime binding", () => {
       expect(textContent(messages[1]!)).toContain("历史智能体回答");
       expect(output).not.toContain("HISTORY SYSTEM SECRET CONTEXT");
       expect(output).not.toContain("HISTORY DEVELOPER SECRET CONTEXT");
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("renders Runtime user attachments through the local attachment presentation", async () => {
+    const mounted = await mountMessageList({
+      messages: [
+        {
+          id: "user-with-attachment",
+          producer: { type: "root" },
+          role: "user",
+          content: [
+            { type: "text", text: "查看附件" },
+            {
+              type: "image",
+              filename: "runtime-screenshot.png",
+              source: {
+                type: "url",
+                value: "https://example.com/runtime-screenshot.png",
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    try {
+      const attachments = mounted.renderer.root.findByProps({
+        "data-slot": "agent-message-attachments",
+      });
+      expect(textContent(attachments)).toContain("runtime-screenshot.png");
+      expect(
+        attachments.findByProps({
+          "data-slot": "agent-message-attachment",
+        }).props["data-type"],
+      ).toBe("image");
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("renders Runtime assistant sources through the local source presentation", async () => {
+    const mounted = await mountMessageList({
+      messages: [
+        {
+          id: "assistant-with-sources",
+          producer: { type: "root" },
+          role: "assistant",
+          content: "参考以下资料",
+          metadata: {
+            sources: [
+              {
+                title: "AG-UI",
+                url: "https://example.com/protocol",
+                description: "Protocol reference",
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    try {
+      const sources = mounted.renderer.root.findByProps({
+        "data-slot": "agent-message-sources",
+      });
+      expect(textContent(sources)).toContain("1 个来源");
+      expect(textContent(sources)).toContain("AG-UI");
+      expect(textContent(sources)).toContain("Protocol reference");
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("renders the configured local empty fallback", async () => {
+    const mounted = await mountMessageList({ messages: [] });
+
+    try {
+      expect(
+        textContent(
+          mounted.renderer.root.findByProps({
+            "data-slot": "agent-message-empty",
+          }),
+        ),
+      ).toBe("开始一段新对话");
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("renders history loading through the local status presentation", async () => {
+    const mounted = await mountMessageList({
+      historyDetailStatus: "loading",
+      historyMessages: [],
+      messages: [],
+    });
+
+    try {
+      const loading = mounted.renderer.root.findByProps({
+        "data-slot": "agent-message-loading",
+      });
+      expect(loading.props.role).toBe("status");
+      expect(textContent(loading)).toContain("历史会话加载中");
+      expect(loading.findAllByProps({ "data-slot": "spinner" })).toHaveLength(
+        1,
+      );
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("renders history errors through the local alert presentation", async () => {
+    const mounted = await mountMessageList({
+      historyDetailError: "历史会话读取失败",
+      historyDetailStatus: "error",
+      historyMessages: [],
+      messages: [],
+    });
+
+    try {
+      const error = mounted.renderer.root.findByProps({
+        "data-slot": "agent-message-error",
+      });
+      expect(error.props.role).toBe("alert");
+      expect(textContent(error)).toBe("历史会话读取失败");
     } finally {
       await mounted.dispose();
     }

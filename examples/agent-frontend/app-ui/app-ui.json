@@ -121,7 +121,7 @@
     },
     "agent-messages-main": {
       "id": "agent-messages-main",
-      "pluginId": "antd-x-message-list",
+      "pluginId": "agent-message-list",
       "enabled": true,
       "mount": {
         "slotId": "conversation.timeline"

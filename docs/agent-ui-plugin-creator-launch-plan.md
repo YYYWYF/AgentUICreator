@@ -620,7 +620,7 @@ interface UIPluginActions {
 ```text
 services/conversations.ts            # stable service seam
 plugins/antd-x-conversations/        # concrete provider
-plugins/antd-x-message-list/         # optional consumer
+plugins/agent-message-list/          # optional consumer
 plugins/antd-x-run-timeline/         # optional consumer
 ```
 
