@@ -7,6 +7,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AgentMessage as AgentMessageSurface } from "../agent-ui/components/message";
+import { AgentThread as AgentThreadSurface } from "../agent-ui/components/thread";
 import { AgentUIRootContext } from "../agent-ui/foundation/context";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import type {
@@ -280,6 +281,9 @@ describe("Agent Message runtime binding", () => {
     });
 
     try {
+      expect(
+        mounted.renderer.root.findAllByType(AgentThreadSurface),
+      ).toHaveLength(1);
       const messages = mounted.renderer.root.findAllByType(AgentMessageSurface);
       expect(messages).toHaveLength(2);
       expect(messages[0]?.props.role).toBe("user");

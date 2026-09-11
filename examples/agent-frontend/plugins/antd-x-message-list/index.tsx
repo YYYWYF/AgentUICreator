@@ -1,10 +1,7 @@
 import {
   Actions,
-  Bubble,
   FileCard,
   Sources,
-  type BubbleItemType,
-  type BubbleListProps,
   type FileCardProps,
 } from "@ant-design/x";
 import { Alert, Empty, Spin } from "antd";
@@ -12,11 +9,14 @@ import {
   projectAgentTurns,
   type AgentTurn,
 } from "@agent-ui/runtime-core";
+import { useRef, type ReactElement } from "react";
 
 import {
   AgentMessage,
   type AgentMessageRole,
 } from "../../agent-ui/components/message";
+import { AgentThread } from "../../agent-ui/components/thread";
+import { Button } from "../../agent-ui/primitives/button";
 import type {
   AgentExecution,
   AgentMessage as RuntimeAgentMessage,
@@ -53,6 +53,7 @@ import {
   projectTurnToolActivities,
   type AssistantTurnPresentationSegment,
 } from "./tool-presentation";
+import { useThreadFollowLatest } from "./thread-follow-latest";
 
 import "./styles.css";
 
@@ -229,22 +230,14 @@ function MessageRoleLabel({ role }: { role: string }) {
   );
 }
 
-function bubbleRole(role: RuntimeAgentMessage["role"]): string {
-  if (role === "assistant") {
-    return "ai";
-  }
-  if (role === "user") {
-    return "user";
-  }
-  return "system";
-}
-
-function toLeadingBubbleItem(message: RuntimeAgentMessage): BubbleItemType {
+function renderLeadingThreadItem(message: RuntimeAgentMessage): ReactElement {
   const text = messageText(message);
-  return {
-    key: message.id,
-    role: bubbleRole(message.role),
-    content: (
+  return (
+    <div
+      className="antd-x-message-list-thread-item"
+      data-agent-message-id={message.id}
+      key={message.id}
+    >
       <AgentMessage
         role={presentationRole(message.role)}
         header={<MessageRoleLabel role={message.role} />}
@@ -256,8 +249,8 @@ function toLeadingBubbleItem(message: RuntimeAgentMessage): BubbleItemType {
       >
         {messageContent(message)}
       </AgentMessage>
-    ),
-  };
+    </div>
+  );
 }
 
 type AgentAssistantMessage = Extract<
@@ -620,7 +613,7 @@ function AssistantTurnContent({
   );
 }
 
-function toTurnBubbleItems({
+function renderTurnThreadItems({
   presentation,
   reasoningExecutionByMessageId,
   renderSlot,
@@ -637,30 +630,34 @@ function toTurnBubbleItems({
   toolInspectionById: ReadonlyMap<string, ToolCallInspection>;
   turn: AgentTurn;
   running: boolean;
-}): BubbleItemType[] {
-  const userBubble: BubbleItemType = {
-    key: turn.userMessage.id,
-    role: "user",
-    content: (
+}): ReactElement[] {
+  const userThreadItem = (
+    <div
+      className="antd-x-message-list-thread-item"
+      data-agent-turn-id={turn.id}
+      data-agent-turn-role="user"
+      key={turn.userMessage.id}
+    >
       <AgentMessage
         role="user"
         header={<MessageRoleLabel role="user" />}
       >
         {messageContent(turn.userMessage)}
       </AgentMessage>
-    ),
-    "data-agent-turn-id": turn.id,
-    "data-agent-turn-role": "user",
-  };
+    </div>
+  );
   if (turn.responseMessages.length === 0 && !running) {
-    return [userBubble];
+    return [userThreadItem];
   }
 
   const text = assistantTurnText(turn);
-  const assistantBubble: BubbleItemType = {
-    key: `assistant-turn:${turn.id}`,
-    role: "ai",
-    content: (
+  const assistantThreadItem = (
+    <div
+      className="antd-x-message-list-thread-item"
+      data-agent-turn-id={turn.id}
+      data-agent-turn-role="assistant"
+      key={`assistant-turn:${turn.id}`}
+    >
       <AgentMessage
         role="assistant"
         status={running ? "streaming" : "complete"}
@@ -676,25 +673,11 @@ function toTurnBubbleItems({
           turn={turn}
         />
       </AgentMessage>
-    ),
-    "data-agent-turn-id": turn.id,
-    "data-agent-turn-role": "assistant",
-  };
+    </div>
+  );
 
-  return [userBubble, assistantBubble];
+  return [userThreadItem, assistantThreadItem];
 }
-
-const surfaceRole = {
-  placement: "start",
-  rootClassName: "antd-x-message-list-bubble--surface",
-  variant: "borderless",
-} as const;
-
-const bubbleRoles: NonNullable<BubbleListProps["role"]> = {
-  ai: surfaceRole,
-  user: surfaceRole,
-  system: surfaceRole,
-};
 
 export function AntdXMessageListPlugin({
   renderSlot,
@@ -733,7 +716,7 @@ export function AntdXMessageListPlugin({
       reasoningExecutionByMessageId.set(messageId, execution);
     });
   });
-  const items = leadingMessages
+  const threadItems = leadingMessages
     .filter(isChatVisibleMessage)
     .filter(
       (message) =>
@@ -742,11 +725,11 @@ export function AntdXMessageListPlugin({
           !hasRenderableAssistantContent(message)
         ),
     )
-    .map(toLeadingBubbleItem);
+    .map(renderLeadingThreadItem);
 
   turns.forEach((turn, index) => {
-    items.push(
-      ...toTurnBubbleItems({
+    threadItems.push(
+      ...renderTurnThreadItems({
         presentation: toolPresentation,
         reasoningExecutionByMessageId,
         renderSlot,
@@ -763,6 +746,21 @@ export function AntdXMessageListPlugin({
     typeof instance.props?.emptyText === "string"
       ? instance.props.emptyText
       : "开始一段新对话";
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const threadResetKey =
+    conversationSnapshot.mode === "history"
+      ? [
+          "history",
+          conversationSnapshot.activeConversationId ?? "none",
+          conversationSnapshot.detailStatus,
+        ].join(":")
+      : ["live", threadItems.length === 0 ? "empty" : "content"].join(":");
+  const followLatest = useThreadFollowLatest({
+    viewportRef,
+    contentRef,
+    resetKey: threadResetKey,
+  });
 
   return (
     <section
@@ -774,20 +772,49 @@ export function AntdXMessageListPlugin({
     >
       {conversationSnapshot.mode === "history" &&
       conversationSnapshot.detailStatus === "loading" ? (
-        <Spin tip="历史会话加载中">
-          <div aria-label="历史会话加载中" className="antd-x-message-list-history-status" />
-        </Spin>
+        <div className="antd-x-message-list-state">
+          <Spin tip="历史会话加载中">
+            <div
+              aria-label="历史会话加载中"
+              className="antd-x-message-list-history-status"
+            />
+          </Spin>
+        </div>
       ) : conversationSnapshot.mode === "history" &&
         conversationSnapshot.detailStatus === "error" ? (
-        <Alert
-          message={conversationSnapshot.detailError ?? "历史会话加载失败"}
-          showIcon
-          type="error"
-        />
-      ) : items.length === 0 ? (
-        <Empty description={emptyText} image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        <div className="antd-x-message-list-state">
+          <Alert
+            message={conversationSnapshot.detailError ?? "历史会话加载失败"}
+            showIcon
+            type="error"
+          />
+        </div>
       ) : (
-        <Bubble.List autoScroll items={items} role={bubbleRoles} />
+        <AgentThread
+          viewportRef={viewportRef}
+          contentRef={contentRef}
+          empty={
+            <Empty
+              className="antd-x-message-list-empty"
+              description={emptyText}
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />
+          }
+          scrollToBottom={
+            followLatest.showScrollToBottom ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={followLatest.scrollToBottom}
+              >
+                ↓ 回到底部
+              </Button>
+            ) : undefined
+          }
+        >
+          {threadItems.length === 0 ? undefined : threadItems}
+        </AgentThread>
       )}
     </section>
   );

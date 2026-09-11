@@ -10,6 +10,7 @@ import { AgentComposer } from "../agent-ui/components/composer";
 import {
   AgentMessage as AgentMessageSurface,
 } from "../agent-ui/components/message";
+import { AgentThread } from "../agent-ui/components/thread";
 import { AgentUIRootContext } from "../agent-ui/foundation/context";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import type {
@@ -243,6 +244,7 @@ describe("basic chat without Conversation Service", () => {
       expect(
         mounted.renderer.root.findAllByType(AgentMessageSurface).length,
       ).toBeGreaterThan(0);
+      expect(mounted.renderer.root.findAllByType(AgentThread)).toHaveLength(1);
 
       const sender = mounted.renderer.root.findByType(AgentComposer);
       expect(sender.props.disabled).toBe(false);

@@ -196,16 +196,20 @@ describe("Agent UI component source policy", () => {
     }
   });
 
-  it("binds the production message list to the managed Agent Message surface", async () => {
+  it("binds the production message list to managed Agent Thread and Agent Message surfaces", async () => {
     const pluginRoot = path.join(projectRoot, "plugins/antd-x-message-list");
     const source = await readFile(path.join(pluginRoot, "index.tsx"), "utf8");
     const css = await readFile(path.join(pluginRoot, "styles.css"), "utf8");
+    const manifest = JSON.parse(
+      await readFile(path.join(pluginRoot, "manifest.json"), "utf8"),
+    ) as { version?: string };
 
     expect(source).toContain('from "../../agent-ui/components/message"');
+    expect(source).toContain('from "../../agent-ui/components/thread"');
     expect(source).toMatch(/<AgentMessage\b/u);
-    expect(source).toMatch(/<Bubble\.List\b/u);
-    expect(source).toContain(
-      'rootClassName: "antd-x-message-list-bubble--surface"',
+    expect(source).toMatch(/<AgentThread\b/u);
+    expect(source).not.toMatch(
+      /\bBubble(?:ItemType|ListProps)?\b|<Bubble\.List\b|bubbleRole|bubbleRoles|surfaceRole/u,
     );
     expect(source).not.toMatch(/placement:\s*["']end["']/u);
     expect(source).not.toMatch(/shape:\s*["']corner["']/u);
@@ -215,14 +219,16 @@ describe("Agent UI component source policy", () => {
     );
     expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
     expect(css).not.toMatch(
-      /ant-bubble-dot|ant-bubble-loading|antd-x-message-list-role-dot/u,
+      /ant-bubble-|bubble--surface|antd-x-message-list-role-dot/u,
     );
     expect(css).toMatch(
       /\.antd-x-message-list-text\s*\{[^}]*white-space:\s*pre-wrap;/su,
     );
     expect(css).toMatch(
-      /\.antd-x-message-list-bubble--surface \.ant-bubble-content\s*\{[^}]*padding:\s*0;[^}]*background:\s*transparent;/su,
+      /\.antd-x-message-list-plugin\s*\{[^}]*overflow:\s*hidden;/su,
     );
+    expect(css).toMatch(/\.antd-x-message-list-thread-item\s*\{/u);
+    expect(manifest.version).toBe("1.2.0");
   });
 
   it("keeps the Composer plugin implementation free of Ant Design UI", async () => {
