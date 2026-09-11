@@ -2,9 +2,15 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import react from "@vitejs/plugin-react";
+import {
+  builtinMockScenarios,
+  createMockAgentVitePlugin,
+} from "../../packages/mock-agent/src/index";
 import { defineConfig } from "vite";
 
 import { createCreatorDevServerPlugin } from "../../packages/creator/src/vitePlugin.js";
+import { createMockConversationApiVitePlugin } from "../../examples/agent-frontend/dev-mock/conversations/vite-plugin";
+import { previewAgentState } from "../../examples/agent-frontend/src/preview-data";
 
 const workspaceRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -16,6 +22,17 @@ export default defineConfig({
   envDir: frontendRoot,
   plugins: [
     react(),
+    createMockAgentVitePlugin({
+      endpoint: "/__agent-ui/mock",
+      scenarios: builtinMockScenarios.map((scenario) => ({
+        ...scenario,
+        initialState: previewAgentState,
+      })),
+      defaultScenarioId: "reasoning-tool-success",
+    }),
+    createMockConversationApiVitePlugin({
+      endpoint: "/__agent-ui/mock-data",
+    }),
     createCreatorDevServerPlugin({
       projectRoot: frontendRoot,
       configRoot: workspaceRoot,
