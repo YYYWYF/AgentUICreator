@@ -165,7 +165,7 @@
     },
     "agent-tool-detail-main": {
       "id": "agent-tool-detail-main",
-      "pluginId": "antd-x-tool-detail",
+      "pluginId": "agent-tool-detail",
       "enabled": true,
       "mount": {
         "slotId": "inspector.tool"

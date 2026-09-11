@@ -91,6 +91,12 @@ describe("AppUIModel", () => {
     expect(model.pluginInstances["agent-tool-detail-main"]?.mount).toEqual({
       slotId: "inspector.tool",
     });
+    expect(model.pluginInstances["agent-tool-detail-main"]).toMatchObject({
+      id: "agent-tool-detail-main",
+      pluginId: "agent-tool-detail",
+      enabled: true,
+      props: { toolCallId: "tool-call-render-diagram" },
+    });
     expect(model.pluginInstances["agent-resources-main"]?.mount).toEqual({
       slotId: "inspector.resources",
     });

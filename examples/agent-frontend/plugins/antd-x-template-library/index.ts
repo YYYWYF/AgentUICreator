@@ -12,7 +12,7 @@ import { agentComposerPlugin } from "../agent-composer/definition";
 import { antdXSourcesPlugin } from "../antd-x-sources/definition";
 import { antdXThemeProviderPlugin } from "../antd-x-theme-provider/definition";
 import { antdXThemeSwitchPlugin } from "../antd-x-theme-switch/definition";
-import { antdXToolDetailPlugin } from "../antd-x-tool-detail/definition";
+import { agentToolDetailPlugin } from "../agent-tool-detail/definition";
 import { antdXWelcomePlugin } from "../antd-x-welcome/definition";
 import { conversationSurfacePlugin } from "../conversation-surface/definition";
 import { conversationDataSourcePlugin } from "../conversation-data-source/definition";
@@ -28,7 +28,7 @@ export const antdXTemplatePlugins = [
   agentToolActivityPlugin,
   agentToolPlugin,
   antdXRunTimelinePlugin,
-  antdXToolDetailPlugin,
+  agentToolDetailPlugin,
   agentReasoningPlugin,
   antdXActivityFeedPlugin,
   antdXSourcesPlugin,
@@ -53,7 +53,7 @@ export {
   antdXSourcesPlugin,
   antdXThemeProviderPlugin,
   antdXThemeSwitchPlugin,
-  antdXToolDetailPlugin,
+  agentToolDetailPlugin,
   agentToolActivityPlugin,
   agentToolPlugin,
   antdXWelcomePlugin,
@@ -74,7 +74,7 @@ export { AgentComposerPlugin } from "../agent-composer";
 export { AntdXSourcesPlugin } from "../antd-x-sources";
 export { AntdXThemeProviderPlugin } from "../antd-x-theme-provider";
 export { AntdXThemeSwitchPlugin } from "../antd-x-theme-switch";
-export { AntdXToolDetailPlugin } from "../antd-x-tool-detail";
+export { AgentToolDetailPlugin } from "../agent-tool-detail";
 export { AgentToolActivityPlugin } from "../agent-tool-activity";
 export { AgentToolPlugin } from "../agent-tool";
 export { AntdXWelcomePlugin } from "../antd-x-welcome";

@@ -1,0 +1,110 @@
+.agent-tool-detail-plugin {
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.agent-tool-detail-plugin-surface {
+  min-height: 100%;
+}
+
+.agent-tool-detail-plugin-selector {
+  width: 100%;
+  min-width: 0;
+  padding: var(--aui-space-2) var(--aui-space-3);
+  border: 1px solid var(--aui-border);
+  border-radius: var(--aui-radius-sm);
+  color: var(--aui-fg);
+  background: var(--aui-bg-elevated);
+  font: inherit;
+}
+
+.agent-tool-detail-plugin-selector:focus-visible,
+.agent-tool-detail-call-identity button:focus-visible {
+  outline: 2px solid var(--aui-focus);
+  outline-offset: 2px;
+}
+
+.agent-tool-detail-call-identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--aui-space-2);
+}
+
+.agent-tool-detail-call-identity code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: inherit;
+  font-family: var(--aui-font-mono);
+}
+
+.agent-tool-detail-call-identity button {
+  flex: none;
+  padding: var(--aui-space-1) var(--aui-space-2);
+  border: 1px solid var(--aui-border);
+  border-radius: var(--aui-radius-xs);
+  color: var(--aui-fg-muted);
+  background: var(--aui-bg-subtle);
+  font: inherit;
+  cursor: pointer;
+}
+
+.agent-tool-detail-call-identity button:hover {
+  color: var(--aui-fg);
+  background: var(--aui-bg-hover);
+}
+
+.agent-tool-detail-presentation {
+  display: grid;
+  min-width: 0;
+  gap: var(--aui-space-2);
+}
+
+.agent-tool-detail-presentation-label {
+  color: var(--aui-fg-subtle);
+  font-size: var(--aui-font-size-xs);
+  font-weight: var(--aui-font-weight-semibold);
+}
+
+.agent-tool-detail-presentation pre {
+  max-width: 100%;
+  max-height: 14rem;
+  margin: 0;
+  padding: var(--aui-space-3);
+  overflow: auto;
+  border-radius: var(--aui-radius-xs);
+  color: var(--aui-fg-muted);
+  background: var(--aui-bg-muted);
+  font-family: var(--aui-font-mono);
+  font-size: var(--aui-font-size-xs);
+  line-height: var(--aui-line-height-normal);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.agent-tool-detail-result-error {
+  display: grid;
+  min-width: 0;
+  gap: var(--aui-space-1);
+  padding: var(--aui-space-3);
+  border: 1px solid var(--aui-border);
+  border-radius: var(--aui-radius-sm);
+  color: var(--aui-danger);
+  background: var(--aui-bg-subtle);
+  overflow-wrap: anywhere;
+}
+
+.agent-tool-detail-result-error strong {
+  font-weight: var(--aui-font-weight-semibold);
+}
+
+.agent-tool-detail-result-pending,
+.agent-tool-detail-result-empty,
+.agent-tool-detail-plugin-empty {
+  margin: 0;
+  color: var(--aui-fg-subtle);
+  overflow-wrap: anywhere;
+}

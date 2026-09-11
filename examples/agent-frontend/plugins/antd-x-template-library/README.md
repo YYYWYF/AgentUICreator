@@ -13,7 +13,7 @@
 - `antd-x-welcome`：用 `Welcome` 展示 Agent 身份与共享运行状态。
 - `agent-message-list`：Live 模式读取 Runtime messages，History 模式只读取 Conversation Detail messages，并展示详情 loading / error。负责 Turn 顺序、Bubble、滚动、streaming 与连续 Tool Activity 投影，并通过 `conversation.message.reasoning`、`conversation.message.tool-activity` child Slots 调度消息 renderer；没有反馈提交合同前不伪造点赞/点踩。
 - `antd-x-run-timeline`：同样可选探测会话 Service，再用 `Think` 和 `ThoughtChain` 映射 AG-UI reasoning、activity、tool call 与 tool result；没有历史会话插件时仍展示当前 Runtime 的完整执行链。
-- `antd-x-tool-detail`：独立工具调用详情面板，可按 `toolCallId` 定位调用，并展示增量参数的最终投影、执行状态、结果或错误；用于右侧 Inspector 等独立 Slot。
+- `agent-tool-detail`：独立工具调用详情面板，通过 Runtime Adapter 将会话中的 Tool Call 事实绑定到 `AgentToolDetail`，可按 `toolCallId` 定位调用，并展示增量参数的最终投影、执行状态、结果、错误或 Mermaid 源码；用于右侧 Inspector 等独立 Slot。
 - `agent-tool-activity`：消息流中的 Tool Presentation Host，通过 `conversation.message.tool-item` child Slot 在 grouped / flat 模式下复用同一个单工具 Renderer。
 - `agent-tool`：消息流中的 Tool Renderer，通过 Message Render Context 接收当前 Tool Call、Result 与 Execution，合并为一个 AgentTool Surface，并在 Plugin 内管理展开状态；不承担右侧 Inspector 职责。
 - `agent-reasoning`：消息流中的 Reasoning Renderer，通过 Message Render Context 把当前 reasoning 绑定到 AgentReasoning，并在 Plugin 内管理展开、完成保持与自动收起策略。

@@ -1,0 +1,10 @@
+{
+  "id": "agent-tool-detail",
+  "name": "Agent Tool Detail",
+  "description": "独立展示当前会话中的 Tool Call 参数、状态、结果与错误。",
+  "version": "1.1.0",
+  "capabilities": ["tool-inspector", "tool-call-inspection", "tool-result-inspection"],
+  "data": {
+    "messages": true
+  }
+}

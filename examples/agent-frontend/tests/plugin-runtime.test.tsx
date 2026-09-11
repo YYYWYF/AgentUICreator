@@ -31,7 +31,7 @@ import {
   antdXActivityFeedPlugin,
   antdXAttachmentsPlugin,
   antdXSourcesPlugin,
-  antdXToolDetailPlugin,
+  agentToolDetailPlugin,
   antdXWelcomePlugin,
 } from "../plugins/antd-x-template-library";
 import {
@@ -402,7 +402,7 @@ describe("UIPluginRuntime", () => {
     const promptsPosition = html.indexOf('data-ui-plugin="antd-x-prompts"');
     const senderPosition = html.indexOf('data-ui-plugin="agent-composer"');
     const toolDetailPosition = html.indexOf(
-      'data-ui-plugin="antd-x-tool-detail"',
+      'data-ui-plugin="agent-tool-detail"',
     );
     const resourcesPosition = html.indexOf(
       'data-ui-plugin="antd-x-resources"',
@@ -765,7 +765,7 @@ describe("UIPluginRuntime", () => {
       serviceRuntime.reconcile(model, props.registry, runtimeActions);
 
       expect(html).toContain('data-ui-plugin="workspace-inspector"');
-      expect(html).toContain('data-ui-plugin="antd-x-tool-detail"');
+      expect(html).toContain('data-ui-plugin="agent-tool-detail"');
       expect(html).not.toContain('data-ui-plugin="antd-x-resources"');
       expect(contributionInstanceIds("inspector.tool")).toEqual([
         "agent-tool-detail-main",
@@ -923,7 +923,7 @@ describe("UIPluginRuntime", () => {
         "tool-main": {
           id: "tool-main",
           mount: { slotId: "tool-slot" },
-          pluginId: "antd-x-tool-detail",
+          pluginId: "agent-tool-detail",
           enabled: true,
         },
         "activity-main": {
@@ -947,7 +947,7 @@ describe("UIPluginRuntime", () => {
       },
     });
     const registry = createPluginRegistry([
-      antdXToolDetailPlugin,
+      agentToolDetailPlugin,
       antdXActivityFeedPlugin,
       antdXSourcesPlugin,
       antdXAttachmentsPlugin,
@@ -965,7 +965,7 @@ describe("UIPluginRuntime", () => {
       state: previewAgentState,
     });
 
-    expect(html).toContain('data-ui-plugin="antd-x-tool-detail"');
+    expect(html).toContain('data-ui-plugin="agent-tool-detail"');
     expect(html).toContain('data-ui-plugin="antd-x-activity-feed"');
     expect(html).toContain('data-ui-plugin="antd-x-sources"');
     expect(html).toContain('data-ui-plugin="antd-x-attachments"');
