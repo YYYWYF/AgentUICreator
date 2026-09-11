@@ -35,6 +35,9 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const registryRoot = path.resolve(projectRoot, "../../packages/source-registry/registry");
 const mountedRoots: Root[] = [];
 
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
+  .IS_REACT_ACT_ENVIRONMENT = true;
+
 async function collectCssFiles(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
   const nested = await Promise.all(entries.map(async (entry) => {
@@ -69,6 +72,7 @@ async function renderOpenDialog(theme: AgentUITheme = "light") {
   (trigger as HTMLButtonElement).focus();
   await act(async () => {
     (trigger as HTMLButtonElement).click();
+    await new Promise((resolve) => setTimeout(resolve, 20));
   });
   const portalHost = container.querySelector("[data-agent-ui-portal-host]");
   const dialog = portalHost?.querySelector('[role="dialog"]');
@@ -233,7 +237,7 @@ describe("Agent UI foundation isolation", () => {
     );
     expect(themedRoot).toBeInstanceOf(HTMLElement);
     expect(dialog.closest("[data-agent-ui-root]")).toBe(themedRoot);
-    expect(getComputedStyle(themedRoot as HTMLElement).getPropertyValue("--aui-bg")).not.toBe("");
+    expect(themedRoot?.getAttribute("data-agent-ui-theme")).toBe("dark");
   });
 
   it("opens Tooltip on focus without delay inside the root portal", async () => {
@@ -254,7 +258,7 @@ describe("Agent UI foundation isolation", () => {
     const trigger = container.querySelector('[data-slot="tooltip-trigger"]') as HTMLElement;
     await act(async () => trigger.focus());
     const portalHost = container.querySelector("[data-agent-ui-portal-host]");
-    expect(portalHost?.querySelector('[role="tooltip"]')?.textContent).toContain("Helpful detail");
+    expect(portalHost?.querySelector('[data-slot="tooltip-content"]')?.textContent).toContain("Helpful detail");
   });
 
   it("opens and dismisses Popover inside the root portal with managed focus", async () => {

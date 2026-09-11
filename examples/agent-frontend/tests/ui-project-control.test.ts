@@ -384,7 +384,7 @@ describe("ui-project-control", () => {
       ),
     ).toMatchObject({
       schemaVersion: 1,
-      items: { "primitive/button": { version: "0.1.0" } },
+      items: { "primitive/button": { version: "0.2.1" } },
     });
   });
 
@@ -446,7 +446,7 @@ describe("ui-project-control", () => {
           requestedItemId: "primitive/dialog",
           dependencyItemId: "foundation/core",
           installedVersion: "0.0.0",
-          requiredVersion: "0.1.0",
+          requiredVersion: "0.2.2",
         },
       },
     });

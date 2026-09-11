@@ -46,6 +46,7 @@ describe("AppUIModel", () => {
     expect(model.version).toBe("2");
     expect(model.root.type).toBe("row");
     expect(Object.keys(model.pluginInstances)).toEqual([
+      "mock-auth-login-main",
       "agent-conversation-data-main",
       "agent-theme-provider-main",
       "agent-conversations-main",
@@ -53,12 +54,14 @@ describe("AppUIModel", () => {
       "agent-conversation-surface-main",
       "agent-welcome-main",
       "agent-messages-main",
+      "agent-reasoning-main",
+      "agent-tool-activity-main",
+      "agent-tool-message-main",
       "agent-inspector-main",
       "agent-tool-detail-main",
       "agent-resources-main",
       "agent-prompts-main",
       "agent-sender-main",
-      "agent-activity-feed-main",
     ]);
     expect(model.root).toMatchObject({
       type: "row",
@@ -82,8 +85,8 @@ describe("AppUIModel", () => {
     expect(model.pluginInstances["agent-inspector-main"]?.mount).toEqual({
       slotId: "workspace.inspector",
     });
-    expect(model.pluginInstances["agent-activity-feed-main"]?.mount).toEqual({
-      slotId: "inspector.activity",
+    expect(model.pluginInstances["agent-tool-activity-main"]?.mount).toEqual({
+      slotId: "conversation.message.tool-activity",
     });
     expect(model.pluginInstances["agent-tool-detail-main"]?.mount).toEqual({
       slotId: "inspector.tool",

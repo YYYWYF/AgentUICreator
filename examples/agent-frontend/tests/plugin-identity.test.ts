@@ -113,6 +113,7 @@ async function collectPolicyFiles(root: string): Promise<string[]> {
       return [
         ".git",
         ".venv",
+        ".agentuicreator",
         "build",
         "coverage",
         "dist",

@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+
 import { Conversations } from "@ant-design/x";
 import { Button } from "antd";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
@@ -12,6 +14,9 @@ import {
 } from "../services/conversations";
 import { createPluginRegistry } from "../runtime/plugins";
 import { PluginRuntimeFixture } from "./agent-runtime-fixture";
+
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
+  .IS_REACT_ACT_ENVIRONMENT = true;
 
 const dataSource: ConversationDataSource = {
   list: async () => [{ id: "history", title: "历史会话", group: "今天" }],

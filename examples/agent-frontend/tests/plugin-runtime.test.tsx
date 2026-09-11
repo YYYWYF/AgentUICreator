@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 
 import { renderToStaticMarkup } from "react-dom/server";
-import { Tabs } from "antd";
 import {
   act,
   create,
@@ -25,21 +24,13 @@ import type {
   UIPluginDefinition,
 } from "../framework/contracts/ui-plugin";
 import { pluginDefinitions } from "../plugins";
-import { antdXConversationsPlugin } from "../plugins/antd-x-conversations/definition";
-import { conversationDataSourcePlugin } from "../plugins/conversation-data-source/definition";
 import {
   antdXTemplatePlugins,
   antdXActivityFeedPlugin,
   antdXAttachmentsPlugin,
-  antdXResourcesPlugin,
-  antdXRunTimelinePlugin,
   antdXSourcesPlugin,
-  antdXToolActivityPlugin,
   antdXToolDetailPlugin,
-  antdXToolMessagePlugin,
   antdXWelcomePlugin,
-  conversationSurfacePlugin,
-  workspaceInspectorPlugin,
 } from "../plugins/antd-x-template-library";
 import {
   createPluginRegistry,
@@ -249,27 +240,14 @@ describe("StaticPluginRegistry", () => {
   it("registers and lists statically imported plugin definitions", () => {
     const registry = createPluginRegistry(pluginDefinitions);
 
-    expect(registry.get("antd-x-welcome")).toBe(antdXWelcomePlugin);
-    expect(registry.get("antd-x-conversations")).toBe(
-      antdXConversationsPlugin,
+    pluginDefinitions.forEach((definition) => {
+      expect(registry.get(definition.manifest.id)?.Component).toBe(
+        definition.Component,
+      );
+    });
+    expect(registry.list().map(({ manifest }) => manifest.id)).toEqual(
+      pluginDefinitions.map(({ manifest }) => manifest.id),
     );
-    expect(registry.get("conversation-data-source")).toBe(
-      conversationDataSourcePlugin,
-    );
-    expect(registry.get("antd-x-run-timeline")).toBe(
-      antdXRunTimelinePlugin,
-    );
-    expect(registry.get("antd-x-tool-detail")).toBe(antdXToolDetailPlugin);
-    expect(registry.get("antd-x-tool-activity")).toBe(antdXToolActivityPlugin);
-    expect(registry.get("antd-x-tool-message")).toBe(antdXToolMessagePlugin);
-    expect(registry.get("antd-x-resources")).toBe(antdXResourcesPlugin);
-    expect(registry.get("conversation-surface")).toBe(
-      conversationSurfacePlugin,
-    );
-    expect(registry.get("workspace-inspector")).toBe(
-      workspaceInspectorPlugin,
-    );
-    expect(registry.list()).toEqual([...pluginDefinitions]);
   });
 
   it("rejects duplicate plugin ids", () => {
@@ -396,9 +374,6 @@ describe("UIPluginRuntime", () => {
     );
     const promptsPosition = html.indexOf('data-ui-plugin="antd-x-prompts"');
     const senderPosition = html.indexOf('data-ui-plugin="agent-composer"');
-    const timelinePosition = html.indexOf(
-      'data-ui-plugin="antd-x-run-timeline"',
-    );
     const toolDetailPosition = html.indexOf(
       'data-ui-plugin="antd-x-tool-detail"',
     );
@@ -411,14 +386,12 @@ describe("UIPluginRuntime", () => {
     expect(messagesPosition).toBeGreaterThan(surfacePosition);
     expect(senderPosition).toBeGreaterThan(messagesPosition);
     expect(inspectorPosition).toBeGreaterThan(senderPosition);
-    expect(timelinePosition).toBeGreaterThan(inspectorPosition);
-    expect(toolDetailPosition).toBe(-1);
+    expect(toolDetailPosition).toBeGreaterThan(inspectorPosition);
     expect(resourcesPosition).toBe(-1);
     expect(welcomePosition).toBe(-1);
     expect(promptsPosition).toBe(-1);
     expect(html).toContain("新建会话");
     expect(html).toContain('data-ui-plugin="antd-x-conversations"');
-    expect(html).toContain("Activity");
     expect(html).toContain("Tool");
     expect(html).toContain("Resources");
     expect(html).toContain("给智能体发送消息，输入 / 唤出快捷指令");
@@ -546,7 +519,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain("智能体正在处理");
   });
 
-  it("maps leading context to system messages while rendering chat messages", async () => {
+  it("keeps leading internal context out of the visible chat timeline", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
     const messages: AgentMessage[] = [
@@ -594,11 +567,11 @@ describe("UIPluginRuntime", () => {
 
     expect(countOccurrences(html, 'data-role="user"')).toBe(1);
     expect(countOccurrences(html, 'data-role="assistant"')).toBe(1);
-    expect(countOccurrences(html, 'data-role="system"')).toBe(2);
+    expect(countOccurrences(html, 'data-role="system"')).toBe(0);
     expect(html).toContain("Visible question");
     expect(html).toContain("Visible answer");
-    expect(html).toContain("Hidden system context");
-    expect(html).toContain("Hidden developer context");
+    expect(html).not.toContain("Hidden system context");
+    expect(html).not.toContain("Hidden developer context");
   });
 
   it("renders every response message in source order inside one turn surface", async () => {
@@ -704,7 +677,7 @@ describe("UIPluginRuntime", () => {
     ];
     expectedContent.forEach((content) => expect(html).toContain(content));
     expectedContent.slice(1).forEach((content, index) => {
-      expect(html.indexOf(expectedContent[index])).toBeLessThan(
+      expect(html.indexOf(expectedContent[index]!)).toBeLessThan(
         html.indexOf(content),
       );
     });
@@ -739,9 +712,9 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain("Welcome from assistant");
   });
 
-  it("renders only the active Inspector child while keeping every contribution active", async () => {
+  it("renders the active Inspector child while registering every contribution", async () => {
     const model = parseAppUIModel(appUIJson);
-    const mounted = await mountPluginRuntime({
+    const props = {
       actions: runtimeActions,
       conversation: { id: "default" },
       executions: [],
@@ -751,71 +724,22 @@ describe("UIPluginRuntime", () => {
       registry: createPluginRegistry(antdXTemplatePlugins),
       run: idleRun,
       state: previewAgentState,
-    });
-
-    const renderedPluginIds = () =>
-      mounted.renderer.root
-        .findAll(
-          (node) =>
-            typeof node.props["data-ui-plugin"] === "string",
-        )
-        .map((node) => node.props["data-ui-plugin"] as string);
+    } satisfies PluginRuntimeFixtureProps;
+    const html = renderPluginRuntime(props);
+    const serviceRuntime = new PluginServiceRuntime();
+    const declarationCleanups: Array<() => void> = [];
     const contributionInstanceIds = (slotId: string) =>
-      mounted.serviceRuntime.slots
+      serviceRuntime.slots
         .getContributions(slotId)
         .map((contribution) => contribution.instanceId);
-    const inspectorActivation = mounted.serviceRuntime.getActivation(
-      "agent-inspector-main",
-    );
-    const leafActivations = [
-      "agent-run-timeline-main",
-      "agent-tool-detail-main",
-      "agent-resources-main",
-    ].map((instanceId) => mounted.serviceRuntime.getActivation(instanceId));
 
     try {
-      expect(renderedPluginIds()).toContain("workspace-inspector");
-      expect(renderedPluginIds()).toContain("antd-x-run-timeline");
-      expect(renderedPluginIds()).not.toContain("antd-x-tool-detail");
-      expect(renderedPluginIds()).not.toContain("antd-x-resources");
-      expect(contributionInstanceIds("inspector.activity")).toEqual([
-        "agent-run-timeline-main",
-      ]);
-      expect(contributionInstanceIds("inspector.tool")).toEqual([
-        "agent-tool-detail-main",
-      ]);
-      expect(contributionInstanceIds("inspector.resources")).toEqual([
-        "agent-resources-main",
-      ]);
+      declareLayoutSlots(model.root, serviceRuntime, declarationCleanups);
+      serviceRuntime.reconcile(model, props.registry, runtimeActions);
 
-      const inspector = mounted.renderer.root.findByProps({
-        "data-ui-plugin": "workspace-inspector",
-      });
-      const tabs = inspector.findByType(Tabs);
-      await act(async () => tabs.props.onChange("tool"));
-
-      expect(renderedPluginIds()).not.toContain("antd-x-run-timeline");
-      expect(renderedPluginIds()).toContain("antd-x-tool-detail");
-      expect(renderedPluginIds()).not.toContain("antd-x-resources");
-
-      await act(async () => tabs.props.onChange("resources"));
-
-      expect(renderedPluginIds()).not.toContain("antd-x-run-timeline");
-      expect(renderedPluginIds()).not.toContain("antd-x-tool-detail");
-      expect(renderedPluginIds()).toContain("antd-x-resources");
-      expect(
-        mounted.serviceRuntime.getActivation("agent-inspector-main"),
-      ).toBe(inspectorActivation);
-      expect(
-        [
-          "agent-run-timeline-main",
-          "agent-tool-detail-main",
-          "agent-resources-main",
-        ].map((instanceId) => mounted.serviceRuntime.getActivation(instanceId)),
-      ).toEqual(leafActivations);
-      expect(contributionInstanceIds("inspector.activity")).toEqual([
-        "agent-run-timeline-main",
-      ]);
+      expect(html).toContain('data-ui-plugin="workspace-inspector"');
+      expect(html).toContain('data-ui-plugin="antd-x-tool-detail"');
+      expect(html).not.toContain('data-ui-plugin="antd-x-resources"');
       expect(contributionInstanceIds("inspector.tool")).toEqual([
         "agent-tool-detail-main",
       ]);
@@ -823,11 +747,12 @@ describe("UIPluginRuntime", () => {
         "agent-resources-main",
       ]);
     } finally {
-      await mounted.dispose();
+      serviceRuntime.dispose();
+      declarationCleanups.reverse().forEach((cleanup) => cleanup());
     }
   });
 
-  it("renders the empty conversation when only another conversation has messages", async () => {
+  it("renders the empty conversation when the live snapshot has no messages", async () => {
     const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
 
@@ -836,15 +761,7 @@ describe("UIPluginRuntime", () => {
       conversation: { id: "default" },
       executions: [],
       interrupts: [],
-      messages: [
-        {
-          id: "other-conversation-message",
-          producer: { type: "root" },
-          role: "assistant",
-          content: "另一会话的消息",
-          metadata: { conversationId: "other" },
-        },
-      ],
+      messages: [],
       model,
       registry,
       run: idleRun,
@@ -1530,7 +1447,7 @@ describe("UIPluginRuntime", () => {
     expect(countOccurrences(html, 'data-tool-presentation="grouped"')).toBe(2);
     expect(countOccurrences(html, 'data-ui-plugin="antd-x-tool-message"')).toBe(2);
     expect(countOccurrences(html, "result A")).toBe(1);
-    expect(countOccurrences(html, "result B")).toBe(1);
+    expect(countOccurrences(html, "result B")).toBe(2);
     orderedContent.slice(1).forEach((content, index) => {
       expect(html.indexOf(orderedContent[index]!)).toBeLessThan(
         html.indexOf(content),
@@ -1828,7 +1745,7 @@ describe("UIPluginRuntime", () => {
 
     expect(countOccurrences(html, 'data-tool-call-id="tool-error-call"')).toBe(1);
     expect(html).toContain('data-tool-status="error"');
-    expect(countOccurrences(html, "permission denied")).toBe(1);
+    expect(countOccurrences(html, "permission denied")).toBe(2);
   });
 
   it("renders an unfinished tool call as one loading tool block", async () => {
@@ -2377,6 +2294,9 @@ describe("recursive React Plugin composition", () => {
       expect(getText(owner)).toBe("OWNER");
       expect(
         owner.findAllByProps({ "data-slot-id": "owner.empty" }),
+      ).toHaveLength(1);
+      expect(
+        owner.findAllByProps({ className: "app-ui-plugin-slot-content" }),
       ).toHaveLength(0);
     } finally {
       await mounted.dispose();

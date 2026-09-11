@@ -1,4 +1,11 @@
-import { act, create } from "react-test-renderer";
+// @vitest-environment jsdom
+
+import type { ReactElement } from "react";
+import {
+  act,
+  create,
+  type ReactTestRenderer,
+} from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
@@ -21,6 +28,20 @@ import {
   usePluginService,
   usePluginServiceSnapshot,
 } from "../runtime/plugins";
+
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
+  .IS_REACT_ACT_ENVIRONMENT = true;
+
+function createInsideAct(element: ReactElement): ReactTestRenderer {
+  let renderer: ReactTestRenderer | undefined;
+  act(() => {
+    renderer = create(element);
+  });
+  if (renderer === undefined) {
+    throw new Error("Test renderer was not created");
+  }
+  return renderer;
+}
 
 const runtimeActions = {
   sendMessage: vi.fn(async () => undefined),
@@ -334,7 +355,7 @@ describe("PluginServiceRuntime", () => {
     }
 
     expect(() =>
-      create(
+      createInsideAct(
         <PluginServiceRuntimeContext.Provider value={runtime}>
           <PluginServiceConsumerContext.Provider
             value={{
@@ -354,7 +375,7 @@ describe("PluginServiceRuntime", () => {
     );
 
     expect(() =>
-      create(
+      createInsideAct(
         <PluginServiceRuntimeContext.Provider value={runtime}>
           <PluginServiceConsumerContext.Provider
             value={{
@@ -372,7 +393,7 @@ describe("PluginServiceRuntime", () => {
     ).not.toThrow();
 
     expect(() =>
-      create(
+      createInsideAct(
         <PluginServiceRuntimeContext.Provider value={runtime}>
           <Probe />
         </PluginServiceRuntimeContext.Provider>,
@@ -426,7 +447,7 @@ describe("PluginServiceRuntime", () => {
       const service = usePluginService<{ enhanced: boolean }>("test.optional");
       return <span>{service?.enhanced === true ? "enhanced" : "fallback"}</span>;
     }
-    const renderer = create(
+    const renderer = createInsideAct(
       <PluginServiceRuntimeContext.Provider value={runtime}>
         <PluginServiceConsumerContext.Provider
           value={{
@@ -575,7 +596,7 @@ describe("PluginServiceRuntime", () => {
       return <span>{current.value}</span>;
     }
 
-    const renderer = create(<Counter currentService={service} />);
+    const renderer = createInsideAct(<Counter currentService={service} />);
 
     expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
 
@@ -633,7 +654,7 @@ describe("PluginServiceRuntime", () => {
       return <span>{snapshot.value}</span>;
     }
 
-    const renderer = create(<Counter service={service} />);
+    const renderer = createInsideAct(<Counter service={service} />);
 
     expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
 
@@ -685,12 +706,12 @@ describe("PluginServiceRuntime", () => {
       return <span>{snapshot.value}</span>;
     }
 
-    const renderer = create(<Counter service={service} />);
+    const renderer = createInsideAct(<Counter service={service} />);
 
     expect(service.listenerCount).toBe(1);
     expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
 
-    renderer.unmount();
+    act(() => renderer.unmount());
     expect(service.listenerCount).toBe(0);
   });
 
@@ -737,7 +758,7 @@ describe("PluginServiceRuntime", () => {
       return <span>{snapshot.value}</span>;
     }
 
-    const renderer = create(<Counter service={firstService} />);
+    const renderer = createInsideAct(<Counter service={firstService} />);
 
     expect(firstService.listenerCount).toBe(1);
     expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
@@ -764,7 +785,7 @@ describe("PluginServiceRuntime", () => {
     });
     expect(renderer.toJSON()).toHaveProperty("children", ["1"]);
 
-    renderer.unmount();
+    act(() => renderer.unmount());
     expect(secondService.listenerCount).toBe(0);
   });
 

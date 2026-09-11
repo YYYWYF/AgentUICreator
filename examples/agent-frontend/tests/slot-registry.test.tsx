@@ -171,6 +171,8 @@ describe("Layout Slot declarations", () => {
       },
       pluginInstances: {},
     });
+    const registry = createPluginRegistry([]);
+    serviceRuntime.reconcile(model, registry, runtimeActions);
 
     await act(async () => {
       renderer = create(
@@ -182,7 +184,7 @@ describe("Layout Slot declarations", () => {
             interrupts={[]}
             messages={[]}
             model={model}
-            registry={createPluginRegistry([])}
+            registry={registry}
             run={{ status: "idle" }}
             state={null}
           />

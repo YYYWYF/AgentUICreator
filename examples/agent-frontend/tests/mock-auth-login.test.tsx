@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+
 import { act, create } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -21,6 +23,9 @@ import {
   type AuthSession,
   type AuthSessionService,
 } from "../services/auth-session";
+
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
+  .IS_REACT_ACT_ENVIRONMENT = true;
 
 const runtimeActions = {
   sendMessage: vi.fn(async () => undefined),

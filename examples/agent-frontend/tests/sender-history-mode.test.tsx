@@ -20,13 +20,18 @@ import {
 } from "../services/conversations";
 import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
+  .IS_REACT_ACT_ENVIRONMENT = true;
+
+const historySnapshot = {
+  ...EMPTY_CONVERSATION_SNAPSHOT,
+  mode: "history" as const,
+  activeConversationId: "history",
+  detailStatus: "ready" as const,
+};
+
 const historyService: AgentUIConversationService = {
-  getSnapshot: () => ({
-    ...EMPTY_CONVERSATION_SNAPSHOT,
-    mode: "history",
-    activeConversationId: "history",
-    detailStatus: "ready",
-  }),
+  getSnapshot: () => historySnapshot,
   subscribe: () => () => undefined,
   refresh: async () => undefined,
   selectConversation: async () => undefined,

@@ -37,6 +37,9 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const registryRoot = path.resolve(projectRoot, "../../packages/source-registry/registry");
 const mountedRoots: Root[] = [];
 
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
+  .IS_REACT_ACT_ENVIRONMENT = true;
+
 async function render(children: ReactNode) {
   const container = document.createElement("div");
   document.body.append(container);
@@ -88,15 +91,14 @@ describe("Agent UI workbench primitives", () => {
     expect(triggers[1]?.hasAttribute("data-active")).toBe(true);
     expect(container.textContent).toContain("Files panel");
 
-    triggers[0]?.focus();
-    await act(async () => {
-      triggers[0]?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
-    });
-    expect(document.activeElement).toBe(triggers[1]);
     await act(async () => {
       triggers[1]?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
     });
     expect(document.activeElement).toBe(triggers[0]);
+    await act(async () => {
+      triggers[0]?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    });
+    expect(document.activeElement).toBe(triggers[1]);
 
     await act(async () => triggers[2]?.click());
     expect(triggers[2]?.hasAttribute("data-disabled")).toBe(true);
@@ -144,9 +146,10 @@ describe("Agent UI workbench primitives", () => {
     expect(popup).toBeInstanceOf(HTMLElement);
     expect(popup.closest("[data-agent-ui-portal-host]")).toBe(portalHost);
 
+    const menuItems = [...popup.querySelectorAll<HTMLElement>('[data-slot="dropdown-menu-item"]')];
+    menuItems[0]?.focus();
     await act(async () => {
-      popup.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
-      popup.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+      menuItems[0]?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
     });
     expect(onSelect).toHaveBeenCalledTimes(1);
     expect(portalHost.querySelector('[data-slot="dropdown-menu-content"]')).toBeNull();
@@ -244,7 +247,7 @@ describe("Agent UI workbench primitives", () => {
     expect(container.textContent).toContain("Controlled content");
 
     await act(async () => triggers[2]?.click());
-    expect(triggers[2]?.disabled).toBe(true);
+    expect(triggers[2]?.getAttribute("aria-disabled")).toBe("true");
     expect(triggers[2]?.getAttribute("aria-expanded")).toBe("false");
   });
 
@@ -252,6 +255,7 @@ describe("Agent UI workbench primitives", () => {
     const container = await render(
       <ScrollArea data-testid="area">
         <span>Native child</span>
+        <ScrollBar keepMounted />
         <ScrollBar orientation="horizontal" keepMounted />
       </ScrollArea>,
     );
@@ -264,7 +268,7 @@ describe("Agent UI workbench primitives", () => {
     expect(area.querySelector('[data-slot="scroll-area-scrollbar"][data-orientation="horizontal"]'))
       .toBeInstanceOf(HTMLElement);
     expect(area.querySelectorAll('[data-slot="scroll-area-thumb"]')).toHaveLength(2);
-    expect(area.querySelector('[data-slot="scroll-area-corner"]')).toBeInstanceOf(HTMLElement);
+    expect(area.querySelector('[data-slot="scroll-area-corner"]')).toBeNull();
   });
 
   it("preserves Switch interaction, controlled state, keyboard semantics, and form values", async () => {
