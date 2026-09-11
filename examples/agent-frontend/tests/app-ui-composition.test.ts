@@ -42,7 +42,7 @@ function mounted(
 }
 
 describe("AppUIModel composition", () => {
-  it("reaches reasoning and tool renderers through nested presentation Slots", () => {
+  it("reaches all Message Part renderers through nested presentation Slots", () => {
     const model = createModel({
       "agent-messages-main": mounted(
         "agent-messages-main",
@@ -64,6 +64,16 @@ describe("AppUIModel composition", () => {
         "agent-tool",
         "conversation.message.tool-item",
       ),
+      "agent-message-attachments-main": mounted(
+        "agent-message-attachments-main",
+        "agent-message-attachments",
+        "conversation.message.attachments",
+      ),
+      "agent-message-sources-main": mounted(
+        "agent-message-sources-main",
+        "agent-message-sources",
+        "conversation.message.sources",
+      ),
     }, ["conversation.timeline"]);
 
     expect(() =>
@@ -71,10 +81,14 @@ describe("AppUIModel composition", () => {
         "agent-message-list": [
           "conversation.message.reasoning",
           "conversation.message.tool-activity",
+          "conversation.message.attachments",
+          "conversation.message.sources",
         ],
         "agent-reasoning": [],
         "agent-tool-activity": ["conversation.message.tool-item"],
         "agent-tool": [],
+        "agent-message-attachments": [],
+        "agent-message-sources": [],
       }),
     ).not.toThrow();
   });

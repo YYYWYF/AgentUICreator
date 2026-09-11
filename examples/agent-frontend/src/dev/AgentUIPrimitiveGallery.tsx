@@ -13,10 +13,15 @@ import {
 } from "../../agent-ui/components/conversation-list";
 import { AgentMessage } from "../../agent-ui/components/message";
 import {
+  AgentAttachment,
+  AgentAttachments,
+} from "../../agent-ui/components/attachments";
+import {
   AgentReasoning,
   type AgentReasoningStatus,
 } from "../../agent-ui/components/reasoning";
 import { AgentThread } from "../../agent-ui/components/thread";
+import { AgentSource, AgentSources } from "../../agent-ui/components/sources";
 import {
   AgentTool,
   type AgentToolStatus,
@@ -261,6 +266,80 @@ function MessageGallery() {
         <AgentMessage role="system">
           Conversation context updated
         </AgentMessage>
+      </article>
+    </div>
+  );
+}
+
+function AttachmentsGallery() {
+  return (
+    <div className={styles.messageGrid}>
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Single file</span>
+        <AgentAttachments ariaLabel="Single attachment">
+          <AgentAttachment name="report.pdf" kind="file" href="https://example.com/report.pdf" />
+        </AgentAttachments>
+      </article>
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Media kinds</span>
+        <AgentAttachments ariaLabel="Media attachments">
+          <AgentAttachment name="screenshot.png" kind="image" href="https://example.com/screenshot.png" />
+          <AgentAttachment name="briefing.mp3" kind="audio" />
+          <AgentAttachment name="demo.mp4" kind="video" />
+        </AgentAttachments>
+      </article>
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Multiple / wrap</span>
+        <AgentAttachments>
+          <AgentAttachment name="requirements.md" kind="file" />
+          <AgentAttachment name="architecture.svg" kind="image" />
+          <AgentAttachment name="notes.txt" kind="file" />
+          <AgentAttachment name="a-very-long-filename-that-must-stay-inside-the-message-surface.pdf" kind="file" />
+        </AgentAttachments>
+      </article>
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Optional regions / no href</span>
+        <AgentAttachments>
+          <AgentAttachment
+            name="preview.png"
+            kind="image"
+            preview={<span aria-hidden="true">▧</span>}
+            description="PNG · 128 KB"
+            trailing="Ready"
+          />
+        </AgentAttachments>
+      </article>
+    </div>
+  );
+}
+
+function SourcesGallery() {
+  return (
+    <div className={styles.messageGrid}>
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Single</span>
+        <AgentSources title="来源 · 1" ariaLabel="Single source">
+          <AgentSource title="OpenAI Docs" href="https://platform.openai.com/docs" index={1} />
+        </AgentSources>
+      </article>
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Multiple / description</span>
+        <AgentSources title="来源 · 3">
+          <AgentSource title="AG-UI specification" href="https://docs.ag-ui.com" description="Event protocol" index={1} />
+          <AgentSource title="Runtime API" description="Generated project contract" index={2} />
+          <AgentSource title="Agent UI Reference Guide" index={3} />
+        </AgentSources>
+      </article>
+      <article className={styles.messageFixture}>
+        <span className={styles.fixtureLabel}>Long title / optional regions</span>
+        <AgentSources title="Sources · 1">
+          <AgentSource
+            title="A long source title that wraps naturally without escaping the message reading track"
+            description="No URL is required for a source to remain visible."
+            index={1}
+            trailing="Local"
+          />
+        </AgentSources>
       </article>
     </div>
   );
@@ -1209,6 +1288,10 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
         <ThreadGallery />
         <h3 className={styles.componentHeading}>Agent Message</h3>
         <MessageGallery />
+        <h3 className={styles.componentHeading}>Agent Attachments</h3>
+        <AttachmentsGallery />
+        <h3 className={styles.componentHeading}>Agent Sources</h3>
+        <SourcesGallery />
         <h3 className={styles.componentHeading}>Agent Reasoning</h3>
         <ReasoningGallery />
         <h3 className={styles.componentHeading}>Agent Tool</h3>

@@ -54,6 +54,8 @@ describe("AppUIModel", () => {
       "agent-welcome-main",
       "agent-messages-main",
       "agent-reasoning-main",
+      "agent-message-attachments-main",
+      "agent-message-sources-main",
       "agent-tool-activity-main",
       "agent-tool-message-main",
       "agent-inspector-main",
@@ -88,6 +90,12 @@ describe("AppUIModel", () => {
     });
     expect(model.pluginInstances["agent-tool-activity-main"]?.mount).toEqual({
       slotId: "conversation.message.tool-activity",
+    });
+    expect(model.pluginInstances["agent-message-attachments-main"]?.mount).toEqual({
+      slotId: "conversation.message.attachments",
+    });
+    expect(model.pluginInstances["agent-message-sources-main"]?.mount).toEqual({
+      slotId: "conversation.message.sources",
     });
     expect(model.pluginInstances["agent-tool-detail-main"]?.mount).toEqual({
       slotId: "inspector.tool",

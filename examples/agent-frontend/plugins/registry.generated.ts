@@ -4,21 +4,23 @@
  */
 import pluginDefinition0 from "./agent-composer/definition";
 import pluginDefinition1 from "./agent-conversations/definition";
-import pluginDefinition2 from "./agent-message-list/definition";
-import pluginDefinition3 from "./agent-reasoning/definition";
-import pluginDefinition4 from "./agent-suggestions/definition";
-import pluginDefinition5 from "./agent-thread-welcome/definition";
-import pluginDefinition6 from "./agent-tool/definition";
-import pluginDefinition7 from "./agent-tool-activity/definition";
-import pluginDefinition8 from "./agent-tool-detail/definition";
-import pluginDefinition9 from "./antd-x-resources/definition";
-import pluginDefinition10 from "./antd-x-theme-provider/definition";
-import pluginDefinition11 from "./antd-x-theme-switch/definition";
-import pluginDefinition12 from "./conversation-controller/definition";
-import pluginDefinition13 from "./conversation-data-source/definition";
-import pluginDefinition14 from "./conversation-surface/definition";
-import pluginDefinition15 from "./mock-auth-login/definition";
-import pluginDefinition16 from "./workspace-inspector/definition";
+import pluginDefinition2 from "./agent-message-attachments/definition";
+import pluginDefinition3 from "./agent-message-list/definition";
+import pluginDefinition4 from "./agent-message-sources/definition";
+import pluginDefinition5 from "./agent-reasoning/definition";
+import pluginDefinition6 from "./agent-suggestions/definition";
+import pluginDefinition7 from "./agent-thread-welcome/definition";
+import pluginDefinition8 from "./agent-tool/definition";
+import pluginDefinition9 from "./agent-tool-activity/definition";
+import pluginDefinition10 from "./agent-tool-detail/definition";
+import pluginDefinition11 from "./antd-x-resources/definition";
+import pluginDefinition12 from "./antd-x-theme-provider/definition";
+import pluginDefinition13 from "./antd-x-theme-switch/definition";
+import pluginDefinition14 from "./conversation-controller/definition";
+import pluginDefinition15 from "./conversation-data-source/definition";
+import pluginDefinition16 from "./conversation-surface/definition";
+import pluginDefinition17 from "./mock-auth-login/definition";
+import pluginDefinition18 from "./workspace-inspector/definition";
 
 export const pluginDefinitions = [
   pluginDefinition0,
@@ -38,4 +40,6 @@ export const pluginDefinitions = [
   pluginDefinition14,
   pluginDefinition15,
   pluginDefinition16,
+  pluginDefinition17,
+  pluginDefinition18,
 ] as const;

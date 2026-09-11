@@ -130,6 +130,22 @@
         "slotId": "conversation.message.reasoning"
       }
     },
+    "agent-message-attachments-main": {
+      "id": "agent-message-attachments-main",
+      "pluginId": "agent-message-attachments",
+      "enabled": true,
+      "mount": {
+        "slotId": "conversation.message.attachments"
+      }
+    },
+    "agent-message-sources-main": {
+      "id": "agent-message-sources-main",
+      "pluginId": "agent-message-sources",
+      "enabled": true,
+      "mount": {
+        "slotId": "conversation.message.sources"
+      }
+    },
     "agent-tool-activity-main": {
       "id": "agent-tool-activity-main",
       "pluginId": "agent-tool-activity",

@@ -16,7 +16,11 @@ import type {
   UIPluginDefinition,
 } from "../framework/contracts/ui-plugin";
 import { agentMessageListPlugin } from "../plugins/agent-message-list/definition";
+import { agentMessageAttachmentsPlugin } from "../plugins/agent-message-attachments/definition";
+import { agentMessageSourcesPlugin } from "../plugins/agent-message-sources/definition";
 import {
+  useMessageAttachmentsRenderContext,
+  useMessageSourcesRenderContext,
   useReasoningRenderContext,
   useToolActivityRenderContext,
 } from "../runtime/message-rendering";
@@ -73,6 +77,16 @@ function ToolActivityFixture() {
   );
 }
 
+function CustomAttachmentsFixture() {
+  const context = useMessageAttachmentsRenderContext();
+  return <span data-testid="custom-attachments">custom:{context.items[0]?.name}</span>;
+}
+
+function CustomSourcesFixture() {
+  const context = useMessageSourcesRenderContext();
+  return <span data-testid="custom-sources">custom:{context.items[0]?.title}</span>;
+}
+
 const reasoningFixturePlugin: UIPluginDefinition = {
   manifest: {
     id: "reasoning-fixture",
@@ -93,10 +107,34 @@ const toolActivityFixturePlugin: UIPluginDefinition = {
   Component: ToolActivityFixture,
 };
 
+const customAttachmentsFixturePlugin: UIPluginDefinition = {
+  manifest: {
+    id: "custom-attachments-fixture",
+    name: "Custom Attachments Fixture",
+    description: "Replaces only the attachments Message Part.",
+    version: "1.0.0",
+  },
+  Component: CustomAttachmentsFixture,
+};
+
+const customSourcesFixturePlugin: UIPluginDefinition = {
+  manifest: {
+    id: "custom-sources-fixture",
+    name: "Custom Sources Fixture",
+    description: "Replaces only the sources Message Part.",
+    version: "1.0.0",
+  },
+  Component: CustomSourcesFixture,
+};
+
+type PartRendererSelection = "default" | "custom" | "disabled" | "missing";
+
 function createMessageModel(
   includeHistoryService = false,
   includeReasoningRenderer = true,
   includeToolActivityRenderer = true,
+  attachmentRenderer: PartRendererSelection = "default",
+  sourcesRenderer: PartRendererSelection = "default",
 ) {
   return parseAppUIModel({
     version: "2",
@@ -141,6 +179,32 @@ function createMessageModel(
             },
           }
         : {}),
+      ...(attachmentRenderer === "missing"
+        ? {}
+        : {
+            "message-attachments-main": {
+              id: "message-attachments-main",
+              pluginId:
+                attachmentRenderer === "custom"
+                  ? "custom-attachments-fixture"
+                  : "agent-message-attachments",
+              enabled: attachmentRenderer !== "disabled",
+              mount: { slotId: "conversation.message.attachments" },
+            },
+          }),
+      ...(sourcesRenderer === "missing"
+        ? {}
+        : {
+            "message-sources-main": {
+              id: "message-sources-main",
+              pluginId:
+                sourcesRenderer === "custom"
+                  ? "custom-sources-fixture"
+                  : "agent-message-sources",
+              enabled: sourcesRenderer !== "disabled",
+              mount: { slotId: "conversation.message.sources" },
+            },
+          }),
     },
   });
 }
@@ -195,6 +259,8 @@ async function mountMessageList({
   historyMessages,
   includeReasoningRenderer = true,
   includeToolActivityRenderer = true,
+  attachmentRenderer = "default",
+  sourcesRenderer = "default",
   messages,
   run = idleRun,
 }: {
@@ -203,6 +269,8 @@ async function mountMessageList({
   historyMessages?: readonly AgentMessage[] | undefined;
   includeReasoningRenderer?: boolean | undefined;
   includeToolActivityRenderer?: boolean | undefined;
+  attachmentRenderer?: PartRendererSelection | undefined;
+  sourcesRenderer?: PartRendererSelection | undefined;
   messages: readonly AgentMessage[];
   run?: AgentRunState | undefined;
 }): Promise<MountedMessageList> {
@@ -211,11 +279,17 @@ async function mountMessageList({
     includeHistoryService,
     includeReasoningRenderer,
     includeToolActivityRenderer,
+    attachmentRenderer,
+    sourcesRenderer,
   );
   const definitions: UIPluginDefinition[] = [
     agentMessageListPlugin,
     reasoningFixturePlugin,
     toolActivityFixturePlugin,
+    agentMessageAttachmentsPlugin,
+    agentMessageSourcesPlugin,
+    customAttachmentsFixturePlugin,
+    customSourcesFixturePlugin,
     ...(historyMessages === undefined
       ? []
       : [
@@ -337,6 +411,12 @@ describe("Agent Message runtime binding", () => {
           className: "agent-message-list-text",
         }),
       ).toHaveLength(2);
+      expect(mounted.renderer.root.findAllByProps({
+        "data-ui-plugin": "agent-message-attachments",
+      })).toHaveLength(0);
+      expect(mounted.renderer.root.findAllByProps({
+        "data-ui-plugin": "agent-message-sources",
+      })).toHaveLength(0);
     } finally {
       await mounted.dispose();
     }
@@ -417,13 +497,17 @@ describe("Agent Message runtime binding", () => {
         id: "history-user",
         producer: { type: "root" },
         role: "user",
-        content: "历史问题",
+        content: [
+          { type: "text", text: "历史问题" },
+          { type: "file", filename: "history.pdf" },
+        ],
       },
       {
         id: "history-assistant",
         producer: { type: "root" },
         role: "assistant",
         content: "历史回答",
+        metadata: { sources: [{ title: "History source" }] },
       },
     ];
     const mounted = await mountMessageList({
@@ -438,6 +522,12 @@ describe("Agent Message runtime binding", () => {
         .find((message) => message.props.role === "assistant");
       expect(assistant?.props.status).toBe("complete");
       expect(textContent(assistant!)).toContain("历史回答");
+      expect(mounted.renderer.root.findAllByProps({
+        "data-ui-plugin": "agent-message-attachments",
+      })).toHaveLength(1);
+      expect(mounted.renderer.root.findAllByProps({
+        "data-ui-plugin": "agent-message-sources",
+      })).toHaveLength(1);
     } finally {
       await mounted.dispose();
     }
@@ -536,7 +626,7 @@ describe("Agent Message runtime binding", () => {
     }
   });
 
-  it("renders Runtime user attachments through the local attachment presentation", async () => {
+  it("renders Runtime user attachments once through the default Message Part plugin", async () => {
     const mounted = await mountMessageList({
       messages: [
         {
@@ -560,20 +650,26 @@ describe("Agent Message runtime binding", () => {
 
     try {
       const attachments = mounted.renderer.root.findByProps({
-        "data-slot": "agent-message-attachments",
+        "data-ui-plugin": "agent-message-attachments",
       });
       expect(textContent(attachments)).toContain("runtime-screenshot.png");
       expect(
         attachments.findByProps({
-          "data-slot": "agent-message-attachment",
-        }).props["data-type"],
+          "data-slot": "agent-attachment",
+        }).props["data-kind"],
       ).toBe("image");
+      expect(mounted.renderer.root.findAllByProps({
+        "data-slot": "agent-attachment",
+      })).toHaveLength(1);
+      expect(mounted.renderer.root.findAllByProps({
+        "data-slot": "agent-message-attachments-fallback",
+      })).toHaveLength(0);
     } finally {
       await mounted.dispose();
     }
   });
 
-  it("renders Runtime assistant sources through the local source presentation", async () => {
+  it("renders Runtime assistant sources once through the default Message Part plugin", async () => {
     const mounted = await mountMessageList({
       messages: [
         {
@@ -596,11 +692,169 @@ describe("Agent Message runtime binding", () => {
 
     try {
       const sources = mounted.renderer.root.findByProps({
-        "data-slot": "agent-message-sources",
+        "data-ui-plugin": "agent-message-sources",
       });
-      expect(textContent(sources)).toContain("1 个来源");
+      expect(textContent(sources)).toContain("来源 · 1");
       expect(textContent(sources)).toContain("AG-UI");
       expect(textContent(sources)).toContain("Protocol reference");
+      expect(mounted.renderer.root.findAllByProps({
+        "data-slot": "agent-source",
+      })).toHaveLength(1);
+      expect(mounted.renderer.root.findAllByProps({
+        "data-slot": "agent-message-sources-fallback",
+      })).toHaveLength(0);
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("replaces attachments independently while keeping default sources", async () => {
+    const mounted = await mountMessageList({
+      attachmentRenderer: "custom",
+      messages: [
+        {
+          id: "custom-attachment-user",
+          producer: { type: "root" },
+          role: "user",
+          content: [
+            { type: "text", text: "Attachment" },
+            { type: "image", filename: "custom.png" },
+          ],
+        },
+        {
+          id: "default-source-assistant",
+          producer: { type: "root" },
+          role: "assistant",
+          content: "Source",
+          metadata: { sources: [{ title: "Default source" }] },
+        },
+      ],
+    });
+
+    try {
+      expect(textContent(mounted.renderer.root.findByProps({
+        "data-testid": "custom-attachments",
+      }))).toContain("custom:custom.png");
+      expect(mounted.renderer.root.findAllByProps({
+        "data-ui-plugin": "agent-message-attachments",
+      })).toHaveLength(0);
+      expect(mounted.renderer.root.findAllByProps({
+        "data-ui-plugin": "agent-message-sources",
+      })).toHaveLength(1);
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("sanitizes attachment and source URLs before child renderers receive them", async () => {
+    const mounted = await mountMessageList({
+      messages: [
+        {
+          id: "unsafe-attachment-user",
+          producer: { type: "root" },
+          role: "user",
+          content: [{ type: "image", filename: "unsafe.png", url: "data:image/png;base64,abc" }],
+        },
+        {
+          id: "unsafe-source-assistant",
+          producer: { type: "root" },
+          role: "assistant",
+          content: "Unsafe source",
+          metadata: { sources: [{ title: "Unsafe docs", url: "javascript:alert(1)" }] },
+        },
+      ],
+    });
+
+    try {
+      const attachments = mounted.renderer.root.findByProps({
+        "data-ui-plugin": "agent-message-attachments",
+      });
+      const sources = mounted.renderer.root.findByProps({
+        "data-ui-plugin": "agent-message-sources",
+      });
+      expect(attachments.findAllByType("a")).toHaveLength(0);
+      expect(sources.findAllByType("a")).toHaveLength(0);
+      expect(textContent(attachments)).toContain("unsafe.png");
+      expect(textContent(sources)).toContain("Unsafe docs");
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("replaces sources independently while keeping default attachments", async () => {
+    const mounted = await mountMessageList({
+      sourcesRenderer: "custom",
+      messages: [
+        {
+          id: "default-attachment-user",
+          producer: { type: "root" },
+          role: "user",
+          content: [{ type: "image", filename: "default.png" }],
+        },
+        {
+          id: "custom-source-assistant",
+          producer: { type: "root" },
+          role: "assistant",
+          content: "Source",
+          metadata: { sources: [{ title: "Custom source" }] },
+        },
+      ],
+    });
+
+    try {
+      expect(mounted.renderer.root.findAllByProps({
+        "data-ui-plugin": "agent-message-attachments",
+      })).toHaveLength(1);
+      expect(textContent(mounted.renderer.root.findByProps({
+        "data-testid": "custom-sources",
+      }))).toContain("custom:Custom source");
+      expect(mounted.renderer.root.findAllByProps({
+        "data-ui-plugin": "agent-message-sources",
+      })).toHaveLength(0);
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("keeps attachments and sources visible when renderers are disabled or missing", async () => {
+    const mounted = await mountMessageList({
+      attachmentRenderer: "disabled",
+      sourcesRenderer: "missing",
+      messages: [
+        {
+          id: "fallback-attachment-user",
+          producer: { type: "root" },
+          role: "user",
+          content: [{ type: "file", filename: "fallback.pdf", url: "javascript:alert(1)" }],
+        },
+        {
+          id: "fallback-source-assistant",
+          producer: { type: "root" },
+          role: "assistant",
+          content: "Source",
+          metadata: {
+            sources: [{
+              title: "Fallback source",
+              url: "file:///private/source",
+              description: "Preserved description",
+            }],
+          },
+        },
+      ],
+    });
+
+    try {
+      const attachments = mounted.renderer.root.findByProps({
+        "data-slot": "agent-message-attachments-fallback",
+      });
+      expect(textContent(attachments)).toContain("fallback.pdf");
+      expect(attachments.findAllByType("a")).toHaveLength(0);
+      const sources = mounted.renderer.root.findByProps({
+        "data-slot": "agent-message-sources-fallback",
+      });
+      expect(textContent(sources)).toContain("Fallback source");
+      expect(textContent(sources)).toContain("Preserved description");
+      expect(sources.findAllByType("a")).toHaveLength(0);
     } finally {
       await mounted.dispose();
     }

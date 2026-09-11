@@ -31,7 +31,7 @@ afterEach(async () => {
 });
 
 describe("inspectUIProject", () => {
-  it("discovers the nested Tool Activity and Tool Item Slots", async () => {
+  it("discovers nested Tool and Message Part Slots", async () => {
     const projectRoot = path.resolve(
       path.dirname(fileURLToPath(import.meta.url)),
       "..",
@@ -60,6 +60,30 @@ describe("inspectUIProject", () => {
         ],
       }),
     );
+    for (const [slotId, instanceId, pluginId] of [
+      [
+        "conversation.message.attachments",
+        "agent-message-attachments-main",
+        "agent-message-attachments",
+      ],
+      [
+        "conversation.message.sources",
+        "agent-message-sources-main",
+        "agent-message-sources",
+      ],
+    ] as const) {
+      expect(result.appUIModel.slots).toContainEqual(
+        expect.objectContaining({
+          slotId,
+          owner: expect.objectContaining({
+            kind: "plugin",
+            instanceId: "agent-messages-main",
+            pluginId: "agent-message-list",
+          }),
+          mounts: [expect.objectContaining({ instanceId, pluginId })],
+        }),
+      );
+    }
     expect(result.appUIModel.slots).toContainEqual(
       expect.objectContaining({
         slotId: "conversation.message.tool-item",

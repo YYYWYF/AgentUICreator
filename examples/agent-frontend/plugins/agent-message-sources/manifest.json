@@ -1,0 +1,11 @@
+{
+  "id": "agent-message-sources",
+  "name": "Agent Message Sources",
+  "description": "Renders normalized sources and citations for the current Agent message.",
+  "version": "1.0.0",
+  "capabilities": [
+    "message-renderer",
+    "source-rendering",
+    "citation-rendering"
+  ]
+}

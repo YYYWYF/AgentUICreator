@@ -90,12 +90,20 @@
       "path": "items/agent-component-message/item.json"
     },
     {
+      "id": "agent-component/attachments",
+      "path": "items/agent-component-attachments/item.json"
+    },
+    {
       "id": "agent-component/reasoning",
       "path": "items/agent-component-reasoning/item.json"
     },
     {
       "id": "agent-component/suggestions",
       "path": "items/agent-component-suggestions/item.json"
+    },
+    {
+      "id": "agent-component/sources",
+      "path": "items/agent-component-sources/item.json"
     },
     {
       "id": "agent-component/thread",

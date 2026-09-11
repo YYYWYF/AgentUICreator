@@ -23,6 +23,9 @@ import {
 } from "../../runtime/context";
 import {
   MessageRenderProvider,
+  type MessageAttachmentKind,
+  type MessageAttachmentRenderItem,
+  type MessageSourceRenderItem,
   type ToolActivityStatus,
   type ToolPresentation,
   type ToolPresentationItem,
@@ -47,13 +50,9 @@ import {
   type AssistantTurnPresentationSegment,
 } from "./tool-presentation";
 import {
-  MessageAttachmentList,
   MessageEmptyState,
   MessageErrorState,
   MessageLoadingState,
-  MessageSourceList,
-  type MessageAttachmentItem,
-  type MessageSourceItem,
 } from "./message-auxiliary";
 import { MessageCopyAction } from "./message-copy-action";
 import { useThreadFollowLatest } from "./thread-follow-latest";
@@ -105,9 +104,25 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
     : undefined;
 }
 
+function safeHref(
+  value: string | undefined,
+  allowedProtocols: readonly string[],
+): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  try {
+    const parsed = new URL(value);
+    return allowedProtocols.includes(parsed.protocol) ? parsed.href : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function messageAttachments(
   message: RuntimeAgentMessage,
-): MessageAttachmentItem[] {
+): MessageAttachmentRenderItem[] {
   if (message.role !== "user" || !Array.isArray(message.content)) {
     return [];
   }
@@ -126,7 +141,7 @@ function messageAttachments(
         : typeof partRecord?.filename === "string"
           ? partRecord.filename
         : `${part.type}-${index + 1}`;
-    const cardType =
+    const kind: MessageAttachmentKind =
       part.type === "image"
         ? "image"
         : part.type === "audio"
@@ -135,22 +150,24 @@ function messageAttachments(
             ? "video"
             : "file";
 
-    return [
-      {
-        key: `${message.id}-${index}`,
-        name,
-        type: cardType,
-        ...(source?.type === "url" && typeof source.value === "string"
-          ? { src: source.value }
-          : typeof partRecord?.url === "string"
-            ? { src: partRecord.url }
-            : {}),
-      },
-    ];
+    const rawHref =
+      source?.type === "url" && typeof source.value === "string"
+        ? source.value
+        : typeof partRecord?.url === "string"
+          ? partRecord.url
+          : undefined;
+    const href = safeHref(rawHref, ["http:", "https:", "blob:"]);
+
+    return [{
+      key: `${message.id}-${index}`,
+      name,
+      kind,
+      ...(href === undefined ? {} : { href }),
+    }];
   });
 }
 
-function messageSources(message: RuntimeAgentMessage): MessageSourceItem[] {
+function messageSources(message: RuntimeAgentMessage): MessageSourceRenderItem[] {
   const agentUI = asRecord(message.metadata?.agentUI);
   const value = message.metadata?.sources ?? agentUI?.sources;
 
@@ -168,16 +185,18 @@ function messageSources(message: RuntimeAgentMessage): MessageSourceItem[] {
     ) {
       return [];
     }
-    return [
-      {
-        key: typeof record.key === "string" ? record.key : `source-${index}`,
-        title,
-        ...(typeof record.url === "string" ? { url: record.url } : {}),
-        ...(typeof record.description === "string"
-          ? { description: record.description }
-          : {}),
-      },
-    ];
+    const href = safeHref(
+      typeof record.url === "string" ? record.url : undefined,
+      ["http:", "https:"],
+    );
+    return [{
+      key: typeof record.key === "string" ? record.key : `source-${index}`,
+      title,
+      ...(href === undefined ? {} : { href }),
+      ...(typeof record.description === "string"
+        ? { description: record.description }
+        : {}),
+    }];
   });
 }
 
@@ -185,7 +204,93 @@ function MessageActions({ text }: { text: string }) {
   return <MessageCopyAction text={text} />;
 }
 
-function messageContent(message: RuntimeAgentMessage) {
+const attachmentKindLabels: Record<MessageAttachmentKind, string> = {
+  image: "IMG",
+  audio: "AUD",
+  video: "VID",
+  file: "FILE",
+};
+
+function AttachmentFallbackRenderer({
+  items,
+}: {
+  items: readonly MessageAttachmentRenderItem[];
+}) {
+  return (
+    <ul
+      className="agent-message-list-attachments"
+      data-slot="agent-message-attachments-fallback"
+    >
+      {items.map((item) => (
+        <li
+          className="agent-message-list-attachment"
+          data-kind={item.kind}
+          data-slot="agent-message-attachment-fallback"
+          key={item.key}
+        >
+          {item.href === undefined ? (
+            <>
+              <span className="agent-message-list-attachment-type">
+                {attachmentKindLabels[item.kind]}
+              </span>
+              <span className="agent-message-list-attachment-name">{item.name}</span>
+            </>
+          ) : (
+            <a href={item.href} target="_blank" rel="noreferrer">
+              <span className="agent-message-list-attachment-type">
+                {attachmentKindLabels[item.kind]}
+              </span>
+              <span className="agent-message-list-attachment-name">{item.name}</span>
+            </a>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function SourcesFallbackRenderer({
+  items,
+}: {
+  items: readonly MessageSourceRenderItem[];
+}) {
+  return (
+    <section
+      className="agent-message-list-sources"
+      data-slot="agent-message-sources-fallback"
+    >
+      <header>{items.length} 个来源</header>
+      <ol className="agent-message-list-source-list">
+        {items.map((item) => (
+          <li
+            className="agent-message-list-source"
+            data-slot="agent-message-source-fallback"
+            key={item.key}
+          >
+            {item.href === undefined ? (
+              <span>{item.title}</span>
+            ) : (
+              <a href={item.href} target="_blank" rel="noreferrer">
+                {item.title}
+              </a>
+            )}
+            {item.description === undefined ? null : (
+              <p className="agent-message-list-source-description">
+                {item.description}
+              </p>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function messageContent(
+  message: RuntimeAgentMessage,
+  renderSlot: UIPluginComponentProps["renderSlot"],
+  turnId?: string,
+) {
   const text = messageText(message);
   const attachments = messageAttachments(message);
   const sources = messageSources(message);
@@ -208,10 +313,24 @@ function messageContent(message: RuntimeAgentMessage) {
         <p className="agent-message-list-text">{text}</p>
       )}
       {attachments.length === 0 ? null : (
-        <MessageAttachmentList items={attachments} />
+        <MessageRenderProvider
+          value={{ kind: "attachments", message, turnId, items: attachments }}
+        >
+          {renderSlot(
+            "conversation.message.attachments",
+            <AttachmentFallbackRenderer items={attachments} />,
+          )}
+        </MessageRenderProvider>
       )}
       {sources.length === 0 ? null : (
-        <MessageSourceList items={sources} />
+        <MessageRenderProvider
+          value={{ kind: "sources", message, turnId, items: sources }}
+        >
+          {renderSlot(
+            "conversation.message.sources",
+            <SourcesFallbackRenderer items={sources} />,
+          )}
+        </MessageRenderProvider>
       )}
     </div>
   );
@@ -239,7 +358,13 @@ function MessageRoleLabel({ role }: { role: string }) {
   );
 }
 
-function renderLeadingThreadItem(message: RuntimeAgentMessage): ReactElement {
+function renderLeadingThreadItem({
+  message,
+  renderSlot,
+}: {
+  message: RuntimeAgentMessage;
+  renderSlot: UIPluginComponentProps["renderSlot"];
+}): ReactElement {
   const text = messageText(message);
   return (
     <div
@@ -256,7 +381,7 @@ function renderLeadingThreadItem(message: RuntimeAgentMessage): ReactElement {
             : undefined
         }
       >
-        {messageContent(message)}
+        {messageContent(message, renderSlot)}
       </AgentMessage>
     </div>
   );
@@ -344,8 +469,12 @@ function ToolActivityFallbackRenderer({
 
 function AssistantMessageSegment({
   message,
+  renderSlot,
+  turnId,
 }: {
   message: AgentAssistantMessage;
+  renderSlot: UIPluginComponentProps["renderSlot"];
+  turnId: string;
 }) {
   const text = messageText(message);
   const sources = messageSources(message);
@@ -353,9 +482,9 @@ function AssistantMessageSegment({
 
   return (
     <>
-      {hasContent ? messageContent(message) : null}
+      {hasContent ? messageContent(message, renderSlot, turnId) : null}
       {!hasContent && (message.toolCalls?.length ?? 0) === 0
-        ? messageContent(message)
+        ? messageContent(message, renderSlot, turnId)
         : null}
     </>
   );
@@ -458,7 +587,13 @@ function TurnMessageSegment({
 
   switch (message.role) {
     case "assistant":
-      content = <AssistantMessageSegment message={message} />;
+      content = (
+        <AssistantMessageSegment
+          message={message}
+          renderSlot={renderSlot}
+          turnId={turnId}
+        />
+      );
       break;
     case "tool":
       content = <GenericToolResultSegment message={message} />;
@@ -494,7 +629,7 @@ function TurnMessageSegment({
       content = <ContextMessageSegment label="开发者" message={message} />;
       break;
     case "user":
-      content = messageContent(message);
+      content = messageContent(message, renderSlot, turnId);
       break;
   }
 
@@ -667,7 +802,7 @@ function renderTurnThreadItems({
         role="user"
         header={<MessageRoleLabel role="user" />}
       >
-        {messageContent(turn.userMessage)}
+        {messageContent(turn.userMessage, renderSlot, turn.id)}
       </AgentMessage>
     </div>
   );
@@ -750,7 +885,7 @@ export function AgentMessageListPlugin({
           !hasRenderableAssistantContent(message)
         ),
     )
-    .map(renderLeadingThreadItem);
+    .map((message) => renderLeadingThreadItem({ message, renderSlot }));
 
   turns.forEach((turn, index) => {
     threadItems.push(

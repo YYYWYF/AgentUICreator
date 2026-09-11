@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "agent-component/attachments",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Compact message-scoped attachment group and item surfaces for Agent UI conversations",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
+  "requires": [
+    "foundation/core"
+  ],
+  "files": [
+    {
+      "source": "files/components/attachments.tsx",
+      "target": "components/attachments.tsx"
+    },
+    {
+      "source": "files/components/attachments.module.css",
+      "target": "components/attachments.module.css"
+    }
+  ]
+}

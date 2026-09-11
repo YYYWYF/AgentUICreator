@@ -53,10 +53,42 @@ export interface ToolActivityRenderContext {
   activeToolCallIds: readonly string[];
 }
 
+export type MessageAttachmentKind = "image" | "audio" | "video" | "file";
+
+export interface MessageAttachmentRenderItem {
+  key: string;
+  name: string;
+  kind: MessageAttachmentKind;
+  href?: string | undefined;
+}
+
+export interface MessageAttachmentsRenderContext {
+  kind: "attachments";
+  turnId?: string | undefined;
+  message: AgentMessage;
+  items: readonly MessageAttachmentRenderItem[];
+}
+
+export interface MessageSourceRenderItem {
+  key: string;
+  title: string;
+  href?: string | undefined;
+  description?: string | undefined;
+}
+
+export interface MessageSourcesRenderContext {
+  kind: "sources";
+  turnId?: string | undefined;
+  message: AgentMessage;
+  items: readonly MessageSourceRenderItem[];
+}
+
 export type MessageRenderContext =
   | ReasoningRenderContext
   | ToolRenderContext
-  | ToolActivityRenderContext;
+  | ToolActivityRenderContext
+  | MessageAttachmentsRenderContext
+  | MessageSourcesRenderContext;
 
 const MessageRenderReactContext =
   createContext<MessageRenderContext | null>(null);
@@ -108,6 +140,26 @@ export function useToolActivityRenderContext(): ToolActivityRenderContext {
   if (context.kind !== "tool-activity") {
     throw new Error(
       `Tool activity renderer received message render kind "${context.kind}"`,
+    );
+  }
+  return context;
+}
+
+export function useMessageAttachmentsRenderContext(): MessageAttachmentsRenderContext {
+  const context = useMessageRenderContext();
+  if (context.kind !== "attachments") {
+    throw new Error(
+      `Attachments renderer received message render kind "${context.kind}"`,
+    );
+  }
+  return context;
+}
+
+export function useMessageSourcesRenderContext(): MessageSourcesRenderContext {
+  const context = useMessageRenderContext();
+  if (context.kind !== "sources") {
+    throw new Error(
+      `Sources renderer received message render kind "${context.kind}"`,
     );
   }
   return context;

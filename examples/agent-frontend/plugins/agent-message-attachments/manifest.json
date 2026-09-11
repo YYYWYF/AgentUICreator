@@ -1,0 +1,11 @@
+{
+  "id": "agent-message-attachments",
+  "name": "Agent Message Attachments",
+  "description": "Renders normalized attachments for the current Agent message.",
+  "version": "1.0.0",
+  "capabilities": [
+    "message-renderer",
+    "attachment-rendering",
+    "readonly"
+  ]
+}

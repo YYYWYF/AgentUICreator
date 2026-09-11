@@ -2,6 +2,17 @@
   "schemaVersion": 1,
   "sourceRoot": "agent-ui",
   "items": {
+    "agent-component/attachments": {
+      "version": "0.1.0",
+      "files": {
+        "components/attachments.module.css": {
+          "sha256": "52cd6545f3cf45c85b853ebcfc3fb9f3a3ebea66760fc5ae6964fe76001ff7a0"
+        },
+        "components/attachments.tsx": {
+          "sha256": "9aa60ec7bbb3645df232c9d62cae2e30a6a230d723341c86c25c0889d2d02e64"
+        }
+      }
+    },
     "agent-component/composer": {
       "version": "0.1.2",
       "files": {
@@ -54,6 +65,17 @@
         },
         "components/reasoning.tsx": {
           "sha256": "2297b5dad6a4aba5e21dfb44a627b68be313d29a70861f4e9c2dd9618e2c726b"
+        }
+      }
+    },
+    "agent-component/sources": {
+      "version": "0.1.0",
+      "files": {
+        "components/sources.module.css": {
+          "sha256": "decce9fa7e1ec128a19c63bc5d1a9656c1f674703ff36c8172b31224c8c25778"
+        },
+        "components/sources.tsx": {
+          "sha256": "17205c11146e5513e1a2f3f0819e26571063b28190238464f7b2faaead3039b7"
         }
       }
     },

@@ -195,6 +195,106 @@ describe("Agent UI component source policy", () => {
     }
   });
 
+  it("keeps Agent Attachments and Sources presentation-only and tokenized", async () => {
+    for (const component of ["attachments", "sources"]) {
+      const componentRoot = path.join(
+        registryRoot,
+        `items/agent-component-${component}/files/components`,
+      );
+      const source = await readFile(
+        path.join(componentRoot, `${component}.tsx`),
+        "utf8",
+      );
+      const specifiers = importSpecifiers(source);
+      expect(specifiers).toContain("react");
+      expect(specifiers.every((specifier) => specifier === "react" || specifier.startsWith(".")))
+        .toBe(true);
+      expect(source).not.toMatch(
+        /@assistant-ui(?:\/|$)|@base-ui\/react|@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|tailwindcss|class-variance-authority|lucide-react|@radix-ui\//u,
+      );
+      expect(source).not.toMatch(
+        /@agent-ui\/runtime-core|@agent-ui\/runtime-agui|@agent-ui\/runtime-react|(?:^|["'/])runtime\/|services\/|framework\/contracts\/|MessageRenderContext|AgentMessage|PluginInstance|useAgentMessages|useAgentState/u,
+      );
+
+      const css = await readFile(
+        path.join(componentRoot, `${component}.module.css`),
+        "utf8",
+      );
+      expect(css).not.toMatch(/#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\(/u);
+      expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
+      expect(css).not.toMatch(
+        /(?:^|\})\s*(?:body|html)\s*(?:,|\{)|\[data-agent-ui-root\]|:global|\.ant-|development-preview|--ui-/gmu,
+      );
+      expect(css).toMatch(/var\(--aui-/u);
+    }
+  });
+
+  it("keeps managed Agent Attachments and Sources byte-identical to Registry source", async () => {
+    for (const component of ["attachments", "sources"]) {
+      for (const fileName of [`${component}.tsx`, `${component}.module.css`]) {
+        const registrySource = await readFile(
+          path.join(
+            registryRoot,
+            `items/agent-component-${component}/files/components`,
+            fileName,
+          ),
+          "utf8",
+        );
+        const installedSource = await readFile(
+          path.join(projectRoot, "agent-ui/components", fileName),
+          "utf8",
+        );
+        expect(installedSource).toBe(registrySource);
+      }
+    }
+  });
+
+  it("keeps Message Part renderer plugins context-only and independent of Ant", async () => {
+    const policies = [
+      ["agent-message-attachments", "useMessageAttachmentsRenderContext", /useAgentMessages|useAgentState|inspectAttachments/u],
+      ["agent-message-sources", "useMessageSourcesRenderContext", /useAgentMessages|useAgentState|inspectSources/u],
+    ] as const;
+    for (const [pluginId, requiredHook, forbidden] of policies) {
+      const source = await readFile(
+        path.join(projectRoot, "plugins", pluginId, "index.tsx"),
+        "utf8",
+      );
+      expect(source).toContain(requiredHook);
+      expect(source).not.toMatch(forbidden);
+      expect(source).not.toMatch(
+        /@assistant-ui(?:\/|$)|@ant-design\/x|@ant-design\/icons|from\s*["']antd["']/u,
+      );
+    }
+  });
+
+  it("keeps Attachments and Sources identities canonical across model and registries", async () => {
+    const appUI = JSON.parse(
+      await readFile(path.join(projectRoot, "app-ui/app-ui.json"), "utf8"),
+    ) as { pluginInstances?: Record<string, { pluginId?: string; mount?: { slotId?: string } }> };
+    const registry = await readFile(
+      path.join(projectRoot, "plugins/registry.generated.ts"),
+      "utf8",
+    );
+    const templateLibrary = await readFile(
+      path.join(projectRoot, "plugins/antd-x-template-library/index.ts"),
+      "utf8",
+    );
+
+    for (const [part, definition, component] of [
+      ["attachments", "agentMessageAttachmentsPlugin", "AgentMessageAttachmentsPlugin"],
+      ["sources", "agentMessageSourcesPlugin", "AgentMessageSourcesPlugin"],
+    ] as const) {
+      const pluginId = `agent-message-${part}`;
+      expect(appUI.pluginInstances?.[`${pluginId}-main`]).toMatchObject({
+        pluginId,
+        mount: { slotId: `conversation.message.${part}` },
+      });
+      expect(registry).toContain(`./${pluginId}/definition`);
+      expect(templateLibrary).toContain(definition);
+      expect(templateLibrary).toContain(component);
+    }
+  });
+
   it("keeps Agent Tool presentation-only, controlled, and lifecycle-free", async () => {
     const toolRoot = path.join(
       registryRoot,
@@ -753,7 +853,11 @@ describe("Agent UI component source policy", () => {
     const css = await readFile(path.join(pluginRoot, "styles.css"), "utf8");
     const manifest = JSON.parse(
       await readFile(path.join(pluginRoot, "manifest.json"), "utf8"),
-    ) as { id?: string; version?: string };
+    ) as {
+      id?: string;
+      version?: string;
+      slots?: { children?: string[] };
+    };
     const appUI = JSON.parse(
       await readFile(path.join(projectRoot, "app-ui/app-ui.json"), "utf8"),
     ) as {
@@ -807,7 +911,19 @@ describe("Agent UI component source policy", () => {
       }
     }
     expect(manifest.id).toBe("agent-message-list");
-    expect(manifest.version).toBe("1.3.2");
+    expect(manifest.version).toBe("1.4.0");
+    expect(manifest).toMatchObject({
+      slots: {
+        children: [
+          "conversation.message.reasoning",
+          "conversation.message.tool-activity",
+          "conversation.message.attachments",
+          "conversation.message.sources",
+        ],
+      },
+    });
+    expect(source).toContain("AttachmentFallbackRenderer");
+    expect(source).toContain("SourcesFallbackRenderer");
     expect(source).toContain("ToolActivityFallbackRenderer");
     expect(source).not.toContain("LegacyToolActivityRenderer");
     expect(source).not.toContain("🔧");

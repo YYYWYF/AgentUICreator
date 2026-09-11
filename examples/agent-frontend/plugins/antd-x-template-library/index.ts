@@ -2,6 +2,8 @@ import { antdXActivityFeedPlugin } from "../antd-x-activity-feed/definition";
 import { antdXAttachmentsPlugin } from "../antd-x-attachments/definition";
 import { agentConversationsPlugin } from "../agent-conversations/definition";
 import { agentMessageListPlugin } from "../agent-message-list/definition";
+import { agentMessageAttachmentsPlugin } from "../agent-message-attachments/definition";
+import { agentMessageSourcesPlugin } from "../agent-message-sources/definition";
 import { agentReasoningPlugin } from "../agent-reasoning/definition";
 import { agentSuggestionsPlugin } from "../agent-suggestions/definition";
 import { agentThreadWelcomePlugin } from "../agent-thread-welcome/definition";
@@ -27,6 +29,8 @@ export const antdXTemplatePlugins = [
   agentConversationsPlugin,
   agentThreadWelcomePlugin,
   agentMessageListPlugin,
+  agentMessageAttachmentsPlugin,
+  agentMessageSourcesPlugin,
   agentToolActivityPlugin,
   agentToolPlugin,
   antdXRunTimelinePlugin,
@@ -47,6 +51,8 @@ export {
   antdXAttachmentsPlugin,
   agentConversationsPlugin,
   agentMessageListPlugin,
+  agentMessageAttachmentsPlugin,
+  agentMessageSourcesPlugin,
   agentReasoningPlugin,
   agentSuggestionsPlugin,
   agentThreadWelcomePlugin,
@@ -69,6 +75,8 @@ export { AntdXActivityFeedPlugin } from "../antd-x-activity-feed";
 export { AntdXAttachmentsPlugin } from "../antd-x-attachments";
 export { AgentConversationsPlugin } from "../agent-conversations";
 export { AgentMessageListPlugin } from "../agent-message-list";
+export { AgentMessageAttachmentsPlugin } from "../agent-message-attachments";
+export { AgentMessageSourcesPlugin } from "../agent-message-sources";
 export { AgentReasoningPlugin } from "../agent-reasoning";
 export { AgentSuggestionsPlugin } from "../agent-suggestions";
 export { AgentThreadWelcomePlugin } from "../agent-thread-welcome";
