@@ -309,6 +309,19 @@ describe("Agent UI Source Registry contract", () => {
     });
   });
 
+  it("registers Agent Conversation List as an original, foundation-only Agent Component", async () => {
+    const registry = await loadAgentUISourceRegistry();
+    expect(registry.byId.get("agent-component/conversation-list")).toMatchObject({
+      version: "0.1.0",
+      kind: "agent-component",
+      requires: ["foundation/core"],
+      upstream: {
+        project: "AgentUICreator",
+        mode: "original",
+      },
+    });
+  });
+
   it("registers Agent Reasoning as an original Agent Component with owned primitives", async () => {
     const registry = await loadAgentUISourceRegistry();
     expect(registry.byId.get("agent-component/reasoning")).toMatchObject({

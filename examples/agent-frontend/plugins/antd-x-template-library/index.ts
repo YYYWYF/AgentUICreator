@@ -1,6 +1,6 @@
 import { antdXActivityFeedPlugin } from "../antd-x-activity-feed/definition";
 import { antdXAttachmentsPlugin } from "../antd-x-attachments/definition";
-import { antdXConversationsPlugin } from "../antd-x-conversations/definition";
+import { agentConversationsPlugin } from "../agent-conversations/definition";
 import { agentMessageListPlugin } from "../agent-message-list/definition";
 import { agentReasoningPlugin } from "../agent-reasoning/definition";
 import { agentSuggestionsPlugin } from "../agent-suggestions/definition";
@@ -16,13 +16,15 @@ import { antdXThemeSwitchPlugin } from "../antd-x-theme-switch/definition";
 import { agentToolDetailPlugin } from "../agent-tool-detail/definition";
 import { conversationSurfacePlugin } from "../conversation-surface/definition";
 import { conversationDataSourcePlugin } from "../conversation-data-source/definition";
+import { conversationControllerPlugin } from "../conversation-controller/definition";
 import { workspaceInspectorPlugin } from "../workspace-inspector/definition";
 
 export const antdXTemplatePlugins = [
   conversationDataSourcePlugin,
+  conversationControllerPlugin,
   antdXThemeProviderPlugin,
   antdXThemeSwitchPlugin,
-  antdXConversationsPlugin,
+  agentConversationsPlugin,
   agentThreadWelcomePlugin,
   agentMessageListPlugin,
   agentToolActivityPlugin,
@@ -43,7 +45,7 @@ export const antdXTemplatePlugins = [
 export {
   antdXActivityFeedPlugin,
   antdXAttachmentsPlugin,
-  antdXConversationsPlugin,
+  agentConversationsPlugin,
   agentMessageListPlugin,
   agentReasoningPlugin,
   agentSuggestionsPlugin,
@@ -58,13 +60,14 @@ export {
   agentToolActivityPlugin,
   agentToolPlugin,
   conversationDataSourcePlugin,
+  conversationControllerPlugin,
   conversationSurfacePlugin,
   workspaceInspectorPlugin,
 };
 
 export { AntdXActivityFeedPlugin } from "../antd-x-activity-feed";
 export { AntdXAttachmentsPlugin } from "../antd-x-attachments";
-export { AntdXConversationsPlugin } from "../antd-x-conversations";
+export { AgentConversationsPlugin } from "../agent-conversations";
 export { AgentMessageListPlugin } from "../agent-message-list";
 export { AgentReasoningPlugin } from "../agent-reasoning";
 export { AgentSuggestionsPlugin } from "../agent-suggestions";
@@ -80,5 +83,6 @@ export { AgentToolActivityPlugin } from "../agent-tool-activity";
 export { AgentToolPlugin } from "../agent-tool";
 export { ConversationSurfacePlugin } from "../conversation-surface";
 export { ConversationDataSourcePlugin } from "../conversation-data-source";
+export { ConversationControllerPlugin } from "../conversation-controller";
 export { WorkspaceInspectorPlugin } from "../workspace-inspector";
 export * from "../../services/agent-ui-theme";

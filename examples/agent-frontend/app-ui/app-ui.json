@@ -82,14 +82,6 @@
         "mode": "dark"
       }
     },
-    "agent-conversations-main": {
-      "id": "agent-conversations-main",
-      "pluginId": "antd-x-conversations",
-      "enabled": true,
-      "mount": {
-        "slotId": "agent-conversations"
-      }
-    },
     "agent-theme-switch-main": {
       "id": "agent-theme-switch-main",
       "pluginId": "antd-x-theme-switch",
@@ -218,6 +210,19 @@
       },
       "props": {
         "placeholder": "给智能体发送消息，输入 / 唤出快捷指令"
+      }
+    },
+    "agent-conversation-controller-main": {
+      "id": "agent-conversation-controller-main",
+      "pluginId": "conversation-controller",
+      "enabled": true
+    },
+    "agent-conversations-main": {
+      "id": "agent-conversations-main",
+      "pluginId": "agent-conversations",
+      "enabled": true,
+      "mount": {
+        "slotId": "agent-conversations"
       }
     }
   }

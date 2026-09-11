@@ -1,0 +1,12 @@
+{
+  "id": "agent-conversations",
+  "name": "Agent Conversations",
+  "description": "Renders conversation navigation using the shared Conversation Service.",
+  "version": "1.0.0",
+  "capabilities": [
+    "conversation-create",
+    "conversation-history",
+    "conversation-selection",
+    "plugin-service-consumer"
+  ]
+}

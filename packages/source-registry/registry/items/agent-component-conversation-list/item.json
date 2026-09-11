@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "agent-component/conversation-list",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Runtime-independent conversation navigation anatomy for Agent UI sidebars",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
+  "requires": [
+    "foundation/core"
+  ],
+  "files": [
+    {
+      "source": "files/components/conversation-list.tsx",
+      "target": "components/conversation-list.tsx"
+    },
+    {
+      "source": "files/components/conversation-list.module.css",
+      "target": "components/conversation-list.module.css"
+    }
+  ]
+}

@@ -1,0 +1,214 @@
+.root {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  color: var(--aui-fg);
+  background: var(--aui-bg);
+}
+
+.header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--aui-space-3);
+  padding: var(--aui-space-4) var(--aui-space-3) var(--aui-space-3);
+}
+
+.heading {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: var(--aui-space-2);
+}
+
+.title {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--aui-font-size-sm);
+  font-weight: var(--aui-font-weight-semibold);
+  line-height: var(--aui-line-height-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta,
+.itemMeta {
+  color: var(--aui-fg-subtle);
+  font-size: var(--aui-font-size-xs);
+}
+
+.action {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+.content {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--aui-space-4);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 var(--aui-space-2) var(--aui-space-4);
+  overscroll-behavior-y: contain;
+  scrollbar-color: var(--aui-border) transparent;
+  scrollbar-width: thin;
+}
+
+.group {
+  display: grid;
+  min-width: 0;
+  gap: var(--aui-space-1);
+}
+
+.groupLabel {
+  padding: 0 var(--aui-space-2);
+  color: var(--aui-fg-subtle);
+  font-size: var(--aui-font-size-xs);
+  font-weight: var(--aui-font-weight-semibold);
+  line-height: var(--aui-line-height-normal);
+}
+
+.items {
+  display: grid;
+  min-width: 0;
+  gap: var(--aui-space-1);
+}
+
+.item {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--aui-control-height-md);
+  align-items: center;
+  gap: var(--aui-space-2);
+  padding: var(--aui-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--aui-radius-md);
+  color: var(--aui-fg-muted);
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    color var(--aui-duration-fast) var(--aui-ease-standard),
+    background-color var(--aui-duration-fast) var(--aui-ease-standard),
+    border-color var(--aui-duration-fast) var(--aui-ease-standard);
+}
+
+.item:hover:not(:disabled) {
+  color: var(--aui-fg);
+  background: var(--aui-bg-hover);
+}
+
+.item[data-active] {
+  border-color: var(--aui-border);
+  color: var(--aui-fg);
+  background: var(--aui-bg-active);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--aui-focus);
+  outline-offset: 1px;
+}
+
+.item:disabled {
+  color: var(--aui-fg-disabled);
+  cursor: not-allowed;
+}
+
+.leading,
+.trailing {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.itemBody {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: var(--aui-space-1);
+}
+
+.itemTitle,
+.itemMeta {
+  min-width: 0;
+  overflow: hidden;
+  line-height: var(--aui-line-height-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemTitle {
+  font-size: var(--aui-font-size-sm);
+  font-weight: var(--aui-font-weight-medium);
+}
+
+.state {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: var(--aui-space-2);
+  padding: var(--aui-space-3) var(--aui-space-2);
+  border-radius: var(--aui-radius-md);
+  color: var(--aui-fg-muted);
+  background: var(--aui-bg-subtle);
+  font-size: var(--aui-font-size-xs);
+  line-height: var(--aui-line-height-normal);
+}
+
+.state[data-kind="error"] {
+  color: var(--aui-danger);
+}
+
+.stateContent {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: var(--aui-space-1);
+  overflow-wrap: anywhere;
+}
+
+.stateAction {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+.spinner {
+  box-sizing: border-box;
+  width: var(--aui-space-4);
+  height: var(--aui-space-4);
+  flex: none;
+  margin-top: 0.1rem;
+  border: 2px solid var(--aui-border);
+  border-top-color: var(--aui-accent);
+  border-radius: var(--aui-radius-full);
+  animation: conversation-list-spin 720ms linear infinite;
+}
+
+@keyframes conversation-list-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item {
+    transition-duration: 0ms;
+  }
+
+  .spinner {
+    animation: none;
+  }
+}

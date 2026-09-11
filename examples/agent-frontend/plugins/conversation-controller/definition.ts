@@ -5,15 +5,14 @@ import {
   AGENT_UI_CONVERSATION_SERVICE,
   createConversationController,
 } from "../../services/conversations";
-import { AntdXConversationsPlugin } from "./index";
-import { bindConversationController } from "./controller-store";
+import { ConversationControllerPlugin } from "./index";
 import manifestJson from "./manifest.json";
 
-export const antdXConversationsPlugin: UIPluginDefinition = {
+export const conversationControllerPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   inject: [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE],
   provides: [AGENT_UI_CONVERSATION_SERVICE],
-  setup: ({ actions, instance, services }) => {
+  setup: ({ actions, services }) => {
     const dataSource = services.get(
       AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
     );
@@ -24,21 +23,13 @@ export const antdXConversationsPlugin: UIPluginDefinition = {
       dataSource,
       startNewConversation: actions.startNewConversation,
     });
-    services.provide(
-      AGENT_UI_CONVERSATION_SERVICE,
-      controller,
-    );
-    const unbindController = bindConversationController(
-      instance.id,
-      controller,
-    );
+    services.provide(AGENT_UI_CONVERSATION_SERVICE, controller);
     void controller.refresh();
     return () => {
-      unbindController();
       controller.dispose();
     };
   },
-  Component: AntdXConversationsPlugin,
+  Component: ConversationControllerPlugin,
 };
 
-export default antdXConversationsPlugin;
+export default conversationControllerPlugin;

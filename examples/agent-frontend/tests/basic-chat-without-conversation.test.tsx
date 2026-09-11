@@ -17,10 +17,11 @@ import type {
   AgentMessage,
   UIPluginDefinition,
 } from "../framework/contracts/ui-plugin";
-import { antdXConversationsPlugin } from "../plugins/antd-x-conversations/definition";
+import { agentConversationsPlugin } from "../plugins/agent-conversations/definition";
 import { agentMessageListPlugin } from "../plugins/agent-message-list/definition";
 import { agentComposerPlugin } from "../plugins/agent-composer/definition";
 import { conversationSurfacePlugin } from "../plugins/conversation-surface/definition";
+import { conversationControllerPlugin } from "../plugins/conversation-controller/definition";
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
   AGENT_UI_CONVERSATION_SERVICE,
@@ -161,7 +162,7 @@ const conversationDataSourcePlugin: UIPluginDefinition = {
   Component: () => null,
 };
 
-function createConversationModel(includeHistory: boolean) {
+function createConversationModel(includeNavigation: boolean) {
   return parseAppUIModel({
     version: "2",
     root: {
@@ -181,16 +182,21 @@ function createConversationModel(includeHistory: boolean) {
       ],
     },
     pluginInstances: {
-      ...(includeHistory
+      "agent-conversation-data-main": {
+        id: "agent-conversation-data-main",
+        pluginId: "conversation-data-source",
+        enabled: true,
+      },
+      "agent-conversation-controller-main": {
+        id: "agent-conversation-controller-main",
+        pluginId: "conversation-controller",
+        enabled: true,
+      },
+      ...(includeNavigation
         ? {
-            "agent-conversation-data-main": {
-              id: "agent-conversation-data-main",
-              pluginId: "conversation-data-source",
-              enabled: true,
-            },
             "agent-conversations-main": {
               id: "agent-conversations-main",
-              pluginId: "antd-x-conversations",
+              pluginId: "agent-conversations",
               enabled: true,
               mount: { slotId: "workspace.conversation-history" },
             },
@@ -283,7 +289,7 @@ describe("basic chat without Conversation Service", () => {
     }
   });
 
-  it("keeps basic chat active after the history plugins are removed", () => {
+  it("keeps basic chat and Conversation Service active after navigation is removed", () => {
     const actions = {
       sendMessage: vi.fn(async () => undefined),
       resumeInterrupts: vi.fn(async () => undefined),
@@ -293,7 +299,8 @@ describe("basic chat without Conversation Service", () => {
     };
     const registry = createPluginRegistry([
       conversationDataSourcePlugin,
-      antdXConversationsPlugin,
+      conversationControllerPlugin,
+      agentConversationsPlugin,
       conversationSurfacePlugin,
       agentMessageListPlugin,
       agentComposerPlugin,
@@ -305,8 +312,9 @@ describe("basic chat without Conversation Service", () => {
 
     runtime.reconcile(createConversationModel(false), registry, actions);
 
-    expect(runtime.get(AGENT_UI_CONVERSATION_SERVICE)).toBeUndefined();
-    expect(runtime.getActivation("agent-conversation-data-main")).toBeUndefined();
+    expect(runtime.get(AGENT_UI_CONVERSATION_SERVICE)).toBeDefined();
+    expect(runtime.getActivation("agent-conversation-data-main")?.status).toBe("active");
+    expect(runtime.getActivation("agent-conversation-controller-main")?.status).toBe("active");
     expect(runtime.getActivation("agent-conversations-main")).toBeUndefined();
     for (const instanceId of [
       "agent-conversation-surface-main",

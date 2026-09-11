@@ -49,7 +49,6 @@ describe("AppUIModel", () => {
       "mock-auth-login-main",
       "agent-conversation-data-main",
       "agent-theme-provider-main",
-      "agent-conversations-main",
       "agent-theme-switch-main",
       "agent-conversation-surface-main",
       "agent-welcome-main",
@@ -62,6 +61,8 @@ describe("AppUIModel", () => {
       "agent-resources-main",
       "agent-prompts-main",
       "agent-sender-main",
+      "agent-conversation-controller-main",
+      "agent-conversations-main",
     ]);
     expect(model.root).toMatchObject({
       type: "row",
@@ -99,6 +100,15 @@ describe("AppUIModel", () => {
     });
     expect(model.pluginInstances["agent-resources-main"]?.mount).toEqual({
       slotId: "inspector.resources",
+    });
+    expect(model.pluginInstances["agent-conversation-controller-main"]).toEqual({
+      id: "agent-conversation-controller-main",
+      pluginId: "conversation-controller",
+      enabled: true,
+    });
+    expect(model.pluginInstances["agent-conversations-main"]).toMatchObject({
+      pluginId: "agent-conversations",
+      mount: { slotId: "agent-conversations" },
     });
   });
 

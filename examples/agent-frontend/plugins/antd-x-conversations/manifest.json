@@ -1,7 +1,0 @@
-{
-  "id": "antd-x-conversations",
-  "name": "Ant Design X 会话管理",
-  "description": "提供当前会话入口、只读历史列表与新建会话，并通过共享 Controller 管理视图状态。",
-  "version": "1.0.0",
-  "capabilities": ["conversation-create", "conversation-history", "conversation-selection", "agent-runtime-action", "plugin-service-provider"]
-}

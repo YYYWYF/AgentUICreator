@@ -24,6 +24,17 @@
         }
       }
     },
+    "agent-component/conversation-list": {
+      "version": "0.1.0",
+      "files": {
+        "components/conversation-list.module.css": {
+          "sha256": "02c32dc32b139ca468eaa2b0f2f641856dfa37bfda40fcf0b2adc4ccba7965e9"
+        },
+        "components/conversation-list.tsx": {
+          "sha256": "50161310fd6b42d3547629ce38831965fdc929c18f3b86ee2412d5666d67aeae"
+        }
+      }
+    },
     "agent-component/message": {
       "version": "0.1.0",
       "files": {

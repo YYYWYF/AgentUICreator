@@ -82,6 +82,10 @@
       "path": "items/agent-component-composer-suggestions/item.json"
     },
     {
+      "id": "agent-component/conversation-list",
+      "path": "items/agent-component-conversation-list/item.json"
+    },
+    {
       "id": "agent-component/message",
       "path": "items/agent-component-message/item.json"
     },

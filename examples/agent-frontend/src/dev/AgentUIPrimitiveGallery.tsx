@@ -5,6 +5,12 @@ import {
   AgentComposerSuggestions,
   getAgentComposerSuggestionOptionId,
 } from "../../agent-ui/components/composer-suggestions";
+import {
+  AgentConversationGroup,
+  AgentConversationItem,
+  AgentConversationList,
+  AgentConversationState,
+} from "../../agent-ui/components/conversation-list";
 import { AgentMessage } from "../../agent-ui/components/message";
 import {
   AgentReasoning,
@@ -1012,6 +1018,101 @@ function SuggestionsGallery() {
   );
 }
 
+function ConversationListFixture({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <article className={styles.conversationFixture}>
+      <span className={styles.fixtureLabel}>{label}</span>
+      <div className={styles.conversationPreview}>{children}</div>
+    </article>
+  );
+}
+
+function ConversationListGallery() {
+  return (
+    <div className={styles.conversationGrid}>
+      <ConversationListFixture label="Default">
+        <AgentConversationList title="会话" action={<Button size="sm" variant="ghost">＋ 新建</Button>}>
+          <AgentConversationGroup label="当前">
+            <AgentConversationItem title="当前会话" />
+          </AgentConversationGroup>
+          <AgentConversationGroup label="历史会话">
+            <AgentConversationItem title="产品规划讨论" />
+            <AgentConversationItem title="修复登录问题" />
+          </AgentConversationGroup>
+        </AgentConversationList>
+      </ConversationListFixture>
+
+      <ConversationListFixture label="Active live">
+        <AgentConversationList title="会话" meta="3">
+          <AgentConversationGroup label="当前">
+            <AgentConversationItem active title="当前会话" />
+          </AgentConversationGroup>
+          <AgentConversationGroup label="历史会话">
+            <AgentConversationItem title="UI 设计评审" />
+          </AgentConversationGroup>
+        </AgentConversationList>
+      </ConversationListFixture>
+
+      <ConversationListFixture label="Active history / Grouped / Disabled / Long title">
+        <AgentConversationList title="会话" meta="4">
+          <AgentConversationGroup label="当前">
+            <AgentConversationItem title="当前会话" />
+          </AgentConversationGroup>
+          <AgentConversationGroup label="产品">
+            <AgentConversationItem active title="产品规划讨论" />
+            <AgentConversationItem title="为下一阶段 Agent Frontend Plugin Creator 制定完整而明确的交付计划" />
+          </AgentConversationGroup>
+          <AgentConversationGroup label="开发">
+            <AgentConversationItem disabled title="修复登录问题" />
+          </AgentConversationGroup>
+        </AgentConversationList>
+      </ConversationListFixture>
+
+      <ConversationListFixture label="Loading state">
+        <AgentConversationList title="会话">
+          <AgentConversationGroup label="当前">
+            <AgentConversationItem active title="当前会话" />
+          </AgentConversationGroup>
+          <AgentConversationGroup label="历史会话">
+            <AgentConversationState kind="loading">正在加载历史会话…</AgentConversationState>
+          </AgentConversationGroup>
+        </AgentConversationList>
+      </ConversationListFixture>
+
+      <ConversationListFixture label="Error state">
+        <AgentConversationList title="会话">
+          <AgentConversationGroup label="当前">
+            <AgentConversationItem active title="当前会话" />
+          </AgentConversationGroup>
+          <AgentConversationGroup label="历史会话">
+            <AgentConversationState action={<Button size="sm" variant="ghost">重试</Button>} kind="error">
+              <strong>加载会话失败</strong>
+              <span>服务暂时不可用</span>
+            </AgentConversationState>
+          </AgentConversationGroup>
+        </AgentConversationList>
+      </ConversationListFixture>
+
+      <ConversationListFixture label="No history">
+        <AgentConversationList title="会话" meta="0">
+          <AgentConversationGroup label="当前">
+            <AgentConversationItem active title="当前会话" />
+          </AgentConversationGroup>
+          <AgentConversationGroup label="历史会话">
+            <AgentConversationState kind="empty">暂无历史会话</AgentConversationState>
+          </AgentConversationGroup>
+        </AgentConversationList>
+      </ConversationListFixture>
+    </div>
+  );
+}
+
 function ThemeGallery({ theme }: { theme: AgentUITheme }) {
   const inputId = `${theme}-gallery-input`;
 
@@ -1102,6 +1203,8 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
         <ThreadWelcomeGallery />
         <h3 className={styles.componentHeading}>Agent Suggestions</h3>
         <SuggestionsGallery />
+        <h3 className={styles.componentHeading}>Agent Conversation List</h3>
+        <ConversationListGallery />
         <h3 className={styles.componentHeading}>Agent Thread</h3>
         <ThreadGallery />
         <h3 className={styles.componentHeading}>Agent Message</h3>

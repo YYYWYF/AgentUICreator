@@ -155,7 +155,7 @@ body {
 
 .agent-template-shell
   [data-layout-node-id="agent-sidebar"]
-  .antd-x-conversations-plugin {
+  .agent-conversations-plugin {
   border-right: 0;
 }
 

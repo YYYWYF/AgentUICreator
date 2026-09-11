@@ -1,0 +1,11 @@
+{
+  "id": "conversation-controller",
+  "name": "Conversation Controller",
+  "description": "Provides application conversation state and history navigation independently from presentation plugins.",
+  "version": "1.0.0",
+  "capabilities": [
+    "headless",
+    "conversation-controller",
+    "plugin-service-provider"
+  ]
+}

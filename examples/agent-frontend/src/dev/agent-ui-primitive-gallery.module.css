@@ -145,6 +145,26 @@
   gap: var(--aui-space-4);
 }
 
+.conversationGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--aui-space-4);
+}
+
+.conversationFixture {
+  display: grid;
+  min-width: 0;
+  gap: var(--aui-space-2);
+}
+
+.conversationPreview {
+  height: 22rem;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--aui-border);
+  border-radius: var(--aui-radius-lg);
+}
+
 .messageFixture {
   display: grid;
   min-width: 0;
