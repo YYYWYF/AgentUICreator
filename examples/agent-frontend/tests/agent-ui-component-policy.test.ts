@@ -1,4 +1,4 @@
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -193,6 +193,62 @@ describe("Agent UI component source policy", () => {
       );
       expect(installedSource).toBe(registrySource);
     }
+  });
+
+  it("keeps the Agent Reasoning plugin canonical and independent of Ant", async () => {
+    const pluginRoot = path.join(projectRoot, "plugins/agent-reasoning");
+    const manifest = JSON.parse(
+      await readFile(path.join(pluginRoot, "manifest.json"), "utf8"),
+    ) as { id: string; name: string; version: string };
+    const sourceFiles = await collectFiles(
+      pluginRoot,
+      (filePath) => /\.(?:css|ts|tsx)$/u.test(filePath),
+    );
+
+    expect(manifest).toMatchObject({
+      id: "agent-reasoning",
+      name: "Agent Reasoning",
+      version: "1.1.0",
+    });
+    for (const filePath of sourceFiles) {
+      const source = await readFile(filePath, "utf8");
+      expect(source, filePath).not.toMatch(
+        /@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|\.ant-|\b(?:Think|BulbOutlined|Typography)\b/u,
+      );
+    }
+
+    const indexSource = await readFile(path.join(pluginRoot, "index.tsx"), "utf8");
+    expect(importSpecifiers(indexSource)).toContain(
+      "../../agent-ui/components/reasoning",
+    );
+    expect(indexSource).toMatch(/<AgentReasoning\b/u);
+  });
+
+  it("keeps removed Reasoning identities out of the generated project", async () => {
+    const removedIdentities = [
+      ["antd", "x", "reasoning"].join("-"),
+      ["Antd", "X", "Reasoning"].join(""),
+      ["antd", "X", "Reasoning", "Plugin"].join(""),
+    ];
+    const oldPluginRoot = path.join(
+      projectRoot,
+      "plugins",
+      removedIdentities[0]!,
+    );
+    const violations: string[] = [];
+
+    await expect(stat(oldPluginRoot)).rejects.toMatchObject({ code: "ENOENT" });
+    for (const filePath of await collectFiles(
+      projectRoot,
+      (candidate) => /\.(?:css|json|md|ts|tsx)$/u.test(candidate),
+    )) {
+      const source = await readFile(filePath, "utf8");
+      if (removedIdentities.some((identity) => source.includes(identity))) {
+        violations.push(path.relative(projectRoot, filePath));
+      }
+    }
+
+    expect(violations).toEqual([]);
   });
 
   it("keeps Agent Thread presentation-only and runtime-independent", async () => {

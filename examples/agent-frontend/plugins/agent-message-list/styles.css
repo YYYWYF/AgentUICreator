@@ -193,7 +193,6 @@
 }
 
 .agent-message-list-tool-result,
-.agent-message-list-reasoning-segment,
 .agent-message-list-activity-segment,
 .agent-message-list-context-segment {
   padding-left: 0.7rem;
@@ -211,7 +210,6 @@
   color: #ffafb7;
 }
 
-.agent-message-list-reasoning-segment,
 .agent-message-list-context-segment {
   color: #aeb8cd;
 }
@@ -227,10 +225,27 @@
 }
 
 .development-preview[data-agent-ui-theme="light"]
-  .agent-message-list-reasoning-segment,
-.development-preview[data-agent-ui-theme="light"]
   .agent-message-list-context-segment {
   color: #65708a;
+}
+
+.agent-message-list-reasoning-fallback {
+  min-width: 0;
+  padding-left: var(--aui-space-3);
+  border-left: 2px solid var(--aui-border);
+  color: var(--aui-fg-subtle);
+}
+
+.agent-message-list-reasoning-fallback-label {
+  margin-bottom: var(--aui-space-1);
+  color: var(--aui-fg-muted);
+  font-size: var(--aui-font-size-xs);
+  font-weight: var(--aui-font-weight-medium);
+}
+
+.agent-message-list-reasoning-fallback-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .agent-message-list-turn-loading {

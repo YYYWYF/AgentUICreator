@@ -16,7 +16,7 @@
 - `antd-x-tool-detail`：独立工具调用详情面板，可按 `toolCallId` 定位调用，并展示增量参数的最终投影、执行状态、结果或错误；用于右侧 Inspector 等独立 Slot。
 - `antd-x-tool-activity`：消息流中的 Tool Presentation Host，通过 `conversation.message.tool-item` child Slot 在 grouped / flat 模式下复用同一个单工具 Renderer。
 - `antd-x-tool-message`：消息流中的 Tool Renderer，通过 Message Render Context 接收当前 Tool Call、Result 与 Execution，并合并为同一个动态块；不承担右侧 Inspector 职责。
-- `antd-x-reasoning`：消息流中的 Reasoning Renderer，通过 Message Render Context 只渲染 MessageList 当前调度的一条 reasoning，不扫描整段会话。
+- `agent-reasoning`：消息流中的 Reasoning Renderer，通过 Message Render Context 把当前 reasoning 绑定到 AgentReasoning，并在 Plugin 内管理展开、完成保持与自动收起策略。
 - `antd-x-activity-feed`：只渲染 AG-UI activity messages，并把业务状态投影为 loading / success / error / abort。
 - `antd-x-sources`：聚合当前会话 message metadata 与 Frontend State 中的 sources，形成可独立放置的引用面板。
 - `antd-x-attachments`：聚合当前会话输入与 Frontend State 中的附件，仅做只读展示；在 Runtime 提供多模态发送合同前不开放上传入口。

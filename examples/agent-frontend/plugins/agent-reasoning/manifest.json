@@ -1,0 +1,10 @@
+{
+  "id": "agent-reasoning",
+  "name": "Agent Reasoning",
+  "description": "使用 AgentReasoning 渲染消息流中的 AG-UI reasoning，并管理展开、完成保持与自动收起策略。",
+  "version": "1.1.0",
+  "capabilities": ["message-renderer", "reasoning-rendering"],
+  "data": {
+    "messages": true
+  }
+}

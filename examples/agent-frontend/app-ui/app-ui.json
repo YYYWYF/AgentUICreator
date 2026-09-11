@@ -133,7 +133,7 @@
     },
     "agent-reasoning-main": {
       "id": "agent-reasoning-main",
-      "pluginId": "antd-x-reasoning",
+      "pluginId": "agent-reasoning",
       "enabled": true,
       "mount": {
         "slotId": "conversation.message.reasoning"

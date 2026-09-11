@@ -4,9 +4,9 @@
  */
 import pluginDefinition0 from "./agent-composer/definition";
 import pluginDefinition1 from "./agent-message-list/definition";
-import pluginDefinition2 from "./antd-x-conversations/definition";
-import pluginDefinition3 from "./antd-x-prompts/definition";
-import pluginDefinition4 from "./antd-x-reasoning/definition";
+import pluginDefinition2 from "./agent-reasoning/definition";
+import pluginDefinition3 from "./antd-x-conversations/definition";
+import pluginDefinition4 from "./antd-x-prompts/definition";
 import pluginDefinition5 from "./antd-x-resources/definition";
 import pluginDefinition6 from "./antd-x-theme-provider/definition";
 import pluginDefinition7 from "./antd-x-theme-switch/definition";

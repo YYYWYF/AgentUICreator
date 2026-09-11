@@ -2,8 +2,8 @@ import { antdXActivityFeedPlugin } from "../antd-x-activity-feed/definition";
 import { antdXAttachmentsPlugin } from "../antd-x-attachments/definition";
 import { antdXConversationsPlugin } from "../antd-x-conversations/definition";
 import { agentMessageListPlugin } from "../agent-message-list/definition";
+import { agentReasoningPlugin } from "../agent-reasoning/definition";
 import { antdXPromptsPlugin } from "../antd-x-prompts/definition";
-import { antdXReasoningPlugin } from "../antd-x-reasoning/definition";
 import { antdXResourcesPlugin } from "../antd-x-resources/definition";
 import { antdXRunTimelinePlugin } from "../antd-x-run-timeline/definition";
 import { agentComposerPlugin } from "../agent-composer/definition";
@@ -29,7 +29,7 @@ export const antdXTemplatePlugins = [
   antdXToolMessagePlugin,
   antdXRunTimelinePlugin,
   antdXToolDetailPlugin,
-  antdXReasoningPlugin,
+  agentReasoningPlugin,
   antdXActivityFeedPlugin,
   antdXSourcesPlugin,
   antdXAttachmentsPlugin,
@@ -45,8 +45,8 @@ export {
   antdXAttachmentsPlugin,
   antdXConversationsPlugin,
   agentMessageListPlugin,
+  agentReasoningPlugin,
   antdXPromptsPlugin,
-  antdXReasoningPlugin,
   antdXResourcesPlugin,
   antdXRunTimelinePlugin,
   agentComposerPlugin,
@@ -66,8 +66,8 @@ export { AntdXActivityFeedPlugin } from "../antd-x-activity-feed";
 export { AntdXAttachmentsPlugin } from "../antd-x-attachments";
 export { AntdXConversationsPlugin } from "../antd-x-conversations";
 export { AgentMessageListPlugin } from "../agent-message-list";
+export { AgentReasoningPlugin } from "../agent-reasoning";
 export { AntdXPromptsPlugin } from "../antd-x-prompts";
-export { AntdXReasoningPlugin } from "../antd-x-reasoning";
 export { AntdXResourcesPlugin } from "../antd-x-resources";
 export { AntdXRunTimelinePlugin } from "../antd-x-run-timeline";
 export { AgentComposerPlugin } from "../agent-composer";

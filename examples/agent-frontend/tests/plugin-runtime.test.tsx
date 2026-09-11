@@ -1,5 +1,6 @@
+// @vitest-environment jsdom
+
 import { renderToStaticMarkup } from "react-dom/server";
-import { Think } from "@ant-design/x";
 import { Tabs } from "antd";
 import {
   act,
@@ -10,6 +11,7 @@ import {
 import { describe, expect, it, vi } from "vitest";
 
 import { AgentUIRootContext } from "../agent-ui/foundation/context";
+import { AgentReasoning } from "../agent-ui/components/reasoning";
 import appUIJson from "../app-ui/app-ui.json";
 import {
   parseAppUIModel,
@@ -116,6 +118,12 @@ async function mountPluginRuntime(
             <PluginRuntimeFixture {...props} />
           </PluginServiceRuntimeContext.Provider>
         </AgentUIRootContext.Provider>,
+        {
+          createNodeMock: (element) =>
+            document.createElement(
+              typeof element.type === "string" ? element.type : "div",
+            ),
+        },
       );
     });
   } catch (error) {
@@ -1110,10 +1118,70 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain('data-status="streaming"');
     expect(html).toContain("正在思考");
     expect(html).toContain('data-reasoning-status="running"');
+    expect(html).toContain('data-ui-plugin="agent-reasoning"');
+    expect(html).toContain('data-status="running"');
+    expect(html).toContain('data-expanded="true"');
+  });
+
+  it("lets live running override defaultExpanded for the configured renderer", async () => {
+    const model = parseAppUIModel({
+      ...appUIJson,
+      pluginInstances: {
+        ...appUIJson.pluginInstances,
+        "agent-reasoning-main": {
+          ...appUIJson.pluginInstances["agent-reasoning-main"],
+          props: { defaultExpanded: false },
+        },
+      },
+    });
+    const registry = createPluginRegistry(antdXTemplatePlugins);
+    const completedHtml = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [],
+      interrupts: [],
+      messages: defaultConversationMessages,
+      model,
+      registry,
+      run: idleRun,
+      state: previewAgentState,
+    });
+    const runningHtml = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [{
+        type: "reasoning",
+        id: "reasoning-running-default-override",
+        producer: { type: "root" },
+        messageIds: ["preview-reasoning-1"],
+        status: "running",
+      }],
+      interrupts: [],
+      messages: defaultConversationMessages,
+      model,
+      registry,
+      run: { status: "running" },
+      state: previewAgentState,
+    });
+
+    expect(completedHtml).toContain('data-slot="agent-reasoning"');
+    expect(completedHtml).toContain('data-expanded="false"');
+    expect(runningHtml).toContain('data-slot="agent-reasoning"');
+    expect(runningHtml).toContain('data-expanded="true"');
   });
 
   it("collapses reasoning after the same occurrence completes", async () => {
-    const model = parseAppUIModel(appUIJson);
+    vi.useFakeTimers();
+    const model = parseAppUIModel({
+      ...appUIJson,
+      pluginInstances: {
+        ...appUIJson.pluginInstances,
+        "agent-reasoning-main": {
+          ...appUIJson.pluginInstances["agent-reasoning-main"],
+          props: { collapseDelayMs: 250 },
+        },
+      },
+    });
     const registry = createPluginRegistry(antdXTemplatePlugins);
     const messages: AgentMessage[] = [
       {
@@ -1152,10 +1220,14 @@ describe("UIPluginRuntime", () => {
     const mounted = await mountPluginRuntime(runningProps);
 
     try {
-      let reasoning = mounted.renderer.root.findByType(Think);
-      expect(reasoning.props["data-reasoning-status"]).toBe("running");
-      expect(reasoning.props.loading).toBe(true);
+      let reasoning = mounted.renderer.root.findByType(AgentReasoning);
+      let wrapper = mounted.renderer.root.findByProps({
+        "data-ui-plugin": "agent-reasoning",
+      });
+      expect(wrapper.props["data-reasoning-status"]).toBe("running");
+      expect(reasoning.props.status).toBe("running");
       expect(reasoning.props.expanded).toBe(true);
+      expect(reasoning.props.label).toBe("正在思考");
 
       await mounted.update({
         ...runningProps,
@@ -1163,12 +1235,24 @@ describe("UIPluginRuntime", () => {
         run: idleRun,
       });
 
-      reasoning = mounted.renderer.root.findByType(Think);
-      expect(reasoning.props["data-reasoning-status"]).toBe("completed");
-      expect(reasoning.props.loading).toBe(false);
+      reasoning = mounted.renderer.root.findByType(AgentReasoning);
+      wrapper = mounted.renderer.root.findByProps({
+        "data-ui-plugin": "agent-reasoning",
+      });
+      expect(wrapper.props["data-reasoning-status"]).toBe("completed");
+      expect(reasoning.props.status).toBe("completed");
+      expect(reasoning.props.label).toBe("思考过程");
+      expect(reasoning.props.expanded).toBe(true);
+
+      await act(async () => vi.advanceTimersByTime(249));
+      reasoning = mounted.renderer.root.findByType(AgentReasoning);
+      expect(reasoning.props.expanded).toBe(true);
+
+      await act(async () => vi.advanceTimersByTime(1));
+      reasoning = mounted.renderer.root.findByType(AgentReasoning);
       expect(reasoning.props.expanded).toBe(false);
 
-      await act(async () => reasoning.props.onExpand(true));
+      await act(async () => reasoning.props.onExpandedChange(true));
       await mounted.update({
         ...runningProps,
         executions: [{ ...execution, status: "completed" }],
@@ -1176,14 +1260,16 @@ describe("UIPluginRuntime", () => {
         state: { updated: true },
       });
 
-      reasoning = mounted.renderer.root.findByType(Think);
+      reasoning = mounted.renderer.root.findByType(AgentReasoning);
       expect(reasoning.props.expanded).toBe(true);
     } finally {
       await mounted.dispose();
+      vi.useRealTimers();
     }
   });
 
   it("keeps completed reasoning expanded when collapseOnComplete is disabled", async () => {
+    vi.useFakeTimers();
     const model = parseAppUIModel({
       ...appUIJson,
       pluginInstances: {
@@ -1238,12 +1324,13 @@ describe("UIPluginRuntime", () => {
         run: idleRun,
       });
 
-      const reasoning = mounted.renderer.root.findByType(Think);
-      expect(reasoning.props["data-reasoning-status"]).toBe("completed");
-      expect(reasoning.props.loading).toBe(false);
+      await act(async () => vi.advanceTimersByTime(5_000));
+      const reasoning = mounted.renderer.root.findByType(AgentReasoning);
+      expect(reasoning.props.status).toBe("completed");
       expect(reasoning.props.expanded).toBe(true);
     } finally {
       await mounted.dispose();
+      vi.useRealTimers();
     }
   });
 
@@ -1293,11 +1380,10 @@ describe("UIPluginRuntime", () => {
         run: idleRun,
       });
 
-      const reasoning = mounted.renderer.root.findByType(Think);
-      expect(reasoning.props["data-reasoning-status"]).toBe("interrupted");
-      expect(reasoning.props.loading).toBe(false);
+      const reasoning = mounted.renderer.root.findByType(AgentReasoning);
+      expect(reasoning.props.status).toBe("interrupted");
       expect(reasoning.props.expanded).toBe(true);
-      expect(reasoning.props.title).toBe("思考已停止");
+      expect(reasoning.props.label).toBe("思考已停止");
     } finally {
       await mounted.dispose();
     }
@@ -1343,7 +1429,7 @@ describe("UIPluginRuntime", () => {
     });
 
     expect(countOccurrences(html, 'data-plugin-instance-id="agent-reasoning-main"')).toBe(2);
-    expect(countOccurrences(html, 'data-ui-plugin="antd-x-reasoning"')).toBe(2);
+    expect(countOccurrences(html, 'data-ui-plugin="agent-reasoning"')).toBe(2);
     expect(html.indexOf("第一步")).toBeLessThan(html.indexOf("第二步"));
   });
 
@@ -1439,7 +1525,7 @@ describe("UIPluginRuntime", () => {
       "assistant final",
     ];
 
-    expect(countOccurrences(html, 'data-ui-plugin="antd-x-reasoning"')).toBe(2);
+    expect(countOccurrences(html, 'data-ui-plugin="agent-reasoning"')).toBe(2);
     expect(countOccurrences(html, 'data-ui-plugin="antd-x-tool-activity"')).toBe(2);
     expect(countOccurrences(html, 'data-tool-presentation="grouped"')).toBe(2);
     expect(countOccurrences(html, 'data-ui-plugin="antd-x-tool-message"')).toBe(2);
@@ -1655,7 +1741,10 @@ describe("UIPluginRuntime", () => {
       const messageList = mounted.renderer.root.findByProps({
         "data-ui-plugin": "agent-message-list",
       });
-      const reasoning = mounted.renderer.root.findByType(Think);
+      const reasoning = mounted.renderer.root.findByType(AgentReasoning);
+      const reasoningWrapper = mounted.renderer.root.findByProps({
+        "data-ui-plugin": "agent-reasoning",
+      });
       const tool = mounted.renderer.root.find(
         (node) =>
           node.props["data-ui-plugin"] === "antd-x-tool-message" &&
@@ -1670,9 +1759,8 @@ describe("UIPluginRuntime", () => {
       ];
 
       expect(messageList.props["data-conversation-mode"]).toBe("history");
-      expect(reasoning.props["data-ui-plugin"]).toBe("antd-x-reasoning");
-      expect(reasoning.props["data-reasoning-status"]).toBe("completed");
-      expect(reasoning.props.loading).toBe(false);
+      expect(reasoningWrapper.props["data-reasoning-status"]).toBe("completed");
+      expect(reasoning.props.status).toBe("completed");
       expect(reasoning.props.expanded).toBe(true);
       expect(tool.props["data-tool-status"]).toBe("success");
       expect(countOccurrences(content, "project inspected")).toBe(1);
@@ -1821,7 +1909,8 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain("先读取 AppUIModel 与插件注册表");
     expect(html).toContain("list_ui_plugins");
     expect(html).toContain("runtimeCount");
-    expect(html).not.toContain('data-ui-plugin="antd-x-reasoning"');
+    expect(html).not.toContain('data-ui-plugin="agent-reasoning"');
+    expect(html).toContain('data-slot="agent-message-reasoning-fallback"');
     expect(html).not.toContain('data-ui-plugin="antd-x-tool-message"');
   });
 

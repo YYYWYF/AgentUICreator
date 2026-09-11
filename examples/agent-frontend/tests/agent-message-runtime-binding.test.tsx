@@ -93,7 +93,10 @@ const toolActivityFixturePlugin: UIPluginDefinition = {
   Component: ToolActivityFixture,
 };
 
-function createMessageModel(includeHistoryService = false) {
+function createMessageModel(
+  includeHistoryService = false,
+  includeReasoningRenderer = true,
+) {
   return parseAppUIModel({
     version: "2",
     root: {
@@ -117,12 +120,16 @@ function createMessageModel(includeHistoryService = false) {
         enabled: true,
         mount: { slotId: "conversation.timeline" },
       },
-      "reasoning-fixture-main": {
-        id: "reasoning-fixture-main",
-        pluginId: "reasoning-fixture",
-        enabled: true,
-        mount: { slotId: "conversation.message.reasoning" },
-      },
+      ...(includeReasoningRenderer
+        ? {
+            "reasoning-fixture-main": {
+              id: "reasoning-fixture-main",
+              pluginId: "reasoning-fixture",
+              enabled: true,
+              mount: { slotId: "conversation.message.reasoning" },
+            },
+          }
+        : {}),
       "tool-activity-fixture-main": {
         id: "tool-activity-fixture-main",
         pluginId: "tool-activity-fixture",
@@ -181,17 +188,22 @@ async function mountMessageList({
   historyDetailError,
   historyDetailStatus,
   historyMessages,
+  includeReasoningRenderer = true,
   messages,
   run = idleRun,
 }: {
   historyDetailError?: string | undefined;
   historyDetailStatus?: ConversationSnapshot["detailStatus"] | undefined;
   historyMessages?: readonly AgentMessage[] | undefined;
+  includeReasoningRenderer?: boolean | undefined;
   messages: readonly AgentMessage[];
   run?: AgentRunState | undefined;
 }): Promise<MountedMessageList> {
   const includeHistoryService = historyMessages !== undefined;
-  const model = createMessageModel(includeHistoryService);
+  const model = createMessageModel(
+    includeHistoryService,
+    includeReasoningRenderer,
+  );
   const definitions: UIPluginDefinition[] = [
     agentMessageListPlugin,
     reasoningFixturePlugin,
@@ -705,6 +717,36 @@ describe("Agent Message runtime binding", () => {
       expect(closestAgentMessage(reasoning)).toBe(
         closestAgentMessage(toolActivity),
       );
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("keeps reasoning readable when no child renderer is configured", async () => {
+    const mounted = await mountMessageList({
+      includeReasoningRenderer: false,
+      messages: [
+        {
+          id: "fallback-user",
+          producer: { type: "root" },
+          role: "user",
+          content: "分析项目",
+        },
+        {
+          id: "fallback-reasoning",
+          producer: { type: "root" },
+          role: "reasoning",
+          content: "保留这段推理内容",
+        },
+      ],
+    });
+
+    try {
+      const fallback = mounted.renderer.root.findByProps({
+        "data-slot": "agent-message-reasoning-fallback",
+      });
+      expect(textContent(fallback)).toContain("思考");
+      expect(textContent(fallback)).toContain("保留这段推理内容");
     } finally {
       await mounted.dispose();
     }

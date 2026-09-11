@@ -373,15 +373,22 @@ function GenericToolResultSegment({
   );
 }
 
-function LegacyReasoningMessageRenderer({
+function ReasoningFallbackRenderer({
   message,
 }: {
   message: Extract<RuntimeAgentMessage, { role: "reasoning" }>;
 }) {
   return (
-    <div className="agent-message-list-reasoning-segment">
-      <SegmentLabel>思考</SegmentLabel>
-      <div>{message.content}</div>
+    <div
+      className="agent-message-list-reasoning-fallback"
+      data-slot="agent-message-reasoning-fallback"
+    >
+      <div className="agent-message-list-reasoning-fallback-label">
+        思考
+      </div>
+      <div className="agent-message-list-reasoning-fallback-body">
+        {message.content}
+      </div>
     </div>
   );
 }
@@ -462,7 +469,7 @@ function TurnMessageSegment({
         >
           {renderSlot(
             "conversation.message.reasoning",
-            <LegacyReasoningMessageRenderer message={message} />,
+            <ReasoningFallbackRenderer message={message} />,
           )}
         </MessageRenderProvider>
       );
