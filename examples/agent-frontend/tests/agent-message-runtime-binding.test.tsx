@@ -96,6 +96,7 @@ const toolActivityFixturePlugin: UIPluginDefinition = {
 function createMessageModel(
   includeHistoryService = false,
   includeReasoningRenderer = true,
+  includeToolActivityRenderer = true,
 ) {
   return parseAppUIModel({
     version: "2",
@@ -130,12 +131,16 @@ function createMessageModel(
             },
           }
         : {}),
-      "tool-activity-fixture-main": {
-        id: "tool-activity-fixture-main",
-        pluginId: "tool-activity-fixture",
-        enabled: true,
-        mount: { slotId: "conversation.message.tool-activity" },
-      },
+      ...(includeToolActivityRenderer
+        ? {
+            "tool-activity-fixture-main": {
+              id: "tool-activity-fixture-main",
+              pluginId: "tool-activity-fixture",
+              enabled: true,
+              mount: { slotId: "conversation.message.tool-activity" },
+            },
+          }
+        : {}),
     },
   });
 }
@@ -189,6 +194,7 @@ async function mountMessageList({
   historyDetailStatus,
   historyMessages,
   includeReasoningRenderer = true,
+  includeToolActivityRenderer = true,
   messages,
   run = idleRun,
 }: {
@@ -196,6 +202,7 @@ async function mountMessageList({
   historyDetailStatus?: ConversationSnapshot["detailStatus"] | undefined;
   historyMessages?: readonly AgentMessage[] | undefined;
   includeReasoningRenderer?: boolean | undefined;
+  includeToolActivityRenderer?: boolean | undefined;
   messages: readonly AgentMessage[];
   run?: AgentRunState | undefined;
 }): Promise<MountedMessageList> {
@@ -203,6 +210,7 @@ async function mountMessageList({
   const model = createMessageModel(
     includeHistoryService,
     includeReasoningRenderer,
+    includeToolActivityRenderer,
   );
   const definitions: UIPluginDefinition[] = [
     agentMessageListPlugin,
@@ -747,6 +755,51 @@ describe("Agent Message runtime binding", () => {
       });
       expect(textContent(fallback)).toContain("思考");
       expect(textContent(fallback)).toContain("保留这段推理内容");
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("keeps tool activity readable when no activity renderer is configured", async () => {
+    const mounted = await mountMessageList({
+      includeToolActivityRenderer: false,
+      messages: [
+        {
+          id: "fallback-tool-user",
+          producer: { type: "root" },
+          role: "user",
+          content: "执行工具",
+        },
+        {
+          id: "fallback-tool-call-message",
+          producer: { type: "root" },
+          role: "assistant",
+          toolCalls: [{
+            id: "fallback-tool-call",
+            type: "function",
+            function: { name: "inspect_project", arguments: "{}" },
+          }],
+        },
+        {
+          id: "fallback-tool-result",
+          producer: { type: "root" },
+          role: "tool",
+          toolCallId: "fallback-tool-call",
+          content: "project inspected",
+        },
+      ],
+    });
+
+    try {
+      const fallback = mounted.renderer.root.findByProps({
+        "data-slot": "agent-message-tool-activity-fallback",
+      });
+      expect(textContent(fallback)).toContain("工具活动");
+      expect(textContent(fallback)).toContain("inspect_project");
+      expect(textContent(fallback)).toContain("project inspected");
+      expect(fallback.findAllByProps({
+        "data-slot": "agent-message-tool-activity-fallback-item",
+      })).toHaveLength(1);
     } finally {
       await mounted.dispose();
     }

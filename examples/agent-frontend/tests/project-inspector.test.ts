@@ -55,7 +55,7 @@ describe("inspectUIProject", () => {
         mounts: [
           expect.objectContaining({
             instanceId: "agent-tool-activity-main",
-            pluginId: "antd-x-tool-activity",
+            pluginId: "agent-tool-activity",
           }),
         ],
       }),
@@ -66,7 +66,7 @@ describe("inspectUIProject", () => {
         owner: expect.objectContaining({
           kind: "plugin",
           instanceId: "agent-tool-activity-main",
-          pluginId: "antd-x-tool-activity",
+          pluginId: "agent-tool-activity",
         }),
         mounts: [
           expect.objectContaining({

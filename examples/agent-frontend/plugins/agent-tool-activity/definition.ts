@@ -1,11 +1,11 @@
 import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
 import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
-import { AntdXToolActivityPlugin } from "./index";
+import { AgentToolActivityPlugin } from "./index";
 import manifestJson from "./manifest.json";
 
-export const antdXToolActivityPlugin: UIPluginDefinition = {
+export const agentToolActivityPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
-  Component: AntdXToolActivityPlugin,
+  Component: AgentToolActivityPlugin,
 };
 
-export default antdXToolActivityPlugin;
+export default agentToolActivityPlugin;

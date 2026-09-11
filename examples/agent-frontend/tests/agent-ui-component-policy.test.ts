@@ -254,6 +254,148 @@ describe("Agent UI component source policy", () => {
     }
   });
 
+  it("keeps Agent Tool Activity presentation-only, controlled, and lifecycle-free", async () => {
+    const activityRoot = path.join(
+      registryRoot,
+      "items/agent-component-tool-activity/files/components",
+    );
+    const source = await readFile(
+      path.join(activityRoot, "tool-activity.tsx"),
+      "utf8",
+    );
+    const specifiers = importSpecifiers(source);
+
+    expect(specifiers).toContain("react");
+    expect(specifiers.every((specifier) => specifier === "react" || specifier.startsWith(".")))
+      .toBe(true);
+    expect(source).not.toMatch(
+      /@assistant-ui(?:\/|$)|@base-ui\/react|@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|tailwindcss|class-variance-authority|lucide-react|@radix-ui\//u,
+    );
+    expect(source).not.toMatch(
+      /@agent-ui\/runtime-core|@agent-ui\/runtime-agui|@agent-ui\/runtime-react|(?:^|["'/])runtime\/|services\/|framework\/contracts\//u,
+    );
+    expect(source).not.toMatch(
+      /\b(?:useState|useEffect|useLayoutEffect|setTimeout|clearTimeout|defaultExpanded|autoExpand|autoCollapse)\b/u,
+    );
+    expect(source).not.toMatch(
+      /\b(?:ToolPresentationItem|activeToolCallIds|turnId|toolCallIds|failedCount|toolCount)\b/u,
+    );
+    expect(source).toMatch(/<CollapsibleContent\s+[\s\S]*?keepMounted/u);
+  });
+
+  it("keeps Agent Tool Activity colors tokenized and CSS isolated", async () => {
+    const css = await readFile(
+      path.join(
+        registryRoot,
+        "items/agent-component-tool-activity/files/components/tool-activity.module.css",
+      ),
+      "utf8",
+    );
+    expect(css).not.toMatch(/#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\(/u);
+    expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
+    expect(css).not.toMatch(
+      /(?:^|\})\s*(?:body|html)\s*(?:,|\{)|\[data-agent-ui-root\]|:global|\.ant-|development-preview|--ui-/gmu,
+    );
+    expect(css).toMatch(/var\(--aui-/u);
+  });
+
+  it("keeps the managed Agent Tool Activity copy byte-identical to Registry source", async () => {
+    for (const fileName of ["tool-activity.tsx", "tool-activity.module.css"]) {
+      const registrySource = await readFile(
+        path.join(
+          registryRoot,
+          "items/agent-component-tool-activity/files/components",
+          fileName,
+        ),
+        "utf8",
+      );
+      const installedSource = await readFile(
+        path.join(projectRoot, "agent-ui/components", fileName),
+        "utf8",
+      );
+      expect(installedSource).toBe(registrySource);
+    }
+  });
+
+  it("keeps the Agent Tool Activity plugin canonical and independent of Ant", async () => {
+    const pluginRoot = path.join(projectRoot, "plugins/agent-tool-activity");
+    const manifest = JSON.parse(
+      await readFile(path.join(pluginRoot, "manifest.json"), "utf8"),
+    ) as { id: string; name: string; version: string };
+    const sourceFiles = await collectFiles(
+      pluginRoot,
+      (filePath) => /\.(?:css|ts|tsx)$/u.test(filePath),
+    );
+
+    expect(manifest).toMatchObject({
+      id: "agent-tool-activity",
+      name: "Agent Tool Activity",
+      version: "1.1.0",
+    });
+    for (const filePath of sourceFiles) {
+      const source = await readFile(filePath, "utf8");
+      expect(source, filePath).not.toMatch(
+        /@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|\.ant-|\b(?:Collapse|CollapseProps|LoadingOutlined|CheckCircleOutlined|WarningOutlined|StopOutlined)\b/u,
+      );
+    }
+
+    const indexSource = await readFile(path.join(pluginRoot, "index.tsx"), "utf8");
+    expect(importSpecifiers(indexSource)).toContain(
+      "../../agent-ui/components/tool-activity",
+    );
+    expect(indexSource).toMatch(/<AgentToolActivity\b/u);
+
+    const css = await readFile(path.join(pluginRoot, "styles.css"), "utf8");
+    expect(css).not.toMatch(/#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\(/u);
+    expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
+    expect(css).not.toMatch(/\.ant-|development-preview|--ui-/u);
+    expect(css).toMatch(/var\(--aui-/u);
+  });
+
+  it("keeps the Agent Tool Activity identity canonical across the generated project", async () => {
+    const appUI = JSON.parse(
+      await readFile(path.join(projectRoot, "app-ui/app-ui.json"), "utf8"),
+    ) as { pluginInstances?: Record<string, { pluginId?: string }> };
+    const registry = await readFile(
+      path.join(projectRoot, "plugins/registry.generated.ts"),
+      "utf8",
+    );
+    const templateLibrary = await readFile(
+      path.join(projectRoot, "plugins/antd-x-template-library/index.ts"),
+      "utf8",
+    );
+
+    expect(appUI.pluginInstances?.["agent-tool-activity-main"]?.pluginId).toBe(
+      "agent-tool-activity",
+    );
+    expect(registry).toContain('./agent-tool-activity/definition');
+    expect(templateLibrary).toContain("agentToolActivityPlugin");
+    expect(templateLibrary).toContain("AgentToolActivityPlugin");
+  });
+
+  it("keeps removed Tool Activity identities out of the generated project", async () => {
+    const removedIdentities = [
+      ["antd", "x", "tool", "activity"].join("-"),
+      ["Antd", "X", "Tool", "Activity"].join(""),
+      ["antd", "X", "Tool", "Activity", "Plugin"].join(""),
+    ];
+    const oldPluginRoot = path.join(projectRoot, "plugins", removedIdentities[0]!);
+    const violations: string[] = [];
+
+    await expect(stat(oldPluginRoot)).rejects.toMatchObject({ code: "ENOENT" });
+    for (const filePath of await collectFiles(
+      projectRoot,
+      (candidate) => /\.(?:css|json|md|ts|tsx)$/u.test(candidate),
+    )) {
+      const source = await readFile(filePath, "utf8");
+      if (removedIdentities.some((identity) => source.includes(identity))) {
+        violations.push(path.relative(projectRoot, filePath));
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
   it("keeps the Agent Tool plugin canonical and independent of Ant", async () => {
     const pluginRoot = path.join(projectRoot, "plugins/agent-tool");
     const manifest = JSON.parse(
@@ -514,7 +656,10 @@ describe("Agent UI component source policy", () => {
       }
     }
     expect(manifest.id).toBe("agent-message-list");
-    expect(manifest.version).toBe("1.3.1");
+    expect(manifest.version).toBe("1.3.2");
+    expect(source).toContain("ToolActivityFallbackRenderer");
+    expect(source).not.toContain("LegacyToolActivityRenderer");
+    expect(source).not.toContain("🔧");
     expect(
       appUI.pluginInstances?.["agent-messages-main"]?.pluginId,
     ).toBe("agent-message-list");

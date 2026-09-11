@@ -68,6 +68,17 @@
         }
       }
     },
+    "agent-component/tool-activity": {
+      "version": "0.1.0",
+      "files": {
+        "components/tool-activity.module.css": {
+          "sha256": "abb7be1d284d6cfe4a0be579c725f682abff9ec5413e593568750bc55e32e33e"
+        },
+        "components/tool-activity.tsx": {
+          "sha256": "142ed2f99d17e9d2862ddf83e4150fa1d38e119a859f7a7197fac4bb67b917b9"
+        }
+      }
+    },
     "foundation/core": {
       "version": "0.2.2",
       "files": {

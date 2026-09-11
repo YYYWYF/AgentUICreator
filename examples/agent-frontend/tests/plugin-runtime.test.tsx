@@ -12,6 +12,7 @@ import { describe, expect, it, vi } from "vitest";
 import { AgentUIRootContext } from "../agent-ui/foundation/context";
 import { AgentReasoning } from "../agent-ui/components/reasoning";
 import { AgentTool } from "../agent-ui/components/tool";
+import { AgentToolActivity } from "../agent-ui/components/tool-activity";
 import appUIJson from "../app-ui/app-ui.json";
 import {
   parseAppUIModel,
@@ -1475,7 +1476,7 @@ describe("UIPluginRuntime", () => {
     ];
 
     expect(countOccurrences(html, 'data-ui-plugin="agent-reasoning"')).toBe(2);
-    expect(countOccurrences(html, 'data-ui-plugin="antd-x-tool-activity"')).toBe(2);
+    expect(countOccurrences(html, 'data-ui-plugin="agent-tool-activity"')).toBe(2);
     expect(countOccurrences(html, 'data-tool-presentation="grouped"')).toBe(2);
     expect(countOccurrences(html, 'data-ui-plugin="agent-tool"')).toBe(2);
     expect(countOccurrences(html, "result A")).toBe(1);
@@ -1569,10 +1570,14 @@ describe("UIPluginRuntime", () => {
 
     try {
       let activity = mounted.renderer.root.findByProps({
-        "data-ui-plugin": "antd-x-tool-activity",
+        "data-ui-plugin": "agent-tool-activity",
       });
       expect(activity.props["data-tool-presentation"]).toBe("grouped");
       expect(getText(activity)).toContain("使用了 2 个工具");
+      const groupedSurface = activity.findByType(AgentToolActivity);
+      expect(groupedSurface.props.presentation).toBe("grouped");
+      expect(groupedSurface.props.status).toBe("completed");
+      expect(groupedSurface.props.expanded).toBe(false);
       expect(activity.findAllByProps({
         "data-ui-plugin": "agent-tool",
       })).toHaveLength(2);
@@ -1583,9 +1588,18 @@ describe("UIPluginRuntime", () => {
       await mounted.update({ ...props, model: flatModel });
 
       activity = mounted.renderer.root.findByProps({
-        "data-ui-plugin": "antd-x-tool-activity",
+        "data-ui-plugin": "agent-tool-activity",
       });
       expect(activity.props["data-tool-presentation"]).toBe("flat");
+      const flatSurface = activity.findByType(AgentToolActivity);
+      expect(flatSurface.props.presentation).toBe("flat");
+      expect(flatSurface.props.status).toBe("completed");
+      expect(activity.findAllByProps({
+        "data-slot": "agent-tool-activity-trigger",
+      })).toHaveLength(0);
+      expect(activity.findAllByProps({
+        "data-slot": "agent-tool-activity-summary",
+      })).toHaveLength(0);
       expect(activity.findAllByProps({
         "data-ui-plugin": "agent-tool",
       })).toHaveLength(2);
@@ -1697,6 +1711,7 @@ describe("UIPluginRuntime", () => {
         "data-ui-plugin": "agent-message-list",
       });
       const reasoning = mounted.renderer.root.findByType(AgentReasoning);
+      const activity = mounted.renderer.root.findByType(AgentToolActivity);
       const reasoningWrapper = mounted.renderer.root.findByProps({
         "data-ui-plugin": "agent-reasoning",
       });
@@ -1717,6 +1732,9 @@ describe("UIPluginRuntime", () => {
       expect(reasoningWrapper.props["data-reasoning-status"]).toBe("completed");
       expect(reasoning.props.status).toBe("completed");
       expect(reasoning.props.expanded).toBe(true);
+      expect(activity.props.presentation).toBe("grouped");
+      expect(activity.props.status).toBe("completed");
+      expect(activity.props.expanded).toBe(false);
       expect(tool.props["data-tool-status"]).toBe("completed");
       expect(countOccurrences(content, "project inspected")).toBe(1);
       orderedContent.slice(1).forEach((item, index) => {
@@ -1783,6 +1801,8 @@ describe("UIPluginRuntime", () => {
 
     expect(countOccurrences(html, 'data-tool-call-id="tool-error-call"')).toBe(1);
     expect(html).toContain('data-tool-status="error"');
+    expect(html).toContain('data-tool-activity-status="error"');
+    expect(html).toContain("1 个工具 · 1 个失败");
     expect(html).toContain('data-slot="agent-tool"');
     expect(html).toContain("失败");
     expect(html).toContain('data-slot="agent-tool-error"');
@@ -1833,8 +1853,74 @@ describe("UIPluginRuntime", () => {
 
     expect(countOccurrences(html, 'data-tool-call-id="tool-loading-call"')).toBe(1);
     expect(html).toContain('data-tool-status="running"');
+    expect(html).toContain('data-tool-activity-status="running"');
+    expect(html).toContain("正在调用 loading_tool");
     expect(html).toContain("执行中");
     expect(html).toContain("等待工具返回结果…");
+  });
+
+  it("summarizes multiple active tools without changing child projection", async () => {
+    const messages: AgentMessage[] = [
+      {
+        id: "multi-running-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "并行执行两个工具",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "multi-running-tools",
+        producer: { type: "root" },
+        role: "assistant",
+        toolCalls: [
+          {
+            id: "multi-running-a",
+            type: "function",
+            function: { name: "inspect", arguments: "{}" },
+          },
+          {
+            id: "multi-running-b",
+            type: "function",
+            function: { name: "search", arguments: "{}" },
+          },
+        ],
+        metadata: { conversationId: "default" },
+      },
+    ];
+    const executions: AgentExecution[] = [
+      {
+        type: "tool",
+        id: "multi-running-a",
+        producer: { type: "root" },
+        name: "inspect",
+        status: "awaiting-result",
+        arguments: "{}",
+      },
+      {
+        type: "tool",
+        id: "multi-running-b",
+        producer: { type: "root" },
+        name: "search",
+        status: "awaiting-result",
+        arguments: "{}",
+      },
+    ];
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions,
+      interrupts: [],
+      messages,
+      model: parseAppUIModel(appUIJson),
+      registry: createPluginRegistry(antdXTemplatePlugins),
+      run: { status: "running" },
+      state: previewAgentState,
+    });
+
+    expect(html).toContain('data-tool-activity-status="running"');
+    expect(html).toContain("正在调用 2 个工具");
+    expect(countOccurrences(html, 'data-ui-plugin="agent-tool"')).toBe(2);
   });
 
   it("binds live tool executions to AgentTool without resetting disclosure", async () => {
@@ -1889,6 +1975,11 @@ describe("UIPluginRuntime", () => {
       expect(wrapper.props["data-tool-status"]).toBe("running");
 
       let tool = mounted.renderer.root.findByType(AgentTool);
+      let activity = mounted.renderer.root.findByType(AgentToolActivity);
+      expect(activity.props.presentation).toBe("grouped");
+      expect(activity.props.status).toBe("running");
+      expect(activity.props.summary).toBe("正在调用 inspect");
+      expect(activity.props.expanded).toBe(false);
       expect(tool.props.status).toBe("running");
       expect(tool.props.name).toBe("inspect");
       expect(tool.props.statusLabel).toBe("执行中");
@@ -1902,6 +1993,19 @@ describe("UIPluginRuntime", () => {
       await act(async () => tool.props.onExpandedChange(true));
       tool = mounted.renderer.root.findByType(AgentTool);
       expect(tool.props.expanded).toBe(true);
+
+      await act(async () => activity.props.onExpandedChange(true));
+      activity = mounted.renderer.root.findByType(AgentToolActivity);
+      expect(activity.props.expanded).toBe(true);
+
+      await act(async () => activity.props.onExpandedChange(false));
+      activity = mounted.renderer.root.findByType(AgentToolActivity);
+      tool = mounted.renderer.root.findByType(AgentTool);
+      expect(activity.props.expanded).toBe(false);
+      expect(tool.props.expanded).toBe(true);
+
+      await act(async () => activity.props.onExpandedChange(true));
+      expect(mounted.renderer.root.findByType(AgentTool).props.expanded).toBe(true);
 
       await mounted.update({
         ...props,
@@ -1921,6 +2025,10 @@ describe("UIPluginRuntime", () => {
       });
 
       tool = mounted.renderer.root.findByType(AgentTool);
+      activity = mounted.renderer.root.findByType(AgentToolActivity);
+      expect(activity.props.status).toBe("completed");
+      expect(activity.props.summary).toBe("使用了 1 个工具");
+      expect(activity.props.expanded).toBe(true);
       expect(tool.props.status).toBe("completed");
       expect(tool.props.statusLabel).toBe("已完成");
       expect(tool.props.expanded).toBe(true);
@@ -1972,6 +2080,8 @@ describe("UIPluginRuntime", () => {
     });
 
     expect(html).toContain('data-tool-status="interrupted"');
+    expect(html).toContain('data-tool-activity-status="interrupted"');
+    expect(html).toContain("1 个工具 · 1 个未完成");
     expect(html).toContain("未完成");
     expect(html).toContain("工具没有返回结果");
     expect(html).not.toContain("失败");
@@ -2093,6 +2203,38 @@ describe("UIPluginRuntime", () => {
     expect(html).not.toContain('data-ui-plugin="agent-reasoning"');
     expect(html).toContain('data-slot="agent-message-reasoning-fallback"');
     expect(html).not.toContain('data-ui-plugin="agent-tool"');
+    expect(html).toContain('data-slot="agent-tool-item-fallback"');
+  });
+
+  it("falls back without losing tool activity when the activity renderer is disabled", async () => {
+    const model = parseAppUIModel({
+      ...appUIJson,
+      pluginInstances: {
+        ...appUIJson.pluginInstances,
+        "agent-tool-activity-main": {
+          ...appUIJson.pluginInstances["agent-tool-activity-main"],
+          enabled: false,
+        },
+      },
+    });
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "current" },
+      executions: [],
+      interrupts: [],
+      messages: initialPreviewMessages,
+      model,
+      registry: createPluginRegistry(antdXTemplatePlugins),
+      run: idleRun,
+      state: previewAgentState,
+    });
+
+    expect(html).not.toContain('data-ui-plugin="agent-tool-activity"');
+    expect(html).toContain('data-slot="agent-message-tool-activity-fallback"');
+    expect(html).toContain('data-slot="agent-message-tool-activity-fallback-item"');
+    expect(html).toContain("list_ui_plugins");
+    expect(html).toContain("runtimeCount");
   });
 
   it("binds runtime hooks and instance-aware actions into their providers", async () => {

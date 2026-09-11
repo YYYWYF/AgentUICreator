@@ -1,0 +1,19 @@
+{
+  "id": "agent-tool-activity",
+  "name": "Agent Tool Activity",
+  "description": "使用 AgentToolActivity 将连续工具调用按 grouped 或 flat 策略组织，并通过 child Slot 复用 Agent Tool Renderer。",
+  "version": "1.1.0",
+  "capabilities": [
+    "message-renderer",
+    "tool-activity-rendering",
+    "tool-group-rendering"
+  ],
+  "slots": {
+    "children": [
+      "conversation.message.tool-item"
+    ]
+  },
+  "data": {
+    "messages": true
+  }
+}

@@ -141,7 +141,7 @@
     },
     "agent-tool-activity-main": {
       "id": "agent-tool-activity-main",
-      "pluginId": "antd-x-tool-activity",
+      "pluginId": "agent-tool-activity",
       "enabled": true,
       "mount": {
         "slotId": "conversation.message.tool-activity"

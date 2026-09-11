@@ -303,32 +303,41 @@ function SegmentLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function LegacyToolActivityRenderer({
+function ToolActivityFallbackRenderer({
   items,
 }: {
   items: readonly ToolPresentationItem[];
 }) {
   return (
-    <div className="agent-message-list-tool-result">
+    <div
+      className="agent-message-list-tool-activity-fallback"
+      data-slot="agent-message-tool-activity-fallback"
+    >
       <SegmentLabel>工具活动</SegmentLabel>
-      {items.map((item) => (
-        <div className="agent-message-list-tool-call" key={item.toolCall.id}>
-          <span aria-hidden="true">🔧</span>
-          <strong>{item.toolCall.function.name}</strong>
-          <span>
-            {item.status === "loading"
-              ? "正在执行…"
-              : item.status === "success"
-                ? "已完成"
-                : item.status === "error"
-                  ? "失败"
-                  : "未完成"}
-          </span>
-          <span>
-            {item.result?.error ?? item.result?.content ?? "工具没有返回结果"}
-          </span>
-        </div>
-      ))}
+      <div className="agent-message-list-tool-activity-fallback-items">
+        {items.map((item) => (
+          <div
+            className="agent-message-list-tool-activity-fallback-item"
+            data-slot="agent-message-tool-activity-fallback-item"
+            data-status={item.status}
+            key={item.toolCall.id}
+          >
+            <strong>{item.toolCall.function.name}</strong>
+            <span>
+              {item.status === "loading"
+                ? "正在执行…"
+                : item.status === "success"
+                  ? "已完成"
+                  : item.status === "error"
+                    ? "失败"
+                    : "未完成"}
+            </span>
+            <span>
+              {item.result?.error ?? item.result?.content ?? "工具没有返回结果"}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -545,7 +554,7 @@ function ToolActivitySegment({
     >
       {renderSlot(
         "conversation.message.tool-activity",
-        <LegacyToolActivityRenderer items={items} />,
+        <ToolActivityFallbackRenderer items={items} />,
       )}
     </MessageRenderProvider>
   );

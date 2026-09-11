@@ -199,10 +199,43 @@
   border-left: 2px solid rgb(139 124 255 / 32%);
 }
 
-.agent-message-list-tool-call {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+.agent-message-list-tool-activity-fallback {
+  min-width: 0;
+  display: grid;
+  gap: var(--aui-space-2);
+  padding-left: var(--aui-space-3);
+  border-left: 2px solid var(--aui-border);
+}
+
+.agent-message-list-tool-activity-fallback-items {
+  display: grid;
+  min-width: 0;
+  gap: var(--aui-space-2);
+}
+
+.agent-message-list-tool-activity-fallback-item {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, auto) auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--aui-space-2);
+  color: var(--aui-fg-muted);
+  font-size: var(--aui-font-size-xs);
+}
+
+.agent-message-list-tool-activity-fallback-item strong,
+.agent-message-list-tool-activity-fallback-item span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.agent-message-list-tool-activity-fallback-item strong {
+  color: var(--aui-fg);
+  font-weight: var(--aui-font-weight-medium);
+}
+
+.agent-message-list-tool-activity-fallback-item[data-status="error"] {
+  color: var(--aui-danger);
 }
 
 .agent-message-list-tool-result--error {

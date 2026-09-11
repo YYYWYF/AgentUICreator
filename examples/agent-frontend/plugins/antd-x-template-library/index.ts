@@ -4,6 +4,7 @@ import { antdXConversationsPlugin } from "../antd-x-conversations/definition";
 import { agentMessageListPlugin } from "../agent-message-list/definition";
 import { agentReasoningPlugin } from "../agent-reasoning/definition";
 import { agentToolPlugin } from "../agent-tool/definition";
+import { agentToolActivityPlugin } from "../agent-tool-activity/definition";
 import { antdXPromptsPlugin } from "../antd-x-prompts/definition";
 import { antdXResourcesPlugin } from "../antd-x-resources/definition";
 import { antdXRunTimelinePlugin } from "../antd-x-run-timeline/definition";
@@ -12,7 +13,6 @@ import { antdXSourcesPlugin } from "../antd-x-sources/definition";
 import { antdXThemeProviderPlugin } from "../antd-x-theme-provider/definition";
 import { antdXThemeSwitchPlugin } from "../antd-x-theme-switch/definition";
 import { antdXToolDetailPlugin } from "../antd-x-tool-detail/definition";
-import { antdXToolActivityPlugin } from "../antd-x-tool-activity/definition";
 import { antdXWelcomePlugin } from "../antd-x-welcome/definition";
 import { conversationSurfacePlugin } from "../conversation-surface/definition";
 import { conversationDataSourcePlugin } from "../conversation-data-source/definition";
@@ -25,7 +25,7 @@ export const antdXTemplatePlugins = [
   antdXConversationsPlugin,
   antdXWelcomePlugin,
   agentMessageListPlugin,
-  antdXToolActivityPlugin,
+  agentToolActivityPlugin,
   agentToolPlugin,
   antdXRunTimelinePlugin,
   antdXToolDetailPlugin,
@@ -54,7 +54,7 @@ export {
   antdXThemeProviderPlugin,
   antdXThemeSwitchPlugin,
   antdXToolDetailPlugin,
-  antdXToolActivityPlugin,
+  agentToolActivityPlugin,
   agentToolPlugin,
   antdXWelcomePlugin,
   conversationDataSourcePlugin,
@@ -75,7 +75,7 @@ export { AntdXSourcesPlugin } from "../antd-x-sources";
 export { AntdXThemeProviderPlugin } from "../antd-x-theme-provider";
 export { AntdXThemeSwitchPlugin } from "../antd-x-theme-switch";
 export { AntdXToolDetailPlugin } from "../antd-x-tool-detail";
-export { AntdXToolActivityPlugin } from "../antd-x-tool-activity";
+export { AgentToolActivityPlugin } from "../agent-tool-activity";
 export { AgentToolPlugin } from "../agent-tool";
 export { AntdXWelcomePlugin } from "../antd-x-welcome";
 export { ConversationSurfacePlugin } from "../conversation-surface";

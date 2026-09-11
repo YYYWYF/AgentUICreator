@@ -96,6 +96,10 @@
     {
       "id": "agent-component/tool",
       "path": "items/agent-component-tool/item.json"
+    },
+    {
+      "id": "agent-component/tool-activity",
+      "path": "items/agent-component-tool-activity/item.json"
     }
   ]
 }

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "agent-component/tool-activity",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Grouped or flat multi-tool activity surface for Agent UI conversations",
+  "upstream": {
+    "project": "AgentUICreator",
+    "mode": "original"
+  },
+  "requires": [
+    "foundation/core",
+    "primitive/collapsible",
+    "primitive/spinner"
+  ],
+  "files": [
+    {
+      "source": "files/components/tool-activity.tsx",
+      "target": "components/tool-activity.tsx"
+    },
+    {
+      "source": "files/components/tool-activity.module.css",
+      "target": "components/tool-activity.module.css"
+    }
+  ]
+}

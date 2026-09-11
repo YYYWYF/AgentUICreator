@@ -15,6 +15,10 @@ import {
   AgentTool,
   type AgentToolStatus,
 } from "../../agent-ui/components/tool";
+import {
+  AgentToolActivity,
+  type AgentToolActivityStatus,
+} from "../../agent-ui/components/tool-activity";
 import { AgentUIRoot, type AgentUITheme } from "../../agent-ui/foundation/AgentUIRoot";
 import { Avatar, AvatarBadge, AvatarFallback } from "../../agent-ui/primitives/avatar";
 import { Badge } from "../../agent-ui/primitives/badge";
@@ -504,6 +508,158 @@ function ToolGallery() {
   );
 }
 
+interface ToolActivityFixtureProps {
+  fixtureLabel: string;
+  presentation: "grouped" | "flat";
+  status: AgentToolActivityStatus;
+  initialExpanded?: boolean;
+  summary?: string;
+  children: ReactNode;
+}
+
+function ToolActivityFixture({
+  fixtureLabel,
+  presentation,
+  status,
+  initialExpanded = false,
+  summary,
+  children,
+}: ToolActivityFixtureProps) {
+  const [expanded, setExpanded] = useState(initialExpanded);
+
+  return (
+    <article className={styles.messageFixture}>
+      <span className={styles.fixtureLabel}>{fixtureLabel}</span>
+      <AgentMessage role="assistant" header="Assistant">
+        {presentation === "flat" ? (
+          <AgentToolActivity presentation="flat" status={status}>
+            {children}
+          </AgentToolActivity>
+        ) : (
+          <AgentToolActivity
+            presentation="grouped"
+            status={status}
+            expanded={expanded}
+            onExpandedChange={setExpanded}
+            summary={summary}
+          >
+            {children}
+          </AgentToolActivity>
+        )}
+      </AgentMessage>
+    </article>
+  );
+}
+
+function ToolActivityChild({
+  name,
+  status,
+}: {
+  name: string;
+  status: AgentToolStatus;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const statusLabel = status === "running"
+    ? "执行中"
+    : status === "completed"
+      ? "已完成"
+      : status === "error"
+        ? "失败"
+        : "未完成";
+
+  return (
+    <AgentTool
+      status={status}
+      expanded={expanded}
+      onExpandedChange={setExpanded}
+      name={name}
+      summary={`工具调用 · ${statusLabel}`}
+      statusLabel={statusLabel}
+    >
+      <div className={styles.toolOperation}>
+        <ToolField label="输入" value={`target  ${name}`} />
+        <ToolField
+          label={status === "error" ? "错误" : "输出"}
+          value={status === "running"
+            ? "等待工具返回结果…"
+            : status === "error"
+              ? "Permission denied"
+              : status === "interrupted"
+                ? "未返回结果"
+                : `${name} completed`}
+        />
+      </div>
+    </AgentTool>
+  );
+}
+
+function ToolActivityGallery() {
+  return (
+    <div className={styles.messageGrid}>
+      <ToolActivityFixture
+        fixtureLabel="Grouped Running / Collapsed"
+        presentation="grouped"
+        status="running"
+        summary="正在调用 inspect_project"
+      >
+        <ToolActivityChild name="inspect_project" status="running" />
+        <ToolActivityChild name="search_files" status="completed" />
+      </ToolActivityFixture>
+
+      <ToolActivityFixture
+        fixtureLabel="Grouped Running / Expanded"
+        presentation="grouped"
+        status="running"
+        initialExpanded
+        summary="正在调用 2 个工具"
+      >
+        <ToolActivityChild name="inspect_project" status="running" />
+        <ToolActivityChild name="search_files" status="running" />
+      </ToolActivityFixture>
+
+      <ToolActivityFixture
+        fixtureLabel="Grouped Completed / Collapsed"
+        presentation="grouped"
+        status="completed"
+        summary="使用了 2 个工具"
+      >
+        <ToolActivityChild name="inspect_project" status="completed" />
+        <ToolActivityChild name="search_files" status="completed" />
+      </ToolActivityFixture>
+
+      <ToolActivityFixture
+        fixtureLabel="Grouped Error / Expanded"
+        presentation="grouped"
+        status="error"
+        initialExpanded
+        summary="2 个工具 · 1 个失败"
+      >
+        <ToolActivityChild name="inspect_project" status="completed" />
+        <ToolActivityChild name="write_file" status="error" />
+      </ToolActivityFixture>
+
+      <ToolActivityFixture
+        fixtureLabel="Grouped Interrupted"
+        presentation="grouped"
+        status="interrupted"
+        summary="2 个工具 · 1 个未完成"
+      >
+        <ToolActivityChild name="inspect_project" status="completed" />
+        <ToolActivityChild name="run_tests" status="interrupted" />
+      </ToolActivityFixture>
+
+      <ToolActivityFixture
+        fixtureLabel="Flat"
+        presentation="flat"
+        status="completed"
+      >
+        <ToolActivityChild name="inspect_project" status="completed" />
+        <ToolActivityChild name="search_files" status="completed" />
+      </ToolActivityFixture>
+    </div>
+  );
+}
+
 const longThreadMessages = [
   {
     role: "user",
@@ -704,6 +860,8 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
         <ReasoningGallery />
         <h3 className={styles.componentHeading}>Agent Tool</h3>
         <ToolGallery />
+        <h3 className={styles.componentHeading}>Agent Tool Activity</h3>
+        <ToolActivityGallery />
         <h3 className={styles.componentHeading}>Agent Composer</h3>
         <div className={styles.composerGrid}>
           <ComposerFixture label="Empty" />
