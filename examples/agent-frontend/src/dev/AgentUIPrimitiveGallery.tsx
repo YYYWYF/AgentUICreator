@@ -101,7 +101,7 @@ function ComposerFixture({
         onValueChange={setValue}
         onSubmit={() => undefined}
         running={running}
-        onStop={running ? () => undefined : undefined}
+        {...(running ? { onStop: () => undefined } : {})}
         disabled={disabled}
         actions={actions}
       />
@@ -112,7 +112,7 @@ function ComposerFixture({
 function ComposerSuggestionsFixture({ theme }: { theme: AgentUITheme }) {
   const [value, setValue] = useState("/");
   const [activeIndex, setActiveIndex] = useState(0);
-  const anchor = useRef<HTMLElement>(null);
+  const anchor = useRef<HTMLDivElement>(null);
   const listId = `${theme}-composer-suggestions`;
   const items = [
     {

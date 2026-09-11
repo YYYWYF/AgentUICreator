@@ -132,7 +132,7 @@ describe("Application Gate lifecycle", () => {
       },
     });
     const snapshots: Array<{
-      application?: { phase: string };
+      application?: { phase: string } | undefined;
       instances: Array<{ instanceId: string }>;
     }> = [];
     let renderer: ReturnType<typeof create> | undefined;
@@ -378,7 +378,9 @@ describe("Application Gate lifecycle", () => {
     const diagnosticsFor = (hash: string): PluginDiagnosticContextValue => ({
       appUIModelHash: hash,
       locationFor: () => undefined,
+      slotPathFor: () => undefined,
       registerMountedInstance: () => () => undefined,
+      registerObservedSlot: () => () => undefined,
       updateApplicationLifecycle: () => undefined,
       report: (event) => events.push({ hash, event }),
     });

@@ -33,7 +33,7 @@ const defaultSuggestions: SuggestionItem[] = [
 ];
 
 function readSuggestions(value: unknown): AgentComposerSuggestionItem[] {
-  const configured = Array.isArray(value)
+  const configured: SuggestionItem[] = Array.isArray(value)
     ? value.flatMap((item) => {
         if (typeof item === "string" && item.trim().length > 0) {
           return [{ label: item, value: item }];

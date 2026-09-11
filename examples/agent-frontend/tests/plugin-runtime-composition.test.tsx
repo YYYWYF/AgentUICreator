@@ -186,7 +186,7 @@ describe("plugin runtime composition", () => {
         actualWidthClass: "narrow",
       }),
     );
-    expect(renderer.root.findByProps({ children: "Committed child" })).toBeTruthy();
+    expect(renderer!.root.findByProps({ children: "Committed child" })).toBeTruthy();
   });
 
   it("keeps width diagnostics open until every occurrence of a logical Slot is wide", async () => {
@@ -308,18 +308,18 @@ describe("plugin runtime composition", () => {
     expect(widthDiagnostics().map(({ status }) => status)).toEqual(["error"]);
     expect(childSlotWidth()).toBe("narrow");
 
-    await emitWidth(childSlotNodes[0], 640);
+    await emitWidth(childSlotNodes[0]!, 640);
     expect(widthDiagnostics().map(({ status }) => status)).toEqual(["error"]);
     expect(childSlotWidth()).toBe("narrow");
 
-    await emitWidth(childSlotNodes[1], 640);
+    await emitWidth(childSlotNodes[1]!, 640);
     expect(widthDiagnostics().map(({ status }) => status)).toEqual([
       "error",
       "resolved",
     ]);
     expect(childSlotWidth()).toBe("wide");
 
-    await emitWidth(childSlotNodes[1], 320);
+    await emitWidth(childSlotNodes[1]!, 320);
     expect(widthDiagnostics().map(({ status }) => status)).toEqual([
       "error",
       "resolved",

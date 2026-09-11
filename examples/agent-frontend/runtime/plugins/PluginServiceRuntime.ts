@@ -217,7 +217,7 @@ export class PluginServiceRuntime {
       model,
       registry: erasedRegistry,
       actions,
-      diagnostics,
+      ...(diagnostics === undefined ? {} : { diagnostics }),
       foundationInstanceIds: foundation.foundationInstanceIds,
     };
 

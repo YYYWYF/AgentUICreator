@@ -87,7 +87,7 @@ describe("AgentComposer", () => {
   it("submits the authoritative value on Enter and prevents a newline", async () => {
     const onSubmit = vi.fn();
     const { textarea } = await renderComposer({ value: "  hello  ", onSubmit });
-    let event!: KeyboardEvent;
+    let event!: globalThis.KeyboardEvent;
     await act(async () => {
       event = dispatchKey(textarea, { key: "Enter" });
     });
@@ -138,7 +138,7 @@ describe("AgentComposer", () => {
   it("leaves Shift+Enter as a newline and does not submit", async () => {
     const onSubmit = vi.fn();
     const { textarea } = await renderComposer({ onSubmit });
-    let event!: KeyboardEvent;
+    let event!: globalThis.KeyboardEvent;
     await act(async () => {
       event = dispatchKey(textarea, { key: "Enter", shiftKey: true });
     });

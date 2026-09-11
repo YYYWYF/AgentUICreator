@@ -516,7 +516,10 @@ function widthSensitiveInstanceIds(
 function assertPluginWidthCompatibility(
   model: AppUIModel,
   operations: readonly AppUIOperation[],
-  assets: readonly { pluginId: string; layoutWidth?: "narrow" | "wide" }[],
+  assets: readonly {
+    pluginId: string;
+    layoutWidth?: "narrow" | "wide" | undefined;
+  }[],
   runtimeSlotWidths: Readonly<Record<string, "unknown" | "narrow" | "wide">>,
 ): void {
   const assetsById = new Map(assets.map((asset) => [asset.pluginId, asset]));
@@ -600,10 +603,10 @@ async function runTransaction(
     registry.assets,
     input.runtimeSlotWidths ?? {},
   );
-  const selectedPluginIds = new Set(registry.selectedPluginIds);
+  const selectedPluginIdSet = new Set(registry.selectedPluginIds);
   const childSlotIssues = await verifyPluginChildSlots(
     projectRoot,
-    registry.assets.filter((asset) => selectedPluginIds.has(asset.pluginId)),
+    registry.assets.filter((asset) => selectedPluginIdSet.has(asset.pluginId)),
   );
   if (childSlotIssues.length > 0) {
     throw new AppUITransactionError(

@@ -46,8 +46,8 @@ function equalProjectedProducer(
   left: AgentProducer,
   right: AgentProducer,
 ): boolean {
-  if (left.type !== right.type) return false;
-  return left.type === "root" ? true : left.id === right.id;
+  if (left.type === "root") return right.type === "root";
+  return right.type === "subagent" && left.id === right.id;
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -149,15 +149,16 @@ function equalProjectedMessage(
   switch (left.role) {
     case "user": {
       if (right.role !== "user") return false;
-      if (typeof left.content !== typeof right.content) return false;
-
       if (typeof left.content === "string") {
-        return left.content === right.content;
+        return typeof right.content === "string" && left.content === right.content;
       }
+      if (typeof right.content === "string") return false;
+      const leftContent = left.content;
+      const rightContent = right.content;
 
-      return left.content.length === right.content.length
-        && left.content.every((part, index) => {
-          const nextPart = right.content[index];
+      return leftContent.length === rightContent.length
+        && leftContent.every((part, index) => {
+          const nextPart = rightContent[index];
           return nextPart !== undefined
             && equalAgentMessagePart(part, nextPart);
         });
@@ -584,7 +585,8 @@ export class LifecycleProjector {
     let subagentId: string | undefined = producer.id;
     while (subagentId !== undefined && !subagentIds.has(subagentId)) {
       subagentIds.add(subagentId);
-      const execution = this.findExecution("subagent", subagentId);
+      const execution: AgentSubagentExecution | undefined =
+        this.findExecution("subagent", subagentId);
       subagentId = execution?.producer.type === "subagent"
         ? execution.producer.id
         : undefined;

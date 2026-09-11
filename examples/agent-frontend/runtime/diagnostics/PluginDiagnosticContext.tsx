@@ -129,7 +129,9 @@ export function PluginDiagnosticProvider<TState = unknown>({
   const snapshotScheduled = useRef(false);
   const currentHash = useRef(appUIModelHash);
   const currentCompositionReporter = useRef(onRuntimeComposition);
-  const currentApplication = useRef<RuntimeCompositionApplication>();
+  const currentApplication = useRef<RuntimeCompositionApplication | undefined>(
+    undefined,
+  );
   const locations = useMemo(() => createPluginLocationIndex(model), [model]);
   const slotLocations = useMemo(() => createSlotLocationIndex(model), [model]);
   const locationFor = useCallback(

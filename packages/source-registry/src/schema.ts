@@ -162,13 +162,25 @@ export function parseSourceItem(value: unknown, manifestPath: string): AgentUISo
         `${manifestPath} adapted upstream metadata requires component, revision, and license.`,
       );
     }
+    const component = typeof value.upstream.component === "string"
+      ? value.upstream.component
+      : undefined;
+    const implementation = typeof value.upstream.implementation === "string"
+      ? value.upstream.implementation
+      : undefined;
+    const revision = typeof value.upstream.revision === "string"
+      ? value.upstream.revision
+      : undefined;
+    const license = typeof value.upstream.license === "string"
+      ? value.upstream.license
+      : undefined;
     upstream = {
       project: value.upstream.project,
       mode: value.upstream.mode,
-      ...(value.upstream.component === undefined ? {} : { component: value.upstream.component }),
-      ...(value.upstream.implementation === undefined ? {} : { implementation: value.upstream.implementation }),
-      ...(value.upstream.revision === undefined ? {} : { revision: value.upstream.revision }),
-      ...(value.upstream.license === undefined ? {} : { license: value.upstream.license }),
+      ...(component === undefined ? {} : { component }),
+      ...(implementation === undefined ? {} : { implementation }),
+      ...(revision === undefined ? {} : { revision }),
+      ...(license === undefined ? {} : { license }),
     };
   }
   if (!Array.isArray(value.files) || value.files.length === 0) {
