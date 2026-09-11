@@ -1,17 +1,20 @@
 {
   "schemaVersion": 1,
   "id": "agent-component/reasoning",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "kind": "agent-component",
   "description": "Controlled reasoning disclosure surface for Agent UI conversations",
   "upstream": {
-    "project": "AgentUICreator",
-    "mode": "original"
+    "project": "assistant-ui/assistant-ui",
+    "component": "elements-reasoning",
+    "implementation": "react",
+    "revision": "97bd4b39fce83163354c9ec8d9d4fb2c9bd1aac7",
+    "mode": "adapted",
+    "license": "MIT"
   },
   "requires": [
     "foundation/core",
-    "primitive/collapsible",
-    "primitive/spinner"
+    "primitive/collapsible"
   ],
   "files": [
     {

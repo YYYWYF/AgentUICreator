@@ -38,6 +38,11 @@ UI Plugin implementation dependencies also belong to the generated project, incl
 
 `docs/agent-ui-reference-guide.md` is the detailed decision guide for Agent UI reference selection and responsibility boundaries.
 
+The assistant-ui source repository is available locally at
+`/Users/yifei/Coding/assistant-ui`. When assistant-ui is the selected reference,
+inspect the pinned revision in that local repository instead of fetching or
+guessing upstream source.
+
 Read the relevant sections before:
 
 - creating the initial project structure;

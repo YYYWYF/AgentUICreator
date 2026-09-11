@@ -35,11 +35,15 @@ SOFTWARE.
 ## assistant-ui
 
 The Agent Composer adapts component anatomy and interaction behavior from the
-assistant-ui React Composer and Elements Composer sources. It does not include
-assistant-ui runtime state, packages, hooks, or contexts.
-
-Pinned reference revision:
+assistant-ui React Composer and Elements Composer sources, pinned at revision
 `3a45a01c0d6141102638ecd4f32d1af4d01fb510`.
+
+Agent Reasoning adapts the assistant-ui Reasoning, ReasoningRoot, live preview,
+and useScrollLock interaction behavior, pinned at revision
+`97bd4b39fce83163354c9ec8d9d4fb2c9bd1aac7`.
+
+These adaptations do not include assistant-ui runtime state, packages, hooks,
+or contexts.
 
 MIT License
 

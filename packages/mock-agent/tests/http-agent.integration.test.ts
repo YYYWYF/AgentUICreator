@@ -213,7 +213,7 @@ describe("Mock Agent HTTP endpoint", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("application/json");
     expect(body.defaultScenarioId).toBe("reasoning-tool-success");
-    expect(body.scenarios).toHaveLength(4);
+    expect(body.scenarios).toHaveLength(5);
     expect(body.scenarios[0]).not.toHaveProperty("steps");
     expect(body.scenarios[0]).not.toHaveProperty("initialState");
   });

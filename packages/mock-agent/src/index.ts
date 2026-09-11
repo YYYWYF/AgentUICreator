@@ -26,6 +26,7 @@ export {
   builtinMockScenarios,
   multiToolScenario,
   reasoningChatScenario,
+  reasoningLongPreviewScenario,
   reasoningToolSuccessScenario,
   simpleChatScenario,
 } from "./builtins/index.js";

@@ -340,19 +340,22 @@ describe("Agent UI Source Registry contract", () => {
     });
   });
 
-  it("registers Agent Reasoning as an original Agent Component with owned primitives", async () => {
+  it("registers Agent Reasoning as a pinned assistant-ui adaptation", async () => {
     const registry = await loadAgentUISourceRegistry();
     expect(registry.byId.get("agent-component/reasoning")).toMatchObject({
-      version: "0.1.1",
+      version: "0.2.0",
       kind: "agent-component",
       requires: [
         "foundation/core",
         "primitive/collapsible",
-        "primitive/spinner",
       ],
       upstream: {
-        project: "AgentUICreator",
-        mode: "original",
+        project: "assistant-ui/assistant-ui",
+        component: "elements-reasoning",
+        implementation: "react",
+        revision: "97bd4b39fce83163354c9ec8d9d4fb2c9bd1aac7",
+        mode: "adapted",
+        license: "MIT",
       },
     });
   });

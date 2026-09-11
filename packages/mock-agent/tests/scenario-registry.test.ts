@@ -11,12 +11,26 @@ describe("createScenarioRegistry", () => {
       defaultScenarioId: "reasoning-tool-success",
     });
 
-    expect(registry.list()).toHaveLength(4);
+    expect(registry.list()).toHaveLength(5);
     expect(registry.list()).toEqual(builtinMockScenarios.map(
       ({ id, title, description }) => ({ id, title, description }),
     ));
     expect(registry.list()[0]).not.toHaveProperty("steps");
     expect(registry.list()[0]).not.toHaveProperty("initialState");
+  });
+
+  it("includes a long streaming reasoning preview scenario", () => {
+    const scenario = builtinMockScenarios.find(
+      ({ id }) => id === "reasoning-long-preview",
+    );
+
+    expect(scenario).toMatchObject({
+      id: "reasoning-long-preview",
+      steps: [expect.objectContaining({ type: "reasoning", durationMs: 10_000 })],
+    });
+    expect(scenario?.steps[0]?.type === "reasoning"
+      ? scenario.steps[0].text.length
+      : 0).toBeGreaterThan(300);
   });
 
   it("returns the configured default scenario", () => {

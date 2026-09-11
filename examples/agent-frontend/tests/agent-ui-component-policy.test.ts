@@ -170,7 +170,10 @@ describe("Agent UI component source policy", () => {
       "utf8",
     );
     expect(css).not.toMatch(/#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\(/u);
-    expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
+    expect(css).toMatch(/linear-gradient\s*\([^;]*var\(--aui-/u);
+    expect(css).not.toMatch(
+      /(?:linear|radial)-gradient\s*\([^;}]*(?:#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\()/u,
+    );
     expect(css).not.toMatch(
       /(?:^|\})\s*(?:body|html)\s*(?:,|\{)|\[data-agent-ui-root\]|:global|\.ant-/gmu,
     );
@@ -743,7 +746,7 @@ describe("Agent UI component source policy", () => {
     expect(manifest).toMatchObject({
       id: "agent-reasoning",
       name: "Agent Reasoning",
-      version: "1.1.0",
+      version: "1.2.0",
     });
     for (const filePath of sourceFiles) {
       const source = await readFile(filePath, "utf8");

@@ -369,6 +369,7 @@ function ReasoningFixture({
         <AgentReasoning
           status={status}
           expanded={expanded}
+          streaming={status === "running"}
           onExpandedChange={setExpanded}
           label={label}
         >

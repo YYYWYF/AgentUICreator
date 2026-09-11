@@ -446,7 +446,7 @@ describe("ui-project-control", () => {
           requestedItemId: "primitive/dialog",
           dependencyItemId: "foundation/core",
           installedVersion: "0.0.0",
-          requiredVersion: "0.2.2",
+          requiredVersion: "0.2.3",
         },
       },
     });

@@ -1,22 +1,24 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 import type { AgentReasoningStatus } from "../../agent-ui/components/reasoning";
 
-export const DEFAULT_REASONING_COLLAPSE_DELAY_MS = 1_000;
+interface ReasoningDisclosureState {
+  messageId: string;
+  initialOpen: boolean;
+  userOpen: boolean | null;
+}
 
-export function resolveReasoningCollapseDelayMs(value: unknown): number {
-  return typeof value === "number" && Number.isFinite(value) && value >= 0
-    ? value
-    : DEFAULT_REASONING_COLLAPSE_DELAY_MS;
+interface PreviousDisclosureSnapshot {
+  messageId: string;
+  expanded: boolean;
 }
 
 export interface ReasoningDisclosureOptions {
   messageId: string;
-  running: boolean;
+  streaming: boolean;
   status: AgentReasoningStatus;
   defaultExpanded: boolean;
-  collapseOnComplete: boolean;
-  collapseDelayMs: number;
+  onAutomaticAnimationStart?(): void;
 }
 
 export interface ReasoningDisclosureBinding {
@@ -26,100 +28,65 @@ export interface ReasoningDisclosureBinding {
 
 export function useReasoningDisclosure({
   messageId,
-  running,
+  streaming,
   status,
   defaultExpanded,
-  collapseOnComplete,
-  collapseDelayMs,
+  onAutomaticAnimationStart,
 }: ReasoningDisclosureOptions): ReasoningDisclosureBinding {
-  const [expanded, setExpanded] = useState(
-    () => running || defaultExpanded,
-  );
-  const expandedRef = useRef(expanded);
-  const previousMessageIdRef = useRef(messageId);
-  const previousRunningRef = useRef(running);
-  const collapseTimerRef = useRef<number | undefined>(undefined);
-
-  const clearPendingCollapse = useCallback(() => {
-    if (collapseTimerRef.current === undefined) {
-      return;
-    }
-
-    window.clearTimeout(collapseTimerRef.current);
-    collapseTimerRef.current = undefined;
-  }, []);
-
-  const updateExpanded = useCallback((nextExpanded: boolean) => {
-    expandedRef.current = nextExpanded;
-    setExpanded(nextExpanded);
-  }, []);
-
-  const onExpandedChange = useCallback(
-    (nextExpanded: boolean) => {
-      clearPendingCollapse();
-      updateExpanded(nextExpanded);
-    },
-    [clearPendingCollapse, updateExpanded],
-  );
-
-  useEffect(() => {
-    return () => clearPendingCollapse();
-  }, [clearPendingCollapse]);
-
-  useEffect(() => {
-    if (previousMessageIdRef.current !== messageId) {
-      clearPendingCollapse();
-      previousMessageIdRef.current = messageId;
-      previousRunningRef.current = running;
-      updateExpanded(running || defaultExpanded);
-      return;
-    }
-
-    const wasRunning = previousRunningRef.current;
-    previousRunningRef.current = running;
-
-    if (!wasRunning && running) {
-      clearPendingCollapse();
-      updateExpanded(true);
-      return;
-    }
-
-    if (status === "interrupted") {
-      clearPendingCollapse();
-      return;
-    }
-
-    if (
-      !wasRunning ||
-      running ||
-      status !== "completed" ||
-      !collapseOnComplete
-    ) {
-      return;
-    }
-
-    clearPendingCollapse();
-    if (collapseDelayMs === 0) {
-      updateExpanded(false);
-      return;
-    }
-
-    collapseTimerRef.current = window.setTimeout(() => {
-      collapseTimerRef.current = undefined;
-      if (expandedRef.current) {
-        updateExpanded(false);
-      }
-    }, collapseDelayMs);
-  }, [
-    clearPendingCollapse,
-    collapseDelayMs,
-    collapseOnComplete,
-    defaultExpanded,
+  const [state, setState] = useState<ReasoningDisclosureState>(() => ({
     messageId,
-    running,
-    status,
-    updateExpanded,
-  ]);
+    initialOpen: defaultExpanded,
+    userOpen: null,
+  }));
+  const currentState = state.messageId === messageId
+    ? state
+    : {
+        messageId,
+        initialOpen: defaultExpanded,
+        userOpen: null,
+      };
+  const previousRef = useRef<PreviousDisclosureSnapshot>({
+    messageId,
+    expanded: streaming || defaultExpanded,
+  });
+  const manualChangeRef = useRef(false);
+
+  const expanded = currentState.userOpen
+    ?? (status === "interrupted" && previousRef.current.messageId === messageId
+      ? previousRef.current.expanded
+      : streaming || currentState.initialOpen);
+
+  const onExpandedChange = useCallback((nextExpanded: boolean) => {
+    manualChangeRef.current = true;
+    setState((previousState) => {
+      const stateForMessage = previousState.messageId === messageId
+        ? previousState
+        : {
+            messageId,
+            initialOpen: defaultExpanded,
+            userOpen: null,
+          };
+      return { ...stateForMessage, userOpen: nextExpanded };
+    });
+  }, [defaultExpanded, messageId]);
+
+  useLayoutEffect(() => {
+    if (state.messageId !== messageId) {
+      setState(currentState);
+    }
+
+    const previous = previousRef.current;
+    if (previous.messageId === messageId && previous.expanded !== expanded) {
+      if (manualChangeRef.current) {
+        manualChangeRef.current = false;
+      } else {
+        onAutomaticAnimationStart?.();
+      }
+    } else {
+      manualChangeRef.current = false;
+    }
+    previousRef.current = { messageId, expanded };
+  }, [currentState, expanded, messageId, onAutomaticAnimationStart, state.messageId]);
 
   return {
     expanded,

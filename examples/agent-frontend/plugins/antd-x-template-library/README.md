@@ -20,7 +20,7 @@
 - `agent-tool-detail`：独立工具调用详情面板，通过 Runtime Adapter 将会话中的 Tool Call 事实绑定到 `AgentToolDetail`，可按 `toolCallId` 定位调用，并展示增量参数的最终投影、执行状态、结果、错误或 Mermaid 源码；用于右侧 Inspector 等独立 Slot。
 - `agent-tool-activity`：消息流中的 Tool Presentation Host，通过 `conversation.message.tool-item` child Slot 在 grouped / flat 模式下复用同一个单工具 Renderer。
 - `agent-tool`：消息流中的 Tool Renderer，通过 Message Render Context 接收当前 Tool Call、Result 与 Execution，合并为一个 AgentTool Surface，并在 Plugin 内管理展开状态；不承担右侧 Inspector 职责。
-- `agent-reasoning`：消息流中的 Reasoning Renderer，通过 Message Render Context 把当前 reasoning 绑定到 AgentReasoning，并在 Plugin 内管理展开、完成保持与自动收起策略。
+- `agent-reasoning`：消息流中的 Reasoning Renderer，通过 Message Render Context 把当前 reasoning 绑定到 AgentReasoning，并在 Plugin 内管理 disclosure、流式预览与滚动锁定。
 - `antd-x-activity-feed`：只渲染 AG-UI activity messages，并把业务状态投影为 loading / success / error / abort。
 - `antd-x-sources`：聚合当前会话 message metadata 与 Frontend State 中的 sources，形成可独立放置的引用面板。
 - `antd-x-attachments`：聚合当前会话输入与 Frontend State 中的附件，仅做只读展示；在 Runtime 提供多模态发送合同前不开放上传入口。

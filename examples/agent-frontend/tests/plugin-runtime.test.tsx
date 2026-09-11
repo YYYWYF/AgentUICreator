@@ -1114,15 +1114,14 @@ describe("UIPluginRuntime", () => {
     expect(runningHtml).toContain('data-expanded="true"');
   });
 
-  it("collapses reasoning after the same occurrence completes", async () => {
-    vi.useFakeTimers();
+  it("returns completed reasoning to its default until the user takes ownership", async () => {
     const model = parseAppUIModel({
       ...appUIJson,
       pluginInstances: {
         ...appUIJson.pluginInstances,
         "agent-reasoning-main": {
           ...appUIJson.pluginInstances["agent-reasoning-main"],
-          props: { collapseDelayMs: 250 },
+          props: { defaultExpanded: false },
         },
       },
     });
@@ -1186,18 +1185,6 @@ describe("UIPluginRuntime", () => {
       expect(wrapper.props["data-reasoning-status"]).toBe("completed");
       expect(reasoning.props.status).toBe("completed");
       expect(reasoning.props.label).toBe("思考过程");
-      expect(reasoning.props.expanded).toBe(true);
-
-      await act(async () => {
-        vi.advanceTimersByTime(249);
-      });
-      reasoning = mounted.renderer.root.findByType(AgentReasoning);
-      expect(reasoning.props.expanded).toBe(true);
-
-      await act(async () => {
-        vi.advanceTimersByTime(1);
-      });
-      reasoning = mounted.renderer.root.findByType(AgentReasoning);
       expect(reasoning.props.expanded).toBe(false);
 
       await act(async () => reasoning.props.onExpandedChange(true));
@@ -1212,22 +1199,11 @@ describe("UIPluginRuntime", () => {
       expect(reasoning.props.expanded).toBe(true);
     } finally {
       await mounted.dispose();
-      vi.useRealTimers();
     }
   });
 
-  it("keeps completed reasoning expanded when collapseOnComplete is disabled", async () => {
-    vi.useFakeTimers();
-    const model = parseAppUIModel({
-      ...appUIJson,
-      pluginInstances: {
-        ...appUIJson.pluginInstances,
-        "agent-reasoning-main": {
-          ...appUIJson.pluginInstances["agent-reasoning-main"],
-          props: { collapseOnComplete: false },
-        },
-      },
-    });
+  it("keeps default-expanded reasoning open when streaming completes", async () => {
+    const model = parseAppUIModel(appUIJson);
     const registry = createPluginRegistry(antdXTemplatePlugins);
     const messages: AgentMessage[] = [
       {
@@ -1272,15 +1248,11 @@ describe("UIPluginRuntime", () => {
         run: idleRun,
       });
 
-      await act(async () => {
-        vi.advanceTimersByTime(5_000);
-      });
       const reasoning = mounted.renderer.root.findByType(AgentReasoning);
       expect(reasoning.props.status).toBe("completed");
       expect(reasoning.props.expanded).toBe(true);
     } finally {
       await mounted.dispose();
-      vi.useRealTimers();
     }
   });
 

@@ -58,13 +58,13 @@
       }
     },
     "agent-component/reasoning": {
-      "version": "0.1.1",
+      "version": "0.2.0",
       "files": {
         "components/reasoning.module.css": {
-          "sha256": "ea86c629bd642b339e64599c2f7cb292262e6df0ca1bfae25918aa87292490e0"
+          "sha256": "683565bdfbe2e4530bf37a5b7c119862971a4d2838c2cd37b3205b8a4547245b"
         },
         "components/reasoning.tsx": {
-          "sha256": "2297b5dad6a4aba5e21dfb44a627b68be313d29a70861f4e9c2dd9618e2c726b"
+          "sha256": "a4fb7c613e0d6b52be3bc22e26f339e90c47271cc07a8b7d52969fb1978cdcf5"
         }
       }
     },
@@ -146,7 +146,7 @@
       }
     },
     "foundation/core": {
-      "version": "0.2.2",
+      "version": "0.2.3",
       "files": {
         "foundation/AgentUIRoot.tsx": {
           "sha256": "72491c31fa94bec330ec42b2df7148ffb6fa3ad33dd407efe907d510bc482b80"
@@ -164,7 +164,7 @@
           "sha256": "e77894e090b8340cf5f3cba1e00a2459599ba96a68668ae4055e1d4ef3c2d183"
         },
         "THIRD_PARTY_NOTICES.md": {
-          "sha256": "691876965504990cf1fd517c30668b7e6120789bf1cf4c51f755689401024d16"
+          "sha256": "a4f2f9ea59d45e095be481b385dcf920f8b08712d7bd222bfea773da52df78d2"
         }
       }
     },

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "foundation/core",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "kind": "foundation",
   "description": "Scoped Agent UI root, context, utilities, tokens, and reset",
   "upstream": {
