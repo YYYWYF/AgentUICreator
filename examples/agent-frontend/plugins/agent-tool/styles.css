@@ -1,0 +1,136 @@
+.agent-tool-plugin-details {
+  display: grid;
+  gap: var(--aui-space-3);
+}
+
+.agent-tool-plugin-detail-section {
+  min-width: 0;
+}
+
+.agent-tool-plugin-detail-section + .agent-tool-plugin-detail-section {
+  padding-top: var(--aui-space-3);
+  border-top: 1px solid var(--aui-border);
+}
+
+.agent-tool-plugin-detail-heading {
+  margin: 0 0 var(--aui-space-2);
+  color: var(--aui-fg-subtle);
+  font-size: var(--aui-font-size-xs);
+  font-weight: var(--aui-font-weight-semibold);
+}
+
+.agent-tool-plugin-value {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: flex-start;
+  gap: var(--aui-space-2);
+  color: var(--aui-fg-muted);
+}
+
+.agent-tool-plugin-file-icon {
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  margin-top: 0.15em;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.agent-tool-plugin-value code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--aui-font-size-xs);
+  line-height: var(--aui-line-height-normal);
+}
+
+.agent-tool-plugin-value-list {
+  display: grid;
+  gap: var(--aui-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.agent-tool-plugin-value-list li {
+  min-width: 0;
+  padding: var(--aui-space-1) var(--aui-space-2);
+  border-radius: var(--aui-radius-xs);
+  background: var(--aui-bg-muted);
+}
+
+.agent-tool-plugin-object {
+  display: grid;
+  gap: var(--aui-space-1);
+  margin: 0;
+}
+
+.agent-tool-plugin-field {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(4.5rem, auto) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--aui-space-3);
+  padding: var(--aui-space-1) 0;
+}
+
+.agent-tool-plugin-field dt {
+  color: var(--aui-fg-subtle);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--aui-font-size-xs);
+  font-weight: var(--aui-font-weight-semibold);
+  line-height: var(--aui-line-height-normal);
+}
+
+.agent-tool-plugin-field dd {
+  min-width: 0;
+  margin: 0;
+}
+
+.agent-tool-plugin-raw-value {
+  max-height: 12rem;
+  margin: 0;
+  padding: var(--aui-space-2);
+  overflow: auto;
+  border-radius: var(--aui-radius-xs);
+  color: var(--aui-fg-muted);
+  background: var(--aui-bg-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--aui-font-size-xs);
+  line-height: var(--aui-line-height-normal);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.agent-tool-plugin-error {
+  display: grid;
+  gap: var(--aui-space-1);
+  padding: var(--aui-space-3);
+  border: 1px solid var(--aui-border);
+  border-radius: var(--aui-radius-sm);
+  color: var(--aui-danger);
+  background: var(--aui-bg-subtle);
+  font-size: var(--aui-font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.agent-tool-plugin-error strong {
+  font-weight: var(--aui-font-weight-semibold);
+}
+
+.agent-tool-plugin-pending {
+  margin: 0;
+  color: var(--aui-fg-subtle);
+  font-size: var(--aui-font-size-sm);
+}
+
+@media (max-width: 40rem) {
+  .agent-tool-plugin-field {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--aui-space-1);
+  }
+}

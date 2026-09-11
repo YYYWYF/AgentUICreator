@@ -11,6 +11,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AgentUIRootContext } from "../agent-ui/foundation/context";
 import { AgentReasoning } from "../agent-ui/components/reasoning";
+import { AgentTool } from "../agent-ui/components/tool";
 import appUIJson from "../app-ui/app-ui.json";
 import {
   parseAppUIModel,
@@ -81,6 +82,31 @@ const defaultConversationMessages: AgentMessage[] = initialPreviewMessages.map(
     metadata: { ...message.metadata, conversationId: "default" },
   }),
 );
+
+/**
+ * Builds the AppUIModel with explicit props on the single tool renderer
+ * instance. Collapsed-by-default tool details are otherwise not mounted.
+ */
+function toolInstanceModel(props: Record<string, unknown>) {
+  return parseAppUIModel({
+    ...appUIJson,
+    pluginInstances: {
+      ...appUIJson.pluginInstances,
+      "agent-tool-message-main": {
+        ...appUIJson.pluginInstances["agent-tool-message-main"],
+        props,
+      },
+    },
+  });
+}
+
+/**
+ * Expands the tool surface so collapsed-by-default details stay inspectable in
+ * the runtime fixtures that assert argument and result content.
+ */
+function expandedToolModel() {
+  return toolInstanceModel({ defaultExpanded: true });
+}
 
 interface MountedPluginRuntime {
   renderer: ReactTestRenderer;
@@ -398,7 +424,7 @@ describe("UIPluginRuntime", () => {
   });
 
   it("renders one assistant message for a turn that crosses a tool call", async () => {
-    const model = parseAppUIModel(appUIJson);
+    const model = expandedToolModel();
     const registry = createPluginRegistry(antdXTemplatePlugins);
     const messages: AgentMessage[] = [
       {
@@ -457,7 +483,7 @@ describe("UIPluginRuntime", () => {
     expect(countOccurrences(html, "agent-message-list-role-dot")).toBe(0);
     expect(countOccurrences(html, "agent-message-list-actions")).toBe(1);
     expect(countOccurrences(html, "agent-message-list-turn-segment ")).toBe(2);
-    expect(html).toContain('data-ui-plugin="antd-x-tool-message"');
+    expect(html).toContain('data-ui-plugin="agent-tool"');
     expect(html).toContain("inspect");
     expect(html).toContain("已完成");
     expect(html).toContain("done");
@@ -575,7 +601,7 @@ describe("UIPluginRuntime", () => {
   });
 
   it("renders every response message in source order inside one turn surface", async () => {
-    const model = parseAppUIModel(appUIJson);
+    const model = expandedToolModel();
     const registry = createPluginRegistry(antdXTemplatePlugins);
     const messages: AgentMessage[] = [
       {
@@ -1161,11 +1187,15 @@ describe("UIPluginRuntime", () => {
       expect(reasoning.props.label).toBe("思考过程");
       expect(reasoning.props.expanded).toBe(true);
 
-      await act(async () => vi.advanceTimersByTime(249));
+      await act(async () => {
+        vi.advanceTimersByTime(249);
+      });
       reasoning = mounted.renderer.root.findByType(AgentReasoning);
       expect(reasoning.props.expanded).toBe(true);
 
-      await act(async () => vi.advanceTimersByTime(1));
+      await act(async () => {
+        vi.advanceTimersByTime(1);
+      });
       reasoning = mounted.renderer.root.findByType(AgentReasoning);
       expect(reasoning.props.expanded).toBe(false);
 
@@ -1241,7 +1271,9 @@ describe("UIPluginRuntime", () => {
         run: idleRun,
       });
 
-      await act(async () => vi.advanceTimersByTime(5_000));
+      await act(async () => {
+        vi.advanceTimersByTime(5_000);
+      });
       const reasoning = mounted.renderer.root.findByType(AgentReasoning);
       expect(reasoning.props.status).toBe("completed");
       expect(reasoning.props.expanded).toBe(true);
@@ -1351,7 +1383,7 @@ describe("UIPluginRuntime", () => {
   });
 
   it("keeps reasoning, merged tool blocks, and final text in projected order", async () => {
-    const model = parseAppUIModel(appUIJson);
+    const model = expandedToolModel();
     const messages: AgentMessage[] = [
       {
         id: "interleave-user",
@@ -1445,7 +1477,7 @@ describe("UIPluginRuntime", () => {
     expect(countOccurrences(html, 'data-ui-plugin="agent-reasoning"')).toBe(2);
     expect(countOccurrences(html, 'data-ui-plugin="antd-x-tool-activity"')).toBe(2);
     expect(countOccurrences(html, 'data-tool-presentation="grouped"')).toBe(2);
-    expect(countOccurrences(html, 'data-ui-plugin="antd-x-tool-message"')).toBe(2);
+    expect(countOccurrences(html, 'data-ui-plugin="agent-tool"')).toBe(2);
     expect(countOccurrences(html, "result A")).toBe(1);
     expect(countOccurrences(html, "result B")).toBe(2);
     orderedContent.slice(1).forEach((content, index) => {
@@ -1456,7 +1488,7 @@ describe("UIPluginRuntime", () => {
   });
 
   it("switches one tool activity between grouped and flat without changing tool data", async () => {
-    const groupedModel = parseAppUIModel(appUIJson);
+    const groupedModel = expandedToolModel();
     const flatModel = parseAppUIModel({
       ...appUIJson,
       pluginInstances: {
@@ -1467,6 +1499,10 @@ describe("UIPluginRuntime", () => {
             ...appUIJson.pluginInstances["agent-messages-main"].props,
             toolPresentation: "flat",
           },
+        },
+        "agent-tool-message-main": {
+          ...appUIJson.pluginInstances["agent-tool-message-main"],
+          props: { defaultExpanded: true },
         },
       },
     });
@@ -1538,8 +1574,9 @@ describe("UIPluginRuntime", () => {
       expect(activity.props["data-tool-presentation"]).toBe("grouped");
       expect(getText(activity)).toContain("使用了 2 个工具");
       expect(activity.findAllByProps({
-        "data-ui-plugin": "antd-x-tool-message",
+        "data-ui-plugin": "agent-tool",
       })).toHaveLength(2);
+      expect(activity.findAllByType(AgentTool)).toHaveLength(2);
       expect(getText(activity).match(/result A/gu)).toHaveLength(1);
       expect(getText(activity).match(/result B/gu)).toHaveLength(1);
 
@@ -1550,8 +1587,9 @@ describe("UIPluginRuntime", () => {
       });
       expect(activity.props["data-tool-presentation"]).toBe("flat");
       expect(activity.findAllByProps({
-        "data-ui-plugin": "antd-x-tool-message",
+        "data-ui-plugin": "agent-tool",
       })).toHaveLength(2);
+      expect(activity.findAllByType(AgentTool)).toHaveLength(2);
       expect(getText(activity).match(/result A/gu)).toHaveLength(1);
       expect(getText(activity).match(/result B/gu)).toHaveLength(1);
     } finally {
@@ -1624,7 +1662,7 @@ describe("UIPluginRuntime", () => {
       },
       Component: () => null,
     };
-    const model = parseAppUIModel(appUIJson);
+    const model = expandedToolModel();
     const registry = createPluginRegistry(
       antdXTemplatePlugins.map((definition) =>
         definition.manifest.id === "conversation-data-source"
@@ -1664,7 +1702,7 @@ describe("UIPluginRuntime", () => {
       });
       const tool = mounted.renderer.root.find(
         (node) =>
-          node.props["data-ui-plugin"] === "antd-x-tool-message" &&
+          node.props["data-ui-plugin"] === "agent-tool" &&
           node.props["data-tool-call-id"] === "history-tool-call",
       );
       const content = getText(messageList);
@@ -1679,7 +1717,7 @@ describe("UIPluginRuntime", () => {
       expect(reasoningWrapper.props["data-reasoning-status"]).toBe("completed");
       expect(reasoning.props.status).toBe("completed");
       expect(reasoning.props.expanded).toBe(true);
-      expect(tool.props["data-tool-status"]).toBe("success");
+      expect(tool.props["data-tool-status"]).toBe("completed");
       expect(countOccurrences(content, "project inspected")).toBe(1);
       orderedContent.slice(1).forEach((item, index) => {
         expect(content.indexOf(orderedContent[index]!)).toBeLessThan(
@@ -1692,7 +1730,7 @@ describe("UIPluginRuntime", () => {
   });
 
   it("updates the same tool block to an error state", async () => {
-    const model = parseAppUIModel(appUIJson);
+    const model = expandedToolModel();
     const messages: AgentMessage[] = [
       {
         id: "tool-error-user",
@@ -1745,11 +1783,14 @@ describe("UIPluginRuntime", () => {
 
     expect(countOccurrences(html, 'data-tool-call-id="tool-error-call"')).toBe(1);
     expect(html).toContain('data-tool-status="error"');
+    expect(html).toContain('data-slot="agent-tool"');
+    expect(html).toContain("失败");
+    expect(html).toContain('data-slot="agent-tool-error"');
     expect(countOccurrences(html, "permission denied")).toBe(2);
   });
 
   it("renders an unfinished tool call as one loading tool block", async () => {
-    const model = parseAppUIModel(appUIJson);
+    const model = expandedToolModel();
     const messages: AgentMessage[] = [
       {
         id: "tool-loading-user",
@@ -1791,8 +1832,231 @@ describe("UIPluginRuntime", () => {
     });
 
     expect(countOccurrences(html, 'data-tool-call-id="tool-loading-call"')).toBe(1);
-    expect(html).toContain('data-tool-status="loading"');
+    expect(html).toContain('data-tool-status="running"');
     expect(html).toContain("执行中");
+    expect(html).toContain("等待工具返回结果…");
+  });
+
+  it("binds live tool executions to AgentTool without resetting disclosure", async () => {
+    const model = parseAppUIModel(appUIJson);
+    const messages: AgentMessage[] = [
+      {
+        id: "agent-tool-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "执行工具",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "agent-tool-call-message",
+        producer: { type: "root" },
+        role: "assistant",
+        toolCalls: [{
+          id: "agent-tool-call",
+          type: "function",
+          function: { name: "inspect", arguments: "{}" },
+        }],
+        metadata: { conversationId: "default" },
+      },
+    ];
+    const runningExecution: AgentExecution = {
+      type: "tool",
+      id: "agent-tool-call",
+      producer: { type: "root" },
+      name: "inspect",
+      status: "awaiting-result",
+      arguments: "{}",
+    };
+    const runningRun: AgentRunState = { status: "running" };
+    const props = {
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [runningExecution],
+      interrupts: [],
+      messages,
+      model,
+      registry: createPluginRegistry(antdXTemplatePlugins),
+      run: runningRun,
+      state: previewAgentState,
+    } satisfies PluginRuntimeFixtureProps;
+    const mounted = await mountPluginRuntime(props);
+
+    try {
+      const wrapper = mounted.renderer.root.find(
+        (node) => node.props["data-ui-plugin"] === "agent-tool",
+      );
+      expect(wrapper.props["data-tool-call-id"]).toBe("agent-tool-call");
+      expect(wrapper.props["data-tool-status"]).toBe("running");
+
+      let tool = mounted.renderer.root.findByType(AgentTool);
+      expect(tool.props.status).toBe("running");
+      expect(tool.props.name).toBe("inspect");
+      expect(tool.props.statusLabel).toBe("执行中");
+      expect(tool.props.expanded).toBe(false);
+      expect(
+        mounted.renderer.root.findByProps({ "data-slot": "agent-tool" }).props[
+          "aria-busy"
+        ],
+      ).toBe(true);
+
+      await act(async () => tool.props.onExpandedChange(true));
+      tool = mounted.renderer.root.findByType(AgentTool);
+      expect(tool.props.expanded).toBe(true);
+
+      await mounted.update({
+        ...props,
+        executions: [{ ...runningExecution, status: "completed" }],
+        messages: [
+          ...messages,
+          {
+            id: "agent-tool-result",
+            producer: { type: "root" },
+            role: "tool",
+            toolCallId: "agent-tool-call",
+            content: "done",
+            metadata: { conversationId: "default" },
+          },
+        ],
+        run: idleRun,
+      });
+
+      tool = mounted.renderer.root.findByType(AgentTool);
+      expect(tool.props.status).toBe("completed");
+      expect(tool.props.statusLabel).toBe("已完成");
+      expect(tool.props.expanded).toBe(true);
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
+  it("renders interrupted tool executions without error wording", async () => {
+    const model = expandedToolModel();
+    const messages: AgentMessage[] = [
+      {
+        id: "stalled-tool-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "执行工具",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "stalled-tool-call-message",
+        producer: { type: "root" },
+        role: "assistant",
+        toolCalls: [{
+          id: "stalled-tool-call",
+          type: "function",
+          function: { name: "stalled_tool", arguments: "{}" },
+        }],
+        metadata: { conversationId: "default" },
+      },
+    ];
+
+    const html = await renderPluginRuntime({
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [{
+        type: "tool",
+        id: "stalled-tool-call",
+        producer: { type: "root" },
+        name: "stalled_tool",
+        status: "interrupted",
+        arguments: "{}",
+      }],
+      interrupts: [],
+      messages,
+      model,
+      registry: createPluginRegistry(antdXTemplatePlugins),
+      run: idleRun,
+      state: previewAgentState,
+    });
+
+    expect(html).toContain('data-tool-status="interrupted"');
+    expect(html).toContain("未完成");
+    expect(html).toContain("工具没有返回结果");
+    expect(html).not.toContain("失败");
+    expect(html).not.toContain('data-slot="agent-tool-error"');
+  });
+
+  it("honors tool showArguments and showResult instance props", async () => {
+    const messages: AgentMessage[] = [
+      {
+        id: "tool-props-user",
+        producer: { type: "root" },
+        role: "user",
+        content: "执行工具",
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "tool-props-call-message",
+        producer: { type: "root" },
+        role: "assistant",
+        toolCalls: [{
+          id: "tool-props-call",
+          type: "function",
+          function: { name: "inspect", arguments: '{"path":"/src"}' },
+        }],
+        metadata: { conversationId: "default" },
+      },
+      {
+        id: "tool-props-result",
+        producer: { type: "root" },
+        role: "tool",
+        toolCallId: "tool-props-call",
+        content: "done",
+        metadata: { conversationId: "default" },
+      },
+    ];
+    const base = {
+      actions: runtimeActions,
+      conversation: { id: "default" },
+      executions: [],
+      interrupts: [],
+      messages,
+      registry: createPluginRegistry(antdXTemplatePlugins),
+      run: idleRun,
+      state: previewAgentState,
+    } satisfies Omit<PluginRuntimeFixtureProps, "model">;
+
+    const hiddenArguments = await renderPluginRuntime({
+      ...base,
+      model: toolInstanceModel({
+        defaultExpanded: true,
+        showArguments: false,
+      }),
+    });
+    expect(hiddenArguments).toContain('data-ui-plugin="agent-tool"');
+    expect(hiddenArguments).toContain(">输出</h4>");
+    expect(hiddenArguments).not.toContain(">输入</h4>");
+    expect(
+      countOccurrences(hiddenArguments, 'data-slot="agent-tool-detail-heading"'),
+    ).toBe(1);
+
+    const hiddenResult = await renderPluginRuntime({
+      ...base,
+      messages: [
+        ...messages.slice(0, 2),
+        {
+          id: "tool-props-error",
+          producer: { type: "root" },
+          role: "tool",
+          toolCallId: "tool-props-call",
+          content: "failed",
+          error: "permission denied",
+          metadata: { conversationId: "default" },
+        },
+      ],
+      model: toolInstanceModel({
+        defaultExpanded: true,
+        showResult: false,
+      }),
+    });
+    expect(hiddenResult).toContain('data-slot="agent-tool-error"');
+    expect(hiddenResult).toContain("permission denied");
+    expect(hiddenResult).not.toContain(">输出</h4>");
+    expect(
+      countOccurrences(hiddenResult, 'data-slot="agent-tool-detail-heading"'),
+    ).toBe(1);
   });
 
   it("falls back without losing reasoning or tool content when child renderers are disabled", async () => {
@@ -1828,7 +2092,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain("runtimeCount");
     expect(html).not.toContain('data-ui-plugin="agent-reasoning"');
     expect(html).toContain('data-slot="agent-message-reasoning-fallback"');
-    expect(html).not.toContain('data-ui-plugin="antd-x-tool-message"');
+    expect(html).not.toContain('data-ui-plugin="agent-tool"');
   });
 
   it("binds runtime hooks and instance-aware actions into their providers", async () => {

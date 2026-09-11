@@ -71,7 +71,7 @@ describe("inspectUIProject", () => {
         mounts: [
           expect.objectContaining({
             instanceId: "agent-tool-message-main",
-            pluginId: "antd-x-tool-message",
+            pluginId: "agent-tool",
           }),
         ],
       }),

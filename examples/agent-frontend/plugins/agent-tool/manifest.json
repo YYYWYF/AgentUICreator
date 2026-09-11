@@ -1,0 +1,14 @@
+{
+  "id": "agent-tool",
+  "name": "Agent Tool",
+  "description": "使用 AgentTool 渲染当前 AG-UI tool call 的执行状态、参数、结果与错误。",
+  "version": "1.1.0",
+  "capabilities": [
+    "message-renderer",
+    "tool-call-rendering",
+    "tool-result-rendering"
+  ],
+  "data": {
+    "messages": true
+  }
+}

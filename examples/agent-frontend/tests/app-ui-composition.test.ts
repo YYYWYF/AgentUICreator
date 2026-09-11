@@ -61,7 +61,7 @@ describe("AppUIModel composition", () => {
       ),
       "agent-tool-message-main": mounted(
         "agent-tool-message-main",
-        "antd-x-tool-message",
+        "agent-tool",
         "conversation.message.tool-item",
       ),
     }, ["conversation.timeline"]);
@@ -74,7 +74,7 @@ describe("AppUIModel composition", () => {
         ],
         "agent-reasoning": [],
         "antd-x-tool-activity": ["conversation.message.tool-item"],
-        "antd-x-tool-message": [],
+        "agent-tool": [],
       }),
     ).not.toThrow();
   });

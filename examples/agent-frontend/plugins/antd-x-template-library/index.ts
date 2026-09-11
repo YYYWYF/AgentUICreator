@@ -3,6 +3,7 @@ import { antdXAttachmentsPlugin } from "../antd-x-attachments/definition";
 import { antdXConversationsPlugin } from "../antd-x-conversations/definition";
 import { agentMessageListPlugin } from "../agent-message-list/definition";
 import { agentReasoningPlugin } from "../agent-reasoning/definition";
+import { agentToolPlugin } from "../agent-tool/definition";
 import { antdXPromptsPlugin } from "../antd-x-prompts/definition";
 import { antdXResourcesPlugin } from "../antd-x-resources/definition";
 import { antdXRunTimelinePlugin } from "../antd-x-run-timeline/definition";
@@ -12,7 +13,6 @@ import { antdXThemeProviderPlugin } from "../antd-x-theme-provider/definition";
 import { antdXThemeSwitchPlugin } from "../antd-x-theme-switch/definition";
 import { antdXToolDetailPlugin } from "../antd-x-tool-detail/definition";
 import { antdXToolActivityPlugin } from "../antd-x-tool-activity/definition";
-import { antdXToolMessagePlugin } from "../antd-x-tool-message/definition";
 import { antdXWelcomePlugin } from "../antd-x-welcome/definition";
 import { conversationSurfacePlugin } from "../conversation-surface/definition";
 import { conversationDataSourcePlugin } from "../conversation-data-source/definition";
@@ -26,7 +26,7 @@ export const antdXTemplatePlugins = [
   antdXWelcomePlugin,
   agentMessageListPlugin,
   antdXToolActivityPlugin,
-  antdXToolMessagePlugin,
+  agentToolPlugin,
   antdXRunTimelinePlugin,
   antdXToolDetailPlugin,
   agentReasoningPlugin,
@@ -55,7 +55,7 @@ export {
   antdXThemeSwitchPlugin,
   antdXToolDetailPlugin,
   antdXToolActivityPlugin,
-  antdXToolMessagePlugin,
+  agentToolPlugin,
   antdXWelcomePlugin,
   conversationDataSourcePlugin,
   conversationSurfacePlugin,
@@ -76,7 +76,7 @@ export { AntdXThemeProviderPlugin } from "../antd-x-theme-provider";
 export { AntdXThemeSwitchPlugin } from "../antd-x-theme-switch";
 export { AntdXToolDetailPlugin } from "../antd-x-tool-detail";
 export { AntdXToolActivityPlugin } from "../antd-x-tool-activity";
-export { AntdXToolMessagePlugin } from "../antd-x-tool-message";
+export { AgentToolPlugin } from "../agent-tool";
 export { AntdXWelcomePlugin } from "../antd-x-welcome";
 export { ConversationSurfacePlugin } from "../conversation-surface";
 export { ConversationDataSourcePlugin } from "../conversation-data-source";

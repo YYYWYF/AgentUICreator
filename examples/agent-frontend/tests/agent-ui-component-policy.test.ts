@@ -254,6 +254,89 @@ describe("Agent UI component source policy", () => {
     }
   });
 
+  it("keeps the Agent Tool plugin canonical and independent of Ant", async () => {
+    const pluginRoot = path.join(projectRoot, "plugins/agent-tool");
+    const manifest = JSON.parse(
+      await readFile(path.join(pluginRoot, "manifest.json"), "utf8"),
+    ) as { id: string; name: string; version: string };
+    const sourceFiles = await collectFiles(
+      pluginRoot,
+      (filePath) => /\.(?:css|ts|tsx)$/u.test(filePath),
+    );
+
+    expect(manifest).toMatchObject({
+      id: "agent-tool",
+      name: "Agent Tool",
+      version: "1.1.0",
+    });
+    for (const filePath of sourceFiles) {
+      const source = await readFile(filePath, "utf8");
+      expect(source, filePath).not.toMatch(
+        /@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|\.ant-|\b(?:Collapse|Alert|Typography|ToolOutlined|LoadingOutlined|CheckCircleOutlined|CloseCircleOutlined|StopOutlined|FileOutlined)\b/u,
+      );
+    }
+
+    const indexSource = await readFile(path.join(pluginRoot, "index.tsx"), "utf8");
+    expect(importSpecifiers(indexSource)).toContain(
+      "../../agent-ui/components/tool",
+    );
+    expect(indexSource).toMatch(/<AgentTool\b/u);
+
+    const css = await readFile(path.join(pluginRoot, "styles.css"), "utf8");
+    expect(css).not.toMatch(/#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\(/u);
+    expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
+    expect(css).not.toMatch(/\.ant-|development-preview|--ui-/u);
+    expect(css).toMatch(/var\(--aui-/u);
+  });
+
+  it("keeps the Agent Tool identity canonical across the generated project", async () => {
+    const appUI = JSON.parse(
+      await readFile(path.join(projectRoot, "app-ui/app-ui.json"), "utf8"),
+    ) as { pluginInstances?: Record<string, { pluginId?: string }> };
+    const registry = await readFile(
+      path.join(projectRoot, "plugins/registry.generated.ts"),
+      "utf8",
+    );
+    const templateLibrary = await readFile(
+      path.join(projectRoot, "plugins/antd-x-template-library/index.ts"),
+      "utf8",
+    );
+
+    expect(appUI.pluginInstances?.["agent-tool-message-main"]?.pluginId).toBe(
+      "agent-tool",
+    );
+    expect(registry).toContain('./agent-tool/definition');
+    expect(templateLibrary).toContain("agentToolPlugin");
+    expect(templateLibrary).toContain("AgentToolPlugin");
+  });
+
+  it("keeps removed Tool identities out of the generated project", async () => {
+    const removedIdentities = [
+      ["antd", "x", "tool", "message"].join("-"),
+      ["Antd", "X", "Tool", "Message"].join(""),
+      ["antd", "X", "Tool", "Message", "Plugin"].join(""),
+    ];
+    const oldPluginRoot = path.join(
+      projectRoot,
+      "plugins",
+      removedIdentities[0]!,
+    );
+    const violations: string[] = [];
+
+    await expect(stat(oldPluginRoot)).rejects.toMatchObject({ code: "ENOENT" });
+    for (const filePath of await collectFiles(
+      projectRoot,
+      (candidate) => /\.(?:css|json|md|ts|tsx)$/u.test(candidate),
+    )) {
+      const source = await readFile(filePath, "utf8");
+      if (removedIdentities.some((identity) => source.includes(identity))) {
+        violations.push(path.relative(projectRoot, filePath));
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
   it("keeps the Agent Reasoning plugin canonical and independent of Ant", async () => {
     const pluginRoot = path.join(projectRoot, "plugins/agent-reasoning");
     const manifest = JSON.parse(
@@ -431,7 +514,7 @@ describe("Agent UI component source policy", () => {
       }
     }
     expect(manifest.id).toBe("agent-message-list");
-    expect(manifest.version).toBe("1.3.0");
+    expect(manifest.version).toBe("1.3.1");
     expect(
       appUI.pluginInstances?.["agent-messages-main"]?.pluginId,
     ).toBe("agent-message-list");

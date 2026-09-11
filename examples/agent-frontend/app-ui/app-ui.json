@@ -149,7 +149,7 @@
     },
     "agent-tool-message-main": {
       "id": "agent-tool-message-main",
-      "pluginId": "antd-x-tool-message",
+      "pluginId": "agent-tool",
       "enabled": true,
       "mount": {
         "slotId": "conversation.message.tool-item"
