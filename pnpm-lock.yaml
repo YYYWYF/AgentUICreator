@@ -23,6 +23,9 @@ importers:
         specifier: ^19.2.8
         version: 19.2.8(react@19.2.8)
     devDependencies:
+      '@tailwindcss/vite':
+        specifier: 4.3.3
+        version: 4.3.3(vite@8.2.2(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6)(yaml@2.9.0))
       '@types/node':
         specifier: ^20.19.43
         version: 20.19.43
@@ -35,6 +38,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^6.1.1
         version: 6.1.1(vite@8.2.2(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6)(yaml@2.9.0))
+      tailwindcss:
+        specifier: 4.3.3
+        version: 4.3.3
       typescript:
         specifier: ^7.0.2
         version: 7.0.2

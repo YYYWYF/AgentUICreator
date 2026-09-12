@@ -1,4 +1,4 @@
-import { Thread } from "@/spikes/assistant-ui/components/assistant-ui/elements/thread.aui";
+import { Thread } from "@/spikes/assistant-ui/components/assistant-ui/elements/thread.aui.tsx";
 import { TooltipProvider } from "@/spikes/assistant-ui/components/ui/tooltip";
 
 import { AssistantUiRuntimeDebugOverlay } from "./AssistantUiRuntimeDebugOverlay";

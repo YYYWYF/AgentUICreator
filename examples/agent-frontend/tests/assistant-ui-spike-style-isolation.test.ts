@@ -1,6 +1,9 @@
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 
+import tailwindcss from "@tailwindcss/vite";
 import { describe, expect, it } from "vitest";
+import { createServer, resolveConfig } from "vite";
 
 const globalsUrl = new URL(
   "../src/spikes/assistant-ui/styles/globals.css",
@@ -10,6 +13,11 @@ const scopedPreflightUrl = new URL(
   "../src/spikes/assistant-ui/styles/preflight.scoped.css",
   import.meta.url,
 );
+const workbenchViteConfigUrl = new URL(
+  "../../../apps/creator-workbench/vite.config.ts",
+  import.meta.url,
+);
+const frontendRoot = fileURLToPath(new URL("..", import.meta.url));
 
 describe("assistant-ui Spike style isolation", () => {
   it("loads explicit Tailwind layers without global Preflight", async () => {
@@ -22,12 +30,49 @@ describe("assistant-ui Spike style isolation", () => {
       '@import "./preflight.scoped.css" layer(base);',
     );
     expect(globals).toContain(
-      '@import "tailwindcss/utilities.css" layer(utilities);',
+      '@import "tailwindcss/utilities.css" layer(utilities) source("..");',
     );
     expect(globals).not.toMatch(/@import\s+["']tailwindcss["']/u);
     expect(globals).not.toMatch(
       /@import\s+["']tailwindcss\/preflight\.css["']/u,
     );
+  });
+
+  it("generates vendored assistant-ui utilities in the Workbench host", async () => {
+    const workbenchConfig = await resolveConfig(
+      {
+        configFile: fileURLToPath(workbenchViteConfigUrl),
+        logLevel: "silent",
+      },
+      "serve",
+    );
+
+    expect(workbenchConfig.plugins.map((plugin) => plugin.name)).toContain(
+      "@tailwindcss/vite:generate:serve",
+    );
+
+    const server = await createServer({
+      configFile: false,
+      logLevel: "silent",
+      plugins: [tailwindcss()],
+      root: frontendRoot,
+      server: {
+        hmr: false,
+        middlewareMode: true,
+      },
+    });
+
+    try {
+      const result = await server.transformRequest(
+        "/src/spikes/assistant-ui/styles/globals.css?direct",
+      );
+
+      expect(result?.code).toContain(".sr-only");
+      expect(result?.code).toContain(".inline-flex");
+      expect(result?.code).not.toContain("@tailwind utilities");
+    } finally {
+      await server.close();
+    }
   });
 
   it("keeps every high-risk reset selector under the Spike root", async () => {

@@ -4,9 +4,9 @@ import {
   ComposerAddAttachment,
   ComposerAttachments,
   UserMessageAttachments,
-} from "@/spikes/assistant-ui/components/assistant-ui/elements/attachment.aui";
+} from "@/spikes/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx";
 import { File } from "@/spikes/assistant-ui/components/assistant-ui/elements/file";
-import { ThreadFollowupSuggestions } from "@/spikes/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui";
+import { ThreadFollowupSuggestions } from "@/spikes/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.tsx";
 import { Image } from "@/spikes/assistant-ui/components/assistant-ui/elements/image";
 import { MarkdownText } from "@/spikes/assistant-ui/components/assistant-ui/elements/markdown-text";
 import {
@@ -15,13 +15,13 @@ import {
   ReasoningRoot,
   ReasoningText,
   ReasoningTrigger,
-} from "@/spikes/assistant-ui/components/assistant-ui/elements/reasoning.aui";
-import { ToolFallback } from "@/spikes/assistant-ui/components/assistant-ui/elements/tool-fallback.aui";
+} from "@/spikes/assistant-ui/components/assistant-ui/elements/reasoning.aui.tsx";
+import { ToolFallback } from "@/spikes/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx";
 import {
   ToolGroupContent,
   ToolGroupRoot,
   ToolGroupTrigger,
-} from "@/spikes/assistant-ui/components/assistant-ui/elements/tool-group.aui";
+} from "@/spikes/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx";
 import { TooltipIconButton } from "@/spikes/assistant-ui/components/assistant-ui/elements/tooltip-icon-button";
 import { Button } from "@/spikes/assistant-ui/components/ui/button";
 import { Skeleton } from "@/spikes/assistant-ui/components/ui/skeleton";

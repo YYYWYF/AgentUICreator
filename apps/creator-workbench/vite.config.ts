@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import {
   builtinMockScenarios,
@@ -22,6 +23,7 @@ export default defineConfig({
   envDir: frontendRoot,
   plugins: [
     react(),
+    tailwindcss(),
     createMockAgentVitePlugin({
       endpoint: "/__agent-ui/mock",
       scenarios: builtinMockScenarios.map((scenario) => ({
@@ -40,6 +42,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
+      "@": path.join(frontendRoot, "src"),
       "@agent-ui/creator/ui": path.join(
         workspaceRoot,
         "packages/creator/src/ui/CreatorWorkbench.tsx",
