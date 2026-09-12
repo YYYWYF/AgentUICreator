@@ -131,7 +131,14 @@ function RuntimeCapture({
 }: {
   onRuntime: (runtime: AssistantRuntime) => void;
 }) {
-  onRuntime(useAui());
+  const aui = useAui();
+  const runtime = aui.threads.__internal_getAssistantRuntime?.();
+  if (runtime === undefined) {
+    throw new Error(
+      "AssistantRuntime is unavailable from the assistant-ui client.",
+    );
+  }
+  onRuntime(runtime);
   return null;
 }
 

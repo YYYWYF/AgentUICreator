@@ -83,9 +83,7 @@ export function AssistantUiThreadListPlugin(_props: UIPluginComponentProps) {
             onClick={() => {
               const failedConversationId = snapshot.detailErrorConversationId;
               if (failedConversationId === undefined) return;
-              void aui.threads
-                .switchToThread(failedConversationId)
-                .catch(() => undefined);
+              aui.threads.switchToThread(failedConversationId);
             }}
             size="sm"
             variant="outline"
