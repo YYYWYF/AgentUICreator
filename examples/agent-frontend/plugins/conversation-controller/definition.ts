@@ -12,7 +12,7 @@ export const conversationControllerPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   inject: [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE],
   provides: [AGENT_UI_CONVERSATION_SERVICE],
-  setup: ({ actions, services }) => {
+  setup: ({ services }) => {
     const dataSource = services.get(
       AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
     );
@@ -21,7 +21,6 @@ export const conversationControllerPlugin: UIPluginDefinition = {
     }
     const controller = createConversationController({
       dataSource,
-      startNewConversation: actions.startNewConversation,
     });
     services.provide(AGENT_UI_CONVERSATION_SERVICE, controller);
     void controller.refresh();

@@ -6,7 +6,10 @@ import {
 } from "../../agent-ui/components/conversation-list";
 import { Button } from "../../agent-ui/primitives/button";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
-import { useAgentRun } from "../../runtime/context";
+import {
+  useAgentRun,
+  useAgentRuntimeActions,
+} from "../../runtime/context";
 import {
   usePluginService,
   usePluginServiceSnapshot,
@@ -44,6 +47,7 @@ function groupConversations(items: readonly ConversationSummary[]): Conversation
 
 export function AgentConversationsPlugin(_props: UIPluginComponentProps) {
   const run = useAgentRun();
+  const { startNewConversation } = useAgentRuntimeActions();
   const conversation = usePluginService<AgentUIConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
   );
@@ -68,7 +72,11 @@ export function AgentConversationsPlugin(_props: UIPluginComponentProps) {
             disabled={isRunning}
             onClick={() => {
               if (isRunning) return;
-              void conversation?.startNewConversation().catch(() => undefined);
+              void startNewConversation()
+                .then(() => {
+                  conversation?.resetForNewConversation();
+                })
+                .catch(() => undefined);
             }}
             size="sm"
             variant="ghost"

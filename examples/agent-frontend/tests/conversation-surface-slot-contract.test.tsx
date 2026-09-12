@@ -52,7 +52,7 @@ function createConversationService(
     refresh: async () => undefined,
     selectConversation: async () => undefined,
     showLiveConversation: () => undefined,
-    startNewConversation: async () => undefined,
+    resetForNewConversation: () => undefined,
   };
 }
 

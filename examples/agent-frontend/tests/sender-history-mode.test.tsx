@@ -36,7 +36,7 @@ const historyService: AgentUIConversationService = {
   refresh: async () => undefined,
   selectConversation: async () => undefined,
   showLiveConversation: () => undefined,
-  startNewConversation: async () => undefined,
+  resetForNewConversation: () => undefined,
 };
 
 const historyProvider: UIPluginDefinition = {

@@ -201,19 +201,50 @@ describe("AgentConversationsPlugin", () => {
     }
   });
 
-  it("starts a new conversation through the shared service and disables it while running", async () => {
+  it("starts a new conversation through Runtime and resets the Service after success", async () => {
     const idle = await renderPlugin();
     try {
       const createButton = idle.renderer.root.findAllByType(Button).find(
         (button) => button.props["aria-label"] === "新建会话",
       )!;
       await act(async () => {
+        item(idle.renderer, "修复登录问题").findByType("button").props.onClick();
+        await Promise.resolve();
+      });
+      expect(item(idle.renderer, "修复登录问题").props.active).toBe(true);
+      await act(async () => {
         createButton.props.onClick();
         await Promise.resolve();
       });
       expect(idle.startNewConversation).toHaveBeenCalledOnce();
+      expect(item(idle.renderer, "当前会话").props.active).toBe(true);
+      expect(item(idle.renderer, "修复登录问题").props.active).toBe(false);
     } finally {
       await idle.dispose();
+    }
+
+    const failed = await renderPlugin({
+      startNewConversation: async () => {
+        throw new Error("failed to create conversation");
+      },
+    });
+    try {
+      await act(async () => {
+        item(failed.renderer, "修复登录问题").findByType("button").props.onClick();
+        await Promise.resolve();
+      });
+      const createButton = failed.renderer.root.findAllByType(Button).find(
+        (button) => button.props["aria-label"] === "新建会话",
+      )!;
+      await act(async () => {
+        createButton.props.onClick();
+        await Promise.resolve();
+      });
+      expect(failed.startNewConversation).toHaveBeenCalledOnce();
+      expect(item(failed.renderer, "修复登录问题").props.active).toBe(true);
+      expect(item(failed.renderer, "当前会话").props.active).toBe(false);
+    } finally {
+      await failed.dispose();
     }
 
     const running = await renderPlugin({ status: "running" });

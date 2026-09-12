@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import {
@@ -35,7 +35,6 @@ describe("ConversationController", () => {
     };
     const controller = createConversationController({
       dataSource,
-      startNewConversation: async () => undefined,
     });
     const request = controller.refresh();
     expect(controller.getSnapshot().listStatus).toBe("loading");
@@ -54,7 +53,6 @@ describe("ConversationController", () => {
     };
     const controller = createConversationController({
       dataSource,
-      startNewConversation: async () => undefined,
     });
     const request = controller.selectConversation("conversation-1");
     expect(controller.getSnapshot()).toMatchObject({
@@ -85,7 +83,6 @@ describe("ConversationController", () => {
     };
     const controller = createConversationController({
       dataSource,
-      startNewConversation: async () => undefined,
     });
     const liveSnapshot = controller.getSnapshot();
 
@@ -112,7 +109,6 @@ describe("ConversationController", () => {
     };
     const controller = createConversationController({
       dataSource,
-      startNewConversation: async () => undefined,
     });
 
     await controller.selectConversation("history-retry");
@@ -141,7 +137,6 @@ describe("ConversationController", () => {
     };
     const controller = createConversationController({
       dataSource,
-      startNewConversation: async () => undefined,
     });
     const first = controller.selectConversation("A");
     const second = controller.selectConversation("B");
@@ -155,42 +150,36 @@ describe("ConversationController", () => {
     });
   });
 
-  it("returns to live only after new conversation creation succeeds", async () => {
-    const startNewConversation = vi.fn(async () => undefined);
+  it("resets history state for a Runtime-owned new conversation", async () => {
     const dataSource: ConversationDataSource = {
       list: async () => [],
       get: async (id) => ({ id, title: id, messages: [message(id)] }),
     };
     const controller = createConversationController({
       dataSource,
-      startNewConversation,
     });
     await controller.selectConversation("history");
-    await controller.startNewConversation();
-    expect(startNewConversation).toHaveBeenCalledOnce();
+    controller.resetForNewConversation();
     expect(controller.getSnapshot().mode).toBe("live");
-
-    const failing = createConversationController({
-      dataSource,
-      startNewConversation: async () => Promise.reject(new Error("failed")),
+    expect(controller.getSnapshot()).toMatchObject({
+      mode: "live",
+      activeConversationId: undefined,
+      historyMessages: [],
+      detailStatus: "idle",
+      detailError: undefined,
+      detailErrorConversationId: undefined,
     });
-    await failing.selectConversation("history");
-    await expect(failing.startNewConversation()).rejects.toThrow("failed");
-    expect(failing.getSnapshot().mode).toBe("history");
   });
 
   it("clears detail errors when returning to live or creating a new conversation", async () => {
-    let fail = true;
     const dataSource: ConversationDataSource = {
       list: async () => [],
-      get: async (id) => {
-        if (fail) throw new Error("failed");
-        return { id, title: id, messages: [] };
+      get: async () => {
+        throw new Error("failed");
       },
     };
     const controller = createConversationController({
       dataSource,
-      startNewConversation: async () => undefined,
     });
 
     await controller.selectConversation("history");
@@ -198,8 +187,7 @@ describe("ConversationController", () => {
     expect(controller.getSnapshot().detailErrorConversationId).toBeUndefined();
 
     await controller.selectConversation("history");
-    fail = false;
-    await controller.startNewConversation();
+    controller.resetForNewConversation();
     expect(controller.getSnapshot()).toMatchObject({
       mode: "live",
       detailStatus: "idle",
@@ -222,7 +210,6 @@ describe("ConversationController", () => {
     };
     const controller = createConversationController({
       dataSource,
-      startNewConversation: async () => undefined,
     });
     const listRequest = controller.refresh();
     const detailRequest = controller.selectConversation("history");

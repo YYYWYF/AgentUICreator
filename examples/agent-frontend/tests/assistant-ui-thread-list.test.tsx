@@ -62,7 +62,7 @@ function conversationService(
     refresh: vi.fn(async () => undefined),
     selectConversation: vi.fn(async () => undefined),
     showLiveConversation: vi.fn(),
-    startNewConversation: vi.fn(async () => undefined),
+    resetForNewConversation: vi.fn(),
   };
 }
 

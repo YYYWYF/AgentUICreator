@@ -24,13 +24,17 @@ export interface AgentUIConversationService {
   subscribe(listener: () => void): () => void;
   refresh(): Promise<void>;
   selectConversation(id: string): Promise<ConversationDetail | undefined>;
+  /** Select the already-existing live conversation. */
   showLiveConversation(): void;
-  startNewConversation(): Promise<void>;
+  /**
+   * Synchronize Conversation Service state after the Runtime has created or
+   * switched to a new conversation. This must not perform Runtime navigation.
+   */
+  resetForNewConversation(): void;
 }
 
 export interface ConversationControllerOptions {
   dataSource: ConversationDataSource;
-  startNewConversation(): Promise<void>;
 }
 
 export const EMPTY_CONVERSATION_SNAPSHOT: ConversationSnapshot = {
@@ -53,7 +57,6 @@ function isAbortError(error: unknown): boolean {
 
 export function createConversationController({
   dataSource,
-  startNewConversation,
 }: ConversationControllerOptions): AgentUIConversationService & {
   dispose(): void;
 } {
@@ -70,6 +73,20 @@ export function createConversationController({
     if (disposed) return;
     snapshot = next;
     emit();
+  };
+  const resetToLiveState = (): void => {
+    if (disposed) return;
+    detailRequest?.abort();
+    detailRequest = undefined;
+    update({
+      ...snapshot,
+      mode: "live",
+      activeConversationId: undefined,
+      historyMessages: [],
+      detailStatus: "idle",
+      detailError: undefined,
+      detailErrorConversationId: undefined,
+    });
   };
 
   return {
@@ -163,34 +180,10 @@ export function createConversationController({
       }
     },
     showLiveConversation() {
-      if (disposed) return;
-      detailRequest?.abort();
-      detailRequest = undefined;
-      update({
-        ...snapshot,
-        mode: "live",
-        activeConversationId: undefined,
-        historyMessages: [],
-        detailStatus: "idle",
-        detailError: undefined,
-        detailErrorConversationId: undefined,
-      });
+      resetToLiveState();
     },
-    async startNewConversation() {
-      if (disposed) return;
-      await startNewConversation();
-      if (disposed) return;
-      detailRequest?.abort();
-      detailRequest = undefined;
-      update({
-        ...snapshot,
-        mode: "live",
-        activeConversationId: undefined,
-        historyMessages: [],
-        detailStatus: "idle",
-        detailError: undefined,
-        detailErrorConversationId: undefined,
-      });
+    resetForNewConversation() {
+      resetToLiveState();
     },
     dispose() {
       if (disposed) return;

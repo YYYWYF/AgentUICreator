@@ -107,8 +107,17 @@ class FakeConversationService implements AgentUIConversationService {
     this.emit();
   });
 
-  readonly startNewConversation = vi.fn(async () => {
-    this.showLiveConversation();
+  readonly resetForNewConversation = vi.fn(() => {
+    this.snapshot = {
+      ...this.snapshot,
+      mode: "live",
+      activeConversationId: undefined,
+      historyMessages: [],
+      detailStatus: "idle",
+      detailError: undefined,
+      detailErrorConversationId: undefined,
+    };
+    this.emit();
   });
 }
 
@@ -228,30 +237,12 @@ describe("ConversationServiceAssistantUiThreadBinding", () => {
     const newId = await binding.createNewThread();
     const loaded = await binding.selectThread(newId);
 
-    expect(service.startNewConversation).toHaveBeenCalledOnce();
+    expect(service.resetForNewConversation).toHaveBeenCalledOnce();
+    expect(service.showLiveConversation).not.toHaveBeenCalled();
     expect(newId).not.toBe(oldId);
     expect(binding.getThreadId()).toBe(newId);
     expect(loaded.messages).toEqual([]);
     expect(messageIds(live.messages)).toEqual(["live-user", "live-assistant"]);
   });
 
-  it("does not commit a new identity when starting a conversation fails", async () => {
-    const { binding, live, service } = createBindingFixture();
-    const oldId = binding.getThreadId();
-    const oldListSnapshot = binding.getThreadListSnapshot();
-    service.startNewConversation.mockRejectedValueOnce(
-      new Error("failed to create conversation"),
-    );
-
-    await expect(binding.createNewThread()).rejects.toThrow(
-      "failed to create conversation",
-    );
-
-    expect(service.startNewConversation).toHaveBeenCalledOnce();
-    expect(service.showLiveConversation).not.toHaveBeenCalled();
-    expect(binding.getThreadId()).toBe(oldId);
-    expect(binding.getThreadListSnapshot()).toBe(oldListSnapshot);
-    const restored = await binding.selectThread(oldId);
-    expect(messageIds(restored.messages)).toEqual(messageIds(live.messages));
-  });
 });

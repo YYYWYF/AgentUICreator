@@ -210,7 +210,7 @@ export function createConversationServiceAssistantUiThreadBinding<
     },
     async createNewThread() {
       if (conversationService !== undefined) {
-        await conversationService.startNewConversation();
+        conversationService.resetForNewConversation();
       }
 
       const nextLiveThreadId = crypto.randomUUID();

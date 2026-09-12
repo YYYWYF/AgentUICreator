@@ -9,16 +9,20 @@ import { describe, expect, it, vi } from "vitest";
 import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import {
   AssistantUiAgUiRuntimeProvider,
+  useAssistantUiRuntimeBridge,
+  type AssistantUiAgentRuntimeBridge,
   type AssistantUiAgentFactory,
 } from "@agent-ui/runtime-assistant-ui";
 import {
   createConversationServiceAssistantUiThreadBinding,
   type ConversationServiceAssistantUiThreadBinding,
 } from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
-import type {
-  AgentUIConversationService,
-  ConversationDetail,
-  ConversationSnapshot,
+import {
+  createConversationController,
+  type AgentUIConversationService,
+  type ConversationDetail,
+  type ConversationDataSource,
+  type ConversationSnapshot,
 } from "../services/conversations";
 
 function agentMessage(
@@ -117,8 +121,17 @@ class RetryConversationService implements AgentUIConversationService {
     this.emit();
   });
 
-  readonly startNewConversation = vi.fn(async () => {
-    this.showLiveConversation();
+  readonly resetForNewConversation = vi.fn(() => {
+    this.snapshot = {
+      ...this.snapshot,
+      mode: "live",
+      activeConversationId: undefined,
+      historyMessages: [],
+      detailStatus: "idle",
+      detailError: undefined,
+      detailErrorConversationId: undefined,
+    };
+    this.emit();
   });
 
   private emit(): void {
@@ -142,6 +155,16 @@ function RuntimeCapture({
   return null;
 }
 
+function BridgeCapture({
+  onRuntime,
+}: {
+  onRuntime: (runtime: AssistantUiAgentRuntimeBridge) => void;
+}) {
+  const { agentRuntime } = useAssistantUiRuntimeBridge();
+  onRuntime(agentRuntime);
+  return null;
+}
+
 function createAgent(): ReturnType<AssistantUiAgentFactory> {
   return {
     threadId: "live",
@@ -154,10 +177,12 @@ function RuntimeFixture({
   agent,
   binding,
   onRuntime,
+  onBridge,
 }: {
   agent: ReturnType<AssistantUiAgentFactory>;
   binding: ConversationServiceAssistantUiThreadBinding;
   onRuntime: (runtime: AssistantRuntime) => void;
+  onBridge?: (runtime: AssistantUiAgentRuntimeBridge) => void;
 }) {
   const agentFactory: AssistantUiAgentFactory = () => agent;
   return (
@@ -167,11 +192,105 @@ function RuntimeFixture({
       unstable_agentFactory={agentFactory}
     >
       <RuntimeCapture onRuntime={onRuntime} />
+      {onBridge === undefined ? null : <BridgeCapture onRuntime={onBridge} />}
     </AssistantUiAgUiRuntimeProvider>
   );
 }
 
 describe("assistant-ui history retry navigation", () => {
+  it("routes ThreadList and Plugin Action New Thread through one Runtime owner", async () => {
+    const dataSource: ConversationDataSource = {
+      list: async () => [],
+      get: async (id) => ({ id, title: id, messages: [] }),
+    };
+    const service = createConversationController({ dataSource });
+    const binding = createConversationServiceAssistantUiThreadBinding();
+    const detach = binding.attachConversationService(service);
+    const liveMessages = [
+      threadMessage("live-user", "user"),
+      threadMessage("live-assistant", "assistant"),
+    ];
+    binding.captureLiveThread({ messages: liveMessages });
+    const firstThreadId = binding.getThreadId();
+    const agent = createAgent();
+    let runtime: AssistantRuntime | undefined;
+    let bridge: AssistantUiAgentRuntimeBridge | undefined;
+    let renderer: ReactTestRenderer | undefined;
+
+    try {
+      await act(async () => {
+        renderer = create(
+          <RuntimeFixture
+            agent={agent}
+            binding={binding}
+            onRuntime={(nextRuntime) => {
+              runtime = nextRuntime;
+            }}
+            onBridge={(nextRuntime) => {
+              bridge = nextRuntime;
+            }}
+          />,
+        );
+        await Promise.resolve();
+      });
+      if (runtime === undefined || bridge === undefined) {
+        throw new Error("assistant-ui Runtime bridge was not captured");
+      }
+      const assistantRuntime = runtime;
+      const agentRuntime = bridge;
+
+      await act(async () => {
+        assistantRuntime.thread.reset(liveMessages);
+        await Promise.resolve();
+        await assistantRuntime.threads.switchToNewThread();
+      });
+
+      const threadListThreadId = binding.getThreadId();
+      expect(threadListThreadId).not.toBe(firstThreadId);
+      expect(assistantRuntime.threads.getState().mainThreadId).toBe(
+        threadListThreadId,
+      );
+      expect(assistantRuntime.thread.getState().threadId).toBe(
+        threadListThreadId,
+      );
+      expect(agent.threadId).toBe(threadListThreadId);
+      expect(assistantRuntime.thread.getState().messages).toEqual([]);
+      expect(service.getSnapshot()).toMatchObject({
+        mode: "live",
+        activeConversationId: undefined,
+        historyMessages: [],
+        detailStatus: "idle",
+        detailError: undefined,
+        detailErrorConversationId: undefined,
+      });
+
+      await act(async () => {
+        await agentRuntime.startNewConversation();
+      });
+
+      const pluginActionThreadId = binding.getThreadId();
+      expect(pluginActionThreadId).not.toBe(threadListThreadId);
+      expect(assistantRuntime.threads.getState().mainThreadId).toBe(
+        pluginActionThreadId,
+      );
+      expect(assistantRuntime.thread.getState().threadId).toBe(
+        pluginActionThreadId,
+      );
+      expect(agent.threadId).toBe(pluginActionThreadId);
+      expect(agentRuntime.getSnapshot().conversation.id).toBe(
+        pluginActionThreadId,
+      );
+    } finally {
+      detach();
+      service.dispose();
+      if (renderer !== undefined) {
+        await act(async () => {
+          renderer?.unmount();
+        });
+      }
+    }
+  });
+
   it("keeps the live thread on failure and hydrates history through retry", async () => {
     const service = new RetryConversationService();
     const binding = createConversationServiceAssistantUiThreadBinding();
@@ -260,70 +379,7 @@ describe("assistant-ui history retry navigation", () => {
     }
   });
 
-  it("keeps Runtime and Conversation identity atomic when New Thread fails", async () => {
-    const service = new RetryConversationService();
-    const binding = createConversationServiceAssistantUiThreadBinding();
-    const detach = binding.attachConversationService(service);
-    const liveMessages = [
-      threadMessage("live-user", "user"),
-      threadMessage("live-assistant", "assistant"),
-    ];
-    binding.captureLiveThread({ messages: liveMessages });
-    const liveThreadId = binding.getThreadId();
-    const agent = createAgent();
-    service.startNewConversation.mockRejectedValueOnce(
-      new Error("failed to create conversation"),
-    );
-    let runtime: AssistantRuntime | undefined;
-    let renderer: ReactTestRenderer | undefined;
-
-    try {
-      await act(async () => {
-        renderer = create(
-          <RuntimeFixture
-            agent={agent}
-            binding={binding}
-            onRuntime={(nextRuntime) => {
-              runtime = nextRuntime;
-            }}
-          />,
-        );
-        await Promise.resolve();
-      });
-      if (runtime === undefined) throw new Error("Runtime was not captured");
-      const assistantRuntime = runtime;
-
-      await act(async () => {
-        assistantRuntime.thread.reset(liveMessages);
-        await Promise.resolve();
-      });
-
-      await act(async () => {
-        await expect(
-          assistantRuntime.threads.switchToNewThread(),
-        ).rejects.toThrow("failed to create conversation");
-      });
-
-      expect(service.startNewConversation).toHaveBeenCalledOnce();
-      expect(binding.getThreadId()).toBe(liveThreadId);
-      expect(assistantRuntime.threads.getState().mainThreadId).toBe(liveThreadId);
-      expect(assistantRuntime.thread.getState().threadId).toBe(liveThreadId);
-      expect(messageIds(assistantRuntime.thread.getState().messages)).toEqual([
-        "live-user",
-        "live-assistant",
-      ]);
-      expect(agent.threadId).toBe(liveThreadId);
-    } finally {
-      detach();
-      if (renderer !== undefined) {
-        await act(async () => {
-          renderer?.unmount();
-        });
-      }
-    }
-  });
-
-  it("commits the new identity only after New Thread succeeds", async () => {
+  it("keeps Runtime and Service aligned after New Thread succeeds", async () => {
     const service = new RetryConversationService();
     const binding = createConversationServiceAssistantUiThreadBinding();
     const detach = binding.attachConversationService(service);
@@ -360,7 +416,7 @@ describe("assistant-ui history retry navigation", () => {
       });
 
       const newThreadId = binding.getThreadId();
-      expect(service.startNewConversation).toHaveBeenCalledOnce();
+      expect(service.resetForNewConversation).toHaveBeenCalledOnce();
       expect(newThreadId).not.toBe(oldThreadId);
       expect(assistantRuntime.threads.getState().mainThreadId).toBe(newThreadId);
       expect(assistantRuntime.thread.getState().threadId).toBe(newThreadId);

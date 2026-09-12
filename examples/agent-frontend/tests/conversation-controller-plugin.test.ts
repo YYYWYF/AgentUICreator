@@ -64,14 +64,16 @@ function model(navigation?: UIPluginDefinition) {
 }
 
 describe("conversationControllerPlugin", () => {
-  it("injects the DataSource, provides Conversation Service, refreshes, and delegates new conversation", async () => {
+  it("injects the DataSource, provides Conversation Service, and refreshes", async () => {
     const list = vi.fn(async () => []);
     const dataSource: ConversationDataSource = {
       list,
       get: async (id) => ({ id, title: id, messages: [] }),
     };
     const runtime = new PluginServiceRuntime();
-    const startNewConversation = vi.fn(async () => undefined);
+    const startNewConversation = vi.fn(async () => {
+      throw new Error("Conversation Service must not navigate Runtime");
+    });
     runtime.reconcile(
       model(),
       createPluginRegistry([dataSourcePlugin(dataSource), conversationControllerPlugin]),
@@ -91,8 +93,8 @@ describe("conversationControllerPlugin", () => {
       AGENT_UI_CONVERSATION_SERVICE,
     );
     expect(conversation).toBeDefined();
-    await conversation?.startNewConversation();
-    expect(startNewConversation).toHaveBeenCalledOnce();
+    conversation?.resetForNewConversation();
+    expect(startNewConversation).not.toHaveBeenCalled();
     runtime.dispose();
   });
 
