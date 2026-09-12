@@ -443,6 +443,28 @@ function toolMessage(running: boolean): ThreadMessageLike {
   };
 }
 
+function requiresActionToolMessage(): ThreadMessageLike {
+  return {
+    id: "assistant-tools-requires-action",
+    role: "assistant",
+    content: [
+      { type: "text", text: "approval sibling text" },
+      {
+        type: "tool-call",
+        toolCallId: "approval-tool",
+        toolName: "approval_tool",
+        args: { value: "approval" },
+        argsText: '{"value":"approval"}',
+        approval: {
+          id: "approval-1",
+          prompt: "Allow this tool call?",
+        },
+      },
+    ],
+    status: { type: "requires-action", reason: "tool-calls" },
+  };
+}
+
 function attachmentMessage(): ThreadMessageLike {
   return {
     id: "user-attachment",
@@ -663,6 +685,43 @@ describe("assistant-ui semantic Slot rendering", () => {
     expect(sentinel.props["data-turn-id"]).toBe("assistant-tools-running");
     expect(countByDataSlot(renderer, "tool-group-root")).toBe(0);
     expect(renderedText(renderer)).toContain("tool sibling text");
+  });
+
+  it("keeps native ToolFallback and approval controls when Tool Item is replaced", async () => {
+    const renderer = await mountSemanticRuntime({
+      includeToolActivity: true,
+      initialMessages: [requiresActionToolMessage()],
+      target: ASSISTANT_UI_CONVERSATION_SLOTS.toolItem,
+    });
+
+    expect(countByTestId(renderer, "tool-item-sentinel")).toBe(0);
+    expect(countByDataSlot(renderer, "tool-group-root")).toBe(1);
+
+    await openToolGroup(renderer);
+
+    expect(countByDataSlot(renderer, "tool-fallback-root")).toBe(1);
+    expect(countByDataSlot(renderer, "tool-fallback-approval")).toBe(1);
+    expect(
+      renderer.root.findAllByProps({ children: "Allow" }),
+    ).toHaveLength(1);
+  });
+
+  it("protects native ToolGroup and approval controls from Tool Activity replacement", async () => {
+    const renderer = await mountSemanticRuntime({
+      initialMessages: [requiresActionToolMessage()],
+      target: ASSISTANT_UI_CONVERSATION_SLOTS.toolActivity,
+    });
+
+    expect(countByTestId(renderer, "tool-activity-sentinel")).toBe(0);
+    expect(countByDataSlot(renderer, "tool-group-root")).toBe(1);
+
+    await openToolGroup(renderer);
+
+    expect(countByDataSlot(renderer, "tool-fallback-root")).toBe(1);
+    expect(countByDataSlot(renderer, "tool-fallback-approval")).toBe(1);
+    expect(
+      renderer.root.findAllByProps({ children: "Allow" }),
+    ).toHaveLength(1);
   });
 
   it("replaces only Tool Items while preserving assistant-ui ToolGroup", async () => {

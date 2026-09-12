@@ -4,15 +4,13 @@ import {
 } from "@agent-ui/runtime-assistant-ui";
 import {
   useAuiState,
+  type MessagePartState,
   type ThreadMessage,
   type ReasoningMessagePart,
   type ToolCallMessagePart,
   type ToolCallMessagePartProps,
 } from "@assistant-ui/react";
 import {
-  createContext,
-  useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -68,6 +66,7 @@ type ToolProjectionProps = Pick<
   | "isError"
   | "status"
 >;
+type ToolPartState = Extract<MessagePartState, { type: "tool-call" }>;
 
 function useCurrentThreadMessage(): ThreadMessage {
   return useAuiState((state) => state.message as ThreadMessage);
@@ -208,13 +207,9 @@ function projectToolItem(
 
 function projectGroupedToolItem(
   message: ThreadMessage,
-  part: ToolCallMessagePart,
-  groupStatus: ThreadGroupPart["status"],
+  part: ToolPartState,
 ): ToolPresentationItem {
-  return projectToolItemProjection(message, {
-    ...part,
-    status: part.result === undefined ? groupStatus : { type: "complete" },
-  });
+  return projectToolItemProjection(message, part);
 }
 
 export function deriveToolActivityStatus(items: readonly ToolPresentationItem[]): {
@@ -251,43 +246,6 @@ export function deriveToolActivityStatus(items: readonly ToolPresentationItem[])
     };
   }
   return { activeToolCallIds, requiresActionToolCallIds, status: "completed" };
-}
-
-interface ToolActivityItemRegistry {
-  register(item: ToolPresentationItem): void;
-}
-
-const ToolActivityItemRegistryContext =
-  createContext<ToolActivityItemRegistry | null>(null);
-
-function useToolActivityItemProjection(
-  initialItems: readonly ToolPresentationItem[],
-): {
-  items: readonly ToolPresentationItem[];
-  registry: ToolActivityItemRegistry;
-} {
-  const [reportedItems, setReportedItems] = useState<
-    Readonly<Record<string, ToolPresentationItem>>
-  >({});
-  const register = useCallback((item: ToolPresentationItem) => {
-    setReportedItems((previous) => {
-      const existing = previous[item.toolCall.id];
-      if (
-        existing?.status === item.status &&
-        existing?.result === item.result &&
-        existing?.execution === item.execution &&
-        existing?.actionRequirement?.reason === item.actionRequirement?.reason
-      ) {
-        return previous;
-      }
-      return { ...previous, [item.toolCall.id]: item };
-    });
-  }, []);
-  const registry = useMemo(() => ({ register }), [register]);
-  const items = initialItems.map(
-    (item) => reportedItems[item.toolCall.id] ?? item,
-  );
-  return { items, registry };
 }
 
 function useAssistantUiToolGroupDisclosure(
@@ -331,6 +289,18 @@ function groupParts(
     const part = message.content[index];
     return part?.type === type ? [part] : [];
   });
+}
+
+function useGroupedToolPartStates(group: ThreadGroupPart): ToolPartState[] {
+  const parts = useAuiState((state) => state.message.parts);
+  return useMemo(
+    () =>
+      group.indices.flatMap((index) => {
+        const part = parts[index];
+        return part?.type === "tool-call" ? [part] : [];
+      }),
+    [group.indices, parts],
+  );
 }
 
 export function SemanticReasoningOutlet({
@@ -394,10 +364,10 @@ export function SemanticToolActivityOutlet({
 }: PropsWithChildren<{ group: ThreadGroupPart }>) {
   const renderSlot = useOptionalMessageSlotBridge();
   const threadMessage = useCurrentThreadMessage();
-  const initialItems = groupParts(threadMessage, group, "tool-call").map((part) =>
-    projectGroupedToolItem(threadMessage, part, group.status),
+  const toolParts = useGroupedToolPartStates(group);
+  const items = toolParts.map((part) =>
+    projectGroupedToolItem(threadMessage, part),
   );
-  const { items, registry } = useToolActivityItemProjection(initialItems);
   const {
     activeToolCallIds,
     requiresActionToolCallIds,
@@ -417,11 +387,10 @@ export function SemanticToolActivityOutlet({
         count={items.length}
         active={activeToolCallIds.length > 0}
       />
-      <ToolActivityItemRegistryContext.Provider value={registry}>
-        <ToolGroupContent keepMounted>{children}</ToolGroupContent>
-      </ToolActivityItemRegistryContext.Provider>
+      <ToolGroupContent keepMounted>{children}</ToolGroupContent>
     </ToolGroupRoot>
   );
+  if (requiresActionToolCallIds.length > 0) return fallback;
   if (renderSlot === null) return fallback;
 
   return (
@@ -450,22 +419,6 @@ export function SemanticToolItemOutlet(props: ToolCallMessagePartProps) {
   const renderSlot = useOptionalToolItemSlotBridge();
   const threadMessage = useCurrentThreadMessage();
   const item = projectToolItem(threadMessage, props);
-  const registry = useContext(ToolActivityItemRegistryContext);
-  useEffect(() => {
-    registry?.register(item);
-  }, [
-    item.actionRequirement?.reason,
-    item.execution?.id,
-    item.execution?.status,
-    item.result?.id,
-    item.result?.content,
-    item.result?.error,
-    item.status,
-    item.toolCall.id,
-    item.toolCall.function.arguments,
-    item.toolCall.function.name,
-    registry,
-  ]);
   const fallback = <ToolFallback {...props} />;
   if (props.status.type === "requires-action") return fallback;
   if (renderSlot === null) return fallback;
