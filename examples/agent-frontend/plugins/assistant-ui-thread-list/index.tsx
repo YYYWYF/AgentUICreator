@@ -1,4 +1,4 @@
-import { ThreadList } from "../../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui";
+import { ThreadList } from "../../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useAgentRun } from "../../runtime/context";
 import {
