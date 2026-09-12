@@ -4,18 +4,44 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
+import {
+  parseAppUIModelJson,
+  type AppUIModel,
+} from "../framework/contracts/app-ui-model";
 import {
   applyAssistantUiSpikeMode,
+  ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS,
   ASSISTANT_UI_SPIKE_INSTANCE_ID,
   CONVERSATION_SURFACE_INSTANCE_ID,
   isAssistantUiSpikeRequested,
 } from "../src/spikes/assistant-ui/spike-mode";
 
+const STRUCTURAL_HOST_INSTANCE_IDS = [
+  "agent-messages-main",
+  "agent-tool-activity-main",
+] as const;
+
+const DEFERRED_PRESENTATION_INSTANCE_IDS = [
+  "agent-welcome-main",
+  "agent-prompts-main",
+  "agent-sender-main",
+  "agent-message-sources-main",
+] as const;
+
 async function readModel() {
   return parseAppUIModelJson(
     await readFile(new URL("../app-ui/app-ui.json", import.meta.url), "utf8"),
   );
+}
+
+function expectInstancesEnabled(
+  model: AppUIModel,
+  instanceIds: readonly string[],
+  enabled: boolean,
+): void {
+  for (const instanceId of instanceIds) {
+    expect(model.pluginInstances[instanceId]?.enabled).toBe(enabled);
+  }
 }
 
 describe("assistant-ui Spike isolation", () => {
@@ -30,6 +56,11 @@ describe("assistant-ui Spike isolation", () => {
     expect(
       normal.pluginInstances[ASSISTANT_UI_SPIKE_INSTANCE_ID]?.enabled,
     ).toBe(false);
+    expectInstancesEnabled(
+      normal,
+      ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS,
+      true,
+    );
   });
 
   it("keeps conversation-surface as the product host in Spike mode", async () => {
@@ -45,6 +76,13 @@ describe("assistant-ui Spike isolation", () => {
       enabled: false,
       mount: { slotId: "workspace.conversation" },
     });
+    expectInstancesEnabled(
+      spike,
+      ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS,
+      false,
+    );
+    expectInstancesEnabled(spike, STRUCTURAL_HOST_INSTANCE_IDS, true);
+    expectInstancesEnabled(spike, DEFERRED_PRESENTATION_INSTANCE_IDS, true);
   });
 
   it("only enables the development switch for the exact value 1", () => {

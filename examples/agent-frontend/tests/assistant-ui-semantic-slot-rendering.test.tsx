@@ -736,7 +736,7 @@ describe("assistant-ui semantic Slot rendering", () => {
     expect(renderedText(renderer)).toContain("assistant sibling text");
   });
 
-  it("renders upstream leaf fallbacks when no custom leaf Plugin contributes", async () => {
+  it("renders assistant-ui native leaf presentation when no custom leaf Plugin contributes", async () => {
     const fallbackReasoningAndTools: ThreadMessageLike = {
       id: "assistant-fallbacks",
       role: "assistant",
@@ -786,5 +786,16 @@ describe("assistant-ui semantic Slot rendering", () => {
     expect(countByTestId(renderer, "tool-activity-sentinel")).toBe(0);
     expect(countByTestId(renderer, "tool-item-sentinel")).toBe(0);
     expect(countByTestId(renderer, "attachments-sentinel")).toBe(0);
+    expect(
+      renderer.root.findAllByProps({ "data-ui-plugin": "agent-reasoning" }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({ "data-ui-plugin": "agent-tool" }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({
+        "data-ui-plugin": "agent-message-attachments",
+      }),
+    ).toHaveLength(0);
   });
 });
