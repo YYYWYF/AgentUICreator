@@ -209,13 +209,19 @@ export function createConversationServiceAssistantUiThreadBinding<
       return loaded;
     },
     async createNewThread() {
-      liveThreadId = crypto.randomUUID();
-      activeThreadId = liveThreadId;
-      liveThreadSnapshot = emptyLoadedThread<TState>();
-      activeThreadSnapshot = liveThreadSnapshot;
-      conversationService?.showLiveConversation();
+      if (conversationService !== undefined) {
+        await conversationService.startNewConversation();
+      }
+
+      const nextLiveThreadId = crypto.randomUUID();
+      const nextLiveThreadSnapshot = emptyLoadedThread<TState>();
+
+      liveThreadId = nextLiveThreadId;
+      activeThreadId = nextLiveThreadId;
+      liveThreadSnapshot = nextLiveThreadSnapshot;
+      activeThreadSnapshot = nextLiveThreadSnapshot;
       rebuildThreadListSnapshot();
-      return liveThreadId;
+      return nextLiveThreadId;
     },
   };
 }

@@ -94,7 +94,7 @@ class FakeConversationService implements AgentUIConversationService {
 
   async refresh(): Promise<void> {}
 
-  showLiveConversation(): void {
+  readonly showLiveConversation = vi.fn(() => {
     this.snapshot = {
       ...this.snapshot,
       mode: "live",
@@ -105,11 +105,11 @@ class FakeConversationService implements AgentUIConversationService {
       detailErrorConversationId: undefined,
     };
     this.emit();
-  }
+  });
 
-  async startNewConversation(): Promise<void> {
+  readonly startNewConversation = vi.fn(async () => {
     this.showLiveConversation();
-  }
+  });
 }
 
 function createBindingFixture() {
@@ -222,15 +222,36 @@ describe("ConversationServiceAssistantUiThreadBinding", () => {
   });
 
   it("creates a fresh empty thread without leaking the old live transcript", async () => {
-    const { binding, live } = createBindingFixture();
+    const { binding, live, service } = createBindingFixture();
     const oldId = binding.getThreadId();
 
     const newId = await binding.createNewThread();
     const loaded = await binding.selectThread(newId);
 
+    expect(service.startNewConversation).toHaveBeenCalledOnce();
     expect(newId).not.toBe(oldId);
     expect(binding.getThreadId()).toBe(newId);
     expect(loaded.messages).toEqual([]);
     expect(messageIds(live.messages)).toEqual(["live-user", "live-assistant"]);
+  });
+
+  it("does not commit a new identity when starting a conversation fails", async () => {
+    const { binding, live, service } = createBindingFixture();
+    const oldId = binding.getThreadId();
+    const oldListSnapshot = binding.getThreadListSnapshot();
+    service.startNewConversation.mockRejectedValueOnce(
+      new Error("failed to create conversation"),
+    );
+
+    await expect(binding.createNewThread()).rejects.toThrow(
+      "failed to create conversation",
+    );
+
+    expect(service.startNewConversation).toHaveBeenCalledOnce();
+    expect(service.showLiveConversation).not.toHaveBeenCalled();
+    expect(binding.getThreadId()).toBe(oldId);
+    expect(binding.getThreadListSnapshot()).toBe(oldListSnapshot);
+    const restored = await binding.selectThread(oldId);
+    expect(messageIds(restored.messages)).toEqual(messageIds(live.messages));
   });
 });

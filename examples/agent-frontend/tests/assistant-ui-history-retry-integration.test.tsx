@@ -104,7 +104,7 @@ class RetryConversationService implements AgentUIConversationService {
 
   async refresh(): Promise<void> {}
 
-  showLiveConversation(): void {
+  readonly showLiveConversation = vi.fn(() => {
     this.snapshot = {
       ...this.snapshot,
       mode: "live",
@@ -115,11 +115,11 @@ class RetryConversationService implements AgentUIConversationService {
       detailErrorConversationId: undefined,
     };
     this.emit();
-  }
+  });
 
-  async startNewConversation(): Promise<void> {
+  readonly startNewConversation = vi.fn(async () => {
     this.showLiveConversation();
-  }
+  });
 
   private emit(): void {
     this.listeners.forEach((listener) => listener());
@@ -250,6 +250,122 @@ describe("assistant-ui history retry navigation", () => {
         "live-user",
         "live-assistant",
       ]);
+    } finally {
+      detach();
+      if (renderer !== undefined) {
+        await act(async () => {
+          renderer?.unmount();
+        });
+      }
+    }
+  });
+
+  it("keeps Runtime and Conversation identity atomic when New Thread fails", async () => {
+    const service = new RetryConversationService();
+    const binding = createConversationServiceAssistantUiThreadBinding();
+    const detach = binding.attachConversationService(service);
+    const liveMessages = [
+      threadMessage("live-user", "user"),
+      threadMessage("live-assistant", "assistant"),
+    ];
+    binding.captureLiveThread({ messages: liveMessages });
+    const liveThreadId = binding.getThreadId();
+    const agent = createAgent();
+    service.startNewConversation.mockRejectedValueOnce(
+      new Error("failed to create conversation"),
+    );
+    let runtime: AssistantRuntime | undefined;
+    let renderer: ReactTestRenderer | undefined;
+
+    try {
+      await act(async () => {
+        renderer = create(
+          <RuntimeFixture
+            agent={agent}
+            binding={binding}
+            onRuntime={(nextRuntime) => {
+              runtime = nextRuntime;
+            }}
+          />,
+        );
+        await Promise.resolve();
+      });
+      if (runtime === undefined) throw new Error("Runtime was not captured");
+      const assistantRuntime = runtime;
+
+      await act(async () => {
+        assistantRuntime.thread.reset(liveMessages);
+        await Promise.resolve();
+      });
+
+      await act(async () => {
+        await expect(
+          assistantRuntime.threads.switchToNewThread(),
+        ).rejects.toThrow("failed to create conversation");
+      });
+
+      expect(service.startNewConversation).toHaveBeenCalledOnce();
+      expect(binding.getThreadId()).toBe(liveThreadId);
+      expect(assistantRuntime.threads.getState().mainThreadId).toBe(liveThreadId);
+      expect(assistantRuntime.thread.getState().threadId).toBe(liveThreadId);
+      expect(messageIds(assistantRuntime.thread.getState().messages)).toEqual([
+        "live-user",
+        "live-assistant",
+      ]);
+      expect(agent.threadId).toBe(liveThreadId);
+    } finally {
+      detach();
+      if (renderer !== undefined) {
+        await act(async () => {
+          renderer?.unmount();
+        });
+      }
+    }
+  });
+
+  it("commits the new identity only after New Thread succeeds", async () => {
+    const service = new RetryConversationService();
+    const binding = createConversationServiceAssistantUiThreadBinding();
+    const detach = binding.attachConversationService(service);
+    const liveMessages = [
+      threadMessage("live-user", "user"),
+      threadMessage("live-assistant", "assistant"),
+    ];
+    binding.captureLiveThread({ messages: liveMessages });
+    const oldThreadId = binding.getThreadId();
+    const agent = createAgent();
+    let runtime: AssistantRuntime | undefined;
+    let renderer: ReactTestRenderer | undefined;
+
+    try {
+      await act(async () => {
+        renderer = create(
+          <RuntimeFixture
+            agent={agent}
+            binding={binding}
+            onRuntime={(nextRuntime) => {
+              runtime = nextRuntime;
+            }}
+          />,
+        );
+        await Promise.resolve();
+      });
+      if (runtime === undefined) throw new Error("Runtime was not captured");
+      const assistantRuntime = runtime;
+
+      await act(async () => {
+        assistantRuntime.thread.reset(liveMessages);
+        await Promise.resolve();
+        await assistantRuntime.threads.switchToNewThread();
+      });
+
+      const newThreadId = binding.getThreadId();
+      expect(service.startNewConversation).toHaveBeenCalledOnce();
+      expect(newThreadId).not.toBe(oldThreadId);
+      expect(assistantRuntime.threads.getState().mainThreadId).toBe(newThreadId);
+      expect(assistantRuntime.thread.getState().threadId).toBe(newThreadId);
+      expect(assistantRuntime.thread.getState().messages).toEqual([]);
+      expect(agent.threadId).toBe(newThreadId);
     } finally {
       detach();
       if (renderer !== undefined) {
