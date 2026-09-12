@@ -65,6 +65,7 @@ describe("AppUIModel", () => {
       "agent-sender-main",
       "agent-conversation-controller-main",
       "agent-conversations-main",
+      "assistant-ui-conversation-spike-main",
     ]);
     expect(model.root).toMatchObject({
       type: "row",
@@ -117,6 +118,13 @@ describe("AppUIModel", () => {
     expect(model.pluginInstances["agent-conversations-main"]).toMatchObject({
       pluginId: "agent-conversations",
       mount: { slotId: "agent-conversations" },
+    });
+    expect(
+      model.pluginInstances["assistant-ui-conversation-spike-main"],
+    ).toMatchObject({
+      pluginId: "assistant-ui-conversation-spike",
+      enabled: false,
+      mount: { slotId: "workspace.conversation" },
     });
   });
 

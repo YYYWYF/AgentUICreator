@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "base-nova",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/spikes/assistant-ui/styles/globals.css",
+    "baseColor": "zinc",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/spikes/assistant-ui/components",
+    "utils": "@/spikes/assistant-ui/lib/utils",
+    "ui": "@/spikes/assistant-ui/components/ui",
+    "lib": "@/spikes/assistant-ui/lib",
+    "hooks": "@/spikes/assistant-ui/hooks"
+  },
+  "iconLibrary": "lucide"
+}

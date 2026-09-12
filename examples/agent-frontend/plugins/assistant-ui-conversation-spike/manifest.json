@@ -1,0 +1,7 @@
+{
+  "id": "assistant-ui-conversation-spike",
+  "name": "assistant-ui Conversation Spike",
+  "description": "以 assistant-ui Runtime 和官方 Thread 独立消费 AG-UI 的实验会话面。",
+  "version": "0.1.0",
+  "capabilities": ["conversation-surface", "experimental"]
+}

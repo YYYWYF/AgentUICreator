@@ -7,6 +7,19 @@ import { describe, expect, it } from "vitest";
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = path.resolve(projectRoot, "../..");
 const registryRoot = path.join(workspaceRoot, "packages/source-registry/registry");
+const spikeSourceRoot = path.join(projectRoot, "src/spikes/assistant-ui");
+const spikePluginRoot = path.join(
+  projectRoot,
+  "plugins/assistant-ui-conversation-spike",
+);
+const spikePackagePath = path.join(projectRoot, "package.json");
+const forbiddenManagedDependencies = [
+  /^@?assistant-ui(?:\/|$)/u,
+  /^tailwindcss$/u,
+  /^class-variance-authority$/u,
+  /^lucide-react$/u,
+  /^@radix-ui\//u,
+] as const;
 
 async function collectFiles(
   root: string,
@@ -38,7 +51,7 @@ function importSpecifiers(source: string): string[] {
 }
 
 describe("Agent UI component source policy", () => {
-  it("keeps assistant-ui out of generated and Registry imports", async () => {
+  it("keeps assistant-ui out of managed Agent UI and Registry imports", async () => {
     const sourceFiles = [
       ...await collectFiles(path.join(projectRoot, "agent-ui"), (filePath) => /\.[cm]?[jt]sx?$/u.test(filePath)),
       ...await collectFiles(registryRoot, (filePath) => /\.[cm]?[jt]sx?$/u.test(filePath)),
@@ -50,7 +63,7 @@ describe("Agent UI component source policy", () => {
     }
   });
 
-  it("keeps forbidden Agent Component dependencies out of package manifests", async () => {
+  it("limits the package-manifest dependency exception to the Spike host", async () => {
     const packageFiles = await collectFiles(workspaceRoot, (filePath) => {
       const relative = path.relative(workspaceRoot, filePath);
       return path.basename(filePath) === "package.json" &&
@@ -62,11 +75,43 @@ describe("Agent UI component source policy", () => {
         const dependencies = manifest[field];
         if (dependencies === undefined || dependencies === null || typeof dependencies !== "object") continue;
         for (const dependency of Object.keys(dependencies)) {
-          expect(dependency, filePath).not.toMatch(/^@?assistant-ui(?:\/|$)/u);
-          expect(dependency, filePath).not.toBe("tailwindcss");
-          expect(dependency, filePath).not.toBe("class-variance-authority");
-          expect(dependency, filePath).not.toBe("lucide-react");
-          expect(dependency, filePath).not.toMatch(/^@radix-ui\//u);
+          const isForbidden = forbiddenManagedDependencies.some((pattern) =>
+            pattern.test(dependency),
+          );
+          if (!isForbidden) continue;
+          expect(filePath, dependency).toBe(spikePackagePath);
+        }
+      }
+    }
+  });
+
+  it("keeps assistant-ui dependencies spike-scoped", async () => {
+    const productionRoots = [
+      "agent-ui",
+      "framework",
+      "plugins",
+      "runtime",
+      "services",
+      "src",
+    ].map((directory) => path.join(projectRoot, directory));
+    const sourceFiles = (
+      await Promise.all(
+        productionRoots.map((root) =>
+          collectFiles(root, (filePath) => /\.[cm]?[jt]sx?$/u.test(filePath)),
+        ),
+      )
+    ).flat();
+    const spikeDependency =
+      /^(?:@assistant-ui\/|@ag-ui\/client$|class-variance-authority$|cn$|lucide-react$|remark-gfm$|tw-shimmer$|zustand$)/u;
+
+    for (const filePath of sourceFiles) {
+      const relativePath = path.relative(projectRoot, filePath);
+      const allowed =
+        filePath.startsWith(`${spikeSourceRoot}${path.sep}`) ||
+        filePath.startsWith(`${spikePluginRoot}${path.sep}`);
+      for (const specifier of importSpecifiers(await readFile(filePath, "utf8"))) {
+        if (spikeDependency.test(specifier)) {
+          expect(allowed, `${relativePath}: ${specifier}`).toBe(true);
         }
       }
     }

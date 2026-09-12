@@ -16,11 +16,12 @@ import pluginDefinition10 from "./agent-tool-detail/definition";
 import pluginDefinition11 from "./antd-x-resources/definition";
 import pluginDefinition12 from "./antd-x-theme-provider/definition";
 import pluginDefinition13 from "./antd-x-theme-switch/definition";
-import pluginDefinition14 from "./conversation-controller/definition";
-import pluginDefinition15 from "./conversation-data-source/definition";
-import pluginDefinition16 from "./conversation-surface/definition";
-import pluginDefinition17 from "./mock-auth-login/definition";
-import pluginDefinition18 from "./workspace-inspector/definition";
+import pluginDefinition14 from "./assistant-ui-conversation-spike/definition";
+import pluginDefinition15 from "./conversation-controller/definition";
+import pluginDefinition16 from "./conversation-data-source/definition";
+import pluginDefinition17 from "./conversation-surface/definition";
+import pluginDefinition18 from "./mock-auth-login/definition";
+import pluginDefinition19 from "./workspace-inspector/definition";
 
 export const pluginDefinitions = [
   pluginDefinition0,
@@ -42,4 +43,5 @@ export const pluginDefinitions = [
   pluginDefinition16,
   pluginDefinition17,
   pluginDefinition18,
+  pluginDefinition19,
 ] as const;

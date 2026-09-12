@@ -240,6 +240,14 @@
       "mount": {
         "slotId": "agent-conversations"
       }
+    },
+    "assistant-ui-conversation-spike-main": {
+      "id": "assistant-ui-conversation-spike-main",
+      "pluginId": "assistant-ui-conversation-spike",
+      "enabled": false,
+      "mount": {
+        "slotId": "workspace.conversation"
+      }
     }
   }
 }

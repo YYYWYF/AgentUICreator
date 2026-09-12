@@ -47,6 +47,10 @@ import {
 import { ModeShell } from "../runtime/mode-shell";
 import { AgentUIRoot } from "../agent-ui/foundation/AgentUIRoot";
 import { resolveAgentEndpoint } from "./agent-endpoint";
+import {
+  applyAssistantUiSpikeMode,
+  isAssistantUiSpikeRequested,
+} from "./spikes/assistant-ui/spike-mode";
 import "./preview-shell.css";
 
 const projectConfigSources = import.meta.glob<string>(
@@ -60,7 +64,16 @@ export const currentAgentUIMode = resolveAgentUIProjectConfig(
     ? undefined
     : JSON.parse(projectConfigJsonSource),
 ).config.mode;
-const initialAppUIModel = parseAppUIModelJson(appUIJsonSource);
+const baseAppUIModel = parseAppUIModelJson(appUIJsonSource);
+const assistantUiSpikeEnabled =
+  import.meta.env.DEV && isAssistantUiSpikeRequested(window.location.search);
+if (assistantUiSpikeEnabled) {
+  void import("./spikes/assistant-ui/styles/globals.css");
+}
+const initialAppUIModel = applyAssistantUiSpikeMode(
+  baseAppUIModel,
+  assistantUiSpikeEnabled,
+);
 const pluginRegistry = createPluginRegistry<AppAgentState>(pluginDefinitions);
 const appEventRegistry = new AppEventRegistry(appEventSchemas);
 const appFrontendToolRegistry = new AppFrontendToolRegistry(appFrontendTools);

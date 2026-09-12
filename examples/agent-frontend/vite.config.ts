@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import {
   builtinMockScenarios,
   createMockAgentVitePlugin,
@@ -25,6 +26,7 @@ export default defineConfig(async ({ command, mode }) => {
   return {
     plugins: [
       react(),
+      tailwindcss(),
       createMockAgentVitePlugin({
         endpoint: "/__agent-ui/mock",
         scenarios: builtinMockScenarios.map((scenario) => ({
@@ -39,6 +41,7 @@ export default defineConfig(async ({ command, mode }) => {
     ],
     resolve: {
       alias: {
+        "@": path.join(workspaceRoot, "examples/agent-frontend/src"),
         "@agent-ui/source-registry": path.join(
           workspaceRoot,
           "packages/source-registry/src/index.ts",
