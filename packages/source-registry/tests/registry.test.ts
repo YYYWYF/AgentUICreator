@@ -301,7 +301,7 @@ describe("Agent UI Source Registry contract", () => {
     const foundation = registry.byId.get("foundation/assistant-ui-conversation");
 
     expect(foundation).toMatchObject({
-      version: "0.1.1",
+      version: "0.1.2",
       kind: "foundation",
       upstream: {
         project: "assistant-ui/assistant-ui",

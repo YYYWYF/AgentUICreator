@@ -14,6 +14,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AssistantUiConversationAdapter } from "../agent-ui/adapters/assistant-ui/conversation";
+import { Thread } from "../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui";
 import {
   ASSISTANT_UI_CONVERSATION_SLOTS,
   type AssistantUiConversationSlotId,
@@ -210,6 +211,7 @@ interface MountSemanticRuntimeOptions {
   includeToolActivity?: boolean;
   initialMessages?: readonly ThreadMessageLike[];
   target?: AssistantUiConversationSlotId;
+  targets?: readonly AssistantUiConversationSlotId[];
 }
 
 const mountedRenderers: ReactTestRenderer[] = [];
@@ -219,6 +221,7 @@ async function mountSemanticRuntime({
   includeToolActivity = false,
   initialMessages = [],
   target,
+  targets = [],
 }: MountSemanticRuntimeOptions = {}): Promise<ReactTestRenderer> {
   const definitions: UIPluginDefinition[] = [
     createSurfacePlugin(initialMessages),
@@ -252,13 +255,16 @@ async function mountSemanticRuntime({
     };
   }
 
-  if (target !== undefined) {
-    definitions.push(createSentinelPlugin(target));
-    pluginInstances[sentinelInstanceId(target)] = {
-      id: sentinelInstanceId(target),
-      pluginId: sentinelPluginId(target),
+  const targetSlots = new Set(
+    target === undefined ? targets : [target, ...targets],
+  );
+  for (const targetSlot of targetSlots) {
+    definitions.push(createSentinelPlugin(targetSlot));
+    pluginInstances[sentinelInstanceId(targetSlot)] = {
+      id: sentinelInstanceId(targetSlot),
+      pluginId: sentinelPluginId(targetSlot),
       enabled: true,
-      mount: { slotId: target },
+      mount: { slotId: targetSlot },
     };
   }
 
@@ -299,6 +305,33 @@ async function mountSemanticRuntime({
   return renderer;
 }
 
+async function mountUpstreamThread(
+  initialMessages: readonly ThreadMessageLike[] = [],
+): Promise<ReactTestRenderer> {
+  function UpstreamThreadFixture() {
+    const assistantRuntime = useLocalRuntime(TEST_CHAT_MODEL, {
+      initialMessages,
+    });
+    return (
+      <AssistantRuntimeProvider runtime={assistantRuntime}>
+        <Thread />
+      </AssistantRuntimeProvider>
+    );
+  }
+
+  let renderer: ReactTestRenderer | undefined;
+  await act(async () => {
+    renderer = create(<UpstreamThreadFixture />);
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+  if (renderer === undefined) {
+    throw new Error("Upstream Thread test renderer was not created.");
+  }
+  mountedRenderers.push(renderer);
+  return renderer;
+}
+
 function countByTestId(renderer: ReactTestRenderer, testId: string): number {
   return renderer.root.findAllByProps({ "data-testid": testId }).length;
 }
@@ -313,6 +346,16 @@ function countByClassToken(renderer: ReactTestRenderer, token: string): number {
     return typeof className === "string" &&
       className.split(/\s+/u).includes(token);
   }).length;
+}
+
+function findOneByClassToken(renderer: ReactTestRenderer, token: string) {
+  const matches = renderer.root.findAll((node) => {
+    const className = node.props.className;
+    return typeof className === "string" &&
+      className.split(/\s+/u).includes(token);
+  });
+  expect(matches).toHaveLength(1);
+  return matches[0]!;
 }
 
 function renderedText(renderer: ReactTestRenderer): string {
@@ -457,6 +500,76 @@ afterEach(async () => {
 });
 
 describe("assistant-ui semantic Slot rendering", () => {
+  it("orders the semantic empty state and docks its Composer without sticky positioning", async () => {
+    const renderer = await mountSemanticRuntime({
+      targets: [
+        ASSISTANT_UI_CONVERSATION_SLOTS.welcome,
+        ASSISTANT_UI_CONVERSATION_SLOTS.suggestions,
+        ASSISTANT_UI_CONVERSATION_SLOTS.composer,
+      ],
+    });
+    const text = renderedText(renderer);
+    const welcomeIndex = text.indexOf("WELCOME SENTINEL");
+    const suggestionsIndex = text.indexOf("SUGGESTIONS SENTINEL");
+    const composerIndex = text.indexOf("COMPOSER SENTINEL");
+
+    expect(welcomeIndex).toBeGreaterThanOrEqual(0);
+    expect(suggestionsIndex).toBeGreaterThan(welcomeIndex);
+    expect(composerIndex).toBeGreaterThan(suggestionsIndex);
+    expect(countByTestId(renderer, "suggestions-sentinel")).toBe(1);
+    expect(countByTestId(renderer, "composer-sentinel")).toBe(1);
+
+    const content = findOneByClassToken(renderer, "max-w-(--thread-max-width)");
+    expect(content.props.className.split(/\s+/u)).not.toContain("justify-center");
+
+    const footer = findOneByClassToken(renderer, "aui-thread-viewport-footer");
+    const footerClasses = footer.props.className.split(/\s+/u);
+    expect(footerClasses).toContain("mt-auto");
+    expect(footerClasses).not.toContain("sticky");
+  });
+
+  it("keeps the active conversation Timeline and sticky Composer behavior", async () => {
+    const renderer = await mountSemanticRuntime({
+      includeMessageList: false,
+      initialMessages: [assistantTextMessage()],
+      targets: [
+        ASSISTANT_UI_CONVERSATION_SLOTS.welcome,
+        ASSISTANT_UI_CONVERSATION_SLOTS.suggestions,
+        ASSISTANT_UI_CONVERSATION_SLOTS.timeline,
+        ASSISTANT_UI_CONVERSATION_SLOTS.composer,
+      ],
+    });
+
+    expect(countByTestId(renderer, "welcome-sentinel")).toBe(0);
+    expect(countByTestId(renderer, "suggestions-sentinel")).toBe(0);
+    expect(countByTestId(renderer, "timeline-sentinel")).toBe(1);
+    expect(countByTestId(renderer, "composer-sentinel")).toBe(1);
+
+    const footer = findOneByClassToken(renderer, "aui-thread-viewport-footer");
+    const footerClasses = footer.props.className.split(/\s+/u);
+    expect(footerClasses).toContain("mt-auto");
+    expect(footerClasses).toContain("sticky");
+    expect(footerClasses).toContain("bottom-0");
+  });
+
+  it("preserves the centered no-wrapper assistant-ui empty state fallback", async () => {
+    const renderer = await mountUpstreamThread();
+    const content = findOneByClassToken(renderer, "max-w-(--thread-max-width)");
+    const renderedTree = JSON.stringify(renderer.toJSON());
+
+    expect(content.props.className.split(/\s+/u)).toContain("justify-center");
+    expect(countByClassToken(renderer, "aui-thread-welcome-suggestions")).toBe(1);
+    expect(countByDataSlot(renderer, "aui_composer-shell")).toBe(1);
+    expect(renderedTree.indexOf("aui_composer-shell")).toBeLessThan(
+      renderedTree.indexOf("aui-thread-welcome-suggestions"),
+    );
+
+    const footer = findOneByClassToken(renderer, "aui-thread-viewport-footer");
+    const footerClasses = footer.props.className.split(/\s+/u);
+    expect(footerClasses).not.toContain("mt-auto");
+    expect(footerClasses).not.toContain("sticky");
+  });
+
   it("replaces Welcome without replacing Initial Suggestions or Composer", async () => {
     const renderer = await mountSemanticRuntime({
       target: ASSISTANT_UI_CONVERSATION_SLOTS.welcome,
