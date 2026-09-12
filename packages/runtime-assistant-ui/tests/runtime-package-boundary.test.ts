@@ -45,4 +45,21 @@ describe("runtime-assistant-ui package policy", () => {
     expect(combined).not.toMatch(/\.runAgent\s*\(/u);
     expect(combined).not.toMatch(/AppUIModel|PluginRegistry|SlotRegistry|@agent-ui\/creator/u);
   });
+
+  it("passes generic assistant-ui config through to the Runtime provider", async () => {
+    const provider = await readFile(
+      path.join(packageRoot, "src/AssistantUiAgUiRuntimeProvider.tsx"),
+      "utf8",
+    );
+
+    expect(provider).toContain(
+      'config?: ComponentProps<typeof AssistantRuntimeProvider>["config"]',
+    );
+    expect(provider).toContain(
+      "<AssistantRuntimeProvider runtime={assistantRuntime} config={config}>",
+    );
+    expect(provider).not.toMatch(
+      /agent-welcome-main|agent-prompts-main|AppUIModel/u,
+    );
+  });
 });

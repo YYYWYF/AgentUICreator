@@ -19,14 +19,15 @@ assistant-ui capability does not exist
   -> AgentUICreator presentation is allowed
 ```
 
-P3R-4A keeps the legacy normal mode intact. Only the `assistantUiSpike=1`
-AppUIModel projection stops the legacy Reasoning, Tool Item, and Message
-Attachments Plugins from overriding their assistant-ui fallbacks.
+P3R-4B keeps the legacy normal mode intact. The `assistantUiSpike=1`
+AppUIModel projection now also stops the legacy Welcome and Starter Suggestions
+Plugins from overriding assistant-ui, while adapters preserve their product
+configuration.
 
 Pinned upstream baseline:
 
 ```text
-Source Registry item: foundation/assistant-ui-conversation@0.1.2
+Source Registry item: foundation/assistant-ui-conversation@0.1.3
 assistant-ui revision: 97bd4b39fce83163354c9ec8d9d4fb2c9bd1aac7
 ```
 
@@ -48,10 +49,10 @@ Every target status in this matrix is one of these values:
 | --- | --- | --- | --- | --- |
 | Thread shell | `Thread` | `conversation-surface` hosts the product boundary | `assistant-ui-canonical` | Keep `conversation-surface` as a structural wrapper and pass through the upstream Thread. |
 | Viewport / scroll | Thread viewport, auto-scroll, scroll-to-bottom | Legacy message list has its own viewport behavior | `assistant-ui-canonical` | Use upstream behavior in assistant-ui mode; keep the legacy path for A/B. |
-| Welcome | `ThreadWelcome` | `agent-thread-welcome` consumes AppUIModel title and description | `assistant-ui-with-agent-ui-adapter` | Defer configuration mapping and cutover to P3R-4B. |
-| Starter Suggestions | `ThreadPrimitive.Suggestions`, `SuggestionPrimitive`, and upstream presentation | `agent-suggestions` consumes AppUIModel starter items | `assistant-ui-with-agent-ui-adapter` | Defer item mapping and cutover to P3R-4B. |
-| Follow-up Suggestions | Suggestion primitives and Thread composition | AgentUICreator owns product suggestion data and action binding | `assistant-ui-with-agent-ui-adapter` | Defer data and interaction integration. |
-| Composer | Composer primitives for input, send, cancel, attachments, and dictation | `agent-composer` adds slash suggestions, history-mode rules, and Plugin action binding | `assistant-ui-with-agent-ui-adapter` | Defer extension adapter and cutover to P3R-4B. |
+| Welcome | `ThreadWelcome` | `agent-thread-welcome` consumes AppUIModel title and description | `assistant-ui-with-agent-ui-adapter` | P3R-4B uses native `ThreadWelcome`; the adapter supplies live AppUIModel title and description. |
+| Starter Suggestions | `ThreadPrimitive.Suggestions`, `SuggestionPrimitive`, and upstream presentation | `agent-suggestions` consumes AppUIModel starter items | `assistant-ui-with-agent-ui-adapter` | P3R-4B maps live AppUIModel items through `AuiConfig` and `Suggestions()`. |
+| Follow-up Suggestions | Suggestion primitives and Thread composition | AgentUICreator owns product suggestion data and action binding | `assistant-ui-with-agent-ui-adapter` | Keep Runtime `thread.suggestions` independent from static starter configuration. |
+| Composer | Composer primitives for input, send, cancel, attachments, dictation, and slash-command trigger popover | `agent-composer` adds slash suggestions, history-mode rules, and Plugin action binding | `assistant-ui-with-agent-ui-adapter` | Defer migration onto assistant-ui Composer and slash-command APIs to P3R-4C. |
 | Composer attachments | Composer attachment primitives and upload presentation | Legacy Composer owns current product integration | `assistant-ui-with-agent-ui-adapter` | Migrate with Composer after upload and action integration is defined. |
 | User message | Upstream UserMessage presentation | Legacy timeline renders the normal-mode message | `assistant-ui-canonical` | Use upstream presentation in assistant-ui mode. |
 | Assistant message | Upstream AssistantMessage presentation | Legacy timeline renders the normal-mode message | `assistant-ui-canonical` | Use upstream presentation in assistant-ui mode. |
@@ -76,7 +77,7 @@ Every target status in this matrix is one of these values:
 These classifications apply to concrete AgentUICreator components and Plugin
 instances. They do not change Slot IDs or move Slot ownership.
 
-| Component or instance | Target status | P3R-4A state |
+| Component or instance | Target status | P3R-4B state |
 | --- | --- | --- |
 | `conversation-surface` / `agent-conversation-surface-main` | `structural-host` | Enabled; owns `workspace.conversation` and hosts the assistant-ui adapter. |
 | `agent-message-list` / `agent-messages-main` | `structural-host` | Enabled; declares message child Slots and passes through the upstream timeline. |
@@ -84,17 +85,17 @@ instances. They do not change Slot IDs or move Slot ownership.
 | `agent-reasoning` / `agent-reasoning-main` | `legacy-only` | Disabled only in assistant-ui mode; retained and enabled in normal mode. |
 | `agent-tool` / `agent-tool-message-main` | `legacy-only` | Disabled only in assistant-ui mode; retained and enabled in normal mode. |
 | `agent-message-attachments` / `agent-message-attachments-main` | `legacy-only` | Disabled only in assistant-ui mode; retained and enabled in normal mode. |
+| `agent-thread-welcome` / `agent-welcome-main` | `legacy-only` | Disabled only in assistant-ui mode; its live AppUIModel props remain the adapter configuration source. |
+| `agent-suggestions` / `agent-prompts-main` | `legacy-only` | Disabled only in assistant-ui mode; its live AppUIModel items remain the adapter configuration source. |
 
-The following transitional presentation Plugins remain enabled in P3R-4A:
+The following transitional presentation Plugins remain enabled in P3R-4B:
 
 | Instance | Target status | Reason for deferral |
 | --- | --- | --- |
-| `agent-welcome-main` | `assistant-ui-with-agent-ui-adapter` | Preserve AppUIModel title and description until P3R-4B. |
-| `agent-prompts-main` | `assistant-ui-with-agent-ui-adapter` | Preserve configured starter items until P3R-4B. |
-| `agent-sender-main` | `assistant-ui-with-agent-ui-adapter` | Preserve slash commands, history policy, and action binding until P3R-4B. |
+| `agent-sender-main` | `assistant-ui-with-agent-ui-adapter` | Preserve slash commands, history policy, and action binding until P3R-4C. |
 | `agent-message-sources-main` | `agent-ui-extension` | The pinned upstream presentation is insufficient. |
 
-## 5. P3R-4A projection policy
+## 5. P3R-4B projection policy
 
 The base `app-ui.json` remains the legacy-compatible model. The assistant-ui
 mode projection uses explicit instance IDs; it does not infer ownership from a
@@ -107,15 +108,18 @@ assistantUiSpike=1
   -> agent-reasoning-main disabled
   -> agent-message-attachments-main disabled
   -> agent-tool-message-main disabled
+  -> agent-welcome-main disabled
+  -> agent-prompts-main disabled
   -> agent-messages-main enabled
   -> agent-tool-activity-main enabled
-  -> deferred presentation Plugins remain enabled
+  -> Composer and Sources Plugins remain enabled
 ```
 
 Disabling an instance in this projection does not delete its Plugin definition,
 source, Registry entry, or base AppUIModel instance. Those remain required by
-the normal-mode A/B path. P3R-4A does not modify the vendored assistant-ui
-source, Runtime ownership, Source Registry, or wire lifecycle.
+the normal-mode A/B path. P3R-4B only adds a recorded Welcome presentation seam
+and generic Runtime config pass-through; Runtime ownership and wire lifecycle
+remain unchanged.
 
 ## 6. Future Creator rule
 
@@ -140,6 +144,6 @@ complete; this phase records the policy only.
 
 ## 7. Phase boundary
 
-P3R-4A does not start Welcome, Suggestions, Composer, or Thread List adapter
-work; does not make assistant-ui the default mode; and does not delete legacy
-code. Those remain P3R-4B, P3R-5, and P3R-6 concerns respectively.
+P3R-4B does not start Composer or Thread List adapter work, does not make
+assistant-ui the default mode, and does not delete legacy code. Composer is
+deferred to P3R-4C; final legacy deletion remains a P3R-6 concern.

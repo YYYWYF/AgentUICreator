@@ -11,6 +11,7 @@ import {
   useMemo,
   useRef,
   useSyncExternalStore,
+  type ComponentProps,
   type ReactNode,
 } from "react";
 
@@ -36,6 +37,7 @@ export type AssistantUiAgentFactory = (
 ) => AbstractAgent;
 
 export interface AssistantUiAgUiRuntimeProviderProps<TState = unknown> {
+  config?: ComponentProps<typeof AssistantRuntimeProvider>["config"];
   endpoint: string;
   threadBinding: AssistantUiThreadBinding<TState>;
   frontendTools?: AgentFrontendToolSource | undefined;
@@ -53,6 +55,7 @@ const defaultAgentFactory: AssistantUiAgentFactory = ({ endpoint, threadId }) =>
   });
 
 export function AssistantUiAgUiRuntimeProvider<TState = unknown>({
+  config,
   endpoint,
   threadBinding,
   frontendTools,
@@ -153,7 +156,7 @@ export function AssistantUiAgUiRuntimeProvider<TState = unknown>({
 
   return (
     <AssistantUiRuntimeBridgeProvider bridge={bridge}>
-      <AssistantRuntimeProvider runtime={assistantRuntime}>
+      <AssistantRuntimeProvider runtime={assistantRuntime} config={config}>
         {children}
       </AssistantRuntimeProvider>
     </AssistantUiRuntimeBridgeProvider>

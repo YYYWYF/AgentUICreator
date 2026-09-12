@@ -146,7 +146,7 @@
       }
     },
     "foundation/assistant-ui-conversation": {
-      "version": "0.1.2",
+      "version": "0.1.3",
       "files": {
         "vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx": {
           "sha256": "74b8a3d8b079893cdab6aff2ea1ded1d0ddc9af5381a0331dbea1e253f68fa9a"
@@ -170,7 +170,7 @@
           "sha256": "6e629d6cab9204b903120f7195b3d3126ed48d5ecd7191dbb0174ad9ccf8dfb0"
         },
         "vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx": {
-          "sha256": "6c85edd60e9551393bced1178354bc6d17d8165c384285706ccf88d430640804"
+          "sha256": "8d414e2ba5ff88fa2df88a27e15e1c973e01159c48ed61640404c1601b45ea46"
         },
         "vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx": {
           "sha256": "36fc3ac28ad8a0fc67a6e0b6953f771c7fe231986916b04d94f87055fe49bd3e"
@@ -215,7 +215,7 @@
           "sha256": "218611b455ae8dde968f45b876e1188a907b70890e076f150edb16e68401943d"
         },
         "vendor/assistant-ui/UPSTREAM.json": {
-          "sha256": "ca693e63f9df4219928bedede8210c5dafd33992165fe2249bbdc9a36eb92df2"
+          "sha256": "bdfdaa3fbca588a685f3595623a62cd5e54d68c506c01fd9fe01748bf3387d2c"
         }
       }
     },

@@ -2,6 +2,7 @@ import { useMemo, type PropsWithChildren } from "react";
 
 import type { UIPluginComponentProps } from "../../../../framework/contracts/ui-plugin";
 import type { ThreadComponents } from "../../../vendor/assistant-ui/components/assistant-ui/elements/thread.aui";
+import { useAssistantUiPresentationConfig } from "../config";
 import {
   ASSISTANT_UI_CONVERSATION_SLOTS,
   SemanticAttachmentsOutlet,
@@ -77,5 +78,15 @@ export function AssistantUiConversationAdapter({
     () => createAssistantUiSemanticThreadComponents(renderSlot),
     [renderSlot],
   );
-  return <AssistantUiConversationSurface components={components} />;
+  const presentationConfig = useAssistantUiPresentationConfig();
+  const presentation = useMemo(
+    () => ({ welcome: presentationConfig.welcome }),
+    [presentationConfig.welcome],
+  );
+  return (
+    <AssistantUiConversationSurface
+      components={components}
+      presentation={presentation}
+    />
+  );
 }

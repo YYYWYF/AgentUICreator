@@ -47,9 +47,7 @@ describe("formal assistant-ui surface", () => {
     expect(surface).not.toContain("theme =");
     expect(surface).toContain('data-theme="dark"');
     expect(surface).toContain("<TooltipProvider>");
-    expect(surface).toContain(
-      "<Thread autoFocus={autoFocus} components={components} />",
-    );
+    expect(surface).toContain("presentation={presentation}");
     expect(surface).not.toMatch(
       /@ag-ui\/client|@assistant-ui\/react-ag-ui|AgentRuntime|AppUIModel|PluginRegistry/u,
     );
@@ -108,8 +106,9 @@ describe("formal assistant-ui surface", () => {
     expect(upstream.patches).toEqual([
       expect.objectContaining({ id: "p3r3-semantic-slot-seams" }),
       expect.objectContaining({ id: "empty-state-semantic-composition" }),
+      expect.objectContaining({ id: "p3r4b-welcome-presentation-config" }),
     ]);
-    expect(item.version).toBe("0.1.2");
+    expect(item.version).toBe("0.1.3");
     expect(item.upstream).toMatchObject({
       revision,
       license: "MIT",

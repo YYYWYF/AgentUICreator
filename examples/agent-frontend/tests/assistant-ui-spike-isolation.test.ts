@@ -10,6 +10,7 @@ import {
 } from "../framework/contracts/app-ui-model";
 import {
   applyAssistantUiSpikeMode,
+  ASSISTANT_UI_ADAPTED_PRESENTATION_INSTANCE_IDS,
   ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS,
   ASSISTANT_UI_SPIKE_INSTANCE_ID,
   CONVERSATION_SURFACE_INSTANCE_ID,
@@ -22,8 +23,6 @@ const STRUCTURAL_HOST_INSTANCE_IDS = [
 ] as const;
 
 const DEFERRED_PRESENTATION_INSTANCE_IDS = [
-  "agent-welcome-main",
-  "agent-prompts-main",
   "agent-sender-main",
   "agent-message-sources-main",
 ] as const;
@@ -61,6 +60,11 @@ describe("assistant-ui Spike isolation", () => {
       ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS,
       true,
     );
+    expectInstancesEnabled(
+      normal,
+      ASSISTANT_UI_ADAPTED_PRESENTATION_INSTANCE_IDS,
+      true,
+    );
   });
 
   it("keeps conversation-surface as the product host in Spike mode", async () => {
@@ -79,6 +83,11 @@ describe("assistant-ui Spike isolation", () => {
     expectInstancesEnabled(
       spike,
       ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS,
+      false,
+    );
+    expectInstancesEnabled(
+      spike,
+      ASSISTANT_UI_ADAPTED_PRESENTATION_INSTANCE_IDS,
       false,
     );
     expectInstancesEnabled(spike, STRUCTURAL_HOST_INSTANCE_IDS, true);

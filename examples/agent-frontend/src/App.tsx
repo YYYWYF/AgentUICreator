@@ -7,6 +7,7 @@ import {
 } from "react";
 import { XProvider } from "@ant-design/x";
 import { theme as antdTheme } from "antd";
+import { AuiConfig, Suggestions } from "@assistant-ui/react";
 import { createAgUiTransport } from "@agent-ui/runtime-agui";
 import {
   AssistantUiAgUiRuntimeProvider,
@@ -54,6 +55,10 @@ import {
 } from "../runtime/diagnostics";
 import { ModeShell } from "../runtime/mode-shell";
 import { AgentUIRoot } from "../agent-ui/foundation/AgentUIRoot";
+import {
+  AssistantUiPresentationConfigProvider,
+  resolveAssistantUiPresentationConfig,
+} from "../agent-ui/adapters/assistant-ui/config";
 import { resolveAgentEndpoint } from "./agent-endpoint";
 import {
   applyAssistantUiSpikeMode,
@@ -273,19 +278,40 @@ function AssistantUiRuntimeBoundary({
     () => createEphemeralAssistantUiThreadBinding(),
     [],
   );
+  const presentationConfig = useMemo(
+    () => resolveAssistantUiPresentationConfig(model),
+    [model],
+  );
+  const assistantConfig = useMemo(
+    () => AuiConfig({
+      suggestions: Suggestions(
+        presentationConfig.starterSuggestions.map(
+          ({ label, prompt, title }) => ({
+            title,
+            label: label ?? "",
+            prompt,
+          }),
+        ),
+      ),
+    }),
+    [presentationConfig.starterSuggestions],
+  );
   if (endpoint === undefined) {
     throw new Error("The assistant-ui mode requires an AG-UI endpoint.");
   }
   return (
     <AssistantUiAgUiRuntimeProvider<AppAgentState>
+      config={assistantConfig}
       endpoint={endpoint}
       frontendTools={appFrontendToolRuntime}
       threadBinding={threadBinding}
     >
-      <AssistantUiRuntimeConnectedApp
-        model={model}
-        updateInstanceProps={updateInstanceProps}
-      />
+      <AssistantUiPresentationConfigProvider value={presentationConfig}>
+        <AssistantUiRuntimeConnectedApp
+          model={model}
+          updateInstanceProps={updateInstanceProps}
+        />
+      </AssistantUiPresentationConfigProvider>
       {import.meta.env.DEV ? <AssistantUiRuntimeDebugOverlay /> : null}
     </AssistantUiAgUiRuntimeProvider>
   );

@@ -9,6 +9,10 @@ export const ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS = [
   "agent-message-attachments-main",
   "agent-tool-message-main",
 ] as const;
+export const ASSISTANT_UI_ADAPTED_PRESENTATION_INSTANCE_IDS = [
+  "agent-welcome-main",
+  "agent-prompts-main",
+] as const;
 
 export function isAssistantUiSpikeRequested(search: string): boolean {
   return new URLSearchParams(search).get("assistantUiSpike") === "1";
@@ -43,11 +47,14 @@ export function applyAssistantUiSpikeMode(
     },
   };
 
-  for (const instanceId of ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS) {
+  for (const instanceId of [
+    ...ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS,
+    ...ASSISTANT_UI_ADAPTED_PRESENTATION_INSTANCE_IDS,
+  ]) {
     const instance = pluginInstances[instanceId];
     if (instance === undefined) {
       throw new Error(
-        `assistant-ui native presentation instance "${instanceId}" is missing from AppUIModel.`,
+        `assistant-ui presentation instance "${instanceId}" is missing from AppUIModel.`,
       );
     }
 

@@ -50,6 +50,10 @@ export default defineConfig(async ({ command, mode }) => {
           workspaceRoot,
           "packages/runtime-agui/src/index.ts",
         ),
+        "@agent-ui/runtime-assistant-ui": path.join(
+          workspaceRoot,
+          "packages/runtime-assistant-ui/src/index.ts",
+        ),
         "@agent-ui/runtime-core/testing": path.join(
           workspaceRoot,
           "packages/runtime-core/src/testing/index.ts",

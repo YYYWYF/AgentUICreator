@@ -21,6 +21,9 @@
       "@agent-ui/mock-agent": ["../../packages/mock-agent/src/index.ts"],
       "@agent-ui/source-registry": ["../../packages/source-registry/src/index.ts"],
       "@agent-ui/runtime-agui": ["../../packages/runtime-agui/src/index.ts"],
+      "@agent-ui/runtime-assistant-ui": [
+        "../../packages/runtime-assistant-ui/src/index.ts"
+      ],
       "@agent-ui/runtime-core": ["../../packages/runtime-core/src/index.ts"],
       "@agent-ui/runtime-react": ["../../packages/runtime-react/src/index.ts"],
       "@agent-ui/runtime-core/testing": [

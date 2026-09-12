@@ -63,6 +63,7 @@ import {
   type ComponentType,
   type FC,
   type PropsWithChildren,
+  type ReactNode,
 } from "react";
 
 export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
@@ -97,12 +98,25 @@ export type ThreadComponents = {
 export type ThreadProps = {
   components?: ThreadComponents | undefined;
   autoFocus?: boolean | undefined;
+  presentation?: ThreadPresentation | undefined;
 };
 
+export interface ThreadWelcomePresentation {
+  title?: ReactNode;
+  description?: ReactNode;
+}
+
+export interface ThreadPresentation {
+  welcome?: ThreadWelcomePresentation;
+}
+
 const EMPTY_COMPONENTS: ThreadComponents = {};
+const EMPTY_PRESENTATION: ThreadPresentation = {};
 
 const ThreadComponentsContext =
   createContext<ThreadComponents>(EMPTY_COMPONENTS);
+const ThreadPresentationContext =
+  createContext<ThreadPresentation>(EMPTY_PRESENTATION);
 
 // Startup exposes a loading placeholder thread; treat it as a new chat so
 // the composer mounts centered. Loads after startup keep the docked layout.
@@ -141,13 +155,16 @@ const ThreadHistorySkeleton: FC = () => (
 export const Thread: FC<ThreadProps> = ({
   components = EMPTY_COMPONENTS,
   autoFocus = true,
+  presentation = EMPTY_PRESENTATION,
 }) => {
   const isEmpty = useAuiState(isNewChatView);
 
   return (
-    <ThreadComponentsContext.Provider value={components}>
-      <ThreadRoot isEmpty={isEmpty} autoFocus={autoFocus} />
-    </ThreadComponentsContext.Provider>
+    <ThreadPresentationContext.Provider value={presentation}>
+      <ThreadComponentsContext.Provider value={components}>
+        <ThreadRoot isEmpty={isEmpty} autoFocus={autoFocus} />
+      </ThreadComponentsContext.Provider>
+    </ThreadPresentationContext.Provider>
   );
 };
 
@@ -275,11 +292,20 @@ const ThreadScrollToBottom: FC = () => {
 };
 
 const ThreadWelcome: FC = () => {
+  const presentation = useContext(ThreadPresentationContext).welcome;
+  const title = presentation?.title ?? "How can I help you today?";
+  const description = presentation?.description;
+
   return (
     <div className="aui-thread-welcome-root mb-6 flex flex-col items-center px-4 text-center">
       <h1 className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-2xl font-medium tracking-tight duration-200">
-        How can I help you today?
+        {title}
       </h1>
+      {description === undefined ? null : (
+        <p className="text-muted-foreground fade-in slide-in-from-bottom-1 animate-in fill-mode-both mt-2 max-w-xl text-sm leading-6 duration-200">
+          {description}
+        </p>
+      )}
     </div>
   );
 };

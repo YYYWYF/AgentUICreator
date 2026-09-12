@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "foundation/assistant-ui-conversation",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "kind": "foundation",
   "description": "Pinned assistant-ui Base UI conversation presentation source",
   "upstream": {
