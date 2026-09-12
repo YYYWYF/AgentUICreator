@@ -315,6 +315,7 @@ describe("assistant-ui presentation config", () => {
         },
       ],
       composer: { quickPrompts: [] },
+      interactions: { toolGroupVariant: "ghost" },
     });
   });
 
@@ -333,6 +334,7 @@ describe("assistant-ui presentation config", () => {
       welcome: {},
       starterSuggestions: [],
       composer: { quickPrompts: [] },
+      interactions: { toolGroupVariant: "ghost" },
     });
   });
 
@@ -403,7 +405,24 @@ describe("assistant-ui presentation config", () => {
       welcome: {},
       starterSuggestions: [],
       composer: { quickPrompts: [] },
+      interactions: { toolGroupVariant: "ghost" },
     });
+  });
+
+  it("accepts only the explicit Tool Group variants and defaults upstream", () => {
+    const outline = resolveAssistantUiPresentationConfig(createModel({
+      presentation: {
+        interactions: { toolGroupVariant: "outline" },
+      },
+    }));
+    const invalid = resolveAssistantUiPresentationConfig(createModel({
+      presentation: {
+        interactions: { toolGroupVariant: "brand-gradient" },
+      },
+    }));
+
+    expect(outline.interactions.toolGroupVariant).toBe("outline");
+    expect(invalid.interactions.toolGroupVariant).toBe("ghost");
   });
 
   it("renders and live-updates native Welcome and static Suggestions", async () => {

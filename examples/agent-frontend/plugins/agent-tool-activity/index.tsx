@@ -34,7 +34,11 @@ function ToolItemFallbackRenderer({ item }: { item: ToolPresentationItem }) {
     >
       <summary data-slot="agent-tool-item-fallback-summary">
         <strong>{item.toolCall.function.name}</strong>
-        <span>{statusLabels[item.status]}</span>
+        <span>
+          {item.actionRequirement === undefined
+            ? statusLabels[item.status]
+            : "等待操作"}
+        </span>
       </summary>
       <div data-slot="agent-tool-item-fallback-arguments">
         <span>Arguments</span>
@@ -73,6 +77,10 @@ function ToolItem({
         toolCall: item.toolCall,
         result: item.result,
         execution: item.execution,
+        status: item.status,
+        ...(item.actionRequirement === undefined
+          ? {}
+          : { actionRequirement: item.actionRequirement }),
         running: item.status === "loading",
       }}
     >
@@ -88,12 +96,14 @@ function GroupedToolActivity({
   activityId,
   activeToolCallIds,
   items,
+  requiresActionToolCallIds,
   status,
   children,
 }: {
   activityId: string;
   activeToolCallIds: readonly string[];
   items: readonly ToolPresentationItem[];
+  requiresActionToolCallIds: readonly string[];
   status: ToolActivityStatus;
   children: ReactNode;
 }) {
@@ -101,6 +111,7 @@ function GroupedToolActivity({
   const summary = createToolActivitySummary({
     activeToolCallIds,
     items,
+    requiresActionToolCallIds,
     status,
   });
 
@@ -127,6 +138,7 @@ function LegacyAgentToolActivity({
     presentation,
     status,
     turnId,
+    requiresActionToolCallIds,
   } = useToolActivityRenderContext();
   const activityId = items[0]?.toolCall.id ?? turnId;
   const toolItems = items.map((item) => (
@@ -158,6 +170,7 @@ function LegacyAgentToolActivity({
           activityId={activityId}
           activeToolCallIds={activeToolCallIds}
           items={items}
+          requiresActionToolCallIds={requiresActionToolCallIds}
           status={status}
         >
           {toolItems}

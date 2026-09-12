@@ -136,6 +136,9 @@
                 "description": "查看输入、输出和结论"
               }
             ]
+          },
+          "interactions": {
+            "toolGroupVariant": "outline"
           }
         }
       }

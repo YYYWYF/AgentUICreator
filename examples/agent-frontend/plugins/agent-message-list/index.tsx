@@ -31,6 +31,7 @@ import {
   type MessageAttachmentKind,
   type MessageAttachmentRenderItem,
   type MessageSourceRenderItem,
+  type ReasoningPresentationStatus,
   type ToolActivityStatus,
   type ToolPresentation,
   type ToolPresentationItem,
@@ -352,7 +353,9 @@ function ToolActivityFallbackRenderer({
           >
             <strong>{item.toolCall.function.name}</strong>
             <span>
-              {item.status === "loading"
+              {item.actionRequirement !== undefined
+                ? "等待操作"
+                : item.status === "loading"
                 ? "正在执行…"
                 : item.status === "success"
                   ? "已完成"
@@ -434,6 +437,23 @@ function ReasoningFallbackRenderer({
   );
 }
 
+function projectLegacyReasoningStatus(
+  execution: Extract<AgentExecution, { type: "reasoning" }> | undefined,
+): ReasoningPresentationStatus {
+  switch (execution?.status as string | undefined) {
+    case "running":
+      return "running";
+    case "error":
+      return "error";
+    case "interrupted":
+      return "interrupted";
+    case "completed":
+      return "completed";
+    default:
+      return "completed";
+  }
+}
+
 function ActivityMessageSegment({
   message,
 }: {
@@ -503,7 +523,8 @@ function TurnMessageSegment({
       break;
     case "reasoning": {
       const execution = reasoningExecutionByMessageId.get(message.id);
-      const running = execution?.status === "running";
+      const status = projectLegacyReasoningStatus(execution);
+      const running = status === "running";
       content = (
         <MessageRenderProvider
           value={{
@@ -511,6 +532,7 @@ function TurnMessageSegment({
             turnId,
             message,
             execution,
+            status,
             running,
           }}
         >
@@ -551,20 +573,37 @@ function deriveToolActivityStatus(
 ): {
   status: ToolActivityStatus;
   activeToolCallIds: readonly string[];
+  requiresActionToolCallIds: readonly string[];
 } {
   const activeToolCallIds = items.flatMap((item) =>
-    item.status === "loading" ? [item.toolCall.id] : [],
+    item.status === "loading" && item.actionRequirement === undefined
+      ? [item.toolCall.id]
+      : [],
   );
+  const requiresActionToolCallIds = items.flatMap((item) =>
+    item.actionRequirement === undefined ? [] : [item.toolCall.id],
+  );
+  if (requiresActionToolCallIds.length > 0) {
+    return {
+      status: "requires-action",
+      activeToolCallIds,
+      requiresActionToolCallIds,
+    };
+  }
   if (activeToolCallIds.length > 0) {
-    return { status: "running", activeToolCallIds };
+    return { status: "running", activeToolCallIds, requiresActionToolCallIds };
   }
   if (items.some((item) => item.status === "error")) {
-    return { status: "error", activeToolCallIds };
+    return { status: "error", activeToolCallIds, requiresActionToolCallIds };
   }
   if (items.some((item) => item.status === "abort")) {
-    return { status: "interrupted", activeToolCallIds };
+    return {
+      status: "interrupted",
+      activeToolCallIds,
+      requiresActionToolCallIds,
+    };
   }
-  return { status: "completed", activeToolCallIds };
+  return { status: "completed", activeToolCallIds, requiresActionToolCallIds };
 }
 
 function ToolActivitySegment({
@@ -578,7 +617,11 @@ function ToolActivitySegment({
   renderSlot: UIPluginComponentProps["renderSlot"];
   turnId: string;
 }) {
-  const { activeToolCallIds, status } = deriveToolActivityStatus(items);
+  const {
+    activeToolCallIds,
+    requiresActionToolCallIds,
+    status,
+  } = deriveToolActivityStatus(items);
   return (
     <MessageRenderProvider
       value={{
@@ -588,6 +631,7 @@ function ToolActivitySegment({
         items,
         status,
         activeToolCallIds,
+        requiresActionToolCallIds,
       }}
     >
       {renderSlot(

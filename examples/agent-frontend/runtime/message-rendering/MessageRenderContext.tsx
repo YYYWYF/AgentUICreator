@@ -11,8 +11,15 @@ export interface ReasoningRenderContext {
   turnId?: string | undefined;
   message: Extract<AgentMessage, { role: "reasoning" }>;
   execution?: Extract<AgentExecution, { type: "reasoning" }> | undefined;
+  status: ReasoningPresentationStatus;
   running: boolean;
 }
+
+export type ReasoningPresentationStatus =
+  | "running"
+  | "completed"
+  | "error"
+  | "interrupted";
 
 export interface ToolRenderContext {
   kind: "tool";
@@ -20,6 +27,8 @@ export interface ToolRenderContext {
   toolCall: AgentToolCall;
   result?: Extract<AgentMessage, { role: "tool" }> | undefined;
   execution?: Extract<AgentExecution, { type: "tool" }> | undefined;
+  status: ToolPresentationStatus;
+  actionRequirement?: ToolActionRequirement | undefined;
   running: boolean;
 }
 
@@ -29,11 +38,16 @@ export type ToolPresentationStatus =
   | "error"
   | "abort";
 
+export interface ToolActionRequirement {
+  reason: "tool-calls" | "interrupt";
+}
+
 export interface ToolPresentationItem {
   toolCall: AgentToolCall;
   result?: Extract<AgentMessage, { role: "tool" }> | undefined;
   execution?: Extract<AgentExecution, { type: "tool" }> | undefined;
   status: ToolPresentationStatus;
+  actionRequirement?: ToolActionRequirement | undefined;
 }
 
 export type ToolPresentation = "grouped" | "flat";
@@ -42,7 +56,8 @@ export type ToolActivityStatus =
   | "running"
   | "completed"
   | "error"
-  | "interrupted";
+  | "interrupted"
+  | "requires-action";
 
 export interface ToolActivityRenderContext {
   kind: "tool-activity";
@@ -51,6 +66,7 @@ export interface ToolActivityRenderContext {
   items: readonly ToolPresentationItem[];
   status: ToolActivityStatus;
   activeToolCallIds: readonly string[];
+  requiresActionToolCallIds: readonly string[];
 }
 
 export type MessageAttachmentKind = "image" | "audio" | "video" | "file";

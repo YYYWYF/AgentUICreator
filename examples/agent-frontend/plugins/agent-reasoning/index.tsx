@@ -13,12 +13,11 @@ import { useReasoningLivePreview } from "./reasoning-live-preview";
 import { useReasoningScrollLock } from "./reasoning-scroll-lock";
 
 export function AgentReasoningPlugin(_props: UIPluginComponentProps) {
-  const { execution, message, running, turnId } = useReasoningRenderContext();
+  const { message, running, status, turnId } = useReasoningRenderContext();
   const instance = usePluginInstance();
   const defaultExpanded = instance.props?.defaultExpanded !== false;
-  const status: AgentReasoningStatus =
-    execution?.status ?? (running ? "running" : "completed");
-  const streaming = running && status === "running";
+  const reasoningStatus: AgentReasoningStatus = status;
+  const streaming = running && reasoningStatus === "running";
   const rootRef = useRef<HTMLElement>(null);
   const textViewportRef = useRef<HTMLDivElement>(null);
   const textContentRef = useRef<HTMLDivElement>(null);
@@ -29,7 +28,7 @@ export function AgentReasoningPlugin(_props: UIPluginComponentProps) {
   const disclosure = useReasoningDisclosure({
     messageId: message.id,
     streaming,
-    status,
+    status: reasoningStatus,
     defaultExpanded,
     onAutomaticAnimationStart: lockScroll,
   });
@@ -41,21 +40,23 @@ export function AgentReasoningPlugin(_props: UIPluginComponentProps) {
     resetKey: message.id,
   });
   const label =
-    status === "running"
+    reasoningStatus === "running"
       ? "正在思考"
-      : status === "interrupted"
-        ? "思考已停止"
-        : "思考过程";
+      : reasoningStatus === "error"
+        ? "思考失败"
+        : reasoningStatus === "interrupted"
+          ? "思考已停止"
+          : "思考过程";
 
   return (
     <div
       data-agent-message-id={message.id}
-      data-reasoning-status={status}
+      data-reasoning-status={reasoningStatus}
       data-agent-turn-id={turnId}
       data-ui-plugin="agent-reasoning"
     >
       <AgentReasoning
-        status={status}
+        status={reasoningStatus}
         expanded={disclosure.expanded}
         streaming={streaming}
         onExpandedChange={disclosure.onExpandedChange}

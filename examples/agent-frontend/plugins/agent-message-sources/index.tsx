@@ -2,6 +2,8 @@ import { AgentSource, AgentSources } from "../../agent-ui/components/sources";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useMessageSourcesRenderContext } from "../../runtime/message-rendering";
 
+import "./styles.css";
+
 export function AgentMessageSourcesPlugin(_props: UIPluginComponentProps) {
   const { items, message, turnId } = useMessageSourcesRenderContext();
 

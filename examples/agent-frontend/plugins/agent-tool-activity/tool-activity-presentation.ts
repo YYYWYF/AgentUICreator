@@ -6,12 +6,26 @@ import type {
 export function createToolActivitySummary({
   activeToolCallIds,
   items,
+  requiresActionToolCallIds,
   status,
 }: {
   activeToolCallIds: readonly string[];
   items: readonly ToolPresentationItem[];
+  requiresActionToolCallIds?: readonly string[];
   status: ToolActivityStatus;
 }): string {
+  const actionIds = requiresActionToolCallIds ?? [];
+  if (status === "requires-action") {
+    if (actionIds.length === 1) {
+      const actionItem = items.find(
+        (item) => item.toolCall.id === actionIds[0],
+      );
+      return actionItem === undefined
+        ? "等待操作"
+        : `等待确认：${actionItem.toolCall.function.name}`;
+    }
+    return `等待 ${actionIds.length || items.length} 个工具操作`;
+  }
   if (status === "running") {
     if (activeToolCallIds.length > 1) {
       return `正在调用 ${activeToolCallIds.length} 个工具`;

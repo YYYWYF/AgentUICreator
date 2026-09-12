@@ -13,7 +13,8 @@ export type AgentToolActivityStatus =
   | "running"
   | "completed"
   | "error"
-  | "interrupted";
+  | "interrupted"
+  | "requires-action";
 
 interface AgentToolActivityBaseProps {
   status: AgentToolActivityStatus;
@@ -61,6 +62,20 @@ function StatusGlyph({ status }: { status: Exclude<AgentToolActivityStatus, "run
       >
         <path d="m5 5 6 6" />
         <path d="m11 5-6 6" />
+      </svg>
+    );
+  }
+
+  if (status === "requires-action") {
+    return (
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 16 16"
+        className={styles.statusIconGlyph}
+      >
+        <circle cx="8" cy="8" r="5.5" />
+        <path d="M8 5.5v3" />
+        <path d="M8 10.5h.01" />
       </svg>
     );
   }

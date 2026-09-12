@@ -9,7 +9,17 @@ import {
   type ToolCallMessagePart,
   type ToolCallMessagePartProps,
 } from "@assistant-ui/react";
-import type { PropsWithChildren, ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PropsWithChildren,
+  type ReactNode,
+} from "react";
 
 import type {
   AgentExecution,
@@ -20,10 +30,13 @@ import {
   MessageRenderProvider,
   projectMessageAttachments,
   projectMessageSources,
+  type ReasoningPresentationStatus,
+  type ToolActionRequirement,
   type ToolActivityStatus,
   type ToolPresentationItem,
   type ToolPresentationStatus,
 } from "../../../../runtime/message-rendering";
+import { useAssistantUiPresentationConfig } from "../config";
 import {
   ReasoningContent,
   ReasoningRoot,
@@ -46,6 +59,15 @@ type AssistantAgentMessage = Extract<AgentMessage, { role: "assistant" }>;
 type ReasoningAgentMessage = Extract<AgentMessage, { role: "reasoning" }>;
 type ToolExecution = Extract<AgentExecution, { type: "tool" }>;
 type ToolResultMessage = Extract<AgentMessage, { role: "tool" }>;
+type ToolProjectionProps = Pick<
+  ToolCallMessagePartProps,
+  | "toolCallId"
+  | "toolName"
+  | "args"
+  | "argsText"
+  | "isError"
+  | "status"
+>;
 
 function useCurrentThreadMessage(): ThreadMessage {
   return useAuiState((state) => state.message as ThreadMessage);
@@ -118,67 +140,175 @@ function projectAssistantContext(message: ThreadMessage): {
   };
 }
 
-function toolStatus(
-  execution: ToolExecution | undefined,
-  result: ToolResultMessage | undefined,
-): ToolPresentationStatus {
-  if (execution?.status === "error" || result?.error !== undefined) {
+export function projectReasoningStatus(
+  status: ThreadGroupPart["status"],
+): ReasoningPresentationStatus {
+  if (status.type === "running") return "running";
+  if (status.type === "complete") return "completed";
+  if (status.type === "incomplete" && status.reason === "error") {
     return "error";
   }
-  if (execution?.status === "interrupted") {
-    return "abort";
-  }
-  if (execution?.status === "completed" || result !== undefined) {
-    return "success";
-  }
-  return "loading";
+  return "interrupted";
 }
 
-function projectToolItem(
+export function projectToolPresentationStatus(
+  status: ToolProjectionProps["status"],
+  isError: boolean | undefined,
+): ToolPresentationStatus {
+  if (status.type === "running") return "loading";
+  if (status.type === "complete") return isError === true ? "error" : "success";
+  if (
+    status.type === "incomplete" &&
+    (status.reason === "error" || status.error !== undefined || isError === true)
+  ) {
+    return "error";
+  }
+  return "abort";
+}
+
+function projectToolItemProjection(
   message: ThreadMessage,
-  part: ToolCallMessagePart,
+  props: ToolProjectionProps,
 ): ToolPresentationItem {
   const { assistant, executions, projected } = projectAssistantContext(message);
   const toolCall: AgentToolCall = assistant?.toolCalls?.find(
-    (candidate) => candidate.id === part.toolCallId,
+    (candidate) => candidate.id === props.toolCallId,
   ) ?? {
-    id: part.toolCallId,
+    id: props.toolCallId,
     type: "function",
     function: {
-      name: part.toolName,
-      arguments: part.argsText || JSON.stringify(part.args) || "",
+      name: props.toolName,
+      arguments: props.argsText || JSON.stringify(props.args) || "",
     },
   };
-  const execution = executions.find((candidate) => candidate.id === part.toolCallId);
+  const execution = executions.find((candidate) => candidate.id === props.toolCallId);
   const result = projected.find(
     (candidate): candidate is ToolResultMessage =>
-      candidate.role === "tool" && candidate.toolCallId === part.toolCallId,
+      candidate.role === "tool" && candidate.toolCallId === props.toolCallId,
   );
+  const actionRequirement: ToolActionRequirement | undefined =
+    props.status.type === "requires-action"
+      ? { reason: props.status.reason }
+      : undefined;
   return {
     toolCall,
     ...(result === undefined ? {} : { result }),
     ...(execution === undefined ? {} : { execution }),
-    status: toolStatus(execution, result),
+    status: projectToolPresentationStatus(props.status, props.isError),
+    ...(actionRequirement === undefined ? {} : { actionRequirement }),
   };
 }
 
-function deriveToolActivityStatus(items: readonly ToolPresentationItem[]): {
+function projectToolItem(
+  message: ThreadMessage,
+  props: ToolCallMessagePartProps,
+): ToolPresentationItem {
+  return projectToolItemProjection(message, props);
+}
+
+function projectGroupedToolItem(
+  message: ThreadMessage,
+  part: ToolCallMessagePart,
+  groupStatus: ThreadGroupPart["status"],
+): ToolPresentationItem {
+  return projectToolItemProjection(message, {
+    ...part,
+    status: part.result === undefined ? groupStatus : { type: "complete" },
+  });
+}
+
+export function deriveToolActivityStatus(items: readonly ToolPresentationItem[]): {
   activeToolCallIds: readonly string[];
+  requiresActionToolCallIds: readonly string[];
   status: ToolActivityStatus;
 } {
   const activeToolCallIds = items.flatMap((item) =>
-    item.status === "loading" ? [item.toolCall.id] : [],
+    item.status === "loading" && item.actionRequirement === undefined
+      ? [item.toolCall.id]
+      : [],
   );
+  const requiresActionToolCallIds = items.flatMap((item) =>
+    item.actionRequirement === undefined ? [] : [item.toolCall.id],
+  );
+  if (requiresActionToolCallIds.length > 0) {
+    return {
+      activeToolCallIds,
+      requiresActionToolCallIds,
+      status: "requires-action",
+    };
+  }
   if (activeToolCallIds.length > 0) {
-    return { activeToolCallIds, status: "running" };
+    return { activeToolCallIds, requiresActionToolCallIds, status: "running" };
   }
   if (items.some((item) => item.status === "error")) {
-    return { activeToolCallIds, status: "error" };
+    return { activeToolCallIds, requiresActionToolCallIds, status: "error" };
   }
   if (items.some((item) => item.status === "abort")) {
-    return { activeToolCallIds, status: "interrupted" };
+    return {
+      activeToolCallIds,
+      requiresActionToolCallIds,
+      status: "interrupted",
+    };
   }
-  return { activeToolCallIds, status: "completed" };
+  return { activeToolCallIds, requiresActionToolCallIds, status: "completed" };
+}
+
+interface ToolActivityItemRegistry {
+  register(item: ToolPresentationItem): void;
+}
+
+const ToolActivityItemRegistryContext =
+  createContext<ToolActivityItemRegistry | null>(null);
+
+function useToolActivityItemProjection(
+  initialItems: readonly ToolPresentationItem[],
+): {
+  items: readonly ToolPresentationItem[];
+  registry: ToolActivityItemRegistry;
+} {
+  const [reportedItems, setReportedItems] = useState<
+    Readonly<Record<string, ToolPresentationItem>>
+  >({});
+  const register = useCallback((item: ToolPresentationItem) => {
+    setReportedItems((previous) => {
+      const existing = previous[item.toolCall.id];
+      if (
+        existing?.status === item.status &&
+        existing?.result === item.result &&
+        existing?.execution === item.execution &&
+        existing?.actionRequirement?.reason === item.actionRequirement?.reason
+      ) {
+        return previous;
+      }
+      return { ...previous, [item.toolCall.id]: item };
+    });
+  }, []);
+  const registry = useMemo(() => ({ register }), [register]);
+  const items = initialItems.map(
+    (item) => reportedItems[item.toolCall.id] ?? item,
+  );
+  return { items, registry };
+}
+
+function useAssistantUiToolGroupDisclosure(
+  requiresActionToolCallIds: readonly string[],
+) {
+  const [expanded, setExpanded] = useState(false);
+  const lastActionRequirementKeyRef = useRef("");
+  const actionRequirementKey = requiresActionToolCallIds.join("|");
+
+  useEffect(() => {
+    if (actionRequirementKey.length === 0) {
+      lastActionRequirementKeyRef.current = "";
+      return;
+    }
+    if (lastActionRequirementKeyRef.current !== actionRequirementKey) {
+      lastActionRequirementKeyRef.current = actionRequirementKey;
+      setExpanded(true);
+    }
+  }, [actionRequirementKey]);
+
+  return { expanded, onExpandedChange: setExpanded };
 }
 
 function groupParts(
@@ -224,7 +354,8 @@ export function SemanticReasoningOutlet({
     firstReasoningOrdinal,
     firstReasoningOrdinal + reasoningParts.length,
   );
-  const running = group.status.type === "running";
+  const status = projectReasoningStatus(group.status);
+  const running = status === "running";
   const message: ReasoningAgentMessage = {
     id: `${threadMessage.id}:reasoning-group:${group.indices.join("-")}`,
     role: "reasoning",
@@ -247,6 +378,7 @@ export function SemanticReasoningOutlet({
       value={{
         kind: "reasoning",
         message,
+        status,
         running,
         turnId: threadMessage.id,
       }}
@@ -262,17 +394,32 @@ export function SemanticToolActivityOutlet({
 }: PropsWithChildren<{ group: ThreadGroupPart }>) {
   const renderSlot = useOptionalMessageSlotBridge();
   const threadMessage = useCurrentThreadMessage();
-  const items = groupParts(threadMessage, group, "tool-call").map((part) =>
-    projectToolItem(threadMessage, part),
+  const initialItems = groupParts(threadMessage, group, "tool-call").map((part) =>
+    projectGroupedToolItem(threadMessage, part, group.status),
   );
-  const { activeToolCallIds, status } = deriveToolActivityStatus(items);
+  const { items, registry } = useToolActivityItemProjection(initialItems);
+  const {
+    activeToolCallIds,
+    requiresActionToolCallIds,
+    status,
+  } = deriveToolActivityStatus(items);
+  const disclosure = useAssistantUiToolGroupDisclosure(
+    requiresActionToolCallIds,
+  );
+  const presentationConfig = useAssistantUiPresentationConfig();
   const fallback = (
-    <ToolGroupRoot variant="ghost">
+    <ToolGroupRoot
+      variant={presentationConfig.interactions.toolGroupVariant}
+      open={disclosure.expanded}
+      onOpenChange={disclosure.onExpandedChange}
+    >
       <ToolGroupTrigger
         count={items.length}
-        active={status === "running"}
+        active={activeToolCallIds.length > 0}
       />
-      <ToolGroupContent>{children}</ToolGroupContent>
+      <ToolActivityItemRegistryContext.Provider value={registry}>
+        <ToolGroupContent keepMounted>{children}</ToolGroupContent>
+      </ToolActivityItemRegistryContext.Provider>
     </ToolGroupRoot>
   );
   if (renderSlot === null) return fallback;
@@ -286,6 +433,7 @@ export function SemanticToolActivityOutlet({
         presentation: "grouped",
         status,
         turnId: threadMessage.id,
+        requiresActionToolCallIds,
       }}
     >
       <SemanticSlotFallbackProvider
@@ -302,16 +450,37 @@ export function SemanticToolItemOutlet(props: ToolCallMessagePartProps) {
   const renderSlot = useOptionalToolItemSlotBridge();
   const threadMessage = useCurrentThreadMessage();
   const item = projectToolItem(threadMessage, props);
+  const registry = useContext(ToolActivityItemRegistryContext);
+  useEffect(() => {
+    registry?.register(item);
+  }, [
+    item.actionRequirement?.reason,
+    item.execution?.id,
+    item.execution?.status,
+    item.result?.id,
+    item.result?.content,
+    item.result?.error,
+    item.status,
+    item.toolCall.id,
+    item.toolCall.function.arguments,
+    item.toolCall.function.name,
+    registry,
+  ]);
   const fallback = <ToolFallback {...props} />;
+  if (props.status.type === "requires-action") return fallback;
   if (renderSlot === null) return fallback;
 
   return (
     <MessageRenderProvider
       value={{
         kind: "tool",
+        status: item.status,
         running: item.status === "loading",
         toolCall: item.toolCall,
         turnId: threadMessage.id,
+        ...(item.actionRequirement === undefined
+          ? {}
+          : { actionRequirement: item.actionRequirement }),
         ...(item.execution === undefined ? {} : { execution: item.execution }),
         ...(item.result === undefined ? {} : { result: item.result }),
       }}

@@ -13,6 +13,7 @@ export const AGENT_REASONING_ANIMATION_DURATION_MS = 200;
 export type AgentReasoningStatus =
   | "running"
   | "completed"
+  | "error"
   | "interrupted";
 
 export type AgentReasoningVariant = "outline" | "ghost" | "muted";

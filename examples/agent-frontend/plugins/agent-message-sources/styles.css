@@ -1,0 +1,50 @@
+.agent-ui-assistant-ui [data-ui-plugin="agent-message-sources"] [data-slot="agent-sources"] {
+  margin-inline: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+  color: var(--foreground);
+}
+
+.agent-ui-assistant-ui [data-ui-plugin="agent-message-sources"] [data-slot="agent-sources-title"] {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1rem;
+}
+
+.agent-ui-assistant-ui [data-ui-plugin="agent-message-sources"] [data-slot="agent-sources-list"] {
+  gap: 0.375rem;
+}
+
+.agent-ui-assistant-ui [data-ui-plugin="agent-message-sources"] [data-slot="agent-source"] {
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--muted);
+}
+
+.agent-ui-assistant-ui [data-ui-plugin="agent-message-sources"] [data-slot="agent-source-leading"] {
+  min-width: 1.25rem;
+  height: 1.25rem;
+  border-color: var(--border);
+  color: var(--muted-foreground);
+  background: var(--background);
+  font-size: 0.6875rem;
+}
+
+.agent-ui-assistant-ui [data-ui-plugin="agent-message-sources"] [data-slot="agent-source-title"] {
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.agent-ui-assistant-ui [data-ui-plugin="agent-message-sources"] [data-slot="agent-source-title"]:hover {
+  color: var(--foreground);
+  text-decoration: underline;
+}
+
+.agent-ui-assistant-ui [data-ui-plugin="agent-message-sources"] [data-slot="agent-source-description"] {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}

@@ -23,10 +23,17 @@ export interface AssistantUiComposerConfig {
   quickPrompts: readonly AssistantUiComposerQuickPrompt[];
 }
 
+export type AssistantUiToolGroupVariant = "ghost" | "outline" | "muted";
+
+export interface AssistantUiInteractionPresentationConfig {
+  toolGroupVariant: AssistantUiToolGroupVariant;
+}
+
 export interface AssistantUiPresentationConfig {
   welcome: AssistantUiWelcomeConfig;
   starterSuggestions: readonly AssistantUiStarterSuggestion[];
   composer: AssistantUiComposerConfig;
+  interactions: AssistantUiInteractionPresentationConfig;
 }
 
 function readNonEmptyString(value: unknown): string | undefined {
@@ -39,6 +46,10 @@ function readRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
+}
+
+function readToolGroupVariant(value: unknown): AssistantUiToolGroupVariant {
+  return value === "outline" || value === "muted" ? value : "ghost";
 }
 
 function readWelcome(value: unknown): AssistantUiWelcomeConfig {
@@ -131,6 +142,7 @@ export function resolveAssistantUiPresentationConfig(
   );
   const welcomeProps = readRecord(assistantUiPresentation.welcome);
   const composerProps = readRecord(assistantUiPresentation.composer);
+  const interactionsProps = readRecord(assistantUiPresentation.interactions);
   const placeholder = readNonEmptyString(composerProps.placeholder);
 
   return {
@@ -141,6 +153,9 @@ export function resolveAssistantUiPresentationConfig(
     composer: {
       ...(placeholder === undefined ? {} : { placeholder }),
       quickPrompts: readComposerQuickPrompts(composerProps.quickPrompts),
+    },
+    interactions: {
+      toolGroupVariant: readToolGroupVariant(interactionsProps.toolGroupVariant),
     },
   };
 }

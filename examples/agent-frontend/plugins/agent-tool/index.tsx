@@ -6,7 +6,6 @@ import { useToolRenderContext } from "../../runtime/message-rendering";
 import { useToolDisclosure } from "./tool-disclosure";
 import {
   createToolSummary,
-  resolveAgentToolStatus,
   ToolDetails,
   toolStatusLabels,
 } from "./tool-presentation";
@@ -14,13 +13,20 @@ import {
 import "./styles.css";
 
 export function AgentToolPlugin(_props: UIPluginComponentProps) {
-  const { execution, result, running, toolCall, turnId } =
+  const { execution, result, status: presentationStatus, toolCall, turnId } =
     useToolRenderContext();
   const instance = usePluginInstance();
   const defaultExpanded = instance.props?.defaultExpanded === true;
   const showArguments = instance.props?.showArguments !== false;
   const showResult = instance.props?.showResult !== false;
-  const status = resolveAgentToolStatus(result, execution, running);
+  const status =
+    presentationStatus === "loading"
+      ? "running"
+      : presentationStatus === "success"
+        ? "completed"
+        : presentationStatus === "error"
+          ? "error"
+          : "interrupted";
   const disclosure = useToolDisclosure({
     toolCallId: toolCall.id,
     defaultExpanded,

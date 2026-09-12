@@ -13,6 +13,8 @@ export {
   type MessageSourceRenderItem,
   type MessageSourcesRenderContext,
   type ReasoningRenderContext,
+  type ReasoningPresentationStatus,
+  type ToolActionRequirement,
   type ToolActivityRenderContext,
   type ToolActivityStatus,
   type ToolPresentation,
