@@ -13,10 +13,7 @@ import {
   AssistantUiAgUiRuntimeProvider,
   useAssistantUiRuntimeBridge,
 } from "@agent-ui/runtime-assistant-ui";
-import {
-  createAgentRuntime,
-  type AgentRuntime,
-} from "@agent-ui/runtime-core";
+import type { AgentRuntime } from "@agent-ui/runtime-core";
 
 import appUIJsonSource from "../app-ui/app-ui.json?raw";
 import type { AppAgentState } from "../agent-contract/agent-state";
