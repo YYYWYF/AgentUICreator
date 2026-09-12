@@ -299,16 +299,11 @@ describe("mock auth Application Gate", () => {
     },
   );
 
-  it("registers the Gate as an enabled unmounted instance without changing the Layout Tree", () => {
+  it("keeps the default model free of the optional mock Gate", () => {
     const model = parseAppUIModel(appUIJson);
     const instance = model.pluginInstances["mock-auth-login-main"];
 
-    expect(instance).toEqual({
-      id: "mock-auth-login-main",
-      pluginId: "mock-auth-login",
-      enabled: true,
-    });
-    expect(instance?.mount).toBeUndefined();
+    expect(instance).toBeUndefined();
     expect(JSON.stringify(model.root)).not.toContain("mock-auth");
   });
 });

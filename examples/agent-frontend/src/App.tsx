@@ -5,8 +5,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { XProvider } from "@ant-design/x";
-import { theme as antdTheme } from "antd";
 import { AuiConfig, Suggestions } from "@assistant-ui/react";
 import {
   AssistantUiAgUiRuntimeProvider,
@@ -80,50 +78,6 @@ const endpoint = resolveAgentEndpoint({
   search: window.location.search,
 });
 
-const sharedThemeTokens = {
-  colorPrimary: "#7565ea",
-  colorInfo: "#21b7aa",
-  colorSuccess: "#35bc82",
-  colorError: "#ec5f7b",
-  borderRadius: 16,
-  borderRadiusLG: 20,
-  fontFamily:
-    'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-};
-
-const agentFrontendThemes = {
-  dark: {
-    algorithm: antdTheme.darkAlgorithm,
-    token: {
-      ...sharedThemeTokens,
-      colorPrimary: "#8b7cff",
-      colorInfo: "#4fe0d0",
-      colorSuccess: "#57e6a5",
-      colorError: "#ff6b8a",
-      colorBgBase: "#07101d",
-      colorBgContainer: "#0d192b",
-      colorBgElevated: "#121f34",
-      colorBorder: "#273755",
-      colorBorderSecondary: "#1d2b44",
-      colorText: "#f4f6ff",
-      colorTextSecondary: "#9ba8c3",
-    },
-  },
-  light: {
-    algorithm: antdTheme.defaultAlgorithm,
-    token: {
-      ...sharedThemeTokens,
-      colorBgBase: "#f5f7ff",
-      colorBgContainer: "#ffffff",
-      colorBgElevated: "#ffffff",
-      colorBorder: "#d9def0",
-      colorBorderSecondary: "#e8ebf5",
-      colorText: "#18213a",
-      colorTextSecondary: "#65708a",
-    },
-  },
-} as const;
-
 function AgentFrontendSurface({
   actions,
   model,
@@ -141,14 +95,12 @@ function AgentFrontendSurface({
       className="development-preview"
       data-agent-runtime={runtimeMode}
     >
-      <XProvider theme={agentFrontendThemes[themeMode]}>
-        <UIPluginRuntime
-          actions={actions}
-          className="agent-template-shell"
-          model={model}
-          registry={pluginRegistry}
-        />
-      </XProvider>
+      <UIPluginRuntime
+        actions={actions}
+        className="agent-template-shell"
+        model={model}
+        registry={pluginRegistry}
+      />
     </AgentUIRoot>
   );
 }

@@ -89,10 +89,10 @@ describe("assistant-ui interaction state contract", () => {
     expect(derived.requiresActionToolCallIds).toEqual(["approval-tool"]);
   });
 
-  it("keeps the demo Tool Group presentation explicit and scoped", async () => {
+  it("keeps the upstream Tool Group presentation default explicit and scoped", async () => {
     const model = parseAppUIModel(appUIJson);
     expect(resolveAssistantUiPresentationConfig(model).interactions).toEqual({
-      toolGroupVariant: "outline",
+      toolGroupVariant: "ghost",
     });
 
     const adapter = await readFile(

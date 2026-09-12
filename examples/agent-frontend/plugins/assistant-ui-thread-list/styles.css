@@ -5,9 +5,7 @@
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  gap: 0.5rem;
   overflow: auto;
-  padding: 0.75rem;
 }
 
 .assistant-ui-thread-list-plugin > [data-slot="aui_thread-list-root"] {
@@ -18,15 +16,10 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 0.375rem;
-  border: 1px solid var(--border);
-  border-radius: 0.625rem;
-  padding: 0.625rem 0.75rem;
-  color: var(--foreground);
-  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
 }
 
 .assistant-ui-thread-list-error span {
   overflow-wrap: anywhere;
-  color: var(--muted-foreground);
 }

@@ -13,7 +13,7 @@ import { AgentUIRootContext } from "../agent-ui/foundation/context";
 import { AgentReasoning } from "../agent-ui/components/reasoning";
 import { AgentTool } from "../agent-ui/components/tool";
 import { AgentToolActivity } from "../agent-ui/components/tool-activity";
-import appUIJson from "../app-ui/app-ui.json";
+import defaultAppUIJson from "../app-ui/app-ui.json";
 import {
   parseAppUIModel,
   type LayoutNode,
@@ -64,6 +64,146 @@ import {
   type AgentUIConversationService,
   type ConversationDataSource,
 } from "../services/conversations";
+
+// These tests exercise dormant template plugins with an explicit fixture. The
+// checked-in default model intentionally contains only the assistant-ui
+// surface, thread list, and headless conversation services.
+const appUIJson = {
+  ...defaultAppUIJson,
+  root: {
+    type: "row" as const,
+    id: "agent-workspace",
+    children: [
+      {
+        type: "column" as const,
+        id: "agent-sidebar",
+        children: [
+          { type: "slot" as const, id: "agent-conversations-slot-node", slotId: "agent-conversations" },
+          { type: "slot" as const, id: "agent-theme-switch-slot-node", slotId: "agent-theme-switch" },
+        ],
+        gap: 0,
+        sizes: ["minmax(0, 1fr)", "4.5rem"],
+      },
+      {
+        type: "column" as const,
+        id: "agent-conversation",
+        children: [{ type: "slot" as const, id: "workspace-conversation-slot-node", slotId: "workspace.conversation" }],
+        gap: 0,
+        sizes: ["minmax(0, 1fr)"],
+      },
+      {
+        type: "column" as const,
+        id: "agent-inspector",
+        children: [{ type: "slot" as const, id: "workspace-inspector-slot-node", slotId: "workspace.inspector" }],
+        gap: 0,
+        sizes: ["minmax(0, 1fr)"],
+      },
+    ],
+    gap: 0,
+    sizes: ["260px", "minmax(0, 1fr)", "360px"],
+  },
+  pluginInstances: {
+    ...defaultAppUIJson.pluginInstances,
+    "agent-conversation-surface-main": {
+      ...defaultAppUIJson.pluginInstances["agent-conversation-surface-main"],
+      props: {
+        assistantUiPresentation: {
+          welcome: {
+            title: "Agent Frontend",
+            description: "通过 AG-UI 与一个 Agent Runtime 连接，由可复用 UI Plugin 确定性渲染。",
+          },
+          starterSuggestions: [
+            { title: "总结当前上下文", label: "提炼目标、约束与下一步", prompt: "总结当前上下文" },
+            { title: "解释界面结构", label: "说明 AppUIModel 与插件的关系", prompt: "解释界面结构" },
+            { title: "建议下一步", label: "给出一个可执行的后续动作", prompt: "建议下一步" },
+          ],
+          composer: {
+            placeholder: "给智能体发送消息，输入 / 唤出快捷指令",
+            quickPrompts: [
+              { id: "summarize-current", label: "总结当前会话", value: "请总结当前会话，并列出下一步。", description: "提炼目标、约束和下一步" },
+              { id: "explain-last-tool", label: "解释最近一次工具调用", value: "请解释最近一次工具调用的输入、输出和结论。", description: "查看输入、输出和结论" },
+            ],
+          },
+          interactions: { toolGroupVariant: "outline" },
+        },
+      },
+    },
+    "agent-welcome-main": {
+      id: "agent-welcome-main",
+      pluginId: "agent-thread-welcome",
+      enabled: false,
+      mount: { slotId: "conversation.empty.welcome" },
+    },
+    "agent-messages-main": {
+      id: "agent-messages-main",
+      pluginId: "agent-message-list",
+      enabled: false,
+      mount: { slotId: "conversation.timeline" },
+      props: { emptyText: "开始一段新对话", toolPresentation: "grouped" },
+    },
+    "agent-reasoning-main": {
+      id: "agent-reasoning-main",
+      pluginId: "agent-reasoning",
+      enabled: false,
+      mount: { slotId: "conversation.message.reasoning" },
+    },
+    "agent-message-attachments-main": {
+      id: "agent-message-attachments-main",
+      pluginId: "agent-message-attachments",
+      enabled: false,
+      mount: { slotId: "conversation.message.attachments" },
+    },
+    "agent-message-sources-main": {
+      id: "agent-message-sources-main",
+      pluginId: "agent-message-sources",
+      enabled: true,
+      mount: { slotId: "conversation.message.sources" },
+    },
+    "agent-tool-activity-main": {
+      id: "agent-tool-activity-main",
+      pluginId: "agent-tool-activity",
+      enabled: false,
+      mount: { slotId: "conversation.message.tool-activity" },
+    },
+    "agent-tool-message-main": {
+      id: "agent-tool-message-main",
+      pluginId: "agent-tool",
+      enabled: false,
+      mount: { slotId: "conversation.message.tool-item" },
+    },
+    "agent-inspector-main": {
+      id: "agent-inspector-main",
+      pluginId: "workspace-inspector",
+      enabled: true,
+      mount: { slotId: "workspace.inspector" },
+    },
+    "agent-tool-detail-main": {
+      id: "agent-tool-detail-main",
+      pluginId: "agent-tool-detail",
+      enabled: true,
+      mount: { slotId: "inspector.tool" },
+      props: { toolCallId: "tool-call-render-diagram" },
+    },
+    "agent-resources-main": {
+      id: "agent-resources-main",
+      pluginId: "antd-x-resources",
+      enabled: true,
+      mount: { slotId: "inspector.resources" },
+    },
+    "agent-prompts-main": {
+      id: "agent-prompts-main",
+      pluginId: "agent-suggestions",
+      enabled: false,
+      mount: { slotId: "conversation.empty.suggestions" },
+    },
+    "agent-sender-main": {
+      id: "agent-sender-main",
+      pluginId: "agent-composer",
+      enabled: false,
+      mount: { slotId: "conversation.composer" },
+    },
+  },
+};
 
 const runtimeActions = {
   sendMessage: vi.fn(async () => undefined),

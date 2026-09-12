@@ -1,6 +1,7 @@
 import { ThreadList } from "../../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx";
 import { useAui } from "@assistant-ui/react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import { useAgentUIThemeMode } from "../../agent-ui/theme/useAgentUITheme";
 import { useAgentRun } from "../../runtime/context";
 import {
   usePluginService,
@@ -11,12 +12,13 @@ import {
   EMPTY_CONVERSATION_SNAPSHOT,
   type AgentUIConversationService,
 } from "../../services/conversations";
-import { Button } from "../../agent-ui/primitives/button";
+import { Button } from "../../agent-ui/vendor/assistant-ui/components/ui/button";
 
 import "./styles.css";
 
 export function AssistantUiThreadListPlugin(_props: UIPluginComponentProps) {
   const aui = useAui();
+  const theme = useAgentUIThemeMode();
   const run = useAgentRun();
   const conversation = usePluginService<AgentUIConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
@@ -30,11 +32,14 @@ export function AssistantUiThreadListPlugin(_props: UIPluginComponentProps) {
 
   return (
     <aside
-      className="assistant-ui-thread-list-plugin agent-ui-assistant-ui dark"
+      className={[
+        "assistant-ui-thread-list-plugin agent-ui-assistant-ui",
+        theme === "dark" ? "dark" : undefined,
+      ].filter(Boolean).join(" ")}
       data-agent-run-status={run.status}
       data-conversation-list-status={snapshot.listStatus}
       data-conversation-detail-status={snapshot.detailStatus}
-      data-theme="dark"
+      data-theme={theme}
       data-ui-plugin="assistant-ui-thread-list"
     >
       <ThreadList

@@ -46,68 +46,39 @@ describe("AppUIModel", () => {
     expect(model.version).toBe("2");
     expect(model.root.type).toBe("row");
     expect(Object.keys(model.pluginInstances)).toEqual([
-      "mock-auth-login-main",
       "agent-conversation-data-main",
-      "agent-theme-provider-main",
-      "agent-theme-switch-main",
       "agent-conversation-surface-main",
-      "agent-welcome-main",
-      "agent-messages-main",
-      "agent-reasoning-main",
-      "agent-message-attachments-main",
-      "agent-message-sources-main",
-      "agent-tool-activity-main",
-      "agent-tool-message-main",
-      "agent-inspector-main",
-      "agent-tool-detail-main",
-      "agent-resources-main",
-      "agent-prompts-main",
-      "agent-sender-main",
       "agent-conversation-controller-main",
       "assistant-ui-thread-list-main",
     ]);
     expect(model.root).toMatchObject({
       type: "row",
       children: [
-        {},
-        {},
         {
           type: "column",
-          id: "agent-inspector",
+          id: "agent-sidebar",
           children: [
             {
               type: "slot",
-              id: "workspace-inspector-slot-node",
-              slotId: "workspace.inspector",
+              id: "agent-conversations-slot-node",
+              slotId: "agent-conversations",
+            },
+          ],
+          sizes: ["minmax(0, 1fr)"],
+        },
+        {
+          type: "column",
+          id: "agent-conversation",
+          children: [
+            {
+              type: "slot",
+              id: "workspace-conversation-slot-node",
+              slotId: "workspace.conversation",
             },
           ],
           sizes: ["minmax(0, 1fr)"],
         },
       ],
-    });
-    expect(model.pluginInstances["agent-inspector-main"]?.mount).toEqual({
-      slotId: "workspace.inspector",
-    });
-    expect(model.pluginInstances["agent-tool-activity-main"]?.mount).toEqual({
-      slotId: "conversation.message.tool-activity",
-    });
-    expect(model.pluginInstances["agent-message-attachments-main"]?.mount).toEqual({
-      slotId: "conversation.message.attachments",
-    });
-    expect(model.pluginInstances["agent-message-sources-main"]?.mount).toEqual({
-      slotId: "conversation.message.sources",
-    });
-    expect(model.pluginInstances["agent-tool-detail-main"]?.mount).toEqual({
-      slotId: "inspector.tool",
-    });
-    expect(model.pluginInstances["agent-tool-detail-main"]).toMatchObject({
-      id: "agent-tool-detail-main",
-      pluginId: "agent-tool-detail",
-      enabled: true,
-      props: { toolCallId: "tool-call-render-diagram" },
-    });
-    expect(model.pluginInstances["agent-resources-main"]?.mount).toEqual({
-      slotId: "inspector.resources",
     });
     expect(model.pluginInstances["agent-conversation-controller-main"]).toEqual({
       id: "agent-conversation-controller-main",
@@ -119,22 +90,7 @@ describe("AppUIModel", () => {
       enabled: true,
       mount: { slotId: "agent-conversations" },
     });
-    for (const instanceId of [
-      "agent-welcome-main",
-      "agent-prompts-main",
-      "agent-sender-main",
-      "agent-messages-main",
-      "agent-reasoning-main",
-      "agent-message-attachments-main",
-      "agent-tool-activity-main",
-      "agent-tool-message-main",
-    ]) {
-      expect(model.pluginInstances[instanceId]?.enabled, instanceId).toBe(false);
-    }
-    expect(model.pluginInstances["agent-conversations-main"]).toBeUndefined();
-    expect(
-      model.pluginInstances["assistant-ui-conversation-spike-main"],
-    ).toBeUndefined();
+    expect(model.pluginInstances["agent-conversation-surface-main"]?.props).toBeUndefined();
   });
 
   it("rejects malformed JSON", () => {

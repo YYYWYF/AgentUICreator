@@ -600,7 +600,7 @@ describe("Agent UI component source policy", () => {
     expect(css).toMatch(/var\(--aui-/u);
   });
 
-  it("keeps the Agent Tool Detail identity and AppUIModel contract canonical", async () => {
+  it("keeps the dormant Agent Tool Detail implementation available without default composition", async () => {
     const appUI = JSON.parse(
       await readFile(path.join(projectRoot, "app-ui/app-ui.json"), "utf8"),
     ) as {
@@ -622,14 +622,8 @@ describe("Agent UI component source policy", () => {
       "utf8",
     );
 
-    expect(instance).toEqual({
-      id: "agent-tool-detail-main",
-      pluginId: "agent-tool-detail",
-      enabled: true,
-      mount: { slotId: "inspector.tool" },
-      props: { toolCallId: "tool-call-render-diagram" },
-    });
-    expect(registry).toContain('./agent-tool-detail/definition');
+    expect(instance).toBeUndefined();
+    expect(registry).not.toContain('./agent-tool-detail/definition');
     expect(templateLibrary).toContain("agentToolDetailPlugin");
     expect(templateLibrary).toContain("AgentToolDetailPlugin");
   });
@@ -705,10 +699,8 @@ describe("Agent UI component source policy", () => {
       "utf8",
     );
 
-    expect(appUI.pluginInstances?.["agent-tool-activity-main"]?.pluginId).toBe(
-      "agent-tool-activity",
-    );
-    expect(registry).toContain('./agent-tool-activity/definition');
+    expect(appUI.pluginInstances?.["agent-tool-activity-main"]).toBeUndefined();
+    expect(registry).not.toContain('./agent-tool-activity/definition');
     expect(templateLibrary).toContain("agentToolActivityPlugin");
     expect(templateLibrary).toContain("AgentToolActivityPlugin");
   });
@@ -784,10 +776,8 @@ describe("Agent UI component source policy", () => {
       "utf8",
     );
 
-    expect(appUI.pluginInstances?.["agent-tool-message-main"]?.pluginId).toBe(
-      "agent-tool",
-    );
-    expect(registry).toContain('./agent-tool/definition');
+    expect(appUI.pluginInstances?.["agent-tool-message-main"]).toBeUndefined();
+    expect(registry).not.toContain('./agent-tool/definition');
     expect(templateLibrary).toContain("agentToolPlugin");
     expect(templateLibrary).toContain("AgentToolPlugin");
   });
@@ -1016,10 +1006,8 @@ describe("Agent UI component source policy", () => {
     expect(source).toContain("ToolActivityFallbackRenderer");
     expect(source).not.toContain("LegacyToolActivityRenderer");
     expect(source).not.toContain("🔧");
-    expect(
-      appUI.pluginInstances?.["agent-messages-main"]?.pluginId,
-    ).toBe("agent-message-list");
-    expect(registry).toContain('./agent-message-list/definition');
+    expect(appUI.pluginInstances?.["agent-messages-main"]).toBeUndefined();
+    expect(registry).not.toContain('./agent-message-list/definition');
     expect(templateLibrary).toContain("agentMessageListPlugin");
     expect(templateLibrary).toContain("AgentMessageListPlugin");
     for (const legacyIdentity of legacyIdentityPatterns) {
@@ -1069,39 +1057,8 @@ describe("Agent UI component source policy", () => {
       ),
     ) as { version?: string; slots?: { children?: readonly string[] } };
 
-    expect(appUI.pluginInstances?.["agent-welcome-main"]).toMatchObject({
-      pluginId: "agent-thread-welcome",
-      mount: { slotId: "conversation.empty.welcome" },
-      props: {
-        title: "Agent Frontend",
-        description:
-          "通过 AG-UI 与一个 Agent Runtime 连接，由可复用 UI Plugin 确定性渲染。",
-      },
-    });
-    expect(appUI.pluginInstances?.["agent-prompts-main"]).toMatchObject({
-      pluginId: "agent-suggestions",
-      mount: { slotId: "conversation.empty.suggestions" },
-      props: {
-        title: "你可以这样开始",
-        items: [
-          {
-            key: "summarize",
-            label: "总结当前上下文",
-            description: "提炼目标、约束与下一步",
-          },
-          {
-            key: "explain",
-            label: "解释界面结构",
-            description: "说明 AppUIModel 与插件的关系",
-          },
-          {
-            key: "next",
-            label: "建议下一步",
-            description: "给出一个可执行的后续动作",
-          },
-        ],
-      },
-    });
+    expect(appUI.pluginInstances?.["agent-welcome-main"]).toBeUndefined();
+    expect(appUI.pluginInstances?.["agent-prompts-main"]).toBeUndefined();
     expect(surfaceManifest.version).toBe("2.0.0");
     expect(surfaceManifest.slots?.children).toEqual([
       "conversation.empty.welcome",
@@ -1109,8 +1066,8 @@ describe("Agent UI component source policy", () => {
       "conversation.timeline",
       "conversation.composer",
     ]);
-    expect(registry).toContain('./agent-thread-welcome/definition');
-    expect(registry).toContain('./agent-suggestions/definition');
+    expect(registry).not.toContain('./agent-thread-welcome/definition');
+    expect(registry).not.toContain('./agent-suggestions/definition');
     expect(templateLibrary).toContain("agentThreadWelcomePlugin");
     expect(templateLibrary).toContain("AgentThreadWelcomePlugin");
     expect(templateLibrary).toContain("agentSuggestionsPlugin");

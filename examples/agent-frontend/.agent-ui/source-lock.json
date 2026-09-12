@@ -146,7 +146,7 @@
       }
     },
     "foundation/assistant-ui-conversation": {
-      "version": "0.1.6",
+      "version": "0.1.7",
       "files": {
         "vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx": {
           "sha256": "74b8a3d8b079893cdab6aff2ea1ded1d0ddc9af5381a0331dbea1e253f68fa9a"
@@ -221,10 +221,13 @@
           "sha256": "55bbdc94cef3e0c8a8bba386e94f97228dd2c967fe61466fc565378890550c08"
         },
         "vendor/assistant-ui/THIRD_PARTY_NOTICES.md": {
-          "sha256": "218611b455ae8dde968f45b876e1188a907b70890e076f150edb16e68401943d"
+          "sha256": "bc2eb184a4de557900956b375e301452bfc138f8525419c17075fb5256165d25"
         },
         "vendor/assistant-ui/UPSTREAM.json": {
-          "sha256": "541c66ccc53c9001831d6885e2113b9a01763130e2dba9b256e08c322e1921d1"
+          "sha256": "1d59eef643d96c27aa0e655b2d26e8712216723639f4620591f9272b1ae49c92"
+        },
+        "vendor/assistant-ui/UPSTREAM.md": {
+          "sha256": "7f4f65edab402f4220f56ffa7138c76b1bab7429e18dde02952fc31fbc8d606c"
         }
       }
     },

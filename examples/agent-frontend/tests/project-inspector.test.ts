@@ -31,7 +31,7 @@ afterEach(async () => {
 });
 
 describe("inspectUIProject", () => {
-  it("discovers nested Tool and Message Part Slots", async () => {
+  it("discovers the canonical assistant-ui conversation Slots", async () => {
     const projectRoot = path.resolve(
       path.dirname(fileURLToPath(import.meta.url)),
       "..",
@@ -44,61 +44,26 @@ describe("inspectUIProject", () => {
       legacy: false,
       configPath: ".agent-ui/project.json",
     });
-    expect(result.appUIModel.slots).toContainEqual(
-      expect.objectContaining({
-        slotId: "conversation.message.tool-activity",
-        owner: expect.objectContaining({
-          kind: "plugin",
-          instanceId: "agent-messages-main",
-          pluginId: "agent-message-list",
-        }),
-        mounts: [
-          expect.objectContaining({
-            instanceId: "agent-tool-activity-main",
-            pluginId: "agent-tool-activity",
-          }),
-        ],
-      }),
-    );
-    for (const [slotId, instanceId, pluginId] of [
-      [
-        "conversation.message.attachments",
-        "agent-message-attachments-main",
-        "agent-message-attachments",
-      ],
-      [
-        "conversation.message.sources",
-        "agent-message-sources-main",
-        "agent-message-sources",
-      ],
+    for (const slotId of [
+      "conversation.empty.welcome",
+      "conversation.empty.suggestions",
+      "conversation.timeline",
+      "conversation.composer",
     ] as const) {
       expect(result.appUIModel.slots).toContainEqual(
         expect.objectContaining({
           slotId,
           owner: expect.objectContaining({
             kind: "plugin",
-            instanceId: "agent-messages-main",
-            pluginId: "agent-message-list",
+            instanceId: "agent-conversation-surface-main",
+            pluginId: "conversation-surface",
           }),
-          mounts: [expect.objectContaining({ instanceId, pluginId })],
+          mounts: [],
         }),
       );
     }
-    expect(result.appUIModel.slots).toContainEqual(
-      expect.objectContaining({
-        slotId: "conversation.message.tool-item",
-        owner: expect.objectContaining({
-          kind: "plugin",
-          instanceId: "agent-tool-activity-main",
-          pluginId: "agent-tool-activity",
-        }),
-        mounts: [
-          expect.objectContaining({
-            instanceId: "agent-tool-message-main",
-            pluginId: "agent-tool",
-          }),
-        ],
-      }),
+    expect(result.appUIModel.slots).not.toContainEqual(
+      expect.objectContaining({ slotId: "workspace.inspector" }),
     );
   });
 

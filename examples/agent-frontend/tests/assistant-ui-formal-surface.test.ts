@@ -14,7 +14,7 @@ const registryItemPath = path.join(
 );
 const registryItemRoot = path.dirname(registryItemPath);
 const itemId = "foundation/assistant-ui-conversation";
-const revision = "97bd4b39fce83163354c9ec8d9d4fb2c9bd1aac7";
+const revision = "6b29e7de829bef7e51297d3d66cd9e97175f3fc5";
 
 function sha256(content: Buffer | string): string {
   return createHash("sha256").update(content).digest("hex");
@@ -82,7 +82,7 @@ describe("formal assistant-ui surface", () => {
       expect.objectContaining({ id: "p3r4c-composer-extension-seam" }),
       expect.objectContaining({ id: "p3r4d-thread-list-policy-seam" }),
     ]);
-    expect(item.version).toBe("0.1.6");
+    expect(item.version).toBe("0.1.7");
     expect(item.upstream).toMatchObject({
       revision,
       license: "MIT",
@@ -90,7 +90,10 @@ describe("formal assistant-ui surface", () => {
     });
 
     const presentationFiles = (await collectRelativeFiles(vendorRoot)).filter(
-      (file) => file !== "THIRD_PARTY_NOTICES.md" && file !== "UPSTREAM.json",
+      (file) =>
+        file !== "THIRD_PARTY_NOTICES.md" &&
+        file !== "UPSTREAM.json" &&
+        file !== "UPSTREAM.md",
     );
     expect(presentationFiles).toEqual(
       upstream.files.map((file) => file.localPath).sort(),
@@ -102,6 +105,11 @@ describe("formal assistant-ui surface", () => {
       "components/assistant-ui/elements/thread-list.aui.tsx",
     );
     expect(presentationFiles).toContain("components/ui/input.tsx");
+
+    const provenance = await readFile(path.join(vendorRoot, "UPSTREAM.md"), "utf8");
+    expect(provenance).toContain("Branch: `main`");
+    expect(provenance).toContain(`Commit: \`${revision}\``);
+    expect(provenance).toContain("@assistant-ui/react` = `0.15.19");
 
     const lockFiles = lock.items[itemId]?.files;
     expect(lockFiles).toBeDefined();

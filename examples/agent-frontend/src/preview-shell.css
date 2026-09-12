@@ -1,14 +1,11 @@
 :root {
-  color: #18213a;
-  background: #eef1fb;
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -27,158 +24,31 @@ body {
 }
 
 .development-preview {
-  --app-ui-plugin-error-background: linear-gradient(
-    135deg,
-    rgb(86 20 36 / 78%),
-    rgb(55 18 30 / 82%)
-  );
-  --app-ui-plugin-error-border: rgb(255 107 138 / 35%);
-  --app-ui-plugin-error-identity: #ff879e;
-  --app-ui-plugin-error-icon: #ec5f7b;
-  --app-ui-plugin-error-text: #ffb5c3;
-  --ui-text-primary: #f4f6ff;
-  --ui-text-secondary: #9ba8c3;
-  --ui-text-muted: #7585a3;
-  --ui-header-border: rgb(139 124 255 / 13%);
-  --ui-header-background: rgb(8 18 32 / 91%);
-  --ui-control-border: rgb(255 255 255 / 13%);
-  --ui-control-background: #263550;
-  --ui-inset-highlight: rgb(255 255 255 / 8%);
-  --ui-theme-switch-surface: rgb(17 30 50 / 58%);
-  --ui-theme-switch-border: rgb(151 137 255 / 14%);
-  --ui-theme-switch-shadow:
-    0 0.75rem 1.8rem rgb(0 0 0 / 12%), inset 0 1px rgb(255 255 255 / 5%);
-  --ui-preview-background:
-    radial-gradient(circle at 12% 10%, rgb(119 89 255 / 32%), transparent 25rem),
-    radial-gradient(circle at 88% 84%, rgb(30 207 194 / 20%), transparent 27rem),
-    linear-gradient(145deg, #050b14 0%, #081322 48%, #07101d 100%);
-  --ui-grid-color: rgb(139 124 255 / 4%);
-  --ui-shell-border: rgb(157 143 255 / 21%);
-  --ui-shell-background: rgb(8 18 32 / 88%);
-  --ui-shell-shadow:
-    0 2.5rem 7rem rgb(0 0 0 / 48%), inset 0 1px rgb(255 255 255 / 8%);
-  position: relative;
-  display: block;
   width: 100%;
   height: 100dvh;
   min-height: 0;
-  padding: 0;
   overflow: hidden;
-  color: var(--ui-text-primary);
-  background: var(--ui-preview-background);
-  transition: background 220ms ease;
-}
-
-.development-preview[data-agent-ui-theme="light"] {
-  --app-ui-plugin-error-background: linear-gradient(135deg, #fff6f5, #fef3f2);
-  --app-ui-plugin-error-border: rgb(240 68 56 / 34%);
-  --app-ui-plugin-error-identity: #912018;
-  --app-ui-plugin-error-icon: #d92d20;
-  --app-ui-plugin-error-text: #b42318;
-  --ui-text-primary: #18213a;
-  --ui-text-secondary: #65708a;
-  --ui-text-muted: #7a849e;
-  --ui-header-border: rgb(99 86 204 / 12%);
-  --ui-header-background: rgb(255 255 255 / 82%);
-  --ui-control-border: rgb(91 81 178 / 13%);
-  --ui-control-background: #e8eaf4;
-  --ui-inset-highlight: rgb(255 255 255 / 72%);
-  --ui-theme-switch-surface: rgb(255 255 255 / 54%);
-  --ui-theme-switch-border: rgb(92 79 183 / 11%);
-  --ui-theme-switch-shadow:
-    0 0.75rem 1.8rem rgb(72 77 111 / 7%), inset 0 1px rgb(255 255 255 / 76%);
-  --ui-preview-background:
-    radial-gradient(circle at 10% 8%, rgb(134 112 255 / 22%), transparent 27rem),
-    radial-gradient(circle at 90% 88%, rgb(67 211 196 / 18%), transparent 30rem),
-    linear-gradient(145deg, #f8f9ff 0%, #eef2fb 48%, #f4fbfa 100%);
-  --ui-grid-color: rgb(100 89 178 / 6%);
-  --ui-shell-border: rgb(89 76 175 / 14%);
-  --ui-shell-background: rgb(255 255 255 / 88%);
-  --ui-shell-shadow:
-    0 2.5rem 7rem rgb(53 58 93 / 16%), inset 0 1px rgb(255 255 255 / 82%);
-}
-
-.development-preview::before {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--ui-grid-color) 1px, transparent 1px),
-    linear-gradient(90deg, var(--ui-grid-color) 1px, transparent 1px);
-  background-size: 3.5rem 3.5rem;
-  mask-image: linear-gradient(to bottom, black, transparent 78%);
-  content: "";
-  pointer-events: none;
 }
 
 .agent-template-shell {
-  position: relative;
-  z-index: 1;
   width: 100%;
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  border: 0;
-  border-radius: 0;
-  background: var(--ui-shell-background);
-  box-shadow: none;
-  transition:
-    border-color 220ms ease,
-    background 220ms ease,
-    box-shadow 220ms ease;
 }
 
 .agent-template-shell [data-layout-node-id="agent-workspace"],
 .agent-template-shell [data-layout-node-id="agent-sidebar"],
 .agent-template-shell [data-layout-node-id="agent-conversation"],
-.agent-template-shell [data-layout-node-id="agent-inspector"] {
+.agent-template-shell [data-layout-node-id="agent-conversations-slot-node"],
+.agent-template-shell [data-layout-node-id="workspace-conversation-slot-node"] {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
 }
 
 .agent-template-shell [data-layout-node-id="agent-sidebar"] {
-  border-right: 1px solid var(--ui-header-border);
-  background: rgb(7 16 29 / 72%);
-}
-
-.development-preview[data-agent-ui-theme="light"]
-  .agent-template-shell
-  [data-layout-node-id="agent-sidebar"] {
-  background: rgb(247 248 253 / 78%);
-}
-
-.agent-template-shell [data-layout-node-id="agent-conversations-slot-node"],
-.agent-template-shell [data-layout-node-id="workspace-conversation-slot-node"] {
-  min-height: 0;
-  overflow: hidden;
-}
-
-.agent-template-shell [data-layout-node-id="agent-inspector"] {
-  border-left: 1px solid var(--ui-header-border);
-  overflow: hidden;
-}
-
-.agent-template-shell
-  [data-layout-node-id="agent-theme-switch-slot-node"] {
-  border-top: 1px solid var(--ui-header-border);
-}
-
-.agent-template-shell
-  [data-layout-node-id="agent-theme-switch-slot-node"]
-  .antd-x-theme-switch-plugin {
-  margin-inline: 0.75rem;
-}
-
-.agent-template-shell
-  [data-layout-node-id="agent-theme-switch-slot-node"]
-  .antd-x-theme-switch-plugin {
-  justify-content: space-between;
-}
-
-@media (max-width: 74rem) {
-  .agent-template-shell [data-layout-node-id="agent-workspace"] {
-    grid-template-columns: 240px minmax(0, 1fr) 320px !important;
-  }
+  border-right: 1px solid color-mix(in oklch, currentColor 15%, transparent);
 }
 
 @media (max-width: 52rem) {
@@ -189,14 +59,6 @@ body {
 
 @media (max-width: 44rem), (max-height: 44rem) {
   .development-preview {
-    padding: 0;
-  }
-
-  .agent-template-shell {
-    width: 100%;
-    height: 100dvh;
-    min-height: 0;
-    border: 0;
-    border-radius: 0;
+    min-width: 0;
   }
 }

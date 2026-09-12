@@ -12,17 +12,11 @@
             "type": "slot",
             "id": "agent-conversations-slot-node",
             "slotId": "agent-conversations"
-          },
-          {
-            "type": "slot",
-            "id": "agent-theme-switch-slot-node",
-            "slotId": "agent-theme-switch"
           }
         ],
         "gap": 0,
         "sizes": [
-          "minmax(0, 1fr)",
-          "4.5rem"
+          "minmax(0, 1fr)"
         ]
       },
       {
@@ -39,56 +33,19 @@
         "sizes": [
           "minmax(0, 1fr)"
         ]
-      },
-      {
-        "type": "column",
-        "id": "agent-inspector",
-        "children": [
-          {
-            "type": "slot",
-            "id": "workspace-inspector-slot-node",
-            "slotId": "workspace.inspector"
-          }
-        ],
-        "gap": 0,
-        "sizes": [
-          "minmax(0, 1fr)"
-        ]
       }
     ],
     "gap": 0,
     "sizes": [
-      "260px",
-      "minmax(0, 1fr)",
-      "360px"
+      "16rem",
+      "minmax(0, 1fr)"
     ]
   },
   "pluginInstances": {
-    "mock-auth-login-main": {
-      "id": "mock-auth-login-main",
-      "pluginId": "mock-auth-login",
-      "enabled": true
-    },
     "agent-conversation-data-main": {
       "id": "agent-conversation-data-main",
       "pluginId": "conversation-data-source",
       "enabled": true
-    },
-    "agent-theme-provider-main": {
-      "id": "agent-theme-provider-main",
-      "pluginId": "antd-x-theme-provider",
-      "enabled": true,
-      "props": {
-        "mode": "dark"
-      }
-    },
-    "agent-theme-switch-main": {
-      "id": "agent-theme-switch-main",
-      "pluginId": "antd-x-theme-switch",
-      "enabled": true,
-      "mount": {
-        "slotId": "agent-theme-switch"
-      }
     },
     "agent-conversation-surface-main": {
       "id": "agent-conversation-surface-main",
@@ -96,195 +53,6 @@
       "enabled": true,
       "mount": {
         "slotId": "workspace.conversation"
-      },
-      "props": {
-        "assistantUiPresentation": {
-          "welcome": {
-            "title": "Agent Frontend",
-            "description": "通过 AG-UI 与一个 Agent Runtime 连接，由可复用 UI Plugin 确定性渲染。"
-          },
-          "starterSuggestions": [
-            {
-              "title": "总结当前上下文",
-              "label": "提炼目标、约束与下一步",
-              "prompt": "总结当前上下文"
-            },
-            {
-              "title": "解释界面结构",
-              "label": "说明 AppUIModel 与插件的关系",
-              "prompt": "解释界面结构"
-            },
-            {
-              "title": "建议下一步",
-              "label": "给出一个可执行的后续动作",
-              "prompt": "建议下一步"
-            }
-          ],
-          "composer": {
-            "placeholder": "给智能体发送消息，输入 / 唤出快捷指令",
-            "quickPrompts": [
-              {
-                "id": "summarize-current",
-                "label": "总结当前会话",
-                "value": "请总结当前会话，并列出下一步。",
-                "description": "提炼目标、约束和下一步"
-              },
-              {
-                "id": "explain-last-tool",
-                "label": "解释最近一次工具调用",
-                "value": "请解释最近一次工具调用的输入、输出和结论。",
-                "description": "查看输入、输出和结论"
-              }
-            ]
-          },
-          "interactions": {
-            "toolGroupVariant": "outline"
-          }
-        }
-      }
-    },
-    "agent-welcome-main": {
-      "id": "agent-welcome-main",
-      "pluginId": "agent-thread-welcome",
-      "enabled": false,
-      "mount": {
-        "slotId": "conversation.empty.welcome"
-      },
-      "props": {
-        "title": "Agent Frontend",
-        "description": "通过 AG-UI 与一个 Agent Runtime 连接，由可复用 UI Plugin 确定性渲染。"
-      }
-    },
-    "agent-messages-main": {
-      "id": "agent-messages-main",
-      "pluginId": "agent-message-list",
-      "enabled": false,
-      "mount": {
-        "slotId": "conversation.timeline"
-      },
-      "props": {
-        "emptyText": "开始一段新对话",
-        "toolPresentation": "grouped"
-      }
-    },
-    "agent-reasoning-main": {
-      "id": "agent-reasoning-main",
-      "pluginId": "agent-reasoning",
-      "enabled": false,
-      "mount": {
-        "slotId": "conversation.message.reasoning"
-      }
-    },
-    "agent-message-attachments-main": {
-      "id": "agent-message-attachments-main",
-      "pluginId": "agent-message-attachments",
-      "enabled": false,
-      "mount": {
-        "slotId": "conversation.message.attachments"
-      }
-    },
-    "agent-message-sources-main": {
-      "id": "agent-message-sources-main",
-      "pluginId": "agent-message-sources",
-      "enabled": true,
-      "mount": {
-        "slotId": "conversation.message.sources"
-      }
-    },
-    "agent-tool-activity-main": {
-      "id": "agent-tool-activity-main",
-      "pluginId": "agent-tool-activity",
-      "enabled": false,
-      "mount": {
-        "slotId": "conversation.message.tool-activity"
-      }
-    },
-    "agent-tool-message-main": {
-      "id": "agent-tool-message-main",
-      "pluginId": "agent-tool",
-      "enabled": false,
-      "mount": {
-        "slotId": "conversation.message.tool-item"
-      }
-    },
-    "agent-inspector-main": {
-      "id": "agent-inspector-main",
-      "pluginId": "workspace-inspector",
-      "enabled": true,
-      "mount": {
-        "slotId": "workspace.inspector"
-      }
-    },
-    "agent-tool-detail-main": {
-      "id": "agent-tool-detail-main",
-      "pluginId": "agent-tool-detail",
-      "enabled": true,
-      "mount": {
-        "slotId": "inspector.tool"
-      },
-      "props": {
-        "toolCallId": "tool-call-render-diagram"
-      }
-    },
-    "agent-resources-main": {
-      "id": "agent-resources-main",
-      "pluginId": "antd-x-resources",
-      "enabled": true,
-      "mount": {
-        "slotId": "inspector.resources"
-      }
-    },
-    "agent-prompts-main": {
-      "id": "agent-prompts-main",
-      "pluginId": "agent-suggestions",
-      "enabled": false,
-      "mount": {
-        "slotId": "conversation.empty.suggestions"
-      },
-      "props": {
-        "title": "你可以这样开始",
-        "items": [
-          {
-            "key": "summarize",
-            "label": "总结当前上下文",
-            "description": "提炼目标、约束与下一步"
-          },
-          {
-            "key": "explain",
-            "label": "解释界面结构",
-            "description": "说明 AppUIModel 与插件的关系"
-          },
-          {
-            "key": "next",
-            "label": "建议下一步",
-            "description": "给出一个可执行的后续动作"
-          }
-        ]
-      }
-    },
-    "agent-sender-main": {
-      "id": "agent-sender-main",
-      "pluginId": "agent-composer",
-      "enabled": false,
-      "mount": {
-        "slotId": "conversation.composer"
-      },
-      "props": {
-        "placeholder": "给智能体发送消息，输入 / 唤出快捷指令",
-        "suggestions": [
-          {
-            "id": "summarize-current",
-            "label": "总结当前会话",
-            "value": "请总结当前会话，并列出下一步。",
-            "description": "提炼目标、约束和下一步"
-          },
-          {
-            "id": "explain-last-tool",
-            "label": "解释最近一次工具调用",
-            "value": "请解释最近一次工具调用的输入、输出和结论。",
-            "description": "查看输入、输出和结论"
-          }
-        ]
       }
     },
     "agent-conversation-controller-main": {

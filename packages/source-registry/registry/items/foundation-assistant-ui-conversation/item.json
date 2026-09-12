@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "id": "foundation/assistant-ui-conversation",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "kind": "foundation",
   "description": "Pinned assistant-ui Base UI conversation presentation source",
   "upstream": {
     "project": "assistant-ui/assistant-ui",
     "component": "base-ui-conversation",
     "implementation": "react",
-    "revision": "97bd4b39fce83163354c9ec8d9d4fb2c9bd1aac7",
+    "revision": "6b29e7de829bef7e51297d3d66cd9e97175f3fc5",
     "mode": "adapted",
     "license": "MIT"
   },
@@ -48,6 +48,7 @@
     { "source": "files/vendor/assistant-ui/hooks/use-copy-to-clipboard.ts", "target": "vendor/assistant-ui/hooks/use-copy-to-clipboard.ts" },
     { "source": "files/vendor/assistant-ui/lib/utils.ts", "target": "vendor/assistant-ui/lib/utils.ts" },
     { "source": "files/vendor/assistant-ui/THIRD_PARTY_NOTICES.md", "target": "vendor/assistant-ui/THIRD_PARTY_NOTICES.md" },
-    { "source": "files/vendor/assistant-ui/UPSTREAM.json", "target": "vendor/assistant-ui/UPSTREAM.json" }
+    { "source": "files/vendor/assistant-ui/UPSTREAM.json", "target": "vendor/assistant-ui/UPSTREAM.json" },
+    { "source": "files/vendor/assistant-ui/UPSTREAM.md", "target": "vendor/assistant-ui/UPSTREAM.md" }
   ]
 }

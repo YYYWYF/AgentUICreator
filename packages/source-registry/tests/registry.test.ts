@@ -301,18 +301,21 @@ describe("Agent UI Source Registry contract", () => {
     const foundation = registry.byId.get("foundation/assistant-ui-conversation");
 
     expect(foundation).toMatchObject({
-      version: "0.1.6",
+      version: "0.1.7",
       kind: "foundation",
       upstream: {
         project: "assistant-ui/assistant-ui",
         component: "base-ui-conversation",
         implementation: "react",
-        revision: "97bd4b39fce83163354c9ec8d9d4fb2c9bd1aac7",
+        revision: "6b29e7de829bef7e51297d3d66cd9e97175f3fc5",
         mode: "adapted",
         license: "MIT",
       },
     });
-    expect(foundation?.files).toHaveLength(26);
+    expect(foundation?.files).toHaveLength(27);
+    expect(foundation?.files).toContainEqual(expect.objectContaining({
+      target: "vendor/assistant-ui/UPSTREAM.md",
+    }));
     expect(foundation?.files).toContainEqual(expect.objectContaining({
       target: "vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
     }));

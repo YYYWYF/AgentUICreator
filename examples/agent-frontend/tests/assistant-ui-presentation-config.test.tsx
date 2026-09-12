@@ -494,16 +494,11 @@ describe("assistant-ui presentation config", () => {
     );
     const text = renderedText(renderer);
 
-    expect(text).toContain("Agent Frontend");
-    expect(text).toContain(
-      "通过 AG-UI 与一个 Agent Runtime 连接，由可复用 UI Plugin 确定性渲染。",
-    );
-    expect(text).toContain("总结当前上下文");
-    expect(text).toContain("解释界面结构");
-    expect(text).toContain("建议下一步");
-    expect(text).toContain("提炼目标、约束与下一步");
-    expect(text).toContain("说明 AppUIModel 与插件的关系");
-    expect(text).toContain("给出一个可执行的后续动作");
+    expect(text).toContain("How can I help you today?");
+    expect(text).not.toContain("Agent Frontend");
+    expect(text).not.toContain("总结当前上下文");
+    expect(text).not.toContain("解释界面结构");
+    expect(text).not.toContain("建议下一步");
     expect(
       renderer.root.findAllByProps({ "data-ui-plugin": "agent-composer" }),
     ).toHaveLength(0);
@@ -513,27 +508,12 @@ describe("assistant-ui presentation config", () => {
       node.props.className.split(/\s+/u).includes("aui-composer-input"),
     );
     expect(composerInput).toHaveLength(1);
-    expect(composerInput[0]!.props.placeholder).toBe(
-      "给智能体发送消息，输入 / 唤出快捷指令",
-    );
+    expect(composerInput[0]!.props.placeholder).toBe("Send a message...");
 
     const composer = resolveAssistantUiPresentationConfig(
       parseAppUIModel(appUIJson),
     ).composer;
-    expect(composer.quickPrompts).toEqual([
-      {
-        id: "summarize-current",
-        label: "总结当前会话",
-        value: "请总结当前会话，并列出下一步。",
-        description: "提炼目标、约束和下一步",
-      },
-      {
-        id: "explain-last-tool",
-        label: "解释最近一次工具调用",
-        value: "请解释最近一次工具调用的输入、输出和结论。",
-        description: "查看输入、输出和结论",
-      },
-    ]);
+    expect(composer.quickPrompts).toEqual([]);
   });
 
   it("makes the native Composer read-only in history mode", async () => {

@@ -9,13 +9,13 @@ import {
 } from "../framework/contracts/app-ui-model";
 
 describe("LayoutRenderer integration", () => {
-  it("renders the checked-in three-column Platform layout through the official Runtime", () => {
+  it("renders the checked-in two-column assistant-ui layout through the official Runtime", () => {
     const model = parseAppUIModel(appUIJson);
     expect(model.root.type).toBe("row");
     if (model.root.type !== "row") {
       throw new Error("Expected the Platform root to be a Row");
     }
-    expect(model.root.children).toHaveLength(3);
+    expect(model.root.children).toHaveLength(2);
 
     const html = renderToStaticMarkup(
       <LayoutRenderer
@@ -32,7 +32,7 @@ describe("LayoutRenderer integration", () => {
 
     expect(html).toContain('data-layout-type="column"');
     expect(html).toContain('data-slot-id="workspace.conversation"');
-    expect(html).toContain('data-slot-id="workspace.inspector"');
+    expect(html).not.toContain('data-slot-id="workspace.inspector"');
     expect(html).toContain("<article>workspace.conversation</article>");
     expect(html).not.toContain('data-slot-id="agent-welcome"');
     expect(html).not.toContain('data-slot-id="agent-messages"');
