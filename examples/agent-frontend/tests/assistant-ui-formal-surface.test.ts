@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFile, readdir, stat } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -52,36 +52,6 @@ describe("formal assistant-ui surface", () => {
     expect(surface).not.toMatch(
       /@ag-ui\/client|@assistant-ui\/react-ag-ui|AgentRuntime|AppUIModel|PluginRegistry/u,
     );
-  });
-
-  it("keeps the Spike harness presentation-only", async () => {
-    const harness = await readFile(
-      path.join(projectRoot, "src/spikes/assistant-ui/AssistantUiConversation.tsx"),
-      "utf8",
-    );
-    expect(harness).toContain("AssistantUiConversationSurface");
-    expect(harness).not.toContain("AssistantUiRuntimeDebugOverlay");
-    expect(harness).not.toMatch(/HttpAgent|useAgUiRuntime|AssistantRuntimeProvider/u);
-    expect(harness).not.toContain('theme="dark"');
-    expect(harness).not.toContain("vendor/assistant-ui");
-
-    const app = await readFile(path.join(projectRoot, "src/App.tsx"), "utf8");
-    const assistantBoundary = app.slice(
-      app.indexOf("function AssistantUiRuntimeBoundary"),
-      app.indexOf("function RuntimeModeBoundary"),
-    );
-    expect(assistantBoundary).toContain("AssistantUiRuntimeDebugOverlay");
-    expect(assistantBoundary).toContain("AssistantUiAgUiRuntimeProvider");
-
-    await expect(
-      stat(path.join(projectRoot, "src/spikes/assistant-ui/AssistantUiRuntimeProvider.tsx")),
-    ).rejects.toMatchObject({ code: "ENOENT" });
-
-    for (const relocated of ["components", "hooks", "lib", "styles"]) {
-      await expect(
-        stat(path.join(projectRoot, "src/spikes/assistant-ui", relocated)),
-      ).rejects.toMatchObject({ code: "ENOENT" });
-    }
   });
 
   it("keeps provenance, Registry targets, installed files, and lock hashes aligned", async () => {

@@ -64,9 +64,7 @@ describe("AppUIModel", () => {
       "agent-prompts-main",
       "agent-sender-main",
       "agent-conversation-controller-main",
-      "agent-conversations-main",
       "assistant-ui-thread-list-main",
-      "assistant-ui-conversation-spike-main",
     ]);
     expect(model.root).toMatchObject({
       type: "row",
@@ -116,11 +114,6 @@ describe("AppUIModel", () => {
       pluginId: "conversation-controller",
       enabled: true,
     });
-    expect(model.pluginInstances["agent-conversations-main"]).toMatchObject({
-      pluginId: "agent-conversations",
-      enabled: false,
-      mount: { slotId: "agent-conversations" },
-    });
     expect(model.pluginInstances["assistant-ui-thread-list-main"]).toMatchObject({
       pluginId: "assistant-ui-thread-list",
       enabled: true,
@@ -138,13 +131,10 @@ describe("AppUIModel", () => {
     ]) {
       expect(model.pluginInstances[instanceId]?.enabled, instanceId).toBe(false);
     }
+    expect(model.pluginInstances["agent-conversations-main"]).toBeUndefined();
     expect(
       model.pluginInstances["assistant-ui-conversation-spike-main"],
-    ).toMatchObject({
-      pluginId: "assistant-ui-conversation-spike",
-      enabled: false,
-      mount: { slotId: "workspace.conversation" },
-    });
+    ).toBeUndefined();
   });
 
   it("rejects malformed JSON", () => {

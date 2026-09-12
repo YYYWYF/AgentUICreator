@@ -386,9 +386,6 @@ describe("UIPluginRuntime", () => {
       state: previewAgentState,
     });
 
-    const conversationsPosition = html.indexOf(
-      'data-ui-plugin="agent-conversations"',
-    );
     const welcomePosition = html.indexOf('data-ui-plugin="agent-thread-welcome"');
     const surfacePosition = html.indexOf(
       'data-ui-plugin="conversation-surface"',
@@ -408,8 +405,6 @@ describe("UIPluginRuntime", () => {
       'data-ui-plugin="antd-x-resources"',
     );
 
-    expect(conversationsPosition).toBeGreaterThan(-1);
-    expect(surfacePosition).toBeGreaterThan(conversationsPosition);
     expect(messagesPosition).toBeGreaterThan(surfacePosition);
     expect(senderPosition).toBeGreaterThan(messagesPosition);
     expect(inspectorPosition).toBeGreaterThan(senderPosition);
@@ -418,7 +413,7 @@ describe("UIPluginRuntime", () => {
     expect(welcomePosition).toBe(-1);
     expect(promptsPosition).toBe(-1);
     expect(html).toContain("新建会话");
-    expect(html).toContain('data-ui-plugin="agent-conversations"');
+    expect(html).not.toContain('data-ui-plugin="agent-conversations"');
     expect(html).toContain("Tool");
     expect(html).toContain("Resources");
     expect(html).toContain("给智能体发送消息，输入 / 唤出快捷指令");

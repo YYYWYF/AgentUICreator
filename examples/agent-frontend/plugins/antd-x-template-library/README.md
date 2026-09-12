@@ -5,12 +5,11 @@
 当前模板：
 
 - `conversation-data-source`：Headless Provider，在开发期连接 application-owned Mock Conversation API，在生产配置存在时连接真实业务 API。
-- `conversation-surface`：作为中栏 Container Plugin，根据 Conversation Controller 的 Live / History 模式组合平级的 `conversation.empty.welcome`、`conversation.empty.suggestions`、`conversation.timeline` 与始终存在的 `conversation.composer`；空状态只负责两个语义区域的排列，不拥有 Welcome / Suggestions 内容。
+- `conversation-surface`：作为中栏 Container Plugin，把 `workspace.conversation` 接入 canonical assistant-ui Conversation Adapter；Welcome、Suggestions、Timeline、Composer 与消息 Part 均通过 Adapter 的 Semantic Slot replacement boundary 组合。
 - `workspace-inspector`：作为右栏 Container Plugin，用本地 Tab 状态在 `inspector.activity`、`inspector.tool` 与 `inspector.resources` 中一次只渲染一个上下文，不改变叶子插件的激活和贡献生命周期。
 - `antd-x-theme-provider`：通过插件服务注册表提供 `agent-ui.theme` 能力，不直接渲染 UI。
 - `antd-x-theme-switch`：声明 `inject: ["agent-ui.theme"]`，调用另一个插件暴露的主题函数。
 - `conversation-controller`：注入 `agent-ui.conversation-data-source`，以 headless Plugin 提供可观察的 `agent-ui.conversations` Controller。
-- `agent-conversations`：只消费 `agent-ui.conversations`，渲染可替换的会话导航；历史会话只读，新建成功后返回 Live 模式。
 - `agent-thread-welcome`：把 Empty Thread 的 Welcome 语义绑定到纯展示的 `AgentThreadWelcome`；可被独立替换或删除，且不拥有 Suggestions。
 - `agent-suggestions`：把 Empty Thread 的 Suggestions 语义绑定到纯展示的 `AgentSuggestions` / `AgentSuggestion`，并保留 `sendMessage`、`run.status` 与 interrupt gating；可被独立替换或删除，且不拥有 Welcome。
 - `agent-message-list`：Live 模式读取 Runtime messages，History 模式只读取 Conversation Detail messages，并展示详情 loading / error。负责 Turn 顺序、Bubble、滚动、streaming、连续 Tool Activity 投影，以及当前消息 Attachments / Sources 的规范化；通过 `conversation.message.reasoning`、`conversation.message.tool-activity`、`conversation.message.attachments`、`conversation.message.sources` child Slots 调度彼此独立的 Message Part renderer，并在 renderer 缺失时保留数据 fallback；没有反馈提交合同前不伪造点赞/点踩。

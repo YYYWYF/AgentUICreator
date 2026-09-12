@@ -153,12 +153,6 @@ body {
   overflow: hidden;
 }
 
-.agent-template-shell
-  [data-layout-node-id="agent-sidebar"]
-  .agent-conversations-plugin {
-  border-right: 0;
-}
-
 .agent-template-shell [data-layout-node-id="agent-inspector"] {
   border-left: 1px solid var(--ui-header-border);
   overflow: hidden;

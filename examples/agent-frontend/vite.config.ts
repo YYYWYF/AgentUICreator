@@ -46,10 +46,6 @@ export default defineConfig(async ({ command, mode }) => {
           workspaceRoot,
           "packages/source-registry/src/index.ts",
         ),
-        "@agent-ui/runtime-agui": path.join(
-          workspaceRoot,
-          "packages/runtime-agui/src/index.ts",
-        ),
         "@agent-ui/runtime-assistant-ui": path.join(
           workspaceRoot,
           "packages/runtime-assistant-ui/src/index.ts",

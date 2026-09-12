@@ -7,7 +7,7 @@ export function AssistantUiRuntimeDebugOverlay() {
     <pre
       aria-label="assistant-ui runtime state"
       className="agent-ui-assistant-ui-debug"
-      data-assistant-ui-spike-debug="true"
+      data-assistant-ui-runtime-debug="true"
     >
       {JSON.stringify(snapshot, null, 2)}
     </pre>

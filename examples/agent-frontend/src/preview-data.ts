@@ -57,7 +57,7 @@ export const initialPreviewMessages: AgentMessage[] = [
     toolCallId: "tool-call-list-plugins",
     content: JSON.stringify({
       plugins: [
-        "agent-conversations",
+        "assistant-ui-thread-list",
         "agent-message-list",
         "antd-x-run-timeline",
         "antd-x-resources",

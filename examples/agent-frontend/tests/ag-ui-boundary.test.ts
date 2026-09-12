@@ -133,9 +133,9 @@ describe("generated app AG-UI dependency boundary", () => {
     expect(dependencyNames(corePackage).filter((name) => name.startsWith("@ag-ui/"))).toEqual([]);
     expect(dependencyNames(appPackage).filter((name) => name.startsWith("@ag-ui/"))).toEqual([]);
     expect(appPackage.dependencies).toMatchObject({
-      "@agent-ui/runtime-agui": "workspace:^",
       "@agent-ui/runtime-core": "workspace:^",
     });
+    expect(dependencyNames(appPackage)).not.toContain("@agent-ui/runtime-agui");
     expect(adapterPackage.dependencies).toMatchObject({
       "@ag-ui/client": "0.0.59",
       "@ag-ui/core": "0.0.59",

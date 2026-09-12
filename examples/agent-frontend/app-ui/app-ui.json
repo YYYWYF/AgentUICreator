@@ -247,28 +247,12 @@
       "pluginId": "conversation-controller",
       "enabled": true
     },
-    "agent-conversations-main": {
-      "id": "agent-conversations-main",
-      "pluginId": "agent-conversations",
-      "enabled": false,
-      "mount": {
-        "slotId": "agent-conversations"
-      }
-    },
     "assistant-ui-thread-list-main": {
       "id": "assistant-ui-thread-list-main",
       "pluginId": "assistant-ui-thread-list",
       "enabled": true,
       "mount": {
         "slotId": "agent-conversations"
-      }
-    },
-    "assistant-ui-conversation-spike-main": {
-      "id": "assistant-ui-conversation-spike-main",
-      "pluginId": "assistant-ui-conversation-spike",
-      "enabled": false,
-      "mount": {
-        "slotId": "workspace.conversation"
       }
     }
   }

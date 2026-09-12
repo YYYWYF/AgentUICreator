@@ -7,7 +7,6 @@ import { describe, expect, it } from "vitest";
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = path.resolve(projectRoot, "../..");
 const registryRoot = path.join(workspaceRoot, "packages/source-registry/registry");
-const spikeSourceRoot = path.join(projectRoot, "src/spikes/assistant-ui");
 const assistantUiVendorRoot = path.join(
   projectRoot,
   "agent-ui/vendor/assistant-ui",
@@ -19,10 +18,6 @@ const assistantUiAdapterRoot = path.join(
 const assistantUiRegistryRoot = path.join(
   registryRoot,
   "items/foundation-assistant-ui-conversation/files/vendor/assistant-ui",
-);
-const spikePluginRoot = path.join(
-  projectRoot,
-  "plugins/assistant-ui-conversation-spike",
 );
 const generatedProjectPackagePath = path.join(projectRoot, "package.json");
 const assistantUiRuntimePackagePath = path.join(
@@ -109,7 +104,7 @@ describe("Agent UI component source policy", () => {
     }
   });
 
-  it("keeps assistant-ui dependencies within the formal surface and Spike harness", async () => {
+  it("keeps assistant-ui dependencies within the formal surface and Runtime integration", async () => {
     const productionRoots = [
       "agent-ui",
       "framework",
@@ -125,18 +120,18 @@ describe("Agent UI component source policy", () => {
         ),
       )
     ).flat();
-    const spikeDependency =
+    const assistantUiDependency =
       /^(?:@assistant-ui\/|@ag-ui\/client$|class-variance-authority$|cn$|lucide-react$|remark-gfm$|tw-shimmer$|zustand$)/u;
 
     for (const filePath of sourceFiles) {
       const relativePath = path.relative(projectRoot, filePath);
       const allowed =
-        filePath.startsWith(`${spikeSourceRoot}${path.sep}`) ||
-        filePath.startsWith(`${spikePluginRoot}${path.sep}`) ||
+        relativePath === "src/App.tsx" ||
+        relativePath.startsWith("plugins/assistant-ui-thread-list/") ||
         filePath.startsWith(`${assistantUiVendorRoot}${path.sep}`) ||
         filePath.startsWith(`${assistantUiAdapterRoot}${path.sep}`);
       for (const specifier of importSpecifiers(await readFile(filePath, "utf8"))) {
-        if (spikeDependency.test(specifier)) {
+        if (assistantUiDependency.test(specifier)) {
           expect(allowed, `${relativePath}: ${specifier}`).toBe(true);
         }
       }
@@ -149,7 +144,7 @@ describe("Agent UI component source policy", () => {
       (filePath) => /\.[cm]?[jt]sx?$/u.test(filePath),
     );
     const privateSource = [
-      "src", "spikes", "assistant-ui", "components",
+      "src", "assistant-ui", "components",
     ].join("/");
     const formalVendor = [
       "agent-ui", "vendor", "assistant-ui",
@@ -1188,11 +1183,11 @@ describe("Agent UI component source policy", () => {
       path.join(projectRoot, "plugins/conversation-surface/index.tsx"),
       "utf8",
     );
-    expect(surfaceIndex).not.toContain('renderSlot("conversation.empty")');
-    expect(surfaceIndex).toContain('renderSlot("conversation.empty.welcome")');
-    expect(surfaceIndex).toContain('renderSlot("conversation.empty.suggestions")');
-    expect(surfaceIndex).toContain('data-slot="conversation-empty-welcome"');
-    expect(surfaceIndex).toContain('data-slot="conversation-empty-suggestions"');
+    expect(surfaceIndex).toContain("AssistantUiConversationAdapter");
+    expect(surfaceIndex).not.toContain("LegacyConversationSurface");
+    expect(surfaceIndex).not.toMatch(
+      /useAgentMessages|useAgentRun|useAgentRuntimeMode|getVisibleConversationMessages/u,
+    );
   });
 
   it("keeps Agent Thread Welcome presentation-only and runtime-independent", async () => {

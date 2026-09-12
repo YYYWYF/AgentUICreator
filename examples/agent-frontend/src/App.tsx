@@ -9,7 +9,6 @@ import {
 import { XProvider } from "@ant-design/x";
 import { theme as antdTheme } from "antd";
 import { AuiConfig, Suggestions } from "@assistant-ui/react";
-import { createAgUiTransport } from "@agent-ui/runtime-agui";
 import {
   AssistantUiAgUiRuntimeProvider,
   useAssistantUiRuntimeBridge,
@@ -62,12 +61,8 @@ import {
 import { resolveAgentEndpoint } from "./agent-endpoint";
 import { AssistantUiConversationThreadBindingConnector } from "../agent-ui/adapters/assistant-ui/threads/AssistantUiConversationThreadBindingConnector";
 import { createConversationServiceAssistantUiThreadBinding } from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
-import {
-  applyLegacyRuntimeComposition,
-  resolveConversationRuntimeMode,
-  type ConversationRuntimeMode,
-} from "./conversation-runtime-mode";
-import { AssistantUiRuntimeDebugOverlay } from "./spikes/assistant-ui/AssistantUiRuntimeDebugOverlay";
+import { AssistantUiRuntimeDebugOverlay } from "./dev/AssistantUiRuntimeDebugOverlay";
+import "../agent-ui/adapters/assistant-ui/styles/globals.css";
 import "./preview-shell.css";
 
 const projectConfigSources = import.meta.glob<string>(
@@ -81,18 +76,7 @@ export const currentAgentUIMode = resolveAgentUIProjectConfig(
     ? undefined
     : JSON.parse(projectConfigJsonSource),
 ).config.mode;
-const baseAppUIModel = parseAppUIModelJson(appUIJsonSource);
-const conversationRuntimeMode = resolveConversationRuntimeMode({
-  isDev: import.meta.env.DEV,
-  search: window.location.search,
-});
-if (conversationRuntimeMode === "assistant-ui") {
-  void import("../agent-ui/adapters/assistant-ui/styles/globals.css");
-}
-const initialAppUIModel = applyLegacyRuntimeComposition(
-  baseAppUIModel,
-  conversationRuntimeMode === "legacy",
-);
+const initialAppUIModel = parseAppUIModelJson(appUIJsonSource);
 const pluginRegistry = createPluginRegistry<AppAgentState>(pluginDefinitions);
 const appEventRegistry = new AppEventRegistry(appEventSchemas);
 const appFrontendToolRegistry = new AppFrontendToolRegistry(appFrontendTools);
@@ -233,31 +217,6 @@ function RuntimeConnectedApp({
   );
 }
 
-function LegacyRuntimeBoundary({
-  model,
-  updateInstanceProps,
-}: {
-  model: typeof initialAppUIModel;
-  updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
-}) {
-  const runtime = useMemo(() => {
-    const transport = createAgUiTransport<AppAgentState>({
-      endpoint,
-      frontendTools: appFrontendToolRuntime,
-    });
-    return createAgentRuntime<AppAgentState>({ transport });
-  }, []);
-
-  useEffect(() => () => runtime.dispose(), [runtime]);
-  return (
-    <RuntimeConnectedApp
-      model={model}
-      runtime={runtime}
-      updateInstanceProps={updateInstanceProps}
-    />
-  );
-}
-
 function AssistantUiRuntimeConnectedApp({
   model,
   updateInstanceProps,
@@ -326,28 +285,6 @@ function AssistantUiRuntimeBoundary({
   );
 }
 
-function RuntimeModeBoundary({
-  model,
-  updateInstanceProps,
-  mode,
-}: {
-  model: typeof initialAppUIModel;
-  updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
-  mode: ConversationRuntimeMode;
-}) {
-  return mode === "legacy" ? (
-    <LegacyRuntimeBoundary
-      model={model}
-      updateInstanceProps={updateInstanceProps}
-    />
-  ) : (
-    <AssistantUiRuntimeBoundary
-      model={model}
-      updateInstanceProps={updateInstanceProps}
-    />
-  );
-}
-
 export interface AppProps {
   onRuntimeComposition?: RuntimeCompositionReporter | undefined;
   onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
@@ -409,10 +346,9 @@ export function App({
       onRuntimeDiagnostic={onRuntimeDiagnostic}
       registry={pluginRegistry}
     >
-      <RuntimeModeBoundary
+      <AssistantUiRuntimeBoundary
         model={model}
         updateInstanceProps={updateInstanceProps}
-        mode={conversationRuntimeMode}
       />
     </PluginDiagnosticProvider>
   );
