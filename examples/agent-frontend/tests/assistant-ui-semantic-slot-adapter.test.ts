@@ -62,6 +62,9 @@ describe("assistant-ui semantic Slot adapter", () => {
     const messageAdapters = await read(
       "agent-ui/adapters/assistant-ui/slots/AssistantUiMessageSlotAdapters.tsx",
     );
+    const composerAdapter = await read(
+      "agent-ui/adapters/assistant-ui/composer/AssistantUiComposerQuickPrompts.tsx",
+    );
     const model = await read("app-ui/app-ui.json");
 
     for (const seam of [
@@ -69,6 +72,7 @@ describe("assistant-ui semantic Slot adapter", () => {
       "TimelineWrapper",
       "InitialSuggestionsWrapper",
       "ComposerWrapper",
+      "ComposerAddon",
       "ReasoningGroup",
       "ToolGroup",
       "ToolFallback",
@@ -82,6 +86,12 @@ describe("assistant-ui semantic Slot adapter", () => {
     expect(messageAdapters).toContain("MessageRenderProvider");
     expect(messageAdapters).not.toMatch(
       /@ag-ui\/client|HttpAgent|runAgent|AppUIModel|SourceRegistry/u,
+    );
+    expect(composerAdapter).toContain("unstable_useSlashCommandAdapter");
+    expect(composerAdapter).toContain("ComposerTriggerPopover");
+    expect(composerAdapter).toContain("aui.composer.setText");
+    expect(composerAdapter).not.toMatch(
+      /AgentComposer|useAgentComposerBinding|useComposerSuggestions|plugins\/agent-composer/u,
     );
     expect(model).not.toMatch(/ReasoningGroup|ToolGroup|ToolFallback|ThreadPrimitive/u);
   });

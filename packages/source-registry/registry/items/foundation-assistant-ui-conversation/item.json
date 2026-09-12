@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "foundation/assistant-ui-conversation",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "kind": "foundation",
   "description": "Pinned assistant-ui Base UI conversation presentation source",
   "upstream": {
@@ -24,6 +24,7 @@
   },
   "files": [
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx" },
+    { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/file.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/file.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/image.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/image.tsx" },

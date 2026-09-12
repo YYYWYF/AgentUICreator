@@ -23,7 +23,6 @@ const STRUCTURAL_HOST_INSTANCE_IDS = [
 ] as const;
 
 const DEFERRED_PRESENTATION_INSTANCE_IDS = [
-  "agent-sender-main",
   "agent-message-sources-main",
 ] as const;
 

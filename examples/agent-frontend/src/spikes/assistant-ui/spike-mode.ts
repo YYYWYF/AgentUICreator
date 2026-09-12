@@ -12,6 +12,7 @@ export const ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS = [
 export const ASSISTANT_UI_ADAPTED_PRESENTATION_INSTANCE_IDS = [
   "agent-welcome-main",
   "agent-prompts-main",
+  "agent-sender-main",
 ] as const;
 
 export function isAssistantUiSpikeRequested(search: string): boolean {

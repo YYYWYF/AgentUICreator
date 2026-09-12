@@ -12,6 +12,7 @@ const registryItemPath = path.join(
   workspaceRoot,
   "packages/source-registry/registry/items/foundation-assistant-ui-conversation/item.json",
 );
+const registryItemRoot = path.dirname(registryItemPath);
 const itemId = "foundation/assistant-ui-conversation";
 const revision = "97bd4b39fce83163354c9ec8d9d4fb2c9bd1aac7";
 
@@ -94,7 +95,7 @@ describe("formal assistant-ui surface", () => {
     const item = JSON.parse(await readFile(registryItemPath, "utf8")) as {
       version: string;
       upstream: { revision: string; license: string; mode: string };
-      files: Array<{ target: string }>;
+      files: Array<{ source: string; target: string }>;
     };
     const lock = JSON.parse(
       await readFile(path.join(projectRoot, ".agent-ui/source-lock.json"), "utf8"),
@@ -107,8 +108,9 @@ describe("formal assistant-ui surface", () => {
       expect.objectContaining({ id: "p3r3-semantic-slot-seams" }),
       expect.objectContaining({ id: "empty-state-semantic-composition" }),
       expect.objectContaining({ id: "p3r4b-welcome-presentation-config" }),
+      expect.objectContaining({ id: "p3r4c-composer-extension-seam" }),
     ]);
-    expect(item.version).toBe("0.1.3");
+    expect(item.version).toBe("0.1.4");
     expect(item.upstream).toMatchObject({
       revision,
       license: "MIT",
@@ -121,6 +123,9 @@ describe("formal assistant-ui surface", () => {
     expect(presentationFiles).toEqual(
       upstream.files.map((file) => file.localPath).sort(),
     );
+    expect(presentationFiles).toContain(
+      "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+    );
 
     const lockFiles = lock.items[itemId]?.files;
     expect(lockFiles).toBeDefined();
@@ -131,6 +136,13 @@ describe("formal assistant-ui surface", () => {
       expect(lockFiles?.[`vendor/assistant-ui/${file.localPath}`]?.sha256).toBe(
         installedHash,
       );
+    }
+
+    for (const file of item.files) {
+      expect(
+        await readFile(path.join(projectRoot, "agent-ui", file.target)),
+        file.target,
+      ).toEqual(await readFile(path.join(registryItemRoot, file.source)));
     }
 
     expect(Object.keys(lockFiles ?? {}).sort()).toEqual(

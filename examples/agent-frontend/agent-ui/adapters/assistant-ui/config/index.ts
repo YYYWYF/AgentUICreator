@@ -5,6 +5,8 @@ export {
 } from "./AssistantUiPresentationConfigContext";
 export {
   resolveAssistantUiPresentationConfig,
+  type AssistantUiComposerConfig,
+  type AssistantUiComposerQuickPrompt,
   type AssistantUiPresentationConfig,
   type AssistantUiStarterSuggestion,
   type AssistantUiWelcomeConfig,

@@ -225,7 +225,21 @@
         "slotId": "conversation.composer"
       },
       "props": {
-        "placeholder": "给智能体发送消息，输入 / 唤出快捷指令"
+        "placeholder": "给智能体发送消息，输入 / 唤出快捷指令",
+        "suggestions": [
+          {
+            "id": "summarize-current",
+            "label": "总结当前会话",
+            "value": "请总结当前会话，并列出下一步。",
+            "description": "提炼目标、约束和下一步"
+          },
+          {
+            "id": "explain-last-tool",
+            "label": "解释最近一次工具调用",
+            "value": "请解释最近一次工具调用的输入、输出和结论。",
+            "description": "查看输入、输出和结论"
+          }
+        ]
       }
     },
     "agent-conversation-controller-main": {
