@@ -70,6 +70,7 @@ interface SlotContentProps<TState = unknown> {
 
 interface SlotWidthProbeProps {
   children: ReactNode;
+  sizing: "fill" | "content";
   slotId: string;
 }
 
@@ -83,6 +84,7 @@ function PluginRuntimeError({ children }: { children: ReactNode }) {
 
 function SlotWidthProbe({
   children,
+  sizing,
   slotId,
 }: SlotWidthProbeProps) {
   const diagnostics = useOptionalPluginDiagnosticContext();
@@ -119,6 +121,7 @@ function SlotWidthProbe({
       ref={elementRef}
       className="app-ui-plugin-slot-width-probe"
       data-slot-id={slotId}
+      data-slot-sizing={sizing}
       data-slot-width-class={widthClass}
     >
       {children}
@@ -192,6 +195,7 @@ function SlotContent<TState = unknown>({
           }
           return (
             <SlotWidthProbe
+              sizing="content"
               slotId={requestedSlotId}
             >
               <SlotContent
@@ -245,6 +249,7 @@ function LayoutSlotOutlet<TState = unknown>({
   );
   return (
     <SlotWidthProbe
+      sizing="fill"
       slotId={slot.slotId}
     >
       <SlotContent {...props} slotId={slot.slotId} />

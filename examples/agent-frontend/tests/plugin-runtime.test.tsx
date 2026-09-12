@@ -2408,6 +2408,18 @@ describe("recursive React Plugin composition", () => {
       const consumer = owner.findByProps({ "data-fixture": "consumer" });
       expect(getText(owner)).toContain("OWNER");
       expect(getText(consumer)).toBe("CONSUMER");
+      expect(
+        mounted.renderer.root.findByProps({
+          "data-slot-id": "root",
+          "data-slot-sizing": "fill",
+        }),
+      ).toBeTruthy();
+      expect(
+        owner.findByProps({
+          "data-slot-id": "owner.child",
+          "data-slot-sizing": "content",
+        }),
+      ).toBeTruthy();
       expect(consumerContext?.instanceId).toBe("consumer-main");
       expect(consumerContext?.messages).toEqual([]);
       expect(consumerContext?.run).toBe(idleRun);
