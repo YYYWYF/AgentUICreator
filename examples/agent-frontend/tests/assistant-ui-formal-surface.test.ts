@@ -106,11 +106,10 @@ describe("formal assistant-ui surface", () => {
     expect(upstream.revision).toBe(revision);
     expect(upstream.patches).toEqual([
       expect.objectContaining({ id: "p3r3-semantic-slot-seams" }),
-      expect.objectContaining({ id: "empty-state-semantic-composition" }),
       expect.objectContaining({ id: "p3r4b-welcome-presentation-config" }),
       expect.objectContaining({ id: "p3r4c-composer-extension-seam" }),
     ]);
-    expect(item.version).toBe("0.1.4");
+    expect(item.version).toBe("0.1.5");
     expect(item.upstream).toMatchObject({
       revision,
       license: "MIT",

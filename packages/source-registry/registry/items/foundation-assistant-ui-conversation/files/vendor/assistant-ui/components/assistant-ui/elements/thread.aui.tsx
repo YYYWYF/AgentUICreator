@@ -186,8 +186,6 @@ const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean }> = ({
     Welcome = ThreadWelcome,
     WelcomeWrapper,
   } = useContext(ThreadComponentsContext);
-  const usesSemanticEmptyStateLayout =
-    InitialSuggestionsWrapper !== undefined && ComposerWrapper !== undefined;
   const welcome = <Welcome />;
   const timeline = (
     <>
@@ -226,9 +224,7 @@ const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean }> = ({
         <div
           className={cn(
             "mx-auto flex w-full max-w-(--thread-max-width) flex-1 flex-col px-4 pt-4",
-            isEmpty &&
-              !usesSemanticEmptyStateLayout &&
-              "justify-center",
+            isEmpty && "justify-center",
           )}
         >
           <AuiIf condition={isNewChatView}>
@@ -236,16 +232,6 @@ const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean }> = ({
               <WelcomeWrapper>{welcome}</WelcomeWrapper>
             ) : welcome}
           </AuiIf>
-          {usesSemanticEmptyStateLayout &&
-          InitialSuggestionsWrapper !== undefined ? (
-            <AuiIf
-              condition={(s) => isNewChatView(s) && s.composer.isEmpty}
-            >
-              <InitialSuggestionsWrapper>
-                {initialSuggestions}
-              </InitialSuggestionsWrapper>
-            </AuiIf>
-          ) : null}
           {TimelineWrapper ? (
             <TimelineWrapper>{timeline}</TimelineWrapper>
           ) : timeline}
@@ -255,7 +241,6 @@ const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean }> = ({
               "aui-thread-viewport-footer bg-background flex flex-col gap-4 overflow-visible pb-4 md:pb-6",
               !isEmpty &&
                 "sticky bottom-0 mt-auto rounded-t-(--composer-radius)",
-              isEmpty && usesSemanticEmptyStateLayout && "mt-auto",
             )}
           >
             <ThreadScrollToBottom />
@@ -265,15 +250,13 @@ const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean }> = ({
                 {composer}
               </ComposerWrapper>
             ) : composer}
-            {!usesSemanticEmptyStateLayout ? (
-              <AuiIf condition={(s) => isNewChatView(s) && s.composer.isEmpty}>
-                {InitialSuggestionsWrapper ? (
-                  <InitialSuggestionsWrapper>
-                    {initialSuggestions}
-                  </InitialSuggestionsWrapper>
-                ) : initialSuggestions}
-              </AuiIf>
-            ) : null}
+            <AuiIf condition={(s) => isNewChatView(s) && s.composer.isEmpty}>
+              {InitialSuggestionsWrapper ? (
+                <InitialSuggestionsWrapper>
+                  {initialSuggestions}
+                </InitialSuggestionsWrapper>
+              ) : initialSuggestions}
+            </AuiIf>
           </ThreadPrimitive.ViewportFooter>
         </div>
       </ThreadPrimitive.Viewport>

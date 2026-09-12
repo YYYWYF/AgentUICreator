@@ -502,7 +502,7 @@ afterEach(async () => {
 });
 
 describe("assistant-ui semantic Slot rendering", () => {
-  it("orders the semantic empty state and docks its Composer without sticky positioning", async () => {
+  it("preserves assistant-ui empty-state composition with semantic wrappers", async () => {
     const renderer = await mountSemanticRuntime({
       targets: [
         ASSISTANT_UI_CONVERSATION_SLOTS.welcome,
@@ -516,18 +516,19 @@ describe("assistant-ui semantic Slot rendering", () => {
     const composerIndex = text.indexOf("COMPOSER SENTINEL");
 
     expect(welcomeIndex).toBeGreaterThanOrEqual(0);
-    expect(suggestionsIndex).toBeGreaterThan(welcomeIndex);
-    expect(composerIndex).toBeGreaterThan(suggestionsIndex);
+    expect(composerIndex).toBeGreaterThan(welcomeIndex);
+    expect(suggestionsIndex).toBeGreaterThan(composerIndex);
     expect(countByTestId(renderer, "suggestions-sentinel")).toBe(1);
     expect(countByTestId(renderer, "composer-sentinel")).toBe(1);
 
     const content = findOneByClassToken(renderer, "max-w-(--thread-max-width)");
-    expect(content.props.className.split(/\s+/u)).not.toContain("justify-center");
+    expect(content.props.className.split(/\s+/u)).toContain("justify-center");
 
     const footer = findOneByClassToken(renderer, "aui-thread-viewport-footer");
     const footerClasses = footer.props.className.split(/\s+/u);
-    expect(footerClasses).toContain("mt-auto");
+    expect(footerClasses).not.toContain("mt-auto");
     expect(footerClasses).not.toContain("sticky");
+    expect(footerClasses).not.toContain("bottom-0");
   });
 
   it("keeps the active conversation Timeline and sticky Composer behavior", async () => {
@@ -581,6 +582,9 @@ describe("assistant-ui semantic Slot rendering", () => {
     expect(renderedText(renderer)).not.toContain("How can I help you today?");
     expect(countByClassToken(renderer, "aui-thread-welcome-suggestions")).toBe(1);
     expect(countByDataSlot(renderer, "aui_composer-shell")).toBe(1);
+    expect(JSON.stringify(renderer.toJSON()).indexOf("aui_composer-shell")).toBeLessThan(
+      JSON.stringify(renderer.toJSON()).indexOf("aui-thread-welcome-suggestions"),
+    );
   });
 
   it("replaces Initial Suggestions without replacing Welcome or Composer", async () => {
@@ -592,6 +596,9 @@ describe("assistant-ui semantic Slot rendering", () => {
     expect(countByClassToken(renderer, "aui-thread-welcome-suggestions")).toBe(0);
     expect(renderedText(renderer)).toContain("How can I help you today?");
     expect(countByDataSlot(renderer, "aui_composer-shell")).toBe(1);
+    expect(JSON.stringify(renderer.toJSON()).indexOf("aui_composer-shell")).toBeLessThan(
+      JSON.stringify(renderer.toJSON()).indexOf("suggestions-sentinel"),
+    );
   });
 
   it("replaces Timeline as a parent without retaining its message children", async () => {
@@ -616,6 +623,9 @@ describe("assistant-ui semantic Slot rendering", () => {
     expect(countByDataSlot(renderer, "aui_composer-shell")).toBe(0);
     expect(renderedText(renderer)).toContain("How can I help you today?");
     expect(countByDataSlot(renderer, "aui_message-group")).toBe(1);
+    expect(JSON.stringify(renderer.toJSON()).indexOf("composer-sentinel")).toBeLessThan(
+      JSON.stringify(renderer.toJSON()).indexOf("aui-thread-welcome-suggestions"),
+    );
   });
 
   it("replaces Reasoning once with real context while preserving text and Composer", async () => {

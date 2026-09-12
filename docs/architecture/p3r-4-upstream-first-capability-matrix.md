@@ -27,8 +27,15 @@ history read-only policy.
 Pinned upstream baseline:
 
 ```text
-Source Registry item: foundation/assistant-ui-conversation@0.1.4
+Source Registry item: foundation/assistant-ui-conversation@0.1.5
 assistant-ui revision: 97bd4b39fce83163354c9ec8d9d4fb2c9bd1aac7
+
+In assistant-ui mode, the pinned assistant-ui native Thread composition owns
+placement. Semantic Slots describe replaceable capabilities, while the
+conversation shell for each mode decides where those capabilities appear.
+Starter Suggestions therefore remain the `conversation.empty.suggestions`
+capability and render in assistant-ui's canonical Footer placement, after the
+Composer.
 ```
 
 ## 2. Allowed ownership statuses
