@@ -27,6 +27,9 @@ The formal CSS entry is
 `agent-ui/vendor/assistant-ui` for Tailwind utilities and remains dynamically
 loaded when `?assistantUiSpike=1` is active in development.
 
+P3R-1 formalizes the current dark presentation baseline only. Theme bridging
+and a stable light/dark theme contract are deferred to a later phase.
+
 The Spike harness continues to own:
 
 - `src/spikes/assistant-ui/AssistantUiConversation.tsx`

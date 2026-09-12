@@ -7,24 +7,22 @@ export interface AssistantUiConversationSurfaceProps {
   autoFocus?: boolean;
   children?: ReactNode;
   className?: string;
-  theme?: "light" | "dark";
 }
 
 export function AssistantUiConversationSurface({
   autoFocus = false,
   children,
   className,
-  theme = "dark",
 }: AssistantUiConversationSurfaceProps) {
   return (
     <div
       className={[
         "agent-ui-assistant-ui",
-        theme === "dark" ? "dark" : undefined,
+        "dark",
         className,
       ].filter(Boolean).join(" ")}
       data-agent-ui-assistant-ui="true"
-      data-theme={theme}
+      data-theme="dark"
     >
       <TooltipProvider>
         <Thread autoFocus={autoFocus} />

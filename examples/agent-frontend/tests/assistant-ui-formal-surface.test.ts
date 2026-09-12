@@ -43,6 +43,9 @@ describe("formal assistant-ui surface", () => {
     expect(surface).toContain("../../../vendor/assistant-ui/components/assistant-ui/elements/thread.aui");
     expect(surface).toContain("../../../vendor/assistant-ui/components/ui/tooltip");
     expect(surface).toContain('data-agent-ui-assistant-ui="true"');
+    expect(surface).not.toContain('theme?: "light" | "dark"');
+    expect(surface).not.toContain("theme =");
+    expect(surface).toContain('data-theme="dark"');
     expect(surface).toContain("<TooltipProvider>");
     expect(surface).toContain("<Thread autoFocus={autoFocus} />");
     expect(surface).not.toMatch(
@@ -58,6 +61,7 @@ describe("formal assistant-ui surface", () => {
     expect(harness).toContain("AssistantUiRuntimeProvider");
     expect(harness).toContain("AssistantUiConversationSurface");
     expect(harness).toContain("AssistantUiRuntimeDebugOverlay");
+    expect(harness).not.toContain('theme="dark"');
     expect(harness).not.toContain("vendor/assistant-ui");
 
     for (const relocated of ["components", "hooks", "lib", "styles"]) {

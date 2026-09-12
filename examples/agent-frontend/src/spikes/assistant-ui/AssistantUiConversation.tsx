@@ -6,7 +6,7 @@ import { AssistantUiRuntimeProvider } from "./AssistantUiRuntimeProvider";
 export function AssistantUiConversation() {
   return (
     <AssistantUiRuntimeProvider>
-      <AssistantUiConversationSurface theme="dark">
+      <AssistantUiConversationSurface>
         {import.meta.env.DEV ? <AssistantUiRuntimeDebugOverlay /> : null}
       </AssistantUiConversationSurface>
     </AssistantUiRuntimeProvider>
