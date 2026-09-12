@@ -32,11 +32,11 @@ export function applyAssistantUiSpikeMode(
       ...model.pluginInstances,
       [CONVERSATION_SURFACE_INSTANCE_ID]: {
         ...conversationSurface,
-        enabled: false,
+        enabled: true,
       },
       [ASSISTANT_UI_SPIKE_INSTANCE_ID]: {
         ...assistantUiSpike,
-        enabled: true,
+        enabled: false,
       },
     },
   });

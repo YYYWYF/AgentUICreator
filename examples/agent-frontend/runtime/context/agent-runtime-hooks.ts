@@ -13,6 +13,10 @@ import type {
 
 import { useRequiredAgentRuntime } from "./AgentRuntimeContext";
 
+export function useAgentRuntimeMode(): string {
+  return useRequiredAgentRuntime().mode;
+}
+
 function useAgentRuntimeSlice<TState, TValue>(
   select: (snapshot: AgentRuntimeSnapshot<TState>) => TValue,
 ): TValue {

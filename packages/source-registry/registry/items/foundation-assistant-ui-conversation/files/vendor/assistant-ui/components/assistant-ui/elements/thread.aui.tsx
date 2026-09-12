@@ -77,6 +77,14 @@ export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
 export type ThreadComponents = {
   AssistantMessage?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
+  WelcomeWrapper?: ComponentType<PropsWithChildren> | undefined;
+  TimelineWrapper?: ComponentType<PropsWithChildren> | undefined;
+  InitialSuggestionsWrapper?: ComponentType<PropsWithChildren> | undefined;
+  ComposerWrapper?:
+    | ComponentType<PropsWithChildren<{ autoFocus: boolean }>>
+    | undefined;
+  UserAttachmentsWrapper?: ComponentType<PropsWithChildren> | undefined;
+  MessageFooter?: ComponentType | undefined;
   ToolFallback?: ToolCallMessagePartComponent | undefined;
   ToolGroup?:
     | ComponentType<PropsWithChildren<{ group: ThreadGroupPart }>>
@@ -147,7 +155,32 @@ const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean }> = ({
   isEmpty,
   autoFocus,
 }) => {
-  const { Welcome = ThreadWelcome } = useContext(ThreadComponentsContext);
+  const {
+    ComposerWrapper,
+    InitialSuggestionsWrapper,
+    TimelineWrapper,
+    Welcome = ThreadWelcome,
+    WelcomeWrapper,
+  } = useContext(ThreadComponentsContext);
+  const welcome = <Welcome />;
+  const timeline = (
+    <>
+      <AuiIf condition={isHistoryLoadingView}>
+        <ThreadHistorySkeleton />
+      </AuiIf>
+
+      <div
+        data-slot="aui_message-group"
+        className="mb-14 flex flex-col gap-y-6 empty:hidden"
+      >
+        <ThreadPrimitive.Messages>
+          {() => <ThreadMessage />}
+        </ThreadPrimitive.Messages>
+      </div>
+    </>
+  );
+  const composer = <Composer autoFocus={autoFocus} />;
+  const initialSuggestions = <ThreadSuggestions />;
 
   return (
     <ThreadPrimitive.Root
@@ -171,20 +204,13 @@ const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean }> = ({
           )}
         >
           <AuiIf condition={isNewChatView}>
-            <Welcome />
+            {WelcomeWrapper ? (
+              <WelcomeWrapper>{welcome}</WelcomeWrapper>
+            ) : welcome}
           </AuiIf>
-          <AuiIf condition={isHistoryLoadingView}>
-            <ThreadHistorySkeleton />
-          </AuiIf>
-
-          <div
-            data-slot="aui_message-group"
-            className="mb-14 flex flex-col gap-y-6 empty:hidden"
-          >
-            <ThreadPrimitive.Messages>
-              {() => <ThreadMessage />}
-            </ThreadPrimitive.Messages>
-          </div>
+          {TimelineWrapper ? (
+            <TimelineWrapper>{timeline}</TimelineWrapper>
+          ) : timeline}
 
           <ThreadPrimitive.ViewportFooter
             className={cn(
@@ -195,9 +221,17 @@ const ThreadRoot: FC<{ isEmpty: boolean; autoFocus: boolean }> = ({
           >
             <ThreadScrollToBottom />
             <ThreadFollowupSuggestions />
-            <Composer autoFocus={autoFocus} />
+            {ComposerWrapper ? (
+              <ComposerWrapper autoFocus={autoFocus}>
+                {composer}
+              </ComposerWrapper>
+            ) : composer}
             <AuiIf condition={(s) => isNewChatView(s) && s.composer.isEmpty}>
-              <ThreadSuggestions />
+              {InitialSuggestionsWrapper ? (
+                <InitialSuggestionsWrapper>
+                  {initialSuggestions}
+                </InitialSuggestionsWrapper>
+              ) : initialSuggestions}
             </AuiIf>
           </ThreadPrimitive.ViewportFooter>
         </div>
@@ -302,6 +336,7 @@ const MessageError: FC = () => {
 
 const AssistantMessage: FC = () => {
   const {
+    MessageFooter,
     ToolFallback: ToolFallbackComponent = ToolFallback,
     ToolGroup,
     ReasoningGroup,
@@ -399,6 +434,8 @@ const AssistantMessage: FC = () => {
         <MessageError />
       </div>
 
+      {MessageFooter ? <MessageFooter /> : null}
+
       <div
         data-slot="aui_assistant-message-footer"
         className={cn("ms-2 flex items-center", ACTION_BAR_HEIGHT)}
@@ -452,13 +489,17 @@ const UserImagePart: ImageMessagePartComponent = (part) => (
 );
 
 const UserMessage: FC = () => {
+  const { UserAttachmentsWrapper } = useContext(ThreadComponentsContext);
+  const attachments = <UserMessageAttachments />;
   return (
     <MessagePrimitive.Root
       data-slot="aui_user-message-root"
       className="fade-in slide-in-from-bottom-1 animate-in grid auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] content-start gap-y-2 px-2 duration-150 [contain-intrinsic-size:auto_200px] [content-visibility:auto] [&:where(>*)]:col-start-2"
       data-role="user"
     >
-      <UserMessageAttachments />
+      {UserAttachmentsWrapper ? (
+        <UserAttachmentsWrapper>{attachments}</UserAttachmentsWrapper>
+      ) : attachments}
 
       <div className="aui-user-message-content-wrapper relative col-start-2 min-w-0">
         <div className="aui-user-message-content peer bg-muted text-foreground rounded-xl px-4 py-2 wrap-break-word empty:hidden">

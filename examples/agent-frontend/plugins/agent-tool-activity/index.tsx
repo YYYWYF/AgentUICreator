@@ -1,4 +1,7 @@
 import { AgentToolActivity } from "../../agent-ui/components/tool-activity";
+import { useSemanticSlotFallback } from "../../agent-ui/adapters/assistant-ui/slots/SemanticSlotFallbackContext";
+import { ASSISTANT_UI_CONVERSATION_SLOTS } from "../../agent-ui/adapters/assistant-ui/slots/semantic-slots";
+import { ToolItemSlotBridgeProvider } from "../../agent-ui/adapters/assistant-ui/slots/ToolItemSlotBridgeContext";
 import type { ReactNode } from "react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import {
@@ -115,7 +118,7 @@ function GroupedToolActivity({
   );
 }
 
-export function AgentToolActivityPlugin({
+function LegacyAgentToolActivity({
   renderSlot,
 }: UIPluginComponentProps) {
   const {
@@ -162,4 +165,20 @@ export function AgentToolActivityPlugin({
       )}
     </div>
   );
+}
+
+export function AgentToolActivityPlugin({
+  renderSlot,
+}: UIPluginComponentProps) {
+  const toolActivity = useSemanticSlotFallback(
+    ASSISTANT_UI_CONVERSATION_SLOTS.toolActivity,
+  );
+  if (toolActivity.available) {
+    return (
+      <ToolItemSlotBridgeProvider renderSlot={renderSlot}>
+        {toolActivity.fallback}
+      </ToolItemSlotBridgeProvider>
+    );
+  }
+  return <LegacyAgentToolActivity renderSlot={renderSlot} />;
 }

@@ -10,6 +10,9 @@ import {
 } from "../../agent-ui/components/message";
 import { AgentThread } from "../../agent-ui/components/thread";
 import { Button } from "../../agent-ui/primitives/button";
+import { MessageSlotBridgeProvider } from "../../agent-ui/adapters/assistant-ui/slots/MessageSlotBridgeContext";
+import { useSemanticSlotFallback } from "../../agent-ui/adapters/assistant-ui/slots/SemanticSlotFallbackContext";
+import { ASSISTANT_UI_CONVERSATION_SLOTS } from "../../agent-ui/adapters/assistant-ui/slots/semantic-slots";
 import type {
   AgentExecution,
   AgentMessage as RuntimeAgentMessage,
@@ -23,6 +26,8 @@ import {
 } from "../../runtime/context";
 import {
   MessageRenderProvider,
+  projectMessageAttachments,
+  projectMessageSources,
   type MessageAttachmentKind,
   type MessageAttachmentRenderItem,
   type MessageSourceRenderItem,
@@ -96,108 +101,6 @@ function messageText(message: RuntimeAgentMessage): string {
       return [];
     })
     .join("\n");
-}
-
-function asRecord(value: unknown): Record<string, unknown> | undefined {
-  return typeof value === "object" && value !== null
-    ? (value as Record<string, unknown>)
-    : undefined;
-}
-
-function safeHref(
-  value: string | undefined,
-  allowedProtocols: readonly string[],
-): string | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  try {
-    const parsed = new URL(value);
-    return allowedProtocols.includes(parsed.protocol) ? parsed.href : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-function messageAttachments(
-  message: RuntimeAgentMessage,
-): MessageAttachmentRenderItem[] {
-  if (message.role !== "user" || !Array.isArray(message.content)) {
-    return [];
-  }
-
-  return message.content.flatMap((part, index) => {
-    if (part.type === "text") {
-      return [];
-    }
-
-    const partRecord = asRecord(part);
-    const metadata = asRecord(partRecord?.metadata);
-    const source = asRecord(partRecord?.source);
-    const name =
-      typeof metadata?.filename === "string"
-        ? metadata.filename
-        : typeof partRecord?.filename === "string"
-          ? partRecord.filename
-        : `${part.type}-${index + 1}`;
-    const kind: MessageAttachmentKind =
-      part.type === "image"
-        ? "image"
-        : part.type === "audio"
-          ? "audio"
-          : part.type === "video"
-            ? "video"
-            : "file";
-
-    const rawHref =
-      source?.type === "url" && typeof source.value === "string"
-        ? source.value
-        : typeof partRecord?.url === "string"
-          ? partRecord.url
-          : undefined;
-    const href = safeHref(rawHref, ["http:", "https:", "blob:"]);
-
-    return [{
-      key: `${message.id}-${index}`,
-      name,
-      kind,
-      ...(href === undefined ? {} : { href }),
-    }];
-  });
-}
-
-function messageSources(message: RuntimeAgentMessage): MessageSourceRenderItem[] {
-  const agentUI = asRecord(message.metadata?.agentUI);
-  const value = message.metadata?.sources ?? agentUI?.sources;
-
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value.flatMap((item, index) => {
-    const record = asRecord(item);
-    const title = record?.title;
-    if (
-      record === undefined ||
-      typeof title !== "string" ||
-      title.trim().length === 0
-    ) {
-      return [];
-    }
-    const href = safeHref(
-      typeof record.url === "string" ? record.url : undefined,
-      ["http:", "https:"],
-    );
-    return [{
-      key: typeof record.key === "string" ? record.key : `source-${index}`,
-      title,
-      ...(href === undefined ? {} : { href }),
-      ...(typeof record.description === "string"
-        ? { description: record.description }
-        : {}),
-    }];
-  });
 }
 
 function MessageActions({ text }: { text: string }) {
@@ -292,8 +195,8 @@ function messageContent(
   turnId?: string,
 ) {
   const text = messageText(message);
-  const attachments = messageAttachments(message);
-  const sources = messageSources(message);
+  const attachments = projectMessageAttachments(message);
+  const sources = projectMessageSources(message);
 
   if (
     text.length === 0 &&
@@ -401,7 +304,7 @@ function isAssistantMessage(
 function hasRenderableAssistantContent(
   message: AgentAssistantMessage,
 ): boolean {
-  return messageText(message).length > 0 || messageSources(message).length > 0;
+  return messageText(message).length > 0 || projectMessageSources(message).length > 0;
 }
 
 function assistantTurnText(turn: AgentTurn): string {
@@ -477,7 +380,7 @@ function AssistantMessageSegment({
   turnId: string;
 }) {
   const text = messageText(message);
-  const sources = messageSources(message);
+  const sources = projectMessageSources(message);
   const hasContent = text.length > 0 || sources.length > 0;
 
   return (
@@ -839,7 +742,7 @@ function renderTurnThreadItems({
   return [userThreadItem, assistantThreadItem];
 }
 
-export function AgentMessageListPlugin({
+function LegacyAgentMessageList({
   renderSlot,
 }: UIPluginComponentProps) {
   const messages = useAgentMessages();
@@ -963,4 +866,20 @@ export function AgentMessageListPlugin({
       )}
     </section>
   );
+}
+
+export function AgentMessageListPlugin({
+  renderSlot,
+}: UIPluginComponentProps) {
+  const timeline = useSemanticSlotFallback(
+    ASSISTANT_UI_CONVERSATION_SLOTS.timeline,
+  );
+  if (timeline.available) {
+    return (
+      <MessageSlotBridgeProvider renderSlot={renderSlot}>
+        {timeline.fallback}
+      </MessageSlotBridgeProvider>
+    );
+  }
+  return <LegacyAgentMessageList renderSlot={renderSlot} />;
 }

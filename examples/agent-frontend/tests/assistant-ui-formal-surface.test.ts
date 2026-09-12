@@ -47,7 +47,9 @@ describe("formal assistant-ui surface", () => {
     expect(surface).not.toContain("theme =");
     expect(surface).toContain('data-theme="dark"');
     expect(surface).toContain("<TooltipProvider>");
-    expect(surface).toContain("<Thread autoFocus={autoFocus} />");
+    expect(surface).toContain(
+      "<Thread autoFocus={autoFocus} components={components} />",
+    );
     expect(surface).not.toMatch(
       /@ag-ui\/client|@assistant-ui\/react-ag-ui|AgentRuntime|AppUIModel|PluginRegistry/u,
     );
@@ -59,10 +61,18 @@ describe("formal assistant-ui surface", () => {
       "utf8",
     );
     expect(harness).toContain("AssistantUiConversationSurface");
-    expect(harness).toContain("AssistantUiRuntimeDebugOverlay");
+    expect(harness).not.toContain("AssistantUiRuntimeDebugOverlay");
     expect(harness).not.toMatch(/HttpAgent|useAgUiRuntime|AssistantRuntimeProvider/u);
     expect(harness).not.toContain('theme="dark"');
     expect(harness).not.toContain("vendor/assistant-ui");
+
+    const app = await readFile(path.join(projectRoot, "src/App.tsx"), "utf8");
+    const assistantBoundary = app.slice(
+      app.indexOf("function AssistantUiRuntimeBoundary"),
+      app.indexOf("function RuntimeModeBoundary"),
+    );
+    expect(assistantBoundary).toContain("AssistantUiRuntimeDebugOverlay");
+    expect(assistantBoundary).toContain("AssistantUiAgUiRuntimeProvider");
 
     await expect(
       stat(path.join(projectRoot, "src/spikes/assistant-ui/AssistantUiRuntimeProvider.tsx")),
@@ -81,9 +91,10 @@ describe("formal assistant-ui surface", () => {
     ) as {
       revision: string;
       files: Array<{ localPath: string; installedSha256: string }>;
-      patches: unknown[];
+      patches: Array<{ id: string }>;
     };
     const item = JSON.parse(await readFile(registryItemPath, "utf8")) as {
+      version: string;
       upstream: { revision: string; license: string; mode: string };
       files: Array<{ target: string }>;
     };
@@ -94,7 +105,10 @@ describe("formal assistant-ui surface", () => {
     };
 
     expect(upstream.revision).toBe(revision);
-    expect(upstream.patches).toEqual([]);
+    expect(upstream.patches).toEqual([
+      expect.objectContaining({ id: "p3r3-semantic-slot-seams" }),
+    ]);
+    expect(item.version).toBe("0.1.1");
     expect(item.upstream).toMatchObject({
       revision,
       license: "MIT",

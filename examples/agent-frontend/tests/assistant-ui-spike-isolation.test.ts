@@ -32,17 +32,17 @@ describe("assistant-ui Spike isolation", () => {
     ).toBe(false);
   });
 
-  it("selects only the assistant-ui conversation surface in Spike mode", async () => {
+  it("keeps conversation-surface as the product host in Spike mode", async () => {
     const spike = applyAssistantUiSpikeMode(await readModel(), true);
 
     expect(
       spike.pluginInstances[CONVERSATION_SURFACE_INSTANCE_ID]?.enabled,
-    ).toBe(false);
+    ).toBe(true);
     expect(
       spike.pluginInstances[ASSISTANT_UI_SPIKE_INSTANCE_ID],
     ).toMatchObject({
       pluginId: "assistant-ui-conversation-spike",
-      enabled: true,
+      enabled: false,
       mount: { slotId: "workspace.conversation" },
     });
   });

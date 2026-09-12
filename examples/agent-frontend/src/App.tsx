@@ -59,6 +59,7 @@ import {
   applyAssistantUiSpikeMode,
   isAssistantUiSpikeRequested,
 } from "./spikes/assistant-ui/spike-mode";
+import { AssistantUiRuntimeDebugOverlay } from "./spikes/assistant-ui/AssistantUiRuntimeDebugOverlay";
 import "./preview-shell.css";
 
 const projectConfigSources = import.meta.glob<string>(
@@ -285,6 +286,7 @@ function AssistantUiRuntimeBoundary({
         model={model}
         updateInstanceProps={updateInstanceProps}
       />
+      {import.meta.env.DEV ? <AssistantUiRuntimeDebugOverlay /> : null}
     </AssistantUiAgUiRuntimeProvider>
   );
 }

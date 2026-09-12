@@ -16,7 +16,7 @@
     { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/markdown-text.tsx", "localPath": "components/assistant-ui/elements/markdown-text.tsx", "upstreamSha256": "4621787f69160d9f34a170da8fb76005a811a7cfa704280e463518a67eb7fc8d", "installedSha256": "b041132faa98790395e4161329249eb1a38642ce7a5603042a67e7ab7ff72808", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
     { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/reasoning.aui.tsx", "localPath": "components/assistant-ui/elements/reasoning.aui.tsx", "upstreamSha256": "96738041df6542b9aca4085b0ee539100aa5836bdd359b69c2dabb63747e863b", "installedSha256": "32c3b000370561900797a633d606a7172f6d465a2c06f3e39b6e820535dcd79f", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
     { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/reasoning.tsx", "localPath": "components/assistant-ui/elements/reasoning.tsx", "upstreamSha256": "e59cdb4c4ccd6da31fb170603fbec624e2b7988a7ef2711e5a24ee455615ea20", "installedSha256": "6e629d6cab9204b903120f7195b3d3126ed48d5ecd7191dbb0174ad9ccf8dfb0", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/thread.aui.tsx", "localPath": "components/assistant-ui/elements/thread.aui.tsx", "upstreamSha256": "1aaf40d76106ab11050398423c714dc2097f1b8004e6d836adc626e4afd9561e", "installedSha256": "0a8c29d6399b184bc1fd08debda5508c5de203ea6c07dd36ca433f8588350c7f", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
+    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/thread.aui.tsx", "localPath": "components/assistant-ui/elements/thread.aui.tsx", "upstreamSha256": "1aaf40d76106ab11050398423c714dc2097f1b8004e6d836adc626e4afd9561e", "installedSha256": "e0b40a315b50e56552410046d094aefdcf139f1898a101f535aca5b9cd337181", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative", "p3r3-semantic-slot-seams"] },
     { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/tool-fallback.aui.tsx", "localPath": "components/assistant-ui/elements/tool-fallback.aui.tsx", "upstreamSha256": "8dcb549054f42f29a380b8d6958b32afb76593bd62ce7a6bedd54b6fadf36962", "installedSha256": "36fc3ac28ad8a0fc67a6e0b6953f771c7fe231986916b04d94f87055fe49bd3e", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
     { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/tool-group.aui.tsx", "localPath": "components/assistant-ui/elements/tool-group.aui.tsx", "upstreamSha256": "6fa7eb02ceefeb956cac1e34ab12bf95919e52036f58083d4dbd1aa69fb310e8", "installedSha256": "50e5d21a865de8bead130bd9bcfa968ab1a330c4b0082374bf3d1a84951a9b08", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
     { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/tooltip-icon-button.tsx", "localPath": "components/assistant-ui/elements/tooltip-icon-button.tsx", "upstreamSha256": "98580531a6f5a213cccd6964c0c75fd097d97b77bcca05f904df562512273363", "installedSha256": "94e64103f5e1faad3ad82502b94c298158126e70ceef138e88e28117f62dd77d", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
@@ -31,5 +31,12 @@
     { "upstreamPath": "packages/ui/src/hooks/use-copy-to-clipboard.ts", "localPath": "hooks/use-copy-to-clipboard.ts", "upstreamSha256": "2deb9436899718f7a2ff6ccc4738d1ce50d1467e5e36d1cda4d82f61b544be11", "installedSha256": "2deb9436899718f7a2ff6ccc4738d1ce50d1467e5e36d1cda4d82f61b544be11", "adaptations": [] },
     { "upstreamPath": "packages/ui/src/lib/utils.ts", "localPath": "lib/utils.ts", "upstreamSha256": "55bbdc94cef3e0c8a8bba386e94f97228dd2c967fe61466fc565378890550c08", "installedSha256": "55bbdc94cef3e0c8a8bba386e94f97228dd2c967fe61466fc565378890550c08", "adaptations": [] }
   ],
-  "patches": []
+  "patches": [
+    {
+      "id": "p3r3-semantic-slot-seams",
+      "files": ["components/assistant-ui/elements/thread.aui.tsx"],
+      "reason": "Expose additive composition wrappers required to preserve AgentUICreator semantic Plugin/Slot replacement boundaries.",
+      "behavior": "No default visual or Runtime behavior change when wrappers are absent."
+    }
+  ]
 }

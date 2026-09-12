@@ -20,3 +20,7 @@ export {
   type ToolPresentationStatus,
   type ToolRenderContext,
 } from "./MessageRenderContext";
+export {
+  projectMessageAttachments,
+  projectMessageSources,
+} from "./message-content-projectors";

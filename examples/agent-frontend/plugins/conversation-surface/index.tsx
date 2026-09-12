@@ -1,5 +1,10 @@
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
-import { useAgentMessages, useAgentRun } from "../../runtime/context";
+import { AssistantUiConversationAdapter } from "../../agent-ui/adapters/assistant-ui/conversation";
+import {
+  useAgentMessages,
+  useAgentRun,
+  useAgentRuntimeMode,
+} from "../../runtime/context";
 import {
   usePluginService,
   usePluginServiceSnapshot,
@@ -13,7 +18,7 @@ import {
 
 import "./styles.css";
 
-export function ConversationSurfacePlugin({
+function LegacyConversationSurface({
   renderSlot,
 }: UIPluginComponentProps) {
   const messages = useAgentMessages();
@@ -75,5 +80,16 @@ export function ConversationSurfacePlugin({
         {renderSlot("conversation.composer")}
       </footer>
     </main>
+  );
+}
+
+export function ConversationSurfacePlugin({
+  renderSlot,
+}: UIPluginComponentProps) {
+  const runtimeMode = useAgentRuntimeMode();
+  return runtimeMode === "assistant-ui" ? (
+    <AssistantUiConversationAdapter renderSlot={renderSlot} />
+  ) : (
+    <LegacyConversationSurface renderSlot={renderSlot} />
   );
 }
