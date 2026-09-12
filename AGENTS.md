@@ -38,6 +38,8 @@ UI Plugin implementation dependencies also belong to the generated project, incl
 
 `docs/agent-ui-reference-guide.md` is the detailed decision guide for Agent UI reference selection and responsibility boundaries.
 
+`docs/architecture/p3r-0-assistant-ui-conversation-domain-rebaseline.md` is the canonical Conversation Domain architecture. Where it conflicts with the older launch plan or reference guide on assistant-ui ownership, it takes precedence.
+
 The assistant-ui source repository is available locally at
 `/Users/yifei/Coding/assistant-ui`. When assistant-ui is the selected reference,
 inspect the pinned revision in that local repository instead of fetching or
@@ -85,8 +87,10 @@ Do not introduce:
 - Prefer editing AppUIModel for layout, size, placement, and composition changes.
 - Edit or create UI Plugin code only when custom behavior is needed.
 - Reuse existing plugins when practical.
-- UI Plugins consume AG-UI messages/state through the provided runtime context.
-- UI Plugins must not manage their own Agent Runtime.
+- assistant-ui is the upstream Conversation Domain implementation; keep upstream presentation in `agent-ui/vendor/assistant-ui` and put product integration in `agent-ui/adapters/assistant-ui`.
+- The canonical assistant-ui Runtime integration belongs in `@agent-ui/runtime-assistant-ui`; UI Plugins must not create or manage their own Agent Runtime.
+- Keep conversation Slots as semantic replacement boundaries; do not expose assistant-ui implementation details or visual micro-slots through AppUIModel.
+- UI Plugins consume conversation state through the provided runtime/adapter context.
 - Creator may modify `app-ui/*`, `plugins/*`, and frontend dependencies required by the generated project.
 - Do not couple the generated project to Creator packages, build tooling, runtime services, or UI dependencies.
 - Treat `runtime/*` and `framework/*` as read-only unless explicitly working on the framework.
@@ -104,7 +108,7 @@ UI Plugin 使用生成项目自己选择并安装的 UI Library 或样式方案�
 Agent UI 设计按问题类型参考以下项目：
 
 - **CopilotKit**：Agent UX、HITL、Shared State、Frontend Tool、Generative UI 等 Agent 交互语义。
-- **assistant-ui**：Message、Thread、Composer、Tool、Reasoning 等 UI Primitive 和组件结构。
+- **assistant-ui**：Conversation Domain 的上游实现，提供 Message、Thread、Composer、Tool、Reasoning 等 Runtime 与组件能力。
 - **Ant Design X**：当生成项目使用 Ant Design 时，参考 Ant Design 风格下的 Agent UI 交互与视觉表达。
 - **TDesign AIGC**：AG-UI Event / Streaming / Tool Call 到前端 State 和 UI 的映射实现。
 
@@ -112,15 +116,13 @@ Agent UI 设计按问题类型参考以下项目：
 
 ```text
 Agent 行为      → CopilotKit
-组件结构        → assistant-ui
+会话能力        → assistant-ui
 AntD 表达       → Ant Design X（仅适用于选择 Ant Design 的项目）
 AG-UI 状态映射  → TDesign AIGC
 最终实现        → 生成项目选择的 UI Stack
 ```
 
-参考库用于借鉴设计和实现方式，不作为本项目 Runtime、SDK、Message Model 或基础 UI 框架。
-
-除非项目明确需要，不引入这些参考库作为运行时依赖。
+除 assistant-ui Conversation Domain 外，其余参考库只用于借鉴设计和实现方式，不作为本项目 Runtime、SDK、Message Model 或基础 UI 框架。
 
 始终保持：
 
@@ -129,9 +131,9 @@ Agent Runtime
     ↓
 AG-UI
     ↓
-Frontend State
+assistant-ui Conversation Runtime
     ↓
-UI Plugin
+AgentUICreator Adapter / UI Plugin / Slot
     ↓
 生成项目选择的 UI Stack
 ```
