@@ -39,7 +39,7 @@ export function AssistantUiConversationThreadBindingConnector() {
     };
 
     capture();
-    return aui.thread.subscribe(capture);
+    return aui.subscribe(capture);
   }, [aui, binding]);
 
   return null;
