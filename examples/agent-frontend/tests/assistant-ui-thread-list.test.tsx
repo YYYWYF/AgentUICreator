@@ -8,6 +8,22 @@ import {
 } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
+const { switchToThread } = vi.hoisted(() => ({
+  switchToThread: vi.fn(async () => undefined),
+}));
+
+vi.mock("@assistant-ui/react", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@assistant-ui/react")>();
+  return {
+    ...actual,
+    useAui: () => ({
+      threads: {
+        switchToThread,
+      },
+    }),
+  };
+});
+
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 import { Button } from "../agent-ui/primitives/button";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
@@ -146,32 +162,36 @@ describe("AssistantUiThreadListPlugin", () => {
         retry.props.onClick();
         await Promise.resolve();
       });
-      expect(mounted.service.selectConversation).toHaveBeenCalledOnce();
-      expect(mounted.service.selectConversation).toHaveBeenCalledWith(
+      expect(switchToThread).toHaveBeenCalledOnce();
+      expect(switchToThread).toHaveBeenCalledWith(
         "history-broken",
       );
+      expect(mounted.service.selectConversation).not.toHaveBeenCalled();
     } finally {
       await act(async () => mounted.renderer.unmount());
     }
   });
 
-  it("disables detail retry while navigation is locked", async () => {
-    const mounted = await renderPlugin(
-      {
-        ...EMPTY_CONVERSATION_SNAPSHOT,
-        detailStatus: "error",
-        detailError: "offline",
-        detailErrorConversationId: "history-broken",
-      },
-      "awaiting-input",
-    );
-    try {
-      const retry = mounted.renderer.root.findAllByType(Button).find(
-        (button) => textContent(button) === "重试",
+  it.each(["running", "awaiting-input"] as const)(
+    "disables detail retry while %s navigation is locked",
+    async (status) => {
+      const mounted = await renderPlugin(
+        {
+          ...EMPTY_CONVERSATION_SNAPSHOT,
+          detailStatus: "error",
+          detailError: "offline",
+          detailErrorConversationId: "history-broken",
+        },
+        status,
       );
-      expect(retry?.props.disabled).toBe(true);
-    } finally {
-      await act(async () => mounted.renderer.unmount());
-    }
-  });
+      try {
+        const retry = mounted.renderer.root.findAllByType(Button).find(
+          (button) => textContent(button) === "重试",
+        );
+        expect(retry?.props.disabled).toBe(true);
+      } finally {
+        await act(async () => mounted.renderer.unmount());
+      }
+    },
+  );
 });

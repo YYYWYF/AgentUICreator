@@ -1,4 +1,5 @@
 import { ThreadList } from "../../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx";
+import { useAui } from "@assistant-ui/react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useAgentRun } from "../../runtime/context";
 import {
@@ -15,6 +16,7 @@ import { Button } from "../../agent-ui/primitives/button";
 import "./styles.css";
 
 export function AssistantUiThreadListPlugin(_props: UIPluginComponentProps) {
+  const aui = useAui();
   const run = useAgentRun();
   const conversation = usePluginService<AgentUIConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
@@ -81,8 +83,8 @@ export function AssistantUiThreadListPlugin(_props: UIPluginComponentProps) {
             onClick={() => {
               const failedConversationId = snapshot.detailErrorConversationId;
               if (failedConversationId === undefined) return;
-              void conversation
-                ?.selectConversation(failedConversationId)
+              void aui.threads
+                .switchToThread(failedConversationId)
                 .catch(() => undefined);
             }}
             size="sm"
