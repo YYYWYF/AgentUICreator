@@ -4,7 +4,7 @@
 
 实现日期：2026-09-12
 
-本提交只建立可供人工 A/B 的实验链路。按本次执行要求，没有运行测试、typecheck、build、浏览器验收或 Runtime 场景验证；下表中的 `NOT RUN` 不是失败结论，也不能作为迁移依据。
+本阶段在既有 A/B 实验链路上补齐了 assistant-ui 的 scoped Tailwind Preflight。按本次执行要求，没有运行测试、typecheck、build、浏览器验收或 Runtime 场景验证；下表中的 `NOT RUN` 不是失败结论，也不能作为迁移依据。
 
 正式设计仍以 `docs/agent-ui-reference-guide.md` 为准：正式 Agent UI 组件不依赖 assistant-ui Runtime。本 Spike 是隔离的、可关闭的架构例外，目的仅是取得是否值得改变正式设计的证据。
 
@@ -37,7 +37,8 @@ Mock 场景继续由现有 `resolveAgentEndpoint()` 解析，例如：
 - assistant-ui 官方 Base UI Thread 及递归 registry 源码位于 `examples/agent-frontend/src/spikes/assistant-ui/**`。
 - Plugin 入口只位于 `examples/agent-frontend/plugins/assistant-ui-conversation-spike/**`。
 - `packages/source-registry/**` 与 `examples/agent-frontend/agent-ui/**` 继续禁止 assistant-ui、Tailwind、CVA 和 Lucide 依赖。
-- Tailwind CSS 只在 development query 开启时动态加载且不加载 Preflight；颜色变量与基础 box sizing 限定在 `.assistant-ui-spike`。官方 utility class 源码未翻译成 CSS Modules。
+- Tailwind CSS 只在 development query 开启时动态加载；Theme、Utilities 与基于 `tailwindcss@4.3.3` 的 scoped Preflight 分层加载，所有 reset 与颜色变量都限定在 `.assistant-ui-spike`。
+- Vendored assistant-ui presentation source 保持上游 Tailwind、CVA 与 Base UI 实现。AgentUICreator 不把上游 Tailwind class 翻译为 CSS Modules；集成层只负责 Runtime、Plugin/Slot 边界、theme containment 与 scoped Tailwind baseline。
 - 新增 policy test，禁止 assistant-ui 及其 Spike-only 实现依赖从上述两个实验目录泄漏到正式生产源码。
 
 ## 观察结果
@@ -50,9 +51,9 @@ Mock 场景继续由现有 `resolveAgentEndpoint()` 解析，例如：
 | Tool Call | NOT RUN | 待用 `reasoning-tool-success` 人工观察 |
 | Multi Tool | NOT RUN | 待用 `multi-tool` 人工观察 |
 | Abort | NOT RUN | 官方 Thread stop action 已保留，未操作 |
-| Thread UI 与官网一致度 | NOT RUN | 使用官方 registry 源码，未做视觉对比 |
+| Thread UI 与官网一致度 | IMPLEMENTED / NOT RUN | 已恢复官方源码依赖的 scoped baseline，未做浏览器视觉对比 |
 | Plugin/Slot 集成 | IMPLEMENTED / NOT RUN | AppUIModel 与生成 Registry 已接入，未渲染 |
-| CSS/Tailwind 隔离 | IMPLEMENTED / NOT RUN | 目录、policy 与无 Preflight 策略已建立，未检查产物或页面 |
+| CSS/Tailwind 隔离 | IMPLEMENTED / NOT RUN | scoped Preflight 与 policy gate 已建立，未检查产物或页面 |
 | Runtime 与当前框架冲突 | UNKNOWN | Spike 允许同页双 Runtime；尚无运行证据 |
 | 可删除的自研代码 | 无 | 本阶段只记录候选，禁止删除 |
 

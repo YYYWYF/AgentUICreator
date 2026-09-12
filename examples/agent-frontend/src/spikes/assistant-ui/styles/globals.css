@@ -1,4 +1,5 @@
 @import "tailwindcss/theme.css" layer(theme);
+@import "./preflight.scoped.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "tw-animate-css";
 @import "tw-shimmer";
@@ -73,13 +74,6 @@
   height: 100%;
   min-height: 0;
   position: relative;
-}
-
-.assistant-ui-spike *,
-.assistant-ui-spike *::before,
-.assistant-ui-spike *::after {
-  border-color: var(--border);
-  box-sizing: border-box;
 }
 
 .assistant-ui-spike-debug {
