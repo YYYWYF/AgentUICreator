@@ -50,12 +50,12 @@ importers:
 
   examples/agent-frontend:
     dependencies:
-      '@ag-ui/client':
-        specifier: 0.0.59
-        version: 0.0.59
       '@agent-ui/runtime-agui':
         specifier: workspace:^
         version: link:../../packages/runtime-agui
+      '@agent-ui/runtime-assistant-ui':
+        specifier: workspace:^
+        version: link:../../packages/runtime-assistant-ui
       '@agent-ui/runtime-core':
         specifier: workspace:^
         version: link:../../packages/runtime-core
@@ -71,9 +71,6 @@ importers:
       '@assistant-ui/react':
         specifier: 0.15.19
         version: 0.15.19(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.6.0(react@19.2.8))
-      '@assistant-ui/react-ag-ui':
-        specifier: 0.0.59
-        version: 0.0.59(@assistant-ui/react@0.15.19(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.6.0(react@19.2.8)))(@assistant-ui/tap@0.9.17(@types/react@19.2.18)(react@19.2.8))(@types/react@19.2.18)(assistant-cloud@0.2.0)(react@19.2.8)(zod@4.5.4)
       '@assistant-ui/react-markdown':
         specifier: 0.14.15
         version: 0.14.15(@assistant-ui/react@0.15.19(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.6.0(react@19.2.8)))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -243,6 +240,37 @@ importers:
       '@types/node':
         specifier: ^20.19.43
         version: 20.19.43
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.2.2(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6)(yaml@2.9.0))
+
+  packages/runtime-assistant-ui:
+    dependencies:
+      '@ag-ui/client':
+        specifier: 0.0.59
+        version: 0.0.59
+      '@assistant-ui/react':
+        specifier: 0.15.19
+        version: 0.15.19(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.6.0(react@19.2.8))
+      '@assistant-ui/react-ag-ui':
+        specifier: 0.0.59
+        version: 0.0.59(@assistant-ui/react@0.15.19(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(use-sync-external-store@1.6.0(react@19.2.8)))(@assistant-ui/tap@0.9.17(@types/react@19.2.18)(react@19.2.8))(@types/react@19.2.18)(assistant-cloud@0.2.0)(react@19.2.8)(zod@4.5.4)
+    devDependencies:
+      '@agent-ui/runtime-core':
+        specifier: workspace:^
+        version: link:../runtime-core
+      '@types/node':
+        specifier: ^20.19.43
+        version: 20.19.43
+      '@types/react':
+        specifier: ^19.2.18
+        version: 19.2.18
+      react:
+        specifier: ^19.2.8
+        version: 19.2.8
       typescript:
         specifier: ^7.0.2
         version: 7.0.2

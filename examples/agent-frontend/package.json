@@ -20,13 +20,12 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@ag-ui/client": "0.0.59",
     "@agent-ui/runtime-agui": "workspace:^",
+    "@agent-ui/runtime-assistant-ui": "workspace:^",
     "@agent-ui/runtime-core": "workspace:^",
     "@agent-ui/runtime-react": "workspace:*",
     "@base-ui/react": "1.8.0",
     "@assistant-ui/react": "0.15.19",
-    "@assistant-ui/react-ag-ui": "0.0.59",
     "@assistant-ui/react-markdown": "0.14.15",
     "@ant-design/icons": "^6.3.2",
     "@ant-design/x": "^2.9.0",

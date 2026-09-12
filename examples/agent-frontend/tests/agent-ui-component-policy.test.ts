@@ -25,6 +25,10 @@ const spikePluginRoot = path.join(
   "plugins/assistant-ui-conversation-spike",
 );
 const generatedProjectPackagePath = path.join(projectRoot, "package.json");
+const assistantUiRuntimePackagePath = path.join(
+  workspaceRoot,
+  "packages/runtime-assistant-ui/package.json",
+);
 const forbiddenManagedDependencies = [
   /^@?assistant-ui(?:\/|$)/u,
   /^tailwindcss$/u,
@@ -96,7 +100,10 @@ describe("Agent UI component source policy", () => {
             pattern.test(dependency),
           );
           if (!isForbidden) continue;
-          expect(filePath, dependency).toBe(generatedProjectPackagePath);
+          expect(
+            [generatedProjectPackagePath, assistantUiRuntimePackagePath],
+            dependency,
+          ).toContain(filePath);
         }
       }
     }

@@ -1,4 +1,6 @@
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
@@ -51,5 +53,24 @@ describe("assistant-ui Spike isolation", () => {
     expect(isAssistantUiSpikeRequested("?mockScenario=reasoning-chat")).toBe(
       false,
     );
+  });
+
+  it("constructs legacy and assistant-ui wire owners only inside exclusive boundaries", async () => {
+    const projectRoot = path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "..",
+    );
+    const app = await readFile(path.join(projectRoot, "src/App.tsx"), "utf8");
+    const modulePrefix = app.slice(0, app.indexOf("function LegacyRuntimeBoundary"));
+    expect(modulePrefix).not.toMatch(/createAgUiTransport\s*\(/u);
+    expect(modulePrefix).not.toMatch(/createAgentRuntime\s*\(/u);
+    expect(app).toContain("function LegacyRuntimeBoundary");
+    expect(app).toContain("function AssistantUiRuntimeBoundary");
+    expect(app).toContain("<AssistantUiAgUiRuntimeProvider");
+    expect(app.match(/createAgUiTransport\s*\(/gu)).toHaveLength(1);
+    expect(app.match(/<AssistantUiAgUiRuntimeProvider/gu)).toHaveLength(1);
+    await expect(stat(
+      path.join(projectRoot, "src/spikes/assistant-ui/AssistantUiRuntimeProvider.tsx"),
+    )).rejects.toMatchObject({ code: "ENOENT" });
   });
 });

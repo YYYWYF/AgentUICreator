@@ -8,7 +8,15 @@ import {
 import { XProvider } from "@ant-design/x";
 import { theme as antdTheme } from "antd";
 import { createAgUiTransport } from "@agent-ui/runtime-agui";
-import { createAgentRuntime } from "@agent-ui/runtime-core";
+import {
+  AssistantUiAgUiRuntimeProvider,
+  createEphemeralAssistantUiThreadBinding,
+  useAssistantUiRuntimeBridge,
+} from "@agent-ui/runtime-assistant-ui";
+import {
+  createAgentRuntime,
+  type AgentRuntime,
+} from "@agent-ui/runtime-core";
 
 import appUIJsonSource from "../app-ui/app-ui.json?raw";
 import type { AppAgentState } from "../agent-contract/agent-state";
@@ -85,13 +93,6 @@ const endpoint = resolveAgentEndpoint({
   isDev: import.meta.env.DEV,
   search: window.location.search,
 });
-const agentTransport = createAgUiTransport<AppAgentState>({
-  endpoint,
-  frontendTools: appFrontendToolRuntime,
-});
-const agentRuntime = createAgentRuntime<AppAgentState>({
-  transport: agentTransport,
-});
 
 const sharedThemeTokens = {
   colorPrimary: "#7565ea",
@@ -143,9 +144,11 @@ const getDefaultThemeMode = (): AgentUIThemeMode => "dark";
 function AgentFrontendSurface({
   actions,
   model,
+  runtimeMode,
 }: {
   actions: UIPluginRuntimeActions;
   model: typeof initialAppUIModel;
+  runtimeMode: string;
 }) {
   const themeService = usePluginService<AgentUIThemeService>(
     AGENT_UI_THEME_SERVICE,
@@ -160,7 +163,7 @@ function AgentFrontendSurface({
     <AgentUIRoot
       theme={themeMode}
       className="development-preview"
-      data-agent-runtime={agentRuntime.mode}
+      data-agent-runtime={runtimeMode}
     >
       <XProvider theme={agentFrontendThemes[themeMode]}>
         <UIPluginRuntime
@@ -171,6 +174,138 @@ function AgentFrontendSurface({
         />
       </XProvider>
     </AgentUIRoot>
+  );
+}
+
+function RuntimeConnectedApp({
+  model,
+  runtime,
+  updateInstanceProps,
+}: {
+  model: typeof initialAppUIModel;
+  runtime: AgentRuntime<AppAgentState>;
+  updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
+}) {
+  const pluginActions = useMemo<UIPluginRuntimeActions>(
+    () => ({
+      sendMessage: (input) => runtime.sendMessage(input),
+      resumeInterrupts: (responses) => runtime.resumeInterrupts(responses),
+      startNewConversation: () => runtime.startNewConversation(),
+      abortRun: () => runtime.abort(),
+      updateInstanceProps,
+    }),
+    [runtime, updateInstanceProps],
+  );
+
+  return (
+    <AgentRuntimeProvider runtime={runtime}>
+      <PluginServiceProvider
+        actions={pluginActions}
+        applicationEventRegistry={appEventRegistry}
+        applicationEventSource={runtime}
+        frontendTools={appFrontendToolRuntime}
+        model={model}
+        registry={pluginRegistry}
+      >
+        <ModeShell mode={currentAgentUIMode}>
+          <AgentFrontendSurface
+            actions={pluginActions}
+            model={model}
+            runtimeMode={runtime.mode}
+          />
+        </ModeShell>
+      </PluginServiceProvider>
+    </AgentRuntimeProvider>
+  );
+}
+
+function LegacyRuntimeBoundary({
+  model,
+  updateInstanceProps,
+}: {
+  model: typeof initialAppUIModel;
+  updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
+}) {
+  const runtime = useMemo(() => {
+    const transport = createAgUiTransport<AppAgentState>({
+      endpoint,
+      frontendTools: appFrontendToolRuntime,
+    });
+    return createAgentRuntime<AppAgentState>({ transport });
+  }, []);
+
+  useEffect(() => () => runtime.dispose(), [runtime]);
+  return (
+    <RuntimeConnectedApp
+      model={model}
+      runtime={runtime}
+      updateInstanceProps={updateInstanceProps}
+    />
+  );
+}
+
+function AssistantUiRuntimeConnectedApp({
+  model,
+  updateInstanceProps,
+}: {
+  model: typeof initialAppUIModel;
+  updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
+}) {
+  const { agentRuntime } = useAssistantUiRuntimeBridge<AppAgentState>();
+  return (
+    <RuntimeConnectedApp
+      model={model}
+      runtime={agentRuntime}
+      updateInstanceProps={updateInstanceProps}
+    />
+  );
+}
+
+function AssistantUiRuntimeBoundary({
+  model,
+  updateInstanceProps,
+}: {
+  model: typeof initialAppUIModel;
+  updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
+}) {
+  const threadBinding = useMemo(
+    () => createEphemeralAssistantUiThreadBinding(),
+    [],
+  );
+  if (endpoint === undefined) {
+    throw new Error("The assistant-ui mode requires an AG-UI endpoint.");
+  }
+  return (
+    <AssistantUiAgUiRuntimeProvider<AppAgentState>
+      endpoint={endpoint}
+      frontendTools={appFrontendToolRuntime}
+      threadBinding={threadBinding}
+    >
+      <AssistantUiRuntimeConnectedApp
+        model={model}
+        updateInstanceProps={updateInstanceProps}
+      />
+    </AssistantUiAgUiRuntimeProvider>
+  );
+}
+
+function RuntimeModeBoundary({
+  model,
+  updateInstanceProps,
+}: {
+  model: typeof initialAppUIModel;
+  updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
+}) {
+  return assistantUiSpikeEnabled ? (
+    <AssistantUiRuntimeBoundary
+      model={model}
+      updateInstanceProps={updateInstanceProps}
+    />
+  ) : (
+    <LegacyRuntimeBoundary
+      model={model}
+      updateInstanceProps={updateInstanceProps}
+    />
   );
 }
 
@@ -223,17 +358,6 @@ export function App({
     [],
   );
 
-  const pluginActions = useMemo<UIPluginRuntimeActions>(
-    () => ({
-      sendMessage: (input) => agentRuntime.sendMessage(input),
-      resumeInterrupts: (responses) => agentRuntime.resumeInterrupts(responses),
-      startNewConversation: () => agentRuntime.startNewConversation(),
-      abortRun: () => agentRuntime.abort(),
-      updateInstanceProps,
-    }),
-    [updateInstanceProps],
-  );
-
   if (appUIModelHash === undefined) {
     return <main className="development-preview" aria-busy="true" />;
   }
@@ -246,20 +370,10 @@ export function App({
       onRuntimeDiagnostic={onRuntimeDiagnostic}
       registry={pluginRegistry}
     >
-      <AgentRuntimeProvider runtime={agentRuntime}>
-        <PluginServiceProvider
-          actions={pluginActions}
-          applicationEventRegistry={appEventRegistry}
-          applicationEventSource={agentRuntime}
-          frontendTools={appFrontendToolRuntime}
-          model={model}
-          registry={pluginRegistry}
-        >
-          <ModeShell mode={currentAgentUIMode}>
-            <AgentFrontendSurface actions={pluginActions} model={model} />
-          </ModeShell>
-        </PluginServiceProvider>
-      </AgentRuntimeProvider>
+      <RuntimeModeBoundary
+        model={model}
+        updateInstanceProps={updateInstanceProps}
+      />
     </PluginDiagnosticProvider>
   );
 }

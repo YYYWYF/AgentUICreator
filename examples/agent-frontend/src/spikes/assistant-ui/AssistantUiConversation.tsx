@@ -1,14 +1,11 @@
 import { AssistantUiConversationSurface } from "../../../agent-ui/adapters/assistant-ui/conversation";
 
 import { AssistantUiRuntimeDebugOverlay } from "./AssistantUiRuntimeDebugOverlay";
-import { AssistantUiRuntimeProvider } from "./AssistantUiRuntimeProvider";
 
 export function AssistantUiConversation() {
   return (
-    <AssistantUiRuntimeProvider>
-      <AssistantUiConversationSurface>
-        {import.meta.env.DEV ? <AssistantUiRuntimeDebugOverlay /> : null}
-      </AssistantUiConversationSurface>
-    </AssistantUiRuntimeProvider>
+    <AssistantUiConversationSurface>
+      {import.meta.env.DEV ? <AssistantUiRuntimeDebugOverlay /> : null}
+    </AssistantUiConversationSurface>
   );
 }

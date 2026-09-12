@@ -53,16 +53,20 @@ describe("formal assistant-ui surface", () => {
     );
   });
 
-  it("keeps the Spike Runtime as the only temporary harness", async () => {
+  it("keeps the Spike harness presentation-only", async () => {
     const harness = await readFile(
       path.join(projectRoot, "src/spikes/assistant-ui/AssistantUiConversation.tsx"),
       "utf8",
     );
-    expect(harness).toContain("AssistantUiRuntimeProvider");
     expect(harness).toContain("AssistantUiConversationSurface");
     expect(harness).toContain("AssistantUiRuntimeDebugOverlay");
+    expect(harness).not.toMatch(/HttpAgent|useAgUiRuntime|AssistantRuntimeProvider/u);
     expect(harness).not.toContain('theme="dark"');
     expect(harness).not.toContain("vendor/assistant-ui");
+
+    await expect(
+      stat(path.join(projectRoot, "src/spikes/assistant-ui/AssistantUiRuntimeProvider.tsx")),
+    ).rejects.toMatchObject({ code: "ENOENT" });
 
     for (const relocated of ["components", "hooks", "lib", "styles"]) {
       await expect(
