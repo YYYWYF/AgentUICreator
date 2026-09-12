@@ -145,6 +145,80 @@
         }
       }
     },
+    "foundation/assistant-ui-conversation": {
+      "version": "0.1.0",
+      "files": {
+        "vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx": {
+          "sha256": "74b8a3d8b079893cdab6aff2ea1ded1d0ddc9af5381a0331dbea1e253f68fa9a"
+        },
+        "vendor/assistant-ui/components/assistant-ui/elements/file.tsx": {
+          "sha256": "9ea826839bcb30f99620e9c166e24fa638e9261d84bac5d54347fb6701dacfcf"
+        },
+        "vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.tsx": {
+          "sha256": "ba2f213a1241f281c9d87805fe8eb2a78bb725a788e05013d1fe117e79aac60b"
+        },
+        "vendor/assistant-ui/components/assistant-ui/elements/image.tsx": {
+          "sha256": "4c5fb79d783d3cb1318497c3b50340b8bba9af5aaf89d5fa7b1b7d00422857c1"
+        },
+        "vendor/assistant-ui/components/assistant-ui/elements/markdown-text.tsx": {
+          "sha256": "b041132faa98790395e4161329249eb1a38642ce7a5603042a67e7ab7ff72808"
+        },
+        "vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui.tsx": {
+          "sha256": "32c3b000370561900797a633d606a7172f6d465a2c06f3e39b6e820535dcd79f"
+        },
+        "vendor/assistant-ui/components/assistant-ui/elements/reasoning.tsx": {
+          "sha256": "6e629d6cab9204b903120f7195b3d3126ed48d5ecd7191dbb0174ad9ccf8dfb0"
+        },
+        "vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx": {
+          "sha256": "0a8c29d6399b184bc1fd08debda5508c5de203ea6c07dd36ca433f8588350c7f"
+        },
+        "vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx": {
+          "sha256": "36fc3ac28ad8a0fc67a6e0b6953f771c7fe231986916b04d94f87055fe49bd3e"
+        },
+        "vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx": {
+          "sha256": "50e5d21a865de8bead130bd9bcfa968ab1a330c4b0082374bf3d1a84951a9b08"
+        },
+        "vendor/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.tsx": {
+          "sha256": "94e64103f5e1faad3ad82502b94c298158126e70ceef138e88e28117f62dd77d"
+        },
+        "vendor/assistant-ui/components/ui/avatar.tsx": {
+          "sha256": "bff76087ea9af25c6aa5a5306088dc66e62204a126752c38561736acff00717f"
+        },
+        "vendor/assistant-ui/components/ui/button.tsx": {
+          "sha256": "313353436d0fcc8e44ab470adb614b9fd013d28626f624328ea0d66d41a6c81b"
+        },
+        "vendor/assistant-ui/components/ui/collapsible.tsx": {
+          "sha256": "3de60b605e64c835588cecc189fbcf907eb602b0158f970d614b067e868b491e"
+        },
+        "vendor/assistant-ui/components/ui/dialog.tsx": {
+          "sha256": "332d9c448486cadd51dd65e52480e021c3e182af7cb02910766e897c0f2a7b59"
+        },
+        "vendor/assistant-ui/components/ui/skeleton.tsx": {
+          "sha256": "4c2af7fa9c645358a0fb188779deab6f0b981733b62befc25e18aaebea1350dc"
+        },
+        "vendor/assistant-ui/components/ui/textarea.tsx": {
+          "sha256": "82601c91ffc6c727d924162c78d7cb853114bcced4e2eb922a68ca12d4239c0f"
+        },
+        "vendor/assistant-ui/components/ui/tooltip.tsx": {
+          "sha256": "100101631756e1bebc1f1831e1642b26cd11a6a6c4affb6c638c42001dc14e83"
+        },
+        "vendor/assistant-ui/hooks/use-attachment-src.ts": {
+          "sha256": "dfb621f1a18f4013994aa29815beddb436020105164526ab7c86b0b0a32040a1"
+        },
+        "vendor/assistant-ui/hooks/use-copy-to-clipboard.ts": {
+          "sha256": "2deb9436899718f7a2ff6ccc4738d1ce50d1467e5e36d1cda4d82f61b544be11"
+        },
+        "vendor/assistant-ui/lib/utils.ts": {
+          "sha256": "55bbdc94cef3e0c8a8bba386e94f97228dd2c967fe61466fc565378890550c08"
+        },
+        "vendor/assistant-ui/THIRD_PARTY_NOTICES.md": {
+          "sha256": "218611b455ae8dde968f45b876e1188a907b70890e076f150edb16e68401943d"
+        },
+        "vendor/assistant-ui/UPSTREAM.json": {
+          "sha256": "3b6677f93c1e17886473bb07933134e918cfcd914113a2b18b4db333308d9a80"
+        }
+      }
+    },
     "foundation/core": {
       "version": "0.2.3",
       "files": {

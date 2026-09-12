@@ -296,6 +296,30 @@ describe("Agent UI Source Registry contract", () => {
     });
   });
 
+  it("registers the pinned assistant-ui conversation foundation", async () => {
+    const registry = await loadAgentUISourceRegistry();
+    const foundation = registry.byId.get("foundation/assistant-ui-conversation");
+
+    expect(foundation).toMatchObject({
+      version: "0.1.0",
+      kind: "foundation",
+      upstream: {
+        project: "assistant-ui/assistant-ui",
+        component: "base-ui-conversation",
+        implementation: "react",
+        revision: "97bd4b39fce83163354c9ec8d9d4fb2c9bd1aac7",
+        mode: "adapted",
+        license: "MIT",
+      },
+    });
+    expect(foundation?.files).toHaveLength(23);
+    expect(foundation?.files.every((file) =>
+      file.target.startsWith("vendor/assistant-ui/"),
+    )).toBe(true);
+    expect(foundation?.packages).not.toHaveProperty("@ag-ui/client");
+    expect(foundation?.packages).not.toHaveProperty("@assistant-ui/react-ag-ui");
+  });
+
   it("registers Agent Message as an original, foundation-only Agent Component", async () => {
     const registry = await loadAgentUISourceRegistry();
     expect(registry.byId.get("agent-component/message")).toMatchObject({

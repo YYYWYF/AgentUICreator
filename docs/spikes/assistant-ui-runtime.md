@@ -1,3 +1,7 @@
+> Superseded for architecture decisions. The canonical architecture is
+> `docs/architecture/p3r-0-assistant-ui-conversation-domain-rebaseline.md`.
+> This document is retained only as historical Spike evidence.
+
 # assistant-ui Runtime + AG-UI 架构 Spike
 
 ## 状态

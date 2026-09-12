@@ -34,7 +34,7 @@ export function AssistantUiRuntimeDebugOverlay() {
   return (
     <pre
       aria-label="assistant-ui runtime state"
-      className="assistant-ui-spike-debug"
+      className="agent-ui-assistant-ui-debug"
       data-assistant-ui-spike-debug="true"
     >
       {JSON.stringify(snapshot, null, 2)}

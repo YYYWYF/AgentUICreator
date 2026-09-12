@@ -6,6 +6,10 @@
       "path": "items/foundation-core/item.json"
     },
     {
+      "id": "foundation/assistant-ui-conversation",
+      "path": "items/foundation-assistant-ui-conversation/item.json"
+    },
+    {
       "id": "primitive/button",
       "path": "items/primitive-button/item.json"
     },

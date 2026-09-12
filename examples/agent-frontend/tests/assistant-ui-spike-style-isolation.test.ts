@@ -6,20 +6,21 @@ import { describe, expect, it } from "vitest";
 import { createServer, resolveConfig } from "vite";
 
 const globalsUrl = new URL(
-  "../src/spikes/assistant-ui/styles/globals.css",
+  "../agent-ui/adapters/assistant-ui/styles/globals.css",
   import.meta.url,
 );
 const scopedPreflightUrl = new URL(
-  "../src/spikes/assistant-ui/styles/preflight.scoped.css",
+  "../agent-ui/adapters/assistant-ui/styles/preflight.scoped.css",
   import.meta.url,
 );
 const workbenchViteConfigUrl = new URL(
   "../../../apps/creator-workbench/vite.config.ts",
   import.meta.url,
 );
+const frontendViteConfigUrl = new URL("../vite.config.ts", import.meta.url);
 const frontendRoot = fileURLToPath(new URL("..", import.meta.url));
 
-describe("assistant-ui Spike style isolation", () => {
+describe("formal assistant-ui adapter style isolation", () => {
   it("loads explicit Tailwind layers without global Preflight", async () => {
     const globals = await readFile(globalsUrl, "utf8");
 
@@ -30,7 +31,7 @@ describe("assistant-ui Spike style isolation", () => {
       '@import "./preflight.scoped.css" layer(base);',
     );
     expect(globals).toContain(
-      '@import "tailwindcss/utilities.css" layer(utilities) source("..");',
+      '@import "tailwindcss/utilities.css" layer(utilities) source("../../../vendor/assistant-ui");',
     );
     expect(globals).not.toMatch(/@import\s+["']tailwindcss["']/u);
     expect(globals).not.toMatch(
@@ -38,18 +39,19 @@ describe("assistant-ui Spike style isolation", () => {
     );
   });
 
-  it("generates vendored assistant-ui utilities in the Workbench host", async () => {
-    const workbenchConfig = await resolveConfig(
-      {
-        configFile: fileURLToPath(workbenchViteConfigUrl),
-        logLevel: "silent",
-      },
-      "serve",
-    );
-
-    expect(workbenchConfig.plugins.map((plugin) => plugin.name)).toContain(
-      "@tailwindcss/vite:generate:serve",
-    );
+  it("generates formal vendor utilities in both Vite hosts", async () => {
+    for (const configUrl of [frontendViteConfigUrl, workbenchViteConfigUrl]) {
+      const config = await resolveConfig(
+        {
+          configFile: fileURLToPath(configUrl),
+          logLevel: "silent",
+        },
+        "serve",
+      );
+      expect(config.plugins.map((plugin) => plugin.name)).toContain(
+        "@tailwindcss/vite:generate:serve",
+      );
+    }
 
     const server = await createServer({
       configFile: false,
@@ -64,7 +66,7 @@ describe("assistant-ui Spike style isolation", () => {
 
     try {
       const result = await server.transformRequest(
-        "/src/spikes/assistant-ui/styles/globals.css?direct",
+        "/agent-ui/adapters/assistant-ui/styles/globals.css?direct",
       );
 
       expect(result?.code).toContain(".sr-only");
@@ -75,7 +77,7 @@ describe("assistant-ui Spike style isolation", () => {
     }
   });
 
-  it("keeps every high-risk reset selector under the Spike root", async () => {
+  it("keeps every high-risk reset selector under the formal root", async () => {
     const preflight = await readFile(scopedPreflightUrl, "utf8");
     const css = preflight.replace(/\/\*[\s\S]*?\*\//gu, "");
     const bareElementSelector =
@@ -91,9 +93,9 @@ describe("assistant-ui Spike style isolation", () => {
     const preflight = await readFile(scopedPreflightUrl, "utf8");
 
     for (const control of ["button", "input", "textarea", "select"]) {
-      expect(preflight).toContain(`.assistant-ui-spike ${control}`);
+      expect(preflight).toContain(`.agent-ui-assistant-ui ${control}`);
     }
-    expect(preflight).toContain(".assistant-ui-spike ::file-selector-button");
+    expect(preflight).toContain(".agent-ui-assistant-ui ::file-selector-button");
     expect(preflight).toContain("font: inherit;");
     expect(preflight).toContain("background-color: transparent;");
     expect(preflight).toContain("appearance: button;");

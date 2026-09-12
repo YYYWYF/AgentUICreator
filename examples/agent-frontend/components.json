@@ -5,17 +5,17 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "src/spikes/assistant-ui/styles/globals.css",
+    "css": "agent-ui/adapters/assistant-ui/styles/globals.css",
     "baseColor": "zinc",
     "cssVariables": true,
     "prefix": ""
   },
   "aliases": {
-    "components": "@/spikes/assistant-ui/components",
-    "utils": "@/spikes/assistant-ui/lib/utils",
-    "ui": "@/spikes/assistant-ui/components/ui",
-    "lib": "@/spikes/assistant-ui/lib",
-    "hooks": "@/spikes/assistant-ui/hooks"
+    "components": "@/../agent-ui/vendor/assistant-ui/components",
+    "utils": "@/../agent-ui/vendor/assistant-ui/lib/utils",
+    "ui": "@/../agent-ui/vendor/assistant-ui/components/ui",
+    "lib": "@/../agent-ui/vendor/assistant-ui/lib",
+    "hooks": "@/../agent-ui/vendor/assistant-ui/hooks"
   },
   "iconLibrary": "lucide"
 }

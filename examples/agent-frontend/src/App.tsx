@@ -68,7 +68,7 @@ const baseAppUIModel = parseAppUIModelJson(appUIJsonSource);
 const assistantUiSpikeEnabled =
   import.meta.env.DEV && isAssistantUiSpikeRequested(window.location.search);
 if (assistantUiSpikeEnabled) {
-  void import("./spikes/assistant-ui/styles/globals.css");
+  void import("../agent-ui/adapters/assistant-ui/styles/globals.css");
 }
 const initialAppUIModel = applyAssistantUiSpikeMode(
   baseAppUIModel,

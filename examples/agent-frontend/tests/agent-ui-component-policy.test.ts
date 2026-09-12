@@ -8,11 +8,23 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const workspaceRoot = path.resolve(projectRoot, "../..");
 const registryRoot = path.join(workspaceRoot, "packages/source-registry/registry");
 const spikeSourceRoot = path.join(projectRoot, "src/spikes/assistant-ui");
+const assistantUiVendorRoot = path.join(
+  projectRoot,
+  "agent-ui/vendor/assistant-ui",
+);
+const assistantUiAdapterRoot = path.join(
+  projectRoot,
+  "agent-ui/adapters/assistant-ui",
+);
+const assistantUiRegistryRoot = path.join(
+  registryRoot,
+  "items/foundation-assistant-ui-conversation/files/vendor/assistant-ui",
+);
 const spikePluginRoot = path.join(
   projectRoot,
   "plugins/assistant-ui-conversation-spike",
 );
-const spikePackagePath = path.join(projectRoot, "package.json");
+const generatedProjectPackagePath = path.join(projectRoot, "package.json");
 const forbiddenManagedDependencies = [
   /^@?assistant-ui(?:\/|$)/u,
   /^tailwindcss$/u,
@@ -51,19 +63,24 @@ function importSpecifiers(source: string): string[] {
 }
 
 describe("Agent UI component source policy", () => {
-  it("keeps assistant-ui out of managed Agent UI and Registry imports", async () => {
+  it("confines assistant-ui imports to the formal vendor source", async () => {
     const sourceFiles = [
       ...await collectFiles(path.join(projectRoot, "agent-ui"), (filePath) => /\.[cm]?[jt]sx?$/u.test(filePath)),
       ...await collectFiles(registryRoot, (filePath) => /\.[cm]?[jt]sx?$/u.test(filePath)),
     ];
     for (const filePath of sourceFiles) {
       for (const specifier of importSpecifiers(await readFile(filePath, "utf8"))) {
-        expect(specifier, filePath).not.toMatch(/^@?assistant-ui(?:\/|$)/u);
+        if (!/^@?assistant-ui(?:\/|$)/u.test(specifier)) continue;
+        expect(
+          filePath.startsWith(`${assistantUiVendorRoot}${path.sep}`) ||
+            filePath.startsWith(`${assistantUiRegistryRoot}${path.sep}`),
+          filePath,
+        ).toBe(true);
       }
     }
   });
 
-  it("limits the package-manifest dependency exception to the Spike host", async () => {
+  it("keeps assistant-ui presentation and Runtime packages in the generated project", async () => {
     const packageFiles = await collectFiles(workspaceRoot, (filePath) => {
       const relative = path.relative(workspaceRoot, filePath);
       return path.basename(filePath) === "package.json" &&
@@ -79,13 +96,13 @@ describe("Agent UI component source policy", () => {
             pattern.test(dependency),
           );
           if (!isForbidden) continue;
-          expect(filePath, dependency).toBe(spikePackagePath);
+          expect(filePath, dependency).toBe(generatedProjectPackagePath);
         }
       }
     }
   });
 
-  it("keeps assistant-ui dependencies spike-scoped", async () => {
+  it("keeps assistant-ui dependencies within the formal surface and Spike harness", async () => {
     const productionRoots = [
       "agent-ui",
       "framework",
@@ -108,11 +125,33 @@ describe("Agent UI component source policy", () => {
       const relativePath = path.relative(projectRoot, filePath);
       const allowed =
         filePath.startsWith(`${spikeSourceRoot}${path.sep}`) ||
-        filePath.startsWith(`${spikePluginRoot}${path.sep}`);
+        filePath.startsWith(`${spikePluginRoot}${path.sep}`) ||
+        filePath.startsWith(`${assistantUiVendorRoot}${path.sep}`) ||
+        filePath.startsWith(`${assistantUiAdapterRoot}${path.sep}`);
       for (const specifier of importSpecifiers(await readFile(filePath, "utf8"))) {
         if (spikeDependency.test(specifier)) {
           expect(allowed, `${relativePath}: ${specifier}`).toBe(true);
         }
+      }
+    }
+  });
+
+  it("keeps private assistant-ui source out of ordinary Plugins", async () => {
+    const pluginFiles = await collectFiles(
+      path.join(projectRoot, "plugins"),
+      (filePath) => /\.[cm]?[jt]sx?$/u.test(filePath),
+    );
+    const privateSource = [
+      "src", "spikes", "assistant-ui", "components",
+    ].join("/");
+    const formalVendor = [
+      "agent-ui", "vendor", "assistant-ui",
+    ].join("/");
+
+    for (const filePath of pluginFiles) {
+      for (const specifier of importSpecifiers(await readFile(filePath, "utf8"))) {
+        expect(specifier, filePath).not.toContain(privateSource);
+        expect(specifier, filePath).not.toContain(formalVendor);
       }
     }
   });
