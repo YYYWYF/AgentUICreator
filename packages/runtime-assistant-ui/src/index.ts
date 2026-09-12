@@ -13,6 +13,7 @@ export {
   AgentUiRuntimeBusyError,
   AssistantUiAgentRuntimeBridge,
   UnsupportedAgentInputError,
+  UnsupportedInterruptResponseMetadataError,
   createAssistantUiAgentRuntimeBridge,
 } from "./compatibility/agent-runtime-bridge.js";
 export { projectAssistantUiMessages } from "./compatibility/message-projector.js";

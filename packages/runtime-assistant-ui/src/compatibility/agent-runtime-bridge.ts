@@ -46,6 +46,17 @@ export class AgentUiRuntimeBusyError extends Error {
   }
 }
 
+export class UnsupportedInterruptResponseMetadataError extends Error {
+  readonly code = "AGENT_UI_UNSUPPORTED_INTERRUPT_RESPONSE_METADATA";
+
+  constructor(interruptId: string) {
+    super(
+      `assistant-ui canonical runtime does not support interrupt response metadata for "${interruptId}"`,
+    );
+    this.name = "UnsupportedInterruptResponseMetadataError";
+  }
+}
+
 function mapTextInput(input: string | AgentUserInput): string {
   if (typeof input === "string") return input;
   if (typeof input.content === "string") return input.content;
@@ -157,6 +168,14 @@ export class AssistantUiAgentRuntimeBridge<TState = unknown>
   async resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void> {
     this.assertAvailable();
     validateInterruptResponses(this.snapshot, responses);
+    const unsupported = responses.find(
+      (response) => response.metadata !== undefined,
+    );
+    if (unsupported !== undefined) {
+      throw new UnsupportedInterruptResponseMetadataError(
+        unsupported.interruptId,
+      );
+    }
     this.actionInFlight = true;
     this.runtimeError = undefined;
     try {

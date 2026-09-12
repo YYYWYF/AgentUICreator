@@ -108,6 +108,14 @@ The pinned interrupt shape does not expose subagent producer identity, so the
 compatibility projection records root producer until upstream provides a
 public field.
 
+The pinned assistant-ui `AgUiResumeEntry` does not expose response metadata.
+AgentUICreator's `AgentInterruptResponse` contract still supports metadata for
+protocol and Runtime implementations that can represent it. The assistant-ui
+compatibility bridge therefore rejects responses containing metadata with
+`AGENT_UI_UNSUPPORTED_INTERRUPT_RESPONSE_METADATA` rather than silently
+dropping the field. Full metadata parity is deferred until the public upstream
+assistant-ui API can represent it.
+
 ## Frontend Tool seam
 
 `AssistantUiFrontendToolPort` accepts the existing protocol-independent

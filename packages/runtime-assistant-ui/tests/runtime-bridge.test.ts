@@ -9,6 +9,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   AgentUiRuntimeBusyError,
   UnsupportedAgentInputError,
+  UnsupportedInterruptResponseMetadataError,
   createAssistantUiAgentRuntimeBridge,
 } from "../src/compatibility/agent-runtime-bridge.js";
 import type { AssistantUiApplicationEventSource } from "../src/events/application-event-source.js";
@@ -140,5 +141,29 @@ describe("AssistantUiAgentRuntimeBridge", () => {
     expect(fixture.submit).toHaveBeenCalledWith([
       { interruptId: "approval", status: "resolved", payload: true },
     ]);
+  });
+
+  it("rejects interrupt response metadata instead of silently dropping it", async () => {
+    const fixture = createFixture();
+    fixture.setInterrupts([
+      { id: "approval", reason: "confirmation", message: "Continue?" },
+    ]);
+
+    const resume = fixture.bridge.resumeInterrupts([
+      {
+        interruptId: "approval",
+        status: "resolved",
+        payload: true,
+        metadata: { source: "approval-dialog" },
+      },
+    ]);
+
+    await expect(resume).rejects.toBeInstanceOf(
+      UnsupportedInterruptResponseMetadataError,
+    );
+    await expect(resume).rejects.toMatchObject({
+      code: "AGENT_UI_UNSUPPORTED_INTERRUPT_RESPONSE_METADATA",
+    });
+    expect(fixture.submit).not.toHaveBeenCalled();
   });
 });
