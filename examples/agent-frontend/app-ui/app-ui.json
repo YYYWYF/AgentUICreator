@@ -96,6 +96,48 @@
       "enabled": true,
       "mount": {
         "slotId": "workspace.conversation"
+      },
+      "props": {
+        "assistantUiPresentation": {
+          "welcome": {
+            "title": "Agent Frontend",
+            "description": "通过 AG-UI 与一个 Agent Runtime 连接，由可复用 UI Plugin 确定性渲染。"
+          },
+          "starterSuggestions": [
+            {
+              "title": "总结当前上下文",
+              "label": "提炼目标、约束与下一步",
+              "prompt": "总结当前上下文"
+            },
+            {
+              "title": "解释界面结构",
+              "label": "说明 AppUIModel 与插件的关系",
+              "prompt": "解释界面结构"
+            },
+            {
+              "title": "建议下一步",
+              "label": "给出一个可执行的后续动作",
+              "prompt": "建议下一步"
+            }
+          ],
+          "composer": {
+            "placeholder": "给智能体发送消息，输入 / 唤出快捷指令",
+            "quickPrompts": [
+              {
+                "id": "summarize-current",
+                "label": "总结当前会话",
+                "value": "请总结当前会话，并列出下一步。",
+                "description": "提炼目标、约束和下一步"
+              },
+              {
+                "id": "explain-last-tool",
+                "label": "解释最近一次工具调用",
+                "value": "请解释最近一次工具调用的输入、输出和结论。",
+                "description": "查看输入、输出和结论"
+              }
+            ]
+          }
+        }
       }
     },
     "agent-welcome-main": {

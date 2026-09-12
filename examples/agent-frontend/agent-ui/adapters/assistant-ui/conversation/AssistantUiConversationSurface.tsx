@@ -13,7 +13,10 @@ export interface AssistantUiConversationSurfaceProps {
   className?: string;
   components?: ThreadComponents;
   presentation?: ThreadPresentation;
+  theme?: AssistantUiConversationTheme;
 }
+
+export type AssistantUiConversationTheme = "light" | "dark";
 
 export function AssistantUiConversationSurface({
   autoFocus = false,
@@ -21,16 +24,17 @@ export function AssistantUiConversationSurface({
   className,
   components,
   presentation,
+  theme = "light",
 }: AssistantUiConversationSurfaceProps) {
   return (
     <div
       className={[
         "agent-ui-assistant-ui",
-        "dark",
+        theme === "dark" ? "dark" : undefined,
         className,
       ].filter(Boolean).join(" ")}
       data-agent-ui-assistant-ui="true"
-      data-theme="dark"
+      data-theme={theme}
     >
       <TooltipProvider>
         <Thread

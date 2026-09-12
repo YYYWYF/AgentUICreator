@@ -49,12 +49,26 @@ const renderFallback: UIPluginComponentProps["renderSlot"] = (
 function createModel({
   composer = {},
   items = [],
+  presentation,
   welcome = {},
 }: {
   composer?: Record<string, unknown>;
   items?: unknown;
+  presentation?: Record<string, unknown> | null;
   welcome?: Record<string, unknown>;
 } = {}): AppUIModel {
+  const assistantUiPresentation = presentation === null
+    ? undefined
+    : presentation ?? {
+        welcome,
+        starterSuggestions: items,
+        composer: {
+          ...(composer.placeholder === undefined
+            ? {}
+            : { placeholder: composer.placeholder }),
+          quickPrompts: composer.suggestions,
+        },
+      };
   return {
     version: "2",
     root: {
@@ -63,24 +77,33 @@ function createModel({
       slotId: "workspace.conversation",
     },
     pluginInstances: {
+      "agent-conversation-surface-main": {
+        id: "agent-conversation-surface-main",
+        pluginId: "conversation-surface",
+        enabled: true,
+        mount: { slotId: "workspace.conversation" },
+        ...(assistantUiPresentation === undefined
+          ? {}
+          : { props: { assistantUiPresentation } }),
+      },
       "agent-welcome-main": {
         id: "agent-welcome-main",
         pluginId: "agent-thread-welcome",
-        enabled: true,
+        enabled: false,
         mount: { slotId: "conversation.empty.welcome" },
         props: welcome,
       },
       "agent-prompts-main": {
         id: "agent-prompts-main",
         pluginId: "agent-suggestions",
-        enabled: true,
+        enabled: false,
         mount: { slotId: "conversation.empty.suggestions" },
         props: { items },
       },
       "agent-sender-main": {
         id: "agent-sender-main",
         pluginId: "agent-composer",
-        enabled: true,
+        enabled: false,
         mount: { slotId: "conversation.composer" },
         props: composer,
       },
@@ -291,6 +314,24 @@ describe("assistant-ui presentation config", () => {
           prompt: "字符串建议",
         },
       ],
+      composer: { quickPrompts: [] },
+    });
+  });
+
+  it("does not use disabled replacement props without explicit surface config", () => {
+    const model = createModel({
+      presentation: null,
+      welcome: { title: "Disabled welcome" },
+      items: [{ label: "Disabled suggestion" }],
+      composer: {
+        placeholder: "Disabled composer",
+        suggestions: [{ label: "Disabled prompt", value: "Disabled value" }],
+      },
+    });
+
+    expect(resolveAssistantUiPresentationConfig(model)).toEqual({
+      welcome: {},
+      starterSuggestions: [],
       composer: { quickPrompts: [] },
     });
   });

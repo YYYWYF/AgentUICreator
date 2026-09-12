@@ -32,6 +32,7 @@ import {
 } from "../runtime/message-rendering";
 import { createPluginRegistry } from "../runtime/plugins";
 import { AGENT_UI_CONVERSATION_SERVICE } from "../services/conversations";
+import { AGENT_UI_THEME_SERVICE } from "../services/agent-ui-theme";
 import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
 const ROOT_SLOT = "semantic-slot-rendering.root";
@@ -194,7 +195,7 @@ function createSurfacePlugin(
         ],
       },
     },
-    optionalInject: [AGENT_UI_CONVERSATION_SERVICE],
+    optionalInject: [AGENT_UI_CONVERSATION_SERVICE, AGENT_UI_THEME_SERVICE],
     Component: function SemanticSlotRenderingSurface({ renderSlot }) {
       const assistantRuntime = useLocalRuntime(TEST_CHAT_MODEL, {
         initialMessages,

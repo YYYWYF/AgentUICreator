@@ -35,6 +35,22 @@ function readNonEmptyString(value: unknown): string | undefined {
     : undefined;
 }
 
+function readRecord(value: unknown): Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function readWelcome(value: unknown): AssistantUiWelcomeConfig {
+  const record = readRecord(value);
+  const title = readNonEmptyString(record.title);
+  const description = readNonEmptyString(record.description);
+  return {
+    ...(title === undefined ? {} : { title }),
+    ...(description === undefined ? {} : { description }),
+  };
+}
+
 function readStarterSuggestions(value: unknown): AssistantUiStarterSuggestion[] {
   if (!Array.isArray(value)) return [];
 
@@ -49,11 +65,16 @@ function readStarterSuggestions(value: unknown): AssistantUiStarterSuggestion[] 
     }
 
     const record = item as Record<string, unknown>;
-    const title = readNonEmptyString(record.label);
+    const explicitTitle = readNonEmptyString(record.title);
+    const title = explicitTitle ?? readNonEmptyString(record.label);
     if (title === undefined) return [];
 
-    const label = readNonEmptyString(record.description);
-    const prompt = readNonEmptyString(record.prompt) ?? title;
+    const label = explicitTitle === undefined
+      ? readNonEmptyString(record.description)
+      : readNonEmptyString(record.label);
+    const prompt = readNonEmptyString(record.prompt) ??
+      readNonEmptyString(record.value) ??
+      title;
     return [{
       title,
       ...(label === undefined ? {} : { label }),
@@ -102,22 +123,24 @@ function readComposerQuickPrompts(
 export function resolveAssistantUiPresentationConfig(
   model: AppUIModel,
 ): AssistantUiPresentationConfig {
-  const welcomeProps = model.pluginInstances["agent-welcome-main"]?.props;
-  const suggestionsProps = model.pluginInstances["agent-prompts-main"]?.props;
-  const composerProps = model.pluginInstances["agent-sender-main"]?.props;
-  const title = readNonEmptyString(welcomeProps?.title);
-  const description = readNonEmptyString(welcomeProps?.description);
-  const placeholder = readNonEmptyString(composerProps?.placeholder);
+  const surfaceProps = model.pluginInstances[
+    "agent-conversation-surface-main"
+  ]?.props;
+  const assistantUiPresentation = readRecord(
+    surfaceProps?.assistantUiPresentation,
+  );
+  const welcomeProps = readRecord(assistantUiPresentation.welcome);
+  const composerProps = readRecord(assistantUiPresentation.composer);
+  const placeholder = readNonEmptyString(composerProps.placeholder);
 
   return {
-    welcome: {
-      ...(title === undefined ? {} : { title }),
-      ...(description === undefined ? {} : { description }),
-    },
-    starterSuggestions: readStarterSuggestions(suggestionsProps?.items),
+    welcome: readWelcome(welcomeProps),
+    starterSuggestions: readStarterSuggestions(
+      assistantUiPresentation.starterSuggestions,
+    ),
     composer: {
       ...(placeholder === undefined ? {} : { placeholder }),
-      quickPrompts: readComposerQuickPrompts(composerProps?.suggestions),
+      quickPrompts: readComposerQuickPrompts(composerProps.quickPrompts),
     },
   };
 }

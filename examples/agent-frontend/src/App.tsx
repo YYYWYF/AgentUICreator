@@ -3,7 +3,6 @@ import {
   useEffect,
   useMemo,
   useState,
-  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { XProvider } from "@ant-design/x";
@@ -25,11 +24,6 @@ import {
 } from "../framework/contracts/app-ui-model";
 import { resolveAgentUIProjectConfig } from "../framework/contracts/agent-ui-project";
 import { pluginDefinitions } from "../plugins";
-import {
-  AGENT_UI_THEME_SERVICE,
-  type AgentUIThemeMode,
-  type AgentUIThemeService,
-} from "../services/agent-ui-theme";
 import { AgentRuntimeProvider } from "../runtime/context";
 import { AppEventRegistry } from "../runtime/events";
 import {
@@ -40,7 +34,6 @@ import {
   createPluginRegistry,
   PluginServiceProvider,
   UIPluginRuntime,
-  usePluginService,
   type UIPluginRuntimeActions,
 } from "../runtime/plugins";
 import {
@@ -51,6 +44,7 @@ import {
 } from "../runtime/diagnostics";
 import { ModeShell } from "../runtime/mode-shell";
 import { AgentUIRoot } from "../agent-ui/foundation/AgentUIRoot";
+import { useAgentUIThemeMode } from "../agent-ui/theme/useAgentUITheme";
 import {
   AssistantUiPresentationConfigProvider,
   resolveAssistantUiPresentationConfig,
@@ -130,9 +124,6 @@ const agentFrontendThemes = {
   },
 } as const;
 
-const subscribeToNothing = (): (() => void) => () => undefined;
-const getDefaultThemeMode = (): AgentUIThemeMode => "dark";
-
 function AgentFrontendSurface({
   actions,
   model,
@@ -142,14 +133,7 @@ function AgentFrontendSurface({
   model: typeof initialAppUIModel;
   runtimeMode: string;
 }) {
-  const themeService = usePluginService<AgentUIThemeService>(
-    AGENT_UI_THEME_SERVICE,
-  );
-  const themeMode = useSyncExternalStore(
-    themeService?.subscribe ?? subscribeToNothing,
-    themeService?.getMode ?? getDefaultThemeMode,
-    themeService?.getMode ?? getDefaultThemeMode,
-  );
+  const themeMode = useAgentUIThemeMode();
 
   return (
     <AgentUIRoot

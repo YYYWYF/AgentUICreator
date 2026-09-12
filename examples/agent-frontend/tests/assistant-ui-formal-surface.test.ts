@@ -44,9 +44,11 @@ describe("formal assistant-ui surface", () => {
     expect(surface).toContain("../../../vendor/assistant-ui/components/assistant-ui/elements/thread.aui");
     expect(surface).toContain("../../../vendor/assistant-ui/components/ui/tooltip");
     expect(surface).toContain('data-agent-ui-assistant-ui="true"');
-    expect(surface).not.toContain('theme?: "light" | "dark"');
-    expect(surface).not.toContain("theme =");
-    expect(surface).toContain('data-theme="dark"');
+    expect(surface).toContain('export type AssistantUiConversationTheme = "light" | "dark"');
+    expect(surface).toContain("theme?: AssistantUiConversationTheme");
+    expect(surface).toContain('theme = "light"');
+    expect(surface).toContain('theme === "dark" ? "dark" : undefined');
+    expect(surface).toContain("data-theme={theme}");
     expect(surface).toContain("<TooltipProvider>");
     expect(surface).toContain("presentation={presentation}");
     expect(surface).not.toMatch(

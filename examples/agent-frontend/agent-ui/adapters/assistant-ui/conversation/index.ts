@@ -1,5 +1,6 @@
 export {
   AssistantUiConversationSurface,
+  type AssistantUiConversationTheme,
   type AssistantUiConversationSurfaceProps,
 } from "./AssistantUiConversationSurface";
 export {

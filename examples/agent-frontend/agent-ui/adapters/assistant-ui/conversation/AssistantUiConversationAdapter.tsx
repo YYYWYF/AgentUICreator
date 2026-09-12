@@ -10,9 +10,13 @@ import {
   EMPTY_CONVERSATION_SNAPSHOT,
   type AgentUIConversationService,
 } from "../../../../services/conversations";
-import type { ThreadComponents } from "../../../vendor/assistant-ui/components/assistant-ui/elements/thread.aui";
+import type {
+  ThreadComponents,
+  ThreadPresentation,
+} from "../../../vendor/assistant-ui/components/assistant-ui/elements/thread.aui";
 import { AssistantUiComposerQuickPrompts } from "../composer";
 import { useAssistantUiPresentationConfig } from "../config";
+import { useAgentUIThemeMode } from "../../../theme/useAgentUITheme";
 import {
   ASSISTANT_UI_CONVERSATION_SLOTS,
   SemanticAttachmentsOutlet,
@@ -84,6 +88,7 @@ export function createAssistantUiSemanticThreadComponents(
 export function AssistantUiConversationAdapter({
   renderSlot,
 }: Pick<UIPluginComponentProps, "renderSlot">) {
+  const theme = useAgentUIThemeMode();
   const presentationConfig = useAssistantUiPresentationConfig();
   const conversation = usePluginService<AgentUIConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
@@ -110,16 +115,23 @@ export function AssistantUiConversationAdapter({
     };
   }, [presentationConfig.composer.quickPrompts, renderSlot]);
   const presentation = useMemo(
-    () => {
+    (): ThreadPresentation => {
       const placeholder = historyMode
         ? "历史会话为只读，请返回当前会话或新建会话"
         : presentationConfig.composer.placeholder;
+      const hasWelcome =
+        presentationConfig.welcome.title !== undefined ||
+        presentationConfig.welcome.description !== undefined;
+      const composer = historyMode || placeholder !== undefined
+        ? {
+            ...(placeholder === undefined ? {} : { placeholder }),
+            ...(historyMode ? { disabled: true } : {}),
+          }
+        : undefined;
+
       return {
-        welcome: presentationConfig.welcome,
-        composer: {
-          ...(placeholder === undefined ? {} : { placeholder }),
-          disabled: historyMode,
-        },
+        ...(hasWelcome ? { welcome: presentationConfig.welcome } : {}),
+        ...(composer === undefined ? {} : { composer }),
       };
     },
     [
@@ -132,6 +144,7 @@ export function AssistantUiConversationAdapter({
     <AssistantUiConversationSurface
       components={components}
       presentation={presentation}
+      theme={theme}
     />
   );
 }
