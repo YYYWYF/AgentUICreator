@@ -65,6 +65,7 @@ describe("AppUIModel", () => {
       "agent-sender-main",
       "agent-conversation-controller-main",
       "agent-conversations-main",
+      "assistant-ui-thread-list-main",
       "assistant-ui-conversation-spike-main",
     ]);
     expect(model.root).toMatchObject({
@@ -117,8 +118,26 @@ describe("AppUIModel", () => {
     });
     expect(model.pluginInstances["agent-conversations-main"]).toMatchObject({
       pluginId: "agent-conversations",
+      enabled: false,
       mount: { slotId: "agent-conversations" },
     });
+    expect(model.pluginInstances["assistant-ui-thread-list-main"]).toMatchObject({
+      pluginId: "assistant-ui-thread-list",
+      enabled: true,
+      mount: { slotId: "agent-conversations" },
+    });
+    for (const instanceId of [
+      "agent-welcome-main",
+      "agent-prompts-main",
+      "agent-sender-main",
+      "agent-messages-main",
+      "agent-reasoning-main",
+      "agent-message-attachments-main",
+      "agent-tool-activity-main",
+      "agent-tool-message-main",
+    ]) {
+      expect(model.pluginInstances[instanceId]?.enabled, instanceId).toBe(false);
+    }
     expect(
       model.pluginInstances["assistant-ui-conversation-spike-main"],
     ).toMatchObject({

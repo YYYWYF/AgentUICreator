@@ -45,7 +45,7 @@ function expectInstancesEnabled(
 }
 
 describe("assistant-ui Spike isolation", () => {
-  it("keeps the current conversation surface active in normal mode", async () => {
+  it("keeps the canonical assistant-ui composition active by default", async () => {
     const model = await readModel();
     const normal = applyAssistantUiSpikeMode(model, false);
 
@@ -58,23 +58,23 @@ describe("assistant-ui Spike isolation", () => {
     ).toBe(false);
     expect(
       normal.pluginInstances[LEGACY_CONVERSATION_LIST_INSTANCE_ID]?.enabled,
-    ).toBe(true);
+    ).toBe(false);
     expect(
       normal.pluginInstances[ASSISTANT_UI_THREAD_LIST_INSTANCE_ID]?.enabled,
-    ).toBe(false);
+    ).toBe(true);
     expectInstancesEnabled(
       normal,
       ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS,
-      true,
+      false,
     );
     expectInstancesEnabled(
       normal,
       ASSISTANT_UI_ADAPTED_PRESENTATION_INSTANCE_IDS,
-      true,
+      false,
     );
   });
 
-  it("keeps conversation-surface as the product host in Spike mode", async () => {
+  it("keeps conversation-surface as the product host in the retained Spike helper", async () => {
     const spike = applyAssistantUiSpikeMode(await readModel(), true);
 
     expect(
@@ -103,7 +103,7 @@ describe("assistant-ui Spike isolation", () => {
       ASSISTANT_UI_ADAPTED_PRESENTATION_INSTANCE_IDS,
       false,
     );
-    expectInstancesEnabled(spike, STRUCTURAL_HOST_INSTANCE_IDS, true);
+    expectInstancesEnabled(spike, STRUCTURAL_HOST_INSTANCE_IDS, false);
     expectInstancesEnabled(spike, DEFERRED_PRESENTATION_INSTANCE_IDS, true);
   });
 

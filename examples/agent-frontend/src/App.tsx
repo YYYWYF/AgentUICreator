@@ -63,9 +63,10 @@ import { resolveAgentEndpoint } from "./agent-endpoint";
 import { AssistantUiConversationThreadBindingConnector } from "../agent-ui/adapters/assistant-ui/threads/AssistantUiConversationThreadBindingConnector";
 import { createConversationServiceAssistantUiThreadBinding } from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
 import {
-  applyAssistantUiSpikeMode,
-  isAssistantUiSpikeRequested,
-} from "./spikes/assistant-ui/spike-mode";
+  applyLegacyRuntimeComposition,
+  resolveConversationRuntimeMode,
+  type ConversationRuntimeMode,
+} from "./conversation-runtime-mode";
 import { AssistantUiRuntimeDebugOverlay } from "./spikes/assistant-ui/AssistantUiRuntimeDebugOverlay";
 import "./preview-shell.css";
 
@@ -81,14 +82,16 @@ export const currentAgentUIMode = resolveAgentUIProjectConfig(
     : JSON.parse(projectConfigJsonSource),
 ).config.mode;
 const baseAppUIModel = parseAppUIModelJson(appUIJsonSource);
-const assistantUiSpikeEnabled =
-  import.meta.env.DEV && isAssistantUiSpikeRequested(window.location.search);
-if (assistantUiSpikeEnabled) {
+const conversationRuntimeMode = resolveConversationRuntimeMode({
+  isDev: import.meta.env.DEV,
+  search: window.location.search,
+});
+if (conversationRuntimeMode === "assistant-ui") {
   void import("../agent-ui/adapters/assistant-ui/styles/globals.css");
 }
-const initialAppUIModel = applyAssistantUiSpikeMode(
+const initialAppUIModel = applyLegacyRuntimeComposition(
   baseAppUIModel,
-  assistantUiSpikeEnabled,
+  conversationRuntimeMode === "legacy",
 );
 const pluginRegistry = createPluginRegistry<AppAgentState>(pluginDefinitions);
 const appEventRegistry = new AppEventRegistry(appEventSchemas);
@@ -326,17 +329,19 @@ function AssistantUiRuntimeBoundary({
 function RuntimeModeBoundary({
   model,
   updateInstanceProps,
+  mode,
 }: {
   model: typeof initialAppUIModel;
   updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
+  mode: ConversationRuntimeMode;
 }) {
-  return assistantUiSpikeEnabled ? (
-    <AssistantUiRuntimeBoundary
+  return mode === "legacy" ? (
+    <LegacyRuntimeBoundary
       model={model}
       updateInstanceProps={updateInstanceProps}
     />
   ) : (
-    <LegacyRuntimeBoundary
+    <AssistantUiRuntimeBoundary
       model={model}
       updateInstanceProps={updateInstanceProps}
     />
@@ -407,6 +412,7 @@ export function App({
       <RuntimeModeBoundary
         model={model}
         updateInstanceProps={updateInstanceProps}
+        mode={conversationRuntimeMode}
       />
     </PluginDiagnosticProvider>
   );

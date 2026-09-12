@@ -101,7 +101,7 @@
     "agent-welcome-main": {
       "id": "agent-welcome-main",
       "pluginId": "agent-thread-welcome",
-      "enabled": true,
+      "enabled": false,
       "mount": {
         "slotId": "conversation.empty.welcome"
       },
@@ -113,7 +113,7 @@
     "agent-messages-main": {
       "id": "agent-messages-main",
       "pluginId": "agent-message-list",
-      "enabled": true,
+      "enabled": false,
       "mount": {
         "slotId": "conversation.timeline"
       },
@@ -125,7 +125,7 @@
     "agent-reasoning-main": {
       "id": "agent-reasoning-main",
       "pluginId": "agent-reasoning",
-      "enabled": true,
+      "enabled": false,
       "mount": {
         "slotId": "conversation.message.reasoning"
       }
@@ -133,7 +133,7 @@
     "agent-message-attachments-main": {
       "id": "agent-message-attachments-main",
       "pluginId": "agent-message-attachments",
-      "enabled": true,
+      "enabled": false,
       "mount": {
         "slotId": "conversation.message.attachments"
       }
@@ -149,7 +149,7 @@
     "agent-tool-activity-main": {
       "id": "agent-tool-activity-main",
       "pluginId": "agent-tool-activity",
-      "enabled": true,
+      "enabled": false,
       "mount": {
         "slotId": "conversation.message.tool-activity"
       }
@@ -157,7 +157,7 @@
     "agent-tool-message-main": {
       "id": "agent-tool-message-main",
       "pluginId": "agent-tool",
-      "enabled": true,
+      "enabled": false,
       "mount": {
         "slotId": "conversation.message.tool-item"
       }
@@ -192,7 +192,7 @@
     "agent-prompts-main": {
       "id": "agent-prompts-main",
       "pluginId": "agent-suggestions",
-      "enabled": true,
+      "enabled": false,
       "mount": {
         "slotId": "conversation.empty.suggestions"
       },
@@ -220,7 +220,7 @@
     "agent-sender-main": {
       "id": "agent-sender-main",
       "pluginId": "agent-composer",
-      "enabled": true,
+      "enabled": false,
       "mount": {
         "slotId": "conversation.composer"
       },
@@ -250,7 +250,7 @@
     "agent-conversations-main": {
       "id": "agent-conversations-main",
       "pluginId": "agent-conversations",
-      "enabled": true,
+      "enabled": false,
       "mount": {
         "slotId": "agent-conversations"
       }
@@ -258,7 +258,7 @@
     "assistant-ui-thread-list-main": {
       "id": "assistant-ui-thread-list-main",
       "pluginId": "assistant-ui-thread-list",
-      "enabled": false,
+      "enabled": true,
       "mount": {
         "slotId": "agent-conversations"
       }
