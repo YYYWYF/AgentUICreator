@@ -76,6 +76,59 @@ describe("ConversationController", () => {
     expect(controller.getSnapshot().activeConversationId).toBeUndefined();
   });
 
+  it("keeps the authoritative snapshot and records the failed history id", async () => {
+    const dataSource: ConversationDataSource = {
+      list: async () => [],
+      get: async () => {
+        throw new Error("Conversation API request failed (500)");
+      },
+    };
+    const controller = createConversationController({
+      dataSource,
+      startNewConversation: async () => undefined,
+    });
+    const liveSnapshot = controller.getSnapshot();
+
+    await controller.selectConversation("history-broken");
+
+    expect(controller.getSnapshot()).toMatchObject({
+      ...liveSnapshot,
+      detailStatus: "error",
+      detailError: "Conversation API request failed (500)",
+      detailErrorConversationId: "history-broken",
+    });
+    expect(controller.getSnapshot().mode).toBe("live");
+    expect(controller.getSnapshot().activeConversationId).toBeUndefined();
+  });
+
+  it("clears detail errors when a history retry succeeds", async () => {
+    let shouldFail = true;
+    const dataSource: ConversationDataSource = {
+      list: async () => [],
+      get: async (id) => {
+        if (shouldFail) throw new Error("temporary failure");
+        return { id, title: id, messages: [message(id)] };
+      },
+    };
+    const controller = createConversationController({
+      dataSource,
+      startNewConversation: async () => undefined,
+    });
+
+    await controller.selectConversation("history-retry");
+    shouldFail = false;
+    await controller.selectConversation("history-retry");
+
+    expect(controller.getSnapshot()).toMatchObject({
+      mode: "history",
+      activeConversationId: "history-retry",
+      detailStatus: "ready",
+      historyMessages: [expect.objectContaining({ id: "history-retry" })],
+    });
+    expect(controller.getSnapshot().detailError).toBeUndefined();
+    expect(controller.getSnapshot().detailErrorConversationId).toBeUndefined();
+  });
+
   it("prevents a late detail response from overwriting a newer selection", async () => {
     const requests = new Map<string, ReturnType<typeof deferred<ConversationDetail>>>();
     const dataSource: ConversationDataSource = {
@@ -124,6 +177,35 @@ describe("ConversationController", () => {
     await failing.selectConversation("history");
     await expect(failing.startNewConversation()).rejects.toThrow("failed");
     expect(failing.getSnapshot().mode).toBe("history");
+  });
+
+  it("clears detail errors when returning to live or creating a new conversation", async () => {
+    let fail = true;
+    const dataSource: ConversationDataSource = {
+      list: async () => [],
+      get: async (id) => {
+        if (fail) throw new Error("failed");
+        return { id, title: id, messages: [] };
+      },
+    };
+    const controller = createConversationController({
+      dataSource,
+      startNewConversation: async () => undefined,
+    });
+
+    await controller.selectConversation("history");
+    controller.showLiveConversation();
+    expect(controller.getSnapshot().detailErrorConversationId).toBeUndefined();
+
+    await controller.selectConversation("history");
+    fail = false;
+    await controller.startNewConversation();
+    expect(controller.getSnapshot()).toMatchObject({
+      mode: "live",
+      detailStatus: "idle",
+    });
+    expect(controller.getSnapshot().detailError).toBeUndefined();
+    expect(controller.getSnapshot().detailErrorConversationId).toBeUndefined();
   });
 
   it("aborts list and detail requests when disposed", async () => {

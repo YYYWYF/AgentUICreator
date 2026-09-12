@@ -16,6 +16,7 @@ export interface ConversationSnapshot {
   detailStatus: ConversationLoadStatus;
   listError?: string | undefined;
   detailError?: string | undefined;
+  detailErrorConversationId?: string | undefined;
 }
 
 export interface AgentUIConversationService {
@@ -126,6 +127,7 @@ export function createConversationController({
         historyMessages: [],
         detailStatus: "loading",
         detailError: undefined,
+        detailErrorConversationId: undefined,
       });
       try {
         const detail = await dataSource.get(normalizedId, {
@@ -139,6 +141,7 @@ export function createConversationController({
           historyMessages: detail.messages,
           detailStatus: "ready",
           detailError: undefined,
+          detailErrorConversationId: undefined,
         });
         return detail;
       } catch (error) {
@@ -152,6 +155,7 @@ export function createConversationController({
           ...previousSnapshot,
           detailStatus: "error",
           detailError: errorMessage(error),
+          detailErrorConversationId: normalizedId,
         });
         return undefined;
       } finally {
@@ -169,6 +173,7 @@ export function createConversationController({
         historyMessages: [],
         detailStatus: "idle",
         detailError: undefined,
+        detailErrorConversationId: undefined,
       });
     },
     async startNewConversation() {
@@ -184,6 +189,7 @@ export function createConversationController({
         historyMessages: [],
         detailStatus: "idle",
         detailError: undefined,
+        detailErrorConversationId: undefined,
       });
     },
     dispose() {

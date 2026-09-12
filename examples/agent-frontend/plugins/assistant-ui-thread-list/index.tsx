@@ -31,6 +31,7 @@ export function AssistantUiThreadListPlugin(_props: UIPluginComponentProps) {
       className="assistant-ui-thread-list-plugin agent-ui-assistant-ui dark"
       data-agent-run-status={run.status}
       data-conversation-list-status={snapshot.listStatus}
+      data-conversation-detail-status={snapshot.detailStatus}
       data-theme="dark"
       data-ui-plugin="assistant-ui-thread-list"
     >
@@ -52,6 +53,37 @@ export function AssistantUiThreadListPlugin(_props: UIPluginComponentProps) {
             disabled={conversation === undefined}
             onClick={() => {
               void conversation?.refresh();
+            }}
+            size="sm"
+            variant="outline"
+          >
+            重试
+          </Button>
+        </div>
+      ) : null}
+
+      {snapshot.detailStatus === "error" ? (
+        <div
+          className="assistant-ui-thread-list-error"
+          data-slot="agent-ui-thread-detail-error"
+          role="alert"
+        >
+          <strong>历史会话加载失败</strong>
+          {snapshot.detailError === undefined ? null : (
+            <span>{snapshot.detailError}</span>
+          )}
+          <Button
+            disabled={
+              conversation === undefined ||
+              snapshot.detailErrorConversationId === undefined ||
+              navigationLocked
+            }
+            onClick={() => {
+              const failedConversationId = snapshot.detailErrorConversationId;
+              if (failedConversationId === undefined) return;
+              void conversation
+                ?.selectConversation(failedConversationId)
+                .catch(() => undefined);
             }}
             size="sm"
             variant="outline"
