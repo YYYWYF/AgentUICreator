@@ -13,7 +13,9 @@ import {
   ASSISTANT_UI_ADAPTED_PRESENTATION_INSTANCE_IDS,
   ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS,
   ASSISTANT_UI_SPIKE_INSTANCE_ID,
+  ASSISTANT_UI_THREAD_LIST_INSTANCE_ID,
   CONVERSATION_SURFACE_INSTANCE_ID,
+  LEGACY_CONVERSATION_LIST_INSTANCE_ID,
   isAssistantUiSpikeRequested,
 } from "../src/spikes/assistant-ui/spike-mode";
 
@@ -54,6 +56,12 @@ describe("assistant-ui Spike isolation", () => {
     expect(
       normal.pluginInstances[ASSISTANT_UI_SPIKE_INSTANCE_ID]?.enabled,
     ).toBe(false);
+    expect(
+      normal.pluginInstances[LEGACY_CONVERSATION_LIST_INSTANCE_ID]?.enabled,
+    ).toBe(true);
+    expect(
+      normal.pluginInstances[ASSISTANT_UI_THREAD_LIST_INSTANCE_ID]?.enabled,
+    ).toBe(false);
     expectInstancesEnabled(
       normal,
       ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS,
@@ -79,6 +87,12 @@ describe("assistant-ui Spike isolation", () => {
       enabled: false,
       mount: { slotId: "workspace.conversation" },
     });
+    expect(
+      spike.pluginInstances[LEGACY_CONVERSATION_LIST_INSTANCE_ID]?.enabled,
+    ).toBe(false);
+    expect(
+      spike.pluginInstances[ASSISTANT_UI_THREAD_LIST_INSTANCE_ID]?.enabled,
+    ).toBe(true);
     expectInstancesEnabled(
       spike,
       ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS,

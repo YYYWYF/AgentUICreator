@@ -76,6 +76,23 @@ export function AssistantUiAgUiRuntimeProvider<TState = unknown>({
     getThreadId,
     getThreadId,
   );
+  const fallbackThreadListSnapshot = useMemo(
+    () => ({
+      threads: [{ id: threadId, status: "regular" as const }],
+      archivedThreads: [],
+    }),
+    [threadId],
+  );
+  const getThreadListSnapshot = useCallback(
+    () =>
+      threadBinding.getThreadListSnapshot?.() ?? fallbackThreadListSnapshot,
+    [fallbackThreadListSnapshot, threadBinding],
+  );
+  const threadListSnapshot = useSyncExternalStore(
+    subscribeThreadBinding,
+    getThreadListSnapshot,
+    getThreadListSnapshot,
+  );
   const agent = useMemo(
     () => unstable_agentFactory({ endpoint, threadId }),
     [endpoint, unstable_agentFactory],
@@ -85,8 +102,11 @@ export function AssistantUiAgUiRuntimeProvider<TState = unknown>({
   const threadList = useMemo<NonNullable<UseAgUiRuntimeAdapters["threadList"]>>(
     () => ({
       threadId,
-      threads: [{ id: threadId, status: "regular" }],
-      archivedThreads: [],
+      ...(threadListSnapshot.isLoading === undefined
+        ? {}
+        : { isLoading: threadListSnapshot.isLoading }),
+      threads: threadListSnapshot.threads,
+      archivedThreads: threadListSnapshot.archivedThreads,
       onSwitchToNewThread: async () => {
         agent.threadId = await threadBinding.createNewThread();
       },
@@ -95,7 +115,7 @@ export function AssistantUiAgUiRuntimeProvider<TState = unknown>({
         : {
             onSwitchToThread: async (nextThreadId: string) => {
               const loaded = await threadBinding.selectThread!(nextThreadId);
-              agent.threadId = nextThreadId;
+              agent.threadId = threadBinding.getThreadId();
               return {
                 messages: loaded.messages,
                 ...(loaded.state === undefined ? {} : { state: loaded.state as never }),
@@ -103,7 +123,7 @@ export function AssistantUiAgUiRuntimeProvider<TState = unknown>({
             },
           }),
     }),
-    [agent, threadBinding, threadId],
+    [agent, threadBinding, threadId, threadListSnapshot],
   );
   const bridgeRef = useRef<AssistantUiAgentRuntimeBridge<TState> | null>(null);
   const handleError = useCallback((error: Error) => {

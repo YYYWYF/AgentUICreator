@@ -108,8 +108,9 @@ describe("formal assistant-ui surface", () => {
       expect.objectContaining({ id: "p3r3-semantic-slot-seams" }),
       expect.objectContaining({ id: "p3r4b-welcome-presentation-config" }),
       expect.objectContaining({ id: "p3r4c-composer-extension-seam" }),
+      expect.objectContaining({ id: "p3r4d-thread-list-policy-seam" }),
     ]);
-    expect(item.version).toBe("0.1.5");
+    expect(item.version).toBe("0.1.6");
     expect(item.upstream).toMatchObject({
       revision,
       license: "MIT",
@@ -125,6 +126,10 @@ describe("formal assistant-ui surface", () => {
     expect(presentationFiles).toContain(
       "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
     );
+    expect(presentationFiles).toContain(
+      "components/assistant-ui/elements/thread-list.aui.tsx",
+    );
+    expect(presentationFiles).toContain("components/ui/input.tsx");
 
     const lockFiles = lock.items[itemId]?.files;
     expect(lockFiles).toBeDefined();

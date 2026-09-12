@@ -33,6 +33,8 @@ export { createEphemeralAssistantUiThreadBinding } from "./threads/ephemeral-thr
 export type {
   AssistantUiLoadedThread,
   AssistantUiThreadBinding,
+  AssistantUiThreadListItem,
+  AssistantUiThreadListSnapshot,
 } from "./threads/types.js";
 export { createAssistantUiFrontendToolPort } from "./tools/types.js";
 export type { AssistantUiFrontendToolPort } from "./tools/types.js";

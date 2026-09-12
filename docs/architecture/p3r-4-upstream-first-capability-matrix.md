@@ -19,15 +19,15 @@ assistant-ui capability does not exist
   -> AgentUICreator presentation is allowed
 ```
 
-P3R-4C keeps the legacy normal mode intact. The `assistantUiSpike=1`
-AppUIModel projection now also stops the legacy Composer Plugin from overriding
-assistant-ui, while adapters preserve product placeholder, quick-prompt, and
-history read-only policy.
+P3R-4D keeps the legacy normal mode intact. The `assistantUiSpike=1`
+AppUIModel projection now also stops the legacy Composer and Conversation List
+Plugins from overriding assistant-ui, while adapters preserve product
+placeholder, quick-prompt, history, and disabled-conversation policy.
 
 Pinned upstream baseline:
 
 ```text
-Source Registry item: foundation/assistant-ui-conversation@0.1.5
+Source Registry item: foundation/assistant-ui-conversation@0.1.6
 assistant-ui revision: 97bd4b39fce83163354c9ec8d9d4fb2c9bd1aac7
 
 In assistant-ui mode, the pinned assistant-ui native Thread composition owns
@@ -72,7 +72,7 @@ Every target status in this matrix is one of these values:
 | Error presentation | Upstream thread and message error presentation | AgentUICreator retains product diagnostics and transport policy | `assistant-ui-with-agent-ui-adapter` | Reuse upstream UI while retaining AgentUICreator error-policy integration. |
 | Action bar | Upstream message action bar primitives | Legacy message actions remain in the normal path | `assistant-ui-canonical` | Use upstream default in assistant-ui mode; prove product action parity before deletion. |
 | Branch picker | Upstream branch picker primitives | No canonical AgentUICreator replacement is required | `assistant-ui-canonical` | Use upstream presentation when branching data is available. |
-| Thread List | ThreadList and ThreadListItem primitives | `agent-conversations` integrates Conversation Service and history | `assistant-ui-with-agent-ui-adapter` | Defer persistence, selection, and history integration. |
+| Thread List | ThreadList, ThreadListItem, search, loading, and New primitives | `assistant-ui-thread-list` binds the Conversation Service catalog and history hydration | `assistant-ui-with-agent-ui-adapter` | P3R-4D uses the pinned native ThreadList; AgentUICreator supplies live/history identity, catalog data, disabled-navigation policy, and the list error/retry extension. |
 | Conversation persistence | No ownership of AgentUICreator product persistence policy | Conversation Service owns list, identity, persistence, and selection policy | `agent-ui-extension` | Retain the service and expose data to upstream presentation through an adapter. |
 | Inspector | No AgentUICreator workspace diagnostics surface | `workspace-inspector` owns product diagnostics | `agent-ui-extension` | Retain; consume the AgentUICreator observation contract. |
 | Tool detail | Tool fallback is not the product Inspector detail surface | `agent-tool-detail` owns Inspector tool details | `agent-ui-extension` | Retain as an Inspector capability. |
@@ -84,7 +84,7 @@ Every target status in this matrix is one of these values:
 These classifications apply to concrete AgentUICreator components and Plugin
 instances. They do not change Slot IDs or move Slot ownership.
 
-| Component or instance | Target status | P3R-4C state |
+| Component or instance | Target status | P3R-4D state |
 | --- | --- | --- |
 | `conversation-surface` / `agent-conversation-surface-main` | `structural-host` | Enabled; owns `workspace.conversation` and hosts the assistant-ui adapter. |
 | `agent-message-list` / `agent-messages-main` | `structural-host` | Enabled; declares message child Slots and passes through the upstream timeline. |
@@ -95,14 +95,16 @@ instances. They do not change Slot IDs or move Slot ownership.
 | `agent-thread-welcome` / `agent-welcome-main` | `legacy-only` | Disabled only in assistant-ui mode; its live AppUIModel props remain the adapter configuration source. |
 | `agent-suggestions` / `agent-prompts-main` | `legacy-only` | Disabled only in assistant-ui mode; its live AppUIModel items remain the adapter configuration source. |
 | `agent-composer` / `agent-sender-main` | `legacy-only` | Disabled only in assistant-ui mode; its live AppUIModel props remain the adapter configuration source. |
+| `agent-conversations` / `agent-conversations-main` | `legacy-only` | Enabled in normal mode and disabled only in assistant-ui mode; retained for the normal-mode A/B path and remains a P3R-6 deletion candidate. |
+| `assistant-ui-thread-list` / `assistant-ui-thread-list-main` | `assistant-ui-with-agent-ui-adapter` | Disabled in normal mode and enabled only in assistant-ui mode; renders the pinned ThreadList from the Conversation Service-backed thread catalog. |
 
-The following transitional presentation Plugin remains enabled in P3R-4C:
+The following transitional presentation Plugin remains enabled in P3R-4D:
 
 | Instance | Target status | Reason for deferral |
 | --- | --- | --- |
 | `agent-message-sources-main` | `agent-ui-extension` | The pinned upstream presentation is insufficient. |
 
-## 5. P3R-4C projection policy
+## 5. P3R-4D projection policy
 
 The base `app-ui.json` remains the legacy-compatible model. The assistant-ui
 mode projection uses explicit instance IDs; it does not infer ownership from a
@@ -112,6 +114,8 @@ Plugin ID substring, Slot prefix, or capability keyword.
 assistantUiSpike=1
   -> agent-conversation-surface-main enabled
   -> assistant-ui-conversation-spike-main disabled
+  -> agent-conversations-main disabled
+  -> assistant-ui-thread-list-main enabled
   -> agent-reasoning-main disabled
   -> agent-message-attachments-main disabled
   -> agent-tool-message-main disabled
@@ -125,9 +129,9 @@ assistantUiSpike=1
 
 Disabling an instance in this projection does not delete its Plugin definition,
 source, Registry entry, or base AppUIModel instance. Those remain required by
-the normal-mode A/B path. P3R-4C adds only the recorded Composer extension seam
-and product policy/configuration adapters; Runtime ownership and wire lifecycle
-remain unchanged.
+the normal-mode A/B path. P3R-4D adds the recorded ThreadList policy seam and a
+Conversation Service thread binding; Runtime ownership and wire lifecycle remain
+unchanged.
 
 ## 6. Future Creator rule
 
@@ -152,6 +156,6 @@ complete; this phase records the policy only.
 
 ## 7. Phase boundary
 
-P3R-4C does not start Thread List adapter work, does not make assistant-ui the
-default mode, and does not delete legacy code. Thread List integration remains
-deferred; final legacy deletion remains a P3R-6 concern.
+P3R-4D does not make assistant-ui the default mode and does not delete legacy
+code. It integrates the native ThreadList only in the explicit assistant-ui
+projection; final legacy deletion remains a P3R-6 concern.

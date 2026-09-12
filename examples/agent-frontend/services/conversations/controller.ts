@@ -1,5 +1,5 @@
 import type { AgentMessage } from "../../framework/contracts/ui-plugin";
-import type { ConversationSummary } from "./contract";
+import type { ConversationDetail, ConversationSummary } from "./contract";
 import type { ConversationDataSource } from "./data-source";
 
 export const AGENT_UI_CONVERSATION_SERVICE = "agent-ui.conversations";
@@ -22,7 +22,7 @@ export interface AgentUIConversationService {
   getSnapshot(): ConversationSnapshot;
   subscribe(listener: () => void): () => void;
   refresh(): Promise<void>;
-  selectConversation(id: string): Promise<void>;
+  selectConversation(id: string): Promise<ConversationDetail | undefined>;
   showLiveConversation(): void;
   startNewConversation(): Promise<void>;
 }
@@ -114,10 +114,11 @@ export function createConversationController({
     },
     async selectConversation(id) {
       const normalizedId = id.trim();
-      if (normalizedId.length === 0 || disposed) return;
+      if (normalizedId.length === 0 || disposed) return undefined;
       detailRequest?.abort();
       const request = new AbortController();
       detailRequest = request;
+      const previousSnapshot = snapshot;
       update({
         ...snapshot,
         mode: "history",
@@ -130,26 +131,29 @@ export function createConversationController({
         const detail = await dataSource.get(normalizedId, {
           signal: request.signal,
         });
-        if (detailRequest !== request || request.signal.aborted || disposed) return;
+        if (detailRequest !== request || request.signal.aborted || disposed) {
+          return undefined;
+        }
         update({
           ...snapshot,
           historyMessages: detail.messages,
           detailStatus: "ready",
           detailError: undefined,
         });
+        return detail;
       } catch (error) {
         if (
           detailRequest !== request ||
           request.signal.aborted ||
           disposed ||
           isAbortError(error)
-        ) return;
+        ) return undefined;
         update({
-          ...snapshot,
-          historyMessages: [],
+          ...previousSnapshot,
           detailStatus: "error",
           detailError: errorMessage(error),
         });
+        return undefined;
       } finally {
         if (detailRequest === request) detailRequest = undefined;
       }

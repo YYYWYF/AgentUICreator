@@ -4,6 +4,10 @@ export const ASSISTANT_UI_SPIKE_INSTANCE_ID =
   "assistant-ui-conversation-spike-main";
 export const CONVERSATION_SURFACE_INSTANCE_ID =
   "agent-conversation-surface-main";
+export const LEGACY_CONVERSATION_LIST_INSTANCE_ID =
+  "agent-conversations-main";
+export const ASSISTANT_UI_THREAD_LIST_INSTANCE_ID =
+  "assistant-ui-thread-list-main";
 export const ASSISTANT_UI_NATIVE_PRESENTATION_INSTANCE_IDS = [
   "agent-reasoning-main",
   "agent-message-attachments-main",
@@ -29,10 +33,19 @@ export function applyAssistantUiSpikeMode(
     model.pluginInstances[CONVERSATION_SURFACE_INSTANCE_ID];
   const assistantUiSpike =
     model.pluginInstances[ASSISTANT_UI_SPIKE_INSTANCE_ID];
+  const legacyConversationList =
+    model.pluginInstances[LEGACY_CONVERSATION_LIST_INSTANCE_ID];
+  const assistantUiThreadList =
+    model.pluginInstances[ASSISTANT_UI_THREAD_LIST_INSTANCE_ID];
 
-  if (conversationSurface === undefined || assistantUiSpike === undefined) {
+  if (
+    conversationSurface === undefined ||
+    assistantUiSpike === undefined ||
+    legacyConversationList === undefined ||
+    assistantUiThreadList === undefined
+  ) {
     throw new Error(
-      "assistant-ui Spike instances are missing from AppUIModel.",
+      "assistant-ui Spike or Thread List instances are missing from AppUIModel.",
     );
   }
 
@@ -45,6 +58,14 @@ export function applyAssistantUiSpikeMode(
     [ASSISTANT_UI_SPIKE_INSTANCE_ID]: {
       ...assistantUiSpike,
       enabled: false,
+    },
+    [LEGACY_CONVERSATION_LIST_INSTANCE_ID]: {
+      ...legacyConversationList,
+      enabled: false,
+    },
+    [ASSISTANT_UI_THREAD_LIST_INSTANCE_ID]: {
+      ...assistantUiThreadList,
+      enabled: true,
     },
   };
 

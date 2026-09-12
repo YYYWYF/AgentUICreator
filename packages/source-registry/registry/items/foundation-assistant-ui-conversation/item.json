@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "foundation/assistant-ui-conversation",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "kind": "foundation",
   "description": "Pinned assistant-ui Base UI conversation presentation source",
   "upstream": {
@@ -34,11 +34,13 @@
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx" },
+    { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.tsx" },
     { "source": "files/vendor/assistant-ui/components/ui/avatar.tsx", "target": "vendor/assistant-ui/components/ui/avatar.tsx" },
     { "source": "files/vendor/assistant-ui/components/ui/button.tsx", "target": "vendor/assistant-ui/components/ui/button.tsx" },
     { "source": "files/vendor/assistant-ui/components/ui/collapsible.tsx", "target": "vendor/assistant-ui/components/ui/collapsible.tsx" },
     { "source": "files/vendor/assistant-ui/components/ui/dialog.tsx", "target": "vendor/assistant-ui/components/ui/dialog.tsx" },
+    { "source": "files/vendor/assistant-ui/components/ui/input.tsx", "target": "vendor/assistant-ui/components/ui/input.tsx" },
     { "source": "files/vendor/assistant-ui/components/ui/skeleton.tsx", "target": "vendor/assistant-ui/components/ui/skeleton.tsx" },
     { "source": "files/vendor/assistant-ui/components/ui/textarea.tsx", "target": "vendor/assistant-ui/components/ui/textarea.tsx" },
     { "source": "files/vendor/assistant-ui/components/ui/tooltip.tsx", "target": "vendor/assistant-ui/components/ui/tooltip.tsx" },

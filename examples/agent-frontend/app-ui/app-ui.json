@@ -255,6 +255,14 @@
         "slotId": "agent-conversations"
       }
     },
+    "assistant-ui-thread-list-main": {
+      "id": "assistant-ui-thread-list-main",
+      "pluginId": "assistant-ui-thread-list",
+      "enabled": false,
+      "mount": {
+        "slotId": "agent-conversations"
+      }
+    },
     "assistant-ui-conversation-spike-main": {
       "id": "assistant-ui-conversation-spike-main",
       "pluginId": "assistant-ui-conversation-spike",

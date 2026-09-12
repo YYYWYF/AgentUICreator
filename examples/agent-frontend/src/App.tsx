@@ -4,6 +4,7 @@ import {
   useMemo,
   useState,
   useSyncExternalStore,
+  type ReactNode,
 } from "react";
 import { XProvider } from "@ant-design/x";
 import { theme as antdTheme } from "antd";
@@ -11,7 +12,6 @@ import { AuiConfig, Suggestions } from "@assistant-ui/react";
 import { createAgUiTransport } from "@agent-ui/runtime-agui";
 import {
   AssistantUiAgUiRuntimeProvider,
-  createEphemeralAssistantUiThreadBinding,
   useAssistantUiRuntimeBridge,
 } from "@agent-ui/runtime-assistant-ui";
 import {
@@ -60,6 +60,8 @@ import {
   resolveAssistantUiPresentationConfig,
 } from "../agent-ui/adapters/assistant-ui/config";
 import { resolveAgentEndpoint } from "./agent-endpoint";
+import { AssistantUiConversationThreadBindingConnector } from "../agent-ui/adapters/assistant-ui/threads/AssistantUiConversationThreadBindingConnector";
+import { createConversationServiceAssistantUiThreadBinding } from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
 import {
   applyAssistantUiSpikeMode,
   isAssistantUiSpikeRequested,
@@ -187,10 +189,12 @@ function RuntimeConnectedApp({
   model,
   runtime,
   updateInstanceProps,
+  integration,
 }: {
   model: typeof initialAppUIModel;
   runtime: AgentRuntime<AppAgentState>;
   updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
+  integration?: ReactNode;
 }) {
   const pluginActions = useMemo<UIPluginRuntimeActions>(
     () => ({
@@ -213,6 +217,7 @@ function RuntimeConnectedApp({
         model={model}
         registry={pluginRegistry}
       >
+        {integration}
         <ModeShell mode={currentAgentUIMode}>
           <AgentFrontendSurface
             actions={pluginActions}
@@ -263,6 +268,7 @@ function AssistantUiRuntimeConnectedApp({
       model={model}
       runtime={agentRuntime}
       updateInstanceProps={updateInstanceProps}
+      integration={<AssistantUiConversationThreadBindingConnector />}
     />
   );
 }
@@ -275,7 +281,7 @@ function AssistantUiRuntimeBoundary({
   updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
 }) {
   const threadBinding = useMemo(
-    () => createEphemeralAssistantUiThreadBinding(),
+    () => createConversationServiceAssistantUiThreadBinding<AppAgentState>(),
     [],
   );
   const presentationConfig = useMemo(

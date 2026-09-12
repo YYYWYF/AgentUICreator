@@ -1,0 +1,12 @@
+{
+  "id": "assistant-ui-thread-list",
+  "name": "assistant-ui Thread List",
+  "description": "Uses the canonical assistant-ui ThreadList with AgentUICreator conversation policy and data binding.",
+  "version": "1.0.0",
+  "capabilities": [
+    "conversation-create",
+    "conversation-history",
+    "conversation-selection",
+    "plugin-service-consumer"
+  ]
+}

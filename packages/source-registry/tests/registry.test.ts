@@ -301,7 +301,7 @@ describe("Agent UI Source Registry contract", () => {
     const foundation = registry.byId.get("foundation/assistant-ui-conversation");
 
     expect(foundation).toMatchObject({
-      version: "0.1.5",
+      version: "0.1.6",
       kind: "foundation",
       upstream: {
         project: "assistant-ui/assistant-ui",
@@ -312,7 +312,7 @@ describe("Agent UI Source Registry contract", () => {
         license: "MIT",
       },
     });
-    expect(foundation?.files).toHaveLength(24);
+    expect(foundation?.files).toHaveLength(26);
     expect(foundation?.files).toContainEqual(expect.objectContaining({
       target: "vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
     }));
