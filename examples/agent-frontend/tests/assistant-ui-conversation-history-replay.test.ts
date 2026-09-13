@@ -190,6 +190,104 @@ describe("assistant-ui conversation history replay projector", () => {
       });
   });
 
+  it("projects system and developer replay messages into one text part", () => {
+    const replay: ConversationReplay = {
+      version: 1,
+      messages: [
+        {
+          id: "system-1",
+          role: "system",
+          parts: [
+            { type: "text", text: "line one" },
+            { type: "text", text: "line two" },
+          ],
+        },
+        {
+          id: "developer-1",
+          role: "developer",
+          parts: [
+            { type: "text", text: "developer one" },
+            { type: "text", text: "developer two" },
+          ],
+        },
+      ],
+    };
+
+    const [system, developer] = projectConversationReplay(replay);
+    expect(system).toMatchObject({
+      id: "system-1",
+      role: "system",
+      content: [{ type: "text", text: "line one\nline two" }],
+    });
+    expect(system?.role === "system" ? system.content : []).toHaveLength(1);
+    expect(developer).toMatchObject({
+      id: "developer-1",
+      role: "system",
+      content: [{ type: "text", text: "developer one\ndeveloper two" }],
+      metadata: { custom: { originalRole: "developer" } },
+    });
+    expect(developer?.role === "system" ? developer.content : []).toHaveLength(1);
+  });
+
+  it("accepts only JSON-safe replay values across rich fields", () => {
+    const validReplay = {
+      version: 1,
+      messages: [{
+        id: "assistant-json",
+        role: "assistant",
+        parts: [{
+          type: "tool-call",
+          toolCallId: "tool-json",
+          toolName: "search_files",
+          args: {
+            string: "x",
+            number: 1,
+            boolean: true,
+            nil: null,
+            array: [1, "x"],
+            object: { ok: true },
+          },
+          result: {
+            string: "x",
+            number: 1,
+            boolean: true,
+            nil: null,
+            array: [1, "x"],
+            object: { ok: true },
+          },
+        }],
+        status: {
+          type: "incomplete",
+          reason: "error",
+          error: { ok: true },
+        },
+        metadata: { ok: true },
+      }],
+    };
+
+    expect(conversationReplaySchema.safeParse(validReplay).success).toBe(true);
+
+    for (const value of [() => undefined, Symbol("not-json"), new Date()]) {
+      const invalidReplay = {
+        version: 1,
+        messages: [{
+          id: "assistant-invalid-json",
+          role: "assistant",
+          parts: [{
+            type: "tool-call",
+            toolCallId: "tool-invalid-json",
+            toolName: "search_files",
+            args: { value },
+            result: value,
+          }],
+          status: { type: "incomplete", reason: "error", error: value },
+          metadata: { value },
+        }],
+      };
+      expect(conversationReplaySchema.safeParse(invalidReplay).success).toBe(false);
+    }
+  });
+
   it("rejects non-terminal or malformed replay payloads", () => {
     expect(() => conversationReplaySchema.parse({
       version: 1,

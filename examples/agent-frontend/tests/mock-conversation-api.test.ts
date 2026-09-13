@@ -105,14 +105,17 @@ describe("Mock Conversation API", () => {
     const errorResponse = await fetch(
       `${origin}/__agent-ui/mock-data/conversations/conversation-replay-tool-error`,
     );
-    await expect(errorResponse.json()).resolves.toMatchObject({
-      replay: {
-        messages: [expect.objectContaining({
-          status: { type: "incomplete", reason: "error" },
-          parts: [expect.objectContaining({ isError: true })],
-        })],
-      },
-    });
+    const errorPayload = await errorResponse.json();
+    expect(errorPayload).toEqual(expect.objectContaining({
+      replay: expect.objectContaining({
+        messages: expect.arrayContaining([expect.objectContaining({
+          status: expect.objectContaining({ type: "incomplete", reason: "error" }),
+          parts: expect.arrayContaining([
+            expect.objectContaining({ isError: true }),
+          ]),
+        })]),
+      }),
+    }));
   });
 
   it("returns 404 for an unknown conversation", async () => {

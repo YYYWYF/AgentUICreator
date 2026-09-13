@@ -9,7 +9,7 @@ import {
   useLocalRuntime,
   type ChatModelAdapter,
 } from "@assistant-ui/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createAssistantUiSemanticThreadComponents } from "../agent-ui/adapters/assistant-ui/conversation";
 import { AssistantUiConversationSurface } from "../agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationSurface";
@@ -24,6 +24,46 @@ const renderFallback: UIPluginComponentProps["renderSlot"] = (
 ) => fallback;
 const chatModel: ChatModelAdapter = { run: async () => ({ content: [] }) };
 const mountedRoots: Root[] = [];
+
+(
+  globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
+
+class ResizeObserverMock {
+  constructor(_callback: ResizeObserverCallback) {}
+  observe(_target: Element): void {}
+  unobserve(_target: Element): void {}
+  disconnect(): void {}
+}
+
+vi.stubGlobal("ResizeObserver", ResizeObserverMock);
+Object.defineProperty(HTMLElement.prototype, "scrollTo", {
+  configurable: true,
+  value: () => undefined,
+});
+
+async function expandTool(container: HTMLDivElement): Promise<void> {
+  const trigger = container.querySelector('[data-slot="tool-call"] button');
+  if (!(trigger instanceof HTMLElement)) {
+    throw new Error("Tool call trigger is missing.");
+  }
+  await act(async () => {
+    trigger.click();
+    await Promise.resolve();
+  });
+}
+
+async function revealAttachmentName(container: HTMLDivElement): Promise<void> {
+  const trigger = container.querySelector('[aria-label="Document attachment"]');
+  if (!(trigger instanceof HTMLElement)) {
+    throw new Error("Document attachment trigger is missing.");
+  }
+  await act(async () => {
+    trigger.focus();
+    trigger.dispatchEvent(new Event("focusin", { bubbles: true }));
+    await Promise.resolve();
+  });
+}
 
 function RichHistoryFixture({ conversationId }: { conversationId: string }) {
   const fixture = mockConversationFixtures.find(
@@ -82,14 +122,17 @@ describe("assistant-ui rich history UI integration", () => {
     const container = await renderHistory("conversation-replay-tool");
 
     expect(container.querySelector('[data-slot="tool-call"]')).not.toBeNull();
+    await expandTool(container);
     expect(container.textContent).toContain("Searched files");
     expect(container.textContent).toContain("Request");
+    expect(container.textContent).toContain("Result");
   });
 
   it("renders persisted sources and attachments in the Thread", async () => {
     const container = await renderHistory("conversation-replay-sources-attachments");
 
-    expect(container.textContent).toContain("architecture-notes.md");
+    await revealAttachmentName(container);
+    expect(document.body.textContent).toContain("architecture-notes.md");
     expect(container.textContent).toContain("AG-UI Runtime Notes");
     expect(container.textContent).toContain("Architecture Notes");
   });

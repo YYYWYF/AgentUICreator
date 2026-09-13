@@ -230,13 +230,20 @@ function projectReplayAssistantMessage(
   };
 }
 
+function replaySystemText(
+  message: ConversationReplaySystemMessageDto | ConversationReplayDeveloperMessageDto,
+): string {
+  return message.parts.map((part) => part.text).join("\n");
+}
+
 function projectReplaySystemMessage(
   message: ConversationReplaySystemMessageDto | ConversationReplayDeveloperMessageDto,
 ): ThreadMessage {
+  const text = replaySystemText(message);
   return {
     id: message.id,
     role: "system",
-    content: message.parts.map((part) => ({ type: "text", text: part.text })),
+    content: [{ type: "text", text }],
     createdAt: createdAtFor(message.createdAt),
     metadata: metadataFor(
       message.metadata,

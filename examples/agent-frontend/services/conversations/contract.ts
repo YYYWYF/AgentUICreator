@@ -40,7 +40,11 @@ export type ConversationReplayJsonValue =
   | number
   | string
   | ConversationReplayJsonValue[]
-  | { [key: string]: ConversationReplayJsonValue };
+  | ConversationReplayJsonObject;
+
+export type ConversationReplayJsonObject = {
+  [key: string]: ConversationReplayJsonValue;
+};
 
 export interface ConversationReplayTextPartDto {
   type: "text";
@@ -58,9 +62,9 @@ export interface ConversationReplayToolCallPartDto {
   type: "tool-call";
   toolCallId: string;
   toolName: string;
-  args: Record<string, unknown>;
+  args: ConversationReplayJsonObject;
   argsText?: string | undefined;
-  result?: unknown;
+  result?: ConversationReplayJsonValue | undefined;
   isError?: boolean | undefined;
 }
 
@@ -109,7 +113,7 @@ export type ConversationReplayAssistantStatusDto =
         | "content-filter"
         | "other"
         | "error";
-      error?: unknown;
+      error?: ConversationReplayJsonValue | undefined;
     };
 
 export interface ConversationReplayUserMessageDto {
@@ -118,7 +122,7 @@ export interface ConversationReplayUserMessageDto {
   parts: ConversationReplayUserPartDto[];
   attachments?: ConversationReplayAttachmentDto[] | undefined;
   createdAt?: string | undefined;
-  metadata?: Record<string, unknown> | undefined;
+  metadata?: ConversationReplayJsonObject | undefined;
 }
 
 export interface ConversationReplayAssistantMessageDto {
@@ -127,7 +131,7 @@ export interface ConversationReplayAssistantMessageDto {
   parts: ConversationReplayAssistantPartDto[];
   status?: ConversationReplayAssistantStatusDto | undefined;
   createdAt?: string | undefined;
-  metadata?: Record<string, unknown> | undefined;
+  metadata?: ConversationReplayJsonObject | undefined;
 }
 
 export interface ConversationReplaySystemMessageDto {
@@ -135,7 +139,7 @@ export interface ConversationReplaySystemMessageDto {
   role: "system";
   parts: ConversationReplayTextPartDto[];
   createdAt?: string | undefined;
-  metadata?: Record<string, unknown> | undefined;
+  metadata?: ConversationReplayJsonObject | undefined;
 }
 
 export interface ConversationReplayDeveloperMessageDto {
@@ -143,7 +147,7 @@ export interface ConversationReplayDeveloperMessageDto {
   role: "developer";
   parts: ConversationReplayTextPartDto[];
   createdAt?: string | undefined;
-  metadata?: Record<string, unknown> | undefined;
+  metadata?: ConversationReplayJsonObject | undefined;
 }
 
 export type ConversationReplayMessageDto =

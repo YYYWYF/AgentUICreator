@@ -58,11 +58,23 @@ describe("Mock Agent official element renderers", () => {
     expect(production).not.toHaveProperty("mock_agent_plan");
     expect(production).not.toHaveProperty("mock_agent_status");
     expect(production).not.toHaveProperty("mock_subagents");
-    expect(mock.mock_agent_plan.type).toBe("backend");
-    expect(mock.mock_agent_status.type).toBe("backend");
-    expect(mock.mock_subagents.type).toBe("backend");
-    expect((mock.mock_agent_plan as Record<string, unknown>).execute)
-      .toBeUndefined();
+    const mockAgentPlan = mock.mock_agent_plan;
+    const mockAgentStatus = mock.mock_agent_status;
+    const mockSubagents = mock.mock_subagents;
+    expect(mockAgentPlan).toBeDefined();
+    expect(mockAgentStatus).toBeDefined();
+    expect(mockSubagents).toBeDefined();
+    if (
+      mockAgentPlan === undefined ||
+      mockAgentStatus === undefined ||
+      mockSubagents === undefined
+    ) {
+      throw new Error("Mock Agent Elements toolkit entries are missing.");
+    }
+    expect(mockAgentPlan.type).toBe("backend");
+    expect(mockAgentStatus.type).toBe("backend");
+    expect(mockSubagents.type).toBe("backend");
+    expect("execute" in mockAgentPlan).toBe(false);
   });
 
   it("renders the official AgentPlan from the shared projection", async () => {
@@ -114,8 +126,12 @@ describe("Mock Agent official element renderers", () => {
 
     expect(container.querySelector('[data-slot="subagent-list"]')).not.toBeNull();
     expect(container.querySelectorAll('[role="progressbar"]')).toHaveLength(3);
-    expect(container.querySelectorAll('[role="progressbar"]')[1])
-      .toHaveAttribute("aria-valuenow", "100");
+    const completedProgress = container.querySelectorAll('[role="progressbar"]')[1];
+    expect(completedProgress).toBeDefined();
+    if (completedProgress === undefined) {
+      throw new Error("Completed subagent progress bar is missing.");
+    }
+    expect(completedProgress.getAttribute("aria-valuenow")).toBe("100");
     expect(container.textContent).toContain("Agent B");
   });
 
