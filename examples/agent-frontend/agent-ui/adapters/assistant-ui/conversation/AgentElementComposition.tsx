@@ -47,7 +47,6 @@ function SubagentAggregate({
       progress={projection.view.progress}
       showSummary={projection.view.showSummary}
       summaryAgent={projection.view.summaryAgent}
-      className="min-h-0"
     />
   );
 }

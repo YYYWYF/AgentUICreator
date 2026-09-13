@@ -27,8 +27,8 @@ export type AssistantUiToolGroupVariant = "ghost" | "outline" | "muted";
 export type AssistantUiReasoningVariant = "ghost" | "outline" | "muted";
 
 export interface AssistantUiInteractionPresentationConfig {
-  reasoningVariant: AssistantUiReasoningVariant;
-  toolGroupVariant: AssistantUiToolGroupVariant;
+  reasoningVariant?: AssistantUiReasoningVariant;
+  toolGroupVariant?: AssistantUiToolGroupVariant;
 }
 
 export interface AssistantUiPresentationConfig {
@@ -50,12 +50,20 @@ function readRecord(value: unknown): Record<string, unknown> {
     : {};
 }
 
-function readToolGroupVariant(value: unknown): AssistantUiToolGroupVariant {
-  return value === "ghost" || value === "muted" ? value : "outline";
+function readToolGroupVariant(
+  value: unknown,
+): AssistantUiToolGroupVariant | undefined {
+  return value === "ghost" || value === "outline" || value === "muted"
+    ? value
+    : undefined;
 }
 
-function readReasoningVariant(value: unknown): AssistantUiReasoningVariant {
-  return value === "ghost" || value === "muted" ? value : "outline";
+function readReasoningVariant(
+  value: unknown,
+): AssistantUiReasoningVariant | undefined {
+  return value === "ghost" || value === "outline" || value === "muted"
+    ? value
+    : undefined;
 }
 
 function readWelcome(value: unknown): AssistantUiWelcomeConfig {
@@ -150,6 +158,12 @@ export function resolveAssistantUiPresentationConfig(
   const composerProps = readRecord(assistantUiPresentation.composer);
   const interactionsProps = readRecord(assistantUiPresentation.interactions);
   const placeholder = readNonEmptyString(composerProps.placeholder);
+  const reasoningVariant = readReasoningVariant(
+    interactionsProps.reasoningVariant,
+  );
+  const toolGroupVariant = readToolGroupVariant(
+    interactionsProps.toolGroupVariant,
+  );
 
   return {
     welcome: readWelcome(welcomeProps),
@@ -161,8 +175,8 @@ export function resolveAssistantUiPresentationConfig(
       quickPrompts: readComposerQuickPrompts(composerProps.quickPrompts),
     },
     interactions: {
-      reasoningVariant: readReasoningVariant(interactionsProps.reasoningVariant),
-      toolGroupVariant: readToolGroupVariant(interactionsProps.toolGroupVariant),
+      ...(reasoningVariant === undefined ? {} : { reasoningVariant }),
+      ...(toolGroupVariant === undefined ? {} : { toolGroupVariant }),
     },
   };
 }

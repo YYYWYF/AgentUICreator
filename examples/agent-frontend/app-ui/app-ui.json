@@ -15,14 +15,6 @@
       "id": "agent-conversation-surface-main",
       "pluginId": "conversation-surface",
       "enabled": true,
-      "props": {
-        "assistantUiPresentation": {
-          "interactions": {
-            "reasoningVariant": "ghost",
-            "toolGroupVariant": "ghost"
-          }
-        }
-      },
       "mount": {
         "slotId": "workspace.conversation"
       }

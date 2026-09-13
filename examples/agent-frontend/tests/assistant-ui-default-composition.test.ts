@@ -74,21 +74,17 @@ describe("assistant-ui default composition", () => {
     });
     expect(model.pluginInstances["agent-conversation-surface-main"]).toMatchObject({
       mount: { slotId: "workspace.conversation" },
-      props: {
-        assistantUiPresentation: {
-          interactions: { reasoningVariant: "ghost", toolGroupVariant: "ghost" },
-        },
-      },
     });
+    expect(model.pluginInstances["agent-conversation-surface-main"]?.props).toBeUndefined();
   });
 
-  it("uses explicit Agent Demo interaction presentation while preserving upstream fallback", () => {
+  it("leaves interaction presentation unconfigured so the adapter owns the upstream fallback", () => {
     const model = parseAppUIModel(appUIJson);
     expect(resolveAssistantUiPresentationConfig(model)).toEqual({
       welcome: {},
       starterSuggestions: [],
       composer: { quickPrompts: [] },
-      interactions: { reasoningVariant: "ghost", toolGroupVariant: "ghost" },
+      interactions: {},
     });
   });
 

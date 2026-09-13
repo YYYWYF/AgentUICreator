@@ -328,6 +328,8 @@ export function SemanticReasoningOutlet({
   );
   const status = projectReasoningStatus(group.status);
   const running = status === "running";
+  const explicitReasoningVariant =
+    presentationConfig.interactions.reasoningVariant;
   const message: ReasoningAgentMessage = {
     id: `${threadMessage.id}:reasoning-group:${group.indices.join("-")}`,
     role: "reasoning",
@@ -338,9 +340,10 @@ export function SemanticReasoningOutlet({
   const fallback = (
     <ReasoningRoot
       data-agent-ui-composition-part="reasoning"
-      variant={presentationConfig.interactions.reasoningVariant}
       streaming={running}
-      className="my-1 mb-3"
+      {...(explicitReasoningVariant === undefined
+        ? {}
+        : { variant: explicitReasoningVariant })}
     >
       <ReasoningTrigger active={running} />
       <ReasoningContent aria-busy={running}>
@@ -384,11 +387,12 @@ export function SemanticToolActivityOutlet({
     requiresActionToolCallIds,
   );
   const presentationConfig = useAssistantUiPresentationConfig();
+  const explicitToolGroupVariant =
+    presentationConfig.interactions.toolGroupVariant;
   const fallback = (
     <ToolGroupRoot
       data-agent-ui-composition-part="tool-group"
-      variant={presentationConfig.interactions.toolGroupVariant}
-      className="my-1"
+      variant={explicitToolGroupVariant ?? "ghost"}
       open={disclosure.expanded}
       onOpenChange={disclosure.onExpandedChange}
     >

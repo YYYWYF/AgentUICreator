@@ -10,7 +10,7 @@ const EMPTY_ASSISTANT_UI_PRESENTATION_CONFIG: AssistantUiPresentationConfig = {
   welcome: {},
   starterSuggestions: [],
   composer: { quickPrompts: [] },
-  interactions: { reasoningVariant: "outline", toolGroupVariant: "outline" },
+  interactions: {},
 };
 
 const AssistantUiPresentationConfigContext =

@@ -71,11 +71,7 @@ describe("AppUIModel", () => {
       pluginId: "assistant-ui-workspace-shell",
       mount: { slotId: "workspace.shell" },
     });
-    expect(model.pluginInstances["agent-conversation-surface-main"]?.props).toEqual({
-      assistantUiPresentation: {
-        interactions: { reasoningVariant: "ghost", toolGroupVariant: "ghost" },
-      },
-    });
+    expect(model.pluginInstances["agent-conversation-surface-main"]?.props).toBeUndefined();
   });
 
   it("rejects malformed JSON", () => {
