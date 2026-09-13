@@ -247,6 +247,39 @@ describe("Mock Agent HTTP endpoint", () => {
     });
   });
 
+  it("runs the subagent demo through the real HttpAgent", async () => {
+    const endpoint = await startMockServer(builtinMockScenarios);
+    const agent = new HttpAgent({
+      url: `${endpoint}?scenario=subagents&speed=0`,
+      threadId: "thread-subagents",
+    });
+    agent.addMessage({
+      id: "user-subagents",
+      role: "user",
+      content: "请并行检查当前 Agent UI 的架构、Runtime 和界面实现。",
+    });
+
+    const events = await collectAgentRun(agent, { runId: "run-subagents" });
+    const starts = events.filter((event) =>
+      event.type === EventType.TOOL_CALL_START,
+    );
+    const firstResultIndex = events.findIndex((event) =>
+      event.type === EventType.TOOL_CALL_RESULT,
+    );
+
+    expect(starts).toHaveLength(3);
+    expect(starts.every((event) => event.toolCallName === "mock_dispatch_subagent"))
+      .toBe(true);
+    expect(firstResultIndex).toBeGreaterThan(-1);
+    expect(events.slice(0, firstResultIndex).filter((event) =>
+      event.type === EventType.TOOL_CALL_START,
+    )).toHaveLength(3);
+    expect(events.at(-1)).toMatchObject({
+      type: EventType.RUN_FINISHED,
+      outcome: { type: "success" },
+    });
+  });
+
   it("runs agent-elements-showcase through the real HttpAgent", async () => {
     const endpoint = await startMockServer(builtinMockScenarios);
     const agent = new HttpAgent({

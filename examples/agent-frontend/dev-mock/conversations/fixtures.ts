@@ -143,6 +143,80 @@ const agentElementsReplay: ConversationReplay = {
   ],
 };
 
+const subagentsReplay: ConversationReplay = {
+  version: 1,
+  messages: [
+    {
+      id: "replay-subagents-user",
+      role: "user",
+      parts: [{ type: "text", text: "请并行检查当前 Agent UI 的架构、Runtime 和界面实现。" }],
+      createdAt: "2026-09-07T11:00:30Z",
+    },
+    {
+      id: "replay-subagents-assistant",
+      role: "assistant",
+      parts: [
+        {
+          type: "reasoning",
+          text: "我把三个检查任务交给独立子 Agent。",
+        },
+        {
+          type: "tool-call",
+          toolCallId: "replay-subagents-architecture",
+          toolName: "mock_dispatch_subagent",
+          args: {
+            name: "Architecture Researcher",
+            model: "mimo-v2.5-pro",
+          },
+          result: {
+            name: "Architecture Researcher",
+            model: "mimo-v2.5-pro",
+            status: "completed",
+            progress: 100,
+          },
+        },
+        {
+          type: "tool-call",
+          toolCallId: "replay-subagents-runtime",
+          toolName: "mock_dispatch_subagent",
+          args: {
+            name: "Runtime Inspector",
+            model: "mimo-v2.5-pro",
+          },
+          result: {
+            name: "Runtime Inspector",
+            model: "mimo-v2.5-pro",
+            status: "completed",
+            progress: 100,
+          },
+        },
+        {
+          type: "tool-call",
+          toolCallId: "replay-subagents-ui",
+          toolName: "mock_dispatch_subagent",
+          args: {
+            name: "UI Reviewer",
+            model: "mimo-v2.5-pro",
+          },
+          result: {
+            name: "UI Reviewer",
+            model: "mimo-v2.5-pro",
+            status: "completed",
+            progress: 100,
+          },
+        },
+        {
+          type: "text",
+          text: "三个子 Agent 的检查都已完成，结果已经汇总。",
+        },
+      ],
+      status: { type: "complete", reason: "stop" },
+      createdAt: "2026-09-07T11:00:36Z",
+      metadata: { replayFixture: "subagents" },
+    },
+  ],
+};
+
 const reasoningToolReplay: ConversationReplay = {
   version: 1,
   messages: [
@@ -420,6 +494,20 @@ export const mockConversationFixtures: readonly MockConversationFixture[] = [
       agentElementsReplay,
     ),
     sourceScenarioId: "agent-elements-showcase",
+  },
+  {
+    summary: {
+      id: "conversation-replay-subagents",
+      title: "回放：Subagents",
+      group: "P5-C2 回放",
+      updatedAt: "2026-09-07T11:00:36Z",
+    },
+    detail: detailFromReplay(
+      "conversation-replay-subagents",
+      "回放：Subagents",
+      subagentsReplay,
+    ),
+    sourceScenarioId: "subagents",
   },
   {
     summary: {

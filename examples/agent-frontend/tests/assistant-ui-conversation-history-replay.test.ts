@@ -10,6 +10,7 @@ import {
   projectConversationHistory,
   projectConversationReplay,
 } from "../agent-ui/adapters/assistant-ui/threads/conversation-history-projector";
+import { mockConversationFixtures } from "../dev-mock/conversations/fixtures";
 
 describe("assistant-ui conversation history replay projector", () => {
   it("keeps legacy text-only details on the existing projection", () => {
@@ -83,6 +84,40 @@ describe("assistant-ui conversation history replay projector", () => {
       },
       { type: "text", text: "Done" },
     ]);
+  });
+
+  it("projects the dedicated Subagents replay as three terminal dispatch calls", () => {
+    const fixture = mockConversationFixtures.find(
+      (candidate) => candidate.detail.id === "conversation-replay-subagents",
+    );
+    if (fixture === undefined || fixture.detail.replay === undefined) {
+      throw new Error("Dedicated Subagents replay fixture is missing.");
+    }
+
+    const messages = projectConversationDetail(fixture.detail);
+    const assistant = messages.find(
+      (message) => message.id === "replay-subagents-assistant",
+    );
+    if (assistant?.role !== "assistant") {
+      throw new Error("Subagents replay assistant message is missing.");
+    }
+
+    const dispatches = assistant.content.filter(
+      (part): part is Extract<typeof part, { type: "tool-call" }> =>
+        part.type === "tool-call",
+    );
+    expect(dispatches).toHaveLength(3);
+    expect(dispatches.map((part) => part.toolName)).toEqual([
+      "mock_dispatch_subagent",
+      "mock_dispatch_subagent",
+      "mock_dispatch_subagent",
+    ]);
+    expect(dispatches.map((part) => part.result)).toEqual([
+      expect.objectContaining({ status: "completed", progress: 100 }),
+      expect.objectContaining({ status: "completed", progress: 100 }),
+      expect.objectContaining({ status: "completed", progress: 100 }),
+    ]);
+    expect(assistant.status).toEqual({ type: "complete", reason: "stop" });
   });
 
   it("maps replay attachments and both official source shapes", () => {

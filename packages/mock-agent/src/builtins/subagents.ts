@@ -36,12 +36,16 @@ export function subagentDispatchTool(
 
 export const subagentsScenario = defineScenario({
   id: "subagents",
-  title: "Subagent Dispatch",
-  description: "通过多个真实 dispatch tool call 聚合 SubagentList。",
+  title: "Subagents",
+  description: "并行检查架构、Runtime 和界面实现，观察三个子 Agent 的进度。",
   category: "agent",
-  capabilities: ["tool", "subagent"],
+  capabilities: ["tool", "parallel-tool", "subagent"],
   steps: [
-    { type: "reasoning", text: "我把检查拆给多个子 Agent 并行观察。", durationMs: 400 },
+    {
+      type: "reasoning",
+      text: "我把架构、Runtime 和 UI 检查拆给三个子 Agent 并行处理。",
+      durationMs: 900,
+    },
     {
       type: "parallel-tools",
       tools: [
@@ -49,24 +53,28 @@ export const subagentsScenario = defineScenario({
           id: "subagent-architecture",
           name: "Architecture Researcher",
           progress: 20,
-          durationMs: 500,
+          durationMs: 2_400,
         }),
         subagentDispatchTool({
           id: "subagent-runtime",
           name: "Runtime Inspector",
-          progress: 42,
-          durationMs: 600,
-          startDelayMs: 40,
+          progress: 45,
+          durationMs: 1_600,
+          startDelayMs: 150,
         }),
         subagentDispatchTool({
           id: "subagent-ui",
           name: "UI Reviewer",
-          progress: 68,
-          durationMs: 350,
-          startDelayMs: 80,
+          progress: 70,
+          durationMs: 1_000,
+          startDelayMs: 300,
         }),
       ],
     },
-    { type: "message", text: "子 Agent 检查已汇总。", intervalMs: 35 },
+    {
+      type: "message",
+      text: "三个子 Agent 的检查都已完成，我已经汇总结果。",
+      intervalMs: 45,
+    },
   ],
 });

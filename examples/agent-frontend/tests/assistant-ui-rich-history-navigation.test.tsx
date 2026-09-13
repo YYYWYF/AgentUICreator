@@ -326,6 +326,32 @@ describe("assistant-ui rich history navigation", () => {
     ]);
   });
 
+  it("hydrates dedicated Subagents replay without rerunning the Agent", async () => {
+    const { agent, binding, container, runtime } = await mountRuntime();
+
+    await act(async () => {
+      await runtime.threads.switchToThread("conversation-replay-subagents");
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(binding.getThreadId()).toBe("conversation-replay-subagents");
+    expect(runtime.thread.getState().threadId).toBe("conversation-replay-subagents");
+    const message = assistantMessage(runtime, "replay-subagents-assistant");
+    const dispatches = message.content.filter((part) => part.type === "tool-call");
+    expect(dispatches).toHaveLength(3);
+    expect(dispatches.every((part) =>
+      part.type === "tool-call" && part.toolName === "mock_dispatch_subagent"
+    )).toBe(true);
+    expect(container.querySelectorAll('[data-slot="subagent-list"]')).toHaveLength(1);
+    expect(container.querySelector('[data-slot="tool-group-trigger"]')).toBeNull();
+    expect(container.textContent).toContain("Architecture Researcher");
+    expect(container.textContent).toContain("Runtime Inspector");
+    expect(container.textContent).toContain("UI Reviewer");
+    expect(container.textContent).not.toContain("3 tool calls");
+    expect(agent.runAgent).not.toHaveBeenCalled();
+  });
+
   it("hydrates reasoning and tool replay with args and result through navigation", async () => {
     const { agent, binding, container, runtime } = await mountRuntime();
 

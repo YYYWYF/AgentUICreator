@@ -43,6 +43,10 @@ describe("Mock Conversation API", () => {
       conversations: expect.arrayContaining([
         expect.objectContaining({ id: "conversation-agent-ui" }),
         expect.objectContaining({ id: "conversation-replay-agent-elements" }),
+        expect.objectContaining({
+          id: "conversation-replay-subagents",
+          title: "回放：Subagents",
+        }),
         expect.objectContaining({ id: "conversation-replay-tool-error" }),
       ]),
     });
@@ -78,6 +82,38 @@ describe("Mock Conversation API", () => {
             id: "replay-agent-elements-assistant",
             role: "assistant",
             status: { type: "complete", reason: "stop" },
+          }),
+        ],
+      },
+    });
+  });
+
+  it("returns the dedicated Subagents replay fixture", async () => {
+    const response = await fetch(
+      `${origin}/__agent-ui/mock-data/conversations/conversation-replay-subagents`,
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      id: "conversation-replay-subagents",
+      title: "回放：Subagents",
+      replay: {
+        messages: [
+          expect.objectContaining({
+            id: "replay-subagents-user",
+            role: "user",
+          }),
+          expect.objectContaining({
+            id: "replay-subagents-assistant",
+            role: "assistant",
+            parts: expect.arrayContaining([
+              expect.objectContaining({
+                toolName: "mock_dispatch_subagent",
+                result: expect.objectContaining({
+                  status: "completed",
+                  progress: 100,
+                }),
+              }),
+            ]),
           }),
         ],
       },

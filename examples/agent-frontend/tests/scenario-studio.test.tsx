@@ -32,9 +32,9 @@ const catalog = {
     {
       id: "subagents",
       title: "Subagents",
-      description: "Dispatches three deterministic subagents.",
+      description: "Dispatches three semantic subagents in parallel.",
       category: "agent",
-      capabilities: ["subagent"],
+      capabilities: ["tool", "parallel-tool", "subagent"],
     },
   ],
 };

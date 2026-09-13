@@ -153,6 +153,26 @@ const agentElementsMessage: ThreadMessageLike = {
   status: { type: "complete", reason: "stop" },
 };
 
+const subagentsDemoMessage: ThreadMessageLike = {
+  id: "subagents-demo-composition-sequence",
+  role: "assistant",
+  content: [
+    ...[
+      ["Architecture Researcher", "running", 20],
+      ["Runtime Inspector", "completed", 100],
+      ["UI Reviewer", "completed", 100],
+    ] as const,
+  ].map(([name, status, progress], index) => ({
+    type: "tool-call" as const,
+    toolCallId: `subagents-demo-${index}`,
+    toolName: "mock_dispatch_subagent",
+    args: { name, model: "mimo-v2.5-pro", status, progress },
+    argsText: JSON.stringify({ name, model: "mimo-v2.5-pro", status, progress }),
+    result: { name, model: "mimo-v2.5-pro", status, progress },
+  })),
+  status: { type: "complete", reason: "stop" },
+};
+
 const malformedDispatchMessage: ThreadMessageLike = {
   id: "malformed-dispatch-composition",
   role: "assistant",
@@ -330,6 +350,37 @@ describe("assistant-ui Agent Message composition", () => {
     expect(renderedText(renderer)).toContain("Agent A");
     expect(renderedText(renderer)).toContain("Agent B");
     expect(renderedText(renderer)).toContain("Agent C");
+  });
+
+  it("renders the live Subagents demo as one aggregate with semantic workers", async () => {
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    let renderer: ReactTestRenderer | undefined;
+    await act(async () => {
+      renderer = create(
+        <MessageCompositionFixture
+          initialMessages={[subagentsDemoMessage]}
+          mockAgentElements
+        />,
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    if (renderer === undefined) {
+      throw new Error("Subagents demo renderer was not created.");
+    }
+    mountedRenderers.push(renderer);
+
+    expect(renderer.root.findAllByProps({
+      "data-slot": "subagent-list",
+    })).toHaveLength(1);
+    expect(renderer.root.findAllByProps({
+      "data-slot": "tool-group-trigger",
+    })).toHaveLength(0);
+    expect(renderedText(renderer)).toContain("Architecture Researcher");
+    expect(renderedText(renderer)).toContain("Runtime Inspector");
+    expect(renderedText(renderer)).toContain("UI Reviewer");
   });
 
   it("keeps ordinary tools in the official ToolGroup", async () => {

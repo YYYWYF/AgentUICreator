@@ -10,6 +10,7 @@ import {
   builtinMockScenarios,
   parallelToolsScenario,
   subagentLifecycleScenario,
+  subagentsScenario,
 } from "../src/builtins/index.js";
 import { runMockScenario } from "../src/scenario-runner.js";
 import { defineScenario, type MockScenario } from "../src/scenario.js";
@@ -140,6 +141,37 @@ describe("P5-A mock scenarios", () => {
       subagentRunId: "lifecycle-error",
       message: "Worker failed",
       code: "WORKER_FAILED",
+    }));
+  });
+
+  it("runs the recommended subagent demo as three parallel dispatches", async () => {
+    const events = await collect(subagentsScenario);
+    const starts = events.filter((event) =>
+      event.type === EventType.TOOL_CALL_START,
+    );
+    const firstResultIndex = events.findIndex((event) =>
+      event.type === EventType.TOOL_CALL_RESULT,
+    );
+
+    expect(subagentsScenario).toMatchObject({
+      category: "agent",
+      capabilities: ["tool", "parallel-tool", "subagent"],
+    });
+    expect(starts).toHaveLength(3);
+    expect(starts.map((event) => event.toolCallId)).toEqual([
+      "subagent-architecture",
+      "subagent-runtime",
+      "subagent-ui",
+    ]);
+    expect(starts.every((event) => event.toolCallName === "mock_dispatch_subagent"))
+      .toBe(true);
+    expect(firstResultIndex).toBeGreaterThan(-1);
+    expect(events.slice(0, firstResultIndex).filter((event) =>
+      event.type === EventType.TOOL_CALL_START,
+    )).toHaveLength(3);
+    expect(events).toContainEqual(expect.objectContaining({
+      type: EventType.TEXT_MESSAGE_CONTENT,
+      delta: "三",
     }));
   });
 });

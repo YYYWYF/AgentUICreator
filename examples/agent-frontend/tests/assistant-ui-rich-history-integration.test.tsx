@@ -123,6 +123,22 @@ describe("assistant-ui rich history UI integration", () => {
     expect(container.textContent).toContain("Analysis complete");
   });
 
+  it("renders the dedicated Subagents replay as one compact aggregate", async () => {
+    const container = await renderHistory("conversation-replay-subagents");
+
+    const subagentLists = container.querySelectorAll('[data-slot="subagent-list"]');
+    expect(subagentLists).toHaveLength(1);
+    const subagentList = subagentLists[0];
+    expect(subagentList?.classList.contains("min-h-0")).toBe(true);
+    expect(subagentList?.classList.contains("min-h-[14.5rem]")).toBe(false);
+    expect(container.querySelector('[data-slot="tool-group-trigger"]')).toBeNull();
+    expect(container.textContent).toContain("Architecture Researcher");
+    expect(container.textContent).toContain("Runtime Inspector");
+    expect(container.textContent).toContain("UI Reviewer");
+    expect(container.textContent).toContain("三个子 Agent 的检查都已完成，结果已经汇总。");
+    expect(container.textContent).not.toContain("3 tool calls");
+  });
+
   it("renders persisted SearchFiles history through the official Tool UI", async () => {
     const container = await renderHistory("conversation-replay-tool");
 
