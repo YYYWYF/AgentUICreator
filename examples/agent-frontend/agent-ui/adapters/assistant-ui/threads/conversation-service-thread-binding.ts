@@ -18,6 +18,7 @@ export interface ConversationServiceAssistantUiThreadBinding<TState = unknown>
   extends AssistantUiThreadBinding<TState> {
   getThreadListSnapshot(): AssistantUiThreadListSnapshot;
   selectThread(threadId: string): Promise<AssistantUiLoadedThread<TState>>;
+  setNavigationLocked(locked: boolean): void;
   attachConversationService(
     service: AgentUIConversationService,
   ): () => void;
@@ -30,6 +31,15 @@ export class ConversationThreadSelectionDisabledError extends Error {
   constructor(threadId: string) {
     super(`Conversation "${threadId}" is disabled and cannot be selected.`);
     this.name = "ConversationThreadSelectionDisabledError";
+  }
+}
+
+export class ConversationNavigationLockedError extends Error {
+  readonly code = "AGENT_UI_CONVERSATION_NAVIGATION_LOCKED";
+
+  constructor() {
+    super("Conversation navigation is locked while the agent run is active.");
+    this.name = "ConversationNavigationLockedError";
   }
 }
 
@@ -127,6 +137,7 @@ export function createConversationServiceAssistantUiThreadBinding<
   let conversationService: AgentUIConversationService | undefined;
   let conversationSnapshot: ConversationSnapshot | undefined;
   let serviceUnsubscribe: (() => void) | undefined;
+  let navigationLocked = false;
   let threadListSnapshot = createListSnapshot(liveThreadId, undefined);
   const listeners = new Set<() => void>();
 
@@ -156,6 +167,9 @@ export function createConversationServiceAssistantUiThreadBinding<
       return () => listeners.delete(listener);
     },
     getThreadListSnapshot: () => threadListSnapshot,
+    setNavigationLocked(locked) {
+      navigationLocked = locked;
+    },
     attachConversationService(service) {
       serviceUnsubscribe?.();
       conversationService = service;
@@ -184,6 +198,10 @@ export function createConversationServiceAssistantUiThreadBinding<
       activeThreadSnapshot = snapshot;
     },
     async selectThread(threadId) {
+      if (navigationLocked) {
+        throw new ConversationNavigationLockedError();
+      }
+
       if (threadId === liveThreadId) {
         const returningToLiveThread = activeThreadId !== liveThreadId;
         activeThreadId = liveThreadId;
@@ -215,6 +233,10 @@ export function createConversationServiceAssistantUiThreadBinding<
       return loaded;
     },
     async createNewThread() {
+      if (navigationLocked) {
+        throw new ConversationNavigationLockedError();
+      }
+
       if (conversationService !== undefined) {
         conversationService.resetForNewConversation();
       }

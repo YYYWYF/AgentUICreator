@@ -22,66 +22,28 @@ import {
   TrashIcon,
 } from "lucide-react";
 import {
-  createContext,
   forwardRef,
   Fragment,
   useEffect,
   useMemo,
   useRef,
   useState,
-  useContext,
   type ComponentPropsWithoutRef,
   type FC,
 } from "react";
 
-export interface ThreadListPresentationPolicy {
-  readonly disableNavigation?: boolean;
-  readonly showItemActions?: boolean;
-  readonly isItemDisabled?: (item: {
-    id: string;
-    custom?: Record<string, unknown> | undefined;
-  }) => boolean;
-}
-
-const defaultThreadListPolicy: Required<ThreadListPresentationPolicy> = {
-  disableNavigation: false,
-  showItemActions: true,
-  isItemDisabled: () => false,
-};
-
-const ThreadListPresentationPolicyContext =
-  createContext<Required<ThreadListPresentationPolicy>>(defaultThreadListPolicy);
-
-function useThreadListPresentationPolicy() {
-  return useContext(ThreadListPresentationPolicyContext);
-}
-
-export interface ThreadListProps {
-  policy?: ThreadListPresentationPolicy;
-}
-
-export const ThreadList: FC<ThreadListProps> = ({ policy }) => {
+export const ThreadList: FC = () => {
   const [search, setSearch] = useState("");
   const hasThreads = useAuiState((s) => s.threads.threadIds.length > 0);
-  const resolvedPolicy = {
-    disableNavigation:
-      policy?.disableNavigation ?? defaultThreadListPolicy.disableNavigation,
-    showItemActions:
-      policy?.showItemActions ?? defaultThreadListPolicy.showItemActions,
-    isItemDisabled:
-      policy?.isItemDisabled ?? defaultThreadListPolicy.isItemDisabled,
-  };
 
   return (
-    <ThreadListPresentationPolicyContext.Provider value={resolvedPolicy}>
-      <ThreadListRoot>
-        <ThreadListNew />
-        {hasThreads && (
-          <ThreadListSearch value={search} onValueChange={setSearch} />
-        )}
-        <ThreadListItems searchQuery={hasThreads ? search : ""} />
-      </ThreadListRoot>
-    </ThreadListPresentationPolicyContext.Provider>
+    <ThreadListRoot>
+      <ThreadListNew />
+      {hasThreads && (
+        <ThreadListSearch value={search} onValueChange={setSearch} />
+      )}
+      <ThreadListItems searchQuery={hasThreads ? search : ""} />
+    </ThreadListRoot>
   );
 };
 
@@ -261,7 +223,6 @@ export const ThreadListNew = forwardRef<
   HTMLButtonElement,
   ComponentPropsWithoutRef<typeof Button> & { labelClassName?: string }
 >(({ className, labelClassName, children, ...props }, ref) => {
-  const policy = useThreadListPresentationPolicy();
   return (
     <ThreadListPrimitive.New asChild>
       <Button
@@ -273,7 +234,6 @@ export const ThreadListNew = forwardRef<
           className,
         )}
         {...props}
-        disabled={props.disabled || policy.disableNavigation}
       >
         {children ?? (
           <>
@@ -318,13 +278,7 @@ const ThreadListSkeleton: FC = () => {
 };
 
 export const ThreadListItem: FC = () => {
-  const policy = useThreadListPresentationPolicy();
   const isRunning = useAuiState((s) => s.threadListItem.isRunning);
-  const itemId = useAuiState((s) => s.threadListItem.id);
-  const custom = useAuiState((s) => s.threadListItem.custom);
-  const itemDisabled =
-    policy.disableNavigation ||
-    policy.isItemDisabled({ id: itemId, custom });
   const [isRenaming, setIsRenaming] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const restoreFocusRef = useRef(false);
@@ -352,7 +306,6 @@ export const ThreadListItem: FC = () => {
           ref={triggerRef}
           data-slot="aui_thread-list-item-trigger"
           className="focus-visible:ring-ring/50 flex h-full min-w-0 flex-1 items-center rounded-md px-2.5 text-start text-sm outline-none group-hover:pe-9 group-has-focus-visible:pe-9 group-has-data-[state=open]:pe-9 group-data-active:pe-9 focus-visible:ring-1"
-          disabled={itemDisabled}
         >
           {isRunning && (
             <Loader2Icon
@@ -440,9 +393,6 @@ const ThreadListItemRename: FC<{
 };
 
 const ThreadListItemMore: FC<{ onRename: () => void }> = ({ onRename }) => {
-  const policy = useThreadListPresentationPolicy();
-  if (!policy.showItemActions) return null;
-
   return (
     <ThreadListItemMorePrimitive.Root sharedFocusGroup>
       <ThreadListItemMorePrimitive.Trigger asChild>

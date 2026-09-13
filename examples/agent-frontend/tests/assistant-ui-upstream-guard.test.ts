@@ -34,21 +34,29 @@ describe("assistant-ui upstream ownership guard", () => {
     const manifest = JSON.parse(
       await readFile(path.join(vendorRoot, "upstream-elements.json"), "utf8"),
     ) as { owned?: string[]; legacyExceptions?: string[] };
-    expect(manifest.owned).toContain("components/assistant-ui/elements/thread.aui.tsx");
-    expect(manifest.legacyExceptions).not.toContain("components/assistant-ui/elements/thread.aui.tsx");
+    expect(manifest.owned).toEqual(expect.arrayContaining([
+      "components/assistant-ui/elements/thread-list.aui.tsx",
+      "components/assistant-ui/elements/attachment.aui.tsx",
+    ]));
+    expect(manifest.owned).toHaveLength(19);
+    expect(manifest.legacyExceptions).toEqual([]);
     await expect(execFileAsync("node", [guardScript, "--vendor-root", vendorRoot])).resolves.toMatchObject({
       stdout: expect.stringContaining("assistant-ui upstream-owned Elements: OK"),
     });
   });
 
-  it("fails when an upstream-owned Element is modified", async () => {
-    const temporaryRoot = await mkdtemp(path.join(projectRoot, ".tmp-upstream-guard-"));
+  it.each([
+    "thread-list.aui.tsx",
+    "attachment.aui.tsx",
+  ])("fails when an upstream-owned Element is modified: %s", async (fileName) => {
+    const temporaryRoot = await mkdtemp(path.join(projectRoot, ".tmp-upstream-element-guard-"));
     temporaryRoots.push(temporaryRoot);
     await cp(vendorRoot, temporaryRoot, { recursive: true });
 
     const target = path.join(
       temporaryRoot,
-      "components/assistant-ui/elements/tool-group.aui.tsx",
+      "components/assistant-ui/elements",
+      fileName,
     );
     const source = await readFile(target, "utf8");
     await writeFile(target, `${source}\n// product drift\n`);
@@ -58,7 +66,7 @@ describe("assistant-ui upstream ownership guard", () => {
     ).rejects.toMatchObject({
       code: 1,
       stderr: expect.stringContaining(
-        "assistant-ui upstream-owned Element modified: components/assistant-ui/elements/tool-group.aui.tsx",
+        `assistant-ui upstream-owned Element modified: components/assistant-ui/elements/${fileName}`,
       ),
     });
   });
@@ -96,5 +104,50 @@ describe("assistant-ui upstream ownership guard", () => {
     expect(thread).toContain('from "./reasoning.aui"');
     expect(thread).toContain('from "../../ui/button"');
     expect(thread).toContain('from "../../../lib/utils"');
+  });
+
+  it("fails when an Element is added without an ownership declaration", async () => {
+    const temporaryRoot = await mkdtemp(path.join(projectRoot, ".tmp-upstream-unclassified-"));
+    temporaryRoots.push(temporaryRoot);
+    await cp(vendorRoot, temporaryRoot, { recursive: true });
+
+    await writeFile(
+      path.join(
+        temporaryRoot,
+        "components/assistant-ui/elements/product-drift.tsx",
+      ),
+      "export {}\n",
+    );
+
+    await expect(
+      execFileAsync("node", [guardScript, "--vendor-root", temporaryRoot]),
+    ).rejects.toMatchObject({
+      code: 1,
+      stderr: expect.stringContaining(
+        "Unclassified assistant-ui Element: components/assistant-ui/elements/product-drift.tsx",
+      ),
+    });
+  });
+
+  it("fails when an upstream-owned Element is removed from the lock", async () => {
+    const temporaryRoot = await mkdtemp(path.join(projectRoot, ".tmp-upstream-lock-"));
+    temporaryRoots.push(temporaryRoot);
+    await cp(vendorRoot, temporaryRoot, { recursive: true });
+
+    const lockPath = path.join(temporaryRoot, "assistant-ui-upstream.lock.json");
+    const lock = JSON.parse(await readFile(lockPath, "utf8")) as {
+      elements: Record<string, string>;
+    };
+    delete lock.elements["components/assistant-ui/elements/attachment.aui.tsx"];
+    await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
+
+    await expect(
+      execFileAsync("node", [guardScript, "--vendor-root", temporaryRoot]),
+    ).rejects.toMatchObject({
+      code: 1,
+      stderr: expect.stringContaining(
+        "Missing upstream lock entries: components/assistant-ui/elements/attachment.aui.tsx",
+      ),
+    });
   });
 });

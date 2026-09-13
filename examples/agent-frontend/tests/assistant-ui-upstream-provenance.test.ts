@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -55,5 +55,44 @@ describe("assistant-ui upstream provenance", () => {
       expect(source.length, relativePath).toBeGreaterThan(0);
       expect(metadata.files?.some((file) => file.localPath === relativePath), relativePath).toBe(true);
     }
+  });
+
+  it("closes provenance across the complete Element inventory", async () => {
+    const manifest = JSON.parse(
+      await readFile(path.join(vendorRoot, "upstream-elements.json"), "utf8"),
+    ) as {
+      revision?: string;
+      owned?: string[];
+      legacyExceptions?: string[];
+    };
+    const upstream = JSON.parse(
+      await readFile(path.join(vendorRoot, "UPSTREAM.json"), "utf8"),
+    ) as {
+      revision?: string;
+      files?: Array<{ localPath: string }>;
+      patches?: unknown[];
+    };
+    const lock = JSON.parse(
+      await readFile(path.join(vendorRoot, "assistant-ui-upstream.lock.json"), "utf8"),
+    ) as {
+      revision?: string;
+      elements?: Record<string, string>;
+    };
+    const elementsRoot = path.join(vendorRoot, "components/assistant-ui/elements");
+    const actual = (await readdir(elementsRoot))
+      .map((file) => `components/assistant-ui/elements/${file}`)
+      .sort();
+    const provenanceElements = (upstream.files ?? [])
+      .map((file) => file.localPath)
+      .filter((file) => file.startsWith("components/assistant-ui/elements/"))
+      .sort();
+
+    expect(manifest.revision).toBe(upstream.revision);
+    expect(lock.revision).toBe(upstream.revision);
+    expect(manifest.owned?.sort()).toEqual(actual);
+    expect(manifest.legacyExceptions).toEqual([]);
+    expect(provenanceElements).toEqual(actual);
+    expect(Object.keys(lock.elements ?? {}).sort()).toEqual(actual);
+    expect(upstream.patches).toEqual([]);
   });
 });

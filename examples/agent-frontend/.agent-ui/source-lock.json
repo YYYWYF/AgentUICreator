@@ -146,7 +146,7 @@
       }
     },
     "foundation/assistant-ui-conversation": {
-      "version": "0.1.12",
+      "version": "0.1.13",
       "files": {
         "vendor/assistant-ui/components/assistant-ui/elements/agent-plan.tsx": {
           "sha256": "54bf9e06211f95b54b455c0356270d6e2c0f82110ab113f2612da1f60bb5f240"
@@ -188,10 +188,10 @@
           "sha256": "fcc704686fc4bf3a15dc40f2600da759ba46a796d6d8a9c97eb37b2d21907885"
         },
         "vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx": {
-          "sha256": "4e567a1792776103f33197b3cb090fc84679cd712ff0ae588c7ab39aa45a3158"
+          "sha256": "841d2b374aa5197c7603060143d184ebcc5d5f4d401a5eed789ca2b9753b6faf"
         },
         "vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx": {
-          "sha256": "1aaf40d76106ab11050398423c714dc2097f1b8004e6d836adc626e4afd9561e"
+          "sha256": "e990c181bf4e2c9dcd47aa3cc50b520c21cf78e24ba34558ea9973a67211f7d3"
         },
         "vendor/assistant-ui/components/assistant-ui/elements/tool-call.tsx": {
           "sha256": "1fd4f2aa297d146059a9e4e436063f3bc83eee5e9a69f7e44c1aa5f8935d8bef"
@@ -260,7 +260,7 @@
           "sha256": "cabd7f7034e3ab8f071bab3c71cb8b0072846e55a6126408269e4d2aa6eb895f"
         },
         "vendor/assistant-ui/UPSTREAM.json": {
-          "sha256": "09cd090f9eb50f2cef48a4248948e2977cd2a1509209fe16f474136fea949b58"
+          "sha256": "a2067af492ceca0026cd7908b8a648bca3583af16b3423c6a022f24b56748355"
         },
         "vendor/assistant-ui/UPSTREAM.md": {
           "sha256": "3333959d51c88c35b8ce691a5c7e4b79ff2c5e58f8a3ffa73e0098092e7bdfe0"

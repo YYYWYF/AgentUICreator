@@ -12,6 +12,11 @@
   min-width: 0;
 }
 
+.assistant-ui-thread-list-plugin
+  [data-slot="aui_thread-list-item-more"] {
+  display: none;
+}
+
 .assistant-ui-thread-list-error {
   display: flex;
   min-width: 0;

@@ -76,10 +76,8 @@ describe("formal assistant-ui surface", () => {
     };
 
     expect(upstream.revision).toBe(revision);
-    expect(upstream.patches).toEqual([
-      expect.objectContaining({ id: "p3r4d-thread-list-policy-seam" }),
-    ]);
-    expect(item.version).toBe("0.1.12");
+    expect(upstream.patches).toEqual([]);
+    expect(item.version).toBe("0.1.13");
     expect(item.upstream).toMatchObject({
       revision,
       license: "MIT",

@@ -1,4 +1,3 @@
-import { ThreadList } from "../../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx";
 import { useAui } from "@assistant-ui/react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useAgentUIThemeMode } from "../../agent-ui/theme/useAgentUITheme";
@@ -13,6 +12,7 @@ import {
   type AgentUIConversationService,
 } from "../../services/conversations";
 import { Button } from "../../agent-ui/vendor/assistant-ui/components/ui/button";
+import { PolicyThreadList } from "./PolicyThreadList";
 
 import "./styles.css";
 
@@ -42,13 +42,7 @@ export function AssistantUiThreadListPlugin(_props: UIPluginComponentProps) {
       data-theme={theme}
       data-ui-plugin="assistant-ui-thread-list"
     >
-      <ThreadList
-        policy={{
-          disableNavigation: navigationLocked,
-          showItemActions: false,
-          isItemDisabled: ({ custom }) => custom?.agentUiDisabled === true,
-        }}
-      />
+      <PolicyThreadList navigationLocked={navigationLocked} />
 
       {snapshot.listStatus === "error" ? (
         <div className="assistant-ui-thread-list-error" role="alert">

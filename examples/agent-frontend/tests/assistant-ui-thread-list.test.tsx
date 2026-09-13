@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import {
   act,
   create,
@@ -8,12 +10,70 @@ import {
 } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
-const { switchToThread } = vi.hoisted(() => ({
+const { switchToThread, threadListState } = vi.hoisted(() => ({
   switchToThread: vi.fn(async () => undefined),
+  threadListState: {
+    threads: {
+      isLoading: false,
+      threadIds: ["live", "history-disabled", "history-regular"],
+      threadItems: [
+        { id: "live", title: "Current", custom: undefined },
+        {
+          id: "history-disabled",
+          title: "Disabled history",
+          custom: { agentUiDisabled: true },
+        },
+        {
+          id: "history-regular",
+          title: "Regular history",
+          custom: undefined,
+        },
+      ],
+    },
+  },
 }));
 
 vi.mock("@assistant-ui/react", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@assistant-ui/react")>();
+  const React = await import("react");
+  const itemState = React.createContext({
+    id: "",
+    title: "",
+    custom: undefined as Record<string, unknown> | undefined,
+    isRunning: false,
+  });
+  const state = () => ({
+    ...threadListState,
+    threadListItem: React.useContext(itemState),
+  });
+  const ItemByIndex = ({
+    index,
+    components,
+  }: {
+    index: number;
+    components: { ThreadListItem: React.ComponentType };
+  }) => {
+    const id = threadListState.threads.threadIds[index] ?? "";
+    const item = threadListState.threads.threadItems.find(
+      (candidate) => candidate.id === id,
+    ) ?? { id, title: "", custom: undefined };
+    return (
+      <itemState.Provider
+        value={{
+          id: item.id,
+          title: item.title ?? "",
+          custom: item.custom,
+          isRunning: false,
+        }}
+      >
+        <components.ThreadListItem />
+      </itemState.Provider>
+    );
+  };
+  const asChild = ({ children, ...props }: { children: React.ReactElement; [key: string]: unknown }) =>
+    React.cloneElement(children, props);
+  const passthrough = ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
+    <div {...props}>{children}</div>;
   return {
     ...actual,
     useAui: () => ({
@@ -21,6 +81,35 @@ vi.mock("@assistant-ui/react", async (importOriginal) => {
         switchToThread,
       },
     }),
+    useAuiState: (selector: (value: ReturnType<typeof state>) => unknown) =>
+      selector(state()),
+    AuiIf: ({
+      condition,
+      children,
+    }: {
+      condition: (value: ReturnType<typeof state>) => boolean;
+      children: React.ReactNode;
+    }) => condition(state()) ? children : null,
+    ThreadListPrimitive: {
+      Root: passthrough,
+      New: asChild,
+      ItemByIndex,
+    },
+    ThreadListItemPrimitive: {
+      Root: passthrough,
+      Trigger: React.forwardRef<HTMLButtonElement, React.ComponentProps<"button">>(
+        ({ children, ...props }, ref) => <button ref={ref} {...props}>{children}</button>,
+      ),
+      Title: () => <>{React.useContext(itemState).title}</>,
+      Archive: passthrough,
+      Delete: passthrough,
+    },
+    ThreadListItemMorePrimitive: {
+      Root: passthrough,
+      Trigger: asChild,
+      Content: passthrough,
+      Item: passthrough,
+    },
   };
 });
 
@@ -37,13 +126,6 @@ import {
 import { assistantUiThreadListPlugin } from "../plugins/assistant-ui-thread-list/definition";
 import { createPluginRegistry } from "../runtime/plugins";
 import { PluginRuntimeFixture } from "./agent-runtime-fixture";
-
-vi.mock(
-  "../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx",
-  () => ({
-    ThreadList: () => <div data-slot="aui_thread-list-root" />,
-  }),
-);
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;
@@ -133,6 +215,55 @@ async function renderPlugin(
 }
 
 describe("AssistantUiThreadListPlugin", () => {
+  it.each(["idle", "running", "awaiting-input"] as const)(
+    "%s exposes the official New Thread control with the expected navigation state",
+    async (status) => {
+      const mounted = await renderPlugin(EMPTY_CONVERSATION_SNAPSHOT, status);
+      try {
+        const newThread = mounted.renderer.root.findAllByType(Button).find(
+          (button) => textContent(button) === "New Thread",
+        );
+        expect(newThread).toBeDefined();
+        expect(newThread?.props.disabled).toBe(status !== "idle");
+      } finally {
+        await act(async () => mounted.renderer.unmount());
+      }
+    },
+  );
+
+  it("projects disabled history as an inert row while leaving regular history active", async () => {
+    const mounted = await renderPlugin(EMPTY_CONVERSATION_SNAPSHOT);
+    try {
+      const disabledRows = mounted.renderer.root.findAllByProps({
+        "aria-disabled": true,
+      });
+      expect(disabledRows).toHaveLength(1);
+      expect(disabledRows[0]?.props.inert).toBe(true);
+      expect(textContent(disabledRows[0]!)).toContain("Disabled history");
+      expect(
+        mounted.renderer.root.findAllByProps({ "aria-disabled": true }).some(
+          (row) => textContent(row).includes("Regular history"),
+        ),
+      ).toBe(false);
+    } finally {
+      await act(async () => mounted.renderer.unmount());
+    }
+  });
+
+  it("scopes unsupported item actions to the product plugin", async () => {
+    const css = await readFile(
+      path.join(
+        path.dirname(new URL(import.meta.url).pathname),
+        "../plugins/assistant-ui-thread-list/styles.css",
+      ),
+      "utf8",
+    );
+    expect(css).toContain(
+      ".assistant-ui-thread-list-plugin\n  [data-slot=\"aui_thread-list-item-more\"]",
+    );
+    expect(css).toContain("display: none");
+  });
+
   it("declares theme as optional while requiring conversation data", () => {
     expect(assistantUiThreadListPlugin.inject).toEqual([
       AGENT_UI_CONVERSATION_SERVICE,

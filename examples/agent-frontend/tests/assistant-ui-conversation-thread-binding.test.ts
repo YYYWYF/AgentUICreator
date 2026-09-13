@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import {
+  ConversationNavigationLockedError,
   ConversationThreadSelectionDisabledError,
   createConversationServiceAssistantUiThreadBinding,
 } from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
@@ -314,6 +315,48 @@ describe("ConversationServiceAssistantUiThreadBinding", () => {
       ConversationThreadSelectionDisabledError,
     );
     expect(service.selectConversation).not.toHaveBeenCalled();
+  });
+
+  it("rejects selection while navigation is locked without changing active state", async () => {
+    const { binding, live, service } = createBindingFixture();
+    const liveThreadId = binding.getThreadId();
+
+    binding.setNavigationLocked(true);
+
+    await expect(binding.selectThread("history-1")).rejects.toBeInstanceOf(
+      ConversationNavigationLockedError,
+    );
+    expect(service.selectConversation).not.toHaveBeenCalled();
+    expect(binding.getThreadId()).toBe(liveThreadId);
+    expect(binding.getIsDisabled?.()).toBe(false);
+    expect(live.messages).toHaveLength(2);
+  });
+
+  it("rejects creating a new thread while navigation is locked before reset", async () => {
+    const { binding, service } = createBindingFixture();
+    const liveThreadId = binding.getThreadId();
+
+    binding.setNavigationLocked(true);
+
+    await expect(binding.createNewThread()).rejects.toBeInstanceOf(
+      ConversationNavigationLockedError,
+    );
+    expect(service.resetForNewConversation).not.toHaveBeenCalled();
+    expect(binding.getThreadId()).toBe(liveThreadId);
+  });
+
+  it("restores selection and new-thread behavior after navigation unlocks", async () => {
+    const { binding, service } = createBindingFixture();
+
+    binding.setNavigationLocked(true);
+    binding.setNavigationLocked(false);
+
+    await binding.selectThread("history-1");
+    expect(service.selectConversation).toHaveBeenCalledWith("history-1");
+    const nextLiveThreadId = await binding.createNewThread();
+
+    expect(service.resetForNewConversation).toHaveBeenCalledOnce();
+    expect(binding.getThreadId()).toBe(nextLiveThreadId);
   });
 
   it("creates a fresh empty thread without leaking the old live transcript", async () => {

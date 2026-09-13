@@ -3,6 +3,7 @@ import { useEffect } from "react";
 
 import type { AppAgentState } from "../../../../agent-contract/agent-state";
 import { useAssistantUiRuntimeBridge } from "@agent-ui/runtime-assistant-ui";
+import { useAgentRun } from "../../../../runtime/context";
 import {
   usePluginService,
 } from "../../../../runtime/plugins";
@@ -16,11 +17,22 @@ import type { ConversationServiceAssistantUiThreadBinding } from "./conversation
 export function AssistantUiConversationThreadBindingConnector() {
   const aui = useAui();
   const { threadBinding } = useAssistantUiRuntimeBridge<AppAgentState>();
+  const run = useAgentRun();
   const conversation = usePluginService<AgentUIConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
   );
   const binding =
     threadBinding as ConversationServiceAssistantUiThreadBinding<AppAgentState>;
+  const navigationLocked =
+    run.status === "running" || run.status === "awaiting-input";
+
+  useEffect(() => {
+    binding.setNavigationLocked(navigationLocked);
+
+    return () => {
+      binding.setNavigationLocked(false);
+    };
+  }, [binding, navigationLocked]);
 
   useEffect(() => {
     if (conversation === undefined) return undefined;
