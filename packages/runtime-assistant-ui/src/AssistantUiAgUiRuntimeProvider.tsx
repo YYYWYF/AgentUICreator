@@ -79,6 +79,15 @@ export function AssistantUiAgUiRuntimeProvider<TState = unknown>({
     getThreadId,
     getThreadId,
   );
+  const getIsDisabled = useCallback(
+    () => threadBinding.getIsDisabled?.() ?? false,
+    [threadBinding],
+  );
+  const isDisabled = useSyncExternalStore(
+    subscribeThreadBinding,
+    getIsDisabled,
+    getIsDisabled,
+  );
   const fallbackThreadListSnapshot = useMemo<AssistantUiThreadListSnapshot>(
     () => ({
       threads: [{ id: threadId, status: "regular" as const }],
@@ -135,6 +144,7 @@ export function AssistantUiAgUiRuntimeProvider<TState = unknown>({
   }, [onError]);
   const assistantRuntime = useAgUiRuntime({
     agent,
+    isDisabled,
     showThinking: true,
     unstable_enableMessageQueue: false,
     adapters: { threadList },

@@ -9,7 +9,6 @@ import type { AssistantUiPresentationConfig } from "./assistant-ui-presentation-
 const EMPTY_ASSISTANT_UI_PRESENTATION_CONFIG: AssistantUiPresentationConfig = {
   welcome: {},
   starterSuggestions: [],
-  composer: { quickPrompts: [] },
   interactions: {},
 };
 

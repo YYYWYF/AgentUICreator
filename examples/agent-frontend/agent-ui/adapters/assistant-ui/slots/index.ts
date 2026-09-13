@@ -1,7 +1,5 @@
 export {
-  SemanticAttachmentsOutlet,
   SemanticReasoningOutlet,
-  SemanticSourcesOutlet,
   SemanticToolActivityOutlet,
   SemanticToolItemOutlet,
 } from "./AssistantUiMessageSlotAdapters";
@@ -17,7 +15,9 @@ export {
 } from "./SemanticSlotFallbackContext";
 export {
   ASSISTANT_UI_CONVERSATION_SLOTS,
+  LEGACY_ASSISTANT_UI_CONVERSATION_SLOTS,
   type AssistantUiConversationSlotId,
+  type LegacyAssistantUiConversationSlotId,
 } from "./semantic-slots";
 export {
   ToolItemSlotBridgeProvider,

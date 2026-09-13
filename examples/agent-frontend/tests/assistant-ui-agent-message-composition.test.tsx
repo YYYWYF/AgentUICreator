@@ -25,7 +25,6 @@ import {
 } from "../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui";
 import {
   createAssistantUiSemanticThreadComponents,
-  type AssistantUiConversationPresentationMode,
 } from "../agent-ui/adapters/assistant-ui/conversation";
 import { createAssistantUiToolkit } from "../agent-ui/adapters/assistant-ui/toolkit";
 import {
@@ -47,19 +46,16 @@ const TEST_CHAT_MODEL = {
 const messageCompositionPresentation = {
   welcome: {},
   starterSuggestions: [],
-  composer: { quickPrompts: [] },
   interactions: {},
 };
 
 function MessageCompositionFixture({
   initialMessages,
   mockAgentElements = false,
-  mode = "live",
   presentation = messageCompositionPresentation,
 }: {
   initialMessages: readonly ThreadMessageLike[];
   mockAgentElements?: boolean;
-  mode?: AssistantUiConversationPresentationMode;
   presentation?: AssistantUiPresentationConfig;
 }) {
   const runtime = useLocalRuntime(TEST_CHAT_MODEL, { initialMessages });
@@ -69,11 +65,7 @@ function MessageCompositionFixture({
   return (
     <AssistantRuntimeProvider config={config} runtime={runtime}>
       <AssistantUiPresentationConfigProvider value={presentation}>
-        <Thread
-          components={createAssistantUiSemanticThreadComponents(renderFallback, {
-            mode,
-          })}
-        />
+        <Thread components={createAssistantUiSemanticThreadComponents(renderFallback)} />
       </AssistantUiPresentationConfigProvider>
     </AssistantRuntimeProvider>
   );
@@ -328,8 +320,7 @@ describe("assistant-ui Agent Message composition", () => {
     expect(toolGroupFrames).toHaveLength(1);
     expect(toolGroupFrames[0]?.props["data-variant"]).toBe("ghost");
     expect(toolGroupFrames[0]?.props.className.split(/\s+/u)).not.toContain("my-1");
-    expect(toolCallFrames).toHaveLength(1);
-    expect(toolCallFrames[0]?.props.className.split(/\s+/u)).toContain("my-1");
+    expect(toolCallFrames).toHaveLength(0);
 
     const text = renderedText(renderer);
     expect(text).toContain("reasoning before");
@@ -338,13 +329,17 @@ describe("assistant-ui Agent Message composition", () => {
     expect(text).toContain("final text");
   });
 
-  it("leaves AssistantMessage to the official Thread and installs only ToolCallWrapper", () => {
+  it("leaves AssistantMessage and direct tool composition to official seams", () => {
     const components = createAssistantUiSemanticThreadComponents(renderFallback);
     expect(components.AssistantMessage).toBeUndefined();
-    expect(components.ToolCallWrapper).toBeDefined();
+    expect(components.Welcome).toBeDefined();
+    expect(components.ReasoningGroup).toBeDefined();
+    expect(components.ToolGroup).toBeDefined();
+    expect(components.ToolFallback).toBeDefined();
+    expect(components).not.toHaveProperty("ToolCallWrapper");
   });
 
-  it("composes AgentPlan, AgentStatus, and one SubagentList through ToolCallWrapper", async () => {
+  it("composes AgentPlan, AgentStatus, and one SubagentList through toolkit renderers", async () => {
     (
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -534,7 +529,6 @@ describe("assistant-ui Agent Message composition", () => {
         <MessageCompositionFixture
           initialMessages={[subagentsDemoMessage]}
           mockAgentElements
-          mode="history"
         />,
       );
       await Promise.resolve();

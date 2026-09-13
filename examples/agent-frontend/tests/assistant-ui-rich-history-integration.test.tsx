@@ -82,9 +82,7 @@ function RichHistoryFixture({ conversationId }: { conversationId: string }) {
   return (
     <AssistantRuntimeProvider config={config} runtime={runtime}>
       <AssistantUiConversationSurface
-        components={createAssistantUiSemanticThreadComponents(renderFallback, {
-          mode: "history",
-        })}
+        components={createAssistantUiSemanticThreadComponents(renderFallback)}
       />
     </AssistantRuntimeProvider>
   );
@@ -118,8 +116,7 @@ describe("assistant-ui rich history UI integration", () => {
     expect(container.querySelector('[data-slot="agent-status"]')).not.toBeNull();
     expect(container.querySelector('[data-slot="subagent-list"]')).not.toBeNull();
     const subagentList = container.querySelector('[data-slot="subagent-list"]');
-    expect(subagentList?.classList.contains("min-h-0")).toBe(true);
-    expect(subagentList?.classList.contains("min-h-[14.5rem]")).toBe(false);
+    expect(subagentList?.classList.contains("min-h-[14.5rem]")).toBe(true);
     expect(container.textContent).toContain("Analysis complete");
   });
 
@@ -129,8 +126,7 @@ describe("assistant-ui rich history UI integration", () => {
     const subagentLists = container.querySelectorAll('[data-slot="subagent-list"]');
     expect(subagentLists).toHaveLength(1);
     const subagentList = subagentLists[0];
-    expect(subagentList?.classList.contains("min-h-0")).toBe(true);
-    expect(subagentList?.classList.contains("min-h-[14.5rem]")).toBe(false);
+    expect(subagentList?.classList.contains("min-h-[14.5rem]")).toBe(true);
     expect(container.querySelector('[data-slot="tool-group-trigger"]')).toBeNull();
     expect(container.textContent).toContain("Architecture Researcher");
     expect(container.textContent).toContain("Runtime Inspector");
@@ -149,13 +145,13 @@ describe("assistant-ui rich history UI integration", () => {
     expect(container.textContent).toContain("Result");
   });
 
-  it("renders persisted sources and attachments in the Thread", async () => {
+  it("renders persisted attachments while leaving sources to data projection", async () => {
     const container = await renderHistory("conversation-replay-sources-attachments");
 
     await revealAttachmentName(container);
     expect(document.body.textContent).toContain("architecture-notes.md");
-    expect(container.textContent).toContain("AG-UI Runtime Notes");
-    expect(container.textContent).toContain("Architecture Notes");
+    expect(container.textContent).not.toContain("AG-UI Runtime Notes");
+    expect(container.textContent).not.toContain("Architecture Notes");
   });
 
   it("renders persisted tool errors as terminal fallback UI", async () => {

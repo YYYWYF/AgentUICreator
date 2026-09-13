@@ -15,6 +15,5 @@ component anatomy, including the AgentPlan, AgentStatus, and SubagentList
 elements.
 
 AgentUICreator-owned changes in the upstream-owned Elements are limited to the
-mechanical module-resolution adaptations recorded in `UPSTREAM.json`. The
-`thread.aui.tsx` file is a documented frozen legacy exception in
-`upstream-elements.json` and is not yet upstream-clean.
+mechanical module-resolution adaptations recorded in `UPSTREAM.json`. There are
+no local presentation patches in the upstream-owned Elements.

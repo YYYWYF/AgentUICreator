@@ -12,7 +12,7 @@ import { AgentThread } from "../../agent-ui/components/thread";
 import { Button } from "../../agent-ui/primitives/button";
 import { MessageSlotBridgeProvider } from "../../agent-ui/adapters/assistant-ui/slots/MessageSlotBridgeContext";
 import { useSemanticSlotFallback } from "../../agent-ui/adapters/assistant-ui/slots/SemanticSlotFallbackContext";
-import { ASSISTANT_UI_CONVERSATION_SLOTS } from "../../agent-ui/adapters/assistant-ui/slots/semantic-slots";
+import { LEGACY_ASSISTANT_UI_CONVERSATION_SLOTS } from "../../agent-ui/adapters/assistant-ui/slots/semantic-slots";
 import type {
   AgentExecution,
   AgentMessage as RuntimeAgentMessage,
@@ -916,7 +916,7 @@ export function AgentMessageListPlugin({
   renderSlot,
 }: UIPluginComponentProps) {
   const timeline = useSemanticSlotFallback(
-    ASSISTANT_UI_CONVERSATION_SLOTS.timeline,
+    LEGACY_ASSISTANT_UI_CONVERSATION_SLOTS.timeline,
   );
   if (timeline.available) {
     return (

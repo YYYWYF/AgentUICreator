@@ -13,119 +13,45 @@ async function read(relativePath: string): Promise<string> {
 }
 
 describe("assistant-ui semantic Slot adapter", () => {
-  it("defines exactly the nine upstream-neutral conversation Slots", () => {
+  it("exposes only official Thread composition slots", () => {
     expect(Object.values(ASSISTANT_UI_CONVERSATION_SLOTS)).toEqual([
       "conversation.empty.welcome",
-      "conversation.empty.suggestions",
-      "conversation.timeline",
-      "conversation.composer",
       "conversation.message.reasoning",
       "conversation.message.tool-activity",
       "conversation.message.tool-item",
-      "conversation.message.attachments",
-      "conversation.message.sources",
     ]);
   });
 
-  it("preserves the three-level Slot ownership hierarchy", async () => {
-    const surface = JSON.parse(
-      await read("plugins/conversation-surface/manifest.json"),
-    ) as { slots: { children: string[] } };
-    const timeline = JSON.parse(
-      await read("plugins/agent-message-list/manifest.json"),
-    ) as { slots: { children: string[] } };
-    const toolActivity = JSON.parse(
-      await read("plugins/agent-tool-activity/manifest.json"),
-    ) as { slots: { children: string[] } };
-
-    expect(surface.slots.children).toEqual([
-      ASSISTANT_UI_CONVERSATION_SLOTS.welcome,
-      ASSISTANT_UI_CONVERSATION_SLOTS.suggestions,
-      ASSISTANT_UI_CONVERSATION_SLOTS.timeline,
-      ASSISTANT_UI_CONVERSATION_SLOTS.composer,
-    ]);
-    expect(timeline.slots.children).toEqual([
-      ASSISTANT_UI_CONVERSATION_SLOTS.reasoning,
-      ASSISTANT_UI_CONVERSATION_SLOTS.toolActivity,
-      ASSISTANT_UI_CONVERSATION_SLOTS.attachments,
-      ASSISTANT_UI_CONVERSATION_SLOTS.sources,
-    ]);
-    expect(toolActivity.slots.children).toEqual([
-      ASSISTANT_UI_CONVERSATION_SLOTS.toolItem,
-    ]);
-  });
-
-  it("keeps assistant-ui component overrides inside the adapter", async () => {
+  it("uses official ThreadComponent seams and keeps toolkit composition external", async () => {
     const adapter = await read(
       "agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationAdapter.tsx",
     );
-    const messageAdapters = await read(
-      "agent-ui/adapters/assistant-ui/slots/AssistantUiMessageSlotAdapters.tsx",
+    const surface = await read(
+      "agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationSurface.tsx",
     );
-    const composerAdapter = await read(
-      "agent-ui/adapters/assistant-ui/composer/AssistantUiComposerQuickPrompts.tsx",
+    const toolkit = await read(
+      "agent-ui/adapters/assistant-ui/toolkit/mock/MockDispatchSubagentToolUI.tsx",
     );
-    const model = await read("app-ui/app-ui.json");
 
-    for (const seam of [
-      "WelcomeWrapper",
-      "TimelineWrapper",
-      "InitialSuggestionsWrapper",
-      "ComposerWrapper",
-      "ComposerAddon",
-      "ReasoningGroup",
-      "ToolGroup",
-      "ToolFallback",
-      "UserAttachmentsWrapper",
-      "MessageFooter",
-    ]) {
-      expect(adapter).toContain(seam);
-    }
-    expect(messageAdapters).toContain("projectAssistantUiMessages");
-    expect(messageAdapters).toContain("projectAssistantUiExecutions");
-    expect(messageAdapters).toContain("MessageRenderProvider");
-    expect(messageAdapters).toContain("<Sources key={part.id} {...part} />");
-    expect(messageAdapters).not.toMatch(
-      /@ag-ui\/client|HttpAgent|runAgent|AppUIModel|SourceRegistry/u,
+    expect(adapter).toContain("Welcome:");
+    expect(adapter).toContain("ReasoningGroup: SemanticReasoningOutlet");
+    expect(adapter).toContain("ToolGroup: SemanticToolActivityOutlet");
+    expect(adapter).toContain("ToolFallback: SemanticToolItemOutlet");
+    expect(adapter).not.toMatch(
+      /ThreadPresentation|ToolCallWrapper|ComposerAddon|WelcomeWrapper|TimelineWrapper|InitialSuggestionsWrapper/u,
     );
-    expect(composerAdapter).toContain("unstable_useSlashCommandAdapter");
-    expect(composerAdapter).toContain("ComposerTriggerPopover");
-    expect(composerAdapter).toContain("aui.composer.setText");
-    expect(composerAdapter).not.toMatch(
-      /AgentComposer|useAgentComposerBinding|useComposerSuggestions|plugins\/agent-composer/u,
-    );
-    expect(model).not.toMatch(/ReasoningGroup|ToolGroup|ToolFallback|ThreadPrimitive/u);
+    expect(surface).not.toContain("presentation=");
+    expect(toolkit).toContain("useAuiState");
+    expect(toolkit).toContain("projectSubagentToolCalls");
+    expect(toolkit).toContain("<ToolFallback {...props} />");
   });
 
-  it("retains structural timeline and tool-activity hosts", async () => {
-    const timeline = await read("plugins/agent-message-list/index.tsx");
-    const toolActivity = await read("plugins/agent-tool-activity/index.tsx");
-
-    expect(timeline).toContain("MessageSlotBridgeProvider");
-    expect(timeline).toContain("ASSISTANT_UI_CONVERSATION_SLOTS.timeline");
-    expect(timeline).toContain("timeline.fallback");
-    expect(toolActivity).toContain("ToolItemSlotBridgeProvider");
-    expect(toolActivity).toContain("ASSISTANT_UI_CONVERSATION_SLOTS.toolActivity");
-    expect(toolActivity).toContain("toolActivity.fallback");
-  });
-
-  it("maps every leaf independently and suppresses empty sources", async () => {
-    const source = await read(
-      "agent-ui/adapters/assistant-ui/slots/AssistantUiMessageSlotAdapters.tsx",
+  it("keeps the old plugin-only slots outside the native assistant-ui contract", async () => {
+    const legacy = await read(
+      "agent-ui/adapters/assistant-ui/slots/semantic-slots.ts",
     );
-
-    for (const slot of [
-      "reasoning",
-      "toolActivity",
-      "toolItem",
-      "attachments",
-      "sources",
-    ]) {
-      expect(source).toContain(`ASSISTANT_UI_CONVERSATION_SLOTS.${slot}`);
-    }
-    expect(source).toContain("if (sourceParts.length === 0) return null");
-    expect(source).toContain('data-slot="aui_message-sources"');
-    expect(source).toContain("useOptionalMessageSlotBridge");
-    expect(source).toContain("useOptionalToolItemSlotBridge");
+    expect(legacy).toContain("LEGACY_ASSISTANT_UI_CONVERSATION_SLOTS");
+    expect(legacy).toContain("conversation.message.attachments");
+    expect(legacy).toContain("conversation.message.sources");
   });
 });

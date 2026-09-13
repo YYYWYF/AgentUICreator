@@ -1,96 +1,53 @@
-import { useMemo, type PropsWithChildren } from "react";
+import { useMemo } from "react";
 
 import type { UIPluginComponentProps } from "../../../../framework/contracts/ui-plugin";
-import {
-  usePluginService,
-  usePluginServiceSnapshot,
-} from "../../../../runtime/plugins";
-import {
-  AGENT_UI_CONVERSATION_SERVICE,
-  EMPTY_CONVERSATION_SNAPSHOT,
-  type AgentUIConversationService,
-} from "../../../../services/conversations";
-import type {
-  ThreadComponents,
-  ThreadPresentation,
-} from "../../../vendor/assistant-ui/components/assistant-ui/elements/thread.aui";
-import { AssistantUiComposerQuickPrompts } from "../composer";
+import type { ThreadComponents } from "../../../vendor/assistant-ui/components/assistant-ui/elements/thread.aui";
 import { useAssistantUiPresentationConfig } from "../config";
 import { useAgentUIThemeMode } from "../../../theme/useAgentUITheme";
 import {
   ASSISTANT_UI_CONVERSATION_SLOTS,
-  SemanticAttachmentsOutlet,
   SemanticReasoningOutlet,
   SemanticSlotFallbackProvider,
-  SemanticSourcesOutlet,
   SemanticToolActivityOutlet,
   SemanticToolItemOutlet,
-  type AssistantUiConversationSlotId,
 } from "../slots";
-import {
-  createAssistantUiToolCallComposition,
-  type AssistantUiConversationPresentationMode,
-} from "./AgentElementComposition";
 import { AssistantUiConversationSurface } from "./AssistantUiConversationSurface";
 
 type RenderSlot = UIPluginComponentProps["renderSlot"];
 
-function createTopLevelWrapper(
-  renderSlot: RenderSlot,
-  slotId: AssistantUiConversationSlotId,
-) {
-  return function SemanticTopLevelOutlet({ children }: PropsWithChildren) {
-    return (
-      <SemanticSlotFallbackProvider fallback={children} slotId={slotId}>
-        {renderSlot(slotId, children)}
-      </SemanticSlotFallbackProvider>
-    );
-  };
-}
+function AssistantUiWelcome({ renderSlot }: { renderSlot: RenderSlot }) {
+  const { welcome } = useAssistantUiPresentationConfig();
+  const fallback = (
+    <div className="aui-thread-welcome-root mb-6 flex flex-col items-center px-4 text-center">
+      <h1 className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-2xl font-medium tracking-tight duration-200">
+        {welcome.title ?? "How can I help you today?"}
+      </h1>
+      {welcome.description === undefined ? null : (
+        <p className="text-muted-foreground fade-in slide-in-from-bottom-1 animate-in fill-mode-both mt-2 max-w-xl text-sm leading-6 duration-200">
+          {welcome.description}
+        </p>
+      )}
+    </div>
+  );
 
-function createComposerWrapper(renderSlot: RenderSlot) {
-  return function SemanticComposerOutlet({
-    autoFocus: _autoFocus,
-    children,
-  }: PropsWithChildren<{ autoFocus: boolean }>) {
-    return (
-      <SemanticSlotFallbackProvider
-        fallback={children}
-        slotId={ASSISTANT_UI_CONVERSATION_SLOTS.composer}
-      >
-        {renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.composer, children)}
-      </SemanticSlotFallbackProvider>
-    );
-  };
+  return (
+    <SemanticSlotFallbackProvider
+      fallback={fallback}
+      slotId={ASSISTANT_UI_CONVERSATION_SLOTS.welcome}
+    >
+      {renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.welcome, fallback)}
+    </SemanticSlotFallbackProvider>
+  );
 }
 
 export function createAssistantUiSemanticThreadComponents(
   renderSlot: RenderSlot,
-  options: {
-    mode?: AssistantUiConversationPresentationMode;
-  } = {},
 ): ThreadComponents {
-  const mode = options.mode ?? "live";
   return {
-    WelcomeWrapper: createTopLevelWrapper(
-      renderSlot,
-      ASSISTANT_UI_CONVERSATION_SLOTS.welcome,
-    ),
-    TimelineWrapper: createTopLevelWrapper(
-      renderSlot,
-      ASSISTANT_UI_CONVERSATION_SLOTS.timeline,
-    ),
-    InitialSuggestionsWrapper: createTopLevelWrapper(
-      renderSlot,
-      ASSISTANT_UI_CONVERSATION_SLOTS.suggestions,
-    ),
-    ComposerWrapper: createComposerWrapper(renderSlot),
-    ToolCallWrapper: createAssistantUiToolCallComposition(mode),
+    Welcome: () => <AssistantUiWelcome renderSlot={renderSlot} />,
     ReasoningGroup: SemanticReasoningOutlet,
     ToolGroup: SemanticToolActivityOutlet,
     ToolFallback: SemanticToolItemOutlet,
-    UserAttachmentsWrapper: SemanticAttachmentsOutlet,
-    MessageFooter: SemanticSourcesOutlet,
   };
 }
 
@@ -98,63 +55,13 @@ export function AssistantUiConversationAdapter({
   renderSlot,
 }: Pick<UIPluginComponentProps, "renderSlot">) {
   const theme = useAgentUIThemeMode();
-  const presentationConfig = useAssistantUiPresentationConfig();
-  const conversation = usePluginService<AgentUIConversationService>(
-    AGENT_UI_CONVERSATION_SERVICE,
-  );
-  const conversationSnapshot = usePluginServiceSnapshot(
-    conversation,
-    EMPTY_CONVERSATION_SNAPSHOT,
-  );
-  const historyMode = conversationSnapshot.mode === "history";
-  const components = useMemo(() => {
-    const threadComponents =
-      createAssistantUiSemanticThreadComponents(renderSlot, {
-        mode: historyMode ? "history" : "live",
-      });
-    const quickPrompts = presentationConfig.composer.quickPrompts;
-    if (quickPrompts.length === 0) return threadComponents;
-
-    return {
-      ...threadComponents,
-      ComposerAddon: ({ disabled }: { disabled: boolean }) => (
-        <AssistantUiComposerQuickPrompts
-          disabled={disabled}
-          quickPrompts={quickPrompts}
-        />
-      ),
-    };
-  }, [historyMode, presentationConfig.composer.quickPrompts, renderSlot]);
-  const presentation = useMemo(
-    (): ThreadPresentation => {
-      const placeholder = historyMode
-        ? "历史会话为只读，请返回当前会话或新建会话"
-        : presentationConfig.composer.placeholder;
-      const hasWelcome =
-        presentationConfig.welcome.title !== undefined ||
-        presentationConfig.welcome.description !== undefined;
-      const composer = historyMode || placeholder !== undefined
-        ? {
-            ...(placeholder === undefined ? {} : { placeholder }),
-            ...(historyMode ? { disabled: true } : {}),
-          }
-        : undefined;
-
-      return {
-        ...(hasWelcome ? { welcome: presentationConfig.welcome } : {}),
-        ...(composer === undefined ? {} : { composer }),
-      };
-    },
-    [
-      historyMode,
-      presentationConfig.composer.placeholder,
-      presentationConfig.welcome,
-    ],
+  const components = useMemo(
+    () => createAssistantUiSemanticThreadComponents(renderSlot),
+    [renderSlot],
   );
   return (
     <AssistantUiConversationSurface
       components={components}
-      presentation={presentation}
       theme={theme}
     />
   );

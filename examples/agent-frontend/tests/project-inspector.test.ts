@@ -44,12 +44,7 @@ describe("inspectUIProject", () => {
       legacy: false,
       configPath: ".agent-ui/project.json",
     });
-    for (const slotId of [
-      "conversation.empty.welcome",
-      "conversation.empty.suggestions",
-      "conversation.timeline",
-      "conversation.composer",
-    ] as const) {
+    for (const slotId of ["conversation.empty.welcome"] as const) {
       expect(result.appUIModel.slots).toContainEqual(
         expect.objectContaining({
           slotId,

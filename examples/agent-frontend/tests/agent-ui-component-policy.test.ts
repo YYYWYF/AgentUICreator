@@ -1062,9 +1062,6 @@ describe("Agent UI component source policy", () => {
     expect(surfaceManifest.version).toBe("2.0.0");
     expect(surfaceManifest.slots?.children).toEqual([
       "conversation.empty.welcome",
-      "conversation.empty.suggestions",
-      "conversation.timeline",
-      "conversation.composer",
     ]);
     expect(registry).not.toContain('./agent-thread-welcome/definition');
     expect(registry).not.toContain('./agent-suggestions/definition');

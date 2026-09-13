@@ -3,6 +3,7 @@
   "source": "https://r.assistant-ui.com",
   "style": "base-nova",
   "owned": [
+    "components/assistant-ui/elements/thread.aui.tsx",
     "components/assistant-ui/elements/tool-call.tsx",
     "components/assistant-ui/elements/tool-group.aui.tsx",
     "components/assistant-ui/elements/reasoning.aui.tsx",
@@ -12,7 +13,5 @@
     "components/assistant-ui/elements/agent-status.tsx",
     "components/assistant-ui/elements/surfaces.tsx"
   ],
-  "legacyExceptions": [
-    "components/assistant-ui/elements/thread.aui.tsx"
-  ]
+  "legacyExceptions": []
 }

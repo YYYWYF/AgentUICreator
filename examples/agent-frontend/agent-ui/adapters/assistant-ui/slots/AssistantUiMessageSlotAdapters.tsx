@@ -16,7 +16,6 @@ import {
   useRef,
   useState,
   type PropsWithChildren,
-  type ReactNode,
 } from "react";
 
 import type {
@@ -26,8 +25,6 @@ import type {
 } from "../../../../framework/contracts/ui-plugin";
 import {
   MessageRenderProvider,
-  projectMessageAttachments,
-  projectMessageSources,
   type ReasoningPresentationStatus,
   type ToolActionRequirement,
   type ToolActivityStatus,
@@ -42,7 +39,6 @@ import {
   ReasoningTrigger,
 } from "../../../vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui";
 import { ToolFallback } from "../../../vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui";
-import { Sources } from "../../../vendor/assistant-ui/components/assistant-ui/elements/sources.aui";
 import {
   ToolGroupContent,
   ToolGroupRoot,
@@ -86,40 +82,6 @@ function projectCurrentMessage(message: ThreadMessage): AgentMessage[] {
   return projectAssistantUiMessages([message]).map((projected) =>
     withPublicCustomMetadata(projected, message),
   );
-}
-
-function firstProjectedMessage(message: ThreadMessage): AgentMessage {
-  const projected = projectCurrentMessage(message)[0];
-  if (projected === undefined) {
-    throw new Error(`Unable to project assistant-ui message "${message.id}"`);
-  }
-  return projected;
-}
-
-function withPublicSourceParts(
-  projected: AgentMessage,
-  source: ThreadMessage,
-): AgentMessage {
-  if (source.role !== "assistant") return projected;
-  const sources = source.content.flatMap((part) => {
-    if (part.type !== "source") return [];
-    return [{
-      key: part.id,
-      title: part.title ?? part.url,
-      ...(part.url === undefined ? {} : { url: part.url }),
-    }];
-  });
-  if (sources.length === 0) return projected;
-  const existing = Array.isArray(projected.metadata?.sources)
-    ? projected.metadata.sources
-    : [];
-  return {
-    ...projected,
-    metadata: {
-      ...projected.metadata,
-      sources: [...existing, ...sources],
-    },
-  };
 }
 
 function projectAssistantContext(message: ThreadMessage): {
@@ -452,89 +414,6 @@ export function SemanticToolItemOutlet(props: ToolCallMessagePartProps) {
       }}
     >
       {renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.toolItem, fallback)}
-    </MessageRenderProvider>
-  );
-}
-
-function projectedAttachmentMessage(threadMessage: ThreadMessage): AgentMessage {
-  const projected = firstProjectedMessage(threadMessage);
-  if (threadMessage.role !== "user" || threadMessage.attachments.length === 0) {
-    return projected;
-  }
-  const attachmentProjection = projectAssistantUiMessages([{
-    ...threadMessage,
-    content: threadMessage.attachments.flatMap((attachment) =>
-      attachment.content.map((part) =>
-        (part.type === "image" || part.type === "file") &&
-        part.filename === undefined
-          ? { ...part, filename: attachment.name }
-          : part,
-      ),
-    ),
-  }])[0];
-  return attachmentProjection === undefined
-    ? projected
-    : withPublicCustomMetadata(attachmentProjection, threadMessage);
-}
-
-export function SemanticAttachmentsOutlet({ children }: PropsWithChildren) {
-  const renderSlot = useOptionalMessageSlotBridge();
-  const threadMessage = useCurrentThreadMessage();
-  const message = projectedAttachmentMessage(threadMessage);
-  const items = projectMessageAttachments(message);
-  if (renderSlot === null) return children;
-  if (items.length === 0) return children;
-
-  return (
-    <MessageRenderProvider
-      value={{
-        items,
-        kind: "attachments",
-        message,
-        turnId: threadMessage.id,
-      }}
-    >
-      {renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.attachments, children)}
-    </MessageRenderProvider>
-  );
-}
-
-export function SemanticSourcesOutlet(): ReactNode {
-  const renderSlot = useOptionalMessageSlotBridge();
-  const threadMessage = useCurrentThreadMessage();
-  const parts = useAuiState((state) => state.message.parts);
-  const sourceParts = parts.flatMap((part) =>
-    part.type === "source" ? [part] : [],
-  );
-  const message = withPublicSourceParts(
-    firstProjectedMessage(threadMessage),
-    threadMessage,
-  );
-  const items = projectMessageSources(message);
-  if (sourceParts.length === 0) return null;
-
-  const fallback = (
-    <div
-      data-slot="aui_message-sources"
-      className="flex flex-wrap gap-1.5"
-    >
-      {sourceParts.map((part) => (
-        <Sources key={part.id} {...part} />
-      ))}
-    </div>
-  );
-  if (renderSlot === null) return fallback;
-
-  return (
-    <MessageRenderProvider
-      value={{
-        items,
-        kind: "sources",
-        message,
-        turnId: threadMessage.id,
-      }}
-    >
-      {renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.sources, fallback)}
     </MessageRenderProvider>
   );
 }

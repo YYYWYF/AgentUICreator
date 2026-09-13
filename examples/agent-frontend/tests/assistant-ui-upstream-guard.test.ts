@@ -31,6 +31,11 @@ describe("assistant-ui upstream ownership guard", () => {
     expect(components.registries?.["@assistant-ui"]).toBe(
       "https://r.assistant-ui.com/styles/{style}/{name}.json",
     );
+    const manifest = JSON.parse(
+      await readFile(path.join(vendorRoot, "upstream-elements.json"), "utf8"),
+    ) as { owned?: string[]; legacyExceptions?: string[] };
+    expect(manifest.owned).toContain("components/assistant-ui/elements/thread.aui.tsx");
+    expect(manifest.legacyExceptions).not.toContain("components/assistant-ui/elements/thread.aui.tsx");
     await expect(execFileAsync("node", [guardScript, "--vendor-root", vendorRoot])).resolves.toMatchObject({
       stdout: expect.stringContaining("assistant-ui upstream-owned Elements: OK"),
     });
@@ -54,6 +59,28 @@ describe("assistant-ui upstream ownership guard", () => {
       code: 1,
       stderr: expect.stringContaining(
         "assistant-ui upstream-owned Element modified: components/assistant-ui/elements/tool-group.aui.tsx",
+      ),
+    });
+  });
+
+  it("fails when the upstream-owned Thread is modified", async () => {
+    const temporaryRoot = await mkdtemp(path.join(projectRoot, ".tmp-upstream-thread-guard-"));
+    temporaryRoots.push(temporaryRoot);
+    await cp(vendorRoot, temporaryRoot, { recursive: true });
+
+    const target = path.join(
+      temporaryRoot,
+      "components/assistant-ui/elements/thread.aui.tsx",
+    );
+    const source = await readFile(target, "utf8");
+    await writeFile(target, `${source}\n// product drift\n`);
+
+    await expect(
+      execFileAsync("node", [guardScript, "--vendor-root", temporaryRoot]),
+    ).rejects.toMatchObject({
+      code: 1,
+      stderr: expect.stringContaining(
+        "assistant-ui upstream-owned Element modified: components/assistant-ui/elements/thread.aui.tsx",
       ),
     });
   });

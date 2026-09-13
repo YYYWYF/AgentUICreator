@@ -23,6 +23,7 @@ export interface AssistantUiThreadListSnapshot {
 /** AgentUICreator-owned identity seam. Persistence is deliberately optional. */
 export interface AssistantUiThreadBinding<TState = unknown> {
   getThreadId(): string;
+  getIsDisabled?(): boolean;
   subscribe(listener: () => void): () => void;
   createNewThread(): Promise<string>;
   getThreadListSnapshot?(): AssistantUiThreadListSnapshot;

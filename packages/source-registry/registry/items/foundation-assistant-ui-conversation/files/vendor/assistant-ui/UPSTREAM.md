@@ -21,6 +21,14 @@ Runtime packages:
 - `@assistant-ui/react-markdown` = `0.14.15`
 - `@ag-ui/client` = `0.0.59`
 
+The selected upstream-owned Element set is declared in `upstream-elements.json`.
+All declared elements, including `thread.aui.tsx`, are pinned to the local
+assistant-ui revision above and may only receive mechanical import adaptations.
+
+`assistant-ui-upstream.lock.json` records the SHA-256 of each installed,
+import-adapted upstream-owned Element. Run the project
+`check:assistant-ui-upstream` command before changing this boundary.
+
 AgentUICreator local patches are limited to thin adapter seams:
 
 - semantic Slot wrappers;
@@ -31,4 +39,4 @@ AgentUICreator local patches are limited to thin adapter seams:
 - import path adaptation.
 
 There is no custom visual redesign, spacing, color, or card layout in the
-vendored presentation source.
+vendored files declared `owned`.

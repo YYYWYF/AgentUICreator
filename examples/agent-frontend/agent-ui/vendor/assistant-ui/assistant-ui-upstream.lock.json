@@ -3,6 +3,7 @@
   "source": "https://r.assistant-ui.com",
   "style": "base-nova",
   "elements": {
+    "components/assistant-ui/elements/thread.aui.tsx": "1aaf40d76106ab11050398423c714dc2097f1b8004e6d836adc626e4afd9561e",
     "components/assistant-ui/elements/tool-call.tsx": "1fd4f2aa297d146059a9e4e436063f3bc83eee5e9a69f7e44c1aa5f8935d8bef",
     "components/assistant-ui/elements/tool-group.aui.tsx": "50e5d21a865de8bead130bd9bcfa968ab1a330c4b0082374bf3d1a84951a9b08",
     "components/assistant-ui/elements/reasoning.aui.tsx": "32c3b000370561900797a633d606a7172f6d465a2c06f3e39b6e820535dcd79f",

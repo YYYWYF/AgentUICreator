@@ -4,6 +4,7 @@ import type {
 } from "@assistant-ui/react";
 
 import { projectAgentStatus } from "../../agents/agent-status-projection";
+import { AgentElementFrame } from "../../elements/AgentElementFrame";
 import { AgentStatus } from "../../../../vendor/assistant-ui/components/assistant-ui/elements/agent-status";
 import { ToolFallback } from "../../../../vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui";
 
@@ -26,10 +27,12 @@ export const MockAgentStatusToolUI: ToolCallMessagePartComponent<
     return <ToolFallback {...props} />;
   }
   return (
-    <AgentStatus
-      state={view.state}
-      label={view.label}
-      {...(view.elapsed === undefined ? {} : { elapsed: view.elapsed })}
-    />
+    <AgentElementFrame kind="status">
+      <AgentStatus
+        state={view.state}
+        label={view.label}
+        {...(view.elapsed === undefined ? {} : { elapsed: view.elapsed })}
+      />
+    </AgentElementFrame>
   );
 };

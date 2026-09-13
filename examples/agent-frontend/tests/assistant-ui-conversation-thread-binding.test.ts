@@ -244,6 +244,23 @@ describe("ConversationServiceAssistantUiThreadBinding", () => {
     expect(messageIds(restored.messages)).toEqual(messageIds(live.messages));
   });
 
+  it("publishes readonly state through the runtime binding", async () => {
+    const { binding } = createBindingFixture();
+    const liveThreadId = binding.getThreadId();
+    const changes: boolean[] = [];
+    const unsubscribe = binding.subscribe(() => {
+      changes.push(binding.getIsDisabled?.() ?? false);
+    });
+
+    expect(binding.getIsDisabled?.()).toBe(false);
+    await binding.selectThread("history-1");
+    expect(binding.getIsDisabled?.()).toBe(true);
+    await binding.selectThread(liveThreadId);
+    expect(binding.getIsDisabled?.()).toBe(false);
+    expect(changes).toEqual([true, false]);
+    unsubscribe();
+  });
+
   it("selects rich history through the unified projector", async () => {
     const { binding } = createBindingFixture();
 

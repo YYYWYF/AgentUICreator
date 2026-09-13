@@ -13,7 +13,7 @@ import {
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { useCallback, useMemo, useSyncExternalStore } from "react";
+import { useCallback, useMemo } from "react";
 
 import {
   AssistantUiAgUiRuntimeProvider,
@@ -113,23 +113,16 @@ function RuntimeCapture({
 function RichHistoryRuntimeFixture({
   agent,
   binding,
-  conversation,
   onRuntime,
 }: {
   agent: ReturnType<AssistantUiAgentFactory>;
   binding: ConversationServiceAssistantUiThreadBinding;
-  conversation: AgentUIConversationService;
   onRuntime: (runtime: AssistantRuntime) => void;
 }) {
   const agentFactory = useCallback(() => agent, [agent]);
-  const mode = useSyncExternalStore(
-    conversation.subscribe,
-    () => conversation.getSnapshot().mode,
-    () => "live" as const,
-  );
   const components = useMemo(
-    () => createAssistantUiSemanticThreadComponents(renderFallback, { mode }),
-    [mode],
+    () => createAssistantUiSemanticThreadComponents(renderFallback),
+    [],
   );
   const config = useMemo(
     () => AuiConfig({
@@ -201,7 +194,6 @@ async function mountRuntime() {
       <RichHistoryRuntimeFixture
         agent={agent}
         binding={binding}
-        conversation={service}
         onRuntime={(nextRuntime) => {
           runtime = nextRuntime;
         }}
@@ -288,6 +280,7 @@ describe("assistant-ui rich history navigation", () => {
     });
 
     expect(binding.getThreadId()).toBe("conversation-replay-agent-elements");
+    expect(binding.getIsDisabled?.()).toBe(true);
     expect(runtime.threads.getState().mainThreadId).toBe(
       "conversation-replay-agent-elements",
     );
@@ -310,8 +303,7 @@ describe("assistant-ui rich history navigation", () => {
     expect(container.querySelector('[data-slot="agent-status"]')).not.toBeNull();
     expect(container.querySelector('[data-slot="subagent-list"]')).not.toBeNull();
     const subagentList = container.querySelector('[data-slot="subagent-list"]');
-    expect(subagentList?.classList.contains("min-h-0")).toBe(true);
-    expect(subagentList?.classList.contains("min-h-[14.5rem]")).toBe(false);
+    expect(subagentList?.classList.contains("min-h-[14.5rem]")).toBe(true);
     expect(container.textContent).toContain("Analysis complete");
     expect(agent.runAgent).not.toHaveBeenCalled();
 
@@ -320,6 +312,7 @@ describe("assistant-ui rich history navigation", () => {
       await Promise.resolve();
     });
     expect(binding.getThreadId()).toBe(liveThreadId);
+    expect(binding.getIsDisabled?.()).toBe(false);
     expect(runtime.thread.getState().messages.map((message) => message.id)).toEqual([
       "live-user",
       "live-assistant",
@@ -418,8 +411,8 @@ describe("assistant-ui rich history navigation", () => {
       }),
     ]);
     expect(document.body.textContent).toContain("architecture-notes.md");
-    expect(container.textContent).toContain("AG-UI Runtime Notes");
-    expect(container.textContent).toContain("Architecture Notes");
+    expect(container.textContent).not.toContain("AG-UI Runtime Notes");
+    expect(container.textContent).not.toContain("Architecture Notes");
     expect(agent.runAgent).not.toHaveBeenCalled();
   });
 });

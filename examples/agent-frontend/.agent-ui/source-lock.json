@@ -146,7 +146,7 @@
       }
     },
     "foundation/assistant-ui-conversation": {
-      "version": "0.1.11",
+      "version": "0.1.12",
       "files": {
         "vendor/assistant-ui/components/assistant-ui/elements/agent-plan.tsx": {
           "sha256": "54bf9e06211f95b54b455c0356270d6e2c0f82110ab113f2612da1f60bb5f240"
@@ -191,7 +191,7 @@
           "sha256": "4e567a1792776103f33197b3cb090fc84679cd712ff0ae588c7ab39aa45a3158"
         },
         "vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx": {
-          "sha256": "36f9ad26cd30904c2e4e8ab15572484247420910331acc4b9ecdee2cfb3bcc81"
+          "sha256": "1aaf40d76106ab11050398423c714dc2097f1b8004e6d836adc626e4afd9561e"
         },
         "vendor/assistant-ui/components/assistant-ui/elements/tool-call.tsx": {
           "sha256": "1fd4f2aa297d146059a9e4e436063f3bc83eee5e9a69f7e44c1aa5f8935d8bef"
@@ -257,13 +257,13 @@
           "sha256": "55bbdc94cef3e0c8a8bba386e94f97228dd2c967fe61466fc565378890550c08"
         },
         "vendor/assistant-ui/THIRD_PARTY_NOTICES.md": {
-          "sha256": "d540eac1ce5ba19ccde38e68cd5dc7e7da6230c173bab15c74d151e6a02e2a95"
+          "sha256": "cabd7f7034e3ab8f071bab3c71cb8b0072846e55a6126408269e4d2aa6eb895f"
         },
         "vendor/assistant-ui/UPSTREAM.json": {
-          "sha256": "bc2b2c1ce40ee06ac01ba5b4ac5ce6578b4de019bcfb5be2305fc17048d48aef"
+          "sha256": "09cd090f9eb50f2cef48a4248948e2977cd2a1509209fe16f474136fea949b58"
         },
         "vendor/assistant-ui/UPSTREAM.md": {
-          "sha256": "f75f7b42cba20e14a5f67373fb8bdf9d03e252a3bbfeb61d28f18bfbf09bff49"
+          "sha256": "3333959d51c88c35b8ce691a5c7e4b79ff2c5e58f8a3ffa73e0098092e7bdfe0"
         }
       }
     },

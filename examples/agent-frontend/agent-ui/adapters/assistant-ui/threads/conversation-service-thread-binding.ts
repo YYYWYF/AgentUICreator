@@ -150,6 +150,7 @@ export function createConversationServiceAssistantUiThreadBinding<
 
   return {
     getThreadId: () => activeThreadId,
+    getIsDisabled: () => activeThreadId !== liveThreadId,
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);

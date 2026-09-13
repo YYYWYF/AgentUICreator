@@ -83,7 +83,6 @@ describe("assistant-ui default composition", () => {
     expect(resolveAssistantUiPresentationConfig(model)).toEqual({
       welcome: {},
       starterSuggestions: [],
-      composer: { quickPrompts: [] },
       interactions: {},
     });
   });
@@ -136,7 +135,11 @@ describe("assistant-ui default composition", () => {
       expect(thread).toContain(`data-slot=\"${slot}\"`);
     }
     expect(conversationAdapter).not.toContain("AssistantMessage:");
-    expect(conversationAdapter).toContain("ToolCallWrapper");
+    expect(conversationAdapter).toContain("ReasoningGroup: SemanticReasoningOutlet");
+    expect(conversationAdapter).toContain("ToolGroup: SemanticToolActivityOutlet");
+    expect(conversationAdapter).toContain("ToolFallback: SemanticToolItemOutlet");
+    expect(conversationAdapter).toContain("Welcome:");
+    expect(conversationAdapter).not.toContain("ToolCallWrapper");
     expect(thread).toContain("ActionBarMorePrimitive");
     expect(thread).toContain("ExportMarkdown");
     expect(thread).toContain("Export as Markdown");

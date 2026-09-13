@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import {
   Thread,
   type ThreadComponents,
-  type ThreadPresentation,
 } from "../../../vendor/assistant-ui/components/assistant-ui/elements/thread.aui";
 import { TooltipProvider } from "../../../vendor/assistant-ui/components/ui/tooltip";
 
@@ -12,7 +11,6 @@ export interface AssistantUiConversationSurfaceProps {
   children?: ReactNode;
   className?: string;
   components?: ThreadComponents;
-  presentation?: ThreadPresentation;
   theme?: AssistantUiConversationTheme;
 }
 
@@ -23,7 +21,6 @@ export function AssistantUiConversationSurface({
   children,
   className,
   components,
-  presentation,
   theme = "light",
 }: AssistantUiConversationSurfaceProps) {
   return (
@@ -41,7 +38,6 @@ export function AssistantUiConversationSurface({
         <Thread
           autoFocus={autoFocus}
           components={components}
-          presentation={presentation}
         />
         {children}
       </TooltipProvider>

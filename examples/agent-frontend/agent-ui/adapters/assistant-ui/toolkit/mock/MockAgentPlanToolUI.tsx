@@ -4,6 +4,7 @@ import type {
 } from "@assistant-ui/react";
 
 import { projectAgentPlan } from "../../agents/agent-plan-projection";
+import { AgentElementFrame } from "../../elements/AgentElementFrame";
 import { AgentPlan } from "../../../../vendor/assistant-ui/components/assistant-ui/elements/agent-plan";
 import { ToolFallback } from "../../../../vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui";
 
@@ -25,5 +26,9 @@ export const MockAgentPlanToolUI: ToolCallMessagePartComponent<
   if (shouldUseFallback(props) || view === null) {
     return <ToolFallback {...props} />;
   }
-  return <AgentPlan steps={view.steps} activeIndex={view.activeIndex} />;
+  return (
+    <AgentElementFrame kind="plan">
+      <AgentPlan steps={view.steps} activeIndex={view.activeIndex} />
+    </AgentElementFrame>
+  );
 };

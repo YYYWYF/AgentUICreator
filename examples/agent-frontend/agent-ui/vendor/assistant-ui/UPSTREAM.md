@@ -21,10 +21,9 @@ Runtime packages:
 - `@assistant-ui/react-markdown` = `0.14.15`
 - `@ag-ui/client` = `0.0.59`
 
-The selected upstream-owned Element set and the frozen exception are declared
-in `upstream-elements.json`. `thread.aui.tsx` remains a known legacy fork and
-is intentionally excluded from the upstream-owned set for P6-A.4.1. Do not
-modify it or treat it as upstream-clean until P6-A.4.2.
+The selected upstream-owned Element set is declared in `upstream-elements.json`.
+All declared elements, including `thread.aui.tsx`, are pinned to the local
+assistant-ui revision above and may only receive mechanical import adaptations.
 
 `assistant-ui-upstream.lock.json` records the SHA-256 of each installed,
 import-adapted upstream-owned Element. Run the project
@@ -40,5 +39,4 @@ AgentUICreator local patches are limited to thin adapter seams:
 - import path adaptation.
 
 There is no custom visual redesign, spacing, color, or card layout in the
-vendored files declared `owned`. The legacy Thread exception is the only
-documented product-level presentation fork in this directory.
+vendored files declared `owned`.

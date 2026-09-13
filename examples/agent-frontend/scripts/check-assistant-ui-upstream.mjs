@@ -15,7 +15,7 @@ const MANIFEST_FILE = "upstream-elements.json";
 const LOCK_FILE = "assistant-ui-upstream.lock.json";
 const EXPECTED_SOURCE = "https://r.assistant-ui.com";
 const EXPECTED_STYLE = "base-nova";
-const THREAD_EXCEPTION = "components/assistant-ui/elements/thread.aui.tsx";
+const THREAD_ELEMENT = "components/assistant-ui/elements/thread.aui.tsx";
 
 function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -108,10 +108,13 @@ export async function collectAssistantUiUpstreamErrors(
     return [error instanceof Error ? error.message : String(error)];
   }
 
-  if (!legacyExceptions.includes(THREAD_EXCEPTION)) {
-    errors.push(`${MANIFEST_FILE} must document ${THREAD_EXCEPTION} as a legacy exception.`);
-  }
   const ownedSet = new Set(owned);
+  if (!ownedSet.has(THREAD_ELEMENT)) {
+    errors.push(`${MANIFEST_FILE}.owned must include ${THREAD_ELEMENT}.`);
+  }
+  if (legacyExceptions.includes(THREAD_ELEMENT)) {
+    errors.push(`${MANIFEST_FILE} must not list ${THREAD_ELEMENT} as a legacy exception.`);
+  }
   for (const exception of legacyExceptions) {
     if (ownedSet.has(exception)) {
       errors.push(`${exception} cannot be both upstream-owned and a legacy exception.`);
