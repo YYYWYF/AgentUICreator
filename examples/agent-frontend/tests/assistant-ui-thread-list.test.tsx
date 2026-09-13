@@ -25,8 +25,9 @@ vi.mock("@assistant-ui/react", async (importOriginal) => {
 });
 
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
-import { Button } from "../agent-ui/primitives/button";
+import { Button } from "../agent-ui/vendor/assistant-ui/components/ui/button";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { AGENT_UI_THEME_SERVICE } from "../services/agent-ui-theme";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
   type AgentUIConversationService,
@@ -132,6 +133,15 @@ async function renderPlugin(
 }
 
 describe("AssistantUiThreadListPlugin", () => {
+  it("declares theme as optional while requiring conversation data", () => {
+    expect(assistantUiThreadListPlugin.inject).toEqual([
+      AGENT_UI_CONVERSATION_SERVICE,
+    ]);
+    expect(assistantUiThreadListPlugin.optionalInject).toEqual([
+      AGENT_UI_THEME_SERVICE,
+    ]);
+  });
+
   it("renders list and detail errors independently and retries the failed conversation", async () => {
     const snapshot: ConversationSnapshot = {
       ...EMPTY_CONVERSATION_SNAPSHOT,

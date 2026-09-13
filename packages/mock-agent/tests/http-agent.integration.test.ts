@@ -272,7 +272,9 @@ async function runHttpAgent(endpoint: string): Promise<BaseEvent[]> {
   agent.addMessage({ id: "user-selection", role: "user", content: "运行" });
 
   await agent.runAgent({ runId: "run-selection" }, {
-    onEvent: ({ event }) => events.push(event),
+    onEvent: ({ event }) => {
+      events.push(event);
+    },
   });
   return events;
 }

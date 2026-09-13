@@ -39,7 +39,7 @@ export interface ThreadListPresentationPolicy {
   readonly showItemActions?: boolean;
   readonly isItemDisabled?: (item: {
     id: string;
-    custom?: Record<string, unknown>;
+    custom?: Record<string, unknown> | undefined;
   }) => boolean;
 }
 

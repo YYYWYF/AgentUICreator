@@ -18,7 +18,10 @@ function threadMessage(id: string): ThreadMessage {
     id,
     role: "user",
     content: [{ type: "text", text: id }],
-  } as ThreadMessage;
+    attachments: [],
+    createdAt: new Date(0),
+    metadata: { custom: {} },
+  };
 }
 
 function RuntimeCapture({
@@ -78,6 +81,7 @@ function createAgent(): ReturnType<AssistantUiAgentFactory> {
     threadId: "live",
     runAgent: vi.fn(),
     abortRun: vi.fn(),
+    subscribe: vi.fn(() => ({ unsubscribe: vi.fn() })),
   } as never;
 }
 

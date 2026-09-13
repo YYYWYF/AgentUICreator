@@ -82,7 +82,7 @@ class FakeAgentClient {
         messages: this.messages,
         state: this.state,
         agent: this as unknown as AbstractAgent,
-      } as Parameters<typeof listener>[0]);
+      } as unknown as Parameters<typeof listener>[0]);
     });
   }
 
@@ -105,7 +105,7 @@ class FakeAgentClient {
         messages: this.messages,
         state: this.state,
         agent: this as unknown as AbstractAgent,
-      } as Parameters<typeof listener>[0]);
+      } as unknown as Parameters<typeof listener>[0]);
     });
   }
 
@@ -129,7 +129,7 @@ class FakeAgentClient {
         messages: this.messages,
         state: this.state,
         agent: this as unknown as AbstractAgent,
-      } as Parameters<typeof listener>[0]);
+      } as unknown as Parameters<typeof listener>[0]);
     });
   }
 
@@ -151,7 +151,7 @@ class FakeAgentClient {
         messages: this.messages,
         state: this.state,
         agent: this as unknown as AbstractAgent,
-      } as Parameters<typeof listener>[0]);
+      } as unknown as Parameters<typeof listener>[0]);
     });
   }
 
@@ -168,7 +168,7 @@ class FakeAgentClient {
         messages: this.messages,
         state: this.state,
         agent: this as unknown as AbstractAgent,
-      } as Parameters<typeof listener>[0]);
+      } as unknown as Parameters<typeof listener>[0]);
     });
   }
 
@@ -187,7 +187,7 @@ class FakeAgentClient {
         messages: this.messages,
         state: this.state,
         agent: this as unknown as AbstractAgent,
-      } as Parameters<typeof listener>[0]);
+      } as unknown as Parameters<typeof listener>[0]);
     });
   }
 
@@ -205,7 +205,7 @@ class FakeAgentClient {
         messages: this.messages,
         state: this.state,
         agent: this as unknown as AbstractAgent,
-      } as Parameters<typeof listener>[0]);
+      } as unknown as Parameters<typeof listener>[0]);
     });
   }
 
@@ -229,7 +229,7 @@ class FakeAgentClient {
         messages: this.messages,
         state: this.state,
         agent: this as unknown as AbstractAgent,
-      } as Parameters<typeof listener>[0]);
+      } as unknown as Parameters<typeof listener>[0]);
     });
   }
 
@@ -246,7 +246,7 @@ class FakeAgentClient {
         messages: this.messages,
         state: this.state,
         agent: this as unknown as AbstractAgent,
-      } as Parameters<typeof listener>[0]);
+      } as unknown as Parameters<typeof listener>[0]);
     });
   }
 
@@ -361,7 +361,9 @@ describe("AgUiTransport", () => {
 
   it("maps the client thread to conversation and adds input before running", async () => {
     const agent = new FakeAgentClient();
-    const createClient = vi.fn(() => agent);
+    const createClient = vi.fn(
+      (_config: { endpoint: string; threadId: string }) => agent,
+    );
     const runtime = new AgUiTransport(
       { endpoint: "https://agent.example.test/ag-ui" },
       createClient,

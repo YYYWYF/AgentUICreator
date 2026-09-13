@@ -820,7 +820,7 @@ describe("LifecycleProjector", () => {
             source: { file: "input.txt" },
           },
         }],
-      },
+      } as unknown as Message,
     ]);
     const second = projector.projectMessages([
       {
@@ -836,7 +836,7 @@ describe("LifecycleProjector", () => {
             source: { file: "input.txt" },
           },
         }],
-      },
+      } as unknown as Message,
     ]);
 
     expect(second).toBe(first);

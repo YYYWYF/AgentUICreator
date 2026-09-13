@@ -26,11 +26,30 @@ function agentMessage(
 }
 
 function threadMessage(id: string, role: "user" | "assistant"): ThreadMessage {
+  if (role === "user") {
+    return {
+      id,
+      role,
+      content: [{ type: "text", text: id }],
+      attachments: [],
+      createdAt: new Date(0),
+      metadata: { custom: {} },
+    };
+  }
   return {
     id,
     role,
     content: [{ type: "text", text: id }],
-  } as ThreadMessage;
+    status: { type: "complete", reason: "unknown" },
+    createdAt: new Date(0),
+    metadata: {
+      unstable_state: null,
+      unstable_annotations: [],
+      unstable_data: [],
+      steps: [],
+      custom: {},
+    },
+  };
 }
 
 class FakeConversationService implements AgentUIConversationService {

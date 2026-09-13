@@ -13,6 +13,7 @@ export type ButtonVariant =
 export type ButtonSize = "sm" | "md" | "lg" | "icon";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  "data-slot"?: string | undefined;
   variant?: ButtonVariant;
   size?: ButtonSize;
 }

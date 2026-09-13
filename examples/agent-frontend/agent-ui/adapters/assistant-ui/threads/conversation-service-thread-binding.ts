@@ -16,6 +16,8 @@ import type {
 
 export interface ConversationServiceAssistantUiThreadBinding<TState = unknown>
   extends AssistantUiThreadBinding<TState> {
+  getThreadListSnapshot(): AssistantUiThreadListSnapshot;
+  selectThread(threadId: string): Promise<AssistantUiLoadedThread<TState>>;
   attachConversationService(
     service: AgentUIConversationService,
   ): () => void;
@@ -118,8 +120,8 @@ function emptyLoadedThread<TState>(): AssistantUiLoadedThread<TState> {
 export function createConversationServiceAssistantUiThreadBinding<
   TState = unknown,
 >(): ConversationServiceAssistantUiThreadBinding<TState> {
-  let liveThreadId = crypto.randomUUID();
-  let activeThreadId = liveThreadId;
+  let liveThreadId: string = crypto.randomUUID();
+  let activeThreadId: string = liveThreadId;
   let liveThreadSnapshot = emptyLoadedThread<TState>();
   let activeThreadSnapshot = liveThreadSnapshot;
   let conversationService: AgentUIConversationService | undefined;
@@ -182,9 +184,12 @@ export function createConversationServiceAssistantUiThreadBinding<
     },
     async selectThread(threadId) {
       if (threadId === liveThreadId) {
+        const returningToLiveThread = activeThreadId !== liveThreadId;
         activeThreadId = liveThreadId;
         activeThreadSnapshot = liveThreadSnapshot;
-        conversationService?.showLiveConversation();
+        if (returningToLiveThread) {
+          conversationService?.showLiveConversation();
+        }
         emit();
         return activeThreadSnapshot;
       }

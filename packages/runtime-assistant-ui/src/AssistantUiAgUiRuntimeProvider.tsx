@@ -24,7 +24,10 @@ import {
   type AssistantUiAgentRuntimeBridge,
 } from "./compatibility/agent-runtime-bridge.js";
 import { AssistantUiApplicationEventSource } from "./events/application-event-source.js";
-import type { AssistantUiThreadBinding } from "./threads/types.js";
+import type {
+  AssistantUiThreadBinding,
+  AssistantUiThreadListSnapshot,
+} from "./threads/types.js";
 import { createAssistantUiFrontendToolPort } from "./tools/types.js";
 
 export interface AssistantUiAgentFactoryConfig {
@@ -76,7 +79,7 @@ export function AssistantUiAgUiRuntimeProvider<TState = unknown>({
     getThreadId,
     getThreadId,
   );
-  const fallbackThreadListSnapshot = useMemo(
+  const fallbackThreadListSnapshot = useMemo<AssistantUiThreadListSnapshot>(
     () => ({
       threads: [{ id: threadId, status: "regular" as const }],
       archivedThreads: [],
@@ -176,7 +179,10 @@ export function AssistantUiAgUiRuntimeProvider<TState = unknown>({
 
   return (
     <AssistantUiRuntimeBridgeProvider bridge={bridge}>
-      <AssistantRuntimeProvider runtime={assistantRuntime} config={config}>
+      <AssistantRuntimeProvider
+        runtime={assistantRuntime}
+        {...(config === undefined ? {} : { config })}
+      >
         {children}
       </AssistantRuntimeProvider>
     </AssistantUiRuntimeBridgeProvider>

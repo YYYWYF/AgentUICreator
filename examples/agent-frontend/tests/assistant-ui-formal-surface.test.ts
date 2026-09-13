@@ -82,7 +82,7 @@ describe("formal assistant-ui surface", () => {
       expect.objectContaining({ id: "p3r4c-composer-extension-seam" }),
       expect.objectContaining({ id: "p3r4d-thread-list-policy-seam" }),
     ]);
-    expect(item.version).toBe("0.1.7");
+    expect(item.version).toBe("0.1.8");
     expect(item.upstream).toMatchObject({
       revision,
       license: "MIT",

@@ -384,7 +384,7 @@ describe("ui-project-control", () => {
       ),
     ).toMatchObject({
       schemaVersion: 1,
-      items: { "primitive/button": { version: "0.2.1" } },
+      items: { "primitive/button": { version: "0.2.2" } },
     });
   });
 

@@ -55,8 +55,10 @@ describe("runtime-assistant-ui package policy", () => {
     expect(provider).toContain(
       'config?: ComponentProps<typeof AssistantRuntimeProvider>["config"]',
     );
+    expect(provider).toContain("<AssistantRuntimeProvider");
+    expect(provider).toContain("runtime={assistantRuntime}");
     expect(provider).toContain(
-      "<AssistantRuntimeProvider runtime={assistantRuntime} config={config}>",
+      "...(config === undefined ? {} : { config })",
     );
     expect(provider).not.toMatch(
       /agent-welcome-main|agent-prompts-main|AppUIModel/u,

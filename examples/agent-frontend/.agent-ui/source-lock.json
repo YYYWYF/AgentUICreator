@@ -146,7 +146,7 @@
       }
     },
     "foundation/assistant-ui-conversation": {
-      "version": "0.1.7",
+      "version": "0.1.8",
       "files": {
         "vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx": {
           "sha256": "74b8a3d8b079893cdab6aff2ea1ded1d0ddc9af5381a0331dbea1e253f68fa9a"
@@ -173,7 +173,7 @@
           "sha256": "6e629d6cab9204b903120f7195b3d3126ed48d5ecd7191dbb0174ad9ccf8dfb0"
         },
         "vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx": {
-          "sha256": "1a643b0bbb79dc2631153d6a5ffc33b051e6029023a55f2e6d0f2d9ce3c7f4f7"
+          "sha256": "4e567a1792776103f33197b3cb090fc84679cd712ff0ae588c7ab39aa45a3158"
         },
         "vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx": {
           "sha256": "b1b8ffc65566e20c01ccf9b02a12689c3e728ad2ebca2c9cbe5a6732fa71c6be"
@@ -224,7 +224,7 @@
           "sha256": "bc2eb184a4de557900956b375e301452bfc138f8525419c17075fb5256165d25"
         },
         "vendor/assistant-ui/UPSTREAM.json": {
-          "sha256": "1d59eef643d96c27aa0e655b2d26e8712216723639f4620591f9272b1ae49c92"
+          "sha256": "58d2f93ffd0b4ae99c79a2ceed3d2bc12d06aa6c6f34bc23c3d98d3ba454dba7"
         },
         "vendor/assistant-ui/UPSTREAM.md": {
           "sha256": "7f4f65edab402f4220f56ffa7138c76b1bab7429e18dde02952fc31fbc8d606c"
@@ -277,13 +277,13 @@
       }
     },
     "primitive/button": {
-      "version": "0.2.1",
+      "version": "0.2.2",
       "files": {
         "primitives/button.module.css": {
           "sha256": "75cf38b470d256542fc2a02dba6df095023f966329f82d58fdcb351173601d7b"
         },
         "primitives/button.tsx": {
-          "sha256": "bcc602a0504f59773fcfe02502738fee0ed16e4da5fdf3c051bd7db681a59734"
+          "sha256": "083e3a57ab0cef0db81e5d0f02bb50e6fa731c15b7a8b61ac793374764d34d6f"
         }
       }
     },

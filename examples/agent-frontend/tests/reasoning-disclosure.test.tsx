@@ -29,7 +29,9 @@ function Fixture({
     streaming,
     status,
     defaultExpanded,
-    onAutomaticAnimationStart,
+    ...(onAutomaticAnimationStart === undefined
+      ? {}
+      : { onAutomaticAnimationStart }),
   });
 
   return (

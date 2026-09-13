@@ -39,11 +39,30 @@ function agentMessage(
 }
 
 function threadMessage(id: string, role: "user" | "assistant"): ThreadMessage {
+  if (role === "user") {
+    return {
+      id,
+      role,
+      content: [{ type: "text", text: id }],
+      attachments: [],
+      createdAt: new Date(0),
+      metadata: { custom: {} },
+    };
+  }
   return {
     id,
     role,
     content: [{ type: "text", text: id }],
-  } as ThreadMessage;
+    status: { type: "complete", reason: "unknown" },
+    createdAt: new Date(0),
+    metadata: {
+      unstable_state: null,
+      unstable_annotations: [],
+      unstable_data: [],
+      steps: [],
+      custom: {},
+    },
+  };
 }
 
 function messageIds(messages: readonly ThreadMessage[]): string[] {
@@ -170,6 +189,7 @@ function createAgent(): ReturnType<AssistantUiAgentFactory> {
     threadId: "live",
     runAgent: vi.fn(),
     abortRun: vi.fn(),
+    subscribe: vi.fn(() => ({ unsubscribe: vi.fn() })),
   } as never;
 }
 
