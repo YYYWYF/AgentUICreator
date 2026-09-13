@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "source": "https://r.assistant-ui.com",
+  "style": "base-nova",
+  "elements": {
+    "components/assistant-ui/elements/tool-call.tsx": "1fd4f2aa297d146059a9e4e436063f3bc83eee5e9a69f7e44c1aa5f8935d8bef",
+    "components/assistant-ui/elements/tool-group.aui.tsx": "50e5d21a865de8bead130bd9bcfa968ab1a330c4b0082374bf3d1a84951a9b08",
+    "components/assistant-ui/elements/reasoning.aui.tsx": "32c3b000370561900797a633d606a7172f6d465a2c06f3e39b6e820535dcd79f",
+    "components/assistant-ui/elements/reasoning.tsx": "6e629d6cab9204b903120f7195b3d3126ed48d5ecd7191dbb0174ad9ccf8dfb0",
+    "components/assistant-ui/elements/subagent-list.tsx": "0abc5933a9b27ceb24e179d6d6307e4c8980d49c8c58903ecbada8e558ccca0b",
+    "components/assistant-ui/elements/agent-plan.tsx": "54bf9e06211f95b54b455c0356270d6e2c0f82110ab113f2612da1f60bb5f240",
+    "components/assistant-ui/elements/agent-status.tsx": "903fbcd93457907a0f3bf4117f996839690ec3235c76683f3a582c6b39eba628",
+    "components/assistant-ui/elements/surfaces.tsx": "fcc704686fc4bf3a15dc40f2600da759ba46a796d6d8a9c97eb37b2d21907885"
+  }
+}

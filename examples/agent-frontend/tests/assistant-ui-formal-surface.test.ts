@@ -94,7 +94,9 @@ describe("formal assistant-ui surface", () => {
       (file) =>
         file !== "THIRD_PARTY_NOTICES.md" &&
         file !== "UPSTREAM.json" &&
-        file !== "UPSTREAM.md",
+        file !== "UPSTREAM.md" &&
+        file !== "upstream-elements.json" &&
+        file !== "assistant-ui-upstream.lock.json",
     );
     expect(presentationFiles).toEqual(
       upstream.files.map((file) => file.localPath).sort(),

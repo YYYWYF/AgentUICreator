@@ -26,6 +26,10 @@ in `upstream-elements.json`. `thread.aui.tsx` remains a known legacy fork and
 is intentionally excluded from the upstream-owned set for P6-A.4.1. Do not
 modify it or treat it as upstream-clean until P6-A.4.2.
 
+`assistant-ui-upstream.lock.json` records the SHA-256 of each installed,
+import-adapted upstream-owned Element. Run the project
+`check:assistant-ui-upstream` command before changing this boundary.
+
 AgentUICreator local patches are limited to thin adapter seams:
 
 - semantic Slot wrappers;

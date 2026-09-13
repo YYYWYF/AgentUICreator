@@ -315,7 +315,7 @@ describe("assistant-ui presentation config", () => {
         },
       ],
       composer: { quickPrompts: [] },
-      interactions: { reasoningVariant: "outline", toolGroupVariant: "outline" },
+      interactions: {},
     });
   });
 
@@ -334,7 +334,7 @@ describe("assistant-ui presentation config", () => {
       welcome: {},
       starterSuggestions: [],
       composer: { quickPrompts: [] },
-      interactions: { reasoningVariant: "outline", toolGroupVariant: "outline" },
+      interactions: {},
     });
   });
 
@@ -405,11 +405,11 @@ describe("assistant-ui presentation config", () => {
       welcome: {},
       starterSuggestions: [],
       composer: { quickPrompts: [] },
-      interactions: { reasoningVariant: "outline", toolGroupVariant: "outline" },
+      interactions: {},
     });
   });
 
-  it("accepts explicit Reasoning and Tool Group variants and defaults upstream", () => {
+  it("preserves explicit variants and leaves absent or invalid values unconfigured", () => {
     const ghost = resolveAssistantUiPresentationConfig(createModel({
       presentation: {
         interactions: { reasoningVariant: "ghost", toolGroupVariant: "ghost" },
@@ -433,6 +433,7 @@ describe("assistant-ui presentation config", () => {
         },
       },
     }));
+    const absent = resolveAssistantUiPresentationConfig(createModel());
 
     expect(ghost.interactions).toEqual({
       reasoningVariant: "ghost",
@@ -442,12 +443,10 @@ describe("assistant-ui presentation config", () => {
       reasoningVariant: "muted",
       toolGroupVariant: "muted",
     });
-    expect(outline.interactions.reasoningVariant).toBe("outline");
+    expect(outline.interactions.reasoningVariant).toBeUndefined();
     expect(outline.interactions.toolGroupVariant).toBe("outline");
-    expect(invalid.interactions).toEqual({
-      reasoningVariant: "outline",
-      toolGroupVariant: "outline",
-    });
+    expect(invalid.interactions).toEqual({});
+    expect(absent.interactions).toEqual({});
   });
 
   it("renders and live-updates native Welcome and static Suggestions", async () => {

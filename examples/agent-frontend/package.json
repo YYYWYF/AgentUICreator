@@ -12,6 +12,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "check:assistant-ui-upstream": "node scripts/check-assistant-ui-upstream.mjs",
     "generate:registry": "tsx scripts/generate-plugin-registry.ts",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",

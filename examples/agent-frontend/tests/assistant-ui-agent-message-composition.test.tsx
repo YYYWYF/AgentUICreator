@@ -30,6 +30,7 @@ import {
 import { createAssistantUiToolkit } from "../agent-ui/adapters/assistant-ui/toolkit";
 import {
   AssistantUiPresentationConfigProvider,
+  type AssistantUiPresentationConfig,
 } from "../agent-ui/adapters/assistant-ui/config";
 import { Thread } from "../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui";
 import type { UIPluginComponentProps } from "../framework/contracts/ui-plugin";
@@ -47,17 +48,19 @@ const messageCompositionPresentation = {
   welcome: {},
   starterSuggestions: [],
   composer: { quickPrompts: [] },
-  interactions: { reasoningVariant: "ghost" as const, toolGroupVariant: "ghost" as const },
+  interactions: {},
 };
 
 function MessageCompositionFixture({
   initialMessages,
   mockAgentElements = false,
   mode = "live",
+  presentation = messageCompositionPresentation,
 }: {
   initialMessages: readonly ThreadMessageLike[];
   mockAgentElements?: boolean;
   mode?: AssistantUiConversationPresentationMode;
+  presentation?: AssistantUiPresentationConfig;
 }) {
   const runtime = useLocalRuntime(TEST_CHAT_MODEL, { initialMessages });
   const config = AuiConfig({
@@ -65,7 +68,7 @@ function MessageCompositionFixture({
   });
   return (
     <AssistantRuntimeProvider config={config} runtime={runtime}>
-      <AssistantUiPresentationConfigProvider value={messageCompositionPresentation}>
+      <AssistantUiPresentationConfigProvider value={presentation}>
         <Thread
           components={createAssistantUiSemanticThreadComponents(renderFallback, {
             mode,
@@ -259,13 +262,11 @@ afterEach(async () => {
 });
 
 describe("assistant-ui Agent Message composition", () => {
-  it("keeps Agent reasoning and grouped tools on upstream primitives with configured rhythm", () => {
+  it("keeps Agent reasoning and grouped tools on upstream primitives without product rhythm overrides", () => {
     const html = renderToStaticMarkup(
       <>
         <ReasoningRoot
           data-agent-ui-composition-part="reasoning"
-          variant="ghost"
-          className="my-1 mb-3"
         >
           <ReasoningTrigger active={false} />
           <ReasoningContent>
@@ -275,7 +276,6 @@ describe("assistant-ui Agent Message composition", () => {
         <ToolGroupRoot
           data-agent-ui-composition-part="tool-group"
           variant="ghost"
-          className="my-1"
         >
           <ToolGroupTrigger count={1} />
           <ToolGroupContent keepMounted>tool</ToolGroupContent>
@@ -286,8 +286,8 @@ describe("assistant-ui Agent Message composition", () => {
     expect(html).toContain('data-agent-ui-composition-part="reasoning"');
     expect(html).toContain('data-agent-ui-composition-part="tool-group"');
     expect(html).toContain('data-variant="ghost"');
-    expect(html).toContain("my-1 mb-3");
-    expect(html).toContain("my-1");
+    expect(html).not.toContain("my-1 mb-3");
+    expect(html).not.toContain('class="my-1"');
   });
 
   it("renders reasoning, standalone search_files, reasoning, and text as one composed message", async () => {
@@ -321,12 +321,13 @@ describe("assistant-ui Agent Message composition", () => {
 
     expect(reasoningFrames).toHaveLength(2);
     expect(reasoningFrames.every((frame) =>
-      frame.props["data-variant"] === "ghost" &&
-      frame.props.className.split(/\s+/u).includes("mb-3")
+      frame.props["data-variant"] === undefined &&
+      !frame.props.className.split(/\s+/u).includes("my-1") &&
+      !frame.props.className.split(/\s+/u).includes("mb-3")
     )).toBe(true);
     expect(toolGroupFrames).toHaveLength(1);
     expect(toolGroupFrames[0]?.props["data-variant"]).toBe("ghost");
-    expect(toolGroupFrames[0]?.props.className.split(/\s+/u)).toContain("my-1");
+    expect(toolGroupFrames[0]?.props.className.split(/\s+/u)).not.toContain("my-1");
     expect(toolCallFrames).toHaveLength(1);
     expect(toolCallFrames[0]?.props.className.split(/\s+/u)).toContain("my-1");
 
@@ -393,10 +394,8 @@ describe("assistant-ui Agent Message composition", () => {
       "data-slot": "tool-group-trigger",
     })).toHaveLength(0);
     expect(dispatchFallbacks).toHaveLength(0);
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-0");
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain(
-      "min-h-[14.5rem]",
-    );
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-[14.5rem]");
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain("min-h-0");
     expect(renderedText(renderer)).toContain("Agent A");
     expect(renderedText(renderer)).toContain("Agent B");
     expect(renderedText(renderer)).toContain("Agent C");
@@ -426,10 +425,8 @@ describe("assistant-ui Agent Message composition", () => {
       "data-slot": "subagent-list",
     });
     expect(subagentLists).toHaveLength(1);
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-0");
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain(
-      "min-h-[14.5rem]",
-    );
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-[14.5rem]");
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain("min-h-0");
     expect(renderer.root.findAllByProps({
       "data-slot": "tool-group-trigger",
     })).toHaveLength(0);
@@ -438,7 +435,7 @@ describe("assistant-ui Agent Message composition", () => {
     expect(renderedText(renderer)).toContain("UI Reviewer");
   });
 
-  it("keeps a running SubagentList compact", async () => {
+  it("keeps the official SubagentList minimum height while running", async () => {
     (
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -462,16 +459,14 @@ describe("assistant-ui Agent Message composition", () => {
       "data-slot": "subagent-list",
     });
     expect(subagentLists).toHaveLength(1);
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-0");
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain(
-      "min-h-[14.5rem]",
-    );
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-[14.5rem]");
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain("min-h-0");
     expect(renderer.root.findAllByProps({
       "data-slot": "tool-group-trigger",
     })).toHaveLength(0);
   });
 
-  it("compacts an incomplete terminal SubagentList", async () => {
+  it("keeps the official SubagentList minimum height for an incomplete run", async () => {
     (
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -495,13 +490,11 @@ describe("assistant-ui Agent Message composition", () => {
       "data-slot": "subagent-list",
     });
     expect(subagentLists).toHaveLength(1);
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-0");
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain(
-      "min-h-[14.5rem]",
-    );
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-[14.5rem]");
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain("min-h-0");
   });
 
-  it("keeps a completed SubagentList compact when a later message is running", async () => {
+  it("keeps the official SubagentList minimum height across message rounds", async () => {
     (
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -525,15 +518,13 @@ describe("assistant-ui Agent Message composition", () => {
       "data-slot": "subagent-list",
     });
     expect(subagentLists).toHaveLength(1);
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-0");
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain(
-      "min-h-[14.5rem]",
-    );
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-[14.5rem]");
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain("min-h-0");
     expect(renderedText(renderer)).toContain("ongoing reasoning");
     expect(renderedText(renderer)).toContain("partial response");
   });
 
-  it("keeps a history SubagentList compact", async () => {
+  it("keeps the official SubagentList minimum height in history", async () => {
     (
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -558,10 +549,8 @@ describe("assistant-ui Agent Message composition", () => {
       "data-slot": "subagent-list",
     });
     expect(subagentLists).toHaveLength(1);
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-0");
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain(
-      "min-h-[14.5rem]",
-    );
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-[14.5rem]");
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain("min-h-0");
   });
 
   it("keeps ordinary tools in the official ToolGroup", async () => {
@@ -587,6 +576,38 @@ describe("assistant-ui Agent Message composition", () => {
       "data-slot": "tool-group-trigger",
     })).toHaveLength(1);
     expect(renderedText(renderer)).toContain("3 tool calls");
+  });
+
+  it("keeps an explicit ToolGroup presentation override", async () => {
+    (
+      globalThis as typeof globalThis & {
+        IS_REACT_ACT_ENVIRONMENT: boolean;
+      }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    let renderer: ReactTestRenderer | undefined;
+    await act(async () => {
+      renderer = create(
+        <MessageCompositionFixture
+          initialMessages={[ordinaryToolsMessage]}
+          presentation={{
+            ...messageCompositionPresentation,
+            interactions: { toolGroupVariant: "outline" },
+          }}
+        />,
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    if (renderer === undefined) {
+      throw new Error("ToolGroup override renderer was not created.");
+    }
+    mountedRenderers.push(renderer);
+
+    const toolGroups = renderer.root.findAllByProps({
+      "data-slot": "tool-group-root",
+    });
+    expect(toolGroups).toHaveLength(1);
+    expect(toolGroups[0]?.props["data-variant"]).toBe("outline");
   });
 
   it("keeps malformed dispatches on the visible ToolFallback path", async () => {
