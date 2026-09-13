@@ -1,5 +1,5 @@
 import type { UIPluginComponentProps } from "../../../../framework/contracts/ui-plugin";
-import { useAgentUIThemeMode } from "../../theme/useAgentUITheme";
+import { useAgentUIThemeMode } from "../../../theme/useAgentUITheme";
 import {
   Sidebar,
   SidebarContent,
