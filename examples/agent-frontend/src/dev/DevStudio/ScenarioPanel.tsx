@@ -126,6 +126,12 @@ export function writeMockScenarioAutorunMarker(
   storage.setItem(MOCK_SCENARIO_AUTORUN_STORAGE_KEY, "1");
 }
 
+export function hasMockScenarioAutorunMarker(
+  storage: Pick<Storage, "getItem"> = window.sessionStorage,
+): boolean {
+  return storage.getItem(MOCK_SCENARIO_AUTORUN_STORAGE_KEY) !== null;
+}
+
 export function consumeMockScenarioAutorunMarker(
   storage: Pick<Storage, "getItem" | "removeItem"> = window.sessionStorage,
 ): boolean {

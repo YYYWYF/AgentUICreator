@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useAgentRuntimeActions } from "../../../runtime/context";
 import {
   consumeMockScenarioAutorunMarker,
+  hasMockScenarioAutorunMarker,
 } from "./ScenarioPanel";
 import {
   isMockAgentEndpoint,
@@ -15,9 +16,11 @@ export function useMockScenarioAutorun(endpoint: string | undefined): void {
 
   useEffect(() => {
     if (!isMockAgentEndpoint(endpoint)) return;
-    if (!consumeMockScenarioAutorunMarker()) return;
+    if (!hasMockScenarioAutorunMarker()) return;
 
     const timeout = window.setTimeout(() => {
+      if (!consumeMockScenarioAutorunMarker()) return;
+
       void sendMessage(MOCK_SCENARIO_AUTORUN_TRIGGER);
     }, 0);
     return () => window.clearTimeout(timeout);

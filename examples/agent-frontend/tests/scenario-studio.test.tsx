@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { StrictMode } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -16,6 +17,7 @@ import {
 import {
   buildScenarioSelectionUrl,
   consumeMockScenarioAutorunMarker,
+  hasMockScenarioAutorunMarker,
   ScenarioPanel,
   scenarioCatalogEndpoint,
   writeMockScenarioAutorunMarker,
@@ -101,17 +103,20 @@ async function mountStudio({
 async function mountDevStudio({
   endpoint = "/__agent-ui/mock",
   runtime = createRuntime(),
+  strictMode = false,
 }: {
   endpoint?: string;
   runtime?: AgentRuntime;
+  strictMode?: boolean;
 } = {}) {
   let renderer!: ReactTestRenderer;
   await act(async () => {
-    renderer = create(
+    const tree = (
       <AgentRuntimeProvider runtime={runtime}>
         <DevStudio endpoint={endpoint} />
-      </AgentRuntimeProvider>,
+      </AgentRuntimeProvider>
     );
+    renderer = create(strictMode ? <StrictMode>{tree}</StrictMode> : tree);
     await Promise.resolve();
   });
   return renderer;
@@ -190,16 +195,33 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     renderer.unmount();
   });
 
-  it("consumes the one-shot marker before starting the run", async () => {
+  it("consumes the one-shot marker when the timer starts the run", async () => {
     writeMockScenarioAutorunMarker();
     const sendMessage = vi.fn(async () => undefined);
 
     const renderer = await mountDevStudio({ runtime: createRuntime(sendMessage) });
 
-    expect(window.sessionStorage.getItem(MOCK_SCENARIO_AUTORUN_STORAGE_KEY))
-      .toBeNull();
+    expect(hasMockScenarioAutorunMarker()).toBe(true);
     await flushAutorun();
     expect(sendMessage).toHaveBeenCalledOnce();
+    expect(hasMockScenarioAutorunMarker()).toBe(false);
+    renderer.unmount();
+  });
+
+  it("autoruns exactly once through Runtime under StrictMode", async () => {
+    writeMockScenarioAutorunMarker();
+    const sendMessage = vi.fn(async () => undefined);
+
+    const renderer = await mountDevStudio({
+      endpoint: "/__agent-ui/mock?scenario=subagents&speed=1",
+      runtime: createRuntime(sendMessage),
+      strictMode: true,
+    });
+    await flushAutorun();
+
+    expect(sendMessage).toHaveBeenCalledOnce();
+    expect(sendMessage).toHaveBeenCalledWith(MOCK_SCENARIO_AUTORUN_TRIGGER);
+    expect(hasMockScenarioAutorunMarker()).toBe(false);
     renderer.unmount();
   });
 
@@ -215,6 +237,7 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     const secondSendMessage = vi.fn(async () => undefined);
     const secondRenderer = await mountDevStudio({
       runtime: createRuntime(secondSendMessage),
+      strictMode: true,
     });
     await flushAutorun();
 
@@ -242,11 +265,43 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     firstRenderer.unmount();
 
     const sendMessage = vi.fn(async () => undefined);
-    const secondRenderer = await mountDevStudio({ runtime: createRuntime(sendMessage) });
+    const secondRenderer = await mountDevStudio({
+      endpoint: "/__agent-ui/mock?scenario=subagents&speed=1",
+      runtime: createRuntime(sendMessage),
+      strictMode: true,
+    });
     await flushAutorun();
 
     expect(sendMessage).toHaveBeenCalledOnce();
+    expect(hasMockScenarioAutorunMarker()).toBe(false);
     secondRenderer.unmount();
+  });
+
+  it("runs a selected scenario after Run Scenario navigation and StrictMode reload", async () => {
+    const renderer = await mountStudio({
+      navigate: (url) => window.history.replaceState(null, "", url),
+    });
+
+    await act(async () => {
+      renderer.root.findAllByProps({ "aria-pressed": false })[0]!.props.onClick();
+    });
+    await act(async () => {
+      buttonWithText(renderer, "Run Scenario")!.props.onClick();
+    });
+    renderer.unmount();
+
+    const sendMessage = vi.fn(async () => undefined);
+    const reloadedRenderer = await mountDevStudio({
+      endpoint: "/__agent-ui/mock?scenario=subagents&speed=1",
+      runtime: createRuntime(sendMessage),
+      strictMode: true,
+    });
+    await flushAutorun();
+
+    expect(sendMessage).toHaveBeenCalledOnce();
+    expect(sendMessage).toHaveBeenCalledWith(MOCK_SCENARIO_AUTORUN_TRIGGER);
+    expect(hasMockScenarioAutorunMarker()).toBe(false);
+    reloadedRenderer.unmount();
   });
 
   it("never autoruns for a non-Mock endpoint", async () => {
