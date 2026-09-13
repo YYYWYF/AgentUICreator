@@ -10,5 +10,10 @@ export {
 export {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
-  MockSubagentsToolUI,
 } from "./mock";
+export {
+  ASSISTANT_UI_TOOL_PRESENTATION,
+  getAssistantUiToolPresentation,
+  isSubagentDispatchTool,
+  type AssistantUiToolPresentation,
+} from "./tool-presentation";

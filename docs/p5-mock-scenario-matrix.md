@@ -57,8 +57,9 @@ normal speed of `1`. The default remains `reasoning-tool-success`.
 
 ## Boundaries
 
-- `mock_agent_plan`, `mock_agent_status`, and `mock_subagents` are mock-only
-  backend presentation fixtures.
+- `mock_agent_plan`, `mock_agent_status`, and `mock_dispatch_subagent` are
+  mock-only backend presentation fixtures. Each dispatch call is aggregated at
+  the assistant-message level into one `SubagentList`.
 - Production toolkit configuration and `appFrontendTools` remain unchanged.
 - The P4-3C contract map remains dormant for AgentPlan, AgentStatus, and
   SubagentList.

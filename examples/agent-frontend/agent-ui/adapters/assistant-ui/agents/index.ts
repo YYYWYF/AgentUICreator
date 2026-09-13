@@ -10,6 +10,9 @@ export {
 export {
   projectSubagentList,
   projectSubagentParts,
+  projectSubagentToolCalls,
   type SubagentListViewModel,
   type SubagentPartsProjection,
+  type SubagentToolCallPart,
+  type SubagentToolCallsProjection,
 } from "./subagent-projection";

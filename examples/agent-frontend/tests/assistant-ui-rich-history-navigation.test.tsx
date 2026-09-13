@@ -294,7 +294,9 @@ describe("assistant-ui rich history navigation", () => {
     )).toEqual([
       "mock_agent_plan",
       "mock_agent_status",
-      "mock_subagents",
+      "mock_dispatch_subagent",
+      "mock_dispatch_subagent",
+      "mock_dispatch_subagent",
     ]);
     expect(container.querySelector('[data-slot="agent-plan"]')).not.toBeNull();
     expect(container.querySelector('[data-slot="agent-status"]')).not.toBeNull();

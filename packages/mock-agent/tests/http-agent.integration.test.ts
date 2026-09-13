@@ -242,10 +242,8 @@ describe("Mock Agent HTTP endpoint", () => {
       "search_files",
       "inspect_runtime",
       "read_config",
-      "mock_subagents",
+      "mock_dispatch_subagent",
     ]));
-    expect(events.some(({ type }) => type === EventType.SUBAGENT_STARTED)).toBe(true);
-    expect(events.some(({ type }) => type === EventType.SUBAGENT_FINISHED)).toBe(true);
     expect(events.some(({ type }) => type === EventType.TEXT_MESSAGE_START)).toBe(true);
     expect(events.some(({ type }) => type === EventType.TEXT_MESSAGE_CONTENT)).toBe(true);
     expect(events.some(({ type }) => type === EventType.TEXT_MESSAGE_END)).toBe(true);

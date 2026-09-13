@@ -27,6 +27,7 @@ import {
   SemanticToolItemOutlet,
   type AssistantUiConversationSlotId,
 } from "../slots";
+import { createAgentTraceAssistantMessage } from "./AgentTraceComposition";
 import { AssistantUiConversationSurface } from "./AssistantUiConversationSurface";
 
 type RenderSlot = UIPluginComponentProps["renderSlot"];
@@ -60,19 +61,6 @@ function createComposerWrapper(renderSlot: RenderSlot) {
   };
 }
 
-function AssistantUiToolCallComposition({
-  children,
-}: PropsWithChildren) {
-  return (
-    <div
-      className="my-1"
-      data-agent-ui-composition-part="tool-call"
-    >
-      {children}
-    </div>
-  );
-}
-
 export function createAssistantUiSemanticThreadComponents(
   renderSlot: RenderSlot,
 ): ThreadComponents {
@@ -90,7 +78,12 @@ export function createAssistantUiSemanticThreadComponents(
       ASSISTANT_UI_CONVERSATION_SLOTS.suggestions,
     ),
     ComposerWrapper: createComposerWrapper(renderSlot),
-    ToolCallWrapper: AssistantUiToolCallComposition,
+    AssistantMessage: createAgentTraceAssistantMessage({
+      MessageFooter: SemanticSourcesOutlet,
+      ReasoningGroup: SemanticReasoningOutlet,
+      ToolFallback: SemanticToolItemOutlet,
+      ToolGroup: SemanticToolActivityOutlet,
+    }),
     ReasoningGroup: SemanticReasoningOutlet,
     ToolGroup: SemanticToolActivityOutlet,
     ToolFallback: SemanticToolItemOutlet,

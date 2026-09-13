@@ -28,6 +28,11 @@ the DTO into `ThreadMessage` values.
 
 History Replay != AG-UI Event Replay.
 
+Agent Elements Replay stores Plan and Status as named tool calls and stores
+each dispatched subagent as its own `mock_dispatch_subagent` tool call. The
+adapter projects those calls into the same message-level `SubagentList`
+composition used by the live Mock Agent.
+
 Live AG-UI Sources remain `DEFERRED`. Persisted Conversation Replay Sources are
-`SUPPORTED` by this pack. Mock-only `mock_agent_*` tools remain registered only
+`SUPPORTED` by this pack. Mock-only Agent Element tools remain registered only
 when the Agent endpoint is the development Mock Agent endpoint.

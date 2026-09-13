@@ -1,6 +1,6 @@
 import { defineScenario } from "../scenario.js";
 
-import { subagentFixture } from "./subagents.js";
+import { subagentDispatchTool } from "./subagents.js";
 
 export const agentElementsShowcaseScenario = defineScenario({
   id: "agent-elements-showcase",
@@ -74,26 +74,29 @@ export const agentElementsShowcaseScenario = defineScenario({
       ],
     },
     {
-      type: "tool",
-      name: "mock_subagents",
-      args: { view: "showcase" },
-      result: subagentFixture,
-      prepareDurationMs: 200,
-      durationMs: 600,
-    },
-    {
-      type: "subagent",
-      id: "showcase-architecture",
-      name: "Architecture Researcher",
-      durationMs: 350,
-      outcome: { type: "completed" },
-    },
-    {
-      type: "subagent",
-      id: "showcase-runtime",
-      name: "Runtime Inspector",
-      durationMs: 450,
-      outcome: { type: "completed" },
+      type: "parallel-tools",
+      tools: [
+        subagentDispatchTool({
+          id: "showcase-architecture",
+          name: "Architecture Researcher",
+          progress: 20,
+          durationMs: 350,
+        }),
+        subagentDispatchTool({
+          id: "showcase-runtime",
+          name: "Runtime Inspector",
+          progress: 48,
+          durationMs: 450,
+          startDelayMs: 50,
+        }),
+        subagentDispatchTool({
+          id: "showcase-ui",
+          name: "UI Reviewer",
+          progress: 72,
+          durationMs: 250,
+          startDelayMs: 90,
+        }),
+      ],
     },
     { type: "reasoning", text: "并行检查已经完成，我汇总结果。", durationMs: 350 },
     {

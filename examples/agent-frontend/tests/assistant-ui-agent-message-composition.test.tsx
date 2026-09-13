@@ -28,9 +28,6 @@ import {
   AssistantUiPresentationConfigProvider,
 } from "../agent-ui/adapters/assistant-ui/config";
 import { Thread } from "../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui";
-import type {
-  ThreadToolCallWrapperProps,
-} from "../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui";
 import type { UIPluginComponentProps } from "../framework/contracts/ui-plugin";
 
 const renderFallback: UIPluginComponentProps["renderSlot"] = (
@@ -194,28 +191,9 @@ describe("assistant-ui Agent Message composition", () => {
     expect(text).toContain("final text");
   });
 
-  it("wraps standalone tool calls without replacing registered tool UI", () => {
+  it("installs Agent Trace composition at the assistant-message boundary", () => {
     const components = createAssistantUiSemanticThreadComponents(renderFallback);
-    const ToolCallWrapper = components.ToolCallWrapper;
-    expect(ToolCallWrapper).toBeDefined();
-    if (ToolCallWrapper === undefined) return;
-
-    const part = {
-      type: "tool-call",
-      toolCallId: "standalone-call",
-      toolName: "inspect",
-      args: {},
-      argsText: "{}",
-      status: { type: "complete" },
-    } as ThreadToolCallWrapperProps["part"];
-    const html = renderToStaticMarkup(
-      <ToolCallWrapper part={part}>
-        <span data-fixture="registered-tool-ui">registered tool</span>
-      </ToolCallWrapper>,
-    );
-
-    expect(html).toContain('data-agent-ui-composition-part="tool-call"');
-    expect(html).toContain('data-fixture="registered-tool-ui"');
-    expect(html).toContain("my-1");
+    expect(components.AssistantMessage).toBeDefined();
+    expect(components.ToolCallWrapper).toBeUndefined();
   });
 });

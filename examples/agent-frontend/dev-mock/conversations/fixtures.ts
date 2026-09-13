@@ -88,31 +88,47 @@ const agentElementsReplay: ConversationReplay = {
         },
         {
           type: "tool-call",
-          toolCallId: "replay-subagents-1",
-          toolName: "mock_subagents",
-          args: { view: "completed" },
+          toolCallId: "replay-subagent-architecture",
+          toolName: "mock_dispatch_subagent",
+          args: {
+            name: "Architecture Researcher",
+            model: "mimo-v2.5-pro",
+          },
           result: {
-            agents: [
-              {
-                name: "Architecture Researcher",
-                model: "mimo-v2.5-pro",
-                status: "completed",
-                progress: 100,
-              },
-              {
-                name: "Runtime Inspector",
-                model: "mimo-v2.5-pro",
-                status: "completed",
-                progress: 100,
-              },
-              {
-                name: "UI Reviewer",
-                model: "mimo-v2.5-pro",
-                status: "completed",
-                progress: 100,
-              },
-            ],
-            showSummary: false,
+            name: "Architecture Researcher",
+            model: "mimo-v2.5-pro",
+            status: "completed",
+            progress: 100,
+          },
+        },
+        {
+          type: "tool-call",
+          toolCallId: "replay-subagent-runtime",
+          toolName: "mock_dispatch_subagent",
+          args: {
+            name: "Runtime Inspector",
+            model: "mimo-v2.5-pro",
+          },
+          result: {
+            name: "Runtime Inspector",
+            model: "mimo-v2.5-pro",
+            status: "completed",
+            progress: 100,
+          },
+        },
+        {
+          type: "tool-call",
+          toolCallId: "replay-subagent-ui",
+          toolName: "mock_dispatch_subagent",
+          args: {
+            name: "UI Reviewer",
+            model: "mimo-v2.5-pro",
+          },
+          result: {
+            name: "UI Reviewer",
+            model: "mimo-v2.5-pro",
+            status: "completed",
+            progress: 100,
           },
         },
         {

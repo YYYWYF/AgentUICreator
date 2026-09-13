@@ -1,3 +1,5 @@
+import type { ToolCallMessagePartProps } from "@assistant-ui/react";
+
 export interface SubagentListViewModel {
   readonly agents: readonly {
     readonly name: string;
@@ -15,6 +17,17 @@ export interface SubagentListViewModel {
 export interface SubagentPartsProjection {
   readonly view: SubagentListViewModel | null;
   readonly ineligibleParts: readonly unknown[];
+  readonly eligibleParts: readonly unknown[];
+}
+
+export type SubagentToolCallPart = Pick<
+  ToolCallMessagePartProps<Record<string, unknown>, unknown>,
+  "toolCallId" | "toolName" | "args" | "result" | "isError" | "status"
+>;
+
+export interface SubagentToolCallsProjection {
+  readonly view: SubagentListViewModel | null;
+  readonly eligibleToolCallIds: readonly string[];
 }
 
 interface ValidSubagent {
@@ -85,9 +98,12 @@ function readSummary(
  */
 export function projectSubagentParts(value: unknown): SubagentPartsProjection {
   const parts = readParts(value);
-  if (parts === undefined) return { view: null, ineligibleParts: [] };
+  if (parts === undefined) {
+    return { view: null, ineligibleParts: [], eligibleParts: [] };
+  }
 
   const ineligibleParts: unknown[] = [];
+  const eligibleParts: unknown[] = [];
   const agents: ValidSubagent[] = [];
   const names = new Set<string>();
 
@@ -108,6 +124,7 @@ export function projectSubagentParts(value: unknown): SubagentPartsProjection {
     }
 
     names.add(name);
+    eligibleParts.push(part);
     agents.push({
       name,
       model,
@@ -123,7 +140,7 @@ export function projectSubagentParts(value: unknown): SubagentPartsProjection {
   }
 
   if (agents.length === 0 || summary === null) {
-    return { view: null, ineligibleParts };
+    return { view: null, ineligibleParts, eligibleParts };
   }
 
   let completedCount = 0;
@@ -141,6 +158,7 @@ export function projectSubagentParts(value: unknown): SubagentPartsProjection {
       summaryAgent: summary.summaryAgent,
     },
     ineligibleParts,
+    eligibleParts,
   };
 }
 
@@ -150,4 +168,50 @@ export function projectSubagentList(
 ): SubagentListViewModel | null {
   const projected = projectSubagentParts(value);
   return projected.ineligibleParts.length === 0 ? projected.view : null;
+}
+
+function projectToolCallPart(part: SubagentToolCallPart): Record<string, unknown> {
+  const args = asRecord(part.args);
+  const result = asRecord(part.result);
+  const source = result ?? args;
+  const name = result?.name ?? args?.name;
+  const model = result?.model ?? args?.model;
+  const explicitStatus = result?.status ?? args?.status;
+  const partStatus = part.status?.type;
+  const status = part.isError === true ||
+      partStatus === "requires-action" ||
+      partStatus === "incomplete"
+    ? "error"
+    : explicitStatus === "running" || explicitStatus === "completed" ||
+        explicitStatus === "complete"
+    ? explicitStatus
+    : partStatus === "complete"
+    ? "completed"
+    : partStatus === "running"
+    ? "running"
+    : undefined;
+
+  return {
+    toolCallId: part.toolCallId,
+    name,
+    model,
+    status,
+    progress: result?.progress ?? args?.progress ?? source?.progress,
+  };
+}
+
+/** Projects one message's real dispatch tool calls into one aggregate view. */
+export function projectSubagentToolCalls(
+  parts: readonly SubagentToolCallPart[],
+): SubagentToolCallsProjection {
+  const projected = projectSubagentParts(parts.map(projectToolCallPart));
+  const eligibleToolCallIds = projected.eligibleParts.flatMap((part) => {
+    const toolCallId = asRecord(part)?.toolCallId;
+    return typeof toolCallId === "string" ? [toolCallId] : [];
+  });
+
+  return {
+    view: projected.view,
+    eligibleToolCallIds,
+  };
 }

@@ -8,9 +8,12 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
-  MockSubagentsToolUI,
   createAssistantUiToolkit,
 } from "../agent-ui/adapters/assistant-ui/toolkit";
+import {
+  projectSubagentToolCalls,
+  type SubagentToolCallPart,
+} from "../agent-ui/adapters/assistant-ui/agents/subagent-projection";
 
 type MockToolProps = ToolCallMessagePartProps<Record<string, unknown>, unknown>;
 const mountedRoots: Root[] = [];
@@ -57,23 +60,24 @@ describe("Mock Agent official element renderers", () => {
 
     expect(production).not.toHaveProperty("mock_agent_plan");
     expect(production).not.toHaveProperty("mock_agent_status");
-    expect(production).not.toHaveProperty("mock_subagents");
+    expect(production).not.toHaveProperty("mock_dispatch_subagent");
     const mockAgentPlan = mock.mock_agent_plan;
     const mockAgentStatus = mock.mock_agent_status;
-    const mockSubagents = mock.mock_subagents;
+    const mockDispatchSubagent = mock.mock_dispatch_subagent;
     expect(mockAgentPlan).toBeDefined();
     expect(mockAgentStatus).toBeDefined();
-    expect(mockSubagents).toBeDefined();
+    expect(mockDispatchSubagent).toBeDefined();
     if (
       mockAgentPlan === undefined ||
       mockAgentStatus === undefined ||
-      mockSubagents === undefined
+      mockDispatchSubagent === undefined
     ) {
       throw new Error("Mock Agent Elements toolkit entries are missing.");
     }
     expect(mockAgentPlan.type).toBe("backend");
     expect(mockAgentStatus.type).toBe("backend");
-    expect(mockSubagents.type).toBe("backend");
+    expect(mockDispatchSubagent.type).toBe("backend");
+    expect(mockDispatchSubagent.render).toBeUndefined();
     expect("execute" in mockAgentPlan).toBe(false);
   });
 
@@ -112,45 +116,48 @@ describe("Mock Agent official element renderers", () => {
     }
   });
 
-  it("renders SubagentList and preserves out-of-order progress", async () => {
-    const container = await renderTool(
-      <MockSubagentsToolUI {...createProps({
+  it("projects separate dispatch calls into one aggregate view", () => {
+    const parts: SubagentToolCallPart[] = [
+      {
+        type: "tool-call",
+        toolCallId: "dispatch-a",
+        toolName: "mock_dispatch_subagent",
+        args: { name: "Agent A", model: "mimo-v2.5-pro" },
+        result: { name: "Agent A", model: "mimo-v2.5-pro", status: "running", progress: 20 },
+        status: { type: "running" },
+      },
+      {
+        type: "tool-call",
+        toolCallId: "dispatch-b",
+        toolName: "mock_dispatch_subagent",
+        args: { name: "Agent B", model: "mimo-v2.5-pro" },
+        result: { name: "Agent B", model: "mimo-v2.5-pro", status: "completed", progress: 100 },
+        status: { type: "complete" },
+      },
+      {
+        type: "tool-call",
+        toolCallId: "dispatch-c",
+        toolName: "mock_dispatch_subagent",
+        args: { name: "Agent C", model: "mimo-v2.5-pro" },
+        result: { name: "Agent C", model: "mimo-v2.5-pro", status: "running", progress: 55 },
+        status: { type: "running" },
+      },
+    ];
+
+    expect(projectSubagentToolCalls(parts)).toEqual({
+      view: {
         agents: [
-          { name: "Agent A", model: "mimo-v2.5-pro", status: "running", progress: 20 },
-          { name: "Agent B", model: "mimo-v2.5-pro", status: "completed", progress: 100 },
-          { name: "Agent C", model: "mimo-v2.5-pro", status: "running", progress: 55 },
+          { name: "Agent A", model: "mimo-v2.5-pro" },
+          { name: "Agent B", model: "mimo-v2.5-pro" },
+          { name: "Agent C", model: "mimo-v2.5-pro" },
         ],
+        progress: [20, 100, 55],
+        completedCount: 0,
         showSummary: false,
-      })} />,
-    );
-
-    expect(container.querySelector('[data-slot="subagent-list"]')).not.toBeNull();
-    expect(container.querySelectorAll('[role="progressbar"]')).toHaveLength(3);
-    const completedProgress = container.querySelectorAll('[role="progressbar"]')[1];
-    expect(completedProgress).toBeDefined();
-    if (completedProgress === undefined) {
-      throw new Error("Completed subagent progress bar is missing.");
-    }
-    expect(completedProgress.getAttribute("aria-valuenow")).toBe("100");
-    expect(container.textContent).toContain("Agent B");
-  });
-
-  it("renders the official SubagentList summary from explicit values", async () => {
-    const container = await renderTool(
-      <MockSubagentsToolUI {...createProps({
-        agents: [
-          { name: "Agent A", model: "mimo-v2.5-pro", status: "completed" },
-        ],
-        showSummary: true,
-        summaryAgent: { name: "Summary Agent", model: "mimo-v2.5-pro" },
-      })} />,
-    );
-
-    expect(container.querySelector('[data-slot="subagent-list"]')).not.toBeNull();
-    expect(container.textContent).toContain("Summary Agent");
-    expect(container.textContent).toContain("mimo-v2.5-pro");
-    expect(container.querySelector('[aria-label="Summary Agent progress"]'))
-      .not.toBeNull();
+        summaryAgent: { name: "", model: "" },
+      },
+      eligibleToolCallIds: ["dispatch-a", "dispatch-b", "dispatch-c"],
+    });
   });
 
   it("falls back to ToolFallback for malformed plan data", async () => {
@@ -176,24 +183,6 @@ describe("Mock Agent official element renderers", () => {
     );
 
     expect(container.querySelector('[data-slot="agent-status"]')).toBeNull();
-    expect(container.querySelector('[data-slot="tool-fallback-root"]'))
-      .not.toBeNull();
-  });
-
-  it("falls back to ToolFallback for malformed subagent data", async () => {
-    const container = await renderTool(
-      <MockSubagentsToolUI {...createProps({
-        agents: [{
-          name: "Agent A",
-          model: "mimo-v2.5-pro",
-          status: "blocked",
-          progress: 100,
-        }],
-        showSummary: false,
-      })} />,
-    );
-
-    expect(container.querySelector('[data-slot="subagent-list"]')).toBeNull();
     expect(container.querySelector('[data-slot="tool-fallback-root"]'))
       .not.toBeNull();
   });
