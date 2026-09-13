@@ -9,11 +9,11 @@ import {
 } from "../framework/contracts/app-ui-model";
 
 describe("LayoutRenderer integration", () => {
-  it("renders the checked-in Workspace Shell outlet through the official Runtime", () => {
+  it("renders the checked-in Conversation layout through the official Runtime", () => {
     const model = parseAppUIModel(appUIJson);
-    expect(model.root.type).toBe("slot");
-    if (model.root.type !== "slot") {
-      throw new Error("Expected the default root to be a Workspace Shell Slot");
+    expect(model.root.type).toBe("row");
+    if (model.root.type !== "row") {
+      throw new Error("Expected the default root to be a Conversation row");
     }
     const html = renderToStaticMarkup(
       <LayoutRenderer
@@ -29,10 +29,12 @@ describe("LayoutRenderer integration", () => {
     );
 
     expect(html).toContain('data-layout-type="slot"');
-    expect(html).toContain('data-slot-id="workspace.shell"');
-    expect(html).not.toContain('data-slot-id="workspace.conversation"');
+    expect(html).toContain('data-slot-id="conversation.navigation"');
+    expect(html).toContain('data-slot-id="conversation.surface"');
+    expect(html).not.toContain('data-slot-id="workspace.shell"');
     expect(html).not.toContain('data-slot-id="workspace.inspector"');
-    expect(html).toContain("<article>workspace.shell</article>");
+    expect(html).toContain("<article>conversation.navigation</article>");
+    expect(html).toContain("<article>conversation.surface</article>");
     expect(html).not.toContain('data-slot-id="agent-welcome"');
     expect(html).not.toContain('data-slot-id="agent-messages"');
     expect(html).not.toContain('data-slot-id="agent-prompts"');
@@ -50,12 +52,12 @@ describe("LayoutRenderer integration", () => {
           {
             type: "slot",
             id: "fixture-conversations-slot-node",
-            slotId: "agent-conversations",
+            slotId: "conversation.navigation",
           },
           {
             type: "slot",
             id: "fixture-conversation-slot-node",
-            slotId: "workspace.conversation",
+            slotId: "conversation.surface",
           },
         ],
         sizes: ["16rem", "minmax(0, 1fr)"],
@@ -70,8 +72,8 @@ describe("LayoutRenderer integration", () => {
       />,
     );
 
-    expect(html).toContain('data-slot-id="agent-conversations"');
-    expect(html).toContain('data-slot-id="workspace.conversation"');
+    expect(html).toContain('data-slot-id="conversation.navigation"');
+    expect(html).toContain('data-slot-id="conversation.surface"');
     expect(html).not.toContain('data-slot-id="workspace.inspector"');
   });
 

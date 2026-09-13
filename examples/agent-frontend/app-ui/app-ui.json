@@ -1,9 +1,32 @@
 {
   "version": "2",
   "root": {
-    "type": "slot",
-    "id": "assistant-ui-workspace-shell-slot-node",
-    "slotId": "workspace.shell"
+    "type": "row",
+    "id": "conversation-workspace-row",
+    "gap": 0,
+    "sizes": ["18rem", "minmax(0, 1fr)"],
+    "children": [
+      {
+        "type": "panel",
+        "id": "conversation-navigation-panel",
+        "minWidth": 240,
+        "maxWidth": 360,
+        "child": {
+          "type": "slot",
+          "id": "conversation-navigation-slot-node",
+          "slotId": "conversation.navigation"
+        }
+      },
+      {
+        "type": "panel",
+        "id": "conversation-surface-panel",
+        "child": {
+          "type": "slot",
+          "id": "conversation-surface-slot-node",
+          "slotId": "conversation.surface"
+        }
+      }
+    ]
   },
   "pluginInstances": {
     "agent-conversation-data-main": {
@@ -11,17 +34,9 @@
       "pluginId": "conversation-data-source",
       "enabled": true
     },
-    "agent-conversation-surface-main": {
-      "id": "agent-conversation-surface-main",
-      "pluginId": "conversation-surface",
-      "enabled": true,
-      "mount": {
-        "slotId": "workspace.conversation"
-      }
-    },
-    "agent-conversation-controller-main": {
-      "id": "agent-conversation-controller-main",
-      "pluginId": "conversation-controller",
+    "agent-conversation-service-main": {
+      "id": "agent-conversation-service-main",
+      "pluginId": "conversation-service",
       "enabled": true
     },
     "assistant-ui-thread-list-main": {
@@ -29,15 +44,15 @@
       "pluginId": "assistant-ui-thread-list",
       "enabled": true,
       "mount": {
-        "slotId": "agent-conversations"
+        "slotId": "conversation.navigation"
       }
     },
-    "assistant-ui-workspace-shell-main": {
-      "id": "assistant-ui-workspace-shell-main",
-      "pluginId": "assistant-ui-workspace-shell",
+    "agent-conversation-surface-main": {
+      "id": "agent-conversation-surface-main",
+      "pluginId": "conversation-surface",
       "enabled": true,
       "mount": {
-        "slotId": "workspace.shell"
+        "slotId": "conversation.surface"
       }
     }
   }

@@ -19,7 +19,7 @@ export interface ConversationSnapshot {
   detailErrorConversationId?: string | undefined;
 }
 
-export interface AgentUIConversationService {
+export interface ConversationService {
   getSnapshot(): ConversationSnapshot;
   subscribe(listener: () => void): () => void;
   refresh(): Promise<void>;
@@ -33,7 +33,7 @@ export interface AgentUIConversationService {
   resetForNewConversation(): void;
 }
 
-export interface ConversationControllerOptions {
+export interface ConversationServiceOptions {
   dataSource: ConversationDataSource;
 }
 
@@ -55,9 +55,9 @@ function isAbortError(error: unknown): boolean {
     : error instanceof Error && error.name === "AbortError";
 }
 
-export function createConversationController({
+export function createConversationService({
   dataSource,
-}: ConversationControllerOptions): AgentUIConversationService & {
+}: ConversationServiceOptions): ConversationService & {
   dispose(): void;
 } {
   let snapshot = EMPTY_CONVERSATION_SNAPSHOT;
@@ -229,6 +229,6 @@ export function getVisibleConversationMessages(
 
 declare module "../../framework/contracts/ui-plugin" {
   interface UIPluginServiceMap {
-    [AGENT_UI_CONVERSATION_SERVICE]: AgentUIConversationService;
+    [AGENT_UI_CONVERSATION_SERVICE]: ConversationService;
   }
 }

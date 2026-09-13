@@ -9,7 +9,7 @@ import {
 } from "../../../../runtime/plugins";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
-  type AgentUIConversationService,
+  type ConversationService,
 } from "../../../../services/conversations";
 import type { ConversationServiceAssistantUiThreadBinding } from "./conversation-service-thread-binding";
 
@@ -18,7 +18,7 @@ export function AssistantUiConversationThreadBindingConnector() {
   const aui = useAui();
   const { threadBinding } = useAssistantUiRuntimeBridge<AppAgentState>();
   const run = useAgentRun();
-  const conversation = usePluginService<AgentUIConversationService>(
+  const conversation = usePluginService<ConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
   );
   const binding =

@@ -31,7 +31,7 @@ import {
 } from "../runtime/plugins";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
-  type AgentUIConversationService,
+  type ConversationService,
   type ConversationSnapshot,
 } from "../services/conversations";
 import { PluginRuntimeFixture } from "./agent-runtime-fixture";
@@ -223,7 +223,7 @@ function historyServicePlugin(
     detailStatus,
     ...(detailError === undefined ? {} : { detailError }),
   };
-  const service: AgentUIConversationService = {
+  const service: ConversationService = {
     getSnapshot: () => snapshot,
     subscribe: () => () => undefined,
     refresh: async () => undefined,

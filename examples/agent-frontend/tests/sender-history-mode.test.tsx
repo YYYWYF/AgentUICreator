@@ -16,7 +16,7 @@ import { createPluginRegistry } from "../runtime/plugins";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
   EMPTY_CONVERSATION_SNAPSHOT,
-  type AgentUIConversationService,
+  type ConversationService,
 } from "../services/conversations";
 import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
@@ -30,7 +30,7 @@ const historySnapshot = {
   detailStatus: "ready" as const,
 };
 
-const historyService: AgentUIConversationService = {
+const historyService: ConversationService = {
   getSnapshot: () => historySnapshot,
   subscribe: () => () => undefined,
   refresh: async () => undefined,

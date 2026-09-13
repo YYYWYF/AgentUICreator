@@ -41,7 +41,7 @@ describe("canonical conversation navigation policy", () => {
     expect(specifiers.every((specifier) => specifier === "react" || specifier.startsWith(".")))
       .toBe(true);
     expect(source).not.toMatch(
-      /@assistant-ui\/|@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|\.ant-|@agent-ui\/runtime-|services\/conversations|framework\/contracts|ConversationSnapshot|ConversationSummary|AgentUIConversationService|\buseAgent\w*\b|\busePlugin\w*\b/u,
+      /@assistant-ui\/|@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|\.ant-|@agent-ui\/runtime-|services\/conversations|framework\/contracts|ConversationSnapshot|ConversationSummary|ConversationService|\buseAgent\w*\b|\busePlugin\w*\b/u,
     );
     expect(source).toMatch(/<button\b/u);
     expect(source).toContain('type="button"');
@@ -68,8 +68,8 @@ describe("canonical conversation navigation policy", () => {
     }
   });
 
-  it("keeps the controller headless and solely responsible for Conversation Service", async () => {
-    const root = path.join(projectRoot, "plugins/conversation-controller");
+  it("keeps the service headless and solely responsible for Conversation state", async () => {
+    const root = path.join(projectRoot, "plugins/conversation-service");
     const definition = await readFile(path.join(root, "definition.ts"), "utf8");
     const component = await readFile(path.join(root, "index.tsx"), "utf8");
     const manifest = JSON.parse(
@@ -77,15 +77,15 @@ describe("canonical conversation navigation policy", () => {
     ) as { id?: string; version?: string; capabilities?: string[] };
 
     expect(manifest).toMatchObject({
-      id: "conversation-controller",
+      id: "conversation-service",
       version: "1.0.0",
     });
     expect(manifest.capabilities).toContain("headless");
     expect(definition).toContain("inject: [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE]");
     expect(definition).toContain("provides: [AGENT_UI_CONVERSATION_SERVICE]");
-    expect(definition).toContain("createConversationController");
-    expect(definition).toContain("controller.dispose()");
-    expect(component).toMatch(/ConversationControllerPlugin\(\)\s*\{\s*return null;/su);
+    expect(definition).toContain("createConversationService");
+    expect(definition).toContain("service.dispose()");
+    expect(component).toMatch(/ConversationServicePlugin\(\)\s*\{\s*return null;/su);
     expect(`${definition}\n${component}`).not.toMatch(
       /AgentConversationList|@ant-design\/x|@ant-design\/icons|from\s*["']antd["']/u,
     );
@@ -109,26 +109,26 @@ describe("canonical conversation navigation policy", () => {
       new RegExp(["antdX", "Conversations"].join(""), "u"),
     ];
 
-    expect(appUI.pluginInstances?.["agent-conversation-controller-main"]).toMatchObject({
-      pluginId: "conversation-controller",
+    expect(appUI.pluginInstances?.["agent-conversation-service-main"]).toMatchObject({
+      pluginId: "conversation-service",
     });
-    expect(appUI.pluginInstances?.["agent-conversation-controller-main"]?.mount)
+    expect(appUI.pluginInstances?.["agent-conversation-service-main"]?.mount)
       .toBeUndefined();
     expect(appUI.pluginInstances?.["assistant-ui-thread-list-main"]).toMatchObject({
       pluginId: "assistant-ui-thread-list",
       enabled: true,
-      mount: { slotId: "agent-conversations" },
+      mount: { slotId: "conversation.navigation" },
     });
     expect(appUI.pluginInstances?.["agent-conversations-main"]).toBeUndefined();
     expect(appUI.pluginInstances?.["assistant-ui-conversation-spike-main"]).toBeUndefined();
     expect(registry).not.toContain('./agent-conversations/definition');
     expect(registry).not.toContain('./assistant-ui-conversation-spike/definition');
     expect(registry).toContain('./assistant-ui-thread-list/definition');
-    expect(registry).toContain('./conversation-controller/definition');
+    expect(registry).toContain('./conversation-service/definition');
     expect(template).not.toContain("agentConversationsPlugin");
     expect(template).not.toContain("AgentConversationsPlugin");
-    expect(template).toContain("conversationControllerPlugin");
-    expect(template).toContain("ConversationControllerPlugin");
+    expect(template).toContain("conversationServicePlugin");
+    expect(template).toContain("ConversationServicePlugin");
 
     const projectSources = await Promise.all(
       (await collectFiles(projectRoot))

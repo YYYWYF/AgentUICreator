@@ -45,7 +45,7 @@ import {
   EMPTY_CONVERSATION_SNAPSHOT,
   getConversationViewMessages,
   isChatVisibleMessage,
-  type AgentUIConversationService,
+  type ConversationService,
 } from "../../services/conversations";
 import {
   inspectToolCalls,
@@ -793,7 +793,7 @@ function LegacyAgentMessageList({
   const executions = useAgentExecutions();
   const run = useAgentRun();
   const instance = usePluginInstance();
-  const conversation = usePluginService<AgentUIConversationService>(
+  const conversation = usePluginService<ConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
   );
   const conversationSnapshot = usePluginServiceSnapshot(

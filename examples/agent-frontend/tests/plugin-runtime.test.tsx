@@ -61,7 +61,7 @@ import {
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
   AGENT_UI_CONVERSATION_SERVICE,
-  type AgentUIConversationService,
+  type ConversationService,
   type ConversationDataSource,
 } from "../services/conversations";
 
@@ -78,7 +78,7 @@ const appUIJson = {
         type: "column" as const,
         id: "agent-sidebar",
         children: [
-          { type: "slot" as const, id: "agent-conversations-slot-node", slotId: "agent-conversations" },
+          { type: "slot" as const, id: "conversation-navigation-slot-node", slotId: "conversation.navigation" },
           { type: "slot" as const, id: "agent-theme-switch-slot-node", slotId: "agent-theme-switch" },
         ],
         gap: 0,
@@ -87,7 +87,7 @@ const appUIJson = {
       {
         type: "column" as const,
         id: "agent-conversation",
-        children: [{ type: "slot" as const, id: "workspace-conversation-slot-node", slotId: "workspace.conversation" }],
+        children: [{ type: "slot" as const, id: "conversation-surface-slot-node", slotId: "conversation.surface" }],
         gap: 0,
         sizes: ["minmax(0, 1fr)"],
       },
@@ -553,7 +553,7 @@ describe("UIPluginRuntime", () => {
     expect(welcomePosition).toBe(-1);
     expect(promptsPosition).toBe(-1);
     expect(html).toContain("新建会话");
-    expect(html).not.toContain('data-ui-plugin="agent-conversations"');
+    expect(html).not.toContain('data-ui-plugin="conversation-navigation"');
     expect(html).toContain("Tool");
     expect(html).toContain("Resources");
     expect(html).toContain("给智能体发送消息，输入 / 唤出快捷指令");
@@ -1804,7 +1804,7 @@ describe("UIPluginRuntime", () => {
     });
 
     try {
-      const conversation = mounted.serviceRuntime.get<AgentUIConversationService>(
+      const conversation = mounted.serviceRuntime.get<ConversationService>(
         AGENT_UI_CONVERSATION_SERVICE,
       );
       if (conversation === undefined) {

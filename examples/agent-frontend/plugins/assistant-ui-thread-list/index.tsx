@@ -9,7 +9,7 @@ import {
 import {
   AGENT_UI_CONVERSATION_SERVICE,
   EMPTY_CONVERSATION_SNAPSHOT,
-  type AgentUIConversationService,
+  type ConversationService,
 } from "../../services/conversations";
 import { Button } from "../../agent-ui/vendor/assistant-ui/components/ui/button";
 import { PolicyThreadList } from "./PolicyThreadList";
@@ -20,7 +20,7 @@ export function AssistantUiThreadListPlugin(_props: UIPluginComponentProps) {
   const aui = useAui();
   const theme = useAgentUIThemeMode();
   const run = useAgentRun();
-  const conversation = usePluginService<AgentUIConversationService>(
+  const conversation = usePluginService<ConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
   );
   const snapshot = usePluginServiceSnapshot(

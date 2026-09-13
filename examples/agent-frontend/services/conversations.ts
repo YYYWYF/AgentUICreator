@@ -45,14 +45,14 @@ export {
 export {
   AGENT_UI_CONVERSATION_SERVICE,
   EMPTY_CONVERSATION_SNAPSHOT,
-  createConversationController,
+  createConversationService,
   getConversationViewMessages,
   getVisibleConversationMessages,
   isChatVisibleMessage,
-  type AgentUIConversationService,
+  type ConversationService,
   type ChatVisibleMessage,
-  type ConversationControllerOptions,
+  type ConversationServiceOptions,
   type ConversationLoadStatus,
   type ConversationSnapshot,
   type ConversationViewMode,
-} from "./conversations/controller";
+} from "./conversations/service";

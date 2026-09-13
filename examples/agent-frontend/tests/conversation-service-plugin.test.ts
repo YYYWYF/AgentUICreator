@@ -2,11 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
-import { conversationControllerPlugin } from "../plugins/conversation-controller/definition";
+import { conversationServicePlugin } from "../plugins/conversation-service/definition";
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
   AGENT_UI_CONVERSATION_SERVICE,
-  type AgentUIConversationService,
+  type ConversationService,
   type ConversationDataSource,
 } from "../services/conversations";
 import { createPluginRegistry, PluginServiceRuntime } from "../runtime/plugins";
@@ -46,9 +46,9 @@ function model(navigation?: UIPluginDefinition) {
         pluginId: "test-conversation-data-source",
         enabled: true,
       },
-      "conversation-controller": {
-        id: "conversation-controller",
-        pluginId: "conversation-controller",
+      "conversation-service": {
+        id: "conversation-service",
+        pluginId: "conversation-service",
         enabled: true,
       },
       ...(navigation === undefined ? {} : {
@@ -63,7 +63,7 @@ function model(navigation?: UIPluginDefinition) {
   });
 }
 
-describe("conversationControllerPlugin", () => {
+describe("conversationServicePlugin", () => {
   it("injects the DataSource, provides Conversation Service, and refreshes", async () => {
     const list = vi.fn(async () => []);
     const dataSource: ConversationDataSource = {
@@ -76,20 +76,20 @@ describe("conversationControllerPlugin", () => {
     });
     runtime.reconcile(
       model(),
-      createPluginRegistry([dataSourcePlugin(dataSource), conversationControllerPlugin]),
+      createPluginRegistry([dataSourcePlugin(dataSource), conversationServicePlugin]),
       { ...actions, startNewConversation },
     );
     await Promise.resolve();
 
-    expect(conversationControllerPlugin.inject).toEqual([
+    expect(conversationServicePlugin.inject).toEqual([
       AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
     ]);
-    expect(conversationControllerPlugin.provides).toEqual([
+    expect(conversationServicePlugin.provides).toEqual([
       AGENT_UI_CONVERSATION_SERVICE,
     ]);
     expect(list).toHaveBeenCalledOnce();
 
-    const conversation = runtime.get<AgentUIConversationService>(
+    const conversation = runtime.get<ConversationService>(
       AGENT_UI_CONVERSATION_SERVICE,
     );
     expect(conversation).toBeDefined();
@@ -98,7 +98,7 @@ describe("conversationControllerPlugin", () => {
     runtime.dispose();
   });
 
-  it("disposes the controller and aborts pending refresh on removal", () => {
+  it("disposes the service and aborts pending refresh on removal", () => {
     let signal: AbortSignal | undefined;
     const dataSource: ConversationDataSource = {
       list: (options) => {
@@ -110,7 +110,7 @@ describe("conversationControllerPlugin", () => {
     const runtime = new PluginServiceRuntime();
     runtime.reconcile(
       model(),
-      createPluginRegistry([dataSourcePlugin(dataSource), conversationControllerPlugin]),
+      createPluginRegistry([dataSourcePlugin(dataSource), conversationServicePlugin]),
       actions,
     );
 
@@ -121,7 +121,7 @@ describe("conversationControllerPlugin", () => {
         root: { type: "slot", id: "navigation-node", slotId: "navigation" },
         pluginInstances: {},
       }),
-      createPluginRegistry([dataSourcePlugin(dataSource), conversationControllerPlugin]),
+      createPluginRegistry([dataSourcePlugin(dataSource), conversationServicePlugin]),
       actions,
     );
 
@@ -147,7 +147,7 @@ describe("conversationControllerPlugin", () => {
     };
     const registry = createPluginRegistry([
       dataSourcePlugin(dataSource),
-      conversationControllerPlugin,
+      conversationServicePlugin,
       customNavigation,
     ]);
     const runtime = new PluginServiceRuntime();

@@ -13,14 +13,14 @@ function createModel(
     root: {
       type: "slot",
       id: "assistant-ui-presentation-test-root",
-      slotId: "workspace.conversation",
+      slotId: "conversation.surface",
     },
     pluginInstances: {
       "agent-conversation-surface-main": {
         id: "agent-conversation-surface-main",
         pluginId: "conversation-surface",
         enabled: true,
-        mount: { slotId: "workspace.conversation" },
+        mount: { slotId: "conversation.surface" },
         ...(assistantUiPresentation === undefined
           ? {}
           : { props: { assistantUiPresentation } }),

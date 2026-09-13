@@ -15,7 +15,7 @@ import {
 import {
   AGENT_UI_CONVERSATION_SERVICE,
   EMPTY_CONVERSATION_SNAPSHOT,
-  type AgentUIConversationService,
+  type ConversationService,
 } from "../../services/conversations";
 
 export interface AgentComposerBinding {
@@ -38,7 +38,7 @@ export function useAgentComposerBinding(): AgentComposerBinding {
   const run = useAgentRun();
   const instance = usePluginInstance();
   const actions = usePluginActions();
-  const conversation = usePluginService<AgentUIConversationService>(
+  const conversation = usePluginService<ConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
   );
   const conversationSnapshot = usePluginServiceSnapshot(

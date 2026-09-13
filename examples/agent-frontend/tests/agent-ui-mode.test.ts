@@ -104,8 +104,8 @@ describe("Agent UI Mode", () => {
       "assistant.composer",
     ]);
     expect(embeddedSlots).toEqual(["embedded.conversation"]);
-    expect(platformSlots).toContain("agent-conversations");
-    expect(assistantSlots).not.toContain("agent-conversations");
+    expect(platformSlots).toContain("conversation.navigation");
+    expect(assistantSlots).not.toContain("conversation.navigation");
     expect(
       agentUIModeRegistry.get("platform").createInitialAppUIModel(),
     ).toEqual(currentAppUIModel);

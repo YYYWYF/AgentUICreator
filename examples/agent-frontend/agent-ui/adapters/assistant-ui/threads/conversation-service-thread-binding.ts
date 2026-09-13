@@ -9,7 +9,7 @@ import {
   projectConversationDetail,
 } from "./conversation-history-projector";
 import type {
-  AgentUIConversationService,
+  ConversationService,
   ConversationSnapshot,
   ConversationSummary,
 } from "../../../../services/conversations";
@@ -20,7 +20,7 @@ export interface ConversationServiceAssistantUiThreadBinding<TState = unknown>
   selectThread(threadId: string): Promise<AssistantUiLoadedThread<TState>>;
   setNavigationLocked(locked: boolean): void;
   attachConversationService(
-    service: AgentUIConversationService,
+    service: ConversationService,
   ): () => void;
   captureLiveThread(snapshot: AssistantUiLoadedThread<TState>): void;
 }
@@ -134,7 +134,7 @@ export function createConversationServiceAssistantUiThreadBinding<
   let activeThreadId: string = liveThreadId;
   let liveThreadSnapshot = emptyLoadedThread<TState>();
   let activeThreadSnapshot = liveThreadSnapshot;
-  let conversationService: AgentUIConversationService | undefined;
+  let conversationService: ConversationService | undefined;
   let conversationSnapshot: ConversationSnapshot | undefined;
   let serviceUnsubscribe: (() => void) | undefined;
   let navigationLocked = false;

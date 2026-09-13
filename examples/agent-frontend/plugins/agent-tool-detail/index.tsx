@@ -13,7 +13,7 @@ import {
   AGENT_UI_CONVERSATION_SERVICE,
   EMPTY_CONVERSATION_SNAPSHOT,
   getConversationViewMessages,
-  type AgentUIConversationService,
+  type ConversationService,
 } from "../../services/conversations";
 import { inspectToolCalls } from "../_shared/agent-ui-data";
 import {
@@ -31,7 +31,7 @@ export function AgentToolDetailPlugin(_props: UIPluginComponentProps) {
   const executions = useAgentExecutions();
   const run = useAgentRun();
   const instance = usePluginInstance();
-  const conversation = usePluginService<AgentUIConversationService>(
+  const conversation = usePluginService<ConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
   );
   const snapshot = usePluginServiceSnapshot(

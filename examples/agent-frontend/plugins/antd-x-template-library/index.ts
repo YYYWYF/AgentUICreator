@@ -15,14 +15,16 @@ import { antdXSourcesPlugin } from "../antd-x-sources/definition";
 import { antdXThemeProviderPlugin } from "../antd-x-theme-provider/definition";
 import { antdXThemeSwitchPlugin } from "../antd-x-theme-switch/definition";
 import { agentToolDetailPlugin } from "../agent-tool-detail/definition";
+import { assistantUiThreadListPlugin } from "../assistant-ui-thread-list/definition";
 import { conversationSurfacePlugin } from "../conversation-surface/definition";
 import { conversationDataSourcePlugin } from "../conversation-data-source/definition";
-import { conversationControllerPlugin } from "../conversation-controller/definition";
+import { conversationServicePlugin } from "../conversation-service/definition";
 import { workspaceInspectorPlugin } from "../workspace-inspector/definition";
 
 export const antdXTemplatePlugins = [
   conversationDataSourcePlugin,
-  conversationControllerPlugin,
+  conversationServicePlugin,
+  assistantUiThreadListPlugin,
   antdXThemeProviderPlugin,
   antdXThemeSwitchPlugin,
   agentThreadWelcomePlugin,
@@ -63,7 +65,8 @@ export {
   agentToolActivityPlugin,
   agentToolPlugin,
   conversationDataSourcePlugin,
-  conversationControllerPlugin,
+  conversationServicePlugin,
+  assistantUiThreadListPlugin,
   conversationSurfacePlugin,
   workspaceInspectorPlugin,
 };
@@ -87,6 +90,7 @@ export { AgentToolActivityPlugin } from "../agent-tool-activity";
 export { AgentToolPlugin } from "../agent-tool";
 export { ConversationSurfacePlugin } from "../conversation-surface";
 export { ConversationDataSourcePlugin } from "../conversation-data-source";
-export { ConversationControllerPlugin } from "../conversation-controller";
+export { ConversationServicePlugin } from "../conversation-service";
+export { AssistantUiThreadListPlugin } from "../assistant-ui-thread-list";
 export { WorkspaceInspectorPlugin } from "../workspace-inspector";
 export * from "../../services/agent-ui-theme";

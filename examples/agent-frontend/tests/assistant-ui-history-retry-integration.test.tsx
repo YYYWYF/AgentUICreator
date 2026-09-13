@@ -18,8 +18,8 @@ import {
   type ConversationServiceAssistantUiThreadBinding,
 } from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
 import {
-  createConversationController,
-  type AgentUIConversationService,
+  createConversationService,
+  type ConversationService,
   type ConversationDetail,
   type ConversationDataSource,
   type ConversationSnapshot,
@@ -69,7 +69,7 @@ function messageIds(messages: readonly ThreadMessage[]): string[] {
   return messages.map((message) => message.id);
 }
 
-class RetryConversationService implements AgentUIConversationService {
+class RetryConversationService implements ConversationService {
   private readonly listeners = new Set<() => void>();
   private selectionAttempts = 0;
   private snapshot: ConversationSnapshot = {
@@ -223,7 +223,7 @@ describe("assistant-ui history retry navigation", () => {
       list: async () => [],
       get: async (id) => ({ id, title: id, messages: [] }),
     };
-    const service = createConversationController({ dataSource });
+    const service = createConversationService({ dataSource });
     const binding = createConversationServiceAssistantUiThreadBinding();
     const detach = binding.attachConversationService(service);
     const liveMessages = [

@@ -8,7 +8,7 @@ import {
   createConversationServiceAssistantUiThreadBinding,
 } from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
 import type {
-  AgentUIConversationService,
+  ConversationService,
   ConversationDetail,
   ConversationSnapshot,
 } from "../services/conversations";
@@ -53,7 +53,7 @@ function threadMessage(id: string, role: "user" | "assistant"): ThreadMessage {
   };
 }
 
-class FakeConversationService implements AgentUIConversationService {
+class FakeConversationService implements ConversationService {
   private readonly listeners = new Set<() => void>();
   private readonly details: ReadonlyMap<string, ConversationDetail>;
   private snapshot: ConversationSnapshot;

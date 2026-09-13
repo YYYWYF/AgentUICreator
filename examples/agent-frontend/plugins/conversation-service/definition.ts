@@ -3,12 +3,12 @@ import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
   AGENT_UI_CONVERSATION_SERVICE,
-  createConversationController,
+  createConversationService,
 } from "../../services/conversations";
-import { ConversationControllerPlugin } from "./index";
+import { ConversationServicePlugin } from "./index";
 import manifestJson from "./manifest.json";
 
-export const conversationControllerPlugin: UIPluginDefinition = {
+export const conversationServicePlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   inject: [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE],
   provides: [AGENT_UI_CONVERSATION_SERVICE],
@@ -19,16 +19,16 @@ export const conversationControllerPlugin: UIPluginDefinition = {
     if (dataSource === undefined) {
       throw new Error("Conversation DataSource is unavailable.");
     }
-    const controller = createConversationController({
+    const service = createConversationService({
       dataSource,
     });
-    services.provide(AGENT_UI_CONVERSATION_SERVICE, controller);
-    void controller.refresh();
+    services.provide(AGENT_UI_CONVERSATION_SERVICE, service);
+    void service.refresh();
     return () => {
-      controller.dispose();
+      service.dispose();
     };
   },
-  Component: ConversationControllerPlugin,
+  Component: ConversationServicePlugin,
 };
 
-export default conversationControllerPlugin;
+export default conversationServicePlugin;

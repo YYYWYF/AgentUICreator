@@ -119,7 +119,7 @@ import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import { AGENT_UI_THEME_SERVICE } from "../services/agent-ui-theme";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
-  type AgentUIConversationService,
+  type ConversationService,
   type ConversationSnapshot,
   EMPTY_CONVERSATION_SNAPSHOT,
 } from "../services/conversations";
@@ -138,7 +138,7 @@ function textContent(node: ReactTestInstance): string {
 
 function conversationService(
   snapshot: ConversationSnapshot,
-): AgentUIConversationService {
+): ConversationService {
   return {
     getSnapshot: () => snapshot,
     subscribe: () => () => undefined,
@@ -152,7 +152,7 @@ function conversationService(
 async function renderPlugin(
   snapshot: ConversationSnapshot,
   status: "idle" | "running" | "awaiting-input" = "idle",
-): Promise<{ renderer: ReactTestRenderer; service: AgentUIConversationService }> {
+): Promise<{ renderer: ReactTestRenderer; service: ConversationService }> {
   const service = conversationService(snapshot);
   const servicePlugin: UIPluginDefinition = {
     manifest: {

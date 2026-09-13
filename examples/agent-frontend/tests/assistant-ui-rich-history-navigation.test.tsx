@@ -29,8 +29,8 @@ import {
 } from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
 import {
   createHttpConversationDataSource,
-  createConversationController,
-  type AgentUIConversationService,
+  createConversationService,
+  type ConversationService,
 } from "../services/conversations";
 import type { UIPluginComponentProps } from "../framework/contracts/ui-plugin";
 
@@ -41,7 +41,7 @@ const renderFallback: UIPluginComponentProps["renderSlot"] = (
 const mountedRoots: Root[] = [];
 const mountedFixtures: Array<{
   detach: () => void;
-  service: AgentUIConversationService & { dispose(): void };
+  service: ConversationService & { dispose(): void };
 }> = [];
 
 let server: Server;
@@ -150,7 +150,7 @@ async function mountRuntime() {
   const dataSource = createHttpConversationDataSource({
     endpoint: `${origin}/__agent-ui/mock-data`,
   });
-  const service = createConversationController({ dataSource });
+  const service = createConversationService({ dataSource });
   const binding = createConversationServiceAssistantUiThreadBinding();
   const detach = binding.attachConversationService(service);
   await service.refresh();

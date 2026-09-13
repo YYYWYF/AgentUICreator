@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 import { assistantUiThreadListPlugin } from "../plugins/assistant-ui-thread-list/definition";
-import { conversationControllerPlugin } from "../plugins/conversation-controller/definition";
+import { conversationServicePlugin } from "../plugins/conversation-service/definition";
 import { conversationSurfacePlugin } from "../plugins/conversation-surface/definition";
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
@@ -21,12 +21,12 @@ const model = parseAppUIModel({
       {
         type: "slot",
         id: "conversation-history-node",
-        slotId: "agent-conversations",
+        slotId: "conversation.navigation",
       },
       {
         type: "slot",
         id: "conversation-surface-node",
-        slotId: "workspace.conversation",
+        slotId: "conversation.surface",
       },
     ],
   },
@@ -36,22 +36,22 @@ const model = parseAppUIModel({
       pluginId: "conversation-data-source",
       enabled: true,
     },
-    "agent-conversation-controller-main": {
-      id: "agent-conversation-controller-main",
-      pluginId: "conversation-controller",
+    "agent-conversation-service-main": {
+      id: "agent-conversation-service-main",
+      pluginId: "conversation-service",
       enabled: true,
     },
     "assistant-ui-thread-list-main": {
       id: "assistant-ui-thread-list-main",
       pluginId: "assistant-ui-thread-list",
       enabled: true,
-      mount: { slotId: "agent-conversations" },
+        mount: { slotId: "conversation.navigation" },
     },
     "agent-conversation-surface-main": {
       id: "agent-conversation-surface-main",
       pluginId: "conversation-surface",
       enabled: true,
-      mount: { slotId: "workspace.conversation" },
+        mount: { slotId: "conversation.surface" },
     },
   },
 });
@@ -80,7 +80,7 @@ describe("basic chat without legacy navigation", () => {
   it("keeps Conversation Service active with the canonical navigation owner", () => {
     const registry = createPluginRegistry([
       conversationDataSourceFixture,
-      conversationControllerPlugin,
+      conversationServicePlugin,
       assistantUiThreadListPlugin,
       conversationSurfacePlugin,
     ]);
@@ -96,7 +96,7 @@ describe("basic chat without legacy navigation", () => {
     runtime.reconcile(model, registry, actions);
 
     expect(runtime.get(AGENT_UI_CONVERSATION_SERVICE)).toBeDefined();
-    expect(runtime.getActivation("agent-conversation-controller-main")?.status).toBe(
+    expect(runtime.getActivation("agent-conversation-service-main")?.status).toBe(
       "active",
     );
     expect(runtime.getActivation("assistant-ui-thread-list-main")?.status).toBe(

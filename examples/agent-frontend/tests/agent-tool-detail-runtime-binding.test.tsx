@@ -28,7 +28,7 @@ import {
 } from "../runtime/plugins";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
-  type AgentUIConversationService,
+  type ConversationService,
   type ConversationSnapshot,
 } from "../services/conversations";
 import { initialPreviewMessages, previewAgentState } from "../src/preview-data";
@@ -148,7 +148,7 @@ function historyServicePlugin(
     listStatus: "ready",
     detailStatus: "ready",
   };
-  const service: AgentUIConversationService = {
+  const service: ConversationService = {
     getSnapshot: () => snapshot,
     subscribe: () => () => undefined,
     refresh: async () => undefined,

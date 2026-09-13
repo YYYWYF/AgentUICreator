@@ -44,32 +44,30 @@ describe("AppUIModel", () => {
     const model = parseAppUIModelJson(json);
 
     expect(model.version).toBe("2");
-    expect(model.root.type).toBe("slot");
+    expect(model.root.type).toBe("row");
     expect(Object.keys(model.pluginInstances)).toEqual([
       "agent-conversation-data-main",
-      "agent-conversation-surface-main",
-      "agent-conversation-controller-main",
+      "agent-conversation-service-main",
       "assistant-ui-thread-list-main",
-      "assistant-ui-workspace-shell-main",
+      "agent-conversation-surface-main",
     ]);
     expect(model.root).toMatchObject({
-      type: "slot",
-      id: "assistant-ui-workspace-shell-slot-node",
-      slotId: "workspace.shell",
+      type: "row",
+      id: "conversation-workspace-row",
     });
-    expect(model.pluginInstances["agent-conversation-controller-main"]).toEqual({
-      id: "agent-conversation-controller-main",
-      pluginId: "conversation-controller",
+    expect(model.pluginInstances["agent-conversation-service-main"]).toEqual({
+      id: "agent-conversation-service-main",
+      pluginId: "conversation-service",
       enabled: true,
     });
     expect(model.pluginInstances["assistant-ui-thread-list-main"]).toMatchObject({
       pluginId: "assistant-ui-thread-list",
       enabled: true,
-      mount: { slotId: "agent-conversations" },
+      mount: { slotId: "conversation.navigation" },
     });
-    expect(model.pluginInstances["assistant-ui-workspace-shell-main"]).toMatchObject({
-      pluginId: "assistant-ui-workspace-shell",
-      mount: { slotId: "workspace.shell" },
+    expect(model.pluginInstances["agent-conversation-surface-main"]).toMatchObject({
+      pluginId: "conversation-surface",
+      mount: { slotId: "conversation.surface" },
     });
     expect(model.pluginInstances["agent-conversation-surface-main"]?.props).toBeUndefined();
   });

@@ -18,14 +18,11 @@ const globalsUrl = new URL(
   "../agent-ui/adapters/assistant-ui/styles/globals.css",
   import.meta.url,
 );
-const workspaceUrl = new URL(
-  "../agent-ui/adapters/assistant-ui/workspace/AssistantUiWorkspaceShell.tsx",
+const surfaceDefinitionUrl = new URL(
+  "../plugins/conversation-surface/definition.ts",
   import.meta.url,
 );
-const workspaceDefinitionUrl = new URL(
-  "../plugins/assistant-ui-workspace-shell/definition.ts",
-  import.meta.url,
-);
+const appUIUrl = new URL("../app-ui/app-ui.json", import.meta.url);
 const threadListStylesUrl = new URL(
   "../plugins/assistant-ui-thread-list/styles.css",
   import.meta.url,
@@ -37,11 +34,10 @@ const threadUrl = new URL(
 
 describe("assistant-ui conversation visual contract", () => {
   it("keeps theme ownership and root class mapping explicit", async () => {
-    const [surface, themeHook, workspace, workspaceDefinition] = await Promise.all([
+    const [surface, themeHook, surfaceDefinition] = await Promise.all([
       readFile(surfaceUrl, "utf8"),
       readFile(themeHookUrl, "utf8"),
-      readFile(workspaceUrl, "utf8"),
-      readFile(workspaceDefinitionUrl, "utf8"),
+      readFile(surfaceDefinitionUrl, "utf8"),
     ]);
 
     expect(surface).toContain(
@@ -55,12 +51,10 @@ describe("assistant-ui conversation visual contract", () => {
     expect(themeHook).toContain("AGENT_UI_THEME_SERVICE");
     expect(themeHook).toContain("useSyncExternalStore");
     expect(themeHook).toContain('getDefaultThemeMode = (): AgentUIThemeMode => "light"');
-    expect(workspace).toContain("useAgentUIThemeMode");
-    expect(workspace).toContain('"agent-ui-assistant-ui"');
-    expect(workspace).toContain('data-theme={theme}');
-    expect(workspace).toContain('theme === "dark" ? "dark" : undefined');
-    expect(workspaceDefinition).toContain("AGENT_UI_THEME_SERVICE");
-    expect(workspaceDefinition).toContain("optionalInject");
+    expect(surfaceDefinition).toContain("AGENT_UI_CONVERSATION_SERVICE");
+    expect(surfaceDefinition).toContain("inject");
+    expect(surfaceDefinition).toContain("AGENT_UI_THEME_SERVICE");
+    expect(surfaceDefinition).toContain("optionalInject");
     expect(surface).toContain('"bg-background"');
   });
 
@@ -142,13 +136,17 @@ describe("assistant-ui conversation visual contract", () => {
     }
   });
 
-  it("keeps Sidebar as the workspace surface owner", async () => {
-    const [surface, threadListStyles] = await Promise.all([
+  it("keeps AppUIModel as the overall layout owner", async () => {
+    const [surface, appUI, threadListStyles] = await Promise.all([
       readFile(surfaceUrl, "utf8"),
+      readFile(appUIUrl, "utf8"),
       readFile(threadListStylesUrl, "utf8"),
     ]);
 
     expect(surface).toContain('"bg-background"');
+    expect(appUI).toContain('"conversation.navigation"');
+    expect(appUI).toContain('"conversation.surface"');
+    expect(appUI).not.toContain("assistant-ui-workspace-shell");
     expect(threadListStyles).not.toMatch(/background\s*:/u);
   });
 });

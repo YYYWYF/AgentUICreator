@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import {
-  createConversationController,
+  createConversationService,
   type ConversationDataSource,
   type ConversationDetail,
 } from "../services/conversations";
@@ -26,21 +26,21 @@ function message(id: string): AgentMessage {
   };
 }
 
-describe("ConversationController", () => {
+describe("ConversationService", () => {
   it("projects initial list loading through ready", async () => {
     const list = deferred<Array<{ id: string; title: string }>>();
     const dataSource: ConversationDataSource = {
       list: () => list.promise,
       get: async () => ({ id: "unused", title: "Unused", messages: [] }),
     };
-    const controller = createConversationController({
+    const service = createConversationService({
       dataSource,
     });
-    const request = controller.refresh();
-    expect(controller.getSnapshot().listStatus).toBe("loading");
+    const request = service.refresh();
+    expect(service.getSnapshot().listStatus).toBe("loading");
     list.resolve([{ id: "conversation-1", title: "Conversation 1" }]);
     await request;
-    expect(controller.getSnapshot()).toMatchObject({
+    expect(service.getSnapshot()).toMatchObject({
       listStatus: "ready",
       conversations: [{ id: "conversation-1", title: "Conversation 1" }],
     });
@@ -51,27 +51,27 @@ describe("ConversationController", () => {
       list: async () => [],
       get: async (id) => ({ id, title: id, messages: [message(id)] }),
     };
-    const controller = createConversationController({
+    const service = createConversationService({
       dataSource,
     });
-    const request = controller.selectConversation("conversation-1");
-    expect(controller.getSnapshot()).toMatchObject({
+    const request = service.selectConversation("conversation-1");
+    expect(service.getSnapshot()).toMatchObject({
       mode: "history",
       activeConversationId: "conversation-1",
       detailStatus: "loading",
     });
     await request;
-    expect(controller.getSnapshot()).toMatchObject({
+    expect(service.getSnapshot()).toMatchObject({
       detailStatus: "ready",
       historyMessages: [expect.objectContaining({ id: "conversation-1" })],
     });
-    controller.showLiveConversation();
-    expect(controller.getSnapshot()).toMatchObject({
+    service.showLiveConversation();
+    expect(service.getSnapshot()).toMatchObject({
       mode: "live",
       detailStatus: "idle",
       historyMessages: [],
     });
-    expect(controller.getSnapshot().activeConversationId).toBeUndefined();
+    expect(service.getSnapshot().activeConversationId).toBeUndefined();
   });
 
   it("keeps the authoritative snapshot and records the failed history id", async () => {
@@ -81,21 +81,21 @@ describe("ConversationController", () => {
         throw new Error("Conversation API request failed (500)");
       },
     };
-    const controller = createConversationController({
+    const service = createConversationService({
       dataSource,
     });
-    const liveSnapshot = controller.getSnapshot();
+    const liveSnapshot = service.getSnapshot();
 
-    await controller.selectConversation("history-broken");
+    await service.selectConversation("history-broken");
 
-    expect(controller.getSnapshot()).toMatchObject({
+    expect(service.getSnapshot()).toMatchObject({
       ...liveSnapshot,
       detailStatus: "error",
       detailError: "Conversation API request failed (500)",
       detailErrorConversationId: "history-broken",
     });
-    expect(controller.getSnapshot().mode).toBe("live");
-    expect(controller.getSnapshot().activeConversationId).toBeUndefined();
+    expect(service.getSnapshot().mode).toBe("live");
+    expect(service.getSnapshot().activeConversationId).toBeUndefined();
   });
 
   it("clears detail errors when a history retry succeeds", async () => {
@@ -107,22 +107,22 @@ describe("ConversationController", () => {
         return { id, title: id, messages: [message(id)] };
       },
     };
-    const controller = createConversationController({
+    const service = createConversationService({
       dataSource,
     });
 
-    await controller.selectConversation("history-retry");
+    await service.selectConversation("history-retry");
     shouldFail = false;
-    await controller.selectConversation("history-retry");
+    await service.selectConversation("history-retry");
 
-    expect(controller.getSnapshot()).toMatchObject({
+    expect(service.getSnapshot()).toMatchObject({
       mode: "history",
       activeConversationId: "history-retry",
       detailStatus: "ready",
       historyMessages: [expect.objectContaining({ id: "history-retry" })],
     });
-    expect(controller.getSnapshot().detailError).toBeUndefined();
-    expect(controller.getSnapshot().detailErrorConversationId).toBeUndefined();
+    expect(service.getSnapshot().detailError).toBeUndefined();
+    expect(service.getSnapshot().detailErrorConversationId).toBeUndefined();
   });
 
   it("prevents a late detail response from overwriting a newer selection", async () => {
@@ -135,16 +135,16 @@ describe("ConversationController", () => {
         return request.promise;
       },
     };
-    const controller = createConversationController({
+    const service = createConversationService({
       dataSource,
     });
-    const first = controller.selectConversation("A");
-    const second = controller.selectConversation("B");
+    const first = service.selectConversation("A");
+    const second = service.selectConversation("B");
     requests.get("B")?.resolve({ id: "B", title: "B", messages: [message("B")] });
     await second;
     requests.get("A")?.resolve({ id: "A", title: "A", messages: [message("A")] });
     await first;
-    expect(controller.getSnapshot()).toMatchObject({
+    expect(service.getSnapshot()).toMatchObject({
       activeConversationId: "B",
       historyMessages: [expect.objectContaining({ id: "B" })],
     });
@@ -155,13 +155,13 @@ describe("ConversationController", () => {
       list: async () => [],
       get: async (id) => ({ id, title: id, messages: [message(id)] }),
     };
-    const controller = createConversationController({
+    const service = createConversationService({
       dataSource,
     });
-    await controller.selectConversation("history");
-    controller.resetForNewConversation();
-    expect(controller.getSnapshot().mode).toBe("live");
-    expect(controller.getSnapshot()).toMatchObject({
+    await service.selectConversation("history");
+    service.resetForNewConversation();
+    expect(service.getSnapshot().mode).toBe("live");
+    expect(service.getSnapshot()).toMatchObject({
       mode: "live",
       activeConversationId: undefined,
       historyMessages: [],
@@ -178,22 +178,22 @@ describe("ConversationController", () => {
         throw new Error("failed");
       },
     };
-    const controller = createConversationController({
+    const service = createConversationService({
       dataSource,
     });
 
-    await controller.selectConversation("history");
-    controller.showLiveConversation();
-    expect(controller.getSnapshot().detailErrorConversationId).toBeUndefined();
+    await service.selectConversation("history");
+    service.showLiveConversation();
+    expect(service.getSnapshot().detailErrorConversationId).toBeUndefined();
 
-    await controller.selectConversation("history");
-    controller.resetForNewConversation();
-    expect(controller.getSnapshot()).toMatchObject({
+    await service.selectConversation("history");
+    service.resetForNewConversation();
+    expect(service.getSnapshot()).toMatchObject({
       mode: "live",
       detailStatus: "idle",
     });
-    expect(controller.getSnapshot().detailError).toBeUndefined();
-    expect(controller.getSnapshot().detailErrorConversationId).toBeUndefined();
+    expect(service.getSnapshot().detailError).toBeUndefined();
+    expect(service.getSnapshot().detailErrorConversationId).toBeUndefined();
   });
 
   it("aborts list and detail requests when disposed", async () => {
@@ -208,12 +208,12 @@ describe("ConversationController", () => {
       list: ({ signal } = {}) => never(signal),
       get: (_id, { signal } = {}) => never(signal),
     };
-    const controller = createConversationController({
+    const service = createConversationService({
       dataSource,
     });
-    const listRequest = controller.refresh();
-    const detailRequest = controller.selectConversation("history");
-    controller.dispose();
+    const listRequest = service.refresh();
+    const detailRequest = service.selectConversation("history");
+    service.dispose();
     await Promise.all([listRequest, detailRequest]);
     expect(signals).toHaveLength(2);
     expect(signals.every((signal) => signal.aborted)).toBe(true);

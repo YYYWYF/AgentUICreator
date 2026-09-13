@@ -11,27 +11,25 @@ import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("assistant-ui default composition", () => {
-  it("keeps the default model to three visible presentation plugins and two headless services", () => {
+  it("keeps the default model to two visible presentation plugins and two headless services", () => {
     const model = parseAppUIModel(appUIJson);
     const visible = Object.values(model.pluginInstances)
       .filter((instance) => instance.enabled && instance.mount !== undefined)
       .map((instance) => instance.id);
 
     expect(visible).toEqual([
-      "agent-conversation-surface-main",
       "assistant-ui-thread-list-main",
-      "assistant-ui-workspace-shell-main",
+      "agent-conversation-surface-main",
     ]);
     expect(Object.keys(model.pluginInstances)).toEqual([
       "agent-conversation-data-main",
-      "agent-conversation-surface-main",
-      "agent-conversation-controller-main",
+      "agent-conversation-service-main",
       "assistant-ui-thread-list-main",
-      "assistant-ui-workspace-shell-main",
+      "agent-conversation-surface-main",
     ]);
     expect(Object.values(model.pluginInstances).filter((instance) => instance.enabled && instance.mount === undefined).map((instance) => instance.id)).toEqual([
       "agent-conversation-data-main",
-      "agent-conversation-controller-main",
+      "agent-conversation-service-main",
     ]);
 
     for (const forbiddenPluginId of [
@@ -55,25 +53,21 @@ describe("assistant-ui default composition", () => {
     }
   });
 
-  it("uses the Workspace Shell outlet without an inspector or theme slot", () => {
+  it("uses AppUIModel layout Slots without an inspector or theme Slot", () => {
     const model = parseAppUIModel(appUIJson);
     expect(model.root).toMatchObject({
-      type: "slot",
-      id: "assistant-ui-workspace-shell-slot-node",
-      slotId: "workspace.shell",
+      type: "row",
+      id: "conversation-workspace-row",
     });
+    expect(JSON.stringify(model.root)).toContain("conversation.navigation");
+    expect(JSON.stringify(model.root)).toContain("conversation.surface");
     expect(JSON.stringify(model.root)).not.toContain("workspace.inspector");
     expect(JSON.stringify(model.root)).not.toContain("agent-theme-switch");
-    expect(model.pluginInstances["assistant-ui-workspace-shell-main"]).toMatchObject({
-      pluginId: "assistant-ui-workspace-shell",
-      enabled: true,
-      mount: { slotId: "workspace.shell" },
-    });
     expect(model.pluginInstances["assistant-ui-thread-list-main"]).toMatchObject({
-      mount: { slotId: "agent-conversations" },
+      mount: { slotId: "conversation.navigation" },
     });
     expect(model.pluginInstances["agent-conversation-surface-main"]).toMatchObject({
-      mount: { slotId: "workspace.conversation" },
+      mount: { slotId: "conversation.surface" },
     });
     expect(model.pluginInstances["agent-conversation-surface-main"]?.props).toBeUndefined();
   });

@@ -19,19 +19,18 @@ describe("assistant-ui canonical runtime", () => {
     ).toMatchObject({
       pluginId: "assistant-ui-thread-list",
       enabled: true,
-      mount: { slotId: "agent-conversations" },
+      mount: { slotId: "conversation.navigation" },
     });
     expect(
       model.pluginInstances["agent-conversation-surface-main"],
     ).toMatchObject({
       pluginId: "conversation-surface",
       enabled: true,
-      mount: { slotId: "workspace.conversation" },
+      mount: { slotId: "conversation.surface" },
     });
-    expect(model.pluginInstances["assistant-ui-workspace-shell-main"]).toMatchObject({
-      pluginId: "assistant-ui-workspace-shell",
+    expect(model.pluginInstances["agent-conversation-service-main"]).toMatchObject({
+      pluginId: "conversation-service",
       enabled: true,
-      mount: { slotId: "workspace.shell" },
     });
     expect(model.pluginInstances["agent-message-sources-main"]).toBeUndefined();
 
@@ -40,7 +39,7 @@ describe("assistant-ui canonical runtime", () => {
       model.pluginInstances["assistant-ui-conversation-spike-main"],
     ).toBeUndefined();
 
-    expect(Object.values(model.pluginInstances).filter((instance) => instance.enabled)).toHaveLength(5);
+    expect(Object.values(model.pluginInstances).filter((instance) => instance.enabled)).toHaveLength(4);
   });
 
   it("keeps App on one assistant-ui Runtime owner", async () => {

@@ -7,7 +7,8 @@ import manifestJson from "./manifest.json";
 
 export const conversationSurfacePlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
-  optionalInject: [AGENT_UI_CONVERSATION_SERVICE, AGENT_UI_THEME_SERVICE],
+  inject: [AGENT_UI_CONVERSATION_SERVICE],
+  optionalInject: [AGENT_UI_THEME_SERVICE],
   Component: ConversationSurfacePlugin,
 };
 
