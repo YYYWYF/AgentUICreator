@@ -7,6 +7,7 @@ export {
   type MockScenarioCategory,
   type MockScenarioResumeSteps,
   type MockScenarioStep,
+  type MockSubagentToolStep,
   type MockToolError,
 } from "./scenario.js";
 export {
@@ -35,6 +36,7 @@ export {
   agentStatusScenario,
   approvalResumeScenario,
   multiToolScenario,
+  nestedSubagentConversationScenario,
   parallelToolsScenario,
   reasoningChatScenario,
   reasoningLongPreviewScenario,

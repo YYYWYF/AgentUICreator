@@ -280,6 +280,53 @@ describe("Mock Agent HTTP endpoint", () => {
     });
   });
 
+  it("runs the nested subagent conversation through the real HttpAgent", async () => {
+    const endpoint = await startMockServer(builtinMockScenarios);
+    const agent = new HttpAgent({
+      url: `${endpoint}?scenario=nested-subagent-conversation&speed=0`,
+      threadId: "thread-nested-subagent",
+    });
+    agent.addMessage({
+      id: "user-nested-subagent",
+      role: "user",
+      content: "检查 Agent UI 架构",
+    });
+
+    const events = await collectAgentRun(agent, {
+      runId: "run-nested-subagent",
+    });
+    const started = events.findIndex((event) =>
+      event.type === EventType.SUBAGENT_STARTED,
+    );
+    const finished = events.findIndex((event, index) =>
+      index > started && event.type === EventType.SUBAGENT_FINISHED,
+    );
+    const parentStart = events.findIndex((event) =>
+      event.type === EventType.TOOL_CALL_START &&
+      event.toolCallName === "mock_invoke_researcher",
+    );
+    const parentResult = events.findIndex((event) =>
+      event.type === EventType.TOOL_CALL_RESULT &&
+      event.toolCallId === "invoke-researcher-1",
+    );
+
+    expect(events[parentStart]).toMatchObject({
+      toolCallId: "invoke-researcher-1",
+      toolCallName: "mock_invoke_researcher",
+    });
+    expect(events[started]).toMatchObject({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "researcher-1",
+      parentToolCallId: "invoke-researcher-1",
+    });
+    expect(finished).toBeGreaterThan(started);
+    expect(parentResult).toBeGreaterThan(finished);
+    expect(events.at(-1)).toMatchObject({
+      type: EventType.RUN_FINISHED,
+      outcome: { type: "success" },
+    });
+  });
+
   it("runs agent-elements-showcase through the real HttpAgent", async () => {
     const endpoint = await startMockServer(builtinMockScenarios);
     const agent = new HttpAgent({
@@ -535,7 +582,7 @@ describe("Mock Agent HTTP endpoint", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("application/json");
     expect(body.defaultScenarioId).toBe("reasoning-tool-success");
-    expect(body.scenarios).toHaveLength(16);
+    expect(body.scenarios).toHaveLength(17);
     expect(body.scenarios[0]).not.toHaveProperty("steps");
     expect(body.scenarios[0]).not.toHaveProperty("initialState");
     expect(body.scenarios.find(({ id }) => id === "agent-elements-showcase"))

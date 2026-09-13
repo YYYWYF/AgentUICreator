@@ -42,6 +42,7 @@
   "devDependencies": {
     "@agent-ui/mock-agent": "workspace:^",
     "@agent-ui/source-registry": "workspace:^",
+    "@assistant-ui/react-ag-ui": "0.0.59",
     "@types/node": "^20.19.43",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",

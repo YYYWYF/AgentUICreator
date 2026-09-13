@@ -5,6 +5,7 @@ import {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
   MockDispatchSubagentToolUI,
+  MockInvokeResearcherToolUI,
 } from "./mock";
 
 export interface CreateAssistantUiToolkitOptions {
@@ -36,6 +37,11 @@ export function createAssistantUiToolkit({
             type: "backend" as const,
             display: "standalone" as const,
             render: MockDispatchSubagentToolUI,
+          },
+          mock_invoke_researcher: {
+            type: "backend" as const,
+            display: "standalone" as const,
+            render: MockInvokeResearcherToolUI,
           },
         }
       : {}),

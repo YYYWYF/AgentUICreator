@@ -378,6 +378,79 @@ async function* runSteps(
       continue;
     }
 
+    if (step.type === "subagent-tool") {
+      const resultMessageId = createId("tool-result");
+      const event = (value: Record<string, unknown>): AGUIEvent =>
+        withSubagentRunId(value, context.subagentRunId) as AGUIEvent;
+      yield event({
+        type: EventType.TOOL_CALL_START,
+        toolCallId: step.toolCallId,
+        toolCallName: step.toolName,
+      });
+      yield event({
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: step.toolCallId,
+        delta: serializeToolValue(step.args),
+      });
+      if (!await waitForDelay(
+        normalizeDelay(
+          step.prepareDurationMs,
+          DEFAULT_TOOL_PREPARE_DURATION_MS,
+        ),
+        signal,
+        timingScale,
+      )) return;
+      yield event({ type: EventType.TOOL_CALL_END, toolCallId: step.toolCallId });
+      yield {
+        type: EventType.SUBAGENT_STARTED,
+        subagentRunId: step.subagent.id,
+        name: step.subagent.name,
+        ...(step.subagent.description === undefined
+          ? {}
+          : { description: step.subagent.description }),
+        parentToolCallId: step.toolCallId,
+        ...(context.subagentRunId === undefined
+          ? {}
+          : { parentSubagentRunId: context.subagentRunId }),
+      } as AGUIEvent;
+      yield* runSteps(
+        input,
+        step.subagent.steps,
+        createId,
+        signal,
+        timingScale,
+        { subagentRunId: step.subagent.id },
+      );
+      if (signal?.aborted) return;
+      if (step.subagent.outcome.type === "error") {
+        yield {
+          type: EventType.SUBAGENT_ERROR,
+          subagentRunId: step.subagent.id,
+          message: step.subagent.outcome.message,
+          ...(step.subagent.outcome.code === undefined
+            ? {}
+            : { code: step.subagent.outcome.code }),
+        } as AGUIEvent;
+      } else {
+        yield {
+          type: EventType.SUBAGENT_FINISHED,
+          subagentRunId: step.subagent.id,
+          ...(step.subagent.outcome.result === undefined
+            ? {}
+            : { result: structuredClone(step.subagent.outcome.result) }),
+          outcome: { type: "success" },
+        } as AGUIEvent;
+      }
+      yield event({
+        type: EventType.TOOL_CALL_RESULT,
+        messageId: resultMessageId,
+        toolCallId: step.toolCallId,
+        content: serializeToolValue(step.result),
+        role: "tool",
+      });
+      continue;
+    }
+
     if (step.type === "interrupt") {
       const event = (value: Record<string, unknown>): AGUIEvent =>
         withSubagentRunId(value, context.subagentRunId) as AGUIEvent;

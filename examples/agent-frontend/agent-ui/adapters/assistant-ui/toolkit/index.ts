@@ -11,6 +11,8 @@ export {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
   MockDispatchSubagentToolUI,
+  MockInvokeResearcherToolUI,
+  AssistantUiNestedMessage,
 } from "./mock";
 export {
   ASSISTANT_UI_TOOL_PRESENTATION,

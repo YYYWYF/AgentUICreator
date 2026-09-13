@@ -41,6 +41,24 @@ export interface MockInterrupt {
   metadata?: Record<string, unknown> | undefined;
 }
 
+export interface MockSubagentToolStep {
+  type: "subagent-tool";
+  toolCallId: string;
+  toolName: string;
+  args: unknown;
+  prepareDurationMs?: number | undefined;
+  subagent: {
+    id: string;
+    name: string;
+    description?: string | undefined;
+    steps: MockScenarioStep[];
+    outcome:
+      | { type: "completed"; result?: unknown }
+      | { type: "error"; message: string; code?: string | undefined };
+  };
+  result: unknown;
+}
+
 export interface MockScenario {
   id: string;
   title: string;
@@ -102,6 +120,7 @@ export type MockScenarioStep =
         | { type: "error"; message: string; code?: string | undefined };
       steps?: MockScenarioStep[] | undefined;
     }
+  | MockSubagentToolStep
   | {
       type: "interrupt";
       toolCallId: string;

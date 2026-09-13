@@ -69,6 +69,7 @@ function clampSpeed(value: string | undefined): number {
 }
 
 function scenarioMarker(scenario: MockScenarioSummary): string | undefined {
+  if (scenario.id === "nested-subagent-conversation") return "Nested UI";
   if (scenario.id === "subagents") return "Recommended";
   if (scenario.id === "subagents-out-of-order") return "Edge case";
   if (scenario.id === "subagent-lifecycle") return "Protocol validation";
