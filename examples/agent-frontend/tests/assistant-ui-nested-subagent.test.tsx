@@ -162,6 +162,11 @@ describe("official nested assistant-ui conversation", () => {
       '[data-slot="mock-nested-subagent-conversation"]',
     );
     expect(nested).not.toBeNull();
+    expect(nested?.classList.contains("border-s")).toBe(false);
+    expect(nested?.classList.contains("border-border/60")).toBe(false);
+    expect(nested?.classList.contains("ps-5")).toBe(false);
+    expect(nested?.classList.contains("ms-[7px]")).toBe(false);
+    expect(nested?.classList.contains("ms-5")).toBe(true);
     expect(nested?.textContent).toContain("我先检查 Agent UI 的核心 Runtime");
     expect(nested?.textContent).toContain("Searched files");
     expect(nested?.textContent).toContain("检查完成：当前项目由 assistant-ui Runtime");
