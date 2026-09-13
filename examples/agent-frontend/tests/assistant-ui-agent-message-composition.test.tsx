@@ -25,6 +25,7 @@ import {
 } from "../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui";
 import {
   createAssistantUiSemanticThreadComponents,
+  type AssistantUiConversationPresentationMode,
 } from "../agent-ui/adapters/assistant-ui/conversation";
 import { createAssistantUiToolkit } from "../agent-ui/adapters/assistant-ui/toolkit";
 import {
@@ -52,9 +53,11 @@ const messageCompositionPresentation = {
 function MessageCompositionFixture({
   initialMessages,
   mockAgentElements = false,
+  mode = "live",
 }: {
   initialMessages: readonly ThreadMessageLike[];
   mockAgentElements?: boolean;
+  mode?: AssistantUiConversationPresentationMode;
 }) {
   const runtime = useLocalRuntime(TEST_CHAT_MODEL, { initialMessages });
   const config = AuiConfig({
@@ -64,7 +67,9 @@ function MessageCompositionFixture({
     <AssistantRuntimeProvider config={config} runtime={runtime}>
       <AssistantUiPresentationConfigProvider value={messageCompositionPresentation}>
         <Thread
-          components={createAssistantUiSemanticThreadComponents(renderFallback)}
+          components={createAssistantUiSemanticThreadComponents(renderFallback, {
+            mode,
+          })}
         />
       </AssistantUiPresentationConfigProvider>
     </AssistantRuntimeProvider>
@@ -526,6 +531,37 @@ describe("assistant-ui Agent Message composition", () => {
     );
     expect(renderedText(renderer)).toContain("ongoing reasoning");
     expect(renderedText(renderer)).toContain("partial response");
+  });
+
+  it("keeps a history SubagentList compact", async () => {
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    let renderer: ReactTestRenderer | undefined;
+    await act(async () => {
+      renderer = create(
+        <MessageCompositionFixture
+          initialMessages={[subagentsDemoMessage]}
+          mockAgentElements
+          mode="history"
+        />,
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    if (renderer === undefined) {
+      throw new Error("History Subagents renderer was not created.");
+    }
+    mountedRenderers.push(renderer);
+
+    const subagentLists = renderer.root.findAllByProps({
+      "data-slot": "subagent-list",
+    });
+    expect(subagentLists).toHaveLength(1);
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-0");
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain(
+      "min-h-[14.5rem]",
+    );
   });
 
   it("keeps ordinary tools in the official ToolGroup", async () => {

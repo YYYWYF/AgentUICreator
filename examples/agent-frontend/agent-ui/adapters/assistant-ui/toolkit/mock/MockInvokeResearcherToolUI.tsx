@@ -30,7 +30,7 @@ export function AssistantUiNestedMessage() {
     <MessagePrimitive.Root
       data-slot="mock-nested-assistant-message"
       data-role="assistant"
-      className="border-border/50 bg-card/40 my-2 rounded-xl border px-3 py-2"
+      className="my-2 min-w-0"
     >
       <MessagePrimitive.Parts
         components={{
@@ -61,9 +61,18 @@ export const MockInvokeResearcherToolUI: ToolCallMessagePartComponent<
     >
       <CollapsibleTrigger
         data-slot="mock-nested-subagent-trigger"
-        className="group/trigger text-foreground/70 hover:text-foreground flex w-full items-center gap-2 py-1.5 text-sm transition-colors outline-none"
+        className="text-foreground/70 hover:text-foreground flex w-full items-center gap-2 py-1.5 text-sm transition-colors outline-none"
       >
-        <ChevronRightIcon className="size-3.5 shrink-0 transition-transform duration-200 group-data-open/trigger:rotate-90 motion-reduce:transition-none" />
+        <ChevronRightIcon
+          data-slot="mock-nested-subagent-chevron"
+          className={[
+            "size-3.5 shrink-0 transition-transform duration-200",
+            "motion-reduce:transition-none",
+            open ? "rotate-90" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        />
         {running ? (
           <Loader2Icon className="size-3.5 shrink-0 animate-spin motion-reduce:animate-none" />
         ) : (

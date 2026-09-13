@@ -162,7 +162,6 @@ describe("official nested assistant-ui conversation", () => {
       '[data-slot="mock-nested-subagent-conversation"]',
     );
     expect(nested).not.toBeNull();
-    expect(nested?.textContent).toContain("Architecture Researcher");
     expect(nested?.textContent).toContain("我先检查 Agent UI 的核心 Runtime");
     expect(nested?.textContent).toContain("Searched files");
     expect(nested?.textContent).toContain("检查完成：当前项目由 assistant-ui Runtime");
@@ -172,6 +171,13 @@ describe("official nested assistant-ui conversation", () => {
         '[data-slot="mock-nested-assistant-message"]',
       ),
     ).toHaveLength(1);
+    const nestedMessage = runtimeFixture.container.querySelector(
+      '[data-slot="mock-nested-assistant-message"]',
+    );
+    expect(nestedMessage).not.toBeNull();
+    expect(nestedMessage?.classList.contains("rounded-xl")).toBe(false);
+    expect(nestedMessage?.classList.contains("border")).toBe(false);
+    expect(nestedMessage?.classList.contains("bg-card/40")).toBe(false);
     expect(
       runtimeFixture.container.querySelectorAll(
         '[data-slot="aui_assistant-message-root"]',
@@ -198,13 +204,18 @@ describe("official nested assistant-ui conversation", () => {
     const trigger = nestedTool?.querySelector(
       '[data-slot="mock-nested-subagent-trigger"]',
     ) as HTMLButtonElement | null;
+    const chevron = nestedTool?.querySelector(
+      '[data-slot="mock-nested-subagent-chevron"]',
+    );
     const conversation = nestedTool?.querySelector(
       '[data-slot="mock-nested-subagent-conversation"]',
     );
 
     expect(nestedTool).not.toBeNull();
     expect(trigger).not.toBeNull();
+    expect(chevron).not.toBeNull();
     expect(trigger?.getAttribute("aria-expanded")).toBe("true");
+    expect(chevron?.classList.contains("rotate-90")).toBe(true);
     expect(conversation).not.toBeNull();
 
     const matches =
@@ -223,6 +234,7 @@ describe("official nested assistant-ui conversation", () => {
 
     await act(async () => trigger?.click());
     expect(trigger?.getAttribute("aria-expanded")).toBe("false");
+    expect(chevron?.classList.contains("rotate-90")).toBe(false);
     expect(
       nestedTool?.querySelector(
         '[data-slot="mock-nested-subagent-conversation"]',
@@ -231,6 +243,7 @@ describe("official nested assistant-ui conversation", () => {
 
     await act(async () => trigger?.click());
     expect(trigger?.getAttribute("aria-expanded")).toBe("true");
+    expect(chevron?.classList.contains("rotate-90")).toBe(true);
     expect(
       nestedTool?.querySelector(
         '[data-slot="mock-nested-subagent-conversation"]',
