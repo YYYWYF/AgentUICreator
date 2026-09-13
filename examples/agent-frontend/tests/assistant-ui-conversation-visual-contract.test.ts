@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 
 import { describe, expect, it } from "vitest";
 
@@ -23,8 +23,20 @@ const surfaceDefinitionUrl = new URL(
   import.meta.url,
 );
 const appUIUrl = new URL("../app-ui/app-ui.json", import.meta.url);
+const threadListPluginUrl = new URL(
+  "../plugins/assistant-ui-thread-list/index.tsx",
+  import.meta.url,
+);
 const threadListStylesUrl = new URL(
   "../plugins/assistant-ui-thread-list/styles.css",
+  import.meta.url,
+);
+const workspaceShellUrl = new URL(
+  "../agent-ui/adapters/assistant-ui/workspace/AssistantUiWorkspaceShell.tsx",
+  import.meta.url,
+);
+const vendorThreadListUrl = new URL(
+  "../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx",
   import.meta.url,
 );
 const threadUrl = new URL(
@@ -136,17 +148,39 @@ describe("assistant-ui conversation visual contract", () => {
     }
   });
 
-  it("keeps AppUIModel as the overall layout owner", async () => {
-    const [surface, appUI, threadListStyles] = await Promise.all([
-      readFile(surfaceUrl, "utf8"),
-      readFile(appUIUrl, "utf8"),
-      readFile(threadListStylesUrl, "utf8"),
-    ]);
+  it(
+    "keeps AppUIModel as layout owner and ThreadList as navigation presentation owner",
+    async () => {
+      const [
+        surface,
+        appUI,
+        threadListPlugin,
+        threadListStyles,
+        vendorThreadList,
+      ] = await Promise.all([
+        readFile(surfaceUrl, "utf8"),
+        readFile(appUIUrl, "utf8"),
+        readFile(threadListPluginUrl, "utf8"),
+        readFile(threadListStylesUrl, "utf8"),
+        readFile(vendorThreadListUrl, "utf8"),
+      ]);
 
-    expect(surface).toContain('"bg-background"');
-    expect(appUI).toContain('"conversation.navigation"');
-    expect(appUI).toContain('"conversation.surface"');
-    expect(appUI).not.toContain("assistant-ui-workspace-shell");
-    expect(threadListStyles).not.toMatch(/background\s*:/u);
-  });
+      expect(surface).toContain('"bg-background"');
+      expect(appUI).toContain('"conversation.navigation"');
+      expect(appUI).toContain('"conversation.surface"');
+      expect(appUI).not.toContain("assistant-ui-workspace-shell");
+      expect(appUI).not.toMatch(
+        /bg-sidebar|text-sidebar-foreground|padding-inline/u,
+      );
+
+      expect(threadListPlugin).toContain("assistant-ui-thread-list-plugin");
+      expect(threadListPlugin).toContain('import "./styles.css"');
+      expect(threadListStyles).toContain("background: var(--sidebar);");
+      expect(threadListStyles).toContain("color: var(--sidebar-foreground);");
+      expect(threadListStyles).toContain("padding-inline: 0.5rem;");
+      expect(vendorThreadList).not.toContain("bg-sidebar");
+      expect(vendorThreadList).not.toContain("text-sidebar-foreground");
+      await expect(access(workspaceShellUrl)).rejects.toThrow();
+    },
+  );
 });

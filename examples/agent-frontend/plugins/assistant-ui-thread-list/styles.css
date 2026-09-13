@@ -6,6 +6,9 @@
   min-height: 0;
   flex-direction: column;
   overflow: auto;
+  background: var(--sidebar);
+  color: var(--sidebar-foreground);
+  padding-inline: 0.5rem;
 }
 
 .assistant-ui-thread-list-plugin > [data-slot="aui_thread-list-root"] {
