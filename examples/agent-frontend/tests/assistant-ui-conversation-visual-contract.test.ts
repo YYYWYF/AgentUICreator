@@ -18,6 +18,18 @@ const globalsUrl = new URL(
   "../agent-ui/adapters/assistant-ui/styles/globals.css",
   import.meta.url,
 );
+const workspaceUrl = new URL(
+  "../agent-ui/adapters/assistant-ui/workspace/AssistantUiWorkspaceShell.tsx",
+  import.meta.url,
+);
+const workspaceDefinitionUrl = new URL(
+  "../plugins/assistant-ui-workspace-shell/definition.ts",
+  import.meta.url,
+);
+const threadListStylesUrl = new URL(
+  "../plugins/assistant-ui-thread-list/styles.css",
+  import.meta.url,
+);
 const threadUrl = new URL(
   "../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
   import.meta.url,
@@ -25,9 +37,11 @@ const threadUrl = new URL(
 
 describe("assistant-ui conversation visual contract", () => {
   it("keeps theme ownership and root class mapping explicit", async () => {
-    const [surface, themeHook] = await Promise.all([
+    const [surface, themeHook, workspace, workspaceDefinition] = await Promise.all([
       readFile(surfaceUrl, "utf8"),
       readFile(themeHookUrl, "utf8"),
+      readFile(workspaceUrl, "utf8"),
+      readFile(workspaceDefinitionUrl, "utf8"),
     ]);
 
     expect(surface).toContain(
@@ -41,6 +55,13 @@ describe("assistant-ui conversation visual contract", () => {
     expect(themeHook).toContain("AGENT_UI_THEME_SERVICE");
     expect(themeHook).toContain("useSyncExternalStore");
     expect(themeHook).toContain('getDefaultThemeMode = (): AgentUIThemeMode => "light"');
+    expect(workspace).toContain("useAgentUIThemeMode");
+    expect(workspace).toContain('"agent-ui-assistant-ui"');
+    expect(workspace).toContain('data-theme={theme}');
+    expect(workspace).toContain('theme === "dark" ? "dark" : undefined');
+    expect(workspaceDefinition).toContain("AGENT_UI_THEME_SERVICE");
+    expect(workspaceDefinition).toContain("optionalInject");
+    expect(surface).toContain('"bg-background"');
   });
 
   it("keeps the upstream semantic token and layout invariants", async () => {
@@ -70,11 +91,23 @@ describe("assistant-ui conversation visual contract", () => {
       "--radius",
       "--radius-2xl",
       "--radius-3xl",
+      "--color-sidebar",
+      "--color-sidebar-foreground",
+      "--color-sidebar-accent",
+      "--color-sidebar-border",
+      "--color-sidebar-ring",
+      "--sidebar",
+      "--sidebar-foreground",
+      "--sidebar-primary",
+      "--sidebar-accent",
+      "--sidebar-border",
+      "--sidebar-ring",
     ]) {
       expect(globals).toContain(token);
     }
     expect(globals).toContain("color-scheme: light;");
     expect(globals).toContain("color-scheme: dark;");
+    expect(globals).not.toContain("  background: var(--background);");
 
     expect(thread).toContain('["--thread-max-width" as string]: "44rem"');
     expect(thread).toContain('["--composer-radius" as string]: "1.5rem"');
@@ -107,5 +140,15 @@ describe("assistant-ui conversation visual contract", () => {
     ]) {
       expect(resolver).not.toContain(disabledReplacementId);
     }
+  });
+
+  it("keeps Sidebar as the workspace surface owner", async () => {
+    const [surface, threadListStyles] = await Promise.all([
+      readFile(surfaceUrl, "utf8"),
+      readFile(threadListStylesUrl, "utf8"),
+    ]);
+
+    expect(surface).toContain('"bg-background"');
+    expect(threadListStyles).not.toMatch(/background\s*:/u);
   });
 });

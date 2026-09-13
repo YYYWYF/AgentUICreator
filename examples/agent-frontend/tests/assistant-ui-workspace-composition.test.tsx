@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
 
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { AssistantUiWorkspaceShell } from "../agent-ui/adapters/assistant-ui/workspace";
 import type { UIPluginComponentProps } from "../framework/contracts/ui-plugin";
+
+vi.mock("../agent-ui/theme/useAgentUITheme", () => ({
+  useAgentUIThemeMode: () => "dark",
+}));
 
 describe("assistant-ui workspace composition", () => {
   it("renders official Sidebar primitives around the two semantic child Slots", () => {
@@ -36,6 +40,9 @@ describe("assistant-ui workspace composition", () => {
     const workspace = documentRoot.querySelector(
       '[data-agent-ui-composition="workspace"]',
     );
+    const sidebarProvider = documentRoot.querySelector(
+      '[data-slot="sidebar-wrapper"]',
+    );
     const sidebar = workspace?.querySelector('[data-slot="sidebar"]');
     const sidebarContent = sidebar?.querySelector(
       '[data-slot="sidebar-content"]',
@@ -45,6 +52,10 @@ describe("assistant-ui workspace composition", () => {
     );
 
     expect(workspace).not.toBeNull();
+    expect(sidebarProvider).not.toBeNull();
+    expect(sidebarProvider?.className).toContain("agent-ui-assistant-ui");
+    expect(sidebarProvider?.className).toContain("dark");
+    expect(sidebarProvider?.getAttribute("data-theme")).toBe("dark");
     expect(sidebar).not.toBeNull();
     expect(sidebarContent).not.toBeNull();
     expect(conversation).not.toBeNull();

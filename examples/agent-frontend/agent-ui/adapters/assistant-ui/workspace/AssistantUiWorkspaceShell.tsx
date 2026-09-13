@@ -1,4 +1,5 @@
 import type { UIPluginComponentProps } from "../../../../framework/contracts/ui-plugin";
+import { useAgentUIThemeMode } from "../../theme/useAgentUITheme";
 import {
   Sidebar,
   SidebarContent,
@@ -9,8 +10,17 @@ import {
 export function AssistantUiWorkspaceShell({
   renderSlot,
 }: UIPluginComponentProps) {
+  const theme = useAgentUIThemeMode();
+
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      className={[
+        "agent-ui-assistant-ui",
+        theme === "dark" ? "dark" : undefined,
+      ].filter(Boolean).join(" ")}
+      data-agent-ui-assistant-ui="true"
+      data-theme={theme}
+    >
       <div
         className="flex h-full min-h-0 w-full"
         data-agent-ui-composition="workspace"

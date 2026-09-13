@@ -30,6 +30,7 @@ export function AssistantUiConversationSurface({
     <div
       className={[
         "agent-ui-assistant-ui",
+        "bg-background",
         theme === "dark" ? "dark" : undefined,
         className,
       ].filter(Boolean).join(" ")}
