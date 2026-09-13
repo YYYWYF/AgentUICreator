@@ -1,7 +1,13 @@
 export {
   defineScenario,
+  type MockInterrupt,
+  type MockParallelTool,
   type MockScenario,
+  type MockScenarioCapability,
+  type MockScenarioCategory,
+  type MockScenarioResumeSteps,
   type MockScenarioStep,
+  type MockToolError,
 } from "./scenario.js";
 export {
   createScenarioRegistry,
@@ -24,9 +30,19 @@ export {
 } from "./vite-plugin.js";
 export {
   builtinMockScenarios,
+  agentElementsShowcaseScenario,
+  agentPlanScenario,
+  agentStatusScenario,
+  approvalResumeScenario,
   multiToolScenario,
+  parallelToolsScenario,
   reasoningChatScenario,
   reasoningLongPreviewScenario,
   reasoningToolSuccessScenario,
   simpleChatScenario,
+  stepLifecycleScenario,
+  subagentsOutOfOrderScenario,
+  subagentsScenario,
+  toolErrorScenario,
+  toolLongRunningScenario,
 } from "./builtins/index.js";

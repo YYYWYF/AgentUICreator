@@ -11,9 +11,15 @@ describe("createScenarioRegistry", () => {
       defaultScenarioId: "reasoning-tool-success",
     });
 
-    expect(registry.list()).toHaveLength(5);
+    expect(registry.list()).toHaveLength(15);
     expect(registry.list()).toEqual(builtinMockScenarios.map(
-      ({ id, title, description }) => ({ id, title, description }),
+      ({ id, title, description, category, capabilities }) => ({
+        id,
+        title,
+        ...(description === undefined ? {} : { description }),
+        ...(category === undefined ? {} : { category }),
+        ...(capabilities === undefined ? {} : { capabilities }),
+      }),
     ));
     expect(registry.list()[0]).not.toHaveProperty("steps");
     expect(registry.list()[0]).not.toHaveProperty("initialState");

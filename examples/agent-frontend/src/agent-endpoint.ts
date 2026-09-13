@@ -4,6 +4,33 @@ export interface ResolveAgentEndpointOptions {
   search?: string | undefined;
 }
 
+export interface MockScenarioSearchParams {
+  scenario?: string | undefined;
+  speed?: string | undefined;
+}
+
+export function resolveMockScenarioSearchParams(
+  search = "",
+): MockScenarioSearchParams {
+  const params = new URLSearchParams(search);
+  const scenario = params.get("mockScenario")?.trim();
+  const speed = params.get("mockSpeed")?.trim();
+  return {
+    ...(scenario ? { scenario } : {}),
+    ...(speed ? { speed } : {}),
+  };
+}
+
+export function isMockAgentEndpoint(endpoint: string | undefined): boolean {
+  if (endpoint === undefined) return false;
+  try {
+    return new URL(endpoint, "http://agent-ui.local").pathname ===
+      "/__agent-ui/mock";
+  } catch {
+    return false;
+  }
+}
+
 export function resolveAgentEndpoint({
   configuredEndpoint,
   isDev,
@@ -13,11 +40,15 @@ export function resolveAgentEndpoint({
   if (configured) return configured;
   if (!isDev) return undefined;
 
-  const scenario = new URLSearchParams(search ?? "")
-    .get("mockScenario")
-    ?.trim();
-
-  return scenario
-    ? `/__agent-ui/mock?scenario=${encodeURIComponent(scenario)}`
-    : "/__agent-ui/mock";
+  const { scenario, speed } = resolveMockScenarioSearchParams(search);
+  const queryParts = [
+    ...(scenario === undefined
+      ? []
+      : [`scenario=${encodeURIComponent(scenario)}`]),
+    ...(speed === undefined ? [] : [`speed=${encodeURIComponent(speed)}`]),
+  ];
+  const queryString = queryParts.join("&");
+  return queryString === ""
+    ? "/__agent-ui/mock"
+    : `/__agent-ui/mock?${queryString}`;
 }

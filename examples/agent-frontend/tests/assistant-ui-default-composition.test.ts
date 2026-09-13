@@ -112,7 +112,8 @@ describe("assistant-ui default composition", () => {
       "utf8",
     );
 
-    expect(app).toContain("Tools({ toolkit: assistantUiToolkit })");
+    expect(app).toContain("Tools({ toolkit })");
+    expect(app).toContain("createAssistantUiToolkit");
     expect(toolkit).toContain('type: "backend"');
     expect(toolkit).toContain('display: "standalone"');
     expect(toolkit).not.toContain("appFrontendTools");

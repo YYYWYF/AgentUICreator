@@ -64,6 +64,12 @@ function isScenarioListRequest(url: URL): boolean {
   return url.pathname.endsWith("/scenarios");
 }
 
+function parseTimingScale(url: URL): number {
+  const value = Number(url.searchParams.get("speed"));
+  if (!Number.isFinite(value)) return 1;
+  return Math.min(10, Math.max(0, value));
+}
+
 /** Creates a Node HTTP handler compatible with @ag-ui/client HttpAgent. */
 export function createMockAgentHttpHandler({
   registry,
@@ -137,6 +143,7 @@ export function createMockAgentHttpHandler({
     try {
       for await (const event of runMockScenario(parsedInput.data, scenario, {
         signal: controller.signal,
+        timingScale: parseTimingScale(requestUrl),
       })) {
         if (controller.signal.aborted || response.destroyed) return;
         const standardEvent = EventSchemas.parse(event);
