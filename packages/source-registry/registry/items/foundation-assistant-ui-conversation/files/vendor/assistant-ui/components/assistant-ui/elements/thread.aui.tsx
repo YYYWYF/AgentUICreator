@@ -4,28 +4,28 @@ import {
   ComposerAddAttachment,
   ComposerAttachments,
   UserMessageAttachments,
-} from "@/components/assistant-ui/elements/attachment.aui";
-import { File } from "@/components/assistant-ui/elements/file";
-import { ThreadFollowupSuggestions } from "@/components/assistant-ui/elements/follow-up-suggestions.aui";
-import { Image } from "@/components/assistant-ui/elements/image";
-import { MarkdownText } from "@/components/assistant-ui/elements/markdown-text";
+} from "./attachment.aui";
+import { File } from "./file";
+import { ThreadFollowupSuggestions } from "./follow-up-suggestions.aui";
+import { Image } from "./image";
+import { MarkdownText } from "./markdown-text";
 import {
   Reasoning,
   ReasoningContent,
   ReasoningRoot,
   ReasoningText,
   ReasoningTrigger,
-} from "@/components/assistant-ui/elements/reasoning.aui";
-import { ToolFallback } from "@/components/assistant-ui/elements/tool-fallback.aui";
+} from "./reasoning.aui";
+import { ToolFallback } from "./tool-fallback.aui";
 import {
   ToolGroupContent,
   ToolGroupRoot,
   ToolGroupTrigger,
-} from "@/components/assistant-ui/elements/tool-group.aui";
-import { TooltipIconButton } from "@/components/assistant-ui/elements/tooltip-icon-button";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+} from "./tool-group.aui";
+import { TooltipIconButton } from "./tooltip-icon-button";
+import { Button } from "../../ui/button";
+import { Skeleton } from "../../ui/skeleton";
+import { cn } from "../../../lib/utils";
 import {
   ActionBarMorePrimitive,
   ActionBarPrimitive,

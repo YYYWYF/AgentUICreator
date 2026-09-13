@@ -65,7 +65,12 @@ function MessageCompositionFixture({
   return (
     <AssistantRuntimeProvider config={config} runtime={runtime}>
       <AssistantUiPresentationConfigProvider value={presentation}>
-        <Thread components={createAssistantUiSemanticThreadComponents(renderFallback)} />
+        <Thread
+          components={createAssistantUiSemanticThreadComponents(
+            renderFallback,
+            presentation,
+          )}
+        />
       </AssistantUiPresentationConfigProvider>
     </AssistantRuntimeProvider>
   );
@@ -332,11 +337,28 @@ describe("assistant-ui Agent Message composition", () => {
   it("leaves AssistantMessage and direct tool composition to official seams", () => {
     const components = createAssistantUiSemanticThreadComponents(renderFallback);
     expect(components.AssistantMessage).toBeUndefined();
-    expect(components.Welcome).toBeDefined();
+    expect(components.Welcome).toBeUndefined();
     expect(components.ReasoningGroup).toBeDefined();
     expect(components.ToolGroup).toBeDefined();
     expect(components.ToolFallback).toBeDefined();
     expect(components).not.toHaveProperty("ToolCallWrapper");
+  });
+
+  it("uses the product Welcome seam only for an explicit Welcome configuration", () => {
+    const components = createAssistantUiSemanticThreadComponents(renderFallback);
+    expect(components.Welcome).toBeUndefined();
+
+    const customComponents = createAssistantUiSemanticThreadComponents(
+      renderFallback,
+      {
+        ...messageCompositionPresentation,
+        welcome: {
+          title: "Product Welcome",
+          description: "Explicit product copy",
+        },
+      },
+    );
+    expect(customComponents.Welcome).toBeDefined();
   });
 
   it("composes AgentPlan, AgentStatus, and one SubagentList through toolkit renderers", async () => {

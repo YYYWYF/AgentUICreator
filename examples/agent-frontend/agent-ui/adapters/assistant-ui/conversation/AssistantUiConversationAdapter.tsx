@@ -2,7 +2,10 @@ import { useMemo } from "react";
 
 import type { UIPluginComponentProps } from "../../../../framework/contracts/ui-plugin";
 import type { ThreadComponents } from "../../../vendor/assistant-ui/components/assistant-ui/elements/thread.aui";
-import { useAssistantUiPresentationConfig } from "../config";
+import {
+  useAssistantUiPresentationConfig,
+  type AssistantUiPresentationConfig,
+} from "../config";
 import { useAgentUIThemeMode } from "../../../theme/useAgentUITheme";
 import {
   ASSISTANT_UI_CONVERSATION_SLOTS,
@@ -42,22 +45,32 @@ function AssistantUiWelcome({ renderSlot }: { renderSlot: RenderSlot }) {
 
 export function createAssistantUiSemanticThreadComponents(
   renderSlot: RenderSlot,
+  presentation?: AssistantUiPresentationConfig,
 ): ThreadComponents {
-  return {
-    Welcome: () => <AssistantUiWelcome renderSlot={renderSlot} />,
+  const components: ThreadComponents = {
     ReasoningGroup: SemanticReasoningOutlet,
     ToolGroup: SemanticToolActivityOutlet,
     ToolFallback: SemanticToolItemOutlet,
   };
+
+  if (
+    presentation?.welcome.title !== undefined ||
+    presentation?.welcome.description !== undefined
+  ) {
+    components.Welcome = () => <AssistantUiWelcome renderSlot={renderSlot} />;
+  }
+
+  return components;
 }
 
 export function AssistantUiConversationAdapter({
   renderSlot,
 }: Pick<UIPluginComponentProps, "renderSlot">) {
   const theme = useAgentUIThemeMode();
+  const presentation = useAssistantUiPresentationConfig();
   const components = useMemo(
-    () => createAssistantUiSemanticThreadComponents(renderSlot),
-    [renderSlot],
+    () => createAssistantUiSemanticThreadComponents(renderSlot, presentation),
+    [presentation, renderSlot],
   );
   return (
     <AssistantUiConversationSurface

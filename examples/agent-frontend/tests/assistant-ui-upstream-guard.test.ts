@@ -84,4 +84,17 @@ describe("assistant-ui upstream ownership guard", () => {
       ),
     });
   });
+
+  it("keeps the vendored Thread imports mechanically adapted", async () => {
+    const thread = await readFile(
+      path.join(vendorRoot, "components/assistant-ui/elements/thread.aui.tsx"),
+      "utf8",
+    );
+
+    expect(thread).not.toMatch(/from "@\/components\//u);
+    expect(thread).not.toMatch(/from "@\/lib\//u);
+    expect(thread).toContain('from "./reasoning.aui"');
+    expect(thread).toContain('from "../../ui/button"');
+    expect(thread).toContain('from "../../../lib/utils"');
+  });
 });
