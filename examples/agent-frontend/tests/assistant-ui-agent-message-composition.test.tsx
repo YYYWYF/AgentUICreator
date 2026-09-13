@@ -173,6 +173,50 @@ const subagentsDemoMessage: ThreadMessageLike = {
   status: { type: "complete", reason: "stop" },
 };
 
+const runningSubagentsMessage: ThreadMessageLike = {
+  id: "running-subagents-composition-sequence",
+  role: "assistant",
+  content: [
+    ...[
+      ["Architecture Researcher", "running", 20],
+      ["Runtime Inspector", "running", 45],
+      ["UI Reviewer", "running", 10],
+    ] as const,
+  ].map(([name, status, progress], index) => ({
+    type: "tool-call" as const,
+    toolCallId: `running-subagents-${index}`,
+    toolName: "mock_dispatch_subagent",
+    args: { name, model: "mimo-v2.5-pro", status, progress },
+    argsText: JSON.stringify({ name, model: "mimo-v2.5-pro", status, progress }),
+    result: { name, model: "mimo-v2.5-pro", status, progress },
+  })),
+  status: { type: "running" },
+};
+
+const incompleteSubagentsMessage: ThreadMessageLike = {
+  ...runningSubagentsMessage,
+  id: "incomplete-subagents-composition-sequence",
+  status: {
+    type: "incomplete",
+    reason: "error",
+    error: "mock failure",
+  },
+};
+
+const runningReasoningMessage: ThreadMessageLike = {
+  id: "running-reasoning-composition-sequence",
+  role: "assistant",
+  content: [
+    {
+      type: "reasoning",
+      text: "ongoing reasoning",
+      status: { type: "running" },
+    },
+    { type: "text", text: "partial response" },
+  ],
+  status: { type: "running" },
+};
+
 const malformedDispatchMessage: ThreadMessageLike = {
   id: "malformed-dispatch-composition",
   role: "assistant",
@@ -344,7 +388,8 @@ describe("assistant-ui Agent Message composition", () => {
       "data-slot": "tool-group-trigger",
     })).toHaveLength(0);
     expect(dispatchFallbacks).toHaveLength(0);
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain(
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-0");
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain(
       "min-h-[14.5rem]",
     );
     expect(renderedText(renderer)).toContain("Agent A");
@@ -352,7 +397,7 @@ describe("assistant-ui Agent Message composition", () => {
     expect(renderedText(renderer)).toContain("Agent C");
   });
 
-  it("renders the live Subagents demo as one aggregate with semantic workers", async () => {
+  it("renders the terminal Subagents demo as one compact aggregate", async () => {
     (
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -372,15 +417,115 @@ describe("assistant-ui Agent Message composition", () => {
     }
     mountedRenderers.push(renderer);
 
-    expect(renderer.root.findAllByProps({
+    const subagentLists = renderer.root.findAllByProps({
       "data-slot": "subagent-list",
-    })).toHaveLength(1);
+    });
+    expect(subagentLists).toHaveLength(1);
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-0");
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain(
+      "min-h-[14.5rem]",
+    );
     expect(renderer.root.findAllByProps({
       "data-slot": "tool-group-trigger",
     })).toHaveLength(0);
     expect(renderedText(renderer)).toContain("Architecture Researcher");
     expect(renderedText(renderer)).toContain("Runtime Inspector");
     expect(renderedText(renderer)).toContain("UI Reviewer");
+  });
+
+  it("reserves the live height for a running SubagentList", async () => {
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    let renderer: ReactTestRenderer | undefined;
+    await act(async () => {
+      renderer = create(
+        <MessageCompositionFixture
+          initialMessages={[runningSubagentsMessage]}
+          mockAgentElements
+        />,
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    if (renderer === undefined) {
+      throw new Error("Running Subagents renderer was not created.");
+    }
+    mountedRenderers.push(renderer);
+
+    const subagentLists = renderer.root.findAllByProps({
+      "data-slot": "subagent-list",
+    });
+    expect(subagentLists).toHaveLength(1);
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain(
+      "min-h-[14.5rem]",
+    );
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain("min-h-0");
+    expect(renderer.root.findAllByProps({
+      "data-slot": "tool-group-trigger",
+    })).toHaveLength(0);
+  });
+
+  it("compacts an incomplete terminal SubagentList", async () => {
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    let renderer: ReactTestRenderer | undefined;
+    await act(async () => {
+      renderer = create(
+        <MessageCompositionFixture
+          initialMessages={[incompleteSubagentsMessage]}
+          mockAgentElements
+        />,
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    if (renderer === undefined) {
+      throw new Error("Incomplete Subagents renderer was not created.");
+    }
+    mountedRenderers.push(renderer);
+
+    const subagentLists = renderer.root.findAllByProps({
+      "data-slot": "subagent-list",
+    });
+    expect(subagentLists).toHaveLength(1);
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-0");
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain(
+      "min-h-[14.5rem]",
+    );
+  });
+
+  it("keeps a completed SubagentList compact when a later message is running", async () => {
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    let renderer: ReactTestRenderer | undefined;
+    await act(async () => {
+      renderer = create(
+        <MessageCompositionFixture
+          initialMessages={[subagentsDemoMessage, runningReasoningMessage]}
+          mockAgentElements
+        />,
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    if (renderer === undefined) {
+      throw new Error("Multi-round Subagents renderer was not created.");
+    }
+    mountedRenderers.push(renderer);
+
+    const subagentLists = renderer.root.findAllByProps({
+      "data-slot": "subagent-list",
+    });
+    expect(subagentLists).toHaveLength(1);
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-0");
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain(
+      "min-h-[14.5rem]",
+    );
+    expect(renderedText(renderer)).toContain("ongoing reasoning");
+    expect(renderedText(renderer)).toContain("partial response");
   });
 
   it("keeps ordinary tools in the official ToolGroup", async () => {
