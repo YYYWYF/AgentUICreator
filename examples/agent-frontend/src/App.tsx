@@ -5,7 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { AuiConfig, Suggestions } from "@assistant-ui/react";
+import { AuiConfig, Suggestions, Tools } from "@assistant-ui/react";
 import {
   AssistantUiAgUiRuntimeProvider,
   useAssistantUiRuntimeBridge,
@@ -50,6 +50,7 @@ import {
 import { resolveAgentEndpoint } from "./agent-endpoint";
 import { AssistantUiConversationThreadBindingConnector } from "../agent-ui/adapters/assistant-ui/threads/AssistantUiConversationThreadBindingConnector";
 import { createConversationServiceAssistantUiThreadBinding } from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
+import { assistantUiToolkit } from "../agent-ui/adapters/assistant-ui/toolkit";
 import { AssistantUiRuntimeDebugOverlay } from "./dev/AssistantUiRuntimeDebugOverlay";
 import "../agent-ui/adapters/assistant-ui/styles/globals.css";
 import "./preview-shell.css";
@@ -194,6 +195,7 @@ function AssistantUiRuntimeBoundary({
           }),
         ),
       ),
+      tools: Tools({ toolkit: assistantUiToolkit }),
     }),
     [presentationConfig.starterSuggestions],
   );

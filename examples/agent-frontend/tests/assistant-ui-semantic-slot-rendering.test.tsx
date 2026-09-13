@@ -791,6 +791,21 @@ describe("assistant-ui semantic Slot rendering", () => {
     expect(renderedText(renderer)).toContain("source sibling text");
   });
 
+  it("uses official Sources as the safe fallback without a custom contribution", async () => {
+    const renderer = await mountSemanticRuntime({
+      initialMessages: [sourceMessage()],
+    });
+
+    expect(countByDataSlot(renderer, "aui_message-sources")).toBe(1);
+    const source = renderer.root.findByProps({
+      href: "https://example.com/semantic-slot",
+    });
+    expect(source.props.target).toBe("_blank");
+    expect(source.props.rel).toBe("noopener noreferrer");
+    expect(renderedText(renderer)).toContain("Semantic Slot Source");
+    expect(renderedText(renderer)).toContain("source sibling text");
+  });
+
   it("suppresses a Sources contribution when the message has no sources", async () => {
     const renderer = await mountSemanticRuntime({
       initialMessages: [assistantTextMessage("assistant-without-source")],

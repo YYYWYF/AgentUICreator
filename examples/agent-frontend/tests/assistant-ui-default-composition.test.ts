@@ -105,6 +105,19 @@ describe("assistant-ui default composition", () => {
     expect(threadList).not.toContain('className="assistant-ui-thread-list-plugin agent-ui-assistant-ui dark"');
   });
 
+  it("keeps official tool presentation in the assistant-ui config seam", async () => {
+    const app = await readFile(path.join(projectRoot, "src/App.tsx"), "utf8");
+    const toolkit = await readFile(
+      path.join(projectRoot, "agent-ui/adapters/assistant-ui/toolkit/assistant-ui-toolkit.tsx"),
+      "utf8",
+    );
+
+    expect(app).toContain("Tools({ toolkit: assistantUiToolkit })");
+    expect(toolkit).toContain('type: "backend"');
+    expect(toolkit).toContain('display: "standalone"');
+    expect(toolkit).not.toContain("appFrontendTools");
+  });
+
   it("retains upstream ThreadList and conversation data Slot surfaces", async () => {
     const threadList = await readFile(path.join(projectRoot, "agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx"), "utf8");
     const thread = await readFile(path.join(projectRoot, "agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"), "utf8");

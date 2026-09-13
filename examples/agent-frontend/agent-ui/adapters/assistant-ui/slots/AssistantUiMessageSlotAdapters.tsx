@@ -42,6 +42,7 @@ import {
   ReasoningTrigger,
 } from "../../../vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui";
 import { ToolFallback } from "../../../vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui";
+import { Sources } from "../../../vendor/assistant-ui/components/assistant-ui/elements/sources.aui";
 import {
   ToolGroupContent,
   ToolGroupRoot,
@@ -489,13 +490,28 @@ export function SemanticAttachmentsOutlet({ children }: PropsWithChildren) {
 export function SemanticSourcesOutlet(): ReactNode {
   const renderSlot = useOptionalMessageSlotBridge();
   const threadMessage = useCurrentThreadMessage();
+  const parts = useAuiState((state) => state.message.parts);
+  const sourceParts = parts.flatMap((part) =>
+    part.type === "source" ? [part] : [],
+  );
   const message = withPublicSourceParts(
     firstProjectedMessage(threadMessage),
     threadMessage,
   );
   const items = projectMessageSources(message);
-  if (renderSlot === null) return null;
-  if (items.length === 0) return null;
+  if (sourceParts.length === 0) return null;
+
+  const fallback = (
+    <div
+      data-slot="aui_message-sources"
+      className="flex flex-wrap gap-1.5"
+    >
+      {sourceParts.map((part) => (
+        <Sources key={part.id} {...part} />
+      ))}
+    </div>
+  );
+  if (renderSlot === null) return fallback;
 
   return (
     <MessageRenderProvider
@@ -506,7 +522,7 @@ export function SemanticSourcesOutlet(): ReactNode {
         turnId: threadMessage.id,
       }}
     >
-      {renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.sources, null)}
+      {renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.sources, fallback)}
     </MessageRenderProvider>
   );
 }

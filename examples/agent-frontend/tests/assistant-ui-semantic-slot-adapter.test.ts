@@ -84,6 +84,7 @@ describe("assistant-ui semantic Slot adapter", () => {
     expect(messageAdapters).toContain("projectAssistantUiMessages");
     expect(messageAdapters).toContain("projectAssistantUiExecutions");
     expect(messageAdapters).toContain("MessageRenderProvider");
+    expect(messageAdapters).toContain("<Sources key={part.id} {...part} />");
     expect(messageAdapters).not.toMatch(
       /@ag-ui\/client|HttpAgent|runAgent|AppUIModel|SourceRegistry/u,
     );
@@ -122,7 +123,8 @@ describe("assistant-ui semantic Slot adapter", () => {
     ]) {
       expect(source).toContain(`ASSISTANT_UI_CONVERSATION_SLOTS.${slot}`);
     }
-    expect(source).toContain("if (items.length === 0) return null");
+    expect(source).toContain("if (sourceParts.length === 0) return null");
+    expect(source).toContain('data-slot="aui_message-sources"');
     expect(source).toContain("useOptionalMessageSlotBridge");
     expect(source).toContain("useOptionalToolItemSlotBridge");
   });

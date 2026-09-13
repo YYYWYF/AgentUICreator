@@ -6,7 +6,7 @@ Project: https://github.com/assistant-ui/assistant-ui
 
 License: MIT
 
-Pinned revision: `6b29e7de829bef7e51297d3d66cd9e97175f3fc5`
+Pinned revision: `370dcdecea426a4e35fd5a5fdfd9b410fe58e318`
 
 The presentation source in this directory is the official assistant-ui Base UI
 conversation registry output associated with the pinned revision. It preserves

@@ -4,14 +4,14 @@ Repository: https://github.com/assistant-ui/assistant-ui
 
 Branch: `main`
 
-Commit: `6b29e7de829bef7e51297d3d66cd9e97175f3fc5`
+Commit: `370dcdecea426a4e35fd5a5fdfd9b410fe58e318`
 
 Synced at: `2026-09-12`
 
 The vendored presentation files are based on the assistant-ui Base UI registry
-output at the commit above. The upstream source files used by this foundation
-were unchanged between the previously recorded revision and this rebaseline;
-their import paths remain mechanically adapted for this project's vendor root.
+output at the commit above. This update adds the official ToolCall, Sources,
+Surfaces, and Badge elements; their import paths remain mechanically adapted
+for this project's vendor root.
 
 Runtime packages:
 
