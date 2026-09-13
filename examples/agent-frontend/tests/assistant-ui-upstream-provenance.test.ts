@@ -22,7 +22,7 @@ describe("assistant-ui upstream provenance", () => {
     expect(provenance).toContain("@assistant-ui/react-ag-ui` = `0.0.59");
     expect(provenance).toContain("@assistant-ui/react-markdown` = `0.14.15");
     expect(provenance).toContain("@ag-ui/client` = `0.0.59");
-    expect(metadata.revision).toBe("370dcdecea426a4e35fd5a5fdfd9b410fe58e318");
+    expect(metadata.revision).toBe("bd7e8fa9f79ffea10fab0741026d53cdba4cfa70");
     expect(provenance).toContain(metadata.revision);
   });
 
@@ -40,6 +40,10 @@ describe("assistant-ui upstream provenance", () => {
       "components/assistant-ui/elements/sources.aui.tsx",
       "components/assistant-ui/elements/surfaces.tsx",
       "components/ui/badge.tsx",
+      "components/assistant-ui/elements/agent-plan.tsx",
+      "components/assistant-ui/elements/agent-status.tsx",
+      "components/assistant-ui/elements/subagent-list.tsx",
+      "components/assistant-ui/utils/range.ts",
     ];
 
     for (const relativePath of coreFiles) {

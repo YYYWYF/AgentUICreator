@@ -301,18 +301,18 @@ describe("Agent UI Source Registry contract", () => {
     const foundation = registry.byId.get("foundation/assistant-ui-conversation");
 
     expect(foundation).toMatchObject({
-      version: "0.1.9",
+      version: "0.1.10",
       kind: "foundation",
       upstream: {
         project: "assistant-ui/assistant-ui",
         component: "base-ui-conversation",
         implementation: "react",
-        revision: "370dcdecea426a4e35fd5a5fdfd9b410fe58e318",
+        revision: "bd7e8fa9f79ffea10fab0741026d53cdba4cfa70",
         mode: "adapted",
         license: "MIT",
       },
     });
-    expect(foundation?.files).toHaveLength(31);
+    expect(foundation?.files).toHaveLength(35);
     expect(foundation?.files).toContainEqual(expect.objectContaining({
       target: "vendor/assistant-ui/UPSTREAM.md",
     }));
@@ -324,6 +324,18 @@ describe("Agent UI Source Registry contract", () => {
     }));
     expect(foundation?.files).toContainEqual(expect.objectContaining({
       target: "vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+    }));
+    expect(foundation?.files).toContainEqual(expect.objectContaining({
+      target: "vendor/assistant-ui/components/assistant-ui/elements/agent-plan.tsx",
+    }));
+    expect(foundation?.files).toContainEqual(expect.objectContaining({
+      target: "vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx",
+    }));
+    expect(foundation?.files).toContainEqual(expect.objectContaining({
+      target: "vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx",
+    }));
+    expect(foundation?.files).toContainEqual(expect.objectContaining({
+      target: "vendor/assistant-ui/components/assistant-ui/utils/range.ts",
     }));
     expect(foundation?.files.every((file) =>
       file.target.startsWith("vendor/assistant-ui/"),
