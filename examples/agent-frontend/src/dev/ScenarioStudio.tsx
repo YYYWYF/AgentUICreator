@@ -9,7 +9,13 @@ import type {
 import { Badge } from "../../agent-ui/primitives/badge";
 import { Button } from "../../agent-ui/primitives/button";
 import { Input } from "../../agent-ui/primitives/input";
-import { resolveMockScenarioSearchParams } from "../agent-endpoint";
+import {
+  isMockAgentEndpoint,
+  MOCK_SCENARIO_AUTORUN_STORAGE_KEY,
+  MOCK_SCENARIO_AUTORUN_TRIGGER,
+  resolveMockScenarioSearchParams,
+} from "../agent-endpoint";
+import { useAgentRuntimeActions } from "../../runtime/context";
 import styles from "./scenario-studio.module.css";
 
 interface ScenarioCatalogResponse {
@@ -68,7 +74,7 @@ function formatSpeed(value: number): string {
   return value === 0 ? "Instant" : `${value}×`;
 }
 
-function scenarioCatalogEndpoint(endpoint: string): string {
+export function scenarioCatalogEndpoint(endpoint: string): string {
   const url = new URL(endpoint, window.location.origin);
   url.pathname = `${url.pathname.replace(/\/$/u, "")}/scenarios`;
   url.search = "";
@@ -76,6 +82,33 @@ function scenarioCatalogEndpoint(endpoint: string): string {
   return url.origin === window.location.origin
     ? `${url.pathname}${url.search}`
     : url.toString();
+}
+
+export function buildScenarioSelectionUrl(
+  scenarioId: string,
+  speed: number,
+): string {
+  const params = new URLSearchParams(window.location.search);
+  params.set("mockScenario", scenarioId);
+  params.set("mockSpeed", String(speed));
+  const queryString = params.toString();
+  return `${window.location.pathname}${queryString ? `?${queryString}` : ""}${window.location.hash}`;
+}
+
+export function writeMockScenarioAutorunMarker(
+  storage: Pick<Storage, "setItem"> = window.sessionStorage,
+): void {
+  storage.setItem(MOCK_SCENARIO_AUTORUN_STORAGE_KEY, "1");
+}
+
+export function consumeMockScenarioAutorunMarker(
+  storage: Pick<Storage, "getItem" | "removeItem"> = window.sessionStorage,
+): boolean {
+  if (storage.getItem(MOCK_SCENARIO_AUTORUN_STORAGE_KEY) === null) {
+    return false;
+  }
+  storage.removeItem(MOCK_SCENARIO_AUTORUN_STORAGE_KEY);
+  return true;
 }
 
 function scenarioMarker(scenario: MockScenarioSummary): string | undefined {
@@ -104,7 +137,13 @@ function readScenarioCatalog(value: unknown): ScenarioCatalogResponse {
   };
 }
 
-export function ScenarioStudio({ endpoint }: { endpoint: string }) {
+export interface ScenarioStudioProps {
+  endpoint: string;
+  navigate?: ((url: string) => void) | undefined;
+}
+
+export function ScenarioStudio({ endpoint, navigate }: ScenarioStudioProps) {
+  const { sendMessage } = useAgentRuntimeActions();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [catalog, setCatalog] = useState<CatalogState>({ status: "loading" });
@@ -156,6 +195,16 @@ export function ScenarioStudio({ endpoint }: { endpoint: string }) {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [open]);
+
+  useEffect(() => {
+    if (!isMockAgentEndpoint(endpoint)) return;
+    if (!consumeMockScenarioAutorunMarker()) return;
+
+    const timeout = window.setTimeout(() => {
+      void sendMessage(MOCK_SCENARIO_AUTORUN_TRIGGER);
+    }, 0);
+    return () => window.clearTimeout(timeout);
+  }, [endpoint, sendMessage]);
 
   const scenarios = catalog.status === "ready" ? catalog.value.scenarios : [];
   const defaultScenarioId = catalog.status === "ready"
@@ -218,13 +267,10 @@ export function ScenarioStudio({ endpoint }: { endpoint: string }) {
   }, [filteredScenarios]);
 
   const applySelection = () => {
-    if (currentScenarioId === undefined) return;
-    const params = new URLSearchParams(window.location.search);
-    params.set("mockScenario", currentScenarioId);
-    params.set("mockSpeed", String(selectedSpeed));
-    const queryString = params.toString();
-    const nextUrl = `${window.location.pathname}${queryString ? `?${queryString}` : ""}${window.location.hash}`;
-    window.location.assign(nextUrl);
+    if (currentScenarioId === undefined || !isMockAgentEndpoint(endpoint)) return;
+    writeMockScenarioAutorunMarker();
+    (navigate ?? ((url: string) => window.location.assign(url)))
+      (buildScenarioSelectionUrl(currentScenarioId, selectedSpeed));
   };
 
   const triggerLabel = currentScenario === undefined

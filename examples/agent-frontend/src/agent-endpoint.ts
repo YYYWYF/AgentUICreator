@@ -9,6 +9,11 @@ export interface MockScenarioSearchParams {
   speed?: string | undefined;
 }
 
+export const MOCK_SCENARIO_AUTORUN_STORAGE_KEY =
+  "agent-ui:mock-scenario-autorun";
+
+export const MOCK_SCENARIO_AUTORUN_TRIGGER = "Run mock scenario.";
+
 export function resolveMockScenarioSearchParams(
   search = "",
 ): MockScenarioSearchParams {
@@ -29,6 +34,16 @@ export function isMockAgentEndpoint(endpoint: string | undefined): boolean {
   } catch {
     return false;
   }
+}
+
+export function shouldRenderScenarioStudio({
+  endpoint,
+  isDev,
+}: {
+  endpoint: string | undefined;
+  isDev: boolean;
+}): boolean {
+  return isDev && isMockAgentEndpoint(endpoint);
 }
 
 export function resolveAgentEndpoint({

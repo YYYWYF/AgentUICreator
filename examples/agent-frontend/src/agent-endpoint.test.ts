@@ -4,6 +4,7 @@ import {
   isMockAgentEndpoint,
   resolveAgentEndpoint,
   resolveMockScenarioSearchParams,
+  shouldRenderScenarioStudio,
 } from "./agent-endpoint";
 
 describe("resolveAgentEndpoint", () => {
@@ -48,5 +49,22 @@ describe("resolveAgentEndpoint", () => {
     expect(isMockAgentEndpoint("/__agent-ui/mock?scenario=agent-plan"))
       .toBe(true);
     expect(isMockAgentEndpoint("https://agent.example/api")).toBe(false);
+  });
+
+  it("only renders Scenario Studio for the development Mock endpoint", () => {
+    expect(shouldRenderScenarioStudio({
+      endpoint: "/__agent-ui/mock",
+      isDev: true,
+    })).toBe(true);
+    expect(shouldRenderScenarioStudio({
+      endpoint: "/__agent-ui/mock",
+      isDev: false,
+    })).toBe(false);
+    expect(shouldRenderScenarioStudio({
+      endpoint: "https://agent.example/api",
+      isDev: true,
+    })).toBe(false);
+    expect(shouldRenderScenarioStudio({ endpoint: undefined, isDev: true }))
+      .toBe(false);
   });
 });
