@@ -92,6 +92,7 @@ describe("assistant-ui interaction state contract", () => {
   it("keeps the upstream Tool Group presentation default explicit and scoped", async () => {
     const model = parseAppUIModel(appUIJson);
     expect(resolveAssistantUiPresentationConfig(model).interactions).toEqual({
+      reasoningVariant: "ghost",
       toolGroupVariant: "ghost",
     });
 

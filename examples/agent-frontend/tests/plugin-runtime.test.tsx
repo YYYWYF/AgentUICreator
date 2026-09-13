@@ -2564,6 +2564,51 @@ describe("recursive React Plugin composition", () => {
     }
   });
 
+  it("passes explicit fill sizing to a nested child Slot", async () => {
+    const Owner = ({ renderSlot }: UIPluginComponentProps) => (
+      <section data-fixture="owner">
+        {renderSlot("owner.child", undefined, { sizing: "fill" })}
+      </section>
+    );
+    const Child = () => <span data-fixture="child">child</span>;
+    const definitions = [
+      createFixtureDefinition("owner", Owner, ["owner.child"]),
+      createFixtureDefinition("child", Child),
+    ];
+    const model = parseAppUIModel({
+      version: "2",
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "owner-main": {
+          id: "owner-main",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+        "child-main": {
+          id: "child-main",
+          pluginId: "child",
+          enabled: true,
+          mount: { slotId: "owner.child" },
+        },
+      },
+    });
+    const mounted = await mountPluginRuntime(
+      fixtureRuntimeProps(model, definitions),
+    );
+
+    try {
+      expect(
+        mounted.renderer.root.findByProps({
+          "data-slot-id": "owner.child",
+          "data-slot-sizing": "fill",
+        }),
+      ).toBeTruthy();
+    } finally {
+      await mounted.dispose();
+    }
+  });
+
   it("recursively renders A to B to C as nested Plugin subtrees", async () => {
     const A = ({ renderSlot }: UIPluginComponentProps) => (
       <section data-fixture="a">A{renderSlot("a.child")}</section>

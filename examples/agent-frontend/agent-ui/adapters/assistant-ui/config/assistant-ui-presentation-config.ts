@@ -24,8 +24,10 @@ export interface AssistantUiComposerConfig {
 }
 
 export type AssistantUiToolGroupVariant = "ghost" | "outline" | "muted";
+export type AssistantUiReasoningVariant = "ghost" | "outline" | "muted";
 
 export interface AssistantUiInteractionPresentationConfig {
+  reasoningVariant: AssistantUiReasoningVariant;
   toolGroupVariant: AssistantUiToolGroupVariant;
 }
 
@@ -49,7 +51,11 @@ function readRecord(value: unknown): Record<string, unknown> {
 }
 
 function readToolGroupVariant(value: unknown): AssistantUiToolGroupVariant {
-  return value === "outline" || value === "muted" ? value : "ghost";
+  return value === "ghost" || value === "muted" ? value : "outline";
+}
+
+function readReasoningVariant(value: unknown): AssistantUiReasoningVariant {
+  return value === "ghost" || value === "muted" ? value : "outline";
 }
 
 function readWelcome(value: unknown): AssistantUiWelcomeConfig {
@@ -155,6 +161,7 @@ export function resolveAssistantUiPresentationConfig(
       quickPrompts: readComposerQuickPrompts(composerProps.quickPrompts),
     },
     interactions: {
+      reasoningVariant: readReasoningVariant(interactionsProps.reasoningVariant),
       toolGroupVariant: readToolGroupVariant(interactionsProps.toolGroupVariant),
     },
   };

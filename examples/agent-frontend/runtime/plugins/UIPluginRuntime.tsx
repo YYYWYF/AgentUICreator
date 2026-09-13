@@ -13,6 +13,7 @@ import {
 } from "@agent-ui/runtime-react";
 
 import type { AppUIModel } from "../../framework/contracts/app-ui-model";
+import type { UIPluginRenderSlotOptions } from "../../framework/contracts/ui-plugin";
 import {
   classifyContainerWidth,
   type RuntimeWidthClass,
@@ -186,6 +187,7 @@ function SlotContent<TState = unknown>({
         const renderSlot = (
           requestedSlotId: string,
           requestedFallback?: ReactNode,
+          options?: UIPluginRenderSlotOptions,
         ): ReactNode => {
           const childSlots = definition.manifest.slots?.children ?? [];
           if (!childSlots.includes(requestedSlotId)) {
@@ -195,7 +197,7 @@ function SlotContent<TState = unknown>({
           }
           return (
             <SlotWidthProbe
-              sizing="content"
+              sizing={options?.sizing ?? "content"}
               slotId={requestedSlotId}
             >
               <SlotContent

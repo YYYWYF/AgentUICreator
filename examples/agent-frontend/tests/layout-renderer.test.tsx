@@ -9,14 +9,12 @@ import {
 } from "../framework/contracts/app-ui-model";
 
 describe("LayoutRenderer integration", () => {
-  it("renders the checked-in two-column assistant-ui layout through the official Runtime", () => {
+  it("renders the checked-in Workspace Shell outlet through the official Runtime", () => {
     const model = parseAppUIModel(appUIJson);
-    expect(model.root.type).toBe("row");
-    if (model.root.type !== "row") {
-      throw new Error("Expected the Platform root to be a Row");
+    expect(model.root.type).toBe("slot");
+    if (model.root.type !== "slot") {
+      throw new Error("Expected the default root to be a Workspace Shell Slot");
     }
-    expect(model.root.children).toHaveLength(2);
-
     const html = renderToStaticMarkup(
       <LayoutRenderer
         root={model.root}
@@ -30,10 +28,11 @@ describe("LayoutRenderer integration", () => {
       />,
     );
 
-    expect(html).toContain('data-layout-type="column"');
-    expect(html).toContain('data-slot-id="workspace.conversation"');
+    expect(html).toContain('data-layout-type="slot"');
+    expect(html).toContain('data-slot-id="workspace.shell"');
+    expect(html).not.toContain('data-slot-id="workspace.conversation"');
     expect(html).not.toContain('data-slot-id="workspace.inspector"');
-    expect(html).toContain("<article>workspace.conversation</article>");
+    expect(html).toContain("<article>workspace.shell</article>");
     expect(html).not.toContain('data-slot-id="agent-welcome"');
     expect(html).not.toContain('data-slot-id="agent-messages"');
     expect(html).not.toContain('data-slot-id="agent-prompts"');
@@ -41,16 +40,25 @@ describe("LayoutRenderer integration", () => {
   });
 
   it("renders a two-column AppUIModel without changing the Layout Runtime", () => {
-    const platformModel = parseAppUIModel(appUIJson);
-    if (platformModel.root.type !== "row") {
-      throw new Error("Expected the Platform root to be a Row");
-    }
     const model: AppUIModel = {
-      ...platformModel,
+      version: "2",
+      pluginInstances: {},
       root: {
-        ...platformModel.root,
-        children: platformModel.root.children.slice(0, 2),
-        sizes: platformModel.root.sizes?.slice(0, 2),
+        type: "row",
+        id: "two-column-fixture",
+        children: [
+          {
+            type: "slot",
+            id: "fixture-conversations-slot-node",
+            slotId: "agent-conversations",
+          },
+          {
+            type: "slot",
+            id: "fixture-conversation-slot-node",
+            slotId: "workspace.conversation",
+          },
+        ],
+        sizes: ["16rem", "minmax(0, 1fr)"],
       },
     };
 

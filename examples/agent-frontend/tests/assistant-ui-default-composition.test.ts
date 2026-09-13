@@ -11,7 +11,7 @@ import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("assistant-ui default composition", () => {
-  it("keeps the default model to two visible presentation plugins and two headless services", () => {
+  it("keeps the default model to three visible presentation plugins and two headless services", () => {
     const model = parseAppUIModel(appUIJson);
     const visible = Object.values(model.pluginInstances)
       .filter((instance) => instance.enabled && instance.mount !== undefined)
@@ -20,12 +20,14 @@ describe("assistant-ui default composition", () => {
     expect(visible).toEqual([
       "agent-conversation-surface-main",
       "assistant-ui-thread-list-main",
+      "assistant-ui-workspace-shell-main",
     ]);
     expect(Object.keys(model.pluginInstances)).toEqual([
       "agent-conversation-data-main",
       "agent-conversation-surface-main",
       "agent-conversation-controller-main",
       "assistant-ui-thread-list-main",
+      "assistant-ui-workspace-shell-main",
     ]);
     expect(Object.values(model.pluginInstances).filter((instance) => instance.enabled && instance.mount === undefined).map((instance) => instance.id)).toEqual([
       "agent-conversation-data-main",
@@ -53,42 +55,40 @@ describe("assistant-ui default composition", () => {
     }
   });
 
-  it("uses the two-column Layout Tree without an inspector or theme slot", () => {
+  it("uses the Workspace Shell outlet without an inspector or theme slot", () => {
     const model = parseAppUIModel(appUIJson);
     expect(model.root).toMatchObject({
-      type: "row",
-      id: "agent-workspace",
-      gap: 0,
-      sizes: ["16rem", "minmax(0, 1fr)"],
-      children: [
-        {
-          type: "column",
-          id: "agent-sidebar",
-          gap: 0,
-          sizes: ["minmax(0, 1fr)"],
-          children: [{ type: "slot", slotId: "agent-conversations" }],
-        },
-        {
-          type: "column",
-          id: "agent-conversation",
-          gap: 0,
-          sizes: ["minmax(0, 1fr)"],
-          children: [{ type: "slot", slotId: "workspace.conversation" }],
-        },
-      ],
+      type: "slot",
+      id: "assistant-ui-workspace-shell-slot-node",
+      slotId: "workspace.shell",
     });
     expect(JSON.stringify(model.root)).not.toContain("workspace.inspector");
     expect(JSON.stringify(model.root)).not.toContain("agent-theme-switch");
+    expect(model.pluginInstances["assistant-ui-workspace-shell-main"]).toMatchObject({
+      pluginId: "assistant-ui-workspace-shell",
+      enabled: true,
+      mount: { slotId: "workspace.shell" },
+    });
+    expect(model.pluginInstances["assistant-ui-thread-list-main"]).toMatchObject({
+      mount: { slotId: "agent-conversations" },
+    });
+    expect(model.pluginInstances["agent-conversation-surface-main"]).toMatchObject({
+      mount: { slotId: "workspace.conversation" },
+      props: {
+        assistantUiPresentation: {
+          interactions: { reasoningVariant: "ghost", toolGroupVariant: "ghost" },
+        },
+      },
+    });
   });
 
-  it("leaves presentation configuration empty so upstream defaults own the surface", () => {
+  it("uses explicit Agent Demo interaction presentation while preserving upstream fallback", () => {
     const model = parseAppUIModel(appUIJson);
-    expect(model.pluginInstances["agent-conversation-surface-main"]?.props).toBeUndefined();
     expect(resolveAssistantUiPresentationConfig(model)).toEqual({
       welcome: {},
       starterSuggestions: [],
       composer: { quickPrompts: [] },
-      interactions: { toolGroupVariant: "ghost" },
+      interactions: { reasoningVariant: "ghost", toolGroupVariant: "ghost" },
     });
   });
 

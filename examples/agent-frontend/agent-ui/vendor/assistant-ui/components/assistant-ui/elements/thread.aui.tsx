@@ -40,6 +40,7 @@ import {
   ThreadPrimitive,
   type FileMessagePartComponent,
   type ImageMessagePartComponent,
+  type ToolCallMessagePart,
   type ToolCallMessagePartComponent,
   useAuiState,
 } from "@assistant-ui/react";
@@ -68,6 +69,10 @@ import {
 
 export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
 
+export type ThreadToolCallWrapperProps = PropsWithChildren<{
+  part: ToolCallMessagePart;
+}>;
+
 /**
  * Optional component overrides for the thread. `AssistantMessage` and
  * `Welcome` replace whole sections; the remaining slots override how the
@@ -88,6 +93,7 @@ export type ThreadComponents = {
   UserAttachmentsWrapper?: ComponentType<PropsWithChildren> | undefined;
   MessageFooter?: ComponentType | undefined;
   ToolFallback?: ToolCallMessagePartComponent | undefined;
+  ToolCallWrapper?: ComponentType<ThreadToolCallWrapperProps> | undefined;
   ToolGroup?:
     | ComponentType<PropsWithChildren<{ group: ThreadGroupPart }>>
     | undefined;
@@ -387,6 +393,7 @@ const AssistantMessage: FC = () => {
   const {
     MessageFooter,
     ToolFallback: ToolFallbackComponent = ToolFallback,
+    ToolCallWrapper,
     ToolGroup,
     ReasoningGroup,
   } = useContext(ThreadComponentsContext);
@@ -450,7 +457,12 @@ const AssistantMessage: FC = () => {
               case "reasoning":
                 return <Reasoning {...part} />;
               case "tool-call":
-                return part.toolUI ?? <ToolFallbackComponent {...part} />;
+                {
+                  const toolCall = part.toolUI ?? <ToolFallbackComponent {...part} />;
+                  return ToolCallWrapper ? (
+                    <ToolCallWrapper part={part}>{toolCall}</ToolCallWrapper>
+                  ) : toolCall;
+                }
               case "data":
                 return part.dataRendererUI;
               case "file":

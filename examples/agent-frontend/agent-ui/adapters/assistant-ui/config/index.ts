@@ -9,6 +9,7 @@ export {
   type AssistantUiComposerQuickPrompt,
   type AssistantUiInteractionPresentationConfig,
   type AssistantUiPresentationConfig,
+  type AssistantUiReasoningVariant,
   type AssistantUiStarterSuggestion,
   type AssistantUiToolGroupVariant,
   type AssistantUiWelcomeConfig,

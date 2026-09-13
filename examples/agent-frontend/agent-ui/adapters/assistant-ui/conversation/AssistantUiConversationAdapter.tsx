@@ -60,6 +60,19 @@ function createComposerWrapper(renderSlot: RenderSlot) {
   };
 }
 
+function AssistantUiToolCallComposition({
+  children,
+}: PropsWithChildren) {
+  return (
+    <div
+      className="my-1"
+      data-agent-ui-composition-part="tool-call"
+    >
+      {children}
+    </div>
+  );
+}
+
 export function createAssistantUiSemanticThreadComponents(
   renderSlot: RenderSlot,
 ): ThreadComponents {
@@ -77,6 +90,7 @@ export function createAssistantUiSemanticThreadComponents(
       ASSISTANT_UI_CONVERSATION_SLOTS.suggestions,
     ),
     ComposerWrapper: createComposerWrapper(renderSlot),
+    ToolCallWrapper: AssistantUiToolCallComposition,
     ReasoningGroup: SemanticReasoningOutlet,
     ToolGroup: SemanticToolActivityOutlet,
     ToolFallback: SemanticToolItemOutlet,

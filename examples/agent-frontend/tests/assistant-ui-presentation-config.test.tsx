@@ -315,7 +315,7 @@ describe("assistant-ui presentation config", () => {
         },
       ],
       composer: { quickPrompts: [] },
-      interactions: { toolGroupVariant: "ghost" },
+      interactions: { reasoningVariant: "outline", toolGroupVariant: "outline" },
     });
   });
 
@@ -334,7 +334,7 @@ describe("assistant-ui presentation config", () => {
       welcome: {},
       starterSuggestions: [],
       composer: { quickPrompts: [] },
-      interactions: { toolGroupVariant: "ghost" },
+      interactions: { reasoningVariant: "outline", toolGroupVariant: "outline" },
     });
   });
 
@@ -405,11 +405,21 @@ describe("assistant-ui presentation config", () => {
       welcome: {},
       starterSuggestions: [],
       composer: { quickPrompts: [] },
-      interactions: { toolGroupVariant: "ghost" },
+      interactions: { reasoningVariant: "outline", toolGroupVariant: "outline" },
     });
   });
 
-  it("accepts only the explicit Tool Group variants and defaults upstream", () => {
+  it("accepts explicit Reasoning and Tool Group variants and defaults upstream", () => {
+    const ghost = resolveAssistantUiPresentationConfig(createModel({
+      presentation: {
+        interactions: { reasoningVariant: "ghost", toolGroupVariant: "ghost" },
+      },
+    }));
+    const muted = resolveAssistantUiPresentationConfig(createModel({
+      presentation: {
+        interactions: { reasoningVariant: "muted", toolGroupVariant: "muted" },
+      },
+    }));
     const outline = resolveAssistantUiPresentationConfig(createModel({
       presentation: {
         interactions: { toolGroupVariant: "outline" },
@@ -417,12 +427,27 @@ describe("assistant-ui presentation config", () => {
     }));
     const invalid = resolveAssistantUiPresentationConfig(createModel({
       presentation: {
-        interactions: { toolGroupVariant: "brand-gradient" },
+        interactions: {
+          reasoningVariant: "brand-gradient",
+          toolGroupVariant: "brand-gradient",
+        },
       },
     }));
 
+    expect(ghost.interactions).toEqual({
+      reasoningVariant: "ghost",
+      toolGroupVariant: "ghost",
+    });
+    expect(muted.interactions).toEqual({
+      reasoningVariant: "muted",
+      toolGroupVariant: "muted",
+    });
+    expect(outline.interactions.reasoningVariant).toBe("outline");
     expect(outline.interactions.toolGroupVariant).toBe("outline");
-    expect(invalid.interactions.toolGroupVariant).toBe("ghost");
+    expect(invalid.interactions).toEqual({
+      reasoningVariant: "outline",
+      toolGroupVariant: "outline",
+    });
   });
 
   it("renders and live-updates native Welcome and static Suggestions", async () => {

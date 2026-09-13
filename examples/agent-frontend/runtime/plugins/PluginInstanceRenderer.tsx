@@ -3,6 +3,7 @@ import { useEffect, type ReactNode } from "react";
 import type { PluginInstance } from "../../framework/contracts/app-ui-model";
 import type {
   UIPluginDefinition,
+  UIPluginRenderSlotOptions,
   UIPluginEvents,
 } from "../../framework/contracts/ui-plugin";
 import { PluginInstanceProvider } from "../context";
@@ -63,7 +64,11 @@ export interface PluginInstanceRendererProps<TState = unknown> {
   activation: Extract<PluginActivationState, { status: "active" }>;
   events: UIPluginEvents;
   actions: UIPluginRuntimeActions;
-  renderSlot(slotId: string, fallback?: ReactNode): ReactNode;
+  renderSlot(
+    slotId: string,
+    fallback?: ReactNode,
+    options?: UIPluginRenderSlotOptions,
+  ): ReactNode;
   onPluginError(failure: PluginRenderFailure): void;
   onPluginReset(instanceId: string): void;
   mountSlotId?: string | undefined;

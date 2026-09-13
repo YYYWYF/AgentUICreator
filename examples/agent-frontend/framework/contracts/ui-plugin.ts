@@ -130,8 +130,16 @@ export interface UIPluginSetupContext {
 
 export type UIPluginSetupCleanup = void | (() => void);
 
+export interface UIPluginRenderSlotOptions {
+  sizing?: "content" | "fill";
+}
+
 export interface UIPluginComponentProps {
-  renderSlot(slotId: string, fallback?: ReactNode): ReactNode;
+  renderSlot(
+    slotId: string,
+    fallback?: ReactNode,
+    options?: UIPluginRenderSlotOptions,
+  ): ReactNode;
 }
 
 export interface UIPluginDefinition<TState = unknown> {

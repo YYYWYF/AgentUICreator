@@ -10,8 +10,9 @@ Synced at: `2026-09-13`
 
 The vendored presentation files are based on the assistant-ui Base UI registry
 output at the commit above. This update adds the official AgentPlan,
-AgentStatus, and SubagentList elements plus their shared range utility; their
-import paths remain mechanically adapted for this project's vendor root.
+AgentStatus, and SubagentList elements plus their shared range utility, and the
+official Sidebar, Sheet, Separator, and mobile hook foundation; their import
+paths remain mechanically adapted for this project's vendor root.
 
 Runtime packages:
 
@@ -25,6 +26,7 @@ AgentUICreator local patches are limited to thin adapter seams:
 - semantic Slot wrappers;
 - explicit presentation configuration seam;
 - requires-action native fallback protection;
+- additive Agent Message composition seam;
 - ThreadBinding compatibility;
 - import path adaptation.
 

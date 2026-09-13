@@ -1,0 +1,1 @@
+export { AssistantUiWorkspaceShell } from "./AssistantUiWorkspaceShell";

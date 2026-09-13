@@ -28,6 +28,11 @@ describe("assistant-ui canonical runtime", () => {
       enabled: true,
       mount: { slotId: "workspace.conversation" },
     });
+    expect(model.pluginInstances["assistant-ui-workspace-shell-main"]).toMatchObject({
+      pluginId: "assistant-ui-workspace-shell",
+      enabled: true,
+      mount: { slotId: "workspace.shell" },
+    });
     expect(model.pluginInstances["agent-message-sources-main"]).toBeUndefined();
 
     expect(model.pluginInstances["agent-conversations-main"]).toBeUndefined();
@@ -35,7 +40,7 @@ describe("assistant-ui canonical runtime", () => {
       model.pluginInstances["assistant-ui-conversation-spike-main"],
     ).toBeUndefined();
 
-    expect(Object.values(model.pluginInstances).filter((instance) => instance.enabled)).toHaveLength(4);
+    expect(Object.values(model.pluginInstances).filter((instance) => instance.enabled)).toHaveLength(5);
   });
 
   it("keeps App on one assistant-ui Runtime owner", async () => {

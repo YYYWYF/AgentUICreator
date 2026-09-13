@@ -36,6 +36,9 @@ describe("assistant-ui upstream provenance", () => {
       "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
       "components/ui/button.tsx",
       "components/ui/input.tsx",
+      "components/ui/separator.tsx",
+      "components/ui/sheet.tsx",
+      "components/ui/sidebar.tsx",
       "components/assistant-ui/elements/tool-call.tsx",
       "components/assistant-ui/elements/sources.aui.tsx",
       "components/assistant-ui/elements/surfaces.tsx",
@@ -44,6 +47,7 @@ describe("assistant-ui upstream provenance", () => {
       "components/assistant-ui/elements/agent-status.tsx",
       "components/assistant-ui/elements/subagent-list.tsx",
       "components/assistant-ui/utils/range.ts",
+      "hooks/use-mobile.ts",
     ];
 
     for (const relativePath of coreFiles) {

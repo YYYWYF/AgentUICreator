@@ -44,41 +44,18 @@ describe("AppUIModel", () => {
     const model = parseAppUIModelJson(json);
 
     expect(model.version).toBe("2");
-    expect(model.root.type).toBe("row");
+    expect(model.root.type).toBe("slot");
     expect(Object.keys(model.pluginInstances)).toEqual([
       "agent-conversation-data-main",
       "agent-conversation-surface-main",
       "agent-conversation-controller-main",
       "assistant-ui-thread-list-main",
+      "assistant-ui-workspace-shell-main",
     ]);
     expect(model.root).toMatchObject({
-      type: "row",
-      children: [
-        {
-          type: "column",
-          id: "agent-sidebar",
-          children: [
-            {
-              type: "slot",
-              id: "agent-conversations-slot-node",
-              slotId: "agent-conversations",
-            },
-          ],
-          sizes: ["minmax(0, 1fr)"],
-        },
-        {
-          type: "column",
-          id: "agent-conversation",
-          children: [
-            {
-              type: "slot",
-              id: "workspace-conversation-slot-node",
-              slotId: "workspace.conversation",
-            },
-          ],
-          sizes: ["minmax(0, 1fr)"],
-        },
-      ],
+      type: "slot",
+      id: "assistant-ui-workspace-shell-slot-node",
+      slotId: "workspace.shell",
     });
     expect(model.pluginInstances["agent-conversation-controller-main"]).toEqual({
       id: "agent-conversation-controller-main",
@@ -90,7 +67,15 @@ describe("AppUIModel", () => {
       enabled: true,
       mount: { slotId: "agent-conversations" },
     });
-    expect(model.pluginInstances["agent-conversation-surface-main"]?.props).toBeUndefined();
+    expect(model.pluginInstances["assistant-ui-workspace-shell-main"]).toMatchObject({
+      pluginId: "assistant-ui-workspace-shell",
+      mount: { slotId: "workspace.shell" },
+    });
+    expect(model.pluginInstances["agent-conversation-surface-main"]?.props).toEqual({
+      assistantUiPresentation: {
+        interactions: { reasoningVariant: "ghost", toolGroupVariant: "ghost" },
+      },
+    });
   });
 
   it("rejects malformed JSON", () => {

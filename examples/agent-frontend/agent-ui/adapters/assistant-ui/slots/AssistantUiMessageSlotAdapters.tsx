@@ -309,6 +309,7 @@ export function SemanticReasoningOutlet({
   group,
 }: PropsWithChildren<{ group: ThreadGroupPart }>) {
   const renderSlot = useOptionalMessageSlotBridge();
+  const presentationConfig = useAssistantUiPresentationConfig();
   const threadMessage = useCurrentThreadMessage();
   const projectedReasoning = projectCurrentMessage(threadMessage).filter(
     (message): message is ReasoningAgentMessage => message.role === "reasoning",
@@ -335,7 +336,12 @@ export function SemanticReasoningOutlet({
     streamStatus: running ? "streaming" : "completed",
   };
   const fallback = (
-    <ReasoningRoot streaming={running}>
+    <ReasoningRoot
+      data-agent-ui-composition-part="reasoning"
+      variant={presentationConfig.interactions.reasoningVariant}
+      streaming={running}
+      className="my-1 mb-3"
+    >
       <ReasoningTrigger active={running} />
       <ReasoningContent aria-busy={running}>
         <ReasoningText>{children}</ReasoningText>
@@ -380,7 +386,9 @@ export function SemanticToolActivityOutlet({
   const presentationConfig = useAssistantUiPresentationConfig();
   const fallback = (
     <ToolGroupRoot
+      data-agent-ui-composition-part="tool-group"
       variant={presentationConfig.interactions.toolGroupVariant}
+      className="my-1"
       open={disclosure.expanded}
       onOpenChange={disclosure.onExpandedChange}
     >

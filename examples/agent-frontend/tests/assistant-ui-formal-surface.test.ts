@@ -14,7 +14,7 @@ const registryItemPath = path.join(
 );
 const registryItemRoot = path.dirname(registryItemPath);
 const itemId = "foundation/assistant-ui-conversation";
-const revision = "6b29e7de829bef7e51297d3d66cd9e97175f3fc5";
+const revision = "bd7e8fa9f79ffea10fab0741026d53cdba4cfa70";
 
 function sha256(content: Buffer | string): string {
   return createHash("sha256").update(content).digest("hex");
@@ -81,8 +81,9 @@ describe("formal assistant-ui surface", () => {
       expect.objectContaining({ id: "p3r4b-welcome-presentation-config" }),
       expect.objectContaining({ id: "p3r4c-composer-extension-seam" }),
       expect.objectContaining({ id: "p3r4d-thread-list-policy-seam" }),
+      expect.objectContaining({ id: "p4-3d-message-composition-seam" }),
     ]);
-    expect(item.version).toBe("0.1.8");
+    expect(item.version).toBe("0.1.11");
     expect(item.upstream).toMatchObject({
       revision,
       license: "MIT",
@@ -105,6 +106,14 @@ describe("formal assistant-ui surface", () => {
       "components/assistant-ui/elements/thread-list.aui.tsx",
     );
     expect(presentationFiles).toContain("components/ui/input.tsx");
+    for (const foundationFile of [
+      "components/ui/sidebar.tsx",
+      "components/ui/sheet.tsx",
+      "components/ui/separator.tsx",
+      "hooks/use-mobile.ts",
+    ]) {
+      expect(presentationFiles).toContain(foundationFile);
+    }
 
     const provenance = await readFile(path.join(vendorRoot, "UPSTREAM.md"), "utf8");
     expect(provenance).toContain("Branch: `main`");

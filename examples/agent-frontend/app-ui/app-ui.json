@@ -1,45 +1,9 @@
 {
   "version": "2",
   "root": {
-    "type": "row",
-    "id": "agent-workspace",
-    "children": [
-      {
-        "type": "column",
-        "id": "agent-sidebar",
-        "children": [
-          {
-            "type": "slot",
-            "id": "agent-conversations-slot-node",
-            "slotId": "agent-conversations"
-          }
-        ],
-        "gap": 0,
-        "sizes": [
-          "minmax(0, 1fr)"
-        ]
-      },
-      {
-        "type": "column",
-        "id": "agent-conversation",
-        "children": [
-          {
-            "type": "slot",
-            "id": "workspace-conversation-slot-node",
-            "slotId": "workspace.conversation"
-          }
-        ],
-        "gap": 0,
-        "sizes": [
-          "minmax(0, 1fr)"
-        ]
-      }
-    ],
-    "gap": 0,
-    "sizes": [
-      "16rem",
-      "minmax(0, 1fr)"
-    ]
+    "type": "slot",
+    "id": "assistant-ui-workspace-shell-slot-node",
+    "slotId": "workspace.shell"
   },
   "pluginInstances": {
     "agent-conversation-data-main": {
@@ -51,6 +15,14 @@
       "id": "agent-conversation-surface-main",
       "pluginId": "conversation-surface",
       "enabled": true,
+      "props": {
+        "assistantUiPresentation": {
+          "interactions": {
+            "reasoningVariant": "ghost",
+            "toolGroupVariant": "ghost"
+          }
+        }
+      },
       "mount": {
         "slotId": "workspace.conversation"
       }
@@ -66,6 +38,14 @@
       "enabled": true,
       "mount": {
         "slotId": "agent-conversations"
+      }
+    },
+    "assistant-ui-workspace-shell-main": {
+      "id": "assistant-ui-workspace-shell-main",
+      "pluginId": "assistant-ui-workspace-shell",
+      "enabled": true,
+      "mount": {
+        "slotId": "workspace.shell"
       }
     }
   }
