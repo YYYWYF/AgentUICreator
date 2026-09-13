@@ -24,6 +24,8 @@ function isSafeSearchFilesResult(
 }
 
 export function formatSearchFilesResult(result: unknown): string {
+  if (result === undefined || result === null) return "";
+
   if (isSafeSearchFilesResult(result)) {
     const { files } = result;
     if (files.length === 0) return "0 files found";
@@ -33,9 +35,13 @@ export function formatSearchFilesResult(result: unknown): string {
 
   try {
     const serialized = JSON.stringify(result);
-    return serialized === undefined ? String(result) : serialized;
+    return serialized ?? "";
   } catch {
-    return String(result);
+    try {
+      return String(result);
+    } catch {
+      return "";
+    }
   }
 }
 
