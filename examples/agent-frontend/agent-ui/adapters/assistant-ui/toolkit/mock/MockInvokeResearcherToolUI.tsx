@@ -90,7 +90,7 @@ export const MockInvokeResearcherToolUI: ToolCallMessagePartComponent<
       <CollapsibleContent
         data-slot="mock-nested-subagent-conversation"
         aria-label="Architecture Researcher conversation"
-        className="border-border/60 ms-[7px] mt-1 border-s ps-5 pb-1 outline-none"
+        className="ms-5 mt-1 min-w-0 pb-1 outline-none"
       >
         <MessagePartPrimitive.Messages>
           {() => <AssistantUiNestedMessage />}
