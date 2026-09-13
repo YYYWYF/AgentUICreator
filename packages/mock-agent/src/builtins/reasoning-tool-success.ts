@@ -4,6 +4,8 @@ export const reasoningToolSuccessScenario = defineScenario({
   id: "reasoning-tool-success",
   title: "Reasoning + Tool",
   description: "模拟一次思考、工具调用、再次思考和最终回复。",
+  category: "reasoning",
+  capabilities: ["reasoning", "tool"],
   steps: [
     {
       type: "reasoning",

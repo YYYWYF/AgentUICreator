@@ -4,6 +4,8 @@ export const multiToolScenario = defineScenario({
   id: "multi-tool",
   title: "Multiple Tools",
   description: "模拟一次思考、两个顺序工具调用和最终回复。",
+  category: "tool",
+  capabilities: ["reasoning", "tool"],
   steps: [
     {
       type: "reasoning",

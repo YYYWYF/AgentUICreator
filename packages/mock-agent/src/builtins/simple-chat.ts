@@ -4,6 +4,7 @@ export const simpleChatScenario = defineScenario({
   id: "simple-chat",
   title: "Simple Chat",
   description: "模拟一次纯文本流式回复。",
+  category: "conversation",
   steps: [
     {
       type: "message",

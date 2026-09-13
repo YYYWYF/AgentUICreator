@@ -52,6 +52,7 @@ import { AssistantUiConversationThreadBindingConnector } from "../agent-ui/adapt
 import { createConversationServiceAssistantUiThreadBinding } from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
 import { createAssistantUiToolkit } from "../agent-ui/adapters/assistant-ui/toolkit";
 import { AssistantUiRuntimeDebugOverlay } from "./dev/AssistantUiRuntimeDebugOverlay";
+import { ScenarioStudio } from "./dev/ScenarioStudio";
 import "../agent-ui/adapters/assistant-ui/styles/globals.css";
 import "./preview-shell.css";
 
@@ -102,6 +103,9 @@ function AgentFrontendSurface({
         model={model}
         registry={pluginRegistry}
       />
+      {import.meta.env.DEV && isMockAgentEndpoint(endpoint) ? (
+        <ScenarioStudio endpoint={endpoint} />
+      ) : null}
     </AgentUIRoot>
   );
 }
