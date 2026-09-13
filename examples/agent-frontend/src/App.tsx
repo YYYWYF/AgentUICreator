@@ -50,13 +50,12 @@ import {
 import {
   isMockAgentEndpoint,
   resolveAgentEndpoint,
-  shouldRenderScenarioStudio,
+  shouldRenderDevStudio,
 } from "./agent-endpoint";
 import { AssistantUiConversationThreadBindingConnector } from "../agent-ui/adapters/assistant-ui/threads/AssistantUiConversationThreadBindingConnector";
 import { createConversationServiceAssistantUiThreadBinding } from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
 import { createAssistantUiToolkit } from "../agent-ui/adapters/assistant-ui/toolkit";
-import { AssistantUiRuntimeDebugOverlay } from "./dev/AssistantUiRuntimeDebugOverlay";
-import { ScenarioStudio } from "./dev/ScenarioStudio";
+import { DevStudio } from "./dev/DevStudio/DevStudio";
 import "../agent-ui/adapters/assistant-ui/styles/globals.css";
 import "./preview-shell.css";
 
@@ -107,11 +106,8 @@ function AgentFrontendSurface({
         model={model}
         registry={pluginRegistry}
       />
-      {shouldRenderScenarioStudio({
-        endpoint,
-        isDev: import.meta.env.DEV,
-      }) ? (
-        <ScenarioStudio endpoint={endpoint} />
+      {shouldRenderDevStudio({ isDev: import.meta.env.DEV }) ? (
+        <DevStudio endpoint={endpoint} />
       ) : null}
     </AgentUIRoot>
   );
@@ -232,7 +228,6 @@ function AssistantUiRuntimeBoundary({
           updateInstanceProps={updateInstanceProps}
         />
       </AssistantUiPresentationConfigProvider>
-      {import.meta.env.DEV ? <AssistantUiRuntimeDebugOverlay /> : null}
     </AssistantUiAgUiRuntimeProvider>
   );
 }

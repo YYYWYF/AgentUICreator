@@ -10,14 +10,17 @@ import type {
 
 import { AgentRuntimeProvider } from "../runtime/context";
 import {
-  buildScenarioSelectionUrl,
-  consumeMockScenarioAutorunMarker,
   MOCK_SCENARIO_AUTORUN_STORAGE_KEY,
   MOCK_SCENARIO_AUTORUN_TRIGGER,
-  ScenarioStudio,
+} from "../src/agent-endpoint";
+import {
+  buildScenarioSelectionUrl,
+  consumeMockScenarioAutorunMarker,
+  ScenarioPanel,
   scenarioCatalogEndpoint,
   writeMockScenarioAutorunMarker,
-} from "../src/dev/ScenarioStudio";
+} from "../src/dev/DevStudio/ScenarioPanel";
+import { DevStudio } from "../src/dev/DevStudio/DevStudio";
 
 const catalog = {
   defaultScenarioId: "reasoning-tool-success",
@@ -85,7 +88,7 @@ async function mountStudio({
   await act(async () => {
     renderer = create(
       <AgentRuntimeProvider runtime={runtime}>
-        <ScenarioStudio endpoint={endpoint} navigate={navigate} />
+        <ScenarioPanel endpoint={endpoint} navigate={navigate} />
       </AgentRuntimeProvider>,
     );
     await Promise.resolve();
@@ -95,12 +98,23 @@ async function mountStudio({
   return renderer;
 }
 
-async function openStudio(renderer: ReactTestRenderer): Promise<void> {
+async function mountDevStudio({
+  endpoint = "/__agent-ui/mock",
+  runtime = createRuntime(),
+}: {
+  endpoint?: string;
+  runtime?: AgentRuntime;
+} = {}) {
+  let renderer!: ReactTestRenderer;
   await act(async () => {
-    renderer.root.findByProps({
-      "aria-label": "Open Mock Scenario Studio",
-    }).props.onClick();
+    renderer = create(
+      <AgentRuntimeProvider runtime={runtime}>
+        <DevStudio endpoint={endpoint} />
+      </AgentRuntimeProvider>,
+    );
+    await Promise.resolve();
   });
+  return renderer;
 }
 
 async function flushAutorun(): Promise<void> {
@@ -109,7 +123,7 @@ async function flushAutorun(): Promise<void> {
   });
 }
 
-describe("Scenario Studio", () => {
+describe("Scenario Panel and Dev Studio autorun", () => {
   beforeEach(() => {
     window.history.replaceState(null, "", "/");
     window.sessionStorage.clear();
@@ -147,7 +161,6 @@ describe("Scenario Studio", () => {
     const navigate = vi.fn();
     const renderer = await mountStudio({ navigate });
 
-    await openStudio(renderer);
     await act(async () => {
       renderer.root.findAllByProps({ "aria-pressed": false })[0]!.props.onClick();
       renderer.root.findByProps({ "aria-label": "Mock scenario speed" })
@@ -169,7 +182,7 @@ describe("Scenario Studio", () => {
     const sendMessage = vi.fn(async () => undefined);
     writeMockScenarioAutorunMarker();
 
-    const renderer = await mountStudio({ runtime: createRuntime(sendMessage) });
+    const renderer = await mountDevStudio({ runtime: createRuntime(sendMessage) });
     await flushAutorun();
 
     expect(sendMessage).toHaveBeenCalledOnce();
@@ -181,7 +194,7 @@ describe("Scenario Studio", () => {
     writeMockScenarioAutorunMarker();
     const sendMessage = vi.fn(async () => undefined);
 
-    const renderer = await mountStudio({ runtime: createRuntime(sendMessage) });
+    const renderer = await mountDevStudio({ runtime: createRuntime(sendMessage) });
 
     expect(window.sessionStorage.getItem(MOCK_SCENARIO_AUTORUN_STORAGE_KEY))
       .toBeNull();
@@ -193,14 +206,14 @@ describe("Scenario Studio", () => {
   it("does not rerun after a second mount once the marker was consumed", async () => {
     writeMockScenarioAutorunMarker();
     const firstSendMessage = vi.fn(async () => undefined);
-    const firstRenderer = await mountStudio({
+    const firstRenderer = await mountDevStudio({
       runtime: createRuntime(firstSendMessage),
     });
     await flushAutorun();
     firstRenderer.unmount();
 
     const secondSendMessage = vi.fn(async () => undefined);
-    const secondRenderer = await mountStudio({
+    const secondRenderer = await mountDevStudio({
       runtime: createRuntime(secondSendMessage),
     });
     await flushAutorun();
@@ -219,7 +232,6 @@ describe("Scenario Studio", () => {
     const navigate = vi.fn();
     const firstRenderer = await mountStudio({ navigate });
 
-    await openStudio(firstRenderer);
     expect(buttonWithText(firstRenderer, "Restart Scenario")).toBeDefined();
     await act(async () => {
       buttonWithText(firstRenderer, "Restart Scenario")!.props.onClick();
@@ -230,7 +242,7 @@ describe("Scenario Studio", () => {
     firstRenderer.unmount();
 
     const sendMessage = vi.fn(async () => undefined);
-    const secondRenderer = await mountStudio({ runtime: createRuntime(sendMessage) });
+    const secondRenderer = await mountDevStudio({ runtime: createRuntime(sendMessage) });
     await flushAutorun();
 
     expect(sendMessage).toHaveBeenCalledOnce();
@@ -240,7 +252,7 @@ describe("Scenario Studio", () => {
   it("never autoruns for a non-Mock endpoint", async () => {
     writeMockScenarioAutorunMarker();
     const sendMessage = vi.fn(async () => undefined);
-    const renderer = await mountStudio({
+    const renderer = await mountDevStudio({
       endpoint: "https://agent.example/api",
       runtime: createRuntime(sendMessage),
     });

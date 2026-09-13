@@ -36,14 +36,12 @@ export function isMockAgentEndpoint(endpoint: string | undefined): boolean {
   }
 }
 
-export function shouldRenderScenarioStudio({
-  endpoint,
+export function shouldRenderDevStudio({
   isDev,
 }: {
-  endpoint: string | undefined;
   isDev: boolean;
 }): boolean {
-  return isDev && isMockAgentEndpoint(endpoint);
+  return isDev;
 }
 
 export function resolveAgentEndpoint({

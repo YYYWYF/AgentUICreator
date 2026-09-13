@@ -58,17 +58,28 @@ describe("assistant-ui canonical runtime", () => {
     );
   });
 
-  it("keeps the canonical runtime diagnostics in the development surface", async () => {
+  it("keeps the canonical runtime diagnostics in the Dev Studio", async () => {
     const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
-    const overlay = await readFile(
-      new URL("../src/dev/AssistantUiRuntimeDebugOverlay.tsx", import.meta.url),
+    const devStudio = await readFile(
+      new URL("../src/dev/DevStudio/DevStudio.tsx", import.meta.url),
+      "utf8",
+    );
+    const runtimePanel = await readFile(
+      new URL("../src/dev/DevStudio/RuntimePanel.tsx", import.meta.url),
+      "utf8",
+    );
+    const runtimePanelView = await readFile(
+      new URL("../src/dev/DevStudio/RuntimePanelView.tsx", import.meta.url),
       "utf8",
     );
 
-    expect(app).toContain("AssistantUiRuntimeDebugOverlay");
+    expect(app).toContain("DevStudio");
     expect(app).toContain("import.meta.env.DEV");
-    expect(overlay).toContain("useAssistantUiRuntimeObservation");
-    expect(overlay).toContain("data-assistant-ui-runtime-debug");
-    expect(overlay).not.toContain("spike");
+    expect(app).not.toContain("AssistantUiRuntimeDebugOverlay");
+    expect(devStudio).toContain("useMockScenarioAutorun");
+    expect(runtimePanel).toContain("useAgentRuntimeSnapshot");
+    expect(runtimePanel).toContain("useAssistantUiRuntimeObservation");
+    expect(runtimePanelView).toContain("Raw Snapshot");
+    expect(runtimePanelView).toContain("assistantUiObservation");
   });
 });
