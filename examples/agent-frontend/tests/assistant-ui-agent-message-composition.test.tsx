@@ -2,7 +2,9 @@
 
 import { renderToStaticMarkup } from "react-dom/server";
 import {
+  AuiConfig,
   AssistantRuntimeProvider,
+  Tools,
   useLocalRuntime,
   type ChatModelAdapter,
   type ThreadMessageLike,
@@ -24,6 +26,7 @@ import {
 import {
   createAssistantUiSemanticThreadComponents,
 } from "../agent-ui/adapters/assistant-ui/conversation";
+import { createAssistantUiToolkit } from "../agent-ui/adapters/assistant-ui/toolkit";
 import {
   AssistantUiPresentationConfigProvider,
 } from "../agent-ui/adapters/assistant-ui/config";
@@ -48,12 +51,17 @@ const messageCompositionPresentation = {
 
 function MessageCompositionFixture({
   initialMessages,
+  mockAgentElements = false,
 }: {
   initialMessages: readonly ThreadMessageLike[];
+  mockAgentElements?: boolean;
 }) {
   const runtime = useLocalRuntime(TEST_CHAT_MODEL, { initialMessages });
+  const config = AuiConfig({
+    tools: Tools({ toolkit: createAssistantUiToolkit({ mockAgentElements }) }),
+  });
   return (
-    <AssistantRuntimeProvider runtime={runtime}>
+    <AssistantRuntimeProvider config={config} runtime={runtime}>
       <AssistantUiPresentationConfigProvider value={messageCompositionPresentation}>
         <Thread
           components={createAssistantUiSemanticThreadComponents(renderFallback)}
@@ -101,6 +109,61 @@ const agentMessageSequence: ThreadMessageLike = {
     },
     { type: "text", text: "final text" },
   ],
+  status: { type: "complete", reason: "stop" },
+};
+
+const agentElementsMessage: ThreadMessageLike = {
+  id: "agent-elements-composition-sequence",
+  role: "assistant",
+  content: [
+    {
+      type: "tool-call",
+      toolCallId: "composition-plan",
+      toolName: "mock_agent_plan",
+      args: {},
+      argsText: "{}",
+      result: {
+        steps: ["Inspect", "Compare", "Update"],
+        activeIndex: 1,
+      },
+    },
+    {
+      type: "tool-call",
+      toolCallId: "composition-status",
+      toolName: "mock_agent_status",
+      args: {},
+      argsText: "{}",
+      result: { state: "working", label: "Inspecting workspace" },
+    },
+    ...(["A", "B", "C"] as const).map((name) => ({
+      type: "tool-call" as const,
+      toolCallId: `composition-dispatch-${name}`,
+      toolName: "mock_dispatch_subagent",
+      args: { name: `Agent ${name}`, model: "mimo-v2.5-pro" },
+      argsText: JSON.stringify({ name: `Agent ${name}`, model: "mimo-v2.5-pro" }),
+      result: {
+        name: `Agent ${name}`,
+        model: "mimo-v2.5-pro",
+        status: "completed",
+        progress: 100,
+      },
+    })),
+    { type: "text", text: "Agent elements complete." },
+  ],
+  status: { type: "complete", reason: "stop" },
+};
+
+const malformedDispatchMessage: ThreadMessageLike = {
+  id: "malformed-dispatch-composition",
+  role: "assistant",
+  content: [{
+    type: "tool-call",
+    toolCallId: "malformed-dispatch",
+    toolName: "mock_dispatch_subagent",
+    args: { name: "Missing Model" },
+    argsText: '{"name":"Missing Model"}',
+    result: { name: "Missing Model", status: "completed" },
+  }],
   status: { type: "complete", reason: "stop" },
 };
 
@@ -191,9 +254,89 @@ describe("assistant-ui Agent Message composition", () => {
     expect(text).toContain("final text");
   });
 
-  it("installs Agent Trace composition at the assistant-message boundary", () => {
+  it("leaves AssistantMessage to the official Thread and installs only ToolCallWrapper", () => {
     const components = createAssistantUiSemanticThreadComponents(renderFallback);
-    expect(components.AssistantMessage).toBeDefined();
-    expect(components.ToolCallWrapper).toBeUndefined();
+    expect(components.AssistantMessage).toBeUndefined();
+    expect(components.ToolCallWrapper).toBeDefined();
+  });
+
+  it("composes AgentPlan, AgentStatus, and one SubagentList through ToolCallWrapper", async () => {
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    let renderer: ReactTestRenderer | undefined;
+    await act(async () => {
+      renderer = create(
+        <MessageCompositionFixture
+          initialMessages={[agentElementsMessage]}
+          mockAgentElements
+        />,
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    if (renderer === undefined) {
+      throw new Error("Agent Elements renderer was not created.");
+    }
+    mountedRenderers.push(renderer);
+
+    const planFrames = renderer.root.findAllByProps({
+      "data-agent-ui-composition-part": "plan",
+    });
+    const statusFrames = renderer.root.findAllByProps({
+      "data-agent-ui-composition-part": "status",
+    });
+    const aggregateFrames = renderer.root.findAllByProps({
+      "data-agent-ui-composition-part": "subagent-aggregate",
+    });
+    const subagentLists = renderer.root.findAllByProps({
+      "data-slot": "subagent-list",
+    });
+    const dispatchFallbacks = renderer.root.findAllByProps({
+      "data-slot": "tool-fallback-root",
+    });
+
+    expect(planFrames).toHaveLength(1);
+    expect(statusFrames).toHaveLength(1);
+    expect(planFrames[0]?.props.className.split(/\s+/u)).toEqual(
+      expect.arrayContaining(["my-3", "w-fit", "max-w-full"]),
+    );
+    expect(statusFrames[0]?.props.className.split(/\s+/u)).toEqual(
+      expect.arrayContaining(["my-3", "w-fit", "max-w-full"]),
+    );
+    expect(aggregateFrames).toHaveLength(1);
+    expect(subagentLists).toHaveLength(1);
+    expect(dispatchFallbacks).toHaveLength(0);
+    expect(renderedText(renderer)).toContain("Agent A");
+    expect(renderedText(renderer)).toContain("Agent B");
+    expect(renderedText(renderer)).toContain("Agent C");
+  });
+
+  it("keeps malformed dispatches on the visible ToolFallback path", async () => {
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    let renderer: ReactTestRenderer | undefined;
+    await act(async () => {
+      renderer = create(
+        <MessageCompositionFixture
+          initialMessages={[malformedDispatchMessage]}
+          mockAgentElements
+        />,
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    if (renderer === undefined) {
+      throw new Error("Malformed dispatch renderer was not created.");
+    }
+    mountedRenderers.push(renderer);
+
+    expect(renderer.root.findAllByProps({
+      "data-slot": "subagent-list",
+    })).toHaveLength(0);
+    expect(renderer.root.findAllByProps({
+      "data-slot": "tool-fallback-root",
+    })).toHaveLength(1);
   });
 });

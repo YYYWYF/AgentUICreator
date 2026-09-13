@@ -122,6 +122,7 @@ describe("assistant-ui default composition", () => {
   it("retains upstream ThreadList and conversation data Slot surfaces", async () => {
     const threadList = await readFile(path.join(projectRoot, "agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx"), "utf8");
     const thread = await readFile(path.join(projectRoot, "agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"), "utf8");
+    const conversationAdapter = await readFile(path.join(projectRoot, "agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationAdapter.tsx"), "utf8");
 
     for (const slot of [
       "aui_thread-list-root",
@@ -138,5 +139,10 @@ describe("assistant-ui default composition", () => {
     ]) {
       expect(thread).toContain(`data-slot=\"${slot}\"`);
     }
+    expect(conversationAdapter).not.toContain("AssistantMessage:");
+    expect(conversationAdapter).toContain("ToolCallWrapper");
+    expect(thread).toContain("ActionBarMorePrimitive");
+    expect(thread).toContain("ExportMarkdown");
+    expect(thread).toContain("Export as Markdown");
   });
 });

@@ -9,6 +9,7 @@ import {
   approvalResumeScenario,
   builtinMockScenarios,
   parallelToolsScenario,
+  subagentLifecycleScenario,
 } from "../src/builtins/index.js";
 import { runMockScenario } from "../src/scenario-runner.js";
 import { defineScenario, type MockScenario } from "../src/scenario.js";
@@ -117,5 +118,28 @@ describe("P5-A mock scenarios", () => {
       type: EventType.RUN_FINISHED,
       outcome: { type: "success" },
     });
+  });
+
+  it("keeps standard subagent lifecycle separate from dispatch presentation", async () => {
+    const events = await collect(subagentLifecycleScenario);
+    expect(events).toContainEqual(expect.objectContaining({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "lifecycle-completed",
+    }));
+    expect(events).toContainEqual(expect.objectContaining({
+      type: EventType.SUBAGENT_FINISHED,
+      subagentRunId: "lifecycle-completed",
+      outcome: { type: "success" },
+    }));
+    expect(events).toContainEqual(expect.objectContaining({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "lifecycle-error",
+    }));
+    expect(events).toContainEqual(expect.objectContaining({
+      type: EventType.SUBAGENT_ERROR,
+      subagentRunId: "lifecycle-error",
+      message: "Worker failed",
+      code: "WORKER_FAILED",
+    }));
   });
 });

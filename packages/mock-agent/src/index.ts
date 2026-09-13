@@ -41,6 +41,7 @@ export {
   reasoningToolSuccessScenario,
   simpleChatScenario,
   stepLifecycleScenario,
+  subagentLifecycleScenario,
   subagentsOutOfOrderScenario,
   subagentsScenario,
   toolErrorScenario,

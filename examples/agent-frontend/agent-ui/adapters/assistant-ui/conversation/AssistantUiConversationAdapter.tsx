@@ -27,7 +27,7 @@ import {
   SemanticToolItemOutlet,
   type AssistantUiConversationSlotId,
 } from "../slots";
-import { createAgentTraceAssistantMessage } from "./AgentTraceComposition";
+import { AssistantUiToolCallComposition } from "./AgentElementComposition";
 import { AssistantUiConversationSurface } from "./AssistantUiConversationSurface";
 
 type RenderSlot = UIPluginComponentProps["renderSlot"];
@@ -78,12 +78,7 @@ export function createAssistantUiSemanticThreadComponents(
       ASSISTANT_UI_CONVERSATION_SLOTS.suggestions,
     ),
     ComposerWrapper: createComposerWrapper(renderSlot),
-    AssistantMessage: createAgentTraceAssistantMessage({
-      MessageFooter: SemanticSourcesOutlet,
-      ReasoningGroup: SemanticReasoningOutlet,
-      ToolFallback: SemanticToolItemOutlet,
-      ToolGroup: SemanticToolActivityOutlet,
-    }),
+    ToolCallWrapper: AssistantUiToolCallComposition,
     ReasoningGroup: SemanticReasoningOutlet,
     ToolGroup: SemanticToolActivityOutlet,
     ToolFallback: SemanticToolItemOutlet,

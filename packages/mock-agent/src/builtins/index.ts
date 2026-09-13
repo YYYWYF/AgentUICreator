@@ -9,6 +9,7 @@ import { reasoningLongPreviewScenario } from "./reasoning-long-preview.js";
 import { reasoningToolSuccessScenario } from "./reasoning-tool-success.js";
 import { simpleChatScenario } from "./simple-chat.js";
 import { stepLifecycleScenario } from "./step-lifecycle.js";
+import { subagentLifecycleScenario } from "./subagent-lifecycle.js";
 import { subagentsOutOfOrderScenario } from "./subagents-out-of-order.js";
 import { subagentsScenario } from "./subagents.js";
 import { toolErrorScenario } from "./tool-error.js";
@@ -26,6 +27,7 @@ export {
   reasoningToolSuccessScenario,
   simpleChatScenario,
   stepLifecycleScenario,
+  subagentLifecycleScenario,
   subagentsOutOfOrderScenario,
   subagentsScenario,
   toolErrorScenario,
@@ -42,6 +44,7 @@ export const builtinMockScenarios = [
   parallelToolsScenario,
   toolErrorScenario,
   stepLifecycleScenario,
+  subagentLifecycleScenario,
   approvalResumeScenario,
   agentPlanScenario,
   agentStatusScenario,

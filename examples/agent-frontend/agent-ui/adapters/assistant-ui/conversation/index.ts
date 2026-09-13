@@ -7,3 +7,4 @@ export {
   AssistantUiConversationAdapter,
   createAssistantUiSemanticThreadComponents,
 } from "./AssistantUiConversationAdapter";
+export { AssistantUiToolCallComposition } from "./AgentElementComposition";

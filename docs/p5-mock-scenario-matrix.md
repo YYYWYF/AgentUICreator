@@ -12,6 +12,7 @@ The mock endpoint is development-only; it is not a production Agent Contract.
 | `parallel-tools` | | ✅ | ✅ | | | | | |
 | `tool-error` | | ✅ | | | | | | ✅ |
 | `step-lifecycle` | ✅ | | | | | | | |
+| `subagent-lifecycle` | | | | | | | ✅ | ✅ |
 | `approval-resume` | ✅ | ✅ | | ✅ | | | | |
 | `agent-plan` | ✅ | ✅ | | | ✅ | | | |
 | `agent-status` | | ✅ | | | | ✅ | | |
@@ -43,6 +44,7 @@ Then select a fixture with one of these query parameters:
 ?mockScenario=parallel-tools
 ?mockScenario=approval-resume
 ?mockScenario=agent-elements-showcase
+?mockScenario=subagent-lifecycle
 ```
 
 The long-running fixture can be accelerated without changing its declared
@@ -60,6 +62,9 @@ normal speed of `1`. The default remains `reasoning-tool-success`.
 - `mock_agent_plan`, `mock_agent_status`, and `mock_dispatch_subagent` are
   mock-only backend presentation fixtures. Each dispatch call is aggregated at
   the assistant-message level into one `SubagentList`.
+- `subagent-lifecycle` is a protocol-only fixture for standard
+  `SUBAGENT_STARTED`, `SUBAGENT_FINISHED`, and `SUBAGENT_ERROR` projection; it
+  does not drive the `SubagentList` presentation.
 - Production toolkit configuration and `appFrontendTools` remain unchanged.
 - The P4-3C contract map remains dormant for AgentPlan, AgentStatus, and
   SubagentList.
