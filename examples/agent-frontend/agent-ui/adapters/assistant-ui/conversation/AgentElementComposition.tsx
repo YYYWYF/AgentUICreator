@@ -41,6 +41,8 @@ function SubagentAggregate({
   projection: ReturnType<typeof projectSubagentToolCalls>;
   mode: AssistantUiConversationPresentationMode;
 }) {
+  const messageStatus = useAuiState((state) => state.message.status?.type);
+
   if (projection.view === null) return null;
   return (
     <SubagentList
@@ -49,7 +51,11 @@ function SubagentAggregate({
       progress={projection.view.progress}
       showSummary={projection.view.showSummary}
       summaryAgent={projection.view.summaryAgent}
-      className={mode === "history" ? "min-h-0" : undefined}
+      className={
+        mode === "live" && messageStatus === "running"
+          ? undefined
+          : "min-h-0"
+      }
     />
   );
 }
