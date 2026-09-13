@@ -146,8 +146,14 @@
       }
     },
     "foundation/assistant-ui-conversation": {
-      "version": "0.1.9",
+      "version": "0.1.10",
       "files": {
+        "vendor/assistant-ui/components/assistant-ui/elements/agent-plan.tsx": {
+          "sha256": "54bf9e06211f95b54b455c0356270d6e2c0f82110ab113f2612da1f60bb5f240"
+        },
+        "vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx": {
+          "sha256": "903fbcd93457907a0f3bf4117f996839690ec3235c76683f3a582c6b39eba628"
+        },
         "vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx": {
           "sha256": "74b8a3d8b079893cdab6aff2ea1ded1d0ddc9af5381a0331dbea1e253f68fa9a"
         },
@@ -175,6 +181,9 @@
         "vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx": {
           "sha256": "0c514eec19a43c734d6d12410615d034eab2ea6e2d6b0b7ca3766c9fb3cbbeae"
         },
+        "vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx": {
+          "sha256": "0abc5933a9b27ceb24e179d6d6307e4c8980d49c8c58903ecbada8e558ccca0b"
+        },
         "vendor/assistant-ui/components/assistant-ui/elements/surfaces.tsx": {
           "sha256": "fcc704686fc4bf3a15dc40f2600da759ba46a796d6d8a9c97eb37b2d21907885"
         },
@@ -195,6 +204,9 @@
         },
         "vendor/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.tsx": {
           "sha256": "94e64103f5e1faad3ad82502b94c298158126e70ceef138e88e28117f62dd77d"
+        },
+        "vendor/assistant-ui/components/assistant-ui/utils/range.ts": {
+          "sha256": "3506d5f07865c042a4ef9b96904f687d19372a14e7dfccf946749860a3606182"
         },
         "vendor/assistant-ui/components/ui/avatar.tsx": {
           "sha256": "bff76087ea9af25c6aa5a5306088dc66e62204a126752c38561736acff00717f"
@@ -233,13 +245,13 @@
           "sha256": "55bbdc94cef3e0c8a8bba386e94f97228dd2c967fe61466fc565378890550c08"
         },
         "vendor/assistant-ui/THIRD_PARTY_NOTICES.md": {
-          "sha256": "8e78e5e60b278344d4af0f3a51081c38bcf2dd20066ae6c9c57c5b52de13aeec"
+          "sha256": "d540eac1ce5ba19ccde38e68cd5dc7e7da6230c173bab15c74d151e6a02e2a95"
         },
         "vendor/assistant-ui/UPSTREAM.json": {
-          "sha256": "b850754ac0b5de4a522ae5a84bc35ff7232a2dad43b412fc8ffe311c7980c0f1"
+          "sha256": "dc046ef18529c3fc02d8ee7ddd5c325c0097e5f1884a75607ea2415271615334"
         },
         "vendor/assistant-ui/UPSTREAM.md": {
-          "sha256": "881b68a5ec527f00cae2cdd2e9bd1f7d5b8821ab206e1ceb088b8afc7efe6080"
+          "sha256": "f056fb9c8df46d0ddc53cb392ca2bfc79938021a59abd139b3ea42b613029398"
         }
       }
     },

@@ -4,14 +4,14 @@ Repository: https://github.com/assistant-ui/assistant-ui
 
 Branch: `main`
 
-Commit: `370dcdecea426a4e35fd5a5fdfd9b410fe58e318`
+Commit: `bd7e8fa9f79ffea10fab0741026d53cdba4cfa70`
 
-Synced at: `2026-09-12`
+Synced at: `2026-09-13`
 
 The vendored presentation files are based on the assistant-ui Base UI registry
-output at the commit above. This update adds the official ToolCall, Sources,
-Surfaces, and Badge elements; their import paths remain mechanically adapted
-for this project's vendor root.
+output at the commit above. This update adds the official AgentPlan,
+AgentStatus, and SubagentList elements plus their shared range utility; their
+import paths remain mechanically adapted for this project's vendor root.
 
 Runtime packages:
 

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "id": "foundation/assistant-ui-conversation",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "kind": "foundation",
-  "description": "Pinned assistant-ui Base UI conversation presentation source",
+  "description": "Pinned assistant-ui Base UI conversation presentation source and official agent elements",
   "upstream": {
     "project": "assistant-ui/assistant-ui",
     "component": "base-ui-conversation",
     "implementation": "react",
-    "revision": "370dcdecea426a4e35fd5a5fdfd9b410fe58e318",
+    "revision": "bd7e8fa9f79ffea10fab0741026d53cdba4cfa70",
     "mode": "adapted",
     "license": "MIT"
   },
@@ -24,6 +24,8 @@
   },
   "files": [
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx" },
+    { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/agent-plan.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/agent-plan.tsx" },
+    { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/file.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/file.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.tsx" },
@@ -32,6 +34,7 @@
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/reasoning.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/reasoning.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx" },
+    { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/surfaces.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/surfaces.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/tool-call.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/tool-call.tsx" },
@@ -39,6 +42,7 @@
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx" },
     { "source": "files/vendor/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.tsx", "target": "vendor/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.tsx" },
+    { "source": "files/vendor/assistant-ui/components/assistant-ui/utils/range.ts", "target": "vendor/assistant-ui/components/assistant-ui/utils/range.ts" },
     { "source": "files/vendor/assistant-ui/components/ui/avatar.tsx", "target": "vendor/assistant-ui/components/ui/avatar.tsx" },
     { "source": "files/vendor/assistant-ui/components/ui/badge.tsx", "target": "vendor/assistant-ui/components/ui/badge.tsx" },
     { "source": "files/vendor/assistant-ui/components/ui/button.tsx", "target": "vendor/assistant-ui/components/ui/button.tsx" },
