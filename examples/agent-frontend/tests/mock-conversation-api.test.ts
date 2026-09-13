@@ -42,6 +42,8 @@ describe("Mock Conversation API", () => {
     await expect(response.json()).resolves.toMatchObject({
       conversations: expect.arrayContaining([
         expect.objectContaining({ id: "conversation-agent-ui" }),
+        expect.objectContaining({ id: "conversation-replay-agent-elements" }),
+        expect.objectContaining({ id: "conversation-replay-tool-error" }),
       ]),
     });
   });
@@ -56,6 +58,60 @@ describe("Mock Conversation API", () => {
       messages: expect.arrayContaining([
         expect.objectContaining({ role: "assistant" }),
       ]),
+    });
+  });
+
+  it("returns rich replay data without rerunning an Agent scenario", async () => {
+    const response = await fetch(
+      `${origin}/__agent-ui/mock-data/conversations/conversation-replay-agent-elements`,
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      replay: {
+        version: 1,
+        messages: [
+          expect.objectContaining({
+            id: "replay-agent-elements-user",
+            role: "user",
+          }),
+          expect.objectContaining({
+            id: "replay-agent-elements-assistant",
+            role: "assistant",
+            status: { type: "complete", reason: "stop" },
+          }),
+        ],
+      },
+    });
+  });
+
+  it("returns sources, attachments, and terminal tool errors from fixtures", async () => {
+    const sourcesResponse = await fetch(
+      `${origin}/__agent-ui/mock-data/conversations/conversation-replay-sources-attachments`,
+    );
+    await expect(sourcesResponse.json()).resolves.toMatchObject({
+      replay: {
+        messages: [
+          expect.objectContaining({ attachments: expect.any(Array) }),
+          expect.objectContaining({
+            parts: expect.arrayContaining([
+              expect.objectContaining({ sourceType: "url" }),
+              expect.objectContaining({ sourceType: "document" }),
+            ]),
+          }),
+        ],
+      },
+    });
+
+    const errorResponse = await fetch(
+      `${origin}/__agent-ui/mock-data/conversations/conversation-replay-tool-error`,
+    );
+    await expect(errorResponse.json()).resolves.toMatchObject({
+      replay: {
+        messages: [expect.objectContaining({
+          status: { type: "incomplete", reason: "error" },
+          parts: [expect.objectContaining({ isError: true })],
+        })],
+      },
     });
   });
 

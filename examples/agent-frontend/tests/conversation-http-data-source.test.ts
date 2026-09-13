@@ -51,6 +51,42 @@ describe("HttpConversationDataSource", () => {
     });
   });
 
+  it("preserves a validated rich replay alongside legacy AgentMessage values", async () => {
+    const replay = {
+      version: 1 as const,
+      messages: [{
+        id: "assistant-1",
+        role: "assistant" as const,
+        parts: [{
+          type: "tool-call" as const,
+          toolCallId: "tool-1",
+          toolName: "search_files",
+          args: { keyword: "AG-UI" },
+          result: { files: ["src/runtime.ts"] },
+        }],
+      }],
+    };
+    const source = createHttpConversationDataSource({
+      endpoint: "/api",
+      fetch: async () => new Response(JSON.stringify({
+        id: "conversation-1",
+        title: "Conversation 1",
+        messages: [{
+          id: "assistant-1",
+          role: "assistant",
+          content: "Done",
+        }],
+        replay,
+      }), { status: 200 }),
+    });
+
+    await expect(source.get("conversation-1")).resolves.toMatchObject({
+      id: "conversation-1",
+      messages: [{ id: "assistant-1", content: "Done" }],
+      replay,
+    });
+  });
+
   it("surfaces a detail 404", async () => {
     const source = createHttpConversationDataSource({
       endpoint: "/api",
@@ -78,6 +114,33 @@ describe("HttpConversationDataSource", () => {
     });
     await expect(listSource.list()).rejects.toThrow();
     await expect(detailSource.get("conversation-1")).rejects.toThrow();
+  });
+
+  it("rejects malformed replay parts and historical running status", async () => {
+    const source = createHttpConversationDataSource({
+      endpoint: "/api",
+      fetch: async () => new Response(JSON.stringify({
+        id: "conversation-1",
+        title: "Conversation 1",
+        messages: [],
+        replay: {
+          version: 1,
+          messages: [{
+            id: "assistant-1",
+            role: "assistant",
+            parts: [{
+              type: "tool-call",
+              toolCallId: "tool-1",
+              toolName: "search_files",
+              args: {},
+            }],
+            status: { type: "running" },
+          }],
+        },
+      }), { status: 200 }),
+    });
+
+    await expect(source.get("conversation-1")).rejects.toThrow();
   });
 
   it("passes AbortSignal through to fetch", async () => {

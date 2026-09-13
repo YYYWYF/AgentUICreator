@@ -377,6 +377,7 @@ describe("assistant-ui history retry navigation", () => {
         "history-user",
         "history-assistant",
       ]);
+      expect(agent.runAgent).not.toHaveBeenCalled();
       expect(agent.threadId).toBe("history-retry");
       expect(service.selectConversation).toHaveBeenCalledTimes(2);
 

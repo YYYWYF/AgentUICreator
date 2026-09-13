@@ -158,6 +158,28 @@ function createBindingFixture() {
           agentMessage("history-assistant", "assistant", "old assistant"),
         ],
       }],
+      ["history-rich", {
+        id: "history-rich",
+        title: "Rich history",
+        messages: [agentMessage("rich-legacy", "assistant", "Done")],
+        replay: {
+          version: 1,
+          messages: [{
+            id: "rich-assistant",
+            role: "assistant",
+            parts: [
+              { type: "reasoning", text: "Persisted reasoning" },
+              {
+                type: "tool-call",
+                toolCallId: "rich-tool-1",
+                toolName: "search_files",
+                args: { keyword: "history" },
+                result: { files: ["history.ts"] },
+              },
+            ],
+          }],
+        },
+      }],
     ]),
   );
   const binding = createConversationServiceAssistantUiThreadBinding();
@@ -220,6 +242,34 @@ describe("ConversationServiceAssistantUiThreadBinding", () => {
     const restored = await binding.selectThread(liveThreadId);
     expect(binding.getThreadId()).toBe(liveThreadId);
     expect(messageIds(restored.messages)).toEqual(messageIds(live.messages));
+  });
+
+  it("selects rich history through the unified projector", async () => {
+    const { binding } = createBindingFixture();
+
+    const history = await binding.selectThread("history-rich");
+    const assistant = history.messages[0];
+
+    expect(assistant).toMatchObject({
+      id: "rich-assistant",
+      role: "assistant",
+    });
+    expect(assistant?.role === "assistant" ? assistant.content : [])
+      .toEqual([
+        {
+          type: "reasoning",
+          text: "Persisted reasoning",
+          status: { type: "complete" },
+        },
+        {
+          type: "tool-call",
+          toolCallId: "rich-tool-1",
+          toolName: "search_files",
+          args: { keyword: "history" },
+          argsText: '{"keyword":"history"}',
+          result: { files: ["history.ts"] },
+        },
+      ]);
   });
 
   it("does not commit a failed history identity and exposes its error target", async () => {

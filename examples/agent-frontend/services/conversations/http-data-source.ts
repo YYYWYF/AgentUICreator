@@ -72,6 +72,7 @@ function toConversationDetail(response: ConversationDetailResponse) {
     messages: response.messages.map((message) =>
       toAgentMessage(response.id, message),
     ),
+    ...(response.replay === undefined ? {} : { replay: response.replay }),
   };
 }
 

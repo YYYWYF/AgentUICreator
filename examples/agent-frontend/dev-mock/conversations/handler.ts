@@ -1,14 +1,13 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
-import type { ConversationDetailResponse } from "../../services/conversations";
 import {
-  mockConversationDetails,
-  mockConversationList,
+  mockConversationFixtures,
+  type MockConversationFixture,
 } from "./fixtures";
 
 export interface MockConversationApiHandlerOptions {
   endpoint?: string | undefined;
-  fixtures?: readonly ConversationDetailResponse[] | undefined;
+  fixtures?: readonly MockConversationFixture[] | undefined;
   listDelayMs?: number | undefined;
   detailDelayMs?: number | undefined;
 }
@@ -51,13 +50,18 @@ function waitForDelay(milliseconds: number, signal: AbortSignal): Promise<void> 
 
 export function createMockConversationApiHandler({
   endpoint = "/__agent-ui/mock-data",
-  fixtures = mockConversationDetails,
+  fixtures = mockConversationFixtures,
   listDelayMs = 400,
   detailDelayMs = 700,
 }: MockConversationApiHandlerOptions = {}): MockConversationApiHandler {
   const baseEndpoint = normalizeEndpoint(endpoint);
   const conversationsEndpoint = `${baseEndpoint}/conversations`;
-  const detailsById = new Map(fixtures.map((detail) => [detail.id, detail]));
+  const detailsById = new Map(
+    fixtures.map((fixture) => [fixture.detail.id, fixture.detail]),
+  );
+  const conversationList = {
+    conversations: fixtures.map((fixture) => fixture.summary),
+  };
 
   return async (request, response) => {
     const url = new URL(request.url ?? "/", "http://mock-data.local");
@@ -81,7 +85,7 @@ export function createMockConversationApiHandler({
       if (controller.signal.aborted || response.destroyed) return true;
 
       if (isList) {
-        sendJson(response, 200, mockConversationList);
+        sendJson(response, 200, conversationList);
         return true;
       }
 

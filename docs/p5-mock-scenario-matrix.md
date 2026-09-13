@@ -24,6 +24,8 @@ AG-UI-to-source-part projection is added here, and no `CUSTOM` event is used to
 pretend that it exists. Persisted source metadata remains available for the
 planned P5-B conversation/history work.
 
+Persisted rich conversation replay is covered by P5-B.
+
 ## Development URLs
 
 From `examples/agent-frontend`, start the existing Vite app:

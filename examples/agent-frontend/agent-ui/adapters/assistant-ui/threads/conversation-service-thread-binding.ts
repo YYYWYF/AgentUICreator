@@ -6,7 +6,7 @@ import type {
 } from "@agent-ui/runtime-assistant-ui";
 
 import {
-  projectConversationHistory,
+  projectConversationDetail,
 } from "./conversation-history-projector";
 import type {
   AgentUIConversationService,
@@ -206,7 +206,7 @@ export function createConversationServiceAssistantUiThreadBinding<
       if (detail === undefined) return activeThreadSnapshot;
 
       const loaded: AssistantUiLoadedThread<TState> = {
-        messages: projectConversationHistory(detail.messages),
+        messages: projectConversationDetail(detail),
       };
       activeThreadId = threadId;
       activeThreadSnapshot = loaded;
