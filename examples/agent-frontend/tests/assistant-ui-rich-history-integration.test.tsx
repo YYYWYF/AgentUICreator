@@ -82,7 +82,9 @@ function RichHistoryFixture({ conversationId }: { conversationId: string }) {
   return (
     <AssistantRuntimeProvider config={config} runtime={runtime}>
       <AssistantUiConversationSurface
-        components={createAssistantUiSemanticThreadComponents(renderFallback)}
+        components={createAssistantUiSemanticThreadComponents(renderFallback, {
+          mode: "history",
+        })}
       />
     </AssistantRuntimeProvider>
   );
@@ -115,6 +117,9 @@ describe("assistant-ui rich history UI integration", () => {
     expect(container.querySelector('[data-slot="agent-plan"]')).not.toBeNull();
     expect(container.querySelector('[data-slot="agent-status"]')).not.toBeNull();
     expect(container.querySelector('[data-slot="subagent-list"]')).not.toBeNull();
+    const subagentList = container.querySelector('[data-slot="subagent-list"]');
+    expect(subagentList?.classList.contains("min-h-0")).toBe(true);
+    expect(subagentList?.classList.contains("min-h-[14.5rem]")).toBe(false);
     expect(container.textContent).toContain("Analysis complete");
   });
 

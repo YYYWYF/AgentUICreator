@@ -167,6 +167,20 @@ const malformedDispatchMessage: ThreadMessageLike = {
   status: { type: "complete", reason: "stop" },
 };
 
+const ordinaryToolsMessage: ThreadMessageLike = {
+  id: "ordinary-tools-composition-sequence",
+  role: "assistant",
+  content: (["a", "b", "c"] as const).map((suffix) => ({
+    type: "tool-call" as const,
+    toolCallId: `ordinary-tool-${suffix}`,
+    toolName: `ordinary_tool_${suffix}`,
+    args: { suffix },
+    argsText: JSON.stringify({ suffix }),
+    result: { ok: true },
+  })),
+  status: { type: "complete", reason: "stop" },
+};
+
 const mountedRenderers: ReactTestRenderer[] = [];
 
 afterEach(async () => {
@@ -306,10 +320,41 @@ describe("assistant-ui Agent Message composition", () => {
     );
     expect(aggregateFrames).toHaveLength(1);
     expect(subagentLists).toHaveLength(1);
+    expect(renderer.root.findAllByProps({
+      "data-slot": "tool-group-trigger",
+    })).toHaveLength(0);
     expect(dispatchFallbacks).toHaveLength(0);
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain(
+      "min-h-[14.5rem]",
+    );
     expect(renderedText(renderer)).toContain("Agent A");
     expect(renderedText(renderer)).toContain("Agent B");
     expect(renderedText(renderer)).toContain("Agent C");
+  });
+
+  it("keeps ordinary tools in the official ToolGroup", async () => {
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    let renderer: ReactTestRenderer | undefined;
+    await act(async () => {
+      renderer = create(
+        <MessageCompositionFixture
+          initialMessages={[ordinaryToolsMessage]}
+        />,
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    if (renderer === undefined) {
+      throw new Error("Ordinary tool renderer was not created.");
+    }
+    mountedRenderers.push(renderer);
+
+    expect(renderer.root.findAllByProps({
+      "data-slot": "tool-group-trigger",
+    })).toHaveLength(1);
+    expect(renderedText(renderer)).toContain("3 tool calls");
   });
 
   it("keeps malformed dispatches on the visible ToolFallback path", async () => {

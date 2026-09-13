@@ -8,9 +8,11 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
+  MockDispatchSubagentToolUI,
   createAssistantUiToolkit,
 } from "../agent-ui/adapters/assistant-ui/toolkit";
 import {
+  isEligibleSubagentToolCall,
   projectSubagentToolCalls,
   type SubagentToolCallPart,
 } from "../agent-ui/adapters/assistant-ui/agents/subagent-projection";
@@ -77,7 +79,7 @@ describe("Mock Agent official element renderers", () => {
     expect(mockAgentPlan.type).toBe("backend");
     expect(mockAgentStatus.type).toBe("backend");
     expect(mockDispatchSubagent.type).toBe("backend");
-    expect(mockDispatchSubagent.render).toBeUndefined();
+    expect(mockDispatchSubagent.render).toBe(MockDispatchSubagentToolUI);
     expect("execute" in mockAgentPlan).toBe(false);
   });
 
@@ -158,6 +160,61 @@ describe("Mock Agent official element renderers", () => {
       },
       eligibleToolCallIds: ["dispatch-a", "dispatch-b", "dispatch-c"],
     });
+  });
+
+  it("uses the shared dispatch eligibility projection and official fallback", async () => {
+    const validProps = createProps({
+      name: "Agent A",
+      model: "mimo-v2.5-pro",
+      status: "completed",
+      progress: 100,
+    }, {
+      toolName: "mock_dispatch_subagent",
+    });
+    expect(isEligibleSubagentToolCall(validProps)).toBe(true);
+    const validContainer = await renderTool(
+      <MockDispatchSubagentToolUI {...validProps} />,
+    );
+    expect(validContainer.innerHTML).toBe("");
+
+    const invalidFixtures = [
+      createProps({ name: "Missing model", status: "completed" }, {
+        toolName: "mock_dispatch_subagent",
+      }),
+      createProps({
+        name: "Agent A",
+        model: "mimo-v2.5-pro",
+        status: "completed",
+      }, {
+        toolName: "mock_dispatch_subagent",
+        isError: true,
+      }),
+      createProps({
+        name: "Agent A",
+        model: "mimo-v2.5-pro",
+        status: "running",
+      }, {
+        toolName: "mock_dispatch_subagent",
+        status: { type: "requires-action", reason: "tool-calls" },
+      }),
+      createProps({
+        name: "Agent A",
+        model: "mimo-v2.5-pro",
+        status: "running",
+      }, {
+        toolName: "mock_dispatch_subagent",
+        status: { type: "incomplete", reason: "error" },
+      }),
+    ];
+
+    for (const props of invalidFixtures) {
+      expect(isEligibleSubagentToolCall(props)).toBe(false);
+      const container = await renderTool(
+        <MockDispatchSubagentToolUI {...props} />,
+      );
+      expect(container.querySelector('[data-slot="tool-fallback-root"]'))
+        .not.toBeNull();
+    }
   });
 
   it("falls back to ToolFallback for malformed plan data", async () => {

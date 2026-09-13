@@ -27,7 +27,10 @@ import {
   SemanticToolItemOutlet,
   type AssistantUiConversationSlotId,
 } from "../slots";
-import { AssistantUiToolCallComposition } from "./AgentElementComposition";
+import {
+  createAssistantUiToolCallComposition,
+  type AssistantUiConversationPresentationMode,
+} from "./AgentElementComposition";
 import { AssistantUiConversationSurface } from "./AssistantUiConversationSurface";
 
 type RenderSlot = UIPluginComponentProps["renderSlot"];
@@ -63,7 +66,11 @@ function createComposerWrapper(renderSlot: RenderSlot) {
 
 export function createAssistantUiSemanticThreadComponents(
   renderSlot: RenderSlot,
+  options: {
+    mode?: AssistantUiConversationPresentationMode;
+  } = {},
 ): ThreadComponents {
+  const mode = options.mode ?? "live";
   return {
     WelcomeWrapper: createTopLevelWrapper(
       renderSlot,
@@ -78,7 +85,7 @@ export function createAssistantUiSemanticThreadComponents(
       ASSISTANT_UI_CONVERSATION_SLOTS.suggestions,
     ),
     ComposerWrapper: createComposerWrapper(renderSlot),
-    ToolCallWrapper: AssistantUiToolCallComposition,
+    ToolCallWrapper: createAssistantUiToolCallComposition(mode),
     ReasoningGroup: SemanticReasoningOutlet,
     ToolGroup: SemanticToolActivityOutlet,
     ToolFallback: SemanticToolItemOutlet,
@@ -102,7 +109,9 @@ export function AssistantUiConversationAdapter({
   const historyMode = conversationSnapshot.mode === "history";
   const components = useMemo(() => {
     const threadComponents =
-      createAssistantUiSemanticThreadComponents(renderSlot);
+      createAssistantUiSemanticThreadComponents(renderSlot, {
+        mode: historyMode ? "history" : "live",
+      });
     const quickPrompts = presentationConfig.composer.quickPrompts;
     if (quickPrompts.length === 0) return threadComponents;
 
@@ -115,7 +124,7 @@ export function AssistantUiConversationAdapter({
         />
       ),
     };
-  }, [presentationConfig.composer.quickPrompts, renderSlot]);
+  }, [historyMode, presentationConfig.composer.quickPrompts, renderSlot]);
   const presentation = useMemo(
     (): ThreadPresentation => {
       const placeholder = historyMode

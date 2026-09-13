@@ -170,7 +170,18 @@ export function projectSubagentList(
   return projected.ineligibleParts.length === 0 ? projected.view : null;
 }
 
-function projectToolCallPart(part: SubagentToolCallPart): Record<string, unknown> {
+export interface ProjectedSubagentToolCall {
+  readonly toolCallId: string;
+  readonly name: unknown;
+  readonly model: unknown;
+  readonly status: "error" | "running" | "completed" | undefined;
+  readonly progress: unknown;
+}
+
+/** Normalizes one assistant-ui tool call into the shared projection shape. */
+export function projectSubagentToolCall(
+  part: SubagentToolCallPart,
+): ProjectedSubagentToolCall {
   const args = asRecord(part.args);
   const result = asRecord(part.result);
   const source = result ?? args;
@@ -182,9 +193,10 @@ function projectToolCallPart(part: SubagentToolCallPart): Record<string, unknown
       partStatus === "requires-action" ||
       partStatus === "incomplete"
     ? "error"
-    : explicitStatus === "running" || explicitStatus === "completed" ||
-        explicitStatus === "complete"
-    ? explicitStatus
+    : explicitStatus === "running"
+    ? "running"
+    : explicitStatus === "completed" || explicitStatus === "complete"
+    ? "completed"
     : partStatus === "complete"
     ? "completed"
     : partStatus === "running"
@@ -200,11 +212,19 @@ function projectToolCallPart(part: SubagentToolCallPart): Record<string, unknown
   };
 }
 
+/** Uses the same field and lifecycle rules as the aggregate projection. */
+export function isEligibleSubagentToolCall(
+  part: SubagentToolCallPart,
+): boolean {
+  const projected = projectSubagentParts([projectSubagentToolCall(part)]);
+  return projected.view !== null && projected.ineligibleParts.length === 0;
+}
+
 /** Projects one message's real dispatch tool calls into one aggregate view. */
 export function projectSubagentToolCalls(
   parts: readonly SubagentToolCallPart[],
 ): SubagentToolCallsProjection {
-  const projected = projectSubagentParts(parts.map(projectToolCallPart));
+  const projected = projectSubagentParts(parts.map(projectSubagentToolCall));
   const eligibleToolCallIds = projected.eligibleParts.flatMap((part) => {
     const toolCallId = asRecord(part)?.toolCallId;
     return typeof toolCallId === "string" ? [toolCallId] : [];

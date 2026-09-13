@@ -4,6 +4,7 @@ import { SearchFilesToolUI } from "./SearchFilesToolUI";
 import {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
+  MockDispatchSubagentToolUI,
 } from "./mock";
 
 export interface CreateAssistantUiToolkitOptions {
@@ -34,6 +35,7 @@ export function createAssistantUiToolkit({
           mock_dispatch_subagent: {
             type: "backend" as const,
             display: "standalone" as const,
+            render: MockDispatchSubagentToolUI,
           },
         }
       : {}),

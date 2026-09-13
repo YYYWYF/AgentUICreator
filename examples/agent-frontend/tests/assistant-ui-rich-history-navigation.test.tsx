@@ -13,7 +13,7 @@ import {
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 
 import {
   AssistantUiAgUiRuntimeProvider,
@@ -113,16 +113,23 @@ function RuntimeCapture({
 function RichHistoryRuntimeFixture({
   agent,
   binding,
+  conversation,
   onRuntime,
 }: {
   agent: ReturnType<AssistantUiAgentFactory>;
   binding: ConversationServiceAssistantUiThreadBinding;
+  conversation: AgentUIConversationService;
   onRuntime: (runtime: AssistantRuntime) => void;
 }) {
   const agentFactory = useCallback(() => agent, [agent]);
+  const mode = useSyncExternalStore(
+    conversation.subscribe,
+    () => conversation.getSnapshot().mode,
+    () => "live" as const,
+  );
   const components = useMemo(
-    () => createAssistantUiSemanticThreadComponents(renderFallback),
-    [],
+    () => createAssistantUiSemanticThreadComponents(renderFallback, { mode }),
+    [mode],
   );
   const config = useMemo(
     () => AuiConfig({
@@ -194,6 +201,7 @@ async function mountRuntime() {
       <RichHistoryRuntimeFixture
         agent={agent}
         binding={binding}
+        conversation={service}
         onRuntime={(nextRuntime) => {
           runtime = nextRuntime;
         }}
@@ -301,6 +309,9 @@ describe("assistant-ui rich history navigation", () => {
     expect(container.querySelector('[data-slot="agent-plan"]')).not.toBeNull();
     expect(container.querySelector('[data-slot="agent-status"]')).not.toBeNull();
     expect(container.querySelector('[data-slot="subagent-list"]')).not.toBeNull();
+    const subagentList = container.querySelector('[data-slot="subagent-list"]');
+    expect(subagentList?.classList.contains("min-h-0")).toBe(true);
+    expect(subagentList?.classList.contains("min-h-[14.5rem]")).toBe(false);
     expect(container.textContent).toContain("Analysis complete");
     expect(agent.runAgent).not.toHaveBeenCalled();
 
