@@ -2,8 +2,8 @@ import { once } from "node:events";
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 
-import { HttpAgent } from "@ag-ui/client";
-import { EventType, type BaseEvent } from "@ag-ui/core";
+import { HttpAgent, type RunAgentParameters } from "@ag-ui/client";
+import { EventType, type BaseEvent, type ResumeEntry } from "@ag-ui/core";
 import { createAgUiTransport } from "@agent-ui/runtime-agui";
 import { createAgentRuntime, type AgentRuntimeSnapshot } from "@agent-ui/runtime-core";
 import { afterEach, describe, expect, it } from "vitest";
@@ -181,6 +181,266 @@ describe("Mock Agent HTTP endpoint", () => {
     expect(new Set(toolCallIds).size).toBe(2);
   });
 
+  it("runs parallel-tools through the real HttpAgent", async () => {
+    const endpoint = await startMockServer(builtinMockScenarios);
+    const agent = new HttpAgent({
+      url: `${endpoint}?scenario=parallel-tools&speed=0`,
+      threadId: "thread-parallel-tools",
+    });
+    agent.addMessage({
+      id: "user-parallel-tools",
+      role: "user",
+      content: "并行检查",
+    });
+
+    const events = await collectAgentRun(agent, { runId: "run-parallel-tools" });
+    const toolStarts = events
+      .filter((event) => event.type === EventType.TOOL_CALL_START)
+      .map((event) => event.toolCallId);
+
+    expect(toolStarts).toEqual([
+      "parallel-search-files",
+      "parallel-inspect-component",
+      "parallel-read-config",
+    ]);
+    const firstResultIndex = events.findIndex((event) =>
+      event.type === EventType.TOOL_CALL_RESULT,
+    );
+    expect(firstResultIndex).toBeGreaterThan(-1);
+    expect(events.slice(0, firstResultIndex).filter((event) =>
+      event.type === EventType.TOOL_CALL_START,
+    )).toHaveLength(3);
+    expect(events.at(-1)).toMatchObject({
+      type: EventType.RUN_FINISHED,
+      outcome: { type: "success" },
+    });
+  });
+
+  it("runs agent-elements-showcase through the real HttpAgent", async () => {
+    const endpoint = await startMockServer(builtinMockScenarios);
+    const agent = new HttpAgent({
+      url: `${endpoint}?scenario=agent-elements-showcase&speed=0`,
+      threadId: "thread-agent-elements-showcase",
+    });
+    agent.addMessage({
+      id: "user-agent-elements-showcase",
+      role: "user",
+      content: "展示 Agent Elements",
+    });
+
+    const events = await collectAgentRun(agent, {
+      runId: "run-agent-elements-showcase",
+    });
+    const toolNames = new Set(events
+      .filter((event) => event.type === EventType.TOOL_CALL_START)
+      .map((event) => event.toolCallName));
+
+    expect(events.some(({ type }) => type === EventType.REASONING_START)).toBe(true);
+    expect(toolNames).toEqual(new Set([
+      "mock_agent_plan",
+      "mock_agent_status",
+      "search_files",
+      "inspect_runtime",
+      "read_config",
+      "mock_subagents",
+    ]));
+    expect(events.some(({ type }) => type === EventType.SUBAGENT_STARTED)).toBe(true);
+    expect(events.some(({ type }) => type === EventType.SUBAGENT_FINISHED)).toBe(true);
+    expect(events.some(({ type }) => type === EventType.TEXT_MESSAGE_START)).toBe(true);
+    expect(events.some(({ type }) => type === EventType.TEXT_MESSAGE_CONTENT)).toBe(true);
+    expect(events.some(({ type }) => type === EventType.TEXT_MESSAGE_END)).toBe(true);
+    expect(events.at(-1)).toMatchObject({
+      type: EventType.RUN_FINISHED,
+      outcome: { type: "success" },
+    });
+  });
+
+  it("runs approval-resume through HTTP and resumes the same interrupted tool", async () => {
+    const endpoint = await startMockServer(builtinMockScenarios);
+    const agent = new HttpAgent({
+      url: `${endpoint}?scenario=approval-resume&speed=0`,
+      threadId: "thread-approval-allow",
+    });
+    agent.addMessage({
+      id: "user-approval-allow",
+      role: "user",
+      content: "允许清理",
+    });
+
+    const firstRun = await collectAgentRun(agent, { runId: "run-approval-1" });
+    expect(firstRun).toContainEqual(expect.objectContaining({
+      type: EventType.TOOL_CALL_START,
+      toolCallId: "approval-dangerous-tool",
+    }));
+    expect(firstRun).toContainEqual(expect.objectContaining({
+      type: EventType.TOOL_CALL_ARGS,
+      toolCallId: "approval-dangerous-tool",
+    }));
+    expect(firstRun).toContainEqual(expect.objectContaining({
+      type: EventType.RUN_FINISHED,
+      outcome: {
+        type: "interrupt",
+        interrupts: [expect.objectContaining({
+          id: "approval-resume-1",
+          toolCallId: "approval-dangerous-tool",
+        })],
+      },
+    }));
+    expect(firstRun.some((event) =>
+      event.type === EventType.TOOL_CALL_RESULT &&
+      event.toolCallId === "approval-dangerous-tool",
+    )).toBe(false);
+
+    const resume: ResumeEntry = {
+      interruptId: "approval-resume-1",
+      status: "resolved",
+      payload: { approved: true },
+    };
+    const secondRun = await collectAgentRun(agent, {
+      runId: "run-approval-2",
+      resume: [resume],
+    });
+    const toolEndIndex = secondRun.findIndex((event) =>
+      event.type === EventType.TOOL_CALL_END &&
+      event.toolCallId === "approval-dangerous-tool",
+    );
+    const toolResultIndex = secondRun.findIndex((event) =>
+      event.type === EventType.TOOL_CALL_RESULT &&
+      event.toolCallId === "approval-dangerous-tool",
+    );
+
+    expect(toolEndIndex).toBeGreaterThan(-1);
+    expect(toolResultIndex).toBeGreaterThan(toolEndIndex);
+    expect(secondRun.some(({ type }) => type === EventType.TEXT_MESSAGE_START)).toBe(true);
+    expect(secondRun.some(({ type }) => type === EventType.TEXT_MESSAGE_CONTENT)).toBe(true);
+    expect(secondRun.some(({ type }) => type === EventType.TEXT_MESSAGE_END)).toBe(true);
+    expect(secondRun.at(-1)).toMatchObject({
+      type: EventType.RUN_FINISHED,
+      outcome: { type: "success" },
+    });
+  });
+
+  it("runs approval-resume through HTTP and keeps the denied tool without a result", async () => {
+    const endpoint = await startMockServer(builtinMockScenarios);
+    const agent = new HttpAgent({
+      url: `${endpoint}?scenario=approval-resume&speed=0`,
+      threadId: "thread-approval-deny",
+    });
+    agent.addMessage({
+      id: "user-approval-deny",
+      role: "user",
+      content: "拒绝清理",
+    });
+
+    await collectAgentRun(agent, { runId: "run-approval-deny-1" });
+    const secondRun = await collectAgentRun(agent, {
+      runId: "run-approval-deny-2",
+      resume: [{
+        interruptId: "approval-resume-1",
+        status: "cancelled",
+      }],
+    });
+
+    expect(secondRun.some((event) =>
+      event.type === EventType.TOOL_CALL_RESULT &&
+      event.toolCallId === "approval-dangerous-tool",
+    )).toBe(false);
+    expect(textFromEvents(secondRun)).toContain(
+      "你拒绝了这次操作，我保留了工作区文件。",
+    );
+    expect(secondRun.at(-1)).toMatchObject({
+      type: EventType.RUN_FINISHED,
+      outcome: { type: "success" },
+    });
+  });
+
+  it("approval-resume drives awaiting-input and resumes through AgUiTransport", async () => {
+    const endpoint = await startMockServer(builtinMockScenarios);
+    const runtime = createAgentRuntime({
+      transport: createAgUiTransport({
+        endpoint: `${endpoint}?scenario=approval-resume&speed=0`,
+      }),
+    });
+
+    try {
+      await runtime.sendMessage("允许清理");
+      expect(runtime.getSnapshot()).toMatchObject({
+        run: { status: "awaiting-input" },
+        interrupts: [{
+          id: "approval-resume-1",
+          toolExecutionId: "approval-dangerous-tool",
+        }],
+      });
+
+      await runtime.resumeInterrupts([{
+        interruptId: "approval-resume-1",
+        status: "resolved",
+        payload: { approved: true },
+      }]);
+
+      const snapshot = runtime.getSnapshot();
+      expect(snapshot).toMatchObject({
+        run: { status: "idle" },
+        interrupts: [],
+      });
+      expect(snapshot.executions).toContainEqual(expect.objectContaining({
+        type: "tool",
+        id: "approval-dangerous-tool",
+        status: "completed",
+      }));
+      expect(snapshot.messages).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          role: "assistant",
+          content: expect.stringContaining("已获得许可"),
+        }),
+      ]));
+    } finally {
+      runtime.dispose();
+    }
+  });
+
+  it("approval-resume cancels through AgUiTransport without completing the tool", async () => {
+    const endpoint = await startMockServer(builtinMockScenarios);
+    const runtime = createAgentRuntime({
+      transport: createAgUiTransport({
+        endpoint: `${endpoint}?scenario=approval-resume&speed=0`,
+      }),
+    });
+
+    try {
+      await runtime.sendMessage("拒绝清理");
+      expect(runtime.getSnapshot().run.status).toBe("awaiting-input");
+
+      await runtime.resumeInterrupts([{
+        interruptId: "approval-resume-1",
+        status: "cancelled",
+      }]);
+
+      const snapshot = runtime.getSnapshot();
+      expect(snapshot).toMatchObject({
+        run: { status: "idle" },
+        interrupts: [],
+      });
+      expect(snapshot.executions).toContainEqual(expect.objectContaining({
+        type: "tool",
+        id: "approval-dangerous-tool",
+        status: "interrupted",
+      }));
+      expect(snapshot.executions).not.toContainEqual(expect.objectContaining({
+        id: "approval-dangerous-tool",
+        status: "completed",
+      }));
+      expect(snapshot.messages).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          role: "assistant",
+          content: expect.stringContaining("拒绝"),
+        }),
+      ]));
+    } finally {
+      runtime.dispose();
+    }
+  });
+
   it("returns a 404 JSON error for an unknown scenario", async () => {
     const endpoint = await startMockServer(
       selectionScenarios(),
@@ -280,13 +540,26 @@ function selectionScenarios(): MockScenario[] {
 
 async function runHttpAgent(endpoint: string): Promise<BaseEvent[]> {
   const agent = new HttpAgent({ url: endpoint, threadId: "thread-selection" });
-  const events: BaseEvent[] = [];
   agent.addMessage({ id: "user-selection", role: "user", content: "运行" });
+  return collectAgentRun(agent, { runId: "run-selection" });
+}
 
-  await agent.runAgent({ runId: "run-selection" }, {
+async function collectAgentRun(
+  agent: HttpAgent,
+  parameters: RunAgentParameters,
+): Promise<BaseEvent[]> {
+  const events: BaseEvent[] = [];
+  await agent.runAgent(parameters, {
     onEvent: ({ event }) => {
       events.push(event);
     },
   });
   return events;
+}
+
+function textFromEvents(events: readonly BaseEvent[]): string {
+  return events
+    .filter((event) => event.type === EventType.TEXT_MESSAGE_CONTENT)
+    .map((event) => event.delta)
+    .join("");
 }

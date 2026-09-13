@@ -15,7 +15,10 @@ import {
 type MockToolProps = ToolCallMessagePartProps<Record<string, unknown>, unknown>;
 const mountedRoots: Root[] = [];
 
-function createProps(result: unknown): MockToolProps {
+function createProps(
+  result: unknown,
+  overrides: Partial<MockToolProps> = {},
+): MockToolProps {
   return {
     type: "tool-call",
     toolCallId: "mock-tool-1",
@@ -27,6 +30,7 @@ function createProps(result: unknown): MockToolProps {
     addResult: () => undefined,
     resume: () => undefined,
     respondToApproval: async () => undefined,
+    ...overrides,
   };
 }
 
@@ -74,18 +78,26 @@ describe("Mock Agent official element renderers", () => {
     expect(container.textContent).toContain("1 of 3");
   });
 
-  it("renders the official AgentStatus with explicit values", async () => {
-    const container = await renderTool(
-      <MockAgentStatusToolUI {...createProps({
-        state: "working",
-        label: "Analyzing workspace",
-        elapsed: "0:12",
-      })} />,
-    );
+  it("renders official AgentStatus states from explicit values", async () => {
+    const fixtures = [
+      { state: "working", label: "Analyzing workspace", elapsed: "0:12" },
+      { state: "waiting", label: "Waiting for approval", elapsed: "0:13" },
+      { state: "done", label: "Analysis complete", elapsed: "0:24" },
+    ] as const;
 
-    expect(container.querySelector('[data-slot="agent-status"]')).not.toBeNull();
-    expect(container.textContent).toContain("Analyzing workspace");
-    expect(container.textContent).toContain("0:12");
+    for (const fixture of fixtures) {
+      const container = await renderTool(
+        <MockAgentStatusToolUI {...createProps(fixture)} />,
+      );
+
+      expect(container.querySelector('[data-slot="agent-status"]'))
+        .not.toBeNull();
+      expect(container.textContent).toContain(fixture.state);
+      expect(container.textContent).toContain(fixture.label);
+      if (fixture.state !== "done") {
+        expect(container.textContent).toContain(fixture.elapsed);
+      }
+    }
   });
 
   it("renders SubagentList and preserves out-of-order progress", async () => {
@@ -107,6 +119,24 @@ describe("Mock Agent official element renderers", () => {
     expect(container.textContent).toContain("Agent B");
   });
 
+  it("renders the official SubagentList summary from explicit values", async () => {
+    const container = await renderTool(
+      <MockSubagentsToolUI {...createProps({
+        agents: [
+          { name: "Agent A", model: "mimo-v2.5-pro", status: "completed" },
+        ],
+        showSummary: true,
+        summaryAgent: { name: "Summary Agent", model: "mimo-v2.5-pro" },
+      })} />,
+    );
+
+    expect(container.querySelector('[data-slot="subagent-list"]')).not.toBeNull();
+    expect(container.textContent).toContain("Summary Agent");
+    expect(container.textContent).toContain("mimo-v2.5-pro");
+    expect(container.querySelector('[aria-label="Summary Agent progress"]'))
+      .not.toBeNull();
+  });
+
   it("falls back to ToolFallback for malformed plan data", async () => {
     const container = await renderTool(
       <MockAgentPlanToolUI {...createProps({
@@ -116,6 +146,56 @@ describe("Mock Agent official element renderers", () => {
     );
 
     expect(container.querySelector('[data-slot="agent-plan"]')).toBeNull();
+    expect(container.querySelector('[data-slot="tool-fallback-root"]'))
+      .not.toBeNull();
+  });
+
+  it("falls back to ToolFallback for malformed status data", async () => {
+    const container = await renderTool(
+      <MockAgentStatusToolUI {...createProps({
+        state: "working",
+        label: "Analyzing workspace",
+        elapsed: 12,
+      })} />,
+    );
+
+    expect(container.querySelector('[data-slot="agent-status"]')).toBeNull();
+    expect(container.querySelector('[data-slot="tool-fallback-root"]'))
+      .not.toBeNull();
+  });
+
+  it("falls back to ToolFallback for malformed subagent data", async () => {
+    const container = await renderTool(
+      <MockSubagentsToolUI {...createProps({
+        agents: [{
+          name: "Agent A",
+          model: "mimo-v2.5-pro",
+          status: "blocked",
+          progress: 100,
+        }],
+        showSummary: false,
+      })} />,
+    );
+
+    expect(container.querySelector('[data-slot="subagent-list"]')).toBeNull();
+    expect(container.querySelector('[data-slot="tool-fallback-root"]'))
+      .not.toBeNull();
+  });
+
+  it.each([
+    { status: { type: "requires-action", reason: "tool-calls" } },
+    { status: { type: "incomplete", reason: "error" } },
+    { isError: true },
+  ] as const)("keeps status and errors on ToolFallback", async (overrides) => {
+    const container = await renderTool(
+      <MockAgentStatusToolUI {...createProps({
+        state: "working",
+        label: "Analyzing workspace",
+        elapsed: "0:12",
+      }, overrides)} />,
+    );
+
+    expect(container.querySelector('[data-slot="agent-status"]')).toBeNull();
     expect(container.querySelector('[data-slot="tool-fallback-root"]'))
       .not.toBeNull();
   });
