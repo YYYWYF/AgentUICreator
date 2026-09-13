@@ -433,7 +433,7 @@ describe("assistant-ui Agent Message composition", () => {
     expect(renderedText(renderer)).toContain("UI Reviewer");
   });
 
-  it("reserves the live height for a running SubagentList", async () => {
+  it("keeps a running SubagentList compact", async () => {
     (
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -457,10 +457,10 @@ describe("assistant-ui Agent Message composition", () => {
       "data-slot": "subagent-list",
     });
     expect(subagentLists).toHaveLength(1);
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain(
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).toContain("min-h-0");
+    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain(
       "min-h-[14.5rem]",
     );
-    expect(subagentLists[0]?.props.className.split(/\s+/u)).not.toContain("min-h-0");
     expect(renderer.root.findAllByProps({
       "data-slot": "tool-group-trigger",
     })).toHaveLength(0);

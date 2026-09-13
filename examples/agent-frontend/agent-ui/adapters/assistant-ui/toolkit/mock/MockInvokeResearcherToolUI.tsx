@@ -4,26 +4,18 @@ import type {
 } from "@assistant-ui/react";
 import { MessagePartPrimitive, MessagePrimitive } from "@assistant-ui/react";
 import { useState } from "react";
+import { CheckIcon, ChevronRightIcon, Loader2Icon } from "lucide-react";
 
 import { MarkdownText } from "../../../../vendor/assistant-ui/components/assistant-ui/elements/markdown-text";
 import { Reasoning } from "../../../../vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui";
 import { ToolFallback } from "../../../../vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui";
-import { ToolCall } from "../../../../vendor/assistant-ui/components/assistant-ui/elements/tool-call";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../../../../vendor/assistant-ui/components/ui/collapsible";
 
 type MockInvokeResearcherArgs = Record<string, unknown>;
-
-function formatResult(result: unknown): string {
-  if (result === null || result === undefined) return "";
-  if (typeof result === "object" && "summary" in result) {
-    const summary = (result as { summary?: unknown }).summary;
-    if (typeof summary === "string") return summary;
-  }
-  try {
-    return JSON.stringify(result) ?? String(result);
-  } catch {
-    return String(result);
-  }
-}
 
 function shouldUseFallback(
   props: ToolCallMessagePartProps<MockInvokeResearcherArgs, unknown>,
@@ -55,37 +47,43 @@ export const MockInvokeResearcherToolUI: ToolCallMessagePartComponent<
   MockInvokeResearcherArgs,
   unknown
 > = (props) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   if (shouldUseFallback(props)) return <ToolFallback {...props} />;
+  const running = props.status.type === "running";
 
   return (
-    <div
+    <Collapsible
       data-slot="mock-invoke-researcher-tool"
       data-status={props.status.type}
-      className="my-3 w-full max-w-xl rounded-2xl border border-border/60 bg-card/30 px-3 py-2"
+      open={open}
+      onOpenChange={setOpen}
+      className="my-2 w-full max-w-xl"
     >
-      <ToolCall
-        activeLabel="Delegating to Researcher"
-        label="Researcher completed"
-        query="Architecture Researcher"
-        request={props.argsText}
-        result={formatResult(props.result)}
-        running={props.status.type === "running"}
-        open={open}
-        onOpenChange={setOpen}
-      />
-      <section
+      <CollapsibleTrigger
+        data-slot="mock-nested-subagent-trigger"
+        className="group/trigger text-foreground/70 hover:text-foreground flex w-full items-center gap-2 py-1.5 text-sm transition-colors outline-none"
+      >
+        <ChevronRightIcon className="size-3.5 shrink-0 transition-transform duration-200 group-data-open/trigger:rotate-90 motion-reduce:transition-none" />
+        {running ? (
+          <Loader2Icon className="size-3.5 shrink-0 animate-spin motion-reduce:animate-none" />
+        ) : (
+          <CheckIcon className="size-3.5 shrink-0 text-emerald-500" />
+        )}
+        <span className="font-medium">Architecture Researcher</span>
+        <span className="ms-auto text-xs text-muted-foreground">
+          {running ? "Working" : "Completed"}
+        </span>
+      </CollapsibleTrigger>
+
+      <CollapsibleContent
         data-slot="mock-nested-subagent-conversation"
         aria-label="Architecture Researcher conversation"
-        className="border-border/50 mt-2 border-s-2 ps-3"
+        className="border-border/60 ms-[7px] mt-1 border-s ps-5 pb-1 outline-none"
       >
-        <div className="text-foreground/70 mb-1 text-xs font-medium">
-          Architecture Researcher
-        </div>
         <MessagePartPrimitive.Messages>
           {() => <AssistantUiNestedMessage />}
         </MessagePartPrimitive.Messages>
-      </section>
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 };

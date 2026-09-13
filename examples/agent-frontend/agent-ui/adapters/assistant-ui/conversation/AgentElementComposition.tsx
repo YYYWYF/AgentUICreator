@@ -36,13 +36,9 @@ export type AssistantUiConversationPresentationMode = "live" | "history";
 
 function SubagentAggregate({
   projection,
-  mode,
 }: {
   projection: ReturnType<typeof projectSubagentToolCalls>;
-  mode: AssistantUiConversationPresentationMode;
 }) {
-  const messageStatus = useAuiState((state) => state.message.status?.type);
-
   if (projection.view === null) return null;
   return (
     <SubagentList
@@ -51,11 +47,7 @@ function SubagentAggregate({
       progress={projection.view.progress}
       showSummary={projection.view.showSummary}
       summaryAgent={projection.view.summaryAgent}
-      className={
-        mode === "live" && messageStatus === "running"
-          ? undefined
-          : "min-h-0"
-      }
+      className="min-h-0"
     />
   );
 }
@@ -125,7 +117,7 @@ export function createAssistantUiToolCallComposition(
           kind="subagent-aggregate"
           className="my-3 mb-5 w-fit max-w-full"
         >
-          <SubagentAggregate projection={projection} mode={mode} />
+          <SubagentAggregate projection={projection} />
         </CompositionFrame>
       );
     }

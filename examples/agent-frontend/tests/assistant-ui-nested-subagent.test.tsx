@@ -179,6 +179,65 @@ describe("official nested assistant-ui conversation", () => {
     ).toHaveLength(1);
   });
 
+  it("uses one nested disclosure and keeps the researcher identity singular", async () => {
+    const runtimeFixture = await mountRuntime(
+      createEventAgent(await collectScenarioEvents()),
+    );
+
+    await act(async () => {
+      await runtimeFixture.runtime.thread.append({
+        role: "user",
+        content: [{ type: "text", text: "检查 Agent UI 架构" }],
+        startRun: true,
+      });
+    });
+
+    const nestedTool = runtimeFixture.container.querySelector(
+      '[data-slot="mock-invoke-researcher-tool"]',
+    );
+    const trigger = nestedTool?.querySelector(
+      '[data-slot="mock-nested-subagent-trigger"]',
+    ) as HTMLButtonElement | null;
+    const conversation = nestedTool?.querySelector(
+      '[data-slot="mock-nested-subagent-conversation"]',
+    );
+
+    expect(nestedTool).not.toBeNull();
+    expect(trigger).not.toBeNull();
+    expect(trigger?.getAttribute("aria-expanded")).toBe("true");
+    expect(conversation).not.toBeNull();
+
+    const matches =
+      nestedTool?.textContent?.match(/Architecture Researcher/g) ?? [];
+    expect(matches).toHaveLength(1);
+    expect(
+      nestedTool?.querySelectorAll(
+        '[data-slot="mock-nested-subagent-conversation"]',
+      ),
+    ).toHaveLength(1);
+    expect(
+      nestedTool?.querySelectorAll(
+        '[data-slot="mock-nested-assistant-message"]',
+      ),
+    ).toHaveLength(1);
+
+    await act(async () => trigger?.click());
+    expect(trigger?.getAttribute("aria-expanded")).toBe("false");
+    expect(
+      nestedTool?.querySelector(
+        '[data-slot="mock-nested-subagent-conversation"]',
+      ),
+    ).toBeNull();
+
+    await act(async () => trigger?.click());
+    expect(trigger?.getAttribute("aria-expanded")).toBe("true");
+    expect(
+      nestedTool?.querySelector(
+        '[data-slot="mock-nested-subagent-conversation"]',
+      ),
+    ).not.toBeNull();
+  });
+
   it("keeps the nested researcher tool mock-only", () => {
     const productionToolkit = createAssistantUiToolkit() as Record<string, unknown>;
     const mockToolkit = createAssistantUiToolkit({ mockAgentElements: true }) as Record<string, unknown>;
