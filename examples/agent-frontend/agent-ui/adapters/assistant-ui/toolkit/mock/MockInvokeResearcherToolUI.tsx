@@ -73,14 +73,17 @@ export const MockInvokeResearcherToolUI: ToolCallMessagePartComponent<
             .filter(Boolean)
             .join(" ")}
         />
-        {running ? (
-          <Loader2Icon className="size-3.5 shrink-0 animate-spin motion-reduce:animate-none" />
-        ) : (
-          <CheckIcon className="size-3.5 shrink-0 text-emerald-500" />
-        )}
         <span className="font-medium">Architecture Researcher</span>
-        <span className="ms-auto text-xs text-muted-foreground">
-          {running ? "Working" : "Completed"}
+        <span
+          data-slot="mock-nested-subagent-status"
+          className="ms-auto flex size-4 shrink-0 items-center justify-center"
+          aria-label={running ? "Working" : "Completed"}
+        >
+          {running ? (
+            <Loader2Icon className="size-3.5 animate-spin motion-reduce:animate-none" />
+          ) : (
+            <CheckIcon className="size-3.5 text-emerald-500" />
+          )}
         </span>
       </CollapsibleTrigger>
 

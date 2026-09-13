@@ -12,11 +12,6 @@ export const nestedSubagentConversationScenario = defineScenario({
   capabilities: ["reasoning", "tool", "subagent"],
   steps: [
     {
-      type: "message",
-      text: "我把架构检查交给 Researcher 子 Agent。",
-      intervalMs: 35,
-    },
-    {
       type: "subagent-tool",
       toolCallId: "invoke-researcher-1",
       toolName: "mock_invoke_researcher",

@@ -183,6 +183,17 @@ describe("official nested assistant-ui conversation", () => {
         '[data-slot="aui_assistant-message-root"]',
       ),
     ).toHaveLength(1);
+    expect(
+      runtimeFixture.container.querySelectorAll(
+        ".aui-assistant-action-bar-root",
+      ),
+    ).toHaveLength(1);
+    expect(runtimeFixture.container.textContent).not.toContain(
+      "我把架构检查交给 Researcher 子 Agent。",
+    );
+    expect(runtimeFixture.container.textContent).toContain(
+      "Researcher 已完成架构检查，我已经收到它的结果。",
+    );
   });
 
   it("uses one nested disclosure and keeps the researcher identity singular", async () => {
