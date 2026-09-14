@@ -189,11 +189,11 @@ export async function verifyPluginChildSlots(
     for (const location of inspection.dynamic) {
       issues.push({
         code: "plugin-child-slot-dynamic-render-unsupported",
-        message: `${location.path}:${location.line}:${location.column}: Plugin "${asset.pluginId}" renders a child Slot using a dynamic identifier. Child Slot ids must use static string literals so the Plugin Manifest can be verified deterministically.`,
+        message: `${location.path}:${location.line}:${location.column}: Plugin "${asset.pluginId}" renders a child Slot using a dynamic name. Local child Slot names must use static string literals so the Plugin Manifest can be verified deterministically.`,
       });
     }
 
-    const declared = new Set(asset.childSlots ?? []);
+    const declared = new Set(Object.keys(asset.childSlots ?? {}));
     const rendered = new Set(inspection.rendered.map(({ slotId }) => slotId));
     for (const slotId of [...declared]
       .filter((id) => !rendered.has(id))

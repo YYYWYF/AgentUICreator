@@ -46,7 +46,7 @@ App.tsx
   -> conversation-surface
      -> conversation.timeline        -> agent-message-list
      -> conversation.composer        -> agent-composer
-     -> conversation.empty.*         -> welcome / suggestions
+     -> local child Slots             -> emptyWelcome / emptySuggestions
 ```
 
 `runtime-agui` 当前同时承担：`HttpAgent` 生命周期、AG-UI message/input 映射、message/reasoning/tool/step/subagent projection、run 状态、abort、新 thread、structured interrupt、Frontend Tool 协调、Tool continuation 和 Custom Event wire boundary。`runtime-core` 提供协议无关的 snapshot、actions、message/execution/interrupt/event/tool contracts。`runtime-react` 只拥有 Layout language 与确定性 `LayoutRenderer`，不属于 Conversation Domain。
@@ -226,8 +226,8 @@ All current Slots remain. No icon, border, chevron, spinner, label or button fra
 | AgentUICreator Slot | assistant-ui capability | Native support | Override support at baseline | Integration recommendation |
 | --- | --- | --- | --- | --- |
 | `workspace.conversation` | whole conversation surface | Thread | whole Thread composition | Keep `conversation-surface`; mount adapter internally |
-| `conversation.empty.welcome` | Thread welcome | Yes | `ThreadComponents.Welcome` | Direct adapter override |
-| `conversation.empty.suggestions` | new-thread suggestions | Yes | No dedicated typed override | Adapter wrapper first; minimal recorded seam only if required |
+| `conversation-surface.emptyWelcome` (local Slot `emptyWelcome`) | Thread welcome | Yes | `ThreadComponents.Welcome` | Direct adapter override |
+| `conversation-surface.emptySuggestions` (local Slot `emptySuggestions`) | new-thread suggestions | Yes | No dedicated typed override | Adapter wrapper first; minimal recorded seam only if required |
 | `conversation.timeline` | Thread viewport/messages | Yes | Whole `AssistantMessage`, grouped parts | Adapter owns timeline outlet around Thread anatomy |
 | `conversation.composer` | Composer | Yes | No dedicated Thread override | Adapter wrapper first; minimal recorded seam only if required |
 | `conversation.message.reasoning` | reasoning part/group | Yes | `ReasoningGroup` plus primitives | Message-part adapter |

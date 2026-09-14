@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 
-import type { PluginInstance } from "../../framework/contracts/app-ui-model";
+import type { AppUIRuntimePluginInstance } from "../../framework/contracts/app-ui-runtime-model";
 import type {
   UIPluginDefinition,
   UIPluginRenderSlotOptions,
@@ -23,8 +23,8 @@ import {
 } from "./PluginServiceRuntime";
 
 function createPropsResetKey(
-  props: PluginInstance["props"],
-): string | PluginInstance["props"] {
+  props: AppUIRuntimePluginInstance["props"],
+): string | AppUIRuntimePluginInstance["props"] {
   try {
     return JSON.stringify(props ?? null);
   } catch {
@@ -59,7 +59,7 @@ function RuntimePluginMountProbe({
 }
 
 export interface PluginInstanceRendererProps<TState = unknown> {
-  instance: PluginInstance;
+  instance: AppUIRuntimePluginInstance;
   definition: UIPluginDefinition<TState>;
   activation: Extract<PluginActivationState, { status: "active" }>;
   events: UIPluginEvents;

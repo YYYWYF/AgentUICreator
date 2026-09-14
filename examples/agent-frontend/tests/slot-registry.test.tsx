@@ -1,7 +1,7 @@
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import {
   createPluginRegistry,
   PluginServiceRuntime,
@@ -162,7 +162,7 @@ describe("Layout Slot declarations", () => {
 
   it("binds a mounted Layout SlotNode to declaration lifetime", async () => {
     const serviceRuntime = new PluginServiceRuntime();
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: {
         type: "slot",

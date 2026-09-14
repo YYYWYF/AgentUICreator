@@ -9,10 +9,13 @@ import {
 } from "typescript/unstable/ast/is";
 import { API, ModifierFlags } from "typescript/unstable/sync";
 
-import type { AppUIModel } from "../../framework/contracts/app-ui-model";
+import {
+  collectAppUIPluginLocations,
+  type AppUIModel,
+} from "../../framework/contracts/app-ui-model";
+import { AppUICompilerError, compileAppUIModel } from "../../framework/contracts/app-ui-compiler";
 import {
   AppUICompositionError,
-  validateAppUIComposition,
   type PluginSlotCatalog,
   type PluginCompositionCatalog,
 } from "../../framework/contracts/app-ui-composition";
@@ -92,7 +95,7 @@ export async function generatePluginRegistry(
   const errors: ProjectIssue[] = [...inventory.errors];
   const selectedPluginIds = [
     ...new Set(
-      Object.values(model.pluginInstances).map((instance) => instance.pluginId),
+      collectAppUIPluginLocations(model).map(({ plugin }) => plugin.pluginId),
     ),
   ].sort();
   const assetsById = new Map<string, PluginAsset[]>();
@@ -104,13 +107,13 @@ export async function generatePluginRegistry(
   }
 
   const registeredAssets: PluginAsset[] = [];
-  const slotCatalogEntries: Array<readonly [string, readonly string[]]> = [];
+  const slotCatalogEntries: Array<readonly [string, NonNullable<PluginAsset["childSlots"]>]> = [];
   for (const pluginId of selectedPluginIds) {
     const matches = assetsById.get(pluginId) ?? [];
     if (matches.length === 1) {
       slotCatalogEntries.push([
         pluginId,
-        [...(matches[0]?.childSlots ?? [])],
+        matches[0]?.childSlots ?? {},
       ]);
     }
   }
@@ -205,39 +208,35 @@ export async function generatePluginRegistry(
   const hasSelectedGate = registeredAssets.some(
     (asset) => asset.applicationGate !== undefined,
   );
-  let compositionCatalog: PluginCompositionCatalog = slotCatalog;
-  if (hasSelectedGate) {
-    const declarations = analyzePluginServiceDeclarations(
-      projectRoot,
-      registeredAssets,
-    );
-    errors.push(...declarations.issues);
-    const declarationsByPluginId = new Map(
-      declarations.plugins.map((declaration) => [declaration.pluginId, declaration]),
-    );
-    compositionCatalog = Object.fromEntries(
-      registeredAssets.map((asset) => {
-        const declaration = declarationsByPluginId.get(asset.pluginId);
-        return [
-          asset.pluginId,
-          {
-            childSlots: asset.childSlots ?? [],
-            ...(asset.applicationGate === undefined
-              ? {}
-              : { applicationGate: asset.applicationGate }),
-            capabilities: asset.capabilities,
-            provides: declaration?.provides ?? [],
-            inject: declaration?.inject ?? [],
-          },
-        ] as const;
-      }),
-    );
-  }
+  const declarations = hasSelectedGate
+    ? analyzePluginServiceDeclarations(projectRoot, registeredAssets)
+    : { plugins: [], issues: [] };
+  errors.push(...declarations.issues);
+  const declarationsByPluginId = new Map(
+    declarations.plugins.map((declaration) => [declaration.pluginId, declaration]),
+  );
+  const compositionCatalog: PluginCompositionCatalog = Object.fromEntries(
+    registeredAssets.map((asset) => {
+      const declaration = declarationsByPluginId.get(asset.pluginId);
+      return [
+        asset.pluginId,
+        {
+          childSlots: asset.childSlots ?? {},
+          ...(asset.applicationGate === undefined
+            ? {}
+            : { applicationGate: asset.applicationGate }),
+          capabilities: asset.capabilities,
+          provides: declaration?.provides ?? [],
+          inject: declaration?.inject ?? [],
+        },
+      ] as const;
+    }),
+  );
 
   try {
-    validateAppUIComposition(model, compositionCatalog);
+    compileAppUIModel(model, compositionCatalog);
   } catch (error) {
-    if (error instanceof AppUICompositionError) {
+    if (error instanceof AppUICompositionError || error instanceof AppUICompilerError) {
       errors.push(...error.issues);
     } else {
       throw error;
@@ -252,6 +251,7 @@ export async function generatePluginRegistry(
       .filter((asset) => asset.capabilities.includes("headless"))
       .map((asset) => asset.pluginId),
     slotCatalog,
+    compositionCatalog,
     assets: inventory.assets,
     errors,
   };

@@ -41,7 +41,10 @@ from test_domain_write_grounding import (
     REGISTRY_PATH,
     GroundingClient,
     GroundingScriptModel,
+    apply_authoring_operation,
+    authoring_plugins,
     call,
+    layout_slot,
     project_files,
 )
 
@@ -52,13 +55,13 @@ def batch(*calls):
 
 OPERATIONS = [
     {
-        "type": "add_instance",
-        "instance": {
+        "type": "insert_plugin",
+        "plugin": {
             "id": "session-manager-restored",
             "pluginId": "session-manager",
             "enabled": True,
-            "mount": {"slotId": "sidebar.right"},
         },
+        "target": {"type": "layout_slot", "slotNodeId": "sidebar-right"},
     },
 ]
 
@@ -109,7 +112,14 @@ class BatchClient(GroundingClient):
     async def inspect_ui_plugin(self, plugin_id):
         await self.read_barrier("inspect_ui_plugin")
         self.record("inspect_ui_plugin", {"pluginId": plugin_id})
-        return {"pluginId": plugin_id, "instances": list(self.model()["pluginInstances"].values())}
+        return {
+            "pluginId": plugin_id,
+            "instances": [
+                plugin
+                for plugin in authoring_plugins(self.model())
+                if plugin["pluginId"] == plugin_id
+            ],
+        }
 
     async def inspect_ui_slots(self, *, root=None):
         await self.read_barrier("inspect_ui_slots")
@@ -124,18 +134,7 @@ class BatchClient(GroundingClient):
         before_hash = self.hash()
         model = self.model()
         for operation in input["operations"]:
-            kind = operation["type"]
-            if kind == "add_instance":
-                instance = copy.deepcopy(operation["instance"])
-                model["pluginInstances"][instance["id"]] = instance
-            elif kind == "set_instance_enabled":
-                model["pluginInstances"][operation["instanceId"]]["enabled"] = operation["enabled"]
-            elif kind in {"mount_instance", "move_instance"}:
-                model["pluginInstances"][operation["instanceId"]]["mount"] = {
-                    "slotId": operation["slotId"]
-                }
-            else:
-                raise AssertionError(f"Unexpected scripted operation: {kind}")
+            apply_authoring_operation(model, operation)
         (self.root / APP_UI_MODEL_PATH).write_text(json.dumps(model) + "\n", encoding="utf-8")
         changed = before_hash != self.hash()
         return {
@@ -391,7 +390,9 @@ def test_restore_round_trip_budget_one_atomic_mutation_without_confirmation_read
         if isinstance(item, ToolMessage) and item.tool_call_id == "mutation-1"
     )
     assert json.loads(mutation_result.content)["ok"] is True
-    assert client.model()["pluginInstances"]["session-manager-restored"]["mount"] == {"slotId": "sidebar.right"}
+    assert layout_slot(client.model(), "sidebar-right")["plugins"][0]["id"] == (
+        "session-manager-restored"
+    )
     assert receipt["files"][0]["path"] == APP_UI_MODEL_PATH
     assert receipt["transaction"]["undoable"] is True
     assert receipt["verification"]["status"] == "failed"

@@ -79,7 +79,7 @@ print(json.dumps({"schemaVersion": 3, "ok": True, "result": request}))
         "appUIModelHash": "a" * 64,
         "operations": [
             {
-                "type": "set_instance_enabled",
+                "type": "set_plugin_enabled",
                 "instanceId": "sample-main",
                 "enabled": False,
             }

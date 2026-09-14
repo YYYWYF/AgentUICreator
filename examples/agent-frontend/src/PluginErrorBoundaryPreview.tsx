@@ -2,13 +2,18 @@ import { Component, useMemo, useState } from "react";
 import { createAgentRuntime } from "@agent-ui/runtime-core";
 import { MockAgentTransport } from "@agent-ui/runtime-core/testing";
 
-import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { compileAppUIModel } from "../framework/contracts/app-ui-compiler";
+import {
+  parseAppUIModel,
+  type AppUIPluginNode,
+} from "../framework/contracts/app-ui-model";
 import type {
   UIPluginComponentProps,
   UIPluginDefinition,
 } from "../framework/contracts/ui-plugin";
 import {
   createPluginRegistry,
+  createPluginCompositionCatalog,
   UIPluginRuntime,
   type UIPluginRuntimeActions,
 } from "../runtime/plugins";
@@ -86,54 +91,32 @@ const previewAgentRuntime = createAgentRuntime({
 });
 
 function createPreviewModel(state: PreviewState) {
-  if (state === "none") {
-    return parseAppUIModel({
-      version: "2",
-      root: {
-        type: "slot",
-        id: "runtime-fault-fixture-slot-node",
-        slotId: "runtime-fault-fixture",
-      },
-      pluginInstances: {},
+  const plugins: AppUIPluginNode[] = [];
+  if (state === "render-error" || state === "both" || state === "repaired") {
+    plugins.push({
+      id: "preview-render-failure-main",
+      pluginId: "preview-render-failure",
+      enabled: true,
+      props: { shouldFail: state !== "repaired" },
+    });
+  }
+  if (state === "mount-error" || state === "both") {
+    plugins.push({
+      id: "preview-mount-failure-main",
+      pluginId: "preview-mount-failure",
+      enabled: true,
     });
   }
 
-  const mountedInstanceIds: string[] = [];
-
-  if (state === "render-error" || state === "both" || state === "repaired") {
-    mountedInstanceIds.push("preview-render-failure-main");
-  }
-  if (state === "mount-error" || state === "both") {
-    mountedInstanceIds.push("preview-mount-failure-main");
-  }
-
-  return parseAppUIModel({
-    version: "2",
+  return compileAppUIModel(parseAppUIModel({
+    version: "3",
     root: {
       type: "slot",
-      id: "runtime-fault-fixture-slot-node",
-      slotId: "runtime-fault-fixture",
+      id: "runtime-fault-fixture",
+      description: "Development-only Plugin Error Boundary fixture.",
+      plugins,
     },
-    pluginInstances: {
-      "preview-render-failure-main": {
-        id: "preview-render-failure-main",
-        pluginId: "preview-render-failure",
-        enabled: true,
-        ...(mountedInstanceIds.includes("preview-render-failure-main")
-          ? { mount: { slotId: "runtime-fault-fixture", order: 0 } }
-          : {}),
-        props: { shouldFail: state !== "repaired" },
-      },
-      "preview-mount-failure-main": {
-        id: "preview-mount-failure-main",
-        pluginId: "preview-mount-failure",
-        enabled: true,
-        ...(mountedInstanceIds.includes("preview-mount-failure-main")
-          ? { mount: { slotId: "runtime-fault-fixture", order: 1 } }
-          : {}),
-      },
-    },
-  });
+  }), createPluginCompositionCatalog(previewRegistry));
 }
 
 function RuntimeFaultFixture({ model }: { model: ReturnType<typeof createPreviewModel> }) {

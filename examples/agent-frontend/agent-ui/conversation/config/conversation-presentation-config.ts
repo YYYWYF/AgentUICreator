@@ -1,4 +1,4 @@
-import type { AppUIModel } from "../../../framework/contracts/app-ui-model";
+import type { AppUIRuntimeModel } from "../../../framework/contracts/app-ui-runtime-model";
 
 export interface ConversationWelcomeConfig {
   title?: string;
@@ -32,7 +32,7 @@ function readWelcome(value: unknown): ConversationWelcomeConfig {
 }
 
 export function resolveConversationPresentationConfig(
-  model: AppUIModel,
+  model: AppUIRuntimeModel,
 ): ConversationPresentationConfig {
   const surfaceProps = model.pluginInstances[
     "agent-conversation-surface-main"

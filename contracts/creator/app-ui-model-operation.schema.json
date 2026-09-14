@@ -1,13 +1,61 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agent-ui.local/contracts/app-ui-model-operation.schema.json",
-  "title": "AppUIModel operation",
+  "title": "AppUIModel v3 operation",
   "$defs": {
     "nonBlankString": { "type": "string", "minLength": 1, "maxLength": 200 },
     "layoutSize": {
       "oneOf": [
         { "type": "number", "minimum": 0 },
         { "$ref": "#/$defs/nonBlankString" }
+      ]
+    },
+    "plugin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "pluginId", "enabled"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonBlankString" },
+        "pluginId": { "$ref": "#/$defs/nonBlankString" },
+        "enabled": { "type": "boolean" },
+        "props": { "type": "object" },
+        "slots": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/nonBlankString" },
+          "additionalProperties": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/plugin" }
+          }
+        }
+      }
+    },
+    "target": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": { "type": { "const": "application" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "slotNodeId"],
+          "properties": {
+            "type": { "const": "layout_slot" },
+            "slotNodeId": { "$ref": "#/$defs/nonBlankString" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "parentInstanceId", "slot"],
+          "properties": {
+            "type": { "const": "plugin_slot" },
+            "parentInstanceId": { "$ref": "#/$defs/nonBlankString" },
+            "slot": { "$ref": "#/$defs/nonBlankString" }
+          }
+        }
       ]
     },
     "layoutNode": {
@@ -53,34 +101,15 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["type", "id", "slotId"],
+          "required": ["type", "id", "description", "plugins"],
           "properties": {
             "type": { "const": "slot" },
             "id": { "$ref": "#/$defs/nonBlankString" },
-            "slotId": { "$ref": "#/$defs/nonBlankString" }
+            "description": { "$ref": "#/$defs/nonBlankString" },
+            "plugins": { "type": "array", "items": { "$ref": "#/$defs/plugin" } }
           }
         }
       ]
-    },
-    "pluginInstance": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["id", "pluginId", "enabled"],
-      "properties": {
-        "id": { "$ref": "#/$defs/nonBlankString" },
-        "pluginId": { "$ref": "#/$defs/nonBlankString" },
-        "enabled": { "type": "boolean" },
-        "mount": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["slotId"],
-          "properties": {
-            "slotId": { "$ref": "#/$defs/nonBlankString" },
-            "order": { "type": "number" }
-          }
-        },
-        "props": { "type": "object" }
-      }
     },
     "index": { "type": "integer", "minimum": 0 },
     "removeKeys": {
@@ -93,15 +122,50 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "instance"],
-      "properties": { "type": { "const": "add_instance" }, "instance": { "$ref": "#/$defs/pluginInstance" } }
+      "required": ["type", "plugin", "target"],
+      "properties": {
+        "type": { "const": "insert_plugin" },
+        "plugin": { "$ref": "#/$defs/plugin" },
+        "target": { "$ref": "#/$defs/target" },
+        "index": { "$ref": "#/$defs/index" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "instanceId", "target"],
+      "properties": {
+        "type": { "const": "move_plugin" },
+        "instanceId": { "$ref": "#/$defs/nonBlankString" },
+        "target": { "$ref": "#/$defs/target" },
+        "index": { "$ref": "#/$defs/index" }
+      }
     },
     {
       "type": "object",
       "additionalProperties": false,
       "required": ["type", "instanceId"],
       "properties": {
-        "type": { "const": "update_instance_props" },
+        "type": { "const": "remove_plugin" },
+        "instanceId": { "$ref": "#/$defs/nonBlankString" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "instanceId", "replacement"],
+      "properties": {
+        "type": { "const": "replace_plugin" },
+        "instanceId": { "$ref": "#/$defs/nonBlankString" },
+        "replacement": { "$ref": "#/$defs/plugin" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "instanceId"],
+      "properties": {
+        "type": { "const": "update_plugin_props" },
         "instanceId": { "$ref": "#/$defs/nonBlankString" },
         "set": { "type": "object" },
         "removeKeys": { "$ref": "#/$defs/removeKeys" }
@@ -112,43 +176,9 @@
       "additionalProperties": false,
       "required": ["type", "instanceId", "enabled"],
       "properties": {
-        "type": { "const": "set_instance_enabled" },
+        "type": { "const": "set_plugin_enabled" },
         "instanceId": { "$ref": "#/$defs/nonBlankString" },
         "enabled": { "type": "boolean" }
-      }
-    },
-    {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["type", "instanceId", "slotId"],
-      "properties": {
-        "type": { "enum": ["mount_instance", "move_instance"] },
-        "instanceId": { "$ref": "#/$defs/nonBlankString" },
-        "slotId": { "$ref": "#/$defs/nonBlankString" },
-        "index": { "$ref": "#/$defs/index" },
-        "order": { "type": "number" }
-      }
-    },
-    {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["type", "instanceId"],
-      "properties": {
-        "type": { "enum": ["unmount_instance", "remove_instance"] },
-        "instanceId": { "$ref": "#/$defs/nonBlankString" }
-      }
-    },
-    {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["type", "instanceId", "replacement"],
-      "properties": {
-        "type": { "const": "replace_instance" },
-        "instanceId": { "$ref": "#/$defs/nonBlankString" },
-        "replacement": { "$ref": "#/$defs/pluginInstance" },
-        "slotId": { "$ref": "#/$defs/nonBlankString" },
-        "index": { "$ref": "#/$defs/index" },
-        "order": { "type": "number" }
       }
     },
     {

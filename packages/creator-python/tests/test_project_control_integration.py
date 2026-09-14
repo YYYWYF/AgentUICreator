@@ -25,6 +25,34 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 TARGET_PROJECT = REPOSITORY_ROOT / "examples" / "agent-frontend"
 
 
+def _authoring_plugins(model):
+    result = []
+
+    def visit_plugins(plugins):
+        for plugin in plugins:
+            result.append(plugin)
+            for children in plugin.get("slots", {}).values():
+                visit_plugins(children)
+
+    visit_plugins(model.get("applicationPlugins", []))
+
+    def visit_layout(node):
+        if node["type"] == "slot":
+            visit_plugins(node["plugins"])
+        elif node["type"] == "panel":
+            visit_layout(node["child"])
+        else:
+            for child in node["children"]:
+                visit_layout(child)
+
+    visit_layout(model["root"])
+    return result
+
+
+def _find_plugin(model, instance_id):
+    return next(plugin for plugin in _authoring_plugins(model) if plugin["id"] == instance_id)
+
+
 def _copy_target(tmp_path: Path, name: str) -> Path:
     project_root = tmp_path / name
     shutil.copytree(
@@ -80,14 +108,14 @@ def test_real_target_mutation_uses_temp_copy_and_python_transaction(tmp_path):
         project_root, "python-real-target-mutation"
     )
     inspection = asyncio.run(client.inspect_app_ui_model())
-    instance_id = next(iter(inspection["model"]["pluginInstances"]))
+    instance_id = _authoring_plugins(inspection["model"])[0]["id"]
 
     result = asyncio.run(
         service.mutate(
             app_ui_model_hash=inspection["hash"],
             operations=[
                 {
-                    "type": "update_instance_props",
+                    "type": "update_plugin_props",
                     "instanceId": instance_id,
                     "set": {"phase3B2Integration": True},
                 }
@@ -118,14 +146,14 @@ def test_real_agent_tools_inspect_once_then_mutate_with_host_owned_hash(tmp_path
     mutation_tool = create_app_ui_model_mutation_tool(service, observations)
 
     inspection = json.loads(asyncio.run(read_tools[1].ainvoke({})))
-    instance_id = next(iter(inspection["result"]["model"]["pluginInstances"]))
+    instance_id = _authoring_plugins(inspection["result"]["model"])[0]["id"]
     mutation = json.loads(
         asyncio.run(
             mutation_tool.ainvoke(
                 {
                     "operations": [
                         {
-                            "type": "update_instance_props",
+                            "type": "update_plugin_props",
                             "instanceId": instance_id,
                             "set": {"hostOwnedHashIntegration": True},
                         }
@@ -146,10 +174,10 @@ def test_real_agent_tools_inspect_once_then_mutate_with_host_owned_hash(tmp_path
     assert observations.metrics.hashReuses == 1
 
 
-def test_real_add_instance_updates_app_ui_and_registry_and_is_undoable(tmp_path):
+def test_real_insert_plugin_updates_app_ui_and_registry_and_is_undoable(tmp_path):
     run_id = "python-real-app-ui-registry-undo"
     instance_id = "agent-activity-feed-main"
-    plugin_id = "antd-x-activity-feed"
+    plugin_id = "test-unselected-theme-switch"
     changed_paths = {APP_UI_MODEL_PATH, REGISTRY_PATH}
     source_app_ui_path = TARGET_PROJECT / APP_UI_MODEL_PATH
     source_registry_path = TARGET_PROJECT / REGISTRY_PATH
@@ -157,6 +185,13 @@ def test_real_add_instance_updates_app_ui_and_registry_and_is_undoable(tmp_path)
     source_registry_content = source_registry_path.read_bytes()
 
     project_root = _copy_target(tmp_path, "real-app-ui-registry-undo")
+    plugin_root = project_root / "plugins" / plugin_id
+    shutil.copytree(project_root / "plugins" / "theme-switch", plugin_root)
+    manifest_path = plugin_root / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["id"] = plugin_id
+    manifest["name"] = "Test unselected theme switch"
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     app_ui_path = project_root / APP_UI_MODEL_PATH
     registry_path = project_root / REGISTRY_PATH
     original_app_ui_content = app_ui_path.read_bytes()
@@ -174,10 +209,10 @@ def test_real_add_instance_updates_app_ui_and_registry_and_is_undoable(tmp_path)
         if asset["pluginId"] == plugin_id
     ]
     assert len(matching_assets) == 1, (
-        "Real two-path fixture drifted: antd-x-activity-feed must exist as exactly "
+        "Real two-path fixture drifted: the temporary plugin must exist as exactly "
         "one Plugin asset."
     )
-    assert instance_id not in before["model"]["pluginInstances"], (
+    assert all(plugin["id"] != instance_id for plugin in _authoring_plugins(before["model"])), (
         "Real two-path fixture drifted: agent-activity-feed-main must be absent "
         "from AppUIModel."
     )
@@ -187,17 +222,17 @@ def test_real_add_instance_updates_app_ui_and_registry_and_is_undoable(tmp_path)
     )
     assert plugin_id not in original_registry_content.decode("utf-8"), (
         "Real two-path fixture drifted: registry.generated.ts must not contain "
-        "antd-x-activity-feed."
+        "the temporary plugin."
     )
 
     operation = {
-        "type": "add_instance",
-        "instance": {
+        "type": "insert_plugin",
+        "plugin": {
             "id": instance_id,
             "pluginId": plugin_id,
             "enabled": True,
-            "mount": {"slotId": "inspector.activity"},
         },
+        "target": {"type": "layout_slot", "slotNodeId": "theme-control"},
     }
     result = asyncio.run(
         service.mutate(
@@ -208,7 +243,7 @@ def test_real_add_instance_updates_app_ui_and_registry_and_is_undoable(tmp_path)
     target_result = result.target_result
     after = asyncio.run(client.inspect_app_ui_model())
     after_project = asyncio.run(client.inspect_ui_project())
-    added_instance = after["model"]["pluginInstances"][instance_id]
+    added_instance = _find_plugin(after["model"], instance_id)
     registry_state = read_creator_file_state(project_root, REGISTRY_PATH)
     registry_content = registry_path.read_text(encoding="utf-8")
 
@@ -216,7 +251,7 @@ def test_real_add_instance_updates_app_ui_and_registry_and_is_undoable(tmp_path)
     assert set(target_result["changedPaths"]) == changed_paths
     assert result.mutation_revision == 2
     assert activity.revision == 2
-    assert added_instance == operation["instance"]
+    assert added_instance == operation["plugin"]
     assert plugin_id in after_project["registry"]["selectedPluginIds"]
     assert plugin_id in after_project["registry"]["registeredPluginIds"]
     assert after_project["registry"]["generatedFileFresh"] is True
@@ -255,7 +290,7 @@ def test_real_add_instance_updates_app_ui_and_registry_and_is_undoable(tmp_path)
 
     restored = asyncio.run(client.inspect_app_ui_model())
     assert restored["hash"] == before["hash"]
-    assert instance_id not in restored["model"]["pluginInstances"]
+    assert all(plugin["id"] != instance_id for plugin in _authoring_plugins(restored["model"]))
     assert (
         read_creator_file_state(project_root, REGISTRY_PATH).hash
         == original_registry_hash
@@ -274,17 +309,21 @@ def test_real_target_invalid_operation_and_registry_failure_leave_disk_unchanged
 
     for operations, expected_code in [
         (
-            [{"type": "remove_instance", "instanceId": "missing-phase-3b2"}],
-            "PLUGIN_INSTANCE_NOT_FOUND",
+            [{"type": "remove_plugin", "instanceId": "missing-phase-3b2"}],
+            "PLUGIN_NOT_FOUND",
         ),
         (
             [
                 {
-                    "type": "add_instance",
-                    "instance": {
+                    "type": "insert_plugin",
+                    "plugin": {
                         "id": "missing-plugin-instance",
                         "pluginId": "missing-phase-3b2-plugin",
                         "enabled": False,
+                    },
+                    "target": {
+                        "type": "layout_slot",
+                        "slotNodeId": "conversation-navigation",
                     },
                 }
             ],

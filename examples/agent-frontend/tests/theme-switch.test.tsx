@@ -8,7 +8,7 @@ import {
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Button } from "@agent-ui/react";
-import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import { PluginInstanceProvider } from "../runtime/context";
 import { createInstanceActions } from "../runtime/plugins/PluginServiceRuntime";
 import {
@@ -23,7 +23,7 @@ import { themeSwitchPlugin } from "../plugins/theme-switch/definition";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;
 
-const model = parseAppUIModel({
+const model = parseAppUIRuntimeModel({
   version: "2",
   root: { type: "slot", id: "theme-switch-root", slotId: "theme-controls" },
   pluginInstances: {

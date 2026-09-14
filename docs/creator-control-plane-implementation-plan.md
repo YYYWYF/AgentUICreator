@@ -52,7 +52,7 @@
 
 ### 3.2 已知基线问题
 
-`mount === undefined` 现在明确表示没有普通 UI mount；只有带 `mount` 的普通 UI Plugin 或声明为 headless 的 Plugin 会进入 activation graph。实施人员不得为了让检查通过擅自删除实例或 Plugin 源码。
+AppUIModel v3 不暴露 Runtime mount。视觉 Plugin 直接位于 Layout Slot 或 parent Plugin 的 local Slot 中；headless Plugin 与 Application Gate 位于顶层 `applicationPlugins`。Runtime mount 只存在于 `compileAppUIModel()` 生成的 AppUIRuntimeModel，实施人员不得为了让检查通过擅自删除 authoring node 或 Plugin 源码。
 
 ### 3.3 工作树保护
 
@@ -100,7 +100,9 @@ expectedAppUIModelHash
   ↓
 完整 Schema / 关系校验
   ↓
-根据全部 PluginInstance 生成 Registry source
+根据全部 authoring plugin node 生成 Registry source
+  ↓
+compileAppUIModel() 并执行 Runtime composition validation
   ↓
 计算结构化 diff
   ↓
@@ -141,23 +143,25 @@ interface CreatorProjectSnapshot {
     version: string
     layout: CompactLayoutNode
     slots: Array<{
-      slotId: string
-      nodeId: string
-      nodePath: string
-      mounts: Array<{
-        instanceId: string
-        pluginId: string
-        enabled: boolean
-        order?: number
-      }>
+      target:
+        | { type: "layout_slot"; slotNodeId: string }
+        | { type: "plugin_slot"; parentInstanceId: string; slot: string }
+      description: string
+      cardinality: "one" | "many"
+      optional: boolean
+      plugins: AppUIPluginNode[]
     }>
   }
-  pluginInstances: Array<{
+  plugins: Array<{
     id: string
     pluginId: string
     enabled: boolean
-    mount?: { slotId: string; order?: number }
-    mountedSlotId?: string
+    target:
+      | { type: "application" }
+      | { type: "layout_slot"; slotNodeId: string }
+      | { type: "plugin_slot"; parentInstanceId: string; slot: string }
+    path: string
+    index: number
   }>
   registry: {
     selectedPluginIds: string[]
@@ -198,14 +202,12 @@ interface MutateAppUIModelInput {
 }
 
 type AppUIOperation =
-  | AddInstanceOperation
-  | UpdateInstancePropsOperation
-  | SetInstanceEnabledOperation
-  | MountInstanceOperation
-  | UnmountInstanceOperation
-  | MoveInstanceOperation
-  | ReplaceInstanceOperation
-  | RemoveInstanceOperation
+  | InsertPluginOperation
+  | UpdatePluginPropsOperation
+  | SetPluginEnabledOperation
+  | MovePluginOperation
+  | ReplacePluginOperation
+  | RemovePluginOperation
   | InsertLayoutNodeOperation
   | UpdateLayoutNodePropsOperation
   | MoveLayoutNodeOperation
@@ -215,13 +217,14 @@ type AppUIOperation =
 
 关键行为：
 
-- `update_instance_props` 使用显式 `set` 与 `removeKeys`，不接受含糊的递归 merge；
-- `mount_instance` 指定 `slotId` 和可选插入位置；
-- `move_instance` 在一个操作内完成旧 Slot 卸载和新 Slot 挂载；
-- `replace_instance` 保证新实例建好并挂载后才删除旧实例；
-- 删除带已挂载实例的 Layout 子树时，若同一 transaction 没有处理受影响实例则拒绝；
+- `insert_plugin` 接受完整 plugin node、authoring target 和可选数组位置；
+- `update_plugin_props` 使用显式 `set` 与 `removeKeys`，不接受含糊的递归 merge；
+- `move_plugin` 在一个操作内移动完整 plugin subtree；
+- `replace_plugin` 在原位置原子替换完整 plugin subtree；
+- target 只能是 application、Layout Slot node 或 parent Plugin 的 local Slot，不能传 Runtime slot id 或 mount；
+- 删除带 Plugin 的 Layout 子树时，若同一 transaction 没有处理受影响 plugin node 则拒绝；
 - 任一中间状态可以暂时不完整，但 operations 全部应用后的最终模型必须完整有效；
-- enabled 的非 headless 实例最终必须被挂载；disabled 实例允许未挂载；
+- visual Plugin 位于 visual tree，headless/Gate Plugin 位于 `applicationPlugins`；
 - 工具结果返回新 hash、revision、归一化 operations、模型 diff、Registry diff 和 warnings。
 
 ### 5.3 Registry generator
@@ -241,7 +244,7 @@ generatePluginRegistry(projectRoot, appUIModel): Promise<GenerateRegistryResult>
 
 生成规则：
 
-1. 从 `pluginInstances` 收集全部唯一 `pluginId`，不按 enabled 或挂载状态过滤；
+1. 从 `applicationPlugins` 与 Layout/nested Plugin tree 收集全部唯一 `pluginId`，不按 enabled 状态过滤；
 2. 扫描一级 `plugins/*/manifest.json` 建立 id 到目录映射；
 3. 要求被选中目录包含 `definition.ts`；
 4. 生成按 plugin id 稳定排序的 default imports；
@@ -459,7 +462,7 @@ packages/creator/src/PythonCreatorClient.ts
 
 测试矩阵：
 
-- Slot、instance、mount path 和 headless 状态准确；
+- authoring Slot、plugin target/path 和 application scope 状态准确；
 - Registry stale 状态准确；
 - UI 栈版本来自目标 `package.json` / lockfile 可用信息，而非猜测；
 - 超大 props 和大量 assets 不突破快照上限；
@@ -593,9 +596,9 @@ packages/creator/src/ui/CreatorWorkbench.tsx
 
 普通语义通过 Phase 3 operations 完成：
 
-- 隐藏：`unmount_instance + set_instance_enabled(false)`；
-- 移除功能：`unmount_instance + remove_instance`；
-- 替换：`add/mount new + unmount/remove old` 的单 transaction；
+- 隐藏：`set_plugin_enabled(false)`，保留原 authoring 位置；
+- 移除功能：`remove_plugin`；
+- 替换：`replace_plugin`；
 - 源码保留是默认行为。
 
 源码删除建议新增：
@@ -783,11 +786,11 @@ packages/creator-python/tests/test_model_factory.py
 
 验收场景：
 
-1. “右边增加工具详情”：快照定位布局，必要时创建 Plugin，事务增加实例和 Slot，Registry 自动生成；
+1. “右边增加工具详情”：快照定位布局，必要时创建 Plugin，事务把 plugin node 插入目标 Slot，Registry 自动生成；
 2. “右边太宽”：只修改 Layout，无 Plugin source diff；
-3. “这个先不要显示”：unmount + disabled，源码保留；
-4. “移除这个功能”：instance 消失，最后一个实例时 Registry import 消失，源码保留；
-5. “换成历史会话”：Creator 通过快照定位候选，新旧实例在一个 transaction 中替换；
+3. “这个先不要显示”：plugin node disabled 并保留位置，源码保留；
+4. “移除这个功能”：plugin node 消失，最后一个引用移除时 Registry import 消失，源码保留；
+5. “换成历史会话”：Creator 通过快照定位候选，在一个 transaction 中 `replace_plugin`；
 6. “代码也删掉”：若原请求没有明确范围则询问一次，确认后受限删除；
 7. 人工在 Creator 读取后修改同一文件：Creator stale-version 拒绝覆盖；
 8. 撤销前人工又修改文件：undo 整体拒绝；

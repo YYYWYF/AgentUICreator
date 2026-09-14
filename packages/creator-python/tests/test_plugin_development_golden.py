@@ -127,9 +127,14 @@ def make_project(tmp_path: Path) -> Path:
     (tmp_path / APP_UI_MODEL_PATH).write_text(
         json.dumps(
             {
-                "version": "2",
-                "pluginInstances": {},
-                "layout": {"type": "Slot", "id": "root", "slotId": "right.status"},
+                "version": "3",
+                "applicationPlugins": [],
+                "root": {
+                    "type": "slot",
+                    "id": "right-status",
+                    "description": "Right-side status content.",
+                    "plugins": [],
+                },
             }
         )
         + "\n",
@@ -145,6 +150,10 @@ def make_project(tmp_path: Path) -> Path:
         "export function Example() { return <section />; }\n", encoding="utf-8"
     )
     return tmp_path
+
+
+def model_plugins(model):
+    return [*model.get("applicationPlugins", []), *model["root"]["plugins"]]
 
 
 class PluginProjectControl:
@@ -206,7 +215,13 @@ class PluginProjectControl:
         self.record("inspect_ui_slots")
         return {
             "appUIModelHash": self.hash(),
-            "slots": [{"slotId": "right.status", "occupants": []}],
+            "slots": [{
+                "target": {"type": "layout_slot", "slotNodeId": "right-status"},
+                "description": "Right-side status content.",
+                "cardinality": "many",
+                "optional": True,
+                "plugins": copy.deepcopy(self.model()["root"]["plugins"]),
+            }],
         }
 
     async def inspect_app_ui_model(self):
@@ -217,7 +232,7 @@ class PluginProjectControl:
         self.record("inspect_ui_project")
         return {
             "appUIModel": {"hash": self.hash(), "model": self.model()},
-            "pluginInstances": list(self.model()["pluginInstances"].values()),
+            "plugins": model_plugins(self.model()),
         }
 
     async def inspect_ui_plugin_source_references(self, plugin_id):
@@ -237,8 +252,8 @@ class PluginProjectControl:
         before_hash = self.hash()
         model = self.model()
         operation = input["operations"][0]
-        instance = copy.deepcopy(operation["instance"])
-        if model["pluginInstances"].get(instance["id"]) == instance:
+        plugin = copy.deepcopy(operation["plugin"])
+        if any(current == plugin for current in model_plugins(model)):
             return {
                 "schemaVersion": 1,
                 "transactionId": "plugin-golden-noop",
@@ -255,7 +270,11 @@ class PluginProjectControl:
                     ).hash,
                 },
             }
-        model["pluginInstances"][instance["id"]] = instance
+        assert operation["target"] == {
+            "type": "layout_slot",
+            "slotNodeId": "right-status",
+        }
+        model["root"]["plugins"].append(plugin)
         (self.root / APP_UI_MODEL_PATH).write_text(
             json.dumps(model, indent=2) + "\n", encoding="utf-8"
         )
@@ -335,13 +354,14 @@ class GateProjectControl(PluginProjectControl):
         before_hash = self.hash()
         model = self.model()
         operation = input["operations"][0]
-        instance = copy.deepcopy(operation["instance"])
-        assert instance == {
+        plugin = copy.deepcopy(operation["plugin"])
+        assert plugin == {
             "id": "auth-gate-main",
             "pluginId": "auth-gate",
             "enabled": True,
         }
-        model["pluginInstances"][instance["id"]] = instance
+        assert operation["target"] == {"type": "application"}
+        model["applicationPlugins"].append(plugin)
         (self.root / APP_UI_MODEL_PATH).write_text(
             json.dumps(model, indent=2) + "\n", encoding="utf-8"
         )
@@ -431,12 +451,15 @@ def mutation_message():
         {
             "operations": [
                 {
-                    "type": "add_instance",
-                    "instance": {
+                    "type": "insert_plugin",
+                    "plugin": {
                         "id": "task-status-main",
                         "pluginId": "task-status",
                         "enabled": True,
-                        "mount": {"slotId": "right.status"},
+                    },
+                    "target": {
+                        "type": "layout_slot",
+                        "slotNodeId": "right-status",
                     },
                 }
             ]
@@ -468,12 +491,13 @@ def gate_mutation_message():
         {
             "operations": [
                 {
-                    "type": "add_instance",
-                    "instance": {
+                    "type": "insert_plugin",
+                    "plugin": {
                         "id": "auth-gate-main",
                         "pluginId": "auth-gate",
                         "enabled": True,
                     },
+                    "target": {"type": "application"},
                 }
             ]
         },
@@ -498,7 +522,7 @@ def discovery_messages():
 def composition_inspection_message():
     return batch(
         call("inspect_app_ui_model", {}, "inspect-model"),
-        call("inspect_ui_slots", {"root": "right.status"}, "inspect-slot"),
+        call("inspect_ui_slots", {"root": "right-status"}, "inspect-slot"),
     )
 
 
@@ -517,12 +541,11 @@ def make_agent(
         for virtual_path, content in TASK_PLUGIN_FILES.items():
             (root / virtual_path.lstrip("/")).write_text(content, encoding="utf-8")
         model = json.loads((root / APP_UI_MODEL_PATH).read_text(encoding="utf-8"))
-        model["pluginInstances"]["task-status-main"] = {
+        model["root"]["plugins"].append({
             "id": "task-status-main",
             "pluginId": "task-status",
             "enabled": True,
-            "mount": {"slotId": "right.status"},
-        }
+        })
         (root / APP_UI_MODEL_PATH).write_text(
             json.dumps(model, indent=2) + "\n", encoding="utf-8"
         )
@@ -543,7 +566,10 @@ def make_agent(
         if (
             command == "pnpm typecheck"
             and result.exit_code == 0
-            and "task-status-main" in client.model()["pluginInstances"]
+            and any(
+                plugin["id"] == "task-status-main"
+                for plugin in model_plugins(client.model())
+            )
         ):
             current_hash = client.hash()
             diagnostics.record(
@@ -558,7 +584,7 @@ def make_agent(
                                 {
                                     "instanceId": "task-status-main",
                                     "pluginId": "task-status",
-                                    "slotId": "right.status",
+                                    "slotId": "layout:right-status",
                                 }
                             ],
                         },
@@ -605,7 +631,10 @@ def make_gate_agent(tmp_path, responses):
         if (
             command == "pnpm typecheck"
             and result.exit_code == 0
-            and "auth-gate-main" in client.model()["pluginInstances"]
+            and any(
+                plugin["id"] == "auth-gate-main"
+                for plugin in model_plugins(client.model())
+            )
         ):
             diagnostics.record(
                 RuntimeDiagnosticEnvelope.model_validate(
@@ -702,7 +731,10 @@ def test_full_plugin_creation_golden_scenario(tmp_path):
     assert "provides" not in (
         tmp_path / "plugins/task-status/definition.ts"
     ).read_text(encoding="utf-8")
-    assert client.model()["pluginInstances"]["task-status-main"]["enabled"] is True
+    assert next(
+        plugin for plugin in model_plugins(client.model())
+        if plugin["id"] == "task-status-main"
+    )["enabled"] is True
     assert "taskStatus" in (tmp_path / REGISTRY_PATH).read_text(encoding="utf-8")
     assert agent.validation.current_result().status == "passed"
     assert agent.runtime_inspection.current_result()["runtimeStatus"] == "passed"
@@ -726,19 +758,18 @@ def test_application_gate_creation_golden_keeps_layout_unchanged(tmp_path):
         AIMessage(content="Authentication Gate created and verified."),
     ]
     agent, client = make_gate_agent(tmp_path, responses)
-    layout_before = copy.deepcopy(client.model()["layout"])
+    layout_before = copy.deepcopy(client.model()["root"])
 
     result = asyncio.run(agent.run("不登录不能进入应用。"))
     receipt = agent.activity.finish()
     model = client.model()
 
-    assert model["pluginInstances"]["auth-gate-main"] == {
+    assert model["applicationPlugins"][0] == {
         "id": "auth-gate-main",
         "pluginId": "auth-gate",
         "enabled": True,
     }
-    assert model["layout"] == layout_before
-    assert "mount" not in model["pluginInstances"]["auth-gate-main"]
+    assert model["root"] == layout_before
     assert agent.validation.current_result().status == "passed"
     assert agent.runtime_inspection.current_result()["runtimeStatus"] == "passed"
     assert receipt["verification"]["status"] == "changed-and-verified"

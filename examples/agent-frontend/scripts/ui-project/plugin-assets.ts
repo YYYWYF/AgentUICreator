@@ -97,7 +97,11 @@ export async function collectPluginAssets(
                 priority: manifest.application.gate.priority ?? 0,
               },
             }),
-        childSlots: [...(manifest.slots?.children ?? [])].sort(),
+        childSlots: Object.fromEntries(
+          Object.entries(manifest.slots?.children ?? {}).sort(([left], [right]) =>
+            left.localeCompare(right),
+          ),
+        ),
       });
     } catch (error) {
       errors.push({

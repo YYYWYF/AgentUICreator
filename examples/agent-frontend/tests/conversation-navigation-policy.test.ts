@@ -15,8 +15,8 @@ describe("conversation navigation policy", () => {
     const appUI = await readFile(path.join(projectRoot, "app-ui/app-ui.json"), "utf8");
 
     expect(threadList).toContain("ThreadList");
-    expect(appUI).toContain("conversation.navigation");
-    expect(appUI).toContain("conversation.surface");
+    expect(appUI).toContain('"id": "conversation-navigation"');
+    expect(appUI).toContain('"id": "conversation-surface"');
   });
 
   it("does not reintroduce a second conversation runtime", async () => {

@@ -7,7 +7,7 @@ import {
 } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import type {
   UIPluginComponentProps,
   UIPluginDefinition,
@@ -93,7 +93,7 @@ function createModel(
   mountedInstanceIds: string[],
   renderShouldFail = true,
 ) {
-  return parseAppUIModel({
+  return parseAppUIRuntimeModel({
     version: "2",
     root: {
       type: "slot",

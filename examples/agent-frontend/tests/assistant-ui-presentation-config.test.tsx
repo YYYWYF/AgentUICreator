@@ -3,11 +3,11 @@ import { describe, expect, it } from "vitest";
 import {
   resolveConversationPresentationConfig,
 } from "../agent-ui/conversation/config";
-import type { AppUIModel } from "../framework/contracts/app-ui-model";
+import type { AppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 
 function createModel(
   conversationPresentation?: Record<string, unknown>,
-): AppUIModel {
+): AppUIRuntimeModel {
   return {
     version: "2",
     root: {

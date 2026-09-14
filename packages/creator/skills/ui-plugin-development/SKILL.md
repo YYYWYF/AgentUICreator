@@ -22,10 +22,10 @@ Inspect project conventions before deciding that Plugin source must change:
 ## Reuse decision
 
 1. List and inspect existing Plugins.
-2. If one already supplies the requested behavior, reuse its `manifest.id` in a PluginInstance and change only AppUIModel.
+2. If one already supplies the requested behavior, reuse its `manifest.id` in an AppUIPluginNode and change only AppUIModel.
 3. If behavior is missing, create the smallest Plugin that follows the project's existing directory and registration conventions.
-4. For an ordinary Plugin, add its PluginInstance and Slot composition through AppUIModel. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
-5. When the user requires login, License, organization selection, onboarding, or initialization before the Workspace can be used, prefer a first-class `manifest.application.gate` Plugin. An Application Gate instance is enabled and deliberately has no `mount`; it is an Application lifecycle surface, not Slot composition.
+4. For an ordinary Plugin, insert its node into a Layout Slot or parent plugin's local Slot through AppUIModel. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
+5. When the user requires login, License, organization selection, onboarding, or initialization before the Workspace can be used, prefer a first-class `manifest.application.gate` Plugin in `applicationPlugins`; it is an Application lifecycle surface, not visual Slot composition.
 
 ## Service dependency and ownership decision
 
@@ -77,7 +77,7 @@ Plugin needs capability X
 6. Default-export the definition so the target-owned generator can include it in the static Registry. Do not spread a template catalog into the production registry.
 7. Submit `pluginId` and all currently known new Plugin files together in one `create_ui_plugin` call, using `relativePath` values inside that Plugin directory. It requires `manifest.json`, `definition.ts`, and `index.tsx`, is create-only, and transactionally rolls back the whole call on failure. Never use it to replace an existing Plugin directory or file.
 8. Run `validate_creator_changes`. Fix returned diagnostics with `read_file` plus `edit_file`, then validate the new revision again.
-9. Add exactly one PluginInstance through `mutate_app_ui_model`; mount an ordinary Plugin in the intended Slot, but leave an Application Gate instance enabled and unmounted. That transaction updates the generated Registry in both cases.
+9. Add exactly one AppUIPluginNode through `mutate_app_ui_model`; target an ordinary Plugin at the intended authoring Slot, or target an Application Gate at application scope. That transaction updates the generated Registry in both cases.
 10. Because composition changes the Activity revision, run `validate_creator_changes` again for the final revision.
 11. Call `inspect_runtime_errors`. Fresh current-hash evidence with zero current errors is required before claiming Runtime success.
 
@@ -110,8 +110,8 @@ Use `manifest.application.gate` when entry to the Workspace must be denied until
 
 - The Gate manifest names one observable Service and may assign a numeric priority. Do not also add an `app-gate` capability; `application.gate` is the single source of truth and is distinct from `headless`.
 - The definition declares the Gate Service in `provides`, and `setup()` synchronously provides it with an initial `checking`, `blocked`, `ready`, or `error` snapshot. Async session recovery begins only after the observable Service is available.
-- A Gate PluginInstance is `enabled: true` with no `mount`. A Gate manifest must not declare child Slots.
-- Gate hard dependencies use `inject`. Every Provider in that dependency closure must be an unmounted `headless` Plugin or another Application Gate. `optionalInject` never expands the startup dependency closure.
+- A Gate plugin node is `enabled: true` in `applicationPlugins`. A Gate manifest must not declare child Slots.
+- Gate hard dependencies use `inject`. Every Provider in that dependency closure must be an application-scoped `headless` Plugin or another Application Gate. `optionalInject` never expands the startup dependency closure.
 - The Gate component may read its own provided Gate Service with `usePluginService()`. This self-read permission applies to Components only; `setup({ services }).get()` still reads only `inject` and `optionalInject` dependencies.
 - Multiple Gates all must become `ready`. Priority selects which non-ready Gate surface is currently displayed; it does not weaken the all-ready rule.
 - Gate state is frontend Application lifecycle state. Never add AG-UI custom events or modify Agent protocol semantics to control it.
@@ -120,7 +120,7 @@ For requests such as “不登录不能进入应用”, “打开应用必须先
 
 ### Child Slot contract
 
-When adding, removing, or renaming a child `renderSlot(...)` outlet in a container Plugin, update `manifest.json` `slots.children` in the same task. Child Slot ids must be static string literals; do not create dynamic `renderSlot(slotId)` outlets. Host verification treats the Plugin source and manifest child Slot sets as an exact contract.
+When adding, removing, or renaming a child `renderSlot(...)` outlet in a container Plugin, update `manifest.json` `slots.children` in the same task. Each local Slot name maps to a required `description`, `cardinality: "one" | "many"`, and optional `optional` flag. Names must be static string literals; do not create dynamic `renderSlot(slot)` outlets or global Runtime slot ids. Host verification treats the Plugin source and manifest child Slot sets as an exact contract.
 
 - Read Agent data through the domain hooks exported by `/runtime/context`: `useAgentConversation`, `useAgentMessages`, `useAgentState`, `useAgentRun`, `useAgentExecutions`, and `useAgentInterrupts`. Use `useAgentRuntimeSnapshot` only when the component genuinely needs the complete snapshot.
 - Read the current instance scope through `usePluginInstance`, `usePluginActions`, and `usePluginEvents`. Never recreate a combined context prop or pass Runtime snapshot fields through component props.

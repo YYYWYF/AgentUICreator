@@ -1,5 +1,25 @@
 {
-  "version": "2",
+  "version": "3",
+  "applicationPlugins": [
+    {
+      "id": "agent-conversation-data-main",
+      "pluginId": "conversation-data-source",
+      "enabled": true
+    },
+    {
+      "id": "agent-conversation-service-main",
+      "pluginId": "conversation-service",
+      "enabled": true
+    },
+    {
+      "id": "theme-provider-main",
+      "pluginId": "theme-provider",
+      "enabled": true,
+      "props": {
+        "mode": "light"
+      }
+    }
+  ],
   "root": {
     "type": "row",
     "id": "conversation-workspace-row",
@@ -19,13 +39,27 @@
           "children": [
             {
               "type": "slot",
-              "id": "conversation-navigation-slot-node",
-              "slotId": "conversation.navigation"
+              "id": "conversation-navigation",
+              "description": "Conversation navigation and history area.",
+              "plugins": [
+                {
+                  "id": "conversation-thread-list-main",
+                  "pluginId": "conversation-thread-list",
+                  "enabled": true
+                }
+              ]
             },
             {
               "type": "slot",
-              "id": "theme-control-slot-node",
-              "slotId": "application.theme-control"
+              "id": "theme-control",
+              "description": "Application theme controls.",
+              "plugins": [
+                {
+                  "id": "theme-switch-main",
+                  "pluginId": "theme-switch",
+                  "enabled": true
+                }
+              ]
             }
           ]
         }
@@ -35,81 +69,45 @@
         "id": "conversation-surface-panel",
         "child": {
           "type": "slot",
-          "id": "conversation-surface-slot-node",
-          "slotId": "conversation.surface"
+          "id": "conversation-surface",
+          "description": "Primary conversation workspace.",
+          "plugins": [
+            {
+              "id": "agent-conversation-surface-main",
+              "pluginId": "conversation-surface",
+              "enabled": true,
+              "slots": {
+                "emptySuggestions": [
+                  {
+                    "id": "conversation-suggestions-main",
+                    "pluginId": "conversation-suggestions",
+                    "enabled": true,
+                    "props": {
+                      "items": [
+                        {
+                          "title": "分析 Agent UI 架构",
+                          "label": "检查布局、Plugin 与 Service 边界",
+                          "prompt": "帮我分析当前 Agent UI 架构"
+                        },
+                        {
+                          "title": "调试当前问题",
+                          "label": "定位当前界面的异常行为",
+                          "prompt": "帮我调试当前界面的问题"
+                        },
+                        {
+                          "title": "建议下一步",
+                          "label": "给出一个可执行的后续动作",
+                          "prompt": "根据当前上下文建议下一步"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
         }
       }
     ]
-  },
-  "pluginInstances": {
-    "agent-conversation-data-main": {
-      "id": "agent-conversation-data-main",
-      "pluginId": "conversation-data-source",
-      "enabled": true
-    },
-    "agent-conversation-service-main": {
-      "id": "agent-conversation-service-main",
-      "pluginId": "conversation-service",
-      "enabled": true
-    },
-    "theme-provider-main": {
-      "id": "theme-provider-main",
-      "pluginId": "theme-provider",
-      "enabled": true,
-      "props": {
-        "mode": "light"
-      }
-    },
-    "conversation-thread-list-main": {
-      "id": "conversation-thread-list-main",
-      "pluginId": "conversation-thread-list",
-      "enabled": true,
-      "mount": {
-        "slotId": "conversation.navigation"
-      }
-    },
-    "theme-switch-main": {
-      "id": "theme-switch-main",
-      "pluginId": "theme-switch",
-      "enabled": true,
-      "mount": {
-        "slotId": "application.theme-control"
-      }
-    },
-    "agent-conversation-surface-main": {
-      "id": "agent-conversation-surface-main",
-      "pluginId": "conversation-surface",
-      "enabled": true,
-      "mount": {
-        "slotId": "conversation.surface"
-      }
-    },
-    "conversation-suggestions-main": {
-      "id": "conversation-suggestions-main",
-      "pluginId": "conversation-suggestions",
-      "enabled": true,
-      "mount": {
-        "slotId": "conversation.empty.suggestions"
-      },
-      "props": {
-        "items": [
-          {
-            "title": "分析 Agent UI 架构",
-            "label": "检查布局、Plugin 与 Service 边界",
-            "prompt": "帮我分析当前 Agent UI 架构"
-          },
-          {
-            "title": "调试当前问题",
-            "label": "定位当前界面的异常行为",
-            "prompt": "帮我调试当前界面的问题"
-          },
-          {
-            "title": "建议下一步",
-            "label": "给出一个可执行的后续动作",
-            "prompt": "根据当前上下文建议下一步"
-          }
-        ]
-      }
-    }
   }
 }

@@ -44,32 +44,36 @@ describe("inspectUIProject", () => {
       legacy: false,
       configPath: ".agent-ui/project.json",
     });
-    for (const slotId of [
-      "conversation.empty.welcome",
-      "conversation.empty.suggestions",
+    for (const slot of [
+      "emptyWelcome",
+      "emptySuggestions",
     ] as const) {
-      const mounts = slotId === "conversation.empty.suggestions"
+      const plugins = slot === "emptySuggestions"
         ? [
             expect.objectContaining({
-              instanceId: "conversation-suggestions-main",
+              id: "conversation-suggestions-main",
               pluginId: "conversation-suggestions",
             }),
           ]
         : [];
       expect(result.appUIModel.slots).toContainEqual(
         expect.objectContaining({
-          slotId,
+          target: {
+            type: "plugin_slot",
+            parentInstanceId: "agent-conversation-surface-main",
+            slot,
+          },
           owner: expect.objectContaining({
             kind: "plugin",
             instanceId: "agent-conversation-surface-main",
             pluginId: "conversation-surface",
           }),
-          mounts,
+          plugins,
         }),
       );
     }
     expect(result.appUIModel.slots).not.toContainEqual(
-      expect.objectContaining({ slotId: "workspace.inspector" }),
+      expect.objectContaining({ target: { type: "layout_slot", slotNodeId: "workspace-inspector" } }),
     );
   });
 
@@ -99,7 +103,15 @@ describe("inspectUIProject", () => {
         description: "Fixture plugin",
         version: "1.0.0",
         capabilities: ["visual"],
-        slots: { children: ["sample.message"] },
+        slots: {
+          children: {
+            message: {
+              description: "Sample child content.",
+              cardinality: "many",
+              optional: true
+            }
+          }
+        },
       }),
     );
     await writeFile(
@@ -120,7 +132,7 @@ describe("inspectUIProject", () => {
       "const plugin = {};\nexport default plugin;\n",
     );
     const model: AppUIModel = {
-      version: "2",
+      version: "3",
       root: {
         id: "root-row",
         type: "row",
@@ -129,23 +141,25 @@ describe("inspectUIProject", () => {
           {
             id: "main-node",
             type: "slot",
-            slotId: "main",
+            description: "Main content.",
+            plugins: [
+              {
+                id: "sample-main",
+                pluginId: "sample",
+                enabled: true,
+                slots: {
+                  message: [
+                    {
+                      id: "renderer-main",
+                      pluginId: "renderer",
+                      enabled: true
+                    }
+                  ]
+                }
+              }
+            ]
           },
         ],
-      },
-      pluginInstances: {
-        "sample-main": {
-          id: "sample-main",
-          pluginId: "sample",
-          enabled: true,
-          mount: { slotId: "main" },
-        },
-        "renderer-main": {
-          id: "renderer-main",
-          pluginId: "renderer",
-          enabled: true,
-          mount: { slotId: "sample.message" },
-        },
       },
     };
     await writeFile(
@@ -187,30 +201,35 @@ describe("inspectUIProject", () => {
     expect(result.appUIModel.hash).toMatch(/^[a-f0-9]{64}$/u);
     expect(result.appUIModel.slots).toEqual([
       {
-        slotId: "main",
+        target: { type: "layout_slot", slotNodeId: "main-node" },
+        description: "Main content.",
+        cardinality: "many",
+        optional: true,
         owner: {
           kind: "layout",
           nodeId: "main-node",
           nodePath: "root.children[0]",
         },
-        nodeId: "main-node",
         nodePath: "root.children[0]",
-        mounts: [{ instanceId: "sample-main", pluginId: "sample", enabled: true }],
+        plugins: [expect.objectContaining({ id: "sample-main", pluginId: "sample" })],
       },
       {
-        slotId: "sample.message",
+        target: { type: "plugin_slot", parentInstanceId: "sample-main", slot: "message" },
+        description: "Sample child content.",
+        cardinality: "many",
+        optional: true,
         owner: {
           kind: "plugin",
           instanceId: "sample-main",
           pluginId: "sample",
         },
-        mounts: [{ instanceId: "renderer-main", pluginId: "renderer", enabled: true }],
+        plugins: [{ id: "renderer-main", pluginId: "renderer", enabled: true }],
       },
     ]);
-    expect(result.pluginInstances).toContainEqual(
+    expect(result.plugins).toContainEqual(
       expect.objectContaining({
         id: "sample-main",
-        mountedSlotId: "main",
+        target: { type: "layout_slot", slotNodeId: "main-node" },
       }),
     );
     expect(result.registry.generatedFileFresh).toBe(true);

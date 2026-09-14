@@ -56,7 +56,14 @@ async function createProject(options: {
       capabilities: options.headless ? ["headless"] : ["visual"],
       ...(options.childSlots === undefined
         ? {}
-        : { slots: { children: options.childSlots } }),
+        : {
+            slots: {
+              children: Object.fromEntries(options.childSlots.map((slot) => [
+                slot,
+                { description: `${slot} fixture Slot.`, cardinality: "many", optional: true },
+              ])),
+            },
+          }),
     }),
   );
   await writeFile(
@@ -71,19 +78,23 @@ async function createProject(options: {
     );
   }
   const model: AppUIModel = {
-    version: "2",
+    version: "3",
+    ...(options.mounted
+      ? {}
+      : {
+          applicationPlugins: [{
+            id: "sample-main",
+            pluginId: options.instancePluginId,
+            enabled: true,
+          }],
+        }),
     root: {
       type: "slot",
       id: "main-slot-node",
-      slotId: "main",
-    },
-    pluginInstances: {
-      "sample-main": {
-        id: "sample-main",
-        pluginId: options.instancePluginId,
-        enabled: true,
-        ...(options.mounted ? { mount: { slotId: "main" } } : {}),
-      },
+      description: "Main content.",
+      plugins: options.mounted
+        ? [{ id: "sample-main", pluginId: options.instancePluginId, enabled: true }]
+        : [],
     },
   };
   await writeFile(
@@ -115,7 +126,7 @@ afterEach(async () => {
 });
 
 describe("verifyUIProject", () => {
-  it("allows an enabled visual instance without ordinary mount and reports it as inactive", async () => {
+  it("rejects a visual plugin in application scope", async () => {
     const projectRoot = await createProject({
       instancePluginId: "sample",
       mounted: false,
@@ -123,13 +134,13 @@ describe("verifyUIProject", () => {
 
     const result = await verifyUIProject(projectRoot, fixtureConfig);
 
-    expect(result.status).toBe("passed");
-    expect(result.warnings).toContainEqual(
-      expect.objectContaining({ code: "unmounted-enabled-instance" }),
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({ code: "application-plugin-must-be-headless" }),
     );
   });
 
-  it("allows an explicitly headless PluginInstance to remain unmounted", async () => {
+  it("allows an explicitly headless plugin in application scope", async () => {
     const projectRoot = await createProject({
       instancePluginId: "sample",
       mounted: false,
@@ -165,7 +176,7 @@ describe("verifyUIProject", () => {
     );
   });
 
-  it("rejects PluginInstances whose plugin asset does not exist", async () => {
+  it("rejects plugin nodes whose plugin asset does not exist", async () => {
     const projectRoot = await createProject({
       instancePluginId: "missing",
       mounted: true,
@@ -207,7 +218,10 @@ describe("verifyUIProject", () => {
     });
     const modelPath = path.join(projectRoot, "app-ui", "app-ui.json");
     const model = JSON.parse(await readFile(modelPath, "utf8")) as AppUIModel;
-    model.pluginInstances["sample-main"]!.mount = { slotId: "missing" };
+    if (model.root.type !== "slot") throw new Error("fixture");
+    model.root.plugins[0]!.slots = {
+      missing: [{ id: "child-main", pluginId: "sample", enabled: true }],
+    };
     await writeFile(modelPath, JSON.stringify(model));
 
     const result = await verifyUIProject(projectRoot, fixtureConfig);
@@ -215,9 +229,8 @@ describe("verifyUIProject", () => {
     expect(result.status).toBe("failed");
     expect(result.errors).toContainEqual(
       expect.objectContaining({
-        code: "mount-slot-unreachable",
+        code: "plugin-slot-not-declared",
         instanceId: "sample-main",
-        slotId: "missing",
       }),
     );
   });

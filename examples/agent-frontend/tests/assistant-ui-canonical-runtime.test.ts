@@ -3,11 +3,16 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 
 import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
+import { compileAppUIModel } from "../framework/contracts/app-ui-compiler";
+import { pluginDefinitions } from "../plugins";
+import { createPluginCompositionCatalog, createPluginRegistry } from "../runtime/plugins";
 
 async function readModel() {
-  return parseAppUIModelJson(
+  const authoringModel = parseAppUIModelJson(
     await readFile(new URL("../app-ui/app-ui.json", import.meta.url), "utf8"),
   );
+  const registry = createPluginRegistry(pluginDefinitions);
+  return compileAppUIModel(authoringModel, createPluginCompositionCatalog(registry));
 }
 
 describe("assistant-ui canonical runtime", () => {
@@ -19,14 +24,14 @@ describe("assistant-ui canonical runtime", () => {
     ).toMatchObject({
       pluginId: "conversation-thread-list",
       enabled: true,
-      mount: { slotId: "conversation.navigation" },
+      mount: { slotId: "layout:conversation-navigation" },
     });
     expect(
       model.pluginInstances["agent-conversation-surface-main"],
     ).toMatchObject({
       pluginId: "conversation-surface",
       enabled: true,
-      mount: { slotId: "conversation.surface" },
+      mount: { slotId: "layout:conversation-surface" },
     });
     expect(model.pluginInstances["agent-conversation-service-main"]).toMatchObject({
       pluginId: "conversation-service",
@@ -39,7 +44,7 @@ describe("assistant-ui canonical runtime", () => {
     expect(model.pluginInstances["theme-switch-main"]).toMatchObject({
       pluginId: "theme-switch",
       enabled: true,
-      mount: { slotId: "application.theme-control" },
+      mount: { slotId: "layout:theme-control" },
     });
     expect(model.pluginInstances["agent-conversations-main"]).toBeUndefined();
     expect(
@@ -55,7 +60,7 @@ describe("assistant-ui canonical runtime", () => {
     ).toMatchObject({
       pluginId: "conversation-suggestions",
       enabled: true,
-      mount: { slotId: "conversation.empty.suggestions" },
+      mount: { slotId: "plugin:agent-conversation-surface-main:emptySuggestions" },
     });
   });
 

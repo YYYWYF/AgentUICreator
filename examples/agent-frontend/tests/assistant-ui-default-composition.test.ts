@@ -6,16 +6,20 @@ import { describe, expect, it } from "vitest";
 
 import appUIJson from "../app-ui/app-ui.json";
 import { resolveConversationPresentationConfig } from "../agent-ui/conversation/config";
-import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { collectAppUIPluginLocations, parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { compileAppUIModel } from "../framework/contracts/app-ui-compiler";
+import { pluginDefinitions } from "../plugins";
+import { createPluginCompositionCatalog, createPluginRegistry } from "../runtime/plugins";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("assistant-ui default composition", () => {
   it("keeps the default model to three top-level and one child presentation plugin", () => {
     const model = parseAppUIModel(appUIJson);
-    const visible = Object.values(model.pluginInstances)
-      .filter((instance) => instance.enabled && instance.mount !== undefined)
-      .map((instance) => instance.id);
+    const locations = collectAppUIPluginLocations(model);
+    const visible = locations
+      .filter(({ plugin, target }) => plugin.enabled && target.type !== "application")
+      .map(({ plugin }) => plugin.id);
 
     expect(visible).toEqual([
       "conversation-thread-list-main",
@@ -23,7 +27,7 @@ describe("assistant-ui default composition", () => {
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
     ]);
-    expect(Object.keys(model.pluginInstances)).toEqual([
+    expect(locations.map(({ plugin }) => plugin.id)).toEqual([
       "agent-conversation-data-main",
       "agent-conversation-service-main",
       "theme-provider-main",
@@ -32,7 +36,7 @@ describe("assistant-ui default composition", () => {
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
     ]);
-    expect(Object.values(model.pluginInstances).filter((instance) => instance.enabled && instance.mount === undefined).map((instance) => instance.id)).toEqual([
+    expect(locations.filter(({ plugin, target }) => plugin.enabled && target.type === "application").map(({ plugin }) => plugin.id)).toEqual([
       "agent-conversation-data-main",
       "agent-conversation-service-main",
       "theme-provider-main",
@@ -61,30 +65,27 @@ describe("assistant-ui default composition", () => {
         id: "conversation-navigation-column",
         sizes: ["minmax(0, 1fr)", "auto"],
         children: [
-          { type: "slot", slotId: "conversation.navigation" },
-          { type: "slot", slotId: "application.theme-control" },
+          { type: "slot", id: "conversation-navigation" },
+          { type: "slot", id: "theme-control" },
         ],
       },
     });
-    expect(JSON.stringify(model.root)).toContain("conversation.surface");
+    expect(JSON.stringify(model.root)).toContain("conversation-surface");
     expect(JSON.stringify(model.root)).not.toContain("workspace.inspector");
-    expect(model.pluginInstances["conversation-thread-list-main"]).toMatchObject({
-      mount: { slotId: "conversation.navigation" },
-    });
-    expect(model.pluginInstances["theme-switch-main"]).toMatchObject({
-      pluginId: "theme-switch",
-      enabled: true,
-      mount: { slotId: "application.theme-control" },
-    });
-    expect(model.pluginInstances["agent-conversation-surface-main"]).toMatchObject({
-      mount: { slotId: "conversation.surface" },
-    });
-    expect(model.pluginInstances["agent-conversation-surface-main"]?.props).toBeUndefined();
+    const locations = collectAppUIPluginLocations(model);
+    expect(locations.find(({ plugin }) => plugin.id === "conversation-thread-list-main")?.target)
+      .toEqual({ type: "layout_slot", slotNodeId: "conversation-navigation" });
+    expect(locations.find(({ plugin }) => plugin.id === "theme-switch-main")?.target)
+      .toEqual({ type: "layout_slot", slotNodeId: "theme-control" });
+    expect(locations.find(({ plugin }) => plugin.id === "agent-conversation-surface-main")?.target)
+      .toEqual({ type: "layout_slot", slotNodeId: "conversation-surface" });
   });
 
   it("leaves interaction presentation unconfigured so the adapter owns the upstream fallback", () => {
     const model = parseAppUIModel(appUIJson);
-    expect(resolveConversationPresentationConfig(model)).toEqual({
+    const registry = createPluginRegistry(pluginDefinitions);
+    const runtimeModel = compileAppUIModel(model, createPluginCompositionCatalog(registry));
+    expect(resolveConversationPresentationConfig(runtimeModel)).toEqual({
       welcome: {},
     });
   });

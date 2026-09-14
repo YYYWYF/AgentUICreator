@@ -17,23 +17,26 @@ const fixtureConfig: UIProjectControlConfig = {
 
 function modelFor(pluginIds: readonly string[]): AppUIModel {
   return {
-    version: "2",
+    version: "3",
+    applicationPlugins: pluginIds
+      .filter((pluginId) => pluginId === "beta")
+      .map((pluginId, index) => ({
+        id: `application-${index}`,
+        pluginId,
+        enabled: true,
+      })),
     root: {
       id: "main-node",
       type: "slot",
-      slotId: "main",
-    },
-    pluginInstances: Object.fromEntries(
-      pluginIds.map((pluginId, index) => [
-        `instance-${index}`,
-        {
+      description: "Main content.",
+      plugins: pluginIds
+        .filter((pluginId) => pluginId !== "beta")
+        .map((pluginId, index) => ({
           id: `instance-${index}`,
           pluginId,
           enabled: index === 0,
-          ...(index === 0 ? { mount: { slotId: "main" } } : {}),
-        },
-      ]),
-    ),
+        })),
+    },
   };
 }
 
@@ -66,7 +69,18 @@ async function createPlugin(
       capabilities: options.headless ? ["headless"] : ["visual"],
       ...(options.childSlots === undefined
         ? {}
-        : { slots: { children: options.childSlots } }),
+        : {
+            slots: {
+              children: Object.fromEntries(options.childSlots.map((slot) => [
+                slot,
+                {
+                  description: `${slot} fixture Slot.`,
+                  cardinality: "many",
+                  optional: true,
+                },
+              ])),
+            },
+          }),
     }),
   );
   await writeFile(
@@ -134,7 +148,14 @@ describe("generatePluginRegistry", () => {
 
     expect(result.errors).toEqual([]);
     expect(result.slotCatalog).toEqual({
-      owner: ["owner.body", "owner.header"],
+      owner: {
+        "owner.body": {
+          description: "owner.body fixture Slot.", cardinality: "many", optional: true,
+        },
+        "owner.header": {
+          description: "owner.header fixture Slot.", cardinality: "many", optional: true,
+        },
+      },
     });
   });
 

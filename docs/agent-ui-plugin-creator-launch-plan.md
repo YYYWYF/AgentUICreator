@@ -187,7 +187,7 @@ Creator 不进入生成应用的生产依赖。项目观察、语义化修改、
 ```text
 AppUIModel hash 与本次 mutation revision
 Layout Tree / Slot 摘要
-PluginInstance、enabled 状态与挂载位置
+authoring plugin node、enabled 状态与所在 target
 生产 Registry 选择结果
 未选择的 Plugin 资产与开发期 Catalog
 目标项目 UI 技术栈与版本
@@ -224,8 +224,8 @@ Plugin 源码继续由通用 Coding Agent 在权限范围内编辑；AppUIModel 
 
 | 用户意图 | AppUIModel | Registry | Plugin 源码 |
 | --- | --- | --- | --- |
-| 暂时隐藏、先不要显示 | 删除 `mount` 并设为 `enabled: false` | 保留 | 保留 |
-| 移除这个功能 | 删除 `mount` 和 `pluginInstances` 条目 | 最后一个实例移除后自动退出 | 保留 |
+| 暂时隐藏、先不要显示 | 保留 authoring plugin node 并设为 `enabled: false` | 保留 | 保留 |
+| 移除这个功能 | 从 Layout Slot、plugin-local Slot 或 `applicationPlugins` 删除 authoring plugin node | 最后一个引用移除后自动退出 | 保留 |
 | 替换这个功能 | 新实例就位后移除旧实例 | 根据最终实例集合自动更新 | 新旧源码都保留 |
 | 连插件代码一起删除 | 先检查引用，再执行受限删除 | 自动更新 | 仅在用户已明确授权时删除 |
 
@@ -263,7 +263,7 @@ Mode Registry 只负责注册和查找 Mode Definition，不是新的 Plugin 系
 
 # 4. AppUIModel
 
-整个前端组合关系只使用一个统一模型。
+前端组合分为可编辑作者模型与只读运行时 IR：
 
 不要再分别维护互相重复的：
 
@@ -274,21 +274,28 @@ slot-graph.json
 plugin-graph.json
 ```
 
-Runtime 统一读取：
+```text
+Creator / 人
+    ↓
+AppUIModel
+    ↓ compileAppUIModel() deterministic compile
+AppUIRuntimeModel
+    ↓
+Runtime / SlotRegistry / PluginServiceRuntime
+```
+
+`AppUIModel` 是唯一可编辑、可持久化、Creator 可见的 Source of Truth：
 
 ```ts
 interface AppUIModel {
-  version: "2"
-
-  root: LayoutNode
-
-  pluginInstances: Record<string, PluginInstance>
-
-  settings?: {
-    theme?: string
-  }
+  version: "3"
+  applicationPlugins?: AppUIPluginNode[]
+  root: AppUILayoutNode
+  settings?: { theme?: string }
 }
 ```
+
+`AppUIRuntimeModel` 保留原 v2 `root + pluginInstances + mount` 形态，但只能由纯函数 `compileAppUIModel()` 生成，Creator 不得直接修改。Compiler 负责 schema、Plugin/Slot 存在性、cardinality、实例 id 唯一性、headless/application 边界和现有 Runtime composition validation；任何失败都发生在 mutation commit 之前。
 
 第一版可以持久化为：
 
@@ -310,7 +317,7 @@ type LayoutNode =
   | ColumnNode
   | StackNode
   | PanelNode
-  | SlotNode
+  | AppUISlotNode
 ```
 
 ---
@@ -411,23 +418,25 @@ interface PanelNode {
 
 ## Slot
 
-本阶段 `SlotNode` 只表示 Layout Tree 中存在一个可渲染位置。它不保存 Plugin instance id，也不保存运行时 contribution。
+作者模型的 Layout Slot 直接保存实际显示在该位置的 Plugin；数组顺序就是显示顺序。它不保存全局 Runtime slot id 或 contribution/order。
 
 ```ts
-interface SlotNode {
+interface AppUISlotNode {
   type: "slot"
 
   id: string
 
-  slotId: string
+  description: string
+
+  plugins: AppUIPluginNode[]
 }
 ```
 
-运行时由独立 `SlotRegistry` 保存 `SlotContribution`。贡献的注册和清理必须进入现有 `PluginServiceRuntime` activation / cleanup 生命周期。Plugin Manifest 可以静态声明 child Slot；child Slot 随 Owner contribution 出现和消失，但此阶段仍不实现 `renderSlot()`、slot kind、slot scope 或动态 `ctx.slots.declare()`。
+Compiler 使用 `layout:<node.id>` 生成 Runtime slot id。运行时仍由独立 `SlotRegistry` 保存 `SlotContribution`，贡献注册和清理继续属于 `PluginServiceRuntime` activation / cleanup 生命周期。
 
 ---
 
-# 6. PluginInstance
+# 6. Authoring Plugin Node 与 Runtime PluginInstance
 
 Plugin 源码和 Plugin 实例必须分开。
 
@@ -447,22 +456,19 @@ FilePreviewPlugin
 
 是 Plugin Instance。
 
-定义：
+作者模型定义：
 
 ```ts
-interface PluginInstance {
+interface AppUIPluginNode {
   id: string
 
   pluginId: string
 
   enabled: boolean
 
-  mount?: {
-    slotId: string
-    order?: number
-  }
-
   props?: Record<string, unknown>
+
+  slots?: Record<string, AppUIPluginNode[]>
 }
 ```
 
@@ -473,18 +479,15 @@ interface PluginInstance {
   "id": "file-preview-right",
   "pluginId": "file-preview",
   "enabled": true,
-  "mount": {
-    "slotId": "file-preview"
-  },
   "props": {
     "showHeader": true
   }
 }
 ```
 
-未来同一个 Plugin 可以创建多个实例。
+Plugin child Slot 使用 manifest 声明的 instance-local name。Plugin implementation 调用 `renderSlot(localName)`；Compiler/Runtime 使用 `plugin:<instance.id>:<localName>` 生成全局 identity，因此同一个 Plugin 可以安全创建多个实例。
 
-`mount.slotId` 可以指向 Layout Slot，也可以指向从 Layout Slot 出发、经 reachable Owner Plugin 声明的 child Slot。跨 Manifest 的组合合法性由独立 validator 使用纯 `PluginSlotCatalog` 做 fixed-point reachability 计算，不由 AppUIModel shape parser 依赖 Runtime Registry。`enabled` 不影响结构合法性；无 Layout root 路径的孤儿 mount、rootless cycle、重复 child owner，以及 Layout/child Slot 重名都必须拒绝。
+不占视觉位置的 headless Plugin 与 Application Gate 放在顶层 `applicationPlugins`。Runtime PluginInstance 的 `mount.slotId/order` 只存在于 `AppUIRuntimeModel`。
 
 ---
 
@@ -527,6 +530,14 @@ interface UIPluginManifest {
   version: string
 
   capabilities?: string[]
+
+  slots?: {
+    children?: Record<string, {
+      description: string
+      cardinality: "one" | "many"
+      optional?: boolean
+    }>
+  }
 
   data?: {
     messages?: boolean
@@ -579,7 +590,7 @@ Plugin Component Contract 只保留递归 Slot 渲染能力：
 
 ```ts
 interface UIPluginComponentProps {
-  renderSlot(slotId: string): ReactNode
+  renderSlot(localSlotName: string): ReactNode
 }
 ```
 
@@ -699,22 +710,22 @@ Generated Application 使用 Zod strict object 作为 Tool 输入校验和 JSON 
 
 # 9. UI Runtime
 
-稳定的 React Layout Runtime 由官方 `@agent-ui/runtime-react` 包维护。它拥有 `Row`、`Column`、`Stack`、`Panel`、`Slot` 的 Layout Language、`LayoutRenderer` 和 Layout CSS，只接收 `root`、`version`、`theme` 与项目提供的 `renderSlot`。生成项目继续拥有 AppUIModel Schema、PluginInstance、SlotRegistry、Plugin Runtime、Services 与 Agent Contract；Layout 类型从官方包导入，不复制 Layout Engine 或 Zod Schema。
+稳定的 React Layout Runtime 由官方 `@agent-ui/runtime-react` 包维护。它拥有 `Row`、`Column`、`Stack`、`Panel`、`Slot` 的 Runtime Layout Language、`LayoutRenderer` 和 Layout CSS，只接收编译后的 `root`、`version`、`theme` 与项目提供的 `renderSlot`。生成项目继续拥有 AppUIModel、AppUIRuntimeModel、Compiler、SlotRegistry、Plugin Runtime、Services 与 Agent Contract。
 
 Creator 改变具体布局时只通过 `mutate_app_ui_model` 修改 `app-ui/app-ui.json`。新增 Grid、Dock 等 Layout Language 才是官方 Runtime 的框架开发任务。Mode 只在项目创建时提供 Initial AppUIModel，不得在启动时覆盖用户后续修改。
 
 UI Runtime 负责：
 
 ```text
-读取 AppUIModel
+读取并解析 AppUIModel v3
       ↓
-解析 Layout Tree
+compileAppUIModel() 生成 AppUIRuntimeModel
       ↓
 PluginServiceRuntime 激活 enabled 且有 mount 的实例，或 headless 实例
       ↓
 在同一 activation 生命周期注册 SlotContribution
       ↓
-Layout SlotNode 按 slotId 查询 SlotRegistry
+Runtime Layout SlotNode 按 compiler 生成的 slotId 查询 SlotRegistry
       ↓
 按 order、instanceId 稳定排序并解析 PluginInstance / Plugin Definition
       ↓
@@ -758,7 +769,7 @@ UI Runtime 只从 Registry 加载 Plugin。
 生产 Registry 不再由 Creator 手工维护 import 与数组条目，而由目标项目自己的生成器根据以下输入生成：
 
 ```text
-AppUIModel.pluginInstances 中出现的 pluginId
+AppUIModel.applicationPlugins 与 root/nested plugin nodes 中出现的 pluginId
         +
 plugins/*/manifest.json
         +
@@ -771,8 +782,8 @@ plugins/registry.generated.ts
 
 选择规则：
 
-- 只要 PluginInstance 仍存在，其 `pluginId` 就进入生产 Registry；`enabled` 或是否挂载不影响选择。
-- 因此暂时隐藏的实例保留 definition，headless Plugin 也通过其 PluginInstance 被选择。
+- 只要 authoring plugin node 仍存在，其 `pluginId` 就进入生产 Registry；`enabled` 或所在 target 不影响选择。
+- 因此暂时隐藏的节点保留 definition，headless Plugin 也通过 `applicationPlugins` 中的节点被选择。
 - 当某个 `pluginId` 的最后一个实例被移除时，它才退出生产 Registry 和生产 Bundle。
 - 未被选择的 Plugin 源码目录是合法开发资产，不是孤儿错误，也不进入生产 import graph。
 - 开发期 Catalog 只用于发现、预览和复制模板，不得被生成 Registry 引用。
@@ -954,7 +965,7 @@ skills/
 ```text
 AppUIModel
 LayoutNode
-PluginInstance
+AppUIPluginNode
 Slot
 ```
 
@@ -1055,14 +1066,12 @@ run_build
 增加 AppUIModel 语义修改操作：
 
 ```text
-add_instance
-update_instance_props
-set_instance_enabled
-mount_instance
-unmount_instance
-move_instance
-replace_instance
-remove_instance
+insert_plugin
+move_plugin
+remove_plugin
+replace_plugin
+update_plugin_props
+set_plugin_enabled
 
 insert_layout_node
 update_layout_node_props
@@ -1149,7 +1158,8 @@ framework/*
 ```text
 AppUIModel
 LayoutNode
-PluginInstance
+AppUIPluginNode
+AppUIRuntimeModel / Runtime PluginInstance
 UIPluginManifest
 Runtime Context Hooks
 ```
@@ -1288,7 +1298,7 @@ HMR 先验证现有 Vite / React Fast Refresh 行为，再决定是否增加机�
 只修改 Plugin Component
 修改 AppUIModel
 新增 Plugin 并更新生成 Registry
-移除最后一个 PluginInstance
+移除最后一个 authoring plugin node
 ```
 
 记录每种变化是组件热更新、应用重渲染还是整页刷新，以及 Agent 会话、Plugin 局部状态和 Runtime 状态是否保留。只有复现了无法接受的状态丢失后，才增加最小的开发期 model/registry 更新通道；不得为了“真正热插拔”预先把生产加载链改成 `import.meta.glob` 或动态 Package Runner。
@@ -1410,7 +1420,7 @@ ui-debugging
 Creator 能判断：
 
 * 是否已有 Plugin
-* 是否需要创建 PluginInstance
+* 是否需要创建 AppUIPluginNode
 * 是否修改 Layout Tree
 * 是否需要修改 Plugin Source
 
@@ -1442,9 +1452,7 @@ Creator 能：
 ↓
 读取 AG-UI messages
 ↓
-创建 PluginInstance
-↓
-插入 Slot
+把 AppUIPluginNode 插入目标 Slot
 ↓
 生成显式静态 Registry
 ↓
@@ -1453,7 +1461,7 @@ Creator 能：
 Preview 正常显示
 ```
 
-Creator 在这一阶段同时具备项目快照和 AppUIModel 事务工具。Plugin 源码仍由 Coding Agent 自主创建和修改；组合、挂载、停用、替换和实例移除通过语义工具执行。新 Plugin 的 `definition.ts` 使用默认导出契约，Registry 不再由模型手改。
+Creator 在这一阶段同时具备项目快照和 AppUIModel 事务工具。Plugin 源码仍由 Coding Agent 自主创建和修改；组合、移动、停用、替换和节点移除通过语义工具执行。新 Plugin 的 `definition.ts` 使用默认导出契约，Registry 不再由模型手改。
 
 完成边界由 Creator Harness 的 Verified Completion Gate 负责，不依赖模型自行声称成功：
 
@@ -1469,9 +1477,9 @@ Creator 在这一阶段同时具备项目快照和 AppUIModel 事务工具。Plu
 通过后才向用户发送最终答复与权威回执
 ```
 
-`verify:ui` 属于生成项目，负责检查 AppUIModel、Plugin Registry、PluginInstance 与 Slot 挂载关系；它必须能在没有 Creator package 或 Workbench 的情况下独立运行。Creator 只在停止边界调用验证并反馈证据，不把 Agent 的自主工具选择改成固定 Workflow。
+`verify:ui` 属于生成项目，负责检查 AppUIModel、Plugin Registry，以及 compiler 生成的 AppUIRuntimeModel composition；它必须能在没有 Creator package 或 Workbench 的情况下独立运行。Creator 只在停止边界调用验证并反馈证据，不把 Agent 的自主工具选择改成固定 Workflow。
 
-`verify:ui` 还必须检查生成 Registry 是否与当前 AppUIModel 一致，但保持严格只读。未选择的 Plugin 源码与开发期 Catalog 不属于错误；`mount === undefined` 表示没有普通 UI mount，headless Plugin 可在没有 mount 时继续激活。
+`verify:ui` 还必须检查生成 Registry 是否与当前 AppUIModel 一致，但保持严格只读。未选择的 Plugin 源码与开发期 Catalog 不属于错误；headless Plugin 必须位于 `applicationPlugins`，并由 compiler 生成无 mount 的 Runtime PluginInstance。
 
 如果当前 revision 未产生真实文件变化、验证失败、验证后又发生写入，或者复核未通过，Harness 必须拒绝候选答复并允许 Creator 继续修复。候选成功文本在完成门禁通过前不得进入 AG-UI 对话历史。
 
@@ -1625,7 +1633,7 @@ Creator 自主完成：
 ↓
 修改 Layout Tree
 ↓
-创建 PluginInstance
+创建 AppUIPluginNode
 ↓
 运行 TypeScript Check
 ↓
@@ -1654,7 +1662,7 @@ Creator 修改 Plugin Source。
 “这个详情面板先不要显示。”
 ```
 
-Creator 删除实例的 `mount` 并设为 disabled，保留 Plugin 源码和 Registry 选择。
+Creator 将对应 authoring plugin node 设为 disabled，保留其位置、Plugin 源码和 Registry 选择。
 
 用户继续：
 
@@ -1662,7 +1670,7 @@ Creator 删除实例的 `mount` 并设为 disabled，保留 Plugin 源码和 Reg
 “把这个功能移除，但代码留着。”
 ```
 
-Creator 删除 PluginInstance；如果这是最后一个实例，生成 Registry 自动移除其静态 import，源码目录仍然保留。
+Creator 删除 authoring plugin node；如果这是最后一个引用，生成 Registry 自动移除其静态 import，源码目录仍然保留。
 
 用户继续：
 

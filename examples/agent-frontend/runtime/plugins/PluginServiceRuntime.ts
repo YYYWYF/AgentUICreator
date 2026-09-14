@@ -1,10 +1,11 @@
 import type {
-  AppUIModel,
-  PluginInstance,
-} from "../../framework/contracts/app-ui-model";
+  AppUIRuntimeModel,
+  AppUIRuntimePluginInstance,
+} from "../../framework/contracts/app-ui-runtime-model";
 import {
   AppUICompositionError,
   resolveApplicationFoundation,
+  resolveRuntimePluginSlotId,
   validateAppUIComposition,
 } from "../../framework/contracts/app-ui-composition";
 import { SlotRegistry } from "../slots/SlotRegistry";
@@ -68,12 +69,12 @@ interface ActivePluginRecord {
 }
 
 interface ActivationCandidate<TState = unknown> {
-  instance: PluginInstance;
+  instance: AppUIRuntimePluginInstance;
   definition: UIPluginDefinition<TState>;
 }
 
 interface ReconcileState {
-  model: AppUIModel;
+  model: AppUIRuntimeModel;
   registry: PluginRegistry<unknown>;
   actions: UIPluginRuntimeActions;
   diagnostics?: PluginDiagnosticContextValue | null;
@@ -97,7 +98,7 @@ function assertServiceName(name: string): void {
 }
 
 export function createInstanceActions(
-  instance: PluginInstance,
+  instance: AppUIRuntimePluginInstance,
   actions: UIPluginRuntimeActions,
 ): UIPluginActions {
   return {
@@ -114,7 +115,7 @@ export function createInstanceActions(
 /**
  * Instance-scoped named services for UI plugins.
  *
- * Workspace activations are rebuilt when AppUIModel changes. Application Gate
+ * Workspace activations are rebuilt when AppUIRuntimeModel changes. Application Gate
  * foundations are retained while their definition, dependency graph, and
  * instance props signature remains stable.
  */
@@ -174,7 +175,7 @@ export class PluginServiceRuntime {
   }
 
   reconcile<TState = unknown>(
-    model: AppUIModel,
+    model: AppUIRuntimeModel,
     registry: PluginRegistry<TState>,
     actions: UIPluginRuntimeActions,
     diagnostics?: PluginDiagnosticContextValue | null,
@@ -301,7 +302,7 @@ export class PluginServiceRuntime {
   }
 
   #activate<TState = unknown>(
-    instance: PluginInstance,
+    instance: AppUIRuntimePluginInstance,
     definition: UIPluginDefinition<TState>,
     actions: UIPluginRuntimeActions,
     diagnostics?: PluginDiagnosticContextValue | null,
@@ -427,10 +428,15 @@ export class PluginServiceRuntime {
                   ...(mount.order === undefined ? {} : { order: mount.order }),
                 }),
               );
-              for (const slotId of definition.manifest.slots?.children ?? []) {
+              for (const localSlotName of Object.keys(
+                definition.manifest.slots?.children ?? {},
+              )) {
                 contributionCleanups.push(
                   this.slots.declare({
-                    slotId,
+                    slotId: resolveRuntimePluginSlotId(
+                      instance.id,
+                      localSlotName,
+                    ),
                     owner: { kind: "plugin", instanceId: instance.id },
                   }),
                 );
@@ -614,7 +620,7 @@ export class PluginServiceRuntime {
   }
 
   #createFoundationSignature(
-    model: AppUIModel,
+    model: AppUIRuntimeModel,
     registry: PluginRegistry<unknown>,
     instanceIds: ReadonlySet<string>,
   ): string {

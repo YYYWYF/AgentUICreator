@@ -307,7 +307,7 @@ async function createDomainWriteMockChatCompletionsServer(
               appUIModelHash,
               operations: [
                 {
-                  type: "update_instance_props",
+                  type: "update_plugin_props",
                   instanceId,
                   set: { phase3B2NodePython: true },
                 },
@@ -874,11 +874,11 @@ server.serve_forever()
       .update(beforeSource)
       .digest("hex");
     const model = JSON.parse(beforeSource) as {
-      pluginInstances: Record<string, unknown>;
+      applicationPlugins?: Array<{ id?: string }>;
     };
-    const instanceId = Object.keys(model.pluginInstances)[0];
+    const instanceId = model.applicationPlugins?.[0]?.id;
     if (!instanceId) {
-      throw new Error("Domain-write fixture requires one PluginInstance.");
+      throw new Error("Domain-write fixture requires one application plugin.");
     }
     const modelBaseUrl = await createDomainWriteMockChatCompletionsServer(
       appUIModelHash,

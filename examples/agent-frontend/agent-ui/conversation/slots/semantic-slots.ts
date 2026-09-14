@@ -1,6 +1,6 @@
 export const CONVERSATION_SLOTS = {
-  welcome: "conversation.empty.welcome",
-  suggestions: "conversation.empty.suggestions",
+  welcome: "emptyWelcome",
+  suggestions: "emptySuggestions",
 } as const;
 
 export type ConversationSlotId =

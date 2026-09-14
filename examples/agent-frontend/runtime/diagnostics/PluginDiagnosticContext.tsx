@@ -10,9 +10,9 @@ import {
 } from "react";
 
 import type {
-  AppUIModel,
-  LayoutNode,
-} from "../../framework/contracts/app-ui-model";
+  AppUIRuntimeModel,
+  RuntimeLayoutNode,
+} from "../../framework/contracts/app-ui-runtime-model";
 import {
   RUNTIME_COMPOSITION_SCHEMA_VERSION,
   RUNTIME_DIAGNOSTIC_SCHEMA_VERSION,
@@ -40,7 +40,7 @@ export interface PluginDiagnosticContextValue {
 export interface PluginDiagnosticProviderProps<TState = unknown> {
   appUIModelHash: string;
   children: ReactNode;
-  model: AppUIModel;
+  model: AppUIRuntimeModel;
   onRuntimeComposition?: RuntimeCompositionReporter | undefined;
   onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
   registry: PluginRegistry<TState>;
@@ -50,7 +50,7 @@ const PluginDiagnosticContext =
   createContext<PluginDiagnosticContextValue | null>(null);
 
 function indexPluginLocations(
-  node: LayoutNode,
+  node: RuntimeLayoutNode,
   nodePath: string,
   slotPaths: Map<string, string>,
 ): void {
@@ -70,7 +70,7 @@ function indexPluginLocations(
 }
 
 export function createPluginLocationIndex(
-  model: AppUIModel,
+  model: AppUIRuntimeModel,
 ): ReadonlyMap<string, RuntimePluginLocation> {
   const locations = new Map<string, RuntimePluginLocation>();
   const slotPaths = createSlotLocationIndex(model);
@@ -85,7 +85,7 @@ export function createPluginLocationIndex(
 }
 
 export function createSlotLocationIndex(
-  model: AppUIModel,
+  model: AppUIRuntimeModel,
 ): ReadonlyMap<string, string> {
   const slotPaths = new Map<string, string>();
   indexPluginLocations(model.root, "root", slotPaths);

@@ -4,13 +4,13 @@ import { LayoutRenderer } from "@agent-ui/runtime-react";
 
 import appUIJson from "../app-ui/app-ui.json";
 import {
-  parseAppUIModel,
-  type AppUIModel,
-} from "../framework/contracts/app-ui-model";
+  parseAppUIRuntimeModel,
+  type AppUIRuntimeModel,
+} from "../framework/contracts/app-ui-runtime-model";
 
 describe("LayoutRenderer integration", () => {
   it("renders the checked-in Conversation layout through the official Runtime", () => {
-    const model = parseAppUIModel(appUIJson);
+    const model = parseAppUIRuntimeModel(appUIJson);
     expect(model.root.type).toBe("row");
     if (model.root.type !== "row") {
       throw new Error("Expected the default root to be a Conversation row");
@@ -41,8 +41,8 @@ describe("LayoutRenderer integration", () => {
     expect(html).not.toContain('data-slot-id="agent-sender"');
   });
 
-  it("renders a two-column AppUIModel without changing the Layout Runtime", () => {
-    const model: AppUIModel = {
+  it("renders a two-column AppUIRuntimeModel without changing the Layout Runtime", () => {
+    const model: AppUIRuntimeModel = {
       version: "2",
       pluginInstances: {},
       root: {
@@ -78,7 +78,7 @@ describe("LayoutRenderer integration", () => {
   });
 
   it("maps numeric Column sizes to fractional grid tracks", () => {
-    const model: AppUIModel = {
+    const model: AppUIRuntimeModel = {
       version: "2",
       root: {
         type: "column",
@@ -110,7 +110,7 @@ describe("LayoutRenderer integration", () => {
   });
 
   it("renders only the active Stack child", () => {
-    const model: AppUIModel = {
+    const model: AppUIRuntimeModel = {
       version: "2",
       root: {
         type: "stack",
@@ -142,7 +142,7 @@ describe("LayoutRenderer integration", () => {
   });
 
   it("renders a deterministic placeholder when no slot renderer is provided", () => {
-    const model: AppUIModel = {
+    const model: AppUIRuntimeModel = {
       version: "2",
       root: {
         type: "slot",

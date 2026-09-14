@@ -16,9 +16,11 @@ import type { AppAgentState } from "../agent-contract/agent-state";
 import { appEventSchemas } from "../agent-contract/agent-events";
 import { appFrontendTools } from "../agent-contract/agent-tools";
 import {
+  findAppUIPlugin,
   parseAppUIModel,
   parseAppUIModelJson,
 } from "../framework/contracts/app-ui-model";
+import { compileAppUIModel } from "../framework/contracts/app-ui-compiler";
 import { resolveAgentUIProjectConfig } from "../framework/contracts/agent-ui-project";
 import { pluginDefinitions } from "../plugins";
 import { AgentRuntimeProvider } from "../runtime/context";
@@ -29,6 +31,7 @@ import {
 } from "../runtime/tools";
 import {
   createPluginRegistry,
+  createPluginCompositionCatalog,
   PluginServiceProvider,
   UIPluginRuntime,
   type UIPluginRuntimeActions,
@@ -68,8 +71,13 @@ export const currentAgentUIMode = resolveAgentUIProjectConfig(
     ? undefined
     : JSON.parse(projectConfigJsonSource),
 ).config.mode;
-const initialAppUIModel = parseAppUIModelJson(appUIJsonSource);
 const pluginRegistry = createPluginRegistry<AppAgentState>(pluginDefinitions);
+const pluginCompositionCatalog = createPluginCompositionCatalog(pluginRegistry);
+const initialAppUIModel = parseAppUIModelJson(appUIJsonSource);
+const initialRuntimeModel = compileAppUIModel(
+  initialAppUIModel,
+  pluginCompositionCatalog,
+);
 const appEventRegistry = new AppEventRegistry(appEventSchemas);
 const appFrontendToolRegistry = new AppFrontendToolRegistry(appFrontendTools);
 const appFrontendToolRuntime = new AppFrontendToolRuntime(
@@ -87,7 +95,7 @@ function AgentFrontendSurface({
   runtimeMode,
 }: {
   actions: UIPluginRuntimeActions;
-  model: typeof initialAppUIModel;
+  model: typeof initialRuntimeModel;
   runtimeMode: string;
 }) {
   const themeMode = useAgentUIThemeMode();
@@ -117,7 +125,7 @@ function RuntimeConnectedApp({
   updateInstanceProps,
   integration,
 }: {
-  model: typeof initialAppUIModel;
+  model: typeof initialRuntimeModel;
   runtime: AgentRuntime<AppAgentState>;
   updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
   integration?: ReactNode;
@@ -160,7 +168,7 @@ function ConversationRuntimeConnectedApp({
   model,
   updateInstanceProps,
 }: {
-  model: typeof initialAppUIModel;
+  model: typeof initialRuntimeModel;
   updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
 }) {
   const { agentRuntime } = useConversationRuntimeBridge<AppAgentState>();
@@ -178,7 +186,7 @@ function ConversationRuntimeBoundary({
   model,
   updateInstanceProps,
 }: {
-  model: typeof initialAppUIModel;
+  model: typeof initialRuntimeModel;
   updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
 }) {
   const threadBinding = useMemo(
@@ -224,14 +232,18 @@ export function App({
   onRuntimeComposition,
   onRuntimeDiagnostic,
 }: AppProps = {}) {
-  const [model, setModel] = useState(initialAppUIModel);
+  const [appUIModel, setAppUIModel] = useState(initialAppUIModel);
   const [appUIModelHash, setAppUIModelHash] = useState<string>();
+  const runtimeModel = useMemo(
+    () => compileAppUIModel(appUIModel, pluginCompositionCatalog),
+    [appUIModel],
+  );
 
   useEffect(() => {
     let active = true;
     void sha256Text(appUIJsonSource).then((hash) => {
       if (active) {
-        setModel(initialAppUIModel);
+        setAppUIModel(initialAppUIModel);
         setAppUIModelHash(hash);
       }
     });
@@ -242,23 +254,16 @@ export function App({
 
   const updateInstanceProps = useCallback(
     (instanceId: string, props: Record<string, unknown>) => {
-      setModel((current) => {
-        const instance = current.pluginInstances[instanceId];
+      setAppUIModel((current) => {
+        const next = structuredClone(current);
+        const plugin = findAppUIPlugin(next, instanceId);
 
-        if (instance === undefined) {
+        if (plugin === undefined) {
           return current;
         }
 
-        return parseAppUIModel({
-          ...current,
-          pluginInstances: {
-            ...current.pluginInstances,
-            [instanceId]: {
-              ...instance,
-              props: { ...instance.props, ...props },
-            },
-          },
-        });
+        plugin.props = { ...plugin.props, ...props };
+        return parseAppUIModel(next);
       });
     },
     [],
@@ -271,13 +276,13 @@ export function App({
   return (
     <PluginDiagnosticProvider
       appUIModelHash={appUIModelHash}
-      model={model}
+      model={runtimeModel}
       onRuntimeComposition={onRuntimeComposition}
       onRuntimeDiagnostic={onRuntimeDiagnostic}
       registry={pluginRegistry}
     >
       <ConversationRuntimeBoundary
-        model={model}
+        model={runtimeModel}
         updateInstanceProps={updateInstanceProps}
       />
     </PluginDiagnosticProvider>

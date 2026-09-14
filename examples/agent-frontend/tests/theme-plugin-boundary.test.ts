@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import appUIJson from "../app-ui/app-ui.json";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { collectAppUIPluginLocations } from "../framework/contracts/app-ui-model";
 
 describe("theme plugin boundary", () => {
   it("keeps the provider headless and the switch independent from Ant Design", async () => {
@@ -23,6 +24,9 @@ describe("theme plugin boundary", () => {
     const themeSwitch = JSON.parse(switchManifest) as { id?: string };
     const switchSource = `${switchDefinition}\n${switchComponent}`;
     const model = parseAppUIModel(appUIJson);
+    const plugins = new Map(
+      collectAppUIPluginLocations(model).map(({ plugin, target }) => [plugin.id, { plugin, target }]),
+    );
 
     expect(provider).toMatchObject({
       id: "theme-provider",
@@ -43,18 +47,15 @@ describe("theme plugin boundary", () => {
     expect(switchSource).not.toContain("ant-switch");
     expect(switchSource).not.toContain("ant-btn");
 
-    expect(model.pluginInstances["theme-provider-main"]).toMatchObject({
-      pluginId: "theme-provider",
-      enabled: true,
-      props: { mode: "light" },
+    expect(plugins.get("theme-provider-main")).toMatchObject({
+      plugin: { pluginId: "theme-provider", enabled: true, props: { mode: "light" } },
+      target: { type: "application" },
     });
-    expect(model.pluginInstances["theme-provider-main"]?.mount).toBeUndefined();
-    expect(model.pluginInstances["theme-switch-main"]).toMatchObject({
-      pluginId: "theme-switch",
-      enabled: true,
-      mount: { slotId: "application.theme-control" },
+    expect(plugins.get("theme-switch-main")).toMatchObject({
+      plugin: { pluginId: "theme-switch", enabled: true },
+      target: { type: "layout_slot", slotNodeId: "theme-control" },
     });
-    expect(JSON.stringify(model.root)).toContain("application.theme-control");
+    expect(JSON.stringify(model.root)).toContain("theme-control");
     expect(JSON.stringify(model.root)).not.toContain("workspace.inspector");
     expect(JSON.stringify(model.root)).not.toContain("workspace-shell");
 

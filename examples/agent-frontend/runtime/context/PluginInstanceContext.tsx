@@ -1,13 +1,13 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 
-import type { PluginInstance } from "../../framework/contracts/app-ui-model";
+import type { AppUIRuntimePluginInstance } from "../../framework/contracts/app-ui-runtime-model";
 import type {
   UIPluginActions,
   UIPluginEvents,
 } from "../../framework/contracts/ui-plugin";
 
 export interface PluginInstanceContextValue {
-  instance: PluginInstance;
+  instance: AppUIRuntimePluginInstance;
   actions: UIPluginActions;
   events: UIPluginEvents;
 }
@@ -44,7 +44,7 @@ function useRequiredPluginInstanceContext(): PluginInstanceContextValue {
   return context;
 }
 
-export function usePluginInstance(): PluginInstance {
+export function usePluginInstance(): AppUIRuntimePluginInstance {
   return useRequiredPluginInstanceContext().instance;
 }
 

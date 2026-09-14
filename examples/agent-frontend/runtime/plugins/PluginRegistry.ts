@@ -98,7 +98,7 @@ export function createPluginSlotCatalog<TState = unknown>(
   return Object.fromEntries(
     registry.list().map((definition) => [
       definition.manifest.id,
-      [...(definition.manifest.slots?.children ?? [])],
+      definition.manifest.slots?.children ?? {},
     ] as const),
   );
 }
@@ -110,7 +110,7 @@ export function createPluginCompositionCatalog<TState = unknown>(
     registry.list().map((definition) => [
       definition.manifest.id,
       {
-        childSlots: [...(definition.manifest.slots?.children ?? [])],
+        childSlots: definition.manifest.slots?.children ?? {},
         ...(definition.manifest.application?.gate === undefined
           ? {}
           : {

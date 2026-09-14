@@ -343,12 +343,15 @@ def test_composition_verification_stays_stale_after_fresh_unrelated_diagnostic(
         async def inspect_ui_project(self):
             return {
                 "appUIModel": {"hash": app_hash},
-                "pluginInstances": [
+                "plugins": [
                     {
                         "id": "task-status-main",
                         "pluginId": "task-status",
                         "enabled": True,
-                        "mount": {"slotId": "right.status"},
+                        "target": {
+                            "type": "layout_slot",
+                            "slotNodeId": "right-status",
+                        },
                     }
                 ],
             }
@@ -385,12 +388,15 @@ def test_non_ready_application_does_not_require_workspace_composition(
         async def inspect_ui_project(self):
             return {
                 "appUIModel": {"hash": app_hash},
-                "pluginInstances": [
+                "plugins": [
                     {
                         "id": "workspace-main",
                         "pluginId": "workspace",
                         "enabled": True,
-                        "mount": {"slotId": "main"},
+                        "target": {
+                            "type": "layout_slot",
+                            "slotNodeId": "main",
+                        },
                     }
                 ],
             }
@@ -427,12 +433,15 @@ def test_ready_application_still_requires_workspace_composition(tmp_path):
         async def inspect_ui_project(self):
             return {
                 "appUIModel": {"hash": app_hash},
-                "pluginInstances": [
+                "plugins": [
                     {
                         "id": "workspace-main",
                         "pluginId": "workspace",
                         "enabled": True,
-                        "mount": {"slotId": "main"},
+                        "target": {
+                            "type": "layout_slot",
+                            "slotNodeId": "main",
+                        },
                     }
                 ],
             }

@@ -15,8 +15,8 @@ async function read(relativePath: string): Promise<string> {
 describe("assistant-ui semantic Slot adapter", () => {
   it("exposes only official Thread composition slots", () => {
     expect(Object.values(CONVERSATION_SLOTS)).toEqual([
-      "conversation.empty.welcome",
-      "conversation.empty.suggestions",
+      "emptyWelcome",
+      "emptySuggestions",
     ]);
   });
 
@@ -48,8 +48,8 @@ describe("assistant-ui semantic Slot adapter", () => {
     const slots = await read(
       "agent-ui/conversation/slots/semantic-slots.ts",
     );
-    expect(slots).toContain('welcome: "conversation.empty.welcome"');
-    expect(slots).toContain('suggestions: "conversation.empty.suggestions"');
+    expect(slots).toContain('welcome: "emptyWelcome"');
+    expect(slots).toContain('suggestions: "emptySuggestions"');
     expect(slots).not.toContain("conversation.message");
     expect(slots).not.toContain("conversation.timeline");
   });

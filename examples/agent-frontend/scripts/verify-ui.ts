@@ -6,6 +6,8 @@ import {
   parseAppUIModelJson,
   type AppUIModel,
 } from "../framework/contracts/app-ui-model.ts";
+import { compileAppUIModel } from "../framework/contracts/app-ui-compiler.ts";
+import type { AppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model.ts";
 import { uiProjectControlConfig } from "./ui-project/project-config";
 import { verifyPluginChildSlots } from "./ui-project/plugin-child-slot-verifier";
 import {
@@ -57,7 +59,7 @@ async function readOptional(filePath: string): Promise<string | undefined> {
 }
 
 function verifyInstances(
-  model: AppUIModel,
+  model: AppUIRuntimeModel,
   pluginIds: ReadonlySet<string>,
   headlessPluginIds: ReadonlySet<string>,
 ): {
@@ -138,6 +140,7 @@ export async function verifyUIProject(
   let applicationGatePluginIds: string[] = [];
   let generatedFileFresh = false;
   let services: InspectedService[] = [];
+  let runtimeModel: AppUIRuntimeModel | undefined;
   if (model !== undefined) {
     const registry = await generatePluginRegistry(projectRoot, model, config);
     errors.push(...registry.errors);
@@ -154,6 +157,9 @@ export async function verifyUIProject(
     applicationGatePluginIds = registry.assets
       .filter((asset) => asset.applicationGate !== undefined)
       .map((asset) => asset.pluginId);
+    if (registry.errors.length === 0) {
+      runtimeModel = compileAppUIModel(model, registry.compositionCatalog);
+    }
 
     const generatedSource = await readOptional(
       path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
@@ -190,7 +196,7 @@ export async function verifyUIProject(
   }
 
   const instances =
-    model === undefined
+    runtimeModel === undefined
       ? {
           mountedInstanceIds: [],
           unmountedEnabledInstanceIds: [],
@@ -198,7 +204,7 @@ export async function verifyUIProject(
           warnings: [],
         }
       : verifyInstances(
-          model,
+          runtimeModel,
           new Set(pluginIds),
           new Set([...headlessPluginIds, ...applicationGatePluginIds]),
         );

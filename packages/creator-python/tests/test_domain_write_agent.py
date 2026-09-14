@@ -35,7 +35,8 @@ def _project(tmp_path: Path) -> Path:
     (tmp_path / "app-ui").mkdir()
     (tmp_path / "plugins").mkdir()
     (tmp_path / APP_UI_MODEL_PATH).write_text(
-        '{"version":"2","pluginInstances":{}}\n', encoding="utf-8"
+        '{"version":"3","root":{"type":"slot","id":"inspector-activity","description":"Inspector activity.","plugins":[]}}\n',
+        encoding="utf-8",
     )
     (tmp_path / REGISTRY_PATH).write_text(
         "export const pluginDefinitions = [];\n", encoding="utf-8"
@@ -66,12 +67,11 @@ class MutationClient:
         self.metrics.record("mutate_app_ui_model", 1, False)
         before_hash = read_creator_file_state(self.root, APP_UI_MODEL_PATH).hash
         model = json.loads((self.root / APP_UI_MODEL_PATH).read_text(encoding="utf-8"))
-        model["pluginInstances"]["agent-activity-feed-main"] = {
+        model["root"]["plugins"].append({
             "id": "agent-activity-feed-main",
             "pluginId": "antd-x-activity-feed",
             "enabled": True,
-            "mount": {"slotId": "inspector.activity"},
-        }
+        })
         (self.root / APP_UI_MODEL_PATH).write_text(
             json.dumps(model, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
@@ -115,12 +115,15 @@ def test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation(tmp_
                 {
                     "operations": [
                         {
-                            "type": "add_instance",
-                            "instance": {
+                            "type": "insert_plugin",
+                            "plugin": {
                                 "id": "agent-activity-feed-main",
                                 "pluginId": "antd-x-activity-feed",
                                 "enabled": True,
-                                "mount": {"slotId": "inspector.activity"},
+                            },
+                            "target": {
+                                "type": "layout_slot",
+                                "slotNodeId": "inspector-activity",
                             },
                         }
                     ],

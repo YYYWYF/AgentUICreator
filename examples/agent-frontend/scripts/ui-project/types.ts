@@ -1,9 +1,9 @@
 import type {
-  LayoutSize,
-  PluginInstance,
+  AppUILayoutSize,
+  AppUIPluginNode,
 } from "../../framework/contracts/app-ui-model";
 import type { AgentUIMode } from "../../framework/contracts/agent-ui-mode";
-import type { PluginSlotCatalog } from "../../framework/contracts/app-ui-composition";
+import type { PluginChildSlotDefinition, PluginCompositionCatalog, PluginSlotCatalog } from "../../framework/contracts/app-ui-composition";
 
 export interface ProjectIssue {
   code: string;
@@ -79,7 +79,7 @@ export interface PluginAsset {
     service: string;
     priority: number;
   } | undefined;
-  childSlots?: string[] | undefined;
+  childSlots?: Record<string, PluginChildSlotDefinition> | undefined;
 }
 
 export interface PluginAssetInventory {
@@ -93,6 +93,7 @@ export interface GeneratePluginRegistryResult {
   registeredPluginIds: string[];
   headlessPluginIds: string[];
   slotCatalog: PluginSlotCatalog;
+  compositionCatalog: PluginCompositionCatalog;
   assets: PluginAsset[];
   errors: ProjectIssue[];
 }
@@ -101,20 +102,26 @@ export interface CompactLayoutNode {
   id: string;
   type: "row" | "column" | "stack" | "panel" | "slot";
   gap?: number | undefined;
-  sizes?: LayoutSize[] | undefined;
+  sizes?: AppUILayoutSize[] | undefined;
   active?: string | undefined;
-  width?: LayoutSize | undefined;
-  height?: LayoutSize | undefined;
+  width?: AppUILayoutSize | undefined;
+  height?: AppUILayoutSize | undefined;
   minWidth?: number | undefined;
   maxWidth?: number | undefined;
   resizable?: boolean | undefined;
-  slotId?: string | undefined;
+  description?: string | undefined;
+  plugins?: AppUIPluginNode[] | undefined;
   children?: CompactLayoutNode[] | undefined;
   child?: CompactLayoutNode | undefined;
 }
 
 export interface InspectedSlot {
-  slotId: string;
+  target:
+    | { type: "layout_slot"; slotNodeId: string }
+    | { type: "plugin_slot"; parentInstanceId: string; slot: string };
+  description: string;
+  cardinality: "one" | "many";
+  optional: boolean;
   owner:
     | {
         kind: "layout";
@@ -126,19 +133,17 @@ export interface InspectedSlot {
         instanceId: string;
         pluginId: string;
       };
-  nodeId?: string | undefined;
   nodePath?: string | undefined;
-  /** Configured mounts only; activation determines runtime contributions. */
-  mounts: Array<{
-    instanceId: string;
-    pluginId: string;
-    enabled: boolean;
-    order?: number | undefined;
-  }>;
+  plugins: AppUIPluginNode[];
 }
 
-export interface InspectedPluginInstance extends PluginInstance {
-  mountedSlotId?: string | undefined;
+export interface InspectedPlugin extends AppUIPluginNode {
+  target:
+    | { type: "application" }
+    | { type: "layout_slot"; slotNodeId: string }
+    | { type: "plugin_slot"; parentInstanceId: string; slot: string };
+  path: string;
+  index: number;
 }
 
 export interface UIProjectInspection {
@@ -154,7 +159,7 @@ export interface UIProjectInspection {
     layout: CompactLayoutNode;
     slots: InspectedSlot[];
   };
-  pluginInstances: InspectedPluginInstance[];
+  plugins: InspectedPlugin[];
   registry: {
     selectedPluginIds: string[];
     registeredPluginIds: string[];

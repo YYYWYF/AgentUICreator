@@ -1,7 +1,11 @@
 import { realpathSync } from "node:fs";
 import path from "node:path";
 
-import type { AppUIModel } from "../../framework/contracts/app-ui-model";
+import {
+  collectAppUIPluginLocations,
+  type AppUIModel,
+  type AppUIPluginLocation,
+} from "../../framework/contracts/app-ui-model";
 import type { Node, ObjectLiteralExpression } from "typescript/unstable/ast";
 import {
   isArrayLiteralExpression,
@@ -248,12 +252,12 @@ export function analyzePluginServiceDeclarations(
 }
 
 function isActiveCandidate(
-  instance: AppUIModel["pluginInstances"][string],
+  location: AppUIPluginLocation,
   asset: PluginAsset,
 ): boolean {
   return (
-    instance.enabled &&
-    (instance.mount !== undefined ||
+    location.plugin.enabled &&
+    (location.target.type !== "application" ||
       asset.capabilities.includes("headless") ||
       asset.applicationGate !== undefined)
   );
@@ -298,11 +302,12 @@ function pluginState(
   asset: PluginAsset,
   resolution: HardServiceActivationResolution,
 ): InspectedServicePlugin {
-  const instances = Object.values(model.pluginInstances)
-    .filter((instance) => instance.pluginId === declaration.pluginId)
-    .sort((left, right) => left.id.localeCompare(right.id))
-    .map((instance) => {
-      const activeCandidate = isActiveCandidate(instance, asset);
+  const instances = collectAppUIPluginLocations(model)
+    .filter(({ plugin }) => plugin.pluginId === declaration.pluginId)
+    .sort((left, right) => left.plugin.id.localeCompare(right.plugin.id))
+    .map((location) => {
+      const instance = location.plugin;
+      const activeCandidate = isActiveCandidate(location, asset);
       return {
         instanceId: instance.id,
         enabled: instance.enabled,
@@ -337,14 +342,14 @@ export function inspectUIServiceDependencies(
   const activationCandidates = declarations.plugins.flatMap((declaration) => {
     const asset = assetsByPluginId.get(declaration.pluginId);
     if (asset === undefined) return [];
-    return Object.values(model.pluginInstances)
+    return collectAppUIPluginLocations(model)
       .filter(
-        (instance) =>
-          instance.pluginId === declaration.pluginId &&
-          isActiveCandidate(instance, asset),
+        (location) =>
+          location.plugin.pluginId === declaration.pluginId &&
+          isActiveCandidate(location, asset),
       )
-      .map((instance) => ({
-        instanceId: instance.id,
+      .map(({ plugin }) => ({
+        instanceId: plugin.id,
         pluginId: declaration.pluginId,
         provides: declaration.provides,
         inject: declaration.inject,

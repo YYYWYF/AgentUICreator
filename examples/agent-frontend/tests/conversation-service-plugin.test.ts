@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 import { conversationServicePlugin } from "../plugins/conversation-service/definition";
 import {
@@ -37,7 +37,7 @@ const actions = {
 };
 
 function model(navigation?: UIPluginDefinition) {
-  return parseAppUIModel({
+  return parseAppUIRuntimeModel({
     version: "2",
     root: { type: "slot", id: "navigation-node", slotId: "navigation" },
     pluginInstances: {
@@ -116,7 +116,7 @@ describe("conversationServicePlugin", () => {
 
     expect(signal?.aborted).toBe(false);
     runtime.reconcile(
-      parseAppUIModel({
+      parseAppUIRuntimeModel({
         version: "2",
         root: { type: "slot", id: "navigation-node", slotId: "navigation" },
         pluginInstances: {},

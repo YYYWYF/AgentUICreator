@@ -162,8 +162,8 @@ describe("assistant-ui conversation visual contract", () => {
       ]);
 
       expect(surface).toContain('"bg-background"');
-      expect(appUI).toContain('"conversation.navigation"');
-      expect(appUI).toContain('"conversation.surface"');
+      expect(appUI).toContain('"id": "conversation-navigation"');
+      expect(appUI).toContain('"id": "conversation-surface"');
       expect(appUI).not.toContain("assistant-ui-workspace-shell");
       expect(appUI).not.toMatch(
         /bg-sidebar|text-sidebar-foreground|padding-inline/u,

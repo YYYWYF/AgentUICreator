@@ -88,7 +88,7 @@ export const initialPreviewMessages: AgentMessage[] = [
     activityType: "ui_analysis",
     content: {
       title: "插件组合检查完成",
-      description: "AppUIModel 已挂载 canonical assistant-ui 插件实例",
+      description: "AppUIModel 已组合 canonical assistant-ui 插件节点",
       progress: 100,
     },
     metadata: { conversationId: "current" },
@@ -143,8 +143,19 @@ export const previewAgentState: AppAgentState = {
       language: "json",
       content: JSON.stringify(
         {
-          version: "2",
-          layout: "chat + insights",
+          version: "3",
+          root: {
+            type: "slot",
+            id: "conversation-surface",
+            description: "Primary conversation workspace.",
+            plugins: [
+              {
+                id: "agent-conversation-surface-main",
+                pluginId: "conversation-surface",
+                enabled: true,
+              },
+            ],
+          },
         },
         null,
         2,

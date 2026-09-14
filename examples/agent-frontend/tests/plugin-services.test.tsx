@@ -8,7 +8,7 @@ import {
 } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
-import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import type {
   UIPluginObservableService,
   UIPluginDefinition,
@@ -70,7 +70,22 @@ function createDefinition(
       description: `${id} test plugin`,
       version: "1.0.0",
       ...(definition.setup === undefined ? {} : { capabilities: ["headless"] }),
-      ...(childSlots === undefined ? {} : { slots: { children: childSlots } }),
+      ...(childSlots === undefined
+        ? {}
+        : {
+            slots: {
+              children: Object.fromEntries(
+                childSlots.map((slot) => [
+                  slot,
+                  {
+                    description: `${slot} test Slot`,
+                    cardinality: "many" as const,
+                    optional: true,
+                  },
+                ]),
+              ),
+            },
+          }),
     },
     ...definition,
     Component: () => null,
@@ -78,7 +93,7 @@ function createDefinition(
 }
 
 function createServiceModel(providerEnabled = true) {
-  return parseAppUIModel({
+  return parseAppUIRuntimeModel({
     version: "2",
     root: {
       type: "slot",
@@ -87,7 +102,7 @@ function createServiceModel(providerEnabled = true) {
     },
     pluginInstances: {
       // Deliberately list the consumer first: dependency resolution must not
-      // depend on AppUIModel object order or layout order.
+      // depend on AppUIRuntimeModel object order or layout order.
       "consumer-main": {
         id: "consumer-main",
         pluginId: "consumer",
@@ -112,7 +127,7 @@ describe("PluginServiceRuntime", () => {
         observed = services.get<AgentUIThemeService>(AGENT_UI_THEME_SERVICE);
       },
     });
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: {
         type: "slot",
@@ -284,7 +299,7 @@ describe("PluginServiceRuntime", () => {
         services.provide("test.second", {});
       },
     });
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },
       pluginInstances: {
@@ -317,7 +332,7 @@ describe("PluginServiceRuntime", () => {
         services.provide("test.second", {});
       },
     });
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },
       pluginInstances: {
@@ -439,7 +454,7 @@ describe("PluginServiceRuntime", () => {
     });
     const registry = createPluginRegistry([provider]);
     const runtime = new PluginServiceRuntime();
-    const providerModel = parseAppUIModel({
+    const providerModel = parseAppUIRuntimeModel({
       version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },
       pluginInstances: {
@@ -498,7 +513,7 @@ describe("PluginServiceRuntime", () => {
         services.provide("test.shared", { owner: "second" });
       },
     });
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: {
         type: "slot",
@@ -858,7 +873,7 @@ describe("PluginServiceRuntime", () => {
       provides: ["test.slot-survival"],
       setup,
     });
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: { type: "slot", id: "test-slot-node", slotId: "test-slot" },
       pluginInstances: {
@@ -980,7 +995,7 @@ describe("PluginServiceRuntime", () => {
     const setupCleanup = vi.fn();
     const setup = vi.fn(() => setupCleanup);
     const owner = createDefinition("owner", { setup }, ["owner.child"]);
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },
       pluginInstances: {
@@ -1004,7 +1019,7 @@ describe("PluginServiceRuntime", () => {
     expect(activation?.status).toBe("active");
     expect(setup).toHaveBeenCalledOnce();
     expect(runtime.slots.getContributions("root")).toEqual([]);
-    expect(runtime.slots.getDeclaration("owner.child")).toBeUndefined();
+    expect(runtime.slots.getDeclaration("plugin:owner-main:owner.child")).toBeUndefined();
 
     const disposeRoot = runtime.slots.declare({
       slotId: "root",
@@ -1014,15 +1029,15 @@ describe("PluginServiceRuntime", () => {
     expect(runtime.slots.getContributions("root")).toEqual([
       { instanceId: "owner-main", slotId: "root" },
     ]);
-    expect(runtime.slots.getDeclaration("owner.child")).toEqual({
-      slotId: "owner.child",
+    expect(runtime.slots.getDeclaration("plugin:owner-main:owner.child")).toEqual({
+      slotId: "plugin:owner-main:owner.child",
       owner: { kind: "plugin", instanceId: "owner-main" },
     });
 
     disposeRoot();
 
     expect(runtime.slots.getContributions("root")).toEqual([]);
-    expect(runtime.slots.getDeclaration("owner.child")).toBeUndefined();
+    expect(runtime.slots.getDeclaration("plugin:owner-main:owner.child")).toBeUndefined();
     expect(runtime.getActivation("owner-main")).toEqual(activation);
     expect(setup).toHaveBeenCalledOnce();
     expect(setupCleanup).not.toHaveBeenCalled();
@@ -1035,8 +1050,8 @@ describe("PluginServiceRuntime", () => {
     expect(runtime.slots.getContributions("root")).toEqual([
       { instanceId: "owner-main", slotId: "root" },
     ]);
-    expect(runtime.slots.getDeclaration("owner.child")).toEqual({
-      slotId: "owner.child",
+    expect(runtime.slots.getDeclaration("plugin:owner-main:owner.child")).toEqual({
+      slotId: "plugin:owner-main:owner.child",
       owner: { kind: "plugin", instanceId: "owner-main" },
     });
     expect(runtime.getActivation("owner-main")).toEqual(activation);
@@ -1061,7 +1076,7 @@ describe("PluginServiceRuntime", () => {
       provides: ["test.consumer-lifetime"],
       setup: consumerSetup,
     });
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },
       pluginInstances: {
@@ -1069,7 +1084,7 @@ describe("PluginServiceRuntime", () => {
           id: "a-consumer",
           pluginId: "consumer",
           enabled: true,
-          mount: { slotId: "owner.child" },
+          mount: { slotId: "plugin:z-owner:owner.child" },
         },
         "z-owner": {
           id: "z-owner",
@@ -1092,8 +1107,8 @@ describe("PluginServiceRuntime", () => {
     expect(ownerActivation?.status).toBe("active");
     expect(consumerActivation?.status).toBe("active");
     expect(runtime.slots.getContributions("root")).toEqual([]);
-    expect(runtime.slots.getDeclaration("owner.child")).toBeUndefined();
-    expect(runtime.slots.getContributions("owner.child")).toEqual([]);
+    expect(runtime.slots.getDeclaration("plugin:z-owner:owner.child")).toBeUndefined();
+    expect(runtime.slots.getContributions("plugin:z-owner:owner.child")).toEqual([]);
 
     const disposeRoot = runtime.slots.declare({
       slotId: "root",
@@ -1103,15 +1118,15 @@ describe("PluginServiceRuntime", () => {
     expect(runtime.slots.getContributions("root")).toEqual([
       { instanceId: "z-owner", slotId: "root" },
     ]);
-    expect(runtime.slots.getContributions("owner.child")).toEqual([
-      { instanceId: "a-consumer", slotId: "owner.child" },
+    expect(runtime.slots.getContributions("plugin:z-owner:owner.child")).toEqual([
+      { instanceId: "a-consumer", slotId: "plugin:z-owner:owner.child" },
     ]);
 
     disposeRoot();
 
     expect(runtime.slots.getContributions("root")).toEqual([]);
-    expect(runtime.slots.getDeclaration("owner.child")).toBeUndefined();
-    expect(runtime.slots.getContributions("owner.child")).toEqual([]);
+    expect(runtime.slots.getDeclaration("plugin:z-owner:owner.child")).toBeUndefined();
+    expect(runtime.slots.getContributions("plugin:z-owner:owner.child")).toEqual([]);
     expect(runtime.getActivation("z-owner")).toEqual(ownerActivation);
     expect(runtime.getActivation("a-consumer")).toEqual(consumerActivation);
     expect(runtime.get("test.owner-lifetime")).toBe(ownerService);
@@ -1127,8 +1142,8 @@ describe("PluginServiceRuntime", () => {
     expect(runtime.slots.getContributions("root")).toEqual([
       { instanceId: "z-owner", slotId: "root" },
     ]);
-    expect(runtime.slots.getContributions("owner.child")).toEqual([
-      { instanceId: "a-consumer", slotId: "owner.child" },
+    expect(runtime.slots.getContributions("plugin:z-owner:owner.child")).toEqual([
+      { instanceId: "a-consumer", slotId: "plugin:z-owner:owner.child" },
     ]);
     expect(runtime.getActivation("z-owner")).toEqual(ownerActivation);
     expect(runtime.getActivation("a-consumer")).toEqual(consumerActivation);
@@ -1142,7 +1157,7 @@ describe("PluginServiceRuntime", () => {
       "owner.body",
       "owner.footer",
     ]);
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },
       pluginInstances: {
@@ -1162,7 +1177,11 @@ describe("PluginServiceRuntime", () => {
       owner: { kind: "layout", nodeId: "root-node" },
     });
 
-    for (const slotId of ["owner.header", "owner.body", "owner.footer"]) {
+    for (const slotId of [
+      "plugin:owner-main:owner.header",
+      "plugin:owner-main:owner.body",
+      "plugin:owner-main:owner.footer",
+    ]) {
       expect(runtime.slots.getDeclaration(slotId)).toEqual({
         slotId,
         owner: { kind: "plugin", instanceId: "owner-main" },
@@ -1171,7 +1190,11 @@ describe("PluginServiceRuntime", () => {
 
     disposeRoot();
 
-    for (const slotId of ["owner.header", "owner.body", "owner.footer"]) {
+    for (const slotId of [
+      "plugin:owner-main:owner.header",
+      "plugin:owner-main:owner.body",
+      "plugin:owner-main:owner.footer",
+    ]) {
       expect(runtime.slots.getDeclaration(slotId)).toBeUndefined();
     }
   });
@@ -1182,7 +1205,7 @@ describe("PluginServiceRuntime", () => {
       "owner.body",
       "owner.footer",
     ]);
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },
       pluginInstances: {
@@ -1196,7 +1219,7 @@ describe("PluginServiceRuntime", () => {
     });
     const runtime = new PluginServiceRuntime();
     const existingBody = {
-      slotId: "owner.body",
+      slotId: "plugin:owner-main:owner.body",
       owner: { kind: "layout" as const, nodeId: "existing-body-node" },
     };
     runtime.slots.declare(existingBody);
@@ -1207,19 +1230,19 @@ describe("PluginServiceRuntime", () => {
         slotId: "root",
         owner: { kind: "layout", nodeId: "root-node" },
       }),
-    ).toThrow('Slot "owner.body" already has a live declaration');
+    ).toThrow('Slot "plugin:owner-main:owner.body" already has a live declaration');
 
     expect(runtime.slots.getContributions("root")).toEqual([]);
-    expect(runtime.slots.getDeclaration("owner.header")).toBeUndefined();
-    expect(runtime.slots.getDeclaration("owner.footer")).toBeUndefined();
-    expect(runtime.slots.getDeclaration("owner.body")).toEqual(existingBody);
+    expect(runtime.slots.getDeclaration("plugin:owner-main:owner.header")).toBeUndefined();
+    expect(runtime.slots.getDeclaration("plugin:owner-main:owner.footer")).toBeUndefined();
+    expect(runtime.slots.getDeclaration("plugin:owner-main:owner.body")).toEqual(existingBody);
     expect(runtime.getActivation("owner-main")?.status).toBe("active");
   });
 
   it("orders multiple contributions by order and then instanceId", () => {
     const runtime = new PluginServiceRuntime();
     const definition = createDefinition("visual");
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: { type: "slot", id: "list-node", slotId: "list" },
       pluginInstances: {
@@ -1242,7 +1265,7 @@ describe("PluginServiceRuntime", () => {
 
   it("activates a headless Plugin without an ordinary mount", () => {
     const headless = createDefinition("headless", { setup: () => undefined });
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: { type: "slot", id: "unused-node", slotId: "unused" },
       pluginInstances: {

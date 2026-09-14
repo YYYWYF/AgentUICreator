@@ -186,36 +186,50 @@ describe("UIPluginManifest", () => {
       description: "Owns the conversation surface",
       version: "1.0.0",
       slots: {
-        children: ["owner.header", "owner.body"],
+        children: {
+          header: { description: "Header content.", cardinality: "one" },
+          body: { description: "Body content.", cardinality: "many", optional: true },
+        },
       },
     });
 
-    expect(manifest.slots?.children).toEqual(["owner.header", "owner.body"]);
+    expect(manifest.slots?.children).toEqual({
+      header: { description: "Header content.", cardinality: "one" },
+      body: { description: "Body content.", cardinality: "many", optional: true },
+    });
   });
 
-  it("rejects blank and duplicate child Slot ids", () => {
+  it("rejects blank child Slot names and descriptions", () => {
     const blank = uiPluginManifestSchema.safeParse({
       id: "conversation",
       name: "Conversation",
       description: "Owns the conversation surface",
       version: "1.0.0",
-      slots: { children: ["owner.header", " "] },
+      slots: {
+        children: {
+          " ": { description: "Header content.", cardinality: "one" },
+        },
+      },
     });
-    const duplicate = uiPluginManifestSchema.safeParse({
+    const blankDescription = uiPluginManifestSchema.safeParse({
       id: "conversation",
       name: "Conversation",
       description: "Owns the conversation surface",
       version: "1.0.0",
-      slots: { children: ["owner.body", "owner.body"] },
+      slots: {
+        children: {
+          body: { description: " ", cardinality: "many" },
+        },
+      },
     });
 
     expect(blank.success).toBe(false);
     if (!blank.success) {
-      expect(blank.error.issues[0]?.path).toEqual(["slots", "children", 1]);
+      expect(blank.error.issues[0]?.path).toEqual(["slots", "children", " "]);
     }
-    expect(duplicate.success).toBe(false);
-    if (!duplicate.success) {
-      expect(duplicate.error.issues[0]?.path).toEqual(["slots", "children", 1]);
+    expect(blankDescription.success).toBe(false);
+    if (!blankDescription.success) {
+      expect(blankDescription.error.issues[0]?.path).toEqual(["slots", "children", "body", "description"]);
     }
   });
 

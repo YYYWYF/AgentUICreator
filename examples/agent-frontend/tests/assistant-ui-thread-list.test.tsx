@@ -115,7 +115,7 @@ vi.mock("@assistant-ui/react", async (importOriginal) => {
 
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 import { Button } from "@agent-ui/react";
-import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import { AGENT_UI_THEME_SERVICE } from "../services/agent-ui-theme";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
@@ -168,7 +168,7 @@ async function renderPlugin(
     },
     Component: () => null,
   };
-  const model = parseAppUIModel({
+  const model = parseAppUIRuntimeModel({
     version: "2",
     root: { type: "slot", id: "thread-list-root", slotId: "navigation" },
     pluginInstances: {

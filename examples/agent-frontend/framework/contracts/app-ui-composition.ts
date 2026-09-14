@@ -1,12 +1,21 @@
-import type { AppUIModel, LayoutNode } from "./app-ui-model";
+import type {
+  AppUIRuntimeModel,
+  RuntimeLayoutNode,
+} from "./app-ui-runtime-model";
+
+export interface PluginChildSlotDefinition {
+  readonly description: string;
+  readonly cardinality: "one" | "many";
+  readonly optional?: boolean;
+}
 
 /** Static child Slot declarations keyed by UI Plugin manifest id. */
 export type PluginSlotCatalog = Readonly<
-  Record<string, readonly string[]>
+  Record<string, Readonly<Record<string, PluginChildSlotDefinition>>>
 >;
 
 export interface PluginCompositionCatalogEntry {
-  readonly childSlots?: readonly string[];
+  readonly childSlots?: Readonly<Record<string, PluginChildSlotDefinition>>;
   readonly applicationGate?: {
     readonly service: string;
     readonly priority?: number;
@@ -17,7 +26,7 @@ export interface PluginCompositionCatalogEntry {
 }
 
 export type PluginCompositionCatalog = Readonly<
-  Record<string, readonly string[] | PluginCompositionCatalogEntry>
+  Record<string, PluginCompositionCatalogEntry>
 >;
 
 export type AppUICompositionIssueCode =
@@ -73,7 +82,7 @@ export class AppUICompositionError extends Error {
 }
 
 function collectLayoutSlots(
-  node: LayoutNode,
+  node: RuntimeLayoutNode,
   result: Map<string, AppUICompositionSlotOwner>,
 ): void {
   if (node.type === "slot") {
@@ -91,14 +100,29 @@ function catalogEntry(
   catalog: PluginCompositionCatalog,
   pluginId: string,
 ): PluginCompositionCatalogEntry {
-  const entry = catalog[pluginId];
-  return Array.isArray(entry)
-    ? { childSlots: entry }
-    : (entry ?? {}) as PluginCompositionCatalogEntry;
+  return catalog[pluginId] ?? {};
+}
+
+export function pluginChildSlotDefinitions(
+  catalog: PluginCompositionCatalog,
+  pluginId: string,
+): Readonly<Record<string, PluginChildSlotDefinition>> {
+  return catalogEntry(catalog, pluginId).childSlots ?? {};
+}
+
+export function resolveRuntimeLayoutSlotId(slotNodeId: string): string {
+  return `layout:${slotNodeId}`;
+}
+
+export function resolveRuntimePluginSlotId(
+  instanceId: string,
+  localSlotName: string,
+): string {
+  return `plugin:${instanceId}:${localSlotName}`;
 }
 
 export function resolveApplicationFoundation(
-  model: AppUIModel,
+  model: AppUIRuntimeModel,
   catalog: PluginCompositionCatalog,
 ): ApplicationFoundationResolution {
   const instances = Object.values(model.pluginInstances).sort((left, right) =>
@@ -125,11 +149,12 @@ export function resolveApplicationFoundation(
         message: `Application Gate instance "${instance.id}" must not mount to Slot "${instance.mount.slotId}".`,
       });
     }
-    if ((entry.childSlots?.length ?? 0) > 0) {
+    const childSlotNames = Object.keys(pluginChildSlotDefinitions(catalog, instance.pluginId));
+    if (childSlotNames.length > 0) {
       issues.push({
         code: "application-gate-must-not-declare-child-slots",
         instanceId: instance.id,
-        slotId: entry.childSlots?.[0] ?? "",
+        slotId: childSlotNames[0] ?? "",
         message: `Application Gate plugin "${instance.pluginId}" must not declare child Slots.`,
       });
     }
@@ -209,7 +234,7 @@ export function resolveApplicationFoundation(
  * are currently live.
  */
 export function resolveAppUIComposition(
-  model: AppUIModel,
+  model: AppUIRuntimeModel,
   slotCatalog: PluginCompositionCatalog,
 ): AppUICompositionResolution {
   const layoutSlotOwners = new Map<string, AppUICompositionSlotOwner>();
@@ -240,9 +265,12 @@ export function resolveAppUIComposition(
       reachableInstances.add(instance.id);
       madeProgress = true;
 
-      const childSlots =
-        catalogEntry(slotCatalog, instance.pluginId).childSlots ?? [];
-      for (const childSlotId of childSlots) {
+      const childSlots = Object.keys(pluginChildSlotDefinitions(slotCatalog, instance.pluginId));
+      for (const localSlotName of childSlots) {
+        const childSlotId = resolveRuntimePluginSlotId(
+          instance.id,
+          localSlotName,
+        );
         if (layoutSlots.has(childSlotId)) {
           issues.push({
             code: "plugin-child-slot-layout-collision",
@@ -299,7 +327,7 @@ export function resolveAppUIComposition(
 
 /** Validates the same resolution consumed by Runtime and Creator inspection. */
 export function validateAppUIComposition(
-  model: AppUIModel,
+  model: AppUIRuntimeModel,
   slotCatalog: PluginCompositionCatalog,
 ): void {
   const resolution = resolveAppUIComposition(model, slotCatalog);

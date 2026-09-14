@@ -6,9 +6,12 @@
       "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "operations": [
         {
-          "type": "mount_instance",
+          "type": "move_plugin",
           "instanceId": "activity-main",
-          "slotId": "inspector.activity"
+          "target": {
+            "type": "layout_slot",
+            "slotNodeId": "inspector-activity"
+          }
         }
       ]
     }

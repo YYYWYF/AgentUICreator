@@ -29,8 +29,8 @@ describe("assistant-ui interaction state contract", () => {
       path.join(projectRoot, "agent-ui/conversation/slots/semantic-slots.ts"),
       "utf8",
     );
-    expect(slots).toContain("conversation.empty.welcome");
-    expect(slots).toContain("conversation.empty.suggestions");
+    expect(slots).toContain("emptyWelcome");
+    expect(slots).toContain("emptySuggestions");
     expect(slots).not.toMatch(/conversation\.message|conversation\.timeline|conversation\.composer/u);
   });
 });

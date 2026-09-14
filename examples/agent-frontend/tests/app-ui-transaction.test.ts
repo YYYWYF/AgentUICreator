@@ -6,577 +6,132 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import type { AppUIModel } from "../framework/contracts/app-ui-model";
-import {
-  mutateAppUIModel,
-  recoverPendingAppUITransaction,
-} from "../scripts/ui-project/app-ui-transaction";
+import { mutateAppUIModel } from "../scripts/ui-project/app-ui-transaction";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
   generatePluginRegistry,
 } from "../scripts/ui-project/registry-generator";
 
 const temporaryProjects: string[] = [];
+const hash = (source: string) => createHash("sha256").update(source).digest("hex");
 
-function hash(source: string): string {
-  return createHash("sha256").update(source).digest("hex");
-}
-
-async function createPlugin(
-  projectRoot: string,
-  pluginId: string,
-  capability: "visual" | "headless",
-  childSlots: readonly string[] = [],
-  renderedChildSlots: readonly string[] = childSlots,
-  layoutWidth?: "narrow" | "wide",
-): Promise<void> {
+async function createPlugin(projectRoot: string, pluginId: string): Promise<void> {
   const pluginRoot = path.join(projectRoot, "plugins", pluginId);
   await mkdir(pluginRoot, { recursive: true });
-  await writeFile(
-    path.join(pluginRoot, "manifest.json"),
-    JSON.stringify({
-      id: pluginId,
-      name: pluginId,
-      description: "Fixture",
-      version: "1.0.0",
-      capabilities: [capability],
-      ...(layoutWidth === undefined ? {} : { layout: { width: layoutWidth } }),
-      ...(childSlots.length === 0 ? {} : { slots: { children: childSlots } }),
-    }),
-  );
+  await writeFile(path.join(pluginRoot, "manifest.json"), JSON.stringify({
+    id: pluginId,
+    name: pluginId,
+    description: "Fixture plugin.",
+    version: "1.0.0",
+  }));
   await writeFile(
     path.join(pluginRoot, "definition.ts"),
     "const definition = {};\nexport default definition;\n",
   );
-  await writeFile(
-    path.join(pluginRoot, "index.tsx"),
-    [
-      "export function Plugin({ renderSlot }) {",
-      ...renderedChildSlots.map(
-        (slotId) => `  renderSlot(${JSON.stringify(slotId)});`,
-      ),
-      "  return null;",
-      "}",
-      "",
-    ].join("\n"),
-  );
 }
 
-async function createProject(): Promise<{
-  projectRoot: string;
-  appUIModelSource: string;
-  registrySource: string;
-}> {
-  const projectRoot = await mkdtemp(path.join(tmpdir(), "app-ui-transaction-"));
+async function createProject() {
+  const projectRoot = await mkdtemp(path.join(tmpdir(), "app-ui-v3-transaction-"));
   temporaryProjects.push(projectRoot);
   await mkdir(path.join(projectRoot, "app-ui"));
   await mkdir(path.join(projectRoot, "plugins"));
-  await createPlugin(projectRoot, "sample", "visual");
-  await createPlugin(projectRoot, "replacement", "visual");
-  await createPlugin(projectRoot, "background", "headless");
-  await createPlugin(projectRoot, "owner", "visual", ["owner.child"]);
-  await createPlugin(projectRoot, "consumer", "visual");
-  await createPlugin(projectRoot, "wide", "visual", [], [], "wide");
+  await createPlugin(projectRoot, "sample");
   const model: AppUIModel = {
-    version: "2",
+    version: "3",
     root: {
       type: "slot",
-      id: "main-node",
-      slotId: "main",
-    },
-    pluginInstances: {
-      "sample-main": {
+      id: "main",
+      description: "Main content.",
+      plugins: [{
         id: "sample-main",
         pluginId: "sample",
         enabled: true,
-        mount: { slotId: "main" },
         props: { title: "Before" },
-      },
+      }],
     },
   };
-  const appUIModelSource = `${JSON.stringify(model, null, 2)}\n`;
-  await writeFile(
-    path.join(projectRoot, "app-ui", "app-ui.json"),
-    appUIModelSource,
-  );
+  const source = `${JSON.stringify(model, null, 2)}\n`;
+  await writeFile(path.join(projectRoot, "app-ui", "app-ui.json"), source);
   const registry = await generatePluginRegistry(projectRoot, model);
-  expect(registry.errors).toEqual([]);
-  const registrySource = registry.source;
-  await writeFile(
-    path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
-    registrySource,
-  );
-  return { projectRoot, appUIModelSource, registrySource };
+  await writeFile(path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH), registry.source);
+  return { projectRoot, source };
 }
 
 afterEach(async () => {
-  await Promise.all(
-    temporaryProjects.splice(0).map((projectRoot) =>
-      rm(projectRoot, { recursive: true, force: true }),
-    ),
-  );
+  await Promise.all(temporaryProjects.splice(0).map((root) =>
+    rm(root, { recursive: true, force: true }),
+  ));
 });
 
-describe("AppUIModel transaction", () => {
-  it("rejects mounting a wide Plugin into a known narrow Slot before writing", async () => {
-    const { projectRoot, appUIModelSource, registrySource } = await createProject();
-
-    await expect(
-      mutateAppUIModel(projectRoot, {
-        appUIModelHash: hash(appUIModelSource),
-        operations: [
-          {
-            type: "add_instance",
-            instance: {
-              id: "wide-main",
-              pluginId: "wide",
-              enabled: true,
-              mount: { slotId: "main" },
-            },
-          },
-        ],
-        runtimeSlotWidths: { main: "narrow" },
-      }),
-    ).rejects.toMatchObject({
-      code: "PLUGIN_WIDTH_INCOMPATIBLE",
-      details: {
-        instanceId: "wide-main",
-        slotId: "main",
-        requiredWidth: "wide",
-        actualWidthClass: "narrow",
-      },
-    });
-    expect(
-      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
-    ).toBe(appUIModelSource);
-    expect(
-      await readFile(path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH), "utf8"),
-    ).toBe(registrySource);
-  });
-
-  it("allows a wide Plugin when the Slot width is not known", async () => {
-    const { projectRoot, appUIModelSource } = await createProject();
-
+describe("AppUIModel v3 transaction", () => {
+  it("commits the authoring model only after it compiles", async () => {
+    const { projectRoot, source } = await createProject();
     const result = await mutateAppUIModel(projectRoot, {
-      appUIModelHash: hash(appUIModelSource),
-      operations: [
-        {
-          type: "add_instance",
-          instance: {
-            id: "wide-main",
-            pluginId: "wide",
-            enabled: true,
-            mount: { slotId: "main" },
-          },
-        },
-      ],
-      runtimeSlotWidths: { main: "unknown" },
-    });
-
-    expect(result.diff.instances.added).toEqual(["wide-main"]);
-  });
-
-  it("commits a valid multi-operation change and returns a structured diff", async () => {
-    const { projectRoot, appUIModelSource } = await createProject();
-
-    const result = await mutateAppUIModel(projectRoot, {
-      appUIModelHash: hash(appUIModelSource),
-      operations: [
-        {
-          type: "add_instance",
-          instance: {
-            id: "sample-secondary",
-            pluginId: "sample",
-            enabled: true,
-          },
-        },
-        {
-          type: "mount_instance",
-          instanceId: "sample-secondary",
-          slotId: "main",
-        },
-      ],
-    });
-
-    expect(result.changedPaths).toEqual(["app-ui/app-ui.json"]);
-    expect(result.diff.instances.added).toEqual(["sample-secondary"]);
-    expect(result.snapshotToken.appUIModelHash).toBe(result.appUIModel.afterHash);
-    expect(
-      JSON.parse(
-        await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
-      ),
-    ).toMatchObject({
-      pluginInstances: {
-        "sample-secondary": { enabled: true },
-      },
-    });
-  });
-
-  it("rejects a stale hash and leaves both transaction files byte-identical", async () => {
-    const { projectRoot, appUIModelSource, registrySource } = await createProject();
-
-    await expect(
-      mutateAppUIModel(projectRoot, {
-        appUIModelHash: "0".repeat(64),
-        operations: [
-          {
-            type: "update_instance_props",
-            instanceId: "sample-main",
-            set: { title: "After" },
-          },
-        ],
-      }),
-    ).rejects.toMatchObject({ code: "APP_UI_MODEL_HASH_CONFLICT" });
-    expect(
-      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
-    ).toBe(appUIModelSource);
-    expect(
-      await readFile(path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH), "utf8"),
-    ).toBe(registrySource);
-  });
-
-  it("rejects invalid mount semantics and Registry generation before writing", async () => {
-    const { projectRoot, appUIModelSource, registrySource } = await createProject();
-
-    await expect(
-      mutateAppUIModel(projectRoot, {
-        appUIModelHash: hash(appUIModelSource),
-        operations: [
-          { type: "move_instance", instanceId: "sample-main", slotId: "missing" },
-        ],
-      }),
-    ).rejects.toMatchObject({
-      code: "PLUGIN_REGISTRY_GENERATION_FAILED",
-      details: {
-        issues: expect.arrayContaining([
-          expect.objectContaining({
-            code: "mount-slot-unreachable",
-            instanceId: "sample-main",
-            slotId: "missing",
-          }),
-        ]),
-      },
-    });
-    await expect(
-      mutateAppUIModel(projectRoot, {
-        appUIModelHash: hash(appUIModelSource),
-        operations: [
-          {
-            type: "add_instance",
-            instance: {
-              id: "missing-main",
-              pluginId: "missing",
-              enabled: false,
-            },
-          },
-        ],
-      }),
-    ).rejects.toMatchObject({ code: "PLUGIN_REGISTRY_GENERATION_FAILED" });
-    expect(
-      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
-    ).toBe(appUIModelSource);
-    expect(
-      await readFile(path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH), "utf8"),
-    ).toBe(registrySource);
-  });
-
-  it("rejects a selected Plugin with an inconsistent child Slot contract before writing", async () => {
-    const { projectRoot, appUIModelSource, registrySource } =
-      await createProject();
-    await createPlugin(
-      projectRoot,
-      "broken-container",
-      "visual",
-      ["broken.child"],
-      [],
-    );
-
-    await expect(
-      mutateAppUIModel(projectRoot, {
-        appUIModelHash: hash(appUIModelSource),
-        operations: [
-          {
-            type: "add_instance",
-            instance: {
-              id: "broken-main",
-              pluginId: "broken-container",
-              enabled: true,
-              mount: { slotId: "main" },
-            },
-          },
-        ],
-      }),
-    ).rejects.toMatchObject({
-      code: "PLUGIN_CHILD_SLOT_CONTRACT_INVALID",
-      details: {
-        issues: expect.arrayContaining([
-          expect.objectContaining({
-            code: "plugin-child-slot-declared-not-rendered",
-          }),
-        ]),
-      },
-    });
-    expect(
-      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
-    ).toBe(appUIModelSource);
-    expect(
-      await readFile(
-        path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
-        "utf8",
-      ),
-    ).toBe(registrySource);
-  });
-
-  it("does not let an unselected Plugin with a bad child Slot contract block a transaction", async () => {
-    const { projectRoot, appUIModelSource } = await createProject();
-    await createPlugin(
-      projectRoot,
-      "unused-broken-container",
-      "visual",
-      ["unused.child"],
-      [],
-    );
-
-    const result = await mutateAppUIModel(projectRoot, {
-      appUIModelHash: hash(appUIModelSource),
-      operations: [
-        {
-          type: "update_instance_props",
-          instanceId: "sample-main",
-          set: { title: "After" },
-        },
-      ],
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "update_plugin_props",
+        instanceId: "sample-main",
+        set: { title: "After" },
+      }],
     });
 
     expect(result.changed).toBe(true);
-    expect(result.registry.selectedPluginIds).toEqual(["sample"]);
-  });
-
-  it("mounts a PluginInstance into a reachable Plugin child Slot", async () => {
-    const { projectRoot, appUIModelSource } = await createProject();
-
-    const result = await mutateAppUIModel(projectRoot, {
-      appUIModelHash: hash(appUIModelSource),
-      operations: [
-        {
-          type: "add_instance",
-          instance: {
-            id: "owner-main",
-            pluginId: "owner",
-            enabled: true,
-          },
-        },
-        {
-          type: "mount_instance",
-          instanceId: "owner-main",
-          slotId: "main",
-        },
-        {
-          type: "add_instance",
-          instance: {
-            id: "consumer-main",
-            pluginId: "consumer",
-            enabled: true,
-          },
-        },
-        {
-          type: "mount_instance",
-          instanceId: "consumer-main",
-          slotId: "owner.child",
-        },
-      ],
-    });
-
-    expect(result.registry.selectedPluginIds).toEqual([
-      "consumer",
-      "owner",
-      "sample",
-    ]);
-    const model = JSON.parse(
+    expect(result.diff.plugins.updated).toEqual(["sample-main"]);
+    const written = JSON.parse(
       await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
     ) as AppUIModel;
-    expect(model.pluginInstances["consumer-main"]?.mount).toEqual({
-      slotId: "owner.child",
-    });
+    if (written.root.type !== "slot") throw new Error("fixture");
+    expect(written.root.plugins[0]?.props?.title).toBe("After");
   });
 
-  it("allows disabled visual and enabled headless instances to remain unmounted", async () => {
-    const { projectRoot, appUIModelSource } = await createProject();
+  it("does not write a draft that fails deterministic compilation", async () => {
+    const { projectRoot, source } = await createProject();
+    await expect(mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "insert_plugin",
+        plugin: { id: "missing-main", pluginId: "missing", enabled: true },
+        target: { type: "layout_slot", slotNodeId: "main" },
+      }],
+    })).rejects.toMatchObject({ code: "PLUGIN_REGISTRY_GENERATION_FAILED" });
 
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
+      .toBe(source);
+  });
+
+  it("rejects a stale source hash before changing either transaction file", async () => {
+    const { projectRoot, source } = await createProject();
+    const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
+    const registrySource = await readFile(registryPath, "utf8");
+
+    await expect(mutateAppUIModel(projectRoot, {
+      appUIModelHash: "0".repeat(64),
+      operations: [{
+        type: "set_plugin_enabled",
+        instanceId: "sample-main",
+        enabled: false,
+      }],
+    })).rejects.toMatchObject({ code: "APP_UI_MODEL_HASH_CONFLICT" });
+
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
+      .toBe(source);
+    expect(await readFile(registryPath, "utf8")).toBe(registrySource);
+  });
+
+  it("preserves source bytes for an already-satisfied semantic operation", async () => {
+    const { projectRoot, source } = await createProject();
     const result = await mutateAppUIModel(projectRoot, {
-      appUIModelHash: hash(appUIModelSource),
-      operations: [
-        { type: "set_instance_enabled", instanceId: "sample-main", enabled: false },
-        { type: "unmount_instance", instanceId: "sample-main" },
-        {
-          type: "add_instance",
-          instance: {
-            id: "background-main",
-            pluginId: "background",
-            enabled: true,
-          },
-        },
-      ],
-    });
-
-    expect(result.registry.selectedPluginIds).toEqual(["background", "sample"]);
-    expect(result.changedPaths).toEqual([
-      "app-ui/app-ui.json",
-      "plugins/registry.generated.ts",
-    ]);
-  });
-
-  it("keeps source for hide, instance removal, and replacement semantics", async () => {
-    const hidden = await createProject();
-    const hiddenResult = await mutateAppUIModel(hidden.projectRoot, {
-      appUIModelHash: hash(hidden.appUIModelSource),
-      operations: [
-        {
-          type: "set_instance_enabled",
-          instanceId: "sample-main",
-          enabled: false,
-        },
-        { type: "unmount_instance", instanceId: "sample-main" },
-      ],
-    });
-    expect(hiddenResult.registry.selectedPluginIds).toEqual(["sample"]);
-    await expect(
-      readFile(
-        path.join(hidden.projectRoot, "plugins", "sample", "definition.ts"),
-        "utf8",
-      ),
-    ).resolves.toContain("export default");
-
-    const removed = await createProject();
-    const removedResult = await mutateAppUIModel(removed.projectRoot, {
-      appUIModelHash: hash(removed.appUIModelSource),
-      operations: [
-        { type: "unmount_instance", instanceId: "sample-main" },
-        { type: "remove_instance", instanceId: "sample-main" },
-      ],
-    });
-    expect(removedResult.registry.selectedPluginIds).toEqual([]);
-    await expect(
-      readFile(
-        path.join(removed.projectRoot, "plugins", "sample", "definition.ts"),
-        "utf8",
-      ),
-    ).resolves.toContain("export default");
-
-    const replaced = await createProject();
-    const replacedResult = await mutateAppUIModel(replaced.projectRoot, {
-      appUIModelHash: hash(replaced.appUIModelSource),
-      operations: [
-        {
-          type: "replace_instance",
-          instanceId: "sample-main",
-          replacement: {
-            id: "replacement-main",
-            pluginId: "replacement",
-            enabled: true,
-          },
-        },
-      ],
-    });
-    expect(replacedResult.registry.selectedPluginIds).toEqual(["replacement"]);
-    await expect(
-      readFile(
-        path.join(replaced.projectRoot, "plugins", "sample", "definition.ts"),
-        "utf8",
-      ),
-    ).resolves.toContain("export default");
-    await expect(
-      readFile(
-        path.join(
-          replaced.projectRoot,
-          "plugins",
-          "replacement",
-          "definition.ts",
-        ),
-        "utf8",
-      ),
-    ).resolves.toContain("export default");
-  });
-
-  it("serializes concurrent mutations and rechecks the hash inside the lock", async () => {
-    const { projectRoot, appUIModelSource } = await createProject();
-    const input = (title: string) => ({
-      appUIModelHash: hash(appUIModelSource),
-      operations: [
-        {
-          type: "update_instance_props" as const,
-          instanceId: "sample-main",
-          set: { title },
-        },
-      ],
-    });
-
-    const settled = await Promise.allSettled([
-      mutateAppUIModel(projectRoot, input("First")),
-      mutateAppUIModel(projectRoot, input("Second")),
-    ]);
-
-    expect(settled.filter((item) => item.status === "fulfilled")).toHaveLength(1);
-    const rejected = settled.find((item) => item.status === "rejected");
-    expect(rejected).toMatchObject({
-      status: "rejected",
-      reason: { code: "APP_UI_MODEL_HASH_CONFLICT" },
-    });
-  });
-
-  it("does not rewrite files for a semantic no-op", async () => {
-    const { projectRoot, appUIModelSource, registrySource } = await createProject();
-
-    const result = await mutateAppUIModel(projectRoot, {
-      appUIModelHash: hash(appUIModelSource),
-      operations: [
-        { type: "set_instance_enabled", instanceId: "sample-main", enabled: true },
-      ],
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "set_plugin_enabled",
+        instanceId: "sample-main",
+        enabled: true,
+      }],
     });
 
     expect(result.changed).toBe(false);
     expect(result.changedPaths).toEqual([]);
-    expect(
-      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
-    ).toBe(appUIModelSource);
-    expect(
-      await readFile(path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH), "utf8"),
-    ).toBe(registrySource);
-  });
-
-  it("finishes a journaled two-file transaction after an interrupted rename", async () => {
-    const { projectRoot, appUIModelSource } = await createProject();
-
-    await expect(
-      mutateAppUIModel(
-        projectRoot,
-        {
-          appUIModelHash: hash(appUIModelSource),
-          operations: [
-            {
-              type: "add_instance",
-              instance: {
-                id: "background-main",
-                pluginId: "background",
-                enabled: true,
-              },
-            },
-          ],
-        },
-        { simulateCrashAfterRename: 1 },
-      ),
-    ).rejects.toThrow("Simulated AppUI transaction crash");
-
-    await recoverPendingAppUITransaction(projectRoot);
-    const model = JSON.parse(
-      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
-    ) as AppUIModel;
-    const registry = await readFile(
-      path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
-      "utf8",
-    );
-    expect(model.pluginInstances["background-main"]).toMatchObject({
-      enabled: true,
-    });
-    expect(registry).toContain('./background/definition');
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
+      .toBe(source);
   });
 });

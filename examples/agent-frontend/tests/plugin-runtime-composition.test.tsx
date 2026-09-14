@@ -6,7 +6,7 @@ import {
 } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 import {
   createPluginRegistry,
@@ -26,7 +26,7 @@ const runtimeActions = {
 };
 
 function createModel(enabled = true) {
-  return parseAppUIModel({
+  return parseAppUIRuntimeModel({
     version: "2",
     root: {
       type: "slot",
@@ -44,7 +44,7 @@ function createModel(enabled = true) {
         id: "child-main",
         pluginId: "child-plugin",
         enabled,
-        mount: { slotId: "owner.child" },
+        mount: { slotId: "plugin:owner-main:owner.child" },
       },
     },
   });
@@ -62,7 +62,15 @@ function definitions(
         name: "Owner Plugin",
         description: "Composition owner fixture",
         version: "1.0.0",
-        slots: { children: ["owner.child"] },
+        slots: {
+          children: {
+            "owner.child": {
+              description: "Child content.",
+              cardinality: "many",
+              optional: true,
+            },
+          },
+        },
       },
       Component: ({ renderSlot }) => (
         <section>
@@ -181,7 +189,7 @@ describe("plugin runtime composition", () => {
         kind: "plugin-width-incompatible",
         pluginId: "child-plugin",
         instanceId: "child-main",
-        slotId: "owner.child",
+        slotId: "plugin:owner-main:owner.child",
         requiredWidth: "wide",
         actualWidthClass: "narrow",
       }),
@@ -273,7 +281,7 @@ describe("plugin runtime composition", () => {
     );
     const childSlotWidth = () => snapshots
       .at(-1)
-      ?.slots.find((slot) => slot.slotId === "owner.child")
+      ?.slots.find((slot) => slot.slotId === "plugin:owner-main:owner.child")
       ?.widthClass;
 
     await act(async () => {
@@ -287,14 +295,14 @@ describe("plugin runtime composition", () => {
           createNodeMock: (element) => {
             const props = element.props as Record<string, unknown>;
             const node = {
-              width: props["data-slot-id"] === "owner.child"
+              width: props["data-slot-id"] === "plugin:owner-main:owner.child"
                 ? 320
                 : 640,
               getBoundingClientRect() {
                 return { width: this.width };
               },
             };
-            if (props["data-slot-id"] === "owner.child") {
+            if (props["data-slot-id"] === "plugin:owner-main:owner.child") {
               childSlotNodes.push(node);
             }
             return node;
@@ -355,7 +363,7 @@ describe("plugin runtime composition", () => {
         {
           instanceId: "child-main",
           pluginId: "child-plugin",
-          slotId: "owner.child",
+          slotId: "plugin:owner-main:owner.child",
         },
         {
           instanceId: "owner-main",
@@ -366,7 +374,7 @@ describe("plugin runtime composition", () => {
       ],
       slots: [
         {
-          slotId: "owner.child",
+          slotId: "plugin:owner-main:owner.child",
           widthClass: "unknown",
         },
         {

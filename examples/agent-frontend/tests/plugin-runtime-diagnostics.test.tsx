@@ -9,7 +9,7 @@ import {
 } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 import {
   createPluginRegistry,
@@ -44,7 +44,7 @@ function createDefinition(
 }
 
 function createModel(shouldFail = true) {
-  return parseAppUIModel({
+  return parseAppUIRuntimeModel({
     version: "2",
     root: {
       type: "panel",
@@ -246,7 +246,7 @@ describe("plugin runtime diagnostics", () => {
     ).toHaveLength(0);
   });
 
-  it("hashes the exact AppUIModel source bytes used by project inspection", async () => {
+  it("hashes the exact AppUIRuntimeModel source bytes used by project inspection", async () => {
     const projectRoot = path.resolve(import.meta.dirname, "..");
     const source = await readFile(
       path.join(projectRoot, "app-ui", "app-ui.json"),

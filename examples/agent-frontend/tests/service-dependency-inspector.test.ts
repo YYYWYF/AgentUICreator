@@ -92,7 +92,7 @@ async function createDependencyGraphProject(
       include: ["plugins/**/*.ts"],
     }),
   );
-  const pluginInstances: AppUIModel["pluginInstances"] = {};
+  const applicationPlugins: NonNullable<AppUIModel["applicationPlugins"]> = [];
   for (const definition of definitions) {
     const pluginRoot = path.join(projectRoot, "plugins", definition.pluginId);
     await mkdir(pluginRoot, { recursive: true });
@@ -117,45 +117,41 @@ async function createDependencyGraphProject(
       "const Component = () => null;\n" +
         `export default { manifest: {}, ${property("provides")}${property("inject")}${property("optionalInject")}Component };\n`,
     );
-    pluginInstances[definition.pluginId] = {
+    applicationPlugins.push({
       id: definition.pluginId,
       pluginId: definition.pluginId,
       enabled: true,
-    };
+    });
   }
   const inventory = await collectPluginAssets(projectRoot, config);
   const graphModel: AppUIModel = {
-    version: "2",
-    root: { type: "slot", id: "root", slotId: "root" },
-    pluginInstances,
+    version: "3",
+    applicationPlugins,
+    root: { type: "slot", id: "root", description: "Root content.", plugins: [] },
   };
   return { projectRoot, assets: inventory.assets, graphModel };
 }
 
 function model(providerEnabled = true): AppUIModel {
   return {
-    version: "2",
-    root: { type: "slot", id: "root", slotId: "root" },
-    pluginInstances: {
-      provider: {
+    version: "3",
+    root: { type: "slot", id: "root", description: "Root content.", plugins: [
+      {
         id: "provider",
         pluginId: "provider",
         enabled: providerEnabled,
-        mount: { slotId: "root" },
       },
-      required: {
+      {
         id: "required",
         pluginId: "required",
         enabled: true,
-        mount: { slotId: "root" },
       },
-      optional: {
+      {
         id: "optional",
         pluginId: "optional",
         enabled: true,
-        mount: { slotId: "root" },
-      },
-    },
+      }
+    ] },
   };
 }
 
@@ -209,7 +205,8 @@ describe("service dependency inspector", () => {
       expect.objectContaining({ code: "required-service-missing" }),
     );
 
-    missingModel.pluginInstances.required!.enabled = false;
+    if (missingModel.root.type !== "slot") throw new Error("fixture");
+    missingModel.root.plugins.find((plugin) => plugin.id === "required")!.enabled = false;
     const optionalUnavailable = inspectUIServiceDependencies(
       projectRoot,
       missingModel,
@@ -219,12 +216,12 @@ describe("service dependency inspector", () => {
     expect(optionalUnavailable.issues).toEqual([]);
 
     const collisionModel = model();
-    collisionModel.pluginInstances["provider-second"] = {
+    if (collisionModel.root.type !== "slot") throw new Error("fixture");
+    collisionModel.root.plugins.push({
       id: "provider-second",
       pluginId: "provider",
       enabled: true,
-      mount: { slotId: "root" },
-    };
+    });
     const collision = inspectUIServiceDependencies(
       projectRoot,
       collisionModel,

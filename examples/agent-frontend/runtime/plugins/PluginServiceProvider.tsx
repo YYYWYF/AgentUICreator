@@ -5,7 +5,7 @@ import {
   type ReactNode,
 } from "react";
 
-import type { AppUIModel } from "../../framework/contracts/app-ui-model";
+import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
 import type { PluginRegistry } from "./PluginRegistry";
 import { PluginServiceRuntimeContext } from "./PluginServiceContext";
 import {
@@ -22,7 +22,7 @@ import type { AppFrontendToolRuntime } from "../tools";
 import { ApplicationLifecycleProvider } from "../application/ApplicationLifecycleContext";
 
 export interface PluginServiceProviderProps<TState = unknown> {
-  model: AppUIModel;
+  model: AppUIRuntimeModel;
   registry: PluginRegistry<TState>;
   actions: UIPluginRuntimeActions;
   applicationEventRegistry?: AppEventRegistry | undefined;

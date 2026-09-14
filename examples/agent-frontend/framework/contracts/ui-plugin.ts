@@ -6,7 +6,8 @@ import type {
 import type { ComponentType, ReactNode } from "react";
 import { z } from "zod";
 
-import type { PluginInstance } from "./app-ui-model";
+import type { AppUIRuntimePluginInstance } from "./app-ui-runtime-model";
+import type { PluginChildSlotDefinition } from "./app-ui-composition";
 import { customEventNameSchema } from "./custom-event-protocol";
 
 export type {
@@ -45,7 +46,7 @@ export interface UIPluginManifest {
     | undefined;
   slots?:
     | {
-        children?: readonly string[] | undefined;
+        children?: Readonly<Record<string, PluginChildSlotDefinition>> | undefined;
       }
     | undefined;
   data?:
@@ -122,7 +123,7 @@ export interface UIPluginServiceRegistrar extends UIPluginServices {
 }
 
 export interface UIPluginSetupContext {
-  instance: PluginInstance;
+  instance: AppUIRuntimePluginInstance;
   actions: UIPluginActions;
   events: UIPluginEvents;
   services: UIPluginServiceRegistrar;
@@ -136,7 +137,7 @@ export interface UIPluginRenderSlotOptions {
 
 export interface UIPluginComponentProps {
   renderSlot(
-    slotId: string,
+    localSlotName: string,
     fallback?: ReactNode,
     options?: UIPluginRenderSlotOptions,
   ): ReactNode;
@@ -211,7 +212,14 @@ const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
     .optional(),
   slots: z
     .strictObject({
-      children: z.array(nonBlankStringSchema).optional(),
+      children: z.record(
+        nonBlankStringSchema,
+        z.strictObject({
+          description: nonBlankStringSchema,
+          cardinality: z.enum(["one", "many"]),
+          optional: z.boolean().optional(),
+        }),
+      ).optional(),
     })
     .optional(),
   data: z
@@ -248,19 +256,6 @@ export const uiPluginManifestSchema = manifestShapeSchema.superRefine(
         input: manifest.capabilities,
       });
     }
-
-    const childSlots = new Set<string>();
-    manifest.slots?.children?.forEach((slotId, index) => {
-      if (childSlots.has(slotId)) {
-        context.addIssue({
-          code: "custom",
-          path: ["slots", "children", index],
-          message: `Duplicate child Slot "${slotId}"`,
-          input: slotId,
-        });
-      }
-      childSlots.add(slotId);
-    });
 
     const applicationEvents = new Set<string>();
     manifest.data?.events?.forEach((eventName, index) => {

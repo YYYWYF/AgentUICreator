@@ -12,7 +12,8 @@ import {
   type SlotNode,
 } from "@agent-ui/runtime-react";
 
-import type { AppUIModel } from "../../framework/contracts/app-ui-model";
+import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
+import { resolveRuntimePluginSlotId } from "../../framework/contracts/app-ui-composition";
 import type { UIPluginRenderSlotOptions } from "../../framework/contracts/ui-plugin";
 import {
   classifyContainerWidth,
@@ -48,7 +49,7 @@ import { PluginInstanceRenderer } from "./PluginInstanceRenderer";
 import "./plugin-runtime.css";
 
 export interface UIPluginRuntimeProps<TState = unknown> {
-  model: AppUIModel;
+  model: AppUIRuntimeModel;
   registry: PluginRegistry<TState>;
   actions: UIPluginRuntimeActions;
   applicationEventRegistry?: AppEventRegistry | undefined;
@@ -62,7 +63,7 @@ export interface UIPluginRuntimeProps<TState = unknown> {
 interface SlotContentProps<TState = unknown> {
   slotId: string;
   fallback?: ReactNode | undefined;
-  model: AppUIModel;
+  model: AppUIRuntimeModel;
   registry: PluginRegistry<TState>;
   actions: UIPluginRuntimeActions;
   onPluginError(failure: PluginRenderFailure): void;
@@ -189,16 +190,20 @@ function SlotContent<TState = unknown>({
           requestedFallback?: ReactNode,
           options?: UIPluginRenderSlotOptions,
         ): ReactNode => {
-          const childSlots = definition.manifest.slots?.children ?? [];
-          if (!childSlots.includes(requestedSlotId)) {
+          const childSlots = definition.manifest.slots?.children ?? {};
+          if (childSlots[requestedSlotId] === undefined) {
             throw new Error(
               `Plugin instance "${instance.id}" cannot render undeclared child Slot "${requestedSlotId}"`,
             );
           }
+          const runtimeSlotId = resolveRuntimePluginSlotId(
+            instance.id,
+            requestedSlotId,
+          );
           return (
             <SlotWidthProbe
               sizing={options?.sizing ?? "content"}
-              slotId={requestedSlotId}
+              slotId={runtimeSlotId}
             >
               <SlotContent
                 actions={actions}
@@ -207,7 +212,7 @@ function SlotContent<TState = unknown>({
                 onPluginError={onPluginError}
                 onPluginReset={onPluginReset}
                 registry={registry}
-                slotId={requestedSlotId}
+                slotId={runtimeSlotId}
               />
             </SlotWidthProbe>
           );

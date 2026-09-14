@@ -8,6 +8,7 @@ traces can clarify or write without an extra resolution run.
 from __future__ import annotations
 
 import asyncio
+import copy
 import json
 
 import pytest
@@ -71,16 +72,32 @@ class GroundingClient:
         self.mutations = []
         (root / "app-ui").mkdir()
         (root / "plugins").mkdir()
-        instances = {
-            f"{plugin_id}-main": {
-                "id": f"{plugin_id}-main",
-                "pluginId": plugin_id,
-                "enabled": True,
-            }
-            for plugin_id in plugin_ids
-        }
         (root / APP_UI_MODEL_PATH).write_text(
-            json.dumps({"version": "2", "pluginInstances": instances}) + "\n",
+            json.dumps(
+                {
+                    "version": "3",
+                    "applicationPlugins": [],
+                    "root": {
+                        "type": "row",
+                        "id": "workspace",
+                        "children": [
+                            {
+                                "type": "slot",
+                                "id": "sidebar-left",
+                                "description": "Left sidebar content.",
+                                "plugins": [],
+                            },
+                            {
+                                "type": "slot",
+                                "id": "sidebar-right",
+                                "description": "Right sidebar content.",
+                                "plugins": [],
+                            },
+                        ],
+                    },
+                }
+            )
+            + "\n",
             encoding="utf-8",
         )
         (root / REGISTRY_PATH).write_text(
@@ -99,19 +116,25 @@ class GroundingClient:
 
     async def list_ui_plugins(self):
         self.record("list_ui_plugins")
+        plugins = authoring_plugins(self.model())
+        selected_plugin_ids = sorted({plugin["pluginId"] for plugin in plugins})
         return {
             "appUIModelHash": self.hash(),
             "registry": {
-                "registeredPluginIds": list(self.plugin_ids),
-                "selectedPluginIds": list(self.plugin_ids),
+                "registeredPluginIds": selected_plugin_ids,
+                "selectedPluginIds": selected_plugin_ids,
                 "generatedFileFresh": True,
                 "issues": [],
             },
             "pluginAssets": [
-                {"pluginId": plugin_id, "directory": plugin_id, "selected": True}
+                {
+                    "pluginId": plugin_id,
+                    "directory": plugin_id,
+                    "selected": plugin_id in selected_plugin_ids,
+                }
                 for plugin_id in self.plugin_ids
             ],
-            "pluginInstances": list(self.model()["pluginInstances"].values()),
+            "plugins": plugins,
             "catalogs": [],
         }
 
@@ -119,7 +142,15 @@ class GroundingClient:
         self.record("inspect_ui_slots", {"root": root})
         return {
             "appUIModelHash": self.hash(),
-            "slots": [{"slotId": "sidebar.right", "accepts": ["*"]}],
+            "slots": [
+                {
+                    "target": {"type": "layout_slot", "slotNodeId": "sidebar-right"},
+                    "description": "Right sidebar content.",
+                    "cardinality": "many",
+                    "optional": True,
+                    "plugins": [],
+                }
+            ],
         }
 
     async def inspect_ui_project(self):
@@ -141,10 +172,7 @@ class GroundingClient:
         before_hash = self.hash()
         model = self.model()
         for operation in input["operations"]:
-            assert operation["type"] == "mount_instance"
-            model["pluginInstances"][operation["instanceId"]]["mount"] = {
-                "slotId": operation["slotId"]
-            }
+            apply_authoring_operation(model, operation)
         (self.root / APP_UI_MODEL_PATH).write_text(
             json.dumps(model) + "\n", encoding="utf-8"
         )
@@ -159,6 +187,109 @@ class GroundingClient:
                 "registryHash": read_creator_file_state(self.root, REGISTRY_PATH).hash,
             },
         }
+
+
+def layout_slot(model, slot_node_id):
+    def visit(node):
+        if node["type"] == "slot":
+            return node if node["id"] == slot_node_id else None
+        if node["type"] == "panel":
+            return visit(node["child"])
+        for child in node["children"]:
+            result = visit(child)
+            if result is not None:
+                return result
+        return None
+
+    result = visit(model["root"])
+    if result is None:
+        raise AssertionError(f"Unknown Layout Slot: {slot_node_id}")
+    return result
+
+
+def authoring_plugin_locations(model):
+    result = []
+
+    def visit_plugins(plugins, target):
+        for plugin in plugins:
+            result.append((plugin, plugins, target))
+            for slot, children in plugin.get("slots", {}).items():
+                visit_plugins(
+                    children,
+                    {
+                        "type": "plugin_slot",
+                        "parentInstanceId": plugin["id"],
+                        "slot": slot,
+                    },
+                )
+
+    visit_plugins(model.get("applicationPlugins", []), {"type": "application"})
+
+    def visit_layout(node):
+        if node["type"] == "slot":
+            visit_plugins(
+                node["plugins"],
+                {"type": "layout_slot", "slotNodeId": node["id"]},
+            )
+        elif node["type"] == "panel":
+            visit_layout(node["child"])
+        else:
+            for child in node["children"]:
+                visit_layout(child)
+
+    visit_layout(model["root"])
+    return result
+
+
+def authoring_plugins(model):
+    return [plugin for plugin, _, _ in authoring_plugin_locations(model)]
+
+
+def target_plugins(model, target):
+    if target["type"] == "application":
+        return model.setdefault("applicationPlugins", [])
+    if target["type"] == "layout_slot":
+        return layout_slot(model, target["slotNodeId"])["plugins"]
+    parent = next(
+        plugin
+        for plugin, _, _ in authoring_plugin_locations(model)
+        if plugin["id"] == target["parentInstanceId"]
+    )
+    return parent.setdefault("slots", {}).setdefault(target["slot"], [])
+
+
+def apply_authoring_operation(model, operation):
+    kind = operation["type"]
+    if kind == "insert_plugin":
+        plugins = target_plugins(model, operation["target"])
+        plugins.insert(operation.get("index", len(plugins)), copy.deepcopy(operation["plugin"]))
+        return
+    location = next(
+        (item for item in authoring_plugin_locations(model) if item[0]["id"] == operation.get("instanceId")),
+        None,
+    )
+    if location is None:
+        raise AssertionError(f"Unknown plugin instance: {operation.get('instanceId')}")
+    plugin, current_plugins, _ = location
+    if kind == "move_plugin":
+        current_plugins.remove(plugin)
+        plugins = target_plugins(model, operation["target"])
+        plugins.insert(operation.get("index", len(plugins)), plugin)
+    elif kind == "set_plugin_enabled":
+        plugin["enabled"] = operation["enabled"]
+    elif kind == "update_plugin_props":
+        props = plugin.setdefault("props", {})
+        props.update(copy.deepcopy(operation.get("set", {})))
+        for key in operation.get("removeKeys", []):
+            props.pop(key, None)
+        if not props:
+            plugin.pop("props", None)
+    elif kind == "remove_plugin":
+        current_plugins.remove(plugin)
+    elif kind == "replace_plugin":
+        current_plugins[current_plugins.index(plugin)] = copy.deepcopy(operation["replacement"])
+    else:
+        raise AssertionError(f"Unexpected scripted operation: {kind}")
 
 
 def project_files(root):
@@ -244,8 +375,8 @@ def test_ambiguity_finishes_after_one_read_without_writes(
         if isinstance(message, ToolMessage)
     )
     facts = json.loads(observation.content)["result"]
-    assert facts["registry"]["registeredPluginIds"] == list(plugin_ids)
-    assert all("mount" not in item for item in facts["pluginInstances"])
+    assert [asset["pluginId"] for asset in facts["pluginAssets"]] == list(plugin_ids)
+    assert facts["plugins"] == []
 
 
 @pytest.mark.parametrize(
@@ -263,9 +394,13 @@ def test_ambiguity_finishes_after_one_read_without_writes(
 def test_clear_restore_and_correction_use_one_atomic_mutation(tmp_path, prompt):
     client = GroundingClient(tmp_path)
     operation = {
-        "type": "mount_instance",
-        "instanceId": "session-manager-main",
-        "slotId": "sidebar.right",
+        "type": "insert_plugin",
+        "plugin": {
+            "id": "session-manager-main",
+            "pluginId": "session-manager",
+            "enabled": True,
+        },
+        "target": {"type": "layout_slot", "slotNodeId": "sidebar-right"},
     }
     result, receipt, model = run_script(
         client, prompt,
@@ -285,9 +420,9 @@ def test_clear_restore_and_correction_use_one_atomic_mutation(tmp_path, prompt):
     assert result.app_ui_model_mutations.requests == 1
     assert result.app_ui_model_mutations.resultMismatches == 0
     assert result.domain_observations.hashReuses == 1
-    assert client.model()["pluginInstances"]["session-manager-main"]["mount"] == {
-        "slotId": "sidebar.right"
-    }
+    assert layout_slot(client.model(), "sidebar-right")["plugins"] == [
+        operation["plugin"]
+    ]
     assert [item["path"] for item in receipt["files"]] == [APP_UI_MODEL_PATH]
     assert "？" not in result.text
     if isinstance(prompt, str):
@@ -461,7 +596,7 @@ def test_server_passes_conversation_to_model_in_one_call(
 
 @pytest.mark.parametrize(
     ("name", "arguments"),
-    [("list_ui_plugins", {}), ("inspect_ui_slots", {"root": "sidebar.right"})],
+    [("list_ui_plugins", {}), ("inspect_ui_slots", {"root": "sidebar-right"})],
 )
 def test_grounding_does_not_weaken_existing_repeated_read_guard(tmp_path, name, arguments):
     # Policy forbids duplicate reads; the existing guard remains a last-resort

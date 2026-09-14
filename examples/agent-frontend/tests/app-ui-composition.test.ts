@@ -2,14 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   validateAppUIComposition,
-  type PluginSlotCatalog,
+  type PluginCompositionCatalog,
 } from "../framework/contracts/app-ui-composition";
-import type { AppUIModel, PluginInstance } from "../framework/contracts/app-ui-model";
+import type { AppUIRuntimeModel, AppUIRuntimePluginInstance } from "../framework/contracts/app-ui-runtime-model";
 
 function createModel(
-  pluginInstances: Record<string, PluginInstance>,
+  pluginInstances: Record<string, AppUIRuntimePluginInstance>,
   layoutSlotIds: readonly string[] = ["root"],
-): AppUIModel {
+): AppUIRuntimeModel {
   return {
     version: "2",
     root:
@@ -37,19 +37,30 @@ function mounted(
   pluginId: string,
   slotId: string,
   enabled = true,
-): PluginInstance {
+): AppUIRuntimePluginInstance {
   return { id, pluginId, enabled, mount: { slotId } };
 }
 
-describe("AppUIModel composition", () => {
+function childSlots(...names: string[]) {
+  return Object.fromEntries(names.map((name) => [
+    name,
+    {
+      description: `${name} content.`,
+      cardinality: "many" as const,
+      optional: true,
+    },
+  ]));
+}
+
+describe("AppUIRuntimeModel composition", () => {
   it("allows Layout mounts and one-level child Slot mounts", () => {
     const model = createModel({
       owner: mounted("owner", "owner-plugin", "root"),
-      consumer: mounted("consumer", "consumer-plugin", "owner.child"),
+      consumer: mounted("consumer", "consumer-plugin", "plugin:owner:owner.child"),
     });
-    const catalog: PluginSlotCatalog = {
-      "owner-plugin": ["owner.child"],
-      "consumer-plugin": [],
+    const catalog: PluginCompositionCatalog = {
+      "owner-plugin": { childSlots: childSlots("owner.child") },
+      "consumer-plugin": {},
     };
 
     expect(() => validateAppUIComposition(model, catalog)).not.toThrow();
@@ -91,16 +102,16 @@ describe("AppUIModel composition", () => {
   it("reaches multi-level child Slots by fixed point", () => {
     const model = createModel({
       // Consumer-first ordering must not affect reachability.
-      c: mounted("c", "plugin-c", "b.child"),
-      b: mounted("b", "plugin-b", "a.child"),
+      c: mounted("c", "plugin-c", "plugin:b:b.child"),
+      b: mounted("b", "plugin-b", "plugin:a:a.child"),
       a: mounted("a", "plugin-a", "root"),
     });
 
     expect(() =>
       validateAppUIComposition(model, {
-        "plugin-a": ["a.child"],
-        "plugin-b": ["b.child"],
-        "plugin-c": [],
+        "plugin-a": { childSlots: childSlots("a.child") },
+        "plugin-b": { childSlots: childSlots("b.child") },
+        "plugin-c": {},
       }),
     ).not.toThrow();
   });
@@ -111,7 +122,7 @@ describe("AppUIModel composition", () => {
         createModel({
           orphan: mounted("orphan", "orphan-plugin", "missing.child"),
         }),
-        { "orphan-plugin": [] },
+        { "orphan-plugin": {} },
       ),
     ).toThrow(
       'Plugin instance "orphan" mount Slot "missing.child" is not reachable',
@@ -120,19 +131,19 @@ describe("AppUIModel composition", () => {
 
   it("rejects a rootless composition cycle", () => {
     const model = createModel({
-      a: mounted("a", "plugin-a", "b.child"),
-      b: mounted("b", "plugin-b", "a.child"),
+      a: mounted("a", "plugin-a", "plugin:b:b.child"),
+      b: mounted("b", "plugin-b", "plugin:a:a.child"),
     });
 
     expect(() =>
       validateAppUIComposition(model, {
-        "plugin-a": ["a.child"],
-        "plugin-b": ["b.child"],
+        "plugin-a": { childSlots: childSlots("a.child") },
+        "plugin-b": { childSlots: childSlots("b.child") },
       }),
-    ).toThrow('Plugin instance "a" mount Slot "b.child" is not reachable');
+    ).toThrow('Plugin instance "a" mount Slot "plugin:b:b.child" is not reachable');
   });
 
-  it("rejects duplicate child Slot ownership by reachable instances", () => {
+  it("isolates the same local child Slot name for multiple instances", () => {
     const model = createModel(
       {
         first: mounted("first", "first-owner", "root.a"),
@@ -143,26 +154,22 @@ describe("AppUIModel composition", () => {
 
     expect(() =>
       validateAppUIComposition(model, {
-        "first-owner": ["shared.child"],
-        "second-owner": ["shared.child"],
+        "first-owner": { childSlots: childSlots("shared.child") },
+        "second-owner": { childSlots: childSlots("shared.child") },
       }),
-    ).toThrow(
-      'Plugin instance "second" declares child Slot "shared.child", which is already owned by reachable instance "first"',
-    );
+    ).not.toThrow();
   });
 
-  it("rejects collisions between Layout and reachable child Slots", () => {
+  it("namespaces child Slots away from Layout Slots", () => {
     expect(() =>
       validateAppUIComposition(
         createModel(
           { owner: mounted("owner", "owner-plugin", "root") },
           ["root", "shared"],
         ),
-        { "owner-plugin": ["shared"] },
+        { "owner-plugin": { childSlots: childSlots("shared") } },
       ),
-    ).toThrow(
-      'Plugin instance "owner" declares child Slot "shared", which collides with a Layout Slot',
-    );
+    ).not.toThrow();
   });
 
   it("validates disabled instances and only exposes children from reachable owners", () => {
@@ -171,19 +178,19 @@ describe("AppUIModel composition", () => {
     });
     expect(() =>
       validateAppUIComposition(disabledOrphan, {
-        "owner-plugin": ["owner.child"],
+        "owner-plugin": { childSlots: childSlots("owner.child") },
       }),
     ).toThrow('Plugin instance "disabled" mount Slot "missing.child"');
 
     const unreachableOwner = createModel({
       owner: mounted("owner", "owner-plugin", "missing"),
-      consumer: mounted("consumer", "consumer-plugin", "owner.child"),
+      consumer: mounted("consumer", "consumer-plugin", "plugin:owner:owner.child"),
     });
     expect(() =>
       validateAppUIComposition(unreachableOwner, {
-        "owner-plugin": ["owner.child"],
-        "consumer-plugin": [],
+        "owner-plugin": { childSlots: childSlots("owner.child") },
+        "consumer-plugin": {},
       }),
-    ).toThrow('Plugin instance "consumer" mount Slot "owner.child"');
+    ).toThrow('Plugin instance "consumer" mount Slot "plugin:owner:owner.child"');
   });
 });

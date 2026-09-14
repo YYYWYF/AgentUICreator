@@ -5,10 +5,18 @@
   "version": "2.0.0",
   "capabilities": ["conversation-surface"],
   "slots": {
-    "children": [
-      "conversation.empty.welcome",
-      "conversation.empty.suggestions"
-    ]
+    "children": {
+      "emptyWelcome": {
+        "description": "Welcome content displayed when the conversation is empty.",
+        "cardinality": "one",
+        "optional": true
+      },
+      "emptySuggestions": {
+        "description": "Suggested prompts or actions displayed when the conversation is empty.",
+        "cardinality": "many",
+        "optional": true
+      }
+    }
   },
   "data": {
     "messages": true

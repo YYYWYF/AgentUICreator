@@ -4,208 +4,132 @@ import type { AppUIModel } from "../framework/contracts/app-ui-model";
 import {
   AppUIOperationError,
   applyAppUIOperations,
-  buildLayoutNodeIndex,
 } from "../scripts/ui-project/app-ui-operations";
 
-function expectOperationError(action: () => unknown, code: string): void {
-  try {
-    action();
-    throw new Error(`Expected AppUIOperationError ${code}`);
-  } catch (error) {
-    expect(error).toBeInstanceOf(AppUIOperationError);
-    expect((error as AppUIOperationError).code).toBe(code);
-  }
-}
-
-function baseModel(): AppUIModel {
+function model(): AppUIModel {
   return {
-    version: "2",
+    version: "3",
+    applicationPlugins: [],
     root: {
-      type: "row",
-      id: "root",
-      sizes: ["1fr", "1fr"],
-      children: [
-        {
-          type: "slot",
-          id: "main-node",
-          slotId: "main",
-        },
-        {
-          type: "column",
-          id: "aside",
-          children: [
-            {
-              type: "slot",
-              id: "aside-node",
-              slotId: "aside-slot",
-            },
-          ],
-        },
-      ],
-    },
-    pluginInstances: {
-      "sample-main": {
-        id: "sample-main",
-        pluginId: "sample",
+      type: "slot",
+      id: "main",
+      description: "Main content.",
+      plugins: [{
+        id: "surface-main",
+        pluginId: "surface",
         enabled: true,
-        mount: { slotId: "main" },
-      },
+        slots: { content: [] },
+      }],
     },
   };
 }
 
-describe("AppUIModel semantic operations", () => {
-  it("indexes every Layout node with a stable path and parent position", () => {
-    const index = buildLayoutNodeIndex(baseModel().root);
-
-    expect(index.get("root")).toMatchObject({ path: "root", parentKind: "root" });
-    expect(index.get("aside-node")).toMatchObject({
-      path: "root.children[1].children[0]",
-      parentKind: "children",
-      index: 0,
-    });
-  });
-
-  it("applies a multi-operation instance change without requiring valid intermediate state", () => {
-    const result = applyAppUIOperations(baseModel(), [
+describe("AppUIModel v3 semantic operations", () => {
+  it("inserts directly into Layout and plugin-local Slots", () => {
+    const result = applyAppUIOperations(model(), [
       {
-        type: "add_instance",
-        instance: {
-          id: "secondary",
-          pluginId: "sample",
-          enabled: true,
-        },
-      },
-      {
-        type: "mount_instance",
-        instanceId: "secondary",
-        slotId: "aside-slot",
-      },
-      {
-        type: "update_instance_props",
-        instanceId: "secondary",
-        set: { title: "Secondary", count: 2 },
-      },
-      {
-        type: "move_instance",
-        instanceId: "secondary",
-        slotId: "main",
-        index: 0,
-      },
-    ]);
-
-    expect(result.pluginInstances.secondary).toMatchObject({
-      enabled: true,
-      props: { title: "Secondary", count: 2 },
-    });
-    expect(result.pluginInstances.secondary?.mount).toEqual({ slotId: "main", order: 0 });
-    expect(result.pluginInstances["sample-main"]?.mount).toEqual({ slotId: "main", order: 1 });
-  });
-
-  it("keeps row and column sizes aligned while inserting, moving, and removing nodes", () => {
-    const result = applyAppUIOperations(baseModel(), [
-      {
-        type: "insert_layout_node",
-        parentNodeId: "root",
-        index: 1,
-        size: "12rem",
-        node: {
-          type: "slot",
-          id: "temporary-node",
-          slotId: "temporary",
-        },
-      },
-      {
-        type: "move_layout_node",
-        nodeId: "temporary-node",
-        newParentNodeId: "aside",
+        type: "insert_plugin",
+        plugin: { id: "toolbar-main", pluginId: "toolbar", enabled: true },
+        target: { type: "layout_slot", slotNodeId: "main" },
         index: 0,
       },
       {
-        type: "remove_layout_node",
-        nodeId: "aside-node",
-      },
-      {
-        type: "update_layout_node_props",
-        nodeId: "root",
-        set: { gap: 12 },
+        type: "insert_plugin",
+        plugin: { id: "item-main", pluginId: "item", enabled: true },
+        target: {
+          type: "plugin_slot",
+          parentInstanceId: "surface-main",
+          slot: "content",
+        },
       },
     ]);
-    const root = result.root;
-    const aside = buildLayoutNodeIndex(root).get("aside")?.node;
 
-    expect(root).toMatchObject({
-      type: "row",
-      sizes: ["1fr", "1fr"],
-      gap: 12,
-    });
-    expect(aside).toMatchObject({
-      type: "column",
-      children: [expect.objectContaining({ id: "temporary-node" })],
-    });
+    expect(result.root.type).toBe("slot");
+    if (result.root.type !== "slot") throw new Error("fixture");
+    expect(result.root.plugins.map((plugin) => plugin.id)).toEqual([
+      "toolbar-main",
+      "surface-main",
+    ]);
+    expect(result.root.plugins[1]?.slots?.content?.[0]?.id).toBe("item-main");
   });
 
-  it("replaces mounted instances and Layout nodes without losing retained mounts", () => {
-    const result = applyAppUIOperations(baseModel(), [
+  it("moves a plugin subtree without exposing Runtime placement", () => {
+    const result = applyAppUIOperations(model(), [{
+      type: "move_plugin",
+      instanceId: "surface-main",
+      target: { type: "application" },
+    }]);
+
+    expect(result.applicationPlugins?.[0]?.id).toBe("surface-main");
+    if (result.root.type !== "slot") throw new Error("fixture");
+    expect(result.root.plugins).toEqual([]);
+  });
+
+  it("rejects moving a plugin into its own descendant", () => {
+    expect(() => applyAppUIOperations(model(), [{
+      type: "move_plugin",
+      instanceId: "surface-main",
+      target: {
+        type: "plugin_slot",
+        parentInstanceId: "surface-main",
+        slot: "content",
+      },
+    }])).toThrow(AppUIOperationError);
+  });
+
+  it("updates, disables, replaces, and removes authoring plugin nodes", () => {
+    const updated = applyAppUIOperations(model(), [
       {
-        type: "replace_instance",
-        instanceId: "sample-main",
+        type: "update_plugin_props",
+        instanceId: "surface-main",
+        set: { title: "Surface" },
+      },
+      {
+        type: "set_plugin_enabled",
+        instanceId: "surface-main",
+        enabled: false,
+      },
+      {
+        type: "replace_plugin",
+        instanceId: "surface-main",
         replacement: {
-          id: "sample-replacement",
-          pluginId: "sample",
+          id: "replacement-main",
+          pluginId: "replacement",
           enabled: true,
         },
       },
-      {
-        type: "replace_layout_node",
-        nodeId: "main-node",
-        node: {
-          type: "slot",
-          id: "replacement-main-node",
-          slotId: "main",
+    ]);
+    if (updated.root.type !== "slot") throw new Error("fixture");
+    expect(updated.root.plugins).toEqual([{
+      id: "replacement-main",
+      pluginId: "replacement",
+      enabled: true,
+    }]);
+
+    const removed = applyAppUIOperations(updated, [{
+      type: "remove_plugin",
+      instanceId: "replacement-main",
+    }]);
+    if (removed.root.type !== "slot") throw new Error("fixture");
+    expect(removed.root.plugins).toEqual([]);
+  });
+
+  it("replaces a subtree while allowing its existing ids to be retained", () => {
+    const result = applyAppUIOperations(model(), [{
+      type: "replace_plugin",
+      instanceId: "surface-main",
+      replacement: {
+        id: "surface-main",
+        pluginId: "surface-v2",
+        enabled: true,
+        slots: {
+          content: [{ id: "item-main", pluginId: "item", enabled: true }],
         },
       },
-    ]);
+    }]);
 
-    expect(result.pluginInstances["sample-main"]).toBeUndefined();
-    expect(result.pluginInstances["sample-replacement"]).toMatchObject({
-      enabled: true,
-    });
-    const replacementNode = buildLayoutNodeIndex(result.root).get(
-      "replacement-main-node",
-    )?.node;
-    expect(replacementNode?.type).toBe("slot");
-    expect(replacementNode).toMatchObject({ slotId: "main" });
-    expect(result.pluginInstances["sample-replacement"]?.mount).toEqual({ slotId: "main" });
-  });
-
-  it("requires explicit handling before a mounted Layout subtree disappears", () => {
-    expectOperationError(() =>
-      applyAppUIOperations(baseModel(), [
-        { type: "remove_layout_node", nodeId: "main-node" },
-      ]),
-      "LAYOUT_SUBTREE_HAS_MOUNTED_INSTANCES",
-    );
-
-    const result = applyAppUIOperations(baseModel(), [
-      { type: "unmount_instance", instanceId: "sample-main" },
-      { type: "remove_layout_node", nodeId: "main-node" },
-      { type: "remove_instance", instanceId: "sample-main" },
-    ]);
-    expect(buildLayoutNodeIndex(result.root).has("main-node")).toBe(false);
-    expect(result.pluginInstances).toEqual({});
-  });
-
-  it("restricts layout property edits to non-structural fields", () => {
-    expectOperationError(() =>
-      applyAppUIOperations(baseModel(), [
-        {
-          type: "update_layout_node_props",
-          nodeId: "main-node",
-          set: { slotId: "renamed" },
-        },
-      ]),
-      "LAYOUT_PROP_NOT_MUTABLE",
-    );
+    if (result.root.type !== "slot") throw new Error("fixture");
+    expect(result.root.plugins[0]?.pluginId).toBe("surface-v2");
+    expect(result.root.plugins[0]?.slots?.content?.[0]?.id).toBe("item-main");
   });
 });

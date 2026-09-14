@@ -115,7 +115,7 @@ def _mutate(service, app_hash):
             app_ui_model_hash=app_hash,
             operations=[
                 {
-                    "type": "set_instance_enabled",
+                    "type": "set_plugin_enabled",
                     "instanceId": "sample-main",
                     "enabled": False,
                 }
@@ -159,7 +159,7 @@ def test_mutation_forwards_current_runtime_slot_widths(tmp_path):
             "appUIModelHash": app_hash,
             "operations": [
                 {
-                    "type": "set_instance_enabled",
+                    "type": "set_plugin_enabled",
                     "instanceId": "sample-main",
                     "enabled": False,
                 }
@@ -444,8 +444,8 @@ def test_same_hash_concurrent_mutations_serialize_and_only_one_commits(tmp_path)
 
     async def run_both():
         return await asyncio.gather(
-            service_a.mutate(app_ui_model_hash=initial_hash, operations=[{"type": "remove_instance", "instanceId": "a"}]),
-            service_b.mutate(app_ui_model_hash=initial_hash, operations=[{"type": "remove_instance", "instanceId": "b"}]),
+            service_a.mutate(app_ui_model_hash=initial_hash, operations=[{"type": "remove_plugin", "instanceId": "a"}]),
+            service_b.mutate(app_ui_model_hash=initial_hash, operations=[{"type": "remove_plugin", "instanceId": "b"}]),
             return_exceptions=True,
         )
 
@@ -499,7 +499,7 @@ def test_tool_schema_is_sourced_from_operation_contract_and_tool_errors_are_stru
         tool.ainvoke(
             {
                 "appUIModelHash": app_hash,
-                "operations": [{"type": "remove_instance", "instanceId": "sample-main"}],
+                "operations": [{"type": "remove_plugin", "instanceId": "sample-main"}],
             }
         )
     )
@@ -520,7 +520,7 @@ def test_tool_replaces_oversized_success_with_bounded_error(tmp_path):
                 "appUIModelHash": app_hash,
                 "operations": [
                     {
-                        "type": "set_instance_enabled",
+                        "type": "set_plugin_enabled",
                         "instanceId": "sample-main",
                         "enabled": True,
                     }
@@ -576,7 +576,7 @@ def test_tool_protocol_guard_accepts_operations_without_hash(tmp_path):
                             "name": "mutate_app_ui_model",
                             "args": {
                                 "operations": [
-                                    {"type": "remove_instance", "instanceId": "sample-main"}
+                                    {"type": "remove_plugin", "instanceId": "sample-main"}
                                 ]
                             },
                             "id": "host-hash-mutation",
@@ -628,7 +628,7 @@ def test_mutation_without_observation_fails_before_target_call(tmp_path):
         tool.ainvoke(
             {
                 "operations": [
-                    {"type": "remove_instance", "instanceId": "sample-main"}
+                    {"type": "remove_plugin", "instanceId": "sample-main"}
                 ]
             }
         )
@@ -653,7 +653,7 @@ def test_explicit_hash_must_match_host_observation(tmp_path):
             {
                 "appUIModelHash": "b" * 64,
                 "operations": [
-                    {"type": "remove_instance", "instanceId": "sample-main"}
+                    {"type": "remove_plugin", "instanceId": "sample-main"}
                 ],
             }
         )
@@ -683,7 +683,7 @@ def test_matching_explicit_hash_is_accepted_but_host_remains_authority(tmp_path)
                 {
                     "appUIModelHash": app_hash,
                     "operations": [
-                        {"type": "remove_instance", "instanceId": "sample-main"}
+                        {"type": "remove_plugin", "instanceId": "sample-main"}
                     ],
                 }
             )
@@ -708,7 +708,7 @@ def test_stale_activity_revision_requires_new_observation(tmp_path):
         tool.ainvoke(
             {
                 "operations": [
-                    {"type": "remove_instance", "instanceId": "sample-main"}
+                    {"type": "remove_plugin", "instanceId": "sample-main"}
                 ]
             }
         )
@@ -730,7 +730,7 @@ def test_success_advances_observation_and_second_mutation_reuses_after_hash(tmp_
     arguments = {
         "operations": [
             {
-                "type": "set_instance_enabled",
+                "type": "set_plugin_enabled",
                 "instanceId": "sample-main",
                 "enabled": False,
             }
@@ -771,7 +771,7 @@ def test_mutation_error_invalidates_observation_until_new_inspection(tmp_path):
     tool = create_app_ui_model_mutation_tool(service, observations)
     arguments = {
         "operations": [
-            {"type": "remove_instance", "instanceId": "sample-main"}
+            {"type": "remove_plugin", "instanceId": "sample-main"}
         ]
     }
 
@@ -834,7 +834,7 @@ def test_conflict_then_inspect_allows_retry_with_new_host_hash(tmp_path):
     )
     arguments = {
         "operations": [
-            {"type": "remove_instance", "instanceId": "sample-main"}
+            {"type": "remove_plugin", "instanceId": "sample-main"}
         ]
     }
     app_ui_path = root / APP_UI_MODEL_PATH

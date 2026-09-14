@@ -83,7 +83,7 @@ describe("canonical Conversation plugin cleanup boundary", () => {
     ).toBe(false);
     expect(registrySource).not.toMatch(/agent-|antd-x-|template-library/u);
     expect(slotsSource).not.toContain("LEGACY_CONVERSATION_SLOTS");
-    expect(slotsSource).toContain('welcome: "conversation.empty.welcome"');
-    expect(slotsSource).toContain('suggestions: "conversation.empty.suggestions"');
+    expect(slotsSource).toContain('welcome: "emptyWelcome"');
+    expect(slotsSource).toContain('suggestions: "emptySuggestions"');
   });
 });

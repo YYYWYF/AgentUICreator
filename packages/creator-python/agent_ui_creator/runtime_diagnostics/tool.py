@@ -77,7 +77,7 @@ class RuntimeDiagnosticInspectionService:
         )
         workspace_composition_required = application_phase in {None, "ready"}
         composition_checks: list[dict[str, Any]] = []
-        plugin_instances = project.get("pluginInstances")
+        plugin_instances = project.get("plugins")
         instances_to_check = (
             plugin_instances
             if workspace_composition_required and isinstance(plugin_instances, list)
@@ -86,10 +86,20 @@ class RuntimeDiagnosticInspectionService:
         for instance in instances_to_check:
             if not isinstance(instance, dict) or instance.get("enabled") is not True:
                 continue
-            mount = instance.get("mount")
-            if not isinstance(mount, dict) or not isinstance(
-                mount.get("slotId"), str
+            target = instance.get("target")
+            if not isinstance(target, dict) or target.get("type") == "application":
+                continue
+            if target.get("type") == "layout_slot" and isinstance(
+                target.get("slotNodeId"), str
             ):
+                expected_slot_id = f"layout:{target['slotNodeId']}"
+            elif target.get("type") == "plugin_slot" and isinstance(
+                target.get("parentInstanceId"), str
+            ) and isinstance(target.get("slot"), str):
+                expected_slot_id = (
+                    f"plugin:{target['parentInstanceId']}:{target['slot']}"
+                )
+            else:
                 continue
             instance_id = instance.get("id")
             plugin_id = instance.get("pluginId")
@@ -101,7 +111,7 @@ class RuntimeDiagnosticInspectionService:
                 status = "missing"
             elif actual.get("pluginId") != plugin_id:
                 status = "plugin-mismatch"
-            elif actual.get("slotId") != mount["slotId"]:
+            elif actual.get("slotId") != expected_slot_id:
                 status = "slot-mismatch"
             composition_checks.append(
                 {
@@ -109,7 +119,7 @@ class RuntimeDiagnosticInspectionService:
                     "status": status,
                     "expected": {
                         "pluginId": plugin_id,
-                        "slotId": mount["slotId"],
+                        "slotId": expected_slot_id,
                     },
                     "actual": actual or {"mounted": False},
                 }

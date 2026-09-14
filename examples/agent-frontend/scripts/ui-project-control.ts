@@ -168,15 +168,7 @@ async function listUIPlugins(projectRoot: string): Promise<unknown> {
     appUIModelHash: inspection.appUIModel.hash,
     registry: inspection.registry,
     pluginAssets: inspection.pluginAssets,
-    pluginInstances: inspection.pluginInstances.map((instance) => ({
-      id: instance.id,
-      pluginId: instance.pluginId,
-      enabled: instance.enabled,
-      ...(instance.mount === undefined ? {} : { mount: instance.mount }),
-      ...(instance.mountedSlotId === undefined
-        ? {}
-        : { mountedSlotId: instance.mountedSlotId }),
-    })),
+    plugins: inspection.plugins,
     catalogs: inspection.catalogs,
   };
 }
@@ -186,8 +178,12 @@ async function inspectUISlots(
   root?: string,
 ): Promise<unknown> {
   const inspection = await inspectUIProject(projectRoot);
+  const slotKey = (slot: (typeof inspection.appUIModel.slots)[number]) =>
+    slot.target.type === "layout_slot"
+      ? slot.target.slotNodeId
+      : `${slot.target.parentInstanceId}.${slot.target.slot}`;
   const byId = new Map(
-    inspection.appUIModel.slots.map((slot) => [slot.slotId, slot]),
+    inspection.appUIModel.slots.map((slot) => [slotKey(slot), slot]),
   );
   if (root !== undefined && !byId.has(root)) {
     throw new UIProjectControlError(
@@ -269,7 +265,7 @@ async function inspectUIPlugin(
     appUIModelHash: inspection.appUIModel.hash,
     asset,
     selected: asset.selected,
-    instances: inspection.pluginInstances.filter(
+    instances: inspection.plugins.filter(
       (instance) => instance.pluginId === pluginId,
     ),
     manifest: JSON.parse(manifestSource) as unknown,

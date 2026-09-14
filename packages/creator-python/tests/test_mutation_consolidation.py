@@ -20,28 +20,35 @@ from agent_ui_creator.observability import CreatorRunLogger
 from agent_ui_creator.server import create_app
 
 from test_domain_tool_batch_policy import BatchClient, BatchScriptModel, batch
-from test_domain_write_grounding import APP_UI_MODEL_PATH, call
+from test_domain_write_grounding import APP_UI_MODEL_PATH, call, layout_slot
 
 
 INSTANCE_ID = "session-manager-main"
-FINAL_INSTANCE = {
+FINAL_PLUGIN = {
     "id": INSTANCE_ID,
     "pluginId": "session-manager",
     "enabled": True,
-    "mount": {"slotId": "sidebar.right"},
     "props": {"title": "Sessions"},
 }
-ADD = [{"type": "add_instance", "instance": FINAL_INSTANCE}]
-RESTORE = [
-    {"type": "set_instance_enabled", "instanceId": INSTANCE_ID, "enabled": True},
-    {"type": "mount_instance", "instanceId": INSTANCE_ID, "slotId": "sidebar.right"},
-]
-MOVE = [{"type": "move_instance", "instanceId": INSTANCE_ID, "slotId": "sidebar.right"}]
+ADD = [{
+    "type": "insert_plugin",
+    "plugin": FINAL_PLUGIN,
+    "target": {"type": "layout_slot", "slotNodeId": "sidebar-right"},
+}]
+RESTORE = [{"type": "set_plugin_enabled", "instanceId": INSTANCE_ID, "enabled": True}]
+MOVE = [{
+    "type": "move_plugin",
+    "instanceId": INSTANCE_ID,
+    "target": {"type": "layout_slot", "slotNodeId": "sidebar-right"},
+}]
 
 
-def set_instances(client, instances):
+def set_plugins(client, plugins_by_slot):
     model = client.model()
-    model["pluginInstances"] = copy.deepcopy(instances)
+    for slot_node_id in ("sidebar-left", "sidebar-right"):
+        layout_slot(model, slot_node_id)["plugins"] = copy.deepcopy(
+            plugins_by_slot.get(slot_node_id, [])
+        )
     (client.root / APP_UI_MODEL_PATH).write_text(json.dumps(model) + "\n", encoding="utf-8")
 
 
@@ -81,8 +88,8 @@ def test_tool_and_prompt_preserve_final_state_transaction_contract(tmp_path):
     for rule in (
         "atomic transaction", "one resolved user intent", "complete desired state",
         "Do not call this tool once per semantic operation",
-        "add_instance can include final enabled, mount, and props",
-        "move_instance", "replace_instance", "changed=false",
+        "insert_plugin includes its final enabled state, props",
+        "move_plugin", "replace_plugin", "changed=false",
         "APP_UI_MODEL_HASH_CONFLICT", "APP_UI_MODEL_OBSERVATION_REQUIRED",
         "static composition commit only",
     ):
@@ -94,8 +101,8 @@ def test_tool_and_prompt_preserve_final_state_transaction_contract(tmp_path):
     for rule in (
         "Before the first mutate_app_ui_model call",
         "complete desired composition state", "smallest semantic representation",
-        "add_instance.instance already supports final enabled, mount, and props",
-        "replace_instance with final enabled, props, and mount in replacement",
+        "insert_plugin.plugin already supports final enabled, props, and nested child Slots",
+        "replace_plugin for an in-place replacement",
         "partial successful mutation", "BAD:", "GOOD, new:", "GOOD, existing:",
         "provide the final response", "changed=false", "previously unpredictable",
         "not subject to a one-mutation hard limit",
@@ -105,14 +112,14 @@ def test_tool_and_prompt_preserve_final_state_transaction_contract(tmp_path):
 
 @pytest.mark.parametrize("initial,operations,prompt", [
     ({}, ADD, "恢复 session-manager 到 sidebar.right。"),
-    ({INSTANCE_ID: {**FINAL_INSTANCE, "enabled": False, "mount": None}}, RESTORE,
+    ({"sidebar-right": [{**FINAL_PLUGIN, "enabled": False}]}, RESTORE,
      "恢复已有 session-manager 到 sidebar.right。"),
-    ({INSTANCE_ID: {**FINAL_INSTANCE, "mount": {"slotId": "sidebar.left"}}}, MOVE,
+    ({"sidebar-left": [FINAL_PLUGIN]}, MOVE,
      "移动 session-manager 到 sidebar.right。"),
-], ids=["add-final-state", "enable-and-mount", "dedicated-move"])
+], ids=["insert-final-state", "enable-existing", "dedicated-move"])
 def test_final_state_uses_one_transaction_then_final(tmp_path, initial, operations, prompt):
     client = BatchClient(tmp_path, barrier_size=2)
-    set_instances(client, initial)
+    set_plugins(client, initial)
     agent, model, logger = scripted_agent(client, [
         read_batch(), mutate(operations), AIMessage(content="已完成静态组合修改。"),
     ])
@@ -125,7 +132,7 @@ def test_final_state_uses_one_transaction_then_final(tmp_path, initial, operatio
     assert result.metrics.toolCalls == 3
     assert [item.name for item in result.activities][2:] == ["mutate_app_ui_model"]
     assert client.mutations[0]["operations"] == operations
-    assert client.model()["pluginInstances"][INSTANCE_ID] == FINAL_INSTANCE
+    assert layout_slot(client.model(), "sidebar-right")["plugins"][0] == FINAL_PLUGIN
     assert agent.observations.snapshot()["appUIModel"]["source"] == "mutation_result"
     log = next(entry["data"] for entry in entries(logger) if entry["type"] == "app_ui_model_mutation")
     assert log == {
@@ -139,7 +146,7 @@ def test_final_state_uses_one_transaction_then_final(tmp_path, initial, operatio
 
 def test_changed_false_uses_authoritative_result_and_finishes_without_retry(tmp_path):
     client = BatchClient(tmp_path, barrier_size=2)
-    set_instances(client, {INSTANCE_ID: FINAL_INSTANCE})
+    set_plugins(client, {"sidebar-right": [FINAL_PLUGIN]})
     before_hash = client.hash()
 
     def check_result(index, messages):
@@ -166,7 +173,7 @@ def test_changed_false_uses_authoritative_result_and_finishes_without_retry(tmp_
 
 def test_hash_conflict_counts_both_requests_but_only_one_success(tmp_path):
     client = BatchClient(tmp_path, conflict_once=True)
-    set_instances(client, {})
+    set_plugins(client, {})
 
     def change_before_refresh(index, messages):
         if index == 2:
@@ -195,16 +202,23 @@ def test_hash_conflict_counts_both_requests_but_only_one_success(tmp_path):
 @pytest.mark.parametrize("multiple", [False, True], ids=["three-operations", "two-successes-no-cap"])
 def test_endpoint_logs_mutation_summary_without_blocking_success(tmp_path, monkeypatch, multiple):
     client = BatchClient(tmp_path, barrier_size=2)
-    set_instances(client, {})
+    set_plugins(client, {})
     if multiple:
         # Deliberately exercise multiple successes: diagnostics must never reject them.
         responses = [read_batch(), mutate(ADD, "first"), mutate([
-            {**MOVE[0], "slotId": "sidebar.left"}
+            {
+                **MOVE[0],
+                "target": {"type": "layout_slot", "slotNodeId": "sidebar-left"},
+            }
         ], "second"), AIMessage(content="完成。")]
         expected_counts = [1, 1]
     else:
         operations = [
-            {"type": "add_instance", "instance": {**FINAL_INSTANCE, "id": f"sessions-{index}"}}
+            {
+                "type": "insert_plugin",
+                "plugin": {**FINAL_PLUGIN, "id": f"sessions-{index}"},
+                "target": {"type": "layout_slot", "slotNodeId": "sidebar-right"},
+            }
             for index in range(3)
         ]
         responses = [read_batch(), mutate(operations), AIMessage(content="完成。")]
@@ -249,6 +263,6 @@ def test_endpoint_logs_mutation_summary_without_blocking_success(tmp_path, monke
     assert [entry["requestIndex"] for entry in mutations] == list(range(1, len(expected_counts) + 1))
     assert all("operations" not in entry for entry in mutations)
     if not multiple:
-        assert mutations[0]["operationTypes"] == ["add_instance"] * 3
+        assert mutations[0]["operationTypes"] == ["insert_plugin"] * 3
         # Three instance operations change only one model file.
         assert result["receipt"]["verification"]["projectRevision"] == 1

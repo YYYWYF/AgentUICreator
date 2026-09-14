@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import type { AppUIModel } from "../../framework/contracts/app-ui-model";
+import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
 import type { PluginRegistry } from "../plugins/PluginRegistry";
 import type { PluginRenderFailure } from "../plugins/PluginErrorBoundary";
 import { PluginInstanceRenderer } from "../plugins/PluginInstanceRenderer";
@@ -11,7 +11,7 @@ import { useApplicationLifecycle } from "./ApplicationLifecycleContext";
 import "./application.css";
 
 export interface ApplicationGateSurfaceProps<TState = unknown> {
-  model: AppUIModel;
+  model: AppUIRuntimeModel;
   registry: PluginRegistry<TState>;
   actions: UIPluginRuntimeActions;
   onPluginError(failure: PluginRenderFailure): void;

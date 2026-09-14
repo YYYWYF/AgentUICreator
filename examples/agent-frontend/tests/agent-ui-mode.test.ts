@@ -13,7 +13,7 @@ import {
   parseAppUIModel,
   parseAppUIModelJson,
 } from "../framework/contracts/app-ui-model";
-import { validateAppUIComposition } from "../framework/contracts/app-ui-composition";
+import { compileAppUIModel } from "../framework/contracts/app-ui-compiler";
 import {
   AgentUIModeRegistry,
   agentUIModeRegistry,
@@ -23,7 +23,7 @@ import { generatePluginRegistry } from "../scripts/ui-project/registry-generator
 function collectLayoutSlots(
   node: ReturnType<typeof parseAppUIModel>["root"],
 ): string[] {
-  if (node.type === "slot") return [node.slotId];
+  if (node.type === "slot") return [node.id];
   if (node.type === "panel") return collectLayoutSlots(node.child);
   return node.children.flatMap(collectLayoutSlots);
 }
@@ -51,9 +51,8 @@ describe("Agent UI Mode", () => {
       id: "platform",
       createInitialAppUIModel: () =>
         parseAppUIModel({
-          version: "2",
-          root: { type: "slot", id: "root-node", slotId: "root" },
-          pluginInstances: {},
+          version: "3",
+          root: { type: "slot", id: "root", description: "Root content.", plugins: [] },
         }),
     };
     registry.register(definition);
@@ -79,9 +78,7 @@ describe("Agent UI Mode", () => {
 
       const generation = await generatePluginRegistry(projectRoot, first);
       expect(generation.errors).toEqual([]);
-      expect(() =>
-        validateAppUIComposition(first, generation.slotCatalog),
-      ).not.toThrow();
+      expect(() => compileAppUIModel(first, generation.compositionCatalog)).not.toThrow();
     }
 
     const platformSlots = collectLayoutSlots(
@@ -91,7 +88,7 @@ describe("Agent UI Mode", () => {
       await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
     );
 
-    expect(platformSlots).toContain("conversation.navigation");
+    expect(platformSlots).toContain("conversation-navigation");
     expect(
       agentUIModeRegistry.get("platform").createInitialAppUIModel(),
     ).toEqual(currentAppUIModel);

@@ -3,10 +3,10 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
+  collectAppUIPluginLocations,
   parseAppUIModelJson,
-  type LayoutNode,
+  type AppUILayoutNode,
 } from "../../framework/contracts/app-ui-model";
-import { resolveAppUIComposition } from "../../framework/contracts/app-ui-composition";
 import { pathExists } from "./plugin-assets";
 import { uiProjectControlConfig } from "./project-config";
 import { readAgentUIProjectConfig } from "./project-mode";
@@ -28,14 +28,15 @@ import type {
 } from "./types";
 
 function compactLayout(
-  node: LayoutNode,
+  node: AppUILayoutNode,
   nodePath: string,
 ): CompactLayoutNode {
   if (node.type === "slot") {
     return {
       id: node.id,
       type: node.type,
-      slotId: node.slotId,
+      description: node.description,
+      plugins: structuredClone(node.plugins),
     };
   }
   if (node.type === "panel") {
@@ -125,58 +126,47 @@ export async function inspectUIProject(
     path.join(projectRoot, PLUGIN_REGISTRY_ENTRY_PATH),
   );
   const layout = compactLayout(model.root, "root");
-  const layoutLocations = new Map<string, { nodeId: string; nodePath: string }>();
-  const collectLayoutLocations = (node: LayoutNode, nodePath: string): void => {
+  const slots: InspectedSlot[] = [];
+  const collectLayoutSlots = (node: AppUILayoutNode, nodePath: string): void => {
     if (node.type === "slot") {
-      layoutLocations.set(node.slotId, { nodeId: node.id, nodePath });
+      slots.push({
+        target: { type: "layout_slot", slotNodeId: node.id },
+        description: node.description,
+        cardinality: "many",
+        optional: true,
+        owner: { kind: "layout", nodeId: node.id, nodePath },
+        nodePath,
+        plugins: structuredClone(node.plugins),
+      });
       return;
     }
     if (node.type === "panel") {
-      collectLayoutLocations(node.child, `${nodePath}.child`);
+      collectLayoutSlots(node.child, `${nodePath}.child`);
       return;
     }
     node.children.forEach((child, index) =>
-      collectLayoutLocations(child, `${nodePath}.children[${index}]`),
+      collectLayoutSlots(child, `${nodePath}.children[${index}]`),
     );
   };
-  collectLayoutLocations(model.root, "root");
-  const composition = resolveAppUIComposition(model, generation.slotCatalog);
-  // This is a static configuration view, not a snapshot of active contributions.
-  const slots: InspectedSlot[] = [...composition.reachableSlots]
-    .sort((left, right) => left < right ? -1 : left > right ? 1 : 0)
-    .flatMap((slotId) => {
-      const resolvedOwner = composition.slotOwners.get(slotId);
-      if (resolvedOwner === undefined) return [];
-      const location = layoutLocations.get(slotId);
-      if (resolvedOwner.kind === "layout" && location === undefined) {
-        throw new Error(`Layout Slot "${slotId}" has no Layout Tree location.`);
-      }
-      const owner: InspectedSlot["owner"] =
-        resolvedOwner.kind === "layout"
-          ? {
-              kind: "layout",
-              nodeId: resolvedOwner.nodeId,
-              nodePath: location!.nodePath,
-            }
-          : resolvedOwner;
-      return [{
-      slotId,
-      owner,
-      ...(location === undefined ? {} : location),
-      mounts: Object.values(model.pluginInstances)
-        .filter((instance) => instance.mount?.slotId === slotId)
-        .sort((left, right) =>
-          (left.mount?.order ?? 0) - (right.mount?.order ?? 0) ||
-          (left.id < right.id ? -1 : left.id > right.id ? 1 : 0),
-        )
-        .map((instance) => ({
-          instanceId: instance.id,
-          pluginId: instance.pluginId,
-          enabled: instance.enabled,
-          ...(instance.mount?.order === undefined ? {} : { order: instance.mount.order }),
-        })),
-      }];
-    });
+  collectLayoutSlots(model.root, "root");
+  const assetsByPluginId = new Map(generation.assets.map((asset) => [asset.pluginId, asset]));
+  for (const location of collectAppUIPluginLocations(model)) {
+    const definitions = assetsByPluginId.get(location.plugin.pluginId)?.childSlots ?? {};
+    for (const [slot, definition] of Object.entries(definitions)) {
+      slots.push({
+        target: { type: "plugin_slot", parentInstanceId: location.plugin.id, slot },
+        description: definition.description,
+        cardinality: definition.cardinality,
+        optional: definition.optional === true,
+        owner: {
+          kind: "plugin",
+          instanceId: location.plugin.id,
+          pluginId: location.plugin.pluginId,
+        },
+        plugins: structuredClone(location.plugin.slots?.[slot] ?? []),
+      });
+    }
+  }
   const packageJson = JSON.parse(
     await readFile(path.join(projectRoot, "package.json"), "utf8"),
   ) as unknown;
@@ -198,14 +188,9 @@ export async function inspectUIProject(
       layout,
       slots,
     },
-    pluginInstances: Object.values(model.pluginInstances)
-      .sort((left, right) => left.id.localeCompare(right.id))
-      .map((instance) => ({
-        ...instance,
-        ...(instance.mount !== undefined
-          ? { mountedSlotId: instance.mount.slotId }
-          : {}),
-      })),
+    plugins: collectAppUIPluginLocations(model)
+      .sort((left, right) => left.plugin.id.localeCompare(right.plugin.id))
+      .map(({ plugin, target, path, index }) => ({ ...structuredClone(plugin), target, path, index })),
     registry: {
       selectedPluginIds: generation.selectedPluginIds,
       registeredPluginIds: generation.registeredPluginIds,

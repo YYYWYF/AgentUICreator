@@ -1,68 +1,70 @@
 import { z } from "zod";
 
 import {
+  appUIPluginNodeSchema,
+  collectAppUIPluginLocations,
   layoutNodeSchema,
   layoutSizeSchema,
-  pluginInstanceSchema,
+  type AppUIColumnNode,
+  type AppUILayoutNode,
+  type AppUILayoutSize,
   type AppUIModel,
-  type LayoutNode,
-  type LayoutSize,
-  type PluginInstance,
-  type RowNode,
-  type ColumnNode,
-  type StackNode,
-  type PanelNode,
+  type AppUIPanelNode,
+  type AppUIPluginLocation,
+  type AppUIPluginNode,
+  type AppUIRowNode,
+  type AppUIStackNode,
 } from "../../framework/contracts/app-ui-model";
 
 const nonBlankStringSchema = z.string().trim().min(1).max(200);
 const indexSchema = z.number().int().nonnegative().optional();
 const removeKeysSchema = z.array(nonBlankStringSchema).max(50).optional();
 
-export const appUIOperationSchema = z.discriminatedUnion("type", [
+export const appUIPluginTargetSchema = z.discriminatedUnion("type", [
+  z.strictObject({ type: z.literal("application") }),
   z.strictObject({
-    type: z.literal("add_instance"),
-    instance: pluginInstanceSchema,
+    type: z.literal("layout_slot"),
+    slotNodeId: nonBlankStringSchema,
   }),
   z.strictObject({
-    type: z.literal("update_instance_props"),
+    type: z.literal("plugin_slot"),
+    parentInstanceId: nonBlankStringSchema,
+    slot: nonBlankStringSchema,
+  }),
+]);
+
+export const appUIOperationSchema = z.discriminatedUnion("type", [
+  z.strictObject({
+    type: z.literal("insert_plugin"),
+    plugin: appUIPluginNodeSchema,
+    target: appUIPluginTargetSchema,
+    index: indexSchema,
+  }),
+  z.strictObject({
+    type: z.literal("move_plugin"),
+    instanceId: nonBlankStringSchema,
+    target: appUIPluginTargetSchema,
+    index: indexSchema,
+  }),
+  z.strictObject({
+    type: z.literal("remove_plugin"),
+    instanceId: nonBlankStringSchema,
+  }),
+  z.strictObject({
+    type: z.literal("replace_plugin"),
+    instanceId: nonBlankStringSchema,
+    replacement: appUIPluginNodeSchema,
+  }),
+  z.strictObject({
+    type: z.literal("update_plugin_props"),
     instanceId: nonBlankStringSchema,
     set: z.record(z.string(), z.unknown()).optional(),
     removeKeys: removeKeysSchema,
   }),
   z.strictObject({
-    type: z.literal("set_instance_enabled"),
+    type: z.literal("set_plugin_enabled"),
     instanceId: nonBlankStringSchema,
     enabled: z.boolean(),
-  }),
-  z.strictObject({
-    type: z.literal("mount_instance"),
-    instanceId: nonBlankStringSchema,
-    slotId: nonBlankStringSchema,
-    index: indexSchema,
-    order: z.number().finite().optional(),
-  }),
-  z.strictObject({
-    type: z.literal("unmount_instance"),
-    instanceId: nonBlankStringSchema,
-  }),
-  z.strictObject({
-    type: z.literal("move_instance"),
-    instanceId: nonBlankStringSchema,
-    slotId: nonBlankStringSchema,
-    index: indexSchema,
-    order: z.number().finite().optional(),
-  }),
-  z.strictObject({
-    type: z.literal("replace_instance"),
-    instanceId: nonBlankStringSchema,
-    replacement: pluginInstanceSchema,
-    slotId: nonBlankStringSchema.optional(),
-    index: indexSchema,
-    order: z.number().finite().optional(),
-  }),
-  z.strictObject({
-    type: z.literal("remove_instance"),
-    instanceId: nonBlankStringSchema,
   }),
   z.strictObject({
     type: z.literal("insert_layout_node"),
@@ -97,13 +99,14 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
 
 export const appUIOperationsSchema = z.array(appUIOperationSchema).min(1).max(100);
 export type AppUIOperation = z.infer<typeof appUIOperationSchema>;
+export type AppUIPluginTarget = z.infer<typeof appUIPluginTargetSchema>;
 
-type ChildrenNode = RowNode | ColumnNode | StackNode;
+type ChildrenNode = AppUIRowNode | AppUIColumnNode | AppUIStackNode;
 
-interface NodeIndexEntry {
-  node: LayoutNode;
+export interface NodeIndexEntry {
+  node: AppUILayoutNode;
   path: string;
-  parent?: LayoutNode | undefined;
+  parent?: AppUILayoutNode | undefined;
   parentKind: "root" | "children" | "panel";
   index?: number | undefined;
 }
@@ -120,460 +123,290 @@ export class AppUIOperationError extends Error {
   }
 }
 
-function operationError(
-  code: string,
-  message: string,
-  details?: unknown,
-): never {
+function operationError(code: string, message: string, details?: unknown): never {
   throw new AppUIOperationError(code, message, details);
 }
 
-export function buildLayoutNodeIndex(root: LayoutNode): Map<string, NodeIndexEntry> {
-  const index = new Map<string, NodeIndexEntry>();
-
+export function buildLayoutNodeIndex(root: AppUILayoutNode): Map<string, NodeIndexEntry> {
+  const result = new Map<string, NodeIndexEntry>();
   const visit = (
-    node: LayoutNode,
+    node: AppUILayoutNode,
     path: string,
-    parent: LayoutNode | undefined,
+    parent: AppUILayoutNode | undefined,
     parentKind: NodeIndexEntry["parentKind"],
-    childIndex?: number,
+    index?: number,
   ): void => {
-    if (index.has(node.id)) {
-      operationError(
-        "DUPLICATE_LAYOUT_NODE_ID",
-        `Layout node id "${node.id}" is duplicated.`,
-      );
+    if (result.has(node.id)) {
+      operationError("DUPLICATE_LAYOUT_NODE_ID", `Layout node id "${node.id}" is duplicated.`);
     }
-    index.set(node.id, {
-      node,
-      path,
-      parent,
-      parentKind,
-      ...(childIndex === undefined ? {} : { index: childIndex }),
-    });
-
+    result.set(node.id, { node, path, parent, parentKind, ...(index === undefined ? {} : { index }) });
     if (node.type === "row" || node.type === "column" || node.type === "stack") {
-      node.children.forEach((child, childPosition) =>
-        visit(
-          child,
-          `${path}.children[${childPosition}]`,
-          node,
-          "children",
-          childPosition,
-        ),
+      node.children.forEach((child, childIndex) =>
+        visit(child, `${path}.children[${childIndex}]`, node, "children", childIndex),
       );
     } else if (node.type === "panel") {
       visit(node.child, `${path}.child`, node, "panel");
     }
   };
-
   visit(root, "root", undefined, "root");
-  return index;
+  return result;
 }
 
 function requiredNode(model: AppUIModel, nodeId: string): NodeIndexEntry {
   const entry = buildLayoutNodeIndex(model.root).get(nodeId);
-  if (entry === undefined) {
-    operationError("LAYOUT_NODE_NOT_FOUND", `Layout node "${nodeId}" does not exist.`);
-  }
+  if (entry === undefined) operationError("LAYOUT_NODE_NOT_FOUND", `Layout node "${nodeId}" does not exist.`);
   return entry;
 }
 
-function requiredInstance(model: AppUIModel, instanceId: string): PluginInstance {
-  const instance = model.pluginInstances[instanceId];
-  if (instance === undefined) {
-    operationError(
-      "PLUGIN_INSTANCE_NOT_FOUND",
-      `Plugin instance "${instanceId}" does not exist.`,
-    );
-  }
-  return instance;
+function requiredPluginLocation(model: AppUIModel, instanceId: string): AppUIPluginLocation {
+  const location = collectAppUIPluginLocations(model).find(({ plugin }) => plugin.id === instanceId);
+  if (location === undefined) operationError("PLUGIN_NOT_FOUND", `Plugin instance "${instanceId}" does not exist.`);
+  return location;
 }
 
 function insertAt<T>(items: T[], item: T, index: number | undefined, label: string): void {
   const targetIndex = index ?? items.length;
   if (targetIndex > items.length) {
-    operationError(
-      "INDEX_OUT_OF_RANGE",
-      `${label} index ${targetIndex} exceeds length ${items.length}.`,
-    );
+    operationError("INDEX_OUT_OF_RANGE", `${label} index ${targetIndex} exceeds length ${items.length}.`);
   }
   items.splice(targetIndex, 0, item);
 }
 
-function mountInstance(
+function pluginContainer(model: AppUIModel, target: AppUIPluginTarget): AppUIPluginNode[] {
+  if (target.type === "application") {
+    model.applicationPlugins ??= [];
+    return model.applicationPlugins;
+  }
+  if (target.type === "layout_slot") {
+    const node = requiredNode(model, target.slotNodeId).node;
+    if (node.type !== "slot") {
+      operationError("LAYOUT_NODE_NOT_SLOT", `Layout node "${target.slotNodeId}" is not a Slot.`);
+    }
+    return node.plugins;
+  }
+  const parent = requiredPluginLocation(model, target.parentInstanceId).plugin;
+  parent.slots ??= {};
+  parent.slots[target.slot] ??= [];
+  return parent.slots[target.slot];
+}
+
+function sameTarget(left: AppUIPluginTarget, right: AppUIPluginTarget): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function detachPlugin(model: AppUIModel, instanceId: string): {
+  plugin: AppUIPluginNode;
+  target: AppUIPluginTarget;
+  index: number;
+} {
+  const location = requiredPluginLocation(model, instanceId);
+  const container = pluginContainer(model, location.target);
+  const [plugin] = container.splice(location.index, 1);
+  if (plugin === undefined) operationError("PLUGIN_NOT_FOUND", `Plugin instance "${instanceId}" does not exist.`);
+  return { plugin, target: location.target, index: location.index };
+}
+
+function pluginSubtreeIds(plugin: AppUIPluginNode): Set<string> {
+  const result = new Set<string>();
+  const visit = (current: AppUIPluginNode): void => {
+    result.add(current.id);
+    Object.values(current.slots ?? {}).flat().forEach(visit);
+  };
+  visit(plugin);
+  return result;
+}
+
+function assertUniquePluginIds(
   model: AppUIModel,
-  instanceId: string,
-  slotId: string,
-  index?: number,
-  order?: number,
+  plugin: AppUIPluginNode,
+  ignoredIds: ReadonlySet<string> = new Set(),
 ): void {
-  const instance = requiredInstance(model, instanceId);
-  if (instance.mount !== undefined) {
-    operationError(
-      "PLUGIN_INSTANCE_ALREADY_MOUNTED",
-      `Plugin instance "${instanceId}" is already mounted in Slot "${instance.mount.slotId}".`,
-    );
-  }
-  if (index !== undefined && order !== undefined) {
-    operationError("AMBIGUOUS_MOUNT_ORDER", "Specify either index or order, not both.");
-  }
-  if (index === undefined) {
-    instance.mount = { slotId, ...(order === undefined ? {} : { order }) };
-    return;
-  }
-  // Preserve the existing index-based editing operation by persisting explicit
-  // orders; neither activation nor rendering depends on object insertion order.
-  const peers = Object.values(model.pluginInstances)
-    .filter((candidate) => candidate.mount?.slotId === slotId)
-    .sort((left, right) =>
-      (left.mount?.order ?? 0) - (right.mount?.order ?? 0) ||
-      (left.id < right.id ? -1 : left.id > right.id ? 1 : 0),
-    );
-  insertAt(peers, instance, index, "Slot");
-  peers.forEach((candidate, position) => {
-    candidate.mount = { slotId, order: position };
-  });
-}
-
-function unmountInstance(model: AppUIModel, instanceId: string): void {
-  delete requiredInstance(model, instanceId).mount;
-}
-
-function childContainer(node: LayoutNode, operation: string): ChildrenNode {
-  if (node.type === "row" || node.type === "column" || node.type === "stack") {
-    return node;
-  }
-  operationError(
-    "LAYOUT_PARENT_NOT_CONTAINER",
-    `${operation} requires a row, column, or stack parent; "${node.id}" is ${node.type}.`,
+  const existing = new Set(
+    collectAppUIPluginLocations(model)
+      .map(({ plugin: current }) => current.id)
+      .filter((id) => !ignoredIds.has(id)),
   );
+  const visit = (current: AppUIPluginNode): void => {
+    if (existing.has(current.id)) {
+      operationError("PLUGIN_ALREADY_EXISTS", `Plugin instance "${current.id}" already exists.`);
+    }
+    existing.add(current.id);
+    Object.values(current.slots ?? {}).flat().forEach(visit);
+  };
+  visit(plugin);
+}
+
+function childContainer(node: AppUILayoutNode, operation: string): ChildrenNode {
+  if (node.type === "row" || node.type === "column" || node.type === "stack") return node;
+  operationError("LAYOUT_PARENT_NOT_CONTAINER", `${operation} requires a row, column, or stack parent; "${node.id}" is ${node.type}.`);
 }
 
 function insertChild(
   parent: ChildrenNode,
-  node: LayoutNode,
+  node: AppUILayoutNode,
   index: number | undefined,
-  size: LayoutSize | undefined,
+  size: AppUILayoutSize | undefined,
 ): void {
   const targetIndex = index ?? parent.children.length;
-  if (targetIndex > parent.children.length) {
-    operationError(
-      "INDEX_OUT_OF_RANGE",
-      `Layout child index ${targetIndex} exceeds length ${parent.children.length}.`,
-    );
-  }
+  if (targetIndex > parent.children.length) operationError("INDEX_OUT_OF_RANGE", `Layout child index ${targetIndex} exceeds length ${parent.children.length}.`);
   if (parent.type === "row" || parent.type === "column") {
     if (parent.sizes !== undefined) {
-      if (size === undefined) {
-        operationError(
-          "LAYOUT_SIZE_REQUIRED",
-          `Parent "${parent.id}" has sizes; the inserted child requires a size.`,
-        );
-      }
+      if (size === undefined) operationError("LAYOUT_SIZE_REQUIRED", `Parent "${parent.id}" has sizes; the inserted child requires a size.`);
       parent.sizes.splice(targetIndex, 0, size);
     } else if (size !== undefined) {
-      operationError(
-        "LAYOUT_SIZE_NOT_APPLICABLE",
-        `Parent "${parent.id}" does not define sizes.`,
-      );
+      operationError("LAYOUT_SIZE_NOT_APPLICABLE", `Parent "${parent.id}" does not define sizes.`);
     }
   } else if (size !== undefined) {
-    operationError(
-      "LAYOUT_SIZE_NOT_APPLICABLE",
-      `Stack parent "${parent.id}" does not support child sizes.`,
-    );
+    operationError("LAYOUT_SIZE_NOT_APPLICABLE", `Stack parent "${parent.id}" does not support child sizes.`);
   }
   parent.children.splice(targetIndex, 0, node);
 }
 
-function detachChild(entry: NodeIndexEntry): {
-  node: LayoutNode;
-  size?: LayoutSize | undefined;
-} {
-  if (
-    entry.parentKind !== "children" ||
-    entry.parent === undefined ||
-    entry.index === undefined
-  ) {
-    operationError(
-      "LAYOUT_NODE_NOT_MOVABLE",
-      `Layout node "${entry.node.id}" is not a child of row, column, or stack.`,
-    );
+function detachChild(entry: NodeIndexEntry): { node: AppUILayoutNode; size?: AppUILayoutSize } {
+  if (entry.parentKind !== "children" || entry.parent === undefined || entry.index === undefined) {
+    operationError("LAYOUT_NODE_NOT_MOVABLE", `Layout node "${entry.node.id}" is not a child of row, column, or stack.`);
   }
   const parent = childContainer(entry.parent, "detach_layout_node");
   const [node] = parent.children.splice(entry.index, 1);
-  let size: LayoutSize | undefined;
-  if (
-    (parent.type === "row" || parent.type === "column") &&
-    parent.sizes !== undefined
-  ) {
+  let size: AppUILayoutSize | undefined;
+  if ((parent.type === "row" || parent.type === "column") && parent.sizes !== undefined) {
     [size] = parent.sizes.splice(entry.index, 1);
   }
   return { node: node!, ...(size === undefined ? {} : { size }) };
 }
 
-function subtreeSlotIds(node: LayoutNode): Set<string> {
-  const result = new Set<string>();
-  const visit = (current: LayoutNode): void => {
-    if (current.type === "slot") {
-      result.add(current.slotId);
-    } else if (current.type === "panel") {
-      visit(current.child);
-    } else {
-      current.children.forEach(visit);
-    }
+function subtreePluginIds(node: AppUILayoutNode): string[] {
+  const ids: string[] = [];
+  const visitPlugin = (plugin: AppUIPluginNode): void => {
+    ids.push(plugin.id);
+    Object.values(plugin.slots ?? {}).flat().forEach(visitPlugin);
+  };
+  const visit = (current: AppUILayoutNode): void => {
+    if (current.type === "slot") current.plugins.forEach(visitPlugin);
+    else if (current.type === "panel") visit(current.child);
+    else current.children.forEach(visit);
   };
   visit(node);
-  return result;
+  return ids;
 }
 
-function mountedUnderSlots(model: AppUIModel, roots: ReadonlySet<string>): Set<string> {
-  return new Set(
-    Object.values(model.pluginInstances)
-      .filter((instance) => instance.mount !== undefined && roots.has(instance.mount.slotId))
-      .map((instance) => instance.id),
-  );
-}
-
-function assertSubtreeCanDisappear(
-  model: AppUIModel,
-  oldNode: LayoutNode,
-  replacement?: LayoutNode,
-): void {
-  const mountedBefore = mountedUnderSlots(model, subtreeSlotIds(oldNode));
-  const retained = replacement === undefined
-    ? new Set<string>()
-    : mountedUnderSlots(model, subtreeSlotIds(replacement));
-  const disappearing = [...mountedBefore].filter((instanceId) => !retained.has(instanceId));
+function assertSubtreeCanDisappear(oldNode: AppUILayoutNode, replacement?: AppUILayoutNode): void {
+  const retained = new Set(replacement === undefined ? [] : subtreePluginIds(replacement));
+  const disappearing = subtreePluginIds(oldNode).filter((id) => !retained.has(id));
   if (disappearing.length > 0) {
-    operationError(
-      "LAYOUT_SUBTREE_HAS_MOUNTED_INSTANCES",
-      "Unmount, move, or remove mounted instances before removing their Layout subtree.",
-      { instanceIds: disappearing.sort() },
-    );
+    operationError("LAYOUT_SUBTREE_HAS_PLUGINS", "Move or remove plugins before removing their Layout subtree.", { instanceIds: disappearing.sort() });
   }
 }
 
-function replaceNode(model: AppUIModel, entry: NodeIndexEntry, replacement: LayoutNode): void {
-  assertSubtreeCanDisappear(model, entry.node, replacement);
-  if (entry.parentKind === "root") {
-    model.root = replacement;
-    return;
-  }
-  if (entry.parent === undefined) {
-    operationError("LAYOUT_PARENT_NOT_FOUND", `Parent for "${entry.node.id}" is missing.`);
-  }
-  if (entry.parentKind === "panel") {
-    (entry.parent as PanelNode).child = replacement;
-    return;
-  }
-  if (entry.index === undefined) {
-    operationError("LAYOUT_PARENT_NOT_FOUND", `Child index for "${entry.node.id}" is missing.`);
-  }
+function replaceNode(model: AppUIModel, entry: NodeIndexEntry, replacement: AppUILayoutNode): void {
+  assertSubtreeCanDisappear(entry.node, replacement);
+  if (entry.parentKind === "root") { model.root = replacement; return; }
+  if (entry.parent === undefined) operationError("LAYOUT_PARENT_NOT_FOUND", `Parent for "${entry.node.id}" is missing.`);
+  if (entry.parentKind === "panel") { (entry.parent as AppUIPanelNode).child = replacement; return; }
+  if (entry.index === undefined) operationError("LAYOUT_PARENT_NOT_FOUND", `Child index for "${entry.node.id}" is missing.`);
   childContainer(entry.parent, "replace_layout_node").children[entry.index] = replacement;
 }
 
-const layoutPropKeys: Record<LayoutNode["type"], ReadonlySet<string>> = {
-  row: new Set(["gap", "sizes"]),
-  column: new Set(["gap", "sizes"]),
-  stack: new Set(["active"]),
-  panel: new Set(["width", "height", "minWidth", "maxWidth", "resizable"]),
-  slot: new Set(),
+const layoutPropKeys: Record<AppUILayoutNode["type"], ReadonlySet<string>> = {
+  row: new Set(["gap", "sizes"]), column: new Set(["gap", "sizes"]),
+  stack: new Set(["active"]), panel: new Set(["width", "height", "minWidth", "maxWidth", "resizable"]),
+  slot: new Set(["description"]),
 };
 
-function updateLayoutNodeProps(
-  node: LayoutNode,
-  set: Record<string, unknown> | undefined,
-  removeKeys: string[] | undefined,
-): void {
+function updateLayoutNodeProps(node: AppUILayoutNode, set?: Record<string, unknown>, removeKeys?: string[]): void {
   const allowed = layoutPropKeys[node.type];
   for (const key of [...Object.keys(set ?? {}), ...(removeKeys ?? [])]) {
-    if (!allowed.has(key)) {
-      operationError(
-        "LAYOUT_PROP_NOT_MUTABLE",
-        `Property "${key}" cannot be changed on ${node.type} node "${node.id}".`,
-        { allowed: [...allowed] },
-      );
-    }
+    if (!allowed.has(key)) operationError("LAYOUT_PROP_NOT_MUTABLE", `Property "${key}" cannot be changed on ${node.type} node "${node.id}".`, { allowed: [...allowed] });
   }
   const target = node as unknown as Record<string, unknown>;
-  for (const [key, value] of Object.entries(set ?? {})) {
-    target[key] = value;
-  }
-  for (const key of removeKeys ?? []) {
-    delete target[key];
-  }
+  Object.assign(target, set ?? {});
+  for (const key of removeKeys ?? []) delete target[key];
 }
 
 function applyOperation(model: AppUIModel, operation: AppUIOperation): void {
   switch (operation.type) {
-    case "add_instance": {
-      if (model.pluginInstances[operation.instance.id] !== undefined) {
-        operationError(
-          "PLUGIN_INSTANCE_ALREADY_EXISTS",
-          `Plugin instance "${operation.instance.id}" already exists.`,
-        );
+    case "insert_plugin":
+      assertUniquePluginIds(model, operation.plugin);
+      insertAt(pluginContainer(model, operation.target), structuredClone(operation.plugin), operation.index, "Plugin target");
+      return;
+    case "move_plugin": {
+      const location = requiredPluginLocation(model, operation.instanceId);
+      const descendants = new Set<string>();
+      const collect = (plugin: AppUIPluginNode): void => {
+        descendants.add(plugin.id);
+        Object.values(plugin.slots ?? {}).flat().forEach(collect);
+      };
+      collect(location.plugin);
+      if (operation.target.type === "plugin_slot" && descendants.has(operation.target.parentInstanceId)) {
+        operationError("PLUGIN_MOVE_CYCLE", `Cannot move "${operation.instanceId}" into its own subtree.`);
       }
-      model.pluginInstances[operation.instance.id] = structuredClone(operation.instance);
+      const detached = detachPlugin(model, operation.instanceId);
+      const destination = pluginContainer(model, operation.target);
+      const adjustedIndex = operation.index !== undefined && sameTarget(detached.target, operation.target) && detached.index < operation.index
+        ? operation.index - 1
+        : operation.index;
+      insertAt(destination, detached.plugin, adjustedIndex, "Plugin target");
       return;
     }
-    case "update_instance_props": {
-      const instance = requiredInstance(model, operation.instanceId);
-      const props = { ...(instance.props ?? {}) };
-      for (const [key, value] of Object.entries(operation.set ?? {})) {
-        props[key] = value;
-      }
-      for (const key of operation.removeKeys ?? []) {
-        delete props[key];
-      }
-      if (Object.keys(props).length === 0) {
-        delete instance.props;
-      } else {
-        instance.props = props;
-      }
+    case "remove_plugin":
+      detachPlugin(model, operation.instanceId);
       return;
-    }
-    case "set_instance_enabled":
-      requiredInstance(model, operation.instanceId).enabled = operation.enabled;
-      return;
-    case "mount_instance":
-      mountInstance(model, operation.instanceId, operation.slotId, operation.index, operation.order);
-      return;
-    case "unmount_instance":
-      unmountInstance(model, operation.instanceId);
-      return;
-    case "move_instance": {
-      const instance = requiredInstance(model, operation.instanceId);
-      const previous = instance.mount;
-      delete instance.mount;
-      mountInstance(
-        model, operation.instanceId, operation.slotId, operation.index,
-        operation.index === undefined ? (operation.order ?? previous?.order) : operation.order,
+    case "replace_plugin": {
+      const location = requiredPluginLocation(model, operation.instanceId);
+      assertUniquePluginIds(
+        model,
+        operation.replacement,
+        pluginSubtreeIds(location.plugin),
       );
+      pluginContainer(model, location.target)[location.index] = structuredClone(operation.replacement);
       return;
     }
-    case "replace_instance": {
-      requiredInstance(model, operation.instanceId);
-      if (operation.replacement.id === operation.instanceId) {
-        operationError(
-          "REPLACEMENT_INSTANCE_ID_UNCHANGED",
-          "replace_instance requires a different replacement id; use update operations for the same instance.",
-        );
-      }
-      if (model.pluginInstances[operation.replacement.id] !== undefined) {
-        operationError(
-          "PLUGIN_INSTANCE_ALREADY_EXISTS",
-          `Plugin instance "${operation.replacement.id}" already exists.`,
-        );
-      }
-      const previous = requiredInstance(model, operation.instanceId).mount;
-      const replacement = structuredClone(operation.replacement);
-      const destination = replacement.mount ?? previous;
-      delete replacement.mount;
-      model.pluginInstances[replacement.id] = replacement;
-      delete model.pluginInstances[operation.instanceId];
-      const slotId = operation.slotId ?? destination?.slotId;
-      if (slotId === undefined && (operation.index !== undefined || operation.order !== undefined)) {
-        operationError("REPLACEMENT_MOUNT_REQUIRED", "Replacement placement requires a Slot target.");
-      }
-      if (slotId !== undefined) {
-        mountInstance(
-          model, replacement.id, slotId, operation.index,
-          operation.index === undefined ? (operation.order ?? destination?.order) : operation.order,
-        );
-      }
+    case "update_plugin_props": {
+      const plugin = requiredPluginLocation(model, operation.instanceId).plugin;
+      const props = { ...(plugin.props ?? {}) };
+      Object.assign(props, operation.set ?? {});
+      for (const key of operation.removeKeys ?? []) delete props[key];
+      if (Object.keys(props).length === 0) delete plugin.props;
+      else plugin.props = props;
       return;
     }
-    case "remove_instance": {
-      const instance = requiredInstance(model, operation.instanceId);
-      if (instance.mount !== undefined) {
-        operationError(
-          "PLUGIN_INSTANCE_STILL_MOUNTED",
-          `Unmount plugin instance "${operation.instanceId}" before removing it.`,
-          { slotId: instance.mount.slotId },
-        );
-      }
-      delete model.pluginInstances[operation.instanceId];
+    case "set_plugin_enabled":
+      requiredPluginLocation(model, operation.instanceId).plugin.enabled = operation.enabled;
       return;
-    }
-    case "insert_layout_node": {
-      const parent = childContainer(
-        requiredNode(model, operation.parentNodeId).node,
-        operation.type,
-      );
-      insertChild(parent, structuredClone(operation.node), operation.index, operation.size);
+    case "insert_layout_node":
+      insertChild(childContainer(requiredNode(model, operation.parentNodeId).node, operation.type), structuredClone(operation.node), operation.index, operation.size);
       return;
-    }
     case "update_layout_node_props":
-      updateLayoutNodeProps(
-        requiredNode(model, operation.nodeId).node,
-        operation.set,
-        operation.removeKeys,
-      );
+      updateLayoutNodeProps(requiredNode(model, operation.nodeId).node, operation.set, operation.removeKeys);
       return;
     case "move_layout_node": {
-      if (operation.nodeId === model.root.id) {
-        operationError("LAYOUT_ROOT_NOT_MOVABLE", "The Layout root cannot be moved.");
-      }
+      if (operation.nodeId === model.root.id) operationError("LAYOUT_ROOT_NOT_MOVABLE", "The Layout root cannot be moved.");
       const beforeIndex = buildLayoutNodeIndex(model.root);
       const entry = beforeIndex.get(operation.nodeId);
       const parentEntry = beforeIndex.get(operation.newParentNodeId);
-      if (entry === undefined || parentEntry === undefined) {
-        operationError(
-          "LAYOUT_NODE_NOT_FOUND",
-          `Layout node or destination parent does not exist.`,
-        );
-      }
-      const descendants = new Set(buildLayoutNodeIndex(entry.node).keys());
-      if (descendants.has(operation.newParentNodeId)) {
-        operationError(
-          "LAYOUT_MOVE_CYCLE",
-          `Cannot move "${operation.nodeId}" into its own subtree.`,
-        );
-      }
+      if (entry === undefined || parentEntry === undefined) operationError("LAYOUT_NODE_NOT_FOUND", "Layout node or destination parent does not exist.");
+      if (buildLayoutNodeIndex(entry.node).has(operation.newParentNodeId)) operationError("LAYOUT_MOVE_CYCLE", `Cannot move "${operation.nodeId}" into its own subtree.`);
       childContainer(parentEntry.node, operation.type);
       const detached = detachChild(entry);
-      const destination = childContainer(
-        requiredNode(model, operation.newParentNodeId).node,
-        operation.type,
-      );
-      const inheritedSize =
-        (destination.type === "row" || destination.type === "column") &&
-        destination.sizes !== undefined
-          ? detached.size
-          : undefined;
-      insertChild(
-        destination,
-        detached.node,
-        operation.index,
-        operation.size ?? inheritedSize,
-      );
+      const destination = childContainer(requiredNode(model, operation.newParentNodeId).node, operation.type);
+      const inheritedSize = (destination.type === "row" || destination.type === "column") && destination.sizes !== undefined ? detached.size : undefined;
+      insertChild(destination, detached.node, operation.index, operation.size ?? inheritedSize);
       return;
     }
     case "replace_layout_node":
-      replaceNode(
-        model,
-        requiredNode(model, operation.nodeId),
-        structuredClone(operation.node),
-      );
+      replaceNode(model, requiredNode(model, operation.nodeId), structuredClone(operation.node));
       return;
     case "remove_layout_node": {
-      if (operation.nodeId === model.root.id) {
-        operationError("LAYOUT_ROOT_NOT_REMOVABLE", "The Layout root cannot be removed.");
-      }
+      if (operation.nodeId === model.root.id) operationError("LAYOUT_ROOT_NOT_REMOVABLE", "The Layout root cannot be removed.");
       const entry = requiredNode(model, operation.nodeId);
-      assertSubtreeCanDisappear(model, entry.node);
+      assertSubtreeCanDisappear(entry.node);
       detachChild(entry);
       return;
     }
   }
 }
 
-export function applyAppUIOperations(
-  source: AppUIModel,
-  operations: readonly AppUIOperation[],
-): AppUIModel {
+export function applyAppUIOperations(source: AppUIModel, operations: readonly AppUIOperation[]): AppUIModel {
   const model = structuredClone(source);
   operations.forEach((operation) => applyOperation(model, operation));
   return model;

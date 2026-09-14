@@ -65,20 +65,17 @@ async function createProject(
     definitionSource,
   );
   const model: AppUIModel = {
-    version: "2",
+    version: "3",
     root: {
       type: "slot",
       id: "main-node",
-      slotId: "main",
-    },
-    pluginInstances: {
-      "sample-main": {
+      description: "Main content.",
+      plugins: [{
         id: "sample-main",
         pluginId: "sample",
         enabled: true,
-        mount: { slotId: "main" },
         props: { title: "Sample title" },
-      },
+      }],
     },
   };
   const appUIModelSource = JSON.stringify(model, null, 2);
@@ -148,14 +145,14 @@ describe("ui-project-control", () => {
     });
   });
 
-  it("returns reachable Slot owners and configured mounts", async () => {
+  it("returns authoring Slot targets and configured plugins", async () => {
     const { projectRoot } = await createProject();
 
     const response = await handleUIProjectControlRequest(
       {
         schemaVersion: 3,
         operation: "inspect_ui_slots",
-        input: { root: "main" },
+        input: { root: "main-node" },
       },
       projectRoot,
     );
@@ -165,16 +162,16 @@ describe("ui-project-control", () => {
       result: {
         slots: [
           expect.objectContaining({
-            slotId: "main",
+            target: { type: "layout_slot", slotNodeId: "main-node" },
+            description: "Main content.",
             owner: {
               kind: "layout",
               nodeId: "main-node",
               nodePath: "root",
             },
-            nodeId: "main-node",
-            mounts: [
+            plugins: [
               expect.objectContaining({
-                instanceId: "sample-main",
+                id: "sample-main",
                 pluginId: "sample",
                 enabled: true,
               }),
@@ -182,8 +179,7 @@ describe("ui-project-control", () => {
           }),
         ],
         selected: expect.objectContaining({
-          slotId: "main",
-          nodeId: "main-node",
+          target: { type: "layout_slot", slotNodeId: "main-node" },
         }),
       },
     });
@@ -202,7 +198,7 @@ describe("ui-project-control", () => {
             .digest("hex"),
           operations: [
             {
-              type: "update_instance_props",
+              type: "update_plugin_props",
               instanceId: "sample-main",
               set: { title: "Updated through control" },
             },
@@ -216,7 +212,7 @@ describe("ui-project-control", () => {
       ok: true,
       result: {
         changedPaths: ["app-ui/app-ui.json"],
-        diff: { instances: { updated: ["sample-main"] } },
+        diff: { plugins: { updated: ["sample-main"] } },
       },
     });
     expect(

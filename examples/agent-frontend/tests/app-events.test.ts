@@ -3,7 +3,7 @@ import { MockAgentTransport } from "@agent-ui/runtime-core/testing";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 import {
   AppEventRegistry,
@@ -41,7 +41,7 @@ function event(
 }
 
 function headlessModel(aEnabled = true) {
-  return parseAppUIModel({
+  return parseAppUIRuntimeModel({
     version: "2",
     root: { type: "slot", id: "root-node", slotId: "root" },
     pluginInstances: {
@@ -423,7 +423,7 @@ describe("AppEventRuntime", () => {
     };
 
     pluginRuntime.reconcile(
-      parseAppUIModel({
+      parseAppUIRuntimeModel({
         version: "2",
         root: { type: "slot", id: "root-node", slotId: "root" },
         pluginInstances: {

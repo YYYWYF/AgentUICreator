@@ -176,7 +176,8 @@
 
 /*
  * Canonical starter suggestions are owned by
- * conversation.empty.suggestions / conversation-suggestions. The registry
+ * the conversation-surface `emptySuggestions` child Slot and
+ * conversation-suggestions. The registry
  * ThreadSuggestions surface is suppressed to avoid duplicate ownership and
  * composer layout shift.
  */

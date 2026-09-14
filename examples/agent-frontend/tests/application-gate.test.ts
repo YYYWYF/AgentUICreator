@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
-import { parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import type {
   UIApplicationGateService,
   UIApplicationGateSnapshot,
@@ -79,7 +79,7 @@ function definition(
 }
 
 function gateModel(workspaceProps: Record<string, unknown> = {}) {
-  return parseAppUIModel({
+  return parseAppUIRuntimeModel({
     version: "2",
     root: { type: "slot", id: "main-node", slotId: "main" },
     pluginInstances: {
@@ -118,7 +118,7 @@ describe("Application Gate lifecycle", () => {
         Component: () => createElement("div", null, "Workspace"),
       }),
     ]);
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: { type: "slot", id: "main-node", slotId: "main" },
       pluginInstances: {
@@ -185,7 +185,7 @@ describe("Application Gate lifecycle", () => {
           createElement("div", { "data-test-workspace": true }, "Workspace"),
       }),
     ]);
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: { type: "slot", id: "main-node", slotId: "main" },
       pluginInstances: {
@@ -319,7 +319,7 @@ describe("Application Gate lifecycle", () => {
       }),
       definition("workspace"),
     ]);
-    const model = parseAppUIModel({
+    const model = parseAppUIRuntimeModel({
       version: "2",
       root: { type: "slot", id: "main-node", slotId: "main" },
       pluginInstances: {
@@ -362,7 +362,7 @@ describe("Application Gate lifecycle", () => {
     expect(runtime.getActivation("workspace")).toBeUndefined();
   });
 
-  it("reports a persistent Gate failure once for each AppUIModel hash", () => {
+  it("reports a persistent Gate failure once for each AppUIRuntimeModel hash", () => {
     const gate = new TestGateService("error");
     const registry = createPluginRegistry([
       definition("auth-gate", {

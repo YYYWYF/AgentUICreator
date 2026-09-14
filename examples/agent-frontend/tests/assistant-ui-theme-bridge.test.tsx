@@ -15,7 +15,7 @@ import {
   AGENT_UI_THEME_SERVICE,
   type AgentUIThemeService,
 } from "../services/agent-ui-theme";
-import type { AppUIModel } from "../framework/contracts/app-ui-model";
+import type { AppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 
 const runtimeActions = {
   sendMessage: async () => undefined,
@@ -25,7 +25,7 @@ const runtimeActions = {
   updateInstanceProps: () => undefined,
 };
 
-const model: AppUIModel = {
+const model: AppUIRuntimeModel = {
   version: "2",
   root: {
     type: "slot",

@@ -13,9 +13,12 @@ import { z } from "zod";
 import {
   parseAppUIModel,
   parseAppUIModelJson,
+  collectAppUIPluginLocations,
   type AppUIModel,
-  type LayoutNode,
+  type AppUILayoutNode,
 } from "../../framework/contracts/app-ui-model";
+import { compileAppUIModel } from "../../framework/contracts/app-ui-compiler";
+import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
 import {
   appUIOperationsSchema,
   applyAppUIOperations,
@@ -80,7 +83,7 @@ export interface AppUITransactionResult {
     afterHash: string;
   };
   diff: {
-    instances: {
+    plugins: {
       added: string[];
       removed: string[];
       updated: string[];
@@ -365,30 +368,29 @@ export async function recoverPendingAppUITransaction(
 }
 
 function selectedPluginIds(model: AppUIModel): string[] {
-  return [...new Set(Object.values(model.pluginInstances).map((item) => item.pluginId))]
+  return [...new Set(collectAppUIPluginLocations(model).map(({ plugin }) => plugin.pluginId))]
     .sort();
 }
 
 function validateMountSemantics(model: AppUIModel): ProjectIssue[] {
-  // An enabled instance without mount is valid but contributes no ordinary UI.
-  return Object.values(model.pluginInstances)
-    .filter((instance) => !instance.enabled && instance.mount !== undefined)
-    .map((instance) => ({
-      code: "disabled-instance-mounted",
-      message: `Disabled PluginInstance "${instance.id}" has a mount target but will not render.`,
+  return collectAppUIPluginLocations(model)
+    .filter(({ plugin, target }) => !plugin.enabled && target.type !== "application")
+    .map(({ plugin }) => ({
+      code: "disabled-plugin-in-tree",
+      message: `Disabled plugin instance "${plugin.id}" remains in the authoring tree but will not render.`,
     }));
 }
 
 function mapInstances(model: AppUIModel): Map<string, string> {
   return new Map(
-    Object.entries(model.pluginInstances).map(([id, instance]) => [
-      id,
-      JSON.stringify(instance),
+    collectAppUIPluginLocations(model).map(({ plugin, target, index }) => [
+      plugin.id,
+      JSON.stringify({ plugin, target, index }),
     ]),
   );
 }
 
-function mapLayoutNodes(root: LayoutNode): Map<string, string> {
+function mapLayoutNodes(root: AppUILayoutNode): Map<string, string> {
   return new Map(
     [...buildLayoutNodeIndex(root).values()].map(({ node }) => [
       node.id,
@@ -401,7 +403,7 @@ function mapSlots(model: AppUIModel): Map<string, string> {
   return new Map(
     [...buildLayoutNodeIndex(model.root).values()]
       .filter(({ node }) => node.type === "slot")
-      .map(({ node }) => [(node as import("../../framework/contracts/app-ui-model").SlotNode).slotId, JSON.stringify(node)]),
+      .map(({ node }) => [node.id, JSON.stringify(node)]),
   );
 }
 
@@ -497,14 +499,11 @@ function widthSensitiveInstanceIds(
   return new Set(
     operations.flatMap((operation) => {
       switch (operation.type) {
-        case "add_instance":
-          return operation.instance.mount === undefined
-            ? []
-            : [operation.instance.id];
-        case "mount_instance":
-        case "move_instance":
+        case "insert_plugin":
+          return operation.target.type === "application" ? [] : [operation.plugin.id];
+        case "move_plugin":
           return [operation.instanceId];
-        case "replace_instance":
+        case "replace_plugin":
           return [operation.replacement.id];
         default:
           return [];
@@ -514,7 +513,7 @@ function widthSensitiveInstanceIds(
 }
 
 function assertPluginWidthCompatibility(
-  model: AppUIModel,
+  model: AppUIRuntimeModel,
   operations: readonly AppUIOperation[],
   assets: readonly {
     pluginId: string;
@@ -597,8 +596,9 @@ async function runTransaction(
       { issues: registry.errors },
     );
   }
+  const runtimeModel = compileAppUIModel(afterModel, registry.compositionCatalog);
   assertPluginWidthCompatibility(
-    afterModel,
+    runtimeModel,
     input.operations as AppUIOperation[],
     registry.assets,
     input.runtimeSlotWidths ?? {},
@@ -652,7 +652,7 @@ async function runTransaction(
     changedPaths: changes.map((change) => change.relativePath).sort(),
     appUIModel: { beforeHash, afterHash },
     diff: {
-      instances: changedKeys(mapInstances(beforeModel), mapInstances(afterModel)),
+      plugins: changedKeys(mapInstances(beforeModel), mapInstances(afterModel)),
       layoutNodes: changedKeys(
         mapLayoutNodes(beforeModel.root),
         mapLayoutNodes(afterModel.root),
