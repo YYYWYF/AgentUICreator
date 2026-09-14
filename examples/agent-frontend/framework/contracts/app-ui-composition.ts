@@ -110,15 +110,23 @@ export function pluginChildSlotDefinitions(
   return catalogEntry(catalog, pluginId).childSlots ?? {};
 }
 
+function encodeRuntimeSlotPart(value: string): string {
+  return encodeURIComponent(value);
+}
+
 export function resolveRuntimeLayoutSlotId(slotNodeId: string): string {
-  return `layout:${slotNodeId}`;
+  return `layout:${encodeRuntimeSlotPart(slotNodeId)}`;
 }
 
 export function resolveRuntimePluginSlotId(
   instanceId: string,
   localSlotName: string,
 ): string {
-  return `plugin:${instanceId}:${localSlotName}`;
+  return [
+    "plugin",
+    encodeRuntimeSlotPart(instanceId),
+    encodeRuntimeSlotPart(localSlotName),
+  ].join(":");
 }
 
 export function resolveApplicationFoundation(

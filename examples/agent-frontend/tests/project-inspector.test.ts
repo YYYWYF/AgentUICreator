@@ -232,6 +232,13 @@ describe("inspectUIProject", () => {
         target: { type: "layout_slot", slotNodeId: "main-node" },
       }),
     );
+    expect(result.pluginAssets).toContainEqual(
+      expect.objectContaining({
+        pluginId: "sample",
+        name: "Sample",
+        description: "Fixture plugin",
+      }),
+    );
     expect(result.registry.generatedFileFresh).toBe(true);
     expect(result.catalogs).toEqual([
       { path: "plugins/catalog", exists: true },

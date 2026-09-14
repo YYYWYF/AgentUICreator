@@ -79,6 +79,7 @@ export async function collectPluginAssets(
       assets.push({
         pluginId: manifest.id,
         name: manifest.name,
+        description: manifest.description,
         directory: entry.name,
         manifestPath: projectPath(projectRoot, manifestPath),
         definitionPath: projectPath(

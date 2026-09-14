@@ -69,7 +69,8 @@ export interface UIProjectControlConfig {
 
 export interface PluginAsset {
   pluginId: string;
-  name?: string | undefined;
+  name: string;
+  description: string;
   directory: string;
   manifestPath: string;
   definitionPath: string;

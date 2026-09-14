@@ -5,7 +5,10 @@ import {
   compileAppUIModel,
 } from "../framework/contracts/app-ui-compiler";
 import type { AppUIModel } from "../framework/contracts/app-ui-model";
-import type { PluginCompositionCatalog } from "../framework/contracts/app-ui-composition";
+import {
+  type PluginCompositionCatalog,
+  resolveRuntimePluginSlotId,
+} from "../framework/contracts/app-ui-composition";
 
 const catalog: PluginCompositionCatalog = {
   provider: { capabilities: ["headless"] },
@@ -90,6 +93,16 @@ describe("compileAppUIModel", () => {
     expect(runtime.pluginInstances["item-two"]?.mount?.slotId).toBe(
       "plugin:surface-two:content",
     );
+  });
+
+  it("encodes Runtime child Slot tuple parts without delimiter collisions", () => {
+    const first = resolveRuntimePluginSlotId("a:b", "c");
+    const second = resolveRuntimePluginSlotId("a", "b:c");
+
+    expect(first).toBe("plugin:a%3Ab:c");
+    expect(second).toBe("plugin:a:b%3Ac");
+    expect(first).not.toBe(second);
+    expect(resolveRuntimePluginSlotId("a:b", "c")).toBe(first);
   });
 
   it("rejects undeclared local Slots", () => {

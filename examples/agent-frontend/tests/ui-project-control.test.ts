@@ -145,6 +145,28 @@ describe("ui-project-control", () => {
     });
   });
 
+  it("includes canonical manifest descriptions when listing UI plugins", async () => {
+    const { projectRoot } = await createProject();
+
+    const response = await handleUIProjectControlRequest(
+      { schemaVersion: 3, operation: "list_ui_plugins", input: {} },
+      projectRoot,
+    );
+
+    expect(response).toMatchObject({
+      ok: true,
+      result: {
+        pluginAssets: [
+          expect.objectContaining({
+            pluginId: "sample",
+            name: "Sample",
+            description: "Fixture",
+          }),
+        ],
+      },
+    });
+  });
+
   it("returns authoring Slot targets and configured plugins", async () => {
     const { projectRoot } = await createProject();
 
