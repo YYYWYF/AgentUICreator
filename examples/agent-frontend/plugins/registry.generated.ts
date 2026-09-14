@@ -7,6 +7,7 @@ import pluginDefinition1 from "./conversation-data-source/definition";
 import pluginDefinition2 from "./conversation-service/definition";
 import pluginDefinition3 from "./conversation-surface/definition";
 import pluginDefinition4 from "./theme-provider/definition";
+import pluginDefinition5 from "./theme-switch/definition";
 
 export const pluginDefinitions = [
   pluginDefinition0,
@@ -14,4 +15,5 @@ export const pluginDefinitions = [
   pluginDefinition2,
   pluginDefinition3,
   pluginDefinition4,
+  pluginDefinition5,
 ] as const;

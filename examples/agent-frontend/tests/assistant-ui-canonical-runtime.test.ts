@@ -32,6 +32,15 @@ describe("assistant-ui canonical runtime", () => {
       pluginId: "conversation-service",
       enabled: true,
     });
+    expect(model.pluginInstances["theme-provider-main"]).toMatchObject({
+      pluginId: "theme-provider",
+      enabled: true,
+    });
+    expect(model.pluginInstances["theme-switch-main"]).toMatchObject({
+      pluginId: "theme-switch",
+      enabled: true,
+      mount: { slotId: "application.theme-control" },
+    });
     expect(model.pluginInstances["agent-message-sources-main"]).toBeUndefined();
 
     expect(model.pluginInstances["agent-conversations-main"]).toBeUndefined();
@@ -39,7 +48,7 @@ describe("assistant-ui canonical runtime", () => {
       model.pluginInstances["assistant-ui-conversation-spike-main"],
     ).toBeUndefined();
 
-    expect(Object.values(model.pluginInstances).filter((instance) => instance.enabled)).toHaveLength(5);
+    expect(Object.values(model.pluginInstances).filter((instance) => instance.enabled)).toHaveLength(6);
   });
 
   it("keeps App on one assistant-ui Runtime owner", async () => {

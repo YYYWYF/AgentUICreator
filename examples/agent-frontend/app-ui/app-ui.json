@@ -12,9 +12,22 @@
         "minWidth": 240,
         "maxWidth": 360,
         "child": {
-          "type": "slot",
-          "id": "conversation-navigation-slot-node",
-          "slotId": "conversation.navigation"
+          "type": "column",
+          "id": "conversation-navigation-column",
+          "gap": 0,
+          "sizes": ["minmax(0, 1fr)", "auto"],
+          "children": [
+            {
+              "type": "slot",
+              "id": "conversation-navigation-slot-node",
+              "slotId": "conversation.navigation"
+            },
+            {
+              "type": "slot",
+              "id": "theme-control-slot-node",
+              "slotId": "application.theme-control"
+            }
+          ]
         }
       },
       {
@@ -53,6 +66,14 @@
       "enabled": true,
       "mount": {
         "slotId": "conversation.navigation"
+      }
+    },
+    "theme-switch-main": {
+      "id": "theme-switch-main",
+      "pluginId": "theme-switch",
+      "enabled": true,
+      "mount": {
+        "slotId": "application.theme-control"
       }
     },
     "agent-conversation-surface-main": {

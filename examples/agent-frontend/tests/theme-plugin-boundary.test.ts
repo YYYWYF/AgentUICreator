@@ -52,12 +52,17 @@ describe("theme plugin boundary", () => {
       props: { mode: "light" },
     });
     expect(model.pluginInstances["theme-provider-main"]?.mount).toBeUndefined();
-    expect(JSON.stringify(model.root)).not.toContain("theme-switch");
+    expect(model.pluginInstances["theme-switch-main"]).toMatchObject({
+      pluginId: "theme-switch",
+      enabled: true,
+      mount: { slotId: "application.theme-control" },
+    });
+    expect(JSON.stringify(model.root)).toContain("application.theme-control");
     expect(JSON.stringify(model.root)).not.toContain("workspace.inspector");
     expect(JSON.stringify(model.root)).not.toContain("workspace-shell");
 
     expect(registry).toContain('./theme-provider/definition');
-    expect(registry).not.toContain('./theme-switch/definition');
+    expect(registry).toContain('./theme-switch/definition');
 
     const projectSource = [
       providerDefinition,

@@ -50,6 +50,7 @@ describe("AppUIModel", () => {
       "agent-conversation-service-main",
       "theme-provider-main",
       "assistant-ui-thread-list-main",
+      "theme-switch-main",
       "agent-conversation-surface-main",
     ]);
     expect(model.root).toMatchObject({
@@ -67,10 +68,16 @@ describe("AppUIModel", () => {
       enabled: true,
       props: { mode: "light" },
     });
+    expect(model.pluginInstances["theme-provider-main"]?.mount).toBeUndefined();
     expect(model.pluginInstances["assistant-ui-thread-list-main"]).toMatchObject({
       pluginId: "assistant-ui-thread-list",
       enabled: true,
       mount: { slotId: "conversation.navigation" },
+    });
+    expect(model.pluginInstances["theme-switch-main"]).toMatchObject({
+      pluginId: "theme-switch",
+      enabled: true,
+      mount: { slotId: "application.theme-control" },
     });
     expect(model.pluginInstances["agent-conversation-surface-main"]).toMatchObject({
       pluginId: "conversation-surface",

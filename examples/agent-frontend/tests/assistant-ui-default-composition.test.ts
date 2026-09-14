@@ -11,7 +11,7 @@ import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("assistant-ui default composition", () => {
-  it("keeps the default model to two visible presentation plugins and three headless services", () => {
+  it("keeps the default model to three visible presentation plugins and three headless services", () => {
     const model = parseAppUIModel(appUIJson);
     const visible = Object.values(model.pluginInstances)
       .filter((instance) => instance.enabled && instance.mount !== undefined)
@@ -19,6 +19,7 @@ describe("assistant-ui default composition", () => {
 
     expect(visible).toEqual([
       "assistant-ui-thread-list-main",
+      "theme-switch-main",
       "agent-conversation-surface-main",
     ]);
     expect(Object.keys(model.pluginInstances)).toEqual([
@@ -26,6 +27,7 @@ describe("assistant-ui default composition", () => {
       "agent-conversation-service-main",
       "theme-provider-main",
       "assistant-ui-thread-list-main",
+      "theme-switch-main",
       "agent-conversation-surface-main",
     ]);
     expect(Object.values(model.pluginInstances).filter((instance) => instance.enabled && instance.mount === undefined).map((instance) => instance.id)).toEqual([
@@ -53,18 +55,41 @@ describe("assistant-ui default composition", () => {
     }
   });
 
-  it("uses AppUIModel layout Slots without an inspector or theme Slot", () => {
+  it("uses AppUIModel layout Slots with the theme control below navigation", () => {
     const model = parseAppUIModel(appUIJson);
     expect(model.root).toMatchObject({
       type: "row",
       id: "conversation-workspace-row",
     });
-    expect(JSON.stringify(model.root)).toContain("conversation.navigation");
+    const root = model.root;
+    expect(root.type).toBe("row");
+    if (root.type !== "row") {
+      throw new Error("Expected the default root to be a row");
+    }
+    const navigationPanel = root.children.find(
+      (child) => child.type === "panel" && child.id === "conversation-navigation-panel",
+    );
+    expect(navigationPanel).toMatchObject({
+      type: "panel",
+      child: {
+        type: "column",
+        id: "conversation-navigation-column",
+        sizes: ["minmax(0, 1fr)", "auto"],
+        children: [
+          { type: "slot", slotId: "conversation.navigation" },
+          { type: "slot", slotId: "application.theme-control" },
+        ],
+      },
+    });
     expect(JSON.stringify(model.root)).toContain("conversation.surface");
     expect(JSON.stringify(model.root)).not.toContain("workspace.inspector");
-    expect(JSON.stringify(model.root)).not.toContain("agent-theme-switch");
     expect(model.pluginInstances["assistant-ui-thread-list-main"]).toMatchObject({
       mount: { slotId: "conversation.navigation" },
+    });
+    expect(model.pluginInstances["theme-switch-main"]).toMatchObject({
+      pluginId: "theme-switch",
+      enabled: true,
+      mount: { slotId: "application.theme-control" },
     });
     expect(model.pluginInstances["agent-conversation-surface-main"]).toMatchObject({
       mount: { slotId: "conversation.surface" },
