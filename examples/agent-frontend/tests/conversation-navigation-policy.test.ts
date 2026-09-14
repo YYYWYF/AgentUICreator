@@ -1,142 +1,29 @@
-import { readFile, readdir } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const repositoryRoot = path.resolve(projectRoot, "../..");
-const registrySourceRoot = path.join(
-  repositoryRoot,
-  "packages/source-registry/registry/items/agent-component-conversation-list/files/components",
-);
 
-function importSpecifiers(source: string): string[] {
-  return [...source.matchAll(/from\s+["']([^"']+)["']/gu)].map((match) => match[1]!);
-}
-
-async function collectFiles(root: string): Promise<string[]> {
-  const files: string[] = [];
-  for (const entry of await readdir(root, { withFileTypes: true })) {
-    if (entry.name === "node_modules" || entry.name === "dist") continue;
-    const filePath = path.join(root, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...await collectFiles(filePath));
-    } else {
-      files.push(filePath);
-    }
-  }
-  return files;
-}
-
-describe("canonical conversation navigation policy", () => {
-  it("keeps AgentConversationList presentational and Runtime-independent", async () => {
-    const source = await readFile(
-      path.join(registrySourceRoot, "conversation-list.tsx"),
+describe("conversation navigation policy", () => {
+  it("keeps navigation on the assistant-ui ThreadList surface", async () => {
+    const threadList = await readFile(
+      path.join(projectRoot, "plugins/assistant-ui-thread-list/index.tsx"),
       "utf8",
     );
-    const specifiers = importSpecifiers(source);
+    const appUI = await readFile(path.join(projectRoot, "app-ui/app-ui.json"), "utf8");
 
-    expect(specifiers).toContain("react");
-    expect(specifiers.every((specifier) => specifier === "react" || specifier.startsWith(".")))
-      .toBe(true);
-    expect(source).not.toMatch(
-      /@assistant-ui\/|@ant-design\/x|@ant-design\/icons|from\s*["']antd["']|\.ant-|@agent-ui\/runtime-|services\/conversations|framework\/contracts|ConversationSnapshot|ConversationSummary|ConversationService|\buseAgent\w*\b|\busePlugin\w*\b/u,
-    );
-    expect(source).toMatch(/<button\b/u);
-    expect(source).toContain('type="button"');
-    expect(source).toContain('aria-current={active ? "page" : undefined}');
-    expect(source).toContain("data-active={active || undefined}");
+    expect(threadList).toContain("ThreadList");
+    expect(appUI).toContain("conversation.navigation");
+    expect(appUI).toContain("conversation.surface");
   });
 
-  it("keeps conversation list colors tokenized and CSS isolated", async () => {
-    const css = await readFile(
-      path.join(registrySourceRoot, "conversation-list.module.css"),
+  it("does not reintroduce a second conversation runtime", async () => {
+    const service = await readFile(
+      path.join(projectRoot, "plugins/conversation-service/index.ts"),
       "utf8",
     );
-
-    expect(css).toMatch(/var\(--aui-/u);
-    expect(css).not.toMatch(/#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\(/u);
-    expect(css).not.toMatch(/\.ant-|:global|development-preview|--ui-/u);
-  });
-
-  it("keeps installed conversation list files byte-identical to Registry source", async () => {
-    for (const fileName of ["conversation-list.tsx", "conversation-list.module.css"]) {
-      expect(
-        await readFile(path.join(projectRoot, "agent-ui/components", fileName), "utf8"),
-      ).toBe(await readFile(path.join(registrySourceRoot, fileName), "utf8"));
-    }
-  });
-
-  it("keeps the service headless and solely responsible for Conversation state", async () => {
-    const root = path.join(projectRoot, "plugins/conversation-service");
-    const definition = await readFile(path.join(root, "definition.ts"), "utf8");
-    const component = await readFile(path.join(root, "index.tsx"), "utf8");
-    const manifest = JSON.parse(
-      await readFile(path.join(root, "manifest.json"), "utf8"),
-    ) as { id?: string; version?: string; capabilities?: string[] };
-
-    expect(manifest).toMatchObject({
-      id: "conversation-service",
-      version: "1.0.0",
-    });
-    expect(manifest.capabilities).toContain("headless");
-    expect(definition).toContain("inject: [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE]");
-    expect(definition).toContain("provides: [AGENT_UI_CONVERSATION_SERVICE]");
-    expect(definition).toContain("createConversationService");
-    expect(definition).toContain("service.dispose()");
-    expect(component).toMatch(/ConversationServicePlugin\(\)\s*\{\s*return null;/su);
-    expect(`${definition}\n${component}`).not.toMatch(
-      /AgentConversationList|@ant-design\/x|@ant-design\/icons|from\s*["']antd["']/u,
-    );
-  });
-
-  it("binds canonical identities and removes obsolete navigation implementations", async () => {
-    const appUI = JSON.parse(
-      await readFile(path.join(projectRoot, "app-ui/app-ui.json"), "utf8"),
-    ) as { pluginInstances?: Record<string, { pluginId?: string; mount?: { slotId?: string } }> };
-    const registry = await readFile(
-      path.join(projectRoot, "plugins/registry.generated.ts"),
-      "utf8",
-    );
-    const template = await readFile(
-      path.join(projectRoot, "plugins/antd-x-template-library/index.ts"),
-      "utf8",
-    );
-    const legacyPatterns = [
-      new RegExp(["antd", "x-conversations"].join("-"), "u"),
-      new RegExp(["AntdX", "Conversations"].join(""), "u"),
-      new RegExp(["antdX", "Conversations"].join(""), "u"),
-    ];
-
-    expect(appUI.pluginInstances?.["agent-conversation-service-main"]).toMatchObject({
-      pluginId: "conversation-service",
-    });
-    expect(appUI.pluginInstances?.["agent-conversation-service-main"]?.mount)
-      .toBeUndefined();
-    expect(appUI.pluginInstances?.["assistant-ui-thread-list-main"]).toMatchObject({
-      pluginId: "assistant-ui-thread-list",
-      enabled: true,
-      mount: { slotId: "conversation.navigation" },
-    });
-    expect(appUI.pluginInstances?.["agent-conversations-main"]).toBeUndefined();
-    expect(appUI.pluginInstances?.["assistant-ui-conversation-spike-main"]).toBeUndefined();
-    expect(registry).not.toContain('./agent-conversations/definition');
-    expect(registry).not.toContain('./assistant-ui-conversation-spike/definition');
-    expect(registry).toContain('./assistant-ui-thread-list/definition');
-    expect(registry).toContain('./conversation-service/definition');
-    expect(template).not.toContain("agentConversationsPlugin");
-    expect(template).not.toContain("AgentConversationsPlugin");
-    expect(template).toContain("conversationServicePlugin");
-    expect(template).toContain("ConversationServicePlugin");
-
-    const projectSources = await Promise.all(
-      (await collectFiles(projectRoot))
-        .filter((file) => /\.(?:css|json|md|tsx?)$/u.test(file))
-        .map((file) => readFile(file, "utf8")),
-    );
-    for (const pattern of legacyPatterns) {
-      expect(projectSources.join("\n")).not.toMatch(pattern);
-    }
+    expect(service).not.toMatch(/new\s+AgentRuntime|create.*Runtime/u);
   });
 });

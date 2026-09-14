@@ -30,15 +30,11 @@ function createModel(
 }
 
 describe("assistant-ui presentation config", () => {
-  it("maps Welcome and interaction variants", () => {
+  it("maps only the Welcome configuration", () => {
     expect(resolveAssistantUiPresentationConfig(createModel({
       welcome: {
         title: "Agent Frontend",
         description: "Canonical assistant-ui presentation",
-      },
-      interactions: {
-        reasoningVariant: "outline",
-        toolGroupVariant: "muted",
       },
       composer: {
         placeholder: "Ignored by the official Thread",
@@ -48,10 +44,6 @@ describe("assistant-ui presentation config", () => {
       welcome: {
         title: "Agent Frontend",
         description: "Canonical assistant-ui presentation",
-      },
-      interactions: {
-        reasoningVariant: "outline",
-        toolGroupVariant: "muted",
       },
     });
   });
@@ -66,7 +58,6 @@ describe("assistant-ui presentation config", () => {
 
     expect(presentation).toEqual({
       welcome: {},
-      interactions: {},
     });
     expect(presentation).not.toHaveProperty("composer");
   });
@@ -74,7 +65,6 @@ describe("assistant-ui presentation config", () => {
   it("fails closed to empty product configuration when the surface is absent", () => {
     expect(resolveAssistantUiPresentationConfig(createModel())).toEqual({
       welcome: {},
-      interactions: {},
     });
   });
 });

@@ -123,6 +123,51 @@
   color-scheme: dark;
 }
 
+/* DevStudio uses the project-local diagnostic token vocabulary. Keep that
+ * development-only surface on the canonical assistant-ui theme variables. */
+.agent-ui-assistant-ui[data-theme] {
+  --aui-bg: var(--background);
+  --aui-bg-elevated: var(--card);
+  --aui-bg-subtle: var(--muted);
+  --aui-bg-muted: var(--muted);
+  --aui-bg-hover: var(--accent);
+  --aui-fg: var(--foreground);
+  --aui-fg-muted: var(--muted-foreground);
+  --aui-fg-subtle: var(--muted-foreground);
+  --aui-border: var(--border);
+  --aui-border-strong: var(--border);
+  --aui-accent: var(--primary);
+  --aui-focus: var(--ring);
+  --aui-danger: var(--destructive);
+  --aui-success: #16865b;
+  --aui-warning: #a86308;
+  --aui-overlay: rgb(0 0 0 / 52%);
+  --aui-font-sans: ui-sans-serif, system-ui, sans-serif;
+  --aui-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --aui-font-size-xs: 0.75rem;
+  --aui-font-size-sm: 0.875rem;
+  --aui-font-size-md: 1rem;
+  --aui-font-size-lg: 1.125rem;
+  --aui-line-height-tight: 1.25;
+  --aui-line-height-normal: 1.5;
+  --aui-font-weight-semibold: 600;
+  --aui-space-1: 0.25rem;
+  --aui-space-2: 0.5rem;
+  --aui-space-3: 0.75rem;
+  --aui-space-4: 1rem;
+  --aui-space-5: 1.25rem;
+  --aui-space-6: 1.5rem;
+  --aui-radius-full: 9999px;
+  --aui-radius-sm: 0.375rem;
+  --aui-radius-md: 0.625rem;
+  --aui-radius-lg: 0.75rem;
+  --aui-control-height-md: 2.5rem;
+  --aui-shadow-md: 0 4px 12px rgb(0 0 0 / 10%);
+  --aui-shadow-lg: 0 16px 40px rgb(0 0 0 / 18%);
+  --aui-duration-fast: 120ms;
+  --aui-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
 .agent-ui-assistant-ui {
   color: var(--foreground);
   height: 100%;

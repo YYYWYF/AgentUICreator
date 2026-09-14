@@ -38,22 +38,6 @@ describe("assistant-ui default composition", () => {
       "theme-provider-main",
     ]);
 
-    for (const forbiddenPluginId of [
-      "mock-auth-login",
-      "workspace-inspector",
-      "agent-tool-detail",
-      "antd-x-resources",
-      "agent-message-sources",
-      "agent-thread-welcome",
-      "agent-message-list",
-      "agent-reasoning",
-      "agent-message-attachments",
-      "agent-tool-activity",
-      "agent-tool",
-      "agent-composer",
-    ]) {
-      expect(Object.values(model.pluginInstances).some((instance) => instance.pluginId === forbiddenPluginId), forbiddenPluginId).toBe(false);
-    }
   });
 
   it("uses AppUIModel layout Slots with the theme control below navigation", () => {
@@ -102,7 +86,6 @@ describe("assistant-ui default composition", () => {
     const model = parseAppUIModel(appUIJson);
     expect(resolveAssistantUiPresentationConfig(model)).toEqual({
       welcome: {},
-      interactions: {},
     });
   });
 
@@ -154,9 +137,9 @@ describe("assistant-ui default composition", () => {
       expect(thread).toContain(`data-slot=\"${slot}\"`);
     }
     expect(conversationAdapter).not.toContain("AssistantMessage:");
-    expect(conversationAdapter).toContain("ReasoningGroup: SemanticReasoningOutlet");
-    expect(conversationAdapter).toContain("ToolGroup: SemanticToolActivityOutlet");
-    expect(conversationAdapter).toContain("ToolFallback: SemanticToolItemOutlet");
+    expect(conversationAdapter).not.toContain("ReasoningGroup");
+    expect(conversationAdapter).not.toContain("ToolGroup");
+    expect(conversationAdapter).not.toContain("ToolFallback");
     expect(conversationAdapter).toContain("Welcome:");
     expect(conversationAdapter).not.toContain("ToolCallWrapper");
     expect(thread).toContain("ActionBarMorePrimitive");

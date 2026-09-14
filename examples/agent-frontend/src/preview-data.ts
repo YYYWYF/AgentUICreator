@@ -58,10 +58,12 @@ export const initialPreviewMessages: AgentMessage[] = [
     content: JSON.stringify({
       plugins: [
         "assistant-ui-thread-list",
-        "agent-message-list",
-        "antd-x-run-timeline",
-        "antd-x-resources",
-        "agent-composer",
+        "conversation-data-source",
+        "conversation-service",
+        "conversation-surface",
+        "assistant-ui-suggestions",
+        "theme-provider",
+        "theme-switch",
       ],
       runtimeCount: 1,
     }),
@@ -73,7 +75,7 @@ export const initialPreviewMessages: AgentMessage[] = [
     role: "tool",
     toolCallId: "tool-call-render-diagram",
     content:
-      "flowchart LR\n  Runtime[Agent Runtime] --> AGUI[AG-UI]\n  AGUI --> State[Frontend State]\n  State --> Plugins[UI Plugins]\n  Plugins --> AntDX[Ant Design X]",
+      "flowchart LR\n  Runtime[Agent Runtime] --> AGUI[AG-UI]\n  AGUI --> State[Frontend State]\n  State --> Plugins[UI Plugins]\n  Plugins --> AssistantUI[assistant-ui]",
     metadata: {
       conversationId: "current",
       agentUI: { render: "mermaid" },
@@ -86,7 +88,7 @@ export const initialPreviewMessages: AgentMessage[] = [
     activityType: "ui_analysis",
     content: {
       title: "插件组合检查完成",
-      description: "AppUIModel 已挂载 9 个可见插件实例",
+      description: "AppUIModel 已挂载 canonical assistant-ui 插件实例",
       progress: 100,
     },
     metadata: { conversationId: "current" },
@@ -96,15 +98,15 @@ export const initialPreviewMessages: AgentMessage[] = [
     producer: { type: "root" },
     role: "assistant",
     content:
-      "检查完成：会话管理（含新建会话）、消息、执行链、资源、快捷提示和输入由各自插件提供，共享同一个 AG-UI Runtime。Ant Design X 只负责当前生成项目的 UI 表达。",
+      "检查完成：会话管理、消息、执行链、资源、快捷提示和输入由 canonical assistant-ui surface 提供，共享同一个 AG-UI Runtime。",
     metadata: {
       conversationId: "current",
       sources: [
         {
-          key: "antd-x-overview",
-          title: "Ant Design X 组件总览",
-          url: "https://x.ant.design/components/overview-cn",
-          description: "当前组件版本与分类",
+          key: "assistant-ui-overview",
+          title: "assistant-ui Conversation Domain",
+          url: "https://www.assistant-ui.com/",
+          description: "Canonical conversation components and runtime surfaces",
         },
       ],
     },
@@ -166,15 +168,15 @@ export const previewAgentState: AppAgentState = {
   sources: [
     {
       key: "overview",
-      title: "Ant Design X 2.9.0 组件总览",
-      url: "https://x.ant.design/components/overview-cn",
-      description: "17 个官方组件及分类",
+      title: "assistant-ui Conversation Domain",
+      url: "https://www.assistant-ui.com/",
+      description: "Canonical conversation components and runtime surfaces",
     },
     {
       key: "thought-chain",
-      title: "ThoughtChain 思维链",
-      url: "https://x.ant.design/components/thought-chain-cn",
-      description: "Agent Actions 与 Tools 调用链",
+      title: "assistant-ui Agent Elements",
+      url: "https://www.assistant-ui.com/docs/agentic-ui/overview",
+      description: "Agent actions, tools, sources, and reasoning presentation",
     },
   ],
   diagrams: [
@@ -182,7 +184,7 @@ export const previewAgentState: AppAgentState = {
       key: "runtime-flow",
       title: "Agent 前端数据流",
       content:
-        "flowchart TD\n  Runtime[Agent Runtime] --> AGUI[AG-UI]\n  AGUI --> State[Frontend State]\n  State --> Plugin[UI Plugin]\n  Plugin --> UI[Ant Design X]",
+        "flowchart TD\n  Runtime[Agent Runtime] --> AGUI[AG-UI]\n  AGUI --> State[Frontend State]\n  State --> Plugin[UI Plugin]\n  Plugin --> UI[assistant-ui]",
     },
   ],
 };

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { Button } from "../../../agent-ui/primitives/button";
+import { Button } from "../../../agent-ui/vendor/assistant-ui/components/ui/button";
 import {
   isMockAgentEndpoint,
   resolveMockScenarioSearchParams,

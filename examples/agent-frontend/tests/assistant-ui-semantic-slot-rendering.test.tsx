@@ -19,9 +19,9 @@ describe("assistant-ui semantic Slot rendering", () => {
     expect(adapter).toContain("renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.welcome");
     expect(adapter).toContain("ASSISTANT_UI_CONVERSATION_SLOTS.suggestions");
     expect(adapter).toContain("renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.suggestions");
-    expect(adapter).toContain("SemanticReasoningOutlet");
-    expect(adapter).toContain("SemanticToolActivityOutlet");
-    expect(adapter).toContain("SemanticToolItemOutlet");
+    expect(adapter).not.toContain("SemanticReasoningOutlet");
+    expect(adapter).not.toContain("SemanticToolActivityOutlet");
+    expect(adapter).not.toContain("SemanticToolItemOutlet");
     expect(adapter).not.toMatch(
       /conversation\.timeline|conversation\.composer|conversation\.message\.attachments|conversation\.message\.sources/u,
     );
@@ -41,17 +41,12 @@ describe("assistant-ui semantic Slot rendering", () => {
     expect(globals).toContain("display: none");
   });
 
-  it("does not inject message attachments or sources through a Thread footer", async () => {
+  it("keeps message auxiliary presentation in the upstream Thread", async () => {
     const thread = await read(
       "agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
-    );
-    const messageAdapters = await read(
-      "agent-ui/adapters/assistant-ui/slots/AssistantUiMessageSlotAdapters.tsx",
     );
     expect(thread).toContain("<UserMessageAttachments />");
     expect(thread).not.toContain("MessageFooter");
     expect(thread).not.toContain("UserAttachmentsWrapper");
-    expect(messageAdapters).not.toContain("SemanticAttachmentsOutlet");
-    expect(messageAdapters).not.toContain("SemanticSourcesOutlet");
   });
 });

@@ -17,9 +17,6 @@ describe("assistant-ui semantic Slot adapter", () => {
     expect(Object.values(ASSISTANT_UI_CONVERSATION_SLOTS)).toEqual([
       "conversation.empty.welcome",
       "conversation.empty.suggestions",
-      "conversation.message.reasoning",
-      "conversation.message.tool-activity",
-      "conversation.message.tool-item",
     ]);
   });
 
@@ -35,9 +32,9 @@ describe("assistant-ui semantic Slot adapter", () => {
     );
 
     expect(adapter).toContain("Welcome:");
-    expect(adapter).toContain("ReasoningGroup: SemanticReasoningOutlet");
-    expect(adapter).toContain("ToolGroup: SemanticToolActivityOutlet");
-    expect(adapter).toContain("ToolFallback: SemanticToolItemOutlet");
+    expect(adapter).not.toContain("ReasoningGroup");
+    expect(adapter).not.toContain("ToolGroup");
+    expect(adapter).not.toContain("ToolFallback");
     expect(adapter).not.toMatch(
       /ThreadPresentation|ToolCallWrapper|ComposerAddon|WelcomeWrapper|TimelineWrapper|InitialSuggestionsWrapper/u,
     );
@@ -47,13 +44,13 @@ describe("assistant-ui semantic Slot adapter", () => {
     expect(toolkit).toContain("<ToolFallback {...props} />");
   });
 
-  it("keeps the old plugin-only slots outside the native assistant-ui contract", async () => {
-    const legacy = await read(
+  it("keeps only the two product-owned empty-state slots", async () => {
+    const slots = await read(
       "agent-ui/adapters/assistant-ui/slots/semantic-slots.ts",
     );
-    expect(legacy).toContain("LEGACY_ASSISTANT_UI_CONVERSATION_SLOTS");
-    expect(legacy).not.toContain('suggestions: "conversation.empty.suggestions"');
-    expect(legacy).toContain("conversation.message.attachments");
-    expect(legacy).toContain("conversation.message.sources");
+    expect(slots).toContain('welcome: "conversation.empty.welcome"');
+    expect(slots).toContain('suggestions: "conversation.empty.suggestions"');
+    expect(slots).not.toContain("conversation.message");
+    expect(slots).not.toContain("conversation.timeline");
   });
 });

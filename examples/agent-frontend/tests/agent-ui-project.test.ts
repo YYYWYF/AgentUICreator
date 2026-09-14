@@ -32,8 +32,8 @@ async function temporaryProject(): Promise<string> {
 describe("Agent UI project Mode persistence", () => {
   it("parses a strict project config and rejects invalid Modes", () => {
     expect(
-      parseAgentUIProjectConfig({ version: "1", mode: "assistant" }),
-    ).toEqual({ version: "1", mode: "assistant" });
+      parseAgentUIProjectConfig({ version: "1", mode: "platform" }),
+    ).toEqual({ version: "1", mode: "platform" });
     expect(() =>
       parseAgentUIProjectConfig({ version: "1", mode: "floating" }),
     ).toThrow();
@@ -62,7 +62,7 @@ describe("Agent UI project Mode persistence", () => {
 
   it("initializes independent Mode and AppUIModel files", async () => {
     const projectRoot = await temporaryProject();
-    const result = await createUIProject({ projectRoot, mode: "assistant" });
+    const result = await createUIProject({ projectRoot, mode: "platform" });
     const projectConfigSource = await readFile(
       path.join(projectRoot, ".agent-ui", "project.json"),
       "utf8",
@@ -74,7 +74,7 @@ describe("Agent UI project Mode persistence", () => {
 
     expect(JSON.parse(projectConfigSource)).toEqual({
       version: "1",
-      mode: "assistant",
+      mode: "platform",
     });
     expect(parseAppUIModelJson(appUIModelSource)).toEqual(result.appUIModel);
     expect(JSON.parse(appUIModelSource)).not.toHaveProperty("mode");
@@ -82,13 +82,13 @@ describe("Agent UI project Mode persistence", () => {
     await writeFile(
       path.join(projectRoot, "app-ui", "app-ui.json"),
       `${JSON.stringify(
-        agentUIModeRegistry.get("embedded").createInitialAppUIModel(),
+        agentUIModeRegistry.get("platform").createInitialAppUIModel(),
         null,
         2,
       )}\n`,
     );
     await expect(readAgentUIProjectConfig(projectRoot)).resolves.toEqual({
-      config: { version: "1", mode: "assistant" },
+      config: { version: "1", mode: "platform" },
       legacy: false,
       path: ".agent-ui/project.json",
     });
@@ -113,7 +113,7 @@ describe("Agent UI project Mode persistence", () => {
     ).resolves.toBe(existingSource);
 
     await expect(
-      createUIProject({ projectRoot: existingRoot, mode: "embedded" }),
+      createUIProject({ projectRoot: existingRoot, mode: "platform" }),
     ).rejects.toThrow("Refusing to overwrite");
     await expect(
       readFile(path.join(existingRoot, "app-ui", "app-ui.json"), "utf8"),

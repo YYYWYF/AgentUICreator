@@ -41,7 +41,6 @@ import {
   type RuntimeDiagnosticReporter,
 } from "../runtime/diagnostics";
 import { ModeShell } from "../runtime/mode-shell";
-import { AgentUIRoot } from "../agent-ui/foundation/AgentUIRoot";
 import { useAgentUIThemeMode } from "../agent-ui/theme/useAgentUITheme";
 import {
   AssistantUiPresentationConfigProvider,
@@ -95,10 +94,10 @@ function AgentFrontendSurface({
   const themeMode = useAgentUIThemeMode();
 
   return (
-    <AgentUIRoot
-      theme={themeMode}
-      className="development-preview"
+    <div
+      className="agent-ui-assistant-ui development-preview"
       data-agent-runtime={runtimeMode}
+      data-theme={themeMode}
     >
       <UIPluginRuntime
         actions={actions}
@@ -109,7 +108,7 @@ function AgentFrontendSurface({
       {shouldRenderDevStudio({ isDev: import.meta.env.DEV }) ? (
         <DevStudio endpoint={endpoint} />
       ) : null}
-    </AgentUIRoot>
+    </div>
   );
 }
 

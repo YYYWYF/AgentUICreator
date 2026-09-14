@@ -1,4 +1,4 @@
-import { access, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 
 import { describe, expect, it } from "vitest";
 
@@ -29,10 +29,6 @@ const threadListPluginUrl = new URL(
 );
 const threadListStylesUrl = new URL(
   "../plugins/assistant-ui-thread-list/styles.css",
-  import.meta.url,
-);
-const workspaceShellUrl = new URL(
-  "../agent-ui/adapters/assistant-ui/workspace/AssistantUiWorkspaceShell.tsx",
   import.meta.url,
 );
 const vendorThreadListUrl = new URL(
@@ -180,7 +176,6 @@ describe("assistant-ui conversation visual contract", () => {
       expect(threadListStyles).toContain("padding-inline: 0.5rem;");
       expect(vendorThreadList).not.toContain("bg-sidebar");
       expect(vendorThreadList).not.toContain("text-sidebar-foreground");
-      await expect(access(workspaceShellUrl)).rejects.toThrow();
     },
   );
 });

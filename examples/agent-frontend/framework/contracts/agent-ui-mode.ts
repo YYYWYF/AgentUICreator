@@ -3,8 +3,6 @@ import { z } from "zod";
 import type { AppUIModel } from "./app-ui-model";
 
 export const AGENT_UI_MODES = [
-  "assistant",
-  "embedded",
   "platform",
 ] as const;
 

@@ -18,7 +18,7 @@ import type { UIProjectControlConfig } from "../scripts/ui-project/types";
 const temporaryProjects: string[] = [];
 const fixtureConfig: UIProjectControlConfig = {
   catalogs: ["plugins/catalog"],
-  uiPackages: ["react", "antd"],
+  uiPackages: ["react", "@base-ui/react"],
   agentUI: { sourceRoot: "agent-ui", metadataRoot: ".agent-ui" },
 };
 
@@ -88,7 +88,7 @@ describe("inspectUIProject", () => {
       path.join(projectRoot, "package.json"),
       JSON.stringify({
         dependencies: { react: "19.2.8" },
-        devDependencies: { antd: "6.6.2" },
+        devDependencies: { "@base-ui/react": "1.8.0" },
       }),
     );
     await writeFile(
@@ -176,10 +176,10 @@ describe("inspectUIProject", () => {
     await mkdir(path.join(projectRoot, ".agent-ui"));
     await writeFile(
       path.join(projectRoot, ".agent-ui", "project.json"),
-      JSON.stringify({ version: "1", mode: "assistant" }),
+      JSON.stringify({ version: "1", mode: "platform" }),
     );
     const result = await inspectUIProject(projectRoot, fixtureConfig);
-    expect(result.mode).toBe("assistant");
+    expect(result.mode).toBe("platform");
     expect(result.modeResolution).toEqual({
       legacy: false,
       configPath: ".agent-ui/project.json",
@@ -219,7 +219,7 @@ describe("inspectUIProject", () => {
     ]);
     expect(result.uiStack).toEqual([
       { packageName: "react", version: "19.2.8" },
-      { packageName: "antd", version: "6.6.2" },
+      { packageName: "@base-ui/react", version: "1.8.0" },
     ]);
   });
 });

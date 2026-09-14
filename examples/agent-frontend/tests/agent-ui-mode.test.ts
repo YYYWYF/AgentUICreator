@@ -29,8 +29,8 @@ function collectLayoutSlots(
 }
 
 describe("Agent UI Mode", () => {
-  it("accepts exactly assistant, embedded, and platform", () => {
-    expect(AGENT_UI_MODES).toEqual(["assistant", "embedded", "platform"]);
+  it("accepts only the platform mode", () => {
+    expect(AGENT_UI_MODES).toEqual(["platform"]);
     for (const mode of AGENT_UI_MODES) {
       expect(parseAgentUIMode(mode)).toBe(mode);
     }
@@ -38,9 +38,7 @@ describe("Agent UI Mode", () => {
   });
 
   it("registers all built-in Modes in deterministic order", () => {
-    expect(agentUIModeRegistry.list().map((definition) => definition.id)).toEqual(
-      ["assistant", "embedded", "platform"],
-    );
+    expect(agentUIModeRegistry.list().map((definition) => definition.id)).toEqual(["platform"]);
     for (const mode of AGENT_UI_MODES) {
       expect(agentUIModeRegistry.has(mode)).toBe(true);
       expect(agentUIModeRegistry.get(mode).id).toBe(mode);
@@ -50,7 +48,7 @@ describe("Agent UI Mode", () => {
   it("rejects unknown lookups and duplicate registrations", () => {
     const registry = new AgentUIModeRegistry();
     const definition: AgentUIModeDefinition = {
-      id: "assistant",
+      id: "platform",
       createInitialAppUIModel: () =>
         parseAppUIModel({
           version: "2",
@@ -66,7 +64,7 @@ describe("Agent UI Mode", () => {
     ).toThrow("not registered");
   });
 
-  it("creates fresh, valid compositions with Mode-specific Slot topology", async () => {
+  it("creates a fresh, valid platform composition", async () => {
     const projectRoot = path.resolve(
       path.dirname(fileURLToPath(import.meta.url)),
       "..",
@@ -86,12 +84,6 @@ describe("Agent UI Mode", () => {
       ).not.toThrow();
     }
 
-    const assistantSlots = collectLayoutSlots(
-      agentUIModeRegistry.get("assistant").createInitialAppUIModel().root,
-    );
-    const embeddedSlots = collectLayoutSlots(
-      agentUIModeRegistry.get("embedded").createInitialAppUIModel().root,
-    );
     const platformSlots = collectLayoutSlots(
       agentUIModeRegistry.get("platform").createInitialAppUIModel().root,
     );
@@ -99,13 +91,7 @@ describe("Agent UI Mode", () => {
       await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
     );
 
-    expect(assistantSlots).toEqual([
-      "assistant.conversation",
-      "assistant.composer",
-    ]);
-    expect(embeddedSlots).toEqual(["embedded.conversation"]);
     expect(platformSlots).toContain("conversation.navigation");
-    expect(assistantSlots).not.toContain("conversation.navigation");
     expect(
       agentUIModeRegistry.get("platform").createInitialAppUIModel(),
     ).toEqual(currentAppUIModel);

@@ -6,9 +6,9 @@ import type {
   MockScenarioSummary,
 } from "@agent-ui/mock-agent";
 
-import { Badge } from "../../../agent-ui/primitives/badge";
-import { Button } from "../../../agent-ui/primitives/button";
-import { Input } from "../../../agent-ui/primitives/input";
+import { Badge } from "../../../agent-ui/vendor/assistant-ui/components/ui/badge";
+import { Button } from "../../../agent-ui/vendor/assistant-ui/components/ui/button";
+import { Input } from "../../../agent-ui/vendor/assistant-ui/components/ui/input";
 import {
   isMockAgentEndpoint,
   MOCK_SCENARIO_AUTORUN_STORAGE_KEY,

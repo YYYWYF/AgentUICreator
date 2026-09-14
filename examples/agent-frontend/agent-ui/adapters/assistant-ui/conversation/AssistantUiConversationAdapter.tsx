@@ -4,15 +4,10 @@ import type { UIPluginComponentProps } from "../../../../framework/contracts/ui-
 import type { ThreadComponents } from "../../../vendor/assistant-ui/components/assistant-ui/elements/thread.aui";
 import {
   useAssistantUiPresentationConfig,
-  type AssistantUiPresentationConfig,
 } from "../config";
 import { useAgentUIThemeMode } from "../../../theme/useAgentUITheme";
 import {
   ASSISTANT_UI_CONVERSATION_SLOTS,
-  SemanticReasoningOutlet,
-  SemanticSlotFallbackProvider,
-  SemanticToolActivityOutlet,
-  SemanticToolItemOutlet,
 } from "../slots";
 import { AssistantUiConversationSurface } from "./AssistantUiConversationSurface";
 
@@ -36,15 +31,7 @@ function AssistantUiEmptyState({ renderSlot }: { renderSlot: RenderSlot }) {
   return (
     <div className="assistant-ui-empty-state flex w-full flex-col items-center">
       <div className="assistant-ui-empty-state-welcome w-full">
-        <SemanticSlotFallbackProvider
-          fallback={welcomeFallback}
-          slotId={ASSISTANT_UI_CONVERSATION_SLOTS.welcome}
-        >
-          {renderSlot(
-            ASSISTANT_UI_CONVERSATION_SLOTS.welcome,
-            welcomeFallback,
-          )}
-        </SemanticSlotFallbackProvider>
+        {renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.welcome, welcomeFallback)}
       </div>
       <div className="assistant-ui-empty-state-suggestions w-full">
         {renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.suggestions, null)}
@@ -55,27 +42,17 @@ function AssistantUiEmptyState({ renderSlot }: { renderSlot: RenderSlot }) {
 
 export function createAssistantUiSemanticThreadComponents(
   renderSlot: RenderSlot,
-  _presentation?: AssistantUiPresentationConfig,
 ): ThreadComponents {
-  const components: ThreadComponents = {
-    ReasoningGroup: SemanticReasoningOutlet,
-    ToolGroup: SemanticToolActivityOutlet,
-    ToolFallback: SemanticToolItemOutlet,
-  };
-
-  components.Welcome = () => <AssistantUiEmptyState renderSlot={renderSlot} />;
-
-  return components;
+  return { Welcome: () => <AssistantUiEmptyState renderSlot={renderSlot} /> };
 }
 
 export function AssistantUiConversationAdapter({
   renderSlot,
 }: Pick<UIPluginComponentProps, "renderSlot">) {
   const theme = useAgentUIThemeMode();
-  const presentation = useAssistantUiPresentationConfig();
   const components = useMemo(
-    () => createAssistantUiSemanticThreadComponents(renderSlot, presentation),
-    [presentation, renderSlot],
+    () => createAssistantUiSemanticThreadComponents(renderSlot),
+    [renderSlot],
   );
   return (
     <AssistantUiConversationSurface

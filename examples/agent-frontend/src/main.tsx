@@ -10,15 +10,7 @@ if (rootElement === null) {
 const previewPluginErrors =
   import.meta.env.DEV &&
   new URLSearchParams(window.location.search).has("plugin-error-boundary");
-const previewAgentUIPrimitiveGallery =
-  import.meta.env.DEV &&
-  new URLSearchParams(window.location.search).has("agent-ui-gallery");
 async function loadRootComponent(): Promise<ComponentType> {
-  if (previewAgentUIPrimitiveGallery) {
-    return (await import("./dev/AgentUIPrimitiveGallery")).AgentUIPrimitiveGallery;
-  }
-
-  await import("antd/dist/reset.css");
   if (previewPluginErrors) {
     return (await import("./PluginErrorBoundaryPreview")).PluginErrorBoundaryPreview;
   }

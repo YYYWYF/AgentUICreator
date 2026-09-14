@@ -19,8 +19,6 @@ import {
   readAgentUIThemeMode,
 } from "../plugins/theme-provider/theme-service";
 import { themeProviderPlugin } from "../plugins/theme-provider/definition";
-import { agentMessageListPlugin } from "../plugins/agent-message-list/definition";
-import { antdXRunTimelinePlugin } from "../plugins/antd-x-run-timeline/definition";
 import {
   createPluginRegistry,
   PluginServiceConsumerContext,
@@ -190,55 +188,6 @@ describe("PluginServiceRuntime", () => {
     runtime.reconcile(model, createPluginRegistry([createDefinition("consumer")]), runtimeActions);
     expect(runtime.getActivation("consumer-main")).toBeUndefined();
     expect(runtime.slots.getContributions("services-slot")).toEqual([]);
-  });
-
-  it("activates the message list without the optional conversation service", () => {
-    const model = parseAppUIModel({
-      version: "2",
-      root: {
-        type: "column",
-        id: "conversation-consumers",
-        children: [
-          {
-            type: "slot",
-            id: "messages-slot-node",
-            slotId: "messages-slot",
-          },
-          {
-            type: "slot",
-            id: "timeline-slot-node",
-            slotId: "timeline-slot",
-          },
-        ],
-      },
-      pluginInstances: {
-        "messages-main": {
-          id: "messages-main",
-          pluginId: "agent-message-list",
-          enabled: true,
-          mount: { slotId: "messages-slot" },
-        },
-        "timeline-main": {
-          id: "timeline-main",
-          pluginId: "antd-x-run-timeline",
-          enabled: true,
-          mount: { slotId: "timeline-slot" },
-        },
-      },
-    });
-    const runtime = new PluginServiceRuntime();
-
-    runtime.reconcile(
-      model,
-      createPluginRegistry([
-        agentMessageListPlugin,
-        antdXRunTimelinePlugin,
-      ]),
-      runtimeActions,
-    );
-
-    expect(runtime.getActivation("messages-main")?.status).toBe("active");
-    expect(runtime.getActivation("timeline-main")?.status).toBe("active");
   });
 
   it("activates hard consumers after their named service becomes available", () => {

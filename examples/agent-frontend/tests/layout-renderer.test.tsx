@@ -36,7 +36,7 @@ describe("LayoutRenderer integration", () => {
     expect(html).toContain("<article>conversation.navigation</article>");
     expect(html).toContain("<article>conversation.surface</article>");
     expect(html).not.toContain('data-slot-id="agent-welcome"');
-    expect(html).not.toContain('data-slot-id="agent-messages"');
+    expect(html).not.toContain('data-slot-id="legacy-messages"');
     expect(html).not.toContain('data-slot-id="agent-prompts"');
     expect(html).not.toContain('data-slot-id="agent-sender"');
   });

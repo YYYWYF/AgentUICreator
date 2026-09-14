@@ -14,19 +14,13 @@
   color: var(--foreground);
 }
 
-.theme-switch-plugin-control,
-.theme-switch-plugin-logout {
+.theme-switch-plugin-control {
   flex: none;
 }
 
-.theme-switch-plugin-control:hover,
-.theme-switch-plugin-logout:hover {
+.theme-switch-plugin-control:hover {
   background: var(--muted);
   color: var(--foreground);
-}
-
-.theme-switch-plugin-logout {
-  color: var(--muted-foreground);
 }
 
 @media (max-width: 44rem) {

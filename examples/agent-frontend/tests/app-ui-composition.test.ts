@@ -42,57 +42,6 @@ function mounted(
 }
 
 describe("AppUIModel composition", () => {
-  it("reaches all Message Part renderers through nested presentation Slots", () => {
-    const model = createModel({
-      "agent-messages-main": mounted(
-        "agent-messages-main",
-        "agent-message-list",
-        "conversation.timeline",
-      ),
-      "agent-reasoning-main": mounted(
-        "agent-reasoning-main",
-        "agent-reasoning",
-        "conversation.message.reasoning",
-      ),
-      "agent-tool-activity-main": mounted(
-        "agent-tool-activity-main",
-        "agent-tool-activity",
-        "conversation.message.tool-activity",
-      ),
-      "agent-tool-message-main": mounted(
-        "agent-tool-message-main",
-        "agent-tool",
-        "conversation.message.tool-item",
-      ),
-      "agent-message-attachments-main": mounted(
-        "agent-message-attachments-main",
-        "agent-message-attachments",
-        "conversation.message.attachments",
-      ),
-      "agent-message-sources-main": mounted(
-        "agent-message-sources-main",
-        "agent-message-sources",
-        "conversation.message.sources",
-      ),
-    }, ["conversation.timeline"]);
-
-    expect(() =>
-      validateAppUIComposition(model, {
-        "agent-message-list": [
-          "conversation.message.reasoning",
-          "conversation.message.tool-activity",
-          "conversation.message.attachments",
-          "conversation.message.sources",
-        ],
-        "agent-reasoning": [],
-        "agent-tool-activity": ["conversation.message.tool-item"],
-        "agent-tool": [],
-        "agent-message-attachments": [],
-        "agent-message-sources": [],
-      }),
-    ).not.toThrow();
-  });
-
   it("allows Layout mounts and one-level child Slot mounts", () => {
     const model = createModel({
       owner: mounted("owner", "owner-plugin", "root"),

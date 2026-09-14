@@ -41,8 +41,6 @@ describe("assistant-ui canonical runtime", () => {
       enabled: true,
       mount: { slotId: "application.theme-control" },
     });
-    expect(model.pluginInstances["agent-message-sources-main"]).toBeUndefined();
-
     expect(model.pluginInstances["agent-conversations-main"]).toBeUndefined();
     expect(
       model.pluginInstances["assistant-ui-conversation-spike-main"],

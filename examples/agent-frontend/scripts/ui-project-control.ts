@@ -19,6 +19,7 @@ import { inspectUIServiceDependencies } from "./ui-project/service-dependency-in
 import {
   applyAgentUISourceItem,
   inspectAgentUISources,
+  removeAgentUISourceItems,
   recoverPendingAgentUISourceTransaction,
 } from "./ui-project/source-registry";
 
@@ -86,6 +87,14 @@ const requestSchema = z.discriminatedUnion("operation", [
     operation: z.literal("apply_agent_ui_source_item"),
     input: z.strictObject({
       itemId: z.string().trim().min(1).max(200),
+      expectedStateHash: z.string().regex(/^[a-f0-9]{64}$/),
+    }),
+  }),
+  z.strictObject({
+    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
+    operation: z.literal("remove_agent_ui_source_items"),
+    input: z.strictObject({
+      itemIds: z.array(z.string().trim().min(1).max(200)).min(1).max(100),
       expectedStateHash: z.string().regex(/^[a-f0-9]{64}$/),
     }),
   }),
@@ -351,6 +360,8 @@ async function executeRequest(
       return inspectAgentUISources(projectRoot);
     case "apply_agent_ui_source_item":
       return applyAgentUISourceItem(projectRoot, request.input);
+    case "remove_agent_ui_source_items":
+      return removeAgentUISourceItems(projectRoot, request.input);
   }
 }
 

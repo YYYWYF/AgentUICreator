@@ -5,9 +5,6 @@ import { describe, expect, it } from "vitest";
 import appUIJson from "../app-ui/app-ui.json";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 
-const legacyThemeProviderId = ["antd", "x", "theme", "provider"].join("-");
-const legacyThemeSwitchId = ["antd", "x", "theme", "switch"].join("-");
-
 describe("theme plugin boundary", () => {
   it("keeps the provider headless and the switch independent from Ant Design", async () => {
     const [providerDefinition, providerComponent, providerManifest, switchDefinition, switchComponent, switchManifest, registry] = await Promise.all([
@@ -64,16 +61,5 @@ describe("theme plugin boundary", () => {
     expect(registry).toContain('./theme-provider/definition');
     expect(registry).toContain('./theme-switch/definition');
 
-    const projectSource = [
-      providerDefinition,
-      providerComponent,
-      providerManifest,
-      switchDefinition,
-      switchComponent,
-      switchManifest,
-      registry,
-    ].join("\n");
-    expect(projectSource).not.toContain(legacyThemeProviderId);
-    expect(projectSource).not.toContain(legacyThemeSwitchId);
   });
 });

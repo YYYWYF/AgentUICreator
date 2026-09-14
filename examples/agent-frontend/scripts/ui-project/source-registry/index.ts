@@ -1,4 +1,7 @@
-export { applyAgentUISourceItem } from "./installer";
+export {
+  applyAgentUISourceItem,
+  removeAgentUISourceItems,
+} from "./installer";
 export {
   agentUISourceSummary,
   inspectAgentUISources,

@@ -6,7 +6,7 @@ import type {
 import type { ConversationObservationSnapshot } from "@agent-ui/runtime-assistant-ui";
 import type { ReactNode } from "react";
 
-import { Badge } from "../../../agent-ui/primitives/badge";
+import { Badge } from "../../../agent-ui/vendor/assistant-ui/components/ui/badge";
 import { formatDebugValue } from "./runtime-debug-format";
 import styles from "./dev-studio.module.css";
 
@@ -106,7 +106,7 @@ export function RuntimePanelView<TState = unknown>({
         <dl className={styles.definitionList}>
           <DefinitionRow
             label="Status"
-            value={<Badge variant={snapshot.run.status === "error" ? "danger" : "info"}>{snapshot.run.status}</Badge>}
+            value={<Badge variant={snapshot.run.status === "error" ? "destructive" : "secondary"}>{snapshot.run.status}</Badge>}
           />
           {snapshot.run.id !== undefined ? (
             <DefinitionRow
