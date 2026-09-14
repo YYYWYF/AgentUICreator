@@ -4,6 +4,7 @@
 @import "./preflight.scoped.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities) source("../../../vendor/assistant-ui");
 @source "..";
+@source "../../../../plugins/assistant-ui-thread-list";
 @import "tw-animate-css";
 @import "tw-shimmer";
 
