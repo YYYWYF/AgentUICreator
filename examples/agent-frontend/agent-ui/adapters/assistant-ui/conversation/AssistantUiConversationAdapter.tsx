@@ -18,9 +18,9 @@ import { AssistantUiConversationSurface } from "./AssistantUiConversationSurface
 
 type RenderSlot = UIPluginComponentProps["renderSlot"];
 
-function AssistantUiWelcome({ renderSlot }: { renderSlot: RenderSlot }) {
+function AssistantUiEmptyState({ renderSlot }: { renderSlot: RenderSlot }) {
   const { welcome } = useAssistantUiPresentationConfig();
-  const fallback = (
+  const welcomeFallback = (
     <div className="aui-thread-welcome-root mb-6 flex flex-col items-center px-4 text-center">
       <h1 className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-2xl font-medium tracking-tight duration-200">
         {welcome.title ?? "How can I help you today?"}
@@ -34,18 +34,28 @@ function AssistantUiWelcome({ renderSlot }: { renderSlot: RenderSlot }) {
   );
 
   return (
-    <SemanticSlotFallbackProvider
-      fallback={fallback}
-      slotId={ASSISTANT_UI_CONVERSATION_SLOTS.welcome}
-    >
-      {renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.welcome, fallback)}
-    </SemanticSlotFallbackProvider>
+    <div className="assistant-ui-empty-state flex w-full flex-col items-center">
+      <div className="assistant-ui-empty-state-welcome w-full">
+        <SemanticSlotFallbackProvider
+          fallback={welcomeFallback}
+          slotId={ASSISTANT_UI_CONVERSATION_SLOTS.welcome}
+        >
+          {renderSlot(
+            ASSISTANT_UI_CONVERSATION_SLOTS.welcome,
+            welcomeFallback,
+          )}
+        </SemanticSlotFallbackProvider>
+      </div>
+      <div className="assistant-ui-empty-state-suggestions w-full">
+        {renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.suggestions, null)}
+      </div>
+    </div>
   );
 }
 
 export function createAssistantUiSemanticThreadComponents(
   renderSlot: RenderSlot,
-  presentation?: AssistantUiPresentationConfig,
+  _presentation?: AssistantUiPresentationConfig,
 ): ThreadComponents {
   const components: ThreadComponents = {
     ReasoningGroup: SemanticReasoningOutlet,
@@ -53,12 +63,7 @@ export function createAssistantUiSemanticThreadComponents(
     ToolFallback: SemanticToolItemOutlet,
   };
 
-  if (
-    presentation?.welcome.title !== undefined ||
-    presentation?.welcome.description !== undefined
-  ) {
-    components.Welcome = () => <AssistantUiWelcome renderSlot={renderSlot} />;
-  }
+  components.Welcome = () => <AssistantUiEmptyState renderSlot={renderSlot} />;
 
   return components;
 }

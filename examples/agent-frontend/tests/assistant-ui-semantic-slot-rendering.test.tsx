@@ -17,23 +17,28 @@ describe("assistant-ui semantic Slot rendering", () => {
     );
     expect(adapter).toContain("ASSISTANT_UI_CONVERSATION_SLOTS.welcome");
     expect(adapter).toContain("renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.welcome");
+    expect(adapter).toContain("ASSISTANT_UI_CONVERSATION_SLOTS.suggestions");
+    expect(adapter).toContain("renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.suggestions");
     expect(adapter).toContain("SemanticReasoningOutlet");
     expect(adapter).toContain("SemanticToolActivityOutlet");
     expect(adapter).toContain("SemanticToolItemOutlet");
     expect(adapter).not.toMatch(
-      /conversation\.empty\.suggestions|conversation\.timeline|conversation\.composer|conversation\.message\.attachments|conversation\.message\.sources/u,
+      /conversation\.timeline|conversation\.composer|conversation\.message\.attachments|conversation\.message\.sources/u,
     );
   });
 
-  it("leaves suggestions to assistant-ui runtime configuration", async () => {
+  it("routes starter suggestions through the canonical child Slot", async () => {
     const app = await read("src/App.tsx");
     const thread = await read(
       "agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
     );
-    expect(app).toContain("Suggestions(");
-    expect(app).toContain("presentationConfig.starterSuggestions");
+    const globals = await read("agent-ui/adapters/assistant-ui/styles/globals.css");
+    expect(app).not.toContain("Suggestions(");
+    expect(app).not.toContain("starterSuggestions");
     expect(thread).toContain("ThreadPrimitive.Suggestions");
     expect(thread).not.toContain("InitialSuggestionsWrapper");
+    expect(globals).toContain(".aui-thread-welcome-suggestions");
+    expect(globals).toContain("display: none");
   });
 
   it("does not inject message attachments or sources through a Thread footer", async () => {

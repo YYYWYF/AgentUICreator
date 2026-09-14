@@ -128,6 +128,16 @@
   position: relative;
 }
 
+/*
+ * Canonical starter suggestions are owned by
+ * conversation.empty.suggestions / assistant-ui-suggestions. The registry
+ * ThreadSuggestions surface is suppressed to avoid duplicate ownership and
+ * composer layout shift.
+ */
+.agent-ui-assistant-ui .aui-thread-welcome-suggestions {
+  display: none;
+}
+
 .agent-ui-assistant-ui-debug {
   background: color-mix(in oklch, var(--popover) 92%, transparent);
   border: 1px solid var(--border);

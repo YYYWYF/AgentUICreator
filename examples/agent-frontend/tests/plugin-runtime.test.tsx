@@ -112,11 +112,6 @@ const appUIJson = {
             title: "Agent Frontend",
             description: "通过 AG-UI 与一个 Agent Runtime 连接，由可复用 UI Plugin 确定性渲染。",
           },
-          starterSuggestions: [
-            { title: "总结当前上下文", label: "提炼目标、约束与下一步", prompt: "总结当前上下文" },
-            { title: "解释界面结构", label: "说明 AppUIModel 与插件的关系", prompt: "解释界面结构" },
-            { title: "建议下一步", label: "给出一个可执行的后续动作", prompt: "建议下一步" },
-          ],
           composer: {
             placeholder: "给智能体发送消息，输入 / 唤出快捷指令",
             quickPrompts: [
@@ -190,10 +185,10 @@ const appUIJson = {
       enabled: true,
       mount: { slotId: "inspector.resources" },
     },
-    "agent-prompts-main": {
-      id: "agent-prompts-main",
-      pluginId: "agent-suggestions",
-      enabled: false,
+    "assistant-ui-suggestions-main": {
+      id: "assistant-ui-suggestions-main",
+      pluginId: "assistant-ui-suggestions",
+      enabled: true,
       mount: { slotId: "conversation.empty.suggestions" },
     },
     "agent-sender-main": {
@@ -536,7 +531,7 @@ describe("UIPluginRuntime", () => {
     const messagesPosition = html.indexOf(
       'data-ui-plugin="agent-message-list"',
     );
-    const promptsPosition = html.indexOf('data-ui-plugin="agent-suggestions"');
+    const promptsPosition = html.indexOf('data-ui-plugin="assistant-ui-suggestions"');
     const senderPosition = html.indexOf('data-ui-plugin="agent-composer"');
     const toolDetailPosition = html.indexOf(
       'data-ui-plugin="agent-tool-detail"',
@@ -933,7 +928,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain('data-ui-plugin="conversation-surface"');
     expect(html).toContain('data-conversation-state="empty"');
     expect(html).toContain('data-ui-plugin="agent-thread-welcome"');
-    expect(html).toContain('data-ui-plugin="agent-suggestions"');
+    expect(html).toContain('data-ui-plugin="assistant-ui-suggestions"');
     expect(html).toContain('data-ui-plugin="agent-composer"');
     expect(html).not.toContain('data-ui-plugin="agent-message-list"');
     expect(html).toContain("Agent Frontend");
@@ -983,7 +978,7 @@ describe("UIPluginRuntime", () => {
 
     expect(html).toContain('data-conversation-state="empty"');
     expect(html).toContain('data-ui-plugin="agent-thread-welcome"');
-    expect(html).toContain('data-ui-plugin="agent-suggestions"');
+    expect(html).toContain('data-ui-plugin="assistant-ui-suggestions"');
     expect(html).toContain('data-ui-plugin="agent-composer"');
     expect(html).not.toContain('data-ui-plugin="agent-message-list"');
   });
@@ -1022,7 +1017,7 @@ describe("UIPluginRuntime", () => {
     expect(html).toContain("智能体正在处理");
     expect(html).toContain('data-ui-plugin="agent-composer"');
     expect(html).not.toContain('data-ui-plugin="agent-thread-welcome"');
-    expect(html).not.toContain('data-ui-plugin="agent-suggestions"');
+    expect(html).not.toContain('data-ui-plugin="assistant-ui-suggestions"');
   });
 
   it("renders the granular Inspector plugins as independent slot capabilities", async () => {
@@ -1115,8 +1110,8 @@ describe("UIPluginRuntime", () => {
       ...appUIJson,
       pluginInstances: {
         ...appUIJson.pluginInstances,
-        "agent-prompts-main": {
-          ...appUIJson.pluginInstances["agent-prompts-main"],
+        "assistant-ui-suggestions-main": {
+          ...appUIJson.pluginInstances["assistant-ui-suggestions-main"],
           enabled: false,
         },
       },
@@ -1136,7 +1131,7 @@ describe("UIPluginRuntime", () => {
     });
 
     expect(html).toContain('data-ui-plugin="agent-message-list"');
-    expect(html).not.toContain('data-ui-plugin="agent-suggestions"');
+    expect(html).not.toContain('data-ui-plugin="assistant-ui-suggestions"');
   });
 
   it("honors Sender instance props", async () => {

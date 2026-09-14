@@ -4,8 +4,8 @@ import { agentMessageListPlugin } from "../agent-message-list/definition";
 import { agentMessageAttachmentsPlugin } from "../agent-message-attachments/definition";
 import { agentMessageSourcesPlugin } from "../agent-message-sources/definition";
 import { agentReasoningPlugin } from "../agent-reasoning/definition";
-import { agentSuggestionsPlugin } from "../agent-suggestions/definition";
 import { agentThreadWelcomePlugin } from "../agent-thread-welcome/definition";
+import { assistantUiSuggestionsPlugin } from "../assistant-ui-suggestions/definition";
 import { agentToolPlugin } from "../agent-tool/definition";
 import { agentToolActivityPlugin } from "../agent-tool-activity/definition";
 import { antdXResourcesPlugin } from "../antd-x-resources/definition";
@@ -40,7 +40,7 @@ export const antdXTemplatePlugins = [
   antdXSourcesPlugin,
   antdXAttachmentsPlugin,
   antdXResourcesPlugin,
-  agentSuggestionsPlugin,
+  assistantUiSuggestionsPlugin,
   agentComposerPlugin,
   conversationSurfacePlugin,
   workspaceInspectorPlugin,
@@ -53,7 +53,7 @@ export {
   agentMessageAttachmentsPlugin,
   agentMessageSourcesPlugin,
   agentReasoningPlugin,
-  agentSuggestionsPlugin,
+  assistantUiSuggestionsPlugin,
   agentThreadWelcomePlugin,
   antdXResourcesPlugin,
   antdXRunTimelinePlugin,
@@ -77,7 +77,7 @@ export { AgentMessageListPlugin } from "../agent-message-list";
 export { AgentMessageAttachmentsPlugin } from "../agent-message-attachments";
 export { AgentMessageSourcesPlugin } from "../agent-message-sources";
 export { AgentReasoningPlugin } from "../agent-reasoning";
-export { AgentSuggestionsPlugin } from "../agent-suggestions";
+export { AssistantUiSuggestionsPlugin } from "../assistant-ui-suggestions";
 export { AgentThreadWelcomePlugin } from "../agent-thread-welcome";
 export { AntdXResourcesPlugin } from "../antd-x-resources";
 export { AntdXRunTimelinePlugin } from "../antd-x-run-timeline";

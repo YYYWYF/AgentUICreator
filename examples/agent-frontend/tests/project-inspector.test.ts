@@ -44,7 +44,18 @@ describe("inspectUIProject", () => {
       legacy: false,
       configPath: ".agent-ui/project.json",
     });
-    for (const slotId of ["conversation.empty.welcome"] as const) {
+    for (const slotId of [
+      "conversation.empty.welcome",
+      "conversation.empty.suggestions",
+    ] as const) {
+      const mounts = slotId === "conversation.empty.suggestions"
+        ? [
+            expect.objectContaining({
+              instanceId: "assistant-ui-suggestions-main",
+              pluginId: "assistant-ui-suggestions",
+            }),
+          ]
+        : [];
       expect(result.appUIModel.slots).toContainEqual(
         expect.objectContaining({
           slotId,
@@ -53,7 +64,7 @@ describe("inspectUIProject", () => {
             instanceId: "agent-conversation-surface-main",
             pluginId: "conversation-surface",
           }),
-          mounts: [],
+          mounts,
         }),
       );
     }

@@ -11,7 +11,7 @@ import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("assistant-ui default composition", () => {
-  it("keeps the default model to three visible presentation plugins and three headless services", () => {
+  it("keeps the default model to three top-level and one child presentation plugin", () => {
     const model = parseAppUIModel(appUIJson);
     const visible = Object.values(model.pluginInstances)
       .filter((instance) => instance.enabled && instance.mount !== undefined)
@@ -21,6 +21,7 @@ describe("assistant-ui default composition", () => {
       "assistant-ui-thread-list-main",
       "theme-switch-main",
       "agent-conversation-surface-main",
+      "assistant-ui-suggestions-main",
     ]);
     expect(Object.keys(model.pluginInstances)).toEqual([
       "agent-conversation-data-main",
@@ -29,6 +30,7 @@ describe("assistant-ui default composition", () => {
       "assistant-ui-thread-list-main",
       "theme-switch-main",
       "agent-conversation-surface-main",
+      "assistant-ui-suggestions-main",
     ]);
     expect(Object.values(model.pluginInstances).filter((instance) => instance.enabled && instance.mount === undefined).map((instance) => instance.id)).toEqual([
       "agent-conversation-data-main",
@@ -48,7 +50,6 @@ describe("assistant-ui default composition", () => {
       "agent-message-attachments",
       "agent-tool-activity",
       "agent-tool",
-      "agent-suggestions",
       "agent-composer",
     ]) {
       expect(Object.values(model.pluginInstances).some((instance) => instance.pluginId === forbiddenPluginId), forbiddenPluginId).toBe(false);
@@ -101,7 +102,6 @@ describe("assistant-ui default composition", () => {
     const model = parseAppUIModel(appUIJson);
     expect(resolveAssistantUiPresentationConfig(model)).toEqual({
       welcome: {},
-      starterSuggestions: [],
       interactions: {},
     });
   });

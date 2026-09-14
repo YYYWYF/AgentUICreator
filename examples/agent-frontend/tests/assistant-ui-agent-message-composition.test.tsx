@@ -45,7 +45,6 @@ const TEST_CHAT_MODEL = {
 
 const messageCompositionPresentation = {
   welcome: {},
-  starterSuggestions: [],
   interactions: {},
 };
 

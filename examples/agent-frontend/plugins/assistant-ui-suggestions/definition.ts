@@ -1,11 +1,11 @@
 import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
 import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
-import { AgentSuggestionsPlugin } from "./index";
+import { AssistantUiSuggestionsPlugin } from "./index";
 import manifestJson from "./manifest.json";
 
-export const agentSuggestionsPlugin: UIPluginDefinition = {
+export const assistantUiSuggestionsPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
-  Component: AgentSuggestionsPlugin,
+  Component: AssistantUiSuggestionsPlugin,
 };
 
-export default agentSuggestionsPlugin;
+export default assistantUiSuggestionsPlugin;

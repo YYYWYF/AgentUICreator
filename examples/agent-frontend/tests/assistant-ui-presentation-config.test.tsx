@@ -30,28 +30,12 @@ function createModel(
 }
 
 describe("assistant-ui presentation config", () => {
-  it("maps Welcome, runtime suggestions, and interaction variants", () => {
+  it("maps Welcome and interaction variants", () => {
     expect(resolveAssistantUiPresentationConfig(createModel({
       welcome: {
         title: "Agent Frontend",
         description: "Canonical assistant-ui presentation",
       },
-      starterSuggestions: [
-        {
-          key: "summary",
-          label: "总结当前上下文",
-          description: "提炼目标、约束与下一步",
-        },
-        {
-          label: "显式提示",
-          description: "发送不同的内容",
-          prompt: "请详细说明",
-        },
-        "字符串建议",
-        { label: "   " },
-        null,
-        42,
-      ],
       interactions: {
         reasoningVariant: "outline",
         toolGroupVariant: "muted",
@@ -65,22 +49,6 @@ describe("assistant-ui presentation config", () => {
         title: "Agent Frontend",
         description: "Canonical assistant-ui presentation",
       },
-      starterSuggestions: [
-        {
-          title: "总结当前上下文",
-          label: "提炼目标、约束与下一步",
-          prompt: "总结当前上下文",
-        },
-        {
-          title: "显式提示",
-          label: "发送不同的内容",
-          prompt: "请详细说明",
-        },
-        {
-          title: "字符串建议",
-          prompt: "字符串建议",
-        },
-      ],
       interactions: {
         reasoningVariant: "outline",
         toolGroupVariant: "muted",
@@ -98,7 +66,6 @@ describe("assistant-ui presentation config", () => {
 
     expect(presentation).toEqual({
       welcome: {},
-      starterSuggestions: [],
       interactions: {},
     });
     expect(presentation).not.toHaveProperty("composer");
@@ -107,7 +74,6 @@ describe("assistant-ui presentation config", () => {
   it("fails closed to empty product configuration when the surface is absent", () => {
     expect(resolveAssistantUiPresentationConfig(createModel())).toEqual({
       welcome: {},
-      starterSuggestions: [],
       interactions: {},
     });
   });

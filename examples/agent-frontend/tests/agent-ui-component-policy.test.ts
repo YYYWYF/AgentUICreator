@@ -1059,22 +1059,33 @@ describe("Agent UI component source policy", () => {
 
     expect(appUI.pluginInstances?.["agent-welcome-main"]).toBeUndefined();
     expect(appUI.pluginInstances?.["agent-prompts-main"]).toBeUndefined();
+    expect(appUI.pluginInstances?.["assistant-ui-suggestions-main"]).toMatchObject({
+      pluginId: "assistant-ui-suggestions",
+      enabled: true,
+      mount: { slotId: "conversation.empty.suggestions" },
+      props: {
+        items: expect.arrayContaining([
+          expect.objectContaining({ prompt: "帮我分析当前 Agent UI 架构" }),
+        ]),
+      },
+    });
     expect(surfaceManifest.version).toBe("2.0.0");
     expect(surfaceManifest.slots?.children).toEqual([
       "conversation.empty.welcome",
+      "conversation.empty.suggestions",
     ]);
     expect(registry).not.toContain('./agent-thread-welcome/definition');
-    expect(registry).not.toContain('./agent-suggestions/definition');
+    expect(registry).toContain('./assistant-ui-suggestions/definition');
     expect(templateLibrary).toContain("agentThreadWelcomePlugin");
     expect(templateLibrary).toContain("AgentThreadWelcomePlugin");
-    expect(templateLibrary).toContain("agentSuggestionsPlugin");
-    expect(templateLibrary).toContain("AgentSuggestionsPlugin");
+    expect(templateLibrary).toContain("assistantUiSuggestionsPlugin");
+    expect(templateLibrary).toContain("AssistantUiSuggestionsPlugin");
   });
 
   it("keeps the canonical Empty Thread plugins independent of Ant", async () => {
     for (const pluginDirectory of [
       "agent-thread-welcome",
-      "agent-suggestions",
+      "assistant-ui-suggestions",
     ]) {
       const pluginRoot = path.join(projectRoot, "plugins", pluginDirectory);
       const sourceFiles = await collectFiles(
@@ -1092,7 +1103,7 @@ describe("Agent UI component source policy", () => {
       expect(css).not.toMatch(/#[0-9a-fA-F]|\b(?:rgb|rgba|hsl|hsla|oklch)\s*\(/u);
       expect(css).not.toMatch(/(?:linear|radial)-gradient\s*\(/u);
       expect(css).not.toMatch(/\.ant-|development-preview|--ui-/u);
-      expect(css).toMatch(/var\(--aui-/u);
+      expect(css).toMatch(/var\(--(?:aui-|border|foreground|background|muted|ring)/u);
     }
   });
 

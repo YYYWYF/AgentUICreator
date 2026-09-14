@@ -16,6 +16,7 @@ describe("assistant-ui semantic Slot adapter", () => {
   it("exposes only official Thread composition slots", () => {
     expect(Object.values(ASSISTANT_UI_CONVERSATION_SLOTS)).toEqual([
       "conversation.empty.welcome",
+      "conversation.empty.suggestions",
       "conversation.message.reasoning",
       "conversation.message.tool-activity",
       "conversation.message.tool-item",
@@ -51,6 +52,7 @@ describe("assistant-ui semantic Slot adapter", () => {
       "agent-ui/adapters/assistant-ui/slots/semantic-slots.ts",
     );
     expect(legacy).toContain("LEGACY_ASSISTANT_UI_CONVERSATION_SLOTS");
+    expect(legacy).not.toContain('suggestions: "conversation.empty.suggestions"');
     expect(legacy).toContain("conversation.message.attachments");
     expect(legacy).toContain("conversation.message.sources");
   });

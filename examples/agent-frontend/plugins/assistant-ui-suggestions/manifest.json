@@ -1,0 +1,7 @@
+{
+  "id": "assistant-ui-suggestions",
+  "name": "Assistant UI Suggestions",
+  "description": "Renders starter prompts using assistant-ui suggestion primitives.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-suggestions"]
+}

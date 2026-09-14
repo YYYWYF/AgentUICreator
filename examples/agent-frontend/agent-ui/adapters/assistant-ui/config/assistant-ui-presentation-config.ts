@@ -5,12 +5,6 @@ export interface AssistantUiWelcomeConfig {
   description?: string;
 }
 
-export interface AssistantUiStarterSuggestion {
-  title: string;
-  label?: string;
-  prompt: string;
-}
-
 export type AssistantUiToolGroupVariant = "ghost" | "outline" | "muted";
 export type AssistantUiReasoningVariant = "ghost" | "outline" | "muted";
 
@@ -21,7 +15,6 @@ export interface AssistantUiInteractionPresentationConfig {
 
 export interface AssistantUiPresentationConfig {
   welcome: AssistantUiWelcomeConfig;
-  starterSuggestions: readonly AssistantUiStarterSuggestion[];
   interactions: AssistantUiInteractionPresentationConfig;
 }
 
@@ -63,38 +56,6 @@ function readWelcome(value: unknown): AssistantUiWelcomeConfig {
   };
 }
 
-function readStarterSuggestions(value: unknown): AssistantUiStarterSuggestion[] {
-  if (!Array.isArray(value)) return [];
-
-  return value.flatMap((item) => {
-    const stringSuggestion = readNonEmptyString(item);
-    if (stringSuggestion !== undefined) {
-      return [{ title: stringSuggestion, prompt: stringSuggestion }];
-    }
-
-    if (typeof item !== "object" || item === null || Array.isArray(item)) {
-      return [];
-    }
-
-    const record = item as Record<string, unknown>;
-    const explicitTitle = readNonEmptyString(record.title);
-    const title = explicitTitle ?? readNonEmptyString(record.label);
-    if (title === undefined) return [];
-
-    const label = explicitTitle === undefined
-      ? readNonEmptyString(record.description)
-      : readNonEmptyString(record.label);
-    const prompt = readNonEmptyString(record.prompt) ??
-      readNonEmptyString(record.value) ??
-      title;
-    return [{
-      title,
-      ...(label === undefined ? {} : { label }),
-      prompt,
-    }];
-  });
-}
-
 export function resolveAssistantUiPresentationConfig(
   model: AppUIModel,
 ): AssistantUiPresentationConfig {
@@ -115,9 +76,6 @@ export function resolveAssistantUiPresentationConfig(
 
   return {
     welcome: readWelcome(welcomeProps),
-    starterSuggestions: readStarterSuggestions(
-      assistantUiPresentation.starterSuggestions,
-    ),
     interactions: {
       ...(reasoningVariant === undefined ? {} : { reasoningVariant }),
       ...(toolGroupVariant === undefined ? {} : { toolGroupVariant }),

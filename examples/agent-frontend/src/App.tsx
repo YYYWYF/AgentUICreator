@@ -5,7 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { AuiConfig, Suggestions, Tools } from "@assistant-ui/react";
+import { AuiConfig, Tools } from "@assistant-ui/react";
 import {
   AssistantUiAgUiRuntimeProvider,
   useAssistantUiRuntimeBridge,
@@ -199,18 +199,9 @@ function AssistantUiRuntimeBoundary({
   );
   const assistantConfig = useMemo(
     () => AuiConfig({
-      suggestions: Suggestions(
-        presentationConfig.starterSuggestions.map(
-          ({ label, prompt, title }) => ({
-            title,
-            label: label ?? "",
-            prompt,
-          }),
-        ),
-      ),
       tools: Tools({ toolkit }),
     }),
-    [presentationConfig.starterSuggestions, toolkit],
+    [toolkit],
   );
   if (endpoint === undefined) {
     throw new Error("The assistant-ui mode requires an AG-UI endpoint.");

@@ -12,7 +12,7 @@
 - `theme-switch`：声明 `inject: ["agent-ui.theme"]`，使用 assistant-ui Button 与 lucide 图标调用共享主题函数。
 - `conversation-service`：注入 `agent-ui.conversation-data-source`，以 headless Plugin 提供可观察的 `agent-ui.conversations` ConversationService。
 - `agent-thread-welcome`：把 Empty Thread 的 Welcome 语义绑定到纯展示的 `AgentThreadWelcome`；可被独立替换或删除，且不拥有 Suggestions。
-- `agent-suggestions`：把 Empty Thread 的 Suggestions 语义绑定到纯展示的 `AgentSuggestions` / `AgentSuggestion`，并保留 `sendMessage`、`run.status` 与 interrupt gating；可被独立替换或删除，且不拥有 Welcome。
+- `assistant-ui-suggestions`：把 `conversation.empty.suggestions` child Slot 绑定到 assistant-ui `ThreadPrimitive.Suggestion`，由 Plugin props 持有 starter prompt 数据并交给 assistant-ui Runtime 发送；可被独立替换或删除，且不拥有 Welcome。
 - `agent-message-list`：Live 模式读取 Runtime messages，History 模式只读取 Conversation Detail messages，并展示详情 loading / error。负责 Turn 顺序、Bubble、滚动、streaming、连续 Tool Activity 投影，以及当前消息 Attachments / Sources 的规范化；通过 `conversation.message.reasoning`、`conversation.message.tool-activity`、`conversation.message.attachments`、`conversation.message.sources` child Slots 调度彼此独立的 Message Part renderer，并在 renderer 缺失时保留数据 fallback；没有反馈提交合同前不伪造点赞/点踩。
 - `agent-message-attachments`：只读取当前 `MessageAttachmentsRenderContext`，将 host 已规范化且已清理 URL 的附件映射到纯展示 `AgentAttachments` / `AgentAttachment`，不扫描全局消息或 State。
 - `agent-message-sources`：只读取当前 `MessageSourcesRenderContext`，将 host 已规范化且已清理 URL 的来源映射到纯展示 `AgentSources` / `AgentSource`，不解析 raw metadata 或扫描 Conversation Service。

@@ -6,7 +6,8 @@
   "capabilities": ["conversation-surface"],
   "slots": {
     "children": [
-      "conversation.empty.welcome"
+      "conversation.empty.welcome",
+      "conversation.empty.suggestions"
     ]
   },
   "data": {
