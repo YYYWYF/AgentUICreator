@@ -1,6 +1,8 @@
-import { readdir, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { buildDeclarationGraph } from "./declaration-graph.mjs";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const declarationRoot = path.join(packageRoot, "dist");
@@ -15,34 +17,24 @@ const forbiddenTokens = [
   "runtime-assistant-ui",
 ];
 
-async function collectDeclarationFiles(current) {
-  const entries = await readdir(current, { withFileTypes: true });
-  const files = await Promise.all(entries.map(async (entry) => {
-    const absolutePath = path.join(current, entry.name);
-    if (entry.isDirectory()) return collectDeclarationFiles(absolutePath);
-    return entry.isFile() && entry.name.endsWith(".d.ts") ? [absolutePath] : [];
-  }));
-  return files.flat();
-}
-
-let declarationFiles;
-try {
-  declarationFiles = await collectDeclarationFiles(declarationRoot);
-} catch (error) {
-  if (error?.code === "ENOENT") {
-    console.error("@agent-ui/runtime-conversation public declaration boundary: dist is missing; build the package first.");
-    process.exit(1);
-  }
-  throw error;
-}
-
-if (declarationFiles.length === 0) {
-  console.error("@agent-ui/runtime-conversation public declaration boundary: no dist/**/*.d.ts files found.");
+const entryPath = path.join(declarationRoot, "index.d.ts");
+const { missing, reachable } = await buildDeclarationGraph(
+  declarationRoot,
+  entryPath,
+);
+if (missing.length > 0) {
+  const details = missing.map(({ sourcePath, specifier }) =>
+    `${path.relative(packageRoot, sourcePath)} cannot resolve ${specifier}`
+  );
+  console.error([
+    "@agent-ui/runtime-conversation public declaration boundary failed:",
+    ...details,
+  ].join("\n"));
   process.exit(1);
 }
 
 const violations = [];
-for (const filePath of declarationFiles.sort()) {
+for (const filePath of [...reachable].sort()) {
   const source = await readFile(filePath, "utf8");
   for (const token of forbiddenTokens) {
     if (source.includes(token)) {
@@ -56,4 +48,4 @@ if (violations.length > 0) {
   process.exit(1);
 }
 
-console.log(`@agent-ui/runtime-conversation public declaration boundary: OK (${declarationFiles.length} declarations)`);
+console.log(`@agent-ui/runtime-conversation public declaration boundary: OK (${reachable.size} reachable declarations)`);

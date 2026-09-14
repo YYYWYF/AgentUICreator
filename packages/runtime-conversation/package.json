@@ -19,8 +19,9 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs",
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs",
     "check:public-boundary": "node scripts/check-public-boundary.mjs",
+    "check:consumer-types": "node scripts/check-consumer-types.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

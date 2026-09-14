@@ -8,6 +8,10 @@ import type {
 import type { AgUiAssistantRuntime } from "@assistant-ui/react-ag-ui";
 
 import type { ConversationApplicationEventSource } from "../events/conversation-application-event-source.js";
+import {
+  AgentUiRuntimeBusyError,
+  UnsupportedAgentInputError,
+} from "../errors.js";
 import { ConversationObservationSourceImpl } from "../observation/conversation-observation-source.js";
 import type { ConversationObservationSource } from "../observation/types.js";
 import type { ConversationThreadBinding } from "../threads/types.js";
@@ -18,6 +22,8 @@ import {
 } from "./conversation-interrupt-mapper.js";
 import { projectConversationMessages } from "./conversation-message-projector.js";
 
+export { AgentUiRuntimeBusyError, UnsupportedAgentInputError } from "../errors.js";
+
 interface PendingSend {
   sawRunning: boolean;
   resolve(): void;
@@ -26,24 +32,6 @@ interface PendingSend {
 
 function toError(value: unknown): Error {
   return value instanceof Error ? value : new Error(String(value));
-}
-
-export class UnsupportedAgentInputError extends Error {
-  readonly code = "AGENT_UI_UNSUPPORTED_INPUT";
-
-  constructor(kind: string) {
-    super(`Conversation runtime does not support ${kind} input yet`);
-    this.name = "UnsupportedAgentInputError";
-  }
-}
-
-export class AgentUiRuntimeBusyError extends Error {
-  readonly code = "AGENT_UI_RUNTIME_BUSY";
-
-  constructor() {
-    super("The conversation runtime is already handling an operation");
-    this.name = "AgentUiRuntimeBusyError";
-  }
 }
 
 export class UnsupportedInterruptResponseMetadataError extends Error {

@@ -1,25 +1,30 @@
-import { readdir, rm } from "node:fs/promises";
+import { rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+import {
+  buildDeclarationGraph,
+  collectDeclarationFiles,
+} from "./declaration-graph.mjs";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distRoot = path.join(packageRoot, "dist");
 
-async function removeInternalDeclarations(root, relativeRoot = "") {
-  for (const entry of await readdir(root, { withFileTypes: true })) {
-    const entryPath = path.join(root, entry.name);
-    const relativePath = path.join(relativeRoot, entry.name);
-    if (entry.isDirectory()) {
-      await removeInternalDeclarations(entryPath, relativePath);
-      continue;
-    }
-    const isPublicDeclaration = relativePath === "index.d.ts" ||
-      relativePath === "public.d.ts";
-    if (!isPublicDeclaration &&
-      (entry.name.endsWith(".d.ts") || entry.name.endsWith(".d.ts.map"))) {
-      await rm(entryPath);
-    }
-  }
+const entryPath = path.join(distRoot, "index.d.ts");
+const { missing, reachable } = await buildDeclarationGraph(distRoot, entryPath);
+if (missing.length > 0) {
+  const details = missing.map(({ sourcePath, specifier }) =>
+    `${path.relative(packageRoot, sourcePath)} -> ${specifier}`
+  );
+  throw new Error([
+    "Cannot prune declarations because the public declaration graph is incomplete:",
+    ...details,
+  ].join("\n"));
 }
 
-await removeInternalDeclarations(distRoot);
+for (const declarationPath of await collectDeclarationFiles(distRoot)) {
+  if (!reachable.has(declarationPath)) {
+    await rm(declarationPath);
+    await rm(`${declarationPath}.map`, { force: true });
+  }
+}

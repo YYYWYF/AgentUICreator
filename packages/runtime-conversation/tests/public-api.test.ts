@@ -28,6 +28,8 @@ describe("@agent-ui/runtime-conversation public API", () => {
     ]) {
       expect(source, publicName).toMatch(new RegExp(`export (?:function|interface|type) ${publicName}\\b`, "u"));
     }
+    expect(source).toContain('from "./errors.js"');
+    expect(source).not.toContain('from "./compatibility/conversation-runtime-bridge.js"');
     for (const forbiddenName of ["AssistantUi", "ThreadPrimitive", "useAui", "AuiConfig"]) {
       expect(source, forbiddenName).not.toContain(forbiddenName);
     }

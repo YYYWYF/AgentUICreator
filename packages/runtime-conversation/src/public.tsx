@@ -139,7 +139,7 @@ export type {
   ConversationToolCallObservation,
 } from "./observation/types.js";
 
-export { AgentUiRuntimeBusyError, UnsupportedAgentInputError } from "./compatibility/conversation-runtime-bridge.js";
+export { AgentUiRuntimeBusyError, UnsupportedAgentInputError } from "./errors.js";
 
 export type {
   AgentInterruptResponse,
