@@ -1,0 +1,36 @@
+.theme-switch-plugin {
+  display: flex;
+  height: auto;
+  min-width: 0;
+  align-self: center;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin: 0.65rem 1rem 0.65rem 0.35rem;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in oklch, var(--background) 92%, var(--muted));
+  color: var(--foreground);
+}
+
+.theme-switch-plugin-control,
+.theme-switch-plugin-logout {
+  flex: none;
+}
+
+.theme-switch-plugin-control:hover,
+.theme-switch-plugin-logout:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.theme-switch-plugin-logout {
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 44rem) {
+  .theme-switch-plugin {
+    margin: 0.55rem 0.75rem 0.55rem 0.15rem;
+  }
+}

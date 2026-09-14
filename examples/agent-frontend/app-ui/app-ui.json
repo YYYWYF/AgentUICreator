@@ -39,6 +39,14 @@
       "pluginId": "conversation-service",
       "enabled": true
     },
+    "theme-provider-main": {
+      "id": "theme-provider-main",
+      "pluginId": "theme-provider",
+      "enabled": true,
+      "props": {
+        "mode": "light"
+      }
+    },
     "assistant-ui-thread-list-main": {
       "id": "assistant-ui-thread-list-main",
       "pluginId": "assistant-ui-thread-list",

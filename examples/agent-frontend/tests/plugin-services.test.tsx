@@ -16,7 +16,9 @@ import type {
 } from "../framework/contracts/ui-plugin";
 import {
   createAgentUIThemeService,
-} from "../plugins/antd-x-theme-provider/theme-service";
+  readAgentUIThemeMode,
+} from "../plugins/theme-provider/theme-service";
+import { themeProviderPlugin } from "../plugins/theme-provider/definition";
 import { agentMessageListPlugin } from "../plugins/agent-message-list/definition";
 import { antdXRunTimelinePlugin } from "../plugins/antd-x-run-timeline/definition";
 import {
@@ -28,6 +30,10 @@ import {
   usePluginService,
   usePluginServiceSnapshot,
 } from "../runtime/plugins";
+import {
+  AGENT_UI_THEME_SERVICE,
+  type AgentUIThemeService,
+} from "../services/agent-ui-theme";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;
@@ -100,6 +106,58 @@ function createServiceModel(providerEnabled = true) {
 }
 
 describe("PluginServiceRuntime", () => {
+  it("activates the headless theme provider before an injected consumer", () => {
+    let observed: AgentUIThemeService | undefined;
+    const consumer = createDefinition("theme-consumer", {
+      inject: [AGENT_UI_THEME_SERVICE],
+      setup: ({ services }) => {
+        observed = services.get<AgentUIThemeService>(AGENT_UI_THEME_SERVICE);
+      },
+    });
+    const model = parseAppUIModel({
+      version: "2",
+      root: {
+        type: "slot",
+        id: "theme-services-slot-node",
+        slotId: "theme-services",
+      },
+      pluginInstances: {
+        "theme-consumer-main": {
+          id: "theme-consumer-main",
+          pluginId: "theme-consumer",
+          enabled: true,
+          mount: { slotId: "theme-services" },
+        },
+        "theme-provider-main": {
+          id: "theme-provider-main",
+          pluginId: "theme-provider",
+          enabled: true,
+        },
+      },
+    });
+    const actions = {
+      ...runtimeActions,
+      updateInstanceProps: vi.fn(),
+    };
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      model,
+      createPluginRegistry([consumer, themeProviderPlugin]),
+      actions,
+    );
+
+    expect(runtime.getActivation("theme-provider-main")?.status).toBe("active");
+    expect(runtime.getActivation("theme-consumer-main")?.status).toBe("active");
+    expect(observed?.getMode()).toBe("light");
+
+    observed?.setMode("dark");
+    expect(actions.updateInstanceProps).toHaveBeenCalledWith(
+      "theme-provider-main",
+      { mode: "dark" },
+    );
+  });
+
   it("rejects contributions to an undeclared Slot deterministically", () => {
     const slots = new SlotRegistry();
 
@@ -1256,6 +1314,15 @@ describe("PluginServiceRuntime", () => {
 });
 
 describe("AgentUIThemeService", () => {
+  it.each([
+    [undefined, "light"],
+    ["invalid", "light"],
+    ["light", "light"],
+    ["dark", "dark"],
+  ] as const)("normalizes %s to %s", (value, expected) => {
+    expect(readAgentUIThemeMode(value)).toBe(expected);
+  });
+
   it("exposes callable theme functions and notifies subscribers", () => {
     const onModeChange = vi.fn();
     const subscriber = vi.fn();
@@ -1269,6 +1336,19 @@ describe("AgentUIThemeService", () => {
 
     expect(onModeChange.mock.calls).toEqual([["light"], ["dark"], ["light"]]);
     expect(subscriber).toHaveBeenCalledTimes(2);
+    expect(theme.getMode()).toBe("light");
+  });
+
+  it("does not notify or persist when setMode receives the current mode", () => {
+    const onModeChange = vi.fn();
+    const subscriber = vi.fn();
+    const theme = createAgentUIThemeService("light", onModeChange);
+    theme.subscribe(subscriber);
+
+    theme.setMode("light");
+
+    expect(onModeChange).not.toHaveBeenCalled();
+    expect(subscriber).not.toHaveBeenCalled();
     expect(theme.getMode()).toBe("light");
   });
 });

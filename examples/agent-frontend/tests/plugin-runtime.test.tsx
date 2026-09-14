@@ -67,7 +67,7 @@ import {
 
 // These tests exercise dormant template plugins with an explicit fixture. The
 // checked-in default model intentionally contains only the assistant-ui
-// surface, thread list, and headless conversation services.
+// surface, thread list, and headless conversation/theme services.
 const appUIJson = {
   ...defaultAppUIJson,
   root: {

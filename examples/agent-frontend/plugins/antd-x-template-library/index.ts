@@ -12,8 +12,8 @@ import { antdXResourcesPlugin } from "../antd-x-resources/definition";
 import { antdXRunTimelinePlugin } from "../antd-x-run-timeline/definition";
 import { agentComposerPlugin } from "../agent-composer/definition";
 import { antdXSourcesPlugin } from "../antd-x-sources/definition";
-import { antdXThemeProviderPlugin } from "../antd-x-theme-provider/definition";
-import { antdXThemeSwitchPlugin } from "../antd-x-theme-switch/definition";
+import { themeProviderPlugin } from "../theme-provider/definition";
+import { themeSwitchPlugin } from "../theme-switch/definition";
 import { agentToolDetailPlugin } from "../agent-tool-detail/definition";
 import { assistantUiThreadListPlugin } from "../assistant-ui-thread-list/definition";
 import { conversationSurfacePlugin } from "../conversation-surface/definition";
@@ -25,8 +25,8 @@ export const antdXTemplatePlugins = [
   conversationDataSourcePlugin,
   conversationServicePlugin,
   assistantUiThreadListPlugin,
-  antdXThemeProviderPlugin,
-  antdXThemeSwitchPlugin,
+  themeProviderPlugin,
+  themeSwitchPlugin,
   agentThreadWelcomePlugin,
   agentMessageListPlugin,
   agentMessageAttachmentsPlugin,
@@ -59,8 +59,8 @@ export {
   antdXRunTimelinePlugin,
   agentComposerPlugin,
   antdXSourcesPlugin,
-  antdXThemeProviderPlugin,
-  antdXThemeSwitchPlugin,
+  themeProviderPlugin,
+  themeSwitchPlugin,
   agentToolDetailPlugin,
   agentToolActivityPlugin,
   agentToolPlugin,
@@ -83,8 +83,8 @@ export { AntdXResourcesPlugin } from "../antd-x-resources";
 export { AntdXRunTimelinePlugin } from "../antd-x-run-timeline";
 export { AgentComposerPlugin } from "../agent-composer";
 export { AntdXSourcesPlugin } from "../antd-x-sources";
-export { AntdXThemeProviderPlugin } from "../antd-x-theme-provider";
-export { AntdXThemeSwitchPlugin } from "../antd-x-theme-switch";
+export { ThemeProviderPlugin } from "../theme-provider";
+export { ThemeSwitchPlugin } from "../theme-switch";
 export { AgentToolDetailPlugin } from "../agent-tool-detail";
 export { AgentToolActivityPlugin } from "../agent-tool-activity";
 export { AgentToolPlugin } from "../agent-tool";

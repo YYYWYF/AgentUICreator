@@ -1,7 +1,7 @@
-import { LogoutOutlined, MoonOutlined, SunOutlined } from "@ant-design/icons";
-import { Button, Switch, Tooltip } from "antd";
 import { useSyncExternalStore } from "react";
+import { LogOut, Moon, Sun } from "lucide-react";
 
+import { Button } from "../../agent-ui/vendor/assistant-ui/components/ui/button";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { usePluginInstance } from "../../runtime/context";
 import {
@@ -22,7 +22,7 @@ import "./styles.css";
 
 const ANONYMOUS_SESSION: AuthSessionSnapshot = { authenticated: false };
 
-export function AntdXThemeSwitchPlugin(_props: UIPluginComponentProps) {
+export function ThemeSwitchPlugin(_props: UIPluginComponentProps) {
   const instance = usePluginInstance();
   const theme = usePluginService<AgentUIThemeService>(AGENT_UI_THEME_SERVICE);
   const auth = usePluginService<AuthSessionService>(AUTH_SESSION_SERVICE);
@@ -32,14 +32,7 @@ export function AntdXThemeSwitchPlugin(_props: UIPluginComponentProps) {
     return null;
   }
 
-  return (
-    <ThemeSwitch
-      auth={auth}
-      authSnapshot={authSnapshot}
-      contextId={instance.id}
-      theme={theme}
-    />
-  );
+  return <ThemeSwitch auth={auth} authSnapshot={authSnapshot} contextId={instance.id} theme={theme} />;
 }
 
 function ThemeSwitch({
@@ -59,44 +52,44 @@ function ThemeSwitch({
     theme.getMode,
   );
   const isDark = mode === "dark";
+  const nextModeLabel = isDark ? "切换到浅色模式" : "切换到深色模式";
 
   return (
     <section
-      className="antd-x-theme-switch-plugin"
+      aria-label="主题设置"
+      className={[
+        "theme-switch-plugin agent-ui-assistant-ui",
+        isDark ? "dark" : undefined,
+      ].filter(Boolean).join(" ")}
+      data-theme={mode}
       data-theme-mode={mode}
-      data-ui-plugin="antd-x-theme-switch"
+      data-ui-plugin="theme-switch"
     >
-      <div className="antd-x-theme-switch-plugin-copy">
-        <span className="antd-x-theme-switch-plugin-eyebrow">Interface</span>
-        <strong>{isDark ? "深色模式" : "浅色模式"}</strong>
-      </div>
-      <Tooltip title={isDark ? "切换到浅色模式" : "切换到深色模式"}>
-        <Switch
-          aria-label="切换深色和浅色主题"
-          checked={isDark}
-          checkedChildren={<MoonOutlined />}
-          className="antd-x-theme-switch-plugin-control"
-          id={`${contextId}-control`}
-          onChange={(checked: boolean) =>
-            theme.setMode(checked ? "dark" : "light")
-          }
-          unCheckedChildren={<SunOutlined />}
-        />
-      </Tooltip>
+      <Button
+        aria-label={nextModeLabel}
+        aria-pressed={isDark}
+        className="theme-switch-plugin-control"
+        id={`${contextId}-control`}
+        onClick={() => theme.toggle()}
+        title={nextModeLabel}
+        type="button"
+        variant="outline"
+        size="icon"
+      >
+        {isDark ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
+      </Button>
       {authSnapshot.authenticated ? (
-        <Tooltip
+        <Button
+          aria-label="退出 Mock 登录"
+          className="theme-switch-plugin-logout"
+          onClick={() => auth?.logout()}
           title={`退出 ${authSnapshot.session?.displayName ?? "Demo User"}`}
+          type="button"
+          variant="ghost"
+          size="icon-sm"
         >
-          <Button
-            aria-label="退出 Mock 登录"
-            className="antd-x-theme-switch-plugin-logout"
-            icon={<LogoutOutlined />}
-            onClick={() => auth?.logout()}
-            shape="circle"
-            size="small"
-            type="text"
-          />
-        </Tooltip>
+          <LogOut aria-hidden="true" />
+        </Button>
       ) : null}
     </section>
   );

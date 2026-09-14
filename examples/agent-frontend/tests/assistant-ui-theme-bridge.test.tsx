@@ -5,15 +5,17 @@ import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useAgentUIThemeMode } from "../agent-ui/theme/useAgentUITheme";
-import { createAgentUIThemeService } from "../plugins/antd-x-theme-provider/theme-service";
+import { themeProviderPlugin } from "../plugins/theme-provider/definition";
 import {
   createPluginRegistry,
   PluginServiceRuntime,
   PluginServiceRuntimeContext,
 } from "../runtime/plugins";
-import { AGENT_UI_THEME_SERVICE } from "../services/agent-ui-theme";
+import {
+  AGENT_UI_THEME_SERVICE,
+  type AgentUIThemeService,
+} from "../services/agent-ui-theme";
 import type { AppUIModel } from "../framework/contracts/app-ui-model";
-import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 
 const runtimeActions = {
   sendMessage: async () => undefined,
@@ -33,8 +35,9 @@ const model: AppUIModel = {
   pluginInstances: {
     "theme-bridge-provider-main": {
       id: "theme-bridge-provider-main",
-      pluginId: "theme-bridge-provider",
+      pluginId: "theme-provider",
       enabled: true,
+      props: { mode: "dark" },
     },
   },
 };
@@ -63,26 +66,16 @@ afterEach(() => {
 
 describe("assistant-ui theme bridge", () => {
   it("updates the theme without remounting its conversation consumer", async () => {
-    const themeService = createAgentUIThemeService("dark", () => undefined);
-    const themePlugin: UIPluginDefinition = {
-      manifest: {
-        id: "theme-bridge-provider",
-        name: "Theme Bridge Provider",
-        description: "Test-only Theme Service provider.",
-        version: "1.0.0",
-      },
-      provides: [AGENT_UI_THEME_SERVICE],
-      setup: ({ services }) => {
-        services.provide(AGENT_UI_THEME_SERVICE, themeService);
-      },
-      Component: () => null,
-    };
     const serviceRuntime = new PluginServiceRuntime();
     serviceRuntime.reconcile(
       model,
-      createPluginRegistry([themePlugin]),
+      createPluginRegistry([themeProviderPlugin]),
       runtimeActions,
     );
+    const themeService = serviceRuntime.get<AgentUIThemeService>(
+      AGENT_UI_THEME_SERVICE,
+    );
+    if (themeService === undefined) throw new Error("Theme service was not created.");
     serviceRuntimes.push(serviceRuntime);
 
     const onMount = vi.fn();

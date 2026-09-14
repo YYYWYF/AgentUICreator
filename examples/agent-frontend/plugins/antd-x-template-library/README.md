@@ -8,8 +8,8 @@
 - `assistant-ui-thread-list`：独立的 Conversation Navigation UI Plugin，使用官方 assistant-ui ThreadList 并通过 ConversationService 连接会话目录与选择策略。
 - `conversation-surface`：作为 Conversation Surface UI Plugin，把 `conversation.surface` 接入 canonical assistant-ui Conversation Adapter；Welcome、Suggestions、Timeline、Composer 与消息 Part 均通过 Adapter 的 Semantic Slot replacement boundary 组合。
 - `workspace-inspector`：作为右栏 Container Plugin，用本地 Tab 状态在 `inspector.activity`、`inspector.tool` 与 `inspector.resources` 中一次只渲染一个上下文，不改变叶子插件的激活和贡献生命周期。
-- `antd-x-theme-provider`：通过插件服务注册表提供 `agent-ui.theme` 能力，不直接渲染 UI。
-- `antd-x-theme-switch`：声明 `inject: ["agent-ui.theme"]`，调用另一个插件暴露的主题函数。
+- `theme-provider`：Headless Plugin，通过插件服务注册表提供 `agent-ui.theme` 能力，不直接渲染 UI。
+- `theme-switch`：声明 `inject: ["agent-ui.theme"]`，使用 assistant-ui Button 与 lucide 图标调用共享主题函数。
 - `conversation-service`：注入 `agent-ui.conversation-data-source`，以 headless Plugin 提供可观察的 `agent-ui.conversations` ConversationService。
 - `agent-thread-welcome`：把 Empty Thread 的 Welcome 语义绑定到纯展示的 `AgentThreadWelcome`；可被独立替换或删除，且不拥有 Suggestions。
 - `agent-suggestions`：把 Empty Thread 的 Suggestions 语义绑定到纯展示的 `AgentSuggestions` / `AgentSuggestion`，并保留 `sendMessage`、`run.status` 与 interrupt gating；可被独立替换或删除，且不拥有 Welcome。

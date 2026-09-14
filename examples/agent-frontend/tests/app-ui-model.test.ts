@@ -48,6 +48,7 @@ describe("AppUIModel", () => {
     expect(Object.keys(model.pluginInstances)).toEqual([
       "agent-conversation-data-main",
       "agent-conversation-service-main",
+      "theme-provider-main",
       "assistant-ui-thread-list-main",
       "agent-conversation-surface-main",
     ]);
@@ -59,6 +60,12 @@ describe("AppUIModel", () => {
       id: "agent-conversation-service-main",
       pluginId: "conversation-service",
       enabled: true,
+    });
+    expect(model.pluginInstances["theme-provider-main"]).toEqual({
+      id: "theme-provider-main",
+      pluginId: "theme-provider",
+      enabled: true,
+      props: { mode: "light" },
     });
     expect(model.pluginInstances["assistant-ui-thread-list-main"]).toMatchObject({
       pluginId: "assistant-ui-thread-list",

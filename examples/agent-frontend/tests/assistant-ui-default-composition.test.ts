@@ -11,7 +11,7 @@ import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("assistant-ui default composition", () => {
-  it("keeps the default model to two visible presentation plugins and two headless services", () => {
+  it("keeps the default model to two visible presentation plugins and three headless services", () => {
     const model = parseAppUIModel(appUIJson);
     const visible = Object.values(model.pluginInstances)
       .filter((instance) => instance.enabled && instance.mount !== undefined)
@@ -24,18 +24,18 @@ describe("assistant-ui default composition", () => {
     expect(Object.keys(model.pluginInstances)).toEqual([
       "agent-conversation-data-main",
       "agent-conversation-service-main",
+      "theme-provider-main",
       "assistant-ui-thread-list-main",
       "agent-conversation-surface-main",
     ]);
     expect(Object.values(model.pluginInstances).filter((instance) => instance.enabled && instance.mount === undefined).map((instance) => instance.id)).toEqual([
       "agent-conversation-data-main",
       "agent-conversation-service-main",
+      "theme-provider-main",
     ]);
 
     for (const forbiddenPluginId of [
       "mock-auth-login",
-      "antd-x-theme-provider",
-      "antd-x-theme-switch",
       "workspace-inspector",
       "agent-tool-detail",
       "antd-x-resources",

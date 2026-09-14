@@ -6,10 +6,12 @@ import pluginDefinition0 from "./assistant-ui-thread-list/definition";
 import pluginDefinition1 from "./conversation-data-source/definition";
 import pluginDefinition2 from "./conversation-service/definition";
 import pluginDefinition3 from "./conversation-surface/definition";
+import pluginDefinition4 from "./theme-provider/definition";
 
 export const pluginDefinitions = [
   pluginDefinition0,
   pluginDefinition1,
   pluginDefinition2,
   pluginDefinition3,
+  pluginDefinition4,
 ] as const;

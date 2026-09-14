@@ -1,6 +1,6 @@
 import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
 import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
-import { AntdXThemeProviderPlugin } from "./index";
+import { ThemeProviderPlugin } from "./index";
 import manifestJson from "./manifest.json";
 import { AGENT_UI_THEME_SERVICE } from "../../services/agent-ui-theme";
 import {
@@ -8,7 +8,7 @@ import {
   readAgentUIThemeMode,
 } from "./theme-service";
 
-export const antdXThemeProviderPlugin: UIPluginDefinition = {
+export const themeProviderPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   provides: [AGENT_UI_THEME_SERVICE],
   setup: ({ instance, actions, services }) => {
@@ -19,7 +19,7 @@ export const antdXThemeProviderPlugin: UIPluginDefinition = {
 
     services.provide(AGENT_UI_THEME_SERVICE, theme);
   },
-  Component: AntdXThemeProviderPlugin,
+  Component: ThemeProviderPlugin,
 };
 
-export default antdXThemeProviderPlugin;
+export default themeProviderPlugin;

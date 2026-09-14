@@ -4,7 +4,7 @@ import type {
 } from "../../services/agent-ui-theme";
 
 export function readAgentUIThemeMode(value: unknown): AgentUIThemeMode {
-  return value === "light" ? "light" : "dark";
+  return value === "dark" ? "dark" : "light";
 }
 
 export function createAgentUIThemeService(
