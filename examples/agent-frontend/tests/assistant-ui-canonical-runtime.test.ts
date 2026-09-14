@@ -48,7 +48,17 @@ describe("assistant-ui canonical runtime", () => {
       model.pluginInstances["assistant-ui-conversation-spike-main"],
     ).toBeUndefined();
 
-    expect(Object.values(model.pluginInstances).filter((instance) => instance.enabled)).toHaveLength(6);
+    expect(
+      Object.values(model.pluginInstances)
+        .filter((instance) => instance.enabled),
+    ).toHaveLength(7);
+    expect(
+      model.pluginInstances["assistant-ui-suggestions-main"],
+    ).toMatchObject({
+      pluginId: "assistant-ui-suggestions",
+      enabled: true,
+      mount: { slotId: "conversation.empty.suggestions" },
+    });
   });
 
   it("keeps App on one assistant-ui Runtime owner", async () => {

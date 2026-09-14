@@ -52,6 +52,7 @@ describe("AppUIModel", () => {
       "assistant-ui-thread-list-main",
       "theme-switch-main",
       "agent-conversation-surface-main",
+      "assistant-ui-suggestions-main",
     ]);
     expect(model.root).toMatchObject({
       type: "row",
@@ -84,6 +85,13 @@ describe("AppUIModel", () => {
       mount: { slotId: "conversation.surface" },
     });
     expect(model.pluginInstances["agent-conversation-surface-main"]?.props).toBeUndefined();
+    expect(
+      model.pluginInstances["assistant-ui-suggestions-main"],
+    ).toMatchObject({
+      pluginId: "assistant-ui-suggestions",
+      enabled: true,
+      mount: { slotId: "conversation.empty.suggestions" },
+    });
   });
 
   it("rejects malformed JSON", () => {

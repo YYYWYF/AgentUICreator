@@ -128,6 +128,7 @@ describe("Agent UI component source policy", () => {
       const allowed =
         relativePath === "src/App.tsx" ||
         relativePath.startsWith("plugins/assistant-ui-thread-list/") ||
+        relativePath.startsWith("plugins/assistant-ui-suggestions/") ||
         filePath.startsWith(`${assistantUiVendorRoot}${path.sep}`) ||
         filePath.startsWith(`${assistantUiAdapterRoot}${path.sep}`);
       for (const specifier of importSpecifiers(await readFile(filePath, "utf8"))) {
