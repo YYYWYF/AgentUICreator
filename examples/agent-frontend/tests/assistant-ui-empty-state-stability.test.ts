@@ -31,4 +31,15 @@ describe("assistant-ui empty-state stability", () => {
     expect(globals).toContain("display: none");
     expect(globals).not.toContain("aui-thread-followup-suggestions");
   });
+
+  it("separates populated Suggestions from Composer at the adapter seam", async () => {
+    const globals = await readFile(
+      path.join(projectRoot, "agent-ui/adapters/assistant-ui/styles/globals.css"),
+      "utf8",
+    );
+    expect(globals).toContain(".assistant-ui-empty-state-suggestions");
+    expect(globals).toContain(":has(");
+    expect(globals).toContain('[data-ui-plugin="assistant-ui-suggestions"]');
+    expect(globals).toContain("margin-bottom: 1rem");
+  });
 });

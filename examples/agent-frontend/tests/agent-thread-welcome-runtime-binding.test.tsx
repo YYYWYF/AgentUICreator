@@ -194,6 +194,6 @@ describe("agent-thread-welcome policy", () => {
       'from "../../agent-ui/components/thread-welcome"',
     );
     expect(indexSource).toMatch(/<AgentThreadWelcome\b/u);
-    expect(indexSource).not.toMatch(/AgentSuggestion|sendMessage|useAgent/u);
+    expect(indexSource).not.toMatch(/Suggestion|sendMessage|useAgent/u);
   });
 });

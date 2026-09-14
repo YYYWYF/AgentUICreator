@@ -43,7 +43,7 @@ describe("assistant-ui-suggestions boundary", () => {
     expect(source).toContain("ThreadPrimitive.Suggestion");
     expect(source).toContain("prompt={item.prompt}");
     expect(source).toContain("send");
-    expect(source).not.toMatch(/AgentSuggestions|AgentSuggestion|sendMessage|usePluginActions|antd/u);
+    expect(source).not.toMatch(/agent-ui\/components|sendMessage|usePluginActions|antd/u);
     expect(source).toContain('data-ui-plugin="assistant-ui-suggestions"');
     expect(AssistantUiSuggestionsPlugin).toBeTypeOf("function");
   });

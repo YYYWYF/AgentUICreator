@@ -138,6 +138,15 @@
   display: none;
 }
 
+/* The runtime keeps a child Slot host for empty slots, so key separation on
+ * the canonical Suggestions contribution rather than on the host wrapper. */
+.agent-ui-assistant-ui
+  .assistant-ui-empty-state-suggestions:has(
+    [data-ui-plugin="assistant-ui-suggestions"]
+  ) {
+  margin-bottom: 1rem;
+}
+
 .agent-ui-assistant-ui-debug {
   background: color-mix(in oklch, var(--popover) 92%, transparent);
   border: 1px solid var(--border);

@@ -85,10 +85,6 @@ import { Skeleton } from "../../agent-ui/primitives/skeleton";
 import { Spinner } from "../../agent-ui/primitives/spinner";
 import { ScrollArea, ScrollBar } from "../../agent-ui/primitives/scroll-area";
 import { Switch } from "../../agent-ui/primitives/switch";
-import {
-  AgentSuggestion,
-  AgentSuggestions,
-} from "../../agent-ui/components/suggestions";
 import { AgentThreadWelcome } from "../../agent-ui/components/thread-welcome";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../agent-ui/primitives/tabs";
 import { Textarea } from "../../agent-ui/primitives/textarea";
@@ -1039,65 +1035,6 @@ function ThreadWelcomeGallery() {
   );
 }
 
-function SuggestionsGallery() {
-  return (
-    <div className={styles.messageGrid}>
-      <article className={styles.messageFixture}>
-        <span className={styles.fixtureLabel}>Default</span>
-        <AgentSuggestions title="你可以这样开始">
-          <AgentSuggestion title="总结当前上下文" />
-          <AgentSuggestion title="解释当前界面结构" />
-          <AgentSuggestion title="建议下一步" />
-        </AgentSuggestions>
-      </article>
-
-      <article className={styles.messageFixture}>
-        <span className={styles.fixtureLabel}>With descriptions</span>
-        <AgentSuggestions title="你可以这样开始">
-          <AgentSuggestion
-            title="总结当前上下文"
-            description="提炼目标、约束与下一步"
-          />
-          <AgentSuggestion
-            title="解释当前界面结构"
-            description="说明 AppUIModel 与插件的关系"
-          />
-          <AgentSuggestion
-            title="建议下一步"
-            description="给出一个可执行的后续动作"
-          />
-        </AgentSuggestions>
-      </article>
-
-      <article className={styles.messageFixture}>
-        <span className={styles.fixtureLabel}>Disabled</span>
-        <AgentSuggestions title="运行中">
-          <AgentSuggestion
-            title="总结当前上下文"
-            description="等待当前运行结束"
-            disabled
-          />
-          <AgentSuggestion title="解释当前界面结构" disabled />
-        </AgentSuggestions>
-      </article>
-
-      <article className={styles.messageFixture}>
-        <span className={styles.fixtureLabel}>Long text</span>
-        <AgentSuggestions title="长文本建议">
-          <AgentSuggestion
-            title="请根据当前 AppUIModel、Plugin 运行时与共享 AG-UI 消息，总结最近的架构调整并列出仍然存在的风险。"
-            description="说明每个结论对应的插件边界、Slot ownership 与后续验证步骤。"
-          />
-          <AgentSuggestion
-            title="请解释 conversation.empty.welcome 与 conversation.empty.suggestions 为什么必须是平级 Slot。"
-            description="用一句话说明可替换性，不要复述源码。"
-          />
-        </AgentSuggestions>
-      </article>
-    </div>
-  );
-}
-
 function ConversationListFixture({
   label,
   children,
@@ -1281,8 +1218,6 @@ function ThemeGallery({ theme }: { theme: AgentUITheme }) {
         <h2>Agent Components</h2>
         <h3 className={styles.componentHeading}>Agent Thread Welcome</h3>
         <ThreadWelcomeGallery />
-        <h3 className={styles.componentHeading}>Agent Suggestions</h3>
-        <SuggestionsGallery />
         <h3 className={styles.componentHeading}>Agent Conversation List</h3>
         <ConversationListGallery />
         <h3 className={styles.componentHeading}>Agent Thread</h3>
