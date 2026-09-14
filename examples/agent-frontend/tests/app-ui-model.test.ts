@@ -49,10 +49,10 @@ describe("AppUIModel", () => {
       "agent-conversation-data-main",
       "agent-conversation-service-main",
       "theme-provider-main",
-      "assistant-ui-thread-list-main",
+      "conversation-thread-list-main",
       "theme-switch-main",
       "agent-conversation-surface-main",
-      "assistant-ui-suggestions-main",
+      "conversation-suggestions-main",
     ]);
     expect(model.root).toMatchObject({
       type: "row",
@@ -70,8 +70,8 @@ describe("AppUIModel", () => {
       props: { mode: "light" },
     });
     expect(model.pluginInstances["theme-provider-main"]?.mount).toBeUndefined();
-    expect(model.pluginInstances["assistant-ui-thread-list-main"]).toMatchObject({
-      pluginId: "assistant-ui-thread-list",
+    expect(model.pluginInstances["conversation-thread-list-main"]).toMatchObject({
+      pluginId: "conversation-thread-list",
       enabled: true,
       mount: { slotId: "conversation.navigation" },
     });
@@ -86,9 +86,9 @@ describe("AppUIModel", () => {
     });
     expect(model.pluginInstances["agent-conversation-surface-main"]?.props).toBeUndefined();
     expect(
-      model.pluginInstances["assistant-ui-suggestions-main"],
+      model.pluginInstances["conversation-suggestions-main"],
     ).toMatchObject({
-      pluginId: "assistant-ui-suggestions",
+      pluginId: "conversation-suggestions",
       enabled: true,
       mount: { slotId: "conversation.empty.suggestions" },
     });

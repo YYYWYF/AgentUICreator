@@ -51,8 +51,8 @@ describe("inspectUIProject", () => {
       const mounts = slotId === "conversation.empty.suggestions"
         ? [
             expect.objectContaining({
-              instanceId: "assistant-ui-suggestions-main",
-              pluginId: "assistant-ui-suggestions",
+              instanceId: "conversation-suggestions-main",
+              pluginId: "conversation-suggestions",
             }),
           ]
         : [];

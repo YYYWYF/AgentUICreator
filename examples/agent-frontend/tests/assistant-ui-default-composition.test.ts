@@ -18,19 +18,19 @@ describe("assistant-ui default composition", () => {
       .map((instance) => instance.id);
 
     expect(visible).toEqual([
-      "assistant-ui-thread-list-main",
+      "conversation-thread-list-main",
       "theme-switch-main",
       "agent-conversation-surface-main",
-      "assistant-ui-suggestions-main",
+      "conversation-suggestions-main",
     ]);
     expect(Object.keys(model.pluginInstances)).toEqual([
       "agent-conversation-data-main",
       "agent-conversation-service-main",
       "theme-provider-main",
-      "assistant-ui-thread-list-main",
+      "conversation-thread-list-main",
       "theme-switch-main",
       "agent-conversation-surface-main",
-      "assistant-ui-suggestions-main",
+      "conversation-suggestions-main",
     ]);
     expect(Object.values(model.pluginInstances).filter((instance) => instance.enabled && instance.mount === undefined).map((instance) => instance.id)).toEqual([
       "agent-conversation-data-main",
@@ -68,7 +68,7 @@ describe("assistant-ui default composition", () => {
     });
     expect(JSON.stringify(model.root)).toContain("conversation.surface");
     expect(JSON.stringify(model.root)).not.toContain("workspace.inspector");
-    expect(model.pluginInstances["assistant-ui-thread-list-main"]).toMatchObject({
+    expect(model.pluginInstances["conversation-thread-list-main"]).toMatchObject({
       mount: { slotId: "conversation.navigation" },
     });
     expect(model.pluginInstances["theme-switch-main"]).toMatchObject({
@@ -99,17 +99,18 @@ describe("assistant-ui default composition", () => {
     expect(shell).not.toMatch(/radial-gradient|ui-grid-color|ui-shell-shadow|purple|teal/u);
     expect(threadList).toContain("useAgentUIThemeMode");
     expect(threadList).not.toContain('data-theme="dark"');
-    expect(threadList).not.toContain('className="assistant-ui-thread-list-plugin agent-ui-assistant-ui dark"');
+    expect(threadList).not.toContain('className="conversation-thread-list-plugin agent-ui-conversation dark"');
   });
 
   it("keeps official tool presentation in the assistant-ui config seam", async () => {
     const app = await readFile(path.join(projectRoot, "src/App.tsx"), "utf8");
     const toolkit = await readFile(
-      path.join(projectRoot, "agent-ui/conversation/toolkit/assistant-ui-toolkit.tsx"),
+      path.join(projectRoot, "agent-ui/conversation/toolkit/conversation-toolkit.tsx"),
       "utf8",
     );
 
-    expect(app).toContain("Tools({ toolkit })");
+    expect(app).toContain("toolkit={toolkit}");
+    expect(app).toContain("<ConversationRuntimeProvider");
     expect(app).toContain("createConversationToolkit");
     expect(toolkit).toContain('type: "backend"');
     expect(toolkit).toContain('display: "standalone"');
@@ -117,8 +118,8 @@ describe("assistant-ui default composition", () => {
   });
 
   it("retains upstream ThreadList and conversation data Slot surfaces", async () => {
-    const threadList = await readFile(path.join(projectRoot, "agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx"), "utf8");
-    const thread = await readFile(path.join(projectRoot, "agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"), "utf8");
+    const threadList = await readFile(path.join(projectRoot, "../../packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx"), "utf8");
+    const thread = await readFile(path.join(projectRoot, "../../packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"), "utf8");
     const conversationAdapter = await readFile(path.join(projectRoot, "agent-ui/conversation/ConversationAdapter.tsx"), "utf8");
 
     for (const slot of [

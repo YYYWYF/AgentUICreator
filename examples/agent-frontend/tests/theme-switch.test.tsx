@@ -95,7 +95,7 @@ describe("theme-switch plugin", () => {
       title: "切换到深色模式",
     });
     expect(root().props).toMatchObject({
-      className: "theme-switch-plugin agent-ui-assistant-ui",
+      className: "theme-switch-plugin agent-ui-conversation",
       "data-theme": "light",
     });
 
@@ -110,7 +110,7 @@ describe("theme-switch plugin", () => {
       title: "切换到浅色模式",
     });
     expect(root().props).toMatchObject({
-      className: "theme-switch-plugin agent-ui-assistant-ui dark",
+      className: "theme-switch-plugin agent-ui-conversation dark",
       "data-theme": "dark",
     });
     expect(actions.updateInstanceProps).toHaveBeenCalledWith(

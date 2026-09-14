@@ -6,9 +6,9 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it, afterEach } from "vitest";
 
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const vendorRoot = path.join(projectRoot, "agent-ui/vendor/assistant-ui");
-const guardScript = path.join(projectRoot, "scripts/check-assistant-ui-upstream.mjs");
+const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const vendorRoot = path.join(packageRoot, "src/internal/vendor/assistant-ui");
+const guardScript = path.join(packageRoot, "scripts/check-assistant-ui-upstream.mjs");
 const execFileAsync = promisify(execFile);
 const temporaryRoots: string[] = [];
 
@@ -21,19 +21,16 @@ afterEach(async () => {
 
 describe("assistant-ui upstream ownership guard", () => {
   it("configures the official Base UI Registry and protects the declared set", async () => {
-    const components = JSON.parse(
-      await readFile(path.join(projectRoot, "components.json"), "utf8"),
-    ) as {
-      style?: string;
-      registries?: Record<string, string>;
-    };
-    expect(components.style).toBe("base-nova");
-    expect(components.registries?.["@assistant-ui"]).toBe(
-      "https://r.assistant-ui.com/styles/{style}/{name}.json",
-    );
     const manifest = JSON.parse(
       await readFile(path.join(vendorRoot, "upstream-elements.json"), "utf8"),
-    ) as { owned?: string[]; legacyExceptions?: string[] };
+    ) as {
+      source?: string;
+      style?: string;
+      owned?: string[];
+      legacyExceptions?: string[];
+    };
+    expect(manifest.source).toBe("https://r.assistant-ui.com");
+    expect(manifest.style).toBe("base-nova");
     expect(manifest.owned).toEqual(expect.arrayContaining([
       "components/assistant-ui/elements/thread-list.aui.tsx",
       "components/assistant-ui/elements/attachment.aui.tsx",
@@ -49,7 +46,7 @@ describe("assistant-ui upstream ownership guard", () => {
     "thread-list.aui.tsx",
     "attachment.aui.tsx",
   ])("fails when an upstream-owned Element is modified: %s", async (fileName) => {
-    const temporaryRoot = await mkdtemp(path.join(projectRoot, ".tmp-upstream-element-guard-"));
+    const temporaryRoot = await mkdtemp(path.join(packageRoot, ".tmp-upstream-element-guard-"));
     temporaryRoots.push(temporaryRoot);
     await cp(vendorRoot, temporaryRoot, { recursive: true });
 
@@ -72,7 +69,7 @@ describe("assistant-ui upstream ownership guard", () => {
   });
 
   it("fails when the upstream-owned Thread is modified", async () => {
-    const temporaryRoot = await mkdtemp(path.join(projectRoot, ".tmp-upstream-thread-guard-"));
+    const temporaryRoot = await mkdtemp(path.join(packageRoot, ".tmp-upstream-thread-guard-"));
     temporaryRoots.push(temporaryRoot);
     await cp(vendorRoot, temporaryRoot, { recursive: true });
 
@@ -107,7 +104,7 @@ describe("assistant-ui upstream ownership guard", () => {
   });
 
   it("fails when an Element is added without an ownership declaration", async () => {
-    const temporaryRoot = await mkdtemp(path.join(projectRoot, ".tmp-upstream-unclassified-"));
+    const temporaryRoot = await mkdtemp(path.join(packageRoot, ".tmp-upstream-unclassified-"));
     temporaryRoots.push(temporaryRoot);
     await cp(vendorRoot, temporaryRoot, { recursive: true });
 
@@ -130,7 +127,7 @@ describe("assistant-ui upstream ownership guard", () => {
   });
 
   it("fails when an upstream-owned Element is removed from the lock", async () => {
-    const temporaryRoot = await mkdtemp(path.join(projectRoot, ".tmp-upstream-lock-"));
+    const temporaryRoot = await mkdtemp(path.join(packageRoot, ".tmp-upstream-lock-"));
     temporaryRoots.push(temporaryRoot);
     await cp(vendorRoot, temporaryRoot, { recursive: true });
 

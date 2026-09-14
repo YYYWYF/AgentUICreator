@@ -7,48 +7,70 @@ import { describe, expect, it } from "vitest";
 import { loadAgentUISourceRegistry, parseSourceItem } from "../src/index.js";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const forbiddenPublicTokens = [
+  "assistant-ui",
+  "AssistantUi",
+  "ASSISTANT_UI",
+  "@assistant-ui/",
+  "runtime-assistant-ui",
+] as const;
 
-describe("Agent UI Source Registry contract", () => {
-  it("contains only the canonical assistant-ui foundation in production", async () => {
+describe("Agent UI Source Registry public conversation contract", () => {
+  it("contains only the generic Conversation foundation", async () => {
     const registry = await loadAgentUISourceRegistry();
+
     expect(registry.items.map((entry) => entry.id)).toEqual([
-      "foundation/assistant-ui-conversation",
+      "foundation/conversation",
     ]);
+    expect(registry.items[0]?.kind).toBe("foundation");
     expect(registry.items.filter((entry) => entry.kind === "primitive")).toHaveLength(0);
     expect(registry.items.filter((entry) => entry.kind === "agent-component")).toHaveLength(0);
   });
 
-  it("keeps the canonical foundation fully vendor-owned", async () => {
+  it("installs only the public Conversation bridge", async () => {
     const registry = await loadAgentUISourceRegistry();
-    const foundation = registry.byId.get("foundation/assistant-ui-conversation");
-    expect(foundation?.kind).toBe("foundation");
-    expect(foundation?.files).toHaveLength(39);
-    expect(foundation?.files.every((file) => file.target.startsWith("vendor/assistant-ui/"))).toBe(true);
-    expect(foundation?.upstream).toMatchObject({
-      project: "assistant-ui/assistant-ui",
-      mode: "adapted",
-      license: "MIT",
+    const foundation = registry.byId.get("foundation/conversation");
+
+    expect(foundation?.files).toEqual([{
+      source: "files/conversation/index.ts",
+      target: "conversation/conversation-bridge.ts",
+    }]);
+    expect(foundation?.packages).toEqual({
+      "@agent-ui/react": "^0.1.0",
+      "@agent-ui/runtime-conversation": "^0.1.0",
     });
+    expect(foundation?.upstream).toBeUndefined();
+
+    const source = foundation?.loadedFiles[0]?.content.toString("utf8") ?? "";
+    expect(source).toContain('from "@agent-ui/react"');
+    expect(source).toContain("ConversationThread");
+    for (const token of forbiddenPublicTokens) {
+      expect(foundation?.manifestPath, token).not.toContain(token);
+      expect(foundation?.files[0]?.source, token).not.toContain(token);
+      expect(foundation?.files[0]?.target, token).not.toContain(token);
+      expect(source, token).not.toContain(token);
+    }
   });
 
-  it("parses the canonical registry manifest", async () => {
+  it("parses the canonical generic registry manifest", async () => {
     const manifest = JSON.parse(
       await readFile(path.join(packageRoot, "registry/registry.json"), "utf8"),
     ) as { schemaVersion: number; items: Array<{ id: string }> };
+
     expect(manifest).toEqual({
       schemaVersion: 1,
       items: [{
-        id: "foundation/assistant-ui-conversation",
-        path: "items/foundation-assistant-ui-conversation/item.json",
+        id: "foundation/conversation",
+        path: "items/foundation-conversation/item.json",
       }],
     });
     expect(parseSourceItem({
       schemaVersion: 1,
-      id: "foundation/assistant-ui-conversation",
+      id: "foundation/conversation",
       version: "0.1.13",
       kind: "foundation",
-      description: "canonical foundation",
-      files: [],
-    }, "item.json").id).toBe("foundation/assistant-ui-conversation");
+      description: "canonical Conversation foundation",
+      files: [{ source: "files/conversation/index.ts", target: "conversation/conversation-bridge.ts" }],
+    }, "item.json").id).toBe("foundation/conversation");
   });
 });

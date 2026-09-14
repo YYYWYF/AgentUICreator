@@ -15,9 +15,9 @@ describe("assistant-ui canonical runtime", () => {
     const model = await readModel();
 
     expect(
-      model.pluginInstances["assistant-ui-thread-list-main"],
+      model.pluginInstances["conversation-thread-list-main"],
     ).toMatchObject({
-      pluginId: "assistant-ui-thread-list",
+      pluginId: "conversation-thread-list",
       enabled: true,
       mount: { slotId: "conversation.navigation" },
     });
@@ -51,9 +51,9 @@ describe("assistant-ui canonical runtime", () => {
         .filter((instance) => instance.enabled),
     ).toHaveLength(7);
     expect(
-      model.pluginInstances["assistant-ui-suggestions-main"],
+      model.pluginInstances["conversation-suggestions-main"],
     ).toMatchObject({
-      pluginId: "assistant-ui-suggestions",
+      pluginId: "conversation-suggestions",
       enabled: true,
       mount: { slotId: "conversation.empty.suggestions" },
     });
@@ -67,7 +67,7 @@ describe("assistant-ui canonical runtime", () => {
     expect(app).toContain("<ConversationRuntimeBoundary");
     expect(app.match(/<ConversationRuntimeProvider/gu)).toHaveLength(1);
     expect(app).toContain(
-      'import "../agent-ui/conversation/styles/globals.css";',
+      'import "../agent-ui/conversation/styles.css";',
     );
     expect(app).not.toMatch(
       /createAgUiTransport|createAgentRuntime|LegacyRuntimeBoundary|RuntimeModeBoundary|resolveConversationRuntimeMode|legacyRuntime|conversationSpike/u,

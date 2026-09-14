@@ -11,11 +11,11 @@ const themeHookUrl = new URL(
   import.meta.url,
 );
 const presentationResolverUrl = new URL(
-  "../agent-ui/conversation/config/assistant-ui-presentation-config.ts",
+  "../agent-ui/conversation/config/conversation-presentation-config.ts",
   import.meta.url,
 );
 const globalsUrl = new URL(
-  "../agent-ui/conversation/styles/globals.css",
+  "../../../packages/react/src/styles.css",
   import.meta.url,
 );
 const surfaceDefinitionUrl = new URL(
@@ -32,11 +32,11 @@ const threadListStylesUrl = new URL(
   import.meta.url,
 );
 const vendorThreadListUrl = new URL(
-  "../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx",
+  "../../../packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx",
   import.meta.url,
 );
 const threadUrl = new URL(
-  "@agent-ui/react.tsx",
+  "../../../packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
   import.meta.url,
 );
 
@@ -73,8 +73,8 @@ describe("assistant-ui conversation visual contract", () => {
     ]);
 
     for (const selector of [
-      '.agent-ui-assistant-ui[data-theme="light"]',
-      '.agent-ui-assistant-ui[data-theme="dark"]',
+      '.agent-ui-conversation[data-theme="light"]',
+      '.agent-ui-conversation[data-theme="dark"]',
     ]) {
       expect(globals).toContain(selector);
     }
@@ -169,7 +169,7 @@ describe("assistant-ui conversation visual contract", () => {
         /bg-sidebar|text-sidebar-foreground|padding-inline/u,
       );
 
-      expect(threadListPlugin).toContain("assistant-ui-thread-list-plugin");
+      expect(threadListPlugin).toContain("conversation-thread-list-plugin");
       expect(threadListPlugin).toContain('import "./styles.css"');
       expect(threadListStyles).toContain("background: var(--sidebar);");
       expect(threadListStyles).toContain("color: var(--sidebar-foreground);");

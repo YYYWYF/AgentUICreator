@@ -19,7 +19,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs",
+    "check:public-boundary": "node scripts/check-public-boundary.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

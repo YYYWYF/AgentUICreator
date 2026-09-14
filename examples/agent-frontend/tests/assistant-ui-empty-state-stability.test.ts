@@ -24,22 +24,22 @@ describe("assistant-ui empty-state stability", () => {
 
   it("suppresses only the upstream starter-suggestions wrapper", async () => {
     const globals = await readFile(
-      path.join(projectRoot, "agent-ui/conversation/styles/globals.css"),
+      path.join(projectRoot, "../../packages/react/src/styles.css"),
       "utf8",
     );
-    expect(globals).toContain(".agent-ui-assistant-ui .aui-thread-welcome-suggestions");
+    expect(globals).toContain(".agent-ui-conversation .aui-thread-welcome-suggestions");
     expect(globals).toContain("display: none");
     expect(globals).not.toContain("aui-thread-followup-suggestions");
   });
 
   it("separates populated Suggestions from Composer at the adapter seam", async () => {
     const globals = await readFile(
-      path.join(projectRoot, "agent-ui/conversation/styles/globals.css"),
+      path.join(projectRoot, "../../packages/react/src/styles.css"),
       "utf8",
     );
-    expect(globals).toContain(".assistant-ui-empty-state-suggestions");
+    expect(globals).toContain(".conversation-empty-state-suggestions");
     expect(globals).toContain(":has(");
-    expect(globals).toContain('[data-ui-plugin="assistant-ui-suggestions"]');
+    expect(globals).toContain('[data-ui-plugin="conversation-suggestions"]');
     expect(globals).toContain("margin-bottom: 1rem");
   });
 });

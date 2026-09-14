@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const vendorRoot = path.join(projectRoot, "agent-ui/vendor/assistant-ui");
+const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const vendorRoot = path.join(packageRoot, "src/internal/vendor/assistant-ui");
 
 describe("assistant-ui upstream provenance", () => {
   it("records the resolved assistant-ui main revision and runtime package versions", async () => {

@@ -2,25 +2,27 @@ import { readFile } from "node:fs/promises";
 
 import { describe, expect, it } from "vitest";
 
-const globalsUrl = new URL(
-  "../agent-ui/conversation/styles/globals.css",
+const packageStylesUrl = new URL(
+  "../../../packages/react/src/styles.css",
+  import.meta.url,
+);
+const projectStylesUrl = new URL(
+  "../agent-ui/conversation/styles.css",
   import.meta.url,
 );
 
 describe("assistant-ui scoped Tailwind source coverage", () => {
   it("registers each intended utility consumer without broadening the boundary", async () => {
-    const globals = await readFile(globalsUrl, "utf8");
+    const [packageStyles, projectStyles] = await Promise.all([
+      readFile(packageStylesUrl, "utf8"),
+      readFile(projectStylesUrl, "utf8"),
+    ]);
 
-    expect(globals).toContain(
-      '@import "tailwindcss/utilities.css" layer(utilities) source("../../../vendor/assistant-ui");',
+    expect(packageStyles).toContain(
+      '@import "tailwindcss/utilities.css" layer(utilities) source("./internal/vendor/assistant-ui");',
     );
-    expect(globals).toContain('@source "..";');
-    expect(globals).toContain(
-      '@source "../../../../plugins/conversation-thread-list";',
-    );
-    expect(globals).not.toContain('@source "../../../../plugins";');
-    expect(globals).not.toContain(
-      '@source "../../../../plugins/conversation-suggestions";',
-    );
+    expect(projectStyles).toContain('@import "@agent-ui/react/styles.css";');
+    expect(projectStyles).toContain('@source ".";');
+    expect(projectStyles).toContain('@source "../../plugins";');
   });
 });

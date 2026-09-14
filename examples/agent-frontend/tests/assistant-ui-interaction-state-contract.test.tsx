@@ -13,7 +13,7 @@ describe("assistant-ui interaction state contract", () => {
       "utf8",
     );
     const thread = await readFile(
-      path.join(projectRoot, "agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"),
+      path.join(projectRoot, "../../packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"),
       "utf8",
     );
 

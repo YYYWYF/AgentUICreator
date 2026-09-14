@@ -179,7 +179,7 @@ async function renderPlugin(
       },
       "thread-list": {
         id: "thread-list",
-        pluginId: "assistant-ui-thread-list",
+        pluginId: "conversation-thread-list",
         enabled: true,
         mount: { slotId: "navigation" },
       },
@@ -259,7 +259,7 @@ describe("ConversationThreadListPlugin", () => {
       "utf8",
     );
     expect(css).toContain(
-      ".assistant-ui-thread-list-plugin\n  [data-slot=\"aui_thread-list-item-more\"]",
+      ".conversation-thread-list-plugin\n  [data-slot=\"aui_thread-list-item-more\"]",
     );
     expect(css).toContain("display: none");
   });

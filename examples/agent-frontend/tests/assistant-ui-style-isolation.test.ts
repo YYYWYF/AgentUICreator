@@ -6,11 +6,11 @@ import { describe, expect, it } from "vitest";
 import { createServer, resolveConfig } from "vite";
 
 const globalsUrl = new URL(
-  "../agent-ui/conversation/styles/globals.css",
+  "../../../packages/react/src/styles.css",
   import.meta.url,
 );
 const scopedPreflightUrl = new URL(
-  "../agent-ui/conversation/styles/preflight.scoped.css",
+  "../../../packages/react/src/preflight.scoped.css",
   import.meta.url,
 );
 const workbenchViteConfigUrl = new URL(
@@ -31,7 +31,7 @@ describe("formal assistant-ui adapter style isolation", () => {
       '@import "./preflight.scoped.css" layer(base);',
     );
     expect(globals).toContain(
-      '@import "tailwindcss/utilities.css" layer(utilities) source("../../../vendor/assistant-ui");',
+      '@import "tailwindcss/utilities.css" layer(utilities) source("./internal/vendor/assistant-ui");',
     );
     expect(globals).not.toMatch(/@import\s+["']tailwindcss["']/u);
     expect(globals).not.toMatch(
@@ -66,7 +66,7 @@ describe("formal assistant-ui adapter style isolation", () => {
 
     try {
       const result = await server.transformRequest(
-        "/agent-ui/conversation/styles/globals.css?direct",
+        "/agent-ui/conversation/styles.css?direct",
       );
 
       expect(result?.code).toContain(".sr-only");
@@ -93,9 +93,9 @@ describe("formal assistant-ui adapter style isolation", () => {
     const preflight = await readFile(scopedPreflightUrl, "utf8");
 
     for (const control of ["button", "input", "textarea", "select"]) {
-      expect(preflight).toContain(`.agent-ui-assistant-ui ${control}`);
+      expect(preflight).toContain(`.agent-ui-conversation ${control}`);
     }
-    expect(preflight).toContain(".agent-ui-assistant-ui ::file-selector-button");
+    expect(preflight).toContain(".agent-ui-conversation ::file-selector-button");
     expect(preflight).toContain("font: inherit;");
     expect(preflight).toContain("background-color: transparent;");
     expect(preflight).toContain("appearance: button;");

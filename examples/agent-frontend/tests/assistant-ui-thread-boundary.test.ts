@@ -43,7 +43,7 @@ describe("assistant-ui Thread composition boundary", () => {
 
   it("keeps Thread API and history policy at public seams", async () => {
     const thread = await readFile(
-      path.join(projectRoot, "agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"),
+      path.join(projectRoot, "../../packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"),
       "utf8",
     );
     const surface = await readFile(
