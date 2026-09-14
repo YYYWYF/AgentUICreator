@@ -6,9 +6,7 @@ import type {
   MockScenarioSummary,
 } from "@agent-ui/mock-agent";
 
-import { Badge } from "../../../agent-ui/vendor/assistant-ui/components/ui/badge";
-import { Button } from "../../../agent-ui/vendor/assistant-ui/components/ui/button";
-import { Input } from "../../../agent-ui/vendor/assistant-ui/components/ui/input";
+import { Badge, Button, Input } from "@agent-ui/react";
 import {
   isMockAgentEndpoint,
   MOCK_SCENARIO_AUTORUN_STORAGE_KEY,

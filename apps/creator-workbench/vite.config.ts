@@ -43,6 +43,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.join(frontendRoot, "src"),
+      "@agent-ui/react/styles.css": path.join(
+        workspaceRoot,
+        "packages/react/src/styles.css",
+      ),
       "@agent-ui/creator/ui": path.join(
         workspaceRoot,
         "packages/creator/src/ui/CreatorWorkbench.tsx",
@@ -59,9 +63,13 @@ export default defineConfig({
         workspaceRoot,
         "packages/runtime-agui/src/index.ts",
       ),
-      "@agent-ui/runtime-assistant-ui": path.join(
+      "@agent-ui/react": path.join(
         workspaceRoot,
-        "packages/runtime-assistant-ui/src/index.ts",
+        "packages/react/src/index.ts",
+      ),
+      "@agent-ui/runtime-conversation": path.join(
+        workspaceRoot,
+        "packages/runtime-conversation/src/index.ts",
       ),
       "@agent-ui/runtime-core/testing": path.join(
         workspaceRoot,

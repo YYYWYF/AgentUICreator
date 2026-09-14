@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { ASSISTANT_UI_CONVERSATION_SLOTS } from "../agent-ui/adapters/assistant-ui/slots/semantic-slots";
+import { CONVERSATION_SLOTS } from "../agent-ui/conversation/slots/semantic-slots";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -14,7 +14,7 @@ async function read(relativePath: string): Promise<string> {
 
 describe("assistant-ui semantic Slot adapter", () => {
   it("exposes only official Thread composition slots", () => {
-    expect(Object.values(ASSISTANT_UI_CONVERSATION_SLOTS)).toEqual([
+    expect(Object.values(CONVERSATION_SLOTS)).toEqual([
       "conversation.empty.welcome",
       "conversation.empty.suggestions",
     ]);
@@ -22,13 +22,13 @@ describe("assistant-ui semantic Slot adapter", () => {
 
   it("uses official ThreadComponent seams and keeps toolkit composition external", async () => {
     const adapter = await read(
-      "agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationAdapter.tsx",
+      "agent-ui/conversation/ConversationAdapter.tsx",
     );
     const surface = await read(
-      "agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationSurface.tsx",
+      "agent-ui/conversation/ConversationSurface.tsx",
     );
     const toolkit = await read(
-      "agent-ui/adapters/assistant-ui/toolkit/mock/MockDispatchSubagentToolUI.tsx",
+      "agent-ui/conversation/toolkit/mock/MockDispatchSubagentToolUI.tsx",
     );
 
     expect(adapter).toContain("Welcome:");
@@ -46,7 +46,7 @@ describe("assistant-ui semantic Slot adapter", () => {
 
   it("keeps only the two product-owned empty-state slots", async () => {
     const slots = await read(
-      "agent-ui/adapters/assistant-ui/slots/semantic-slots.ts",
+      "agent-ui/conversation/slots/semantic-slots.ts",
     );
     expect(slots).toContain('welcome: "conversation.empty.welcome"');
     expect(slots).toContain('suggestions: "conversation.empty.suggestions"');

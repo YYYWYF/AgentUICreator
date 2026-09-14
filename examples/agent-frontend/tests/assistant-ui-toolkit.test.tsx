@@ -7,9 +7,9 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   SearchFilesToolUI,
-  assistantUiToolkit,
+  conversationToolkit,
   formatSearchFilesResult,
-} from "../agent-ui/adapters/assistant-ui/toolkit";
+} from "../agent-ui/conversation/toolkit";
 
 type SearchFilesToolProps = ToolCallMessagePartProps<
   Record<string, unknown>,
@@ -54,12 +54,13 @@ afterEach(async () => {
 
 describe("assistant-ui tool presentation", () => {
   it("registers search_files as a standalone backend renderer", () => {
-    const searchFiles = assistantUiToolkit.search_files;
+    const searchFiles = conversationToolkit.search_files;
+    if (searchFiles === undefined) throw new Error("search_files tool is missing");
 
     expect(searchFiles.type).toBe("backend");
     expect(searchFiles.display).toBe("standalone");
     expect(searchFiles.render).toBeTypeOf("function");
-    expect((searchFiles as Record<string, unknown>).execute).toBeUndefined();
+    expect((searchFiles as unknown as Record<string, unknown>).execute).toBeUndefined();
   });
 
   it("formats known and unknown search results defensively", () => {

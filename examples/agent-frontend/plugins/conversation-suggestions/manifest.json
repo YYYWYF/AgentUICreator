@@ -1,0 +1,7 @@
+{
+  "id": "conversation-suggestions",
+  "name": "Conversation Suggestions",
+  "description": "Renders starter prompts through the Conversation public surface.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-suggestions"]
+}

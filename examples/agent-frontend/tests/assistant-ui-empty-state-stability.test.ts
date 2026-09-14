@@ -11,20 +11,20 @@ describe("assistant-ui empty-state stability", () => {
     const adapter = await readFile(
       path.join(
         projectRoot,
-        "agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationAdapter.tsx",
+        "agent-ui/conversation/ConversationAdapter.tsx",
       ),
       "utf8",
     );
-    expect(adapter).toContain("AssistantUiEmptyState");
+    expect(adapter).toContain("ConversationEmptyState");
     expect(adapter).toContain("components.Welcome =");
-    expect(adapter).toContain("ASSISTANT_UI_CONVERSATION_SLOTS.suggestions");
-    expect(adapter).toContain("renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.suggestions, null)");
+    expect(adapter).toContain("CONVERSATION_SLOTS.suggestions");
+    expect(adapter).toContain("renderSlot(CONVERSATION_SLOTS.suggestions, null)");
     expect(adapter).not.toContain("composer.isEmpty");
   });
 
   it("suppresses only the upstream starter-suggestions wrapper", async () => {
     const globals = await readFile(
-      path.join(projectRoot, "agent-ui/adapters/assistant-ui/styles/globals.css"),
+      path.join(projectRoot, "agent-ui/conversation/styles/globals.css"),
       "utf8",
     );
     expect(globals).toContain(".agent-ui-assistant-ui .aui-thread-welcome-suggestions");
@@ -34,7 +34,7 @@ describe("assistant-ui empty-state stability", () => {
 
   it("separates populated Suggestions from Composer at the adapter seam", async () => {
     const globals = await readFile(
-      path.join(projectRoot, "agent-ui/adapters/assistant-ui/styles/globals.css"),
+      path.join(projectRoot, "agent-ui/conversation/styles/globals.css"),
       "utf8",
     );
     expect(globals).toContain(".assistant-ui-empty-state-suggestions");

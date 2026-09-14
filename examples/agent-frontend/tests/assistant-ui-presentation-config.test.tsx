@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  resolveAssistantUiPresentationConfig,
-} from "../agent-ui/adapters/assistant-ui/config";
+  resolveConversationPresentationConfig,
+} from "../agent-ui/conversation/config";
 import type { AppUIModel } from "../framework/contracts/app-ui-model";
 
 function createModel(
-  assistantUiPresentation?: Record<string, unknown>,
+  conversationPresentation?: Record<string, unknown>,
 ): AppUIModel {
   return {
     version: "2",
@@ -21,9 +21,9 @@ function createModel(
         pluginId: "conversation-surface",
         enabled: true,
         mount: { slotId: "conversation.surface" },
-        ...(assistantUiPresentation === undefined
+        ...(conversationPresentation === undefined
           ? {}
-          : { props: { assistantUiPresentation } }),
+          : { props: { conversationPresentation } }),
       },
     },
   };
@@ -31,7 +31,7 @@ function createModel(
 
 describe("assistant-ui presentation config", () => {
   it("maps only the Welcome configuration", () => {
-    expect(resolveAssistantUiPresentationConfig(createModel({
+    expect(resolveConversationPresentationConfig(createModel({
       welcome: {
         title: "Agent Frontend",
         description: "Canonical assistant-ui presentation",
@@ -49,7 +49,7 @@ describe("assistant-ui presentation config", () => {
   });
 
   it("does not expose the removed composer presentation contract", () => {
-    const presentation = resolveAssistantUiPresentationConfig(createModel({
+    const presentation = resolveConversationPresentationConfig(createModel({
       composer: {
         placeholder: "No longer supported by Thread",
         quickPrompts: [{ label: "No", value: "No" }],
@@ -63,7 +63,7 @@ describe("assistant-ui presentation config", () => {
   });
 
   it("fails closed to empty product configuration when the surface is absent", () => {
-    expect(resolveAssistantUiPresentationConfig(createModel())).toEqual({
+    expect(resolveConversationPresentationConfig(createModel())).toEqual({
       welcome: {},
     });
   });

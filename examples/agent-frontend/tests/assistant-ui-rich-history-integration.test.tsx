@@ -11,10 +11,10 @@ import {
 } from "@assistant-ui/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createAssistantUiSemanticThreadComponents } from "../agent-ui/adapters/assistant-ui/conversation";
-import { AssistantUiConversationSurface } from "../agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationSurface";
-import { createAssistantUiToolkit } from "../agent-ui/adapters/assistant-ui/toolkit";
-import { projectConversationReplay } from "../agent-ui/adapters/assistant-ui/threads/conversation-history-projector";
+import { createConversationSemanticThreadComponents } from "../agent-ui/conversation";
+import { ConversationSurface } from "../agent-ui/conversation/ConversationSurface";
+import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
+import { projectConversationReplay } from "../agent-ui/conversation/threads/conversation-history-projector";
 import { mockConversationFixtures } from "../dev-mock/conversations/fixtures";
 import type { UIPluginComponentProps } from "../framework/contracts/ui-plugin";
 
@@ -74,15 +74,15 @@ function RichHistoryFixture({ conversationId }: { conversationId: string }) {
   }
 
   const runtime = useLocalRuntime(chatModel, {
-    initialMessages: projectConversationReplay(fixture.detail.replay),
+    initialMessages: projectConversationReplay(fixture.detail.replay) as never,
   });
   const config = AuiConfig({
-    tools: Tools({ toolkit: createAssistantUiToolkit({ mockAgentElements: true }) }),
+    tools: Tools({ toolkit: createConversationToolkit({ mockAgentElements: true }) }),
   });
   return (
     <AssistantRuntimeProvider config={config} runtime={runtime}>
-      <AssistantUiConversationSurface
-        components={createAssistantUiSemanticThreadComponents(renderFallback)}
+      <ConversationSurface
+        components={createConversationSemanticThreadComponents(renderFallback)}
       />
     </AssistantRuntimeProvider>
   );

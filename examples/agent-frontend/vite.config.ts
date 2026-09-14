@@ -42,13 +42,21 @@ export default defineConfig(async ({ command, mode }) => {
     resolve: {
       alias: {
         "@": path.join(workspaceRoot, "examples/agent-frontend/src"),
+        "@agent-ui/react/styles.css": path.join(
+          workspaceRoot,
+          "packages/react/src/styles.css",
+        ),
         "@agent-ui/source-registry": path.join(
           workspaceRoot,
           "packages/source-registry/src/index.ts",
         ),
-        "@agent-ui/runtime-assistant-ui": path.join(
+        "@agent-ui/react": path.join(
           workspaceRoot,
-          "packages/runtime-assistant-ui/src/index.ts",
+          "packages/react/src/index.ts",
+        ),
+        "@agent-ui/runtime-conversation": path.join(
+          workspaceRoot,
+          "packages/runtime-conversation/src/index.ts",
         ),
         "@agent-ui/runtime-core/testing": path.join(
           workspaceRoot,

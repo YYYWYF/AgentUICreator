@@ -20,8 +20,15 @@
       "@/*": ["./src/*"],
       "@agent-ui/mock-agent": ["../../packages/mock-agent/src/index.ts"],
       "@agent-ui/source-registry": ["../../packages/source-registry/src/index.ts"],
-      "@agent-ui/runtime-assistant-ui": [
-        "../../packages/runtime-assistant-ui/src/index.ts"
+      "@agent-ui/react": ["../../packages/react/src/index.ts"],
+      "@agent-ui/runtime-conversation": [
+        "../../packages/runtime-conversation/src/index.ts"
+      ],
+      "@assistant-ui/react": [
+        "../../packages/react/node_modules/@assistant-ui/react"
+      ],
+      "@assistant-ui/react-ag-ui": [
+        "../../packages/runtime-conversation/node_modules/@assistant-ui/react-ag-ui"
       ],
       "@agent-ui/runtime-core": ["../../packages/runtime-core/src/index.ts"],
       "@agent-ui/runtime-react": ["../../packages/runtime-react/src/index.ts"],
@@ -41,6 +48,10 @@
     "src/**/*.tsx",
     "tests/**/*.ts",
     "tests/**/*.tsx",
-    "vite.config.ts"
+    "vite.config.ts",
+    "../../packages/react/src/**/*.ts",
+    "../../packages/react/src/**/*.tsx",
+    "../../packages/runtime-conversation/src/**/*.ts",
+    "../../packages/runtime-conversation/src/**/*.tsx"
   ]
 }

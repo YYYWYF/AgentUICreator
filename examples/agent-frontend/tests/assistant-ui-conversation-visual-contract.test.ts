@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 
 const surfaceUrl = new URL(
-  "../agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationSurface.tsx",
+  "../agent-ui/conversation/ConversationSurface.tsx",
   import.meta.url,
 );
 const themeHookUrl = new URL(
@@ -11,11 +11,11 @@ const themeHookUrl = new URL(
   import.meta.url,
 );
 const presentationResolverUrl = new URL(
-  "../agent-ui/adapters/assistant-ui/config/assistant-ui-presentation-config.ts",
+  "../agent-ui/conversation/config/assistant-ui-presentation-config.ts",
   import.meta.url,
 );
 const globalsUrl = new URL(
-  "../agent-ui/adapters/assistant-ui/styles/globals.css",
+  "../agent-ui/conversation/styles/globals.css",
   import.meta.url,
 );
 const surfaceDefinitionUrl = new URL(
@@ -24,11 +24,11 @@ const surfaceDefinitionUrl = new URL(
 );
 const appUIUrl = new URL("../app-ui/app-ui.json", import.meta.url);
 const threadListPluginUrl = new URL(
-  "../plugins/assistant-ui-thread-list/index.tsx",
+  "../plugins/conversation-thread-list/index.tsx",
   import.meta.url,
 );
 const threadListStylesUrl = new URL(
-  "../plugins/assistant-ui-thread-list/styles.css",
+  "../plugins/conversation-thread-list/styles.css",
   import.meta.url,
 );
 const vendorThreadListUrl = new URL(
@@ -36,7 +36,7 @@ const vendorThreadListUrl = new URL(
   import.meta.url,
 );
 const threadUrl = new URL(
-  "../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
+  "@agent-ui/react.tsx",
   import.meta.url,
 );
 
@@ -49,7 +49,7 @@ describe("assistant-ui conversation visual contract", () => {
     ]);
 
     expect(surface).toContain(
-      'export type AssistantUiConversationTheme = "light" | "dark"',
+      'export type ConversationTheme = "light" | "dark"',
     );
     expect(surface).toContain('theme = "light"');
     expect(surface).toContain(
@@ -134,7 +134,7 @@ describe("assistant-ui conversation visual contract", () => {
     const resolver = await readFile(presentationResolverUrl, "utf8");
 
     expect(resolver).toContain('"agent-conversation-surface-main"');
-    expect(resolver).toContain("assistantUiPresentation");
+    expect(resolver).toContain("conversationPresentation");
     for (const disabledReplacementId of [
       "agent-welcome-main",
       "agent-prompts-main",

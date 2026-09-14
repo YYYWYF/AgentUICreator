@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { Button } from "../../../agent-ui/vendor/assistant-ui/components/ui/button";
+import { Button } from "@agent-ui/react";
 import {
   isMockAgentEndpoint,
   resolveMockScenarioSearchParams,

@@ -9,7 +9,7 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 describe("conversation navigation policy", () => {
   it("keeps navigation on the assistant-ui ThreadList surface", async () => {
     const threadList = await readFile(
-      path.join(projectRoot, "plugins/assistant-ui-thread-list/index.tsx"),
+      path.join(projectRoot, "plugins/conversation-thread-list/index.tsx"),
       "utf8",
     );
     const appUI = await readFile(path.join(projectRoot, "app-ui/app-ui.json"), "utf8");

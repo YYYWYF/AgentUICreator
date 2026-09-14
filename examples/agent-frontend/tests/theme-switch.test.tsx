@@ -7,7 +7,7 @@ import {
 } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { Button } from "../agent-ui/vendor/assistant-ui/components/ui/button";
+import { Button } from "@agent-ui/react";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import { PluginInstanceProvider } from "../runtime/context";
 import { createInstanceActions } from "../runtime/plugins/PluginServiceRuntime";

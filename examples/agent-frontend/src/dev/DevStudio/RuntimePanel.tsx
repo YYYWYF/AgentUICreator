@@ -1,6 +1,6 @@
 import {
-  useAssistantUiRuntimeObservation,
-} from "@agent-ui/runtime-assistant-ui";
+  useConversationRuntimeObservation,
+} from "@agent-ui/runtime-conversation";
 
 import { useAgentRuntimeSnapshot } from "../../../runtime/context";
 import type { AppAgentState } from "../../../agent-contract/agent-state";
@@ -13,11 +13,11 @@ export interface RuntimePanelProps {
 
 export function RuntimePanel({ endpoint, mockEnabled }: RuntimePanelProps) {
   const snapshot = useAgentRuntimeSnapshot<AppAgentState>();
-  const assistantUiObservation = useAssistantUiRuntimeObservation();
+  const conversationObservation = useConversationRuntimeObservation();
 
   return (
     <RuntimePanelView
-      assistantUiObservation={assistantUiObservation}
+      conversationObservation={conversationObservation}
       endpoint={endpoint}
       mockEnabled={mockEnabled}
       snapshot={snapshot}

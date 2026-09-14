@@ -5,7 +5,7 @@ import {
   projectAgentStatus,
   projectSubagentList,
   projectSubagentParts,
-} from "../agent-ui/adapters/assistant-ui/agents";
+} from "../agent-ui/conversation/agents";
 
 describe("assistant-ui official agent element projections", () => {
   it("defensively projects plans and preserves empty plans", () => {

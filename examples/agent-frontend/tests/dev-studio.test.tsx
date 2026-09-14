@@ -10,7 +10,7 @@ import type {
   AgentRuntimeSnapshot,
 } from "@agent-ui/runtime-core";
 
-const assistantUiMock = vi.hoisted(() => ({
+const conversationMock = vi.hoisted(() => ({
   observation: {
     schemaVersion: 1 as const,
     threadId: "thread-test",
@@ -19,8 +19,8 @@ const assistantUiMock = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@agent-ui/runtime-assistant-ui", () => ({
-  useAssistantUiRuntimeObservation: () => assistantUiMock.observation,
+vi.mock("@agent-ui/runtime-conversation", () => ({
+  useConversationRuntimeObservation: () => conversationMock.observation,
 }));
 
 import { AgentRuntimeProvider } from "../runtime/context";
@@ -100,7 +100,7 @@ describe("RuntimePanel", () => {
     ];
     const renderer = create(
       <RuntimePanelView
-        assistantUiObservation={assistantUiMock.observation}
+        conversationObservation={conversationMock.observation}
         endpoint="/__agent-ui/mock?scenario=subagents&speed=1"
         mockEnabled
         snapshot={snapshot({
@@ -169,8 +169,8 @@ describe("RuntimePanel", () => {
   it("keeps both normalized and assistant-ui raw snapshots available", () => {
     const renderer = create(
       <RuntimePanelView
-        assistantUiObservation={{
-          ...assistantUiMock.observation,
+        conversationObservation={{
+          ...conversationMock.observation,
           toolCalls: [{
             toolCallId: "tool-1",
             toolName: "search_files",

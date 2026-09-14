@@ -16,17 +16,17 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { useCallback, useMemo } from "react";
 
 import {
-  AssistantUiAgUiRuntimeProvider,
-  type AssistantUiAgentFactory,
-} from "@agent-ui/runtime-assistant-ui";
+  ConversationRuntimeProvider,
+  type ConversationAgentFactory,
+} from "@agent-ui/runtime-conversation";
 import { createMockConversationApiHandler } from "../dev-mock/conversations/handler";
-import { createAssistantUiSemanticThreadComponents } from "../agent-ui/adapters/assistant-ui/conversation";
-import { AssistantUiConversationSurface } from "../agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationSurface";
-import { createAssistantUiToolkit } from "../agent-ui/adapters/assistant-ui/toolkit";
+import { createConversationSemanticThreadComponents } from "../agent-ui/conversation";
+import { ConversationSurface } from "../agent-ui/conversation/ConversationSurface";
+import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
 import {
-  createConversationServiceAssistantUiThreadBinding,
-  type ConversationServiceAssistantUiThreadBinding,
-} from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
+  createConversationServiceThreadBinding,
+  type ConversationServiceThreadBinding,
+} from "../agent-ui/conversation/threads/conversation-service-thread-binding";
 import {
   createHttpConversationDataSource,
   createConversationService,
@@ -87,7 +87,7 @@ async function revealAttachmentName(container: HTMLDivElement): Promise<void> {
   });
 }
 
-function createAgent(): ReturnType<AssistantUiAgentFactory> {
+function createAgent(): ReturnType<ConversationAgentFactory> {
   return {
     threadId: "live",
     runAgent: vi.fn(),
@@ -115,34 +115,25 @@ function RichHistoryRuntimeFixture({
   binding,
   onRuntime,
 }: {
-  agent: ReturnType<AssistantUiAgentFactory>;
-  binding: ConversationServiceAssistantUiThreadBinding;
+  agent: ReturnType<ConversationAgentFactory>;
+  binding: ConversationServiceThreadBinding;
   onRuntime: (runtime: AssistantRuntime) => void;
 }) {
   const agentFactory = useCallback(() => agent, [agent]);
   const components = useMemo(
-    () => createAssistantUiSemanticThreadComponents(renderFallback),
+    () => createConversationSemanticThreadComponents(renderFallback),
     [],
   );
-  const config = useMemo(
-    () => AuiConfig({
-      tools: Tools({
-        toolkit: createAssistantUiToolkit({ mockAgentElements: true }),
-      }),
-    }),
-    [],
-  );
-
   return (
-    <AssistantUiAgUiRuntimeProvider
+    <ConversationRuntimeProvider
       endpoint="http://example.test/agent"
       threadBinding={binding}
       unstable_agentFactory={agentFactory}
-      config={config}
+      toolkit={createConversationToolkit({ mockAgentElements: true })}
     >
       <RuntimeCapture onRuntime={onRuntime} />
-      <AssistantUiConversationSurface components={components} />
-    </AssistantUiAgUiRuntimeProvider>
+      <ConversationSurface components={components} />
+    </ConversationRuntimeProvider>
   );
 }
 
@@ -151,7 +142,7 @@ async function mountRuntime() {
     endpoint: `${origin}/__agent-ui/mock-data`,
   });
   const service = createConversationService({ dataSource });
-  const binding = createConversationServiceAssistantUiThreadBinding();
+  const binding = createConversationServiceThreadBinding();
   const detach = binding.attachConversationService(service);
   await service.refresh();
 

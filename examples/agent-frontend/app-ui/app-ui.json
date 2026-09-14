@@ -60,9 +60,9 @@
         "mode": "light"
       }
     },
-    "assistant-ui-thread-list-main": {
-      "id": "assistant-ui-thread-list-main",
-      "pluginId": "assistant-ui-thread-list",
+    "conversation-thread-list-main": {
+      "id": "conversation-thread-list-main",
+      "pluginId": "conversation-thread-list",
       "enabled": true,
       "mount": {
         "slotId": "conversation.navigation"
@@ -84,9 +84,9 @@
         "slotId": "conversation.surface"
       }
     },
-    "assistant-ui-suggestions-main": {
-      "id": "assistant-ui-suggestions-main",
-      "pluginId": "assistant-ui-suggestions",
+    "conversation-suggestions-main": {
+      "id": "conversation-suggestions-main",
+      "pluginId": "conversation-suggestions",
       "enabled": true,
       "mount": {
         "slotId": "conversation.empty.suggestions"

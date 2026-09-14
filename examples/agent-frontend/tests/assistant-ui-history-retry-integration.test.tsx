@@ -8,15 +8,15 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import {
-  AssistantUiAgUiRuntimeProvider,
-  useAssistantUiRuntimeBridge,
-  type AssistantUiAgentRuntimeBridge,
-  type AssistantUiAgentFactory,
-} from "@agent-ui/runtime-assistant-ui";
+  ConversationRuntimeProvider,
+  useConversationRuntimeBridge,
+  type ConversationAgentRuntimeBridge,
+  type ConversationAgentFactory,
+} from "@agent-ui/runtime-conversation";
 import {
-  createConversationServiceAssistantUiThreadBinding,
-  type ConversationServiceAssistantUiThreadBinding,
-} from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
+  createConversationServiceThreadBinding,
+  type ConversationServiceThreadBinding,
+} from "../agent-ui/conversation/threads/conversation-service-thread-binding";
 import {
   createConversationService,
   type ConversationService,
@@ -177,14 +177,14 @@ function RuntimeCapture({
 function BridgeCapture({
   onRuntime,
 }: {
-  onRuntime: (runtime: AssistantUiAgentRuntimeBridge) => void;
+  onRuntime: (runtime: ConversationAgentRuntimeBridge) => void;
 }) {
-  const { agentRuntime } = useAssistantUiRuntimeBridge();
+  const { agentRuntime } = useConversationRuntimeBridge();
   onRuntime(agentRuntime);
   return null;
 }
 
-function createAgent(): ReturnType<AssistantUiAgentFactory> {
+function createAgent(): ReturnType<ConversationAgentFactory> {
   return {
     threadId: "live",
     runAgent: vi.fn(),
@@ -199,21 +199,21 @@ function RuntimeFixture({
   onRuntime,
   onBridge,
 }: {
-  agent: ReturnType<AssistantUiAgentFactory>;
-  binding: ConversationServiceAssistantUiThreadBinding;
+  agent: ReturnType<ConversationAgentFactory>;
+  binding: ConversationServiceThreadBinding;
   onRuntime: (runtime: AssistantRuntime) => void;
-  onBridge?: (runtime: AssistantUiAgentRuntimeBridge) => void;
+  onBridge?: (runtime: ConversationAgentRuntimeBridge) => void;
 }) {
-  const agentFactory: AssistantUiAgentFactory = () => agent;
+  const agentFactory: ConversationAgentFactory = () => agent;
   return (
-    <AssistantUiAgUiRuntimeProvider
+    <ConversationRuntimeProvider
       endpoint="http://example.test/agent"
       threadBinding={binding}
       unstable_agentFactory={agentFactory}
     >
       <RuntimeCapture onRuntime={onRuntime} />
       {onBridge === undefined ? null : <BridgeCapture onRuntime={onBridge} />}
-    </AssistantUiAgUiRuntimeProvider>
+    </ConversationRuntimeProvider>
   );
 }
 
@@ -224,7 +224,7 @@ describe("assistant-ui history retry navigation", () => {
       get: async (id) => ({ id, title: id, messages: [] }),
     };
     const service = createConversationService({ dataSource });
-    const binding = createConversationServiceAssistantUiThreadBinding();
+    const binding = createConversationServiceThreadBinding();
     const detach = binding.attachConversationService(service);
     const liveMessages = [
       threadMessage("live-user", "user"),
@@ -234,7 +234,7 @@ describe("assistant-ui history retry navigation", () => {
     const firstThreadId = binding.getThreadId();
     const agent = createAgent();
     let runtime: AssistantRuntime | undefined;
-    let bridge: AssistantUiAgentRuntimeBridge | undefined;
+    let bridge: ConversationAgentRuntimeBridge | undefined;
     let renderer: ReactTestRenderer | undefined;
 
     try {
@@ -313,7 +313,7 @@ describe("assistant-ui history retry navigation", () => {
 
   it("keeps the live thread on failure and hydrates history through retry", async () => {
     const service = new RetryConversationService();
-    const binding = createConversationServiceAssistantUiThreadBinding();
+    const binding = createConversationServiceThreadBinding();
     const detach = binding.attachConversationService(service);
     const liveMessages = [
       threadMessage("live-user", "user"),
@@ -402,7 +402,7 @@ describe("assistant-ui history retry navigation", () => {
 
   it("keeps Runtime and Service aligned after New Thread succeeds", async () => {
     const service = new RetryConversationService();
-    const binding = createConversationServiceAssistantUiThreadBinding();
+    const binding = createConversationServiceThreadBinding();
     const detach = binding.attachConversationService(service);
     const liveMessages = [
       threadMessage("live-user", "user"),

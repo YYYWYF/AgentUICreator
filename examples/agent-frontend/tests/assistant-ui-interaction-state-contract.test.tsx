@@ -9,7 +9,7 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 describe("assistant-ui interaction state contract", () => {
   it("leaves reasoning and tool presentation with upstream assistant-ui", async () => {
     const adapter = await readFile(
-      path.join(projectRoot, "agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationAdapter.tsx"),
+      path.join(projectRoot, "agent-ui/conversation/ConversationAdapter.tsx"),
       "utf8",
     );
     const thread = await readFile(
@@ -26,7 +26,7 @@ describe("assistant-ui interaction state contract", () => {
 
   it("does not expose legacy message Slot bridge ownership", async () => {
     const slots = await readFile(
-      path.join(projectRoot, "agent-ui/adapters/assistant-ui/slots/semantic-slots.ts"),
+      path.join(projectRoot, "agent-ui/conversation/slots/semantic-slots.ts"),
       "utf8",
     );
     expect(slots).toContain("conversation.empty.welcome");

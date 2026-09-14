@@ -114,7 +114,7 @@ vi.mock("@assistant-ui/react", async (importOriginal) => {
 });
 
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
-import { Button } from "../agent-ui/vendor/assistant-ui/components/ui/button";
+import { Button } from "@agent-ui/react";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import { AGENT_UI_THEME_SERVICE } from "../services/agent-ui-theme";
 import {
@@ -123,7 +123,7 @@ import {
   type ConversationSnapshot,
   EMPTY_CONVERSATION_SNAPSHOT,
 } from "../services/conversations";
-import { assistantUiThreadListPlugin } from "../plugins/assistant-ui-thread-list/definition";
+import { conversationThreadListPlugin } from "../plugins/conversation-thread-list/definition";
 import { createPluginRegistry } from "../runtime/plugins";
 import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
@@ -185,7 +185,7 @@ async function renderPlugin(
       },
     },
   });
-  const registry = createPluginRegistry([servicePlugin, assistantUiThreadListPlugin]);
+  const registry = createPluginRegistry([servicePlugin, conversationThreadListPlugin]);
   let renderer: ReactTestRenderer | undefined;
   await act(async () => {
     renderer = create(
@@ -214,7 +214,7 @@ async function renderPlugin(
   return { renderer, service };
 }
 
-describe("AssistantUiThreadListPlugin", () => {
+describe("ConversationThreadListPlugin", () => {
   it.each(["idle", "running", "awaiting-input"] as const)(
     "%s exposes the official New Thread control with the expected navigation state",
     async (status) => {
@@ -254,7 +254,7 @@ describe("AssistantUiThreadListPlugin", () => {
     const css = await readFile(
       path.join(
         path.dirname(new URL(import.meta.url).pathname),
-        "../plugins/assistant-ui-thread-list/styles.css",
+        "../plugins/conversation-thread-list/styles.css",
       ),
       "utf8",
     );
@@ -265,10 +265,10 @@ describe("AssistantUiThreadListPlugin", () => {
   });
 
   it("declares theme as optional while requiring conversation data", () => {
-    expect(assistantUiThreadListPlugin.inject).toEqual([
+    expect(conversationThreadListPlugin.inject).toEqual([
       AGENT_UI_CONVERSATION_SERVICE,
     ]);
-    expect(assistantUiThreadListPlugin.optionalInject).toEqual([
+    expect(conversationThreadListPlugin.optionalInject).toEqual([
       AGENT_UI_THEME_SERVICE,
     ]);
   });

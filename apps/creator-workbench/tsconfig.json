@@ -23,8 +23,12 @@
       ],
       "@agent-ui/example-agent-frontend/App": ["../../examples/agent-frontend/src/App.tsx"],
       "@agent-ui/runtime-agui": ["../../packages/runtime-agui/src/index.ts"],
-      "@agent-ui/runtime-assistant-ui": [
-        "../../packages/runtime-assistant-ui/src/index.ts"
+      "@agent-ui/mock-agent": ["../../packages/mock-agent/src/index.ts"],
+      "@agent-ui/react": [
+        "../../packages/react/src/index.ts"
+      ],
+      "@agent-ui/runtime-conversation": [
+        "../../packages/runtime-conversation/src/index.ts"
       ],
       "@agent-ui/runtime-core": ["../../packages/runtime-core/src/index.ts"],
       "@agent-ui/runtime-react": ["../../packages/runtime-react/src/index.ts"],
@@ -49,8 +53,11 @@
     "../../examples/agent-frontend/src/App.tsx",
     "../../examples/agent-frontend/src/preview-data.ts",
     "../../packages/runtime-agui/src/**/*.ts",
-    "../../packages/runtime-assistant-ui/src/**/*.ts",
-    "../../packages/runtime-assistant-ui/src/**/*.tsx",
+    "../../packages/mock-agent/src/**/*.ts",
+    "../../packages/react/src/**/*.ts",
+    "../../packages/react/src/**/*.tsx",
+    "../../packages/runtime-conversation/src/**/*.ts",
+    "../../packages/runtime-conversation/src/**/*.tsx",
     "../../packages/runtime-core/src/**/*.ts",
     "../../packages/runtime-react/src/**/*.ts",
     "../../packages/runtime-react/src/**/*.tsx"

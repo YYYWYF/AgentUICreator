@@ -16,8 +16,8 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { nestedSubagentConversationScenario } from "@agent-ui/mock-agent";
 import { runMockScenario } from "@agent-ui/mock-agent";
-import { createAssistantUiToolkit } from "../agent-ui/adapters/assistant-ui/toolkit";
-import { Thread } from "../agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui";
+import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
+import { ConversationThread as Thread } from "@agent-ui/react";
 
 type AssistantAgent = Parameters<typeof useAgUiRuntime>[0]["agent"];
 
@@ -33,7 +33,7 @@ const mockInput: Parameters<typeof runMockScenario>[0] = {
 
 const assistantConfig = AuiConfig({
   tools: Tools({
-    toolkit: createAssistantUiToolkit({ mockAgentElements: true }),
+    toolkit: createConversationToolkit({ mockAgentElements: true }) as never,
   }),
 });
 
@@ -138,7 +138,11 @@ describe("official nested assistant-ui conversation", () => {
 
     expect(parentTool.messages).toHaveLength(1);
     const nestedText = parentTool.messages
-      ?.flatMap((message) => message.content)
+      ?.filter(
+        (message): message is Extract<ThreadMessage, { role: "assistant" }> =>
+          message.role === "assistant",
+      )
+      .flatMap((message) => message.content)
       .filter((part): part is { type: "text"; text: string } => part.type === "text")
       .map(({ text }) => text)
       .join("");
@@ -268,8 +272,8 @@ describe("official nested assistant-ui conversation", () => {
   });
 
   it("keeps the nested researcher tool mock-only", () => {
-    const productionToolkit = createAssistantUiToolkit() as Record<string, unknown>;
-    const mockToolkit = createAssistantUiToolkit({ mockAgentElements: true }) as Record<string, unknown>;
+    const productionToolkit = createConversationToolkit() as Record<string, unknown>;
+    const mockToolkit = createConversationToolkit({ mockAgentElements: true }) as Record<string, unknown>;
 
     expect(productionToolkit.mock_invoke_researcher).toBeUndefined();
     expect(mockToolkit.mock_invoke_researcher).toBeDefined();

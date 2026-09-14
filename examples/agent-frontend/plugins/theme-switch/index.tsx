@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 
-import { Button } from "../../agent-ui/vendor/assistant-ui/components/ui/button";
+import { Button } from "@agent-ui/react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { usePluginInstance } from "../../runtime/context";
 import { usePluginService } from "../../runtime/plugins";
@@ -42,7 +42,7 @@ function ThemeSwitch({
     <section
       aria-label="主题设置"
       className={[
-        "theme-switch-plugin agent-ui-assistant-ui",
+        "theme-switch-plugin agent-ui-conversation",
         isDark ? "dark" : undefined,
       ].filter(Boolean).join(" ")}
       data-theme={mode}

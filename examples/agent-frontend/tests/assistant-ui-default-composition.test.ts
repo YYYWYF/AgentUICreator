@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import appUIJson from "../app-ui/app-ui.json";
-import { resolveAssistantUiPresentationConfig } from "../agent-ui/adapters/assistant-ui/config";
+import { resolveConversationPresentationConfig } from "../agent-ui/conversation/config";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -84,7 +84,7 @@ describe("assistant-ui default composition", () => {
 
   it("leaves interaction presentation unconfigured so the adapter owns the upstream fallback", () => {
     const model = parseAppUIModel(appUIJson);
-    expect(resolveAssistantUiPresentationConfig(model)).toEqual({
+    expect(resolveConversationPresentationConfig(model)).toEqual({
       welcome: {},
     });
   });
@@ -92,7 +92,7 @@ describe("assistant-ui default composition", () => {
   it("keeps the shell and host App free of legacy branding and Ant shell ownership", async () => {
     const app = await readFile(path.join(projectRoot, "src/App.tsx"), "utf8");
     const shell = await readFile(path.join(projectRoot, "src/preview-shell.css"), "utf8");
-    const threadList = await readFile(path.join(projectRoot, "plugins/assistant-ui-thread-list/index.tsx"), "utf8");
+    const threadList = await readFile(path.join(projectRoot, "plugins/conversation-thread-list/index.tsx"), "utf8");
 
     expect(app).not.toMatch(/XProvider|antdTheme|agentFrontendThemes|sharedThemeTokens/u);
     expect(app).toContain("<UIPluginRuntime");
@@ -105,12 +105,12 @@ describe("assistant-ui default composition", () => {
   it("keeps official tool presentation in the assistant-ui config seam", async () => {
     const app = await readFile(path.join(projectRoot, "src/App.tsx"), "utf8");
     const toolkit = await readFile(
-      path.join(projectRoot, "agent-ui/adapters/assistant-ui/toolkit/assistant-ui-toolkit.tsx"),
+      path.join(projectRoot, "agent-ui/conversation/toolkit/assistant-ui-toolkit.tsx"),
       "utf8",
     );
 
     expect(app).toContain("Tools({ toolkit })");
-    expect(app).toContain("createAssistantUiToolkit");
+    expect(app).toContain("createConversationToolkit");
     expect(toolkit).toContain('type: "backend"');
     expect(toolkit).toContain('display: "standalone"');
     expect(toolkit).not.toContain("appFrontendTools");
@@ -119,7 +119,7 @@ describe("assistant-ui default composition", () => {
   it("retains upstream ThreadList and conversation data Slot surfaces", async () => {
     const threadList = await readFile(path.join(projectRoot, "agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx"), "utf8");
     const thread = await readFile(path.join(projectRoot, "agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"), "utf8");
-    const conversationAdapter = await readFile(path.join(projectRoot, "agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationAdapter.tsx"), "utf8");
+    const conversationAdapter = await readFile(path.join(projectRoot, "agent-ui/conversation/ConversationAdapter.tsx"), "utf8");
 
     for (const slot of [
       "aui_thread-list-root",

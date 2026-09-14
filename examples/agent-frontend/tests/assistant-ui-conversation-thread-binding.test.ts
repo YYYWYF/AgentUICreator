@@ -5,8 +5,8 @@ import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import {
   ConversationNavigationLockedError,
   ConversationThreadSelectionDisabledError,
-  createConversationServiceAssistantUiThreadBinding,
-} from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
+  createConversationServiceThreadBinding,
+} from "../agent-ui/conversation/threads/conversation-service-thread-binding";
 import type {
   ConversationService,
   ConversationDetail,
@@ -183,17 +183,17 @@ function createBindingFixture() {
       }],
     ]),
   );
-  const binding = createConversationServiceAssistantUiThreadBinding();
+  const binding = createConversationServiceThreadBinding();
   binding.attachConversationService(service);
   binding.captureLiveThread(live);
   return { binding, live, service };
 }
 
-function messageIds(messages: readonly ThreadMessage[]): string[] {
+function messageIds(messages: readonly { id: string }[]): string[] {
   return messages.map((message) => message.id);
 }
 
-describe("ConversationServiceAssistantUiThreadBinding", () => {
+describe("ConversationServiceThreadBinding", () => {
   it("projects the live thread and conversation catalog metadata", () => {
     const { binding } = createBindingFixture();
     const snapshot = binding.getThreadListSnapshot();

@@ -13,12 +13,12 @@ async function read(relativePath: string): Promise<string> {
 describe("assistant-ui semantic Slot rendering", () => {
   it("routes only public ThreadComponent seams through the adapter", async () => {
     const adapter = await read(
-      "agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationAdapter.tsx",
+      "agent-ui/conversation/ConversationAdapter.tsx",
     );
-    expect(adapter).toContain("ASSISTANT_UI_CONVERSATION_SLOTS.welcome");
-    expect(adapter).toContain("renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.welcome");
-    expect(adapter).toContain("ASSISTANT_UI_CONVERSATION_SLOTS.suggestions");
-    expect(adapter).toContain("renderSlot(ASSISTANT_UI_CONVERSATION_SLOTS.suggestions");
+    expect(adapter).toContain("CONVERSATION_SLOTS.welcome");
+    expect(adapter).toContain("renderSlot(CONVERSATION_SLOTS.welcome");
+    expect(adapter).toContain("CONVERSATION_SLOTS.suggestions");
+    expect(adapter).toContain("renderSlot(CONVERSATION_SLOTS.suggestions");
     expect(adapter).not.toContain("SemanticReasoningOutlet");
     expect(adapter).not.toContain("SemanticToolActivityOutlet");
     expect(adapter).not.toContain("SemanticToolItemOutlet");
@@ -32,7 +32,7 @@ describe("assistant-ui semantic Slot rendering", () => {
     const thread = await read(
       "agent-ui/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
     );
-    const globals = await read("agent-ui/adapters/assistant-ui/styles/globals.css");
+    const globals = await read("agent-ui/conversation/styles/globals.css");
     expect(app).not.toContain("Suggestions(");
     expect(app).not.toContain("starterSuggestions");
     expect(thread).toContain("ThreadPrimitive.Suggestions");

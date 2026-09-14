@@ -22,11 +22,11 @@ describe("assistant-ui message composition", () => {
 
   it("keeps product customization at the semantic empty-state boundary", async () => {
     const adapter = await readFile(
-      path.join(projectRoot, "agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationAdapter.tsx"),
+      path.join(projectRoot, "agent-ui/conversation/ConversationAdapter.tsx"),
       "utf8",
     );
 
-    expect(adapter).toContain("createAssistantUiSemanticThreadComponents");
+    expect(adapter).toContain("createConversationSemanticThreadComponents");
     expect(adapter).toContain("Welcome:");
     expect(adapter).not.toMatch(/ReasoningGroup|ToolGroup|ToolFallback/u);
   });

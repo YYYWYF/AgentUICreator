@@ -1,5 +1,5 @@
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
-import { AssistantUiConversationAdapter } from "../../agent-ui/adapters/assistant-ui/conversation";
+import { ConversationAdapter } from "../../agent-ui/conversation";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
   EMPTY_CONVERSATION_SNAPSHOT,
@@ -29,7 +29,7 @@ export function ConversationSurfacePlugin({
       data-conversation-mode={snapshot.mode}
       data-ui-plugin="conversation-surface"
     >
-      <AssistantUiConversationAdapter renderSlot={renderSlot} />
+      <ConversationAdapter renderSlot={renderSlot} />
     </div>
   );
 }

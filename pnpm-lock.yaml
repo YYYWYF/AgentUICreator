@@ -50,21 +50,18 @@ importers:
 
   examples/agent-frontend:
     dependencies:
-      '@agent-ui/runtime-assistant-ui':
+      '@agent-ui/react':
         specifier: workspace:^
-        version: link:../../packages/runtime-assistant-ui
+        version: link:../../packages/react
+      '@agent-ui/runtime-conversation':
+        specifier: workspace:^
+        version: link:../../packages/runtime-conversation
       '@agent-ui/runtime-core':
         specifier: workspace:^
         version: link:../../packages/runtime-core
       '@agent-ui/runtime-react':
         specifier: workspace:*
         version: link:../../packages/runtime-react
-      '@assistant-ui/react':
-        specifier: 0.15.19
-        version: 0.15.19(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
-      '@assistant-ui/react-markdown':
-        specifier: 0.14.15
-        version: 0.14.15(@assistant-ui/react@0.15.19(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@base-ui/react':
         specifier: 1.8.0
         version: 1.8.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -102,9 +99,6 @@ importers:
       '@agent-ui/source-registry':
         specifier: workspace:^
         version: link:../../packages/source-registry
-      '@assistant-ui/react-ag-ui':
-        specifier: 0.0.59
-        version: 0.0.59(@assistant-ui/react@0.15.19(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))(@assistant-ui/tap@0.9.17(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(assistant-cloud@0.2.0)(react@19.3.0)(zod@4.6.2)
       '@tailwindcss/vite':
         specifier: 4.3.3
         version: 4.3.3(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
@@ -216,6 +210,61 @@ importers:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
 
+  packages/react:
+    dependencies:
+      '@assistant-ui/react':
+        specifier: 0.15.19
+        version: 0.15.19(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
+      '@assistant-ui/react-markdown':
+        specifier: 0.14.15
+        version: 0.14.15(@assistant-ui/react@0.15.19(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@base-ui/react':
+        specifier: 1.8.0
+        version: 1.8.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      class-variance-authority:
+        specifier: 0.7.1
+        version: 0.7.1
+      cn:
+        specifier: 0.2.6
+        version: 0.2.6
+      lucide-react:
+        specifier: 1.41.0
+        version: 1.41.0(react@19.3.0)
+      remark-gfm:
+        specifier: 4.0.1
+        version: 4.0.1
+      tw-animate-css:
+        specifier: 1.4.0
+        version: 1.4.0
+      tw-shimmer:
+        specifier: 0.4.13
+        version: 0.4.13(tailwindcss@4.3.3)
+      zustand:
+        specifier: 5.0.15
+        version: 5.0.15(@types/react@19.3.0)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.43
+        version: 20.19.43
+      '@types/react':
+        specifier: ^19.2.18
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.2.5
+        version: 19.3.0(@types/react@19.3.0)
+      react:
+        specifier: ^19.2.8
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.2.8
+        version: 19.3.0(react@19.3.0)
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
+
   packages/runtime-agui:
     dependencies:
       '@ag-ui/client':
@@ -238,11 +287,14 @@ importers:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
 
-  packages/runtime-assistant-ui:
+  packages/runtime-conversation:
     dependencies:
       '@ag-ui/client':
         specifier: 0.0.59
         version: 0.0.59
+      '@agent-ui/react':
+        specifier: workspace:^
+        version: link:../react
       '@assistant-ui/react':
         specifier: 0.15.19
         version: 0.15.19(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))

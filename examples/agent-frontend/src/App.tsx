@@ -5,11 +5,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { AuiConfig, Tools } from "@assistant-ui/react";
 import {
-  AssistantUiAgUiRuntimeProvider,
-  useAssistantUiRuntimeBridge,
-} from "@agent-ui/runtime-assistant-ui";
+  ConversationRuntimeProvider,
+  useConversationRuntimeBridge,
+} from "@agent-ui/runtime-conversation";
 import type { AgentRuntime } from "@agent-ui/runtime-core";
 
 import appUIJsonSource from "../app-ui/app-ui.json?raw";
@@ -43,19 +42,19 @@ import {
 import { ModeShell } from "../runtime/mode-shell";
 import { useAgentUIThemeMode } from "../agent-ui/theme/useAgentUITheme";
 import {
-  AssistantUiPresentationConfigProvider,
-  resolveAssistantUiPresentationConfig,
-} from "../agent-ui/adapters/assistant-ui/config";
+  ConversationPresentationConfigProvider,
+  resolveConversationPresentationConfig,
+} from "../agent-ui/conversation/config";
 import {
   isMockAgentEndpoint,
   resolveAgentEndpoint,
   shouldRenderDevStudio,
 } from "./agent-endpoint";
-import { AssistantUiConversationThreadBindingConnector } from "../agent-ui/adapters/assistant-ui/threads/AssistantUiConversationThreadBindingConnector";
-import { createConversationServiceAssistantUiThreadBinding } from "../agent-ui/adapters/assistant-ui/threads/conversation-service-thread-binding";
-import { createAssistantUiToolkit } from "../agent-ui/adapters/assistant-ui/toolkit";
+import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
+import { createConversationServiceThreadBinding } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
+import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
 import { DevStudio } from "./dev/DevStudio/DevStudio";
-import "../agent-ui/adapters/assistant-ui/styles/globals.css";
+import "../agent-ui/conversation/styles.css";
 import "./preview-shell.css";
 
 const projectConfigSources = import.meta.glob<string>(
@@ -95,7 +94,7 @@ function AgentFrontendSurface({
 
   return (
     <div
-      className="agent-ui-assistant-ui development-preview"
+      className="agent-ui-conversation development-preview"
       data-agent-runtime={runtimeMode}
       data-theme={themeMode}
     >
@@ -157,25 +156,25 @@ function RuntimeConnectedApp({
   );
 }
 
-function AssistantUiRuntimeConnectedApp({
+function ConversationRuntimeConnectedApp({
   model,
   updateInstanceProps,
 }: {
   model: typeof initialAppUIModel;
   updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
 }) {
-  const { agentRuntime } = useAssistantUiRuntimeBridge<AppAgentState>();
+  const { agentRuntime } = useConversationRuntimeBridge<AppAgentState>();
   return (
     <RuntimeConnectedApp
       model={model}
       runtime={agentRuntime}
       updateInstanceProps={updateInstanceProps}
-      integration={<AssistantUiConversationThreadBindingConnector />}
+      integration={<ConversationThreadBindingConnector />}
     />
   );
 }
 
-function AssistantUiRuntimeBoundary({
+function ConversationRuntimeBoundary({
   model,
   updateInstanceProps,
 }: {
@@ -183,42 +182,36 @@ function AssistantUiRuntimeBoundary({
   updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
 }) {
   const threadBinding = useMemo(
-    () => createConversationServiceAssistantUiThreadBinding<AppAgentState>(),
+    () => createConversationServiceThreadBinding<AppAgentState>(),
     [],
   );
   const presentationConfig = useMemo(
-    () => resolveAssistantUiPresentationConfig(model),
+    () => resolveConversationPresentationConfig(model),
     [model],
   );
   const toolkit = useMemo(
-    () => createAssistantUiToolkit({
+    () => createConversationToolkit({
       mockAgentElements: isMockAgentEndpoint(endpoint),
     }),
     [],
   );
-  const assistantConfig = useMemo(
-    () => AuiConfig({
-      tools: Tools({ toolkit }),
-    }),
-    [toolkit],
-  );
   if (endpoint === undefined) {
-    throw new Error("The assistant-ui mode requires an AG-UI endpoint.");
+    throw new Error("The Conversation mode requires an AG-UI endpoint.");
   }
   return (
-    <AssistantUiAgUiRuntimeProvider<AppAgentState>
-      config={assistantConfig}
+    <ConversationRuntimeProvider<AppAgentState>
       endpoint={endpoint}
       frontendTools={appFrontendToolRuntime}
+      toolkit={toolkit}
       threadBinding={threadBinding}
     >
-      <AssistantUiPresentationConfigProvider value={presentationConfig}>
-        <AssistantUiRuntimeConnectedApp
+      <ConversationPresentationConfigProvider value={presentationConfig}>
+        <ConversationRuntimeConnectedApp
           model={model}
           updateInstanceProps={updateInstanceProps}
         />
-      </AssistantUiPresentationConfigProvider>
-    </AssistantUiAgUiRuntimeProvider>
+      </ConversationPresentationConfigProvider>
+    </ConversationRuntimeProvider>
   );
 }
 
@@ -283,7 +276,7 @@ export function App({
       onRuntimeDiagnostic={onRuntimeDiagnostic}
       registry={pluginRegistry}
     >
-      <AssistantUiRuntimeBoundary
+      <ConversationRuntimeBoundary
         model={model}
         updateInstanceProps={updateInstanceProps}
       />

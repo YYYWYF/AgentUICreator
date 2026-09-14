@@ -9,13 +9,13 @@ import {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
   MockDispatchSubagentToolUI,
-  createAssistantUiToolkit,
-} from "../agent-ui/adapters/assistant-ui/toolkit";
+  createConversationToolkit,
+} from "../agent-ui/conversation/toolkit";
 import {
   isEligibleSubagentToolCall,
   projectSubagentToolCalls,
   type SubagentToolCallPart,
-} from "../agent-ui/adapters/assistant-ui/agents/subagent-projection";
+} from "../agent-ui/conversation/agents/subagent-projection";
 
 type MockToolProps = ToolCallMessagePartProps<Record<string, unknown>, unknown>;
 const mountedRoots: Root[] = [];
@@ -57,8 +57,8 @@ afterEach(async () => {
 
 describe("Mock Agent official element renderers", () => {
   it("registers mock-only backend tools without changing production toolkit", () => {
-    const production = createAssistantUiToolkit();
-    const mock = createAssistantUiToolkit({ mockAgentElements: true });
+    const production = createConversationToolkit();
+    const mock = createConversationToolkit({ mockAgentElements: true });
 
     expect(production).not.toHaveProperty("mock_agent_plan");
     expect(production).not.toHaveProperty("mock_agent_status");

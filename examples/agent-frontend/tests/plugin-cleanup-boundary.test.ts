@@ -38,7 +38,7 @@ describe("canonical assistant-ui cleanup boundary", () => {
     const [packageSource, registrySource, slotsSource] = await Promise.all([
       readFile(path.join(projectRoot, "package.json"), "utf8"),
       readFile(path.join(projectRoot, "plugins/registry.generated.ts"), "utf8"),
-      readFile(path.join(projectRoot, "agent-ui/adapters/assistant-ui/slots/semantic-slots.ts"), "utf8"),
+      readFile(path.join(projectRoot, "agent-ui/conversation/slots/semantic-slots.ts"), "utf8"),
     ]);
     const packageJson = JSON.parse(packageSource) as {
       dependencies?: Record<string, string>;
@@ -59,7 +59,7 @@ describe("canonical assistant-ui cleanup boundary", () => {
       "theme-switch",
     ]);
     expect(registrySource).not.toMatch(/agent-|antd-x-|template-library/u);
-    expect(slotsSource).not.toContain("LEGACY_ASSISTANT_UI_CONVERSATION_SLOTS");
+    expect(slotsSource).not.toContain("LEGACY_CONVERSATION_SLOTS");
     expect(slotsSource).toContain('welcome: "conversation.empty.welcome"');
     expect(slotsSource).toContain('suggestions: "conversation.empty.suggestions"');
   });

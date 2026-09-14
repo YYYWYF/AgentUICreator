@@ -21,7 +21,7 @@ async function collectSourceFiles(root: string): Promise<string[]> {
 describe("assistant-ui Thread composition boundary", () => {
   it("does not copy Thread or Composer private structure into product code", async () => {
     const roots = [
-      path.join(projectRoot, "agent-ui/adapters/assistant-ui"),
+      path.join(projectRoot, "agent-ui/conversation"),
       path.join(projectRoot, "plugins"),
     ];
     const sourceFiles = (await Promise.all(roots.map(collectSourceFiles))).flat();
@@ -47,11 +47,11 @@ describe("assistant-ui Thread composition boundary", () => {
       "utf8",
     );
     const surface = await readFile(
-      path.join(projectRoot, "agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationSurface.tsx"),
+      path.join(projectRoot, "agent-ui/conversation/ConversationSurface.tsx"),
       "utf8",
     );
     const runtime = await readFile(
-      path.join(projectRoot, "../../packages/runtime-assistant-ui/src/AssistantUiAgUiRuntimeProvider.tsx"),
+      path.join(projectRoot, "../../packages/runtime-conversation/src/ConversationRuntimeProvider.tsx"),
       "utf8",
     );
 

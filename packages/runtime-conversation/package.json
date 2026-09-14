@@ -1,0 +1,46 @@
+{
+  "name": "@agent-ui/runtime-conversation",
+  "version": "0.1.0",
+  "description": "Canonical Conversation runtime adapter for Agent UI frontends",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ag-ui/client": "0.0.59",
+    "@agent-ui/react": "workspace:^",
+    "@assistant-ui/react": "0.15.19",
+    "@assistant-ui/react-ag-ui": "0.0.59"
+  },
+  "peerDependencies": {
+    "@agent-ui/runtime-core": "^0.1.0",
+    "react": "^19.2.8"
+  },
+  "devDependencies": {
+    "@agent-ui/runtime-core": "workspace:^",
+    "@types/node": "^20.19.43",
+    "@types/react": "^19.2.18",
+    "@types/react-test-renderer": "19.1.0",
+    "react": "^19.2.8",
+    "react-test-renderer": "19.2.8",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  }
+}

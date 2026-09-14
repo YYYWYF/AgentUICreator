@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 
 const globalsUrl = new URL(
-  "../agent-ui/adapters/assistant-ui/styles/globals.css",
+  "../agent-ui/conversation/styles/globals.css",
   import.meta.url,
 );
 
@@ -16,11 +16,11 @@ describe("assistant-ui scoped Tailwind source coverage", () => {
     );
     expect(globals).toContain('@source "..";');
     expect(globals).toContain(
-      '@source "../../../../plugins/assistant-ui-thread-list";',
+      '@source "../../../../plugins/conversation-thread-list";',
     );
     expect(globals).not.toContain('@source "../../../../plugins";');
     expect(globals).not.toContain(
-      '@source "../../../../plugins/assistant-ui-suggestions";',
+      '@source "../../../../plugins/conversation-suggestions";',
     );
   });
 });

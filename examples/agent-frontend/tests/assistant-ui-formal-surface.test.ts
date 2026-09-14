@@ -36,7 +36,7 @@ describe("formal assistant-ui surface", () => {
     const surface = await readFile(
       path.join(
         projectRoot,
-        "agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationSurface.tsx",
+        "agent-ui/conversation/ConversationSurface.tsx",
       ),
       "utf8",
     );
@@ -44,8 +44,8 @@ describe("formal assistant-ui surface", () => {
     expect(surface).toContain("../../../vendor/assistant-ui/components/assistant-ui/elements/thread.aui");
     expect(surface).toContain("../../../vendor/assistant-ui/components/ui/tooltip");
     expect(surface).toContain('data-agent-ui-assistant-ui="true"');
-    expect(surface).toContain('export type AssistantUiConversationTheme = "light" | "dark"');
-    expect(surface).toContain("theme?: AssistantUiConversationTheme");
+    expect(surface).toContain('export type ConversationTheme = "light" | "dark"');
+    expect(surface).toContain("theme?: ConversationTheme");
     expect(surface).toContain('theme = "light"');
     expect(surface).toContain('theme === "dark" ? "dark" : undefined');
     expect(surface).toContain("data-theme={theme}");

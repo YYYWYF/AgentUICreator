@@ -20,7 +20,7 @@ describe("ModeShell", () => {
     ["assistant", "section", "agent-ui-assistant-shell"],
     ["embedded", "section", "agent-ui-embedded-shell"],
     ["platform", "main", "agent-ui-platform-shell"],
-  ] satisfies ReadonlyArray<readonly [AgentUIMode, string, string]>)(
+  ] satisfies ReadonlyArray<readonly [AgentUIMode | "assistant" | "embedded", string, string]>)(
     "routes %s through its dedicated shell",
     async (mode, element, className) => {
       let renderer: ReactTestRenderer | undefined;

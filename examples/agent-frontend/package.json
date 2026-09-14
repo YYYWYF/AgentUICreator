@@ -12,7 +12,6 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "check:assistant-ui-upstream": "node scripts/check-assistant-ui-upstream.mjs",
     "generate:registry": "tsx scripts/generate-plugin-registry.ts",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
@@ -21,12 +20,11 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@agent-ui/runtime-assistant-ui": "workspace:^",
+    "@agent-ui/react": "workspace:^",
+    "@agent-ui/runtime-conversation": "workspace:^",
     "@agent-ui/runtime-core": "workspace:^",
     "@agent-ui/runtime-react": "workspace:*",
     "@base-ui/react": "1.8.0",
-    "@assistant-ui/react": "0.15.19",
-    "@assistant-ui/react-markdown": "0.14.15",
     "class-variance-authority": "0.7.1",
     "cn": "0.2.6",
     "lucide-react": "1.41.0",
@@ -40,7 +38,6 @@
   "devDependencies": {
     "@agent-ui/mock-agent": "workspace:^",
     "@agent-ui/source-registry": "workspace:^",
-    "@assistant-ui/react-ag-ui": "0.0.59",
     "@types/node": "^20.19.43",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",

@@ -33,8 +33,8 @@ export const nestedSubagentConversationScenario = defineScenario({
             args: { keyword: "assistant-ui runtime" },
             result: {
               files: [
-                "packages/runtime-assistant-ui/src/AssistantUiAgUiRuntimeProvider.tsx",
-                "examples/agent-frontend/agent-ui/adapters/assistant-ui/conversation/AssistantUiConversationAdapter.tsx",
+                "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+                "examples/agent-frontend/agent-ui/conversation/ConversationAdapter.tsx",
               ],
             },
             prepareDurationMs: 250,

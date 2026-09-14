@@ -6,11 +6,11 @@ import { describe, expect, it } from "vitest";
 import { createServer, resolveConfig } from "vite";
 
 const globalsUrl = new URL(
-  "../agent-ui/adapters/assistant-ui/styles/globals.css",
+  "../agent-ui/conversation/styles/globals.css",
   import.meta.url,
 );
 const scopedPreflightUrl = new URL(
-  "../agent-ui/adapters/assistant-ui/styles/preflight.scoped.css",
+  "../agent-ui/conversation/styles/preflight.scoped.css",
   import.meta.url,
 );
 const workbenchViteConfigUrl = new URL(
@@ -66,7 +66,7 @@ describe("formal assistant-ui adapter style isolation", () => {
 
     try {
       const result = await server.transformRequest(
-        "/agent-ui/adapters/assistant-ui/styles/globals.css?direct",
+        "/agent-ui/conversation/styles/globals.css?direct",
       );
 
       expect(result?.code).toContain(".sr-only");

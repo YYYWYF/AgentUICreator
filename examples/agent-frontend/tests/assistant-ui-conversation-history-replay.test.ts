@@ -9,7 +9,7 @@ import {
   projectConversationDetail,
   projectConversationHistory,
   projectConversationReplay,
-} from "../agent-ui/adapters/assistant-ui/threads/conversation-history-projector";
+} from "../agent-ui/conversation/threads/conversation-history-projector";
 import { mockConversationFixtures } from "../dev-mock/conversations/fixtures";
 
 describe("assistant-ui conversation history replay projector", () => {
@@ -94,7 +94,7 @@ describe("assistant-ui conversation history replay projector", () => {
       throw new Error("Dedicated Subagents replay fixture is missing.");
     }
 
-    const messages = projectConversationDetail(fixture.detail);
+    const messages = projectConversationReplay(fixture.detail.replay);
     const assistant = messages.find(
       (message) => message.id === "replay-subagents-assistant",
     );
@@ -103,8 +103,12 @@ describe("assistant-ui conversation history replay projector", () => {
     }
 
     const dispatches = assistant.content.filter(
-      (part): part is Extract<typeof part, { type: "tool-call" }> =>
-        part.type === "tool-call",
+      (part): part is Record<string, unknown> & {
+        type: "tool-call";
+        toolName: string;
+        result?: unknown;
+      } =>
+        part.type === "tool-call" && typeof part.toolName === "string",
     );
     expect(dispatches).toHaveLength(3);
     expect(dispatches.map((part) => part.toolName)).toEqual([

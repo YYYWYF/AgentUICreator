@@ -3,10 +3,10 @@ import type {
   AgentMessage,
   AgentRuntimeSnapshot,
 } from "@agent-ui/runtime-core";
-import type { ConversationObservationSnapshot } from "@agent-ui/runtime-assistant-ui";
+import type { ConversationObservationSnapshot } from "@agent-ui/runtime-conversation";
 import type { ReactNode } from "react";
 
-import { Badge } from "../../../agent-ui/vendor/assistant-ui/components/ui/badge";
+import { Badge } from "@agent-ui/react";
 import { formatDebugValue } from "./runtime-debug-format";
 import styles from "./dev-studio.module.css";
 
@@ -14,7 +14,7 @@ interface RuntimePanelViewProps<TState = unknown> {
   endpoint: string | undefined;
   mockEnabled: boolean;
   snapshot: AgentRuntimeSnapshot<TState>;
-  assistantUiObservation: ConversationObservationSnapshot;
+  conversationObservation: ConversationObservationSnapshot;
 }
 
 function roleLabel(role: AgentMessage["role"]): string {
@@ -66,7 +66,7 @@ export function RuntimePanelView<TState = unknown>({
   endpoint,
   mockEnabled,
   snapshot,
-  assistantUiObservation,
+  conversationObservation,
 }: RuntimePanelViewProps<TState>) {
   const roleCounts = messageRoleCounts(snapshot.messages);
 
@@ -188,8 +188,8 @@ export function RuntimePanelView<TState = unknown>({
         <div className={styles.rawSnapshotBody}>
           <h4>AgentRuntime</h4>
           <pre className={styles.json}>{formatDebugValue(snapshot)}</pre>
-          <h4>assistant-ui</h4>
-          <pre className={styles.json}>{formatDebugValue(assistantUiObservation)}</pre>
+          <h4>Conversation Runtime</h4>
+          <pre className={styles.json}>{formatDebugValue(conversationObservation)}</pre>
         </div>
       </details>
     </div>

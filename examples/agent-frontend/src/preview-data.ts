@@ -57,11 +57,11 @@ export const initialPreviewMessages: AgentMessage[] = [
     toolCallId: "tool-call-list-plugins",
     content: JSON.stringify({
       plugins: [
-        "assistant-ui-thread-list",
+        "conversation-thread-list",
         "conversation-data-source",
         "conversation-service",
         "conversation-surface",
-        "assistant-ui-suggestions",
+        "conversation-suggestions",
         "theme-provider",
         "theme-switch",
       ],

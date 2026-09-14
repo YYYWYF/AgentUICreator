@@ -62,15 +62,15 @@ describe("assistant-ui canonical runtime", () => {
   it("keeps App on one assistant-ui Runtime owner", async () => {
     const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
 
-    expect(app).toContain("function AssistantUiRuntimeBoundary");
-    expect(app).toContain("<AssistantUiAgUiRuntimeProvider");
-    expect(app).toContain("<AssistantUiRuntimeBoundary");
-    expect(app.match(/<AssistantUiAgUiRuntimeProvider/gu)).toHaveLength(1);
+    expect(app).toContain("function ConversationRuntimeBoundary");
+    expect(app).toContain("<ConversationRuntimeProvider");
+    expect(app).toContain("<ConversationRuntimeBoundary");
+    expect(app.match(/<ConversationRuntimeProvider/gu)).toHaveLength(1);
     expect(app).toContain(
-      'import "../agent-ui/adapters/assistant-ui/styles/globals.css";',
+      'import "../agent-ui/conversation/styles/globals.css";',
     );
     expect(app).not.toMatch(
-      /createAgUiTransport|createAgentRuntime|LegacyRuntimeBoundary|RuntimeModeBoundary|resolveConversationRuntimeMode|legacyRuntime|assistantUiSpike/u,
+      /createAgUiTransport|createAgentRuntime|LegacyRuntimeBoundary|RuntimeModeBoundary|resolveConversationRuntimeMode|legacyRuntime|conversationSpike/u,
     );
   });
 
@@ -91,11 +91,11 @@ describe("assistant-ui canonical runtime", () => {
 
     expect(app).toContain("DevStudio");
     expect(app).toContain("import.meta.env.DEV");
-    expect(app).not.toContain("AssistantUiRuntimeDebugOverlay");
+    expect(app).not.toContain("ConversationRuntimeDebugOverlay");
     expect(devStudio).toContain("useMockScenarioAutorun");
     expect(runtimePanel).toContain("useAgentRuntimeSnapshot");
-    expect(runtimePanel).toContain("useAssistantUiRuntimeObservation");
+    expect(runtimePanel).toContain("useConversationRuntimeObservation");
     expect(runtimePanelView).toContain("Raw Snapshot");
-    expect(runtimePanelView).toContain("assistantUiObservation");
+    expect(runtimePanelView).toContain("conversationObservation");
   });
 });
