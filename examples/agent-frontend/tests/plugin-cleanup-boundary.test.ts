@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
+import { pluginDefinitions } from "../plugins";
+
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("canonical assistant-ui cleanup boundary", () => {
@@ -41,8 +43,21 @@ describe("canonical assistant-ui cleanup boundary", () => {
     const packageJson = JSON.parse(packageSource) as {
       dependencies?: Record<string, string>;
     };
-    expect(Object.keys(packageJson.dependencies ?? {}).some((name) => /^(antd|@ant-design\//u.test(name))).toBe(false);
-    expect((registrySource.match(/manifest\.json/gu) ?? []).length).toBe(7);
+    expect(
+      Object.keys(packageJson.dependencies ?? {}).some(
+        (name) => name === "antd" || name.startsWith("@ant-design/"),
+      ),
+    ).toBe(false);
+    expect(pluginDefinitions).toHaveLength(7);
+    expect(pluginDefinitions.map(({ manifest }) => manifest.id).sort()).toEqual([
+      "assistant-ui-suggestions",
+      "assistant-ui-thread-list",
+      "conversation-data-source",
+      "conversation-service",
+      "conversation-surface",
+      "theme-provider",
+      "theme-switch",
+    ]);
     expect(registrySource).not.toMatch(/agent-|antd-x-|template-library/u);
     expect(slotsSource).not.toContain("LEGACY_ASSISTANT_UI_CONVERSATION_SLOTS");
     expect(slotsSource).toContain('welcome: "conversation.empty.welcome"');
