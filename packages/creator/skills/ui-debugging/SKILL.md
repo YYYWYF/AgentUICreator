@@ -15,7 +15,7 @@ Start from the concrete failure and preserve layer boundaries.
 2. For AppUIModel errors, check schema invariants, `activeIndex`, `sizes`, Panel bounds, application plugins, Layout Slot `plugins`, and nested plugin-local Slots. Use snapshot-scoped `nodeRef` targets with `inspect_ui_slots`; Runtime slot ids are compiler output, not repair inputs.
 3. For Plugin load errors, check manifest validation, registration, `pluginId`, and instance references.
 4. For TypeScript errors, inspect the first relevant error and the local contract before editing.
-5. For Runtime errors, call `inspect_runtime_errors` and use only diagnostics matching the current AppUIModel hash. A source-attributed render failure includes its Plugin, instance, Slot path, and component stack; an activation failure identifies the setup instance. Use `includeStale` only for history, and do not attribute ordinary console errors to a Plugin.
+5. For Runtime errors, call `inspect_runtime_errors` and use only diagnostics matching the current AppUIModel hash. A source-attributed render failure includes its Plugin, instance, authoring target, and component stack; an activation failure identifies the setup instance. Runtime Slot ids and paths are not Creator-facing evidence. Use `includeStale` only for history, and do not attribute ordinary console errors to a Plugin.
 6. For HMR issues, distinguish a failed module update from state or runtime behavior before changing architecture.
 
 ## Phase 8 repair boundary

@@ -24,6 +24,7 @@ import {
   appUIOperationsSchema,
   applyAppUIOperations,
   type AppUIOperation,
+  type AppUIPluginTarget,
 } from "./app-ui-operations";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
@@ -502,26 +503,65 @@ function semanticModelSource(
     : `${JSON.stringify(after, null, 2)}\n`;
 }
 
-function widthSensitiveInstanceIds(
-  operations: readonly AppUIOperation[],
-): Set<string> {
-  return new Set(
-    operations.flatMap((operation) => {
-      switch (operation.type) {
-        case "insert_plugin":
-          return operation.target.type === "application" ? [] : [operation.plugin.id];
-        case "move_plugin":
-          return [operation.instanceId];
-        case "replace_plugin":
-          return [operation.replacement.id];
-        default:
-          return [];
-      }
-    }),
+function authoringTargetForInstance(
+  model: AppUIModel,
+  instanceId: string,
+): AppUIPluginTarget | undefined {
+  const location = collectAppUIPluginLocations(model).find(
+    ({ plugin }) => plugin.id === instanceId,
   );
+  if (location === undefined) return undefined;
+  if (location.target.type === "application") {
+    return { type: "application" };
+  }
+  if (location.target.type === "plugin_slot") {
+    return {
+      type: "plugin_slot",
+      parentInstanceId: location.target.parentInstanceId,
+      slot: location.target.slot,
+    };
+  }
+  const slotRef = buildLayoutRefIndex(model.root).byPath.get(
+    location.target.slotPath,
+  );
+  return slotRef === undefined
+    ? undefined
+    : { type: "layout_slot", slotRef };
+}
+
+function widthSensitiveTargets(
+  beforeModel: AppUIModel,
+  operations: readonly AppUIOperation[],
+): Map<string, AppUIPluginTarget> {
+  const targets = new Map<string, AppUIPluginTarget>();
+  for (const operation of operations) {
+    switch (operation.type) {
+      case "insert_plugin":
+        if (operation.target.type !== "application") {
+          targets.set(operation.plugin.id, operation.target);
+        }
+        break;
+      case "move_plugin":
+        if (operation.target.type !== "application") {
+          targets.set(operation.instanceId, operation.target);
+        }
+        break;
+      case "replace_plugin": {
+        const target = authoringTargetForInstance(beforeModel, operation.instanceId);
+        if (target !== undefined && target.type !== "application") {
+          targets.set(operation.replacement.id, target);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  return targets;
 }
 
 function assertPluginWidthCompatibility(
+  beforeModel: AppUIModel,
   model: AppUIRuntimeModel,
   operations: readonly AppUIOperation[],
   assets: readonly {
@@ -531,7 +571,7 @@ function assertPluginWidthCompatibility(
   runtimeSlotWidths: Readonly<Record<string, "unknown" | "narrow" | "wide">>,
 ): void {
   const assetsById = new Map(assets.map((asset) => [asset.pluginId, asset]));
-  for (const instanceId of widthSensitiveInstanceIds(operations)) {
+  for (const [instanceId, target] of widthSensitiveTargets(beforeModel, operations)) {
     const instance = model.pluginInstances[instanceId];
     const slotId = instance?.mount?.slotId;
     if (
@@ -544,11 +584,11 @@ function assertPluginWidthCompatibility(
     }
     throw new AppUITransactionError(
       "PLUGIN_WIDTH_INCOMPATIBLE",
-      `UI plugin "${instance.pluginId}" requires a wide container, but Slot "${slotId}" is currently narrow.`,
+      `UI plugin "${instance.pluginId}" requires a wide container, but its current container is narrow.`,
       {
         pluginId: instance.pluginId,
         instanceId,
-        slotId,
+        target,
         requiredWidth: "wide",
         actualWidthClass: "narrow",
       },
@@ -607,6 +647,7 @@ async function runTransaction(
   }
   const runtimeModel = compileAppUIModel(afterModel, registry.compositionCatalog);
   assertPluginWidthCompatibility(
+    beforeModel,
     runtimeModel,
     input.operations as AppUIOperation[],
     registry.assets,

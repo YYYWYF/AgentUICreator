@@ -7,6 +7,12 @@ allowed-tools: read_file ls glob grep inspect_ui_project inspect_app_ui_model in
 
 # AppUIModel
 
+This is a detailed authoring reference, not required initialization knowledge.
+The stable composition contract is already provided to Creator. Load this Skill
+for complex Layout transactions, multiple snapshot-scoped refs or `$localRef`
+values, subtree replacement, cardinality edge cases, hide/remove/replace
+semantics, concurrent hash conflicts, or other non-trivial composition cases.
+
 Treat `/app-ui/app-ui.json` as the only editable source of truth for generated layout and plugin configuration. The Runtime Model, Runtime slot ids, contributions, and SlotRegistry state are deterministic compiler output and must never be edited or passed to Creator tools.
 
 Use the bounded project snapshot for navigation and call `inspect_app_ui_model` when exact current content is needed. Submit composition changes through `mutate_app_ui_model` with that inspection's exact hash; do not edit the JSON with generic file tools.

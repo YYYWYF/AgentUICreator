@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections import OrderedDict
+from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any, Literal
 
@@ -588,3 +589,28 @@ class RuntimeDiagnosticStore:
             and isinstance(slot.get("slotId"), str)
             and slot.get("widthClass") in {"unknown", "narrow", "wide"}
         }
+
+    def current_composition(
+        self, *, thread_id: str, app_ui_model_hash: str
+    ) -> dict[str, Any] | None:
+        """Return opaque raw Runtime evidence for Host-owned verification."""
+        scope = self._scopes.get(thread_id)
+        if scope is None:
+            return None
+        latest_composition = next(
+            (
+                item
+                for item in scope.compositions
+                if item.get("appUIModelHash") == app_ui_model_hash
+            ),
+            None,
+        )
+        if latest_composition is None:
+            return None
+        return deepcopy(
+            {
+                key: value
+                for key, value in latest_composition.items()
+                if key != "receivedAt"
+            }
+        )

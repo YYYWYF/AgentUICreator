@@ -102,6 +102,18 @@ class ProjectControlClient:
             "inspect_ui_plugin_source_references", {"pluginId": plugin_id}
         )
 
+    async def verify_runtime_composition(
+        self, *, app_ui_model_hash: str, composition: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Internal transport for Host-owned Runtime composition verification."""
+        return await self._request(
+            "verify_runtime_composition",
+            {
+                "appUIModelHash": app_ui_model_hash,
+                "composition": composition,
+            },
+        )
+
     async def inspect_agent_ui_sources(self) -> dict[str, Any]:
         return await self._request("inspect_agent_ui_sources", {})
 

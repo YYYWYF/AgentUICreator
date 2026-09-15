@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timezone
+from pathlib import Path
 
 import pytest
 
@@ -356,6 +357,9 @@ def test_composition_verification_stays_stale_after_fresh_unrelated_diagnostic(
                 ],
             }
 
+        async def verify_runtime_composition(self, **_kwargs):
+            return {"verified": True, "checks": []}
+
     inspection = RuntimeDiagnosticInspectionService(
         store=store,
         thread_id="thread-1",
@@ -401,6 +405,9 @@ def test_non_ready_application_does_not_require_workspace_composition(
                 ],
             }
 
+        async def verify_runtime_composition(self, **_kwargs):
+            return {"verified": True, "checks": []}
+
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("non-ready-application")
     inspection = RuntimeDiagnosticInspectionService(
@@ -444,6 +451,12 @@ def test_ready_application_still_requires_workspace_composition(tmp_path):
                         },
                     }
                 ],
+            }
+
+        async def verify_runtime_composition(self, **_kwargs):
+            return {
+                "verified": False,
+                "checks": [{"instanceId": "workspace-main", "status": "missing"}],
             }
 
     activity = CreatorActivityRecorder(tmp_path)
@@ -501,3 +514,106 @@ def test_runtime_resolved_error_allows_completion(tmp_path):
     assert result["runtimeStatus"] == "passed"
     assert result["currentErrors"] == []
     assert len(result["resolvedCurrent"]) == 1
+
+
+def test_runtime_diagnostic_agent_surface_contains_only_authoring_semantics(tmp_path):
+    app_hash = "a" * 64
+    store = RuntimeDiagnosticStore()
+    store.record(
+        composition(
+            "thread-1",
+            app_hash,
+            instances=[
+                {
+                    "instanceId": "wide-main",
+                    "pluginId": "wide-preview",
+                    "slotId": "plugin:surface-main:content",
+                }
+            ],
+        )
+    )
+    store.record(
+        RuntimeDiagnosticEnvelope.model_validate(
+            {
+                "threadId": "thread-1",
+                "diagnostic": {
+                    "schemaVersion": 1,
+                    "kind": "plugin-width-incompatible",
+                    "code": "PLUGIN_WIDTH_INCOMPATIBLE",
+                    "status": "error",
+                    "appUIModelHash": app_hash,
+                    "occurredAt": "2026-09-10T00:00:00.000Z",
+                    "pluginId": "wide-preview",
+                    "instanceId": "wide-main",
+                    "slotId": "plugin:surface-main:content",
+                    "slotPath": "root.children[0]",
+                    "requiredWidth": "wide",
+                    "actualWidthClass": "narrow",
+                    "errorMessage": (
+                        'UI plugin "wide-preview" requires a wide container, '
+                        'but Slot "plugin:surface-main:content" is narrow.'
+                    ),
+                },
+            }
+        )
+    )
+
+    class ProjectControl:
+        metrics = ProjectControlMetrics()
+
+        async def inspect_ui_project(self):
+            return {
+                "appUIModel": {"hash": app_hash},
+                "plugins": [
+                    {
+                        "id": "wide-main",
+                        "pluginId": "wide-preview",
+                        "enabled": True,
+                        "target": {
+                            "type": "plugin_slot",
+                            "parentInstanceId": "surface-main",
+                            "slot": "content",
+                        },
+                    }
+                ],
+            }
+
+        async def verify_runtime_composition(self, **_kwargs):
+            return {"verified": True, "checks": []}
+
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("runtime-agent-surface")
+    inspection = RuntimeDiagnosticInspectionService(
+        store=store,
+        thread_id="thread-1",
+        project_control=ProjectControl(),
+        observations=DomainObservationContext(),
+        activity=activity,
+    )
+
+    result = asyncio.run(inspection.inspect())
+    rendered = str(result)
+
+    assert "runtimeInstances" not in result
+    assert "runtimeSlots" not in result
+    assert "slotId" not in result["currentErrors"][0]
+    assert "slotPath" not in result["currentErrors"][0]
+    assert result["currentErrors"][0]["target"] == {
+        "type": "plugin_slot",
+        "parentInstanceId": "surface-main",
+        "slot": "content",
+    }
+    assert "plugin:surface-main:content" not in rendered
+
+
+def test_runtime_diagnostic_creator_has_no_runtime_slot_encoding_knowledge():
+    source = (
+        Path(__file__).resolve().parents[1]
+        / "agent_ui_creator"
+        / "runtime_diagnostics"
+        / "tool.py"
+    ).read_text(encoding="utf-8")
+
+    assert '"plugin:"' not in source
+    assert "urllib.parse.quote" not in source
+    assert "from urllib.parse import quote" not in source

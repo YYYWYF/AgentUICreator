@@ -6,6 +6,10 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import type { AppUIModel } from "../framework/contracts/app-ui-model";
+import {
+  resolveRuntimeLayoutSlotId,
+  resolveRuntimePluginSlotId,
+} from "../framework/contracts/app-ui-composition";
 import { mutateAppUIModel } from "../scripts/ui-project/app-ui-transaction";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
@@ -15,7 +19,11 @@ import {
 const temporaryProjects: string[] = [];
 const hash = (source: string) => createHash("sha256").update(source).digest("hex");
 
-async function createPlugin(projectRoot: string, pluginId: string): Promise<void> {
+async function createPlugin(
+  projectRoot: string,
+  pluginId: string,
+  manifestOverrides: Record<string, unknown> = {},
+): Promise<void> {
   const pluginRoot = path.join(projectRoot, "plugins", pluginId);
   await mkdir(pluginRoot, { recursive: true });
   await writeFile(path.join(pluginRoot, "manifest.json"), JSON.stringify({
@@ -23,6 +31,7 @@ async function createPlugin(projectRoot: string, pluginId: string): Promise<void
     name: pluginId,
     description: "Fixture plugin.",
     version: "1.0.0",
+    ...manifestOverrides,
   }));
   await writeFile(
     path.join(pluginRoot, "definition.ts"),
@@ -30,13 +39,16 @@ async function createPlugin(projectRoot: string, pluginId: string): Promise<void
   );
 }
 
-async function createProject() {
+async function createProject(
+  manifestOverrides: Record<string, unknown> = {},
+  modelOverride?: AppUIModel,
+) {
   const projectRoot = await mkdtemp(path.join(tmpdir(), "app-ui-transaction-"));
   temporaryProjects.push(projectRoot);
   await mkdir(path.join(projectRoot, "app-ui"));
   await mkdir(path.join(projectRoot, "plugins"));
-  await createPlugin(projectRoot, "sample");
-  const model: AppUIModel = {
+  await createPlugin(projectRoot, "sample", manifestOverrides);
+  const model: AppUIModel = modelOverride ?? {
     root: {
       type: "slot",
       plugins: [{
@@ -178,5 +190,125 @@ describe("AppUIModel transaction", () => {
     expect(result.changedPaths).toEqual([]);
     expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
       .toBe(source);
+  });
+
+  it("reports a Layout Slot target for width incompatibility", async () => {
+    const { projectRoot, source } = await createProject({
+      layout: { width: "wide" },
+    });
+    const error = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "move_plugin",
+        instanceId: "sample-main",
+        target: { type: "layout_slot", slotRef: "l0" },
+      }],
+      runtimeSlotWidths: {
+        [resolveRuntimeLayoutSlotId("root")]: "narrow",
+      },
+    }).catch((value: unknown) => value);
+
+    expect(error).toMatchObject({
+      code: "PLUGIN_WIDTH_INCOMPATIBLE",
+      details: {
+        pluginId: "sample",
+        instanceId: "sample-main",
+        target: { type: "layout_slot", slotRef: "l0" },
+      },
+    });
+    expect((error as { details: Record<string, unknown> }).details).not.toHaveProperty("slotId");
+    expect(String(error)).not.toContain(resolveRuntimeLayoutSlotId("root"));
+  });
+
+  it("reports a Plugin child Slot target for width incompatibility", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "slot",
+        plugins: [{
+          id: "owner-main",
+          pluginId: "sample",
+          enabled: true,
+          slots: {
+            content: [{ id: "child-main", pluginId: "sample", enabled: true }],
+          },
+        }],
+      },
+    };
+    const { projectRoot, source } = await createProject(
+      {
+        layout: { width: "wide" },
+        slots: {
+          children: {
+            content: {
+              description: "Content.",
+              cardinality: "many",
+              optional: true,
+            },
+          },
+        },
+      },
+      model,
+    );
+    const error = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "move_plugin",
+        instanceId: "child-main",
+        target: {
+          type: "plugin_slot",
+          parentInstanceId: "owner-main",
+          slot: "content",
+        },
+      }],
+      runtimeSlotWidths: {
+        [resolveRuntimePluginSlotId("owner-main", "content")]: "narrow",
+      },
+    }).catch((value: unknown) => value);
+
+    expect(error).toMatchObject({
+      code: "PLUGIN_WIDTH_INCOMPATIBLE",
+      details: {
+        pluginId: "sample",
+        instanceId: "child-main",
+        target: {
+          type: "plugin_slot",
+          parentInstanceId: "owner-main",
+          slot: "content",
+        },
+      },
+    });
+    expect((error as { details: Record<string, unknown> }).details).not.toHaveProperty("slotId");
+    expect(String(error)).not.toContain(resolveRuntimePluginSlotId("owner-main", "content"));
+  });
+
+  it("uses the starting snapshot target for replace width errors", async () => {
+    const { projectRoot, source } = await createProject({
+      layout: { width: "wide" },
+    });
+    const error = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "replace_plugin",
+        instanceId: "sample-main",
+        replacement: {
+          id: "replacement-main",
+          pluginId: "sample",
+          enabled: true,
+        },
+      }],
+      runtimeSlotWidths: {
+        [resolveRuntimeLayoutSlotId("root")]: "narrow",
+      },
+    }).catch((value: unknown) => value);
+
+    expect(error).toMatchObject({
+      code: "PLUGIN_WIDTH_INCOMPATIBLE",
+      details: {
+        pluginId: "sample",
+        instanceId: "replacement-main",
+        target: { type: "layout_slot", slotRef: "l0" },
+      },
+    });
+    expect((error as { details: Record<string, unknown> }).details).not.toHaveProperty("slotId");
   });
 });

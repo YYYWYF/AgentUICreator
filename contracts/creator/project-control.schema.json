@@ -4,6 +4,7 @@
   "title": "Creator project control protocol v3",
   "$defs": {
     "emptyInput": { "type": "object", "additionalProperties": false },
+    "nonBlankString": { "type": "string", "minLength": 1, "maxLength": 200 },
     "pluginInput": {
       "type": "object",
       "additionalProperties": false,
@@ -54,6 +55,66 @@
         }
       ]
     },
+    "runtimeCompositionApplication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase"],
+      "properties": {
+        "phase": { "enum": ["bootstrapping", "resolving-gates", "blocked", "ready", "error"] },
+        "activeGateInstanceId": { "$ref": "#/$defs/nonBlankString" }
+      }
+    },
+    "runtimeCompositionInstance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instanceId", "pluginId", "slotId"],
+      "properties": {
+        "instanceId": { "$ref": "#/$defs/nonBlankString" },
+        "pluginId": { "$ref": "#/$defs/nonBlankString" },
+        "slotId": { "$ref": "#/$defs/nonBlankString" },
+        "slotPath": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "runtimeCompositionSlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slotId", "widthClass"],
+      "properties": {
+        "slotId": { "$ref": "#/$defs/nonBlankString" },
+        "widthClass": { "enum": ["unknown", "narrow", "wide"] },
+        "slotPath": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "runtimeComposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "appUIModelHash", "observedAt", "instances", "slots"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "appUIModelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "observedAt": { "type": "string", "format": "date-time" },
+        "application": { "$ref": "#/$defs/runtimeCompositionApplication" },
+        "instances": {
+          "type": "array",
+          "maxItems": 500,
+          "items": { "$ref": "#/$defs/runtimeCompositionInstance" }
+        },
+        "slots": {
+          "type": "array",
+          "maxItems": 500,
+          "items": { "$ref": "#/$defs/runtimeCompositionSlot" }
+        }
+      }
+    },
+    "verifyRuntimeCompositionInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["appUIModelHash", "composition"],
+      "properties": {
+        "appUIModelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "composition": { "$ref": "#/$defs/runtimeComposition" }
+      }
+    },
     "request": {
       "oneOf": [
         {
@@ -84,6 +145,16 @@
             "schemaVersion": { "const": 3 },
             "operation": { "enum": ["inspect_ui_plugin", "inspect_ui_plugin_source_references"] },
             "input": { "$ref": "#/$defs/pluginInput" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schemaVersion", "operation", "input"],
+          "properties": {
+            "schemaVersion": { "const": 3 },
+            "operation": { "const": "verify_runtime_composition" },
+            "input": { "$ref": "#/$defs/verifyRuntimeCompositionInput" }
           }
         },
         {

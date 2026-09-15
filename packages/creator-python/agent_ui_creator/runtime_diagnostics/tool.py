@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-from urllib.parse import quote
 from typing import Any
 
 from langchain_core.tools import BaseTool, tool
@@ -51,6 +50,64 @@ class RuntimeDiagnosticInspectionService:
             )
         return value
 
+    @staticmethod
+    def _authoring_targets(project: dict[str, Any]) -> dict[str, dict[str, Any]]:
+        return {
+            str(instance["id"]): dict(instance["target"])
+            for instance in project.get("plugins", [])
+            if isinstance(instance, dict)
+            and isinstance(instance.get("id"), str)
+            and isinstance(instance.get("target"), dict)
+        }
+
+    @classmethod
+    def _sanitize_diagnostic(
+        cls,
+        record: dict[str, Any],
+        authoring_targets: dict[str, dict[str, Any]],
+    ) -> dict[str, Any]:
+        sanitized = {
+            key: value
+            for key, value in record.items()
+            if key not in {"slotId", "slotPath"}
+        }
+        instance_id = sanitized.get("instanceId")
+        if isinstance(instance_id, str):
+            target = authoring_targets.get(instance_id)
+            if target is not None:
+                sanitized["target"] = target
+        if (
+            sanitized.get("kind") == "plugin-width-incompatible"
+            and isinstance(sanitized.get("pluginId"), str)
+            and isinstance(sanitized.get("actualWidthClass"), str)
+        ):
+            sanitized["errorMessage"] = (
+                f'UI plugin "{sanitized["pluginId"]}" requires a wide container, '
+                f'but its current container is {sanitized["actualWidthClass"]}.'
+            )
+        return sanitized
+
+    @classmethod
+    def _sanitize_result(
+        cls,
+        result: dict[str, Any],
+        authoring_targets: dict[str, dict[str, Any]],
+    ) -> dict[str, Any]:
+        sanitized = {
+            key: value
+            for key, value in result.items()
+            if key not in {"runtimeInstances", "runtimeSlots"}
+        }
+        for key in ("currentErrors", "resolvedCurrent", "stale"):
+            records = sanitized.get(key)
+            if isinstance(records, list):
+                sanitized[key] = [
+                    cls._sanitize_diagnostic(record, authoring_targets)
+                    for record in records
+                    if isinstance(record, dict)
+                ]
+        return sanitized
+
     async def inspect(self, *, include_stale: bool = False) -> dict[str, Any]:
         self.repair_state.begin_verification(self.activity.revision)
         project = await self.project_control.inspect_ui_project()
@@ -60,82 +117,33 @@ class RuntimeDiagnosticInspectionService:
             revision=self.activity.revision,
             source="inspect_ui_project",
         )
-        result = self.store.inspect(
+        raw_result = self.store.inspect(
             thread_id=self.thread_id or "",
             current_app_ui_model_hash=current_hash,
             last_mutation_at=self.activity.last_mutation_at,
             include_stale=include_stale,
         )
-        actual_by_id = {
-            instance.get("instanceId"): instance
-            for instance in result.get("runtimeInstances", [])
-            if isinstance(instance, dict)
-            and isinstance(instance.get("instanceId"), str)
-        }
-        application = result.get("application")
-        application_phase = (
-            application.get("phase") if isinstance(application, dict) else None
+        raw_composition = self.store.current_composition(
+            thread_id=self.thread_id or "",
+            app_ui_model_hash=current_hash,
         )
-        workspace_composition_required = application_phase in {None, "ready"}
-        composition_checks: list[dict[str, Any]] = []
-        plugin_instances = project.get("plugins")
-        instances_to_check = (
-            plugin_instances
-            if workspace_composition_required and isinstance(plugin_instances, list)
-            else []
-        )
-        for instance in instances_to_check:
-            if not isinstance(instance, dict) or instance.get("enabled") is not True:
-                continue
-            target = instance.get("target")
-            if not isinstance(target, dict) or target.get("type") == "application":
-                continue
-            if target.get("type") == "layout_slot" and isinstance(
-                target.get("slotRef"), str
-            ):
-                # Layout Slot Runtime ids are compiler-derived from the current
-                # canonical path and are intentionally not exposed to Creator.
-                expected_slot_id = None
-            elif target.get("type") == "plugin_slot" and isinstance(
-                target.get("parentInstanceId"), str
-            ) and isinstance(target.get("slot"), str):
-                expected_slot_id = (
-                    "plugin:"
-                    f"{quote(target['parentInstanceId'], safe='')}"
-                    f":{quote(target['slot'], safe='')}"
-                )
-            else:
-                continue
-            instance_id = instance.get("id")
-            plugin_id = instance.get("pluginId")
-            if not isinstance(instance_id, str) or not isinstance(plugin_id, str):
-                continue
-            actual = actual_by_id.get(instance_id)
-            status = "passed"
-            if actual is None:
-                status = "missing"
-            elif actual.get("pluginId") != plugin_id:
-                status = "plugin-mismatch"
-            elif expected_slot_id is not None and actual.get("slotId") != expected_slot_id:
-                status = "slot-mismatch"
-            composition_checks.append(
-                {
-                    "instanceId": instance_id,
-                    "status": status,
-                    "expected": {
-                        "pluginId": plugin_id,
-                        **({"slotId": expected_slot_id} if expected_slot_id is not None else {}),
-                    },
-                    "actual": actual or {"mounted": False},
-                }
+        verification = (
+            await self.project_control.verify_runtime_composition(
+                app_ui_model_hash=current_hash,
+                composition=raw_composition,
             )
+            if raw_composition is not None
+            else {"verified": False, "checks": []}
+        )
+        result = self._sanitize_result(
+            raw_result,
+            self._authoring_targets(project),
+        )
+        composition_checks = verification.get("checks", [])
         result["compositionChecks"] = composition_checks
         result["compositionVerified"] = (
             result.get("compositionFresh") is True
-            and application_phase != "error"
-            and all(
-                check["status"] == "passed" for check in composition_checks
-            )
+            and verification.get("verified") is True
         )
         if (
             result["runtimeStatus"] == "passed"

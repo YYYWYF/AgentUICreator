@@ -23,8 +23,13 @@ MutationProjectControlOperation: TypeAlias = Literal[
     "mutate_app_ui_model",
     "apply_agent_ui_source_item",
 ]
+InternalProjectControlOperation: TypeAlias = Literal[
+    "verify_runtime_composition",
+]
 ProjectControlOperation: TypeAlias = (
-    ReadProjectControlOperation | MutationProjectControlOperation
+    ReadProjectControlOperation
+    | MutationProjectControlOperation
+    | InternalProjectControlOperation
 )
 
 

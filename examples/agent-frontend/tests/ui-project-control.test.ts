@@ -16,6 +16,10 @@ import {
   PLUGIN_REGISTRY_ENTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
 } from "../scripts/ui-project/registry-generator";
+import {
+  resolveRuntimeLayoutSlotId,
+  resolveRuntimePluginSlotId,
+} from "../framework/contracts/app-ui-composition";
 import type { UIProjectControlConfig } from "../scripts/ui-project/types";
 
 const temporaryProjects: string[] = [];
@@ -29,6 +33,7 @@ async function createProject(
   definitionSource =
     "const Component = () => null;\nexport default { manifest: {}, Component };\n",
   manifestOverrides: Record<string, unknown> = {},
+  modelOverride?: AppUIModel,
 ) {
   const projectRoot = await mkdtemp(path.join(tmpdir(), "ui-control-"));
   temporaryProjects.push(projectRoot);
@@ -66,7 +71,7 @@ async function createProject(
     path.join(projectRoot, "plugins", "sample", "definition.ts"),
     definitionSource,
   );
-  const model: AppUIModel = {
+  const model: AppUIModel = modelOverride ?? {
     root: {
       type: "slot",
       plugins: [{
@@ -297,6 +302,228 @@ describe("ui-project-control", () => {
           },
         },
       },
+    });
+  });
+
+  it("verifies Runtime composition in authoring terms for Layout Slots", async () => {
+    const { projectRoot, appUIModelSource } = await createProject();
+    const appUIModelHash = createHash("sha256")
+      .update(appUIModelSource)
+      .digest("hex");
+    const response = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "verify_runtime_composition",
+        input: {
+          appUIModelHash,
+          composition: {
+            schemaVersion: 1,
+            appUIModelHash,
+            observedAt: "2026-09-15T00:00:00.000Z",
+            instances: [{
+              instanceId: "sample-main",
+              pluginId: "sample",
+              slotId: resolveRuntimeLayoutSlotId("root"),
+            }],
+            slots: [],
+          },
+        },
+      },
+      projectRoot,
+    );
+
+    expect(response).toMatchObject({
+      ok: true,
+      result: {
+        verified: true,
+        checks: [{
+          instanceId: "sample-main",
+          status: "passed",
+          expected: {
+            pluginId: "sample",
+            target: { type: "layout_slot", slotRef: "l0" },
+          },
+          actual: { mounted: true, pluginId: "sample" },
+        }],
+      },
+    });
+    expect(JSON.stringify(response)).not.toContain("slotId");
+
+    const wrongPluginSlotResponse = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "verify_runtime_composition",
+        input: {
+          appUIModelHash,
+          composition: {
+            schemaVersion: 1,
+            appUIModelHash,
+            observedAt: "2026-09-15T00:00:00.000Z",
+            instances: [{
+              instanceId: "child-main",
+              pluginId: "sample",
+              slotId: resolveRuntimePluginSlotId("sample-main", "other"),
+            }],
+            slots: [],
+          },
+        },
+      },
+      projectRoot,
+    );
+    expect(wrongPluginSlotResponse).toMatchObject({
+      ok: true,
+      result: { checks: [{ status: "slot-mismatch" }] },
+    });
+    expect(JSON.stringify(wrongPluginSlotResponse)).not.toContain("slotId");
+  });
+
+  it("reports missing, plugin-mismatch, and slot-mismatch without Runtime ids", async () => {
+    const { projectRoot, appUIModelSource } = await createProject();
+    const appUIModelHash = createHash("sha256")
+      .update(appUIModelSource)
+      .digest("hex");
+    const composition = (instances: Array<Record<string, string>>) => ({
+      schemaVersion: 1,
+      appUIModelHash,
+      observedAt: "2026-09-15T00:00:00.000Z",
+      instances,
+      slots: [],
+    });
+    const request = (value: unknown) =>
+      handleUIProjectControlRequest(
+        {
+          schemaVersion: 3,
+          operation: "verify_runtime_composition",
+          input: { appUIModelHash, composition: value },
+        },
+        projectRoot,
+      );
+
+    const missing = await request(composition([]));
+    const pluginMismatch = await request(composition([{
+      instanceId: "sample-main",
+      pluginId: "other",
+      slotId: resolveRuntimeLayoutSlotId("root"),
+    }]));
+    const slotMismatch = await request(composition([{
+      instanceId: "sample-main",
+      pluginId: "sample",
+      slotId: "layout-slot:other",
+    }]));
+
+    expect(missing).toMatchObject({ ok: true, result: { checks: [{ status: "missing" }] } });
+    expect(pluginMismatch).toMatchObject({ ok: true, result: { checks: [{ status: "plugin-mismatch" }] } });
+    expect(slotMismatch).toMatchObject({ ok: true, result: { checks: [{ status: "slot-mismatch" }] } });
+    expect(JSON.stringify({ missing, pluginMismatch, slotMismatch })).not.toContain("slotId");
+  });
+
+  it("verifies Plugin child Slots without exposing their Runtime ids", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "slot",
+        plugins: [{
+          id: "sample-main",
+          pluginId: "sample",
+          enabled: true,
+          slots: {
+            content: [{ id: "child-main", pluginId: "sample", enabled: true }],
+          },
+        }],
+      },
+    };
+    const { projectRoot, appUIModelSource } = await createProject(
+      undefined,
+      {
+        slots: {
+          children: {
+            content: {
+              description: "Content.",
+              cardinality: "many",
+              optional: true,
+            },
+          },
+        },
+      },
+      model,
+    );
+    const appUIModelHash = createHash("sha256")
+      .update(appUIModelSource)
+      .digest("hex");
+    const response = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "verify_runtime_composition",
+        input: {
+          appUIModelHash,
+          composition: {
+            schemaVersion: 1,
+            appUIModelHash,
+            observedAt: "2026-09-15T00:00:00.000Z",
+            instances: [{
+              instanceId: "child-main",
+              pluginId: "sample",
+              slotId: resolveRuntimePluginSlotId("sample-main", "content"),
+            }],
+            slots: [],
+          },
+        },
+      },
+      projectRoot,
+    );
+
+    expect(response).toMatchObject({
+      ok: true,
+      result: {
+        verified: true,
+        checks: [{
+          instanceId: "child-main",
+          expected: {
+            target: {
+              type: "plugin_slot",
+              parentInstanceId: "sample-main",
+              slot: "content",
+            },
+          },
+        }],
+      },
+    });
+    expect(JSON.stringify(response)).not.toContain("slotId");
+  });
+
+  it("rejects stale AppUIModel hashes before Runtime comparison", async () => {
+    const { projectRoot, appUIModelSource } = await createProject();
+    const staleHash = createHash("sha256")
+      .update(appUIModelSource)
+      .digest("hex");
+    await writeFile(
+      path.join(projectRoot, "app-ui", "app-ui.json"),
+      `${JSON.stringify({
+        ...JSON.parse(appUIModelSource),
+        settings: { theme: "dark" },
+      }, null, 2)}\n`,
+    );
+
+    const response = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "verify_runtime_composition",
+        input: {
+          appUIModelHash: staleHash,
+          composition: {
+            schemaVersion: 1,
+            appUIModelHash: staleHash,
+            observedAt: "2026-09-15T00:00:00.000Z",
+            instances: [],
+            slots: [],
+          },
+        },
+      },
+      projectRoot,
+    );
+
+    expect(response).toMatchObject({
+      ok: false,
+      error: { code: "APP_UI_MODEL_HASH_CONFLICT" },
     });
   });
 

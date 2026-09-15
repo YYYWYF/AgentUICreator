@@ -220,7 +220,7 @@ export function PluginDiagnosticProvider<TState = unknown>({
             slotId,
             requiredWidth: "wide",
             actualWidthClass: "narrow",
-            errorMessage: `UI plugin "${plugin.pluginId}" requires a wide container, but Slot "${slotId}" is narrow.`,
+            errorMessage: `UI plugin "${plugin.pluginId}" requires a wide container, but its current container is narrow.`,
           });
         }
       }

@@ -93,7 +93,7 @@ def create_project_control_tools(
 
     @tool("inspect_ui_project")
     async def inspect_ui_project() -> str:
-        """Inspect the target project's Mode, UI composition, and registry state."""
+        """Inspect current Workspace facts: Mode, authoring UI composition, and registry state. Use this to observe current state, not to learn stable composition rules."""
         try:
             result = await client.inspect_ui_project()
             observe(result.get("appUIModel", {}).get("hash"), "inspect_ui_project")
@@ -103,7 +103,7 @@ def create_project_control_tools(
 
     @tool("inspect_app_ui_model")
     async def inspect_app_ui_model() -> str:
-        """Inspect the authoritative AppUIModel without modifying it."""
+        """Inspect the exact current authoring AppUIModel, snapshot-scoped refs, and hash when a precise mutation needs them. Do not use it to rediscover AppUIModel grammar."""
         try:
             result = await client.inspect_app_ui_model()
             observe(result.get("hash"), "inspect_app_ui_model")
@@ -113,7 +113,7 @@ def create_project_control_tools(
 
     @tool("list_ui_plugins")
     async def list_ui_plugins() -> str:
-        """List UI plugins from the target project's authoritative registry."""
+        """Discover the current project's available UI Plugin assets and declarations, including identity, description, capabilities, and declared child Slots. Use this to find which Plugin provides a requested capability; do not call it to learn general composition rules."""
         try:
             result = await client.list_ui_plugins()
             observe(result.get("appUIModelHash"), "list_ui_plugins")
@@ -126,7 +126,7 @@ def create_project_control_tools(
         target: dict[str, Any] | None = None,
         appUIModelHash: str | None = None,
     ) -> str:
-        """Inspect authoritative slot state; layout Slot targets require the latest AppUIModel hash."""
+        """Inspect current Slot declarations and occupancy for a specific authoring target. Plugin-local results describe current declaration, cardinality, and optional state; use this only when current Slot facts are needed. Layout Slot targets require the latest AppUIModel hash."""
         try:
             if appUIModelHash is None:
                 result = await client.inspect_ui_slots(target=target)
@@ -142,7 +142,7 @@ def create_project_control_tools(
 
     @tool("inspect_ui_plugin")
     async def inspect_ui_plugin(pluginId: str) -> str:
-        """Inspect one UI plugin's authoritative declaration and composition state."""
+        """Inspect one currently known UI Plugin's declaration and current authoring composition state. Prefer this after pluginId is known."""
         try:
             return _render_result(await client.inspect_ui_plugin(pluginId))
         except ProjectControlError as error:

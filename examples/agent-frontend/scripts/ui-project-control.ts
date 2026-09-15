@@ -22,6 +22,10 @@ import {
   removeAgentUISourceItems,
   recoverPendingAgentUISourceTransaction,
 } from "./ui-project/source-registry";
+import {
+  verifyRuntimeComposition,
+  verifyRuntimeCompositionInputSchema,
+} from "./ui-project/runtime-composition-verifier";
 
 export const UI_PROJECT_CONTROL_SCHEMA_VERSION = 3 as const;
 export const MAX_UI_PROJECT_CONTROL_INPUT_BYTES = 64_000;
@@ -91,6 +95,11 @@ const requestSchema = z.discriminatedUnion("operation", [
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_ui_plugin_source_references"),
     input: z.strictObject({ pluginId: z.string().trim().min(1).max(200) }),
+  }),
+  z.strictObject({
+    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
+    operation: z.literal("verify_runtime_composition"),
+    input: verifyRuntimeCompositionInputSchema,
   }),
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
@@ -388,6 +397,8 @@ async function executeRequest(
         projectRoot,
         request.input.pluginId,
       );
+    case "verify_runtime_composition":
+      return verifyRuntimeComposition(projectRoot, request.input);
     case "mutate_app_ui_model":
       return mutateAppUIModel(projectRoot, request.input);
     case "inspect_agent_ui_sources":
