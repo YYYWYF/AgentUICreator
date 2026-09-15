@@ -201,21 +201,19 @@ async function inspectUISlots(
   input: z.infer<typeof inspectUISlotsInputSchema>,
 ): Promise<unknown> {
   const target = "target" in input ? input.target : undefined;
+  const inspection = await inspectUIProject(projectRoot);
   if (target?.type === "layout_slot" && "appUIModelHash" in input) {
-    const source = await readFile(
-      path.join(projectRoot, "app-ui", "app-ui.json"),
-      "utf8",
-    );
-    const currentHash = createHash("sha256").update(source).digest("hex");
-    if (currentHash !== input.appUIModelHash) {
+    if (inspection.appUIModel.hash !== input.appUIModelHash) {
       throw new UIProjectControlError(
         "APP_UI_MODEL_HASH_CONFLICT",
         "AppUIModel changed after the layout Slot was inspected. Inspect the project again and retry with the new hash.",
-        { expectedHash: input.appUIModelHash, actualHash: currentHash },
+        {
+          expectedHash: input.appUIModelHash,
+          actualHash: inspection.appUIModel.hash,
+        },
       );
     }
   }
-  const inspection = await inspectUIProject(projectRoot);
   const selected = target === undefined
     ? undefined
     : inspection.appUIModel.slots.find((slot) =>
