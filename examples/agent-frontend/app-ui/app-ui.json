@@ -29,29 +29,12 @@
         "minWidth": 240,
         "maxWidth": 360,
         "child": {
-          "type": "column",
-          "gap": 0,
-          "sizes": ["minmax(0, 1fr)", "auto"],
-          "children": [
+          "type": "slot",
+          "plugins": [
             {
-              "type": "slot",
-              "plugins": [
-                {
-                  "id": "conversation-thread-list-main",
-                  "pluginId": "conversation-thread-list",
-                  "enabled": true
-                }
-              ]
-            },
-            {
-              "type": "slot",
-              "plugins": [
-                {
-                  "id": "theme-switch-main",
-                  "pluginId": "theme-switch",
-                  "enabled": true
-                }
-              ]
+              "id": "conversation-thread-list-main",
+              "pluginId": "conversation-thread-list",
+              "enabled": true
             }
           ]
         }

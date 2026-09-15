@@ -51,16 +51,13 @@ describe("theme plugin boundary", () => {
       plugin: { pluginId: "theme-provider", enabled: true, props: { defaultMode: "light" } },
       target: { type: "application" },
     });
-    expect(plugins.get("theme-switch-main")).toMatchObject({
-      plugin: { pluginId: "theme-switch", enabled: true },
-      target: { type: "layout_slot", slotPath: "root.children[0].child.children[1]" },
-    });
+    expect(plugins.has("theme-switch-main")).toBe(false);
     expect(JSON.stringify(model.root)).not.toContain("theme-control");
     expect(JSON.stringify(model.root)).not.toContain("workspace.inspector");
     expect(JSON.stringify(model.root)).not.toContain("workspace-shell");
 
     expect(registry).toContain('./theme-provider/definition');
-    expect(registry).toContain('./theme-switch/definition');
+    expect(registry).not.toContain('./theme-switch/definition');
 
   });
 });

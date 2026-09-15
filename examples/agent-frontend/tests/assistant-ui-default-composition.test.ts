@@ -14,7 +14,7 @@ import { createPluginCompositionCatalog, createPluginRegistry } from "../runtime
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("assistant-ui default composition", () => {
-  it("keeps the default model to three top-level and one child presentation plugin", () => {
+  it("keeps the default model to two top-level and one child presentation plugin", () => {
     const model = parseAppUIModel(appUIJson);
     const locations = collectAppUIPluginLocations(model);
     const visible = locations
@@ -23,7 +23,6 @@ describe("assistant-ui default composition", () => {
 
     expect(visible).toEqual([
       "conversation-thread-list-main",
-      "theme-switch-main",
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
     ]);
@@ -32,7 +31,6 @@ describe("assistant-ui default composition", () => {
       "agent-conversation-service-main",
       "theme-provider-main",
       "conversation-thread-list-main",
-      "theme-switch-main",
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
     ]);
@@ -44,7 +42,7 @@ describe("assistant-ui default composition", () => {
 
   });
 
-  it("uses AppUIModel layout Slots with the theme control below navigation", () => {
+  it("uses a single navigation Slot without an optional theme control area", () => {
     const model = parseAppUIModel(appUIJson);
     expect(model.root).toMatchObject({
       type: "row",
@@ -57,22 +55,14 @@ describe("assistant-ui default composition", () => {
     const navigationPanel = root.children[0];
     expect(navigationPanel).toMatchObject({
       type: "panel",
-      child: {
-        type: "column",
-        sizes: ["minmax(0, 1fr)", "auto"],
-        children: [
-          { type: "slot" },
-          { type: "slot" },
-        ],
-      },
+      child: { type: "slot" },
     });
     expect(JSON.stringify(model.root)).toContain("conversation-surface");
     expect(JSON.stringify(model.root)).not.toContain("workspace.inspector");
     const locations = collectAppUIPluginLocations(model);
     expect(locations.find(({ plugin }) => plugin.id === "conversation-thread-list-main")?.target)
-      .toMatchObject({ type: "layout_slot", slotPath: "root.children[0].child.children[0]" });
-    expect(locations.find(({ plugin }) => plugin.id === "theme-switch-main")?.target)
-      .toMatchObject({ type: "layout_slot", slotPath: "root.children[0].child.children[1]" });
+      .toMatchObject({ type: "layout_slot", slotPath: "root.children[0].child" });
+    expect(locations.some(({ plugin }) => plugin.id === "theme-switch-main")).toBe(false);
     expect(locations.find(({ plugin }) => plugin.id === "agent-conversation-surface-main")?.target)
       .toMatchObject({ type: "layout_slot", slotPath: "root.children[1].child" });
   });

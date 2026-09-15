@@ -41,11 +41,7 @@ describe("assistant-ui canonical runtime", () => {
       pluginId: "theme-provider",
       enabled: true,
     });
-    expect(model.pluginInstances["theme-switch-main"]).toMatchObject({
-      pluginId: "theme-switch",
-      enabled: true,
-      mount: { slotId: "layout:theme-control" },
-    });
+    expect(model.pluginInstances["theme-switch-main"]).toBeUndefined();
     expect(model.pluginInstances["agent-conversations-main"]).toBeUndefined();
     expect(
       model.pluginInstances["assistant-ui-conversation-spike-main"],
@@ -54,7 +50,7 @@ describe("assistant-ui canonical runtime", () => {
     expect(
       Object.values(model.pluginInstances)
         .filter((instance) => instance.enabled),
-    ).toHaveLength(7);
+    ).toHaveLength(6);
     expect(
       model.pluginInstances["conversation-suggestions-main"],
     ).toMatchObject({
