@@ -13,6 +13,7 @@ import { z } from "zod";
 import {
   parseAppUIModel,
   parseAppUIModelJson,
+  buildLayoutRefIndex,
   collectAppUIPluginLocations,
   type AppUIModel,
   type AppUILayoutNode,
@@ -22,7 +23,6 @@ import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime
 import {
   appUIOperationsSchema,
   applyAppUIOperations,
-  buildLayoutNodeIndex,
   type AppUIOperation,
 } from "./app-ui-operations";
 import {
@@ -385,25 +385,34 @@ function mapInstances(model: AppUIModel): Map<string, string> {
   return new Map(
     collectAppUIPluginLocations(model).map(({ plugin, target, index }) => [
       plugin.id,
-      JSON.stringify({ plugin, target, index }),
+      JSON.stringify({
+        plugin,
+        target:
+          target.type === "layout_slot"
+            ? { type: target.type, slotPath: target.slotPath }
+            : target,
+        index,
+      }),
     ]),
   );
 }
 
 function mapLayoutNodes(root: AppUILayoutNode): Map<string, string> {
+  const refs = buildLayoutRefIndex(root);
   return new Map(
-    [...buildLayoutNodeIndex(root).values()].map(({ node }) => [
-      node.id,
+    [...refs.byRef.entries()].map(([ref, node]) => [
+      ref,
       JSON.stringify(node),
     ]),
   );
 }
 
 function mapSlots(model: AppUIModel): Map<string, string> {
+  const refs = buildLayoutRefIndex(model.root);
   return new Map(
-    [...buildLayoutNodeIndex(model.root).values()]
-      .filter(({ node }) => node.type === "slot")
-      .map(({ node }) => [node.id, JSON.stringify(node)]),
+    [...refs.byRef.entries()]
+      .filter(([, node]) => node.type === "slot")
+      .map(([ref, node]) => [ref, JSON.stringify(node)]),
   );
 }
 

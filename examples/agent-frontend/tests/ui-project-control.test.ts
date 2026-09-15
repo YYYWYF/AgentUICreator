@@ -67,8 +67,6 @@ async function createProject(
   const model: AppUIModel = {
     root: {
       type: "slot",
-      id: "main-node",
-      description: "Main content.",
       plugins: [{
         id: "sample-main",
         pluginId: "sample",
@@ -120,7 +118,7 @@ describe("ui-project-control", () => {
       schemaVersion: 3,
       result: {
         appUIModel: {
-          slots: [expect.objectContaining({ nodePath: "root" })],
+          slots: [expect.objectContaining({ nodeRef: "l0" })],
         },
         registry: { generatedFileFresh: true },
       },
@@ -173,7 +171,7 @@ describe("ui-project-control", () => {
       {
         schemaVersion: 3,
         operation: "inspect_ui_slots",
-        input: { root: "main-node" },
+        input: { target: { type: "layout_slot", slotRef: "l0" } },
       },
       projectRoot,
     );
@@ -183,13 +181,8 @@ describe("ui-project-control", () => {
       result: {
         slots: [
           expect.objectContaining({
-            target: { type: "layout_slot", slotNodeId: "main-node" },
-            description: "Main content.",
-            owner: {
-              kind: "layout",
-              nodeId: "main-node",
-              nodePath: "root",
-            },
+            target: { type: "layout_slot", slotRef: "l0" },
+            nodeRef: "l0",
             plugins: [
               expect.objectContaining({
                 id: "sample-main",
@@ -200,7 +193,7 @@ describe("ui-project-control", () => {
           }),
         ],
         selected: expect.objectContaining({
-          target: { type: "layout_slot", slotNodeId: "main-node" },
+          target: { type: "layout_slot", slotRef: "l0" },
         }),
       },
     });

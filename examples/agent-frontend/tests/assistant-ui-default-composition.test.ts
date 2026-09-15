@@ -48,25 +48,21 @@ describe("assistant-ui default composition", () => {
     const model = parseAppUIModel(appUIJson);
     expect(model.root).toMatchObject({
       type: "row",
-      id: "conversation-workspace-row",
     });
     const root = model.root;
     expect(root.type).toBe("row");
     if (root.type !== "row") {
       throw new Error("Expected the default root to be a row");
     }
-    const navigationPanel = root.children.find(
-      (child) => child.type === "panel" && child.id === "conversation-navigation-panel",
-    );
+    const navigationPanel = root.children[0];
     expect(navigationPanel).toMatchObject({
       type: "panel",
       child: {
         type: "column",
-        id: "conversation-navigation-column",
         sizes: ["minmax(0, 1fr)", "auto"],
         children: [
-          { type: "slot", id: "conversation-navigation" },
-          { type: "slot", id: "theme-control" },
+          { type: "slot" },
+          { type: "slot" },
         ],
       },
     });
@@ -74,11 +70,11 @@ describe("assistant-ui default composition", () => {
     expect(JSON.stringify(model.root)).not.toContain("workspace.inspector");
     const locations = collectAppUIPluginLocations(model);
     expect(locations.find(({ plugin }) => plugin.id === "conversation-thread-list-main")?.target)
-      .toEqual({ type: "layout_slot", slotNodeId: "conversation-navigation" });
+      .toMatchObject({ type: "layout_slot", slotPath: "root.children[0].child.children[0]" });
     expect(locations.find(({ plugin }) => plugin.id === "theme-switch-main")?.target)
-      .toEqual({ type: "layout_slot", slotNodeId: "theme-control" });
+      .toMatchObject({ type: "layout_slot", slotPath: "root.children[0].child.children[1]" });
     expect(locations.find(({ plugin }) => plugin.id === "agent-conversation-surface-main")?.target)
-      .toEqual({ type: "layout_slot", slotNodeId: "conversation-surface" });
+      .toMatchObject({ type: "layout_slot", slotPath: "root.children[1].child" });
   });
 
   it("leaves interaction presentation unconfigured so the adapter owns the upstream fallback", () => {

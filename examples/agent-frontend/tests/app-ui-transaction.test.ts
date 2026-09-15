@@ -39,8 +39,6 @@ async function createProject() {
   const model: AppUIModel = {
     root: {
       type: "slot",
-      id: "main",
-      description: "Main content.",
       plugins: [{
         id: "sample-main",
         pluginId: "sample",
@@ -90,7 +88,7 @@ describe("AppUIModel transaction", () => {
       operations: [{
         type: "insert_plugin",
         plugin: { id: "missing-main", pluginId: "missing", enabled: true },
-        target: { type: "layout_slot", slotNodeId: "main" },
+        target: { type: "layout_slot", slotRef: "l0" },
       }],
     })).rejects.toMatchObject({ code: "PLUGIN_REGISTRY_GENERATION_FAILED" });
 

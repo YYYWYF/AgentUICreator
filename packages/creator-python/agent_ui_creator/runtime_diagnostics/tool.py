@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+from urllib.parse import quote
 from typing import Any
 
 from langchain_core.tools import BaseTool, tool
@@ -90,14 +91,18 @@ class RuntimeDiagnosticInspectionService:
             if not isinstance(target, dict) or target.get("type") == "application":
                 continue
             if target.get("type") == "layout_slot" and isinstance(
-                target.get("slotNodeId"), str
+                target.get("slotRef"), str
             ):
-                expected_slot_id = f"layout:{target['slotNodeId']}"
+                # Layout Slot Runtime ids are compiler-derived from the current
+                # canonical path and are intentionally not exposed to Creator.
+                expected_slot_id = None
             elif target.get("type") == "plugin_slot" and isinstance(
                 target.get("parentInstanceId"), str
             ) and isinstance(target.get("slot"), str):
                 expected_slot_id = (
-                    f"plugin:{target['parentInstanceId']}:{target['slot']}"
+                    "plugin:"
+                    f"{quote(target['parentInstanceId'], safe='')}"
+                    f":{quote(target['slot'], safe='')}"
                 )
             else:
                 continue
@@ -111,7 +116,7 @@ class RuntimeDiagnosticInspectionService:
                 status = "missing"
             elif actual.get("pluginId") != plugin_id:
                 status = "plugin-mismatch"
-            elif actual.get("slotId") != expected_slot_id:
+            elif expected_slot_id is not None and actual.get("slotId") != expected_slot_id:
                 status = "slot-mismatch"
             composition_checks.append(
                 {
@@ -119,7 +124,7 @@ class RuntimeDiagnosticInspectionService:
                     "status": status,
                     "expected": {
                         "pluginId": plugin_id,
-                        "slotId": expected_slot_id,
+                        **({"slotId": expected_slot_id} if expected_slot_id is not None else {}),
                     },
                     "actual": actual or {"mounted": False},
                 }

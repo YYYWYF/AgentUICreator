@@ -114,8 +114,12 @@ function encodeRuntimeSlotPart(value: string): string {
   return encodeURIComponent(value);
 }
 
-export function resolveRuntimeLayoutSlotId(slotNodeId: string): string {
-  return `layout:${encodeRuntimeSlotPart(slotNodeId)}`;
+export function resolveRuntimeLayoutNodeId(path: string): string {
+  return `layout-node:${encodeRuntimeSlotPart(path)}`;
+}
+
+export function resolveRuntimeLayoutSlotId(path: string): string {
+  return `layout-slot:${encodeRuntimeSlotPart(path)}`;
 }
 
 export function resolveRuntimePluginSlotId(

@@ -21,25 +21,20 @@
   ],
   "root": {
     "type": "row",
-    "id": "conversation-workspace-row",
     "gap": 0,
     "sizes": ["18rem", "minmax(0, 1fr)"],
     "children": [
       {
         "type": "panel",
-        "id": "conversation-navigation-panel",
         "minWidth": 240,
         "maxWidth": 360,
         "child": {
           "type": "column",
-          "id": "conversation-navigation-column",
           "gap": 0,
           "sizes": ["minmax(0, 1fr)", "auto"],
           "children": [
             {
               "type": "slot",
-              "id": "conversation-navigation",
-              "description": "Conversation navigation and history area.",
               "plugins": [
                 {
                   "id": "conversation-thread-list-main",
@@ -50,8 +45,6 @@
             },
             {
               "type": "slot",
-              "id": "theme-control",
-              "description": "Application theme controls.",
               "plugins": [
                 {
                   "id": "theme-switch-main",
@@ -65,11 +58,8 @@
       },
       {
         "type": "panel",
-        "id": "conversation-surface-panel",
         "child": {
           "type": "slot",
-          "id": "conversation-surface",
-          "description": "Primary conversation workspace.",
           "plugins": [
             {
               "id": "agent-conversation-surface-main",

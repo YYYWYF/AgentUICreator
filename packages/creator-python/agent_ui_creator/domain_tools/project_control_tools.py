@@ -122,10 +122,10 @@ def create_project_control_tools(
             return _render_error(error)
 
     @tool("inspect_ui_slots")
-    async def inspect_ui_slots(root: str | None = None) -> str:
-        """Inspect authoritative slot state, optionally below one slot root."""
+    async def inspect_ui_slots(target: dict[str, Any] | None = None) -> str:
+        """Inspect authoritative slot state, optionally selecting one structured target."""
         try:
-            result = await client.inspect_ui_slots(root=root)
+            result = await client.inspect_ui_slots(target=target)
             observe(result.get("appUIModelHash"), "inspect_ui_slots")
             return _render_result(result)
         except ProjectControlError as error:

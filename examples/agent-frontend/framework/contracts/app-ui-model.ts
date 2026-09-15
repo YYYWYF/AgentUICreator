@@ -2,6 +2,7 @@ import type { LayoutSize } from "@agent-ui/runtime-react";
 import { z } from "zod";
 
 export type AppUILayoutSize = LayoutSize;
+export type LayoutRef = string;
 
 export interface AppUIPluginNode {
   id: string;
@@ -13,7 +14,6 @@ export interface AppUIPluginNode {
 
 export interface AppUIRowNode {
   type: "row";
-  id: string;
   children: AppUILayoutNode[];
   gap?: number | undefined;
   sizes?: AppUILayoutSize[] | undefined;
@@ -21,7 +21,6 @@ export interface AppUIRowNode {
 
 export interface AppUIColumnNode {
   type: "column";
-  id: string;
   children: AppUILayoutNode[];
   gap?: number | undefined;
   sizes?: AppUILayoutSize[] | undefined;
@@ -29,14 +28,12 @@ export interface AppUIColumnNode {
 
 export interface AppUIStackNode {
   type: "stack";
-  id: string;
   children: AppUILayoutNode[];
-  active?: string | undefined;
+  activeIndex?: number | undefined;
 }
 
 export interface AppUIPanelNode {
   type: "panel";
-  id: string;
   child: AppUILayoutNode;
   width?: AppUILayoutSize | undefined;
   height?: AppUILayoutSize | undefined;
@@ -47,8 +44,6 @@ export interface AppUIPanelNode {
 
 export interface AppUISlotNode {
   type: "slot";
-  id: string;
-  description: string;
   plugins: AppUIPluginNode[];
 }
 
@@ -65,11 +60,26 @@ export interface AppUIModel {
   settings?: { theme?: string | undefined } | undefined;
 }
 
+export interface AppUILayoutWalkEntry {
+  node: AppUILayoutNode;
+  path: string;
+  parent?: AppUILayoutNode | undefined;
+  parentKind: "root" | "children" | "panel";
+  index?: number | undefined;
+}
+
+export interface AppUILayoutRefIndex {
+  byRef: Map<LayoutRef, AppUILayoutNode>;
+  byNode: WeakMap<object, LayoutRef>;
+  byPath: Map<string, LayoutRef>;
+  entries: AppUILayoutWalkEntry[];
+}
+
 export interface AppUIPluginLocation {
   plugin: AppUIPluginNode;
   target:
     | { type: "application" }
-    | { type: "layout_slot"; slotNodeId: string }
+    | { type: "layout_slot"; slotPath: string; slotNode: AppUISlotNode }
     | { type: "plugin_slot"; parentInstanceId: string; slot: string };
   path: string;
   index: number;
@@ -99,24 +109,24 @@ export const appUIPluginNodeSchema: z.ZodType<AppUIPluginNode> = z.lazy(() =>
 export const layoutNodeSchema: z.ZodType<AppUILayoutNode> = z.lazy(() =>
   z.union([
     z.strictObject({
-      type: z.literal("row"), id: nonBlankStringSchema,
+      type: z.literal("row"),
       children: z.array(layoutNodeSchema),
       gap: nonNegativeNumberSchema.optional(),
       sizes: z.array(layoutSizeSchema).optional(),
     }),
     z.strictObject({
-      type: z.literal("column"), id: nonBlankStringSchema,
+      type: z.literal("column"),
       children: z.array(layoutNodeSchema),
       gap: nonNegativeNumberSchema.optional(),
       sizes: z.array(layoutSizeSchema).optional(),
     }),
     z.strictObject({
-      type: z.literal("stack"), id: nonBlankStringSchema,
+      type: z.literal("stack"),
       children: z.array(layoutNodeSchema),
-      active: nonBlankStringSchema.optional(),
+      activeIndex: z.number().int().nonnegative().optional(),
     }),
     z.strictObject({
-      type: z.literal("panel"), id: nonBlankStringSchema,
+      type: z.literal("panel"),
       child: layoutNodeSchema,
       width: layoutSizeSchema.optional(),
       height: layoutSizeSchema.optional(),
@@ -125,8 +135,7 @@ export const layoutNodeSchema: z.ZodType<AppUILayoutNode> = z.lazy(() =>
       resizable: z.boolean().optional(),
     }),
     z.strictObject({
-      type: z.literal("slot"), id: nonBlankStringSchema,
-      description: nonBlankStringSchema,
+      type: z.literal("slot"),
       plugins: z.array(appUIPluginNodeSchema),
     }),
   ]),
@@ -137,6 +146,42 @@ const appUIModelShapeSchema: z.ZodType<AppUIModel> = z.strictObject({
   root: layoutNodeSchema,
   settings: z.strictObject({ theme: nonBlankStringSchema.optional() }).optional(),
 });
+
+export function walkAppUILayout(root: AppUILayoutNode): AppUILayoutWalkEntry[] {
+  const entries: AppUILayoutWalkEntry[] = [];
+  const visit = (
+    node: AppUILayoutNode,
+    path: string,
+    parent: AppUILayoutNode | undefined,
+    parentKind: AppUILayoutWalkEntry["parentKind"],
+    index?: number,
+  ): void => {
+    entries.push({ node, path, parent, parentKind, ...(index === undefined ? {} : { index }) });
+    if (node.type === "row" || node.type === "column" || node.type === "stack") {
+      node.children.forEach((child, childIndex) =>
+        visit(child, `${path}.children[${childIndex}]`, node, "children", childIndex),
+      );
+    } else if (node.type === "panel") {
+      visit(node.child, `${path}.child`, node, "panel");
+    }
+  };
+  visit(root, "root", undefined, "root");
+  return entries;
+}
+
+export function buildLayoutRefIndex(root: AppUILayoutNode): AppUILayoutRefIndex {
+  const entries = walkAppUILayout(root);
+  const byRef = new Map<LayoutRef, AppUILayoutNode>();
+  const byNode = new WeakMap<object, LayoutRef>();
+  const byPath = new Map<string, LayoutRef>();
+  entries.forEach((entry, index) => {
+    const ref = `l${index}`;
+    byRef.set(ref, entry.node);
+    byNode.set(entry.node, ref);
+    byPath.set(entry.path, ref);
+  });
+  return { byRef, byNode, byPath, entries };
+}
 
 export function collectAppUIPluginLocations(model: AppUIModel): AppUIPluginLocation[] {
   const result: AppUIPluginLocation[] = [];
@@ -157,16 +202,15 @@ export function collectAppUIPluginLocations(model: AppUIModel): AppUIPluginLocat
     });
   };
   visitPlugins(model.applicationPlugins ?? [], { type: "application" }, "applicationPlugins");
-  const visitLayout = (node: AppUILayoutNode, path: string): void => {
-    if (node.type === "slot") {
-      visitPlugins(node.plugins, { type: "layout_slot", slotNodeId: node.id }, `${path}.plugins`);
-    } else if (node.type === "panel") {
-      visitLayout(node.child, `${path}.child`);
-    } else {
-      node.children.forEach((child, index) => visitLayout(child, `${path}.children[${index}]`));
+  for (const entry of walkAppUILayout(model.root)) {
+    if (entry.node.type === "slot") {
+      visitPlugins(
+        entry.node.plugins,
+        { type: "layout_slot", slotPath: entry.path, slotNode: entry.node },
+        `${entry.path}.plugins`,
+      );
     }
-  };
-  visitLayout(model.root, "root");
+  }
   return result;
 }
 
@@ -178,20 +222,15 @@ export function findAppUIPlugin(
 }
 
 export const appUIModelSchema = appUIModelShapeSchema.superRefine((model, context) => {
-  const layoutIds = new Set<string>();
   const visitLayout = (node: AppUILayoutNode, path: PropertyKey[]): void => {
-    if (layoutIds.has(node.id)) {
-      context.addIssue({ code: "custom", path: [...path, "id"], message: `Duplicate layout node id "${node.id}"`, input: node.id });
-    }
-    layoutIds.add(node.id);
     if (node.type === "row" || node.type === "column") {
       if (node.sizes !== undefined && node.sizes.length !== node.children.length) {
         context.addIssue({ code: "custom", path: [...path, "sizes"], message: "sizes must contain exactly one entry for each child", input: node.sizes });
       }
       node.children.forEach((child, index) => visitLayout(child, [...path, "children", index]));
     } else if (node.type === "stack") {
-      if (node.active !== undefined && !node.children.some((child) => child.id === node.active)) {
-        context.addIssue({ code: "custom", path: [...path, "active"], message: `Stack active id "${node.active}" must reference a direct child`, input: node.active });
+      if (node.activeIndex !== undefined && node.activeIndex >= node.children.length) {
+        context.addIssue({ code: "custom", path: [...path, "activeIndex"], message: "activeIndex must be less than children.length", input: node.activeIndex });
       }
       node.children.forEach((child, index) => visitLayout(child, [...path, "children", index]));
     } else if (node.type === "panel") {

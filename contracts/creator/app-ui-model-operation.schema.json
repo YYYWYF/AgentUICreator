@@ -4,6 +4,10 @@
   "title": "AppUIModel operation",
   "$defs": {
     "nonBlankString": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "layoutRef": {
+      "type": "string",
+      "pattern": "^(l[0-9]+|\\$[A-Za-z][A-Za-z0-9_-]*)$"
+    },
     "layoutSize": {
       "oneOf": [
         { "type": "number", "minimum": 0 },
@@ -40,10 +44,10 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["type", "slotNodeId"],
+          "required": ["type", "slotRef"],
           "properties": {
             "type": { "const": "layout_slot" },
-            "slotNodeId": { "$ref": "#/$defs/nonBlankString" }
+            "slotRef": { "$ref": "#/$defs/layoutRef" }
           }
         },
         {
@@ -63,10 +67,10 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["type", "id", "children"],
+          "required": ["type", "children"],
           "properties": {
             "type": { "enum": ["row", "column"] },
-            "id": { "$ref": "#/$defs/nonBlankString" },
+            "localRef": { "type": "string", "pattern": "^\\$[A-Za-z][A-Za-z0-9_-]*$" },
             "children": { "type": "array", "items": { "$ref": "#/$defs/layoutNode" } },
             "gap": { "type": "number", "minimum": 0 },
             "sizes": { "type": "array", "items": { "$ref": "#/$defs/layoutSize" } }
@@ -75,21 +79,21 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["type", "id", "children"],
+          "required": ["type", "children"],
           "properties": {
             "type": { "const": "stack" },
-            "id": { "$ref": "#/$defs/nonBlankString" },
+            "localRef": { "type": "string", "pattern": "^\\$[A-Za-z][A-Za-z0-9_-]*$" },
             "children": { "type": "array", "items": { "$ref": "#/$defs/layoutNode" } },
-            "active": { "$ref": "#/$defs/nonBlankString" }
+            "activeIndex": { "type": "integer", "minimum": 0 }
           }
         },
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["type", "id", "child"],
+          "required": ["type", "child"],
           "properties": {
             "type": { "const": "panel" },
-            "id": { "$ref": "#/$defs/nonBlankString" },
+            "localRef": { "type": "string", "pattern": "^\\$[A-Za-z][A-Za-z0-9_-]*$" },
             "child": { "$ref": "#/$defs/layoutNode" },
             "width": { "$ref": "#/$defs/layoutSize" },
             "height": { "$ref": "#/$defs/layoutSize" },
@@ -101,11 +105,10 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["type", "id", "description", "plugins"],
+          "required": ["type", "plugins"],
           "properties": {
             "type": { "const": "slot" },
-            "id": { "$ref": "#/$defs/nonBlankString" },
-            "description": { "$ref": "#/$defs/nonBlankString" },
+            "localRef": { "type": "string", "pattern": "^\\$[A-Za-z][A-Za-z0-9_-]*$" },
             "plugins": { "type": "array", "items": { "$ref": "#/$defs/plugin" } }
           }
         }
@@ -184,10 +187,10 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "parentNodeId", "node"],
+      "required": ["type", "parentRef", "node"],
       "properties": {
         "type": { "const": "insert_layout_node" },
-        "parentNodeId": { "$ref": "#/$defs/nonBlankString" },
+        "parentRef": { "$ref": "#/$defs/layoutRef" },
         "node": { "$ref": "#/$defs/layoutNode" },
         "index": { "$ref": "#/$defs/index" },
         "size": { "$ref": "#/$defs/layoutSize" }
@@ -196,10 +199,10 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "nodeId"],
+      "required": ["type", "nodeRef"],
       "properties": {
         "type": { "const": "update_layout_node_props" },
-        "nodeId": { "$ref": "#/$defs/nonBlankString" },
+        "nodeRef": { "$ref": "#/$defs/layoutRef" },
         "set": { "type": "object" },
         "removeKeys": { "$ref": "#/$defs/removeKeys" }
       }
@@ -207,11 +210,11 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "nodeId", "newParentNodeId"],
+      "required": ["type", "nodeRef", "newParentRef"],
       "properties": {
         "type": { "const": "move_layout_node" },
-        "nodeId": { "$ref": "#/$defs/nonBlankString" },
-        "newParentNodeId": { "$ref": "#/$defs/nonBlankString" },
+        "nodeRef": { "$ref": "#/$defs/layoutRef" },
+        "newParentRef": { "$ref": "#/$defs/layoutRef" },
         "index": { "$ref": "#/$defs/index" },
         "size": { "$ref": "#/$defs/layoutSize" }
       }
@@ -219,20 +222,33 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "nodeId", "node"],
+      "required": ["type", "nodeRef", "node"],
       "properties": {
         "type": { "const": "replace_layout_node" },
-        "nodeId": { "$ref": "#/$defs/nonBlankString" },
+        "nodeRef": { "$ref": "#/$defs/layoutRef" },
         "node": { "$ref": "#/$defs/layoutNode" }
       }
     },
     {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "nodeId"],
+      "required": ["type", "nodeRef"],
       "properties": {
         "type": { "const": "remove_layout_node" },
-        "nodeId": { "$ref": "#/$defs/nonBlankString" }
+        "nodeRef": { "$ref": "#/$defs/layoutRef" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "anchorRef", "direction", "node"],
+      "properties": {
+        "type": { "const": "insert_layout_relative" },
+        "anchorRef": { "$ref": "#/$defs/layoutRef" },
+        "direction": { "enum": ["left", "right", "above", "below"] },
+        "node": { "$ref": "#/$defs/layoutNode" },
+        "size": { "$ref": "#/$defs/layoutSize" },
+        "anchorSize": { "$ref": "#/$defs/layoutSize" }
       }
     }
   ]

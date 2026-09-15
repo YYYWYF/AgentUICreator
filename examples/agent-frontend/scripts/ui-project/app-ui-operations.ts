@@ -2,9 +2,10 @@ import { z } from "zod";
 
 import {
   appUIPluginNodeSchema,
+  buildLayoutRefIndex,
   collectAppUIPluginLocations,
-  layoutNodeSchema,
   layoutSizeSchema,
+  walkAppUILayout,
   type AppUIColumnNode,
   type AppUILayoutNode,
   type AppUILayoutSize,
@@ -14,18 +15,57 @@ import {
   type AppUIPluginNode,
   type AppUIRowNode,
   type AppUIStackNode,
+  type LayoutRef,
 } from "../../framework/contracts/app-ui-model";
 
 const nonBlankStringSchema = z.string().trim().min(1).max(200);
+const layoutRefSchema = z.string().regex(/^(?:l[0-9]+|\$[A-Za-z][A-Za-z0-9_-]*)$/);
 const indexSchema = z.number().int().nonnegative().optional();
 const removeKeysSchema = z.array(nonBlankStringSchema).max(50).optional();
+const directionSchema = z.enum(["left", "right", "above", "below"]);
+
+type AppUILayoutMutationNode =
+  | ({ type: "row" | "column"; children: AppUILayoutMutationNode[]; gap?: number; sizes?: AppUILayoutSize[] } & { localRef?: string })
+  | ({ type: "stack"; children: AppUILayoutMutationNode[]; activeIndex?: number } & { localRef?: string })
+  | ({ type: "panel"; child: AppUILayoutMutationNode; width?: AppUILayoutSize; height?: AppUILayoutSize; minWidth?: number; maxWidth?: number; resizable?: boolean } & { localRef?: string })
+  | ({ type: "slot"; plugins: AppUIPluginNode[] } & { localRef?: string });
+
+const mutationLayoutNodeSchema: z.ZodType<AppUILayoutMutationNode> = z.lazy(() =>
+  z.union([
+    z.strictObject({
+      type: z.union([z.literal("row"), z.literal("column")]),
+      localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(),
+      children: z.array(mutationLayoutNodeSchema),
+      gap: z.number().nonnegative().optional(),
+      sizes: z.array(layoutSizeSchema).optional(),
+    }),
+    z.strictObject({
+      type: z.literal("stack"),
+      localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(),
+      children: z.array(mutationLayoutNodeSchema),
+      activeIndex: z.number().int().nonnegative().optional(),
+    }),
+    z.strictObject({
+      type: z.literal("panel"),
+      localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(),
+      child: mutationLayoutNodeSchema,
+      width: layoutSizeSchema.optional(),
+      height: layoutSizeSchema.optional(),
+      minWidth: z.number().nonnegative().optional(),
+      maxWidth: z.number().nonnegative().optional(),
+      resizable: z.boolean().optional(),
+    }),
+    z.strictObject({
+      type: z.literal("slot"),
+      localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(),
+      plugins: z.array(appUIPluginNodeSchema),
+    }),
+  ]),
+);
 
 export const appUIPluginTargetSchema = z.discriminatedUnion("type", [
   z.strictObject({ type: z.literal("application") }),
-  z.strictObject({
-    type: z.literal("layout_slot"),
-    slotNodeId: nonBlankStringSchema,
-  }),
+  z.strictObject({ type: z.literal("layout_slot"), slotRef: layoutRefSchema }),
   z.strictObject({
     type: z.literal("plugin_slot"),
     parentInstanceId: nonBlankStringSchema,
@@ -46,10 +86,7 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
     target: appUIPluginTargetSchema,
     index: indexSchema,
   }),
-  z.strictObject({
-    type: z.literal("remove_plugin"),
-    instanceId: nonBlankStringSchema,
-  }),
+  z.strictObject({ type: z.literal("remove_plugin"), instanceId: nonBlankStringSchema }),
   z.strictObject({
     type: z.literal("replace_plugin"),
     instanceId: nonBlankStringSchema,
@@ -68,32 +105,40 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
   }),
   z.strictObject({
     type: z.literal("insert_layout_node"),
-    parentNodeId: nonBlankStringSchema,
-    node: layoutNodeSchema,
+    parentRef: layoutRefSchema,
+    node: mutationLayoutNodeSchema,
     index: indexSchema,
     size: layoutSizeSchema.optional(),
   }),
   z.strictObject({
     type: z.literal("update_layout_node_props"),
-    nodeId: nonBlankStringSchema,
+    nodeRef: layoutRefSchema,
     set: z.record(z.string(), z.unknown()).optional(),
     removeKeys: removeKeysSchema,
   }),
   z.strictObject({
     type: z.literal("move_layout_node"),
-    nodeId: nonBlankStringSchema,
-    newParentNodeId: nonBlankStringSchema,
+    nodeRef: layoutRefSchema,
+    newParentRef: layoutRefSchema,
     index: indexSchema,
     size: layoutSizeSchema.optional(),
   }),
   z.strictObject({
     type: z.literal("replace_layout_node"),
-    nodeId: nonBlankStringSchema,
-    node: layoutNodeSchema,
+    nodeRef: layoutRefSchema,
+    node: mutationLayoutNodeSchema,
   }),
   z.strictObject({
     type: z.literal("remove_layout_node"),
-    nodeId: nonBlankStringSchema,
+    nodeRef: layoutRefSchema,
+  }),
+  z.strictObject({
+    type: z.literal("insert_layout_relative"),
+    anchorRef: layoutRefSchema,
+    direction: directionSchema,
+    node: mutationLayoutNodeSchema,
+    size: layoutSizeSchema.optional(),
+    anchorSize: layoutSizeSchema.optional(),
   }),
 ]);
 
@@ -103,7 +148,13 @@ export type AppUIPluginTarget = z.infer<typeof appUIPluginTargetSchema>;
 
 type ChildrenNode = AppUIRowNode | AppUIColumnNode | AppUIStackNode;
 
-export interface NodeIndexEntry {
+interface MutationContext {
+  model: AppUIModel;
+  snapshot: ReturnType<typeof buildLayoutRefIndex>;
+  localRefs: Map<string, AppUILayoutNode>;
+}
+
+interface CurrentNodeEntry {
   node: AppUILayoutNode;
   path: string;
   parent?: AppUILayoutNode | undefined;
@@ -127,35 +178,65 @@ function operationError(code: string, message: string, details?: unknown): never
   throw new AppUIOperationError(code, message, details);
 }
 
-export function buildLayoutNodeIndex(root: AppUILayoutNode): Map<string, NodeIndexEntry> {
-  const result = new Map<string, NodeIndexEntry>();
-  const visit = (
-    node: AppUILayoutNode,
-    path: string,
-    parent: AppUILayoutNode | undefined,
-    parentKind: NodeIndexEntry["parentKind"],
-    index?: number,
-  ): void => {
-    if (result.has(node.id)) {
-      operationError("DUPLICATE_LAYOUT_NODE_ID", `Layout node id "${node.id}" is duplicated.`);
-    }
-    result.set(node.id, { node, path, parent, parentKind, ...(index === undefined ? {} : { index }) });
-    if (node.type === "row" || node.type === "column" || node.type === "stack") {
-      node.children.forEach((child, childIndex) =>
-        visit(child, `${path}.children[${childIndex}]`, node, "children", childIndex),
-      );
-    } else if (node.type === "panel") {
-      visit(node.child, `${path}.child`, node, "panel");
-    }
-  };
-  visit(root, "root", undefined, "root");
-  return result;
+function currentEntry(context: MutationContext, target: AppUILayoutNode): CurrentNodeEntry | undefined {
+  return walkAppUILayout(context.model.root).find((entry) => entry.node === target);
 }
 
-function requiredNode(model: AppUIModel, nodeId: string): NodeIndexEntry {
-  const entry = buildLayoutNodeIndex(model.root).get(nodeId);
-  if (entry === undefined) operationError("LAYOUT_NODE_NOT_FOUND", `Layout node "${nodeId}" does not exist.`);
-  return entry;
+function resolveNode(context: MutationContext, ref: LayoutRef): AppUILayoutNode {
+  const node = ref.startsWith("$")
+    ? context.localRefs.get(ref)
+    : context.snapshot.byRef.get(ref);
+  if (node === undefined) {
+    operationError("LAYOUT_REF_NOT_FOUND", `Layout ref "${ref}" does not exist in this transaction snapshot.`);
+  }
+  if (currentEntry(context, node) === undefined) {
+    operationError("LAYOUT_REF_DETACHED", `Layout ref "${ref}" is detached after an earlier operation.`);
+  }
+  return node;
+}
+
+function materializeMutationNode(
+  input: AppUILayoutMutationNode,
+  context: MutationContext,
+): AppUILayoutNode {
+  const localRef = input.localRef;
+  if (localRef !== undefined && context.localRefs.has(localRef)) {
+    operationError("DUPLICATE_LAYOUT_LOCAL_REF", `Transaction local ref "${localRef}" is declared more than once.`);
+  }
+
+  let node: AppUILayoutNode;
+  if (input.type === "row" || input.type === "column") {
+    node = {
+      type: input.type,
+      children: input.children.map((child) => materializeMutationNode(child, context)),
+      ...(input.gap === undefined ? {} : { gap: input.gap }),
+      ...(input.sizes === undefined ? {} : { sizes: [...input.sizes] }),
+    };
+  } else if (input.type === "stack") {
+    node = {
+      type: "stack",
+      children: input.children.map((child) => materializeMutationNode(child, context)),
+      ...(input.activeIndex === undefined ? {} : { activeIndex: input.activeIndex }),
+    };
+  } else if (input.type === "panel") {
+    node = {
+      type: "panel",
+      child: materializeMutationNode(input.child, context),
+      ...(input.width === undefined ? {} : { width: input.width }),
+      ...(input.height === undefined ? {} : { height: input.height }),
+      ...(input.minWidth === undefined ? {} : { minWidth: input.minWidth }),
+      ...(input.maxWidth === undefined ? {} : { maxWidth: input.maxWidth }),
+      ...(input.resizable === undefined ? {} : { resizable: input.resizable }),
+    };
+  } else {
+    node = { type: "slot", plugins: structuredClone(input.plugins) };
+  }
+  if (localRef !== undefined) context.localRefs.set(localRef, node);
+  return node;
+}
+
+function requiredNode(context: MutationContext, ref: LayoutRef): AppUILayoutNode {
+  return resolveNode(context, ref);
 }
 
 function requiredPluginLocation(model: AppUIModel, instanceId: string): AppUIPluginLocation {
@@ -166,44 +247,44 @@ function requiredPluginLocation(model: AppUIModel, instanceId: string): AppUIPlu
 
 function insertAt<T>(items: T[], item: T, index: number | undefined, label: string): void {
   const targetIndex = index ?? items.length;
-  if (targetIndex > items.length) {
-    operationError("INDEX_OUT_OF_RANGE", `${label} index ${targetIndex} exceeds length ${items.length}.`);
-  }
+  if (targetIndex > items.length) operationError("INDEX_OUT_OF_RANGE", `${label} index ${targetIndex} exceeds length ${items.length}.`);
   items.splice(targetIndex, 0, item);
 }
 
-function pluginContainer(model: AppUIModel, target: AppUIPluginTarget): AppUIPluginNode[] {
+function pluginContainer(context: MutationContext, target: AppUIPluginTarget): AppUIPluginNode[] {
   if (target.type === "application") {
-    model.applicationPlugins ??= [];
-    return model.applicationPlugins;
+    context.model.applicationPlugins ??= [];
+    return context.model.applicationPlugins;
   }
   if (target.type === "layout_slot") {
-    const node = requiredNode(model, target.slotNodeId).node;
-    if (node.type !== "slot") {
-      operationError("LAYOUT_NODE_NOT_SLOT", `Layout node "${target.slotNodeId}" is not a Slot.`);
-    }
+    const node = requiredNode(context, target.slotRef);
+    if (node.type !== "slot") operationError("LAYOUT_REF_NOT_SLOT", `Layout ref "${target.slotRef}" is not a Slot.`);
     return node.plugins;
   }
-  const parent = requiredPluginLocation(model, target.parentInstanceId).plugin;
+  const parent = requiredPluginLocation(context.model, target.parentInstanceId).plugin;
   parent.slots ??= {};
   parent.slots[target.slot] ??= [];
   return parent.slots[target.slot];
 }
 
-function sameTarget(left: AppUIPluginTarget, right: AppUIPluginTarget): boolean {
-  return JSON.stringify(left) === JSON.stringify(right);
+function pluginContainerForLocation(context: MutationContext, location: AppUIPluginLocation): AppUIPluginNode[] {
+  if (location.target.type === "application") {
+    context.model.applicationPlugins ??= [];
+    return context.model.applicationPlugins;
+  }
+  if (location.target.type === "layout_slot") return location.target.slotNode.plugins;
+  const parent = requiredPluginLocation(context.model, location.target.parentInstanceId).plugin;
+  parent.slots ??= {};
+  parent.slots[location.target.slot] ??= [];
+  return parent.slots[location.target.slot];
 }
 
-function detachPlugin(model: AppUIModel, instanceId: string): {
-  plugin: AppUIPluginNode;
-  target: AppUIPluginTarget;
-  index: number;
-} {
-  const location = requiredPluginLocation(model, instanceId);
-  const container = pluginContainer(model, location.target);
+function detachPlugin(context: MutationContext, instanceId: string): { plugin: AppUIPluginNode; container: AppUIPluginNode[]; index: number } {
+  const location = requiredPluginLocation(context.model, instanceId);
+  const container = pluginContainerForLocation(context, location);
   const [plugin] = container.splice(location.index, 1);
   if (plugin === undefined) operationError("PLUGIN_NOT_FOUND", `Plugin instance "${instanceId}" does not exist.`);
-  return { plugin, target: location.target, index: location.index };
+  return { plugin, container, index: location.index };
 }
 
 function pluginSubtreeIds(plugin: AppUIPluginNode): Set<string> {
@@ -216,55 +297,58 @@ function pluginSubtreeIds(plugin: AppUIPluginNode): Set<string> {
   return result;
 }
 
-function assertUniquePluginIds(
-  model: AppUIModel,
-  plugin: AppUIPluginNode,
-  ignoredIds: ReadonlySet<string> = new Set(),
-): void {
+function assertUniquePluginIds(model: AppUIModel, plugin: AppUIPluginNode, ignoredIds: ReadonlySet<string> = new Set()): void {
   const existing = new Set(
     collectAppUIPluginLocations(model)
       .map(({ plugin: current }) => current.id)
       .filter((id) => !ignoredIds.has(id)),
   );
-  const visit = (current: AppUIPluginNode): void => {
-    if (existing.has(current.id)) {
-      operationError("PLUGIN_ALREADY_EXISTS", `Plugin instance "${current.id}" already exists.`);
-    }
-    existing.add(current.id);
-    Object.values(current.slots ?? {}).flat().forEach(visit);
-  };
-  visit(plugin);
+  for (const id of pluginSubtreeIds(plugin)) {
+    if (existing.has(id)) operationError("PLUGIN_ALREADY_EXISTS", `Plugin instance "${id}" already exists.`);
+    existing.add(id);
+  }
+}
+
+function assertUniqueLayoutPluginIds(
+  model: AppUIModel,
+  node: AppUILayoutNode,
+  ignoredIds: ReadonlySet<string> = new Set(),
+): void {
+  const existing = new Set(
+    collectAppUIPluginLocations(model)
+      .map(({ plugin }) => plugin.id)
+      .filter((id) => !ignoredIds.has(id)),
+  );
+  for (const id of subtreePluginIds(node)) {
+    if (existing.has(id)) operationError("PLUGIN_ALREADY_EXISTS", `Plugin instance "${id}" already exists.`);
+    existing.add(id);
+  }
 }
 
 function childContainer(node: AppUILayoutNode, operation: string): ChildrenNode {
   if (node.type === "row" || node.type === "column" || node.type === "stack") return node;
-  operationError("LAYOUT_PARENT_NOT_CONTAINER", `${operation} requires a row, column, or stack parent; "${node.id}" is ${node.type}.`);
+  operationError("LAYOUT_PARENT_NOT_CONTAINER", `${operation} requires a row, column, or stack parent; received ${node.type}.`);
 }
 
-function insertChild(
-  parent: ChildrenNode,
-  node: AppUILayoutNode,
-  index: number | undefined,
-  size: AppUILayoutSize | undefined,
-): void {
+function insertChild(parent: ChildrenNode, node: AppUILayoutNode, index: number | undefined, size: AppUILayoutSize | undefined): void {
   const targetIndex = index ?? parent.children.length;
   if (targetIndex > parent.children.length) operationError("INDEX_OUT_OF_RANGE", `Layout child index ${targetIndex} exceeds length ${parent.children.length}.`);
   if (parent.type === "row" || parent.type === "column") {
     if (parent.sizes !== undefined) {
-      if (size === undefined) operationError("LAYOUT_SIZE_REQUIRED", `Parent "${parent.id}" has sizes; the inserted child requires a size.`);
+      if (size === undefined) operationError("LAYOUT_SIZE_REQUIRED", "The destination container has sizes; the inserted child requires a size.");
       parent.sizes.splice(targetIndex, 0, size);
     } else if (size !== undefined) {
-      operationError("LAYOUT_SIZE_NOT_APPLICABLE", `Parent "${parent.id}" does not define sizes.`);
+      operationError("LAYOUT_SIZE_NOT_APPLICABLE", "The destination container does not define sizes.");
     }
   } else if (size !== undefined) {
-    operationError("LAYOUT_SIZE_NOT_APPLICABLE", `Stack parent "${parent.id}" does not support child sizes.`);
+    operationError("LAYOUT_SIZE_NOT_APPLICABLE", "Stack children do not support sizes.");
   }
   parent.children.splice(targetIndex, 0, node);
 }
 
-function detachChild(entry: NodeIndexEntry): { node: AppUILayoutNode; size?: AppUILayoutSize } {
+function detachChild(entry: CurrentNodeEntry): { node: AppUILayoutNode; size?: AppUILayoutSize } {
   if (entry.parentKind !== "children" || entry.parent === undefined || entry.index === undefined) {
-    operationError("LAYOUT_NODE_NOT_MOVABLE", `Layout node "${entry.node.id}" is not a child of row, column, or stack.`);
+    operationError("LAYOUT_NODE_NOT_MOVABLE", "The root or panel child cannot be moved as a layout child.");
   }
   const parent = childContainer(entry.parent, "detach_layout_node");
   const [node] = parent.children.splice(entry.index, 1);
@@ -298,71 +382,139 @@ function assertSubtreeCanDisappear(oldNode: AppUILayoutNode, replacement?: AppUI
   }
 }
 
-function replaceNode(model: AppUIModel, entry: NodeIndexEntry, replacement: AppUILayoutNode): void {
-  assertSubtreeCanDisappear(entry.node, replacement);
-  if (entry.parentKind === "root") { model.root = replacement; return; }
-  if (entry.parent === undefined) operationError("LAYOUT_PARENT_NOT_FOUND", `Parent for "${entry.node.id}" is missing.`);
-  if (entry.parentKind === "panel") { (entry.parent as AppUIPanelNode).child = replacement; return; }
-  if (entry.index === undefined) operationError("LAYOUT_PARENT_NOT_FOUND", `Child index for "${entry.node.id}" is missing.`);
+function replaceNode(context: MutationContext, oldNode: AppUILayoutNode, replacement: AppUILayoutNode): void {
+  const entry = currentEntry(context, oldNode);
+  if (entry === undefined) operationError("LAYOUT_REF_DETACHED", "The referenced Layout node is detached.");
+  assertSubtreeCanDisappear(oldNode, replacement);
+  if (entry.parentKind === "root") {
+    context.model.root = replacement;
+    return;
+  }
+  if (entry.parent === undefined) operationError("LAYOUT_PARENT_NOT_FOUND", "The Layout parent is missing.");
+  if (entry.parentKind === "panel") {
+    (entry.parent as AppUIPanelNode).child = replacement;
+    return;
+  }
+  if (entry.index === undefined) operationError("LAYOUT_PARENT_NOT_FOUND", "The Layout child index is missing.");
   childContainer(entry.parent, "replace_layout_node").children[entry.index] = replacement;
 }
 
 const layoutPropKeys: Record<AppUILayoutNode["type"], ReadonlySet<string>> = {
-  row: new Set(["gap", "sizes"]), column: new Set(["gap", "sizes"]),
-  stack: new Set(["active"]), panel: new Set(["width", "height", "minWidth", "maxWidth", "resizable"]),
-  slot: new Set(["description"]),
+  row: new Set(["gap", "sizes"]),
+  column: new Set(["gap", "sizes"]),
+  stack: new Set(["activeIndex"]),
+  panel: new Set(["width", "height", "minWidth", "maxWidth", "resizable"]),
+  slot: new Set(),
 };
 
 function updateLayoutNodeProps(node: AppUILayoutNode, set?: Record<string, unknown>, removeKeys?: string[]): void {
   const allowed = layoutPropKeys[node.type];
   for (const key of [...Object.keys(set ?? {}), ...(removeKeys ?? [])]) {
-    if (!allowed.has(key)) operationError("LAYOUT_PROP_NOT_MUTABLE", `Property "${key}" cannot be changed on ${node.type} node "${node.id}".`, { allowed: [...allowed] });
+    if (!allowed.has(key)) operationError("LAYOUT_PROP_NOT_MUTABLE", `Property "${key}" cannot be changed on ${node.type} nodes.`, { allowed: [...allowed] });
   }
   const target = node as unknown as Record<string, unknown>;
   Object.assign(target, set ?? {});
   for (const key of removeKeys ?? []) delete target[key];
 }
 
-function applyOperation(model: AppUIModel, operation: AppUIOperation): void {
+interface StackActiveState {
+  node: AppUIStackNode;
+  activeChild: AppUILayoutNode | undefined;
+  oldIndex: number | undefined;
+}
+
+function captureStackActiveStates(model: AppUIModel): StackActiveState[] {
+  return walkAppUILayout(model.root)
+    .map(({ node }) => node)
+    .filter((node): node is AppUIStackNode => node.type === "stack")
+    .map((node) => ({
+      node,
+      activeChild: node.activeIndex === undefined ? undefined : node.children[node.activeIndex],
+      oldIndex: node.activeIndex,
+    }));
+}
+
+function restoreStackActiveStates(model: AppUIModel, states: readonly StackActiveState[]): void {
+  for (const state of states) {
+    if (currentEntry({ model, snapshot: buildLayoutRefIndex(model.root), localRefs: new Map() }, state.node) === undefined) continue;
+    if (state.node.children.length === 0) {
+      delete state.node.activeIndex;
+      continue;
+    }
+    if (state.activeChild === undefined && state.oldIndex === undefined) {
+      delete state.node.activeIndex;
+      continue;
+    }
+    const activeIndex = state.activeChild === undefined
+      ? Math.min(state.oldIndex ?? 0, state.node.children.length - 1)
+      : state.node.children.indexOf(state.activeChild);
+    state.node.activeIndex = activeIndex >= 0
+      ? activeIndex
+      : Math.min(state.oldIndex ?? 0, state.node.children.length - 1);
+  }
+}
+
+function insertRelative(context: MutationContext, operation: Extract<AppUIOperation, { type: "insert_layout_relative" }>): void {
+  const anchor = requiredNode(context, operation.anchorRef);
+  const entry = currentEntry(context, anchor);
+  if (entry === undefined) operationError("LAYOUT_REF_DETACHED", `Layout ref "${operation.anchorRef}" is detached.`);
+  const node = materializeMutationNode(operation.node, context);
+  assertUniqueLayoutPluginIds(context.model, node);
+  const horizontal = operation.direction === "left" || operation.direction === "right";
+  const axis = horizontal ? "row" : "column";
+  const before = operation.direction === "left" || operation.direction === "above";
+  const parent = entry.parent;
+  const matchingParent = parent !== undefined && parent.type === axis ? parent : undefined;
+  if (matchingParent !== undefined && entry.index !== undefined) {
+    if (operation.anchorSize !== undefined) {
+      if (matchingParent.sizes === undefined) operationError("LAYOUT_SIZE_NOT_APPLICABLE", "anchorSize requires a sized Row or Column.");
+      matchingParent.sizes[entry.index] = operation.anchorSize;
+    }
+    insertChild(matchingParent, node, before ? entry.index : entry.index + 1, operation.size);
+    return;
+  }
+
+  if ((operation.size === undefined) !== (operation.anchorSize === undefined)) {
+    operationError("LAYOUT_SIZES_INCOMPLETE", "A new wrapper requires both size and anchorSize when either is provided.");
+  }
+  const wrapper: AppUIRowNode | AppUIColumnNode = {
+    type: axis,
+    children: before ? [node, anchor] : [anchor, node],
+    ...(
+      operation.size === undefined
+        ? {}
+        : { sizes: before ? [operation.size, operation.anchorSize!] : [operation.anchorSize!, operation.size] }
+    ),
+  };
+  replaceNode(context, anchor, wrapper);
+}
+
+function applyOperation(context: MutationContext, operation: AppUIOperation): void {
   switch (operation.type) {
     case "insert_plugin":
-      assertUniquePluginIds(model, operation.plugin);
-      insertAt(pluginContainer(model, operation.target), structuredClone(operation.plugin), operation.index, "Plugin target");
+      assertUniquePluginIds(context.model, operation.plugin);
+      insertAt(pluginContainer(context, operation.target), structuredClone(operation.plugin), operation.index, "Plugin target");
       return;
     case "move_plugin": {
-      const location = requiredPluginLocation(model, operation.instanceId);
-      const descendants = new Set<string>();
-      const collect = (plugin: AppUIPluginNode): void => {
-        descendants.add(plugin.id);
-        Object.values(plugin.slots ?? {}).flat().forEach(collect);
-      };
-      collect(location.plugin);
-      if (operation.target.type === "plugin_slot" && descendants.has(operation.target.parentInstanceId)) {
-        operationError("PLUGIN_MOVE_CYCLE", `Cannot move "${operation.instanceId}" into its own subtree.`);
-      }
-      const detached = detachPlugin(model, operation.instanceId);
-      const destination = pluginContainer(model, operation.target);
-      const adjustedIndex = operation.index !== undefined && sameTarget(detached.target, operation.target) && detached.index < operation.index
+      const detached = detachPlugin(context, operation.instanceId);
+      const destination = pluginContainer(context, operation.target);
+      const adjustedIndex = operation.index !== undefined && detached.container === destination && detached.index < operation.index
         ? operation.index - 1
         : operation.index;
       insertAt(destination, detached.plugin, adjustedIndex, "Plugin target");
       return;
     }
     case "remove_plugin":
-      detachPlugin(model, operation.instanceId);
+      detachPlugin(context, operation.instanceId);
       return;
     case "replace_plugin": {
-      const location = requiredPluginLocation(model, operation.instanceId);
-      assertUniquePluginIds(
-        model,
-        operation.replacement,
-        pluginSubtreeIds(location.plugin),
-      );
-      pluginContainer(model, location.target)[location.index] = structuredClone(operation.replacement);
+      const location = requiredPluginLocation(context.model, operation.instanceId);
+      assertUniquePluginIds(context.model, operation.replacement, pluginSubtreeIds(location.plugin));
+      pluginContainerForLocation(context, location)[location.index] = structuredClone(operation.replacement);
       return;
     }
     case "update_plugin_props": {
-      const plugin = requiredPluginLocation(model, operation.instanceId).plugin;
+      const plugin = requiredPluginLocation(context.model, operation.instanceId).plugin;
       const props = { ...(plugin.props ?? {}) };
       Object.assign(props, operation.set ?? {});
       for (const key of operation.removeKeys ?? []) delete props[key];
@@ -371,43 +523,63 @@ function applyOperation(model: AppUIModel, operation: AppUIOperation): void {
       return;
     }
     case "set_plugin_enabled":
-      requiredPluginLocation(model, operation.instanceId).plugin.enabled = operation.enabled;
+      requiredPluginLocation(context.model, operation.instanceId).plugin.enabled = operation.enabled;
       return;
-    case "insert_layout_node":
-      insertChild(childContainer(requiredNode(model, operation.parentNodeId).node, operation.type), structuredClone(operation.node), operation.index, operation.size);
+    case "insert_layout_node": {
+      const parent = childContainer(requiredNode(context, operation.parentRef), operation.type);
+      const node = materializeMutationNode(operation.node, context);
+      assertUniqueLayoutPluginIds(context.model, node);
+      insertChild(parent, node, operation.index, operation.size);
       return;
+    }
     case "update_layout_node_props":
-      updateLayoutNodeProps(requiredNode(model, operation.nodeId).node, operation.set, operation.removeKeys);
+      updateLayoutNodeProps(requiredNode(context, operation.nodeRef), operation.set, operation.removeKeys);
       return;
     case "move_layout_node": {
-      if (operation.nodeId === model.root.id) operationError("LAYOUT_ROOT_NOT_MOVABLE", "The Layout root cannot be moved.");
-      const beforeIndex = buildLayoutNodeIndex(model.root);
-      const entry = beforeIndex.get(operation.nodeId);
-      const parentEntry = beforeIndex.get(operation.newParentNodeId);
-      if (entry === undefined || parentEntry === undefined) operationError("LAYOUT_NODE_NOT_FOUND", "Layout node or destination parent does not exist.");
-      if (buildLayoutNodeIndex(entry.node).has(operation.newParentNodeId)) operationError("LAYOUT_MOVE_CYCLE", `Cannot move "${operation.nodeId}" into its own subtree.`);
-      childContainer(parentEntry.node, operation.type);
-      const detached = detachChild(entry);
-      const destination = childContainer(requiredNode(model, operation.newParentNodeId).node, operation.type);
-      const inheritedSize = (destination.type === "row" || destination.type === "column") && destination.sizes !== undefined ? detached.size : undefined;
-      insertChild(destination, detached.node, operation.index, operation.size ?? inheritedSize);
+      const node = requiredNode(context, operation.nodeRef);
+      if (currentEntry(context, node)?.parentKind === "root") operationError("LAYOUT_ROOT_NOT_MOVABLE", "The Layout root cannot be moved.");
+      const destination = childContainer(requiredNode(context, operation.newParentRef), operation.type);
+      if (destination === node || walkAppUILayout(node).some(({ node: descendant }) => descendant === destination)) operationError("LAYOUT_MOVE_CYCLE", "Cannot move a Layout node into its own subtree.");
+      const detached = detachChild(currentEntry(context, node)!);
+      insertChild(destination, detached.node, operation.index, operation.size ?? detached.size);
       return;
     }
-    case "replace_layout_node":
-      replaceNode(model, requiredNode(model, operation.nodeId), structuredClone(operation.node));
+    case "replace_layout_node": {
+      const oldNode = requiredNode(context, operation.nodeRef);
+      const replacement = materializeMutationNode(operation.node, context);
+      assertUniqueLayoutPluginIds(context.model, replacement, new Set(subtreePluginIds(oldNode)));
+      replaceNode(context, oldNode, replacement);
       return;
+    }
     case "remove_layout_node": {
-      if (operation.nodeId === model.root.id) operationError("LAYOUT_ROOT_NOT_REMOVABLE", "The Layout root cannot be removed.");
-      const entry = requiredNode(model, operation.nodeId);
-      assertSubtreeCanDisappear(entry.node);
-      detachChild(entry);
+      const node = requiredNode(context, operation.nodeRef);
+      if (currentEntry(context, node)?.parentKind === "root") operationError("LAYOUT_ROOT_NOT_REMOVABLE", "The Layout root cannot be removed.");
+      assertSubtreeCanDisappear(node);
+      detachChild(currentEntry(context, node)!);
       return;
     }
+    case "insert_layout_relative":
+      insertRelative(context, operation);
+      return;
   }
 }
 
 export function applyAppUIOperations(source: AppUIModel, operations: readonly AppUIOperation[]): AppUIModel {
   const model = structuredClone(source);
-  operations.forEach((operation) => applyOperation(model, operation));
+  const context: MutationContext = {
+    model,
+    snapshot: buildLayoutRefIndex(model.root),
+    localRefs: new Map(),
+  };
+  for (const operation of operations) {
+    const preserveStackActive = operation.type === "insert_layout_node" ||
+      operation.type === "move_layout_node" ||
+      operation.type === "replace_layout_node" ||
+      operation.type === "remove_layout_node" ||
+      operation.type === "insert_layout_relative";
+    const states = preserveStackActive ? captureStackActiveStates(model) : [];
+    applyOperation(context, operation);
+    if (preserveStackActive) restoreStackActiveStates(model, states);
+  }
   return model;
 }

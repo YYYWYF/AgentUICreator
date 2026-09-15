@@ -10,7 +10,7 @@
           "instanceId": "activity-main",
           "target": {
             "type": "layout_slot",
-            "slotNodeId": "inspector-activity"
+            "slotRef": "l2"
           }
         }
       ]

@@ -31,8 +31,6 @@ function model(surfaceId = "surface-main"): AppUIModel {
     ],
     root: {
       type: "slot",
-      id: "main",
-      description: "Primary application content.",
       plugins: [
         {
           id: surfaceId,
@@ -57,12 +55,12 @@ describe("compileAppUIModel", () => {
     expect(second).toEqual(first);
     expect(first.root).toEqual({
       type: "slot",
-      id: "main",
-      slotId: "layout:main",
+      id: "layout-node:root",
+      slotId: "layout-slot:root",
     });
     expect(first.pluginInstances["provider-main"]?.mount).toBeUndefined();
     expect(first.pluginInstances["surface-main"]?.mount).toEqual({
-      slotId: "layout:main",
+      slotId: "layout-slot:root",
       order: 0,
     });
     expect(first.pluginInstances["item-main"]?.mount).toEqual({

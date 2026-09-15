@@ -100,50 +100,47 @@ export interface GeneratePluginRegistryResult {
 }
 
 export interface CompactLayoutNode {
-  id: string;
+  nodeRef: string;
   type: "row" | "column" | "stack" | "panel" | "slot";
   gap?: number | undefined;
   sizes?: AppUILayoutSize[] | undefined;
-  active?: string | undefined;
+  activeIndex?: number | undefined;
   width?: AppUILayoutSize | undefined;
   height?: AppUILayoutSize | undefined;
   minWidth?: number | undefined;
   maxWidth?: number | undefined;
   resizable?: boolean | undefined;
-  description?: string | undefined;
   plugins?: AppUIPluginNode[] | undefined;
   children?: CompactLayoutNode[] | undefined;
   child?: CompactLayoutNode | undefined;
 }
 
-export interface InspectedSlot {
-  target:
-    | { type: "layout_slot"; slotNodeId: string }
-    | { type: "plugin_slot"; parentInstanceId: string; slot: string };
+export interface InspectedLayoutSlot {
+  target: { type: "layout_slot"; slotRef: string };
+  nodeRef: string;
+  plugins: AppUIPluginNode[];
+}
+
+export interface InspectedPluginSlot {
+  target: { type: "plugin_slot"; parentInstanceId: string; slot: string };
   description: string;
   cardinality: "one" | "many";
   optional: boolean;
-  owner:
-    | {
-        kind: "layout";
-        nodeId: string;
-        nodePath: string;
-      }
-    | {
-        kind: "plugin";
-        instanceId: string;
-        pluginId: string;
-      };
-  nodePath?: string | undefined;
+  owner: {
+    kind: "plugin";
+    instanceId: string;
+    pluginId: string;
+  };
   plugins: AppUIPluginNode[];
 }
+
+export type InspectedSlot = InspectedLayoutSlot | InspectedPluginSlot;
 
 export interface InspectedPlugin extends AppUIPluginNode {
   target:
     | { type: "application" }
-    | { type: "layout_slot"; slotNodeId: string }
+    | { type: "layout_slot"; slotRef: string }
     | { type: "plugin_slot"; parentInstanceId: string; slot: string };
-  path: string;
   index: number;
 }
 

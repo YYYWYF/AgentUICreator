@@ -53,9 +53,9 @@ describe("theme plugin boundary", () => {
     });
     expect(plugins.get("theme-switch-main")).toMatchObject({
       plugin: { pluginId: "theme-switch", enabled: true },
-      target: { type: "layout_slot", slotNodeId: "theme-control" },
+      target: { type: "layout_slot", slotPath: "root.children[0].child.children[1]" },
     });
-    expect(JSON.stringify(model.root)).toContain("theme-control");
+    expect(JSON.stringify(model.root)).not.toContain("theme-control");
     expect(JSON.stringify(model.root)).not.toContain("workspace.inspector");
     expect(JSON.stringify(model.root)).not.toContain("workspace-shell");
 

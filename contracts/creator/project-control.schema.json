@@ -32,7 +32,31 @@
             "input": {
               "type": "object",
               "additionalProperties": false,
-              "properties": { "root": { "type": "string", "minLength": 1, "maxLength": 200 } }
+              "properties": {
+                "target": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": ["type", "slotRef"],
+                      "properties": {
+                        "type": { "const": "layout_slot" },
+                        "slotRef": { "type": "string", "pattern": "^l[0-9]+$" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": ["type", "parentInstanceId", "slot"],
+                      "properties": {
+                        "type": { "const": "plugin_slot" },
+                        "parentInstanceId": { "type": "string", "minLength": 1, "maxLength": 200 },
+                        "slot": { "type": "string", "minLength": 1, "maxLength": 200 }
+                      }
+                    }
+                  ]
+                }
+              }
             }
           }
         },

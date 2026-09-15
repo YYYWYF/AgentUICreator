@@ -30,8 +30,6 @@ describe("AppUIModel", () => {
       version: "3",
       root: {
         type: "slot",
-        id: "main",
-        description: "Main content.",
         plugins: [],
       },
     })).toThrow();
@@ -41,8 +39,6 @@ describe("AppUIModel", () => {
     expect(() => parseAppUIModel({
       root: {
         type: "slot",
-        id: "main",
-        description: "Main content.",
         plugins: [{
           id: "sample-main",
           pluginId: "sample",
@@ -60,8 +56,6 @@ describe("AppUIModel", () => {
       ],
       root: {
         type: "slot",
-        id: "main",
-        description: "Main content.",
         plugins: [{ id: "duplicate", pluginId: "visual", enabled: true }],
       },
     })).toThrow(/Duplicate plugin instance id/);
@@ -71,8 +65,6 @@ describe("AppUIModel", () => {
     expect(() => parseAppUIModel({
       root: {
         type: "slot",
-        id: "main",
-        description: "Main content.",
         plugins: [{
           id: "surface-main",
           pluginId: "surface",

@@ -1,6 +1,7 @@
 import {
   collectAppUIPluginLocations,
   parseAppUIModel,
+  walkAppUILayout,
   type AppUILayoutNode,
   type AppUIModel,
   type AppUIPluginNode,
@@ -12,6 +13,7 @@ import {
   type RuntimeLayoutNode,
 } from "./app-ui-runtime-model";
 import {
+  resolveRuntimeLayoutNodeId,
   resolveRuntimeLayoutSlotId,
   resolveRuntimePluginSlotId,
   pluginChildSlotDefinitions,
@@ -47,18 +49,53 @@ export class AppUICompilerError extends Error {
   }
 }
 
-function compileLayout(node: AppUILayoutNode): RuntimeLayoutNode {
+function compileLayout(
+  node: AppUILayoutNode,
+  paths: WeakMap<object, string>,
+): RuntimeLayoutNode {
+  const path = paths.get(node);
+  if (path === undefined) {
+    throw new Error("Layout node is missing from the canonical AppUI traversal.");
+  }
   if (node.type === "slot") {
     return {
       type: "slot",
-      id: node.id,
-      slotId: resolveRuntimeLayoutSlotId(node.id),
+      id: resolveRuntimeLayoutNodeId(path),
+      slotId: resolveRuntimeLayoutSlotId(path),
     };
   }
   if (node.type === "panel") {
-    return { ...node, child: compileLayout(node.child) };
+    return {
+      type: "panel",
+      id: resolveRuntimeLayoutNodeId(path),
+      ...(node.width === undefined ? {} : { width: node.width }),
+      ...(node.height === undefined ? {} : { height: node.height }),
+      ...(node.minWidth === undefined ? {} : { minWidth: node.minWidth }),
+      ...(node.maxWidth === undefined ? {} : { maxWidth: node.maxWidth }),
+      ...(node.resizable === undefined ? {} : { resizable: node.resizable }),
+      child: compileLayout(node.child, paths),
+    };
   }
-  return { ...node, children: node.children.map(compileLayout) };
+  const children = node.children.map((child) =>
+    compileLayout(child, paths),
+  );
+  if (node.type === "stack") {
+    return {
+      type: "stack",
+      id: resolveRuntimeLayoutNodeId(path),
+      children,
+      ...(node.activeIndex === undefined
+        ? {}
+        : { active: children[node.activeIndex]!.id }),
+    };
+  }
+  return {
+    type: node.type,
+    id: resolveRuntimeLayoutNodeId(path),
+    children,
+    ...(node.gap === undefined ? {} : { gap: node.gap }),
+    ...(node.sizes === undefined ? {} : { sizes: [...node.sizes] }),
+  };
 }
 
 /**
@@ -75,6 +112,10 @@ export function compileAppUIModel(
   const locations = new Map(
     collectAppUIPluginLocations(model).map((location) => [location.plugin.id, location]),
   );
+  const layoutPaths = new WeakMap<object, string>();
+  for (const entry of walkAppUILayout(model.root)) {
+    layoutPaths.set(entry.node, entry.path);
+  }
 
   const compilePlugin = (
     plugin: AppUIPluginNode,
@@ -173,7 +214,7 @@ export function compileAppUIModel(
       compilePlugin(location.plugin, location.path);
     } else if (location.target.type === "layout_slot") {
       compilePlugin(location.plugin, location.path, {
-        slotId: resolveRuntimeLayoutSlotId(location.target.slotNodeId),
+        slotId: resolveRuntimeLayoutSlotId(location.target.slotPath),
         order: location.index,
       });
     }
@@ -182,7 +223,7 @@ export function compileAppUIModel(
   if (issues.length > 0) throw new AppUICompilerError(issues);
 
   const runtimeModel = parseAppUIRuntimeModel({
-    root: compileLayout(model.root),
+    root: compileLayout(model.root, layoutPaths),
     pluginInstances,
     ...(model.settings === undefined ? {} : { settings: structuredClone(model.settings) }),
   });

@@ -51,7 +51,7 @@ describe("Agent UI Mode", () => {
       id: "platform",
       createInitialAppUIModel: () =>
         parseAppUIModel({
-          root: { type: "slot", id: "root", description: "Root content.", plugins: [] },
+          root: { type: "slot", plugins: [] },
         }),
     };
     registry.register(definition);

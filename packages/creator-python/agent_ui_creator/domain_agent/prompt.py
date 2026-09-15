@@ -289,8 +289,20 @@ result and decide the next already-predictable mutation.
 
 BAD: mutate(insert_plugin) -> model -> mutate(enable) -> model -> mutate(move_plugin).
 GOOD, new: mutate(operations=[insert_plugin(plugin={..., enabled:true,
-props:finalProps}, target={type:"layout_slot", slotNodeId:targetSlotNode})]).
+props:finalProps}, target={type:"layout_slot", slotRef:targetSlotRef})]).
 GOOD, existing: mutate(operations=[set_plugin_enabled, move_plugin]).
+
+Layout nodes in AppUIModel have no persisted ids, descriptions, hints, roles, or
+accepts metadata. `inspect_ui_project` returns deterministic preorder `nodeRef`
+values such as `l0` scoped to its `appUIModel.hash`; use those refs for layout
+mutation targets. All refs in one operations batch remain bound to that starting
+snapshot even when an earlier operation moves a node. A newly inserted mutation
+node may declare a `$localRef` for later operations in the same batch; local refs
+are transaction-only and must never be persisted. Plugin instance ids and Plugin
+child Slot names/descriptions remain persistent contract data.
+
+Use `insert_layout_relative` for deterministic left/right/above/below placement.
+Do not pass canonical paths, Runtime layout ids, Runtime slot ids, or mount data.
 
 After a successful mutate_app_ui_model call, use its returned result and the
 updated authoritative observation. Do not immediately re-inspect the AppUIModel

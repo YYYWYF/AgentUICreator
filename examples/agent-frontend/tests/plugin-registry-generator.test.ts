@@ -25,9 +25,7 @@ function modelFor(pluginIds: readonly string[]): AppUIModel {
         enabled: true,
       })),
     root: {
-      id: "main-node",
       type: "slot",
-      description: "Main content.",
       plugins: pluginIds
         .filter((pluginId) => pluginId !== "beta")
         .map((pluginId, index) => ({

@@ -74,9 +74,11 @@ class ProjectControlClient:
     async def list_ui_plugins(self) -> dict[str, Any]:
         return await self._request("list_ui_plugins", {})
 
-    async def inspect_ui_slots(self, *, root: str | None = None) -> dict[str, Any]:
+    async def inspect_ui_slots(
+        self, *, target: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         return await self._request(
-            "inspect_ui_slots", {} if root is None else {"root": root}
+            "inspect_ui_slots", {} if target is None else {"target": target}
         )
 
     async def inspect_ui_plugin(self, plugin_id: str) -> dict[str, Any]:

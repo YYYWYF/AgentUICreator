@@ -72,9 +72,6 @@ describe("inspectUIProject", () => {
         }),
       );
     }
-    expect(result.appUIModel.slots).not.toContainEqual(
-      expect.objectContaining({ target: { type: "layout_slot", slotNodeId: "workspace-inspector" } }),
-    );
   });
 
   it("returns a compact, revision-bound project snapshot", async () => {
@@ -133,14 +130,11 @@ describe("inspectUIProject", () => {
     );
     const model: AppUIModel = {
       root: {
-        id: "root-row",
         type: "row",
         sizes: ["1fr"],
         children: [
           {
-            id: "main-node",
             type: "slot",
-            description: "Main content.",
             plugins: [
               {
                 id: "sample-main",
@@ -200,16 +194,8 @@ describe("inspectUIProject", () => {
     expect(result.appUIModel.hash).toMatch(/^[a-f0-9]{64}$/u);
     expect(result.appUIModel.slots).toEqual([
       {
-        target: { type: "layout_slot", slotNodeId: "main-node" },
-        description: "Main content.",
-        cardinality: "many",
-        optional: true,
-        owner: {
-          kind: "layout",
-          nodeId: "main-node",
-          nodePath: "root.children[0]",
-        },
-        nodePath: "root.children[0]",
+        target: { type: "layout_slot", slotRef: "l1" },
+        nodeRef: "l1",
         plugins: [expect.objectContaining({ id: "sample-main", pluginId: "sample" })],
       },
       {
@@ -228,7 +214,7 @@ describe("inspectUIProject", () => {
     expect(result.plugins).toContainEqual(
       expect.objectContaining({
         id: "sample-main",
-        target: { type: "layout_slot", slotNodeId: "main-node" },
+        target: { type: "layout_slot", slotRef: "l1" },
       }),
     );
     expect(result.pluginAssets).toContainEqual(

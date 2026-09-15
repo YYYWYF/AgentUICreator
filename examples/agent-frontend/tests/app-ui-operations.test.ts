@@ -11,8 +11,6 @@ function model(): AppUIModel {
     applicationPlugins: [],
     root: {
       type: "slot",
-      id: "main",
-      description: "Main content.",
       plugins: [{
         id: "surface-main",
         pluginId: "surface",
@@ -29,7 +27,7 @@ describe("AppUIModel semantic operations", () => {
       {
         type: "insert_plugin",
         plugin: { id: "toolbar-main", pluginId: "toolbar", enabled: true },
-        target: { type: "layout_slot", slotNodeId: "main" },
+        target: { type: "layout_slot", slotRef: "l0" },
         index: 0,
       },
       {

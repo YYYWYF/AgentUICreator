@@ -3,8 +3,10 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
+  buildLayoutRefIndex,
   collectAppUIPluginLocations,
   parseAppUIModelJson,
+  walkAppUILayout,
   type AppUILayoutNode,
 } from "../../framework/contracts/app-ui-model";
 import { pathExists } from "./plugin-assets";
@@ -30,30 +32,31 @@ import type {
 function compactLayout(
   node: AppUILayoutNode,
   nodePath: string,
+  nodeRef: string,
+  refIndex: ReturnType<typeof buildLayoutRefIndex>,
 ): CompactLayoutNode {
   if (node.type === "slot") {
     return {
-      id: node.id,
+      nodeRef,
       type: node.type,
-      description: node.description,
       plugins: structuredClone(node.plugins),
     };
   }
   if (node.type === "panel") {
     return {
-      id: node.id,
+      nodeRef,
       type: node.type,
       ...(node.width === undefined ? {} : { width: node.width }),
       ...(node.height === undefined ? {} : { height: node.height }),
       ...(node.minWidth === undefined ? {} : { minWidth: node.minWidth }),
       ...(node.maxWidth === undefined ? {} : { maxWidth: node.maxWidth }),
       ...(node.resizable === undefined ? {} : { resizable: node.resizable }),
-      child: compactLayout(node.child, `${nodePath}.child`),
+      child: compactLayout(node.child, `${nodePath}.child`, refIndex.byPath.get(`${nodePath}.child`)!, refIndex),
     };
   }
 
   return {
-    id: node.id,
+    nodeRef,
     type: node.type,
     ...(node.type !== "row" && node.type !== "column"
       ? {}
@@ -65,11 +68,11 @@ function compactLayout(
       : node.gap === undefined
         ? {}
         : { gap: node.gap }),
-    ...(node.type !== "stack" || node.active === undefined
+    ...(node.type !== "stack" || node.activeIndex === undefined
       ? {}
-      : { active: node.active }),
+      : { activeIndex: node.activeIndex }),
     children: node.children.map((child, index) =>
-      compactLayout(child, `${nodePath}.children[${index}]`),
+      compactLayout(child, `${nodePath}.children[${index}]`, refIndex.byPath.get(`${nodePath}.children[${index}]`)!, refIndex),
     ),
   };
 }
@@ -125,30 +128,18 @@ export async function inspectUIProject(
   const entrySource = await readOptional(
     path.join(projectRoot, PLUGIN_REGISTRY_ENTRY_PATH),
   );
-  const layout = compactLayout(model.root, "root");
+  const refIndex = buildLayoutRefIndex(model.root);
+  const layout = compactLayout(model.root, "root", refIndex.byPath.get("root")!, refIndex);
   const slots: InspectedSlot[] = [];
-  const collectLayoutSlots = (node: AppUILayoutNode, nodePath: string): void => {
-    if (node.type === "slot") {
+  for (const entry of walkAppUILayout(model.root)) {
+    if (entry.node.type === "slot") {
       slots.push({
-        target: { type: "layout_slot", slotNodeId: node.id },
-        description: node.description,
-        cardinality: "many",
-        optional: true,
-        owner: { kind: "layout", nodeId: node.id, nodePath },
-        nodePath,
-        plugins: structuredClone(node.plugins),
+        target: { type: "layout_slot", slotRef: refIndex.byPath.get(entry.path)! },
+        nodeRef: refIndex.byPath.get(entry.path)!,
+        plugins: structuredClone(entry.node.plugins),
       });
-      return;
     }
-    if (node.type === "panel") {
-      collectLayoutSlots(node.child, `${nodePath}.child`);
-      return;
-    }
-    node.children.forEach((child, index) =>
-      collectLayoutSlots(child, `${nodePath}.children[${index}]`),
-    );
-  };
-  collectLayoutSlots(model.root, "root");
+  }
   const assetsByPluginId = new Map(generation.assets.map((asset) => [asset.pluginId, asset]));
   for (const location of collectAppUIPluginLocations(model)) {
     const definitions = assetsByPluginId.get(location.plugin.pluginId)?.childSlots ?? {};
@@ -189,7 +180,13 @@ export async function inspectUIProject(
     },
     plugins: collectAppUIPluginLocations(model)
       .sort((left, right) => left.plugin.id.localeCompare(right.plugin.id))
-      .map(({ plugin, target, path, index }) => ({ ...structuredClone(plugin), target, path, index })),
+      .map(({ plugin, target, index }) => ({
+        ...structuredClone(plugin),
+        target: target.type === "layout_slot"
+          ? { type: "layout_slot" as const, slotRef: refIndex.byPath.get(target.slotPath)! }
+          : target,
+        index,
+      })),
     registry: {
       selectedPluginIds: generation.selectedPluginIds,
       registeredPluginIds: generation.registeredPluginIds,

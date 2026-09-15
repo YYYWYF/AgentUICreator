@@ -89,8 +89,6 @@ async function createProject(options: {
         }),
     root: {
       type: "slot",
-      id: "main-slot-node",
-      description: "Main content.",
       plugins: options.mounted
         ? [{ id: "sample-main", pluginId: options.instancePluginId, enabled: true }]
         : [],

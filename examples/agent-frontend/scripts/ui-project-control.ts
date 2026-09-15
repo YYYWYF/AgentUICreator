@@ -36,6 +36,14 @@ const defaultProjectRoot = path.resolve(
 );
 
 const emptyInputSchema = z.strictObject({});
+const inspectedSlotTargetSchema = z.discriminatedUnion("type", [
+  z.strictObject({ type: z.literal("layout_slot"), slotRef: z.string().regex(/^l[0-9]+$/) }),
+  z.strictObject({
+    type: z.literal("plugin_slot"),
+    parentInstanceId: z.string().trim().min(1).max(200),
+    slot: z.string().trim().min(1).max(200),
+  }),
+]);
 const requestSchema = z.discriminatedUnion("operation", [
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
@@ -50,7 +58,7 @@ const requestSchema = z.discriminatedUnion("operation", [
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_ui_slots"),
-    input: z.strictObject({ root: z.string().trim().min(1).max(200).optional() }),
+    input: z.strictObject({ target: inspectedSlotTargetSchema.optional() }),
   }),
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
@@ -155,10 +163,13 @@ async function inspectAppUIModel(projectRoot: string): Promise<unknown> {
     );
   }
 
+  const inspection = await inspectUIProject(projectRoot);
   return {
     hash: createHash("sha256").update(source).digest("hex"),
     source,
     model: parseAppUIModelJson(source),
+    layout: inspection.appUIModel.layout,
+    slots: inspection.appUIModel.slots,
   };
 }
 
@@ -175,26 +186,28 @@ async function listUIPlugins(projectRoot: string): Promise<unknown> {
 
 async function inspectUISlots(
   projectRoot: string,
-  root?: string,
+  target?: z.infer<typeof inspectedSlotTargetSchema>,
 ): Promise<unknown> {
   const inspection = await inspectUIProject(projectRoot);
-  const slotKey = (slot: (typeof inspection.appUIModel.slots)[number]) =>
-    slot.target.type === "layout_slot"
-      ? slot.target.slotNodeId
-      : `${slot.target.parentInstanceId}.${slot.target.slot}`;
-  const byId = new Map(
-    inspection.appUIModel.slots.map((slot) => [slotKey(slot), slot]),
-  );
-  if (root !== undefined && !byId.has(root)) {
+  const selected = target === undefined
+    ? undefined
+    : inspection.appUIModel.slots.find((slot) =>
+        target.type === "layout_slot"
+          ? slot.target.type === "layout_slot" && slot.target.slotRef === target.slotRef
+          : slot.target.type === "plugin_slot" &&
+            slot.target.parentInstanceId === target.parentInstanceId &&
+            slot.target.slot === target.slot,
+      );
+  if (target !== undefined && selected === undefined) {
     throw new UIProjectControlError(
       "UI_SLOT_NOT_FOUND",
-      `Slot "${root}" does not exist.`,
+      `Slot ${JSON.stringify(target)} does not exist.`,
     );
   }
   return {
     appUIModelHash: inspection.appUIModel.hash,
-    slots: root === undefined ? inspection.appUIModel.slots : [byId.get(root)!],
-    ...(root === undefined ? {} : { selected: byId.get(root) }),
+    slots: selected === undefined ? inspection.appUIModel.slots : [selected],
+    ...(selected === undefined ? {} : { selected }),
   };
 }
 
@@ -338,7 +351,7 @@ async function executeRequest(
     case "inspect_app_ui_model":
       return inspectAppUIModel(projectRoot);
     case "inspect_ui_slots":
-      return inspectUISlots(projectRoot, request.input.root);
+      return inspectUISlots(projectRoot, request.input.target);
     case "list_ui_plugins":
       return listUIPlugins(projectRoot);
     case "inspect_ui_services":

@@ -21,23 +21,24 @@ Use the bounded project snapshot for navigation and call `inspect_app_ui_model` 
 
 ## AppUIModel invariants
 
-- Read visual composition from `root` downward. A Layout Slot contains `id`, `description`, and its ordered `plugins` array; it has no `slotId`.
+- Read visual composition from `root` downward. Layout nodes are structural and contain no persisted identity; a Layout Slot contains only its ordered `plugins` array.
 - A plugin node contains `id`, `pluginId`, `enabled`, optional `props`, and optional `slots` keyed by instance-local Slot name.
 - Array order is display order. Do not express contribution order separately.
-- Every LayoutNode id and plugin instance id must be unique.
+- Plugin instance `id` is the persistent lifecycle identity; Layout node identity exists only as snapshot-scoped `nodeRef` values returned by inspection.
 - A Row or Column `sizes` array, when present, must have one entry per child.
-- A Stack `active` value must name one of its direct children.
+- A Stack `activeIndex`, when present, must be an integer smaller than `children.length`.
 - A Panel `minWidth` must not exceed `maxWidth`.
 - A plugin local Slot must be declared by that plugin's manifest and satisfy its `one` or `many` cardinality and required/optional rule.
-- Never add an `accepts` list. Plugin descriptions say what plugins are; Slot descriptions say what their locations are for. Creator chooses the match.
+- Never add Layout Slot descriptions, hints, semantic roles, or `accepts` lists. Plugin child Slot descriptions remain part of the Plugin contract.
 
 ## Semantic operations
 
-- `insert_plugin`: insert a complete plugin node into `{type:"application"}`, `{type:"layout_slot", slotNodeId}`, or `{type:"plugin_slot", parentInstanceId, slot}`.
+- `insert_plugin`: insert a complete plugin node into `{type:"application"}`, `{type:"layout_slot", slotRef}`, or `{type:"plugin_slot", parentInstanceId, slot}`.
 - `move_plugin`: relocate an existing plugin subtree to one of those targets.
 - `remove_plugin`: remove an existing plugin subtree without deleting its source.
 - `replace_plugin`: replace a plugin subtree in place.
 - `update_plugin_props` and `set_plugin_enabled`: update the named authoring node.
+- Layout operations use snapshot-scoped `nodeRef`/`parentRef` values. All refs in one operations batch are bound to the starting `appUIModelHash`; do not refresh or reinterpret them between operations. New mutation nodes may use transaction-only `$localRef` values, which are removed before persistence.
 
 Prefer one complete transaction. The transaction parses the draft, compiles it with deterministic `compileAppUIModel()`, performs Runtime composition validation, regenerates the static Registry, and commits only if all gates succeed. If the hash is stale, inspect again instead of guessing or overwriting concurrent changes.
 

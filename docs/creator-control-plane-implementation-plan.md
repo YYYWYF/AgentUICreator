@@ -144,11 +144,9 @@ interface CreatorProjectSnapshot {
     layout: CompactLayoutNode
     slots: Array<{
       target:
-        | { type: "layout_slot"; slotNodeId: string }
+        | { type: "layout_slot"; slotRef: string }
         | { type: "plugin_slot"; parentInstanceId: string; slot: string }
-      description: string
-      cardinality: "one" | "many"
-      optional: boolean
+      nodeRef: string
       plugins: AppUIPluginNode[]
     }>
   }
@@ -158,9 +156,8 @@ interface CreatorProjectSnapshot {
     enabled: boolean
     target:
       | { type: "application" }
-      | { type: "layout_slot"; slotNodeId: string }
+      | { type: "layout_slot"; slotRef: string }
       | { type: "plugin_slot"; parentInstanceId: string; slot: string }
-    path: string
     index: number
   }>
   registry: {
@@ -213,6 +210,7 @@ type AppUIOperation =
   | MoveLayoutNodeOperation
   | ReplaceLayoutNodeOperation
   | RemoveLayoutNodeOperation
+  | InsertLayoutRelativeOperation
 ```
 
 关键行为：
@@ -221,7 +219,8 @@ type AppUIOperation =
 - `update_plugin_props` 使用显式 `set` 与 `removeKeys`，不接受含糊的递归 merge；
 - `move_plugin` 在一个操作内移动完整 plugin subtree；
 - `replace_plugin` 在原位置原子替换完整 plugin subtree；
-- target 只能是 application、Layout Slot node 或 parent Plugin 的 local Slot，不能传 Runtime slot id 或 mount；
+- target 只能是 application、snapshot-scoped Layout Slot `slotRef` 或 parent Plugin 的 local Slot，不能传 Runtime slot id 或 mount；
+- Layout `nodeRef`/`slotRef` 只在当前 `appUIModel.hash` 下有效，同一 operations batch 内保持绑定；新节点只能用 transaction-local `$localRef`，不得落盘；
 - 删除带 Plugin 的 Layout 子树时，若同一 transaction 没有处理受影响 plugin node 则拒绝；
 - 任一中间状态可以暂时不完整，但 operations 全部应用后的最终模型必须完整有效；
 - visual Plugin 位于 visual tree，headless/Gate Plugin 位于 `applicationPlugins`；
@@ -499,7 +498,7 @@ packages/creator-python/tests/test_app_ui_model_mutation.py
 
 实施步骤：
 
-1. 为 Layout Tree 建立稳定 node index：`nodeId -> path / parent / child index`；
+1. 为 Layout Tree 建立快照 nodeRef index：`nodeRef -> node / parent / child index`，并由统一 preorder walker 生成；
 2. 实现全部 discriminated operations；
 3. 每个 transaction 开始时验证 `expectedAppUIModelHash`；
 4. 对 projectRoot 级组合写入加进程内互斥锁；
