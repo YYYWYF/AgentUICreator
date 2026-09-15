@@ -1,5 +1,4 @@
 import {
-  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -15,11 +14,7 @@ import appUIJsonSource from "../app-ui/app-ui.json?raw";
 import type { AppAgentState } from "../agent-contract/agent-state";
 import { appEventSchemas } from "../agent-contract/agent-events";
 import { appFrontendTools } from "../agent-contract/agent-tools";
-import {
-  findAppUIPlugin,
-  parseAppUIModel,
-  parseAppUIModelJson,
-} from "../framework/contracts/app-ui-model";
+import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 import { compileAppUIModel } from "../framework/contracts/app-ui-compiler";
 import { resolveAgentUIProjectConfig } from "../framework/contracts/agent-ui-project";
 import { pluginDefinitions } from "../plugins";
@@ -122,12 +117,10 @@ function AgentFrontendSurface({
 function RuntimeConnectedApp({
   model,
   runtime,
-  updateInstanceProps,
   integration,
 }: {
   model: typeof initialRuntimeModel;
   runtime: AgentRuntime<AppAgentState>;
-  updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
   integration?: ReactNode;
 }) {
   const pluginActions = useMemo<UIPluginRuntimeActions>(
@@ -136,9 +129,8 @@ function RuntimeConnectedApp({
       resumeInterrupts: (responses) => runtime.resumeInterrupts(responses),
       startNewConversation: () => runtime.startNewConversation(),
       abortRun: () => runtime.abort(),
-      updateInstanceProps,
     }),
-    [runtime, updateInstanceProps],
+    [runtime],
   );
 
   return (
@@ -166,17 +158,14 @@ function RuntimeConnectedApp({
 
 function ConversationRuntimeConnectedApp({
   model,
-  updateInstanceProps,
 }: {
   model: typeof initialRuntimeModel;
-  updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
 }) {
   const { agentRuntime } = useConversationRuntimeBridge<AppAgentState>();
   return (
     <RuntimeConnectedApp
       model={model}
       runtime={agentRuntime}
-      updateInstanceProps={updateInstanceProps}
       integration={<ConversationThreadBindingConnector />}
     />
   );
@@ -184,10 +173,8 @@ function ConversationRuntimeConnectedApp({
 
 function ConversationRuntimeBoundary({
   model,
-  updateInstanceProps,
 }: {
   model: typeof initialRuntimeModel;
-  updateInstanceProps: (instanceId: string, props: Record<string, unknown>) => void;
 }) {
   const threadBinding = useMemo(
     () => createConversationServiceThreadBinding<AppAgentState>(),
@@ -216,7 +203,6 @@ function ConversationRuntimeBoundary({
       <ConversationPresentationConfigProvider value={presentationConfig}>
         <ConversationRuntimeConnectedApp
           model={model}
-          updateInstanceProps={updateInstanceProps}
         />
       </ConversationPresentationConfigProvider>
     </ConversationRuntimeProvider>
@@ -252,23 +238,6 @@ export function App({
     };
   }, [appUIJsonSource]);
 
-  const updateInstanceProps = useCallback(
-    (instanceId: string, props: Record<string, unknown>) => {
-      setAppUIModel((current) => {
-        const next = structuredClone(current);
-        const plugin = findAppUIPlugin(next, instanceId);
-
-        if (plugin === undefined) {
-          return current;
-        }
-
-        plugin.props = { ...plugin.props, ...props };
-        return parseAppUIModel(next);
-      });
-    },
-    [],
-  );
-
   if (appUIModelHash === undefined) {
     return <main className="development-preview" aria-busy="true" />;
   }
@@ -283,7 +252,6 @@ export function App({
     >
       <ConversationRuntimeBoundary
         model={runtimeModel}
-        updateInstanceProps={updateInstanceProps}
       />
     </PluginDiagnosticProvider>
   );

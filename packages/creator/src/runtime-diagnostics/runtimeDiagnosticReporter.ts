@@ -2,9 +2,15 @@ import { CREATOR_RUNTIME_DIAGNOSTICS_API_PATH } from "../shared.js";
 
 export const MAX_CREATOR_RUNTIME_DIAGNOSTIC_REPORT_BYTES = 48 * 1_024;
 
+export type CreatorRuntimeThreadId = string | (() => string);
+
 export interface CreatorRuntimeDiagnosticReporterOptions {
-  threadId: string;
+  threadId: CreatorRuntimeThreadId;
   endpoint?: string | undefined;
+}
+
+function resolveThreadId(threadId: CreatorRuntimeThreadId): string {
+  return typeof threadId === "function" ? threadId() : threadId;
 }
 
 export function createCreatorRuntimeDiagnosticReporter({
@@ -14,7 +20,7 @@ export function createCreatorRuntimeDiagnosticReporter({
   return (diagnostic: object) => {
     let body: string;
     try {
-      body = JSON.stringify({ threadId, diagnostic });
+      body = JSON.stringify({ threadId: resolveThreadId(threadId), diagnostic });
     } catch {
       return;
     }
@@ -40,7 +46,10 @@ export function createCreatorRuntimeCompositionReporter({
   return (composition: object) => {
     let body: string;
     try {
-      body = JSON.stringify({ threadId, composition });
+      body = JSON.stringify({
+        threadId: resolveThreadId(threadId),
+        composition,
+      });
     } catch {
       return;
     }

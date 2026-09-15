@@ -64,7 +64,6 @@ export interface UIPluginActions {
   resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void>;
   startNewConversation(): Promise<void>;
   abortRun(): void;
-  updateInstanceProps(props: Record<string, unknown>): void;
 }
 
 export interface UIPluginObservableService<TSnapshot> {

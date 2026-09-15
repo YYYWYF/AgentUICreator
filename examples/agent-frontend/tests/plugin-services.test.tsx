@@ -52,7 +52,6 @@ const runtimeActions = {
   resumeInterrupts: vi.fn(async () => undefined),
   startNewConversation: vi.fn(async () => undefined),
   abortRun: vi.fn(),
-  updateInstanceProps: vi.fn(),
 };
 
 function createDefinition(
@@ -143,13 +142,11 @@ describe("PluginServiceRuntime", () => {
           id: "theme-provider-main",
           pluginId: "theme-provider",
           enabled: true,
+          props: { defaultMode: "dark" },
         },
       },
     });
-    const actions = {
-      ...runtimeActions,
-      updateInstanceProps: vi.fn(),
-    };
+    const actions = { ...runtimeActions };
     const runtime = new PluginServiceRuntime();
 
     runtime.reconcile(
@@ -160,13 +157,10 @@ describe("PluginServiceRuntime", () => {
 
     expect(runtime.getActivation("theme-provider-main")?.status).toBe("active");
     expect(runtime.getActivation("theme-consumer-main")?.status).toBe("active");
-    expect(observed?.getMode()).toBe("light");
+    expect(observed?.getMode()).toBe("dark");
 
     observed?.setMode("dark");
-    expect(actions.updateInstanceProps).toHaveBeenCalledWith(
-      "theme-provider-main",
-      { mode: "dark" },
-    );
+    expect(observed?.getMode()).toBe("dark");
   });
 
   it("rejects contributions to an undeclared Slot deterministically", () => {
@@ -1283,9 +1277,8 @@ describe("AgentUIThemeService", () => {
   });
 
   it("exposes callable theme functions and notifies subscribers", () => {
-    const onModeChange = vi.fn();
     const subscriber = vi.fn();
-    const theme = createAgentUIThemeService("dark", onModeChange);
+    const theme = createAgentUIThemeService("dark");
     const unsubscribe = theme.subscribe(subscriber);
 
     theme.setMode("light");
@@ -1293,20 +1286,17 @@ describe("AgentUIThemeService", () => {
     unsubscribe();
     theme.setMode("light");
 
-    expect(onModeChange.mock.calls).toEqual([["light"], ["dark"], ["light"]]);
     expect(subscriber).toHaveBeenCalledTimes(2);
     expect(theme.getMode()).toBe("light");
   });
 
   it("does not notify or persist when setMode receives the current mode", () => {
-    const onModeChange = vi.fn();
     const subscriber = vi.fn();
-    const theme = createAgentUIThemeService("light", onModeChange);
+    const theme = createAgentUIThemeService("light");
     theme.subscribe(subscriber);
 
     theme.setMode("light");
 
-    expect(onModeChange).not.toHaveBeenCalled();
     expect(subscriber).not.toHaveBeenCalled();
     expect(theme.getMode()).toBe("light");
   });

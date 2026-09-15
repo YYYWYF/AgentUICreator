@@ -34,7 +34,7 @@ describe("theme plugin boundary", () => {
     });
     expect(providerDefinition).toContain("provides: [AGENT_UI_THEME_SERVICE]");
     expect(providerDefinition).toContain("readAgentUIThemeMode");
-    expect(providerDefinition).toContain("updateInstanceProps({ mode })");
+    expect(providerDefinition).not.toContain("updateInstanceProps");
     expect(providerComponent).toMatch(/ThemeProviderPlugin\(\)\s*\{\s*return null;/u);
 
     expect(themeSwitch).toMatchObject({ id: "theme-switch" });
@@ -48,7 +48,7 @@ describe("theme plugin boundary", () => {
     expect(switchSource).not.toContain("ant-btn");
 
     expect(plugins.get("theme-provider-main")).toMatchObject({
-      plugin: { pluginId: "theme-provider", enabled: true, props: { mode: "light" } },
+      plugin: { pluginId: "theme-provider", enabled: true, props: { defaultMode: "light" } },
       target: { type: "application" },
     });
     expect(plugins.get("theme-switch-main")).toMatchObject({

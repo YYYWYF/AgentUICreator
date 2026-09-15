@@ -11,10 +11,9 @@ import {
 export const themeProviderPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   provides: [AGENT_UI_THEME_SERVICE],
-  setup: ({ instance, actions, services }) => {
+  setup: ({ instance, services }) => {
     const theme = createAgentUIThemeService(
-      readAgentUIThemeMode(instance.props?.mode),
-      (mode) => actions.updateInstanceProps({ mode }),
+      readAgentUIThemeMode(instance.props?.defaultMode),
     );
 
     services.provide(AGENT_UI_THEME_SERVICE, theme);

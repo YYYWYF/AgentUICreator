@@ -20,7 +20,7 @@ AG-UI / Mock transport -> Agent Runtime -> Runtime Context Hooks -> UI Plugin ->
 - `useAgentRun().status` is `idle`, `running`, `awaiting-input`, or `error`; a run error carries the user-visible failure detail.
 - `useAgentExecutions()` exposes each Tool, Reasoning, Step, and Subagent lifecycle directly. Never replace local execution status with a generic Run loading flag.
 - `useAgentInterrupts()` returns only current pending interrupts.
-- `usePluginActions()` exposes Agent commands plus instance-scoped `updateInstanceProps`; `useAgentRuntimeActions()` exposes only Agent Runtime commands.
+- `usePluginActions()` exposes instance-scoped Agent commands; `useAgentRuntimeActions()` exposes only Agent Runtime commands. Runtime-only UI state belongs in a named service or runtime store, not in AppUIModel instance props.
 - `usePluginEvents()` is the inbound, live-only Application Event channel. A Plugin may subscribe only to names declared in its manifest and registered by `/agent-contract/agent-events.ts`.
 - `usePluginService()` remains the component API for named Plugin capabilities.
 - `/agent-contract/agent-tools.ts` owns the explicit set of frontend capability operations advertised to the Agent.

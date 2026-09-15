@@ -37,10 +37,6 @@ export interface UIPluginRuntimeActions {
   resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void>;
   startNewConversation(): Promise<void>;
   abortRun(): void;
-  updateInstanceProps(
-    instanceId: string,
-    props: Record<string, unknown>,
-  ): void;
 }
 
 export type PluginActivationState =
@@ -106,9 +102,6 @@ export function createInstanceActions(
     resumeInterrupts: actions.resumeInterrupts,
     startNewConversation: actions.startNewConversation,
     abortRun: actions.abortRun,
-    updateInstanceProps: (props) => {
-      actions.updateInstanceProps(instance.id, props);
-    },
   };
 }
 

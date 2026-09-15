@@ -194,7 +194,6 @@ async function renderPlugin(
           resumeInterrupts: async () => undefined,
           startNewConversation: async () => undefined,
           abortRun: () => undefined,
-          updateInstanceProps: vi.fn(),
         }}
         conversation={{ id: "live" }}
         executions={[]}

@@ -1,4 +1,5 @@
 import {
+  memo,
   useEffect,
   useRef,
   useState,
@@ -47,6 +48,22 @@ interface CreatorWorkbenchProps {
     | ReactNode
     | ((context: CreatorWorkbenchContext) => ReactNode);
 }
+
+interface CreatorWorkbenchPreviewProps {
+  children: CreatorWorkbenchProps["children"];
+  threadId: string;
+}
+
+const CreatorWorkbenchPreview = memo(function CreatorWorkbenchPreview({
+  children,
+  threadId,
+}: CreatorWorkbenchPreviewProps) {
+  return (
+    <section className="creator-workbench-preview" aria-label="智能体前端预览">
+      {typeof children === "function" ? children({ threadId }) : children}
+    </section>
+  );
+});
 
 interface CreatorMessage {
   kind: "message";
@@ -863,9 +880,11 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
             } as CSSProperties)
       }
     >
-      <section className="creator-workbench-preview" aria-label="智能体前端预览">
-        {typeof children === "function" ? children({ threadId }) : children}
-      </section>
+      <CreatorWorkbenchPreview
+        threadId={threadId}
+      >
+        {children}
+      </CreatorWorkbenchPreview>
 
       {isOpen ? (
         <aside className="creator-panel" aria-label="Creator 智能体" ref={panel}>

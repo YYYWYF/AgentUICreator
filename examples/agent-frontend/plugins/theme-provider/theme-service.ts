@@ -9,7 +9,6 @@ export function readAgentUIThemeMode(value: unknown): AgentUIThemeMode {
 
 export function createAgentUIThemeService(
   initialMode: AgentUIThemeMode,
-  onModeChange: (mode: AgentUIThemeMode) => void,
 ): AgentUIThemeService {
   let mode = initialMode;
   const listeners = new Set<() => void>();
@@ -23,7 +22,6 @@ export function createAgentUIThemeService(
 
       mode = nextMode;
       listeners.forEach((listener) => listener());
-      onModeChange(mode);
     },
     toggle: () => {
       service.setMode(mode === "dark" ? "light" : "dark");

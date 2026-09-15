@@ -15,7 +15,7 @@
       "pluginId": "theme-provider",
       "enabled": true,
       "props": {
-        "mode": "light"
+        "defaultMode": "light"
       }
     }
   ],

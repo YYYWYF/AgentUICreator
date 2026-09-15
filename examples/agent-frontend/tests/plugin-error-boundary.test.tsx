@@ -23,7 +23,6 @@ const runtimeActions = {
   resumeInterrupts: vi.fn(async () => undefined),
   startNewConversation: vi.fn(async () => undefined),
   abortRun: vi.fn(),
-  updateInstanceProps: vi.fn(),
 };
 
 let healthyMounts = 0;

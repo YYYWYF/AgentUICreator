@@ -30,7 +30,7 @@ const model = parseAppUIRuntimeModel({
       id: "theme-provider-main",
       pluginId: "theme-provider",
       enabled: true,
-      props: { mode: "light" },
+      props: { defaultMode: "light" },
     },
     "theme-switch-main": {
       id: "theme-switch-main",
@@ -57,7 +57,6 @@ describe("theme-switch plugin", () => {
       resumeInterrupts: vi.fn(async () => undefined),
       startNewConversation: vi.fn(async () => undefined),
       abortRun: vi.fn(),
-      updateInstanceProps: vi.fn(),
     };
     const registry = createPluginRegistry([
       themeProviderPlugin,
@@ -112,9 +111,5 @@ describe("theme-switch plugin", () => {
       className: "theme-switch-plugin agent-ui-conversation dark",
       "data-theme": "dark",
     });
-    expect(actions.updateInstanceProps).toHaveBeenCalledWith(
-      "theme-provider-main",
-      { mode: "dark" },
-    );
   });
 });

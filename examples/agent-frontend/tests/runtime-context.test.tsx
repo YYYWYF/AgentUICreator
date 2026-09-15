@@ -200,8 +200,8 @@ describe("Agent Runtime Context", () => {
   });
 
   it("keeps Plugin Instance actions and events isolated", () => {
-    const updateA = vi.fn();
-    const updateB = vi.fn();
+    const sendA = vi.fn(async () => undefined);
+    const sendB = vi.fn(async () => undefined);
     const eventsA: UIPluginEvents = { subscribe: () => () => undefined };
     const eventsB: UIPluginEvents = { subscribe: () => () => undefined };
     const seen: Array<{
@@ -221,24 +221,24 @@ describe("Agent Runtime Context", () => {
     renderToStaticMarkup(
       <>
         <PluginInstanceProvider
-          actions={pluginActions(updateA)}
+          actions={pluginActions(sendA)}
           events={eventsA}
           instance={{ id: "a", pluginId: "probe", enabled: true }}
         ><Probe /></PluginInstanceProvider>
         <PluginInstanceProvider
-          actions={pluginActions(updateB)}
+          actions={pluginActions(sendB)}
           events={eventsB}
           instance={{ id: "b", pluginId: "probe", enabled: true }}
         ><Probe /></PluginInstanceProvider>
       </>,
     );
 
-    seen[0]?.actions.updateInstanceProps({ collapsed: true });
+    void seen[0]?.actions.sendMessage("hello");
     expect(seen.map(({ id }) => id)).toEqual(["a", "b"]);
     expect(seen[0]?.events).toBe(eventsA);
     expect(seen[1]?.events).toBe(eventsB);
-    expect(updateA).toHaveBeenCalledOnce();
-    expect(updateB).not.toHaveBeenCalled();
+    expect(sendA).toHaveBeenCalledOnce();
+    expect(sendB).not.toHaveBeenCalled();
   });
 
   it("exposes execution and interrupt lifecycle without cleaning or reinterpretation", async () => {
@@ -327,13 +327,12 @@ function InstanceProbe() {
 }
 
 function pluginActions(
-  updateInstanceProps: UIPluginActions["updateInstanceProps"],
+  sendMessage: UIPluginActions["sendMessage"],
 ): UIPluginActions {
   return {
-    sendMessage: async () => undefined,
+    sendMessage,
     resumeInterrupts: async () => undefined,
     startNewConversation: async () => undefined,
     abortRun: () => undefined,
-    updateInstanceProps,
   };
 }

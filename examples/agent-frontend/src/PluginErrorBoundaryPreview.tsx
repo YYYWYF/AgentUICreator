@@ -84,7 +84,6 @@ const previewActions: UIPluginRuntimeActions = {
   sendMessage: async () => undefined,
   resumeInterrupts: async () => undefined,
   startNewConversation: async () => undefined,
-  updateInstanceProps: () => undefined,
 };
 const previewAgentRuntime = createAgentRuntime({
   transport: new MockAgentTransport(),

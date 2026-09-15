@@ -22,7 +22,6 @@ const runtimeActions = {
   resumeInterrupts: async () => undefined,
   startNewConversation: async () => undefined,
   abortRun: () => undefined,
-  updateInstanceProps: () => undefined,
 };
 
 const model: AppUIRuntimeModel = {
@@ -36,7 +35,7 @@ const model: AppUIRuntimeModel = {
       id: "theme-bridge-provider-main",
       pluginId: "theme-provider",
       enabled: true,
-      props: { mode: "dark" },
+      props: { defaultMode: "dark" },
     },
   },
 };
