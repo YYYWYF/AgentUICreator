@@ -81,6 +81,54 @@ describe("AppUIModel transaction", () => {
     expect(written.root.plugins[0]?.props?.title).toBe("After");
   });
 
+  it("strips transaction localRefs before writing AppUIModel", async () => {
+    const { projectRoot, source } = await createProject();
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [
+        {
+          type: "replace_layout_node",
+          nodeRef: "l0",
+          node: {
+            type: "slot",
+            localRef: "$replacement-slot",
+            plugins: [{
+              id: "sample-main",
+              pluginId: "sample",
+              enabled: true,
+              props: { title: "Before" },
+            }],
+          },
+        },
+        {
+          type: "insert_plugin",
+          plugin: {
+            id: "sample-second",
+            pluginId: "sample",
+            enabled: true,
+          },
+          target: { type: "layout_slot", slotRef: "$replacement-slot" },
+        },
+      ],
+    });
+
+    expect(result.changed).toBe(true);
+    const written = await readFile(
+      path.join(projectRoot, "app-ui", "app-ui.json"),
+      "utf8",
+    );
+    expect(written).not.toContain("localRef");
+    expect(JSON.parse(written)).toMatchObject({
+      root: {
+        type: "slot",
+        plugins: [
+          { id: "sample-main" },
+          { id: "sample-second" },
+        ],
+      },
+    });
+  });
+
   it("does not write a draft that fails deterministic compilation", async () => {
     const { projectRoot, source } = await createProject();
     await expect(mutateAppUIModel(projectRoot, {

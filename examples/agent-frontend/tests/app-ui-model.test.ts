@@ -49,6 +49,30 @@ describe("AppUIModel", () => {
     })).toThrow();
   });
 
+  it("keeps layout identity and metadata out of the authoring model", () => {
+    expect(() => parseAppUIModel({
+      root: {
+        type: "row",
+        id: "foo",
+        children: [],
+      },
+    })).toThrow();
+    expect(() => parseAppUIModel({
+      root: {
+        type: "slot",
+        description: "foo",
+        plugins: [],
+      },
+    })).toThrow();
+    expect(() => parseAppUIModel({
+      root: {
+        type: "slot",
+        localRef: "$foo",
+        plugins: [],
+      },
+    })).toThrow();
+  });
+
   it("rejects duplicate plugin ids across application and visual trees", () => {
     expect(() => parseAppUIModel({
       applicationPlugins: [

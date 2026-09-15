@@ -10,6 +10,50 @@
       "required": ["pluginId"],
       "properties": { "pluginId": { "type": "string", "minLength": 1, "maxLength": 200 } }
     },
+    "layoutSlotTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "slotRef"],
+      "properties": {
+        "type": { "const": "layout_slot" },
+        "slotRef": { "type": "string", "pattern": "^l[0-9]+$" }
+      }
+    },
+    "pluginSlotTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "parentInstanceId", "slot"],
+      "properties": {
+        "type": { "const": "plugin_slot" },
+        "parentInstanceId": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "slot": { "type": "string", "minLength": 1, "maxLength": 200 }
+      }
+    },
+    "inspectUISlotsInput": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["appUIModelHash", "target"],
+          "properties": {
+            "appUIModelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "target": { "$ref": "#/$defs/layoutSlotTarget" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["target"],
+          "properties": {
+            "target": { "$ref": "#/$defs/pluginSlotTarget" }
+          }
+        }
+      ]
+    },
     "request": {
       "oneOf": [
         {
@@ -29,35 +73,7 @@
           "properties": {
             "schemaVersion": { "const": 3 },
             "operation": { "const": "inspect_ui_slots" },
-            "input": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "target": {
-                  "oneOf": [
-                    {
-                      "type": "object",
-                      "additionalProperties": false,
-                      "required": ["type", "slotRef"],
-                      "properties": {
-                        "type": { "const": "layout_slot" },
-                        "slotRef": { "type": "string", "pattern": "^l[0-9]+$" }
-                      }
-                    },
-                    {
-                      "type": "object",
-                      "additionalProperties": false,
-                      "required": ["type", "parentInstanceId", "slot"],
-                      "properties": {
-                        "type": { "const": "plugin_slot" },
-                        "parentInstanceId": { "type": "string", "minLength": 1, "maxLength": 200 },
-                        "slot": { "type": "string", "minLength": 1, "maxLength": 200 }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
+            "input": { "$ref": "#/$defs/inspectUISlotsInput" }
           }
         },
         {

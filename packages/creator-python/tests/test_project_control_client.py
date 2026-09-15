@@ -52,14 +52,34 @@ print(json.dumps({"schemaVersion": 3, "ok": True, "result": request}))
 
     plugin = asyncio.run(client.inspect_ui_plugin("workspace-inspector"))
     services = asyncio.run(client.inspect_ui_services())
-    slots = asyncio.run(client.inspect_ui_slots(root="workspace"))
+    layout_slots = asyncio.run(client.inspect_ui_slots(
+        target={"type": "layout_slot", "slotRef": "l2"},
+        app_ui_model_hash="a" * 64,
+    ))
+    plugin_slots = asyncio.run(client.inspect_ui_slots(
+        target={
+            "type": "plugin_slot",
+            "parentInstanceId": "workspace",
+            "slot": "content",
+        },
+    ))
 
     assert plugin == {
         "schemaVersion": 3,
         "operation": "inspect_ui_plugin",
         "input": {"pluginId": "workspace-inspector"},
     }
-    assert slots["input"] == {"root": "workspace"}
+    assert layout_slots["input"] == {
+        "appUIModelHash": "a" * 64,
+        "target": {"type": "layout_slot", "slotRef": "l2"},
+    }
+    assert plugin_slots["input"] == {
+        "target": {
+            "type": "plugin_slot",
+            "parentInstanceId": "workspace",
+            "slot": "content",
+        },
+    }
     assert services == {
         "schemaVersion": 3,
         "operation": "inspect_ui_services",

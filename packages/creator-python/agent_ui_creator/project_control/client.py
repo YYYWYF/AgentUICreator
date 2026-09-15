@@ -75,10 +75,18 @@ class ProjectControlClient:
         return await self._request("list_ui_plugins", {})
 
     async def inspect_ui_slots(
-        self, *, target: dict[str, Any] | None = None
+        self,
+        *,
+        target: dict[str, Any] | None = None,
+        app_ui_model_hash: str | None = None,
     ) -> dict[str, Any]:
+        input: dict[str, Any] = {}
+        if target is not None:
+            input["target"] = target
+        if app_ui_model_hash is not None:
+            input["appUIModelHash"] = app_ui_model_hash
         return await self._request(
-            "inspect_ui_slots", {} if target is None else {"target": target}
+            "inspect_ui_slots", input
         )
 
     async def inspect_ui_plugin(self, plugin_id: str) -> dict[str, Any]:

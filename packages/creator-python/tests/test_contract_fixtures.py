@@ -84,3 +84,36 @@ def test_schema_version_drift_is_rejected():
 
     with pytest.raises(ValidationError):
         _validate("project-control.schema.json", drifted)
+
+
+def test_targeted_layout_slot_inspection_requires_snapshot_hash():
+    valid_layout_target = {
+        "schemaVersion": 3,
+        "operation": "inspect_ui_slots",
+        "input": {
+            "appUIModelHash": "a" * 64,
+            "target": {"type": "layout_slot", "slotRef": "l2"},
+        },
+    }
+    _validate("project-control.schema.json", valid_layout_target)
+
+    with pytest.raises(ValidationError):
+        _validate(
+            "project-control.schema.json",
+            {
+                **valid_layout_target,
+                "input": {"target": {"type": "layout_slot", "slotRef": "l2"}},
+            },
+        )
+
+    _validate("project-control.schema.json", {
+        "schemaVersion": 3,
+        "operation": "inspect_ui_slots",
+        "input": {
+            "target": {
+                "type": "plugin_slot",
+                "parentInstanceId": "conversation-main",
+                "slot": "emptySuggestions",
+            },
+        },
+    })

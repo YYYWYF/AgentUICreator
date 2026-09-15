@@ -69,6 +69,38 @@ describe("compileAppUIModel", () => {
     });
   });
 
+  it("compiles Stack activeIndex into the active child identity", () => {
+    const source = model();
+    source.root = {
+      type: "stack",
+      activeIndex: 1,
+      children: [
+        { type: "slot", plugins: [] },
+        { type: "slot", plugins: [] },
+      ],
+    };
+
+    const runtime = compileAppUIModel(source, catalog);
+
+    expect(runtime.root).toEqual({
+      type: "stack",
+      id: "layout-node:root",
+      active: "layout-node:root.children[1]",
+      children: [
+        {
+          type: "slot",
+          id: "layout-node:root.children[0]",
+          slotId: "layout-slot:root.children[0]",
+        },
+        {
+          type: "slot",
+          id: "layout-node:root.children[1]",
+          slotId: "layout-slot:root.children[1]",
+        },
+      ],
+    });
+  });
+
   it("gives each plugin instance collision-free Runtime child Slot ids", () => {
     const source = model("surface-one");
     if (source.root.type !== "slot") throw new Error("fixture");

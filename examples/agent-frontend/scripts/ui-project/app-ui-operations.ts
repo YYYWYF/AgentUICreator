@@ -235,6 +235,50 @@ function materializeMutationNode(
   return node;
 }
 
+function visitMutationLayoutNode(
+  node: AppUILayoutMutationNode,
+  visit: (node: AppUILayoutMutationNode) => void,
+): void {
+  visit(node);
+  if (node.type === "row" || node.type === "column" || node.type === "stack") {
+    node.children.forEach((child) => visitMutationLayoutNode(child, visit));
+  } else if (node.type === "panel") {
+    visitMutationLayoutNode(node.child, visit);
+  }
+}
+
+/**
+ * Validates transaction-only layout declarations before any operation can
+ * mutate the draft. A local ref identifies exactly one newly materialized
+ * Layout node across the entire transaction, including nested subtrees.
+ */
+export function validateLayoutLocalRefs(
+  operations: readonly AppUIOperation[],
+): void {
+  const declared = new Set<string>();
+  const collect = (node: AppUILayoutMutationNode): void => {
+    if (node.localRef !== undefined) {
+      if (declared.has(node.localRef)) {
+        operationError(
+          "DUPLICATE_LAYOUT_LOCAL_REF",
+          `Transaction local ref "${node.localRef}" is declared more than once.`,
+        );
+      }
+      declared.add(node.localRef);
+    }
+  };
+
+  for (const operation of operations) {
+    if (
+      operation.type === "insert_layout_node" ||
+      operation.type === "replace_layout_node" ||
+      operation.type === "insert_layout_relative"
+    ) {
+      visitMutationLayoutNode(operation.node, collect);
+    }
+  }
+}
+
 function requiredNode(context: MutationContext, ref: LayoutRef): AppUILayoutNode {
   return resolveNode(context, ref);
 }
@@ -566,6 +610,7 @@ function applyOperation(context: MutationContext, operation: AppUIOperation): vo
 
 export function applyAppUIOperations(source: AppUIModel, operations: readonly AppUIOperation[]): AppUIModel {
   const model = structuredClone(source);
+  validateLayoutLocalRefs(operations);
   const context: MutationContext = {
     model,
     snapshot: buildLayoutRefIndex(model.root),

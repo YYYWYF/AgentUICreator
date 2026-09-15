@@ -22,8 +22,14 @@ class StubClient:
     async def list_ui_plugins(self):
         return {"plugins": [], "appUIModelHash": "c" * 64}
 
-    async def inspect_ui_slots(self, *, root=None):
-        return {"root": root, "appUIModelHash": "d" * 64}
+    async def inspect_ui_slots(
+        self, *, target=None, app_ui_model_hash=None
+    ):
+        return {
+            "target": target,
+            "requestedHash": app_ui_model_hash,
+            "appUIModelHash": "d" * 64,
+        }
 
     async def inspect_ui_plugin(self, plugin_id):
         return {"pluginId": plugin_id}
@@ -83,6 +89,21 @@ def test_domain_tool_preserves_project_control_error_code():
 
     result = json.loads(asyncio.run(tool.ainvoke({})))
     assert result["error"]["code"] == "CONTROL_ENTRY_TIMEOUT"
+
+
+def test_domain_slot_tool_forwards_layout_hash_binding():
+    tool = create_project_control_tools(StubClient())[3]
+
+    rendered = asyncio.run(tool.ainvoke({
+        "target": {"type": "layout_slot", "slotRef": "l2"},
+        "appUIModelHash": "a" * 64,
+    }))
+
+    assert json.loads(rendered)["result"] == {
+        "target": {"type": "layout_slot", "slotRef": "l2"},
+        "requestedHash": "a" * 64,
+        "appUIModelHash": "d" * 64,
+    }
 
 
 def test_domain_tool_rejects_oversized_result_without_truncating_json():

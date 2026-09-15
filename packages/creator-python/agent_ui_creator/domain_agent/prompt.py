@@ -301,6 +301,11 @@ node may declare a `$localRef` for later operations in the same batch; local ref
 are transaction-only and must never be persisted. Plugin instance ids and Plugin
 child Slot names/descriptions remain persistent contract data.
 
+When using targeted `inspect_ui_slots`, a `layout_slot` target must include the
+latest observed `appUIModelHash` alongside its `slotRef`; a stale hash is rejected
+before the layout ref is interpreted. A `plugin_slot` target uses its persistent
+`parentInstanceId` and local Slot name and does not require a model hash.
+
 Use `insert_layout_relative` for deterministic left/right/above/below placement.
 Do not pass canonical paths, Runtime layout ids, Runtime slot ids, or mount data.
 

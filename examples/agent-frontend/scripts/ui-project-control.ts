@@ -36,12 +36,24 @@ const defaultProjectRoot = path.resolve(
 );
 
 const emptyInputSchema = z.strictObject({});
-const inspectedSlotTargetSchema = z.discriminatedUnion("type", [
-  z.strictObject({ type: z.literal("layout_slot"), slotRef: z.string().regex(/^l[0-9]+$/) }),
+const appUIModelHashSchema = z.string().regex(/^[a-f0-9]{64}$/u);
+const inspectedLayoutSlotTargetSchema = z.strictObject({
+  type: z.literal("layout_slot"),
+  slotRef: z.string().regex(/^l[0-9]+$/u),
+});
+const inspectedPluginSlotTargetSchema = z.strictObject({
+  type: z.literal("plugin_slot"),
+  parentInstanceId: z.string().trim().min(1).max(200),
+  slot: z.string().trim().min(1).max(200),
+});
+const inspectUISlotsInputSchema = z.union([
+  emptyInputSchema,
   z.strictObject({
-    type: z.literal("plugin_slot"),
-    parentInstanceId: z.string().trim().min(1).max(200),
-    slot: z.string().trim().min(1).max(200),
+    appUIModelHash: appUIModelHashSchema,
+    target: inspectedLayoutSlotTargetSchema,
+  }),
+  z.strictObject({
+    target: inspectedPluginSlotTargetSchema,
   }),
 ]);
 const requestSchema = z.discriminatedUnion("operation", [
@@ -58,7 +70,7 @@ const requestSchema = z.discriminatedUnion("operation", [
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_ui_slots"),
-    input: z.strictObject({ target: inspectedSlotTargetSchema.optional() }),
+    input: inspectUISlotsInputSchema,
   }),
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
@@ -186,8 +198,23 @@ async function listUIPlugins(projectRoot: string): Promise<unknown> {
 
 async function inspectUISlots(
   projectRoot: string,
-  target?: z.infer<typeof inspectedSlotTargetSchema>,
+  input: z.infer<typeof inspectUISlotsInputSchema>,
 ): Promise<unknown> {
+  const target = "target" in input ? input.target : undefined;
+  if (target?.type === "layout_slot" && "appUIModelHash" in input) {
+    const source = await readFile(
+      path.join(projectRoot, "app-ui", "app-ui.json"),
+      "utf8",
+    );
+    const currentHash = createHash("sha256").update(source).digest("hex");
+    if (currentHash !== input.appUIModelHash) {
+      throw new UIProjectControlError(
+        "APP_UI_MODEL_HASH_CONFLICT",
+        "AppUIModel changed after the layout Slot was inspected. Inspect the project again and retry with the new hash.",
+        { expectedHash: input.appUIModelHash, actualHash: currentHash },
+      );
+    }
+  }
   const inspection = await inspectUIProject(projectRoot);
   const selected = target === undefined
     ? undefined
@@ -351,7 +378,7 @@ async function executeRequest(
     case "inspect_app_ui_model":
       return inspectAppUIModel(projectRoot);
     case "inspect_ui_slots":
-      return inspectUISlots(projectRoot, request.input.target);
+      return inspectUISlots(projectRoot, request.input);
     case "list_ui_plugins":
       return listUIPlugins(projectRoot);
     case "inspect_ui_services":

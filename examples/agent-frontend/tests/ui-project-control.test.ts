@@ -28,6 +28,7 @@ const fixtureConfig: UIProjectControlConfig = {
 async function createProject(
   definitionSource =
     "const Component = () => null;\nexport default { manifest: {}, Component };\n",
+  manifestOverrides: Record<string, unknown> = {},
 ) {
   const projectRoot = await mkdtemp(path.join(tmpdir(), "ui-control-"));
   temporaryProjects.push(projectRoot);
@@ -58,6 +59,7 @@ async function createProject(
       description: "Fixture",
       version: "1.0.0",
       capabilities: ["visual"],
+      ...manifestOverrides,
     }),
   );
   await writeFile(
@@ -165,13 +167,18 @@ describe("ui-project-control", () => {
   });
 
   it("returns authoring Slot targets and configured plugins", async () => {
-    const { projectRoot } = await createProject();
+    const { projectRoot, appUIModelSource } = await createProject();
 
     const response = await handleUIProjectControlRequest(
       {
         schemaVersion: 3,
         operation: "inspect_ui_slots",
-        input: { target: { type: "layout_slot", slotRef: "l0" } },
+        input: {
+          appUIModelHash: createHash("sha256")
+            .update(appUIModelSource)
+            .digest("hex"),
+          target: { type: "layout_slot", slotRef: "l0" },
+        },
       },
       projectRoot,
     );
@@ -195,6 +202,100 @@ describe("ui-project-control", () => {
         selected: expect.objectContaining({
           target: { type: "layout_slot", slotRef: "l0" },
         }),
+      },
+    });
+  });
+
+  it("rejects stale layout Slot refs before interpreting the target", async () => {
+    const { projectRoot, appUIModelSource } = await createProject();
+    const staleHash = createHash("sha256")
+      .update(appUIModelSource)
+      .digest("hex");
+    const changedSource = `${JSON.stringify({
+      ...JSON.parse(appUIModelSource),
+      settings: { theme: "dark" },
+    }, null, 2)}\n`;
+    await writeFile(
+      path.join(projectRoot, "app-ui", "app-ui.json"),
+      changedSource,
+    );
+
+    const staleResponse = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "inspect_ui_slots",
+        input: {
+          appUIModelHash: staleHash,
+          target: { type: "layout_slot", slotRef: "l0" },
+        },
+      },
+      projectRoot,
+    );
+
+    expect(staleResponse).toMatchObject({
+      ok: false,
+      error: { code: "APP_UI_MODEL_HASH_CONFLICT" },
+    });
+
+    const freshResponse = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "inspect_ui_slots",
+        input: {
+          appUIModelHash: createHash("sha256")
+            .update(changedSource)
+            .digest("hex"),
+          target: { type: "layout_slot", slotRef: "l0" },
+        },
+      },
+      projectRoot,
+    );
+    expect(freshResponse).toMatchObject({
+      ok: true,
+      result: {
+        selected: { target: { type: "layout_slot", slotRef: "l0" } },
+      },
+    });
+  });
+
+  it("keeps plugin child Slot inspection independent of layout hashes", async () => {
+    const { projectRoot } = await createProject(undefined, {
+      slots: {
+        children: {
+          message: {
+            description: "Message content.",
+            cardinality: "many",
+            optional: true,
+          },
+        },
+      },
+    });
+
+    const response = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "inspect_ui_slots",
+        input: {
+          target: {
+            type: "plugin_slot",
+            parentInstanceId: "sample-main",
+            slot: "message",
+          },
+        },
+      },
+      projectRoot,
+    );
+
+    expect(response).toMatchObject({
+      ok: true,
+      result: {
+        selected: {
+          target: {
+            type: "plugin_slot",
+            parentInstanceId: "sample-main",
+            slot: "message",
+          },
+        },
       },
     });
   });
