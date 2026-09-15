@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from types import SimpleNamespace
 from pathlib import Path
 
 import pytest
@@ -11,6 +12,11 @@ from agent_ui_creator.domain_agent import (
     ALLOWED_DOMAIN_READ_TOOLS,
     create_domain_read_creator_agent,
 )
+from agent_ui_creator.minimal_agent.path_policy import (
+    MinimalAgentPathPolicy,
+    PolicyFilesystemBackend,
+)
+from agent_ui_creator.domain_agent.runtime_guard import RepeatedProjectControlReadGuard
 from agent_ui_creator.model_protocol.errors import (
     AgentNoProgressError,
     ToolPermissionDeniedError,
@@ -87,6 +93,25 @@ def test_domain_agent_blocks_third_identical_project_control_read():
 
     assert agent.repeated_read_guard.repeated_reads == 2
     assert agent.project_control.metrics.requests == 2
+
+
+def test_failed_app_ui_model_mutation_starts_a_new_project_read_epoch(tmp_path):
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    guard = RepeatedProjectControlReadGuard(backend)
+
+    def request(name):
+        return SimpleNamespace(
+            tool_call={"name": name, "args": {}},
+        )
+
+    handler = lambda value: value
+    guard.wrap_tool_call(request("inspect_ui_project"), handler)
+    guard.wrap_tool_call(request("inspect_ui_project"), handler)
+    guard.wrap_tool_call(request("mutate_app_ui_model"), handler)
+    guard.wrap_tool_call(request("inspect_ui_project"), handler)
+    guard.wrap_tool_call(request("inspect_ui_project"), handler)
+
+    assert guard.repeated_reads == 2
 
 
 def test_domain_agent_cannot_edit_app_ui_model_to_bypass_read_only_control():

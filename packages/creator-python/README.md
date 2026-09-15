@@ -53,6 +53,17 @@ packages/creator-python/.venv/bin/python -m agent_ui_creator.server \
 服务启动后，stdout 第一行是版本化的 `creator_ready` JSON handshake；普通
 运行日志只写 stderr。
 
+如果工作区根目录已经配置了 `.env.creator.local`，也可以直接运行快捷命令启动
+固定的 8010 外部 sidecar：
+
+```bash
+pnpm creator:python
+```
+
+本地开发可在 `.env.creator.local` 设置 `CREATOR_PYTHON_HOT_RELOAD=1`。此时快捷命令
+会监听 `agent_ui_creator/**/*.py`，检测到源码变化后自动重启 sidecar；依赖文件变化
+仍需手动重新安装环境。
+
 默认 `CREATOR_PYTHON_AGENT_MODE=domain-write`，无需显式配置 runtime 或 agent mode。
 正常配置只需要：
 

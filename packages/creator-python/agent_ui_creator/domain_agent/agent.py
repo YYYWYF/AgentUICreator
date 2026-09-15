@@ -135,7 +135,7 @@ class CreatorDomainReadAgent:
             return await DeepAgentV3Runner().run(
                 graph=self.graph,
                 input={"messages": input_messages},
-                config={"recursion_limit": 30},
+                config={"recursion_limit": 60},
                 event_sink=self.runtime.event_sink,
             )
 

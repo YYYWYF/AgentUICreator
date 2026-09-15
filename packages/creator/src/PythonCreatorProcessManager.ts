@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
-import { access, readFile } from "node:fs/promises";
+import { access, readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
@@ -11,12 +11,14 @@ import {
   CREATOR_PYTHON_AUTH_TOKEN_ENV,
   CREATOR_PYTHON_AGENT_MODES,
   CREATOR_PYTHON_ENDPOINT_ENV,
+  CREATOR_PYTHON_HOT_RELOAD_ENV,
   type CreatorPythonAgentMode,
 } from "./shared.js";
 
 export const CREATOR_PYTHON_PROTOCOL_VERSION = "1" as const;
 export const CREATOR_PYTHON_START_TIMEOUT_MS = 15_000;
 export const CREATOR_PYTHON_STOP_TIMEOUT_MS = 3_000;
+const CREATOR_PYTHON_HOT_RELOAD_POLL_INTERVAL_MS = 500;
 
 export interface PythonCreatorEndpoint {
   host: "127.0.0.1";
@@ -193,6 +195,38 @@ function defaultSkillsRoot(): string {
   return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../skills");
 }
 
+function isEnabled(value: string | undefined): boolean {
+  return ["1", "true", "yes", "on"].includes(value?.trim().toLowerCase() ?? "");
+}
+
+async function pythonSourceFingerprint(root: string): Promise<string> {
+  const files: string[] = [];
+
+  async function visit(directory: string, relativeDirectory: string): Promise<void> {
+    const entries = await readdir(directory, { withFileTypes: true });
+    entries.sort((left, right) => left.name.localeCompare(right.name));
+    for (const entry of entries) {
+      if (entry.name === "__pycache__") {
+        continue;
+      }
+      const relativePath = path.join(relativeDirectory, entry.name);
+      const absolutePath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        await visit(absolutePath, relativePath);
+        continue;
+      }
+      if (!entry.isFile() || !entry.name.endsWith(".py")) {
+        continue;
+      }
+      const metadata = await stat(absolutePath);
+      files.push(`${relativePath}:${metadata.mtimeMs}:${metadata.size}`);
+    }
+  }
+
+  await visit(root, "");
+  return files.join("\n");
+}
+
 function parseHandshake(source: string): CreatorReadyHandshake {
   let value: unknown;
   try {
@@ -243,10 +277,15 @@ export class PythonCreatorProcessManager {
   readonly #stopTimeoutMs: number;
   readonly #log: (message: string) => void;
   readonly #externalEndpoint: PythonCreatorExternalEndpoint | undefined;
+  readonly #hotReloadEnabled: boolean;
 
   #child: ChildProcess | undefined;
   #endpoint: PythonCreatorEndpoint | undefined;
   #starting: Promise<PythonCreatorEndpoint> | undefined;
+  #hotReloadTimer: NodeJS.Timeout | undefined;
+  #hotReloadScan: Promise<void> | undefined;
+  #hotReloadRestart: Promise<void> | undefined;
+  #hotReloadFingerprint: string | undefined;
   #disposed = false;
 
   constructor({
@@ -264,6 +303,10 @@ export class PythonCreatorProcessManager {
     this.#configRoot =
       configRoot === undefined ? undefined : path.resolve(configRoot);
     this.#skillsRoot = path.resolve(skillsRoot);
+    const configuredHotReload =
+      environment[CREATOR_PYTHON_HOT_RELOAD_ENV]?.trim() ||
+      readCreatorHostConfigValue(configRoot, CREATOR_PYTHON_HOT_RELOAD_ENV);
+    this.#hotReloadEnabled = isEnabled(configuredHotReload);
     const directlyConfiguredExecutable = resolveConfiguredCreatorPythonExecutable({
       optionExecutable: pythonExecutable,
       environmentExecutable: environment.CREATOR_PYTHON_EXECUTABLE,
@@ -305,6 +348,15 @@ export class PythonCreatorProcessManager {
         "Creator Python runtime manager has already been disposed.",
       );
     }
+    if (this.#hotReloadRestart !== undefined) {
+      await this.#hotReloadRestart;
+      if (this.#disposed) {
+        throw new PythonCreatorRuntimeError(
+          "CREATOR_PYTHON_RUNTIME_DISPOSED",
+          "Creator Python runtime manager has already been disposed.",
+        );
+      }
+    }
     if (
       this.#endpoint !== undefined &&
       (this.#externalEndpoint !== undefined || this.#child?.exitCode === null)
@@ -324,13 +376,17 @@ export class PythonCreatorProcessManager {
 
   async dispose(): Promise<void> {
     this.#disposed = true;
+    if (this.#hotReloadTimer !== undefined) {
+      clearInterval(this.#hotReloadTimer);
+      this.#hotReloadTimer = undefined;
+    }
     const child = this.#child;
     this.#child = undefined;
     this.#endpoint = undefined;
-    if (child === undefined) {
-      return;
+    if (child !== undefined) {
+      await this.#terminateChild(child);
     }
-    await this.#terminateChild(child);
+    await this.#hotReloadRestart;
   }
 
   async #start(): Promise<PythonCreatorEndpoint> {
@@ -374,6 +430,13 @@ export class PythonCreatorProcessManager {
     this.#log(
       `python runtime: source=${pythonRuntime.source} executable=${pythonRuntime.executable}`,
     );
+
+    if (this.#disposed) {
+      throw new PythonCreatorRuntimeError(
+        "CREATOR_PYTHON_RUNTIME_DISPOSED",
+        "Creator Python runtime manager has already been disposed.",
+      );
+    }
 
     const authToken = randomBytes(32).toString("hex");
     const args = [
@@ -457,6 +520,7 @@ export class PythonCreatorProcessManager {
       }
       const readyEndpoint = { ...endpoint, agentMode };
       this.#endpoint = readyEndpoint;
+      await this.#ensureHotReloadWatcher();
       this.#log(
         `python sidecar ready pid=${String(child.pid)} port=${readyEndpoint.port} pythonSource=${pythonRuntime.source} agentMode=${agentMode}`,
       );
@@ -480,6 +544,114 @@ export class PythonCreatorProcessManager {
       throw new PythonCreatorRuntimeError(
         "CREATOR_PYTHON_START_FAILED",
         error instanceof Error ? error.message : String(error),
+      );
+    }
+  }
+
+  async #ensureHotReloadWatcher(): Promise<void> {
+    if (
+      !this.#hotReloadEnabled ||
+      this.#externalEndpoint !== undefined ||
+      this.#hotReloadTimer !== undefined ||
+      this.#disposed
+    ) {
+      return;
+    }
+
+    const sourceRoot = path.join(this.#pythonPackageRoot, "agent_ui_creator");
+    try {
+      this.#hotReloadFingerprint = await pythonSourceFingerprint(sourceRoot);
+    } catch (error) {
+      this.#log(
+        `python hot reload unavailable: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return;
+    }
+
+    this.#hotReloadTimer = setInterval(() => {
+      void this.#pollHotReload(sourceRoot);
+    }, CREATOR_PYTHON_HOT_RELOAD_POLL_INTERVAL_MS);
+    this.#hotReloadTimer.unref?.();
+    this.#log(`python hot reload enabled root=${sourceRoot}`);
+  }
+
+  async #pollHotReload(sourceRoot: string): Promise<void> {
+    if (
+      this.#disposed ||
+      this.#hotReloadScan !== undefined ||
+      this.#hotReloadTimer === undefined
+    ) {
+      return;
+    }
+    const scan = (async () => {
+      const fingerprint = await pythonSourceFingerprint(sourceRoot);
+      if (this.#hotReloadFingerprint === undefined) {
+        this.#hotReloadFingerprint = fingerprint;
+        return;
+      }
+      if (fingerprint === this.#hotReloadFingerprint) {
+        return;
+      }
+      this.#hotReloadFingerprint = fingerprint;
+      this.#scheduleHotReloadRestart();
+    })();
+    this.#hotReloadScan = scan;
+    try {
+      await scan;
+    } catch (error) {
+      this.#log(
+        `python hot reload scan failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    } finally {
+      if (this.#hotReloadScan === scan) {
+        this.#hotReloadScan = undefined;
+      }
+    }
+  }
+
+  #scheduleHotReloadRestart(): void {
+    if (this.#hotReloadRestart !== undefined) {
+      return;
+    }
+    const restart = this.#restartForHotReload();
+    this.#hotReloadRestart = restart;
+    void restart.then(
+      () => {
+        if (this.#hotReloadRestart === restart) {
+          this.#hotReloadRestart = undefined;
+        }
+      },
+      (error) => {
+        this.#log(
+          `python hot reload restart failed: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        if (this.#hotReloadRestart === restart) {
+          this.#hotReloadRestart = undefined;
+        }
+      },
+    );
+  }
+
+  async #restartForHotReload(): Promise<void> {
+    if (this.#disposed || this.#externalEndpoint !== undefined) {
+      return;
+    }
+    const child = this.#child;
+    if (child === undefined) {
+      return;
+    }
+    this.#child = undefined;
+    this.#endpoint = undefined;
+    this.#log("python source changed; restarting sidecar");
+    await this.#terminateChild(child);
+    if (this.#disposed) {
+      return;
+    }
+    try {
+      await this.#start();
+    } catch (error) {
+      this.#log(
+        `python hot reload restart failed: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

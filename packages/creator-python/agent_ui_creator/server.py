@@ -98,6 +98,7 @@ async def _minimal_agent_result(
     settings: CreatorServerSettings,
     prompt: str,
     activity: CreatorActivityRecorder,
+    thread_id: str,
     event_sink: CreatorEventSink,
 ):
     # Agent dependencies stay lazy so echo mode remains a transport-only path.
@@ -113,6 +114,7 @@ async def _minimal_agent_result(
     )
     model = create_creator_chat_model(
         model_settings,
+        thread_id=thread_id,
         provider_trace_collector=provider_trace_collector,
     )
     agent = create_minimal_creator_agent(
@@ -131,6 +133,7 @@ async def _domain_read_agent_result(
     settings: CreatorServerSettings,
     messages: list[dict[str, str]],
     activity: CreatorActivityRecorder,
+    thread_id: str,
     event_sink: CreatorEventSink,
 ):
     from .domain_agent import create_domain_read_creator_agent
@@ -145,6 +148,7 @@ async def _domain_read_agent_result(
     )
     model = create_creator_chat_model(
         model_settings,
+        thread_id=thread_id,
         provider_trace_collector=provider_trace_collector,
     )
     agent = create_domain_read_creator_agent(
@@ -180,6 +184,7 @@ async def _domain_write_agent_result(
     )
     model = create_creator_chat_model(
         model_settings,
+        thread_id=thread_id,
         provider_trace_collector=provider_trace_collector,
     )
     agent = create_domain_write_creator_agent(
@@ -358,6 +363,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             settings,
                             _conversation_messages(run_input),
                             activity,
+                            run_input.threadId,
                             event_bus,
                         )
                     else:
@@ -365,6 +371,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             settings,
                             _echo_text(run_input),
                             activity,
+                            run_input.threadId,
                             event_bus,
                         )
                     agent_task = asyncio.create_task(

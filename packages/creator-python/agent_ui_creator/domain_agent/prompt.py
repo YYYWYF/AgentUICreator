@@ -25,6 +25,15 @@ ProjectControl mutation is intentionally unavailable in this phase. Do not manua
 edit app-ui/app-ui.json or plugins/registry.generated.ts to work around that
 restriction. Explain that composition mutation is not yet available when requested.
 
+Read-only request boundary
+
+When the user asks only to inspect, diagnose, summarize, or report the current
+project, do not call validate_creator_changes unless the user explicitly asks for
+validation or this run has already performed a mutation. Use only the targeted
+inspection and filesystem reads needed to answer, then stop with a concise report.
+Do not keep reading files after the requested facts are established just because a
+validation command failed or returned unrelated diagnostics.
+
 For ordinary plugin source-code changes, use the bounded filesystem tools normally.
 Keep tool usage minimal and targeted. Do not repeatedly issue the same inspection.
 """
@@ -34,6 +43,15 @@ DOMAIN_WRITE_AGENT_PROMPT = COMPOSITION_KERNEL + """You are the Python Creator d
 Use ProjectControl inspection tools as the authoritative source for AppUIModel,
 project Mode, authoring plugin nodes, Slots, Registry, and composition state. Treat Mode as
 design context only; do not infer Plugin compatibility rules from it.
+
+Read-only request boundary
+
+When the user asks only to inspect, diagnose, summarize, or report the current
+project, do not call validate_creator_changes unless the user explicitly asks for
+validation or this run has already performed a mutation. Use only the targeted
+inspection and filesystem reads needed to answer, then stop with a concise report.
+Do not keep reading files after the requested facts are established just because a
+validation command failed or returned unrelated diagnostics.
 
 Request grounding and ambiguity policy
 

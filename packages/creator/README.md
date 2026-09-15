@@ -66,6 +66,16 @@ Vite 插件会按项目惰性启动一个 Python 进程，透明代理 AG-UI 与
 并在开发服务器关闭时终止 sidecar。Python 启动或模型配置失败会明确失败；工程中
 没有其他 Creator runtime。
 
+开发时如果希望 Python 源码变化后自动重启 sidecar，可在 `.env.creator.local` 中开启：
+
+```env
+CREATOR_PYTHON_HOT_RELOAD=1
+```
+
+该开关只监听 `packages/creator-python/agent_ui_creator/**/*.py`。内部托管的 sidecar
+由 Creator Host 重启；使用 `pnpm creator:python` 启动的外部 sidecar 由开发监督器重启。
+修改依赖或 `requirements.lock` 后仍需手动重新安装环境。
+
 如需让 Vite Host 连接已在本机启动的 sidecar，而不再创建和管理子进程，可在
 `.env.creator.local` 同时配置：
 

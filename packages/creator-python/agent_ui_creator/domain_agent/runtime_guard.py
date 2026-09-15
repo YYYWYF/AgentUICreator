@@ -12,7 +12,7 @@ from ..model_protocol.errors import AgentNoProgressError
 
 
 class RepeatedProjectControlReadGuard(AgentMiddleware):
-    """Reject the third identical domain read when no workspace write occurred."""
+    """Reject the third identical domain read in one unchanged read epoch."""
 
     def __init__(self, backend: PolicyFilesystemBackend) -> None:
         self.backend = backend
@@ -24,6 +24,17 @@ class RepeatedProjectControlReadGuard(AgentMiddleware):
     def _before(self, request: Any) -> None:
         call = dict(request.tool_call)
         name = str(call.get("name") or "")
+        # A semantic AppUIModel mutation attempt is a meaningful recovery
+        # boundary even when the Host rejects it without changing the files.
+        # In particular, APP_UI_MODEL_OBSERVATION_REQUIRED invalidates the
+        # previous observation and requires a fresh ProjectControl read before
+        # the next mutation. Do not mistake that required refresh for a pure
+        # read loop; successful writes still reset this epoch via revision.
+        if name == "mutate_app_ui_model":
+            self._last_signature = None
+            self._repeat_count = 0
+            self._last_revision = self.backend.mutation_revision
+            return
         if name not in DOMAIN_READ_TOOL_NAMES:
             revision = self.backend.mutation_revision
             if revision != self._last_revision:

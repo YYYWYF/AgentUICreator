@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Protocol
 from pathlib import Path
+from typing import Protocol
 
 from ..activity import CreatorActivityRecorder
 from ..repair import CreatorRepairState

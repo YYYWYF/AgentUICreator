@@ -557,6 +557,70 @@ afterEach(async () => {
     );
   }, 30_000);
 
+  it("restarts the managed sidecar when Python source changes", async () => {
+    const source = `
+import argparse, json, os
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+parser = argparse.ArgumentParser()
+parser.add_argument("--auth-token", required=True)
+arguments, _ = parser.parse_known_args()
+with open(os.environ["CREATOR_TEST_PID_FILE"], "w", encoding="utf-8") as pid_file:
+    pid_file.write(str(os.getpid()))
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path != "/health" or self.headers.get("Authorization") != "Bearer " + arguments.auth_token:
+            self.send_response(401)
+            self.end_headers()
+            return
+        body = json.dumps({"status": "ok", "runtime": "python", "agentMode": "domain-write", "protocolVersion": "1"}).encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+    def log_message(self, _format, *args):
+        return
+server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+print(json.dumps({"type": "creator_ready", "port": server.server_address[1], "protocolVersion": "1"}), flush=True)
+server.serve_forever()
+`;
+    const fixturePackage = await fakePythonPackage(source);
+    const processManager = manager({
+      pythonPackageRoot: fixturePackage.packageRoot,
+      environment: {
+        ...process.env,
+        CREATOR_PYTHON_HOT_RELOAD: "1",
+        CREATOR_TEST_PID_FILE: fixturePackage.pidFile,
+      },
+    });
+    await processManager.ensureStarted();
+    const firstPid = processManager.processId!;
+
+    await writeFile(
+      path.join(fixturePackage.packageRoot, "agent_ui_creator", "server.py"),
+      `${source}\n# source change\n`,
+    );
+
+    let secondPid: number | undefined;
+    const deadline = Date.now() + 10_000;
+    while (Date.now() < deadline) {
+      const candidate = processManager.processId;
+      if (candidate !== undefined && candidate !== firstPid) {
+        secondPid = candidate;
+        break;
+      }
+      await new Promise<void>((resolve) => setTimeout(resolve, 100));
+    }
+
+    expect(secondPid).toBeDefined();
+    const endpoint = await processManager.ensureStarted();
+    const health = await fetch(
+      `http://${endpoint.host}:${endpoint.port}/health`,
+      { headers: { Authorization: `Bearer ${endpoint.authToken}` } },
+    );
+    expect(health.status).toBe(200);
+  }, 30_000);
+
   it("streams the exact Unicode AG-UI lifecycle through the production proxy", async () => {
     const processManager = manager({
       environment: {

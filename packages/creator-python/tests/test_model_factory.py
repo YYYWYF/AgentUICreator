@@ -1,3 +1,4 @@
+import httpx
 import pytest
 from langchain_openai import ChatOpenAI
 
@@ -8,6 +9,46 @@ from agent_ui_creator.model_settings import (
     CreatorModelSettings,
     load_python_agent_mode,
 )
+
+
+def test_model_factory_sets_opencode_go_identity_headers():
+    requests = []
+    transport = httpx.MockTransport(
+        lambda request: (
+            requests.append(request)
+            or httpx.Response(
+                200,
+                json={
+                    "id": "chatcmpl-test",
+                    "object": "chat.completion",
+                    "created": 0,
+                    "model": "mimo-v2.5-pro",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {"role": "assistant", "content": "ok"},
+                            "finish_reason": "stop",
+                        }
+                    ],
+                },
+            )
+        )
+    )
+    model = create_creator_chat_model(
+        CreatorModelSettings(
+            model_name="mimo-v2.5-pro",
+            base_url="https://model.example/v1",
+            api_key="secret",
+        ),
+        thread_id="thread-opencode-go",
+        http_transport=transport,
+        http_async_transport=transport,
+    )
+
+    model.invoke("hello")
+
+    assert requests[0].headers["User-Agent"] == "agent-ui-creator/0.1"
+    assert requests[0].headers["x-opencode-session"] == "thread-opencode-go"
 
 
 def test_model_factory_owns_explicit_chat_completions_configuration():

@@ -6,10 +6,13 @@ from langchain_openai import ChatOpenAI
 from .model_protocol.provider_trace import ProviderResponseTraceCollector
 from .model_settings import CreatorModelSettings
 
+CREATOR_MODEL_USER_AGENT = "agent-ui-creator/0.1"
+
 
 def create_creator_chat_model(
     settings: CreatorModelSettings,
     *,
+    thread_id: str | None = None,
     provider_trace_collector: ProviderResponseTraceCollector | None = None,
     http_transport: httpx.BaseTransport | None = None,
     http_async_transport: httpx.AsyncBaseTransport | None = None,
@@ -27,10 +30,14 @@ def create_creator_chat_model(
         if provider_trace_collector is not None and provider_trace_collector.enabled
         else None
     )
+    default_headers = {"User-Agent": CREATOR_MODEL_USER_AGENT}
+    if thread_id is not None:
+        default_headers["x-opencode-session"] = thread_id
     return ChatOpenAI(
         model=settings.model_name,
         base_url=settings.base_url,
         api_key=settings.api_key,
+        default_headers=default_headers,
         temperature=settings.temperature,
         max_tokens=settings.max_tokens,
         timeout=settings.timeout_seconds,

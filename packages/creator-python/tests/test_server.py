@@ -216,7 +216,7 @@ def test_minimal_mode_streams_tool_activity_and_protocol_metrics(tmp_path, monke
     )
     metrics = ToolProtocolMetrics(modelCalls=2, toolCalls=1, validToolCalls=1)
 
-    async def fake_result(_settings, _prompt, _activity, event_sink):
+    async def fake_result(_settings, _prompt, _activity, _thread_id, event_sink):
         await event_sink.publish(
             ToolInvocationStarted(
                 call_id="call-1",
@@ -279,7 +279,7 @@ def test_server_sends_tool_start_before_delayed_tool_finishes(tmp_path, monkeypa
     handler_finished = asyncio.Event()
     start_sent = asyncio.Event()
 
-    async def fake_result(_settings, _prompt, _activity, event_sink):
+    async def fake_result(_settings, _prompt, _activity, _thread_id, event_sink):
         await event_sink.publish(
             ToolInvocationStarted("call-delayed", "read_file", {"file_path": "/a"})
         )
@@ -395,7 +395,7 @@ def test_minimal_mode_propagates_protocol_failure_as_run_error(tmp_path, monkeyp
         auth_token="x" * 32,
     )
 
-    async def fail(_settings, _prompt, _activity, _event_sink):
+    async def fail(_settings, _prompt, _activity, _thread_id, _event_sink):
         raise ModelToolProtocolError("malformed twice")
 
     monkeypatch.setattr("agent_ui_creator.server._minimal_agent_result", fail)
@@ -425,7 +425,7 @@ def test_domain_read_mode_streams_project_control_metrics(tmp_path, monkeypatch)
     )
     metrics = ToolProtocolMetrics(modelCalls=2, toolCalls=1, validToolCalls=1)
 
-    async def fake_result(_settings, _prompt, _activity, _event_sink):
+    async def fake_result(_settings, _prompt, _activity, _thread_id, _event_sink):
         return SimpleNamespace(
             text="Inspected.",
             metrics=metrics,
