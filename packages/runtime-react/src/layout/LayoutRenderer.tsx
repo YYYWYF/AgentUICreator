@@ -6,7 +6,6 @@ import "./layout.css";
 
 export interface LayoutRendererProps {
   root: LayoutNode;
-  version?: string | undefined;
   theme?: string | undefined;
   renderSlot?: ((slot: SlotNode) => ReactNode) | undefined;
   className?: string | undefined;
@@ -142,7 +141,6 @@ function LayoutNodeView({ node, renderSlot }: LayoutNodeViewProps) {
 
 export function LayoutRenderer({
   root,
-  version,
   theme,
   renderSlot,
   className,
@@ -154,7 +152,6 @@ export function LayoutRenderer({
   return (
     <div
       className={rootClassName}
-      data-app-ui-version={version}
       data-theme={theme}
     >
       <LayoutNodeView node={root} renderSlot={renderSlot} />

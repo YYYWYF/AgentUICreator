@@ -1,5 +1,4 @@
 {
-  "version": "3",
   "applicationPlugins": [
     {
       "id": "agent-conversation-data-main",

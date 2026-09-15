@@ -156,7 +156,6 @@ export interface UIProjectInspection {
   };
   appUIModel: {
     hash: string;
-    version: string;
     layout: CompactLayoutNode;
     slots: InspectedSlot[];
   };

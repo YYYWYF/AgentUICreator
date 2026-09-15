@@ -78,7 +78,6 @@ async function createProject(options: {
     );
   }
   const model: AppUIModel = {
-    version: "3",
     ...(options.mounted
       ? {}
       : {

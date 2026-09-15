@@ -1,7 +1,7 @@
 ---
 name: app-ui-model
-description: Use for AppUIModel v3 layout and nested plugin composition, especially when adding, removing, resizing, or placing UI regions without changing plugin behavior.
-compatibility: Agent UI Plugin Creator AppUIModel v3 authoring model.
+description: Use for AppUIModel layout and nested plugin composition, especially when adding, removing, resizing, or placing UI regions without changing plugin behavior.
+compatibility: Agent UI Plugin Creator authoring model.
 allowed-tools: read_file ls glob grep inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin mutate_app_ui_model execute
 ---
 
@@ -19,9 +19,8 @@ Use the bounded project snapshot for navigation and call `inspect_app_ui_model` 
 - Do not change Plugin source for a structural request when an existing Plugin already provides the behavior.
 - If new behavior requires Plugin source, use the `ui-plugin-development` skill and keep the change under `/plugins/`.
 
-## AppUIModel v3 invariants
+## AppUIModel invariants
 
-- Keep `version` equal to `"3"`.
 - Read visual composition from `root` downward. A Layout Slot contains `id`, `description`, and its ordered `plugins` array; it has no `slotId`.
 - A plugin node contains `id`, `pluginId`, `enabled`, optional `props`, and optional `slots` keyed by instance-local Slot name.
 - Array order is display order. Do not express contribution order separately.

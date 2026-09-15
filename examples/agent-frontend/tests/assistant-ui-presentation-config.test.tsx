@@ -9,7 +9,6 @@ function createModel(
   conversationPresentation?: Record<string, unknown>,
 ): AppUIRuntimeModel {
   return {
-    version: "2",
     root: {
       type: "slot",
       id: "assistant-ui-presentation-test-root",

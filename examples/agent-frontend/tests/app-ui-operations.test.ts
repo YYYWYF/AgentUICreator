@@ -8,7 +8,6 @@ import {
 
 function model(): AppUIModel {
   return {
-    version: "3",
     applicationPlugins: [],
     root: {
       type: "slot",
@@ -24,7 +23,7 @@ function model(): AppUIModel {
   };
 }
 
-describe("AppUIModel v3 semantic operations", () => {
+describe("AppUIModel semantic operations", () => {
   it("inserts directly into Layout and plugin-local Slots", () => {
     const result = applyAppUIOperations(model(), [
       {

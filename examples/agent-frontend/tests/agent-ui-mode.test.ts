@@ -51,7 +51,6 @@ describe("Agent UI Mode", () => {
       id: "platform",
       createInitialAppUIModel: () =>
         parseAppUIModel({
-          version: "3",
           root: { type: "slot", id: "root", description: "Root content.", plugins: [] },
         }),
     };

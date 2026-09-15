@@ -94,7 +94,6 @@ function createDefinition(
 
 function createServiceModel(providerEnabled = true) {
   return parseAppUIRuntimeModel({
-    version: "2",
     root: {
       type: "slot",
       id: "services-slot-node",
@@ -128,7 +127,6 @@ describe("PluginServiceRuntime", () => {
       },
     });
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: {
         type: "slot",
         id: "theme-services-slot-node",
@@ -300,7 +298,6 @@ describe("PluginServiceRuntime", () => {
       },
     });
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },
       pluginInstances: {
         first: { id: "first", pluginId: "first", enabled: true },
@@ -333,7 +330,6 @@ describe("PluginServiceRuntime", () => {
       },
     });
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },
       pluginInstances: {
         first: { id: "first", pluginId: "first", enabled: true },
@@ -455,7 +451,6 @@ describe("PluginServiceRuntime", () => {
     const registry = createPluginRegistry([provider]);
     const runtime = new PluginServiceRuntime();
     const providerModel = parseAppUIRuntimeModel({
-      version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },
       pluginInstances: {
         "provider-main": {
@@ -514,7 +509,6 @@ describe("PluginServiceRuntime", () => {
       },
     });
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: {
         type: "slot",
         id: "duplicate-slot-node",
@@ -874,7 +868,6 @@ describe("PluginServiceRuntime", () => {
       setup,
     });
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: { type: "slot", id: "test-slot-node", slotId: "test-slot" },
       pluginInstances: {
         "visual-main": {
@@ -996,7 +989,6 @@ describe("PluginServiceRuntime", () => {
     const setup = vi.fn(() => setupCleanup);
     const owner = createDefinition("owner", { setup }, ["owner.child"]);
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },
       pluginInstances: {
         "owner-main": {
@@ -1077,7 +1069,6 @@ describe("PluginServiceRuntime", () => {
       setup: consumerSetup,
     });
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },
       pluginInstances: {
         "a-consumer": {
@@ -1158,7 +1149,6 @@ describe("PluginServiceRuntime", () => {
       "owner.footer",
     ]);
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },
       pluginInstances: {
         "owner-main": {
@@ -1206,7 +1196,6 @@ describe("PluginServiceRuntime", () => {
       "owner.footer",
     ]);
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: { type: "slot", id: "root-node", slotId: "root" },
       pluginInstances: {
         "owner-main": {
@@ -1243,7 +1232,6 @@ describe("PluginServiceRuntime", () => {
     const runtime = new PluginServiceRuntime();
     const definition = createDefinition("visual");
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: { type: "slot", id: "list-node", slotId: "list" },
       pluginInstances: {
         "z-last": { id: "z-last", pluginId: "visual", enabled: true, mount: { slotId: "list", order: 5 } },
@@ -1266,7 +1254,6 @@ describe("PluginServiceRuntime", () => {
   it("activates a headless Plugin without an ordinary mount", () => {
     const headless = createDefinition("headless", { setup: () => undefined });
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: { type: "slot", id: "unused-node", slotId: "unused" },
       pluginInstances: {
         background: {

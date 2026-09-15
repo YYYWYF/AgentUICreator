@@ -125,7 +125,6 @@ async function createDependencyGraphProject(
   }
   const inventory = await collectPluginAssets(projectRoot, config);
   const graphModel: AppUIModel = {
-    version: "3",
     applicationPlugins,
     root: { type: "slot", id: "root", description: "Root content.", plugins: [] },
   };
@@ -134,7 +133,6 @@ async function createDependencyGraphProject(
 
 function model(providerEnabled = true): AppUIModel {
   return {
-    version: "3",
     root: { type: "slot", id: "root", description: "Root content.", plugins: [
       {
         id: "provider",

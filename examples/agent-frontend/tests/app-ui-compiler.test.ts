@@ -26,7 +26,6 @@ const catalog: PluginCompositionCatalog = {
 
 function model(surfaceId = "surface-main"): AppUIModel {
   return {
-    version: "3",
     applicationPlugins: [
       { id: "provider-main", pluginId: "provider", enabled: true },
     ],

@@ -65,7 +65,6 @@ async function createProject(
     definitionSource,
   );
   const model: AppUIModel = {
-    version: "3",
     root: {
       type: "slot",
       id: "main-node",

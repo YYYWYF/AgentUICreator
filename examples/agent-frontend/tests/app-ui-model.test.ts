@@ -6,12 +6,11 @@ import {
   parseAppUIModel,
 } from "../framework/contracts/app-ui-model";
 
-describe("AppUIModel v3", () => {
+describe("AppUIModel", () => {
   it("parses the nested authoring source of truth", () => {
     const model = parseAppUIModel(appUIModelJson);
     const locations = collectAppUIPluginLocations(model);
 
-    expect(model.version).toBe("3");
     expect(model).not.toHaveProperty("pluginInstances");
     expect(locations.map(({ plugin }) => plugin.id)).toContain(
       "conversation-suggestions-main",
@@ -23,12 +22,23 @@ describe("AppUIModel v3", () => {
         type: "plugin_slot",
         parentInstanceId: "agent-conversation-surface-main",
         slot: "emptySuggestions",
-      });
+    });
+  });
+
+  it("rejects the removed schema version field", () => {
+    expect(() => parseAppUIModel({
+      version: "3",
+      root: {
+        type: "slot",
+        id: "main",
+        description: "Main content.",
+        plugins: [],
+      },
+    })).toThrow();
   });
 
   it("rejects Runtime-only placement fields", () => {
     expect(() => parseAppUIModel({
-      version: "3",
       root: {
         type: "slot",
         id: "main",
@@ -45,7 +55,6 @@ describe("AppUIModel v3", () => {
 
   it("rejects duplicate plugin ids across application and visual trees", () => {
     expect(() => parseAppUIModel({
-      version: "3",
       applicationPlugins: [
         { id: "duplicate", pluginId: "provider", enabled: true },
       ],
@@ -60,7 +69,6 @@ describe("AppUIModel v3", () => {
 
   it("rejects blank plugin-local Slot names", () => {
     expect(() => parseAppUIModel({
-      version: "3",
       root: {
         type: "slot",
         id: "main",

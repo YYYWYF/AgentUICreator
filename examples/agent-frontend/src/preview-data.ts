@@ -143,7 +143,6 @@ export const previewAgentState: AppAgentState = {
       language: "json",
       content: JSON.stringify(
         {
-          version: "3",
           root: {
             type: "slot",
             id: "conversation-surface",

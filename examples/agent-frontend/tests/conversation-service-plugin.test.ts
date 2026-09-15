@@ -38,7 +38,6 @@ const actions = {
 
 function model(navigation?: UIPluginDefinition) {
   return parseAppUIRuntimeModel({
-    version: "2",
     root: { type: "slot", id: "navigation-node", slotId: "navigation" },
     pluginInstances: {
       "conversation-data": {
@@ -117,7 +116,6 @@ describe("conversationServicePlugin", () => {
     expect(signal?.aborted).toBe(false);
     runtime.reconcile(
       parseAppUIRuntimeModel({
-        version: "2",
         root: { type: "slot", id: "navigation-node", slotId: "navigation" },
         pluginInstances: {},
       }),

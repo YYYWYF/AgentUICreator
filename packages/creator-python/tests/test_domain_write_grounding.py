@@ -75,7 +75,6 @@ class GroundingClient:
         (root / APP_UI_MODEL_PATH).write_text(
             json.dumps(
                 {
-                    "version": "3",
                     "applicationPlugins": [],
                     "root": {
                         "type": "row",

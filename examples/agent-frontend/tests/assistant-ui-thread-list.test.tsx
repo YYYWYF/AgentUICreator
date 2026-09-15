@@ -169,7 +169,6 @@ async function renderPlugin(
     Component: () => null,
   };
   const model = parseAppUIRuntimeModel({
-    version: "2",
     root: { type: "slot", id: "thread-list-root", slotId: "navigation" },
     pluginInstances: {
       service: {

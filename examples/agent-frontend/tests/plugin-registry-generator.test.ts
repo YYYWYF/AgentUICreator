@@ -17,7 +17,6 @@ const fixtureConfig: UIProjectControlConfig = {
 
 function modelFor(pluginIds: readonly string[]): AppUIModel {
   return {
-    version: "3",
     applicationPlugins: pluginIds
       .filter((pluginId) => pluginId === "beta")
       .map((pluginId, index) => ({

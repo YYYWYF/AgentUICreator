@@ -26,7 +26,6 @@ const runtimeActions = {
 };
 
 const model: AppUIRuntimeModel = {
-  version: "2",
   root: {
     type: "slot",
     id: "theme-bridge-test-root",

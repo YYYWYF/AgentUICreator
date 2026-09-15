@@ -1,7 +1,6 @@
 import type { LayoutSize } from "@agent-ui/runtime-react";
 import { z } from "zod";
 
-export const APP_UI_MODEL_VERSION = "3" as const;
 export type AppUILayoutSize = LayoutSize;
 
 export interface AppUIPluginNode {
@@ -61,7 +60,6 @@ export type AppUILayoutNode =
   | AppUISlotNode;
 
 export interface AppUIModel {
-  version: typeof APP_UI_MODEL_VERSION;
   applicationPlugins?: AppUIPluginNode[] | undefined;
   root: AppUILayoutNode;
   settings?: { theme?: string | undefined } | undefined;
@@ -135,7 +133,6 @@ export const layoutNodeSchema: z.ZodType<AppUILayoutNode> = z.lazy(() =>
 );
 
 const appUIModelShapeSchema: z.ZodType<AppUIModel> = z.strictObject({
-  version: z.literal(APP_UI_MODEL_VERSION),
   applicationPlugins: z.array(appUIPluginNodeSchema).optional(),
   root: layoutNodeSchema,
   settings: z.strictObject({ theme: nonBlankStringSchema.optional() }).optional(),

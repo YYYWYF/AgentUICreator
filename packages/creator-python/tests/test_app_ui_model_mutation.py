@@ -40,7 +40,7 @@ def _create_project(tmp_path: Path) -> Path:
     (root / "app-ui").mkdir(parents=True)
     (root / "plugins").mkdir()
     (root / APP_UI_MODEL_PATH).write_text(
-        '{"version":"2","title":"Before"}\n', encoding="utf-8"
+        '{"title":"Before"}\n', encoding="utf-8"
     )
     (root / REGISTRY_PATH).write_text("export const plugins = [];\n", encoding="utf-8")
     return root

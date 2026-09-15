@@ -24,7 +24,6 @@ import { themeSwitchPlugin } from "../plugins/theme-switch/definition";
   .IS_REACT_ACT_ENVIRONMENT = true;
 
 const model = parseAppUIRuntimeModel({
-  version: "2",
   root: { type: "slot", id: "theme-switch-root", slotId: "theme-controls" },
   pluginInstances: {
     "theme-provider-main": {

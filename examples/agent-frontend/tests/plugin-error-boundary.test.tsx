@@ -94,7 +94,6 @@ function createModel(
   renderShouldFail = true,
 ) {
   return parseAppUIRuntimeModel({
-    version: "2",
     root: {
       type: "slot",
       id: "boundary-slot-node",

@@ -163,7 +163,6 @@ describe("Layout Slot declarations", () => {
   it("binds a mounted Layout SlotNode to declaration lifetime", async () => {
     const serviceRuntime = new PluginServiceRuntime();
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: {
         type: "slot",
         id: "messages-node",

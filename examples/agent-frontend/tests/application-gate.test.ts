@@ -80,7 +80,6 @@ function definition(
 
 function gateModel(workspaceProps: Record<string, unknown> = {}) {
   return parseAppUIRuntimeModel({
-    version: "2",
     root: { type: "slot", id: "main-node", slotId: "main" },
     pluginInstances: {
       gate: { id: "gate", pluginId: "auth-gate", enabled: true },
@@ -119,7 +118,6 @@ describe("Application Gate lifecycle", () => {
       }),
     ]);
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: { type: "slot", id: "main-node", slotId: "main" },
       pluginInstances: {
         gate: { id: "gate", pluginId: "auth-gate", enabled: true },
@@ -186,7 +184,6 @@ describe("Application Gate lifecycle", () => {
       }),
     ]);
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: { type: "slot", id: "main-node", slotId: "main" },
       pluginInstances: {
         gate: { id: "gate", pluginId: "auth-gate", enabled: true },
@@ -320,7 +317,6 @@ describe("Application Gate lifecycle", () => {
       definition("workspace"),
     ]);
     const model = parseAppUIRuntimeModel({
-      version: "2",
       root: { type: "slot", id: "main-node", slotId: "main" },
       pluginInstances: {
         high: { id: "high", pluginId: "high-gate", enabled: true },

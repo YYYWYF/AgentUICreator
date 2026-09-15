@@ -19,7 +19,6 @@ describe("LayoutRenderer integration", () => {
       <LayoutRenderer
         root={model.root}
         theme={model.settings?.theme}
-        version={model.version}
         renderSlot={(slot) => (
           <article>
             {slot.slotId}
@@ -43,7 +42,6 @@ describe("LayoutRenderer integration", () => {
 
   it("renders a two-column AppUIRuntimeModel without changing the Layout Runtime", () => {
     const model: AppUIRuntimeModel = {
-      version: "2",
       pluginInstances: {},
       root: {
         type: "row",
@@ -68,7 +66,6 @@ describe("LayoutRenderer integration", () => {
       <LayoutRenderer
         root={model.root}
         renderSlot={(slot) => <article>{slot.slotId}</article>}
-        version={model.version}
       />,
     );
 
@@ -79,7 +76,6 @@ describe("LayoutRenderer integration", () => {
 
   it("maps numeric Column sizes to fractional grid tracks", () => {
     const model: AppUIRuntimeModel = {
-      version: "2",
       root: {
         type: "column",
         id: "main-column",
@@ -101,7 +97,7 @@ describe("LayoutRenderer integration", () => {
     };
 
     const html = renderToStaticMarkup(
-      <LayoutRenderer root={model.root} version={model.version} />,
+      <LayoutRenderer root={model.root} />,
     );
 
     expect(html).toContain('style="grid-template-rows:2fr 1fr"');
@@ -111,7 +107,6 @@ describe("LayoutRenderer integration", () => {
 
   it("renders only the active Stack child", () => {
     const model: AppUIRuntimeModel = {
-      version: "2",
       root: {
         type: "stack",
         id: "preview-stack",
@@ -133,7 +128,7 @@ describe("LayoutRenderer integration", () => {
     };
 
     const html = renderToStaticMarkup(
-      <LayoutRenderer root={model.root} version={model.version} />,
+      <LayoutRenderer root={model.root} />,
     );
 
     expect(html).toContain('data-active-node-id="right-slot-node"');
@@ -143,7 +138,6 @@ describe("LayoutRenderer integration", () => {
 
   it("renders a deterministic placeholder when no slot renderer is provided", () => {
     const model: AppUIRuntimeModel = {
-      version: "2",
       root: {
         type: "slot",
         id: "empty-slot-node",
@@ -153,7 +147,7 @@ describe("LayoutRenderer integration", () => {
     };
 
     const html = renderToStaticMarkup(
-      <LayoutRenderer root={model.root} version={model.version} />,
+      <LayoutRenderer root={model.root} />,
     );
 
     expect(html).toContain("app-ui-layout-slot-placeholder");

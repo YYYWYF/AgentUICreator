@@ -35,7 +35,7 @@ def _project(tmp_path: Path) -> Path:
     (tmp_path / "app-ui").mkdir()
     (tmp_path / "plugins").mkdir()
     (tmp_path / APP_UI_MODEL_PATH).write_text(
-        '{"version":"3","root":{"type":"slot","id":"inspector-activity","description":"Inspector activity.","plugins":[]}}\n',
+        '{"root":{"type":"slot","id":"inspector-activity","description":"Inspector activity.","plugins":[]}}\n',
         encoding="utf-8",
     )
     (tmp_path / REGISTRY_PATH).write_text(

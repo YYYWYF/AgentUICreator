@@ -11,7 +11,6 @@ function createModel(
   layoutSlotIds: readonly string[] = ["root"],
 ): AppUIRuntimeModel {
   return {
-    version: "2",
     root:
       layoutSlotIds.length === 1
         ? {

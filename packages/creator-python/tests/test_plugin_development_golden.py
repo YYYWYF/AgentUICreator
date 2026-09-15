@@ -127,7 +127,6 @@ def make_project(tmp_path: Path) -> Path:
     (tmp_path / APP_UI_MODEL_PATH).write_text(
         json.dumps(
             {
-                "version": "3",
                 "applicationPlugins": [],
                 "root": {
                     "type": "slot",

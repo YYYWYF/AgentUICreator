@@ -31,13 +31,12 @@ async function createPlugin(projectRoot: string, pluginId: string): Promise<void
 }
 
 async function createProject() {
-  const projectRoot = await mkdtemp(path.join(tmpdir(), "app-ui-v3-transaction-"));
+  const projectRoot = await mkdtemp(path.join(tmpdir(), "app-ui-transaction-"));
   temporaryProjects.push(projectRoot);
   await mkdir(path.join(projectRoot, "app-ui"));
   await mkdir(path.join(projectRoot, "plugins"));
   await createPlugin(projectRoot, "sample");
   const model: AppUIModel = {
-    version: "3",
     root: {
       type: "slot",
       id: "main",
@@ -63,7 +62,7 @@ afterEach(async () => {
   ));
 });
 
-describe("AppUIModel v3 transaction", () => {
+describe("AppUIModel transaction", () => {
   it("commits the authoring model only after it compiles", async () => {
     const { projectRoot, source } = await createProject();
     const result = await mutateAppUIModel(projectRoot, {

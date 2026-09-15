@@ -132,7 +132,6 @@ describe("inspectUIProject", () => {
       "const plugin = {};\nexport default plugin;\n",
     );
     const model: AppUIModel = {
-      version: "3",
       root: {
         id: "root-row",
         type: "row",

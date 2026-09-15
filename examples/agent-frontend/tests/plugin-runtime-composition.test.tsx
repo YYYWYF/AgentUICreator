@@ -27,7 +27,6 @@ const runtimeActions = {
 
 function createModel(enabled = true) {
   return parseAppUIRuntimeModel({
-    version: "2",
     root: {
       type: "slot",
       id: "root-slot-node",

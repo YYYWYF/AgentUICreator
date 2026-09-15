@@ -45,7 +45,6 @@ function createDefinition(
 
 function createModel(shouldFail = true) {
   return parseAppUIRuntimeModel({
-    version: "2",
     root: {
       type: "panel",
       id: "diagnostic-panel",

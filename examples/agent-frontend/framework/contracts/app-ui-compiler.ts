@@ -6,7 +6,6 @@ import {
   type AppUIPluginNode,
 } from "./app-ui-model";
 import {
-  APP_UI_RUNTIME_MODEL_VERSION,
   parseAppUIRuntimeModel,
   type AppUIRuntimeModel,
   type AppUIRuntimePluginInstance,
@@ -183,7 +182,6 @@ export function compileAppUIModel(
   if (issues.length > 0) throw new AppUICompilerError(issues);
 
   const runtimeModel = parseAppUIRuntimeModel({
-    version: APP_UI_RUNTIME_MODEL_VERSION,
     root: compileLayout(model.root),
     pluginInstances,
     ...(model.settings === undefined ? {} : { settings: structuredClone(model.settings) }),

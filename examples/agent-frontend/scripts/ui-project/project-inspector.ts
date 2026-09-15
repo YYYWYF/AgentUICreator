@@ -184,7 +184,6 @@ export async function inspectUIProject(
     },
     appUIModel: {
       hash: createHash("sha256").update(appUIModelSource).digest("hex"),
-      version: model.version,
       layout,
       slots,
     },

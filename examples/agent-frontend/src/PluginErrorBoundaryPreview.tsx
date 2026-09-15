@@ -109,7 +109,6 @@ function createPreviewModel(state: PreviewState) {
   }
 
   return compileAppUIModel(parseAppUIModel({
-    version: "3",
     root: {
       type: "slot",
       id: "runtime-fault-fixture",

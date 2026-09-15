@@ -288,14 +288,13 @@ Runtime / SlotRegistry / PluginServiceRuntime
 
 ```ts
 interface AppUIModel {
-  version: "3"
   applicationPlugins?: AppUIPluginNode[]
   root: AppUILayoutNode
   settings?: { theme?: string }
 }
 ```
 
-`AppUIRuntimeModel` 保留原 v2 `root + pluginInstances + mount` 形态，但只能由纯函数 `compileAppUIModel()` 生成，Creator 不得直接修改。Compiler 负责 schema、Plugin/Slot 存在性、cardinality、实例 id 唯一性、headless/application 边界和现有 Runtime composition validation；任何失败都发生在 mutation commit 之前。
+`AppUIRuntimeModel` 保留 `root + pluginInstances + mount` 形态，但只能由纯函数 `compileAppUIModel()` 生成，Creator 不得直接修改。Compiler 负责 schema、Plugin/Slot 存在性、cardinality、实例 id 唯一性、headless/application 边界和现有 Runtime composition validation；任何失败都发生在 mutation commit 之前。
 
 第一版可以持久化为：
 
@@ -710,14 +709,14 @@ Generated Application 使用 Zod strict object 作为 Tool 输入校验和 JSON 
 
 # 9. UI Runtime
 
-稳定的 React Layout Runtime 由官方 `@agent-ui/runtime-react` 包维护。它拥有 `Row`、`Column`、`Stack`、`Panel`、`Slot` 的 Runtime Layout Language、`LayoutRenderer` 和 Layout CSS，只接收编译后的 `root`、`version`、`theme` 与项目提供的 `renderSlot`。生成项目继续拥有 AppUIModel、AppUIRuntimeModel、Compiler、SlotRegistry、Plugin Runtime、Services 与 Agent Contract。
+稳定的 React Layout Runtime 由官方 `@agent-ui/runtime-react` 包维护。它拥有 `Row`、`Column`、`Stack`、`Panel`、`Slot` 的 Runtime Layout Language、`LayoutRenderer` 和 Layout CSS，只接收编译后的 `root`、`theme` 与项目提供的 `renderSlot`。生成项目继续拥有 AppUIModel、AppUIRuntimeModel、Compiler、SlotRegistry、Plugin Runtime、Services 与 Agent Contract。
 
 Creator 改变具体布局时只通过 `mutate_app_ui_model` 修改 `app-ui/app-ui.json`。新增 Grid、Dock 等 Layout Language 才是官方 Runtime 的框架开发任务。Mode 只在项目创建时提供 Initial AppUIModel，不得在启动时覆盖用户后续修改。
 
 UI Runtime 负责：
 
 ```text
-读取并解析 AppUIModel v3
+读取并解析 AppUIModel
       ↓
 compileAppUIModel() 生成 AppUIRuntimeModel
       ↓

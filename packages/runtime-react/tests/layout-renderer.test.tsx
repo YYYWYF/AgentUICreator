@@ -149,18 +149,16 @@ describe("LayoutRenderer", () => {
     expect(html).toContain("empty");
   });
 
-  it("projects version, theme, and className onto the root", () => {
+  it("projects theme and className onto the root", () => {
     const html = renderToStaticMarkup(
       <LayoutRenderer
         className="custom-layout"
         root={slot("content")}
         theme="dark"
-        version="2"
       />,
     );
 
     expect(html).toContain('class="app-ui-layout-root custom-layout"');
-    expect(html).toContain('data-app-ui-version="2"');
     expect(html).toContain('data-theme="dark"');
   });
 });

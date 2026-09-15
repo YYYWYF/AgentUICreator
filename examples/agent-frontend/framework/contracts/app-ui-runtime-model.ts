@@ -1,8 +1,6 @@
 import type { LayoutNode, LayoutSize } from "@agent-ui/runtime-react";
 import { z } from "zod";
 
-export const APP_UI_RUNTIME_MODEL_VERSION = "2" as const;
-
 export type {
   ColumnNode as RuntimeColumnNode,
   LayoutNode as RuntimeLayoutNode,
@@ -22,7 +20,6 @@ export interface AppUIRuntimePluginInstance {
 }
 
 export interface AppUIRuntimeModel {
-  version: typeof APP_UI_RUNTIME_MODEL_VERSION;
   root: LayoutNode;
   pluginInstances: Record<string, AppUIRuntimePluginInstance>;
   settings?: { theme?: string | undefined } | undefined;
@@ -87,7 +84,6 @@ export const appUIRuntimePluginInstanceSchema: z.ZodType<AppUIRuntimePluginInsta
   });
 
 const appUIRuntimeModelShapeSchema: z.ZodType<AppUIRuntimeModel> = z.strictObject({
-  version: z.literal(APP_UI_RUNTIME_MODEL_VERSION),
   root: runtimeLayoutNodeSchema,
   pluginInstances: z.record(z.string(), appUIRuntimePluginInstanceSchema),
   settings: z.strictObject({ theme: nonBlankStringSchema.optional() }).optional(),

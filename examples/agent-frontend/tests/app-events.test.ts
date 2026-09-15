@@ -42,7 +42,6 @@ function event(
 
 function headlessModel(aEnabled = true) {
   return parseAppUIRuntimeModel({
-    version: "2",
     root: { type: "slot", id: "root-node", slotId: "root" },
     pluginInstances: {
       "a-main": {
@@ -424,7 +423,6 @@ describe("AppEventRuntime", () => {
 
     pluginRuntime.reconcile(
       parseAppUIRuntimeModel({
-        version: "2",
         root: { type: "slot", id: "root-node", slotId: "root" },
         pluginInstances: {
           "a-main": {

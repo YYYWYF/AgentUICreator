@@ -52,7 +52,7 @@
 
 ### 3.2 已知基线问题
 
-AppUIModel v3 不暴露 Runtime mount。视觉 Plugin 直接位于 Layout Slot 或 parent Plugin 的 local Slot 中；headless Plugin 与 Application Gate 位于顶层 `applicationPlugins`。Runtime mount 只存在于 `compileAppUIModel()` 生成的 AppUIRuntimeModel，实施人员不得为了让检查通过擅自删除 authoring node 或 Plugin 源码。
+AppUIModel 不暴露 Runtime mount。视觉 Plugin 直接位于 Layout Slot 或 parent Plugin 的 local Slot 中；headless Plugin 与 Application Gate 位于顶层 `applicationPlugins`。Runtime mount 只存在于 `compileAppUIModel()` 生成的 AppUIRuntimeModel，实施人员不得为了让检查通过擅自删除 authoring node 或 Plugin 源码。
 
 ### 3.3 工作树保护
 
