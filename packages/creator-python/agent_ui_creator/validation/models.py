@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal
 
 from ..service_contracts.verification import ServiceContractHostCheck
 
@@ -48,6 +48,7 @@ class CreatorValidationResult:
     status: Literal["passed", "failed", "stale"]
     checks: tuple[CreatorValidationCheck, ...]
     host_checks: tuple[ServiceContractHostCheck, ...] = ()
+    failure_semantics: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -55,4 +56,9 @@ class CreatorValidationResult:
             "status": self.status,
             "checks": [check.to_dict() for check in self.checks],
             "hostChecks": [check.to_dict() for check in self.host_checks],
+            **(
+                {"failureSemantics": dict(self.failure_semantics)}
+                if self.failure_semantics is not None
+                else {}
+            ),
         }

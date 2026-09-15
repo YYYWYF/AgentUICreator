@@ -46,6 +46,7 @@ class CreatorActivityRecorder:
         )
         self._before_by_path: dict[str, str | None] = {}
         self._touched_paths: set[str] = set()
+        self._mutation_paths: list[str] = []
         self._created_directories: set[str] = set()
         self._validations: list[dict[str, Any]] = []
         self._revision = 0
@@ -64,6 +65,7 @@ class CreatorActivityRecorder:
     def begin(self, run_id: str | None = None) -> None:
         self._before_by_path.clear()
         self._touched_paths.clear()
+        self._mutation_paths.clear()
         self._created_directories.clear()
         self._validations.clear()
         self._revision = 0
@@ -100,6 +102,10 @@ class CreatorActivityRecorder:
     def semantic_noop(self) -> dict[str, str] | None:
         return copy.deepcopy(self._semantic_noop)
 
+    @property
+    def mutation_paths(self) -> tuple[str, ...]:
+        return tuple(self._mutation_paths)
+
     def capture_before(self, file_path: str) -> None:
         state = read_creator_file_state(self.project_root, file_path)
         self.capture_before_content(file_path, state.content)
@@ -127,6 +133,7 @@ class CreatorActivityRecorder:
     def touch(self, file_path: str) -> None:
         path = resolve_creator_project_file(self.project_root, file_path).receipt_path
         self._touched_paths.add(path)
+        self._mutation_paths.append(path)
         self._revision += 1
         self._last_mutation_at = datetime.now(timezone.utc)
         if self.logger is not None:

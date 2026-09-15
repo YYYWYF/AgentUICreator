@@ -17,6 +17,8 @@ from .mutation_models import (
     AppUIModelMutationError,
     AppUIModelMutationMetrics,
     AppUIModelMutationResult,
+    MAX_SEMANTIC_COMPOSITION_REPLANS,
+    classify_mutation_error,
 )
 
 _HASH_LENGTH = 64
@@ -74,6 +76,7 @@ class AppUIModelMutationService:
         self.metrics = AppUIModelMutationMetrics()
         self._last_failed_signature: str | None = None
         self._consecutive_failures = 0
+        self._semantic_replan_pending = False
 
     async def mutate(
         self,
@@ -82,22 +85,73 @@ class AppUIModelMutationService:
         operations: list[dict[str, Any]],
     ) -> AppUIModelMutationResult:
         request_index = self.metrics.begin_request(len(operations))
+        semantic_replan_attempt = False
+        if self._semantic_replan_pending:
+            if self.metrics.semanticReplans >= MAX_SEMANTIC_COMPOSITION_REPLANS:
+                self.metrics.semanticReplanLimitReached = True
+                error = AppUIModelMutationError(
+                    "COMPOSITION_REPLAN_LIMIT_REACHED",
+                    "The one allowed semantic composition replan has already been used. Stop and report the remaining precondition failure.",
+                    {
+                        "semanticReplans": self.metrics.semanticReplans,
+                        "maxSemanticReplans": MAX_SEMANTIC_COMPOSITION_REPLANS,
+                    },
+                    category="operation_precondition",
+                )
+                self._record_error_metrics(error)
+                self._record_request(request_index, operations, error=error)
+                raise error
+            semantic_replan_attempt = True
+            self._semantic_replan_pending = False
         try:
             result = await self._mutate(
                 app_ui_model_hash=app_ui_model_hash, operations=operations
             )
         except BaseException as error:
+            if semantic_replan_attempt:
+                if (
+                    isinstance(error, AppUIModelMutationError)
+                    and error.category == "stale_state"
+                ):
+                    self._semantic_replan_pending = True
+                else:
+                    self.metrics.semanticReplans += 1
+            if isinstance(error, AppUIModelMutationError):
+                self._record_error_metrics(error)
             self._record_request(request_index, operations, error=error)
             raise
+        if semantic_replan_attempt:
+            self.metrics.semanticReplans += 1
         self.metrics.successfulRequests += 1
+        self._semantic_replan_pending = False
         self._record_request(request_index, operations, result=result)
         return result
+
+    def _record_error_metrics(self, error: AppUIModelMutationError) -> None:
+        self.metrics.errorCategories[error.category] = (
+            self.metrics.errorCategories.get(error.category, 0) + 1
+        )
+        if error.category == "operation_precondition":
+            self.metrics.semanticFailures += 1
+            self._semantic_replan_pending = True
+            if self.metrics.semanticReplans >= MAX_SEMANTIC_COMPOSITION_REPLANS:
+                self.metrics.semanticReplanLimitReached = True
+                error.recovery = {
+                    "action": "stop_and_report_semantic_failure",
+                    "atomicRetryAllowed": False,
+                    "semanticReplans": self.metrics.semanticReplans,
+                    "maxSemanticReplans": MAX_SEMANTIC_COMPOSITION_REPLANS,
+                }
 
     def record_observation_failure(
         self, *, operations: list[dict[str, Any]], error: DomainObservationError
     ) -> None:
         # A tool request rejected before dispatch still counts as a request.
         request_index = self.metrics.begin_request(len(operations))
+        category = classify_mutation_error(error.code)
+        self.metrics.errorCategories[category] = (
+            self.metrics.errorCategories.get(category, 0) + 1
+        )
         self._record_request(request_index, operations, error=error)
 
     def _record_request(
@@ -111,6 +165,15 @@ class AppUIModelMutationService:
         if self.activity.logger is None:
             return
         target = result.target_result if result is not None else {}
+        error_category = (
+            error.category
+            if isinstance(error, AppUIModelMutationError)
+            else (
+                classify_mutation_error(error.code)
+                if isinstance(error, DomainObservationError)
+                else None
+            )
+        )
         self.activity.logger.record(
             "app_ui_model_mutation",
             {
@@ -120,6 +183,24 @@ class AppUIModelMutationService:
                 "result": {"ok": result is not None, "changed": target.get("changed")},
                 "changedPaths": target.get("changedPaths", []),
                 **({"errorCode": getattr(error, "code", type(error).__name__)} if error is not None else {}),
+                **(
+                    {
+                        "errorCategory": error_category,
+                        "stateChanged": error.state_changed,
+                        "observationStillValid": error.observation_still_valid,
+                    }
+                    if isinstance(error, AppUIModelMutationError)
+                    else (
+                        {
+                            "errorCategory": error_category,
+                            "stateChanged": False,
+                            "observationStillValid": error_category
+                            != "stale_state",
+                        }
+                        if isinstance(error, DomainObservationError)
+                        else {}
+                    )
+                ),
             },
         )
 
@@ -195,7 +276,13 @@ class AppUIModelMutationService:
                 if error.code == "APP_UI_MODEL_HASH_CONFLICT":
                     self.metrics.hashConflicts += 1
                 raise AppUIModelMutationError(
-                    error.code, str(error), error.details
+                    error.code,
+                    str(error),
+                    error.details,
+                    category=(
+                        "infrastructure" if actual_changed_paths else None
+                    ),
+                    state_changed=bool(actual_changed_paths),
                 ) from error
             except Exception as error:
                 actual_changed_paths, _after_states = self._reconcile(before_states)
@@ -205,6 +292,8 @@ class AppUIModelMutationService:
                 raise AppUIModelMutationError(
                     "APP_UI_MODEL_MUTATION_FAILED",
                     "The Creator Host could not complete the AppUIModel mutation.",
+                    state_changed=bool(actual_changed_paths),
+                    observation_still_valid=not actual_changed_paths,
                 ) from error
 
             actual_changed_paths, after_states = self._reconcile(before_states)
@@ -215,9 +304,11 @@ class AppUIModelMutationService:
                     actual_changed_paths=actual_changed_paths,
                     after_states=after_states,
                 )
-            except AppUIModelMutationError:
+            except AppUIModelMutationError as error:
                 self.metrics.resultMismatches += 1
-                raise
+                raise error.with_disk_state(
+                    state_changed=bool(actual_changed_paths)
+                ) from error
             if raw_result["changed"] is False:
                 self.activity.record_semantic_noop(
                     source="mutate_app_ui_model",

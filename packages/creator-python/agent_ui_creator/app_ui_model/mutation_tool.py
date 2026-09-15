@@ -11,6 +11,9 @@ from ..domain_state import DomainObservationContext, DomainObservationError
 from .mutation_models import (
     MAX_MUTATION_RESULT_CHARACTERS,
     AppUIModelMutationError,
+    MutationErrorCategory,
+    classify_mutation_error,
+    mutation_error_recovery,
 )
 from .mutation_service import AppUIModelMutationService
 
@@ -67,13 +70,32 @@ def _json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"), default=str)
 
 
-def _bounded_error(code: str, message: str, details: Any = None) -> str:
+def _bounded_error(
+    code: str,
+    message: str,
+    details: Any = None,
+    *,
+    category: MutationErrorCategory | None = None,
+    state_changed: bool = False,
+    observation_still_valid: bool | None = None,
+    recovery: dict[str, object] | None = None,
+) -> str:
+    resolved_category = category or classify_mutation_error(code)
+    resolved_observation_valid = (
+        not state_changed and resolved_category != "stale_state"
+        if observation_still_valid is None
+        else observation_still_valid
+    )
     value = {
         "ok": False,
         "error": {
             "code": code,
+            "category": resolved_category,
             "message": message,
+            "stateChanged": state_changed,
+            "observationStillValid": resolved_observation_valid,
             **({"details": details} if details is not None else {}),
+            "recovery": recovery or mutation_error_recovery(resolved_category),
         },
     }
     rendered = _json(value)
@@ -84,11 +106,15 @@ def _bounded_error(code: str, message: str, details: Any = None) -> str:
             "ok": False,
             "error": {
                 "code": code,
+                "category": resolved_category,
                 "message": "AppUIModel mutation error details exceeded the tool limit.",
+                "stateChanged": state_changed,
+                "observationStillValid": resolved_observation_valid,
                 "details": {
                     "limitChars": MAX_MUTATION_RESULT_CHARACTERS,
                     "resultChars": len(rendered),
                 },
+                "recovery": recovery or mutation_error_recovery(resolved_category),
             },
         }
     )
@@ -120,7 +146,11 @@ def create_app_ui_model_mutation_tool(
             "Never pass Runtime slot ids or mounts; target a Layout Slot node, parent "
             "plugin local Slot, or application scope. If the Host "
             "reports APP_UI_MODEL_OBSERVATION_REQUIRED or APP_UI_MODEL_HASH_CONFLICT, "
-            "inspect again before retrying. Success is a static composition commit only, "
+            "inspect again before retrying. Error results include category, stateChanged, "
+            "observationStillValid, and recovery. Reuse the current observation for an "
+            "operation_precondition and semantically replan at most once. Stop on a "
+            "workspace_integrity blocker instead of repairing another layer. Stale-state "
+            "refresh does not consume the semantic replan. Success is a static composition commit only, "
             "not runtime or Host validation."
         ),
     )
@@ -155,18 +185,33 @@ def create_app_ui_model_mutation_tool(
                     "limitChars": MAX_MUTATION_RESULT_CHARACTERS,
                     "resultChars": len(rendered),
                 },
+                state_changed=bool(result.target_result.get("changed")),
+                observation_still_valid=True,
             )
         except DomainObservationError as error:
             service.record_observation_failure(operations=operations, error=error)
             return _bounded_error(error.code, str(error), error.details)
         except AppUIModelMutationError as error:
-            observations.invalidate_app_ui_model(reason=error.code)
-            return _bounded_error(error.code, str(error), error.details)
+            if not error.observation_still_valid:
+                observations.invalidate_app_ui_model(reason=error.code)
+            return _bounded_error(
+                error.code,
+                str(error),
+                error.details,
+                category=error.category,
+                state_changed=error.state_changed,
+                observation_still_valid=error.observation_still_valid,
+                recovery=error.recovery,
+            )
         except Exception as error:
             logger.exception("Unexpected AppUIModel mutation failure")
+            observations.invalidate_app_ui_model(
+                reason="APP_UI_MODEL_MUTATION_FAILED"
+            )
             return _bounded_error(
                 "APP_UI_MODEL_MUTATION_FAILED",
                 "The Creator Host could not complete the AppUIModel mutation.",
+                observation_still_valid=False,
             )
 
     return mutate_app_ui_model

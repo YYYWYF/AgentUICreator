@@ -63,6 +63,10 @@ from ..validation import (
     create_validation_tool,
 )
 from .completion_gate import CreatorDevelopmentCompletionGate
+from .change_scope import (
+    ScopeAwareRecoveryGuard,
+    build_change_layer_run_metrics,
+)
 from .prompt import DOMAIN_READ_AGENT_PROMPT, DOMAIN_WRITE_AGENT_PROMPT
 from .runtime_guard import RepeatedProjectControlReadGuard
 from .skills import create_domain_skills_backend, default_creator_skills_root
@@ -83,6 +87,7 @@ class DomainReadAgentResult:
 @dataclass(frozen=True, slots=True)
 class DomainWriteAgentResult(DomainReadAgentResult):
     app_ui_model_mutations: AppUIModelMutationMetrics
+    change_layer_metrics: dict[str, object]
 
 
 class CreatorDomainReadAgent:
@@ -99,6 +104,7 @@ class CreatorDomainReadAgent:
         completion_gate: CreatorDevelopmentCompletionGate | None = None,
         automatic_completion_repair: bool = False,
         service_contract_authorizations: ServiceContractAuthorizationStore | None = None,
+        scope_guard: ScopeAwareRecoveryGuard | None = None,
     ) -> None:
         self.graph = graph
         self.protocol = protocol
@@ -111,6 +117,7 @@ class CreatorDomainReadAgent:
         self.automatic_completion_repair = automatic_completion_repair
         self.activity = runtime.backend.activity
         self.service_contract_authorizations = service_contract_authorizations
+        self.scope_guard = scope_guard
 
     async def run(self, prompt: str) -> DomainReadAgentResult:
         return await self.run_messages([{"role": "user", "content": prompt}])
@@ -205,6 +212,17 @@ class CreatorDomainReadAgent:
         )
         if self.mutation_service is not None:
             values["app_ui_model_mutations"] = self.mutation_service.metrics
+            values["change_layer_metrics"] = build_change_layer_run_metrics(
+                scope=(
+                    self.scope_guard.metrics
+                    if self.scope_guard is not None
+                    else ScopeAwareRecoveryGuard().metrics
+                ),
+                activity=self.activity,
+                protocol=self.protocol.metrics,
+                project_control=self.project_control.metrics,
+                mutation=self.mutation_service.metrics,
+            )
         return result_type(**values)
 
 
@@ -406,6 +424,7 @@ def create_domain_write_creator_agent(
     )
     runtime = MinimalAgentRuntimeGuard(backend, event_sink=event_sink)
     repeated_read_guard = RepeatedProjectControlReadGuard(backend)
+    scope_guard = ScopeAwareRecoveryGuard()
     filesystem = FilesystemMiddleware(
         backend=skills_backend,
         tools=list(ALLOWED_MINIMAL_TOOLS),
@@ -423,6 +442,7 @@ def create_domain_write_creator_agent(
         middleware=[
             filesystem,
             DomainWriteToolPolicyMiddleware(),
+            scope_guard,
             repeated_read_guard,
             runtime,
             # Outer wrapper: every batch repair re-enters protocol accounting.
@@ -449,6 +469,7 @@ def create_domain_write_creator_agent(
         ),
         automatic_completion_repair=automatic_completion_repair,
         service_contract_authorizations=service_authorizations,
+        scope_guard=scope_guard,
     )
     agent.source_creation = source_creation
     agent.plugin_mutation = plugin_mutation

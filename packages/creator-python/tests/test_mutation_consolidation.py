@@ -99,13 +99,15 @@ def test_tool_and_prompt_preserve_final_state_transaction_contract(tmp_path):
     assert "one complete transaction" in schema["description"]
     prompt = " ".join(DOMAIN_WRITE_AGENT_PROMPT.split())
     for rule in (
-        "Before the first mutate_app_ui_model call",
-        "complete desired composition state", "smallest semantic representation",
-        "insert_plugin.plugin already supports final enabled, props, and nested child Slots",
-        "replace_plugin for an in-place replacement",
-        "partial successful mutation", "BAD:", "GOOD, new:", "GOOD, existing:",
-        "provide the final response", "changed=false", "previously unpredictable",
-        "not subject to a one-mutation hard limit",
+        "Desired state first, operations second",
+        "user request -> current state -> desired state -> semantic delta -> operations",
+        "load /skills/app-ui-model/SKILL.md before calling mutate_app_ui_model",
+        "smallest determinable atomic mutation",
+        "Do not add a planning call, probe with partial writes",
+        "stale refreshes do not consume the one allowed semantic replan",
+        "changed=false",
+        "workspace_integrity",
+        "Automatically repair only introduced or in_scope defects",
     ):
         assert rule in prompt
 
@@ -248,6 +250,9 @@ def test_endpoint_logs_mutation_summary_without_blocking_success(tmp_path, monke
         "mutationOperations": sum(expected_counts),
         "operationsPerMutation": expected_counts,
         "multiSuccessfulMutationRun": multiple,
+        "mutationErrorCategories": {},
+        "semanticReplans": 0,
+        "semanticReplanLimitReached": False,
     }
     assert {key: result[key] for key in expected} == expected
     assert result["appUIModelMutations"]["requests"] == len(expected_counts)

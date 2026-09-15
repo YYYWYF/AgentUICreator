@@ -237,6 +237,11 @@ async def _execute_agent_run(
                 result.app_ui_model_mutations.summary()
                 if hasattr(result, "app_ui_model_mutations") else None
             ),
+            change_layer_metrics=(
+                result.change_layer_metrics
+                if hasattr(result, "change_layer_metrics")
+                else None
+            ),
         )
         return _AgentExecution(result=result, receipt=receipt)
     except BaseException as error:
@@ -439,6 +444,10 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                 result.app_ui_model_mutations.to_dict()
                             )
                             run_result.update(result.app_ui_model_mutations.summary())
+                            if hasattr(result, "change_layer_metrics"):
+                                run_result["changeLayer"] = (
+                                    result.change_layer_metrics
+                                )
                     else:
                         run_result = {
                             "runtime": "python",

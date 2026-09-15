@@ -1,56 +1,233 @@
 ---
 name: app-ui-model
-description: Use for AppUIModel layout and nested plugin composition, especially when adding, removing, resizing, or placing UI regions without changing plugin behavior.
+description: Load for every request that changes AppUIModel composition, including simple add, remove, hide, move, resize, placement, props, Layout, or nested Plugin Slot changes.
 compatibility: Agent UI Plugin Creator authoring model.
 allowed-tools: read_file ls glob grep inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin mutate_app_ui_model execute
 ---
 
-# AppUIModel
+# AppUIModel Composition Manual
 
-This is a detailed authoring reference, not required initialization knowledge.
-The stable composition contract is already provided to Creator. Load this Skill
-for complex Layout transactions, multiple snapshot-scoped refs or `$localRef`
-values, subtree replacement, cardinality edge cases, hide/remove/replace
-semantics, concurrent hash conflicts, or other non-trivial composition cases.
+Use this Skill for every Composition change, not only complex Layout work.
+AppUIModel owns which Plugin instances exist, whether they are enabled, their
+authoring props and placement, and the Layout tree that contains visual regions.
 
-Treat `/app-ui/app-ui.json` as the only editable source of truth for generated layout and plugin configuration. The Runtime Model, Runtime slot ids, contributions, and SlotRegistry state are deterministic compiler output and must never be edited or passed to Creator tools.
+Always reason in this order:
 
-Use the bounded project snapshot for navigation and call `inspect_app_ui_model` when exact current content is needed. Submit composition changes through `mutate_app_ui_model` with that inspection's exact hash; do not edit the JSON with generic file tools.
+```text
+user request
+-> authoritative current composition
+-> desired final composition
+-> semantic delta
+-> one atomic mutation when the delta is determinable
+```
 
-## Decide the change layer
+Do not choose a tool operation from the wording alone.
 
-- Change only AppUIModel for layout, size, placement, enabled state, plugin props, or composition.
-- Reuse an existing UI Plugin by inserting a plugin node at the Layout Slot or parent plugin local Slot where it appears.
-- Put headless providers and Application Gates in top-level `applicationPlugins`; they do not occupy visual Slots.
-- Do not change Plugin source for a structural request when an existing Plugin already provides the behavior.
-- If new behavior requires Plugin source, use the `ui-plugin-development` skill and keep the change under `/plugins/`.
+## Ownership boundary
 
-## AppUIModel invariants
+- Composition owns AppUIModel plugin presence, enabled state, props, placement,
+  Layout, Panels, Rows, Columns, Stacks, Slots, and Slot occupants.
+- Plugin Behavior owns `/plugins/**` rendering, interaction, and child Slot
+  declarations.
+- Runtime Capability owns Services, Runtime stores, shared state, and Runtime
+  actions.
+- Agent Integration owns AG-UI, Frontend Tools, Application Events, and Agent
+  contracts.
+- A failure in Composition does not authorize Plugin, Runtime, or Agent
+  Integration edits.
+- Repair only defects introduced by this run or necessarily included in the
+  user's requested final state. Report unrelated workspace-integrity blockers.
 
-- Read visual composition from `root` downward. Layout nodes are structural and contain no persisted identity; a Layout Slot contains only its ordered `plugins` array.
-- A plugin node contains `id`, `pluginId`, `enabled`, optional `props`, and optional `slots` keyed by instance-local Slot name.
-- Array order is display order. Do not express contribution order separately.
-- Plugin instance `id` is the persistent lifecycle identity; Layout node identity exists only as snapshot-scoped `nodeRef` values returned by inspection.
-- A Row or Column `sizes` array, when present, must have one entry per child.
-- A Stack `activeIndex`, when present, must be an integer smaller than `children.length`.
-- A Panel `minWidth` must not exceed `maxWidth`.
-- A plugin local Slot must be declared by that plugin's manifest and satisfy its `one` or `many` cardinality and required/optional rule.
-- Never add Layout Slot descriptions, hints, semantic roles, or `accepts` lists. Plugin child Slot descriptions remain part of the Plugin contract.
+Treat `/app-ui/app-ui.json` as the editable authoring source of truth. Runtime
+IR, Runtime slot ids, compiler-generated Layout ids, contributions, mounts, and
+SlotRegistry state are derived and must never be edited or passed to Creator
+tools. Use ProjectControl inspections for current facts and
+`mutate_app_ui_model` for every Composition write; never edit AppUIModel or the
+generated Registry with filesystem tools.
+
+## Authoring invariants
+
+- Read visual composition from `root` downward. Layout nodes are structural;
+  Layout Slots contain ordered Plugin arrays.
+- A Plugin node contains persistent `id`, `pluginId`, `enabled`, optional
+  `props`, and optional child `slots` keyed by local Slot name.
+- Plugin instance ids are persistent. Inspection `nodeRef` and `slotRef` values
+  are snapshot-scoped authoring references.
+- Array order is display order; do not create a separate contribution order.
+- Row or Column `sizes`, when present, has one entry per child.
+- Stack `activeIndex`, when present, is a valid child index.
+- Panel `minWidth` must not exceed `maxWidth`.
+- A Plugin child Slot must be declared by its manifest and obey cardinality.
+  The declaration is Parent Plugin capability; its occupants are Composition.
+- Layout Slot nodes do not gain descriptions, hints, roles, or accepts lists.
 
 ## Semantic operations
 
-- `insert_plugin`: insert a complete plugin node into `{type:"application"}`, `{type:"layout_slot", slotRef}`, or `{type:"plugin_slot", parentInstanceId, slot}`.
-- `move_plugin`: relocate an existing plugin subtree to one of those targets.
-- `remove_plugin`: remove an existing plugin subtree without deleting its source.
-- `replace_plugin`: replace a plugin subtree in place.
-- `update_plugin_props` and `set_plugin_enabled`: update the named authoring node.
-- Layout operations use snapshot-scoped `nodeRef`/`parentRef` values. All refs in one operations batch are bound to the starting `appUIModelHash`; do not refresh or reinterpret them between operations. New mutation nodes may use transaction-only `$localRef` values, which are removed before persistence.
+- `insert_plugin`: insert one complete Plugin node into `application`, a
+  `layout_slot(slotRef)`, or `plugin_slot(parentInstanceId, slot)`.
+- `move_plugin`: relocate an existing Plugin subtree.
+- `remove_plugin`: remove an instance subtree while preserving Plugin source.
+- `replace_plugin`: replace an instance subtree in place.
+- `update_plugin_props`: change authoring configuration.
+- `set_plugin_enabled`: hide or restore an existing instance.
+- Layout operations use snapshot-scoped refs. All refs in a transaction are
+  bound to the starting snapshot. A new node may declare a transaction-only
+  `$localRef` for later operations in that same transaction.
 
-Prefer one complete transaction. The transaction parses the draft, compiles it with deterministic `compileAppUIModel()`, performs Runtime composition validation, regenerates the static Registry, and commits only if all gates succeed. If the hash is stale, inspect again instead of guessing or overwriting concurrent changes.
+Prefer one complete transaction. The Host parses and compiles the draft,
+checks composition and child Slot integrity, regenerates the static Registry,
+and commits atomically only when its gates succeed.
 
-## Hide, remove, and replace
+## Canonical patterns
 
-- “先不要显示” means `set_plugin_enabled(false)`; keep the node in its current authoring location.
-- “移除这个功能” means `remove_plugin`. Plugin source remains as an unselected asset if no other node selects it.
-- Replacement should use `replace_plugin` with the complete replacement node.
-- Never treat hide, remove, or replace as authorization to delete Plugin source. Permanent source deletion is a separate, gated domain action.
+### Remove a visual region
+
+1. Resolve the visible feature to its Plugin instance.
+2. Inspect its authoring target and containing Layout structure.
+3. Derive the desired final Layout tree.
+4. Remove the Plugin instance.
+5. If its containing Layout region is now unnecessary, collapse or remove that
+   Layout structure in the same transaction.
+
+Do not edit either the removed Plugin source or neighboring Plugin source, and
+do not remove a Service merely because its visual consumer was removed.
+
+### Hide versus remove versus remove capability
+
+- “先隐藏/先不要显示” -> `set_plugin_enabled(false)` and retain Layout.
+- “去掉这个 UI/区域” -> `remove_plugin`, then collapse unused Layout when
+  needed.
+- “彻底删除能力” -> analyze Runtime Capability ownership and consumers; this
+  is not automatically a Composition-only request.
+
+### Remove a child Plugin
+
+When a parent Plugin contributes a child Slot and the user removes the visual
+feature occupying it, remove the child Plugin instance. Do not delete the
+Parent Plugin's Slot declaration. Slot declaration is capability; occupant is
+composition.
+
+### Reuse an optional capability
+
+Use `list_ui_plugins` to find an existing unselected or disabled asset. Insert,
+enable, or reconfigure it before considering new Plugin source. A Composition
+request to add an existing Theme Switch is not Plugin creation.
+
+### Move and resize
+
+Use `move_plugin` for Plugin relocation. Use Layout operations and current
+snapshot refs for region moves and sizing. Include all already-known related
+size adjustments in the same transaction.
+
+## Failure semantics and retry
+
+- `stale_state`: the observation cannot authorize another mutation. Refresh the
+  minimum authoritative state and retry; this refresh is not a semantic replan.
+- `operation_precondition`: the observation is still valid and no authoring
+  state changed. Re-form the semantic delta from that observation and retry at
+  most once.
+- `workspace_integrity`: stop the current Composition task. Do not edit Plugin
+  source, manifests, Services, Runtime, or Agent contracts unless that repair is
+  explicitly in the user's requested final state.
+- `infrastructure`: follow infrastructure recovery. Do not reinterpret it as
+  permission for a different authoring layer.
+
+If an error reports `observationStillValid=true`, reuse the observation. If it
+reports false, re-inspect before another mutation. A second semantic retry is
+not allowed. Stale-state refreshes do not consume the one semantic replan.
+
+## Golden examples
+
+Each example shows the reasoning contract; ids and refs must come from current
+inspection, never from these examples.
+
+### 1. Remove left conversation history
+
+```text
+User request: Remove the left conversation history.
+Current composition: row(left panel -> thread-list, main panel -> surface).
+Desired state: conversation surface only; ConversationService remains.
+Owning layer: Composition.
+Semantic delta: remove thread-list instance and remove/collapse its unused left
+Layout region.
+Correct tool: one mutate_app_ui_model transaction with remove_plugin followed
+by remove_layout_node or the smallest valid Layout replacement.
+Incorrect: edit thread-list source, edit conversation-surface source, remove
+ConversationService, or submit layout removal first as a probing mutation.
+```
+
+### 2. Hide left conversation history
+
+```text
+User request: Hide the history for now.
+Current composition: enabled thread-list in the left region.
+Desired state: same composition and Layout, instance disabled.
+Owning layer: Composition.
+Semantic delta: enabled true -> false.
+Correct tool: set_plugin_enabled(false).
+Incorrect: remove the instance, delete the left Layout, or edit CSS/source.
+```
+
+### 3. Remove Suggestions
+
+```text
+User request: Remove suggested questions.
+Current composition: conversation-surface.emptySuggestions contains a
+conversation-suggestions instance.
+Desired state: the child Slot remains declared but has no Suggestions occupant.
+Owning layer: Composition.
+Semantic delta: remove the Suggestions child Plugin instance.
+Correct tool: remove_plugin.
+Incorrect: delete emptySuggestions from the parent manifest or edit the parent.
+```
+
+### 4. Move an existing Plugin
+
+```text
+User request: Move the existing inspector to the right region.
+Current composition: one inspector instance in another Slot; destination known.
+Desired state: same persistent instance and props in the destination.
+Owning layer: Composition.
+Semantic delta: placement only.
+Correct tool: move_plugin.
+Incorrect: remove plus insert, create a new Plugin, or copy Plugin source.
+```
+
+### 5. Resize the left panel
+
+```text
+User request: Make the left panel 320px wide.
+Current composition: left Panel identified by current nodeRef.
+Desired state: same subtree with width 320.
+Owning layer: Composition.
+Semantic delta: one Layout property update.
+Correct tool: update_layout_node_props using the current snapshot ref.
+Incorrect: edit Plugin CSS or persist a runtime Layout id.
+```
+
+### 6. Add an existing Theme Switch
+
+```text
+User request: Add a theme switch.
+Current composition: Theme Switch asset exists but is not selected.
+Desired state: one enabled instance in the requested or uniquely resolved Slot.
+Owning layer: Composition.
+Semantic delta: insert the existing asset with final props and placement.
+Correct tool: list_ui_plugins, then insert_plugin in one mutation.
+Incorrect: create a duplicate Theme Switch Plugin or add Runtime theme state.
+```
+
+### 7. Remove UI entry versus capability
+
+```text
+User request A: Remove the history entry from the UI.
+Desired state A: visual instance and now-unused Layout region are absent.
+Owning layer A: Composition.
+
+User request B: Completely remove history capability.
+Desired state B: capability, providers, and consumers may all change.
+Owning layers B: Runtime Capability plus any explicitly required Composition or
+Plugin Behavior changes, after inspecting consumers.
+
+Incorrect: interpret request A as authorization to delete a Service or source.
+```

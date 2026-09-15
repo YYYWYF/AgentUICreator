@@ -332,9 +332,9 @@ def test_grounding_prompt_preserves_decision_and_write_boundaries():
         "even with other reads in between",
         "Do not add a separate intent model call",
         "Never edit app-ui/app-ui.json or plugins/registry.generated.ts directly",
-        "Prefer one atomic mutation",
-        "APP_UI_MODEL_HASH_CONFLICT",
-        "APP_UI_MODEL_OBSERVATION_REQUIRED",
+        "smallest determinable atomic mutation",
+        "stale refreshes do not consume the one allowed semantic replan",
+        "A mutation, validation, or Runtime failure never expands the user's scope",
     ):
         assert rule in prompt
 

@@ -96,6 +96,83 @@ def test_failed_validation_returns_diagnostics_not_run_error(tmp_path):
     assert payload["ok"] is True
     assert payload["result"]["status"] == "failed"
     assert payload["result"]["checks"][0]["output"] == "Type error in index.tsx"
+    assert payload["result"]["failureSemantics"] == {
+        "category": "workspace_integrity",
+        "attribution": "unknown",
+        "taskScope": [],
+        "failureLayers": [],
+        "changedPaths": [],
+        "automaticRepairAllowed": False,
+        "automaticCrossLayerRepairAllowed": False,
+        "recovery": "stop_and_report_blocker",
+    }
+
+
+def test_composition_validation_blocker_is_unrelated_and_not_auto_repairable(
+    tmp_path,
+):
+    runner = FakeValidationRunner(
+        [
+            CommandExecutionResult(
+                "PLUGIN_CHILD_SLOT_CONTRACT_INVALID: plugins/conversation-surface/manifest.json",
+                1,
+                False,
+            )
+        ]
+    )
+    service, activity = validation_service(tmp_path, runner)
+    activity.capture_before_content("app-ui/app-ui.json", "before")
+    (tmp_path / "app-ui").mkdir()
+    (tmp_path / "app-ui/app-ui.json").write_text("after", encoding="utf-8")
+    activity.touch("app-ui/app-ui.json")
+
+    result = asyncio.run(service.validate())
+
+    assert result.failure_semantics == {
+        "category": "workspace_integrity",
+        "attribution": "unrelated",
+        "taskScope": ["composition"],
+        "failureLayers": ["plugin_behavior"],
+        "changedPaths": ["app-ui/app-ui.json"],
+        "automaticRepairAllowed": False,
+        "automaticCrossLayerRepairAllowed": False,
+        "recovery": "stop_and_report_blocker",
+    }
+
+
+def test_validation_failure_in_changed_source_is_attributed_to_current_run(tmp_path):
+    runner = FakeValidationRunner(
+        [CommandExecutionResult("plugins/sample/index.tsx(1,1): error", 1, False)]
+    )
+    service, activity = validation_service(tmp_path, runner)
+    (tmp_path / "plugins/sample").mkdir(parents=True)
+    activity.capture_before_content("plugins/sample/index.tsx", None)
+    (tmp_path / "plugins/sample/index.tsx").write_text("broken", encoding="utf-8")
+    activity.touch("plugins/sample/index.tsx")
+
+    result = asyncio.run(service.validate())
+
+    assert result.failure_semantics["attribution"] == "introduced"
+    assert result.failure_semantics["taskScope"] == ["plugin_behavior"]
+    assert result.failure_semantics["automaticRepairAllowed"] is True
+
+
+def test_validation_failure_in_same_change_layer_is_in_scope(tmp_path):
+    runner = FakeValidationRunner(
+        [CommandExecutionResult("plugins/sample/manifest.json: invalid", 1, False)]
+    )
+    service, activity = validation_service(tmp_path, runner)
+    (tmp_path / "plugins/sample").mkdir(parents=True)
+    activity.capture_before_content("plugins/sample/index.tsx", None)
+    (tmp_path / "plugins/sample/index.tsx").write_text("changed", encoding="utf-8")
+    activity.touch("plugins/sample/index.tsx")
+
+    result = asyncio.run(service.validate())
+
+    assert result.failure_semantics["attribution"] == "in_scope"
+    assert result.failure_semantics["taskScope"] == ["plugin_behavior"]
+    assert result.failure_semantics["failureLayers"] == ["plugin_behavior"]
+    assert result.failure_semantics["automaticRepairAllowed"] is True
 
 
 def test_validation_becomes_stale_if_revision_changes(tmp_path):

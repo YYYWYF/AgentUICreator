@@ -159,6 +159,13 @@ def test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation(tmp_
         "hashConflicts": 0,
         "changedPaths": 1,
         "resultMismatches": 0,
+        "operationsPerMutation": [1],
+        "successfulRequests": 1,
+        "errorCategories": {},
+        "semanticReplans": 0,
+        "semanticFailures": 0,
+        "semanticReplanLimitReached": False,
+        "multiSuccessfulMutationRun": False,
     }
     assert result.domain_observations.to_dict() == {
         "updates": 2,
@@ -169,5 +176,8 @@ def test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation(tmp_
         "explicitHashMismatches": 0,
     }
     assert receipt["files"][0]["path"] == APP_UI_MODEL_PATH
+    assert result.change_layer_metrics["taskChangeLayer"] == "composition"
+    assert result.change_layer_metrics["appUIModelMutationAttempts"] == 1
+    assert result.change_layer_metrics["sourceWrites"] == 0
     assert receipt["transaction"]["undoable"] is True
     assert receipt["verification"]["status"] == "failed"

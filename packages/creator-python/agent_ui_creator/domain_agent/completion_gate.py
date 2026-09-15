@@ -8,6 +8,7 @@ from ..activity import CreatorActivityRecorder
 from ..runtime_diagnostics import RuntimeDiagnosticInspectionService
 from ..validation import CREATOR_COMPLETION_VALIDATIONS, CreatorValidationService
 from ..repair import CreatorRepairState
+from .change_scope import change_layers_for_paths, runtime_failure_layers
 
 
 @dataclass(frozen=True, slots=True)
@@ -210,6 +211,25 @@ class CreatorDevelopmentCompletionGate:
                     "checks": checks,
                 }
             )
+            failure_semantics = (
+                None if validation is None else validation.failure_semantics
+            )
+            if (
+                isinstance(failure_semantics, dict)
+                and failure_semantics.get("automaticRepairAllowed") is False
+                and failure_semantics.get("category") == "workspace_integrity"
+            ):
+                attribution = str(
+                    failure_semantics.get("attribution") or "unknown"
+                )
+                return CompletionDecision(
+                    True,
+                    (
+                        "当前修改已保留，但 Creator Host 发现了不属于本轮可自动修复范围的 "
+                        "workspace-integrity 阻塞。为保持任务边界，未跨层修改源码；"
+                        f"归因={attribution}。请先单独处理该阻塞，或明确授权把它纳入任务范围。"
+                    ),
+                )
             text = (
                 "无法确认本次插件开发已经完成：当前 mutation revision 尚未通过 "
                 "Creator Host 的 verify:ui 与 typecheck。修改已保留，请根据最新验证证据继续修复。"
@@ -229,7 +249,8 @@ class CreatorDevelopmentCompletionGate:
                 text,
                 (
                     "The current mutation revision has not passed Host validation. "
-                    "Repair the project using this bounded evidence, then call "
+                    "Repair only an introduced or explicitly in-scope defect using "
+                    "this bounded evidence, then call "
                     "validate_creator_changes again before Runtime verification:\n\n"
                     f"{validation_evidence}"
                 ),
@@ -289,6 +310,36 @@ class CreatorDevelopmentCompletionGate:
                 text = (
                     "无法确认本次插件开发已经完成：最新 Runtime 证据仍有 "
                     f"{len(current_errors)} 个未解决错误。修改已保留，请继续修复并重新验证。"
+                )
+            changed_paths = [
+                str(item.get("path"))
+                for item in receipt.get("files", [])
+                if isinstance(item, dict) and isinstance(item.get("path"), str)
+            ]
+            if change_layers_for_paths(changed_paths) == ("composition",):
+                failure_layers = runtime_failure_layers(runtime or {})
+                if failure_layers and all(
+                    layer == "composition" for layer in failure_layers
+                ):
+                    return CompletionDecision(
+                        False,
+                        text,
+                        (
+                            "Runtime verification found an in-scope Composition "
+                            "precondition. Preserve the current layer, revise the "
+                            "AppUIModel with mutate_app_ui_model, validate the new "
+                            "revision, and inspect Runtime again. Current bounded "
+                            "evidence:\n"
+                            + json.dumps(runtime, ensure_ascii=False, default=str)
+                        ),
+                    )
+                return CompletionDecision(
+                    True,
+                    (
+                        "当前 Composition 修改已保留，但最新 Runtime 证据暴露了当前层之外"
+                        "或无法可靠归因的 workspace-integrity 阻塞。该错误不授权本轮跨层"
+                        "修改；请单独处理，或明确把相应 repair 纳入任务范围。"
+                    ),
                 )
             if self.repair_state.limit_reached:
                 return CompletionDecision(True, text)

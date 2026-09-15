@@ -186,13 +186,12 @@ def test_side_effect_classification_and_round_trip_prompt_contract():
         "If list_ui_plugins is genuinely required to discover the target identifier, call it first",
         "Never guess a pluginId",
         "Never combine edit_file, create_ui_plugin, mutate_ui_plugin_source, prepare_ui_service_contract_change",
-        "one atomic mutation containing all semantic operations",
-        "updated authoritative observation",
-        "Do not immediately re-inspect",
-        "provide the final response",
-        "another recoverable error",
-        "APP_UI_MODEL_HASH_CONFLICT",
-        "APP_UI_MODEL_OBSERVATION_REQUIRED",
+        "smallest determinable atomic mutation",
+        "current authoritative observations",
+        "re-inspect a successful result merely for confirmation",
+        "stale-observation/hash-conflict error",
+        "one allowed semantic replan",
+        "workspace-integrity failures",
     ):
         assert rule in prompt
 

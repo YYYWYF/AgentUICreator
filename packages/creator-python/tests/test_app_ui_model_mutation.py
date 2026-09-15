@@ -754,7 +754,7 @@ def test_success_advances_observation_and_second_mutation_reuses_after_hash(tmp_
     assert observations.metrics.hashReuses == 2
 
 
-def test_mutation_error_invalidates_observation_until_new_inspection(tmp_path):
+def test_stale_state_error_invalidates_observation_until_new_inspection(tmp_path):
     root = _create_project(tmp_path)
 
     class ConflictClient:
@@ -779,9 +779,182 @@ def test_mutation_error_invalidates_observation_until_new_inspection(tmp_path):
     second = json.loads(asyncio.run(tool.ainvoke(arguments)))
 
     assert first["error"]["code"] == "APP_UI_MODEL_HASH_CONFLICT"
+    assert first["error"]["category"] == "stale_state"
+    assert first["error"]["stateChanged"] is False
+    assert first["error"]["observationStillValid"] is False
     assert second["error"]["code"] == "APP_UI_MODEL_OBSERVATION_REQUIRED"
     assert client.calls == 1
     assert observations.metrics.invalidations == 1
+
+
+def test_operation_precondition_keeps_observation_and_returns_recovery(tmp_path):
+    root = _create_project(tmp_path)
+
+    class PreconditionClient:
+        calls = 0
+
+        async def request_app_ui_model_mutation(self, _input):
+            self.calls += 1
+            raise ProjectControlError(
+                "LAYOUT_SUBTREE_HAS_PLUGINS",
+                "Move or remove plugins first.",
+                {"instanceIds": ["conversation-thread-list-main"]},
+            )
+
+    client = PreconditionClient()
+    service, _activity = _service(root, client)
+    observations = _observations(service, "a" * 64)
+    tool = create_app_ui_model_mutation_tool(service, observations)
+    output = json.loads(
+        asyncio.run(
+            tool.ainvoke(
+                {
+                    "operations": [
+                        {"type": "remove_layout_node", "nodeRef": "l1"}
+                    ]
+                }
+            )
+        )
+    )
+
+    assert output["error"] == {
+        "code": "LAYOUT_SUBTREE_HAS_PLUGINS",
+        "category": "operation_precondition",
+        "message": "Move or remove plugins first.",
+        "stateChanged": False,
+        "observationStillValid": True,
+        "details": {"instanceIds": ["conversation-thread-list-main"]},
+        "recovery": {
+            "action": "reform_semantic_delta",
+            "atomicRetryAllowed": True,
+            "maxSemanticReplans": 1,
+        },
+    }
+    assert observations.current_hash(current_revision=0) == "a" * 64
+    assert observations.metrics.invalidations == 0
+
+
+def test_workspace_integrity_error_keeps_observation_and_forbids_cross_layer_repair(
+    tmp_path,
+):
+    root = _create_project(tmp_path)
+
+    class IntegrityClient:
+        async def request_app_ui_model_mutation(self, _input):
+            raise ProjectControlError(
+                "PLUGIN_CHILD_SLOT_CONTRACT_INVALID",
+                "Selected plugins contain inconsistent child Slots.",
+                {"issues": [{"pluginId": "conversation-surface"}]},
+            )
+
+    service, _activity = _service(root, IntegrityClient())
+    observations = _observations(service, "a" * 64)
+    tool = create_app_ui_model_mutation_tool(service, observations)
+    output = json.loads(
+        asyncio.run(
+            tool.ainvoke(
+                {
+                    "operations": [
+                        {
+                            "type": "remove_plugin",
+                            "instanceId": "conversation-thread-list-main",
+                        }
+                    ]
+                }
+            )
+        )
+    )
+
+    assert output["error"]["category"] == "workspace_integrity"
+    assert output["error"]["observationStillValid"] is True
+    assert output["error"]["recovery"] == {
+        "action": "stop_and_report_blocker",
+        "atomicRetryAllowed": False,
+        "automaticCrossLayerRepairAllowed": False,
+    }
+    assert observations.current_hash(current_revision=0) == "a" * 64
+
+
+def test_only_one_semantic_composition_replan_is_dispatched(tmp_path):
+    root = _create_project(tmp_path)
+
+    class AlwaysInvalidClient:
+        calls = 0
+
+        async def request_app_ui_model_mutation(self, _input):
+            self.calls += 1
+            raise ProjectControlError("PLUGIN_NOT_FOUND", "missing")
+
+    client = AlwaysInvalidClient()
+    service, _activity = _service(root, client)
+    observations = _observations(service, "a" * 64)
+    tool = create_app_ui_model_mutation_tool(service, observations)
+    arguments = {
+        "operations": [
+            {"type": "remove_plugin", "instanceId": "missing"}
+        ]
+    }
+
+    first = json.loads(asyncio.run(tool.ainvoke(arguments)))
+    second = json.loads(asyncio.run(tool.ainvoke(arguments)))
+    third = json.loads(asyncio.run(tool.ainvoke(arguments)))
+
+    assert first["error"]["category"] == "operation_precondition"
+    assert second["error"]["category"] == "operation_precondition"
+    assert second["error"]["recovery"]["atomicRetryAllowed"] is False
+    assert second["error"]["recovery"]["action"] == (
+        "stop_and_report_semantic_failure"
+    )
+    assert third["error"]["code"] == "COMPOSITION_REPLAN_LIMIT_REACHED"
+    assert client.calls == 2
+    assert service.metrics.semanticReplans == 1
+    assert service.metrics.semanticReplanLimitReached is True
+
+
+def test_stale_state_during_replan_does_not_consume_semantic_budget(tmp_path):
+    root = _create_project(tmp_path)
+
+    class PreconditionStaleSuccessClient:
+        calls = 0
+
+        async def request_app_ui_model_mutation(self, _input):
+            self.calls += 1
+            if self.calls == 1:
+                raise ProjectControlError("PLUGIN_NOT_FOUND", "semantic failure")
+            if self.calls == 2:
+                raise ProjectControlError("APP_UI_MODEL_HASH_CONFLICT", "stale")
+            current_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
+            return _result(root, current_hash, [])
+
+    client = PreconditionStaleSuccessClient()
+    service, _activity = _service(root, client)
+    current_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
+    operations = [{"type": "remove_plugin", "instanceId": "sample-main"}]
+
+    with pytest.raises(AppUIModelMutationError) as first:
+        asyncio.run(
+            service.mutate(app_ui_model_hash=current_hash, operations=operations)
+        )
+    app_ui_path = root / APP_UI_MODEL_PATH
+    app_ui_path.write_text(
+        app_ui_path.read_text(encoding="utf-8") + "\n", encoding="utf-8"
+    )
+    refreshed_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
+    with pytest.raises(AppUIModelMutationError) as stale:
+        asyncio.run(
+            service.mutate(app_ui_model_hash=current_hash, operations=operations)
+        )
+
+    result = asyncio.run(
+        service.mutate(app_ui_model_hash=refreshed_hash, operations=operations)
+    )
+
+    assert first.value.category == "operation_precondition"
+    assert stale.value.category == "stale_state"
+    assert result.target_result["changed"] is False
+    assert client.calls == 3
+    assert service.metrics.semanticReplans == 1
+    assert service.metrics.semanticReplanLimitReached is False
 
 
 def test_conflict_then_inspect_allows_retry_with_new_host_hash(tmp_path):

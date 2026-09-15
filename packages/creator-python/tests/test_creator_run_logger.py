@@ -18,7 +18,14 @@ def test_lightweight_run_log_records_mutation_transaction_undo_and_metrics(tmp_p
     activity.touch("plugins/foo.ts")
     activity.finish()
     activity.transactions.undo("run-1")
-    logger.finish("success", metrics={"modelCalls": 2, "toolCalls": 1})
+    logger.finish(
+        "success",
+        metrics={"modelCalls": 2, "toolCalls": 1},
+        change_layer_metrics={
+            "taskChangeLayer": "plugin_behavior",
+            "crossLayerTransitionCount": 0,
+        },
+    )
 
     entries = [
         json.loads(line)
@@ -34,6 +41,10 @@ def test_lightweight_run_log_records_mutation_transaction_undo_and_metrics(tmp_p
     assert entries[-1]["data"]["modelToolMetrics"] == {
         "modelCalls": 2,
         "toolCalls": 1,
+    }
+    assert entries[-1]["data"]["changeLayer"] == {
+        "taskChangeLayer": "plugin_behavior",
+        "crossLayerTransitionCount": 0,
     }
     assert entries[0]["data"] == {
         "runtime": "python",

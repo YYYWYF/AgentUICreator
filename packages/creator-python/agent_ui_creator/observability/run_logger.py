@@ -111,6 +111,7 @@ class CreatorRunLogger:
         *,
         metrics: Mapping[str, object] | None = None,
         mutation_metrics: Mapping[str, object] | None = None,
+        change_layer_metrics: Mapping[str, object] | None = None,
         error: BaseException | None = None,
     ) -> None:
         self.record(
@@ -121,6 +122,11 @@ class CreatorRunLogger:
                 "outcome": outcome,
                 **({"modelToolMetrics": dict(metrics)} if metrics is not None else {}),
                 **(dict(mutation_metrics) if mutation_metrics is not None else {}),
+                **(
+                    {"changeLayer": dict(change_layer_metrics)}
+                    if change_layer_metrics is not None
+                    else {}
+                ),
                 **({"error": str(error)} if error is not None else {}),
             },
         )
