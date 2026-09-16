@@ -347,7 +347,7 @@ def resource_keys_for_evidence(
     for resource in known_resources:
         suffix = resource.split(":", 1)[-1]
         if suffix and re.search(
-            rf"(?<![A-Za-z0-9_.-]){re.escape(suffix)}(?![A-Za-z0-9_.-})]",
+            rf"(?<![A-Za-z0-9_.-]){re.escape(suffix)}(?![A-Za-z0-9_.-}})]",
             evidence,
         ):
             _append_resource(resources, resource)
