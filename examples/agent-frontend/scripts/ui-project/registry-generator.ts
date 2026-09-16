@@ -24,7 +24,7 @@ import { uiProjectControlConfig } from "./project-config";
 import { collectPluginAssets, pathExists } from "./plugin-assets";
 import { analyzePluginServiceDeclarations } from "./service-dependency-inspector";
 import type {
-  GeneratePluginRegistryResult,
+  GeneratePluginCatalogResult,
   PluginAsset,
   ProjectIssue,
   UIProjectControlConfig,
@@ -90,7 +90,7 @@ function catalogRevision(
   return createHash("sha256").update(JSON.stringify(catalog)).digest("hex");
 }
 
-function registrySource(
+function capabilityCatalogSource(
   assets: readonly PluginAsset[],
   revision: string,
   declarationsByPluginId: ReadonlyMap<string, {
@@ -135,7 +135,7 @@ export async function generatePluginRegistry(
   projectRoot: string,
   model: AppUIModel,
   config: UIProjectControlConfig = uiProjectControlConfig,
-): Promise<GeneratePluginRegistryResult> {
+): Promise<GeneratePluginCatalogResult> {
   const inventory = await collectPluginAssets(projectRoot, config);
   const errors: ProjectIssue[] = [...inventory.errors];
   const canAnalyzeServiceContracts = await pathExists(
@@ -165,7 +165,7 @@ export async function generatePluginRegistry(
     assetsById.set(asset.pluginId, matches);
   }
 
-  const registeredAssets: PluginAsset[] = [];
+  const resolvedAssets: PluginAsset[] = [];
   const slotCatalogEntries: Array<readonly [string, NonNullable<PluginAsset["childSlots"]>]> = [];
   for (const pluginId of selectedPluginIds) {
     const matches = assetsById.get(pluginId) ?? [];
@@ -256,7 +256,7 @@ export async function generatePluginRegistry(
           continue;
         }
 
-        registeredAssets.push(asset);
+        resolvedAssets.push(asset);
       }
       snapshot.dispose();
     } finally {
@@ -265,7 +265,7 @@ export async function generatePluginRegistry(
   }
 
   const compositionCatalog: PluginCompositionCatalog = Object.fromEntries(
-    registeredAssets.map((asset) => {
+    resolvedAssets.map((asset) => {
       const declaration = declarationsByPluginId.get(asset.pluginId);
       return [
         asset.pluginId,
@@ -293,20 +293,24 @@ export async function generatePluginRegistry(
   }
 
   return {
-    source: registrySource(
-      inventory.assets,
-      capabilityCatalogRevision,
-      declarationsByPluginId,
-    ),
-    capabilityCatalogRevision,
-    capabilityPluginIds: inventory.assets.map((asset) => asset.pluginId),
-    selectedPluginIds,
-    registeredPluginIds: registeredAssets.map((asset) => asset.pluginId),
-    headlessPluginIds: registeredAssets
-      .filter((asset) => asset.capabilities.includes("headless"))
-      .map((asset) => asset.pluginId),
-    slotCatalog,
-    compositionCatalog,
+    capabilityCatalog: {
+      source: capabilityCatalogSource(
+        inventory.assets,
+        capabilityCatalogRevision,
+        declarationsByPluginId,
+      ),
+      revision: capabilityCatalogRevision,
+      pluginIds: inventory.assets.map((asset) => asset.pluginId),
+    },
+    activeComposition: {
+      selectedPluginIds,
+      resolvedPluginIds: resolvedAssets.map((asset) => asset.pluginId),
+      headlessPluginIds: resolvedAssets
+        .filter((asset) => asset.capabilities.includes("headless"))
+        .map((asset) => asset.pluginId),
+      slotCatalog,
+      compositionCatalog,
+    },
     assets: inventory.assets,
     errors,
   };

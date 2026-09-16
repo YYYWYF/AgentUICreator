@@ -94,7 +94,7 @@ async function createProject(
   );
   await writeFile(
     path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
-    registry.source,
+    registry.capabilityCatalog.source,
   );
   await writeFile(
     path.join(projectRoot, PLUGIN_REGISTRY_ENTRY_PATH),
@@ -103,7 +103,7 @@ async function createProject(
   return {
     projectRoot,
     appUIModelSource,
-    capabilityCatalogRevision: registry.capabilityCatalogRevision,
+    capabilityCatalogRevision: registry.capabilityCatalog.revision,
   };
 }
 
@@ -131,7 +131,7 @@ describe("ui-project-control", () => {
         appUIModel: {
           slots: [expect.objectContaining({ nodeRef: "l0" })],
         },
-        registry: { generatedFileFresh: true },
+        capabilityCatalog: { generatedFileFresh: true },
       },
     });
   });

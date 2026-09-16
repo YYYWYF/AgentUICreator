@@ -221,7 +221,7 @@ def test_real_insert_plugin_updates_composition_artifacts_and_is_undoable(tmp_pa
         "Real two-path fixture drifted: agent-activity-feed-main must be absent "
         "from AppUIModel."
     )
-    assert plugin_id not in before_project["registry"]["selectedPluginIds"], (
+    assert plugin_id not in before_project["activeComposition"]["selectedPluginIds"], (
         "Real two-path fixture drifted: antd-x-activity-feed must be absent from "
         "the selected Registry."
     )
@@ -257,14 +257,17 @@ def test_real_insert_plugin_updates_composition_artifacts_and_is_undoable(tmp_pa
     assert result.mutation_revision == 2
     assert activity.revision == 2
     assert added_instance == operation["plugin"]
-    assert plugin_id in after_project["registry"]["selectedPluginIds"]
-    assert plugin_id in after_project["registry"]["registeredPluginIds"]
-    assert after_project["registry"]["generatedFileFresh"] is True
+    assert plugin_id in after_project["activeComposition"]["selectedPluginIds"]
+    assert plugin_id in after_project["activeComposition"]["resolvedPluginIds"]
+    assert after_project["capabilityCatalog"]["generatedFileFresh"] is True
     assert f'"./{plugin_id}/definition"' in registry_content
     assert target_result["appUIModel"]["beforeHash"] == before["hash"]
     assert target_result["appUIModel"]["afterHash"] == after["hash"]
     assert target_result["snapshotToken"]["appUIModelHash"] == after["hash"]
-    assert target_result["snapshotToken"]["registryHash"] == registry_state.hash
+    assert (
+        target_result["snapshotToken"]["capabilityCatalogSourceHash"]
+        == registry_state.hash
+    )
     assert service.metrics.to_dict() == {
         "requests": 1,
         "operations": 1,

@@ -198,7 +198,9 @@ async function listUIPlugins(projectRoot: string): Promise<unknown> {
   const inspection = await inspectUIProject(projectRoot);
   return {
     appUIModelHash: inspection.appUIModel.hash,
-    registry: inspection.registry,
+    capabilityCatalog: inspection.capabilityCatalog,
+    activeComposition: inspection.activeComposition,
+    issues: inspection.issues,
     pluginAssets: inspection.pluginAssets,
     plugins: inspection.plugins,
     catalogs: inspection.catalogs,

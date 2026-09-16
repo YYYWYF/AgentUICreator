@@ -117,24 +117,24 @@ describe("generatePluginRegistry", () => {
     );
 
     expect(first.errors).toEqual([]);
-    expect(first.selectedPluginIds).toEqual(["alpha", "beta"]);
-    expect(first.registeredPluginIds).toEqual(["alpha", "beta"]);
-    expect(first.capabilityPluginIds).toEqual([
+    expect(first.activeComposition.selectedPluginIds).toEqual(["alpha", "beta"]);
+    expect(first.activeComposition.resolvedPluginIds).toEqual(["alpha", "beta"]);
+    expect(first.capabilityCatalog.pluginIds).toEqual([
       "alpha",
       "beta",
       "unselected",
     ]);
-    expect(first.headlessPluginIds).toEqual(["beta"]);
-    expect(first.source).toBe(second.source);
-    expect(first.source).toContain(
+    expect(first.activeComposition.headlessPluginIds).toEqual(["beta"]);
+    expect(first.capabilityCatalog.source).toBe(second.capabilityCatalog.source);
+    expect(first.capabilityCatalog.source).toContain(
       'import("./alpha-dir/definition")',
     );
-    expect(first.source).toContain(
+    expect(first.capabilityCatalog.source).toContain(
       'import("./beta-dir/definition")',
     );
-    expect(first.source).not.toContain("catalog-only");
-    expect(first.source).toContain("unselected");
-    expect(first.source).not.toMatch(/import pluginDefinition/u);
+    expect(first.capabilityCatalog.source).not.toContain("catalog-only");
+    expect(first.capabilityCatalog.source).toContain("unselected");
+    expect(first.capabilityCatalog.source).not.toMatch(/import pluginDefinition/u);
   });
 
   it("builds a pure child Slot catalog from selected manifests", async () => {
@@ -150,7 +150,7 @@ describe("generatePluginRegistry", () => {
     );
 
     expect(result.errors).toEqual([]);
-    expect(result.slotCatalog).toEqual({
+    expect(result.activeComposition.slotCatalog).toEqual({
       owner: {
         "owner.body": {
           description: "owner.body fixture Slot.", cardinality: "many", optional: true,
@@ -177,10 +177,12 @@ describe("generatePluginRegistry", () => {
       fixtureConfig,
     );
 
-    expect(selected.registeredPluginIds).toEqual(["sample"]);
-    expect(removed.registeredPluginIds).toEqual([]);
-    expect(removed.source).toContain("./sample/definition");
-    expect(removed.source).toBe(selected.source);
+    expect(selected.activeComposition.resolvedPluginIds).toEqual(["sample"]);
+    expect(removed.activeComposition.resolvedPluginIds).toEqual([]);
+    expect(removed.capabilityCatalog.source).toContain("./sample/definition");
+    expect(removed.capabilityCatalog.source).toBe(
+      selected.capabilityCatalog.source,
+    );
     expect(removed.assets).toContainEqual(
       expect.objectContaining({ pluginId: "sample" }),
     );
@@ -198,7 +200,7 @@ describe("generatePluginRegistry", () => {
       fixtureConfig,
     );
 
-    expect(result.registeredPluginIds).toEqual([]);
+    expect(result.activeComposition.resolvedPluginIds).toEqual([]);
     expect(result.errors).toContainEqual(
       expect.objectContaining({
         code: "selected-plugin-default-export-missing",
@@ -217,7 +219,7 @@ describe("generatePluginRegistry", () => {
       fixtureConfig,
     );
 
-    expect(result.registeredPluginIds).toEqual([]);
+    expect(result.activeComposition.resolvedPluginIds).toEqual([]);
     expect(result.errors).toContainEqual(
       expect.objectContaining({ code: "duplicate-plugin-id" }),
     );
@@ -237,7 +239,7 @@ describe("generatePluginRegistry", () => {
       fixtureConfig,
     );
 
-    expect(result.registeredPluginIds).toEqual([]);
+    expect(result.activeComposition.resolvedPluginIds).toEqual([]);
     expect(result.errors).toContainEqual(
       expect.objectContaining({ code: "selected-plugin-definition-missing" }),
     );

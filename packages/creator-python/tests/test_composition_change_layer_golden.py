@@ -190,7 +190,7 @@ class CompositionClient:
             "appUIModel": {"beforeHash": before_hash, "afterHash": self.hash()},
             "snapshotToken": {
                 "appUIModelHash": self.hash(),
-                "registryHash": read_creator_file_state(
+                "capabilityCatalogSourceHash": read_creator_file_state(
                     self.root, REGISTRY_PATH
                 ).hash,
             },

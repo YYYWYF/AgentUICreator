@@ -101,20 +101,21 @@ export interface AppUITransactionResult {
       removed: string[];
       updated: string[];
     };
-    registry: {
+    capabilityCatalog: {
       changed: boolean;
       addedPluginIds: string[];
       removedPluginIds: string[];
     };
   };
-  registry: {
+  activeComposition: {
     selectedPluginIds: string[];
-    registeredPluginIds: string[];
+    resolvedPluginIds: string[];
+    headlessPluginIds: string[];
   };
   warnings: ProjectIssue[];
   snapshotToken: {
     appUIModelHash: string;
-    registryHash: string;
+    capabilityCatalogSourceHash: string;
     capabilityCatalogRevision: string;
   };
   compositionRevision?: {
@@ -377,8 +378,10 @@ export async function recoverPendingAppUITransaction(
   await removeIfPresent(journalPath);
 }
 
-function selectedPluginIds(model: AppUIModel): string[] {
-  return [...new Set(collectAppUIPluginLocations(model).map(({ plugin }) => plugin.pluginId))]
+function generatedCapabilityPluginIds(source: string | undefined): string[] {
+  if (source === undefined) return [];
+  return [...source.matchAll(/manifest:\s*\{\s*"id":\s*"([^"]+)"/gu)]
+    .flatMap((match) => match[1] === undefined ? [] : [match[1]])
     .sort();
 }
 
@@ -646,26 +649,31 @@ async function runTransaction(
     );
   }
 
-  const registry = await generatePluginRegistry(projectRoot, afterModel);
-  if (registry.errors.length > 0) {
+  const generation = await generatePluginRegistry(projectRoot, afterModel);
+  if (generation.errors.length > 0) {
     throw new AppUITransactionError(
       "PLUGIN_REGISTRY_GENERATION_FAILED",
       "The transaction cannot resolve a complete capability catalog and Active Registry.",
-      { issues: registry.errors },
+      { issues: generation.errors },
     );
   }
-  const runtimeModel = compileAppUIModel(afterModel, registry.compositionCatalog);
+  const runtimeModel = compileAppUIModel(
+    afterModel,
+    generation.activeComposition.compositionCatalog,
+  );
   assertPluginWidthCompatibility(
     beforeModel,
     runtimeModel,
     input.operations as AppUIOperation[],
-    registry.assets,
+    generation.assets,
     input.runtimeSlotWidths ?? {},
   );
-  const selectedPluginIdSet = new Set(registry.selectedPluginIds);
+  const selectedPluginIdSet = new Set(
+    generation.activeComposition.selectedPluginIds,
+  );
   const childSlotIssues = await verifyPluginChildSlots(
     projectRoot,
-    registry.assets.filter((asset) => selectedPluginIdSet.has(asset.pluginId)),
+    generation.assets.filter((asset) => selectedPluginIdSet.has(asset.pluginId)),
   );
   if (childSlotIssues.length > 0) {
     throw new AppUITransactionError(
@@ -686,7 +694,7 @@ async function runTransaction(
   const compositionRevision = {
     transactionId,
     appUIModelHash: afterHash,
-    capabilityCatalogRevision: registry.capabilityCatalogRevision,
+    capabilityCatalogRevision: generation.capabilityCatalog.revision,
   };
   const compositionRevisionPath = path.join(
     projectRoot,
@@ -697,7 +705,8 @@ async function runTransaction(
   );
   const afterCompositionRevisionSource =
     `${JSON.stringify(compositionRevision, null, 2)}\n`;
-  const catalogChanged = beforeRegistrySource !== registry.source;
+  const catalogChanged =
+    beforeRegistrySource !== generation.capabilityCatalog.source;
   const changes = [
     ...(catalogChanged
       ? [{
@@ -714,17 +723,19 @@ async function runTransaction(
     {
       relativePath: GENERATED_PLUGIN_REGISTRY_PATH,
       before: beforeRegistrySource,
-      after: registry.source,
+      after: generation.capabilityCatalog.source,
     },
   ].filter((change) => change.before !== change.after);
   if (changes.length > 0) {
     await commitFiles(projectRoot, transactionId, changes, options);
   }
 
-  const beforePluginIds = selectedPluginIds(beforeModel);
-  const afterPluginIds = selectedPluginIds(afterModel);
-  const beforePluginSet = new Set(beforePluginIds);
-  const afterPluginSet = new Set(afterPluginIds);
+  const beforeCapabilityPluginIds = generatedCapabilityPluginIds(
+    beforeRegistrySource,
+  );
+  const afterCapabilityPluginIds = generation.capabilityCatalog.pluginIds;
+  const beforeCapabilityPluginSet = new Set(beforeCapabilityPluginIds);
+  const afterCapabilityPluginSet = new Set(afterCapabilityPluginIds);
   return {
     schemaVersion: 1,
     transactionId,
@@ -738,29 +749,30 @@ async function runTransaction(
         mapLayoutNodes(afterModel.root),
       ),
       slots: changedKeys(mapSlots(beforeModel), mapSlots(afterModel)),
-      registry: {
+      capabilityCatalog: {
         changed: catalogChanged,
         addedPluginIds: catalogChanged
-          ? afterPluginIds
-              .filter((pluginId) => !beforePluginSet.has(pluginId))
+          ? afterCapabilityPluginIds
+              .filter((pluginId) => !beforeCapabilityPluginSet.has(pluginId))
               .sort()
           : [],
         removedPluginIds: catalogChanged
-          ? beforePluginIds
-              .filter((pluginId) => !afterPluginSet.has(pluginId))
+          ? beforeCapabilityPluginIds
+              .filter((pluginId) => !afterCapabilityPluginSet.has(pluginId))
               .sort()
           : [],
       },
     },
-    registry: {
-      selectedPluginIds: registry.selectedPluginIds,
-      registeredPluginIds: registry.registeredPluginIds,
+    activeComposition: {
+      selectedPluginIds: generation.activeComposition.selectedPluginIds,
+      resolvedPluginIds: generation.activeComposition.resolvedPluginIds,
+      headlessPluginIds: generation.activeComposition.headlessPluginIds,
     },
     warnings,
     snapshotToken: {
       appUIModelHash: afterHash,
-      registryHash: hash(registry.source),
-      capabilityCatalogRevision: registry.capabilityCatalogRevision,
+      capabilityCatalogSourceHash: hash(generation.capabilityCatalog.source),
+      capabilityCatalogRevision: generation.capabilityCatalog.revision,
     },
     ...(catalogChanged ? { compositionRevision } : {}),
   };

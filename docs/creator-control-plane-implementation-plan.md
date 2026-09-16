@@ -160,11 +160,17 @@ interface CreatorProjectSnapshot {
       | { type: "plugin_slot"; parentInstanceId: string; slot: string }
     index: number
   }>
-  registry: {
-    selectedPluginIds: string[]
+  capabilityCatalog: {
+    revision: string
+    pluginIds: string[]
     generatedFileFresh: boolean
-    issues: ProjectIssue[]
   }
+  activeComposition: {
+    selectedPluginIds: string[]
+    resolvedPluginIds: string[]
+    headlessPluginIds: string[]
+  }
+  issues: ProjectIssue[]
   pluginAssets: Array<{
     pluginId: string
     directory: string
@@ -224,21 +230,29 @@ type AppUIOperation =
 - 删除带 Plugin 的 Layout 子树时，若同一 transaction 没有处理受影响 plugin node 则拒绝；
 - 任一中间状态可以暂时不完整，但 operations 全部应用后的最终模型必须完整有效；
 - visual Plugin 位于 visual tree，headless/Gate Plugin 位于 `applicationPlugins`；
-- 工具结果返回新 hash、revision、归一化 operations、模型 diff、Registry diff 和 warnings。
+- 工具结果返回新 hash、revision、归一化 operations、模型 diff、Capability Catalog diff、Active Composition 和 warnings。
 
-### 5.3 Registry generator
+### 5.3 Capability Catalog generator
 
 目标项目提供纯函数和 CLI 两层：
 
 ```ts
-interface GenerateRegistryResult {
-  source: string
-  selectedPluginIds: string[]
+interface GeneratePluginCatalogResult {
+  capabilityCatalog: {
+    source: string
+    revision: string
+    pluginIds: string[]
+  }
+  activeComposition: {
+    selectedPluginIds: string[]
+    resolvedPluginIds: string[]
+    headlessPluginIds: string[]
+  }
   assets: PluginAsset[]
   issues: ProjectIssue[]
 }
 
-generatePluginRegistry(projectRoot, appUIModel): Promise<GenerateRegistryResult>
+generatePluginRegistry(projectRoot, appUIModel): Promise<GeneratePluginCatalogResult>
 ```
 
 生成规则：

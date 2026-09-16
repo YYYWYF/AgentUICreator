@@ -93,7 +93,7 @@ def create_project_control_tools(
 
     @tool("inspect_ui_project")
     async def inspect_ui_project() -> str:
-        """Inspect current Workspace facts: Mode, authoring UI composition, and registry state. Use this to observe current state, not to learn stable composition rules."""
+        """Inspect current Workspace facts: Mode, authoring UI composition, Capability Catalog, and Active Composition. Use this to observe current state, not to learn stable composition rules."""
         try:
             result = await client.inspect_ui_project()
             observe(result.get("appUIModel", {}).get("hash"), "inspect_ui_project")

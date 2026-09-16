@@ -145,7 +145,9 @@ class BatchClient(GroundingClient):
             "appUIModel": {"beforeHash": before_hash, "afterHash": self.hash()},
             "snapshotToken": {
                 "appUIModelHash": self.hash(),
-                "registryHash": read_creator_file_state(self.root, REGISTRY_PATH).hash,
+                "capabilityCatalogSourceHash": read_creator_file_state(
+                    self.root, REGISTRY_PATH
+                ).hash,
             },
         }
 
@@ -486,7 +488,9 @@ def test_creator_endpoint_preserves_parallel_tool_lifecycles(tmp_path, monkeypat
         if call_id == "model-read":
             assert payload["result"]["hash"] == client.hash()
         else:
-            assert payload["result"]["registry"]["registeredPluginIds"] == ["session-manager"]
+            assert payload["result"]["activeComposition"]["resolvedPluginIds"] == [
+                "session-manager"
+            ]
     result = events[-1]["result"]
     assert result["toolProtocol"]["modelCalls"] == 2
     assert result["toolProtocol"]["toolCalls"] == 2

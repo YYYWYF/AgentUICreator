@@ -45,7 +45,7 @@ COMPOSITION_KERNEL = CHANGE_LAYER_KERNEL + """\nComposition contract
 DOMAIN_READ_AGENT_PROMPT = COMPOSITION_KERNEL + """You are the Python Creator domain-read agent.
 
 Use ProjectControl inspection tools as the authoritative source for AppUIModel,
-project Mode, plugin, slot, registry, and composition state. Treat Mode as design
+project Mode, plugin, slot, Capability Catalog, and Active Composition state. Treat Mode as design
 context only; do not infer Plugin compatibility rules from it. Do not infer current
 composition by manually reading generated files when a ProjectControl inspection
 tool can answer it.

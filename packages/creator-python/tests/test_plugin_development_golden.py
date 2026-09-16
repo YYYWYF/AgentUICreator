@@ -199,7 +199,17 @@ class PluginProjectControl:
         return {
             "appUIModelHash": self.hash(),
             "pluginAssets": plugin_assets,
-            "registry": {"registeredPluginIds": []},
+            "capabilityCatalog": {
+                "revision": "a" * 64,
+                "pluginIds": [asset["pluginId"] for asset in plugin_assets],
+                "generatedFileFresh": True,
+            },
+            "activeComposition": {
+                "selectedPluginIds": [],
+                "resolvedPluginIds": [],
+                "headlessPluginIds": [],
+            },
+            "issues": [],
         }
 
     async def inspect_ui_plugin(self, plugin_id):
@@ -264,7 +274,7 @@ class PluginProjectControl:
                 },
                 "snapshotToken": {
                     "appUIModelHash": before_hash,
-                    "registryHash": read_creator_file_state(
+                    "capabilityCatalogSourceHash": read_creator_file_state(
                         self.root, REGISTRY_PATH
                     ).hash,
                 },
@@ -291,7 +301,7 @@ class PluginProjectControl:
             "appUIModel": {"beforeHash": before_hash, "afterHash": after_hash},
             "snapshotToken": {
                 "appUIModelHash": after_hash,
-                "registryHash": read_creator_file_state(
+                "capabilityCatalogSourceHash": read_creator_file_state(
                     self.root, REGISTRY_PATH
                 ).hash,
             },
@@ -378,7 +388,7 @@ class GateProjectControl(PluginProjectControl):
             "appUIModel": {"beforeHash": before_hash, "afterHash": after_hash},
             "snapshotToken": {
                 "appUIModelHash": after_hash,
-                "registryHash": read_creator_file_state(
+                "capabilityCatalogSourceHash": read_creator_file_state(
                     self.root, REGISTRY_PATH
                 ).hash,
             },

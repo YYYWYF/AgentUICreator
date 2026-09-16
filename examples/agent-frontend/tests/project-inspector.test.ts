@@ -166,7 +166,7 @@ describe("inspectUIProject", () => {
     );
     await writeFile(
       path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
-      registry.source,
+      registry.capabilityCatalog.source,
     );
     await writeFile(
       path.join(projectRoot, PLUGIN_REGISTRY_ENTRY_PATH),
@@ -224,7 +224,11 @@ describe("inspectUIProject", () => {
         description: "Fixture plugin",
       }),
     );
-    expect(result.registry.generatedFileFresh).toBe(true);
+    expect(result.capabilityCatalog.generatedFileFresh).toBe(true);
+    expect(result.activeComposition).toMatchObject({
+      selectedPluginIds: ["renderer", "sample"],
+      resolvedPluginIds: ["renderer", "sample"],
+    });
     expect(result.catalogs).toEqual([
       { path: "plugins/catalog", exists: true },
     ]);

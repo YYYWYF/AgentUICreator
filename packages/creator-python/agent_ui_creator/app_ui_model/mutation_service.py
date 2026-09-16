@@ -503,8 +503,9 @@ class AppUIModelMutationService:
         snapshot_app_hash = _hash(
             snapshot_token.get("appUIModelHash"), "snapshotToken.appUIModelHash"
         )
-        snapshot_registry_hash = _hash(
-            snapshot_token.get("registryHash"), "snapshotToken.registryHash"
+        snapshot_catalog_source_hash = _hash(
+            snapshot_token.get("capabilityCatalogSourceHash"),
+            "snapshotToken.capabilityCatalogSourceHash",
         )
         snapshot_catalog_revision = snapshot_token.get(
             "capabilityCatalogRevision"
@@ -540,7 +541,7 @@ class AppUIModelMutationService:
             before_hash != requested_hash
             or after_hash != snapshot_app_hash
             or after_hash != after_states[APP_UI_MODEL_PATH].hash
-            or snapshot_registry_hash != after_states[REGISTRY_PATH].hash
+            or snapshot_catalog_source_hash != after_states[REGISTRY_PATH].hash
         ):
             raise AppUIModelMutationError(
                 "APP_UI_MODEL_MUTATION_RESULT_INCONSISTENT",
@@ -551,7 +552,7 @@ class AppUIModelMutationService:
                     "afterHash": after_hash,
                     "snapshotAppUIModelHash": snapshot_app_hash,
                     "diskAppUIModelHash": after_states[APP_UI_MODEL_PATH].hash,
-                    "snapshotRegistryHash": snapshot_registry_hash,
-                    "diskRegistryHash": after_states[REGISTRY_PATH].hash,
+                    "snapshotCapabilityCatalogSourceHash": snapshot_catalog_source_hash,
+                    "diskCapabilityCatalogSourceHash": after_states[REGISTRY_PATH].hash,
                 },
             )

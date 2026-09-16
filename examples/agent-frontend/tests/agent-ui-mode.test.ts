@@ -77,7 +77,12 @@ describe("Agent UI Mode", () => {
 
       const generation = await generatePluginRegistry(projectRoot, first);
       expect(generation.errors).toEqual([]);
-      expect(() => compileAppUIModel(first, generation.compositionCatalog)).not.toThrow();
+      expect(() =>
+        compileAppUIModel(
+          first,
+          generation.activeComposition.compositionCatalog,
+        )
+      ).not.toThrow();
     }
 
     const platformSlots = collectLayoutSlots(

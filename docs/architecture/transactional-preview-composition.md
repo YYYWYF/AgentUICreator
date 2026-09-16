@@ -35,11 +35,18 @@ props, enablement, or instance-membership changes do not rewrite it.
 
 ## Candidate and published state
 
-`RuntimeCompositionStore` owns candidate staging and the last-known-good
-`RuntimeCompositionSnapshot`. Parsing, active definition resolution, registry
-construction, validation, and `compileAppUIModel()` all happen before publish
-and outside React render. Candidate failure updates authoring diagnostics and
-does not replace the published snapshot.
+`RuntimeCompositionBuilder` is the pure candidate boundary. It parses the
+AppUIModel, resolves selected definitions, verifies capability metadata and
+service contracts, constructs the Active Registry and composition catalog,
+and compiles the runtime model. It has no transaction, listener, diagnostic,
+generation, or published-snapshot state.
+
+`RuntimeCompositionStore` owns candidate staging, transaction gating,
+generation cancellation, diagnostics, and the last-known-good
+`RuntimeCompositionSnapshot`. It delegates the concrete build to
+`RuntimeCompositionBuilder`; candidate failure does not replace the published
+snapshot. Its only public mutation entry is `stageCandidate()`, so every input
+change submits a complete candidate.
 
 For a ProjectControl transaction that changes both model and catalog,
 `app-ui/composition-revision.generated.json` is renamed first. Its

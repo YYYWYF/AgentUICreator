@@ -1,19 +1,10 @@
-import {
-  collectAppUIPluginLocations,
-  parseAppUIModelJson,
-  type AppUIModel,
-} from "../../framework/contracts/app-ui-model";
-import { compileAppUIModel } from "../../framework/contracts/app-ui-compiler";
+import type { AppUIModel } from "../../framework/contracts/app-ui-model";
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
 import type { PluginCompositionCatalog } from "../../framework/contracts/app-ui-composition";
-import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
 import { sha256Text } from "../diagnostics/app-ui-model-hash";
-import {
-  createPluginCompositionCatalog,
-  createPluginRegistry,
-  type PluginRegistry,
-} from "../plugins/PluginRegistry";
+import type { PluginRegistry } from "../plugins/PluginRegistry";
 import type { PluginCapabilityCatalog } from "./PluginCapabilityCatalog";
+import { buildRuntimeComposition } from "./RuntimeCompositionBuilder";
 
 export interface CompositionRevisionDescriptor {
   transactionId: string;
@@ -56,11 +47,6 @@ export interface RuntimeCompositionStore<TState = unknown> {
   subscribe(listener: () => void): () => void;
   subscribeDiagnostics(listener: () => void): () => void;
   stageCandidate(candidate: RuntimeCompositionCandidate<TState>): void;
-  stageAppUIModel(appUIModelSource: string): void;
-  stageCapabilityCatalog(
-    capabilityCatalog: PluginCapabilityCatalog<TState>,
-    capabilityCatalogRevision: string,
-  ): void;
 }
 
 function parseRevisionDescriptor(
@@ -88,35 +74,10 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function sameServiceContract(
-  declared: readonly string[],
-  loaded: readonly string[] | undefined,
-): boolean {
-  const left = [...declared].sort();
-  const right = [...(loaded ?? [])].sort();
-  return left.length === right.length &&
-    left.every((value, index) => value === right[index]);
-}
-
-function canonicalJson(value: unknown): string {
-  if (Array.isArray(value)) {
-    return `[${value.map(canonicalJson).join(",")}]`;
-  }
-  if (value !== null && typeof value === "object") {
-    return `{${Object.entries(value as Record<string, unknown>)
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, entry]) => `${JSON.stringify(key)}:${canonicalJson(entry)}`)
-      .join(",")}}`;
-  }
-  const encoded = JSON.stringify(value);
-  return encoded === undefined ? "undefined" : encoded;
-}
-
 class TransactionalRuntimeCompositionStore<TState = unknown>
   implements RuntimeCompositionStore<TState> {
   #published: RuntimeCompositionSnapshot<TState> | undefined;
   #diagnostic: CandidateCompositionDiagnostic | undefined;
-  #candidate: RuntimeCompositionCandidate<TState> | undefined;
   #generation = 0;
   #hasStaged = false;
   #lastDescriptorTransactionId: string | undefined;
@@ -141,26 +102,8 @@ class TransactionalRuntimeCompositionStore<TState = unknown>
   };
 
   stageCandidate(candidate: RuntimeCompositionCandidate<TState>): void {
-    this.#candidate = candidate;
     const generation = ++this.#generation;
     void this.#buildAndPublish(candidate, generation);
-  }
-
-  stageAppUIModel(appUIModelSource: string): void {
-    if (this.#candidate === undefined) return;
-    this.stageCandidate({ ...this.#candidate, appUIModelSource });
-  }
-
-  stageCapabilityCatalog(
-    capabilityCatalog: PluginCapabilityCatalog<TState>,
-    capabilityCatalogRevision: string,
-  ): void {
-    if (this.#candidate === undefined) return;
-    this.stageCandidate({
-      ...this.#candidate,
-      capabilityCatalog,
-      capabilityCatalogRevision,
-    });
   }
 
   async #buildAndPublish(
@@ -206,62 +149,9 @@ class TransactionalRuntimeCompositionStore<TState = unknown>
         this.#pendingTransactionId = undefined;
       }
 
-      const appUIModel = parseAppUIModelJson(candidate.appUIModelSource);
-      const selectedPluginIds = [
-        ...new Set(
-          collectAppUIPluginLocations(appUIModel).map(
-            ({ plugin }) => plugin.pluginId,
-          ),
-        ),
-      ].sort();
-      const definitions = await Promise.all(
-        selectedPluginIds.map(async (pluginId) => {
-          const capability = candidate.capabilityCatalog.get(pluginId);
-          if (capability === undefined) {
-            throw new Error(
-              `AppUIModel selects UI plugin "${pluginId}", but the capability catalog does not declare it.`,
-            );
-          }
-          const definition = await capability.loadDefinition();
-          if (definition.manifest.id !== pluginId) {
-            throw new Error(
-              `UI plugin capability "${pluginId}" loaded definition "${definition.manifest.id}".`,
-            );
-          }
-          if (
-            canonicalJson(capability.manifest) !==
-            canonicalJson(definition.manifest)
-          ) {
-            throw new Error(
-              `UI plugin capability "${pluginId}" loaded a definition with stale manifest metadata.`,
-            );
-          }
-          if (
-            !sameServiceContract(capability.provides, definition.provides) ||
-            !sameServiceContract(capability.inject, definition.inject) ||
-            !sameServiceContract(
-              capability.optionalInject,
-              definition.optionalInject,
-            )
-          ) {
-            throw new Error(
-              `UI plugin capability "${pluginId}" does not match its generated service contract.`,
-            );
-          }
-          return definition;
-        }),
-      );
+      const built = await buildRuntimeComposition(candidate);
       if (generation !== this.#generation) return;
-
-      const activeRegistry = createPluginRegistry<TState>(
-        definitions as readonly UIPluginDefinition<TState>[],
-      );
-      const compositionCatalog =
-        createPluginCompositionCatalog(activeRegistry);
-      const runtimeModel = compileAppUIModel(
-        appUIModel,
-        compositionCatalog,
-      );
+      appUIModelHash = built.appUIModelHash;
       const transactionId = descriptorMatches
         ? descriptor.transactionId
         : undefined;
@@ -273,11 +163,11 @@ class TransactionalRuntimeCompositionStore<TState = unknown>
         appUIModelHash,
         capabilityCatalogRevision: candidate.capabilityCatalogRevision,
         publishedAt: new Date().toISOString(),
-        appUIModel,
+        appUIModel: built.appUIModel,
         capabilityCatalog: candidate.capabilityCatalog,
-        activeRegistry,
-        compositionCatalog,
-        runtimeModel,
+        activeRegistry: built.activeRegistry,
+        compositionCatalog: built.compositionCatalog,
+        runtimeModel: built.runtimeModel,
       };
       if (generation !== this.#generation) return;
       this.#published = published;

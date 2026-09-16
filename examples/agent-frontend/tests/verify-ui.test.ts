@@ -105,7 +105,7 @@ async function createProject(options: {
   );
   await writeFile(
     path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
-    registry.source,
+    registry.capabilityCatalog.source,
   );
   await writeFile(
     path.join(projectRoot, PLUGIN_REGISTRY_ENTRY_PATH),
@@ -147,8 +147,8 @@ describe("verifyUIProject", () => {
     const result = await verifyUIProject(projectRoot, fixtureConfig);
 
     expect(result.status).toBe("passed");
-    expect(result.registry.headlessPluginIds).toEqual(["sample"]);
-    expect(result.registry.generatedFileFresh).toBe(true);
+    expect(result.activeComposition.headlessPluginIds).toEqual(["sample"]);
+    expect(result.capabilityCatalog.generatedFileFresh).toBe(true);
   });
 
   it("fails when an active Service Provider is dependency-blocked", async () => {
@@ -186,7 +186,7 @@ describe("verifyUIProject", () => {
       expect.objectContaining({ code: "selected-plugin-asset-missing" }),
     );
     expect(result.errors).toContainEqual(
-      expect.objectContaining({ code: "unregistered-plugin" }),
+      expect.objectContaining({ code: "unresolved-plugin" }),
     );
   });
 
@@ -201,7 +201,7 @@ describe("verifyUIProject", () => {
     const result = await verifyUIProject(projectRoot, fixtureConfig);
 
     expect(result.status).toBe("failed");
-    expect(result.registry.generatedFileFresh).toBe(false);
+    expect(result.capabilityCatalog.generatedFileFresh).toBe(false);
     expect(result.errors).toContainEqual(
       expect.objectContaining({ code: "plugin-registry-generated-stale" }),
     );

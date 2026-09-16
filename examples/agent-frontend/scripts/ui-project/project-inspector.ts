@@ -187,20 +187,25 @@ export async function inspectUIProject(
           : target,
         index,
       })),
-    registry: {
-      capabilityCatalogRevision: generation.capabilityCatalogRevision,
-      capabilityPluginIds: generation.capabilityPluginIds,
-      selectedPluginIds: generation.selectedPluginIds,
-      registeredPluginIds: generation.registeredPluginIds,
+    capabilityCatalog: {
+      revision: generation.capabilityCatalog.revision,
+      pluginIds: generation.capabilityCatalog.pluginIds,
       generatedFileFresh:
         generation.errors.length === 0 &&
-        generatedSource === generation.source &&
+        generatedSource === generation.capabilityCatalog.source &&
         entrySource === PLUGIN_REGISTRY_ENTRY_SOURCE,
-      issues: generation.errors,
     },
+    activeComposition: {
+      selectedPluginIds: generation.activeComposition.selectedPluginIds,
+      resolvedPluginIds: generation.activeComposition.resolvedPluginIds,
+      headlessPluginIds: generation.activeComposition.headlessPluginIds,
+    },
+    issues: generation.errors,
     pluginAssets: generation.assets.map(({ manifest: _manifest, ...asset }) => ({
       ...asset,
-      selected: generation.selectedPluginIds.includes(asset.pluginId),
+      selected: generation.activeComposition.selectedPluginIds.includes(
+        asset.pluginId,
+      ),
     })),
     catalogs: await Promise.all(
       config.catalogs.map(async (catalogPath) => ({

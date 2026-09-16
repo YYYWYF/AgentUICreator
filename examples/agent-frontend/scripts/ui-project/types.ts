@@ -90,15 +90,19 @@ export interface PluginAssetInventory {
   errors: ProjectIssue[];
 }
 
-export interface GeneratePluginRegistryResult {
-  source: string;
-  capabilityCatalogRevision: string;
-  capabilityPluginIds: string[];
-  selectedPluginIds: string[];
-  registeredPluginIds: string[];
-  headlessPluginIds: string[];
-  slotCatalog: PluginSlotCatalog;
-  compositionCatalog: PluginCompositionCatalog;
+export interface GeneratePluginCatalogResult {
+  capabilityCatalog: {
+    source: string;
+    revision: string;
+    pluginIds: string[];
+  };
+  activeComposition: {
+    selectedPluginIds: string[];
+    resolvedPluginIds: string[];
+    headlessPluginIds: string[];
+    slotCatalog: PluginSlotCatalog;
+    compositionCatalog: PluginCompositionCatalog;
+  };
   assets: PluginAsset[];
   errors: ProjectIssue[];
 }
@@ -161,14 +165,17 @@ export interface UIProjectInspection {
     slots: InspectedSlot[];
   };
   plugins: InspectedPlugin[];
-  registry: {
-    capabilityCatalogRevision: string;
-    capabilityPluginIds: string[];
-    selectedPluginIds: string[];
-    registeredPluginIds: string[];
+  capabilityCatalog: {
+    revision: string;
+    pluginIds: string[];
     generatedFileFresh: boolean;
-    issues: ProjectIssue[];
   };
+  activeComposition: {
+    selectedPluginIds: string[];
+    resolvedPluginIds: string[];
+    headlessPluginIds: string[];
+  };
+  issues: ProjectIssue[];
   pluginAssets: Array<
     Omit<PluginAsset, "manifest"> & {
       selected: boolean;

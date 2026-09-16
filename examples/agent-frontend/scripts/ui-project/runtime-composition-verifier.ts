@@ -170,13 +170,13 @@ export async function verifyRuntimeComposition(
   }
   if (
     input.composition.capabilityCatalogRevision !==
-    registry.capabilityCatalogRevision
+    registry.capabilityCatalog.revision
   ) {
     throw new RuntimeCompositionVerificationError(
       "RUNTIME_COMPOSITION_REVISION_CONFLICT",
       "Runtime composition evidence belongs to a different capability catalog revision.",
       {
-        expectedRevision: registry.capabilityCatalogRevision,
+        expectedRevision: registry.capabilityCatalog.revision,
         actualRevision: input.composition.capabilityCatalogRevision,
       },
     );
@@ -189,7 +189,7 @@ export async function verifyRuntimeComposition(
     if (
       descriptor.appUIModelHash === currentHash &&
       descriptor.capabilityCatalogRevision ===
-        registry.capabilityCatalogRevision &&
+        registry.capabilityCatalog.revision &&
       input.composition.compositionRevision !== descriptor.transactionId
     ) {
       throw new RuntimeCompositionVerificationError(
@@ -212,7 +212,10 @@ export async function verifyRuntimeComposition(
 
   let runtimeModel;
   try {
-    runtimeModel = compileAppUIModel(model, registry.compositionCatalog);
+    runtimeModel = compileAppUIModel(
+      model,
+      registry.activeComposition.compositionCatalog,
+    );
   } catch (error) {
     if (error instanceof AppUICompilerError) {
       throw new RuntimeCompositionVerificationError(

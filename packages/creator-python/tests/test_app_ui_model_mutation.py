@@ -58,7 +58,9 @@ def _result(root: Path, before_hash: str, changed_paths: list[str]) -> dict:
         },
         "snapshotToken": {
             "appUIModelHash": read_creator_file_state(root, APP_UI_MODEL_PATH).hash,
-            "registryHash": read_creator_file_state(root, REGISTRY_PATH).hash,
+            "capabilityCatalogSourceHash": read_creator_file_state(
+                root, REGISTRY_PATH
+            ).hash,
         },
     }
 

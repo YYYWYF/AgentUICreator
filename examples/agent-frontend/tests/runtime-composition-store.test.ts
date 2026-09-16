@@ -105,7 +105,11 @@ describe("RuntimeCompositionStore", () => {
 
     expect(store.getSnapshot()).toBe(published);
     const republished = waitForPublish(store);
-    store.stageCapabilityCatalog(catalog(["alpha", "beta"]), "b".repeat(64));
+    store.stageCandidate({
+      appUIModelSource: nextSource,
+      capabilityCatalog: catalog(["alpha", "beta"]),
+      capabilityCatalogRevision: "b".repeat(64),
+    });
     await republished;
     expect(Object.keys(store.getSnapshot()!.runtimeModel.pluginInstances)).toEqual([
       "alpha-main",
@@ -133,7 +137,12 @@ describe("RuntimeCompositionStore", () => {
       capabilityCatalogRevision: "a".repeat(64),
       revisionDescriptorSource: descriptor,
     });
-    store.stageCapabilityCatalog(catalog(["alpha", "beta"]), revision);
+    store.stageCandidate({
+      appUIModelSource: modelSource(["alpha"]),
+      capabilityCatalog: catalog(["alpha", "beta"]),
+      capabilityCatalogRevision: revision,
+      revisionDescriptorSource: descriptor,
+    });
 
     const republished = waitForPublish(store);
     store.stageCandidate({
@@ -200,6 +209,63 @@ describe("RuntimeCompositionStore", () => {
 
     expect(Object.keys(store.getSnapshot()!.runtimeModel.pluginInstances)).toEqual([
       "alpha-main",
+    ]);
+  });
+
+  it("does not let an async stale candidate replace the latest publication", async () => {
+    const store = createRuntimeCompositionStore();
+    await publishInitial(store);
+    let resolveSlowDefinition!: (definition: UIPluginDefinition) => void;
+    let markSlowLoaderStarted!: () => void;
+    const slowLoaderStarted = new Promise<void>((resolve) => {
+      markSlowLoaderStarted = resolve;
+    });
+    const slowDefinition = new Promise<UIPluginDefinition>((resolve) => {
+      resolveSlowDefinition = resolve;
+    });
+    const slowCatalog = createPluginCapabilityCatalog([
+      {
+        manifest: definition("alpha").manifest,
+        provides: [],
+        inject: [],
+        optionalInject: [],
+        loadDefinition: () => Promise.resolve(definition("alpha")),
+      },
+      {
+        manifest: definition("beta").manifest,
+        provides: [],
+        inject: [],
+        optionalInject: [],
+        loadDefinition: () => {
+          markSlowLoaderStarted();
+          return slowDefinition;
+        },
+      },
+    ]);
+
+    store.stageCandidate({
+      appUIModelSource: modelSource(["alpha", "beta"]),
+      capabilityCatalog: slowCatalog,
+      capabilityCatalogRevision: "b".repeat(64),
+    });
+    await slowLoaderStarted;
+
+    const latestPublished = waitForPublish(store);
+    store.stageCandidate({
+      appUIModelSource: modelSource(["alpha", "gamma"]),
+      capabilityCatalog: catalog(["alpha", "gamma"]),
+      capabilityCatalogRevision: "c".repeat(64),
+    });
+    await latestPublished;
+    const latestSnapshot = store.getSnapshot();
+
+    resolveSlowDefinition(definition("beta"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(store.getSnapshot()).toBe(latestSnapshot);
+    expect(Object.keys(store.getSnapshot()!.runtimeModel.pluginInstances)).toEqual([
+      "alpha-main",
+      "gamma-main",
     ]);
   });
 });

@@ -85,7 +85,9 @@ class MutationClient:
             "appUIModel": {"beforeHash": before_hash, "afterHash": after_hash},
             "snapshotToken": {
                 "appUIModelHash": after_hash,
-                "registryHash": read_creator_file_state(self.root, REGISTRY_PATH).hash,
+                "capabilityCatalogSourceHash": read_creator_file_state(
+                    self.root, REGISTRY_PATH
+                ).hash,
             },
         }
 

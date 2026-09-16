@@ -42,17 +42,21 @@ export async function writeGeneratedPluginRegistry(
 
   const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
   const currentSource = await readOptional(registryPath);
-  if (currentSource === generation.source) {
+  if (currentSource === generation.capabilityCatalog.source) {
     return {
       changed: false,
       path: GENERATED_PLUGIN_REGISTRY_PATH,
-      pluginIds: generation.capabilityPluginIds,
+      pluginIds: generation.capabilityCatalog.pluginIds,
     };
   }
 
   const temporaryPath = `${registryPath}.${randomUUID()}.tmp`;
   try {
-    await writeFile(temporaryPath, generation.source, "utf8");
+    await writeFile(
+      temporaryPath,
+      generation.capabilityCatalog.source,
+      "utf8",
+    );
     await rename(temporaryPath, registryPath);
   } catch (error) {
     await unlink(temporaryPath).catch(() => undefined);
@@ -62,7 +66,7 @@ export async function writeGeneratedPluginRegistry(
   return {
     changed: true,
     path: GENERATED_PLUGIN_REGISTRY_PATH,
-    pluginIds: generation.capabilityPluginIds,
+    pluginIds: generation.capabilityCatalog.pluginIds,
   };
 }
 

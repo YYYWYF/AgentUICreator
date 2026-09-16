@@ -119,12 +119,16 @@ class GroundingClient:
         selected_plugin_ids = sorted({plugin["pluginId"] for plugin in plugins})
         return {
             "appUIModelHash": self.hash(),
-            "registry": {
-                "registeredPluginIds": selected_plugin_ids,
-                "selectedPluginIds": selected_plugin_ids,
+            "capabilityCatalog": {
+                "revision": "a" * 64,
+                "pluginIds": self.plugin_ids,
                 "generatedFileFresh": True,
-                "issues": [],
             },
+            "activeComposition": {
+                "resolvedPluginIds": selected_plugin_ids,
+                "selectedPluginIds": selected_plugin_ids,
+            },
+            "issues": [],
             "pluginAssets": [
                 {
                     "pluginId": plugin_id,
@@ -183,7 +187,9 @@ class GroundingClient:
             "appUIModel": {"beforeHash": before_hash, "afterHash": self.hash()},
             "snapshotToken": {
                 "appUIModelHash": self.hash(),
-                "registryHash": read_creator_file_state(self.root, REGISTRY_PATH).hash,
+                "capabilityCatalogSourceHash": read_creator_file_state(
+                    self.root, REGISTRY_PATH
+                ).hash,
             },
         }
 

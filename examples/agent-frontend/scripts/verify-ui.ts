@@ -32,10 +32,14 @@ export interface UIProjectVerification {
     mountedInstanceIds: string[];
     unmountedEnabledInstanceIds: string[];
   };
-  registry: {
+  capabilityCatalog: {
     pluginIds: string[];
-    headlessPluginIds: string[];
     generatedFileFresh: boolean;
+  };
+  activeComposition: {
+    selectedPluginIds: string[];
+    resolvedPluginIds: string[];
+    headlessPluginIds: string[];
   };
   services: InspectedService[];
   errors: VerificationIssue[];
@@ -79,8 +83,8 @@ function verifyInstances(
   for (const instance of Object.values(model.pluginInstances)) {
     if (!pluginIds.has(instance.pluginId)) {
       errors.push({
-        code: "unregistered-plugin",
-        message: `PluginInstance "${instance.id}" references unregistered UI plugin "${instance.pluginId}".`,
+        code: "unresolved-plugin",
+        message: `PluginInstance "${instance.id}" references unresolved active UI plugin "${instance.pluginId}".`,
       });
     }
     if (mounted.has(instance.id) && !instance.enabled) {
@@ -136,6 +140,8 @@ export async function verifyUIProject(
   }
 
   let pluginIds: string[] = [];
+  let selectedPluginIds: string[] = [];
+  let capabilityPluginIds: string[] = [];
   let headlessPluginIds: string[] = [];
   let applicationGatePluginIds: string[] = [];
   let generatedFileFresh = false;
@@ -152,13 +158,18 @@ export async function verifyUIProject(
     );
     services = serviceInspection.services;
     errors.push(...serviceInspection.issues);
-    pluginIds = registry.registeredPluginIds;
-    headlessPluginIds = registry.headlessPluginIds;
+    capabilityPluginIds = registry.capabilityCatalog.pluginIds;
+    selectedPluginIds = registry.activeComposition.selectedPluginIds;
+    pluginIds = registry.activeComposition.resolvedPluginIds;
+    headlessPluginIds = registry.activeComposition.headlessPluginIds;
     applicationGatePluginIds = registry.assets
       .filter((asset) => asset.applicationGate !== undefined)
       .map((asset) => asset.pluginId);
     if (registry.errors.length === 0) {
-      runtimeModel = compileAppUIModel(model, registry.compositionCatalog);
+      runtimeModel = compileAppUIModel(
+        model,
+        registry.activeComposition.compositionCatalog,
+      );
     }
 
     const generatedSource = await readOptional(
@@ -171,7 +182,7 @@ export async function verifyUIProject(
       });
     } else if (
       registry.errors.length === 0 &&
-      generatedSource !== registry.source
+      generatedSource !== registry.capabilityCatalog.source
     ) {
       errors.push({
         code: "plugin-registry-generated-stale",
@@ -190,7 +201,7 @@ export async function verifyUIProject(
     }
     generatedFileFresh =
       registry.errors.length === 0 &&
-      generatedSource === registry.source &&
+      generatedSource === registry.capabilityCatalog.source &&
       entrySource === PLUGIN_REGISTRY_ENTRY_SOURCE;
 
   }
@@ -218,10 +229,14 @@ export async function verifyUIProject(
       mountedInstanceIds: instances.mountedInstanceIds,
       unmountedEnabledInstanceIds: instances.unmountedEnabledInstanceIds,
     },
-    registry: {
-      pluginIds,
-      headlessPluginIds,
+    capabilityCatalog: {
+      pluginIds: capabilityPluginIds,
       generatedFileFresh,
+    },
+    activeComposition: {
+      selectedPluginIds,
+      resolvedPluginIds: pluginIds,
+      headlessPluginIds,
     },
     services,
     errors,

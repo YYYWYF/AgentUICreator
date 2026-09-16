@@ -65,7 +65,10 @@ async function createProject(
   const source = `${JSON.stringify(model, null, 2)}\n`;
   await writeFile(path.join(projectRoot, "app-ui", "app-ui.json"), source);
   const registry = await generatePluginRegistry(projectRoot, model);
-  await writeFile(path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH), registry.source);
+  await writeFile(
+    path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
+    registry.capabilityCatalog.source,
+  );
   return { projectRoot, source };
 }
 
@@ -107,8 +110,8 @@ describe("AppUIModel transaction", () => {
     });
 
     expect(result.changedPaths).toEqual(["app-ui/app-ui.json"]);
-    expect(result.diff.registry.changed).toBe(false);
-    expect(result.registry.registeredPluginIds).toEqual([]);
+    expect(result.diff.capabilityCatalog.changed).toBe(false);
+    expect(result.activeComposition.resolvedPluginIds).toEqual([]);
   });
 
   it("removes a history panel in one mutation without catalog churn", async () => {
@@ -154,7 +157,7 @@ describe("AppUIModel transaction", () => {
     });
 
     expect(result.changedPaths).toEqual(["app-ui/app-ui.json"]);
-    expect(result.diff.registry).toMatchObject({
+    expect(result.diff.capabilityCatalog).toMatchObject({
       changed: false,
       addedPluginIds: [],
       removedPluginIds: [],
@@ -183,6 +186,15 @@ describe("AppUIModel transaction", () => {
       GENERATED_PLUGIN_REGISTRY_PATH,
     ]);
     expect(result.compositionRevision).toBeDefined();
+    expect(result.diff.capabilityCatalog).toEqual({
+      changed: true,
+      addedPluginIds: ["beta"],
+      removedPluginIds: [],
+    });
+    expect(result.activeComposition).toMatchObject({
+      selectedPluginIds: ["beta", "sample"],
+      resolvedPluginIds: ["beta", "sample"],
+    });
     expect(JSON.parse(await readFile(
       path.join(projectRoot, COMPOSITION_REVISION_PATH),
       "utf8",
