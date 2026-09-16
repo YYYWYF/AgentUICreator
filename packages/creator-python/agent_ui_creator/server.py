@@ -37,7 +37,7 @@ from .model_settings import (
     load_python_agent_mode,
 )
 from .runtime_diagnostics import RuntimeDiagnosticEnvelope, RuntimeDiagnosticStore
-from .observability import CreatorRunLogger
+from .observability import CreatorRunLogger, CreatorRunTelemetry
 from .streaming import CreatorEventBus, CreatorEventSink, map_runtime_event
 
 MAX_CREATOR_REQUEST_BYTES = 512 * 1024
@@ -100,6 +100,7 @@ async def _minimal_agent_result(
     activity: CreatorActivityRecorder,
     thread_id: str,
     event_sink: CreatorEventSink,
+    telemetry: CreatorRunTelemetry | None = None,
 ):
     # Agent dependencies stay lazy so echo mode remains a transport-only path.
     from .minimal_agent import create_minimal_creator_agent
@@ -125,6 +126,7 @@ async def _minimal_agent_result(
         provider_trace_collector=provider_trace_collector,
         activity=activity,
         event_sink=event_sink,
+        telemetry=telemetry,
     )
     return await agent.run(prompt)
 
@@ -135,6 +137,7 @@ async def _domain_read_agent_result(
     activity: CreatorActivityRecorder,
     thread_id: str,
     event_sink: CreatorEventSink,
+    telemetry: CreatorRunTelemetry | None = None,
 ):
     from .domain_agent import create_domain_read_creator_agent
     from .model_factory import create_creator_chat_model
@@ -159,6 +162,7 @@ async def _domain_read_agent_result(
         provider_trace_collector=provider_trace_collector,
         activity=activity,
         event_sink=event_sink,
+        telemetry=telemetry,
     )
     return await agent.run_messages(messages)
 
@@ -171,6 +175,7 @@ async def _domain_write_agent_result(
     diagnostics: RuntimeDiagnosticStore,
     thread_id: str,
     event_sink: CreatorEventSink,
+    telemetry: CreatorRunTelemetry | None = None,
 ):
     from .domain_agent import create_domain_write_creator_agent
     from .model_factory import create_creator_chat_model
@@ -200,6 +205,7 @@ async def _domain_write_agent_result(
         thread_id=thread_id,
         automatic_completion_repair=True,
         event_sink=event_sink,
+        telemetry=telemetry,
     )
     return await agent.run_messages(messages)
 
@@ -225,23 +231,18 @@ async def _execute_agent_run(
     activity: CreatorActivityRecorder,
     logger: CreatorRunLogger,
     event_bus: CreatorEventBus,
+    telemetry: CreatorRunTelemetry | None = None,
 ) -> _AgentExecution:
-    result: Any = None
+    run_telemetry = telemetry or CreatorRunTelemetry(activity=activity)
     try:
         result = await agent_result
         receipt = activity.finish()
         logger.finish(
             "success",
-            metrics=result.metrics.to_dict(),
-            mutation_metrics=(
-                result.app_ui_model_mutations.summary()
-                if hasattr(result, "app_ui_model_mutations") else None
-            ),
-            change_layer_metrics=(
-                result.change_layer_metrics
-                if hasattr(result, "change_layer_metrics")
-                else None
-            ),
+            metrics=run_telemetry.model_tool_metrics(),
+            mutation_metrics=run_telemetry.mutation_metrics(),
+            change_layer_metrics=run_telemetry.change_layer_metrics(),
+            project_control_metrics=run_telemetry.project_control_metrics(),
         )
         return _AgentExecution(result=result, receipt=receipt)
     except BaseException as error:
@@ -251,11 +252,10 @@ async def _execute_agent_run(
             pass
         logger.finish(
             "error",
-            metrics=(
-                result.metrics.to_dict()
-                if result is not None and hasattr(result, "metrics")
-                else None
-            ),
+            metrics=run_telemetry.model_tool_metrics(),
+            mutation_metrics=run_telemetry.mutation_metrics(),
+            change_layer_metrics=run_telemetry.change_layer_metrics(),
+            project_control_metrics=run_telemetry.project_control_metrics(),
             error=error,
         )
         raise
@@ -353,6 +353,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                     assert activity is not None
                     assert logger is not None
                     event_bus = CreatorEventBus()
+                    telemetry = CreatorRunTelemetry(activity=activity)
                     if agent_mode == "domain-write":
                         agent_result = _domain_write_agent_result(
                             settings,
@@ -362,6 +363,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             diagnostics,
                             run_input.threadId,
                             event_bus,
+                            telemetry,
                         )
                     elif agent_mode == "domain-read":
                         agent_result = _domain_read_agent_result(
@@ -370,6 +372,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             activity,
                             run_input.threadId,
                             event_bus,
+                            telemetry,
                         )
                     else:
                         agent_result = _minimal_agent_result(
@@ -378,6 +381,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             activity,
                             run_input.threadId,
                             event_bus,
+                            telemetry,
                         )
                     agent_task = asyncio.create_task(
                         _execute_agent_run(
@@ -385,6 +389,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             activity=activity,
                             logger=logger,
                             event_bus=event_bus,
+                            telemetry=telemetry,
                         )
                     )
 

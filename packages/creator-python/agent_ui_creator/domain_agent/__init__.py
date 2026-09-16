@@ -9,10 +9,17 @@ from .agent import (
 from .prompt import DOMAIN_READ_AGENT_PROMPT, DOMAIN_WRITE_AGENT_PROMPT
 from .change_scope import (
     ChangeScopeMetrics,
+    ResourceKey,
     ScopeAwareRecoveryGuard,
+    TaskScope,
     build_change_layer_run_metrics,
     change_layer_for_path,
     change_layer_for_tool_call,
+    resource_keys_for_evidence,
+    resource_keys_for_path,
+    resource_keys_for_paths,
+    resource_keys_for_tool_call,
+    resource_keys_for_tool_result,
     runtime_failure_layers,
 )
 from .tool_policy import (
@@ -29,6 +36,8 @@ __all__ = [
     "CreatorDomainReadAgent",
     "CreatorDomainWriteAgent",
     "ChangeScopeMetrics",
+    "ResourceKey",
+    "TaskScope",
     "DOMAIN_READ_AGENT_PROMPT",
     "DOMAIN_WRITE_AGENT_PROMPT",
     "DOMAIN_WRITE_TOOL_NAMES",
@@ -40,6 +49,11 @@ __all__ = [
     "build_change_layer_run_metrics",
     "change_layer_for_path",
     "change_layer_for_tool_call",
+    "resource_keys_for_evidence",
+    "resource_keys_for_path",
+    "resource_keys_for_paths",
+    "resource_keys_for_tool_call",
+    "resource_keys_for_tool_result",
     "runtime_failure_layers",
     "create_domain_read_creator_agent",
     "create_domain_write_creator_agent",

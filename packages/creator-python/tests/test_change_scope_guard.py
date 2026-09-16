@@ -54,6 +54,137 @@ def test_workspace_integrity_blocks_cross_layer_plugin_repair():
     assert guard.metrics.blockedCrossLayerRepairAttempts == 1
 
 
+def test_workspace_integrity_blocks_same_layer_different_resource_repair():
+    guard = ScopeAwareRecoveryGuard()
+    first = request(
+        "edit_file",
+        {"file_path": "/plugins/foo/index.tsx"},
+        "first-edit",
+    )
+    guard.wrap_tool_call(
+        first,
+        lambda _request: tool_result("first-edit", {"ok": True, "result": {}}),
+    )
+    blocker = request("validate_creator_changes", {}, "validation")
+    guard.wrap_tool_call(
+        blocker,
+        lambda _request: tool_result(
+            "validation",
+            {
+                "ok": True,
+                "result": {
+                    "failureSemantics": {
+                        "category": "workspace_integrity",
+                        "automaticRepairAllowed": False,
+                    }
+                },
+            },
+        ),
+    )
+
+    blocked = guard.wrap_tool_call(
+        request(
+            "edit_file",
+            {"file_path": "/plugins/bar/manifest.json"},
+            "bar-edit",
+        ),
+        lambda _request: (_ for _ in ()).throw(AssertionError("must not run")),
+    )
+
+    payload = json.loads(blocked.content)
+    assert payload["error"]["code"] == "CROSS_RESOURCE_REPAIR_PROHIBITED"
+    assert payload["error"]["recovery"]["automaticCrossResourceRepairAllowed"] is False
+    assert guard.metrics.taskChangeLayers == ["plugin_behavior"]
+    assert guard.metrics.scopeResources == ["plugin:foo"]
+    assert guard.metrics.blockedCrossLayerRepairAttempts == 0
+    assert guard.metrics.blockedCrossResourceRepairAttempts == 1
+
+
+def test_composition_document_key_does_not_authorize_other_plugin_instance():
+    guard = ScopeAwareRecoveryGuard()
+    guard.wrap_tool_call(
+        request(
+            "mutate_app_ui_model",
+            {
+                "operations": [
+                    {
+                        "type": "update_plugin_props",
+                        "instanceId": "foo-main",
+                    }
+                ]
+            },
+            "foo-mutation",
+        ),
+        lambda _request: tool_result(
+            "foo-mutation",
+            {
+                "ok": False,
+                "error": {
+                    "code": "PLUGIN_CHILD_SLOT_CONTRACT_INVALID",
+                    "category": "workspace_integrity",
+                },
+            },
+        ),
+    )
+
+    blocked = guard.wrap_tool_call(
+        request(
+            "mutate_app_ui_model",
+            {
+                "operations": [
+                    {
+                        "type": "update_plugin_props",
+                        "instanceId": "bar-main",
+                    }
+                ]
+            },
+            "bar-mutation",
+        ),
+        lambda _request: (_ for _ in ()).throw(AssertionError("must not run")),
+    )
+
+    assert json.loads(blocked.content)["error"]["code"] == (
+        "CROSS_RESOURCE_REPAIR_PROHIBITED"
+    )
+    assert guard.metrics.blockedCrossResourceRepairAttempts == 1
+
+
+def test_unknown_side_effect_path_fails_closed_after_blocker():
+    guard = ScopeAwareRecoveryGuard()
+    guard.wrap_tool_call(
+        request(
+            "edit_file",
+            {"file_path": "/plugins/foo/index.tsx"},
+            "foo-edit",
+        ),
+        lambda _request: tool_result("foo-edit", {"ok": True}),
+    )
+    guard.wrap_tool_call(
+        request("validate_creator_changes", {}, "validation"),
+        lambda _request: tool_result(
+            "validation",
+            {
+                "ok": True,
+                "result": {
+                    "failureSemantics": {
+                        "category": "workspace_integrity",
+                        "automaticRepairAllowed": False,
+                    }
+                },
+            },
+        ),
+    )
+
+    blocked = guard.wrap_tool_call(
+        request("edit_file", {"file_path": "/other/file.ts"}, "unknown-edit"),
+        lambda _request: (_ for _ in ()).throw(AssertionError("must not run")),
+    )
+
+    assert json.loads(blocked.content)["error"]["code"] == (
+        "CROSS_RESOURCE_REPAIR_PROHIBITED"
+    )
+
+
 def test_legitimate_multi_layer_request_records_transition_without_a_blocker():
     guard = ScopeAwareRecoveryGuard()
     guard.wrap_tool_call(

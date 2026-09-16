@@ -100,6 +100,9 @@ def test_failed_validation_returns_diagnostics_not_run_error(tmp_path):
         "category": "workspace_integrity",
         "attribution": "unknown",
         "taskScope": [],
+        "taskScopeResources": [],
+        "scopeResources": [],
+        "changedResources": [],
         "failureLayers": [],
         "changedPaths": [],
         "automaticRepairAllowed": False,
@@ -132,6 +135,9 @@ def test_composition_validation_blocker_is_unrelated_and_not_auto_repairable(
         "category": "workspace_integrity",
         "attribution": "unrelated",
         "taskScope": ["composition"],
+        "taskScopeResources": ["app-ui-model"],
+        "scopeResources": ["app-ui-model"],
+        "changedResources": ["app-ui-model"],
         "failureLayers": ["plugin_behavior"],
         "changedPaths": ["app-ui/app-ui.json"],
         "automaticRepairAllowed": False,
@@ -157,22 +163,26 @@ def test_validation_failure_in_changed_source_is_attributed_to_current_run(tmp_p
     assert result.failure_semantics["automaticRepairAllowed"] is True
 
 
-def test_validation_failure_in_same_change_layer_is_in_scope(tmp_path):
+def test_validation_failure_in_same_change_layer_but_different_resource_is_unrelated(
+    tmp_path,
+):
     runner = FakeValidationRunner(
-        [CommandExecutionResult("plugins/sample/manifest.json: invalid", 1, False)]
+        [CommandExecutionResult("plugins/bar/manifest.json: invalid", 1, False)]
     )
     service, activity = validation_service(tmp_path, runner)
-    (tmp_path / "plugins/sample").mkdir(parents=True)
-    activity.capture_before_content("plugins/sample/index.tsx", None)
-    (tmp_path / "plugins/sample/index.tsx").write_text("changed", encoding="utf-8")
-    activity.touch("plugins/sample/index.tsx")
+    (tmp_path / "plugins/foo").mkdir(parents=True)
+    activity.capture_before_content("plugins/foo/index.tsx", None)
+    (tmp_path / "plugins/foo/index.tsx").write_text("changed", encoding="utf-8")
+    activity.touch("plugins/foo/index.tsx")
 
     result = asyncio.run(service.validate())
 
-    assert result.failure_semantics["attribution"] == "in_scope"
+    assert result.failure_semantics["attribution"] == "unrelated"
     assert result.failure_semantics["taskScope"] == ["plugin_behavior"]
+    assert result.failure_semantics["scopeResources"] == ["plugin:foo"]
+    assert result.failure_semantics["changedResources"] == ["plugin:foo"]
     assert result.failure_semantics["failureLayers"] == ["plugin_behavior"]
-    assert result.failure_semantics["automaticRepairAllowed"] is True
+    assert result.failure_semantics["automaticRepairAllowed"] is False
 
 
 def test_validation_becomes_stale_if_revision_changes(tmp_path):

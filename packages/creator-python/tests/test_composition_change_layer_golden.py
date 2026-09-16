@@ -1,8 +1,8 @@
-"""Scripted Creator graph regressions for canonical Composition requests.
+"""Composition Graph Contract E2E for canonical Composition requests.
 
-These tests exercise the real Domain Write graph, Skill loading, Host mutation
-service, validation tool, Runtime inspection, receipts, and change-layer metrics.
-They are not live-model intent or latency evidence.
+These scripted contract tests exercise the real Domain Write graph, Skill loading,
+Host mutation service, validation tool, Runtime inspection, receipts, and
+change-layer metrics. They are not live-model intent or latency evidence.
 """
 
 from __future__ import annotations
@@ -363,7 +363,7 @@ def scripted_responses(operations):
     ],
     ids=["remove-region", "hide-region", "remove-child", "reuse-capability"],
 )
-def test_canonical_composition_e2e_pack(tmp_path, request, operations, assert_final):
+def test_composition_graph_contract_e2e_pack(tmp_path, request, operations, assert_final):
     client = CompositionClient(tmp_path, initial_model())
     diagnostics = RuntimeDiagnosticStore()
     validation = PassingValidation(client, diagnostics)

@@ -52,3 +52,38 @@ def test_lightweight_run_log_records_mutation_transaction_undo_and_metrics(tmp_p
     }
     assert entries[-1]["data"]["runtime"] == "python"
     assert entries[-1]["data"]["agentMode"] == "domain-write"
+
+
+def test_run_logger_finishes_once_with_failure_snapshot(tmp_path):
+    logger = CreatorRunLogger(tmp_path)
+    logger.begin(run_id="failed-run", agent_mode="domain-write")
+    logger.finish(
+        "error",
+        metrics={"modelCalls": 24, "toolCalls": 6},
+        mutation_metrics={
+            "mutationRequests": 6,
+            "mutationOperations": 6,
+            "mutationErrorCategories": {"workspace_integrity": 1},
+            "semanticReplans": 0,
+        },
+        change_layer_metrics={
+            "executedChangeLayer": "composition",
+            "scopeResources": ["app-ui-model"],
+        },
+        project_control_metrics={"requests": 3},
+        error=RuntimeError("agent stopped"),
+    )
+    logger.finish("success", metrics={"modelCalls": 999})
+
+    entries = [
+        json.loads(line)
+        for line in logger.path.read_text(encoding="utf-8").splitlines()
+    ]
+    finished = [entry for entry in entries if entry["type"] == "run_finished"]
+    assert len(finished) == 1
+    data = finished[0]["data"]
+    assert data["status"] == "error"
+    assert data["modelToolMetrics"]["modelCalls"] == 24
+    assert data["mutationMetrics"]["mutationRequests"] == 6
+    assert data["changeLayerMetrics"]["scopeResources"] == ["app-ui-model"]
+    assert data["projectControlMetrics"]["requests"] == 3

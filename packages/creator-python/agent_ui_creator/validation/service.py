@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from pathlib import PurePosixPath
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from ..activity import CreatorActivityRecorder
 from ..repair import CreatorRepairState
@@ -16,30 +15,19 @@ from .models import (
     CreatorValidationResult,
 )
 
+if TYPE_CHECKING:
+    from ..domain_agent.change_scope import ChangeScopeMetrics
+
 
 MAX_VALIDATION_FAILURE_OUTPUT_CHARACTERS = 12_000
 
 
 def _change_layers_for_paths(paths: list[str]) -> list[str]:
-    layers: list[str] = []
-    for path in paths:
-        normalized = path if path.startswith("/") else f"/{path}"
-        layer = (
-            "composition"
-            if normalized
-            in {"/app-ui/app-ui.json", "/plugins/registry.generated.ts"}
-            else "plugin_behavior"
-            if normalized.startswith("/plugins/")
-            or normalized.startswith("/agent-ui/")
-            else "runtime_capability"
-            if normalized.startswith("/services/")
-            else "agent_integration"
-            if normalized.startswith("/agent-contract/")
-            else None
-        )
-        if layer is not None and layer not in layers:
-            layers.append(layer)
-    return layers
+    # Keep the shared scope implementation lazy: domain_agent imports the
+    # validation package while its public package is being initialized.
+    from ..domain_agent.change_scope import change_layers_for_paths
+
+    return list(change_layers_for_paths(paths))
 
 
 def _change_layers_for_evidence(evidence: str) -> list[str]:
@@ -72,12 +60,14 @@ class CreatorValidationService:
         runner: ValidationCommandRunner | None = None,
         repair_state: CreatorRepairState | None = None,
         host_verifier: ServiceContractAuthorizationVerifier | None = None,
+        scope: ChangeScopeMetrics | None = None,
     ) -> None:
         self.activity = activity
         self.runner = runner or CreatorValidationCommandRunner(project_root)
         self.repair_state = repair_state or CreatorRepairState()
         self.latest_result: CreatorValidationResult | None = None
         self.host_verifier = host_verifier
+        self.scope = scope
 
     @staticmethod
     def _bounded(output: str, truncated: bool) -> tuple[str, bool]:
@@ -129,25 +119,45 @@ class CreatorValidationService:
             for item in receipt.get("files", [])
             if isinstance(item, dict) and isinstance(item.get("path"), str)
         ]
-        task_scope = _change_layers_for_paths(changed_paths)
+        changed_layers = _change_layers_for_paths(changed_paths)
+        from ..domain_agent.change_scope import (
+            resource_keys_for_evidence,
+            resource_keys_for_paths,
+        )
+
+        changed_resources = list(resource_keys_for_paths(changed_paths))
+        task_scope = (
+            list(self.scope.taskChangeLayers)
+            if self.scope is not None and self.scope.taskChangeLayers
+            else changed_layers
+        )
+        scope_resources = (
+            list(self.scope.scopeResources)
+            if self.scope is not None
+            else changed_resources
+        )
         evidence = "\n".join(check.output for check in checks if check.status == "failed")
         if host_checks:
             evidence += "\n" + "\n".join(str(check) for check in host_checks)
         evidence_layers = _change_layers_for_evidence(evidence)
-        mentioned_changed_path = any(
-            path in evidence or PurePosixPath(path).name in evidence
-            for path in changed_paths
+        evidence_resources = list(
+            resource_keys_for_evidence(
+                evidence,
+                known_resources=tuple(
+                    dict.fromkeys((*changed_resources, *scope_resources))
+                ),
+            )
         )
         if status == "stale":
             category = "stale_state"
             attribution = "unknown"
-        elif mentioned_changed_path:
+        elif any(resource in evidence_resources for resource in changed_resources):
             category = "workspace_integrity"
             attribution = "introduced"
-        elif any(layer in task_scope for layer in evidence_layers):
+        elif any(resource in evidence_resources for resource in scope_resources):
             category = "workspace_integrity"
             attribution = "in_scope"
-        elif task_scope:
+        elif evidence_resources and (task_scope or scope_resources):
             category = "workspace_integrity"
             attribution = "unrelated"
         else:
@@ -158,6 +168,9 @@ class CreatorValidationService:
             "category": category,
             "attribution": attribution,
             "taskScope": task_scope,
+            "taskScopeResources": scope_resources,
+            "scopeResources": scope_resources,
+            "changedResources": changed_resources,
             "failureLayers": evidence_layers,
             "changedPaths": changed_paths,
             "automaticRepairAllowed": automatic_repair_allowed,

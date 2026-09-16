@@ -33,6 +33,7 @@ from ..model_protocol.errors import AgentNoProgressError, ModelTimeoutError
 from ..model_protocol.provider_trace import ProviderResponseTraceCollector
 from ..model_protocol.tool_protocol_guard import ToolProtocolMiddleware
 from ..model_protocol.trace import ToolProtocolMetrics
+from ..observability import CreatorRunTelemetry
 from ..project_control import ProjectControlClient, ProjectControlMetrics
 from ..repair import CreatorRepairState
 from ..runtime_diagnostics import (
@@ -236,6 +237,7 @@ def create_domain_read_creator_agent(
     project_control: ProjectControlClient | None = None,
     activity: CreatorActivityRecorder | None = None,
     event_sink: CreatorEventSink | None = None,
+    telemetry: CreatorRunTelemetry | None = None,
 ) -> CreatorDomainReadAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -257,6 +259,12 @@ def create_domain_read_creator_agent(
         raw_trace=raw_trace,
         provider_trace_collector=provider_trace_collector,
     )
+    if telemetry is not None:
+        telemetry.bind(
+            activity=backend.activity,
+            protocol=metrics,
+            project_control=client.metrics,
+        )
     runtime = MinimalAgentRuntimeGuard(backend, event_sink=event_sink)
     repeated_read_guard = RepeatedProjectControlReadGuard(backend)
     filesystem = FilesystemMiddleware(
@@ -313,6 +321,7 @@ def create_domain_write_creator_agent(
     thread_id: str | None = None,
     validation_runner: ValidationCommandRunner | None = None,
     automatic_completion_repair: bool = False,
+    telemetry: CreatorRunTelemetry | None = None,
 ) -> CreatorDomainWriteAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -383,12 +392,41 @@ def create_domain_write_creator_agent(
         project_control=client,
         store=service_authorizations,
     )
+
+    def service_resource_resolver(
+        name: str, arguments: dict[str, Any]
+    ) -> tuple[str, ...]:
+        authorization_id = arguments.get("authorizationId")
+        if isinstance(authorization_id, str):
+            try:
+                record = service_authorizations.get_authorization(authorization_id)
+                return (f"service:{record.spec.service_name}",)
+            except Exception:
+                pass
+        if name == "edit_file":
+            path = arguments.get("file_path")
+            if isinstance(path, str):
+                normalized = path if path.startswith("/") else f"/{path}"
+                for record in service_authorizations.records():
+                    contract_path = record.spec.contract_path
+                    if normalized == (
+                        contract_path
+                        if contract_path.startswith("/")
+                        else f"/{contract_path}"
+                    ):
+                        return (f"service:{record.spec.service_name}",)
+        return ()
+
+    scope_guard = ScopeAwareRecoveryGuard(
+        service_resource_resolver=service_resource_resolver
+    )
     validation = CreatorValidationService(
         project_root=workspace,
         activity=backend.activity,
         runner=validation_runner,
         repair_state=repair_state,
         host_verifier=service_verifier,
+        scope=scope_guard.metrics,
     )
     runtime_inspection = RuntimeDiagnosticInspectionService(
         store=diagnostic_store,
@@ -424,7 +462,6 @@ def create_domain_write_creator_agent(
     )
     runtime = MinimalAgentRuntimeGuard(backend, event_sink=event_sink)
     repeated_read_guard = RepeatedProjectControlReadGuard(backend)
-    scope_guard = ScopeAwareRecoveryGuard()
     filesystem = FilesystemMiddleware(
         backend=skills_backend,
         tools=list(ALLOWED_MINIMAL_TOOLS),
@@ -471,6 +508,14 @@ def create_domain_write_creator_agent(
         service_contract_authorizations=service_authorizations,
         scope_guard=scope_guard,
     )
+    if telemetry is not None:
+        telemetry.bind(
+            activity=backend.activity,
+            protocol=metrics,
+            project_control=client.metrics,
+            mutation=service.metrics,
+            scope=scope_guard.metrics,
+        )
     agent.source_creation = source_creation
     agent.plugin_mutation = plugin_mutation
     agent.service_contract_creation = service_creation

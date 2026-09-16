@@ -43,6 +43,7 @@ class CreatorRunLogger:
         self.sequence = 0
         self.path: Path | None = None
         self.agent_mode = "domain-write"
+        self._finished = False
 
     def begin(
         self,
@@ -55,6 +56,7 @@ class CreatorRunLogger:
         self.thread_id = thread_id
         self.agent_mode = agent_mode
         self.sequence = 0
+        self._finished = False
         try:
             directory = self.project_root / ".agentuicreator" / "logs"
             resolved_directory = directory.resolve(strict=False)
@@ -112,19 +114,39 @@ class CreatorRunLogger:
         metrics: Mapping[str, object] | None = None,
         mutation_metrics: Mapping[str, object] | None = None,
         change_layer_metrics: Mapping[str, object] | None = None,
+        project_control_metrics: Mapping[str, object] | None = None,
         error: BaseException | None = None,
     ) -> None:
+        if self._finished:
+            return
+        self._finished = True
         self.record(
             "run_finished",
             {
                 "runtime": "python",
                 "agentMode": self.agent_mode,
+                "status": outcome,
                 "outcome": outcome,
-                **({"modelToolMetrics": dict(metrics)} if metrics is not None else {}),
+                "modelToolMetrics": dict(metrics) if metrics is not None else {},
                 **(dict(mutation_metrics) if mutation_metrics is not None else {}),
+                **(
+                    {"mutationMetrics": dict(mutation_metrics)}
+                    if mutation_metrics is not None
+                    else {}
+                ),
                 **(
                     {"changeLayer": dict(change_layer_metrics)}
                     if change_layer_metrics is not None
+                    else {}
+                ),
+                **(
+                    {"changeLayerMetrics": dict(change_layer_metrics)}
+                    if change_layer_metrics is not None
+                    else {}
+                ),
+                **(
+                    {"projectControlMetrics": dict(project_control_metrics)}
+                    if project_control_metrics is not None
                     else {}
                 ),
                 **({"error": str(error)} if error is not None else {}),

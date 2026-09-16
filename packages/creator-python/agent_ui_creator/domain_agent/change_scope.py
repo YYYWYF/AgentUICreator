@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import PurePosixPath
-from typing import Any, Literal
+from typing import Any, Literal, TypeAlias
 
 from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResponse
 from langchain_core.messages import ToolMessage
@@ -18,6 +19,24 @@ ChangeLayer = Literal[
     "runtime_capability",
     "agent_integration",
 ]
+
+# Resource keys are intentionally semantic identities rather than arbitrary
+# filesystem paths.  The alias stays open because Plugin, Service, contract,
+# and source-registry ids are project-defined strings.
+ResourceKey: TypeAlias = str
+_APP_UI_MODEL_RESOURCE = "app-ui-model"
+
+
+@dataclass(frozen=True, slots=True)
+class TaskScope:
+    layers: tuple[ChangeLayer, ...] = ()
+    resources: tuple[ResourceKey, ...] = ()
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "layers": list(self.layers),
+            "resources": list(self.resources),
+        }
 
 _PROJECT_CONTROL_READ_OPERATIONS = frozenset(
     {
@@ -42,6 +61,18 @@ _STATIC_SIDE_EFFECT_LAYERS: dict[str, ChangeLayer] = {
     "mutate_ui_service_contract": "runtime_capability",
 }
 
+_RESOURCE_RESULT_SIDE_EFFECT_TOOLS = frozenset(
+    {
+        "mutate_app_ui_model",
+        "create_ui_plugin",
+        "mutate_ui_plugin_source",
+        "apply_agent_ui_source_item",
+        "prepare_ui_service_contract_change",
+        "create_ui_service_contract",
+        "mutate_ui_service_contract",
+    }
+)
+
 
 def normalize_creator_path(value: str) -> str:
     path = value if value.startswith("/") else f"/{value}"
@@ -61,11 +92,209 @@ def change_layer_for_path(path: str) -> ChangeLayer | None:
     return None
 
 
+def _resource_key(prefix: str, value: Any) -> ResourceKey | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    if not normalized:
+        return None
+    return f"{prefix}:{normalized}"
+
+
+def resource_keys_for_path(
+    path: str, *, service_name: str | None = None
+) -> tuple[ResourceKey, ...]:
+    """Resolve a project path to its stable semantic resource, when possible."""
+
+    normalized = normalize_creator_path(path)
+    if normalized in {"/app-ui/app-ui.json", "/plugins/registry.generated.ts"}:
+        return ("app-ui-model",)
+
+    parts = PurePosixPath(normalized).parts[1:]
+    if len(parts) >= 2 and parts[0] == "plugins":
+        resource = _resource_key("plugin", parts[1])
+        return () if resource is None else (resource,)
+    if len(parts) >= 2 and parts[0] == "services":
+        resolved_name = service_name
+        if resolved_name is None:
+            filename = PurePosixPath(parts[-1])
+            stem = filename.stem
+            # A nested services/<name>/contract.ts path still identifies the
+            # Service by its directory, while flat files use their stem.
+            if len(parts) >= 3 and stem in {"contract", "index"}:
+                resolved_name = parts[1]
+            else:
+                resolved_name = stem
+        resource = _resource_key("service", resolved_name)
+        return () if resource is None else (resource,)
+    if len(parts) >= 2 and parts[0] == "agent-contract":
+        resource = _resource_key("agent-contract", PurePosixPath(parts[-1]).stem)
+        return () if resource is None else (resource,)
+    # agent-ui/** can be owned by a source-registry item, but the item id is
+    # not recoverable from an arbitrary path.  Keep this unknown rather than
+    # manufacturing a path-shaped ResourceKey.
+    return ()
+
+
+def resource_keys_for_paths(paths: Sequence[str]) -> tuple[ResourceKey, ...]:
+    resources: list[ResourceKey] = []
+    for path in paths:
+        for resource in resource_keys_for_path(path):
+            if resource not in resources:
+                resources.append(resource)
+    return tuple(resources)
+
+
+def _append_resource(resources: list[ResourceKey], resource: ResourceKey | None) -> None:
+    if resource is not None and resource not in resources:
+        resources.append(resource)
+
+
+def _append_plugin_node_resources(
+    resources: list[ResourceKey], value: Any
+) -> None:
+    if not isinstance(value, Mapping):
+        return
+    _append_resource(resources, _resource_key("plugin-instance", value.get("id")))
+    _append_resource(resources, _resource_key("plugin", value.get("pluginId")))
+
+
+def _resource_keys_for_app_ui_operations(
+    operations: Any,
+) -> tuple[ResourceKey, ...]:
+    resources: list[ResourceKey] = [_APP_UI_MODEL_RESOURCE]
+    if not isinstance(operations, Sequence) or isinstance(operations, (str, bytes)):
+        return tuple(resources)
+    for operation in operations:
+        if not isinstance(operation, Mapping):
+            continue
+        operation_type = operation.get("type")
+        if operation_type in {
+            "remove_plugin",
+            "move_plugin",
+            "replace_plugin",
+            "update_plugin_props",
+            "set_plugin_enabled",
+        }:
+            _append_resource(
+                resources,
+                _resource_key("plugin-instance", operation.get("instanceId")),
+            )
+        if operation_type in {"insert_plugin", "replace_plugin"}:
+            _append_plugin_node_resources(
+                resources,
+                operation.get("plugin")
+                if operation_type == "insert_plugin"
+                else operation.get("replacement"),
+            )
+        target = operation.get("target")
+        if isinstance(target, Mapping) and target.get("type") == "plugin_slot":
+            _append_resource(
+                resources,
+                _resource_key("plugin-instance", target.get("parentInstanceId")),
+            )
+    return tuple(resources)
+
+
 def change_layer_for_tool_call(name: str, arguments: Mapping[str, Any]) -> ChangeLayer | None:
     if name == "edit_file":
         path = arguments.get("file_path")
         return change_layer_for_path(path) if isinstance(path, str) else None
     return _STATIC_SIDE_EFFECT_LAYERS.get(name)
+
+
+def resource_keys_for_tool_call(
+    name: str,
+    arguments: Mapping[str, Any],
+) -> tuple[ResourceKey, ...]:
+    """Extract semantic resources from already-authorized tool arguments."""
+
+    if name == "edit_file":
+        path = arguments.get("file_path")
+        return resource_keys_for_path(path) if isinstance(path, str) else ()
+    if name == "mutate_app_ui_model":
+        return _resource_keys_for_app_ui_operations(arguments.get("operations"))
+
+    resources: list[ResourceKey] = []
+    if name in {"create_ui_plugin", "mutate_ui_plugin_source"}:
+        _append_resource(resources, _resource_key("plugin", arguments.get("pluginId")))
+    elif name == "apply_agent_ui_source_item":
+        _append_resource(resources, _resource_key("source-item", arguments.get("itemId")))
+
+    if name in {
+        "prepare_ui_service_contract_change",
+        "create_ui_service_contract",
+        "mutate_ui_service_contract",
+    }:
+        service_name = arguments.get("serviceName")
+        if not isinstance(service_name, str):
+            service_name = arguments.get("service_name")
+        _append_resource(resources, _resource_key("service", service_name))
+        if not resources:
+            contract_path = arguments.get("contractPath")
+            if not isinstance(contract_path, str):
+                contract_path = arguments.get("contract_path")
+            if isinstance(contract_path, str):
+                for resource in resource_keys_for_path(contract_path):
+                    _append_resource(resources, resource)
+    return tuple(resources)
+
+
+def resource_keys_for_tool_result(name: str, result: Mapping[str, Any]) -> tuple[ResourceKey, ...]:
+    """Read Host-issued semantic identities returned after a tool executes."""
+
+    value: Any = result.get("result") if isinstance(result.get("result"), Mapping) else result
+    resources: list[ResourceKey] = []
+    if isinstance(value, Mapping):
+        _append_resource(resources, _resource_key("plugin", value.get("pluginId")))
+        _append_resource(resources, _resource_key("source-item", value.get("itemId")))
+        _append_resource(resources, _resource_key("service", value.get("serviceName")))
+        proposal = value.get("proposal")
+        if isinstance(proposal, Mapping):
+            _append_resource(resources, _resource_key("service", proposal.get("serviceName")))
+        changed_paths = value.get("changedPaths")
+        if isinstance(changed_paths, Sequence) and not isinstance(changed_paths, (str, bytes)):
+            for path in changed_paths:
+                if isinstance(path, str):
+                    for resource in resource_keys_for_path(path):
+                        _append_resource(resources, resource)
+    return tuple(resources)
+
+
+_RESOURCE_TOKEN = re.compile(
+    r"(?<![A-Za-z0-9_.-])(?:app-ui-model|plugin|plugin-instance|service|agent-contract|source-item):[A-Za-z0-9][A-Za-z0-9._/-]*"
+)
+_RESOURCE_PATH = re.compile(
+    r"(?<![A-Za-z0-9_.-])/?(?:app-ui/app-ui\.json|plugins/[A-Za-z0-9][A-Za-z0-9._-]*(?:/[A-Za-z0-9][A-Za-z0-9._-]*)*|services/[A-Za-z0-9][A-Za-z0-9._-]*(?:/[A-Za-z0-9][A-Za-z0-9._-]*)*|agent-contract/[A-Za-z0-9][A-Za-z0-9._-]*(?:/[A-Za-z0-9][A-Za-z0-9._-]*)*)"
+)
+
+
+def resource_keys_for_evidence(
+    evidence: str,
+    *,
+    known_resources: Sequence[ResourceKey] = (),
+) -> tuple[ResourceKey, ...]:
+    """Extract only reliable semantic resources from validation evidence."""
+
+    resources: list[ResourceKey] = []
+    for match in _RESOURCE_TOKEN.finditer(evidence):
+        token = match.group(0).rstrip(".,;:)]}\"'")
+        _append_resource(resources, token)
+    for match in _RESOURCE_PATH.finditer(evidence.replace("\\", "/")):
+        path = match.group(0).lstrip("/").rstrip(".,;:)]}\"'")
+        for resource in resource_keys_for_path(path):
+            _append_resource(resources, resource)
+    # Host checks sometimes expose a Service or Plugin identity in prose
+    # without printing its path.  Match only currently known keys so a random
+    # same-layer word cannot silently authorize a repair.
+    for resource in known_resources:
+        suffix = resource.split(":", 1)[-1]
+        if suffix and re.search(
+            rf"(?<![A-Za-z0-9_.-]){re.escape(suffix)}(?![A-Za-z0-9_.-})]",
+            evidence,
+        ):
+            _append_resource(resources, resource)
+    return tuple(resources)
 
 
 def change_layers_for_paths(paths: Sequence[str]) -> tuple[ChangeLayer, ...]:
@@ -111,7 +340,22 @@ class ChangeScopeMetrics:
     crossLayerTransitionCount: int = 0
     blockedCrossLayerRepairAttempts: int = 0
     workspaceIntegrityBlockers: int = 0
+    scopeResources: list[ResourceKey] = field(default_factory=list)
+    blockedCrossResourceRepairAttempts: int = 0
     _lastLayer: ChangeLayer | None = field(default=None, init=False, repr=False)
+
+    @property
+    def resources(self) -> list[ResourceKey]:
+        """Compatibility spelling for callers that use TaskScope.resources."""
+
+        return self.scopeResources
+
+    @property
+    def task_scope(self) -> TaskScope:
+        return TaskScope(
+            layers=tuple(self.taskChangeLayers),
+            resources=tuple(self.scopeResources),
+        )
 
     def record_layer(self, layer: ChangeLayer) -> None:
         if self._lastLayer is not None and self._lastLayer != layer:
@@ -120,6 +364,17 @@ class ChangeScopeMetrics:
             self.taskChangeLayers.append(layer)
         self._lastLayer = layer
 
+    def record_resource(self, resource: ResourceKey) -> None:
+        if resource not in self.scopeResources:
+            self.scopeResources.append(resource)
+
+    def record_scope(
+        self, layer: ChangeLayer, resources: Sequence[ResourceKey] = ()
+    ) -> None:
+        self.record_layer(layer)
+        for resource in resources:
+            self.record_resource(resource)
+
     def record_skill(self, name: str) -> None:
         if name not in self.skillsLoaded:
             self.skillsLoaded.append(name)
@@ -127,16 +382,26 @@ class ChangeScopeMetrics:
     def to_dict(self) -> dict[str, object]:
         value = asdict(self)
         value.pop("_lastLayer", None)
+        value["taskScope"] = self.task_scope.to_dict()
         return value
 
 
 class ScopeAwareRecoveryGuard(AgentMiddleware):
     """Keep failures from authorizing repair outside the current task scope."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        service_resource_resolver: Callable[
+            [str, Mapping[str, Any]], Sequence[ResourceKey]
+        ]
+        | None = None,
+    ) -> None:
         self.metrics = ChangeScopeMetrics()
         self._blocked_layers: frozenset[ChangeLayer] | None = None
+        self._blocked_resources: frozenset[ResourceKey] | None = None
         self._blocker: dict[str, object] | None = None
+        self._service_resource_resolver = service_resource_resolver
 
     @staticmethod
     def _call(request: Any) -> tuple[dict[str, Any], str, dict[str, Any]]:
@@ -163,12 +428,35 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
     ) -> None:
         layers = frozenset(self.metrics.taskChangeLayers)
         self._blocked_layers = layers or frozenset({"composition"})
+        self._blocked_resources = frozenset(self.metrics.scopeResources)
         self._blocker = evidence
         if workspace_integrity:
             self.metrics.workspaceIntegrityBlockers += 1
 
     def _activate_blocker(self, evidence: dict[str, object]) -> None:
         self._preserve_scope(evidence, workspace_integrity=True)
+
+    def _resources_for_call(
+        self, name: str, arguments: Mapping[str, Any]
+    ) -> tuple[ResourceKey, ...]:
+        resources = list(resource_keys_for_tool_call(name, arguments))
+        if self._service_resource_resolver is not None:
+            try:
+                resolved = self._service_resource_resolver(name, arguments)
+            except Exception:
+                resolved = ()
+            # A Host-known Service identity is authoritative.  Discard the
+            # filename-derived fallback for a Service contract path so the
+            # scope never contains an opaque or guessed Service resource.
+            if name == "edit_file" and resolved:
+                resources = [
+                    resource
+                    for resource in resources
+                    if not resource.startswith("service:")
+                ]
+            for resource in resolved:
+                _append_resource(resources, resource)
+        return tuple(resources)
 
     def _observe_result(self, name: str, arguments: dict[str, Any], result: Any) -> None:
         if name == "read_file":
@@ -183,6 +471,9 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         payload = self._json_object(self._content(result))
         if payload is None:
             return
+        if name in _RESOURCE_RESULT_SIDE_EFFECT_TOOLS:
+            for resource in resource_keys_for_tool_result(name, payload):
+                self.metrics.record_resource(resource)
         if name == "mutate_app_ui_model":
             error = payload.get("error")
             if isinstance(error, dict) and error.get("category") == "workspace_integrity":
@@ -238,24 +529,72 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
             and layer not in self._blocked_layers
         )
 
-    def _blocked_message(self, call: dict[str, Any], layer: ChangeLayer) -> ToolMessage:
-        self.metrics.blockedCrossLayerRepairAttempts += 1
+    @staticmethod
+    def _is_side_effect_tool(name: str) -> bool:
+        return name == "edit_file" or name in _STATIC_SIDE_EFFECT_LAYERS
+
+    def _is_cross_resource_blocked(
+        self,
+        layer: ChangeLayer | None,
+        resources: Sequence[ResourceKey],
+    ) -> bool:
+        if layer is None or self._blocked_layers is None:
+            return False
+        if layer not in self._blocked_layers:
+            return False
+        allowed = self._blocked_resources or frozenset()
+        if not resources:
+            return True
+        specific_resources = tuple(
+            resource
+            for resource in resources
+            if resource != _APP_UI_MODEL_RESOURCE
+        )
+        # app-ui-model is a shared Composition document, not permission to
+        # mutate every Plugin instance represented by that document.
+        if not specific_resources:
+            return _APP_UI_MODEL_RESOURCE not in allowed
+        return any(resource not in allowed for resource in specific_resources)
+
+    def _blocked_message(
+        self,
+        call: dict[str, Any],
+        layer: ChangeLayer | None,
+        resources: Sequence[ResourceKey],
+    ) -> ToolMessage:
+        cross_layer = layer is not None and self._is_cross_layer_blocked(layer)
+        if cross_layer:
+            code = "CROSS_LAYER_REPAIR_PROHIBITED"
+            self.metrics.blockedCrossLayerRepairAttempts += 1
+            message = (
+                "The current task-scope boundary does not authorize automatic "
+                f"repair in the {layer} layer. Stop and report the blocker."
+            )
+        else:
+            code = "CROSS_RESOURCE_REPAIR_PROHIBITED"
+            self.metrics.blockedCrossResourceRepairAttempts += 1
+            message = (
+                "The current task-scope boundary does not authorize automatic "
+                "repair of the requested resource. Stop and report the blocker."
+            )
         content = json.dumps(
             {
                 "ok": False,
                 "error": {
-                    "code": "CROSS_LAYER_REPAIR_PROHIBITED",
+                    "code": code,
                     "category": "workspace_integrity",
-                    "message": (
-                        "The current task-scope boundary does not authorize "
-                        f"automatic repair in the {layer} layer. Stop and report the blocker."
-                    ),
+                    "message": message,
                     "stateChanged": False,
                     "observationStillValid": True,
-                    "details": {"blocker": self._blocker},
+                    "details": {
+                        "blocker": self._blocker,
+                        "requestedResources": list(resources),
+                        "allowedResources": sorted(self._blocked_resources or ()),
+                    },
                     "recovery": {
                         "action": "stop_and_report_blocker",
                         "automaticCrossLayerRepairAllowed": False,
+                        "automaticCrossResourceRepairAllowed": False,
                     },
                 },
             },
@@ -296,10 +635,15 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
     def wrap_tool_call(self, request: Any, handler: Callable[[Any], Any]) -> Any:
         call, name, arguments = self._call(request)
         layer = change_layer_for_tool_call(name, arguments)
-        if self._is_cross_layer_blocked(layer):
-            return self._blocked_message(call, layer)
+        resources = self._resources_for_call(name, arguments)
+        if self._blocked_layers is not None and self._is_side_effect_tool(name) and (
+            layer is None
+            or self._is_cross_layer_blocked(layer)
+            or self._is_cross_resource_blocked(layer, resources)
+        ):
+            return self._blocked_message(call, layer, resources)
         if layer is not None:
-            self.metrics.record_layer(layer)
+            self.metrics.record_scope(layer, resources)
         result = handler(request)
         self._observe_result(name, arguments, result)
         return result
@@ -309,10 +653,15 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
     ) -> Any:
         call, name, arguments = self._call(request)
         layer = change_layer_for_tool_call(name, arguments)
-        if self._is_cross_layer_blocked(layer):
-            return self._blocked_message(call, layer)
+        resources = self._resources_for_call(name, arguments)
+        if self._blocked_layers is not None and self._is_side_effect_tool(name) and (
+            layer is None
+            or self._is_cross_layer_blocked(layer)
+            or self._is_cross_resource_blocked(layer, resources)
+        ):
+            return self._blocked_message(call, layer, resources)
         if layer is not None:
-            self.metrics.record_layer(layer)
+            self.metrics.record_scope(layer, resources)
         result = await handler(request)
         self._observe_result(name, arguments, result)
         return result
@@ -344,22 +693,34 @@ def build_change_layer_run_metrics(
         int(by_operation.get(name, 0)) for name in _PROJECT_CONTROL_READ_OPERATIONS
     )
     layers = list(scope.taskChangeLayers) or list(change_layers_for_paths(final_paths))
+    scope_resources = list(scope.scopeResources) or list(
+        resource_keys_for_paths(final_paths)
+    )
     task_change_layer = (
         layers[0] if len(layers) == 1 else "mixed" if layers else "none"
     )
     return {
+        "executedChangeLayer": task_change_layer,
+        "executedChangeLayers": layers,
         "taskChangeLayer": task_change_layer,
         "taskChangeLayers": layers,
+        "taskScope": {"layers": layers, "resources": scope_resources},
+        "scopeResources": scope_resources,
         "skillLoaded": bool(scope.skillsLoaded),
         "skillsLoaded": list(scope.skillsLoaded),
         "projectControlReads": project_control_reads,
         "appUIModelMutationAttempts": int(getattr(mutation, "requests", 0)),
+        "appUIModelMutationOperations": int(getattr(mutation, "operations", 0)),
+        "successfulAppUIModelMutations": int(
+            getattr(mutation, "successfulRequests", 0)
+        ),
         "mutationErrorCategories": dict(
             getattr(mutation, "errorCategories", {})
         ),
         "semanticReplans": int(getattr(mutation, "semanticReplans", 0)),
         "crossLayerTransitionCount": scope.crossLayerTransitionCount,
         "blockedCrossLayerRepairAttempts": scope.blockedCrossLayerRepairAttempts,
+        "blockedCrossResourceRepairAttempts": scope.blockedCrossResourceRepairAttempts,
         "workspaceIntegrityBlockers": scope.workspaceIntegrityBlockers,
         "sourceWrites": len(source_write_events),
         "sourceWritePaths": source_paths,
