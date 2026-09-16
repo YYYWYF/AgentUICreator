@@ -58,6 +58,49 @@ def _copy_target(tmp_path: Path) -> Path:
     return project_root
 
 
+def _set_thread_list_fixture(project_root: Path, *, enabled: bool) -> None:
+    path = project_root / APP_UI_MODEL_PATH
+    model = json.loads(path.read_text(encoding="utf-8"))
+    root = model["root"]
+    children = root["children"]
+    sizes = root["sizes"]
+    has_thread_list = any(
+        child.get("child", {}).get("plugins", [{}])[0].get("pluginId")
+        == "conversation-thread-list"
+        for child in children
+        if isinstance(child, dict)
+        and isinstance(child.get("child"), dict)
+        and child["child"].get("plugins")
+    )
+    if enabled == has_thread_list:
+        return
+    if enabled:
+        children.insert(
+            0,
+            {
+                "type": "panel",
+                "child": {
+                    "type": "slot",
+                    "plugins": [
+                        {
+                            "id": "conversation-thread-list-main",
+                            "pluginId": "conversation-thread-list",
+                            "enabled": True,
+                        }
+                    ],
+                },
+                "width": 300,
+            },
+        )
+        sizes.insert(0, "300px")
+    else:
+        children.pop(0)
+        sizes.pop(0)
+    path.write_text(
+        f"{json.dumps(model, ensure_ascii=False, indent=2)}\n", encoding="utf-8"
+    )
+
+
 def _source_snapshot(project_root: Path, relative_root: str) -> dict[str, bytes]:
     root = project_root / relative_root
     return {
@@ -168,6 +211,26 @@ def _assert_fast_path_slo(result) -> dict[str, object]:
     return metrics
 
 
+def _print_live_trajectory(
+    *, case: str, repeat: int, prompt: str, result
+) -> None:
+    fast_path = result.composition_fast_path_metrics.to_dict()
+    print(
+        json.dumps(
+            {
+                "case": case,
+                "repeat": repeat,
+                "prompt": prompt,
+                "compositionFastPath": fast_path,
+                "mutationRequests": result.app_ui_model_mutations.requests,
+                "semanticReplans": result.change_layer_metrics["semanticReplans"],
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+    )
+
+
 class _LiveValidationRunner:
     def __init__(
         self, project_root: Path, diagnostics: RuntimeDiagnosticStore, thread_id: str
@@ -212,6 +275,7 @@ class _LiveValidationRunner:
 @pytest.mark.parametrize("repeat", range(3))
 def test_live_conversation_management_reuses_composition_capability(tmp_path, repeat):
     project_root = _copy_target(tmp_path)
+    _set_thread_list_fixture(project_root, enabled=False)
     plugin_sources_before = _source_snapshot(project_root, "plugins")
     services_before = _source_snapshot(project_root, "services")
     agent_ui_before = _source_snapshot(project_root, "agent-ui")
@@ -241,6 +305,9 @@ def test_live_conversation_management_reuses_composition_capability(tmp_path, re
     )
 
     result = asyncio.run(agent.run(CASE_A_PROMPT))
+    _print_live_trajectory(
+        case="A", repeat=repeat, prompt=CASE_A_PROMPT, result=result
+    )
     receipt = activity.finish()
     model = json.loads(
         (project_root / APP_UI_MODEL_PATH).read_text(encoding="utf-8")
@@ -257,7 +324,8 @@ def test_live_conversation_management_reuses_composition_capability(tmp_path, re
     assert _source_snapshot(project_root, "agent-contract") == agent_contract_before
 
     metrics = result.change_layer_metrics
-    fast_path = _assert_fast_path_slo(result)
+    _assert_fast_path_slo(result)
+    assert result.project_control.requestsByOperation.get("inspect_ui_services", 0) == 0
     assert metrics["executedChangeLayer"] == "composition"
     assert metrics["executedChangeLayers"] == ["composition"]
     assert metrics["appUIModelMutationAttempts"] == 1
@@ -270,20 +338,6 @@ def test_live_conversation_management_reuses_composition_capability(tmp_path, re
         check["status"] == "passed" for check in receipt["verification"]["checks"]
     )
     assert all(check["status"] == "passed" for check in receipt["validations"])
-    print(
-        json.dumps(
-            {
-                "case": "A",
-                "repeat": repeat,
-                "prompt": CASE_A_PROMPT,
-                "compositionFastPath": fast_path,
-                "mutationRequests": result.app_ui_model_mutations.requests,
-                "semanticReplans": metrics["semanticReplans"],
-            },
-            ensure_ascii=False,
-            sort_keys=True,
-        )
-    )
 
 
 @pytest.mark.live_model
@@ -294,6 +348,7 @@ def test_live_conversation_management_reuses_composition_capability(tmp_path, re
 @pytest.mark.parametrize("repeat", range(3))
 def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
     project_root = _copy_target(tmp_path)
+    _set_thread_list_fixture(project_root, enabled=True)
     surface_before = _source_snapshot(project_root, SURFACE_PLUGIN_ROOT)
     service_before = (project_root / "services" / "conversations.ts").read_bytes()
     thread_id = f"live-composition-cognition-{repeat}"
@@ -321,6 +376,9 @@ def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
     )
 
     result = asyncio.run(agent.run(CASE_B_PROMPT))
+    _print_live_trajectory(
+        case="B", repeat=repeat, prompt=CASE_B_PROMPT, result=result
+    )
     receipt = activity.finish()
     model = json.loads(
         (project_root / APP_UI_MODEL_PATH).read_text(encoding="utf-8")
@@ -340,7 +398,7 @@ def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
     assert _source_snapshot(project_root, SURFACE_PLUGIN_ROOT) == surface_before
 
     metrics = result.change_layer_metrics
-    fast_path = _assert_fast_path_slo(result)
+    _assert_fast_path_slo(result)
     _LIVE_RUN_METRICS.append(
         (result.metrics.modelCalls, metrics["projectControlReads"])
     )
@@ -366,17 +424,3 @@ def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
     assert all(check["status"] == "passed" for check in receipt["validations"])
     assert result.metrics.modelCalls <= 8
     assert metrics["projectControlReads"] <= 3
-    print(
-        json.dumps(
-            {
-                "case": "B",
-                "repeat": repeat,
-                "prompt": CASE_B_PROMPT,
-                "compositionFastPath": fast_path,
-                "mutationRequests": result.app_ui_model_mutations.requests,
-                "semanticReplans": metrics["semanticReplans"],
-            },
-            ensure_ascii=False,
-            sort_keys=True,
-        )
-    )
