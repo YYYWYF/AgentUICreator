@@ -114,6 +114,7 @@ class CreatorRunLogger:
         metrics: Mapping[str, object] | None = None,
         mutation_metrics: Mapping[str, object] | None = None,
         change_layer_metrics: Mapping[str, object] | None = None,
+        composition_fast_path_metrics: Mapping[str, object] | None = None,
         project_control_metrics: Mapping[str, object] | None = None,
         error: BaseException | None = None,
     ) -> None:
@@ -142,6 +143,15 @@ class CreatorRunLogger:
                 **(
                     {"changeLayerMetrics": dict(change_layer_metrics)}
                     if change_layer_metrics is not None
+                    else {}
+                ),
+                **(
+                    {
+                        "compositionFastPath": dict(
+                            composition_fast_path_metrics
+                        )
+                    }
+                    if composition_fast_path_metrics is not None
                     else {}
                 ),
                 **(

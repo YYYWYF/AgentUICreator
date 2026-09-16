@@ -29,7 +29,8 @@ TARGET_PROJECT = REPOSITORY_ROOT / "examples" / "agent-frontend"
 SKILLS_ROOT = REPOSITORY_ROOT / "packages" / "creator" / "skills"
 APP_UI_MODEL_PATH = "app-ui/app-ui.json"
 SURFACE_PLUGIN_ROOT = "plugins/conversation-surface"
-PROMPT = "帮我去掉左边的历史会话"
+CASE_A_PROMPT = "我要会话管理的功能"
+CASE_B_PROMPT = "帮我去掉左边的历史会话"
 _LIVE_RUN_METRICS: list[tuple[int, int]] = []
 
 
@@ -154,6 +155,19 @@ def _runtime_instances(model: dict[str, object]) -> list[dict[str, str]]:
     return instances
 
 
+def _assert_fast_path_slo(result) -> dict[str, object]:
+    metrics = result.composition_fast_path_metrics.to_dict()
+    assert metrics["attempted"] is True
+    assert metrics["eligible"] is True
+    assert metrics["modelCallsBeforeFirstMutation"] <= 3
+    assert metrics["readRoundsBeforeFirstMutation"] <= 2
+    assert metrics["filesystemSourceReadsBeforeMutation"] == 0
+    assert metrics["crossLayerReadAttemptsBeforeMutation"] == 0
+    assert metrics["firstMutationSucceeded"] is True
+    assert metrics["firstMutationErrorCode"] is None
+    return metrics
+
+
 class _LiveValidationRunner:
     def __init__(
         self, project_root: Path, diagnostics: RuntimeDiagnosticStore, thread_id: str
@@ -196,6 +210,88 @@ class _LiveValidationRunner:
     reason="Set CREATOR_RUN_LIVE_MODEL=1 to run live Creator cognition.",
 )
 @pytest.mark.parametrize("repeat", range(3))
+def test_live_conversation_management_reuses_composition_capability(tmp_path, repeat):
+    project_root = _copy_target(tmp_path)
+    plugin_sources_before = _source_snapshot(project_root, "plugins")
+    services_before = _source_snapshot(project_root, "services")
+    agent_ui_before = _source_snapshot(project_root, "agent-ui")
+    agent_contract_before = _source_snapshot(project_root, "agent-contract")
+    thread_id = f"live-composition-conversation-management-{repeat}"
+    diagnostics = RuntimeDiagnosticStore()
+    activity = CreatorActivityRecorder(project_root)
+    activity.begin(thread_id)
+    settings = CreatorModelSettings.from_environment()
+    provider_trace_collector = ProviderResponseTraceCollector(enabled=False)
+    agent = create_domain_write_creator_agent(
+        model=create_creator_chat_model(
+            settings,
+            thread_id=thread_id,
+            provider_trace_collector=provider_trace_collector,
+        ),
+        workspace=project_root,
+        skills_root=SKILLS_ROOT,
+        diagnostics=diagnostics,
+        thread_id=thread_id,
+        validation_runner=_LiveValidationRunner(
+            project_root, diagnostics, thread_id
+        ),
+        automatic_completion_repair=True,
+        provider_trace_collector=provider_trace_collector,
+        activity=activity,
+    )
+
+    result = asyncio.run(agent.run(CASE_A_PROMPT))
+    receipt = activity.finish()
+    model = json.loads(
+        (project_root / APP_UI_MODEL_PATH).read_text(encoding="utf-8")
+    )
+    authoring_plugins = _walk_authoring_plugins(model)
+    plugin_ids = {plugin.get("pluginId") for plugin in authoring_plugins}
+
+    assert "conversation-thread-list" in plugin_ids
+    assert "conversation-surface" in plugin_ids
+    assert "conversation-service" in plugin_ids
+    assert _source_snapshot(project_root, "plugins") == plugin_sources_before
+    assert _source_snapshot(project_root, "services") == services_before
+    assert _source_snapshot(project_root, "agent-ui") == agent_ui_before
+    assert _source_snapshot(project_root, "agent-contract") == agent_contract_before
+
+    metrics = result.change_layer_metrics
+    fast_path = _assert_fast_path_slo(result)
+    assert metrics["executedChangeLayer"] == "composition"
+    assert metrics["executedChangeLayers"] == ["composition"]
+    assert metrics["appUIModelMutationAttempts"] == 1
+    assert metrics["successfulAppUIModelMutations"] == 1
+    assert result.app_ui_model_mutations.requests == 1
+    assert metrics["sourceWrites"] == 0
+    assert metrics["semanticReplans"] == 0
+    assert receipt["verification"]["status"] == "changed-and-verified"
+    assert all(
+        check["status"] == "passed" for check in receipt["verification"]["checks"]
+    )
+    assert all(check["status"] == "passed" for check in receipt["validations"])
+    print(
+        json.dumps(
+            {
+                "case": "A",
+                "repeat": repeat,
+                "prompt": CASE_A_PROMPT,
+                "compositionFastPath": fast_path,
+                "mutationRequests": result.app_ui_model_mutations.requests,
+                "semanticReplans": metrics["semanticReplans"],
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+    )
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(
+    os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
+    reason="Set CREATOR_RUN_LIVE_MODEL=1 to run live Creator cognition.",
+)
+@pytest.mark.parametrize("repeat", range(3))
 def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
     project_root = _copy_target(tmp_path)
     surface_before = _source_snapshot(project_root, SURFACE_PLUGIN_ROOT)
@@ -224,7 +320,7 @@ def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
         activity=activity,
     )
 
-    result = asyncio.run(agent.run(PROMPT))
+    result = asyncio.run(agent.run(CASE_B_PROMPT))
     receipt = activity.finish()
     model = json.loads(
         (project_root / APP_UI_MODEL_PATH).read_text(encoding="utf-8")
@@ -244,6 +340,7 @@ def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
     assert _source_snapshot(project_root, SURFACE_PLUGIN_ROOT) == surface_before
 
     metrics = result.change_layer_metrics
+    fast_path = _assert_fast_path_slo(result)
     _LIVE_RUN_METRICS.append(
         (result.metrics.modelCalls, metrics["projectControlReads"])
     )
@@ -269,3 +366,17 @@ def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
     assert all(check["status"] == "passed" for check in receipt["validations"])
     assert result.metrics.modelCalls <= 8
     assert metrics["projectControlReads"] <= 3
+    print(
+        json.dumps(
+            {
+                "case": "B",
+                "repeat": repeat,
+                "prompt": CASE_B_PROMPT,
+                "compositionFastPath": fast_path,
+                "mutationRequests": result.app_ui_model_mutations.requests,
+                "semanticReplans": metrics["semanticReplans"],
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+    )

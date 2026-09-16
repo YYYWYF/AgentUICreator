@@ -205,7 +205,14 @@ observation coverage。Snapshot 在当前 workspace mutation revision 内保持 
 `stale`。已被 fresh coverage 完全包含的领域读取返回
 `OBSERVATION_ALREADY_COVERED`，模型应复用 Snapshot 并收敛到
 `mutate_app_ui_model`，而不是继续读取 Plugin source、CSS、Services 或生成物。
-空参数 `inspect_ui_project` 继续返回完整项目导航摘要。
+grounding 为 `grounded` 且 workspace mutation revision 未变化时，Host 在执行层
+短路明确的跨层 domain/source reads，返回
+`COMPOSITION_FAST_PATH_CROSS_LAYER_READ_PROHIBITED`。空参数
+`inspect_ui_project` 继续返回完整项目导航摘要；其成功结果是显式 Fast Path exit，
+清除 Composition grounding 但保留当前 AppUIModel hash observation，之后允许按需进行
+跨层检查。每次 run 以单个 `compositionFastPath` 对象聚合 snapshot、exit、首次
+mutation 前的 model/read/source-read 轨迹与首次 mutation 结果，model token 和延迟
+直接复用 `ToolProtocolMetrics`。
 
 这借鉴 DeepSeek Harness 的 progressive Inspect，但项目文件、AppUIModel、Plugin Contract 和目标项目依赖仍是本项目的事实源。
 

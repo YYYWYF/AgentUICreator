@@ -223,6 +223,63 @@ def test_composition_snapshot_grounds_and_rejects_fully_covered_reads(tmp_path):
     assert refreshed["result"]["hash"] == "b" * 64
 
 
+def test_composition_fast_path_blocks_domain_reads_until_full_project_exit(tmp_path):
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("composition-fast-path-domain-guard")
+    observations = DomainObservationContext()
+    client = StubClient()
+    tools = create_project_control_tools(
+        client,
+        observations=observations,
+        activity=activity,
+    )
+
+    asyncio.run(tools[0].ainvoke({"view": "composition"}))
+    for index, arguments in (
+        (4, {"pluginId": "workspace-inspector"}),
+        (5, {}),
+        (6, {"pluginId": "workspace-inspector"}),
+        (7, {}),
+    ):
+        prohibited = json.loads(asyncio.run(tools[index].ainvoke(arguments)))
+        assert prohibited["error"]["code"] == (
+            "COMPOSITION_FAST_PATH_CROSS_LAYER_READ_PROHIBITED"
+        )
+
+    full = json.loads(asyncio.run(tools[0].ainvoke({})))
+    services = json.loads(asyncio.run(tools[5].ainvoke({})))
+    assert full["ok"] is True
+    assert services["ok"] is True
+    assert observations.composition_grounding_status(current_revision=0) == (
+        "unobserved"
+    )
+    assert observations.current_hash(current_revision=0) == "e" * 64
+    metrics = observations.composition_fast_path_metrics.to_dict()
+    assert metrics["attempted"] is True
+    assert metrics["eligible"] is True
+    assert metrics["compositionSnapshots"] == 1
+    assert metrics["fastPathExits"] == 1
+    assert metrics["crossLayerReadAttemptsBeforeMutation"] == 4
+
+
+def test_stale_composition_grounding_does_not_block_domain_reads(tmp_path):
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("composition-fast-path-stale")
+    observations = DomainObservationContext()
+    tools = create_project_control_tools(
+        StubClient(),
+        observations=observations,
+        activity=activity,
+    )
+
+    asyncio.run(tools[0].ainvoke({"view": "composition"}))
+    activity.touch("app-ui/app-ui.json")
+    services = json.loads(asyncio.run(tools[5].ainvoke({})))
+
+    assert services["ok"] is True
+    assert observations.composition_grounding_status(current_revision=1) == "stale"
+
+
 def test_agent_ui_source_tools_keep_inspection_read_only_and_apply_is_a_noop(tmp_path):
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("agent-ui-sources")

@@ -244,6 +244,9 @@ async def _execute_agent_run(
             metrics=run_telemetry.model_tool_metrics(),
             mutation_metrics=run_telemetry.mutation_metrics(),
             change_layer_metrics=run_telemetry.change_layer_metrics(),
+            composition_fast_path_metrics=(
+                run_telemetry.composition_fast_path_metrics()
+            ),
             project_control_metrics=run_telemetry.project_control_metrics(),
         )
         return _AgentExecution(result=result, receipt=receipt)
@@ -257,6 +260,9 @@ async def _execute_agent_run(
             metrics=run_telemetry.model_tool_metrics(),
             mutation_metrics=run_telemetry.mutation_metrics(),
             change_layer_metrics=run_telemetry.change_layer_metrics(),
+            composition_fast_path_metrics=(
+                run_telemetry.composition_fast_path_metrics()
+            ),
             project_control_metrics=run_telemetry.project_control_metrics(),
             error=error,
         )
@@ -463,6 +469,10 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             if hasattr(result, "change_layer_metrics"):
                                 run_result["changeLayer"] = (
                                     result.change_layer_metrics
+                                )
+                            if hasattr(result, "composition_fast_path_metrics"):
+                                run_result["compositionFastPath"] = (
+                                    result.composition_fast_path_metrics.to_dict()
                                 )
                     else:
                         run_result = {

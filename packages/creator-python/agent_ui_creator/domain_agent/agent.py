@@ -20,7 +20,11 @@ from ..app_ui_model import (
 )
 from ..app_ui_model.mutation_tool import create_app_ui_model_mutation_tool
 from ..domain_tools import create_project_control_tools
-from ..domain_state import DomainObservationContext, DomainObservationMetrics
+from ..domain_state import (
+    CompositionFastPathMetrics,
+    DomainObservationContext,
+    DomainObservationMetrics,
+)
 from ..minimal_agent.agent import (
     _NoSummaryMiddleware,
     _message_text,
@@ -98,6 +102,7 @@ class DomainReadAgentResult:
 class DomainWriteAgentResult(DomainReadAgentResult):
     app_ui_model_mutations: AppUIModelMutationMetrics
     change_layer_metrics: dict[str, object]
+    composition_fast_path_metrics: CompositionFastPathMetrics
 
 
 class CreatorDomainReadAgent:
@@ -257,6 +262,9 @@ class CreatorDomainReadAgent:
                 mutation=self.mutation_service.metrics,
                 run_control=self.run_control,
             )
+            values["composition_fast_path_metrics"] = (
+                self.observations.composition_fast_path_metrics
+            )
         return result_type(**values)
 
     def _build_result(
@@ -289,6 +297,9 @@ class CreatorDomainReadAgent:
                 project_control=self.project_control.metrics,
                 mutation=self.mutation_service.metrics,
                 run_control=self.run_control,
+            )
+            values["composition_fast_path_metrics"] = (
+                self.observations.composition_fast_path_metrics
             )
         result_type = (
             DomainWriteAgentResult
@@ -552,6 +563,7 @@ def create_domain_write_creator_agent(
             project_control=client.metrics,
             mutation=service.metrics,
             scope=scope_guard.metrics,
+            composition_fast_path=observations.composition_fast_path_metrics,
             run_control=run_control,
         )
     runtime = MinimalAgentRuntimeGuard(
@@ -580,7 +592,11 @@ def create_domain_write_creator_agent(
         middleware=[
             filesystem,
             DomainWriteToolPolicyMiddleware(),
-            CompositionGroundingConvergenceMiddleware(observations, backend),
+            CompositionGroundingConvergenceMiddleware(
+                observations,
+                backend,
+                protocol_metrics=metrics,
+            ),
             scope_guard,
             repeated_read_guard,
             runtime,

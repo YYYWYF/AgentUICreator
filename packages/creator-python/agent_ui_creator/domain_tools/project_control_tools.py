@@ -7,10 +7,12 @@ from langchain_core.tools import BaseTool, tool
 
 from ..activity import CreatorActivityRecorder
 from ..domain_state import (
+    CROSS_LAYER_DOMAIN_READ_NAMES,
     DomainObservationContext,
     DomainObservationError,
     ObservationCoverage,
     ObservationSource,
+    composition_fast_path_error,
 )
 from ..project_control import ProjectControlClient, ProjectControlError
 
@@ -123,12 +125,28 @@ def create_project_control_tools(
             }
         )
 
+    def cross_layer_read_prohibited(name: str) -> str | None:
+        if (
+            observations is None
+            or activity is None
+            or name not in CROSS_LAYER_DOMAIN_READ_NAMES
+            or observations.composition_grounding_status(
+                current_revision=activity.revision
+            )
+            != "grounded"
+        ):
+            return None
+        observations.composition_fast_path_metrics.record_cross_layer_read_attempt()
+        return _render_json(composition_fast_path_error())
+
     @tool("inspect_ui_project")
     async def inspect_ui_project(
         view: Literal["composition"] | None = None,
     ) -> str:
         """Inspect current authoritative workspace facts. For a pure Composition request, use view='composition' to get one compact snapshot containing the AppUIModel hash, Layout refs and sizes, Slots and instances, available capability summaries, Active Composition, and deterministic Layout constraints. Omit view only when another layer's broader project navigation facts are genuinely required."""
         if view == "composition":
+            if observations is not None:
+                observations.record_composition_snapshot_attempt()
             covered = already_covered(COMPOSITION_SNAPSHOT_COVERAGE)
             if covered is not None:
                 return covered
@@ -138,6 +156,9 @@ def create_project_control_tools(
                 if view == "composition"
                 else await client.inspect_ui_project()
             )
+            rendered = _render_result(result)
+            if json.loads(rendered).get("ok") is not True:
+                return rendered
             app_ui_model_hash = result.get("appUIModel", {}).get("hash")
             if view == "composition":
                 if observations is not None and activity is not None:
@@ -148,7 +169,12 @@ def create_project_control_tools(
                     )
             else:
                 observe(app_ui_model_hash, "inspect_ui_project")
-            return _render_result(result)
+                if observations is not None and activity is not None:
+                    observations.clear_composition_grounding(
+                        reason="full_project_navigation",
+                        current_revision=activity.revision,
+                    )
+            return rendered
         except (ProjectControlError, DomainObservationError) as error:
             return _render_error(error)
 
@@ -213,6 +239,9 @@ def create_project_control_tools(
     @tool("inspect_ui_plugin")
     async def inspect_ui_plugin(pluginId: str) -> str:
         """Inspect one currently known UI Plugin's declaration and current authoring composition state. Prefer this after pluginId is known."""
+        prohibited = cross_layer_read_prohibited("inspect_ui_plugin")
+        if prohibited is not None:
+            return prohibited
         try:
             return _render_result(await client.inspect_ui_plugin(pluginId))
         except ProjectControlError as error:
@@ -221,6 +250,9 @@ def create_project_control_tools(
     @tool("inspect_ui_services")
     async def inspect_ui_services() -> str:
         """Inspect declared Service providers, required consumers, optional consumers, and current availability."""
+        prohibited = cross_layer_read_prohibited("inspect_ui_services")
+        if prohibited is not None:
+            return prohibited
         try:
             result = await client.inspect_ui_services()
             observe(result.get("appUIModelHash"), "inspect_ui_services")
@@ -231,6 +263,11 @@ def create_project_control_tools(
     @tool("inspect_ui_plugin_source_references")
     async def inspect_ui_plugin_source_references(pluginId: str) -> str:
         """Locate one UI plugin's authoritative source entry and related files."""
+        prohibited = cross_layer_read_prohibited(
+            "inspect_ui_plugin_source_references"
+        )
+        if prohibited is not None:
+            return prohibited
         try:
             return _render_result(
                 await client.inspect_ui_plugin_source_references(pluginId)
@@ -241,6 +278,9 @@ def create_project_control_tools(
     @tool("inspect_agent_ui_sources")
     async def inspect_agent_ui_sources() -> str:
         """Inspect Agent UI source-registry ownership, versions, dependencies, and safe apply state."""
+        prohibited = cross_layer_read_prohibited("inspect_agent_ui_sources")
+        if prohibited is not None:
+            return prohibited
         try:
             return _render_result(await client.inspect_agent_ui_sources())
         except ProjectControlError as error:

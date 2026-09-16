@@ -25,6 +25,7 @@ class CreatorRunTelemetry:
     project_control: Any | None = None
     mutation: Any | None = None
     scope: Any | None = None
+    composition_fast_path: Any | None = None
     run_control: Any | None = None
 
     def bind(
@@ -35,6 +36,7 @@ class CreatorRunTelemetry:
         project_control: Any | None = None,
         mutation: Any | None = None,
         scope: Any | None = None,
+        composition_fast_path: Any | None = None,
         run_control: Any | None = None,
     ) -> None:
         if activity is not None:
@@ -47,6 +49,8 @@ class CreatorRunTelemetry:
             self.mutation = mutation
         if scope is not None:
             self.scope = scope
+        if composition_fast_path is not None:
+            self.composition_fast_path = composition_fast_path
         if run_control is not None:
             self.run_control = run_control
 
@@ -85,6 +89,9 @@ class CreatorRunTelemetry:
             pass
         return _to_dict(self.scope)
 
+    def composition_fast_path_metrics(self) -> dict[str, object] | None:
+        return _to_dict(self.composition_fast_path)
+
     def snapshot(self) -> dict[str, object]:
         snapshot: dict[str, object] = {
             "modelToolMetrics": self.model_tool_metrics(),
@@ -98,4 +105,7 @@ class CreatorRunTelemetry:
         change_layer = self.change_layer_metrics()
         if change_layer is not None:
             snapshot["changeLayerMetrics"] = change_layer
+        composition_fast_path = self.composition_fast_path_metrics()
+        if composition_fast_path is not None:
+            snapshot["compositionFastPath"] = composition_fast_path
         return snapshot

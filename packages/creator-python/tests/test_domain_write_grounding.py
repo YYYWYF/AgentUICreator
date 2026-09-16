@@ -157,9 +157,15 @@ class GroundingClient:
         }
 
     async def inspect_ui_project(self, *, view=None):
+        self.record(
+            "inspect_ui_project",
+            {"view": "composition"} if view == "composition" else {},
+        )
         if view != "composition":
-            raise AssertionError("A full workspace scan is unnecessary for these requests")
-        self.record("inspect_ui_project", {"view": "composition"})
+            return {
+                "project": {"uiLibrary": "test"},
+                "appUIModel": {"hash": self.hash()},
+            }
         plugins = authoring_plugins(self.model())
         selected_plugin_ids = sorted({plugin["pluginId"] for plugin in plugins})
         return {
@@ -231,10 +237,27 @@ class GroundingClient:
         raise AssertionError("The plugin/slot observations already provide the hash")
 
     async def inspect_ui_plugin(self, plugin_id):
-        raise AssertionError("The plugin list already resolves the relevant facts")
+        self.record("inspect_ui_plugin", {"pluginId": plugin_id})
+        return {"pluginId": plugin_id, "entry": "index.ts"}
 
     async def inspect_ui_plugin_source_references(self, plugin_id):
-        raise AssertionError("Source references are unnecessary for these requests")
+        self.record(
+            "inspect_ui_plugin_source_references",
+            {"pluginId": plugin_id},
+        )
+        return {
+            "pluginId": plugin_id,
+            "files": [f"plugins/{plugin_id}/index.ts"],
+        }
+
+    async def inspect_ui_services(self):
+        self.record("inspect_ui_services")
+        return {
+            "appUIModelHash": self.hash(),
+            "services": [{"name": "ConversationService"}],
+            "plugins": [],
+            "issues": [],
+        }
 
     async def request_app_ui_model_mutation(self, input):
         assert input["appUIModelHash"] == self.hash()
@@ -406,6 +429,8 @@ def test_grounding_prompt_preserves_decision_and_write_boundaries():
         "the default convergence boundary",
         "OBSERVATION_ALREADY_COVERED",
         "Do not repeat the same ProjectControl inspection while the workspace is unchanged",
+        "call inspect_ui_project() without a view first",
+        "explicitly exits the Composition fast path",
         "Do not add a separate intent model call",
         "Never edit app-ui/app-ui.json,",
         "app-ui/composition-revision.generated.json, or plugins/registry.generated.ts",
@@ -557,6 +582,98 @@ def test_composition_snapshot_converges_directly_to_atomic_mutation(tmp_path):
         and "Composition grounding is sufficient." in str(message.content)
     ]
     assert len(control) == 1
+    assert result.composition_fast_path_metrics.to_dict() == {
+        "attempted": True,
+        "eligible": True,
+        "compositionSnapshots": 1,
+        "fastPathExits": 0,
+        "modelCallsBeforeFirstMutation": 2,
+        "readRoundsBeforeFirstMutation": 1,
+        "readToolsBeforeFirstMutation": 1,
+        "duplicateObservationAttempts": 0,
+        "crossLayerReadAttemptsBeforeMutation": 0,
+        "filesystemSourceReadsBeforeMutation": 0,
+        "firstMutationSucceeded": True,
+        "firstMutationErrorCode": None,
+        "inputTokensBeforeFirstMutation": None,
+        "modelLatencyBeforeFirstMutationMs": sum(
+            trace.durationMs for trace in result.metrics.traces[:2]
+        ),
+    }
+
+
+def test_full_project_exit_reenables_plugin_behavior_reads(tmp_path):
+    client = GroundingClient(tmp_path)
+    source = tmp_path / "plugins" / "session-manager" / "index.ts"
+    source.parent.mkdir(parents=True)
+    source.write_text("export const sessionManager = true;\n", encoding="utf-8")
+    result, _receipt, _model = run_script(
+        client,
+        "检查已有会话管理插件的实现。",
+        [
+            call("inspect_ui_project", {"view": "composition"}, "composition-1"),
+            call(
+                "read_file",
+                {"file_path": "/plugins/session-manager/index.ts"},
+                "read-prohibited",
+            ),
+            call("inspect_ui_project", {}, "full-project-1"),
+            call(
+                "inspect_ui_plugin",
+                {"pluginId": "session-manager"},
+                "plugin-1",
+            ),
+            call(
+                "inspect_ui_plugin_source_references",
+                {"pluginId": "session-manager"},
+                "source-references-1",
+            ),
+            call(
+                "read_file",
+                {"file_path": "/plugins/session-manager/index.ts"},
+                "read-allowed",
+            ),
+            AIMessage(content="已完成实现检查。"),
+        ],
+    )
+
+    assert client.reads == [
+        ("inspect_ui_project", {"view": "composition"}),
+        ("inspect_ui_project", {}),
+        ("inspect_ui_plugin", {"pluginId": "session-manager"}),
+        (
+            "inspect_ui_plugin_source_references",
+            {"pluginId": "session-manager"},
+        ),
+    ]
+    metrics = result.composition_fast_path_metrics.to_dict()
+    assert metrics["fastPathExits"] == 1
+    assert metrics["crossLayerReadAttemptsBeforeMutation"] == 1
+    assert metrics["filesystemSourceReadsBeforeMutation"] == 1
+
+
+def test_full_project_exit_reenables_runtime_capability_reads(tmp_path):
+    client = GroundingClient(tmp_path)
+    result, _receipt, _model = run_script(
+        client,
+        "检查会话服务能力。",
+        [
+            call("inspect_ui_project", {"view": "composition"}, "composition-1"),
+            call("inspect_ui_services", {}, "services-prohibited"),
+            call("inspect_ui_project", {}, "full-project-1"),
+            call("inspect_ui_services", {}, "services-allowed"),
+            AIMessage(content="已完成服务能力检查。"),
+        ],
+    )
+
+    assert client.reads == [
+        ("inspect_ui_project", {"view": "composition"}),
+        ("inspect_ui_project", {}),
+        ("inspect_ui_services", {}),
+    ]
+    metrics = result.composition_fast_path_metrics.to_dict()
+    assert metrics["fastPathExits"] == 1
+    assert metrics["crossLayerReadAttemptsBeforeMutation"] == 1
 
 
 def test_explicit_independent_capability_can_enter_source_edit_path(tmp_path):
@@ -804,6 +921,7 @@ def test_server_clarification_stream_succeeds_with_zero_mutations(tmp_path, monk
     assert result["projectControl"]["repeatedProjectControlReads"] == 0
     assert result["toolProtocol"]["modelCalls"] == 2
     assert result["toolProtocol"]["toolCalls"] == 1
+    assert result["compositionFastPath"]["attempted"] is False
     assert len(model_creations) == 1
     assert client.mutations == []
     assert project_files(tmp_path) == before

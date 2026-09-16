@@ -228,6 +228,11 @@ ProjectControl inspection while the workspace is unchanged. After a relevant
 workspace change or an explicit stale-observation/hash-conflict error, refresh
 only the observations needed to proceed. Do not add a separate intent model call
 or resolution workflow; reason within this Creator run using the existing tools.
+When the user's request genuinely requires Plugin behavior, Services, Agent UI
+source, or another authoring layer after entering the Composition fast path,
+call inspect_ui_project() without a view first. A successful full project
+inspection explicitly exits the Composition fast path and permits the targeted
+cross-layer inspection. Do not use that exit merely to evade a covered read.
 
 Round-trip reduction policy
 

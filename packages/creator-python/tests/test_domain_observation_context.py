@@ -96,6 +96,45 @@ def test_composition_grounding_tracks_unobserved_grounded_and_stale():
     ] == "stale"
 
 
+def test_full_project_navigation_clears_grounding_without_losing_model_hash():
+    observations = DomainObservationContext()
+    observations.record_composition_snapshot_attempt()
+    observations.observe_composition_snapshot(
+        hash="c" * 64,
+        revision=0,
+        coverage=COMPOSITION_COVERAGE,
+    )
+
+    observations.clear_composition_grounding(
+        reason="full_project_navigation",
+        current_revision=0,
+    )
+
+    assert observations.composition_grounding_status(current_revision=0) == (
+        "unobserved"
+    )
+    assert observations.current_hash(current_revision=0) == "c" * 64
+    assert observations.snapshot(current_revision=0)[
+        "compositionGroundingExitReason"
+    ] == "full_project_navigation"
+    assert observations.composition_fast_path_metrics.to_dict() == {
+        "attempted": True,
+        "eligible": True,
+        "compositionSnapshots": 1,
+        "fastPathExits": 1,
+        "modelCallsBeforeFirstMutation": None,
+        "readRoundsBeforeFirstMutation": 0,
+        "readToolsBeforeFirstMutation": 0,
+        "duplicateObservationAttempts": 0,
+        "crossLayerReadAttemptsBeforeMutation": 0,
+        "filesystemSourceReadsBeforeMutation": 0,
+        "firstMutationSucceeded": None,
+        "firstMutationErrorCode": None,
+        "inputTokensBeforeFirstMutation": None,
+        "modelLatencyBeforeFirstMutationMs": None,
+    }
+
+
 def test_composition_grounding_requires_complete_declared_coverage():
     observations = DomainObservationContext()
     with pytest.raises(DomainObservationError) as raised:

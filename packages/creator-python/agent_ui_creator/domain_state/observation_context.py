@@ -4,6 +4,8 @@ from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from typing import Any, Literal, cast
 
+from .composition_fast_path import CompositionFastPathMetrics
+
 ObservationSource = Literal[
     "inspect_ui_project",
     "inspect_app_ui_model",
@@ -95,8 +97,10 @@ class DomainObservationContext:
         self._app_ui_model: AppUIModelObservation | None = None
         self._composition_grounding: CompositionGroundingObservation | None = None
         self._composition_grounding_invalidated = False
+        self._composition_grounding_exit_reason: str | None = None
         self._invalidation_reason: str | None = None
         self.metrics = DomainObservationMetrics()
+        self.composition_fast_path_metrics = CompositionFastPathMetrics()
 
     def observe_app_ui_model(
         self,
@@ -156,7 +160,27 @@ class DomainObservationContext:
             coverage=normalized,
         )
         self._composition_grounding_invalidated = False
+        self._composition_grounding_exit_reason = None
         self.metrics.compositionGroundingUpdates += 1
+        self.composition_fast_path_metrics.record_snapshot()
+
+    def record_composition_snapshot_attempt(self) -> None:
+        self.composition_fast_path_metrics.record_snapshot_attempt()
+
+    def clear_composition_grounding(
+        self, *, reason: str, current_revision: int
+    ) -> None:
+        was_grounded = (
+            self.composition_grounding_status(current_revision=current_revision)
+            == "grounded"
+        )
+        had_grounding = self._composition_grounding is not None
+        self._composition_grounding = None
+        self._composition_grounding_invalidated = False
+        if had_grounding:
+            self._composition_grounding_exit_reason = reason
+        if was_grounded:
+            self.composition_fast_path_metrics.record_exit()
 
     def composition_grounding_status(
         self, *, current_revision: int
@@ -187,6 +211,7 @@ class DomainObservationContext:
 
     def record_covered_read_rejection(self) -> None:
         self.metrics.coveredReadRejections += 1
+        self.composition_fast_path_metrics.record_duplicate_observation_attempt()
 
     def current_hash(self, *, current_revision: int) -> str | None:
         observation = self._app_ui_model
@@ -261,6 +286,11 @@ class DomainObservationContext:
                         else {}
                     ),
                 }
+            ),
+            **(
+                {"compositionGroundingExitReason": self._composition_grounding_exit_reason}
+                if self._composition_grounding_exit_reason is not None
+                else {}
             ),
             **(
                 {"invalidationReason": self._invalidation_reason}

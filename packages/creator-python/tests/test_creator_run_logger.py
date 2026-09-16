@@ -25,6 +25,10 @@ def test_lightweight_run_log_records_mutation_transaction_undo_and_metrics(tmp_p
             "taskChangeLayer": "plugin_behavior",
             "crossLayerTransitionCount": 0,
         },
+        composition_fast_path_metrics={
+            "attempted": True,
+            "eligible": True,
+        },
     )
 
     entries = [
@@ -45,6 +49,10 @@ def test_lightweight_run_log_records_mutation_transaction_undo_and_metrics(tmp_p
     assert entries[-1]["data"]["changeLayer"] == {
         "taskChangeLayer": "plugin_behavior",
         "crossLayerTransitionCount": 0,
+    }
+    assert entries[-1]["data"]["compositionFastPath"] == {
+        "attempted": True,
+        "eligible": True,
     }
     assert entries[0]["data"] == {
         "runtime": "python",

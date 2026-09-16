@@ -9,6 +9,7 @@ from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.app_ui_model import AppUIModelMutationMetrics
 from agent_ui_creator.domain_agent import create_domain_write_creator_agent
 from agent_ui_creator.domain_agent.change_scope import ChangeScopeMetrics
+from agent_ui_creator.domain_state import CompositionFastPathMetrics
 from agent_ui_creator.model_protocol.errors import AgentNoProgressError
 from agent_ui_creator.model_protocol.trace import ToolProtocolMetrics
 from agent_ui_creator.observability import CreatorRunLogger, CreatorRunTelemetry
@@ -49,6 +50,11 @@ def test_failure_path_logs_bound_metrics_without_agent_result(tmp_path):
             taskChangeLayers=["composition"],
             scopeResources=["app-ui-model"],
         ),
+        composition_fast_path=CompositionFastPathMetrics(
+            attempted=True,
+            eligible=True,
+            compositionSnapshots=1,
+        ),
     )
 
     async def fail():
@@ -79,6 +85,8 @@ def test_failure_path_logs_bound_metrics_without_agent_result(tmp_path):
     assert data["mutationMetrics"]["mutationOperations"] == 6
     assert data["changeLayerMetrics"]["executedChangeLayer"] == "composition"
     assert data["changeLayerMetrics"]["scopeResources"] == ["app-ui-model"]
+    assert data["compositionFastPath"]["attempted"] is True
+    assert data["compositionFastPath"]["compositionSnapshots"] == 1
 
 
 def test_real_domain_write_wiring_logs_all_metrics_on_no_progress(tmp_path):
@@ -117,6 +125,7 @@ def test_real_domain_write_wiring_logs_all_metrics_on_no_progress(tmp_path):
     assert "modelToolMetrics" in data
     assert "mutationMetrics" in data
     assert "changeLayerMetrics" in data
+    assert "compositionFastPath" in data
     assert "projectControlMetrics" in data
 
 
