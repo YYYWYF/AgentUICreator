@@ -6,6 +6,7 @@ from typing import Protocol
 
 from ..activity import CreatorActivityRecorder
 from ..runtime_diagnostics import RuntimeDiagnosticInspectionService
+from ..run_control import CreatorRunControlState
 from ..validation import CREATOR_COMPLETION_VALIDATIONS, CreatorValidationService
 from ..repair import CreatorRepairState
 from .change_scope import change_layers_for_paths, runtime_failure_layers
@@ -35,12 +36,14 @@ class CreatorDevelopmentCompletionGate:
         runtime: RuntimeDiagnosticInspectionService,
         repair_state: CreatorRepairState,
         service_authorization_finalizer: ServiceAuthorizationFinalizer | None = None,
+        run_control: CreatorRunControlState | None = None,
     ) -> None:
         self.activity = activity
         self.validation = validation
         self.runtime = runtime
         self.repair_state = repair_state
         self.service_authorization_finalizer = service_authorization_finalizer
+        self.run_control = run_control
 
     @staticmethod
     def _check(identifier: str, passed: bool, evidence: str) -> dict[str, str]:
@@ -54,6 +57,11 @@ class CreatorDevelopmentCompletionGate:
         return self.review(candidate).text
 
     def review(self, candidate: str) -> CompletionDecision:
+        if self.run_control is not None and self.run_control.blocked:
+            return CompletionDecision(
+                True,
+                self.run_control.render_blocker_response(),
+            )
         receipt = self.activity.snapshot()
         if not receipt["files"]:
             if self.activity.semantic_noop_satisfied:

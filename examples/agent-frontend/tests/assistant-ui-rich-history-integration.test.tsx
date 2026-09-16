@@ -16,12 +16,6 @@ import { ConversationSurface } from "../agent-ui/conversation/ConversationSurfac
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
 import { projectConversationReplay } from "../agent-ui/conversation/threads/conversation-history-projector";
 import { mockConversationFixtures } from "../dev-mock/conversations/fixtures";
-import type { UIPluginComponentProps } from "../framework/contracts/ui-plugin";
-
-const renderFallback: UIPluginComponentProps["renderSlot"] = (
-  _slotId,
-  fallback,
-) => fallback;
 const chatModel: ChatModelAdapter = { run: async () => ({ content: [] }) };
 const mountedRoots: Root[] = [];
 
@@ -82,7 +76,7 @@ function RichHistoryFixture({ conversationId }: { conversationId: string }) {
   return (
     <AssistantRuntimeProvider config={config} runtime={runtime}>
       <ConversationSurface
-        components={createConversationSemanticThreadComponents(renderFallback)}
+        components={createConversationSemanticThreadComponents()}
       />
     </AssistantRuntimeProvider>
   );

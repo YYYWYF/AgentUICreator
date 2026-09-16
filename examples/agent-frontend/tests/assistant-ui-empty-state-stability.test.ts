@@ -8,17 +8,25 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 
 describe("assistant-ui empty-state stability", () => {
   it("keeps suggestions under the empty-state Welcome seam", async () => {
-    const adapter = await readFile(
-      path.join(
-        projectRoot,
-        "agent-ui/conversation/ConversationAdapter.tsx",
+    const [adapter, plugin] = await Promise.all([
+      readFile(
+        path.join(
+          projectRoot,
+          "agent-ui/conversation/ConversationAdapter.tsx",
+        ),
+        "utf8",
       ),
-      "utf8",
-    );
+      readFile(
+        path.join(projectRoot, "plugins/conversation-surface/index.tsx"),
+        "utf8",
+      ),
+    ]);
     expect(adapter).toContain("ConversationEmptyState");
-    expect(adapter).toContain("components.Welcome =");
-    expect(adapter).toContain("CONVERSATION_SLOTS.suggestions");
-    expect(adapter).toContain("renderSlot(CONVERSATION_SLOTS.suggestions, null)");
+    expect(adapter).toContain("ConversationEmptyStateContext");
+    expect(plugin).toContain('renderSlot("emptySuggestions", null)');
+    expect(adapter).not.toContain("renderSlot");
+    expect(adapter).not.toContain("emptyWelcome");
+    expect(adapter).not.toContain("emptySuggestions");
     expect(adapter).not.toContain("composer.isEmpty");
   });
 

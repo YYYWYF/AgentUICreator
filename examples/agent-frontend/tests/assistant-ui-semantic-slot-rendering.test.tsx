@@ -15,10 +15,16 @@ describe("assistant-ui semantic Slot rendering", () => {
     const adapter = await read(
       "agent-ui/conversation/ConversationAdapter.tsx",
     );
-    expect(adapter).toContain("CONVERSATION_SLOTS.welcome");
-    expect(adapter).toContain("renderSlot(CONVERSATION_SLOTS.welcome");
-    expect(adapter).toContain("CONVERSATION_SLOTS.suggestions");
-    expect(adapter).toContain("renderSlot(CONVERSATION_SLOTS.suggestions");
+    const plugin = await read(
+      "plugins/conversation-surface/index.tsx",
+    );
+    expect(plugin).toContain('renderSlot("emptyWelcome"');
+    expect(plugin).toContain('renderSlot("emptySuggestions"');
+    expect(adapter).toContain("welcome?: ReactNode");
+    expect(adapter).toContain("suggestions?: ReactNode");
+    expect(adapter).not.toContain("renderSlot");
+    expect(adapter).not.toContain("emptyWelcome");
+    expect(adapter).not.toContain("emptySuggestions");
     expect(adapter).not.toContain("SemanticReasoningOutlet");
     expect(adapter).not.toContain("SemanticToolActivityOutlet");
     expect(adapter).not.toContain("SemanticToolItemOutlet");

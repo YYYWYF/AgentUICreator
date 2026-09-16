@@ -13,6 +13,7 @@ from agent_ui_creator.model_protocol.errors import AgentNoProgressError
 from agent_ui_creator.model_protocol.trace import ToolProtocolMetrics
 from agent_ui_creator.observability import CreatorRunLogger, CreatorRunTelemetry
 from agent_ui_creator.project_control import ProjectControlMetrics
+from agent_ui_creator.run_control import CreatorRunControlState
 from agent_ui_creator.server import _execute_agent_run
 from agent_ui_creator.streaming import CreatorEventBus
 
@@ -117,3 +118,30 @@ def test_real_domain_write_wiring_logs_all_metrics_on_no_progress(tmp_path):
     assert "mutationMetrics" in data
     assert "changeLayerMetrics" in data
     assert "projectControlMetrics" in data
+
+
+def test_terminal_blocker_metrics_are_flat_and_preserve_zero_after_counts():
+    state = CreatorRunControlState()
+    state.observe_protocol_counts(model_calls=2, tool_calls=2)
+    state.block(
+        category="workspace_integrity",
+        code="CREATOR_VALIDATION_WORKSPACE_INTEGRITY",
+        source="validate_creator_changes",
+        message="Host validation found a blocker.",
+        recovery={"action": "stop_and_report_blocker"},
+    )
+    telemetry = CreatorRunTelemetry(
+        protocol=ToolProtocolMetrics(modelCalls=2, toolCalls=2),
+        run_control=state,
+    )
+
+    assert telemetry.model_tool_metrics() == {
+        "modelCalls": 2,
+        "toolCalls": 2,
+        "terminalBlockerCount": 1,
+        "terminalBlockerCode": "CREATOR_VALIDATION_WORKSPACE_INTEGRITY",
+        "terminalBlockerSource": "validate_creator_changes",
+        "terminalBlockerAtModelCall": 2,
+        "modelCallsAfterTerminalBlocker": 0,
+        "toolCallsAfterTerminalBlocker": 0,
+    }

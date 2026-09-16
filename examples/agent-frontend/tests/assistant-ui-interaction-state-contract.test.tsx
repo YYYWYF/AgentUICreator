@@ -25,12 +25,18 @@ describe("assistant-ui interaction state contract", () => {
   });
 
   it("does not expose legacy message Slot bridge ownership", async () => {
-    const slots = await readFile(
-      path.join(projectRoot, "agent-ui/conversation/slots/semantic-slots.ts"),
+    const adapter = await readFile(
+      path.join(projectRoot, "agent-ui/conversation/ConversationAdapter.tsx"),
       "utf8",
     );
-    expect(slots).toContain("emptyWelcome");
-    expect(slots).toContain("emptySuggestions");
-    expect(slots).not.toMatch(/conversation\.message|conversation\.timeline|conversation\.composer/u);
+    const plugin = await readFile(
+      path.join(projectRoot, "plugins/conversation-surface/index.tsx"),
+      "utf8",
+    );
+    expect(plugin).toContain('renderSlot("emptyWelcome"');
+    expect(plugin).toContain('renderSlot("emptySuggestions"');
+    expect(adapter).not.toContain("renderSlot");
+    expect(adapter).not.toContain("emptyWelcome");
+    expect(adapter).not.toContain("emptySuggestions");
   });
 });

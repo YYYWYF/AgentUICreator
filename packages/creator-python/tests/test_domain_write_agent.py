@@ -6,13 +6,14 @@ from pathlib import Path
 
 from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
 from langchain_core.messages import AIMessage
+from pydantic import Field
 
 from agent_ui_creator.domain_agent import (
     ALLOWED_DOMAIN_WRITE_TOOLS,
     create_domain_write_creator_agent,
 )
 from agent_ui_creator.files import read_creator_file_state
-from agent_ui_creator.project_control import ProjectControlMetrics
+from agent_ui_creator.project_control import ProjectControlError, ProjectControlMetrics
 
 APP_UI_MODEL_PATH = "app-ui/app-ui.json"
 REGISTRY_PATH = "plugins/registry.generated.ts"
@@ -104,6 +105,32 @@ class MutationClient:
         raise AssertionError("source inspection was not needed")
 
 
+class TerminalBlockerMutationClient(MutationClient):
+    async def request_app_ui_model_mutation(self, _input):
+        self.mutation_calls += 1
+        self.metrics.record("mutate_app_ui_model", 1, True)
+        raise ProjectControlError(
+            "PLUGIN_CHILD_SLOT_CONTRACT_INVALID",
+            "Selected plugins contain inconsistent child Slots.",
+            {"pluginId": "conversation-surface"},
+        )
+
+
+class NoNextModel(ToolCallingFakeModel):
+    model_calls: list[None] = Field(default_factory=list)
+
+    def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+        if len(self.model_calls) >= len(self.responses):
+            raise AssertionError("model must not be called after a terminal blocker")
+        self.model_calls.append(None)
+        return super()._generate(
+            messages,
+            stop=stop,
+            run_manager=run_manager,
+            **kwargs,
+        )
+
+
 def test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation(tmp_path):
     root = _project(tmp_path)
     client = MutationClient(root)
@@ -181,3 +208,41 @@ def test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation(tmp_
     assert result.change_layer_metrics["sourceWrites"] == 0
     assert receipt["transaction"]["undoable"] is True
     assert receipt["verification"]["status"] == "failed"
+
+
+def test_workspace_integrity_terminal_blocker_stops_before_next_model_call(tmp_path):
+    root = _project(tmp_path)
+    client = TerminalBlockerMutationClient(root)
+    model = NoNextModel(
+        responses=[
+            call("inspect_app_ui_model", {}, "inspect-1"),
+            call(
+                "mutate_app_ui_model",
+                {
+                    "operations": [
+                        {"type": "remove_plugin", "instanceId": "history-main"}
+                    ]
+                },
+                "mutate-1",
+            ),
+        ]
+    )
+    agent = create_domain_write_creator_agent(
+        model=model,
+        workspace=root,
+        project_control=client,
+    )
+    agent.activity.begin("domain-write-terminal-blocker")
+
+    result = asyncio.run(agent.run("移除左侧历史会话。"))
+
+    assert result.completion == "blocked"
+    assert result.blocker is not None
+    assert result.blocker["source"] == "mutate_app_ui_model"
+    assert result.metrics.modelCalls == len(model.model_calls) == 2
+    assert result.metrics.toolCalls == 2
+    assert client.inspect_calls == 1
+    assert client.mutation_calls == 1
+    assert result.terminal_metrics["terminalBlockerCount"] == 1
+    assert result.terminal_metrics["modelCallsAfterTerminalBlocker"] == 0
+    assert result.terminal_metrics["toolCallsAfterTerminalBlocker"] == 0

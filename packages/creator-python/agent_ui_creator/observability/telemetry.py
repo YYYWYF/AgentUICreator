@@ -25,6 +25,7 @@ class CreatorRunTelemetry:
     project_control: Any | None = None
     mutation: Any | None = None
     scope: Any | None = None
+    run_control: Any | None = None
 
     def bind(
         self,
@@ -34,6 +35,7 @@ class CreatorRunTelemetry:
         project_control: Any | None = None,
         mutation: Any | None = None,
         scope: Any | None = None,
+        run_control: Any | None = None,
     ) -> None:
         if activity is not None:
             self.activity = activity
@@ -45,9 +47,16 @@ class CreatorRunTelemetry:
             self.mutation = mutation
         if scope is not None:
             self.scope = scope
+        if run_control is not None:
+            self.run_control = run_control
 
     def model_tool_metrics(self) -> dict[str, object]:
-        return _to_dict(self.protocol) or {}
+        metrics = _to_dict(self.protocol) or {}
+        if self.run_control is not None:
+            converter = getattr(self.run_control, "metrics", None)
+            if callable(converter):
+                metrics.update(dict(converter()))
+        return metrics
 
     def project_control_metrics(self) -> dict[str, object] | None:
         return _to_dict(self.project_control)
@@ -68,6 +77,7 @@ class CreatorRunTelemetry:
                     protocol=self.protocol,
                     project_control=self.project_control,
                     mutation=self.mutation,
+                    run_control=self.run_control,
                 )
         except Exception:
             # Preserve the already-bound scope evidence if a late receipt
@@ -89,4 +99,3 @@ class CreatorRunTelemetry:
         if change_layer is not None:
             snapshot["changeLayerMetrics"] = change_layer
         return snapshot
-

@@ -11,6 +11,7 @@ from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResp
 from langchain_core.messages import ToolMessage
 
 from ..minimal_agent.tool_policy import tool_name
+from ..run_control import CreatorRunControlState
 
 
 ChangeLayer = Literal[
@@ -483,12 +484,14 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
             [str, Mapping[str, Any]], Sequence[ResourceKey]
         ]
         | None = None,
+        run_control: CreatorRunControlState | None = None,
     ) -> None:
         self.metrics = ChangeScopeMetrics()
         self._blocked_layers: frozenset[ChangeLayer] | None = None
         self._blocked_resources: frozenset[ResourceKey] | None = None
         self._blocker: dict[str, object] | None = None
         self._service_resource_resolver = service_resource_resolver
+        self.run_control = run_control
 
     @staticmethod
     def _call(request: Any) -> tuple[dict[str, Any], str, dict[str, Any]]:
@@ -520,7 +523,63 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         if workspace_integrity:
             self.metrics.workspaceIntegrityBlockers += 1
 
+    @staticmethod
+    def _recovery_action(value: Any) -> str | None:
+        if isinstance(value, Mapping):
+            action = value.get("action")
+            return None if action is None else str(action)
+        return value if isinstance(value, str) else None
+
+    @classmethod
+    def _is_terminal_workspace_integrity(
+        cls,
+        *,
+        category: Any,
+        recovery: Any,
+        automatic_repair_allowed: Any = None,
+    ) -> bool:
+        if category != "workspace_integrity":
+            return False
+        if recovery is None:
+            # Older tool fixtures may omit the recovery object.  Treat a
+            # workspace-integrity result without an affirmative repair
+            # allowance as terminal rather than silently reopening repair.
+            return automatic_repair_allowed is not True
+        if cls._recovery_action(recovery) != "stop_and_report_blocker":
+            return False
+        if automatic_repair_allowed is False:
+            return True
+        return isinstance(recovery, Mapping) and (
+            recovery.get("atomicRetryAllowed") is False
+            or recovery.get("automaticRepairAllowed") is False
+            or recovery.get("automaticCrossLayerRepairAllowed") is False
+            or recovery.get("automaticCrossResourceRepairAllowed") is False
+        )
+
     def _activate_blocker(self, evidence: dict[str, object]) -> None:
+        if self.run_control is not None:
+            recorded = self.run_control.block(
+                category=str(evidence.get("category") or "workspace_integrity"),
+                code=str(evidence.get("code") or "WORKSPACE_INTEGRITY"),
+                source=str(evidence.get("source") or "creator-host"),
+                message=str(
+                    evidence.get("message")
+                    or "The Creator Host found a workspace-integrity blocker."
+                ),
+                details=(
+                    evidence.get("details")
+                    if isinstance(evidence.get("details"), Mapping)
+                    else {}
+                ),
+                recovery=(
+                    evidence.get("recovery")
+                    if isinstance(evidence.get("recovery"), Mapping)
+                    else {"action": "stop_and_report_blocker"}
+                ),
+            )
+            if recorded:
+                self._preserve_scope(evidence, workspace_integrity=True)
+            return
         self._preserve_scope(evidence, workspace_integrity=True)
 
     def _resources_for_call(
@@ -560,11 +619,33 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
             return
         if name == "mutate_app_ui_model":
             error = payload.get("error")
-            if isinstance(error, dict) and error.get("category") == "workspace_integrity":
+            if (
+                isinstance(error, dict)
+                and self._is_terminal_workspace_integrity(
+                    category=error.get("category"),
+                    recovery=error.get("recovery"),
+                    automatic_repair_allowed=error.get("automaticRepairAllowed"),
+                )
+            ):
                 self._activate_blocker(
                     {
                         "source": name,
                         "code": str(error.get("code") or "WORKSPACE_INTEGRITY"),
+                        "category": "workspace_integrity",
+                        "message": str(
+                            error.get("message")
+                            or "The AppUIModel mutation cannot be repaired automatically."
+                        ),
+                        "details": (
+                            error.get("details")
+                            if isinstance(error.get("details"), Mapping)
+                            else {}
+                        ),
+                        "recovery": (
+                            error.get("recovery")
+                            if isinstance(error.get("recovery"), Mapping)
+                            else {"action": "stop_and_report_blocker"}
+                        ),
                     }
                 )
         elif name == "validate_creator_changes":
@@ -576,35 +657,84 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
             )
             if (
                 isinstance(semantics, dict)
-                and semantics.get("category") == "workspace_integrity"
-                and semantics.get("automaticRepairAllowed") is False
+                and self._is_terminal_workspace_integrity(
+                    category=semantics.get("category"),
+                    recovery=semantics.get("recovery"),
+                    automatic_repair_allowed=semantics.get(
+                        "automaticRepairAllowed"
+                    ),
+                )
             ):
                 self._activate_blocker(
-                    {"source": name, "attribution": semantics.get("attribution")}
+                    {
+                        "source": name,
+                        "code": "CREATOR_VALIDATION_WORKSPACE_INTEGRITY",
+                        "category": "workspace_integrity",
+                        "message": (
+                            "Host validation found a workspace-integrity blocker "
+                            f"(attribution={semantics.get('attribution') or 'unknown'})."
+                        ),
+                        "details": dict(semantics),
+                        "recovery": {"action": "stop_and_report_blocker"},
+                    }
                 )
         elif name == "inspect_runtime_errors":
             result_value = payload.get("result")
             if (
                 isinstance(result_value, dict)
                 and result_value.get("runtimeStatus") == "failed"
-                and self.metrics.taskChangeLayers == ["composition"]
             ):
                 failure_layers = runtime_failure_layers(result_value)
-                outside_composition = not failure_layers or any(
-                    layer != "composition" for layer in failure_layers
+                task_layers = set(self.metrics.taskChangeLayers)
+                outside_scope = not failure_layers or any(
+                    layer not in task_layers for layer in failure_layers
                 )
-                self._preserve_scope(
-                    {
-                        "source": name,
-                        "attribution": (
-                            "outside_composition"
-                            if outside_composition
-                            else "in_scope"
-                        ),
-                        "failureLayers": list(failure_layers),
-                    },
-                    workspace_integrity=outside_composition,
-                )
+                evidence = {
+                    "source": name,
+                    "attribution": (
+                        "outside_composition"
+                        if self.metrics.taskChangeLayers == ["composition"]
+                        and outside_scope
+                        else "outside_task_scope"
+                        if outside_scope
+                        else "in_scope"
+                    ),
+                    "failureLayers": list(failure_layers),
+                }
+                if outside_scope:
+                    self._activate_blocker(
+                        {
+                            **evidence,
+                            "code": "RUNTIME_WORKSPACE_INTEGRITY",
+                            "category": "workspace_integrity",
+                            "message": (
+                                "Runtime verification found an error that cannot be "
+                                "repaired within the current task scope."
+                            ),
+                            "details": {
+                                "failureLayers": list(failure_layers),
+                                "currentErrorCount": len(
+                                    result_value.get("currentErrors", [])
+                                    if isinstance(result_value.get("currentErrors"), list)
+                                    else []
+                                ),
+                                "compositionCheckCount": len(
+                                    result_value.get("compositionChecks", [])
+                                    if isinstance(result_value.get("compositionChecks"), list)
+                                    else []
+                                ),
+                            },
+                            "recovery": {
+                                "action": "stop_and_report_blocker",
+                                "automaticRepairAllowed": False,
+                            },
+                        }
+                    )
+                else:
+                    self._preserve_scope(
+                        evidence,
+                        workspace_integrity=False,
+                    )
 
     def _is_cross_layer_blocked(self, layer: ChangeLayer | None) -> bool:
         return (
@@ -729,6 +859,8 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         request: ModelRequest,
         handler: Callable[[ModelRequest], ModelResponse],
     ) -> ModelResponse:
+        if self.run_control is not None:
+            self.run_control.assert_runnable()
         return handler(request.override(tools=self._filter_tools(request.tools)))
 
     async def awrap_model_call(
@@ -736,9 +868,16 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         request: ModelRequest,
         handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
     ) -> ModelResponse:
+        if self.run_control is not None:
+            self.run_control.assert_runnable()
         return await handler(request.override(tools=self._filter_tools(request.tools)))
 
+    def _assert_tool_runnable(self) -> None:
+        if self.run_control is not None:
+            self.run_control.assert_tool_runnable()
+
     def wrap_tool_call(self, request: Any, handler: Callable[[Any], Any]) -> Any:
+        self._assert_tool_runnable()
         call, name, arguments = self._call(request)
         layer = change_layer_for_tool_call(name, arguments)
         resources = self._resources_for_call(name, arguments)
@@ -763,6 +902,7 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
     async def awrap_tool_call(
         self, request: Any, handler: Callable[[Any], Awaitable[Any]]
     ) -> Any:
+        self._assert_tool_runnable()
         call, name, arguments = self._call(request)
         layer = change_layer_for_tool_call(name, arguments)
         resources = self._resources_for_call(name, arguments)
@@ -792,6 +932,7 @@ def build_change_layer_run_metrics(
     protocol: Any,
     project_control: Any,
     mutation: Any,
+    run_control: CreatorRunControlState | None = None,
 ) -> dict[str, object]:
     receipt = activity.snapshot()
     final_paths = [
@@ -814,6 +955,9 @@ def build_change_layer_run_metrics(
     scope_resources = list(scope.scopeResources)
     task_change_layer = (
         layers[0] if len(layers) == 1 else "mixed" if layers else "none"
+    )
+    terminal_metrics = (
+        {} if run_control is None else run_control.metrics()
     )
     return {
         "executedChangeLayer": task_change_layer,
@@ -849,4 +993,5 @@ def build_change_layer_run_metrics(
         "finalChangedPaths": final_paths,
         "modelCalls": int(getattr(protocol, "modelCalls", 0)),
         "toolCalls": int(getattr(protocol, "toolCalls", 0)),
+        **terminal_metrics,
     }

@@ -54,6 +54,102 @@ def _hash(value: Any, name: str) -> str:
     return value
 
 
+def _semantic_target_summary(value: Any) -> dict[str, str] | None:
+    if not isinstance(value, dict):
+        return None
+    summary: dict[str, str] = {}
+    for key in ("type", "slotRef", "slotNodeId", "parentInstanceId", "slot"):
+        item = value.get(key)
+        if isinstance(item, str) and item.strip():
+            summary[key] = item
+    return summary or None
+
+
+def _semantic_operation_summary(operation: Any) -> dict[str, Any]:
+    if not isinstance(operation, dict):
+        return {"type": "unknown"}
+    operation_type = operation.get("type")
+    summary: dict[str, Any] = {
+        "type": str(operation_type) if operation_type is not None else "unknown"
+    }
+
+    plugin = operation.get("plugin")
+    replacement = operation.get("replacement")
+    if operation_type == "insert_plugin" and isinstance(plugin, dict):
+        for key in ("id", "pluginId"):
+            value = plugin.get(key)
+            if isinstance(value, str) and value.strip():
+                summary["instanceId" if key == "id" else key] = value
+        target = _semantic_target_summary(operation.get("target"))
+        if target is not None and isinstance(target.get("type"), str):
+            summary["target"] = target["type"]
+    elif operation_type == "replace_plugin":
+        instance_id = operation.get("instanceId")
+        if isinstance(instance_id, str) and instance_id.strip():
+            summary["instanceId"] = instance_id
+        if isinstance(replacement, dict):
+            plugin_id = replacement.get("pluginId")
+            if isinstance(plugin_id, str) and plugin_id.strip():
+                summary["pluginId"] = plugin_id
+    elif operation_type in {"remove_plugin", "set_plugin_enabled", "update_plugin_props", "move_plugin"}:
+        instance_id = operation.get("instanceId")
+        if isinstance(instance_id, str) and instance_id.strip():
+            summary["instanceId"] = instance_id
+        if operation_type == "set_plugin_enabled":
+            summary["enabled"] = operation.get("enabled") is True
+        elif operation_type == "update_plugin_props":
+            keys: list[str] = []
+            values = operation.get("set")
+            if isinstance(values, dict):
+                keys.extend(key for key in values if isinstance(key, str))
+            remove_keys = operation.get("removeKeys")
+            if isinstance(remove_keys, list):
+                keys.extend(key for key in remove_keys if isinstance(key, str))
+            summary["keys"] = list(dict.fromkeys(keys))[:50]
+        elif operation_type == "move_plugin":
+            target = _semantic_target_summary(operation.get("target"))
+            if target is not None:
+                summary["target"] = target
+    elif operation_type == "remove_layout_node":
+        node_ref = operation.get("nodeRef")
+        if isinstance(node_ref, str) and node_ref.strip():
+            summary["nodeRef"] = node_ref
+    elif operation_type in {"insert_layout_node", "insert_layout_relative"}:
+        for key in ("parentRef", "anchorRef", "direction"):
+            value = operation.get(key)
+            if isinstance(value, str) and value.strip():
+                summary[key] = value
+        node = operation.get("node")
+        if isinstance(node, dict):
+            local_ref = node.get("localRef")
+            if isinstance(local_ref, str) and local_ref.strip():
+                summary["localRef"] = local_ref
+    elif operation_type in {"update_layout_node_props", "move_layout_node", "replace_layout_node"}:
+        node_ref = operation.get("nodeRef")
+        if isinstance(node_ref, str) and node_ref.strip():
+            summary["nodeRef"] = node_ref
+        for key in ("newParentRef",):
+            value = operation.get(key)
+            if isinstance(value, str) and value.strip():
+                summary[key] = value
+        if operation_type == "update_layout_node_props":
+            keys: list[str] = []
+            values = operation.get("set")
+            if isinstance(values, dict):
+                keys.extend(key for key in values if isinstance(key, str))
+            remove_keys = operation.get("removeKeys")
+            if isinstance(remove_keys, list):
+                keys.extend(key for key in remove_keys if isinstance(key, str))
+            summary["keys"] = list(dict.fromkeys(keys))[:50]
+    return summary
+
+
+def semantic_operation_summary(operations: Any) -> list[dict[str, Any]]:
+    if not isinstance(operations, list):
+        return []
+    return [_semantic_operation_summary(operation) for operation in operations[:100]]
+
+
 class AppUIModelMutationService:
     """Own capture, transport, disk reconciliation, Activity, and result integrity."""
 
@@ -180,6 +276,7 @@ class AppUIModelMutationService:
                 "requestIndex": request_index,
                 "operationCount": len(operations),
                 "operationTypes": [operation.get("type") for operation in operations],
+                "operationSummary": semantic_operation_summary(operations),
                 "result": {"ok": result is not None, "changed": target.get("changed")},
                 "changedPaths": target.get("changedPaths", []),
                 **({"errorCode": getattr(error, "code", type(error).__name__)} if error is not None else {}),

@@ -13,6 +13,7 @@ from ..model_protocol.errors import (
     ModelToolProtocolError,
     ToolPermissionDeniedError,
 )
+from ..run_control import CreatorRunControlState
 from ..streaming.runtime_events import CreatorEventSink
 from .path_policy import PolicyFilesystemBackend
 
@@ -48,9 +49,11 @@ class MinimalAgentRuntimeGuard(AgentMiddleware):
         backend: PolicyFilesystemBackend,
         *,
         event_sink: CreatorEventSink | None = None,
+        run_control: CreatorRunControlState | None = None,
     ):
         self.backend = backend
         self.event_sink = event_sink
+        self.run_control = run_control
         self.activities: list[ToolActivity] = []
         self._last_signature: str | None = None
         self._last_revision = backend.mutation_revision
@@ -61,12 +64,16 @@ class MinimalAgentRuntimeGuard(AgentMiddleware):
     def assert_runnable(self) -> None:
         if self.event_sink is not None and self.event_sink.cancel_requested:
             raise asyncio.CancelledError
+        if self.run_control is not None:
+            self.run_control.assert_runnable()
         if self.no_progress:
             raise AgentNoProgressError(
                 "The same tool and arguments were repeated three times without a workspace change."
             )
 
     def _before(self, request: Any) -> tuple[dict[str, Any], str]:
+        if self.run_control is not None:
+            self.run_control.assert_tool_runnable()
         self.assert_runnable()
         call = dict(request.tool_call)
         if not isinstance(call.get("id"), str) or not call["id"]:

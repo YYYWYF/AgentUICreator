@@ -12,6 +12,7 @@ from langchain_core.messages import AIMessage, ToolMessage
 
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.app_ui_model.mutation_tool import create_app_ui_model_mutation_tool
+from agent_ui_creator.app_ui_model.mutation_service import semantic_operation_summary
 from agent_ui_creator.config import CreatorServerSettings
 from agent_ui_creator.domain_agent import create_domain_write_creator_agent
 from agent_ui_creator.domain_agent.prompt import DOMAIN_WRITE_AGENT_PROMPT
@@ -141,6 +142,7 @@ def test_final_state_uses_one_transaction_then_final(tmp_path, initial, operatio
         "requestIndex": 1,
         "operationCount": len(operations),
         "operationTypes": [op["type"] for op in operations],
+        "operationSummary": semantic_operation_summary(operations),
         "result": {"ok": True, "changed": True},
         "changedPaths": [APP_UI_MODEL_PATH],
     }

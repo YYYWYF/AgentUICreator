@@ -4,8 +4,6 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { CONVERSATION_SLOTS } from "../agent-ui/conversation/slots/semantic-slots";
-
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 async function read(relativePath: string): Promise<string> {
@@ -13,13 +11,6 @@ async function read(relativePath: string): Promise<string> {
 }
 
 describe("assistant-ui semantic Slot adapter", () => {
-  it("exposes only official Thread composition slots", () => {
-    expect(Object.values(CONVERSATION_SLOTS)).toEqual([
-      "emptyWelcome",
-      "emptySuggestions",
-    ]);
-  });
-
   it("uses official ThreadComponent seams and keeps toolkit composition external", async () => {
     const adapter = await read(
       "agent-ui/conversation/ConversationAdapter.tsx",
@@ -31,7 +22,14 @@ describe("assistant-ui semantic Slot adapter", () => {
       "agent-ui/conversation/toolkit/mock/MockDispatchSubagentToolUI.tsx",
     );
 
+    const plugin = await read(
+      "plugins/conversation-surface/index.tsx",
+    );
     expect(adapter).toContain("Welcome:");
+    expect(adapter).toContain("ReactNode");
+    expect(adapter).not.toContain("renderSlot");
+    expect(plugin).toContain('renderSlot("emptyWelcome"');
+    expect(plugin).toContain('renderSlot("emptySuggestions"');
     expect(adapter).not.toContain("ReasoningGroup");
     expect(adapter).not.toContain("ToolGroup");
     expect(adapter).not.toContain("ToolFallback");
@@ -44,13 +42,12 @@ describe("assistant-ui semantic Slot adapter", () => {
     expect(toolkit).toContain("<ToolFallback {...props} />");
   });
 
-  it("keeps only the two product-owned empty-state slots", async () => {
-    const slots = await read(
-      "agent-ui/conversation/slots/semantic-slots.ts",
+  it("keeps Plugin child Slot names out of the reusable Agent UI layer", async () => {
+    const adapter = await read(
+      "agent-ui/conversation/ConversationAdapter.tsx",
     );
-    expect(slots).toContain('welcome: "emptyWelcome"');
-    expect(slots).toContain('suggestions: "emptySuggestions"');
-    expect(slots).not.toContain("conversation.message");
-    expect(slots).not.toContain("conversation.timeline");
+    expect(adapter).not.toContain("emptyWelcome");
+    expect(adapter).not.toContain("emptySuggestions");
+    expect(adapter).not.toContain("UIPluginComponentProps[\"renderSlot\"]");
   });
 });

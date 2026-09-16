@@ -14,6 +14,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
+from ..run_control import CreatorRunControlState
 from .errors import AgentNoProgressError, ModelToolProtocolError
 from .provider_trace import ProviderResponseTrace, ProviderResponseTraceCollector
 from .trace import ModelCallTrace, ToolProtocolMetrics
@@ -324,17 +325,28 @@ class ToolProtocolMiddleware(AgentMiddleware):
         max_model_calls: int = 12,
         raw_trace: bool = False,
         provider_trace_collector: ProviderResponseTraceCollector | None = None,
+        run_control: CreatorRunControlState | None = None,
     ) -> None:
         self.metrics = metrics or ToolProtocolMetrics()
         self.guard = ToolProtocolGuard(self.metrics)
         self.max_model_calls = max_model_calls
         self.raw_trace = raw_trace
         self.provider_trace_collector = provider_trace_collector
+        self.run_control = run_control
 
     def _before_call(self) -> None:
+        if self.run_control is not None:
+            self.run_control.assert_runnable()
         if self.metrics.modelCalls >= self.max_model_calls:
             raise AgentNoProgressError(
                 f"Minimal agent exceeded {self.max_model_calls} model calls."
+            )
+
+    def _observe_protocol_counts(self) -> None:
+        if self.run_control is not None:
+            self.run_control.observe_protocol_counts(
+                model_calls=self.metrics.modelCalls,
+                tool_calls=self.metrics.toolCalls,
             )
 
     def _record(
@@ -344,6 +356,7 @@ class ToolProtocolMiddleware(AgentMiddleware):
         started_at: float,
     ) -> None:
         self.metrics.modelCalls += 1
+        self._observe_protocol_counts()
         provider_response = (
             self.provider_trace_collector.pop_successful_completion()
             if self.raw_trace and self.provider_trace_collector is not None
@@ -432,6 +445,7 @@ class ToolProtocolMiddleware(AgentMiddleware):
         response = handler(request)
         self._record(response, request, started_at)
         decision = self.guard.inspect(response, request.tools)
+        self._observe_protocol_counts()
         if decision.status != "repair":
             return decision.response
         self.metrics.protocolRepairAttempts += 1
@@ -441,6 +455,7 @@ class ToolProtocolMiddleware(AgentMiddleware):
         repaired = handler(repaired_request)
         self._record(repaired, repaired_request, started_at)
         decision = self.guard.inspect(repaired, repaired_request.tools, require_tool=True)
+        self._observe_protocol_counts()
         if decision.status in {"tool_call", "recovered"}:
             self.metrics.protocolRepairSuccesses += 1
             return decision.response
@@ -457,6 +472,7 @@ class ToolProtocolMiddleware(AgentMiddleware):
         response = await handler(request)
         self._record(response, request, started_at)
         decision = self.guard.inspect(response, request.tools)
+        self._observe_protocol_counts()
         if decision.status != "repair":
             return decision.response
         self.metrics.protocolRepairAttempts += 1
@@ -466,6 +482,7 @@ class ToolProtocolMiddleware(AgentMiddleware):
         repaired = await handler(repaired_request)
         self._record(repaired, repaired_request, started_at)
         decision = self.guard.inspect(repaired, repaired_request.tools, require_tool=True)
+        self._observe_protocol_counts()
         if decision.status in {"tool_call", "recovered"}:
             self.metrics.protocolRepairSuccesses += 1
             return decision.response

@@ -36,6 +36,11 @@ from ..model_protocol.trace import ToolProtocolMetrics
 from ..observability import CreatorRunTelemetry
 from ..project_control import ProjectControlClient, ProjectControlMetrics
 from ..repair import CreatorRepairState
+from ..run_control import (
+    CompletionStatus,
+    CreatorRunControlState,
+    TerminalBlockerStop,
+)
 from ..runtime_diagnostics import (
     RuntimeDiagnosticInspectionService,
     RuntimeDiagnosticStore,
@@ -83,6 +88,9 @@ class DomainReadAgentResult:
     repeated_project_control_reads: int
     activities: tuple[ToolActivity, ...]
     domain_observations: DomainObservationMetrics
+    completion: CompletionStatus
+    blocker: dict[str, Any] | None
+    terminal_metrics: dict[str, Any]
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,6 +114,7 @@ class CreatorDomainReadAgent:
         automatic_completion_repair: bool = False,
         service_contract_authorizations: ServiceContractAuthorizationStore | None = None,
         scope_guard: ScopeAwareRecoveryGuard | None = None,
+        run_control: CreatorRunControlState | None = None,
     ) -> None:
         self.graph = graph
         self.protocol = protocol
@@ -119,6 +128,7 @@ class CreatorDomainReadAgent:
         self.activity = runtime.backend.activity
         self.service_contract_authorizations = service_contract_authorizations
         self.scope_guard = scope_guard
+        self.run_control = run_control or CreatorRunControlState()
 
     async def run(self, prompt: str) -> DomainReadAgentResult:
         return await self.run_messages([{"role": "user", "content": prompt}])
@@ -148,6 +158,8 @@ class CreatorDomainReadAgent:
             )
 
         completion_decision = None
+        state: Any = None
+        terminal_blocked = False
         try:
             state = await invoke(messages)
             for _attempt in range(3):
@@ -171,12 +183,17 @@ class CreatorDomainReadAgent:
                 completion_decision = self.completion_gate.review(candidate)
                 if completion_decision.accepted or completion_decision.feedback is None:
                     break
+                if self.run_control.blocked:
+                    terminal_blocked = True
+                    break
                 state = await invoke(
                     [
                         *state_messages,
                         HumanMessage(content=completion_decision.feedback),
                     ]
                 )
+        except TerminalBlockerStop:
+            terminal_blocked = True
         except GraphRecursionError as error:
             self.protocol.metrics.repeatedToolLoops += int(self.runtime.no_progress)
             raise AgentNoProgressError(
@@ -187,6 +204,12 @@ class CreatorDomainReadAgent:
             raise
         except (httpx.TimeoutException, openai.APITimeoutError, TimeoutError) as error:
             raise ModelTimeoutError("Creator model request timed out.") from error
+        if terminal_blocked or self.run_control.blocked:
+            return self._build_result(
+                text=self.run_control.render_blocker_response(),
+                completion="blocked",
+            )
+
         self.runtime.raise_terminal_error()
         messages = state.get("messages", []) if isinstance(state, dict) else []
         final = next(
@@ -203,6 +226,11 @@ class CreatorDomainReadAgent:
             if completion_decision is None or not completion_decision.accepted:
                 completion_decision = self.completion_gate.review(text)
             text = completion_decision.text
+        completion: CompletionStatus = (
+            "already_satisfied"
+            if self.activity.semantic_noop_satisfied
+            else "success"
+        )
         values = dict(
             text=text,
             metrics=self.protocol.metrics,
@@ -210,6 +238,9 @@ class CreatorDomainReadAgent:
             repeated_project_control_reads=self.repeated_read_guard.repeated_reads,
             activities=tuple(self.runtime.activities),
             domain_observations=self.observations.metrics,
+            completion=completion,
+            blocker=self.run_control.blocker_dict(),
+            terminal_metrics=self.run_control.metrics(),
         )
         if self.mutation_service is not None:
             values["app_ui_model_mutations"] = self.mutation_service.metrics
@@ -223,7 +254,46 @@ class CreatorDomainReadAgent:
                 protocol=self.protocol.metrics,
                 project_control=self.project_control.metrics,
                 mutation=self.mutation_service.metrics,
+                run_control=self.run_control,
             )
+        return result_type(**values)
+
+    def _build_result(
+        self,
+        *,
+        text: str,
+        completion: CompletionStatus,
+    ) -> DomainReadAgentResult:
+        values: dict[str, Any] = {
+            "text": text,
+            "metrics": self.protocol.metrics,
+            "project_control": self.project_control.metrics,
+            "repeated_project_control_reads": self.repeated_read_guard.repeated_reads,
+            "activities": tuple(self.runtime.activities),
+            "domain_observations": self.observations.metrics,
+            "completion": completion,
+            "blocker": self.run_control.blocker_dict(),
+            "terminal_metrics": self.run_control.metrics(),
+        }
+        if self.mutation_service is not None:
+            values["app_ui_model_mutations"] = self.mutation_service.metrics
+            values["change_layer_metrics"] = build_change_layer_run_metrics(
+                scope=(
+                    self.scope_guard.metrics
+                    if self.scope_guard is not None
+                    else ScopeAwareRecoveryGuard().metrics
+                ),
+                activity=self.activity,
+                protocol=self.protocol.metrics,
+                project_control=self.project_control.metrics,
+                mutation=self.mutation_service.metrics,
+                run_control=self.run_control,
+            )
+        result_type = (
+            DomainWriteAgentResult
+            if self.mutation_service is not None
+            else DomainReadAgentResult
+        )
         return result_type(**values)
 
 
@@ -254,19 +324,29 @@ def create_domain_read_creator_agent(
         activity=backend.activity,
     )
     metrics = ToolProtocolMetrics()
+    run_control = CreatorRunControlState()
     protocol = ToolProtocolMiddleware(
         metrics=metrics,
         raw_trace=raw_trace,
         provider_trace_collector=provider_trace_collector,
+        run_control=run_control,
     )
     if telemetry is not None:
         telemetry.bind(
             activity=backend.activity,
             protocol=metrics,
             project_control=client.metrics,
+            run_control=run_control,
         )
-    runtime = MinimalAgentRuntimeGuard(backend, event_sink=event_sink)
-    repeated_read_guard = RepeatedProjectControlReadGuard(backend)
+    runtime = MinimalAgentRuntimeGuard(
+        backend,
+        event_sink=event_sink,
+        run_control=run_control,
+    )
+    repeated_read_guard = RepeatedProjectControlReadGuard(
+        backend,
+        run_control=run_control,
+    )
     filesystem = FilesystemMiddleware(
         backend=backend,
         tools=list(ALLOWED_MINIMAL_TOOLS),
@@ -298,6 +378,7 @@ def create_domain_read_creator_agent(
         repeated_read_guard=repeated_read_guard,
         project_control=client,
         observations=observations,
+        run_control=run_control,
     )
 
 
@@ -417,7 +498,9 @@ def create_domain_write_creator_agent(
                         return (f"service:{record.spec.service_name}",)
         return ()
 
+    run_control = CreatorRunControlState()
     scope_guard = ScopeAwareRecoveryGuard(
+        run_control=run_control,
         service_resource_resolver=service_resource_resolver
     )
     validation = CreatorValidationService(
@@ -459,6 +542,7 @@ def create_domain_write_creator_agent(
         max_model_calls=24,
         raw_trace=raw_trace,
         provider_trace_collector=provider_trace_collector,
+        run_control=run_control,
     )
     if telemetry is not None:
         telemetry.bind(
@@ -467,9 +551,17 @@ def create_domain_write_creator_agent(
             project_control=client.metrics,
             mutation=service.metrics,
             scope=scope_guard.metrics,
+            run_control=run_control,
         )
-    runtime = MinimalAgentRuntimeGuard(backend, event_sink=event_sink)
-    repeated_read_guard = RepeatedProjectControlReadGuard(backend)
+    runtime = MinimalAgentRuntimeGuard(
+        backend,
+        event_sink=event_sink,
+        run_control=run_control,
+    )
+    repeated_read_guard = RepeatedProjectControlReadGuard(
+        backend,
+        run_control=run_control,
+    )
     filesystem = FilesystemMiddleware(
         backend=skills_backend,
         tools=list(ALLOWED_MINIMAL_TOOLS),
@@ -491,7 +583,10 @@ def create_domain_write_creator_agent(
             repeated_read_guard,
             runtime,
             # Outer wrapper: every batch repair re-enters protocol accounting.
-            DomainToolBatchPolicyMiddleware(metrics=metrics),
+            DomainToolBatchPolicyMiddleware(
+                metrics=metrics,
+                run_control=run_control,
+            ),
             protocol,
             _NoSummaryMiddleware(),
         ],
@@ -511,10 +606,12 @@ def create_domain_write_creator_agent(
             runtime=runtime_inspection,
             repair_state=repair_state,
             service_authorization_finalizer=service_verifier,
+            run_control=run_control,
         ),
         automatic_completion_repair=automatic_completion_repair,
         service_contract_authorizations=service_authorizations,
         scope_guard=scope_guard,
+        run_control=run_control,
     )
     agent.source_creation = source_creation
     agent.plugin_mutation = plugin_mutation

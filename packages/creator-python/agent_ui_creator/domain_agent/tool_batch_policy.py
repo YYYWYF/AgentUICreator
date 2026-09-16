@@ -8,6 +8,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 
 from ..model_protocol.errors import ModelToolProtocolError
 from ..model_protocol.trace import ToolProtocolMetrics
+from ..run_control import CreatorRunControlState
 from .tool_policy import READ_ONLY_TOOL_NAMES
 
 MAX_READ_BATCH_SIZE = 3
@@ -48,8 +49,18 @@ class DomainToolBatchPolicyMiddleware(AgentMiddleware):
     repair pass through its protocol checks, model counter and hard limit.
     """
 
-    def __init__(self, *, metrics: ToolProtocolMetrics) -> None:
+    def __init__(
+        self,
+        *,
+        metrics: ToolProtocolMetrics,
+        run_control: CreatorRunControlState | None = None,
+    ) -> None:
         self.metrics = metrics
+        self.run_control = run_control
+
+    def _assert_runnable(self) -> None:
+        if self.run_control is not None:
+            self.run_control.assert_runnable()
 
     def _repair_request(self, request: ModelRequest) -> ModelRequest:
         self.metrics.batchPolicyViolations += 1
@@ -74,6 +85,7 @@ class DomainToolBatchPolicyMiddleware(AgentMiddleware):
         request: ModelRequest,
         handler: Callable[[ModelRequest], ModelResponse],
     ) -> ModelResponse:
+        self._assert_runnable()
         response = handler(request)
         if is_valid_domain_tool_batch(response):
             return response
@@ -84,6 +96,7 @@ class DomainToolBatchPolicyMiddleware(AgentMiddleware):
         request: ModelRequest,
         handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
     ) -> ModelResponse:
+        self._assert_runnable()
         response = await handler(request)
         if is_valid_domain_tool_batch(response):
             return response

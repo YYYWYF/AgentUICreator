@@ -1,5 +1,8 @@
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
-import { ConversationAdapter } from "../../agent-ui/conversation";
+import {
+  ConversationAdapter,
+  ConversationWelcomeFallback,
+} from "../../agent-ui/conversation";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
   EMPTY_CONVERSATION_SNAPSHOT,
@@ -21,6 +24,8 @@ export function ConversationSurfacePlugin({
     conversation,
     EMPTY_CONVERSATION_SNAPSHOT,
   );
+  const welcome = renderSlot("emptyWelcome", <ConversationWelcomeFallback />);
+  const suggestions = renderSlot("emptySuggestions", null);
 
   return (
     <div
@@ -29,7 +34,7 @@ export function ConversationSurfacePlugin({
       data-conversation-mode={snapshot.mode}
       data-ui-plugin="conversation-surface"
     >
-      <ConversationAdapter renderSlot={renderSlot} />
+      <ConversationAdapter welcome={welcome} suggestions={suggestions} />
     </div>
   );
 }

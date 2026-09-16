@@ -237,8 +237,10 @@ async def _execute_agent_run(
     try:
         result = await agent_result
         receipt = activity.finish()
+        completion = str(getattr(result, "completion", "success"))
+        outcome = completion if completion in {"success", "already_satisfied", "blocked"} else "success"
         logger.finish(
-            "success",
+            outcome,
             metrics=run_telemetry.model_tool_metrics(),
             mutation_metrics=run_telemetry.mutation_metrics(),
             change_layer_metrics=run_telemetry.change_layer_metrics(),
@@ -434,7 +436,16 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             "runtime": "python",
                             "agentMode": agent_mode,
                             "phase": f"{agent_mode}-agent",
-                            "toolProtocol": result.metrics.to_dict(),
+                            "toolProtocol": {
+                                **result.metrics.to_dict(),
+                                **(
+                                    getattr(result, "terminal_metrics", {})
+                                    if isinstance(
+                                        getattr(result, "terminal_metrics", {}), dict
+                                    )
+                                    else {}
+                                ),
+                            },
                             "projectControl": {
                                 **result.project_control.to_dict(),
                                 "repeatedProjectControlReads": (
@@ -461,6 +472,11 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             "toolProtocol": result.metrics.to_dict(),
                             "streaming": event_bus.metrics().to_dict(),
                         }
+                    completion = str(getattr(result, "completion", "success"))
+                    run_result["completion"] = completion
+                    blocker = getattr(result, "blocker", None)
+                    if isinstance(blocker, dict):
+                        run_result["blocker"] = blocker
                     run_result["receipt"] = execution.receipt
                 else:
                     response_text = _echo_text(run_input)

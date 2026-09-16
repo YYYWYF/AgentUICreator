@@ -67,10 +67,10 @@ describe("canonical Conversation plugin cleanup boundary", () => {
   });
 
   it("keeps the generated registry and semantic Slot boundary canonical", async () => {
-    const [packageSource, registrySource, slotsSource] = await Promise.all([
+    const [packageSource, registrySource, pluginSource] = await Promise.all([
       readFile(path.join(projectRoot, "package.json"), "utf8"),
       readFile(path.join(projectRoot, "plugins/registry.generated.ts"), "utf8"),
-      readFile(path.join(projectRoot, "agent-ui/conversation/slots/semantic-slots.ts"), "utf8"),
+      readFile(path.join(projectRoot, "plugins/conversation-surface/index.tsx"), "utf8"),
     ]);
     const packageJson = JSON.parse(packageSource) as {
       dependencies?: Record<string, string>;
@@ -82,8 +82,7 @@ describe("canonical Conversation plugin cleanup boundary", () => {
       ),
     ).toBe(false);
     expect(registrySource).not.toMatch(/agent-|antd-x-|template-library/u);
-    expect(slotsSource).not.toContain("LEGACY_CONVERSATION_SLOTS");
-    expect(slotsSource).toContain('welcome: "emptyWelcome"');
-    expect(slotsSource).toContain('suggestions: "emptySuggestions"');
+    expect(pluginSource).toContain('renderSlot("emptyWelcome"');
+    expect(pluginSource).toContain('renderSlot("emptySuggestions"');
   });
 });

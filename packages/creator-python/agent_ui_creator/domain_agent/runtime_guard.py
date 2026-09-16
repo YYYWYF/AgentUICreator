@@ -9,19 +9,28 @@ from langchain.agents.middleware import AgentMiddleware
 from ..domain_tools import DOMAIN_READ_TOOL_NAMES
 from ..minimal_agent.path_policy import PolicyFilesystemBackend
 from ..model_protocol.errors import AgentNoProgressError
+from ..run_control import CreatorRunControlState
 
 
 class RepeatedProjectControlReadGuard(AgentMiddleware):
     """Reject the third identical domain read in one unchanged read epoch."""
 
-    def __init__(self, backend: PolicyFilesystemBackend) -> None:
+    def __init__(
+        self,
+        backend: PolicyFilesystemBackend,
+        *,
+        run_control: CreatorRunControlState | None = None,
+    ) -> None:
         self.backend = backend
+        self.run_control = run_control
         self.repeated_reads = 0
         self._last_signature: str | None = None
         self._last_revision = backend.mutation_revision
         self._repeat_count = 0
 
     def _before(self, request: Any) -> None:
+        if self.run_control is not None:
+            self.run_control.assert_tool_runnable()
         call = dict(request.tool_call)
         name = str(call.get("name") or "")
         # A semantic AppUIModel mutation attempt is a meaningful recovery

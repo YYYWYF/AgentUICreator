@@ -5,9 +5,7 @@ export {
 } from "./ConversationSurface";
 export {
   ConversationAdapter,
+  ConversationWelcomeFallback,
+  type ConversationEmptyStateProps,
   createConversationSemanticThreadComponents,
 } from "./ConversationAdapter";
-export {
-  CONVERSATION_SLOTS,
-  type ConversationSlotId,
-} from "./slots/semantic-slots";

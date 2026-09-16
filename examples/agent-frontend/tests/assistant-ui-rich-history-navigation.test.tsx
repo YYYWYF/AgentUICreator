@@ -32,12 +32,6 @@ import {
   createConversationService,
   type ConversationService,
 } from "../services/conversations";
-import type { UIPluginComponentProps } from "../framework/contracts/ui-plugin";
-
-const renderFallback: UIPluginComponentProps["renderSlot"] = (
-  _slotId,
-  fallback,
-) => fallback;
 const mountedRoots: Root[] = [];
 const mountedFixtures: Array<{
   detach: () => void;
@@ -121,7 +115,7 @@ function RichHistoryRuntimeFixture({
 }) {
   const agentFactory = useCallback(() => agent, [agent]);
   const components = useMemo(
-    () => createConversationSemanticThreadComponents(renderFallback),
+    () => createConversationSemanticThreadComponents(),
     [],
   );
   return (
