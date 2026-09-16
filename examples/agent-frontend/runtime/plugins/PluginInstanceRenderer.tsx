@@ -12,7 +12,7 @@ import {
   type RuntimeCompositionInstance,
 } from "../diagnostics";
 import {
-  PluginErrorBoundary,
+  PluginRuntimeBoundary,
   type PluginRenderFailure,
 } from "./PluginErrorBoundary";
 import { PluginServiceConsumerContext } from "./PluginServiceContext";
@@ -120,7 +120,7 @@ export function PluginInstanceRenderer<TState = unknown>({
   );
 
   return (
-    <PluginErrorBoundary
+    <PluginRuntimeBoundary
       instanceId={instance.id}
       key={activationKey}
       onError={onPluginError}
@@ -143,6 +143,6 @@ export function PluginInstanceRenderer<TState = unknown>({
           {content}
         </RuntimePluginMountProbe>
       )}
-    </PluginErrorBoundary>
+    </PluginRuntimeBoundary>
   );
 }

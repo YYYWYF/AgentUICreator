@@ -21,7 +21,7 @@
     "ok": true,
     "result": {
       "changed": true,
-      "changedPaths": ["app-ui/app-ui.json", "plugins/registry.generated.ts"]
+      "changedPaths": ["app-ui/app-ui.json"]
     }
   },
   "failure": {

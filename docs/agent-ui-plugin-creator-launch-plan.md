@@ -188,8 +188,8 @@ Creator 不进入生成应用的生产依赖。项目观察、语义化修改、
 AppUIModel hash 与本次 mutation revision
 Layout Tree / Slot 摘要
 authoring plugin node、enabled 状态与所在 target
-生产 Registry 选择结果
-未选择的 Plugin 资产与开发期 Catalog
+Capability Catalog revision 与 Active Registry 选择结果
+未选择的 Plugin capability 资产
 目标项目 UI 技术栈与版本
 最近一次验证和运行时诊断是否仍匹配当前 revision
 ```
@@ -209,8 +209,8 @@ Plugin 源码继续由通用 Coding Agent 在权限范围内编辑；AppUIModel 
 1. 由 Creator Host 校验当前 run 中已观察到的 `appUIModelHash`，并持有当前项目的事务锁；
 2. 在内存中应用一个或一组组合操作；
 3. 完整解析 AppUIModel 并检查跨字段关系；
-4. 重新计算由 AppUIModel 派生的生产 Registry；
-5. 在落盘前生成 AppUIModel 与 Registry 的结构化 diff；
+4. 使用稳定 Capability Catalog 解析 active definitions 并编译 candidate；
+5. 在落盘前生成 AppUIModel 与 Capability Catalog 的结构化 diff；
 6. 以临时文件和原子 rename 写入，任何一步失败都恢复修改前内容；
 7. 成功后递增当前 run 的 mutation revision，并返回新的 hash。
 
@@ -224,10 +224,10 @@ Plugin 源码继续由通用 Coding Agent 在权限范围内编辑；AppUIModel 
 
 | 用户意图 | AppUIModel | Registry | Plugin 源码 |
 | --- | --- | --- | --- |
-| 暂时隐藏、先不要显示 | 保留 authoring plugin node 并设为 `enabled: false` | 保留 | 保留 |
-| 移除这个功能 | 从 Layout Slot、plugin-local Slot 或 `applicationPlugins` 删除 authoring plugin node | 最后一个引用移除后自动退出 | 保留 |
-| 替换这个功能 | 新实例就位后移除旧实例 | 根据最终实例集合自动更新 | 新旧源码都保留 |
-| 连插件代码一起删除 | 先检查引用，再执行受限删除 | 自动更新 | 仅在用户已明确授权时删除 |
+| 暂时隐藏、先不要显示 | 保留 authoring plugin node 并设为 `enabled: false` | Capability 保留，active registry 保留 | 保留 |
+| 移除这个功能 | 从 Layout Slot、plugin-local Slot 或 `applicationPlugins` 删除 authoring plugin node | Capability 保留，active registry 移除 | 保留 |
+| 替换这个功能 | 新实例就位后移除旧实例 | Capability Catalog 稳定，active registry 按最终模型解析 | 新旧源码都保留 |
+| 连插件代码一起删除 | 先检查引用，再执行受限删除 | Capability Catalog 在源码删除后更新 | 仅在用户已明确授权时删除 |
 
 默认的“移除”绝不等于删除源码。删除源码只能通过受限领域工具执行，不能开放任意文件删除；若当前请求没有明确授权，Creator 必须先使用同一 run 内的澄清工具。
 
@@ -503,7 +503,7 @@ plugins/
     └── styles.css
 ```
 
-`styles.css` 是可选文件。`manifest.json` 与 `definition.ts` 是可进入生产 Registry 的 Plugin 资产最小入口。`definition.ts` 必须提供默认导出的 `UIPluginDefinition`，可以同时保留有意义的 named export：
+`styles.css` 是可选文件。`manifest.json` 与 `definition.ts` 是可进入 Capability Catalog 的 Plugin 资产最小入口。`definition.ts` 必须提供默认导出的 `UIPluginDefinition`，可以同时保留有意义的 named export：
 
 ```ts
 export const filePreviewPlugin: UIPluginDefinition = {
@@ -743,9 +743,14 @@ AI 修改 Layout
 
 ---
 
-# 10. Plugin Registry
+# 10. Transactional Preview Composition
 
-建立统一 Plugin Registry。
+本节的完整约束见
+`docs/architecture/transactional-preview-composition.md`。Preview 的唯一发布
+单元是 `RuntimeCompositionSnapshot`，未经 resolve、validate 与 compile 的
+candidate 没有 publish 权限。
+
+## 10.1 Capability Catalog 与 Active Registry
 
 ```ts
 interface PluginRegistry {
@@ -757,19 +762,11 @@ interface PluginRegistry {
 }
 ```
 
-UI Runtime 只从 Registry 加载 Plugin。
-
-不要直接根据文件路径动态 import 任意源码。
-
-生成项目的生产 Registry 必须显式导入当前选择的 Plugin definitions，不得为了方便而展开包含全部模板的 catalog/barrel。Catalog 可以用于开发期发现与预览，但不能成为生产 import graph 的根；否则从 AppUIModel 移除实例并不能让未选择 Plugin 的组件、样式和实现离开 Bundle。
-
-## 10.1 Registry 是 AppUIModel 的确定性派生物
-
-生产 Registry 不再由 Creator 手工维护 import 与数组条目，而由目标项目自己的生成器根据以下输入生成：
+UI Runtime 只从当前 published snapshot 的 Active Registry 加载 Plugin。
+可用能力与当前启用能力必须分离。目标项目自己的生成器根据以下输入生成
+Capability Catalog：
 
 ```text
-AppUIModel.applicationPlugins 与 root/nested plugin nodes 中出现的 pluginId
-        +
 plugins/*/manifest.json
         +
 对应目录 definition.ts 的默认导出契约
@@ -777,28 +774,30 @@ plugins/*/manifest.json
 plugins/registry.generated.ts
 ```
 
-`plugins/index.ts` 只稳定地转出生成结果，应用代码仍从统一入口获取 `pluginDefinitions`。
+`plugins/registry.generated.ts` 的文件名为既有工具兼容而保留，但内容是完整
+`PluginCapabilityCatalog`：manifest metadata 与 lazy definition loader。
+`plugins/index.ts` 只稳定转出 catalog 与 catalog revision。
 
 选择规则：
 
-- 只要 authoring plugin node 仍存在，其 `pluginId` 就进入生产 Registry；`enabled` 或所在 target 不影响选择。
-- 因此暂时隐藏的节点保留 definition，headless Plugin 也通过 `applicationPlugins` 中的节点被选择。
-- 当某个 `pluginId` 的最后一个实例被移除时，它才退出生产 Registry 和生产 Bundle。
-- 未被选择的 Plugin 源码目录是合法开发资产，不是孤儿错误，也不进入生产 import graph。
-- 开发期 Catalog 只用于发现、预览和复制模板，不得被生成 Registry 引用。
+- 所有合法 `plugins/*/manifest.json` 都进入 Capability Catalog；AppUIModel selection 不影响 membership。
+- definition 始终 lazy import；未被选择的实现不进入当前 Preview module graph。
+- AppUIModel 只决定 candidate 要 resolve 哪些 definition，以及 published snapshot 中的 Active Registry。
+- 移动、隐藏、删除实例、修改 props 或 layout 不改 Capability Catalog。
+- 外部模板 Catalog 只用于发现、预览和复制模板；项目内 Plugin Capability Catalog 不得引用外部模板实现。
 - Catalog 与 `_shared` 等非 Plugin 目录必须由目标项目配置显式声明，扫描器不得靠目录命名规则猜测或静默忽略未知目录。
 
 生成器必须：
 
 - 对 Plugin id 去重并输出稳定顺序；
 - 检查重复 manifest id、缺少 manifest、缺少 definition、无默认导出及引用不存在；
-- 输出带“generated, do not edit”说明的显式静态 import；
+- 输出带“generated, do not edit”说明的 metadata 与 lazy loader；
 - 位于目标项目中，并可在没有 Creator package 和 Workbench 时独立运行；
 - 提供纯计算入口，使验证器可以在内存中计算期望内容。
 
-生成是显式修改动作，不是验证动作。Creator 的 AppUIModel 事务在同一次受控提交中同步生成 Registry；人工直接修改 AppUIModel 后可运行目标项目自己的 `generate:registry`。`registry.generated.ts` 是需要提交的目标项目源码，使干净 checkout 无需先运行 Creator 或 codegen 就能构建。`verify:ui` 只比较磁盘内容与内存期望结果并报告 stale Registry，绝不能在验证期间写文件；`typecheck` 和 `build` 也不得隐式改写 Registry。
+生成是显式 capability 修改动作，不是验证动作。纯 AppUIModel transaction 仍会在内存中用 catalog 完整编译，但只有 capability inventory 或 contract 改变时才写 `registry.generated.ts`。多 artifact transaction 先写 CompositionRevision descriptor，再写 AppUIModel 与 catalog；Preview 等目标 hash/revision 全部匹配后一次 publish。人工编辑继续支持 input-driven staging。
 
-这仍然满足生产 Registry 的静态 import 约束；它消除的是模型重复 bookkeeping，不是把加载链改成运行时动态发现。
+`registry.generated.ts` 是需要提交的目标项目源码；`verify:ui`、`typecheck` 和 `build` 均不得隐式改写它。
 
 ---
 
@@ -1093,7 +1092,7 @@ delete_ui_plugin_source
 - `ask_creator_user` 在当前 Agent loop 内等待答案并继续，不把澄清伪装成最终答复；普通请求最多问一个简短问题。
 - `delete_ui_plugin_source` 只允许删除 `plugins/<plugin-id>/`，先验证已无 AppUIModel 引用和跨 Plugin 源码引用，并要求当前用户请求已有明确授权或有效的澄清确认。
 
-生产 Registry 由 AppUIModel 事务自动生成，因此不再向模型暴露 `register_plugin` / `unregister_plugin` bookkeeping 工具。
+Capability Catalog 由 Plugin inventory 自动生成，Active Registry 由 published composition 解析，因此不再向模型暴露 `register_plugin` / `unregister_plugin` bookkeeping 工具。
 
 专项工具通过目标项目自带的 Project Control Adapter 使用目标项目自己的 Schema、Registry generator 和验证逻辑。Creator package 负责模型工具、权限、事务编排与回执，不在自身复制一份 AppUIModel 或 Plugin Contract；目标项目也不反向依赖 Creator。Adapter 使用固定入口和结构化 JSON 输入输出，不能退化成可由模型传入任意 shell 命令的执行器。
 
@@ -1296,7 +1295,7 @@ HMR 先验证现有 Vite / React Fast Refresh 行为，再决定是否增加机�
 ```text
 只修改 Plugin Component
 修改 AppUIModel
-新增 Plugin 并更新生成 Registry
+新增 Plugin 并更新生成 Capability Catalog
 移除最后一个 authoring plugin node
 ```
 
@@ -1476,9 +1475,9 @@ Creator 在这一阶段同时具备项目快照和 AppUIModel 事务工具。Plu
 通过后才向用户发送最终答复与权威回执
 ```
 
-`verify:ui` 属于生成项目，负责检查 AppUIModel、Plugin Registry，以及 compiler 生成的 AppUIRuntimeModel composition；它必须能在没有 Creator package 或 Workbench 的情况下独立运行。Creator 只在停止边界调用验证并反馈证据，不把 Agent 的自主工具选择改成固定 Workflow。
+`verify:ui` 属于生成项目，负责检查 AppUIModel、Capability Catalog，以及 compiler 生成的 AppUIRuntimeModel composition；它必须能在没有 Creator package 或 Workbench 的情况下独立运行。Creator 只在停止边界调用验证并反馈证据，不把 Agent 的自主工具选择改成固定 Workflow。
 
-`verify:ui` 还必须检查生成 Registry 是否与当前 AppUIModel 一致，但保持严格只读。未选择的 Plugin 源码与开发期 Catalog 不属于错误；headless Plugin 必须位于 `applicationPlugins`，并由 compiler 生成无 mount 的 Runtime PluginInstance。
+`verify:ui` 还必须检查生成 Capability Catalog 是否与当前 Plugin inventory 一致，并检查当前 AppUIModel 可解析为完整 Active Registry；全程保持严格只读。未选择的 Plugin capability 不属于错误；headless Plugin 必须位于 `applicationPlugins`，并由 compiler 生成无 mount 的 Runtime PluginInstance。
 
 如果当前 revision 未产生真实文件变化、验证失败、验证后又发生写入，或者复核未通过，Harness 必须拒绝候选答复并允许 Creator 继续修复。候选成功文本在完成门禁通过前不得进入 AG-UI 对话历史。
 
@@ -1669,7 +1668,7 @@ Creator 将对应 authoring plugin node 设为 disabled，保留其位置、Plug
 “把这个功能移除，但代码留着。”
 ```
 
-Creator 删除 authoring plugin node；如果这是最后一个引用，生成 Registry 自动移除其静态 import，源码目录仍然保留。
+Creator 删除 authoring plugin node；published Active Registry 不再包含该 definition，但 Capability Catalog 与源码目录保持不变。
 
 用户继续：
 

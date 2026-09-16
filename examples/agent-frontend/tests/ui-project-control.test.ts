@@ -100,7 +100,11 @@ async function createProject(
     path.join(projectRoot, PLUGIN_REGISTRY_ENTRY_PATH),
     PLUGIN_REGISTRY_ENTRY_SOURCE,
   );
-  return { projectRoot, appUIModelSource };
+  return {
+    projectRoot,
+    appUIModelSource,
+    capabilityCatalogRevision: registry.capabilityCatalogRevision,
+  };
 }
 
 afterEach(async () => {
@@ -133,7 +137,10 @@ describe("ui-project-control", () => {
   });
 
   it("returns the exact AppUIModel source and hash", async () => {
-    const { projectRoot, appUIModelSource } = await createProject();
+    const {
+      projectRoot,
+      appUIModelSource,
+    } = await createProject();
 
     const response = await handleUIProjectControlRequest(
       { schemaVersion: 3, operation: "inspect_app_ui_model", input: {} },
@@ -306,7 +313,11 @@ describe("ui-project-control", () => {
   });
 
   it("verifies Runtime composition in authoring terms for Layout Slots", async () => {
-    const { projectRoot, appUIModelSource } = await createProject();
+    const {
+      projectRoot,
+      appUIModelSource,
+      capabilityCatalogRevision,
+    } = await createProject();
     const appUIModelHash = createHash("sha256")
       .update(appUIModelSource)
       .digest("hex");
@@ -319,6 +330,9 @@ describe("ui-project-control", () => {
           composition: {
             schemaVersion: 1,
             appUIModelHash,
+            compositionRevision: `manual:${appUIModelHash}:${capabilityCatalogRevision}`,
+            capabilityCatalogRevision,
+            publishedAt: "2026-09-15T00:00:00.000Z",
             observedAt: "2026-09-15T00:00:00.000Z",
             instances: [{
               instanceId: "sample-main",
@@ -358,6 +372,9 @@ describe("ui-project-control", () => {
           composition: {
             schemaVersion: 1,
             appUIModelHash,
+            compositionRevision: `manual:${appUIModelHash}:${capabilityCatalogRevision}`,
+            capabilityCatalogRevision,
+            publishedAt: "2026-09-15T00:00:00.000Z",
             observedAt: "2026-09-15T00:00:00.000Z",
             instances: [{
               instanceId: "child-main",
@@ -378,13 +395,20 @@ describe("ui-project-control", () => {
   });
 
   it("reports missing, plugin-mismatch, and slot-mismatch without Runtime ids", async () => {
-    const { projectRoot, appUIModelSource } = await createProject();
+    const {
+      projectRoot,
+      appUIModelSource,
+      capabilityCatalogRevision,
+    } = await createProject();
     const appUIModelHash = createHash("sha256")
       .update(appUIModelSource)
       .digest("hex");
     const composition = (instances: Array<Record<string, string>>) => ({
       schemaVersion: 1,
       appUIModelHash,
+      compositionRevision: `manual:${appUIModelHash}:${capabilityCatalogRevision}`,
+      capabilityCatalogRevision,
+      publishedAt: "2026-09-15T00:00:00.000Z",
       observedAt: "2026-09-15T00:00:00.000Z",
       instances,
       slots: [],
@@ -431,7 +455,11 @@ describe("ui-project-control", () => {
         }],
       },
     };
-    const { projectRoot, appUIModelSource } = await createProject(
+    const {
+      projectRoot,
+      appUIModelSource,
+      capabilityCatalogRevision,
+    } = await createProject(
       undefined,
       {
         slots: {
@@ -458,6 +486,9 @@ describe("ui-project-control", () => {
           composition: {
             schemaVersion: 1,
             appUIModelHash,
+            compositionRevision: `manual:${appUIModelHash}:${capabilityCatalogRevision}`,
+            capabilityCatalogRevision,
+            publishedAt: "2026-09-15T00:00:00.000Z",
             observedAt: "2026-09-15T00:00:00.000Z",
             instances: [{
               instanceId: "child-main",
@@ -491,7 +522,11 @@ describe("ui-project-control", () => {
   });
 
   it("rejects stale AppUIModel hashes before Runtime comparison", async () => {
-    const { projectRoot, appUIModelSource } = await createProject();
+    const {
+      projectRoot,
+      appUIModelSource,
+      capabilityCatalogRevision,
+    } = await createProject();
     const staleHash = createHash("sha256")
       .update(appUIModelSource)
       .digest("hex");
@@ -512,6 +547,9 @@ describe("ui-project-control", () => {
           composition: {
             schemaVersion: 1,
             appUIModelHash: staleHash,
+            compositionRevision: `manual:${staleHash}:${capabilityCatalogRevision}`,
+            capabilityCatalogRevision,
+            publishedAt: "2026-09-15T00:00:00.000Z",
             observedAt: "2026-09-15T00:00:00.000Z",
             instances: [],
             slots: [],

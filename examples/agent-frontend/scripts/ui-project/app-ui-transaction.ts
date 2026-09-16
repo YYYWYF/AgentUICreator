@@ -34,6 +34,8 @@ import { verifyPluginChildSlots } from "./plugin-child-slot-verifier";
 import type { ProjectIssue } from "./types";
 
 const APP_UI_MODEL_PATH = "app-ui/app-ui.json";
+export const COMPOSITION_REVISION_PATH =
+  "app-ui/composition-revision.generated.json";
 const TRANSACTION_DIRECTORY_PATH = ".agentuicreator/control";
 const TRANSACTION_JOURNAL_PATH = `${TRANSACTION_DIRECTORY_PATH}/pending-app-ui-transaction.json`;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
@@ -113,6 +115,12 @@ export interface AppUITransactionResult {
   snapshotToken: {
     appUIModelHash: string;
     registryHash: string;
+    capabilityCatalogRevision: string;
+  };
+  compositionRevision?: {
+    transactionId: string;
+    appUIModelHash: string;
+    capabilityCatalogRevision: string;
   };
 }
 
@@ -276,13 +284,14 @@ function parseJournal(input: unknown): AppUITransactionJournal {
       z.strictObject({
         relativePath: z.enum([
           APP_UI_MODEL_PATH,
+          COMPOSITION_REVISION_PATH,
           GENERATED_PLUGIN_REGISTRY_PATH,
         ]),
         temporaryPath: z.string().min(1),
         before: stateSchema,
         after: stateSchema,
       }),
-    ).min(1).max(2),
+    ).min(1).max(3),
   }).parse(input);
   const paths = new Set<string>();
   for (const file of journal.files) {
@@ -641,7 +650,7 @@ async function runTransaction(
   if (registry.errors.length > 0) {
     throw new AppUITransactionError(
       "PLUGIN_REGISTRY_GENERATION_FAILED",
-      "The transaction cannot resolve a complete static Plugin Registry.",
+      "The transaction cannot resolve a complete capability catalog and Active Registry.",
       { issues: registry.errors },
     );
   }
@@ -671,8 +680,32 @@ async function runTransaction(
     beforeModelSource,
     afterModel,
   );
+  const afterHash = hash(afterModelSource);
   const beforeRegistrySource = await readOptional(registryPath);
+  const transactionId = randomUUID();
+  const compositionRevision = {
+    transactionId,
+    appUIModelHash: afterHash,
+    capabilityCatalogRevision: registry.capabilityCatalogRevision,
+  };
+  const compositionRevisionPath = path.join(
+    projectRoot,
+    COMPOSITION_REVISION_PATH,
+  );
+  const beforeCompositionRevisionSource = await readOptional(
+    compositionRevisionPath,
+  );
+  const afterCompositionRevisionSource =
+    `${JSON.stringify(compositionRevision, null, 2)}\n`;
+  const catalogChanged = beforeRegistrySource !== registry.source;
   const changes = [
+    ...(catalogChanged
+      ? [{
+          relativePath: COMPOSITION_REVISION_PATH,
+          before: beforeCompositionRevisionSource,
+          after: afterCompositionRevisionSource,
+        }]
+      : []),
     {
       relativePath: APP_UI_MODEL_PATH,
       before: beforeModelSource,
@@ -684,7 +717,6 @@ async function runTransaction(
       after: registry.source,
     },
   ].filter((change) => change.before !== change.after);
-  const transactionId = randomUUID();
   if (changes.length > 0) {
     await commitFiles(projectRoot, transactionId, changes, options);
   }
@@ -693,8 +725,6 @@ async function runTransaction(
   const afterPluginIds = selectedPluginIds(afterModel);
   const beforePluginSet = new Set(beforePluginIds);
   const afterPluginSet = new Set(afterPluginIds);
-  const afterHash = hash(afterModelSource);
-
   return {
     schemaVersion: 1,
     transactionId,
@@ -709,13 +739,17 @@ async function runTransaction(
       ),
       slots: changedKeys(mapSlots(beforeModel), mapSlots(afterModel)),
       registry: {
-        changed: beforeRegistrySource !== registry.source,
-        addedPluginIds: afterPluginIds
-          .filter((pluginId) => !beforePluginSet.has(pluginId))
-          .sort(),
-        removedPluginIds: beforePluginIds
-          .filter((pluginId) => !afterPluginSet.has(pluginId))
-          .sort(),
+        changed: catalogChanged,
+        addedPluginIds: catalogChanged
+          ? afterPluginIds
+              .filter((pluginId) => !beforePluginSet.has(pluginId))
+              .sort()
+          : [],
+        removedPluginIds: catalogChanged
+          ? beforePluginIds
+              .filter((pluginId) => !afterPluginSet.has(pluginId))
+              .sort()
+          : [],
       },
     },
     registry: {
@@ -726,7 +760,9 @@ async function runTransaction(
     snapshotToken: {
       appUIModelHash: afterHash,
       registryHash: hash(registry.source),
+      capabilityCatalogRevision: registry.capabilityCatalogRevision,
     },
+    ...(catalogChanged ? { compositionRevision } : {}),
   };
 }
 

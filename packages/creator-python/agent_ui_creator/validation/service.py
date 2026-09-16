@@ -33,7 +33,14 @@ def _change_layers_for_paths(paths: list[str]) -> list[str]:
 def _change_layers_for_evidence(evidence: str) -> list[str]:
     normalized = evidence.replace("\\", "/")
     markers = (
-        ("composition", ("app-ui/app-ui.json", "plugins/registry.generated.ts")),
+        (
+            "composition",
+            (
+                "app-ui/app-ui.json",
+                "app-ui/composition-revision.generated.json",
+                "plugins/registry.generated.ts",
+            ),
+        ),
         ("plugin_behavior", ("plugins/", "agent-ui/")),
         ("runtime_capability", ("services/",)),
         ("agent_integration", ("agent-contract/",)),

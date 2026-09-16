@@ -1,1 +1,4 @@
-export { pluginDefinitions } from "./registry.generated";
+export {
+  capabilityCatalogRevision,
+  pluginCapabilityCatalog,
+} from "./registry.generated";

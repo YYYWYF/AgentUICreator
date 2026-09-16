@@ -39,6 +39,9 @@ export interface PluginDiagnosticContextValue {
 
 export interface PluginDiagnosticProviderProps<TState = unknown> {
   appUIModelHash: string;
+  compositionRevision?: string | undefined;
+  capabilityCatalogRevision?: string | undefined;
+  publishedAt?: string | undefined;
   children: ReactNode;
   model: AppUIRuntimeModel;
   onRuntimeComposition?: RuntimeCompositionReporter | undefined;
@@ -105,10 +108,13 @@ export function resolveEffectiveSlotWidth(
 
 export function PluginDiagnosticProvider<TState = unknown>({
   appUIModelHash,
+  compositionRevision,
+  capabilityCatalogRevision,
   children,
   model,
   onRuntimeComposition,
   onRuntimeDiagnostic,
+  publishedAt,
   registry,
 }: PluginDiagnosticProviderProps<TState>) {
   const mountedInstances = useRef(
@@ -128,6 +134,11 @@ export function PluginDiagnosticProvider<TState = unknown>({
   );
   const snapshotScheduled = useRef(false);
   const currentHash = useRef(appUIModelHash);
+  const currentCompositionRevision = useRef(compositionRevision);
+  const currentCapabilityCatalogRevision = useRef(
+    capabilityCatalogRevision,
+  );
+  const currentPublishedAt = useRef(publishedAt);
   const currentCompositionReporter = useRef(onRuntimeComposition);
   const currentApplication = useRef<RuntimeCompositionApplication | undefined>(
     undefined,
@@ -161,6 +172,13 @@ export function PluginDiagnosticProvider<TState = unknown>({
           schemaVersion: RUNTIME_DIAGNOSTIC_SCHEMA_VERSION,
           ...event,
           appUIModelHash,
+          ...(compositionRevision === undefined
+            ? {}
+            : { compositionRevision }),
+          ...(capabilityCatalogRevision === undefined
+            ? {}
+            : { capabilityCatalogRevision }),
+          ...(publishedAt === undefined ? {} : { publishedAt }),
           occurredAt: new Date().toISOString(),
           ...(resolvedLocation === undefined ? {} : resolvedLocation),
         });
@@ -169,7 +187,14 @@ export function PluginDiagnosticProvider<TState = unknown>({
         // reporter must never break the generated frontend runtime.
       }
     },
-    [appUIModelHash, locations, onRuntimeDiagnostic],
+    [
+      appUIModelHash,
+      capabilityCatalogRevision,
+      compositionRevision,
+      locations,
+      onRuntimeDiagnostic,
+      publishedAt,
+    ],
   );
   const reconcileWidthDiagnostics = useCallback(() => {
     const next = new Map<
@@ -286,6 +311,18 @@ export function PluginDiagnosticProvider<TState = unknown>({
         reporter({
           schemaVersion: RUNTIME_COMPOSITION_SCHEMA_VERSION,
           appUIModelHash: currentHash.current,
+          ...(currentCompositionRevision.current === undefined
+            ? {}
+            : { compositionRevision: currentCompositionRevision.current }),
+          ...(currentCapabilityCatalogRevision.current === undefined
+            ? {}
+            : {
+                capabilityCatalogRevision:
+                  currentCapabilityCatalogRevision.current,
+              }),
+          ...(currentPublishedAt.current === undefined
+            ? {}
+            : { publishedAt: currentPublishedAt.current }),
           observedAt: new Date().toISOString(),
           ...(currentApplication.current === undefined
             ? {}
@@ -362,12 +399,28 @@ export function PluginDiagnosticProvider<TState = unknown>({
 
   useLayoutEffect(() => {
     currentHash.current = appUIModelHash;
+    currentCompositionRevision.current = compositionRevision;
+    currentCapabilityCatalogRevision.current = capabilityCatalogRevision;
+    currentPublishedAt.current = publishedAt;
     currentCompositionReporter.current = onRuntimeComposition;
-  }, [appUIModelHash, onRuntimeComposition]);
+  }, [
+    appUIModelHash,
+    capabilityCatalogRevision,
+    compositionRevision,
+    onRuntimeComposition,
+    publishedAt,
+  ]);
 
   useEffect(() => {
     scheduleCompositionSnapshot();
-  }, [appUIModelHash, onRuntimeComposition, scheduleCompositionSnapshot]);
+  }, [
+    appUIModelHash,
+    capabilityCatalogRevision,
+    compositionRevision,
+    onRuntimeComposition,
+    publishedAt,
+    scheduleCompositionSnapshot,
+  ]);
 
   const value = useMemo<PluginDiagnosticContextValue>(
     () => ({

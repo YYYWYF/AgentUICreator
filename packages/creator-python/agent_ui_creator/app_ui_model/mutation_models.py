@@ -4,8 +4,13 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
 APP_UI_MODEL_PATH = "app-ui/app-ui.json"
+COMPOSITION_REVISION_PATH = "app-ui/composition-revision.generated.json"
 REGISTRY_PATH = "plugins/registry.generated.ts"
-MUTABLE_PATHS = (APP_UI_MODEL_PATH, REGISTRY_PATH)
+MUTABLE_PATHS = (
+    APP_UI_MODEL_PATH,
+    COMPOSITION_REVISION_PATH,
+    REGISTRY_PATH,
+)
 MAX_MUTATION_RESULT_CHARACTERS = 48_000
 MAX_SEMANTIC_COMPOSITION_REPLANS = 1
 

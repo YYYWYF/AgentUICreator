@@ -188,6 +188,8 @@ export async function inspectUIProject(
         index,
       })),
     registry: {
+      capabilityCatalogRevision: generation.capabilityCatalogRevision,
+      capabilityPluginIds: generation.capabilityPluginIds,
       selectedPluginIds: generation.selectedPluginIds,
       registeredPluginIds: generation.registeredPluginIds,
       generatedFileFresh:
@@ -196,7 +198,7 @@ export async function inspectUIProject(
         entrySource === PLUGIN_REGISTRY_ENTRY_SOURCE,
       issues: generation.errors,
     },
-    pluginAssets: generation.assets.map((asset) => ({
+    pluginAssets: generation.assets.map(({ manifest: _manifest, ...asset }) => ({
       ...asset,
       selected: generation.selectedPluginIds.includes(asset.pluginId),
     })),

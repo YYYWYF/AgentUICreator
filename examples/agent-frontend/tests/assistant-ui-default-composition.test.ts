@@ -8,13 +8,14 @@ import appUIJson from "../app-ui/app-ui.json";
 import { resolveConversationPresentationConfig } from "../agent-ui/conversation/config";
 import { collectAppUIPluginLocations, parseAppUIModel } from "../framework/contracts/app-ui-model";
 import { compileAppUIModel } from "../framework/contracts/app-ui-compiler";
-import { pluginDefinitions } from "../plugins";
+import { pluginCapabilityCatalog } from "../plugins";
+import { loadPluginDefinitions } from "../runtime/composition";
 import { createPluginCompositionCatalog, createPluginRegistry } from "../runtime/plugins";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("assistant-ui default composition", () => {
-  it("keeps the default model to two top-level and one child presentation plugin", () => {
+  it("keeps the default model to one top-level and one child presentation plugin", () => {
     const model = parseAppUIModel(appUIJson);
     const locations = collectAppUIPluginLocations(model);
     const visible = locations
@@ -22,7 +23,6 @@ describe("assistant-ui default composition", () => {
       .map(({ plugin }) => plugin.id);
 
     expect(visible).toEqual([
-      "conversation-thread-list-main",
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
     ]);
@@ -30,7 +30,6 @@ describe("assistant-ui default composition", () => {
       "agent-conversation-data-main",
       "agent-conversation-service-main",
       "theme-provider-main",
-      "conversation-thread-list-main",
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
     ]);
@@ -42,7 +41,7 @@ describe("assistant-ui default composition", () => {
 
   });
 
-  it("uses a single navigation Slot without an optional theme control area", () => {
+  it("uses a single conversation Slot without an optional navigation or theme area", () => {
     const model = parseAppUIModel(appUIJson);
     expect(model.root).toMatchObject({
       type: "row",
@@ -52,24 +51,26 @@ describe("assistant-ui default composition", () => {
     if (root.type !== "row") {
       throw new Error("Expected the default root to be a row");
     }
-    const navigationPanel = root.children[0];
-    expect(navigationPanel).toMatchObject({
+    const conversationPanel = root.children[0];
+    expect(conversationPanel).toMatchObject({
       type: "panel",
       child: { type: "slot" },
     });
     expect(JSON.stringify(model.root)).toContain("conversation-surface");
     expect(JSON.stringify(model.root)).not.toContain("workspace.inspector");
     const locations = collectAppUIPluginLocations(model);
-    expect(locations.find(({ plugin }) => plugin.id === "conversation-thread-list-main")?.target)
-      .toMatchObject({ type: "layout_slot", slotPath: "root.children[0].child" });
+    expect(locations.some(({ plugin }) => plugin.id === "conversation-thread-list-main"))
+      .toBe(false);
     expect(locations.some(({ plugin }) => plugin.id === "theme-switch-main")).toBe(false);
     expect(locations.find(({ plugin }) => plugin.id === "agent-conversation-surface-main")?.target)
-      .toMatchObject({ type: "layout_slot", slotPath: "root.children[1].child" });
+      .toMatchObject({ type: "layout_slot", slotPath: "root.children[0].child" });
   });
 
-  it("leaves interaction presentation unconfigured so the adapter owns the upstream fallback", () => {
+  it("leaves interaction presentation unconfigured so the adapter owns the upstream fallback", async () => {
     const model = parseAppUIModel(appUIJson);
-    const registry = createPluginRegistry(pluginDefinitions);
+    const registry = createPluginRegistry(
+      await loadPluginDefinitions(pluginCapabilityCatalog),
+    );
     const runtimeModel = compileAppUIModel(model, createPluginCompositionCatalog(registry));
     expect(resolveConversationPresentationConfig(runtimeModel)).toEqual({
       welcome: {},

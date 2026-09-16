@@ -46,7 +46,7 @@ export async function writeGeneratedPluginRegistry(
     return {
       changed: false,
       path: GENERATED_PLUGIN_REGISTRY_PATH,
-      pluginIds: generation.registeredPluginIds,
+      pluginIds: generation.capabilityPluginIds,
     };
   }
 
@@ -62,7 +62,7 @@ export async function writeGeneratedPluginRegistry(
   return {
     changed: true,
     path: GENERATED_PLUGIN_REGISTRY_PATH,
-    pluginIds: generation.registeredPluginIds,
+    pluginIds: generation.capabilityPluginIds,
   };
 }
 

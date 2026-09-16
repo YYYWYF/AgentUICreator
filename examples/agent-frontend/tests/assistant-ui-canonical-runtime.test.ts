@@ -4,14 +4,17 @@ import { describe, expect, it } from "vitest";
 
 import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 import { compileAppUIModel } from "../framework/contracts/app-ui-compiler";
-import { pluginDefinitions } from "../plugins";
+import { pluginCapabilityCatalog } from "../plugins";
+import { loadPluginDefinitions } from "../runtime/composition";
 import { createPluginCompositionCatalog, createPluginRegistry } from "../runtime/plugins";
 
 async function readModel() {
   const authoringModel = parseAppUIModelJson(
     await readFile(new URL("../app-ui/app-ui.json", import.meta.url), "utf8"),
   );
-  const registry = createPluginRegistry(pluginDefinitions);
+  const registry = createPluginRegistry(
+    await loadPluginDefinitions(pluginCapabilityCatalog),
+  );
   return compileAppUIModel(authoringModel, createPluginCompositionCatalog(registry));
 }
 
@@ -21,11 +24,7 @@ describe("assistant-ui canonical runtime", () => {
 
     expect(
       model.pluginInstances["conversation-thread-list-main"],
-    ).toMatchObject({
-      pluginId: "conversation-thread-list",
-      enabled: true,
-      mount: { slotId: "layout:conversation-navigation" },
-    });
+    ).toBeUndefined();
     expect(
       model.pluginInstances["agent-conversation-surface-main"],
     ).toMatchObject({
@@ -50,7 +49,7 @@ describe("assistant-ui canonical runtime", () => {
     expect(
       Object.values(model.pluginInstances)
         .filter((instance) => instance.enabled),
-    ).toHaveLength(6);
+    ).toHaveLength(5);
     expect(
       model.pluginInstances["conversation-suggestions-main"],
     ).toMatchObject({

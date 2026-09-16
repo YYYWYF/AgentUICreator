@@ -43,17 +43,26 @@
         "diagnostic": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["schemaVersion", "kind", "status", "appUIModelHash", "occurredAt", "pluginId", "instanceId"],
+          "required": ["schemaVersion", "kind", "status", "appUIModelHash", "occurredAt"],
           "properties": {
             "schemaVersion": { "const": 1 },
-            "kind": { "enum": ["plugin-render", "plugin-activation", "plugin-width-incompatible"] },
+            "kind": { "enum": ["runtime-composition", "preview-runtime", "plugin-render", "plugin-activation", "plugin-width-incompatible", "application-gate", "application-event-unknown", "application-event-invalid-payload", "plugin-event-undeclared-subscription", "plugin-event-handler-error"] },
             "code": { "const": "PLUGIN_WIDTH_INCOMPATIBLE" },
             "status": { "enum": ["error", "resolved"] },
             "appUIModelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "compositionRevision": { "type": "string", "minLength": 1, "maxLength": 200 },
+            "capabilityCatalogRevision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "publishedAt": { "type": "string", "format": "date-time", "maxLength": 64 },
             "occurredAt": { "type": "string", "format": "date-time", "maxLength": 64 },
             "pluginId": { "type": "string", "minLength": 1, "maxLength": 200 },
             "instanceId": { "type": "string", "minLength": 1, "maxLength": 200 },
             "pluginName": { "type": "string", "maxLength": 200 },
+            "eventName": { "type": "string", "minLength": 1, "maxLength": 300 },
+            "issuePaths": {
+              "type": "array",
+              "maxItems": 100,
+              "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+            },
             "slotId": { "type": "string", "maxLength": 200 },
             "slotPath": { "type": "string", "maxLength": 1000 },
             "requiredWidth": { "const": "wide" },
@@ -67,6 +76,14 @@
               "then": { "required": ["errorMessage"] }
             },
             {
+              "if": { "properties": { "kind": { "enum": ["plugin-render", "plugin-activation", "plugin-width-incompatible", "application-gate", "plugin-event-undeclared-subscription", "plugin-event-handler-error"] } } },
+              "then": { "required": ["pluginId", "instanceId"] }
+            },
+            {
+              "if": { "properties": { "kind": { "enum": ["application-event-unknown", "application-event-invalid-payload", "plugin-event-undeclared-subscription", "plugin-event-handler-error"] } } },
+              "then": { "required": ["eventName"] }
+            },
+            {
               "if": { "properties": { "kind": { "const": "plugin-width-incompatible" } } },
               "then": { "required": ["code", "slotId", "requiredWidth", "actualWidthClass"] }
             }
@@ -75,10 +92,13 @@
         "composition": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["schemaVersion", "appUIModelHash", "observedAt", "instances"],
+          "required": ["schemaVersion", "appUIModelHash", "compositionRevision", "capabilityCatalogRevision", "publishedAt", "observedAt", "instances", "slots"],
           "properties": {
             "schemaVersion": { "const": 1 },
             "appUIModelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "compositionRevision": { "type": "string", "minLength": 1, "maxLength": 200 },
+            "capabilityCatalogRevision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "publishedAt": { "type": "string", "format": "date-time", "maxLength": 64 },
             "observedAt": { "type": "string", "format": "date-time", "maxLength": 64 },
             "instances": {
               "type": "array",

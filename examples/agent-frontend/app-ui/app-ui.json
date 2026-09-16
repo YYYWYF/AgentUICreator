@@ -21,24 +21,7 @@
   ],
   "root": {
     "type": "row",
-    "gap": 0,
-    "sizes": ["18rem", "minmax(0, 1fr)"],
     "children": [
-      {
-        "type": "panel",
-        "minWidth": 240,
-        "maxWidth": 360,
-        "child": {
-          "type": "slot",
-          "plugins": [
-            {
-              "id": "conversation-thread-list-main",
-              "pluginId": "conversation-thread-list",
-              "enabled": true
-            }
-          ]
-        }
-      },
       {
         "type": "panel",
         "child": {
@@ -80,6 +63,10 @@
           ]
         }
       }
+    ],
+    "gap": 0,
+    "sizes": [
+      "minmax(0, 1fr)"
     ]
   }
 }

@@ -4,6 +4,7 @@ import type {
 } from "../../framework/contracts/app-ui-model";
 import type { AgentUIMode } from "../../framework/contracts/agent-ui-mode";
 import type { PluginChildSlotDefinition, PluginCompositionCatalog, PluginSlotCatalog } from "../../framework/contracts/app-ui-composition";
+import type { UIPluginManifest } from "../../framework/contracts/ui-plugin";
 
 export interface ProjectIssue {
   code: string;
@@ -69,6 +70,7 @@ export interface UIProjectControlConfig {
 
 export interface PluginAsset {
   pluginId: string;
+  manifest: UIPluginManifest;
   name: string;
   description: string;
   directory: string;
@@ -90,6 +92,8 @@ export interface PluginAssetInventory {
 
 export interface GeneratePluginRegistryResult {
   source: string;
+  capabilityCatalogRevision: string;
+  capabilityPluginIds: string[];
   selectedPluginIds: string[];
   registeredPluginIds: string[];
   headlessPluginIds: string[];
@@ -158,13 +162,15 @@ export interface UIProjectInspection {
   };
   plugins: InspectedPlugin[];
   registry: {
+    capabilityCatalogRevision: string;
+    capabilityPluginIds: string[];
     selectedPluginIds: string[];
     registeredPluginIds: string[];
     generatedFileFresh: boolean;
     issues: ProjectIssue[];
   };
   pluginAssets: Array<
-    PluginAsset & {
+    Omit<PluginAsset, "manifest"> & {
       selected: boolean;
     }
   >;

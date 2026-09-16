@@ -1,9 +1,4 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import {
   ConversationRuntimeProvider,
   useConversationRuntimeBridge,
@@ -14,10 +9,11 @@ import appUIJsonSource from "../app-ui/app-ui.json?raw";
 import type { AppAgentState } from "../agent-contract/agent-state";
 import { appEventSchemas } from "../agent-contract/agent-events";
 import { appFrontendTools } from "../agent-contract/agent-tools";
-import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
-import { compileAppUIModel } from "../framework/contracts/app-ui-compiler";
 import { resolveAgentUIProjectConfig } from "../framework/contracts/agent-ui-project";
-import { pluginDefinitions } from "../plugins";
+import {
+  capabilityCatalogRevision,
+  pluginCapabilityCatalog,
+} from "../plugins";
 import { AgentRuntimeProvider } from "../runtime/context";
 import { AppEventRegistry } from "../runtime/events";
 import {
@@ -25,33 +21,34 @@ import {
   AppFrontendToolRuntime,
 } from "../runtime/tools";
 import {
-  createPluginRegistry,
-  createPluginCompositionCatalog,
   PluginServiceProvider,
   UIPluginRuntime,
   type UIPluginRuntimeActions,
 } from "../runtime/plugins";
 import {
   PluginDiagnosticProvider,
-  sha256Text,
+  RUNTIME_DIAGNOSTIC_SCHEMA_VERSION,
   type RuntimeCompositionReporter,
   type RuntimeDiagnosticReporter,
 } from "../runtime/diagnostics";
+import type { RuntimeCompositionSnapshot } from "../runtime/composition";
 import { ModeShell } from "../runtime/mode-shell";
 import { useAgentUIThemeMode } from "../agent-ui/theme/useAgentUITheme";
 import {
   ConversationPresentationConfigProvider,
   resolveConversationPresentationConfig,
 } from "../agent-ui/conversation/config";
+import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
+import { createConversationServiceThreadBinding } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
+import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
 import {
   isMockAgentEndpoint,
   resolveAgentEndpoint,
   shouldRenderDevStudio,
 } from "./agent-endpoint";
-import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
-import { createConversationServiceThreadBinding } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
-import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
 import { DevStudio } from "./dev/DevStudio/DevStudio";
+import { PreviewCompositionBoundary } from "./PreviewCompositionBoundary";
+import { runtimeCompositionStore } from "./runtime-composition-store";
 import "../agent-ui/conversation/styles.css";
 import "./preview-shell.css";
 
@@ -61,18 +58,21 @@ const projectConfigSources = import.meta.glob<string>(
 );
 const projectConfigJsonSource =
   projectConfigSources["../.agent-ui/project.json"];
+const compositionRevisionSources = import.meta.glob<string>(
+  "../app-ui/composition-revision.generated.json",
+  { eager: true, import: "default", query: "?raw" },
+);
+const compositionRevisionSource =
+  compositionRevisionSources[
+    "../app-ui/composition-revision.generated.json"
+  ];
+
 export const currentAgentUIMode = resolveAgentUIProjectConfig(
   projectConfigJsonSource === undefined
     ? undefined
     : JSON.parse(projectConfigJsonSource),
 ).config.mode;
-const pluginRegistry = createPluginRegistry<AppAgentState>(pluginDefinitions);
-const pluginCompositionCatalog = createPluginCompositionCatalog(pluginRegistry);
-const initialAppUIModel = parseAppUIModelJson(appUIJsonSource);
-const initialRuntimeModel = compileAppUIModel(
-  initialAppUIModel,
-  pluginCompositionCatalog,
-);
+
 const appEventRegistry = new AppEventRegistry(appEventSchemas);
 const appFrontendToolRegistry = new AppFrontendToolRegistry(appFrontendTools);
 const appFrontendToolRuntime = new AppFrontendToolRuntime(
@@ -86,11 +86,11 @@ const endpoint = resolveAgentEndpoint({
 
 function AgentFrontendSurface({
   actions,
-  model,
+  composition,
   runtimeMode,
 }: {
   actions: UIPluginRuntimeActions;
-  model: typeof initialRuntimeModel;
+  composition: RuntimeCompositionSnapshot<AppAgentState>;
   runtimeMode: string;
 }) {
   const themeMode = useAgentUIThemeMode();
@@ -99,29 +99,29 @@ function AgentFrontendSurface({
     <div
       className="agent-ui-conversation development-preview"
       data-agent-runtime={runtimeMode}
+      data-composition-revision={composition.revision}
       data-theme={themeMode}
     >
       <UIPluginRuntime
         actions={actions}
         className="agent-template-shell"
-        model={model}
-        registry={pluginRegistry}
+        model={composition.runtimeModel}
+        registry={composition.activeRegistry}
       />
-      {shouldRenderDevStudio({ isDev: import.meta.env.DEV }) ? (
-        <DevStudio endpoint={endpoint} />
-      ) : null}
     </div>
   );
 }
 
-function RuntimeConnectedApp({
-  model,
+function RuntimeConnectedPreview({
+  composition,
+  onRuntimeComposition,
+  onRuntimeDiagnostic,
   runtime,
-  integration,
 }: {
-  model: typeof initialRuntimeModel;
+  composition: RuntimeCompositionSnapshot<AppAgentState>;
+  onRuntimeComposition?: RuntimeCompositionReporter | undefined;
+  onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
   runtime: AgentRuntime<AppAgentState>;
-  integration?: ReactNode;
 }) {
   const pluginActions = useMemo<UIPluginRuntimeActions>(
     () => ({
@@ -132,57 +132,112 @@ function RuntimeConnectedApp({
     }),
     [runtime],
   );
+  const presentationConfig = useMemo(
+    () => resolveConversationPresentationConfig(composition.runtimeModel),
+    [composition.runtimeModel],
+  );
 
   return (
-    <AgentRuntimeProvider runtime={runtime}>
-      <PluginServiceProvider
-        actions={pluginActions}
-        applicationEventRegistry={appEventRegistry}
-        applicationEventSource={runtime}
-        frontendTools={appFrontendToolRuntime}
-        model={model}
-        registry={pluginRegistry}
+    <PreviewCompositionBoundary
+      revision={composition.revision}
+      onError={(failure) => {
+        try {
+          onRuntimeDiagnostic?.({
+            schemaVersion: RUNTIME_DIAGNOSTIC_SCHEMA_VERSION,
+            kind: "preview-runtime",
+            status: "error",
+            appUIModelHash: composition.appUIModelHash,
+            compositionRevision: composition.revision,
+            capabilityCatalogRevision:
+              composition.capabilityCatalogRevision,
+            publishedAt: composition.publishedAt,
+            occurredAt: new Date().toISOString(),
+            errorMessage: failure.errorMessage,
+            ...(failure.componentStack === undefined
+              ? {}
+              : { componentStack: failure.componentStack }),
+          });
+        } catch {
+          // Development diagnostics cannot own the Preview lifecycle.
+        }
+      }}
+    >
+      <PluginDiagnosticProvider
+        appUIModelHash={composition.appUIModelHash}
+        capabilityCatalogRevision={composition.capabilityCatalogRevision}
+        compositionRevision={composition.revision}
+        model={composition.runtimeModel}
+        onRuntimeComposition={onRuntimeComposition}
+        onRuntimeDiagnostic={onRuntimeDiagnostic}
+        publishedAt={composition.publishedAt}
+        registry={composition.activeRegistry}
       >
-        {integration}
-        <ModeShell mode={currentAgentUIMode}>
-          <AgentFrontendSurface
-            actions={pluginActions}
-            model={model}
-            runtimeMode={runtime.mode}
-          />
-        </ModeShell>
-      </PluginServiceProvider>
+        <PluginServiceProvider
+          actions={pluginActions}
+          applicationEventRegistry={appEventRegistry}
+          applicationEventSource={runtime}
+          frontendTools={appFrontendToolRuntime}
+          model={composition.runtimeModel}
+          registry={composition.activeRegistry}
+        >
+          <ConversationThreadBindingConnector />
+          <ConversationPresentationConfigProvider value={presentationConfig}>
+            <ModeShell mode={currentAgentUIMode}>
+              <AgentFrontendSurface
+                actions={pluginActions}
+                composition={composition}
+                runtimeMode={runtime.mode}
+              />
+            </ModeShell>
+          </ConversationPresentationConfigProvider>
+        </PluginServiceProvider>
+      </PluginDiagnosticProvider>
+    </PreviewCompositionBoundary>
+  );
+}
+
+function RuntimeControlPlane({
+  composition,
+  onRuntimeComposition,
+  onRuntimeDiagnostic,
+}: {
+  composition: RuntimeCompositionSnapshot<AppAgentState> | undefined;
+  onRuntimeComposition?: RuntimeCompositionReporter | undefined;
+  onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
+}) {
+  const { agentRuntime } = useConversationRuntimeBridge<AppAgentState>();
+
+  return (
+    <AgentRuntimeProvider runtime={agentRuntime}>
+      {composition === undefined ? (
+        <main className="development-preview" aria-busy="true" />
+      ) : (
+        <RuntimeConnectedPreview
+          composition={composition}
+          onRuntimeComposition={onRuntimeComposition}
+          onRuntimeDiagnostic={onRuntimeDiagnostic}
+          runtime={agentRuntime}
+        />
+      )}
+      {shouldRenderDevStudio({ isDev: import.meta.env.DEV }) ? (
+        <DevStudio endpoint={endpoint} />
+      ) : null}
     </AgentRuntimeProvider>
   );
 }
 
-function ConversationRuntimeConnectedApp({
-  model,
-}: {
-  model: typeof initialRuntimeModel;
-}) {
-  const { agentRuntime } = useConversationRuntimeBridge<AppAgentState>();
-  return (
-    <RuntimeConnectedApp
-      model={model}
-      runtime={agentRuntime}
-      integration={<ConversationThreadBindingConnector />}
-    />
-  );
-}
-
 function ConversationRuntimeBoundary({
-  model,
+  composition,
+  onRuntimeComposition,
+  onRuntimeDiagnostic,
 }: {
-  model: typeof initialRuntimeModel;
+  composition: RuntimeCompositionSnapshot<AppAgentState> | undefined;
+  onRuntimeComposition?: RuntimeCompositionReporter | undefined;
+  onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
 }) {
   const threadBinding = useMemo(
     () => createConversationServiceThreadBinding<AppAgentState>(),
     [],
-  );
-  const presentationConfig = useMemo(
-    () => resolveConversationPresentationConfig(model),
-    [model],
   );
   const toolkit = useMemo(
     () => createConversationToolkit({
@@ -200,11 +255,11 @@ function ConversationRuntimeBoundary({
       toolkit={toolkit}
       threadBinding={threadBinding}
     >
-      <ConversationPresentationConfigProvider value={presentationConfig}>
-        <ConversationRuntimeConnectedApp
-          model={model}
-        />
-      </ConversationPresentationConfigProvider>
+      <RuntimeControlPlane
+        composition={composition}
+        onRuntimeComposition={onRuntimeComposition}
+        onRuntimeDiagnostic={onRuntimeDiagnostic}
+      />
     </ConversationRuntimeProvider>
   );
 }
@@ -218,41 +273,69 @@ export function App({
   onRuntimeComposition,
   onRuntimeDiagnostic,
 }: AppProps = {}) {
-  const [appUIModel, setAppUIModel] = useState(initialAppUIModel);
-  const [appUIModelHash, setAppUIModelHash] = useState<string>();
-  const runtimeModel = useMemo(
-    () => compileAppUIModel(appUIModel, pluginCompositionCatalog),
-    [appUIModel],
+  const composition = useSyncExternalStore(
+    runtimeCompositionStore.subscribe,
+    runtimeCompositionStore.getSnapshot,
+    runtimeCompositionStore.getSnapshot,
+  );
+  const candidateDiagnostic = useSyncExternalStore(
+    runtimeCompositionStore.subscribeDiagnostics,
+    runtimeCompositionStore.getCandidateDiagnostic,
+    runtimeCompositionStore.getCandidateDiagnostic,
   );
 
   useEffect(() => {
-    let active = true;
-    void sha256Text(appUIJsonSource).then((hash) => {
-      if (active) {
-        setAppUIModel(initialAppUIModel);
-        setAppUIModelHash(hash);
-      }
+    runtimeCompositionStore.stageCandidate({
+      appUIModelSource: appUIJsonSource,
+      capabilityCatalog: pluginCapabilityCatalog,
+      capabilityCatalogRevision,
+      ...(compositionRevisionSource === undefined
+        ? {}
+        : { revisionDescriptorSource: compositionRevisionSource }),
     });
-    return () => {
-      active = false;
-    };
-  }, [appUIJsonSource]);
+  }, [
+    appUIJsonSource,
+    capabilityCatalogRevision,
+    compositionRevisionSource,
+    pluginCapabilityCatalog,
+  ]);
 
-  if (appUIModelHash === undefined) {
-    return <main className="development-preview" aria-busy="true" />;
-  }
+  useEffect(() => {
+    if (candidateDiagnostic === undefined || onRuntimeDiagnostic === undefined) {
+      return;
+    }
+    try {
+      onRuntimeDiagnostic({
+        schemaVersion: RUNTIME_DIAGNOSTIC_SCHEMA_VERSION,
+        kind: "runtime-composition",
+        status: candidateDiagnostic.status,
+        appUIModelHash:
+          composition?.appUIModelHash ??
+          candidateDiagnostic.appUIModelHash ??
+          "unknown",
+        compositionRevision:
+          composition?.revision ?? candidateDiagnostic.revision,
+        capabilityCatalogRevision:
+          composition?.capabilityCatalogRevision ??
+          candidateDiagnostic.capabilityCatalogRevision,
+        ...(composition?.publishedAt === undefined
+          ? {}
+          : { publishedAt: composition.publishedAt }),
+        occurredAt: candidateDiagnostic.occurredAt,
+        ...(candidateDiagnostic.errorMessage === undefined
+          ? {}
+          : { errorMessage: candidateDiagnostic.errorMessage }),
+      });
+    } catch {
+      // Development diagnostics cannot own the Preview lifecycle.
+    }
+  }, [candidateDiagnostic, composition, onRuntimeDiagnostic]);
 
   return (
-    <PluginDiagnosticProvider
-      appUIModelHash={appUIModelHash}
-      model={runtimeModel}
+    <ConversationRuntimeBoundary
+      composition={composition}
       onRuntimeComposition={onRuntimeComposition}
       onRuntimeDiagnostic={onRuntimeDiagnostic}
-      registry={pluginRegistry}
-    >
-      <ConversationRuntimeBoundary
-        model={runtimeModel}
-      />
-    </PluginDiagnosticProvider>
+    />
   );
 }

@@ -41,7 +41,7 @@ function resetKeysChanged(
 }
 
 /** Isolates React render and lifecycle failures to one PluginInstance. */
-export class PluginErrorBoundary extends Component<
+export class PluginRuntimeBoundary extends Component<
   PluginErrorBoundaryProps,
   PluginErrorBoundaryState
 > {
@@ -86,6 +86,19 @@ export class PluginErrorBoundary extends Component<
       return this.props.children;
     }
 
-    return null;
+    return (
+      <div
+        className="app-ui-plugin-runtime-error"
+        data-plugin-id={this.props.pluginId}
+        data-plugin-instance-id={this.props.instanceId}
+        role="alert"
+      >
+        <strong>{this.props.pluginName} could not be rendered.</strong>
+        {import.meta.env.DEV ? <pre>{errorMessage}</pre> : null}
+      </div>
+    );
   }
 }
+
+/** @deprecated Use PluginRuntimeBoundary. */
+export { PluginRuntimeBoundary as PluginErrorBoundary };

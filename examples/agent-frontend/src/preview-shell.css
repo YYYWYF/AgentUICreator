@@ -37,6 +37,21 @@ body {
   overflow: hidden;
 }
 
+.app-ui-plugin-runtime-error,
+.preview-runtime-error {
+  padding: 1rem;
+  color: #991b1b;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  overflow: auto;
+}
+
+.app-ui-plugin-runtime-error pre,
+.preview-runtime-error pre {
+  margin: 0.5rem 0 0;
+  white-space: pre-wrap;
+}
+
 @media (max-width: 44rem), (max-height: 44rem) {
   .development-preview {
     min-width: 0;

@@ -185,7 +185,7 @@ export async function verifyUIProject(
     if (entrySource !== PLUGIN_REGISTRY_ENTRY_SOURCE) {
       errors.push({
         code: "plugin-registry-entry",
-        message: `${PLUGIN_REGISTRY_ENTRY_PATH} must only re-export the generated production registry.`,
+        message: `${PLUGIN_REGISTRY_ENTRY_PATH} must only re-export the generated capability catalog.`,
       });
     }
     generatedFileFresh =

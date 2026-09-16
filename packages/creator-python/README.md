@@ -133,8 +133,9 @@ Minimal Agent 每轮只暴露 `ls`、`read_file`、`glob`、`grep`、`edit_file`
 `plugins/registry.generated.ts` 和 `app-ui/app-ui.json`。
 
 Domain Read Agent 复用相同 PathPolicy，因此仍不能直接写
-`plugins/registry.generated.ts` 或 `app-ui/app-ui.json`。普通 Plugin 源码修改仍可通过
-`edit_file` 完成；Domain Write 同样禁止直接编辑这两个文件，注册、挂载、移动或删除实例
+`plugins/registry.generated.ts`、`app-ui/composition-revision.generated.json` 或
+`app-ui/app-ui.json`。普通 Plugin 源码修改仍可通过
+`edit_file` 完成；Domain Write 同样禁止直接编辑这三个文件，注册、挂载、移动或删除实例
 必须使用 semantic mutation tool。Domain Read 始终不开放 mutation，用作安全回归模式。
 
 每次 `RUN_FINISHED.result.toolProtocol` 包含模型调用、有效/无效工具调用、pseudo

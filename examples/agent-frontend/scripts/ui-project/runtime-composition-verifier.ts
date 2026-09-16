@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import path from "node:path";
 
 import { z } from "zod";
 
@@ -14,6 +15,7 @@ import {
   compileAppUIModel,
 } from "../../framework/contracts/app-ui-compiler";
 import { generatePluginRegistry } from "./registry-generator";
+import { COMPOSITION_REVISION_PATH } from "./app-ui-transaction";
 
 const appUIModelHashSchema = z.string().regex(/^[a-f0-9]{64}$/u);
 const runtimeIdentifierSchema = z.string().trim().min(1).max(200);
@@ -46,6 +48,9 @@ const runtimeCompositionSlotSchema = z.strictObject({
 export const runtimeCompositionSnapshotSchema = z.strictObject({
   schemaVersion: z.literal(1),
   appUIModelHash: appUIModelHashSchema,
+  compositionRevision: runtimeIdentifierSchema,
+  capabilityCatalogRevision: appUIModelHashSchema,
+  publishedAt: z.iso.datetime({ offset: true }),
   observedAt: z.iso.datetime({ offset: true }),
   application: runtimeCompositionApplicationSchema.optional(),
   instances: z.array(runtimeCompositionInstanceSchema).max(500),
@@ -162,6 +167,47 @@ export async function verifyRuntimeComposition(
       "The current AppUIModel cannot be compiled for Runtime composition verification.",
       { issues: registry.errors.map(({ code, message }) => ({ code, message })) },
     );
+  }
+  if (
+    input.composition.capabilityCatalogRevision !==
+    registry.capabilityCatalogRevision
+  ) {
+    throw new RuntimeCompositionVerificationError(
+      "RUNTIME_COMPOSITION_REVISION_CONFLICT",
+      "Runtime composition evidence belongs to a different capability catalog revision.",
+      {
+        expectedRevision: registry.capabilityCatalogRevision,
+        actualRevision: input.composition.capabilityCatalogRevision,
+      },
+    );
+  }
+  try {
+    const descriptor = JSON.parse(await readFile(
+      path.join(projectRoot, COMPOSITION_REVISION_PATH),
+      "utf8",
+    )) as Record<string, unknown>;
+    if (
+      descriptor.appUIModelHash === currentHash &&
+      descriptor.capabilityCatalogRevision ===
+        registry.capabilityCatalogRevision &&
+      input.composition.compositionRevision !== descriptor.transactionId
+    ) {
+      throw new RuntimeCompositionVerificationError(
+        "RUNTIME_COMPOSITION_REVISION_CONFLICT",
+        "Runtime composition evidence predates the current ProjectControl transaction.",
+        {
+          expectedRevision: descriptor.transactionId,
+          actualRevision: input.composition.compositionRevision,
+        },
+      );
+    }
+  } catch (error) {
+    if (
+      error instanceof RuntimeCompositionVerificationError ||
+      (error as NodeJS.ErrnoException).code !== "ENOENT"
+    ) {
+      throw error;
+    }
   }
 
   let runtimeModel;

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { pluginDefinitions } from "../plugins";
+import { pluginCapabilityCatalog } from "../plugins";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const canonicalPluginIds = [
@@ -49,8 +49,8 @@ describe("canonical Conversation plugin cleanup boundary", () => {
       ) as { id: string }),
     );
     expect(manifests.map(({ id }) => id).sort()).toEqual(directories);
-    expect(pluginDefinitions).toHaveLength(7);
-    expect(pluginDefinitions.map(({ manifest }) => manifest.id).sort()).toEqual(directories);
+    expect(pluginCapabilityCatalog.list()).toHaveLength(7);
+    expect(pluginCapabilityCatalog.list().map(({ manifest }) => manifest.id).sort()).toEqual(directories);
   });
 
   it("keeps production Plugin sources behind the generic public boundary", async () => {

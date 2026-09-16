@@ -506,6 +506,36 @@ class AppUIModelMutationService:
         snapshot_registry_hash = _hash(
             snapshot_token.get("registryHash"), "snapshotToken.registryHash"
         )
+        snapshot_catalog_revision = snapshot_token.get(
+            "capabilityCatalogRevision"
+        )
+        composition_revision = result.get("compositionRevision")
+        if snapshot_catalog_revision is not None:
+            snapshot_catalog_revision = _hash(
+                snapshot_catalog_revision,
+                "snapshotToken.capabilityCatalogRevision",
+            )
+        if composition_revision is not None:
+            composition_revision = _object(
+                composition_revision, "compositionRevision"
+            )
+            if (
+                composition_revision.get("transactionId") != transaction_id
+                or _hash(
+                    composition_revision.get("appUIModelHash"),
+                    "compositionRevision.appUIModelHash",
+                )
+                != after_hash
+                or _hash(
+                    composition_revision.get("capabilityCatalogRevision"),
+                    "compositionRevision.capabilityCatalogRevision",
+                )
+                != snapshot_catalog_revision
+            ):
+                raise AppUIModelMutationError(
+                    "APP_UI_MODEL_MUTATION_RESULT_INCONSISTENT",
+                    "Target CompositionRevision does not match the mutation result.",
+                )
         if (
             before_hash != requested_hash
             or after_hash != snapshot_app_hash

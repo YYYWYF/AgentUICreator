@@ -97,7 +97,7 @@ afterEach(async () => {
 });
 
 describe("generatePluginRegistry", () => {
-  it("selects every referenced plugin deterministically, including disabled instances", async () => {
+  it("generates a stable lazy capability catalog while resolving active definitions", async () => {
     const projectRoot = await createProject();
     await createPlugin(projectRoot, "beta-dir", "beta", { headless: true });
     await createPlugin(projectRoot, "alpha-dir", "alpha");
@@ -119,16 +119,22 @@ describe("generatePluginRegistry", () => {
     expect(first.errors).toEqual([]);
     expect(first.selectedPluginIds).toEqual(["alpha", "beta"]);
     expect(first.registeredPluginIds).toEqual(["alpha", "beta"]);
+    expect(first.capabilityPluginIds).toEqual([
+      "alpha",
+      "beta",
+      "unselected",
+    ]);
     expect(first.headlessPluginIds).toEqual(["beta"]);
     expect(first.source).toBe(second.source);
     expect(first.source).toContain(
-      'import pluginDefinition0 from "./alpha-dir/definition";',
+      'import("./alpha-dir/definition")',
     );
     expect(first.source).toContain(
-      'import pluginDefinition1 from "./beta-dir/definition";',
+      'import("./beta-dir/definition")',
     );
     expect(first.source).not.toContain("catalog-only");
-    expect(first.source).not.toContain("unselected");
+    expect(first.source).toContain("unselected");
+    expect(first.source).not.toMatch(/import pluginDefinition/u);
   });
 
   it("builds a pure child Slot catalog from selected manifests", async () => {
@@ -156,7 +162,7 @@ describe("generatePluginRegistry", () => {
     });
   });
 
-  it("removes an asset from the output after its last instance is removed", async () => {
+  it("keeps capability membership stable after its last instance is removed", async () => {
     const projectRoot = await createProject();
     await createPlugin(projectRoot, "sample", "sample");
 
@@ -173,7 +179,8 @@ describe("generatePluginRegistry", () => {
 
     expect(selected.registeredPluginIds).toEqual(["sample"]);
     expect(removed.registeredPluginIds).toEqual([]);
-    expect(removed.source).not.toContain("./sample/definition");
+    expect(removed.source).toContain("./sample/definition");
+    expect(removed.source).toBe(selected.source);
     expect(removed.assets).toContainEqual(
       expect.objectContaining({ pluginId: "sample" }),
     );
@@ -257,5 +264,24 @@ describe("generatePluginRegistry", () => {
     expect(result.errors).toContainEqual(
       expect.objectContaining({ code: "selected-plugin-definition-parse" }),
     );
+  });
+
+  it("does not parse an inactive implementation into the Preview module graph", async () => {
+    const projectRoot = await createProject();
+    await createPlugin(projectRoot, "active", "active");
+    await createPlugin(projectRoot, "inactive", "inactive");
+    await writeFile(
+      path.join(projectRoot, "plugins", "inactive", "definition.ts"),
+      "export default {\n",
+    );
+
+    const result = await generatePluginRegistry(
+      projectRoot,
+      modelFor(["active"]),
+      fixtureConfig,
+    );
+
+    expect(result.errors).toEqual([]);
+    expect(result.source).toContain('import("./inactive/definition")');
   });
 });

@@ -114,7 +114,8 @@ CREATOR_PYTHON_AGENT_MODE=domain-write
 
 它在 Domain Read 工具面上增加 `mutate_app_ui_model`，由 Python Host 负责 project lock、
 capture-before、changedPaths 对账、Activity revision、receipt、transaction 与 undo。
-`app-ui/app-ui.json` 和 `plugins/registry.generated.ts` 仍禁止通用文件工具直接编辑。
+`app-ui/app-ui.json`、`app-ui/composition-revision.generated.json` 和
+`plugins/registry.generated.ts` 仍禁止通用文件工具直接编辑。
 Runtime Verification、Host Validation、Completion、回执与 transaction 状态同样由
 Python Creator 持有。
 

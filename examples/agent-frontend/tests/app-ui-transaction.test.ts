@@ -10,7 +10,10 @@ import {
   resolveRuntimeLayoutSlotId,
   resolveRuntimePluginSlotId,
 } from "../framework/contracts/app-ui-composition";
-import { mutateAppUIModel } from "../scripts/ui-project/app-ui-transaction";
+import {
+  COMPOSITION_REVISION_PATH,
+  mutateAppUIModel,
+} from "../scripts/ui-project/app-ui-transaction";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
   generatePluginRegistry,
@@ -91,6 +94,102 @@ describe("AppUIModel transaction", () => {
     ) as AppUIModel;
     if (written.root.type !== "slot") throw new Error("fixture");
     expect(written.root.plugins[0]?.props?.title).toBe("After");
+  });
+
+  it("removes an existing instance without rewriting the capability catalog", async () => {
+    const { projectRoot, source } = await createProject();
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "remove_plugin",
+        instanceId: "sample-main",
+      }],
+    });
+
+    expect(result.changedPaths).toEqual(["app-ui/app-ui.json"]);
+    expect(result.diff.registry.changed).toBe(false);
+    expect(result.registry.registeredPluginIds).toEqual([]);
+  });
+
+  it("removes a history panel in one mutation without catalog churn", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        children: [
+          {
+            type: "panel",
+            child: {
+              type: "slot",
+              plugins: [{
+                id: "conversation-thread-list-main",
+                pluginId: "sample",
+                enabled: true,
+              }],
+            },
+          },
+          {
+            type: "panel",
+            child: {
+              type: "slot",
+              plugins: [{
+                id: "sample-main",
+                pluginId: "sample",
+                enabled: true,
+              }],
+            },
+          },
+        ],
+      },
+    };
+    const { projectRoot, source } = await createProject({}, model);
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [
+        {
+          type: "remove_plugin",
+          instanceId: "conversation-thread-list-main",
+        },
+        { type: "remove_layout_node", nodeRef: "l1" },
+      ],
+    });
+
+    expect(result.changedPaths).toEqual(["app-ui/app-ui.json"]);
+    expect(result.diff.registry).toMatchObject({
+      changed: false,
+      addedPluginIds: [],
+      removedPluginIds: [],
+    });
+  });
+
+  it("writes a CompositionRevision before a model plus catalog transaction", async () => {
+    const { projectRoot, source } = await createProject();
+    await createPlugin(projectRoot, "beta");
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "insert_plugin",
+        plugin: {
+          id: "beta-main",
+          pluginId: "beta",
+          enabled: true,
+        },
+        target: { type: "layout_slot", slotRef: "l0" },
+      }],
+    });
+
+    expect(result.changedPaths).toEqual([
+      "app-ui/app-ui.json",
+      COMPOSITION_REVISION_PATH,
+      GENERATED_PLUGIN_REGISTRY_PATH,
+    ]);
+    expect(result.compositionRevision).toBeDefined();
+    expect(JSON.parse(await readFile(
+      path.join(projectRoot, COMPOSITION_REVISION_PATH),
+      "utf8",
+    ))).toEqual(result.compositionRevision);
+    expect(result.snapshotToken.capabilityCatalogRevision).toBe(
+      result.compositionRevision!.capabilityCatalogRevision,
+    );
   });
 
   it("strips transaction localRefs before writing AppUIModel", async () => {

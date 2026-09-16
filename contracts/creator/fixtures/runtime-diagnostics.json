@@ -6,6 +6,9 @@
       "kind": "plugin-render",
       "status": "error",
       "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "compositionRevision": "transaction-example",
+      "capabilityCatalogRevision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "publishedAt": "2026-09-04T00:00:00.000Z",
       "occurredAt": "2026-09-04T00:00:00.000Z",
       "pluginId": "antd-x-message-list",
       "instanceId": "messages-main",
@@ -19,6 +22,9 @@
     "composition": {
       "schemaVersion": 1,
       "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "compositionRevision": "transaction-example",
+      "capabilityCatalogRevision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "publishedAt": "2026-09-04T00:00:00.000Z",
       "observedAt": "2026-09-04T00:00:00.000Z",
       "instances": [
         {

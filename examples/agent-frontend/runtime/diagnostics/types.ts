@@ -2,6 +2,8 @@ export const RUNTIME_DIAGNOSTIC_SCHEMA_VERSION = 1 as const;
 export const RUNTIME_COMPOSITION_SCHEMA_VERSION = 1 as const;
 
 export type RuntimeDiagnosticKind =
+  | "runtime-composition"
+  | "preview-runtime"
   | "plugin-render"
   | "plugin-activation"
   | "plugin-width-incompatible"
@@ -18,6 +20,9 @@ export interface RuntimeDiagnostic {
   code?: "PLUGIN_WIDTH_INCOMPATIBLE" | undefined;
   status: RuntimeDiagnosticStatus;
   appUIModelHash: string;
+  compositionRevision?: string | undefined;
+  capabilityCatalogRevision?: string | undefined;
+  publishedAt?: string | undefined;
   occurredAt: string;
   pluginId?: string | undefined;
   instanceId?: string | undefined;
@@ -62,6 +67,9 @@ export interface RuntimeCompositionSlot {
 export interface RuntimeCompositionSnapshot {
   schemaVersion: typeof RUNTIME_COMPOSITION_SCHEMA_VERSION;
   appUIModelHash: string;
+  compositionRevision?: string | undefined;
+  capabilityCatalogRevision?: string | undefined;
+  publishedAt?: string | undefined;
   observedAt: string;
   application?: RuntimeCompositionApplication | undefined;
   instances: RuntimeCompositionInstance[];

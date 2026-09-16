@@ -13,7 +13,7 @@ Inspect project conventions before deciding that Plugin source must change:
 - `/plugins/*/definition.ts` joins a validated manifest to a React component.
 - `/plugins/*/index.tsx` implements the component.
 - `/plugins/*/styles.css` owns Plugin-specific presentation when that stack uses CSS.
-- `/plugins/registry.generated.ts` is the generated production registry and statically imports only definitions selected by AppUIModel. Never edit it or `/plugins/index.ts` by hand.
+- `/plugins/registry.generated.ts` is the generated capability catalog: manifest metadata plus lazy definition loaders for available Plugins. AppUIModel selection resolves the published Active Registry at runtime; never edit this file or `/plugins/index.ts` by hand.
 - `/framework/contracts/ui-plugin.ts` is the Plugin Contract.
 - `/agent-contract/agent-events.ts` is the application-owned registry for backend Application Event names and payload schemas.
 - `/agent-contract/agent-tools.ts` is the application-owned allowlist for capability operations exposed to the Agent.

@@ -9,6 +9,7 @@ from pathlib import Path
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.app_ui_model import (
     APP_UI_MODEL_PATH,
+    COMPOSITION_REVISION_PATH,
     REGISTRY_PATH,
     AppUIModelMutationService,
     ProjectMutationCoordinator,
@@ -174,11 +175,15 @@ def test_real_agent_tools_inspect_once_then_mutate_with_host_owned_hash(tmp_path
     assert observations.metrics.hashReuses == 1
 
 
-def test_real_insert_plugin_updates_app_ui_and_registry_and_is_undoable(tmp_path):
+def test_real_insert_plugin_updates_composition_artifacts_and_is_undoable(tmp_path):
     run_id = "python-real-app-ui-registry-undo"
     instance_id = "agent-activity-feed-main"
     plugin_id = "test-unselected-theme-switch"
-    changed_paths = {APP_UI_MODEL_PATH, REGISTRY_PATH}
+    changed_paths = {
+        APP_UI_MODEL_PATH,
+        COMPOSITION_REVISION_PATH,
+        REGISTRY_PATH,
+    }
     source_app_ui_path = TARGET_PROJECT / APP_UI_MODEL_PATH
     source_registry_path = TARGET_PROJECT / REGISTRY_PATH
     source_app_ui_content = source_app_ui_path.read_bytes()
@@ -264,7 +269,7 @@ def test_real_insert_plugin_updates_app_ui_and_registry_and_is_undoable(tmp_path
         "requests": 1,
         "operations": 1,
         "hashConflicts": 0,
-        "changedPaths": 2,
+        "changedPaths": 3,
         "resultMismatches": 0,
     }
     assert client.metrics.requestsByOperation["mutate_app_ui_model"] == 1

@@ -8,7 +8,7 @@
 
 本轮改造把 Creator 从“具有受限文件写权限的 Coding Agent”升级为：
 
-> 能准确观察目标 UI 项目、通过事务语义修改 AppUIModel、确定性维护生产 Registry、区分停用与删除、读取运行时诊断，并用当前 revision 的证据完成交付的 UI Coding Agent。
+> 能准确观察目标 UI 项目、通过事务语义修改 AppUIModel、确定性维护 Capability Catalog 与 Active Registry、区分停用与删除、读取运行时诊断，并用当前 revision 的证据完成交付的 UI Coding Agent。
 
 改造后仍保持：
 
@@ -16,7 +16,7 @@
 - AppUIModel 是 UI 组合唯一事实源；
 - Plugin 源码属于生成项目和用户；
 - UI Runtime 确定性渲染，不承担 AI 判断；
-- 生产 Registry 使用显式静态 import；
+- Capability Catalog 使用 manifest metadata 与 lazy definition loader，Active Registry 只包含当前 composition；
 - 目标项目不依赖 `@agent-ui/creator`，可独立 `dev`、`test`、`typecheck`、`build`；
 - Creator 不规定目标项目使用 Ant Design、MUI、Tailwind 或任何 major version。
 
@@ -76,7 +76,7 @@ AppUIModel 不暴露 Runtime mount。视觉 Plugin 直接位于 Layout Slot 或 
 通用 Coding Agent 自主判断
   ├─ 精确 inspect
   ├─ 编辑 Plugin 源码
-  ├─ 事务式修改 AppUIModel + Registry
+  ├─ 事务式修改 AppUIModel + Capability Catalog revision
   ├─ 必要时询问一个用户侧问题
   └─ 读取 runtime diagnostics
   ↓
@@ -100,18 +100,18 @@ expectedAppUIModelHash
   ↓
 完整 Schema / 关系校验
   ↓
-根据全部 authoring plugin node 生成 Registry source
+从 plugins/* inventory 生成稳定 Capability Catalog source
   ↓
 compileAppUIModel() 并执行 Runtime composition validation
   ↓
 计算结构化 diff
   ↓
-原子写 app-ui.json + registry.generated.ts
+单 artifact 时只写 app-ui.json；多 artifact 时 descriptor-first 原子提交
   ↓
 记录 before content / after hash / mutation revision
 ```
 
-失败时两个文件都保持修改前内容，不允许只写成功一半。
+失败时所有 transaction artifact 都保持修改前内容，不允许暴露中间 revision。
 
 ### 4.3 运行时诊断
 
@@ -243,14 +243,13 @@ generatePluginRegistry(projectRoot, appUIModel): Promise<GenerateRegistryResult>
 
 生成规则：
 
-1. 从 `applicationPlugins` 与 Layout/nested Plugin tree 收集全部唯一 `pluginId`，不按 enabled 状态过滤；
-2. 扫描一级 `plugins/*/manifest.json` 建立 id 到目录映射；
-3. 要求被选中目录包含 `definition.ts`；
-4. 生成按 plugin id 稳定排序的 default imports；
-5. import 本地变量使用 `pluginDefinition0` 这类生成名，避免把 plugin id 直接转换为标识符；
-6. 输出 `plugins/registry.generated.ts`；
-7. `plugins/index.ts` 只 re-export `pluginDefinitions`；
-8. 未选择资产和 Catalog 不写入生成文件。
+1. 扫描一级 `plugins/*/manifest.json` 建立完整 capability inventory；
+2. 校验重复 id、manifest 与 definition entry；
+3. 生成按 plugin id 稳定排序的 manifest metadata 与 lazy definition loader；
+4. 输出 `plugins/registry.generated.ts` 与 `capabilityCatalogRevision`；
+5. `plugins/index.ts` 只 re-export `pluginCapabilityCatalog` 和 revision；
+6. AppUIModel selection 只用于 active definition resolve、compile 与 diagnostics，不控制 catalog membership；
+7. 未选择 implementation 不 eager import，不进入当前 Preview module graph。
 
 `registry.generated.ts` 纳入版本控制。`generate:registry` 是显式开发命令；`verify:ui`、`typecheck` 和 `build` 只检查或消费现有生成物，不在执行时修改工作树。
 
@@ -390,7 +389,7 @@ examples/agent-frontend/package.json
 1. 为现有每个 Plugin definition 增加 default export，保留 named export；
 2. 实现 Plugin asset 扫描与重复 id、缺文件诊断；
 3. 用目标项目显式 `project-config.ts` 声明开发期 Catalog 与 `_shared` 等非 Plugin 目录路径，不通过目录名猜测；
-4. 实现纯 Registry source generator，并用 TypeScript AST 而非正则确认 selected definition 具有 default export；
+4. 实现纯 Capability Catalog source generator，并用 TypeScript AST 而非正则确认 selected definition 具有 default export；
 5. 生成初始 `registry.generated.ts`，让 `plugins/index.ts` 稳定 re-export；
 6. 增加 `pnpm generate:registry`；
 7. 改写 `verify:ui`：直接复用 generator 的纯计算结果，比较期望源码与磁盘源码；
@@ -476,9 +475,9 @@ packages/creator/src/PythonCreatorClient.ts
 
 ### Phase 3：事务式 AppUIModel 语义修改
 
-目标：用一个原子 transaction 维护 AppUIModel 与 Registry，不再让模型手工编辑组合 JSON 和 Registry。
+目标：用一个原子 transaction 维护 AppUIModel 与必要的 Capability Catalog revision，不再让模型手工编辑组合 JSON 或生成 catalog。
 
-实施状态（2026-09-02）：已完成。`mutate_app_ui_model` 已通过目标项目固定控制入口接入 Creator，支持 13 类实例、挂载与 Layout Tree 语义操作；提交前执行精确 hash、完整 AppUIModel、visual/headless 挂载和静态 Registry 校验。AppUIModel 与 Registry 使用项目内 journal、临时文件和 rename 提交，下一次控制入口可完成中断事务，外部文件冲突时拒绝覆盖。Creator Activity 仅按真实 `changedPaths` 记录 revision 与 diff，no-op 不产生 revision；prompt 与内置 skills 已切换到领域工具优先。
+实施状态（2026-09-16）：`mutate_app_ui_model` 通过目标项目固定控制入口接入 Creator；提交前执行精确 hash、完整 AppUIModel、visual/headless 挂载和 candidate compile。纯 composition change 只写 AppUIModel；capability 同时变化时，CompositionRevision、AppUIModel 与 Capability Catalog 使用项目内 journal、临时文件和 descriptor-first rename 提交。下一次控制入口可完成中断事务，外部文件冲突时拒绝覆盖。Creator Activity 仅按真实 `changedPaths` 记录 revision 与 diff，no-op 不产生 revision。
 
 目标项目建议新增：
 
@@ -524,7 +523,7 @@ packages/creator-python/tests/test_app_ui_model_mutation.py
 退出标准：
 
 - 普通布局、挂载、停用、移除和替换请求不需要模型直接编辑 AppUIModel；
-- AppUIModel 与 Registry 不会出现半提交；
+- AppUIModel、CompositionRevision 与 Capability Catalog 不会向 Preview 发布半提交；
 - Completion Gate 能看到领域工具造成的准确 revision 和 diff。
 
 ### Phase 4：文件观察策略、run transaction 与安全 Undo
@@ -591,7 +590,7 @@ packages/creator/src/ui/CreatorWorkbench.tsx
 
 目标：把用户语言映射成安全、明确的领域语义。
 
-实施状态（2026-09-02）：已完成并保持真实会话关闭。Prompt 与内置 skills 已把隐藏、移除实例、替换和永久删除源码映射为四种不同语义；前三种继续由 Phase 3 的 AppUIModel transaction 完成并默认保留源码。目标项目新增基于自身 TypeScript 7 project/checker 的跨 Plugin、services、app source 模块解析，以及 plugin id literal/manifest 保守检查。Creator 的受限删除执行器只接受 host 侧为当前 run 与精确 plugin id 提供的可信授权，并依次拒绝仍有实例、Registry 非新鲜、源码引用、非单目录路径、链接/特殊文件、不可无损恢复的二进制文件和 journal 超限；合法文本源码删除自动验证且可由 run transaction 完整恢复。`delete_ui_plugin_source` 目前没有加入真实 Creator Tool Catalog，`CREATOR_PLUGIN_SOURCE_DELETE_ENABLED_BY_DEFAULT` 固定为 `false`；待 Phase 7 同 run 用户确认 token 接入后才允许 host 显式启用。
+实施状态（2026-09-16）：Prompt 与内置 skills 把隐藏、移除实例、替换和永久删除源码映射为四种不同语义；前三种继续由 AppUIModel transaction 完成并默认保留源码。受限删除依次拒绝仍有实例、Capability Catalog 非新鲜、源码引用、非单目录路径、链接/特殊文件、不可无损恢复的二进制文件和 journal 超限；合法文本源码删除可由 run transaction 完整恢复。`delete_ui_plugin_source` 目前没有加入真实 Creator Tool Catalog，`CREATOR_PLUGIN_SOURCE_DELETE_ENABLED_BY_DEFAULT` 固定为 `false`。
 
 普通语义通过 Phase 3 operations 完成：
 
@@ -613,7 +612,7 @@ Phase 5 完成删除 preflight、transaction 和测试，但 `CREATOR_PLUGIN_SOU
 
 1. 用户当前请求明确写出删除代码，或本 run 有有效 `ask_creator_user` 确认 token；
 2. AppUIModel 中没有该 plugin id 的实例；
-3. 生成 Registry 中没有该 plugin id；
+3. 当前 Active Registry 中没有该 plugin id；Capability Catalog 可保留到源码 transaction 提交；
 4. 使用 TypeScript compiler/module resolution 检查其他 Plugin、services、app source 中没有指向该目录或其导出的引用，并补充对 manifest id 字符串引用的保守检查；
 5. 目标精确解析为 `plugins/<one-directory>`，禁止 glob 和父目录；
 6. transaction journal 能在大小限制内保存全部删除内容；
@@ -788,13 +787,13 @@ packages/creator-python/tests/test_model_factory.py
 1. “右边增加工具详情”：快照定位布局，必要时创建 Plugin，事务把 plugin node 插入目标 Slot，Registry 自动生成；
 2. “右边太宽”：只修改 Layout，无 Plugin source diff；
 3. “这个先不要显示”：plugin node disabled 并保留位置，源码保留；
-4. “移除这个功能”：plugin node 消失，最后一个引用移除时 Registry import 消失，源码保留；
+4. “移除这个功能”：plugin node 与 Active Registry entry 消失，Capability Catalog 和源码保留；
 5. “换成历史会话”：Creator 通过快照定位候选，在一个 transaction 中 `replace_plugin`；
 6. “代码也删掉”：若原请求没有明确范围则询问一次，确认后受限删除；
 7. 人工在 Creator 读取后修改同一文件：Creator stale-version 拒绝覆盖；
 8. 撤销前人工又修改文件：undo 整体拒绝；
 9. Plugin render throw：typecheck 通过但 runtime diagnostics 使 Creator 能定位并修复；
-10. AppUIModel 手工修改但忘记 generate：`verify:ui` 报 Registry stale 且不写文件。
+10. Plugin inventory 手工修改但忘记 generate：`verify:ui` 报 Capability Catalog stale 且不写文件；纯 AppUIModel 修改不要求 codegen。
 
 退出标准：
 
@@ -868,7 +867,7 @@ pnpm build
 
 - 在 `verify:ui` 或 typecheck 中顺便生成/改写文件；
 - 把 enabled 未挂载从 error 降为 warning；
-- 把全部 Plugin Catalog 引入生产 Registry；
+- eager import 全部 Plugin implementation；
 - 删除失败 Plugin 源码以消除错误；
 - 放宽 Creator 写权限到整个项目；
 - 用 mock runtime 通过来替代至少一个真实浏览器渲染失败测试；
@@ -919,7 +918,7 @@ flags 属于 Creator host 配置，不写入生成应用。正式稳定后删除
 全部实施完成必须同时满足：
 
 - `inspect_ui_project` 能准确解释当前 Layout、Slots、instances、assets、Registry 和 UI stack；
-- AppUIModel 与 Registry 由一个 hash-guarded transaction 原子修改；
+- AppUIModel 与必要的 Capability Catalog revision 由 hash-guarded transaction 以 descriptor-first staging 提交；
 - Registry 是 AppUIModel 的确定性静态派生物，验证命令只读；
 - 隐藏、移除实例、替换和删除源码具有不同可测试语义；
 - run undo 不覆盖任何 after hash 已变化的文件；

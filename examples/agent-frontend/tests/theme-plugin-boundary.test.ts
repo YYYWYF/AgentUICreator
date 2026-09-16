@@ -57,7 +57,8 @@ describe("theme plugin boundary", () => {
     expect(JSON.stringify(model.root)).not.toContain("workspace-shell");
 
     expect(registry).toContain('./theme-provider/definition');
-    expect(registry).not.toContain('./theme-switch/definition');
+    expect(registry).toContain('./theme-switch/definition');
+    expect(registry).not.toMatch(/import pluginDefinition/u);
 
   });
 });

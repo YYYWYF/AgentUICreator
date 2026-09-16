@@ -131,7 +131,11 @@ def normalize_creator_path(value: str) -> str:
 
 def change_layer_for_path(path: str) -> ChangeLayer | None:
     normalized = normalize_creator_path(path)
-    if normalized in {"/app-ui/app-ui.json", "/plugins/registry.generated.ts"}:
+    if normalized in {
+        "/app-ui/app-ui.json",
+        "/app-ui/composition-revision.generated.json",
+        "/plugins/registry.generated.ts",
+    }:
         return "composition"
     if normalized.startswith("/plugins/") or normalized.startswith("/agent-ui/"):
         return "plugin_behavior"
@@ -157,7 +161,11 @@ def resource_keys_for_path(
     """Resolve a project path to its stable semantic resource, when possible."""
 
     normalized = normalize_creator_path(path)
-    if normalized in {"/app-ui/app-ui.json", "/plugins/registry.generated.ts"}:
+    if normalized in {
+        "/app-ui/app-ui.json",
+        "/app-ui/composition-revision.generated.json",
+        "/plugins/registry.generated.ts",
+    }:
         return ("app-ui-model",)
 
     parts = PurePosixPath(normalized).parts[1:]

@@ -53,7 +53,8 @@ Use inspect_ui_services for Service providers, required consumers, optional
 consumers, and availability; do not infer capability ownership from Plugin names.
 
 ProjectControl mutation is intentionally unavailable in this phase. Do not manually
-edit app-ui/app-ui.json or plugins/registry.generated.ts to work around that
+edit app-ui/app-ui.json, app-ui/composition-revision.generated.json, or
+plugins/registry.generated.ts to work around that
 restriction. Explain that composition mutation is not yet available when requested.
 
 Read-only request boundary
@@ -326,8 +327,9 @@ workflow: Reuse -> Modify/Create source -> Static Validation -> Composition ->
 Runtime Verification -> Repair -> Completion. After every source or composition
 mutation, validate_creator_changes must pass for the current Activity revision;
 an earlier passing result is stale. Composition remains exclusively owned by
-mutate_app_ui_model. Never edit app-ui/app-ui.json or
-plugins/registry.generated.ts directly.
+mutate_app_ui_model. Never edit app-ui/app-ui.json,
+app-ui/composition-revision.generated.json, or plugins/registry.generated.ts
+directly.
 
 After the final current-revision static validation, call inspect_runtime_errors.
 runtimeStatus=passed is the only state that proves fresh Runtime evidence for the

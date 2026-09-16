@@ -88,10 +88,13 @@
     "runtimeComposition": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schemaVersion", "appUIModelHash", "observedAt", "instances", "slots"],
+      "required": ["schemaVersion", "appUIModelHash", "compositionRevision", "capabilityCatalogRevision", "publishedAt", "observedAt", "instances", "slots"],
       "properties": {
         "schemaVersion": { "const": 1 },
         "appUIModelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "compositionRevision": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "capabilityCatalogRevision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "publishedAt": { "type": "string", "format": "date-time" },
         "observedAt": { "type": "string", "format": "date-time" },
         "application": { "$ref": "#/$defs/runtimeCompositionApplication" },
         "instances": {

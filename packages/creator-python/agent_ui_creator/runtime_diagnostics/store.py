@@ -25,6 +25,8 @@ class RuntimeDiagnostic(BaseModel):
 
     schemaVersion: Literal[1]
     kind: Literal[
+        "runtime-composition",
+        "preview-runtime",
         "plugin-render",
         "plugin-activation",
         "plugin-width-incompatible",
@@ -37,6 +39,11 @@ class RuntimeDiagnostic(BaseModel):
     code: Literal["PLUGIN_WIDTH_INCOMPATIBLE"] | None = None
     status: Literal["error", "resolved"]
     appUIModelHash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    compositionRevision: str | None = Field(default=None, min_length=1, max_length=200)
+    capabilityCatalogRevision: str | None = Field(
+        default=None, pattern=r"^[a-f0-9]{64}$"
+    )
+    publishedAt: datetime | None = None
     occurredAt: datetime
     pluginId: str | None = Field(default=None, min_length=1, max_length=200)
     instanceId: str | None = Field(default=None, min_length=1, max_length=200)
@@ -125,6 +132,11 @@ class RuntimeComposition(BaseModel):
 
     schemaVersion: Literal[1]
     appUIModelHash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    compositionRevision: str | None = Field(default=None, min_length=1, max_length=200)
+    capabilityCatalogRevision: str | None = Field(
+        default=None, pattern=r"^[a-f0-9]{64}$"
+    )
+    publishedAt: datetime | None = None
     observedAt: datetime
     application: RuntimeCompositionApplication | None = None
     instances: list[RuntimeCompositionInstance] = Field(
@@ -246,6 +258,8 @@ class RuntimeDiagnosticStore:
         fingerprint_fields = (
             "kind",
             "appUIModelHash",
+            "compositionRevision",
+            "capabilityCatalogRevision",
             "pluginId",
             "instanceId",
             "eventName",
