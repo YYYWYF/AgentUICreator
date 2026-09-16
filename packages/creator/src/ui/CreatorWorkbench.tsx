@@ -915,6 +915,10 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
               >
                 新建会话
               </button>
+              <div
+                className="creator-panel-dev-studio-dock"
+                data-slot="agent-ui-dev-studio-dock"
+              />
               <button
                 aria-label="关闭 Creator 面板"
                 onClick={() => setIsOpen(false)}

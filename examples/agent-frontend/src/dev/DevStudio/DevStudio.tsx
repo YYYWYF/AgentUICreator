@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@agent-ui/react";
 import {
@@ -16,6 +17,8 @@ export interface DevStudioProps {
   endpoint: string | undefined;
 }
 
+const DEV_STUDIO_DOCK_SELECTOR = '[data-slot="agent-ui-dev-studio-dock"]';
+
 function formatSpeed(value: string | undefined): string {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return "1×";
@@ -32,6 +35,7 @@ function mockEntryLabel(): string {
 export function DevStudio({ endpoint }: DevStudioProps) {
   const mockEnabled = isMockAgentEndpoint(endpoint);
   const [open, setOpen] = useState(false);
+  const [dock, setDock] = useState<Element | null>(null);
   const [activeTab, setActiveTab] = useState<DevStudioTab>(() =>
     mockEnabled ? "scenario" : "runtime",
   );
@@ -41,6 +45,17 @@ export function DevStudio({ endpoint }: DevStudioProps) {
   useEffect(() => {
     if (!mockEnabled) setActiveTab("runtime");
   }, [mockEnabled]);
+
+  useLayoutEffect(() => {
+    const resolveDock = () => {
+      setDock(document.querySelector(DEV_STUDIO_DOCK_SELECTOR));
+    };
+    resolveDock();
+
+    const observer = new MutationObserver(resolveDock);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -52,22 +67,26 @@ export function DevStudio({ endpoint }: DevStudioProps) {
   }, [open]);
 
   const entryLabel = mockEnabled ? mockEntryLabel() : "Dev · Runtime";
+  const entry = (
+    <Button
+      aria-expanded={open}
+      aria-haspopup="dialog"
+      aria-label="Open Agent UI Dev Studio"
+      className={dock === null ? styles.entry : styles.dockedEntry}
+      onClick={() => setOpen(true)}
+      size="sm"
+      title={entryLabel}
+      variant="outline"
+    >
+      <span className={styles.entryDot} aria-hidden="true" />
+      {dock === null ? entryLabel : mockEnabled ? "Mock" : "Runtime"}
+      <span aria-hidden="true">⌄</span>
+    </Button>
+  );
 
   return (
     <>
-      <Button
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        aria-label="Open Agent UI Dev Studio"
-        className={styles.entry}
-        onClick={() => setOpen(true)}
-        size="sm"
-        variant="outline"
-      >
-        <span className={styles.entryDot} aria-hidden="true" />
-        {entryLabel}
-        <span aria-hidden="true">⌄</span>
-      </Button>
+      {dock === null ? entry : createPortal(entry, dock)}
 
       {open ? (
         <>

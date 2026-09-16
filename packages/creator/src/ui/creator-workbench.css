@@ -116,6 +116,18 @@
   font-weight: 700;
 }
 
+.creator-panel-dev-studio-dock {
+  display: flex;
+  align-items: center;
+}
+
+.creator-panel-header .creator-panel-dev-studio-dock button {
+  width: auto;
+  padding: 0 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .creator-panel-messages {
   display: flex;
   min-height: 0;

@@ -108,6 +108,9 @@ function AgentFrontendSurface({
         model={composition.runtimeModel}
         registry={composition.activeRegistry}
       />
+      {shouldRenderDevStudio({ isDev: import.meta.env.DEV }) ? (
+        <DevStudio endpoint={endpoint} />
+      ) : null}
     </div>
   );
 }
@@ -219,9 +222,6 @@ function RuntimeControlPlane({
           runtime={agentRuntime}
         />
       )}
-      {shouldRenderDevStudio({ isDev: import.meta.env.DEV }) ? (
-        <DevStudio endpoint={endpoint} />
-      ) : null}
     </AgentRuntimeProvider>
   );
 }
