@@ -221,6 +221,7 @@ def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
         ),
         automatic_completion_repair=True,
         provider_trace_collector=provider_trace_collector,
+        activity=activity,
     )
 
     result = asyncio.run(agent.run(PROMPT))
@@ -250,13 +251,17 @@ def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
     assert metrics["executedChangeLayers"] == ["composition"]
     assert metrics["appUIModelMutationAttempts"] == 1
     assert metrics["successfulAppUIModelMutations"] == 1
+    assert result.app_ui_model_mutations.operationsPerMutation == [2]
     assert metrics["sourceWrites"] == 0
     assert metrics["crossLayerTransitionCount"] == 0
     assert metrics["semanticReplans"] == 0
+    assert metrics["skillsLoaded"] and "app-ui-model" in metrics["skillsLoaded"]
     assert "app-ui-model" in metrics["scopeResources"]
     assert "plugin-instance:conversation-thread-list-main" in metrics[
         "scopeResources"
     ]
+    assert "plugin:conversation-surface" not in metrics["scopeResources"]
+    assert "service:ConversationService" not in metrics["scopeResources"]
     assert receipt["verification"]["status"] == "changed-and-verified"
     assert all(
         check["status"] == "passed" for check in receipt["verification"]["checks"]

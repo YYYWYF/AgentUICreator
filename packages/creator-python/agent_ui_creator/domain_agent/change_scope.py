@@ -74,6 +74,55 @@ _RESOURCE_RESULT_SIDE_EFFECT_TOOLS = frozenset(
 )
 
 
+def _result_content(result: Any) -> str:
+    content = getattr(result, "content", result)
+    return content if isinstance(content, str) else str(content)
+
+
+def _result_payload(result: Any) -> dict[str, Any] | None:
+    if isinstance(result, Mapping):
+        return dict(result)
+    try:
+        value = json.loads(_result_content(result))
+    except (TypeError, ValueError):
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def _side_effect_succeeded(name: str, result: Any) -> bool:
+    """Return True only when a tool result proves its side effect succeeded."""
+
+    if getattr(result, "status", None) == "error":
+        return False
+    if name == "edit_file":
+        # FilesystemMiddleware returns a ToolMessage with an explicit success
+        # status for a committed edit.  Its human-readable content is not a
+        # stable machine contract, so an unknown status fails closed.
+        return getattr(result, "status", None) == "success"
+    payload = _result_payload(result)
+    return payload is not None and payload.get("ok") is True
+
+
+def _scope_commit_allowed(name: str, result: Any) -> bool:
+    """Return whether a successful result is allowed to expand task scope."""
+
+    if name != "prepare_ui_service_contract_change":
+        return True
+    payload = _result_payload(result)
+    if payload is None or payload.get("ok") is not True:
+        return False
+    value = payload.get("result")
+    if not isinstance(value, Mapping) or value.get("status") != "authorized":
+        return False
+    authorization_id = value.get("authorizationId")
+    if not isinstance(authorization_id, str) or not authorization_id.strip():
+        return False
+    return any(
+        resource.startswith("service:")
+        for resource in resource_keys_for_tool_result(name, payload)
+    )
+
+
 def normalize_creator_path(value: str) -> str:
     path = value if value.startswith("/") else f"/{value}"
     return "/" + "/".join(part for part in PurePosixPath(path).parts if part != "/")
@@ -350,7 +399,14 @@ class ChangeScopeMetrics:
     workspaceIntegrityBlockers: int = 0
     scopeResources: list[ResourceKey] = field(default_factory=list)
     blockedCrossResourceRepairAttempts: int = 0
+    attemptedChangeLayers: list[ChangeLayer] = field(default_factory=list)
+    attemptedResources: list[ResourceKey] = field(default_factory=list)
+    attemptedCrossLayerTransitionCount: int = 0
+    failedSideEffectAttempts: int = 0
     _lastLayer: ChangeLayer | None = field(default=None, init=False, repr=False)
+    _lastAttemptedLayer: ChangeLayer | None = field(
+        default=None, init=False, repr=False
+    )
 
     @property
     def resources(self) -> list[ResourceKey]:
@@ -379,6 +435,28 @@ class ChangeScopeMetrics:
     def record_scope(
         self, layer: ChangeLayer, resources: Sequence[ResourceKey] = ()
     ) -> None:
+        """Compatibility alias for callers that record a committed scope."""
+
+        self.commit_scope(layer, resources)
+
+    def record_attempt(
+        self, layer: ChangeLayer, resources: Sequence[ResourceKey] = ()
+    ) -> None:
+        if (
+            self._lastAttemptedLayer is not None
+            and self._lastAttemptedLayer != layer
+        ):
+            self.attemptedCrossLayerTransitionCount += 1
+        if layer not in self.attemptedChangeLayers:
+            self.attemptedChangeLayers.append(layer)
+        for resource in resources:
+            if resource not in self.attemptedResources:
+                self.attemptedResources.append(resource)
+        self._lastAttemptedLayer = layer
+
+    def commit_scope(
+        self, layer: ChangeLayer, resources: Sequence[ResourceKey] = ()
+    ) -> None:
         self.record_layer(layer)
         for resource in resources:
             self.record_resource(resource)
@@ -390,6 +468,7 @@ class ChangeScopeMetrics:
     def to_dict(self) -> dict[str, object]:
         value = asdict(self)
         value.pop("_lastLayer", None)
+        value.pop("_lastAttemptedLayer", None)
         value["taskScope"] = self.task_scope.to_dict()
         return value
 
@@ -479,9 +558,6 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         payload = self._json_object(self._content(result))
         if payload is None:
             return
-        if name in _RESOURCE_RESULT_SIDE_EFFECT_TOOLS:
-            for resource in resource_keys_for_tool_result(name, payload):
-                self.metrics.record_resource(resource)
         if name == "mutate_app_ui_model":
             error = payload.get("error")
             if isinstance(error, dict) and error.get("category") == "workspace_integrity":
@@ -626,6 +702,28 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
             )
         ]
 
+    def _commit_tool_result(
+        self,
+        name: str,
+        layer: ChangeLayer | None,
+        resources: Sequence[ResourceKey],
+        result: Any,
+    ) -> None:
+        if layer is None or not self._is_side_effect_tool(name):
+            return
+        succeeded = _side_effect_succeeded(name, result)
+        if not succeeded:
+            self.metrics.failedSideEffectAttempts += 1
+            return
+        if not _scope_commit_allowed(name, result):
+            return
+        committed_resources = list(resources)
+        payload = _result_payload(result)
+        if payload is not None and name in _RESOURCE_RESULT_SIDE_EFFECT_TOOLS:
+            for resource in resource_keys_for_tool_result(name, payload):
+                _append_resource(committed_resources, resource)
+        self.metrics.commit_scope(layer, committed_resources)
+
     def wrap_model_call(
         self,
         request: ModelRequest,
@@ -644,15 +742,21 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         call, name, arguments = self._call(request)
         layer = change_layer_for_tool_call(name, arguments)
         resources = self._resources_for_call(name, arguments)
+        if layer is not None:
+            self.metrics.record_attempt(layer, resources)
         if self._blocked_layers is not None and self._is_side_effect_tool(name) and (
             layer is None
             or self._is_cross_layer_blocked(layer)
             or self._is_cross_resource_blocked(layer, resources)
         ):
             return self._blocked_message(call, layer, resources)
-        if layer is not None:
-            self.metrics.record_scope(layer, resources)
-        result = handler(request)
+        try:
+            result = handler(request)
+        except BaseException:
+            if layer is not None and self._is_side_effect_tool(name):
+                self.metrics.failedSideEffectAttempts += 1
+            raise
+        self._commit_tool_result(name, layer, resources, result)
         self._observe_result(name, arguments, result)
         return result
 
@@ -662,15 +766,21 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         call, name, arguments = self._call(request)
         layer = change_layer_for_tool_call(name, arguments)
         resources = self._resources_for_call(name, arguments)
+        if layer is not None:
+            self.metrics.record_attempt(layer, resources)
         if self._blocked_layers is not None and self._is_side_effect_tool(name) and (
             layer is None
             or self._is_cross_layer_blocked(layer)
             or self._is_cross_resource_blocked(layer, resources)
         ):
             return self._blocked_message(call, layer, resources)
-        if layer is not None:
-            self.metrics.record_scope(layer, resources)
-        result = await handler(request)
+        try:
+            result = await handler(request)
+        except BaseException:
+            if layer is not None and self._is_side_effect_tool(name):
+                self.metrics.failedSideEffectAttempts += 1
+            raise
+        self._commit_tool_result(name, layer, resources, result)
         self._observe_result(name, arguments, result)
         return result
 
@@ -700,10 +810,8 @@ def build_change_layer_run_metrics(
     project_control_reads = sum(
         int(by_operation.get(name, 0)) for name in _PROJECT_CONTROL_READ_OPERATIONS
     )
-    layers = list(scope.taskChangeLayers) or list(change_layers_for_paths(final_paths))
-    scope_resources = list(scope.scopeResources) or list(
-        resource_keys_for_paths(final_paths)
-    )
+    layers = list(scope.taskChangeLayers)
+    scope_resources = list(scope.scopeResources)
     task_change_layer = (
         layers[0] if len(layers) == 1 else "mixed" if layers else "none"
     )
@@ -714,6 +822,12 @@ def build_change_layer_run_metrics(
         "taskChangeLayers": layers,
         "taskScope": {"layers": layers, "resources": scope_resources},
         "scopeResources": scope_resources,
+        "attemptedChangeLayers": list(scope.attemptedChangeLayers),
+        "attemptedResources": list(scope.attemptedResources),
+        "attemptedCrossLayerTransitionCount": (
+            scope.attemptedCrossLayerTransitionCount
+        ),
+        "failedSideEffectAttempts": scope.failedSideEffectAttempts,
         "skillLoaded": bool(scope.skillsLoaded),
         "skillsLoaded": list(scope.skillsLoaded),
         "projectControlReads": project_control_reads,

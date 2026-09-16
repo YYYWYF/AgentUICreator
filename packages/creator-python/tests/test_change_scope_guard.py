@@ -15,8 +15,16 @@ def request(name, arguments, call_id):
 
 
 def tool_result(call_id, payload):
+    status = (
+        "error"
+        if isinstance(payload, dict) and payload.get("ok") is False
+        else "success"
+    )
     return ToolMessage(
-        content=json.dumps(payload), tool_call_id=call_id, name="tool"
+        content=json.dumps(payload),
+        tool_call_id=call_id,
+        name="tool",
+        status=status,
     )
 
 
@@ -49,7 +57,9 @@ def test_workspace_integrity_blocks_cross_layer_plugin_repair():
 
     assert payload["error"]["code"] == "CROSS_LAYER_REPAIR_PROHIBITED"
     assert payload["error"]["recovery"]["automaticCrossLayerRepairAllowed"] is False
-    assert guard.metrics.taskChangeLayers == ["composition"]
+    assert guard.metrics.taskChangeLayers == []
+    assert guard.metrics.attemptedChangeLayers == ["composition"]
+    assert guard.metrics.attemptedResources == ["app-ui-model"]
     assert guard.metrics.crossLayerTransitionCount == 0
     assert guard.metrics.blockedCrossLayerRepairAttempts == 1
 

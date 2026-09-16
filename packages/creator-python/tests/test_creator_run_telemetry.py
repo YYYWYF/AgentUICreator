@@ -3,15 +3,26 @@ import json
 from types import SimpleNamespace
 
 import pytest
+from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
 
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.app_ui_model import AppUIModelMutationMetrics
+from agent_ui_creator.domain_agent import create_domain_write_creator_agent
 from agent_ui_creator.domain_agent.change_scope import ChangeScopeMetrics
 from agent_ui_creator.model_protocol.errors import AgentNoProgressError
 from agent_ui_creator.model_protocol.trace import ToolProtocolMetrics
 from agent_ui_creator.observability import CreatorRunLogger, CreatorRunTelemetry
+from agent_ui_creator.project_control import ProjectControlMetrics
 from agent_ui_creator.server import _execute_agent_run
 from agent_ui_creator.streaming import CreatorEventBus
+
+
+class NoProgressModel(FakeMessagesListChatModel):
+    def bind_tools(self, tools, **kwargs):
+        return self
+
+    def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+        raise AgentNoProgressError("synthetic no-progress failure")
 
 
 def test_failure_path_logs_bound_metrics_without_agent_result(tmp_path):
@@ -67,3 +78,42 @@ def test_failure_path_logs_bound_metrics_without_agent_result(tmp_path):
     assert data["mutationMetrics"]["mutationOperations"] == 6
     assert data["changeLayerMetrics"]["executedChangeLayer"] == "composition"
     assert data["changeLayerMetrics"]["scopeResources"] == ["app-ui-model"]
+
+
+def test_real_domain_write_wiring_logs_all_metrics_on_no_progress(tmp_path):
+    logger = CreatorRunLogger(tmp_path)
+    logger.begin(run_id="real-wiring-failure", agent_mode="domain-write")
+    activity = CreatorActivityRecorder(tmp_path, logger=logger)
+    activity.begin("real-wiring-failure")
+    telemetry = CreatorRunTelemetry(activity=activity)
+    client = SimpleNamespace(metrics=ProjectControlMetrics())
+    agent = create_domain_write_creator_agent(
+        model=NoProgressModel(responses=[]),
+        workspace=tmp_path,
+        project_control=client,
+        telemetry=telemetry,
+    )
+
+    with pytest.raises(AgentNoProgressError):
+        asyncio.run(
+            _execute_agent_run(
+                agent.run("trigger a synthetic no-progress failure"),
+                activity=activity,
+                logger=logger,
+                event_bus=CreatorEventBus(),
+                telemetry=telemetry,
+            )
+        )
+
+    entries = [
+        json.loads(line)
+        for line in logger.path.read_text(encoding="utf-8").splitlines()
+    ]
+    finished = [entry for entry in entries if entry["type"] == "run_finished"]
+    assert len(finished) == 1
+    data = finished[0]["data"]
+    assert data["status"] == "error"
+    assert "modelToolMetrics" in data
+    assert "mutationMetrics" in data
+    assert "changeLayerMetrics" in data
+    assert "projectControlMetrics" in data

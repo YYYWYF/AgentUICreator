@@ -128,7 +128,7 @@ class CreatorValidationService:
         changed_resources = list(resource_keys_for_paths(changed_paths))
         task_scope = (
             list(self.scope.taskChangeLayers)
-            if self.scope is not None and self.scope.taskChangeLayers
+            if self.scope is not None
             else changed_layers
         )
         scope_resources = (

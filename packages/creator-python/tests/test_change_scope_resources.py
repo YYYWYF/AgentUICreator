@@ -1,3 +1,4 @@
+import json
 from types import SimpleNamespace
 
 import pytest
@@ -8,6 +9,27 @@ from agent_ui_creator.domain_agent.change_scope import (
     resource_keys_for_path,
     resource_keys_for_tool_call,
 )
+
+
+def _request(name, arguments, call_id):
+    return SimpleNamespace(
+        tool_call={"name": name, "args": arguments, "id": call_id}
+    )
+
+
+def _tool_result(call_id, payload, *, status=None):
+    if status is None:
+        status = (
+            "error"
+            if isinstance(payload, dict) and payload.get("ok") is False
+            else "success"
+        )
+    return ToolMessage(
+        content=json.dumps(payload),
+        tool_call_id=call_id,
+        name="tool",
+        status=status,
+    )
 
 
 @pytest.mark.parametrize(
@@ -155,6 +177,155 @@ def test_service_authorization_resolves_resource_without_persisting_auth_id():
 
     assert guard.metrics.scopeResources == ["service:ConversationService"]
     assert "host-issued" not in guard.metrics.scopeResources
+
+
+def test_failed_side_effect_does_not_expand_committed_scope():
+    guard = ScopeAwareRecoveryGuard()
+    guard.wrap_tool_call(
+        _request(
+            "edit_file",
+            {"file_path": "/plugins/foo/index.tsx"},
+            "foo-edit",
+        ),
+        lambda _request: _tool_result("foo-edit", "edited"),
+    )
+    guard.wrap_tool_call(
+        _request(
+            "edit_file",
+            {"file_path": "/plugins/bar/index.tsx"},
+            "bar-edit",
+        ),
+        lambda _request: _tool_result(
+            "bar-edit", "Error: replacement target was not found", status="error"
+        ),
+    )
+
+    assert guard.metrics.scopeResources == ["plugin:foo"]
+    assert guard.metrics.attemptedChangeLayers == ["plugin_behavior"]
+    assert guard.metrics.attemptedResources == ["plugin:foo", "plugin:bar"]
+    assert guard.metrics.failedSideEffectAttempts == 1
+
+
+def test_failed_composition_mutation_does_not_authorize_new_instance():
+    guard = ScopeAwareRecoveryGuard()
+    guard.wrap_tool_call(
+        _request(
+            "mutate_app_ui_model",
+            {
+                "operations": [
+                    {"type": "update_plugin_props", "instanceId": "foo-main"}
+                ]
+            },
+            "foo-mutation",
+        ),
+        lambda _request: _tool_result(
+            "foo-mutation", {"ok": True, "result": {}}
+        ),
+    )
+    guard.wrap_tool_call(
+        _request(
+            "mutate_app_ui_model",
+            {
+                "operations": [
+                    {"type": "update_plugin_props", "instanceId": "bar-main"}
+                ]
+            },
+            "bar-failed-mutation",
+        ),
+        lambda _request: _tool_result(
+            "bar-failed-mutation",
+            {
+                "ok": False,
+                "error": {
+                    "code": "OPERATION_PRECONDITION_FAILED",
+                    "category": "workspace_integrity",
+                },
+            },
+        ),
+    )
+
+    blocked = guard.wrap_tool_call(
+        _request(
+            "mutate_app_ui_model",
+            {
+                "operations": [
+                    {"type": "update_plugin_props", "instanceId": "bar-main"}
+                ]
+            },
+            "bar-repair",
+        ),
+        lambda _request: (_ for _ in ()).throw(AssertionError("must not run")),
+    )
+
+    assert json.loads(blocked.content)["error"]["code"] == (
+        "CROSS_RESOURCE_REPAIR_PROHIBITED"
+    )
+    assert guard.metrics.scopeResources == [
+        "app-ui-model",
+        "plugin-instance:foo-main",
+    ]
+    assert "plugin-instance:bar-main" in guard.metrics.attemptedResources
+
+
+def test_successful_second_resource_expands_committed_scope():
+    guard = ScopeAwareRecoveryGuard()
+    for plugin_id in ("foo", "bar"):
+        guard.wrap_tool_call(
+            _request(
+                "edit_file",
+                {"file_path": f"/plugins/{plugin_id}/index.tsx"},
+                f"{plugin_id}-edit",
+            ),
+            lambda _request: _tool_result("edit", "edited"),
+        )
+
+    assert guard.metrics.scopeResources == ["plugin:foo", "plugin:bar"]
+    assert guard.metrics.attemptedResources == ["plugin:foo", "plugin:bar"]
+    assert guard.metrics.crossLayerTransitionCount == 0
+
+
+def test_service_confirmation_only_commits_formal_authorization():
+    guard = ScopeAwareRecoveryGuard()
+    guard.wrap_tool_call(
+        _request(
+            "prepare_ui_service_contract_change",
+            {"serviceName": "ConversationService"},
+            "proposal",
+        ),
+        lambda _request: _tool_result(
+            "proposal",
+            {
+                "ok": True,
+                "result": {
+                    "status": "confirmation-required",
+                    "proposalId": "proposal-1",
+                },
+            },
+        ),
+    )
+    assert guard.metrics.scopeResources == []
+
+    guard.wrap_tool_call(
+        _request(
+            "prepare_ui_service_contract_change",
+            {"proposalId": "proposal-1"},
+            "authorization",
+        ),
+        lambda _request: _tool_result(
+            "authorization",
+            {
+                "ok": True,
+                "result": {
+                    "status": "authorized",
+                    "authorizationId": "authorization-1",
+                    "proposal": {"serviceName": "ConversationService"},
+                },
+            },
+        ),
+    )
+
+    assert guard.metrics.scopeResources == ["service:ConversationService"]
+    assert guard.metrics.attemptedResources == ["service:ConversationService"]
 
 
 def test_inspection_result_does_not_expand_resource_scope():
