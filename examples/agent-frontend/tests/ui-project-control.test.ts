@@ -136,6 +136,52 @@ describe("ui-project-control", () => {
     });
   });
 
+  it("returns the bounded authoritative Composition view", async () => {
+    const { projectRoot, capabilityCatalogRevision } = await createProject();
+
+    const response = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "inspect_ui_project",
+        input: { view: "composition" },
+      },
+      projectRoot,
+    );
+
+    expect(response).toMatchObject({
+      ok: true,
+      result: {
+        view: "composition",
+        appUIModel: {
+          hash: expect.stringMatching(/^[a-f0-9]{64}$/u),
+          slots: [expect.objectContaining({ nodeRef: "l0" })],
+        },
+        pluginInstances: [
+          expect.objectContaining({
+            id: "sample-main",
+            pluginId: "sample",
+            enabled: true,
+            target: { type: "layout_slot", slotRef: "l0" },
+          }),
+        ],
+        capabilitySummaries: [
+          expect.objectContaining({
+            pluginId: "sample",
+            name: "Sample",
+            description: "Fixture",
+            selected: true,
+          }),
+        ],
+        capabilityCatalogRevision,
+      },
+    });
+    if (!response.ok) throw new Error("Expected successful Composition inspection.");
+    expect(response.result).not.toHaveProperty("uiStack");
+    expect(response.result).not.toHaveProperty("agentUI");
+    expect(response.result).not.toHaveProperty("catalogs");
+    expect(response.result).not.toHaveProperty("pluginAssets");
+  });
+
   it("returns the exact AppUIModel source and hash", async () => {
     const {
       projectRoot,

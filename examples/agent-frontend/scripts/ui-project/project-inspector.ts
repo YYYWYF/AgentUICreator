@@ -25,9 +25,19 @@ import {
 import type {
   CompactLayoutNode,
   InspectedSlot,
+  UICompositionInspection,
   UIProjectControlConfig,
   UIProjectInspection,
 } from "./types";
+
+const COMPOSITION_OBSERVATION_COVERAGE = [
+  "composition.model",
+  "composition.layout",
+  "composition.slots",
+  "composition.instances",
+  "capability.inventory",
+  "capability.composition-summary",
+] as const;
 
 function compactLayout(
   node: AppUILayoutNode,
@@ -112,22 +122,76 @@ export async function inspectUIProject(
   projectRoot: string,
   config: UIProjectControlConfig = uiProjectControlConfig,
 ): Promise<UIProjectInspection> {
+  const composition = await inspectUICompositionData(projectRoot, config);
   const projectConfig = await readAgentUIProjectConfig(
     projectRoot,
     config.agentUI.metadataRoot,
   );
-  const appUIModelSource = await readFile(
-    path.join(projectRoot, "app-ui", "app-ui.json"),
-    "utf8",
-  );
-  const model = parseAppUIModelJson(appUIModelSource);
-  const generation = await generatePluginRegistry(projectRoot, model, config);
   const generatedSource = await readOptional(
     path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
   );
   const entrySource = await readOptional(
     path.join(projectRoot, PLUGIN_REGISTRY_ENTRY_PATH),
   );
+  const packageJson = JSON.parse(
+    await readFile(path.join(projectRoot, "package.json"), "utf8"),
+  ) as unknown;
+  const versions = dependencyVersions(packageJson);
+  const agentUI = agentUISourceSummary(
+    await inspectAgentUISources(projectRoot, config),
+  );
+
+  return {
+    schemaVersion: 3,
+    mode: projectConfig.config.mode,
+    modeResolution: {
+      legacy: projectConfig.legacy,
+      configPath: projectConfig.path,
+    },
+    appUIModel: composition.appUIModel,
+    plugins: composition.pluginInstances,
+    capabilityCatalog: {
+      revision: composition.capabilityCatalogRevision,
+      pluginIds: composition.capabilityCatalogPluginIds,
+      generatedFileFresh:
+        composition.issues.length === 0 &&
+        generatedSource === composition.capabilityCatalogSource &&
+        entrySource === PLUGIN_REGISTRY_ENTRY_SOURCE,
+    },
+    activeComposition: composition.activeComposition,
+    issues: composition.issues,
+    pluginAssets: composition.pluginAssets,
+    catalogs: await Promise.all(
+      config.catalogs.map(async (catalogPath) => ({
+        path: catalogPath,
+        exists: await pathExists(path.join(projectRoot, catalogPath)),
+      })),
+    ),
+    uiStack: config.uiPackages.flatMap((packageName) => {
+      const version = versions[packageName];
+      return version === undefined ? [] : [{ packageName, version }];
+    }),
+    agentUI,
+  };
+}
+
+interface UICompositionInspectionInternal extends UICompositionInspection {
+  capabilityCatalogSource: string;
+  capabilityCatalogPluginIds: string[];
+  issues: UIProjectInspection["issues"];
+  pluginAssets: UIProjectInspection["pluginAssets"];
+}
+
+async function inspectUICompositionData(
+  projectRoot: string,
+  config: UIProjectControlConfig = uiProjectControlConfig,
+): Promise<UICompositionInspectionInternal> {
+  const appUIModelSource = await readFile(
+    path.join(projectRoot, "app-ui", "app-ui.json"),
+    "utf8",
+  );
+  const model = parseAppUIModelJson(appUIModelSource);
+  const generation = await generatePluginRegistry(projectRoot, model, config);
   const refIndex = buildLayoutRefIndex(model.root);
   const layout = compactLayout(model.root, "root", refIndex.byPath.get("root")!, refIndex);
   const slots: InspectedSlot[] = [];
@@ -158,65 +222,84 @@ export async function inspectUIProject(
       });
     }
   }
-  const packageJson = JSON.parse(
-    await readFile(path.join(projectRoot, "package.json"), "utf8"),
-  ) as unknown;
-  const versions = dependencyVersions(packageJson);
-  const agentUI = agentUISourceSummary(
-    await inspectAgentUISources(projectRoot, config),
-  );
+  const pluginInstances = collectAppUIPluginLocations(model)
+    .sort((left, right) => left.plugin.id.localeCompare(right.plugin.id))
+    .map(({ plugin, target, index }) => ({
+      ...structuredClone(plugin),
+      target: target.type === "layout_slot"
+        ? { type: "layout_slot" as const, slotRef: refIndex.byPath.get(target.slotPath)! }
+        : target,
+      index,
+    }));
+  const selectedPluginIds = generation.activeComposition.selectedPluginIds;
+  const pluginAssets = generation.assets.map(({ manifest: _manifest, ...asset }) => ({
+    ...asset,
+    selected: selectedPluginIds.includes(asset.pluginId),
+  }));
 
   return {
     schemaVersion: 3,
-    mode: projectConfig.config.mode,
-    modeResolution: {
-      legacy: projectConfig.legacy,
-      configPath: projectConfig.path,
-    },
+    view: "composition",
+    observationCoverage: [...COMPOSITION_OBSERVATION_COVERAGE],
     appUIModel: {
       hash: createHash("sha256").update(appUIModelSource).digest("hex"),
       layout,
       slots,
     },
-    plugins: collectAppUIPluginLocations(model)
-      .sort((left, right) => left.plugin.id.localeCompare(right.plugin.id))
-      .map(({ plugin, target, index }) => ({
-        ...structuredClone(plugin),
-        target: target.type === "layout_slot"
-          ? { type: "layout_slot" as const, slotRef: refIndex.byPath.get(target.slotPath)! }
-          : target,
-        index,
-      })),
-    capabilityCatalog: {
-      revision: generation.capabilityCatalog.revision,
-      pluginIds: generation.capabilityCatalog.pluginIds,
-      generatedFileFresh:
-        generation.errors.length === 0 &&
-        generatedSource === generation.capabilityCatalog.source &&
-        entrySource === PLUGIN_REGISTRY_ENTRY_SOURCE,
-    },
+    pluginInstances,
+    capabilitySummaries: pluginAssets.map((asset) => ({
+      pluginId: asset.pluginId,
+      name: asset.name,
+      description: asset.description,
+      capabilities: [...asset.capabilities],
+      selected: asset.selected,
+      currentInstances: pluginInstances
+        .filter((instance) => instance.pluginId === asset.pluginId)
+        .map((instance) => ({
+          instanceId: instance.id,
+          enabled: instance.enabled,
+          target: structuredClone(instance.target),
+          index: instance.index,
+        })),
+      ...(asset.layoutWidth === undefined ? {} : { layoutWidth: asset.layoutWidth }),
+      ...(asset.childSlots === undefined ? {} : { childSlots: structuredClone(asset.childSlots) }),
+    })),
     activeComposition: {
-      selectedPluginIds: generation.activeComposition.selectedPluginIds,
+      selectedPluginIds,
       resolvedPluginIds: generation.activeComposition.resolvedPluginIds,
       headlessPluginIds: generation.activeComposition.headlessPluginIds,
     },
+    capabilityCatalogRevision: generation.capabilityCatalog.revision,
+    layoutConstraints: {
+      refs: "snapshot-scoped",
+      pluginTargets: ["application", "layout_slot", "plugin_slot"],
+      sizedContainerInsertion: {
+        rule: "size-required",
+        operations: ["insert_layout_node", "move_layout_node", "insert_layout_relative"],
+      },
+      relativeWrapperSizing: {
+        rule: "size-and-anchorSize-together",
+        operation: "insert_layout_relative",
+      },
+      operationApplication: "sequential-atomic",
+    },
+    capabilityCatalogSource: generation.capabilityCatalog.source,
+    capabilityCatalogPluginIds: generation.capabilityCatalog.pluginIds,
     issues: generation.errors,
-    pluginAssets: generation.assets.map(({ manifest: _manifest, ...asset }) => ({
-      ...asset,
-      selected: generation.activeComposition.selectedPluginIds.includes(
-        asset.pluginId,
-      ),
-    })),
-    catalogs: await Promise.all(
-      config.catalogs.map(async (catalogPath) => ({
-        path: catalogPath,
-        exists: await pathExists(path.join(projectRoot, catalogPath)),
-      })),
-    ),
-    uiStack: config.uiPackages.flatMap((packageName) => {
-      const version = versions[packageName];
-      return version === undefined ? [] : [{ packageName, version }];
-    }),
-    agentUI,
+    pluginAssets,
   };
+}
+
+export async function inspectUIComposition(
+  projectRoot: string,
+  config: UIProjectControlConfig = uiProjectControlConfig,
+): Promise<UICompositionInspection> {
+  const {
+    capabilityCatalogSource: _capabilityCatalogSource,
+    capabilityCatalogPluginIds: _capabilityCatalogPluginIds,
+    issues: _issues,
+    pluginAssets: _pluginAssets,
+    ...snapshot
+  } = await inspectUICompositionData(projectRoot, config);
+  return snapshot;
 }

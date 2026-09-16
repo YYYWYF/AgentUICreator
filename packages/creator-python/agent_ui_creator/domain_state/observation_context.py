@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 ObservationSource = Literal[
     "inspect_ui_project",
@@ -10,6 +11,15 @@ ObservationSource = Literal[
     "inspect_ui_slots",
     "inspect_ui_services",
     "mutation_result",
+]
+CompositionGroundingStatus = Literal["unobserved", "grounded", "stale"]
+ObservationCoverage = Literal[
+    "composition.model",
+    "composition.layout",
+    "composition.slots",
+    "composition.instances",
+    "capability.inventory",
+    "capability.composition-summary",
 ]
 
 _OBSERVATION_SOURCES = {
@@ -21,6 +31,14 @@ _OBSERVATION_SOURCES = {
     "mutation_result",
 }
 _SHA256_LENGTH = 64
+_OBSERVATION_COVERAGE = {
+    "composition.model",
+    "composition.layout",
+    "composition.slots",
+    "composition.instances",
+    "capability.inventory",
+    "capability.composition-summary",
+}
 
 
 class DomainObservationError(RuntimeError):
@@ -40,6 +58,13 @@ class AppUIModelObservation:
     source: ObservationSource
 
 
+@dataclass(frozen=True, slots=True)
+class CompositionGroundingObservation:
+    hash: str
+    revision: int
+    coverage: frozenset[ObservationCoverage]
+
+
 @dataclass(slots=True)
 class DomainObservationMetrics:
     updates: int = 0
@@ -48,6 +73,8 @@ class DomainObservationMetrics:
     observationRequiredErrors: int = 0
     explicitHashMatches: int = 0
     explicitHashMismatches: int = 0
+    compositionGroundingUpdates: int = 0
+    coveredReadRejections: int = 0
 
     def to_dict(self) -> dict[str, int]:
         return asdict(self)
@@ -66,6 +93,8 @@ class DomainObservationContext:
 
     def __init__(self) -> None:
         self._app_ui_model: AppUIModelObservation | None = None
+        self._composition_grounding: CompositionGroundingObservation | None = None
+        self._composition_grounding_invalidated = False
         self._invalidation_reason: str | None = None
         self.metrics = DomainObservationMetrics()
 
@@ -98,6 +127,66 @@ class DomainObservationContext:
         )
         self._invalidation_reason = None
         self.metrics.updates += 1
+
+    def observe_composition_snapshot(
+        self,
+        *,
+        hash: str,
+        revision: int,
+        coverage: Iterable[str],
+    ) -> None:
+        normalized_values = frozenset(coverage)
+        if (
+            not normalized_values.issubset(_OBSERVATION_COVERAGE)
+            or not _OBSERVATION_COVERAGE.issubset(normalized_values)
+        ):
+            raise DomainObservationError(
+                "COMPOSITION_OBSERVATION_INVALID",
+                "Composition observation coverage is missing or unsupported.",
+            )
+        normalized = cast(frozenset[ObservationCoverage], normalized_values)
+        self.observe_app_ui_model(
+            hash=hash,
+            revision=revision,
+            source="inspect_ui_project",
+        )
+        self._composition_grounding = CompositionGroundingObservation(
+            hash=hash,
+            revision=revision,
+            coverage=normalized,
+        )
+        self._composition_grounding_invalidated = False
+        self.metrics.compositionGroundingUpdates += 1
+
+    def composition_grounding_status(
+        self, *, current_revision: int
+    ) -> CompositionGroundingStatus:
+        observation = self._composition_grounding
+        if observation is None:
+            return "unobserved"
+        if (
+            self._composition_grounding_invalidated
+            or observation.revision != current_revision
+        ):
+            return "stale"
+        return "grounded"
+
+    def has_fresh_coverage(
+        self,
+        required: Iterable[ObservationCoverage],
+        *,
+        current_revision: int,
+    ) -> bool:
+        observation = self._composition_grounding
+        return (
+            self.composition_grounding_status(current_revision=current_revision)
+            == "grounded"
+            and observation is not None
+            and frozenset(required).issubset(observation.coverage)
+        )
+
+    def record_covered_read_rejection(self) -> None:
+        self.metrics.coveredReadRejections += 1
 
     def current_hash(self, *, current_revision: int) -> str | None:
         observation = self._app_ui_model
@@ -138,11 +227,13 @@ class DomainObservationContext:
 
     def invalidate_app_ui_model(self, *, reason: str) -> None:
         self._app_ui_model = None
+        self._composition_grounding_invalidated = True
         self._invalidation_reason = reason
         self.metrics.invalidations += 1
 
-    def snapshot(self) -> dict[str, Any]:
+    def snapshot(self, *, current_revision: int | None = None) -> dict[str, Any]:
         observation = self._app_ui_model
+        composition = self._composition_grounding
         return {
             "appUIModel": (
                 None
@@ -151,6 +242,24 @@ class DomainObservationContext:
                     "hash": observation.hash,
                     "revision": observation.revision,
                     "source": observation.source,
+                }
+            ),
+            "compositionGrounding": (
+                None
+                if composition is None
+                else {
+                    "hash": composition.hash,
+                    "revision": composition.revision,
+                    "coverage": sorted(composition.coverage),
+                    **(
+                        {
+                            "status": self.composition_grounding_status(
+                                current_revision=current_revision
+                            )
+                        }
+                        if current_revision is not None
+                        else {}
+                    ),
                 }
             ),
             **(

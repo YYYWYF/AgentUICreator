@@ -4,6 +4,17 @@
   "title": "Creator project control protocol v3",
   "$defs": {
     "emptyInput": { "type": "object", "additionalProperties": false },
+    "inspectUIProjectInput": {
+      "oneOf": [
+        { "$ref": "#/$defs/emptyInput" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["view"],
+          "properties": { "view": { "const": "composition" } }
+        }
+      ]
+    },
     "nonBlankString": { "type": "string", "minLength": 1, "maxLength": 200 },
     "pluginInput": {
       "type": "object",
@@ -126,7 +137,17 @@
           "required": ["schemaVersion", "operation", "input"],
           "properties": {
             "schemaVersion": { "const": 3 },
-            "operation": { "enum": ["inspect_ui_project", "inspect_app_ui_model", "list_ui_plugins", "inspect_ui_services", "inspect_agent_ui_sources"] },
+            "operation": { "const": "inspect_ui_project" },
+            "input": { "$ref": "#/$defs/inspectUIProjectInput" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schemaVersion", "operation", "input"],
+          "properties": {
+            "schemaVersion": { "const": 3 },
+            "operation": { "enum": ["inspect_app_ui_model", "list_ui_plugins", "inspect_ui_services", "inspect_agent_ui_sources"] },
             "input": { "$ref": "#/$defs/emptyInput" }
           }
         },

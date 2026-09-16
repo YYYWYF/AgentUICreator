@@ -5,7 +5,7 @@ import json
 import os
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
@@ -65,8 +65,11 @@ class ProjectControlClient:
         self.metrics = ProjectControlMetrics()
         self._validator = _load_protocol_validator()
 
-    async def inspect_ui_project(self) -> dict[str, Any]:
-        return await self._request("inspect_ui_project", {})
+    async def inspect_ui_project(
+        self, *, view: Literal["composition"] | None = None
+    ) -> dict[str, Any]:
+        input = {} if view is None else {"view": view}
+        return await self._request("inspect_ui_project", input)
 
     async def inspect_app_ui_model(self) -> dict[str, Any]:
         return await self._request("inspect_app_ui_model", {})

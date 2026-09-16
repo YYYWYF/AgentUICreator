@@ -69,6 +69,7 @@ from ..validation import (
     create_validation_tool,
 )
 from .completion_gate import CreatorDevelopmentCompletionGate
+from .grounding_convergence import CompositionGroundingConvergenceMiddleware
 from .change_scope import (
     ScopeAwareRecoveryGuard,
     build_change_layer_run_metrics,
@@ -579,6 +580,7 @@ def create_domain_write_creator_agent(
         middleware=[
             filesystem,
             DomainWriteToolPolicyMiddleware(),
+            CompositionGroundingConvergenceMiddleware(observations, backend),
             scope_guard,
             repeated_read_guard,
             runtime,

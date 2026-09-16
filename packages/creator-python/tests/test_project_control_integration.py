@@ -82,6 +82,7 @@ def test_real_target_project_read_operations_execute_through_tsx():
     client = ProjectControlClient(project_root=TARGET_PROJECT)
 
     project = asyncio.run(client.inspect_ui_project())
+    composition = asyncio.run(client.inspect_ui_project(view="composition"))
     app_ui_model = asyncio.run(client.inspect_app_ui_model())
     plugins = asyncio.run(client.list_ui_plugins())
     slots = asyncio.run(client.inspect_ui_slots())
@@ -92,6 +93,14 @@ def test_real_target_project_read_operations_execute_through_tsx():
     sources = asyncio.run(client.inspect_agent_ui_sources())
 
     assert project["schemaVersion"] == 3
+    assert composition["view"] == "composition"
+    assert composition["appUIModel"]["hash"] == project["appUIModel"]["hash"]
+    assert composition["capabilityCatalogRevision"] == (
+        project["capabilityCatalog"]["revision"]
+    )
+    assert "pluginAssets" not in composition
+    assert "uiStack" not in composition
+    assert "agentUI" not in composition
     assert app_ui_model["hash"] == project["appUIModel"]["hash"]
     assert plugins["appUIModelHash"] == app_ui_model["hash"]
     assert slots["appUIModelHash"] == app_ui_model["hash"]

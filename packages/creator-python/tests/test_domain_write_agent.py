@@ -216,6 +216,8 @@ def test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation(tmp_
         "observationRequiredErrors": 0,
         "explicitHashMatches": 0,
         "explicitHashMismatches": 0,
+        "compositionGroundingUpdates": 0,
+        "coveredReadRejections": 0,
     }
     assert receipt["files"][0]["path"] == APP_UI_MODEL_PATH
     assert result.change_layer_metrics["taskChangeLayer"] == "composition"

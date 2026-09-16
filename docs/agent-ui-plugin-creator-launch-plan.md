@@ -196,6 +196,17 @@ Capability Catalog revision 与 Active Registry 选择结果
 
 摘要只负责导航，不代替真实项目文件。Creator 需要精确信息时，通过 `inspect_app_ui_model`、`inspect_ui_plugin`、`inspect_runtime_errors` 等工具渐进查询，不把整个项目或全部插件源码重复注入上下文。
 
+纯 Composition 请求使用 `inspect_ui_project({"view":"composition"})`。该
+Snapshot 只包含 AppUIModel hash、紧凑 Layout refs/sizes、Slots、当前 Plugin
+instances/placement/enabled、可用 capability summaries、Active Composition、
+Capability Catalog revision 与确定性的 Layout mutation 约束，并声明语义
+observation coverage。Snapshot 在当前 workspace mutation revision 内保持 fresh
+时，Host 将 Composition grounding 标记为 `grounded`；revision 变化后为
+`stale`。已被 fresh coverage 完全包含的领域读取返回
+`OBSERVATION_ALREADY_COVERED`，模型应复用 Snapshot 并收敛到
+`mutate_app_ui_model`，而不是继续读取 Plugin source、CSS、Services 或生成物。
+空参数 `inspect_ui_project` 继续返回完整项目导航摘要。
+
 这借鉴 DeepSeek Harness 的 progressive Inspect，但项目文件、AppUIModel、Plugin Contract 和目标项目依赖仍是本项目的事实源。
 
 ---

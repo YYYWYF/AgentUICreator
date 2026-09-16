@@ -45,6 +45,16 @@ tools. Use ProjectControl inspections for current facts and
 `mutate_app_ui_model` for every Composition write; never edit AppUIModel or the
 generated Registry with filesystem tools.
 
+For a pure Composition request, use
+`inspect_ui_project({"view":"composition"})` as the authoritative current-state
+read. Its fresh snapshot already contains the model hash, compact Layout refs and
+sizes, Slots and occupants, current Plugin instances and placement, available
+capability summaries, Active Composition, and deterministic Layout constraints.
+Do not follow it with `list_ui_plugins`, `inspect_app_ui_model`,
+`inspect_ui_slots`, manifest/source/CSS reads, Service inspection, or generated
+file reads merely to reconfirm those facts. If a fully covered read returns
+`OBSERVATION_ALREADY_COVERED`, reuse the snapshot and converge to the mutation.
+
 ## Authoring invariants
 
 - Read visual composition from `root` downward. Layout nodes are structural;
@@ -55,6 +65,11 @@ generated Registry with filesystem tools.
   are snapshot-scoped authoring references.
 - Array order is display order; do not create a separate contribution order.
 - Row or Column `sizes`, when present, has one entry per child.
+- Inserting into a Row or Column that already has `sizes` requires the new
+  child's `size` in that same insert or move operation. For
+  `insert_layout_relative`, include `size` when the matching parent is sized;
+  when the operation creates a new sized wrapper, provide `size` and
+  `anchorSize` together.
 - Stack `activeIndex`, when present, is a valid child index.
 - Panel `minWidth` must not exceed `maxWidth`.
 - A Plugin child Slot must be declared by its manifest and obey cardinality.
@@ -109,9 +124,10 @@ composition.
 
 ### Reuse an optional capability
 
-Use `list_ui_plugins` to find an existing unselected or disabled asset. Insert,
-enable, or reconfigure it before considering new Plugin source. A Composition
-request to add an existing Theme Switch is not Plugin creation.
+Use the Composition Snapshot capability summaries to find an existing
+unselected or disabled asset. Insert, enable, or reconfigure it before
+considering new Plugin source. A Composition request to add an existing Theme
+Switch is not Plugin creation.
 
 ### Move and resize
 
@@ -213,7 +229,8 @@ Current composition: Theme Switch asset exists but is not selected.
 Desired state: one enabled instance in the requested or uniquely resolved Slot.
 Owning layer: Composition.
 Semantic delta: insert the existing asset with final props and placement.
-Correct tool: list_ui_plugins, then insert_plugin in one mutation.
+Correct tools: inspect_ui_project(view=composition), then insert_plugin in one
+mutation.
 Incorrect: create a duplicate Theme Switch Plugin or add Runtime theme state.
 ```
 

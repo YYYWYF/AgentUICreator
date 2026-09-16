@@ -11,7 +11,7 @@ import {
   mutateAppUIModel,
   recoverPendingAppUITransaction,
 } from "./ui-project/app-ui-transaction";
-import { inspectUIProject } from "./ui-project/project-inspector";
+import { inspectUIComposition, inspectUIProject } from "./ui-project/project-inspector";
 import { inspectPluginSourceReferences } from "./ui-project/plugin-source-references";
 import { collectPluginAssets } from "./ui-project/plugin-assets";
 import { uiProjectControlConfig } from "./ui-project/project-config";
@@ -40,6 +40,10 @@ const defaultProjectRoot = path.resolve(
 );
 
 const emptyInputSchema = z.strictObject({});
+const inspectUIProjectInputSchema = z.union([
+  emptyInputSchema,
+  z.strictObject({ view: z.literal("composition") }),
+]);
 const appUIModelHashSchema = z.string().regex(/^[a-f0-9]{64}$/u);
 const inspectedLayoutSlotTargetSchema = z.strictObject({
   type: z.literal("layout_slot"),
@@ -64,7 +68,7 @@ const requestSchema = z.discriminatedUnion("operation", [
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_ui_project"),
-    input: emptyInputSchema,
+    input: inspectUIProjectInputSchema,
   }),
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
@@ -383,7 +387,9 @@ async function executeRequest(
 ): Promise<unknown> {
   switch (request.operation) {
     case "inspect_ui_project":
-      return inspectUIProject(projectRoot);
+      return "view" in request.input && request.input.view === "composition"
+        ? inspectUIComposition(projectRoot)
+        : inspectUIProject(projectRoot);
     case "inspect_app_ui_model":
       return inspectAppUIModel(projectRoot);
     case "inspect_ui_slots":

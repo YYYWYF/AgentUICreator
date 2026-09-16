@@ -210,18 +210,24 @@ make the Plugin compile. Object payload contracts should normally use
 z.strictObject, while non-object JSON values may use the appropriate Zod schema.
 
 Keep grounding demand-driven. Use relevant authoritative observations already in
-context when still current. For an unresolved plugin capability request, normally
-start with list_ui_plugins and stop reading as soon as the target and operation
-are sufficiently clear. Only when a decisive fact is missing, use a targeted
-inspect_ui_plugin, inspect_ui_slots, or inspect_ui_plugin_source_references;
-inspect_app_ui_model only when exact model details are needed. Never turn this
-into a mandatory list/slots/model/project scan or preload a full workspace snapshot
-for every message. Do not repeat the same ProjectControl inspection with identical
-arguments while the workspace is unchanged, even with other reads in between.
-Reuse its result rather than reading again just to confirm it. After a relevant
-workspace change or an explicit stale-observation/hash-conflict error, refresh only
-the observations needed to proceed. Do not add a separate intent model call or
-resolution workflow; reason within this Creator run using the existing tools.
+context when still current. For a pure Composition request, start with
+inspect_ui_project(view="composition"). That compact authoritative snapshot is
+the default convergence boundary: it already covers the AppUIModel hash, Layout
+refs and sizes, Slots and current instances, available Plugin capability
+summaries, Active Composition, and deterministic Layout constraints. Once it is
+fresh, do not call list_ui_plugins, inspect_app_ui_model, inspect_ui_slots, or
+read Plugin source, CSS, Services, manifests, or generated files merely to
+reconfirm Composition facts. Proceed to the smallest determinable atomic
+mutate_app_ui_model call after loading the required operation Skill. Expand
+grounding only when a decisive fact is missing, the user's desired state is
+cross-layer, or the Host explicitly reports stale state, a missing decisive
+fact, or another-layer requirement. A fully covered read returns
+OBSERVATION_ALREADY_COVERED; treat that as an instruction to use the fresh
+snapshot, not as permission for a substitute read. Do not repeat the same
+ProjectControl inspection while the workspace is unchanged. After a relevant
+workspace change or an explicit stale-observation/hash-conflict error, refresh
+only the observations needed to proceed. Do not add a separate intent model call
+or resolution workflow; reason within this Creator run using the existing tools.
 
 Round-trip reduction policy
 
@@ -232,8 +238,9 @@ tool calls, with no duplicate tool name + arguments. Do not batch speculative
 inspections or read more merely to fill a batch. If a later tool's arguments or
 necessity depend on an earlier result, wait for that result.
 
-If list_ui_plugins is genuinely required to discover the target identifier, call
-it first. If the target identifiers are already available and multiple independent
+If a non-Composition, cross-layer request genuinely requires list_ui_plugins,
+call it only when the fresh Composition Snapshot does not already cover the fact.
+If the target identifiers are already available and multiple independent
 authoritative reads are definitely necessary, batch those reads rather than
 serializing them. Never guess a pluginId to inspect ahead of its discovery.
 

@@ -13,7 +13,20 @@ from agent_ui_creator.project_control import ProjectControlError
 
 
 class StubClient:
-    async def inspect_ui_project(self):
+    async def inspect_ui_project(self, *, view=None):
+        if view == "composition":
+            return {
+                "view": "composition",
+                "appUIModel": {"hash": "a" * 64},
+                "observationCoverage": [
+                    "composition.model",
+                    "composition.layout",
+                    "composition.slots",
+                    "composition.instances",
+                    "capability.inventory",
+                    "capability.composition-summary",
+                ],
+            }
         return {"project": True, "appUIModel": {"hash": "a" * 64}}
 
     async def inspect_app_ui_model(self):
@@ -166,6 +179,48 @@ def test_failed_inspection_preserves_existing_observation(tmp_path):
     asyncio.run(tools[0].ainvoke({}))
 
     assert observations.current_hash(current_revision=0) == "a" * 64
+
+
+def test_composition_snapshot_grounds_and_rejects_fully_covered_reads(tmp_path):
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("composition-grounding")
+    observations = DomainObservationContext()
+    client = StubClient()
+    tools = create_project_control_tools(
+        client,
+        observations=observations,
+        activity=activity,
+    )
+
+    snapshot = json.loads(
+        asyncio.run(tools[0].ainvoke({"view": "composition"}))
+    )
+    assert snapshot["ok"] is True
+    assert observations.composition_grounding_status(current_revision=0) == (
+        "grounded"
+    )
+
+    for index, arguments in (
+        (0, {"view": "composition"}),
+        (1, {}),
+        (2, {}),
+        (3, {}),
+    ):
+        covered = json.loads(asyncio.run(tools[index].ainvoke(arguments)))
+        assert covered == {
+            "ok": False,
+            "error": {
+                "code": "OBSERVATION_ALREADY_COVERED",
+                "message": "Fresh Composition grounding already contains this fact.",
+            },
+        }
+
+    assert observations.metrics.coveredReadRejections == 4
+    activity.touch("app-ui/app-ui.json")
+    assert observations.composition_grounding_status(current_revision=1) == "stale"
+    refreshed = json.loads(asyncio.run(tools[1].ainvoke({})))
+    assert refreshed["ok"] is True
+    assert refreshed["result"]["hash"] == "b" * 64
 
 
 def test_agent_ui_source_tools_keep_inspection_read_only_and_apply_is_a_noop(tmp_path):

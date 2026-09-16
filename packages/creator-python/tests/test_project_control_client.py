@@ -41,6 +41,24 @@ def test_inspect_ui_project_returns_protocol_result(tmp_path):
     assert client.metrics.to_dict()["byOperation"] == {"inspect_ui_project": 1}
 
 
+def test_inspect_ui_project_sends_composition_view(tmp_path):
+    source = """
+import json
+import sys
+request = json.loads(sys.stdin.read())
+print(json.dumps({"schemaVersion": 3, "ok": True, "result": request}))
+"""
+    _root, client = _control_project(tmp_path, source)
+
+    result = asyncio.run(client.inspect_ui_project(view="composition"))
+
+    assert result == {
+        "schemaVersion": 3,
+        "operation": "inspect_ui_project",
+        "input": {"view": "composition"},
+    }
+
+
 def test_plugin_and_slot_methods_send_exact_versioned_requests(tmp_path):
     source = """
 import json

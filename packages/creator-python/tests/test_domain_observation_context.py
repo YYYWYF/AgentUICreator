@@ -5,6 +5,15 @@ from agent_ui_creator.domain_state import (
     DomainObservationError,
 )
 
+COMPOSITION_COVERAGE = (
+    "composition.model",
+    "composition.layout",
+    "composition.slots",
+    "composition.instances",
+    "capability.inventory",
+    "capability.composition-summary",
+)
+
 
 def test_observation_is_current_only_at_matching_activity_revision():
     observations = DomainObservationContext()
@@ -53,4 +62,46 @@ def test_observation_rejects_non_sha256_hash_and_tracks_invalidation():
         "observationRequiredErrors": 1,
         "explicitHashMatches": 0,
         "explicitHashMismatches": 0,
+        "compositionGroundingUpdates": 0,
+        "coveredReadRejections": 0,
     }
+
+
+def test_composition_grounding_tracks_unobserved_grounded_and_stale():
+    observations = DomainObservationContext()
+    assert observations.composition_grounding_status(current_revision=0) == (
+        "unobserved"
+    )
+
+    observations.observe_composition_snapshot(
+        hash="c" * 64,
+        revision=0,
+        coverage=COMPOSITION_COVERAGE,
+    )
+
+    assert observations.composition_grounding_status(current_revision=0) == (
+        "grounded"
+    )
+    assert observations.has_fresh_coverage(
+        ("composition.layout", "capability.inventory"),
+        current_revision=0,
+    )
+    assert observations.composition_grounding_status(current_revision=1) == "stale"
+    assert not observations.has_fresh_coverage(
+        ("composition.layout",),
+        current_revision=1,
+    )
+    assert observations.snapshot(current_revision=1)["compositionGrounding"][
+        "status"
+    ] == "stale"
+
+
+def test_composition_grounding_requires_complete_declared_coverage():
+    observations = DomainObservationContext()
+    with pytest.raises(DomainObservationError) as raised:
+        observations.observe_composition_snapshot(
+            hash="d" * 64,
+            revision=0,
+            coverage=("composition.model",),
+        )
+    assert raised.value.code == "COMPOSITION_OBSERVATION_INVALID"

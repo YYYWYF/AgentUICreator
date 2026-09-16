@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Literal
 
 from langchain_core.tools import BaseTool, tool
 
 from ..activity import CreatorActivityRecorder
-from ..domain_state import DomainObservationContext, ObservationSource
+from ..domain_state import (
+    DomainObservationContext,
+    DomainObservationError,
+    ObservationCoverage,
+    ObservationSource,
+)
 from ..project_control import ProjectControlClient, ProjectControlError
 
 MAX_DOMAIN_TOOL_RESULT_CHARS = 48_000
@@ -19,6 +24,14 @@ DOMAIN_READ_TOOL_NAMES = (
     "inspect_ui_services",
     "inspect_ui_plugin_source_references",
     "inspect_agent_ui_sources",
+)
+COMPOSITION_SNAPSHOT_COVERAGE: tuple[ObservationCoverage, ...] = (
+    "composition.model",
+    "composition.layout",
+    "composition.slots",
+    "composition.instances",
+    "capability.inventory",
+    "capability.composition-summary",
 )
 
 
@@ -48,7 +61,7 @@ def _render_result(result: Any) -> str:
     )
 
 
-def _render_error(error: ProjectControlError) -> str:
+def _render_error(error: ProjectControlError | DomainObservationError) -> str:
     rendered = _render_json(
         {
             "ok": False,
@@ -91,19 +104,65 @@ def create_project_control_tools(
             source=source,
         )
 
+    def already_covered(required: tuple[ObservationCoverage, ...]) -> str | None:
+        if observations is None or activity is None:
+            return None
+        if not observations.has_fresh_coverage(
+            required,
+            current_revision=activity.revision,
+        ):
+            return None
+        observations.record_covered_read_rejection()
+        return _render_json(
+            {
+                "ok": False,
+                "error": {
+                    "code": "OBSERVATION_ALREADY_COVERED",
+                    "message": "Fresh Composition grounding already contains this fact.",
+                },
+            }
+        )
+
     @tool("inspect_ui_project")
-    async def inspect_ui_project() -> str:
-        """Inspect current Workspace facts: Mode, authoring UI composition, Capability Catalog, and Active Composition. Use this to observe current state, not to learn stable composition rules."""
+    async def inspect_ui_project(
+        view: Literal["composition"] | None = None,
+    ) -> str:
+        """Inspect current authoritative workspace facts. For a pure Composition request, use view='composition' to get one compact snapshot containing the AppUIModel hash, Layout refs and sizes, Slots and instances, available capability summaries, Active Composition, and deterministic Layout constraints. Omit view only when another layer's broader project navigation facts are genuinely required."""
+        if view == "composition":
+            covered = already_covered(COMPOSITION_SNAPSHOT_COVERAGE)
+            if covered is not None:
+                return covered
         try:
-            result = await client.inspect_ui_project()
-            observe(result.get("appUIModel", {}).get("hash"), "inspect_ui_project")
+            result = (
+                await client.inspect_ui_project(view="composition")
+                if view == "composition"
+                else await client.inspect_ui_project()
+            )
+            app_ui_model_hash = result.get("appUIModel", {}).get("hash")
+            if view == "composition":
+                if observations is not None and activity is not None:
+                    observations.observe_composition_snapshot(
+                        hash=app_ui_model_hash,
+                        revision=activity.revision,
+                        coverage=result.get("observationCoverage", []),
+                    )
+            else:
+                observe(app_ui_model_hash, "inspect_ui_project")
             return _render_result(result)
-        except ProjectControlError as error:
+        except (ProjectControlError, DomainObservationError) as error:
             return _render_error(error)
 
     @tool("inspect_app_ui_model")
     async def inspect_app_ui_model() -> str:
         """Inspect the exact current authoring AppUIModel, snapshot-scoped refs, and hash when a precise mutation needs them. Do not use it to rediscover AppUIModel grammar."""
+        covered = already_covered((
+            "composition.model",
+            "composition.layout",
+            "composition.slots",
+            "composition.instances",
+        ))
+        if covered is not None:
+            return covered
         try:
             result = await client.inspect_app_ui_model()
             observe(result.get("hash"), "inspect_app_ui_model")
@@ -114,6 +173,14 @@ def create_project_control_tools(
     @tool("list_ui_plugins")
     async def list_ui_plugins() -> str:
         """Discover the current project's available UI Plugin assets and declarations, including identity, description, capabilities, and declared child Slots. Use this to find which Plugin provides a requested capability; do not call it to learn general composition rules."""
+        covered = already_covered((
+            "composition.model",
+            "composition.instances",
+            "capability.inventory",
+            "capability.composition-summary",
+        ))
+        if covered is not None:
+            return covered
         try:
             result = await client.list_ui_plugins()
             observe(result.get("appUIModelHash"), "list_ui_plugins")
@@ -127,6 +194,9 @@ def create_project_control_tools(
         appUIModelHash: str | None = None,
     ) -> str:
         """Inspect current Slot declarations and occupancy for a specific authoring target. Plugin-local results describe current declaration, cardinality, and optional state; use this only when current Slot facts are needed. Layout Slot targets require the latest AppUIModel hash."""
+        covered = already_covered(("composition.slots",))
+        if covered is not None:
+            return covered
         try:
             if appUIModelHash is None:
                 result = await client.inspect_ui_slots(target=target)

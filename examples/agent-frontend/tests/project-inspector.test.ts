@@ -6,7 +6,10 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
 import type { AppUIModel } from "../framework/contracts/app-ui-model";
-import { inspectUIProject } from "../scripts/ui-project/project-inspector";
+import {
+  inspectUIComposition,
+  inspectUIProject,
+} from "../scripts/ui-project/project-inspector";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
   generatePluginRegistry,
@@ -236,5 +239,69 @@ describe("inspectUIProject", () => {
       { packageName: "react", version: "19.2.8" },
       { packageName: "@base-ui/react", version: "1.8.0" },
     ]);
+
+    const composition = await inspectUIComposition(projectRoot, fixtureConfig);
+    expect(composition).toMatchObject({
+      schemaVersion: 3,
+      view: "composition",
+      appUIModel: {
+        hash: result.appUIModel.hash,
+        layout: { nodeRef: "l0", type: "row", sizes: ["1fr"] },
+      },
+      pluginInstances: [
+        expect.objectContaining({
+          id: "renderer-main",
+          enabled: true,
+          target: {
+            type: "plugin_slot",
+            parentInstanceId: "sample-main",
+            slot: "message",
+          },
+        }),
+        expect.objectContaining({
+          id: "sample-main",
+          enabled: true,
+          target: { type: "layout_slot", slotRef: "l1" },
+        }),
+      ],
+      capabilitySummaries: expect.arrayContaining([
+        expect.objectContaining({
+          pluginId: "sample",
+          name: "Sample",
+          description: "Fixture plugin",
+          capabilities: ["visual"],
+          selected: true,
+          currentInstances: [
+            expect.objectContaining({ instanceId: "sample-main", enabled: true }),
+          ],
+        }),
+      ]),
+      capabilityCatalogRevision: result.capabilityCatalog.revision,
+      layoutConstraints: {
+        refs: "snapshot-scoped",
+        pluginTargets: ["application", "layout_slot", "plugin_slot"],
+        sizedContainerInsertion: {
+          rule: "size-required",
+          operations: ["insert_layout_node", "move_layout_node", "insert_layout_relative"],
+        },
+        relativeWrapperSizing: {
+          rule: "size-and-anchorSize-together",
+          operation: "insert_layout_relative",
+        },
+        operationApplication: "sequential-atomic",
+      },
+    });
+    expect(composition.observationCoverage).toEqual([
+      "composition.model",
+      "composition.layout",
+      "composition.slots",
+      "composition.instances",
+      "capability.inventory",
+      "capability.composition-summary",
+    ]);
+    expect(composition).not.toHaveProperty("pluginAssets");
+    expect(composition).not.toHaveProperty("uiStack");
+    expect(composition).not.toHaveProperty("agentUI");
+    expect(composition).not.toHaveProperty("catalogs");
   });
 });

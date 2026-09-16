@@ -156,8 +156,76 @@ class GroundingClient:
             ],
         }
 
-    async def inspect_ui_project(self):
-        raise AssertionError("A full workspace scan is unnecessary for these requests")
+    async def inspect_ui_project(self, *, view=None):
+        if view != "composition":
+            raise AssertionError("A full workspace scan is unnecessary for these requests")
+        self.record("inspect_ui_project", {"view": "composition"})
+        plugins = authoring_plugins(self.model())
+        selected_plugin_ids = sorted({plugin["pluginId"] for plugin in plugins})
+        return {
+            "view": "composition",
+            "observationCoverage": [
+                "composition.model",
+                "composition.layout",
+                "composition.slots",
+                "composition.instances",
+                "capability.inventory",
+                "capability.composition-summary",
+            ],
+            "appUIModel": {
+                "hash": self.hash(),
+                "layout": {
+                    "nodeRef": "l0",
+                    "type": "row",
+                    "children": [
+                        {"nodeRef": "l1", "type": "slot", "plugins": []},
+                        {"nodeRef": "l2", "type": "slot", "plugins": []},
+                    ],
+                },
+                "slots": [
+                    {
+                        "target": {"type": "layout_slot", "slotRef": "l2"},
+                        "nodeRef": "l2",
+                        "plugins": [],
+                    }
+                ],
+            },
+            "pluginInstances": plugins,
+            "capabilitySummaries": [
+                {
+                    "pluginId": plugin_id,
+                    "name": plugin_id,
+                    "description": f"{plugin_id} capability",
+                    "capabilities": ["conversation-management"],
+                    "selected": plugin_id in selected_plugin_ids,
+                    "currentInstances": [],
+                }
+                for plugin_id in self.plugin_ids
+            ],
+            "activeComposition": {
+                "resolvedPluginIds": selected_plugin_ids,
+                "selectedPluginIds": selected_plugin_ids,
+                "headlessPluginIds": [],
+            },
+            "capabilityCatalogRevision": "a" * 64,
+            "layoutConstraints": {
+                "refs": "snapshot-scoped",
+                "pluginTargets": ["application", "layout_slot", "plugin_slot"],
+                "sizedContainerInsertion": {
+                    "rule": "size-required",
+                    "operations": [
+                        "insert_layout_node",
+                        "move_layout_node",
+                        "insert_layout_relative",
+                    ],
+                },
+                "relativeWrapperSizing": {
+                    "rule": "size-and-anchorSize-together",
+                    "operation": "insert_layout_relative",
+                },
+                "operationApplication": "sequential-atomic",
+            },
+        }
 
     async def inspect_app_ui_model(self):
         raise AssertionError("The plugin/slot observations already provide the hash")
@@ -334,8 +402,10 @@ def test_grounding_prompt_preserves_decision_and_write_boundaries():
         "Do not ask for confirmation when the target and operation are sufficiently clear",
         "new independent plugin must not be blocked",
         "A user's explicit correction supersedes every previous interpretation or plan",
-        "Do not repeat the same ProjectControl inspection with identical arguments",
-        "even with other reads in between",
+        'inspect_ui_project(view="composition")',
+        "the default convergence boundary",
+        "OBSERVATION_ALREADY_COVERED",
+        "Do not repeat the same ProjectControl inspection while the workspace is unchanged",
         "Do not add a separate intent model call",
         "Never edit app-ui/app-ui.json,",
         "app-ui/composition-revision.generated.json, or plugins/registry.generated.ts",
@@ -440,6 +510,53 @@ def test_clear_restore_and_correction_use_one_atomic_mutation(tmp_path, prompt):
         ]
         assert [type(message) for message in conversation] == [HumanMessage, AIMessage, HumanMessage]
         assert [message.content for message in conversation] == [item["content"] for item in prompt]
+
+
+def test_composition_snapshot_converges_directly_to_atomic_mutation(tmp_path):
+    client = GroundingClient(tmp_path)
+    operation = {
+        "type": "insert_plugin",
+        "plugin": {
+            "id": "session-manager-main",
+            "pluginId": "session-manager",
+            "enabled": True,
+        },
+        "target": {"type": "layout_slot", "slotNodeId": "sidebar-right"},
+    }
+    result, _receipt, model = run_script(
+        client,
+        "把已有的会话管理能力放到右侧栏。",
+        [
+            call(
+                "inspect_ui_project",
+                {"view": "composition"},
+                "composition-1",
+            ),
+            call(
+                "mutate_app_ui_model",
+                {"operations": [operation]},
+                "mutation-1",
+            ),
+            AIMessage(content="已复用现有会话管理能力并更新右侧布局。"),
+        ],
+    )
+
+    assert [item.name for item in result.activities] == [
+        "inspect_ui_project",
+        "mutate_app_ui_model",
+    ]
+    assert client.reads == [
+        ("inspect_ui_project", {"view": "composition"})
+    ]
+    assert len(client.mutations) == 1
+    assert result.domain_observations.compositionGroundingUpdates == 1
+    control = [
+        message
+        for message in model.seen_messages[1]
+        if isinstance(message, SystemMessage)
+        and "Composition grounding is sufficient." in str(message.content)
+    ]
+    assert len(control) == 1
 
 
 def test_explicit_independent_capability_can_enter_source_edit_path(tmp_path):

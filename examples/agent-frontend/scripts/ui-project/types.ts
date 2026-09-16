@@ -199,6 +199,62 @@ export interface UIProjectInspection {
   };
 }
 
+export type CompositionObservationCoverage =
+  | "composition.model"
+  | "composition.layout"
+  | "composition.slots"
+  | "composition.instances"
+  | "capability.inventory"
+  | "capability.composition-summary";
+
+export interface CompositionPluginCapabilitySummary {
+  pluginId: string;
+  name: string;
+  description: string;
+  capabilities: string[];
+  selected: boolean;
+  currentInstances: Array<{
+    instanceId: string;
+    enabled: boolean;
+    target: InspectedPlugin["target"];
+    index: number;
+  }>;
+  layoutWidth?: "narrow" | "wide" | undefined;
+  childSlots?: Record<string, PluginChildSlotDefinition> | undefined;
+}
+
+export interface UICompositionInspection {
+  schemaVersion: 3;
+  view: "composition";
+  observationCoverage: CompositionObservationCoverage[];
+  appUIModel: {
+    hash: string;
+    layout: CompactLayoutNode;
+    slots: InspectedSlot[];
+  };
+  pluginInstances: InspectedPlugin[];
+  capabilitySummaries: CompositionPluginCapabilitySummary[];
+  activeComposition: {
+    selectedPluginIds: string[];
+    resolvedPluginIds: string[];
+    headlessPluginIds: string[];
+  };
+  capabilityCatalogRevision: string;
+  layoutConstraints: {
+    refs: "snapshot-scoped";
+    pluginTargets: ["application", "layout_slot", "plugin_slot"];
+    sizedContainerInsertion: {
+      rule: "size-required";
+      operations: ["insert_layout_node", "move_layout_node", "insert_layout_relative"];
+    };
+    relativeWrapperSizing: {
+      rule: "size-and-anchorSize-together";
+      operation: "insert_layout_relative";
+    };
+    operationApplication: "sequential-atomic";
+  };
+}
+
 export type AgentUISourceStatus =
   | "not-installed"
   | "managed"
