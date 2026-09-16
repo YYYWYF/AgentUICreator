@@ -9,18 +9,20 @@ from .agent import (
 from .prompt import DOMAIN_READ_AGENT_PROMPT, DOMAIN_WRITE_AGENT_PROMPT
 from .change_scope import (
     ChangeScopeMetrics,
-    ResourceKey,
     ScopeAwareRecoveryGuard,
     TaskScope,
     build_change_layer_run_metrics,
-    change_layer_for_path,
     change_layer_for_tool_call,
-    resource_keys_for_evidence,
-    resource_keys_for_path,
-    resource_keys_for_paths,
     resource_keys_for_tool_call,
     resource_keys_for_tool_result,
     runtime_failure_layers,
+)
+from ..resource_scope import (
+    ResourceKey,
+    change_layer_for_path,
+    resource_keys_for_evidence,
+    resource_keys_for_path,
+    resource_keys_for_paths,
 )
 from .tool_policy import (
     ALLOWED_DOMAIN_READ_TOOLS,

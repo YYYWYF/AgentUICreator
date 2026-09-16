@@ -14,6 +14,8 @@ from agent_ui_creator.domain_agent import (
 )
 from agent_ui_creator.files import read_creator_file_state
 from agent_ui_creator.project_control import ProjectControlError, ProjectControlMetrics
+from agent_ui_creator.validation import CommandExecutionResult
+import agent_ui_creator.validation.attribution as validation_attribution
 
 APP_UI_MODEL_PATH = "app-ui/app-ui.json"
 REGISTRY_PATH = "plugins/registry.generated.ts"
@@ -133,6 +135,17 @@ class NoNextModel(ToolCallingFakeModel):
         )
 
 
+class FailedValidationRunner:
+    async def execute_known_command(self, command):
+        return CommandExecutionResult(
+            "app-ui/app-ui.json failed validation"
+            if command == "pnpm verify:ui"
+            else "",
+            1 if command == "pnpm verify:ui" else 0,
+            False,
+        )
+
+
 def test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation(tmp_path):
     root = _project(tmp_path)
     client = MutationClient(root)
@@ -248,3 +261,66 @@ def test_workspace_integrity_terminal_blocker_stops_before_next_model_call(tmp_p
     assert result.terminal_metrics["terminalBlockerCount"] == 1
     assert result.terminal_metrics["modelCallsAfterTerminalBlocker"] == 0
     assert result.terminal_metrics["toolCallsAfterTerminalBlocker"] == 0
+
+
+def test_validation_attribution_degradation_finishes_as_terminal_blocker(
+    tmp_path, monkeypatch
+):
+    root = _project(tmp_path)
+    client = MutationClient(root)
+    model = NoNextModel(
+        responses=[
+            call("inspect_app_ui_model", {}, "inspect-1"),
+            call(
+                "mutate_app_ui_model",
+                {
+                    "operations": [
+                        {
+                            "type": "insert_plugin",
+                            "plugin": {
+                                "id": "agent-activity-feed-main",
+                                "pluginId": "antd-x-activity-feed",
+                                "enabled": True,
+                            },
+                            "target": {
+                                "type": "layout_slot",
+                                "slotNodeId": "inspector-activity",
+                            },
+                        }
+                    ]
+                },
+                "mutate-1",
+            ),
+            call("validate_creator_changes", {}, "validate-1"),
+        ]
+    )
+
+    def fail_attribution(**_kwargs):
+        raise RuntimeError("synthetic attribution failure")
+
+    monkeypatch.setattr(
+        validation_attribution,
+        "attribute_validation_failure",
+        fail_attribution,
+    )
+    agent = create_domain_write_creator_agent(
+        model=model,
+        workspace=root,
+        project_control=client,
+        validation_runner=FailedValidationRunner(),
+    )
+    agent.activity.begin("validation-attribution-degraded")
+
+    result = asyncio.run(agent.run("Add the activity feed and validate it."))
+
+    assert result.completion == "blocked"
+    assert result.blocker is not None
+    assert result.blocker["source"] == "validate_creator_changes"
+    assert result.metrics.modelCalls == len(model.model_calls) == 3
+    assert result.terminal_metrics["terminalBlockerSource"] == (
+        "validate_creator_changes"
+    )
+    assert result.terminal_metrics["modelCallsAfterTerminalBlocker"] == 0
+    assert result.terminal_metrics["toolCallsAfterTerminalBlocker"] == 0
+    model_after = json.loads((root / APP_UI_MODEL_PATH).read_text(encoding="utf-8"))
+    assert model_after["root"]["plugins"][0]["id"] == "agent-activity-feed-main"

@@ -9,6 +9,10 @@ from agent_ui_creator.domain_agent.change_scope import (
     resource_keys_for_path,
     resource_keys_for_tool_call,
 )
+from agent_ui_creator.resource_scope import (
+    contains_identifier,
+    resource_keys_for_evidence,
+)
 
 
 def _request(name, arguments, call_id):
@@ -148,6 +152,51 @@ def test_service_path_can_use_host_known_service_name():
     assert resource_keys_for_path(
         "/services/conversations.ts", service_name="ConversationService"
     ) == ("service:ConversationService",)
+
+
+@pytest.mark.parametrize(
+    ("identifier", "evidence"),
+    [
+        ("conversation-surface", "(conversation-surface) failed"),
+        ("ConversationService", "[ConversationService]: invalid"),
+        ("runtime-events", "error: runtime-events, malformed"),
+        ("foo/bar", "resource 'foo/bar' is invalid"),
+    ],
+)
+def test_contains_identifier_accepts_independent_semantic_identifiers(
+    identifier, evidence
+):
+    assert contains_identifier(evidence, identifier) is True
+
+
+@pytest.mark.parametrize(
+    ("identifier", "evidence"),
+    [
+        ("conversation-surface", "other-conversation-surface"),
+        ("ConversationService", "ConversationServiceV2"),
+        ("runtime-events", "runtime-events/generated"),
+        ("foo/bar", "prefix/foo/bar"),
+    ],
+)
+def test_contains_identifier_rejects_identifier_substrings(identifier, evidence):
+    assert contains_identifier(evidence, identifier) is False
+
+
+def test_known_resource_evidence_matching_uses_identifier_boundaries():
+    known = (
+        "plugin:conversation-surface",
+        "service:ConversationService",
+        "agent-contract:runtime-events",
+    )
+
+    assert resource_keys_for_evidence(
+        "(conversation-surface), [ConversationService], runtime-events!",
+        known_resources=known,
+    ) == known
+    assert resource_keys_for_evidence(
+        "conversation-surface-v2 ConversationServiceV2 runtime-events/generated",
+        known_resources=known,
+    ) == ()
 
 
 def test_service_authorization_resolves_resource_without_persisting_auth_id():

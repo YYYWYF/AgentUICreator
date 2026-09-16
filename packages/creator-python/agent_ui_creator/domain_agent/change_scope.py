@@ -1,30 +1,24 @@
 from __future__ import annotations
 
 import json
-import re
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import PurePosixPath
-from typing import Any, Literal, TypeAlias
+from typing import Any, Literal
 
 from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResponse
 from langchain_core.messages import ToolMessage
 
 from ..minimal_agent.tool_policy import tool_name
+from ..resource_scope import (
+    ChangeLayer,
+    ResourceKey,
+    change_layer_for_path,
+    resource_keys_for_path,
+)
 from ..run_control import CreatorRunControlState
 
 
-ChangeLayer = Literal[
-    "composition",
-    "plugin_behavior",
-    "runtime_capability",
-    "agent_integration",
-]
-
-# Resource keys are intentionally semantic identities rather than arbitrary
-# filesystem paths.  The alias stays open because Plugin, Service, contract,
-# and source-registry ids are project-defined strings.
-ResourceKey: TypeAlias = str
 _APP_UI_MODEL_RESOURCE = "app-ui-model"
 
 
@@ -124,28 +118,6 @@ def _scope_commit_allowed(name: str, result: Any) -> bool:
     )
 
 
-def normalize_creator_path(value: str) -> str:
-    path = value if value.startswith("/") else f"/{value}"
-    return "/" + "/".join(part for part in PurePosixPath(path).parts if part != "/")
-
-
-def change_layer_for_path(path: str) -> ChangeLayer | None:
-    normalized = normalize_creator_path(path)
-    if normalized in {
-        "/app-ui/app-ui.json",
-        "/app-ui/composition-revision.generated.json",
-        "/plugins/registry.generated.ts",
-    }:
-        return "composition"
-    if normalized.startswith("/plugins/") or normalized.startswith("/agent-ui/"):
-        return "plugin_behavior"
-    if normalized.startswith("/services/"):
-        return "runtime_capability"
-    if normalized.startswith("/agent-contract/"):
-        return "agent_integration"
-    return None
-
-
 def _resource_key(prefix: str, value: Any) -> ResourceKey | None:
     if not isinstance(value, str):
         return None
@@ -153,54 +125,6 @@ def _resource_key(prefix: str, value: Any) -> ResourceKey | None:
     if not normalized:
         return None
     return f"{prefix}:{normalized}"
-
-
-def resource_keys_for_path(
-    path: str, *, service_name: str | None = None
-) -> tuple[ResourceKey, ...]:
-    """Resolve a project path to its stable semantic resource, when possible."""
-
-    normalized = normalize_creator_path(path)
-    if normalized in {
-        "/app-ui/app-ui.json",
-        "/app-ui/composition-revision.generated.json",
-        "/plugins/registry.generated.ts",
-    }:
-        return ("app-ui-model",)
-
-    parts = PurePosixPath(normalized).parts[1:]
-    if len(parts) >= 2 and parts[0] == "plugins":
-        resource = _resource_key("plugin", parts[1])
-        return () if resource is None else (resource,)
-    if len(parts) >= 2 and parts[0] == "services":
-        resolved_name = service_name
-        if resolved_name is None:
-            filename = PurePosixPath(parts[-1])
-            stem = filename.stem
-            # A nested services/<name>/contract.ts path still identifies the
-            # Service by its directory, while flat files use their stem.
-            if len(parts) >= 3 and stem in {"contract", "index"}:
-                resolved_name = parts[1]
-            else:
-                resolved_name = stem
-        resource = _resource_key("service", resolved_name)
-        return () if resource is None else (resource,)
-    if len(parts) >= 2 and parts[0] == "agent-contract":
-        resource = _resource_key("agent-contract", PurePosixPath(parts[-1]).stem)
-        return () if resource is None else (resource,)
-    # agent-ui/** can be owned by a source-registry item, but the item id is
-    # not recoverable from an arbitrary path.  Keep this unknown rather than
-    # manufacturing a path-shaped ResourceKey.
-    return ()
-
-
-def resource_keys_for_paths(paths: Sequence[str]) -> tuple[ResourceKey, ...]:
-    resources: list[ResourceKey] = []
-    for path in paths:
-        for resource in resource_keys_for_path(path):
-            if resource not in resources:
-                resources.append(resource)
-    return tuple(resources)
 
 
 def _append_resource(resources: list[ResourceKey], resource: ResourceKey | None) -> None:
@@ -325,51 +249,6 @@ def resource_keys_for_tool_result(name: str, result: Mapping[str, Any]) -> tuple
                     for resource in resource_keys_for_path(path):
                         _append_resource(resources, resource)
     return tuple(resources)
-
-
-_RESOURCE_TOKEN = re.compile(
-    r"(?<![A-Za-z0-9_.-])(?:app-ui-model|plugin|plugin-instance|service|agent-contract|source-item):[A-Za-z0-9][A-Za-z0-9._/-]*"
-)
-_RESOURCE_PATH = re.compile(
-    r"(?<![A-Za-z0-9_.-])/?(?:app-ui/app-ui\.json|plugins/[A-Za-z0-9][A-Za-z0-9._-]*(?:/[A-Za-z0-9][A-Za-z0-9._-]*)*|services/[A-Za-z0-9][A-Za-z0-9._-]*(?:/[A-Za-z0-9][A-Za-z0-9._-]*)*|agent-contract/[A-Za-z0-9][A-Za-z0-9._-]*(?:/[A-Za-z0-9][A-Za-z0-9._-]*)*)"
-)
-
-
-def resource_keys_for_evidence(
-    evidence: str,
-    *,
-    known_resources: Sequence[ResourceKey] = (),
-) -> tuple[ResourceKey, ...]:
-    """Extract only reliable semantic resources from validation evidence."""
-
-    resources: list[ResourceKey] = []
-    for match in _RESOURCE_TOKEN.finditer(evidence):
-        token = match.group(0).rstrip(".,;:)]}\"'")
-        _append_resource(resources, token)
-    for match in _RESOURCE_PATH.finditer(evidence.replace("\\", "/")):
-        path = match.group(0).lstrip("/").rstrip(".,;:)]}\"'")
-        for resource in resource_keys_for_path(path):
-            _append_resource(resources, resource)
-    # Host checks sometimes expose a Service or Plugin identity in prose
-    # without printing its path.  Match only currently known keys so a random
-    # same-layer word cannot silently authorize a repair.
-    for resource in known_resources:
-        suffix = resource.split(":", 1)[-1]
-        if suffix and re.search(
-            rf"(?<![A-Za-z0-9_.-]){re.escape(suffix)}(?![A-Za-z0-9_.-}})]",
-            evidence,
-        ):
-            _append_resource(resources, resource)
-    return tuple(resources)
-
-
-def change_layers_for_paths(paths: Sequence[str]) -> tuple[ChangeLayer, ...]:
-    layers: list[ChangeLayer] = []
-    for path in paths:
-        layer = change_layer_for_path(path)
-        if layer is not None and layer not in layers:
-            layers.append(layer)
-    return tuple(layers)
 
 
 def runtime_failure_layers(result: Mapping[str, Any]) -> tuple[ChangeLayer, ...]:

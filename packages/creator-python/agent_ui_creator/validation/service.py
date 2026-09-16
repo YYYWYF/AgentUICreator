@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Protocol
 from ..activity import CreatorActivityRecorder
 from ..repair import CreatorRepairState
 from ..service_contracts.verification import ServiceContractAuthorizationVerifier
+from . import attribution
 from .command_runner import CreatorValidationCommandRunner
 from .models import (
     CREATOR_COMPLETION_VALIDATIONS,
@@ -13,6 +14,7 @@ from .models import (
     CreatorValidationCheck,
     CreatorValidationCommand,
     CreatorValidationResult,
+    ValidationEvidence,
 )
 
 if TYPE_CHECKING:
@@ -20,36 +22,6 @@ if TYPE_CHECKING:
 
 
 MAX_VALIDATION_FAILURE_OUTPUT_CHARACTERS = 12_000
-
-
-def _change_layers_for_paths(paths: list[str]) -> list[str]:
-    # Keep the shared scope implementation lazy: domain_agent imports the
-    # validation package while its public package is being initialized.
-    from ..domain_agent.change_scope import change_layers_for_paths
-
-    return list(change_layers_for_paths(paths))
-
-
-def _change_layers_for_evidence(evidence: str) -> list[str]:
-    normalized = evidence.replace("\\", "/")
-    markers = (
-        (
-            "composition",
-            (
-                "app-ui/app-ui.json",
-                "app-ui/composition-revision.generated.json",
-                "plugins/registry.generated.ts",
-            ),
-        ),
-        ("plugin_behavior", ("plugins/", "agent-ui/")),
-        ("runtime_capability", ("services/",)),
-        ("agent_integration", ("agent-contract/",)),
-    )
-    return [
-        layer
-        for layer, candidates in markers
-        if any(candidate in normalized for candidate in candidates)
-    ]
 
 
 class ValidationCommandRunner(Protocol):
@@ -72,6 +44,7 @@ class CreatorValidationService:
         self.activity = activity
         self.runner = runner or CreatorValidationCommandRunner(project_root)
         self.repair_state = repair_state or CreatorRepairState()
+        self.latest_evidence: ValidationEvidence | None = None
         self.latest_result: CreatorValidationResult | None = None
         self.host_verifier = host_verifier
         self.scope = scope
@@ -111,85 +84,18 @@ class CreatorValidationService:
             source="cached" if source == "cached" else "executed",
         )
 
-    def _failure_semantics(
-        self,
-        *,
-        status: str,
-        checks: list[CreatorValidationCheck],
-        host_checks: tuple[object, ...],
-    ) -> dict[str, object] | None:
-        if status == "passed":
-            return None
-        receipt = self.activity.snapshot()
-        changed_paths = [
-            str(item.get("path"))
-            for item in receipt.get("files", [])
-            if isinstance(item, dict) and isinstance(item.get("path"), str)
-        ]
-        changed_layers = _change_layers_for_paths(changed_paths)
-        from ..domain_agent.change_scope import (
-            resource_keys_for_evidence,
-            resource_keys_for_paths,
-        )
-
-        changed_resources = list(resource_keys_for_paths(changed_paths))
-        task_scope = (
-            list(self.scope.taskChangeLayers)
-            if self.scope is not None
-            else changed_layers
-        )
-        scope_resources = (
-            list(self.scope.scopeResources)
-            if self.scope is not None
-            else changed_resources
-        )
-        evidence = "\n".join(check.output for check in checks if check.status == "failed")
-        if host_checks:
-            evidence += "\n" + "\n".join(str(check) for check in host_checks)
-        evidence_layers = _change_layers_for_evidence(evidence)
-        evidence_resources = list(
-            resource_keys_for_evidence(
-                evidence,
-                known_resources=tuple(
-                    dict.fromkeys((*changed_resources, *scope_resources))
-                ),
+    def _record_attribution_degradation(
+        self, revision: int, error: Exception
+    ) -> None:
+        if self.activity.logger is not None:
+            self.activity.logger.record(
+                "validation_attribution_degraded",
+                {
+                    "revision": revision,
+                    "errorType": type(error).__name__,
+                    "message": str(error),
+                },
             )
-        )
-        if status == "stale":
-            category = "stale_state"
-            attribution = "unknown"
-        elif any(resource in evidence_resources for resource in changed_resources):
-            category = "workspace_integrity"
-            attribution = "introduced"
-        elif any(resource in evidence_resources for resource in scope_resources):
-            category = "workspace_integrity"
-            attribution = "in_scope"
-        elif evidence_resources and (task_scope or scope_resources):
-            category = "workspace_integrity"
-            attribution = "unrelated"
-        else:
-            category = "workspace_integrity"
-            attribution = "unknown"
-        automatic_repair_allowed = attribution in {"introduced", "in_scope"}
-        return {
-            "category": category,
-            "attribution": attribution,
-            "taskScope": task_scope,
-            "taskScopeResources": scope_resources,
-            "scopeResources": scope_resources,
-            "changedResources": changed_resources,
-            "failureLayers": evidence_layers,
-            "changedPaths": changed_paths,
-            "automaticRepairAllowed": automatic_repair_allowed,
-            "automaticCrossLayerRepairAllowed": False,
-            "recovery": (
-                "refresh_current_revision"
-                if category == "stale_state"
-                else "repair_in_scope"
-                if automatic_repair_allowed
-                else "stop_and_report_blocker"
-            ),
-        }
 
     async def validate(self) -> CreatorValidationResult:
         target_revision = self.activity.revision
@@ -251,16 +157,31 @@ class CreatorValidationService:
             and all(check.status == "passed" for check in host_checks)
             else "failed"
         )
-        validation = CreatorValidationResult(
+        evidence = ValidationEvidence(
             revision=target_revision,
             status=status,
             checks=tuple(checks),
             host_checks=tuple(host_checks),
-            failure_semantics=self._failure_semantics(
-                status=status,
-                checks=checks,
-                host_checks=tuple(host_checks),
+        )
+        self.latest_evidence = evidence
+        if self.activity.logger is not None:
+            self.activity.logger.record(
+                "host_validation_evidence",
+                evidence.to_dict(),
+            )
+        failure_semantics = attribution.attribute_validation_failure_safe(
+            status=status,
+            checks=evidence.checks,
+            host_checks=evidence.host_checks,
+            activity=self.activity,
+            scope=self.scope,
+            on_degraded=lambda error: self._record_attribution_degradation(
+                target_revision, error
             ),
+        )
+        validation = CreatorValidationResult(
+            evidence=evidence,
+            failure_semantics=failure_semantics,
         )
         self.latest_result = validation
         self.repair_state.record_result(

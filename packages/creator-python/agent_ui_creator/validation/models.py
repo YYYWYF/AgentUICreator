@@ -43,12 +43,11 @@ class CreatorValidationCheck:
 
 
 @dataclass(frozen=True, slots=True)
-class CreatorValidationResult:
+class ValidationEvidence:
     revision: int
     status: Literal["passed", "failed", "stale"]
     checks: tuple[CreatorValidationCheck, ...]
     host_checks: tuple[ServiceContractHostCheck, ...] = ()
-    failure_semantics: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -56,6 +55,33 @@ class CreatorValidationResult:
             "status": self.status,
             "checks": [check.to_dict() for check in self.checks],
             "hostChecks": [check.to_dict() for check in self.host_checks],
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class CreatorValidationResult:
+    evidence: ValidationEvidence
+    failure_semantics: dict[str, Any] | None = None
+
+    @property
+    def revision(self) -> int:
+        return self.evidence.revision
+
+    @property
+    def status(self) -> Literal["passed", "failed", "stale"]:
+        return self.evidence.status
+
+    @property
+    def checks(self) -> tuple[CreatorValidationCheck, ...]:
+        return self.evidence.checks
+
+    @property
+    def host_checks(self) -> tuple[ServiceContractHostCheck, ...]:
+        return self.evidence.host_checks
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            **self.evidence.to_dict(),
             **(
                 {"failureSemantics": dict(self.failure_semantics)}
                 if self.failure_semantics is not None

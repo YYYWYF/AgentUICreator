@@ -5,11 +5,12 @@ import json
 from typing import Protocol
 
 from ..activity import CreatorActivityRecorder
+from ..resource_scope import change_layers_for_paths
 from ..runtime_diagnostics import RuntimeDiagnosticInspectionService
 from ..run_control import CreatorRunControlState
 from ..validation import CREATOR_COMPLETION_VALIDATIONS, CreatorValidationService
 from ..repair import CreatorRepairState
-from .change_scope import change_layers_for_paths, runtime_failure_layers
+from .change_scope import runtime_failure_layers
 
 
 @dataclass(frozen=True, slots=True)

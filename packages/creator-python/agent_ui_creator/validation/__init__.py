@@ -9,6 +9,7 @@ from .models import (
     CreatorValidationCheck,
     CreatorValidationCommand,
     CreatorValidationResult,
+    ValidationEvidence,
 )
 from .service import CreatorValidationService, ValidationCommandRunner
 from .tool import create_validation_tool
@@ -23,6 +24,7 @@ __all__ = [
     "CreatorValidationCommandRunner",
     "CreatorValidationResult",
     "CreatorValidationService",
+    "ValidationEvidence",
     "ValidationCommandRunner",
     "create_validation_tool",
 ]
