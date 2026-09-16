@@ -460,6 +460,14 @@ def create_domain_write_creator_agent(
         raw_trace=raw_trace,
         provider_trace_collector=provider_trace_collector,
     )
+    if telemetry is not None:
+        telemetry.bind(
+            activity=backend.activity,
+            protocol=metrics,
+            project_control=client.metrics,
+            mutation=service.metrics,
+            scope=scope_guard.metrics,
+        )
     runtime = MinimalAgentRuntimeGuard(backend, event_sink=event_sink)
     repeated_read_guard = RepeatedProjectControlReadGuard(backend)
     filesystem = FilesystemMiddleware(
@@ -508,14 +516,6 @@ def create_domain_write_creator_agent(
         service_contract_authorizations=service_authorizations,
         scope_guard=scope_guard,
     )
-    if telemetry is not None:
-        telemetry.bind(
-            activity=backend.activity,
-            protocol=metrics,
-            project_control=client.metrics,
-            mutation=service.metrics,
-            scope=scope_guard.metrics,
-        )
     agent.source_creation = source_creation
     agent.plugin_mutation = plugin_mutation
     agent.service_contract_creation = service_creation

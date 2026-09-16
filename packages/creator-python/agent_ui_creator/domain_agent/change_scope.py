@@ -157,6 +157,14 @@ def _append_plugin_node_resources(
         return
     _append_resource(resources, _resource_key("plugin-instance", value.get("id")))
     _append_resource(resources, _resource_key("plugin", value.get("pluginId")))
+    slots = value.get("slots")
+    if isinstance(slots, Mapping):
+        for children in slots.values():
+            if isinstance(children, Sequence) and not isinstance(
+                children, (str, bytes)
+            ):
+                for child in children:
+                    _append_plugin_node_resources(resources, child)
 
 
 def _resource_keys_for_app_ui_operations(
@@ -442,7 +450,7 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         resources = list(resource_keys_for_tool_call(name, arguments))
         if self._service_resource_resolver is not None:
             try:
-                resolved = self._service_resource_resolver(name, arguments)
+                resolved = self._service_resource_resolver(name, arguments) or ()
             except Exception:
                 resolved = ()
             # A Host-known Service identity is authoritative.  Discard the
