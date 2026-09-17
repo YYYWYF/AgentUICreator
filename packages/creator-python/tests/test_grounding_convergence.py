@@ -100,10 +100,13 @@ def test_grounded_composition_narrows_and_restores_tool_surface(tmp_path):
         coverage=COMPOSITION_COVERAGE,
     )
     middleware.wrap_model_call(request, handler)
-    assert [tool.name for tool in seen[-1].tools] == list(
-        COMPOSITION_PRE_MUTATION_TOOL_NAMES
-    )
-    assert "inspect_app_ui_model" not in [tool.name for tool in seen[-1].tools]
+    pre_mutation_tool_names = [tool.name for tool in seen[-1].tools]
+    assert pre_mutation_tool_names == list(COMPOSITION_PRE_MUTATION_TOOL_NAMES)
+    assert "inspect_app_ui_model" not in pre_mutation_tool_names
+    assert "list_ui_plugins" not in pre_mutation_tool_names
+    assert "inspect_ui_slots" not in pre_mutation_tool_names
+    assert "inspect_ui_plugin" not in pre_mutation_tool_names
+    assert "inspect_ui_services" not in pre_mutation_tool_names
 
     def mutate_and_touch(candidate):
         backend.activity.touch("app-ui/app-ui.json")
@@ -118,9 +121,7 @@ def test_grounded_composition_narrows_and_restores_tool_surface(tmp_path):
         mutate_and_touch,
     )
     middleware.wrap_model_call(request, handler)
-    assert [tool.name for tool in seen[-1].tools] == list(
-        COMPOSITION_POST_MUTATION_TOOL_NAMES
-    )
+    assert [tool.name for tool in seen[-1].tools] == list(COMPOSITION_POST_MUTATION_TOOL_NAMES)
 
     backend.activity.touch("app-ui/app-ui.json")
     middleware.wrap_model_call(request, handler)

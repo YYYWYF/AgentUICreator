@@ -21,11 +21,13 @@ from .tool_policy import READ_ONLY_TOOL_NAMES
 
 COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
     "read_file",
+    "inspect_ui_project",
     "mutate_app_ui_model",
     "inspect_runtime_layout",
 )
 COMPOSITION_POST_MUTATION_TOOL_NAMES = (
     "read_file",
+    "inspect_ui_project",
     "mutate_app_ui_model",
     "inspect_runtime_layout",
     "validate_creator_changes",

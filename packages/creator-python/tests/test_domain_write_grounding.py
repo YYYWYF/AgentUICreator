@@ -690,11 +690,6 @@ def test_full_project_exit_reenables_plugin_behavior_reads(tmp_path):
         "检查已有会话管理插件的实现。",
         [
             call("inspect_ui_project", {"view": "composition"}, "composition-1"),
-            call(
-                "read_file",
-                {"file_path": "/plugins/session-manager/index.ts"},
-                "read-prohibited",
-            ),
             call("inspect_ui_project", {}, "full-project-1"),
             call(
                 "inspect_ui_plugin",
@@ -726,22 +721,21 @@ def test_full_project_exit_reenables_plugin_behavior_reads(tmp_path):
     ]
     metrics = result.composition_fast_path_metrics.to_dict()
     assert metrics["fastPathExits"] == 1
-    assert metrics["crossLayerReadAttemptsBeforeMutation"] == 1
-    assert metrics["filesystemSourceReadsBeforeMutation"] == 1
+    assert metrics["crossLayerReadAttemptsBeforeMutation"] == 0
+    assert metrics["filesystemSourceReadsBeforeMutation"] == 0
     assert model.bound_tool_names[1] == tuple(COMPOSITION_PRE_MUTATION_TOOL_NAMES)
     assert set(model.bound_tool_names[2]) == set(ALLOWED_DOMAIN_WRITE_TOOLS)
 
 
 def test_full_project_exit_reenables_runtime_capability_reads(tmp_path):
     client = GroundingClient(tmp_path)
-    result, _receipt, _model = run_script(
+    result, _receipt, model = run_script(
         client,
         "检查会话服务能力。",
         [
             call("inspect_ui_project", {"view": "composition"}, "composition-1"),
-            call("inspect_ui_services", {}, "services-prohibited"),
             call("inspect_ui_project", {}, "full-project-1"),
-            call("inspect_ui_services", {}, "services-allowed"),
+            call("inspect_ui_services", {}, "services-1"),
             AIMessage(content="已完成服务能力检查。"),
         ],
     )
@@ -753,7 +747,9 @@ def test_full_project_exit_reenables_runtime_capability_reads(tmp_path):
     ]
     metrics = result.composition_fast_path_metrics.to_dict()
     assert metrics["fastPathExits"] == 1
-    assert metrics["crossLayerReadAttemptsBeforeMutation"] == 1
+    assert metrics["crossLayerReadAttemptsBeforeMutation"] == 0
+    assert model.bound_tool_names[1] == tuple(COMPOSITION_PRE_MUTATION_TOOL_NAMES)
+    assert set(model.bound_tool_names[2]) == set(ALLOWED_DOMAIN_WRITE_TOOLS)
 
 
 def test_explicit_independent_capability_can_enter_source_edit_path(tmp_path):
