@@ -21,8 +21,10 @@ from langgraph.errors import GraphRecursionError
 from ..activity import CreatorActivityRecorder
 from ..model_protocol.errors import AgentNoProgressError, ModelTimeoutError
 from ..model_protocol.provider_trace import ProviderResponseTraceCollector
+from ..model_protocol.reliability import create_creator_model_retry_middleware
 from ..model_protocol.tool_protocol_guard import ToolProtocolMiddleware
 from ..model_protocol.trace import ToolProtocolMetrics
+from ..model_settings import DEFAULT_CREATOR_MODEL_MAX_RETRIES
 from ..observability import CreatorRunTelemetry
 from ..streaming.deepagent_v3_runner import DeepAgentV3Runner
 from ..streaming.runtime_events import CreatorEventSink
@@ -126,6 +128,7 @@ def create_minimal_creator_agent(
     activity: CreatorActivityRecorder | None = None,
     event_sink: CreatorEventSink | None = None,
     telemetry: CreatorRunTelemetry | None = None,
+    max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES,
 ) -> CreatorMinimalAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -145,6 +148,11 @@ def create_minimal_creator_agent(
             activity=backend.activity,
             protocol=metrics,
         )
+    model_retry = create_creator_model_retry_middleware(
+        metrics=metrics,
+        max_retries=max_retries,
+        logger=backend.activity.logger,
+    )
     runtime = MinimalAgentRuntimeGuard(backend, event_sink=event_sink)
     filesystem = FilesystemMiddleware(
         backend=backend,
@@ -163,6 +171,7 @@ def create_minimal_creator_agent(
             filesystem,
             MinimalAgentToolPolicyMiddleware(),
             runtime,
+            model_retry,
             protocol,
             _NoSummaryMiddleware(),
         ],

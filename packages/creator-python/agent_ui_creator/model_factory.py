@@ -41,7 +41,7 @@ def create_creator_chat_model(
         temperature=settings.temperature,
         max_tokens=settings.max_tokens,
         timeout=settings.timeout_seconds,
-        max_retries=settings.max_retries,
+        max_retries=0,
         streaming=False,
         use_responses_api=False,
         http_client=httpx.Client(

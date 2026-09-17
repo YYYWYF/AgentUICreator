@@ -25,5 +25,43 @@ class ModelTimeoutError(CreatorAgentError):
     code = "MODEL_TIMEOUT"
 
 
+class ModelTransportError(CreatorAgentError):
+    """A bounded transient model transport retry budget was exhausted."""
+
+    code = "MODEL_TRANSPORT_RETRY_EXHAUSTED"
+    category = "infrastructure"
+    recoverable = True
+
+    def __init__(
+        self,
+        *,
+        attempts: int,
+        error_type: str,
+        cause_type: str | None = None,
+        status_code: int | None = None,
+        provider_request_id: str | None = None,
+    ) -> None:
+        self.attempts = max(0, int(attempts))
+        self.error_type = error_type
+        self.cause_type = cause_type
+        self.status_code = status_code
+        self.provider_request_id = provider_request_id
+        super().__init__(
+            f"Creator model transport retry exhausted after {self.attempts} attempts."
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "category": self.category,
+            "code": self.code,
+            "recoverable": self.recoverable,
+            "attempts": self.attempts,
+            "errorType": self.error_type,
+            "causeType": self.cause_type,
+            "statusCode": self.status_code,
+            "providerRequestId": self.provider_request_id,
+        }
+
+
 class DeepAgentEventStreamUnavailableError(CreatorAgentError):
     code = "DEEPAGENT_EVENT_STREAM_UNAVAILABLE"

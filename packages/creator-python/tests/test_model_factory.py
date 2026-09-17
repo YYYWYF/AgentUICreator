@@ -67,7 +67,17 @@ def test_model_factory_owns_explicit_chat_completions_configuration():
     assert model.max_tokens == 2048
     assert model.streaming is False
     assert model.use_responses_api is False
-    assert model.max_retries == 1
+    assert model.max_retries == 0
+
+
+def test_model_settings_defaults_to_agent_owned_retry_budget():
+    settings = CreatorModelSettings(
+        model_name="mimo-v2.5-pro",
+        base_url="https://model.example/v1",
+        api_key="secret",
+    )
+
+    assert settings.max_retries == 2
 
 
 def test_model_settings_priority_and_compatibility(tmp_path):

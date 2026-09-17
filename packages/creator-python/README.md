@@ -74,8 +74,12 @@ CREATOR_MODEL_API_KEY=your-key
 CREATOR_MODEL_TEMPERATURE=0.2
 CREATOR_MODEL_MAX_TOKENS=2048
 CREATOR_MODEL_TIMEOUT_SECONDS=120
-CREATOR_MODEL_MAX_RETRIES=1
+CREATOR_MODEL_MAX_RETRIES=2
 ```
+
+`CREATOR_MODEL_MAX_RETRIES` 表示初次模型请求之后由 Creator 的
+`ModelRetryMiddleware` 执行的重试次数；`ChatOpenAI` client 自身保持
+`max_retries=0`，避免形成双层重试。
 
 Minimal Agent 仅作为工具协议诊断模式保留：
 

@@ -7,6 +7,7 @@ from typing import Mapping
 
 CREATOR_MODEL_NAME = "mimo-v2.5-pro"
 CREATOR_HOST_ENV_FILE = ".env.creator.local"
+DEFAULT_CREATOR_MODEL_MAX_RETRIES = 2
 
 
 class CreatorModelConfigurationError(ValueError):
@@ -102,7 +103,7 @@ class CreatorModelSettings:
     temperature: float = 0.2
     max_tokens: int = 2048
     timeout_seconds: float = 120.0
-    max_retries: int = 1
+    max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES
     raw_trace: bool = False
 
     @classmethod
@@ -166,7 +167,7 @@ class CreatorModelSettings:
         )
         max_retries = _number(
             _first_value(environment, file_values, "CREATOR_MODEL_MAX_RETRIES"),
-            default=1,
+            default=DEFAULT_CREATOR_MODEL_MAX_RETRIES,
             name="CREATOR_MODEL_MAX_RETRIES",
             cast=int,
         )

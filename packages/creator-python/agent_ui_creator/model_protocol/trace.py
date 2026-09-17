@@ -34,6 +34,11 @@ class ModelCallTrace:
 @dataclass(slots=True)
 class ToolProtocolMetrics:
     modelCalls: int = 0
+    modelTransportAttempts: int = 0
+    modelTransportFailures: int = 0
+    modelTransportRetries: int = 0
+    modelTransportRetryExhausted: int = 0
+    modelTransportFailuresByType: dict[str, int] = field(default_factory=dict)
     toolCalls: int = 0
     validToolCalls: int = 0
     invalidToolCalls: int = 0

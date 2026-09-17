@@ -127,6 +127,7 @@ async def _minimal_agent_result(
         activity=activity,
         event_sink=event_sink,
         telemetry=telemetry,
+        max_retries=model_settings.max_retries,
     )
     return await agent.run(prompt)
 
@@ -163,6 +164,7 @@ async def _domain_read_agent_result(
         activity=activity,
         event_sink=event_sink,
         telemetry=telemetry,
+        max_retries=model_settings.max_retries,
     )
     return await agent.run_messages(messages)
 
@@ -206,6 +208,7 @@ async def _domain_write_agent_result(
         automatic_completion_repair=True,
         event_sink=event_sink,
         telemetry=telemetry,
+        max_retries=model_settings.max_retries,
     )
     return await agent.run_messages(messages)
 

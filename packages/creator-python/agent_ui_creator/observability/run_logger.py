@@ -301,6 +301,13 @@ class CreatorRunLogger:
         if self._finished:
             return
         self._finished = True
+        error_details = None
+        if error is not None:
+            to_dict = getattr(error, "to_dict", None)
+            if callable(to_dict):
+                value = to_dict()
+                if isinstance(value, Mapping):
+                    error_details = dict(value)
         self.record(
             "run_finished",
             {
@@ -340,5 +347,6 @@ class CreatorRunLogger:
                     else {}
                 ),
                 **({"error": str(error)} if error is not None else {}),
+                **({"errorDetails": error_details} if error_details is not None else {}),
             },
         )

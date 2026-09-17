@@ -35,8 +35,10 @@ from ..minimal_agent.runtime_guard import MinimalAgentRuntimeGuard, ToolActivity
 from ..minimal_agent.tool_policy import ALLOWED_MINIMAL_TOOLS
 from ..model_protocol.errors import AgentNoProgressError, ModelTimeoutError
 from ..model_protocol.provider_trace import ProviderResponseTraceCollector
+from ..model_protocol.reliability import create_creator_model_retry_middleware
 from ..model_protocol.tool_protocol_guard import ToolProtocolMiddleware
 from ..model_protocol.trace import ToolProtocolMetrics
+from ..model_settings import DEFAULT_CREATOR_MODEL_MAX_RETRIES
 from ..observability import CreatorRunTelemetry
 from ..project_control import ProjectControlClient, ProjectControlMetrics
 from ..repair import CreatorRepairState
@@ -320,6 +322,7 @@ def create_domain_read_creator_agent(
     activity: CreatorActivityRecorder | None = None,
     event_sink: CreatorEventSink | None = None,
     telemetry: CreatorRunTelemetry | None = None,
+    max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES,
 ) -> CreatorDomainReadAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -350,6 +353,11 @@ def create_domain_read_creator_agent(
             project_control=client.metrics,
             run_control=run_control,
         )
+    model_retry = create_creator_model_retry_middleware(
+        metrics=metrics,
+        max_retries=max_retries,
+        logger=backend.activity.logger,
+    )
     runtime = MinimalAgentRuntimeGuard(
         backend,
         event_sink=event_sink,
@@ -378,6 +386,7 @@ def create_domain_read_creator_agent(
             DomainReadToolPolicyMiddleware(),
             repeated_read_guard,
             runtime,
+            model_retry,
             protocol,
             _NoSummaryMiddleware(),
         ],
@@ -415,6 +424,7 @@ def create_domain_write_creator_agent(
     validation_runner: ValidationCommandRunner | None = None,
     automatic_completion_repair: bool = False,
     telemetry: CreatorRunTelemetry | None = None,
+    max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES,
 ) -> CreatorDomainWriteAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -566,6 +576,11 @@ def create_domain_write_creator_agent(
             composition_fast_path=observations.composition_fast_path_metrics,
             run_control=run_control,
         )
+    model_retry = create_creator_model_retry_middleware(
+        metrics=metrics,
+        max_retries=max_retries,
+        logger=backend.activity.logger,
+    )
     runtime = MinimalAgentRuntimeGuard(
         backend,
         event_sink=event_sink,
@@ -605,6 +620,7 @@ def create_domain_write_creator_agent(
                 metrics=metrics,
                 run_control=run_control,
             ),
+            model_retry,
             protocol,
             _NoSummaryMiddleware(),
         ],
