@@ -40,6 +40,16 @@ const TRANSACTION_DIRECTORY_PATH = ".agentuicreator/control";
 const TRANSACTION_JOURNAL_PATH = `${TRANSACTION_DIRECTORY_PATH}/pending-app-ui-transaction.json`;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 
+/** Admission checks performed before the AppUIModel transaction commits. */
+export const APP_UI_MUTATION_ADMISSION_GUARANTEES = [
+  "app-ui-model-hash",
+  "operation-and-model-schema",
+  "capability-and-definition-resolution",
+  "active-composition-compile",
+  "layout-width-compatibility",
+  "plugin-child-slot-contract",
+] as const;
+
 export const appUITransactionInputSchema = z.strictObject({
   appUIModelHash: z.string().regex(SHA256_PATTERN),
   operations: appUIOperationsSchema,

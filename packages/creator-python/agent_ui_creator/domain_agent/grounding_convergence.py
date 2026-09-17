@@ -89,6 +89,30 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
     def _filesystem_read_succeeded(result: object) -> bool:
         return getattr(result, "status", None) == "success"
 
+    def _record_tool_observation(
+        self,
+        name: str,
+        arguments: dict[str, object],
+        *,
+        result: object = None,
+        error: BaseException | None = None,
+    ) -> None:
+        logger = getattr(self.backend.activity, "logger", None)
+        if logger is None:
+            return
+        logger.record_tool_observation(
+            model_call_sequence=self.protocol_metrics.modelCalls,
+            tool_name=name,
+            phase=(
+                "after_first_mutation"
+                if self.observations.composition_fast_path_metrics.first_mutation_started
+                else "before_first_mutation"
+            ),
+            arguments=arguments,
+            result=result,
+            error=error,
+        )
+
     def _before_tool_call(
         self, request: object
     ) -> tuple[dict[str, object], str, dict[str, object], bool]:
@@ -128,7 +152,9 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
     def wrap_tool_call(self, request: object, handler: Callable[[object], object]) -> object:
         call, name, arguments, prohibited = self._before_tool_call(request)
         if prohibited:
-            return self._prohibited_message(call, name)
+            result = self._prohibited_message(call, name)
+            self._record_tool_observation(name, arguments, result=result)
+            return result
         try:
             result = handler(request)
         except BaseException as error:
@@ -136,8 +162,10 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 self.observations.composition_fast_path_metrics.record_first_mutation_exception(
                     error
                 )
+            self._record_tool_observation(name, arguments, error=error)
             raise
         self._after_tool_call(name, arguments, result)
+        self._record_tool_observation(name, arguments, result=result)
         return result
 
     async def awrap_tool_call(
@@ -147,7 +175,9 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
     ) -> object:
         call, name, arguments, prohibited = self._before_tool_call(request)
         if prohibited:
-            return self._prohibited_message(call, name)
+            result = self._prohibited_message(call, name)
+            self._record_tool_observation(name, arguments, result=result)
+            return result
         try:
             result = await handler(request)
         except BaseException as error:
@@ -155,6 +185,8 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 self.observations.composition_fast_path_metrics.record_first_mutation_exception(
                     error
                 )
+            self._record_tool_observation(name, arguments, error=error)
             raise
         self._after_tool_call(name, arguments, result)
+        self._record_tool_observation(name, arguments, result=result)
         return result

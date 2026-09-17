@@ -180,6 +180,30 @@ const nonBlankStringSchema = z
   .string()
   .refine((value) => value.trim().length > 0, "Must not be blank");
 
+const authoringTextSchema = z
+  .string()
+  .max(200, "Authoring metadata must be at most 200 characters")
+  .refine((value) => value.trim().length > 0, "Must not be blank");
+
+const authoringIntentListSchema = z
+  .array(authoringTextSchema)
+  .min(1)
+  .max(8)
+  .superRefine((intents, context) => {
+    const seen = new Set<string>();
+    intents.forEach((intent, index) => {
+      if (seen.has(intent)) {
+        context.addIssue({
+          code: "custom",
+          path: [index],
+          message: `Duplicate authoring intent "${intent}"`,
+          input: intent,
+        });
+      }
+      seen.add(intent);
+    });
+  });
+
 const serviceNameSchema = z
   .string()
   .refine((value) => value.trim().length > 0, "Must not be blank")
@@ -212,6 +236,14 @@ const layoutSizeSchema: z.ZodType<AppUILayoutSize> = z.union([
   nonBlankStringSchema,
 ]);
 
+const authoringLayoutSizeSchema: z.ZodType<AppUILayoutSize> = z.union([
+  z.number().finite().nonnegative().max(10_000),
+  z
+    .string()
+    .max(100, "Authoring size metadata must be at most 100 characters")
+    .refine((value) => value.trim().length > 0, "Must not be blank"),
+]);
+
 const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
   id: nonBlankStringSchema,
   name: nonBlankStringSchema,
@@ -225,18 +257,18 @@ const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
     .optional(),
   authoring: z
     .strictObject({
-      intents: z.array(nonBlankStringSchema).min(1),
-      visualRole: nonBlankStringSchema.optional(),
+      intents: authoringIntentListSchema,
+      visualRole: authoringTextSchema.optional(),
       typicalPlacement: z
         .strictObject({
           relation: z.enum(["before", "after", "above", "below"]),
-          anchorPluginId: nonBlankStringSchema,
+          anchorPluginId: authoringTextSchema,
         })
         .optional(),
       recommendedSize: z
         .strictObject({
-          width: layoutSizeSchema.optional(),
-          height: layoutSizeSchema.optional(),
+          width: authoringLayoutSizeSchema.optional(),
+          height: authoringLayoutSizeSchema.optional(),
         })
         .refine(
           (value) => value.width !== undefined || value.height !== undefined,

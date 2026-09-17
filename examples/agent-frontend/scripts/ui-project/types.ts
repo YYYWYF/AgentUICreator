@@ -5,6 +5,7 @@ import type {
 import type { AgentUIMode } from "../../framework/contracts/agent-ui-mode";
 import type { PluginChildSlotDefinition, PluginCompositionCatalog, PluginSlotCatalog } from "../../framework/contracts/app-ui-composition";
 import type { UIPluginManifest } from "../../framework/contracts/ui-plugin";
+import type { APP_UI_MUTATION_ADMISSION_GUARANTEES } from "./app-ui-transaction";
 
 export interface ProjectIssue {
   code: string;
@@ -269,15 +270,9 @@ export interface UICompositionInspection {
   hostGuarantees: {
     mutation: "mutate_app_ui_model";
     admission: "deterministic-atomic";
-    checks: [
-      "app-ui-model-hash",
-      "operation-and-model-schema",
-      "capability-and-definition-resolution",
-      "active-composition-compile",
-      "layout-width-compatibility",
-      "plugin-child-slot-contract",
-    ];
+    checks: typeof APP_UI_MUTATION_ADMISSION_GUARANTEES;
     commit: "all-or-nothing";
+    postCommitVerificationRequired: true;
     guidance: string;
   };
 }

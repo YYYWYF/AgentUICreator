@@ -54,7 +54,9 @@ Each capability summary also carries positive authoring semantics when declared:
 user intents, visual role, typical relative placement, recommended size,
 Composition ownership, and current required/optional Service readiness. The
 snapshot's `hostGuarantees` lists the legality checks performed atomically by
-`mutate_app_ui_model`.
+`mutate_app_ui_model`; `postCommitVerificationRequired: true` means admission
+success is not full task verification and current-revision Host/Runtime checks
+remain required after the commit.
 Do not follow it with `list_ui_plugins`, `inspect_app_ui_model`,
 `inspect_ui_slots`, manifest/source/CSS reads, Service inspection, or generated
 file reads merely to reconfirm those facts. If a fully covered read returns
@@ -265,9 +267,10 @@ Current composition: conversation-surface is mounted;
 conversation-thread-list is an unselected capability whose authoring intents
 cover conversation management/history/selection, whose visual role is
 conversation navigation, whose typical placement is before conversation-surface,
-whose recommended width is 300px, and whose required Services are resolved.
-Desired state: an enabled conversation-thread-list in a 300px region before the
-existing conversation surface; existing ConversationService remains.
+and whose required Services are resolved. No product default width is declared
+by this capability. Desired state: an enabled conversation-thread-list in a
+valid sized region before the existing conversation surface; existing
+ConversationService remains.
 Owning layer: Composition.
 Semantic delta: insert the recommended left Layout region and the existing
 capability in one atomic mutation.

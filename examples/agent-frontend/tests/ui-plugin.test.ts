@@ -67,6 +67,17 @@ describe("UIPluginManifest", () => {
     expect(manifest.data?.events).toEqual(["workspace.patch.applied"]);
   });
 
+  it("keeps authoring metadata optional for legacy manifests", () => {
+    const manifest = parseUIPluginManifest({
+      id: "legacy-plugin",
+      name: "Legacy Plugin",
+      description: "A manifest without positive authoring metadata",
+      version: "1.0.0",
+    });
+
+    expect(manifest.authoring).toBeUndefined();
+  });
+
   it("parses positive authoring semantics for capability reuse", () => {
     const manifest = parseUIPluginManifest({
       id: "conversation-layout",
@@ -105,6 +116,44 @@ describe("UIPluginManifest", () => {
         authoring: { intents: [], recommendedSize: {} },
       }),
     ).toThrow();
+  });
+
+  it("rejects duplicate and oversized authoring metadata", () => {
+    const duplicateIntent = uiPluginManifestSchema.safeParse({
+      id: "duplicate-intent",
+      name: "Duplicate intent",
+      description: "Invalid fixture",
+      version: "1.0.0",
+      authoring: { intents: ["same intent", "same intent"] },
+    });
+    const tooManyIntents = uiPluginManifestSchema.safeParse({
+      id: "too-many-intents",
+      name: "Too many intents",
+      description: "Invalid fixture",
+      version: "1.0.0",
+      authoring: {
+        intents: Array.from({ length: 9 }, (_, index) => `intent ${index}`),
+      },
+    });
+    const oversizedFields = uiPluginManifestSchema.safeParse({
+      id: "oversized-authoring",
+      name: "Oversized authoring",
+      description: "Invalid fixture",
+      version: "1.0.0",
+      authoring: {
+        intents: ["valid intent"],
+        visualRole: "v".repeat(201),
+        typicalPlacement: {
+          relation: "before",
+          anchorPluginId: "a".repeat(201),
+        },
+        recommendedSize: { width: "w".repeat(101) },
+      },
+    });
+
+    expect(duplicateIntent.success).toBe(false);
+    expect(tooManyIntents.success).toBe(false);
+    expect(oversizedFields.success).toBe(false);
   });
 
   it("rejects duplicate capabilities", () => {

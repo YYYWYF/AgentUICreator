@@ -218,7 +218,9 @@ summaries with positive user intents, visual role, typical placement,
 recommended size, owning layer, and current Service readiness, Active
 Composition, deterministic Layout constraints, and Host mutation guarantees.
 Use those positive semantics to map desired state to an existing capability and
-form the semantic delta. When requiredServices.status is resolved, do not call
+form the semantic delta. Treat hostGuarantees.postCommitVerificationRequired as
+true: admission success is not full task verification. When
+requiredServices.status is resolved, do not call
 inspect_ui_services to prove it again. Do not preflight checks listed in
 hostGuarantees; mutate_app_ui_model performs them atomically. Once the snapshot is
 fresh, do not call list_ui_plugins, inspect_app_ui_model, inspect_ui_slots, or

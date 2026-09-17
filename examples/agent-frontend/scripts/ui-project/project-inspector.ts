@@ -22,6 +22,7 @@ import {
   agentUISourceSummary,
   inspectAgentUISources,
 } from "./source-registry";
+import { APP_UI_MUTATION_ADMISSION_GUARANTEES } from "./app-ui-transaction";
 import type {
   CompactLayoutNode,
   InspectedSlot,
@@ -330,16 +331,10 @@ async function inspectUICompositionData(
     hostGuarantees: {
       mutation: "mutate_app_ui_model",
       admission: "deterministic-atomic",
-      checks: [
-        "app-ui-model-hash",
-        "operation-and-model-schema",
-        "capability-and-definition-resolution",
-        "active-composition-compile",
-        "layout-width-compatibility",
-        "plugin-child-slot-contract",
-      ],
+      checks: APP_UI_MUTATION_ADMISSION_GUARANTEES,
       commit: "all-or-nothing",
-      guidance: "Use this snapshot to form the semantic delta. Do not preflight facts covered by these admission checks with manifest, source, CSS, Service, or generated-file reads.",
+      postCommitVerificationRequired: true,
+      guidance: "Use this snapshot to form the semantic delta. Do not preflight facts covered by these admission checks with manifest, source, CSS, Service, or generated-file reads. Admission success commits static AppUIModel state only; post-commit verification is still required against the current revision.",
     },
     capabilityCatalogSource: generation.capabilityCatalog.source,
     capabilityCatalogPluginIds: generation.capabilityCatalog.pluginIds,

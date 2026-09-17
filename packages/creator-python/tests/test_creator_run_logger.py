@@ -95,3 +95,62 @@ def test_run_logger_finishes_once_with_failure_snapshot(tmp_path):
     assert data["mutationMetrics"]["mutationRequests"] == 6
     assert data["changeLayerMetrics"]["scopeResources"] == ["app-ui-model"]
     assert data["projectControlMetrics"]["requests"] == 3
+
+
+def test_run_logger_records_bounded_tool_trajectory(tmp_path):
+    logger = CreatorRunLogger(tmp_path)
+    logger.begin(run_id="trajectory-run", thread_id="trajectory-thread")
+    logger.record_tool_observation(
+        model_call_sequence=2,
+        tool_name="inspect_ui_project",
+        phase="before_first_mutation",
+        arguments={
+            "view": "composition",
+            "prompt": "do not persist this content",
+            "token": "secret-value",
+        },
+        result={"ok": True, "result": {"fullSnapshot": "omitted"}},
+    )
+    logger.record_tool_observation(
+        model_call_sequence=3,
+        tool_name="mutate_app_ui_model",
+        phase="after_first_mutation",
+        arguments={
+            "operations": [
+                {"type": "insert_plugin", "plugin": {"props": {"secret": "value"}}}
+            ]
+        },
+        result={"ok": False, "error": {"code": "APP_UI_MODEL_HASH_CONFLICT"}},
+    )
+
+    entries = [
+        json.loads(line)
+        for line in logger.path.read_text(encoding="utf-8").splitlines()
+    ]
+    observations = [
+        entry for entry in entries if entry["type"] == "creator_tool_observation"
+    ]
+    assert observations[0]["data"] == {
+        "modelCallSequence": 2,
+        "toolName": "inspect_ui_project",
+        "phase": "before_first_mutation",
+        "arguments": {"view": "composition"},
+        "result": {
+            "status": "success",
+            "code": None,
+            "factKinds": [
+                "composition.snapshot",
+                "capability.summary",
+                "service.readiness",
+            ],
+        },
+    }
+    assert observations[1]["data"]["arguments"] == {
+        "operationCount": 1,
+        "operationTypes": ["insert_plugin"],
+    }
+    assert observations[1]["data"]["result"] == {
+        "status": "rejected",
+        "code": "APP_UI_MODEL_HASH_CONFLICT",
+        "factKinds": ["composition.commit"],
+    }

@@ -113,6 +113,12 @@ class CompositionFastPathMetrics:
     _first_mutation_started: bool = field(default=False, init=False, repr=False)
     _first_mutation_finished: bool = field(default=False, init=False, repr=False)
 
+    @property
+    def first_mutation_started(self) -> bool:
+        """Read-only phase boundary for lightweight trajectory logging."""
+
+        return self._first_mutation_started
+
     def record_snapshot_attempt(self) -> None:
         self.attempted = True
 

@@ -7,6 +7,7 @@ import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from statistics import median
+from typing import Any
 from urllib.parse import quote
 
 import pytest
@@ -17,6 +18,7 @@ from agent_ui_creator.files import read_creator_file_state
 from agent_ui_creator.model_factory import create_creator_chat_model
 from agent_ui_creator.model_protocol.provider_trace import ProviderResponseTraceCollector
 from agent_ui_creator.model_settings import CreatorModelSettings
+from agent_ui_creator.observability import CreatorRunLogger
 from agent_ui_creator.runtime_diagnostics import (
     RuntimeDiagnosticEnvelope,
     RuntimeDiagnosticStore,
@@ -31,6 +33,9 @@ APP_UI_MODEL_PATH = "app-ui/app-ui.json"
 SURFACE_PLUGIN_ROOT = "plugins/conversation-surface"
 CASE_A_PROMPT = "我要会话管理的功能"
 CASE_B_PROMPT = "帮我去掉左边的历史会话"
+CASE_C_PROMPT = "给这个应用加一个主题切换功能"
+CASE_D_PROMPT = "修改历史会话列表的具体展示行为"
+CASE_E_PROMPT = "添加会话管理入口，并让历史列表支持搜索"
 _LIVE_RUN_METRICS: list[tuple[int, int]] = []
 
 
@@ -96,6 +101,63 @@ def _set_thread_list_fixture(project_root: Path, *, enabled: bool) -> None:
     else:
         children.pop(0)
         sizes.pop(0)
+    path.write_text(
+        f"{json.dumps(model, ensure_ascii=False, indent=2)}\n", encoding="utf-8"
+    )
+
+
+def _set_theme_switch_fixture(project_root: Path, *, enabled: bool) -> None:
+    """Keep the existing theme capability available without authoring source edits."""
+
+    path = project_root / APP_UI_MODEL_PATH
+    model = json.loads(path.read_text(encoding="utf-8"))
+
+    def visit_plugins(plugins: object) -> None:
+        if not isinstance(plugins, list):
+            return
+        for plugin in plugins:
+            if not isinstance(plugin, dict):
+                continue
+            if plugin.get("pluginId") == "conversation-surface":
+                slots = plugin.setdefault("slots", {})
+                if isinstance(slots, dict):
+                    suggestions = slots.setdefault("emptySuggestions", [])
+                    if isinstance(suggestions, list):
+                        suggestions[:] = [
+                            child
+                            for child in suggestions
+                            if not (
+                                isinstance(child, dict)
+                                and child.get("pluginId") == "theme-switch"
+                            )
+                        ]
+                        if enabled:
+                            suggestions.append(
+                                {
+                                    "id": "theme-switch-main",
+                                    "pluginId": "theme-switch",
+                                    "enabled": True,
+                                }
+                            )
+            slots = plugin.get("slots")
+            if isinstance(slots, dict):
+                for children in slots.values():
+                    visit_plugins(children)
+
+    visit_plugins(model.get("applicationPlugins"))
+
+    def visit_layout(node: object) -> None:
+        if not isinstance(node, dict):
+            return
+        if node.get("type") == "slot":
+            visit_plugins(node.get("plugins"))
+        elif node.get("type") == "panel":
+            visit_layout(node.get("child"))
+        else:
+            for child in node.get("children", []):
+                visit_layout(child)
+
+    visit_layout(model.get("root"))
     path.write_text(
         f"{json.dumps(model, ensure_ascii=False, indent=2)}\n", encoding="utf-8"
     )
@@ -206,13 +268,14 @@ def _assert_fast_path_slo(result) -> dict[str, object]:
     assert metrics["readRoundsBeforeFirstMutation"] <= 2
     assert metrics["filesystemSourceReadsBeforeMutation"] == 0
     assert metrics["crossLayerReadAttemptsBeforeMutation"] == 0
+    assert metrics["duplicateObservationAttempts"] == 0
     assert metrics["firstMutationSucceeded"] is True
     assert metrics["firstMutationErrorCode"] is None
     return metrics
 
 
 def _print_live_trajectory(
-    *, case: str, repeat: int, prompt: str, result
+    *, case: str, repeat: int, prompt: str, result, trajectory_path: Path | None
 ) -> None:
     fast_path = result.composition_fast_path_metrics.to_dict()
     print(
@@ -221,6 +284,9 @@ def _print_live_trajectory(
                 "case": case,
                 "repeat": repeat,
                 "prompt": prompt,
+                "trajectoryPath": (
+                    None if trajectory_path is None else str(trajectory_path)
+                ),
                 "compositionFastPath": fast_path,
                 "mutationRequests": result.app_ui_model_mutations.requests,
                 "semanticReplans": result.change_layer_metrics["semanticReplans"],
@@ -267,22 +333,13 @@ class _LiveValidationRunner:
         return result
 
 
-@pytest.mark.live_model
-@pytest.mark.skipif(
-    os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
-    reason="Set CREATOR_RUN_LIVE_MODEL=1 to run live Creator cognition.",
-)
-@pytest.mark.parametrize("repeat", range(3))
-def test_live_conversation_management_reuses_composition_capability(tmp_path, repeat):
-    project_root = _copy_target(tmp_path)
-    _set_thread_list_fixture(project_root, enabled=False)
-    plugin_sources_before = _source_snapshot(project_root, "plugins")
-    services_before = _source_snapshot(project_root, "services")
-    agent_ui_before = _source_snapshot(project_root, "agent-ui")
-    agent_contract_before = _source_snapshot(project_root, "agent-contract")
-    thread_id = f"live-composition-conversation-management-{repeat}"
+def _create_live_agent(
+    project_root: Path, thread_id: str
+) -> tuple[Any, CreatorActivityRecorder, CreatorRunLogger]:
     diagnostics = RuntimeDiagnosticStore()
-    activity = CreatorActivityRecorder(project_root)
+    logger = CreatorRunLogger(project_root)
+    logger.begin(run_id=thread_id, thread_id=thread_id)
+    activity = CreatorActivityRecorder(project_root, logger=logger)
     activity.begin(thread_id)
     settings = CreatorModelSettings.from_environment()
     provider_trace_collector = ProviderResponseTraceCollector(enabled=False)
@@ -303,12 +360,101 @@ def test_live_conversation_management_reuses_composition_capability(tmp_path, re
         provider_trace_collector=provider_trace_collector,
         activity=activity,
     )
+    return agent, activity, logger
 
-    result = asyncio.run(agent.run(CASE_A_PROMPT))
-    _print_live_trajectory(
-        case="A", repeat=repeat, prompt=CASE_A_PROMPT, result=result
+
+def _provider_unavailable(error: BaseException) -> bool:
+    message = f"{type(error).__name__}: {error}".lower()
+    return any(
+        marker in message
+        for marker in (
+            "timeout",
+            "timed out",
+            "connection",
+            "connecterror",
+            "temporarily unavailable",
+            "service unavailable",
+            "status code: 502",
+            "status code: 503",
+            "status code: 504",
+            "rate limit",
+        )
     )
+
+
+def _run_live_prompt(agent: Any, prompt: str, *, case: str, repeat: int):
+    try:
+        return asyncio.run(agent.run(prompt))
+    except BaseException as error:
+        if _provider_unavailable(error):
+            print(
+                json.dumps(
+                    {
+                        "case": case,
+                        "repeat": repeat,
+                        "status": "provider_unavailable",
+                        "reason": str(error),
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                )
+            )
+            pytest.skip(f"Live model provider unavailable for case {case}: {error}")
+        raise
+
+
+def _finish_live_run(
+    *,
+    case: str,
+    repeat: int,
+    prompt: str,
+    result,
+    activity: CreatorActivityRecorder,
+    logger: CreatorRunLogger,
+):
     receipt = activity.finish()
+    logger.finish(
+        "success",
+        metrics=result.metrics.to_dict(),
+        change_layer_metrics=result.change_layer_metrics,
+        composition_fast_path_metrics=result.composition_fast_path_metrics.to_dict(),
+        project_control_metrics=result.project_control.to_dict(),
+    )
+    _print_live_trajectory(
+        case=case,
+        repeat=repeat,
+        prompt=prompt,
+        result=result,
+        trajectory_path=logger.path,
+    )
+    return receipt
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(
+    os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
+    reason="Set CREATOR_RUN_LIVE_MODEL=1 to run live Creator cognition.",
+)
+@pytest.mark.parametrize("repeat", range(5))
+def test_live_conversation_management_reuses_composition_capability(tmp_path, repeat):
+    project_root = _copy_target(tmp_path)
+    _set_thread_list_fixture(project_root, enabled=False)
+    plugin_sources_before = _source_snapshot(project_root, "plugins")
+    services_before = _source_snapshot(project_root, "services")
+    agent_ui_before = _source_snapshot(project_root, "agent-ui")
+    agent_contract_before = _source_snapshot(project_root, "agent-contract")
+    thread_id = f"live-composition-conversation-management-{repeat}"
+    agent, activity, logger = _create_live_agent(project_root, thread_id)
+
+    result = _run_live_prompt(agent, CASE_A_PROMPT, case="A", repeat=repeat)
+    receipt = _finish_live_run(
+        case="A",
+        repeat=repeat,
+        prompt=CASE_A_PROMPT,
+        result=result,
+        activity=activity,
+        logger=logger,
+    )
     model = json.loads(
         (project_root / APP_UI_MODEL_PATH).read_text(encoding="utf-8")
     )
@@ -333,6 +479,9 @@ def test_live_conversation_management_reuses_composition_capability(tmp_path, re
     assert result.app_ui_model_mutations.requests == 1
     assert metrics["sourceWrites"] == 0
     assert metrics["semanticReplans"] == 0
+    _LIVE_RUN_METRICS.append(
+        (result.metrics.modelCalls, metrics["projectControlReads"])
+    )
     assert receipt["verification"]["status"] == "changed-and-verified"
     assert all(
         check["status"] == "passed" for check in receipt["verification"]["checks"]
@@ -352,34 +501,17 @@ def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
     surface_before = _source_snapshot(project_root, SURFACE_PLUGIN_ROOT)
     service_before = (project_root / "services" / "conversations.ts").read_bytes()
     thread_id = f"live-composition-cognition-{repeat}"
-    diagnostics = RuntimeDiagnosticStore()
-    activity = CreatorActivityRecorder(project_root)
-    activity.begin(thread_id)
-    settings = CreatorModelSettings.from_environment()
-    provider_trace_collector = ProviderResponseTraceCollector(enabled=False)
-    agent = create_domain_write_creator_agent(
-        model=create_creator_chat_model(
-            settings,
-            thread_id=thread_id,
-            provider_trace_collector=provider_trace_collector,
-        ),
-        workspace=project_root,
-        skills_root=SKILLS_ROOT,
-        diagnostics=diagnostics,
-        thread_id=thread_id,
-        validation_runner=_LiveValidationRunner(
-            project_root, diagnostics, thread_id
-        ),
-        automatic_completion_repair=True,
-        provider_trace_collector=provider_trace_collector,
-        activity=activity,
-    )
+    agent, activity, logger = _create_live_agent(project_root, thread_id)
 
-    result = asyncio.run(agent.run(CASE_B_PROMPT))
-    _print_live_trajectory(
-        case="B", repeat=repeat, prompt=CASE_B_PROMPT, result=result
+    result = _run_live_prompt(agent, CASE_B_PROMPT, case="B", repeat=repeat)
+    receipt = _finish_live_run(
+        case="B",
+        repeat=repeat,
+        prompt=CASE_B_PROMPT,
+        result=result,
+        activity=activity,
+        logger=logger,
     )
-    receipt = activity.finish()
     model = json.loads(
         (project_root / APP_UI_MODEL_PATH).read_text(encoding="utf-8")
     )
@@ -399,6 +531,7 @@ def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
 
     metrics = result.change_layer_metrics
     _assert_fast_path_slo(result)
+    assert result.project_control.requestsByOperation.get("inspect_ui_services", 0) == 0
     _LIVE_RUN_METRICS.append(
         (result.metrics.modelCalls, metrics["projectControlReads"])
     )
@@ -424,3 +557,134 @@ def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
     assert all(check["status"] == "passed" for check in receipt["validations"])
     assert result.metrics.modelCalls <= 8
     assert metrics["projectControlReads"] <= 3
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(
+    os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
+    reason="Set CREATOR_RUN_LIVE_MODEL=1 to run live Creator cognition.",
+)
+@pytest.mark.parametrize("repeat", range(3))
+def test_live_theme_switch_reuses_existing_capability(tmp_path, repeat):
+    project_root = _copy_target(tmp_path)
+    _set_thread_list_fixture(project_root, enabled=False)
+    _set_theme_switch_fixture(project_root, enabled=False)
+    plugin_sources_before = _source_snapshot(project_root, "plugins")
+    services_before = _source_snapshot(project_root, "services")
+    agent_ui_before = _source_snapshot(project_root, "agent-ui")
+    agent_contract_before = _source_snapshot(project_root, "agent-contract")
+    thread_id = f"live-composition-theme-switch-{repeat}"
+    agent, activity, logger = _create_live_agent(project_root, thread_id)
+
+    result = _run_live_prompt(agent, CASE_C_PROMPT, case="C", repeat=repeat)
+    receipt = _finish_live_run(
+        case="C",
+        repeat=repeat,
+        prompt=CASE_C_PROMPT,
+        result=result,
+        activity=activity,
+        logger=logger,
+    )
+    model = json.loads(
+        (project_root / APP_UI_MODEL_PATH).read_text(encoding="utf-8")
+    )
+    plugin_ids = {
+        plugin.get("pluginId") for plugin in _walk_authoring_plugins(model)
+    }
+
+    assert "theme-switch" in plugin_ids
+    assert "theme-provider" in plugin_ids
+    assert _source_snapshot(project_root, "plugins") == plugin_sources_before
+    assert _source_snapshot(project_root, "services") == services_before
+    assert _source_snapshot(project_root, "agent-ui") == agent_ui_before
+    assert _source_snapshot(project_root, "agent-contract") == agent_contract_before
+
+    metrics = result.change_layer_metrics
+    _assert_fast_path_slo(result)
+    assert result.project_control.requestsByOperation.get("inspect_ui_services", 0) == 0
+    assert metrics["executedChangeLayer"] == "composition"
+    assert metrics["executedChangeLayers"] == ["composition"]
+    assert metrics["appUIModelMutationAttempts"] == 1
+    assert metrics["successfulAppUIModelMutations"] == 1
+    assert metrics["sourceWrites"] == 0
+    assert metrics["semanticReplans"] == 0
+    _LIVE_RUN_METRICS.append(
+        (result.metrics.modelCalls, metrics["projectControlReads"])
+    )
+    assert receipt["verification"]["status"] == "changed-and-verified"
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(
+    os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
+    reason="Set CREATOR_RUN_LIVE_MODEL=1 to run live Creator cognition.",
+)
+def test_live_behavior_request_enters_plugin_layer(tmp_path):
+    project_root = _copy_target(tmp_path)
+    _set_thread_list_fixture(project_root, enabled=True)
+    thread_id = "live-plugin-behavior-history-list"
+    agent, activity, logger = _create_live_agent(project_root, thread_id)
+
+    result = _run_live_prompt(agent, CASE_D_PROMPT, case="D", repeat=0)
+    _finish_live_run(
+        case="D",
+        repeat=0,
+        prompt=CASE_D_PROMPT,
+        result=result,
+        activity=activity,
+        logger=logger,
+    )
+    metrics = result.change_layer_metrics
+    behavior_reads = sum(
+        result.project_control.requestsByOperation.get(operation, 0)
+        for operation in (
+            "inspect_ui_plugin",
+            "inspect_ui_plugin_source_references",
+        )
+    )
+
+    assert behavior_reads > 0 or metrics["sourceWrites"] > 0
+    assert metrics["executedChangeLayer"] in {
+        "plugin_behavior",
+        "mixed",
+        "none",
+    }
+    assert metrics["executedChangeLayer"] != "composition"
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(
+    os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
+    reason="Set CREATOR_RUN_LIVE_MODEL=1 to run live Creator cognition.",
+)
+def test_live_hybrid_request_does_not_stop_at_composition(tmp_path):
+    project_root = _copy_target(tmp_path)
+    _set_thread_list_fixture(project_root, enabled=False)
+    thread_id = "live-hybrid-conversation-search"
+    agent, activity, logger = _create_live_agent(project_root, thread_id)
+
+    result = _run_live_prompt(agent, CASE_E_PROMPT, case="E", repeat=0)
+    _finish_live_run(
+        case="E",
+        repeat=0,
+        prompt=CASE_E_PROMPT,
+        result=result,
+        activity=activity,
+        logger=logger,
+    )
+    metrics = result.change_layer_metrics
+    behavior_reads = sum(
+        result.project_control.requestsByOperation.get(operation, 0)
+        for operation in (
+            "inspect_ui_plugin",
+            "inspect_ui_plugin_source_references",
+        )
+    )
+
+    assert behavior_reads > 0 or "plugin_behavior" in metrics["attemptedChangeLayers"]
+    assert metrics["executedChangeLayer"] in {
+        "plugin_behavior",
+        "mixed",
+        "none",
+    }
+    assert metrics["executedChangeLayer"] != "composition"

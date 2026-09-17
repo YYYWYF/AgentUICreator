@@ -2,9 +2,11 @@ import json
 from types import SimpleNamespace
 from unittest.mock import Mock
 
+import pytest
 from langchain.agents.middleware import ModelRequest, ModelResponse
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
+from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.domain_agent.grounding_convergence import (
     COMPOSITION_GROUNDING_CONTROL,
     CompositionGroundingConvergenceMiddleware,
@@ -15,6 +17,7 @@ from agent_ui_creator.minimal_agent.path_policy import (
     PolicyFilesystemBackend,
 )
 from agent_ui_creator.model_protocol.trace import ModelCallTrace, ToolProtocolMetrics
+from agent_ui_creator.observability import CreatorRunLogger
 
 
 COMPOSITION_COVERAGE = (
@@ -235,3 +238,57 @@ def test_first_mutation_metrics_capture_host_error_code(tmp_path):
     metrics = observations.composition_fast_path_metrics.to_dict()
     assert metrics["firstMutationSucceeded"] is False
     assert metrics["firstMutationErrorCode"] == "LAYOUT_SIZE_REQUIRED"
+
+
+def test_grounding_middleware_emits_bounded_tool_trajectory(tmp_path):
+    logger = CreatorRunLogger(tmp_path)
+    logger.begin(run_id="trajectory-run")
+    activity = CreatorActivityRecorder(tmp_path, logger=logger)
+    activity.begin("trajectory-run")
+    backend = PolicyFilesystemBackend(
+        tmp_path,
+        MinimalAgentPathPolicy.development(),
+        activity=activity,
+    )
+    observations = DomainObservationContext()
+    observations.observe_composition_snapshot(
+        hash="a" * 64,
+        revision=0,
+        coverage=COMPOSITION_COVERAGE,
+    )
+    middleware = CompositionGroundingConvergenceMiddleware(
+        observations,
+        backend,
+        protocol_metrics=ToolProtocolMetrics(modelCalls=2),
+    )
+
+    middleware.wrap_tool_call(
+        _tool_request("inspect_ui_project", {"view": "composition"}),
+        lambda request: ToolMessage(
+            content='{"ok":true,"result":{"snapshot":"omitted"}}',
+            tool_call_id=request.tool_call["id"],
+            name=request.tool_call["name"],
+            status="success",
+        ),
+    )
+    middleware.wrap_tool_call(
+        _tool_request("read_file", {"file_path": "/plugins/foo/index.ts"}, "call-2"),
+        lambda request: pytest.fail("source read should be blocked"),
+    )
+
+    entries = [
+        json.loads(line)
+        for line in logger.path.read_text(encoding="utf-8").splitlines()
+        if '"creator_tool_observation"' in line
+    ]
+    assert [entry["data"]["toolName"] for entry in entries] == [
+        "inspect_ui_project",
+        "read_file",
+    ]
+    assert entries[0]["data"]["phase"] == "before_first_mutation"
+    assert entries[0]["data"]["result"]["factKinds"] == [
+        "composition.snapshot",
+        "capability.summary",
+        "service.readiness",
+    ]
+    assert entries[1]["data"]["result"]["status"] == "rejected"

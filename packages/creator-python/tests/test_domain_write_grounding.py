@@ -254,6 +254,7 @@ class GroundingClient:
                     "plugin-child-slot-contract",
                 ],
                 "commit": "all-or-nothing",
+                "postCommitVerificationRequired": True,
                 "guidance": "Do not preflight covered admission checks.",
             },
         }
@@ -453,6 +454,7 @@ def test_grounding_prompt_preserves_decision_and_write_boundaries():
         'inspect_ui_project(view="composition")',
         "the default convergence boundary",
         "positive user intents, visual role, typical placement",
+        "hostGuarantees.postCommitVerificationRequired",
         "When requiredServices.status is resolved",
         "Do not preflight checks listed in hostGuarantees",
         "OBSERVATION_ALREADY_COVERED",

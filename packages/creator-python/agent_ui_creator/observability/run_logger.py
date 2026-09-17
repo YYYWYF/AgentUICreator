@@ -14,6 +14,11 @@ _SECRET_KEY = re.compile(
 )
 _BEARER = re.compile(r"\bBearer\s+[A-Za-z0-9._~+/=-]+", re.IGNORECASE)
 _OPENAI_KEY = re.compile(r"\bsk-[A-Za-z0-9_-]{12,}")
+_TOOL_OBSERVATION_EVENT = "creator_tool_observation"
+_TOOL_OBSERVATION_PHASES = frozenset(
+    {"before_first_mutation", "after_first_mutation"}
+)
+_FILESYSTEM_TOOL_NAMES = frozenset({"read_file", "ls", "glob", "grep"})
 
 
 def _safe_segment(value: str) -> str:
@@ -33,6 +38,152 @@ def _redact(value: Any, key: str = "") -> Any:
     if isinstance(value, (str, int, float, bool)) or value is None:
         return value
     return str(value)
+
+
+def _sanitized_tool_arguments(
+    tool_name: str, arguments: Mapping[str, Any]
+) -> dict[str, object]:
+    """Keep only stable, non-content fields for a tool trajectory event."""
+
+    if tool_name == "inspect_ui_project":
+        view = arguments.get("view")
+        return {"view": view} if isinstance(view, str) else {}
+    if tool_name == "inspect_ui_plugin":
+        plugin_id = arguments.get("pluginId")
+        return {"pluginId": plugin_id} if isinstance(plugin_id, str) else {}
+    if tool_name == "inspect_ui_plugin_source_references":
+        plugin_id = arguments.get("pluginId")
+        return {"pluginId": plugin_id} if isinstance(plugin_id, str) else {}
+    if tool_name == "inspect_ui_slots":
+        result: dict[str, object] = {}
+        target = arguments.get("target")
+        if isinstance(target, Mapping):
+            target_fields = {
+                key: target[key]
+                for key in ("type", "slotRef", "parentInstanceId", "slot")
+                if isinstance(target.get(key), str)
+            }
+            if target_fields:
+                result["target"] = target_fields
+        if "appUIModelHash" in arguments:
+            result["hasAppUIModelHash"] = isinstance(
+                arguments.get("appUIModelHash"), str
+            )
+        return result
+    if tool_name in _FILESYSTEM_TOOL_NAMES:
+        key = "file_path" if tool_name == "read_file" else "path"
+        if tool_name == "glob":
+            key = "pattern"
+        value = arguments.get(key)
+        return {key: value} if isinstance(value, str) else {}
+    if tool_name == "mutate_app_ui_model":
+        operations = arguments.get("operations")
+        operation_types = [
+            operation.get("type")
+            for operation in operations
+            if isinstance(operation, Mapping)
+            and isinstance(operation.get("type"), str)
+        ] if isinstance(operations, (list, tuple)) else []
+        return {
+            "operationCount": len(operation_types),
+            "operationTypes": operation_types,
+        }
+    if tool_name in {
+        "create_ui_plugin",
+        "mutate_ui_plugin_source",
+        "prepare_ui_service_contract_change",
+        "create_ui_service_contract",
+        "mutate_ui_service_contract",
+    }:
+        for key in ("pluginId", "serviceName", "service_name"):
+            value = arguments.get(key)
+            if isinstance(value, str):
+                return {key: value}
+        return {}
+    if tool_name == "apply_agent_ui_source_item":
+        item_id = arguments.get("itemId")
+        return {"itemId": item_id} if isinstance(item_id, str) else {}
+    return {}
+
+
+def _filesystem_fact_kinds(arguments: Mapping[str, Any]) -> list[str]:
+    value = next(
+        (
+            arguments.get(key)
+            for key in ("file_path", "path", "pattern")
+            if isinstance(arguments.get(key), str)
+        ),
+        None,
+    )
+    if not isinstance(value, str):
+        return ["filesystem.observation"]
+    root = value.lstrip("/").split("/", 1)[0]
+    return {
+        "plugins": ["plugin.source"],
+        "services": ["service.contract"],
+        "agent-ui": ["agent-ui.source"],
+        "agent-contract": ["agent-contract.source"],
+        "skills": ["skill.instructions"],
+    }.get(root, ["filesystem.observation"])
+
+
+def _tool_fact_kinds(
+    tool_name: str, arguments: Mapping[str, Any]
+) -> list[str]:
+    if tool_name == "inspect_ui_project":
+        return (
+            ["composition.snapshot", "capability.summary", "service.readiness"]
+            if arguments.get("view") == "composition"
+            else ["project.snapshot"]
+        )
+    return {
+        "inspect_app_ui_model": ["composition.model"],
+        "list_ui_plugins": ["capability.inventory"],
+        "inspect_ui_slots": ["composition.slots"],
+        "inspect_ui_plugin": ["plugin.manifest"],
+        "inspect_ui_services": ["service.readiness"],
+        "inspect_ui_plugin_source_references": ["plugin.source.references"],
+        "inspect_agent_ui_sources": ["agent-ui.source.inventory"],
+        "verify_runtime_composition": ["runtime.verification"],
+        "mutate_app_ui_model": ["composition.commit"],
+    }.get(tool_name, _filesystem_fact_kinds(arguments) if tool_name in _FILESYSTEM_TOOL_NAMES else [])
+
+
+def _tool_result_status(
+    result: Any = None, error: BaseException | None = None
+) -> tuple[str, str | None]:
+    if error is not None:
+        code = getattr(error, "code", None)
+        return "error", code if isinstance(code, str) else None
+    payload: Mapping[str, Any] | None = None
+    if isinstance(result, Mapping):
+        payload = result
+    else:
+        content = getattr(result, "content", result)
+        if isinstance(content, str):
+            try:
+                value = json.loads(content)
+            except (TypeError, ValueError):
+                value = None
+            if isinstance(value, Mapping):
+                payload = value
+    if payload is not None:
+        nested_error = payload.get("error")
+        code = (
+            nested_error.get("code")
+            if isinstance(nested_error, Mapping)
+            else payload.get("code")
+        )
+        if payload.get("ok") is False or nested_error is not None:
+            return "rejected", code if isinstance(code, str) else None
+        status = payload.get("status")
+        if status in {"error", "failed"}:
+            return "error", code if isinstance(code, str) else None
+    if getattr(result, "status", None) in {"error", "failed"}:
+        return "error", None
+    if getattr(result, "error", None):
+        return "rejected", None
+    return "success", None
 
 
 class CreatorRunLogger:
@@ -106,6 +257,35 @@ class CreatorRunLogger:
                 stream.write(json.dumps(entry, ensure_ascii=False, separators=(",", ":")) + "\n")
         except OSError:
             self.path = None
+
+    def record_tool_observation(
+        self,
+        *,
+        model_call_sequence: int,
+        tool_name: str,
+        phase: str,
+        arguments: Mapping[str, Any],
+        result: Any = None,
+        error: BaseException | None = None,
+    ) -> None:
+        normalized_phase = (
+            phase if phase in _TOOL_OBSERVATION_PHASES else "before_first_mutation"
+        )
+        status, code = _tool_result_status(result, error)
+        self.record(
+            _TOOL_OBSERVATION_EVENT,
+            {
+                "modelCallSequence": max(0, int(model_call_sequence)),
+                "toolName": tool_name,
+                "phase": normalized_phase,
+                "arguments": _sanitized_tool_arguments(tool_name, arguments),
+                "result": {
+                    "status": status,
+                    "code": code,
+                    "factKinds": _tool_fact_kinds(tool_name, arguments),
+                },
+            },
+        )
 
     def finish(
         self,

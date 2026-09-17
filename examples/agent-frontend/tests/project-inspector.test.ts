@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
 import type { AppUIModel } from "../framework/contracts/app-ui-model";
+import { APP_UI_MUTATION_ADMISSION_GUARANTEES } from "../scripts/ui-project/app-ui-transaction";
 import {
   inspectUIComposition,
   inspectUIProject,
@@ -104,17 +105,31 @@ describe("inspectUIProject", () => {
     expect(composition.hostGuarantees).toEqual({
       mutation: "mutate_app_ui_model",
       admission: "deterministic-atomic",
-      checks: [
-        "app-ui-model-hash",
-        "operation-and-model-schema",
-        "capability-and-definition-resolution",
-        "active-composition-compile",
-        "layout-width-compatibility",
-        "plugin-child-slot-contract",
-      ],
+      checks: APP_UI_MUTATION_ADMISSION_GUARANTEES,
       commit: "all-or-nothing",
+      postCommitVerificationRequired: true,
       guidance: expect.stringContaining("Do not preflight"),
     });
+  });
+
+  it("reports the current Composition snapshot smaller than the full project snapshot", async () => {
+    const projectRoot = path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "..",
+    );
+    const [composition, project] = await Promise.all([
+      inspectUIComposition(projectRoot),
+      inspectUIProject(projectRoot),
+    ]);
+    const evidence = {
+      compositionSnapshotChars: JSON.stringify(composition).length,
+      fullProjectSnapshotChars: JSON.stringify(project).length,
+    };
+    console.info(`[phase1 snapshot-size] ${JSON.stringify(evidence)}`);
+    expect(evidence.compositionSnapshotChars).toBeLessThan(
+      evidence.fullProjectSnapshotChars,
+    );
+    expect(evidence.compositionSnapshotChars).toBeLessThan(1_000_000);
   });
 
   it("returns a compact, revision-bound project snapshot", async () => {
