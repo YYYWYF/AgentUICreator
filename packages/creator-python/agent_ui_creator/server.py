@@ -251,6 +251,7 @@ async def _execute_agent_run(
                 run_telemetry.composition_fast_path_metrics()
             ),
             project_control_metrics=run_telemetry.project_control_metrics(),
+            validation_metrics=run_telemetry.validation_metrics(),
         )
         return _AgentExecution(result=result, receipt=receipt)
     except BaseException as error:
@@ -267,6 +268,7 @@ async def _execute_agent_run(
                 run_telemetry.composition_fast_path_metrics()
             ),
             project_control_metrics=run_telemetry.project_control_metrics(),
+            validation_metrics=run_telemetry.validation_metrics(),
             error=error,
         )
         raise
@@ -477,6 +479,9 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                 run_result["compositionFastPath"] = (
                                     result.composition_fast_path_metrics.to_dict()
                                 )
+                            validation_metrics = telemetry.validation_metrics()
+                            if validation_metrics is not None:
+                                run_result["validationMetrics"] = validation_metrics
                     else:
                         run_result = {
                             "runtime": "python",

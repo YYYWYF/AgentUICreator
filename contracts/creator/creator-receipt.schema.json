@@ -32,7 +32,8 @@
           "exitCode": { "type": ["integer", "null"] },
           "output": { "type": "string" },
           "truncated": { "type": "boolean" },
-          "revision": { "type": "integer", "minimum": 0 }
+          "revision": { "type": "integer", "minimum": 0 },
+          "validationMode": { "enum": ["delta", "clean"] }
         }
       }
     },

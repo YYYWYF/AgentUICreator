@@ -296,6 +296,7 @@ class CreatorRunLogger:
         change_layer_metrics: Mapping[str, object] | None = None,
         composition_fast_path_metrics: Mapping[str, object] | None = None,
         project_control_metrics: Mapping[str, object] | None = None,
+        validation_metrics: Mapping[str, object] | None = None,
         error: BaseException | None = None,
     ) -> None:
         if self._finished:
@@ -344,6 +345,11 @@ class CreatorRunLogger:
                 **(
                     {"projectControlMetrics": dict(project_control_metrics)}
                     if project_control_metrics is not None
+                    else {}
+                ),
+                **(
+                    {"validationMetrics": dict(validation_metrics)}
+                    if validation_metrics is not None
                     else {}
                 ),
                 **({"error": str(error)} if error is not None else {}),

@@ -54,6 +54,21 @@ class CreatorDevelopmentCompletionGate:
             "evidence": evidence,
         }
 
+    @staticmethod
+    def _workspace_warning_text(validation: object) -> str | None:
+        warning = getattr(validation, "workspace_warning", None)
+        if not isinstance(warning, dict):
+            return None
+        message = warning.get("message")
+        return message if isinstance(message, str) and message else None
+
+    @classmethod
+    def _with_workspace_warning(cls, text: str, validation: object) -> str:
+        warning = cls._workspace_warning_text(validation)
+        if warning is None or warning in text:
+            return text
+        return f"{text.rstrip()}\n\n{warning}"
+
     def finalize(self, candidate: str) -> str:
         return self.review(candidate).text
 
@@ -247,10 +262,21 @@ class CreatorDevelopmentCompletionGate:
                 "No validation was run for the current revision."
                 if validation is None
                 else "\n\n".join(
-                    f"{check.command}: {check.status}\n{check.output}"
-                    for check in validation.checks
+                    (
+                        f"{check.command}: {check.status}\n{check.output}"
+                        for check in validation.checks
+                    )
                 )
             )
+            if validation is not None and validation.differential is not None:
+                validation_evidence = (
+                    f"{validation_evidence}\n\nTypeScript differential:\n"
+                    + json.dumps(
+                        validation.differential.to_dict(),
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                    )
+                )
             if self.repair_state.limit_reached:
                 return CompletionDecision(True, text)
             return CompletionDecision(
@@ -292,15 +318,20 @@ class CreatorDevelopmentCompletionGate:
         if runtime_passed:
             if self.service_authorization_finalizer is not None:
                 self.service_authorization_finalizer.complete_current_applied()
-            return CompletionDecision(True, candidate)
+            return CompletionDecision(
+                True, self._with_workspace_warning(candidate, validation)
+            )
         if runtime_status == "unavailable":
             if self.service_authorization_finalizer is not None:
                 self.service_authorization_finalizer.complete_current_applied()
             return CompletionDecision(
                 True,
-                (
-                    "静态验证已经通过；当前没有可用的 Runtime 验证证据。"
-                    "源码和组合修改已保留，但不能声称已经通过运行时验证。"
+                self._with_workspace_warning(
+                    (
+                        "静态验证已经通过；当前没有可用的 Runtime 验证证据。"
+                        "源码和组合修改已保留，但不能声称已经通过运行时验证。"
+                    ),
+                    validation,
                 ),
             )
         if runtime_status == "failed":

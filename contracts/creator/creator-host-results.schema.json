@@ -26,7 +26,43 @@
               "source": { "enum": ["cached", "executed"] }
             }
           }
+        },
+        "hostChecks": {
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "validationMode": { "enum": ["delta", "clean"] },
+        "differentialStatus": { "enum": ["available", "unavailable"] },
+        "validationBaselineCaptured": { "type": "boolean" },
+        "baselineAvailable": { "type": "boolean" },
+        "baselineDiagnosticCount": { "type": ["integer", "null"], "minimum": 0 },
+        "currentDiagnosticCount": { "type": ["integer", "null"], "minimum": 0 },
+        "newDiagnosticCount": { "type": ["integer", "null"], "minimum": 0 },
+        "unchangedDiagnosticCount": { "type": ["integer", "null"], "minimum": 0 },
+        "resolvedDiagnosticCount": { "type": ["integer", "null"], "minimum": 0 },
+        "newDiagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } },
+        "unchangedDiagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } },
+        "resolvedDiagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } },
+        "currentDiagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } },
+        "reason": { "type": "string" },
+        "workspaceWarning": {
+          "type": ["object", "null"],
+          "additionalProperties": true
+        },
+        "failureSemantics": {
+          "type": "object",
+          "additionalProperties": true
         }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "code", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "code": { "type": "string", "pattern": "^TS[0-9]+$" },
+        "message": { "type": "string" }
       }
     },
     "fastPathResult": {

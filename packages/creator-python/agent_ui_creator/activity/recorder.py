@@ -167,6 +167,8 @@ class CreatorActivityRecorder:
         output: str,
         truncated: bool,
         revision: int | None = None,
+        status: str | None = None,
+        validation_mode: str | None = None,
     ) -> None:
         normalized = output.strip()
         output_truncated = truncated
@@ -178,21 +180,33 @@ class CreatorActivityRecorder:
             output_truncated = True
         validation = {
             "command": command,
-            "status": "passed" if exit_code == 0 else "failed",
+            "status": (
+                status
+                if status in {"passed", "failed"}
+                else "passed"
+                if exit_code == 0
+                else "failed"
+            ),
             "exitCode": exit_code,
             "output": normalized,
             "truncated": output_truncated,
             "revision": self._revision if revision is None else revision,
         }
+        if validation_mode in {"delta", "clean"}:
+            validation["validationMode"] = validation_mode
         self._validations.append(validation)
 
     def validation_at_revision(
-        self, command: str, revision: int
+        self, command: str, revision: int, validation_mode: str | None = None
     ) -> dict[str, Any] | None:
         for validation in reversed(self._validations):
             if (
                 validation["command"] == command
                 and validation["revision"] == revision
+                and (
+                    validation_mode is None
+                    or validation.get("validationMode", "delta") == validation_mode
+                )
             ):
                 return copy.deepcopy(validation)
         return None

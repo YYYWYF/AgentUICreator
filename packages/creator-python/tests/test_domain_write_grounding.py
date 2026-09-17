@@ -466,7 +466,12 @@ def test_grounding_prompt_preserves_decision_and_write_boundaries():
         "app-ui/composition-revision.generated.json, or plugins/registry.generated.ts",
         "smallest determinable atomic mutation",
         "stale refreshes do not consume the one allowed semantic replan",
-        "A mutation, validation, or Runtime failure never expands the user's scope",
+        "Use the smallest set of layers necessary to satisfy the user's desired final state",
+        "concrete validation evidence proves that a defect introduced by this run",
+        "Pre-existing diagnostics that remain unchanged",
+        "workspace warnings, not task blockers",
+        "Creator is a domain-aware coding agent",
+        "Use clean mode when the user's desired state includes fixing existing diagnostics",
     ):
         assert rule in prompt
 

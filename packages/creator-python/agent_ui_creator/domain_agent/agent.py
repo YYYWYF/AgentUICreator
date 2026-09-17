@@ -533,6 +533,9 @@ def create_domain_write_creator_agent(
         host_verifier=service_verifier,
         scope=scope_guard.metrics,
     )
+    scope_guard.set_baseline_capture(validation.ensure_baseline)
+    if telemetry is not None:
+        telemetry.bind(validation=validation)
     runtime_inspection = RuntimeDiagnosticInspectionService(
         store=diagnostic_store,
         thread_id=thread_id,

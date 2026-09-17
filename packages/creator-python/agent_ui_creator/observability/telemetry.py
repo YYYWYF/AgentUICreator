@@ -26,6 +26,7 @@ class CreatorRunTelemetry:
     mutation: Any | None = None
     scope: Any | None = None
     composition_fast_path: Any | None = None
+    validation: Any | None = None
     run_control: Any | None = None
 
     def bind(
@@ -37,6 +38,7 @@ class CreatorRunTelemetry:
         mutation: Any | None = None,
         scope: Any | None = None,
         composition_fast_path: Any | None = None,
+        validation: Any | None = None,
         run_control: Any | None = None,
     ) -> None:
         if activity is not None:
@@ -51,6 +53,8 @@ class CreatorRunTelemetry:
             self.scope = scope
         if composition_fast_path is not None:
             self.composition_fast_path = composition_fast_path
+        if validation is not None:
+            self.validation = validation
         if run_control is not None:
             self.run_control = run_control
 
@@ -92,6 +96,9 @@ class CreatorRunTelemetry:
     def composition_fast_path_metrics(self) -> dict[str, object] | None:
         return _to_dict(self.composition_fast_path)
 
+    def validation_metrics(self) -> dict[str, object] | None:
+        return _to_dict(self.validation, method="metrics")
+
     def snapshot(self) -> dict[str, object]:
         snapshot: dict[str, object] = {
             "modelToolMetrics": self.model_tool_metrics(),
@@ -108,4 +115,7 @@ class CreatorRunTelemetry:
         composition_fast_path = self.composition_fast_path_metrics()
         if composition_fast_path is not None:
             snapshot["compositionFastPath"] = composition_fast_path
+        validation = self.validation_metrics()
+        if validation is not None:
+            snapshot["validationMetrics"] = validation
         return snapshot

@@ -5,12 +5,14 @@ from dataclasses import dataclass
 from typing import Any, Literal, TypeAlias
 
 from ..resource_scope import (
+    change_layer_for_path,
     change_layers_for_paths,
     resource_keys_for_evidence,
     resource_keys_for_paths,
 )
 from ..service_contracts.verification import ServiceContractHostCheck
-from .models import CreatorValidationCheck
+from .diagnostics import TypeScriptDiagnostic
+from .models import CreatorValidationCheck, TypecheckDifferential, ValidationMode
 
 
 ValidationStatus = Literal["passed", "failed", "stale"]
@@ -88,12 +90,31 @@ def _unknown_fail_closed(
     }
 
 
+def _diagnostic_layers(
+    diagnostics: Sequence[TypeScriptDiagnostic],
+) -> list[str]:
+    layers: list[str] = []
+    for diagnostic in diagnostics:
+        layer = change_layer_for_path(diagnostic.path)
+        if layer is not None and layer not in layers:
+            layers.append(layer)
+    return layers
+
+
+def _diagnostic_evidence(
+    diagnostics: Sequence[TypeScriptDiagnostic],
+) -> list[dict[str, str]]:
+    return [diagnostic.to_dict() for diagnostic in diagnostics[:8]]
+
+
 def attribute_validation_failure(
     *,
     status: ValidationStatus,
     checks: Sequence[CreatorValidationCheck],
     host_checks: Sequence[ServiceContractHostCheck],
     context: ValidationAttributionContext,
+    validation_mode: ValidationMode = "delta",
+    differential: TypecheckDifferential | None = None,
 ) -> FailureSemantics | None:
     """Classify validation evidence without deciding whether execution may continue."""
 
@@ -129,6 +150,77 @@ def attribute_validation_failure(
             )
         ),
     )
+    introduced_diagnostics = (
+        ()
+        if differential is None
+        else differential.new_diagnostics
+    )
+    current_diagnostics = (
+        ()
+        if differential is None
+        else differential.current_diagnostics
+    )
+    if (
+        differential is not None
+        and differential.status == "unavailable"
+        and status != "stale"
+    ):
+        semantics = _unknown_fail_closed(context)
+        semantics.update(
+            {
+                "validationMode": validation_mode,
+                "differentialStatus": differential.status,
+            }
+        )
+        return semantics
+    if (
+        differential is not None
+        and differential.status == "available"
+        and introduced_diagnostics
+    ):
+        category = "workspace_integrity"
+        attribution = "introduced"
+        failure_layers = _diagnostic_layers(introduced_diagnostics)
+        automatic_repair_allowed = True
+        automatic_cross_layer_repair_allowed = True
+        return {
+            "category": category,
+            "attribution": attribution,
+            "taskScope": list(context.task_scope),
+            "taskScopeResources": list(context.scope_resources),
+            "scopeResources": list(context.scope_resources),
+            "changedResources": list(context.changed_resources),
+            "failureLayers": failure_layers,
+            "changedPaths": list(context.changed_paths),
+            "validationMode": validation_mode,
+            "differentialStatus": differential.status,
+            "introducedDiagnostics": _diagnostic_evidence(introduced_diagnostics),
+            "automaticRepairAllowed": automatic_repair_allowed,
+            "automaticCrossLayerRepairAllowed": automatic_cross_layer_repair_allowed,
+            "recovery": "repair_in_scope",
+        }
+    if (
+        validation_mode == "clean"
+        and differential is not None
+        and differential.status == "available"
+        and current_diagnostics
+    ):
+        return {
+            "category": "workspace_integrity",
+            "attribution": "in_scope",
+            "taskScope": list(context.task_scope),
+            "taskScopeResources": list(context.scope_resources),
+            "scopeResources": list(context.scope_resources),
+            "changedResources": list(context.changed_resources),
+            "failureLayers": _diagnostic_layers(current_diagnostics),
+            "changedPaths": list(context.changed_paths),
+            "validationMode": validation_mode,
+            "differentialStatus": differential.status,
+            "remainingDiagnostics": _diagnostic_evidence(current_diagnostics),
+            "automaticRepairAllowed": True,
+            "automaticCrossLayerRepairAllowed": True,
+            "recovery": "repair_in_scope",
+        }
     if status == "stale":
         category = "stale_state"
         attribution = "unknown"
@@ -158,6 +250,14 @@ def attribute_validation_failure(
         "changedResources": list(context.changed_resources),
         "failureLayers": evidence_layers,
         "changedPaths": list(context.changed_paths),
+        **(
+            {
+                "validationMode": validation_mode,
+                "differentialStatus": differential.status,
+            }
+            if differential is not None
+            else {}
+        ),
         "automaticRepairAllowed": automatic_repair_allowed,
         "automaticCrossLayerRepairAllowed": False,
         "recovery": (
@@ -177,6 +277,8 @@ def attribute_validation_failure_safe(
     host_checks: Sequence[ServiceContractHostCheck],
     activity: Any,
     scope: Any,
+    validation_mode: ValidationMode = "delta",
+    differential: TypecheckDifferential | None = None,
     on_degraded: Callable[[Exception], None],
 ) -> FailureSemantics | None:
     """Make failure attribution total for ordinary validation inputs."""
@@ -191,6 +293,8 @@ def attribute_validation_failure_safe(
             checks=checks,
             host_checks=host_checks,
             context=context,
+            validation_mode=validation_mode,
+            differential=differential,
         )
     except Exception as error:
         if context is None:

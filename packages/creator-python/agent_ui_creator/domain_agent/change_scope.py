@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import inspect
 import json
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field
@@ -9,7 +11,6 @@ from typing import Any, Literal
 from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResponse
 from langchain_core.messages import ToolMessage
 
-from ..minimal_agent.tool_policy import tool_name
 from ..resource_scope import (
     ChangeLayer,
     ResourceKey,
@@ -17,6 +18,7 @@ from ..resource_scope import (
     resource_keys_for_path,
 )
 from ..run_control import CreatorRunControlState
+from .tool_policy import SIDE_EFFECT_TOOL_NAMES, tool_name
 
 
 _APP_UI_MODEL_RESOURCE = "app-ui-model"
@@ -371,6 +373,7 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
             [str, Mapping[str, Any]], Sequence[ResourceKey]
         ]
         | None = None,
+        baseline_capture: Callable[[], Awaitable[Any]] | None = None,
         run_control: CreatorRunControlState | None = None,
     ) -> None:
         self.metrics = ChangeScopeMetrics()
@@ -378,7 +381,15 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         self._blocked_resources: frozenset[ResourceKey] | None = None
         self._blocker: dict[str, object] | None = None
         self._service_resource_resolver = service_resource_resolver
+        self._baseline_capture = baseline_capture
         self.run_control = run_control
+
+    def set_baseline_capture(
+        self, baseline_capture: Callable[[], Awaitable[Any]] | None
+    ) -> None:
+        """Attach the Host validation baseline hook after service construction."""
+
+        self._baseline_capture = baseline_capture
 
     @staticmethod
     def _call(request: Any) -> tuple[dict[str, Any], str, dict[str, Any]]:
@@ -632,7 +643,54 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
 
     @staticmethod
     def _is_side_effect_tool(name: str) -> bool:
-        return name == "edit_file" or name in _STATIC_SIDE_EFFECT_LAYERS
+        return name in SIDE_EFFECT_TOOL_NAMES
+
+    @staticmethod
+    def _run_awaitable_sync(value: Any) -> Any:
+        if not inspect.isawaitable(value):
+            return value
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(value)
+
+        import threading
+
+        result: list[Any] = []
+        error: list[BaseException] = []
+
+        def run() -> None:
+            try:
+                result.append(asyncio.run(value))
+            except BaseException as exception:
+                error.append(exception)
+
+        thread = threading.Thread(target=run)
+        thread.start()
+        thread.join()
+        if error:
+            raise error[0]
+        return result[0] if result else None
+
+    def _ensure_baseline_sync(self) -> None:
+        if self._baseline_capture is None:
+            return
+        try:
+            self._run_awaitable_sync(self._baseline_capture())
+        except Exception:
+            # The validation service records an unavailable baseline itself;
+            # a baseline problem must not prevent the requested side effect.
+            pass
+
+    async def _ensure_baseline_async(self) -> None:
+        if self._baseline_capture is None:
+            return
+        try:
+            await self._baseline_capture()
+        except Exception:
+            # The validation service records an unavailable baseline itself;
+            # a baseline problem must not prevent the requested side effect.
+            pass
 
     def _is_cross_resource_blocked(
         self,
@@ -776,6 +834,8 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
             or self._is_cross_resource_blocked(layer, resources)
         ):
             return self._blocked_message(call, layer, resources)
+        if self._is_side_effect_tool(name):
+            self._ensure_baseline_sync()
         try:
             result = handler(request)
         except BaseException:
@@ -801,6 +861,8 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
             or self._is_cross_resource_blocked(layer, resources)
         ):
             return self._blocked_message(call, layer, resources)
+        if self._is_side_effect_tool(name):
+            await self._ensure_baseline_async()
         try:
             result = await handler(request)
         except BaseException:
