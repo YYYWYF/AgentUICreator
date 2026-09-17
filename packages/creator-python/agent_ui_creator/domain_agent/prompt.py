@@ -262,9 +262,12 @@ only the observations needed to proceed. Do not add a separate intent model call
 or resolution workflow; reason within this Creator run using the existing tools.
 When the user's request genuinely requires Plugin behavior, Services, Agent UI
 source, or another authoring layer after entering the Composition fast path,
-call inspect_ui_project() without a view first. A successful full project
-inspection explicitly exits the Composition fast path and permits the targeted
-cross-layer inspection. Do not use that exit merely to evade a covered read.
+request the smallest targeted cross-layer read. The Host rejects that read as an
+explicit exit signal, clears the Composition fast path, and restores the full
+tool surface on the next model call; retry the read then. If
+inspect_ui_project() without a view is already available, a successful full
+project inspection likewise explicitly exits the Composition fast path. Do not
+use either exit merely to evade a covered read.
 
 Round-trip reduction policy
 

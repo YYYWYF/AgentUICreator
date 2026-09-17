@@ -112,12 +112,19 @@ class CompositionFastPathMetrics:
     modelLatencyBeforeFirstMutationMs: int | None = None
     _first_mutation_started: bool = field(default=False, init=False, repr=False)
     _first_mutation_finished: bool = field(default=False, init=False, repr=False)
+    _first_mutation_revision: int | None = field(default=None, init=False, repr=False)
 
     @property
     def first_mutation_started(self) -> bool:
         """Read-only phase boundary for lightweight trajectory logging."""
 
         return self._first_mutation_started
+
+    @property
+    def first_mutation_revision(self) -> int | None:
+        """Revision recorded when the first successful mutation returned."""
+
+        return self._first_mutation_revision
 
     def record_snapshot_attempt(self) -> None:
         self.attempted = True
@@ -181,7 +188,9 @@ class CompositionFastPathMetrics:
                     getattr(trace, "toolCallCount", 0)
                 )
 
-    def record_first_mutation_result(self, result: Any) -> None:
+    def record_first_mutation_result(
+        self, result: Any, *, revision: int | None = None
+    ) -> None:
         if not self._first_mutation_started or self._first_mutation_finished:
             return
         self._first_mutation_finished = True
@@ -189,8 +198,10 @@ class CompositionFastPathMetrics:
         if payload is not None and payload.get("ok") is True:
             self.firstMutationSucceeded = True
             self.firstMutationErrorCode = None
+            self._first_mutation_revision = revision
             return
         self.firstMutationSucceeded = False
+        self._first_mutation_revision = None
         error = payload.get("error") if payload is not None else None
         code = error.get("code") if isinstance(error, Mapping) else None
         self.firstMutationErrorCode = code if isinstance(code, str) else None
@@ -200,6 +211,7 @@ class CompositionFastPathMetrics:
             return
         self._first_mutation_finished = True
         self.firstMutationSucceeded = False
+        self._first_mutation_revision = None
         code = getattr(error, "code", None)
         self.firstMutationErrorCode = (
             code if isinstance(code, str) else type(error).__name__

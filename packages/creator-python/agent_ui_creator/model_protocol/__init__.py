@@ -6,6 +6,7 @@ from .errors import (
     ModelTransportError,
 )
 from .provider_trace import ProviderResponseTrace, ProviderResponseTraceCollector
+from .request_shape import request_shape
 from .reliability import (
     CreatorModelRetryMiddleware,
     create_creator_model_retry_middleware,
@@ -23,6 +24,7 @@ __all__ = [
     "ModelTransportError",
     "ProviderResponseTrace",
     "ProviderResponseTraceCollector",
+    "request_shape",
     "CreatorModelRetryMiddleware",
     "create_creator_model_retry_middleware",
     "is_retryable_creator_model_error",

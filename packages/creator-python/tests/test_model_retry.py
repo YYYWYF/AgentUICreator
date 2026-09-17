@@ -63,6 +63,7 @@ def _invoke_script(
     *,
     max_retries: int = 2,
     logger: CreatorRunLogger | None = None,
+    request: ModelRequest | None = None,
 ):
     metrics = ToolProtocolMetrics()
     retry = create_creator_model_retry_middleware(
@@ -71,7 +72,7 @@ def _invoke_script(
         logger=logger,
     )
     protocol = ToolProtocolMiddleware(metrics=metrics)
-    request = ModelRequest(model=object(), messages=[])
+    request = request or ModelRequest(model=object(), messages=[])
     scripted = iter(script)
 
     def provider(_request):
@@ -269,6 +270,13 @@ def test_exhausted_transport_retry_logs_bounded_failure_events(monkeypatch, tmp_
         "retryable": True,
         "willRetry": True,
         "durationMs": failures[0]["data"]["durationMs"],
+        "requestMessageCount": 0,
+        "requestMessageChars": 0,
+        "requestToolCount": 0,
+        "requestToolSchemaChars": 0,
+        "requestMaxToolSchemaChars": 0,
+        "requestMaxToolSchemaName": None,
+        "offeredToolNames": [],
         "errorType": "APIConnectionError",
         "causeType": "ConnectError",
         "statusCode": None,
@@ -304,6 +312,45 @@ def test_remote_protocol_error_logs_only_bounded_cause_message(monkeypatch, tmp_
     assert failure["data"]["causeMessage"] == message[:256]
     assert exhausted["data"]["causeMessage"] == message[:256]
     assert raised.value.to_dict()["causeMessage"] == message[:256]
+
+
+def test_transport_failure_events_include_the_failed_request_shape(
+    monkeypatch, tmp_path
+):
+    monkeypatch.setattr("langchain.agents.middleware.model_retry.time.sleep", lambda _: None)
+    logger = CreatorRunLogger(tmp_path)
+    logger.begin(run_id="retry-request-shape", agent_mode="minimal")
+    request = ModelRequest(
+        model=object(),
+        messages=[HumanMessage(content="composition request")],
+        tools=[_tool("read_file"), _tool("mutate_app_ui_model")],
+    )
+
+    with pytest.raises(ModelTransportError):
+        _invoke_script(
+            [_connection_error(), _connection_error(), _connection_error()],
+            logger=logger,
+            request=request,
+        )
+
+    events = _events(logger)
+    failure = next(
+        event for event in events if event["type"] == "model_transport_attempt_failed"
+    )
+    exhausted = next(
+        event for event in events if event["type"] == "model_transport_retry_exhausted"
+    )
+    for event in (failure, exhausted):
+        assert event["data"]["requestMessageCount"] == 1
+        assert event["data"]["requestMessageChars"] == len("composition request")
+        assert event["data"]["requestToolCount"] == 2
+        assert event["data"]["requestToolSchemaChars"] == 0
+        assert event["data"]["requestMaxToolSchemaChars"] == 0
+        assert event["data"]["requestMaxToolSchemaName"] is None
+        assert event["data"]["offeredToolNames"] == [
+            "read_file",
+            "mutate_app_ui_model",
+        ]
 
 
 def test_successful_tool_is_not_replayed_after_next_model_retry(monkeypatch):

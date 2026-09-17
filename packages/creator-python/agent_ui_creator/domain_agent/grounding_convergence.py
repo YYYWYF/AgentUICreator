@@ -38,8 +38,10 @@ Authoritative evidence already covers the AppUIModel hash, Layout refs and sizes
 Slots and current instances, available Plugin capability summaries, and Active
 Composition. For a pure Composition change, the next side effect should be
 mutate_app_ui_model. Do not read Plugin source, CSS, Services, or generated files.
-Expand grounding only when the user's desired state is cross-layer or the Host
-reports stale state, a missing decisive fact, or another-layer requirement."""
+If another authoring layer is genuinely required, issue the smallest targeted
+cross-layer read. The Host treats that rejected read as an explicit exit signal
+and restores the full tool surface on the next model call; retry the read then.
+Expand grounding for a missing decisive fact or another-layer requirement."""
 
 
 class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
@@ -77,13 +79,20 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         return [by_name[name] for name in names if name in by_name]
 
     def _request(self, request: ModelRequest) -> ModelRequest:
-        if self.observations.composition_grounding_status(
-            current_revision=self.backend.mutation_revision
-        ) != "grounded":
-            return request
-        after_mutation = (
-            self.observations.composition_fast_path_metrics.first_mutation_started
+        current_revision = self.backend.mutation_revision
+        status = self.observations.composition_grounding_status(
+            current_revision=current_revision
         )
+        metrics = self.observations.composition_fast_path_metrics
+        successful_mutation_revision = metrics.first_mutation_revision
+        post_mutation_revision_change = (
+            status == "stale"
+            and metrics.firstMutationSucceeded is True
+            and successful_mutation_revision == current_revision
+        )
+        if status != "grounded" and not post_mutation_revision_change:
+            return request
+        after_mutation = metrics.first_mutation_started
         return request.override(
             messages=[
                 *request.messages,
@@ -176,6 +185,12 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         )
         if prohibited:
             metrics.record_cross_layer_read_attempt()
+            if filesystem_source_read_path(name, arguments) is not None:
+                metrics.record_filesystem_source_read()
+            self.observations.clear_composition_grounding(
+                reason="cross_layer_read",
+                current_revision=self.backend.mutation_revision,
+            )
         return call, name, arguments, prohibited
 
     def _after_tool_call(
@@ -186,7 +201,10 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
     ) -> None:
         metrics = self.observations.composition_fast_path_metrics
         if name == "mutate_app_ui_model":
-            metrics.record_first_mutation_result(result)
+            metrics.record_first_mutation_result(
+                result,
+                revision=self.backend.mutation_revision,
+            )
         elif (
             filesystem_source_read_path(name, arguments) is not None
             and self._filesystem_read_succeeded(result)

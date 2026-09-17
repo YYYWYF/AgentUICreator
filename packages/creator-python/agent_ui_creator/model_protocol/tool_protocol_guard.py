@@ -18,6 +18,7 @@ from pydantic import ValidationError as PydanticValidationError
 from ..run_control import CreatorRunControlState
 from .errors import AgentNoProgressError, ModelToolProtocolError
 from .provider_trace import ProviderResponseTrace, ProviderResponseTraceCollector
+from .request_shape import request_shape
 from .trace import ModelCallTrace, ToolProtocolMetrics
 
 logger = logging.getLogger(__name__)
@@ -43,7 +44,6 @@ _TEXT_TOOL_PATTERNS = (
 )
 _MAX_TRACE_ITEMS = 64
 _MAX_TRACE_LABEL_LENGTH = 120
-_MAX_OFFERED_TOOL_NAMES = 32
 _MAX_PROTOCOL_DIAGNOSTICS = 32
 _MAX_PROTOCOL_ARGUMENT_KEYS = 32
 _MAX_PROTOCOL_ERROR_PATH_ITEMS = 32
@@ -329,86 +329,6 @@ def _reasoning_retained(messages: Sequence[Any]) -> bool:
     return any(isinstance(message, AIMessage) and _has_reasoning(message) for message in messages)
 
 
-def _serialized_chars(value: Any) -> int:
-    try:
-        return len(
-            json.dumps(value, ensure_ascii=False, default=str, separators=(",", ":"))
-        )
-    except (TypeError, ValueError):
-        return len(repr(value))
-
-
-def _content_chars(content: Any) -> int:
-    if isinstance(content, str):
-        return len(content)
-    if isinstance(content, list):
-        return sum(
-            len(block)
-            if isinstance(block, str)
-            else len(block.get("text"))
-            if isinstance(block, Mapping) and isinstance(block.get("text"), str)
-            else _serialized_chars(block)
-            for block in content
-        )
-    return _serialized_chars(content)
-
-
-def _tool_schema(tool: Any) -> Any:
-    if isinstance(tool, Mapping):
-        return tool
-    getter = getattr(tool, "get_input_schema", None)
-    if not callable(getter):
-        return None
-    try:
-        schema = getter()
-    except Exception:
-        return None
-    if isinstance(schema, Mapping):
-        return schema
-    for method_name in ("model_json_schema", "schema"):
-        converter = getattr(schema, method_name, None)
-        if callable(converter):
-            try:
-                value = converter()
-            except Exception:
-                return None
-            return value if isinstance(value, Mapping) else None
-    return None
-
-
-def _request_shape(request: ModelRequest) -> dict[str, object]:
-    messages = list(request.messages)
-    system_message = getattr(request, "system_message", None)
-    if system_message is not None:
-        messages.append(system_message)
-    tools = list(request.tools)
-    schema_sizes = [
-        (_tool_name(tool), _serialized_chars(schema))
-        for tool in tools
-        if (schema := _tool_schema(tool)) is not None
-    ]
-    max_tool_name: str | None = None
-    max_tool_chars = 0
-    if schema_sizes:
-        max_tool_name, max_tool_chars = max(schema_sizes, key=lambda item: item[1])
-    return {
-        "requestMessageCount": len(messages),
-        "requestMessageChars": sum(
-            _content_chars(getattr(message, "content", message))
-            for message in messages
-        ),
-        "requestToolCount": len(tools),
-        "requestToolSchemaChars": sum(size for _, size in schema_sizes),
-        "requestMaxToolSchemaChars": max_tool_chars,
-        "requestMaxToolSchemaName": max_tool_name,
-        "offeredToolNames": tuple(
-            _trace_label(name)
-            for name in (_tool_name(tool) for tool in tools)
-            if name
-        )[:_MAX_OFFERED_TOOL_NAMES],
-    }
-
-
 def _bounded_json(value: Any, limit: int = 4096) -> str:
     try:
         rendered = json.dumps(value, ensure_ascii=False, default=str, separators=(",", ":"))
@@ -663,7 +583,7 @@ class ToolProtocolMiddleware(AgentMiddleware):
                 ),
             )
         langchain_pseudo_tool_names = _pseudo_tool_names(message)
-        request_shape = _request_shape(request)
+        request_shape_data = request_shape(request)
         self.metrics.traces.append(
             ModelCallTrace(
                 sequence=self.metrics.modelCalls,
@@ -693,7 +613,7 @@ class ToolProtocolMiddleware(AgentMiddleware):
                     langchain_tool_call_count=len(message.tool_calls),
                     langchain_pseudo_tool_names=langchain_pseudo_tool_names,
                 ),
-                **request_shape,
+                **request_shape_data,
             )
         )
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable
 
 import httpx
@@ -17,6 +17,7 @@ from .errors import (
     ModelToolProtocolError,
     ModelTransportError,
 )
+from .request_shape import request_shape as model_request_shape
 from .trace import ToolProtocolMetrics
 
 _TRANSIENT_STATUS_CODES = frozenset({408, 429, 500, 502, 503, 504})
@@ -148,6 +149,7 @@ class _RetryCallState:
     attempt_started_at: float | None = None
     attempts: int = 0
     failures: int = 0
+    request_shape: dict[str, object] = field(default_factory=dict)
 
 
 class CreatorModelRetryMiddleware(ModelRetryMiddleware):
@@ -198,6 +200,7 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
                 (time.monotonic() - (state.attempt_started_at or state.started_at))
                 * 1000
             ),
+            **state.request_shape,
             **_transport_details(error),
         }
         if self.logger is not None:
@@ -222,6 +225,7 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
                     "modelCallSequence": max(0, int(state.model_call_sequence)),
                     "attempts": max(0, int(state.attempts)),
                     "durationMs": round((time.monotonic() - state.started_at) * 1000),
+                    **state.request_shape,
                     **details,
                 },
             )
@@ -251,6 +255,7 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
         state = _RetryCallState(
             model_call_sequence=self.metrics.modelCalls + 1,
             started_at=time.monotonic(),
+            request_shape=model_request_shape(request),
         )
         token = self._active_call.set(state)
 
@@ -258,6 +263,7 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
             state.model_call_sequence = self.metrics.modelCalls + 1
             state.attempts += 1
             state.attempt_started_at = time.monotonic()
+            state.request_shape = model_request_shape(current_request)
             self.metrics.modelTransportAttempts += 1
             return handler(current_request)
 
@@ -306,6 +312,7 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
         state = _RetryCallState(
             model_call_sequence=self.metrics.modelCalls + 1,
             started_at=time.monotonic(),
+            request_shape=model_request_shape(request),
         )
         token = self._active_call.set(state)
 
@@ -313,6 +320,7 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
             state.model_call_sequence = self.metrics.modelCalls + 1
             state.attempts += 1
             state.attempt_started_at = time.monotonic()
+            state.request_shape = model_request_shape(current_request)
             self.metrics.modelTransportAttempts += 1
             return await handler(current_request)
 

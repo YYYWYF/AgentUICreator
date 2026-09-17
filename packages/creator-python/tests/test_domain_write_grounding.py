@@ -23,6 +23,11 @@ from agent_ui_creator.domain_agent import (
     create_domain_write_creator_agent,
 )
 from agent_ui_creator.domain_agent.prompt import DOMAIN_READ_AGENT_PROMPT, DOMAIN_WRITE_AGENT_PROMPT
+from agent_ui_creator.domain_agent.grounding_convergence import (
+    COMPOSITION_POST_MUTATION_TOOL_NAMES,
+    COMPOSITION_PRE_MUTATION_TOOL_NAMES,
+)
+from agent_ui_creator.domain_agent.tool_policy import ALLOWED_DOMAIN_WRITE_TOOLS
 from agent_ui_creator.files import read_creator_file_state
 from agent_ui_creator.model_protocol.errors import AgentNoProgressError
 from agent_ui_creator.model_settings import CreatorModelSettings
@@ -36,9 +41,13 @@ QUESTION = "项目已有 session-manager，但尚未挂载。你希望恢复它�
 
 class GroundingScriptModel(FakeMessagesListChatModel):
     seen_messages: list = Field(default_factory=list)
+    bound_tool_names: list[tuple[str, ...]] = Field(default_factory=list)
     expected_system_prompt: str = DOMAIN_WRITE_AGENT_PROMPT
 
     def bind_tools(self, tools, **kwargs):
+        self.bound_tool_names.append(
+            tuple(str(getattr(tool, "name", "") or "") for tool in tools)
+        )
         return self
 
     def _generate(self, messages, stop=None, run_manager=None, **kwargs):
@@ -459,8 +468,11 @@ def test_grounding_prompt_preserves_decision_and_write_boundaries():
         "Do not preflight checks listed in hostGuarantees",
         "OBSERVATION_ALREADY_COVERED",
         "Do not repeat the same ProjectControl inspection while the workspace is unchanged",
-        "call inspect_ui_project() without a view first",
-        "explicitly exits the Composition fast path",
+        "request the smallest targeted cross-layer read",
+        "explicit exit signal",
+        "restores the full tool surface on the next model call",
+        "inspect_ui_project() without a view is already available",
+        "likewise explicitly exits the Composition fast path",
         "Do not add a separate intent model call",
         "Never edit app-ui/app-ui.json,",
         "app-ui/composition-revision.generated.json, or plugins/registry.generated.ts",
@@ -611,7 +623,7 @@ def test_composition_snapshot_converges_directly_to_atomic_mutation(tmp_path):
         },
         "target": {"type": "layout_slot", "slotNodeId": "sidebar-right"},
     }
-    result, _receipt, model = run_script(
+    result, receipt, model = run_script(
         client,
         "把已有的会话管理能力放到右侧栏。",
         [
@@ -637,7 +649,10 @@ def test_composition_snapshot_converges_directly_to_atomic_mutation(tmp_path):
         ("inspect_ui_project", {"view": "composition"})
     ]
     assert len(client.mutations) == 1
+    assert receipt["verification"]["projectRevision"] == 1
     assert result.domain_observations.compositionGroundingUpdates == 1
+    assert model.bound_tool_names[-2] == tuple(COMPOSITION_PRE_MUTATION_TOOL_NAMES)
+    assert model.bound_tool_names[-1] == tuple(COMPOSITION_POST_MUTATION_TOOL_NAMES)
     control = [
         message
         for message in model.seen_messages[1]
@@ -670,7 +685,7 @@ def test_full_project_exit_reenables_plugin_behavior_reads(tmp_path):
     source = tmp_path / "plugins" / "session-manager" / "index.ts"
     source.parent.mkdir(parents=True)
     source.write_text("export const sessionManager = true;\n", encoding="utf-8")
-    result, _receipt, _model = run_script(
+    result, _receipt, model = run_script(
         client,
         "检查已有会话管理插件的实现。",
         [
@@ -713,6 +728,8 @@ def test_full_project_exit_reenables_plugin_behavior_reads(tmp_path):
     assert metrics["fastPathExits"] == 1
     assert metrics["crossLayerReadAttemptsBeforeMutation"] == 1
     assert metrics["filesystemSourceReadsBeforeMutation"] == 1
+    assert model.bound_tool_names[1] == tuple(COMPOSITION_PRE_MUTATION_TOOL_NAMES)
+    assert set(model.bound_tool_names[2]) == set(ALLOWED_DOMAIN_WRITE_TOOLS)
 
 
 def test_full_project_exit_reenables_runtime_capability_reads(tmp_path):

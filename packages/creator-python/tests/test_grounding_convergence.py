@@ -105,13 +105,17 @@ def test_grounded_composition_narrows_and_restores_tool_surface(tmp_path):
     )
     assert "inspect_app_ui_model" not in [tool.name for tool in seen[-1].tools]
 
-    middleware.wrap_tool_call(
-        _tool_request("mutate_app_ui_model", {"operations": []}),
-        lambda candidate: ToolMessage(
+    def mutate_and_touch(candidate):
+        backend.activity.touch("app-ui/app-ui.json")
+        return ToolMessage(
             content='{"ok":true}',
             tool_call_id=candidate.tool_call["id"],
             name=candidate.tool_call["name"],
-        ),
+        )
+
+    middleware.wrap_tool_call(
+        _tool_request("mutate_app_ui_model", {"operations": []}),
+        mutate_and_touch,
     )
     middleware.wrap_model_call(request, handler)
     assert [tool.name for tool in seen[-1].tools] == list(
@@ -183,6 +187,10 @@ def test_grounded_composition_blocks_source_read_but_allows_skill_read(tmp_path)
         observations.composition_fast_path_metrics.crossLayerReadAttemptsBeforeMutation
         == 1
     )
+    assert observations.composition_grounding_status(current_revision=0) == (
+        "unobserved"
+    )
+    assert observations.composition_fast_path_metrics.fastPathExits == 1
 
 
 def test_stale_grounding_allows_source_read_and_counts_success(tmp_path):
