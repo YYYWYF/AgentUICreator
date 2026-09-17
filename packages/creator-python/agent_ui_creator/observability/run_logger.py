@@ -72,16 +72,16 @@ def _sanitized_tool_arguments(
         return result
     if tool_name == "inspect_runtime_layout":
         instance_ids = arguments.get("instanceIds")
-        layout_node_ids = arguments.get("layoutNodeIds")
+        node_refs = arguments.get("nodeRefs")
         return {
             "instanceIdCount": (
                 len(instance_ids)
                 if isinstance(instance_ids, (list, tuple))
                 else 0
             ),
-            "layoutNodeIdCount": (
-                len(layout_node_ids)
-                if isinstance(layout_node_ids, (list, tuple))
+            "nodeRefCount": (
+                len(node_refs)
+                if isinstance(node_refs, (list, tuple))
                 else 0
             ),
         }

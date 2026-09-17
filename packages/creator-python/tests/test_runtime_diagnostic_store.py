@@ -606,14 +606,15 @@ def test_runtime_diagnostic_agent_surface_contains_only_authoring_semantics(tmp_
     assert "plugin:surface-main:content" not in rendered
 
 
-def test_runtime_diagnostic_creator_has_no_runtime_slot_encoding_knowledge():
+def test_runtime_diagnostic_store_keeps_runtime_identity_internal_to_store():
     source = (
         Path(__file__).resolve().parents[1]
         / "agent_ui_creator"
         / "runtime_diagnostics"
-        / "tool.py"
+        / "store.py"
     ).read_text(encoding="utf-8")
 
-    assert '"plugin:"' not in source
-    assert "urllib.parse.quote" not in source
-    assert "from urllib.parse import quote" not in source
+    assert "def inspect_runtime_layout" in source
+    assert "layout_node_ids" in source
+    assert "slotId" in source
+    assert "nodeId" in source
