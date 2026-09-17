@@ -40,6 +40,16 @@ def _layout_tool():
     )
 
 
+def _strict_list_tool():
+    schema = create_model("StrictListArgs", items=(list[str], ...))
+    return StructuredTool.from_function(
+        lambda items: str(items),
+        name="strict_list_tool",
+        description="Accept a list of items.",
+        args_schema=schema,
+    )
+
+
 def test_valid_structured_tool_call_passes_through():
     message = AIMessage(
         content="",
@@ -317,6 +327,59 @@ def test_one_repair_can_restore_a_structured_tool_call():
     assert "read_file" in requests[1].messages[-1].content
     assert middleware.metrics.protocolRepairAttempts == 1
     assert middleware.metrics.protocolRepairSuccesses == 1
+
+
+def test_repair_prompt_uses_current_sanitized_validation_hint():
+    middleware = ToolProtocolMiddleware()
+    strict_tool = _strict_list_tool()
+    request = ModelRequest(model=object(), messages=[], tools=[strict_tool])
+    responses = iter(
+        [
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="",
+                        tool_calls=[
+                            {
+                                "name": "strict_list_tool",
+                                "args": {"items": "secret-value"},
+                                "id": "call-1",
+                            }
+                        ],
+                    )
+                ]
+            ),
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="",
+                        tool_calls=[
+                            {
+                                "name": "strict_list_tool",
+                                "args": {"items": ["x"]},
+                                "id": "repair-1",
+                            }
+                        ],
+                    )
+                ]
+            ),
+        ]
+    )
+    requests = []
+
+    def handler(current_request):
+        requests.append(current_request)
+        return next(responses)
+
+    middleware.wrap_model_call(request, handler)
+
+    repair_prompt = requests[1].messages[-1].content
+    assert "`items`: expected array, received string." in repair_prompt
+    assert "secret-value" not in repair_prompt
+    assert "secret-value" not in json.dumps(middleware.metrics.to_dict())
+    assert middleware.metrics.protocolRepairAttempts == 1
+    assert middleware.metrics.protocolRepairSuccesses == 1
+    assert middleware.metrics.protocolRepairFailures == 0
 
 
 def test_repair_cannot_switch_away_from_the_original_structured_tool():

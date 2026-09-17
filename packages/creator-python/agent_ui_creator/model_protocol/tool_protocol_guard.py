@@ -47,6 +47,17 @@ _MAX_TRACE_LABEL_LENGTH = 120
 _MAX_PROTOCOL_DIAGNOSTICS = 32
 _MAX_PROTOCOL_ARGUMENT_KEYS = 32
 _MAX_PROTOCOL_ERROR_PATH_ITEMS = 32
+_MAX_PROTOCOL_REPAIR_HINT_LENGTH = 512
+_REPAIR_EXPECTED_TYPES = {
+    "list_type": "array",
+    "string_type": "string",
+    "dict_type": "object",
+    "bool_type": "boolean",
+    "int_type": "integer",
+    "float_type": "number",
+    "arguments_not_object": "object",
+}
+_SAFE_JSON_TYPES = {"null", "boolean", "integer", "number", "string", "array", "object"}
 
 
 def _trace_label(value: Any) -> str:
@@ -204,6 +215,75 @@ def _record_argument_validation_failure(
     }
     diagnostic.update(metadata)
     _record_protocol_diagnostic(metrics, diagnostic)
+
+
+def _repair_validation_hint(
+    metrics: ToolProtocolMetrics,
+    *,
+    model_call_sequence: int,
+    expected_tool_name: str,
+) -> str | None:
+    expected_tool_name = _trace_label(expected_tool_name)
+    diagnostic = next(
+        (
+            item
+            for item in reversed(metrics.protocolDiagnostics)
+            if isinstance(item, Mapping)
+            and item.get("modelCallSequence") == model_call_sequence
+            and item.get("toolName") == expected_tool_name
+        ),
+        None,
+    )
+    if diagnostic is None:
+        return None
+
+    error_type = diagnostic.get("errorType")
+    if not isinstance(error_type, str):
+        return None
+    expected_type = _REPAIR_EXPECTED_TYPES.get(error_type)
+    if expected_type is None:
+        return None
+
+    error_path = diagnostic.get("errorPath")
+    if error_type == "arguments_not_object":
+        argument_path = "arguments"
+        actual_type = diagnostic.get("argumentsType")
+    elif isinstance(error_path, list) and len(error_path) == 1:
+        argument_path = error_path[0]
+        argument_types = diagnostic.get("argumentTypes")
+        actual_type = (
+            argument_types.get(argument_path)
+            if isinstance(argument_types, Mapping)
+            and isinstance(argument_path, str)
+            else None
+        )
+    elif isinstance(error_path, list) and error_path:
+        path_parts = []
+        for part in error_path:
+            if isinstance(part, bool):
+                return None
+            if isinstance(part, int):
+                path_parts.append(str(part))
+            elif isinstance(part, str):
+                path_parts.append(_trace_label(part))
+            else:
+                return None
+        hint = f"Argument path `{'.'.join(path_parts)}` failed schema validation."
+        return hint[:_MAX_PROTOCOL_REPAIR_HINT_LENGTH]
+    else:
+        return None
+
+    if (
+        not isinstance(argument_path, str)
+        or not isinstance(actual_type, str)
+        or actual_type not in _SAFE_JSON_TYPES
+    ):
+        return None
+    hint = (
+        f"`{_trace_label(argument_path)}`: expected {expected_type}, "
+        f"received {actual_type}."
+    )
+    return hint[:_MAX_PROTOCOL_REPAIR_HINT_LENGTH]
 
 
 def _call_tool_name(call: Any) -> str:
@@ -622,7 +702,21 @@ class ToolProtocolMiddleware(AgentMiddleware):
     ) -> ModelRequest:
         prompt = PROTOCOL_REPAIR_PROMPT
         if expected_tool_name is not None:
-            prompt = f"""Your previous response attempted an invalid structured call to
+            validation_hint = _repair_validation_hint(
+                self.metrics,
+                model_call_sequence=self.metrics.modelCalls,
+                expected_tool_name=expected_tool_name,
+            )
+            if validation_hint is not None:
+                prompt = f"""Your previous call to `{expected_tool_name}` had an invalid argument shape.
+
+{validation_hint}
+
+Re-issue only that same tool call using valid structured arguments.
+Do not switch to another tool.
+Do not explain the error in prose."""
+            else:
+                prompt = f"""Your previous response attempted an invalid structured call to
 `{expected_tool_name}`.
 
 Re-issue only that intended action using the provided structured tool interface.

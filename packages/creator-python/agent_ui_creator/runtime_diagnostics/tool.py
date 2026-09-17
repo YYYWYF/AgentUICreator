@@ -26,8 +26,8 @@ RuntimeLayoutFilterId = Annotated[
         max_length=MAX_RUNTIME_LAYOUT_FILTER_ID_LENGTH,
     ),
 ]
-RuntimeLayoutFilter = Annotated[
-    list[RuntimeLayoutFilterId] | None,
+RuntimeLayoutFilterInput = Annotated[
+    list[RuntimeLayoutFilterId] | RuntimeLayoutFilterId | None,
     Field(max_length=MAX_RUNTIME_LAYOUT_FILTER_IDS),
 ]
 
@@ -390,6 +390,14 @@ class RuntimeDiagnosticInspectionService:
         return result
 
 
+def _normalize_runtime_layout_filter(
+    value: RuntimeLayoutFilterInput,
+) -> list[str] | None:
+    if isinstance(value, str):
+        return [value]
+    return value
+
+
 def create_runtime_diagnostic_tool(
     service: RuntimeDiagnosticInspectionService,
 ) -> BaseTool:
@@ -446,14 +454,14 @@ def create_runtime_layout_tool(
 ) -> BaseTool:
     @tool("inspect_runtime_layout")
     async def inspect_runtime_layout(
-        instanceIds: RuntimeLayoutFilter = None,
-        nodeRefs: RuntimeLayoutFilter = None,
+        instanceIds: RuntimeLayoutFilterInput = None,
+        nodeRefs: RuntimeLayoutFilterInput = None,
     ) -> str:
-        """Inspect bounded, current-hash Runtime layout geometry after the frontend has rendered. Use this for explicit visible spacing, gap, alignment, size, position, overlap, or adjacency questions. It accepts only optional instanceIds and Authoring Layout nodeRefs filters; it cannot evaluate arbitrary selectors, JavaScript, HTML, or CSS. runtimeStatus=available with compositionFresh=true is fresh geometry evidence. If geometry is stale or unavailable, do not claim visual verification."""
+        """Inspect bounded, current-hash Runtime layout geometry after the frontend has rendered. Use this for explicit visible spacing, gap, alignment, size, position, overlap, or adjacency questions. The instanceIds and nodeRefs filters accept either one id/ref or a list; they cannot evaluate arbitrary selectors, JavaScript, HTML, or CSS. runtimeStatus=available with compositionFresh=true is fresh geometry evidence. If geometry is stale or unavailable, do not claim visual verification."""
         try:
             result = await service.inspect_layout(
-                instance_ids=instanceIds,
-                node_refs=nodeRefs,
+                instance_ids=_normalize_runtime_layout_filter(instanceIds),
+                node_refs=_normalize_runtime_layout_filter(nodeRefs),
             )
             return json.dumps(
                 {"ok": True, "result": result},

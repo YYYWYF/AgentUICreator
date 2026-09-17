@@ -323,6 +323,81 @@ def test_layout_tool_is_sanitized_filtered_and_read_only(tmp_path):
     ]
 
 
+class RecordingLayoutStore(RuntimeDiagnosticStore):
+    def __init__(self):
+        super().__init__()
+        self.received_instance_ids = None
+        self.received_layout_node_ids = None
+
+    def inspect_runtime_layout(self, **kwargs):
+        self.received_instance_ids = kwargs["instance_ids"]
+        self.received_layout_node_ids = kwargs["layout_node_ids"]
+        return super().inspect_runtime_layout(**kwargs)
+
+
+def _recording_layout_tool(tmp_path):
+    store = RecordingLayoutStore()
+    store.record(layout_envelope())
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("layout-filter-normalization")
+    service = RuntimeDiagnosticInspectionService(
+        store=store,
+        thread_id="layout-thread",
+        project_control=CompositionProjectControl(composition_project()),
+        observations=DomainObservationContext(),
+        activity=activity,
+    )
+    return create_runtime_layout_tool(service), store
+
+
+def test_layout_tool_normalizes_singleton_filters_without_changing_service_contract(
+    tmp_path,
+):
+    tool, store = _recording_layout_tool(tmp_path)
+
+    rendered = asyncio.run(
+        tool.ainvoke(
+            {
+                "instanceIds": "sidebar-main",
+                "nodeRefs": "l0",
+            }
+        )
+    )
+
+    assert json.loads(rendered)["ok"] is True
+    assert store.received_instance_ids == ["sidebar-main"]
+    assert store.received_layout_node_ids is None
+
+
+def test_layout_tool_keeps_arrays_and_delimiters_as_single_filter_values(tmp_path):
+    tool, store = _recording_layout_tool(tmp_path)
+
+    rendered = asyncio.run(
+        tool.ainvoke(
+            {
+                "instanceIds": "sidebar-main,surface-main",
+                "nodeRefs": ["l0", "l3"],
+            }
+        )
+    )
+
+    payload = json.loads(rendered)
+    assert payload["ok"] is True
+    assert [item["nodeRef"] for item in payload["result"]["layoutNodes"]] == [
+        "l0",
+        "l3",
+    ]
+    assert store.received_instance_ids == ["sidebar-main,surface-main"]
+    assert store.received_layout_node_ids is None
+
+
+def test_layout_tool_rejects_non_string_non_list_filter_values(tmp_path):
+    tool, _ = _recording_layout_tool(tmp_path)
+
+    with pytest.raises(PydanticValidationError):
+        asyncio.run(tool.ainvoke({"nodeRefs": {"foo": "bar"}}))
+
+
 def test_layout_tool_rejects_unbounded_filters(tmp_path):
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("layout-run")
@@ -336,6 +411,12 @@ def test_layout_tool_rejects_unbounded_filters(tmp_path):
     tool = create_runtime_layout_tool(service)
     schema = tool.args_schema.model_json_schema()
     assert schema["properties"]["instanceIds"]["anyOf"][0]["maxItems"] == 200
+    assert any(
+        branch.get("type") == "string"
+        and branch.get("minLength") == 1
+        and branch.get("maxLength") == 200
+        for branch in schema["properties"]["instanceIds"]["anyOf"]
+    )
     assert (
         schema["properties"]["nodeRefs"]["anyOf"][0]["items"]["maxLength"]
         == 200
@@ -343,6 +424,9 @@ def test_layout_tool_rejects_unbounded_filters(tmp_path):
     assert "layoutNodeIds" not in schema["properties"]
     with pytest.raises(PydanticValidationError):
         asyncio.run(tool.ainvoke({"instanceIds": ["x"] * 201}))
+
+    with pytest.raises(PydanticValidationError):
+        asyncio.run(tool.ainvoke({"nodeRefs": ""}))
 
 
 def test_node_ref_filter_applies_after_authoring_projection(tmp_path):
