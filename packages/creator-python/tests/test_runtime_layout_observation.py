@@ -275,18 +275,7 @@ def test_layout_tool_is_sanitized_filtered_and_read_only(tmp_path):
             "rect": {"x": 0.0, "y": 0.0, "width": 1400.0, "height": 800.0},
         }
     ]
-    assert result["slots"] == [
-        {
-            "target": {"type": "layout_slot", "slotRef": "l2"},
-            "widthClass": "narrow",
-            "rect": {"x": 0.0, "y": 0.0, "width": 280.0, "height": 800.0},
-        },
-        {
-            "target": {"type": "layout_slot", "slotRef": "l4"},
-            "widthClass": "wide",
-            "rect": {"x": 280.0, "y": 0.0, "width": 1120.0, "height": 800.0},
-        },
-    ]
+    assert "slots" not in result
     assert "slotPath" not in rendered
     assert "layout-node:" not in rendered
     assert "layout-slot:" not in rendered
@@ -319,7 +308,6 @@ def test_layout_tool_is_sanitized_filtered_and_read_only(tmp_path):
         "requestedInstanceCount": 1,
         "requestedNodeRefCount": 1,
         "unmappedLayoutNodeCount": 0,
-        "unmappedSlotCount": 0,
         "returnedInstanceCount": 1,
         "returnedLayoutNodeCount": 1,
     }
@@ -357,7 +345,7 @@ def test_layout_tool_rejects_unbounded_filters(tmp_path):
         asyncio.run(tool.ainvoke({"instanceIds": ["x"] * 201}))
 
 
-def test_node_ref_filter_translates_inward_to_internal_runtime_node_id(tmp_path):
+def test_node_ref_filter_applies_after_authoring_projection(tmp_path):
     class RecordingStore(RuntimeDiagnosticStore):
         def __init__(self):
             super().__init__()
@@ -381,9 +369,7 @@ def test_node_ref_filter_translates_inward_to_internal_runtime_node_id(tmp_path)
 
     result = asyncio.run(service.inspect_layout(node_refs=["l1"]))
 
-    assert recording_store.received_layout_node_ids == [
-        "layout-node:root.children%5B0%5D"
-    ]
+    assert recording_store.received_layout_node_ids is None
     assert result["layoutNodes"] == [
         {
             "nodeRef": "l1",
@@ -422,81 +408,22 @@ def test_stale_node_ref_is_rejected_deterministically(tmp_path):
     assert "layout-node:" not in json.dumps(payload)
 
 
-def test_layout_slot_runtime_id_projects_to_current_slot_ref(tmp_path):
-    store = RuntimeDiagnosticStore()
-    store.record(layout_envelope())
-    activity = CreatorActivityRecorder(tmp_path)
-    activity.begin("layout-slot-projection")
-    service = RuntimeDiagnosticInspectionService(
-        store=store,
-        thread_id="layout-thread",
-        project_control=CompositionProjectControl(composition_project()),
-        observations=DomainObservationContext(),
-        activity=activity,
-    )
-
-    result = asyncio.run(service.inspect_layout())
-
-    assert result["slots"][0] == {
-        "target": {"type": "layout_slot", "slotRef": "l2"},
-        "widthClass": "narrow",
-        "rect": {"x": 0.0, "y": 0.0, "width": 280.0, "height": 800.0},
-    }
-    assert "slotId" not in result["slots"][0]
-    assert "slotPath" not in result["slots"][0]
-
-
-def test_plugin_slot_runtime_id_projects_only_existing_plugin_target(tmp_path):
+def test_unmapped_runtime_layout_node_is_omitted_and_counted_in_host_log(tmp_path):
     raw = layout_envelope().model_dump(mode="json")
     assert isinstance(raw["composition"], dict)
-    raw["composition"]["slots"].append(
+    raw["composition"]["layoutNodes"].append(
         {
-            "slotId": "plugin:surface-main:emptySuggestions",
-            "widthClass": "wide",
-            "rect": {"x": 280, "y": 0, "width": 1120, "height": 800},
-        }
-    )
-    store = RuntimeDiagnosticStore()
-    store.record(RuntimeDiagnosticEnvelope.model_validate(raw))
-    activity = CreatorActivityRecorder(tmp_path)
-    activity.begin("plugin-slot-projection")
-    service = RuntimeDiagnosticInspectionService(
-        store=store,
-        thread_id="layout-thread",
-        project_control=CompositionProjectControl(composition_project()),
-        observations=DomainObservationContext(),
-        activity=activity,
-    )
-
-    result = asyncio.run(service.inspect_layout())
-
-    assert result["slots"][-1] == {
-        "target": {
-            "type": "plugin_slot",
-            "parentInstanceId": "surface-main",
-            "slot": "emptySuggestions",
-        },
-        "widthClass": "wide",
-        "rect": {"x": 280.0, "y": 0.0, "width": 1120.0, "height": 800.0},
-    }
-
-
-def test_forged_plugin_slot_is_omitted_and_only_counted_in_host_log(tmp_path):
-    raw = layout_envelope().model_dump(mode="json")
-    assert isinstance(raw["composition"], dict)
-    raw["composition"]["slots"].append(
-        {
-            "slotId": "plugin:fake:fakeSlot",
-            "widthClass": "wide",
+            "nodeId": "layout-node:root.children%5B99%5D",
+            "type": "panel",
             "rect": {"x": 0, "y": 0, "width": 1, "height": 1},
         }
     )
     store = RuntimeDiagnosticStore()
     store.record(RuntimeDiagnosticEnvelope.model_validate(raw))
     logger = CreatorRunLogger(tmp_path)
-    logger.begin(run_id="forged-plugin-slot", thread_id="layout-thread")
+    logger.begin(run_id="unmapped-layout-node", thread_id="layout-thread")
     activity = CreatorActivityRecorder(tmp_path, logger=logger)
-    activity.begin("forged-plugin-slot")
+    activity.begin("unmapped-layout-node")
     service = RuntimeDiagnosticInspectionService(
         store=store,
         thread_id="layout-thread",
@@ -515,9 +442,8 @@ def test_forged_plugin_slot_is_omitted_and_only_counted_in_host_log(tmp_path):
         entry for entry in entries if entry["type"] == "runtime_layout_inspection"
     ][-1]
 
-    assert "fakeSlot" not in rendered
-    assert "plugin:fake:fakeSlot" not in rendered
-    assert inspection["data"]["unmappedSlotCount"] == 1
+    assert "root.children%5B99%5D" not in rendered
+    assert inspection["data"]["unmappedLayoutNodeCount"] == 1
 
 
 def test_model_facing_layout_result_contains_no_runtime_identity(tmp_path):
@@ -544,6 +470,7 @@ def test_model_facing_layout_result_contains_no_runtime_identity(tmp_path):
         '"nodeId"',
     ):
         assert forbidden not in rendered
+    assert '"slots"' not in rendered
     assert "instanceId" in rendered
 
 
