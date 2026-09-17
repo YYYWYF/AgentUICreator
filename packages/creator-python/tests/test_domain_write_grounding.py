@@ -471,9 +471,35 @@ def test_grounding_prompt_preserves_decision_and_write_boundaries():
         "Pre-existing diagnostics that remain unchanged",
         "workspace warnings, not task blockers",
         "Creator is a domain-aware coding agent",
-        "Use clean mode when the user's desired state includes fixing existing diagnostics",
+        "Use clean mode only for requests to fix all current typecheck errors, make typecheck clean, or make the project's TypeScript validation pass with no remaining diagnostics",
+        "For a fix targeting one or a finite set of explicitly identified pre-existing diagnostics, continue using delta mode",
+        "Before completion, confirm that every requested diagnostic appears in resolved diagnostics or is no longer present",
+        "Do not add a third validation mode or a target-diagnostic workflow",
     ):
         assert rule in prompt
+
+
+def test_validation_mode_prompt_narrows_clean_mode_to_workspace_clean_requests():
+    prompt = " ".join(DOMAIN_WRITE_AGENT_PROMPT.split())
+
+    assert (
+        "Use clean mode only for requests to fix all current typecheck errors, "
+        "make typecheck clean, or make the project's TypeScript validation pass "
+        "with no remaining diagnostics"
+    ) in prompt
+    assert (
+        "For a fix targeting one or a finite set of explicitly identified "
+        "pre-existing diagnostics, continue using delta mode"
+    ) in prompt
+    assert (
+        "Before completion, confirm that every requested diagnostic appears in "
+        "resolved diagnostics or is no longer present"
+    ) in prompt
+    assert "Do not add a third validation mode or a target-diagnostic workflow" in prompt
+    assert (
+        "Use clean mode when the user's desired state includes fixing existing "
+        "diagnostics"
+    ) not in prompt
 
 
 @pytest.mark.parametrize(

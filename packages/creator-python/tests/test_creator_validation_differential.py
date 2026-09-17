@@ -334,7 +334,9 @@ def test_clean_mode_requires_zero_remaining_diagnostics(tmp_path):
     assert passed.status == "passed"
 
 
-def test_resolved_existing_diagnostic_is_reported_in_delta(tmp_path):
+def test_targeted_existing_diagnostic_resolves_in_delta_with_workspace_warning(
+    tmp_path,
+):
     baseline = "\n".join(
         [
             _diagnostic("framework/foo.ts", "TS1234", "A"),
@@ -345,7 +347,7 @@ def test_resolved_existing_diagnostic_is_reported_in_delta(tmp_path):
     current = "\n".join(
         [
             _diagnostic("framework/foo.ts", "TS1234", "A"),
-            _diagnostic("tests/bar.ts", "TS2345", "B"),
+            _diagnostic("scripts/baz.ts", "TS7006", "C"),
         ]
     )
     service, _activity, _runner = _service(
@@ -357,10 +359,18 @@ def test_resolved_existing_diagnostic_is_reported_in_delta(tmp_path):
         ],
     )
 
-    result = asyncio.run(service.validate())
+    result = asyncio.run(service.validate(mode="delta"))
+    differential = result.differential.to_dict()
 
     assert result.status == "passed"
-    assert result.differential.to_dict()["resolvedDiagnosticCount"] == 1
+    assert differential["validationMode"] == "delta"
+    assert differential["baselineDiagnosticCount"] == 3
+    assert differential["currentDiagnosticCount"] == 2
+    assert differential["resolvedDiagnosticCount"] == 1
+    assert differential["resolvedDiagnostics"] == [
+        {"path": "tests/bar.ts", "code": "TS2345", "message": "B"}
+    ]
+    assert differential["unchangedDiagnosticCount"] == 2
     assert result.workspace_warning["diagnosticCount"] == 2
 
 
@@ -424,3 +434,32 @@ def test_parser_ignores_line_columns_for_fingerprint_and_normalizes_paths(tmp_pa
 
     assert first.available is True
     assert first.diagnostics[0].fingerprint == second.diagnostics[0].fingerprint
+
+
+def test_duplicate_diagnostic_occurrence_is_new_delta_and_fails(tmp_path):
+    baseline = (
+        "foo.ts(10,2): error TS2322: Type 'string' is not assignable to type 'number'"
+    )
+    post = "\n".join(
+        [
+            baseline,
+            "foo.ts(80,2): error TS2322: Type 'string' is not assignable to type 'number'",
+        ]
+    )
+    service, _activity, _runner = _service(
+        tmp_path,
+        [
+            CommandExecutionResult(baseline, 1, False),
+            CommandExecutionResult("verify ok", 0, False),
+            CommandExecutionResult(post, 1, False),
+        ],
+    )
+
+    result = asyncio.run(service.validate(mode="delta"))
+    differential = result.differential.to_dict()
+
+    assert result.status == "failed"
+    assert differential["baselineDiagnosticCount"] == 1
+    assert differential["currentDiagnosticCount"] == 2
+    assert differential["unchangedDiagnosticCount"] == 1
+    assert differential["newDiagnosticCount"] == 1

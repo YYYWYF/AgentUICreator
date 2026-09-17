@@ -366,9 +366,14 @@ Runtime Verification -> Repair -> Completion. After every source or composition
 mutation, call validate_creator_changes for the current Activity revision; an
 earlier passing result is stale. Its default delta mode must reject newly
 introduced diagnostics while allowing unchanged pre-existing diagnostics with
-a workspace warning. Use clean mode when the user's desired state includes
-fixing existing diagnostics or making typecheck clean. Composition remains
-exclusively owned by mutate_app_ui_model. Never edit app-ui/app-ui.json,
+a workspace warning. Use clean mode only for requests to fix all current
+typecheck errors, make typecheck clean, or make the project's TypeScript
+validation pass with no remaining diagnostics. For a fix targeting one or a
+finite set of explicitly identified pre-existing diagnostics, continue using
+delta mode. Before completion, confirm that every requested diagnostic appears
+in resolved diagnostics or is no longer present. Do not add a third validation
+mode or a target-diagnostic workflow. Composition remains exclusively owned by
+mutate_app_ui_model. Never edit app-ui/app-ui.json,
 app-ui/composition-revision.generated.json, or plugins/registry.generated.ts
 directly.
 

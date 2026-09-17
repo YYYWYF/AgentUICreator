@@ -80,11 +80,10 @@ def _diagnostic_from_match(
     )
 
 
-def _sorted_unique(
+def _sorted_diagnostics(
     diagnostics: list[TypeScriptDiagnostic],
 ) -> tuple[TypeScriptDiagnostic, ...]:
-    unique = {diagnostic.fingerprint: diagnostic for diagnostic in diagnostics}
-    return tuple(unique[key] for key in sorted(unique))
+    return tuple(sorted(diagnostics, key=lambda diagnostic: diagnostic.fingerprint))
 
 
 def parse_typescript_diagnostics(
@@ -157,5 +156,5 @@ def parse_typescript_diagnostics(
         )
     return TypeScriptDiagnosticParseResult(
         available=True,
-        diagnostics=_sorted_unique(diagnostics),
+        diagnostics=_sorted_diagnostics(diagnostics),
     )

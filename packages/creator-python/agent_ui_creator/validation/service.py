@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol
 
@@ -226,23 +227,26 @@ class CreatorValidationService:
             diagnostic.fingerprint: diagnostic
             for diagnostic in current.diagnostics
         }
+        baseline_counts = Counter(
+            diagnostic.fingerprint for diagnostic in baseline.diagnostics
+        )
+        current_counts = Counter(
+            diagnostic.fingerprint for diagnostic in current.diagnostics
+        )
         new = tuple(
             current_by_fingerprint[key]
-            for key in sorted(
-                set(current_by_fingerprint) - set(baseline_by_fingerprint)
-            )
+            for key in sorted(current_counts)
+            for _ in range(current_counts[key] - baseline_counts[key])
         )
         unchanged = tuple(
             current_by_fingerprint[key]
-            for key in sorted(
-                set(current_by_fingerprint) & set(baseline_by_fingerprint)
-            )
+            for key in sorted(current_counts)
+            for _ in range(min(current_counts[key], baseline_counts[key]))
         )
         resolved = tuple(
             baseline_by_fingerprint[key]
-            for key in sorted(
-                set(baseline_by_fingerprint) - set(current_by_fingerprint)
-            )
+            for key in sorted(baseline_counts)
+            for _ in range(baseline_counts[key] - current_counts[key])
         )
         return TypecheckDifferential(
             mode=mode,
