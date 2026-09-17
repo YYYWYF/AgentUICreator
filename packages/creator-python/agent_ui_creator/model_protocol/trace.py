@@ -56,8 +56,10 @@ class ToolProtocolMetrics:
     inputTokens: int = 0
     outputTokens: int = 0
     traces: list[ModelCallTrace] = field(default_factory=list)
+    protocolDiagnostics: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         value = asdict(self)
+        value["protocolDiagnostics"] = value["protocolDiagnostics"][-32:]
         value["traces"] = [trace.to_dict() for trace in self.traces]
         return value

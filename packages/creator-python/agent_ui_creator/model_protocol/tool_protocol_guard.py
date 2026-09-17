@@ -13,6 +13,7 @@ from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResp
 from langchain_core.messages import AIMessage, HumanMessage
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
+from pydantic import ValidationError as PydanticValidationError
 
 from ..run_control import CreatorRunControlState
 from .errors import AgentNoProgressError, ModelToolProtocolError
@@ -42,6 +43,9 @@ _TEXT_TOOL_PATTERNS = (
 )
 _MAX_TRACE_ITEMS = 64
 _MAX_TRACE_LABEL_LENGTH = 120
+_MAX_PROTOCOL_DIAGNOSTICS = 32
+_MAX_PROTOCOL_ARGUMENT_KEYS = 32
+_MAX_PROTOCOL_ERROR_PATH_ITEMS = 32
 
 
 def _trace_label(value: Any) -> str:
@@ -70,38 +74,179 @@ def _tool_name(tool: Any) -> str:
     return str(getattr(tool, "name", "") or "")
 
 
-def _arguments_are_valid(tool: Any, arguments: Any) -> bool:
+def _json_type(value: Any) -> str:
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "boolean"
+    if isinstance(value, int):
+        return "integer"
+    if isinstance(value, float):
+        return "number"
+    if isinstance(value, str):
+        return "string"
+    if isinstance(value, list):
+        return "array"
+    if isinstance(value, Mapping):
+        return "object"
+    return "unknown"
+
+
+def _argument_shape(arguments: Mapping[Any, Any]) -> dict[str, object]:
+    entries = sorted(
+        (
+            _trace_label(key),
+            _json_type(value),
+        )
+        for key, value in arguments.items()
+    )[:_MAX_PROTOCOL_ARGUMENT_KEYS]
+    return {
+        "argumentKeys": [key for key, _ in entries],
+        "argumentTypes": {key: value_type for key, value_type in entries},
+    }
+
+
+def _bounded_error_path(path: Any) -> list[object]:
+    if path is None:
+        return []
+    try:
+        values = list(path)
+    except TypeError:
+        return []
+    return [
+        value if isinstance(value, int) and not isinstance(value, bool) else _trace_label(value)
+        for value in values[:_MAX_PROTOCOL_ERROR_PATH_ITEMS]
+    ]
+
+
+def _validation_failure(
+    arguments: Any,
+    *,
+    error_path: Any = (),
+    error_type: Any = "argument_validation_error",
+) -> dict[str, object]:
+    if isinstance(arguments, Mapping):
+        diagnostic = _argument_shape(arguments)
+    else:
+        diagnostic = {
+            "argumentKeys": [],
+            "argumentTypes": {},
+            "argumentsType": _json_type(arguments),
+        }
+    diagnostic["errorPath"] = _bounded_error_path(error_path)
+    diagnostic["errorType"] = _trace_label(error_type)
+    return diagnostic
+
+
+def _validate_arguments(
+    tool: Any, arguments: Any
+) -> tuple[bool, dict[str, object] | None]:
     if not isinstance(arguments, Mapping):
-        return False
+        return False, _validation_failure(arguments, error_type="arguments_not_object")
     try:
         args_schema = getattr(tool, "args_schema", None)
         if isinstance(args_schema, Mapping):
             Draft202012Validator(dict(args_schema)).validate(dict(arguments))
-            return True
+            return True, None
         if hasattr(tool, "get_input_schema"):
-            tool.get_input_schema().model_validate(dict(arguments))
-            return True
+            input_schema = tool.get_input_schema()
+            model_validate = getattr(input_schema, "model_validate", None)
+            if callable(model_validate):
+                model_validate(dict(arguments))
+                return True, None
         if isinstance(tool, Mapping):
             function = tool.get("function", tool)
             schema = function.get("parameters", {}) if isinstance(function, Mapping) else {}
-            required = schema.get("required", []) if isinstance(schema, Mapping) else []
-            properties = schema.get("properties", {}) if isinstance(schema, Mapping) else {}
-            if any(name not in arguments for name in required):
-                return False
-            if isinstance(properties, Mapping):
-                for name, value in arguments.items():
-                    descriptor = properties.get(name)
-                    expected = descriptor.get("type") if isinstance(descriptor, Mapping) else None
-                    if expected == "string" and not isinstance(value, str):
-                        return False
-                    if expected == "object" and not isinstance(value, Mapping):
-                        return False
-                    if expected == "array" and not isinstance(value, list):
-                        return False
-            return True
-    except (TypeError, ValueError, ValidationError):
+            if isinstance(schema, Mapping) and schema:
+                Draft202012Validator(dict(schema)).validate(dict(arguments))
+            return True, None
+    except PydanticValidationError as error:
+        errors = error.errors(
+            include_url=False,
+            include_context=False,
+            include_input=False,
+        )
+        first = errors[0] if errors else {}
+        return False, _validation_failure(
+            arguments,
+            error_path=first.get("loc", ()),
+            error_type=first.get("type", "argument_validation_error"),
+        )
+    except ValidationError as error:
+        return False, _validation_failure(
+            arguments,
+            error_path=getattr(error, "absolute_path", getattr(error, "path", ())),
+            error_type=getattr(error, "validator", None) or "argument_validation_error",
+        )
+    except (TypeError, ValueError):
+        return False, _validation_failure(arguments)
+    return True, None
+
+
+def _record_protocol_diagnostic(
+    metrics: ToolProtocolMetrics, diagnostic: Mapping[str, object]
+) -> None:
+    metrics.protocolDiagnostics.append(dict(diagnostic))
+    del metrics.protocolDiagnostics[:-_MAX_PROTOCOL_DIAGNOSTICS]
+
+
+def _record_argument_validation_failure(
+    metrics: ToolProtocolMetrics,
+    *,
+    tool_name: str,
+    metadata: Mapping[str, object],
+) -> None:
+    diagnostic: dict[str, object] = {
+        "kind": "tool_argument_validation_failure",
+        "modelCallSequence": metrics.modelCalls,
+        "toolName": _trace_label(tool_name),
+    }
+    diagnostic.update(metadata)
+    _record_protocol_diagnostic(metrics, diagnostic)
+
+
+def _call_tool_name(call: Any) -> str:
+    if not isinstance(call, Mapping):
+        return ""
+    direct = call.get("name")
+    if direct:
+        return str(direct)
+    function = call.get("function")
+    if isinstance(function, Mapping):
+        return str(function.get("name") or "")
+    return ""
+
+
+def _single_tool_intent_name(response: ModelResponse[Any]) -> str | None:
+    message = _ai_message(response)
+    if message is None:
+        return None
+    names = [
+        *(_call_tool_name(call) for call in message.tool_calls),
+        *(_call_tool_name(call) for call in message.invalid_tool_calls),
+    ]
+    if isinstance(message.content, list):
+        names.extend(
+            str(block.get("name"))
+            for block in message.content
+            if isinstance(block, Mapping)
+            and block.get("type") == "text"
+            and isinstance(block.get("name"), str)
+            and "args" in block
+        )
+    if len(names) != 1 or not names[0]:
+        return None
+    return names[0]
+
+
+def _repair_response_matches(
+    decision: GuardDecision, expected_tool_name: str | None
+) -> bool:
+    if decision.status not in {"tool_call", "recovered"}:
         return False
-    return True
+    if expected_tool_name is None:
+        return True
+    return _single_tool_intent_name(decision.response) == expected_tool_name
 
 
 def _ai_message(response: ModelResponse[Any]) -> AIMessage | None:
@@ -213,6 +358,28 @@ class ToolProtocolGuard:
             self.metrics.invalidToolCalls += len(message.invalid_tool_calls)
             self.metrics.toolCalls += len(message.invalid_tool_calls)
             self.metrics.toolArgumentParseFailures += len(message.invalid_tool_calls)
+            for call in message.invalid_tool_calls:
+                name = _call_tool_name(call)
+                if not name:
+                    continue
+                arguments = call.get("args") if isinstance(call, Mapping) else None
+                if isinstance(arguments, Mapping):
+                    metadata = _argument_shape(arguments)
+                else:
+                    metadata = {
+                        "argumentKeys": [],
+                        "argumentTypes": {},
+                        "argumentsType": _json_type(arguments),
+                    }
+                metadata["errorPath"] = []
+                metadata["errorType"] = "invalid_tool_call_arguments"
+                diagnostic = {
+                    "kind": "tool_argument_parse_failure",
+                    "modelCallSequence": self.metrics.modelCalls,
+                    "toolName": _trace_label(name),
+                    **metadata,
+                }
+                _record_protocol_diagnostic(self.metrics, diagnostic)
             return GuardDecision(response, "repair")
 
         if message.tool_calls:
@@ -229,10 +396,18 @@ class ToolProtocolGuard:
                 if tool is None:
                     all_valid = False
                     call_valid = False
-                elif not _arguments_are_valid(tool, call.get("args")):
-                    self.metrics.toolArgumentParseFailures += 1
-                    all_valid = False
-                    call_valid = False
+                else:
+                    arguments_valid, diagnostic = _validate_arguments(tool, call.get("args"))
+                    if not arguments_valid:
+                        self.metrics.toolArgumentParseFailures += 1
+                        if diagnostic is not None:
+                            _record_argument_validation_failure(
+                                self.metrics,
+                                tool_name=name,
+                                metadata=diagnostic,
+                            )
+                        all_valid = False
+                        call_valid = False
                 if call_valid:
                     self.metrics.validToolCalls += 1
                 else:
@@ -248,9 +423,18 @@ class ToolProtocolGuard:
                 name = str(block.get("name") or "")
                 arguments = block.get("args")
                 tool = registry.get(name)
+                arguments_valid, diagnostic = (
+                    _validate_arguments(tool, arguments) if tool is not None else (False, None)
+                )
+                if tool is not None and not arguments_valid and diagnostic is not None:
+                    _record_argument_validation_failure(
+                        self.metrics,
+                        tool_name=name,
+                        metadata=diagnostic,
+                    )
                 if (
                     tool is not None
-                    and _arguments_are_valid(tool, arguments)
+                    and arguments_valid
                     and not self._has_conflicting_final_text(message, index)
                 ):
                     call = {
@@ -430,9 +614,40 @@ class ToolProtocolMiddleware(AgentMiddleware):
             )
         )
 
-    def _repair_request(self, request: ModelRequest) -> ModelRequest:
+    def _repair_request(
+        self, request: ModelRequest, expected_tool_name: str | None
+    ) -> ModelRequest:
+        prompt = PROTOCOL_REPAIR_PROMPT
+        if expected_tool_name is not None:
+            prompt = f"""Your previous response attempted an invalid structured call to
+`{expected_tool_name}`.
+
+Re-issue only that intended action using the provided structured tool interface.
+Do not switch to another tool.
+Do not explain the error in prose."""
         return request.override(
-            messages=[*request.messages, HumanMessage(content=PROTOCOL_REPAIR_PROMPT)]
+            messages=[*request.messages, HumanMessage(content=prompt)]
+        )
+
+    def _record_repair_drift(
+        self,
+        *,
+        original_tool_name: str | None,
+        repaired: ModelResponse[Any],
+    ) -> None:
+        if original_tool_name is None:
+            return
+        repair_tool_name = _single_tool_intent_name(repaired)
+        if repair_tool_name is None or repair_tool_name == original_tool_name:
+            return
+        _record_protocol_diagnostic(
+            self.metrics,
+            {
+                "kind": "protocol_repair_tool_drift",
+                "originalToolName": _trace_label(original_tool_name),
+                "repairToolName": _trace_label(repair_tool_name),
+                "modelCallSequence": self.metrics.modelCalls,
+            },
         )
 
     def wrap_model_call(
@@ -449,16 +664,21 @@ class ToolProtocolMiddleware(AgentMiddleware):
         if decision.status != "repair":
             return decision.response
         self.metrics.protocolRepairAttempts += 1
+        expected_tool_name = _single_tool_intent_name(response)
         self._before_call()
-        repaired_request = self._repair_request(request)
+        repaired_request = self._repair_request(request, expected_tool_name)
         started_at = time.monotonic()
         repaired = handler(repaired_request)
         self._record(repaired, repaired_request, started_at)
         decision = self.guard.inspect(repaired, repaired_request.tools, require_tool=True)
         self._observe_protocol_counts()
-        if decision.status in {"tool_call", "recovered"}:
+        if _repair_response_matches(decision, expected_tool_name):
             self.metrics.protocolRepairSuccesses += 1
             return decision.response
+        self._record_repair_drift(
+            original_tool_name=expected_tool_name,
+            repaired=repaired,
+        )
         self.metrics.protocolRepairFailures += 1
         raise ModelToolProtocolError("MiMo returned malformed tool intent after one repair attempt.")
 
@@ -476,15 +696,20 @@ class ToolProtocolMiddleware(AgentMiddleware):
         if decision.status != "repair":
             return decision.response
         self.metrics.protocolRepairAttempts += 1
+        expected_tool_name = _single_tool_intent_name(response)
         self._before_call()
-        repaired_request = self._repair_request(request)
+        repaired_request = self._repair_request(request, expected_tool_name)
         started_at = time.monotonic()
         repaired = await handler(repaired_request)
         self._record(repaired, repaired_request, started_at)
         decision = self.guard.inspect(repaired, repaired_request.tools, require_tool=True)
         self._observe_protocol_counts()
-        if decision.status in {"tool_call", "recovered"}:
+        if _repair_response_matches(decision, expected_tool_name):
             self.metrics.protocolRepairSuccesses += 1
             return decision.response
+        self._record_repair_drift(
+            original_tool_name=expected_tool_name,
+            repaired=repaired,
+        )
         self.metrics.protocolRepairFailures += 1
         raise ModelToolProtocolError("MiMo returned malformed tool intent after one repair attempt.")

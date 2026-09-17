@@ -2,7 +2,8 @@ import httpx
 import pytest
 from langchain.agents.middleware import ModelRequest, ModelResponse
 from langchain_core.messages import AIMessage
-from langchain_core.tools import tool
+from langchain_core.tools import StructuredTool, tool
+from pydantic import create_model
 
 from agent_ui_creator.model_protocol import (
     ModelToolProtocolError,
@@ -27,6 +28,16 @@ def inspect(message, *, require_tool=False):
     return decision, metrics
 
 
+def _layout_tool():
+    schema = create_model("RuntimeLayoutArgs", nodeRefs=(list[str] | None, None))
+    return StructuredTool.from_function(
+        lambda nodeRefs=None: str(nodeRefs),
+        name="inspect_runtime_layout",
+        description="Inspect the runtime layout.",
+        args_schema=schema,
+    )
+
+
 def test_valid_structured_tool_call_passes_through():
     message = AIMessage(
         content="",
@@ -39,6 +50,7 @@ def test_valid_structured_tool_call_passes_through():
     assert decision.status == "tool_call"
     assert decision.response.result[0] is message
     assert metrics.validToolCalls == 1
+    assert metrics.protocolDiagnostics == []
 
 
 def test_invalid_tool_call_requests_repair():
@@ -53,6 +65,122 @@ def test_invalid_tool_call_requests_repair():
     assert decision.status == "repair"
     assert metrics.invalidToolCalls == 1
     assert metrics.toolArgumentParseFailures == 1
+
+
+def test_pydantic_argument_failure_records_bounded_shape():
+    metrics = ToolProtocolMetrics(modelCalls=5)
+    decision = ToolProtocolGuard(metrics).inspect(
+        ModelResponse(
+            result=[
+                AIMessage(
+                    content="",
+                    tool_calls=[
+                        {
+                            "name": "inspect_runtime_layout",
+                            "args": {"nodeRefs": "l0"},
+                            "id": "call-1",
+                        }
+                    ],
+                )
+            ]
+        ),
+        [_layout_tool()],
+    )
+
+    assert decision.status == "repair"
+    assert metrics.protocolDiagnostics == [
+        {
+            "kind": "tool_argument_validation_failure",
+            "modelCallSequence": 5,
+            "toolName": "inspect_runtime_layout",
+            "argumentKeys": ["nodeRefs"],
+            "argumentTypes": {"nodeRefs": "string"},
+            "errorPath": ["nodeRefs"],
+            "errorType": "list_type",
+        }
+    ]
+    assert "l0" not in str(metrics.protocolDiagnostics)
+
+
+def test_json_schema_extra_key_records_only_argument_shape():
+    tool_definition = {
+        "name": "inspect_runtime_layout",
+        "function": {
+            "parameters": {
+                "type": "object",
+                "properties": {"nodeRefs": {"type": "array"}},
+                "additionalProperties": False,
+            }
+        },
+    }
+    metrics = ToolProtocolMetrics(modelCalls=3)
+    decision = ToolProtocolGuard(metrics).inspect(
+        ModelResponse(
+            result=[
+                AIMessage(
+                    content="",
+                    tool_calls=[
+                        {
+                            "name": "inspect_runtime_layout",
+                            "args": {"layoutNodeIds": ["secret-node"]},
+                            "id": "call-1",
+                        }
+                    ],
+                )
+            ]
+        ),
+        [tool_definition],
+    )
+
+    assert decision.status == "repair"
+    diagnostic = metrics.protocolDiagnostics[0]
+    assert diagnostic["argumentKeys"] == ["layoutNodeIds"]
+    assert diagnostic["argumentTypes"] == {"layoutNodeIds": "array"}
+    assert diagnostic["errorType"] == "additionalProperties"
+    assert "secret-node" not in str(diagnostic)
+
+
+def test_non_object_arguments_record_type_without_value():
+    metrics = ToolProtocolMetrics(modelCalls=7)
+    decision = ToolProtocolGuard(metrics).inspect(
+        ModelResponse(
+            result=[
+                AIMessage(
+                    content=[
+                        {
+                            "type": "text",
+                            "name": "inspect_runtime_layout",
+                            "args": "secret-argument",
+                        }
+                    ]
+                )
+            ]
+        ),
+        [_layout_tool()],
+    )
+
+    assert decision.status == "repair"
+    assert metrics.protocolDiagnostics[0] == {
+        "kind": "tool_argument_validation_failure",
+        "modelCallSequence": 7,
+        "toolName": "inspect_runtime_layout",
+        "argumentKeys": [],
+        "argumentTypes": {},
+        "argumentsType": "string",
+        "errorPath": [],
+        "errorType": "arguments_not_object",
+    }
+    assert "secret-argument" not in str(metrics.protocolDiagnostics)
+
+
+def test_protocol_diagnostics_keep_only_the_most_recent_32_entries():
+    metrics = ToolProtocolMetrics()
+    for index in range(40):
+        metrics.protocolDiagnostics.append({"sequence": index})
+
+    assert [item["sequence"] for item in metrics.to_dict()["protocolDiagnostics"]] == list(
+        range(8, 40)
+    )
 
 
 def test_high_confidence_pseudo_call_is_recovered():
@@ -120,10 +248,12 @@ def test_second_malformed_response_fails_after_exactly_one_repair():
     middleware = ToolProtocolMiddleware()
     request = ModelRequest(model=object(), messages=[], tools=[read_file])
     calls = 0
+    requests = []
 
-    def handler(_request):
+    def handler(current_request):
         nonlocal calls
         calls += 1
+        requests.append(current_request)
         return ModelResponse(result=[AIMessage(content='read_file({"file_path":"/x"})')])
 
     with pytest.raises(ModelToolProtocolError) as raised:
@@ -131,6 +261,8 @@ def test_second_malformed_response_fails_after_exactly_one_repair():
 
     assert raised.value.code == "MODEL_TOOL_PROTOCOL_ERROR"
     assert calls == 2
+    assert "Do not switch to another tool." not in requests[1].messages[-1].content
+    assert "Re-issue only the intended action" in requests[1].messages[-1].content
     assert middleware.metrics.protocolRepairAttempts == 1
     assert middleware.metrics.protocolRepairFailures == 1
 
@@ -140,7 +272,20 @@ def test_one_repair_can_restore_a_structured_tool_call():
     request = ModelRequest(model=object(), messages=[], tools=[read_file])
     responses = iter(
         [
-            ModelResponse(result=[AIMessage(content='read_file({"file_path":"/x"})')]),
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="",
+                        tool_calls=[
+                            {
+                                "name": "read_file",
+                                "args": {"file_path": 1},
+                                "id": "call-1",
+                            }
+                        ],
+                    )
+                ]
+            ),
             ModelResponse(
                 result=[
                     AIMessage(
@@ -158,11 +303,80 @@ def test_one_repair_can_restore_a_structured_tool_call():
         ]
     )
 
-    response = middleware.wrap_model_call(request, lambda _request: next(responses))
+    requests = []
+
+    def handler(current_request):
+        requests.append(current_request)
+        return next(responses)
+
+    response = middleware.wrap_model_call(request, handler)
 
     assert response.result[0].tool_calls[0]["id"] == "repair-1"
+    assert "read_file" in requests[1].messages[-1].content
     assert middleware.metrics.protocolRepairAttempts == 1
     assert middleware.metrics.protocolRepairSuccesses == 1
+
+
+def test_repair_cannot_switch_away_from_the_original_structured_tool():
+    middleware = ToolProtocolMiddleware()
+    layout_tool = _layout_tool()
+    request = ModelRequest(
+        model=object(),
+        messages=[],
+        tools=[layout_tool, read_file],
+    )
+    responses = iter(
+        [
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="",
+                        tool_calls=[
+                            {
+                                "name": "inspect_runtime_layout",
+                                "args": {"nodeRefs": "l0"},
+                                "id": "call-1",
+                            }
+                        ],
+                    )
+                ]
+            ),
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="",
+                        tool_calls=[
+                            {
+                                "name": "read_file",
+                                "args": {"file_path": "/x"},
+                                "id": "repair-1",
+                            }
+                        ],
+                    )
+                ]
+            ),
+        ]
+    )
+    requests = []
+
+    def handler(current_request):
+        requests.append(current_request)
+        return next(responses)
+
+    with pytest.raises(ModelToolProtocolError):
+        middleware.wrap_model_call(request, handler)
+
+    repair_prompt = requests[1].messages[-1].content
+    assert "inspect_runtime_layout" in repair_prompt
+    assert "Do not switch to another tool." in repair_prompt
+    assert middleware.metrics.protocolRepairSuccesses == 0
+    assert middleware.metrics.protocolRepairFailures == 1
+    assert middleware.metrics.protocolDiagnostics[-1] == {
+        "kind": "protocol_repair_tool_drift",
+        "originalToolName": "inspect_runtime_layout",
+        "repairToolName": "read_file",
+        "modelCallSequence": 2,
+    }
 
 
 def test_model_trace_observes_reasoning_and_retention():
