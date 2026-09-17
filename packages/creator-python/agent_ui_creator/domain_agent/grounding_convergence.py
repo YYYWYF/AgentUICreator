@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
+from typing import Any
 
 from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResponse
 from langchain_core.messages import SystemMessage, ToolMessage
@@ -13,8 +14,23 @@ from ..domain_state import (
     is_cross_layer_read,
 )
 from ..minimal_agent.path_policy import PolicyFilesystemBackend
+from ..minimal_agent.tool_policy import tool_name
 from ..model_protocol.trace import ToolProtocolMetrics
 from .tool_policy import READ_ONLY_TOOL_NAMES
+
+
+COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
+    "read_file",
+    "mutate_app_ui_model",
+    "inspect_runtime_layout",
+)
+COMPOSITION_POST_MUTATION_TOOL_NAMES = (
+    "read_file",
+    "mutate_app_ui_model",
+    "inspect_runtime_layout",
+    "validate_creator_changes",
+    "inspect_runtime_errors",
+)
 
 
 COMPOSITION_GROUNDING_CONTROL = """Composition grounding is sufficient.
@@ -39,16 +55,44 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         self.backend = backend
         self.protocol_metrics = protocol_metrics or ToolProtocolMetrics()
 
+    @staticmethod
+    def _composition_lane_tools(
+        tools: Sequence[Any], *, after_mutation: bool
+    ) -> list[Any]:
+        allowed_names = frozenset(
+            COMPOSITION_POST_MUTATION_TOOL_NAMES
+            if after_mutation
+            else COMPOSITION_PRE_MUTATION_TOOL_NAMES
+        )
+        by_name = {
+            tool_name(candidate): candidate
+            for candidate in tools
+            if tool_name(candidate) in allowed_names
+        }
+        names = (
+            COMPOSITION_POST_MUTATION_TOOL_NAMES
+            if after_mutation
+            else COMPOSITION_PRE_MUTATION_TOOL_NAMES
+        )
+        return [by_name[name] for name in names if name in by_name]
+
     def _request(self, request: ModelRequest) -> ModelRequest:
         if self.observations.composition_grounding_status(
             current_revision=self.backend.mutation_revision
         ) != "grounded":
             return request
+        after_mutation = (
+            self.observations.composition_fast_path_metrics.first_mutation_started
+        )
         return request.override(
             messages=[
                 *request.messages,
                 SystemMessage(content=COMPOSITION_GROUNDING_CONTROL),
-            ]
+            ],
+            tools=self._composition_lane_tools(
+                request.tools,
+                after_mutation=after_mutation,
+            ),
         )
 
     def wrap_model_call(

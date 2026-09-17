@@ -475,6 +475,8 @@ def test_grounding_prompt_preserves_decision_and_write_boundaries():
         "For a fix targeting one or a finite set of explicitly identified pre-existing diagnostics, continue using delta mode",
         "Before completion, confirm that every requested diagnostic appears in resolved diagnostics or is no longer present",
         "Do not add a third validation mode or a target-diagnostic workflow",
+        "request those two independent reads together",
+        "/skills/ui-layout/SKILL.md as the third read",
     ):
         assert rule in prompt
 

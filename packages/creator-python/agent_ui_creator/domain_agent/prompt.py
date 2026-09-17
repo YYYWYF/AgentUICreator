@@ -275,6 +275,13 @@ tool calls, with no duplicate tool name + arguments. Do not batch speculative
 inspections or read more merely to fill a batch. If a later tool's arguments or
 necessity depend on an earlier result, wait for that result.
 
+For an AppUIModel mutation, when the current conversation has not yet observed
+both /skills/app-ui-model/SKILL.md and inspect_ui_project(view="composition"),
+request those two independent reads together. For an explicit layout, spacing,
+gap, adjacency, size, or position request, include /skills/ui-layout/SKILL.md as
+the third read when it is also unobserved. Keep the batch read-only and do not
+wait merely to fill it.
+
 If a non-Composition, cross-layer request genuinely requires list_ui_plugins,
 call it only when the fresh Composition Snapshot does not already cover the fact.
 If the target identifiers are already available and multiple independent

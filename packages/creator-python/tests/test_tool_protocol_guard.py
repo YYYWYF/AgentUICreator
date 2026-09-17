@@ -1,7 +1,9 @@
+import json
+
 import httpx
 import pytest
 from langchain.agents.middleware import ModelRequest, ModelResponse
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_core.tools import StructuredTool, tool
 from pydantic import create_model
 
@@ -404,6 +406,37 @@ def test_model_trace_observes_reasoning_and_retention():
     assert trace.reasoningContentRetained is True
     assert trace.inputTokens == 10
     assert trace.outputTokens == 2
+
+
+def test_model_trace_records_request_shape_without_request_contents():
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(
+        model=object(),
+        system_message=SystemMessage(content="system instructions"),
+        messages=[HumanMessage(content="user secret content")],
+        tools=[read_file, _layout_tool()],
+    )
+
+    middleware.wrap_model_call(
+        request,
+        lambda _request: ModelResponse(result=[AIMessage(content="done")]),
+    )
+
+    trace = middleware.metrics.traces[0]
+    assert trace.requestMessageCount == 2
+    assert trace.requestMessageChars == len("system instructions") + len(
+        "user secret content"
+    )
+    assert trace.requestToolCount == 2
+    assert trace.requestToolSchemaChars > 0
+    assert trace.requestMaxToolSchemaChars > 0
+    assert trace.requestMaxToolSchemaName in {
+        "read_file",
+        "inspect_runtime_layout",
+    }
+    assert trace.offeredToolNames == ("read_file", "inspect_runtime_layout")
+    serialized = json.dumps(trace.to_dict(), ensure_ascii=False)
+    assert "user secret content" not in serialized
 
 
 def _capture_provider(collector, payload, *, status_code=200):

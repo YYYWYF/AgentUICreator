@@ -39,6 +39,12 @@ def _connection_error() -> openai.APIConnectionError:
     return error
 
 
+def _remote_protocol_error(message: str) -> openai.APIConnectionError:
+    error = openai.APIConnectionError(request=REQUEST)
+    error.__cause__ = httpx.RemoteProtocolError(message, request=REQUEST)
+    return error
+
+
 def _status_error(status_code: int) -> openai.APIStatusError:
     response = httpx.Response(
         status_code,
@@ -268,6 +274,36 @@ def test_exhausted_transport_retry_logs_bounded_failure_events(monkeypatch, tmp_
         "statusCode": None,
         "providerRequestId": None,
     }
+
+
+def test_remote_protocol_error_logs_only_bounded_cause_message(monkeypatch, tmp_path):
+    monkeypatch.setattr("langchain.agents.middleware.model_retry.time.sleep", lambda _: None)
+    logger = CreatorRunLogger(tmp_path)
+    logger.begin(run_id="remote-protocol-log", agent_mode="minimal")
+    message = "peer closed connection without sending complete message body " + "x" * 300
+
+    with pytest.raises(ModelTransportError) as raised:
+        _invoke_script(
+            [
+                _remote_protocol_error(message),
+                _remote_protocol_error(message),
+                _remote_protocol_error(message),
+            ],
+            logger=logger,
+        )
+    logger.finish("error", error=raised.value)
+
+    events = _events(logger)
+    failure = next(
+        event for event in events if event["type"] == "model_transport_attempt_failed"
+    )
+    exhausted = next(
+        event for event in events if event["type"] == "model_transport_retry_exhausted"
+    )
+    assert failure["data"]["causeType"] == "RemoteProtocolError"
+    assert failure["data"]["causeMessage"] == message[:256]
+    assert exhausted["data"]["causeMessage"] == message[:256]
+    assert raised.value.to_dict()["causeMessage"] == message[:256]
 
 
 def test_successful_tool_is_not_replayed_after_next_model_retry(monkeypatch):

@@ -106,6 +106,13 @@ def _safe_value(value: Any) -> str | None:
     return value[:_SAFE_VALUE_LENGTH]
 
 
+def _remote_protocol_cause_message(error: BaseException) -> str | None:
+    for candidate in _exception_chain(error):
+        if isinstance(candidate, httpx.RemoteProtocolError):
+            return _safe_value(str(candidate))
+    return None
+
+
 def _transport_details(error: BaseException) -> dict[str, object]:
     status_code = _status_code(error)
     provider_request_id = None
@@ -122,12 +129,16 @@ def _transport_details(error: BaseException) -> dict[str, object]:
             break
     chain = list(_exception_chain(error))
     cause_type = type(chain[1]).__name__ if len(chain) > 1 else None
-    return {
+    details: dict[str, object] = {
         "errorType": type(error).__name__,
         "causeType": cause_type,
         "statusCode": status_code,
         "providerRequestId": provider_request_id,
     }
+    cause_message = _remote_protocol_cause_message(error)
+    if cause_message is not None:
+        details["causeMessage"] = cause_message
+    return details
 
 
 @dataclass(slots=True)
@@ -219,6 +230,9 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
             error_type=str(details["errorType"]),
             cause_type=details["causeType"]
             if isinstance(details["causeType"], str)
+            else None,
+            cause_message=details["causeMessage"]
+            if isinstance(details.get("causeMessage"), str)
             else None,
             status_code=details["statusCode"]
             if isinstance(details["statusCode"], int)

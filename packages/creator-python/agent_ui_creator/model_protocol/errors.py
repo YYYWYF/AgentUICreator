@@ -38,12 +38,14 @@ class ModelTransportError(CreatorAgentError):
         attempts: int,
         error_type: str,
         cause_type: str | None = None,
+        cause_message: str | None = None,
         status_code: int | None = None,
         provider_request_id: str | None = None,
     ) -> None:
         self.attempts = max(0, int(attempts))
         self.error_type = error_type
         self.cause_type = cause_type
+        self.cause_message = cause_message
         self.status_code = status_code
         self.provider_request_id = provider_request_id
         super().__init__(
@@ -51,7 +53,7 @@ class ModelTransportError(CreatorAgentError):
         )
 
     def to_dict(self) -> dict[str, object]:
-        return {
+        details = {
             "category": self.category,
             "code": self.code,
             "recoverable": self.recoverable,
@@ -61,6 +63,9 @@ class ModelTransportError(CreatorAgentError):
             "statusCode": self.status_code,
             "providerRequestId": self.provider_request_id,
         }
+        if self.cause_message is not None:
+            details["causeMessage"] = self.cause_message
+        return details
 
 
 class DeepAgentEventStreamUnavailableError(CreatorAgentError):

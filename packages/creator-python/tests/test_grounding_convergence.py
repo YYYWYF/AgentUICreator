@@ -9,8 +9,11 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, Tool
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.domain_agent.grounding_convergence import (
     COMPOSITION_GROUNDING_CONTROL,
+    COMPOSITION_POST_MUTATION_TOOL_NAMES,
+    COMPOSITION_PRE_MUTATION_TOOL_NAMES,
     CompositionGroundingConvergenceMiddleware,
 )
+from agent_ui_creator.domain_agent.tool_policy import ALLOWED_DOMAIN_WRITE_TOOLS
 from agent_ui_creator.domain_state import DomainObservationContext
 from agent_ui_creator.minimal_agent.path_policy import (
     MinimalAgentPathPolicy,
@@ -71,6 +74,65 @@ def test_grounded_composition_injects_short_execution_control(tmp_path):
         and message.content == COMPOSITION_GROUNDING_CONTROL
         for message in seen[-1]
     )
+
+
+def test_grounded_composition_narrows_and_restores_tool_surface(tmp_path):
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    observations = DomainObservationContext()
+    all_tools = [
+        SimpleNamespace(name=name)
+        for name in ALLOWED_DOMAIN_WRITE_TOOLS
+    ]
+    request = ModelRequest(model=Mock(), messages=[], tools=all_tools)
+    middleware = CompositionGroundingConvergenceMiddleware(observations, backend)
+    seen = []
+
+    def handler(candidate):
+        seen.append(candidate)
+        return ModelResponse(result=[AIMessage(content="done")])
+
+    middleware.wrap_model_call(request, handler)
+    assert [tool.name for tool in seen[-1].tools] == [tool.name for tool in all_tools]
+
+    observations.observe_composition_snapshot(
+        hash="a" * 64,
+        revision=0,
+        coverage=COMPOSITION_COVERAGE,
+    )
+    middleware.wrap_model_call(request, handler)
+    assert [tool.name for tool in seen[-1].tools] == list(
+        COMPOSITION_PRE_MUTATION_TOOL_NAMES
+    )
+    assert "inspect_app_ui_model" not in [tool.name for tool in seen[-1].tools]
+
+    middleware.wrap_tool_call(
+        _tool_request("mutate_app_ui_model", {"operations": []}),
+        lambda candidate: ToolMessage(
+            content='{"ok":true}',
+            tool_call_id=candidate.tool_call["id"],
+            name=candidate.tool_call["name"],
+        ),
+    )
+    middleware.wrap_model_call(request, handler)
+    assert [tool.name for tool in seen[-1].tools] == list(
+        COMPOSITION_POST_MUTATION_TOOL_NAMES
+    )
+
+    backend.activity.touch("app-ui/app-ui.json")
+    middleware.wrap_model_call(request, handler)
+    assert [tool.name for tool in seen[-1].tools] == [tool.name for tool in all_tools]
+
+    observations.observe_composition_snapshot(
+        hash="b" * 64,
+        revision=backend.mutation_revision,
+        coverage=COMPOSITION_COVERAGE,
+    )
+    observations.clear_composition_grounding(
+        reason="full_project_navigation",
+        current_revision=backend.mutation_revision,
+    )
+    middleware.wrap_model_call(request, handler)
+    assert [tool.name for tool in seen[-1].tools] == [tool.name for tool in all_tools]
 
 
 def _tool_request(name, arguments, call_id="call-1"):

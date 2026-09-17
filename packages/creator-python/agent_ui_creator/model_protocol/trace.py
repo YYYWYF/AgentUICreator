@@ -22,12 +22,20 @@ class ModelCallTrace:
     langChainPseudoToolNames: tuple[str, ...] = ()
     translationMismatch: str | None = None
     toolCallOrigin: str | None = None
+    requestMessageCount: int = 0
+    requestMessageChars: int = 0
+    requestToolCount: int = 0
+    requestToolSchemaChars: int = 0
+    requestMaxToolSchemaChars: int = 0
+    requestMaxToolSchemaName: str | None = None
+    offeredToolNames: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         value = asdict(self)
         value["contentBlockTypes"] = list(self.contentBlockTypes)
         value["toolCallNames"] = list(self.toolCallNames)
         value["langChainPseudoToolNames"] = list(self.langChainPseudoToolNames)
+        value["offeredToolNames"] = list(self.offeredToolNames)
         return value
 
 
