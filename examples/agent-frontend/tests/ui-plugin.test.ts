@@ -67,6 +67,46 @@ describe("UIPluginManifest", () => {
     expect(manifest.data?.events).toEqual(["workspace.patch.applied"]);
   });
 
+  it("parses positive authoring semantics for capability reuse", () => {
+    const manifest = parseUIPluginManifest({
+      id: "conversation-thread-list",
+      name: "Conversation Thread List",
+      description: "Manages conversation history",
+      version: "1.0.0",
+      authoring: {
+        intents: ["add conversation management", "browse conversation history"],
+        visualRole: "conversation navigation",
+        typicalPlacement: {
+          relation: "before",
+          anchorPluginId: "conversation-surface",
+        },
+        recommendedSize: { width: "300px" },
+      },
+    });
+
+    expect(manifest.authoring).toEqual({
+      intents: ["add conversation management", "browse conversation history"],
+      visualRole: "conversation navigation",
+      typicalPlacement: {
+        relation: "before",
+        anchorPluginId: "conversation-surface",
+      },
+      recommendedSize: { width: "300px" },
+    });
+  });
+
+  it("rejects empty authoring semantics and recommended sizes", () => {
+    expect(() =>
+      parseUIPluginManifest({
+        id: "empty-authoring",
+        name: "Empty authoring",
+        description: "Invalid fixture",
+        version: "1.0.0",
+        authoring: { intents: [], recommendedSize: {} },
+      }),
+    ).toThrow();
+  });
+
   it("rejects duplicate capabilities", () => {
     const result = uiPluginManifestSchema.safeParse({
       id: "file-preview",

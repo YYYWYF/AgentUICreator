@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "4f05e0873f9cb4eb3c7ee5df34848cfba14532e0efa307e0e1decf4a72ead5e4";
+export const capabilityCatalogRevision = "aef51a53436e83ad085ce4b62389e45ac63ab867492ee01b949447a9b56b3ce9";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -15,7 +15,12 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
       "version": "1.0.0",
       "capabilities": [
         "headless"
-      ]
+      ],
+      "authoring": {
+        "intents": [
+          "provide persistent conversation history data to conversation capabilities"
+        ]
+      }
     },
     provides: ["agent-ui.conversation-data-source"],
     inject: [],
@@ -35,7 +40,12 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
         "headless",
         "conversation-service",
         "plugin-service-provider"
-      ]
+      ],
+      "authoring": {
+        "intents": [
+          "provide shared conversation management state and history navigation"
+        ]
+      }
     },
     provides: ["agent-ui.conversations"],
     inject: ["agent-ui.conversation-data-source"],
@@ -53,7 +63,13 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
       "version": "1.0.0",
       "capabilities": [
         "conversation-suggestions"
-      ]
+      ],
+      "authoring": {
+        "intents": [
+          "show starter prompts and suggested conversation actions"
+        ],
+        "visualRole": "conversation empty-state suggestions"
+      }
     },
     provides: [],
     inject: [],
@@ -72,6 +88,15 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
       "capabilities": [
         "conversation-surface"
       ],
+      "authoring": {
+        "intents": [
+          "show the primary live and historical conversation experience"
+        ],
+        "visualRole": "primary conversation surface",
+        "recommendedSize": {
+          "width": "minmax(0, 1fr)"
+        }
+      },
       "slots": {
         "children": {
           "emptyWelcome": {
@@ -109,7 +134,23 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
         "conversation-history",
         "conversation-selection",
         "plugin-service-consumer"
-      ]
+      ],
+      "authoring": {
+        "intents": [
+          "add conversation management",
+          "browse conversation history",
+          "select an existing conversation",
+          "start a new conversation"
+        ],
+        "visualRole": "conversation navigation",
+        "typicalPlacement": {
+          "relation": "before",
+          "anchorPluginId": "conversation-surface"
+        },
+        "recommendedSize": {
+          "width": "300px"
+        }
+      }
     },
     provides: [],
     inject: ["agent-ui.conversations"],
@@ -129,7 +170,12 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
         "plugin-service-provider",
         "theme",
         "headless"
-      ]
+      ],
+      "authoring": {
+        "intents": [
+          "provide shared light and dark theme state"
+        ]
+      }
     },
     provides: ["agent-ui.theme"],
     inject: [],
@@ -148,7 +194,13 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
       "capabilities": [
         "theme-control",
         "plugin-service-consumer"
-      ]
+      ],
+      "authoring": {
+        "intents": [
+          "let the user switch between light and dark themes"
+        ],
+        "visualRole": "theme control"
+      }
     },
     provides: [],
     inject: ["agent-ui.theme"],

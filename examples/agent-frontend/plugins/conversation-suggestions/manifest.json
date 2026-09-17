@@ -3,5 +3,11 @@
   "name": "Conversation Suggestions",
   "description": "Renders starter prompts through the Conversation public surface.",
   "version": "1.0.0",
-  "capabilities": ["conversation-suggestions"]
+  "capabilities": ["conversation-suggestions"],
+  "authoring": {
+    "intents": [
+      "show starter prompts and suggested conversation actions"
+    ],
+    "visualRole": "conversation empty-state suggestions"
+  }
 }

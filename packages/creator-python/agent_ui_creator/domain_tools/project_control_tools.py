@@ -143,7 +143,7 @@ def create_project_control_tools(
     async def inspect_ui_project(
         view: Literal["composition"] | None = None,
     ) -> str:
-        """Inspect current authoritative workspace facts. For a pure Composition request, use view='composition' to get one compact snapshot containing the AppUIModel hash, Layout refs and sizes, Slots and instances, available capability summaries, Active Composition, and deterministic Layout constraints. Omit view only when another layer's broader project navigation facts are genuinely required."""
+        """Inspect current authoritative workspace facts. For a pure Composition request, use view='composition' to get one compact snapshot containing the AppUIModel hash, Layout refs and sizes, Slots and instances, capability authoring semantics and Service readiness, Active Composition, deterministic Layout constraints, and Host mutation guarantees. Omit view only when another layer's broader project navigation facts are genuinely required."""
         if view == "composition":
             if observations is not None:
                 observations.record_composition_snapshot_attempt()

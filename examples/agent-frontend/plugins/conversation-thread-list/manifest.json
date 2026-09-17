@@ -8,5 +8,21 @@
     "conversation-history",
     "conversation-selection",
     "plugin-service-consumer"
-  ]
+  ],
+  "authoring": {
+    "intents": [
+      "add conversation management",
+      "browse conversation history",
+      "select an existing conversation",
+      "start a new conversation"
+    ],
+    "visualRole": "conversation navigation",
+    "typicalPlacement": {
+      "relation": "before",
+      "anchorPluginId": "conversation-surface"
+    },
+    "recommendedSize": {
+      "width": "300px"
+    }
+  }
 }

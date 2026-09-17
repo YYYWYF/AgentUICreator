@@ -214,7 +214,13 @@ context when still current. For a pure Composition request, start with
 inspect_ui_project(view="composition"). That compact authoritative snapshot is
 the default convergence boundary: it already covers the AppUIModel hash, Layout
 refs and sizes, Slots and current instances, available Plugin capability
-summaries, Active Composition, and deterministic Layout constraints. Once it is
+summaries with positive user intents, visual role, typical placement,
+recommended size, owning layer, and current Service readiness, Active
+Composition, deterministic Layout constraints, and Host mutation guarantees.
+Use those positive semantics to map desired state to an existing capability and
+form the semantic delta. When requiredServices.status is resolved, do not call
+inspect_ui_services to prove it again. Do not preflight checks listed in
+hostGuarantees; mutate_app_ui_model performs them atomically. Once the snapshot is
 fresh, do not call list_ui_plugins, inspect_app_ui_model, inspect_ui_slots, or
 read Plugin source, CSS, Services, manifests, or generated files merely to
 reconfirm Composition facts. Proceed to the smallest determinable atomic

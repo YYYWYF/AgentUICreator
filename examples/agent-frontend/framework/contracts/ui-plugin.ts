@@ -7,6 +7,7 @@ import type { ComponentType, ReactNode } from "react";
 import { z } from "zod";
 
 import type { AppUIRuntimePluginInstance } from "./app-ui-runtime-model";
+import type { AppUILayoutSize } from "./app-ui-model";
 import type { PluginChildSlotDefinition } from "./app-ui-composition";
 import { customEventNameSchema } from "./custom-event-protocol";
 
@@ -32,6 +33,24 @@ export interface UIPluginManifest {
   layout?:
     | {
         width?: "narrow" | "wide" | undefined;
+      }
+    | undefined;
+  authoring?:
+    | {
+        intents: string[];
+        visualRole?: string | undefined;
+        typicalPlacement?:
+          | {
+              relation: "before" | "after" | "above" | "below";
+              anchorPluginId: string;
+            }
+          | undefined;
+        recommendedSize?:
+          | {
+              width?: AppUILayoutSize | undefined;
+              height?: AppUILayoutSize | undefined;
+            }
+          | undefined;
       }
     | undefined;
   application?:
@@ -188,6 +207,11 @@ const serviceNameListSchema = z.array(serviceNameSchema).superRefine((names, con
   });
 });
 
+const layoutSizeSchema: z.ZodType<AppUILayoutSize> = z.union([
+  z.number().nonnegative(),
+  nonBlankStringSchema,
+]);
+
 const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
   id: nonBlankStringSchema,
   name: nonBlankStringSchema,
@@ -197,6 +221,28 @@ const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
   layout: z
     .strictObject({
       width: z.enum(["narrow", "wide"]).optional(),
+    })
+    .optional(),
+  authoring: z
+    .strictObject({
+      intents: z.array(nonBlankStringSchema).min(1),
+      visualRole: nonBlankStringSchema.optional(),
+      typicalPlacement: z
+        .strictObject({
+          relation: z.enum(["before", "after", "above", "below"]),
+          anchorPluginId: nonBlankStringSchema,
+        })
+        .optional(),
+      recommendedSize: z
+        .strictObject({
+          width: layoutSizeSchema.optional(),
+          height: layoutSizeSchema.optional(),
+        })
+        .refine(
+          (value) => value.width !== undefined || value.height !== undefined,
+          "At least one recommended dimension is required",
+        )
+        .optional(),
     })
     .optional(),
   application: z

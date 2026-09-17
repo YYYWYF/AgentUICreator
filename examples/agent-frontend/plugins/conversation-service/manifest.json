@@ -7,5 +7,10 @@
     "headless",
     "conversation-service",
     "plugin-service-provider"
-  ]
+  ],
+  "authoring": {
+    "intents": [
+      "provide shared conversation management state and history navigation"
+    ]
+  }
 }

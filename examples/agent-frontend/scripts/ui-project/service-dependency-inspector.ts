@@ -26,7 +26,7 @@ import type {
 
 type ServiceProperty = "provides" | "inject" | "optionalInject";
 
-interface AnalyzedDeclarations {
+export interface AnalyzedDeclarations {
   plugins: PluginServiceDeclaration[];
   issues: ProjectIssue[];
   seamPaths: Map<string, Set<string>>;
@@ -334,8 +334,11 @@ export function inspectUIServiceDependencies(
   projectRoot: string,
   model: AppUIModel,
   assets: readonly PluginAsset[],
+  declarations: AnalyzedDeclarations = analyzePluginServiceDeclarations(
+    projectRoot,
+    assets,
+  ),
 ): UIServiceDependencyInspection {
-  const declarations = analyzePluginServiceDeclarations(projectRoot, assets);
   const assetsByPluginId = new Map(
     assets.map((asset) => [asset.pluginId, asset]),
   );

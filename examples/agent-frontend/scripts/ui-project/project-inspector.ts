@@ -236,6 +236,18 @@ async function inspectUICompositionData(
     ...asset,
     selected: selectedPluginIds.includes(asset.pluginId),
   }));
+  const serviceDeclarationsByPluginId = new Map(
+    generation.serviceDependencies.plugins.map((declaration) => [
+      declaration.pluginId,
+      declaration,
+    ]),
+  );
+  const serviceStatusByName = new Map(
+    generation.serviceDependencies.services.map((service) => [
+      service.name,
+      service.status,
+    ]),
+  );
 
   return {
     schemaVersion: 3,
@@ -261,6 +273,38 @@ async function inspectUICompositionData(
           target: structuredClone(instance.target),
           index: instance.index,
         })),
+      selectionOwner: "composition",
+      ...(asset.authoring === undefined
+        ? {}
+        : { authoring: structuredClone(asset.authoring) }),
+      requiredServices: (() => {
+        const declaration = serviceDeclarationsByPluginId.get(asset.pluginId);
+        const names = declaration?.inject ?? [];
+        const missing = names.filter(
+          (name) => serviceStatusByName.get(name) !== "available",
+        );
+        return {
+          names: [...names],
+          status: declaration === undefined
+            ? "unknown" as const
+            : names.length === 0
+              ? "not-required" as const
+              : missing.length === 0
+                ? "resolved" as const
+                : "unresolved" as const,
+          missing,
+        };
+      })(),
+      optionalServices: (() => {
+        const names =
+          serviceDeclarationsByPluginId.get(asset.pluginId)?.optionalInject ?? [];
+        return {
+          names: [...names],
+          available: names.filter(
+            (name) => serviceStatusByName.get(name) === "available",
+          ),
+        };
+      })(),
       ...(asset.layoutWidth === undefined ? {} : { layoutWidth: asset.layoutWidth }),
       ...(asset.childSlots === undefined ? {} : { childSlots: structuredClone(asset.childSlots) }),
     })),
@@ -282,6 +326,20 @@ async function inspectUICompositionData(
         operation: "insert_layout_relative",
       },
       operationApplication: "sequential-atomic",
+    },
+    hostGuarantees: {
+      mutation: "mutate_app_ui_model",
+      admission: "deterministic-atomic",
+      checks: [
+        "app-ui-model-hash",
+        "operation-and-model-schema",
+        "capability-and-definition-resolution",
+        "active-composition-compile",
+        "layout-width-compatibility",
+        "plugin-child-slot-contract",
+      ],
+      commit: "all-or-nothing",
+      guidance: "Use this snapshot to form the semantic delta. Do not preflight facts covered by these admission checks with manifest, source, CSS, Service, or generated-file reads.",
     },
     capabilityCatalogSource: generation.capabilityCatalog.source,
     capabilityCatalogPluginIds: generation.capabilityCatalog.pluginIds,

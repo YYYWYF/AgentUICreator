@@ -3,5 +3,10 @@
   "name": "Headless Theme Service Provider",
   "description": "Provides the shared light and dark theme service to other UI plugins.",
   "version": "1.0.0",
-  "capabilities": ["plugin-service-provider", "theme", "headless"]
+  "capabilities": ["plugin-service-provider", "theme", "headless"],
+  "authoring": {
+    "intents": [
+      "provide shared light and dark theme state"
+    ]
+  }
 }

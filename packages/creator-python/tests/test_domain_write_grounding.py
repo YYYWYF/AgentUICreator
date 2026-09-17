@@ -205,6 +205,17 @@ class GroundingClient:
                     "capabilities": ["conversation-management"],
                     "selected": plugin_id in selected_plugin_ids,
                     "currentInstances": [],
+                    "selectionOwner": "composition",
+                    "authoring": {
+                        "intents": ["add conversation management"],
+                        "visualRole": "conversation navigation",
+                    },
+                    "requiredServices": {
+                        "names": [],
+                        "status": "not-required",
+                        "missing": [],
+                    },
+                    "optionalServices": {"names": [], "available": []},
                 }
                 for plugin_id in self.plugin_ids
             ],
@@ -230,6 +241,20 @@ class GroundingClient:
                     "operation": "insert_layout_relative",
                 },
                 "operationApplication": "sequential-atomic",
+            },
+            "hostGuarantees": {
+                "mutation": "mutate_app_ui_model",
+                "admission": "deterministic-atomic",
+                "checks": [
+                    "app-ui-model-hash",
+                    "operation-and-model-schema",
+                    "capability-and-definition-resolution",
+                    "active-composition-compile",
+                    "layout-width-compatibility",
+                    "plugin-child-slot-contract",
+                ],
+                "commit": "all-or-nothing",
+                "guidance": "Do not preflight covered admission checks.",
             },
         }
 
@@ -427,6 +452,9 @@ def test_grounding_prompt_preserves_decision_and_write_boundaries():
         "A user's explicit correction supersedes every previous interpretation or plan",
         'inspect_ui_project(view="composition")',
         "the default convergence boundary",
+        "positive user intents, visual role, typical placement",
+        "When requiredServices.status is resolved",
+        "Do not preflight checks listed in hostGuarantees",
         "OBSERVATION_ALREADY_COVERED",
         "Do not repeat the same ProjectControl inspection while the workspace is unchanged",
         "call inspect_ui_project() without a view first",

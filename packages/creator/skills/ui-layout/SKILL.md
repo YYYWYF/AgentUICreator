@@ -37,7 +37,10 @@ For a pure Layout change, start from
 `inspect_ui_project({"view":"composition"})`; do not re-read AppUIModel,
 manifests, Plugin source, CSS, Services, or generated files when that fresh
 snapshot already contains the needed refs, sizes, Slots, instances, capability
-summaries, and constraints. Apply the change through `mutate_app_ui_model` with
+summaries, authoring placement/size guidance, Service readiness, Host
+guarantees, and constraints. Treat authoring placement and size as defaults:
+explicit user intent and the current Composition take precedence. Apply the
+change through `mutate_app_ui_model` with
 the exact inspected hash. Prefer one batch, use `insert_layout_relative` for
 deterministic left/right/above/below placement, and use `$localRef` when a later
 operation must reference a node created in the same transaction.

@@ -22,7 +22,11 @@ import {
 } from "../../framework/contracts/app-ui-composition";
 import { uiProjectControlConfig } from "./project-config";
 import { collectPluginAssets, pathExists } from "./plugin-assets";
-import { analyzePluginServiceDeclarations } from "./service-dependency-inspector";
+import {
+  analyzePluginServiceDeclarations,
+  inspectUIServiceDependencies,
+  type AnalyzedDeclarations,
+} from "./service-dependency-inspector";
 import type {
   GeneratePluginCatalogResult,
   PluginAsset,
@@ -141,9 +145,9 @@ export async function generatePluginRegistry(
   const canAnalyzeServiceContracts = await pathExists(
     path.join(projectRoot, "tsconfig.json"),
   );
-  const declarations = canAnalyzeServiceContracts
+  const declarations: AnalyzedDeclarations = canAnalyzeServiceContracts
     ? analyzePluginServiceDeclarations(projectRoot, inventory.assets)
-    : { plugins: [], issues: [] };
+    : { plugins: [], issues: [], seamPaths: new Map() };
   errors.push(...declarations.issues);
   const declarationsByPluginId = new Map(
     declarations.plugins.map((declaration) => [declaration.pluginId, declaration]),
@@ -312,6 +316,12 @@ export async function generatePluginRegistry(
       compositionCatalog,
     },
     assets: inventory.assets,
+    serviceDependencies: inspectUIServiceDependencies(
+      projectRoot,
+      model,
+      inventory.assets,
+      declarations,
+    ),
     errors,
   };
 }

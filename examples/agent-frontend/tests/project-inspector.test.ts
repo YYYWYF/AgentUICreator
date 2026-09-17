@@ -75,6 +75,47 @@ describe("inspectUIProject", () => {
         }),
       );
     }
+
+    const composition = await inspectUIComposition(projectRoot);
+    expect(composition.capabilitySummaries).toContainEqual(
+      expect.objectContaining({
+        pluginId: "conversation-thread-list",
+        selectionOwner: "composition",
+        authoring: {
+          intents: [
+            "add conversation management",
+            "browse conversation history",
+            "select an existing conversation",
+            "start a new conversation",
+          ],
+          visualRole: "conversation navigation",
+          typicalPlacement: {
+            relation: "before",
+            anchorPluginId: "conversation-surface",
+          },
+          recommendedSize: { width: "300px" },
+        },
+        requiredServices: {
+          names: ["agent-ui.conversations"],
+          status: "resolved",
+          missing: [],
+        },
+      }),
+    );
+    expect(composition.hostGuarantees).toEqual({
+      mutation: "mutate_app_ui_model",
+      admission: "deterministic-atomic",
+      checks: [
+        "app-ui-model-hash",
+        "operation-and-model-schema",
+        "capability-and-definition-resolution",
+        "active-composition-compile",
+        "layout-width-compatibility",
+        "plugin-child-slot-contract",
+      ],
+      commit: "all-or-nothing",
+      guidance: expect.stringContaining("Do not preflight"),
+    });
   });
 
   it("returns a compact, revision-bound project snapshot", async () => {

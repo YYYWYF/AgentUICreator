@@ -214,6 +214,16 @@ grounding 为 `grounded` 且 workspace mutation revision 未变化时，Host 在
 mutation 前的 model/read/source-read 轨迹与首次 mutation 结果，model token 和延迟
 直接复用 `ToolProtocolMetrics`。
 
+Capability summary 还必须提供正向 Authoring 语义，而不只是技术性 id 和
+capability tag：适用的用户意图、visual role、典型相对 placement、推荐尺寸、
+selection owning layer，以及当前 required/optional Service readiness。此信息来自
+Plugin manifest 与 Host 对当前 Composition 的确定性 Service 解析，不要求模型再次
+读取 manifest、definition 或 `inspect_ui_services`。Snapshot 顶层同时返回简短的
+`hostGuarantees`，明确 `mutate_app_ui_model` 会执行 hash CAS、operation/model schema、
+Capability/definition resolution、完整 Active Composition compile、Layout width 与
+child Slot contract 检查，并以 all-or-nothing 方式提交。模型只负责形成 desired state
+与 semantic delta，不通过重复读取预演 Host admission。
+
 这借鉴 DeepSeek Harness 的 progressive Inspect，但项目文件、AppUIModel、Plugin Contract 和目标项目依赖仍是本项目的事实源。
 
 ---
@@ -548,6 +558,19 @@ interface UIPluginManifest {
 
   capabilities?: string[]
 
+  authoring?: {
+    intents: string[]
+    visualRole?: string
+    typicalPlacement?: {
+      relation: "before" | "after" | "above" | "below"
+      anchorPluginId: string
+    }
+    recommendedSize?: {
+      width?: number | string
+      height?: number | string
+    }
+  }
+
   slots?: {
     children?: Record<string, {
       description: string
@@ -564,7 +587,11 @@ interface UIPluginManifest {
 }
 ```
 
-第一版不要让 Plugin Manifest 自己声明 Layout。
+`authoring` 是 Creator 用于能力匹配与 desired-state 推导的正向语义，不是运行时
+placement 规则；`typicalPlacement` 与 `recommendedSize` 是默认建议，用户请求和当前
+Composition 始终优先。
+
+第一版不要让 Plugin Manifest 自己声明实际 Layout。
 
 Plugin 放在哪里由 AppUIModel 决定。
 

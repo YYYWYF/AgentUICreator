@@ -3,5 +3,10 @@
   "name": "Conversation Data Source",
   "description": "Provides conversation history data through an application-owned API.",
   "version": "1.0.0",
-  "capabilities": ["headless"]
+  "capabilities": ["headless"],
+  "authoring": {
+    "intents": [
+      "provide persistent conversation history data to conversation capabilities"
+    ]
+  }
 }

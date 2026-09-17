@@ -50,10 +50,18 @@ For a pure Composition request, use
 read. Its fresh snapshot already contains the model hash, compact Layout refs and
 sizes, Slots and occupants, current Plugin instances and placement, available
 capability summaries, Active Composition, and deterministic Layout constraints.
+Each capability summary also carries positive authoring semantics when declared:
+user intents, visual role, typical relative placement, recommended size,
+Composition ownership, and current required/optional Service readiness. The
+snapshot's `hostGuarantees` lists the legality checks performed atomically by
+`mutate_app_ui_model`.
 Do not follow it with `list_ui_plugins`, `inspect_app_ui_model`,
 `inspect_ui_slots`, manifest/source/CSS reads, Service inspection, or generated
 file reads merely to reconfirm those facts. If a fully covered read returns
 `OBSERVATION_ALREADY_COVERED`, reuse the snapshot and converge to the mutation.
+Do not preflight a Host-guaranteed admission check. A summary with
+`requiredServices.status: "resolved"` is authoritative for the current
+Composition revision; it does not need a separate Service scan.
 
 ## Authoring invariants
 
@@ -247,4 +255,24 @@ Owning layers B: Runtime Capability plus any explicitly required Composition or
 Plugin Behavior changes, after inspecting consumers.
 
 Incorrect: interpret request A as authorization to delete a Service or source.
+```
+
+### 8. Add conversation management
+
+```text
+User request: Add conversation management.
+Current composition: conversation-surface is mounted;
+conversation-thread-list is an unselected capability whose authoring intents
+cover conversation management/history/selection, whose visual role is
+conversation navigation, whose typical placement is before conversation-surface,
+whose recommended width is 300px, and whose required Services are resolved.
+Desired state: an enabled conversation-thread-list in a 300px region before the
+existing conversation surface; existing ConversationService remains.
+Owning layer: Composition.
+Semantic delta: insert the recommended left Layout region and the existing
+capability in one atomic mutation.
+Correct tools: inspect_ui_project(view=composition), load app-ui-model and
+ui-layout, then mutate_app_ui_model.
+Incorrect: read the manifest, inspect Services, read Plugin source/CSS, or scan
+the project to preflight checks listed in hostGuarantees.
 ```

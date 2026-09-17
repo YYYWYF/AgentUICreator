@@ -77,6 +77,7 @@ export interface PluginAsset {
   manifestPath: string;
   definitionPath: string;
   capabilities: string[];
+  authoring?: NonNullable<UIPluginManifest["authoring"]> | undefined;
   layoutWidth?: "narrow" | "wide" | undefined;
   applicationGate?: {
     service: string;
@@ -104,6 +105,7 @@ export interface GeneratePluginCatalogResult {
     compositionCatalog: PluginCompositionCatalog;
   };
   assets: PluginAsset[];
+  serviceDependencies: UIServiceDependencyInspection;
   errors: ProjectIssue[];
 }
 
@@ -219,6 +221,17 @@ export interface CompositionPluginCapabilitySummary {
     target: InspectedPlugin["target"];
     index: number;
   }>;
+  selectionOwner: "composition";
+  authoring?: NonNullable<UIPluginManifest["authoring"]> | undefined;
+  requiredServices: {
+    names: string[];
+    status: "unknown" | "not-required" | "resolved" | "unresolved";
+    missing: string[];
+  };
+  optionalServices: {
+    names: string[];
+    available: string[];
+  };
   layoutWidth?: "narrow" | "wide" | undefined;
   childSlots?: Record<string, PluginChildSlotDefinition> | undefined;
 }
@@ -252,6 +265,20 @@ export interface UICompositionInspection {
       operation: "insert_layout_relative";
     };
     operationApplication: "sequential-atomic";
+  };
+  hostGuarantees: {
+    mutation: "mutate_app_ui_model";
+    admission: "deterministic-atomic";
+    checks: [
+      "app-ui-model-hash",
+      "operation-and-model-schema",
+      "capability-and-definition-resolution",
+      "active-composition-compile",
+      "layout-width-compatibility",
+      "plugin-child-slot-contract",
+    ];
+    commit: "all-or-nothing";
+    guidance: string;
   };
 }
 

@@ -88,6 +88,9 @@ export async function collectPluginAssets(
           path.join(directoryPath, "definition.ts"),
         ),
         capabilities: [...(manifest.capabilities ?? [])].sort(),
+        ...(manifest.authoring === undefined
+          ? {}
+          : { authoring: structuredClone(manifest.authoring) }),
         ...(manifest.layout?.width === undefined
           ? {}
           : { layoutWidth: manifest.layout.width }),
