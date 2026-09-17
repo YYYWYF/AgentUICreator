@@ -31,14 +31,34 @@
           "instanceId": "messages-main",
           "pluginId": "antd-x-message-list",
           "slotId": "conversation.messages",
-          "slotPath": "workspace.conversation/conversation.messages"
+          "slotPath": "workspace.conversation/conversation.messages",
+          "rect": { "x": 0, "y": 0, "width": 320, "height": 720 }
         }
       ],
       "slots": [
         {
           "slotId": "conversation.messages",
           "widthClass": "narrow",
-          "slotPath": "workspace.conversation/conversation.messages"
+          "slotPath": "workspace.conversation/conversation.messages",
+          "rect": { "x": 0, "y": 0, "width": 320, "height": 720 }
+        }
+      ],
+      "viewport": { "width": 1280, "height": 720 },
+      "layoutNodes": [
+        {
+          "nodeId": "root-row",
+          "type": "row",
+          "rect": { "x": 0, "y": 0, "width": 1280, "height": 720 }
+        },
+        {
+          "nodeId": "messages-panel",
+          "type": "panel",
+          "rect": { "x": 0, "y": 0, "width": 320, "height": 720 }
+        },
+        {
+          "nodeId": "messages-slot-node",
+          "type": "slot",
+          "rect": { "x": 0, "y": 0, "width": 320, "height": 720 }
         }
       ]
     }

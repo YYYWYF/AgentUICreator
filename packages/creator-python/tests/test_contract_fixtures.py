@@ -86,6 +86,66 @@ def test_schema_version_drift_is_rejected():
         _validate("project-control.schema.json", drifted)
 
 
+def test_project_control_runtime_composition_accepts_bounded_geometry():
+    app_hash = "a" * 64
+    _validate(
+        "project-control.schema.json",
+        {
+            "schemaVersion": 3,
+            "operation": "verify_runtime_composition",
+            "input": {
+                "appUIModelHash": app_hash,
+                "composition": {
+                    "schemaVersion": 1,
+                    "appUIModelHash": app_hash,
+                    "compositionRevision": "revision-1",
+                    "capabilityCatalogRevision": "b" * 64,
+                    "publishedAt": "2026-09-17T00:00:00.000Z",
+                    "observedAt": "2026-09-17T00:00:01.000Z",
+                    "instances": [
+                        {
+                            "instanceId": "sidebar-main",
+                            "pluginId": "conversation-thread-list",
+                            "slotId": "sidebar.slot",
+                            "rect": {
+                                "x": 0,
+                                "y": 0,
+                                "width": 280,
+                                "height": 800,
+                            },
+                        }
+                    ],
+                    "slots": [
+                        {
+                            "slotId": "sidebar.slot",
+                            "widthClass": "narrow",
+                            "rect": {
+                                "x": 0,
+                                "y": 0,
+                                "width": 280,
+                                "height": 800,
+                            },
+                        }
+                    ],
+                    "viewport": {"width": 1400, "height": 800},
+                    "layoutNodes": [
+                        {
+                            "nodeId": "root-row",
+                            "type": "row",
+                            "rect": {
+                                "x": 0,
+                                "y": 0,
+                                "width": 1400,
+                                "height": 800,
+                            },
+                        }
+                    ],
+                },
+            },
+        },
+    )
+
+
 def test_targeted_layout_slot_inspection_requires_snapshot_hash():
     valid_layout_target = {
         "schemaVersion": 3,

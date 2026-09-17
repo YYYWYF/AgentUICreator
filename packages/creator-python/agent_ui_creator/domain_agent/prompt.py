@@ -44,6 +44,12 @@ COMPOSITION_KERNEL = CHANGE_LAYER_KERNEL + """\nComposition contract
 - Composition changes use mutate_app_ui_model only.
 - Runtime slot ids, mounts, compiler-generated layout ids, Runtime ordering, and SlotRegistry identities must never be inferred, generated, or used by Creator.
 - These are stable rules and do not require inspection. Inspect only current workspace facts needed for the user's task.
+
+Visible geometry outcome contract
+
+- For an explicit user-visible geometry request (spacing, gap, alignment, adjacent or touching edges, size, position, overlap, or visible layout), static AppUIModel validity is not completion evidence.
+- After a relevant composition mutation, use the read-only inspect_runtime_layout tool when available and compare the fresh rectangles for the requested instances or Layout nodes. If the measured geometry contradicts the desired outcome, continue diagnosis and repair; if geometry is stale or unavailable, say that the structural change was applied but visual verification was not available.
+- Do not request or infer arbitrary selectors, JavaScript, HTML, or CSS from this tool. Geometry checks are demand-driven and are not required for unrelated composition or source tasks.
 """
 
 

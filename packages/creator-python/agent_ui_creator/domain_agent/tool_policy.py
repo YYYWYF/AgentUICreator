@@ -8,10 +8,15 @@ from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResp
 from ..domain_tools import DOMAIN_READ_TOOL_NAMES
 from ..minimal_agent.tool_policy import ALLOWED_MINIMAL_TOOLS, tool_name
 
-ALLOWED_DOMAIN_READ_TOOLS = (*ALLOWED_MINIMAL_TOOLS, *DOMAIN_READ_TOOL_NAMES)
+ALLOWED_DOMAIN_READ_TOOLS = (
+    *ALLOWED_MINIMAL_TOOLS,
+    *DOMAIN_READ_TOOL_NAMES,
+    "inspect_runtime_layout",
+)
 _ALLOWED_DOMAIN_READ_TOOL_SET = frozenset(ALLOWED_DOMAIN_READ_TOOLS)
 DOMAIN_WRITE_TOOL_NAMES = (
     *DOMAIN_READ_TOOL_NAMES,
+    "inspect_runtime_layout",
     "create_ui_plugin",
     "mutate_ui_plugin_source",
     "prepare_ui_service_contract_change",

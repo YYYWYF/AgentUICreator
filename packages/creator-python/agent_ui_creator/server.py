@@ -139,6 +139,7 @@ async def _domain_read_agent_result(
     thread_id: str,
     event_sink: CreatorEventSink,
     telemetry: CreatorRunTelemetry | None = None,
+    diagnostics: RuntimeDiagnosticStore | None = None,
 ):
     from .domain_agent import create_domain_read_creator_agent
     from .model_factory import create_creator_chat_model
@@ -164,6 +165,8 @@ async def _domain_read_agent_result(
         activity=activity,
         event_sink=event_sink,
         telemetry=telemetry,
+        diagnostics=diagnostics,
+        thread_id=thread_id,
         max_retries=model_settings.max_retries,
     )
     return await agent.run_messages(messages)
@@ -386,6 +389,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             run_input.threadId,
                             event_bus,
                             telemetry,
+                            diagnostics=diagnostics,
                         )
                     else:
                         agent_result = _minimal_agent_result(

@@ -2,7 +2,7 @@
   "name": "agent-ui-creator-workspace",
   "version": "0.0.0",
   "private": true,
-  "packageManager": "pnpm@10.15.1",
+  "packageManager": "pnpm@11.24.0",
   "engines": {
     "node": ">=20"
   },

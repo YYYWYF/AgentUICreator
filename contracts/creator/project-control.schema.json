@@ -75,6 +75,36 @@
         "activeGateInstanceId": { "$ref": "#/$defs/nonBlankString" }
       }
     },
+    "runtimeRect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": { "type": "number", "minimum": -1000000, "maximum": 1000000 },
+        "y": { "type": "number", "minimum": -1000000, "maximum": 1000000 },
+        "width": { "type": "number", "minimum": 0, "maximum": 1000000 },
+        "height": { "type": "number", "minimum": 0, "maximum": 1000000 }
+      }
+    },
+    "runtimeViewport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height"],
+      "properties": {
+        "width": { "type": "number", "minimum": 0, "maximum": 1000000 },
+        "height": { "type": "number", "minimum": 0, "maximum": 1000000 }
+      }
+    },
+    "runtimeLayoutNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeId", "type", "rect"],
+      "properties": {
+        "nodeId": { "$ref": "#/$defs/nonBlankString" },
+        "type": { "enum": ["row", "column", "panel", "stack", "slot"] },
+        "rect": { "$ref": "#/$defs/runtimeRect" }
+      }
+    },
     "runtimeCompositionInstance": {
       "type": "object",
       "additionalProperties": false,
@@ -83,7 +113,8 @@
         "instanceId": { "$ref": "#/$defs/nonBlankString" },
         "pluginId": { "$ref": "#/$defs/nonBlankString" },
         "slotId": { "$ref": "#/$defs/nonBlankString" },
-        "slotPath": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        "slotPath": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "rect": { "$ref": "#/$defs/runtimeRect" }
       }
     },
     "runtimeCompositionSlot": {
@@ -93,7 +124,8 @@
       "properties": {
         "slotId": { "$ref": "#/$defs/nonBlankString" },
         "widthClass": { "enum": ["unknown", "narrow", "wide"] },
-        "slotPath": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        "slotPath": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "rect": { "$ref": "#/$defs/runtimeRect" }
       }
     },
     "runtimeComposition": {
@@ -117,6 +149,12 @@
           "type": "array",
           "maxItems": 500,
           "items": { "$ref": "#/$defs/runtimeCompositionSlot" }
+        },
+        "viewport": { "$ref": "#/$defs/runtimeViewport" },
+        "layoutNodes": {
+          "type": "array",
+          "maxItems": 200,
+          "items": { "$ref": "#/$defs/runtimeLayoutNode" }
         }
       }
     },

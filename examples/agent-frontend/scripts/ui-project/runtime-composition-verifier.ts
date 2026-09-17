@@ -20,6 +20,16 @@ import { COMPOSITION_REVISION_PATH } from "./app-ui-transaction";
 const appUIModelHashSchema = z.string().regex(/^[a-f0-9]{64}$/u);
 const runtimeIdentifierSchema = z.string().trim().min(1).max(200);
 const runtimePathSchema = z.string().trim().min(1).max(1_000);
+const runtimeRectSchema = z.strictObject({
+  x: z.number().finite().min(-1_000_000).max(1_000_000),
+  y: z.number().finite().min(-1_000_000).max(1_000_000),
+  width: z.number().finite().min(0).max(1_000_000),
+  height: z.number().finite().min(0).max(1_000_000),
+});
+const runtimeViewportSchema = z.strictObject({
+  width: z.number().finite().min(0).max(1_000_000),
+  height: z.number().finite().min(0).max(1_000_000),
+});
 
 const runtimeCompositionApplicationSchema = z.strictObject({
   phase: z.enum([
@@ -37,12 +47,20 @@ const runtimeCompositionInstanceSchema = z.strictObject({
   pluginId: runtimeIdentifierSchema,
   slotId: runtimeIdentifierSchema,
   slotPath: runtimePathSchema.optional(),
+  rect: runtimeRectSchema.optional(),
 });
 
 const runtimeCompositionSlotSchema = z.strictObject({
   slotId: runtimeIdentifierSchema,
   widthClass: z.enum(["unknown", "narrow", "wide"]),
   slotPath: runtimePathSchema.optional(),
+  rect: runtimeRectSchema.optional(),
+});
+
+const runtimeLayoutNodeSchema = z.strictObject({
+  nodeId: runtimeIdentifierSchema,
+  type: z.enum(["row", "column", "panel", "stack", "slot"]),
+  rect: runtimeRectSchema,
 });
 
 export const runtimeCompositionSnapshotSchema = z.strictObject({
@@ -55,6 +73,8 @@ export const runtimeCompositionSnapshotSchema = z.strictObject({
   application: runtimeCompositionApplicationSchema.optional(),
   instances: z.array(runtimeCompositionInstanceSchema).max(500),
   slots: z.array(runtimeCompositionSlotSchema).max(500),
+  viewport: runtimeViewportSchema.optional(),
+  layoutNodes: z.array(runtimeLayoutNodeSchema).max(200).optional(),
 });
 
 export const verifyRuntimeCompositionInputSchema = z.strictObject({

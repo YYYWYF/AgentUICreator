@@ -23,6 +23,7 @@ Express composition through the AppUIModel Layout Tree rather than DOM manipulat
 - Use the observed `nodeRef` only for the current mutation snapshot. Store each visual plugin directly in the Slot where it appears.
 - For a fixed right region, use a Row with the main content first and a right Panel second.
 - When a Row `sizes` entry and a child Panel `width` describe the same fixed dimension, update both consistently.
+- For Row and Column layouts, the parent `sizes` owns the grid tracks. A fixed-size child Panel does not shrink its parent track. For a fixed sidebar, set the parent tracks to `[W, minmax(0, 1fr)]` and use the matching child Panel width when that authoring constraint is also needed. `gap` only controls space between tracks; inspect the parent tracks and child bounds before attributing a visible layout issue to `gap`.
 - When inserting into a Row or Column that already has `sizes`, pass the new
   child's `size` on `insert_layout_node`, `move_layout_node`, or
   `insert_layout_relative`; a later `update_layout_node_props` cannot rescue an

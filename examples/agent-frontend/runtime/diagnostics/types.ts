@@ -46,6 +46,32 @@ export interface RuntimeCompositionInstance {
   pluginId: string;
   slotId: string;
   slotPath?: string | undefined;
+  rect?: RuntimeRect | undefined;
+}
+
+export interface RuntimeRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface RuntimeCompositionViewport {
+  width: number;
+  height: number;
+}
+
+export type RuntimeLayoutNodeType =
+  | "row"
+  | "column"
+  | "panel"
+  | "stack"
+  | "slot";
+
+export interface RuntimeLayoutNodeObservation {
+  nodeId: string;
+  type: RuntimeLayoutNodeType;
+  rect: RuntimeRect;
 }
 
 export interface RuntimeCompositionApplication {
@@ -62,6 +88,7 @@ export interface RuntimeCompositionSlot {
   slotId: string;
   widthClass: "unknown" | "narrow" | "wide";
   slotPath?: string | undefined;
+  rect?: RuntimeRect | undefined;
 }
 
 export interface RuntimeCompositionSnapshot {
@@ -74,6 +101,8 @@ export interface RuntimeCompositionSnapshot {
   application?: RuntimeCompositionApplication | undefined;
   instances: RuntimeCompositionInstance[];
   slots: RuntimeCompositionSlot[];
+  viewport?: RuntimeCompositionViewport | undefined;
+  layoutNodes?: RuntimeLayoutNodeObservation[] | undefined;
 }
 
 export type RuntimeCompositionReporter = (

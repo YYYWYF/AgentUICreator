@@ -14,6 +14,8 @@ MAX_DIAGNOSTICS_PER_SCOPE = 200
 MAX_COMPOSITIONS_PER_SCOPE = 20
 MAX_COMPOSITION_INSTANCES = 500
 MAX_COMPOSITION_SLOTS = 500
+MAX_COMPOSITION_LAYOUT_NODES = 200
+MAX_RUNTIME_GEOMETRY_COORDINATE = 1_000_000
 MAX_DIAGNOSTIC_RESULTS = 20
 MAX_RUNTIME_HASH_EVIDENCE_PER_SCOPE = (
     MAX_DIAGNOSTICS_PER_SCOPE + MAX_COMPOSITIONS_PER_SCOPE
@@ -95,6 +97,54 @@ class RuntimeDiagnostic(BaseModel):
         return self
 
 
+class RuntimeRect(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    x: float = Field(
+        ge=-MAX_RUNTIME_GEOMETRY_COORDINATE,
+        le=MAX_RUNTIME_GEOMETRY_COORDINATE,
+        allow_inf_nan=False,
+    )
+    y: float = Field(
+        ge=-MAX_RUNTIME_GEOMETRY_COORDINATE,
+        le=MAX_RUNTIME_GEOMETRY_COORDINATE,
+        allow_inf_nan=False,
+    )
+    width: float = Field(
+        ge=0,
+        le=MAX_RUNTIME_GEOMETRY_COORDINATE,
+        allow_inf_nan=False,
+    )
+    height: float = Field(
+        ge=0,
+        le=MAX_RUNTIME_GEOMETRY_COORDINATE,
+        allow_inf_nan=False,
+    )
+
+
+class RuntimeCompositionViewport(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    width: float = Field(
+        ge=0,
+        le=MAX_RUNTIME_GEOMETRY_COORDINATE,
+        allow_inf_nan=False,
+    )
+    height: float = Field(
+        ge=0,
+        le=MAX_RUNTIME_GEOMETRY_COORDINATE,
+        allow_inf_nan=False,
+    )
+
+
+class RuntimeLayoutNodeObservation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    nodeId: str = Field(min_length=1, max_length=200)
+    type: Literal["row", "column", "panel", "stack", "slot"]
+    rect: RuntimeRect
+
+
 class RuntimeCompositionInstance(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -102,6 +152,7 @@ class RuntimeCompositionInstance(BaseModel):
     pluginId: str = Field(min_length=1, max_length=200)
     slotId: str = Field(min_length=1, max_length=200)
     slotPath: str | None = Field(default=None, max_length=1_000)
+    rect: RuntimeRect | None = None
 
 
 class RuntimeCompositionApplication(BaseModel):
@@ -125,6 +176,7 @@ class RuntimeCompositionSlot(BaseModel):
     slotId: str = Field(min_length=1, max_length=200)
     widthClass: Literal["unknown", "narrow", "wide"]
     slotPath: str | None = Field(default=None, max_length=1_000)
+    rect: RuntimeRect | None = None
 
 
 class RuntimeComposition(BaseModel):
@@ -145,6 +197,10 @@ class RuntimeComposition(BaseModel):
     slots: list[RuntimeCompositionSlot] = Field(
         default_factory=list, max_length=MAX_COMPOSITION_SLOTS
     )
+    viewport: RuntimeCompositionViewport | None = None
+    layoutNodes: list[RuntimeLayoutNodeObservation] | None = Field(
+        default=None, max_length=MAX_COMPOSITION_LAYOUT_NODES
+    )
 
     @model_validator(mode="after")
     def require_unique_instance_ids(self) -> "RuntimeComposition":
@@ -154,6 +210,13 @@ class RuntimeComposition(BaseModel):
         slot_ids = [slot.slotId for slot in self.slots]
         if len(slot_ids) != len(set(slot_ids)):
             raise ValueError("composition.slots contains duplicate slotId values.")
+        layout_node_ids = [
+            node.nodeId for node in (self.layoutNodes or [])
+        ]
+        if len(layout_node_ids) != len(set(layout_node_ids)):
+            raise ValueError(
+                "composition.layoutNodes contains duplicate nodeId values."
+            )
         return self
 
 
@@ -578,6 +641,160 @@ class RuntimeDiagnosticStore:
                 for item in selected_stale[:MAX_DIAGNOSTIC_RESULTS]
             ],
             "summary": summary,
+        }
+
+    def inspect_runtime_layout(
+        self,
+        *,
+        thread_id: str,
+        current_app_ui_model_hash: str,
+        last_mutation_at: datetime | None = None,
+        instance_ids: list[str] | None = None,
+        layout_node_ids: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Return only current-hash, bounded DOM geometry observations."""
+        scope = self._scopes.get(thread_id)
+        latest_composition = None
+        if scope is not None:
+            self._scopes.move_to_end(thread_id)
+            latest_composition = next(
+                (
+                    item
+                    for item in scope.compositions
+                    if item.get("appUIModelHash") == current_app_ui_model_hash
+                ),
+                None,
+            )
+
+        received_at = (
+            None
+            if scope is None
+            else scope.latest_composition_received_by_hash.get(
+                current_app_ui_model_hash
+            )
+        )
+        observed_at = (
+            None
+            if scope is None
+            else scope.latest_composition_observed_by_hash.get(
+                current_app_ui_model_hash
+            )
+        )
+        received_time = self._as_datetime(received_at)
+        observed_time = self._as_datetime(observed_at)
+        composition_fresh = (
+            latest_composition is not None
+            and received_at is not None
+            and observed_at is not None
+            and (
+                last_mutation_at is None
+                or (
+                    received_time is not None
+                    and received_time >= last_mutation_at
+                    and observed_time is not None
+                    and observed_time >= last_mutation_at
+                )
+            )
+        )
+
+        raw_instances = (
+            []
+            if latest_composition is None
+            else latest_composition.get("instances", [])
+        )
+        raw_slots = (
+            []
+            if latest_composition is None
+            else latest_composition.get("slots", [])
+        )
+        raw_layout_nodes = (
+            []
+            if latest_composition is None
+            else latest_composition.get("layoutNodes") or []
+        )
+        selected_instances: list[dict[str, Any]] = []
+        for item in raw_instances:
+            if not isinstance(item, dict):
+                continue
+            instance_id = item.get("instanceId")
+            if not isinstance(instance_id, str):
+                continue
+            if instance_ids is not None and instance_id not in instance_ids:
+                continue
+            rect = item.get("rect")
+            if not isinstance(rect, dict):
+                continue
+            plugin_id = item.get("pluginId")
+            if not isinstance(plugin_id, str):
+                continue
+            selected_instances.append(
+                {
+                    "instanceId": instance_id,
+                    "pluginId": plugin_id,
+                    "rect": deepcopy(rect),
+                }
+            )
+
+        selected_slots: list[dict[str, Any]] = []
+        for item in raw_slots:
+            if not isinstance(item, dict):
+                continue
+            slot_id = item.get("slotId")
+            width_class = item.get("widthClass")
+            rect = item.get("rect")
+            if (
+                not isinstance(slot_id, str)
+                or width_class not in {"unknown", "narrow", "wide"}
+                or not isinstance(rect, dict)
+            ):
+                continue
+            selected_slots.append(
+                {
+                    "slotId": slot_id,
+                    "widthClass": width_class,
+                    "rect": deepcopy(rect),
+                }
+            )
+
+        selected_layout_nodes = [
+            deepcopy(item)
+            for item in raw_layout_nodes
+            if isinstance(item, dict)
+            and (
+                layout_node_ids is None
+                or item.get("nodeId") in layout_node_ids
+            )
+        ]
+        geometry_available = bool(
+            selected_instances or selected_slots or selected_layout_nodes
+        )
+        if latest_composition is None:
+            runtime_status = (
+                "stale"
+                if scope is not None and scope.compositions
+                else "unavailable"
+            )
+        elif not composition_fresh:
+            runtime_status = "stale"
+        elif not geometry_available:
+            runtime_status = "unavailable"
+        else:
+            runtime_status = "available"
+
+        return {
+            "available": True,
+            "currentHash": current_app_ui_model_hash,
+            "runtimeStatus": runtime_status,
+            "compositionFresh": composition_fresh,
+            **(
+                {}
+                if latest_composition is None
+                or latest_composition.get("viewport") is None
+                else {"viewport": deepcopy(latest_composition["viewport"])}
+            ),
+            "instances": selected_instances,
+            "slots": selected_slots,
+            "layoutNodes": selected_layout_nodes,
         }
 
     def current_slot_widths(

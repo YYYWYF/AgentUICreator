@@ -432,7 +432,13 @@ def test_domain_read_mode_streams_project_control_metrics(tmp_path, monkeypatch)
     metrics = ToolProtocolMetrics(modelCalls=2, toolCalls=1, validToolCalls=1)
 
     async def fake_result(
-        _settings, _prompt, _activity, _thread_id, _event_sink, _telemetry
+        _settings,
+        _prompt,
+        _activity,
+        _thread_id,
+        _event_sink,
+        _telemetry,
+        **_kwargs,
     ):
         return SimpleNamespace(
             text="Inspected.",

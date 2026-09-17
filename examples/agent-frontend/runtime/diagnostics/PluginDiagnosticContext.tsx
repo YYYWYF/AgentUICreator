@@ -26,6 +26,7 @@ import {
 } from "./types";
 import { isPluginWidthCompatible } from "./width-compatibility";
 import type { PluginRegistry } from "../plugins/PluginRegistry";
+import { collectRuntimeLayoutGeometry } from "./layout-observation";
 
 export interface PluginDiagnosticContextValue {
   appUIModelHash: string;
@@ -133,6 +134,7 @@ export function PluginDiagnosticProvider<TState = unknown>({
     >(),
   );
   const snapshotScheduled = useRef(false);
+  const scheduledFrame = useRef<number | undefined>(undefined);
   const currentHash = useRef(appUIModelHash);
   const currentCompositionRevision = useRef(compositionRevision);
   const currentCapabilityCatalogRevision = useRef(
@@ -282,14 +284,19 @@ export function PluginDiagnosticProvider<TState = unknown>({
   const scheduleCompositionSnapshot = useCallback(() => {
     if (snapshotScheduled.current) return;
     snapshotScheduled.current = true;
-    queueMicrotask(() => {
+    const flush = () => {
       snapshotScheduled.current = false;
       const reporter = currentCompositionReporter.current;
       if (reporter === undefined) return;
+      const geometry = collectRuntimeLayoutGeometry();
       const instances = [...mountedInstances.current.values()]
         .flatMap((occurrences) => {
           const instance = occurrences.values().next().value;
-          return instance === undefined ? [] : [instance];
+          if (instance === undefined) return [];
+          const rect = geometry.instanceRects.get(instance.instanceId);
+          return [
+            rect === undefined ? instance : { ...instance, rect },
+          ];
         })
         .sort(
           (left, right) =>
@@ -299,12 +306,13 @@ export function PluginDiagnosticProvider<TState = unknown>({
       const slots = [...observedSlots.current.values()]
         .flatMap((occurrences) => {
           const slot = occurrences.values().next().value;
-          return slot === undefined
-            ? []
-            : [{
-                ...slot,
-                widthClass: resolveEffectiveSlotWidth(occurrences.values()),
-              }];
+          if (slot === undefined) return [];
+          const rect = geometry.slotRects.get(slot.slotId);
+          return [{
+            ...slot,
+            widthClass: resolveEffectiveSlotWidth(occurrences.values()),
+            ...(rect === undefined ? {} : { rect }),
+          }];
         })
         .sort((left, right) => left.slotId.localeCompare(right.slotId));
       try {
@@ -329,12 +337,27 @@ export function PluginDiagnosticProvider<TState = unknown>({
             : { application: currentApplication.current }),
           instances,
           slots,
+          ...(geometry.viewport === undefined
+            ? {}
+            : { viewport: geometry.viewport }),
+          ...(geometry.layoutNodes.length === 0
+            ? {}
+            : { layoutNodes: geometry.layoutNodes }),
         });
       } catch {
         // Composition reporting is optional development observability and
         // must never break the generated frontend runtime.
       }
-    });
+    };
+    if (typeof requestAnimationFrame === "function") {
+      scheduledFrame.current = requestAnimationFrame(() => {
+        scheduledFrame.current = undefined;
+        flush();
+      });
+    } else {
+      // React test renderers and non-browser hosts do not expose a frame clock.
+      queueMicrotask(flush);
+    }
   }, []);
   const registerMountedInstance = useCallback(
     (instance: RuntimeCompositionInstance) => {

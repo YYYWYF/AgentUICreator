@@ -70,6 +70,21 @@ def _sanitized_tool_arguments(
                 arguments.get("appUIModelHash"), str
             )
         return result
+    if tool_name == "inspect_runtime_layout":
+        instance_ids = arguments.get("instanceIds")
+        layout_node_ids = arguments.get("layoutNodeIds")
+        return {
+            "instanceIdCount": (
+                len(instance_ids)
+                if isinstance(instance_ids, (list, tuple))
+                else 0
+            ),
+            "layoutNodeIdCount": (
+                len(layout_node_ids)
+                if isinstance(layout_node_ids, (list, tuple))
+                else 0
+            ),
+        }
     if tool_name in _FILESYSTEM_TOOL_NAMES:
         key = "file_path" if tool_name == "read_file" else "path"
         if tool_name == "glob":
@@ -145,6 +160,7 @@ def _tool_fact_kinds(
         "inspect_ui_plugin_source_references": ["plugin.source.references"],
         "inspect_agent_ui_sources": ["agent-ui.source.inventory"],
         "verify_runtime_composition": ["runtime.verification"],
+        "inspect_runtime_layout": ["runtime.layout.observation"],
         "mutate_app_ui_model": ["composition.commit"],
     }.get(tool_name, _filesystem_fact_kinds(arguments) if tool_name in _FILESYSTEM_TOOL_NAMES else [])
 

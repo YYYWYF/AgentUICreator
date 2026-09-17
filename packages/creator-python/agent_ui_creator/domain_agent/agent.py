@@ -51,6 +51,7 @@ from ..runtime_diagnostics import (
     RuntimeDiagnosticInspectionService,
     RuntimeDiagnosticStore,
     create_runtime_diagnostic_tool,
+    create_runtime_layout_tool,
 )
 from ..service_contracts import (
     ServiceContractAuthorizationService,
@@ -322,6 +323,8 @@ def create_domain_read_creator_agent(
     activity: CreatorActivityRecorder | None = None,
     event_sink: CreatorEventSink | None = None,
     telemetry: CreatorRunTelemetry | None = None,
+    diagnostics: RuntimeDiagnosticStore | None = None,
+    thread_id: str | None = None,
     max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES,
 ) -> CreatorDomainReadAgent:
     _register_minimal_harness_profile(model)
@@ -333,11 +336,19 @@ def create_domain_read_creator_agent(
     backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
     client = project_control or ProjectControlClient(project_root=Path(workspace))
     observations = DomainObservationContext()
+    runtime_inspection = RuntimeDiagnosticInspectionService(
+        store=diagnostics or RuntimeDiagnosticStore(),
+        thread_id=thread_id,
+        project_control=client,
+        observations=observations,
+        activity=backend.activity,
+    )
     domain_tools = create_project_control_tools(
         client,
         observations=observations,
         activity=backend.activity,
     )
+    domain_tools = (*domain_tools, create_runtime_layout_tool(runtime_inspection))
     metrics = ToolProtocolMetrics()
     run_control = CreatorRunControlState()
     protocol = ToolProtocolMiddleware(
@@ -560,6 +571,7 @@ def create_domain_write_creator_agent(
         create_app_ui_model_mutation_tool(service, observations),
         create_validation_tool(validation),
         create_runtime_diagnostic_tool(runtime_inspection),
+        create_runtime_layout_tool(runtime_inspection),
     )
     metrics = ToolProtocolMetrics()
     protocol = ToolProtocolMiddleware(
