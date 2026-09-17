@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "aef51a53436e83ad085ce4b62389e45ac63ab867492ee01b949447a9b56b3ce9";
+export const capabilityCatalogRevision = "d965b64c79db935de088ad480529a97e20782a94a7ad93b0482a2428b2afd3dd";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -146,9 +146,6 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
         "typicalPlacement": {
           "relation": "before",
           "anchorPluginId": "conversation-surface"
-        },
-        "recommendedSize": {
-          "width": "300px"
         }
       }
     },

@@ -69,9 +69,9 @@ describe("UIPluginManifest", () => {
 
   it("parses positive authoring semantics for capability reuse", () => {
     const manifest = parseUIPluginManifest({
-      id: "conversation-thread-list",
-      name: "Conversation Thread List",
-      description: "Manages conversation history",
+      id: "conversation-layout",
+      name: "Conversation Layout",
+      description: "Provides a conversation layout",
       version: "1.0.0",
       authoring: {
         intents: ["add conversation management", "browse conversation history"],
@@ -80,7 +80,7 @@ describe("UIPluginManifest", () => {
           relation: "before",
           anchorPluginId: "conversation-surface",
         },
-        recommendedSize: { width: "300px" },
+        recommendedSize: { width: "minmax(0, 1fr)" },
       },
     });
 
@@ -91,7 +91,7 @@ describe("UIPluginManifest", () => {
         relation: "before",
         anchorPluginId: "conversation-surface",
       },
-      recommendedSize: { width: "300px" },
+      recommendedSize: { width: "minmax(0, 1fr)" },
     });
   });
 
