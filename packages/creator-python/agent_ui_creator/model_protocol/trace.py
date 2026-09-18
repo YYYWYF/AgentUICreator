@@ -47,6 +47,9 @@ class ToolProtocolMetrics:
     modelTransportRetries: int = 0
     modelTransportRetryExhausted: int = 0
     modelTransportFailuresByType: dict[str, int] = field(default_factory=dict)
+    modelTransportFreshClientRecoveries: int = 0
+    modelTransportFreshClientRecoveryFailures: int = 0
+    modelTransportDuplicateInflightWaits: int = 0
     toolCalls: int = 0
     validToolCalls: int = 0
     invalidToolCalls: int = 0

@@ -32,7 +32,7 @@ def conformance_report():
         "base URL provider": settings.base_url,
         "temperature": settings.temperature,
         "max tokens": settings.max_tokens,
-        "streaming": False,
+        "streaming": True,
         "python": sys.version.split()[0],
         "langchain-openai": version("langchain-openai"),
         "langchain-core": version("langchain-core"),

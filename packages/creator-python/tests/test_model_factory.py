@@ -45,6 +45,8 @@ def test_model_factory_sets_creator_user_agent_without_provider_session_header()
         http_async_transport=transport,
     )
 
+    # This fixture returns a complete JSON response; the production factory is streaming.
+    model.streaming = False
     model.invoke("hello")
 
     assert requests[0].headers["User-Agent"] == "agent-ui-creator/0.1"
@@ -65,9 +67,11 @@ def test_model_factory_owns_explicit_chat_completions_configuration():
     assert model.openai_api_base == "https://model.example/v1"
     assert model.temperature == 0.2
     assert model.max_tokens == 2048
-    assert model.streaming is False
+    assert model.streaming is True
     assert model.use_responses_api is False
     assert model.max_retries == 0
+    assert model.http_client._trust_env is False
+    assert model.http_async_client._trust_env is False
 
 
 def test_model_settings_defaults_to_agent_owned_retry_budget():

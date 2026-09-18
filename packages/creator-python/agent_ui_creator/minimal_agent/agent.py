@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 
 import httpx
 import openai
@@ -129,6 +129,7 @@ def create_minimal_creator_agent(
     event_sink: CreatorEventSink | None = None,
     telemetry: CreatorRunTelemetry | None = None,
     max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES,
+    recovery_factory: Callable[[], BaseChatModel] | None = None,
 ) -> CreatorMinimalAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -152,6 +153,7 @@ def create_minimal_creator_agent(
         metrics=metrics,
         max_retries=max_retries,
         logger=backend.activity.logger,
+        recovery_factory=recovery_factory,
     )
     runtime = MinimalAgentRuntimeGuard(backend, event_sink=event_sink)
     filesystem = FilesystemMiddleware(

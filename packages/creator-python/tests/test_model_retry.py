@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import Iterable
+from types import SimpleNamespace
 
 import httpx
 import openai
@@ -22,6 +23,7 @@ from agent_ui_creator.model_protocol.errors import (
     ModelTransportError,
 )
 from agent_ui_creator.model_protocol.reliability import (
+    _transport_failure_kind,
     create_creator_model_retry_middleware,
     is_retryable_creator_model_error,
 )
@@ -55,6 +57,40 @@ def _status_error(status_code: int) -> openai.APIStatusError:
         f"synthetic status {status_code}",
         response=response,
         body={"error": {"type": "synthetic"}},
+    )
+
+
+def _duplicate_inflight_error() -> openai.APIStatusError:
+    response = httpx.Response(
+        409,
+        request=REQUEST,
+        headers={"x-request-id": "duplicate-request"},
+    )
+    return openai.APIStatusError(
+        "duplicate request is already being processed",
+        response=response,
+        body={
+            "error": {
+                "code": "duplicate_request",
+                "message": "request already being processed",
+            }
+        },
+    )
+
+
+class _ClosableClient:
+    def __init__(self) -> None:
+        self.closed = False
+
+    def close(self) -> None:
+        self.closed = True
+
+
+def _model(label: str) -> SimpleNamespace:
+    return SimpleNamespace(
+        label=label,
+        http_client=_ClosableClient(),
+        http_async_client=_ClosableClient(),
     )
 
 
@@ -128,6 +164,38 @@ def test_transient_failure_then_success_has_one_logical_model_call(monkeypatch):
     assert metrics.modelTransportRetryExhausted == 0
 
 
+def test_connect_failures_use_one_fresh_client_on_third_attempt(monkeypatch):
+    monkeypatch.setattr("langchain.agents.middleware.model_retry.time.sleep", lambda _: None)
+    old_model = _model("old")
+    fresh_model = _model("fresh")
+    seen_models: list[str] = []
+    script = iter([_connection_error(), _connection_error(), _response("ok")])
+    metrics = ToolProtocolMetrics()
+    retry = create_creator_model_retry_middleware(
+        metrics=metrics,
+        max_retries=2,
+        recovery_factory=lambda: fresh_model,
+    )
+    request = ModelRequest(model=old_model, messages=[])
+
+    def provider(current_request):
+        seen_models.append(current_request.model.label)
+        item = next(script)
+        if isinstance(item, BaseException):
+            raise item
+        return item
+
+    response = retry.wrap_model_call(request, provider)
+
+    assert response.result[0].content == "ok"
+    assert seen_models == ["old", "old", "fresh"]
+    assert old_model.http_client.closed is True
+    assert old_model.http_async_client.closed is True
+    assert metrics.modelTransportFreshClientRecoveries == 1
+    assert metrics.modelTransportFreshClientRecoveryFailures == 0
+    assert metrics.modelTransportAttempts == 3
+
+
 def test_transient_failure_recovery_is_written_to_creator_jsonl(monkeypatch, tmp_path):
     monkeypatch.setattr("langchain.agents.middleware.model_retry.time.sleep", lambda _: None)
     logger = CreatorRunLogger(tmp_path)
@@ -196,9 +264,97 @@ def test_async_model_retry_uses_the_same_bounded_policy(monkeypatch):
     assert metrics.modelTransportRetries == 1
 
 
+def test_remote_protocol_error_waits_for_grace_period_before_retry(monkeypatch):
+    delays: list[float] = []
+    monkeypatch.setattr(
+        "langchain.agents.middleware.model_retry.time.sleep", delays.append
+    )
+
+    _, metrics = _invoke_script(
+        [_remote_protocol_error("stream ended before terminator"), _response()]
+    )
+
+    assert delays and delays[0] >= 2.0
+    assert metrics.modelTransportAttempts == 2
+
+
+def test_remote_protocol_error_recovers_with_fresh_client(monkeypatch):
+    delays: list[float] = []
+    monkeypatch.setattr(
+        "langchain.agents.middleware.model_retry.time.sleep", delays.append
+    )
+    old_model = _model("old")
+    fresh_model = _model("fresh")
+    seen_models: list[str] = []
+    script = iter([_remote_protocol_error("incomplete stream"), _response("ok")])
+    metrics = ToolProtocolMetrics()
+    retry = create_creator_model_retry_middleware(
+        metrics=metrics,
+        max_retries=2,
+        recovery_factory=lambda: fresh_model,
+    )
+    request = ModelRequest(model=old_model, messages=[])
+
+    def provider(current_request):
+        seen_models.append(current_request.model.label)
+        item = next(script)
+        if isinstance(item, BaseException):
+            raise item
+        return item
+
+    response = retry.wrap_model_call(request, provider)
+
+    assert response.result[0].content == "ok"
+    assert seen_models == ["old", "fresh"]
+    assert delays and delays[0] >= 2.0
+    assert metrics.modelTransportFreshClientRecoveries == 1
+    assert metrics.modelTransportAttempts == 2
+
+
+def test_fresh_client_remains_active_for_the_next_model_call(monkeypatch):
+    monkeypatch.setattr("langchain.agents.middleware.model_retry.time.sleep", lambda _: None)
+    old_model = _model("old")
+    fresh_model = _model("fresh")
+    seen_models: list[str] = []
+    script = iter(
+        [
+            _remote_protocol_error("incomplete stream"),
+            _response("first"),
+            _response("second"),
+        ]
+    )
+    metrics = ToolProtocolMetrics()
+    retry = create_creator_model_retry_middleware(
+        metrics=metrics,
+        max_retries=2,
+        recovery_factory=lambda: fresh_model,
+    )
+    request = ModelRequest(model=old_model, messages=[])
+
+    def provider(current_request):
+        seen_models.append(current_request.model.label)
+        item = next(script)
+        if isinstance(item, BaseException):
+            raise item
+        return item
+
+    first = retry.wrap_model_call(request, provider)
+    second = retry.wrap_model_call(request, provider)
+
+    assert first.result[0].content == "first"
+    assert second.result[0].content == "second"
+    assert seen_models == ["old", "fresh", "fresh"]
+    assert metrics.modelTransportFreshClientRecoveries == 1
+
+
 @pytest.mark.parametrize(
     "error",
-    [_status_error(400), _status_error(401), ModelToolProtocolError("bad tool protocol")],
+    [
+        _status_error(400),
+        _status_error(401),
+        _status_error(409),
+        ModelToolProtocolError("bad tool protocol"),
+    ],
 )
 def test_non_retryable_model_failures_are_not_retried(error):
     metrics = ToolProtocolMetrics()
@@ -217,6 +373,57 @@ def test_non_retryable_model_failures_are_not_retried(error):
         assert metrics.modelTransportFailures == 0
     else:
         assert metrics.modelTransportFailures == 1
+
+
+def test_exact_duplicate_inflight_409_waits_and_retries_once(monkeypatch):
+    delays: list[float] = []
+    monkeypatch.setattr(
+        "langchain.agents.middleware.model_retry.time.sleep", delays.append
+    )
+
+    _, metrics = _invoke_script([_duplicate_inflight_error(), _response("ok")])
+
+    assert len(delays) == 1
+    assert 2.0 <= delays[0] <= 3.0
+    assert metrics.modelTransportAttempts == 2
+    assert metrics.modelTransportDuplicateInflightWaits == 1
+
+
+def test_duplicate_inflight_failure_stops_after_one_retry(monkeypatch):
+    monkeypatch.setattr("langchain.agents.middleware.model_retry.time.sleep", lambda _: None)
+
+    with pytest.raises(ModelTransportError) as raised:
+        _invoke_script([_duplicate_inflight_error(), _duplicate_inflight_error()])
+
+    assert raised.value.attempts == 2
+
+
+def test_protocol_error_does_not_trigger_transport_recovery(monkeypatch):
+    monkeypatch.setattr("langchain.agents.middleware.model_retry.time.sleep", lambda _: None)
+    recovery_calls = 0
+
+    def recovery_factory():
+        nonlocal recovery_calls
+        recovery_calls += 1
+        return _model("fresh")
+
+    metrics = ToolProtocolMetrics()
+    retry = create_creator_model_retry_middleware(
+        metrics=metrics,
+        max_retries=2,
+        recovery_factory=recovery_factory,
+    )
+    request = ModelRequest(model=_model("old"), messages=[])
+
+    def provider(_request):
+        raise ModelToolProtocolError("invalid tool protocol")
+
+    with pytest.raises(ModelToolProtocolError):
+        retry.wrap_model_call(request, provider)
+
+    assert recovery_calls == 0
+    assert metrics.modelTransportAttempts == 1
+    assert metrics.modelTransportFreshClientRecoveries == 0
 
 
 def test_exhausted_transport_retry_is_structured_and_retains_cause(monkeypatch):
@@ -269,6 +476,8 @@ def test_exhausted_transport_retry_logs_bounded_failure_events(monkeypatch, tmp_
         "attempt": 1,
         "retryable": True,
         "willRetry": True,
+        "failureKind": "connect",
+        "freshClient": False,
         "durationMs": failures[0]["data"]["durationMs"],
         "requestMessageCount": 0,
         "requestMessageChars": 0,
@@ -504,25 +713,64 @@ def test_creator_factories_place_shared_retry_outside_protocol(monkeypatch, tmp_
     )
 
     model = object()
-    create_minimal_creator_agent(model=model, workspace=tmp_path)
-    create_domain_read_creator_agent(model=model, workspace=tmp_path)
-    create_domain_write_creator_agent(model=model, workspace=tmp_path)
+    recovery_factory = lambda: object()
+    create_minimal_creator_agent(
+        model=model, workspace=tmp_path, recovery_factory=recovery_factory
+    )
+    create_domain_read_creator_agent(
+        model=model, workspace=tmp_path, recovery_factory=recovery_factory
+    )
+    create_domain_write_creator_agent(
+        model=model, workspace=tmp_path, recovery_factory=recovery_factory
+    )
 
     for middleware in captured:
         names = [type(item).__name__ for item in middleware]
         retry = next(item for item in middleware if type(item).__name__ == "CreatorModelRetryMiddleware")
         assert isinstance(retry, ModelRetryMiddleware)
         assert retry.max_retries == 2
+        assert retry.recovery_factory is recovery_factory
         assert names.index(type(retry).__name__) < names.index("ToolProtocolMiddleware")
 
 
 def test_retry_predicate_rejects_semantic_and_permanent_errors():
     assert is_retryable_creator_model_error(_connection_error()) is True
+    assert _transport_failure_kind(_connection_error()) == "connect"
+    assert (
+        _transport_failure_kind(_remote_protocol_error("incomplete"))
+        == "ambiguous_stream_disconnect"
+    )
+    assert _transport_failure_kind(_status_error(503)) == "other"
     assert is_retryable_creator_model_error(openai.APITimeoutError(REQUEST)) is True
     assert is_retryable_creator_model_error(_status_error(503)) is True
     assert is_retryable_creator_model_error(_status_error(429)) is True
     assert is_retryable_creator_model_error(_status_error(400)) is False
     assert is_retryable_creator_model_error(_status_error(401)) is False
+    assert is_retryable_creator_model_error(_status_error(409)) is False
+    assert is_retryable_creator_model_error(_duplicate_inflight_error()) is True
     assert is_retryable_creator_model_error(ModelToolProtocolError("invalid JSON")) is False
     assert is_retryable_creator_model_error(AgentNoProgressError("no progress")) is False
     assert is_retryable_creator_model_error(GraphRecursionError("recursion")) is False
+
+
+def test_transport_attempt_budget_is_capped_at_three(monkeypatch):
+    monkeypatch.setattr("langchain.agents.middleware.model_retry.time.sleep", lambda _: None)
+    metrics = ToolProtocolMetrics()
+    retry = create_creator_model_retry_middleware(metrics=metrics, max_retries=99)
+    request = ModelRequest(model=object(), messages=[])
+    script = iter(
+        [_connection_error(), _connection_error(), _connection_error(), _response()]
+    )
+
+    def provider(_request):
+        item = next(script)
+        if isinstance(item, BaseException):
+            raise item
+        return item
+
+    with pytest.raises(ModelTransportError) as raised:
+        retry.wrap_model_call(request, provider)
+
+    assert retry.max_retries == 2
+    assert raised.value.attempts == 3
+    assert metrics.modelTransportAttempts == 3

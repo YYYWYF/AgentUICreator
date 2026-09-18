@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 
 import httpx
 import openai
@@ -326,6 +326,7 @@ def create_domain_read_creator_agent(
     diagnostics: RuntimeDiagnosticStore | None = None,
     thread_id: str | None = None,
     max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES,
+    recovery_factory: Callable[[], BaseChatModel] | None = None,
 ) -> CreatorDomainReadAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -368,6 +369,7 @@ def create_domain_read_creator_agent(
         metrics=metrics,
         max_retries=max_retries,
         logger=backend.activity.logger,
+        recovery_factory=recovery_factory,
     )
     runtime = MinimalAgentRuntimeGuard(
         backend,
@@ -436,6 +438,7 @@ def create_domain_write_creator_agent(
     automatic_completion_repair: bool = False,
     telemetry: CreatorRunTelemetry | None = None,
     max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES,
+    recovery_factory: Callable[[], BaseChatModel] | None = None,
 ) -> CreatorDomainWriteAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -595,6 +598,7 @@ def create_domain_write_creator_agent(
         metrics=metrics,
         max_retries=max_retries,
         logger=backend.activity.logger,
+        recovery_factory=recovery_factory,
     )
     runtime = MinimalAgentRuntimeGuard(
         backend,

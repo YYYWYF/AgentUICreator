@@ -118,6 +118,14 @@ async def _minimal_agent_result(
         thread_id=thread_id,
         provider_trace_collector=provider_trace_collector,
     )
+
+    def recovery_factory():
+        return create_creator_chat_model(
+            model_settings,
+            thread_id=thread_id,
+            provider_trace_collector=provider_trace_collector,
+        )
+
     agent = create_minimal_creator_agent(
         model=model,
         workspace=settings.project_root,
@@ -128,6 +136,7 @@ async def _minimal_agent_result(
         event_sink=event_sink,
         telemetry=telemetry,
         max_retries=model_settings.max_retries,
+        recovery_factory=recovery_factory,
     )
     return await agent.run(prompt)
 
@@ -156,6 +165,14 @@ async def _domain_read_agent_result(
         thread_id=thread_id,
         provider_trace_collector=provider_trace_collector,
     )
+
+    def recovery_factory():
+        return create_creator_chat_model(
+            model_settings,
+            thread_id=thread_id,
+            provider_trace_collector=provider_trace_collector,
+        )
+
     agent = create_domain_read_creator_agent(
         model=model,
         workspace=settings.project_root,
@@ -168,6 +185,7 @@ async def _domain_read_agent_result(
         diagnostics=diagnostics,
         thread_id=thread_id,
         max_retries=model_settings.max_retries,
+        recovery_factory=recovery_factory,
     )
     return await agent.run_messages(messages)
 
@@ -197,6 +215,14 @@ async def _domain_write_agent_result(
         thread_id=thread_id,
         provider_trace_collector=provider_trace_collector,
     )
+
+    def recovery_factory():
+        return create_creator_chat_model(
+            model_settings,
+            thread_id=thread_id,
+            provider_trace_collector=provider_trace_collector,
+        )
+
     agent = create_domain_write_creator_agent(
         model=model,
         workspace=settings.project_root,
@@ -212,6 +238,7 @@ async def _domain_write_agent_result(
         event_sink=event_sink,
         telemetry=telemetry,
         max_retries=model_settings.max_retries,
+        recovery_factory=recovery_factory,
     )
     return await agent.run_messages(messages)
 

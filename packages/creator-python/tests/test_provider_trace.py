@@ -220,6 +220,8 @@ def test_sync_http_hook_preserves_openai_and_langchain_tool_call_parsing():
         http_async_transport=transport,
     )
 
+    # These fixtures exercise non-streaming response tracing with a complete JSON body.
+    model.streaming = False
     message = model.bind_tools([read_file]).invoke("Read /foo")
     trace = collector.pop_successful_completion()
 
@@ -245,6 +247,8 @@ def test_async_http_hook_preserves_openai_and_langchain_tool_call_parsing():
         http_async_transport=transport,
     )
 
+    # These fixtures exercise non-streaming response tracing with a complete JSON body.
+    model.streaming = False
     message = asyncio.run(model.bind_tools([read_file]).ainvoke("Read /foo"))
     trace = collector.pop_successful_completion()
 
