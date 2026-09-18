@@ -321,6 +321,8 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
         self.recovery_factory = recovery_factory
         self._fresh_model: Any | None = None
         self._fresh_client_recovery_attempted = False
+        self._fresh_recovery_pending = False
+        self._fresh_recovery_finalized = False
         bounded_retries = min(
             max(0, int(max_retries)), _MAX_MODEL_TRANSPORT_ATTEMPTS - 1
         )
@@ -388,6 +390,7 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
         fresh_client: bool,
     ) -> None:
         details = _transport_details(error)
+        self._finalize_fresh_recovery(success=False)
         self.metrics.modelTransportRetryExhausted += 1
         if self.logger is not None:
             self.logger.record(
@@ -430,6 +433,7 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
         if not self._can_start_fresh_recovery():
             return False
         self._fresh_client_recovery_attempted = True
+        self._fresh_recovery_pending = True
         _discard_model_sync(current_model)
         return True
 
@@ -437,21 +441,31 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
         if not self._can_start_fresh_recovery():
             return False
         self._fresh_client_recovery_attempted = True
+        self._fresh_recovery_pending = True
         await _discard_model_async(current_model)
         return True
+
+    def _finalize_fresh_recovery(self, *, success: bool) -> None:
+        if not self._fresh_recovery_pending or self._fresh_recovery_finalized:
+            return
+        self._fresh_recovery_finalized = True
+        self._fresh_recovery_pending = False
+        if success:
+            self.metrics.modelTransportFreshClientRecoveries += 1
+        else:
+            self.metrics.modelTransportFreshClientRecoveryFailures += 1
 
     def _create_fresh_model_sync(self, current_model: Any) -> bool:
         assert self.recovery_factory is not None
         try:
             fresh_model = self.recovery_factory()
         except Exception:
-            self.metrics.modelTransportFreshClientRecoveryFailures += 1
+            self._finalize_fresh_recovery(success=False)
             return False
         if fresh_model is None or fresh_model is current_model or isawaitable(fresh_model):
-            self.metrics.modelTransportFreshClientRecoveryFailures += 1
+            self._finalize_fresh_recovery(success=False)
             return False
         self._fresh_model = fresh_model
-        self.metrics.modelTransportFreshClientRecoveries += 1
         return True
 
     async def _create_fresh_model_async(self, current_model: Any) -> bool:
@@ -461,13 +475,12 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
             if isawaitable(fresh_model):
                 fresh_model = await fresh_model
         except Exception:
-            self.metrics.modelTransportFreshClientRecoveryFailures += 1
+            self._finalize_fresh_recovery(success=False)
             return False
         if fresh_model is None or fresh_model is current_model:
-            self.metrics.modelTransportFreshClientRecoveryFailures += 1
+            self._finalize_fresh_recovery(success=False)
             return False
         self._fresh_model = fresh_model
-        self.metrics.modelTransportFreshClientRecoveries += 1
         return True
 
     def _can_retry(self, error: Exception, state: _RetryCallState) -> bool:
@@ -595,6 +608,7 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
                     and self._fresh_model is not None,
                 )
                 if not retryable:
+                    self._finalize_fresh_recovery(success=False)
                     raise
                 if not will_retry:
                     self._normalize_exhausted_failure(
@@ -613,6 +627,7 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
                         and self._fresh_model is not None,
                     )
                 continue
+            self._finalize_fresh_recovery(success=True)
             self._record_recovered(state)
             return response
 
@@ -647,6 +662,7 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
                     and self._fresh_model is not None,
                 )
                 if not retryable:
+                    self._finalize_fresh_recovery(success=False)
                     raise
                 if not will_retry:
                     self._normalize_exhausted_failure(
@@ -665,6 +681,7 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
                         and self._fresh_model is not None,
                     )
                 continue
+            self._finalize_fresh_recovery(success=True)
             self._record_recovered(state)
             return response
 

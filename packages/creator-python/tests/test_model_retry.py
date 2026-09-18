@@ -81,16 +81,28 @@ def _duplicate_inflight_error() -> openai.APIStatusError:
 class _ClosableClient:
     def __init__(self) -> None:
         self.closed = False
+        self.close_calls = 0
 
     def close(self) -> None:
         self.closed = True
+        self.close_calls += 1
+
+
+class _AsyncClosableClient:
+    def __init__(self) -> None:
+        self.closed = False
+        self.aclose_calls = 0
+
+    async def aclose(self) -> None:
+        self.closed = True
+        self.aclose_calls += 1
 
 
 def _model(label: str) -> SimpleNamespace:
     return SimpleNamespace(
         label=label,
         http_client=_ClosableClient(),
-        http_async_client=_ClosableClient(),
+        http_async_client=_AsyncClosableClient(),
     )
 
 
@@ -123,6 +135,18 @@ def _invoke_script(
         lambda current_request: protocol.wrap_model_call(current_request, provider),
     )
     return response, metrics
+
+
+def _run_async_model_call(retry, protocol, request, provider):
+    async def run():
+        return await retry.awrap_model_call(
+            request,
+            lambda current_request: protocol.awrap_model_call(
+                current_request, provider
+            ),
+        )
+
+    return asyncio.run(run())
 
 
 def _response(content: str = "ok") -> ModelResponse:
@@ -262,6 +286,261 @@ def test_async_model_retry_uses_the_same_bounded_policy(monkeypatch):
     assert metrics.modelCalls == 1
     assert metrics.modelTransportAttempts == 2
     assert metrics.modelTransportRetries == 1
+
+
+def test_async_remote_protocol_error_recovers_with_fresh_client(monkeypatch):
+    async def no_sleep(_):
+        return None
+
+    monkeypatch.setattr("langchain.agents.middleware.model_retry.asyncio.sleep", no_sleep)
+    old_model = _model("old")
+    fresh_model = _model("fresh")
+    seen_models: list[str] = []
+    script = iter([_remote_protocol_error("incomplete stream"), _response("ok")])
+    metrics = ToolProtocolMetrics()
+    retry = create_creator_model_retry_middleware(
+        metrics=metrics,
+        max_retries=2,
+        recovery_factory=lambda: fresh_model,
+    )
+    protocol = ToolProtocolMiddleware(metrics=metrics)
+    request = ModelRequest(model=old_model, messages=[])
+
+    async def provider(current_request):
+        seen_models.append(current_request.model.label)
+        item = next(script)
+        if isinstance(item, BaseException):
+            raise item
+        return item
+
+    response = _run_async_model_call(retry, protocol, request, provider)
+
+    assert response.result[0].content == "ok"
+    assert seen_models == ["old", "fresh"]
+    assert old_model.http_async_client.closed is True
+    assert old_model.http_async_client.aclose_calls == 1
+    assert metrics.modelTransportAttempts == 2
+    assert metrics.modelTransportFreshClientRecoveries == 1
+    assert metrics.modelTransportFreshClientRecoveryFailures == 0
+
+
+def test_async_connect_failures_use_one_fresh_client_on_third_attempt(monkeypatch):
+    async def no_sleep(_):
+        return None
+
+    monkeypatch.setattr("langchain.agents.middleware.model_retry.asyncio.sleep", no_sleep)
+    old_model = _model("old")
+    fresh_model = _model("fresh")
+    seen_models: list[str] = []
+    script = iter([_connection_error(), _connection_error(), _response("ok")])
+    metrics = ToolProtocolMetrics()
+    retry = create_creator_model_retry_middleware(
+        metrics=metrics,
+        max_retries=2,
+        recovery_factory=lambda: fresh_model,
+    )
+    protocol = ToolProtocolMiddleware(metrics=metrics)
+    request = ModelRequest(model=old_model, messages=[])
+
+    async def provider(current_request):
+        seen_models.append(current_request.model.label)
+        item = next(script)
+        if isinstance(item, BaseException):
+            raise item
+        return item
+
+    response = _run_async_model_call(retry, protocol, request, provider)
+
+    assert response.result[0].content == "ok"
+    assert seen_models == ["old", "old", "fresh"]
+    assert old_model.http_async_client.closed is True
+    assert old_model.http_async_client.aclose_calls == 1
+    assert metrics.modelTransportAttempts == 3
+    assert metrics.modelTransportFreshClientRecoveries == 1
+    assert metrics.modelTransportFreshClientRecoveryFailures == 0
+
+
+def test_async_duplicate_inflight_409_waits_and_retries_once(monkeypatch):
+    delays: list[float] = []
+
+    async def record_sleep(delay):
+        delays.append(delay)
+
+    monkeypatch.setattr(
+        "langchain.agents.middleware.model_retry.asyncio.sleep", record_sleep
+    )
+    metrics = ToolProtocolMetrics()
+    retry = create_creator_model_retry_middleware(metrics=metrics, max_retries=2)
+    protocol = ToolProtocolMiddleware(metrics=metrics)
+    request = ModelRequest(model=object(), messages=[])
+    script = iter([_duplicate_inflight_error(), _response("ok")])
+
+    async def provider(_request):
+        item = next(script)
+        if isinstance(item, BaseException):
+            raise item
+        return item
+
+    response = _run_async_model_call(retry, protocol, request, provider)
+
+    assert response.result[0].content == "ok"
+    assert len(delays) == 1
+    assert 2.0 <= delays[0] <= 3.0
+    assert metrics.modelTransportDuplicateInflightWaits == 1
+    assert metrics.modelTransportAttempts == 2
+
+
+def test_async_generic_409_fails_fast():
+    metrics = ToolProtocolMetrics()
+    retry = create_creator_model_retry_middleware(metrics=metrics, max_retries=2)
+    protocol = ToolProtocolMiddleware(metrics=metrics)
+    request = ModelRequest(model=object(), messages=[])
+    calls = 0
+
+    async def provider(_request):
+        nonlocal calls
+        calls += 1
+        raise _status_error(409)
+
+    with pytest.raises(openai.APIStatusError):
+        _run_async_model_call(retry, protocol, request, provider)
+
+    assert calls == 1
+    assert metrics.modelTransportAttempts == 1
+    assert metrics.modelTransportDuplicateInflightWaits == 0
+
+
+def test_async_fresh_client_remains_active_for_the_next_model_call(monkeypatch):
+    async def no_sleep(_):
+        return None
+
+    monkeypatch.setattr("langchain.agents.middleware.model_retry.asyncio.sleep", no_sleep)
+    old_model = _model("old")
+    fresh_model = _model("fresh")
+    seen_models: list[str] = []
+    script = iter(
+        [
+            _remote_protocol_error("incomplete stream"),
+            _response("first"),
+            _response("second"),
+        ]
+    )
+    metrics = ToolProtocolMetrics()
+    retry = create_creator_model_retry_middleware(
+        metrics=metrics,
+        max_retries=2,
+        recovery_factory=lambda: fresh_model,
+    )
+    protocol = ToolProtocolMiddleware(metrics=metrics)
+    request = ModelRequest(model=old_model, messages=[])
+
+    async def provider(current_request):
+        seen_models.append(current_request.model.label)
+        item = next(script)
+        if isinstance(item, BaseException):
+            raise item
+        return item
+
+    first = _run_async_model_call(retry, protocol, request, provider)
+    second = _run_async_model_call(retry, protocol, request, provider)
+
+    assert first.result[0].content == "first"
+    assert second.result[0].content == "second"
+    assert seen_models == ["old", "fresh", "fresh"]
+    assert metrics.modelTransportAttempts == 3
+    assert metrics.modelTransportFreshClientRecoveries == 1
+    assert metrics.modelTransportFreshClientRecoveryFailures == 0
+
+
+def test_async_fresh_recovery_final_failure_counts_failure_once(monkeypatch, tmp_path):
+    async def no_sleep(_):
+        return None
+
+    monkeypatch.setattr("langchain.agents.middleware.model_retry.asyncio.sleep", no_sleep)
+    old_model = _model("old")
+    fresh_model = _model("fresh")
+    seen_models: list[str] = []
+    script = iter([_connection_error(), _connection_error(), _connection_error()])
+    metrics = ToolProtocolMetrics()
+    logger = CreatorRunLogger(tmp_path)
+    logger.begin(run_id="async-fresh-failure", agent_mode="minimal")
+    retry = create_creator_model_retry_middleware(
+        metrics=metrics,
+        max_retries=2,
+        logger=logger,
+        recovery_factory=lambda: fresh_model,
+    )
+    protocol = ToolProtocolMiddleware(metrics=metrics)
+    request = ModelRequest(model=old_model, messages=[])
+
+    async def provider(current_request):
+        seen_models.append(current_request.model.label)
+        raise next(script)
+
+    with pytest.raises(ModelTransportError) as raised:
+        _run_async_model_call(retry, protocol, request, provider)
+
+    assert raised.value.attempts == 3
+    assert seen_models == ["old", "old", "fresh"]
+    assert old_model.http_async_client.closed is True
+    assert metrics.modelTransportAttempts == 3
+    assert metrics.modelTransportFreshClientRecoveries == 0
+    assert metrics.modelTransportFreshClientRecoveryFailures == 1
+    exhausted = next(
+        event
+        for event in _events(logger)
+        if event["type"] == "model_transport_retry_exhausted"
+    )
+    assert exhausted["data"]["freshClient"] is True
+
+
+def test_async_successful_mutation_is_not_replayed_after_next_model_retry(monkeypatch):
+    async def no_sleep(_):
+        return None
+
+    monkeypatch.setattr("langchain.agents.middleware.model_retry.asyncio.sleep", no_sleep)
+    metrics = ToolProtocolMetrics()
+    retry = create_creator_model_retry_middleware(metrics=metrics, max_retries=2)
+    protocol = ToolProtocolMiddleware(metrics=metrics)
+    request = ModelRequest(
+        model=object(),
+        messages=[],
+        tools=[_tool("mutate_app_ui_model")],
+    )
+    script = iter(
+        [
+            _tool_response("mutate_app_ui_model", "mutation-async-1"),
+            _connection_error(),
+            _response("done"),
+        ]
+    )
+    mutation_requests = 0
+
+    async def provider(_request):
+        item = next(script)
+        if isinstance(item, BaseException):
+            raise item
+        return item
+
+    first = _run_async_model_call(retry, protocol, request, provider)
+    assert first.result[0].tool_calls[0]["name"] == "mutate_app_ui_model"
+    mutation_requests += 1
+    second = _run_async_model_call(
+        retry,
+        protocol,
+        request.override(
+            messages=[
+                first.result[0],
+                ToolMessage(content='{"ok":true}', tool_call_id="mutation-async-1"),
+            ]
+        ),
+        provider,
+    )
+
+    assert second.result[0].content == "done"
+    assert mutation_requests == 1
+    assert metrics.modelCalls == 2
+    assert metrics.modelTransportAttempts == 3
 
 
 def test_remote_protocol_error_waits_for_grace_period_before_retry(monkeypatch):

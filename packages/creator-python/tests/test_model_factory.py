@@ -70,8 +70,8 @@ def test_model_factory_owns_explicit_chat_completions_configuration():
     assert model.streaming is True
     assert model.use_responses_api is False
     assert model.max_retries == 0
-    assert model.http_client._trust_env is False
-    assert model.http_async_client._trust_env is False
+    assert model.http_client._trust_env is True
+    assert model.http_async_client._trust_env is True
 
 
 def test_model_settings_defaults_to_agent_owned_retry_budget():

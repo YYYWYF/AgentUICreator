@@ -43,13 +43,11 @@ def create_creator_chat_model(
         streaming=True,
         use_responses_api=False,
         http_client=httpx.Client(
-            trust_env=False,
             timeout=timeout,
             event_hooks=sync_hooks,
             transport=http_transport,
         ),
         http_async_client=httpx.AsyncClient(
-            trust_env=False,
             timeout=timeout,
             event_hooks=async_hooks,
             transport=http_async_transport,
