@@ -166,7 +166,8 @@ describe("inspectUIProject", () => {
             message: {
               description: "Sample child content.",
               cardinality: "many",
-              optional: true
+              optional: true,
+              accepts: { anyOfCapabilities: ["sample-content"] },
             }
           }
         },
@@ -264,6 +265,7 @@ describe("inspectUIProject", () => {
         description: "Sample child content.",
         cardinality: "many",
         optional: true,
+        accepts: { anyOfCapabilities: ["sample-content"] },
         owner: {
           kind: "plugin",
           instanceId: "sample-main",
@@ -332,6 +334,14 @@ describe("inspectUIProject", () => {
           currentInstances: [
             expect.objectContaining({ instanceId: "sample-main", enabled: true }),
           ],
+          childSlots: {
+            message: {
+              description: "Sample child content.",
+              cardinality: "many",
+              optional: true,
+              accepts: { anyOfCapabilities: ["sample-content"] },
+            },
+          },
         }),
       ]),
       capabilityCatalogRevision: result.capabilityCatalog.revision,

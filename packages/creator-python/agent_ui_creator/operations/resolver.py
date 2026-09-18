@@ -31,6 +31,12 @@ design verification.
 Productized operation rules:
 - add_existing_plugin: add one existing Plugin using its product default placement.
 - remove_plugin: remove one existing Plugin instance; the Host decides deterministic reflow.
+- move_plugin: move one existing Plugin instance to an explicitly requested supported placement.
+  Supported placements are before/after another existing visual Plugin instance, or into
+  a declared child Slot of another existing Plugin instance. The Host decides Layout
+  traversal, Slot compatibility, cleanup, mutation lowering, and verification.
+  Return only the semantic target and placement ids; never return layoutRef, slotRef,
+  parentRef, index, sizes, wrappers, cleanup operations, or verification steps.
 - modify_plugin_logic: change behavior inside one identified Plugin's own source.
 - general_change: use for custom placement/size, unsupported operations, or broader scope.
 - needs_clarification: use when the request is materially ambiguous and ask one concise question.
@@ -201,12 +207,75 @@ class CreatorOperationResolver:
                 "Every target instance must belong to a target Plugin."
             )
 
+        self._validate_placement(
+            resolution,
+            target_instance_ids=target_instance_ids,
+            plugins_by_id=plugins_by_id,
+            instances_by_id=instances_by_id,
+        )
+
         self._validate_operation_policy(
             resolution.kind,
             target_plugin_ids=target_plugin_ids,
             target_instance_ids=target_instance_ids,
             plugins_by_id=plugins_by_id,
         )
+
+    @staticmethod
+    def _validate_placement(
+        resolution: CreatorOperationResolution,
+        *,
+        target_instance_ids: list[str],
+        plugins_by_id: Mapping[str, Any],
+        instances_by_id: Mapping[str, str],
+    ) -> None:
+        placement = resolution.placement
+        if resolution.kind != "move_plugin":
+            if placement is not None:
+                raise _InvalidResolution(
+                    "placement is only allowed for move_plugin."
+                )
+            return
+
+        if len(target_instance_ids) != 1:
+            raise _InvalidResolution(
+                "move_plugin requires exactly one target instance."
+            )
+        if placement is None:
+            raise _InvalidResolution("move_plugin requires a placement.")
+
+        if placement.type == "relative":
+            placement_plugin_id = placement.anchorPluginId
+            placement_instance_id = placement.anchorInstanceId
+            placement_label = "anchor"
+        else:
+            placement_plugin_id = placement.parentPluginId
+            placement_instance_id = placement.parentInstanceId
+            placement_label = "parent"
+
+        if placement_plugin_id not in plugins_by_id:
+            raise _InvalidResolution(
+                f"Unknown {placement_label} Plugin id: {placement_plugin_id}."
+            )
+        if placement_instance_id not in instances_by_id:
+            raise _InvalidResolution(
+                f"Unknown {placement_label} instance id: {placement_instance_id}."
+            )
+        if instances_by_id[placement_instance_id] != placement_plugin_id:
+            raise _InvalidResolution(
+                f"The {placement_label} instance must belong to its {placement_label} Plugin."
+            )
+        if placement_instance_id == target_instance_ids[0]:
+            raise _InvalidResolution(
+                f"A Plugin instance cannot move relative to itself or into its own Slot."
+            )
+
+        if placement.type == "plugin_slot":
+            parent_plugin = plugins_by_id[placement.parentPluginId]
+            if not any(slot.name == placement.slot for slot in parent_plugin.childSlots):
+                raise _InvalidResolution(
+                    f"Unknown child Slot {placement.slot!r} on Plugin {placement.parentPluginId}."
+                )
 
     @staticmethod
     def _validate_operation_policy(
@@ -236,6 +305,13 @@ class CreatorOperationResolver:
             if not current_instances and target_instance_ids:
                 raise _InvalidResolution(
                     "remove_plugin cannot target an instance when the Plugin is not mounted."
+                )
+            return
+
+        if kind == "move_plugin":
+            if len(target_plugin_ids) != 1 or len(target_instance_ids) != 1:
+                raise _InvalidResolution(
+                    "move_plugin requires exactly one target Plugin and instance."
                 )
             return
 

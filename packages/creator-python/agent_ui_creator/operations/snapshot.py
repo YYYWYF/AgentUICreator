@@ -10,9 +10,15 @@ from typing import Any
 from ..project_control import ProjectControlClient, ProjectControlError
 from .models import (
     CreatorDomainSnapshot,
+    MAX_CHILD_SLOT_ACCEPTED_CAPABILITIES,
+    MAX_CHILD_SLOT_DESCRIPTION_CHARS,
+    MAX_CHILD_SLOT_NAME_CHARS,
     MAX_PLUGIN_CAPABILITIES,
     MAX_PLUGIN_ANCHOR_ID_CHARS,
     MAX_PLUGIN_AUTHORING_SIZE_CHARS,
+    MAX_PLUGIN_CAPABILITY_CHARS,
+    MAX_PLUGIN_CAPABILITY_TAGS,
+    MAX_PLUGIN_CHILD_SLOTS,
     MAX_PLUGIN_DESCRIPTION_CHARS,
     MAX_PLUGIN_ID_CHARS,
     MAX_PLUGIN_INSTANCE_ID_CHARS,
@@ -22,7 +28,9 @@ from .models import (
     MAX_PLUGIN_NAME_CHARS,
     MAX_PLUGIN_VISUAL_ROLE_CHARS,
     MAX_REQUIRED_SERVICE_STATUS_CHARS,
+    MAX_TOTAL_PLUGIN_CHILD_SLOTS,
     MAX_TOTAL_PLUGIN_INSTANCES,
+    PluginChildSlotCapability,
     PluginCapability,
     PluginCapabilityIndex,
     PluginDefaultPlacement,
@@ -128,6 +136,93 @@ def _check_optional_size_text(value: Any, path: str, limit: int) -> None:
         )
 
 
+def _build_plugin_child_slots(
+    value: Any,
+    *,
+    index: int,
+) -> list[PluginChildSlotCapability]:
+    if value is None:
+        return []
+    child_slots = _required_mapping(value, f"capabilitySummaries[{index}].childSlots")
+    if len(child_slots) > MAX_PLUGIN_CHILD_SLOTS:
+        raise _too_large(
+            f"Plugin at capabilitySummaries[{index}] declares too many child Slots.",
+            {
+                "field": f"capabilitySummaries[{index}].childSlots",
+                "limit": MAX_PLUGIN_CHILD_SLOTS,
+                "actual": len(child_slots),
+            },
+        )
+
+    result: list[PluginChildSlotCapability] = []
+    for slot_name, slot_value in sorted(child_slots.items(), key=lambda item: str(item[0])):
+        slot_path = f"capabilitySummaries[{index}].childSlots[{slot_name!r}]"
+        bounded_slot_name = _bounded_text(
+            slot_name,
+            f"{slot_path}.name",
+            MAX_CHILD_SLOT_NAME_CHARS,
+        )
+        slot = _required_mapping(slot_value, slot_path)
+        description = _bounded_text(
+            slot.get("description"),
+            f"{slot_path}.description",
+            MAX_CHILD_SLOT_DESCRIPTION_CHARS,
+        )
+        cardinality = _required_string(slot.get("cardinality"), f"{slot_path}.cardinality")
+        if cardinality not in {"one", "many"}:
+            raise _invalid(
+                f"Unsupported child Slot cardinality {cardinality!r} for Plugin Slot {bounded_slot_name}."
+            )
+        optional = slot.get("optional", False)
+        if not isinstance(optional, bool):
+            raise _invalid(f"Domain snapshot field {slot_path}.optional must be a boolean.")
+
+        accepted_capabilities: list[str] = []
+        accepts_value = slot.get("accepts")
+        if accepts_value is not None:
+            accepts = _required_mapping(accepts_value, f"{slot_path}.accepts")
+            accepted_value = accepts.get("anyOfCapabilities")
+            if not isinstance(accepted_value, list) or not all(
+                isinstance(capability, str) and capability.strip()
+                for capability in accepted_value
+            ):
+                raise _invalid(
+                    f"Domain snapshot field {slot_path}.accepts.anyOfCapabilities must be a string list."
+                )
+            if len(accepted_value) > MAX_CHILD_SLOT_ACCEPTED_CAPABILITIES:
+                raise _too_large(
+                    f"Child Slot {bounded_slot_name} declares too many accepted capabilities.",
+                    {
+                        "field": f"{slot_path}.accepts.anyOfCapabilities",
+                        "limit": MAX_CHILD_SLOT_ACCEPTED_CAPABILITIES,
+                        "actual": len(accepted_value),
+                    },
+                )
+            accepted_capabilities = [
+                _bounded_text(
+                    capability,
+                    f"{slot_path}.accepts.anyOfCapabilities[{capability_index}]",
+                    MAX_PLUGIN_CAPABILITY_CHARS,
+                )
+                for capability_index, capability in enumerate(accepted_value)
+            ]
+            if len(set(accepted_capabilities)) != len(accepted_capabilities):
+                raise _invalid(
+                    f"Child Slot {bounded_slot_name} declares duplicate accepted capabilities."
+                )
+
+        result.append(
+            PluginChildSlotCapability(
+                name=bounded_slot_name,
+                description=description,
+                cardinality=cardinality,
+                optional=optional,
+                acceptedCapabilities=accepted_capabilities,
+            )
+        )
+    return result
+
+
 def _build_plugin_capability(
     value: Any,
     *,
@@ -152,6 +247,34 @@ def _build_plugin_capability(
     selected = _required_bool(
         item.get("selected"), f"capabilitySummaries[{index}].selected"
     )
+
+    capabilities_value = item.get("capabilities", [])
+    if not isinstance(capabilities_value, list) or not all(
+        isinstance(capability, str) and capability.strip()
+        for capability in capabilities_value
+    ):
+        raise _invalid(
+            f"Domain snapshot field capabilitySummaries[{index}].capabilities must be a string list."
+        )
+    if len(capabilities_value) > MAX_PLUGIN_CAPABILITY_TAGS:
+        raise _too_large(
+            f"Plugin {plugin_id} declares too many capabilities.",
+            {
+                "field": f"capabilitySummaries[{index}].capabilities",
+                "limit": MAX_PLUGIN_CAPABILITY_TAGS,
+                "actual": len(capabilities_value),
+            },
+        )
+    capabilities = [
+        _bounded_text(
+            capability,
+            f"capabilitySummaries[{index}].capabilities[{capability_index}]",
+            MAX_PLUGIN_CAPABILITY_CHARS,
+        )
+        for capability_index, capability in enumerate(capabilities_value)
+    ]
+    if len(set(capabilities)) != len(capabilities):
+        raise _invalid(f"Plugin {plugin_id} declares duplicate capabilities.")
 
     authoring_value = item.get("authoring")
     authoring = (
@@ -289,11 +412,14 @@ def _build_plugin_capability(
             )
         )
 
+    child_slots = _build_plugin_child_slots(item.get("childSlots"), index=index)
+
     try:
         return PluginCapability(
             pluginId=plugin_id,
             name=name,
             description=description,
+            capabilities=capabilities,
             intents=intents,
             visualRole=visual_role,
             selected=selected,
@@ -301,6 +427,7 @@ def _build_plugin_capability(
             defaultPlacement=placement,
             recommendedSize=recommended_size,
             requiredServices=required_services,
+            childSlots=child_slots,
         )
     except ValueError as error:
         raise _invalid(
@@ -332,6 +459,16 @@ def _build_plugin_index(result: Mapping[str, Any]) -> PluginCapabilityIndex:
                 "field": "capabilitySummaries[].currentInstances",
                 "limit": MAX_TOTAL_PLUGIN_INSTANCES,
                 "actual": total_instances,
+            },
+        )
+    total_child_slots = sum(len(plugin.childSlots) for plugin in plugins)
+    if total_child_slots > MAX_TOTAL_PLUGIN_CHILD_SLOTS:
+        raise _too_large(
+            "Domain snapshot contains too many Plugin child Slots.",
+            {
+                "field": "capabilitySummaries[].childSlots",
+                "limit": MAX_TOTAL_PLUGIN_CHILD_SLOTS,
+                "actual": total_child_slots,
             },
         )
     plugin_ids = [plugin.pluginId for plugin in plugins]

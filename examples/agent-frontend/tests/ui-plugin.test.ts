@@ -277,15 +277,63 @@ describe("UIPluginManifest", () => {
       slots: {
         children: {
           header: { description: "Header content.", cardinality: "one" },
-          body: { description: "Body content.", cardinality: "many", optional: true },
+          body: {
+            description: "Body content.",
+            cardinality: "many",
+            optional: true,
+            accepts: { anyOfCapabilities: ["conversation-message"] },
+          },
         },
       },
     });
 
     expect(manifest.slots?.children).toEqual({
       header: { description: "Header content.", cardinality: "one" },
-      body: { description: "Body content.", cardinality: "many", optional: true },
+      body: {
+        description: "Body content.",
+        cardinality: "many",
+        optional: true,
+        accepts: { anyOfCapabilities: ["conversation-message"] },
+      },
     });
+  });
+
+  it("rejects invalid child Slot capability contracts", () => {
+    const missingCapability = uiPluginManifestSchema.safeParse({
+      id: "conversation",
+      name: "Conversation",
+      description: "Owns the conversation surface",
+      version: "1.0.0",
+      slots: {
+        children: {
+          actions: {
+            description: "Action content.",
+            cardinality: "many",
+            accepts: { anyOfCapabilities: [] },
+          },
+        },
+      },
+    });
+    const duplicateCapability = uiPluginManifestSchema.safeParse({
+      id: "conversation",
+      name: "Conversation",
+      description: "Owns the conversation surface",
+      version: "1.0.0",
+      slots: {
+        children: {
+          actions: {
+            description: "Action content.",
+            cardinality: "many",
+            accepts: {
+              anyOfCapabilities: ["composer-action", "composer-action"],
+            },
+          },
+        },
+      },
+    });
+
+    expect(missingCapability.success).toBe(false);
+    expect(duplicateCapability.success).toBe(false);
   });
 
   it("rejects blank child Slot names and descriptions", () => {

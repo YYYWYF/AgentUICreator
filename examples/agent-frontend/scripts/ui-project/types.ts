@@ -137,6 +137,7 @@ export interface InspectedPluginSlot {
   description: string;
   cardinality: "one" | "many";
   optional: boolean;
+  accepts?: PluginChildSlotDefinition["accepts"];
   owner: {
     kind: "plugin";
     instanceId: string;

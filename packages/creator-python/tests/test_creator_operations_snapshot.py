@@ -8,9 +8,15 @@ import pytest
 from agent_ui_creator.operations import (
     CreatorDomainSnapshotError,
     CreatorDomainSnapshotProvider,
+    MAX_CHILD_SLOT_ACCEPTED_CAPABILITIES,
+    MAX_CHILD_SLOT_DESCRIPTION_CHARS,
+    MAX_CHILD_SLOT_NAME_CHARS,
     MAX_PLUGIN_ANCHOR_ID_CHARS,
     MAX_PLUGIN_AUTHORING_SIZE_CHARS,
+    MAX_PLUGIN_CAPABILITY_CHARS,
+    MAX_PLUGIN_CAPABILITY_TAGS,
     MAX_PLUGIN_CAPABILITIES,
+    MAX_PLUGIN_CHILD_SLOTS,
     MAX_PLUGIN_DESCRIPTION_CHARS,
     MAX_PLUGIN_ID_CHARS,
     MAX_PLUGIN_INSTANCE_ID_CHARS,
@@ -20,6 +26,7 @@ from agent_ui_creator.operations import (
     MAX_PLUGIN_NAME_CHARS,
     MAX_PLUGIN_VISUAL_ROLE_CHARS,
     MAX_REQUIRED_SERVICE_STATUS_CHARS,
+    MAX_TOTAL_PLUGIN_CHILD_SLOTS,
     MAX_TOTAL_PLUGIN_INSTANCES,
 )
 from agent_ui_creator.project_control import ProjectControlError
@@ -47,6 +54,7 @@ def snapshot_result() -> dict[str, object]:
                 "pluginId": "conversation-thread-list",
                 "name": "Conversation Thread List",
                 "description": "Browse and select conversation history.",
+                "capabilities": ["conversation-history"],
                 "selected": False,
                 "authoring": {
                     "intents": [
@@ -67,6 +75,7 @@ def snapshot_result() -> dict[str, object]:
                 "pluginId": "conversation-surface",
                 "name": "Conversation Surface",
                 "description": "Show and send conversation messages.",
+                "capabilities": ["conversation-surface"],
                 "selected": True,
                 "authoring": {
                     "intents": ["show conversation", "send messages"],
@@ -78,6 +87,16 @@ def snapshot_result() -> dict[str, object]:
                         "enabled": True,
                     }
                 ],
+                "childSlots": {
+                    "actions": {
+                        "description": "Compact actions beside the composer input.",
+                        "cardinality": "many",
+                        "optional": True,
+                        "accepts": {
+                            "anyOfCapabilities": ["composer-action"]
+                        },
+                    }
+                },
             },
         ],
         "activeComposition": {
@@ -117,17 +136,28 @@ def test_snapshot_provider_uses_one_authoritative_composition_read():
                 "pluginId": "conversation-surface",
                 "name": "Conversation Surface",
                 "description": "Show and send conversation messages.",
+                "capabilities": ["conversation-surface"],
                 "intents": ["show conversation", "send messages"],
                 "visualRole": "conversation surface",
                 "selected": True,
                 "instances": [
                     {"instanceId": "conversation-surface-main", "enabled": True}
                 ],
+                "childSlots": [
+                    {
+                        "name": "actions",
+                        "description": "Compact actions beside the composer input.",
+                        "cardinality": "many",
+                        "optional": True,
+                        "acceptedCapabilities": ["composer-action"],
+                    }
+                ],
             },
             {
                 "pluginId": "conversation-thread-list",
                 "name": "Conversation Thread List",
                 "description": "Browse and select conversation history.",
+                "capabilities": ["conversation-history"],
                 "intents": [
                     "browse conversation history",
                     "select an existing conversation",
@@ -135,6 +165,7 @@ def test_snapshot_provider_uses_one_authoritative_composition_read():
                 "visualRole": "conversation navigation",
                 "selected": False,
                 "instances": [],
+                "childSlots": [],
                 "defaultPlacement": {
                     "relation": "before",
                     "anchorPluginId": "conversation-surface",
@@ -143,6 +174,24 @@ def test_snapshot_provider_uses_one_authoritative_composition_read():
                 "requiredServices": {"status": "resolved"},
             },
         ]
+    }
+
+
+def test_snapshot_provider_projects_child_slot_contracts_and_plugin_capabilities():
+    snapshot = CreatorDomainSnapshotProvider._parse(snapshot_result())
+
+    surface = next(
+        plugin
+        for plugin in snapshot.plugin_index.plugins
+        if plugin.pluginId == "conversation-surface"
+    )
+    assert surface.capabilities == ["conversation-surface"]
+    assert surface.childSlots[0].model_dump(mode="json") == {
+        "name": "actions",
+        "description": "Compact actions beside the composer input.",
+        "cardinality": "many",
+        "optional": True,
+        "acceptedCapabilities": ["composer-action"],
     }
 
 
@@ -199,6 +248,114 @@ def test_snapshot_provider_rejects_too_many_plugin_intents():
 
     assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"
     assert raised.value.details["limit"] == MAX_PLUGIN_INTENTS
+
+
+def test_snapshot_provider_rejects_too_many_plugin_capability_tags():
+    result = snapshot_result()
+    result["capabilitySummaries"][0]["capabilities"] = [
+        f"capability-{index}" for index in range(MAX_PLUGIN_CAPABILITY_TAGS + 1)
+    ]
+
+    with pytest.raises(CreatorDomainSnapshotError) as raised:
+        CreatorDomainSnapshotProvider._parse(result)
+
+    assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"
+    assert raised.value.details["limit"] == MAX_PLUGIN_CAPABILITY_TAGS
+
+
+def test_snapshot_provider_rejects_child_slot_bounds():
+    oversized_child_slots = snapshot_result()
+    oversized_child_slots["capabilitySummaries"][0]["childSlots"] = {
+        f"slot-{index}": {
+            "description": "Child Slot",
+            "cardinality": "many",
+        }
+        for index in range(MAX_PLUGIN_CHILD_SLOTS + 1)
+    }
+    with pytest.raises(CreatorDomainSnapshotError) as raised:
+        CreatorDomainSnapshotProvider._parse(oversized_child_slots)
+    assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"
+    assert raised.value.details["limit"] == MAX_PLUGIN_CHILD_SLOTS
+
+    oversized_name = snapshot_result()
+    oversized_name["capabilitySummaries"][0]["childSlots"] = {
+        "x" * (MAX_CHILD_SLOT_NAME_CHARS + 1): {
+            "description": "Child Slot",
+            "cardinality": "many",
+        }
+    }
+    with pytest.raises(CreatorDomainSnapshotError) as raised:
+        CreatorDomainSnapshotProvider._parse(oversized_name)
+    assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"
+
+    oversized_description = snapshot_result()
+    oversized_description["capabilitySummaries"][0]["childSlots"] = {
+        "actions": {
+            "description": "x" * (MAX_CHILD_SLOT_DESCRIPTION_CHARS + 1),
+            "cardinality": "many",
+        }
+    }
+    with pytest.raises(CreatorDomainSnapshotError) as raised:
+        CreatorDomainSnapshotProvider._parse(oversized_description)
+    assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"
+
+    oversized_accepts = snapshot_result()
+    oversized_accepts["capabilitySummaries"][0]["childSlots"] = {
+        "actions": {
+            "description": "Child Slot",
+            "cardinality": "many",
+            "accepts": {
+                "anyOfCapabilities": [
+                    f"capability-{index}"
+                    for index in range(MAX_CHILD_SLOT_ACCEPTED_CAPABILITIES + 1)
+                ]
+            },
+        }
+    }
+    with pytest.raises(CreatorDomainSnapshotError) as raised:
+        CreatorDomainSnapshotProvider._parse(oversized_accepts)
+    assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"
+
+    oversized_capability = snapshot_result()
+    oversized_capability["capabilitySummaries"][0]["childSlots"] = {
+        "actions": {
+            "description": "Child Slot",
+            "cardinality": "many",
+            "accepts": {
+                "anyOfCapabilities": ["x" * (MAX_PLUGIN_CAPABILITY_CHARS + 1)]
+            },
+        }
+    }
+    with pytest.raises(CreatorDomainSnapshotError) as raised:
+        CreatorDomainSnapshotProvider._parse(oversized_capability)
+    assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"
+
+
+def test_snapshot_provider_rejects_too_many_total_child_slots():
+    result = snapshot_result()
+    template = result["capabilitySummaries"][0]
+    result["capabilitySummaries"] = [
+        {
+            **copy.deepcopy(template),
+            "pluginId": f"plugin-{index}",
+            "childSlots": {
+                f"slot-{slot_index}": {
+                    "description": "Child Slot",
+                    "cardinality": "many",
+                }
+                for slot_index in range(MAX_PLUGIN_CHILD_SLOTS)
+            },
+        }
+        for index in range(
+            MAX_TOTAL_PLUGIN_CHILD_SLOTS // MAX_PLUGIN_CHILD_SLOTS + 1
+        )
+    ]
+
+    with pytest.raises(CreatorDomainSnapshotError) as raised:
+        CreatorDomainSnapshotProvider._parse(result)
+
+    assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"
+    assert raised.value.details["limit"] == MAX_TOTAL_PLUGIN_CHILD_SLOTS
 
 
 def test_snapshot_provider_rejects_too_many_plugin_instances():

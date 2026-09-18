@@ -5,6 +5,7 @@ import json
 
 import httpx
 import pytest
+from pydantic import ValidationError
 
 from agent_ui_creator.operations import (
     CreatorOperationResolution,
@@ -45,6 +46,7 @@ def _plugin_index(
                     "pluginId": "conversation-surface",
                     "name": "Conversation Surface",
                     "description": "Show conversation.",
+                    "capabilities": ["conversation-surface"],
                     "intents": ["show conversation"],
                     "visualRole": "conversation surface",
                     "selected": True,
@@ -52,6 +54,41 @@ def _plugin_index(
                         {
                             "instanceId": "conversation-surface-main",
                             "enabled": True,
+                        }
+                    ],
+                },
+            ]
+        }
+    )
+
+
+def move_plugin_index() -> PluginCapabilityIndex:
+    return PluginCapabilityIndex.model_validate(
+        {
+            "plugins": [
+                {
+                    "pluginId": "send-button",
+                    "name": "Send Button",
+                    "description": "Send the current composer input.",
+                    "capabilities": ["composer-action"],
+                    "selected": True,
+                    "instances": [
+                        {"instanceId": "send-button-main", "enabled": True}
+                    ],
+                },
+                {
+                    "pluginId": "composer",
+                    "name": "Composer",
+                    "description": "Collect and submit a message.",
+                    "selected": True,
+                    "instances": [{"instanceId": "composer-main", "enabled": True}],
+                    "childSlots": [
+                        {
+                            "name": "actions",
+                            "description": "Compact actions beside the composer input.",
+                            "cardinality": "many",
+                            "optional": True,
+                            "acceptedCapabilities": ["composer-action"],
                         }
                     ],
                 },
@@ -89,11 +126,12 @@ class StaticStructuredModel:
         return result
 
 
-def resolution(kind, *, plugins=None, instances=None, question=None):
+def resolution(kind, *, plugins=None, instances=None, placement=None, question=None):
     return CreatorOperationResolution(
         kind=kind,
         targetPluginIds=[] if plugins is None else plugins,
         targetInstanceIds=[] if instances is None else instances,
+        placement=placement,
         clarificationQuestion=question,
     )
 
@@ -115,6 +153,51 @@ def resolution(kind, *, plugins=None, instances=None, question=None):
                 "remove_plugin",
                 plugins=["conversation-thread-list"],
                 instances=["conversation-thread-list-main"],
+            ),
+        ),
+        (
+            "把历史会话移到右边",
+            remove_plugin_index,
+            resolution(
+                "move_plugin",
+                plugins=["conversation-thread-list"],
+                instances=["conversation-thread-list-main"],
+                placement={
+                    "type": "relative",
+                    "anchorPluginId": "conversation-surface",
+                    "anchorInstanceId": "conversation-surface-main",
+                    "relation": "after",
+                },
+            ),
+        ),
+        (
+            "把历史会话移到左边",
+            remove_plugin_index,
+            resolution(
+                "move_plugin",
+                plugins=["conversation-thread-list"],
+                instances=["conversation-thread-list-main"],
+                placement={
+                    "type": "relative",
+                    "anchorPluginId": "conversation-surface",
+                    "anchorInstanceId": "conversation-surface-main",
+                    "relation": "before",
+                },
+            ),
+        ),
+        (
+            "把发送按钮移到输入框 actions 里",
+            move_plugin_index,
+            resolution(
+                "move_plugin",
+                plugins=["send-button"],
+                instances=["send-button-main"],
+                placement={
+                    "type": "plugin_slot",
+                    "parentPluginId": "composer",
+                    "parentInstanceId": "composer-main",
+                    "slot": "actions",
+                },
             ),
         ),
         (
@@ -171,6 +254,79 @@ def test_resolver_allows_remove_without_instance_target_when_plugin_is_unmounted
 
     assert actual.targetPluginIds == ["conversation-thread-list"]
     assert actual.targetInstanceIds == []
+
+
+def test_resolution_requires_move_placement_and_rejects_non_move_placement():
+    with pytest.raises(ValidationError):
+        CreatorOperationResolution(
+            kind="move_plugin",
+            targetPluginIds=["conversation-thread-list"],
+            targetInstanceIds=["conversation-thread-list-main"],
+        )
+
+    with pytest.raises(ValidationError):
+        CreatorOperationResolution(
+            kind="remove_plugin",
+            targetPluginIds=["conversation-thread-list"],
+            targetInstanceIds=["conversation-thread-list-main"],
+            placement={
+                "type": "relative",
+                "anchorPluginId": "conversation-surface",
+                "anchorInstanceId": "conversation-surface-main",
+                "relation": "after",
+            },
+        )
+
+
+@pytest.mark.parametrize(
+    "placement",
+    [
+        {
+            "type": "relative",
+            "anchorPluginId": "missing-plugin",
+            "anchorInstanceId": "conversation-surface-main",
+            "relation": "after",
+        },
+        {
+            "type": "relative",
+            "anchorPluginId": "conversation-surface",
+            "anchorInstanceId": "missing-instance",
+            "relation": "after",
+        },
+        {
+            "type": "plugin_slot",
+            "parentPluginId": "conversation-surface",
+            "parentInstanceId": "conversation-surface-main",
+            "slot": "missing-slot",
+        },
+    ],
+)
+def test_resolver_rejects_unknown_move_placement_targets(placement):
+    model = StaticStructuredModel(
+        [
+            resolution(
+                "move_plugin",
+                plugins=["conversation-thread-list"],
+                instances=["conversation-thread-list-main"],
+                placement=placement,
+            ),
+            resolution(
+                "move_plugin",
+                plugins=["conversation-thread-list"],
+                instances=["conversation-thread-list-main"],
+                placement=placement,
+            ),
+        ]
+    )
+    resolver = CreatorOperationResolver(structured_model=model)
+
+    with pytest.raises(CreatorOperationResolutionError):
+        asyncio.run(
+            resolver.resolve(
+                "移动历史会话",
+                remove_plugin_index(),
+            )
+        )
 
 
 def test_resolver_allows_one_bounded_repair_for_invalid_target():

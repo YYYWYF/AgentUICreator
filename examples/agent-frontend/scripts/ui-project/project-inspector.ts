@@ -214,6 +214,9 @@ async function inspectUICompositionData(
         description: definition.description,
         cardinality: definition.cardinality,
         optional: definition.optional === true,
+        ...(definition.accepts === undefined
+          ? {}
+          : { accepts: structuredClone(definition.accepts) }),
         owner: {
           kind: "plugin",
           instanceId: location.plugin.id,

@@ -244,6 +244,19 @@ const authoringLayoutSizeSchema: z.ZodType<AppUILayoutSize> = z.union([
     .refine((value) => value.trim().length > 0, "Must not be blank"),
 ]);
 
+const childSlotNameSchema = nonBlankStringSchema.max(
+  100,
+  "Child Slot names must be at most 100 characters",
+);
+const childSlotDescriptionSchema = nonBlankStringSchema.max(
+  300,
+  "Child Slot descriptions must be at most 300 characters",
+);
+const childSlotCapabilitySchema = nonBlankStringSchema;
+const childSlotAcceptsSchema = z.strictObject({
+  anyOfCapabilities: z.array(childSlotCapabilitySchema).min(1).max(16),
+});
+
 const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
   id: nonBlankStringSchema,
   name: nonBlankStringSchema,
@@ -290,11 +303,12 @@ const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
   slots: z
     .strictObject({
       children: z.record(
-        nonBlankStringSchema,
+        childSlotNameSchema,
         z.strictObject({
-          description: nonBlankStringSchema,
+          description: childSlotDescriptionSchema,
           cardinality: z.enum(["one", "many"]),
           optional: z.boolean().optional(),
+          accepts: childSlotAcceptsSchema.optional(),
         }),
       ).optional(),
     })
@@ -346,6 +360,23 @@ export const uiPluginManifestSchema = manifestShapeSchema.superRefine(
       }
       applicationEvents.add(eventName);
     });
+
+    for (const [slotName, slot] of Object.entries(manifest.slots?.children ?? {})) {
+      const acceptedCapabilities = slot.accepts?.anyOfCapabilities;
+      if (acceptedCapabilities === undefined) continue;
+      const seen = new Set<string>();
+      acceptedCapabilities.forEach((capability, index) => {
+        if (seen.has(capability)) {
+          context.addIssue({
+            code: "custom",
+            path: ["slots", "children", slotName, "accepts", "anyOfCapabilities", index],
+            message: `Duplicate accepted capability "${capability}"`,
+            input: capability,
+          });
+        }
+        seen.add(capability);
+      });
+    }
   },
 );
 

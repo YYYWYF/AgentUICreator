@@ -3,10 +3,15 @@ import type {
   RuntimeLayoutNode,
 } from "./app-ui-runtime-model";
 
+export interface PluginChildSlotAccepts {
+  readonly anyOfCapabilities: readonly string[];
+}
+
 export interface PluginChildSlotDefinition {
   readonly description: string;
   readonly cardinality: "one" | "many";
   readonly optional?: boolean;
+  readonly accepts?: PluginChildSlotAccepts;
 }
 
 /** Static child Slot declarations keyed by UI Plugin manifest id. */

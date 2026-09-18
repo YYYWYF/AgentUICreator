@@ -18,13 +18,21 @@ MAX_PLUGIN_DESCRIPTION_CHARS = 400
 MAX_PLUGIN_INTENT_CHARS = 200
 MAX_PLUGIN_VISUAL_ROLE_CHARS = 200
 MAX_PLUGIN_ANCHOR_ID_CHARS = 200
+MAX_PLUGIN_CAPABILITY_CHARS = 200
+MAX_PLUGIN_CAPABILITY_TAGS = 16
 MAX_PLUGIN_AUTHORING_SIZE_CHARS = 100
 MAX_REQUIRED_SERVICE_STATUS_CHARS = 50
+MAX_PLUGIN_CHILD_SLOTS = 16
+MAX_CHILD_SLOT_NAME_CHARS = 100
+MAX_CHILD_SLOT_DESCRIPTION_CHARS = 300
+MAX_CHILD_SLOT_ACCEPTED_CAPABILITIES = 16
+MAX_TOTAL_PLUGIN_CHILD_SLOTS = 256
 
 
 CreatorOperationKind: TypeAlias = Literal[
     "add_existing_plugin",
     "remove_plugin",
+    "move_plugin",
     "modify_plugin_logic",
     "general_change",
     "needs_clarification",
@@ -69,6 +77,15 @@ BoundedPluginVisualRole: TypeAlias = Annotated[
 BoundedPluginAnchorId: TypeAlias = Annotated[
     str, Field(min_length=1, max_length=MAX_PLUGIN_ANCHOR_ID_CHARS)
 ]
+BoundedPluginCapability: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_PLUGIN_CAPABILITY_CHARS)
+]
+BoundedPluginChildSlotName: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_CHILD_SLOT_NAME_CHARS)
+]
+BoundedPluginChildSlotDescription: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_CHILD_SLOT_DESCRIPTION_CHARS)
+]
 BoundedAuthoringSizeString: TypeAlias = Annotated[
     str, Field(max_length=MAX_PLUGIN_AUTHORING_SIZE_CHARS)
 ]
@@ -94,6 +111,30 @@ class PluginDefaultPlacement(BaseModel):
     anchorPluginId: BoundedPluginAnchorId
 
 
+class RelativeMovePlacement(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["relative"]
+    anchorPluginId: BoundedPluginAnchorId
+    anchorInstanceId: BoundedPluginInstanceId
+    relation: Literal["before", "after"]
+
+
+class PluginSlotMovePlacement(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["plugin_slot"]
+    parentPluginId: BoundedPluginId
+    parentInstanceId: BoundedPluginInstanceId
+    slot: BoundedPluginChildSlotName
+
+
+CreatorMovePlacement: TypeAlias = Annotated[
+    RelativeMovePlacement | PluginSlotMovePlacement,
+    Field(discriminator="type"),
+]
+
+
 class PluginRecommendedSize(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -107,6 +148,21 @@ class RequiredServiceSummary(BaseModel):
     status: BoundedRequiredServiceStatus
 
 
+class PluginChildSlotCapability(BaseModel):
+    """Compact semantic metadata for one Plugin-owned child Slot."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: BoundedPluginChildSlotName
+    description: BoundedPluginChildSlotDescription
+    cardinality: Literal["one", "many"]
+    optional: bool
+    acceptedCapabilities: list[BoundedPluginCapability] = Field(
+        default_factory=list,
+        max_length=MAX_CHILD_SLOT_ACCEPTED_CAPABILITIES,
+    )
+
+
 class PluginCapability(BaseModel):
     """Compact, resolver-facing capability metadata for one UI Plugin."""
 
@@ -115,6 +171,10 @@ class PluginCapability(BaseModel):
     pluginId: BoundedPluginId
     name: BoundedPluginName
     description: BoundedPluginDescription
+    capabilities: list[BoundedPluginCapability] = Field(
+        default_factory=list,
+        max_length=MAX_PLUGIN_CAPABILITY_TAGS,
+    )
     intents: list[BoundedPluginIntent] = Field(
         default_factory=list, max_length=MAX_PLUGIN_INTENTS
     )
@@ -126,6 +186,10 @@ class PluginCapability(BaseModel):
     defaultPlacement: PluginDefaultPlacement | None = None
     recommendedSize: PluginRecommendedSize | None = None
     requiredServices: RequiredServiceSummary | None = None
+    childSlots: list[PluginChildSlotCapability] = Field(
+        default_factory=list,
+        max_length=MAX_PLUGIN_CHILD_SLOTS,
+    )
 
 
 class PluginCapabilityIndex(BaseModel):
@@ -143,6 +207,15 @@ class PluginCapabilityIndex(BaseModel):
         if total_instances > MAX_TOTAL_PLUGIN_INSTANCES:
             raise ValueError(
                 "The Plugin Capability Index exceeds the total instance limit."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def validate_total_child_slots(self) -> "PluginCapabilityIndex":
+        total_child_slots = sum(len(plugin.childSlots) for plugin in self.plugins)
+        if total_child_slots > MAX_TOTAL_PLUGIN_CHILD_SLOTS:
+            raise ValueError(
+                "The Plugin Capability Index exceeds the total child Slot limit."
             )
         return self
 
@@ -166,6 +239,13 @@ class CreatorOperationResolution(BaseModel):
         default_factory=list,
         description="Existing authoring instance ids involved in the request.",
     )
+    placement: CreatorMovePlacement | None = Field(
+        default=None,
+        description=(
+            "Supported move placement. Required only for move_plugin and must be "
+            "null for every other operation kind."
+        ),
+    )
     clarificationQuestion: str | None = Field(
         default=None,
         description="A concise user question required only for needs_clarification.",
@@ -180,6 +260,10 @@ class CreatorOperationResolution(BaseModel):
                 )
         elif self.clarificationQuestion is not None and not self.clarificationQuestion.strip():
             raise ValueError("clarificationQuestion must not be blank.")
+        if self.kind == "move_plugin" and self.placement is None:
+            raise ValueError("placement is required for move_plugin.")
+        if self.kind != "move_plugin" and self.placement is not None:
+            raise ValueError("placement is only allowed for move_plugin.")
         return self
 
 
