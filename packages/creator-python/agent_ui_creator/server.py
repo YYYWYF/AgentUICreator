@@ -334,7 +334,14 @@ async def _execute_agent_run(
         completion = str(getattr(result, "completion", "success"))
         outcome = (
             completion
-            if completion in {"success", "already_satisfied", "blocked", "failed"}
+            if completion
+            in {
+                "success",
+                "already_satisfied",
+                "committed_unverified",
+                "blocked",
+                "failed",
+            }
             else "success"
         )
         if isinstance(result, ProductizedOperationRun):
@@ -594,7 +601,11 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             if validation_metrics is not None:
                                 run_result["validationMetrics"] = validation_metrics
                             if isinstance(result, ProductizedOperationRun):
-                                run_result["phase"] = "productized-operation"
+                                run_result["phase"] = (
+                                    "productized-operation"
+                                    if result.operation_result is not None
+                                    else "productized-clarification"
+                                )
                                 run_result["operationResolver"] = (
                                     result.operation_resolver_metrics
                                 )
@@ -604,9 +615,14 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                 run_result["operationResolution"] = (
                                     result.resolution.model_dump(mode="json")
                                 )
-                                run_result["productizedOperation"] = (
-                                    result.operation_result.model_dump(mode="json")
-                                )
+                                if result.operation_result is not None:
+                                    run_result["productizedOperation"] = (
+                                        result.operation_result.model_dump(mode="json")
+                                    )
+                                else:
+                                    run_result["clarificationQuestion"] = (
+                                        result.resolution.clarificationQuestion
+                                    )
                             operation_route = getattr(telemetry, "operation_route", None)
                             if isinstance(operation_route, dict):
                                 run_result["productizedRoute"] = operation_route

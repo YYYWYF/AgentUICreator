@@ -46,7 +46,7 @@ class ProductizedOperationToolMetrics:
 
 @dataclass(frozen=True, slots=True)
 class ProductizedOperationRun:
-    """Result shape shared with the server's domain-write AG-UI projection."""
+    """Result shape shared with the server's productized AG-UI projection."""
 
     text: str
     metrics: ProductizedOperationToolMetrics
@@ -57,7 +57,7 @@ class ProductizedOperationRun:
     operation_resolver_metrics: dict[str, int]
     snapshot_metrics: CreatorDomainSnapshotMetrics
     resolution: CreatorOperationResolution
-    operation_result: CreatorOperationExecutionResult
+    operation_result: CreatorOperationExecutionResult | None
     validation_metrics: dict[str, object]
     completion: str
     blocker: dict[str, Any] | None = None
@@ -180,7 +180,7 @@ class ProductizedOperationEngine:
     async def run(
         self, messages: list[dict[str, str]]
     ) -> ProductizedOperationRun | None:
-        """Return a Productized result, or None to enter the existing General Agent."""
+        """Return a productized result; None enters the existing General Agent."""
 
         user_message = _latest_user_message(messages)
         snapshot = await self.snapshot_provider.build()
@@ -193,9 +193,34 @@ class ProductizedOperationEngine:
             user_message,
             snapshot.plugin_index,
         )
+        if resolution.kind == "needs_clarification":
+            self._record_route(resolution, productized=False, fallback=False)
+            resolver_metrics = self.resolver.metrics
+            clarification_question = resolution.clarificationQuestion
+            assert clarification_question is not None
+            return ProductizedOperationRun(
+                text=clarification_question,
+                metrics=ProductizedOperationToolMetrics(
+                    modelCalls=resolver_metrics.modelCalls,
+                    operationResolverCalls=resolver_metrics.modelCalls,
+                    operationResolverRepairCalls=resolver_metrics.repairCalls,
+                    operationResolverInvalidResponses=resolver_metrics.invalidResponses,
+                ),
+                project_control=self.project_control.metrics,
+                repeated_project_control_reads=0,
+                domain_observations=self.observations.metrics,
+                app_ui_model_mutations=self.mutation_service.metrics,
+                operation_resolver_metrics=resolver_metrics.to_dict(),
+                snapshot_metrics=self.snapshot_provider.metrics,
+                resolution=resolution,
+                operation_result=None,
+                validation_metrics=self.validation.metrics(),
+                completion="success",
+                composition_fast_path_metrics=self.observations.composition_fast_path_metrics,
+            )
         playbook = self.registry.get(resolution.kind)
         if playbook is None:
-        self._record_route(resolution, productized=False)
+            self._record_route(resolution, productized=False)
             return None
 
         self._record_route(resolution, productized=True)
@@ -236,7 +261,8 @@ class ProductizedOperationEngine:
             validation_metrics=self.validation.metrics(),
             completion=(
                 operation_result.status
-                if operation_result.status in {"success", "already_satisfied"}
+                if operation_result.status
+                in {"success", "already_satisfied", "committed_unverified"}
                 else "failed"
             ),
             composition_fast_path_metrics=self.observations.composition_fast_path_metrics,
@@ -247,7 +273,9 @@ class ProductizedOperationEngine:
         resolution: CreatorOperationResolution,
         *,
         productized: bool,
+        fallback: bool | None = None,
     ) -> None:
+        route_fallback = not productized if fallback is None else fallback
         if self.activity.logger is None:
             route = None
         else:
@@ -256,7 +284,7 @@ class ProductizedOperationEngine:
                 "targetPluginCount": len(resolution.targetPluginIds),
                 "targetInstanceCount": len(resolution.targetInstanceIds),
                 "productized": productized,
-                "fallback": not productized,
+                "fallback": route_fallback,
             }
             self.activity.logger.record("productized_operation_route", route)
         if self.telemetry is not None:
@@ -268,6 +296,6 @@ class ProductizedOperationEngine:
                     "targetPluginCount": len(resolution.targetPluginIds),
                     "targetInstanceCount": len(resolution.targetInstanceIds),
                     "productized": productized,
-                    "fallback": not productized,
+                    "fallback": route_fallback,
                 },
             )
