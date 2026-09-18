@@ -38,6 +38,8 @@ from .model_settings import (
 )
 from .runtime_diagnostics import RuntimeDiagnosticEnvelope, RuntimeDiagnosticStore
 from .observability import CreatorRunLogger, CreatorRunTelemetry
+from .operations import ProductizedOperationEngine, ProductizedOperationRun
+from .project_control import ProjectControlClient
 from .streaming import CreatorEventBus, CreatorEventSink, map_runtime_event
 
 MAX_CREATOR_REQUEST_BYTES = 512 * 1024
@@ -200,6 +202,65 @@ async def _domain_write_agent_result(
     event_sink: CreatorEventSink,
     telemetry: CreatorRunTelemetry | None = None,
 ):
+    from .model_factory import create_creator_chat_model
+    from .model_protocol.provider_trace import ProviderResponseTraceCollector
+
+    model_settings = CreatorModelSettings.from_environment(
+        config_root=settings.config_root
+    )
+    provider_trace_collector = ProviderResponseTraceCollector(
+        enabled=model_settings.raw_trace
+    )
+    model = create_creator_chat_model(
+        model_settings,
+        thread_id=thread_id,
+        provider_trace_collector=provider_trace_collector,
+    )
+
+    def recovery_factory():
+        return create_creator_chat_model(
+            model_settings,
+            thread_id=thread_id,
+            provider_trace_collector=provider_trace_collector,
+        )
+
+    engine = ProductizedOperationEngine(
+        model=model,
+        project_root=settings.project_root,
+        activity=activity,
+        project_control=ProjectControlClient(project_root=settings.project_root),
+        mutation_coordinator=mutation_coordinator,
+        diagnostics=diagnostics,
+        thread_id=thread_id,
+        max_retries=model_settings.max_retries,
+        recovery_factory=recovery_factory,
+        telemetry=telemetry,
+    )
+    productized_result = await engine.run(messages)
+    if productized_result is not None:
+        return productized_result
+    return await _general_domain_write_agent_result(
+        settings,
+        messages,
+        activity,
+        mutation_coordinator,
+        diagnostics,
+        thread_id,
+        event_sink,
+        telemetry,
+    )
+
+
+async def _general_domain_write_agent_result(
+    settings: CreatorServerSettings,
+    messages: list[dict[str, str]],
+    activity: CreatorActivityRecorder,
+    mutation_coordinator: ProjectMutationCoordinator,
+    diagnostics: RuntimeDiagnosticStore,
+    thread_id: str,
+    event_sink: CreatorEventSink,
+    telemetry: CreatorRunTelemetry | None = None,
+):
     from .domain_agent import create_domain_write_creator_agent
     from .model_factory import create_creator_chat_model
     from .model_protocol.provider_trace import ProviderResponseTraceCollector
@@ -271,18 +332,37 @@ async def _execute_agent_run(
         result = await agent_result
         receipt = activity.finish()
         completion = str(getattr(result, "completion", "success"))
-        outcome = completion if completion in {"success", "already_satisfied", "blocked"} else "success"
-        logger.finish(
-            outcome,
-            metrics=run_telemetry.model_tool_metrics(),
-            mutation_metrics=run_telemetry.mutation_metrics(),
-            change_layer_metrics=run_telemetry.change_layer_metrics(),
-            composition_fast_path_metrics=(
-                run_telemetry.composition_fast_path_metrics()
-            ),
-            project_control_metrics=run_telemetry.project_control_metrics(),
-            validation_metrics=run_telemetry.validation_metrics(),
+        outcome = (
+            completion
+            if completion in {"success", "already_satisfied", "blocked", "failed"}
+            else "success"
         )
+        if isinstance(result, ProductizedOperationRun):
+            logger.finish(
+                outcome,
+                metrics=result.metrics.to_dict(),
+                mutation_metrics=result.app_ui_model_mutations.summary(),
+                change_layer_metrics=result.change_layer_metrics,
+                composition_fast_path_metrics=(
+                    result.composition_fast_path_metrics.to_dict()
+                    if result.composition_fast_path_metrics is not None
+                    else None
+                ),
+                project_control_metrics=result.project_control.to_dict(),
+                validation_metrics=result.validation_metrics,
+            )
+        else:
+            logger.finish(
+                outcome,
+                metrics=run_telemetry.model_tool_metrics(),
+                mutation_metrics=run_telemetry.mutation_metrics(),
+                change_layer_metrics=run_telemetry.change_layer_metrics(),
+                composition_fast_path_metrics=(
+                    run_telemetry.composition_fast_path_metrics()
+                ),
+                project_control_metrics=run_telemetry.project_control_metrics(),
+                validation_metrics=run_telemetry.validation_metrics(),
+            )
         return _AgentExecution(result=result, receipt=receipt)
     except BaseException as error:
         try:
@@ -513,6 +593,31 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             validation_metrics = telemetry.validation_metrics()
                             if validation_metrics is not None:
                                 run_result["validationMetrics"] = validation_metrics
+                            if isinstance(result, ProductizedOperationRun):
+                                run_result["phase"] = "productized-operation"
+                                run_result["operationResolver"] = (
+                                    result.operation_resolver_metrics
+                                )
+                                run_result["domainSnapshot"] = (
+                                    result.snapshot_metrics.to_dict()
+                                )
+                                run_result["operationResolution"] = (
+                                    result.resolution.model_dump(mode="json")
+                                )
+                                run_result["productizedOperation"] = (
+                                    result.operation_result.model_dump(mode="json")
+                                )
+                            operation_route = getattr(telemetry, "operation_route", None)
+                            if isinstance(operation_route, dict):
+                                run_result["productizedRoute"] = operation_route
+                            operation_resolver = getattr(
+                                telemetry, "operation_resolver", None
+                            )
+                            if (
+                                not isinstance(result, ProductizedOperationRun)
+                                and isinstance(operation_resolver, dict)
+                            ):
+                                run_result["operationResolver"] = operation_resolver
                     else:
                         run_result = {
                             "runtime": "python",

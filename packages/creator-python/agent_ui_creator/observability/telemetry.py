@@ -28,6 +28,8 @@ class CreatorRunTelemetry:
     composition_fast_path: Any | None = None
     validation: Any | None = None
     run_control: Any | None = None
+    operation_resolver: dict[str, object] | None = None
+    operation_route: dict[str, object] | None = None
 
     def bind(
         self,
@@ -40,6 +42,8 @@ class CreatorRunTelemetry:
         composition_fast_path: Any | None = None,
         validation: Any | None = None,
         run_control: Any | None = None,
+        operation_resolver: dict[str, object] | None = None,
+        operation_route: dict[str, object] | None = None,
     ) -> None:
         if activity is not None:
             self.activity = activity
@@ -57,6 +61,10 @@ class CreatorRunTelemetry:
             self.validation = validation
         if run_control is not None:
             self.run_control = run_control
+        if operation_resolver is not None:
+            self.operation_resolver = dict(operation_resolver)
+        if operation_route is not None:
+            self.operation_route = dict(operation_route)
 
     def model_tool_metrics(self) -> dict[str, object]:
         metrics = _to_dict(self.protocol) or {}
@@ -64,6 +72,8 @@ class CreatorRunTelemetry:
             converter = getattr(self.run_control, "metrics", None)
             if callable(converter):
                 metrics.update(dict(converter()))
+        if self.operation_resolver is not None:
+            metrics.update(self.operation_resolver)
         return metrics
 
     def project_control_metrics(self) -> dict[str, object] | None:

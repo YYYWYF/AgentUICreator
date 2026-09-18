@@ -33,6 +33,7 @@ from .resolver import (
     CreatorOperationResolver,
     CreatorOperationResolverMetrics,
 )
+from .engine import ProductizedOperationEngine, ProductizedOperationRun
 from .playbooks import (
     AddExistingPluginPlaybook,
     ProductizedOperationPlaybook,
@@ -67,6 +68,8 @@ __all__ = [
     "CreatorOperationResolutionError",
     "CreatorOperationResolver",
     "CreatorOperationResolverMetrics",
+    "ProductizedOperationEngine",
+    "ProductizedOperationRun",
     "AddExistingPluginPlaybook",
     "RemovePluginPlaybook",
     "ProductizedOperationPlaybook",
