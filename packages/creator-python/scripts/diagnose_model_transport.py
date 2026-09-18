@@ -716,10 +716,7 @@ def build_summary(
             "openai": package_version("openai"),
             "langchain-openai": package_version("langchain-openai"),
             "deepagents": package_version("deepagents"),
-            "headers": {
-                "userAgent": CREATOR_MODEL_USER_AGENT,
-                "opencodeSession": "sent (value omitted)",
-            },
+            "headers": {"userAgent": CREATOR_MODEL_USER_AGENT},
             "httpAttemptsPerRun": 1,
         },
         "sessionId": session_id,
@@ -864,10 +861,7 @@ async def async_main(args: argparse.Namespace) -> int:
             )
             return 0
 
-        headers = {
-            "User-Agent": CREATOR_MODEL_USER_AGENT,
-            "x-opencode-session": session_id,
-        }
+        headers = {"User-Agent": CREATOR_MODEL_USER_AGENT}
         results: list[RunResult] = []
         pooled_bundle = ClientBundle.create(settings, headers)
         try:

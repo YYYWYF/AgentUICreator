@@ -11,7 +11,7 @@ from agent_ui_creator.model_settings import (
 )
 
 
-def test_model_factory_sets_opencode_go_identity_headers():
+def test_model_factory_sets_creator_user_agent_without_provider_session_header():
     requests = []
     transport = httpx.MockTransport(
         lambda request: (
@@ -40,7 +40,7 @@ def test_model_factory_sets_opencode_go_identity_headers():
             base_url="https://model.example/v1",
             api_key="secret",
         ),
-        thread_id="thread-opencode-go",
+        thread_id="creator-thread",
         http_transport=transport,
         http_async_transport=transport,
     )
@@ -48,7 +48,7 @@ def test_model_factory_sets_opencode_go_identity_headers():
     model.invoke("hello")
 
     assert requests[0].headers["User-Agent"] == "agent-ui-creator/0.1"
-    assert requests[0].headers["x-opencode-session"] == "thread-opencode-go"
+    assert "x-opencode-session" not in requests[0].headers
 
 
 def test_model_factory_owns_explicit_chat_completions_configuration():

@@ -31,8 +31,6 @@ def create_creator_chat_model(
         else None
     )
     default_headers = {"User-Agent": CREATOR_MODEL_USER_AGENT}
-    if thread_id is not None:
-        default_headers["x-opencode-session"] = thread_id
     return ChatOpenAI(
         model=settings.model_name,
         base_url=settings.base_url,
