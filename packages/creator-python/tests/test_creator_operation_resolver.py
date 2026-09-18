@@ -156,6 +156,23 @@ def test_resolver_returns_host_validated_product_resolution(
     assert "inspect_ui_project" not in model.messages[0][0].content
 
 
+def test_resolver_allows_remove_without_instance_target_when_plugin_is_unmounted():
+    model = StaticStructuredModel(
+        [resolution("remove_plugin", plugins=["conversation-thread-list"])]
+    )
+    resolver = CreatorOperationResolver(structured_model=model)
+
+    actual = asyncio.run(
+        resolver.resolve(
+            "删除历史会话",
+            _plugin_index(thread_selected=False, thread_instances=[]),
+        )
+    )
+
+    assert actual.targetPluginIds == ["conversation-thread-list"]
+    assert actual.targetInstanceIds == []
+
+
 def test_resolver_allows_one_bounded_repair_for_invalid_target():
     model = StaticStructuredModel(
         [

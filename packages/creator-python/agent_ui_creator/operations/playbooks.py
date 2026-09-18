@@ -18,6 +18,13 @@ from .snapshot import CreatorDomainSnapshotProvider
 from .verification import CompositionOperationVerificationService
 
 
+_AUTHORING_DEFAULT_PRECONDITION_PREFIX = "AUTHORING_DEFAULT_PLACEMENT_"
+_PRODUCTIZED_SEMANTIC_OPERATIONS = {
+    "add_existing_plugin": "insert_plugin_default",
+    "remove_plugin": "remove_plugin_default",
+}
+
+
 class ProductizedOperationPlaybook(Protocol):
     async def execute(
         self,
@@ -109,16 +116,44 @@ class _PlaybookBase:
     @staticmethod
     def _semantic_expectations(
         mutation: Mapping[str, Any],
-    ) -> tuple[Mapping[str, Any] | None, Mapping[str, Any] | None]:
+        *,
+        operation: str,
+        instance_id: str,
+    ) -> tuple[Mapping[str, Any], Mapping[str, Any] | None] | None:
         semantic = mutation.get("semanticComposition")
-        if not isinstance(semantic, Mapping):
-            return None, None
+        expected_operation = _PRODUCTIZED_SEMANTIC_OPERATIONS.get(operation)
+        if (
+            not isinstance(semantic, Mapping)
+            or semantic.get("operation") != expected_operation
+            or semantic.get("semanticLoweringSucceeded") is not True
+        ):
+            return None
         expected_runtime = semantic.get("expectedRuntime")
-        expected_geometry = semantic.get("expectedGeometry")
-        return (
-            expected_runtime if isinstance(expected_runtime, Mapping) else None,
-            expected_geometry if isinstance(expected_geometry, Mapping) else None,
-        )
+        if not isinstance(expected_runtime, Mapping):
+            return None
+
+        if operation == "add_existing_plugin":
+            if (
+                expected_runtime.get("presentInstanceIds") != [instance_id]
+                or expected_runtime.get("absentInstanceIds", []) != []
+            ):
+                return None
+            expected_geometry = semantic.get("expectedGeometry")
+            if (
+                not isinstance(expected_geometry, Mapping)
+                or expected_geometry.get("instanceId") != instance_id
+            ):
+                return None
+            return expected_runtime, expected_geometry
+
+        if (
+            expected_runtime.get("absentInstanceIds") != [instance_id]
+            or expected_runtime.get("presentInstanceIds", []) != []
+            or semantic.get("reflow")
+            not in {"collapsed-dedicated-region", "preserved-container"}
+        ):
+            return None
+        return expected_runtime, None
 
     async def _verify_committed(
         self,
@@ -130,7 +165,6 @@ class _PlaybookBase:
         mutation_attempts: int,
         snapshot_refreshes: int,
     ) -> CreatorOperationExecutionResult:
-        expected_runtime, expected_geometry = self._semantic_expectations(mutation)
         changed = mutation.get("changed") is True
         revision = mutation.get("mutationRevision")
         mutation_revision = revision if isinstance(revision, int) else None
@@ -145,7 +179,12 @@ class _PlaybookBase:
                 mutation_attempts=mutation_attempts,
                 snapshot_refreshes=snapshot_refreshes,
             )
-        if expected_runtime is None:
+        semantic_expectations = self._semantic_expectations(
+            mutation,
+            operation=self.operation,
+            instance_id=instance_id,
+        )
+        if semantic_expectations is None:
             return self._result(
                 started_at,
                 status="failed",
@@ -154,10 +193,11 @@ class _PlaybookBase:
                 mutation_changed=True,
                 mutation_revision=mutation_revision,
                 error_code="PRODUCT_OPERATION_RESULT_INVALID",
-                message="The Host mutation did not return Productized Runtime expectations.",
+                message="The Host mutation did not return valid Productized semantic expectations.",
                 mutation_attempts=mutation_attempts,
                 snapshot_refreshes=snapshot_refreshes,
             )
+        expected_runtime, expected_geometry = semantic_expectations
 
         verification = await self.verification.verify(
             mutation_result=mutation,
@@ -194,21 +234,44 @@ class _PlaybookBase:
         error: Exception,
         mutation_attempts: int,
         snapshot_refreshes: int,
+        normalize_authoring_precondition: bool = False,
     ) -> CreatorOperationExecutionResult:
         changed = (
             error.state_changed
             if isinstance(error, AppUIModelMutationError)
             else False
         )
+        error_code = getattr(error, "code", type(error).__name__)
+        details = getattr(error, "details", None)
+        if (
+            normalize_authoring_precondition
+            and isinstance(error, AppUIModelMutationError)
+            and not error.state_changed
+            and error_code.startswith(_AUTHORING_DEFAULT_PRECONDITION_PREFIX)
+        ):
+            cause_details = details
+            details = (
+                {**cause_details, "causeCode": error_code}
+                if isinstance(cause_details, Mapping)
+                else {
+                    "causeCode": error_code,
+                    **(
+                        {"causeDetails": cause_details}
+                        if cause_details is not None
+                        else {}
+                    ),
+                }
+            )
+            error_code = "PRODUCT_OPERATION_NOT_APPLICABLE"
         return self._result(
             started_at,
             status="failed",
             plugin_id=plugin_id,
             instance_id=instance_id,
             mutation_changed=changed,
-            error_code=getattr(error, "code", type(error).__name__),
+            error_code=error_code,
             message=str(error),
-            details=getattr(error, "details", None),
+            details=details,
             mutation_attempts=mutation_attempts,
             snapshot_refreshes=snapshot_refreshes,
         )
@@ -372,6 +435,7 @@ class AddExistingPluginPlaybook(_PlaybookBase):
                         error=error,
                         mutation_attempts=mutation_attempts,
                         snapshot_refreshes=snapshot_refreshes,
+                        normalize_authoring_precondition=True,
                     )
                 snapshot_refreshes += 1
                 try:
@@ -419,6 +483,7 @@ class AddExistingPluginPlaybook(_PlaybookBase):
                     error=error,
                     mutation_attempts=mutation_attempts,
                     snapshot_refreshes=snapshot_refreshes,
+                    normalize_authoring_precondition=True,
                 )
 
             return await self._verify_committed(
@@ -486,7 +551,7 @@ class RemovePluginPlaybook(_PlaybookBase):
         if (
             resolution.kind != self.operation
             or len(resolution.targetPluginIds) != 1
-            or len(resolution.targetInstanceIds) != 1
+            or len(resolution.targetInstanceIds) > 1
         ):
             return self._result(
                 started_at,
@@ -494,7 +559,43 @@ class RemovePluginPlaybook(_PlaybookBase):
                 plugin_id=plugin_id,
                 instance_id=instance_id,
                 error_code="PRODUCT_OPERATION_INPUT_INVALID",
-                message="remove_plugin requires exactly one Plugin and one instance target.",
+                message="remove_plugin requires exactly one Plugin and at most one instance target.",
+            )
+
+        plugin = _capability(snapshot, plugin_id)
+        if plugin is None:
+            return self._result(
+                started_at,
+                status="failed",
+                plugin_id=plugin_id,
+                instance_id=instance_id,
+                error_code="PRODUCT_OPERATION_INPUT_INVALID",
+                message="remove_plugin requires a Plugin present in the current snapshot.",
+            )
+        if instance_id is None:
+            if plugin.instances:
+                return self._result(
+                    started_at,
+                    status="failed",
+                    plugin_id=plugin_id,
+                    instance_id=None,
+                    error_code="PRODUCT_OPERATION_INPUT_INVALID",
+                    message="remove_plugin requires one instance target when the Plugin is mounted.",
+                )
+            return self._result(
+                started_at,
+                status="already_satisfied",
+                plugin_id=plugin_id,
+                instance_id=None,
+            )
+        if not plugin.instances:
+            return self._result(
+                started_at,
+                status="failed",
+                plugin_id=plugin_id,
+                instance_id=instance_id,
+                error_code="PRODUCT_OPERATION_INPUT_INVALID",
+                message="remove_plugin cannot target an instance when the Plugin is not mounted.",
             )
 
         eligibility, _plugin, reason = self._eligibility(
