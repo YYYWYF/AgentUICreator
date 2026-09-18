@@ -193,11 +193,14 @@ def test_resolver_allows_one_bounded_repair_for_invalid_target():
     actual = asyncio.run(resolver.resolve("加回历史会话", add_plugin_index()))
 
     assert actual.kind == "add_existing_plugin"
-    assert resolver.metrics.to_dict() == {
+    resolver_metrics = resolver.metrics.to_dict()
+    assert resolver_metrics == {
         "operationResolverCalls": 2,
         "operationResolverRepairCalls": 1,
         "operationResolverInvalidResponses": 1,
+        "operationResolverDurationMs": resolver_metrics["operationResolverDurationMs"],
     }
+    assert resolver_metrics["operationResolverDurationMs"] >= 0
     repair_prompt = json.loads(model.messages[1][1].content)
     assert "hostValidationFeedback" in repair_prompt
     assert repair_prompt["userMessage"] == "加回历史会话"

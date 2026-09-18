@@ -3,7 +3,12 @@ import json
 from types import SimpleNamespace
 
 import pytest
-from ag_ui.core import EventType, ToolCallResultEvent
+from ag_ui.core import (
+    EventType,
+    StepFinishedEvent,
+    StepStartedEvent,
+    ToolCallResultEvent,
+)
 from ag_ui.encoder import EventEncoder
 
 from agent_ui_creator.minimal_agent.path_policy import (
@@ -15,6 +20,8 @@ from agent_ui_creator.model_protocol.errors import ModelToolProtocolError
 from agent_ui_creator.streaming import (
     CreatorEventBus,
     CreatorEventStreamBackpressureError,
+    CreatorStepFinished,
+    CreatorStepStarted,
     ToolInvocationFinished,
     ToolInvocationStarted,
     map_runtime_event,
@@ -51,6 +58,51 @@ def test_mapper_creates_unique_official_tool_result_messages():
     assert second.message_id == "result-2"
     assert first.role == "tool"
     assert first.content == "ok"
+
+
+def test_mapper_uses_official_step_events_and_creator_metadata_namespace():
+    started = map_runtime_event(
+        CreatorStepStarted(
+            "creator.resolve",
+            {"creator": {"phase": "understanding", "status": "running"}},
+        )
+    )[0]
+    finished = map_runtime_event(
+        CreatorStepFinished(
+            "creator.resolve",
+            {
+                "creator": {
+                    "phase": "understanding",
+                    "status": "success",
+                    "displayIntent": "移除 Conversation Thread List",
+                    "intent": "remove_plugin",
+                    "modelCalls": 1,
+                    "repairCalls": 0,
+                    "durationMs": 842,
+                }
+            },
+        )
+    )[0]
+
+    assert isinstance(started, StepStartedEvent)
+    assert isinstance(finished, StepFinishedEvent)
+    assert started.type == EventType.STEP_STARTED
+    assert finished.type == EventType.STEP_FINISHED
+    assert started.step_name == finished.step_name == "creator.resolve"
+    assert started.metadata == {
+        "creator": {"phase": "understanding", "status": "running"}
+    }
+    assert finished.metadata == {
+        "creator": {
+            "phase": "understanding",
+            "status": "success",
+            "displayIntent": "移除 Conversation Thread List",
+            "intent": "remove_plugin",
+            "modelCalls": 1,
+            "repairCalls": 0,
+            "durationMs": 842,
+        }
+    }
 
 
 def test_event_bus_is_bounded_fifo():

@@ -33,6 +33,12 @@ from .resolver import (
     CreatorOperationResolver,
     CreatorOperationResolverMetrics,
 )
+from .presentation import (
+    CreatorIntentPresentation,
+    CreatorIntentRoute,
+    present_creator_intent,
+    route_for_operation,
+)
 from .engine import ProductizedOperationEngine, ProductizedOperationRun
 from .playbooks import (
     AddExistingPluginPlaybook,
@@ -68,6 +74,10 @@ __all__ = [
     "CreatorOperationResolutionError",
     "CreatorOperationResolver",
     "CreatorOperationResolverMetrics",
+    "CreatorIntentPresentation",
+    "CreatorIntentRoute",
+    "present_creator_intent",
+    "route_for_operation",
     "ProductizedOperationEngine",
     "ProductizedOperationRun",
     "AddExistingPluginPlaybook",

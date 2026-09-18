@@ -30,6 +30,7 @@ class CreatorRunTelemetry:
     run_control: Any | None = None
     operation_resolver: dict[str, object] | None = None
     operation_route: dict[str, object] | None = None
+    operation_presentation: dict[str, object] | None = None
 
     def bind(
         self,
@@ -44,6 +45,7 @@ class CreatorRunTelemetry:
         run_control: Any | None = None,
         operation_resolver: dict[str, object] | None = None,
         operation_route: dict[str, object] | None = None,
+        operation_presentation: dict[str, object] | None = None,
     ) -> None:
         if activity is not None:
             self.activity = activity
@@ -65,6 +67,8 @@ class CreatorRunTelemetry:
             self.operation_resolver = dict(operation_resolver)
         if operation_route is not None:
             self.operation_route = dict(operation_route)
+        if operation_presentation is not None:
+            self.operation_presentation = dict(operation_presentation)
 
     def model_tool_metrics(self) -> dict[str, object]:
         metrics = _to_dict(self.protocol) or {}

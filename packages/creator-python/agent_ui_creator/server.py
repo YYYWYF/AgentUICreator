@@ -235,6 +235,7 @@ async def _domain_write_agent_result(
         max_retries=model_settings.max_retries,
         recovery_factory=recovery_factory,
         telemetry=telemetry,
+        event_sink=event_sink,
     )
     productized_result = await engine.run(messages)
     if productized_result is not None:
@@ -357,6 +358,12 @@ async def _execute_agent_run(
                 ),
                 project_control_metrics=result.project_control.to_dict(),
                 validation_metrics=result.validation_metrics,
+                operation_resolver_metrics=result.operation_resolver_metrics,
+                creator_intent=(
+                    result.intent_presentation.to_dict()
+                    if result.intent_presentation is not None
+                    else None
+                ),
             )
         else:
             logger.finish(
@@ -369,6 +376,8 @@ async def _execute_agent_run(
                 ),
                 project_control_metrics=run_telemetry.project_control_metrics(),
                 validation_metrics=run_telemetry.validation_metrics(),
+                operation_resolver_metrics=run_telemetry.operation_resolver,
+                creator_intent=run_telemetry.operation_presentation,
             )
         return _AgentExecution(result=result, receipt=receipt)
     except BaseException as error:
@@ -386,6 +395,8 @@ async def _execute_agent_run(
             ),
             project_control_metrics=run_telemetry.project_control_metrics(),
             validation_metrics=run_telemetry.validation_metrics(),
+            operation_resolver_metrics=run_telemetry.operation_resolver,
+            creator_intent=run_telemetry.operation_presentation,
             error=error,
         )
         raise
@@ -629,6 +640,22 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             operation_route = getattr(telemetry, "operation_route", None)
                             if isinstance(operation_route, dict):
                                 run_result["productizedRoute"] = operation_route
+                            operation_presentation = getattr(
+                                result,
+                                "intent_presentation",
+                                None,
+                            )
+                            if operation_presentation is not None:
+                                run_result["creatorIntent"] = (
+                                    operation_presentation.to_dict()
+                                )
+                            elif isinstance(
+                                getattr(telemetry, "operation_presentation", None),
+                                dict,
+                            ):
+                                run_result["creatorIntent"] = (
+                                    telemetry.operation_presentation
+                                )
                             operation_resolver = getattr(
                                 telemetry, "operation_resolver", None
                             )

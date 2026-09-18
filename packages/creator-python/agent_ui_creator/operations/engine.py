@@ -18,9 +18,19 @@ from ..runtime_diagnostics import (
     RuntimeDiagnosticInspectionService,
     RuntimeDiagnosticStore,
 )
+from ..streaming.runtime_events import (
+    CreatorEventSink,
+    CreatorStepFinished,
+    CreatorStepStarted,
+)
 from ..validation import CreatorValidationService
 from .models import CreatorOperationExecutionResult, CreatorOperationResolution
 from .playbooks import AddExistingPluginPlaybook, RemovePluginPlaybook
+from .presentation import (
+    CreatorIntentPresentation,
+    CreatorIntentRoute,
+    present_creator_intent,
+)
 from .registry import CreatorOperationRegistry
 from .resolver import CreatorOperationResolver
 from .snapshot import CreatorDomainSnapshotMetrics, CreatorDomainSnapshotProvider
@@ -60,6 +70,7 @@ class ProductizedOperationRun:
     operation_result: CreatorOperationExecutionResult | None
     validation_metrics: dict[str, object]
     completion: str
+    intent_presentation: CreatorIntentPresentation | None = None
     blocker: dict[str, Any] | None = None
     terminal_metrics: dict[str, object] = field(
         default_factory=lambda: {
@@ -117,10 +128,12 @@ class ProductizedOperationEngine:
         max_retries: int,
         recovery_factory: Callable[[], Any] | None = None,
         telemetry: CreatorRunTelemetry | None = None,
+        event_sink: CreatorEventSink | None = None,
     ) -> None:
         self.project_root = Path(project_root).resolve()
         self.activity = activity
         self.project_control = project_control
+        self.event_sink = event_sink
         self.observations = DomainObservationContext()
         self.repair_state = CreatorRepairState()
         self.snapshot_provider = CreatorDomainSnapshotProvider(project_control)
@@ -183,18 +196,90 @@ class ProductizedOperationEngine:
         """Return a productized result; None enters the existing General Agent."""
 
         user_message = _latest_user_message(messages)
-        snapshot = await self.snapshot_provider.build()
+        await self._publish_step_started(
+            "creator.grounding",
+            {"phase": "grounding", "status": "running"},
+        )
+        try:
+            snapshot = await self.snapshot_provider.build()
+        except Exception as error:
+            await self._publish_step_finished(
+                "creator.grounding",
+                {
+                    "phase": "grounding",
+                    "status": "failed",
+                    "errorCode": _error_code(error),
+                    "snapshotBuildMs": self.snapshot_provider.metrics.durationMs,
+                    "snapshotFailures": self.snapshot_provider.metrics.failures,
+                    "modelCalls": 0,
+                },
+            )
+            raise
+        await self._publish_step_finished(
+            "creator.grounding",
+            {
+                "phase": "grounding",
+                "status": "success",
+                "snapshotBuildMs": self.snapshot_provider.metrics.durationMs,
+                "snapshotBuilds": self.snapshot_provider.metrics.builds,
+                "snapshotFailures": self.snapshot_provider.metrics.failures,
+                "modelCalls": 0,
+            },
+        )
         self.observations.observe_composition_snapshot(
             hash=snapshot.app_ui_model_hash,
             revision=self.activity.revision,
             coverage=snapshot.observation_coverage,
         )
-        resolution = await self.resolver.resolve(
-            user_message,
+
+        await self._publish_step_started(
+            "creator.resolve",
+            {"phase": "understanding", "status": "running"},
+        )
+        try:
+            resolution = await self.resolver.resolve(
+                user_message,
+                snapshot.plugin_index,
+            )
+        except Exception as error:
+            await self._publish_step_finished(
+                "creator.resolve",
+                {
+                    "phase": "understanding",
+                    "status": "failed",
+                    "errorCode": _error_code(error),
+                    **self._resolver_metrics_metadata(),
+                },
+            )
+            raise
+
+        if resolution.kind == "needs_clarification":
+            playbook = None
+            route: CreatorIntentRoute = "clarification"
+        else:
+            playbook = self.registry.get(resolution.kind)
+            route = "productized" if playbook is not None else "general-agent"
+        presentation = present_creator_intent(
+            resolution,
             snapshot.plugin_index,
+            route=route,
+        )
+        await self._publish_step_finished(
+            "creator.resolve",
+            {
+                "phase": "understanding",
+                "status": "success",
+                **presentation.to_dict(),
+                **self._resolver_metrics_metadata(),
+            },
         )
         if resolution.kind == "needs_clarification":
-            self._record_route(resolution, productized=False, fallback=False)
+            self._record_route(
+                resolution,
+                productized=False,
+                fallback=False,
+                presentation=presentation,
+            )
             resolver_metrics = self.resolver.metrics
             clarification_question = resolution.clarificationQuestion
             assert clarification_question is not None
@@ -216,15 +301,50 @@ class ProductizedOperationEngine:
                 operation_result=None,
                 validation_metrics=self.validation.metrics(),
                 completion="success",
+                intent_presentation=presentation,
                 composition_fast_path_metrics=self.observations.composition_fast_path_metrics,
             )
-        playbook = self.registry.get(resolution.kind)
         if playbook is None:
-            self._record_route(resolution, productized=False)
+            self._record_route(
+                resolution,
+                productized=False,
+                presentation=presentation,
+            )
             return None
 
-        self._record_route(resolution, productized=True)
-        operation_result = await playbook.execute(snapshot, resolution)
+        self._record_route(
+            resolution,
+            productized=True,
+            presentation=presentation,
+        )
+        await self._publish_step_started(
+            "creator.productized-operation",
+            {
+                "phase": "execution",
+                "status": "running",
+                "operation": resolution.kind,
+            },
+        )
+        try:
+            operation_result = await playbook.execute(snapshot, resolution)
+        except Exception as error:
+            await self._publish_step_finished(
+                "creator.productized-operation",
+                {
+                    "phase": "execution",
+                    "status": "failed",
+                    "operation": resolution.kind,
+                    "errorCode": _error_code(error),
+                    "executionModelCalls": 0,
+                    "toolCalls": 0,
+                    "deepAgentCalls": 0,
+                },
+            )
+            raise
+        await self._publish_step_finished(
+            "creator.productized-operation",
+            self._operation_step_metadata(operation_result),
+        )
         if operation_result.status == "already_satisfied":
             self.activity.record_semantic_noop(
                 source="productized_operation",
@@ -265,8 +385,74 @@ class ProductizedOperationEngine:
                 in {"success", "already_satisfied", "committed_unverified"}
                 else "failed"
             ),
+            intent_presentation=presentation,
             composition_fast_path_metrics=self.observations.composition_fast_path_metrics,
         )
+
+    async def _publish_step_started(
+        self,
+        name: str,
+        metadata: dict[str, object],
+    ) -> None:
+        event_sink = getattr(self, "event_sink", None)
+        if event_sink is not None:
+            await event_sink.publish(
+                CreatorStepStarted(name=name, metadata={"creator": metadata})
+            )
+
+    async def _publish_step_finished(
+        self,
+        name: str,
+        metadata: dict[str, object],
+    ) -> None:
+        event_sink = getattr(self, "event_sink", None)
+        if event_sink is not None:
+            await event_sink.publish(
+                CreatorStepFinished(name=name, metadata={"creator": metadata})
+            )
+
+    def _resolver_metrics_metadata(self) -> dict[str, int]:
+        metrics = self.resolver.metrics
+        return {
+            "modelCalls": metrics.modelCalls,
+            "repairCalls": metrics.repairCalls,
+            "invalidResponses": metrics.invalidResponses,
+            "durationMs": metrics.durationMs,
+        }
+
+    @staticmethod
+    def _operation_step_metadata(
+        operation: CreatorOperationExecutionResult,
+    ) -> dict[str, object]:
+        verification = operation.verification
+        metrics = operation.metrics
+        return {
+            "phase": "execution",
+            "status": operation.status,
+            "operation": operation.operation,
+            "executionModelCalls": metrics.executionModelCalls,
+            "toolCalls": 0,
+            "deepAgentCalls": 0,
+            "mutationAttempts": metrics.mutationAttempts,
+            "snapshotRefreshes": metrics.snapshotRefreshes,
+            "staticStatus": (
+                verification.staticStatus if verification is not None else "not-run"
+            ),
+            "runtimeStatus": (
+                verification.runtimeStatus if verification is not None else "not-run"
+            ),
+            "runtimeFreshnessAttempts": (
+                verification.runtimeFreshnessAttempts
+                if verification is not None
+                else metrics.verificationRuntimeFreshnessAttempts
+            ),
+            "runtimeFreshnessWaitMs": (
+                verification.runtimeFreshnessWaitMs if verification is not None else 0
+            ),
+            "geometryVerified": (
+                verification.geometryVerified if verification is not None else None
+            ),
+        }
 
     def _record_route(
         self,
@@ -274,6 +460,7 @@ class ProductizedOperationEngine:
         *,
         productized: bool,
         fallback: bool | None = None,
+        presentation: CreatorIntentPresentation | None = None,
     ) -> None:
         route_fallback = not productized if fallback is None else fallback
         if self.activity.logger is None:
@@ -298,4 +485,14 @@ class ProductizedOperationEngine:
                     "productized": productized,
                     "fallback": route_fallback,
                 },
+                operation_presentation=(
+                    presentation.to_dict() if presentation is not None else None
+                ),
             )
+
+
+def _error_code(error: BaseException) -> str:
+    code = getattr(error, "code", None)
+    if isinstance(code, str) and code:
+        return code
+    return type(error).__name__

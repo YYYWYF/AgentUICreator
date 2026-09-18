@@ -86,6 +86,21 @@
   font-size: 1rem;
 }
 
+.creator-debug-badge {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.18rem 0.35rem;
+  border: 1px solid #b2ddff;
+  border-radius: 999px;
+  color: #175cd3;
+  background: #eff8ff;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  vertical-align: 0.12rem;
+}
+
 .creator-panel-header-actions {
   display: flex;
   align-items: center;
@@ -400,6 +415,124 @@
   color: #b42318;
   font-size: 0.68rem;
   line-height: 1.45;
+}
+
+.creator-stage-activity {
+  width: min(100%, 94%);
+  padding: 0.72rem 0.78rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 0.7rem;
+  color: #344054;
+  background: #f9fafb;
+}
+
+.creator-stage-activity--running {
+  border-color: #b2ddff;
+  background: #f5faff;
+}
+
+.creator-stage-activity--completed {
+  border-color: #abefc6;
+  background: #f6fef9;
+}
+
+.creator-stage-activity--failed {
+  border-color: #fecdca;
+  background: #fffbfa;
+}
+
+.creator-stage-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
+.creator-stage-symbol {
+  flex: none;
+  width: 1rem;
+  color: #2e90fa;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.creator-stage-activity--completed .creator-stage-symbol {
+  color: #12b76a;
+}
+
+.creator-stage-activity--failed .creator-stage-symbol {
+  color: #f04438;
+}
+
+.creator-stage-activity--running .creator-stage-symbol {
+  animation: creator-tool-pulse 1.2s ease-in-out infinite;
+}
+
+.creator-stage-summary strong {
+  display: block;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.creator-stage-intent,
+.creator-stage-error {
+  display: block;
+  margin-top: 0.28rem;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.creator-stage-intent {
+  color: #175cd3;
+  font-weight: 700;
+}
+
+.creator-stage-error {
+  color: #b42318;
+}
+
+.creator-stage-debug {
+  margin: 0.75rem 0 0 1.55rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #eaecf0;
+}
+
+.creator-stage-debug section + section {
+  margin-top: 0.8rem;
+}
+
+.creator-stage-debug h3 {
+  margin: 0 0 0.35rem;
+  color: #667085;
+  font-size: 0.62rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.creator-stage-details-list {
+  margin: 0;
+}
+
+.creator-stage-details-list > div {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.9fr) minmax(0, 1.1fr);
+  gap: 0.5rem;
+  padding: 0.18rem 0;
+  font-size: 0.67rem;
+  line-height: 1.35;
+}
+
+.creator-stage-details-list dt {
+  color: #667085;
+}
+
+.creator-stage-details-list dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #344054;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 .creator-receipt {

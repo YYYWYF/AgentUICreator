@@ -7,6 +7,8 @@ from uuid import uuid4
 from ag_ui.core import (
     BaseEvent,
     EventType,
+    StepFinishedEvent,
+    StepStartedEvent,
     ToolCallArgsEvent,
     ToolCallEndEvent,
     ToolCallResultEvent,
@@ -15,6 +17,8 @@ from ag_ui.core import (
 
 from .runtime_events import (
     CreatorRuntimeEvent,
+    CreatorStepFinished,
+    CreatorStepStarted,
     ToolInvocationFinished,
     ToolInvocationStarted,
 )
@@ -54,6 +58,30 @@ def map_runtime_event(
                 tool_call_id=event.call_id,
                 content=event.result,
                 role="tool",
+            ),
+        )
+    if isinstance(event, CreatorStepStarted):
+        return (
+            StepStartedEvent(
+                type=EventType.STEP_STARTED,
+                step_name=event.name,
+                **(
+                    {"metadata": event.metadata}
+                    if event.metadata is not None
+                    else {}
+                ),
+            ),
+        )
+    if isinstance(event, CreatorStepFinished):
+        return (
+            StepFinishedEvent(
+                type=EventType.STEP_FINISHED,
+                step_name=event.name,
+                **(
+                    {"metadata": event.metadata}
+                    if event.metadata is not None
+                    else {}
+                ),
             ),
         )
     raise TypeError(f"Unsupported Creator runtime event: {type(event).__name__}")

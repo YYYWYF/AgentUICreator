@@ -21,6 +21,16 @@ import type {
   CreatorValidationReceipt,
 } from "../receiptTypes.js";
 import { CREATOR_API_PATH } from "../shared.js";
+import { resolveCreatorDebugMode } from "./creatorDebug.js";
+import {
+  interruptCreatorStage,
+  isCreatorStageName,
+  parseCreatorStepMetadata,
+  projectCreatorIntentStage,
+  reconcileCreatorStagesFromRunResult,
+  type CreatorStageActivity,
+  type CreatorStageName,
+} from "./creatorStageProjection.js";
 
 const STORAGE_KEY = "agent-ui-creator-conversation";
 const CREATOR_PANEL_MIN_WIDTH = 280;
@@ -84,7 +94,10 @@ interface CreatorToolActivity {
   status: "preparing" | "running" | "completed" | "failed";
 }
 
-type CreatorConversationItem = CreatorMessage | CreatorToolActivity;
+type CreatorConversationItem =
+  | CreatorMessage
+  | CreatorToolActivity
+  | CreatorStageActivity;
 
 interface StoredCreatorConversation {
   threadId: string;
@@ -128,6 +141,12 @@ const toolStatusLabels: Record<CreatorToolActivity["status"], string> = {
   completed: "已完成",
   failed: "执行失败",
 };
+
+const creatorStageNames: CreatorStageName[] = [
+  "creator.grounding",
+  "creator.resolve",
+  "creator.productized-operation",
+];
 
 const markdownPlugins = [remarkGfm];
 
@@ -220,6 +239,32 @@ function creatorAgentMessages(messages: CreatorMessage[]): Message[] {
 function storedItem(value: unknown): CreatorConversationItem | undefined {
   if (!isRecord(value) || typeof value.id !== "string") {
     return undefined;
+  }
+
+  if (
+    value.kind === "stage" &&
+    isCreatorStageName(value.name) &&
+    (value.status === "running" ||
+      value.status === "completed" ||
+      value.status === "failed")
+  ) {
+    const metadata = parseCreatorStepMetadata({ creator: value.metadata });
+    const interrupted = value.status === "running";
+    const displayIntent =
+      typeof value.displayIntent === "string" ? value.displayIntent : undefined;
+    return {
+      kind: "stage",
+      id: value.id,
+      name: value.name,
+      status: interrupted ? "failed" : value.status,
+      ...(displayIntent === undefined ? {} : { displayIntent }),
+      ...(metadata === undefined ? {} : { metadata }),
+      ...(typeof value.error === "string"
+        ? { error: value.error }
+        : interrupted
+          ? { error: "页面刷新时该阶段尚未结束。" }
+          : {}),
+    };
   }
 
   if (
@@ -526,7 +571,189 @@ function CreatorToolActivityCard({
   );
 }
 
+function stageTitle(activity: CreatorStageActivity): string {
+  if (activity.name === "creator.grounding") {
+    if (activity.status === "running") return "正在读取项目状态…";
+    if (activity.status === "failed") return "读取项目状态失败";
+    return "项目状态已读取";
+  }
+  if (activity.name === "creator.resolve") {
+    if (activity.status === "running") return "正在理解你的请求…";
+    if (activity.status === "failed") return "理解请求失败";
+    if (activity.metadata?.route === "clarification") {
+      return "需要确认修改目标";
+    }
+    return "已识别意图";
+  }
+  if (activity.status === "running") return "正在应用并验证修改…";
+  if (activity.status === "failed") return "修改未完成";
+  if (
+    activity.metadata?.runtimeStatus !== undefined &&
+    activity.metadata.runtimeStatus !== "passed"
+  ) {
+    return "已应用修改，但验证未完成";
+  }
+  return "已应用并验证修改";
+}
+
+function stageSymbol(status: CreatorStageActivity["status"]): string {
+  if (status === "running") return "○";
+  if (status === "failed") return "✗";
+  return "✓";
+}
+
+function debugValue(value: unknown): string {
+  if (Array.isArray(value)) return value.length === 0 ? "—" : value.join(", ");
+  if (value === true) return "yes";
+  if (value === false) return "no";
+  if (value === null || value === undefined) return "—";
+  return String(value);
+}
+
+function CreatorStageDebugDetails({
+  activity,
+}: {
+  activity: CreatorStageActivity;
+}) {
+  const metadata = activity.metadata ?? {};
+  const isUnderstanding = activity.name === "creator.resolve";
+  const isGrounding = activity.name === "creator.grounding";
+  const isExecution = activity.name === "creator.productized-operation";
+
+  const rows = (
+    values: Array<[string, unknown]>,
+  ) => (
+    <dl className="creator-stage-details-list">
+      {values.map(([label, value]) => (
+        <div key={label}>
+          <dt>{label}</dt>
+          <dd>{debugValue(value)}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+
+  return (
+    <div className="creator-stage-debug">
+      {isGrounding ? (
+        <section>
+          <h3>Grounding</h3>
+          {rows([
+            ["Snapshot build", metadata.snapshotBuildMs === undefined ? "—" : `${metadata.snapshotBuildMs} ms`],
+            ["Model calls", metadata.modelCalls ?? 0],
+            ["Error", metadata.errorCode],
+          ])}
+        </section>
+      ) : null}
+
+      {isUnderstanding ? (
+        <>
+          <section>
+            <h3>Understanding</h3>
+            {rows([
+              ["Intent", metadata.intent],
+              ["Model calls", metadata.modelCalls],
+              ["Repair calls", metadata.repairCalls],
+              ["Duration", metadata.durationMs === undefined ? "—" : `${metadata.durationMs} ms`],
+            ])}
+          </section>
+          <section>
+            <h3>Target</h3>
+            {rows([
+              ["Plugin", metadata.targetPluginIds],
+              ["Instance", metadata.targetInstanceIds],
+            ])}
+          </section>
+          <section>
+            <h3>Route</h3>
+            {rows([
+              ["Productized", metadata.route === "productized"],
+              ["General fallback", metadata.route === "general-agent"],
+              ["Clarification", metadata.route === "clarification"],
+            ])}
+          </section>
+          {metadata.route === "general-agent" ? (
+            <section>
+              <h3>General Agent</h3>
+              {rows([
+                ["Model calls", metadata.generalAgentModelCalls],
+                ["Tool calls", metadata.generalAgentToolCalls],
+                ["Total model calls", metadata.totalModelCalls],
+              ])}
+            </section>
+          ) : null}
+        </>
+      ) : null}
+
+      {isExecution ? (
+        <>
+          <section>
+            <h3>Execution</h3>
+            {rows([
+              ["Execution model calls", metadata.executionModelCalls],
+              ["Tool calls", metadata.toolCalls],
+              ["DeepAgent calls", metadata.deepAgentCalls],
+              ["Mutation attempts", metadata.mutationAttempts],
+            ])}
+          </section>
+          <section>
+            <h3>Verification</h3>
+            {rows([
+              ["Static", metadata.staticStatus],
+              ["Runtime", metadata.runtimeStatus],
+              ["Freshness attempts", metadata.runtimeFreshnessAttempts],
+              ["Runtime wait", metadata.runtimeFreshnessWaitMs === undefined ? "—" : `${metadata.runtimeFreshnessWaitMs} ms`],
+              ["Geometry", metadata.geometryVerified],
+            ])}
+          </section>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+function CreatorStageActivityCard({
+  activity,
+  debug,
+}: {
+  activity: CreatorStageActivity;
+  debug: boolean;
+}) {
+  if (!debug && activity.name === "creator.grounding") {
+    return null;
+  }
+  return (
+    <article
+      aria-label={debug ? `Creator 阶段 ${activity.name}` : stageTitle(activity)}
+      className={`creator-stage-activity creator-stage-activity--${activity.status}`}
+    >
+      <div className="creator-stage-summary">
+        <span className="creator-stage-symbol" aria-hidden="true">
+          {stageSymbol(activity.status)}
+        </span>
+        <div>
+          <strong>{stageTitle(activity)}</strong>
+          {activity.name === "creator.resolve" &&
+          activity.displayIntent !== undefined &&
+          activity.metadata?.route !== "clarification" &&
+          activity.status === "completed" ? (
+            <span className="creator-stage-intent">{activity.displayIntent}</span>
+          ) : null}
+          {activity.error === undefined ? null : (
+            <span className="creator-stage-error">{activity.error}</span>
+          )}
+        </div>
+      </div>
+      {debug ? <CreatorStageDebugDetails activity={activity} /> : null}
+    </article>
+  );
+}
+
 export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
+  const creatorDebug = resolveCreatorDebugMode({
+    hostname: window.location.hostname,
+    search: window.location.search,
+  });
   const [initialConversation] = useState(storedConversation);
   const [items, setItems] = useState<CreatorConversationItem[]>(
     initialConversation.items,
@@ -647,6 +874,45 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
     let latestAssistantMessageId: string | undefined;
     let runErrorHandled = false;
 
+    const projectStep = (
+      kind: "started" | "finished",
+      event: { stepName: string; metadata?: unknown },
+    ) => {
+      if (!creatorStageNames.includes(event.stepName as CreatorStageName)) {
+        return;
+      }
+      updateItems((current) => {
+        const stageIndex = [...current]
+          .map((item, index) => ({ item, index }))
+          .reverse()
+          .find(
+            ({ item }) =>
+              kind === "finished" &&
+              item.kind === "stage" &&
+              item.name === event.stepName &&
+              item.status === "running",
+          )?.index;
+        const existing =
+          stageIndex === undefined ? undefined : current[stageIndex];
+        const projected = projectCreatorIntentStage(
+          existing?.kind === "stage" ? existing : undefined,
+          {
+            kind,
+            name: event.stepName,
+            ...(kind === "started" && stageIndex === undefined
+              ? { id: crypto.randomUUID() }
+              : {}),
+            metadata: event.metadata,
+          },
+        );
+        if (projected === undefined) return current;
+        if (stageIndex === undefined) return [...current, projected];
+        return current.map((item, index) =>
+          index === stageIndex ? projected : item,
+        );
+      });
+    };
+
     try {
       const result = await agent.runAgent({}, {
         onTextMessageStartEvent({ event }) {
@@ -739,6 +1005,12 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
             ),
           );
         },
+        onStepStartedEvent({ event }) {
+          projectStep("started", event);
+        },
+        onStepFinishedEvent({ event }) {
+          projectStep("finished", event);
+        },
         onRunErrorEvent({ event }) {
           runErrorHandled = true;
           updateItems((current) => [
@@ -747,8 +1019,10 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
                 ? { ...item, streaming: false }
                 : item.kind === "tool" &&
                     (item.status === "preparing" || item.status === "running")
-                  ? { ...item, status: "failed" as const, error: event.message }
-                  : item,
+                ? { ...item, status: "failed" as const, error: event.message }
+                : item.kind === "stage" && item.status === "running"
+                  ? interruptCreatorStage(item, event.message)
+                : item,
             ),
             {
               kind: "message",
@@ -758,6 +1032,25 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
             },
           ]);
         },
+      });
+      updateItems((current) => {
+        const stageItems = current.filter(
+          (item): item is CreatorStageActivity => item.kind === "stage",
+        );
+        const reconciled = reconcileCreatorStagesFromRunResult(
+          stageItems,
+          result.result,
+        );
+        let stageIndex = 0;
+        const next = current.map((item) => {
+          if (item.kind !== "stage") return item;
+          const replacement = reconciled[stageIndex];
+          stageIndex += 1;
+          return replacement ?? item;
+        });
+        return stageIndex < reconciled.length
+          ? [...next, ...reconciled.slice(stageIndex)]
+          : next;
       });
       const receipt = receiptFromRunResult(result.result);
       if (receipt !== undefined) {
@@ -794,6 +1087,8 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
               : item.kind === "tool" &&
                   (item.status === "preparing" || item.status === "running")
                 ? { ...item, status: "failed" as const, error: message }
+                : item.kind === "stage" && item.status === "running"
+                  ? interruptCreatorStage(item, message)
                 : item,
           ),
           {
@@ -902,7 +1197,17 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
           <header className="creator-panel-header">
             <div>
               <span>仅用于开发</span>
-              <h1>Creator 智能体</h1>
+              <h1>
+                Creator 智能体
+                {creatorDebug ? (
+                  <small
+                    className="creator-debug-badge"
+                    title="通过 URL 开启 Creator 调试信息"
+                  >
+                    Resolver Debug
+                  </small>
+                ) : null}
+              </h1>
             </div>
             <div className="creator-panel-header-actions">
               <button
@@ -930,14 +1235,22 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
           </header>
 
           <div className="creator-panel-messages" ref={messageList}>
-            {items.length === 0 ? (
+            {items.filter(
+              (item) => creatorDebug || item.kind !== "stage" || item.name !== "creator.grounding",
+            ).length === 0 ? (
               <div className="creator-panel-empty">
                 <strong>描述你想做的前端修改。</strong>
                 <p>Creator 可以修改本项目的 app-ui 和 UI Plugin 源码。</p>
               </div>
             ) : (
               items.map((item) =>
-                item.kind === "tool" ? (
+                item.kind === "stage" ? (
+                  <CreatorStageActivityCard
+                    activity={item}
+                    debug={creatorDebug}
+                    key={item.id}
+                  />
+                ) : item.kind === "tool" ? (
                   <CreatorToolActivityCard activity={item} key={item.id} />
                 ) : (
                   <article

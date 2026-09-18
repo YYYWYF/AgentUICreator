@@ -18,7 +18,24 @@ class ToolInvocationFinished:
     status: str
 
 
-CreatorRuntimeEvent: TypeAlias = ToolInvocationStarted | ToolInvocationFinished
+@dataclass(frozen=True, slots=True)
+class CreatorStepStarted:
+    name: str
+    metadata: dict[str, Any] | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class CreatorStepFinished:
+    name: str
+    metadata: dict[str, Any] | None = None
+
+
+CreatorRuntimeEvent: TypeAlias = (
+    ToolInvocationStarted
+    | ToolInvocationFinished
+    | CreatorStepStarted
+    | CreatorStepFinished
+)
 
 
 class CreatorEventSink(Protocol):

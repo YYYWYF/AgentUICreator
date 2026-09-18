@@ -4,6 +4,7 @@ import inspect
 import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from time import monotonic
 from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -54,12 +55,14 @@ class CreatorOperationResolverMetrics:
     modelCalls: int = 0
     repairCalls: int = 0
     invalidResponses: int = 0
+    durationMs: int = 0
 
     def to_dict(self) -> dict[str, int]:
         return {
             "operationResolverCalls": self.modelCalls,
             "operationResolverRepairCalls": self.repairCalls,
             "operationResolverInvalidResponses": self.invalidResponses,
+            "operationResolverDurationMs": self.durationMs,
         }
 
 
@@ -114,37 +117,43 @@ class CreatorOperationResolver:
         user_message: str,
         plugin_index: PluginCapabilityIndex | Mapping[str, Any],
     ) -> CreatorOperationResolution:
-        if not isinstance(user_message, str) or not user_message.strip():
-            raise CreatorOperationResolutionError(
-                "The original user message must be a non-empty string."
-            )
-        normalized_index = _coerce_plugin_index(plugin_index)
-        last_error: str | None = None
-
-        for attempt in range(MAX_RESOLVER_REPAIR_CALLS + 1):
-            if attempt > 0:
-                self.metrics.repairCalls += 1
-            try:
-                resolution = await self._invoke(
-                    user_message=user_message,
-                    plugin_index=normalized_index,
-                    repair_reason=last_error,
+        started_at = monotonic()
+        try:
+            if not isinstance(user_message, str) or not user_message.strip():
+                raise CreatorOperationResolutionError(
+                    "The original user message must be a non-empty string."
                 )
-                self.validate_resolution(resolution, normalized_index)
-                return resolution
-            except _InvalidResolution as error:
-                self.metrics.invalidResponses += 1
-                last_error = _bounded_error(error)
-                if attempt >= MAX_RESOLVER_REPAIR_CALLS:
-                    raise CreatorOperationResolutionError(
-                        "Creator Operation Resolver returned an invalid resolution.",
-                        {
-                            "attempts": attempt + 1,
-                            "reason": last_error,
-                        },
-                    ) from error
+            normalized_index = _coerce_plugin_index(plugin_index)
+            last_error: str | None = None
 
-        raise AssertionError("Resolver loop must return or raise.")
+            for attempt in range(MAX_RESOLVER_REPAIR_CALLS + 1):
+                if attempt > 0:
+                    self.metrics.repairCalls += 1
+                try:
+                    resolution = await self._invoke(
+                        user_message=user_message,
+                        plugin_index=normalized_index,
+                        repair_reason=last_error,
+                    )
+                    self.validate_resolution(resolution, normalized_index)
+                    return resolution
+                except _InvalidResolution as error:
+                    self.metrics.invalidResponses += 1
+                    last_error = _bounded_error(error)
+                    if attempt >= MAX_RESOLVER_REPAIR_CALLS:
+                        raise CreatorOperationResolutionError(
+                            "Creator Operation Resolver returned an invalid resolution.",
+                            {
+                                "attempts": attempt + 1,
+                                "reason": last_error,
+                            },
+                        ) from error
+
+            raise AssertionError("Resolver loop must return or raise.")
+        finally:
+            self.metrics.durationMs = max(
+                0, round((monotonic() - started_at) * 1_000)
+            )
 
     def validate_resolution(
         self,

@@ -313,6 +313,8 @@ class CreatorRunLogger:
         composition_fast_path_metrics: Mapping[str, object] | None = None,
         project_control_metrics: Mapping[str, object] | None = None,
         validation_metrics: Mapping[str, object] | None = None,
+        operation_resolver_metrics: Mapping[str, object] | None = None,
+        creator_intent: Mapping[str, object] | None = None,
         error: BaseException | None = None,
     ) -> None:
         if self._finished:
@@ -366,6 +368,16 @@ class CreatorRunLogger:
                 **(
                     {"validationMetrics": dict(validation_metrics)}
                     if validation_metrics is not None
+                    else {}
+                ),
+                **(
+                    {"operationResolver": dict(operation_resolver_metrics)}
+                    if operation_resolver_metrics is not None
+                    else {}
+                ),
+                **(
+                    {"creatorIntent": dict(creator_intent)}
+                    if creator_intent is not None
                     else {}
                 ),
                 **({"error": str(error)} if error is not None else {}),
