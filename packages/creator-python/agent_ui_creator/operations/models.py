@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass
-from typing import Any, Literal, TypeAlias
+from typing import Annotated, Any, Literal, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -11,6 +11,15 @@ MAX_PLUGIN_CAPABILITIES = 64
 MAX_PLUGIN_INTENTS = 16
 MAX_PLUGIN_INSTANCES = 32
 MAX_TOTAL_PLUGIN_INSTANCES = 256
+MAX_PLUGIN_ID_CHARS = 200
+MAX_PLUGIN_INSTANCE_ID_CHARS = 200
+MAX_PLUGIN_NAME_CHARS = 200
+MAX_PLUGIN_DESCRIPTION_CHARS = 400
+MAX_PLUGIN_INTENT_CHARS = 200
+MAX_PLUGIN_VISUAL_ROLE_CHARS = 200
+MAX_PLUGIN_ANCHOR_ID_CHARS = 200
+MAX_PLUGIN_AUTHORING_SIZE_CHARS = 100
+MAX_REQUIRED_SERVICE_STATUS_CHARS = 50
 
 
 CreatorOperationKind: TypeAlias = Literal[
@@ -22,7 +31,34 @@ CreatorOperationKind: TypeAlias = Literal[
 ]
 
 PluginPlacementRelation: TypeAlias = Literal["before", "after", "above", "below"]
-AuthoringSize: TypeAlias = int | float | str
+BoundedPluginId: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_PLUGIN_ID_CHARS)
+]
+BoundedPluginInstanceId: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_PLUGIN_INSTANCE_ID_CHARS)
+]
+BoundedPluginName: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_PLUGIN_NAME_CHARS)
+]
+BoundedPluginDescription: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_PLUGIN_DESCRIPTION_CHARS)
+]
+BoundedPluginIntent: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_PLUGIN_INTENT_CHARS)
+]
+BoundedPluginVisualRole: TypeAlias = Annotated[
+    str, Field(max_length=MAX_PLUGIN_VISUAL_ROLE_CHARS)
+]
+BoundedPluginAnchorId: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_PLUGIN_ANCHOR_ID_CHARS)
+]
+BoundedAuthoringSizeString: TypeAlias = Annotated[
+    str, Field(max_length=MAX_PLUGIN_AUTHORING_SIZE_CHARS)
+]
+AuthoringSize: TypeAlias = int | float | BoundedAuthoringSizeString
+BoundedRequiredServiceStatus: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_REQUIRED_SERVICE_STATUS_CHARS)
+]
 
 
 class PluginInstanceSummary(BaseModel):
@@ -30,7 +66,7 @@ class PluginInstanceSummary(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    instanceId: str = Field(min_length=1)
+    instanceId: BoundedPluginInstanceId
     enabled: bool
 
 
@@ -38,7 +74,7 @@ class PluginDefaultPlacement(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     relation: PluginPlacementRelation
-    anchorPluginId: str = Field(min_length=1)
+    anchorPluginId: BoundedPluginAnchorId
 
 
 class PluginRecommendedSize(BaseModel):
@@ -51,7 +87,7 @@ class PluginRecommendedSize(BaseModel):
 class RequiredServiceSummary(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    status: str = Field(min_length=1)
+    status: BoundedRequiredServiceStatus
 
 
 class PluginCapability(BaseModel):
@@ -59,11 +95,13 @@ class PluginCapability(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    pluginId: str = Field(min_length=1)
-    name: str = Field(min_length=1)
-    description: str = Field(min_length=1)
-    intents: list[str] = Field(default_factory=list, max_length=MAX_PLUGIN_INTENTS)
-    visualRole: str | None = None
+    pluginId: BoundedPluginId
+    name: BoundedPluginName
+    description: BoundedPluginDescription
+    intents: list[BoundedPluginIntent] = Field(
+        default_factory=list, max_length=MAX_PLUGIN_INTENTS
+    )
+    visualRole: BoundedPluginVisualRole | None = None
     selected: bool
     instances: list[PluginInstanceSummary] = Field(
         default_factory=list, max_length=MAX_PLUGIN_INSTANCES

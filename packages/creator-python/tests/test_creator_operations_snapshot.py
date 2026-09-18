@@ -8,9 +8,18 @@ import pytest
 from agent_ui_creator.operations import (
     CreatorDomainSnapshotError,
     CreatorDomainSnapshotProvider,
+    MAX_PLUGIN_ANCHOR_ID_CHARS,
+    MAX_PLUGIN_AUTHORING_SIZE_CHARS,
     MAX_PLUGIN_CAPABILITIES,
+    MAX_PLUGIN_DESCRIPTION_CHARS,
+    MAX_PLUGIN_ID_CHARS,
+    MAX_PLUGIN_INSTANCE_ID_CHARS,
+    MAX_PLUGIN_INTENT_CHARS,
     MAX_PLUGIN_INSTANCES,
     MAX_PLUGIN_INTENTS,
+    MAX_PLUGIN_NAME_CHARS,
+    MAX_PLUGIN_VISUAL_ROLE_CHARS,
+    MAX_REQUIRED_SERVICE_STATUS_CHARS,
     MAX_TOTAL_PLUGIN_INSTANCES,
 )
 from agent_ui_creator.project_control import ProjectControlError
@@ -228,3 +237,56 @@ def test_snapshot_provider_rejects_too_many_total_plugin_instances():
 
     assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"
     assert raised.value.details["limit"] == MAX_TOTAL_PLUGIN_INSTANCES
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda result: result["capabilitySummaries"][0].update(
+            {"pluginId": "x" * (MAX_PLUGIN_ID_CHARS + 1)}
+        ),
+        lambda result: result["capabilitySummaries"][0].update(
+            {"name": "x" * (MAX_PLUGIN_NAME_CHARS + 1)}
+        ),
+        lambda result: result["capabilitySummaries"][0].update(
+            {"description": "x" * (MAX_PLUGIN_DESCRIPTION_CHARS + 1)}
+        ),
+        lambda result: result["capabilitySummaries"][0]["authoring"].update(
+            {"intents": ["x" * (MAX_PLUGIN_INTENT_CHARS + 1)]}
+        ),
+        lambda result: result["capabilitySummaries"][0]["authoring"].update(
+            {"visualRole": "x" * (MAX_PLUGIN_VISUAL_ROLE_CHARS + 1)}
+        ),
+        lambda result: result["capabilitySummaries"][0]["authoring"][
+            "typicalPlacement"
+        ].update({"anchorPluginId": "x" * (MAX_PLUGIN_ANCHOR_ID_CHARS + 1)}),
+        lambda result: result["capabilitySummaries"][0]["authoring"].update(
+            {
+                "recommendedSize": {
+                    "width": "x" * (MAX_PLUGIN_AUTHORING_SIZE_CHARS + 1)
+                }
+            }
+        ),
+        lambda result: result["capabilitySummaries"][0]["currentInstances"].append(
+            {
+                "instanceId": "x" * (MAX_PLUGIN_INSTANCE_ID_CHARS + 1),
+                "enabled": True,
+            }
+        ),
+        lambda result: result["capabilitySummaries"][0].update(
+            {
+                "requiredServices": {
+                    "status": "x" * (MAX_REQUIRED_SERVICE_STATUS_CHARS + 1)
+                }
+            }
+        ),
+    ],
+)
+def test_snapshot_provider_rejects_oversized_resolver_strings(mutate):
+    result = snapshot_result()
+    mutate(result)
+
+    with pytest.raises(CreatorDomainSnapshotError) as raised:
+        CreatorDomainSnapshotProvider._parse(result)
+
+    assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"

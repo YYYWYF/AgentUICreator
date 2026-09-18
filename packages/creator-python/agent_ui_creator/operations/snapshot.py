@@ -11,8 +11,17 @@ from ..project_control import ProjectControlClient, ProjectControlError
 from .models import (
     CreatorDomainSnapshot,
     MAX_PLUGIN_CAPABILITIES,
+    MAX_PLUGIN_ANCHOR_ID_CHARS,
+    MAX_PLUGIN_AUTHORING_SIZE_CHARS,
+    MAX_PLUGIN_DESCRIPTION_CHARS,
+    MAX_PLUGIN_ID_CHARS,
+    MAX_PLUGIN_INSTANCE_ID_CHARS,
+    MAX_PLUGIN_INTENT_CHARS,
     MAX_PLUGIN_INSTANCES,
     MAX_PLUGIN_INTENTS,
+    MAX_PLUGIN_NAME_CHARS,
+    MAX_PLUGIN_VISUAL_ROLE_CHARS,
+    MAX_REQUIRED_SERVICE_STATUS_CHARS,
     MAX_TOTAL_PLUGIN_INSTANCES,
     PluginCapability,
     PluginCapabilityIndex,
@@ -33,9 +42,6 @@ _REQUIRED_OBSERVATION_COVERAGE = frozenset(
         "capability.composition-summary",
     }
 )
-_MAX_DESCRIPTION_CHARS = 400
-_MAX_VISUAL_ROLE_CHARS = 200
-_MAX_INTENT_CHARS = 200
 
 
 class CreatorDomainSnapshotError(RuntimeError):
@@ -89,7 +95,13 @@ def _required_bool(value: Any, path: str) -> bool:
 
 
 def _bounded_text(value: Any, path: str, limit: int) -> str:
-    return _required_string(value, path)[:limit]
+    text = _required_string(value, path)
+    if len(text) > limit:
+        raise _too_large(
+            f"Domain snapshot field {path} exceeds its character limit.",
+            {"field": path, "limit": limit, "actual": len(text)},
+        )
+    return text
 
 
 def _optional_text(value: Any, path: str, limit: int) -> str | None:
@@ -97,8 +109,23 @@ def _optional_text(value: Any, path: str, limit: int) -> str | None:
         return None
     if not isinstance(value, str):
         raise _invalid(f"Domain snapshot field {path} must be a string when present.")
+    if len(value) > limit:
+        raise _too_large(
+            f"Domain snapshot field {path} exceeds its character limit.",
+            {"field": path, "limit": limit, "actual": len(value)},
+        )
     normalized = value.strip()
-    return normalized[:limit] if normalized else None
+    if not normalized:
+        return None
+    return normalized
+
+
+def _check_optional_size_text(value: Any, path: str, limit: int) -> None:
+    if isinstance(value, str) and len(value) > limit:
+        raise _too_large(
+            f"Domain snapshot field {path} exceeds its character limit.",
+            {"field": path, "limit": limit, "actual": len(value)},
+        )
 
 
 def _build_plugin_capability(
@@ -107,12 +134,20 @@ def _build_plugin_capability(
     index: int,
 ) -> PluginCapability:
     item = _required_mapping(value, f"capabilitySummaries[{index}]")
-    plugin_id = _required_string(item.get("pluginId"), f"capabilitySummaries[{index}].pluginId")
-    name = _required_string(item.get("name"), f"capabilitySummaries[{index}].name")
+    plugin_id = _bounded_text(
+        item.get("pluginId"),
+        f"capabilitySummaries[{index}].pluginId",
+        MAX_PLUGIN_ID_CHARS,
+    )
+    name = _bounded_text(
+        item.get("name"),
+        f"capabilitySummaries[{index}].name",
+        MAX_PLUGIN_NAME_CHARS,
+    )
     description = _bounded_text(
         item.get("description"),
         f"capabilitySummaries[{index}].description",
-        _MAX_DESCRIPTION_CHARS,
+        MAX_PLUGIN_DESCRIPTION_CHARS,
     )
     selected = _required_bool(
         item.get("selected"), f"capabilitySummaries[{index}].selected"
@@ -140,11 +175,18 @@ def _build_plugin_capability(
                 "actual": len(intents_value),
             },
         )
-    intents = [intent[:_MAX_INTENT_CHARS] for intent in intents_value]
+    intents = [
+        _bounded_text(
+            intent,
+            f"capabilitySummaries[{index}].authoring.intents[{intent_index}]",
+            MAX_PLUGIN_INTENT_CHARS,
+        )
+        for intent_index, intent in enumerate(intents_value)
+    ]
     visual_role = _optional_text(
         authoring.get("visualRole"),
         f"capabilitySummaries[{index}].authoring.visualRole",
-        _MAX_VISUAL_ROLE_CHARS,
+        MAX_PLUGIN_VISUAL_ROLE_CHARS,
     )
 
     placement_value = authoring.get("typicalPlacement")
@@ -164,9 +206,10 @@ def _build_plugin_capability(
             )
         placement = PluginDefaultPlacement(
             relation=relation,
-            anchorPluginId=_required_string(
+            anchorPluginId=_bounded_text(
                 placement_data.get("anchorPluginId"),
                 f"capabilitySummaries[{index}].authoring.typicalPlacement.anchorPluginId",
+                MAX_PLUGIN_ANCHOR_ID_CHARS,
             ),
         )
 
@@ -187,6 +230,11 @@ def _build_plugin_capability(
                 raise _invalid(
                     f"Domain snapshot field capabilitySummaries[{index}].authoring.recommendedSize.{field} has an unsupported value."
                 )
+            _check_optional_size_text(
+                dimension,
+                f"capabilitySummaries[{index}].authoring.recommendedSize.{field}",
+                MAX_PLUGIN_AUTHORING_SIZE_CHARS,
+            )
         recommended_size = PluginRecommendedSize(
             width=size_data.get("width"),
             height=size_data.get("height"),
@@ -214,9 +262,10 @@ def _build_plugin_capability(
         )
         instances.append(
             PluginInstanceSummary(
-                instanceId=_required_string(
+                instanceId=_bounded_text(
                     instance.get("instanceId"),
                     f"capabilitySummaries[{index}].currentInstances[{instance_index}].instanceId",
+                    MAX_PLUGIN_INSTANCE_ID_CHARS,
                 ),
                 enabled=_required_bool(
                     instance.get("enabled"),
@@ -233,9 +282,10 @@ def _build_plugin_capability(
             f"capabilitySummaries[{index}].requiredServices",
         )
         required_services = RequiredServiceSummary(
-            status=_required_string(
+            status=_bounded_text(
                 required_services_data.get("status"),
                 f"capabilitySummaries[{index}].requiredServices.status",
+                MAX_REQUIRED_SERVICE_STATUS_CHARS,
             )
         )
 

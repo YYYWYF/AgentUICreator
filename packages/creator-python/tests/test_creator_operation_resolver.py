@@ -10,7 +10,16 @@ from agent_ui_creator.operations import (
     CreatorOperationResolution,
     CreatorOperationResolutionError,
     CreatorOperationResolver,
+    MAX_PLUGIN_ANCHOR_ID_CHARS,
+    MAX_PLUGIN_AUTHORING_SIZE_CHARS,
     MAX_PLUGIN_CAPABILITIES,
+    MAX_PLUGIN_DESCRIPTION_CHARS,
+    MAX_PLUGIN_ID_CHARS,
+    MAX_PLUGIN_INSTANCE_ID_CHARS,
+    MAX_PLUGIN_INTENT_CHARS,
+    MAX_PLUGIN_NAME_CHARS,
+    MAX_PLUGIN_VISUAL_ROLE_CHARS,
+    MAX_REQUIRED_SERVICE_STATUS_CHARS,
     PluginCapabilityIndex,
 )
 
@@ -274,3 +283,80 @@ def test_resolver_rejects_oversized_plugin_index_before_model_call():
         asyncio.run(resolver.resolve("加回历史会话", context))
 
     assert model.messages == []
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("pluginId", "x" * (MAX_PLUGIN_ID_CHARS + 1)),
+        ("name", "x" * (MAX_PLUGIN_NAME_CHARS + 1)),
+        ("description", "x" * (MAX_PLUGIN_DESCRIPTION_CHARS + 1)),
+        ("intent", "x" * (MAX_PLUGIN_INTENT_CHARS + 1)),
+        ("visualRole", "x" * (MAX_PLUGIN_VISUAL_ROLE_CHARS + 1)),
+        ("anchorPluginId", "x" * (MAX_PLUGIN_ANCHOR_ID_CHARS + 1)),
+        ("recommendedSize", "x" * (MAX_PLUGIN_AUTHORING_SIZE_CHARS + 1)),
+        ("requiredServiceStatus", "x" * (MAX_REQUIRED_SERVICE_STATUS_CHARS + 1)),
+        ("instanceId", "x" * (MAX_PLUGIN_INSTANCE_ID_CHARS + 1)),
+    ],
+)
+def test_resolver_rejects_oversized_context_strings_before_model_call(field, value):
+    model = StaticStructuredModel([])
+    resolver = CreatorOperationResolver(structured_model=model)
+    context = add_plugin_index().model_dump(mode="json")
+
+    if field == "instanceId":
+        context["plugins"][1]["instances"][0]["instanceId"] = value
+    elif field == "anchorPluginId":
+        context["plugins"][0]["defaultPlacement"] = {
+            "relation": "before",
+            "anchorPluginId": value,
+        }
+    elif field == "recommendedSize":
+        context["plugins"][0]["recommendedSize"] = {"width": value}
+    elif field == "requiredServiceStatus":
+        context["plugins"][0]["requiredServices"] = {"status": value}
+    elif field == "intent":
+        context["plugins"][0]["intents"] = [value]
+    else:
+        context["plugins"][0][field] = value
+
+    with pytest.raises(CreatorOperationResolutionError):
+        asyncio.run(resolver.resolve("加回历史会话", context))
+
+    assert model.messages == []
+
+
+def test_plugin_capability_index_accepts_exact_string_bounds():
+    index = PluginCapabilityIndex.model_validate(
+        {
+            "plugins": [
+                {
+                    "pluginId": "p" * MAX_PLUGIN_ID_CHARS,
+                    "name": "n" * MAX_PLUGIN_NAME_CHARS,
+                    "description": "d" * MAX_PLUGIN_DESCRIPTION_CHARS,
+                    "intents": ["i" * MAX_PLUGIN_INTENT_CHARS],
+                    "visualRole": "v" * MAX_PLUGIN_VISUAL_ROLE_CHARS,
+                    "selected": True,
+                    "instances": [
+                        {
+                            "instanceId": "i" * MAX_PLUGIN_INSTANCE_ID_CHARS,
+                            "enabled": True,
+                        }
+                    ],
+                    "defaultPlacement": {
+                        "relation": "before",
+                        "anchorPluginId": "a" * MAX_PLUGIN_ANCHOR_ID_CHARS,
+                    },
+                    "recommendedSize": {
+                        "width": "w" * MAX_PLUGIN_AUTHORING_SIZE_CHARS,
+                        "height": "h" * MAX_PLUGIN_AUTHORING_SIZE_CHARS,
+                    },
+                    "requiredServices": {
+                        "status": "s" * MAX_REQUIRED_SERVICE_STATUS_CHARS
+                    },
+                }
+            ]
+        }
+    )
+
+    assert len(index.plugins[0].pluginId) == MAX_PLUGIN_ID_CHARS
