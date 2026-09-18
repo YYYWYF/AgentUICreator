@@ -9,7 +9,9 @@ from .playbooks import ProductizedOperationPlaybook
 class CreatorOperationRegistry:
     """Thin mapping from an executable operation kind to its Playbook."""
 
-    _SUPPORTED = frozenset({"add_existing_plugin", "remove_plugin"})
+    _SUPPORTED = frozenset(
+        {"add_existing_plugin", "remove_plugin", "move_plugin"}
+    )
 
     def __init__(
         self,

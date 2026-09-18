@@ -18,6 +18,13 @@ export interface CreatorStageMetadata {
   targetPluginIds?: string[];
   targetInstanceIds?: string[];
   route?: CreatorIntentRoute;
+  placementType?: "relative" | "plugin_slot";
+  anchorPluginId?: string;
+  anchorInstanceId?: string;
+  relation?: "before" | "after";
+  parentPluginId?: string;
+  parentInstanceId?: string;
+  slot?: string;
   modelCalls?: number;
   repairCalls?: number;
   invalidResponses?: number;
@@ -35,6 +42,7 @@ export interface CreatorStageMetadata {
   runtimeStatus?: string;
   runtimeFreshnessAttempts?: number;
   runtimeFreshnessWaitMs?: number;
+  placementVerified?: boolean | null;
   geometryVerified?: boolean | null;
   generalAgentModelCalls?: number;
   generalAgentToolCalls?: number;
@@ -91,6 +99,14 @@ function routeValue(value: unknown): CreatorIntentRoute | undefined {
     : undefined;
 }
 
+function placementTypeValue(value: unknown): "relative" | "plugin_slot" | undefined {
+  return value === "relative" || value === "plugin_slot" ? value : undefined;
+}
+
+function relationValue(value: unknown): "before" | "after" | undefined {
+  return value === "before" || value === "after" ? value : undefined;
+}
+
 /** Read only the bounded `metadata.creator` projection from an AG-UI event. */
 export function parseCreatorStepMetadata(
   value: unknown,
@@ -122,6 +138,21 @@ export function parseCreatorStepMetadata(
   if (instanceIds !== undefined) metadata.targetInstanceIds = instanceIds;
   const route = routeValue(creator.route);
   if (route !== undefined) metadata.route = route;
+  const placementType = placementTypeValue(creator.placementType);
+  if (placementType !== undefined) metadata.placementType = placementType;
+  for (const field of [
+    "anchorPluginId",
+    "anchorInstanceId",
+    "parentPluginId",
+    "parentInstanceId",
+    "slot",
+  ] as const) {
+    if (typeof creator[field] === "string") {
+      metadata[field] = creator[field] as string;
+    }
+  }
+  const relation = relationValue(creator.relation);
+  if (relation !== undefined) metadata.relation = relation;
 
   const numberFields = [
     "modelCalls",
@@ -145,6 +176,9 @@ export function parseCreatorStepMetadata(
   for (const field of numberFields) {
     const number = nonNegativeNumber(creator[field]);
     if (number !== undefined) metadata[field] = number;
+  }
+  if (typeof creator.placementVerified === "boolean" || creator.placementVerified === null) {
+    metadata.placementVerified = creator.placementVerified;
   }
   if (typeof creator.geometryVerified === "boolean" || creator.geometryVerified === null) {
     metadata.geometryVerified = creator.geometryVerified;
@@ -260,11 +294,21 @@ function finalProductizedMetadata(
   if (operation === undefined) return undefined;
   const metrics = finalRecord(operation.metrics);
   const verification = finalRecord(operation.verification);
+  const intent = finalIntentMetadata(result);
   const metadata: CreatorStageMetadata = {
     route: "productized",
     ...(typeof operation.operation === "string" ? { operation: operation.operation } : {}),
     ...(typeof operation.status === "string" ? { status: operation.status } : {}),
   };
+  if (intent !== undefined) {
+    if (intent.placementType !== undefined) metadata.placementType = intent.placementType;
+    if (intent.anchorPluginId !== undefined) metadata.anchorPluginId = intent.anchorPluginId;
+    if (intent.anchorInstanceId !== undefined) metadata.anchorInstanceId = intent.anchorInstanceId;
+    if (intent.relation !== undefined) metadata.relation = intent.relation;
+    if (intent.parentPluginId !== undefined) metadata.parentPluginId = intent.parentPluginId;
+    if (intent.parentInstanceId !== undefined) metadata.parentInstanceId = intent.parentInstanceId;
+    if (intent.slot !== undefined) metadata.slot = intent.slot;
+  }
   if (metrics !== undefined) {
     const fields = [
       "executionModelCalls",
@@ -281,14 +325,15 @@ function finalProductizedMetadata(
       "runtimeStatus",
       "runtimeFreshnessAttempts",
       "runtimeFreshnessWaitMs",
+      "placementVerified",
       "geometryVerified",
     ] as const;
     for (const field of fields) {
       const value = verification[field];
       if (
-        (field === "geometryVerified" &&
+        ((field === "geometryVerified" || field === "placementVerified") &&
           (typeof value === "boolean" || value === null)) ||
-        (field !== "geometryVerified" &&
+        (field !== "geometryVerified" && field !== "placementVerified" &&
           (typeof value === "string" || typeof value === "number"))
       ) {
         metadata[field] = value as never;

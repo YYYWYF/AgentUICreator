@@ -13,15 +13,21 @@ from .models import (
     CreatorOperationVerificationResult,
     MAX_PLUGIN_INSTANCE_ID_CHARS,
     PluginCapability,
+    PluginSlotMovePlacement,
+    RelativeMovePlacement,
 )
 from .snapshot import CreatorDomainSnapshotProvider
 from .verification import CompositionOperationVerificationService
 
 
 _AUTHORING_DEFAULT_PRECONDITION_PREFIX = "AUTHORING_DEFAULT_PLACEMENT_"
+_AUTHORING_MOVE_ERROR_CODES = frozenset(
+    {"AUTHORING_MOVE_UNSUPPORTED", "AUTHORING_MOVE_INCOMPATIBLE"}
+)
 _PRODUCTIZED_SEMANTIC_OPERATIONS = {
     "add_existing_plugin": "insert_plugin_default",
     "remove_plugin": "remove_plugin_default",
+    "move_plugin": "move_plugin_to",
 }
 
 
@@ -119,7 +125,10 @@ class _PlaybookBase:
         *,
         operation: str,
         instance_id: str,
-    ) -> tuple[Mapping[str, Any], Mapping[str, Any] | None] | None:
+        expected_placement: Mapping[str, Any] | None = None,
+    ) -> tuple[
+        Mapping[str, Any], Mapping[str, Any] | None, Mapping[str, Any] | None
+    ] | None:
         semantic = mutation.get("semanticComposition")
         expected_operation = _PRODUCTIZED_SEMANTIC_OPERATIONS.get(operation)
         if (
@@ -144,7 +153,17 @@ class _PlaybookBase:
                 or expected_geometry.get("instanceId") != instance_id
             ):
                 return None
-            return expected_runtime, expected_geometry
+            return expected_runtime, expected_geometry, None
+
+        if operation == "move_plugin":
+            if (
+                expected_runtime.get("presentInstanceIds") != [instance_id]
+                or expected_runtime.get("absentInstanceIds", []) != []
+                or not isinstance(expected_placement, Mapping)
+                or semantic.get("expectedPlacement") != dict(expected_placement)
+            ):
+                return None
+            return expected_runtime, None, expected_placement
 
         if (
             expected_runtime.get("absentInstanceIds") != [instance_id]
@@ -153,7 +172,7 @@ class _PlaybookBase:
             not in {"collapsed-dedicated-region", "preserved-container"}
         ):
             return None
-        return expected_runtime, None
+        return expected_runtime, None, None
 
     async def _verify_committed(
         self,
@@ -164,25 +183,16 @@ class _PlaybookBase:
         instance_id: str,
         mutation_attempts: int,
         snapshot_refreshes: int,
+        expected_placement: Mapping[str, Any] | None = None,
     ) -> CreatorOperationExecutionResult:
         changed = mutation.get("changed") is True
         revision = mutation.get("mutationRevision")
         mutation_revision = revision if isinstance(revision, int) else None
-        if not changed:
-            return self._result(
-                started_at,
-                status="already_satisfied",
-                plugin_id=plugin_id,
-                instance_id=instance_id,
-                mutation_changed=False,
-                mutation_revision=mutation_revision,
-                mutation_attempts=mutation_attempts,
-                snapshot_refreshes=snapshot_refreshes,
-            )
         semantic_expectations = self._semantic_expectations(
             mutation,
             operation=self.operation,
             instance_id=instance_id,
+            expected_placement=expected_placement,
         )
         if semantic_expectations is None:
             return self._result(
@@ -197,12 +207,24 @@ class _PlaybookBase:
                 mutation_attempts=mutation_attempts,
                 snapshot_refreshes=snapshot_refreshes,
             )
-        expected_runtime, expected_geometry = semantic_expectations
+        if not changed:
+            return self._result(
+                started_at,
+                status="already_satisfied",
+                plugin_id=plugin_id,
+                instance_id=instance_id,
+                mutation_changed=False,
+                mutation_revision=mutation_revision,
+                mutation_attempts=mutation_attempts,
+                snapshot_refreshes=snapshot_refreshes,
+            )
+        expected_runtime, expected_geometry, semantic_placement = semantic_expectations
 
         verification = await self.verification.verify(
             mutation_result=mutation,
             expected_runtime=expected_runtime,
             expected_geometry=expected_geometry,
+            expected_placement=semantic_placement,
         )
         if (
             verification.staticStatus == "passed"
@@ -235,6 +257,7 @@ class _PlaybookBase:
         mutation_attempts: int,
         snapshot_refreshes: int,
         normalize_authoring_precondition: bool = False,
+        normalize_move_precondition: bool = False,
     ) -> CreatorOperationExecutionResult:
         changed = (
             error.state_changed
@@ -263,6 +286,30 @@ class _PlaybookBase:
                 }
             )
             error_code = "PRODUCT_OPERATION_NOT_APPLICABLE"
+        if (
+            normalize_move_precondition
+            and isinstance(error, AppUIModelMutationError)
+            and not error.state_changed
+            and error_code in _AUTHORING_MOVE_ERROR_CODES
+        ):
+            cause_details = details
+            details = (
+                {**cause_details, "causeCode": error_code}
+                if isinstance(cause_details, Mapping)
+                else {
+                    "causeCode": error_code,
+                    **(
+                        {"causeDetails": cause_details}
+                        if cause_details is not None
+                        else {}
+                    ),
+                }
+            )
+            error_code = (
+                "PRODUCT_OPERATION_STALE"
+                if snapshot_refreshes > 0
+                else "PRODUCT_OPERATION_NOT_APPLICABLE"
+            )
         return self._result(
             started_at,
             status="failed",
@@ -716,4 +763,222 @@ class RemovePluginPlaybook(_PlaybookBase):
                 instance_id=instance_id,
                 mutation_attempts=mutation_attempts,
                 snapshot_refreshes=snapshot_refreshes,
+            )
+
+
+class MovePluginPlaybook(_PlaybookBase):
+    """Deterministically move one existing Plugin through the Host semantic contract."""
+
+    operation = "move_plugin"
+
+    def __init__(
+        self,
+        *,
+        mutation_service: AppUIModelMutationService,
+        snapshot_provider: CreatorDomainSnapshotProvider,
+        verification: CompositionOperationVerificationService,
+    ) -> None:
+        self.mutation_service = mutation_service
+        self.snapshot_provider = snapshot_provider
+        self.verification = verification
+
+    @staticmethod
+    def _identity_error(
+        snapshot: CreatorDomainSnapshot,
+        *,
+        plugin_id: str,
+        instance_id: str,
+        placement: RelativeMovePlacement | PluginSlotMovePlacement,
+    ) -> str | None:
+        if _capability(snapshot, plugin_id) is None:
+            return "The target Plugin is no longer present in the current snapshot."
+        if _instance_owner(snapshot, instance_id) != plugin_id:
+            return "The target instance no longer belongs to the target Plugin."
+
+        if isinstance(placement, RelativeMovePlacement):
+            if _capability(snapshot, placement.anchorPluginId) is None:
+                return "The relative anchor Plugin is no longer present in the current snapshot."
+            if _instance_owner(snapshot, placement.anchorInstanceId) != placement.anchorPluginId:
+                return "The relative anchor instance no longer belongs to its Plugin."
+            if placement.anchorInstanceId == instance_id:
+                return "A Plugin instance cannot move relative to itself."
+            return None
+
+        if _capability(snapshot, placement.parentPluginId) is None:
+            return "The Plugin Slot parent is no longer present in the current snapshot."
+        if _instance_owner(snapshot, placement.parentInstanceId) != placement.parentPluginId:
+            return "The Plugin Slot parent instance no longer belongs to its Plugin."
+        parent = _capability(snapshot, placement.parentPluginId)
+        if parent is None or not any(
+            slot.name == placement.slot for slot in parent.childSlots
+        ):
+            return "The requested Plugin child Slot is no longer declared."
+        if placement.parentInstanceId == instance_id:
+            return "A Plugin instance cannot move into its own Slot."
+        return None
+
+    @staticmethod
+    def _placement_payload(
+        instance_id: str,
+        placement: RelativeMovePlacement | PluginSlotMovePlacement,
+    ) -> dict[str, str]:
+        if isinstance(placement, RelativeMovePlacement):
+            return {
+                "type": "relative",
+                "instanceId": instance_id,
+                "anchorInstanceId": placement.anchorInstanceId,
+                "relation": placement.relation,
+            }
+        return {
+            "type": "plugin_slot",
+            "instanceId": instance_id,
+            "parentInstanceId": placement.parentInstanceId,
+            "slot": placement.slot,
+        }
+
+    async def execute(
+        self,
+        snapshot: CreatorDomainSnapshot,
+        resolution: CreatorOperationResolution,
+    ) -> CreatorOperationExecutionResult:
+        started_at = monotonic()
+        plugin_id = (
+            resolution.targetPluginIds[0]
+            if len(resolution.targetPluginIds) == 1
+            else None
+        )
+        instance_id = (
+            resolution.targetInstanceIds[0]
+            if len(resolution.targetInstanceIds) == 1
+            else None
+        )
+        placement = resolution.placement
+        if (
+            resolution.kind != self.operation
+            or plugin_id is None
+            or instance_id is None
+            or len(resolution.targetPluginIds) != 1
+            or len(resolution.targetInstanceIds) != 1
+            or placement is None
+        ):
+            return self._result(
+                started_at,
+                status="failed",
+                plugin_id=plugin_id,
+                instance_id=instance_id,
+                error_code="PRODUCT_OPERATION_INPUT_INVALID",
+                message="move_plugin requires exactly one Plugin target, one instance target, and a placement.",
+            )
+
+        identity_error = self._identity_error(
+            snapshot,
+            plugin_id=plugin_id,
+            instance_id=instance_id,
+            placement=placement,
+        )
+        if identity_error is not None:
+            return self._result(
+                started_at,
+                status="failed",
+                plugin_id=plugin_id,
+                instance_id=instance_id,
+                error_code="PRODUCT_OPERATION_STALE",
+                message=identity_error,
+            )
+
+        try:
+            await self.verification.ensure_baseline()
+        except Exception as error:
+            return self._result(
+                started_at,
+                status="failed",
+                plugin_id=plugin_id,
+                instance_id=instance_id,
+                error_code="PRODUCT_OPERATION_STATIC_BASELINE_FAILED",
+                message=str(error),
+            )
+
+        expected_placement = self._placement_payload(instance_id, placement)
+        current_snapshot = snapshot
+        mutation_attempts = 0
+        snapshot_refreshes = 0
+        while True:
+            mutation_attempts += 1
+            try:
+                mutation_result = await self.mutation_service.mutate(
+                    app_ui_model_hash=current_snapshot.app_ui_model_hash,
+                    operations=[
+                        {
+                            "type": "move_plugin_to",
+                            "instanceId": instance_id,
+                            "placement": {
+                                key: value
+                                for key, value in expected_placement.items()
+                                if key != "instanceId"
+                            },
+                        }
+                    ],
+                )
+            except AppUIModelMutationError as error:
+                if error.code != "APP_UI_MODEL_HASH_CONFLICT" or snapshot_refreshes >= 1:
+                    return self._mutation_failure(
+                        started_at,
+                        plugin_id=plugin_id,
+                        instance_id=instance_id,
+                        error=error,
+                        mutation_attempts=mutation_attempts,
+                        snapshot_refreshes=snapshot_refreshes,
+                        normalize_move_precondition=True,
+                    )
+                snapshot_refreshes += 1
+                try:
+                    current_snapshot = await self.snapshot_provider.build()
+                except Exception as refresh_error:
+                    return self._result(
+                        started_at,
+                        status="failed",
+                        plugin_id=plugin_id,
+                        instance_id=instance_id,
+                        error_code="PRODUCT_OPERATION_SNAPSHOT_REFRESH_FAILED",
+                        message=str(refresh_error),
+                        mutation_attempts=mutation_attempts,
+                        snapshot_refreshes=snapshot_refreshes,
+                    )
+                refreshed_identity_error = self._identity_error(
+                    current_snapshot,
+                    plugin_id=plugin_id,
+                    instance_id=instance_id,
+                    placement=placement,
+                )
+                if refreshed_identity_error is not None:
+                    return self._result(
+                        started_at,
+                        status="failed",
+                        plugin_id=plugin_id,
+                        instance_id=instance_id,
+                        error_code="PRODUCT_OPERATION_STALE",
+                        message=refreshed_identity_error,
+                        mutation_attempts=mutation_attempts,
+                        snapshot_refreshes=snapshot_refreshes,
+                    )
+                continue
+            except Exception as error:
+                return self._mutation_failure(
+                    started_at,
+                    plugin_id=plugin_id,
+                    instance_id=instance_id,
+                    error=error,
+                    mutation_attempts=mutation_attempts,
+                    snapshot_refreshes=snapshot_refreshes,
+                    normalize_move_precondition=True,
+                )
+
+            return await self._verify_committed(
+                started_at,
+                mutation=mutation_result.to_dict(),
+                plugin_id=plugin_id,
+                instance_id=instance_id,
+                mutation_attempts=mutation_attempts,
+                snapshot_refreshes=snapshot_refreshes,
+                expected_placement=expected_placement,
             )

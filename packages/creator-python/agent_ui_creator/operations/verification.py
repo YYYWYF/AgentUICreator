@@ -5,6 +5,7 @@ import re
 from collections.abc import Mapping
 from time import monotonic
 from typing import Any, Protocol
+from urllib.parse import quote
 
 from ..validation import CreatorValidationService
 from .models import CreatorOperationVerificationResult
@@ -37,6 +38,13 @@ def _rect(value: Any) -> dict[str, float] | None:
     if values["width"] <= 0 or values["height"] <= 0:
         return None
     return {key: float(item) for key, item in values.items() if item is not None}
+
+
+def resolve_runtime_plugin_slot_id(instance_id: str, slot: str) -> str:
+    """Mirror the Runtime's encodeURIComponent-based Plugin Slot identity."""
+
+    safe = "-_.!~*'()"
+    return f"plugin:{quote(instance_id, safe=safe)}:{quote(slot, safe=safe)}"
 
 
 def verify_expected_geometry(
@@ -132,6 +140,154 @@ def verify_expected_geometry(
     }
 
 
+def verify_expected_relative_placement(
+    result: Mapping[str, Any], expected: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Verify that a moved Plugin is on the requested side without overlap."""
+
+    if (
+        result.get("runtimeStatus") not in {"passed", "available"}
+        or result.get("compositionFresh") is not True
+    ):
+        return {
+            "status": (
+                "stale"
+                if result.get("runtimeStatus") == "stale"
+                or result.get("compositionFresh") is not True
+                else "unavailable"
+            ),
+            "placementVerified": None,
+            "geometryVerified": None,
+        }
+
+    instance_items = result.get("runtimeInstances", result.get("instances"))
+    if not isinstance(instance_items, list):
+        return {
+            "status": "unavailable",
+            "placementVerified": None,
+            "geometryVerified": None,
+        }
+    by_id = {
+        item.get("instanceId"): item
+        for item in instance_items
+        if isinstance(item, Mapping) and isinstance(item.get("instanceId"), str)
+    }
+    instance_id = expected.get("instanceId")
+    anchor_id = expected.get("anchorInstanceId")
+    relation = expected.get("relation")
+    if (
+        expected.get("type") != "relative"
+        or not isinstance(instance_id, str)
+        or not isinstance(anchor_id, str)
+        or relation not in {"before", "after"}
+    ):
+        return {
+            "status": "failed",
+            "placementVerified": False,
+            "geometryVerified": False,
+            "reason": "expected-placement-invalid",
+        }
+
+    candidate = _rect(by_id.get(instance_id, {}).get("rect"))
+    anchor = _rect(by_id.get(anchor_id, {}).get("rect"))
+    if candidate is None or anchor is None:
+        return {
+            "status": "unavailable",
+            "placementVerified": None,
+            "geometryVerified": None,
+            "reason": "expected-instance-geometry-missing",
+        }
+
+    if relation == "before":
+        verified = candidate["x"] + candidate["width"] <= (
+            anchor["x"] + GEOMETRY_TOLERANCE_PX
+        )
+    else:
+        verified = candidate["x"] >= (
+            anchor["x"] + anchor["width"] - GEOMETRY_TOLERANCE_PX
+        )
+    return {
+        "status": "passed" if verified else "failed",
+        "placementVerified": verified,
+        "geometryVerified": verified,
+        "instanceId": instance_id,
+        "anchorInstanceId": anchor_id,
+        "relation": relation,
+    }
+
+
+def verify_expected_plugin_slot_placement(
+    result: Mapping[str, Any], expected: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Verify a moved Plugin is mounted in the expected Runtime Plugin Slot."""
+
+    if (
+        result.get("runtimeStatus") not in {"passed", "available"}
+        or result.get("compositionFresh") is not True
+    ):
+        return {
+            "status": (
+                "stale"
+                if result.get("runtimeStatus") == "stale"
+                or result.get("compositionFresh") is not True
+                else "unavailable"
+            ),
+            "placementVerified": None,
+            "geometryVerified": None,
+        }
+
+    instance_items = result.get("runtimeInstances", result.get("instances"))
+    if not isinstance(instance_items, list):
+        return {
+            "status": "unavailable",
+            "placementVerified": None,
+            "geometryVerified": None,
+        }
+    instance_id = expected.get("instanceId")
+    parent_instance_id = expected.get("parentInstanceId")
+    slot = expected.get("slot")
+    if (
+        expected.get("type") != "plugin_slot"
+        or not isinstance(instance_id, str)
+        or not isinstance(parent_instance_id, str)
+        or not isinstance(slot, str)
+    ):
+        return {
+            "status": "failed",
+            "placementVerified": False,
+            "geometryVerified": None,
+            "reason": "expected-placement-invalid",
+        }
+
+    target = next(
+        (
+            item
+            for item in instance_items
+            if isinstance(item, Mapping) and item.get("instanceId") == instance_id
+        ),
+        None,
+    )
+    if not isinstance(target, Mapping):
+        return {
+            "status": "failed",
+            "placementVerified": False,
+            "geometryVerified": None,
+            "reason": "expected-instance-missing",
+        }
+
+    expected_slot_id = resolve_runtime_plugin_slot_id(parent_instance_id, slot)
+    verified = target.get("slotId") == expected_slot_id
+    return {
+        "status": "passed" if verified else "failed",
+        "placementVerified": verified,
+        "geometryVerified": None,
+        "instanceId": instance_id,
+        "parentInstanceId": parent_instance_id,
+        "slot": slot,
+        "expectedSlotId": expected_slot_id,
+    }
+
+
 class CompositionOperationVerificationService:
     """Verify Productized composition mutations without the Agent tool loop."""
 
@@ -155,6 +311,7 @@ class CompositionOperationVerificationService:
         mutation_result: Mapping[str, Any],
         expected_runtime: Mapping[str, Any],
         expected_geometry: Mapping[str, Any] | None = None,
+        expected_placement: Mapping[str, Any] | None = None,
     ) -> CreatorOperationVerificationResult:
         try:
             validation = await self.validation.validate(mode="delta")
@@ -279,6 +436,10 @@ class CompositionOperationVerificationService:
         if len(present_verified) != len(expected_present) or len(
             absent_verified
         ) != len(expected_absent):
+            placement_expected = expected_placement is not None
+            relative_expected = (
+                placement_expected and expected_placement.get("type") == "relative"
+            )
             return CreatorOperationVerificationResult(
                 staticStatus="passed",
                 runtimeStatus="failed",
@@ -286,6 +447,8 @@ class CompositionOperationVerificationService:
                 runtimeFreshnessWaitMs=wait_ms,
                 presentInstancesVerified=present_verified,
                 absentInstancesVerified=absent_verified,
+                placementVerified=False if placement_expected else None,
+                geometryVerified=False if relative_expected else None,
                 compositionVerified=(
                     composition_verified
                     if isinstance(composition_verified, bool)
@@ -293,7 +456,66 @@ class CompositionOperationVerificationService:
                 ),
             )
 
+        placement_verified: bool | None = None
         geometry_verified: bool | None = None
+        if expected_placement is not None:
+            placement_type = expected_placement.get("type")
+            if placement_type == "relative":
+                placement = verify_expected_relative_placement(
+                    result, expected_placement
+                )
+            elif placement_type == "plugin_slot":
+                placement = verify_expected_plugin_slot_placement(
+                    result, expected_placement
+                )
+            else:
+                placement = {
+                    "status": "failed",
+                    "placementVerified": False,
+                    "geometryVerified": None,
+                }
+            placement_verified = placement.get("placementVerified")
+            geometry_verified = placement.get("geometryVerified")
+            if placement.get("status") == "failed":
+                return CreatorOperationVerificationResult(
+                    staticStatus="passed",
+                    runtimeStatus="failed",
+                    runtimeFreshnessAttempts=attempts,
+                    runtimeFreshnessWaitMs=wait_ms,
+                    presentInstancesVerified=present_verified,
+                    absentInstancesVerified=absent_verified,
+                    placementVerified=False,
+                    geometryVerified=(
+                        geometry_verified
+                        if isinstance(geometry_verified, bool)
+                        else None
+                    ),
+                    compositionVerified=(
+                        composition_verified
+                        if isinstance(composition_verified, bool)
+                        else None
+                    ),
+                )
+            if placement.get("status") in {"stale", "unavailable"}:
+                return CreatorOperationVerificationResult(
+                    staticStatus="passed",
+                    runtimeStatus=(
+                        "stale"
+                        if placement.get("status") == "stale"
+                        else "unavailable"
+                    ),
+                    runtimeFreshnessAttempts=attempts,
+                    runtimeFreshnessWaitMs=wait_ms,
+                    presentInstancesVerified=present_verified,
+                    absentInstancesVerified=absent_verified,
+                    placementVerified=None,
+                    geometryVerified=None,
+                    compositionVerified=(
+                        composition_verified
+                        if isinstance(composition_verified, bool)
+                        else None
+                    ),
+                )
         if expected_geometry is not None:
             geometry = verify_expected_geometry(result, expected_geometry)
             geometry_verified = geometry.get("geometryVerified")
@@ -305,6 +527,7 @@ class CompositionOperationVerificationService:
                     runtimeFreshnessWaitMs=wait_ms,
                     presentInstancesVerified=present_verified,
                     absentInstancesVerified=absent_verified,
+                    placementVerified=placement_verified,
                     geometryVerified=False,
                     compositionVerified=(
                         composition_verified
@@ -324,6 +547,7 @@ class CompositionOperationVerificationService:
                     runtimeFreshnessWaitMs=wait_ms,
                     presentInstancesVerified=present_verified,
                     absentInstancesVerified=absent_verified,
+                    placementVerified=placement_verified,
                     geometryVerified=None,
                     compositionVerified=(
                         composition_verified
@@ -339,6 +563,7 @@ class CompositionOperationVerificationService:
             runtimeFreshnessWaitMs=wait_ms,
             presentInstancesVerified=present_verified,
             absentInstancesVerified=absent_verified,
+            placementVerified=placement_verified,
             geometryVerified=geometry_verified,
             compositionVerified=(
                 composition_verified

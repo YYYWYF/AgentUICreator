@@ -21,8 +21,20 @@ def _plugin_index() -> PluginCapabilityIndex:
                         enabled=True,
                     )
                 ],
-            )
-        ]
+            ),
+            PluginCapability(
+                pluginId="conversation-surface",
+                name="Conversation Surface",
+                description="Main conversation surface",
+                selected=True,
+                instances=[
+                    PluginInstanceSummary(
+                        instanceId="conversation-surface-main",
+                        enabled=True,
+                    )
+                ],
+            ),
+        ],
     )
 
 
@@ -77,7 +89,11 @@ def test_move_plugin_presentation_is_not_clarification():
         _plugin_index(),
     )
 
-    assert presentation.label == "移动 Conversation Thread List"
+    assert presentation.label == "将 Conversation Thread List 移到 Conversation Surface 右侧"
     assert presentation.label != "需要确认修改目标"
     assert presentation.kind == "move_plugin"
-    assert presentation.route == "general-agent"
+    assert presentation.route == "productized"
+    assert presentation.to_dict()["placementType"] == "relative"
+    assert presentation.to_dict()["anchorPluginId"] == "conversation-surface"
+    assert presentation.to_dict()["anchorInstanceId"] == "conversation-surface-main"
+    assert presentation.to_dict()["relation"] == "after"

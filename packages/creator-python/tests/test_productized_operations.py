@@ -13,12 +13,15 @@ from agent_ui_creator.operations import (
     CreatorDomainSnapshot,
     CreatorOperationRegistry,
     CreatorOperationResolution,
+    MovePluginPlaybook,
     PluginCapability,
+    PluginChildSlotCapability,
     PluginCapabilityIndex,
     PluginDefaultPlacement,
     PluginInstanceSummary,
     RemovePluginPlaybook,
     RequiredServiceSummary,
+    resolve_runtime_plugin_slot_id,
 )
 
 
@@ -101,6 +104,7 @@ def capability(
     instances: list[PluginInstanceSummary] | None = None,
     placement: bool = True,
     service_status: str = "resolved",
+    child_slots: list[PluginChildSlotCapability] | None = None,
 ) -> PluginCapability:
     return PluginCapability(
         pluginId=plugin_id,
@@ -117,6 +121,7 @@ def capability(
             else None
         ),
         requiredServices=RequiredServiceSummary(status=service_status),
+        childSlots=child_slots or [],
     )
 
 
@@ -126,6 +131,8 @@ def mutation(
     instance_id: str,
     after_hash: str = "c" * 64,
     expected_geometry: dict[str, object] | None = None,
+    expected_placement: dict[str, object] | None = None,
+    changed: bool = True,
 ) -> AppUIModelMutationResult:
     semantic = {
         "operation": operation,
@@ -141,6 +148,17 @@ def mutation(
             "axis": "width",
             "size": "280px",
         }
+    elif operation == "move_plugin_to":
+        semantic["expectedRuntime"] = {
+            "presentInstanceIds": [instance_id],
+            "absentInstanceIds": [],
+        }
+        semantic["expectedPlacement"] = expected_placement or {
+            "type": "relative",
+            "instanceId": instance_id,
+            "anchorInstanceId": "surface-main",
+            "relation": "after",
+        }
     else:
         semantic["expectedRuntime"] = {"absentInstanceIds": [instance_id]}
         semantic["reflow"] = "preserved-container"
@@ -148,8 +166,8 @@ def mutation(
         {
             "schemaVersion": 1,
             "transactionId": "transaction",
-            "changed": True,
-            "changedPaths": ["app-ui/app-ui.json"],
+            "changed": changed,
+            "changedPaths": ["app-ui/app-ui.json"] if changed else [],
             "appUIModel": {"beforeHash": "a" * 64, "afterHash": after_hash},
             "semanticComposition": semantic,
         },
@@ -171,6 +189,7 @@ def test_registry_does_not_fallback_to_unproductized_operations():
 
     assert registry.get("add_existing_plugin") is None
     assert registry.get("remove_plugin") is None
+    assert registry.get("move_plugin") is None
     assert registry.get("modify_plugin_logic") is None
 
 
@@ -808,3 +827,422 @@ def test_add_playbook_refreshes_once_on_hash_conflict_without_re_resolving():
     assert result.metrics.snapshotRefreshes == 1
     assert result.metrics.mutationAttempts == 2
     assert provider.build_calls == 1
+
+
+def _move_source(*, target_id: str = "history", target_instance_id: str = "history-main"):
+    return snapshot(
+        capability(
+            target_id,
+            selected=True,
+            instances=[PluginInstanceSummary(instanceId=target_instance_id, enabled=True)],
+        ),
+        capability(
+            "conversation-surface",
+            selected=True,
+            instances=[PluginInstanceSummary(instanceId="surface-main", enabled=True)],
+        ),
+    )
+
+
+def _move_resolution(
+    *,
+    placement: dict[str, object],
+    target_plugin_id: str = "history",
+    target_instance_id: str = "history-main",
+) -> CreatorOperationResolution:
+    return CreatorOperationResolution(
+        kind="move_plugin",
+        targetPluginIds=[target_plugin_id],
+        targetInstanceIds=[target_instance_id],
+        placement=placement,
+    )
+
+
+def test_move_playbook_verifies_relative_runtime_placement():
+    source = _move_source()
+    placement = {
+        "type": "relative",
+        "anchorPluginId": "conversation-surface",
+        "anchorInstanceId": "surface-main",
+        "relation": "after",
+    }
+    expected = {
+        "type": "relative",
+        "instanceId": "history-main",
+        "anchorInstanceId": "surface-main",
+        "relation": "after",
+    }
+    mutation_service = FakeMutation(
+        [mutation(operation="move_plugin_to", instance_id="history-main", expected_placement=expected)]
+    )
+    playbook = MovePluginPlaybook(
+        mutation_service=mutation_service,
+        snapshot_provider=FakeSnapshotProvider(source),
+        verification=verification(
+            [
+                {
+                    "currentHash": "c" * 64,
+                    "runtimeStatus": "passed",
+                    "compositionFresh": True,
+                    "compositionVerified": True,
+                    "currentErrors": [],
+                    "runtimeInstances": [
+                        {
+                            "instanceId": "history-main",
+                            "rect": {"x": 802, "y": 0, "width": 280, "height": 800},
+                        },
+                        {
+                            "instanceId": "surface-main",
+                            "rect": {"x": 0, "y": 0, "width": 800, "height": 800},
+                        },
+                    ],
+                }
+            ]
+        ),
+    )
+
+    result = asyncio.run(playbook.execute(source, _move_resolution(placement=placement)))
+
+    assert result.status == "success"
+    assert result.verification is not None
+    assert result.verification.placementVerified is True
+    assert result.verification.geometryVerified is True
+    assert result.metrics.executionModelCalls == 0
+    assert mutation_service.calls[0]["operations"] == [
+        {
+            "type": "move_plugin_to",
+            "instanceId": "history-main",
+            "placement": {
+                "type": "relative",
+                "anchorInstanceId": "surface-main",
+                "relation": "after",
+            },
+        }
+    ]
+
+
+def test_move_playbook_verifies_plugin_slot_runtime_mount():
+    target_instance_id = "send-button-main"
+    source = snapshot(
+        capability(
+            "send-button",
+            selected=True,
+            instances=[PluginInstanceSummary(instanceId=target_instance_id, enabled=True)],
+        ),
+        capability(
+            "composer",
+            selected=True,
+            instances=[PluginInstanceSummary(instanceId="composer-main", enabled=True)],
+            child_slots=[
+                PluginChildSlotCapability(
+                    name="actions",
+                    description="Composer actions",
+                    cardinality="many",
+                    optional=True,
+                )
+            ],
+        ),
+    )
+    placement = {
+        "type": "plugin_slot",
+        "parentPluginId": "composer",
+        "parentInstanceId": "composer-main",
+        "slot": "actions",
+    }
+    expected = {
+        "type": "plugin_slot",
+        "instanceId": target_instance_id,
+        "parentInstanceId": "composer-main",
+        "slot": "actions",
+    }
+    mutation_service = FakeMutation(
+        [mutation(operation="move_plugin_to", instance_id=target_instance_id, expected_placement=expected)]
+    )
+    playbook = MovePluginPlaybook(
+        mutation_service=mutation_service,
+        snapshot_provider=FakeSnapshotProvider(source),
+        verification=verification(
+            [
+                {
+                    "currentHash": "c" * 64,
+                    "runtimeStatus": "passed",
+                    "compositionFresh": True,
+                    "compositionVerified": True,
+                    "currentErrors": [],
+                    "runtimeInstances": [
+                        {
+                            "instanceId": target_instance_id,
+                            "slotId": resolve_runtime_plugin_slot_id("composer-main", "actions"),
+                        },
+                        {"instanceId": "composer-main", "slotId": "root-slot"},
+                    ],
+                }
+            ]
+        ),
+    )
+
+    result = asyncio.run(playbook.execute(source, _move_resolution(
+        placement=placement,
+        target_plugin_id="send-button",
+        target_instance_id=target_instance_id,
+    )))
+
+    assert result.status == "success"
+    assert result.verification is not None
+    assert result.verification.placementVerified is True
+    assert result.verification.geometryVerified is None
+
+
+def test_move_playbook_validates_semantics_before_already_satisfied():
+    source = _move_source()
+    placement = {
+        "type": "relative",
+        "anchorPluginId": "conversation-surface",
+        "anchorInstanceId": "surface-main",
+        "relation": "before",
+    }
+    expected = {
+        "type": "relative",
+        "instanceId": "history-main",
+        "anchorInstanceId": "surface-main",
+        "relation": "before",
+    }
+    mutation_service = FakeMutation(
+        [
+            mutation(
+                operation="move_plugin_to",
+                instance_id="history-main",
+                expected_placement=expected,
+                changed=False,
+            )
+        ]
+    )
+    playbook = MovePluginPlaybook(
+        mutation_service=mutation_service,
+        snapshot_provider=FakeSnapshotProvider(source),
+        verification=verification([]),
+    )
+
+    result = asyncio.run(playbook.execute(source, _move_resolution(placement=placement)))
+
+    assert result.status == "already_satisfied"
+    assert result.mutationChanged is False
+    assert result.verification is None
+
+
+def test_move_playbook_normalizes_host_move_errors_without_general_fallback():
+    source = _move_source()
+    placement = {
+        "type": "relative",
+        "anchorPluginId": "conversation-surface",
+        "anchorInstanceId": "surface-main",
+        "relation": "after",
+    }
+    mutation_service = FakeMutation(
+        [
+            AppUIModelMutationError(
+                "AUTHORING_MOVE_UNSUPPORTED",
+                "the current Layout cannot express this move",
+                {"reason": "shared-slot"},
+            )
+        ]
+    )
+    playbook = MovePluginPlaybook(
+        mutation_service=mutation_service,
+        snapshot_provider=FakeSnapshotProvider(source),
+        verification=verification([]),
+    )
+
+    result = asyncio.run(playbook.execute(source, _move_resolution(placement=placement)))
+
+    assert result.status == "failed"
+    assert result.errorCode == "PRODUCT_OPERATION_NOT_APPLICABLE"
+    assert result.details == {
+        "reason": "shared-slot",
+        "causeCode": "AUTHORING_MOVE_UNSUPPORTED",
+    }
+
+
+def test_move_playbook_retries_hash_conflict_without_resolving_again():
+    source = _move_source()
+    placement = {
+        "type": "relative",
+        "anchorPluginId": "conversation-surface",
+        "anchorInstanceId": "surface-main",
+        "relation": "after",
+    }
+    expected = {
+        "type": "relative",
+        "instanceId": "history-main",
+        "anchorInstanceId": "surface-main",
+        "relation": "after",
+    }
+    mutation_service = FakeMutation(
+        [
+            AppUIModelMutationError("APP_UI_MODEL_HASH_CONFLICT", "stale hash"),
+            mutation(operation="move_plugin_to", instance_id="history-main", expected_placement=expected),
+        ]
+    )
+    provider = FakeSnapshotProvider(source)
+    playbook = MovePluginPlaybook(
+        mutation_service=mutation_service,
+        snapshot_provider=provider,
+        verification=verification(
+            [
+                {
+                    "currentHash": "c" * 64,
+                    "runtimeStatus": "passed",
+                    "compositionFresh": True,
+                    "compositionVerified": True,
+                    "currentErrors": [],
+                    "runtimeInstances": [
+                        {"instanceId": "history-main", "rect": {"x": 802, "y": 0, "width": 280, "height": 800}},
+                        {"instanceId": "surface-main", "rect": {"x": 0, "y": 0, "width": 800, "height": 800}},
+                    ],
+                }
+            ]
+        ),
+    )
+
+    result = asyncio.run(playbook.execute(source, _move_resolution(placement=placement)))
+
+    assert result.status == "success"
+    assert result.metrics.snapshotRefreshes == 1
+    assert result.metrics.mutationAttempts == 2
+    assert provider.build_calls == 1
+
+
+def test_move_playbook_returns_stale_when_refresh_changes_identity():
+    source = _move_source()
+    refreshed = snapshot(
+        capability(
+            "history",
+            selected=True,
+            instances=[PluginInstanceSummary(instanceId="history-main", enabled=True)],
+        ),
+        capability(
+            "conversation-surface",
+            selected=True,
+            instances=[PluginInstanceSummary(instanceId="surface-replacement", enabled=True)],
+        ),
+    )
+    placement = {
+        "type": "relative",
+        "anchorPluginId": "conversation-surface",
+        "anchorInstanceId": "surface-main",
+        "relation": "after",
+    }
+    mutation_service = FakeMutation(
+        [AppUIModelMutationError("APP_UI_MODEL_HASH_CONFLICT", "stale hash")]
+    )
+    provider = SequenceSnapshotProvider([refreshed])
+    playbook = MovePluginPlaybook(
+        mutation_service=mutation_service,
+        snapshot_provider=provider,
+        verification=verification([]),
+    )
+
+    result = asyncio.run(playbook.execute(source, _move_resolution(placement=placement)))
+
+    assert result.status == "failed"
+    assert result.errorCode == "PRODUCT_OPERATION_STALE"
+    assert result.metrics.snapshotRefreshes == 1
+    assert result.metrics.mutationAttempts == 1
+    assert len(mutation_service.calls) == 1
+
+
+def test_move_playbook_reports_committed_unverified_for_stale_runtime():
+    source = _move_source()
+    placement = {
+        "type": "relative",
+        "anchorPluginId": "conversation-surface",
+        "anchorInstanceId": "surface-main",
+        "relation": "after",
+    }
+    mutation_service = FakeMutation(
+        [mutation(operation="move_plugin_to", instance_id="history-main")]
+    )
+    playbook = MovePluginPlaybook(
+        mutation_service=mutation_service,
+        snapshot_provider=FakeSnapshotProvider(source),
+        verification=verification(
+            [
+                {"runtimeStatus": "stale", "compositionFresh": False},
+                {"runtimeStatus": "stale", "compositionFresh": False},
+                {"runtimeStatus": "stale", "compositionFresh": False},
+            ]
+        ),
+    )
+
+    result = asyncio.run(playbook.execute(source, _move_resolution(placement=placement)))
+
+    assert result.status == "committed_unverified"
+    assert result.verification is not None
+    assert result.verification.placementVerified is None
+
+
+def test_move_playbook_rejects_invalid_semantic_result_before_runtime():
+    source = _move_source()
+    placement = {
+        "type": "relative",
+        "anchorPluginId": "conversation-surface",
+        "anchorInstanceId": "surface-main",
+        "relation": "after",
+    }
+    playbook = MovePluginPlaybook(
+        mutation_service=FakeMutation(
+            [mutation(operation="remove_plugin_default", instance_id="history-main")]
+        ),
+        snapshot_provider=FakeSnapshotProvider(source),
+        verification=verification([]),
+    )
+
+    result = asyncio.run(playbook.execute(source, _move_resolution(placement=placement)))
+
+    assert result.status == "failed"
+    assert result.errorCode == "PRODUCT_OPERATION_RESULT_INVALID"
+    assert result.verification is None
+
+
+def test_move_playbook_fails_on_fresh_relative_overlap():
+    source = _move_source()
+    placement = {
+        "type": "relative",
+        "anchorPluginId": "conversation-surface",
+        "anchorInstanceId": "surface-main",
+        "relation": "after",
+    }
+    playbook = MovePluginPlaybook(
+        mutation_service=FakeMutation(
+            [mutation(operation="move_plugin_to", instance_id="history-main")]
+        ),
+        snapshot_provider=FakeSnapshotProvider(source),
+        verification=verification(
+            [
+                {
+                    "currentHash": "c" * 64,
+                    "runtimeStatus": "passed",
+                    "compositionFresh": True,
+                    "compositionVerified": True,
+                    "currentErrors": [],
+                    "runtimeInstances": [
+                        {"instanceId": "history-main", "rect": {"x": 700, "y": 0, "width": 280, "height": 800}},
+                        {"instanceId": "surface-main", "rect": {"x": 0, "y": 0, "width": 800, "height": 800}},
+                    ],
+                }
+            ]
+        ),
+    )
+
+    result = asyncio.run(playbook.execute(source, _move_resolution(placement=placement)))
+
+    assert result.status == "failed"
+    assert result.verification is not None
+    assert result.verification.placementVerified is False
+    assert result.verification.geometryVerified is False
+
+
+def test_runtime_plugin_slot_id_mirror_matches_encode_uri_component_rules():
+    assert resolve_runtime_plugin_slot_id("composer-main", "actions") == "plugin:composer-main:actions"
+    assert resolve_runtime_plugin_slot_id("composer main", "actions/x") == "plugin:composer%20main:actions%2Fx"
+    assert resolve_runtime_plugin_slot_id("parent:é", "slot 空") == "plugin:parent%3A%C3%A9:slot%20%E7%A9%BA"

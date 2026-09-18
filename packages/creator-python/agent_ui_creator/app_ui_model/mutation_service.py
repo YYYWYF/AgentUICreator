@@ -58,7 +58,15 @@ def _semantic_target_summary(value: Any) -> dict[str, str] | None:
     if not isinstance(value, dict):
         return None
     summary: dict[str, str] = {}
-    for key in ("type", "slotRef", "slotNodeId", "parentInstanceId", "slot"):
+    for key in (
+        "type",
+        "slotRef",
+        "slotNodeId",
+        "parentInstanceId",
+        "slot",
+        "anchorInstanceId",
+        "relation",
+    ):
         item = value.get(key)
         if isinstance(item, str) and item.strip():
             summary[key] = item
@@ -100,6 +108,7 @@ def _semantic_operation_summary(operation: Any) -> dict[str, Any]:
         "set_plugin_enabled",
         "update_plugin_props",
         "move_plugin",
+        "move_plugin_to",
     }:
         instance_id = operation.get("instanceId")
         if isinstance(instance_id, str) and instance_id.strip():
@@ -115,8 +124,12 @@ def _semantic_operation_summary(operation: Any) -> dict[str, Any]:
             if isinstance(remove_keys, list):
                 keys.extend(key for key in remove_keys if isinstance(key, str))
             summary["keys"] = list(dict.fromkeys(keys))[:50]
-        elif operation_type == "move_plugin":
-            target = _semantic_target_summary(operation.get("target"))
+        elif operation_type in {"move_plugin", "move_plugin_to"}:
+            target = _semantic_target_summary(
+                operation.get("target")
+                if operation_type == "move_plugin"
+                else operation.get("placement")
+            )
             if target is not None:
                 summary["target"] = target
     elif operation_type == "remove_layout_node":

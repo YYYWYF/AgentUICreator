@@ -135,12 +135,25 @@ def _engine(
     return engine, registry, telemetry
 
 
-@pytest.mark.parametrize("kind", ["add_existing_plugin", "remove_plugin"])
-def test_productized_routing_uses_registered_playbook_for_add_and_remove(kind):
-    resolution = CreatorOperationResolution(
-        kind=kind,
-        targetPluginIds=["conversation-thread-list"],
-    )
+@pytest.mark.parametrize("kind", ["add_existing_plugin", "remove_plugin", "move_plugin"])
+def test_productized_routing_uses_registered_playbook_for_productized_operations(kind):
+    resolution_kwargs = {
+        "kind": kind,
+        "targetPluginIds": ["conversation-thread-list"],
+    }
+    if kind == "move_plugin":
+        resolution_kwargs.update(
+            {
+                "targetInstanceIds": ["conversation-thread-list-main"],
+                "placement": {
+                    "type": "relative",
+                    "anchorPluginId": "conversation-surface",
+                    "anchorInstanceId": "conversation-surface-main",
+                    "relation": "after",
+                },
+            }
+        )
+    resolution = CreatorOperationResolution(**resolution_kwargs)
     operation_result = _operation_result(operation=kind)
     playbook = _Playbook(operation_result)
     engine, registry, telemetry = _engine(resolution, playbook=playbook)

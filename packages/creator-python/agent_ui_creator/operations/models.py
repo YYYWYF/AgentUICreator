@@ -40,6 +40,7 @@ CreatorOperationKind: TypeAlias = Literal[
 ProductizedOperationKind: TypeAlias = Literal[
     "add_existing_plugin",
     "remove_plugin",
+    "move_plugin",
 ]
 CreatorOperationExecutionStatus: TypeAlias = Literal[
     "success",
@@ -282,6 +283,7 @@ class CreatorOperationVerificationResult(BaseModel):
     absentInstancesVerified: list[BoundedPluginInstanceId] = Field(
         default_factory=list, max_length=MAX_TOTAL_PLUGIN_INSTANCES
     )
+    placementVerified: bool | None = None
     geometryVerified: bool | None = None
     compositionVerified: bool | None = None
 
@@ -300,7 +302,7 @@ class CreatorOperationMetrics(BaseModel):
 
 
 class CreatorOperationExecutionResult(BaseModel):
-    """Structured terminal result for an Add/Remove Productized Playbook."""
+    """Structured terminal result for a Productized Operation Playbook."""
 
     model_config = ConfigDict(extra="forbid")
 

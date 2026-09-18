@@ -25,7 +25,11 @@ from ..streaming.runtime_events import (
 )
 from ..validation import CreatorValidationService
 from .models import CreatorOperationExecutionResult, CreatorOperationResolution
-from .playbooks import AddExistingPluginPlaybook, RemovePluginPlaybook
+from .playbooks import (
+    AddExistingPluginPlaybook,
+    MovePluginPlaybook,
+    RemovePluginPlaybook,
+)
 from .presentation import (
     CreatorIntentPresentation,
     CreatorIntentRoute,
@@ -94,11 +98,11 @@ def _latest_user_message(messages: list[dict[str, str]]) -> str:
 def _operation_text(
     operation: CreatorOperationExecutionResult,
 ) -> str:
-    operation_name = (
-        "add existing Plugin"
-        if operation.operation == "add_existing_plugin"
-        else "remove Plugin instance"
-    )
+    operation_name = {
+        "add_existing_plugin": "add existing Plugin",
+        "remove_plugin": "remove Plugin instance",
+        "move_plugin": "move Plugin instance",
+    }[operation.operation]
     if operation.status == "success":
         return f"Completed Productized operation: {operation_name}."
     if operation.status == "already_satisfied":
@@ -113,7 +117,7 @@ def _operation_text(
 
 
 class ProductizedOperationEngine:
-    """Resolve every domain-write request and execute only registered Add/Remove playbooks."""
+    """Resolve every domain-write request through registered Productized playbooks."""
 
     def __init__(
         self,
@@ -170,6 +174,11 @@ class ProductizedOperationEngine:
                     verification=verification,
                 ),
                 "remove_plugin": RemovePluginPlaybook(
+                    mutation_service=self.mutation_service,
+                    snapshot_provider=self.snapshot_provider,
+                    verification=verification,
+                ),
+                "move_plugin": MovePluginPlaybook(
                     mutation_service=self.mutation_service,
                     snapshot_provider=self.snapshot_provider,
                     verification=verification,
@@ -448,6 +457,9 @@ class ProductizedOperationEngine:
             ),
             "runtimeFreshnessWaitMs": (
                 verification.runtimeFreshnessWaitMs if verification is not None else 0
+            ),
+            "placementVerified": (
+                verification.placementVerified if verification is not None else None
             ),
             "geometryVerified": (
                 verification.geometryVerified if verification is not None else None

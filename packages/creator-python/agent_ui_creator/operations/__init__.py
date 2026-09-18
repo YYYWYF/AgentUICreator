@@ -53,6 +53,7 @@ from .presentation import (
 from .engine import ProductizedOperationEngine, ProductizedOperationRun
 from .playbooks import (
     AddExistingPluginPlaybook,
+    MovePluginPlaybook,
     ProductizedOperationPlaybook,
     RemovePluginPlaybook,
 )
@@ -67,7 +68,10 @@ from .verification import (
     GEOMETRY_TOLERANCE_PX,
     MAX_RUNTIME_FRESHNESS_ATTEMPTS,
     RUNTIME_FRESHNESS_DELAY_SECONDS,
+    resolve_runtime_plugin_slot_id,
     verify_expected_geometry,
+    verify_expected_plugin_slot_placement,
+    verify_expected_relative_placement,
 )
 
 __all__ = [
@@ -92,6 +96,7 @@ __all__ = [
     "ProductizedOperationEngine",
     "ProductizedOperationRun",
     "AddExistingPluginPlaybook",
+    "MovePluginPlaybook",
     "RemovePluginPlaybook",
     "ProductizedOperationPlaybook",
     "CreatorOperationRegistry",
@@ -99,7 +104,10 @@ __all__ = [
     "GEOMETRY_TOLERANCE_PX",
     "MAX_RUNTIME_FRESHNESS_ATTEMPTS",
     "RUNTIME_FRESHNESS_DELAY_SECONDS",
+    "resolve_runtime_plugin_slot_id",
     "verify_expected_geometry",
+    "verify_expected_plugin_slot_placement",
+    "verify_expected_relative_placement",
     "MAX_PLUGIN_CAPABILITIES",
     "MAX_PLUGIN_ANCHOR_ID_CHARS",
     "MAX_PLUGIN_AUTHORING_SIZE_CHARS",

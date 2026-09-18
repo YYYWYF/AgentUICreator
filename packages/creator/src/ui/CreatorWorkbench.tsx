@@ -667,6 +667,20 @@ function CreatorStageDebugDetails({
               ["Instance", metadata.targetInstanceIds],
             ])}
           </section>
+          {metadata.placementType === undefined ? null : (
+            <section>
+              <h3>Placement</h3>
+              {rows([
+                ["Type", metadata.placementType],
+                ["Anchor Plugin", metadata.anchorPluginId],
+                ["Anchor Instance", metadata.anchorInstanceId],
+                ["Relation", metadata.relation],
+                ["Parent Plugin", metadata.parentPluginId],
+                ["Parent Instance", metadata.parentInstanceId],
+                ["Slot", metadata.slot],
+              ])}
+            </section>
+          )}
           <section>
             <h3>Route</h3>
             {rows([
@@ -706,6 +720,7 @@ function CreatorStageDebugDetails({
               ["Runtime", metadata.runtimeStatus],
               ["Freshness attempts", metadata.runtimeFreshnessAttempts],
               ["Runtime wait", metadata.runtimeFreshnessWaitMs === undefined ? "—" : `${metadata.runtimeFreshnessWaitMs} ms`],
+              ["Placement", metadata.placementVerified],
               ["Geometry", metadata.geometryVerified],
             ])}
           </section>

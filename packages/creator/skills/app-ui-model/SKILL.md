@@ -106,6 +106,11 @@ Composition revision; it does not need a separate Service scan.
 - `insert_plugin`: insert one complete Plugin node into `application`, a
   `layout_slot(slotRef)`, or `plugin_slot(parentInstanceId, slot)`.
 - `move_plugin`: relocate an existing Plugin subtree.
+- Creator's Productized move path resolves this intent once, then lowers it to
+  the Host-only `move_plugin_to` semantic operation. Relative destinations use
+  an anchor instance and `before`/`after`; Plugin child Slot destinations use a
+  parent instance and declared Slot name. Do not replace this with remove plus
+  insert or expose Layout refs to the Resolver.
 - `remove_plugin`: remove an instance subtree while preserving Plugin source.
   When removing a Plugin that owns an entire visible Layout region and the user
   wants that region gone, prefer `reflow: "collapse-empty-region"`. Use the

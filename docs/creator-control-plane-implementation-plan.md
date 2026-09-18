@@ -610,6 +610,7 @@ packages/creator/src/ui/CreatorWorkbench.tsx
 
 - 隐藏：`set_plugin_enabled(false)`，保留原 authoring 位置；
 - 移除功能：`remove_plugin`；
+- 移动现有 Plugin：`move_plugin`，由 Host 的语义 `move_plugin_to` 原子执行；
 - 替换：`replace_plugin`；
 - 源码保留是默认行为。
 

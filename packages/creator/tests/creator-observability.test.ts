@@ -112,4 +112,66 @@ describe("Creator stage projection", () => {
       route: "productized",
     });
   });
+
+  it("projects bounded move placement and verification metadata", () => {
+    const stage = projectCreatorIntentStage(undefined, {
+      kind: "finished",
+      name: "creator.resolve",
+      metadata: {
+        creator: {
+          status: "success",
+          displayIntent: "将 Conversation Thread List 移到 Conversation Surface 右侧",
+          intent: "move_plugin",
+          route: "productized",
+          placementType: "relative",
+          anchorPluginId: "conversation-surface",
+          anchorInstanceId: "conversation-surface-main",
+          relation: "after",
+          ignored: { raw: "metadata" },
+        },
+      },
+    });
+
+    const reconciled = reconcileCreatorStageFromRunResult(
+      {
+        ...stage!,
+        name: "creator.productized-operation",
+      },
+      {
+        creatorIntent: {
+          placementType: "relative",
+          anchorPluginId: "conversation-surface",
+          anchorInstanceId: "conversation-surface-main",
+          relation: "after",
+          route: "productized",
+        },
+        productizedOperation: {
+          operation: "move_plugin",
+          status: "success",
+          metrics: { executionModelCalls: 0, mutationAttempts: 1, snapshotRefreshes: 0 },
+          verification: {
+            staticStatus: "passed",
+            runtimeStatus: "passed",
+            runtimeFreshnessAttempts: 1,
+            runtimeFreshnessWaitMs: 0,
+            placementVerified: true,
+            geometryVerified: true,
+          },
+        },
+      },
+    );
+
+    expect(stage?.metadata).toMatchObject({
+      placementType: "relative",
+      anchorPluginId: "conversation-surface",
+      anchorInstanceId: "conversation-surface-main",
+      relation: "after",
+    });
+    expect(stage?.metadata).not.toHaveProperty("ignored");
+    expect(reconciled.metadata).toMatchObject({
+      placementType: "relative",
+      placementVerified: true,
+      geometryVerified: true,
+    });
+  });
 });
