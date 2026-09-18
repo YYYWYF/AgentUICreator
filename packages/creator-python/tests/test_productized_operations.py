@@ -1112,6 +1112,48 @@ def test_move_playbook_retries_hash_conflict_without_resolving_again():
     assert provider.build_calls == 1
 
 
+def test_move_playbook_reports_already_satisfied_after_hash_conflict():
+    source = _move_source()
+    placement = {
+        "type": "relative",
+        "anchorPluginId": "conversation-surface",
+        "anchorInstanceId": "surface-main",
+        "relation": "after",
+    }
+    expected = {
+        "type": "relative",
+        "instanceId": "history-main",
+        "anchorInstanceId": "surface-main",
+        "relation": "after",
+    }
+    mutation_service = FakeMutation(
+        [
+            AppUIModelMutationError("APP_UI_MODEL_HASH_CONFLICT", "stale hash"),
+            mutation(
+                operation="move_plugin_to",
+                instance_id="history-main",
+                expected_placement=expected,
+                changed=False,
+            ),
+        ]
+    )
+    provider = FakeSnapshotProvider(source)
+    playbook = MovePluginPlaybook(
+        mutation_service=mutation_service,
+        snapshot_provider=provider,
+        verification=verification([]),
+    )
+
+    result = asyncio.run(playbook.execute(source, _move_resolution(placement=placement)))
+
+    assert result.status == "already_satisfied"
+    assert result.mutationChanged is False
+    assert result.verification is None
+    assert result.metrics.snapshotRefreshes == 1
+    assert result.metrics.mutationAttempts == 2
+    assert provider.build_calls == 1
+
+
 def test_move_playbook_returns_stale_when_refresh_changes_identity():
     source = _move_source()
     refreshed = snapshot(

@@ -89,6 +89,30 @@
         }
       ]
     },
+    "pluginMovePlacement": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "anchorInstanceId", "relation"],
+          "properties": {
+            "type": { "const": "relative" },
+            "anchorInstanceId": { "$ref": "#/$defs/nonBlankString" },
+            "relation": { "enum": ["before", "after"] }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "parentInstanceId", "slot"],
+          "properties": {
+            "type": { "const": "plugin_slot" },
+            "parentInstanceId": { "$ref": "#/$defs/nonBlankString" },
+            "slot": { "$ref": "#/$defs/nonBlankString" }
+          }
+        }
+      ]
+    },
     "layoutNode": {
       "oneOf": [
         {
@@ -190,6 +214,16 @@
         "instanceId": { "$ref": "#/$defs/nonBlankString" },
         "target": { "$ref": "#/$defs/target" },
         "index": { "$ref": "#/$defs/index" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "instanceId", "placement"],
+      "properties": {
+        "type": { "const": "move_plugin_to" },
+        "instanceId": { "$ref": "#/$defs/nonBlankString" },
+        "placement": { "$ref": "#/$defs/pluginMovePlacement" }
       }
     },
     {

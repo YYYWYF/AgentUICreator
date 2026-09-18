@@ -134,6 +134,99 @@ print(json.dumps({"schemaVersion": 3, "ok": True, "result": request}))
     assert client.metrics.to_dict()["byOperation"] == {"mutate_app_ui_model": 1}
 
 
+@pytest.mark.parametrize(
+    "placement",
+    [
+        {
+            "type": "relative",
+            "anchorInstanceId": "conversation-main",
+            "relation": "after",
+        },
+        {
+            "type": "plugin_slot",
+            "parentInstanceId": "composer-main",
+            "slot": "actions",
+        },
+    ],
+)
+def test_mutation_transport_accepts_productized_plugin_move_placements(
+    tmp_path, placement
+):
+    source = """
+import json
+import sys
+request = json.loads(sys.stdin.read())
+print(json.dumps({"schemaVersion": 3, "ok": True, "result": request}))
+"""
+    _root, client = _control_project(tmp_path, source)
+    input = {
+        "appUIModelHash": "a" * 64,
+        "operations": [
+            {
+                "type": "move_plugin_to",
+                "instanceId": "history-main",
+                "placement": placement,
+            }
+        ],
+    }
+
+    assert asyncio.run(client.request_app_ui_model_mutation(input)) == {
+        "schemaVersion": 3,
+        "operation": "mutate_app_ui_model",
+        "input": input,
+    }
+
+
+@pytest.mark.parametrize(
+    "placement",
+    [
+        {
+            "type": "relative",
+            "anchorInstanceId": "conversation-main",
+            "relation": "after",
+            "anchorPluginId": "conversation-surface",
+        },
+        {
+            "type": "plugin_slot",
+            "parentInstanceId": "composer-main",
+            "slot": "actions",
+            "parentPluginId": "composer",
+        },
+        {
+            "type": "relative",
+            "anchorInstanceId": "conversation-main",
+            "relation": "after",
+            "layoutRef": "l2",
+        },
+        {
+            "type": "relative",
+            "anchorInstanceId": "conversation-main",
+            "relation": "after",
+            "index": 0,
+        },
+    ],
+)
+def test_mutation_transport_rejects_host_only_plugin_move_metadata(
+    tmp_path, placement
+):
+    _root, client = _control_project(tmp_path, _success())
+    input = {
+        "appUIModelHash": "a" * 64,
+        "operations": [
+            {
+                "type": "move_plugin_to",
+                "instanceId": "history-main",
+                "placement": placement,
+            }
+        ],
+    }
+
+    with pytest.raises(ProjectControlError) as raised:
+        asyncio.run(client.request_app_ui_model_mutation(input))
+
+    assert raised.value.code == "CONTROL_PROTOCOL_INCOMPATIBLE"
+
+
 def test_agent_ui_source_methods_send_exact_versioned_requests(tmp_path):
     source = """
 import json
