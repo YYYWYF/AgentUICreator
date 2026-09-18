@@ -418,6 +418,227 @@ describe("AppUIModel transaction", () => {
       .toBe(source);
   });
 
+  it("fails closed when the authoring-default anchor is ambiguous", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        children: [
+          {
+            type: "panel",
+            child: {
+              type: "slot",
+              plugins: [{
+                id: "conversation-surface-main-a",
+                pluginId: "conversation-surface",
+                enabled: true,
+              }],
+            },
+          },
+          {
+            type: "panel",
+            child: {
+              type: "slot",
+              plugins: [{
+                id: "conversation-surface-main-b",
+                pluginId: "conversation-surface",
+                enabled: true,
+              }],
+            },
+          },
+        ],
+      },
+    };
+    const { projectRoot, source } = await createProject(
+      {},
+      model,
+      [
+        ["conversation-surface", {
+          authoring: {
+            intents: ["show the primary conversation"],
+            visualRole: "primary conversation surface",
+            recommendedSize: { width: "minmax(0, 1fr)" },
+          },
+        }],
+        ["history", {
+          authoring: {
+            intents: ["add conversation management"],
+            typicalPlacement: {
+              relation: "before",
+              anchorPluginId: "conversation-surface",
+            },
+            recommendedSize: { width: "280px" },
+          },
+        }],
+      ],
+    );
+    const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
+    const registrySource = await readFile(registryPath, "utf8");
+
+    const error = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "insert_plugin_default",
+        plugin: { id: "history-main", pluginId: "history", enabled: true },
+      }],
+    }).catch((value: unknown) => value);
+
+    expect(error).toMatchObject({
+      code: "AUTHORING_DEFAULT_PLACEMENT_AMBIGUOUS",
+      details: {
+        anchorPluginId: "conversation-surface",
+        matchingInstanceIds: [
+          "conversation-surface-main-a",
+          "conversation-surface-main-b",
+        ],
+      },
+    });
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
+      .toBe(source);
+    expect(await readFile(registryPath, "utf8")).toBe(registrySource);
+  });
+
+  it("fails closed when an authoring-default Plugin has an unresolved required Service", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        children: [{
+          type: "panel",
+          child: {
+            type: "slot",
+            plugins: [{
+              id: "conversation-surface-main",
+              pluginId: "conversation-surface",
+              enabled: true,
+            }],
+          },
+        }],
+      },
+    };
+    const { projectRoot, source } = await createProject(
+      {},
+      model,
+      [
+        ["conversation-surface", {
+          authoring: {
+            intents: ["show the primary conversation"],
+            visualRole: "primary conversation surface",
+            recommendedSize: { width: "minmax(0, 1fr)" },
+          },
+        }],
+        ["needs-service", {
+          authoring: {
+            intents: ["add a service-backed panel"],
+            typicalPlacement: {
+              relation: "before",
+              anchorPluginId: "conversation-surface",
+            },
+            recommendedSize: { width: "280px" },
+          },
+        }],
+      ],
+    );
+    await writeFile(
+      path.join(projectRoot, "plugins", "needs-service", "definition.ts"),
+      [
+        "const definition = {",
+        "  manifest: {},",
+        '  inject: ["missing.service"],',
+        "  Component: () => null,",
+        "};",
+        "export default definition;",
+        "",
+      ].join("\n"),
+    );
+    const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
+    const registry = await generatePluginRegistry(projectRoot, model);
+    await writeFile(registryPath, registry.capabilityCatalog.source);
+    const registrySource = await readFile(registryPath, "utf8");
+
+    const error = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "insert_plugin_default",
+        plugin: {
+          id: "needs-service-main",
+          pluginId: "needs-service",
+          enabled: true,
+        },
+      }],
+    }).catch((value: unknown) => value);
+
+    expect(error).toMatchObject({
+      code: "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
+      details: {
+        pluginId: "needs-service",
+        missingRequiredServices: ["missing.service"],
+      },
+    });
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
+      .toBe(source);
+    expect(await readFile(registryPath, "utf8")).toBe(registrySource);
+  });
+
+  it("fails closed when the authoring-default anchor is inside an unsupported Layout", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "stack",
+        children: [{
+          type: "slot",
+          plugins: [{
+            id: "conversation-surface-main",
+            pluginId: "conversation-surface",
+            enabled: true,
+          }],
+        }],
+      },
+    };
+    const { projectRoot, source } = await createProject(
+      {},
+      model,
+      [
+        ["conversation-surface", {
+          authoring: {
+            intents: ["show the primary conversation"],
+            visualRole: "primary conversation surface",
+            recommendedSize: { width: "minmax(0, 1fr)" },
+          },
+        }],
+        ["history", {
+          authoring: {
+            intents: ["add conversation management"],
+            typicalPlacement: {
+              relation: "before",
+              anchorPluginId: "conversation-surface",
+            },
+            recommendedSize: { width: "280px" },
+          },
+        }],
+      ],
+    );
+    const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
+    const registrySource = await readFile(registryPath, "utf8");
+
+    const error = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "insert_plugin_default",
+        plugin: { id: "history-main", pluginId: "history", enabled: true },
+      }],
+    }).catch((value: unknown) => value);
+
+    expect(error).toMatchObject({
+      code: "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
+      details: {
+        anchorInstanceId: "conversation-surface-main",
+        expectedParentType: "row",
+        actualParentType: "stack",
+      },
+    });
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
+      .toBe(source);
+    expect(await readFile(registryPath, "utf8")).toBe(registrySource);
+  });
+
   it("rejects Host lowering details on the semantic operation boundary", async () => {
     const { projectRoot, source } = await createProject();
 
