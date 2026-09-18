@@ -17,6 +17,7 @@ import {
   type AppUIStackNode,
   type LayoutRef,
 } from "../../framework/contracts/app-ui-model";
+import type { PluginChildSlotDefinition, PluginSlotCatalog } from "../../framework/contracts/app-ui-composition";
 
 const nonBlankStringSchema = z.string().trim().min(1).max(200);
 const LAYOUT_TRACK_SIZE_ERROR =
@@ -33,6 +34,18 @@ const indexSchema = z.number().int().nonnegative().optional();
 const removeKeysSchema = z.array(nonBlankStringSchema).max(50).optional();
 const directionSchema = z.enum(["left", "right", "above", "below"]);
 const removeReflowSchema = z.enum(["preserve", "collapse-empty-region"]);
+const pluginMovePlacementSchema = z.discriminatedUnion("type", [
+  z.strictObject({
+    type: z.literal("relative"),
+    anchorInstanceId: nonBlankStringSchema,
+    relation: z.enum(["before", "after"]),
+  }),
+  z.strictObject({
+    type: z.literal("plugin_slot"),
+    parentInstanceId: nonBlankStringSchema,
+    slot: nonBlankStringSchema,
+  }),
+]);
 
 type AppUILayoutMutationNode =
   | ({ type: "row" | "column"; children: AppUILayoutMutationNode[]; gap?: number; sizes?: string[] } & { localRef?: string })
@@ -127,6 +140,11 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
     index: indexSchema,
   }),
   z.strictObject({
+    type: z.literal("move_plugin_to"),
+    instanceId: nonBlankStringSchema,
+    placement: pluginMovePlacementSchema,
+  }),
+  z.strictObject({
     type: z.literal("remove_plugin"),
     instanceId: nonBlankStringSchema,
     reflow: removeReflowSchema.optional(),
@@ -189,14 +207,17 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
 export const appUIOperationsSchema = z.array(appUIOperationSchema).min(1).max(100);
 export type AppUIOperation = z.infer<typeof appUIOperationSchema>;
 export type AppUIPluginTarget = z.infer<typeof appUIPluginTargetSchema>;
+export type AppUIPluginMoveOperation = Extract<AppUIOperation, { type: "move_plugin_to" }>;
+export type AppUIPluginMovePlacement = AppUIPluginMoveOperation["placement"];
 
 type ChildrenNode = AppUIRowNode | AppUIColumnNode | AppUIStackNode;
-type LayoutReflowParent = AppUIRowNode | AppUIColumnNode;
+export type LayoutReflowParent = AppUIRowNode | AppUIColumnNode;
 
 interface MutationContext {
   model: AppUIModel;
   snapshot: ReturnType<typeof buildLayoutRefIndex>;
   localRefs: Map<string, AppUILayoutNode>;
+  pluginMoveContracts?: AppUIPluginMoveContracts | undefined;
 }
 
 interface CurrentNodeEntry {
@@ -207,11 +228,48 @@ interface CurrentNodeEntry {
   index?: number | undefined;
 }
 
-interface LayoutReflowPlan {
+export interface LayoutReflowPlan {
   branch: AppUILayoutNode;
   parent: LayoutReflowParent;
   index: number;
 }
+
+export interface AppUIPluginMoveContracts {
+  readonly pluginCapabilities: ReadonlyMap<string, readonly string[]>;
+  readonly pluginSlots: PluginSlotCatalog;
+}
+
+export type PluginMoveSource =
+  | "plugin_slot"
+  | "shared_layout_slot"
+  | "dedicated_layout_region";
+
+export interface RelativePluginMovePlan {
+  type: "relative";
+  changed: boolean;
+  instanceId: string;
+  anchorInstanceId: string;
+  relation: "before" | "after";
+  branch: AppUILayoutNode;
+  parent: AppUIRowNode;
+  branchRef: string;
+  parentRef: string;
+  sourceIndex: number;
+  anchorIndex: number;
+  insertionIndex: number;
+}
+
+export interface PluginSlotMovePlan {
+  type: "plugin_slot";
+  changed: boolean;
+  instanceId: string;
+  parentInstanceId: string;
+  slot: string;
+  source: PluginMoveSource;
+  sourceReflow?: LayoutReflowPlan | undefined;
+}
+
+export type PluginMovePlan = RelativePluginMovePlan | PluginSlotMovePlan;
 
 export type DefaultPluginRemovalReflow =
   | "collapsed-dedicated-region"
@@ -399,14 +457,20 @@ function detachPlugin(context: MutationContext, instanceId: string): { plugin: A
   return { plugin, container, index: location.index };
 }
 
-function planLayoutReflow(
+interface DedicatedLayoutRegion {
+  slot: Extract<AppUILayoutNode, { type: "slot" }>;
+  branch: AppUILayoutNode;
+  entry: CurrentNodeEntry;
+}
+
+function resolveDedicatedLayoutRegion(
   context: MutationContext,
   location: AppUIPluginLocation,
-): LayoutReflowPlan {
+): DedicatedLayoutRegion {
   if (location.target.type !== "layout_slot") {
     operationError(
       "LAYOUT_REFLOW_NOT_LAYOUT_REGION",
-      "collapse-empty-region only applies to a Plugin that directly occupies a Layout Slot.",
+      "The Plugin must directly occupy a Layout Slot to resolve a dedicated visual region.",
       { target: location.target.type },
     );
   }
@@ -415,8 +479,8 @@ function planLayoutReflow(
   if (slot.plugins.length !== 1 || location.index !== 0) {
     operationError(
       "LAYOUT_REFLOW_REGION_NOT_EMPTY",
-      "The Layout Slot contains more than the Plugin being removed; refusing to collapse its region.",
-      { slotPath: location.target.slotPath, pluginCount: slot.plugins.length },
+      "The Layout Slot contains more than the Plugin being moved or removed; refusing to collapse its region.",
+      { target: location.target.slotPath, pluginCount: slot.plugins.length },
     );
   }
 
@@ -442,6 +506,15 @@ function planLayoutReflow(
       );
     }
   }
+
+  return { slot, branch, entry };
+}
+
+function planLayoutReflow(
+  context: MutationContext,
+  location: AppUIPluginLocation,
+): LayoutReflowPlan {
+  const { branch, entry } = resolveDedicatedLayoutRegion(context, location);
 
   if (
     entry.parentKind !== "children" ||
@@ -491,25 +564,7 @@ function tryPlanDefaultLayoutReflow(
   const slot = location.target.slotNode;
   if (slot.plugins.length !== 1 || location.index !== 0) return undefined;
 
-  let branch: AppUILayoutNode = slot;
-  let entry = currentEntry(context, branch);
-  if (entry === undefined) {
-    operationError(
-      "LAYOUT_REFLOW_UNSAFE",
-      "The Plugin's Layout Slot is not attached to the current Layout tree.",
-    );
-  }
-
-  while (entry.parentKind === "panel" && entry.parent?.type === "panel") {
-    branch = entry.parent;
-    entry = currentEntry(context, branch);
-    if (entry === undefined) {
-      operationError(
-        "LAYOUT_REFLOW_UNSAFE",
-        "The dedicated Layout region is not attached to the current Layout tree.",
-      );
-    }
-  }
+  const { branch, entry } = resolveDedicatedLayoutRegion(context, location);
 
   if (
     entry.parentKind !== "children" ||
@@ -569,6 +624,399 @@ function applyLayoutReflow(context: MutationContext, plan: LayoutReflowPlan): vo
   if (parent.children.length !== 1) return;
 
   replaceNode(context, parent, parent.children[0]!);
+}
+
+type PluginMoveErrorCode =
+  | "AUTHORING_MOVE_UNSUPPORTED"
+  | "AUTHORING_MOVE_INCOMPATIBLE";
+
+function pluginMoveError(
+  code: PluginMoveErrorCode,
+  message: string,
+  details?: unknown,
+): never {
+  operationError(code, message, details);
+}
+
+function moveUnsupported(
+  reason: string,
+  message: string,
+  details?: Record<string, unknown>,
+): never {
+  pluginMoveError("AUTHORING_MOVE_UNSUPPORTED", message, { reason, ...details });
+}
+
+function moveIncompatible(
+  reason: string,
+  message: string,
+  details?: Record<string, unknown>,
+): never {
+  pluginMoveError("AUTHORING_MOVE_INCOMPATIBLE", message, { reason, ...details });
+}
+
+interface MoveVisualRegion {
+  branch: AppUILayoutNode;
+  parent: AppUIRowNode;
+  branchRef: string;
+  parentRef: string;
+  index: number;
+}
+
+function resolveMoveVisualRegion(
+  context: MutationContext,
+  location: AppUIPluginLocation,
+  role: "target" | "anchor",
+  instanceId: string,
+): MoveVisualRegion {
+  if (location.target.type !== "layout_slot") {
+    moveUnsupported(
+      location.target.type === "plugin_slot" ? "plugin-local-slot" : "application-plugin",
+      `${role} Plugin instance "${instanceId}" does not directly occupy a Layout Slot.`,
+      { instanceId, role, target: location.target.type },
+    );
+  }
+
+  const slot = location.target.slotNode;
+  if (slot.plugins.length !== 1 || location.index !== 0) {
+    moveUnsupported(
+      "shared-layout-slot",
+      `${role} Plugin instance "${instanceId}" occupies a shared Layout Slot.`,
+      { instanceId, role, slotPath: location.target.slotPath, pluginCount: slot.plugins.length },
+    );
+  }
+
+  const region = resolveDedicatedLayoutRegion(context, location);
+  const { branch, entry } = region;
+  if (
+    entry.parentKind !== "children" ||
+    entry.parent === undefined ||
+    entry.index === undefined
+  ) {
+    moveUnsupported(
+      "unsupported-topology",
+      `${role} visual region for Plugin instance "${instanceId}" is not a direct Row child.`,
+      { instanceId, role, parentKind: entry.parentKind },
+    );
+  }
+  if (entry.parent.type !== "row") {
+    moveUnsupported(
+      entry.parent.type === "column" ? "column" : "stack",
+      `${role} visual region for Plugin instance "${instanceId}" must be a direct child of a Row.`,
+      { instanceId, role, parentType: entry.parent.type },
+    );
+  }
+  if (
+    entry.parent.children[entry.index] !== branch ||
+    (entry.parent.sizes !== undefined &&
+      entry.parent.sizes.length !== entry.parent.children.length)
+  ) {
+    moveUnsupported(
+      "invalid-row-sizes",
+      `${role} visual region for Plugin instance "${instanceId}" does not have a stable Row track relationship.`,
+      { instanceId, role },
+    );
+  }
+
+  const branchRef = context.snapshot.byNode.get(branch);
+  const parentRef = context.snapshot.byNode.get(entry.parent);
+  if (branchRef === undefined || parentRef === undefined) {
+    moveUnsupported(
+      "detached-region",
+      `${role} visual region for Plugin instance "${instanceId}" has no stable Layout reference.`,
+      { instanceId, role },
+    );
+  }
+
+  return {
+    branch,
+    parent: entry.parent,
+    branchRef,
+    parentRef,
+    index: entry.index,
+  };
+}
+
+export function relativeInsertionIndex(
+  sourceIndex: number,
+  anchorIndex: number,
+  relation: "before" | "after",
+): number {
+  if (sourceIndex === anchorIndex) {
+    moveIncompatible(
+      "self-anchor",
+      "A Plugin instance cannot be moved relative to itself.",
+      { sourceIndex, anchorIndex, relation },
+    );
+  }
+  const postDetachAnchorIndex = anchorIndex - (sourceIndex < anchorIndex ? 1 : 0);
+  return relation === "before"
+    ? postDetachAnchorIndex
+    : postDetachAnchorIndex + 1;
+}
+
+function sourceReflowForPluginMove(
+  context: MutationContext,
+  location: AppUIPluginLocation,
+): { source: PluginMoveSource; sourceReflow?: LayoutReflowPlan | undefined } {
+  if (location.target.type !== "layout_slot") {
+    return { source: "plugin_slot" };
+  }
+  if (location.target.slotNode.plugins.length !== 1 || location.index !== 0) {
+    return { source: "shared_layout_slot" };
+  }
+  try {
+    const sourceReflow = planLayoutReflow(context, location);
+    if (sourceReflow.parent.children.length <= 1) {
+      moveUnsupported(
+        "dedicated-source-cannot-collapse",
+        `The dedicated source region for Plugin instance "${location.plugin.id}" would become an empty Row or Column.`,
+        { instanceId: location.plugin.id },
+      );
+    }
+    return {
+      source: "dedicated_layout_region",
+      sourceReflow,
+    };
+  } catch (error) {
+    if (error instanceof AppUIOperationError) {
+      moveUnsupported(
+        "dedicated-source-cannot-collapse",
+        `The dedicated source region for Plugin instance "${location.plugin.id}" cannot be safely collapsed.`,
+        { instanceId: location.plugin.id, cause: error.code },
+      );
+    }
+    throw error;
+  }
+}
+
+export function planPluginMove(
+  source: AppUIModel,
+  operation: AppUIPluginMoveOperation,
+  contracts?: AppUIPluginMoveContracts,
+): PluginMovePlan {
+  const context: MutationContext = {
+    model: source,
+    snapshot: buildLayoutRefIndex(source.root),
+    localRefs: new Map(),
+    ...(contracts === undefined ? {} : { pluginMoveContracts: contracts }),
+  };
+  const targetLocation = collectAppUIPluginLocations(source).find(
+    ({ plugin }) => plugin.id === operation.instanceId,
+  );
+  if (targetLocation === undefined) {
+    moveUnsupported(
+      "target-not-found",
+      `Plugin instance "${operation.instanceId}" does not exist.`,
+      { instanceId: operation.instanceId },
+    );
+  }
+
+  if (operation.placement.type === "relative") {
+    if (operation.instanceId === operation.placement.anchorInstanceId) {
+      moveIncompatible(
+        "self-anchor",
+        `Plugin instance "${operation.instanceId}" cannot be moved relative to itself.`,
+        { instanceId: operation.instanceId },
+      );
+    }
+    const anchorLocation = collectAppUIPluginLocations(source).find(
+      ({ plugin }) => plugin.id === operation.placement.anchorInstanceId,
+    );
+    if (anchorLocation === undefined) {
+      moveUnsupported(
+        "anchor-not-found",
+        `Anchor Plugin instance "${operation.placement.anchorInstanceId}" does not exist.`,
+        { anchorInstanceId: operation.placement.anchorInstanceId },
+      );
+    }
+    const targetRegion = resolveMoveVisualRegion(
+      context,
+      targetLocation,
+      "target",
+      operation.instanceId,
+    );
+    const anchorRegion = resolveMoveVisualRegion(
+      context,
+      anchorLocation,
+      "anchor",
+      operation.placement.anchorInstanceId,
+    );
+    if (targetRegion.parent !== anchorRegion.parent) {
+      moveUnsupported(
+        "different-row",
+        "Relative Plugin moves require the target and anchor visual regions to share the same direct Row parent.",
+        {
+          instanceId: operation.instanceId,
+          anchorInstanceId: operation.placement.anchorInstanceId,
+        },
+      );
+    }
+    const insertionIndex = relativeInsertionIndex(
+      targetRegion.index,
+      anchorRegion.index,
+      operation.placement.relation,
+    );
+    const alreadySatisfied = operation.placement.relation === "before"
+      ? targetRegion.index === anchorRegion.index - 1
+      : targetRegion.index === anchorRegion.index + 1;
+    return {
+      type: "relative",
+      changed: !alreadySatisfied,
+      instanceId: operation.instanceId,
+      anchorInstanceId: operation.placement.anchorInstanceId,
+      relation: operation.placement.relation,
+      branch: targetRegion.branch,
+      parent: targetRegion.parent,
+      branchRef: targetRegion.branchRef,
+      parentRef: targetRegion.parentRef,
+      sourceIndex: targetRegion.index,
+      anchorIndex: anchorRegion.index,
+      insertionIndex,
+    };
+  }
+
+  const parentLocation = collectAppUIPluginLocations(source).find(
+    ({ plugin }) => plugin.id === operation.placement.parentInstanceId,
+  );
+  if (parentLocation === undefined) {
+    moveUnsupported(
+      "destination-parent-not-found",
+      `Destination parent Plugin instance "${operation.placement.parentInstanceId}" does not exist.`,
+      { parentInstanceId: operation.placement.parentInstanceId },
+    );
+  }
+  if (contracts === undefined) {
+    moveUnsupported(
+      "destination-contract-unavailable",
+      "Plugin Slot moves require the Host-resolved Plugin manifest contract.",
+      { parentInstanceId: operation.placement.parentInstanceId, slot: operation.placement.slot },
+    );
+  }
+  const destinationSlots = contracts.pluginSlots[parentLocation.plugin.pluginId];
+  const destinationSlot = destinationSlots?.[operation.placement.slot] as PluginChildSlotDefinition | undefined;
+  if (destinationSlot === undefined) {
+    moveUnsupported(
+      "slot-not-declared",
+      `Plugin instance "${parentLocation.plugin.id}" does not declare child Slot "${operation.placement.slot}".`,
+      {
+        parentInstanceId: parentLocation.plugin.id,
+        parentPluginId: parentLocation.plugin.pluginId,
+        slot: operation.placement.slot,
+      },
+    );
+  }
+
+  const targetSubtree = pluginSubtreeIds(targetLocation.plugin);
+  if (targetSubtree.has(parentLocation.plugin.id)) {
+    moveIncompatible(
+      "cycle",
+      `Cannot move Plugin instance "${operation.instanceId}" into its own Plugin subtree.`,
+      {
+        instanceId: operation.instanceId,
+        parentInstanceId: parentLocation.plugin.id,
+        slot: operation.placement.slot,
+      },
+    );
+  }
+
+  if (destinationSlot.accepts === undefined) {
+    moveUnsupported(
+      "slot-accepts-not-declared",
+      `Destination child Slot "${operation.placement.slot}" does not declare explicit accepted capabilities.`,
+      { parentInstanceId: parentLocation.plugin.id, slot: operation.placement.slot },
+    );
+  }
+  const targetCapabilities = contracts.pluginCapabilities.get(targetLocation.plugin.pluginId);
+  if (targetCapabilities === undefined) {
+    moveUnsupported(
+      "target-capabilities-unavailable",
+      `The Host cannot resolve capabilities for Plugin "${targetLocation.plugin.pluginId}".`,
+      { pluginId: targetLocation.plugin.pluginId, instanceId: operation.instanceId },
+    );
+  }
+  const acceptedCapabilities = destinationSlot.accepts.anyOfCapabilities;
+  const capabilityMatch = targetCapabilities.some((capability) =>
+    acceptedCapabilities.includes(capability),
+  );
+  if (!capabilityMatch) {
+    moveIncompatible(
+      "slot-capability-mismatch",
+      `Plugin "${targetLocation.plugin.pluginId}" is incompatible with child Slot "${operation.placement.slot}".`,
+      {
+        instanceId: operation.instanceId,
+        parentInstanceId: parentLocation.plugin.id,
+        targetCapabilities: [...targetCapabilities],
+        acceptedCapabilities: [...acceptedCapabilities],
+      },
+    );
+  }
+
+  const alreadySatisfied = targetLocation.target.type === "plugin_slot" &&
+    targetLocation.target.parentInstanceId === parentLocation.plugin.id &&
+    targetLocation.target.slot === operation.placement.slot;
+  if (alreadySatisfied) {
+    return {
+      type: "plugin_slot",
+      changed: false,
+      instanceId: operation.instanceId,
+      parentInstanceId: parentLocation.plugin.id,
+      slot: operation.placement.slot,
+      source: "plugin_slot",
+    };
+  }
+
+  const destinationPlugins = parentLocation.plugin.slots?.[operation.placement.slot] ?? [];
+  if (destinationSlot.cardinality === "one" && destinationPlugins.length > 0) {
+    moveIncompatible(
+      "slot-cardinality-full",
+      `Destination child Slot "${operation.placement.slot}" already contains a Plugin.`,
+      {
+        parentInstanceId: parentLocation.plugin.id,
+        slot: operation.placement.slot,
+        cardinality: destinationSlot.cardinality,
+      },
+    );
+  }
+
+  const sourcePlan = sourceReflowForPluginMove(context, targetLocation);
+  return {
+    type: "plugin_slot",
+    changed: true,
+    instanceId: operation.instanceId,
+    parentInstanceId: parentLocation.plugin.id,
+    slot: operation.placement.slot,
+    source: sourcePlan.source,
+    ...(sourcePlan.sourceReflow === undefined
+      ? {}
+      : { sourceReflow: sourcePlan.sourceReflow }),
+  };
+}
+
+function applyPluginMovePlan(
+  context: MutationContext,
+  plan: PluginMovePlan,
+): void {
+  if (!plan.changed) return;
+  if (plan.type === "relative") {
+    applyOperation(context, {
+      type: "move_layout_node",
+      nodeRef: plan.branchRef,
+      newParentRef: plan.parentRef,
+      index: plan.insertionIndex,
+    });
+    return;
+  }
+
+  const detached = detachPlugin(context, plan.instanceId);
+  const destination = pluginContainer(context, {
+    type: "plugin_slot",
+    parentInstanceId: plan.parentInstanceId,
+    slot: plan.slot,
+  });
+  insertAt(destination, detached.plugin, undefined, "Plugin target");
+  if (plan.sourceReflow !== undefined) {
+    applyLayoutReflow(context, plan.sourceReflow);
+  }
 }
 
 function pluginSubtreeIds(plugin: AppUIPluginNode): Set<string> {
@@ -809,6 +1257,12 @@ function applyOperation(context: MutationContext, operation: AppUIOperation): vo
       insertAt(destination, detached.plugin, adjustedIndex, "Plugin target");
       return;
     }
+    case "move_plugin_to":
+      applyPluginMovePlan(
+        context,
+        planPluginMove(context.model, operation, context.pluginMoveContracts),
+      );
+      return;
     case "remove_plugin": {
       const location = requiredPluginLocation(context.model, operation.instanceId);
       const reflowPlan = operation.reflow === "collapse-empty-region"
@@ -877,20 +1331,32 @@ function applyOperation(context: MutationContext, operation: AppUIOperation): vo
   }
 }
 
-export function applyAppUIOperations(source: AppUIModel, operations: readonly AppUIOperation[]): AppUIModel {
+export interface AppUIOperationApplyOptions {
+  readonly pluginMoveContracts?: AppUIPluginMoveContracts | undefined;
+}
+
+export function applyAppUIOperations(
+  source: AppUIModel,
+  operations: readonly AppUIOperation[],
+  options: AppUIOperationApplyOptions = {},
+): AppUIModel {
   const model = structuredClone(source);
   validateLayoutLocalRefs(operations);
   const context: MutationContext = {
     model,
     snapshot: buildLayoutRefIndex(model.root),
     localRefs: new Map(),
+    ...(options.pluginMoveContracts === undefined
+      ? {}
+      : { pluginMoveContracts: options.pluginMoveContracts }),
   };
   for (const operation of operations) {
     const preserveStackActive = operation.type === "insert_layout_node" ||
       operation.type === "move_layout_node" ||
       operation.type === "replace_layout_node" ||
       operation.type === "remove_layout_node" ||
-      operation.type === "insert_layout_relative";
+      operation.type === "insert_layout_relative" ||
+      operation.type === "move_plugin_to";
     const states = preserveStackActive ? captureStackActiveStates(model) : [];
     applyOperation(context, operation);
     if (preserveStackActive) restoreStackActiveStates(model, states);

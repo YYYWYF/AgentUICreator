@@ -1379,4 +1379,242 @@ describe("AppUIModel transaction", () => {
     });
     expect((error as { details: Record<string, unknown> }).details).not.toHaveProperty("slotId");
   });
+
+  it("commits a deterministic relative Plugin move as one semantic transaction", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["200px", "280px", "minmax(0, 1fr)"],
+        children: [
+          {
+            type: "slot",
+            plugins: [{ id: "left-main", pluginId: "sample", enabled: true }],
+          },
+          {
+            type: "panel",
+            width: "280px",
+            child: {
+              type: "slot",
+              plugins: [{
+                id: "history-main",
+                pluginId: "sample",
+                enabled: true,
+                props: { preserved: true },
+              }],
+            },
+          },
+          {
+            type: "panel",
+            child: {
+              type: "slot",
+              plugins: [{ id: "conversation-main", pluginId: "sample", enabled: true }],
+            },
+          },
+        ],
+      },
+    };
+    const { projectRoot, source } = await createProject({}, model);
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "move_plugin_to",
+        instanceId: "history-main",
+        placement: {
+          type: "relative",
+          anchorInstanceId: "conversation-main",
+          relation: "after",
+        },
+      }],
+    });
+
+    expect(result.changed).toBe(true);
+    expect(result.changedPaths).toEqual(["app-ui/app-ui.json"]);
+    expect(result.diff.capabilityCatalog).toEqual({
+      changed: false,
+      addedPluginIds: [],
+      removedPluginIds: [],
+    });
+    expect(result.semanticComposition).toMatchObject({
+      operation: "move_plugin_to",
+      semanticLoweringSucceeded: true,
+      expectedRuntime: { presentInstanceIds: ["history-main"] },
+      expectedPlacement: {
+        type: "relative",
+        instanceId: "history-main",
+        anchorInstanceId: "conversation-main",
+        relation: "after",
+      },
+    });
+
+    const written = JSON.parse(await readFile(
+      path.join(projectRoot, "app-ui", "app-ui.json"),
+      "utf8",
+    )) as AppUIModel;
+    if (written.root.type !== "row") throw new Error("fixture");
+    expect(written.root.sizes).toEqual(["200px", "minmax(0, 1fr)", "280px"]);
+    expect(written.root.children[2]).toMatchObject({
+      type: "panel",
+      width: "280px",
+      child: {
+        type: "slot",
+        plugins: [{ id: "history-main", props: { preserved: true } }],
+      },
+    });
+  });
+
+  it("commits a Plugin Slot move with manifest compatibility and dedicated cleanup", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["280px", "minmax(0, 1fr)"],
+        children: [
+          {
+            type: "panel",
+            width: "280px",
+            child: {
+              type: "slot",
+              plugins: [{ id: "button-main", pluginId: "button", enabled: true }],
+            },
+          },
+          {
+            type: "panel",
+            child: {
+              type: "slot",
+              plugins: [{
+                id: "composer-main",
+                pluginId: "composer",
+                enabled: true,
+                slots: { actions: [] },
+              }],
+            },
+          },
+        ],
+      },
+    };
+    const { projectRoot, source } = await createProject(
+      {},
+      model,
+      [
+        ["button", { capabilities: ["button", "composer-action"] }],
+        ["composer", {
+          slots: {
+            children: {
+              actions: {
+                description: "Actions beside the composer input.",
+                cardinality: "many",
+                optional: true,
+                accepts: { anyOfCapabilities: ["composer-action"] },
+              },
+            },
+          },
+        }],
+      ],
+    );
+
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "move_plugin_to",
+        instanceId: "button-main",
+        placement: {
+          type: "plugin_slot",
+          parentInstanceId: "composer-main",
+          slot: "actions",
+        },
+      }],
+    });
+
+    expect(result.changedPaths).toEqual(["app-ui/app-ui.json"]);
+    expect(result.semanticComposition).toMatchObject({
+      operation: "move_plugin_to",
+      expectedPlacement: {
+        type: "plugin_slot",
+        instanceId: "button-main",
+        parentInstanceId: "composer-main",
+        slot: "actions",
+      },
+    });
+    expect(result.diff.capabilityCatalog.changed).toBe(false);
+    expect(JSON.parse(await readFile(
+      path.join(projectRoot, "app-ui", "app-ui.json"),
+      "utf8",
+    ))).toEqual({
+      root: {
+        type: "panel",
+        child: {
+          type: "slot",
+          plugins: [{
+            id: "composer-main",
+            pluginId: "composer",
+            enabled: true,
+            slots: {
+              actions: [{ id: "button-main", pluginId: "button", enabled: true }],
+            },
+          }],
+        },
+      },
+    });
+  });
+
+  it("rejects an incompatible Plugin Slot move before changing either artifact", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        children: [
+          { type: "slot", plugins: [{ id: "button-main", pluginId: "button", enabled: true }] },
+          {
+            type: "slot",
+            plugins: [{
+              id: "composer-main",
+              pluginId: "composer",
+              enabled: true,
+              slots: { actions: [] },
+            }],
+          },
+        ],
+      },
+    };
+    const { projectRoot, source } = await createProject(
+      {},
+      model,
+      [
+        ["button", { capabilities: ["button"] }],
+        ["composer", {
+          slots: {
+            children: {
+              actions: {
+                description: "Actions beside the composer input.",
+                cardinality: "many",
+                optional: true,
+                accepts: { anyOfCapabilities: ["other"] },
+              },
+            },
+          },
+        }],
+      ],
+    );
+    const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
+    const registrySource = await readFile(registryPath, "utf8");
+
+    const error = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "move_plugin_to",
+        instanceId: "button-main",
+        placement: {
+          type: "plugin_slot",
+          parentInstanceId: "composer-main",
+          slot: "actions",
+        },
+      }],
+    }).catch((value: unknown) => value);
+
+    expect(error).toMatchObject({
+      code: "AUTHORING_MOVE_INCOMPATIBLE",
+      details: { reason: "slot-capability-mismatch" },
+    });
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
+      .toBe(source);
+    expect(await readFile(registryPath, "utf8")).toBe(registrySource);
+  });
 });

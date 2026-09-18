@@ -3,14 +3,51 @@ import { describe, expect, it } from "vitest";
 import {
   buildLayoutRefIndex,
   type AppUILayoutNode,
+  type AppUIPanelNode,
   type AppUIModel,
 } from "../framework/contracts/app-ui-model";
 import {
   AppUIOperationError,
   appUIOperationsSchema,
   applyAppUIOperations,
+  planPluginMove,
+  relativeInsertionIndex,
   resolveDefaultPluginRemovalReflow,
 } from "../scripts/ui-project/app-ui-operations";
+
+function pluginMoveContracts(
+  slotOverrides: Record<string, Record<string, {
+    description: string;
+    cardinality: "one" | "many";
+    optional?: boolean;
+    accepts?: { anyOfCapabilities: readonly string[] };
+  }>> = {},
+) {
+  return {
+    pluginCapabilities: new Map<string, readonly string[]>([
+      ["button", ["button", "composer-action"]],
+      ["badge", ["badge"]],
+      ["composer", ["composer"]],
+      ["toolbar", ["toolbar"]],
+    ]),
+    pluginSlots: slotOverrides,
+  };
+}
+
+function visualBranch(
+  id: string,
+  pluginId = id,
+  overrides: Omit<AppUIPanelNode, "type" | "child"> = {},
+): AppUIPanelNode {
+  return {
+    type: "panel",
+    ...overrides,
+    child: {
+      type: "slot",
+      plugins: [{ id, pluginId, enabled: true }],
+    },
+  };
+}
 
 function model(): AppUIModel {
   return {
@@ -367,6 +404,37 @@ describe("AppUIModel semantic operations", () => {
     expect(panelWidth.success).toBe(true);
   });
 
+  it("accepts only instance-identity semantic Plugin move placements", () => {
+    expect(appUIOperationsSchema.safeParse([{
+      type: "move_plugin_to",
+      instanceId: "button-main",
+      placement: {
+        type: "relative",
+        anchorInstanceId: "conversation-main",
+        relation: "after",
+      },
+    }]).success).toBe(true);
+    expect(appUIOperationsSchema.safeParse([{
+      type: "move_plugin_to",
+      instanceId: "button-main",
+      placement: {
+        type: "plugin_slot",
+        parentInstanceId: "composer-main",
+        slot: "actions",
+      },
+    }]).success).toBe(true);
+    expect(appUIOperationsSchema.safeParse([{
+      type: "move_plugin_to",
+      instanceId: "button-main",
+      placement: {
+        type: "relative",
+        anchorInstanceId: "conversation-main",
+        relation: "after",
+        anchorPluginId: "legacy-anchor",
+      },
+    }]).success).toBe(false);
+  });
+
   it("fails closed if update props bypasses operation parsing", () => {
     const invalidOperation = {
       type: "update_layout_node_props",
@@ -484,6 +552,332 @@ describe("AppUIModel semantic operations", () => {
     expect(result.applicationPlugins?.[0]?.id).toBe("surface-main");
     if (result.root.type !== "slot") throw new Error("fixture");
     expect(result.root.plugins).toEqual([]);
+  });
+
+  it("computes relative insertion indexes after detaching the target", () => {
+    expect(relativeInsertionIndex(0, 2, "after")).toBe(2);
+    expect(relativeInsertionIndex(2, 0, "after")).toBe(1);
+    expect(relativeInsertionIndex(1, 2, "before")).toBe(1);
+    expect(relativeInsertionIndex(1, 0, "after")).toBe(1);
+  });
+
+  it("moves an existing visual branch relative to an adjacent Row sibling", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["160px", "280px", "minmax(0, 1fr)"],
+        children: [
+          visualBranch("left-main", "left"),
+          visualBranch("history-main", "history", {
+            width: "280px",
+            minWidth: 240,
+            maxWidth: 360,
+            resizable: true,
+          }),
+          visualBranch("conversation-main", "conversation", {
+            height: "100%",
+          }),
+        ],
+      },
+    };
+
+    const result = applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "history-main",
+      placement: {
+        type: "relative",
+        anchorInstanceId: "conversation-main",
+        relation: "after",
+      },
+    }]);
+
+    expect(result.root).toMatchObject({
+      type: "row",
+      sizes: ["160px", "minmax(0, 1fr)", "280px"],
+      children: [
+        { type: "panel", child: { type: "slot", plugins: [{ id: "left-main" }] } },
+        { type: "panel", child: { type: "slot", plugins: [{ id: "conversation-main" }] } },
+        {
+          type: "panel",
+          width: "280px",
+          minWidth: 240,
+          maxWidth: 360,
+          resizable: true,
+          child: { type: "slot", plugins: [{ id: "history-main" }] },
+        },
+      ],
+    });
+    expect(planPluginMove(result, {
+      type: "move_plugin_to",
+      instanceId: "history-main",
+      placement: {
+        type: "relative",
+        anchorInstanceId: "conversation-main",
+        relation: "after",
+      },
+    }).changed).toBe(false);
+  });
+
+  it("returns an unchanged relative plan when the requested adjacency is already satisfied", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["1fr", "280px"],
+        children: [
+          visualBranch("conversation-main", "conversation"),
+          visualBranch("history-main", "history"),
+        ],
+      },
+    };
+    const plan = planPluginMove(source, {
+      type: "move_plugin_to",
+      instanceId: "history-main",
+      placement: {
+        type: "relative",
+        anchorInstanceId: "conversation-main",
+        relation: "after",
+      },
+    });
+
+    expect(plan).toMatchObject({
+      type: "relative",
+      changed: false,
+      sourceIndex: 1,
+      anchorIndex: 0,
+    });
+    expect(applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "history-main",
+      placement: {
+        type: "relative",
+        anchorInstanceId: "conversation-main",
+        relation: "after",
+      },
+    }])).toEqual(source);
+  });
+
+  it("moves a Plugin-local child into a declared Plugin Slot", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "slot",
+        plugins: [
+          {
+            id: "toolbar-main",
+            pluginId: "toolbar",
+            enabled: true,
+            slots: {
+              actions: [{ id: "button-main", pluginId: "button", enabled: true }],
+            },
+          },
+          {
+            id: "composer-main",
+            pluginId: "composer",
+            enabled: true,
+            slots: { actions: [] },
+          },
+        ],
+      },
+    };
+    const result = applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "button-main",
+      placement: {
+        type: "plugin_slot",
+        parentInstanceId: "composer-main",
+        slot: "actions",
+      },
+    }], {
+      pluginMoveContracts: pluginMoveContracts({
+        composer: {
+          actions: {
+            description: "Composer actions",
+            cardinality: "many",
+            optional: true,
+            accepts: { anyOfCapabilities: ["composer-action"] },
+          },
+        },
+      }),
+    });
+
+    expect(result.root).toMatchObject({
+      type: "slot",
+      plugins: [
+        { id: "toolbar-main", slots: { actions: [] } },
+        { id: "composer-main", slots: { actions: [{ id: "button-main" }] } },
+      ],
+    });
+  });
+
+  it("moves from a shared Layout Slot without collapsing the remaining region", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "row",
+        children: [
+          {
+            type: "slot",
+            plugins: [
+              { id: "button-main", pluginId: "button", enabled: true },
+              { id: "badge-main", pluginId: "badge", enabled: true },
+            ],
+          },
+          {
+            type: "slot",
+            plugins: [{
+              id: "composer-main",
+              pluginId: "composer",
+              enabled: true,
+              slots: { actions: [] },
+            }],
+          },
+        ],
+      },
+    };
+    const result = applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "button-main",
+      placement: {
+        type: "plugin_slot",
+        parentInstanceId: "composer-main",
+        slot: "actions",
+      },
+    }], {
+      pluginMoveContracts: pluginMoveContracts({
+        composer: {
+          actions: {
+            description: "Composer actions",
+            cardinality: "many",
+            optional: true,
+            accepts: { anyOfCapabilities: ["composer-action"] },
+          },
+        },
+      }),
+    });
+
+    expect(result.root).toMatchObject({
+      type: "row",
+      children: [
+        { type: "slot", plugins: [{ id: "badge-main" }] },
+        { type: "slot", plugins: [{ id: "composer-main", slots: { actions: [{ id: "button-main" }] } }] },
+      ],
+    });
+  });
+
+  it("moves from a dedicated Layout region and reuses source collapse semantics", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["280px", "1fr"],
+        children: [
+          {
+            type: "panel",
+            width: "280px",
+            resizable: true,
+            child: {
+              type: "slot",
+              plugins: [{ id: "button-main", pluginId: "button", enabled: true }],
+            },
+          },
+          {
+            type: "panel",
+            child: {
+              type: "slot",
+              plugins: [{
+                id: "composer-main",
+                pluginId: "composer",
+                enabled: true,
+                slots: { actions: [] },
+              }],
+            },
+          },
+        ],
+      },
+    };
+    const result = applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "button-main",
+      placement: {
+        type: "plugin_slot",
+        parentInstanceId: "composer-main",
+        slot: "actions",
+      },
+    }], {
+      pluginMoveContracts: pluginMoveContracts({
+        composer: {
+          actions: {
+            description: "Composer actions",
+            cardinality: "many",
+            optional: true,
+            accepts: { anyOfCapabilities: ["composer-action"] },
+          },
+        },
+      }),
+    });
+
+    expect(result.root).toEqual({
+      type: "panel",
+      child: {
+        type: "slot",
+        plugins: [{
+          id: "composer-main",
+          pluginId: "composer",
+          enabled: true,
+          slots: {
+            actions: [{ id: "button-main", pluginId: "button", enabled: true }],
+          },
+        }],
+      },
+    });
+  });
+
+  it("rejects incompatible Plugin Slot moves before any source cleanup", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["280px", "1fr"],
+        children: [
+          { type: "slot", plugins: [{ id: "button-main", pluginId: "button", enabled: true }] },
+          {
+            type: "slot",
+            plugins: [{
+              id: "composer-main",
+              pluginId: "composer",
+              enabled: true,
+              slots: { actions: [] },
+            }],
+          },
+        ],
+      },
+    };
+
+    expect(() => applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "button-main",
+      placement: {
+        type: "plugin_slot",
+        parentInstanceId: "composer-main",
+        slot: "actions",
+      },
+    }], {
+      pluginMoveContracts: pluginMoveContracts({
+        composer: {
+          actions: {
+            description: "Composer actions",
+            cardinality: "many",
+            optional: true,
+            accepts: { anyOfCapabilities: ["other"] },
+          },
+        },
+      }),
+    })).toThrowError(expect.objectContaining({
+      code: "AUTHORING_MOVE_INCOMPATIBLE",
+    }));
+    expect(source.root).toMatchObject({
+      type: "row",
+      children: [
+        { type: "slot", plugins: [{ id: "button-main" }] },
+        { type: "slot", plugins: [{ id: "composer-main", slots: { actions: [] } }] },
+      ],
+    });
   });
 
   it("rejects moving a plugin into its own descendant", () => {

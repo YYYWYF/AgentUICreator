@@ -26,8 +26,11 @@ import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime
 import {
   appUIOperationsSchema,
   applyAppUIOperations,
+  planPluginMove,
   resolveDefaultPluginRemovalReflow,
   type AppUIOperation,
+  type AppUIOperationApplyOptions,
+  type AppUIPluginMoveContracts,
   type AppUIPluginTarget,
 } from "./app-ui-operations";
 import {
@@ -138,12 +141,25 @@ export interface AppUITransactionResult {
     capabilityCatalogRevision: string;
   };
   semanticComposition?: {
-    operation: "insert_plugin_default" | "remove_plugin_default";
+    operation: "insert_plugin_default" | "remove_plugin_default" | "move_plugin_to";
     semanticLoweringSucceeded: true;
     expectedRuntime: {
       presentInstanceIds?: string[];
       absentInstanceIds?: string[];
     };
+    expectedPlacement?:
+      | {
+          type: "relative";
+          instanceId: string;
+          anchorInstanceId: string;
+          relation: "before" | "after";
+        }
+      | {
+          type: "plugin_slot";
+          instanceId: string;
+          parentInstanceId: string;
+          slot: string;
+        };
     expectedGeometry?: {
       instanceId: string;
       anchorInstanceId: string;
@@ -581,6 +597,11 @@ type SemanticRemovePluginDefault = Extract<
   { type: "remove_plugin_default" }
 >;
 
+type SemanticMovePluginTo = Extract<
+  AppUIOperation,
+  { type: "move_plugin_to" }
+>;
+
 type SemanticPlacementRelation =
   | "before"
   | "after"
@@ -590,6 +611,18 @@ type SemanticPlacementRelation =
 interface SemanticLoweringResult {
   operations: AppUIOperation[];
   semanticComposition: NonNullable<AppUITransactionResult["semanticComposition"]>;
+  pluginMoveContracts?: AppUIPluginMoveContracts | undefined;
+}
+
+function pluginMoveContractsForGeneration(
+  generation: Awaited<ReturnType<typeof generatePluginRegistry>>,
+): AppUIPluginMoveContracts {
+  return {
+    pluginCapabilities: new Map(
+      generation.assets.map((asset) => [asset.pluginId, asset.capabilities] as const),
+    ),
+    pluginSlots: generation.activeComposition.slotCatalog,
+  };
 }
 
 type VisualRegionResolution =
@@ -839,12 +872,23 @@ async function lowerSemanticCompositionOperations(
   const semanticOperations = operations.filter(
     (
       operation,
-    ): operation is SemanticInsertPluginDefault | SemanticRemovePluginDefault =>
+    ): operation is
+      | SemanticInsertPluginDefault
+      | SemanticRemovePluginDefault
+      | SemanticMovePluginTo =>
       operation.type === "insert_plugin_default" ||
-      operation.type === "remove_plugin_default",
+      operation.type === "remove_plugin_default" ||
+      operation.type === "move_plugin_to",
   );
   if (semanticOperations.length === 0) return undefined;
   if (semanticOperations.length !== 1 || operations.length !== 1) {
+    if (semanticOperations.some((operation) => operation.type === "move_plugin_to")) {
+      throw new AppUITransactionError(
+        "AUTHORING_MOVE_UNSUPPORTED",
+        "A semantic Plugin move must be the only operation in its transaction.",
+        { operationCount: operations.length, semanticOperationCount: semanticOperations.length },
+      );
+    }
     semanticPlacementError(
       "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
       "A Productized semantic Plugin operation must be the only operation in its transaction.",
@@ -853,6 +897,35 @@ async function lowerSemanticCompositionOperations(
   }
 
   const operation = semanticOperations[0]!;
+  if (operation.type === "move_plugin_to") {
+    const generation = await generatePluginRegistry(projectRoot, model);
+    const pluginMoveContracts = pluginMoveContractsForGeneration(generation);
+    planPluginMove(model, operation, pluginMoveContracts);
+    return {
+      operations: [operation],
+      pluginMoveContracts,
+      semanticComposition: {
+        operation: "move_plugin_to",
+        semanticLoweringSucceeded: true,
+        expectedRuntime: {
+          presentInstanceIds: [operation.instanceId],
+        },
+        expectedPlacement: operation.placement.type === "relative"
+          ? {
+              type: "relative",
+              instanceId: operation.instanceId,
+              anchorInstanceId: operation.placement.anchorInstanceId,
+              relation: operation.placement.relation,
+            }
+          : {
+              type: "plugin_slot",
+              instanceId: operation.instanceId,
+              parentInstanceId: operation.placement.parentInstanceId,
+              slot: operation.placement.slot,
+            },
+      },
+    };
+  }
   if (operation.type === "remove_plugin_default") {
     const reflow = resolveDefaultPluginRemovalReflow(
       model,
@@ -1127,6 +1200,7 @@ async function runTransaction(
   let afterModel: AppUIModel;
   let loweredOperations: AppUIOperation[] = input.operations as AppUIOperation[];
   let semanticComposition: AppUITransactionResult["semanticComposition"];
+  let operationApplyOptions: AppUIOperationApplyOptions | undefined;
   try {
     beforeModel = parseAppUIModelJson(beforeModelSource);
     const lowered = await lowerSemanticCompositionOperations(
@@ -1137,9 +1211,14 @@ async function runTransaction(
     if (lowered !== undefined) {
       loweredOperations = lowered.operations;
       semanticComposition = lowered.semanticComposition;
+      if (lowered.pluginMoveContracts !== undefined) {
+        operationApplyOptions = {
+          pluginMoveContracts: lowered.pluginMoveContracts,
+        };
+      }
     }
     afterModel = parseAppUIModel(
-      applyAppUIOperations(beforeModel, loweredOperations),
+      applyAppUIOperations(beforeModel, loweredOperations, operationApplyOptions),
     );
   } catch (error) {
     if (
