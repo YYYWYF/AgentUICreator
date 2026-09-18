@@ -587,6 +587,9 @@ function stageTitle(activity: CreatorStageActivity): string {
   }
   if (activity.status === "running") return "正在应用并验证修改…";
   if (activity.status === "failed") return "修改未完成";
+  if (activity.metadata?.status === "already_satisfied") {
+    return "当前状态已满足，无需修改";
+  }
   if (
     activity.metadata?.runtimeStatus !== undefined &&
     activity.metadata.runtimeStatus !== "passed"

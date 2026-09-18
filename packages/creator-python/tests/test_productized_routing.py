@@ -24,8 +24,13 @@ from agent_ui_creator.operations.engine import (
 from agent_ui_creator.operations.snapshot import CreatorDomainSnapshotMetrics
 from agent_ui_creator.observability import CreatorRunTelemetry
 from agent_ui_creator.project_control import ProjectControlMetrics
-from agent_ui_creator.server import create_app
 from agent_ui_creator.config import CreatorServerSettings
+from agent_ui_creator.server import create_app
+from agent_ui_creator.streaming import (
+    CreatorEventBus,
+    CreatorStepFinished,
+    CreatorStepStarted,
+)
 
 
 _OBSERVATION_COVERAGE = (
@@ -81,13 +86,25 @@ class _Playbook:
         return self.result
 
 
-def _operation_result(status: str = "success") -> SimpleNamespace:
-    return SimpleNamespace(
-        operation="add_existing_plugin",
+def _operation_result(
+    status: str = "success",
+    operation: str = "add_existing_plugin",
+) -> CreatorOperationExecutionResult:
+    mutation_changed = status != "already_satisfied"
+    return CreatorOperationExecutionResult(
+        operation=operation,
         status=status,
-        errorCode=None,
-        message=None,
-        metrics=SimpleNamespace(model_dump=lambda **_kwargs: {}),
+        pluginId="conversation-thread-list",
+        instanceId="conversation-thread-list-main",
+        mutationChanged=mutation_changed,
+        mutationRevision=1 if mutation_changed else None,
+        metrics=CreatorOperationMetrics(
+            operationDurationMs=1,
+            executionModelCalls=0,
+            mutationAttempts=1 if mutation_changed else 0,
+            snapshotRefreshes=0,
+            verificationRuntimeFreshnessAttempts=0,
+        ),
     )
 
 
@@ -95,6 +112,7 @@ def _engine(
     resolution: CreatorOperationResolution,
     *,
     playbook=None,
+    event_sink=None,
 ) -> tuple[ProductizedOperationEngine, _Registry, CreatorRunTelemetry]:
     telemetry = CreatorRunTelemetry()
     engine = object.__new__(ProductizedOperationEngine)
@@ -112,6 +130,8 @@ def _engine(
     engine.mutation_service = SimpleNamespace(metrics=AppUIModelMutationMetrics())
     engine.validation = SimpleNamespace(metrics=lambda: {})
     engine.telemetry = telemetry
+    if event_sink is not None:
+        engine.event_sink = event_sink
     return engine, registry, telemetry
 
 
@@ -121,7 +141,7 @@ def test_productized_routing_uses_registered_playbook_for_add_and_remove(kind):
         kind=kind,
         targetPluginIds=["conversation-thread-list"],
     )
-    operation_result = _operation_result()
+    operation_result = _operation_result(operation=kind)
     playbook = _Playbook(operation_result)
     engine, registry, telemetry = _engine(resolution, playbook=playbook)
 
@@ -135,6 +155,57 @@ def test_productized_routing_uses_registered_playbook_for_add_and_remove(kind):
     assert playbook.calls == 1
     assert telemetry.operation_route["productized"] is True
     assert telemetry.operation_route["fallback"] is False
+
+
+def test_engine_publishes_resolve_before_productized_execution():
+    resolution = CreatorOperationResolution(
+        kind="remove_plugin",
+        targetPluginIds=["conversation-thread-list"],
+    )
+    event_bus = CreatorEventBus()
+    engine, _registry, _telemetry = _engine(
+        resolution,
+        playbook=_Playbook(_operation_result(operation="remove_plugin")),
+        event_sink=event_bus,
+    )
+
+    async def scenario():
+        result = await engine.run([{"role": "user", "content": "删除历史会话"}])
+        events = [await event_bus.next_event() for _ in range(6)]
+        event_bus.close()
+        return result, events
+
+    result, events = asyncio.run(scenario())
+
+    assert isinstance(result, ProductizedOperationRun)
+    assert [type(event) for event in events] == [
+        CreatorStepStarted,
+        CreatorStepFinished,
+        CreatorStepStarted,
+        CreatorStepFinished,
+        CreatorStepStarted,
+        CreatorStepFinished,
+    ]
+    assert [event.name for event in events] == [
+        "creator.grounding",
+        "creator.grounding",
+        "creator.resolve",
+        "creator.resolve",
+        "creator.productized-operation",
+        "creator.productized-operation",
+    ]
+    resolve_finished_index = next(
+        index
+        for index, event in enumerate(events)
+        if isinstance(event, CreatorStepFinished) and event.name == "creator.resolve"
+    )
+    productized_started_index = next(
+        index
+        for index, event in enumerate(events)
+        if isinstance(event, CreatorStepStarted)
+        and event.name == "creator.productized-operation"
+    )
+    assert resolve_finished_index < productized_started_index
 
 
 @pytest.mark.parametrize("kind", ["general_change", "modify_plugin_logic"])
