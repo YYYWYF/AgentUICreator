@@ -133,6 +133,56 @@ class RuntimeDiagnosticInspectionService:
                 ]
         return sanitized
 
+    async def inspect_host(self, *, include_stale: bool = False) -> dict[str, Any]:
+        """Return current-hash Runtime evidence for Host Productized operations.
+
+        This deliberately keeps raw Runtime instances and rectangles inside the
+        Host service. It is not exposed as a Model Tool.
+        """
+
+        self.repair_state.begin_verification(self.activity.revision)
+        project = await self.project_control.inspect_ui_project()
+        current_hash = self._current_hash(project)
+        self.observations.observe_app_ui_model(
+            hash=current_hash,
+            revision=self.activity.revision,
+            source="inspect_ui_project",
+        )
+        result = self.store.inspect(
+            thread_id=self.thread_id or "",
+            current_app_ui_model_hash=current_hash,
+            last_mutation_at=self.activity.last_mutation_at,
+            include_stale=include_stale,
+        )
+        raw_composition = self.store.current_composition(
+            thread_id=self.thread_id or "",
+            app_ui_model_hash=current_hash,
+        )
+        verification = (
+            await self.project_control.verify_runtime_composition(
+                app_ui_model_hash=current_hash,
+                composition=raw_composition,
+            )
+            if raw_composition is not None
+            else {"verified": False, "checks": []}
+        )
+        result["currentHash"] = current_hash
+        result["compositionChecks"] = verification.get("checks", [])
+        result["compositionVerified"] = (
+            result.get("compositionFresh") is True
+            and verification.get("verified") is True
+        )
+        if (
+            result.get("runtimeStatus") == "passed"
+            and not result["compositionVerified"]
+        ):
+            result["runtimeStatus"] = (
+                "stale"
+                if result.get("compositionFresh") is not True
+                else "failed"
+            )
+        return result
+
     async def inspect(self, *, include_stale: bool = False) -> dict[str, Any]:
         self.repair_state.begin_verification(self.activity.revision)
         project = await self.project_control.inspect_ui_project()

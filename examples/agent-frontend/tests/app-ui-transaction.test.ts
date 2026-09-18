@@ -228,6 +228,53 @@ describe("AppUIModel transaction", () => {
     });
   });
 
+  it("productizes default removal with Host-owned reflow metadata", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["280px", "1fr"],
+        children: [
+          {
+            type: "panel",
+            width: "280px",
+            child: {
+              type: "slot",
+              plugins: [{ id: "history-main", pluginId: "sample", enabled: true }],
+            },
+          },
+          {
+            type: "slot",
+            plugins: [{ id: "sample-main", pluginId: "sample", enabled: true }],
+          },
+        ],
+      },
+    };
+    const { projectRoot, source } = await createProject({}, model);
+
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "remove_plugin_default",
+        instanceId: "history-main",
+      }],
+    });
+
+    expect(result.semanticComposition).toMatchObject({
+      operation: "remove_plugin_default",
+      semanticLoweringSucceeded: true,
+      expectedRuntime: { absentInstanceIds: ["history-main"] },
+      reflow: "collapsed-dedicated-region",
+    });
+    expect(JSON.parse(
+      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
+    )).toEqual({
+      root: {
+        type: "slot",
+        plugins: [{ id: "sample-main", pluginId: "sample", enabled: true }],
+      },
+    });
+  });
+
   it("does not partially commit when deterministic reflow preconditions fail", async () => {
     const model: AppUIModel = {
       root: {

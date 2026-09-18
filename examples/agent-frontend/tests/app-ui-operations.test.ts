@@ -9,6 +9,7 @@ import {
   AppUIOperationError,
   appUIOperationsSchema,
   applyAppUIOperations,
+  resolveDefaultPluginRemovalReflow,
 } from "../scripts/ui-project/app-ui-operations";
 
 function model(): AppUIModel {
@@ -558,6 +559,122 @@ describe("AppUIModel semantic operations", () => {
         { type: "slot", plugins: [] },
         { type: "slot", plugins: [{ id: "surface-main", pluginId: "surface", enabled: true }] },
       ],
+    });
+  });
+
+  it("uses default removal to collapse a safe dedicated region", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["280px", "1fr"],
+        children: [
+          {
+            type: "panel",
+            width: "280px",
+            child: {
+              type: "slot",
+              plugins: [{ id: "history-main", pluginId: "history", enabled: true }],
+            },
+          },
+          { type: "slot", plugins: [{ id: "surface-main", pluginId: "surface", enabled: true }] },
+        ],
+      },
+    };
+
+    expect(resolveDefaultPluginRemovalReflow(source, "history-main")).toBe(
+      "collapsed-dedicated-region",
+    );
+    const result = applyAppUIOperations(source, [{
+      type: "remove_plugin_default",
+      instanceId: "history-main",
+    }]);
+
+    expect(result.root).toEqual({
+      type: "slot",
+      plugins: [{ id: "surface-main", pluginId: "surface", enabled: true }],
+    });
+  });
+
+  it("preserves shared and Plugin-local containers for default removal", () => {
+    const shared: AppUIModel = {
+      root: {
+        type: "row",
+        children: [{
+          type: "slot",
+          plugins: [
+            { id: "history-main", pluginId: "history", enabled: true },
+            { id: "secondary-main", pluginId: "secondary", enabled: true },
+          ],
+        }],
+      },
+    };
+    expect(resolveDefaultPluginRemovalReflow(shared, "history-main")).toBe(
+      "preserved-container",
+    );
+    const sharedResult = applyAppUIOperations(shared, [{
+      type: "remove_plugin_default",
+      instanceId: "history-main",
+    }]);
+    expect(sharedResult.root).toMatchObject({
+      type: "row",
+      children: [{
+        type: "slot",
+        plugins: [{ id: "secondary-main" }],
+      }],
+    });
+
+    const stacked: AppUIModel = {
+      root: {
+        type: "stack",
+        children: [
+          { type: "slot", plugins: [{ id: "history-main", pluginId: "history", enabled: true }] },
+          { type: "slot", plugins: [{ id: "surface-main", pluginId: "surface", enabled: true }] },
+        ],
+      },
+    };
+    expect(resolveDefaultPluginRemovalReflow(stacked, "history-main")).toBe(
+      "preserved-container",
+    );
+    expect(applyAppUIOperations(stacked, [{
+      type: "remove_plugin_default",
+      instanceId: "history-main",
+    }]).root).toMatchObject({
+      type: "stack",
+      children: [
+        { type: "slot", plugins: [] },
+        { type: "slot", plugins: [{ id: "surface-main" }] },
+      ],
+    });
+
+    const nested: AppUIModel = {
+      root: {
+        type: "stack",
+        children: [{
+          type: "slot",
+          plugins: [{
+            id: "surface-main",
+            pluginId: "surface",
+            enabled: true,
+            slots: {
+              content: [{ id: "history-main", pluginId: "history", enabled: true }],
+            },
+          }],
+        }],
+      },
+    };
+    expect(resolveDefaultPluginRemovalReflow(nested, "history-main")).toBe(
+      "preserved-container",
+    );
+    const nestedResult = applyAppUIOperations(nested, [{
+      type: "remove_plugin_default",
+      instanceId: "history-main",
+    }]);
+    expect(nestedResult.root).toMatchObject({
+      type: "stack",
+      children: [{
+        type: "slot",
+        plugins: [{ id: "surface-main", slots: { content: [] } }],
+      }],
     });
   });
 

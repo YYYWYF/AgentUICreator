@@ -175,6 +175,15 @@
     {
       "type": "object",
       "additionalProperties": false,
+      "required": ["type", "instanceId"],
+      "properties": {
+        "type": { "const": "remove_plugin_default" },
+        "instanceId": { "$ref": "#/$defs/nonBlankString" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
       "required": ["type", "instanceId", "target"],
       "properties": {
         "type": { "const": "move_plugin" },

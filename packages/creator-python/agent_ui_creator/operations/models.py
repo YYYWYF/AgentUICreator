@@ -29,6 +29,23 @@ CreatorOperationKind: TypeAlias = Literal[
     "general_change",
     "needs_clarification",
 ]
+ProductizedOperationKind: TypeAlias = Literal[
+    "add_existing_plugin",
+    "remove_plugin",
+]
+CreatorOperationExecutionStatus: TypeAlias = Literal[
+    "success",
+    "already_satisfied",
+    "committed_unverified",
+    "failed",
+]
+CreatorOperationRuntimeStatus: TypeAlias = Literal[
+    "passed",
+    "stale",
+    "unavailable",
+    "failed",
+    "not-run",
+]
 
 PluginPlacementRelation: TypeAlias = Literal["before", "after", "above", "below"]
 BoundedPluginId: TypeAlias = Annotated[
@@ -164,6 +181,56 @@ class CreatorOperationResolution(BaseModel):
         elif self.clarificationQuestion is not None and not self.clarificationQuestion.strip():
             raise ValueError("clarificationQuestion must not be blank.")
         return self
+
+
+class CreatorOperationVerificationResult(BaseModel):
+    """Host-only evidence produced after a Productized operation commits."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    staticStatus: Literal["passed", "failed", "unavailable", "not-run"]
+    runtimeStatus: CreatorOperationRuntimeStatus
+    runtimeFreshnessAttempts: int = Field(ge=0, le=3)
+    runtimeFreshnessWaitMs: int = Field(ge=0)
+    presentInstancesVerified: list[BoundedPluginInstanceId] = Field(
+        default_factory=list, max_length=MAX_TOTAL_PLUGIN_INSTANCES
+    )
+    absentInstancesVerified: list[BoundedPluginInstanceId] = Field(
+        default_factory=list, max_length=MAX_TOTAL_PLUGIN_INSTANCES
+    )
+    geometryVerified: bool | None = None
+    compositionVerified: bool | None = None
+
+
+class CreatorOperationMetrics(BaseModel):
+    """Minimal metrics kept local to the Productized operation path."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    operationPlaybookUsed: bool = True
+    operationDurationMs: int = Field(ge=0)
+    executionModelCalls: int = Field(ge=0)
+    mutationAttempts: int = Field(ge=0, le=2)
+    snapshotRefreshes: int = Field(ge=0, le=1)
+    verificationRuntimeFreshnessAttempts: int = Field(ge=0, le=3)
+
+
+class CreatorOperationExecutionResult(BaseModel):
+    """Structured terminal result for an Add/Remove Productized Playbook."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    operation: ProductizedOperationKind
+    status: CreatorOperationExecutionStatus
+    pluginId: BoundedPluginId | None = None
+    instanceId: BoundedPluginInstanceId | None = None
+    mutationChanged: bool = False
+    mutationRevision: int | None = Field(default=None, ge=0)
+    verification: CreatorOperationVerificationResult | None = None
+    metrics: CreatorOperationMetrics
+    errorCode: str | None = None
+    message: str | None = None
+    details: Any = None
 
 
 @dataclass(frozen=True, slots=True)

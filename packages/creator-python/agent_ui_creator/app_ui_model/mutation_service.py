@@ -94,7 +94,13 @@ def _semantic_operation_summary(operation: Any) -> dict[str, Any]:
             plugin_id = replacement.get("pluginId")
             if isinstance(plugin_id, str) and plugin_id.strip():
                 summary["pluginId"] = plugin_id
-    elif operation_type in {"remove_plugin", "set_plugin_enabled", "update_plugin_props", "move_plugin"}:
+    elif operation_type in {
+        "remove_plugin",
+        "remove_plugin_default",
+        "set_plugin_enabled",
+        "update_plugin_props",
+        "move_plugin",
+    }:
         instance_id = operation.get("instanceId")
         if isinstance(instance_id, str) and instance_id.strip():
             summary["instanceId"] = instance_id

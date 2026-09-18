@@ -117,6 +117,10 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
     plugin: appUIPluginNodeSchema,
   }),
   z.strictObject({
+    type: z.literal("remove_plugin_default"),
+    instanceId: nonBlankStringSchema,
+  }),
+  z.strictObject({
     type: z.literal("move_plugin"),
     instanceId: nonBlankStringSchema,
     target: appUIPluginTargetSchema,
@@ -208,6 +212,10 @@ interface LayoutReflowPlan {
   parent: LayoutReflowParent;
   index: number;
 }
+
+export type DefaultPluginRemovalReflow =
+  | "collapsed-dedicated-region"
+  | "preserved-container";
 
 export class AppUIOperationError extends Error {
   readonly code: string;
@@ -469,6 +477,79 @@ function planLayoutReflow(
   return { branch, parent: entry.parent, index: entry.index };
 }
 
+/**
+ * Productized removal has a safe default: collapse a dedicated visual region
+ * when its relationship is provably stable, otherwise preserve the Layout
+ * container and remove only the Plugin instance.
+ */
+function tryPlanDefaultLayoutReflow(
+  context: MutationContext,
+  location: AppUIPluginLocation,
+): LayoutReflowPlan | undefined {
+  if (location.target.type !== "layout_slot") return undefined;
+
+  const slot = location.target.slotNode;
+  if (slot.plugins.length !== 1 || location.index !== 0) return undefined;
+
+  let branch: AppUILayoutNode = slot;
+  let entry = currentEntry(context, branch);
+  if (entry === undefined) {
+    operationError(
+      "LAYOUT_REFLOW_UNSAFE",
+      "The Plugin's Layout Slot is not attached to the current Layout tree.",
+    );
+  }
+
+  while (entry.parentKind === "panel" && entry.parent?.type === "panel") {
+    branch = entry.parent;
+    entry = currentEntry(context, branch);
+    if (entry === undefined) {
+      operationError(
+        "LAYOUT_REFLOW_UNSAFE",
+        "The dedicated Layout region is not attached to the current Layout tree.",
+      );
+    }
+  }
+
+  if (
+    entry.parentKind !== "children" ||
+    entry.parent === undefined ||
+    entry.index === undefined ||
+    (entry.parent.type !== "row" && entry.parent.type !== "column")
+  ) {
+    return undefined;
+  }
+
+  if (
+    entry.parent.children[entry.index] !== branch ||
+    (entry.parent.sizes !== undefined &&
+      entry.parent.sizes.length !== entry.parent.children.length)
+  ) {
+    operationError(
+      "LAYOUT_REFLOW_UNSAFE",
+      "The dedicated Layout region does not have a stable child and track relationship.",
+    );
+  }
+
+  return { branch, parent: entry.parent, index: entry.index };
+}
+
+export function resolveDefaultPluginRemovalReflow(
+  source: AppUIModel,
+  instanceId: string,
+): DefaultPluginRemovalReflow {
+  const model = structuredClone(source);
+  const context: MutationContext = {
+    model,
+    snapshot: buildLayoutRefIndex(model.root),
+    localRefs: new Map(),
+  };
+  const location = requiredPluginLocation(model, instanceId);
+  return tryPlanDefaultLayoutReflow(context, location) === undefined
+    ? "preserved-container"
+    : "collapsed-dedicated-region";
+}
+
 function applyLayoutReflow(context: MutationContext, plan: LayoutReflowPlan): void {
   const { branch, parent, index } = plan;
   if (parent.children[index] !== branch) {
@@ -710,6 +791,15 @@ function applyOperation(context: MutationContext, operation: AppUIOperation): vo
         "SEMANTIC_OPERATION_NOT_LOWERED",
         "insert_plugin_default must be lowered by the AppUI transaction Host before applying operations.",
       );
+    case "remove_plugin_default": {
+      const location = requiredPluginLocation(context.model, operation.instanceId);
+      const reflowPlan = tryPlanDefaultLayoutReflow(context, location);
+      detachPlugin(context, operation.instanceId);
+      if (reflowPlan !== undefined) {
+        applyLayoutReflow(context, reflowPlan);
+      }
+      return;
+    }
     case "move_plugin": {
       const detached = detachPlugin(context, operation.instanceId);
       const destination = pluginContainer(context, operation.target);

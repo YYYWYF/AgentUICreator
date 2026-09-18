@@ -26,6 +26,7 @@ import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime
 import {
   appUIOperationsSchema,
   applyAppUIOperations,
+  resolveDefaultPluginRemovalReflow,
   type AppUIOperation,
   type AppUIPluginTarget,
 } from "./app-ui-operations";
@@ -137,15 +138,20 @@ export interface AppUITransactionResult {
     capabilityCatalogRevision: string;
   };
   semanticComposition?: {
-    operation: "insert_plugin_default";
+    operation: "insert_plugin_default" | "remove_plugin_default";
     semanticLoweringSucceeded: true;
-    expectedGeometry: {
+    expectedRuntime: {
+      presentInstanceIds?: string[];
+      absentInstanceIds?: string[];
+    };
+    expectedGeometry?: {
       instanceId: string;
       anchorInstanceId: string;
       relation: "before" | "after" | "above" | "below";
       axis: "width" | "height";
       size: string;
     };
+    reflow?: "collapsed-dedicated-region" | "preserved-container";
   };
 }
 
@@ -570,6 +576,11 @@ type SemanticInsertPluginDefault = Extract<
   { type: "insert_plugin_default" }
 >;
 
+type SemanticRemovePluginDefault = Extract<
+  AppUIOperation,
+  { type: "remove_plugin_default" }
+>;
+
 type SemanticPlacementRelation =
   | "before"
   | "after"
@@ -767,19 +778,40 @@ async function lowerSemanticCompositionOperations(
   operations: readonly AppUIOperation[],
 ): Promise<SemanticLoweringResult | undefined> {
   const semanticOperations = operations.filter(
-    (operation): operation is SemanticInsertPluginDefault =>
-      operation.type === "insert_plugin_default",
+    (
+      operation,
+    ): operation is SemanticInsertPluginDefault | SemanticRemovePluginDefault =>
+      operation.type === "insert_plugin_default" ||
+      operation.type === "remove_plugin_default",
   );
   if (semanticOperations.length === 0) return undefined;
   if (semanticOperations.length !== 1 || operations.length !== 1) {
     semanticPlacementError(
       "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
-      "insert_plugin_default must be the only operation in its transaction during the P0.8 fast path.",
+      "A Productized semantic Plugin operation must be the only operation in its transaction.",
       { operationCount: operations.length, semanticOperationCount: semanticOperations.length },
     );
   }
 
   const operation = semanticOperations[0]!;
+  if (operation.type === "remove_plugin_default") {
+    const reflow = resolveDefaultPluginRemovalReflow(
+      model,
+      operation.instanceId,
+    );
+    return {
+      operations: [operation],
+      semanticComposition: {
+        operation: "remove_plugin_default",
+        semanticLoweringSucceeded: true,
+        expectedRuntime: {
+          absentInstanceIds: [operation.instanceId],
+        },
+        reflow,
+      },
+    };
+  }
+
   const generation = await generatePluginRegistry(projectRoot, model);
   const assetMatches = generation.assets.filter(
     (asset) => asset.pluginId === operation.plugin.pluginId,
@@ -920,6 +952,9 @@ async function lowerSemanticCompositionOperations(
     semanticComposition: {
       operation: "insert_plugin_default",
       semanticLoweringSucceeded: true,
+      expectedRuntime: {
+        presentInstanceIds: [operation.plugin.id],
+      },
       expectedGeometry: {
         instanceId: operation.plugin.id,
         anchorInstanceId: anchor.plugin.id,

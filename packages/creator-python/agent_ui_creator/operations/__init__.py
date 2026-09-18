@@ -1,7 +1,12 @@
 from .models import (
     CreatorDomainSnapshot,
     CreatorOperationKind,
+    CreatorOperationExecutionResult,
+    CreatorOperationExecutionStatus,
+    CreatorOperationMetrics,
     CreatorOperationResolution,
+    CreatorOperationRuntimeStatus,
+    CreatorOperationVerificationResult,
     MAX_PLUGIN_CAPABILITIES,
     MAX_PLUGIN_ANCHOR_ID_CHARS,
     MAX_PLUGIN_AUTHORING_SIZE_CHARS,
@@ -15,6 +20,7 @@ from .models import (
     MAX_PLUGIN_VISUAL_ROLE_CHARS,
     MAX_REQUIRED_SERVICE_STATUS_CHARS,
     MAX_TOTAL_PLUGIN_INSTANCES,
+    ProductizedOperationKind,
     PluginCapability,
     PluginCapabilityIndex,
     PluginDefaultPlacement,
@@ -27,10 +33,23 @@ from .resolver import (
     CreatorOperationResolver,
     CreatorOperationResolverMetrics,
 )
+from .playbooks import (
+    AddExistingPluginPlaybook,
+    ProductizedOperationPlaybook,
+    RemovePluginPlaybook,
+)
+from .registry import CreatorOperationRegistry
 from .snapshot import (
     CreatorDomainSnapshotError,
     CreatorDomainSnapshotMetrics,
     CreatorDomainSnapshotProvider,
+)
+from .verification import (
+    CompositionOperationVerificationService,
+    GEOMETRY_TOLERANCE_PX,
+    MAX_RUNTIME_FRESHNESS_ATTEMPTS,
+    RUNTIME_FRESHNESS_DELAY_SECONDS,
+    verify_expected_geometry,
 )
 
 __all__ = [
@@ -39,10 +58,24 @@ __all__ = [
     "CreatorDomainSnapshotMetrics",
     "CreatorDomainSnapshotProvider",
     "CreatorOperationKind",
+    "CreatorOperationExecutionResult",
+    "CreatorOperationExecutionStatus",
+    "CreatorOperationMetrics",
     "CreatorOperationResolution",
+    "CreatorOperationRuntimeStatus",
+    "CreatorOperationVerificationResult",
     "CreatorOperationResolutionError",
     "CreatorOperationResolver",
     "CreatorOperationResolverMetrics",
+    "AddExistingPluginPlaybook",
+    "RemovePluginPlaybook",
+    "ProductizedOperationPlaybook",
+    "CreatorOperationRegistry",
+    "CompositionOperationVerificationService",
+    "GEOMETRY_TOLERANCE_PX",
+    "MAX_RUNTIME_FRESHNESS_ATTEMPTS",
+    "RUNTIME_FRESHNESS_DELAY_SECONDS",
+    "verify_expected_geometry",
     "MAX_PLUGIN_CAPABILITIES",
     "MAX_PLUGIN_ANCHOR_ID_CHARS",
     "MAX_PLUGIN_AUTHORING_SIZE_CHARS",
@@ -56,6 +89,7 @@ __all__ = [
     "MAX_PLUGIN_VISUAL_ROLE_CHARS",
     "MAX_REQUIRED_SERVICE_STATUS_CHARS",
     "MAX_TOTAL_PLUGIN_INSTANCES",
+    "ProductizedOperationKind",
     "PluginCapability",
     "PluginCapabilityIndex",
     "PluginDefaultPlacement",
