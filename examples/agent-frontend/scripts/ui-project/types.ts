@@ -6,6 +6,7 @@ import type { AgentUIMode } from "../../framework/contracts/agent-ui-mode";
 import type { PluginChildSlotDefinition, PluginCompositionCatalog, PluginSlotCatalog } from "../../framework/contracts/app-ui-composition";
 import type { UIPluginManifest } from "../../framework/contracts/ui-plugin";
 import type { APP_UI_MUTATION_ADMISSION_GUARANTEES } from "./app-ui-transaction";
+import type { CreatorActionCandidate } from "./creator-action-catalog";
 
 export interface ProjectIssue {
   code: string;
@@ -255,6 +256,10 @@ export interface UICompositionInspection {
     headlessPluginIds: string[];
   };
   capabilityCatalogRevision: string;
+  creatorActions: {
+    revision: string;
+    candidates: CreatorActionCandidate[];
+  };
   layoutConstraints: {
     refs: "snapshot-scoped";
     pluginTargets: ["application", "layout_slot", "plugin_slot"];

@@ -120,6 +120,10 @@ export const appUIPluginTargetSchema = z.discriminatedUnion("type", [
 
 export const appUIOperationSchema = z.discriminatedUnion("type", [
   z.strictObject({
+    type: z.literal("execute_creator_action"),
+    actionId: nonBlankStringSchema,
+  }),
+  z.strictObject({
     type: z.literal("insert_plugin"),
     plugin: appUIPluginNodeSchema,
     target: appUIPluginTargetSchema,
@@ -654,7 +658,7 @@ function moveIncompatible(
   pluginMoveError("AUTHORING_MOVE_INCOMPATIBLE", message, { reason, ...details });
 }
 
-interface MoveVisualRegion {
+export interface PluginMoveVisualRegion {
   branch: AppUILayoutNode;
   parent: AppUIRowNode;
   branchRef: string;
@@ -667,7 +671,7 @@ function resolveMoveVisualRegion(
   location: AppUIPluginLocation,
   role: "target" | "anchor",
   instanceId: string,
-): MoveVisualRegion {
+): PluginMoveVisualRegion {
   if (location.target.type !== "layout_slot") {
     moveUnsupported(
       location.target.type === "plugin_slot" ? "plugin-local-slot" : "application-plugin",
@@ -734,6 +738,33 @@ function resolveMoveVisualRegion(
     parentRef,
     index: entry.index,
   };
+}
+
+/**
+ * Resolve the stable visual Row region used by Host-owned semantic moves.
+ * Action Catalog generation uses the same topology checks as move execution
+ * when it enumerates Row-edge and relative candidates.
+ */
+export function resolvePluginMoveVisualRegion(
+  source: AppUIModel,
+  instanceId: string,
+): PluginMoveVisualRegion {
+  const location = collectAppUIPluginLocations(source).find(
+    ({ plugin }) => plugin.id === instanceId,
+  );
+  if (location === undefined) {
+    moveUnsupported(
+      "target-not-found",
+      `Plugin instance "${instanceId}" does not exist.`,
+      { instanceId },
+    );
+  }
+  const context: MutationContext = {
+    model: source,
+    snapshot: buildLayoutRefIndex(source.root),
+    localRefs: new Map(),
+  };
+  return resolveMoveVisualRegion(context, location, "target", instanceId);
 }
 
 export function relativeInsertionIndex(
@@ -1237,6 +1268,11 @@ function insertRelative(context: MutationContext, operation: Extract<AppUIOperat
 
 function applyOperation(context: MutationContext, operation: AppUIOperation): void {
   switch (operation.type) {
+    case "execute_creator_action":
+      operationError(
+        "SEMANTIC_OPERATION_NOT_LOWERED",
+        "execute_creator_action must be resolved by the AppUI transaction Host before applying operations.",
+      );
     case "insert_plugin":
       assertUniquePluginIds(context.model, operation.plugin);
       insertAt(pluginContainer(context, operation.target), structuredClone(operation.plugin), operation.index, "Plugin target");

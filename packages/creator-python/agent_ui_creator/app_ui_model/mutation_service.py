@@ -103,6 +103,7 @@ def _semantic_operation_summary(operation: Any) -> dict[str, Any]:
             if isinstance(plugin_id, str) and plugin_id.strip():
                 summary["pluginId"] = plugin_id
     elif operation_type in {
+        "execute_creator_action",
         "remove_plugin",
         "remove_plugin_default",
         "set_plugin_enabled",
@@ -110,6 +111,11 @@ def _semantic_operation_summary(operation: Any) -> dict[str, Any]:
         "move_plugin",
         "move_plugin_to",
     }:
+        if operation_type == "execute_creator_action":
+            action_id = operation.get("actionId")
+            if isinstance(action_id, str) and action_id.strip():
+                summary["actionId"] = action_id
+            return summary
         instance_id = operation.get("instanceId")
         if isinstance(instance_id, str) and instance_id.strip():
             summary["instanceId"] = instance_id

@@ -23,6 +23,7 @@ import {
   inspectAgentUISources,
 } from "./source-registry";
 import { APP_UI_MUTATION_ADMISSION_GUARANTEES } from "./app-ui-transaction";
+import { buildCreatorActionCatalog } from "./creator-action-catalog";
 import type {
   CompactLayoutNode,
   InspectedSlot,
@@ -192,6 +193,7 @@ async function inspectUICompositionData(
     "utf8",
   );
   const model = parseAppUIModelJson(appUIModelSource);
+  const appUIModelHash = createHash("sha256").update(appUIModelSource).digest("hex");
   const generation = await generatePluginRegistry(projectRoot, model, config);
   const refIndex = buildLayoutRefIndex(model.root);
   const layout = compactLayout(model.root, "root", refIndex.byPath.get("root")!, refIndex);
@@ -252,13 +254,20 @@ async function inspectUICompositionData(
       service.status,
     ]),
   );
+  const creatorActionCatalog = await buildCreatorActionCatalog({
+    projectRoot,
+    model,
+    generation,
+    appUIModelHash,
+    config,
+  });
 
   return {
     schemaVersion: 3,
     view: "composition",
     observationCoverage: [...COMPOSITION_OBSERVATION_COVERAGE],
     appUIModel: {
-      hash: createHash("sha256").update(appUIModelSource).digest("hex"),
+      hash: appUIModelHash,
       layout,
       slots,
     },
@@ -318,6 +327,10 @@ async function inspectUICompositionData(
       headlessPluginIds: generation.activeComposition.headlessPluginIds,
     },
     capabilityCatalogRevision: generation.capabilityCatalog.revision,
+    creatorActions: {
+      revision: creatorActionCatalog.revision,
+      candidates: creatorActionCatalog.candidates,
+    },
     layoutConstraints: {
       refs: "snapshot-scoped",
       pluginTargets: ["application", "layout_slot", "plugin_slot"],

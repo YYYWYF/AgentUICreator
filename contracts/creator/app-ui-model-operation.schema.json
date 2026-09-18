@@ -176,6 +176,15 @@
     {
       "type": "object",
       "additionalProperties": false,
+      "required": ["type", "actionId"],
+      "properties": {
+        "type": { "const": "execute_creator_action" },
+        "actionId": { "$ref": "#/$defs/nonBlankString" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
       "required": ["type", "plugin", "target"],
       "properties": {
         "type": { "const": "insert_plugin" },
