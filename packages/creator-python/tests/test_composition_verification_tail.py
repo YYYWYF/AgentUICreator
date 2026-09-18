@@ -408,7 +408,7 @@ async def test_agent_lifecycle_accepts_stale_then_fresh_without_second_graph_inv
         mutation_service=mutation_service,
         completion_gate=completion_gate,
         completion_verification_tail=tail,
-        automatic_completion_repair=False,
+        automatic_completion_repair=True,
         run_control=run_control,
     )
 
