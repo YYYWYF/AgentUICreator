@@ -334,6 +334,13 @@ describe("AppUIModel semantic operations", () => {
     }]);
     expect(numericRelativeSize.success).toBe(false);
 
+    const numericStringSizes = appUIOperationsSchema.safeParse([{
+      type: "update_layout_node_props",
+      nodeRef: "l0",
+      set: { sizes: ["280", "1.5", ".5"] },
+    }]);
+    expect(numericStringSizes.success).toBe(false);
+
     const numericUpdatedTracks = appUIOperationsSchema.safeParse([{
       type: "update_layout_node_props",
       nodeRef: "l0",

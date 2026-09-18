@@ -127,11 +127,27 @@ def test_creator_layout_track_sizes_require_explicit_css_strings():
             "set": {"width": 280, "height": "24rem"},
         },
     )
+    _validate(
+        "app-ui-model-operation.schema.json",
+        {
+            "type": "update_layout_node_props",
+            "nodeRef": "l0",
+            "set": {"sizes": ["280px", "1fr"]},
+        },
+    )
 
     invalid_operations = [
         {
             **valid_relative,
             "size": 280,
+        },
+        {
+            **valid_relative,
+            "size": "280",
+        },
+        {
+            **valid_relative,
+            "size": " 280 ",
         },
         {
             "type": "insert_layout_node",
@@ -146,6 +162,11 @@ def test_creator_layout_track_sizes_require_explicit_css_strings():
             "type": "update_layout_node_props",
             "nodeRef": "l0",
             "set": {"sizes": [280, "minmax(0, 1fr)"]},
+        },
+        {
+            "type": "update_layout_node_props",
+            "nodeRef": "l0",
+            "set": {"sizes": ["1.5", ".5"]},
         },
     ]
     for operation in invalid_operations:

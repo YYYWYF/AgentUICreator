@@ -757,6 +757,8 @@ Do not explain the error in prose."""
     ) -> ModelResponse[Any]:
         if decision.status in {"tool_call", "final"}:
             return decision.response
+        if decision.status == "truncated":
+            self.metrics.modelTruncatedTurns += 1
         self.metrics.modelTruncationRepairFailures += 1
         raise ModelResponseTruncatedError(
             "Creator model response remained truncated after one bounded continuation attempt."

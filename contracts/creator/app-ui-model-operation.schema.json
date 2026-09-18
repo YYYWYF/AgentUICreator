@@ -18,6 +18,10 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 200,
+      "pattern": "\\S",
+      "not": {
+        "pattern": "^\\s*[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)\\s*$"
+      },
       "description": "Explicit CSS Grid track size such as 280px, 1fr, minmax(0, 1fr), or 24rem. Numeric track sizes are not accepted by Creator."
     },
     "layoutNodeProps": {

@@ -19,7 +19,15 @@ import {
 } from "../../framework/contracts/app-ui-model";
 
 const nonBlankStringSchema = z.string().trim().min(1).max(200);
-const layoutTrackSizeSchema = z.string().trim().min(1).max(200);
+const LAYOUT_TRACK_SIZE_ERROR =
+  'Creator Row/Column track sizes require explicit CSS units or track syntax, for example "280px", "1fr", or "minmax(0, 1fr)".';
+const numericOnlyTrackPattern = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+const layoutTrackSizeSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(200)
+  .refine((value) => !numericOnlyTrackPattern.test(value), LAYOUT_TRACK_SIZE_ERROR);
 const layoutRefSchema = z.string().regex(/^(?:l[0-9]+|\$[A-Za-z][A-Za-z0-9_-]*)$/);
 const indexSchema = z.number().int().nonnegative().optional();
 const removeKeysSchema = z.array(nonBlankStringSchema).max(50).optional();
@@ -212,9 +220,6 @@ export class AppUIOperationError extends Error {
 function operationError(code: string, message: string, details?: unknown): never {
   throw new AppUIOperationError(code, message, details);
 }
-
-const LAYOUT_TRACK_SIZE_ERROR =
-  'Creator Row/Column track sizes require explicit CSS units or track syntax, for example "280px", "1fr", or "minmax(0, 1fr)".';
 
 function assertLayoutTrackSize(value: unknown): asserts value is string {
   if (!layoutTrackSizeSchema.safeParse(value).success) {

@@ -395,6 +395,7 @@ def test_second_truncated_response_fails_without_protocol_repair_chaining():
     assert raised.value.code == "MODEL_RESPONSE_TRUNCATED"
     assert calls == 2
     assert middleware.metrics.modelCalls == 2
+    assert middleware.metrics.modelTruncatedTurns == 2
     assert middleware.metrics.modelTruncationRepairAttempts == 1
     assert middleware.metrics.modelTruncationRepairFailures == 1
     assert middleware.metrics.protocolRepairAttempts == 0
@@ -440,6 +441,7 @@ def test_malformed_truncation_recovery_fails_without_a_third_model_call():
         middleware.wrap_model_call(request, handler)
 
     assert calls == 2
+    assert middleware.metrics.modelTruncatedTurns == 1
     assert middleware.metrics.modelTruncationRepairFailures == 1
     assert middleware.metrics.protocolRepairAttempts == 0
 
@@ -487,6 +489,96 @@ def test_async_truncated_final_has_the_same_bounded_recovery_semantics():
     assert middleware.metrics.modelTruncatedTurns == 1
     assert middleware.metrics.modelTruncationRepairAttempts == 1
     assert middleware.metrics.modelTruncationRepairFailures == 0
+
+
+def test_async_second_truncated_response_fails_without_protocol_repair_chaining():
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    responses = iter(
+        [
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="First response",
+                        response_metadata={"finish_reason": "length"},
+                    )
+                ]
+            ),
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="Still incomplete",
+                        response_metadata={"finish_reason": "length"},
+                    )
+                ]
+            ),
+        ]
+    )
+    calls = 0
+
+    async def handler(_request):
+        nonlocal calls
+        calls += 1
+        return next(responses)
+
+    with pytest.raises(ModelResponseTruncatedError) as raised:
+        asyncio.run(middleware.awrap_model_call(request, handler))
+
+    assert raised.value.code == "MODEL_RESPONSE_TRUNCATED"
+    assert calls == 2
+    assert middleware.metrics.modelCalls == 2
+    assert middleware.metrics.modelTruncatedTurns == 2
+    assert middleware.metrics.modelTruncationRepairAttempts == 1
+    assert middleware.metrics.modelTruncationRepairFailures == 1
+    assert middleware.metrics.protocolRepairAttempts == 0
+
+
+def test_async_malformed_truncation_recovery_fails_without_a_third_model_call():
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    responses = iter(
+        [
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="First response",
+                        response_metadata={"finish_reason": "length"},
+                    )
+                ]
+            ),
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="",
+                        invalid_tool_calls=[
+                            {
+                                "name": "read_file",
+                                "args": "{",
+                                "id": "bad-async-recovery",
+                            }
+                        ],
+                    )
+                ]
+            ),
+        ]
+    )
+    calls = 0
+
+    async def handler(_request):
+        nonlocal calls
+        calls += 1
+        return next(responses)
+
+    with pytest.raises(ModelResponseTruncatedError) as raised:
+        asyncio.run(middleware.awrap_model_call(request, handler))
+
+    assert raised.value.code == "MODEL_RESPONSE_TRUNCATED"
+    assert calls == 2
+    assert middleware.metrics.modelCalls == 2
+    assert middleware.metrics.modelTruncatedTurns == 1
+    assert middleware.metrics.modelTruncationRepairAttempts == 1
+    assert middleware.metrics.modelTruncationRepairFailures == 1
+    assert middleware.metrics.protocolRepairAttempts == 0
 
 
 def test_missing_tool_call_id_requests_repair():
