@@ -593,9 +593,12 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                 run_result["changeLayer"] = (
                                     result.change_layer_metrics
                                 )
-                            if hasattr(result, "composition_fast_path_metrics"):
+                            composition_metrics = getattr(
+                                result, "composition_fast_path_metrics", None
+                            )
+                            if composition_metrics is not None:
                                 run_result["compositionFastPath"] = (
-                                    result.composition_fast_path_metrics.to_dict()
+                                    composition_metrics.to_dict()
                                 )
                             validation_metrics = telemetry.validation_metrics()
                             if validation_metrics is not None:
