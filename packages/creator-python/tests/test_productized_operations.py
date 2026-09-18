@@ -73,6 +73,17 @@ class FakeSnapshotProvider:
         return self.snapshot
 
 
+class SequenceSnapshotProvider:
+    def __init__(self, snapshots: list[CreatorDomainSnapshot]) -> None:
+        self.snapshots = snapshots
+        self.build_calls = 0
+
+    async def build(self) -> CreatorDomainSnapshot:
+        snapshot_index = min(self.build_calls, len(self.snapshots) - 1)
+        self.build_calls += 1
+        return self.snapshots[snapshot_index]
+
+
 def snapshot(*plugins: PluginCapability) -> CreatorDomainSnapshot:
     return CreatorDomainSnapshot(
         raw={},
@@ -637,6 +648,61 @@ def test_remove_playbook_refreshes_once_on_hash_conflict_without_model_execution
     assert result.metrics.snapshotRefreshes == 1
     assert result.metrics.mutationAttempts == 2
     assert provider.build_calls == 1
+
+
+def test_remove_playbook_rejects_replaced_instance_after_hash_conflict_as_stale():
+    instance_id = "conversation-thread-list-main"
+    plugin_id = "conversation-thread-list"
+    source = snapshot(
+        capability(
+            plugin_id,
+            selected=True,
+            instances=[PluginInstanceSummary(instanceId=instance_id, enabled=True)],
+        )
+    )
+    refreshed = snapshot(
+        capability(
+            plugin_id,
+            selected=True,
+            instances=[
+                PluginInstanceSummary(
+                    instanceId="conversation-thread-list-replacement", enabled=True
+                )
+            ],
+        )
+    )
+    mutation_service = FakeMutation(
+        [
+            AppUIModelMutationError(
+                "APP_UI_MODEL_HASH_CONFLICT",
+                "synthetic hash conflict",
+            )
+        ]
+    )
+    provider = SequenceSnapshotProvider([refreshed])
+    playbook = RemovePluginPlaybook(
+        mutation_service=mutation_service,
+        snapshot_provider=provider,
+        verification=verification([]),
+    )
+
+    result = asyncio.run(
+        playbook.execute(
+            source,
+            CreatorOperationResolution(
+                kind="remove_plugin",
+                targetPluginIds=[plugin_id],
+                targetInstanceIds=[instance_id],
+            ),
+        )
+    )
+
+    assert result.status == "failed"
+    assert result.errorCode == "PRODUCT_OPERATION_STALE"
+    assert result.metrics.mutationAttempts == 1
+    assert result.metrics.snapshotRefreshes == 1
+    assert provider.build_calls == 1
+    assert mutation_service.calls[0]["operations"][0]["instanceId"] == instance_id
 
 
 def test_productized_verification_stops_before_runtime_when_static_validation_fails():

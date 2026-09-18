@@ -520,7 +520,14 @@ class RemovePluginPlaybook(_PlaybookBase):
     ) -> tuple[str, PluginCapability | None, str | None]:
         owner = _instance_owner(snapshot, instance_id)
         if owner is None:
-            return "already-satisfied", _capability(snapshot, plugin_id), None
+            plugin = _capability(snapshot, plugin_id)
+            if plugin is not None and plugin.instances:
+                return (
+                    "stale",
+                    plugin,
+                    "The target instance is gone, but the target Plugin now has a different instance.",
+                )
+            return "already-satisfied", plugin, None
         if owner != plugin_id:
             return (
                 "stale",
