@@ -23,6 +23,7 @@ const layoutRefSchema = z.string().regex(/^(?:l[0-9]+|\$[A-Za-z][A-Za-z0-9_-]*)$
 const indexSchema = z.number().int().nonnegative().optional();
 const removeKeysSchema = z.array(nonBlankStringSchema).max(50).optional();
 const directionSchema = z.enum(["left", "right", "above", "below"]);
+const removeReflowSchema = z.enum(["preserve", "collapse-empty-region"]);
 
 type AppUILayoutMutationNode =
   | ({ type: "row" | "column"; children: AppUILayoutMutationNode[]; gap?: number; sizes?: AppUILayoutSize[] } & { localRef?: string })
@@ -86,7 +87,11 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
     target: appUIPluginTargetSchema,
     index: indexSchema,
   }),
-  z.strictObject({ type: z.literal("remove_plugin"), instanceId: nonBlankStringSchema }),
+  z.strictObject({
+    type: z.literal("remove_plugin"),
+    instanceId: nonBlankStringSchema,
+    reflow: removeReflowSchema.optional(),
+  }),
   z.strictObject({
     type: z.literal("replace_plugin"),
     instanceId: nonBlankStringSchema,
@@ -147,6 +152,7 @@ export type AppUIOperation = z.infer<typeof appUIOperationSchema>;
 export type AppUIPluginTarget = z.infer<typeof appUIPluginTargetSchema>;
 
 type ChildrenNode = AppUIRowNode | AppUIColumnNode | AppUIStackNode;
+type LayoutReflowParent = AppUIRowNode | AppUIColumnNode;
 
 interface MutationContext {
   model: AppUIModel;
@@ -160,6 +166,12 @@ interface CurrentNodeEntry {
   parent?: AppUILayoutNode | undefined;
   parentKind: "root" | "children" | "panel";
   index?: number | undefined;
+}
+
+interface LayoutReflowPlan {
+  branch: AppUILayoutNode;
+  parent: LayoutReflowParent;
+  index: number;
 }
 
 export class AppUIOperationError extends Error {
@@ -329,6 +341,105 @@ function detachPlugin(context: MutationContext, instanceId: string): { plugin: A
   const [plugin] = container.splice(location.index, 1);
   if (plugin === undefined) operationError("PLUGIN_NOT_FOUND", `Plugin instance "${instanceId}" does not exist.`);
   return { plugin, container, index: location.index };
+}
+
+function planLayoutReflow(
+  context: MutationContext,
+  location: AppUIPluginLocation,
+): LayoutReflowPlan {
+  if (location.target.type !== "layout_slot") {
+    operationError(
+      "LAYOUT_REFLOW_NOT_LAYOUT_REGION",
+      "collapse-empty-region only applies to a Plugin that directly occupies a Layout Slot.",
+      { target: location.target.type },
+    );
+  }
+
+  const slot = location.target.slotNode;
+  if (slot.plugins.length !== 1 || location.index !== 0) {
+    operationError(
+      "LAYOUT_REFLOW_REGION_NOT_EMPTY",
+      "The Layout Slot contains more than the Plugin being removed; refusing to collapse its region.",
+      { slotPath: location.target.slotPath, pluginCount: slot.plugins.length },
+    );
+  }
+
+  let branch: AppUILayoutNode = slot;
+  let entry = currentEntry(context, branch);
+  if (entry === undefined) {
+    operationError(
+      "LAYOUT_REFLOW_UNSAFE",
+      "The Plugin's Layout Slot is not attached to the current Layout tree.",
+    );
+  }
+
+  // A dedicated region may contain a chain of single-child Panel wrappers.
+  // Stop at the first real container so sibling content and Stack boundaries
+  // remain untouched.
+  while (entry.parentKind === "panel" && entry.parent?.type === "panel") {
+    branch = entry.parent;
+    entry = currentEntry(context, branch);
+    if (entry === undefined) {
+      operationError(
+        "LAYOUT_REFLOW_UNSAFE",
+        "The dedicated Layout region is not attached to the current Layout tree.",
+      );
+    }
+  }
+
+  if (
+    entry.parentKind !== "children" ||
+    entry.parent === undefined ||
+    entry.index === undefined
+  ) {
+    operationError(
+      "LAYOUT_REFLOW_UNSUPPORTED_PARENT",
+      "The dedicated Layout region must be a child of a Row or Column.",
+      { parentKind: entry.parentKind },
+    );
+  }
+
+  if (entry.parent.type !== "row" && entry.parent.type !== "column") {
+    operationError(
+      "LAYOUT_REFLOW_UNSUPPORTED_PARENT",
+      "Deterministic region collapse does not cross a Stack or another unsupported Layout parent.",
+      { parentType: entry.parent.type },
+    );
+  }
+
+  if (
+    entry.parent.children[entry.index] !== branch ||
+    (entry.parent.sizes !== undefined &&
+      entry.parent.sizes.length !== entry.parent.children.length)
+  ) {
+    operationError(
+      "LAYOUT_REFLOW_UNSAFE",
+      "The dedicated Layout region does not have a stable child and track relationship.",
+    );
+  }
+
+  return { branch, parent: entry.parent, index: entry.index };
+}
+
+function applyLayoutReflow(context: MutationContext, plan: LayoutReflowPlan): void {
+  const { branch, parent, index } = plan;
+  if (parent.children[index] !== branch) {
+    operationError(
+      "LAYOUT_REFLOW_UNSAFE",
+      "The dedicated Layout region changed before reflow could be applied.",
+    );
+  }
+
+  parent.children.splice(index, 1);
+  if (parent.sizes !== undefined) {
+    parent.sizes.splice(index, 1);
+  }
+
+  // A zero-child Row or Column remains an explicit empty Layout container.
+  // There is no remaining content that can safely replace it.
+  if (parent.children.length !== 1) return;
+
+  replaceNode(context, parent, parent.children[0]!);
 }
 
 function pluginSubtreeIds(plugin: AppUIPluginNode): Set<string> {
@@ -548,9 +659,17 @@ function applyOperation(context: MutationContext, operation: AppUIOperation): vo
       insertAt(destination, detached.plugin, adjustedIndex, "Plugin target");
       return;
     }
-    case "remove_plugin":
+    case "remove_plugin": {
+      const location = requiredPluginLocation(context.model, operation.instanceId);
+      const reflowPlan = operation.reflow === "collapse-empty-region"
+        ? planLayoutReflow(context, location)
+        : undefined;
       detachPlugin(context, operation.instanceId);
+      if (reflowPlan !== undefined) {
+        applyLayoutReflow(context, reflowPlan);
+      }
       return;
+    }
     case "replace_plugin": {
       const location = requiredPluginLocation(context.model, operation.instanceId);
       assertUniquePluginIds(context.model, operation.replacement, pluginSubtreeIds(location.plugin));

@@ -150,7 +150,11 @@
       "required": ["type", "instanceId"],
       "properties": {
         "type": { "const": "remove_plugin" },
-        "instanceId": { "$ref": "#/$defs/nonBlankString" }
+        "instanceId": { "$ref": "#/$defs/nonBlankString" },
+        "reflow": {
+          "enum": ["preserve", "collapse-empty-region"],
+          "default": "preserve"
+        }
       }
     },
     {

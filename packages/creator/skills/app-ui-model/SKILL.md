@@ -92,6 +92,11 @@ Composition revision; it does not need a separate Service scan.
   `layout_slot(slotRef)`, or `plugin_slot(parentInstanceId, slot)`.
 - `move_plugin`: relocate an existing Plugin subtree.
 - `remove_plugin`: remove an instance subtree while preserving Plugin source.
+  When removing a Plugin that owns an entire visible Layout region and the user
+  wants that region gone, prefer `reflow: "collapse-empty-region"`. Use the
+  ordinary operation (or `reflow: "preserve"`) for an existing/shared Slot.
+  Do not manually update Row/Column sizes when deterministic reflow expresses
+  the requested result.
 - `replace_plugin`: replace an instance subtree in place.
 - `update_plugin_props`: change authoring configuration.
 - `set_plugin_enabled`: hide or restore an existing instance.
@@ -120,8 +125,9 @@ do not remove a Service merely because its visual consumer was removed.
 ### Hide versus remove versus remove capability
 
 - “先隐藏/先不要显示” -> `set_plugin_enabled(false)` and retain Layout.
-- “去掉这个 UI/区域” -> `remove_plugin`, then collapse unused Layout when
-  needed.
+- “去掉这个 UI/区域” -> `remove_plugin` with
+  `reflow: "collapse-empty-region"` when the Plugin owns a dedicated visible
+  region; otherwise use ordinary `remove_plugin` and preserve the Slot.
 - “彻底删除能力” -> analyze Runtime Capability ownership and consumers; this
   is not automatically a Composition-only request.
 
@@ -174,10 +180,10 @@ User request: Remove the left conversation history.
 Current composition: row(left panel -> thread-list, main panel -> surface).
 Desired state: conversation surface only; ConversationService remains.
 Owning layer: Composition.
-Semantic delta: remove thread-list instance and remove/collapse its unused left
+Semantic delta: remove thread-list instance and collapse its dedicated left
 Layout region.
-Correct tool: one mutate_app_ui_model transaction with remove_plugin followed
-by remove_layout_node or the smallest valid Layout replacement.
+Correct tool: one mutate_app_ui_model transaction with
+`remove_plugin(reflow="collapse-empty-region")`.
 Incorrect: edit thread-list source, edit conversation-surface source, remove
 ConversationService, or submit layout removal first as a probing mutation.
 ```

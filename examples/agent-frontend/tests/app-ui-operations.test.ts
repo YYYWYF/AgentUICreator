@@ -453,6 +453,160 @@ describe("AppUIModel semantic operations", () => {
     expect(removed.root.plugins).toEqual([]);
   });
 
+  it("preserves a dedicated Layout region for the default Plugin removal", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["280px", "1fr"],
+        children: [
+          { type: "slot", plugins: [{ id: "history-main", pluginId: "history", enabled: true }] },
+          { type: "slot", plugins: [{ id: "surface-main", pluginId: "surface", enabled: true }] },
+        ],
+      },
+    };
+
+    const result = applyAppUIOperations(source, [{
+      type: "remove_plugin",
+      instanceId: "history-main",
+    }]);
+
+    expect(result.root).toEqual({
+      type: "row",
+      sizes: ["280px", "1fr"],
+      children: [
+        { type: "slot", plugins: [] },
+        { type: "slot", plugins: [{ id: "surface-main", pluginId: "surface", enabled: true }] },
+      ],
+    });
+  });
+
+  it("collapses a dedicated visible region and its single-child wrapper", () => {
+    const result = applyAppUIOperations({
+      root: {
+        type: "row",
+        sizes: ["280px", "1fr"],
+        children: [
+          {
+            type: "panel",
+            width: "280px",
+            child: {
+              type: "slot",
+              plugins: [{ id: "history-main", pluginId: "history", enabled: true }],
+            },
+          },
+          { type: "slot", plugins: [{ id: "surface-main", pluginId: "surface", enabled: true }] },
+        ],
+      },
+    }, [{
+      type: "remove_plugin",
+      instanceId: "history-main",
+      reflow: "collapse-empty-region",
+    }]);
+
+    expect(result.root).toEqual({
+      type: "slot",
+      plugins: [{ id: "surface-main", pluginId: "surface", enabled: true }],
+    });
+  });
+
+  it("synchronizes Row and Column tracks when reflow removes a middle region", () => {
+    const result = applyAppUIOperations({
+      root: {
+        type: "row",
+        sizes: ["200px", "280px", "1fr"],
+        children: [
+          { type: "slot", plugins: [{ id: "a-main", pluginId: "a", enabled: true }] },
+          { type: "slot", plugins: [{ id: "history-main", pluginId: "history", enabled: true }] },
+          { type: "slot", plugins: [{ id: "c-main", pluginId: "c", enabled: true }] },
+        ],
+      },
+    }, [{
+      type: "remove_plugin",
+      instanceId: "history-main",
+      reflow: "collapse-empty-region",
+    }]);
+
+    expect(result.root).toMatchObject({
+      type: "row",
+      sizes: ["200px", "1fr"],
+      children: [
+        { type: "slot", plugins: [{ id: "a-main" }] },
+        { type: "slot", plugins: [{ id: "c-main" }] },
+      ],
+    });
+  });
+
+  it("fails closed for shared Layout Slots without mutating the source", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "row",
+        children: [
+          {
+            type: "slot",
+            plugins: [
+              { id: "history-main", pluginId: "history", enabled: true },
+              { id: "secondary-main", pluginId: "secondary", enabled: true },
+            ],
+          },
+          { type: "slot", plugins: [{ id: "surface-main", pluginId: "surface", enabled: true }] },
+        ],
+      },
+    };
+
+    expect(() => applyAppUIOperations(source, [{
+      type: "remove_plugin",
+      instanceId: "history-main",
+      reflow: "collapse-empty-region",
+    }])).toThrowError(expect.objectContaining({ code: "LAYOUT_REFLOW_REGION_NOT_EMPTY" }));
+    expect(source.root).toEqual({
+      type: "row",
+      children: [
+        {
+          type: "slot",
+          plugins: [
+            { id: "history-main", pluginId: "history", enabled: true },
+            { id: "secondary-main", pluginId: "secondary", enabled: true },
+          ],
+        },
+        { type: "slot", plugins: [{ id: "surface-main", pluginId: "surface", enabled: true }] },
+      ],
+    });
+  });
+
+  it("does not reflow Plugin-local Slots or cross a Stack", () => {
+    expect(() => applyAppUIOperations({
+      root: {
+        type: "slot",
+        plugins: [{
+          id: "surface-main",
+          pluginId: "surface",
+          enabled: true,
+          slots: {
+            content: [{ id: "history-main", pluginId: "history", enabled: true }],
+          },
+        }],
+      },
+    }, [{
+      type: "remove_plugin",
+      instanceId: "history-main",
+      reflow: "collapse-empty-region",
+    }])).toThrowError(expect.objectContaining({ code: "LAYOUT_REFLOW_NOT_LAYOUT_REGION" }));
+
+    expect(() => applyAppUIOperations({
+      root: {
+        type: "stack",
+        children: [
+          { type: "slot", plugins: [{ id: "history-main", pluginId: "history", enabled: true }] },
+          { type: "slot", plugins: [{ id: "surface-main", pluginId: "surface", enabled: true }] },
+        ],
+      },
+    }, [{
+      type: "remove_plugin",
+      instanceId: "history-main",
+      reflow: "collapse-empty-region",
+    }])).toThrowError(expect.objectContaining({ code: "LAYOUT_REFLOW_UNSUPPORTED_PARENT" }));
+  });
+
   it("replaces a subtree while allowing its existing ids to be retained", () => {
     const result = applyAppUIOperations(model(), [{
       type: "replace_plugin",

@@ -86,6 +86,27 @@ def test_schema_version_drift_is_rejected():
         _validate("project-control.schema.json", drifted)
 
 
+def test_app_ui_remove_plugin_schema_accepts_explicit_reflow_mode():
+    _validate(
+        "app-ui-model-operation.schema.json",
+        {
+            "type": "remove_plugin",
+            "instanceId": "history-main",
+            "reflow": "collapse-empty-region",
+        },
+    )
+
+    with pytest.raises(ValidationError):
+        _validate(
+            "app-ui-model-operation.schema.json",
+            {
+                "type": "remove_plugin",
+                "instanceId": "history-main",
+                "reflow": "guess-layout",
+            },
+        )
+
+
 def test_project_control_runtime_composition_accepts_bounded_geometry():
     app_hash = "a" * 64
     _validate(

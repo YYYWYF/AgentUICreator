@@ -164,6 +164,87 @@ describe("AppUIModel transaction", () => {
     });
   });
 
+  it("reflows a dedicated history region without a follow-up Layout operation", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["280px", "1fr"],
+        children: [
+          {
+            type: "panel",
+            width: "280px",
+            child: {
+              type: "slot",
+              plugins: [{
+                id: "conversation-thread-list-main",
+                pluginId: "sample",
+                enabled: true,
+              }],
+            },
+          },
+          {
+            type: "slot",
+            plugins: [{ id: "sample-main", pluginId: "sample", enabled: true }],
+          },
+        ],
+      },
+    };
+    const { projectRoot, source } = await createProject({}, model);
+
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "remove_plugin",
+        instanceId: "conversation-thread-list-main",
+        reflow: "collapse-empty-region",
+      }],
+    });
+
+    expect(result.changedPaths).toEqual(["app-ui/app-ui.json"]);
+    expect(JSON.parse(
+      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
+    )).toEqual({
+      root: {
+        type: "slot",
+        plugins: [{ id: "sample-main", pluginId: "sample", enabled: true }],
+      },
+    });
+  });
+
+  it("does not partially commit when deterministic reflow preconditions fail", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        children: [
+          {
+            type: "slot",
+            plugins: [
+              { id: "history-main", pluginId: "sample", enabled: true },
+              { id: "secondary-main", pluginId: "sample", enabled: true },
+            ],
+          },
+          { type: "slot", plugins: [{ id: "sample-main", pluginId: "sample", enabled: true }] },
+        ],
+      },
+    };
+    const { projectRoot, source } = await createProject({}, model);
+    const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
+    const registrySource = await readFile(registryPath, "utf8");
+
+    await expect(mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "remove_plugin",
+        instanceId: "history-main",
+        reflow: "collapse-empty-region",
+      }],
+    })).rejects.toMatchObject({ code: "LAYOUT_REFLOW_REGION_NOT_EMPTY" });
+
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
+      .toBe(source);
+    expect(await readFile(registryPath, "utf8")).toBe(registrySource);
+  });
+
   it("writes a CompositionRevision before a model plus catalog transaction", async () => {
     const { projectRoot, source } = await createProject();
     await createPlugin(projectRoot, "beta");
