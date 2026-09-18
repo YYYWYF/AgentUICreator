@@ -50,6 +50,9 @@ class ToolProtocolMetrics:
     modelTransportFreshClientRecoveries: int = 0
     modelTransportFreshClientRecoveryFailures: int = 0
     modelTransportDuplicateInflightWaits: int = 0
+    modelTruncatedTurns: int = 0
+    modelTruncationRepairAttempts: int = 0
+    modelTruncationRepairFailures: int = 0
     toolCalls: int = 0
     validToolCalls: int = 0
     invalidToolCalls: int = 0

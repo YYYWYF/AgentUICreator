@@ -16,7 +16,11 @@ from jsonschema.exceptions import ValidationError
 from pydantic import ValidationError as PydanticValidationError
 
 from ..run_control import CreatorRunControlState
-from .errors import AgentNoProgressError, ModelToolProtocolError
+from .errors import (
+    AgentNoProgressError,
+    ModelResponseTruncatedError,
+    ModelToolProtocolError,
+)
 from .provider_trace import ProviderResponseTrace, ProviderResponseTraceCollector
 from .request_shape import request_shape
 from .trace import ModelCallTrace, ToolProtocolMetrics
@@ -29,6 +33,12 @@ produce a valid structured tool call.
 Re-issue only the intended action using the provided structured tool interface.
 
 Do not explain the error in prose."""
+TRUNCATION_RECOVERY_PROMPT = """Your previous response reached the output limit before completing the turn.
+
+Do not repeat the analysis.
+
+If another action is required, emit the next structured tool call now.
+If the task is already complete, return a concise final answer."""
 
 _TOOL_INTENT_NAMES = (
     "read_file|edit_file|grep|glob|ls|inspect_ui_project|inspect_app_ui_model|"
@@ -71,7 +81,7 @@ def _trace_keys(value: Mapping[Any, Any]) -> list[str]:
 @dataclass(frozen=True, slots=True)
 class GuardDecision:
     response: ModelResponse[Any]
-    status: Literal["final", "tool_call", "recovered", "repair"]
+    status: Literal["final", "tool_call", "recovered", "repair", "truncated"]
 
 
 def _tool_name(tool: Any) -> str:
@@ -337,6 +347,13 @@ def _ai_message(response: ModelResponse[Any]) -> AIMessage | None:
     )
 
 
+def _response_finish_reason(message: AIMessage) -> str | None:
+    finish_reason = message.response_metadata.get("finish_reason")
+    if finish_reason is None:
+        finish_reason = message.response_metadata.get("stop_reason")
+    return None if finish_reason is None else str(finish_reason)
+
+
 def _content_block_types(message: AIMessage) -> tuple[str, ...]:
     if isinstance(message.content, str):
         return ("text",) if message.content else ()
@@ -547,6 +564,8 @@ class ToolProtocolGuard:
             return GuardDecision(response, "repair")
         if require_tool:
             return GuardDecision(response, "repair")
+        if _response_finish_reason(message) == "length":
+            return GuardDecision(response, "truncated")
         return GuardDecision(response, "final")
 
     @staticmethod
@@ -637,9 +656,7 @@ class ToolProtocolMiddleware(AgentMiddleware):
             self.metrics.inputTokens += input_tokens
         if isinstance(output_tokens, int):
             self.metrics.outputTokens += output_tokens
-        finish_reason = message.response_metadata.get("finish_reason")
-        if finish_reason is None:
-            finish_reason = message.response_metadata.get("stop_reason")
+        finish_reason = _response_finish_reason(message)
         langchain_provider_metadata = None
         if self.raw_trace:
             langchain_provider_metadata = {
@@ -726,6 +743,25 @@ Do not explain the error in prose."""
             messages=[*request.messages, HumanMessage(content=prompt)]
         )
 
+    @staticmethod
+    def _truncation_recovery_request(request: ModelRequest) -> ModelRequest:
+        return request.override(
+            messages=[
+                *request.messages,
+                HumanMessage(content=TRUNCATION_RECOVERY_PROMPT),
+            ]
+        )
+
+    def _finish_truncation_recovery(
+        self, decision: GuardDecision
+    ) -> ModelResponse[Any]:
+        if decision.status in {"tool_call", "final"}:
+            return decision.response
+        self.metrics.modelTruncationRepairFailures += 1
+        raise ModelResponseTruncatedError(
+            "Creator model response remained truncated after one bounded continuation attempt."
+        )
+
     def _record_repair_drift(
         self,
         *,
@@ -758,6 +794,17 @@ Do not explain the error in prose."""
         self._record(response, request, started_at)
         decision = self.guard.inspect(response, request.tools)
         self._observe_protocol_counts()
+        if decision.status == "truncated":
+            self.metrics.modelTruncatedTurns += 1
+            self._before_call()
+            self.metrics.modelTruncationRepairAttempts += 1
+            recovery_request = self._truncation_recovery_request(request)
+            started_at = time.monotonic()
+            recovered = handler(recovery_request)
+            self._record(recovered, recovery_request, started_at)
+            recovery_decision = self.guard.inspect(recovered, recovery_request.tools)
+            self._observe_protocol_counts()
+            return self._finish_truncation_recovery(recovery_decision)
         if decision.status != "repair":
             return decision.response
         self.metrics.protocolRepairAttempts += 1
@@ -790,6 +837,17 @@ Do not explain the error in prose."""
         self._record(response, request, started_at)
         decision = self.guard.inspect(response, request.tools)
         self._observe_protocol_counts()
+        if decision.status == "truncated":
+            self.metrics.modelTruncatedTurns += 1
+            self._before_call()
+            self.metrics.modelTruncationRepairAttempts += 1
+            recovery_request = self._truncation_recovery_request(request)
+            started_at = time.monotonic()
+            recovered = await handler(recovery_request)
+            self._record(recovered, recovery_request, started_at)
+            recovery_decision = self.guard.inspect(recovered, recovery_request.tools)
+            self._observe_protocol_counts()
+            return self._finish_truncation_recovery(recovery_decision)
         if decision.status != "repair":
             return decision.response
         self.metrics.protocolRepairAttempts += 1

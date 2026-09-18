@@ -13,6 +13,10 @@ class ModelToolProtocolError(CreatorAgentError):
     code = "MODEL_TOOL_PROTOCOL_ERROR"
 
 
+class ModelResponseTruncatedError(CreatorAgentError):
+    code = "MODEL_RESPONSE_TRUNCATED"
+
+
 class AgentNoProgressError(CreatorAgentError):
     code = "AGENT_NO_PROGRESS"
 

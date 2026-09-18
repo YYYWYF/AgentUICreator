@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 import httpx
@@ -8,6 +9,7 @@ from langchain_core.tools import StructuredTool, tool
 from pydantic import create_model
 
 from agent_ui_creator.model_protocol import (
+    ModelResponseTruncatedError,
     ModelToolProtocolError,
     ProviderResponseTraceCollector,
     ToolProtocolGuard,
@@ -237,6 +239,254 @@ def test_ordinary_final_text_is_not_misclassified():
 
     assert decision.status == "final"
     assert prose_tool.status == "repair"
+
+
+@pytest.mark.parametrize("metadata_key", ["finish_reason", "stop_reason"])
+def test_length_without_a_tool_call_is_a_truncated_final(metadata_key):
+    decision, _ = inspect(
+        AIMessage(
+            content="The next step is",
+            response_metadata={metadata_key: "length"},
+        )
+    )
+
+    assert decision.status == "truncated"
+
+
+def test_length_with_a_valid_structured_tool_call_skips_truncation_recovery():
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    response = ModelResponse(
+        result=[
+            AIMessage(
+                content="",
+                response_metadata={"finish_reason": "length"},
+                tool_calls=[
+                    {
+                        "name": "read_file",
+                        "args": {"file_path": "/src/a.ts"},
+                        "id": "call-1",
+                    }
+                ],
+            )
+        ]
+    )
+
+    result = middleware.wrap_model_call(request, lambda _request: response)
+
+    assert result.result[0].tool_calls[0]["id"] == "call-1"
+    assert middleware.metrics.modelCalls == 1
+    assert middleware.metrics.modelTruncatedTurns == 0
+    assert middleware.metrics.modelTruncationRepairAttempts == 0
+
+
+def test_truncated_final_can_recover_once_to_a_structured_tool_call():
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    requests = []
+    responses = iter(
+        [
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="I will inspect the file",
+                        response_metadata={"finish_reason": "length"},
+                    )
+                ]
+            ),
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="",
+                        tool_calls=[
+                            {
+                                "name": "read_file",
+                                "args": {"file_path": "/x"},
+                                "id": "recovery-1",
+                            }
+                        ],
+                    )
+                ]
+            ),
+        ]
+    )
+
+    def handler(current_request):
+        requests.append(current_request)
+        return next(responses)
+
+    result = middleware.wrap_model_call(request, handler)
+
+    assert result.result[0].tool_calls[0]["id"] == "recovery-1"
+    assert len(requests) == 2
+    assert "Do not repeat the analysis." in requests[1].messages[-1].content
+    assert "Do not switch to another tool." not in requests[1].messages[-1].content
+    assert middleware.metrics.modelCalls == 2
+    assert middleware.metrics.modelTruncatedTurns == 1
+    assert middleware.metrics.modelTruncationRepairAttempts == 1
+    assert middleware.metrics.modelTruncationRepairFailures == 0
+    assert middleware.metrics.protocolRepairAttempts == 0
+
+
+def test_truncated_final_can_recover_once_to_a_concise_final():
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    responses = iter(
+        [
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="Continuing",
+                        response_metadata={"stop_reason": "length"},
+                    )
+                ]
+            ),
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="The task is complete.",
+                        response_metadata={"finish_reason": "stop"},
+                    )
+                ]
+            ),
+        ]
+    )
+
+    result = middleware.wrap_model_call(request, lambda _request: next(responses))
+
+    assert result.result[0].content == "The task is complete."
+    assert middleware.metrics.modelCalls == 2
+    assert middleware.metrics.modelTruncationRepairFailures == 0
+
+
+def test_second_truncated_response_fails_without_protocol_repair_chaining():
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    responses = iter(
+        [
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="First response",
+                        response_metadata={"finish_reason": "length"},
+                    )
+                ]
+            ),
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="Still incomplete",
+                        response_metadata={"finish_reason": "length"},
+                    )
+                ]
+            ),
+        ]
+    )
+    calls = 0
+
+    def handler(_request):
+        nonlocal calls
+        calls += 1
+        return next(responses)
+
+    with pytest.raises(ModelResponseTruncatedError) as raised:
+        middleware.wrap_model_call(request, handler)
+
+    assert raised.value.code == "MODEL_RESPONSE_TRUNCATED"
+    assert calls == 2
+    assert middleware.metrics.modelCalls == 2
+    assert middleware.metrics.modelTruncationRepairAttempts == 1
+    assert middleware.metrics.modelTruncationRepairFailures == 1
+    assert middleware.metrics.protocolRepairAttempts == 0
+
+
+def test_malformed_truncation_recovery_fails_without_a_third_model_call():
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    responses = iter(
+        [
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="First response",
+                        response_metadata={"finish_reason": "length"},
+                    )
+                ]
+            ),
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="",
+                        invalid_tool_calls=[
+                            {
+                                "name": "read_file",
+                                "args": "{",
+                                "id": "bad-recovery",
+                            }
+                        ],
+                    )
+                ]
+            ),
+        ]
+    )
+    calls = 0
+
+    def handler(_request):
+        nonlocal calls
+        calls += 1
+        return next(responses)
+
+    with pytest.raises(ModelResponseTruncatedError):
+        middleware.wrap_model_call(request, handler)
+
+    assert calls == 2
+    assert middleware.metrics.modelTruncationRepairFailures == 1
+    assert middleware.metrics.protocolRepairAttempts == 0
+
+
+def test_async_truncated_final_has_the_same_bounded_recovery_semantics():
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    responses = iter(
+        [
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="Incomplete",
+                        response_metadata={"finish_reason": "length"},
+                    )
+                ]
+            ),
+            ModelResponse(
+                result=[
+                    AIMessage(
+                        content="",
+                        tool_calls=[
+                            {
+                                "name": "read_file",
+                                "args": {"file_path": "/async"},
+                                "id": "async-recovery-1",
+                            }
+                        ],
+                    )
+                ]
+            ),
+        ]
+    )
+    calls = 0
+
+    async def handler(_request):
+        nonlocal calls
+        calls += 1
+        return next(responses)
+
+    result = asyncio.run(middleware.awrap_model_call(request, handler))
+
+    assert result.result[0].tool_calls[0]["id"] == "async-recovery-1"
+    assert calls == 2
+    assert middleware.metrics.modelTruncatedTurns == 1
+    assert middleware.metrics.modelTruncationRepairAttempts == 1
+    assert middleware.metrics.modelTruncationRepairFailures == 0
 
 
 def test_missing_tool_call_id_requests_repair():

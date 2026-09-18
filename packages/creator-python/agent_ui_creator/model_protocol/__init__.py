@@ -2,6 +2,7 @@ from .errors import (
     AgentNoProgressError,
     CreatorAgentError,
     DeepAgentEventStreamUnavailableError,
+    ModelResponseTruncatedError,
     ModelToolProtocolError,
     ModelTransportError,
 )
@@ -20,6 +21,7 @@ __all__ = [
     "CreatorAgentError",
     "DeepAgentEventStreamUnavailableError",
     "ModelCallTrace",
+    "ModelResponseTruncatedError",
     "ModelToolProtocolError",
     "ModelTransportError",
     "ProviderResponseTrace",
