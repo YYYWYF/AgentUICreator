@@ -76,6 +76,7 @@ from ..validation import (
     create_validation_tool,
 )
 from .completion_gate import CreatorDevelopmentCompletionGate
+from .composition_verification_tail import CompositionVerificationTail
 from .grounding_convergence import CompositionGroundingConvergenceMiddleware
 from .change_scope import (
     ScopeAwareRecoveryGuard,
@@ -120,6 +121,7 @@ class CreatorDomainReadAgent:
         observations: DomainObservationContext,
         mutation_service: AppUIModelMutationService | None = None,
         completion_gate: CreatorDevelopmentCompletionGate | None = None,
+        completion_verification_tail: CompositionVerificationTail | None = None,
         automatic_completion_repair: bool = False,
         service_contract_authorizations: ServiceContractAuthorizationStore | None = None,
         scope_guard: ScopeAwareRecoveryGuard | None = None,
@@ -133,6 +135,7 @@ class CreatorDomainReadAgent:
         self.observations = observations
         self.mutation_service = mutation_service
         self.completion_gate = completion_gate
+        self.completion_verification_tail = completion_verification_tail
         self.automatic_completion_repair = automatic_completion_repair
         self.activity = runtime.backend.activity
         self.service_contract_authorizations = service_contract_authorizations
@@ -171,6 +174,7 @@ class CreatorDomainReadAgent:
         terminal_blocked = False
         try:
             state = await invoke(messages)
+            await self._run_composition_verification_tail()
             for _attempt in range(3):
                 if (
                     self.completion_gate is None
@@ -201,6 +205,7 @@ class CreatorDomainReadAgent:
                         HumanMessage(content=completion_decision.feedback),
                     ]
                 )
+                await self._run_composition_verification_tail()
         except TerminalBlockerStop:
             terminal_blocked = True
         except GraphRecursionError as error:
@@ -220,6 +225,7 @@ class CreatorDomainReadAgent:
             )
 
         self.runtime.raise_terminal_error()
+        await self._run_composition_verification_tail()
         messages = state.get("messages", []) if isinstance(state, dict) else []
         final = next(
             (message for message in reversed(messages) if isinstance(message, AIMessage)),
@@ -269,6 +275,16 @@ class CreatorDomainReadAgent:
                 self.observations.composition_fast_path_metrics
             )
         return result_type(**values)
+
+    async def _run_composition_verification_tail(self) -> None:
+        if (
+            self.completion_verification_tail is None
+            or self.mutation_service is None
+        ):
+            return
+        await self.completion_verification_tail.run_if_needed(
+            self.mutation_service
+        )
 
     def _build_result(
         self,
@@ -558,6 +574,12 @@ def create_domain_write_creator_agent(
         activity=backend.activity,
         repair_state=repair_state,
     )
+    completion_verification_tail = CompositionVerificationTail(
+        activity=backend.activity,
+        validation=validation,
+        runtime=runtime_inspection,
+        metrics=observations.composition_fast_path_metrics,
+    )
     domain_tools = (
         *create_project_control_tools(
             client,
@@ -653,6 +675,7 @@ def create_domain_write_creator_agent(
         project_control=client,
         observations=observations,
         mutation_service=service,
+        completion_verification_tail=completion_verification_tail,
         completion_gate=CreatorDevelopmentCompletionGate(
             activity=backend.activity,
             validation=validation,

@@ -163,6 +163,18 @@
     {
       "type": "object",
       "additionalProperties": false,
+      "required": ["type", "plugin"],
+      "properties": {
+        "type": { "const": "insert_plugin_default" },
+        "plugin": {
+          "$ref": "#/$defs/plugin",
+          "description": "Insert this existing capability using its Host-resolved authoring-default placement. Do not include anchor, Slot, Layout, or size arguments."
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
       "required": ["type", "instanceId", "target"],
       "properties": {
         "type": { "const": "move_plugin" },

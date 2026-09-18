@@ -75,14 +75,17 @@ def _semantic_operation_summary(operation: Any) -> dict[str, Any]:
 
     plugin = operation.get("plugin")
     replacement = operation.get("replacement")
-    if operation_type == "insert_plugin" and isinstance(plugin, dict):
+    if operation_type in {"insert_plugin", "insert_plugin_default"} and isinstance(plugin, dict):
         for key in ("id", "pluginId"):
             value = plugin.get(key)
             if isinstance(value, str) and value.strip():
                 summary["instanceId" if key == "id" else key] = value
-        target = _semantic_target_summary(operation.get("target"))
-        if target is not None and isinstance(target.get("type"), str):
-            summary["target"] = target["type"]
+        if operation_type == "insert_plugin":
+            target = _semantic_target_summary(operation.get("target"))
+            if target is not None and isinstance(target.get("type"), str):
+                summary["target"] = target["type"]
+        else:
+            summary["placement"] = "authoring-default"
     elif operation_type == "replace_plugin":
         instance_id = operation.get("instanceId")
         if isinstance(instance_id, str) and instance_id.strip():
@@ -173,6 +176,7 @@ class AppUIModelMutationService:
         self._last_failed_signature: str | None = None
         self._consecutive_failures = 0
         self._semantic_replan_pending = False
+        self.last_result: AppUIModelMutationResult | None = None
 
     async def mutate(
         self,
@@ -220,6 +224,7 @@ class AppUIModelMutationService:
             self.metrics.semanticReplans += 1
         self.metrics.successfulRequests += 1
         self._semantic_replan_pending = False
+        self.last_result = result
         self._record_request(request_index, operations, result=result)
         return result
 

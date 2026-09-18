@@ -9,6 +9,12 @@ allowed-tools: read_file ls glob grep inspect_ui_project inspect_app_ui_model in
 
 Express composition through the AppUIModel Layout Tree rather than DOM manipulation or ad-hoc Plugin CSS.
 
+Do not load this Skill for an eligible `insert_plugin_default` request from a
+fresh Composition Snapshot. The Host resolves the declared authoring placement,
+size, track materialization, and low-level lowering atomically. Load this Skill
+when the semantic operation is unavailable, fails closed, or the user requests
+custom Layout placement or geometry.
+
 ## Node semantics
 
 - `row`: lays out children horizontally. Optional `sizes` correspond by index to `children`.

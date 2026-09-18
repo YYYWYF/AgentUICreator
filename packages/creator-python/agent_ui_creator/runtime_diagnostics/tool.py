@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+from copy import deepcopy
 from typing import Annotated, Any
 from urllib.parse import unquote_to_bytes
 
@@ -205,6 +206,20 @@ class RuntimeDiagnosticInspectionService:
             or self.last_inspected_revision != self.activity.revision
         ):
             return None
+        return result
+
+    def publish_host_verification(
+        self,
+        verification_tail: dict[str, Any],
+        *,
+        runtime_result: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Attach Host-owned tail evidence to the current-revision Runtime result."""
+
+        result = deepcopy(runtime_result or self.latest_result or {})
+        result["verificationTail"] = deepcopy(verification_tail)
+        self.latest_result = result
+        self.last_inspected_revision = self.activity.revision
         return result
 
     @staticmethod

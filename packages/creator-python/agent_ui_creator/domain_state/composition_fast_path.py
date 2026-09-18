@@ -110,6 +110,13 @@ class CompositionFastPathMetrics:
     firstMutationErrorCode: str | None = None
     inputTokensBeforeFirstMutation: int | None = None
     modelLatencyBeforeFirstMutationMs: int | None = None
+    semanticCompositionFastPath: bool = False
+    semanticOperation: str | None = None
+    semanticLoweringSucceeded: bool | None = None
+    verificationTailRan: bool = False
+    runtimeFreshnessAttempts: int = 0
+    runtimeFreshnessWaitMs: int = 0
+    geometryVerified: bool | None = None
     _first_mutation_started: bool = field(default=False, init=False, repr=False)
     _first_mutation_finished: bool = field(default=False, init=False, repr=False)
     _first_mutation_revision: int | None = field(default=None, init=False, repr=False)
@@ -217,8 +224,28 @@ class CompositionFastPathMetrics:
             code if isinstance(code, str) else type(error).__name__
         )
 
+    def record_semantic_operation(
+        self, *, operation: Any, lowering_succeeded: bool
+    ) -> None:
+        self.semanticCompositionFastPath = True
+        self.semanticOperation = operation if isinstance(operation, str) else None
+        self.semanticLoweringSucceeded = lowering_succeeded
+
+    def record_verification_tail(self, result: Mapping[str, Any]) -> None:
+        self.verificationTailRan = True
+        attempts = result.get("runtimeFreshnessAttempts")
+        wait_ms = result.get("runtimeFreshnessWaitMs")
+        self.runtimeFreshnessAttempts = (
+            int(attempts) if isinstance(attempts, int) else 0
+        )
+        self.runtimeFreshnessWaitMs = (
+            int(wait_ms) if isinstance(wait_ms, int) else 0
+        )
+        geometry = result.get("geometryVerified")
+        self.geometryVerified = geometry if isinstance(geometry, bool) else None
+
     def to_dict(self) -> dict[str, object]:
-        return {
+        result: dict[str, object] = {
             "attempted": self.attempted,
             "eligible": self.eligible,
             "compositionSnapshots": self.compositionSnapshots,
@@ -238,3 +265,16 @@ class CompositionFastPathMetrics:
             "inputTokensBeforeFirstMutation": self.inputTokensBeforeFirstMutation,
             "modelLatencyBeforeFirstMutationMs": self.modelLatencyBeforeFirstMutationMs,
         }
+        if self.semanticCompositionFastPath or self.verificationTailRan:
+            result.update(
+                {
+                    "semanticCompositionFastPath": self.semanticCompositionFastPath,
+                    "semanticOperation": self.semanticOperation,
+                    "semanticLoweringSucceeded": self.semanticLoweringSucceeded,
+                    "verificationTailRan": self.verificationTailRan,
+                    "runtimeFreshnessAttempts": self.runtimeFreshnessAttempts,
+                    "runtimeFreshnessWaitMs": self.runtimeFreshnessWaitMs,
+                    "geometryVerified": self.geometryVerified,
+                }
+            )
+        return result

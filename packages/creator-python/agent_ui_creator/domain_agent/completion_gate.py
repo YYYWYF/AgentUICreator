@@ -334,7 +334,56 @@ class CreatorDevelopmentCompletionGate:
                     validation,
                 ),
             )
+        verification_tail = (
+            runtime.get("verificationTail")
+            if isinstance(runtime, dict)
+            else None
+        )
+        if (
+            runtime_status == "stale"
+            and isinstance(verification_tail, dict)
+            and verification_tail.get("staticValidationStatus") == "passed"
+            and verification_tail.get("freshnessExhausted") is True
+        ):
+            if self.service_authorization_finalizer is not None:
+                self.service_authorization_finalizer.complete_current_applied()
+            return CompletionDecision(
+                True,
+                self._with_workspace_warning(
+                    (
+                        "静态验证已经通过；Host 已完成有界 Runtime freshness 等待，但当前证据仍然早于"
+                        "本次 Composition 修改，因此不能声称已经通过 Runtime 验证。"
+                    ),
+                    validation,
+                ),
+            )
         if runtime_status == "failed":
+            geometry_verification = (
+                runtime.get("verificationTail", {}).get("geometryVerification")
+                if isinstance(runtime.get("verificationTail"), dict)
+                else None
+            )
+            if (
+                isinstance(geometry_verification, dict)
+                and geometry_verification.get("status") == "failed"
+            ):
+                text = (
+                    "无法确认本次插件开发已经完成：Host 的最新 Runtime 几何证据与请求的"
+                    " Composition placement 或尺寸矛盾。修改已保留，请继续修复并重新验证。"
+                )
+                if self.repair_state.limit_reached:
+                    return CompletionDecision(True, text)
+                return CompletionDecision(
+                    False,
+                    text,
+                    (
+                        "The Host verification tail found a fresh geometry contradiction for the "
+                        "semantic Composition mutation. Repair only the implicated AppUIModel "
+                        "placement or size, validate the new revision, and inspect Runtime again. "
+                        "Current bounded evidence:\n"
+                        + json.dumps(runtime, ensure_ascii=False, default=str)
+                    ),
+                )
             current_errors = runtime.get("currentErrors", []) if runtime else []
             composition_failures = [
                 check

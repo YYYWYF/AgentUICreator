@@ -113,6 +113,10 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
     index: indexSchema,
   }),
   z.strictObject({
+    type: z.literal("insert_plugin_default"),
+    plugin: appUIPluginNodeSchema,
+  }),
+  z.strictObject({
     type: z.literal("move_plugin"),
     instanceId: nonBlankStringSchema,
     target: appUIPluginTargetSchema,
@@ -701,6 +705,11 @@ function applyOperation(context: MutationContext, operation: AppUIOperation): vo
       assertUniquePluginIds(context.model, operation.plugin);
       insertAt(pluginContainer(context, operation.target), structuredClone(operation.plugin), operation.index, "Plugin target");
       return;
+    case "insert_plugin_default":
+      operationError(
+        "SEMANTIC_OPERATION_NOT_LOWERED",
+        "insert_plugin_default must be lowered by the AppUI transaction Host before applying operations.",
+      );
     case "move_plugin": {
       const detached = detachPlugin(context, operation.instanceId);
       const destination = pluginContainer(context, operation.target);

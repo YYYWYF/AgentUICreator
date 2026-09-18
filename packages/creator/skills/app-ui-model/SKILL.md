@@ -1,13 +1,16 @@
 ---
 name: app-ui-model
-description: Load for every request that changes AppUIModel composition, including simple add, remove, hide, move, resize, placement, props, Layout, or nested Plugin Slot changes.
+description: Load for low-level AppUIModel composition changes, including custom add, remove, hide, move, resize, placement, props, Layout, or nested Plugin Slot changes. The Host-owned insert_plugin_default semantic fast path does not require this Skill.
 compatibility: Agent UI Plugin Creator authoring model.
 allowed-tools: read_file ls glob grep inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin mutate_app_ui_model execute
 ---
 
 # AppUIModel Composition Manual
 
-Use this Skill for every Composition change, not only complex Layout work.
+Use this Skill for low-level Composition changes, not for the Host-owned
+`insert_plugin_default` fast path. The semantic operation already carries the
+complete desired insertion and the Host deterministically resolves its
+authoring-default placement.
 AppUIModel owns which Plugin instances exist, whether they are enabled, their
 authoring props and placement, and the Layout tree that contains visual regions.
 
@@ -93,6 +96,13 @@ Composition revision; it does not need a separate Service scan.
 
 ## Semantic operations
 
+- `insert_plugin_default`: insert an existing unselected visual Plugin asset at
+  its declared authoring-default placement. The operation accepts only the
+  complete Plugin node; never add `anchorRef`, `slotRef`, `size`, `anchorSize`,
+  Panel, Row, Column, or other Layout arguments. The Host fails closed when
+  placement, anchor, Service readiness, or supported Layout preconditions are
+  not uniquely resolved, then the low-level Layout escape hatch remains
+  available.
 - `insert_plugin`: insert one complete Plugin node into `application`, a
   `layout_slot(slotRef)`, or `plugin_slot(parentInstanceId, slot)`.
 - `move_plugin`: relocate an existing Plugin subtree.
@@ -290,8 +300,11 @@ ConversationService remains.
 Owning layer: Composition.
 Semantic delta: insert the recommended left Layout region and the existing
 capability in one atomic mutation.
-Correct tools: inspect_ui_project(view=composition), load app-ui-model and
-ui-layout, then mutate_app_ui_model.
+Correct tools for an eligible authoring-default insertion:
+inspect_ui_project(view=composition), then one `mutate_app_ui_model` call with
+`insert_plugin_default`; the Host owns deterministic Layout lowering and
+post-commit verification. Load this Skill and `ui-layout` only when the
+semantic operation is unavailable or the request specifies custom placement.
 Incorrect: read the manifest, inspect Services, read Plugin source/CSS, or scan
 the project to preflight checks listed in hostGuarantees.
 ```

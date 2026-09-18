@@ -137,6 +137,9 @@ def create_app_ui_model_mutation_tool(
             "nested child Slots, and authoring target. Prefer move_plugin when relocating "
             "an existing plugin and replace_plugin for an in-place replacement. A second successful "
             "mutation for the same resolved user intent should be exceptional. "
+            "Use insert_plugin_default for an existing visual capability whose Host-resolved "
+            "authoring-default placement is eligible; it accepts no anchor, Slot, Layout, or "
+            "size arguments. "
             "Prefer semantic reflow for removing an entire visible region. Use low-level "
             "Layout node operations only when the requested layout cannot be represented by "
             "semantic Composition operations. "
@@ -153,8 +156,10 @@ def create_app_ui_model_mutation_tool(
             "observationStillValid, and recovery. Reuse the current observation for an "
             "operation_precondition and semantically replan at most once. Stop on a "
             "workspace_integrity blocker instead of repairing another layer. Stale-state "
-            "refresh does not consume the semantic replan. Success is a static composition commit only, "
-            "not runtime or Host validation."
+            "refresh does not consume the semantic replan. Success is a static composition commit only for "
+            "low-level operations. For an eligible insert_plugin_default, the Host also runs the "
+            "current-revision static and bounded Runtime verification tail; stale or unavailable "
+            "evidence is reported without a Runtime PASS claim."
         ),
     )
     async def mutate_app_ui_model(
@@ -173,6 +178,14 @@ def create_app_ui_model_mutation_tool(
                 app_ui_model_hash=observed_hash,
                 operations=operations,
             )
+            semantic_composition = result.target_result.get("semanticComposition")
+            if isinstance(semantic_composition, dict):
+                observations.composition_fast_path_metrics.record_semantic_operation(
+                    operation=semantic_composition.get("operation"),
+                    lowering_succeeded=(
+                        semantic_composition.get("semanticLoweringSucceeded") is True
+                    ),
+                )
             observations.observe_app_ui_model(
                 hash=result.target_result["appUIModel"]["afterHash"],
                 revision=service.activity.revision,

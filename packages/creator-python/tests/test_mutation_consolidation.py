@@ -92,7 +92,8 @@ def test_tool_and_prompt_preserve_final_state_transaction_contract(tmp_path):
         "insert_plugin includes its final enabled state, props",
         "move_plugin", "replace_plugin", "changed=false",
         "APP_UI_MODEL_HASH_CONFLICT", "APP_UI_MODEL_OBSERVATION_REQUIRED",
-        "static composition commit only",
+        "insert_plugin_default",
+        "static composition commit only for low-level operations",
     ):
         assert rule in description
     schema = tool.args_schema["properties"]["operations"]
@@ -102,7 +103,8 @@ def test_tool_and_prompt_preserve_final_state_transaction_contract(tmp_path):
     for rule in (
         "Desired state first, operations second",
         "user request -> current state -> desired state -> semantic delta -> operations",
-        "load /skills/app-ui-model/SKILL.md before calling mutate_app_ui_model",
+        "semantic `insert_plugin_default`",
+        "load `/skills/app-ui-model/SKILL.md` for low-level Composition operations",
         "smallest determinable atomic mutation",
         "Do not add a planning call, probe with partial writes",
         "stale refreshes do not consume the one allowed semantic replan",

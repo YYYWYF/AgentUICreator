@@ -45,12 +45,29 @@ async function createPlugin(
 async function createProject(
   manifestOverrides: Record<string, unknown> = {},
   modelOverride?: AppUIModel,
+  additionalPlugins: readonly (readonly [string, Record<string, unknown>])[] = [],
 ) {
   const projectRoot = await mkdtemp(path.join(tmpdir(), "app-ui-transaction-"));
   temporaryProjects.push(projectRoot);
   await mkdir(path.join(projectRoot, "app-ui"));
   await mkdir(path.join(projectRoot, "plugins"));
   await createPlugin(projectRoot, "sample", manifestOverrides);
+  for (const [pluginId, overrides] of additionalPlugins) {
+    await createPlugin(projectRoot, pluginId, overrides);
+  }
+  if (additionalPlugins.length > 0) {
+    await writeFile(
+      path.join(projectRoot, "tsconfig.json"),
+      JSON.stringify({
+        compilerOptions: { target: "ES2022", module: "ESNext" },
+        include: ["plugins/**/*.ts"],
+      }),
+    );
+    const definition = "const definition = { manifest: {}, Component: () => null };\nexport default definition;\n";
+    for (const pluginId of ["sample", ...additionalPlugins.map(([id]) => id)]) {
+      await writeFile(path.join(projectRoot, "plugins", pluginId, "definition.ts"), definition);
+    }
+  }
   const model: AppUIModel = modelOverride ?? {
     root: {
       type: "slot",
@@ -283,6 +300,135 @@ describe("AppUIModel transaction", () => {
     expect(result.snapshotToken.capabilityCatalogRevision).toBe(
       result.compositionRevision!.capabilityCatalogRevision,
     );
+  });
+
+  it("lowers an authoring-default insertion into one deterministic visual region", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        children: [{
+          type: "panel",
+          child: {
+            type: "slot",
+            plugins: [{
+              id: "conversation-surface-main",
+              pluginId: "conversation-surface",
+              enabled: true,
+            }],
+          },
+        }],
+      },
+    };
+    const { projectRoot, source } = await createProject(
+      {},
+      model,
+      [
+        ["conversation-surface", {
+          authoring: {
+            intents: ["show the primary conversation"],
+            visualRole: "primary conversation surface",
+            recommendedSize: { width: "minmax(0, 1fr)" },
+          },
+        }],
+        ["conversation-thread-list", {
+          capabilities: ["conversation-history"],
+          authoring: {
+            intents: ["add conversation management"],
+            visualRole: "conversation navigation",
+            typicalPlacement: {
+              relation: "before",
+              anchorPluginId: "conversation-surface",
+            },
+            recommendedSize: { width: "280px" },
+          },
+        }],
+      ],
+    );
+
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "insert_plugin_default",
+        plugin: {
+          id: "conversation-thread-list-main",
+          pluginId: "conversation-thread-list",
+          enabled: true,
+        },
+      }],
+    });
+
+    expect(result.semanticComposition).toMatchObject({
+      operation: "insert_plugin_default",
+      semanticLoweringSucceeded: true,
+      expectedGeometry: {
+        instanceId: "conversation-thread-list-main",
+        anchorInstanceId: "conversation-surface-main",
+        relation: "before",
+        axis: "width",
+        size: "280px",
+      },
+    });
+    expect(JSON.parse(await readFile(
+      path.join(projectRoot, "app-ui", "app-ui.json"),
+      "utf8",
+    ))).toMatchObject({
+      root: {
+        type: "row",
+        sizes: ["280px", "minmax(0, 1fr)"],
+        children: [
+          {
+            type: "panel",
+            width: "280px",
+            child: {
+              type: "slot",
+              plugins: [{ id: "conversation-thread-list-main" }],
+            },
+          },
+          {
+            type: "panel",
+            child: {
+              type: "slot",
+              plugins: [{ id: "conversation-surface-main" }],
+            },
+          },
+        ],
+      },
+    });
+  });
+
+  it("fails closed when authoring-default placement is not available", async () => {
+    const { projectRoot, source } = await createProject();
+    await createPlugin(projectRoot, "unplaced", {
+      authoring: {
+        intents: ["unplaced capability"],
+        recommendedSize: { width: "280px" },
+      },
+    });
+
+    await expect(mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "insert_plugin_default",
+        plugin: { id: "unplaced-main", pluginId: "unplaced", enabled: true },
+      }],
+    })).rejects.toMatchObject({
+      code: "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
+    });
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
+      .toBe(source);
+  });
+
+  it("rejects Host lowering details on the semantic operation boundary", async () => {
+    const { projectRoot, source } = await createProject();
+
+    await expect(mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "insert_plugin_default",
+        plugin: { id: "sample-second", pluginId: "sample", enabled: true },
+        anchorRef: "l0",
+      }],
+    })).rejects.toThrow();
   });
 
   it("strips transaction localRefs before writing AppUIModel", async () => {

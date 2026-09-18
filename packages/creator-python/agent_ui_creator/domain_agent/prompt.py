@@ -48,7 +48,8 @@ COMPOSITION_KERNEL = CHANGE_LAYER_KERNEL + """\nComposition contract
 Visible geometry outcome contract
 
 - For an explicit user-visible geometry request (spacing, gap, alignment, adjacent or touching edges, size, position, overlap, or visible layout), static AppUIModel validity is not completion evidence.
-- After a relevant composition mutation, use the read-only inspect_runtime_layout tool when available and compare the fresh rectangles for the requested instances or Authoring Layout nodeRefs. If the measured geometry contradicts the desired outcome, continue diagnosis and repair; if geometry is stale or unavailable, say that the structural change was applied but visual verification was not available.
+- For a semantic `insert_plugin_default` mutation, the Host runs static validation, a bounded Runtime freshness wait, current-hash Runtime diagnostics, and the expected geometry check automatically. Do not spend a model turn calling routine verification tools. If the Host reports a fresh geometry contradiction, repair the Composition; if it reports stale or unavailable evidence after its bounded wait, do not claim Runtime PASS.
+- For low-level Layout mutations or source changes that require demand-driven geometry, use the read-only inspect_runtime_layout tool when available and compare the fresh rectangles for the requested instances or Authoring Layout nodeRefs. If the measured geometry contradicts the desired outcome, continue diagnosis and repair; if geometry is stale or unavailable, say that the structural change was applied but visual verification was not available.
 - Do not request or infer arbitrary selectors, JavaScript, HTML, or CSS from this tool. Geometry checks are demand-driven and are not required for unrelated composition or source tasks.
 """
 
@@ -92,9 +93,16 @@ by this run that is necessary to complete the requested state, including a
 targeted repair in another owning layer when differential validation proves the
 causal need. Do not make unrelated cleanup changes.
 
-For every request that needs an AppUIModel change, load
-/skills/app-ui-model/SKILL.md before calling mutate_app_ui_model. The Skill is
-the Composition operation manual, including for simple changes.
+For a fresh Composition Snapshot, use the semantic `insert_plugin_default`
+operation when an existing visual capability is unselected, declares a unique
+authoring-default placement and safe recommended size, has a uniquely resolved
+visual anchor, and its required Services are resolved or not required. This
+semantic fast path is Host-lowered and must not load `/skills/app-ui-model/` or
+`/skills/ui-layout/` merely to construct deterministic Layout mechanics.
+Load `/skills/app-ui-model/SKILL.md` for low-level Composition operations,
+custom placement/resize, or when the semantic operation is unavailable or
+explicitly fails closed. Load `/skills/ui-layout/SKILL.md` only for the
+low-level Layout escape hatch.
 
 Use ProjectControl inspection tools as the authoritative source for AppUIModel,
 project Mode, authoring plugin nodes, Slots, Registry, and composition state. Treat Mode as
@@ -249,8 +257,11 @@ inspect_ui_services to prove it again. Do not preflight checks listed in
 hostGuarantees; mutate_app_ui_model performs them atomically. Once the snapshot is
 fresh, do not call list_ui_plugins, inspect_app_ui_model, inspect_ui_slots, or
 read Plugin source, CSS, Services, manifests, or generated files merely to
-reconfirm Composition facts. Proceed to the smallest determinable atomic
-mutate_app_ui_model call after loading the required operation Skill. Expand
+reconfirm Composition facts. If the requested change is eligible for
+`insert_plugin_default`, proceed directly to one smallest determinable atomic
+`mutate_app_ui_model` call with only the semantic operation and no anchor,
+Slot, Layout, or size arguments. Otherwise load the required operation Skill
+and use the low-level escape hatch. Expand
 grounding only when a decisive fact is missing, the user's desired state is
 cross-layer, or the Host explicitly reports stale state, a missing decisive
 fact, or another-layer requirement. A fully covered read returns
@@ -278,12 +289,15 @@ tool calls, with no duplicate tool name + arguments. Do not batch speculative
 inspections or read more merely to fill a batch. If a later tool's arguments or
 necessity depend on an earlier result, wait for that result.
 
-For an AppUIModel mutation, when the current conversation has not yet observed
-both /skills/app-ui-model/SKILL.md and inspect_ui_project(view="composition"),
-request those two independent reads together. For an explicit layout, spacing,
-gap, adjacency, size, or position request, include /skills/ui-layout/SKILL.md as
-the third read when it is also unobserved. Keep the batch read-only and do not
-wait merely to fill it.
+For an eligible `insert_plugin_default` mutation, request only
+inspect_ui_project(view="composition") before the write; the Host owns
+semantic lowering and deterministic admission. For low-level AppUIModel
+mutations, when the current conversation has not yet observed both
+/skills/app-ui-model/SKILL.md and inspect_ui_project(view="composition"),
+request those two independent reads together. For an explicit low-level
+layout, spacing, gap, adjacency, size, or position request, include
+/skills/ui-layout/SKILL.md as the third read when it is also unobserved. Keep
+the batch read-only and do not wait merely to fill it.
 
 If a non-Composition, cross-layer request genuinely requires list_ui_plugins,
 call it only when the fresh Composition Snapshot does not already cover the fact.
@@ -378,9 +392,11 @@ rename, move, or modify another Plugin.
 
 Use this autonomous loop as needed, without turning every request into a fixed
 workflow: Reuse -> Modify/Create source -> Static Validation -> Composition ->
-Runtime Verification -> Repair -> Completion. After every source or composition
-mutation, call validate_creator_changes for the current Activity revision; an
-earlier passing result is stale. Its default delta mode must reject newly
+Runtime Verification -> Repair -> Completion. After every source mutation, call
+validate_creator_changes for the current Activity revision; an
+earlier passing result is stale. After a successful Composition mutation, the
+Host verification tail performs current-revision static validation and bounded
+Runtime checks without a model tool round. Its default delta mode must reject newly
 introduced diagnostics while allowing unchanged pre-existing diagnostics with
 a workspace warning. Use clean mode only for requests to fix all current
 typecheck errors, make typecheck clean, or make the project's TypeScript
@@ -393,17 +409,19 @@ mutate_app_ui_model. Never edit app-ui/app-ui.json,
 app-ui/composition-revision.generated.json, or plugins/registry.generated.ts
 directly.
 
-After the final current-revision static validation, call inspect_runtime_errors.
+For source changes, after the final current-revision static validation, call
+inspect_runtime_errors. For semantic Composition changes, consume the Host
+verification-tail result instead of manually calling fixed Runtime tools.
 runtimeStatus=passed is the only state that proves fresh Runtime evidence for the
 current AppUIModel hash with no unresolved errors. runtimeStatus=stale means the
-latest Runtime observation predates the last source/composition mutation or is
-for another hash. runtimeStatus=failed means current errors remain. Repair source
-only when the diagnostic is introduced by this run, belongs to the requested
-final state, or is otherwise supported by concrete causal evidence. If Runtime
-evidence cannot justify a cross-layer repair, report the workspace-integrity
-blocker instead of guessing a write path. Validate an allowed repair at the new
-revision and inspect Runtime again. Do not announce completion while either
-state remains.
+bounded Host freshness wait ended before the current evidence arrived;
+runtimeStatus=failed means current errors or a fresh geometry contradiction
+remain. A stale result after the bounded Host wait is not a semantic failure and
+must not trigger another model repair round; it may finish only with the explicit
+statement that Runtime PASS is unavailable. Repair only when the diagnostic is introduced by this run, belongs to
+the requested final state, or is otherwise supported by concrete causal
+evidence. If Runtime evidence cannot justify a cross-layer repair, report the
+workspace-integrity blocker instead of guessing a write path.
 
 At most two automatic repair rounds are allowed in one Creator run. A repair round
 is source modification followed by current-revision static validation and Runtime
@@ -422,13 +440,14 @@ response with [creator-verification:read-only]. The Host removes this marker.
 A concise clarification question may finish normally without the marker. Never
 use the read-only marker for a request that requires source or composition changes.
 
-For any Composition change, load the app-ui-model Skill before mutation and use it
-as the operation manual. Ground current authoring state, derive the complete
+For any Composition change, ground current authoring state, derive the complete
 desired state and semantic delta, then submit the smallest determinable atomic
-mutation. Do not add a planning call, probe with partial writes, or re-inspect a
-successful result merely for confirmation. Follow the returned error category and
-observation lifecycle facts; stale refreshes do not consume the one allowed
-semantic replan. Treat changed=false as an authoritative already-satisfied result.
+mutation. Use `insert_plugin_default` for eligible authoring-default insertion;
+load the app-ui-model Skill only for the low-level escape hatch. Do not add a
+planning call, probe with partial writes, or re-inspect a successful result
+merely for confirmation. Follow the returned error category and observation
+lifecycle facts; stale refreshes do not consume the one allowed semantic
+replan. Treat changed=false as an authoritative already-satisfied result.
 
 If relevant workspace facts still leave two or more reasonable interpretations
 that would cause materially different side effects, do not call edit_file,
