@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import inspect
 import json
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import ValidationError
 
+from ..model_protocol.reliability import create_creator_model_invocation_reliability
+from ..model_settings import DEFAULT_CREATOR_MODEL_MAX_RETRIES
 from .models import (
     CreatorOperationKind,
     CreatorOperationResolution,
@@ -89,11 +91,22 @@ class CreatorOperationResolver:
         model: Any | None = None,
         *,
         structured_model: Any | None = None,
+        max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES,
+        recovery_factory: Callable[[], Any] | None = None,
     ) -> None:
         if model is None and structured_model is None:
             raise ValueError("A model or structured_model is required.")
         self.model = model
         self._structured_model = structured_model
+        self._structured_model_supplied = structured_model is not None
+        self._invocation_model: Any | None = None
+        self._recovery_factory = recovery_factory
+        self._invocation_reliability = create_creator_model_invocation_reliability(
+            max_retries=max_retries,
+            recovery_factory=(
+                self._recover_invocation_model if recovery_factory is not None else None
+            ),
+        )
         self.metrics = CreatorOperationResolverMetrics()
 
     async def resolve(
@@ -247,9 +260,22 @@ class CreatorOperationResolver:
         )
         self.metrics.modelCalls += 1
         try:
-            result = structured_model.ainvoke(messages)
-            if inspect.isawaitable(result):
-                result = await result
+            if self._structured_model_supplied:
+                invocation_model = structured_model
+                invocation = lambda current_model: current_model.ainvoke(messages)
+            else:
+                invocation_model = self._invocation_model
+                if invocation_model is None:
+                    raise CreatorOperationResolutionError(
+                        "A resolver invocation model is unavailable."
+                    )
+                invocation = lambda current_model: self._invoke_bound_structured_model(
+                    current_model, messages
+                )
+            result = await self._invocation_reliability.ainvoke(
+                invocation_model,
+                invocation,
+            )
         except Exception as error:
             raise CreatorOperationResolutionError(
                 "Creator Operation Resolver model call failed.",
@@ -280,36 +306,65 @@ class CreatorOperationResolver:
         if self.model is None:
             raise CreatorOperationResolutionError("A resolver model is unavailable.")
         resolver_model = self._model_with_resolver_budget()
-        factory = getattr(resolver_model, "with_structured_output", None)
+        self._invocation_model = resolver_model
+        self._structured_model = self._bind_structured_model(resolver_model)
+        return self._structured_model
+
+    @staticmethod
+    def _bind_structured_model(model: Any) -> Any:
+        factory = getattr(model, "with_structured_output", None)
         if not callable(factory):
             raise CreatorOperationResolutionError(
                 "The configured Creator model does not support structured output."
             )
         try:
-            self._structured_model = factory(
+            structured_model = factory(
                 CreatorOperationResolution,
                 include_raw=True,
                 method="function_calling",
             )
         except TypeError:
-            self._structured_model = factory(
+            structured_model = factory(
                 CreatorOperationResolution,
                 include_raw=True,
             )
-        return self._structured_model
+        return structured_model
 
-    def _model_with_resolver_budget(self) -> Any:
+    def _invoke_bound_structured_model(
+        self, model: Any, messages: list[SystemMessage | HumanMessage]
+    ) -> Any:
+        structured_model = (
+            self._structured_model
+            if model is self._invocation_model
+            else self._bind_structured_model(model)
+        )
+        return structured_model.ainvoke(messages)
+
+    async def _recover_invocation_model(self) -> Any:
+        if self._recovery_factory is None:
+            raise RuntimeError("A resolver model recovery factory is unavailable.")
+        fresh_model = self._recovery_factory()
+        if inspect.isawaitable(fresh_model):
+            fresh_model = await fresh_model
+        return (
+            fresh_model
+            if self._structured_model_supplied
+            else self._model_with_resolver_budget(fresh_model)
+        )
+
+    def _model_with_resolver_budget(self, model: Any | None = None) -> Any:
         """Use an independent model copy so resolver output stays bounded."""
 
-        if self.model is None:
+        candidate = self.model if model is None else model
+        if candidate is None:
             return None
-        copier = getattr(self.model, "model_copy", None)
+        copier = getattr(candidate, "model_copy", None)
         if not callable(copier):
-            return self.model
+            return candidate
         try:
             return copier(update={"max_tokens": MAX_RESOLVER_OUTPUT_TOKENS})
         except (TypeError, ValueError):
-            return self.model
+            return candidate
 
     @staticmethod
     def _messages(

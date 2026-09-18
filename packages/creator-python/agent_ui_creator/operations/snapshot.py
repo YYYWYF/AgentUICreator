@@ -10,6 +10,10 @@ from typing import Any
 from ..project_control import ProjectControlClient, ProjectControlError
 from .models import (
     CreatorDomainSnapshot,
+    MAX_PLUGIN_CAPABILITIES,
+    MAX_PLUGIN_INSTANCES,
+    MAX_PLUGIN_INTENTS,
+    MAX_TOTAL_PLUGIN_INSTANCES,
     PluginCapability,
     PluginCapabilityIndex,
     PluginDefaultPlacement,
@@ -31,6 +35,7 @@ _REQUIRED_OBSERVATION_COVERAGE = frozenset(
 )
 _MAX_DESCRIPTION_CHARS = 400
 _MAX_VISUAL_ROLE_CHARS = 200
+_MAX_INTENT_CHARS = 200
 
 
 class CreatorDomainSnapshotError(RuntimeError):
@@ -59,6 +64,10 @@ class CreatorDomainSnapshotMetrics:
 
 def _invalid(message: str, details: Any = None) -> CreatorDomainSnapshotError:
     return CreatorDomainSnapshotError("DOMAIN_SNAPSHOT_INVALID", message, details)
+
+
+def _too_large(message: str, details: Any = None) -> CreatorDomainSnapshotError:
+    return CreatorDomainSnapshotError("DOMAIN_SNAPSHOT_TOO_LARGE", message, details)
 
 
 def _required_mapping(value: Any, path: str) -> Mapping[str, Any]:
@@ -122,7 +131,16 @@ def _build_plugin_capability(
         raise _invalid(
             f"Domain snapshot field capabilitySummaries[{index}].authoring.intents must be a string list."
         )
-    intents = [intent[:200] for intent in intents_value]
+    if len(intents_value) > MAX_PLUGIN_INTENTS:
+        raise _too_large(
+            f"Plugin {plugin_id} declares too many intents.",
+            {
+                "field": f"capabilitySummaries[{index}].authoring.intents",
+                "limit": MAX_PLUGIN_INTENTS,
+                "actual": len(intents_value),
+            },
+        )
+    intents = [intent[:_MAX_INTENT_CHARS] for intent in intents_value]
     visual_role = _optional_text(
         authoring.get("visualRole"),
         f"capabilitySummaries[{index}].authoring.visualRole",
@@ -178,6 +196,15 @@ def _build_plugin_capability(
     if not isinstance(instances_value, list):
         raise _invalid(
             f"Domain snapshot field capabilitySummaries[{index}].currentInstances must be a list."
+        )
+    if len(instances_value) > MAX_PLUGIN_INSTANCES:
+        raise _too_large(
+            f"Plugin {plugin_id} declares too many instances.",
+            {
+                "field": f"capabilitySummaries[{index}].currentInstances",
+                "limit": MAX_PLUGIN_INSTANCES,
+                "actual": len(instances_value),
+            },
         )
     instances: list[PluginInstanceSummary] = []
     for instance_index, instance_value in enumerate(instances_value):
@@ -236,8 +263,27 @@ def _build_plugin_index(result: Mapping[str, Any]) -> PluginCapabilityIndex:
     summaries = result.get("capabilitySummaries")
     if not isinstance(summaries, list):
         raise _invalid("Domain snapshot capabilitySummaries must be a list.")
+    if len(summaries) > MAX_PLUGIN_CAPABILITIES:
+        raise _too_large(
+            "Domain snapshot contains too many Plugin capabilities.",
+            {
+                "field": "capabilitySummaries",
+                "limit": MAX_PLUGIN_CAPABILITIES,
+                "actual": len(summaries),
+            },
+        )
 
     plugins = [_build_plugin_capability(item, index=index) for index, item in enumerate(summaries)]
+    total_instances = sum(len(plugin.instances) for plugin in plugins)
+    if total_instances > MAX_TOTAL_PLUGIN_INSTANCES:
+        raise _too_large(
+            "Domain snapshot contains too many Plugin instances.",
+            {
+                "field": "capabilitySummaries[].currentInstances",
+                "limit": MAX_TOTAL_PLUGIN_INSTANCES,
+                "actual": total_instances,
+            },
+        )
     plugin_ids = [plugin.pluginId for plugin in plugins]
     if len(set(plugin_ids)) != len(plugin_ids):
         raise _invalid("Domain snapshot contains duplicate Plugin ids.")

@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 
 import pytest
 
 from agent_ui_creator.operations import (
     CreatorDomainSnapshotError,
     CreatorDomainSnapshotProvider,
+    MAX_PLUGIN_CAPABILITIES,
+    MAX_PLUGIN_INSTANCES,
+    MAX_PLUGIN_INTENTS,
+    MAX_TOTAL_PLUGIN_INSTANCES,
 )
 from agent_ui_creator.project_control import ProjectControlError
 
@@ -153,3 +158,73 @@ def test_snapshot_provider_rejects_incomplete_success_payload():
         asyncio.run(CreatorDomainSnapshotProvider(client).build())
 
     assert raised.value.code == "DOMAIN_SNAPSHOT_INVALID"
+
+
+def test_snapshot_provider_rejects_too_many_plugin_capabilities():
+    result = snapshot_result()
+    template = result["capabilitySummaries"][0]
+    result["capabilitySummaries"] = [
+        {**copy.deepcopy(template), "pluginId": f"plugin-{index}"}
+        for index in range(MAX_PLUGIN_CAPABILITIES + 1)
+    ]
+
+    with pytest.raises(CreatorDomainSnapshotError) as raised:
+        CreatorDomainSnapshotProvider._parse(result)
+
+    assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"
+    assert raised.value.details == {
+        "field": "capabilitySummaries",
+        "limit": MAX_PLUGIN_CAPABILITIES,
+        "actual": MAX_PLUGIN_CAPABILITIES + 1,
+    }
+
+
+def test_snapshot_provider_rejects_too_many_plugin_intents():
+    result = snapshot_result()
+    result["capabilitySummaries"][0]["authoring"]["intents"] = [
+        "intent"
+    ] * (MAX_PLUGIN_INTENTS + 1)
+
+    with pytest.raises(CreatorDomainSnapshotError) as raised:
+        CreatorDomainSnapshotProvider._parse(result)
+
+    assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"
+    assert raised.value.details["limit"] == MAX_PLUGIN_INTENTS
+
+
+def test_snapshot_provider_rejects_too_many_plugin_instances():
+    result = snapshot_result()
+    result["capabilitySummaries"][0]["currentInstances"] = [
+        {"instanceId": f"instance-{index}", "enabled": True}
+        for index in range(MAX_PLUGIN_INSTANCES + 1)
+    ]
+
+    with pytest.raises(CreatorDomainSnapshotError) as raised:
+        CreatorDomainSnapshotProvider._parse(result)
+
+    assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"
+    assert raised.value.details["limit"] == MAX_PLUGIN_INSTANCES
+
+
+def test_snapshot_provider_rejects_too_many_total_plugin_instances():
+    result = snapshot_result()
+    template = result["capabilitySummaries"][0]
+    result["capabilitySummaries"] = [
+        {
+            **copy.deepcopy(template),
+            "pluginId": f"plugin-{index}",
+            "currentInstances": [
+                {"instanceId": f"instance-{index}-{instance_index}", "enabled": True}
+                for instance_index in range(MAX_PLUGIN_INSTANCES)
+            ],
+        }
+        for index in range(
+            MAX_TOTAL_PLUGIN_INSTANCES // MAX_PLUGIN_INSTANCES + 1
+        )
+    ]
+
+    with pytest.raises(CreatorDomainSnapshotError) as raised:
+        CreatorDomainSnapshotProvider._parse(result)
+
+    assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"
+    assert raised.value.details["limit"] == MAX_TOTAL_PLUGIN_INSTANCES

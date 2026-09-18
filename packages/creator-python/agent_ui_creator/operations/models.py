@@ -7,6 +7,12 @@ from typing import Any, Literal, TypeAlias
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
+MAX_PLUGIN_CAPABILITIES = 64
+MAX_PLUGIN_INTENTS = 16
+MAX_PLUGIN_INSTANCES = 32
+MAX_TOTAL_PLUGIN_INSTANCES = 256
+
+
 CreatorOperationKind: TypeAlias = Literal[
     "add_existing_plugin",
     "remove_plugin",
@@ -56,10 +62,12 @@ class PluginCapability(BaseModel):
     pluginId: str = Field(min_length=1)
     name: str = Field(min_length=1)
     description: str = Field(min_length=1)
-    intents: list[str] = Field(default_factory=list)
+    intents: list[str] = Field(default_factory=list, max_length=MAX_PLUGIN_INTENTS)
     visualRole: str | None = None
     selected: bool
-    instances: list[PluginInstanceSummary] = Field(default_factory=list)
+    instances: list[PluginInstanceSummary] = Field(
+        default_factory=list, max_length=MAX_PLUGIN_INSTANCES
+    )
     defaultPlacement: PluginDefaultPlacement | None = None
     recommendedSize: PluginRecommendedSize | None = None
     requiredServices: RequiredServiceSummary | None = None
@@ -70,7 +78,18 @@ class PluginCapabilityIndex(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    plugins: list[PluginCapability] = Field(default_factory=list)
+    plugins: list[PluginCapability] = Field(
+        default_factory=list, max_length=MAX_PLUGIN_CAPABILITIES
+    )
+
+    @model_validator(mode="after")
+    def validate_total_instances(self) -> "PluginCapabilityIndex":
+        total_instances = sum(len(plugin.instances) for plugin in self.plugins)
+        if total_instances > MAX_TOTAL_PLUGIN_INSTANCES:
+            raise ValueError(
+                "The Plugin Capability Index exceeds the total instance limit."
+            )
+        return self
 
 
 class CreatorOperationResolution(BaseModel):

@@ -8,7 +8,7 @@ import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from inspect import isawaitable
-from typing import Any, Literal
+from typing import Any, Literal, TypeVar
 
 import httpx
 import openai
@@ -36,6 +36,8 @@ _DUPLICATE_REQUEST_PATTERN = re.compile(r"duplicate[\s_-]+request", re.IGNORECAS
 _ALREADY_PROCESSING_PATTERN = re.compile(
     r"already[\s_-]+being[\s_-]+processed", re.IGNORECASE
 )
+
+_ModelResult = TypeVar("_ModelResult")
 
 TransportFailureKind = Literal[
     "connect", "ambiguous_stream_disconnect", "other"
@@ -299,19 +301,19 @@ class _RetryCallState:
     request_shape: dict[str, object] = field(default_factory=dict)
 
 
-class CreatorModelRetryMiddleware(ModelRetryMiddleware):
-    """Bounded transport recovery for one Creator run.
+class CreatorModelInvocationReliability:
+    """Shared bounded transport recovery for one Creator model invocation owner.
 
-    The official middleware remains the public integration point, while this
-    subclass owns the small policy differences required by streaming transport:
-    an ambiguous stream disconnect gets a grace wait and at most one fresh model
-    client, and duplicate-in-flight 409s get one provider-specific wait/retry.
+    The invocation owner supplies the current model and a callback that performs
+    one model call. This keeps transport classification, retry timing, fresh
+    client recovery, and the bounded attempt budget identical for middleware and
+    tool-free structured calls such as the Operation Resolver.
     """
 
     def __init__(
         self,
         *,
-        metrics: ToolProtocolMetrics,
+        metrics: ToolProtocolMetrics | None = None,
         max_retries: int,
         logger: CreatorRunLogger | None = None,
         recovery_factory: Callable[[], Any] | None = None,
@@ -319,30 +321,25 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
         self.metrics = metrics
         self.logger = logger
         self.recovery_factory = recovery_factory
+        self.max_retries = min(
+            max(0, int(max_retries)), _MAX_MODEL_TRANSPORT_ATTEMPTS - 1
+        )
         self._fresh_model: Any | None = None
         self._fresh_client_recovery_attempted = False
         self._fresh_recovery_pending = False
         self._fresh_recovery_finalized = False
-        bounded_retries = min(
-            max(0, int(max_retries)), _MAX_MODEL_TRANSPORT_ATTEMPTS - 1
-        )
-        super().__init__(
-            max_retries=bounded_retries,
-            retry_on=self._retry_on,
-            on_failure="error",
-            initial_delay=_SHORT_RETRY_DELAY_SECONDS[0],
-            backoff_factor=2.0,
-            max_delay=_SHORT_RETRY_DELAY_SECONDS[1],
-            jitter=True,
-        )
 
-    def _retry_on(self, error: Exception) -> bool:
-        return is_retryable_creator_model_error(error)
+    def _active_model(self, model: Any) -> Any:
+        if self._fresh_model is None or model is self._fresh_model:
+            return model
+        return self._fresh_model
 
-    def _request_with_active_model(self, request: ModelRequest) -> ModelRequest:
-        if self._fresh_model is None or request.model is self._fresh_model:
-            return request
-        return request.override(model=self._fresh_model)
+    def _request_shape(
+        self,
+        model: Any,
+        request_shape: Callable[[Any], dict[str, object]] | None,
+    ) -> dict[str, object]:
+        return {} if request_shape is None else request_shape(model)
 
     def _record_transport_failure(
         self,
@@ -357,6 +354,8 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
         if not _is_model_transport_failure(error):
             return
         state.failures += 1
+        if self.metrics is None:
+            return
         self.metrics.modelTransportFailures += 1
         error_type = type(error).__name__
         self.metrics.modelTransportFailuresByType[error_type] = (
@@ -391,7 +390,8 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
     ) -> None:
         details = _transport_details(error)
         self._finalize_fresh_recovery(success=False)
-        self.metrics.modelTransportRetryExhausted += 1
+        if self.metrics is not None:
+            self.metrics.modelTransportRetryExhausted += 1
         if self.logger is not None:
             self.logger.record(
                 "model_transport_retry_exhausted",
@@ -450,10 +450,11 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
             return
         self._fresh_recovery_finalized = True
         self._fresh_recovery_pending = False
-        if success:
-            self.metrics.modelTransportFreshClientRecoveries += 1
-        else:
-            self.metrics.modelTransportFreshClientRecoveryFailures += 1
+        if self.metrics is not None:
+            if success:
+                self.metrics.modelTransportFreshClientRecoveries += 1
+            else:
+                self.metrics.modelTransportFreshClientRecoveryFailures += 1
 
     def _create_fresh_model_sync(self, current_model: Any) -> bool:
         assert self.recovery_factory is not None
@@ -504,7 +505,8 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
         failure_kind = _event_failure_kind(error)
         if failure_kind == "duplicate_inflight":
             state.duplicate_inflight_waits += 1
-            self.metrics.modelTransportDuplicateInflightWaits += 1
+            if self.metrics is not None:
+                self.metrics.modelTransportDuplicateInflightWaits += 1
             time.sleep(_duplicate_inflight_delay())
             return True
 
@@ -535,7 +537,8 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
         failure_kind = _event_failure_kind(error)
         if failure_kind == "duplicate_inflight":
             state.duplicate_inflight_waits += 1
-            self.metrics.modelTransportDuplicateInflightWaits += 1
+            if self.metrics is not None:
+                self.metrics.modelTransportDuplicateInflightWaits += 1
             await asyncio.sleep(_duplicate_inflight_delay())
             return True
 
@@ -557,11 +560,21 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
         await asyncio.sleep(_short_retry_delay())
         return True
 
-    def _new_state(self, request: ModelRequest) -> _RetryCallState:
+    def _new_state(
+        self,
+        model: Any,
+        *,
+        model_call_sequence: int | None,
+        request_shape: Callable[[Any], dict[str, object]] | None,
+    ) -> _RetryCallState:
+        if model_call_sequence is None:
+            model_call_sequence = (
+                self.metrics.modelCalls + 1 if self.metrics is not None else 0
+            )
         return _RetryCallState(
-            model_call_sequence=self.metrics.modelCalls + 1,
+            model_call_sequence=model_call_sequence,
             started_at=time.monotonic(),
-            request_shape=model_request_shape(request),
+            request_shape=self._request_shape(model, request_shape),
         )
 
     def _record_recovered(self, state: _RetryCallState) -> None:
@@ -579,21 +592,28 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
                 },
             )
 
-    def wrap_model_call(
+    def invoke(
         self,
-        request: ModelRequest,
-        handler: Callable[[ModelRequest], ModelResponse],
-    ) -> Any:
-        state = self._new_state(request)
+        model: Any,
+        invocation: Callable[[Any], _ModelResult],
+        *,
+        model_call_sequence: int | None = None,
+        request_shape: Callable[[Any], dict[str, object]] | None = None,
+    ) -> _ModelResult:
+        state = self._new_state(
+            model,
+            model_call_sequence=model_call_sequence,
+            request_shape=request_shape,
+        )
         for _ in range(self.max_retries + 1):
-            current_request = self._request_with_active_model(request)
-            current_model = current_request.model
+            current_model = self._active_model(model)
             state.attempts += 1
             state.attempt_started_at = time.monotonic()
-            state.request_shape = model_request_shape(current_request)
-            self.metrics.modelTransportAttempts += 1
+            state.request_shape = self._request_shape(current_model, request_shape)
+            if self.metrics is not None:
+                self.metrics.modelTransportAttempts += 1
             try:
-                response = handler(current_request)
+                response = invocation(current_model)
             except Exception as error:
                 retryable = is_retryable_creator_model_error(error)
                 failure_kind = _event_failure_kind(error)
@@ -633,21 +653,30 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
 
         raise RuntimeError("Creator model transport retry loop completed unexpectedly.")
 
-    async def awrap_model_call(
+    async def ainvoke(
         self,
-        request: ModelRequest,
-        handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
-    ) -> Any:
-        state = self._new_state(request)
+        model: Any,
+        invocation: Callable[[Any], Awaitable[_ModelResult] | _ModelResult],
+        *,
+        model_call_sequence: int | None = None,
+        request_shape: Callable[[Any], dict[str, object]] | None = None,
+    ) -> _ModelResult:
+        state = self._new_state(
+            model,
+            model_call_sequence=model_call_sequence,
+            request_shape=request_shape,
+        )
         for _ in range(self.max_retries + 1):
-            current_request = self._request_with_active_model(request)
-            current_model = current_request.model
+            current_model = self._active_model(model)
             state.attempts += 1
             state.attempt_started_at = time.monotonic()
-            state.request_shape = model_request_shape(current_request)
-            self.metrics.modelTransportAttempts += 1
+            state.request_shape = self._request_shape(current_model, request_shape)
+            if self.metrics is not None:
+                self.metrics.modelTransportAttempts += 1
             try:
-                response = await handler(current_request)
+                response = invocation(current_model)
+                if isawaitable(response):
+                    response = await response
             except Exception as error:
                 retryable = is_retryable_creator_model_error(error)
                 failure_kind = _event_failure_kind(error)
@@ -686,6 +715,94 @@ class CreatorModelRetryMiddleware(ModelRetryMiddleware):
             return response
 
         raise RuntimeError("Creator model transport retry loop completed unexpectedly.")
+
+
+class CreatorModelRetryMiddleware(ModelRetryMiddleware):
+    """LangChain middleware adapter for the shared Creator transport policy."""
+
+    def __init__(
+        self,
+        *,
+        metrics: ToolProtocolMetrics,
+        max_retries: int,
+        logger: CreatorRunLogger | None = None,
+        recovery_factory: Callable[[], Any] | None = None,
+    ) -> None:
+        bounded_retries = min(
+            max(0, int(max_retries)), _MAX_MODEL_TRANSPORT_ATTEMPTS - 1
+        )
+        self.metrics = metrics
+        self.logger = logger
+        self.recovery_factory = recovery_factory
+        self._invocation_reliability = CreatorModelInvocationReliability(
+            metrics=metrics,
+            max_retries=bounded_retries,
+            logger=logger,
+            recovery_factory=recovery_factory,
+        )
+        super().__init__(
+            max_retries=bounded_retries,
+            retry_on=self._retry_on,
+            on_failure="error",
+            initial_delay=_SHORT_RETRY_DELAY_SECONDS[0],
+            backoff_factor=2.0,
+            max_delay=_SHORT_RETRY_DELAY_SECONDS[1],
+            jitter=True,
+        )
+
+    def _retry_on(self, error: Exception) -> bool:
+        return is_retryable_creator_model_error(error)
+
+    def wrap_model_call(
+        self,
+        request: ModelRequest,
+        handler: Callable[[ModelRequest], ModelResponse],
+    ) -> Any:
+        return self._invocation_reliability.invoke(
+            request.model,
+            lambda current_model: handler(request.override(model=current_model)),
+            model_call_sequence=self.metrics.modelCalls + 1,
+            request_shape=lambda current_model: model_request_shape(
+                request.override(model=current_model)
+            ),
+        )
+
+    async def awrap_model_call(
+        self,
+        request: ModelRequest,
+        handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
+    ) -> Any:
+        async def invocation(current_model: Any) -> ModelResponse:
+            response = handler(request.override(model=current_model))
+            if isawaitable(response):
+                return await response
+            return response
+
+        return await self._invocation_reliability.ainvoke(
+            request.model,
+            invocation,
+            model_call_sequence=self.metrics.modelCalls + 1,
+            request_shape=lambda current_model: model_request_shape(
+                request.override(model=current_model)
+            ),
+        )
+
+
+def create_creator_model_invocation_reliability(
+    *,
+    max_retries: int,
+    metrics: ToolProtocolMetrics | None = None,
+    logger: CreatorRunLogger | None = None,
+    recovery_factory: Callable[[], Any] | None = None,
+) -> CreatorModelInvocationReliability:
+    """Create the shared bounded policy for non-agent model callers."""
+
+    return CreatorModelInvocationReliability(
+        metrics=metrics,
+        max_retries=max_retries,
+        logger=logger,
+        recovery_factory=recovery_factory,
+    )
 
 
 def create_creator_model_retry_middleware(
