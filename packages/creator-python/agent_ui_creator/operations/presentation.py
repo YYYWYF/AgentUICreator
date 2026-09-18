@@ -70,6 +70,8 @@ def _label_for_resolution(
         return f"添加 {target}"
     if resolution.kind == "remove_plugin":
         return f"移除 {target}"
+    if resolution.kind == "move_plugin":
+        return f"移动 {target}"
     if resolution.kind == "modify_plugin_logic":
         return f"修改 {target} 的逻辑"
     if resolution.kind == "general_change":

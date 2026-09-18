@@ -279,41 +279,102 @@ def test_resolution_requires_move_placement_and_rejects_non_move_placement():
 
 
 @pytest.mark.parametrize(
-    "placement",
+    ("placement", "index_factory", "target_plugin", "target_instance"),
     [
-        {
-            "type": "relative",
-            "anchorPluginId": "missing-plugin",
-            "anchorInstanceId": "conversation-surface-main",
-            "relation": "after",
-        },
-        {
-            "type": "relative",
-            "anchorPluginId": "conversation-surface",
-            "anchorInstanceId": "missing-instance",
-            "relation": "after",
-        },
-        {
-            "type": "plugin_slot",
-            "parentPluginId": "conversation-surface",
-            "parentInstanceId": "conversation-surface-main",
-            "slot": "missing-slot",
-        },
+        (
+            {
+                "type": "relative",
+                "anchorPluginId": "missing-plugin",
+                "anchorInstanceId": "conversation-surface-main",
+                "relation": "after",
+            },
+            remove_plugin_index,
+            "conversation-thread-list",
+            "conversation-thread-list-main",
+        ),
+        (
+            {
+                "type": "relative",
+                "anchorPluginId": "conversation-surface",
+                "anchorInstanceId": "missing-instance",
+                "relation": "after",
+            },
+            remove_plugin_index,
+            "conversation-thread-list",
+            "conversation-thread-list-main",
+        ),
+        (
+            {
+                "type": "relative",
+                "anchorPluginId": "conversation-surface",
+                "anchorInstanceId": "conversation-thread-list-main",
+                "relation": "after",
+            },
+            remove_plugin_index,
+            "conversation-thread-list",
+            "conversation-thread-list-main",
+        ),
+        (
+            {
+                "type": "plugin_slot",
+                "parentPluginId": "conversation-surface",
+                "parentInstanceId": "conversation-surface-main",
+                "slot": "missing-slot",
+            },
+            remove_plugin_index,
+            "conversation-thread-list",
+            "conversation-thread-list-main",
+        ),
+        (
+            {
+                "type": "plugin_slot",
+                "parentPluginId": "composer",
+                "parentInstanceId": "send-button-main",
+                "slot": "actions",
+            },
+            move_plugin_index,
+            "send-button",
+            "send-button-main",
+        ),
+        (
+            {
+                "type": "plugin_slot",
+                "parentPluginId": "missing-parent-plugin",
+                "parentInstanceId": "composer-main",
+                "slot": "actions",
+            },
+            move_plugin_index,
+            "send-button",
+            "send-button-main",
+        ),
+        (
+            {
+                "type": "plugin_slot",
+                "parentPluginId": "composer",
+                "parentInstanceId": "missing-parent-instance",
+                "slot": "actions",
+            },
+            move_plugin_index,
+            "send-button",
+            "send-button-main",
+        ),
     ],
 )
-def test_resolver_rejects_unknown_move_placement_targets(placement):
+def test_resolver_rejects_invalid_move_placement_targets(
+    placement, index_factory, target_plugin, target_instance
+):
     model = StaticStructuredModel(
         [
             resolution(
                 "move_plugin",
-                plugins=["conversation-thread-list"],
-                instances=["conversation-thread-list-main"],
+                plugins=[target_plugin],
+                instances=[target_instance],
                 placement=placement,
             ),
             resolution(
                 "move_plugin",
-                plugins=["conversation-thread-list"],
-                instances=["conversation-thread-list-main"],
+                plugins=[target_plugin],
+                instances=[target_instance],
                 placement=placement,
             ),
         ]
@@ -324,7 +385,7 @@ def test_resolver_rejects_unknown_move_placement_targets(placement):
         asyncio.run(
             resolver.resolve(
                 "移动历史会话",
-                remove_plugin_index(),
+                index_factory(),
             )
         )
 
