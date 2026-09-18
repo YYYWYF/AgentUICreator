@@ -592,11 +592,18 @@ interface SemanticLoweringResult {
   semanticComposition: NonNullable<AppUITransactionResult["semanticComposition"]>;
 }
 
-interface VisualRegionResolution {
-  anchorRef: string;
-  parentRef: string;
-  parent: AppUIRowNode | AppUIColumnNode;
-}
+type VisualRegionResolution =
+  | {
+      mode: "existing-axis-parent";
+      anchorRef: string;
+      parentRef: string;
+      parent: AppUIRowNode | AppUIColumnNode;
+    }
+  | {
+      mode: "root-anchor";
+      anchorRef: string;
+      anchorSize: string;
+    };
 
 function semanticPlacementError(
   code:
@@ -617,12 +624,14 @@ function isVisualAsset(asset: PluginAsset | undefined): asset is PluginAsset {
   );
 }
 
-function normalizeDedicatedTrackSize(
+function normalizeAuthoringTrackSize(
   value: unknown,
-  *,
-  pluginId: string,
-  axis: "width" | "height",
+  options: {
+    pluginId: string;
+    axis: "width" | "height";
+  },
 ): string {
+  const { pluginId, axis } = options;
   if (typeof value === "number") {
     if (!Number.isFinite(value) || value <= 0) {
       semanticPlacementError(
@@ -659,10 +668,40 @@ function normalizeDedicatedTrackSize(
   return normalized;
 }
 
+function resolveRootAnchorTrackSize(
+  branch: AppUILayoutNode,
+  anchorAsset: PluginAsset,
+  axis: "width" | "height",
+): string {
+  const currentPanelSize = branch.type === "panel"
+    ? branch[axis]
+    : undefined;
+  if (currentPanelSize !== undefined) {
+    return normalizeAuthoringTrackSize(currentPanelSize, {
+      pluginId: anchorAsset.pluginId,
+      axis,
+    });
+  }
+
+  const recommendedSize = anchorAsset.authoring?.recommendedSize?.[axis];
+  if (recommendedSize === undefined) {
+    semanticPlacementError(
+      "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
+      `Anchor Plugin "${anchorAsset.pluginId}" does not provide a deterministic ${axis} for a root authoring-default region.`,
+      { anchorPluginId: anchorAsset.pluginId, axis },
+    );
+  }
+  return normalizeAuthoringTrackSize(recommendedSize, {
+    pluginId: anchorAsset.pluginId,
+    axis,
+  });
+}
+
 function resolveVisualRegion(
   model: AppUIModel,
   anchorInstanceId: string,
   relation: SemanticPlacementRelation,
+  anchorAsset: PluginAsset,
 ): VisualRegionResolution {
   const location = collectAppUIPluginLocations(model).find(
     ({ plugin }) => plugin.id === anchorInstanceId,
@@ -712,6 +751,26 @@ function resolveVisualRegion(
   const expectedParentType = relation === "above" || relation === "below"
     ? "column"
     : "row";
+  const axis = relation === "above" || relation === "below"
+    ? "height"
+    : "width";
+  const anchorRef = refs.byNode.get(branch);
+  if (anchorRef === undefined) {
+    semanticPlacementError(
+      "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
+      `Anchor region for "${anchorInstanceId}" has no stable authoring reference.`,
+      { anchorInstanceId },
+    );
+  }
+
+  if (entry.parentKind === "root") {
+    return {
+      mode: "root-anchor",
+      anchorRef,
+      anchorSize: resolveRootAnchorTrackSize(branch, anchorAsset, axis),
+    };
+  }
+
   if (
     entry.parentKind !== "children" ||
     entry.parent === undefined ||
@@ -730,9 +789,8 @@ function resolveVisualRegion(
     );
   }
 
-  const anchorRef = refs.byNode.get(branch);
   const parentRef = refs.byNode.get(entry.parent);
-  if (anchorRef === undefined || parentRef === undefined) {
+  if (parentRef === undefined) {
     semanticPlacementError(
       "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
       `Anchor region for "${anchorInstanceId}" has no stable authoring reference.`,
@@ -741,6 +799,7 @@ function resolveVisualRegion(
   }
 
   return {
+    mode: "existing-axis-parent",
     anchorRef,
     parentRef,
     parent: entry.parent,
@@ -879,7 +938,15 @@ async function lowerSemanticCompositionOperations(
   const anchorAssetMatches = generation.assets.filter(
     (candidate) => candidate.pluginId === anchor.plugin.pluginId,
   );
-  if (anchorAssetMatches.length !== 1 || !isVisualAsset(anchorAssetMatches[0])) {
+  if (anchorAssetMatches.length !== 1) {
+    semanticPlacementError(
+      "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
+      `Authoring-default anchor "${placement.anchorPluginId}" is not a uniquely resolvable visual asset.`,
+      { anchorPluginId: placement.anchorPluginId },
+    );
+  }
+  const anchorAsset = anchorAssetMatches[0];
+  if (!isVisualAsset(anchorAsset)) {
     semanticPlacementError(
       "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
       `Authoring-default anchor "${placement.anchorPluginId}" is not a uniquely resolvable visual asset.`,
@@ -900,15 +967,19 @@ async function lowerSemanticCompositionOperations(
     ? "height"
     : "width";
   const recommendedSize = authoring?.recommendedSize?.[axis];
-  const trackSize = normalizeDedicatedTrackSize(recommendedSize, {
+  const trackSize = normalizeAuthoringTrackSize(recommendedSize, {
     pluginId: asset.pluginId,
     axis,
   });
-  const region = resolveVisualRegion(model, anchor.plugin.id, placement.relation);
-  if (
-    region.parent.sizes !== undefined &&
-    region.parent.sizes.length !== region.parent.children.length
-  ) {
+  const region = resolveVisualRegion(
+    model,
+    anchor.plugin.id,
+    placement.relation,
+    anchorAsset,
+  );
+  if (region.mode === "existing-axis-parent" &&
+      region.parent.sizes !== undefined &&
+      region.parent.sizes.length !== region.parent.children.length) {
     semanticPlacementError(
       "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
       "The anchor Row/Column has an invalid child-to-track relationship.",
@@ -930,7 +1001,7 @@ async function lowerSemanticCompositionOperations(
     },
   };
   const loweredOperations: AppUIOperation[] = [];
-  if (region.parent.sizes === undefined) {
+  if (region.mode === "existing-axis-parent" && region.parent.sizes === undefined) {
     loweredOperations.push({
       type: "update_layout_node_props",
       nodeRef: region.parentRef,
@@ -945,6 +1016,7 @@ async function lowerSemanticCompositionOperations(
     direction,
     node: panel,
     size: trackSize,
+    ...(region.mode === "root-anchor" ? { anchorSize: region.anchorSize } : {}),
   });
 
   return {
