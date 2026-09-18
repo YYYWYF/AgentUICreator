@@ -107,6 +107,52 @@ def test_app_ui_remove_plugin_schema_accepts_explicit_reflow_mode():
         )
 
 
+def test_creator_layout_track_sizes_require_explicit_css_strings():
+    valid_relative = {
+        "type": "insert_layout_relative",
+        "anchorRef": "l1",
+        "direction": "left",
+        "node": {"type": "slot", "plugins": []},
+        "size": "280px",
+        "anchorSize": "minmax(0, 1fr)",
+    }
+    _validate("app-ui-model-operation.schema.json", valid_relative)
+
+    # Panel dimensions continue to use the backwards-compatible layoutSize.
+    _validate(
+        "app-ui-model-operation.schema.json",
+        {
+            "type": "update_layout_node_props",
+            "nodeRef": "l0",
+            "set": {"width": 280, "height": "24rem"},
+        },
+    )
+
+    invalid_operations = [
+        {
+            **valid_relative,
+            "size": 280,
+        },
+        {
+            "type": "insert_layout_node",
+            "parentRef": "l0",
+            "node": {
+                "type": "row",
+                "children": [],
+                "sizes": [280, "1fr"],
+            },
+        },
+        {
+            "type": "update_layout_node_props",
+            "nodeRef": "l0",
+            "set": {"sizes": [280, "minmax(0, 1fr)"]},
+        },
+    ]
+    for operation in invalid_operations:
+        with pytest.raises(ValidationError):
+            _validate("app-ui-model-operation.schema.json", operation)
+
+
 def test_project_control_runtime_composition_accepts_bounded_geometry():
     app_hash = "a" * 64
     _validate(

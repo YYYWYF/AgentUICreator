@@ -19,6 +19,7 @@ import {
 } from "../../framework/contracts/app-ui-model";
 
 const nonBlankStringSchema = z.string().trim().min(1).max(200);
+const layoutTrackSizeSchema = z.string().trim().min(1).max(200);
 const layoutRefSchema = z.string().regex(/^(?:l[0-9]+|\$[A-Za-z][A-Za-z0-9_-]*)$/);
 const indexSchema = z.number().int().nonnegative().optional();
 const removeKeysSchema = z.array(nonBlankStringSchema).max(50).optional();
@@ -26,10 +27,32 @@ const directionSchema = z.enum(["left", "right", "above", "below"]);
 const removeReflowSchema = z.enum(["preserve", "collapse-empty-region"]);
 
 type AppUILayoutMutationNode =
-  | ({ type: "row" | "column"; children: AppUILayoutMutationNode[]; gap?: number; sizes?: AppUILayoutSize[] } & { localRef?: string })
+  | ({ type: "row" | "column"; children: AppUILayoutMutationNode[]; gap?: number; sizes?: string[] } & { localRef?: string })
   | ({ type: "stack"; children: AppUILayoutMutationNode[]; activeIndex?: number } & { localRef?: string })
   | ({ type: "panel"; child: AppUILayoutMutationNode; width?: AppUILayoutSize; height?: AppUILayoutSize; minWidth?: number; maxWidth?: number; resizable?: boolean } & { localRef?: string })
   | ({ type: "slot"; plugins: AppUIPluginNode[] } & { localRef?: string });
+
+type LayoutNodeProps = {
+  gap?: number;
+  sizes?: string[];
+  activeIndex?: number;
+  width?: AppUILayoutSize;
+  height?: AppUILayoutSize;
+  minWidth?: number;
+  maxWidth?: number;
+  resizable?: boolean;
+};
+
+const layoutNodePropsSchema: z.ZodType<LayoutNodeProps> = z.strictObject({
+  gap: z.number().nonnegative().optional(),
+  sizes: z.array(layoutTrackSizeSchema).optional(),
+  activeIndex: z.number().int().nonnegative().optional(),
+  width: layoutSizeSchema.optional(),
+  height: layoutSizeSchema.optional(),
+  minWidth: z.number().nonnegative().optional(),
+  maxWidth: z.number().nonnegative().optional(),
+  resizable: z.boolean().optional(),
+});
 
 const mutationLayoutNodeSchema: z.ZodType<AppUILayoutMutationNode> = z.lazy(() =>
   z.union([
@@ -38,7 +61,7 @@ const mutationLayoutNodeSchema: z.ZodType<AppUILayoutMutationNode> = z.lazy(() =
       localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(),
       children: z.array(mutationLayoutNodeSchema),
       gap: z.number().nonnegative().optional(),
-      sizes: z.array(layoutSizeSchema).optional(),
+      sizes: z.array(layoutTrackSizeSchema).optional(),
     }),
     z.strictObject({
       type: z.literal("stack"),
@@ -113,12 +136,12 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
     parentRef: layoutRefSchema,
     node: mutationLayoutNodeSchema,
     index: indexSchema,
-    size: layoutSizeSchema.optional(),
+    size: layoutTrackSizeSchema.optional(),
   }),
   z.strictObject({
     type: z.literal("update_layout_node_props"),
     nodeRef: layoutRefSchema,
-    set: z.record(z.string(), z.unknown()).optional(),
+    set: layoutNodePropsSchema.optional(),
     removeKeys: removeKeysSchema,
   }),
   z.strictObject({
@@ -126,7 +149,7 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
     nodeRef: layoutRefSchema,
     newParentRef: layoutRefSchema,
     index: indexSchema,
-    size: layoutSizeSchema.optional(),
+    size: layoutTrackSizeSchema.optional(),
   }),
   z.strictObject({
     type: z.literal("replace_layout_node"),
@@ -142,8 +165,8 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
     anchorRef: layoutRefSchema,
     direction: directionSchema,
     node: mutationLayoutNodeSchema,
-    size: layoutSizeSchema.optional(),
-    anchorSize: layoutSizeSchema.optional(),
+    size: layoutTrackSizeSchema.optional(),
+    anchorSize: layoutTrackSizeSchema.optional(),
   }),
 ]);
 
@@ -190,6 +213,21 @@ function operationError(code: string, message: string, details?: unknown): never
   throw new AppUIOperationError(code, message, details);
 }
 
+const LAYOUT_TRACK_SIZE_ERROR =
+  'Creator Row/Column track sizes require explicit CSS units or track syntax, for example "280px", "1fr", or "minmax(0, 1fr)".';
+
+function assertLayoutTrackSize(value: unknown): asserts value is string {
+  if (!layoutTrackSizeSchema.safeParse(value).success) {
+    operationError("LAYOUT_TRACK_SIZE_UNIT_REQUIRED", LAYOUT_TRACK_SIZE_ERROR);
+  }
+}
+
+function assertLayoutTrackSizes(value: unknown): asserts value is string[] {
+  if (!Array.isArray(value) || value.some((entry) => !layoutTrackSizeSchema.safeParse(entry).success)) {
+    operationError("LAYOUT_TRACK_SIZE_UNIT_REQUIRED", LAYOUT_TRACK_SIZE_ERROR);
+  }
+}
+
 function currentEntry(context: MutationContext, target: AppUILayoutNode): CurrentNodeEntry | undefined {
   return walkAppUILayout(context.model.root).find((entry) => entry.node === target);
 }
@@ -218,6 +256,7 @@ function materializeMutationNode(
 
   let node: AppUILayoutNode;
   if (input.type === "row" || input.type === "column") {
+    if (input.sizes !== undefined) assertLayoutTrackSizes(input.sizes);
     node = {
       type: input.type,
       children: input.children.map((child) => materializeMutationNode(child, context)),
@@ -491,6 +530,7 @@ function insertChild(parent: ChildrenNode, node: AppUILayoutNode, index: number 
   if (parent.type === "row" || parent.type === "column") {
     if (parent.sizes !== undefined) {
       if (size === undefined) operationError("LAYOUT_SIZE_REQUIRED", "The destination container has sizes; the inserted child requires a size.");
+      assertLayoutTrackSize(size);
       parent.sizes.splice(targetIndex, 0, size);
     } else if (size !== undefined) {
       operationError("LAYOUT_SIZE_NOT_APPLICABLE", "The destination container does not define sizes.");
@@ -562,7 +602,10 @@ const layoutPropKeys: Record<AppUILayoutNode["type"], ReadonlySet<string>> = {
   slot: new Set(),
 };
 
-function updateLayoutNodeProps(node: AppUILayoutNode, set?: Record<string, unknown>, removeKeys?: string[]): void {
+function updateLayoutNodeProps(node: AppUILayoutNode, set?: LayoutNodeProps, removeKeys?: string[]): void {
+  if ((node.type === "row" || node.type === "column") && set?.sizes !== undefined) {
+    assertLayoutTrackSizes(set.sizes);
+  }
   const allowed = layoutPropKeys[node.type];
   for (const key of [...Object.keys(set ?? {}), ...(removeKeys ?? [])]) {
     if (!allowed.has(key)) operationError("LAYOUT_PROP_NOT_MUTABLE", `Property "${key}" cannot be changed on ${node.type} nodes.`, { allowed: [...allowed] });
@@ -623,6 +666,7 @@ function insertRelative(context: MutationContext, operation: Extract<AppUIOperat
   if (matchingParent !== undefined && entry.index !== undefined) {
     if (operation.anchorSize !== undefined) {
       if (matchingParent.sizes === undefined) operationError("LAYOUT_SIZE_NOT_APPLICABLE", "anchorSize requires a sized Row or Column.");
+      assertLayoutTrackSize(operation.anchorSize);
       matchingParent.sizes[entry.index] = operation.anchorSize;
     }
     insertChild(matchingParent, node, before ? entry.index : entry.index + 1, operation.size);
@@ -632,6 +676,8 @@ function insertRelative(context: MutationContext, operation: Extract<AppUIOperat
   if ((operation.size === undefined) !== (operation.anchorSize === undefined)) {
     operationError("LAYOUT_SIZES_INCOMPLETE", "A new wrapper requires both size and anchorSize when either is provided.");
   }
+  if (operation.size !== undefined) assertLayoutTrackSize(operation.size);
+  if (operation.anchorSize !== undefined) assertLayoutTrackSize(operation.anchorSize);
   const wrapper: AppUIRowNode | AppUIColumnNode = {
     type: axis,
     children: before ? [node, anchor] : [anchor, node],

@@ -75,6 +75,11 @@ Composition revision; it does not need a separate Service scan.
   are snapshot-scoped authoring references.
 - Array order is display order; do not create a separate contribution order.
 - Row or Column `sizes`, when present, has one entry per child.
+- Creator Row/Column track sizes always use explicit CSS strings such as
+  `"280px"`, `"1fr"`, or `"minmax(0, 1fr)"`. Never send numeric Row/Column
+  track sizes through Creator mutation operations: Runtime numeric Row/Column
+  sizes represent fractional tracks, not pixels. Existing persisted numeric
+  sizes remain compatible and are not migrated.
 - Inserting into a Row or Column that already has `sizes` requires the new
   child's `size` in that same insert or move operation. For
   `insert_layout_relative`, include `size` when the matching parent is sized;
@@ -149,7 +154,12 @@ Switch is not Plugin creation.
 
 Use `move_plugin` for Plugin relocation. Use Layout operations and current
 snapshot refs for region moves and sizing. Include all already-known related
-size adjustments in the same transaction.
+size adjustments in the same transaction. A fixed sidebar track should be
+written explicitly, for example:
+
+```text
+["280px", "minmax(0, 1fr)"]
+```
 
 ## Failure semantics and retry
 

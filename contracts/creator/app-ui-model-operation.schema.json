@@ -14,6 +14,29 @@
         { "$ref": "#/$defs/nonBlankString" }
       ]
     },
+    "layoutTrackSize": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Explicit CSS Grid track size such as 280px, 1fr, minmax(0, 1fr), or 24rem. Numeric track sizes are not accepted by Creator."
+    },
+    "layoutNodeProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "gap": { "type": "number", "minimum": 0 },
+        "sizes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/layoutTrackSize" }
+        },
+        "activeIndex": { "type": "integer", "minimum": 0 },
+        "width": { "$ref": "#/$defs/layoutSize" },
+        "height": { "$ref": "#/$defs/layoutSize" },
+        "minWidth": { "type": "number", "minimum": 0 },
+        "maxWidth": { "type": "number", "minimum": 0 },
+        "resizable": { "type": "boolean" }
+      }
+    },
     "plugin": {
       "type": "object",
       "additionalProperties": false,
@@ -73,7 +96,7 @@
             "localRef": { "type": "string", "pattern": "^\\$[A-Za-z][A-Za-z0-9_-]*$" },
             "children": { "type": "array", "items": { "$ref": "#/$defs/layoutNode" } },
             "gap": { "type": "number", "minimum": 0 },
-            "sizes": { "type": "array", "items": { "$ref": "#/$defs/layoutSize" } }
+            "sizes": { "type": "array", "items": { "$ref": "#/$defs/layoutTrackSize" } }
           }
         },
         {
@@ -197,7 +220,7 @@
         "parentRef": { "$ref": "#/$defs/layoutRef" },
         "node": { "$ref": "#/$defs/layoutNode" },
         "index": { "$ref": "#/$defs/index" },
-        "size": { "$ref": "#/$defs/layoutSize" }
+        "size": { "$ref": "#/$defs/layoutTrackSize" }
       }
     },
     {
@@ -207,7 +230,7 @@
       "properties": {
         "type": { "const": "update_layout_node_props" },
         "nodeRef": { "$ref": "#/$defs/layoutRef" },
-        "set": { "type": "object" },
+        "set": { "$ref": "#/$defs/layoutNodeProps" },
         "removeKeys": { "$ref": "#/$defs/removeKeys" }
       }
     },
@@ -220,7 +243,7 @@
         "nodeRef": { "$ref": "#/$defs/layoutRef" },
         "newParentRef": { "$ref": "#/$defs/layoutRef" },
         "index": { "$ref": "#/$defs/index" },
-        "size": { "$ref": "#/$defs/layoutSize" }
+        "size": { "$ref": "#/$defs/layoutTrackSize" }
       }
     },
     {
@@ -251,8 +274,8 @@
         "anchorRef": { "$ref": "#/$defs/layoutRef" },
         "direction": { "enum": ["left", "right", "above", "below"] },
         "node": { "$ref": "#/$defs/layoutNode" },
-        "size": { "$ref": "#/$defs/layoutSize" },
-        "anchorSize": { "$ref": "#/$defs/layoutSize" }
+        "size": { "$ref": "#/$defs/layoutTrackSize" },
+        "anchorSize": { "$ref": "#/$defs/layoutTrackSize" }
       }
     }
   ]

@@ -20,6 +20,9 @@
     "typicalPlacement": {
       "relation": "before",
       "anchorPluginId": "conversation-surface"
+    },
+    "recommendedSize": {
+      "width": "280px"
     }
   }
 }

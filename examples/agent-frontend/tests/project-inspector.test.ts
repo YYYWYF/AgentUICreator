@@ -94,6 +94,9 @@ describe("inspectUIProject", () => {
             relation: "before",
             anchorPluginId: "conversation-surface",
           },
+          recommendedSize: {
+            width: "280px",
+          },
         },
         requiredServices: {
           names: ["agent-ui.conversations"],

@@ -7,6 +7,7 @@ import {
 } from "../framework/contracts/app-ui-model";
 import {
   AppUIOperationError,
+  appUIOperationsSchema,
   applyAppUIOperations,
 } from "../scripts/ui-project/app-ui-operations";
 
@@ -321,6 +322,79 @@ describe("AppUIModel semantic operations", () => {
     expect(unsized.root).toMatchObject({ type: "row" });
     if (unsized.root.type !== "row") throw new Error("fixture");
     expect(unsized.root.sizes).toBeUndefined();
+  });
+
+  it("requires explicit CSS track sizes at the Creator mutation boundary", () => {
+    const numericRelativeSize = appUIOperationsSchema.safeParse([{
+      type: "insert_layout_relative",
+      anchorRef: "l1",
+      direction: "left",
+      node: labeledSlot("new") as Extract<AppUILayoutNode, { type: "slot" }>,
+      size: 280,
+    }]);
+    expect(numericRelativeSize.success).toBe(false);
+
+    const numericUpdatedTracks = appUIOperationsSchema.safeParse([{
+      type: "update_layout_node_props",
+      nodeRef: "l0",
+      set: { sizes: [280, "minmax(0, 1fr)"] },
+    }]);
+    expect(numericUpdatedTracks.success).toBe(false);
+
+    const explicitTracks = appUIOperationsSchema.safeParse([{
+      type: "insert_layout_relative",
+      anchorRef: "l1",
+      direction: "left",
+      node: labeledSlot("new") as Extract<AppUILayoutNode, { type: "slot" }>,
+      size: "280px",
+      anchorSize: "minmax(0, 1fr)",
+    }]);
+    expect(explicitTracks.success).toBe(true);
+
+    const panelWidth = appUIOperationsSchema.safeParse([{
+      type: "update_layout_node_props",
+      nodeRef: "l0",
+      set: { width: 280 },
+    }]);
+    expect(panelWidth.success).toBe(true);
+  });
+
+  it("fails closed if update props bypasses operation parsing", () => {
+    const invalidOperation = {
+      type: "update_layout_node_props",
+      nodeRef: "l0",
+      set: { sizes: [280, "minmax(0, 1fr)"] },
+    } as never;
+
+    expect(() => applyAppUIOperations({
+      root: {
+        type: "row",
+        sizes: ["1fr", "1fr"],
+        children: [labeledSlot("A"), labeledSlot("B")],
+      },
+    }, [invalidOperation])).toThrowError(expect.objectContaining({
+      code: "LAYOUT_TRACK_SIZE_UNIT_REQUIRED",
+    }));
+  });
+
+  it("keeps legacy numeric persisted tracks compatible", () => {
+    const result = applyAppUIOperations({
+      root: {
+        type: "row",
+        sizes: [2, 1],
+        children: [labeledSlot("A"), labeledSlot("B")],
+      },
+    }, [{
+      type: "update_layout_node_props",
+      nodeRef: "l0",
+      set: { gap: 8 },
+    }]);
+
+    expect(result.root).toMatchObject({
+      type: "row",
+      sizes: [2, 1],
+      gap: 8,
+    });
   });
 
   it("preserves Stack active child identity across structural operations", () => {
