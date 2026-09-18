@@ -1128,6 +1128,15 @@ function widthSensitiveTargets(
           targets.set(operation.instanceId, operation.target);
         }
         break;
+      case "move_plugin_to":
+        if (operation.placement.type === "plugin_slot") {
+          targets.set(operation.instanceId, {
+            type: "plugin_slot",
+            parentInstanceId: operation.placement.parentInstanceId,
+            slot: operation.placement.slot,
+          });
+        }
+        break;
       case "replace_plugin": {
         const target = authoringTargetForInstance(beforeModel, operation.instanceId);
         if (target !== undefined && target.type !== "application") {

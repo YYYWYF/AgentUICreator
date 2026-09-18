@@ -1349,6 +1349,78 @@ describe("AppUIModel transaction", () => {
     expect(String(error)).not.toContain(resolveRuntimePluginSlotId("owner-main", "content"));
   });
 
+  it("does not let a semantic Plugin Slot move bypass width admission", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "slot",
+        plugins: [
+          { id: "child-main", pluginId: "sample", enabled: true },
+          {
+            id: "owner-main",
+            pluginId: "owner",
+            enabled: true,
+            slots: { content: [] },
+          },
+        ],
+      },
+    };
+    const { projectRoot, source } = await createProject(
+      {
+        capabilities: ["composer-action"],
+        layout: { width: "wide" },
+      },
+      model,
+      [
+        ["owner", {
+          slots: {
+            children: {
+              content: {
+                description: "Content.",
+                cardinality: "many",
+                optional: true,
+                accepts: { anyOfCapabilities: ["composer-action"] },
+              },
+            },
+          },
+        }],
+      ],
+    );
+    const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
+    const registrySource = await readFile(registryPath, "utf8");
+
+    const error = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "move_plugin_to",
+        instanceId: "child-main",
+        placement: {
+          type: "plugin_slot",
+          parentInstanceId: "owner-main",
+          slot: "content",
+        },
+      }],
+      runtimeSlotWidths: {
+        [resolveRuntimePluginSlotId("owner-main", "content")]: "narrow",
+      },
+    }).catch((value: unknown) => value);
+
+    expect(error).toMatchObject({
+      code: "PLUGIN_WIDTH_INCOMPATIBLE",
+      details: {
+        pluginId: "sample",
+        instanceId: "child-main",
+        target: {
+          type: "plugin_slot",
+          parentInstanceId: "owner-main",
+          slot: "content",
+        },
+      },
+    });
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
+      .toBe(source);
+    expect(await readFile(registryPath, "utf8")).toBe(registrySource);
+  });
+
   it("uses the starting snapshot target for replace width errors", async () => {
     const { projectRoot, source } = await createProject({
       layout: { width: "wide" },

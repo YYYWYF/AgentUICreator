@@ -656,6 +656,207 @@ describe("AppUIModel semantic operations", () => {
     }])).toEqual(source);
   });
 
+  it("moves the right visual branch before the left sibling", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["1fr", "280px"],
+        children: [
+          visualBranch("left-main", "left"),
+          visualBranch("right-main", "right", { width: "280px" }),
+        ],
+      },
+    };
+
+    const result = applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "right-main",
+      placement: {
+        type: "relative",
+        anchorInstanceId: "left-main",
+        relation: "before",
+      },
+    }]);
+
+    expect(result.root).toMatchObject({
+      type: "row",
+      sizes: ["280px", "1fr"],
+      children: [
+        { type: "panel", width: "280px", child: { type: "slot", plugins: [{ id: "right-main" }] } },
+        { type: "panel", child: { type: "slot", plugins: [{ id: "left-main" }] } },
+      ],
+    });
+  });
+
+  it("rejects a relative move when the target occupies a shared Layout Slot", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "row",
+        children: [
+          {
+            type: "slot",
+            plugins: [
+              { id: "target-main", pluginId: "target", enabled: true },
+              { id: "other-main", pluginId: "other", enabled: true },
+            ],
+          },
+          visualBranch("anchor-main", "anchor"),
+        ],
+      },
+    };
+    const before = structuredClone(source);
+
+    expect(() => applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "target-main",
+      placement: {
+        type: "relative",
+        anchorInstanceId: "anchor-main",
+        relation: "after",
+      },
+    }])).toThrowError(expect.objectContaining({
+      code: "AUTHORING_MOVE_UNSUPPORTED",
+      details: expect.objectContaining({ reason: "shared-layout-slot", role: "target" }),
+    }));
+    expect(source).toEqual(before);
+  });
+
+  it("rejects a relative move when the anchor occupies a shared Layout Slot", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "row",
+        children: [
+          visualBranch("target-main", "target"),
+          {
+            type: "slot",
+            plugins: [
+              { id: "anchor-main", pluginId: "anchor", enabled: true },
+              { id: "other-main", pluginId: "other", enabled: true },
+            ],
+          },
+        ],
+      },
+    };
+    const before = structuredClone(source);
+
+    expect(() => applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "target-main",
+      placement: {
+        type: "relative",
+        anchorInstanceId: "anchor-main",
+        relation: "after",
+      },
+    }])).toThrowError(expect.objectContaining({
+      code: "AUTHORING_MOVE_UNSUPPORTED",
+      details: expect.objectContaining({ reason: "shared-layout-slot", role: "anchor" }),
+    }));
+    expect(source).toEqual(before);
+  });
+
+  it("rejects a relative move for a Plugin-local target", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "slot",
+        plugins: [
+          {
+            id: "owner-main",
+            pluginId: "toolbar",
+            enabled: true,
+            slots: {
+              content: [{ id: "target-main", pluginId: "button", enabled: true }],
+            },
+          },
+          { id: "anchor-main", pluginId: "badge", enabled: true },
+        ],
+      },
+    };
+    const before = structuredClone(source);
+
+    expect(() => applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "target-main",
+      placement: {
+        type: "relative",
+        anchorInstanceId: "anchor-main",
+        relation: "after",
+      },
+    }])).toThrowError(expect.objectContaining({
+      code: "AUTHORING_MOVE_UNSUPPORTED",
+      details: expect.objectContaining({ reason: "plugin-local-slot", role: "target" }),
+    }));
+    expect(source).toEqual(before);
+  });
+
+  it("rejects relative moves whose visual parent is a Stack", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "stack",
+        children: [visualBranch("target-main", "target"), visualBranch("anchor-main", "anchor")],
+      },
+    };
+
+    expect(() => applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "target-main",
+      placement: {
+        type: "relative",
+        anchorInstanceId: "anchor-main",
+        relation: "after",
+      },
+    }])).toThrowError(expect.objectContaining({
+      code: "AUTHORING_MOVE_UNSUPPORTED",
+      details: expect.objectContaining({ reason: "stack", role: "target" }),
+    }));
+  });
+
+  it("rejects relative moves whose visual parent is a Column", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "column",
+        children: [visualBranch("target-main", "target"), visualBranch("anchor-main", "anchor")],
+      },
+    };
+
+    expect(() => applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "target-main",
+      placement: {
+        type: "relative",
+        anchorInstanceId: "anchor-main",
+        relation: "after",
+      },
+    }])).toThrowError(expect.objectContaining({
+      code: "AUTHORING_MOVE_UNSUPPORTED",
+      details: expect.objectContaining({ reason: "column", role: "target" }),
+    }));
+  });
+
+  it("rejects relative moves across different Row parents", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "row",
+        children: [
+          { type: "row", children: [visualBranch("target-main", "target")] },
+          { type: "row", children: [visualBranch("anchor-main", "anchor")] },
+        ],
+      },
+    };
+
+    expect(() => applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "target-main",
+      placement: {
+        type: "relative",
+        anchorInstanceId: "anchor-main",
+        relation: "after",
+      },
+    }])).toThrowError(expect.objectContaining({
+      code: "AUTHORING_MOVE_UNSUPPORTED",
+      details: expect.objectContaining({ reason: "different-row" }),
+    }));
+  });
+
   it("moves a Plugin-local child into a declared Plugin Slot", () => {
     const source: AppUIModel = {
       root: {
@@ -878,6 +1079,301 @@ describe("AppUIModel semantic operations", () => {
         { type: "slot", plugins: [{ id: "composer-main", slots: { actions: [] } }] },
       ],
     });
+  });
+
+  it("rejects an Application Plugin source from a Plugin Slot move", () => {
+    const source: AppUIModel = {
+      applicationPlugins: [{ id: "application-main", pluginId: "button", enabled: true }],
+      root: {
+        type: "slot",
+        plugins: [{
+          id: "composer-main",
+          pluginId: "composer",
+          enabled: true,
+          slots: { actions: [] },
+        }],
+      },
+    };
+    const before = structuredClone(source);
+
+    expect(() => applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "application-main",
+      placement: {
+        type: "plugin_slot",
+        parentInstanceId: "composer-main",
+        slot: "actions",
+      },
+    }], {
+      pluginMoveContracts: pluginMoveContracts({
+        composer: {
+          actions: {
+            description: "Composer actions",
+            cardinality: "many",
+            optional: true,
+            accepts: { anyOfCapabilities: ["composer-action"] },
+          },
+        },
+      }),
+    })).toThrowError(expect.objectContaining({
+      code: "AUTHORING_MOVE_UNSUPPORTED",
+      details: expect.objectContaining({ reason: "application-plugin-source" }),
+    }));
+    expect(source).toEqual(before);
+  });
+
+  it("rejects a Plugin Slot move when accepts is not declared", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "slot",
+        plugins: [
+          { id: "button-main", pluginId: "button", enabled: true },
+          {
+            id: "composer-main",
+            pluginId: "composer",
+            enabled: true,
+            slots: { actions: [] },
+          },
+        ],
+      },
+    };
+    const before = structuredClone(source);
+
+    expect(() => applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "button-main",
+      placement: {
+        type: "plugin_slot",
+        parentInstanceId: "composer-main",
+        slot: "actions",
+      },
+    }], {
+      pluginMoveContracts: pluginMoveContracts({
+        composer: {
+          actions: {
+            description: "Composer actions",
+            cardinality: "many",
+            optional: true,
+          },
+        },
+      }),
+    })).toThrowError(expect.objectContaining({
+      code: "AUTHORING_MOVE_UNSUPPORTED",
+      details: expect.objectContaining({ reason: "slot-accepts-not-declared" }),
+    }));
+    expect(source).toEqual(before);
+  });
+
+  it("rejects an occupied cardinality-one Plugin Slot", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "slot",
+        plugins: [
+          { id: "button-main", pluginId: "button", enabled: true },
+          {
+            id: "composer-main",
+            pluginId: "composer",
+            enabled: true,
+            slots: {
+              actions: [{ id: "badge-main", pluginId: "badge", enabled: true }],
+            },
+          },
+        ],
+      },
+    };
+    const before = structuredClone(source);
+
+    expect(() => applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "button-main",
+      placement: {
+        type: "plugin_slot",
+        parentInstanceId: "composer-main",
+        slot: "actions",
+      },
+    }], {
+      pluginMoveContracts: pluginMoveContracts({
+        composer: {
+          actions: {
+            description: "Composer actions",
+            cardinality: "one",
+            optional: true,
+            accepts: { anyOfCapabilities: ["composer-action"] },
+          },
+        },
+      }),
+    })).toThrowError(expect.objectContaining({
+      code: "AUTHORING_MOVE_INCOMPATIBLE",
+      details: expect.objectContaining({ reason: "slot-cardinality-full" }),
+    }));
+    expect(source).toEqual(before);
+  });
+
+  it("keeps an already-satisfied Plugin Slot move unchanged", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "slot",
+        plugins: [{
+          id: "composer-main",
+          pluginId: "composer",
+          enabled: true,
+          slots: {
+            actions: [{ id: "button-main", pluginId: "button", enabled: true }],
+          },
+        }],
+      },
+    };
+    const operation = {
+      type: "move_plugin_to" as const,
+      instanceId: "button-main",
+      placement: {
+        type: "plugin_slot" as const,
+        parentInstanceId: "composer-main",
+        slot: "actions",
+      },
+    };
+    const contracts = pluginMoveContracts({
+      composer: {
+        actions: {
+          description: "Composer actions",
+          cardinality: "one",
+          optional: true,
+          accepts: { anyOfCapabilities: ["composer-action"] },
+        },
+      },
+    });
+
+    expect(planPluginMove(source, operation, contracts)).toMatchObject({
+      type: "plugin_slot",
+      changed: false,
+      source: "plugin_slot",
+    });
+    expect(applyAppUIOperations(source, [operation], { pluginMoveContracts: contracts }))
+      .toEqual(source);
+  });
+
+  it("rejects a Plugin Slot move whose target is its own parent", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "slot",
+        plugins: [{
+          id: "parent-main",
+          pluginId: "toolbar",
+          enabled: true,
+          slots: { content: [] },
+        }],
+      },
+    };
+
+    expect(() => applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "parent-main",
+      placement: {
+        type: "plugin_slot",
+        parentInstanceId: "parent-main",
+        slot: "content",
+      },
+    }], {
+      pluginMoveContracts: pluginMoveContracts({
+        toolbar: {
+          content: {
+            description: "Toolbar content",
+            cardinality: "many",
+            optional: true,
+            accepts: { anyOfCapabilities: ["toolbar"] },
+          },
+        },
+      }),
+    })).toThrowError(expect.objectContaining({
+      code: "AUTHORING_MOVE_INCOMPATIBLE",
+      details: expect.objectContaining({ reason: "cycle" }),
+    }));
+  });
+
+  it("rejects a Plugin Slot move into a descendant parent", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "slot",
+        plugins: [{
+          id: "parent-main",
+          pluginId: "toolbar",
+          enabled: true,
+          slots: {
+            content: [{ id: "child-main", pluginId: "button", enabled: true }],
+          },
+        }],
+      },
+    };
+
+    expect(() => applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "parent-main",
+      placement: {
+        type: "plugin_slot",
+        parentInstanceId: "child-main",
+        slot: "content",
+      },
+    }], {
+      pluginMoveContracts: pluginMoveContracts({
+        button: {
+          content: {
+            description: "Button content",
+            cardinality: "many",
+            optional: true,
+            accepts: { anyOfCapabilities: ["toolbar"] },
+          },
+        },
+      }),
+    })).toThrowError(expect.objectContaining({
+      code: "AUTHORING_MOVE_INCOMPATIBLE",
+      details: expect.objectContaining({ reason: "cycle" }),
+    }));
+  });
+
+  it("rejects a Plugin Slot move with an unsafe dedicated source region", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "stack",
+        children: [
+          { type: "slot", plugins: [{ id: "button-main", pluginId: "button", enabled: true }] },
+          {
+            type: "slot",
+            plugins: [{
+              id: "composer-main",
+              pluginId: "composer",
+              enabled: true,
+              slots: { actions: [] },
+            }],
+          },
+        ],
+      },
+    };
+    const before = structuredClone(source);
+
+    expect(() => applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "button-main",
+      placement: {
+        type: "plugin_slot",
+        parentInstanceId: "composer-main",
+        slot: "actions",
+      },
+    }], {
+      pluginMoveContracts: pluginMoveContracts({
+        composer: {
+          actions: {
+            description: "Composer actions",
+            cardinality: "many",
+            optional: true,
+            accepts: { anyOfCapabilities: ["composer-action"] },
+          },
+        },
+      }),
+    })).toThrowError(expect.objectContaining({
+      code: "AUTHORING_MOVE_UNSUPPORTED",
+      details: expect.objectContaining({ reason: "dedicated-source-cannot-collapse" }),
+    }));
+    expect(source).toEqual(before);
   });
 
   it("rejects moving a plugin into its own descendant", () => {

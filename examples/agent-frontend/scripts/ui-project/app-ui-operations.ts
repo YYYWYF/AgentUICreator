@@ -758,7 +758,14 @@ function sourceReflowForPluginMove(
   context: MutationContext,
   location: AppUIPluginLocation,
 ): { source: PluginMoveSource; sourceReflow?: LayoutReflowPlan | undefined } {
-  if (location.target.type !== "layout_slot") {
+  if (location.target.type === "application") {
+    moveUnsupported(
+      "application-plugin-source",
+      `Application Plugin instance "${location.plugin.id}" cannot be moved into a Plugin Slot.`,
+      { instanceId: location.plugin.id, source: location.target.type },
+    );
+  }
+  if (location.target.type === "plugin_slot") {
     return { source: "plugin_slot" };
   }
   if (location.target.slotNode.plugins.length !== 1 || location.index !== 0) {
