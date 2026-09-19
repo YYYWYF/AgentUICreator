@@ -12,6 +12,7 @@ import {
 import { pathExists } from "./plugin-assets";
 import { uiProjectControlConfig } from "./project-config";
 import { readAgentUIProjectConfig } from "./project-mode";
+import { agentUIModeRegistry } from "../../framework/modes";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
   collectPluginProjectFacts,
@@ -190,6 +191,13 @@ async function inspectUICompositionData(
   projectRoot: string,
   config: UIProjectControlConfig = uiProjectControlConfig,
 ): Promise<UICompositionInspectionInternal> {
+  const projectConfig = await readAgentUIProjectConfig(
+    projectRoot,
+    config.agentUI.metadataRoot,
+  );
+  const workspacePolicy = agentUIModeRegistry.get(
+    projectConfig.config.mode,
+  ).workspace;
   const appUIModelSource = await readFile(
     path.join(projectRoot, "app-ui", "app-ui.json"),
     "utf8",
@@ -262,6 +270,7 @@ async function inspectUICompositionData(
     generation,
     projectFacts,
     appUIModelHash,
+    workspacePolicy,
   });
 
   return {

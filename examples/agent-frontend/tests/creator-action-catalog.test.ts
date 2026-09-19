@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   type AppUIModel,
 } from "../framework/contracts/app-ui-model";
+import type { AgentUIWorkspacePolicy } from "../framework/contracts/agent-ui-workspace";
 import {
   applyAppUIOperations as applyAuthoringOperations,
 } from "../scripts/ui-project/app-ui-operations";
@@ -25,6 +26,7 @@ import {
   collectPluginProjectFacts,
   generatePluginRegistryFromFacts,
 } from "../scripts/ui-project/registry-generator";
+import { platformMode } from "../framework/modes/platform";
 import * as registryGenerator from "../scripts/ui-project/registry-generator";
 import type { UIProjectControlConfig } from "../scripts/ui-project/types";
 
@@ -83,6 +85,7 @@ async function buildCatalog(
   projectRoot: string,
   model: AppUIModel,
   appUIModelSource = JSON.stringify(model),
+  workspacePolicy: AgentUIWorkspacePolicy = platformMode.workspace,
 ) {
   const projectFacts = await collectPluginProjectFacts(projectRoot, fixtureConfig);
   const generation = generatePluginRegistryFromFacts(model, projectFacts);
@@ -91,6 +94,7 @@ async function buildCatalog(
     generation,
     projectFacts,
     appUIModelHash: hash(appUIModelSource),
+    workspacePolicy,
   });
   return { projectFacts, generation, catalog };
 }
@@ -99,7 +103,15 @@ function rowModel(instanceIds: readonly string[]): AppUIModel {
   return {
     root: {
       type: "row",
-      sizes: instanceIds.map((_, index) => index === 0 ? "280px" : "minmax(0, 1fr)"),
+      sizes: instanceIds.map((_, index) =>
+        instanceIds.length === 1
+          ? "minmax(0, 1fr)"
+          : index === 0
+          ? "280px"
+          : index === instanceIds.length - 1 && instanceIds.length > 2
+            ? "280px"
+            : "minmax(0, 1fr)"
+      ),
       children: instanceIds.map((instanceId) => ({
         type: "panel" as const,
         child: {
@@ -345,6 +357,7 @@ describe("Creator Action Catalog", () => {
       generation,
       projectFacts,
       appUIModelHash: hash(JSON.stringify(model)),
+      workspacePolicy: platformMode.workspace,
     });
 
     expect(catalog.candidates).toContainEqual(expect.objectContaining({
@@ -421,6 +434,49 @@ describe("Creator Action Catalog", () => {
     }));
   });
 
+  it("does not expose actions that would empty the required Center Region", async () => {
+    const base = rowModel(["history", "conversation"]);
+    const model: AppUIModel = {
+      ...base,
+      applicationPlugins: [{
+        id: "parent-main",
+        pluginId: "parent",
+        enabled: true,
+      }],
+    };
+    const projectRoot = await createFixtureProject(model, [
+      ["history", {}],
+      ["conversation", {}],
+      ["parent", {
+        slots: {
+          children: {
+            content: {
+              description: "Content fixture Slot.",
+              cardinality: "many",
+              optional: true,
+              accepts: { anyOfCapabilities: ["visual"] },
+            },
+          },
+        },
+      }],
+    ]);
+    const { catalog } = await buildCatalog(projectRoot, model);
+
+    expect(catalog.candidates).not.toContainEqual(expect.objectContaining({
+      kind: "remove_plugin",
+      target: expect.objectContaining({ instanceId: "conversation-main" }),
+    }));
+    expect(catalog.candidates).not.toContainEqual(expect.objectContaining({
+      kind: "move_plugin",
+      target: expect.objectContaining({ instanceId: "conversation-main" }),
+      effect: {
+        type: "plugin_slot",
+        parentInstanceId: "parent-main",
+        slot: "content",
+      },
+    }));
+  });
+
   it("uses one request-scoped facts collection for a Catalog build", async () => {
     const model = rowModel(["history", "conversation"]);
     const projectRoot = await createFixtureProject(model, [
@@ -441,6 +497,7 @@ describe("Creator Action Catalog", () => {
       generation,
       projectFacts,
       appUIModelHash: hash(JSON.stringify(model)),
+      workspacePolicy: platformMode.workspace,
     });
 
     expect(collectFacts).toHaveBeenCalledTimes(1);
@@ -460,6 +517,7 @@ describe("Creator Action Catalog", () => {
       generation,
       projectFacts,
       appUIModelHash: hash(JSON.stringify(model)),
+      workspacePolicy: platformMode.workspace,
     })).rejects.toMatchObject({
       name: "CreatorActionCatalogError",
       code: "CREATOR_ACTION_CATALOG_BUILD_FAILED",
@@ -467,7 +525,7 @@ describe("Creator Action Catalog", () => {
     });
   });
 
-  it("uses a relative binding for row-edge actions and keeps its identity across anchor changes", async () => {
+  it("uses a Workspace Region binding with semantic identity independent of physical syntax", async () => {
     const initialModel = rowModel(["history", "conversation"]);
     const projectRoot = await createFixtureProject(initialModel, [
       ["history", {}],
@@ -478,7 +536,7 @@ describe("Creator Action Catalog", () => {
     const initialRight = initial.catalog.candidates.find(
       (candidate) => candidate.kind === "move_plugin" &&
         candidate.target.instanceId === "history-main" &&
-        candidate.effect.type === "row_edge" && candidate.effect.edge === "right",
+        candidate.effect.type === "workspace_region" && candidate.effect.region === "right",
     );
     expect(initialRight).toMatchObject({ status: "ready" });
     const initialBinding = initial.catalog.bindings.get(initialRight!.actionId);
@@ -488,18 +546,20 @@ describe("Creator Action Catalog", () => {
         type: "move_plugin_to",
         instanceId: "history-main",
         placement: {
-          type: "relative",
-          anchorInstanceId: "conversation-main",
-          relation: "after",
+          type: "workspace_region",
+          region: "right",
         },
       },
     });
 
-    if (initialBinding?.status !== "ready") throw new Error("fixture did not produce a row binding");
+    if (initialBinding?.status !== "ready") throw new Error("fixture did not produce a Workspace binding");
     const moved = applyAuthoringOperations(
       initialModel,
       [initialBinding.operation],
-      { pluginMoveContracts: pluginMoveContractsForGeneration(initial.generation) },
+      {
+        pluginMoveContracts: pluginMoveContractsForGeneration(initial.generation),
+        workspacePolicy: platformMode.workspace,
+      },
     );
     if (moved.root.type !== "row") throw new Error("fixture root");
     expect(moved.root.children.map((child) =>
@@ -508,22 +568,44 @@ describe("Creator Action Catalog", () => {
         : undefined,
     )).toEqual(["conversation-main", "history-main"]);
 
-    const changedModel = rowModel(["history", "conversation", "inspector"]);
+    const changedModel = rowModel(["history", "conversation"]);
+    if (changedModel.root.type !== "row") throw new Error("fixture root");
+    changedModel.root.sizes = ["280px", "1fr"];
     const changed = await buildCatalog(projectRoot, changedModel);
     const changedRight = changed.catalog.candidates.find(
       (candidate) => candidate.kind === "move_plugin" &&
         candidate.target.instanceId === "history-main" &&
-        candidate.effect.type === "row_edge" && candidate.effect.edge === "right",
+        candidate.effect.type === "workspace_region" && candidate.effect.region === "right",
     );
     expect(changedRight?.actionId).toBe(initialRight!.actionId);
     expect(changed.catalog.bindings.get(changedRight!.actionId)).toMatchObject({
+      status: "ready",
       operation: {
-        placement: {
-          type: "relative",
-          anchorInstanceId: "inspector-main",
-          relation: "after",
-        },
+        placement: { type: "workspace_region", region: "right" },
       },
+    });
+  });
+
+  it("does not expose unavailable Workspace Regions for a Center-only policy", async () => {
+    const model = rowModel(["conversation"]);
+    const projectRoot = await createFixtureProject(model, [["conversation", {}]]);
+    const centerOnlyPolicy: AgentUIWorkspacePolicy = {
+      regions: { center: platformMode.workspace.regions.center! },
+    };
+    const { catalog } = await buildCatalog(
+      projectRoot,
+      model,
+      JSON.stringify(model),
+      centerOnlyPolicy,
+    );
+    const workspaceCandidates = catalog.candidates.filter(
+      (candidate) => candidate.kind === "move_plugin" &&
+        candidate.effect.type === "workspace_region",
+    );
+    expect(workspaceCandidates).toHaveLength(1);
+    expect(workspaceCandidates[0]?.effect).toEqual({
+      type: "workspace_region",
+      region: "center",
     });
   });
 });

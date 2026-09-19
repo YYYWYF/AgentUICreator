@@ -18,6 +18,8 @@ import {
   type AppUIModel,
   type AppUILayoutNode,
 } from "../../framework/contracts/app-ui-model";
+import { agentUIModeRegistry } from "../../framework/modes";
+import type { AgentUIWorkspacePolicy } from "../../framework/contracts/agent-ui-workspace";
 import { compileAppUIModel } from "../../framework/contracts/app-ui-compiler";
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
 import {
@@ -46,6 +48,7 @@ import {
   type CreatorActionKind,
   type CreatorActionBinding,
 } from "./creator-action-catalog";
+import { readAgentUIProjectConfig } from "./project-mode";
 import { verifyPluginChildSlots } from "./plugin-child-slot-verifier";
 import type {
   GeneratePluginCatalogResult,
@@ -651,6 +654,7 @@ interface SemanticLoweringResult {
   operations: AppUIOperation[];
   semanticComposition: NonNullable<AppUITransactionResult["semanticComposition"]>;
   pluginMoveContracts?: AppUIPluginMoveContracts | undefined;
+  workspacePolicy?: AgentUIWorkspacePolicy | undefined;
 }
 
 interface CreatorActionExecutionResolution {
@@ -724,6 +728,7 @@ async function resolveCreatorActionExecution(
   model: AppUIModel,
   appUIModelHash: string,
   operation: Extract<AppUIOperation, { type: "execute_creator_action" }>,
+  workspacePolicy: AgentUIWorkspacePolicy,
 ): Promise<CreatorActionExecutionResolution> {
   const projectFacts = await collectPluginProjectFacts(projectRoot);
   const generation = generatePluginRegistryFromFacts(model, projectFacts);
@@ -732,6 +737,7 @@ async function resolveCreatorActionExecution(
     generation,
     projectFacts,
     appUIModelHash,
+    workspacePolicy,
   });
   const candidate = catalog.candidates.find(
     (entry) => entry.actionId === operation.actionId,
@@ -768,6 +774,7 @@ async function lowerSemanticCompositionOperations(
   model: AppUIModel,
   operations: readonly AppUIOperation[],
   currentGeneration?: GeneratePluginCatalogResult,
+  workspacePolicy?: AgentUIWorkspacePolicy,
 ): Promise<SemanticLoweringResult | undefined> {
   const semanticOperations = operations.filter(
     (
@@ -800,29 +807,40 @@ async function lowerSemanticCompositionOperations(
   if (operation.type === "move_plugin_to") {
     const generation = currentGeneration ?? await generatePluginRegistry(projectRoot, model);
     const pluginMoveContracts = pluginMoveContractsForGeneration(generation);
-    planPluginMove(model, operation, pluginMoveContracts);
+    const movePlan = planPluginMove(
+      model,
+      operation,
+      pluginMoveContracts,
+      workspacePolicy,
+    );
+    const expectedPlacement = operation.placement.type === "relative"
+      ? {
+          type: "relative" as const,
+          instanceId: operation.instanceId,
+          anchorInstanceId: operation.placement.anchorInstanceId,
+          relation: operation.placement.relation,
+        }
+      : operation.placement.type === "plugin_slot"
+        ? {
+            type: "plugin_slot" as const,
+            instanceId: operation.instanceId,
+            parentInstanceId: operation.placement.parentInstanceId,
+            slot: operation.placement.slot,
+          }
+        : movePlan.type === "workspace_region"
+          ? movePlan.expectedPlacement
+          : undefined;
     return {
       operations: [operation],
       pluginMoveContracts,
+      ...(workspacePolicy === undefined ? {} : { workspacePolicy }),
       semanticComposition: {
         operation: "move_plugin_to",
         semanticLoweringSucceeded: true,
         expectedRuntime: {
           presentInstanceIds: [operation.instanceId],
         },
-        expectedPlacement: operation.placement.type === "relative"
-          ? {
-              type: "relative",
-              instanceId: operation.instanceId,
-              anchorInstanceId: operation.placement.anchorInstanceId,
-              relation: operation.placement.relation,
-            }
-          : {
-              type: "plugin_slot",
-              instanceId: operation.instanceId,
-              parentInstanceId: operation.placement.parentInstanceId,
-              slot: operation.placement.slot,
-            },
+        ...(expectedPlacement === undefined ? {} : { expectedPlacement }),
       },
     };
   }
@@ -945,6 +963,10 @@ async function runTransaction(
   options: AppUITransactionTestOptions,
 ): Promise<AppUITransactionResult> {
   await recoverPendingAppUITransaction(projectRoot);
+  const projectConfig = await readAgentUIProjectConfig(projectRoot);
+  const workspacePolicy = agentUIModeRegistry.get(
+    projectConfig.config.mode,
+  ).workspace;
   const appUIModelPath = path.join(projectRoot, APP_UI_MODEL_PATH);
   const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
   const beforeModelSource = await readFile(appUIModelPath, "utf8");
@@ -985,6 +1007,7 @@ async function runTransaction(
         beforeModel,
         input.appUIModelHash,
         requestedOperation,
+        workspacePolicy,
       );
       currentGeneration = resolved.generation;
       projectFacts = resolved.projectFacts;
@@ -1009,6 +1032,7 @@ async function runTransaction(
         beforeModel,
         loweredOperations,
         currentGeneration,
+        workspacePolicy,
       );
       if (lowered !== undefined) {
         loweredOperations = lowered.operations;
@@ -1016,6 +1040,7 @@ async function runTransaction(
         if (lowered.pluginMoveContracts !== undefined) {
           operationApplyOptions = {
             pluginMoveContracts: lowered.pluginMoveContracts,
+            workspacePolicy,
           };
         }
       }
@@ -1029,7 +1054,11 @@ async function runTransaction(
       };
     }
     afterModel = parseAppUIModel(
-      applyAppUIOperations(beforeModel, loweredOperations, operationApplyOptions),
+      applyAppUIOperations(
+        beforeModel,
+        loweredOperations,
+        operationApplyOptions ?? { workspacePolicy },
+      ),
     );
   } catch (error) {
     if (

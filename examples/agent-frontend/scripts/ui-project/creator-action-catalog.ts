@@ -9,9 +9,18 @@ import {
   planPluginMove,
   resolveDefaultPluginRemovalReflow,
   resolvePluginMoveVisualRegion,
+  type AppUIOperationApplyOptions,
+  type PluginMoveVisualRegion,
   type AppUIOperation,
   type AppUIPluginMoveOperation,
 } from "./app-ui-operations";
+import {
+  WORKSPACE_REGIONS,
+  type AgentUIWorkspacePolicy,
+  type WorkspaceRegion,
+  type WorkspaceTopology,
+} from "../../framework/contracts/agent-ui-workspace";
+import { projectWorkspaceTopology } from "./workspace-topology";
 import {
   CreatorActionPlanningError,
   isVisualAsset,
@@ -49,6 +58,7 @@ export type CreatorActionEffect =
       relation: "before" | "after";
     }
   | { type: "row_edge"; edge: "left" | "right" }
+  | { type: "workspace_region"; region: WorkspaceRegion }
   | {
       type: "plugin_slot";
       parentPluginId: string;
@@ -102,6 +112,7 @@ export interface CreatorActionCatalogBuilderInput {
   generation: GeneratePluginCatalogResult;
   projectFacts: PluginProjectFacts;
   appUIModelHash: string;
+  workspacePolicy: AgentUIWorkspacePolicy;
 }
 
 export class CreatorActionCatalogError extends Error {
@@ -120,7 +131,8 @@ interface VisualRowRegion {
   instanceId: string;
   pluginId: string;
   pluginName: string;
-  region: ReturnType<typeof resolvePluginMoveVisualRegion>;
+  region: PluginMoveVisualRegion;
+  workspaceRegion: WorkspaceRegion;
 }
 
 function actionCatalogTooLarge(message: string, details?: unknown): never {
@@ -161,6 +173,8 @@ function semanticEffectIdentity(effect: CreatorActionEffect): Record<string, str
       return { type: effect.type };
     case "row_edge":
       return { type: effect.type, edge: effect.edge };
+    case "workspace_region":
+      return { type: effect.type, region: effect.region };
     case "relative":
       return {
         type: effect.type,
@@ -229,6 +243,7 @@ export function isExpectedCreatorActionRejection(error: unknown): boolean {
     code.startsWith("AUTHORING_DEFAULT_PLACEMENT_") ||
     code === "AUTHORING_MOVE_UNSUPPORTED" ||
     code === "AUTHORING_MOVE_INCOMPATIBLE" ||
+    code === "WORKSPACE_TOPOLOGY_UNSUPPORTED" ||
     code.startsWith("LAYOUT_") ||
     code === "PLUGIN_ALREADY_EXISTS" ||
     code === "INDEX_OUT_OF_RANGE" ||
@@ -307,12 +322,11 @@ function pluginMoveOperation(
 async function validateCandidateBindingInMemory(
   input: CreatorActionCatalogBuilderInput,
   operation: CreatorActionOperation,
+  workspaceTopology: WorkspaceTopology | undefined,
 ): Promise<boolean> {
   try {
     let afterModel: AppUIModel;
-    let operationApplyOptions: {
-      pluginMoveContracts: ReturnType<typeof pluginMoveContractsForGeneration>;
-    } | undefined;
+    let operationApplyOptions: AppUIOperationApplyOptions | undefined;
 
     switch (operation.type) {
       case "insert_plugin_default": {
@@ -332,11 +346,27 @@ async function validateCandidateBindingInMemory(
         const pluginMoveContracts = pluginMoveContractsForGeneration(
           input.generation,
         );
-        planPluginMove(input.model, operation, pluginMoveContracts);
-        operationApplyOptions = { pluginMoveContracts };
-        afterModel = applyAppUIOperations(input.model, [operation], operationApplyOptions);
+        planPluginMove(
+          input.model,
+          operation,
+          pluginMoveContracts,
+          input.workspacePolicy,
+        );
+        operationApplyOptions = {
+          pluginMoveContracts,
+          workspacePolicy: input.workspacePolicy,
+        };
+        afterModel = applyAppUIOperations(
+          input.model,
+          [operation],
+          operationApplyOptions,
+        );
         break;
       }
+    }
+
+    if (workspaceTopology !== undefined) {
+      projectWorkspaceTopology(afterModel, input.workspacePolicy);
     }
 
     const nextGeneration = generatePluginRegistryFromFacts(
@@ -365,6 +395,7 @@ function visualRowRegions(
   model: AppUIModel,
   locations: ReturnType<typeof collectAppUIPluginLocations>,
   assetsByPluginId: ReadonlyMap<string, readonly PluginAsset[]>,
+  topology: WorkspaceTopology,
 ): VisualRowRegion[] {
   return locations
     .flatMap(({ plugin }) => {
@@ -372,11 +403,17 @@ function visualRowRegions(
       if (!isVisualAsset(asset)) return [];
       try {
         const region = resolvePluginMoveVisualRegion(model, plugin.id);
+        if (region.parent !== topology.root) return [];
+        const workspaceRegion = WORKSPACE_REGIONS.find(
+          (candidate) => topology.regions[candidate]?.branch === region.branch,
+        );
+        if (workspaceRegion === undefined) return [];
         return [{
           instanceId: plugin.id,
           pluginId: plugin.pluginId,
           pluginName: asset.name,
           region,
+          workspaceRegion,
         }];
       } catch (error) {
         if (isExpectedCreatorActionRejection(error)) return [];
@@ -414,6 +451,20 @@ export async function buildCreatorActionCatalog(
   const candidates: CreatorActionCandidate[] = [];
   const bindings = new Map<string, CreatorActionBinding>();
   const actionsPerTarget = new Map<string, number>();
+  let workspaceTopology: WorkspaceTopology | undefined;
+  try {
+    workspaceTopology = projectWorkspaceTopology(
+      input.model,
+      input.workspacePolicy,
+    );
+  } catch (error) {
+    if (!isExpectedCreatorActionRejection(error)) {
+      actionCatalogBuildFailed(
+        "Creator Action Workspace topology discovery failed unexpectedly.",
+        { cause: error instanceof Error ? error.message : String(error) },
+      );
+    }
+  }
 
   const addAction = (
     candidate: CreatorActionCandidate,
@@ -487,7 +538,7 @@ export async function buildCreatorActionCatalog(
         enabled: true,
       },
     };
-    if (!(await validateCandidateBindingInMemory(input, operation))) continue;
+    if (!(await validateCandidateBindingInMemory(input, operation, workspaceTopology))) continue;
     const target: CreatorActionTarget = {
       pluginId: asset.pluginId,
       pluginName: asset.name,
@@ -517,7 +568,7 @@ export async function buildCreatorActionCatalog(
       type: "remove_plugin_default",
       instanceId: plugin.id,
     };
-    if (!(await validateCandidateBindingInMemory(input, operation))) continue;
+    if (!(await validateCandidateBindingInMemory(input, operation, workspaceTopology))) continue;
     const target: CreatorActionTarget = {
       pluginId: plugin.pluginId,
       pluginName: asset.name,
@@ -577,7 +628,12 @@ export async function buildCreatorActionCatalog(
   ): Promise<void> => {
     let plan: ReturnType<typeof planPluginMove>;
     try {
-      plan = planPluginMove(input.model, operation, contracts);
+      plan = planPluginMove(
+        input.model,
+        operation,
+        contracts,
+        input.workspacePolicy,
+      );
     } catch (error) {
       if (isExpectedCreatorActionRejection(error)) return;
       actionCatalogBuildFailed(
@@ -588,7 +644,7 @@ export async function buildCreatorActionCatalog(
     const status: CreatorActionStatus = plan.changed
       ? "ready"
       : "already_satisfied";
-    if (status === "ready" && !(await validateCandidateBindingInMemory(input, operation))) {
+    if (status === "ready" && !(await validateCandidateBindingInMemory(input, operation, workspaceTopology))) {
       return;
     }
     const candidate = actionCandidate(
@@ -627,101 +683,49 @@ export async function buildCreatorActionCatalog(
     });
   };
 
-  const rowRegions = visualRowRegions(input.model, locations, assetsByPluginId);
-  const rowGroups = new Map<object, VisualRowRegion[]>();
-  for (const region of rowRegions) {
-    const group = rowGroups.get(region.region.parent) ?? [];
-    group.push(region);
-    rowGroups.set(region.region.parent, group);
-  }
-  for (const group of rowGroups.values()) {
-    group.sort((left, right) => left.region.index - right.region.index);
-  }
-
-  // Row-edge actions intentionally keep their semantic identity independent
-  // from the current lowering anchor. The binding below may therefore change
-  // after a fresh Catalog rebuild without changing actionId.
-  for (const group of rowGroups.values()) {
-    for (const targetRegion of group) {
+  if (workspaceTopology !== undefined) {
+    const workspaceRegions = visualRowRegions(
+      input.model,
+      locations,
+      assetsByPluginId,
+      workspaceTopology,
+    );
+    for (const targetRegion of workspaceRegions) {
       const target: CreatorActionTarget = {
         pluginId: targetRegion.pluginId,
         pluginName: targetRegion.pluginName,
         instanceId: targetRegion.instanceId,
       };
-      const first = group.find((candidate) => candidate.region.index === 0);
-      const last = group.find(
-        (candidate) => candidate.region.index === targetRegion.region.parent.children.length - 1,
+      const currentEffect: CreatorActionEffect = {
+        type: "workspace_region",
+        region: targetRegion.workspaceRegion,
+      };
+      const currentRegionLabel =
+        targetRegion.workspaceRegion[0].toUpperCase() +
+        targetRegion.workspaceRegion.slice(1);
+      appendAlreadySatisfiedMoveAction(
+        target,
+        currentEffect,
+        `Move ${targetRegion.pluginName} to Workspace.${currentRegionLabel}`,
+        `Move the ${targetRegion.pluginName} Plugin to the current Workspace.${currentRegionLabel} Region.`,
       );
-      if (targetRegion.region.index === 0) {
-        appendAlreadySatisfiedMoveAction(
-          target,
-          { type: "row_edge", edge: "left" },
-          `Move ${targetRegion.pluginName} to the current row's left edge`,
-          `Move the ${targetRegion.pluginName} Plugin to the left edge of its current Row.`,
-        );
-      } else if (first !== undefined) {
+
+      for (const destinationRegion of WORKSPACE_REGIONS) {
+        if (destinationRegion === targetRegion.workspaceRegion) continue;
+        if (input.workspacePolicy.regions[destinationRegion] === undefined) continue;
+        if (workspaceTopology.regions[destinationRegion] !== undefined) continue;
+        const destinationLabel =
+          destinationRegion[0].toUpperCase() + destinationRegion.slice(1);
         await appendMoveAction(
           target,
-          { type: "row_edge", edge: "left" },
+          { type: "workspace_region", region: destinationRegion },
           pluginMoveOperation(targetRegion.instanceId, {
-            type: "relative",
-            anchorInstanceId: first.instanceId,
-            relation: "before",
+            type: "workspace_region",
+            region: destinationRegion,
           }),
-          `Move ${targetRegion.pluginName} to the current row's left edge`,
-          `Move the ${targetRegion.pluginName} Plugin to the left edge of its current Row.`,
+          `Move ${targetRegion.pluginName} to Workspace.${destinationLabel}`,
+          `Move the ${targetRegion.pluginName} Plugin to the semantic Workspace.${destinationLabel} Region.`,
         );
-      }
-
-      if (targetRegion.region.index === targetRegion.region.parent.children.length - 1) {
-        appendAlreadySatisfiedMoveAction(
-          target,
-          { type: "row_edge", edge: "right" },
-          `Move ${targetRegion.pluginName} to the current row's right edge`,
-          `Move the ${targetRegion.pluginName} Plugin to the right edge of its current Row.`,
-        );
-      } else if (last !== undefined) {
-        await appendMoveAction(
-          target,
-          { type: "row_edge", edge: "right" },
-          pluginMoveOperation(targetRegion.instanceId, {
-            type: "relative",
-            anchorInstanceId: last.instanceId,
-            relation: "after",
-          }),
-          `Move ${targetRegion.pluginName} to the current row's right edge`,
-          `Move the ${targetRegion.pluginName} Plugin to the right edge of its current Row.`,
-        );
-      }
-    }
-
-    for (const targetRegion of group) {
-      for (const anchorRegion of group) {
-        if (targetRegion.instanceId === anchorRegion.instanceId) continue;
-        const target: CreatorActionTarget = {
-          pluginId: targetRegion.pluginId,
-          pluginName: targetRegion.pluginName,
-          instanceId: targetRegion.instanceId,
-        };
-        for (const relation of ["before", "after"] as const) {
-          await appendMoveAction(
-            target,
-            {
-              type: "relative",
-              anchorPluginId: anchorRegion.pluginId,
-              anchorPluginName: anchorRegion.pluginName,
-              anchorInstanceId: anchorRegion.instanceId,
-              relation,
-            },
-            pluginMoveOperation(targetRegion.instanceId, {
-              type: "relative",
-              anchorInstanceId: anchorRegion.instanceId,
-              relation,
-            }),
-            `Move ${targetRegion.pluginName} ${relation} ${anchorRegion.pluginName}`,
-            `Move the ${targetRegion.pluginName} Plugin ${relation} the ${anchorRegion.pluginName} Plugin in the same Row.`,
-          );
-        }
       }
     }
   }

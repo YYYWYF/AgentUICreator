@@ -204,7 +204,7 @@ describe("ui-project-control", () => {
     expect(response.result).not.toHaveProperty("creatorActions.bindings");
   });
 
-  it("executes a row-edge Creator Action through the transaction Host", async () => {
+  it("executes a Workspace Region Creator Action through the transaction Host", async () => {
     const model = rowModel(["history", "conversation"]);
     const { projectRoot } = await createProject({}, model, [
       ["history", {}],
@@ -227,7 +227,7 @@ describe("ui-project-control", () => {
           kind: string;
           status: string;
           target: { instanceId?: string };
-          effect: { type: string; edge?: string };
+          effect: { type: string; region?: string };
         }>;
       };
     };
@@ -235,10 +235,10 @@ describe("ui-project-control", () => {
       (candidate) => candidate.kind === "move_plugin" &&
         candidate.status === "ready" &&
         candidate.target.instanceId === "history-main" &&
-        candidate.effect.type === "row_edge" &&
-        candidate.effect.edge === "right",
+        candidate.effect.type === "workspace_region" &&
+        candidate.effect.region === "right",
     );
-    if (action === undefined) throw new Error("Fixture did not produce a row-edge action.");
+    if (action === undefined) throw new Error("Fixture did not produce a Workspace Region action.");
 
     const response = await handleUIProjectControlRequest(
       {

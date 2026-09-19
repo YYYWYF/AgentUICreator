@@ -45,7 +45,10 @@ function sameTrack(left: AppUILayoutSize, right: AppUILayoutSize): boolean {
 function availableRegions(
   policy: AgentUIWorkspacePolicy,
 ): Array<[WorkspaceRegion, NonNullable<AgentUIWorkspacePolicy["regions"][WorkspaceRegion]>]> {
-  return WORKSPACE_REGIONS.flatMap((region) => {
+  return WORKSPACE_REGIONS.flatMap((region): Array<[
+    WorkspaceRegion,
+    NonNullable<AgentUIWorkspacePolicy["regions"][WorkspaceRegion]>,
+  ]> => {
     const definition = policy.regions[region];
     return definition === undefined ? [] : [[region, definition]];
   });

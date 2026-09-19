@@ -9,6 +9,9 @@ import {
 import { projectWorkspaceTopology } from "../scripts/ui-project/workspace-topology";
 
 const workspacePolicy = platformMode.workspace;
+const centerOnlyPolicy = {
+  regions: { center: platformMode.workspace.regions.center! },
+};
 
 function branch(instanceId: string): AppUIModel["root"] {
   return {
@@ -62,6 +65,14 @@ describe("Workspace topology", () => {
     expect(() => projectWorkspaceTopology(model, workspacePolicy)).toThrow(
       "WORKSPACE_TOPOLOGY_UNSUPPORTED",
     );
+  });
+
+  it("supports a future Center-only policy without inventing side Regions", () => {
+    const topology = projectWorkspaceTopology(
+      row(["minmax(0, 1fr)"], ["conversation-main"]),
+      centerOnlyPolicy,
+    );
+    expect(Object.keys(topology.regions)).toEqual(["center"]);
   });
 
   it("moves a left branch to an empty right Region without a placeholder", () => {
