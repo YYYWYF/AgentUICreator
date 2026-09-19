@@ -17,6 +17,7 @@ import {
   AuiIf as InternalConversationIf,
   MessagePartPrimitive,
   MessagePrimitive,
+  SuggestionPrimitive,
   ThreadListPrimitive as InternalConversationThreadListPrimitive,
   ThreadPrimitive,
   defineToolkit,
@@ -111,19 +112,15 @@ export function ConversationThread({
 
 export interface ConversationSuggestionProps
   extends Omit<ComponentProps<"button">, "children"> {
+  /** A prompt for a genuinely hard-coded suggestion. Runtime suggestions use
+   * ConversationSuggestionTrigger instead. */
   prompt: string;
   send?: boolean | undefined;
   children?: ReactNode;
 }
 
-export interface ConversationSuggestionState {
-  readonly title: string;
-  readonly label: string;
-  readonly prompt: string;
-}
-
 export interface ConversationSuggestionsProps {
-  children: (suggestion: ConversationSuggestionState) => ReactNode;
+  children: () => ReactNode;
 }
 
 /**
@@ -135,13 +132,39 @@ export function ConversationSuggestions({
 }: Readonly<ConversationSuggestionsProps>) {
   return (
     <ThreadPrimitive.Suggestions>
-      {({ suggestion }) => children({
-        title: suggestion.title,
-        label: suggestion.label,
-        prompt: suggestion.prompt,
-      })}
+      {() => children()}
     </ThreadPrimitive.Suggestions>
   );
+}
+
+export type ConversationSuggestionTriggerProps = ComponentProps<
+  typeof SuggestionPrimitive.Trigger
+>;
+
+export function ConversationSuggestionTrigger(
+  props: Readonly<ConversationSuggestionTriggerProps>,
+) {
+  return <SuggestionPrimitive.Trigger {...props} />;
+}
+
+export type ConversationSuggestionTitleProps = ComponentProps<
+  typeof SuggestionPrimitive.Title
+>;
+
+export function ConversationSuggestionTitle(
+  props: Readonly<ConversationSuggestionTitleProps>,
+) {
+  return <SuggestionPrimitive.Title {...props} />;
+}
+
+export type ConversationSuggestionDescriptionProps = ComponentProps<
+  typeof SuggestionPrimitive.Description
+>;
+
+export function ConversationSuggestionDescription(
+  props: Readonly<ConversationSuggestionDescriptionProps>,
+) {
+  return <SuggestionPrimitive.Description {...props} />;
 }
 
 export function ConversationSuggestion({

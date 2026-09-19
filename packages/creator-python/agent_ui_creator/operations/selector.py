@@ -27,25 +27,12 @@ ACTION_SELECTOR_PROTOCOL = "choice-text-v1"
 
 _SELECT_PATTERN = re.compile(r"SELECT (A[1-9][0-9]*)\Z")
 _CLARIFY_PATTERN = re.compile(r"CLARIFY ([^\r\n]+)\Z")
-_EXPLICIT_WORKSPACE_REGION = {
-    "left": re.compile(r"Workspace[. ]Left|左边|左侧|左栏|\bon (?:the )?left\b|\bto (?:the )?left\b", re.I),
-    "center": re.compile(r"Workspace[. ]Center|中间|中央|\bin (?:the )?center\b|\bto (?:the )?center\b", re.I),
-    "right": re.compile(r"Workspace[. ]Right|右边|右侧|右栏|\bon (?:the )?right\b|\bto (?:the )?right\b", re.I),
-}
-_EXPLICIT_RELATIVE_PLACEMENT = re.compile(
-    r"\bbefore\b|\bafter\b|\babove\b|\bbelow\b|\bnext to\b|前面|后面|上方|下方|之前|之后",
-    re.I,
-)
 
+_SELECTOR_SYSTEM_PROMPT = """You are the Creator Intent Selector.
 
-def _explicit_workspace_region(message: str) -> str | None:
-    matches = [region for region, pattern in _EXPLICIT_WORKSPACE_REGION.items() if pattern.search(message)]
-    return matches[0] if len(matches) == 1 else None
-
-_SELECTOR_SYSTEM_PROMPT = """You are the Creator Action Selector.
-
-The Host has already determined the currently valid Product Actions. You only
-select a supplied choice; you do not construct operations or execute changes.
+The Host has already determined the currently valid Composition Actions and
+Authoring Targets. You only select one supplied choice; you do not construct
+operations, invent ownership, or execute changes.
 
 Return exactly ONE line in one of these forms:
 SELECT A<n>
@@ -53,9 +40,11 @@ GENERAL
 UNSUPPORTED
 CLARIFY <question>
 
-Never invent a choice, target, placement, or mutation. Never select only one
-part of a multi-action request; use UNSUPPORTED for multiple independent
-Product Actions. An already_satisfied Action may still be selected.
+Never invent a choice, target, owner, placement, or mutation. Never select only
+one part of a multi-layer request; use GENERAL when the complete desired state
+spans Composition and source/config ownership. Use UNSUPPORTED for multiple
+independent requests that have no single safe supplied route. An already_satisfied
+Action may still be selected.
 Prefer a Workspace Region choice for top-level Left, Center, or Right semantics,
 including a position described as after the main Conversation surface. Use a
 relative choice for a genuinely anchor-specific, non-Workspace placement.
@@ -70,10 +59,12 @@ UNSUPPORTED. If their wording could mean either visual UI removal or underlying
 capability removal, use CLARIFY to ask which scope they mean. A brief answer to
 a previous Creator clarification may resolve the target using the bounded
 previous request and clarification supplied in context.
-Use GENERAL only for broader or generative implementation changes, such as
-fuzzy search. Use CLARIFY when the supplied semantics cannot identify one
-target or removal scope without guessing. Use UNSUPPORTED when a simple Product or Composition
-request has no supplied valid choice. Return no JSON, Markdown, or explanation.
+Select an application_config or plugin_source choice when the requested change
+is a supplied, scoped authoring target. Use GENERAL only for broader or
+unscoped implementation changes, such as a new capability with no supplied
+owner. Use CLARIFY when the supplied semantics cannot identify one target or
+removal scope without guessing. Use UNSUPPORTED when a simple request has no
+supplied valid choice. Return no JSON, Markdown, or explanation.
 """
 
 
@@ -237,8 +228,16 @@ def _repair_feedback(
 
 
 def _selector_prompt_context(context: CreatorActionSelectorContext) -> dict[str, object]:
-    return {
-        "choices": [
+    if context.intentCatalog is not None:
+        choices = [
+            {
+                "choice": f"A{number}",
+                **candidate.model_dump(mode="json", exclude_none=True),
+            }
+            for number, candidate in enumerate(context.intentCatalog.candidates, 1)
+        ]
+    else:
+        choices = [
             {
                 "choice": f"A{number}",
                 "kind": candidate.kind,
@@ -249,7 +248,10 @@ def _selector_prompt_context(context: CreatorActionSelectorContext) -> dict[str,
                 "effect": candidate.effect.model_dump(mode="json", exclude_none=True),
             }
             for number, candidate in enumerate(context.actions, 1)
-        ],
+        ]
+    return {
+        "catalogRevision": context.intentCatalog.revision if context.intentCatalog is not None else context.catalogRevision,
+        "choices": choices,
         "pluginSemantics": [
             plugin.model_dump(mode="json", exclude_none=True)
             for plugin in context.pluginSemantics
@@ -275,7 +277,20 @@ def _parse_selector_response(
                 "The selected choice does not exist in this request.",
                 {"returnedChoice": key, "candidateCount": len(choices)},
             )
-        return CreatorActionSelection(decision="select_action", actionId=candidate.actionId)
+        if getattr(candidate, "actionId", None) is not None:
+            return CreatorActionSelection(decision="select_action", actionId=candidate.actionId)
+        if getattr(candidate, "type", None) == "composition_action":
+            return CreatorActionSelection(
+                decision="select_action", actionId=candidate.action.actionId
+            )
+        target = getattr(candidate, "target", None)
+        target_id = getattr(target, "targetId", None)
+        if target_id is None:
+            raise _InvalidActionSelection(
+                "protocol_parse_failed",
+                "The selected authoring choice has no target id.",
+            )
+        return CreatorActionSelection(decision="select_intent", targetId=target_id)
     if line == "GENERAL":
         return CreatorActionSelection(decision="general_change")
     if line == "UNSUPPORTED":
@@ -312,8 +327,8 @@ def _coerce_context(
         ) from error
 
 
-class CreatorActionSelector:
-    """Select one exact Action from the current Host-generated catalog."""
+class CreatorIntentSelector:
+    """Select one exact Host-supplied composition action or authoring target."""
 
     def __init__(
         self,
@@ -356,9 +371,14 @@ class CreatorActionSelector:
                     "The original user message must be a non-empty string."
                 )
             normalized_context = _coerce_context(context)
+            intent_candidates = (
+                normalized_context.intentCatalog.candidates
+                if normalized_context.intentCatalog is not None
+                else normalized_context.actions
+            )
             choices = {
                 f"A{number}": candidate
-                for number, candidate in enumerate(normalized_context.actions, 1)
+                for number, candidate in enumerate(intent_candidates, 1)
             }
             prompt_context = _selector_prompt_context(normalized_context)
             if clarification_context is not None:
@@ -426,19 +446,6 @@ class CreatorActionSelector:
                         )
                     selection = _parse_selector_response(response.text, choices)
                     self.validate_selection(selection, normalized_context)
-                    if selection.decision == "select_action":
-                        selected = next(
-                            candidate for candidate in normalized_context.actions
-                            if candidate.actionId == selection.actionId
-                        )
-                        requested_region = _explicit_workspace_region(user_message)
-                        if (selected.kind == "add_existing_plugin" and requested_region is not None and
-                            (selected.effect.type != "workspace_region" or
-                             selected.effect.region != requested_region)):
-                            return CreatorActionSelection(decision="unsupported_product_action")
-                        if (selected.kind == "add_existing_plugin" and selected.effect.type == "add_default" and
-                            _EXPLICIT_RELATIVE_PLACEMENT.search(user_message)):
-                            return CreatorActionSelection(decision="unsupported_product_action")
                     return selection
                 except _InvalidActionSelection as error:
                     if (
@@ -510,6 +517,28 @@ class CreatorActionSelector:
                 raise _InvalidActionSelection(
                     "unknown_action_id",
                     "The selected actionId is not one of the supplied current Action Candidates.",
+                    details,
+                )
+        elif selection.decision == "select_intent":
+            intent_catalog = normalized_context.intentCatalog
+            target_ids = (
+                [candidate.target.targetId for candidate in intent_catalog.candidates
+                 if candidate.type != "composition_action" and candidate.target is not None]
+                if intent_catalog is not None
+                else []
+            )
+            if selection.targetId not in set(target_ids):
+                details = {
+                    "returnedTargetId": selection.targetId,
+                    "candidateCount": len(target_ids),
+                }
+                if len(target_ids) <= 32:
+                    details["candidateTargetIds"] = target_ids
+                else:
+                    details["candidateIdsTruncated"] = True
+                raise _InvalidActionSelection(
+                    "unknown_action_id",
+                    "The selected targetId is not one of the supplied Authoring Targets.",
                     details,
                 )
 
@@ -584,3 +613,8 @@ class CreatorActionSelector:
                 content=json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
             ),
         ]
+
+
+# Preserve the existing import surface while making the model-facing selector
+# explicitly cover both composition actions and authoring targets.
+CreatorActionSelector = CreatorIntentSelector

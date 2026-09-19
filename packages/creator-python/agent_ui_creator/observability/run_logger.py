@@ -169,7 +169,12 @@ def _tool_fact_kinds(
 ) -> list[str]:
     if tool_name == "inspect_ui_project":
         return (
-            ["composition.snapshot", "capability.summary", "service.readiness"]
+            [
+                "composition.snapshot",
+                "capability.summary",
+                "service.readiness",
+                "creator.authoring-targets",
+            ]
             if arguments.get("view") == "composition"
             else ["project.snapshot"]
         )
@@ -338,6 +343,8 @@ class CreatorRunLogger:
         action_selector_metrics: Mapping[str, object] | None = None,
         action_selection: Mapping[str, object] | None = None,
         selected_creator_action: Mapping[str, object] | None = None,
+        selected_creator_intent: Mapping[str, object] | None = None,
+        authoring_handoff: Mapping[str, object] | None = None,
         creator_intent: Mapping[str, object] | None = None,
         productized_operation: Mapping[str, object] | None = None,
         error: BaseException | None = None,
@@ -402,6 +409,16 @@ class CreatorRunLogger:
                 **(
                     {"selectedCreatorAction": dict(selected_creator_action)}
                     if selected_creator_action is not None
+                    else {}
+                ),
+                **(
+                    {"selectedCreatorIntent": dict(selected_creator_intent)}
+                    if selected_creator_intent is not None
+                    else {}
+                ),
+                **(
+                    {"authoringHandoff": dict(authoring_handoff)}
+                    if authoring_handoff is not None
                     else {}
                 ),
                 **(

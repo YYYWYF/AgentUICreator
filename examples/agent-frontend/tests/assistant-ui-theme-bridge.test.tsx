@@ -96,7 +96,7 @@ describe("assistant-ui theme bridge", () => {
     expect(onMount).toHaveBeenCalledTimes(1);
 
     await act(async () => {
-      themeService.setMode("light");
+      themeService.setMode("dark");
       await Promise.resolve();
     });
 

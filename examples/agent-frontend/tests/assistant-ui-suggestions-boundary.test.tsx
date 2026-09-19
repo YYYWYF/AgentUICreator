@@ -42,7 +42,6 @@ describe("Conversation Suggestions boundary", () => {
     });
     expect(source).toContain('from "@agent-ui/react"');
     expect(source).toContain("ConversationSuggestions");
-    expect(source).toContain("suggestion.prompt");
     expect(source).toContain("send");
     expect(source).not.toContain("usePluginInstance");
     expect(source).not.toContain("instance.props");
@@ -51,7 +50,10 @@ describe("Conversation Suggestions boundary", () => {
     expect(runtimeProvider).toContain("AuiConfig");
     expect(runtimeProvider).toContain("Suggestions(");
     expect(reactFacade).toContain("ThreadPrimitive.Suggestions");
-    expect(reactFacade).toContain("ConversationSuggestionState");
+    expect(reactFacade).toContain("SuggestionPrimitive.Trigger");
+    expect(reactFacade).toContain("SuggestionPrimitive.Title");
+    expect(reactFacade).toContain("SuggestionPrimitive.Description");
+    expect(reactFacade).not.toContain("ConversationSuggestionState");
     expect(ConversationSuggestionsPlugin).toBeTypeOf("function");
   });
 });

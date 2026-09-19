@@ -23,6 +23,7 @@ ObservationCoverage = Literal[
     "capability.inventory",
     "capability.composition-summary",
     "creator.actions",
+    "creator.authoring-targets",
 ]
 
 _OBSERVATION_SOURCES = {
@@ -42,6 +43,7 @@ _OBSERVATION_COVERAGE = {
     "capability.inventory",
     "capability.composition-summary",
     "creator.actions",
+    "creator.authoring-targets",
 }
 
 

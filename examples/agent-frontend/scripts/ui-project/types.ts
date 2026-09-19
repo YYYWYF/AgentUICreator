@@ -90,6 +90,35 @@ export interface PluginAsset {
   childSlots?: Record<string, PluginChildSlotDefinition> | undefined;
 }
 
+export type CreatorAuthoringTargetKind = "application_config" | "plugin_source";
+
+export interface CreatorAuthoringTargetCandidate {
+  id: string;
+  kind: CreatorAuthoringTargetKind;
+  name: string;
+  description: string;
+  intents: string[];
+  relatedPluginIds?: string[] | undefined;
+}
+
+export interface CreatorAuthoringTargetBinding {
+  targetId: string;
+  kind: CreatorAuthoringTargetKind;
+  ownerPath?: string | undefined;
+  ownerRoot?: string | undefined;
+  definitionPath?: string | undefined;
+  manifestPath?: string | undefined;
+  pluginId?: string | undefined;
+  relatedPluginIds?: string[] | undefined;
+}
+
+export interface CreatorAuthoringTargetCatalog {
+  revision: string;
+  candidates: CreatorAuthoringTargetCandidate[];
+  /** Host-only bindings used after the model has selected a target. */
+  bindings: CreatorAuthoringTargetBinding[];
+}
+
 export interface PluginAssetInventory {
   assets: PluginAsset[];
   errors: ProjectIssue[];
@@ -201,6 +230,7 @@ export interface UIProjectInspection {
       selected: boolean;
     }
   >;
+  authoringTargetCatalog: CreatorAuthoringTargetCatalog;
   catalogs: Array<{
     path: string;
     exists: boolean;
@@ -226,7 +256,8 @@ export type CompositionObservationCoverage =
   | "composition.instances"
   | "capability.inventory"
   | "capability.composition-summary"
-  | "creator.actions";
+  | "creator.actions"
+  | "creator.authoring-targets";
 
 export interface CompositionPluginCapabilitySummary {
   pluginId: string;
@@ -276,6 +307,7 @@ export interface UICompositionInspection {
     revision: string;
     candidates: CreatorActionCandidate[];
   };
+  authoringTargetCatalog: CreatorAuthoringTargetCatalog;
   layoutConstraints: {
     refs: "snapshot-scoped";
     pluginTargets: ["application", "layout_slot", "plugin_slot"];

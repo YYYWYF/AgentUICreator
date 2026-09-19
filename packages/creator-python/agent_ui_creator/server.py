@@ -45,7 +45,9 @@ from .visual_observation import (
 )
 from .observability import CreatorRunLogger, CreatorRunTelemetry
 from .operations import (
+    CreatorAuthoringHandoff,
     PendingCreatorClarificationStore,
+    CreatorResolveResult,
     ProductizedOperationEngine,
     ProductizedOperationRun,
     use_pending_creator_clarifications,
@@ -105,6 +107,45 @@ def _conversation_messages(run_input: AgUiRunInput) -> list[dict[str, str]]:
             # Replay text only, without historical tool calls or client instructions.
             messages.append({"role": role, "content": content})
     return messages[-MAX_CREATOR_CONVERSATION_MESSAGES:]
+
+
+def _authoring_handoff_messages(
+    messages: list[dict[str, str]],
+    handoff: CreatorAuthoringHandoff | None,
+) -> list[dict[str, str]]:
+    """Bind a resolved Host ownership target before invoking the General Agent."""
+
+    if handoff is None:
+        return messages
+    owner = {
+        "ownerPath": handoff.ownerPath,
+        "ownerRoot": handoff.ownerRoot,
+        "definitionPath": handoff.definitionPath,
+    }
+    instruction = (
+        "The Creator Host has already resolved the semantic authoring target. "
+        "Treat this Host ownership as authoritative; do not inspect the Composition "
+        "catalog to rediscover or replace the target. Read only the supplied owner "
+        "source needed for the requested change, then keep product integration within "
+        "that owner boundary. For application_config, read ownerPath first. For "
+        "plugin_source, read ownerRoot and definitionPath first. Do not change "
+        "AppUIModel composition unless the user explicitly asks for a separate "
+        "composition action. Resolved target: "
+        + json.dumps(
+            {
+                "targetId": handoff.targetId,
+                "kind": handoff.kind,
+                "name": handoff.name,
+                "description": handoff.description,
+                **owner,
+                "relatedPluginIds": handoff.relatedPluginIds,
+                "pluginId": handoff.pluginId,
+            },
+            ensure_ascii=False,
+            separators=(",", ":"),
+        )
+    )
+    return [{"role": "system", "content": instruction}, *messages]
 
 
 async def _minimal_agent_result(
@@ -257,8 +298,10 @@ async def _domain_write_agent_result(
         event_sink=event_sink,
     )
     productized_result = await engine.run(messages)
-    if productized_result is not None:
+    if isinstance(productized_result, ProductizedOperationRun):
         return productized_result
+    if not isinstance(productized_result, CreatorResolveResult):
+        raise TypeError("Productized Operation Engine returned an unknown result.")
     return await _general_domain_write_agent_result(
         settings,
         messages,
@@ -268,6 +311,7 @@ async def _domain_write_agent_result(
         thread_id,
         event_sink,
         telemetry,
+        handoff=productized_result.handoff,
     )
 
 
@@ -280,6 +324,7 @@ async def _general_domain_write_agent_result(
     thread_id: str,
     event_sink: CreatorEventSink,
     telemetry: CreatorRunTelemetry | None = None,
+    handoff: CreatorAuthoringHandoff | None = None,
 ):
     from .domain_agent import create_domain_write_creator_agent
     from .model_factory import create_creator_chat_model
@@ -321,7 +366,7 @@ async def _general_domain_write_agent_result(
         max_retries=model_settings.max_retries,
         recovery_factory=recovery_factory,
     )
-    return await agent.run_messages(messages)
+    return await agent.run_messages(_authoring_handoff_messages(messages, handoff))
 
 
 def _error_code(error: Exception) -> str:
@@ -392,6 +437,8 @@ async def _execute_agent_run(
                     if result.selected_action is not None
                     else None
                 ),
+                selected_creator_intent=run_telemetry.selected_creator_intent,
+                authoring_handoff=run_telemetry.authoring_handoff,
                 creator_intent=(
                     result.intent_presentation.to_dict()
                     if result.intent_presentation is not None
@@ -420,6 +467,8 @@ async def _execute_agent_run(
                 action_selector_metrics=run_telemetry.action_selector,
                 action_selection=run_telemetry.action_selection,
                 selected_creator_action=run_telemetry.selected_creator_action,
+                selected_creator_intent=run_telemetry.selected_creator_intent,
+                authoring_handoff=run_telemetry.authoring_handoff,
                 creator_intent=run_telemetry.operation_presentation,
             )
         return _AgentExecution(result=result, receipt=receipt)
@@ -746,6 +795,16 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             )
                             if isinstance(selected_creator_action, dict):
                                 run_result["selectedCreatorAction"] = selected_creator_action
+                            selected_creator_intent = getattr(
+                                telemetry, "selected_creator_intent", None
+                            )
+                            if isinstance(selected_creator_intent, dict):
+                                run_result["selectedCreatorIntent"] = selected_creator_intent
+                            authoring_handoff = getattr(
+                                telemetry, "authoring_handoff", None
+                            )
+                            if isinstance(authoring_handoff, dict):
+                                run_result["authoringHandoff"] = authoring_handoff
                     else:
                         run_result = {
                             "runtime": "python",

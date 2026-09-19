@@ -31,6 +31,8 @@ class CreatorRunTelemetry:
     action_selector: dict[str, object] | None = None
     action_selection: dict[str, object] | None = None
     selected_creator_action: dict[str, object] | None = None
+    selected_creator_intent: dict[str, object] | None = None
+    authoring_handoff: dict[str, object] | None = None
     operation_route: dict[str, object] | None = None
     operation_presentation: dict[str, object] | None = None
 
@@ -48,6 +50,8 @@ class CreatorRunTelemetry:
         action_selector: dict[str, object] | None = None,
         action_selection: dict[str, object] | None = None,
         selected_creator_action: dict[str, object] | None = None,
+        selected_creator_intent: dict[str, object] | None = None,
+        authoring_handoff: dict[str, object] | None = None,
         operation_route: dict[str, object] | None = None,
         operation_presentation: dict[str, object] | None = None,
     ) -> None:
@@ -73,6 +77,10 @@ class CreatorRunTelemetry:
             self.action_selection = dict(action_selection)
         if selected_creator_action is not None:
             self.selected_creator_action = dict(selected_creator_action)
+        if selected_creator_intent is not None:
+            self.selected_creator_intent = dict(selected_creator_intent)
+        if authoring_handoff is not None:
+            self.authoring_handoff = dict(authoring_handoff)
         if operation_route is not None:
             self.operation_route = dict(operation_route)
         if operation_presentation is not None:
@@ -138,6 +146,10 @@ class CreatorRunTelemetry:
             snapshot["actionSelection"] = dict(self.action_selection)
         if self.selected_creator_action is not None:
             snapshot["selectedCreatorAction"] = dict(self.selected_creator_action)
+        if self.selected_creator_intent is not None:
+            snapshot["selectedCreatorIntent"] = dict(self.selected_creator_intent)
+        if self.authoring_handoff is not None:
+            snapshot["authoringHandoff"] = dict(self.authoring_handoff)
         project_control = self.project_control_metrics()
         if project_control is not None:
             snapshot["projectControlMetrics"] = project_control

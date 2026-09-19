@@ -6,6 +6,7 @@ from typing import Literal, TypeAlias
 from .models import (
     CreatorActionCandidate,
     CreatorActionSelection,
+    CreatorAuthoringTargetCandidate,
     PluginSlotActionEffect,
     RelativeActionEffect,
     RowEdgeActionEffect,
@@ -16,6 +17,10 @@ from .models import (
 CreatorIntentRoute: TypeAlias = Literal[
     "productized",
     "general-agent",
+    "unscoped_general",
+    "scoped_general_handoff",
+    "application_config",
+    "plugin_source",
     "clarification",
     "unsupported",
 ]
@@ -43,6 +48,9 @@ class CreatorIntentPresentation:
     action_status: str | None = None
     effect_type: str | None = None
     region: str | None = None
+    target_id: str | None = None
+    target_kind: str | None = None
+    owner_scoped_handoff: bool = False
 
     def to_dict(self) -> dict[str, object]:
         """Return the bounded wire shape consumed by Creator observability."""
@@ -66,6 +74,7 @@ class CreatorIntentPresentation:
             "targetPluginIds": list(self.target_plugin_ids),
             "targetInstanceIds": list(self.target_instance_ids),
             "route": self.route,
+            "ownerScopedHandoff": self.owner_scoped_handoff,
             **placement,
         }
         for key, item in {
@@ -75,6 +84,8 @@ class CreatorIntentPresentation:
             "actionStatus": self.action_status,
             "effectType": self.effect_type,
             "region": self.region,
+            "targetId": self.target_id,
+            "targetKind": self.target_kind,
         }.items():
             if item is not None:
                 value[key] = item
@@ -84,6 +95,7 @@ class CreatorIntentPresentation:
 def _label_for_action_selection(
     selection: CreatorActionSelection,
     action: CreatorActionCandidate | None,
+    target: CreatorAuthoringTargetCandidate | None,
 ) -> str:
     if selection.decision == "needs_clarification":
         return "需要确认修改目标"
@@ -91,6 +103,8 @@ def _label_for_action_selection(
         return "当前没有可安全执行的对应操作"
     if selection.decision == "general_change":
         return "执行需要进一步实现的修改"
+    if selection.decision == "select_intent" and target is not None:
+        return f"修改 {target.name}"
     if action is None:
         return "当前没有可安全执行的对应操作"
 
@@ -124,20 +138,29 @@ def present_creator_action_selection(
     action: CreatorActionCandidate | None = None,
     *,
     route: CreatorIntentRoute | None = None,
+    target: CreatorAuthoringTargetCandidate | None = None,
 ) -> CreatorIntentPresentation:
-    """Project the exact Action Selector decision without Host bindings."""
+    """Project the exact unified selector decision without Host bindings."""
 
     if action is not None and not isinstance(action, CreatorActionCandidate):
         raise TypeError("action must be a CreatorActionCandidate or None.")
+    if target is not None and not isinstance(target, CreatorAuthoringTargetCandidate):
+        raise TypeError("target must be a CreatorAuthoringTargetCandidate or None.")
 
     selected = selection.decision == "select_action" and action is not None
+    selected_target = selection.decision == "select_intent" and target is not None
     effective_route = route or {
         "select_action": "productized",
+        "select_intent": target.kind if target is not None else "scoped_general_handoff",
         "needs_clarification": "clarification",
         "general_change": "general-agent",
         "unsupported_product_action": "unsupported",
     }[selection.decision]
-    target_plugin_ids = [action.target.pluginId] if selected else []
+    target_plugin_ids = (
+        [action.target.pluginId]
+        if selected
+        else list(target.relatedPluginIds) if selected_target and target is not None else []
+    )
     target_instance_ids = (
         [action.target.instanceId]
         if selected and action.target.instanceId is not None
@@ -167,8 +190,8 @@ def present_creator_action_selection(
             }
 
     return CreatorIntentPresentation(
-        label=_label_for_action_selection(selection, action),
-        kind=action.kind if selected else selection.decision,
+        label=_label_for_action_selection(selection, action, target),
+        kind=action.kind if selected else target.kind if selected_target and target is not None else selection.decision,
         target_plugin_ids=tuple(target_plugin_ids),
         target_instance_ids=tuple(target_instance_ids),
         route=effective_route,
@@ -178,5 +201,8 @@ def present_creator_action_selection(
         action_status=action.status if selected else None,
         effect_type=effect_type,
         region=region,
+        target_id=target.targetId if selected_target and target is not None else None,
+        target_kind=target.kind if selected_target and target is not None else None,
+        owner_scoped_handoff=selected_target,
         **placement_fields,
     )

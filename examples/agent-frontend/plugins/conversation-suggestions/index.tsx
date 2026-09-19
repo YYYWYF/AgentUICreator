@@ -1,6 +1,8 @@
 import {
-  ConversationSuggestion,
   ConversationSuggestions,
+  ConversationSuggestionDescription,
+  ConversationSuggestionTitle,
+  ConversationSuggestionTrigger,
 } from "@agent-ui/react";
 
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
@@ -16,21 +18,14 @@ export function ConversationSuggestionsPlugin(
       data-ui-plugin="conversation-suggestions"
     >
       <ConversationSuggestions>
-        {(suggestion) => (
-          <ConversationSuggestion
+        {() => (
+          <ConversationSuggestionTrigger
             className="conversation-suggestion"
-            prompt={suggestion.prompt}
             send
           >
-            <span className="conversation-suggestion-title">
-              {suggestion.title}
-            </span>
-            {suggestion.label.length === 0 ? null : (
-              <span className="conversation-suggestion-label">
-                {suggestion.label}
-              </span>
-            )}
-          </ConversationSuggestion>
+            <ConversationSuggestionTitle className="conversation-suggestion-title" />
+            <ConversationSuggestionDescription className="conversation-suggestion-label" />
+          </ConversationSuggestionTrigger>
         )}
       </ConversationSuggestions>
     </div>

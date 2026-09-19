@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Annotated, Any, Literal, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -28,6 +28,13 @@ MAX_CHILD_SLOT_DESCRIPTION_CHARS = 300
 MAX_CHILD_SLOT_ACCEPTED_CAPABILITIES = 16
 MAX_TOTAL_PLUGIN_CHILD_SLOTS = 256
 MAX_CREATOR_ACTION_CANDIDATES = 256
+MAX_CREATOR_AUTHORING_TARGETS = 64
+MAX_AUTHORING_TARGET_INTENTS = 16
+MAX_AUTHORING_TARGET_ID_CHARS = 100
+MAX_AUTHORING_TARGET_NAME_CHARS = 200
+MAX_AUTHORING_TARGET_DESCRIPTION_CHARS = 400
+MAX_AUTHORING_TARGET_PATH_CHARS = 400
+MAX_CREATOR_INTENT_CANDIDATES = MAX_CREATOR_ACTION_CANDIDATES + MAX_CREATOR_AUTHORING_TARGETS
 MAX_ACTION_ID_CHARS = 64
 MAX_ACTION_LABEL_CHARS = 200
 MAX_ACTION_DESCRIPTION_CHARS = 400
@@ -110,6 +117,30 @@ BoundedActionDescription: TypeAlias = Annotated[
 ]
 BoundedClarificationQuestion: TypeAlias = Annotated[
     str, Field(min_length=1, max_length=MAX_CLARIFICATION_QUESTION_CHARS)
+]
+BoundedAuthoringTargetId: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_AUTHORING_TARGET_ID_CHARS)
+]
+BoundedAuthoringTargetName: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_AUTHORING_TARGET_NAME_CHARS)
+]
+BoundedAuthoringTargetDescription: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_AUTHORING_TARGET_DESCRIPTION_CHARS)
+]
+BoundedAuthoringTargetPath: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_AUTHORING_TARGET_PATH_CHARS)
+]
+BoundedIntentCandidateId: TypeAlias = Annotated[
+    str,
+    Field(
+        min_length=1,
+        max_length=max(MAX_ACTION_ID_CHARS, MAX_AUTHORING_TARGET_ID_CHARS),
+    ),
+]
+
+CreatorAuthoringTargetKind: TypeAlias = Literal[
+    "application_config",
+    "plugin_source",
 ]
 
 
@@ -343,6 +374,153 @@ class CreatorActionCandidate(BaseModel):
         return self
 
 
+class CreatorAuthoringTargetCandidate(BaseModel):
+    """Model-facing ownership metadata without source paths."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    targetId: BoundedAuthoringTargetId
+    kind: CreatorAuthoringTargetKind
+    name: BoundedAuthoringTargetName
+    description: BoundedAuthoringTargetDescription
+    intents: list[BoundedPluginIntent] = Field(
+        default_factory=list, max_length=MAX_AUTHORING_TARGET_INTENTS
+    )
+    relatedPluginIds: list[BoundedPluginId] = Field(default_factory=list, max_length=MAX_PLUGIN_CAPABILITIES)
+
+    @model_validator(mode="after")
+    def validate_intents(self) -> "CreatorAuthoringTargetCandidate":
+        if not self.intents:
+            raise ValueError("An authoring target must declare at least one intent.")
+        if len(set(self.intents)) != len(self.intents):
+            raise ValueError("An authoring target contains duplicate intents.")
+        if len(set(self.relatedPluginIds)) != len(self.relatedPluginIds):
+            raise ValueError("An authoring target contains duplicate related Plugin ids.")
+        return self
+
+
+class CreatorAuthoringTargetBinding(BaseModel):
+    """Host-only source binding for a selected authoring target."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    targetId: BoundedAuthoringTargetId
+    kind: CreatorAuthoringTargetKind
+    ownerPath: BoundedAuthoringTargetPath | None = None
+    ownerRoot: BoundedAuthoringTargetPath | None = None
+    definitionPath: BoundedAuthoringTargetPath | None = None
+    manifestPath: BoundedAuthoringTargetPath | None = None
+    pluginId: BoundedPluginId | None = None
+    relatedPluginIds: list[BoundedPluginId] = Field(default_factory=list, max_length=MAX_PLUGIN_CAPABILITIES)
+
+    @model_validator(mode="after")
+    def validate_binding(self) -> "CreatorAuthoringTargetBinding":
+        if self.kind == "application_config" and self.ownerPath is None:
+            raise ValueError("An application_config target requires ownerPath.")
+        if self.kind == "plugin_source" and (
+            self.ownerRoot is None or self.definitionPath is None or self.pluginId is None
+        ):
+            raise ValueError(
+                "A plugin_source target requires ownerRoot, definitionPath, and pluginId."
+            )
+        return self
+
+
+class CreatorAuthoringTargetCatalogSnapshot(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    revision: Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")] = "0" * 64
+    candidates: list[CreatorAuthoringTargetCandidate] = Field(
+        default_factory=list, max_length=MAX_CREATOR_AUTHORING_TARGETS
+    )
+    bindings: list[CreatorAuthoringTargetBinding] = Field(
+        default_factory=list, max_length=MAX_CREATOR_AUTHORING_TARGETS
+    )
+
+    @model_validator(mode="after")
+    def validate_unique_targets(self) -> "CreatorAuthoringTargetCatalogSnapshot":
+        candidate_ids = [target.targetId for target in self.candidates]
+        binding_ids = [binding.targetId for binding in self.bindings]
+        if len(set(candidate_ids)) != len(candidate_ids):
+            raise ValueError("Authoring Target Catalog contains duplicate target ids.")
+        if len(set(binding_ids)) != len(binding_ids):
+            raise ValueError("Authoring Target Catalog contains duplicate binding ids.")
+        if set(candidate_ids) != set(binding_ids):
+            raise ValueError("Authoring Target Catalog candidates and bindings must match.")
+        return self
+
+
+class CreatorIntentCandidate(BaseModel):
+    """The model-facing union of a Composition Action and authoring target."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["composition_action", "application_config", "plugin_source"]
+    candidateId: BoundedIntentCandidateId
+    label: BoundedActionLabel
+    description: BoundedActionDescription
+    action: CreatorActionCandidate | None = None
+    target: CreatorAuthoringTargetCandidate | None = None
+
+    @model_validator(mode="after")
+    def validate_candidate(self) -> "CreatorIntentCandidate":
+        if self.type == "composition_action":
+            if self.action is None or self.target is not None:
+                raise ValueError("A composition_action candidate requires only action.")
+            if self.candidateId != self.action.actionId:
+                raise ValueError("Composition intent candidateId must match actionId.")
+        else:
+            if self.target is None or self.action is not None:
+                raise ValueError("An authoring candidate requires only target.")
+            if self.candidateId != self.target.targetId:
+                raise ValueError("Authoring intent candidateId must match targetId.")
+            if self.type != self.target.kind:
+                raise ValueError("Authoring intent type must match target kind.")
+        return self
+
+
+class CreatorIntentCatalogSnapshot(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    revision: Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
+    candidates: list[CreatorIntentCandidate] = Field(
+        default_factory=list, max_length=MAX_CREATOR_INTENT_CANDIDATES
+    )
+
+    @model_validator(mode="after")
+    def validate_unique_candidate_ids(self) -> "CreatorIntentCatalogSnapshot":
+        candidate_ids = [candidate.candidateId for candidate in self.candidates]
+        if len(set(candidate_ids)) != len(candidate_ids):
+            raise ValueError("Creator Intent Catalog contains duplicate candidate ids.")
+        return self
+
+
+class CreatorAuthoringHandoff(BaseModel):
+    """Resolved Host ownership passed to a scoped General Agent."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    targetId: BoundedAuthoringTargetId
+    kind: CreatorAuthoringTargetKind
+    name: BoundedAuthoringTargetName
+    description: BoundedAuthoringTargetDescription
+    ownerPath: BoundedAuthoringTargetPath | None = None
+    ownerRoot: BoundedAuthoringTargetPath | None = None
+    definitionPath: BoundedAuthoringTargetPath | None = None
+    relatedPluginIds: list[BoundedPluginId] = Field(default_factory=list, max_length=MAX_PLUGIN_CAPABILITIES)
+    pluginId: BoundedPluginId | None = None
+
+    @model_validator(mode="after")
+    def validate_owner(self) -> "CreatorAuthoringHandoff":
+        if self.kind == "application_config" and self.ownerPath is None:
+            raise ValueError("Application Config handoff requires ownerPath.")
+        if self.kind == "plugin_source" and (
+            self.ownerRoot is None or self.definitionPath is None or self.pluginId is None
+        ):
+            raise ValueError("Plugin Source handoff requires ownerRoot, definitionPath, and pluginId.")
+        return self
+
+
 class CreatorActionCatalogSnapshot(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -391,6 +569,7 @@ class CreatorActionSelectorContext(BaseModel):
         default_factory=list,
         max_length=MAX_PLUGIN_CAPABILITIES,
     )
+    intentCatalog: CreatorIntentCatalogSnapshot | None = None
 
     @model_validator(mode="after")
     def validate_unique_action_ids(self) -> "CreatorActionSelectorContext":
@@ -400,8 +579,14 @@ class CreatorActionSelectorContext(BaseModel):
         return self
 
 
+# Public names for the unified model-facing vocabulary. The legacy names remain
+# valid for composition-only callers and persisted fixtures.
+CreatorIntentSelectorContext = CreatorActionSelectorContext
+
+
 CreatorActionDecision: TypeAlias = Literal[
     "select_action",
+    "select_intent",
     "needs_clarification",
     "general_change",
     "unsupported_product_action",
@@ -415,6 +600,7 @@ class CreatorActionSelection(BaseModel):
 
     decision: CreatorActionDecision
     actionId: BoundedActionId | None = None
+    targetId: BoundedAuthoringTargetId | None = None
     clarificationQuestion: BoundedClarificationQuestion | None = None
 
     @model_validator(mode="after")
@@ -422,14 +608,21 @@ class CreatorActionSelection(BaseModel):
         if self.decision == "select_action":
             if self.actionId is None:
                 raise ValueError("actionId is required for select_action.")
-            if self.clarificationQuestion is not None:
+            if self.targetId is not None or self.clarificationQuestion is not None:
                 raise ValueError(
-                    "clarificationQuestion must be null for select_action."
+                    "targetId and clarificationQuestion must be null for select_action."
+                )
+        elif self.decision == "select_intent":
+            if self.targetId is None:
+                raise ValueError("targetId is required for select_intent.")
+            if self.actionId is not None or self.clarificationQuestion is not None:
+                raise ValueError(
+                    "actionId and clarificationQuestion must be null for select_intent."
                 )
         elif self.decision == "needs_clarification":
-            if self.actionId is not None:
+            if self.actionId is not None or self.targetId is not None:
                 raise ValueError(
-                    "actionId must be null for needs_clarification."
+                    "actionId and targetId must be null for needs_clarification."
                 )
             if (
                 self.clarificationQuestion is None
@@ -439,13 +632,16 @@ class CreatorActionSelection(BaseModel):
                     "clarificationQuestion is required for needs_clarification."
                 )
         else:
-            if self.actionId is not None:
-                raise ValueError(f"actionId must be null for {self.decision}.")
+            if self.actionId is not None or self.targetId is not None:
+                raise ValueError(f"actionId and targetId must be null for {self.decision}.")
             if self.clarificationQuestion is not None:
                 raise ValueError(
                     f"clarificationQuestion must be null for {self.decision}."
                 )
         return self
+
+
+CreatorIntentSelection = CreatorActionSelection
 
 
 @dataclass(slots=True)
@@ -559,6 +755,9 @@ class CreatorDomainSnapshot:
     observation_coverage: tuple[str, ...]
     plugin_index: PluginCapabilityIndex
     action_catalog: CreatorActionCatalogSnapshot
+    authoring_target_catalog: CreatorAuthoringTargetCatalogSnapshot = field(
+        default_factory=CreatorAuthoringTargetCatalogSnapshot
+    )
 
     @property
     def action_selector_context(self) -> dict[str, Any]:
@@ -596,11 +795,63 @@ class CreatorDomainSnapshot:
             for plugin_id in referenced_plugin_ids
             if (plugin := plugins_by_id.get(plugin_id)) is not None
         ]
+        intent_catalog = None
+        if self.authoring_target_catalog.candidates:
+            intent_candidates = [
+                CreatorIntentCandidate(
+                    type="composition_action",
+                    candidateId=action.actionId,
+                    label=action.label,
+                    description=action.description,
+                    action=action,
+                )
+                for action in self.action_catalog.candidates
+            ]
+            intent_candidates.extend(
+                CreatorIntentCandidate(
+                    type=target.kind,
+                    candidateId=target.targetId,
+                    label=target.name,
+                    description=target.description,
+                    target=target,
+                )
+                for target in self.authoring_target_catalog.candidates
+            )
+            intent_catalog = CreatorIntentCatalogSnapshot(
+                revision=self.authoring_target_catalog.revision,
+                candidates=intent_candidates,
+            )
         return CreatorActionSelectorContext(
             catalogRevision=self.action_catalog.revision,
             actions=self.action_catalog.candidates,
             pluginSemantics=plugin_semantics,
+            intentCatalog=intent_catalog,
         ).model_dump(mode="json", exclude_none=True)
+
+    def authoring_handoff(self, target_id: str) -> CreatorAuthoringHandoff:
+        target = next(
+            (item for item in self.authoring_target_catalog.candidates if item.targetId == target_id),
+            None,
+        )
+        binding = next(
+            (item for item in self.authoring_target_catalog.bindings if item.targetId == target_id),
+            None,
+        )
+        if target is None or binding is None:
+            raise KeyError(f"Unknown authoring target {target_id!r}.")
+        return CreatorAuthoringHandoff(
+            targetId=target.targetId,
+            kind=target.kind,
+            name=target.name,
+            description=target.description,
+            ownerPath=binding.ownerPath,
+            ownerRoot=binding.ownerRoot,
+            definitionPath=binding.definitionPath,
+            relatedPluginIds=target.relatedPluginIds,
+            pluginId=binding.pluginId or (
+                target.relatedPluginIds[0] if target.kind == "plugin_source" and target.relatedPluginIds else None
+            ),
+        )
 
     def to_dict(self) -> dict[str, Any]:
         """Return a defensive copy of the full Host snapshot."""

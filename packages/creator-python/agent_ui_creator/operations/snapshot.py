@@ -12,6 +12,9 @@ from pydantic import ValidationError
 from ..project_control import ProjectControlClient, ProjectControlError
 from .models import (
     AddDefaultActionEffect,
+    CreatorAuthoringTargetBinding,
+    CreatorAuthoringTargetCandidate,
+    CreatorAuthoringTargetCatalogSnapshot,
     CreatorActionCandidate,
     CreatorActionCatalogSnapshot,
     CreatorActionEffect,
@@ -38,6 +41,12 @@ from .models import (
     MAX_PLUGIN_NAME_CHARS,
     MAX_PLUGIN_VISUAL_ROLE_CHARS,
     MAX_CREATOR_ACTION_CANDIDATES,
+    MAX_CREATOR_AUTHORING_TARGETS,
+    MAX_AUTHORING_TARGET_INTENTS,
+    MAX_AUTHORING_TARGET_ID_CHARS,
+    MAX_AUTHORING_TARGET_NAME_CHARS,
+    MAX_AUTHORING_TARGET_DESCRIPTION_CHARS,
+    MAX_AUTHORING_TARGET_PATH_CHARS,
     MAX_REQUIRED_SERVICE_STATUS_CHARS,
     MAX_TOTAL_PLUGIN_CHILD_SLOTS,
     MAX_TOTAL_PLUGIN_INSTANCES,
@@ -300,6 +309,170 @@ def _build_action_catalog(result: Mapping[str, Any]) -> CreatorActionCatalogSnap
         return CreatorActionCatalogSnapshot(revision=revision, candidates=candidates)
     except ValidationError as error:
         raise _action_model_invalid("creatorActions", error) from error
+
+
+def _safe_authoring_path(value: Any, path: str) -> str:
+    bounded = _bounded_text(value, path, MAX_AUTHORING_TARGET_PATH_CHARS)
+    normalized = bounded.replace("\\", "/")
+    if normalized.startswith("/") or any(part in {"..", ".", ""} for part in normalized.split("/")):
+        raise _invalid(
+            f"Authoring target path {path} must be project-relative and cannot traverse upward."
+        )
+    return normalized
+
+
+def _build_authoring_target_catalog(
+    result: Mapping[str, Any],
+) -> CreatorAuthoringTargetCatalogSnapshot:
+    value = result.get("authoringTargetCatalog")
+    if value is None:
+        return CreatorAuthoringTargetCatalogSnapshot()
+    catalog = _required_mapping(value, "authoringTargetCatalog")
+    unexpected_fields = set(catalog).difference({"revision", "candidates", "bindings"})
+    if unexpected_fields:
+        raise _invalid(
+            "Authoring Target Catalog contains unsupported fields.",
+            {"fields": sorted(str(field) for field in unexpected_fields)},
+        )
+    revision = _required_string(catalog.get("revision"), "authoringTargetCatalog.revision")
+    if _SHA256.fullmatch(revision) is None:
+        raise _invalid("Authoring Target Catalog revision must be a lowercase SHA-256 hash.")
+    candidates_value = catalog.get("candidates")
+    bindings_value = catalog.get("bindings")
+    if not isinstance(candidates_value, list) or not isinstance(bindings_value, list):
+        raise _invalid("Authoring Target Catalog candidates and bindings must be lists.")
+    if len(candidates_value) > MAX_CREATOR_AUTHORING_TARGETS or len(bindings_value) > MAX_CREATOR_AUTHORING_TARGETS:
+        raise _too_large(
+            "Authoring Target Catalog exceeds its target bound.",
+            {"limit": MAX_CREATOR_AUTHORING_TARGETS},
+        )
+
+    candidates: list[CreatorAuthoringTargetCandidate] = []
+    for index, candidate_value in enumerate(candidates_value):
+        path = f"authoringTargetCatalog.candidates[{index}]"
+        candidate = _required_mapping(candidate_value, path)
+        unexpected_fields = set(candidate).difference(
+            {"id", "kind", "name", "description", "intents", "relatedPluginIds"}
+        )
+        if unexpected_fields:
+            raise _invalid(
+                f"Authoring target {path} contains unsupported fields.",
+                {"fields": sorted(str(field) for field in unexpected_fields)},
+            )
+        target_id = _bounded_text(candidate.get("id"), f"{path}.id", MAX_AUTHORING_TARGET_ID_CHARS)
+        kind = _required_string(candidate.get("kind"), f"{path}.kind")
+        if kind not in {"application_config", "plugin_source"}:
+            raise _invalid(f"Unsupported authoring target kind {kind!r}.")
+        name = _bounded_text(candidate.get("name"), f"{path}.name", MAX_AUTHORING_TARGET_NAME_CHARS)
+        description = _bounded_text(
+            candidate.get("description"),
+            f"{path}.description",
+            MAX_AUTHORING_TARGET_DESCRIPTION_CHARS,
+        )
+        intents_value = candidate.get("intents")
+        if not isinstance(intents_value, list) or not all(isinstance(item, str) and item.strip() for item in intents_value):
+            raise _invalid(f"{path}.intents must be a non-empty string list.")
+        if len(intents_value) == 0 or len(intents_value) > MAX_AUTHORING_TARGET_INTENTS:
+            raise _too_large(f"{path}.intents exceeds its bound.")
+        intents = [
+            _bounded_text(item, f"{path}.intents[{intent_index}]", MAX_PLUGIN_INTENT_CHARS)
+            for intent_index, item in enumerate(intents_value)
+        ]
+        related_value = candidate.get("relatedPluginIds", [])
+        if not isinstance(related_value, list) or not all(isinstance(item, str) and item.strip() for item in related_value):
+            raise _invalid(f"{path}.relatedPluginIds must be a string list.")
+        try:
+            candidates.append(
+                CreatorAuthoringTargetCandidate(
+                    targetId=target_id,
+                    kind=kind,
+                    name=name,
+                    description=description,
+                    intents=intents,
+                    relatedPluginIds=[
+                        _bounded_text(item, f"{path}.relatedPluginIds[{plugin_index}]", MAX_PLUGIN_ID_CHARS)
+                        for plugin_index, item in enumerate(related_value)
+                    ],
+                )
+            )
+        except ValidationError as error:
+            raise _action_model_invalid(path, error) from error
+
+    bindings: list[CreatorAuthoringTargetBinding] = []
+    for index, binding_value in enumerate(bindings_value):
+        path = f"authoringTargetCatalog.bindings[{index}]"
+        binding = _required_mapping(binding_value, path)
+        unexpected_fields = set(binding).difference(
+            {
+                "targetId",
+                "kind",
+                "ownerPath",
+                "ownerRoot",
+                "definitionPath",
+                "manifestPath",
+                "pluginId",
+                "relatedPluginIds",
+            }
+        )
+        if unexpected_fields:
+            raise _invalid(
+                f"Authoring binding {path} contains unsupported fields.",
+                {"fields": sorted(str(field) for field in unexpected_fields)},
+            )
+        target_id = _bounded_text(binding.get("targetId"), f"{path}.targetId", MAX_AUTHORING_TARGET_ID_CHARS)
+        kind = _required_string(binding.get("kind"), f"{path}.kind")
+        if kind not in {"application_config", "plugin_source"}:
+            raise _invalid(f"Unsupported authoring binding kind {kind!r}.")
+        values: dict[str, Any] = {"targetId": target_id, "kind": kind}
+        for field_name in ("ownerPath", "ownerRoot", "definitionPath", "manifestPath"):
+            if binding.get(field_name) is not None:
+                values[field_name] = _safe_authoring_path(
+                    binding.get(field_name), f"{path}.{field_name}"
+                )
+        if binding.get("pluginId") is not None:
+            values["pluginId"] = _bounded_text(
+                binding.get("pluginId"), f"{path}.pluginId", MAX_PLUGIN_ID_CHARS
+            )
+        related_value = binding.get("relatedPluginIds", [])
+        if not isinstance(related_value, list) or not all(isinstance(item, str) for item in related_value):
+            raise _invalid(f"{path}.relatedPluginIds must be a string list.")
+        values["relatedPluginIds"] = [
+            _bounded_text(item, f"{path}.relatedPluginIds[{plugin_index}]", MAX_PLUGIN_ID_CHARS)
+            for plugin_index, item in enumerate(related_value)
+        ]
+        try:
+            bindings.append(CreatorAuthoringTargetBinding(**values))
+        except ValidationError as error:
+            raise _action_model_invalid(path, error) from error
+
+    try:
+        return CreatorAuthoringTargetCatalogSnapshot(
+            revision=revision,
+            candidates=candidates,
+            bindings=bindings,
+        )
+    except ValidationError as error:
+        raise _action_model_invalid("authoringTargetCatalog", error) from error
+
+
+def _validate_authoring_target_references(
+    catalog: CreatorAuthoringTargetCatalogSnapshot,
+    plugin_index: PluginCapabilityIndex,
+) -> None:
+    plugin_ids = {plugin.pluginId for plugin in plugin_index.plugins}
+    for target in catalog.candidates:
+        unknown = sorted(set(target.relatedPluginIds).difference(plugin_ids))
+        if unknown:
+            raise _invalid(
+                f"Authoring target {target.targetId!r} references unknown Plugins.",
+                {"pluginIds": unknown},
+            )
+    for binding in catalog.bindings:
+        if binding.pluginId is not None and binding.pluginId not in plugin_ids:
+            raise _invalid(
+                f"Authoring binding {binding.targetId!r} references an unknown Plugin.",
+                {"pluginId": binding.pluginId},
+            )
 
 
 def _validate_action_catalog_references(
@@ -781,7 +954,9 @@ class CreatorDomainSnapshotProvider:
         )
         plugin_index = _build_plugin_index(result)
         action_catalog = _build_action_catalog(result)
+        authoring_target_catalog = _build_authoring_target_catalog(result)
         _validate_action_catalog_references(action_catalog, plugin_index)
+        _validate_authoring_target_references(authoring_target_catalog, plugin_index)
         raw = copy.deepcopy(dict(result))
         return CreatorDomainSnapshot(
             raw=raw,
@@ -790,4 +965,5 @@ class CreatorDomainSnapshotProvider:
             observation_coverage=tuple(coverage),
             plugin_index=plugin_index,
             action_catalog=action_catalog,
+            authoring_target_catalog=authoring_target_catalog,
         )

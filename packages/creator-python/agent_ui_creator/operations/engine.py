@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 from ..activity import CreatorActivityRecorder
 from ..app_ui_model import (
@@ -36,6 +36,8 @@ from .clarification import (
 from .models import (
     CreatorActionCandidate,
     CreatorActionSelection,
+    CreatorAuthoringHandoff,
+    CreatorAuthoringTargetCandidate,
     CreatorOperationExecutionResult,
     WorkspaceRegionActionEffect,
 )
@@ -44,7 +46,7 @@ from .presentation import (
     CreatorIntentRoute,
     present_creator_action_selection,
 )
-from .selector import ACTION_SELECTOR_PROTOCOL, CreatorActionSelectionError, CreatorActionSelector
+from .selector import ACTION_SELECTOR_PROTOCOL, CreatorActionSelectionError, CreatorIntentSelector
 from .snapshot import CreatorDomainSnapshotMetrics, CreatorDomainSnapshotProvider
 from .verification import CompositionOperationVerificationService
 
@@ -99,6 +101,16 @@ class ProductizedOperationRun:
     )
     change_layer_metrics: dict[str, object] = field(default_factory=dict)
     composition_fast_path_metrics: Any = None
+
+
+@dataclass(frozen=True, slots=True)
+class CreatorResolveResult:
+    """Explicit handoff result for a scoped or unscoped General Agent route."""
+
+    route: Literal["scoped_general_handoff", "unscoped_general"]
+    selection: CreatorActionSelection
+    presentation: CreatorIntentPresentation
+    handoff: CreatorAuthoringHandoff | None = None
 
 
 def _latest_user_message(messages: list[dict[str, str]]) -> str:
@@ -193,7 +205,7 @@ class ProductizedOperationEngine:
             snapshot_provider=self.snapshot_provider,
             verification=verification,
         )
-        self.selector = CreatorActionSelector(
+        self.selector = CreatorIntentSelector(
             model=model,
             max_retries=max_retries,
             recovery_factory=recovery_factory,
@@ -219,8 +231,8 @@ class ProductizedOperationEngine:
 
     async def run(
         self, messages: list[dict[str, str]]
-    ) -> ProductizedOperationRun | None:
-        """Return a terminal productized result; only general_change returns None."""
+    ) -> ProductizedOperationRun | CreatorResolveResult:
+        """Return a productized result or an explicit General Agent handoff."""
 
         user_message = _latest_user_message(messages)
         await self._publish_step_started(
@@ -278,6 +290,7 @@ class ProductizedOperationEngine:
                 **selector_kwargs,
             )
             selected_action = None
+            selected_target = None
             if selection.decision == "select_action":
                 assert selection.actionId is not None
                 selected_action = next(
@@ -294,7 +307,30 @@ class ProductizedOperationEngine:
                         {
                             "actionId": selection.actionId,
                             "catalogRevision": snapshot.action_catalog.revision,
-                },
+                        },
+                    )
+            elif selection.decision == "select_intent":
+                assert selection.targetId is not None
+                selected_target = next(
+                    (
+                        candidate
+                        for candidate in snapshot.authoring_target_catalog.candidates
+                        if candidate.targetId == selection.targetId
+                    ),
+                    None,
+                )
+                if selected_target is None:
+                    raise CreatorActionSelectionError(
+                        "The selected Authoring Target is missing from the source Target Catalog.",
+                        {
+                            "targetId": selection.targetId,
+                            "catalogRevision": snapshot.authoring_target_catalog.revision,
+                        },
+                    )
+            authoring_handoff = (
+                snapshot.authoring_handoff(selection.targetId)
+                if selection.decision == "select_intent" and selection.targetId is not None
+                else None
             )
         except Exception as error:
             if pending_clarification is not None:
@@ -316,16 +352,21 @@ class ProductizedOperationEngine:
             )
             raise
 
-        route: CreatorIntentRoute = {
-            "select_action": "productized",
-            "needs_clarification": "clarification",
-            "general_change": "general-agent",
-            "unsupported_product_action": "unsupported",
-        }[selection.decision]
+        route: CreatorIntentRoute = (
+            selected_target.kind
+            if selection.decision == "select_intent" and selected_target is not None
+            else {
+                "select_action": "productized",
+                "needs_clarification": "clarification",
+                "general_change": "unscoped_general",
+                "unsupported_product_action": "unsupported",
+            }[selection.decision]
+        )
         presentation = present_creator_action_selection(
             selection,
             selected_action,
             route=route,
+            target=selected_target,
         )
         await self._publish_step_finished(
             "creator.resolve",
@@ -339,8 +380,10 @@ class ProductizedOperationEngine:
         self._record_route(
             selection,
             selected_action=selected_action,
+            selected_target=selected_target,
             route=route,
             presentation=presentation,
+            authoring_handoff=authoring_handoff,
         )
 
         if selection.decision == "needs_clarification":
@@ -356,7 +399,20 @@ class ProductizedOperationEngine:
 
         selector_metrics = self.selector.metrics
         if selection.decision == "general_change":
-            return None
+            return CreatorResolveResult(
+                route="unscoped_general",
+                selection=selection,
+                presentation=presentation,
+            )
+
+        if selection.decision == "select_intent":
+            assert authoring_handoff is not None
+            return CreatorResolveResult(
+                route="scoped_general_handoff",
+                selection=selection,
+                presentation=presentation,
+                handoff=authoring_handoff,
+            )
 
         if selection.decision == "needs_clarification":
             clarification_question = selection.clarificationQuestion
@@ -650,18 +706,37 @@ class ProductizedOperationEngine:
         selection: CreatorActionSelection,
         *,
         selected_action: CreatorActionCandidate | None,
+        selected_target: CreatorAuthoringTargetCandidate | None,
         route: CreatorIntentRoute,
         presentation: CreatorIntentPresentation | None = None,
+        authoring_handoff: CreatorAuthoringHandoff | None = None,
     ) -> None:
         route_value = {
             "decision": selection.decision,
             "route": route,
             "productized": route == "productized",
-            "generalAgent": route == "general-agent",
+            "generalAgent": route in {
+                "general-agent",
+                "unscoped_general",
+                "scoped_general_handoff",
+                "application_config",
+                "plugin_source",
+            },
+            "ownerScopedHandoff": selected_target is not None,
             "clarification": route == "clarification",
             "unsupported": route == "unsupported",
             **self._selected_action_metadata(selected_action),
         }
+        if selected_target is not None:
+            route_value.update(
+                {
+                    "targetId": selected_target.targetId,
+                    "targetKind": selected_target.kind,
+                    "targetPluginIds": list(selected_target.relatedPluginIds),
+                }
+            )
+        if authoring_handoff is not None:
+            route_value["authoringHandoff"] = authoring_handoff.model_dump(mode="json")
         if self.activity.logger is None:
             pass
         else:
@@ -673,6 +748,16 @@ class ProductizedOperationEngine:
                 selected_creator_action=(
                     selected_action.model_dump(mode="json")
                     if selected_action is not None
+                    else None
+                ),
+                selected_creator_intent=(
+                    selected_target.model_dump(mode="json")
+                    if selected_target is not None
+                    else None
+                ),
+                authoring_handoff=(
+                    authoring_handoff.model_dump(mode="json")
+                    if authoring_handoff is not None
                     else None
                 ),
                 operation_route=route_value,

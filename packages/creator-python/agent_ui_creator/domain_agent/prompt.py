@@ -95,6 +95,17 @@ by this run that is necessary to complete the requested state, including a
 targeted repair in another owning layer when differential validation proves the
 causal need. Do not make unrelated cleanup changes.
 
+Host-resolved authoring ownership
+
+When the Host supplies a resolved authoring handoff, its target, kind, owner
+path, and related Plugin metadata are authoritative. For an application_config
+target, read the supplied ownerPath first. For a plugin_source target, read the
+supplied ownerRoot and Plugin definition first. Do not inspect Composition to
+rediscover a resolved target, do not select a different owner, and do not turn
+an application-config or Plugin-source request into an AppUIModel mutation.
+Keep the implementation inside the supplied ownership boundary unless the user
+explicitly asks for a separate, independently resolved change.
+
 For a fresh Composition Snapshot, use the semantic `insert_plugin_default`
 operation when an existing visual capability is unselected, declares a unique
 authoring-default placement and safe recommended size, has a uniquely resolved

@@ -24,8 +24,9 @@ describe("@agent-ui/react public API", () => {
     for (const publicName of [
       "ConversationThread",
       "ConversationSuggestions",
-      "ConversationSuggestionState",
-      "ConversationSuggestion",
+      "ConversationSuggestionTrigger",
+      "ConversationSuggestionTitle",
+      "ConversationSuggestionDescription",
       "ConversationToolCall",
       "ConversationThreadListRoot",
       "useConversationState",

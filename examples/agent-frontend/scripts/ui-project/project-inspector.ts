@@ -26,6 +26,7 @@ import {
 } from "./source-registry";
 import { APP_UI_MUTATION_ADMISSION_GUARANTEES } from "./app-ui-transaction";
 import { buildCreatorActionCatalog } from "./creator-action-catalog";
+import { buildCreatorAuthoringTargetCatalog } from "./creator-authoring-target-catalog";
 import type {
   CompactLayoutNode,
   InspectedSlot,
@@ -42,6 +43,7 @@ const COMPOSITION_OBSERVATION_COVERAGE = [
   "capability.inventory",
   "capability.composition-summary",
   "creator.actions",
+  "creator.authoring-targets",
 ] as const;
 
 function compactLayout(
@@ -166,6 +168,7 @@ export async function inspectUIProject(
     activeComposition: composition.activeComposition,
     issues: composition.issues,
     pluginAssets: composition.pluginAssets,
+    authoringTargetCatalog: composition.authoringTargetCatalog,
     catalogs: await Promise.all(
       config.catalogs.map(async (catalogPath) => ({
         path: catalogPath,
@@ -272,6 +275,11 @@ async function inspectUICompositionData(
     appUIModelHash,
     workspacePolicy,
   });
+  const authoringTargetCatalog = await buildCreatorAuthoringTargetCatalog({
+    projectRoot,
+    config,
+    projectFacts,
+  });
 
   return {
     schemaVersion: 3,
@@ -342,6 +350,7 @@ async function inspectUICompositionData(
       revision: creatorActionCatalog.revision,
       candidates: creatorActionCatalog.candidates,
     },
+    authoringTargetCatalog,
     layoutConstraints: {
       refs: "snapshot-scoped",
       pluginTargets: ["application", "layout_slot", "plugin_slot"],
