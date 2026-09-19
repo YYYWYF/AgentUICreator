@@ -48,6 +48,19 @@ function model(surfaceId = "surface-main"): AppUIModel {
 }
 
 describe("compileAppUIModel", () => {
+  it("preserves Row tracks without deriving a Panel width", () => {
+    const source: AppUIModel = { root: {
+      type: "row", sizes: ["minmax(0, 1fr)"],
+      children: [{ type: "panel", child: { type: "slot", plugins: [] } }],
+    } };
+    const runtime = compileAppUIModel(source, catalog);
+    expect(runtime.root.type).toBe("row");
+    if (runtime.root.type !== "row") throw new Error("Expected Row root.");
+    expect(runtime.root.sizes).toEqual(["minmax(0, 1fr)"]);
+    expect(runtime.root.children[0]?.type).toBe("panel");
+    if (runtime.root.children[0]?.type !== "panel") throw new Error("Expected Panel.");
+    expect(runtime.root.children[0].width).toBeUndefined();
+  });
   it("deterministically lowers authoring order and local Slots", () => {
     const first = compileAppUIModel(model(), catalog);
     const second = compileAppUIModel(model(), catalog);

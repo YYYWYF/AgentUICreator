@@ -7,6 +7,26 @@ import {
 } from "../framework/contracts/app-ui-model";
 
 describe("AppUIModel", () => {
+  it("keeps Grid tracks separate from Panel dimensions", () => {
+    for (const width of ["1fr", "0.5fr", "minmax(0, 1fr)", "repeat(2, 1fr)", "subgrid"]) {
+      expect(() => parseAppUIModel({ root: {
+        type: "panel", width, child: { type: "slot", plugins: [] },
+      } })).toThrow();
+    }
+    expect(() => parseAppUIModel({ root: {
+      type: "panel", height: "minmax(0, 1fr)", child: { type: "slot", plugins: [] },
+    } })).toThrow();
+    for (const width of ["280px", "100%", "24rem", "calc(100% - 2rem)", "auto", "fit-content(20rem)"]) {
+      expect(() => parseAppUIModel({ root: {
+        type: "panel", width, child: { type: "slot", plugins: [] },
+      } })).not.toThrow();
+    }
+    for (const size of ["1fr", "minmax(0, 1fr)"]) {
+      expect(() => parseAppUIModel({ root: {
+        type: "row", sizes: [size], children: [{ type: "slot", plugins: [] }],
+      } })).not.toThrow();
+    }
+  });
   it("parses the nested authoring source of truth", () => {
     const model = parseAppUIModel(appUIModelJson);
     const locations = collectAppUIPluginLocations(model);

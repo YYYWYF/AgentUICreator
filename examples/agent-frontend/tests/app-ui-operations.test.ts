@@ -1647,12 +1647,12 @@ describe("AppUIModel semantic operations", () => {
           : ["280px", "minmax(0, 1fr)"],
         children: removedRegion === "right"
           ? [
-              visualBranch("conversation-main", "conversation", { width: "minmax(0, 1fr)" }),
-              visualBranch("history-main", "history", { width: "280px" }),
+              visualBranch("conversation-main", "conversation"),
+              visualBranch("history-main", "history"),
             ]
           : [
-              visualBranch("history-main", "history", { width: "280px" }),
-              visualBranch("conversation-main", "conversation", { width: "minmax(0, 1fr)" }),
+              visualBranch("history-main", "history"),
+              visualBranch("conversation-main", "conversation"),
             ],
       },
     };
@@ -1670,6 +1670,24 @@ describe("AppUIModel semantic operations", () => {
       type: "panel",
       child: { type: "slot", plugins: [{ id: "conversation-main" }] },
     });
+    const survivor = result.root.children[0];
+    if (survivor?.type !== "panel") throw new Error("Expected surviving Panel.");
+    expect(survivor.width).toBeUndefined();
+  });
+
+  it("clears a legacy surviving Workspace Panel width after removing a side Region", () => {
+    const source: AppUIModel = { root: {
+      type: "row", sizes: ["280px", "minmax(0, 1fr)"], children: [
+        visualBranch("history-main", "history", { width: "280px" }),
+        visualBranch("conversation-main", "conversation", { width: "280px" }),
+      ],
+    } };
+    const result = applyAppUIOperations(source, [{
+      type: "remove_plugin_default", instanceId: "history-main",
+    }], { workspacePolicy: platformMode.workspace });
+    if (result.root.type !== "row" || result.root.children[0]?.type !== "panel") throw new Error("Expected Workspace Panel.");
+    expect(result.root.sizes).toEqual(["minmax(0, 1fr)"]);
+    expect(result.root.children[0].width).toBeUndefined();
   });
 
   it("preserves the Workspace root Row when moving an optional side Plugin into a Plugin Slot", () => {
@@ -1678,8 +1696,8 @@ describe("AppUIModel semantic operations", () => {
         type: "row",
         sizes: ["minmax(0, 1fr)", "280px"],
         children: [
-          visualBranch("conversation-main", "conversation", { width: "minmax(0, 1fr)" }),
-          visualBranch("history-main", "history", { width: "280px" }),
+          visualBranch("conversation-main", "conversation"),
+          visualBranch("history-main", "history"),
         ],
       },
     };

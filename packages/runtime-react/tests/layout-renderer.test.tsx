@@ -91,6 +91,25 @@ describe("LayoutRenderer", () => {
     );
   });
 
+  it("keeps Row track syntax out of Panel element dimensions", () => {
+    for (const width of ["minmax(0, 1fr)", "1fr", "repeat(2, 1fr)"]) {
+      const html = renderToStaticMarkup(<LayoutRenderer root={{
+        type: "row", id: "row", sizes: ["minmax(0, 1fr)"],
+        children: [{ type: "panel", id: "panel", width, child: slot("content") }],
+      }} />);
+      expect(html).toContain("grid-template-columns:minmax(0, 1fr)");
+      expect(html).not.toContain(`width:${width}`);
+    }
+    const valid = renderToStaticMarkup(<LayoutRenderer root={{
+      type: "panel", id: "panel", width: "280px", child: slot("content"),
+    }} />);
+    expect(valid).toContain("width:280px");
+    const cleared = renderToStaticMarkup(<LayoutRenderer root={{
+      type: "panel", id: "panel", child: slot("content"),
+    }} />);
+    expect(cleared).not.toContain("width:280px");
+  });
+
   it("renders the active Stack child", () => {
     const html = renderToStaticMarkup(
       <LayoutRenderer

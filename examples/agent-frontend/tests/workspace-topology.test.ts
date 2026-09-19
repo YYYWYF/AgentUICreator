@@ -17,7 +17,6 @@ const centerOnlyPolicy = {
 function branch(instanceId: string): AppUIModel["root"] {
   return {
     type: "panel",
-    width: "minmax(0, 1fr)",
     child: {
       type: "slot",
       plugins: [{ id: instanceId, pluginId: instanceId.replace(/-main$/u, ""), enabled: true }],
@@ -104,8 +103,9 @@ describe("Workspace topology", () => {
       sizes: ["minmax(0, 1fr)", "280px"],
     });
     if (moved.root.type !== "row") throw new Error("Expected Row root.");
-    expect(moved.root.children[0]).toMatchObject({ type: "panel", width: "minmax(0, 1fr)" });
-    expect(moved.root.children[1]).toMatchObject({ type: "panel", width: "280px" });
+    expect(moved.root.children[0]).toMatchObject({ type: "panel" });
+    expect(moved.root.children[1]).toMatchObject({ type: "panel" });
+    expect(moved.root.children.every((child) => child.type === "panel" && child.width === undefined)).toBe(true);
     expect(
       moved.root.children.map((child) =>
         child.type === "panel" && child.child.type === "slot"
@@ -145,6 +145,32 @@ describe("Workspace topology", () => {
           : undefined,
       ),
     ).toEqual(["history-main", "conversation-main"]);
+  });
+
+  it("clears a legacy direct Panel width only when one is present", () => {
+    const model = row(["280px", "minmax(0, 1fr)"], ["history-main", "conversation-main"]);
+    if (model.root.type !== "row" || model.root.children[0]?.type !== "panel") throw new Error("fixture");
+    model.root.children[0].width = "280px";
+    const center = model.root.children[1];
+    if (center?.type !== "panel") throw new Error("fixture");
+    center.width = "280px";
+    const plan = planWorkspaceRegionMove(model, {
+      type: "workspace_region_move", instanceId: "history-main", region: "right",
+    }, workspacePolicy);
+    expect(lowerWorkspaceRegionMovePlan(plan)).toEqual([
+      expect.objectContaining({ type: "move_layout_node", size: "280px" }),
+      { type: "update_layout_node_props", nodeRef: plan.branchRef, removeKeys: ["width"] },
+      { type: "update_layout_node_props", nodeRef: "l3", removeKeys: ["width"] },
+    ]);
+    const moved = applyAppUIOperations(model, lowerWorkspaceRegionMovePlan(plan), { workspacePolicy });
+    if (moved.root.type !== "row") throw new Error("Expected Row root.");
+    expect(moved.root.sizes).toEqual(["minmax(0, 1fr)", "280px"]);
+    const movedBranch = moved.root.children[1];
+    if (movedBranch?.type !== "panel") throw new Error("Expected Panel branch.");
+    expect(movedBranch.width).toBeUndefined();
+    const movedCenter = moved.root.children[0];
+    if (movedCenter?.type !== "panel") throw new Error("Expected Center Panel.");
+    expect(movedCenter.width).toBeUndefined();
   });
 
   it("rejects occupied destinations and moving the required Center", () => {
