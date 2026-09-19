@@ -1,5 +1,7 @@
 import httpx
 import pytest
+import asyncio
+from langchain_core.messages import AIMessage
 from langchain_openai import ChatOpenAI
 
 import agent_ui_creator.minimal_agent.agent as agent_module
@@ -7,8 +9,12 @@ from agent_ui_creator.model_factory import create_creator_chat_model
 from agent_ui_creator.model_settings import (
     CreatorModelConfigurationError,
     CreatorModelSettings,
+    CreatorSelectorModelSettings,
     load_python_agent_mode,
 )
+from agent_ui_creator.config import CreatorServerSettings
+from agent_ui_creator.operations import CreatorActionSelector
+from agent_ui_creator.server import _domain_write_agent_result
 
 
 def test_model_factory_sets_creator_user_agent_without_provider_session_header():
@@ -108,6 +114,120 @@ def test_model_settings_priority_and_compatibility(tmp_path):
     assert settings.api_key == "creator-key"
     assert settings.temperature == 0.2
     assert settings.max_tokens == 2048
+
+
+def test_selector_settings_are_independent_of_general_model_settings(tmp_path):
+    (tmp_path / ".env.creator.local").write_text(
+        "CREATOR_SELECTOR_MAX_TOKENS=512\nCREATOR_SELECTOR_REASONING_EFFORT=low\n",
+        encoding="utf-8",
+    )
+    selector = CreatorSelectorModelSettings.from_environment(
+        config_root=tmp_path,
+        environment={"CREATOR_SELECTOR_MAX_TOKENS": "256", "CREATOR_SELECTOR_REASONING_EFFORT": "high"},
+    )
+    general = CreatorModelSettings(
+        model_name="mimo-v2.5-pro", base_url="https://model.example/v1", api_key="secret"
+    )
+
+    assert selector.max_tokens == 256
+    assert selector.reasoning_effort == "high"
+    assert general.max_tokens == 2048
+    assert general.temperature == 0.2
+
+
+def test_general_route_creates_a_fresh_model_with_original_settings(tmp_path, monkeypatch):
+    created = []
+    selector_copies = []
+
+    class ScriptedModel:
+        def __init__(self, settings, effective=None):
+            self.settings = settings
+            self.effective = effective or {
+                "max_tokens": settings.max_tokens,
+                "temperature": settings.temperature,
+                "streaming": True,
+                "reasoning_effort": None,
+            }
+            self.model_name = settings.model_name
+
+        def model_copy(self, *, update):
+            copy = ScriptedModel(self.settings, {**self.effective, **update})
+            selector_copies.append(copy)
+            return copy
+
+        async def ainvoke(self, _messages):
+            return AIMessage(content="GENERAL")
+
+    settings = CreatorModelSettings(
+        model_name="scripted", base_url="https://unused.invalid/v1", api_key="secret"
+    )
+    monkeypatch.setattr(
+        "agent_ui_creator.server.CreatorModelSettings.from_environment",
+        classmethod(lambda cls, **kwargs: settings),
+    )
+    monkeypatch.setattr(
+        "agent_ui_creator.server.CreatorSelectorModelSettings.from_environment",
+        classmethod(lambda cls, **kwargs: CreatorSelectorModelSettings(512, "low")),
+    )
+
+    def create_model(model_settings, **_kwargs):
+        model = ScriptedModel(model_settings)
+        created.append(model)
+        return model
+
+    monkeypatch.setattr("agent_ui_creator.model_factory.create_creator_chat_model", create_model)
+
+    class FakeEngine:
+        def __init__(self, **kwargs):
+            self.selector = CreatorActionSelector(
+                model=kwargs["model"], selector_settings=kwargs["selector_settings"]
+            )
+
+        async def run(self, _messages):
+            result = await self.selector.select(
+                "让会话管理支持标题模糊搜索",
+                {"catalogRevision": "c" * 64, "actions": [], "pluginSemantics": []},
+            )
+            assert result.decision == "general_change"
+            return None
+
+    class FakeGeneralAgent:
+        def __init__(self, model):
+            self.model = model
+
+        async def run_messages(self, _messages):
+            return self.model
+
+    monkeypatch.setattr("agent_ui_creator.server.ProductizedOperationEngine", FakeEngine)
+    monkeypatch.setattr(
+        "agent_ui_creator.domain_agent.create_domain_write_creator_agent",
+        lambda **kwargs: FakeGeneralAgent(kwargs["model"]),
+    )
+    server_settings = CreatorServerSettings(
+        project_root=tmp_path, skills_root=tmp_path, auth_token="x" * 32
+    )
+
+    general_model = asyncio.run(_domain_write_agent_result(
+        server_settings,
+        [{"role": "user", "content": "让会话管理支持标题模糊搜索"}],
+        None, None, None, "thread", None,
+    ))
+
+    assert len(created) == 2
+    assert selector_copies[0].effective == {
+        "max_tokens": 512,
+        "temperature": None,
+        "streaming": False,
+        "reasoning_effort": "low",
+    }
+    assert general_model is created[1]
+    assert general_model is not created[0]
+    assert general_model.effective == {
+        "max_tokens": 2048,
+        "temperature": 0.2,
+        "streaming": True,
+        "reasoning_effort": None,
+    }
 
 
 def test_deep_agent_receives_the_preinitialized_model_instance(tmp_path, monkeypatch):

@@ -188,3 +188,31 @@ class CreatorModelSettings:
             max_retries=int(max_retries),
             raw_trace=raw_trace,
         )
+
+
+@dataclass(frozen=True, slots=True)
+class CreatorSelectorModelSettings:
+    max_tokens: int = 512
+    reasoning_effort: str | None = None
+
+    @classmethod
+    def from_environment(
+        cls,
+        *,
+        environment: Mapping[str, str] | None = None,
+        config_root: Path | None = None,
+    ) -> "CreatorSelectorModelSettings":
+        environment = os.environ if environment is None else environment
+        file_values = _parse_environment_file(config_root)
+        max_tokens = _number(
+            _first_value(environment, file_values, "CREATOR_SELECTOR_MAX_TOKENS"),
+            default=512,
+            name="CREATOR_SELECTOR_MAX_TOKENS",
+            cast=int,
+        )
+        if max_tokens == 0:
+            raise CreatorModelConfigurationError("CREATOR_SELECTOR_MAX_TOKENS must be positive.")
+        reasoning_effort = _first_value(
+            environment, file_values, "CREATOR_SELECTOR_REASONING_EFFORT"
+        )
+        return cls(max_tokens=int(max_tokens), reasoning_effort=reasoning_effort)

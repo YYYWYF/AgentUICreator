@@ -13,6 +13,8 @@ from ..app_ui_model import (
 )
 from ..domain_state import DomainObservationContext, DomainObservationMetrics
 from ..observability import CreatorRunTelemetry
+from ..model_protocol.provider_trace import ProviderResponseTraceCollector
+from ..model_settings import CreatorSelectorModelSettings
 from ..project_control import ProjectControlClient, ProjectControlMetrics
 from ..repair import CreatorRepairState
 from ..runtime_diagnostics import (
@@ -160,6 +162,9 @@ class ProductizedOperationEngine:
         thread_id: str,
         max_retries: int,
         recovery_factory: Callable[[], Any] | None = None,
+        selector_settings: CreatorSelectorModelSettings | None = None,
+        raw_trace: bool = False,
+        provider_trace_collector: ProviderResponseTraceCollector | None = None,
         telemetry: CreatorRunTelemetry | None = None,
         event_sink: CreatorEventSink | None = None,
     ) -> None:
@@ -204,6 +209,11 @@ class ProductizedOperationEngine:
             model=model,
             max_retries=max_retries,
             recovery_factory=recovery_factory,
+            selector_settings=selector_settings,
+            provider_trace_collector=provider_trace_collector if raw_trace else None,
+            invalid_response_logger=(
+                activity.logger.record if raw_trace and activity.logger is not None else None
+            ),
         )
         self.telemetry = telemetry
         if telemetry is not None:
@@ -499,6 +509,9 @@ class ProductizedOperationEngine:
         metrics = self.selector.metrics
         result: dict[str, object] = {
             "actionSelectorProtocol": ACTION_SELECTOR_PROTOCOL,
+            "actionSelectorModel": self.selector.requested_model,
+            "actionSelectorRequestedMaxTokens": self.selector.selector_settings.max_tokens,
+            "actionSelectorRequestedReasoningEffort": self.selector.selector_settings.reasoning_effort,
             "actionSelectorCalls": metrics.modelCalls,
             "actionSelectorRepairCalls": metrics.repairCalls,
             "actionSelectorInvalidResponses": metrics.invalidResponses,
@@ -510,6 +523,16 @@ class ProductizedOperationEngine:
             result["actionSelectorRepairReasonCode"] = metrics.repairReasonCode
         if metrics.repairReason is not None:
             result["actionSelectorRepairReason"] = metrics.repairReason
+        for key, value in {
+            "actionSelectorResolvedModel": metrics.resolvedModel,
+            "actionSelectorFinishReason": metrics.finishReason,
+            "actionSelectorPromptTokens": metrics.promptTokens,
+            "actionSelectorCompletionTokens": metrics.completionTokens,
+            "actionSelectorTotalTokens": metrics.totalTokens,
+            "actionSelectorReasoningTokens": metrics.reasoningTokens,
+        }.items():
+            if value is not None:
+                result[key] = value
         return result
 
     def _action_selector_metrics_metadata(self) -> dict[str, object]:

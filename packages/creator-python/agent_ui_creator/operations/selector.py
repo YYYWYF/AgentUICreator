@@ -4,6 +4,7 @@ import inspect
 import json
 import re
 from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from time import monotonic
 from typing import Any
 
@@ -11,7 +12,8 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import ValidationError
 
 from ..model_protocol.reliability import create_creator_model_invocation_reliability
-from ..model_settings import DEFAULT_CREATOR_MODEL_MAX_RETRIES
+from ..model_protocol.provider_trace import ProviderResponseTrace, ProviderResponseTraceCollector
+from ..model_settings import CreatorSelectorModelSettings, DEFAULT_CREATOR_MODEL_MAX_RETRIES
 from .models import (
     CreatorActionSelection,
     CreatorActionSelectorMetrics,
@@ -20,7 +22,7 @@ from .models import (
 )
 
 MAX_ACTION_SELECTOR_REPAIR_CALLS = 1
-MAX_ACTION_SELECTOR_OUTPUT_TOKENS = 128
+MAX_INVALID_SELECTOR_PREVIEW_CHARACTERS = 300
 ACTION_SELECTOR_PROTOCOL = "choice-text-v1"
 
 _SELECT_PATTERN = re.compile(r"SELECT (A[1-9][0-9]*)\Z")
@@ -73,8 +75,117 @@ class _InvalidActionSelection(ValueError):
         self.details = dict(details or {})
 
 
+@dataclass(frozen=True, slots=True)
+class _SelectorModelResponse:
+    text: object
+    finish_reason: str | None
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    total_tokens: int | None
+    reasoning_tokens: int | None
+    resolved_model: str | None
+
+
+def _token(value: object) -> int | None:
+    if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+        return value
+    return None
+
+
+def _first_token(*values: object) -> int | None:
+    for value in values:
+        token = _token(value)
+        if token is not None:
+            return token
+    return None
+
+
+def _model_response(result: object, trace: ProviderResponseTrace | None) -> _SelectorModelResponse:
+    metadata = getattr(result, "response_metadata", None)
+    usage = getattr(result, "usage_metadata", None)
+    metadata = metadata if isinstance(metadata, Mapping) else {}
+    usage = usage if isinstance(usage, Mapping) else {}
+    raw_usage = metadata.get("token_usage")
+    raw_usage = raw_usage if isinstance(raw_usage, Mapping) else {}
+    output_details = usage.get("output_token_details")
+    output_details = output_details if isinstance(output_details, Mapping) else {}
+    completion_details = raw_usage.get("completion_tokens_details")
+    completion_details = completion_details if isinstance(completion_details, Mapping) else {}
+    finish = metadata.get("finish_reason")
+    model = metadata.get("model_name")
+    return _SelectorModelResponse(
+        text=getattr(result, "content", result),
+        finish_reason=getattr(trace, "finishReason", None)
+        or (finish if isinstance(finish, str) else None),
+        prompt_tokens=_first_token(
+            getattr(trace, "promptTokens", None),
+            usage.get("input_tokens"),
+            raw_usage.get("prompt_tokens"),
+        ),
+        completion_tokens=_first_token(
+            getattr(trace, "completionTokens", None),
+            usage.get("output_tokens"),
+            raw_usage.get("completion_tokens"),
+        ),
+        total_tokens=_first_token(
+            getattr(trace, "totalTokens", None),
+            usage.get("total_tokens"),
+            raw_usage.get("total_tokens"),
+        ),
+        reasoning_tokens=_first_token(
+            getattr(trace, "reasoningTokens", None),
+            output_details.get("reasoning"),
+            completion_details.get("reasoning_tokens"),
+        ),
+        resolved_model=getattr(trace, "responseModel", None) or (model if isinstance(model, str) else None),
+    )
+
+
 def _bounded_error(error: BaseException) -> str:
     return str(error).strip()[:500] or error.__class__.__name__
+
+
+def _invalid_response_diagnostic(
+    *,
+    attempt: int,
+    response: object,
+    provider_trace: ProviderResponseTrace | None,
+    finish_reason: str | None,
+) -> dict[str, object]:
+    diagnostic: dict[str, object] = {
+        "attempt": attempt,
+        "responseType": type(response).__name__,
+        "responseLength": len(response) if isinstance(response, str) else None,
+        "contentType": (
+            provider_trace.contentType
+            if provider_trace is not None
+            else "string" if isinstance(response, str)
+            else "list" if isinstance(response, list)
+            else "object" if isinstance(response, Mapping)
+            else "null" if response is None
+            else type(response).__name__
+        ),
+        "contentLength": provider_trace.contentLength if provider_trace is not None else None,
+        "contentBlockTypes": list(provider_trace.contentBlockTypes) if provider_trace is not None else [],
+        "contentKeys": list(provider_trace.contentKeys) if provider_trace is not None else [],
+        "hasReasoningContent": provider_trace.hasReasoningContent if provider_trace is not None else None,
+        "finishReason": (
+            provider_trace.finishReason if provider_trace is not None else finish_reason
+        ),
+        "toolCallCount": provider_trace.toolCallCount if provider_trace is not None else None,
+        "pseudoToolIntent": provider_trace.pseudoToolIntent if provider_trace is not None else None,
+        "textualToolIntent": provider_trace.textualToolIntent if provider_trace is not None else None,
+    }
+    if isinstance(response, str):
+        diagnostic["responsePreview"] = response[:MAX_INVALID_SELECTOR_PREVIEW_CHARACTERS]
+    elif isinstance(response, list):
+        diagnostic["contentBlockTypes"] = [
+            str(block.get("type", "unknown"))[:120]
+            if isinstance(block, Mapping)
+            else type(block).__name__
+            for block in response[:64]
+        ]
+    return diagnostic
 
 
 def _repair_feedback(
@@ -185,12 +296,19 @@ class CreatorActionSelector:
         *,
         max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES,
         recovery_factory: Callable[[], Any] | None = None,
+        selector_settings: CreatorSelectorModelSettings | None = None,
+        provider_trace_collector: ProviderResponseTraceCollector | None = None,
+        invalid_response_logger: Callable[[str, Mapping[str, object]], None] | None = None,
     ) -> None:
         if model is None:
             raise ValueError("A model is required.")
         self.model = model
+        self.selector_settings = selector_settings or CreatorSelectorModelSettings()
+        self.requested_model = getattr(model, "model_name", None)
         self._invocation_model = self._model_with_selector_budget(model)
         self._recovery_factory = recovery_factory
+        self._provider_trace_collector = provider_trace_collector
+        self._invalid_response_logger = invalid_response_logger
         self._invocation_reliability = create_creator_model_invocation_reliability(
             max_retries=max_retries,
             recovery_factory=(
@@ -229,17 +347,84 @@ class CreatorActionSelector:
                 if attempt > 0:
                     self.metrics.repairCalls += 1
                 try:
-                    response = await self._invoke(
+                    result = await self._invoke(
                         user_message=user_message,
                         context=prompt_context,
                         choices=choices,
                         repair_reason=last_error,
                     )
-                    selection = _parse_selector_response(response, choices)
+                    provider_trace = (
+                        self._provider_trace_collector.pop_successful_completion()
+                        if self._provider_trace_collector is not None
+                        else None
+                    )
+                    response = _model_response(result, provider_trace)
+                    self.metrics.finishReason = response.finish_reason
+                    self.metrics.promptTokens = response.prompt_tokens
+                    self.metrics.completionTokens = response.completion_tokens
+                    self.metrics.totalTokens = response.total_tokens
+                    self.metrics.reasoningTokens = response.reasoning_tokens
+                    self.metrics.resolvedModel = response.resolved_model
+                    if self._invalid_response_logger is not None and provider_trace is not None:
+                        try:
+                            self._invalid_response_logger("action_selector_model_response", {
+                                "attempt": attempt + 1,
+                                "request": getattr(provider_trace, "requestSummary", None),
+                                "responseModel": getattr(provider_trace, "responseModel", None),
+                                "finishReason": response.finish_reason,
+                                **{key: value for key, value in {
+                                    "promptTokens": response.prompt_tokens,
+                                    "completionTokens": response.completion_tokens,
+                                    "totalTokens": response.total_tokens,
+                                    "reasoningTokens": response.reasoning_tokens,
+                                }.items() if value is not None},
+                            })
+                        except Exception:
+                            pass
+                    if isinstance(response.text, str) and not response.text.strip() and response.finish_reason == "length":
+                        raise _InvalidActionSelection(
+                            "output_budget_exhausted",
+                            "Selector produced no visible choice before its output budget ended.",
+                            {
+                                "finishReason": "length",
+                                **{key: value for key, value in {
+                                    "promptTokens": response.prompt_tokens,
+                                    "completionTokens": response.completion_tokens,
+                                    "totalTokens": response.total_tokens,
+                                    "reasoningTokens": response.reasoning_tokens,
+                                }.items() if value is not None},
+                            },
+                        )
+                    selection = _parse_selector_response(response.text, choices)
                     self.validate_selection(selection, normalized_context)
                     return selection
                 except _InvalidActionSelection as error:
+                    if (
+                        error.reason_code in {"protocol_parse_failed", "output_budget_exhausted"}
+                        and self._invalid_response_logger is not None
+                    ):
+                        try:
+                            self._invalid_response_logger(
+                                "action_selector_invalid_response",
+                                {
+                                    **_invalid_response_diagnostic(
+                                        attempt=attempt + 1,
+                                        response=response.text,
+                                        provider_trace=provider_trace,
+                                        finish_reason=response.finish_reason,
+                                    ),
+                                    "reasonCode": error.reason_code,
+                                },
+                            )
+                        except Exception:
+                            # Diagnostics must not change the selector outcome.
+                            pass
                     self.metrics.invalidResponses += 1
+                    if error.reason_code == "output_budget_exhausted":
+                        raise CreatorActionSelectionError(
+                            "Creator Action Selector exhausted its output budget.",
+                            {"attempts": attempt + 1, "reasonCode": error.reason_code, **error.details},
+                        ) from error
                     last_error = error.reason_code
                     if attempt == 0:
                         self.metrics.repairReasonCode = error.reason_code
@@ -312,7 +497,7 @@ class CreatorActionSelector:
                 {"cause": _bounded_error(error)},
             ) from error
 
-        return getattr(result, "content", result)
+        return result
 
     async def _recover_invocation_model(self) -> Any:
         if self._recovery_factory is None:
@@ -327,11 +512,14 @@ class CreatorActionSelector:
         if not callable(copier):
             return model
         try:
-            return copier(update={
+            update = {
                 "streaming": False,
-                "temperature": 0,
-                "max_tokens": MAX_ACTION_SELECTOR_OUTPUT_TOKENS,
-            })
+                "temperature": None,
+                "max_tokens": self.selector_settings.max_tokens,
+            }
+            if self.selector_settings.reasoning_effort is not None:
+                update["reasoning_effort"] = self.selector_settings.reasoning_effort
+            return copier(update=update)
         except (TypeError, ValueError):
             return model
 

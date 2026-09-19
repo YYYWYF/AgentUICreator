@@ -61,6 +61,7 @@ CreatorOperationRuntimeStatus: TypeAlias = Literal[
     "not-run",
 ]
 InvalidActionSelectionReason: TypeAlias = Literal[
+    "output_budget_exhausted",
     "protocol_parse_failed",
     "unknown_choice_key",
     "structured_parse_failed",
@@ -472,6 +473,12 @@ class CreatorActionSelectorMetrics:
     contextCharacters: int = 0
     repairReasonCode: InvalidActionSelectionReason | None = None
     repairReason: str | None = None
+    finishReason: str | None = None
+    promptTokens: int | None = None
+    completionTokens: int | None = None
+    totalTokens: int | None = None
+    reasoningTokens: int | None = None
+    resolvedModel: str | None = None
 
     def to_dict(self) -> dict[str, object]:
         result: dict[str, object] = {

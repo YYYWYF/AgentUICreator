@@ -34,6 +34,7 @@ from .app_ui_model import ProjectMutationCoordinator
 from .model_settings import (
     CreatorModelConfigurationError,
     CreatorModelSettings,
+    CreatorSelectorModelSettings,
     load_python_agent_mode,
 )
 from .runtime_diagnostics import RuntimeDiagnosticEnvelope, RuntimeDiagnosticStore
@@ -208,6 +209,9 @@ async def _domain_write_agent_result(
     model_settings = CreatorModelSettings.from_environment(
         config_root=settings.config_root
     )
+    selector_settings = CreatorSelectorModelSettings.from_environment(
+        config_root=settings.config_root
+    )
     provider_trace_collector = ProviderResponseTraceCollector(
         enabled=model_settings.raw_trace
     )
@@ -234,6 +238,9 @@ async def _domain_write_agent_result(
         thread_id=thread_id,
         max_retries=model_settings.max_retries,
         recovery_factory=recovery_factory,
+        selector_settings=selector_settings,
+        raw_trace=model_settings.raw_trace,
+        provider_trace_collector=provider_trace_collector,
         telemetry=telemetry,
         event_sink=event_sink,
     )

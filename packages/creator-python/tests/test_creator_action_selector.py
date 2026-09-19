@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from types import SimpleNamespace
 
 import pytest
 from langchain_core.messages import AIMessage
@@ -17,6 +18,7 @@ from agent_ui_creator.operations.selector import (
     _InvalidActionSelection,
     _parse_selector_response,
 )
+from agent_ui_creator.model_settings import CreatorSelectorModelSettings
 
 
 class StaticChatModel:
@@ -29,6 +31,8 @@ class StaticChatModel:
         response = self.responses.pop(0)
         if isinstance(response, BaseException):
             raise response
+        if isinstance(response, AIMessage):
+            return response
         return AIMessage(content=response)
 
 
@@ -40,6 +44,14 @@ class CopyingChatModel(StaticChatModel):
     def model_copy(self, *, update):
         self.copy_update = update
         return self
+
+
+class StaticTraceCollector:
+    def __init__(self, traces):
+        self.traces = list(traces)
+
+    def pop_successful_completion(self):
+        return self.traces.pop(0)
 
 
 def _action(action_id: str, region: str, *, status: str = "ready") -> dict:
@@ -151,17 +163,76 @@ def test_selector_maps_ephemeral_choice_to_exact_host_action():
     assert selector.metrics.repairCalls == 0
 
 
-def test_selector_uses_bounded_deterministic_model_copy():
+def test_selector_uses_its_own_generation_policy():
     model = CopyingChatModel(["GENERAL"])
-    selector = CreatorActionSelector(model=model)
+    selector = CreatorActionSelector(
+        model=model,
+        selector_settings=CreatorSelectorModelSettings(max_tokens=512, reasoning_effort="low"),
+    )
 
     asyncio.run(selector.select("让历史支持模糊搜索", _context()))
 
     assert model.copy_update == {
         "streaming": False,
-        "temperature": 0,
-        "max_tokens": 128,
+        "temperature": None,
+        "max_tokens": 512,
+        "reasoning_effort": "low",
     }
+
+
+def test_selector_recovery_reapplies_generation_policy():
+    original = CopyingChatModel(["GENERAL"])
+    recovered = CopyingChatModel(["GENERAL"])
+    selector = CreatorActionSelector(
+        model=original,
+        recovery_factory=lambda: recovered,
+        selector_settings=CreatorSelectorModelSettings(max_tokens=512, reasoning_effort="low"),
+    )
+
+    asyncio.run(selector._recover_invocation_model())
+
+    assert recovered.copy_update == original.copy_update == {
+        "streaming": False,
+        "temperature": None,
+        "max_tokens": 512,
+        "reasoning_effort": "low",
+    }
+
+
+def test_empty_length_response_fails_without_semantic_repair():
+    model = StaticChatModel([AIMessage(
+        content="",
+        response_metadata={
+            "finish_reason": "length",
+            "token_usage": {"prompt_tokens": 1500, "completion_tokens": 130, "total_tokens": 1630},
+        },
+    )])
+    selector = CreatorActionSelector(model=model)
+
+    with pytest.raises(CreatorActionSelectionError) as raised:
+        asyncio.run(selector.select("我不想要会话管理", _context()))
+
+    assert raised.value.details == {
+        "attempts": 1,
+        "reasonCode": "output_budget_exhausted",
+        "finishReason": "length",
+        "promptTokens": 1500,
+        "completionTokens": 130,
+        "totalTokens": 1630,
+    }
+    assert selector.metrics.modelCalls == 1
+    assert selector.metrics.repairCalls == 0
+    assert selector.metrics.reasoningTokens is None
+
+
+def test_complete_choice_is_accepted_even_with_length_finish_reason():
+    model = StaticChatModel([AIMessage(
+        content="SELECT A1", response_metadata={"finish_reason": "length"}
+    )])
+
+    result = asyncio.run(CreatorActionSelector(model=model).select("移动历史", _context()))
+
+    assert result.actionId == "act_history_right"
 
 
 @pytest.mark.parametrize(
@@ -202,6 +273,64 @@ def test_selector_fails_closed_after_one_invalid_repair():
     assert selector.metrics.modelCalls == 2
     assert selector.metrics.repairCalls == 1
     assert selector.metrics.invalidResponses == 2
+
+
+def test_debug_trace_records_only_bounded_invalid_selector_responses():
+    events = []
+    model = StaticChatModel(["x" * 400, "SELECT A1."])
+    traces = StaticTraceCollector([
+        SimpleNamespace(
+            contentType="string", contentLength=400, contentBlockTypes=(),
+            contentKeys=(), hasReasoningContent=False, finishReason="stop",
+            toolCallCount=0, pseudoToolIntent=False, textualToolIntent=False,
+        ),
+        SimpleNamespace(
+            contentType="string", contentLength=10, contentBlockTypes=(),
+            contentKeys=(), hasReasoningContent=False, finishReason="stop",
+            toolCallCount=0, pseudoToolIntent=False, textualToolIntent=False,
+        ),
+    ])
+    selector = CreatorActionSelector(
+        model=model,
+        provider_trace_collector=traces,
+        invalid_response_logger=lambda name, data: events.append((name, data)),
+    )
+
+    with pytest.raises(CreatorActionSelectionError):
+        asyncio.run(selector.select("我不想要会话管理", _context()))
+
+    events = [event for event in events if event[0] == "action_selector_invalid_response"]
+    assert [event[0] for event in events] == [
+        "action_selector_invalid_response", "action_selector_invalid_response"
+    ]
+    assert [event[1]["attempt"] for event in events] == [1, 2]
+    assert events[0][1]["responseType"] == "str"
+    assert events[0][1]["responseLength"] == 400
+    assert events[0][1]["contentType"] == "string"
+    assert events[0][1]["responsePreview"] == "x" * 300
+    assert events[1][1]["responsePreview"] == "SELECT A1."
+    assert events[1][1]["finishReason"] == "stop"
+    assert all("userMessage" not in data for _, data in events)
+
+
+def test_debug_trace_records_content_blocks_without_text_preview():
+    events = []
+    model = StaticChatModel([[{"type": "text", "text": "SELECT A1"}], "SELECT A1"])
+    selector = CreatorActionSelector(
+        model=model,
+        provider_trace_collector=StaticTraceCollector([None, None]),
+        invalid_response_logger=lambda name, data: events.append((name, data)),
+    )
+
+    result = asyncio.run(selector.select("我不想要会话管理", _context()))
+
+    events = [event for event in events if event[0] == "action_selector_invalid_response"]
+    assert result.actionId == "act_history_right"
+    assert len(events) == 1
+    assert events[0][1]["responseType"] == "list"
+    assert events[0][1]["contentType"] == "list"
+    assert events[0][1]["contentBlockTypes"] == ["text"]
+    assert "responsePreview" not in events[0][1]
 
 
 def test_selector_keeps_first_repair_reason_when_second_is_different():

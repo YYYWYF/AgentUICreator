@@ -21,12 +21,12 @@ def create_creator_chat_model(
 
     timeout = httpx.Timeout(timeout=settings.timeout_seconds, connect=30.0)
     sync_hooks = (
-        {"response": [provider_trace_collector.on_response]}
+        {"request": [provider_trace_collector.on_request], "response": [provider_trace_collector.on_response]}
         if provider_trace_collector is not None and provider_trace_collector.enabled
         else None
     )
     async_hooks = (
-        {"response": [provider_trace_collector.on_async_response]}
+        {"request": [provider_trace_collector.on_async_request], "response": [provider_trace_collector.on_async_response]}
         if provider_trace_collector is not None and provider_trace_collector.enabled
         else None
     )

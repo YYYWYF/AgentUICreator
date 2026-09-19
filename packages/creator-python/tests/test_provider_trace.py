@@ -81,6 +81,45 @@ def test_collects_bounded_structured_tool_call_summary():
     assert trace.toolCalls[0].argumentsJsonValid is True
     assert trace.toolCalls[0].argumentsObject is True
     assert trace.pseudoToolIntent is False
+    assert trace.promptTokens == 2
+    assert trace.completionTokens == 3
+    assert trace.totalTokens == 5
+    assert trace.reasoningTokens is None
+
+
+def test_request_summary_and_explicit_reasoning_usage_exclude_prompt_and_key():
+    collector = ProviderResponseTraceCollector(enabled=True)
+    request = httpx.Request(
+        "POST", "https://model.example/v1/chat/completions",
+        headers={"Authorization": "Bearer secret-key"},
+        json={
+            "model": "z-ai/glm-5.3-flash", "stream": False,
+            "max_tokens": 512, "reasoning_effort": "low",
+            "messages": [{"role": "user", "content": "private-prompt"}],
+        },
+    )
+    collector.on_request(request)
+    response = httpx.Response(200, request=request, json={
+        "model": "resolved-model",
+        "choices": [{"finish_reason": "length", "message": {"content": ""}}],
+        "usage": {
+            "prompt_tokens": 1500, "completion_tokens": 130, "total_tokens": 1630,
+            "completion_tokens_details": {"reasoning_tokens": 129},
+        },
+    })
+    collector.on_response(response)
+    trace = collector.pop_successful_completion()
+
+    assert trace is not None
+    assert trace.requestSummary == {
+        "model": "z-ai/glm-5.3-flash", "stream": False, "maxTokens": 512,
+        "maxCompletionTokens": None, "reasoningEffort": "low",
+        "temperaturePresent": False, "temperature": None,
+    }
+    assert (trace.promptTokens, trace.completionTokens, trace.totalTokens, trace.reasoningTokens) == (1500, 130, 1630, 129)
+    assert trace.responseModel == "resolved-model"
+    assert "private-prompt" not in json.dumps(trace.to_dict())
+    assert "secret-key" not in json.dumps(trace.to_dict())
 
 
 def test_detects_provider_pseudo_tool_intent_without_retaining_arguments():

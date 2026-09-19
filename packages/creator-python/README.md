@@ -75,7 +75,16 @@ CREATOR_MODEL_TEMPERATURE=0.2
 CREATOR_MODEL_MAX_TOKENS=2048
 CREATOR_MODEL_TIMEOUT_SECONDS=120
 CREATOR_MODEL_MAX_RETRIES=2
+CREATOR_SELECTOR_MAX_TOKENS=512
+# CREATOR_SELECTOR_REASONING_EFFORT=low
 ```
+
+Selector 使用单独的非流式模型副本，默认输出上限为 512，temperature 不发送。
+仅在网关模型明确支持时设置 `CREATOR_SELECTOR_REASONING_EFFORT`；2026-09-19
+xKiro `/v1/models` 对请求的 `z-ai/glm-5.3-flash` 返回同名模型，
+`reasoning_efforts.levels=[low, high, max]`，默认 `low`，
+`max_output_tokens=65536`。General Agent 继续读取
+原有 `CREATOR_MODEL_*` 设置，并创建独立模型。
 
 `CREATOR_MODEL_MAX_RETRIES` 表示初次模型请求之后由 Creator 的
 `ModelRetryMiddleware` 执行的重试次数；`ChatOpenAI` client 自身保持
@@ -144,13 +153,17 @@ Domain Read Agent 复用相同 PathPolicy，因此仍不能直接写
 
 每次 `RUN_FINISHED.result.toolProtocol` 包含模型调用、有效/无效工具调用、pseudo
 call 恢复、单次 protocol repair、参数解析、缺失 ID、token 和有界 model trace
-统计。设置 `CREATOR_MODEL_RAW_TRACE=1` 会在 HTTPX response hook 中读取已缓存的
+统计。设置 `CREATOR_MODEL_RAW_TRACE=1` 会在 HTTPX request / response hook 中
+记录限定字段的请求摘要，并读取已缓存的
 Chat Completions response body，并只保存有界的协议结构摘要（状态码、request id、
-finish reason、content 形态、tool call 名称与 arguments 长度/JSON 有效性、重试状态），
-随后与 LangChain `AIMessage` 摘要配对。不会保存 prompt、完整 content、完整 tool
+finish reason、明确报告的 token 用量、content 形态、tool call 名称与 arguments 长度/JSON 有效性、重试状态），
+随后与 LangChain `AIMessage` 摘要配对。常规 trace 不保存 prompt、content、完整 tool
 arguments、源码、Authorization header 或 API key。原先容易误解为 provider raw response
 的 LangChain 元数据现命名为 `langChainProviderMetadata`；真实的 pre-LangChain 摘要位于
 `providerResponse`。关闭该开关时不会安装 response hook，也不会读取或解析响应 body。
+在该开关开启时，Action Selector 的 `protocol_parse_failed` 和
+`output_budget_exhausted` 回答另记一条诊断：
+仅包含响应形态和最多 300 字符的文本预览；成功回答不记录文本。
 
 当前锁定的 Agent 栈为 Python 3.11+、`langchain-openai 1.3.3`、
 `langchain-core 1.6.1`、`langchain 1.3.18`、`langgraph 1.2.11`、

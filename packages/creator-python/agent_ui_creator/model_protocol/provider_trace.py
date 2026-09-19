@@ -62,6 +62,12 @@ class ProviderResponseTrace:
     httpErrorCount: int
     httpErrorStatusCodes: tuple[int, ...]
     httpErrorTypes: tuple[str, ...]
+    promptTokens: int | None = None
+    completionTokens: int | None = None
+    totalTokens: int | None = None
+    reasoningTokens: int | None = None
+    responseModel: str | None = None
+    requestSummary: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         value = asdict(self)
@@ -102,6 +108,40 @@ def _error_type(payload: Any) -> str | None:
         value = error.get("type") or error.get("code")
         return None if value is None else _bounded_label(value)
     return None
+
+
+def _optional_token(value: Any) -> int | None:
+    if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+        return value
+    return None
+
+
+def _request_summary(request: httpx.Request) -> dict[str, Any] | None:
+    try:
+        payload = json.loads(request.content)
+    except (RuntimeError, ValueError, UnicodeDecodeError):
+        return None
+    if not isinstance(payload, Mapping):
+        return None
+    return {
+        "model": (
+            _bounded_label(payload["model"], 256)
+            if isinstance(payload.get("model"), str) else None
+        ),
+        "stream": payload.get("stream") if isinstance(payload.get("stream"), bool) else None,
+        "maxTokens": _optional_token(payload.get("max_tokens")),
+        "maxCompletionTokens": _optional_token(payload.get("max_completion_tokens")),
+        "reasoningEffort": (
+            _bounded_label(payload["reasoning_effort"])
+            if isinstance(payload.get("reasoning_effort"), str) else None
+        ),
+        "temperaturePresent": "temperature" in payload,
+        "temperature": (
+            payload.get("temperature")
+            if isinstance(payload.get("temperature"), (int, float))
+            and not isinstance(payload.get("temperature"), bool) else None
+        ),
+    }
 
 
 def _content_summary(
@@ -211,6 +251,19 @@ class ProviderResponseTraceCollector:
             # Observability must never change the provider call outcome.
             return
 
+    def on_request(self, request: httpx.Request) -> None:
+        if not self.enabled:
+            return
+        try:
+            if request.method.upper() == "POST" and request.url.path.rstrip("/").endswith("/chat/completions"):
+                request.extensions["creator_request_summary"] = _request_summary(request)
+        except Exception:
+            # Tracing must not change the provider request outcome.
+            return
+
+    async def on_async_request(self, request: httpx.Request) -> None:
+        self.on_request(request)
+
     async def on_async_response(self, response: httpx.Response) -> None:
         if not self.enabled or not _is_chat_completion(response):
             return
@@ -290,6 +343,12 @@ class ProviderResponseTraceCollector:
             for status, error_type in attempts
             if not 200 <= status < 300
         )
+        usage = payload.get("usage") if isinstance(payload, Mapping) else None
+        if not isinstance(usage, Mapping):
+            usage = {}
+        completion_details = usage.get("completion_tokens_details")
+        if not isinstance(completion_details, Mapping):
+            completion_details = {}
         return ProviderResponseTrace(
             statusCode=response.status_code,
             requestId=_request_id(response),
@@ -320,4 +379,15 @@ class ProviderResponseTraceCollector:
             httpErrorTypes=tuple(
                 error_type for _, error_type in error_attempts if error_type is not None
             ),
+            promptTokens=_optional_token(usage.get("prompt_tokens")),
+            completionTokens=_optional_token(usage.get("completion_tokens")),
+            totalTokens=_optional_token(usage.get("total_tokens")),
+            reasoningTokens=_optional_token(completion_details.get("reasoning_tokens")),
+            responseModel=(
+                _bounded_label(payload["model"], 256)
+                if isinstance(payload, Mapping) and isinstance(payload.get("model"), str)
+                else None
+            ),
+            requestSummary=response.request.extensions.get("creator_request_summary")
+            or _request_summary(response.request),
         )
