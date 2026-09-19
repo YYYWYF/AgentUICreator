@@ -8,12 +8,14 @@ from typing import Any, Protocol
 from urllib.parse import quote
 
 from ..validation import CreatorValidationService
-from .models import CreatorOperationVerificationResult
+from ..visual_observation import VisualObservationStore
+from .models import CreatorOperationVerificationResult, CreatorVisualObservationEvidence
 
 
 MAX_RUNTIME_FRESHNESS_ATTEMPTS = 3
 RUNTIME_FRESHNESS_DELAY_SECONDS = 0.5
 GEOMETRY_TOLERANCE_PX = 2.0
+VISUAL_OBSERVATION_WAIT_SECONDS = 1.5
 _PIXEL_SIZE = re.compile(r"^\s*([0-9]+(?:\.[0-9]+)?)px\s*$", re.IGNORECASE)
 
 
@@ -372,9 +374,48 @@ class CompositionOperationVerificationService:
         *,
         validation: CreatorValidationService,
         runtime: RuntimeInspectionForOperation,
+        visual_observations: VisualObservationStore | None = None,
     ) -> None:
         self.validation = validation
         self.runtime = runtime
+        self.visual_observations = visual_observations
+
+    async def _visual_evidence(self, expected_hash: str) -> dict[str, Any]:
+        store = self.visual_observations
+        if store is None:
+            return {"visualObservationStatus": "unavailable"}
+        deadline = monotonic() + VISUAL_OBSERVATION_WAIT_SECONDS
+        while True:
+            try:
+                observation = store.get_by_hash(expected_hash)
+            except Exception:
+                return {"visualObservationStatus": "unavailable"}
+            if observation is not None:
+                if observation.get("currentHash") != expected_hash:
+                    return {"visualObservationStatus": "stale"}
+                try:
+                    evidence = CreatorVisualObservationEvidence.model_validate({
+                        key: observation[key]
+                        for key in ("observationId", "currentHash", "format", "width", "height", "sha256")
+                    })
+                except Exception:
+                    return {"visualObservationStatus": "unavailable"}
+                timings = {
+                    "visualObservationCaptureDurationMs": observation.get("captureDurationMs"),
+                    "visualObservationUploadDurationMs": observation.get("uploadDurationMs"),
+                    "visualObservationBytes": observation.get("visualObservationBytes"),
+                }
+                if any(value is not None and (not isinstance(value, int) or value < 0) for value in timings.values()):
+                    timings = {key: None for key in timings}
+                return {
+                    "visualObservationStatus": "observed",
+                    "visualObservation": evidence,
+                    **timings,
+                }
+            remaining = deadline - monotonic()
+            if remaining <= 0:
+                return {"visualObservationStatus": "unavailable"}
+            await asyncio.sleep(min(0.15, remaining))
 
     async def ensure_baseline(self) -> None:
         """Capture the validation baseline before a Productized side effect."""
@@ -657,6 +698,7 @@ class CompositionOperationVerificationService:
                     ),
                 )
 
+        visual_evidence = await self._visual_evidence(expected_hash)
         return CreatorOperationVerificationResult(
             staticStatus="passed",
             runtimeStatus="passed",
@@ -672,4 +714,5 @@ class CompositionOperationVerificationService:
                 if isinstance(composition_verified, bool)
                 else None
             ),
+            **visual_evidence,
         )

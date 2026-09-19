@@ -49,6 +49,7 @@ vi.mock("../src/PythonCreatorProxy.js", () => ({
 import {
   CREATOR_API_PATH,
   CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
+  CREATOR_VISUAL_OBSERVATION_API_PATH,
   createCreatorDevServerPlugin,
 } from "../src/vitePlugin.js";
 
@@ -95,7 +96,7 @@ afterEach(() => {
 });
 
 describe("Creator Vite Python routing", () => {
-  it("routes run and diagnostics requests only through Python", async () => {
+  it("routes run, diagnostics, and visual observations through Python", async () => {
     vi.stubEnv("CREATOR_PYTHON_AGENT_MODE", "");
     const log = vi.fn();
     runtimeMocks.proxyPythonRequest.mockResolvedValue(undefined);
@@ -111,6 +112,7 @@ describe("Creator Vite Python routing", () => {
       request,
       response,
     );
+    await middlewares.get(CREATOR_VISUAL_OBSERVATION_API_PATH)!(request, response);
 
     expect(runtimeMocks.managerInstances).toHaveLength(1);
     expect(runtimeMocks.proxyPythonRequest).toHaveBeenNthCalledWith(
@@ -126,6 +128,13 @@ describe("Creator Vite Python routing", () => {
       response,
       runtimeMocks.managerInstances[0],
       "/runtime-diagnostics",
+    );
+    expect(runtimeMocks.proxyPythonRequest).toHaveBeenNthCalledWith(
+      3,
+      request,
+      response,
+      runtimeMocks.managerInstances[0],
+      "/visual-observation",
     );
     expect(log).toHaveBeenCalledWith("runtime=python agentMode=domain-write");
   });

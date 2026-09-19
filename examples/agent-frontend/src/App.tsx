@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import {
   ConversationRuntimeProvider,
   useConversationRuntimeBridge,
@@ -88,16 +88,32 @@ function AgentFrontendSurface({
   actions,
   composition,
   runtimeMode,
+  onPreviewCommitted,
 }: {
   actions: UIPluginRuntimeActions;
   composition: RuntimeCompositionSnapshot<AppAgentState>;
   runtimeMode: string;
+  onPreviewCommitted?: PreviewCommitReporter | undefined;
 }) {
   const themeMode = useAgentUIThemeMode();
+  const previewRoot = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (previewRoot.current !== null) {
+      try {
+        onPreviewCommitted?.(composition.appUIModelHash, previewRoot.current);
+      } catch {
+        // Host observation cannot own the generated Preview lifecycle.
+      }
+    }
+  }, [composition.appUIModelHash, onPreviewCommitted]);
 
   return (
     <div
+      ref={previewRoot}
       className="agent-ui-conversation development-preview"
+      data-agent-ui-preview-root=""
+      data-app-ui-model-hash={composition.appUIModelHash}
       data-agent-runtime={runtimeMode}
       data-composition-revision={composition.revision}
       data-theme={themeMode}
@@ -115,15 +131,19 @@ function AgentFrontendSurface({
   );
 }
 
+export type PreviewCommitReporter = (currentHash: string, root: HTMLElement) => void;
+
 function RuntimeConnectedPreview({
   composition,
   onRuntimeComposition,
   onRuntimeDiagnostic,
+  onPreviewCommitted,
   runtime,
 }: {
   composition: RuntimeCompositionSnapshot<AppAgentState>;
   onRuntimeComposition?: RuntimeCompositionReporter | undefined;
   onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
+  onPreviewCommitted?: PreviewCommitReporter | undefined;
   runtime: AgentRuntime<AppAgentState>;
 }) {
   const pluginActions = useMemo<UIPluginRuntimeActions>(
@@ -190,6 +210,7 @@ function RuntimeConnectedPreview({
                 actions={pluginActions}
                 composition={composition}
                 runtimeMode={runtime.mode}
+                onPreviewCommitted={onPreviewCommitted}
               />
             </ModeShell>
           </ConversationPresentationConfigProvider>
@@ -203,10 +224,12 @@ function RuntimeControlPlane({
   composition,
   onRuntimeComposition,
   onRuntimeDiagnostic,
+  onPreviewCommitted,
 }: {
   composition: RuntimeCompositionSnapshot<AppAgentState> | undefined;
   onRuntimeComposition?: RuntimeCompositionReporter | undefined;
   onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
+  onPreviewCommitted?: PreviewCommitReporter | undefined;
 }) {
   const { agentRuntime } = useConversationRuntimeBridge<AppAgentState>();
 
@@ -219,6 +242,7 @@ function RuntimeControlPlane({
           composition={composition}
           onRuntimeComposition={onRuntimeComposition}
           onRuntimeDiagnostic={onRuntimeDiagnostic}
+          onPreviewCommitted={onPreviewCommitted}
           runtime={agentRuntime}
         />
       )}
@@ -230,10 +254,12 @@ function ConversationRuntimeBoundary({
   composition,
   onRuntimeComposition,
   onRuntimeDiagnostic,
+  onPreviewCommitted,
 }: {
   composition: RuntimeCompositionSnapshot<AppAgentState> | undefined;
   onRuntimeComposition?: RuntimeCompositionReporter | undefined;
   onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
+  onPreviewCommitted?: PreviewCommitReporter | undefined;
 }) {
   const threadBinding = useMemo(
     () => createConversationServiceThreadBinding<AppAgentState>(),
@@ -259,6 +285,7 @@ function ConversationRuntimeBoundary({
         composition={composition}
         onRuntimeComposition={onRuntimeComposition}
         onRuntimeDiagnostic={onRuntimeDiagnostic}
+        onPreviewCommitted={onPreviewCommitted}
       />
     </ConversationRuntimeProvider>
   );
@@ -267,11 +294,13 @@ function ConversationRuntimeBoundary({
 export interface AppProps {
   onRuntimeComposition?: RuntimeCompositionReporter | undefined;
   onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
+  onPreviewCommitted?: PreviewCommitReporter | undefined;
 }
 
 export function App({
   onRuntimeComposition,
   onRuntimeDiagnostic,
+  onPreviewCommitted,
 }: AppProps = {}) {
   const composition = useSyncExternalStore(
     runtimeCompositionStore.subscribe,
@@ -336,6 +365,7 @@ export function App({
       composition={composition}
       onRuntimeComposition={onRuntimeComposition}
       onRuntimeDiagnostic={onRuntimeDiagnostic}
+      onPreviewCommitted={onPreviewCommitted}
     />
   );
 }

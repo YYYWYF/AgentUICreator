@@ -6,6 +6,7 @@ import {
   createCreatorRuntimeCompositionReporter,
   createCreatorRuntimeDiagnosticReporter,
 } from "@agent-ui/creator/runtime-diagnostics";
+import { createVisualObservationReporter } from "@agent-ui/creator/visual-observation";
 import { App } from "@agent-ui/example-agent-frontend/App";
 
 interface PreviewThreadIdRef {
@@ -31,8 +32,10 @@ const TargetPreview = memo(function TargetPreview({
       }),
     [threadIdRef],
   );
+  const onPreviewCommitted = useMemo(() => createVisualObservationReporter(), []);
   return (
     <App
+      onPreviewCommitted={onPreviewCommitted}
       onRuntimeComposition={onRuntimeComposition}
       onRuntimeDiagnostic={onRuntimeDiagnostic}
     />

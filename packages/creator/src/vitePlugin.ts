@@ -12,11 +12,13 @@ import {
 import {
   CREATOR_API_PATH,
   CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
+  CREATOR_VISUAL_OBSERVATION_API_PATH,
 } from "./shared.js";
 
 export {
   CREATOR_API_PATH,
   CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
+  CREATOR_VISUAL_OBSERVATION_API_PATH,
 } from "./shared.js";
 export {
   resolveCreatorPythonAgentMode,
@@ -74,6 +76,17 @@ export function createCreatorDevServerPlugin({
       server.watcher.once("close", () => {
         void pythonManager.dispose();
       });
+      server.middlewares.use(
+        CREATOR_VISUAL_OBSERVATION_API_PATH,
+        async (request, response) => {
+          await proxyPythonCreatorRequest(
+            request,
+            response,
+            pythonManager,
+            "/visual-observation",
+          );
+        },
+      );
       server.middlewares.use(
         CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
         async (request, response) => {

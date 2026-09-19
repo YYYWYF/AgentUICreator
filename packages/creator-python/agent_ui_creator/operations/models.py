@@ -464,6 +464,17 @@ class CreatorActionSelectorMetrics:
         return result
 
 
+class CreatorVisualObservationEvidence(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    observationId: str
+    currentHash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    format: Literal["webp"]
+    width: int = Field(gt=0)
+    height: int = Field(gt=0)
+    sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
 class CreatorOperationVerificationResult(BaseModel):
     """Host-only evidence produced after a Productized operation commits."""
 
@@ -483,6 +494,11 @@ class CreatorOperationVerificationResult(BaseModel):
     geometryVerified: bool | None = None
     workspaceFillVerified: bool | None = None
     compositionVerified: bool | None = None
+    visualObservationStatus: Literal["observed", "stale", "unavailable", "not-requested"] = "not-requested"
+    visualObservation: CreatorVisualObservationEvidence | None = None
+    visualObservationCaptureDurationMs: int | None = Field(default=None, ge=0)
+    visualObservationUploadDurationMs: int | None = Field(default=None, ge=0)
+    visualObservationBytes: int | None = Field(default=None, ge=0)
 
 
 class CreatorOperationMetrics(BaseModel):

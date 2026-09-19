@@ -1,6 +1,8 @@
 export const CREATOR_API_PATH = "/__creator/run";
 export const CREATOR_RUNTIME_DIAGNOSTICS_API_PATH =
   "/__creator/runtime-diagnostics";
+export const CREATOR_VISUAL_OBSERVATION_API_PATH =
+  "/__creator/visual-observation";
 export const CREATOR_PYTHON_AGENT_MODE_ENV = "CREATOR_PYTHON_AGENT_MODE";
 export const CREATOR_PYTHON_ENDPOINT_ENV = "CREATOR_PYTHON_ENDPOINT";
 export const CREATOR_PYTHON_AUTH_TOKEN_ENV = "CREATOR_PYTHON_AUTH_TOKEN";

@@ -55,6 +55,10 @@ export default defineConfig({
         workspaceRoot,
         "packages/creator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts",
       ),
+      "@agent-ui/creator/visual-observation": path.join(
+        workspaceRoot,
+        "packages/creator/src/visual-observation/VisualObservationReporter.ts",
+      ),
       "@agent-ui/example-agent-frontend/App": path.join(
         frontendRoot,
         "src/App.tsx",

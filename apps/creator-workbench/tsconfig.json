@@ -21,6 +21,9 @@
       "@agent-ui/creator/runtime-diagnostics": [
         "../../packages/creator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts"
       ],
+      "@agent-ui/creator/visual-observation": [
+        "../../packages/creator/src/visual-observation/VisualObservationReporter.ts"
+      ],
       "@agent-ui/example-agent-frontend/App": ["../../examples/agent-frontend/src/App.tsx"],
       "@agent-ui/runtime-agui": ["../../packages/runtime-agui/src/index.ts"],
       "@agent-ui/mock-agent": ["../../packages/mock-agent/src/index.ts"],
@@ -43,6 +46,7 @@
     "vite.config.ts",
     "../../packages/creator/src/ui/**/*.tsx",
     "../../packages/creator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts",
+    "../../packages/creator/src/visual-observation/VisualObservationReporter.ts",
     "../../packages/creator/src/shared.ts",
     "../../examples/agent-frontend/app-ui/**/*.json",
     "../../examples/agent-frontend/framework/**/*.ts",

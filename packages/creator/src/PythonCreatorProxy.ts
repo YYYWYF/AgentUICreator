@@ -53,7 +53,7 @@ export async function proxyPythonCreatorRequest(
   request: IncomingMessage,
   response: ServerResponse,
   manager: PythonCreatorProcessManager,
-  path: "/creator" | "/runtime-diagnostics",
+  path: "/creator" | "/runtime-diagnostics" | "/visual-observation",
 ): Promise<void> {
   try {
     const endpoint = await manager.ensureStarted();

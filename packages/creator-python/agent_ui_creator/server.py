@@ -38,6 +38,11 @@ from .model_settings import (
     load_python_agent_mode,
 )
 from .runtime_diagnostics import RuntimeDiagnosticEnvelope, RuntimeDiagnosticStore
+from .visual_observation import (
+    MAX_VISUAL_OBSERVATION_REQUEST_BYTES,
+    VisualObservationEnvelope,
+    VisualObservationStore,
+)
 from .observability import CreatorRunLogger, CreatorRunTelemetry
 from .operations import ProductizedOperationEngine, ProductizedOperationRun
 from .project_control import ProjectControlClient
@@ -202,6 +207,7 @@ async def _domain_write_agent_result(
     thread_id: str,
     event_sink: CreatorEventSink,
     telemetry: CreatorRunTelemetry | None = None,
+    visual_observations: VisualObservationStore | None = None,
 ):
     from .model_factory import create_creator_chat_model
     from .model_protocol.provider_trace import ProviderResponseTraceCollector
@@ -235,6 +241,7 @@ async def _domain_write_agent_result(
         project_control=ProjectControlClient(project_root=settings.project_root),
         mutation_coordinator=mutation_coordinator,
         diagnostics=diagnostics,
+        visual_observations=visual_observations,
         thread_id=thread_id,
         max_retries=model_settings.max_retries,
         recovery_factory=recovery_factory,
@@ -447,6 +454,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
     )
     diagnostics = RuntimeDiagnosticStore()
     app.state.runtime_diagnostics = diagnostics
+    visual_observations = VisualObservationStore(settings.project_root)
+    app.state.visual_observations = visual_observations
     writing_run_lock = asyncio.Lock()
     mutation_coordinator = ProjectMutationCoordinator()
 
@@ -484,6 +493,16 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
             )
             envelope = RuntimeDiagnosticEnvelope.model_validate(payload)
             return JSONResponse(status_code=202, content=diagnostics.record(envelope))
+        except (ValueError, ValidationError) as error:
+            return JSONResponse(status_code=400, content={"error": str(error)})
+
+    @app.post("/visual-observation")
+    async def visual_observation(request: Request) -> JSONResponse:
+        try:
+            payload = await _json_body(request, MAX_VISUAL_OBSERVATION_REQUEST_BYTES)
+            envelope = VisualObservationEnvelope.model_validate(payload)
+            metadata = visual_observations.record(envelope)
+            return JSONResponse(status_code=202, content={"observation": metadata})
         except (ValueError, ValidationError) as error:
             return JSONResponse(status_code=400, content={"error": str(error)})
 
@@ -538,6 +557,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             run_input.threadId,
                             event_bus,
                             telemetry,
+                            visual_observations=visual_observations,
                         )
                     elif agent_mode == "domain-read":
                         agent_result = _domain_read_agent_result(

@@ -27,6 +27,7 @@ from ..streaming.runtime_events import (
     CreatorStepStarted,
 )
 from ..validation import CreatorValidationService
+from ..visual_observation import VisualObservationStore
 from .action_playbook import CreatorActionExecutionPlaybook
 from .models import (
     CreatorActionCandidate,
@@ -146,6 +147,7 @@ class ProductizedOperationEngine:
         provider_trace_collector: ProviderResponseTraceCollector | None = None,
         telemetry: CreatorRunTelemetry | None = None,
         event_sink: CreatorEventSink | None = None,
+        visual_observations: VisualObservationStore | None = None,
     ) -> None:
         self.project_root = Path(project_root).resolve()
         self.activity = activity
@@ -178,6 +180,7 @@ class ProductizedOperationEngine:
         verification = CompositionOperationVerificationService(
             validation=self.validation,
             runtime=self.runtime_inspection,
+            visual_observations=visual_observations,
         )
         self.action_playbook = CreatorActionExecutionPlaybook(
             mutation_service=self.mutation_service,
@@ -591,6 +594,18 @@ class ProductizedOperationEngine:
             ),
             "workspaceFillVerified": (
                 verification.workspaceFillVerified if verification is not None else None
+            ),
+            "visualObservationStatus": (
+                verification.visualObservationStatus if verification is not None else "not-requested"
+            ),
+            "visualObservationCaptureDurationMs": (
+                verification.visualObservationCaptureDurationMs if verification is not None else None
+            ),
+            "visualObservationUploadDurationMs": (
+                verification.visualObservationUploadDurationMs if verification is not None else None
+            ),
+            "visualObservationBytes": (
+                verification.visualObservationBytes if verification is not None else None
             ),
         }
 

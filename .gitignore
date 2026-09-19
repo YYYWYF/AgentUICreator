@@ -8,3 +8,6 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.pyc
+examples/agent-frontend/.agent-ui/visual-observations/
+apps/creator-workbench/test-results/
+apps/creator-workbench/playwright-report/

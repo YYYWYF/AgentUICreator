@@ -69,6 +69,7 @@ export function DevStudio({ endpoint }: DevStudioProps) {
   const entryLabel = mockEnabled ? mockEntryLabel() : "Dev · Runtime";
   const entry = (
     <Button
+      data-agent-ui-preview-exclude=""
       aria-expanded={open}
       aria-haspopup="dialog"
       aria-label="Open Agent UI Dev Studio"
@@ -91,11 +92,13 @@ export function DevStudio({ endpoint }: DevStudioProps) {
       {open ? (
         <>
           <div
+            data-agent-ui-preview-exclude=""
             aria-hidden="true"
             className={styles.scrim}
             onMouseDown={() => setOpen(false)}
           />
           <aside
+            data-agent-ui-preview-exclude=""
             aria-label="Agent UI Dev Studio"
             aria-modal="true"
             className={styles.drawer}
