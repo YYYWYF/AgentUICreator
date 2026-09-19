@@ -358,7 +358,26 @@ async def _execute_agent_run(
                 ),
                 project_control_metrics=result.project_control.to_dict(),
                 validation_metrics=result.validation_metrics,
-                operation_resolver_metrics=result.operation_resolver_metrics,
+                action_selector_metrics=(
+                    result.action_selector_metrics
+                    if result.action_selector_metrics
+                    else None
+                ),
+                action_selection=(
+                    result.selection.model_dump(mode="json")
+                    if result.selection is not None
+                    else None
+                ),
+                selected_creator_action=(
+                    result.selected_action.model_dump(mode="json")
+                    if result.selected_action is not None
+                    else None
+                ),
+                operation_resolver_metrics=(
+                    result.operation_resolver_metrics
+                    if result.operation_resolver_metrics
+                    else None
+                ),
                 creator_intent=(
                     result.intent_presentation.to_dict()
                     if result.intent_presentation is not None
@@ -376,6 +395,9 @@ async def _execute_agent_run(
                 ),
                 project_control_metrics=run_telemetry.project_control_metrics(),
                 validation_metrics=run_telemetry.validation_metrics(),
+                action_selector_metrics=run_telemetry.action_selector,
+                action_selection=run_telemetry.action_selection,
+                selected_creator_action=run_telemetry.selected_creator_action,
                 operation_resolver_metrics=run_telemetry.operation_resolver,
                 creator_intent=run_telemetry.operation_presentation,
             )
@@ -395,6 +417,9 @@ async def _execute_agent_run(
             ),
             project_control_metrics=run_telemetry.project_control_metrics(),
             validation_metrics=run_telemetry.validation_metrics(),
+            action_selector_metrics=run_telemetry.action_selector,
+            action_selection=run_telemetry.action_selection,
+            selected_creator_action=run_telemetry.selected_creator_action,
             operation_resolver_metrics=run_telemetry.operation_resolver,
             creator_intent=run_telemetry.operation_presentation,
             error=error,
@@ -572,12 +597,19 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                     result = execution.result
                     response_text = result.text
                     if agent_mode in {"domain-read", "domain-write"}:
+                        tool_protocol_metrics = result.metrics.to_dict()
+                        if (
+                            agent_mode == "domain-write"
+                            and not isinstance(result, ProductizedOperationRun)
+                            and telemetry.action_selector is not None
+                        ):
+                            tool_protocol_metrics = telemetry.model_tool_metrics()
                         run_result = {
                             "runtime": "python",
                             "agentMode": agent_mode,
                             "phase": f"{agent_mode}-agent",
                             "toolProtocol": {
-                                **result.metrics.to_dict(),
+                                **tool_protocol_metrics,
                                 **(
                                     getattr(result, "terminal_metrics", {})
                                     if isinstance(
@@ -615,27 +647,42 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             if validation_metrics is not None:
                                 run_result["validationMetrics"] = validation_metrics
                             if isinstance(result, ProductizedOperationRun):
-                                run_result["phase"] = (
-                                    "productized-operation"
-                                    if result.operation_result is not None
-                                    else "productized-clarification"
-                                )
-                                run_result["operationResolver"] = (
-                                    result.operation_resolver_metrics
-                                )
+                                if result.operation_result is not None:
+                                    run_result["phase"] = "productized-operation"
+                                elif result.selection is not None and result.selection.decision == "unsupported_product_action":
+                                    run_result["phase"] = "productized-unsupported"
+                                else:
+                                    run_result["phase"] = "productized-clarification"
+                                if result.action_selector_metrics:
+                                    run_result["actionSelector"] = (
+                                        result.action_selector_metrics
+                                    )
+                                if result.operation_resolver_metrics:
+                                    run_result["operationResolver"] = (
+                                        result.operation_resolver_metrics
+                                    )
+                                if result.selection is not None:
+                                    run_result["actionSelection"] = (
+                                        result.selection.model_dump(mode="json")
+                                    )
+                                if result.selected_action is not None:
+                                    run_result["selectedCreatorAction"] = (
+                                        result.selected_action.model_dump(mode="json")
+                                    )
                                 run_result["domainSnapshot"] = (
                                     result.snapshot_metrics.to_dict()
-                                )
-                                run_result["operationResolution"] = (
-                                    result.resolution.model_dump(mode="json")
                                 )
                                 if result.operation_result is not None:
                                     run_result["productizedOperation"] = (
                                         result.operation_result.model_dump(mode="json")
                                     )
-                                else:
+                                elif result.resolution is not None and result.selection is None:
+                                    run_result["operationResolution"] = (
+                                        result.resolution.model_dump(mode="json")
+                                    )
+                                elif result.selection is not None and result.selection.decision == "needs_clarification":
                                     run_result["clarificationQuestion"] = (
-                                        result.resolution.clarificationQuestion
+                                        result.selection.clarificationQuestion
                                     )
                             operation_route = getattr(telemetry, "operation_route", None)
                             if isinstance(operation_route, dict):
@@ -656,13 +703,23 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                 run_result["creatorIntent"] = (
                                     telemetry.operation_presentation
                                 )
-                            operation_resolver = getattr(
-                                telemetry, "operation_resolver", None
+                            action_selector = getattr(
+                                telemetry, "action_selector", None
                             )
-                            if (
-                                not isinstance(result, ProductizedOperationRun)
-                                and isinstance(operation_resolver, dict)
-                            ):
+                            if isinstance(action_selector, dict):
+                                run_result["actionSelector"] = action_selector
+                            action_selection = getattr(
+                                telemetry, "action_selection", None
+                            )
+                            if isinstance(action_selection, dict):
+                                run_result["actionSelection"] = action_selection
+                            selected_creator_action = getattr(
+                                telemetry, "selected_creator_action", None
+                            )
+                            if isinstance(selected_creator_action, dict):
+                                run_result["selectedCreatorAction"] = selected_creator_action
+                            operation_resolver = getattr(telemetry, "operation_resolver", None)
+                            if not isinstance(result, ProductizedOperationRun) and isinstance(operation_resolver, dict):
                                 run_result["operationResolver"] = operation_resolver
                     else:
                         run_result = {

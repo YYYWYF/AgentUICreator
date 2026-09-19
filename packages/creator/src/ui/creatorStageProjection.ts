@@ -8,13 +8,30 @@ export type CreatorStageStatus = "running" | "completed" | "failed";
 export type CreatorIntentRoute =
   | "productized"
   | "general-agent"
-  | "clarification";
+  | "clarification"
+  | "unsupported";
 
 export interface CreatorStageMetadata {
   phase?: string;
   status?: string;
   displayIntent?: string;
   intent?: string;
+  decision?:
+    | "select_action"
+    | "needs_clarification"
+    | "general_change"
+    | "unsupported_product_action";
+  actionId?: string;
+  actionKind?: string;
+  actionStatus?: string;
+  effectType?:
+    | "add_default"
+    | "remove"
+    | "workspace_region"
+    | "plugin_slot"
+    | "relative"
+    | "row_edge";
+  region?: "left" | "center" | "right";
   targetPluginIds?: string[];
   targetInstanceIds?: string[];
   route?: CreatorIntentRoute;
@@ -46,6 +63,12 @@ export interface CreatorStageMetadata {
   geometryVerified?: boolean | null;
   generalAgentModelCalls?: number;
   generalAgentToolCalls?: number;
+  actionSelectorCalls?: number;
+  actionSelectorRepairCalls?: number;
+  actionSelectorInvalidResponses?: number;
+  actionSelectorDurationMs?: number;
+  candidateCount?: number;
+  contextCharacters?: number;
   totalModelCalls?: number;
   errorCode?: string;
 }
@@ -94,7 +117,38 @@ function stringArray(value: unknown): string[] | undefined {
 function routeValue(value: unknown): CreatorIntentRoute | undefined {
   return value === "productized" ||
     value === "general-agent" ||
-    value === "clarification"
+    value === "clarification" ||
+    value === "unsupported"
+    ? value
+    : undefined;
+}
+
+function decisionValue(
+  value: unknown,
+): CreatorStageMetadata["decision"] {
+  return value === "select_action" ||
+    value === "needs_clarification" ||
+    value === "general_change" ||
+    value === "unsupported_product_action"
+    ? value
+    : undefined;
+}
+
+function effectTypeValue(
+  value: unknown,
+): CreatorStageMetadata["effectType"] {
+  return value === "add_default" ||
+    value === "remove" ||
+    value === "workspace_region" ||
+    value === "plugin_slot" ||
+    value === "relative" ||
+    value === "row_edge"
+    ? value
+    : undefined;
+}
+
+function regionValue(value: unknown): CreatorStageMetadata["region"] {
+  return value === "left" || value === "center" || value === "right"
     ? value
     : undefined;
 }
@@ -121,6 +175,9 @@ export function parseCreatorStepMetadata(
     "status",
     "displayIntent",
     "intent",
+    "actionId",
+    "actionKind",
+    "actionStatus",
     "operation",
     "staticStatus",
     "runtimeStatus",
@@ -131,6 +188,13 @@ export function parseCreatorStepMetadata(
       metadata[field] = creator[field] as string;
     }
   }
+
+  const decision = decisionValue(creator.decision);
+  if (decision !== undefined) metadata.decision = decision;
+  const effectType = effectTypeValue(creator.effectType);
+  if (effectType !== undefined) metadata.effectType = effectType;
+  const region = regionValue(creator.region);
+  if (region !== undefined) metadata.region = region;
 
   const pluginIds = stringArray(creator.targetPluginIds);
   const instanceIds = stringArray(creator.targetInstanceIds);
@@ -171,6 +235,12 @@ export function parseCreatorStepMetadata(
     "runtimeFreshnessWaitMs",
     "generalAgentModelCalls",
     "generalAgentToolCalls",
+    "actionSelectorCalls",
+    "actionSelectorRepairCalls",
+    "actionSelectorInvalidResponses",
+    "actionSelectorDurationMs",
+    "candidateCount",
+    "contextCharacters",
     "totalModelCalls",
   ] as const;
   for (const field of numberFields) {
@@ -261,6 +331,120 @@ function finalIntentMetadata(result: Record<string, unknown>): CreatorStageMetad
   return parseCreatorStepMetadata({ creator: intent });
 }
 
+function finalActionSelectorMetadata(
+  result: Record<string, unknown>,
+): CreatorStageMetadata | undefined {
+  const selector = finalRecord(result.actionSelector);
+  const selection = finalRecord(result.actionSelection);
+  const selectedAction = finalRecord(result.selectedCreatorAction);
+  if (selector === undefined && selection === undefined && selectedAction === undefined) {
+    return undefined;
+  }
+
+  const metadata: CreatorStageMetadata = {};
+  if (selector !== undefined) {
+    type ActionSelectorNumberField =
+      | "actionSelectorCalls"
+      | "actionSelectorRepairCalls"
+      | "actionSelectorInvalidResponses"
+      | "actionSelectorDurationMs"
+      | "candidateCount"
+      | "contextCharacters";
+    const selectorFields: Array<[ActionSelectorNumberField, string]> = [
+      ["actionSelectorCalls", "actionSelectorCalls"],
+      ["actionSelectorRepairCalls", "actionSelectorRepairCalls"],
+      ["actionSelectorInvalidResponses", "actionSelectorInvalidResponses"],
+      ["actionSelectorDurationMs", "actionSelectorDurationMs"],
+      ["candidateCount", "actionSelectorCandidateCount"],
+      ["contextCharacters", "actionSelectorContextCharacters"],
+    ];
+    for (const [field, source] of selectorFields) {
+      const number = nonNegativeNumber(selector[source]);
+      if (number !== undefined) metadata[field] = number;
+    }
+    if (metadata.actionSelectorCalls !== undefined) {
+      metadata.modelCalls = metadata.actionSelectorCalls;
+    }
+    if (metadata.actionSelectorRepairCalls !== undefined) {
+      metadata.repairCalls = metadata.actionSelectorRepairCalls;
+    }
+    if (metadata.actionSelectorInvalidResponses !== undefined) {
+      metadata.invalidResponses = metadata.actionSelectorInvalidResponses;
+    }
+    if (metadata.actionSelectorDurationMs !== undefined) {
+      metadata.durationMs = metadata.actionSelectorDurationMs;
+    }
+  }
+
+  if (selection !== undefined) {
+    const decision = decisionValue(selection.decision);
+    if (decision !== undefined) metadata.decision = decision;
+    if (typeof selection.actionId === "string") metadata.actionId = selection.actionId;
+    const route =
+      decision === "select_action"
+        ? "productized"
+        : decision === "general_change"
+          ? "general-agent"
+          : decision === "needs_clarification"
+            ? "clarification"
+            : decision === "unsupported_product_action"
+              ? "unsupported"
+              : undefined;
+    if (route !== undefined) metadata.route = route;
+  }
+
+  if (selectedAction !== undefined) {
+    if (typeof selectedAction.actionId === "string") metadata.actionId = selectedAction.actionId;
+    if (typeof selectedAction.kind === "string") {
+      metadata.actionKind = selectedAction.kind;
+      metadata.intent = selectedAction.kind;
+    }
+    if (typeof selectedAction.status === "string") metadata.actionStatus = selectedAction.status;
+    const target = finalRecord(selectedAction.target);
+    if (target !== undefined) {
+      if (typeof target.pluginId === "string") metadata.targetPluginIds = [target.pluginId];
+      if (typeof target.instanceId === "string") metadata.targetInstanceIds = [target.instanceId];
+    }
+    const effect = finalRecord(selectedAction.effect);
+    if (effect !== undefined) {
+      const effectType = effectTypeValue(effect.type);
+      if (effectType !== undefined) metadata.effectType = effectType;
+      const region = regionValue(effect.region);
+      if (region !== undefined) metadata.region = region;
+      if (effectType === "relative") {
+        metadata.placementType = "relative";
+        if (typeof effect.anchorPluginId === "string") metadata.anchorPluginId = effect.anchorPluginId;
+        if (typeof effect.anchorInstanceId === "string") metadata.anchorInstanceId = effect.anchorInstanceId;
+        const relation = relationValue(effect.relation);
+        if (relation !== undefined) metadata.relation = relation;
+      } else if (effectType === "plugin_slot") {
+        metadata.placementType = "plugin_slot";
+        if (typeof effect.parentPluginId === "string") metadata.parentPluginId = effect.parentPluginId;
+        if (typeof effect.parentInstanceId === "string") metadata.parentInstanceId = effect.parentInstanceId;
+        if (typeof effect.slot === "string") metadata.slot = effect.slot;
+      }
+    }
+  }
+
+  if (metadata.route === "general-agent") {
+    const protocol = finalRecord(result.toolProtocol);
+    const generalCalls = protocol?.modelCalls;
+    const generalTools = protocol?.toolCalls;
+    if (typeof generalCalls === "number") metadata.generalAgentModelCalls = generalCalls;
+    if (typeof generalTools === "number") metadata.generalAgentToolCalls = generalTools;
+    if (typeof protocol?.totalModelCalls === "number") {
+      metadata.totalModelCalls = protocol.totalModelCalls;
+    } else if (
+      metadata.actionSelectorCalls !== undefined &&
+      typeof generalCalls === "number"
+    ) {
+      metadata.totalModelCalls = metadata.actionSelectorCalls + generalCalls;
+    }
+  }
+
+  return metadata;
+}
+
 function finalResolverMetadata(result: Record<string, unknown>): CreatorStageMetadata {
   const resolver = finalRecord(result.operationResolver);
   const protocol = finalRecord(result.toolProtocol);
@@ -295,20 +479,15 @@ function finalProductizedMetadata(
   const metrics = finalRecord(operation.metrics);
   const verification = finalRecord(operation.verification);
   const intent = finalIntentMetadata(result);
+  const actionSelector = finalActionSelectorMetadata(result);
   const metadata: CreatorStageMetadata = {
     route: "productized",
     ...(typeof operation.operation === "string" ? { operation: operation.operation } : {}),
     ...(typeof operation.status === "string" ? { status: operation.status } : {}),
   };
-  if (intent !== undefined) {
-    if (intent.placementType !== undefined) metadata.placementType = intent.placementType;
-    if (intent.anchorPluginId !== undefined) metadata.anchorPluginId = intent.anchorPluginId;
-    if (intent.anchorInstanceId !== undefined) metadata.anchorInstanceId = intent.anchorInstanceId;
-    if (intent.relation !== undefined) metadata.relation = intent.relation;
-    if (intent.parentPluginId !== undefined) metadata.parentPluginId = intent.parentPluginId;
-    if (intent.parentInstanceId !== undefined) metadata.parentInstanceId = intent.parentInstanceId;
-    if (intent.slot !== undefined) metadata.slot = intent.slot;
-  }
+  if (intent !== undefined) Object.assign(metadata, intent);
+  if (actionSelector !== undefined) Object.assign(metadata, actionSelector);
+  metadata.route = "productized";
   if (metrics !== undefined) {
     const fields = [
       "executionModelCalls",
@@ -351,9 +530,16 @@ export function reconcileCreatorStageFromRunResult(
   const result = finalRecord(value);
   if (result === undefined) return stage;
   const intent = finalIntentMetadata(result);
+  const actionSelector = finalActionSelectorMetadata(result);
   const nextMetadata =
     stage.name === "creator.resolve"
-      ? mergeMetadata(mergeMetadata(stage.metadata, intent), finalResolverMetadata(result))
+      ? mergeMetadata(
+        mergeMetadata(
+          mergeMetadata(stage.metadata, intent),
+          actionSelector,
+        ),
+        actionSelector === undefined ? finalResolverMetadata(result) : undefined,
+      )
       : mergeMetadata(stage.metadata, finalProductizedMetadata(result));
   const displayIntent = intent?.displayIntent ?? stage.displayIntent;
   return {
@@ -371,6 +557,7 @@ export function reconcileCreatorStagesFromRunResult(
   const result = finalRecord(value);
   if (result === undefined) return stages;
   const intent = finalIntentMetadata(result);
+  const actionSelector = finalActionSelectorMetadata(result);
   const latestByName = new Map<CreatorStageName, number>();
   stages.forEach((stage, index) => latestByName.set(stage.name, index));
   const next = stages.map((stage, index) =>
@@ -378,14 +565,17 @@ export function reconcileCreatorStagesFromRunResult(
       ? reconcileCreatorStageFromRunResult(stage, result)
       : stage,
   );
-  if (intent !== undefined && !latestByName.has("creator.resolve")) {
-    const metadata = mergeMetadata(intent, finalResolverMetadata(result));
+  if ((intent !== undefined || actionSelector !== undefined) && !latestByName.has("creator.resolve")) {
+    const metadata = mergeMetadata(
+      mergeMetadata(intent, actionSelector),
+      actionSelector === undefined ? finalResolverMetadata(result) : undefined,
+    );
     next.push({
       kind: "stage",
       id: "creator-stage-resolve-final",
       name: "creator.resolve",
       status: "completed",
-      ...(intent.displayIntent === undefined ? {} : { displayIntent: intent.displayIntent }),
+      ...(intent?.displayIntent === undefined ? {} : { displayIntent: intent.displayIntent }),
       ...(metadata === undefined ? {} : { metadata }),
     });
   }

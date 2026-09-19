@@ -583,6 +583,9 @@ function stageTitle(activity: CreatorStageActivity): string {
     if (activity.metadata?.route === "clarification") {
       return "需要确认修改目标";
     }
+    if (activity.metadata?.route === "unsupported") {
+      return "当前没有可安全执行的对应操作";
+    }
     return "已识别意图";
   }
   if (activity.status === "running") return "正在应用并验证修改…";
@@ -654,10 +657,18 @@ function CreatorStageDebugDetails({
           <section>
             <h3>Understanding</h3>
             {rows([
-              ["Intent", metadata.intent],
+              ["Decision", metadata.decision ?? metadata.intent],
+              ["Action ID", metadata.actionId],
+              ["Action kind", metadata.actionKind],
+              ["Action status", metadata.actionStatus],
+              ["Action selector calls", metadata.actionSelectorCalls],
+              ["Action selector repairs", metadata.actionSelectorRepairCalls],
+              ["Action selector invalid", metadata.actionSelectorInvalidResponses],
               ["Model calls", metadata.modelCalls],
               ["Repair calls", metadata.repairCalls],
               ["Duration", metadata.durationMs === undefined ? "—" : `${metadata.durationMs} ms`],
+              ["Candidates", metadata.candidateCount],
+              ["Context characters", metadata.contextCharacters],
             ])}
           </section>
           <section>
@@ -681,12 +692,25 @@ function CreatorStageDebugDetails({
               ])}
             </section>
           )}
+          {metadata.effectType === undefined ? null : (
+            <section>
+              <h3>Effect</h3>
+              {rows([
+                ["Type", metadata.effectType],
+                ["Region", metadata.region],
+                ["Parent Plugin", metadata.parentPluginId],
+                ["Parent Instance", metadata.parentInstanceId],
+                ["Slot", metadata.slot],
+              ])}
+            </section>
+          )}
           <section>
             <h3>Route</h3>
             {rows([
               ["Productized", metadata.route === "productized"],
-              ["General fallback", metadata.route === "general-agent"],
+              ["General Agent", metadata.route === "general-agent"],
               ["Clarification", metadata.route === "clarification"],
+              ["Unsupported", metadata.route === "unsupported"],
             ])}
           </section>
           {metadata.route === "general-agent" ? (

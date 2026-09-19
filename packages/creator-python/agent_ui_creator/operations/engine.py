@@ -281,9 +281,11 @@ class ProductizedOperationEngine:
                         {
                             "actionId": selection.actionId,
                             "catalogRevision": snapshot.action_catalog.revision,
-                        },
-                    )
+                },
+            )
         except Exception as error:
+            if self.telemetry is not None:
+                self.telemetry.bind(action_selector=self._action_selector_metrics())
             await self._publish_step_finished(
                 "creator.resolve",
                 {

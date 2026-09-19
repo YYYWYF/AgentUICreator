@@ -28,6 +28,9 @@ class CreatorRunTelemetry:
     composition_fast_path: Any | None = None
     validation: Any | None = None
     run_control: Any | None = None
+    action_selector: dict[str, object] | None = None
+    action_selection: dict[str, object] | None = None
+    selected_creator_action: dict[str, object] | None = None
     operation_resolver: dict[str, object] | None = None
     operation_route: dict[str, object] | None = None
     operation_presentation: dict[str, object] | None = None
@@ -43,6 +46,9 @@ class CreatorRunTelemetry:
         composition_fast_path: Any | None = None,
         validation: Any | None = None,
         run_control: Any | None = None,
+        action_selector: dict[str, object] | None = None,
+        action_selection: dict[str, object] | None = None,
+        selected_creator_action: dict[str, object] | None = None,
         operation_resolver: dict[str, object] | None = None,
         operation_route: dict[str, object] | None = None,
         operation_presentation: dict[str, object] | None = None,
@@ -63,6 +69,12 @@ class CreatorRunTelemetry:
             self.validation = validation
         if run_control is not None:
             self.run_control = run_control
+        if action_selector is not None:
+            self.action_selector = dict(action_selector)
+        if action_selection is not None:
+            self.action_selection = dict(action_selection)
+        if selected_creator_action is not None:
+            self.selected_creator_action = dict(selected_creator_action)
         if operation_resolver is not None:
             self.operation_resolver = dict(operation_resolver)
         if operation_route is not None:
@@ -78,6 +90,13 @@ class CreatorRunTelemetry:
                 metrics.update(dict(converter()))
         if self.operation_resolver is not None:
             metrics.update(self.operation_resolver)
+        if self.action_selector is not None:
+            selector_metrics = dict(self.action_selector)
+            selector_calls = selector_metrics.get("actionSelectorCalls", 0)
+            protocol_calls = metrics.get("modelCalls")
+            metrics.update(selector_metrics)
+            if isinstance(selector_calls, int) and isinstance(protocol_calls, int):
+                metrics["totalModelCalls"] = protocol_calls + selector_calls
         return metrics
 
     def project_control_metrics(self) -> dict[str, object] | None:
@@ -117,6 +136,12 @@ class CreatorRunTelemetry:
         snapshot: dict[str, object] = {
             "modelToolMetrics": self.model_tool_metrics(),
         }
+        if self.action_selector is not None:
+            snapshot["actionSelector"] = dict(self.action_selector)
+        if self.action_selection is not None:
+            snapshot["actionSelection"] = dict(self.action_selection)
+        if self.selected_creator_action is not None:
+            snapshot["selectedCreatorAction"] = dict(self.selected_creator_action)
         project_control = self.project_control_metrics()
         if project_control is not None:
             snapshot["projectControlMetrics"] = project_control

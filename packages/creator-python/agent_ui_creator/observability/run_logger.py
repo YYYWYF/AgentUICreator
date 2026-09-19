@@ -313,6 +313,9 @@ class CreatorRunLogger:
         composition_fast_path_metrics: Mapping[str, object] | None = None,
         project_control_metrics: Mapping[str, object] | None = None,
         validation_metrics: Mapping[str, object] | None = None,
+        action_selector_metrics: Mapping[str, object] | None = None,
+        action_selection: Mapping[str, object] | None = None,
+        selected_creator_action: Mapping[str, object] | None = None,
         operation_resolver_metrics: Mapping[str, object] | None = None,
         creator_intent: Mapping[str, object] | None = None,
         error: BaseException | None = None,
@@ -368,6 +371,21 @@ class CreatorRunLogger:
                 **(
                     {"validationMetrics": dict(validation_metrics)}
                     if validation_metrics is not None
+                    else {}
+                ),
+                **(
+                    {"actionSelector": dict(action_selector_metrics)}
+                    if action_selector_metrics is not None
+                    else {}
+                ),
+                **(
+                    {"actionSelection": dict(action_selection)}
+                    if action_selection is not None
+                    else {}
+                ),
+                **(
+                    {"selectedCreatorAction": dict(selected_creator_action)}
+                    if selected_creator_action is not None
                     else {}
                 ),
                 **(
