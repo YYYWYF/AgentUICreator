@@ -316,8 +316,10 @@ class CreatorActionCandidate(BaseModel):
     @model_validator(mode="after")
     def validate_wire_invariants(self) -> "CreatorActionCandidate":
         effect_type = self.effect.type
-        if self.kind == "add_existing_plugin" and effect_type != "add_default":
-            raise ValueError("add_existing_plugin must use an add_default effect.")
+        if self.kind == "add_existing_plugin" and effect_type not in {
+            "add_default", "workspace_region"
+        }:
+            raise ValueError("add_existing_plugin must use add_default or workspace_region.")
         if self.kind == "remove_plugin":
             if effect_type != "remove":
                 raise ValueError("remove_plugin must use a remove effect.")

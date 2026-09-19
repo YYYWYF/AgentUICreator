@@ -101,7 +101,7 @@ def _conversation_thread_list_context(
             status="already_satisfied" if mounted else "ready",
             label="Add Conversation Thread List",
             description=(
-                "Add the existing Conversation Thread List Plugin using its default placement."
+                "Add the visual Conversation Thread List using its default placement when no location was requested."
             ),
             target=(
                 {**thread_list_target, "instanceId": thread_list_instance}
@@ -116,9 +116,9 @@ def _conversation_thread_list_context(
             status="ready" if mounted else "already_satisfied",
             label="Remove Conversation Thread List",
             description=(
-                "Remove the Conversation Thread List Plugin instance from the current composition."
+                "Remove only the Conversation Thread List visual Plugin instance. Underlying services and history data are not removed."
                 if mounted
-                else "Remove the Conversation Thread List Plugin from the current composition."
+                else "Remove only the Conversation Thread List visual Plugin. Underlying services and history data are not removed."
             ),
             target=(
                 {**thread_list_target, "instanceId": thread_list_instance}
@@ -161,6 +161,19 @@ def _conversation_thread_list_context(
             effect={"type": "workspace_region", "region": "center"},
         ),
     ]
+    if not mounted:
+        for region in ("left", "right"):
+            actions.append(_creator_action(
+                action_id=_semantic_action_id(
+                    "add_existing_plugin", {"pluginId": thread_list_plugin},
+                    {"type": "workspace_region", "region": region},
+                ),
+                kind="add_existing_plugin", status="ready",
+                label=f"Add Conversation Thread List to Workspace.{region.title()}",
+                description=f"Add the visual Conversation Thread List to Workspace.{region.title()}.",
+                target=thread_list_target,
+                effect={"type": "workspace_region", "region": region},
+            ))
     if mounted:
         thread_list_left_id = _semantic_action_id(
             "move_plugin",
@@ -484,6 +497,59 @@ def test_live_creator_action_selector_asks_for_ambiguous_instance():
     assert result.clarificationQuestion
     assert selector.metrics.modelCalls == 1
     assert selector.metrics.repairCalls == 0
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1", reason="Set CREATOR_RUN_LIVE_MODEL=1.")
+@pytest.mark.parametrize(("prompt", "expected_effect"), [
+    ("我想在右边加入一个历史会话管理的面板", {"type": "workspace_region", "region": "right"}),
+    ("在左边加入历史会话面板", {"type": "workspace_region", "region": "left"}),
+    ("添加会话管理", {"type": "add_default"}),
+])
+def test_live_thread_list_add_respects_requested_placement(prompt, expected_effect):
+    settings = CreatorModelSettings.from_environment()
+    selector = CreatorActionSelector(model=create_creator_chat_model(settings), max_retries=settings.max_retries)
+    context = _conversation_thread_list_context(mounted=False)
+    result = asyncio.run(selector.select(prompt, context))
+    assert result.decision == "select_action"
+    selected = next(action for action in context.actions if action.actionId == result.actionId)
+    assert selected.kind == "add_existing_plugin"
+    assert selected.effect.model_dump() == expected_effect
+    assert selector.metrics.modelCalls == 1
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1", reason="Set CREATOR_RUN_LIVE_MODEL=1.")
+@pytest.mark.parametrize(("prompt", "decision"), [
+    ("我不要历史会话管理功能", "needs_clarification"),
+    ("彻底关闭历史会话能力，包括后台服务", "unsupported_product_action"),
+])
+def test_live_thread_list_remove_scope(prompt, decision):
+    settings = CreatorModelSettings.from_environment()
+    selector = CreatorActionSelector(model=create_creator_chat_model(settings), max_retries=settings.max_retries)
+    result = asyncio.run(selector.select(prompt, _conversation_thread_list_context(mounted=True)))
+    assert result.decision == decision
+    assert selector.metrics.modelCalls == 1
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1", reason="Set CREATOR_RUN_LIVE_MODEL=1.")
+def test_live_thread_list_remove_clarification_continues():
+    settings = CreatorModelSettings.from_environment()
+    selector = CreatorActionSelector(model=create_creator_chat_model(settings), max_retries=settings.max_retries)
+    context = _conversation_thread_list_context(mounted=True)
+    result = asyncio.run(selector.select(
+        "只去掉界面上的面板", context,
+        clarification_context={
+            "previousUserRequest": "我不要历史会话管理功能",
+            "previousCreatorClarification": "你是只想移除界面上的历史会话管理面板，还是也要禁用底层能力？",
+        },
+    ))
+    assert result.decision == "select_action"
+    selected = next(action for action in context.actions if action.actionId == result.actionId)
+    assert selected.kind == "remove_plugin"
+    assert selected.target.pluginId == "conversation-thread-list"
+    assert selector.metrics.modelCalls == 1
 
 
 @pytest.mark.live_model

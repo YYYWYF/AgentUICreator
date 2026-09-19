@@ -27,7 +27,9 @@ import { projectWorkspaceTopology } from "./workspace-topology";
 import {
   CreatorActionPlanningError,
   isVisualAsset,
+  isWorkspaceCompatibleAsset,
   planDefaultPluginInsertion,
+  planWorkspaceRegionInsertion,
   pluginMoveContractsForGeneration,
 } from "./creator-action-planners";
 import type {
@@ -93,6 +95,7 @@ export type CreatorPublicActionOperation = Extract<
 
 export type CreatorActionBindingOperation =
   | CreatorPublicActionOperation
+  | { type: "workspace_region_insert"; plugin: { id: string; pluginId: string; enabled: true }; region: WorkspaceRegion }
   | CreatorWorkspaceRegionMoveBinding;
 
 export type CreatorActionBinding =
@@ -347,6 +350,20 @@ async function validateCandidateBindingInMemory(
         });
         break;
       }
+      case "workspace_region_insert": {
+        const plan = planWorkspaceRegionInsertion(
+          input.model, operation.plugin, operation.region, input.generation, input.workspacePolicy,
+        );
+        afterModel = applyAppUIOperations(input.model, plan.operations, {
+          workspacePolicy: input.workspacePolicy,
+        });
+        const afterTopology = projectWorkspaceTopology(afterModel, input.workspacePolicy);
+        const occupancy = afterTopology.regions[operation.region];
+        if (occupancy?.index !== plan.trackIndex || occupancy.branch.type !== "panel" ||
+            occupancy.branch.child.type !== "slot" ||
+            !occupancy.branch.child.plugins.some((plugin) => plugin.id === operation.plugin.id)) return false;
+        break;
+      }
       case "remove_plugin_default":
         resolveDefaultPluginRemovalReflow(
           input.model,
@@ -565,32 +582,46 @@ export async function buildCreatorActionCatalog(
         enabled: true,
       },
     };
-    if (!(await validateCandidateBindingInMemory(input, operation, workspaceTopology))) continue;
+    const defaultValid = await validateCandidateBindingInMemory(input, operation, workspaceTopology);
     const target: CreatorActionTarget = {
       pluginId: asset.pluginId,
       pluginName: asset.name,
     };
     const effect: CreatorActionEffect = { type: "add_default" };
-    const candidate = actionCandidate(
-      "add_existing_plugin",
-      "ready",
-      target,
-      effect,
-      `Add ${asset.name}`,
-      `Add the existing ${asset.name} Plugin using its default placement.`,
-    );
-    addAction(candidate, {
-      actionId: candidate.actionId,
-      status: "ready",
-      operation,
-    });
+    if (defaultValid) {
+      const candidate = actionCandidate(
+        "add_existing_plugin", "ready", target, effect,
+        `Add ${asset.name}`,
+        `Add the existing ${asset.name} visual Plugin using its default placement when no location was requested.`,
+      );
+      addAction(candidate, { actionId: candidate.actionId, status: "ready", operation });
+    }
+    if (workspaceTopology !== undefined && isWorkspaceCompatibleAsset(
+      input.model, asset, input.generation, input.workspacePolicy,
+    )) {
+      for (const region of WORKSPACE_REGIONS) {
+        if (input.workspacePolicy.regions[region] === undefined || workspaceTopology.regions[region] !== undefined) continue;
+        const explicitOperation: CreatorActionBindingOperation = {
+          type: "workspace_region_insert", plugin: { ...operation.plugin, enabled: true }, region,
+        };
+        if (!(await validateCandidateBindingInMemory(input, explicitOperation, workspaceTopology))) continue;
+        const label = `Workspace.${region[0]!.toUpperCase()}${region.slice(1)}`;
+        const explicitEffect: CreatorActionEffect = { type: "workspace_region", region };
+        const candidate = actionCandidate(
+          "add_existing_plugin", "ready", target, explicitEffect,
+          `Add ${asset.name} to ${label}`,
+          `Add the existing ${asset.name} visual Plugin to the explicit ${label} Region.`,
+        );
+        addAction(candidate, { actionId: candidate.actionId, status: "ready", operation: explicitOperation });
+      }
+    }
   }
 
   // Remove actions are generated only when the existing Host reflow planner
   // and a hypothetical full composition compile both accept the removal.
   for (const { plugin } of locations) {
     const asset = uniqueAsset(assetsByPluginId, plugin.pluginId);
-    if (asset === undefined) continue;
+    if (!isVisualAsset(asset)) continue;
     const operation: Extract<CreatorPublicActionOperation, { type: "remove_plugin_default" }> = {
       type: "remove_plugin_default",
       instanceId: plugin.id,
@@ -608,7 +639,7 @@ export async function buildCreatorActionCatalog(
       target,
       effect,
       `Remove ${asset.name}`,
-      `Remove the ${asset.name} Plugin instance from the current composition.`,
+      `Remove only the ${asset.name} visual Plugin instance from the UI composition. Underlying services and data are not removed.`,
     );
     addAction(candidate, {
       actionId: candidate.actionId,
@@ -637,7 +668,7 @@ export async function buildCreatorActionCatalog(
       target,
       effect,
       `Remove ${asset.name}`,
-      `Remove the ${asset.name} Plugin from the current composition.`,
+      `Remove only the ${asset.name} visual Plugin from the UI composition. Underlying services and data are not removed.`,
     );
     addAction(candidate, {
       actionId: candidate.actionId,

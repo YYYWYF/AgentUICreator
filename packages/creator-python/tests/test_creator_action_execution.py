@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import asyncio
 from types import SimpleNamespace
+import pytest
+from agent_ui_creator.operations.action_playbook import _HostResultInvalid, _validate_host_result
 
 from agent_ui_creator.app_ui_model import (
     AppUIModelMutationError,
@@ -185,6 +187,29 @@ def mutation(
         "semanticComposition": semantic,
     }
     return AppUIModelMutationResult(result, mutation_revision=1)
+
+
+def test_workspace_add_requires_selected_region_expectation():
+    candidate = CreatorActionCandidate(
+        actionId="act_add_right", kind="add_existing_plugin", status="ready",
+        label="Add History to Workspace.Right", description="Add the visual Plugin on the right.",
+        target=CreatorActionTarget(pluginId="history", pluginName="History"),
+        effect=WorkspaceRegionActionEffect(type="workspace_region", region="right"),
+    )
+    result = {
+        "changed": True,
+        "creatorAction": {"actionId": candidate.actionId, "actionKind": candidate.kind, "status": "ready"},
+        "semanticComposition": {
+            "actionId": candidate.actionId, "actionKind": candidate.kind, "actionStatus": "ready",
+            "operation": "insert_plugin_to", "semanticLoweringSucceeded": True,
+            "expectedRuntime": {"presentInstanceIds": ["history-main"]},
+            "expectedWorkspaceFill": [{"instanceId": "history-main", "region": "right", "axis": "width", "trackIndex": 1}],
+        },
+    }
+    assert _validate_host_result(result, candidate).expected_workspace_fill is not None
+    result["semanticComposition"]["expectedWorkspaceFill"][0]["region"] = "left"
+    with pytest.raises(_HostResultInvalid):
+        _validate_host_result(result, candidate)
 
 
 def verification(runtime_results: list[dict[str, object]]):

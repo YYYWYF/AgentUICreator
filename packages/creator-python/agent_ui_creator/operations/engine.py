@@ -106,6 +106,21 @@ def _latest_user_message(messages: list[dict[str, str]]) -> str:
     raise ValueError("A Productized Operation requires a non-empty user message.")
 
 
+def _recent_clarification_context(messages: list[dict[str, str]]) -> dict[str, str] | None:
+    """Replay only the immediately preceding question and request for a short answer."""
+    recent = [message for message in messages if message.get("content", "").strip()]
+    if (len(recent) < 3 or recent[-1].get("role") != "user" or
+        recent[-2].get("role") != "assistant" or recent[-3].get("role") != "user"):
+        return None
+    question = recent[-2]["content"].strip()
+    if "?" not in question and "？" not in question:
+        return None
+    return {
+        "previousUserRequest": recent[-3]["content"].strip()[:500],
+        "previousCreatorClarification": question[:300],
+    }
+
+
 def _operation_text(
     operation: CreatorOperationExecutionResult,
 ) -> str:
@@ -256,6 +271,7 @@ class ProductizedOperationEngine:
             selection = await self.selector.select(
                 user_message,
                 snapshot.action_selector_context,
+                clarification_context=_recent_clarification_context(messages),
             )
             selected_action = None
             if selection.decision == "select_action":

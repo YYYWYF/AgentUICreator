@@ -13,6 +13,12 @@ import type {
 } from "./app-ui-operations";
 import { assertPluginSlotDestination } from "./app-ui-operations";
 import type { PluginDefaultPlacement } from "../../framework/contracts/ui-plugin";
+import {
+  WORKSPACE_REGIONS,
+  type AgentUIWorkspacePolicy,
+  type WorkspaceRegion,
+} from "../../framework/contracts/agent-ui-workspace";
+import { projectWorkspaceTopology } from "./workspace-topology";
 import type {
   GeneratePluginCatalogResult,
   PluginAsset,
@@ -60,6 +66,92 @@ export interface DefaultPluginInsertionPlan {
     instanceId: string;
     parentInstanceId: string;
     slot: string;
+  };
+}
+
+export interface WorkspaceRegionInsertionPlan {
+  operations: AppUIOperation[];
+  instanceId: string;
+  region: WorkspaceRegion;
+  trackIndex: number;
+}
+
+/** The default topology identifies the Plugin's domain, never its requested destination. */
+export function isWorkspaceCompatibleAsset(
+  model: AppUIModel,
+  asset: PluginAsset,
+  generation: GeneratePluginCatalogResult,
+  policy: AgentUIWorkspacePolicy,
+): boolean {
+  const placement = asset.authoring?.defaultPlacement;
+  if (!isVisualAsset(asset) || placement?.type !== "relative") return false;
+  const anchors = collectAppUIPluginLocations(model).filter(
+    ({ plugin }) => plugin.pluginId === placement.anchorPluginId && plugin.enabled,
+  );
+  if (anchors.length !== 1) return false;
+  const anchorAsset = generation.assets.filter(
+    (candidate) => candidate.pluginId === placement.anchorPluginId,
+  );
+  if (anchorAsset.length !== 1 || !isVisualAsset(anchorAsset[0])) return false;
+  try {
+    const visual = resolveVisualRegion(model, anchors[0]!.plugin.id, placement.relation, anchorAsset[0]!);
+    const topology = projectWorkspaceTopology(model, policy);
+    if (visual.mode !== "existing-axis-parent" || visual.parent !== topology.root) return false;
+    const anchorBranch = topology.root.children.find(
+      (branch) => visual.anchorRef === buildLayoutRefIndex(model.root).byNode.get(branch),
+    );
+    return WORKSPACE_REGIONS.some((region) => topology.regions[region]?.branch === anchorBranch);
+  } catch (error) {
+    if (error instanceof CreatorActionPlanningError ||
+      (typeof error === "object" && error !== null && "code" in error && error.code === "WORKSPACE_TOPOLOGY_UNSUPPORTED")) return false;
+    throw error;
+  }
+}
+
+export function planWorkspaceRegionInsertion(
+  model: AppUIModel,
+  plugin: AppUIPluginNode,
+  region: WorkspaceRegion,
+  generation: GeneratePluginCatalogResult,
+  policy: AgentUIWorkspacePolicy,
+): WorkspaceRegionInsertionPlan {
+  const asset = generation.assets.find((candidate) => candidate.pluginId === plugin.pluginId);
+  const topology = projectWorkspaceTopology(model, policy);
+  const destination = policy.regions[region];
+  if (asset === undefined || !isWorkspaceCompatibleAsset(model, asset, generation, policy) ||
+      destination === undefined || topology.regions[region] !== undefined ||
+      typeof destination.track !== "string" || !plugin.enabled ||
+      serviceReadinessForAsset(asset, generation).status === "unresolved" ||
+      collectAppUIPluginLocations(model).some(({ plugin: selected }) =>
+        selected.pluginId === plugin.pluginId || selected.id === plugin.id)) {
+    throw new CreatorActionPlanningError(
+      "WORKSPACE_INSERT_UNAVAILABLE",
+      `Plugin "${plugin.pluginId}" cannot be inserted into Workspace.${region}.`,
+    );
+  }
+  const destinationOrder = WORKSPACE_REGIONS.indexOf(region);
+  const trackIndex = WORKSPACE_REGIONS.filter((candidate) => {
+    const occupied = topology.regions[candidate];
+    return occupied !== undefined && WORKSPACE_REGIONS.indexOf(candidate) < destinationOrder;
+  }).length;
+  const panel: AppUILayoutNode = {
+    type: "panel",
+    child: { type: "slot", plugins: [structuredClone(plugin)] },
+  };
+  return {
+    instanceId: plugin.id,
+    region,
+    trackIndex,
+    operations: [
+      { type: "insert_layout_node", parentRef: topology.rootRef, node: panel,
+        index: trackIndex, size: destination.track },
+      ...topology.root.children.flatMap((branch) => {
+        const nodeRef = buildLayoutRefIndex(model.root).byNode.get(branch);
+        return branch.type === "panel" && branch.width !== undefined && nodeRef !== undefined
+          ? [{ type: "update_layout_node_props" as const, nodeRef, removeKeys: ["width"] }]
+          : [];
+      }),
+    ],
   };
 }
 

@@ -19,7 +19,7 @@ import {
   type AppUILayoutNode,
 } from "../../framework/contracts/app-ui-model";
 import { agentUIModeRegistry } from "../../framework/modes";
-import type { AgentUIWorkspacePolicy } from "../../framework/contracts/agent-ui-workspace";
+import type { AgentUIWorkspacePolicy, WorkspaceRegion } from "../../framework/contracts/agent-ui-workspace";
 import { WORKSPACE_REGIONS } from "../../framework/contracts/agent-ui-workspace";
 import { compileAppUIModel } from "../../framework/contracts/app-ui-compiler";
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
@@ -42,6 +42,7 @@ import {
 } from "./registry-generator";
 import {
   planDefaultPluginInsertion,
+  planWorkspaceRegionInsertion,
   pluginMoveContractsForGeneration,
 } from "./creator-action-planners";
 import {
@@ -195,7 +196,7 @@ export interface AppUITransactionResult {
     trackIndex: number;
   }>;
   semanticComposition?: {
-    operation: "insert_plugin_default" | "remove_plugin_default" | "move_plugin_to";
+    operation: "insert_plugin_default" | "insert_plugin_to" | "remove_plugin_default" | "move_plugin_to";
     semanticLoweringSucceeded: true;
     actionId?: string;
     actionKind?: CreatorActionKind;
@@ -691,7 +692,7 @@ function semanticCompositionForAlreadySatisfiedAction(
   if (candidate.kind === "add_existing_plugin") {
     return {
       ...base,
-      operation: "insert_plugin_default",
+      operation: candidate.effect.type === "workspace_region" ? "insert_plugin_to" : "insert_plugin_default",
       expectedRuntime: {
         presentInstanceIds: candidate.target.instanceId === undefined
           ? []
@@ -996,6 +997,7 @@ async function runTransaction(
   let creatorAction: AppUITransactionResult["creatorAction"];
   let currentGeneration: GeneratePluginCatalogResult | undefined;
   let projectFacts: PluginProjectFacts | undefined;
+  let requestedWorkspaceInsert: { region: WorkspaceRegion; instanceId: string; trackIndex: number } | undefined;
   try {
     beforeModel = parseAppUIModelJson(beforeModelSource);
     if (
@@ -1031,7 +1033,27 @@ async function runTransaction(
           resolved.candidate,
         );
       } else {
-        if (resolved.binding.operation.type === "workspace_region_move") {
+        if (resolved.binding.operation.type === "workspace_region_insert") {
+          const plan = planWorkspaceRegionInsertion(
+            beforeModel, resolved.binding.operation.plugin,
+            resolved.binding.operation.region, resolved.generation, workspacePolicy,
+          );
+          loweredOperations = plan.operations;
+          requestedWorkspaceInsert = {
+            region: plan.region, instanceId: plan.instanceId, trackIndex: plan.trackIndex,
+          };
+          semanticComposition = {
+            operation: "insert_plugin_to",
+            semanticLoweringSucceeded: true,
+            expectedRuntime: { presentInstanceIds: [plan.instanceId] },
+            expectedWorkspaceFill: [{
+              instanceId: plan.instanceId,
+              region: plan.region,
+              axis: "width",
+              trackIndex: plan.trackIndex,
+            }],
+          };
+        } else if (resolved.binding.operation.type === "workspace_region_move") {
           const workspacePlan = planWorkspaceRegionMove(
             beforeModel,
             resolved.binding.operation,
@@ -1089,13 +1111,24 @@ async function runTransaction(
         operationApplyOptions ?? { workspacePolicy },
       ),
     );
+    if (requestedWorkspaceInsert !== undefined) {
+      const actual = projectWorkspaceTopology(afterModel, workspacePolicy).regions[requestedWorkspaceInsert.region];
+      if (actual?.index !== requestedWorkspaceInsert.trackIndex || actual.branch.type !== "panel" ||
+          actual.branch.child.type !== "slot" ||
+          !actual.branch.child.plugins.some((plugin) => plugin.id === requestedWorkspaceInsert.instanceId)) {
+        throw new AppUITransactionError(
+          "WORKSPACE_INSERT_PLACEMENT_MISMATCH",
+          `The inserted Plugin did not occupy Workspace.${requestedWorkspaceInsert.region}.`,
+        );
+      }
+    }
     if (creatorAction !== undefined && semanticComposition !== undefined) {
       try {
         const beforeTopology = projectWorkspaceTopology(beforeModel, workspacePolicy);
         const afterTopology = projectWorkspaceTopology(afterModel, workspacePolicy);
         const beforeRegions = WORKSPACE_REGIONS.filter((region) => beforeTopology.regions[region] !== undefined);
         const afterRegions = WORKSPACE_REGIONS.filter((region) => afterTopology.regions[region] !== undefined);
-        if (beforeRegions.join(",") !== afterRegions.join(",")) {
+        if (beforeRegions.join(",") !== afterRegions.join(",") && requestedWorkspaceInsert === undefined) {
           semanticComposition.expectedWorkspaceFill = afterRegions.map((region) => {
             const occupancy = afterTopology.regions[region];
             if (occupancy?.branch.type !== "panel" || occupancy.branch.child.type !== "slot") {

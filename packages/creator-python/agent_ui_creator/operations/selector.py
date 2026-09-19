@@ -27,6 +27,20 @@ ACTION_SELECTOR_PROTOCOL = "choice-text-v1"
 
 _SELECT_PATTERN = re.compile(r"SELECT (A[1-9][0-9]*)\Z")
 _CLARIFY_PATTERN = re.compile(r"CLARIFY ([^\r\n]+)\Z")
+_EXPLICIT_WORKSPACE_REGION = {
+    "left": re.compile(r"Workspace[. ]Left|左边|左侧|左栏|\bon (?:the )?left\b|\bto (?:the )?left\b", re.I),
+    "center": re.compile(r"Workspace[. ]Center|中间|中央|\bin (?:the )?center\b|\bto (?:the )?center\b", re.I),
+    "right": re.compile(r"Workspace[. ]Right|右边|右侧|右栏|\bon (?:the )?right\b|\bto (?:the )?right\b", re.I),
+}
+_EXPLICIT_RELATIVE_PLACEMENT = re.compile(
+    r"\bbefore\b|\bafter\b|\babove\b|\bbelow\b|\bnext to\b|前面|后面|上方|下方|之前|之后",
+    re.I,
+)
+
+
+def _explicit_workspace_region(message: str) -> str | None:
+    matches = [region for region, pattern in _EXPLICIT_WORKSPACE_REGION.items() if pattern.search(message)]
+    return matches[0] if len(matches) == 1 else None
 
 _SELECTOR_SYSTEM_PROMPT = """You are the Creator Action Selector.
 
@@ -45,9 +59,20 @@ Product Actions. An already_satisfied Action may still be selected.
 Prefer a Workspace Region choice for top-level Left, Center, or Right semantics,
 including a position described as after the main Conversation surface. Use a
 relative choice for a genuinely anchor-specific, non-Workspace placement.
+An explicit user placement takes precedence over a Plugin defaultPlacement.
+Choose add_default only when the user did not request a location. If an exact
+requested placement is unavailable, return UNSUPPORTED or CLARIFY; never select
+another placement or add_default as a fallback.
+Visual Remove Actions remove only UI Plugin instances. If the user clearly asks
+to remove a visible panel or list, select its visual Remove Action. If the user
+clearly asks to disable the underlying capability, services, or data, return
+UNSUPPORTED. If their wording could mean either visual UI removal or underlying
+capability removal, use CLARIFY to ask which scope they mean. A brief answer to
+a previous Creator clarification may resolve the target using the bounded
+previous request and clarification supplied in context.
 Use GENERAL only for broader or generative implementation changes, such as
-fuzzy search. Use CLARIFY only when the supplied semantics cannot identify one
-target without guessing. Use UNSUPPORTED when a simple Product or Composition
+fuzzy search. Use CLARIFY when the supplied semantics cannot identify one
+target or removal scope without guessing. Use UNSUPPORTED when a simple Product or Composition
 request has no supplied valid choice. Return no JSON, Markdown, or explanation.
 """
 
@@ -321,6 +346,8 @@ class CreatorActionSelector:
         self,
         user_message: str,
         context: CreatorActionSelectorContext | Mapping[str, Any],
+        *,
+        clarification_context: Mapping[str, str] | None = None,
     ) -> CreatorActionSelection:
         started_at = monotonic()
         try:
@@ -334,6 +361,8 @@ class CreatorActionSelector:
                 for number, candidate in enumerate(normalized_context.actions, 1)
             }
             prompt_context = _selector_prompt_context(normalized_context)
+            if clarification_context is not None:
+                prompt_context["recentClarification"] = dict(clarification_context)
             context_json = json.dumps(
                 prompt_context,
                 ensure_ascii=False,
@@ -397,6 +426,19 @@ class CreatorActionSelector:
                         )
                     selection = _parse_selector_response(response.text, choices)
                     self.validate_selection(selection, normalized_context)
+                    if selection.decision == "select_action":
+                        selected = next(
+                            candidate for candidate in normalized_context.actions
+                            if candidate.actionId == selection.actionId
+                        )
+                        requested_region = _explicit_workspace_region(user_message)
+                        if (selected.kind == "add_existing_plugin" and requested_region is not None and
+                            (selected.effect.type != "workspace_region" or
+                             selected.effect.region != requested_region)):
+                            return CreatorActionSelection(decision="unsupported_product_action")
+                        if (selected.kind == "add_existing_plugin" and selected.effect.type == "add_default" and
+                            _EXPLICIT_RELATIVE_PLACEMENT.search(user_message)):
+                            return CreatorActionSelection(decision="unsupported_product_action")
                     return selection
                 except _InvalidActionSelection as error:
                     if (

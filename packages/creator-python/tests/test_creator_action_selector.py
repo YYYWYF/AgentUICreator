@@ -19,6 +19,7 @@ from agent_ui_creator.operations.selector import (
     _parse_selector_response,
 )
 from agent_ui_creator.model_settings import CreatorSelectorModelSettings
+from agent_ui_creator.operations.engine import _recent_clarification_context
 
 
 class StaticChatModel:
@@ -91,6 +92,80 @@ def _context(*, right_status: str = "ready") -> CreatorActionSelectorContext:
 
 def _payload(model: StaticChatModel, attempt: int = 0) -> dict:
     return json.loads(model.messages[attempt][1].content)
+
+
+def _add_context(*, include_right: bool = True) -> CreatorActionSelectorContext:
+    actions = [{
+        "actionId": "act_add_default", "kind": "add_existing_plugin", "status": "ready",
+        "label": "Add Conversation Thread List",
+        "description": "Add the visual Plugin using its default placement.",
+        "target": {"pluginId": "conversation-thread-list", "pluginName": "Conversation Thread List"},
+        "effect": {"type": "add_default"},
+    }]
+    if include_right:
+        actions.append({
+            **actions[0], "actionId": "act_add_right",
+            "label": "Add Conversation Thread List to Workspace.Right",
+            "effect": {"type": "workspace_region", "region": "right"},
+        })
+    return CreatorActionSelectorContext(
+        catalogRevision="c" * 64,
+        actions=actions,
+        pluginSemantics=[{
+            "pluginId": "conversation-thread-list", "name": "Conversation Thread List",
+            "description": "Visual conversation history management.",
+            "capabilities": ["conversation-history"], "intents": ["manage past conversations"],
+        }],
+    )
+
+
+def test_explicit_unavailable_region_cannot_fall_back_to_default():
+    model = StaticChatModel(["SELECT A1"])
+    selection = asyncio.run(CreatorActionSelector(model=model).select(
+        "我想在右边加入一个历史会话管理的面板", _add_context(include_right=False),
+    ))
+    assert selection.decision == "unsupported_product_action"
+
+
+def test_explicit_region_action_and_unplaced_default_have_distinct_selection():
+    for message, response, expected in [
+        ("我想在右边加入一个历史会话管理的面板", "SELECT A2", "act_add_right"),
+        ("添加会话管理", "SELECT A1", "act_add_default"),
+    ]:
+        model = StaticChatModel([response])
+        selection = asyncio.run(CreatorActionSelector(model=model).select(message, _add_context()))
+        assert selection.actionId == expected
+
+
+def test_clarification_follow_up_carries_only_previous_request_and_question():
+    messages = [
+        {"role": "user", "content": "我不要历史会话管理功能"},
+        {"role": "assistant", "content": "你是只想移除界面上的历史会话管理面板，还是也要禁用底层能力？"},
+        {"role": "user", "content": "只去掉界面上的面板"},
+    ]
+    context = _recent_clarification_context(messages)
+    assert context == {
+        "previousUserRequest": "我不要历史会话管理功能",
+        "previousCreatorClarification": messages[1]["content"],
+    }
+    model = StaticChatModel(["SELECT A1"])
+    remove_context = CreatorActionSelectorContext(
+        catalogRevision="c" * 64,
+        actions=[{
+            "actionId": "act_remove", "kind": "remove_plugin", "status": "ready",
+            "label": "Remove Conversation Thread List",
+            "description": "Remove only the visual Plugin. Services and data remain.",
+            "target": {"pluginId": "conversation-thread-list", "pluginName": "Conversation Thread List",
+                       "instanceId": "conversation-thread-list-main"},
+            "effect": {"type": "remove"},
+        }],
+        pluginSemantics=[],
+    )
+    selection = asyncio.run(CreatorActionSelector(model=model).select(
+        messages[-1]["content"], remove_context, clarification_context=context,
+    ))
+    assert selection.actionId == "act_remove"
+    assert _payload(model)["recentClarification"] == context
 
 
 @pytest.mark.parametrize(

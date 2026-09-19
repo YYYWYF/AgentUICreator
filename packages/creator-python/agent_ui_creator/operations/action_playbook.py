@@ -162,7 +162,11 @@ def _validate_host_result(
     semantic = _required_mapping(
         mutation.get("semanticComposition"), "semanticComposition"
     )
-    expected_operation = _SEMANTIC_OPERATIONS[candidate.kind]
+    expected_operation = (
+        "insert_plugin_to"
+        if candidate.kind == "add_existing_plugin" and candidate.effect.type == "workspace_region"
+        else _SEMANTIC_OPERATIONS[candidate.kind]
+    )
     if semantic.get("actionId") != candidate.actionId:
         raise _HostResultInvalid(
             "Host mutation result semanticComposition.actionId does not match the selected action.",
@@ -256,7 +260,21 @@ def _validate_host_result(
                     {"field": "semanticComposition.expectedRuntime"},
                 )
             instance_id = present[0]
-            if semantic.get("expectedPlacement") is not None:
+            if candidate.effect.type == "workspace_region":
+                if semantic.get("expectedGeometry") is not None or semantic.get("expectedPlacement") is not None:
+                    raise _HostResultInvalid(
+                        "Workspace Add must use an explicit Workspace fill expectation.",
+                        {"field": "semanticComposition"},
+                    )
+                if expected_workspace_fill is None or not any(
+                    item["instanceId"] == instance_id and item["region"] == candidate.effect.region
+                    for item in expected_workspace_fill
+                ):
+                    raise _HostResultInvalid(
+                        "Workspace Add must expect the selected Region.",
+                        {"field": "semanticComposition.expectedWorkspaceFill"},
+                    )
+            elif semantic.get("expectedPlacement") is not None:
                 if semantic.get("expectedGeometry") is not None:
                     raise _HostResultInvalid(
                         "Host mutation result Add cannot declare both placement and geometry.",
@@ -270,7 +288,7 @@ def _validate_host_result(
                         "Host mutation result Add expectedPlacement must target a Plugin Slot.",
                         {"field": "semanticComposition.expectedPlacement"},
                     )
-            else:
+            elif candidate.effect.type == "add_default":
                 expected_geometry = _required_mapping(
                     semantic.get("expectedGeometry"),
                     "semanticComposition.expectedGeometry",

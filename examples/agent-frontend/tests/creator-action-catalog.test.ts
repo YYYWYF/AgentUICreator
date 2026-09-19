@@ -31,6 +31,7 @@ import {
   generatePluginRegistryFromFacts,
 } from "../scripts/ui-project/registry-generator";
 import { platformMode } from "../framework/modes/platform";
+import { projectWorkspaceTopology } from "../scripts/ui-project/workspace-topology";
 import * as registryGenerator from "../scripts/ui-project/registry-generator";
 import type { UIProjectControlConfig } from "../scripts/ui-project/types";
 
@@ -372,6 +373,11 @@ describe("Creator Action Catalog", () => {
     const add = afterRemove.catalog.candidates.find((candidate) =>
       candidate.kind === "add_existing_plugin" && candidate.target.pluginId === "conversation-suggestions" && candidate.status === "ready");
     expect(add?.effect).toEqual({ type: "add_default" });
+    expect(afterRemove.catalog.candidates).not.toContainEqual(expect.objectContaining({
+      kind: "add_existing_plugin",
+      target: expect.objectContaining({ pluginId: "conversation-suggestions" }),
+      effect: expect.objectContaining({ type: "workspace_region" }),
+    }));
     if (add === undefined) throw new Error("Expected Suggestions Add Action");
     const restored = await mutateAppUIModel(projectRoot, {
       appUIModelHash: removed.appUIModel.afterHash,
@@ -456,6 +462,86 @@ describe("Creator Action Catalog", () => {
         semanticLoweringSucceeded: true,
       },
     });
+  });
+
+  it.each(["left", "right"] as const)("adds an absent Workspace Plugin explicitly to %s", async (region) => {
+    const model = rowModel(["conversation-surface"]);
+    const projectRoot = await createFixtureProject(model, [
+      ["conversation-surface", { capabilities: ["conversation-surface"] }],
+      ["conversation-thread-list", {
+        capabilities: ["conversation-history"],
+        authoring: {
+          defaultPlacement: { type: "relative", relation: "before", anchorPluginId: "conversation-surface" },
+          recommendedSize: { width: "280px" },
+        },
+      }],
+    ]);
+    const { catalog } = await buildCatalog(projectRoot, model);
+    const adds = catalog.candidates.filter((candidate) =>
+      candidate.kind === "add_existing_plugin" && candidate.target.pluginId === "conversation-thread-list");
+    expect(adds.map((candidate) => candidate.effect)).toContainEqual({ type: "add_default" });
+    expect(adds.map((candidate) => candidate.effect)).toContainEqual({ type: "workspace_region", region });
+    const explicit = adds.find((candidate) =>
+      candidate.effect.type === "workspace_region" && candidate.effect.region === region);
+    const fallback = adds.find((candidate) => candidate.effect.type === "add_default");
+    expect(explicit?.actionId).not.toBe(fallback?.actionId);
+    if (explicit === undefined) throw new Error("Missing explicit Workspace Add");
+    const source = `${JSON.stringify(model, null, 2)}\n`;
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{ type: "execute_creator_action", actionId: explicit.actionId }],
+    });
+    expect(result.semanticComposition).toMatchObject({
+      operation: "insert_plugin_to",
+      expectedWorkspaceFill: [{
+        instanceId: "conversation-thread-list-main", region, axis: "width",
+        trackIndex: region === "left" ? 0 : 1,
+      }],
+    });
+    const after = JSON.parse(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")) as AppUIModel;
+    const topology = projectWorkspaceTopology(after, platformMode.workspace);
+    expect(topology.regions[region]?.index).toBe(region === "left" ? 0 : 1);
+    expect(topology.regions[region]?.branch).toMatchObject({
+      type: "panel", child: { type: "slot", plugins: [{ pluginId: "conversation-thread-list" }] },
+    });
+  });
+
+  it("omits occupied explicit destinations while retaining the default Add", async () => {
+    const model: AppUIModel = {
+      root: { type: "row", sizes: ["minmax(0, 1fr)", "280px"], children: [
+        { type: "panel", child: { type: "slot", plugins: [{ id: "conversation-main", pluginId: "conversation-surface", enabled: true }] } },
+        { type: "panel", child: { type: "slot", plugins: [{ id: "other-main", pluginId: "other", enabled: true }] } },
+      ] },
+    };
+    const projectRoot = await createFixtureProject(model, [
+      ["conversation-surface", { capabilities: ["conversation-surface"] }],
+      ["other", { capabilities: ["visual"] }],
+      ["conversation-thread-list", { capabilities: ["conversation-history"], authoring: {
+        defaultPlacement: { type: "relative", relation: "before", anchorPluginId: "conversation-surface" },
+        recommendedSize: { width: "280px" },
+      } }],
+    ]);
+    const { catalog } = await buildCatalog(projectRoot, model);
+    const adds = catalog.candidates.filter((candidate) =>
+      candidate.kind === "add_existing_plugin" && candidate.target.pluginId === "conversation-thread-list");
+    expect(adds.map((candidate) => candidate.effect)).toContainEqual({ type: "add_default" });
+    expect(adds.map((candidate) => candidate.effect)).not.toContainEqual({ type: "workspace_region", region: "right" });
+  });
+
+  it("keeps headless assets outside all visual Product Actions", async () => {
+    const model: AppUIModel = {
+      ...rowModel(["conversation-surface"]),
+      applicationPlugins: [{ id: "conversation-service-main", pluginId: "conversation-service", enabled: true }],
+    };
+    const projectRoot = await createFixtureProject(model, [
+      ["conversation-surface", { capabilities: ["conversation-surface"] }],
+      ["conversation-service", { capabilities: ["headless", "conversation-history"] }],
+      ["conversation-data-source", { capabilities: ["headless", "conversation-history"] }],
+    ]);
+    const { catalog } = await buildCatalog(projectRoot, model);
+    expect(catalog.candidates.filter((candidate) =>
+      ["conversation-service", "conversation-data-source"].includes(candidate.target.pluginId) &&
+      ["add_existing_plugin", "remove_plugin", "move_plugin"].includes(candidate.kind))).toEqual([]);
   });
 
   it("emits the mounted Thread List Remove Action and an Add no-op", async () => {
