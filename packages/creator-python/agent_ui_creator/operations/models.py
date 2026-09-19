@@ -61,6 +61,8 @@ CreatorOperationRuntimeStatus: TypeAlias = Literal[
     "not-run",
 ]
 InvalidActionSelectionReason: TypeAlias = Literal[
+    "protocol_parse_failed",
+    "unknown_choice_key",
     "structured_parse_failed",
     "schema_validation_failed",
     "unknown_action_id",
@@ -421,7 +423,7 @@ CreatorActionDecision: TypeAlias = Literal[
 
 
 class CreatorActionSelection(BaseModel):
-    """The only model-owned output of CreatorActionSelector."""
+    """Host-normalized result of CreatorActionSelector."""
 
     model_config = ConfigDict(extra="forbid")
 

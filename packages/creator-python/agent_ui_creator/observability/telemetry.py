@@ -95,8 +95,10 @@ class CreatorRunTelemetry:
             selector_calls = selector_metrics.get("actionSelectorCalls", 0)
             protocol_calls = metrics.get("modelCalls")
             metrics.update(selector_metrics)
-            if isinstance(selector_calls, int) and isinstance(protocol_calls, int):
-                metrics["totalModelCalls"] = protocol_calls + selector_calls
+            if isinstance(selector_calls, int):
+                metrics["totalModelCalls"] = (
+                    protocol_calls if isinstance(protocol_calls, int) else 0
+                ) + selector_calls
         return metrics
 
     def project_control_metrics(self) -> dict[str, object] | None:

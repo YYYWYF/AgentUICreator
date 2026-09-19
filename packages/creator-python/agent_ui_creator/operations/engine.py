@@ -38,7 +38,7 @@ from .presentation import (
     CreatorIntentRoute,
     present_creator_action_selection,
 )
-from .selector import CreatorActionSelectionError, CreatorActionSelector
+from .selector import ACTION_SELECTOR_PROTOCOL, CreatorActionSelectionError, CreatorActionSelector
 from .snapshot import CreatorDomainSnapshotMetrics, CreatorDomainSnapshotProvider
 from .verification import CompositionOperationVerificationService
 
@@ -498,6 +498,7 @@ class ProductizedOperationEngine:
     def _action_selector_metrics(self) -> dict[str, object]:
         metrics = self.selector.metrics
         result: dict[str, object] = {
+            "actionSelectorProtocol": ACTION_SELECTOR_PROTOCOL,
             "actionSelectorCalls": metrics.modelCalls,
             "actionSelectorRepairCalls": metrics.repairCalls,
             "actionSelectorInvalidResponses": metrics.invalidResponses,
@@ -514,6 +515,7 @@ class ProductizedOperationEngine:
     def _action_selector_metrics_metadata(self) -> dict[str, object]:
         metrics = self.selector.metrics
         return {
+            "actionSelectorProtocol": ACTION_SELECTOR_PROTOCOL,
             "modelCalls": metrics.modelCalls,
             "repairCalls": metrics.repairCalls,
             "invalidResponses": metrics.invalidResponses,
