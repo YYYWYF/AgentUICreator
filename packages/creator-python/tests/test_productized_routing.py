@@ -278,6 +278,7 @@ def test_productized_routing_uses_selector_and_generic_action_playbook(kind):
     assert result.metrics.toolCalls == 0
     assert result.metrics.deepAgentCalls == 0
     assert telemetry.operation_route["route"] == "productized"
+    assert result.action_selector_metrics["actionSelectorProtocol"] == "choice-text-v1"
     assert telemetry.operation_route["productized"] is True
     assert telemetry.operation_route["generalAgent"] is False
     assert telemetry.operation_route["clarification"] is False
@@ -603,6 +604,7 @@ def test_engine_publishes_resolve_before_productized_execution():
     assert resolve_finished.metadata["creator"] == {
         "phase": "understanding",
         "status": "success",
+        "actionSelectorProtocol": "choice-text-v1",
         "decision": "select_action",
         "displayIntent": "移除 Conversation Thread List",
         "intent": "remove_plugin",

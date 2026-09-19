@@ -9,7 +9,11 @@ import pytest
 
 from agent_ui_creator.model_factory import create_creator_chat_model
 from agent_ui_creator.model_settings import CreatorModelSettings
-from agent_ui_creator.operations import CreatorActionSelector, CreatorActionSelectorContext
+from agent_ui_creator.operations import (
+    CreatorActionSelectionError,
+    CreatorActionSelector,
+    CreatorActionSelectorContext,
+)
 
 
 def _semantic_action_id(
@@ -306,6 +310,7 @@ def _ambiguous_context() -> CreatorActionSelectorContext:
 @pytest.mark.parametrize(
     ("prompt", "expected_action"),
     [
+        ("把会话管理移到最左边", "act_history_left"),
         ("把会话管理移到最右边", "act_history_right"),
         ("把会话管理放到右边", "act_history_right"),
         ("把历史会话挪到最右侧", "act_history_right"),
@@ -451,3 +456,69 @@ def test_live_creator_action_selector_asks_for_ambiguous_instance():
     assert result.clarificationQuestion
     assert selector.metrics.modelCalls == 1
     assert selector.metrics.repairCalls == 0
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(
+    os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
+    reason="Set CREATOR_RUN_LIVE_MODEL=1 to run the live Action Selector evaluation pack.",
+)
+def test_live_creator_action_selector_selects_already_satisfied_action():
+    settings = CreatorModelSettings.from_environment()
+    selector = CreatorActionSelector(
+        model=create_creator_chat_model(settings),
+        max_retries=settings.max_retries,
+    )
+    context = _conversation_thread_list_context(mounted=True)
+
+    result = asyncio.run(selector.select("新增会话管理", context))
+
+    assert result.decision == "select_action"
+    assert result.actionId == context.actions[0].actionId
+    assert selector.metrics.modelCalls == 1
+    assert selector.metrics.repairCalls == 0
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(
+    os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
+    reason="Set CREATOR_RUN_LIVE_MODEL=1 to run the live Action Selector evaluation pack.",
+)
+def test_live_creator_action_selector_twenty_run_stability():
+    settings = CreatorModelSettings.from_environment()
+    observations = []
+    for _ in range(20):
+        selector = CreatorActionSelector(
+            model=create_creator_chat_model(settings),
+            max_retries=settings.max_retries,
+        )
+        context = _conversation_thread_list_context(mounted=False)
+        try:
+            result = asyncio.run(
+                selector.select("我想要新增会话管理的功能", context)
+            )
+            decision = result.decision
+            action_id = result.actionId
+        except CreatorActionSelectionError:
+            decision = "ACTION_SELECTION_FAILED"
+            action_id = None
+        observations.append(
+            {
+                "protocol": "choice-text-v1",
+                "calls": selector.metrics.modelCalls,
+                "repair": selector.metrics.repairCalls,
+                "invalid": selector.metrics.invalidResponses,
+                "reason": selector.metrics.repairReasonCode,
+                "totalModelCalls": selector.metrics.modelCalls,
+                "decision": decision,
+                "selectedKind": (
+                    "add_existing_plugin"
+                    if action_id == context.actions[0].actionId
+                    else None
+                ),
+            }
+        )
+
+    assert sum(row["calls"] == 1 and row["selectedKind"] == "add_existing_plugin" for row in observations) >= 19, observations
+    assert all(row["selectedKind"] == "add_existing_plugin" for row in observations), observations
+    assert sum(row["repair"] for row in observations) <= 1, observations

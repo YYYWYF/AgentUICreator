@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import json
 
 import pytest
+from langchain_core.messages import AIMessage
 from pydantic import ValidationError
 
 from agent_ui_creator.operations import (
@@ -13,406 +13,254 @@ from agent_ui_creator.operations import (
     CreatorActionSelector,
     CreatorActionSelectorContext,
 )
+from agent_ui_creator.operations.selector import (
+    _InvalidActionSelection,
+    _parse_selector_response,
+)
 
 
-class StaticStructuredModel:
-    def __init__(self, responses):
+class StaticChatModel:
+    def __init__(self, responses: list[str | BaseException]):
         self.responses = list(responses)
-        self.messages = []
+        self.messages: list[list[object]] = []
 
     async def ainvoke(self, messages):
         self.messages.append(messages)
         response = self.responses.pop(0)
         if isinstance(response, BaseException):
             raise response
-        return response
+        return AIMessage(content=response)
 
 
-def action(
-    action_id: str,
-    *,
-    status: str = "ready",
-    effect: dict[str, object] | None = None,
-) -> dict[str, object]:
+class CopyingChatModel(StaticChatModel):
+    def __init__(self, responses):
+        super().__init__(responses)
+        self.copy_update = None
+
+    def model_copy(self, *, update):
+        self.copy_update = update
+        return self
+
+
+def _action(action_id: str, region: str, *, status: str = "ready") -> dict:
     return {
         "actionId": action_id,
         "kind": "move_plugin",
         "status": status,
-        "label": "Move History to Workspace.Right",
-        "description": "Move the History Plugin to the semantic Workspace.Right Region.",
+        "label": f"Move History to Workspace.{region.title()}",
+        "description": f"Move History to the semantic Workspace.{region.title()} Region.",
         "target": {
             "pluginId": "history",
             "pluginName": "History",
             "instanceId": "history-main",
         },
-        "effect": effect or {"type": "workspace_region", "region": "right"},
+        "effect": {"type": "workspace_region", "region": region},
     }
 
 
-CONVERSATION_THREAD_LIST_ADD_ACTION_ID = "act_" + hashlib.sha256(
-    b'{"kind":"add_existing_plugin","subject":{"pluginId":"conversation-thread-list"},"effect":{"type":"add_default"}}'
-).hexdigest()[:24]
-
-
-def add_action(
-    action_id: str = CONVERSATION_THREAD_LIST_ADD_ACTION_ID,
-) -> dict[str, object]:
-    return {
-        "actionId": action_id,
-        "kind": "add_existing_plugin",
-        "status": "ready",
-        "label": "Add Conversation Thread List",
-        "description": (
-            "Add the existing Conversation Thread List Plugin using its default placement."
-        ),
-        "target": {
-            "pluginId": "conversation-thread-list",
-            "pluginName": "Conversation Thread List",
-        },
-        "effect": {"type": "add_default"},
-    }
-
-
-def context(*, right_status: str = "ready") -> CreatorActionSelectorContext:
+def _context(*, right_status: str = "ready") -> CreatorActionSelectorContext:
     return CreatorActionSelectorContext(
         catalogRevision="c" * 64,
         actions=[
-            action("act_history_right", status=right_status),
-            action(
-                "act_history_left",
-                effect={"type": "workspace_region", "region": "left"},
-            ),
+            _action("act_history_right", "right", status=right_status),
+            _action("act_history_left", "left"),
         ],
         pluginSemantics=[
             {
                 "pluginId": "history",
                 "name": "History",
-                "description": "Browse conversation history.",
+                "description": "Navigate conversation history.",
                 "capabilities": ["conversation-history"],
-                "intents": ["browse conversation history"],
-                "visualRole": "conversation navigation",
-            },
-            {
-                "pluginId": "conversation",
-                "name": "Conversation",
-                "description": "Show conversation messages.",
-                "capabilities": ["conversation-surface"],
-                "intents": ["show conversation"],
-                "visualRole": "conversation surface",
-            },
+                "intents": ["browse past conversations"],
+            }
         ],
     )
 
 
-def test_selector_selects_an_exact_supplied_action_once():
-    model = StaticStructuredModel(
-        [{"decision": "select_action", "actionId": "act_history_right"}]
-    )
-    selector = CreatorActionSelector(structured_model=model)
+def _payload(model: StaticChatModel, attempt: int = 0) -> dict:
+    return json.loads(model.messages[attempt][1].content)
 
-    result = asyncio.run(
-        selector.select("把会话管理移到最右边", context())
+
+@pytest.mark.parametrize(
+    ("response", "decision", "action_id"),
+    [
+        ("SELECT A1\n", "select_action", "act_history_right"),
+        ("SELECT A2", "select_action", "act_history_left"),
+        ("GENERAL", "general_change", None),
+        ("UNSUPPORTED", "unsupported_product_action", None),
+        ("CLARIFY 你指的是哪个会话列表？", "needs_clarification", None),
+    ],
+)
+def test_protocol_parser_accepts_exact_lines(response, decision, action_id):
+    choices = {"A1": _context().actions[0], "A2": _context().actions[1]}
+
+    result = _parse_selector_response(response, choices)
+
+    assert result.decision == decision
+    assert result.actionId == action_id
+    if decision == "needs_clarification":
+        assert result.clarificationQuestion == "你指的是哪个会话列表？"
+
+
+def test_protocol_parser_accepts_a10():
+    candidate = _context().actions[0]
+    assert _parse_selector_response("SELECT A10", {"A10": candidate}).actionId == (
+        candidate.actionId
     )
 
-    assert result.actionId == "act_history_right"
+
+@pytest.mark.parametrize(
+    ("response", "reason"),
+    [
+        ("A1", "protocol_parse_failed"),
+        ("select A1", "protocol_parse_failed"),
+        ("SELECT act_history_right", "protocol_parse_failed"),
+        ("SELECT A0", "protocol_parse_failed"),
+        ("SELECT A99", "unknown_choice_key"),
+        ("I choose A1", "protocol_parse_failed"),
+        ("SELECT A1 because it matches", "protocol_parse_failed"),
+        ('{"decision":"select_action"}', "protocol_parse_failed"),
+        ("```SELECT A1```", "protocol_parse_failed"),
+        ("", "protocol_parse_failed"),
+        ("GENERAL\nSELECT A1", "protocol_parse_failed"),
+        ("CLARIFY " + "x" * 1000, "protocol_parse_failed"),
+    ],
+)
+def test_protocol_parser_rejects_invalid_lines(response, reason):
+    with pytest.raises(_InvalidActionSelection) as raised:
+        _parse_selector_response(response, {"A1": _context().actions[0]})
+    assert raised.value.reason_code == reason
+
+
+def test_selector_maps_ephemeral_choice_to_exact_host_action():
+    model = StaticChatModel(["SELECT A1"])
+    selector = CreatorActionSelector(model=model)
+
+    result = asyncio.run(selector.select("把会话管理放到右边", _context()))
+
+    assert result == CreatorActionSelection(
+        decision="select_action", actionId="act_history_right"
+    )
+    payload = _payload(model)
+    assert [choice["choice"] for choice in payload["choices"]] == ["A1", "A2"]
+    assert "act_" not in model.messages[0][1].content
+    assert "catalogRevision" not in payload
+    assert payload["choices"][0]["effect"]["region"] == "right"
+    assert payload["pluginSemantics"][0]["pluginId"] == "history"
     assert selector.metrics.modelCalls == 1
     assert selector.metrics.repairCalls == 0
-    assert selector.metrics.invalidResponses == 0
-    assert selector.metrics.repairReasonCode is None
-    assert selector.metrics.repairReason is None
-    assert "repairReasonCode" not in selector.metrics.to_dict()
-    assert "repairReason" not in selector.metrics.to_dict()
-    assert selector.metrics.candidateCount == 2
-    assert selector.metrics.contextCharacters > 0
 
 
-def test_selector_repairs_one_unknown_action_id_with_host_feedback():
-    model = StaticStructuredModel(
-        [
-            {"decision": "select_action", "actionId": "act_invented"},
-            {"decision": "select_action", "actionId": "act_history_right"},
-        ]
-    )
-    selector = CreatorActionSelector(structured_model=model)
+def test_selector_uses_bounded_deterministic_model_copy():
+    model = CopyingChatModel(["GENERAL"])
+    selector = CreatorActionSelector(model=model)
 
-    result = asyncio.run(selector.select("把会话管理放到右边", context()))
+    asyncio.run(selector.select("让历史支持模糊搜索", _context()))
+
+    assert model.copy_update == {
+        "streaming": False,
+        "temperature": 0,
+        "max_tokens": 128,
+    }
+
+
+@pytest.mark.parametrize(
+    ("first", "reason"),
+    [
+        ("I choose A1", "protocol_parse_failed"),
+        ("SELECT A99", "unknown_choice_key"),
+    ],
+)
+def test_selector_repairs_once_with_stable_choice_mapping(first, reason):
+    model = StaticChatModel([first, "SELECT A1"])
+    selector = CreatorActionSelector(model=model)
+
+    result = asyncio.run(selector.select("把会话管理放到右边", _context()))
 
     assert result.actionId == "act_history_right"
     assert selector.metrics.modelCalls == 2
     assert selector.metrics.repairCalls == 1
     assert selector.metrics.invalidResponses == 1
-    assert selector.metrics.repairReasonCode == "unknown_action_id"
-    assert selector.metrics.repairReason == (
-        "The selected actionId is not one of the supplied current Action Candidates."
-    )
-    assert selector.metrics.to_dict()["repairReasonCode"] == "unknown_action_id"
-    feedback = json.loads(model.messages[1][1].content)["hostValidationFeedback"]
-    assert "not one of the supplied current Action Candidates" in feedback
-    assert "Copy exactly one actionId" in feedback
-    assert "schema" not in feedback.lower()
-    assert "Do not reinterpret the original user request" in feedback
+    assert selector.metrics.repairReasonCode == reason
+    assert _payload(model, 0)["choices"] == _payload(model, 1)["choices"]
+    feedback = _payload(model, 1)["hostValidationFeedback"]
+    assert "A1, A2" in feedback
+    assert "Do not reinterpret" in feedback
+    assert "act_" not in model.messages[1][1].content
 
 
-def test_selector_fails_after_one_bounded_repair():
-    model = StaticStructuredModel(
-        [
-            {"decision": "select_action", "actionId": "act_invented"},
-            {"decision": "select_action", "actionId": "act_still_invented"},
-        ]
-    )
-    selector = CreatorActionSelector(structured_model=model)
+def test_selector_fails_closed_after_one_invalid_repair():
+    model = StaticChatModel(["garbage", "still garbage"])
+    selector = CreatorActionSelector(model=model)
 
     with pytest.raises(CreatorActionSelectionError) as raised:
-        asyncio.run(selector.select("把会话管理放到右边", context()))
+        asyncio.run(selector.select("把会话管理放到右边", _context()))
 
     assert raised.value.code == "ACTION_SELECTION_FAILED"
     assert raised.value.details["attempts"] == 2
-    assert raised.value.details["reasonCode"] == "unknown_action_id"
-    assert raised.value.details["reason"] == (
-        "The selected actionId is not one of the supplied current Action Candidates."
-    )
-    assert raised.value.details["returnedActionId"] == "act_still_invented"
-    assert raised.value.details["candidateCount"] == 2
-    assert raised.value.details["candidateActionIds"] == [
-        "act_history_right",
-        "act_history_left",
-    ]
+    assert raised.value.details["reasonCode"] == "protocol_parse_failed"
     assert selector.metrics.modelCalls == 2
     assert selector.metrics.repairCalls == 1
     assert selector.metrics.invalidResponses == 2
 
 
-def test_selector_repairs_schema_failure_with_schema_specific_feedback():
-    model = StaticStructuredModel(
-        [
-            {"decision": "select_action"},
-            {"decision": "select_action", "actionId": "act_history_right"},
-        ]
-    )
-    selector = CreatorActionSelector(structured_model=model)
-
-    result = asyncio.run(selector.select("把会话管理放到右边", context()))
-
-    assert result.actionId == "act_history_right"
-    feedback = json.loads(model.messages[1][1].content)["hostValidationFeedback"]
-    assert "did not satisfy the CreatorActionSelection schema" in feedback
-    assert "not one of the supplied current Action Candidates" not in feedback
-    assert selector.metrics.modelCalls == 2
-    assert selector.metrics.repairCalls == 1
-    assert selector.metrics.invalidResponses == 1
-    assert selector.metrics.repairReasonCode == "schema_validation_failed"
-    assert selector.metrics.repairReason == (
-        "Structured Action Selector output failed schema validation."
-    )
-
-
-def test_selector_repairs_structured_parse_failure_with_parse_specific_feedback():
-    model = StaticStructuredModel(
-        [
-            {
-                "parsed": None,
-                "parsing_error": ValueError("synthetic parse failure"),
-            },
-            {"decision": "select_action", "actionId": "act_history_right"},
-        ]
-    )
-    selector = CreatorActionSelector(structured_model=model)
-
-    result = asyncio.run(selector.select("把会话管理放到右边", context()))
-
-    assert result.actionId == "act_history_right"
-    feedback = json.loads(model.messages[1][1].content)["hostValidationFeedback"]
-    assert "could not be parsed" in feedback
-    assert "Do not add prose" in feedback
-    assert "did not satisfy the CreatorActionSelection schema" not in feedback
-    assert selector.metrics.modelCalls == 2
-    assert selector.metrics.repairCalls == 1
-    assert selector.metrics.invalidResponses == 1
-    assert selector.metrics.repairReasonCode == "structured_parse_failed"
-    assert selector.metrics.repairReason == (
-        "Structured Action Selector output could not be parsed."
-    )
-
-
-def test_selector_keeps_first_repair_reason_when_second_response_fails_differently():
-    model = StaticStructuredModel(
-        [
-            {"decision": "select_action", "actionId": "act_invented"},
-            {"decision": "select_action"},
-        ]
-    )
-    selector = CreatorActionSelector(structured_model=model)
+def test_selector_keeps_first_repair_reason_when_second_is_different():
+    selector = CreatorActionSelector(model=StaticChatModel(["SELECT A99", "garbage"]))
 
     with pytest.raises(CreatorActionSelectionError) as raised:
-        asyncio.run(selector.select("把会话管理放到右边", context()))
+        asyncio.run(selector.select("把会话管理放到右边", _context()))
 
-    assert selector.metrics.modelCalls == 2
-    assert selector.metrics.repairCalls == 1
-    assert selector.metrics.invalidResponses == 2
-    assert selector.metrics.repairReasonCode == "unknown_action_id"
-    assert selector.metrics.repairReason == (
-        "The selected actionId is not one of the supplied current Action Candidates."
-    )
-    assert raised.value.details["reasonCode"] == "schema_validation_failed"
+    assert selector.metrics.repairReasonCode == "unknown_choice_key"
+    assert raised.value.details["reasonCode"] == "protocol_parse_failed"
 
 
-def test_selector_fails_with_structured_parse_reason_after_one_repair():
-    model = StaticStructuredModel(
-        [
-            {
-                "parsed": None,
-                "parsing_error": ValueError("first parse failure"),
-            },
-            {
-                "parsed": None,
-                "parsing_error": ValueError("second parse failure"),
-            },
-        ]
-    )
-    selector = CreatorActionSelector(structured_model=model)
-
-    with pytest.raises(CreatorActionSelectionError) as raised:
-        asyncio.run(selector.select("把会话管理放到右边", context()))
-
-    assert raised.value.details["attempts"] == 2
-    assert raised.value.details["reasonCode"] == "structured_parse_failed"
-    assert raised.value.details["reason"] == (
-        "Structured Action Selector output could not be parsed."
-    )
-    assert raised.value.details["cause"] == "second parse failure"
+@pytest.mark.parametrize(
+    ("response", "decision"),
+    [
+        ("GENERAL", "general_change"),
+        ("UNSUPPORTED", "unsupported_product_action"),
+        ("CLARIFY 哪个会话列表？", "needs_clarification"),
+    ],
+)
+def test_selector_normalizes_terminal_routes(response, decision):
+    selector = CreatorActionSelector(model=StaticChatModel([response]))
+    result = asyncio.run(selector.select("更改会话管理", _context()))
+    assert result.decision == decision
+    assert result.actionId is None
 
 
-def test_selector_accepts_the_conversation_thread_list_add_action():
-    source = context().model_dump(mode="python")
-    source["actions"] = [add_action()]
-    source["pluginSemantics"] = [
-        {
-            "pluginId": "conversation-thread-list",
-            "name": "Conversation Thread List",
-            "description": "Manage and select conversation history.",
-            "capabilities": [
-                "conversation-create",
-                "conversation-history",
-                "conversation-selection",
-            ],
-            "intents": [
-                "add conversation management",
-                "browse conversation history",
-                "select an existing conversation",
-                "start a new conversation",
-            ],
-            "visualRole": "conversation navigation",
-        }
-    ]
-    thread_list_context = CreatorActionSelectorContext.model_validate(source)
-    model = StaticStructuredModel(
-        [{"decision": "select_action", "actionId": CONVERSATION_THREAD_LIST_ADD_ACTION_ID}]
-    )
-    selector = CreatorActionSelector(structured_model=model)
-
+def test_selector_accepts_already_satisfied_action():
+    selector = CreatorActionSelector(model=StaticChatModel(["SELECT A1"]))
     result = asyncio.run(
-        selector.select("我想要新增会话管理的功能", thread_list_context)
+        selector.select("把会话管理放最右边", _context(right_status="already_satisfied"))
     )
-
-    assert result.decision == "select_action"
-    assert result.actionId == CONVERSATION_THREAD_LIST_ADD_ACTION_ID
-    assert selector.metrics.modelCalls == 1
-    assert selector.metrics.repairCalls == 0
-
-
-def test_selector_accepts_already_satisfied_actions():
-    model = StaticStructuredModel(
-        [{"decision": "select_action", "actionId": "act_history_right"}]
-    )
-    selector = CreatorActionSelector(structured_model=model)
-
-    result = asyncio.run(
-        selector.select(
-            "把会话管理放最右边",
-            context(right_status="already_satisfied"),
-        )
-    )
-
     assert result.actionId == "act_history_right"
 
 
-def test_selector_center_only_context_exposes_no_platform_side_actions():
-    model = StaticStructuredModel(
-        [{"decision": "select_action", "actionId": "act_history_center"}]
-    )
-    source = context().model_dump(mode="python")
-    source["actions"] = [
-        action(
-            "act_history_center",
-            effect={"type": "workspace_region", "region": "center"},
-        )
-    ]
-    center_only = CreatorActionSelectorContext.model_validate(source)
-    selector = CreatorActionSelector(structured_model=model)
-
-    result = asyncio.run(selector.select("把 History 放中间", center_only))
-
-    assert result.actionId == "act_history_center"
-    serialized = json.dumps(model.messages, ensure_ascii=False, default=str)
-    assert "act_history_left" not in serialized
-    assert "act_history_right" not in serialized
+def test_selector_message_excludes_execution_details():
+    model = StaticChatModel(["GENERAL"])
+    asyncio.run(CreatorActionSelector(model=model).select("模糊搜索", _context()))
+    serialized = model.messages[0][1].content
+    for forbidden in (
+        "bindings",
+        "layoutRef",
+        "destinationTrack",
+        "workspace_region_move",
+        "app-ui.json",
+    ):
+        assert forbidden not in serialized
 
 
 @pytest.mark.parametrize(
     "selection",
     [
         {"decision": "select_action"},
-        {
-            "decision": "select_action",
-            "actionId": "act_history_right",
-            "clarificationQuestion": "Which one?",
-        },
-        {
-            "decision": "needs_clarification",
-            "clarificationQuestion": " ",
-        },
-        {
-            "decision": "needs_clarification",
-            "actionId": "act_history_right",
-            "clarificationQuestion": "Which one?",
-        },
+        {"decision": "select_action", "actionId": "act_history_right", "clarificationQuestion": "Which one?"},
+        {"decision": "needs_clarification", "clarificationQuestion": " "},
+        {"decision": "needs_clarification", "actionId": "act_history_right", "clarificationQuestion": "Which one?"},
         {"decision": "general_change", "actionId": "act_history_right"},
-        {
-            "decision": "unsupported_product_action",
-            "clarificationQuestion": "Which one?",
-        },
     ],
 )
-def test_selector_output_schema_is_strict(selection):
+def test_host_normalized_selection_schema_remains_strict(selection):
     with pytest.raises(ValidationError):
         CreatorActionSelection.model_validate(selection)
-
-
-def test_selector_message_context_contains_no_execution_details():
-    model = StaticStructuredModel(
-        [{"decision": "general_change"}]
-    )
-    selector = CreatorActionSelector(structured_model=model)
-
-    asyncio.run(selector.select("让历史支持模糊搜索", context()))
-
-    serialized = json.dumps(
-        [
-            [
-                getattr(message, "content", "")
-                for message in messages
-            ]
-            for messages in model.messages
-        ],
-        ensure_ascii=False,
-    )
-    for forbidden in (
-        "bindings",
-        "move_plugin_to",
-        "insert_plugin_default",
-        "remove_plugin_default",
-        "layoutRef",
-        "slotRef",
-        "app-ui.json",
-    ):
-        assert forbidden not in serialized

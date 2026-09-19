@@ -180,6 +180,46 @@ def test_action_selector_calls_do_not_overwrite_general_agent_model_calls():
     assert metrics["totalModelCalls"] == 6
 
 
+def test_failed_selector_only_run_logs_total_model_calls_and_protocol(tmp_path):
+    logger = CreatorRunLogger(tmp_path)
+    logger.begin(run_id="selector-only-failure", agent_mode="domain-write")
+    activity = CreatorActivityRecorder(tmp_path, logger=logger)
+    activity.begin("selector-only-failure")
+    telemetry = CreatorRunTelemetry(
+        activity=activity,
+        action_selector={
+            "actionSelectorProtocol": "choice-text-v1",
+            "actionSelectorCalls": 2,
+            "actionSelectorRepairCalls": 1,
+            "actionSelectorInvalidResponses": 2,
+            "actionSelectorRepairReasonCode": "protocol_parse_failed",
+        },
+    )
+
+    async def fail():
+        raise CreatorActionSelectionError("Invalid selector response")
+
+    with pytest.raises(CreatorActionSelectionError):
+        asyncio.run(
+            _execute_agent_run(
+                fail(),
+                activity=activity,
+                logger=logger,
+                event_bus=CreatorEventBus(),
+                telemetry=telemetry,
+            )
+        )
+
+    entries = [
+        json.loads(line)
+        for line in logger.path.read_text(encoding="utf-8").splitlines()
+    ]
+    data = next(entry["data"] for entry in entries if entry["type"] == "run_finished")
+    assert data["modelToolMetrics"]["totalModelCalls"] == 2
+    assert data["modelToolMetrics"]["actionSelectorProtocol"] == "choice-text-v1"
+    assert data["actionSelector"]["actionSelectorProtocol"] == "choice-text-v1"
+
+
 def test_successful_productized_repair_reason_is_logged_in_run_finished(tmp_path):
     logger = CreatorRunLogger(tmp_path)
     logger.begin(run_id="selector-repaired-success", agent_mode="domain-write")
