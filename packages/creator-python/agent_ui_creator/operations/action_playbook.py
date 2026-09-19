@@ -276,8 +276,7 @@ def _validate_host_result(
         expected_placement = _validate_expected_placement(
             semantic.get("expectedPlacement"),
             instance_id=instance_id,
-            required=changed
-            or candidate.effect.type not in {"row_edge", "workspace_region"},
+            required=candidate.effect.type not in {"row_edge", "workspace_region"},
         )
 
     return _HostExpectations(

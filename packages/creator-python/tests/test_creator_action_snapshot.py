@@ -38,8 +38,8 @@ def _candidate(
         "actionId": action_id,
         "kind": kind,
         "status": status,
-        "label": "Move History to the current row's right edge",
-        "description": "Move the History Plugin to the right edge of its current Row.",
+        "label": "Move History to Workspace.Right",
+        "description": "Move the History Plugin to the semantic Workspace.Right Region.",
         "target": {
             "pluginId": target_plugin_id,
             "pluginName": "History",
@@ -49,7 +49,7 @@ def _candidate(
                 else {}
             ),
         },
-        "effect": effect or {"type": "row_edge", "edge": "right"},
+        "effect": effect or {"type": "workspace_region", "region": "right"},
     }
 
 
@@ -139,7 +139,8 @@ def test_snapshot_projects_typed_action_catalog_and_compact_selector_context():
     snapshot = CreatorDomainSnapshotProvider._parse(result)
 
     assert snapshot.action_catalog.revision == "c" * 64
-    assert snapshot.action_catalog.candidates[0].effect.type == "row_edge"
+    assert snapshot.action_catalog.candidates[0].effect.type == "workspace_region"
+    assert snapshot.action_catalog.candidates[0].effect.region == "right"
     assert snapshot.action_selector_context == {
         "catalogRevision": "c" * 64,
         "actions": [
@@ -147,21 +148,21 @@ def test_snapshot_projects_typed_action_catalog_and_compact_selector_context():
                 "actionId": "act_history_right",
                 "kind": "move_plugin",
                 "status": "ready",
-                "label": "Move History to the current row's right edge",
-                "description": "Move the History Plugin to the right edge of its current Row.",
+                "label": "Move History to Workspace.Right",
+                "description": "Move the History Plugin to the semantic Workspace.Right Region.",
                 "target": {
                     "pluginId": "history",
                     "pluginName": "History",
                     "instanceId": "history-main",
                 },
-                "effect": {"type": "row_edge", "edge": "right"},
+                "effect": {"type": "workspace_region", "region": "right"},
             },
             {
                 "actionId": "act_history_after_conversation",
                 "kind": "move_plugin",
                 "status": "ready",
-                "label": "Move History to the current row's right edge",
-                "description": "Move the History Plugin to the right edge of its current Row.",
+                "label": "Move History to Workspace.Right",
+                "description": "Move the History Plugin to the semantic Workspace.Right Region.",
                 "target": {
                     "pluginId": "history",
                     "pluginName": "History",
@@ -195,6 +196,27 @@ def test_snapshot_projects_typed_action_catalog_and_compact_selector_context():
             },
         ],
     }
+
+
+@pytest.mark.parametrize(
+    "effect",
+    [
+        {"type": "row_edge", "edge": "right"},
+        {
+            "type": "relative",
+            "anchorPluginId": "conversation",
+            "anchorPluginName": "Conversation",
+            "anchorInstanceId": "conversation-main",
+            "relation": "after",
+        },
+    ],
+)
+def test_snapshot_retains_legacy_row_edge_and_relative_parsing(effect):
+    snapshot = CreatorDomainSnapshotProvider._parse(
+        snapshot_result([_candidate(effect=effect)])
+    )
+
+    assert snapshot.action_catalog.candidates[0].effect.type == effect["type"]
 
 
 @pytest.mark.parametrize(

@@ -37,14 +37,14 @@ def action(
         "actionId": action_id,
         "kind": "move_plugin",
         "status": status,
-        "label": "Move History to the current row's right edge",
-        "description": "Move the History Plugin to the right edge of its current Row.",
+        "label": "Move History to Workspace.Right",
+        "description": "Move the History Plugin to the semantic Workspace.Right Region.",
         "target": {
             "pluginId": "history",
             "pluginName": "History",
             "instanceId": "history-main",
         },
-        "effect": effect or {"type": "row_edge", "edge": "right"},
+        "effect": effect or {"type": "workspace_region", "region": "right"},
     }
 
 
@@ -55,17 +55,7 @@ def context(*, right_status: str = "ready") -> CreatorActionSelectorContext:
             action("act_history_right", status=right_status),
             action(
                 "act_history_left",
-                effect={"type": "row_edge", "edge": "left"},
-            ),
-            action(
-                "act_history_after_conversation",
-                effect={
-                    "type": "relative",
-                    "anchorPluginId": "conversation",
-                    "anchorPluginName": "Conversation",
-                    "anchorInstanceId": "conversation-main",
-                    "relation": "after",
-                },
+                effect={"type": "workspace_region", "region": "left"},
             ),
         ],
         pluginSemantics=[
@@ -103,7 +93,7 @@ def test_selector_selects_an_exact_supplied_action_once():
     assert selector.metrics.modelCalls == 1
     assert selector.metrics.repairCalls == 0
     assert selector.metrics.invalidResponses == 0
-    assert selector.metrics.candidateCount == 3
+    assert selector.metrics.candidateCount == 2
     assert selector.metrics.contextCharacters > 0
 
 
@@ -160,6 +150,28 @@ def test_selector_accepts_already_satisfied_actions():
     )
 
     assert result.actionId == "act_history_right"
+
+
+def test_selector_center_only_context_exposes_no_platform_side_actions():
+    model = StaticStructuredModel(
+        [{"decision": "select_action", "actionId": "act_history_center"}]
+    )
+    source = context().model_dump(mode="python")
+    source["actions"] = [
+        action(
+            "act_history_center",
+            effect={"type": "workspace_region", "region": "center"},
+        )
+    ]
+    center_only = CreatorActionSelectorContext.model_validate(source)
+    selector = CreatorActionSelector(structured_model=model)
+
+    result = asyncio.run(selector.select("把 History 放中间", center_only))
+
+    assert result.actionId == "act_history_center"
+    serialized = json.dumps(model.messages, ensure_ascii=False, default=str)
+    assert "act_history_left" not in serialized
+    assert "act_history_right" not in serialized
 
 
 @pytest.mark.parametrize(
@@ -220,4 +232,3 @@ def test_selector_message_context_contains_no_execution_details():
         "app-ui.json",
     ):
         assert forbidden not in serialized
-

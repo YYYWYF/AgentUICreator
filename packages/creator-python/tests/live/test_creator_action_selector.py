@@ -18,46 +18,27 @@ def _context() -> CreatorActionSelectorContext:
                 "actionId": "act_history_right",
                 "kind": "move_plugin",
                 "status": "ready",
-                "label": "Move History to the current row's right edge",
-                "description": "Move the History Plugin to the right edge of its current Row.",
+                "label": "Move History to Workspace.Right",
+                "description": "Move the History Plugin to the semantic Workspace.Right Region.",
                 "target": {
                     "pluginId": "history",
                     "pluginName": "History",
                     "instanceId": "history-main",
                 },
-                "effect": {"type": "row_edge", "edge": "right"},
+                "effect": {"type": "workspace_region", "region": "right"},
             },
             {
                 "actionId": "act_history_left",
                 "kind": "move_plugin",
                 "status": "ready",
-                "label": "Move History to the current row's left edge",
-                "description": "Move the History Plugin to the left edge of its current Row.",
+                "label": "Move History to Workspace.Left",
+                "description": "Move the History Plugin to the semantic Workspace.Left Region.",
                 "target": {
                     "pluginId": "history",
                     "pluginName": "History",
                     "instanceId": "history-main",
                 },
-                "effect": {"type": "row_edge", "edge": "left"},
-            },
-            {
-                "actionId": "act_history_after_conversation",
-                "kind": "move_plugin",
-                "status": "ready",
-                "label": "Move History after Conversation",
-                "description": "Move the History Plugin after the Conversation Plugin.",
-                "target": {
-                    "pluginId": "history",
-                    "pluginName": "History",
-                    "instanceId": "history-main",
-                },
-                "effect": {
-                    "type": "relative",
-                    "anchorPluginId": "conversation",
-                    "anchorPluginName": "Conversation",
-                    "anchorInstanceId": "conversation-main",
-                    "relation": "after",
-                },
+                "effect": {"type": "workspace_region", "region": "left"},
             },
             {
                 "actionId": "act_history_remove",
@@ -127,7 +108,7 @@ def _ambiguous_context() -> CreatorActionSelectorContext:
         ("把历史会话挪到最右侧", "act_history_right"),
         ("历史会话别放左边了，挪过去", "act_history_right"),
         ("把 History 放到这一行最后", "act_history_right"),
-        ("把 History 放在 Conversation 后面", "act_history_after_conversation"),
+        ("把 History 放在 Conversation 后面", "act_history_right"),
     ],
 )
 def test_live_creator_action_selector_semantics(prompt, expected_action):
@@ -154,6 +135,7 @@ def test_live_creator_action_selector_semantics(prompt, expected_action):
     ("prompt", "decision"),
     [
         ("把会话管理移到最上面", "unsupported_product_action"),
+        ("把 History 放到中间", "unsupported_product_action"),
         ("让会话管理支持按标题模糊搜索", "general_change"),
         (
             "把会话管理移到右边，同时删除 Remove History",

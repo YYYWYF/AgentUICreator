@@ -17,7 +17,7 @@ from agent_ui_creator.operations import (
     CreatorDomainSnapshot,
     PluginCapabilityIndex,
     RemoveActionEffect,
-    RowEdgeActionEffect,
+    WorkspaceRegionActionEffect,
 )
 
 
@@ -84,15 +84,15 @@ def action(
     elif kind == "remove_plugin":
         effect = RemoveActionEffect(type="remove")
     elif kind == "move_plugin":
-        effect = RowEdgeActionEffect(type="row_edge", edge="right")
+        effect = WorkspaceRegionActionEffect(type="workspace_region", region="right")
     else:
         raise AssertionError(f"unsupported test action kind: {kind}")
     return CreatorActionCandidate(
         actionId=action_id,
         kind=kind,  # type: ignore[arg-type]
         status=status,  # type: ignore[arg-type]
-        label="Move History",
-        description="Move the History Plugin to the row edge.",
+        label="Move History to Workspace.Right",
+        description="Move the History Plugin to the semantic Workspace.Right Region.",
         target=CreatorActionTarget(
             pluginId="history",
             pluginName="History",
@@ -280,6 +280,22 @@ def test_already_satisfied_action_still_reaches_host_and_skips_post_mutation_ver
     assert mutation_service.calls[0]["operations"] == [
         {"type": "execute_creator_action", "actionId": candidate.actionId}
     ]
+
+
+def test_workspace_region_move_does_not_require_a_synthetic_expected_anchor():
+    candidate = action("move_plugin")
+    source = snapshot(candidate)
+    mutation_service = FakeMutation([mutation(candidate)])
+    playbook = make_playbook(
+        mutation_service,
+        SequenceSnapshotProvider([source]),
+        successful_move_runtime(),
+    )
+
+    result = asyncio.run(playbook.execute(source, candidate))
+
+    assert result.status == "success"
+    assert result.instanceId == "history-main"
 
 
 def test_hash_conflict_refreshes_once_and_retries_the_same_action_id():
