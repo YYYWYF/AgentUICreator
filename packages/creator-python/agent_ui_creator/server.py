@@ -383,6 +383,14 @@ async def _execute_agent_run(
                     if result.intent_presentation is not None
                     else None
                 ),
+                productized_operation=(
+                    result.operation_result.model_dump(
+                        mode="json",
+                        exclude_none=True,
+                    )
+                    if result.operation_result is not None
+                    else None
+                ),
             )
         else:
             logger.finish(

@@ -340,6 +340,7 @@ class CreatorRunLogger:
         selected_creator_action: Mapping[str, object] | None = None,
         operation_resolver_metrics: Mapping[str, object] | None = None,
         creator_intent: Mapping[str, object] | None = None,
+        productized_operation: Mapping[str, object] | None = None,
         error: BaseException | None = None,
     ) -> None:
         if self._finished:
@@ -412,6 +413,11 @@ class CreatorRunLogger:
                 **(
                     {"creatorIntent": dict(creator_intent)}
                     if creator_intent is not None
+                    else {}
+                ),
+                **(
+                    {"productizedOperation": dict(productized_operation)}
+                    if productized_operation is not None
                     else {}
                 ),
                 **({"error": str(error)} if error is not None else {}),

@@ -18,6 +18,12 @@ from agent_ui_creator.operations.engine import (
     ProductizedOperationRun,
     ProductizedOperationToolMetrics,
 )
+from agent_ui_creator.operations.models import (
+    CreatorActionSelection,
+    CreatorOperationExecutionResult,
+    CreatorOperationMetrics,
+    CreatorOperationVerificationResult,
+)
 from agent_ui_creator.operations.snapshot import CreatorDomainSnapshotMetrics
 from agent_ui_creator.project_control import ProjectControlMetrics
 from agent_ui_creator.run_control import CreatorRunControlState
@@ -93,6 +99,7 @@ def test_failure_path_logs_bound_metrics_without_agent_result(tmp_path):
     assert data["changeLayerMetrics"]["scopeResources"] == ["app-ui-model"]
     assert data["compositionFastPath"]["attempted"] is True
     assert data["compositionFastPath"]["compositionSnapshots"] == 1
+    assert "productizedOperation" not in data
 
 
 def test_real_domain_write_wiring_logs_all_metrics_on_no_progress(tmp_path):
@@ -277,6 +284,147 @@ def test_successful_productized_repair_reason_is_logged_in_run_finished(tmp_path
         "unknown_action_id"
     )
     assert data["modelToolMetrics"]["totalModelCalls"] == 2
+
+
+def _finish_productized_run(
+    tmp_path,
+    *,
+    completion: str,
+    operation_result: CreatorOperationExecutionResult | None,
+    selection: CreatorActionSelection | None = None,
+) -> dict[str, object]:
+    logger = CreatorRunLogger(tmp_path)
+    logger.begin(run_id="productized-verification", agent_mode="domain-write")
+    activity = CreatorActivityRecorder(tmp_path, logger=logger)
+    activity.begin("productized-verification")
+    result = ProductizedOperationRun(
+        text="Productized operation finished.",
+        metrics=ProductizedOperationToolMetrics(modelCalls=0),
+        project_control=ProjectControlMetrics(),
+        repeated_project_control_reads=0,
+        domain_observations=DomainObservationMetrics(),
+        app_ui_model_mutations=AppUIModelMutationMetrics(),
+        snapshot_metrics=CreatorDomainSnapshotMetrics(),
+        operation_result=operation_result,
+        validation_metrics={"validationMode": "delta", "newTypecheckDiagnostics": 0},
+        completion=completion,
+        selection=selection,
+    )
+
+    async def finish_run():
+        return result
+
+    asyncio.run(
+        _execute_agent_run(
+            finish_run(),
+            activity=activity,
+            logger=logger,
+            event_bus=CreatorEventBus(),
+        )
+    )
+    entries = [
+        json.loads(line)
+        for line in logger.path.read_text(encoding="utf-8").splitlines()
+    ]
+    return next(entry["data"] for entry in entries if entry["type"] == "run_finished")
+
+
+@pytest.mark.parametrize(
+    ("status", "runtime_status", "freshness_attempts", "freshness_wait_ms"),
+    [
+        ("committed_unverified", "stale", 3, 1000),
+        ("committed_unverified", "unavailable", 3, 1000),
+        ("success", "passed", 1, 0),
+    ],
+)
+def test_productized_verification_is_persisted_in_run_finished(
+    tmp_path, status, runtime_status, freshness_attempts, freshness_wait_ms
+):
+    operation_result = CreatorOperationExecutionResult(
+        operation="add_existing_plugin",
+        status=status,
+        pluginId="conversation-thread-list",
+        instanceId="conversation-thread-list-main",
+        mutationChanged=True,
+        verification=CreatorOperationVerificationResult(
+            staticStatus="passed",
+            runtimeStatus=runtime_status,
+            runtimeFreshnessAttempts=freshness_attempts,
+            runtimeFreshnessWaitMs=freshness_wait_ms,
+        ),
+        metrics=CreatorOperationMetrics(
+            operationDurationMs=1,
+            executionModelCalls=0,
+            mutationAttempts=1,
+            snapshotRefreshes=0,
+            verificationRuntimeFreshnessAttempts=freshness_attempts,
+        ),
+    )
+
+    data = _finish_productized_run(
+        tmp_path, completion=status, operation_result=operation_result
+    )
+
+    assert data["outcome"] == status
+    assert data["validationMetrics"] == {
+        "validationMode": "delta",
+        "newTypecheckDiagnostics": 0,
+    }
+    productized = data["productizedOperation"]
+    assert productized == operation_result.model_dump(mode="json", exclude_none=True)
+    assert productized["status"] == status
+    assert productized["verification"]["staticStatus"] == "passed"
+    assert productized["verification"]["runtimeStatus"] == runtime_status
+    assert productized["verification"]["runtimeFreshnessAttempts"] == freshness_attempts
+    assert productized["verification"]["runtimeFreshnessWaitMs"] == freshness_wait_ms
+
+
+def test_already_satisfied_productized_operation_is_persisted_without_verification(
+    tmp_path,
+):
+    operation_result = CreatorOperationExecutionResult(
+        operation="add_existing_plugin",
+        status="already_satisfied",
+        pluginId="conversation-thread-list",
+        instanceId="conversation-thread-list-main",
+        metrics=CreatorOperationMetrics(
+            operationDurationMs=1,
+            executionModelCalls=0,
+            mutationAttempts=0,
+            snapshotRefreshes=0,
+            verificationRuntimeFreshnessAttempts=0,
+        ),
+    )
+
+    data = _finish_productized_run(
+        tmp_path,
+        completion="already_satisfied",
+        operation_result=operation_result,
+    )
+
+    assert data["outcome"] == "already_satisfied"
+    assert data["productizedOperation"]["status"] == "already_satisfied"
+    assert "verification" not in data["productizedOperation"]
+
+
+@pytest.mark.parametrize("decision", ["needs_clarification", "unsupported_product_action"])
+def test_terminal_productized_run_omits_operation_result(tmp_path, decision):
+    selection = CreatorActionSelection(
+        decision=decision,
+        clarificationQuestion="Which feature do you mean?"
+        if decision == "needs_clarification"
+        else None,
+    )
+
+    data = _finish_productized_run(
+        tmp_path,
+        completion="blocked",
+        operation_result=None,
+        selection=selection,
+    )
+
+    assert data["outcome"] == "blocked"
+    assert "productizedOperation" not in data
 
 
 def test_action_selector_failure_details_are_retained_in_run_finished(tmp_path):
