@@ -18,6 +18,7 @@ import {
   AgentUIModeRegistry,
   agentUIModeRegistry,
 } from "../framework/modes";
+import { platformMode } from "../framework/modes/platform";
 import { generatePluginRegistry } from "../scripts/ui-project/registry-generator";
 
 function collectLayoutSlots(
@@ -49,6 +50,7 @@ describe("Agent UI Mode", () => {
     const registry = new AgentUIModeRegistry();
     const definition: AgentUIModeDefinition = {
       id: "platform",
+      workspace: platformMode.workspace,
       createInitialAppUIModel: () =>
         parseAppUIModel({
           root: { type: "slot", plugins: [] },
