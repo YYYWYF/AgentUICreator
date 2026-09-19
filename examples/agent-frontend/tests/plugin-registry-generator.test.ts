@@ -286,4 +286,38 @@ describe("generatePluginRegistry", () => {
     expect(result.errors).toEqual([]);
     expect(result.source).toContain('import("./inactive/definition")');
   });
+
+  it("scopes declaration issues to selected Plugins", async () => {
+    const projectRoot = await createProject();
+    await createPlugin(projectRoot, "active", "active");
+    await createPlugin(projectRoot, "broken", "broken");
+    await writeFile(
+      path.join(projectRoot, "tsconfig.json"),
+      JSON.stringify({
+        compilerOptions: { target: "ES2022", module: "ESNext" },
+        include: ["plugins/**/*.ts"],
+      }),
+    );
+    await writeFile(
+      path.join(projectRoot, "plugins", "active", "definition.ts"),
+      "const definition = { manifest: {}, Component: () => null };\nexport default definition;\n",
+    );
+    await unlink(path.join(projectRoot, "plugins", "broken", "definition.ts"));
+
+    const healthy = await generatePluginRegistry(
+      projectRoot,
+      modelFor(["active"]),
+      fixtureConfig,
+    );
+    expect(healthy.errors).toEqual([]);
+
+    const selectedBroken = await generatePluginRegistry(
+      projectRoot,
+      modelFor(["active", "broken"]),
+      fixtureConfig,
+    );
+    expect(selectedBroken.errors).toContainEqual(
+      expect.objectContaining({ code: "selected-plugin-definition-missing" }),
+    );
+  });
 });

@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   type AppUIModel,
@@ -25,6 +25,7 @@ import {
   collectPluginProjectFacts,
   generatePluginRegistryFromFacts,
 } from "../scripts/ui-project/registry-generator";
+import * as registryGenerator from "../scripts/ui-project/registry-generator";
 import type { UIProjectControlConfig } from "../scripts/ui-project/types";
 
 const temporaryProjects: string[] = [];
@@ -115,6 +116,7 @@ function rowModel(instanceIds: readonly string[]): AppUIModel {
 }
 
 afterEach(async () => {
+  vi.restoreAllMocks();
   await Promise.all(
     temporaryProjects.splice(0).map((projectRoot) =>
       rm(projectRoot, { recursive: true, force: true }),
@@ -308,6 +310,161 @@ describe("Creator Action Catalog", () => {
       status: "already_satisfied",
       target: expect.objectContaining({ pluginId: "history", instanceId: undefined }),
     }));
+  });
+
+  it("filters a candidate-specific definition issue without dropping healthy actions", async () => {
+    const model = rowModel(["conversation"]);
+    const projectRoot = await createFixtureProject(model, [
+      ["conversation", {}],
+      ["broken", {
+        authoring: {
+          typicalPlacement: {
+            relation: "after",
+            anchorPluginId: "conversation",
+          },
+          recommendedSize: { width: "280px" },
+        },
+      }],
+    ]);
+    const collectedFacts = await collectPluginProjectFacts(projectRoot, fixtureConfig);
+    const brokenAsset = collectedFacts.assets.find((asset) => asset.pluginId === "broken");
+    if (brokenAsset === undefined) throw new Error("fixture did not produce broken asset");
+    const definitionIssuesByPath = new Map(collectedFacts.definitionIssuesByPath);
+    definitionIssuesByPath.set(brokenAsset.definitionPath, [{
+      code: "selected-plugin-definition-missing",
+      message: `${brokenAsset.definitionPath}: synthetic missing definition`,
+      pluginId: "broken",
+    }]);
+    const projectFacts = {
+      ...collectedFacts,
+      definitionIssuesByPath,
+    };
+    const generation = generatePluginRegistryFromFacts(model, projectFacts);
+    const catalog = await buildCreatorActionCatalog({
+      model,
+      generation,
+      projectFacts,
+      appUIModelHash: hash(JSON.stringify(model)),
+    });
+
+    expect(catalog.candidates).toContainEqual(expect.objectContaining({
+      kind: "remove_plugin",
+      status: "ready",
+      target: expect.objectContaining({
+        pluginId: "conversation",
+        instanceId: "conversation-main",
+      }),
+    }));
+    expect(catalog.candidates).not.toContainEqual(expect.objectContaining({
+      kind: "add_existing_plugin",
+      target: expect.objectContaining({ pluginId: "broken" }),
+    }));
+  });
+
+  it("emits compatible Plugin Slot actions and filters incompatible candidates", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "slot",
+        plugins: [
+          { id: "parent-main", pluginId: "parent", enabled: true },
+          { id: "compatible-main", pluginId: "compatible", enabled: true },
+          { id: "incompatible-main", pluginId: "incompatible", enabled: true },
+        ],
+      },
+    };
+    const projectRoot = await createFixtureProject(model, [
+      ["parent", {
+        slots: {
+          children: {
+            content: {
+              description: "Content fixture Slot.",
+              cardinality: "many",
+              optional: true,
+              accepts: { anyOfCapabilities: ["accepted"] },
+            },
+          },
+        },
+      }],
+      ["compatible", { capabilities: ["accepted"] }],
+      ["incompatible", { capabilities: ["rejected"] }],
+    ]);
+    const { catalog } = await buildCatalog(projectRoot, model);
+    const compatible = catalog.candidates.find(
+      (candidate) => candidate.kind === "move_plugin" &&
+        candidate.target.instanceId === "compatible-main" &&
+        candidate.effect.type === "plugin_slot" &&
+        candidate.effect.parentInstanceId === "parent-main" &&
+        candidate.effect.slot === "content",
+    );
+
+    expect(compatible).toMatchObject({ status: "ready" });
+    expect(catalog.bindings.get(compatible!.actionId)).toMatchObject({
+      status: "ready",
+      operation: {
+        type: "move_plugin_to",
+        instanceId: "compatible-main",
+        placement: {
+          type: "plugin_slot",
+          parentInstanceId: "parent-main",
+          slot: "content",
+        },
+      },
+    });
+    expect(catalog.candidates).not.toContainEqual(expect.objectContaining({
+      kind: "move_plugin",
+      target: expect.objectContaining({ instanceId: "incompatible-main" }),
+      effect: expect.objectContaining({
+        type: "plugin_slot",
+        parentInstanceId: "parent-main",
+        slot: "content",
+      }),
+    }));
+  });
+
+  it("uses one request-scoped facts collection for a Catalog build", async () => {
+    const model = rowModel(["history", "conversation"]);
+    const projectRoot = await createFixtureProject(model, [
+      ["history", {}],
+      ["conversation", {}],
+    ]);
+    const collectFacts = vi.spyOn(registryGenerator, "collectPluginProjectFacts");
+    const projectFacts = await registryGenerator.collectPluginProjectFacts(
+      projectRoot,
+      fixtureConfig,
+    );
+    const generation = registryGenerator.generatePluginRegistryFromFacts(
+      model,
+      projectFacts,
+    );
+    await buildCreatorActionCatalog({
+      model,
+      generation,
+      projectFacts,
+      appUIModelHash: hash(JSON.stringify(model)),
+    });
+
+    expect(collectFacts).toHaveBeenCalledTimes(1);
+  });
+
+  it("surfaces unexpected simulation failures as Catalog build errors", async () => {
+    const model = rowModel(["conversation"]);
+    const projectRoot = await createFixtureProject(model, [["conversation", {}]]);
+    const projectFacts = await collectPluginProjectFacts(projectRoot, fixtureConfig);
+    const generation = generatePluginRegistryFromFacts(model, projectFacts);
+    vi.spyOn(registryGenerator, "generatePluginRegistryFromFacts").mockImplementation(() => {
+      throw new TypeError("synthetic AST analyzer crash");
+    });
+
+    await expect(buildCreatorActionCatalog({
+      model,
+      generation,
+      projectFacts,
+      appUIModelHash: hash(JSON.stringify(model)),
+    })).rejects.toMatchObject({
+      name: "CreatorActionCatalogError",
+      code: "CREATOR_ACTION_CATALOG_BUILD_FAILED",
+      details: { cause: "synthetic AST analyzer crash" },
+    });
   });
 
   it("uses a relative binding for row-edge actions and keeps its identity across anchor changes", async () => {

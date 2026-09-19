@@ -345,22 +345,12 @@ async function validateCandidateBindingInMemory(
     );
     if (nextGeneration.errors.length === 0) return true;
 
-    const factIssueKeys = new Set(
-      [
-        ...input.projectFacts.inventoryIssues,
-        ...input.projectFacts.declarations.issues,
-        ...[...input.projectFacts.definitionIssuesByPath.values()].flat(),
-      ].map((issue) => `${issue.code}\u0000${issue.message}`),
-    );
-    const infrastructureIssue = nextGeneration.errors.find((issue) =>
-      factIssueKeys.has(`${issue.code}\u0000${issue.message}`),
-    );
-    if (infrastructureIssue !== undefined) {
-      actionCatalogBuildFailed(
-        "Creator Action binding validation observed an invalid project fact.",
-        { issue: infrastructureIssue },
-      );
-    }
+    // The baseline generation is checked before candidate enumeration. An
+    // error introduced only by this hypothetical afterModel is a known
+    // candidate-specific rejection, even when it came from the shared facts
+    // snapshot (for example, a selected Plugin definition issue). Keep the
+    // Catalog alive and omit only this binding. Unexpected exceptions still
+    // escape through the catch below as Catalog build failures.
     return false;
   } catch (error) {
     if (isExpectedCreatorActionRejection(error)) return false;

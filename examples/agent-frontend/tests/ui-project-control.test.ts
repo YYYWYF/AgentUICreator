@@ -107,6 +107,26 @@ async function createProject(
   };
 }
 
+function rowModel(instanceIds: readonly string[]): AppUIModel {
+  return {
+    root: {
+      type: "row",
+      sizes: instanceIds.map((_, index) => index === 0 ? "280px" : "1fr"),
+      children: instanceIds.map((instanceId) => ({
+        type: "panel" as const,
+        child: {
+          type: "slot" as const,
+          plugins: [{
+            id: `${instanceId}-main`,
+            pluginId: instanceId,
+            enabled: true,
+          }],
+        },
+      })),
+    },
+  };
+}
+
 afterEach(async () => {
   await Promise.all(
     temporaryProjects.splice(0).map((projectRoot) =>
@@ -180,6 +200,231 @@ describe("ui-project-control", () => {
     expect(response.result).not.toHaveProperty("agentUI");
     expect(response.result).not.toHaveProperty("catalogs");
     expect(response.result).not.toHaveProperty("pluginAssets");
+    expect(response.result).toHaveProperty("creatorActions.candidates");
+    expect(response.result).not.toHaveProperty("creatorActions.bindings");
+  });
+
+  it("executes a row-edge Creator Action through the transaction Host", async () => {
+    const model = rowModel(["history", "conversation"]);
+    const { projectRoot } = await createProject({}, model, [
+      ["history", {}],
+      ["conversation", {}],
+    ]);
+    const inspection = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "inspect_ui_project",
+        input: { view: "composition" },
+      },
+      projectRoot,
+    );
+    if (!inspection.ok) throw new Error("Expected Composition inspection to succeed.");
+    const composition = inspection.result as {
+      appUIModel: { hash: string };
+      creatorActions: {
+        candidates: Array<{
+          actionId: string;
+          kind: string;
+          status: string;
+          target: { instanceId?: string };
+          effect: { type: string; edge?: string };
+        }>;
+      };
+    };
+    const action = composition.creatorActions.candidates.find(
+      (candidate) => candidate.kind === "move_plugin" &&
+        candidate.status === "ready" &&
+        candidate.target.instanceId === "history-main" &&
+        candidate.effect.type === "row_edge" &&
+        candidate.effect.edge === "right",
+    );
+    if (action === undefined) throw new Error("Fixture did not produce a row-edge action.");
+
+    const response = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "mutate_app_ui_model",
+        input: {
+          appUIModelHash: composition.appUIModel.hash,
+          operations: [{
+            type: "execute_creator_action",
+            actionId: action.actionId,
+          }],
+        },
+      },
+      projectRoot,
+    );
+
+    expect(response).toMatchObject({
+      ok: true,
+      result: {
+        creatorAction: {
+          actionId: action.actionId,
+          actionKind: "move_plugin",
+          status: "ready",
+        },
+        semanticComposition: {
+          operation: "move_plugin_to",
+          semanticLoweringSucceeded: true,
+          expectedPlacement: {
+            type: "relative",
+            instanceId: "history-main",
+            anchorInstanceId: "conversation-main",
+            relation: "after",
+          },
+        },
+      },
+    });
+    const written = JSON.parse(
+      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
+    ) as AppUIModel;
+    if (written.root.type !== "row") throw new Error("Fixture did not retain a Row root.");
+    expect(written.root.children.map((child) =>
+      child.type === "panel" && child.child.type === "slot"
+        ? child.child.plugins[0]?.id
+        : undefined,
+    )).toEqual(["conversation-main", "history-main"]);
+  });
+
+  it("rejects an unknown Creator Action id at the Host boundary", async () => {
+    const { projectRoot, appUIModelSource } = await createProject();
+    const response = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "mutate_app_ui_model",
+        input: {
+          appUIModelHash: createHash("sha256")
+            .update(appUIModelSource)
+            .digest("hex"),
+          operations: [{
+            type: "execute_creator_action",
+            actionId: "act_unknown_creator_action",
+          }],
+        },
+      },
+      projectRoot,
+    );
+
+    expect(response).toMatchObject({
+      ok: false,
+      error: { code: "CREATOR_ACTION_NOT_AVAILABLE" },
+    });
+  });
+
+  it("rejects execute_creator_action mixed with another transaction operation", async () => {
+    const { projectRoot, appUIModelSource } = await createProject();
+    const response = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "mutate_app_ui_model",
+        input: {
+          appUIModelHash: createHash("sha256")
+            .update(appUIModelSource)
+            .digest("hex"),
+          operations: [
+            {
+              type: "execute_creator_action",
+              actionId: "act_unknown_creator_action",
+            },
+            {
+              type: "update_plugin_props",
+              instanceId: "sample-main",
+              set: { title: "Rejected" },
+            },
+          ],
+        },
+      },
+      projectRoot,
+    );
+
+    expect(response).toMatchObject({
+      ok: false,
+      error: { code: "CREATOR_ACTION_TRANSACTION_INVALID" },
+    });
+  });
+
+  it("does not let an old Remove action delete a replacement instance", async () => {
+    const { projectRoot } = await createProject();
+    const inspection = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "inspect_ui_project",
+        input: { view: "composition" },
+      },
+      projectRoot,
+    );
+    if (!inspection.ok) throw new Error("Expected Composition inspection to succeed.");
+    const composition = inspection.result as {
+      appUIModel: { hash: string };
+      creatorActions: {
+        candidates: Array<{
+          actionId: string;
+          kind: string;
+          status: string;
+          target: { instanceId?: string };
+          effect: { type: string };
+        }>;
+      };
+    };
+    const oldRemove = composition.creatorActions.candidates.find(
+      (candidate) => candidate.kind === "remove_plugin" &&
+        candidate.status === "ready" &&
+        candidate.target.instanceId === "sample-main" &&
+        candidate.effect.type === "remove",
+    );
+    if (oldRemove === undefined) throw new Error("Fixture did not produce a Remove action.");
+
+    const replacement = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "mutate_app_ui_model",
+        input: {
+          appUIModelHash: composition.appUIModel.hash,
+          operations: [{
+            type: "replace_plugin",
+            instanceId: "sample-main",
+            replacement: {
+              id: "sample-replacement",
+              pluginId: "sample",
+              enabled: true,
+            },
+          }],
+        },
+      },
+      projectRoot,
+    );
+    expect(replacement).toMatchObject({ ok: true });
+    const replacedSource = await readFile(
+      path.join(projectRoot, "app-ui", "app-ui.json"),
+      "utf8",
+    );
+
+    const staleAction = await handleUIProjectControlRequest(
+      {
+        schemaVersion: 3,
+        operation: "mutate_app_ui_model",
+        input: {
+          appUIModelHash: createHash("sha256")
+            .update(replacedSource)
+            .digest("hex"),
+          operations: [{
+            type: "execute_creator_action",
+            actionId: oldRemove.actionId,
+          }],
+        },
+      },
+      projectRoot,
+    );
+
+    expect(staleAction).toMatchObject({
+      ok: false,
+      error: { code: "CREATOR_ACTION_NOT_AVAILABLE" },
+    });
+    expect(JSON.parse(replacedSource)).toMatchObject({
+      root: {
+        plugins: [{ id: "sample-replacement", pluginId: "sample" }],
+      },
+    });
   });
 
   it("returns the exact AppUIModel source and hash", async () => {

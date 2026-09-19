@@ -256,9 +256,18 @@ export function generatePluginRegistryFromFacts(
   model: AppUIModel,
   facts: PluginProjectFacts,
 ): GeneratePluginCatalogResult {
+  const selectedPluginIds = [
+    ...new Set(
+      collectAppUIPluginLocations(model).map(({ plugin }) => plugin.pluginId),
+    ),
+  ].sort();
+  const selectedPluginIdSet = new Set(selectedPluginIds);
   const errors: ProjectIssue[] = [
     ...facts.inventoryIssues,
-    ...facts.declarations.issues,
+    ...facts.declarations.issues.filter(
+      (issue) =>
+        issue.pluginId === undefined || selectedPluginIdSet.has(issue.pluginId),
+    ),
   ];
   const declarationsByPluginId = new Map(
     facts.declarations.plugins.map((declaration) => [declaration.pluginId, declaration]),
@@ -267,11 +276,6 @@ export function generatePluginRegistryFromFacts(
     facts.assets,
     declarationsByPluginId,
   );
-  const selectedPluginIds = [
-    ...new Set(
-      collectAppUIPluginLocations(model).map(({ plugin }) => plugin.pluginId),
-    ),
-  ].sort();
   const assetsById = new Map<string, PluginAsset[]>();
 
   for (const asset of facts.assets) {
