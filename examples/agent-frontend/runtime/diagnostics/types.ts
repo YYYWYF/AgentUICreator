@@ -72,6 +72,8 @@ export interface RuntimeLayoutNodeObservation {
   nodeId: string;
   type: RuntimeLayoutNodeType;
   rect: RuntimeRect;
+  /** Resolved CSS Grid track widths, only for Row nodes. */
+  trackWidths?: number[] | undefined;
 }
 
 export interface RuntimeCompositionApplication {

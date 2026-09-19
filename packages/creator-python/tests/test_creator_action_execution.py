@@ -131,6 +131,7 @@ def mutation(
     action_status: str | None = None,
     semantic_action_status: str | None = None,
     expected_placement: dict[str, object] | None = None,
+    expected_workspace_fill: list[dict[str, object]] | None = None,
 ) -> AppUIModelMutationResult:
     status = "ready" if changed else "already_satisfied"
     instance_id = candidate.target.instanceId
@@ -167,6 +168,8 @@ def mutation(
         }
     if candidate.kind == "move_plugin" and expected_placement is not None:
         semantic["expectedPlacement"] = expected_placement
+    if expected_workspace_fill is not None:
+        semantic["expectedWorkspaceFill"] = expected_workspace_fill
     result = {
         "schemaVersion": 1,
         "transactionId": "transaction",
@@ -296,6 +299,40 @@ def test_workspace_region_move_does_not_require_a_synthetic_expected_anchor():
 
     assert result.status == "success"
     assert result.instanceId == "history-main"
+
+
+def test_remove_action_fails_when_surviving_workspace_branch_does_not_fill_track():
+    candidate = action("remove_plugin")
+    source = snapshot(candidate)
+    mutation_service = FakeMutation([mutation(candidate, expected_workspace_fill=[{
+        "instanceId": "conversation-main", "region": "center", "axis": "width", "trackIndex": 0,
+    }])])
+    playbook = make_playbook(
+        mutation_service,
+        SequenceSnapshotProvider([source]),
+        [{
+            "currentHash": "c" * 64,
+            "runtimeStatus": "passed",
+            "compositionFresh": True,
+            "compositionVerified": True,
+            "currentErrors": [],
+            "runtimeInstances": [{
+                "instanceId": "conversation-main",
+                "rect": {"x": 0, "y": 0, "width": 280, "height": 800},
+            }],
+            "runtimeLayoutNodes": [{
+                "nodeId": "layout-node:root", "type": "row",
+                "rect": {"x": 0, "y": 0, "width": 1070, "height": 800},
+                "trackWidths": [1070],
+            }],
+        }],
+    )
+    result = asyncio.run(playbook.execute(source, candidate))
+    assert result.status == "failed"
+    assert result.verification is not None
+    assert result.verification.runtimeStatus == "failed"
+    assert result.verification.compositionVerified is True
+    assert result.verification.workspaceFillVerified is False
 
 
 def test_hash_conflict_refreshes_once_and_retries_the_same_action_id():

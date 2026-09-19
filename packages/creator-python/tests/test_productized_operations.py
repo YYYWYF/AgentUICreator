@@ -186,6 +186,47 @@ def verification(
     )
 
 
+def test_workspace_reflow_rejects_a_narrow_surviving_center():
+    expected_fill = [{
+        "instanceId": "surface-main", "region": "center", "axis": "width", "trackIndex": 0,
+    }]
+    runtime = {
+        "runtimeStatus": "passed",
+        "compositionFresh": True,
+        "compositionVerified": True,
+        "currentHash": "c" * 64,
+        "currentErrors": [],
+        "runtimeInstances": [{
+            "instanceId": "surface-main", "pluginId": "surface",
+            "slotId": "layout-slot:root.children%5B0%5D.child",
+            "rect": {"x": 0, "y": 0, "width": 280, "height": 600},
+        }],
+        "runtimeLayoutNodes": [{
+            "nodeId": "layout-node:root", "type": "row",
+            "rect": {"x": 0, "y": 0, "width": 1070, "height": 600},
+            "trackWidths": [1070],
+        }],
+    }
+    service = verification([runtime])
+    result = asyncio.run(service.verify(
+        mutation_result={"appUIModel": {"afterHash": "c" * 64}},
+        expected_runtime={"absentInstanceIds": ["history-main"]},
+        expected_workspace_fill=expected_fill,
+    ))
+    assert result.runtimeStatus == "failed"
+    assert result.compositionVerified is True
+    assert result.workspaceFillVerified is False
+
+    runtime["runtimeInstances"][0]["rect"]["width"] = 1070
+    passed = asyncio.run(verification([runtime]).verify(
+        mutation_result={"appUIModel": {"afterHash": "c" * 64}},
+        expected_runtime={"absentInstanceIds": ["history-main"]},
+        expected_workspace_fill=expected_fill,
+    ))
+    assert passed.runtimeStatus == "passed"
+    assert passed.workspaceFillVerified is True
+
+
 def test_registry_does_not_fallback_to_unproductized_operations():
     registry = CreatorOperationRegistry({})
 

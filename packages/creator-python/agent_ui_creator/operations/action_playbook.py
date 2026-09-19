@@ -38,6 +38,7 @@ class _HostExpectations:
     expected_runtime: Mapping[str, Any]
     expected_geometry: Mapping[str, Any] | None
     expected_placement: Mapping[str, Any] | None
+    expected_workspace_fill: list[Mapping[str, Any]] | None
     instance_id: str | None
 
 
@@ -222,6 +223,30 @@ def _validate_host_result(
     }
     expected_geometry: Mapping[str, Any] | None = None
     expected_placement: Mapping[str, Any] | None = None
+    expected_workspace_fill: list[Mapping[str, Any]] | None = None
+    raw_workspace_fill = semantic.get("expectedWorkspaceFill")
+    if raw_workspace_fill is not None:
+        if not isinstance(raw_workspace_fill, list) or not raw_workspace_fill or len(raw_workspace_fill) > 3:
+            raise _HostResultInvalid(
+                "Host mutation result expectedWorkspaceFill is invalid.",
+                {"field": "semanticComposition.expectedWorkspaceFill"},
+            )
+        expected_workspace_fill = []
+        for item in raw_workspace_fill:
+            if (
+                not isinstance(item, Mapping)
+                or not isinstance(item.get("instanceId"), str)
+                or item.get("region") not in {"left", "center", "right"}
+                or item.get("axis") != "width"
+                or not isinstance(item.get("trackIndex"), int)
+                or isinstance(item.get("trackIndex"), bool)
+                or item["trackIndex"] not in {0, 1, 2}
+            ):
+                raise _HostResultInvalid(
+                    "Host mutation result expectedWorkspaceFill entry is invalid.",
+                    {"field": "semanticComposition.expectedWorkspaceFill"},
+                )
+            expected_workspace_fill.append(item)
 
     if candidate.kind == "add_existing_plugin":
         if changed:
@@ -283,6 +308,7 @@ def _validate_host_result(
         expected_runtime=normalized_runtime,
         expected_geometry=expected_geometry,
         expected_placement=expected_placement,
+        expected_workspace_fill=expected_workspace_fill,
         instance_id=instance_id,
     )
 
@@ -544,6 +570,7 @@ class CreatorActionExecutionPlaybook:
                 expected_runtime=expectations.expected_runtime,
                 expected_geometry=expectations.expected_geometry,
                 expected_placement=expectations.expected_placement,
+                expected_workspace_fill=expectations.expected_workspace_fill,
             )
             if (
                 verification.staticStatus == "passed"

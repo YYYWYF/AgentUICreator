@@ -5,7 +5,7 @@ import json
 from collections import OrderedDict
 from copy import deepcopy
 from datetime import datetime, timezone
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -143,6 +143,9 @@ class RuntimeLayoutNodeObservation(BaseModel):
     nodeId: str = Field(min_length=1, max_length=200)
     type: Literal["row", "column", "panel", "stack", "slot"]
     rect: RuntimeRect
+    trackWidths: list[
+        Annotated[float, Field(ge=0, le=MAX_RUNTIME_GEOMETRY_COORDINATE, allow_inf_nan=False)]
+    ] | None = Field(default=None, max_length=MAX_COMPOSITION_LAYOUT_NODES)
 
 
 class RuntimeCompositionInstance(BaseModel):

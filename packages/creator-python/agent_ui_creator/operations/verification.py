@@ -140,6 +140,82 @@ def verify_expected_geometry(
     }
 
 
+def verify_expected_workspace_fill(
+    result: Mapping[str, Any], expected: list[Mapping[str, Any]]
+) -> dict[str, Any]:
+    """Compare surviving Workspace instances with their resolved Row tracks."""
+
+    if (
+        result.get("runtimeStatus") != "passed"
+        or result.get("compositionFresh") is not True
+    ):
+        return {"status": "stale", "workspaceFillVerified": None}
+    nodes = result.get("runtimeLayoutNodes")
+    instances = result.get("runtimeInstances")
+    if not isinstance(nodes, list) or not isinstance(instances, list):
+        return {"status": "unavailable", "workspaceFillVerified": None}
+    row = next(
+        (
+            item
+            for item in nodes
+            if isinstance(item, Mapping)
+            and item.get("nodeId") == "layout-node:root"
+            and item.get("type") == "row"
+        ),
+        None,
+    )
+    widths = row.get("trackWidths") if isinstance(row, Mapping) else None
+    if not isinstance(widths, list):
+        return {
+            "status": "unavailable",
+            "workspaceFillVerified": None,
+            "reason": "workspace-track-geometry-missing",
+        }
+    by_id = {
+        item.get("instanceId"): item
+        for item in instances
+        if isinstance(item, Mapping) and isinstance(item.get("instanceId"), str)
+    }
+    checks = []
+    for item in expected:
+        index = item.get("trackIndex")
+        instance_id = item.get("instanceId")
+        if (
+            not isinstance(index, int)
+            or isinstance(index, bool)
+            or index < 0
+            or index >= len(widths)
+            or not isinstance(instance_id, str)
+        ):
+            return {
+                "status": "failed",
+                "workspaceFillVerified": False,
+                "reason": "expected-workspace-fill-invalid",
+            }
+        track_width = _number(widths[index])
+        instance = by_id.get(instance_id)
+        instance_rect = _rect(instance.get("rect")) if isinstance(instance, Mapping) else None
+        if track_width is None or instance_rect is None:
+            return {
+                "status": "unavailable",
+                "workspaceFillVerified": None,
+                "reason": "workspace-instance-geometry-missing",
+            }
+        checks.append({
+            "instanceId": instance_id,
+            "region": item.get("region"),
+            "trackWidth": track_width,
+            "instanceWidth": instance_rect["width"],
+            "verified": abs(instance_rect["width"] - track_width) <= GEOMETRY_TOLERANCE_PX,
+        })
+    verified = bool(checks) and all(item["verified"] for item in checks)
+    return {
+        "status": "passed" if verified else "failed",
+        "workspaceFillVerified": verified,
+        "checks": checks,
+    }
+
+
 def verify_expected_relative_placement(
     result: Mapping[str, Any], expected: Mapping[str, Any]
 ) -> dict[str, Any]:
@@ -312,6 +388,7 @@ class CompositionOperationVerificationService:
         expected_runtime: Mapping[str, Any],
         expected_geometry: Mapping[str, Any] | None = None,
         expected_placement: Mapping[str, Any] | None = None,
+        expected_workspace_fill: list[Mapping[str, Any]] | None = None,
     ) -> CreatorOperationVerificationResult:
         try:
             validation = await self.validation.validate(mode="delta")
@@ -556,6 +633,30 @@ class CompositionOperationVerificationService:
                     ),
                 )
 
+        workspace_fill_verified: bool | None = None
+        if expected_workspace_fill is not None:
+            fill = verify_expected_workspace_fill(result, expected_workspace_fill)
+            workspace_fill_verified = fill.get("workspaceFillVerified")
+            if fill["status"] != "passed":
+                return CreatorOperationVerificationResult(
+                    staticStatus="passed",
+                    runtimeStatus=(
+                        "failed" if fill["status"] == "failed" else "unavailable"
+                    ),
+                    runtimeFreshnessAttempts=attempts,
+                    runtimeFreshnessWaitMs=wait_ms,
+                    presentInstancesVerified=present_verified,
+                    absentInstancesVerified=absent_verified,
+                    placementVerified=placement_verified,
+                    geometryVerified=geometry_verified,
+                    workspaceFillVerified=workspace_fill_verified,
+                    compositionVerified=(
+                        composition_verified
+                        if isinstance(composition_verified, bool)
+                        else None
+                    ),
+                )
+
         return CreatorOperationVerificationResult(
             staticStatus="passed",
             runtimeStatus="passed",
@@ -565,6 +666,7 @@ class CompositionOperationVerificationService:
             absentInstancesVerified=absent_verified,
             placementVerified=placement_verified,
             geometryVerified=geometry_verified,
+            workspaceFillVerified=workspace_fill_verified,
             compositionVerified=(
                 composition_verified
                 if isinstance(composition_verified, bool)

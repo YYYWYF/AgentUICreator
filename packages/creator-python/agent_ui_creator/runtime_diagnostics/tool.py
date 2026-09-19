@@ -167,6 +167,11 @@ class RuntimeDiagnosticInspectionService:
             else {"verified": False, "checks": []}
         )
         result["currentHash"] = current_hash
+        result["runtimeLayoutNodes"] = (
+            raw_composition.get("layoutNodes", [])
+            if isinstance(raw_composition, dict)
+            else []
+        )
         result["compositionChecks"] = verification.get("checks", [])
         result["compositionVerified"] = (
             result.get("compositionFresh") is True

@@ -434,7 +434,6 @@ describe("AppUIModel transaction", () => {
         children: [
           {
             type: "panel",
-            width: "280px",
             child: {
               type: "slot",
               plugins: [{ id: "conversation-thread-list-main" }],
@@ -456,7 +455,6 @@ describe("AppUIModel transaction", () => {
     const model: AppUIModel = {
       root: {
         type: "panel",
-        width: "minmax(0, 1fr)",
         child: {
           type: "slot",
           plugins: [{
@@ -526,7 +524,6 @@ describe("AppUIModel transaction", () => {
       children: [
         {
           type: "panel",
-          width: "280px",
           child: {
             type: "slot",
             plugins: [{ id: "conversation-thread-list-main" }],
@@ -606,7 +603,7 @@ describe("AppUIModel transaction", () => {
     const model: AppUIModel = {
       root: {
         type: "panel",
-        width: "2fr",
+        width: "480px",
         child: {
           type: "slot",
           plugins: [{
@@ -657,7 +654,10 @@ describe("AppUIModel transaction", () => {
       "utf8",
     )) as AppUIModel;
     if (written.root.type !== "row") throw new Error("fixture");
-    expect(written.root.sizes).toEqual(["280px", "2fr"]);
+    expect(written.root.sizes).toEqual(["280px", "480px"]);
+    const anchor = written.root.children[1];
+    if (anchor?.type !== "panel") throw new Error("Expected original Panel.");
+    expect(anchor.width).toBeUndefined();
   });
 
   it("closes the Productized Remove to Add round-trip from the real canonical output", async () => {
@@ -668,7 +668,6 @@ describe("AppUIModel transaction", () => {
         children: [
           {
             type: "panel",
-            width: "280px",
             child: {
               type: "slot",
               plugins: [{
@@ -680,7 +679,6 @@ describe("AppUIModel transaction", () => {
           },
           {
             type: "panel",
-            width: "minmax(0, 1fr)",
             child: {
               type: "slot",
               plugins: [{
@@ -741,7 +739,6 @@ describe("AppUIModel transaction", () => {
         sizes: ["minmax(0, 1fr)"],
         children: [{
           type: "panel",
-          width: "minmax(0, 1fr)",
           child: {
             type: "slot",
             plugins: [{
@@ -790,7 +787,6 @@ describe("AppUIModel transaction", () => {
       children: [
         {
           type: "panel",
-          width: "280px",
           child: {
             type: "slot",
             plugins: [{ id: "conversation-thread-list-main" }],
@@ -798,7 +794,6 @@ describe("AppUIModel transaction", () => {
         },
         {
           type: "panel",
-          width: "minmax(0, 1fr)",
           child: {
             type: "slot",
             plugins: [{ id: "conversation-surface-main" }],
@@ -806,6 +801,55 @@ describe("AppUIModel transaction", () => {
         },
       ],
     });
+  });
+
+  it("restores the Center-only Workspace after Productized Add then Remove", async () => {
+    const model: AppUIModel = { root: {
+      type: "row", sizes: ["minmax(0, 1fr)"],
+      children: [{ type: "panel", child: { type: "slot", plugins: [{
+        id: "conversation-surface-main", pluginId: "conversation-surface", enabled: true,
+      }] } }],
+    } };
+    const { projectRoot, source } = await createProject({}, model, [
+      ["conversation-surface", { authoring: {
+        intents: ["show conversation"], recommendedSize: { width: "minmax(0, 1fr)" },
+      } }],
+      ["conversation-thread-list", { authoring: {
+        intents: ["add conversation management"],
+        typicalPlacement: { relation: "before", anchorPluginId: "conversation-surface" },
+        recommendedSize: { width: "280px" },
+      } }],
+    ]);
+    const add = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{ type: "execute_creator_action", actionId: actionIdFor({
+        kind: "add_existing_plugin",
+        subject: { pluginId: "conversation-thread-list" },
+        effect: { type: "add_default" },
+      }) }],
+    });
+    expect(add.semanticComposition?.expectedWorkspaceFill).toEqual([
+      { instanceId: "conversation-thread-list-main", region: "left", axis: "width", trackIndex: 0 },
+      { instanceId: "conversation-surface-main", region: "center", axis: "width", trackIndex: 1 },
+    ]);
+    const afterAdd = JSON.parse(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")) as AppUIModel;
+    if (afterAdd.root.type !== "row") throw new Error("Expected Workspace Row root.");
+    expect(afterAdd.root.sizes).toEqual(["280px", "minmax(0, 1fr)"]);
+    expect(afterAdd.root.children.every((child) => child.type === "panel" && child.width === undefined)).toBe(true);
+
+    const remove = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: add.appUIModel.afterHash,
+      operations: [{ type: "execute_creator_action", actionId: actionIdFor({
+        kind: "remove_plugin",
+        subject: { pluginId: "conversation-thread-list", instanceId: "conversation-thread-list-main" },
+        effect: { type: "remove" },
+      }) }],
+    });
+    expect(remove.semanticComposition?.expectedWorkspaceFill).toEqual([
+      { instanceId: "conversation-surface-main", region: "center", axis: "width", trackIndex: 0 },
+    ]);
+    const afterRemove = JSON.parse(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")) as AppUIModel;
+    expect(afterRemove).toEqual(model);
   });
 
   it("fails closed when a root anchor has no deterministic track size", async () => {
@@ -1555,7 +1599,6 @@ describe("AppUIModel transaction", () => {
         children: [
           {
             type: "panel",
-            width: "minmax(0, 1fr)",
             child: {
               type: "slot",
               plugins: [{ id: "conversation-main", pluginId: "conversation", enabled: true }],
@@ -1599,6 +1642,10 @@ describe("AppUIModel transaction", () => {
     expect(result.semanticComposition).toMatchObject({
       operation: "move_plugin_to",
       expectedRuntime: { presentInstanceIds: ["history-main"] },
+      expectedWorkspaceFill: [
+        { instanceId: "history-main", region: "left", axis: "width", trackIndex: 0 },
+        { instanceId: "conversation-main", region: "center", axis: "width", trackIndex: 1 },
+      ],
       expectedPlacement: {
         type: "relative",
         instanceId: "history-main",
@@ -1613,6 +1660,7 @@ describe("AppUIModel transaction", () => {
     )) as AppUIModel;
     if (written.root.type !== "row") throw new Error("Expected Workspace Row root.");
     expect(written.root.sizes).toEqual(["280px", "minmax(0, 1fr)"]);
+    expect(written.root.children.every((child) => child.type === "panel" && child.width === undefined)).toBe(true);
     expect(written.root.children.map((child) =>
       child.type === "panel" && child.child.type === "slot"
         ? child.child.plugins[0]?.id

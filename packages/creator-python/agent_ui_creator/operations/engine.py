@@ -610,6 +610,9 @@ class ProductizedOperationEngine:
             "geometryVerified": (
                 verification.geometryVerified if verification is not None else None
             ),
+            "workspaceFillVerified": (
+                verification.workspaceFillVerified if verification is not None else None
+            ),
         }
 
     def _record_route(

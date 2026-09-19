@@ -20,6 +20,7 @@ import {
 } from "../../framework/contracts/app-ui-model";
 import { agentUIModeRegistry } from "../../framework/modes";
 import type { AgentUIWorkspacePolicy } from "../../framework/contracts/agent-ui-workspace";
+import { WORKSPACE_REGIONS } from "../../framework/contracts/agent-ui-workspace";
 import { compileAppUIModel } from "../../framework/contracts/app-ui-compiler";
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
 import {
@@ -56,6 +57,7 @@ import type {
   PluginProjectFacts,
   ProjectIssue,
 } from "./types";
+import { projectWorkspaceTopology, WorkspaceTopologyError } from "./workspace-topology";
 
 const APP_UI_MODEL_PATH = "app-ui/app-ui.json";
 export const COMPOSITION_REVISION_PATH =
@@ -186,6 +188,12 @@ export interface AppUITransactionResult {
     axis: "width" | "height";
     size: string;
   };
+  expectedWorkspaceFill?: Array<{
+    instanceId: string;
+    region: "left" | "center" | "right";
+    axis: "width";
+    trackIndex: number;
+  }>;
   semanticComposition?: {
     operation: "insert_plugin_default" | "remove_plugin_default" | "move_plugin_to";
     semanticLoweringSucceeded: true;
@@ -216,6 +224,12 @@ export interface AppUITransactionResult {
       axis: "width" | "height";
       size: string;
     };
+    expectedWorkspaceFill?: Array<{
+      instanceId: string;
+      region: "left" | "center" | "right";
+      axis: "width";
+      trackIndex: number;
+    }>;
     reflow?: "collapsed-dedicated-region" | "preserved-container";
   };
 }
@@ -1074,6 +1088,35 @@ async function runTransaction(
         operationApplyOptions ?? { workspacePolicy },
       ),
     );
+    if (creatorAction !== undefined && semanticComposition !== undefined) {
+      try {
+        const beforeTopology = projectWorkspaceTopology(beforeModel, workspacePolicy);
+        const afterTopology = projectWorkspaceTopology(afterModel, workspacePolicy);
+        const beforeRegions = WORKSPACE_REGIONS.filter((region) => beforeTopology.regions[region] !== undefined);
+        const afterRegions = WORKSPACE_REGIONS.filter((region) => afterTopology.regions[region] !== undefined);
+        if (beforeRegions.join(",") !== afterRegions.join(",")) {
+          semanticComposition.expectedWorkspaceFill = afterRegions.map((region) => {
+            const occupancy = afterTopology.regions[region];
+            if (occupancy?.branch.type !== "panel" || occupancy.branch.child.type !== "slot") {
+              throw new AppUITransactionError("WORKSPACE_FILL_EXPECTATION_UNAVAILABLE", "A materialized Workspace Region must have a direct Panel and Slot.");
+            }
+            const plugin = occupancy.branch.child.plugins.find((item) => item.enabled);
+            if (plugin === undefined) {
+              throw new AppUITransactionError("WORKSPACE_FILL_EXPECTATION_UNAVAILABLE", "A materialized Workspace Region must have an enabled Plugin.");
+            }
+            return {
+              instanceId: plugin.id,
+              region,
+              axis: "width" as const,
+              trackIndex: occupancy.index,
+            };
+          });
+        }
+      } catch (error) {
+        if (!(error instanceof WorkspaceTopologyError)) throw error;
+        // Non-Workspace layouts have no Workspace fill expectation.
+      }
+    }
   } catch (error) {
     if (
       typeof error === "object" &&
@@ -1234,6 +1277,9 @@ async function runTransaction(
           ...(semanticComposition.expectedGeometry === undefined
             ? {}
             : { expectedGeometry: semanticComposition.expectedGeometry }),
+          ...(semanticComposition.expectedWorkspaceFill === undefined
+            ? {}
+            : { expectedWorkspaceFill: semanticComposition.expectedWorkspaceFill }),
         }),
     ...(semanticComposition === undefined ? {} : { semanticComposition }),
     ...(catalogChanged ? { compositionRevision } : {}),

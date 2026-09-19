@@ -560,6 +560,7 @@ class CreatorOperationVerificationResult(BaseModel):
     )
     placementVerified: bool | None = None
     geometryVerified: bool | None = None
+    workspaceFillVerified: bool | None = None
     compositionVerified: bool | None = None
 
 

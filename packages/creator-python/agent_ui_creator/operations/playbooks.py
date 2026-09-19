@@ -127,7 +127,8 @@ class _PlaybookBase:
         instance_id: str,
         expected_placement: Mapping[str, Any] | None = None,
     ) -> tuple[
-        Mapping[str, Any], Mapping[str, Any] | None, Mapping[str, Any] | None
+        Mapping[str, Any], Mapping[str, Any] | None, Mapping[str, Any] | None,
+        list[Mapping[str, Any]] | None
     ] | None:
         semantic = mutation.get("semanticComposition")
         expected_operation = _PRODUCTIZED_SEMANTIC_OPERATIONS.get(operation)
@@ -139,6 +140,13 @@ class _PlaybookBase:
             return None
         expected_runtime = semantic.get("expectedRuntime")
         if not isinstance(expected_runtime, Mapping):
+            return None
+        expected_workspace_fill = semantic.get("expectedWorkspaceFill")
+        if expected_workspace_fill is not None and (
+            not isinstance(expected_workspace_fill, list)
+            or not expected_workspace_fill
+            or not all(isinstance(item, Mapping) for item in expected_workspace_fill)
+        ):
             return None
 
         if operation == "add_existing_plugin":
@@ -153,7 +161,7 @@ class _PlaybookBase:
                 or expected_geometry.get("instanceId") != instance_id
             ):
                 return None
-            return expected_runtime, expected_geometry, None
+            return expected_runtime, expected_geometry, None, expected_workspace_fill
 
         if operation == "move_plugin":
             if (
@@ -163,7 +171,7 @@ class _PlaybookBase:
                 or semantic.get("expectedPlacement") != dict(expected_placement)
             ):
                 return None
-            return expected_runtime, None, expected_placement
+            return expected_runtime, None, expected_placement, expected_workspace_fill
 
         if (
             expected_runtime.get("absentInstanceIds") != [instance_id]
@@ -172,7 +180,7 @@ class _PlaybookBase:
             not in {"collapsed-dedicated-region", "preserved-container"}
         ):
             return None
-        return expected_runtime, None, None
+        return expected_runtime, None, None, expected_workspace_fill
 
     async def _verify_committed(
         self,
@@ -218,13 +226,14 @@ class _PlaybookBase:
                 mutation_attempts=mutation_attempts,
                 snapshot_refreshes=snapshot_refreshes,
             )
-        expected_runtime, expected_geometry, semantic_placement = semantic_expectations
+        expected_runtime, expected_geometry, semantic_placement, expected_workspace_fill = semantic_expectations
 
         verification = await self.verification.verify(
             mutation_result=mutation,
             expected_runtime=expected_runtime,
             expected_geometry=expected_geometry,
             expected_placement=semantic_placement,
+            expected_workspace_fill=expected_workspace_fill,
         )
         if (
             verification.staticStatus == "passed"

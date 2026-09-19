@@ -77,6 +77,25 @@ function readViewport(
   return { width, height };
 }
 
+function readRowTrackWidths(element: HTMLElement): number[] | undefined {
+  try {
+    const value = element.ownerDocument.defaultView?.getComputedStyle(element).gridTemplateColumns;
+    if (value === undefined || value === "none") return undefined;
+    const tokens = value.trim().split(/\s+/u);
+    if (tokens.length === 0 || tokens.length > MAX_RUNTIME_LAYOUT_NODES) return undefined;
+    const widths = tokens.map((token) =>
+      /^\d+(?:\.\d+)?px$/u.test(token)
+        ? roundDimension(Number.parseFloat(token))
+        : undefined,
+    );
+    return widths.every((width): width is number => width !== undefined)
+      ? widths
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function collectRuntimeLayoutGeometry(
   documentRef: Document | undefined =
     typeof document === "undefined" ? undefined : document,
@@ -110,10 +129,12 @@ export function collectRuntimeLayoutGeometry(
     const rect = readRuntimeRect(element);
     if (rect === undefined) continue;
     seenLayoutNodeIds.add(nodeId);
+    const trackWidths = type === "row" ? readRowTrackWidths(element) : undefined;
     layoutNodes.push({
       nodeId,
       type: type as RuntimeLayoutNodeObservation["type"],
       rect,
+      ...(trackWidths === undefined ? {} : { trackWidths }),
     });
   }
 

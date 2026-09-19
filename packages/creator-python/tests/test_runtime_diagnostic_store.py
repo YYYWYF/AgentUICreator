@@ -105,6 +105,32 @@ def test_runtime_diagnostic_store_records_forwarded_composition():
     ]
 
 
+def test_runtime_diagnostic_store_preserves_resolved_row_track_widths():
+    store = RuntimeDiagnosticStore()
+    envelope = RuntimeDiagnosticEnvelope.model_validate({
+        "threadId": "thread-1",
+        "composition": {
+            "schemaVersion": 1,
+            "appUIModelHash": "a" * 64,
+            "observedAt": datetime.now(timezone.utc).isoformat(),
+            "instances": [],
+            "slots": [],
+            "layoutNodes": [{
+                "nodeId": "layout-node:root",
+                "type": "row",
+                "rect": {"x": 0, "y": 0, "width": 1070, "height": 600},
+                "trackWidths": [280, 790],
+            }],
+        },
+    })
+    assert store.record(envelope) == {"accepted": True}
+    current = store.current_composition(
+        thread_id="thread-1", app_ui_model_hash="a" * 64,
+    )
+    assert current is not None
+    assert current["layoutNodes"][0]["trackWidths"] == [280, 790]
+
+
 def test_runtime_diagnostic_store_exposes_current_slot_widths():
     store = RuntimeDiagnosticStore()
     store.record(
