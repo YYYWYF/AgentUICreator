@@ -31,7 +31,6 @@ class CreatorRunTelemetry:
     action_selector: dict[str, object] | None = None
     action_selection: dict[str, object] | None = None
     selected_creator_action: dict[str, object] | None = None
-    operation_resolver: dict[str, object] | None = None
     operation_route: dict[str, object] | None = None
     operation_presentation: dict[str, object] | None = None
 
@@ -49,7 +48,6 @@ class CreatorRunTelemetry:
         action_selector: dict[str, object] | None = None,
         action_selection: dict[str, object] | None = None,
         selected_creator_action: dict[str, object] | None = None,
-        operation_resolver: dict[str, object] | None = None,
         operation_route: dict[str, object] | None = None,
         operation_presentation: dict[str, object] | None = None,
     ) -> None:
@@ -75,8 +73,6 @@ class CreatorRunTelemetry:
             self.action_selection = dict(action_selection)
         if selected_creator_action is not None:
             self.selected_creator_action = dict(selected_creator_action)
-        if operation_resolver is not None:
-            self.operation_resolver = dict(operation_resolver)
         if operation_route is not None:
             self.operation_route = dict(operation_route)
         if operation_presentation is not None:
@@ -88,8 +84,6 @@ class CreatorRunTelemetry:
             converter = getattr(self.run_control, "metrics", None)
             if callable(converter):
                 metrics.update(dict(converter()))
-        if self.operation_resolver is not None:
-            metrics.update(self.operation_resolver)
         if self.action_selector is not None:
             selector_metrics = dict(self.action_selector)
             selector_calls = selector_metrics.get("actionSelectorCalls", 0)

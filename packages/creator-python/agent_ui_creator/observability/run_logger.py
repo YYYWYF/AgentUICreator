@@ -338,7 +338,6 @@ class CreatorRunLogger:
         action_selector_metrics: Mapping[str, object] | None = None,
         action_selection: Mapping[str, object] | None = None,
         selected_creator_action: Mapping[str, object] | None = None,
-        operation_resolver_metrics: Mapping[str, object] | None = None,
         creator_intent: Mapping[str, object] | None = None,
         productized_operation: Mapping[str, object] | None = None,
         error: BaseException | None = None,
@@ -403,11 +402,6 @@ class CreatorRunLogger:
                 **(
                     {"selectedCreatorAction": dict(selected_creator_action)}
                     if selected_creator_action is not None
-                    else {}
-                ),
-                **(
-                    {"operationResolver": dict(operation_resolver_metrics)}
-                    if operation_resolver_metrics is not None
                     else {}
                 ),
                 **(

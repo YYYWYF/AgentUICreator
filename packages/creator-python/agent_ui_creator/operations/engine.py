@@ -32,7 +32,6 @@ from .models import (
     CreatorActionCandidate,
     CreatorActionSelection,
     CreatorOperationExecutionResult,
-    CreatorOperationResolution,
     WorkspaceRegionActionEffect,
 )
 from .presentation import (
@@ -61,27 +60,10 @@ class ProductizedOperationToolMetrics:
     validToolCalls: int = 0
     invalidToolCalls: int = 0
     deepAgentCalls: int = 0
-    # Kept only so persisted test fixtures and older callers can still be read.
-    operationResolverCalls: int = 0
-    operationResolverRepairCalls: int = 0
-    operationResolverInvalidResponses: int = 0
-
     def to_dict(self) -> dict[str, int]:
         value = asdict(self)
-        legacy = self.operationResolverCalls or self.operationResolverRepairCalls or self.operationResolverInvalidResponses
-        value.pop("operationResolverCalls", None)
-        value.pop("operationResolverRepairCalls", None)
-        value.pop("operationResolverInvalidResponses", None)
         if self.totalModelCalls is None:
             value.pop("totalModelCalls", None)
-        if legacy:
-            value.update(
-                {
-                    "operationResolverCalls": self.operationResolverCalls,
-                    "operationResolverRepairCalls": self.operationResolverRepairCalls,
-                    "operationResolverInvalidResponses": self.operationResolverInvalidResponses,
-                }
-            )
         return value
 
 
@@ -104,9 +86,6 @@ class ProductizedOperationRun:
     action_selector_metrics: dict[str, object] = field(default_factory=dict)
     intent_presentation: CreatorIntentPresentation | None = None
     blocker: dict[str, Any] | None = None
-    # Legacy persisted result fields. New production runs leave these empty.
-    operation_resolver_metrics: dict[str, int] = field(default_factory=dict)
-    resolution: CreatorOperationResolution | None = None
     terminal_metrics: dict[str, object] = field(
         default_factory=lambda: {
             "deepAgentCalls": 0,

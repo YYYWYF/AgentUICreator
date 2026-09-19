@@ -380,11 +380,6 @@ async def _execute_agent_run(
                     if result.selected_action is not None
                     else None
                 ),
-                operation_resolver_metrics=(
-                    result.operation_resolver_metrics
-                    if result.operation_resolver_metrics
-                    else None
-                ),
                 creator_intent=(
                     result.intent_presentation.to_dict()
                     if result.intent_presentation is not None
@@ -413,7 +408,6 @@ async def _execute_agent_run(
                 action_selector_metrics=run_telemetry.action_selector,
                 action_selection=run_telemetry.action_selection,
                 selected_creator_action=run_telemetry.selected_creator_action,
-                operation_resolver_metrics=run_telemetry.operation_resolver,
                 creator_intent=run_telemetry.operation_presentation,
             )
         return _AgentExecution(result=result, receipt=receipt)
@@ -435,7 +429,6 @@ async def _execute_agent_run(
             action_selector_metrics=run_telemetry.action_selector,
             action_selection=run_telemetry.action_selection,
             selected_creator_action=run_telemetry.selected_creator_action,
-            operation_resolver_metrics=run_telemetry.operation_resolver,
             creator_intent=run_telemetry.operation_presentation,
             error=error,
         )
@@ -672,10 +665,6 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                     run_result["actionSelector"] = (
                                         result.action_selector_metrics
                                     )
-                                if result.operation_resolver_metrics:
-                                    run_result["operationResolver"] = (
-                                        result.operation_resolver_metrics
-                                    )
                                 if result.selection is not None:
                                     run_result["actionSelection"] = (
                                         result.selection.model_dump(mode="json")
@@ -690,10 +679,6 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                 if result.operation_result is not None:
                                     run_result["productizedOperation"] = (
                                         result.operation_result.model_dump(mode="json")
-                                    )
-                                elif result.resolution is not None and result.selection is None:
-                                    run_result["operationResolution"] = (
-                                        result.resolution.model_dump(mode="json")
                                     )
                                 elif result.selection is not None and result.selection.decision == "needs_clarification":
                                     run_result["clarificationQuestion"] = (
@@ -733,9 +718,6 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             )
                             if isinstance(selected_creator_action, dict):
                                 run_result["selectedCreatorAction"] = selected_creator_action
-                            operation_resolver = getattr(telemetry, "operation_resolver", None)
-                            if not isinstance(result, ProductizedOperationRun) and isinstance(operation_resolver, dict):
-                                run_result["operationResolver"] = operation_resolver
                     else:
                         run_result = {
                             "runtime": "python",

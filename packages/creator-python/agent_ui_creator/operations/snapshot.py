@@ -711,7 +711,7 @@ def _build_plugin_index(result: Mapping[str, Any]) -> PluginCapabilityIndex:
 
 
 class CreatorDomainSnapshotProvider:
-    """Build the authoritative composition snapshot before any resolver call."""
+    """Build the authoritative composition snapshot before Action selection."""
 
     def __init__(self, project_control: ProjectControlClient) -> None:
         self.project_control = project_control

@@ -536,3 +536,83 @@ def test_add_result_instance_id_comes_from_host_expected_runtime():
 
     assert result.status == "success"
     assert result.instanceId == "history-main"
+
+
+def test_remove_action_succeeds_when_host_and_runtime_agree():
+    candidate = action("remove_plugin")
+    source = snapshot(candidate)
+    mutation_service = FakeMutation([mutation(candidate)])
+    playbook = make_playbook(
+        mutation_service,
+        SequenceSnapshotProvider([source]),
+        [{
+            "currentHash": "c" * 64,
+            "runtimeStatus": "passed",
+            "compositionFresh": True,
+            "compositionVerified": True,
+            "currentErrors": [],
+            "runtimeInstances": [],
+        }],
+    )
+
+    result = asyncio.run(playbook.execute(source, candidate))
+
+    assert result.status == "success"
+    assert result.verification is not None
+    assert result.verification.absentInstancesVerified == ["history-main"]
+
+
+def test_action_static_validation_failure_skips_runtime():
+    candidate = action("add_existing_plugin", instance_id=None)
+    source = snapshot(candidate)
+    mutation_service = FakeMutation([mutation(candidate)])
+    validation = FakeValidation(status="failed")
+    runtime = FakeRuntime([])
+    playbook = CreatorActionExecutionPlaybook(
+        mutation_service=mutation_service,
+        snapshot_provider=SequenceSnapshotProvider([source]),  # type: ignore[arg-type]
+        verification=CompositionOperationVerificationService(
+            validation=validation, runtime=runtime
+        ),
+    )
+
+    result = asyncio.run(playbook.execute(source, candidate))
+
+    assert result.status == "failed"
+    assert result.verification is not None
+    assert result.verification.staticStatus == "failed"
+    assert result.verification.runtimeStatus == "not-run"
+    assert runtime.inspect_calls == 0
+
+
+def test_action_reports_committed_unverified_for_stale_runtime():
+    candidate = action("remove_plugin")
+    source = snapshot(candidate)
+    mutation_service = FakeMutation([mutation(candidate)])
+    playbook = make_playbook(
+        mutation_service,
+        SequenceSnapshotProvider([source]),
+        [{"runtimeStatus": "stale", "compositionFresh": False}] * 3,
+    )
+
+    result = asyncio.run(playbook.execute(source, candidate))
+
+    assert result.status == "committed_unverified"
+    assert result.mutationChanged is True
+    assert result.metrics.verificationRuntimeFreshnessAttempts == 3
+
+
+def test_action_normalizes_host_mutation_failure_without_verification():
+    candidate = action("move_plugin")
+    source = snapshot(candidate)
+    mutation_service = FakeMutation([
+        AppUIModelMutationError("HOST_MOVE_REJECTED", "move rejected")
+    ])
+    playbook = make_playbook(mutation_service, SequenceSnapshotProvider([source]), [])
+
+    result = asyncio.run(playbook.execute(source, candidate))
+
+    assert result.status == "failed"
+    assert result.errorCode == "HOST_MOVE_REJECTED"
+    assert result.verification is None
+    assert result.metrics.mutationAttempts == 1

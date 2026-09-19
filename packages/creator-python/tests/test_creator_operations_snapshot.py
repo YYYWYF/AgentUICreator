@@ -132,7 +132,7 @@ def test_snapshot_provider_uses_one_authoritative_composition_read():
     assert client.views == ["composition"]
     assert snapshot.app_ui_model_hash == "a" * 64
     assert snapshot.plugin_index.plugins[0].pluginId == "conversation-surface"
-    assert snapshot.resolver_context == {
+    assert snapshot.plugin_index.model_dump(mode="json", exclude_none=True) == {
         "plugins": [
             {
                 "pluginId": "conversation-surface",
@@ -441,7 +441,7 @@ def test_snapshot_provider_rejects_too_many_total_plugin_instances():
         ),
     ],
 )
-def test_snapshot_provider_rejects_oversized_resolver_strings(mutate):
+def test_snapshot_provider_rejects_oversized_capability_strings(mutate):
     result = snapshot_result()
     mutate(result)
 

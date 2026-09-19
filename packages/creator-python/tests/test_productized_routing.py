@@ -289,14 +289,7 @@ def test_productized_routing_uses_selector_and_generic_action_playbook(kind):
         assert candidate.effect.region == "right"
 
 
-def test_engine_does_not_run_legacy_resolver_or_registry(monkeypatch):
-    def fail_legacy(*_args, **_kwargs):
-        raise AssertionError("legacy Resolver must not run")
-
-    monkeypatch.setattr(
-        "agent_ui_creator.operations.resolver.CreatorOperationResolver.resolve",
-        fail_legacy,
-    )
+def test_engine_exposes_only_selector_and_action_playbook():
     candidate = _candidate("add_existing_plugin")
     playbook = _ActionPlaybook(_operation_result(operation="add_existing_plugin"))
     engine, _selector, _action_playbook, _telemetry = _engine(
@@ -308,9 +301,25 @@ def test_engine_does_not_run_legacy_resolver_or_registry(monkeypatch):
     result = asyncio.run(engine.run([{"role": "user", "content": "change"}]))
 
     assert isinstance(result, ProductizedOperationRun)
+    assert hasattr(engine, "selector")
+    assert hasattr(engine, "action_playbook")
     assert not hasattr(engine, "resolver")
     assert not hasattr(engine, "registry")
     assert len(playbook.calls) == 1
+
+
+def test_operations_public_api_excludes_retired_pipeline():
+    import agent_ui_creator.operations as operations
+
+    for name in (
+        "CreatorOperationResolver",
+        "CreatorOperationRegistry",
+        "CreatorOperationResolution",
+        "AddExistingPluginPlaybook",
+        "RemovePluginPlaybook",
+        "MovePluginPlaybook",
+    ):
+        assert not hasattr(operations, name)
 
 
 def test_general_change_is_the_only_decision_that_returns_none():
