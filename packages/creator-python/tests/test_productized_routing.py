@@ -277,8 +277,12 @@ def test_productized_routing_uses_selector_and_generic_action_playbook(kind):
     assert result.metrics.totalModelCalls == 1
     assert result.metrics.toolCalls == 0
     assert result.metrics.deepAgentCalls == 0
+    assert telemetry.operation_route["route"] == "productized"
     assert telemetry.operation_route["productized"] is True
-    assert telemetry.operation_route["fallback"] is False
+    assert telemetry.operation_route["generalAgent"] is False
+    assert telemetry.operation_route["clarification"] is False
+    assert telemetry.operation_route["unsupported"] is False
+    assert "fallback" not in telemetry.operation_route
     if kind == "move_plugin":
         assert candidate.effect.type == "workspace_region"
         assert candidate.effect.region == "right"
@@ -321,10 +325,11 @@ def test_general_change_is_the_only_decision_that_returns_none():
     assert engine.mutation_service.metrics.operations == 0
     assert telemetry.operation_route["route"] == "general-agent"
     assert telemetry.operation_route["generalAgent"] is True
-    assert telemetry.operation_route["fallback"] is False
+    assert telemetry.operation_route["productized"] is False
+    assert "fallback" not in telemetry.operation_route
 
 
-def test_needs_clarification_finishes_without_playbook_or_general_fallback():
+def test_needs_clarification_finishes_without_playbook_or_general_agent_route():
     question = "你要删除历史会话，还是当前会话面板？"
     event_bus = CreatorEventBus()
     engine, selector, action_playbook, telemetry = _engine(
@@ -369,10 +374,12 @@ def test_needs_clarification_finishes_without_playbook_or_general_fallback():
         "creator.resolve",
         "creator.resolve",
     ]
+    assert telemetry.operation_route["route"] == "clarification"
     assert telemetry.operation_route["clarification"] is True
+    assert telemetry.operation_route["generalAgent"] is False
 
 
-def test_unsupported_product_action_is_blocked_without_general_fallback():
+def test_unsupported_product_action_is_blocked_without_general_agent_route():
     engine, selector, action_playbook, telemetry = _engine(
         CreatorActionSelection(decision="unsupported_product_action")
     )
@@ -389,10 +396,12 @@ def test_unsupported_product_action_is_blocked_without_general_fallback():
     assert selector.calls == 1
     assert action_playbook.calls == []
     assert telemetry.operation_route["route"] == "unsupported"
-    assert telemetry.operation_route["fallback"] is False
+    assert telemetry.operation_route["unsupported"] is True
+    assert telemetry.operation_route["generalAgent"] is False
+    assert "fallback" not in telemetry.operation_route
 
 
-def test_selector_failure_does_not_fall_back_to_general_agent():
+def test_selector_failure_does_not_route_to_general_agent():
     engine, selector, action_playbook, _telemetry = _engine(
         CreatorActionSelectionError("synthetic selector failure")
     )
@@ -425,7 +434,7 @@ def test_snapshot_failure_does_not_call_selector_or_action_playbook():
     assert action_playbook.calls == []
 
 
-def test_action_execution_failure_propagates_without_fallback():
+def test_action_execution_failure_propagates_without_general_agent_route():
     candidate = _candidate("remove_plugin")
     playbook = _ActionPlaybook(error=RuntimeError("PRODUCT_OPERATION_STALE"))
     engine, selector, action_playbook, _telemetry = _engine(
