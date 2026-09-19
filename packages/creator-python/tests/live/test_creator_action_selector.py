@@ -108,7 +108,7 @@ def _conversation_thread_list_context(
                 if mounted
                 else thread_list_target
             ),
-            effect={"type": "add_default", "placementDomain": "plugin_slot"},
+            effect={"type": "add_default", "placementDomain": "workspace"},
         ),
         _creator_action(
             action_id=thread_list_remove_id if mounted else thread_list_absent_remove_id,
@@ -245,7 +245,7 @@ def _conversation_suggestions_context() -> CreatorActionSelectorContext:
             label="Add Conversation Suggestions",
             description="Add starter prompts and suggested conversation actions using the Plugin default placement.",
             target={"pluginId": plugin_id, "pluginName": "Conversation Suggestions"},
-            effect={"type": "add_default"},
+            effect={"type": "add_default", "placementDomain": "plugin_slot"},
         )],
         pluginSemantics=[*context.pluginSemantics, {
             "pluginId": plugin_id,
@@ -385,6 +385,53 @@ def test_live_unified_selector_routes_three_semantic_highways(
     assert (
         result.actionId if expected_decision == "select_action" else result.targetId
     ) == expected_id
+    assert selector.metrics.modelCalls == 1
+    assert selector.metrics.repairCalls == 0
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(
+    os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
+    reason="Set CREATOR_RUN_LIVE_MODEL=1 to run the live unified Intent Selector evaluation.",
+)
+def test_live_unified_selector_routes_theme_switch_right_to_header_slot():
+    settings = CreatorModelSettings.from_environment()
+    selector = CreatorActionSelector(
+        model=create_creator_chat_model(settings),
+        max_retries=settings.max_retries,
+    )
+
+    result = asyncio.run(
+        selector.select("把主题开关放到右边", _unified_highway_context())
+    )
+
+    assert result.decision == "select_action"
+    assert result.actionId == "act_theme_switch_add_default"
+    assert selector.metrics.modelCalls == 1
+    assert selector.metrics.repairCalls == 0
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(
+    os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
+    reason="Set CREATOR_RUN_LIVE_MODEL=1 to run the live unified Intent Selector evaluation.",
+)
+def test_live_unified_selector_rejects_theme_switch_explicit_workspace_region():
+    settings = CreatorModelSettings.from_environment()
+    selector = CreatorActionSelector(
+        model=create_creator_chat_model(settings),
+        max_retries=settings.max_retries,
+    )
+
+    result = asyncio.run(
+        selector.select(
+            "把主题开关放到 Workspace.Right 面板",
+            _unified_highway_context(),
+        )
+    )
+
+    assert result.decision == "unsupported_product_action"
+    assert result.actionId is None
     assert selector.metrics.modelCalls == 1
     assert selector.metrics.repairCalls == 0
 
@@ -635,7 +682,7 @@ def test_live_creator_action_selector_asks_for_ambiguous_instance():
 @pytest.mark.parametrize(("prompt", "expected_effect"), [
     ("我想在右边加入一个历史会话管理的面板", {"type": "workspace_region", "region": "right"}),
     ("在左边加入历史会话面板", {"type": "workspace_region", "region": "left"}),
-    ("添加会话管理", {"type": "add_default"}),
+    ("添加会话管理", {"type": "add_default", "placementDomain": "workspace"}),
 ])
 def test_live_thread_list_add_respects_requested_placement(prompt, expected_effect):
     settings = CreatorModelSettings.from_environment()
