@@ -13,13 +13,13 @@ from agent_ui_creator.operations import (
     CreatorActionSelectionError,
     CreatorActionSelector,
     CreatorActionSelectorContext,
+    PendingCreatorClarificationStore,
 )
 from agent_ui_creator.operations.selector import (
     _InvalidActionSelection,
     _parse_selector_response,
 )
 from agent_ui_creator.model_settings import CreatorSelectorModelSettings
-from agent_ui_creator.operations.engine import _recent_clarification_context
 
 
 class StaticChatModel:
@@ -137,16 +137,19 @@ def test_explicit_region_action_and_unplaced_default_have_distinct_selection():
         assert selection.actionId == expected
 
 
-def test_clarification_follow_up_carries_only_previous_request_and_question():
-    messages = [
-        {"role": "user", "content": "我不要历史会话管理功能"},
-        {"role": "assistant", "content": "你是只想移除界面上的历史会话管理面板，还是也要禁用底层能力？"},
-        {"role": "user", "content": "只去掉界面上的面板"},
-    ]
-    context = _recent_clarification_context(messages)
+def test_clarification_follow_up_carries_bounded_state_without_question_mark():
+    store = PendingCreatorClarificationStore()
+    store.replace(
+        "thread-1",
+        previous_user_request="我不要历史会话管理功能",
+        clarification_question="你是只想移除界面上的历史会话管理面板，还是也要禁用底层能力",
+    )
+    pending = store.consume("thread-1")
+    assert pending is not None
+    context = pending.to_selector_context()
     assert context == {
         "previousUserRequest": "我不要历史会话管理功能",
-        "previousCreatorClarification": messages[1]["content"],
+        "previousCreatorClarification": "你是只想移除界面上的历史会话管理面板，还是也要禁用底层能力",
     }
     model = StaticChatModel(["SELECT A1"])
     remove_context = CreatorActionSelectorContext(
@@ -162,7 +165,7 @@ def test_clarification_follow_up_carries_only_previous_request_and_question():
         pluginSemantics=[],
     )
     selection = asyncio.run(CreatorActionSelector(model=model).select(
-        messages[-1]["content"], remove_context, clarification_context=context,
+        "只去掉界面上的面板", remove_context, clarification_context=context,
     ))
     assert selection.actionId == "act_remove"
     assert _payload(model)["recentClarification"] == context

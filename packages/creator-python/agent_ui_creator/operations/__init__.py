@@ -61,6 +61,13 @@ from .selector import (
     CreatorActionSelectionError,
     CreatorActionSelector,
 )
+from .clarification import (
+    MAX_PREVIOUS_CREATOR_REQUEST_CHARS,
+    PendingCreatorClarification,
+    PendingCreatorClarificationStore,
+    current_pending_creator_clarifications,
+    use_pending_creator_clarifications,
+)
 from .presentation import (
     CreatorIntentPresentation,
     CreatorIntentRoute,
@@ -95,6 +102,11 @@ __all__ = [
     "CreatorActionSelection",
     "CreatorActionSelectionError",
     "CreatorActionSelector",
+    "PendingCreatorClarification",
+    "PendingCreatorClarificationStore",
+    "MAX_PREVIOUS_CREATOR_REQUEST_CHARS",
+    "current_pending_creator_clarifications",
+    "use_pending_creator_clarifications",
     "CreatorActionSelectorContext",
     "CreatorActionSelectorMetrics",
     "CreatorActionSemanticPlugin",

@@ -29,6 +29,10 @@ from ..streaming.runtime_events import (
 from ..validation import CreatorValidationService
 from ..visual_observation import VisualObservationStore
 from .action_playbook import CreatorActionExecutionPlaybook
+from .clarification import (
+    PendingCreatorClarificationStore,
+    current_pending_creator_clarifications,
+)
 from .models import (
     CreatorActionCandidate,
     CreatorActionSelection,
@@ -106,21 +110,6 @@ def _latest_user_message(messages: list[dict[str, str]]) -> str:
     raise ValueError("A Productized Operation requires a non-empty user message.")
 
 
-def _recent_clarification_context(messages: list[dict[str, str]]) -> dict[str, str] | None:
-    """Replay only the immediately preceding question and request for a short answer."""
-    recent = [message for message in messages if message.get("content", "").strip()]
-    if (len(recent) < 3 or recent[-1].get("role") != "user" or
-        recent[-2].get("role") != "assistant" or recent[-3].get("role") != "user"):
-        return None
-    question = recent[-2]["content"].strip()
-    if "?" not in question and "？" not in question:
-        return None
-    return {
-        "previousUserRequest": recent[-3]["content"].strip()[:500],
-        "previousCreatorClarification": question[:300],
-    }
-
-
 def _operation_text(
     operation: CreatorOperationExecutionResult,
 ) -> str:
@@ -163,8 +152,10 @@ class ProductizedOperationEngine:
         telemetry: CreatorRunTelemetry | None = None,
         event_sink: CreatorEventSink | None = None,
         visual_observations: VisualObservationStore | None = None,
+        pending_clarifications: PendingCreatorClarificationStore | None = None,
     ) -> None:
         self.project_root = Path(project_root).resolve()
+        self.thread_id = thread_id
         self.activity = activity
         self.project_control = project_control
         self.event_sink = event_sink
@@ -213,6 +204,11 @@ class ProductizedOperationEngine:
             ),
         )
         self.telemetry = telemetry
+        self.pending_clarifications = (
+            pending_clarifications
+            or current_pending_creator_clarifications()
+            or PendingCreatorClarificationStore()
+        )
         if telemetry is not None:
             telemetry.bind(
                 activity=activity,
@@ -267,11 +263,19 @@ class ProductizedOperationEngine:
             "creator.resolve",
             {"phase": "understanding", "status": "running"},
         )
+        pending_clarification = self.pending_clarifications.consume(self.thread_id)
         try:
+            selector_kwargs = (
+                {
+                    "clarification_context": pending_clarification.to_selector_context()
+                }
+                if pending_clarification is not None
+                else {}
+            )
             selection = await self.selector.select(
                 user_message,
                 snapshot.action_selector_context,
-                clarification_context=_recent_clarification_context(messages),
+                **selector_kwargs,
             )
             selected_action = None
             if selection.decision == "select_action":
@@ -293,6 +297,11 @@ class ProductizedOperationEngine:
                 },
             )
         except Exception as error:
+            if pending_clarification is not None:
+                self.pending_clarifications.restore(
+                    self.thread_id,
+                    pending_clarification,
+                )
             if self.telemetry is not None:
                 self.telemetry.bind(action_selector=self._action_selector_metrics())
             await self._publish_step_finished(
@@ -333,6 +342,17 @@ class ProductizedOperationEngine:
             route=route,
             presentation=presentation,
         )
+
+        if selection.decision == "needs_clarification":
+            clarification_question = selection.clarificationQuestion
+            assert clarification_question is not None
+            self.pending_clarifications.replace(
+                self.thread_id,
+                previous_user_request=user_message,
+                clarification_question=clarification_question,
+            )
+        else:
+            self.pending_clarifications.clear(self.thread_id)
 
         selector_metrics = self.selector.metrics
         if selection.decision == "general_change":

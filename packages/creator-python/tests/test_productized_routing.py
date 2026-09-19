@@ -23,6 +23,7 @@ from agent_ui_creator.operations import (
     CreatorOperationExecutionStatus,
     CreatorOperationMetrics,
     PluginCapabilityIndex,
+    PendingCreatorClarificationStore,
     RemoveActionEffect,
     WorkspaceRegionActionEffect,
     present_creator_action_selection,
@@ -73,9 +74,15 @@ class _Selector:
             contextCharacters=100,
         )
 
-    async def select(self, message: str, context: object):
+    async def select(
+        self,
+        message: str,
+        context: object,
+        *,
+        clarification_context: object | None = None,
+    ):
         self.calls += 1
-        self.messages.append((message, context))
+        self.messages.append((message, clarification_context or context))
         if isinstance(self.selection, BaseException):
             raise self.selection
         return self.selection
@@ -222,6 +229,8 @@ def _engine(
     candidates: list[CreatorActionCandidate] | None = None,
     snapshot_provider: _SnapshotProvider | None = None,
     selector_metrics: CreatorActionSelectorMetrics | None = None,
+    pending_clarifications: PendingCreatorClarificationStore | None = None,
+    thread_id: str = "thread-1",
 ) -> tuple[ProductizedOperationEngine, _Selector, _ActionPlaybook, CreatorRunTelemetry]:
     telemetry = CreatorRunTelemetry()
     selector = _Selector(selection, metrics=selector_metrics)
@@ -234,6 +243,8 @@ def _engine(
         logger=None,
         record_semantic_noop=lambda **_kwargs: None,
     )
+    engine.thread_id = thread_id
+    engine.pending_clarifications = pending_clarifications or PendingCreatorClarificationStore()
     engine.snapshot_provider = snapshot_provider or _SnapshotProvider(candidates)
     engine.observations = DomainObservationContext()
     engine.selector = selector
@@ -415,6 +426,45 @@ def test_needs_clarification_finishes_without_playbook_or_general_agent_route():
     assert telemetry.operation_route["route"] == "clarification"
     assert telemetry.operation_route["clarification"] is True
     assert telemetry.operation_route["generalAgent"] is False
+
+
+def test_clarification_continuation_is_thread_bound_and_does_not_require_punctuation():
+    pending_clarifications = PendingCreatorClarificationStore()
+    first_engine, _first_selector, first_playbook, _first_telemetry = _engine(
+        CreatorActionSelection(
+            decision="needs_clarification",
+            clarificationQuestion="你是只想去掉界面面板，还是也要关闭底层能力",
+        ),
+        pending_clarifications=pending_clarifications,
+    )
+
+    first_result = asyncio.run(first_engine.run([
+        {"role": "user", "content": "我不要历史会话管理功能"},
+    ]))
+
+    assert isinstance(first_result, ProductizedOperationRun)
+    assert first_playbook.calls == []
+    assert pending_clarifications.peek("thread-1") is not None
+
+    remove_candidate = _candidate("remove_plugin")
+    second_engine, second_selector, second_playbook, _second_telemetry = _engine(
+        _selection_for(remove_candidate),
+        playbook=_ActionPlaybook(_operation_result(operation="remove_plugin")),
+        candidates=[remove_candidate],
+        pending_clarifications=pending_clarifications,
+    )
+    second_result = asyncio.run(second_engine.run([
+        {"role": "user", "content": "只去掉面板"},
+    ]))
+
+    assert isinstance(second_result, ProductizedOperationRun)
+    assert second_result.selected_action is remove_candidate
+    assert len(second_playbook.calls) == 1
+    assert second_selector.messages[0][1] == {
+        "previousUserRequest": "我不要历史会话管理功能",
+        "previousCreatorClarification": "你是只想去掉界面面板，还是也要关闭底层能力",
+    }
+    assert pending_clarifications.peek("thread-1") is None
 
 
 def test_unsupported_product_action_is_blocked_without_general_agent_route():

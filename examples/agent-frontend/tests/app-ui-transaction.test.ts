@@ -90,6 +90,24 @@ async function createProject(
   return { projectRoot, source };
 }
 
+async function createHeadlessProject() {
+  const model: AppUIModel = {
+    applicationPlugins: [{
+      id: "conversation-service-main",
+      pluginId: "conversation-service",
+      enabled: true,
+    }],
+    root: {
+      type: "slot",
+      plugins: [{ id: "sample-main", pluginId: "sample", enabled: true }],
+    },
+  };
+  return createProject({}, model, [[
+    "conversation-service",
+    { capabilities: ["headless"] },
+  ]]);
+}
+
 afterEach(async () => {
   await Promise.all(temporaryProjects.splice(0).map((root) =>
     rm(root, { recursive: true, force: true }),
@@ -130,6 +148,63 @@ describe("AppUIModel transaction", () => {
     expect(result.changedPaths).toEqual(["app-ui/app-ui.json"]);
     expect(result.diff.capabilityCatalog.changed).toBe(false);
     expect(result.activeComposition.resolvedPluginIds).toEqual([]);
+  });
+
+  it("rejects generic removal of an application Headless Plugin", async () => {
+    const { projectRoot, source } = await createHeadlessProject();
+
+    await expect(mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "remove_plugin",
+        instanceId: "conversation-service-main",
+      }],
+    })).rejects.toMatchObject({ code: "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED" });
+
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
+      .toBe(source);
+  });
+
+  it("rejects generic default removal of an application Headless Plugin", async () => {
+    const { projectRoot, source } = await createHeadlessProject();
+
+    await expect(mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "remove_plugin_default",
+        instanceId: "conversation-service-main",
+      }],
+    })).rejects.toMatchObject({ code: "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED" });
+  });
+
+  it("rejects disabling an application Headless Plugin through generic mutation", async () => {
+    const { projectRoot, source } = await createHeadlessProject();
+
+    await expect(mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "set_plugin_enabled",
+        instanceId: "conversation-service-main",
+        enabled: false,
+      }],
+    })).rejects.toMatchObject({ code: "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED" });
+  });
+
+  it("rejects replacing an application Headless Plugin through generic mutation", async () => {
+    const { projectRoot, source } = await createHeadlessProject();
+
+    await expect(mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "replace_plugin",
+        instanceId: "conversation-service-main",
+        replacement: {
+          id: "replacement-main",
+          pluginId: "sample",
+          enabled: true,
+        },
+      }],
+    })).rejects.toMatchObject({ code: "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED" });
   });
 
   it("removes a history panel in one mutation without catalog churn", async () => {

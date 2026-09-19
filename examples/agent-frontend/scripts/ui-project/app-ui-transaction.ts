@@ -772,6 +772,70 @@ async function resolveCreatorActionExecution(
   return { candidate, binding, generation, projectFacts };
 }
 
+function isHeadlessLifecycleOperation(
+  operation: AppUIOperation,
+): operation is Extract<
+  AppUIOperation,
+  {
+    type:
+      | "remove_plugin"
+      | "remove_plugin_default"
+      | "replace_plugin"
+      | "set_plugin_enabled";
+  }
+> {
+  return (
+    operation.type === "remove_plugin" ||
+    operation.type === "remove_plugin_default" ||
+    operation.type === "replace_plugin" ||
+    operation.type === "set_plugin_enabled"
+  );
+}
+
+async function assertHeadlessPluginLifecycleProtected(
+  projectRoot: string,
+  model: AppUIModel,
+  operations: readonly AppUIOperation[],
+  generation?: GeneratePluginCatalogResult,
+): Promise<GeneratePluginCatalogResult | undefined> {
+  const lifecycleOperations = operations.filter(isHeadlessLifecycleOperation);
+  if (lifecycleOperations.length === 0) return generation;
+
+  const currentGeneration = generation ?? await generatePluginRegistry(projectRoot, model);
+  const headlessPluginIds = new Set(
+    currentGeneration.assets
+      .filter((asset) => asset.capabilities.includes("headless"))
+      .map((asset) => asset.pluginId),
+  );
+  const locations = new Map(
+    collectAppUIPluginLocations(model).map((location) => [location.plugin.id, location]),
+  );
+
+  for (const operation of lifecycleOperations) {
+    if (operation.type === "set_plugin_enabled" && operation.enabled) continue;
+    const location = locations.get(operation.instanceId);
+    const targetPluginId = location?.plugin.pluginId;
+    const targetIsHeadless = targetPluginId !== undefined && headlessPluginIds.has(targetPluginId);
+    const replacementIsHeadless = operation.type === "replace_plugin" &&
+      headlessPluginIds.has(operation.replacement.pluginId);
+    if (!targetIsHeadless && !replacementIsHeadless) continue;
+
+    throw new AppUITransactionError(
+      "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED",
+      "Generic AppUIModel mutation cannot remove, disable, or replace a Headless Plugin. Use an explicit capability/service lifecycle contract.",
+      {
+        operation: operation.type,
+        instanceId: operation.instanceId,
+        ...(targetPluginId === undefined ? {} : { pluginId: targetPluginId }),
+        ...(replacementIsHeadless && operation.type === "replace_plugin"
+          ? { replacementPluginId: operation.replacement.pluginId }
+          : {}),
+      },
+    );
+  }
+  return currentGeneration;
+}
+
 
 function semanticPlacementError(
   code:
@@ -1011,6 +1075,14 @@ async function runTransaction(
       );
     }
 
+    if (!input.operations.some((operation) => operation.type === "execute_creator_action")) {
+      currentGeneration = await assertHeadlessPluginLifecycleProtected(
+        projectRoot,
+        beforeModel,
+        loweredOperations,
+      );
+    }
+
     const requestedOperation = loweredOperations[0];
     if (requestedOperation?.type === "execute_creator_action") {
       const resolved = await resolveCreatorActionExecution(
@@ -1104,6 +1176,12 @@ async function runTransaction(
         actionStatus: creatorAction.status,
       };
     }
+    currentGeneration = await assertHeadlessPluginLifecycleProtected(
+      projectRoot,
+      beforeModel,
+      loweredOperations,
+      currentGeneration,
+    );
     afterModel = parseAppUIModel(
       applyAppUIOperations(
         beforeModel,

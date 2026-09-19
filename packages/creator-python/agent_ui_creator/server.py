@@ -44,7 +44,12 @@ from .visual_observation import (
     VisualObservationStore,
 )
 from .observability import CreatorRunLogger, CreatorRunTelemetry
-from .operations import ProductizedOperationEngine, ProductizedOperationRun
+from .operations import (
+    PendingCreatorClarificationStore,
+    ProductizedOperationEngine,
+    ProductizedOperationRun,
+    use_pending_creator_clarifications,
+)
 from .project_control import ProjectControlClient
 from .streaming import CreatorEventBus, CreatorEventSink, map_runtime_event
 
@@ -456,6 +461,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
     app.state.runtime_diagnostics = diagnostics
     visual_observations = VisualObservationStore(settings.project_root)
     app.state.visual_observations = visual_observations
+    pending_clarifications = PendingCreatorClarificationStore()
+    app.state.pending_creator_clarifications = pending_clarifications
     writing_run_lock = asyncio.Lock()
     mutation_coordinator = ProjectMutationCoordinator()
 
@@ -547,46 +554,47 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                     assert logger is not None
                     event_bus = CreatorEventBus()
                     telemetry = CreatorRunTelemetry(activity=activity)
-                    if agent_mode == "domain-write":
-                        agent_result = _domain_write_agent_result(
-                            settings,
-                            _conversation_messages(run_input),
-                            activity,
-                            mutation_coordinator,
-                            diagnostics,
-                            run_input.threadId,
-                            event_bus,
-                            telemetry,
-                            visual_observations=visual_observations,
+                    with use_pending_creator_clarifications(pending_clarifications):
+                        if agent_mode == "domain-write":
+                            agent_result = _domain_write_agent_result(
+                                settings,
+                                _conversation_messages(run_input),
+                                activity,
+                                mutation_coordinator,
+                                diagnostics,
+                                run_input.threadId,
+                                event_bus,
+                                telemetry,
+                                visual_observations=visual_observations,
+                            )
+                        elif agent_mode == "domain-read":
+                            agent_result = _domain_read_agent_result(
+                                settings,
+                                _conversation_messages(run_input),
+                                activity,
+                                run_input.threadId,
+                                event_bus,
+                                telemetry,
+                                diagnostics=diagnostics,
+                            )
+                        else:
+                            agent_result = _minimal_agent_result(
+                                settings,
+                                _echo_text(run_input),
+                                activity,
+                                run_input.threadId,
+                                event_bus,
+                                telemetry,
+                            )
+                        agent_task = asyncio.create_task(
+                            _execute_agent_run(
+                                agent_result,
+                                activity=activity,
+                                logger=logger,
+                                event_bus=event_bus,
+                                telemetry=telemetry,
+                            )
                         )
-                    elif agent_mode == "domain-read":
-                        agent_result = _domain_read_agent_result(
-                            settings,
-                            _conversation_messages(run_input),
-                            activity,
-                            run_input.threadId,
-                            event_bus,
-                            telemetry,
-                            diagnostics=diagnostics,
-                        )
-                    else:
-                        agent_result = _minimal_agent_result(
-                            settings,
-                            _echo_text(run_input),
-                            activity,
-                            run_input.threadId,
-                            event_bus,
-                            telemetry,
-                        )
-                    agent_task = asyncio.create_task(
-                        _execute_agent_run(
-                            agent_result,
-                            activity=activity,
-                            logger=logger,
-                            event_bus=event_bus,
-                            telemetry=telemetry,
-                        )
-                    )
 
                     def consume_background_result(task: asyncio.Task[Any]) -> None:
                         try:
