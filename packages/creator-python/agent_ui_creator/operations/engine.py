@@ -99,7 +99,7 @@ class ProductizedOperationRun:
     completion: str
     selection: CreatorActionSelection | None = None
     selected_action: CreatorActionCandidate | None = None
-    action_selector_metrics: dict[str, int] = field(default_factory=dict)
+    action_selector_metrics: dict[str, object] = field(default_factory=dict)
     intent_presentation: CreatorIntentPresentation | None = None
     blocker: dict[str, Any] | None = None
     # Legacy persisted result fields. New production runs leave these empty.
@@ -495,9 +495,9 @@ class ProductizedOperationEngine:
                 CreatorStepFinished(name=name, metadata={"creator": metadata})
             )
 
-    def _action_selector_metrics(self) -> dict[str, int]:
+    def _action_selector_metrics(self) -> dict[str, object]:
         metrics = self.selector.metrics
-        return {
+        result: dict[str, object] = {
             "actionSelectorCalls": metrics.modelCalls,
             "actionSelectorRepairCalls": metrics.repairCalls,
             "actionSelectorInvalidResponses": metrics.invalidResponses,
@@ -505,6 +505,11 @@ class ProductizedOperationEngine:
             "actionSelectorCandidateCount": metrics.candidateCount,
             "actionSelectorContextCharacters": metrics.contextCharacters,
         }
+        if metrics.repairReasonCode is not None:
+            result["actionSelectorRepairReasonCode"] = metrics.repairReasonCode
+        if metrics.repairReason is not None:
+            result["actionSelectorRepairReason"] = metrics.repairReason
+        return result
 
     def _action_selector_metrics_metadata(self) -> dict[str, object]:
         metrics = self.selector.metrics

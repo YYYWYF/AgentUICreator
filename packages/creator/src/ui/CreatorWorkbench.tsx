@@ -667,6 +667,12 @@ function CreatorStageDebugDetails({
               ["Action selector calls", metadata.actionSelectorCalls],
               ["Action selector repairs", metadata.actionSelectorRepairCalls],
               ["Action selector invalid", metadata.actionSelectorInvalidResponses],
+              ...(metadata.actionSelectorRepairCalls !== undefined && metadata.actionSelectorRepairCalls > 0
+                ? [
+                    ["Repair reason code", metadata.actionSelectorRepairReasonCode] as [string, unknown],
+                    ["Repair reason", metadata.actionSelectorRepairReason] as [string, unknown],
+                  ]
+                : []),
               ["Model calls", metadata.modelCalls],
               ["Repair calls", metadata.repairCalls],
               ["Duration", metadata.durationMs === undefined ? "—" : `${metadata.durationMs} ms`],

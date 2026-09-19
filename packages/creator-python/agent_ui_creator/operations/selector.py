@@ -4,7 +4,7 @@ import inspect
 import json
 from collections.abc import Callable, Mapping
 from time import monotonic
-from typing import Any, Literal
+from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import ValidationError
@@ -15,16 +15,11 @@ from .models import (
     CreatorActionSelection,
     CreatorActionSelectorMetrics,
     CreatorActionSelectorContext,
+    InvalidActionSelectionReason,
 )
 
 MAX_ACTION_SELECTOR_REPAIR_CALLS = 1
 MAX_ACTION_SELECTOR_OUTPUT_TOKENS = 256
-
-InvalidActionSelectionReason = Literal[
-    "structured_parse_failed",
-    "schema_validation_failed",
-    "unknown_action_id",
-]
 
 _SELECTOR_SYSTEM_PROMPT = """You are the Creator Action Selector.
 
@@ -211,6 +206,9 @@ class CreatorActionSelector:
                 except _InvalidActionSelection as error:
                     self.metrics.invalidResponses += 1
                     last_error = (error.reason_code, _bounded_error(error))
+                    if attempt == 0:
+                        self.metrics.repairReasonCode = error.reason_code
+                        self.metrics.repairReason = _bounded_error(error)
                     if attempt >= MAX_ACTION_SELECTOR_REPAIR_CALLS:
                         raise CreatorActionSelectionError(
                             "Creator Action Selector returned an invalid selection.",

@@ -118,6 +118,10 @@ def test_selector_selects_an_exact_supplied_action_once():
     assert selector.metrics.modelCalls == 1
     assert selector.metrics.repairCalls == 0
     assert selector.metrics.invalidResponses == 0
+    assert selector.metrics.repairReasonCode is None
+    assert selector.metrics.repairReason is None
+    assert "repairReasonCode" not in selector.metrics.to_dict()
+    assert "repairReason" not in selector.metrics.to_dict()
     assert selector.metrics.candidateCount == 2
     assert selector.metrics.contextCharacters > 0
 
@@ -137,6 +141,11 @@ def test_selector_repairs_one_unknown_action_id_with_host_feedback():
     assert selector.metrics.modelCalls == 2
     assert selector.metrics.repairCalls == 1
     assert selector.metrics.invalidResponses == 1
+    assert selector.metrics.repairReasonCode == "unknown_action_id"
+    assert selector.metrics.repairReason == (
+        "The selected actionId is not one of the supplied current Action Candidates."
+    )
+    assert selector.metrics.to_dict()["repairReasonCode"] == "unknown_action_id"
     feedback = json.loads(model.messages[1][1].content)["hostValidationFeedback"]
     assert "not one of the supplied current Action Candidates" in feedback
     assert "Copy exactly one actionId" in feedback
@@ -191,6 +200,10 @@ def test_selector_repairs_schema_failure_with_schema_specific_feedback():
     assert selector.metrics.modelCalls == 2
     assert selector.metrics.repairCalls == 1
     assert selector.metrics.invalidResponses == 1
+    assert selector.metrics.repairReasonCode == "schema_validation_failed"
+    assert selector.metrics.repairReason == (
+        "Structured Action Selector output failed schema validation."
+    )
 
 
 def test_selector_repairs_structured_parse_failure_with_parse_specific_feedback():
@@ -215,6 +228,32 @@ def test_selector_repairs_structured_parse_failure_with_parse_specific_feedback(
     assert selector.metrics.modelCalls == 2
     assert selector.metrics.repairCalls == 1
     assert selector.metrics.invalidResponses == 1
+    assert selector.metrics.repairReasonCode == "structured_parse_failed"
+    assert selector.metrics.repairReason == (
+        "Structured Action Selector output could not be parsed."
+    )
+
+
+def test_selector_keeps_first_repair_reason_when_second_response_fails_differently():
+    model = StaticStructuredModel(
+        [
+            {"decision": "select_action", "actionId": "act_invented"},
+            {"decision": "select_action"},
+        ]
+    )
+    selector = CreatorActionSelector(structured_model=model)
+
+    with pytest.raises(CreatorActionSelectionError) as raised:
+        asyncio.run(selector.select("把会话管理放到右边", context()))
+
+    assert selector.metrics.modelCalls == 2
+    assert selector.metrics.repairCalls == 1
+    assert selector.metrics.invalidResponses == 2
+    assert selector.metrics.repairReasonCode == "unknown_action_id"
+    assert selector.metrics.repairReason == (
+        "The selected actionId is not one of the supplied current Action Candidates."
+    )
+    assert raised.value.details["reasonCode"] == "schema_validation_failed"
 
 
 def test_selector_fails_with_structured_parse_reason_after_one_repair():

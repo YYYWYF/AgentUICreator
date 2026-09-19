@@ -9,11 +9,16 @@ from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.app_ui_model import AppUIModelMutationMetrics
 from agent_ui_creator.domain_agent import create_domain_write_creator_agent
 from agent_ui_creator.domain_agent.change_scope import ChangeScopeMetrics
-from agent_ui_creator.domain_state import CompositionFastPathMetrics
+from agent_ui_creator.domain_state import CompositionFastPathMetrics, DomainObservationMetrics
 from agent_ui_creator.model_protocol.errors import AgentNoProgressError
 from agent_ui_creator.model_protocol.trace import ToolProtocolMetrics
 from agent_ui_creator.observability import CreatorRunLogger, CreatorRunTelemetry
 from agent_ui_creator.operations import CreatorActionSelectionError
+from agent_ui_creator.operations.engine import (
+    ProductizedOperationRun,
+    ProductizedOperationToolMetrics,
+)
+from agent_ui_creator.operations.snapshot import CreatorDomainSnapshotMetrics
 from agent_ui_creator.project_control import ProjectControlMetrics
 from agent_ui_creator.run_control import CreatorRunControlState
 from agent_ui_creator.server import _execute_agent_run
@@ -173,6 +178,65 @@ def test_action_selector_calls_do_not_overwrite_general_agent_model_calls():
     assert metrics["toolCalls"] == 4
     assert metrics["actionSelectorCalls"] == 1
     assert metrics["totalModelCalls"] == 6
+
+
+def test_successful_productized_repair_reason_is_logged_in_run_finished(tmp_path):
+    logger = CreatorRunLogger(tmp_path)
+    logger.begin(run_id="selector-repaired-success", agent_mode="domain-write")
+    activity = CreatorActivityRecorder(tmp_path, logger=logger)
+    activity.begin("selector-repaired-success")
+    result = ProductizedOperationRun(
+        text="Completed Productized operation.",
+        metrics=ProductizedOperationToolMetrics(
+            modelCalls=2,
+            actionSelectorCalls=2,
+            actionSelectorRepairCalls=1,
+            actionSelectorInvalidResponses=1,
+            totalModelCalls=2,
+        ),
+        project_control=ProjectControlMetrics(),
+        repeated_project_control_reads=0,
+        domain_observations=DomainObservationMetrics(),
+        app_ui_model_mutations=AppUIModelMutationMetrics(),
+        snapshot_metrics=CreatorDomainSnapshotMetrics(),
+        operation_result=None,
+        validation_metrics={},
+        completion="success",
+        action_selector_metrics={
+            "actionSelectorCalls": 2,
+            "actionSelectorRepairCalls": 1,
+            "actionSelectorInvalidResponses": 1,
+            "actionSelectorRepairReasonCode": "unknown_action_id",
+            "actionSelectorRepairReason": (
+                "The selected actionId is not one of the supplied current Action Candidates."
+            ),
+        },
+    )
+
+    async def finish_run():
+        return result
+
+    asyncio.run(
+        _execute_agent_run(
+            finish_run(),
+            activity=activity,
+            logger=logger,
+            event_bus=CreatorEventBus(),
+        )
+    )
+
+    entries = [
+        json.loads(line)
+        for line in logger.path.read_text(encoding="utf-8").splitlines()
+    ]
+    finished = [entry for entry in entries if entry["type"] == "run_finished"]
+    assert len(finished) == 1
+    data = finished[0]["data"]
+    assert data["status"] == "success"
+    assert data["actionSelector"]["actionSelectorRepairReasonCode"] == (
+        "unknown_action_id"
+    )
+    assert data["modelToolMetrics"]["totalModelCalls"] == 2
 
 
 def test_action_selector_failure_details_are_retained_in_run_finished(tmp_path):

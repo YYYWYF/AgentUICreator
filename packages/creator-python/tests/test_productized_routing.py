@@ -329,6 +329,34 @@ def test_general_change_is_the_only_decision_that_returns_none():
     assert "fallback" not in telemetry.operation_route
 
 
+def test_repaired_general_change_preserves_selector_reason_and_model_totals():
+    engine, _selector, _action_playbook, telemetry = _engine(
+        CreatorActionSelection(decision="general_change"),
+        selector_metrics=CreatorActionSelectorMetrics(
+            modelCalls=2,
+            repairCalls=1,
+            invalidResponses=1,
+            repairReasonCode="unknown_action_id",
+            repairReason=(
+                "The selected actionId is not one of the supplied current Action Candidates."
+            ),
+        ),
+    )
+    telemetry.protocol = {"modelCalls": 3, "toolCalls": 1}
+
+    result = asyncio.run(engine.run([{"role": "user", "content": "支持标题模糊搜索"}]))
+
+    assert result is None
+    assert telemetry.action_selector is not None
+    assert telemetry.action_selector["actionSelectorRepairReasonCode"] == (
+        "unknown_action_id"
+    )
+    metrics = telemetry.model_tool_metrics()
+    assert metrics["modelCalls"] == 3
+    assert metrics["actionSelectorCalls"] == 2
+    assert metrics["totalModelCalls"] == 5
+
+
 def test_needs_clarification_finishes_without_playbook_or_general_agent_route():
     question = "你要删除历史会话，还是当前会话面板？"
     event_bus = CreatorEventBus()
@@ -474,6 +502,10 @@ def test_selector_repair_metrics_are_authoritative_and_no_execution_model_is_use
         durationMs=20,
         candidateCount=3,
         contextCharacters=900,
+        repairReasonCode="unknown_action_id",
+        repairReason=(
+            "The selected actionId is not one of the supplied current Action Candidates."
+        ),
     )
     operation_result = _operation_result(operation="move_plugin")
     engine, _selector, _action_playbook, _telemetry = _engine(
@@ -490,6 +522,12 @@ def test_selector_repair_metrics_are_authoritative_and_no_execution_model_is_use
     assert result.metrics.actionSelectorCalls == 2
     assert result.metrics.actionSelectorRepairCalls == 1
     assert result.metrics.actionSelectorInvalidResponses == 1
+    assert result.action_selector_metrics["actionSelectorRepairReasonCode"] == (
+        "unknown_action_id"
+    )
+    assert result.action_selector_metrics["actionSelectorRepairReason"] == (
+        "The selected actionId is not one of the supplied current Action Candidates."
+    )
     assert result.metrics.totalModelCalls == 2
     assert result.metrics.toolCalls == 0
     assert result.metrics.deepAgentCalls == 0

@@ -66,6 +66,8 @@ export interface CreatorStageMetadata {
   actionSelectorCalls?: number;
   actionSelectorRepairCalls?: number;
   actionSelectorInvalidResponses?: number;
+  actionSelectorRepairReasonCode?: string;
+  actionSelectorRepairReason?: string;
   actionSelectorDurationMs?: number;
   candidateCount?: number;
   contextCharacters?: number;
@@ -186,6 +188,8 @@ export function parseCreatorStepMetadata(
     "errorCode",
     "selectorFailureReasonCode",
     "selectorFailureReason",
+    "actionSelectorRepairReasonCode",
+    "actionSelectorRepairReason",
   ] as const;
   for (const field of stringFields) {
     if (typeof creator[field] === "string") {
@@ -369,6 +373,8 @@ function finalActionSelectorMetadata(
     for (const field of [
       "selectorFailureReasonCode",
       "selectorFailureReason",
+      "actionSelectorRepairReasonCode",
+      "actionSelectorRepairReason",
     ] as const) {
       if (typeof selector[field] === "string") {
         metadata[field] = selector[field];

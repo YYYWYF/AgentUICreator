@@ -60,6 +60,11 @@ CreatorOperationRuntimeStatus: TypeAlias = Literal[
     "failed",
     "not-run",
 ]
+InvalidActionSelectionReason: TypeAlias = Literal[
+    "structured_parse_failed",
+    "schema_validation_failed",
+    "unknown_action_id",
+]
 
 PluginPlacementRelation: TypeAlias = Literal["before", "after", "above", "below"]
 BoundedPluginId: TypeAlias = Annotated[
@@ -463,9 +468,11 @@ class CreatorActionSelectorMetrics:
     durationMs: int = 0
     candidateCount: int = 0
     contextCharacters: int = 0
+    repairReasonCode: InvalidActionSelectionReason | None = None
+    repairReason: str | None = None
 
-    def to_dict(self) -> dict[str, int]:
-        return {
+    def to_dict(self) -> dict[str, object]:
+        result: dict[str, object] = {
             "modelCalls": self.modelCalls,
             "repairCalls": self.repairCalls,
             "invalidResponses": self.invalidResponses,
@@ -473,6 +480,11 @@ class CreatorActionSelectorMetrics:
             "candidateCount": self.candidateCount,
             "contextCharacters": self.contextCharacters,
         }
+        if self.repairReasonCode is not None:
+            result["repairReasonCode"] = self.repairReasonCode
+        if self.repairReason is not None:
+            result["repairReason"] = self.repairReason
+        return result
 
 
 class CreatorOperationResolution(BaseModel):

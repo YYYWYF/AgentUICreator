@@ -129,6 +129,33 @@ describe("Creator stage projection", () => {
     });
   });
 
+  it("retains the successful repair reason from creator.resolve", () => {
+    const completed = projectCreatorIntentStage(undefined, {
+      kind: "finished",
+      name: "creator.resolve",
+      metadata: {
+        creator: {
+          status: "success",
+          actionSelectorCalls: 2,
+          actionSelectorRepairCalls: 1,
+          actionSelectorInvalidResponses: 1,
+          actionSelectorRepairReasonCode: "unknown_action_id",
+          actionSelectorRepairReason:
+            "The selected actionId is not one of the supplied current Action Candidates.",
+        },
+      },
+    });
+
+    expect(completed?.metadata).toMatchObject({
+      actionSelectorCalls: 2,
+      actionSelectorRepairCalls: 1,
+      actionSelectorInvalidResponses: 1,
+      actionSelectorRepairReasonCode: "unknown_action_id",
+      actionSelectorRepairReason:
+        "The selected actionId is not one of the supplied current Action Candidates.",
+    });
+  });
+
   it("reads legacy Resolver intent metadata for compatibility", () => {
     const stage: CreatorStageActivity = {
       kind: "stage",
@@ -223,6 +250,36 @@ describe("Creator stage projection", () => {
       contextCharacters: 3200,
     });
     expect(reconciled.metadata).not.toHaveProperty("operationResolver");
+  });
+
+  it("retains the successful repair reason from RUN_FINISHED", () => {
+    const stage: CreatorStageActivity = {
+      kind: "stage",
+      id: "stage-1",
+      name: "creator.resolve",
+      status: "completed",
+      metadata: {},
+    };
+
+    const reconciled = reconcileCreatorStageFromRunResult(stage, {
+      actionSelector: {
+        actionSelectorCalls: 2,
+        actionSelectorRepairCalls: 1,
+        actionSelectorInvalidResponses: 1,
+        actionSelectorRepairReasonCode: "unknown_action_id",
+        actionSelectorRepairReason:
+          "The selected actionId is not one of the supplied current Action Candidates.",
+      },
+    });
+
+    expect(reconciled.metadata).toMatchObject({
+      actionSelectorCalls: 2,
+      actionSelectorRepairCalls: 1,
+      actionSelectorInvalidResponses: 1,
+      actionSelectorRepairReasonCode: "unknown_action_id",
+      actionSelectorRepairReason:
+        "The selected actionId is not one of the supplied current Action Candidates.",
+    });
   });
 
   it("projects unsupported Action decisions as unsupported", () => {
