@@ -14,7 +14,8 @@ import { uiProjectControlConfig } from "./project-config";
 import { readAgentUIProjectConfig } from "./project-mode";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
-  generatePluginRegistry,
+  collectPluginProjectFacts,
+  generatePluginRegistryFromFacts,
   PLUGIN_REGISTRY_ENTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
 } from "./registry-generator";
@@ -194,7 +195,8 @@ async function inspectUICompositionData(
   );
   const model = parseAppUIModelJson(appUIModelSource);
   const appUIModelHash = createHash("sha256").update(appUIModelSource).digest("hex");
-  const generation = await generatePluginRegistry(projectRoot, model, config);
+  const projectFacts = await collectPluginProjectFacts(projectRoot, config);
+  const generation = generatePluginRegistryFromFacts(model, projectFacts);
   const refIndex = buildLayoutRefIndex(model.root);
   const layout = compactLayout(model.root, "root", refIndex.byPath.get("root")!, refIndex);
   const slots: InspectedSlot[] = [];
@@ -255,11 +257,10 @@ async function inspectUICompositionData(
     ]),
   );
   const creatorActionCatalog = await buildCreatorActionCatalog({
-    projectRoot,
     model,
     generation,
+    projectFacts,
     appUIModelHash,
-    config,
   });
 
   return {

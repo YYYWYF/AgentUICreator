@@ -24,12 +24,13 @@ import { uiProjectControlConfig } from "./project-config";
 import { collectPluginAssets, pathExists } from "./plugin-assets";
 import {
   analyzePluginServiceDeclarations,
-  inspectUIServiceDependencies,
+  inspectUIServiceDependenciesFromDeclarations,
   type AnalyzedDeclarations,
 } from "./service-dependency-inspector";
 import type {
   GeneratePluginCatalogResult,
   PluginAsset,
+  PluginProjectFacts,
   ProjectIssue,
   UIProjectControlConfig,
 } from "./types";
@@ -135,25 +136,135 @@ function capabilityCatalogSource(
   ].join("\n");
 }
 
-export async function generatePluginRegistry(
+function addDefinitionIssue(
+  issuesByPath: Map<string, ProjectIssue[]>,
+  asset: PluginAsset,
+  issue: ProjectIssue,
+): void {
+  const issues = issuesByPath.get(asset.definitionPath) ?? [];
+  issues.push(issue);
+  issuesByPath.set(asset.definitionPath, issues);
+}
+
+async function collectPluginDefinitionFacts(
   projectRoot: string,
-  model: AppUIModel,
+  assets: readonly PluginAsset[],
+): Promise<ReadonlyMap<string, readonly ProjectIssue[]>> {
+  const issuesByPath = new Map<string, ProjectIssue[]>();
+  const definitionPaths: Array<{
+    asset: PluginAsset;
+    absolutePath: string;
+  }> = [];
+
+  for (const asset of assets) {
+    const definitionPath = path.join(projectRoot, asset.definitionPath);
+    try {
+      await readFile(definitionPath, "utf8");
+      definitionPaths.push({ asset, absolutePath: definitionPath });
+    } catch (error) {
+      addDefinitionIssue(issuesByPath, asset, {
+        code: "selected-plugin-definition-missing",
+        message: `${asset.definitionPath}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        pluginId: asset.pluginId,
+      });
+    }
+  }
+
+  if (definitionPaths.length === 0) return issuesByPath;
+
+  const api = new API();
+  try {
+    const snapshot = api.updateSnapshot({
+      openFiles: definitionPaths.map(({ absolutePath }) => absolutePath),
+    });
+    try {
+      for (const { asset, absolutePath } of definitionPaths) {
+        const project = snapshot.getDefaultProjectForFile(absolutePath);
+        if (project === undefined) {
+          addDefinitionIssue(issuesByPath, asset, {
+            code: "selected-plugin-definition-parse",
+            message: `${asset.definitionPath} could not be parsed by TypeScript.`,
+            pluginId: asset.pluginId,
+          });
+          continue;
+        }
+        const sourceFile = project.program.getSourceFile(absolutePath);
+        if (sourceFile === undefined) {
+          addDefinitionIssue(issuesByPath, asset, {
+            code: "selected-plugin-definition-parse",
+            message: `${asset.definitionPath} is not part of the TypeScript project.`,
+            pluginId: asset.pluginId,
+          });
+          continue;
+        }
+        if (project.program.getSyntacticDiagnostics(absolutePath).length > 0) {
+          addDefinitionIssue(issuesByPath, asset, {
+            code: "selected-plugin-definition-parse",
+            message: `${asset.definitionPath} contains TypeScript syntax errors.`,
+            pluginId: asset.pluginId,
+          });
+          continue;
+        }
+        if (!hasDefaultExport(sourceFile)) {
+          addDefinitionIssue(issuesByPath, asset, {
+            code: "selected-plugin-default-export-missing",
+            message: `${asset.definitionPath} must default-export its UIPluginDefinition.`,
+            pluginId: asset.pluginId,
+          });
+        }
+      }
+    } finally {
+      snapshot.dispose();
+    }
+  } finally {
+    api.close();
+  }
+
+  return issuesByPath;
+}
+
+export async function collectPluginProjectFacts(
+  projectRoot: string,
   config: UIProjectControlConfig = uiProjectControlConfig,
-): Promise<GeneratePluginCatalogResult> {
+): Promise<PluginProjectFacts> {
   const inventory = await collectPluginAssets(projectRoot, config);
-  const errors: ProjectIssue[] = [...inventory.errors];
   const canAnalyzeServiceContracts = await pathExists(
     path.join(projectRoot, "tsconfig.json"),
   );
   const declarations: AnalyzedDeclarations = canAnalyzeServiceContracts
     ? analyzePluginServiceDeclarations(projectRoot, inventory.assets)
     : { plugins: [], issues: [], seamPaths: new Map() };
-  errors.push(...declarations.issues);
+  const definitionIssuesByPath = await collectPluginDefinitionFacts(
+    projectRoot,
+    inventory.assets,
+  );
+  return {
+    assets: inventory.assets,
+    inventoryIssues: inventory.errors,
+    declarations,
+    definitionIssuesByPath,
+  };
+}
+
+/**
+ * Pure registry/composition generation from one request-scoped project-fact
+ * observation. Do not add filesystem or source-analysis work here.
+ */
+export function generatePluginRegistryFromFacts(
+  model: AppUIModel,
+  facts: PluginProjectFacts,
+): GeneratePluginCatalogResult {
+  const errors: ProjectIssue[] = [
+    ...facts.inventoryIssues,
+    ...facts.declarations.issues,
+  ];
   const declarationsByPluginId = new Map(
-    declarations.plugins.map((declaration) => [declaration.pluginId, declaration]),
+    facts.declarations.plugins.map((declaration) => [declaration.pluginId, declaration]),
   );
   const capabilityCatalogRevision = catalogRevision(
-    inventory.assets,
+    facts.assets,
     declarationsByPluginId,
   );
   const selectedPluginIds = [
@@ -163,7 +274,7 @@ export async function generatePluginRegistry(
   ].sort();
   const assetsById = new Map<string, PluginAsset[]>();
 
-  for (const asset of inventory.assets) {
+  for (const asset of facts.assets) {
     const matches = assetsById.get(asset.pluginId) ?? [];
     matches.push(asset);
     assetsById.set(asset.pluginId, matches);
@@ -183,10 +294,6 @@ export async function generatePluginRegistry(
   const slotCatalog: PluginSlotCatalog = Object.fromEntries(
     slotCatalogEntries,
   );
-  const selectedAssets: Array<{
-    asset: PluginAsset;
-    definitionPath: string;
-  }> = [];
   for (const pluginId of selectedPluginIds) {
     const matches = assetsById.get(pluginId) ?? [];
     if (matches.length === 0) {
@@ -204,68 +311,13 @@ export async function generatePluginRegistry(
     if (asset === undefined) {
       continue;
     }
-    const definitionPath = path.join(projectRoot, asset.definitionPath);
-    try {
-      await readFile(definitionPath, "utf8");
-    } catch (error) {
-      errors.push({
-        code: "selected-plugin-definition-missing",
-        message: `${asset.definitionPath}: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      });
+    const definitionIssues = facts.definitionIssuesByPath.get(asset.definitionPath) ?? [];
+    if (definitionIssues.length > 0) {
+      errors.push(...definitionIssues);
       continue;
     }
 
-    selectedAssets.push({ asset, definitionPath });
-  }
-
-  if (selectedAssets.length > 0) {
-    const api = new API();
-    try {
-      const snapshot = api.updateSnapshot({
-        openFiles: selectedAssets.map(({ definitionPath }) => definitionPath),
-      });
-      for (const { asset, definitionPath } of selectedAssets) {
-        const project = snapshot.getDefaultProjectForFile(definitionPath);
-        if (project === undefined) {
-          errors.push({
-            code: "selected-plugin-definition-parse",
-            message: `${asset.definitionPath} could not be parsed by TypeScript.`,
-          });
-          continue;
-        }
-        const sourceFile = project.program.getSourceFile(definitionPath);
-        if (sourceFile === undefined) {
-          errors.push({
-            code: "selected-plugin-definition-parse",
-            message: `${asset.definitionPath} is not part of the TypeScript project.`,
-          });
-          continue;
-        }
-        if (
-          project.program.getSyntacticDiagnostics(definitionPath).length > 0
-        ) {
-          errors.push({
-            code: "selected-plugin-definition-parse",
-            message: `${asset.definitionPath} contains TypeScript syntax errors.`,
-          });
-          continue;
-        }
-        if (!hasDefaultExport(sourceFile)) {
-          errors.push({
-            code: "selected-plugin-default-export-missing",
-            message: `${asset.definitionPath} must default-export its UIPluginDefinition.`,
-          });
-          continue;
-        }
-
-        resolvedAssets.push(asset);
-      }
-      snapshot.dispose();
-    } finally {
-      api.close();
-    }
+    resolvedAssets.push(asset);
   }
 
   const compositionCatalog: PluginCompositionCatalog = Object.fromEntries(
@@ -299,12 +351,12 @@ export async function generatePluginRegistry(
   return {
     capabilityCatalog: {
       source: capabilityCatalogSource(
-        inventory.assets,
+        facts.assets,
         capabilityCatalogRevision,
         declarationsByPluginId,
       ),
       revision: capabilityCatalogRevision,
-      pluginIds: inventory.assets.map((asset) => asset.pluginId),
+      pluginIds: facts.assets.map((asset) => asset.pluginId),
     },
     activeComposition: {
       selectedPluginIds,
@@ -315,13 +367,21 @@ export async function generatePluginRegistry(
       slotCatalog,
       compositionCatalog,
     },
-    assets: inventory.assets,
-    serviceDependencies: inspectUIServiceDependencies(
-      projectRoot,
+    assets: facts.assets,
+    serviceDependencies: inspectUIServiceDependenciesFromDeclarations(
       model,
-      inventory.assets,
-      declarations,
+      facts.assets,
+      facts.declarations,
     ),
     errors,
   };
+}
+
+export async function generatePluginRegistry(
+  projectRoot: string,
+  model: AppUIModel,
+  config: UIProjectControlConfig = uiProjectControlConfig,
+): Promise<GeneratePluginCatalogResult> {
+  const facts = await collectPluginProjectFacts(projectRoot, config);
+  return generatePluginRegistryFromFacts(model, facts);
 }

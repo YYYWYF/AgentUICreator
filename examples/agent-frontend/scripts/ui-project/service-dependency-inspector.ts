@@ -330,14 +330,10 @@ function hasActiveCandidate(plugin: InspectedServicePlugin): boolean {
   return plugin.instances.some((instance) => instance.activeCandidate);
 }
 
-export function inspectUIServiceDependencies(
-  projectRoot: string,
+export function inspectUIServiceDependenciesFromDeclarations(
   model: AppUIModel,
   assets: readonly PluginAsset[],
-  declarations: AnalyzedDeclarations = analyzePluginServiceDeclarations(
-    projectRoot,
-    assets,
-  ),
+  declarations: AnalyzedDeclarations,
 ): UIServiceDependencyInspection {
   const assetsByPluginId = new Map(
     assets.map((asset) => [asset.pluginId, asset]),
@@ -463,4 +459,20 @@ export function inspectUIServiceDependencies(
     plugins: declarations.plugins,
     issues,
   };
+}
+
+export function inspectUIServiceDependencies(
+  projectRoot: string,
+  model: AppUIModel,
+  assets: readonly PluginAsset[],
+  declarations: AnalyzedDeclarations = analyzePluginServiceDeclarations(
+    projectRoot,
+    assets,
+  ),
+): UIServiceDependencyInspection {
+  return inspectUIServiceDependenciesFromDeclarations(
+    model,
+    assets,
+    declarations,
+  );
 }

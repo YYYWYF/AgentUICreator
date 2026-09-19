@@ -32,7 +32,9 @@ import {
 } from "./app-ui-operations";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
+  collectPluginProjectFacts,
   generatePluginRegistry,
+  generatePluginRegistryFromFacts,
 } from "./registry-generator";
 import {
   planDefaultPluginInsertion,
@@ -45,7 +47,11 @@ import {
   type CreatorActionBinding,
 } from "./creator-action-catalog";
 import { verifyPluginChildSlots } from "./plugin-child-slot-verifier";
-import type { ProjectIssue } from "./types";
+import type {
+  GeneratePluginCatalogResult,
+  PluginProjectFacts,
+  ProjectIssue,
+} from "./types";
 
 const APP_UI_MODEL_PATH = "app-ui/app-ui.json";
 export const COMPOSITION_REVISION_PATH =
@@ -650,6 +656,8 @@ interface SemanticLoweringResult {
 interface CreatorActionExecutionResolution {
   candidate: CreatorActionCandidate;
   binding: CreatorActionBinding;
+  generation: GeneratePluginCatalogResult;
+  projectFacts: PluginProjectFacts;
 }
 
 function semanticCompositionForAlreadySatisfiedAction(
@@ -717,11 +725,12 @@ async function resolveCreatorActionExecution(
   appUIModelHash: string,
   operation: Extract<AppUIOperation, { type: "execute_creator_action" }>,
 ): Promise<CreatorActionExecutionResolution> {
-  const generation = await generatePluginRegistry(projectRoot, model);
+  const projectFacts = await collectPluginProjectFacts(projectRoot);
+  const generation = generatePluginRegistryFromFacts(model, projectFacts);
   const catalog = await buildCreatorActionCatalog({
-    projectRoot,
     model,
     generation,
+    projectFacts,
     appUIModelHash,
   });
   const candidate = catalog.candidates.find(
@@ -738,7 +747,7 @@ async function resolveCreatorActionExecution(
       },
     );
   }
-  return { candidate, binding };
+  return { candidate, binding, generation, projectFacts };
 }
 
 
@@ -758,6 +767,7 @@ async function lowerSemanticCompositionOperations(
   projectRoot: string,
   model: AppUIModel,
   operations: readonly AppUIOperation[],
+  currentGeneration?: GeneratePluginCatalogResult,
 ): Promise<SemanticLoweringResult | undefined> {
   const semanticOperations = operations.filter(
     (
@@ -788,7 +798,7 @@ async function lowerSemanticCompositionOperations(
 
   const operation = semanticOperations[0]!;
   if (operation.type === "move_plugin_to") {
-    const generation = await generatePluginRegistry(projectRoot, model);
+    const generation = currentGeneration ?? await generatePluginRegistry(projectRoot, model);
     const pluginMoveContracts = pluginMoveContractsForGeneration(generation);
     planPluginMove(model, operation, pluginMoveContracts);
     return {
@@ -834,7 +844,7 @@ async function lowerSemanticCompositionOperations(
     };
   }
 
-  const sharedGeneration = await generatePluginRegistry(projectRoot, model);
+  const sharedGeneration = currentGeneration ?? await generatePluginRegistry(projectRoot, model);
   const sharedPlan = planDefaultPluginInsertion(
     model,
     operation,
@@ -953,6 +963,8 @@ async function runTransaction(
   let semanticComposition: AppUITransactionResult["semanticComposition"];
   let operationApplyOptions: AppUIOperationApplyOptions | undefined;
   let creatorAction: AppUITransactionResult["creatorAction"];
+  let currentGeneration: GeneratePluginCatalogResult | undefined;
+  let projectFacts: PluginProjectFacts | undefined;
   try {
     beforeModel = parseAppUIModelJson(beforeModelSource);
     if (
@@ -974,6 +986,8 @@ async function runTransaction(
         input.appUIModelHash,
         requestedOperation,
       );
+      currentGeneration = resolved.generation;
+      projectFacts = resolved.projectFacts;
       creatorAction = {
         actionId: resolved.candidate.actionId,
         actionKind: resolved.candidate.kind,
@@ -994,6 +1008,7 @@ async function runTransaction(
         projectRoot,
         beforeModel,
         loweredOperations,
+        currentGeneration,
       );
       if (lowered !== undefined) {
         loweredOperations = lowered.operations;
@@ -1032,7 +1047,9 @@ async function runTransaction(
     );
   }
 
-  const generation = await generatePluginRegistry(projectRoot, afterModel);
+  const generation = projectFacts === undefined
+    ? await generatePluginRegistry(projectRoot, afterModel)
+    : generatePluginRegistryFromFacts(afterModel, projectFacts);
   if (generation.errors.length > 0) {
     throw new AppUITransactionError(
       "PLUGIN_REGISTRY_GENERATION_FAILED",

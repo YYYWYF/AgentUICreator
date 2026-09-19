@@ -3,7 +3,6 @@ import { createHash } from "node:crypto";
 import {
   collectAppUIPluginLocations,
   type AppUIModel,
-  type AppUIPluginNode,
 } from "../../framework/contracts/app-ui-model";
 import {
   applyAppUIOperations,
@@ -14,10 +13,7 @@ import {
   type AppUIPluginMoveOperation,
 } from "./app-ui-operations";
 import {
-  generatePluginRegistry,
-} from "./registry-generator";
-import { uiProjectControlConfig } from "./project-config";
-import {
+  CreatorActionPlanningError,
   isVisualAsset,
   planDefaultPluginInsertion,
   pluginMoveContractsForGeneration,
@@ -25,8 +21,9 @@ import {
 import type {
   GeneratePluginCatalogResult,
   PluginAsset,
-  UIProjectControlConfig,
+  PluginProjectFacts,
 } from "./types";
+import { generatePluginRegistryFromFacts } from "./registry-generator";
 
 export const MAX_CREATOR_ACTION_CANDIDATES = 256;
 export const MAX_CREATOR_ACTIONS_PER_TARGET = 32;
@@ -101,11 +98,10 @@ export interface CreatorActionCatalog {
 }
 
 export interface CreatorActionCatalogBuilderInput {
-  projectRoot: string;
   model: AppUIModel;
   generation: GeneratePluginCatalogResult;
+  projectFacts: PluginProjectFacts;
   appUIModelHash: string;
-  config?: UIProjectControlConfig;
 }
 
 export class CreatorActionCatalogError extends Error {
@@ -143,6 +139,20 @@ function actionCatalogInvalid(message: string, details?: unknown): never {
   );
 }
 
+function actionCatalogBuildFailed(message: string, details?: unknown): never {
+  throw new CreatorActionCatalogError(
+    "CREATOR_ACTION_CATALOG_BUILD_FAILED",
+    message,
+    details,
+  );
+}
+
+export interface CreatorActionSemanticIdentity {
+  kind: CreatorActionKind;
+  subject: Record<string, string>;
+  effect: Record<string, string>;
+}
+
 function semanticEffectIdentity(effect: CreatorActionEffect): Record<string, string> {
   switch (effect.type) {
     case "add_default":
@@ -168,22 +178,62 @@ function semanticEffectIdentity(effect: CreatorActionEffect): Record<string, str
   }
 }
 
-function actionIdFor(
+export function semanticActionIdentity(
+  kind: CreatorActionKind,
+  target: CreatorActionTarget,
+  effect: CreatorActionEffect,
+): CreatorActionSemanticIdentity {
+  const subject = kind === "add_existing_plugin"
+    ? { pluginId: target.pluginId }
+    : {
+        pluginId: target.pluginId,
+        ...(target.instanceId === undefined ? {} : { instanceId: target.instanceId }),
+      };
+  return {
+    kind,
+    subject,
+    effect: semanticEffectIdentity(effect),
+  };
+}
+
+export function actionIdFor(identity: CreatorActionSemanticIdentity): string {
+  const source = JSON.stringify(identity);
+  return `act_${createHash("sha256").update(source).digest("hex").slice(0, 24)}`;
+}
+
+function actionIdForCandidate(
   kind: CreatorActionKind,
   target: CreatorActionTarget,
   effect: CreatorActionEffect,
 ): string {
-  const source = JSON.stringify({
-    kind,
-    target: {
-      pluginId: target.pluginId,
-      ...(target.instanceId === undefined
-        ? {}
-        : { instanceId: target.instanceId }),
-    },
-    effect: semanticEffectIdentity(effect),
-  });
-  return `act_${createHash("sha256").update(source).digest("hex").slice(0, 24)}`;
+  return actionIdFor(semanticActionIdentity(kind, target, effect));
+}
+
+function errorCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null || !("code" in error)) {
+    return undefined;
+  }
+  const code = error.code;
+  return typeof code === "string" ? code : undefined;
+}
+
+/**
+ * Return true only for a Host planner/precondition rejection. Unexpected
+ * exceptions must escape Catalog construction as infrastructure failures.
+ */
+export function isExpectedCreatorActionRejection(error: unknown): boolean {
+  if (error instanceof CreatorActionPlanningError) return true;
+  const code = errorCode(error);
+  if (code === undefined) return false;
+  return (
+    code.startsWith("AUTHORING_DEFAULT_PLACEMENT_") ||
+    code === "AUTHORING_MOVE_UNSUPPORTED" ||
+    code === "AUTHORING_MOVE_INCOMPATIBLE" ||
+    code.startsWith("LAYOUT_") ||
+    code === "PLUGIN_ALREADY_EXISTS" ||
+    code === "INDEX_OUT_OF_RANGE" ||
+    code === "PLUGIN_WIDTH_INCOMPATIBLE"
+  );
 }
 
 function candidateTargetKey(target: CreatorActionTarget): string {
@@ -231,7 +281,7 @@ function actionCandidate(
   description: string,
 ): CreatorActionCandidate {
   const candidate: CreatorActionCandidate = {
-    actionId: actionIdFor(kind, target, effect),
+    actionId: actionIdForCandidate(kind, target, effect),
     kind,
     status,
     label,
@@ -254,7 +304,7 @@ function pluginMoveOperation(
   };
 }
 
-async function operationIsExecutable(
+async function validateCandidateBindingInMemory(
   input: CreatorActionCatalogBuilderInput,
   operation: CreatorActionOperation,
 ): Promise<boolean> {
@@ -289,14 +339,35 @@ async function operationIsExecutable(
       }
     }
 
-    const nextGeneration = await generatePluginRegistry(
-      input.projectRoot,
+    const nextGeneration = generatePluginRegistryFromFacts(
       afterModel,
-      input.config ?? uiProjectControlConfig,
+      input.projectFacts,
     );
-    return nextGeneration.errors.length === 0;
-  } catch {
+    if (nextGeneration.errors.length === 0) return true;
+
+    const factIssueKeys = new Set(
+      [
+        ...input.projectFacts.inventoryIssues,
+        ...input.projectFacts.declarations.issues,
+        ...[...input.projectFacts.definitionIssuesByPath.values()].flat(),
+      ].map((issue) => `${issue.code}\u0000${issue.message}`),
+    );
+    const infrastructureIssue = nextGeneration.errors.find((issue) =>
+      factIssueKeys.has(`${issue.code}\u0000${issue.message}`),
+    );
+    if (infrastructureIssue !== undefined) {
+      actionCatalogBuildFailed(
+        "Creator Action binding validation observed an invalid project fact.",
+        { issue: infrastructureIssue },
+      );
+    }
     return false;
+  } catch (error) {
+    if (isExpectedCreatorActionRejection(error)) return false;
+    actionCatalogBuildFailed(
+      "Creator Action binding validation failed unexpectedly.",
+      { cause: error instanceof Error ? error.message : String(error) },
+    );
   }
 }
 
@@ -317,8 +388,12 @@ function visualRowRegions(
           pluginName: asset.name,
           region,
         }];
-      } catch {
-        return [];
+      } catch (error) {
+        if (isExpectedCreatorActionRejection(error)) return [];
+        actionCatalogBuildFailed(
+          "Creator Action row-region discovery failed unexpectedly.",
+          { cause: error instanceof Error ? error.message : String(error) },
+        );
       }
     })
     .sort((left, right) => left.instanceId.localeCompare(right.instanceId));
@@ -327,6 +402,13 @@ function visualRowRegions(
 export async function buildCreatorActionCatalog(
   input: CreatorActionCatalogBuilderInput,
 ): Promise<CreatorActionCatalog> {
+  if (input.generation.errors.length > 0) {
+    actionCatalogBuildFailed(
+      "Creator Action Catalog requires a healthy current project generation.",
+      { issues: input.generation.errors },
+    );
+  }
+
   const assetsByPluginId = new Map<string, PluginAsset[]>();
   for (const asset of input.generation.assets) {
     const matches = assetsByPluginId.get(asset.pluginId) ?? [];
@@ -415,7 +497,7 @@ export async function buildCreatorActionCatalog(
         enabled: true,
       },
     };
-    if (!(await operationIsExecutable(input, operation))) continue;
+    if (!(await validateCandidateBindingInMemory(input, operation))) continue;
     const target: CreatorActionTarget = {
       pluginId: asset.pluginId,
       pluginName: asset.name,
@@ -445,7 +527,7 @@ export async function buildCreatorActionCatalog(
       type: "remove_plugin_default",
       instanceId: plugin.id,
     };
-    if (!(await operationIsExecutable(input, operation))) continue;
+    if (!(await validateCandidateBindingInMemory(input, operation))) continue;
     const target: CreatorActionTarget = {
       pluginId: plugin.pluginId,
       pluginName: asset.name,
@@ -467,6 +549,34 @@ export async function buildCreatorActionCatalog(
     });
   }
 
+  // An absent remove is a Plugin-level semantic no-op. It is deliberately
+  // separate from the exact-instance action above and is not emitted for a
+  // disabled instance: disabled still means the instance exists.
+  for (const asset of input.generation.assets) {
+    if (!isVisualAsset(asset)) continue;
+    const matchingInstances = locations.filter(
+      ({ plugin }) => plugin.pluginId === asset.pluginId,
+    );
+    if (matchingInstances.length > 0) continue;
+    const target: CreatorActionTarget = {
+      pluginId: asset.pluginId,
+      pluginName: asset.name,
+    };
+    const effect: CreatorActionEffect = { type: "remove" };
+    const candidate = actionCandidate(
+      "remove_plugin",
+      "already_satisfied",
+      target,
+      effect,
+      `Remove ${asset.name}`,
+      `Remove the ${asset.name} Plugin from the current composition.`,
+    );
+    addAction(candidate, {
+      actionId: candidate.actionId,
+      status: "already_satisfied",
+    });
+  }
+
   const contracts = pluginMoveContractsForGeneration(input.generation);
   const appendMoveAction = async (
     target: CreatorActionTarget,
@@ -478,13 +588,17 @@ export async function buildCreatorActionCatalog(
     let plan: ReturnType<typeof planPluginMove>;
     try {
       plan = planPluginMove(input.model, operation, contracts);
-    } catch {
-      return;
+    } catch (error) {
+      if (isExpectedCreatorActionRejection(error)) return;
+      actionCatalogBuildFailed(
+        "Creator Action move planning failed unexpectedly.",
+        { cause: error instanceof Error ? error.message : String(error) },
+      );
     }
     const status: CreatorActionStatus = plan.changed
       ? "ready"
       : "already_satisfied";
-    if (status === "ready" && !(await operationIsExecutable(input, operation))) {
+    if (status === "ready" && !(await validateCandidateBindingInMemory(input, operation))) {
       return;
     }
     const candidate = actionCandidate(

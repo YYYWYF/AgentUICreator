@@ -7,6 +7,7 @@ import type { PluginChildSlotDefinition, PluginCompositionCatalog, PluginSlotCat
 import type { UIPluginManifest } from "../../framework/contracts/ui-plugin";
 import type { APP_UI_MUTATION_ADMISSION_GUARANTEES } from "./app-ui-transaction";
 import type { CreatorActionCandidate } from "./creator-action-catalog";
+import type { AnalyzedDeclarations } from "./service-dependency-inspector";
 
 export interface ProjectIssue {
   code: string;
@@ -91,6 +92,19 @@ export interface PluginAsset {
 export interface PluginAssetInventory {
   assets: PluginAsset[];
   errors: ProjectIssue[];
+}
+
+/**
+ * The expensive, request-scoped facts observed from a generated UI project.
+ *
+ * Registry generation and Creator Action simulation must only consume these
+ * facts. They must not rediscover project files for each candidate.
+ */
+export interface PluginProjectFacts {
+  assets: PluginAsset[];
+  inventoryIssues: ProjectIssue[];
+  declarations: AnalyzedDeclarations;
+  definitionIssuesByPath: ReadonlyMap<string, readonly ProjectIssue[]>;
 }
 
 export interface GeneratePluginCatalogResult {
