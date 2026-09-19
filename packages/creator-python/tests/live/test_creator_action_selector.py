@@ -258,6 +258,137 @@ def _conversation_suggestions_context() -> CreatorActionSelectorContext:
     )
 
 
+def _unified_highway_context() -> CreatorActionSelectorContext:
+    actions = [
+        _creator_action(
+            action_id="act_suggestions_add_default",
+            kind="add_existing_plugin",
+            status="ready",
+            label="Add Conversation Suggestions",
+            description="Restore the Conversation Suggestions Plugin using its default placement.",
+            target={
+                "pluginId": "conversation-suggestions",
+                "pluginName": "Conversation Suggestions",
+            },
+            effect={"type": "add_default"},
+        ),
+        _creator_action(
+            action_id="act_suggestions_right",
+            kind="add_existing_plugin",
+            status="ready",
+            label="Add Conversation Suggestions to Workspace.Right",
+            description="Add Conversation Suggestions to the semantic Workspace.Right Region.",
+            target={
+                "pluginId": "conversation-suggestions",
+                "pluginName": "Conversation Suggestions",
+            },
+            effect={"type": "workspace_region", "region": "right"},
+        ),
+    ]
+    targets = [
+        {
+            "targetId": "conversation.starter-suggestions",
+            "kind": "application_config",
+            "name": "Conversation starter suggestions",
+            "description": "Application-owned starter questions shown in the empty conversation state.",
+            "intents": ["change starter questions", "edit suggested prompts"],
+            "relatedPluginIds": ["conversation-suggestions"],
+        },
+        {
+            "targetId": "conversation.welcome",
+            "kind": "application_config",
+            "name": "Conversation welcome content",
+            "description": "Application-owned welcome content for an empty conversation.",
+            "intents": ["change welcome text", "customize welcome copy"],
+            "relatedPluginIds": ["conversation-surface"],
+        },
+        {
+            "targetId": "theme.default-mode",
+            "kind": "application_config",
+            "name": "Application default theme mode",
+            "description": "Application-owned default theme mode used when the UI starts.",
+            "intents": ["change default theme", "start in dark mode"],
+            "relatedPluginIds": ["theme-provider", "theme-switch"],
+        },
+        {
+            "targetId": "plugin-source:conversation-suggestions",
+            "kind": "plugin_source",
+            "name": "Conversation Suggestions Plugin implementation",
+            "description": "Modify rendering, styling, interaction, or implementation behavior of the Conversation Suggestions Plugin.",
+            "intents": [
+                "modify Conversation Suggestions rendering",
+                "change Conversation Suggestions styling",
+                "change Conversation Suggestions interaction",
+                "change Conversation Suggestions behavior",
+                "modify Conversation Suggestions implementation",
+            ],
+            "relatedPluginIds": ["conversation-suggestions"],
+        },
+    ]
+    return CreatorActionSelectorContext(
+        catalogRevision="c" * 64,
+        actions=actions,
+        pluginSemantics=[],
+        intentCatalog={
+            "revision": "d" * 64,
+            "candidates": [
+                *[
+                    {
+                        "type": "composition_action",
+                        "candidateId": action.actionId,
+                        "label": action.label,
+                        "description": action.description,
+                        "action": action.model_dump(mode="json"),
+                    }
+                    for action in actions
+                ],
+                *[
+                    {
+                        "type": target["kind"],
+                        "candidateId": target["targetId"],
+                        "label": target["name"],
+                        "description": target["description"],
+                        "target": target,
+                    }
+                    for target in targets
+                ],
+            ],
+        },
+    )
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(
+    os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
+    reason="Set CREATOR_RUN_LIVE_MODEL=1 to run the live unified Intent Selector evaluation.",
+)
+@pytest.mark.parametrize(
+    ("prompt", "expected_decision", "expected_id"),
+    [
+        ("恢复示例问题", "select_action", "act_suggestions_add_default"),
+        ("把示例问题改成 A/B/C", "select_intent", "conversation.starter-suggestions"),
+        ("把示例问题按钮改成圆角", "select_intent", "plugin-source:conversation-suggestions"),
+    ],
+)
+def test_live_unified_selector_routes_three_semantic_highways(
+    prompt, expected_decision, expected_id
+):
+    settings = CreatorModelSettings.from_environment()
+    selector = CreatorActionSelector(
+        model=create_creator_chat_model(settings),
+        max_retries=settings.max_retries,
+    )
+
+    result = asyncio.run(selector.select(prompt, _unified_highway_context()))
+
+    assert result.decision == expected_decision
+    assert (
+        result.actionId if expected_decision == "select_action" else result.targetId
+    ) == expected_id
+    assert selector.metrics.modelCalls == 1
+    assert selector.metrics.repairCalls == 0
+
+
 def _context() -> CreatorActionSelectorContext:
     return CreatorActionSelectorContext(
         catalogRevision="c" * 64,

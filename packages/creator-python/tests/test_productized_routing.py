@@ -16,6 +16,9 @@ from agent_ui_creator.operations import (
     CreatorActionSelection,
     CreatorActionSelectionError,
     CreatorActionSelectorMetrics,
+    CreatorAuthoringTargetBinding,
+    CreatorAuthoringTargetCandidate,
+    CreatorAuthoringTargetCatalogSnapshot,
     CreatorActionTarget,
     CreatorDomainSnapshot,
     CreatorDomainSnapshotError,
@@ -29,6 +32,7 @@ from agent_ui_creator.operations import (
     present_creator_action_selection,
 )
 from agent_ui_creator.operations.engine import (
+    CreatorResolveResult,
     ProductizedOperationEngine,
     ProductizedOperationRun,
     ProductizedOperationToolMetrics,
@@ -176,9 +180,11 @@ class _SnapshotProvider:
         candidates: list[CreatorActionCandidate] | None = None,
         *,
         error: BaseException | None = None,
+        authoring_target_catalog: CreatorAuthoringTargetCatalogSnapshot | None = None,
     ) -> None:
         self.candidates = candidates or _candidates()
         self.error = error
+        self.authoring_target_catalog = authoring_target_catalog
         self.metrics = CreatorDomainSnapshotMetrics()
         self.build_calls = 0
 
@@ -195,6 +201,11 @@ class _SnapshotProvider:
             action_catalog=CreatorActionCatalogSnapshot(
                 revision="c" * 64,
                 candidates=self.candidates,
+            ),
+            authoring_target_catalog=(
+                self.authoring_target_catalog
+                if self.authoring_target_catalog is not None
+                else CreatorAuthoringTargetCatalogSnapshot()
             ),
         )
 
@@ -263,6 +274,82 @@ def _engine(
 
 def _selection_for(candidate: CreatorActionCandidate) -> CreatorActionSelection:
     return CreatorActionSelection(decision="select_action", actionId=candidate.actionId)
+
+
+def _authoring_target_snapshot(
+    kind: str,
+) -> tuple[CreatorActionSelection, _SnapshotProvider, str]:
+    if kind == "application_config":
+        target_id = "conversation.starter-suggestions"
+        target = CreatorAuthoringTargetCandidate(
+            targetId=target_id,
+            kind="application_config",
+            name="Conversation starter suggestions",
+            description="Application-owned starter questions.",
+            intents=["change starter questions"],
+            relatedPluginIds=["conversation-suggestions"],
+        )
+        binding = CreatorAuthoringTargetBinding(
+            targetId=target_id,
+            kind="application_config",
+            ownerPath="agent-ui/conversation/config/conversation-runtime-config.ts",
+            relatedPluginIds=["conversation-suggestions"],
+        )
+    else:
+        target_id = "plugin-source:conversation-suggestions"
+        target = CreatorAuthoringTargetCandidate(
+            targetId=target_id,
+            kind="plugin_source",
+            name="Conversation Suggestions Plugin implementation",
+            description="Modify rendering, styling, interaction, or implementation behavior.",
+            intents=["change Conversation Suggestions styling"],
+            relatedPluginIds=["conversation-suggestions"],
+        )
+        binding = CreatorAuthoringTargetBinding(
+            targetId=target_id,
+            kind="plugin_source",
+            ownerRoot="plugins/conversation-suggestions",
+            definitionPath="plugins/conversation-suggestions/definition.ts",
+            manifestPath="plugins/conversation-suggestions/manifest.json",
+            pluginId="conversation-suggestions",
+            relatedPluginIds=["conversation-suggestions"],
+        )
+    return (
+        CreatorActionSelection(decision="select_intent", targetId=target_id),
+        _SnapshotProvider(
+            authoring_target_catalog=CreatorAuthoringTargetCatalogSnapshot(
+                revision="d" * 64,
+                candidates=[target],
+                bindings=[binding],
+            )
+        ),
+        target_id,
+    )
+
+
+@pytest.mark.parametrize("kind", ["application_config", "plugin_source"])
+def test_scoped_authoring_routes_emit_owner_bound_telemetry(kind):
+    selection, snapshot_provider, target_id = _authoring_target_snapshot(kind)
+    engine, selector, action_playbook, telemetry = _engine(
+        selection,
+        snapshot_provider=snapshot_provider,
+    )
+
+    result = asyncio.run(engine.run([{"role": "user", "content": "change"}]))
+
+    assert isinstance(result, CreatorResolveResult)
+    assert result.route == "scoped_general_handoff"
+    assert result.handoff is not None
+    assert result.handoff.targetId == target_id
+    assert selector.calls == 1
+    assert action_playbook.calls == []
+    assert telemetry.operation_route["route"] == kind
+    assert telemetry.operation_route["generalAgent"] is True
+    assert telemetry.operation_route["ownerScopedHandoff"] is True
+    assert telemetry.operation_route["productized"] is False
+    assert telemetry.operation_route["targetId"] == target_id
+    assert telemetry.selected_creator_intent["targetId"] == target_id
+    assert telemetry.authoring_handoff["targetId"] == target_id
 
 
 @pytest.mark.parametrize("kind", ["add_existing_plugin", "remove_plugin", "move_plugin"])

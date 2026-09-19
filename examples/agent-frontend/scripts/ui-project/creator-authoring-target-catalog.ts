@@ -3,6 +3,7 @@ import { stat } from "node:fs/promises";
 import path from "node:path";
 
 import { creatorApplicationAuthoringTargets } from "../../agent-ui/authoring/creator-authoring-targets";
+import type { CreatorApplicationAuthoringTarget } from "../../agent-ui/authoring/creator-authoring-targets";
 import type {
   CreatorAuthoringTargetBinding,
   CreatorAuthoringTargetCandidate,
@@ -23,6 +24,8 @@ export interface CreatorAuthoringTargetCatalogInput {
   projectRoot: string;
   config: UIProjectControlConfig;
   projectFacts: PluginProjectFacts;
+  /** Test and host extension point for application-owned declarations. */
+  applicationTargets?: readonly CreatorApplicationAuthoringTarget[];
 }
 
 export class CreatorAuthoringTargetCatalogError extends Error {
@@ -132,8 +135,11 @@ function pluginSourceTarget(asset: PluginAsset): {
 } {
   const targetId = `plugin-source:${asset.pluginId}`;
   const intents = [
-    `modify ${asset.name} rendering, styling, or interaction`,
-    ...(asset.authoring?.intents ?? []),
+    `modify ${asset.name} rendering`,
+    `change ${asset.name} styling`,
+    `change ${asset.name} interaction`,
+    `change ${asset.name} behavior`,
+    `modify ${asset.name} implementation`,
   ];
   return {
     candidate: {
@@ -154,6 +160,21 @@ function pluginSourceTarget(asset: PluginAsset): {
       relatedPluginIds: [asset.pluginId],
     },
   };
+}
+
+export function validateCreatorAuthoringTargetBinding(
+  candidate: CreatorAuthoringTargetCandidate,
+  binding: CreatorAuthoringTargetBinding,
+  pluginIds: ReadonlySet<string>,
+): void {
+  if (binding.targetId !== candidate.id || binding.kind !== candidate.kind) {
+    fail(`Authoring target ${candidate.id} has a mismatched Host binding.`);
+  }
+  for (const pluginId of candidate.relatedPluginIds ?? []) {
+    if (!pluginIds.has(pluginId)) {
+      fail(`Authoring target ${candidate.id} references an unknown Plugin.`, { pluginId });
+    }
+  }
 }
 
 export async function buildCreatorAuthoringTargetCatalog(
@@ -178,20 +199,13 @@ export async function buildCreatorAuthoringTargetCatalog(
       fail(`Authoring target ${candidate.id} contains duplicate related Plugins.`);
     }
     if (targetIds.has(candidate.id)) fail(`Duplicate authoring target id "${candidate.id}".`);
-    for (const pluginId of candidate.relatedPluginIds ?? []) {
-      if (!pluginIds.has(pluginId)) {
-        fail(`Authoring target ${candidate.id} references an unknown Plugin.`, { pluginId });
-      }
-    }
-    if (binding.targetId !== candidate.id || binding.kind !== candidate.kind) {
-      fail(`Authoring target ${candidate.id} has a mismatched Host binding.`);
-    }
+    validateCreatorAuthoringTargetBinding(candidate, binding, pluginIds);
     targetIds.add(candidate.id);
     candidates.push(candidate);
     bindings.push(binding);
   };
 
-  for (const declaration of creatorApplicationAuthoringTargets) {
+  for (const declaration of input.applicationTargets ?? creatorApplicationAuthoringTargets) {
     const ownerPath = projectRelativePath(input.projectRoot, declaration.ownerPath, `${declaration.id}.ownerPath`);
     underRoot(input.projectRoot, input.config.agentUI.sourceRoot, ownerPath, `${declaration.id}.ownerPath`);
     await requireFile(input.projectRoot, ownerPath, `${declaration.id}.ownerPath`);

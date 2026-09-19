@@ -6,6 +6,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  collectAppUIPluginLocations,
   type AppUIModel,
   type AppUIPluginNode,
 } from "../framework/contracts/app-ui-model";
@@ -389,6 +390,7 @@ describe("Creator Action Catalog", () => {
       operations: [{ type: "execute_creator_action", actionId: remove.actionId }],
     });
     const absentModel = JSON.parse(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")) as AppUIModel;
+    expect(collectAppUIPluginLocations(absentModel).some(({ plugin }) => plugin.pluginId === "conversation-suggestions")).toBe(false);
     const afterRemove = await buildCatalog(projectRoot, absentModel);
     const add = afterRemove.catalog.candidates.find((candidate) =>
       candidate.kind === "add_existing_plugin" && candidate.target.pluginId === "conversation-suggestions" && candidate.status === "ready");
@@ -406,6 +408,15 @@ describe("Creator Action Catalog", () => {
     expect(restored.semanticComposition?.expectedPlacement).toEqual({
       type: "plugin_slot", instanceId: "conversation-suggestions-main",
       parentInstanceId: "agent-conversation-surface-main", slot: "emptySuggestions",
+    });
+    const restoredModel = JSON.parse(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")) as AppUIModel;
+    const restoredSuggestions = collectAppUIPluginLocations(restoredModel).find(
+      ({ plugin }) => plugin.pluginId === "conversation-suggestions",
+    );
+    expect(restoredSuggestions?.plugin).toEqual({
+      id: "conversation-suggestions-main",
+      pluginId: "conversation-suggestions",
+      enabled: true,
     });
   });
 

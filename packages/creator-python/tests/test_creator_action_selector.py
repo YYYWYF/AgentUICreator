@@ -13,7 +13,14 @@ from agent_ui_creator.operations import (
     CreatorActionSelectionError,
     CreatorActionSelector,
     CreatorActionSelectorContext,
+    CreatorActionCatalogSnapshot,
+    CreatorAuthoringTargetBinding,
+    CreatorAuthoringTargetCandidate,
+    CreatorAuthoringTargetCatalogSnapshot,
+    CreatorDomainSnapshot,
+    PluginCapabilityIndex,
     PendingCreatorClarificationStore,
+    unified_creator_intent_catalog_revision,
 )
 from agent_ui_creator.operations.selector import (
     _InvalidActionSelection,
@@ -119,6 +126,195 @@ def _add_context(*, include_right: bool = True) -> CreatorActionSelectorContext:
     )
 
 
+def _unified_context(*, include_right: bool = True) -> CreatorActionSelectorContext:
+    composition_actions = [
+        {
+            "actionId": "act_suggestions_add_default",
+            "kind": "add_existing_plugin",
+            "status": "ready",
+            "label": "Add Conversation Suggestions",
+            "description": "Restore the Conversation Suggestions Plugin using its default placement.",
+            "target": {
+                "pluginId": "conversation-suggestions",
+                "pluginName": "Conversation Suggestions",
+            },
+            "effect": {"type": "add_default"},
+        },
+    ]
+    if include_right:
+        composition_actions.append({
+            "actionId": "act_suggestions_right",
+            "kind": "add_existing_plugin",
+            "status": "ready",
+            "label": "Add Conversation Suggestions to Workspace.Right",
+            "description": "Add Conversation Suggestions to the semantic Workspace.Right Region.",
+            "target": {
+                "pluginId": "conversation-suggestions",
+                "pluginName": "Conversation Suggestions",
+            },
+            "effect": {"type": "workspace_region", "region": "right"},
+        })
+    targets = [
+        {
+            "targetId": "conversation.starter-suggestions",
+            "kind": "application_config",
+            "name": "Conversation starter suggestions",
+            "description": "Application-owned starter questions shown in the empty conversation state.",
+            "intents": ["change starter questions", "edit suggested prompts"],
+            "relatedPluginIds": ["conversation-suggestions"],
+        },
+        {
+            "targetId": "conversation.welcome",
+            "kind": "application_config",
+            "name": "Conversation welcome content",
+            "description": "Application-owned welcome content for an empty conversation.",
+            "intents": ["change welcome text", "customize welcome copy"],
+            "relatedPluginIds": ["conversation-surface"],
+        },
+        {
+            "targetId": "theme.default-mode",
+            "kind": "application_config",
+            "name": "Application default theme mode",
+            "description": "Application-owned default theme mode used when the UI starts.",
+            "intents": ["change default theme", "start in dark mode"],
+            "relatedPluginIds": ["theme-provider", "theme-switch"],
+        },
+        {
+            "targetId": "plugin-source:conversation-suggestions",
+            "kind": "plugin_source",
+            "name": "Conversation Suggestions Plugin implementation",
+            "description": "Modify rendering, styling, interaction, or implementation behavior of the Conversation Suggestions Plugin.",
+            "intents": [
+                "modify Conversation Suggestions rendering",
+                "change Conversation Suggestions styling",
+                "change Conversation Suggestions interaction",
+                "change Conversation Suggestions behavior",
+                "modify Conversation Suggestions implementation",
+            ],
+            "relatedPluginIds": ["conversation-suggestions"],
+        },
+    ]
+    candidates = [
+        *[
+            {
+                "type": "composition_action",
+                "candidateId": action["actionId"],
+                "label": action["label"],
+                "description": action["description"],
+                "action": action,
+            }
+            for action in composition_actions
+        ],
+        *[
+            {
+                "type": target["kind"],
+                "candidateId": target["targetId"],
+                "label": target["name"],
+                "description": target["description"],
+                "target": target,
+            }
+            for target in targets
+        ],
+    ]
+    return CreatorActionSelectorContext(
+        catalogRevision="c" * 64,
+        actions=composition_actions,
+        pluginSemantics=[],
+        intentCatalog={
+            "revision": "d" * 64,
+            "candidates": candidates,
+        },
+    )
+
+
+@pytest.mark.parametrize(
+    ("message", "choice", "decision", "identifier"),
+    [
+        ("恢复示例问题", "A1", "select_action", "act_suggestions_add_default"),
+        ("把示例问题改成 A/B/C", "A3", "select_intent", "conversation.starter-suggestions"),
+        ("把示例问题按钮改成圆角", "A6", "select_intent", "plugin-source:conversation-suggestions"),
+        ("默认使用深色主题", "A5", "select_intent", "theme.default-mode"),
+        ("把主题开关放到右边", "A2", "select_action", "act_suggestions_right"),
+        ("欢迎语改成 Welcome to my agent", "A4", "select_intent", "conversation.welcome"),
+    ],
+)
+def test_unified_selector_routes_each_semantic_highway(
+    message, choice, decision, identifier
+):
+    model = StaticChatModel([f"SELECT {choice}"])
+    selector = CreatorActionSelector(model=model)
+
+    result = asyncio.run(selector.select(message, _unified_context()))
+
+    assert result.decision == decision
+    assert (
+        result.actionId if decision == "select_action" else result.targetId
+    ) == identifier
+    assert selector.metrics.modelCalls == 1
+    assert selector.metrics.repairCalls == 0
+
+
+def test_unified_selector_fails_closed_for_explicit_unavailable_workspace_region():
+    model = StaticChatModel(["SELECT A1"])
+
+    result = asyncio.run(
+        CreatorActionSelector(model=model).select(
+            "我想在右边加入一个历史会话管理的面板",
+            _unified_context(include_right=False),
+        )
+    )
+
+    assert result.decision == "unsupported_product_action"
+    assert len(model.messages) == 1
+
+
+def test_domain_snapshot_binds_action_and_authoring_revisions_into_one_catalog():
+    action = _add_context().actions[0]
+    target = CreatorAuthoringTargetCandidate(
+        targetId="conversation.starter-suggestions",
+        kind="application_config",
+        name="Conversation starter suggestions",
+        description="Application-owned starter questions.",
+        intents=["change starter questions"],
+        relatedPluginIds=["conversation-suggestions"],
+    )
+    snapshot = CreatorDomainSnapshot(
+        raw={},
+        app_ui_model_hash="a" * 64,
+        capability_catalog_revision="b" * 64,
+        observation_coverage=(),
+        plugin_index=PluginCapabilityIndex(),
+        action_catalog=CreatorActionCatalogSnapshot(
+            revision="c" * 64,
+            candidates=[action],
+        ),
+        authoring_target_catalog=CreatorAuthoringTargetCatalogSnapshot(
+            revision="d" * 64,
+            candidates=[target],
+            bindings=[CreatorAuthoringTargetBinding(
+                targetId=target.targetId,
+                kind=target.kind,
+                ownerPath="agent-ui/conversation/config/conversation-runtime-config.ts",
+                relatedPluginIds=list(target.relatedPluginIds),
+            )],
+        ),
+    )
+
+    context = CreatorActionSelectorContext.model_validate(snapshot.action_selector_context)
+
+    assert context.intentCatalog is not None
+    assert context.intentCatalog.revision == unified_creator_intent_catalog_revision(
+        "c" * 64, "d" * 64
+    )
+    assert context.intentCatalog.revision != "d" * 64
+    assert context.intentCatalog.revision != unified_creator_intent_catalog_revision(
+        "e" * 64, "d" * 64
+    )
+    assert context.intentCatalog.revision != unified_creator_intent_catalog_revision(
+        "c" * 64, "e" * 64
+    )
+
+
 def test_explicit_unavailable_region_cannot_fall_back_to_default():
     model = StaticChatModel(["SELECT A1"])
     selection = asyncio.run(CreatorActionSelector(model=model).select(
@@ -135,6 +331,22 @@ def test_explicit_region_action_and_unplaced_default_have_distinct_selection():
         model = StaticChatModel([response])
         selection = asyncio.run(CreatorActionSelector(model=model).select(message, _add_context()))
         assert selection.actionId == expected
+
+
+@pytest.mark.parametrize("message", [
+    "把会话管理放到 History 前面",
+    "把会话管理放到主会话后面",
+    "把会话管理放到上方",
+    "把会话管理放到下方",
+])
+def test_explicit_relative_placement_cannot_fall_back_to_default(message):
+    model = StaticChatModel(["SELECT A1"])
+
+    selection = asyncio.run(
+        CreatorActionSelector(model=model).select(message, _add_context(include_right=False))
+    )
+
+    assert selection.decision == "unsupported_product_action"
 
 
 def test_clarification_follow_up_carries_bounded_state_without_question_mark():

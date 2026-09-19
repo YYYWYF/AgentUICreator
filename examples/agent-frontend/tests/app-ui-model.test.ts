@@ -69,6 +69,27 @@ describe("AppUIModel", () => {
     })).toThrow();
   });
 
+  it("rejects Plugin props and AppUIModel settings from Composition", () => {
+    expect(() => parseAppUIModel({
+      root: {
+        type: "slot",
+        plugins: [{
+          id: "sample-main",
+          pluginId: "sample",
+          enabled: true,
+          props: { title: "not part of AppUIModel" },
+        }],
+      },
+    })).toThrow();
+    expect(() => parseAppUIModel({
+      settings: { theme: "dark" },
+      root: {
+        type: "slot",
+        plugins: [],
+      },
+    })).toThrow();
+  });
+
   it("keeps layout identity and metadata out of the authoring model", () => {
     expect(() => parseAppUIModel({
       root: {

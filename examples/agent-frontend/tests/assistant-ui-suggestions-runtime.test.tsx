@@ -25,8 +25,10 @@ function createAgent(): ReturnType<ConversationAgentFactory> {
 
 function SuggestionRuntimeSurface({
   onRuntime,
+  showSuggestions = true,
 }: {
   onRuntime: (runtime: AssistantRuntime) => void;
+  showSuggestions?: boolean;
 }) {
   const aui = useAui();
   const runtime = aui.threads.__internal_getAssistantRuntime?.();
@@ -34,7 +36,7 @@ function SuggestionRuntimeSurface({
     throw new Error("assistant-ui Runtime was not created");
   }
   onRuntime(runtime);
-  return <ConversationSuggestionsPlugin renderSlot={() => null} />;
+  return showSuggestions ? <ConversationSuggestionsPlugin renderSlot={() => null} /> : null;
 }
 
 afterEach(() => {
@@ -85,5 +87,53 @@ describe("Conversation Suggestions Runtime integration", () => {
     expect(runtime?.thread.getState().messages[0]?.content).toEqual([
       { type: "text", text: "Prompt A" },
     ]);
+  });
+
+  it("completes the Suggestions remove-to-add runtime roundtrip", async () => {
+    const container = document.createElement("div");
+    document.body.append(container);
+    const root = createRoot(container);
+    mountedRoots.push(root);
+    const binding = createConversationServiceThreadBinding();
+    const agent = createAgent();
+    const suggestions = [
+      { title: "A", label: "A label", prompt: "Prompt A" },
+      { title: "B", label: "B label", prompt: "Prompt B" },
+      { title: "C", label: "C label", prompt: "Prompt C" },
+    ];
+
+    const render = async (showSuggestions: boolean) => {
+      await act(async () => {
+        root.render(
+          <ConversationRuntimeProvider
+            endpoint="http://example.test/agent"
+            threadBinding={binding}
+            suggestions={suggestions}
+            unstable_agentFactory={() => agent}
+          >
+            <SuggestionRuntimeSurface
+              showSuggestions={showSuggestions}
+              onRuntime={() => undefined}
+            />
+          </ConversationRuntimeProvider>,
+        );
+        await Promise.resolve();
+      });
+    };
+
+    await render(true);
+    expect(container.textContent).toContain("A");
+    expect(container.textContent).toContain("B");
+    expect(container.textContent).toContain("C");
+
+    await render(false);
+    expect(container.querySelectorAll("button.conversation-suggestion")).toHaveLength(0);
+    expect(container.textContent).not.toContain("A label");
+
+    await render(true);
+    expect(container.querySelectorAll("button.conversation-suggestion")).toHaveLength(3);
+    expect(container.textContent).toContain("A");
+    expect(container.textContent).toContain("B");
+    expect(container.textContent).toContain("C");
   });
 });

@@ -13,7 +13,9 @@ from agent_ui_creator.domain_agent import (
     create_domain_write_creator_agent,
 )
 from agent_ui_creator.files import read_creator_file_state
+from agent_ui_creator.operations import CreatorAuthoringHandoff
 from agent_ui_creator.project_control import ProjectControlError, ProjectControlMetrics
+from agent_ui_creator.server import _authoring_handoff_messages
 from agent_ui_creator.validation import CommandExecutionResult
 import agent_ui_creator.validation.attribution as validation_attribution
 
@@ -225,6 +227,89 @@ def test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation(tmp_
     assert result.change_layer_metrics["sourceWrites"] == 0
     assert receipt["transaction"]["undoable"] is True
     assert receipt["verification"]["status"] == "failed"
+
+
+def test_application_config_handoff_reads_only_the_host_owner_first(tmp_path):
+    root = _project(tmp_path)
+    owner = root / "agent-ui" / "conversation" / "config"
+    owner.mkdir(parents=True)
+    owner_file = owner / "conversation-runtime-config.ts"
+    owner_file.write_text("export const suggestions = [];\n", encoding="utf-8")
+    handoff = CreatorAuthoringHandoff(
+        targetId="conversation.starter-suggestions",
+        kind="application_config",
+        name="Conversation starter suggestions",
+        description="Application-owned starter questions.",
+        ownerPath="agent-ui/conversation/config/conversation-runtime-config.ts",
+        relatedPluginIds=["conversation-suggestions"],
+    )
+    model = ToolCallingFakeModel(
+        responses=[
+            call(
+                "read_file",
+                {"file_path": "/agent-ui/conversation/config/conversation-runtime-config.ts"},
+                "read-owner",
+            ),
+            AIMessage(content="The application-owned suggestions source is ready to edit."),
+        ]
+    )
+    agent = create_domain_write_creator_agent(model=model, workspace=root)
+    messages = _authoring_handoff_messages(
+        [{"role": "user", "content": "把示例问题改成 A/B/C"}], handoff
+    )
+
+    result = asyncio.run(agent.run_messages(messages))
+
+    assert result.activities[0].name == "read_file"
+    assert result.activities[0].arguments["file_path"] == (
+        "/agent-ui/conversation/config/conversation-runtime-config.ts"
+    )
+    assert [activity.name for activity in result.activities] == ["read_file"]
+    assert "ownerPath" in messages[0]["content"]
+    assert "conversation-runtime-config.ts" in messages[0]["content"]
+
+
+def test_plugin_source_handoff_reads_within_the_host_owner_root_first(tmp_path):
+    root = _project(tmp_path)
+    plugin_root = root / "plugins" / "conversation-suggestions"
+    plugin_root.mkdir(parents=True)
+    definition = plugin_root / "definition.ts"
+    definition.write_text("export const definition = {};\n", encoding="utf-8")
+    (plugin_root / "manifest.json").write_text("{}\n", encoding="utf-8")
+    handoff = CreatorAuthoringHandoff(
+        targetId="plugin-source:conversation-suggestions",
+        kind="plugin_source",
+        name="Conversation Suggestions Plugin implementation",
+        description="Modify Plugin rendering and styling.",
+        ownerRoot="plugins/conversation-suggestions",
+        definitionPath="plugins/conversation-suggestions/definition.ts",
+        pluginId="conversation-suggestions",
+        relatedPluginIds=["conversation-suggestions"],
+    )
+    model = ToolCallingFakeModel(
+        responses=[
+            call(
+                "read_file",
+                {"file_path": "/plugins/conversation-suggestions/definition.ts"},
+                "read-definition",
+            ),
+            AIMessage(content="The supplied Plugin implementation source is ready to edit."),
+        ]
+    )
+    agent = create_domain_write_creator_agent(model=model, workspace=root)
+    messages = _authoring_handoff_messages(
+        [{"role": "user", "content": "把示例问题按钮改成圆角"}], handoff
+    )
+
+    result = asyncio.run(agent.run_messages(messages))
+
+    assert result.activities[0].name == "read_file"
+    assert result.activities[0].arguments["file_path"].startswith(
+        "/plugins/conversation-suggestions/"
+    )
+    assert "inspect_ui_project" not in [activity.name for activity in result.activities]
+    assert "ownerRoot" in messages[0]["content"]
+    assert "definition.ts" in messages[0]["content"]
 
 
 def test_workspace_integrity_terminal_blocker_stops_before_next_model_call(tmp_path):

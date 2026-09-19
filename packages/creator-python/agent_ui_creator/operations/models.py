@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 from dataclasses import dataclass, field
 from typing import Annotated, Any, Literal, TypeAlias
 
@@ -39,6 +40,16 @@ MAX_ACTION_ID_CHARS = 64
 MAX_ACTION_LABEL_CHARS = 200
 MAX_ACTION_DESCRIPTION_CHARS = 400
 MAX_CLARIFICATION_QUESTION_CHARS = 300
+
+
+def unified_creator_intent_catalog_revision(
+    action_catalog_revision: str,
+    authoring_target_catalog_revision: str,
+) -> str:
+    """Bind Composition Actions and authoring targets to one selector revision."""
+
+    source = f"{action_catalog_revision}:{authoring_target_catalog_revision}"
+    return hashlib.sha256(source.encode("utf-8")).hexdigest()
 
 
 ProductizedOperationKind: TypeAlias = Literal[
@@ -818,7 +829,10 @@ class CreatorDomainSnapshot:
                 for target in self.authoring_target_catalog.candidates
             )
             intent_catalog = CreatorIntentCatalogSnapshot(
-                revision=self.authoring_target_catalog.revision,
+                revision=unified_creator_intent_catalog_revision(
+                    self.action_catalog.revision,
+                    self.authoring_target_catalog.revision,
+                ),
                 candidates=intent_candidates,
             )
         return CreatorActionSelectorContext(

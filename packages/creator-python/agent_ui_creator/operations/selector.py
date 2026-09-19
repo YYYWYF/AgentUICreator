@@ -27,6 +27,33 @@ ACTION_SELECTOR_PROTOCOL = "choice-text-v1"
 
 _SELECT_PATTERN = re.compile(r"SELECT (A[1-9][0-9]*)\Z")
 _CLARIFY_PATTERN = re.compile(r"CLARIFY ([^\r\n]+)\Z")
+_EXPLICIT_WORKSPACE_REGION = {
+    "left": re.compile(
+        r"Workspace[. ]Left|左边|左侧|左栏|\bon (?:the )?left\b|\bto (?:the )?left\b",
+        re.I,
+    ),
+    "center": re.compile(
+        r"Workspace[. ]Center|中间|中央|\bin (?:the )?center\b|\bto (?:the )?center\b",
+        re.I,
+    ),
+    "right": re.compile(
+        r"Workspace[. ]Right|右边|右侧|右栏|\bon (?:the )?right\b|\bto (?:the )?right\b",
+        re.I,
+    ),
+}
+_EXPLICIT_RELATIVE_PLACEMENT = re.compile(
+    r"\bbefore\b|\bafter\b|\babove\b|\bbelow\b|\bnext to\b|前面|后面|上方|下方|之前|之后",
+    re.I,
+)
+
+
+def _explicit_workspace_region(message: str) -> str | None:
+    matches = [
+        region
+        for region, pattern in _EXPLICIT_WORKSPACE_REGION.items()
+        if pattern.search(message)
+    ]
+    return matches[0] if len(matches) == 1 else None
 
 _SELECTOR_SYSTEM_PROMPT = """You are the Creator Intent Selector.
 
@@ -65,6 +92,15 @@ unscoped implementation changes, such as a new capability with no supplied
 owner. Use CLARIFY when the supplied semantics cannot identify one target or
 removal scope without guessing. Use UNSUPPORTED when a simple request has no
 supplied valid choice. Return no JSON, Markdown, or explanation.
+
+Semantic highways:
+- Composition: add or remove a Plugin, Plugin existence, enable or disable,
+  placement, Layout, or Slot membership.
+- Application Config: product content, copy, starter prompts, welcome content,
+  application defaults, or runtime defaults.
+- Plugin Source: rendering, styling, interaction, behavior, or implementation.
+Use the supplied candidate kind to route these semantics; the model still
+returns only SELECT A<n>.
 """
 
 
@@ -250,7 +286,6 @@ def _selector_prompt_context(context: CreatorActionSelectorContext) -> dict[str,
             for number, candidate in enumerate(context.actions, 1)
         ]
     return {
-        "catalogRevision": context.intentCatalog.revision if context.intentCatalog is not None else context.catalogRevision,
         "choices": choices,
         "pluginSemantics": [
             plugin.model_dump(mode="json", exclude_none=True)
@@ -446,6 +481,32 @@ class CreatorIntentSelector:
                         )
                     selection = _parse_selector_response(response.text, choices)
                     self.validate_selection(selection, normalized_context)
+                    if selection.decision == "select_action":
+                        selected = next(
+                            candidate
+                            for candidate in normalized_context.actions
+                            if candidate.actionId == selection.actionId
+                        )
+                        requested_region = _explicit_workspace_region(user_message)
+                        if (
+                            selected.kind == "add_existing_plugin"
+                            and requested_region is not None
+                            and (
+                                selected.effect.type != "workspace_region"
+                                or selected.effect.region != requested_region
+                            )
+                        ):
+                            return CreatorActionSelection(
+                                decision="unsupported_product_action"
+                            )
+                        if (
+                            selected.kind == "add_existing_plugin"
+                            and selected.effect.type == "add_default"
+                            and _EXPLICIT_RELATIVE_PLACEMENT.search(user_message)
+                        ):
+                            return CreatorActionSelection(
+                                decision="unsupported_product_action"
+                            )
                     return selection
                 except _InvalidActionSelection as error:
                     if (
