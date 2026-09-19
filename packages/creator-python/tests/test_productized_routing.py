@@ -7,15 +7,25 @@ import pytest
 from fastapi.testclient import TestClient
 
 from agent_ui_creator.app_ui_model import AppUIModelMutationMetrics
+from agent_ui_creator.config import CreatorServerSettings
 from agent_ui_creator.domain_state import DomainObservationContext, DomainObservationMetrics
 from agent_ui_creator.operations import (
+    AddDefaultActionEffect,
+    CreatorActionCandidate,
     CreatorActionCatalogSnapshot,
+    CreatorActionSelection,
+    CreatorActionSelectionError,
+    CreatorActionSelectorMetrics,
+    CreatorActionTarget,
     CreatorDomainSnapshot,
+    CreatorDomainSnapshotError,
     CreatorOperationExecutionResult,
+    CreatorOperationExecutionStatus,
     CreatorOperationMetrics,
-    CreatorOperationResolution,
-    CreatorOperationResolverMetrics,
     PluginCapabilityIndex,
+    RemoveActionEffect,
+    WorkspaceRegionActionEffect,
+    present_creator_action_selection,
 )
 from agent_ui_creator.operations.engine import (
     ProductizedOperationEngine,
@@ -25,7 +35,6 @@ from agent_ui_creator.operations.engine import (
 from agent_ui_creator.operations.snapshot import CreatorDomainSnapshotMetrics
 from agent_ui_creator.observability import CreatorRunTelemetry
 from agent_ui_creator.project_control import ProjectControlMetrics
-from agent_ui_creator.config import CreatorServerSettings
 from agent_ui_creator.server import create_app
 from agent_ui_creator.streaming import (
     CreatorEventBus,
@@ -45,57 +54,151 @@ _OBSERVATION_COVERAGE = (
 )
 
 
+class _Selector:
+    def __init__(
+        self,
+        selection: CreatorActionSelection | BaseException,
+        *,
+        metrics: CreatorActionSelectorMetrics | None = None,
+    ) -> None:
+        self.selection = selection
+        self.calls = 0
+        self.messages: list[tuple[str, object]] = []
+        self.metrics = metrics or CreatorActionSelectorMetrics(
+            modelCalls=1,
+            repairCalls=0,
+            invalidResponses=0,
+            durationMs=10,
+            candidateCount=3,
+            contextCharacters=100,
+        )
+
+    async def select(self, message: str, context: object):
+        self.calls += 1
+        self.messages.append((message, context))
+        if isinstance(self.selection, BaseException):
+            raise self.selection
+        return self.selection
+
+
+class _ActionPlaybook:
+    def __init__(
+        self,
+        result: CreatorOperationExecutionResult | None = None,
+        error: BaseException | None = None,
+    ) -> None:
+        self.result = result
+        self.error = error
+        self.calls: list[tuple[CreatorDomainSnapshot, CreatorActionCandidate]] = []
+
+    async def execute(
+        self,
+        snapshot: CreatorDomainSnapshot,
+        candidate: CreatorActionCandidate,
+    ) -> CreatorOperationExecutionResult:
+        self.calls.append((snapshot, candidate))
+        if self.error is not None:
+            raise self.error
+        assert self.result is not None
+        return self.result
+
+
+class _RetryingActionPlaybook(_ActionPlaybook):
+    def __init__(self, result: CreatorOperationExecutionResult) -> None:
+        super().__init__(result)
+        self.mutation_action_ids: list[str] = []
+        self.snapshot_refreshes = 0
+
+    async def execute(
+        self,
+        snapshot: CreatorDomainSnapshot,
+        candidate: CreatorActionCandidate,
+    ) -> CreatorOperationExecutionResult:
+        self.calls.append((snapshot, candidate))
+        self.mutation_action_ids.extend([candidate.actionId, candidate.actionId])
+        self.snapshot_refreshes = 1
+        assert self.result is not None
+        return self.result
+
+
+def _candidate(
+    kind: str,
+    *,
+    action_id: str | None = None,
+    status: str = "ready",
+    region: str = "right",
+) -> CreatorActionCandidate:
+    if kind == "add_existing_plugin":
+        effect = AddDefaultActionEffect(type="add_default")
+    elif kind == "remove_plugin":
+        effect = RemoveActionEffect(type="remove")
+    elif kind == "move_plugin":
+        effect = WorkspaceRegionActionEffect(type="workspace_region", region=region)
+    else:
+        raise AssertionError(f"unsupported test Action kind: {kind}")
+    action_id = action_id or f"act_history_{kind}"
+    return CreatorActionCandidate(
+        actionId=action_id,
+        kind=kind,  # type: ignore[arg-type]
+        status=status,  # type: ignore[arg-type]
+        label="Move History to Workspace.Right",
+        description="Move the History Plugin to the semantic Workspace.Right Region.",
+        target=CreatorActionTarget(
+            pluginId="conversation-thread-list",
+            pluginName="Conversation Thread List",
+            instanceId="conversation-thread-list-main",
+        ),
+        effect=effect,
+    )
+
+
+def _candidates() -> list[CreatorActionCandidate]:
+    return [
+        _candidate("add_existing_plugin", action_id="act_history_add"),
+        _candidate("remove_plugin", action_id="act_history_remove"),
+        _candidate("move_plugin", action_id="act_history_right"),
+    ]
+
+
 class _SnapshotProvider:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        candidates: list[CreatorActionCandidate] | None = None,
+        *,
+        error: BaseException | None = None,
+    ) -> None:
+        self.candidates = candidates or _candidates()
+        self.error = error
         self.metrics = CreatorDomainSnapshotMetrics()
+        self.build_calls = 0
 
     async def build(self) -> CreatorDomainSnapshot:
+        self.build_calls += 1
+        if self.error is not None:
+            raise self.error
         return CreatorDomainSnapshot(
             raw={},
             app_ui_model_hash="a" * 64,
             capability_catalog_revision="b" * 64,
             observation_coverage=_OBSERVATION_COVERAGE,
             plugin_index=PluginCapabilityIndex(),
-            action_catalog=CreatorActionCatalogSnapshot(revision="c" * 64),
+            action_catalog=CreatorActionCatalogSnapshot(
+                revision="c" * 64,
+                candidates=self.candidates,
+            ),
         )
 
 
-class _Resolver:
-    def __init__(self, resolution: CreatorOperationResolution) -> None:
-        self.resolution = resolution
-        self.metrics = CreatorOperationResolverMetrics(modelCalls=1)
-
-    async def resolve(self, _message, _plugin_index):
-        return self.resolution
-
-
-class _Registry:
-    def __init__(self, playbook) -> None:
-        self.playbook = playbook
-        self.calls: list[str] = []
-
-    def get(self, operation: str):
-        self.calls.append(operation)
-        return self.playbook
-
-
-class _Playbook:
-    def __init__(self, result) -> None:
-        self.result = result
-        self.calls = 0
-
-    async def execute(self, _snapshot, _resolution):
-        self.calls += 1
-        return self.result
-
-
 def _operation_result(
-    status: str = "success",
+    status: CreatorOperationExecutionStatus = "success",
     operation: str = "add_existing_plugin",
+    *,
+    mutation_attempts: int = 1,
+    snapshot_refreshes: int = 0,
 ) -> CreatorOperationExecutionResult:
     mutation_changed = status != "already_satisfied"
     return CreatorOperationExecutionResult(
-        operation=operation,
+        operation=operation,  # type: ignore[arg-type]
         status=status,
         pluginId="conversation-thread-list",
         instanceId="conversation-thread-list-main",
@@ -104,84 +207,321 @@ def _operation_result(
         metrics=CreatorOperationMetrics(
             operationDurationMs=1,
             executionModelCalls=0,
-            mutationAttempts=1 if mutation_changed else 0,
-            snapshotRefreshes=0,
+            mutationAttempts=mutation_attempts if mutation_changed else 0,
+            snapshotRefreshes=snapshot_refreshes,
             verificationRuntimeFreshnessAttempts=0,
         ),
     )
 
 
 def _engine(
-    resolution: CreatorOperationResolution,
+    selection: CreatorActionSelection | BaseException,
     *,
-    playbook=None,
-    event_sink=None,
-) -> tuple[ProductizedOperationEngine, _Registry, CreatorRunTelemetry]:
+    playbook: _ActionPlaybook | None = None,
+    event_sink: CreatorEventBus | None = None,
+    candidates: list[CreatorActionCandidate] | None = None,
+    snapshot_provider: _SnapshotProvider | None = None,
+    selector_metrics: CreatorActionSelectorMetrics | None = None,
+) -> tuple[ProductizedOperationEngine, _Selector, _ActionPlaybook, CreatorRunTelemetry]:
     telemetry = CreatorRunTelemetry()
+    selector = _Selector(selection, metrics=selector_metrics)
+    action_playbook = playbook or _ActionPlaybook(
+        _operation_result(operation="add_existing_plugin")
+    )
     engine = object.__new__(ProductizedOperationEngine)
     engine.activity = SimpleNamespace(
         revision=0,
         logger=None,
         record_semantic_noop=lambda **_kwargs: None,
     )
-    engine.snapshot_provider = _SnapshotProvider()
+    engine.snapshot_provider = snapshot_provider or _SnapshotProvider(candidates)
     engine.observations = DomainObservationContext()
-    engine.resolver = _Resolver(resolution)
-    registry = _Registry(playbook)
-    engine.registry = registry
+    engine.selector = selector
+    engine.action_playbook = action_playbook
     engine.project_control = SimpleNamespace(metrics=ProjectControlMetrics())
     engine.mutation_service = SimpleNamespace(metrics=AppUIModelMutationMetrics())
     engine.validation = SimpleNamespace(metrics=lambda: {})
     engine.telemetry = telemetry
     if event_sink is not None:
         engine.event_sink = event_sink
-    return engine, registry, telemetry
+    return engine, selector, action_playbook, telemetry
+
+
+def _selection_for(candidate: CreatorActionCandidate) -> CreatorActionSelection:
+    return CreatorActionSelection(decision="select_action", actionId=candidate.actionId)
 
 
 @pytest.mark.parametrize("kind", ["add_existing_plugin", "remove_plugin", "move_plugin"])
-def test_productized_routing_uses_registered_playbook_for_productized_operations(kind):
-    resolution_kwargs = {
-        "kind": kind,
-        "targetPluginIds": ["conversation-thread-list"],
-    }
-    if kind == "move_plugin":
-        resolution_kwargs.update(
-            {
-                "targetInstanceIds": ["conversation-thread-list-main"],
-                "placement": {
-                    "type": "relative",
-                    "anchorPluginId": "conversation-surface",
-                    "anchorInstanceId": "conversation-surface-main",
-                    "relation": "after",
-                },
-            }
-        )
-    resolution = CreatorOperationResolution(**resolution_kwargs)
+def test_productized_routing_uses_selector_and_generic_action_playbook(kind):
+    candidate = _candidate(kind)
+    selection = _selection_for(candidate)
     operation_result = _operation_result(operation=kind)
-    playbook = _Playbook(operation_result)
-    engine, registry, telemetry = _engine(resolution, playbook=playbook)
+    playbook = _ActionPlaybook(operation_result)
+    engine, selector, action_playbook, telemetry = _engine(
+        selection,
+        playbook=playbook,
+        candidates=[candidate],
+    )
 
     result = asyncio.run(engine.run([{"role": "user", "content": "change"}]))
 
     assert isinstance(result, ProductizedOperationRun)
     assert result.operation_result is operation_result
+    assert selector.calls == 1
+    assert len(action_playbook.calls) == 1
+    assert action_playbook.calls[0][1] is candidate
+    assert result.selection is selection
+    assert result.selected_action is candidate
+    assert result.metrics.modelCalls == 1
+    assert result.metrics.actionSelectorCalls == 1
+    assert result.metrics.totalModelCalls == 1
     assert result.metrics.toolCalls == 0
     assert result.metrics.deepAgentCalls == 0
-    assert registry.calls == [kind]
-    assert playbook.calls == 1
     assert telemetry.operation_route["productized"] is True
+    assert telemetry.operation_route["fallback"] is False
+    if kind == "move_plugin":
+        assert candidate.effect.type == "workspace_region"
+        assert candidate.effect.region == "right"
+
+
+def test_engine_does_not_run_legacy_resolver_or_registry(monkeypatch):
+    def fail_legacy(*_args, **_kwargs):
+        raise AssertionError("legacy Resolver must not run")
+
+    monkeypatch.setattr(
+        "agent_ui_creator.operations.resolver.CreatorOperationResolver.resolve",
+        fail_legacy,
+    )
+    candidate = _candidate("add_existing_plugin")
+    playbook = _ActionPlaybook(_operation_result(operation="add_existing_plugin"))
+    engine, _selector, _action_playbook, _telemetry = _engine(
+        _selection_for(candidate),
+        playbook=playbook,
+        candidates=[candidate],
+    )
+
+    result = asyncio.run(engine.run([{"role": "user", "content": "change"}]))
+
+    assert isinstance(result, ProductizedOperationRun)
+    assert not hasattr(engine, "resolver")
+    assert not hasattr(engine, "registry")
+    assert len(playbook.calls) == 1
+
+
+def test_general_change_is_the_only_decision_that_returns_none():
+    engine, selector, action_playbook, telemetry = _engine(
+        CreatorActionSelection(decision="general_change")
+    )
+
+    result = asyncio.run(engine.run([{"role": "user", "content": "支持标题模糊搜索"}]))
+
+    assert result is None
+    assert selector.calls == 1
+    assert action_playbook.calls == []
+    assert engine.mutation_service.metrics.operations == 0
+    assert telemetry.operation_route["route"] == "general-agent"
+    assert telemetry.operation_route["generalAgent"] is True
     assert telemetry.operation_route["fallback"] is False
 
 
-def test_engine_publishes_resolve_before_productized_execution():
-    resolution = CreatorOperationResolution(
-        kind="remove_plugin",
-        targetPluginIds=["conversation-thread-list"],
-    )
+def test_needs_clarification_finishes_without_playbook_or_general_fallback():
+    question = "你要删除历史会话，还是当前会话面板？"
     event_bus = CreatorEventBus()
-    engine, _registry, _telemetry = _engine(
-        resolution,
-        playbook=_Playbook(_operation_result(operation="remove_plugin")),
+    engine, selector, action_playbook, telemetry = _engine(
+        CreatorActionSelection(
+            decision="needs_clarification",
+            clarificationQuestion=question,
+        ),
+        event_sink=event_bus,
+    )
+
+    async def scenario():
+        result = await engine.run([{"role": "user", "content": "删除那个会话"}])
+        events = [await event_bus.next_event() for _ in range(4)]
+        event_bus.close()
+        return result, events
+
+    result, events = asyncio.run(scenario())
+
+    assert isinstance(result, ProductizedOperationRun)
+    assert result.text == question
+    assert result.operation_result is None
+    assert result.completion == "success"
+    assert selector.calls == 1
+    assert action_playbook.calls == []
+    assert result.metrics.to_dict() == {
+        "modelCalls": 1,
+        "actionSelectorCalls": 1,
+        "actionSelectorRepairCalls": 0,
+        "actionSelectorInvalidResponses": 0,
+        "actionSelectorDurationMs": 10,
+        "actionSelectorCandidateCount": 3,
+        "actionSelectorContextCharacters": 100,
+        "totalModelCalls": 1,
+        "toolCalls": 0,
+        "validToolCalls": 0,
+        "invalidToolCalls": 0,
+        "deepAgentCalls": 0,
+    }
+    assert [event.name for event in events] == [
+        "creator.grounding",
+        "creator.grounding",
+        "creator.resolve",
+        "creator.resolve",
+    ]
+    assert telemetry.operation_route["clarification"] is True
+
+
+def test_unsupported_product_action_is_blocked_without_general_fallback():
+    engine, selector, action_playbook, telemetry = _engine(
+        CreatorActionSelection(decision="unsupported_product_action")
+    )
+
+    result = asyncio.run(engine.run([{"role": "user", "content": "把 History 放到中间"}]))
+
+    assert isinstance(result, ProductizedOperationRun)
+    assert result.completion == "blocked"
+    assert result.blocker == {
+        "code": "PRODUCT_ACTION_UNSUPPORTED",
+        "message": "当前请求没有可安全执行的产品化操作。",
+    }
+    assert result.operation_result is None
+    assert selector.calls == 1
+    assert action_playbook.calls == []
+    assert telemetry.operation_route["route"] == "unsupported"
+    assert telemetry.operation_route["fallback"] is False
+
+
+def test_selector_failure_does_not_fall_back_to_general_agent():
+    engine, selector, action_playbook, _telemetry = _engine(
+        CreatorActionSelectionError("synthetic selector failure")
+    )
+
+    with pytest.raises(CreatorActionSelectionError) as raised:
+        asyncio.run(engine.run([{"role": "user", "content": "change"}]))
+
+    assert raised.value.code == "ACTION_SELECTION_FAILED"
+    assert selector.calls == 1
+    assert action_playbook.calls == []
+
+
+def test_snapshot_failure_does_not_call_selector_or_action_playbook():
+    provider = _SnapshotProvider(
+        error=CreatorDomainSnapshotError(
+            "DOMAIN_SNAPSHOT_INVALID",
+            "synthetic invalid snapshot",
+        )
+    )
+    engine, selector, action_playbook, _telemetry = _engine(
+        CreatorActionSelection(decision="general_change"),
+        snapshot_provider=provider,
+    )
+
+    with pytest.raises(CreatorDomainSnapshotError) as raised:
+        asyncio.run(engine.run([{"role": "user", "content": "change"}]))
+
+    assert raised.value.code == "DOMAIN_SNAPSHOT_INVALID"
+    assert selector.calls == 0
+    assert action_playbook.calls == []
+
+
+def test_action_execution_failure_propagates_without_fallback():
+    candidate = _candidate("remove_plugin")
+    playbook = _ActionPlaybook(error=RuntimeError("PRODUCT_OPERATION_STALE"))
+    engine, selector, action_playbook, _telemetry = _engine(
+        _selection_for(candidate),
+        playbook=playbook,
+        candidates=[candidate],
+    )
+
+    with pytest.raises(RuntimeError, match="PRODUCT_OPERATION_STALE"):
+        asyncio.run(engine.run([{"role": "user", "content": "删除历史会话"}]))
+
+    assert selector.calls == 1
+    assert len(action_playbook.calls) == 1
+
+
+def test_selected_action_missing_from_snapshot_fails_closed():
+    candidate = _candidate("move_plugin", action_id="act_history_right")
+    engine, selector, action_playbook, _telemetry = _engine(
+        _selection_for(candidate),
+        candidates=[_candidate("move_plugin", action_id="act_other")],
+    )
+
+    with pytest.raises(CreatorActionSelectionError) as raised:
+        asyncio.run(engine.run([{"role": "user", "content": "把会话管理移到右边"}]))
+
+    assert raised.value.code == "ACTION_SELECTION_FAILED"
+    assert selector.calls == 1
+    assert action_playbook.calls == []
+
+
+def test_selector_repair_metrics_are_authoritative_and_no_execution_model_is_used():
+    candidate = _candidate("move_plugin")
+    selector_metrics = CreatorActionSelectorMetrics(
+        modelCalls=2,
+        repairCalls=1,
+        invalidResponses=1,
+        durationMs=20,
+        candidateCount=3,
+        contextCharacters=900,
+    )
+    operation_result = _operation_result(operation="move_plugin")
+    engine, _selector, _action_playbook, _telemetry = _engine(
+        _selection_for(candidate),
+        playbook=_ActionPlaybook(operation_result),
+        candidates=[candidate],
+        selector_metrics=selector_metrics,
+    )
+
+    result = asyncio.run(engine.run([{"role": "user", "content": "把会话管理放到右边"}]))
+
+    assert isinstance(result, ProductizedOperationRun)
+    assert result.metrics.modelCalls == 2
+    assert result.metrics.actionSelectorCalls == 2
+    assert result.metrics.actionSelectorRepairCalls == 1
+    assert result.metrics.actionSelectorInvalidResponses == 1
+    assert result.metrics.totalModelCalls == 2
+    assert result.metrics.toolCalls == 0
+    assert result.metrics.deepAgentCalls == 0
+    assert result.operation_result.metrics.executionModelCalls == 0
+
+
+def test_stale_retry_keeps_one_selector_call_and_reports_playbook_retry_metrics():
+    candidate = _candidate("move_plugin")
+    operation_result = _operation_result(
+        operation="move_plugin",
+        mutation_attempts=2,
+        snapshot_refreshes=1,
+    )
+    playbook = _RetryingActionPlaybook(operation_result)
+    engine, selector, action_playbook, _telemetry = _engine(
+        _selection_for(candidate),
+        playbook=playbook,
+        candidates=[candidate],
+    )
+
+    result = asyncio.run(engine.run([{"role": "user", "content": "把会话管理移到最右边"}]))
+
+    assert isinstance(result, ProductizedOperationRun)
+    assert selector.calls == 1
+    assert len(action_playbook.calls) == 1
+    assert action_playbook.mutation_action_ids == [
+        "act_history_move_plugin",
+        "act_history_move_plugin",
+    ]
+    assert action_playbook.snapshot_refreshes == 1
+    assert result.operation_result.metrics.mutationAttempts == 2
+    assert result.operation_result.metrics.snapshotRefreshes == 1
+
+
+def test_engine_publishes_resolve_before_productized_execution():
+    candidate = _candidate("remove_plugin")
+    event_bus = CreatorEventBus()
+    engine, _selector, _action_playbook, _telemetry = _engine(
+        _selection_for(candidate),
+        playbook=_ActionPlaybook(_operation_result(operation="remove_plugin")),
+        candidates=[candidate],
         event_sink=event_bus,
     )
 
@@ -210,6 +550,35 @@ def test_engine_publishes_resolve_before_productized_execution():
         "creator.productized-operation",
         "creator.productized-operation",
     ]
+    resolve_finished = events[3]
+    assert isinstance(resolve_finished, CreatorStepFinished)
+    assert resolve_finished.metadata is not None
+    assert resolve_finished.metadata["creator"] == {
+        "phase": "understanding",
+        "status": "success",
+        "decision": "select_action",
+        "displayIntent": "移除 Conversation Thread List",
+        "intent": "remove_plugin",
+        "targetPluginIds": ["conversation-thread-list"],
+        "targetInstanceIds": ["conversation-thread-list-main"],
+        "route": "productized",
+        "actionId": "act_history_remove_plugin",
+        "actionKind": "remove_plugin",
+        "actionStatus": "ready",
+        "effectType": "remove",
+        "modelCalls": 1,
+        "repairCalls": 0,
+        "invalidResponses": 0,
+        "durationMs": 10,
+        "candidateCount": 3,
+        "contextCharacters": 100,
+        "actionSelectorCalls": 1,
+        "actionSelectorRepairCalls": 0,
+        "actionSelectorInvalidResponses": 0,
+        "actionSelectorDurationMs": 10,
+        "actionSelectorCandidateCount": 3,
+        "actionSelectorContextCharacters": 100,
+    }
     resolve_finished_index = next(
         index
         for index, event in enumerate(events)
@@ -224,114 +593,49 @@ def test_engine_publishes_resolve_before_productized_execution():
     assert resolve_finished_index < productized_started_index
 
 
-@pytest.mark.parametrize("kind", ["general_change", "modify_plugin_logic"])
-def test_productized_routing_returns_none_for_general_agent_fallback(kind):
-    resolution = CreatorOperationResolution(
-        kind=kind,
-        targetPluginIds=["conversation-thread-list"],
-    )
-    engine, registry, telemetry = _engine(resolution)
-
-    result = asyncio.run(engine.run([{"role": "user", "content": "change"}]))
-
-    assert result is None
-    assert registry.calls == [kind]
-    assert telemetry.operation_route["productized"] is False
-    assert telemetry.operation_route["fallback"] is True
-
-
-def test_needs_clarification_finishes_without_playbook_or_general_fallback():
-    question = "你要删除历史会话，还是当前会话面板？"
-    resolution = CreatorOperationResolution(
-        kind="needs_clarification",
-        clarificationQuestion=question,
-    )
-    engine, registry, telemetry = _engine(resolution)
-
-    result = asyncio.run(engine.run([{"role": "user", "content": "删除那个会话"}]))
-
-    assert isinstance(result, ProductizedOperationRun)
-    assert result.text == question
-    assert result.operation_result is None
-    assert result.completion == "success"
-    assert result.metrics.to_dict() == {
-        "modelCalls": 1,
-        "operationResolverCalls": 1,
-        "operationResolverRepairCalls": 0,
-        "operationResolverInvalidResponses": 0,
-        "toolCalls": 0,
-        "validToolCalls": 0,
-        "invalidToolCalls": 0,
-        "deepAgentCalls": 0,
-    }
-    assert registry.calls == []
-    assert telemetry.operation_route["productized"] is False
-    assert telemetry.operation_route["fallback"] is False
-
-
-def test_committed_unverified_preserves_top_level_completion_status():
-    resolution = CreatorOperationResolution(
-        kind="add_existing_plugin",
-        targetPluginIds=["conversation-thread-list"],
-    )
-    engine, _registry, _telemetry = _engine(
-        resolution,
-        playbook=_Playbook(_operation_result("committed_unverified")),
-    )
-
-    result = asyncio.run(engine.run([{"role": "user", "content": "change"}]))
-
-    assert result is not None
-    assert result.completion == "committed_unverified"
-    assert result.operation_result.status == "committed_unverified"
-
-
 def _server_productized_result() -> ProductizedOperationRun:
-    resolution = CreatorOperationResolution(
-        kind="add_existing_plugin",
-        targetPluginIds=["conversation-thread-list"],
-    )
-    operation_result = CreatorOperationExecutionResult(
-        operation="add_existing_plugin",
-        status="success",
-        pluginId="conversation-thread-list",
-        instanceId="conversation-thread-list-main",
-        mutationChanged=True,
-        mutationRevision=1,
-        metrics=CreatorOperationMetrics(
-            operationDurationMs=1,
-            executionModelCalls=0,
-            mutationAttempts=1,
-            snapshotRefreshes=0,
-            verificationRuntimeFreshnessAttempts=0,
-        ),
-    )
+    selected_action = _candidate("move_plugin", action_id="act_history_right")
+    selection = _selection_for(selected_action)
+    operation_result = _operation_result(operation="move_plugin")
     return ProductizedOperationRun(
-        text="Completed Productized operation: add existing Plugin.",
+        text="Completed Productized operation: move Plugin instance.",
         metrics=ProductizedOperationToolMetrics(
             modelCalls=1,
-            operationResolverCalls=1,
-            operationResolverRepairCalls=0,
-            operationResolverInvalidResponses=0,
+            actionSelectorCalls=1,
+            actionSelectorRepairCalls=0,
+            actionSelectorInvalidResponses=0,
+            actionSelectorDurationMs=20,
+            actionSelectorCandidateCount=3,
+            actionSelectorContextCharacters=900,
+            totalModelCalls=1,
         ),
         project_control=ProjectControlMetrics(),
         repeated_project_control_reads=0,
         domain_observations=DomainObservationMetrics(),
         app_ui_model_mutations=AppUIModelMutationMetrics(),
-        operation_resolver_metrics={
-            "operationResolverCalls": 1,
-            "operationResolverRepairCalls": 0,
-            "operationResolverInvalidResponses": 0,
-        },
         snapshot_metrics=CreatorDomainSnapshotMetrics(builds=1),
-        resolution=resolution,
+        selection=selection,
+        selected_action=selected_action,
+        action_selector_metrics={
+            "actionSelectorCalls": 1,
+            "actionSelectorRepairCalls": 0,
+            "actionSelectorInvalidResponses": 0,
+            "actionSelectorDurationMs": 20,
+            "actionSelectorCandidateCount": 3,
+            "actionSelectorContextCharacters": 900,
+        },
+        intent_presentation=present_creator_action_selection(
+            selection,
+            selected_action,
+            route="productized",
+        ),
         operation_result=operation_result,
         validation_metrics={},
         completion="success",
     )
 
 
-def test_server_serializes_productized_run_metrics_without_general_agent(
+def test_server_serializes_new_action_result_without_legacy_resolver_fields(
     tmp_path, monkeypatch
 ):
     monkeypatch.setenv("CREATOR_PYTHON_AGENT_MODE", "domain-write")
@@ -356,12 +660,25 @@ def test_server_serializes_productized_run_metrics_without_general_agent(
         json={
             "threadId": "thread-1",
             "runId": "run-1",
-            "messages": [{"role": "user", "content": "加回历史会话"}],
+            "messages": [{"role": "user", "content": "把会话管理移到最右边"}],
         },
     )
 
-    assert '"phase":"productized-operation"' in response.text
-    assert '"operationResolverCalls":1' in response.text
-    assert '"toolCalls":0' in response.text
-    assert '"deepAgentCalls":0' in response.text
+    assert response.status_code == 200
+    assert '"actionSelector"' in response.text
+    assert '"actionSelection"' in response.text
+    assert '"selectedCreatorAction"' in response.text
     assert '"productizedOperation"' in response.text
+    assert '"operationResolver"' not in response.text
+    assert '"operationResolution"' not in response.text
+    normalized_response = "".join(response.text.split())
+    assert '"effect":{"type":"workspace_region","region":"right"}' in normalized_response
+    for forbidden in (
+        "workspace_region_move",
+        "move_layout_node",
+        "destinationTrack",
+        "insertionIndex",
+        "layoutRef",
+        "bindings",
+    ):
+        assert forbidden not in response.text

@@ -154,3 +154,21 @@ def test_terminal_blocker_metrics_are_flat_and_preserve_zero_after_counts():
         "modelCallsAfterTerminalBlocker": 0,
         "toolCallsAfterTerminalBlocker": 0,
     }
+
+
+def test_action_selector_calls_do_not_overwrite_general_agent_model_calls():
+    telemetry = CreatorRunTelemetry(
+        protocol=ToolProtocolMetrics(modelCalls=5, toolCalls=4),
+        action_selector={
+            "actionSelectorCalls": 1,
+            "actionSelectorRepairCalls": 0,
+            "actionSelectorInvalidResponses": 0,
+        },
+    )
+
+    metrics = telemetry.model_tool_metrics()
+
+    assert metrics["modelCalls"] == 5
+    assert metrics["toolCalls"] == 4
+    assert metrics["actionSelectorCalls"] == 1
+    assert metrics["totalModelCalls"] == 6

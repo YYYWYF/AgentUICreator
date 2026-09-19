@@ -516,7 +516,10 @@ class ProductizedOperationEngine:
         }
 
     def _action_selector_step_metadata(self) -> dict[str, int]:
-        return self._action_selector_metrics_metadata()
+        return {
+            **self._action_selector_metrics_metadata(),
+            **self._action_selector_metrics(),
+        }
 
     @staticmethod
     def _selected_action_metadata(

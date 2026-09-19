@@ -40,7 +40,7 @@ describe("Creator debug mode", () => {
 });
 
 describe("Creator stage projection", () => {
-  it("shows the resolver intent before execution", () => {
+  it("shows the selected Action and realtime selector metrics before execution", () => {
     const running = projectCreatorIntentStage(undefined, {
       kind: "started",
       name: "creator.resolve",
@@ -54,14 +54,27 @@ describe("Creator stage projection", () => {
         creator: {
           phase: "understanding",
           status: "success",
-          displayIntent: "移除 Conversation Thread List",
-          intent: "remove_plugin",
+          decision: "select_action",
+          displayIntent: "将 Conversation Thread List 移到右侧区域",
+          intent: "move_plugin",
+          actionId: "act_history_right",
+          actionKind: "move_plugin",
+          actionStatus: "ready",
+          effectType: "workspace_region",
+          region: "right",
           targetPluginIds: ["conversation-thread-list"],
           targetInstanceIds: ["conversation-thread-list-main"],
           route: "productized",
           modelCalls: 1,
           repairCalls: 0,
-          durationMs: 842,
+          invalidResponses: 0,
+          durationMs: 800,
+          candidateCount: 7,
+          contextCharacters: 3200,
+          actionSelectorCalls: 1,
+          actionSelectorRepairCalls: 0,
+          actionSelectorInvalidResponses: 0,
+          actionSelectorDurationMs: 800,
         },
       },
     });
@@ -70,16 +83,26 @@ describe("Creator stage projection", () => {
     expect(completed).toMatchObject({
       id: "stage-1",
       status: "completed",
-      displayIntent: "移除 Conversation Thread List",
+      displayIntent: "将 Conversation Thread List 移到右侧区域",
       metadata: {
-        intent: "remove_plugin",
-        targetPluginIds: ["conversation-thread-list"],
+        decision: "select_action",
+        intent: "move_plugin",
+        actionId: "act_history_right",
+        actionKind: "move_plugin",
+        actionStatus: "ready",
+        effectType: "workspace_region",
+        region: "right",
         modelCalls: 1,
+        actionSelectorCalls: 1,
+        actionSelectorRepairCalls: 0,
+        actionSelectorInvalidResponses: 0,
+        candidateCount: 7,
+        contextCharacters: 3200,
       },
     });
   });
 
-  it("reconciles streamed resolver metrics from RUN_FINISHED", () => {
+  it("reads legacy Resolver intent metadata for compatibility", () => {
     const stage: CreatorStageActivity = {
       kind: "stage",
       id: "stage-1",
@@ -111,6 +134,166 @@ describe("Creator stage projection", () => {
       durationMs: 842,
       route: "productized",
     });
+  });
+
+  it("reconciles Action Selector fields from RUN_FINISHED", () => {
+    const stage: CreatorStageActivity = {
+      kind: "stage",
+      id: "stage-1",
+      name: "creator.resolve",
+      status: "completed",
+      displayIntent: "将 Conversation Thread List 移到右侧区域",
+      metadata: { modelCalls: 1, durationMs: 1 },
+    };
+
+    const reconciled = reconcileCreatorStageFromRunResult(stage, {
+      creatorIntent: {
+        displayIntent: "将 Conversation Thread List 移到右侧区域",
+        route: "productized",
+      },
+      actionSelector: {
+        actionSelectorCalls: 1,
+        actionSelectorRepairCalls: 0,
+        actionSelectorInvalidResponses: 0,
+        actionSelectorDurationMs: 800,
+        actionSelectorCandidateCount: 7,
+        actionSelectorContextCharacters: 3200,
+      },
+      actionSelection: {
+        decision: "select_action",
+        actionId: "act_history_right",
+      },
+      selectedCreatorAction: {
+        actionId: "act_history_right",
+        kind: "move_plugin",
+        status: "ready",
+        target: {
+          pluginId: "conversation-thread-list",
+          pluginName: "Conversation Thread List",
+          instanceId: "conversation-thread-list-main",
+        },
+        effect: {
+          type: "workspace_region",
+          region: "right",
+        },
+      },
+    });
+
+    expect(reconciled.metadata).toMatchObject({
+      decision: "select_action",
+      actionId: "act_history_right",
+      actionKind: "move_plugin",
+      actionStatus: "ready",
+      effectType: "workspace_region",
+      region: "right",
+      route: "productized",
+      modelCalls: 1,
+      actionSelectorCalls: 1,
+      actionSelectorRepairCalls: 0,
+      actionSelectorInvalidResponses: 0,
+      durationMs: 800,
+      candidateCount: 7,
+      contextCharacters: 3200,
+    });
+    expect(reconciled.metadata).not.toHaveProperty("operationResolver");
+  });
+
+  it("projects unsupported Action decisions as unsupported", () => {
+    const stage: CreatorStageActivity = {
+      kind: "stage",
+      id: "stage-1",
+      name: "creator.resolve",
+      status: "completed",
+      metadata: {},
+    };
+
+    const reconciled = reconcileCreatorStageFromRunResult(stage, {
+      actionSelection: {
+        decision: "unsupported_product_action",
+      },
+      completion: "blocked",
+      blocker: { code: "PRODUCT_ACTION_UNSUPPORTED" },
+    });
+
+    expect(reconciled.metadata).toMatchObject({
+      decision: "unsupported_product_action",
+      route: "unsupported",
+    });
+    expect(reconciled.metadata?.route).not.toBe("general-agent");
+  });
+
+  it("keeps General Agent totals separate from Action Selector calls", () => {
+    const stage: CreatorStageActivity = {
+      kind: "stage",
+      id: "stage-1",
+      name: "creator.resolve",
+      status: "completed",
+      metadata: {},
+    };
+
+    const reconciled = reconcileCreatorStageFromRunResult(stage, {
+      actionSelector: { actionSelectorCalls: 1 },
+      actionSelection: { decision: "general_change" },
+      toolProtocol: {
+        modelCalls: 5,
+        toolCalls: 4,
+        totalModelCalls: 6,
+      },
+    });
+
+    expect(reconciled.metadata).toMatchObject({
+      route: "general-agent",
+      actionSelectorCalls: 1,
+      generalAgentModelCalls: 5,
+      generalAgentToolCalls: 4,
+      totalModelCalls: 6,
+    });
+  });
+
+  it("does not project private Host bindings into observability", () => {
+    const stage: CreatorStageActivity = {
+      kind: "stage",
+      id: "stage-1",
+      name: "creator.resolve",
+      status: "completed",
+      metadata: {},
+    };
+
+    const reconciled = reconcileCreatorStageFromRunResult(stage, {
+      creatorIntent: {
+        displayIntent: "将 Conversation Thread List 移到右侧区域",
+        bindings: { internal: "secret" },
+        move_layout_node: "private",
+      },
+      actionSelection: {
+        decision: "select_action",
+        actionId: "act_history_right",
+      },
+      selectedCreatorAction: {
+        actionId: "act_history_right",
+        kind: "move_plugin",
+        status: "ready",
+        target: {
+          pluginId: "conversation-thread-list",
+          instanceId: "conversation-thread-list-main",
+        },
+        effect: {
+          type: "workspace_region",
+          region: "right",
+          destinationTrack: "private",
+          insertionIndex: 2,
+          layoutRef: "private",
+        },
+      },
+    });
+
+    const serialized = JSON.stringify(reconciled.metadata);
+    expect(serialized).not.toContain("bindings");
+    expect(serialized).not.toContain("workspace_region_move");
+    expect(serialized).not.toContain("move_layout_node");
+    expect(serialized).not.toContain("destinationTrack");
+    expect(serialized).not.toContain("insertionIndex");
+    expect(serialized).not.toContain("layoutRef");
   });
 
   it("projects bounded move placement and verification metadata", () => {
@@ -148,7 +331,11 @@ describe("Creator stage projection", () => {
         productizedOperation: {
           operation: "move_plugin",
           status: "success",
-          metrics: { executionModelCalls: 0, mutationAttempts: 1, snapshotRefreshes: 0 },
+          metrics: {
+            executionModelCalls: 0,
+            mutationAttempts: 1,
+            snapshotRefreshes: 0,
+          },
           verification: {
             staticStatus: "passed",
             runtimeStatus: "passed",
