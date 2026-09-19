@@ -45,6 +45,7 @@ from .models import (
     RelativeActionEffect,
     RemoveActionEffect,
     RowEdgeActionEffect,
+    WorkspaceRegionActionEffect,
     PluginChildSlotCapability,
     PluginCapability,
     PluginCapabilityIndex,
@@ -180,6 +181,11 @@ def _build_action_effect(value: Any, *, path: str) -> CreatorActionEffect:
             if edge not in {"left", "right"}:
                 raise ValueError(f"Unsupported row edge {edge!r}.")
             return RowEdgeActionEffect.model_validate(dict(effect))
+        if effect_type == "workspace_region":
+            region = _required_string(effect.get("region"), f"{path}.region")
+            if region not in {"left", "center", "right"}:
+                raise ValueError(f"Unsupported Workspace Region {region!r}.")
+            return WorkspaceRegionActionEffect.model_validate(dict(effect))
         if effect_type == "plugin_slot":
             _bounded_text(effect.get("parentPluginId"), f"{path}.parentPluginId", MAX_PLUGIN_ID_CHARS)
             _bounded_text(effect.get("parentPluginName"), f"{path}.parentPluginName", MAX_PLUGIN_NAME_CHARS)

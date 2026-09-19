@@ -267,6 +267,13 @@ class RowEdgeActionEffect(BaseModel):
     edge: Literal["left", "right"]
 
 
+class WorkspaceRegionActionEffect(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["workspace_region"]
+    region: Literal["left", "center", "right"]
+
+
 class PluginSlotActionEffect(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -282,6 +289,7 @@ CreatorActionEffect: TypeAlias = Annotated[
     | RemoveActionEffect
     | RelativeActionEffect
     | RowEdgeActionEffect
+    | WorkspaceRegionActionEffect
     | PluginSlotActionEffect,
     Field(discriminator="type"),
 ]
@@ -327,9 +335,15 @@ class CreatorActionCandidate(BaseModel):
                     "A ready remove_plugin action requires a target instance."
                 )
         if self.kind == "move_plugin":
-            if effect_type not in {"relative", "row_edge", "plugin_slot"}:
+            if effect_type not in {
+                "relative",
+                "row_edge",
+                "workspace_region",
+                "plugin_slot",
+            }:
                 raise ValueError(
-                    "move_plugin must use a relative, row_edge, or plugin_slot effect."
+                    "move_plugin must use a relative, row_edge, workspace_region, "
+                    "or plugin_slot effect."
                 )
             if self.target.instanceId is None:
                 raise ValueError("A move_plugin action requires a target instance.")

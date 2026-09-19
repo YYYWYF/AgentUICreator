@@ -58,6 +58,7 @@ from .models import (
     RelativeMovePlacement,
     RequiredServiceSummary,
     RowEdgeActionEffect,
+    WorkspaceRegionActionEffect,
     MAX_TOTAL_PLUGIN_CHILD_SLOTS,
 )
 from .resolver import (
@@ -192,5 +193,6 @@ __all__ = [
     "RelativeMovePlacement",
     "RequiredServiceSummary",
     "RowEdgeActionEffect",
+    "WorkspaceRegionActionEffect",
     "MAX_TOTAL_PLUGIN_CHILD_SLOTS",
 ]

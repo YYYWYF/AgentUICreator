@@ -39,11 +39,14 @@ Never choose only one part of a multi-part request. The current selector
 supports one Product Action at a time, so a request containing multiple
 independent actions is unsupported_product_action.
 
-An already_satisfied candidate is still a valid selectable Action. If the user
-uses row-edge language such as "left edge", "right edge", "first", or "last",
-prefer the supplied row-edge candidate. Use a supplied relative candidate when
-the user explicitly names another Plugin as the anchor, even if both candidates
-would currently produce the same visual result.
+An already_satisfied candidate is still a valid selectable Action. For
+top-level Workspace placement, select the supplied workspace_region Action.
+Words such as "left", "right", "center", "far left", "far right", "before
+the main conversation", and "after the main conversation" may refer to the
+Mode's semantic Workspace Regions. Do not translate them into relative
+placement yourself. Only select the matching supplied Action. Use a supplied
+relative candidate when the user explicitly names another Plugin as the
+anchor.
 
 Use general_change for behavior or implementation changes, such as changing a
 Plugin's rendering or adding fuzzy search. Use needs_clarification only when
