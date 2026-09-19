@@ -159,14 +159,15 @@ def mutation(
         "expectedRuntime": expected_runtime,
     }
     if candidate.kind == "add_existing_plugin" and changed:
-        semantic["expectedGeometry"] = {
-            "instanceId": instance_id or "history-main",
-            "anchorInstanceId": "conversation-main",
-            "relation": "before",
-            "axis": "width",
-            "size": "280px",
-        }
-    if candidate.kind == "move_plugin" and expected_placement is not None:
+        if expected_placement is None:
+            semantic["expectedGeometry"] = {
+                "instanceId": instance_id or "history-main",
+                "anchorInstanceId": "conversation-main",
+                "relation": "before",
+                "axis": "width",
+                "size": "280px",
+            }
+    if candidate.kind in {"add_existing_plugin", "move_plugin"} and expected_placement is not None:
         semantic["expectedPlacement"] = expected_placement
     if expected_workspace_fill is not None:
         semantic["expectedWorkspaceFill"] = expected_workspace_fill
@@ -536,6 +537,46 @@ def test_add_result_instance_id_comes_from_host_expected_runtime():
 
     assert result.status == "success"
     assert result.instanceId == "history-main"
+
+
+def test_add_plugin_slot_requires_verified_runtime_mount():
+    candidate = action("add_existing_plugin", instance_id=None)
+    source = snapshot(candidate)
+    expected_placement = {
+        "type": "plugin_slot",
+        "instanceId": "history-main",
+        "parentInstanceId": "conversation-main",
+        "slot": "slotX",
+    }
+    runtime = {
+        "currentHash": "c" * 64,
+        "runtimeStatus": "passed",
+        "compositionFresh": True,
+        "compositionVerified": True,
+        "currentErrors": [],
+        "runtimeInstances": [{
+            "instanceId": "history-main",
+            "slotId": "plugin:conversation-main:wrong-slot",
+        }],
+    }
+    playbook = make_playbook(
+        FakeMutation([mutation(candidate, expected_placement=expected_placement)]),
+        SequenceSnapshotProvider([source]),
+        [runtime],
+    )
+    failed = asyncio.run(playbook.execute(source, candidate))
+    assert failed.status == "failed"
+    assert failed.verification.placementVerified is False
+
+    runtime["runtimeInstances"][0]["slotId"] = "plugin:conversation-main:slotX"
+    playbook = make_playbook(
+        FakeMutation([mutation(candidate, expected_placement=expected_placement)]),
+        SequenceSnapshotProvider([source]),
+        [runtime],
+    )
+    passed = asyncio.run(playbook.execute(source, candidate))
+    assert passed.status == "success"
+    assert passed.verification.placementVerified is True
 
 
 def test_remove_action_succeeds_when_host_and_runtime_agree():

@@ -39,12 +39,7 @@ export interface UIPluginManifest {
     | {
         intents: string[];
         visualRole?: string | undefined;
-        typicalPlacement?:
-          | {
-              relation: "before" | "after" | "above" | "below";
-              anchorPluginId: string;
-            }
-          | undefined;
+        defaultPlacement?: PluginDefaultPlacement | undefined;
         recommendedSize?:
           | {
               width?: AppUILayoutTrackSize | undefined;
@@ -77,6 +72,18 @@ export interface UIPluginManifest {
       }
     | undefined;
 }
+
+export type PluginDefaultPlacement =
+  | {
+      type: "relative";
+      relation: "before" | "after" | "above" | "below";
+      anchorPluginId: string;
+    }
+  | {
+      type: "plugin_slot";
+      parentPluginId: string;
+      slot: string;
+    };
 
 export interface UIPluginActions {
   sendMessage(input: string | AgentUserInput): Promise<void>;
@@ -267,12 +274,18 @@ const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
     .strictObject({
       intents: authoringIntentListSchema,
       visualRole: authoringTextSchema.optional(),
-      typicalPlacement: z
-        .strictObject({
+      defaultPlacement: z.discriminatedUnion("type", [
+        z.strictObject({
+          type: z.literal("relative"),
           relation: z.enum(["before", "after", "above", "below"]),
           anchorPluginId: authoringTextSchema,
-        })
-        .optional(),
+        }),
+        z.strictObject({
+          type: z.literal("plugin_slot"),
+          parentPluginId: authoringTextSchema,
+          slot: childSlotNameSchema,
+        }),
+      ]).optional(),
       recommendedSize: z
         .strictObject({
           width: authoringTrackSizeSchema.optional(),

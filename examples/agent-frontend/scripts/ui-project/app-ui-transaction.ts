@@ -884,7 +884,8 @@ async function lowerSemanticCompositionOperations(
       expectedRuntime: {
         presentInstanceIds: [operation.plugin.id],
       },
-      expectedGeometry: sharedPlan.expectedGeometry,
+      ...(sharedPlan.expectedGeometry === undefined ? {} : { expectedGeometry: sharedPlan.expectedGeometry }),
+      ...(sharedPlan.expectedPlacement === undefined ? {} : { expectedPlacement: sharedPlan.expectedPlacement }),
     },
   };
 }

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   type AppUIModel,
+  type AppUIPluginNode,
 } from "../framework/contracts/app-ui-model";
 import type { AgentUIWorkspacePolicy } from "../framework/contracts/agent-ui-workspace";
 import {
@@ -235,6 +236,153 @@ describe("Creator Action semantic identity", () => {
 });
 
 describe("Creator Action Catalog", () => {
+  const childPlacement = {
+    intents: ["show useful example actions"],
+    visualRole: "example actions",
+    defaultPlacement: { type: "plugin_slot", parentPluginId: "parent", slot: "slotX" },
+  };
+  const parentSlots = {
+    children: {
+      slotX: {
+        description: "Example actions",
+        cardinality: "one",
+        optional: true,
+        accepts: { anyOfCapabilities: ["capability-A"] },
+      },
+    },
+  };
+  const parentNode = (id: string): AppUIPluginNode => ({ id, pluginId: "parent", enabled: true });
+  const childSlotModel = (parents: AppUIPluginNode[] = [parentNode("parent-main")]): AppUIModel => ({
+    root: { type: "slot", plugins: parents },
+  });
+
+  it("does not publish default Add for a visual asset without default placement", async () => {
+    const model = childSlotModel();
+    const projectRoot = await createFixtureProject(model, [
+      ["parent", {}],
+      ["unplaced", { authoring: { intents: ["show unplaced content"], visualRole: "content" } }],
+    ]);
+    const { catalog } = await buildCatalog(projectRoot, model);
+    expect(catalog.candidates).not.toContainEqual(expect.objectContaining({
+      kind: "add_existing_plugin", target: expect.objectContaining({ pluginId: "unplaced" }),
+    }));
+  });
+
+  it("adds any compatible absent Plugin to its declared child Slot and preserves Add identity", async () => {
+    const model = childSlotModel();
+    const projectRoot = await createFixtureProject(model, [
+      ["parent", { slots: parentSlots }],
+      ["child", { capabilities: ["capability-A"], authoring: childPlacement }],
+    ]);
+    const before = await buildCatalog(projectRoot, model);
+    const add = before.catalog.candidates.find((candidate) =>
+      candidate.kind === "add_existing_plugin" && candidate.target.pluginId === "child");
+    expect(add).toMatchObject({ status: "ready", effect: { type: "add_default" } });
+    if (add === undefined) throw new Error("Expected child Add Action");
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(`${JSON.stringify(model, null, 2)}\n`),
+      operations: [{ type: "execute_creator_action", actionId: add.actionId }],
+    });
+    expect(result.semanticComposition?.expectedPlacement).toEqual({
+      type: "plugin_slot", instanceId: "child-main", parentInstanceId: "parent-main", slot: "slotX",
+    });
+    const after = JSON.parse(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")) as AppUIModel;
+    expect(after.root.type === "slot" && after.root.plugins[0]?.slots?.slotX?.[0]).toMatchObject({
+      id: "child-main", pluginId: "child", enabled: true,
+    });
+    const mounted = await buildCatalog(projectRoot, after);
+    expect(mounted.catalog.candidates).toContainEqual(expect.objectContaining({
+      actionId: add.actionId, kind: "add_existing_plugin", status: "already_satisfied",
+    }));
+  });
+
+  it.each(["parent missing", "parent ambiguous", "slot missing", "capability mismatch", "cardinality full", "required services unresolved", "hypothetical compile failure"])(
+    "does not expose a ready child Slot Add when %s",
+    async (scenario) => {
+      const parents: AppUIPluginNode[] = scenario === "parent missing"
+        ? [{ id: "occupant-main", pluginId: "occupant", enabled: true }]
+        : scenario === "parent ambiguous"
+        ? [parentNode("parent-one"), parentNode("parent-two")] : [parentNode("parent-main")];
+      if (scenario === "cardinality full") {
+        parents[0] = { ...parents[0]!, slots: { slotX: [{ id: "occupant-main", pluginId: "occupant", enabled: true }] } };
+      }
+      const model = childSlotModel(parents);
+      const slots = scenario === "slot missing" ? {} : scenario === "capability mismatch"
+        ? { children: { slotX: { ...parentSlots.children.slotX, accepts: { anyOfCapabilities: ["other"] } } } }
+        : parentSlots;
+      const projectRoot = await createFixtureProject(model, [
+        ["parent", { slots }],
+        ["child", { capabilities: ["capability-A"], authoring: childPlacement }],
+        ["occupant", { capabilities: ["capability-A"] }],
+      ]);
+      const facts = await collectPluginProjectFacts(projectRoot, fixtureConfig);
+      if (scenario === "required services unresolved") {
+        const declaration = facts.declarations.plugins.find((plugin) => plugin.pluginId === "child");
+        if (declaration === undefined) throw new Error("Missing child declaration");
+        declaration.inject.push("missing.service");
+      }
+      if (scenario === "hypothetical compile failure") {
+        const child = facts.assets.find((asset) => asset.pluginId === "child");
+        if (child === undefined) throw new Error("Missing child asset");
+        facts.definitionIssuesByPath = new Map(facts.definitionIssuesByPath).set(child.definitionPath, [{
+          code: "selected-plugin-definition-missing", message: "Synthetic definition issue", pluginId: "child",
+        }]);
+      }
+      const generation = generatePluginRegistryFromFacts(model, facts);
+      const catalog = await buildCreatorActionCatalog({
+        model, generation, projectFacts: facts, appUIModelHash: hash(JSON.stringify(model)),
+        workspacePolicy: platformMode.workspace,
+      });
+      expect(catalog.candidates).not.toContainEqual(expect.objectContaining({
+        kind: "add_existing_plugin", status: "ready", target: expect.objectContaining({ pluginId: "child" }),
+      }));
+    },
+  );
+
+  it("rebuilds a Suggestions Add Action after Remove and restores the child Slot", async () => {
+    const parent: AppUIPluginNode = {
+      id: "agent-conversation-surface-main", pluginId: "conversation-surface", enabled: true,
+      slots: { emptySuggestions: [{ id: "conversation-suggestions-main", pluginId: "conversation-suggestions", enabled: true }] },
+    };
+    const model = childSlotModel([parent]);
+    const projectRoot = await createFixtureProject(model, [
+      ["conversation-surface", { slots: { children: { emptySuggestions: {
+        ...parentSlots.children.slotX, cardinality: "many",
+        accepts: { anyOfCapabilities: ["conversation-suggestions"] },
+      } } } }],
+      ["conversation-suggestions", {
+        capabilities: ["conversation-suggestions"],
+        authoring: {
+          intents: ["show starter prompts and suggested conversation actions"],
+          visualRole: "conversation empty-state suggestions",
+          defaultPlacement: { type: "plugin_slot", parentPluginId: "conversation-surface", slot: "emptySuggestions" },
+        },
+      }],
+    ]);
+    const before = await buildCatalog(projectRoot, model);
+    const remove = before.catalog.candidates.find((candidate) =>
+      candidate.kind === "remove_plugin" && candidate.target.pluginId === "conversation-suggestions" && candidate.status === "ready");
+    if (remove === undefined) throw new Error("Expected Suggestions Remove Action");
+    const removed = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(`${JSON.stringify(model, null, 2)}\n`),
+      operations: [{ type: "execute_creator_action", actionId: remove.actionId }],
+    });
+    const absentModel = JSON.parse(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")) as AppUIModel;
+    const afterRemove = await buildCatalog(projectRoot, absentModel);
+    const add = afterRemove.catalog.candidates.find((candidate) =>
+      candidate.kind === "add_existing_plugin" && candidate.target.pluginId === "conversation-suggestions" && candidate.status === "ready");
+    expect(add?.effect).toEqual({ type: "add_default" });
+    if (add === undefined) throw new Error("Expected Suggestions Add Action");
+    const restored = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: removed.appUIModel.afterHash,
+      operations: [{ type: "execute_creator_action", actionId: add.actionId }],
+    });
+    expect(restored.semanticComposition?.expectedPlacement).toEqual({
+      type: "plugin_slot", instanceId: "conversation-suggestions-main",
+      parentInstanceId: "agent-conversation-surface-main", slot: "emptySuggestions",
+    });
+  });
+
   it("emits and executes the Conversation Thread List Add Action when absent", async () => {
     const absentModel = rowModel(["conversation-surface"]);
     const projectRoot = await createFixtureProject(absentModel, [
@@ -259,7 +407,7 @@ describe("Creator Action Catalog", () => {
             "start a new conversation",
           ],
           visualRole: "conversation navigation",
-          typicalPlacement: {
+          defaultPlacement: { type: "relative",
             relation: "before",
             anchorPluginId: "conversation-surface",
           },
@@ -336,7 +484,7 @@ describe("Creator Action Catalog", () => {
             "start a new conversation",
           ],
           visualRole: "conversation navigation",
-          typicalPlacement: {
+          defaultPlacement: { type: "relative",
             relation: "before",
             anchorPluginId: "conversation-surface",
           },
@@ -401,7 +549,7 @@ describe("Creator Action Catalog", () => {
       ["history", {
         authoring: {
           intents: ["add history"],
-          typicalPlacement: { relation: "before", anchorPluginId: "conversation" },
+          defaultPlacement: { type: "relative", relation: "before", anchorPluginId: "conversation" },
           recommendedSize: { width: "280px" },
         },
       }],
@@ -481,7 +629,7 @@ describe("Creator Action Catalog", () => {
       ["conversation", {}],
       ["broken", {
         authoring: {
-          typicalPlacement: {
+          defaultPlacement: { type: "relative",
             relation: "after",
             anchorPluginId: "conversation",
           },

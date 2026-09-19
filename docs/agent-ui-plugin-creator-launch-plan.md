@@ -567,10 +567,9 @@ interface UIPluginManifest {
   authoring?: {
     intents: string[]
     visualRole?: string
-    typicalPlacement?: {
-      relation: "before" | "after" | "above" | "below"
-      anchorPluginId: string
-    }
+    defaultPlacement?:
+      | { type: "relative"; relation: "before" | "after" | "above" | "below"; anchorPluginId: string }
+      | { type: "plugin_slot"; parentPluginId: string; slot: string }
     recommendedSize?: {
       width?: number | string
       height?: number | string
@@ -594,8 +593,12 @@ interface UIPluginManifest {
 ```
 
 `authoring` 是 Creator 用于能力匹配与 desired-state 推导的正向语义，不是运行时
-placement 规则；`typicalPlacement` 与 `recommendedSize` 是默认建议，用户请求和当前
-Composition 始终优先。
+placement 规则；`defaultPlacement` 是官方可添加 Plugin 在用户未指定位置时的
+canonical authoring placement，Host 必须解析唯一、安全的目标并验证 child Slot 的
+capability、cardinality 与完整 Composition。`recommendedSize` 服务于 Layout 默认位置。
+官方 user-addable visual Plugin 必须声明 identity、semantic intent、visual role 和
+`defaultPlacement`；缺少默认位置时 Host 不生成默认 Add Action，也不让模型猜测位置。
+用户请求和当前 Composition 始终优先。
 
 第一版不要让 Plugin Manifest 自己声明实际 Layout。
 

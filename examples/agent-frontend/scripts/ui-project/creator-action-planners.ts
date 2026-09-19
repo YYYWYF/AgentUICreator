@@ -11,6 +11,8 @@ import type {
   AppUIOperation,
   AppUIPluginMoveContracts,
 } from "./app-ui-operations";
+import { assertPluginSlotDestination } from "./app-ui-operations";
+import type { PluginDefaultPlacement } from "../../framework/contracts/ui-plugin";
 import type {
   GeneratePluginCatalogResult,
   PluginAsset,
@@ -46,12 +48,18 @@ type VisualRegionResolution =
 
 export interface DefaultPluginInsertionPlan {
   operations: AppUIOperation[];
-  expectedGeometry: {
+  expectedGeometry?: {
     instanceId: string;
     anchorInstanceId: string;
     relation: SemanticPlacementRelation;
     axis: "width" | "height";
     size: string;
+  };
+  expectedPlacement?: {
+    type: "plugin_slot";
+    instanceId: string;
+    parentInstanceId: string;
+    slot: string;
   };
 }
 
@@ -327,7 +335,7 @@ export function planDefaultPluginInsertion(
     );
   }
 
-  const placement = asset.authoring?.typicalPlacement;
+  const placement = asset.authoring?.defaultPlacement;
   if (placement === undefined) {
     semanticPlacementError(
       "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
@@ -335,6 +343,64 @@ export function planDefaultPluginInsertion(
       { pluginId: asset.pluginId },
     );
   }
+  const readiness = serviceReadinessForAsset(asset, generation);
+  if (readiness.status === "unresolved") {
+    semanticPlacementError(
+      "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
+      `UI Plugin "${asset.pluginId}" has unresolved required Services.`,
+      { pluginId: asset.pluginId, missingRequiredServices: readiness.missing },
+    );
+  }
+
+  if (placement.type === "plugin_slot") {
+    return planPluginSlotInsertion(model, operation, generation, placement);
+  }
+  return planRelativeInsertion(model, operation, generation, asset, placement);
+}
+
+function planPluginSlotInsertion(
+  model: AppUIModel,
+  operation: Extract<AppUIOperation, { type: "insert_plugin_default" }>,
+  generation: GeneratePluginCatalogResult,
+  placement: Extract<PluginDefaultPlacement, { type: "plugin_slot" }>,
+): DefaultPluginInsertionPlan {
+  const parents = collectAppUIPluginLocations(model).filter(
+    ({ plugin }) => plugin.pluginId === placement.parentPluginId && plugin.enabled,
+  );
+  if (parents.length !== 1) {
+    semanticPlacementError(
+      parents.length === 0 ? "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE" : "AUTHORING_DEFAULT_PLACEMENT_AMBIGUOUS",
+      `Authoring-default parent "${placement.parentPluginId}" does not resolve to exactly one enabled instance.`,
+      { parentPluginId: placement.parentPluginId, matchingInstanceIds: parents.map(({ plugin }) => plugin.id) },
+    );
+  }
+  const parent = parents[0]!.plugin;
+  assertPluginSlotDestination(
+    parent, placement.slot, operation.plugin.pluginId, operation.plugin.id,
+    pluginMoveContractsForGeneration(generation),
+  );
+  return {
+    operations: [{
+      type: "insert_plugin",
+      plugin: structuredClone(operation.plugin),
+      target: { type: "plugin_slot", parentInstanceId: parent.id, slot: placement.slot },
+    }],
+    expectedPlacement: {
+      type: "plugin_slot",
+      instanceId: operation.plugin.id,
+      parentInstanceId: parent.id,
+      slot: placement.slot,
+    },
+  };
+}
+
+function planRelativeInsertion(
+  model: AppUIModel,
+  operation: Extract<AppUIOperation, { type: "insert_plugin_default" }>,
+  generation: GeneratePluginCatalogResult,
+  asset: PluginAsset,
+  placement: Extract<PluginDefaultPlacement, { type: "relative" }>,
+): DefaultPluginInsertionPlan {
   const anchorMatches = collectAppUIPluginLocations(model).filter(
     ({ plugin }) => plugin.pluginId === placement.anchorPluginId && plugin.enabled,
   );
@@ -365,15 +431,6 @@ export function planDefaultPluginInsertion(
       "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
       `Authoring-default anchor "${placement.anchorPluginId}" is not a uniquely resolvable visual asset.`,
       { anchorPluginId: placement.anchorPluginId },
-    );
-  }
-
-  const readiness = serviceReadinessForAsset(asset, generation);
-  if (readiness.status === "unresolved") {
-    semanticPlacementError(
-      "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
-      `UI Plugin "${asset.pluginId}" has unresolved required Services.`,
-      { pluginId: asset.pluginId, missingRequiredServices: readiness.missing },
     );
   }
 

@@ -63,7 +63,8 @@ def snapshot_result() -> dict[str, object]:
                         "select an existing conversation",
                     ],
                     "visualRole": "conversation navigation",
-                    "typicalPlacement": {
+                    "defaultPlacement": {
+                        "type": "relative",
                         "relation": "before",
                         "anchorPluginId": "conversation-surface",
                     },
@@ -169,6 +170,7 @@ def test_snapshot_provider_uses_one_authoritative_composition_read():
                 "instances": [],
                 "childSlots": [],
                 "defaultPlacement": {
+                    "type": "relative",
                     "relation": "before",
                     "anchorPluginId": "conversation-surface",
                 },
@@ -188,6 +190,23 @@ def test_snapshot_provider_projects_child_slot_contracts_and_plugin_capabilities
         if plugin.pluginId == "conversation-surface"
     )
     assert surface.capabilities == ["conversation-surface"]
+
+
+def test_snapshot_provider_projects_plugin_slot_default_placement():
+    result = snapshot_result()
+    result["capabilitySummaries"][0]["authoring"]["defaultPlacement"] = {
+        "type": "plugin_slot",
+        "parentPluginId": "conversation-surface",
+        "slot": "emptySuggestions",
+    }
+    snapshot = CreatorDomainSnapshotProvider._parse(result)
+    plugin = next(
+        item for item in snapshot.plugin_index.plugins
+        if item.pluginId == "conversation-thread-list"
+    )
+    assert plugin.defaultPlacement.type == "plugin_slot"
+    assert plugin.defaultPlacement.parentPluginId == "conversation-surface"
+    assert plugin.defaultPlacement.slot == "emptySuggestions"
     assert surface.childSlots[0].model_dump(mode="json") == {
         "name": "actions",
         "description": "Compact actions beside the composer input.",
@@ -417,7 +436,7 @@ def test_snapshot_provider_rejects_too_many_total_plugin_instances():
             {"visualRole": "x" * (MAX_PLUGIN_VISUAL_ROLE_CHARS + 1)}
         ),
         lambda result: result["capabilitySummaries"][0]["authoring"][
-            "typicalPlacement"
+            "defaultPlacement"
         ].update({"anchorPluginId": "x" * (MAX_PLUGIN_ANCHOR_ID_CHARS + 1)}),
         lambda result: result["capabilitySummaries"][0]["authoring"].update(
             {

@@ -87,7 +87,7 @@ describe("UIPluginManifest", () => {
       authoring: {
         intents: ["add conversation management", "browse conversation history"],
         visualRole: "conversation navigation",
-        typicalPlacement: {
+        defaultPlacement: { type: "relative",
           relation: "before",
           anchorPluginId: "conversation-surface",
         },
@@ -98,12 +98,31 @@ describe("UIPluginManifest", () => {
     expect(manifest.authoring).toEqual({
       intents: ["add conversation management", "browse conversation history"],
       visualRole: "conversation navigation",
-      typicalPlacement: {
+      defaultPlacement: { type: "relative",
         relation: "before",
         anchorPluginId: "conversation-surface",
       },
       recommendedSize: { width: "minmax(0, 1fr)" },
     });
+  });
+
+  it("validates the Plugin Slot default placement union", () => {
+    const base = {
+      id: "child", name: "Child", description: "Child Plugin", version: "1.0.0",
+      authoring: {
+        intents: ["show example actions"],
+        defaultPlacement: { type: "plugin_slot", parentPluginId: "parent", slot: "slotX" },
+      },
+    };
+    expect(parseUIPluginManifest(base).authoring?.defaultPlacement).toEqual(base.authoring.defaultPlacement);
+    expect(uiPluginManifestSchema.safeParse({
+      ...base,
+      authoring: { ...base.authoring, defaultPlacement: { ...base.authoring.defaultPlacement, slot: "" } },
+    }).success).toBe(false);
+    expect(uiPluginManifestSchema.safeParse({
+      ...base,
+      authoring: { ...base.authoring, typicalPlacement: { relation: "before", anchorPluginId: "parent" } },
+    }).success).toBe(false);
   });
 
   it("rejects empty authoring semantics and recommended sizes", () => {
@@ -143,7 +162,7 @@ describe("UIPluginManifest", () => {
       authoring: {
         intents: ["valid intent"],
         visualRole: "v".repeat(201),
-        typicalPlacement: {
+        defaultPlacement: { type: "relative",
           relation: "before",
           anchorPluginId: "a".repeat(201),
         },

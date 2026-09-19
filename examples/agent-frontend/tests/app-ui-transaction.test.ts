@@ -391,7 +391,7 @@ describe("AppUIModel transaction", () => {
           authoring: {
             intents: ["add conversation management"],
             visualRole: "conversation navigation",
-            typicalPlacement: {
+            defaultPlacement: { type: "relative",
               relation: "before",
               anchorPluginId: "conversation-surface",
             },
@@ -481,7 +481,7 @@ describe("AppUIModel transaction", () => {
           authoring: {
             intents: ["add conversation management"],
             visualRole: "conversation navigation",
-            typicalPlacement: {
+            defaultPlacement: { type: "relative",
               relation: "before",
               anchorPluginId: "conversation-surface",
             },
@@ -561,7 +561,7 @@ describe("AppUIModel transaction", () => {
           capabilities: ["conversation-history"],
           authoring: {
             intents: ["add conversation management"],
-            typicalPlacement: {
+            defaultPlacement: { type: "relative",
               relation: "before",
               anchorPluginId: "conversation-surface",
             },
@@ -627,7 +627,7 @@ describe("AppUIModel transaction", () => {
         ["conversation-thread-list", {
           authoring: {
             intents: ["add conversation management"],
-            typicalPlacement: {
+            defaultPlacement: { type: "relative",
               relation: "before",
               anchorPluginId: "conversation-surface",
             },
@@ -705,7 +705,7 @@ describe("AppUIModel transaction", () => {
           capabilities: ["conversation-history"],
           authoring: {
             intents: ["add conversation management"],
-            typicalPlacement: {
+            defaultPlacement: { type: "relative",
               relation: "before",
               anchorPluginId: "conversation-surface",
             },
@@ -816,7 +816,7 @@ describe("AppUIModel transaction", () => {
       } }],
       ["conversation-thread-list", { authoring: {
         intents: ["add conversation management"],
-        typicalPlacement: { relation: "before", anchorPluginId: "conversation-surface" },
+        defaultPlacement: { type: "relative", relation: "before", anchorPluginId: "conversation-surface" },
         recommendedSize: { width: "280px" },
       } }],
     ]);
@@ -875,7 +875,7 @@ describe("AppUIModel transaction", () => {
         ["conversation-thread-list", {
           authoring: {
             intents: ["add conversation management"],
-            typicalPlacement: {
+            defaultPlacement: { type: "relative",
               relation: "before",
               anchorPluginId: "conversation-surface",
             },
@@ -932,7 +932,7 @@ describe("AppUIModel transaction", () => {
         ["conversation-thread-list", {
           authoring: {
             intents: ["add conversation management"],
-            typicalPlacement: {
+            defaultPlacement: { type: "relative",
               relation: "before",
               anchorPluginId: "conversation-surface",
             },
@@ -1028,7 +1028,7 @@ describe("AppUIModel transaction", () => {
         ["history", {
           authoring: {
             intents: ["add conversation management"],
-            typicalPlacement: {
+            defaultPlacement: { type: "relative",
               relation: "before",
               anchorPluginId: "conversation-surface",
             },
@@ -1094,7 +1094,7 @@ describe("AppUIModel transaction", () => {
         ["needs-service", {
           authoring: {
             intents: ["add a service-backed panel"],
-            typicalPlacement: {
+            defaultPlacement: { type: "relative",
               relation: "before",
               anchorPluginId: "conversation-surface",
             },
@@ -1172,7 +1172,7 @@ describe("AppUIModel transaction", () => {
         ["history", {
           authoring: {
             intents: ["add conversation management"],
-            typicalPlacement: {
+            defaultPlacement: { type: "relative",
               relation: "before",
               anchorPluginId: "conversation-surface",
             },

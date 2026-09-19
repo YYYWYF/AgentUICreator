@@ -217,6 +217,34 @@ def _conversation_thread_list_context(
     )
 
 
+def _conversation_suggestions_context() -> CreatorActionSelectorContext:
+    context = _conversation_thread_list_context(mounted=False)
+    plugin_id = "conversation-suggestions"
+    action_id = _semantic_action_id(
+        "add_existing_plugin", {"pluginId": plugin_id}, {"type": "add_default"}
+    )
+    return CreatorActionSelectorContext(
+        catalogRevision=context.catalogRevision,
+        actions=[*context.actions, _creator_action(
+            action_id=action_id,
+            kind="add_existing_plugin",
+            status="ready",
+            label="Add Conversation Suggestions",
+            description="Add starter prompts and suggested conversation actions using the Plugin default placement.",
+            target={"pluginId": plugin_id, "pluginName": "Conversation Suggestions"},
+            effect={"type": "add_default"},
+        )],
+        pluginSemantics=[*context.pluginSemantics, {
+            "pluginId": plugin_id,
+            "name": "Conversation Suggestions",
+            "description": "Renders starter prompts through the Conversation public surface.",
+            "capabilities": ["conversation-suggestions"],
+            "intents": ["show starter prompts and suggested conversation actions"],
+            "visualRole": "conversation empty-state suggestions",
+        }],
+    )
+
+
 def _context() -> CreatorActionSelectorContext:
     return CreatorActionSelectorContext(
         catalogRevision="c" * 64,
@@ -522,3 +550,29 @@ def test_live_creator_action_selector_twenty_run_stability():
     assert sum(row["calls"] == 1 and row["selectedKind"] == "add_existing_plugin" for row in observations) >= 19, observations
     assert all(row["selectedKind"] == "add_existing_plugin" for row in observations), observations
     assert sum(row["repair"] for row in observations) <= 1, observations
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(
+    os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
+    reason="Set CREATOR_RUN_LIVE_MODEL=1 to run the live Action Selector evaluation pack.",
+)
+@pytest.mark.parametrize("request", [
+    "添加示例提问",
+    "我想给用户一些可以直接点的问题例子",
+    "用户刚进来可能不知道能问什么，给他一些问题建议",
+    "用户刚进来的时候他可能不知道能提什么问题，我想给他一些例子",
+])
+def test_live_creator_action_selector_identifies_suggestions_from_natural_language(request):
+    settings = CreatorModelSettings.from_environment()
+    selector = CreatorActionSelector(
+        model=create_creator_chat_model(settings), max_retries=settings.max_retries,
+    )
+    context = _conversation_suggestions_context()
+    result = asyncio.run(selector.select(request, context))
+    expected = _semantic_action_id(
+        "add_existing_plugin", {"pluginId": "conversation-suggestions"}, {"type": "add_default"}
+    )
+    assert result.decision == "select_action"
+    assert result.actionId == expected
+    assert selector.metrics.modelCalls == 1

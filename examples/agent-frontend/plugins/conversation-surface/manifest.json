@@ -23,7 +23,10 @@
       "emptySuggestions": {
         "description": "Suggested prompts or actions displayed when the conversation is empty.",
         "cardinality": "many",
-        "optional": true
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": ["conversation-suggestions"]
+        }
       }
     }
   },

@@ -1128,6 +1128,40 @@ function sourceReflowForPluginMove(
   }
 }
 
+/** Shared Host contract for both Add and Move into a Plugin-owned Slot. */
+export function assertPluginSlotDestination(
+  parent: AppUIPluginNode,
+  slot: string,
+  pluginId: string,
+  instanceId: string,
+  contracts: AppUIPluginMoveContracts,
+  checkCardinality = true,
+): void {
+  const destinationSlot = contracts.pluginSlots[parent.pluginId]?.[slot] as PluginChildSlotDefinition | undefined;
+  if (destinationSlot === undefined) {
+    moveUnsupported("slot-not-declared", `Plugin instance "${parent.id}" does not declare child Slot "${slot}".`,
+      { parentInstanceId: parent.id, parentPluginId: parent.pluginId, slot });
+  }
+  if (destinationSlot.accepts === undefined) {
+    moveUnsupported("slot-accepts-not-declared", `Destination child Slot "${slot}" does not declare explicit accepted capabilities.`,
+      { parentInstanceId: parent.id, slot });
+  }
+  const targetCapabilities = contracts.pluginCapabilities.get(pluginId);
+  if (targetCapabilities === undefined) {
+    moveUnsupported("target-capabilities-unavailable", `The Host cannot resolve capabilities for Plugin "${pluginId}".`,
+      { pluginId, instanceId });
+  }
+  const acceptedCapabilities = destinationSlot.accepts.anyOfCapabilities;
+  if (!targetCapabilities.some((capability) => acceptedCapabilities.includes(capability))) {
+    moveIncompatible("slot-capability-mismatch", `Plugin "${pluginId}" is incompatible with child Slot "${slot}".`,
+      { instanceId, parentInstanceId: parent.id, targetCapabilities: [...targetCapabilities], acceptedCapabilities: [...acceptedCapabilities] });
+  }
+  if (checkCardinality && destinationSlot.cardinality === "one" && (parent.slots?.[slot]?.length ?? 0) > 0) {
+    moveIncompatible("slot-cardinality-full", `Destination child Slot "${slot}" already contains a Plugin.`,
+      { parentInstanceId: parent.id, slot, cardinality: destinationSlot.cardinality });
+  }
+}
+
 export function planPluginMove(
   source: AppUIModel,
   operation: AppUIPluginMoveOperation,
@@ -1232,20 +1266,6 @@ export function planPluginMove(
       { parentInstanceId: operation.placement.parentInstanceId, slot: operation.placement.slot },
     );
   }
-  const destinationSlots = contracts.pluginSlots[parentLocation.plugin.pluginId];
-  const destinationSlot = destinationSlots?.[operation.placement.slot] as PluginChildSlotDefinition | undefined;
-  if (destinationSlot === undefined) {
-    moveUnsupported(
-      "slot-not-declared",
-      `Plugin instance "${parentLocation.plugin.id}" does not declare child Slot "${operation.placement.slot}".`,
-      {
-        parentInstanceId: parentLocation.plugin.id,
-        parentPluginId: parentLocation.plugin.pluginId,
-        slot: operation.placement.slot,
-      },
-    );
-  }
-
   const targetSubtree = pluginSubtreeIds(targetLocation.plugin);
   if (targetSubtree.has(parentLocation.plugin.id)) {
     moveIncompatible(
@@ -1259,41 +1279,17 @@ export function planPluginMove(
     );
   }
 
-  if (destinationSlot.accepts === undefined) {
-    moveUnsupported(
-      "slot-accepts-not-declared",
-      `Destination child Slot "${operation.placement.slot}" does not declare explicit accepted capabilities.`,
-      { parentInstanceId: parentLocation.plugin.id, slot: operation.placement.slot },
-    );
-  }
-  const targetCapabilities = contracts.pluginCapabilities.get(targetLocation.plugin.pluginId);
-  if (targetCapabilities === undefined) {
-    moveUnsupported(
-      "target-capabilities-unavailable",
-      `The Host cannot resolve capabilities for Plugin "${targetLocation.plugin.pluginId}".`,
-      { pluginId: targetLocation.plugin.pluginId, instanceId: operation.instanceId },
-    );
-  }
-  const acceptedCapabilities = destinationSlot.accepts.anyOfCapabilities;
-  const capabilityMatch = targetCapabilities.some((capability) =>
-    acceptedCapabilities.includes(capability),
-  );
-  if (!capabilityMatch) {
-    moveIncompatible(
-      "slot-capability-mismatch",
-      `Plugin "${targetLocation.plugin.pluginId}" is incompatible with child Slot "${operation.placement.slot}".`,
-      {
-        instanceId: operation.instanceId,
-        parentInstanceId: parentLocation.plugin.id,
-        targetCapabilities: [...targetCapabilities],
-        acceptedCapabilities: [...acceptedCapabilities],
-      },
-    );
-  }
-
   const alreadySatisfied = targetLocation.target.type === "plugin_slot" &&
     targetLocation.target.parentInstanceId === parentLocation.plugin.id &&
     targetLocation.target.slot === operation.placement.slot;
+  assertPluginSlotDestination(
+    parentLocation.plugin,
+    operation.placement.slot,
+    targetLocation.plugin.pluginId,
+    operation.instanceId,
+    contracts,
+    !alreadySatisfied,
+  );
   if (alreadySatisfied) {
     return {
       type: "plugin_slot",
@@ -1303,19 +1299,6 @@ export function planPluginMove(
       slot: operation.placement.slot,
       source: "plugin_slot",
     };
-  }
-
-  const destinationPlugins = parentLocation.plugin.slots?.[operation.placement.slot] ?? [];
-  if (destinationSlot.cardinality === "one" && destinationPlugins.length > 0) {
-    moveIncompatible(
-      "slot-cardinality-full",
-      `Destination child Slot "${operation.placement.slot}" already contains a Plugin.`,
-      {
-        parentInstanceId: parentLocation.plugin.id,
-        slot: operation.placement.slot,
-        cardinality: destinationSlot.cardinality,
-      },
-    );
   }
 
   const sourcePlan = sourceReflowForPluginMove(context, targetLocation);

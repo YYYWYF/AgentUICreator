@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "b8c7a5962ddee53bc269198fd339f8124c6a3a355aa5757919bb61812205167d";
+export const capabilityCatalogRevision = "201c685d8cb934a81c3d95e4350a2fffcad1e6a1d070113568477a218d0095c2";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -68,7 +68,12 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
         "intents": [
           "show starter prompts and suggested conversation actions"
         ],
-        "visualRole": "conversation empty-state suggestions"
+        "visualRole": "conversation empty-state suggestions",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "emptySuggestions"
+        }
       }
     },
     provides: [],
@@ -107,7 +112,12 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
           "emptySuggestions": {
             "description": "Suggested prompts or actions displayed when the conversation is empty.",
             "cardinality": "many",
-            "optional": true
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-suggestions"
+              ]
+            }
           }
         }
       },
@@ -143,7 +153,8 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
           "start a new conversation"
         ],
         "visualRole": "conversation navigation",
-        "typicalPlacement": {
+        "defaultPlacement": {
+          "type": "relative",
           "relation": "before",
           "anchorPluginId": "conversation-surface"
         },

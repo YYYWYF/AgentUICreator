@@ -90,7 +90,7 @@ describe("inspectUIProject", () => {
             "start a new conversation",
           ],
           visualRole: "conversation navigation",
-          typicalPlacement: {
+          defaultPlacement: { type: "relative",
             relation: "before",
             anchorPluginId: "conversation-surface",
           },

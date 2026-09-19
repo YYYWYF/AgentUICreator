@@ -122,11 +122,26 @@ class PluginInstanceSummary(BaseModel):
     enabled: bool
 
 
-class PluginDefaultPlacement(BaseModel):
+class PluginRelativeDefaultPlacement(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    type: Literal["relative"]
     relation: PluginPlacementRelation
     anchorPluginId: BoundedPluginAnchorId
+
+
+class PluginSlotDefaultPlacement(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["plugin_slot"]
+    parentPluginId: BoundedPluginAnchorId
+    slot: Annotated[str, Field(min_length=1, max_length=MAX_CHILD_SLOT_NAME_CHARS)]
+
+
+PluginDefaultPlacement: TypeAlias = Annotated[
+    PluginRelativeDefaultPlacement | PluginSlotDefaultPlacement,
+    Field(discriminator="type"),
+]
 
 
 class PluginRecommendedSize(BaseModel):

@@ -256,19 +256,34 @@ def _validate_host_result(
                     {"field": "semanticComposition.expectedRuntime"},
                 )
             instance_id = present[0]
-            expected_geometry = _required_mapping(
-                semantic.get("expectedGeometry"),
-                "semanticComposition.expectedGeometry",
-            )
-            if expected_geometry.get("instanceId") != instance_id:
-                raise _HostResultInvalid(
-                    "Host mutation result expectedGeometry targets the wrong instance.",
-                    {
-                        "field": "semanticComposition.expectedGeometry.instanceId",
-                        "expected": instance_id,
-                        "actual": expected_geometry.get("instanceId"),
-                    },
+            if semantic.get("expectedPlacement") is not None:
+                if semantic.get("expectedGeometry") is not None:
+                    raise _HostResultInvalid(
+                        "Host mutation result Add cannot declare both placement and geometry.",
+                        {"field": "semanticComposition"},
+                    )
+                expected_placement = _validate_expected_placement(
+                    semantic.get("expectedPlacement"), instance_id=instance_id, required=True
                 )
+                if expected_placement["type"] != "plugin_slot":
+                    raise _HostResultInvalid(
+                        "Host mutation result Add expectedPlacement must target a Plugin Slot.",
+                        {"field": "semanticComposition.expectedPlacement"},
+                    )
+            else:
+                expected_geometry = _required_mapping(
+                    semantic.get("expectedGeometry"),
+                    "semanticComposition.expectedGeometry",
+                )
+                if expected_geometry.get("instanceId") != instance_id:
+                    raise _HostResultInvalid(
+                        "Host mutation result expectedGeometry targets the wrong instance.",
+                        {
+                            "field": "semanticComposition.expectedGeometry.instanceId",
+                            "expected": instance_id,
+                            "actual": expected_geometry.get("instanceId"),
+                        },
+                    )
         else:
             if absent or candidate.target.instanceId is not None and present != [
                 candidate.target.instanceId

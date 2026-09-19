@@ -8,6 +8,11 @@
     "intents": [
       "show starter prompts and suggested conversation actions"
     ],
-    "visualRole": "conversation empty-state suggestions"
+    "visualRole": "conversation empty-state suggestions",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "conversation-surface",
+      "slot": "emptySuggestions"
+    }
   }
 }

@@ -49,7 +49,6 @@ from .models import (
     PluginChildSlotCapability,
     PluginCapability,
     PluginCapabilityIndex,
-    PluginDefaultPlacement,
     PluginInstanceSummary,
     PluginRecommendedSize,
     RequiredServiceSummary,
@@ -533,29 +532,40 @@ def _build_plugin_capability(
         MAX_PLUGIN_VISUAL_ROLE_CHARS,
     )
 
-    placement_value = authoring.get("typicalPlacement")
+    placement_value = authoring.get("defaultPlacement")
     placement = None
     if placement_value is not None:
         placement_data = _required_mapping(
             placement_value,
-            f"capabilitySummaries[{index}].authoring.typicalPlacement",
+            f"capabilitySummaries[{index}].authoring.defaultPlacement",
         )
-        relation = _required_string(
-            placement_data.get("relation"),
-            f"capabilitySummaries[{index}].authoring.typicalPlacement.relation",
-        )
-        if relation not in {"before", "after", "above", "below"}:
-            raise _invalid(
-                f"Unsupported default placement relation {relation!r} for Plugin {plugin_id}."
+        placement_type = placement_data.get("type")
+        if placement_type == "relative":
+            relation = _required_string(
+                placement_data.get("relation"),
+                f"capabilitySummaries[{index}].authoring.defaultPlacement.relation",
             )
-        placement = PluginDefaultPlacement(
-            relation=relation,
-            anchorPluginId=_bounded_text(
+            if relation not in {"before", "after", "above", "below"}:
+                raise _invalid(
+                    f"Unsupported default placement relation {relation!r} for Plugin {plugin_id}."
+                )
+            placement = {"type": "relative", "relation": relation, "anchorPluginId": _bounded_text(
                 placement_data.get("anchorPluginId"),
-                f"capabilitySummaries[{index}].authoring.typicalPlacement.anchorPluginId",
+                f"capabilitySummaries[{index}].authoring.defaultPlacement.anchorPluginId",
                 MAX_PLUGIN_ANCHOR_ID_CHARS,
-            ),
-        )
+            )}
+        elif placement_type == "plugin_slot":
+            placement = {"type": "plugin_slot", "parentPluginId": _bounded_text(
+                placement_data.get("parentPluginId"),
+                f"capabilitySummaries[{index}].authoring.defaultPlacement.parentPluginId",
+                MAX_PLUGIN_ANCHOR_ID_CHARS,
+            ), "slot": _bounded_text(
+                placement_data.get("slot"),
+                f"capabilitySummaries[{index}].authoring.defaultPlacement.slot",
+                MAX_CHILD_SLOT_NAME_CHARS,
+            )}
+        else:
+            raise _invalid(f"Unsupported default placement type {placement_type!r} for Plugin {plugin_id}.")
 
     size_value = authoring.get("recommendedSize")
     recommended_size = None

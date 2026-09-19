@@ -529,7 +529,7 @@ export async function buildCreatorActionCatalog(
   // enabled instance is represented as a semantic no-op; disabled-only
   // selections stay out of the Product Action catalog, matching execution.
   for (const asset of input.generation.assets) {
-    if (!isVisualAsset(asset)) continue;
+    if (!isVisualAsset(asset) || asset.authoring?.defaultPlacement === undefined) continue;
     const matchingInstances = locations.filter(
       ({ plugin }) => plugin.pluginId === asset.pluginId,
     );
