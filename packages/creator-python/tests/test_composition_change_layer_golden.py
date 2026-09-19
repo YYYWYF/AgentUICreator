@@ -302,7 +302,7 @@ def scripted_responses(operations):
 
 
 @pytest.mark.parametrize(
-    ("request", "operations", "assert_final"),
+    ("user_request", "operations", "assert_final"),
     [
         (
             "帮我去掉左边的历史会话",
@@ -363,7 +363,9 @@ def scripted_responses(operations):
     ],
     ids=["remove-region", "hide-region", "remove-child", "reuse-capability"],
 )
-def test_composition_graph_contract_e2e_pack(tmp_path, request, operations, assert_final):
+def test_composition_graph_contract_e2e_pack(
+    tmp_path, user_request, operations, assert_final
+):
     client = CompositionClient(tmp_path, initial_model())
     diagnostics = RuntimeDiagnosticStore()
     validation = PassingValidation(client, diagnostics)
@@ -380,7 +382,7 @@ def test_composition_graph_contract_e2e_pack(tmp_path, request, operations, asse
     )
     agent.activity.begin("composition-golden")
 
-    result = asyncio.run(agent.run(request))
+    result = asyncio.run(agent.run(user_request))
     receipt = agent.activity.finish()
 
     assert assert_final(client.model())

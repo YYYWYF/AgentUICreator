@@ -623,19 +623,21 @@ def test_live_creator_action_selector_twenty_run_stability():
     os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
     reason="Set CREATOR_RUN_LIVE_MODEL=1 to run the live Action Selector evaluation pack.",
 )
-@pytest.mark.parametrize("request", [
+@pytest.mark.parametrize("user_request", [
     "添加示例提问",
     "我想给用户一些可以直接点的问题例子",
     "用户刚进来可能不知道能问什么，给他一些问题建议",
     "用户刚进来的时候他可能不知道能提什么问题，我想给他一些例子",
 ])
-def test_live_creator_action_selector_identifies_suggestions_from_natural_language(request):
+def test_live_creator_action_selector_identifies_suggestions_from_natural_language(
+    user_request,
+):
     settings = CreatorModelSettings.from_environment()
     selector = CreatorActionSelector(
         model=create_creator_chat_model(settings), max_retries=settings.max_retries,
     )
     context = _conversation_suggestions_context()
-    result = asyncio.run(selector.select(request, context))
+    result = asyncio.run(selector.select(user_request, context))
     expected = _semantic_action_id(
         "add_existing_plugin", {"pluginId": "conversation-suggestions"}, {"type": "add_default"}
     )

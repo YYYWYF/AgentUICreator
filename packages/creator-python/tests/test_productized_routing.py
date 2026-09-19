@@ -33,6 +33,7 @@ from agent_ui_creator.operations.engine import (
     ProductizedOperationRun,
     ProductizedOperationToolMetrics,
 )
+from agent_ui_creator.model_settings import CreatorSelectorModelSettings
 from agent_ui_creator.operations.snapshot import CreatorDomainSnapshotMetrics
 from agent_ui_creator.observability import CreatorRunTelemetry
 from agent_ui_creator.project_control import ProjectControlMetrics
@@ -65,6 +66,8 @@ class _Selector:
         self.selection = selection
         self.calls = 0
         self.messages: list[tuple[str, object]] = []
+        self.requested_model = None
+        self.selector_settings = CreatorSelectorModelSettings()
         self.metrics = metrics or CreatorActionSelectorMetrics(
             modelCalls=1,
             repairCalls=0,
@@ -664,6 +667,9 @@ def test_engine_publishes_resolve_before_productized_execution():
         "phase": "understanding",
         "status": "success",
         "actionSelectorProtocol": "choice-text-v1",
+        "actionSelectorModel": None,
+        "actionSelectorRequestedMaxTokens": 512,
+        "actionSelectorRequestedReasoningEffort": None,
         "decision": "select_action",
         "displayIntent": "移除 Conversation Thread List",
         "intent": "remove_plugin",

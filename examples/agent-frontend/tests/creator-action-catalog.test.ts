@@ -76,7 +76,7 @@ async function createFixtureProject(
     );
     await writeFile(
       path.join(pluginRoot, "definition.ts"),
-      "const definition = { manifest: {}, Component: () => null };\nexport default definition;\n",
+      fixtureDefinitionSource(overrides),
     );
   }
   await writeFile(
@@ -84,6 +84,26 @@ async function createFixtureProject(
     `${JSON.stringify(model, null, 2)}\n`,
   );
   return projectRoot;
+}
+
+function fixtureDefinitionSource(overrides: Record<string, unknown>): string {
+  const slots = overrides.slots;
+  if (slots === null || typeof slots !== "object" || Array.isArray(slots)) {
+    return "const definition = { manifest: {}, Component: () => null };\nexport default definition;\n";
+  }
+  const children = (slots as { children?: unknown }).children;
+  if (
+    children === null ||
+    typeof children !== "object" ||
+    Array.isArray(children)
+  ) {
+    return "const definition = { manifest: {}, Component: () => null };\nexport default definition;\n";
+  }
+  const renderCalls = Object.keys(children)
+    .sort()
+    .map((slotId) => `renderSlot(${JSON.stringify(slotId)});`)
+    .join(" ");
+  return `const definition = { manifest: {}, Component: () => { ${renderCalls} return null; } };\nexport default definition;\n`;
 }
 
 async function buildCatalog(
@@ -471,6 +491,7 @@ describe("Creator Action Catalog", () => {
       ["conversation-thread-list", {
         capabilities: ["conversation-history"],
         authoring: {
+          intents: ["add conversation management"],
           defaultPlacement: { type: "relative", relation: "before", anchorPluginId: "conversation-surface" },
           recommendedSize: { width: "280px" },
         },
