@@ -14,6 +14,7 @@ import {
   lowerWorkspaceRegionMovePlan,
   planWorkspaceRegionMove,
 } from "../scripts/ui-project/app-ui-operations";
+import { mutateAppUIModel } from "../scripts/ui-project/app-ui-transaction";
 import {
   actionIdFor,
   buildCreatorActionCatalog,
@@ -234,6 +235,154 @@ describe("Creator Action semantic identity", () => {
 });
 
 describe("Creator Action Catalog", () => {
+  it("emits and executes the Conversation Thread List Add Action when absent", async () => {
+    const absentModel = rowModel(["conversation-surface"]);
+    const projectRoot = await createFixtureProject(absentModel, [
+      ["conversation-surface", {
+        name: "Conversation Surface",
+        capabilities: ["conversation-surface"],
+      }],
+      ["conversation-thread-list", {
+        name: "Conversation Thread List",
+        description: "Uses the public Conversation thread list with AgentUICreator policy and data binding.",
+        capabilities: [
+          "conversation-create",
+          "conversation-history",
+          "conversation-selection",
+          "plugin-service-consumer",
+        ],
+        authoring: {
+          intents: [
+            "add conversation management",
+            "browse conversation history",
+            "select an existing conversation",
+            "start a new conversation",
+          ],
+          visualRole: "conversation navigation",
+          typicalPlacement: {
+            relation: "before",
+            anchorPluginId: "conversation-surface",
+          },
+          recommendedSize: { width: "280px" },
+        },
+      }],
+    ]);
+    const { catalog } = await buildCatalog(projectRoot, absentModel);
+    const add = catalog.candidates.find(
+      (candidate) => candidate.kind === "add_existing_plugin" &&
+        candidate.target.pluginId === "conversation-thread-list",
+    );
+
+    expect(add).toMatchObject({
+      kind: "add_existing_plugin",
+      status: "ready",
+      target: {
+        pluginId: "conversation-thread-list",
+        pluginName: "Conversation Thread List",
+      },
+      effect: { type: "add_default" },
+    });
+    if (add === undefined) throw new Error("fixture did not produce Thread List Add Action");
+
+    const source = `${JSON.stringify(absentModel, null, 2)}\n`;
+    const executed = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "execute_creator_action",
+        actionId: add.actionId,
+      }],
+    });
+
+    expect(executed).toMatchObject({
+      changed: true,
+      creatorAction: {
+        actionId: add.actionId,
+        actionKind: "add_existing_plugin",
+        status: "ready",
+      },
+      semanticComposition: {
+        actionId: add.actionId,
+        actionKind: "add_existing_plugin",
+        actionStatus: "ready",
+        operation: "insert_plugin_default",
+        semanticLoweringSucceeded: true,
+      },
+    });
+  });
+
+  it("emits the mounted Thread List Remove Action and an Add no-op", async () => {
+    const mountedModel = rowModel([
+      "conversation-thread-list",
+      "conversation-surface",
+    ]);
+    const projectRoot = await createFixtureProject(mountedModel, [
+      ["conversation-surface", {
+        name: "Conversation Surface",
+        capabilities: ["conversation-surface"],
+      }],
+      ["conversation-thread-list", {
+        name: "Conversation Thread List",
+        capabilities: [
+          "conversation-create",
+          "conversation-history",
+          "conversation-selection",
+          "plugin-service-consumer",
+        ],
+        authoring: {
+          intents: [
+            "add conversation management",
+            "browse conversation history",
+            "select an existing conversation",
+            "start a new conversation",
+          ],
+          visualRole: "conversation navigation",
+          typicalPlacement: {
+            relation: "before",
+            anchorPluginId: "conversation-surface",
+          },
+          recommendedSize: { width: "280px" },
+        },
+      }],
+    ]);
+    const { catalog } = await buildCatalog(projectRoot, mountedModel);
+    const remove = catalog.candidates.find(
+      (candidate) => candidate.kind === "remove_plugin" &&
+        candidate.target.pluginId === "conversation-thread-list" &&
+        candidate.target.instanceId === "conversation-thread-list-main",
+    );
+    const add = catalog.candidates.find(
+      (candidate) => candidate.kind === "add_existing_plugin" &&
+        candidate.target.pluginId === "conversation-thread-list",
+    );
+
+    expect(remove).toMatchObject({
+      kind: "remove_plugin",
+      status: "ready",
+      effect: { type: "remove" },
+      target: {
+        pluginId: "conversation-thread-list",
+        pluginName: "Conversation Thread List",
+        instanceId: "conversation-thread-list-main",
+      },
+    });
+    expect(add).toMatchObject({
+      kind: "add_existing_plugin",
+      status: "already_satisfied",
+      effect: { type: "add_default" },
+      target: {
+        pluginId: "conversation-thread-list",
+        instanceId: "conversation-thread-list-main",
+      },
+    });
+    expect(add?.actionId).toBe(
+      actionIdFor(semanticActionIdentity(
+        "add_existing_plugin",
+        { pluginId: "conversation-thread-list", pluginName: "Conversation Thread List" },
+        { type: "add_default" },
+      )),
+    );
+  });
+
   it("keeps Add ready to already-satisfied actionId stable", async () => {
     const initialModel: AppUIModel = {
       root: {

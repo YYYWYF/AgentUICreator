@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 
 import pytest
@@ -48,7 +49,14 @@ def action(
     }
 
 
-def add_action(action_id: str = "act_conversation_thread_list_add") -> dict[str, object]:
+CONVERSATION_THREAD_LIST_ADD_ACTION_ID = "act_" + hashlib.sha256(
+    b'{"kind":"add_existing_plugin","subject":{"pluginId":"conversation-thread-list"},"effect":{"type":"add_default"}}'
+).hexdigest()[:24]
+
+
+def add_action(
+    action_id: str = CONVERSATION_THREAD_LIST_ADD_ACTION_ID,
+) -> dict[str, object]:
     return {
         "actionId": action_id,
         "kind": "add_existing_plugin",
@@ -259,7 +267,7 @@ def test_selector_accepts_the_conversation_thread_list_add_action():
     ]
     thread_list_context = CreatorActionSelectorContext.model_validate(source)
     model = StaticStructuredModel(
-        [{"decision": "select_action", "actionId": "act_conversation_thread_list_add"}]
+        [{"decision": "select_action", "actionId": CONVERSATION_THREAD_LIST_ADD_ACTION_ID}]
     )
     selector = CreatorActionSelector(structured_model=model)
 
@@ -268,7 +276,7 @@ def test_selector_accepts_the_conversation_thread_list_add_action():
     )
 
     assert result.decision == "select_action"
-    assert result.actionId == "act_conversation_thread_list_add"
+    assert result.actionId == CONVERSATION_THREAD_LIST_ADD_ACTION_ID
     assert selector.metrics.modelCalls == 1
     assert selector.metrics.repairCalls == 0
 

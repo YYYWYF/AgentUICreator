@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 import os
 
 import pytest
@@ -8,6 +10,207 @@ import pytest
 from agent_ui_creator.model_factory import create_creator_chat_model
 from agent_ui_creator.model_settings import CreatorModelSettings
 from agent_ui_creator.operations import CreatorActionSelector, CreatorActionSelectorContext
+
+
+def _semantic_action_id(
+    kind: str,
+    subject: dict[str, str],
+    effect: dict[str, str],
+) -> str:
+    identity = {"kind": kind, "subject": subject, "effect": effect}
+    source = json.dumps(identity, ensure_ascii=False, separators=(",", ":"))
+    return f"act_{hashlib.sha256(source.encode('utf-8')).hexdigest()[:24]}"
+
+
+def _creator_action(
+    *,
+    action_id: str,
+    kind: str,
+    status: str,
+    label: str,
+    description: str,
+    target: dict[str, str],
+    effect: dict[str, str],
+) -> dict[str, object]:
+    return {
+        "actionId": action_id,
+        "kind": kind,
+        "status": status,
+        "label": label,
+        "description": description,
+        "target": target,
+        "effect": effect,
+    }
+
+
+def _conversation_thread_list_context(
+    *, mounted: bool,
+) -> CreatorActionSelectorContext:
+    thread_list_plugin = "conversation-thread-list"
+    thread_list_instance = "conversation-thread-list-main"
+    surface_plugin = "conversation-surface"
+    surface_instance = "conversation-surface-main"
+    thread_list_add_id = _semantic_action_id(
+        "add_existing_plugin",
+        {"pluginId": thread_list_plugin},
+        {"type": "add_default"},
+    )
+    thread_list_remove_id = _semantic_action_id(
+        "remove_plugin",
+        {"pluginId": thread_list_plugin, "instanceId": thread_list_instance},
+        {"type": "remove"},
+    )
+    thread_list_absent_remove_id = _semantic_action_id(
+        "remove_plugin",
+        {"pluginId": thread_list_plugin},
+        {"type": "remove"},
+    )
+    surface_add_id = _semantic_action_id(
+        "add_existing_plugin",
+        {"pluginId": surface_plugin},
+        {"type": "add_default"},
+    )
+    surface_remove_id = _semantic_action_id(
+        "remove_plugin",
+        {"pluginId": surface_plugin, "instanceId": surface_instance},
+        {"type": "remove"},
+    )
+    surface_center_id = _semantic_action_id(
+        "move_plugin",
+        {"pluginId": surface_plugin, "instanceId": surface_instance},
+        {"type": "workspace_region", "region": "center"},
+    )
+
+    thread_list_target = {
+        "pluginId": thread_list_plugin,
+        "pluginName": "Conversation Thread List",
+    }
+    surface_target = {
+        "pluginId": surface_plugin,
+        "pluginName": "Conversation Surface",
+        "instanceId": surface_instance,
+    }
+    actions = [
+        _creator_action(
+            action_id=thread_list_add_id,
+            kind="add_existing_plugin",
+            status="already_satisfied" if mounted else "ready",
+            label="Add Conversation Thread List",
+            description=(
+                "Add the existing Conversation Thread List Plugin using its default placement."
+            ),
+            target=(
+                {**thread_list_target, "instanceId": thread_list_instance}
+                if mounted
+                else thread_list_target
+            ),
+            effect={"type": "add_default"},
+        ),
+        _creator_action(
+            action_id=thread_list_remove_id if mounted else thread_list_absent_remove_id,
+            kind="remove_plugin",
+            status="ready" if mounted else "already_satisfied",
+            label="Remove Conversation Thread List",
+            description=(
+                "Remove the Conversation Thread List Plugin instance from the current composition."
+                if mounted
+                else "Remove the Conversation Thread List Plugin from the current composition."
+            ),
+            target=(
+                {**thread_list_target, "instanceId": thread_list_instance}
+                if mounted
+                else thread_list_target
+            ),
+            effect={"type": "remove"},
+        ),
+        _creator_action(
+            action_id=surface_add_id,
+            kind="add_existing_plugin",
+            status="already_satisfied",
+            label="Add Conversation Surface",
+            description=(
+                "Add the existing Conversation Surface Plugin using its default placement."
+            ),
+            target=surface_target,
+            effect={"type": "add_default"},
+        ),
+        _creator_action(
+            action_id=surface_remove_id,
+            kind="remove_plugin",
+            status="ready",
+            label="Remove Conversation Surface",
+            description=(
+                "Remove the Conversation Surface Plugin instance from the current composition."
+            ),
+            target=surface_target,
+            effect={"type": "remove"},
+        ),
+        _creator_action(
+            action_id=surface_center_id,
+            kind="move_plugin",
+            status="already_satisfied",
+            label="Move Conversation Surface to Workspace.Center",
+            description=(
+                "Move the Conversation Surface Plugin to the current Workspace.Center Region."
+            ),
+            target=surface_target,
+            effect={"type": "workspace_region", "region": "center"},
+        ),
+    ]
+    if mounted:
+        thread_list_left_id = _semantic_action_id(
+            "move_plugin",
+            {"pluginId": thread_list_plugin, "instanceId": thread_list_instance},
+            {"type": "workspace_region", "region": "left"},
+        )
+        actions.append(
+            _creator_action(
+                action_id=thread_list_left_id,
+                kind="move_plugin",
+                status="already_satisfied",
+                label="Move Conversation Thread List to Workspace.Left",
+                description=(
+                    "Move the Conversation Thread List Plugin to the current Workspace.Left Region."
+                ),
+                target={**thread_list_target, "instanceId": thread_list_instance},
+                effect={"type": "workspace_region", "region": "left"},
+            )
+        )
+
+    return CreatorActionSelectorContext(
+        catalogRevision="c" * 64,
+        actions=actions,
+        pluginSemantics=[
+            {
+                "pluginId": thread_list_plugin,
+                "name": "Conversation Thread List",
+                "description": (
+                    "Uses the public Conversation thread list with AgentUICreator policy and data binding."
+                ),
+                "capabilities": [
+                    "conversation-create",
+                    "conversation-history",
+                    "conversation-selection",
+                    "plugin-service-consumer",
+                ],
+                "intents": [
+                    "add conversation management",
+                    "browse conversation history",
+                    "select an existing conversation",
+                    "start a new conversation",
+                ],
+                "visualRole": "conversation navigation",
+            },
+            {
+                "pluginId": surface_plugin,
+                "name": "Conversation Surface",
+                "description": "组合 Live 与只读 History 会话的空状态、消息时间线与输入区。",
+                "capabilities": ["conversation-surface"],
+                "intents": ["show the primary live and historical conversation experience"],
+                "visualRole": "primary conversation surface",
+            },
+        ],
+    )
 
 
 def _context() -> CreatorActionSelectorContext:
@@ -119,6 +322,75 @@ def test_live_creator_action_selector_semantics(prompt, expected_action):
     )
 
     result = asyncio.run(selector.select(prompt, _context()))
+
+    assert result.decision == "select_action"
+    assert result.actionId == expected_action
+    assert selector.metrics.modelCalls == 1
+    assert selector.metrics.repairCalls == 0
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(
+    os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
+    reason="Set CREATOR_RUN_LIVE_MODEL=1 to run the live Action Selector evaluation pack.",
+)
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "我想要新增会话管理的功能",
+        "新增会话管理",
+        "添加会话管理",
+        "加上历史会话",
+        "我想看历史会话列表",
+        "给我加一个会话列表",
+    ],
+)
+def test_live_creator_action_selector_adds_conversation_thread_list(prompt):
+    settings = CreatorModelSettings.from_environment()
+    selector = CreatorActionSelector(
+        model=create_creator_chat_model(settings),
+        max_retries=settings.max_retries,
+    )
+    context = _conversation_thread_list_context(mounted=False)
+    expected_action = context.actions[0].actionId
+
+    result = asyncio.run(selector.select(prompt, context))
+
+    assert result.decision == "select_action"
+    assert result.actionId == expected_action
+    assert selector.metrics.modelCalls == 1
+    assert selector.metrics.repairCalls == 0
+
+
+@pytest.mark.live_model
+@pytest.mark.skipif(
+    os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1",
+    reason="Set CREATOR_RUN_LIVE_MODEL=1 to run the live Action Selector evaluation pack.",
+)
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "移除会话管理",
+        "删除历史会话",
+        "把会话列表删掉",
+    ],
+)
+def test_live_creator_action_selector_removes_conversation_thread_list(prompt):
+    settings = CreatorModelSettings.from_environment()
+    selector = CreatorActionSelector(
+        model=create_creator_chat_model(settings),
+        max_retries=settings.max_retries,
+    )
+    context = _conversation_thread_list_context(mounted=True)
+    expected_action = next(
+        action.actionId
+        for action in context.actions
+        if action.kind == "remove_plugin"
+        and action.target.pluginId == "conversation-thread-list"
+        and action.target.instanceId == "conversation-thread-list-main"
+    )
+
+    result = asyncio.run(selector.select(prompt, context))
 
     assert result.decision == "select_action"
     assert result.actionId == expected_action
