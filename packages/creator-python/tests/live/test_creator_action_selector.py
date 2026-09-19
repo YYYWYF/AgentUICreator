@@ -108,7 +108,7 @@ def _conversation_thread_list_context(
                 if mounted
                 else thread_list_target
             ),
-            effect={"type": "add_default"},
+            effect={"type": "add_default", "placementDomain": "plugin_slot"},
         ),
         _creator_action(
             action_id=thread_list_remove_id if mounted else thread_list_absent_remove_id,
@@ -270,19 +270,19 @@ def _unified_highway_context() -> CreatorActionSelectorContext:
                 "pluginId": "conversation-suggestions",
                 "pluginName": "Conversation Suggestions",
             },
-            effect={"type": "add_default"},
+            effect={"type": "add_default", "placementDomain": "plugin_slot"},
         ),
         _creator_action(
-            action_id="act_suggestions_right",
+            action_id="act_theme_switch_add_default",
             kind="add_existing_plugin",
             status="ready",
-            label="Add Conversation Suggestions to Workspace.Right",
-            description="Add Conversation Suggestions to the semantic Workspace.Right Region.",
+            label="Add Theme Switch",
+            description="Add Theme Switch to the Conversation Surface.headerActions Slot, the top-right control area of the Conversation surface.",
             target={
-                "pluginId": "conversation-suggestions",
-                "pluginName": "Conversation Suggestions",
+                "pluginId": "theme-switch",
+                "pluginName": "Theme Switch",
             },
-            effect={"type": "workspace_region", "region": "right"},
+            effect={"type": "add_default", "placementDomain": "plugin_slot"},
         ),
     ]
     targets = [

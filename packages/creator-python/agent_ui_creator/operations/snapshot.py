@@ -173,6 +173,16 @@ def _build_action_effect(value: Any, *, path: str) -> CreatorActionEffect:
     effect_type = _required_string(effect.get("type"), f"{path}.type")
     try:
         if effect_type == "add_default":
+            placement_domain = effect.get("placementDomain")
+            if placement_domain is not None:
+                placement_domain = _required_string(
+                    placement_domain,
+                    f"{path}.placementDomain",
+                )
+                if placement_domain not in {"workspace", "plugin_slot", "relative"}:
+                    raise ValueError(
+                        f"Unsupported default placement domain {placement_domain!r}."
+                    )
             return AddDefaultActionEffect.model_validate(dict(effect))
         if effect_type == "remove":
             return RemoveActionEffect.model_validate(dict(effect))

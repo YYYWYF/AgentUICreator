@@ -107,7 +107,7 @@ def _add_context(*, include_right: bool = True) -> CreatorActionSelectorContext:
         "label": "Add Conversation Thread List",
         "description": "Add the visual Plugin using its default placement.",
         "target": {"pluginId": "conversation-thread-list", "pluginName": "Conversation Thread List"},
-        "effect": {"type": "add_default"},
+        "effect": {"type": "add_default", "placementDomain": "workspace"},
     }]
     if include_right:
         actions.append({
@@ -138,21 +138,21 @@ def _unified_context(*, include_right: bool = True) -> CreatorActionSelectorCont
                 "pluginId": "conversation-suggestions",
                 "pluginName": "Conversation Suggestions",
             },
-            "effect": {"type": "add_default"},
+            "effect": {"type": "add_default", "placementDomain": "plugin_slot"},
         },
     ]
     if include_right:
         composition_actions.append({
-            "actionId": "act_suggestions_right",
+            "actionId": "act_theme_switch_add_default",
             "kind": "add_existing_plugin",
             "status": "ready",
-            "label": "Add Conversation Suggestions to Workspace.Right",
-            "description": "Add Conversation Suggestions to the semantic Workspace.Right Region.",
+            "label": "Add Theme Switch",
+            "description": "Add Theme Switch to the Conversation Surface.headerActions Slot, the top-right control area of the Conversation surface.",
             "target": {
-                "pluginId": "conversation-suggestions",
-                "pluginName": "Conversation Suggestions",
+                "pluginId": "theme-switch",
+                "pluginName": "Theme Switch",
             },
-            "effect": {"type": "workspace_region", "region": "right"},
+            "effect": {"type": "add_default", "placementDomain": "plugin_slot"},
         })
     targets = [
         {
@@ -234,7 +234,7 @@ def _unified_context(*, include_right: bool = True) -> CreatorActionSelectorCont
         ("把示例问题改成 A/B/C", "A3", "select_intent", "conversation.starter-suggestions"),
         ("把示例问题按钮改成圆角", "A6", "select_intent", "plugin-source:conversation-suggestions"),
         ("默认使用深色主题", "A5", "select_intent", "theme.default-mode"),
-        ("把主题开关放到右边", "A2", "select_action", "act_suggestions_right"),
+        ("把主题开关放到右边", "A2", "select_action", "act_theme_switch_add_default"),
         ("欢迎语改成 Welcome to my agent", "A4", "select_intent", "conversation.welcome"),
     ],
 )
@@ -266,6 +266,20 @@ def test_unified_selector_fails_closed_for_explicit_unavailable_workspace_region
 
     assert result.decision == "unsupported_product_action"
     assert len(model.messages) == 1
+
+
+def test_plugin_slot_theme_control_does_not_fallback_to_explicit_workspace_region():
+    context = _unified_context(include_right=True)
+    model = StaticChatModel(["SELECT A2"])
+
+    result = asyncio.run(
+        CreatorActionSelector(model=model).select(
+            "把主题开关放到 Workspace.Right 面板",
+            context,
+        )
+    )
+
+    assert result.decision == "unsupported_product_action"
 
 
 def test_domain_snapshot_binds_action_and_authoring_revisions_into_one_catalog():

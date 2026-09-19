@@ -84,5 +84,6 @@ describe("canonical Conversation plugin cleanup boundary", () => {
     expect(registrySource).not.toMatch(/agent-|antd-x-|template-library/u);
     expect(pluginSource).toContain('renderSlot("emptyWelcome"');
     expect(pluginSource).toContain('renderSlot("emptySuggestions"');
+    expect(pluginSource).toContain('renderSlot("headerActions"');
   });
 });

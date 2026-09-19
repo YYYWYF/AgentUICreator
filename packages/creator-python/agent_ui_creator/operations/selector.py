@@ -41,6 +41,13 @@ _EXPLICIT_WORKSPACE_REGION = {
         re.I,
     ),
 }
+_EXPLICIT_WORKSPACE_PLACEMENT = re.compile(
+    r"Workspace[. ](?:Left|Center|Right)"
+    r"|(?:左|中|右)(?:边|侧|栏)\s*(?:的\s*)?Workspace\s*(?:面板|区域|栏)?"
+    r"|(?:左|中|右)(?:边|侧|栏)(?:面板|区域|栏)"
+    r"|\b(?:left|center|right)\s+(?:Workspace\s+)?(?:panel|region|column)\b",
+    re.I,
+)
 _EXPLICIT_RELATIVE_PLACEMENT = re.compile(
     r"\bbefore\b|\bafter\b|\babove\b|\bbelow\b|\bnext to\b|前面|后面|上方|下方|之前|之后",
     re.I,
@@ -72,13 +79,19 @@ one part of a multi-layer request; use GENERAL when the complete desired state
 spans Composition and source/config ownership. Use UNSUPPORTED for multiple
 independent requests that have no single safe supplied route. An already_satisfied
 Action may still be selected.
-Prefer a Workspace Region choice for top-level Left, Center, or Right semantics,
-including a position described as after the main Conversation surface. Use a
-relative choice for a genuinely anchor-specific, non-Workspace placement.
-An explicit user placement takes precedence over a Plugin defaultPlacement.
-Choose add_default only when the user did not request a location. If an exact
-requested placement is unavailable, return UNSUPPORTED or CLARIFY; never select
-another placement or add_default as a fallback.
+Use a Workspace Region choice for top-level Left, Center, or Right semantics
+when the supplied Action effect has placementDomain workspace, including a
+position described as after the main Conversation surface. A plugin_slot
+placementDomain is a Plugin-local semantic surface Slot; do not reinterpret a
+plain left/right phrase as Workspace placement when the supplied Action
+description identifies such a Slot. Use a relative choice for a genuinely
+anchor-specific, non-Workspace placement. An explicit user placement takes
+precedence over a Plugin defaultPlacement. For workspace placement, choose
+add_default only when the user did not request a location; a canonical
+plugin_slot control may still be selected for a plain directional phrase when
+its supplied semantic description matches that control. If an exact requested
+placement is unavailable, return UNSUPPORTED or CLARIFY; never select another
+placement or add_default as a fallback.
 Visual Remove Actions remove only UI Plugin instances. If the user clearly asks
 to remove a visible panel or list, select its visual Remove Action. If the user
 clearly asks to disable the underlying capability, services, or data, return
@@ -488,17 +501,25 @@ class CreatorIntentSelector:
                             if candidate.actionId == selection.actionId
                         )
                         requested_region = _explicit_workspace_region(user_message)
-                        if (
-                            selected.kind == "add_existing_plugin"
-                            and requested_region is not None
-                            and (
-                                selected.effect.type != "workspace_region"
-                                or selected.effect.region != requested_region
-                            )
-                        ):
-                            return CreatorActionSelection(
-                                decision="unsupported_product_action"
-                            )
+                        if selected.kind == "add_existing_plugin" and requested_region is not None:
+                            if selected.effect.type == "workspace_region":
+                                if selected.effect.region != requested_region:
+                                    return CreatorActionSelection(
+                                        decision="unsupported_product_action"
+                                    )
+                            elif selected.effect.type == "add_default":
+                                placement_domain = selected.effect.placementDomain
+                                explicit_workspace = _EXPLICIT_WORKSPACE_PLACEMENT.search(
+                                    user_message
+                                ) is not None
+                                if explicit_workspace or placement_domain != "plugin_slot":
+                                    return CreatorActionSelection(
+                                        decision="unsupported_product_action"
+                                    )
+                            else:
+                                return CreatorActionSelection(
+                                    decision="unsupported_product_action"
+                                )
                         if (
                             selected.kind == "add_existing_plugin"
                             and selected.effect.type == "add_default"

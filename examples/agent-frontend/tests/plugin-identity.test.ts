@@ -4,7 +4,11 @@ import { pluginCapabilityCatalog } from "../plugins";
 
 describe("UI plugin identity", () => {
   it("requires default placement and matching semantics for official Creator-addable visual Plugins", () => {
-    for (const pluginId of ["conversation-suggestions", "conversation-thread-list"]) {
+    for (const pluginId of [
+      "conversation-suggestions",
+      "conversation-thread-list",
+      "theme-switch",
+    ]) {
       const manifest = pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === pluginId)?.manifest;
       expect(manifest?.name).toBeTruthy();
       expect(manifest?.description).toBeTruthy();

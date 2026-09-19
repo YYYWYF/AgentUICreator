@@ -20,6 +20,7 @@ describe("assistant-ui semantic Slot rendering", () => {
     );
     expect(plugin).toContain('renderSlot("emptyWelcome"');
     expect(plugin).toContain('renderSlot("emptySuggestions"');
+    expect(plugin).toContain('renderSlot("headerActions"');
     expect(adapter).toContain("welcome?: ReactNode");
     expect(adapter).toContain("suggestions?: ReactNode");
     expect(adapter).not.toContain("renderSlot");

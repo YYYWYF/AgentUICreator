@@ -8,6 +8,11 @@
     "intents": [
       "let the user switch between light and dark themes"
     ],
-    "visualRole": "theme control"
+    "visualRole": "theme control",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "conversation-surface",
+      "slot": "headerActions"
+    }
   }
 }

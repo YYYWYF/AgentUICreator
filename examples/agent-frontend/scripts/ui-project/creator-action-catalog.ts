@@ -53,7 +53,11 @@ export type CreatorActionKind =
 export type CreatorActionStatus = "ready" | "already_satisfied";
 
 export type CreatorActionEffect =
-  | { type: "add_default" }
+  | {
+      type: "add_default";
+      /** The semantic domain of the Plugin's canonical default placement. */
+      placementDomain?: "workspace" | "plugin_slot" | "relative";
+    }
   | { type: "remove" }
   | {
       type: "relative";
@@ -178,6 +182,8 @@ export interface CreatorActionSemanticIdentity {
 function semanticEffectIdentity(effect: CreatorActionEffect): Record<string, string> {
   switch (effect.type) {
     case "add_default":
+      // placementDomain is a selector guard derived from the same canonical
+      // default; it must not churn the stable semantic Add identity.
       return { type: effect.type };
     case "remove":
       return { type: effect.type };
@@ -316,6 +322,42 @@ function actionCandidate(
   };
   validateCandidate(candidate);
   return candidate;
+}
+
+function addDefaultPlacementDomain(
+  model: AppUIModel,
+  asset: PluginAsset,
+  generation: GeneratePluginCatalogResult,
+  workspacePolicy: AgentUIWorkspacePolicy,
+): "workspace" | "plugin_slot" | "relative" {
+  const placement = asset.authoring?.defaultPlacement;
+  if (placement?.type === "plugin_slot") return "plugin_slot";
+  if (
+    placement?.type === "relative" &&
+    isWorkspaceCompatibleAsset(model, asset, generation, workspacePolicy)
+  ) {
+    return "workspace";
+  }
+  return "relative";
+}
+
+function addDefaultDescription(
+  asset: PluginAsset,
+  assetsByPluginId: ReadonlyMap<string, readonly PluginAsset[]>,
+): string {
+  const placement = asset.authoring?.defaultPlacement;
+  if (placement?.type === "plugin_slot") {
+    const parent = uniqueAsset(assetsByPluginId, placement.parentPluginId);
+    const slot = parent?.childSlots?.[placement.slot];
+    const parentName = parent?.name ?? placement.parentPluginId;
+    const slotDescription = slot?.description ?? "the Plugin-owned semantic Slot";
+    return `Add ${asset.name} to ${parentName}.${placement.slot} Slot, ${slotDescription}`;
+  }
+  if (placement?.type === "relative") {
+    const anchor = uniqueAsset(assetsByPluginId, placement.anchorPluginId);
+    return `Add ${asset.name} at its canonical ${placement.relation} placement relative to ${anchor?.name ?? placement.anchorPluginId}.`;
+  }
+  return `Add the existing ${asset.name} visual Plugin using its canonical default placement.`;
 }
 
 function pluginMoveOperation(
@@ -557,14 +599,22 @@ export async function buildCreatorActionCatalog(
         pluginName: asset.name,
         instanceId: enabledInstance.plugin.id,
       };
-      const effect: CreatorActionEffect = { type: "add_default" };
+      const effect: CreatorActionEffect = {
+        type: "add_default",
+        placementDomain: addDefaultPlacementDomain(
+          input.model,
+          asset,
+          input.generation,
+          input.workspacePolicy,
+        ),
+      };
       const candidate = actionCandidate(
         "add_existing_plugin",
         "already_satisfied",
         target,
         effect,
         `Add ${asset.name}`,
-        `Add the existing ${asset.name} Plugin using its default placement.`,
+        addDefaultDescription(asset, assetsByPluginId),
       );
       addAction(candidate, {
         actionId: candidate.actionId,
@@ -587,12 +637,20 @@ export async function buildCreatorActionCatalog(
       pluginId: asset.pluginId,
       pluginName: asset.name,
     };
-    const effect: CreatorActionEffect = { type: "add_default" };
+    const effect: CreatorActionEffect = {
+      type: "add_default",
+      placementDomain: addDefaultPlacementDomain(
+        input.model,
+        asset,
+        input.generation,
+        input.workspacePolicy,
+      ),
+    };
     if (defaultValid) {
       const candidate = actionCandidate(
         "add_existing_plugin", "ready", target, effect,
         `Add ${asset.name}`,
-        `Add the existing ${asset.name} visual Plugin using its default placement when no location was requested.`,
+        addDefaultDescription(asset, assetsByPluginId),
       );
       addAction(candidate, { actionId: candidate.actionId, status: "ready", operation });
     }

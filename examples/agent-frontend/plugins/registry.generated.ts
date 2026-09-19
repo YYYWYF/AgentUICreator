@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "201c685d8cb934a81c3d95e4350a2fffcad1e6a1d070113568477a218d0095c2";
+export const capabilityCatalogRevision = "e5e1bb69074894022b526cb700a781fe3cd90a3ecdb1e3ca26141e756cd53a2c";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -118,6 +118,16 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
                 "conversation-suggestions"
               ]
             }
+          },
+          "headerActions": {
+            "description": "Top-right controls displayed on the Conversation surface.",
+            "cardinality": "many",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "theme-control"
+              ]
+            }
           }
         }
       },
@@ -210,7 +220,12 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
         "intents": [
           "let the user switch between light and dark themes"
         ],
-        "visualRole": "theme control"
+        "visualRole": "theme control",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "headerActions"
+        }
       }
     },
     provides: [],

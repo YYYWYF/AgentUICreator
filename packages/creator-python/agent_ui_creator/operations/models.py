@@ -80,6 +80,7 @@ InvalidActionSelectionReason: TypeAlias = Literal[
 ]
 
 PluginPlacementRelation: TypeAlias = Literal["before", "after", "above", "below"]
+AddDefaultPlacementDomain: TypeAlias = Literal["workspace", "plugin_slot", "relative"]
 BoundedPluginId: TypeAlias = Annotated[
     str, Field(min_length=1, max_length=MAX_PLUGIN_ID_CHARS)
 ]
@@ -275,6 +276,10 @@ class AddDefaultActionEffect(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     type: Literal["add_default"]
+    # Host-generated Actions always provide this for new snapshots. Keep the
+    # field optional so older persisted snapshots remain readable while the
+    # selector can fail closed when a directional request lacks a domain.
+    placementDomain: AddDefaultPlacementDomain | None = None
 
 
 class RemoveActionEffect(BaseModel):

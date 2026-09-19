@@ -394,7 +394,10 @@ describe("Creator Action Catalog", () => {
     const afterRemove = await buildCatalog(projectRoot, absentModel);
     const add = afterRemove.catalog.candidates.find((candidate) =>
       candidate.kind === "add_existing_plugin" && candidate.target.pluginId === "conversation-suggestions" && candidate.status === "ready");
-    expect(add?.effect).toEqual({ type: "add_default" });
+    expect(add?.effect).toMatchObject({
+      type: "add_default",
+      placementDomain: "plugin_slot",
+    });
     expect(afterRemove.catalog.candidates).not.toContainEqual(expect.objectContaining({
       kind: "add_existing_plugin",
       target: expect.objectContaining({ pluginId: "conversation-suggestions" }),
@@ -418,6 +421,86 @@ describe("Creator Action Catalog", () => {
       pluginId: "conversation-suggestions",
       enabled: true,
     });
+  });
+
+  it("emits Theme Switch Add only for the Conversation headerActions Slot", async () => {
+    const parent: AppUIPluginNode = {
+      id: "agent-conversation-surface-main",
+      pluginId: "conversation-surface",
+      enabled: true,
+    };
+    const model = childSlotModel([parent]);
+    const projectRoot = await createFixtureProject(model, [
+      ["conversation-surface", {
+        name: "Conversation Surface",
+        capabilities: ["conversation-surface"],
+        slots: {
+          children: {
+            headerActions: {
+              description: "Top-right controls displayed on the Conversation surface.",
+              cardinality: "many",
+              optional: true,
+              accepts: { anyOfCapabilities: ["theme-control"] },
+            },
+          },
+        },
+      }],
+      ["theme-switch", {
+        name: "Theme Switch",
+        capabilities: ["theme-control", "plugin-service-consumer"],
+        authoring: {
+          intents: ["let the user switch between light and dark themes"],
+          visualRole: "theme control",
+          defaultPlacement: {
+            type: "plugin_slot",
+            parentPluginId: "conversation-surface",
+            slot: "headerActions",
+          },
+        },
+      }],
+    ]);
+
+    const before = await buildCatalog(projectRoot, model);
+    const add = before.catalog.candidates.find(
+      (candidate) => candidate.kind === "add_existing_plugin" &&
+        candidate.target.pluginId === "theme-switch",
+    );
+
+    expect(add).toMatchObject({
+      label: "Add Theme Switch",
+      status: "ready",
+      effect: { type: "add_default", placementDomain: "plugin_slot" },
+    });
+    expect(add?.description).toContain("top-right control area");
+    expect(before.catalog.candidates.filter((candidate) =>
+      candidate.target.pluginId === "theme-switch" &&
+      candidate.effect.type === "workspace_region",
+    )).toEqual([]);
+    if (add === undefined) throw new Error("Expected Theme Switch Add Action");
+
+    const restored = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(`${JSON.stringify(model, null, 2)}\n`),
+      operations: [{ type: "execute_creator_action", actionId: add.actionId }],
+    });
+    expect(restored.semanticComposition?.expectedPlacement).toEqual({
+      type: "plugin_slot",
+      instanceId: "theme-switch-main",
+      parentInstanceId: "agent-conversation-surface-main",
+      slot: "headerActions",
+    });
+
+    const after = JSON.parse(
+      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
+    ) as AppUIModel;
+    const mounted = collectAppUIPluginLocations(after).find(
+      ({ plugin }) => plugin.pluginId === "theme-switch",
+    );
+    expect(mounted?.plugin).toEqual({
+      id: "theme-switch-main",
+      pluginId: "theme-switch",
+      enabled: true,
+    });
+    expect(JSON.stringify(mounted?.plugin)).not.toContain("props");
   });
 
   it("emits and executes the Conversation Thread List Add Action when absent", async () => {
@@ -465,7 +548,7 @@ describe("Creator Action Catalog", () => {
         pluginId: "conversation-thread-list",
         pluginName: "Conversation Thread List",
       },
-      effect: { type: "add_default" },
+      effect: { type: "add_default", placementDomain: "workspace" },
     });
     if (add === undefined) throw new Error("fixture did not produce Thread List Add Action");
 
@@ -511,7 +594,10 @@ describe("Creator Action Catalog", () => {
     const { catalog } = await buildCatalog(projectRoot, model);
     const adds = catalog.candidates.filter((candidate) =>
       candidate.kind === "add_existing_plugin" && candidate.target.pluginId === "conversation-thread-list");
-    expect(adds.map((candidate) => candidate.effect)).toContainEqual({ type: "add_default" });
+    expect(adds.map((candidate) => candidate.effect)).toContainEqual({
+      type: "add_default",
+      placementDomain: "workspace",
+    });
     expect(adds.map((candidate) => candidate.effect)).toContainEqual({ type: "workspace_region", region });
     const explicit = adds.find((candidate) =>
       candidate.effect.type === "workspace_region" && candidate.effect.region === region);
@@ -556,7 +642,10 @@ describe("Creator Action Catalog", () => {
     const { catalog } = await buildCatalog(projectRoot, model);
     const adds = catalog.candidates.filter((candidate) =>
       candidate.kind === "add_existing_plugin" && candidate.target.pluginId === "conversation-thread-list");
-    expect(adds.map((candidate) => candidate.effect)).toContainEqual({ type: "add_default" });
+    expect(adds.map((candidate) => candidate.effect)).toContainEqual({
+      type: "add_default",
+      placementDomain: "workspace",
+    });
     expect(adds.map((candidate) => candidate.effect)).not.toContainEqual({ type: "workspace_region", region: "right" });
   });
 

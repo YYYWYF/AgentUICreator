@@ -26,6 +26,7 @@ export function ConversationSurfacePlugin({
   );
   const welcome = renderSlot("emptyWelcome", <ConversationWelcomeFallback />);
   const suggestions = renderSlot("emptySuggestions", null);
+  const headerActions = renderSlot("headerActions", null);
 
   return (
     <div
@@ -34,6 +35,12 @@ export function ConversationSurfacePlugin({
       data-conversation-mode={snapshot.mode}
       data-ui-plugin="conversation-surface"
     >
+      <div
+        className="conversation-surface-header-actions"
+        data-conversation-surface-slot="headerActions"
+      >
+        {headerActions}
+      </div>
       <ConversationAdapter welcome={welcome} suggestions={suggestions} />
     </div>
   );

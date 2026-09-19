@@ -27,6 +27,14 @@
         "accepts": {
           "anyOfCapabilities": ["conversation-suggestions"]
         }
+      },
+      "headerActions": {
+        "description": "Top-right controls displayed on the Conversation surface.",
+        "cardinality": "many",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": ["theme-control"]
+        }
       }
     }
   },

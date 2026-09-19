@@ -1,5 +1,6 @@
 from .models import (
     AddDefaultActionEffect,
+    AddDefaultPlacementDomain,
     CreatorAuthoringHandoff,
     CreatorAuthoringTargetBinding,
     CreatorAuthoringTargetCandidate,
@@ -111,6 +112,7 @@ from .verification import (
 __all__ = [
     "CreatorDomainSnapshot",
     "AddDefaultActionEffect",
+    "AddDefaultPlacementDomain",
     "CreatorActionCandidate",
     "CreatorAuthoringHandoff",
     "CreatorAuthoringTargetBinding",
