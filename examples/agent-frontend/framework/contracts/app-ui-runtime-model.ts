@@ -1,10 +1,12 @@
-import type { LayoutNode, LayoutSize } from "@agent-ui/runtime-react";
+import type { LayoutNode, LayoutTrackSize, PanelDimension } from "@agent-ui/runtime-react";
 import { z } from "zod";
+import { isGridTrackOnlyDimension } from "./panel-dimension";
 
 export type {
   ColumnNode as RuntimeColumnNode,
   LayoutNode as RuntimeLayoutNode,
-  LayoutSize,
+  LayoutTrackSize,
+  PanelDimension,
   PanelNode as RuntimePanelNode,
   RowNode as RuntimeRowNode,
   SlotNode as RuntimeSlotNode,
@@ -31,9 +33,17 @@ const nonBlankStringSchema = z.string().refine(
 );
 const nonNegativeNumberSchema = z.number().nonnegative();
 
-export const runtimeLayoutSizeSchema: z.ZodType<LayoutSize> = z.union([
+export const runtimeLayoutTrackSizeSchema: z.ZodType<LayoutTrackSize> = z.union([
   nonNegativeNumberSchema,
   nonBlankStringSchema,
+]);
+
+export const runtimePanelDimensionSchema: z.ZodType<PanelDimension> = z.union([
+  nonNegativeNumberSchema,
+  nonBlankStringSchema.refine(
+    (value) => !isGridTrackOnlyDimension(value),
+    "Panel width/height must be a CSS element dimension, not Grid track syntax",
+  ),
 ]);
 
 export const runtimeLayoutNodeSchema: z.ZodType<LayoutNode> = z.lazy(() =>
@@ -42,13 +52,13 @@ export const runtimeLayoutNodeSchema: z.ZodType<LayoutNode> = z.lazy(() =>
       type: z.literal("row"), id: nonBlankStringSchema,
       children: z.array(runtimeLayoutNodeSchema),
       gap: nonNegativeNumberSchema.optional(),
-      sizes: z.array(runtimeLayoutSizeSchema).optional(),
+      sizes: z.array(runtimeLayoutTrackSizeSchema).optional(),
     }),
     z.strictObject({
       type: z.literal("column"), id: nonBlankStringSchema,
       children: z.array(runtimeLayoutNodeSchema),
       gap: nonNegativeNumberSchema.optional(),
-      sizes: z.array(runtimeLayoutSizeSchema).optional(),
+      sizes: z.array(runtimeLayoutTrackSizeSchema).optional(),
     }),
     z.strictObject({
       type: z.literal("stack"), id: nonBlankStringSchema,
@@ -58,8 +68,8 @@ export const runtimeLayoutNodeSchema: z.ZodType<LayoutNode> = z.lazy(() =>
     z.strictObject({
       type: z.literal("panel"), id: nonBlankStringSchema,
       child: runtimeLayoutNodeSchema,
-      width: runtimeLayoutSizeSchema.optional(),
-      height: runtimeLayoutSizeSchema.optional(),
+      width: runtimePanelDimensionSchema.optional(),
+      height: runtimePanelDimensionSchema.optional(),
       minWidth: nonNegativeNumberSchema.optional(),
       maxWidth: nonNegativeNumberSchema.optional(),
       resizable: z.boolean().optional(),

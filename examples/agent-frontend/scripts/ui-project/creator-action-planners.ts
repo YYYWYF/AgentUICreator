@@ -41,6 +41,7 @@ type VisualRegionResolution =
       mode: "root-anchor";
       anchorRef: string;
       anchorSize: string;
+      anchor: AppUILayoutNode;
     };
 
 export interface DefaultPluginInsertionPlan {
@@ -217,6 +218,7 @@ function resolveVisualRegion(
       mode: "root-anchor",
       anchorRef,
       anchorSize: resolveRootAnchorTrackSize(branch, anchorAsset, axis),
+      anchor: branch,
     };
   }
 
@@ -407,13 +409,23 @@ export function planDefaultPluginInsertion(
       : placement.relation;
   const panel: AppUILayoutNode = {
     type: "panel",
-    ...(axis === "width" ? { width: trackSize } : { height: trackSize }),
     child: {
       type: "slot",
       plugins: [structuredClone(operation.plugin) as AppUIPluginNode],
     },
   };
   const loweredOperations: AppUIOperation[] = [];
+  if (
+    region.mode === "root-anchor" &&
+    region.anchor.type === "panel" &&
+    region.anchor[axis] !== undefined
+  ) {
+    loweredOperations.push({
+      type: "update_layout_node_props",
+      nodeRef: region.anchorRef,
+      removeKeys: [axis],
+    });
+  }
   if (region.mode === "existing-axis-parent" && region.parent.sizes === undefined) {
     loweredOperations.push({
       type: "update_layout_node_props",

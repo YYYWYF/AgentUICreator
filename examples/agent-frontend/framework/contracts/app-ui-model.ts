@@ -1,7 +1,9 @@
-import type { LayoutSize } from "@agent-ui/runtime-react";
+import type { LayoutTrackSize, PanelDimension } from "@agent-ui/runtime-react";
 import { z } from "zod";
+import { isGridTrackOnlyDimension } from "./panel-dimension";
 
-export type AppUILayoutSize = LayoutSize;
+export type AppUILayoutTrackSize = LayoutTrackSize;
+export type AppUIPanelDimension = PanelDimension;
 export type LayoutRef = string;
 
 export interface AppUIPluginNode {
@@ -16,14 +18,14 @@ export interface AppUIRowNode {
   type: "row";
   children: AppUILayoutNode[];
   gap?: number | undefined;
-  sizes?: AppUILayoutSize[] | undefined;
+  sizes?: AppUILayoutTrackSize[] | undefined;
 }
 
 export interface AppUIColumnNode {
   type: "column";
   children: AppUILayoutNode[];
   gap?: number | undefined;
-  sizes?: AppUILayoutSize[] | undefined;
+  sizes?: AppUILayoutTrackSize[] | undefined;
 }
 
 export interface AppUIStackNode {
@@ -35,8 +37,8 @@ export interface AppUIStackNode {
 export interface AppUIPanelNode {
   type: "panel";
   child: AppUILayoutNode;
-  width?: AppUILayoutSize | undefined;
-  height?: AppUILayoutSize | undefined;
+  width?: AppUIPanelDimension | undefined;
+  height?: AppUIPanelDimension | undefined;
   minWidth?: number | undefined;
   maxWidth?: number | undefined;
   resizable?: boolean | undefined;
@@ -91,9 +93,17 @@ const nonBlankStringSchema = z.string().refine(
 );
 const nonNegativeNumberSchema = z.number().nonnegative();
 
-export const layoutSizeSchema: z.ZodType<AppUILayoutSize> = z.union([
+export const layoutTrackSizeSchema: z.ZodType<AppUILayoutTrackSize> = z.union([
   nonNegativeNumberSchema,
   nonBlankStringSchema,
+]);
+
+export const panelDimensionSchema: z.ZodType<AppUIPanelDimension> = z.union([
+  nonNegativeNumberSchema,
+  nonBlankStringSchema.refine(
+    (value) => !isGridTrackOnlyDimension(value),
+    "Panel width/height must be a CSS element dimension, not Grid track syntax",
+  ),
 ]);
 
 export const appUIPluginNodeSchema: z.ZodType<AppUIPluginNode> = z.lazy(() =>
@@ -112,13 +122,13 @@ export const layoutNodeSchema: z.ZodType<AppUILayoutNode> = z.lazy(() =>
       type: z.literal("row"),
       children: z.array(layoutNodeSchema),
       gap: nonNegativeNumberSchema.optional(),
-      sizes: z.array(layoutSizeSchema).optional(),
+      sizes: z.array(layoutTrackSizeSchema).optional(),
     }),
     z.strictObject({
       type: z.literal("column"),
       children: z.array(layoutNodeSchema),
       gap: nonNegativeNumberSchema.optional(),
-      sizes: z.array(layoutSizeSchema).optional(),
+      sizes: z.array(layoutTrackSizeSchema).optional(),
     }),
     z.strictObject({
       type: z.literal("stack"),
@@ -128,8 +138,8 @@ export const layoutNodeSchema: z.ZodType<AppUILayoutNode> = z.lazy(() =>
     z.strictObject({
       type: z.literal("panel"),
       child: layoutNodeSchema,
-      width: layoutSizeSchema.optional(),
-      height: layoutSizeSchema.optional(),
+      width: panelDimensionSchema.optional(),
+      height: panelDimensionSchema.optional(),
       minWidth: nonNegativeNumberSchema.optional(),
       maxWidth: nonNegativeNumberSchema.optional(),
       resizable: z.boolean().optional(),

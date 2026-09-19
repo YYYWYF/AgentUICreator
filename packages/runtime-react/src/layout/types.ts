@@ -1,11 +1,12 @@
-export type LayoutSize = number | string;
+export type LayoutTrackSize = number | string;
+export type PanelDimension = number | string;
 
 export interface RowNode {
   type: "row";
   id: string;
   children: LayoutNode[];
   gap?: number | undefined;
-  sizes?: LayoutSize[] | undefined;
+  sizes?: LayoutTrackSize[] | undefined;
 }
 
 export interface ColumnNode {
@@ -13,7 +14,7 @@ export interface ColumnNode {
   id: string;
   children: LayoutNode[];
   gap?: number | undefined;
-  sizes?: LayoutSize[] | undefined;
+  sizes?: LayoutTrackSize[] | undefined;
 }
 
 export interface StackNode {
@@ -27,8 +28,8 @@ export interface PanelNode {
   type: "panel";
   id: string;
   child: LayoutNode;
-  width?: LayoutSize | undefined;
-  height?: LayoutSize | undefined;
+  width?: PanelDimension | undefined;
+  height?: PanelDimension | undefined;
   minWidth?: number | undefined;
   maxWidth?: number | undefined;
   resizable?: boolean | undefined;

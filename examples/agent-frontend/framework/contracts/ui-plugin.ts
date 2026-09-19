@@ -7,7 +7,7 @@ import type { ComponentType, ReactNode } from "react";
 import { z } from "zod";
 
 import type { AppUIRuntimePluginInstance } from "./app-ui-runtime-model";
-import type { AppUILayoutSize } from "./app-ui-model";
+import type { AppUILayoutTrackSize } from "./app-ui-model";
 import type { PluginChildSlotDefinition } from "./app-ui-composition";
 import { customEventNameSchema } from "./custom-event-protocol";
 
@@ -47,8 +47,8 @@ export interface UIPluginManifest {
           | undefined;
         recommendedSize?:
           | {
-              width?: AppUILayoutSize | undefined;
-              height?: AppUILayoutSize | undefined;
+              width?: AppUILayoutTrackSize | undefined;
+              height?: AppUILayoutTrackSize | undefined;
             }
           | undefined;
       }
@@ -231,12 +231,7 @@ const serviceNameListSchema = z.array(serviceNameSchema).superRefine((names, con
   });
 });
 
-const layoutSizeSchema: z.ZodType<AppUILayoutSize> = z.union([
-  z.number().nonnegative(),
-  nonBlankStringSchema,
-]);
-
-const authoringLayoutSizeSchema: z.ZodType<AppUILayoutSize> = z.union([
+const authoringTrackSizeSchema: z.ZodType<AppUILayoutTrackSize> = z.union([
   z.number().finite().nonnegative().max(10_000),
   z
     .string()
@@ -280,8 +275,8 @@ const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
         .optional(),
       recommendedSize: z
         .strictObject({
-          width: authoringLayoutSizeSchema.optional(),
-          height: authoringLayoutSizeSchema.optional(),
+          width: authoringTrackSizeSchema.optional(),
+          height: authoringTrackSizeSchema.optional(),
         })
         .refine(
           (value) => value.width !== undefined || value.height !== undefined,

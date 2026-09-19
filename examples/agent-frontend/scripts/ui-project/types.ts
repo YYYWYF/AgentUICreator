@@ -1,5 +1,6 @@
 import type {
-  AppUILayoutSize,
+  AppUILayoutTrackSize,
+  AppUIPanelDimension,
   AppUIPluginNode,
 } from "../../framework/contracts/app-ui-model";
 import type { AgentUIMode } from "../../framework/contracts/agent-ui-mode";
@@ -129,10 +130,10 @@ export interface CompactLayoutNode {
   nodeRef: string;
   type: "row" | "column" | "stack" | "panel" | "slot";
   gap?: number | undefined;
-  sizes?: AppUILayoutSize[] | undefined;
+  sizes?: AppUILayoutTrackSize[] | undefined;
   activeIndex?: number | undefined;
-  width?: AppUILayoutSize | undefined;
-  height?: AppUILayoutSize | undefined;
+  width?: AppUIPanelDimension | undefined;
+  height?: AppUIPanelDimension | undefined;
   minWidth?: number | undefined;
   maxWidth?: number | undefined;
   resizable?: boolean | undefined;

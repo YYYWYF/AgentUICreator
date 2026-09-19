@@ -1,6 +1,6 @@
 import type {
   AppUILayoutNode,
-  AppUILayoutSize,
+  AppUILayoutTrackSize,
   AppUIRowNode,
 } from "./app-ui-model";
 
@@ -15,7 +15,7 @@ export type WorkspaceRegion = (typeof WORKSPACE_REGIONS)[number];
 
 export interface WorkspaceRegionPolicy {
   readonly required: boolean;
-  readonly track: AppUILayoutSize;
+  readonly track: AppUILayoutTrackSize;
 }
 
 /** A Mode-owned declaration of the Regions that may be materialized. */
@@ -30,7 +30,7 @@ export interface WorkspaceRegionOccupancy {
   readonly branch: AppUILayoutNode;
   readonly branchRef: string;
   readonly index: number;
-  readonly track: AppUILayoutSize;
+  readonly track: AppUILayoutTrackSize;
 }
 
 export interface WorkspaceTopology {

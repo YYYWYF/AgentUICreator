@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
-import type { LayoutNode, LayoutSize, SlotNode } from "./types.js";
+import type { LayoutNode, LayoutTrackSize, PanelDimension, SlotNode } from "./types.js";
+import { isGridTrackOnlyDimension } from "./panelDimension.js";
 
 import "./layout.css";
 
@@ -16,12 +17,12 @@ interface LayoutNodeViewProps {
   renderSlot?: ((slot: SlotNode) => ReactNode) | undefined;
 }
 
-function toTrackSize(size: LayoutSize): string {
+function toTrackSize(size: LayoutTrackSize): string {
   return typeof size === "number" ? `${size}fr` : size;
 }
 
 function toGridTemplate(
-  sizes: LayoutSize[] | undefined,
+  sizes: LayoutTrackSize[] | undefined,
   childCount: number,
 ): string | undefined {
   if (sizes !== undefined) {
@@ -31,6 +32,10 @@ function toGridTemplate(
   return childCount > 0
     ? `repeat(${childCount}, minmax(0, 1fr))`
     : undefined;
+}
+
+function toPanelDimension(value: PanelDimension | undefined): PanelDimension | undefined {
+  return value !== undefined && isGridTrackOnlyDimension(value) ? undefined : value;
 }
 
 function renderChildren(
@@ -99,8 +104,8 @@ function LayoutNodeView({ node, renderSlot }: LayoutNodeViewProps) {
 
   if (node.type === "panel") {
     const style: CSSProperties = {
-      width: node.width,
-      height: node.height,
+      width: toPanelDimension(node.width),
+      height: toPanelDimension(node.height),
       minWidth: node.minWidth,
       maxWidth: node.maxWidth,
       overflow: node.resizable === true ? "auto" : undefined,

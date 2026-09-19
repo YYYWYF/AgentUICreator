@@ -1,6 +1,6 @@
 import {
   buildLayoutRefIndex,
-  type AppUILayoutSize,
+  type AppUILayoutTrackSize,
   type AppUIModel,
 } from "../../framework/contracts/app-ui-model";
 import {
@@ -32,13 +32,13 @@ function unsupported(message: string, details?: unknown): never {
  * Normalize only the equivalent one-fraction spellings used by existing
  * AppUIModel fixtures. All other track syntax remains exact and opaque.
  */
-function normalizedTrack(value: AppUILayoutSize): string {
+function normalizedTrack(value: AppUILayoutTrackSize): string {
   const source = typeof value === "number" ? `${value}fr` : value;
   const normalized = source.trim().replace(/\s+/gu, "").toLowerCase();
   return normalized === "1fr" ? "minmax(0,1fr)" : normalized;
 }
 
-function sameTrack(left: AppUILayoutSize, right: AppUILayoutSize): boolean {
+function sameTrack(left: AppUILayoutTrackSize, right: AppUILayoutTrackSize): boolean {
   return normalizedTrack(left) === normalizedTrack(right);
 }
 
@@ -55,7 +55,7 @@ function availableRegions(
 }
 
 function inferAssignments(
-  tracks: readonly AppUILayoutSize[],
+  tracks: readonly AppUILayoutTrackSize[],
   regions: ReadonlyArray<
     [WorkspaceRegion, NonNullable<AgentUIWorkspacePolicy["regions"][WorkspaceRegion]>]
   >,

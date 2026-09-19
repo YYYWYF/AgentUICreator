@@ -363,7 +363,7 @@ interface RowNode {
 
   gap?: number
 
-  sizes?: Array<number | string>
+  sizes?: LayoutTrackSize[]
 }
 ```
 
@@ -393,7 +393,7 @@ interface ColumnNode {
 
   gap?: number
 
-  sizes?: Array<number | string>
+  sizes?: LayoutTrackSize[]
 }
 ```
 
@@ -431,8 +431,8 @@ interface PanelNode {
 
   child: LayoutNode
 
-  width?: number | string
-  height?: number | string
+  width?: PanelDimension
+  height?: PanelDimension
 
   minWidth?: number
   maxWidth?: number
@@ -440,6 +440,12 @@ interface PanelNode {
   resizable?: boolean
 }
 ```
+
+`Row.sizes` 和 `Column.sizes` 分配 Grid 轨道；`Panel.width` 和
+`Panel.height` 只约束轨道内的元素。Workspace Region 的宽度只保存在父级
+`Row.sizes`，其直接子 Panel 默认填满轨道，不重复保存 Region 宽度。
+`fr`、`minmax(...)`、`repeat(...)` 和 `subgrid` 属于轨道语法，不能作为
+Panel 元素尺寸。
 
 ---
 

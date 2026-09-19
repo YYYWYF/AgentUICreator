@@ -4,11 +4,12 @@ import {
   appUIPluginNodeSchema,
   buildLayoutRefIndex,
   collectAppUIPluginLocations,
-  layoutSizeSchema,
+  panelDimensionSchema,
   walkAppUILayout,
   type AppUIColumnNode,
   type AppUILayoutNode,
-  type AppUILayoutSize,
+  type AppUILayoutTrackSize,
+  type AppUIPanelDimension,
   type AppUIModel,
   type AppUIPanelNode,
   type AppUIPluginLocation,
@@ -59,15 +60,15 @@ const pluginMovePlacementSchema = z.discriminatedUnion("type", [
 type AppUILayoutMutationNode =
   | ({ type: "row" | "column"; children: AppUILayoutMutationNode[]; gap?: number; sizes?: string[] } & { localRef?: string })
   | ({ type: "stack"; children: AppUILayoutMutationNode[]; activeIndex?: number } & { localRef?: string })
-  | ({ type: "panel"; child: AppUILayoutMutationNode; width?: AppUILayoutSize; height?: AppUILayoutSize; minWidth?: number; maxWidth?: number; resizable?: boolean } & { localRef?: string })
+  | ({ type: "panel"; child: AppUILayoutMutationNode; width?: AppUIPanelDimension; height?: AppUIPanelDimension; minWidth?: number; maxWidth?: number; resizable?: boolean } & { localRef?: string })
   | ({ type: "slot"; plugins: AppUIPluginNode[] } & { localRef?: string });
 
 type LayoutNodeProps = {
   gap?: number;
   sizes?: string[];
   activeIndex?: number;
-  width?: AppUILayoutSize;
-  height?: AppUILayoutSize;
+  width?: AppUIPanelDimension;
+  height?: AppUIPanelDimension;
   minWidth?: number;
   maxWidth?: number;
   resizable?: boolean;
@@ -77,8 +78,8 @@ const layoutNodePropsSchema: z.ZodType<LayoutNodeProps> = z.strictObject({
   gap: z.number().nonnegative().optional(),
   sizes: z.array(layoutTrackSizeSchema).optional(),
   activeIndex: z.number().int().nonnegative().optional(),
-  width: layoutSizeSchema.optional(),
-  height: layoutSizeSchema.optional(),
+  width: panelDimensionSchema.optional(),
+  height: panelDimensionSchema.optional(),
   minWidth: z.number().nonnegative().optional(),
   maxWidth: z.number().nonnegative().optional(),
   resizable: z.boolean().optional(),
@@ -103,8 +104,8 @@ const mutationLayoutNodeSchema: z.ZodType<AppUILayoutMutationNode> = z.lazy(() =
       type: z.literal("panel"),
       localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(),
       child: mutationLayoutNodeSchema,
-      width: layoutSizeSchema.optional(),
-      height: layoutSizeSchema.optional(),
+      width: panelDimensionSchema.optional(),
+      height: panelDimensionSchema.optional(),
       minWidth: z.number().nonnegative().optional(),
       maxWidth: z.number().nonnegative().optional(),
       resizable: z.boolean().optional(),
@@ -314,6 +315,7 @@ export interface WorkspaceRegionMovePlan {
   sourceIndex: number;
   insertionIndex: number;
   destinationTrack: string;
+  legacyWidthRefs?: string[] | undefined;
   expectedPlacement?: WorkspaceRegionExpectedPlacement | undefined;
 }
 
@@ -686,6 +688,12 @@ function applyLayoutReflow(context: MutationContext, plan: LayoutReflowPlan): vo
     parent.sizes.splice(index, 1);
   }
 
+  if (isWorkspaceRoot(context, parent)) {
+    for (const remaining of parent.children) {
+      if (remaining.type === "panel") delete remaining.width;
+    }
+  }
+
   // A zero-child Row or Column remains an explicit empty Layout container.
   // There is no remaining content that can safely replace it.
   if (parent.children.length !== 1) return;
@@ -996,6 +1004,12 @@ function planWorkspaceRegionMoveInContext(
     sourceIndex: sourceEntry.occupancy.index,
     insertionIndex: resolvedInsertionIndex,
     destinationTrack: destinationPolicy.track,
+    legacyWidthRefs: topology.root.children.flatMap((child) => {
+      const ref = context.snapshot.byNode.get(child);
+      return child.type === "panel" && child.width !== undefined && ref !== undefined
+        ? [ref]
+        : [];
+    }),
     ...(anchorInstanceId === undefined
       ? {}
       : {
@@ -1046,11 +1060,11 @@ export function lowerWorkspaceRegionMovePlan(
       index: plan.insertionIndex,
       size: plan.destinationTrack,
     },
-    {
-      type: "update_layout_node_props",
-      nodeRef: plan.branchRef,
-      set: { width: plan.destinationTrack },
-    },
+    ...(plan.legacyWidthRefs ?? (plan.branch.width === undefined ? [] : [plan.branchRef])).map((nodeRef) => ({
+      type: "update_layout_node_props" as const,
+      nodeRef,
+      removeKeys: ["width"],
+    })),
   ];
 }
 
@@ -1388,7 +1402,7 @@ function childContainer(node: AppUILayoutNode, operation: string): ChildrenNode 
   operationError("LAYOUT_PARENT_NOT_CONTAINER", `${operation} requires a row, column, or stack parent; received ${node.type}.`);
 }
 
-function insertChild(parent: ChildrenNode, node: AppUILayoutNode, index: number | undefined, size: AppUILayoutSize | undefined): void {
+function insertChild(parent: ChildrenNode, node: AppUILayoutNode, index: number | undefined, size: AppUILayoutTrackSize | undefined): void {
   const targetIndex = index ?? parent.children.length;
   if (targetIndex > parent.children.length) operationError("INDEX_OUT_OF_RANGE", `Layout child index ${targetIndex} exceeds length ${parent.children.length}.`);
   if (parent.type === "row" || parent.type === "column") {
@@ -1405,13 +1419,13 @@ function insertChild(parent: ChildrenNode, node: AppUILayoutNode, index: number 
   parent.children.splice(targetIndex, 0, node);
 }
 
-function detachChild(entry: CurrentNodeEntry): { node: AppUILayoutNode; size?: AppUILayoutSize } {
+function detachChild(entry: CurrentNodeEntry): { node: AppUILayoutNode; size?: AppUILayoutTrackSize } {
   if (entry.parentKind !== "children" || entry.parent === undefined || entry.index === undefined) {
     operationError("LAYOUT_NODE_NOT_MOVABLE", "The root or panel child cannot be moved as a layout child.");
   }
   const parent = childContainer(entry.parent, "detach_layout_node");
   const [node] = parent.children.splice(entry.index, 1);
-  let size: AppUILayoutSize | undefined;
+  let size: AppUILayoutTrackSize | undefined;
   if ((parent.type === "row" || parent.type === "column") && parent.sizes !== undefined) {
     [size] = parent.sizes.splice(entry.index, 1);
   }
