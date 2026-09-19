@@ -75,6 +75,7 @@ from .selector import (
 from .presentation import (
     CreatorIntentPresentation,
     CreatorIntentRoute,
+    present_creator_action_selection,
     present_creator_intent,
     route_for_operation,
 )
@@ -136,6 +137,7 @@ __all__ = [
     "MAX_ACTION_SELECTOR_REPAIR_CALLS",
     "CreatorIntentPresentation",
     "CreatorIntentRoute",
+    "present_creator_action_selection",
     "present_creator_intent",
     "route_for_operation",
     "ProductizedOperationEngine",
