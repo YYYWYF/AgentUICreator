@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from agent_ui_creator.app_ui_model import AppUIModelMutationMetrics
 from agent_ui_creator.domain_state import DomainObservationContext, DomainObservationMetrics
 from agent_ui_creator.operations import (
+    CreatorActionCatalogSnapshot,
     CreatorDomainSnapshot,
     CreatorOperationExecutionResult,
     CreatorOperationMetrics,
@@ -40,6 +41,7 @@ _OBSERVATION_COVERAGE = (
     "composition.instances",
     "capability.inventory",
     "capability.composition-summary",
+    "creator.actions",
 )
 
 
@@ -54,6 +56,7 @@ class _SnapshotProvider:
             capability_catalog_revision="b" * 64,
             observation_coverage=_OBSERVATION_COVERAGE,
             plugin_index=PluginCapabilityIndex(),
+            action_catalog=CreatorActionCatalogSnapshot(revision="c" * 64),
         )
 
 

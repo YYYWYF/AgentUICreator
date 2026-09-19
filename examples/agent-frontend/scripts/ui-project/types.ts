@@ -224,7 +224,8 @@ export type CompositionObservationCoverage =
   | "composition.slots"
   | "composition.instances"
   | "capability.inventory"
-  | "capability.composition-summary";
+  | "capability.composition-summary"
+  | "creator.actions";
 
 export interface CompositionPluginCapabilitySummary {
   pluginId: string;

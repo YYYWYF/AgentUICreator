@@ -366,6 +366,7 @@ describe("inspectUIProject", () => {
       "composition.instances",
       "capability.inventory",
       "capability.composition-summary",
+      "creator.actions",
     ]);
     expect(composition).not.toHaveProperty("pluginAssets");
     expect(composition).not.toHaveProperty("uiStack");

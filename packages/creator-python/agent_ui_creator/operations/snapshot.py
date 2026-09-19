@@ -7,9 +7,19 @@ from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from typing import Any
 
+from pydantic import ValidationError
+
 from ..project_control import ProjectControlClient, ProjectControlError
 from .models import (
+    AddDefaultActionEffect,
+    CreatorActionCandidate,
+    CreatorActionCatalogSnapshot,
+    CreatorActionEffect,
+    CreatorActionTarget,
     CreatorDomainSnapshot,
+    MAX_ACTION_DESCRIPTION_CHARS,
+    MAX_ACTION_ID_CHARS,
+    MAX_ACTION_LABEL_CHARS,
     MAX_CHILD_SLOT_ACCEPTED_CAPABILITIES,
     MAX_CHILD_SLOT_DESCRIPTION_CHARS,
     MAX_CHILD_SLOT_NAME_CHARS,
@@ -27,9 +37,14 @@ from .models import (
     MAX_PLUGIN_INTENTS,
     MAX_PLUGIN_NAME_CHARS,
     MAX_PLUGIN_VISUAL_ROLE_CHARS,
+    MAX_CREATOR_ACTION_CANDIDATES,
     MAX_REQUIRED_SERVICE_STATUS_CHARS,
     MAX_TOTAL_PLUGIN_CHILD_SLOTS,
     MAX_TOTAL_PLUGIN_INSTANCES,
+    PluginSlotActionEffect,
+    RelativeActionEffect,
+    RemoveActionEffect,
+    RowEdgeActionEffect,
     PluginChildSlotCapability,
     PluginCapability,
     PluginCapabilityIndex,
@@ -48,6 +63,7 @@ _REQUIRED_OBSERVATION_COVERAGE = frozenset(
         "composition.instances",
         "capability.inventory",
         "capability.composition-summary",
+        "creator.actions",
     }
 )
 
@@ -134,6 +150,205 @@ def _check_optional_size_text(value: Any, path: str, limit: int) -> None:
             f"Domain snapshot field {path} exceeds its character limit.",
             {"field": path, "limit": limit, "actual": len(value)},
         )
+
+
+def _action_model_invalid(path: str, error: ValidationError) -> CreatorDomainSnapshotError:
+    return _invalid(
+        f"Creator Action field {path} is invalid.",
+        {"field": path, "cause": str(error)},
+    )
+
+
+def _build_action_effect(value: Any, *, path: str) -> CreatorActionEffect:
+    effect = _required_mapping(value, path)
+    effect_type = _required_string(effect.get("type"), f"{path}.type")
+    try:
+        if effect_type == "add_default":
+            return AddDefaultActionEffect.model_validate(dict(effect))
+        if effect_type == "remove":
+            return RemoveActionEffect.model_validate(dict(effect))
+        if effect_type == "relative":
+            _bounded_text(effect.get("anchorPluginId"), f"{path}.anchorPluginId", MAX_PLUGIN_ID_CHARS)
+            _bounded_text(effect.get("anchorPluginName"), f"{path}.anchorPluginName", MAX_PLUGIN_NAME_CHARS)
+            _bounded_text(effect.get("anchorInstanceId"), f"{path}.anchorInstanceId", MAX_PLUGIN_INSTANCE_ID_CHARS)
+            relation = _required_string(effect.get("relation"), f"{path}.relation")
+            if relation not in {"before", "after"}:
+                raise ValueError(f"Unsupported relative Action relation {relation!r}.")
+            return RelativeActionEffect.model_validate(dict(effect))
+        if effect_type == "row_edge":
+            edge = _required_string(effect.get("edge"), f"{path}.edge")
+            if edge not in {"left", "right"}:
+                raise ValueError(f"Unsupported row edge {edge!r}.")
+            return RowEdgeActionEffect.model_validate(dict(effect))
+        if effect_type == "plugin_slot":
+            _bounded_text(effect.get("parentPluginId"), f"{path}.parentPluginId", MAX_PLUGIN_ID_CHARS)
+            _bounded_text(effect.get("parentPluginName"), f"{path}.parentPluginName", MAX_PLUGIN_NAME_CHARS)
+            _bounded_text(effect.get("parentInstanceId"), f"{path}.parentInstanceId", MAX_PLUGIN_INSTANCE_ID_CHARS)
+            _bounded_text(effect.get("slot"), f"{path}.slot", MAX_CHILD_SLOT_NAME_CHARS)
+            return PluginSlotActionEffect.model_validate(dict(effect))
+    except CreatorDomainSnapshotError:
+        raise
+    except (TypeError, ValueError) as error:
+        if isinstance(error, ValidationError):
+            raise _action_model_invalid(path, error) from error
+        raise _invalid(
+            f"Creator Action effect at {path} is invalid.",
+            {"field": path, "cause": str(error)},
+        ) from error
+    raise _invalid(
+        f"Unsupported Creator Action effect type {effect_type!r}.",
+        {"field": f"{path}.type"},
+    )
+
+
+def _build_action_target(value: Any, *, path: str) -> CreatorActionTarget:
+    target = _required_mapping(value, path)
+    _bounded_text(target.get("pluginId"), f"{path}.pluginId", MAX_PLUGIN_ID_CHARS)
+    _bounded_text(target.get("pluginName"), f"{path}.pluginName", MAX_PLUGIN_NAME_CHARS)
+    if "instanceId" in target and target.get("instanceId") is not None:
+        _bounded_text(
+            target.get("instanceId"),
+            f"{path}.instanceId",
+            MAX_PLUGIN_INSTANCE_ID_CHARS,
+        )
+    try:
+        return CreatorActionTarget.model_validate(dict(target))
+    except ValidationError as error:
+        raise _action_model_invalid(path, error) from error
+
+
+def _build_action_candidate(value: Any, *, index: int) -> CreatorActionCandidate:
+    path = f"creatorActions.candidates[{index}]"
+    candidate = _required_mapping(value, path)
+    action_id = _bounded_text(
+        candidate.get("actionId"),
+        f"{path}.actionId",
+        MAX_ACTION_ID_CHARS,
+    )
+    kind = _required_string(candidate.get("kind"), f"{path}.kind")
+    if kind not in {"add_existing_plugin", "remove_plugin", "move_plugin"}:
+        raise _invalid(
+            f"Unsupported Creator Action kind {kind!r}.",
+            {"field": f"{path}.kind"},
+        )
+    status = _required_string(candidate.get("status"), f"{path}.status")
+    if status not in {"ready", "already_satisfied"}:
+        raise _invalid(
+            f"Unsupported Creator Action status {status!r}.",
+            {"field": f"{path}.status"},
+        )
+    _bounded_text(candidate.get("label"), f"{path}.label", MAX_ACTION_LABEL_CHARS)
+    _bounded_text(
+        candidate.get("description"),
+        f"{path}.description",
+        MAX_ACTION_DESCRIPTION_CHARS,
+    )
+    target = _build_action_target(candidate.get("target"), path=f"{path}.target")
+    effect = _build_action_effect(candidate.get("effect"), path=f"{path}.effect")
+    try:
+        return CreatorActionCandidate.model_validate(
+            {
+                **dict(candidate),
+                "actionId": action_id,
+                "target": target,
+                "effect": effect,
+            }
+        )
+    except ValidationError as error:
+        raise _action_model_invalid(path, error) from error
+
+
+def _build_action_catalog(result: Mapping[str, Any]) -> CreatorActionCatalogSnapshot:
+    value = _required_mapping(result.get("creatorActions"), "creatorActions")
+    unexpected_fields = set(value).difference({"revision", "candidates"})
+    if unexpected_fields:
+        raise _invalid(
+            "Creator Action Catalog contains unsupported fields.",
+            {"fields": sorted(str(field) for field in unexpected_fields)},
+        )
+    revision = _required_string(value.get("revision"), "creatorActions.revision")
+    if _SHA256.fullmatch(revision) is None:
+        raise _invalid(
+            "Creator Action Catalog revision must be a lowercase SHA-256 hash."
+        )
+    candidates_value = value.get("candidates")
+    if not isinstance(candidates_value, list):
+        raise _invalid("Domain snapshot field creatorActions.candidates must be a list.")
+    if len(candidates_value) > MAX_CREATOR_ACTION_CANDIDATES:
+        raise _too_large(
+            "Creator Action Catalog contains too many candidates.",
+            {
+                "field": "creatorActions.candidates",
+                "limit": MAX_CREATOR_ACTION_CANDIDATES,
+                "actual": len(candidates_value),
+            },
+        )
+
+    candidates = [
+        _build_action_candidate(candidate, index=index)
+        for index, candidate in enumerate(candidates_value)
+    ]
+    action_ids = [candidate.actionId for candidate in candidates]
+    if len(set(action_ids)) != len(action_ids):
+        raise _invalid("Creator Action Catalog contains duplicate action ids.")
+    try:
+        return CreatorActionCatalogSnapshot(revision=revision, candidates=candidates)
+    except ValidationError as error:
+        raise _action_model_invalid("creatorActions", error) from error
+
+
+def _validate_action_catalog_references(
+    catalog: CreatorActionCatalogSnapshot,
+    plugin_index: PluginCapabilityIndex,
+) -> None:
+    plugins_by_id = {plugin.pluginId: plugin for plugin in plugin_index.plugins}
+    instances_by_id = {
+        instance.instanceId: plugin.pluginId
+        for plugin in plugin_index.plugins
+        for instance in plugin.instances
+    }
+
+    def validate_reference(
+        *,
+        plugin_id: str,
+        instance_id: str | None,
+        field: str,
+    ) -> None:
+        if plugin_id not in plugins_by_id:
+            raise _invalid(
+                f"Creator Action references unknown Plugin {plugin_id!r}.",
+                {"field": field, "pluginId": plugin_id},
+            )
+        if instance_id is not None and instances_by_id.get(instance_id) != plugin_id:
+            raise _invalid(
+                f"Creator Action instance {instance_id!r} does not belong to Plugin {plugin_id!r}.",
+                {
+                    "field": f"{field}.instanceId",
+                    "pluginId": plugin_id,
+                    "instanceId": instance_id,
+                },
+            )
+
+    for index, candidate in enumerate(catalog.candidates):
+        candidate_path = f"creatorActions.candidates[{index}]"
+        validate_reference(
+            plugin_id=candidate.target.pluginId,
+            instance_id=candidate.target.instanceId,
+            field=f"{candidate_path}.target",
+        )
+        effect = candidate.effect
+        if isinstance(effect, RelativeActionEffect):
+            validate_reference(
+                plugin_id=effect.anchorPluginId,
+                instance_id=effect.anchorInstanceId,
+                field=f"{candidate_path}.effect.anchor",
+            )
+        elif isinstance(effect, PluginSlotActionEffect):
+            validate_reference(
+                plugin_id=effect.parentPluginId,
+                instance_id=effect.parentInstanceId,
+                field=f"{candidate_path}.effect.parent",
+            )
 
 
 def _build_plugin_child_slots(
@@ -549,6 +764,8 @@ class CreatorDomainSnapshotProvider:
             "capabilityCatalogRevision",
         )
         plugin_index = _build_plugin_index(result)
+        action_catalog = _build_action_catalog(result)
+        _validate_action_catalog_references(action_catalog, plugin_index)
         raw = copy.deepcopy(dict(result))
         return CreatorDomainSnapshot(
             raw=raw,
@@ -556,4 +773,5 @@ class CreatorDomainSnapshotProvider:
             capability_catalog_revision=catalog_revision,
             observation_coverage=tuple(coverage),
             plugin_index=plugin_index,
+            action_catalog=action_catalog,
         )

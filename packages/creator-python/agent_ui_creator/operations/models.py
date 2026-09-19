@@ -27,6 +27,11 @@ MAX_CHILD_SLOT_NAME_CHARS = 100
 MAX_CHILD_SLOT_DESCRIPTION_CHARS = 300
 MAX_CHILD_SLOT_ACCEPTED_CAPABILITIES = 16
 MAX_TOTAL_PLUGIN_CHILD_SLOTS = 256
+MAX_CREATOR_ACTION_CANDIDATES = 256
+MAX_ACTION_ID_CHARS = 64
+MAX_ACTION_LABEL_CHARS = 200
+MAX_ACTION_DESCRIPTION_CHARS = 400
+MAX_CLARIFICATION_QUESTION_CHARS = 300
 
 
 CreatorOperationKind: TypeAlias = Literal[
@@ -93,6 +98,18 @@ BoundedAuthoringSizeString: TypeAlias = Annotated[
 AuthoringSize: TypeAlias = int | float | BoundedAuthoringSizeString
 BoundedRequiredServiceStatus: TypeAlias = Annotated[
     str, Field(min_length=1, max_length=MAX_REQUIRED_SERVICE_STATUS_CHARS)
+]
+BoundedActionId: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_ACTION_ID_CHARS)
+]
+BoundedActionLabel: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_ACTION_LABEL_CHARS)
+]
+BoundedActionDescription: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_ACTION_DESCRIPTION_CHARS)
+]
+BoundedClarificationQuestion: TypeAlias = Annotated[
+    str, Field(min_length=1, max_length=MAX_CLARIFICATION_QUESTION_CHARS)
 ]
 
 
@@ -221,6 +238,229 @@ class PluginCapabilityIndex(BaseModel):
         return self
 
 
+class AddDefaultActionEffect(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["add_default"]
+
+
+class RemoveActionEffect(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["remove"]
+
+
+class RelativeActionEffect(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["relative"]
+    anchorPluginId: BoundedPluginId
+    anchorPluginName: BoundedPluginName
+    anchorInstanceId: BoundedPluginInstanceId
+    relation: Literal["before", "after"]
+
+
+class RowEdgeActionEffect(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["row_edge"]
+    edge: Literal["left", "right"]
+
+
+class PluginSlotActionEffect(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["plugin_slot"]
+    parentPluginId: BoundedPluginId
+    parentPluginName: BoundedPluginName
+    parentInstanceId: BoundedPluginInstanceId
+    slot: BoundedPluginChildSlotName
+
+
+CreatorActionEffect: TypeAlias = Annotated[
+    AddDefaultActionEffect
+    | RemoveActionEffect
+    | RelativeActionEffect
+    | RowEdgeActionEffect
+    | PluginSlotActionEffect,
+    Field(discriminator="type"),
+]
+
+
+class CreatorActionTarget(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    pluginId: BoundedPluginId
+    pluginName: BoundedPluginName
+    instanceId: BoundedPluginInstanceId | None = None
+
+
+CreatorActionKind: TypeAlias = Literal[
+    "add_existing_plugin",
+    "remove_plugin",
+    "move_plugin",
+]
+CreatorActionStatus: TypeAlias = Literal["ready", "already_satisfied"]
+
+
+class CreatorActionCandidate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    actionId: BoundedActionId
+    kind: CreatorActionKind
+    status: CreatorActionStatus
+    label: BoundedActionLabel
+    description: BoundedActionDescription
+    target: CreatorActionTarget
+    effect: CreatorActionEffect
+
+    @model_validator(mode="after")
+    def validate_wire_invariants(self) -> "CreatorActionCandidate":
+        effect_type = self.effect.type
+        if self.kind == "add_existing_plugin" and effect_type != "add_default":
+            raise ValueError("add_existing_plugin must use an add_default effect.")
+        if self.kind == "remove_plugin":
+            if effect_type != "remove":
+                raise ValueError("remove_plugin must use a remove effect.")
+            if self.status == "ready" and self.target.instanceId is None:
+                raise ValueError(
+                    "A ready remove_plugin action requires a target instance."
+                )
+        if self.kind == "move_plugin":
+            if effect_type not in {"relative", "row_edge", "plugin_slot"}:
+                raise ValueError(
+                    "move_plugin must use a relative, row_edge, or plugin_slot effect."
+                )
+            if self.target.instanceId is None:
+                raise ValueError("A move_plugin action requires a target instance.")
+        return self
+
+
+class CreatorActionCatalogSnapshot(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    revision: Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
+    candidates: list[CreatorActionCandidate] = Field(
+        default_factory=list,
+        max_length=MAX_CREATOR_ACTION_CANDIDATES,
+    )
+
+    @model_validator(mode="after")
+    def validate_unique_action_ids(self) -> "CreatorActionCatalogSnapshot":
+        action_ids = [candidate.actionId for candidate in self.candidates]
+        if len(set(action_ids)) != len(action_ids):
+            raise ValueError("Creator Action Catalog contains duplicate action ids.")
+        return self
+
+
+class CreatorActionSemanticPlugin(BaseModel):
+    """Only the semantic identity needed to ground a supplied Action target."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    pluginId: BoundedPluginId
+    name: BoundedPluginName
+    description: BoundedPluginDescription
+    capabilities: list[BoundedPluginCapability] = Field(
+        default_factory=list,
+        max_length=MAX_PLUGIN_CAPABILITY_TAGS,
+    )
+    intents: list[BoundedPluginIntent] = Field(
+        default_factory=list,
+        max_length=MAX_PLUGIN_INTENTS,
+    )
+    visualRole: BoundedPluginVisualRole | None = None
+
+
+class CreatorActionSelectorContext(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    catalogRevision: Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
+    actions: list[CreatorActionCandidate] = Field(
+        default_factory=list,
+        max_length=MAX_CREATOR_ACTION_CANDIDATES,
+    )
+    pluginSemantics: list[CreatorActionSemanticPlugin] = Field(
+        default_factory=list,
+        max_length=MAX_PLUGIN_CAPABILITIES,
+    )
+
+    @model_validator(mode="after")
+    def validate_unique_action_ids(self) -> "CreatorActionSelectorContext":
+        action_ids = [candidate.actionId for candidate in self.actions]
+        if len(set(action_ids)) != len(action_ids):
+            raise ValueError("Action Selector context contains duplicate action ids.")
+        return self
+
+
+CreatorActionDecision: TypeAlias = Literal[
+    "select_action",
+    "needs_clarification",
+    "general_change",
+    "unsupported_product_action",
+]
+
+
+class CreatorActionSelection(BaseModel):
+    """The only model-owned output of CreatorActionSelector."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    decision: CreatorActionDecision
+    actionId: BoundedActionId | None = None
+    clarificationQuestion: BoundedClarificationQuestion | None = None
+
+    @model_validator(mode="after")
+    def validate_decision_fields(self) -> "CreatorActionSelection":
+        if self.decision == "select_action":
+            if self.actionId is None:
+                raise ValueError("actionId is required for select_action.")
+            if self.clarificationQuestion is not None:
+                raise ValueError(
+                    "clarificationQuestion must be null for select_action."
+                )
+        elif self.decision == "needs_clarification":
+            if self.actionId is not None:
+                raise ValueError(
+                    "actionId must be null for needs_clarification."
+                )
+            if (
+                self.clarificationQuestion is None
+                or not self.clarificationQuestion.strip()
+            ):
+                raise ValueError(
+                    "clarificationQuestion is required for needs_clarification."
+                )
+        else:
+            if self.actionId is not None:
+                raise ValueError(f"actionId must be null for {self.decision}.")
+            if self.clarificationQuestion is not None:
+                raise ValueError(
+                    f"clarificationQuestion must be null for {self.decision}."
+                )
+        return self
+
+
+@dataclass(slots=True)
+class CreatorActionSelectorMetrics:
+    modelCalls: int = 0
+    repairCalls: int = 0
+    invalidResponses: int = 0
+    durationMs: int = 0
+    candidateCount: int = 0
+    contextCharacters: int = 0
+
+    def to_dict(self) -> dict[str, int]:
+        return {
+            "modelCalls": self.modelCalls,
+            "repairCalls": self.repairCalls,
+            "invalidResponses": self.invalidResponses,
+            "durationMs": self.durationMs,
+            "candidateCount": self.candidateCount,
+            "contextCharacters": self.contextCharacters,
+        }
+
+
 class CreatorOperationResolution(BaseModel):
     """The only decision the first P1 resolver is allowed to make."""
 
@@ -321,19 +561,62 @@ class CreatorOperationExecutionResult(BaseModel):
 
 @dataclass(frozen=True, slots=True)
 class CreatorDomainSnapshot:
-    """Authoritative composition snapshot plus its compact resolver projection."""
+    """Authoritative composition snapshot plus bounded model projections."""
 
     raw: dict[str, Any]
     app_ui_model_hash: str
     capability_catalog_revision: str
     observation_coverage: tuple[str, ...]
     plugin_index: PluginCapabilityIndex
+    action_catalog: CreatorActionCatalogSnapshot
 
     @property
     def resolver_context(self) -> dict[str, Any]:
         """Return only the bounded capability index intended for the resolver model."""
 
         return self.plugin_index.model_dump(mode="json", exclude_none=True)
+
+    @property
+    def action_selector_context(self) -> dict[str, Any]:
+        """Return only current Actions and semantic metadata needed for selection."""
+
+        plugins_by_id = {
+            plugin.pluginId: plugin for plugin in self.plugin_index.plugins
+        }
+        referenced_plugin_ids: list[str] = []
+        referenced_plugin_id_set: set[str] = set()
+
+        def add_reference(plugin_id: str) -> None:
+            if plugin_id in referenced_plugin_id_set:
+                return
+            referenced_plugin_id_set.add(plugin_id)
+            referenced_plugin_ids.append(plugin_id)
+
+        for candidate in self.action_catalog.candidates:
+            add_reference(candidate.target.pluginId)
+            effect = candidate.effect
+            if isinstance(effect, RelativeActionEffect):
+                add_reference(effect.anchorPluginId)
+            elif isinstance(effect, PluginSlotActionEffect):
+                add_reference(effect.parentPluginId)
+
+        plugin_semantics = [
+            CreatorActionSemanticPlugin(
+                pluginId=plugin.pluginId,
+                name=plugin.name,
+                description=plugin.description,
+                capabilities=plugin.capabilities,
+                intents=plugin.intents,
+                visualRole=plugin.visualRole,
+            )
+            for plugin_id in referenced_plugin_ids
+            if (plugin := plugins_by_id.get(plugin_id)) is not None
+        ]
+        return CreatorActionSelectorContext(
+            catalogRevision=self.action_catalog.revision,
+            actions=self.action_catalog.candidates,
+            pluginSemantics=plugin_semantics,
+        ).model_dump(mode="json", exclude_none=True)
 
     def to_dict(self) -> dict[str, Any]:
         """Return a defensive copy of the full Host snapshot."""

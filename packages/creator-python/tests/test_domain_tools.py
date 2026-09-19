@@ -25,6 +25,7 @@ class StubClient:
                     "composition.instances",
                     "capability.inventory",
                     "capability.composition-summary",
+                    "creator.actions",
                 ],
             }
         return {"project": True, "appUIModel": {"hash": "a" * 64}}

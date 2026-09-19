@@ -12,6 +12,7 @@ COMPOSITION_COVERAGE = (
     "composition.instances",
     "capability.inventory",
     "capability.composition-summary",
+    "creator.actions",
 )
 
 

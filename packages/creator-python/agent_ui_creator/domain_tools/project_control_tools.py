@@ -34,6 +34,7 @@ COMPOSITION_SNAPSHOT_COVERAGE: tuple[ObservationCoverage, ...] = (
     "composition.instances",
     "capability.inventory",
     "capability.composition-summary",
+    "creator.actions",
 )
 
 

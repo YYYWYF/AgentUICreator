@@ -39,6 +39,7 @@ OBSERVATION_COVERAGE = [
     "composition.instances",
     "capability.inventory",
     "capability.composition-summary",
+    "creator.actions",
 ]
 
 
@@ -105,6 +106,7 @@ def snapshot_result() -> dict[str, object]:
             "headlessPluginIds": [],
         },
         "capabilityCatalogRevision": "b" * 64,
+        "creatorActions": {"revision": "c" * 64, "candidates": []},
         "layoutConstraints": {},
         "hostGuarantees": {},
     }

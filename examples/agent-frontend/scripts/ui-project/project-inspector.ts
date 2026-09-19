@@ -40,6 +40,7 @@ const COMPOSITION_OBSERVATION_COVERAGE = [
   "composition.instances",
   "capability.inventory",
   "capability.composition-summary",
+  "creator.actions",
 ] as const;
 
 function compactLayout(

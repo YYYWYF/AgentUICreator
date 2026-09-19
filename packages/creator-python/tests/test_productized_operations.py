@@ -10,6 +10,7 @@ from agent_ui_creator.app_ui_model import (
 from agent_ui_creator.operations import (
     AddExistingPluginPlaybook,
     CompositionOperationVerificationService,
+    CreatorActionCatalogSnapshot,
     CreatorDomainSnapshot,
     CreatorOperationRegistry,
     CreatorOperationResolution,
@@ -94,6 +95,7 @@ def snapshot(*plugins: PluginCapability) -> CreatorDomainSnapshot:
         capability_catalog_revision="b" * 64,
         observation_coverage=(),
         plugin_index=PluginCapabilityIndex(plugins=list(plugins)),
+        action_catalog=CreatorActionCatalogSnapshot(revision="c" * 64),
     )
 
 

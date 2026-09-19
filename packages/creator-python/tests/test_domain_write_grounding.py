@@ -186,6 +186,7 @@ class GroundingClient:
                 "composition.instances",
                 "capability.inventory",
                 "capability.composition-summary",
+                "creator.actions",
             ],
             "appUIModel": {
                 "hash": self.hash(),
