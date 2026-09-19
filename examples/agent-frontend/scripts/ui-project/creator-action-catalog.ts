@@ -6,13 +6,16 @@ import {
 } from "../../framework/contracts/app-ui-model";
 import {
   applyAppUIOperations,
+  lowerWorkspaceRegionMovePlan,
   planPluginMove,
+  planWorkspaceRegionMove,
   resolveDefaultPluginRemovalReflow,
   resolvePluginMoveVisualRegion,
   type AppUIOperationApplyOptions,
   type PluginMoveVisualRegion,
   type AppUIOperation,
   type AppUIPluginMoveOperation,
+  type CreatorWorkspaceRegionMoveBinding,
 } from "./app-ui-operations";
 import {
   WORKSPACE_REGIONS,
@@ -83,10 +86,14 @@ export interface CreatorActionCandidate {
   effect: CreatorActionEffect;
 }
 
-export type CreatorActionOperation = Extract<
+export type CreatorPublicActionOperation = Extract<
   AppUIOperation,
   { type: "insert_plugin_default" | "remove_plugin_default" | "move_plugin_to" }
 >;
+
+export type CreatorActionBindingOperation =
+  | CreatorPublicActionOperation
+  | CreatorWorkspaceRegionMoveBinding;
 
 export type CreatorActionBinding =
   | {
@@ -96,7 +103,7 @@ export type CreatorActionBinding =
   | {
       actionId: string;
       status: "ready";
-      operation: CreatorActionOperation;
+      operation: CreatorActionBindingOperation;
     };
 
 export interface CreatorActionCatalog {
@@ -311,7 +318,7 @@ function actionCandidate(
 function pluginMoveOperation(
   instanceId: string,
   placement: AppUIPluginMoveOperation["placement"],
-): Extract<CreatorActionOperation, { type: "move_plugin_to" }> {
+): Extract<CreatorPublicActionOperation, { type: "move_plugin_to" }> {
   return {
     type: "move_plugin_to",
     instanceId,
@@ -321,7 +328,7 @@ function pluginMoveOperation(
 
 async function validateCandidateBindingInMemory(
   input: CreatorActionCatalogBuilderInput,
-  operation: CreatorActionOperation,
+  operation: CreatorActionBindingOperation,
   workspaceTopology: WorkspaceTopology | undefined,
 ): Promise<boolean> {
   try {
@@ -335,13 +342,34 @@ async function validateCandidateBindingInMemory(
           operation,
           input.generation,
         );
-        afterModel = applyAppUIOperations(input.model, plan.operations);
+        afterModel = applyAppUIOperations(input.model, plan.operations, {
+          workspacePolicy: input.workspacePolicy,
+        });
         break;
       }
       case "remove_plugin_default":
-        resolveDefaultPluginRemovalReflow(input.model, operation.instanceId);
-        afterModel = applyAppUIOperations(input.model, [operation]);
+        resolveDefaultPluginRemovalReflow(
+          input.model,
+          operation.instanceId,
+          input.workspacePolicy,
+        );
+        afterModel = applyAppUIOperations(input.model, [operation], {
+          workspacePolicy: input.workspacePolicy,
+        });
         break;
+      case "workspace_region_move": {
+        const plan = planWorkspaceRegionMove(
+          input.model,
+          operation,
+          input.workspacePolicy,
+        );
+        afterModel = applyAppUIOperations(
+          input.model,
+          lowerWorkspaceRegionMovePlan(plan),
+          { workspacePolicy: input.workspacePolicy },
+        );
+        break;
+      }
       case "move_plugin_to": {
         const pluginMoveContracts = pluginMoveContractsForGeneration(
           input.generation,
@@ -350,7 +378,6 @@ async function validateCandidateBindingInMemory(
           input.model,
           operation,
           pluginMoveContracts,
-          input.workspacePolicy,
         );
         operationApplyOptions = {
           pluginMoveContracts,
@@ -530,7 +557,7 @@ export async function buildCreatorActionCatalog(
     }
     if (matchingInstances.length > 0) continue;
 
-    const operation: Extract<CreatorActionOperation, { type: "insert_plugin_default" }> = {
+    const operation: Extract<CreatorPublicActionOperation, { type: "insert_plugin_default" }> = {
       type: "insert_plugin_default",
       plugin: {
         id: `${asset.pluginId}-main`,
@@ -564,7 +591,7 @@ export async function buildCreatorActionCatalog(
   for (const { plugin } of locations) {
     const asset = uniqueAsset(assetsByPluginId, plugin.pluginId);
     if (asset === undefined) continue;
-    const operation: Extract<CreatorActionOperation, { type: "remove_plugin_default" }> = {
+    const operation: Extract<CreatorPublicActionOperation, { type: "remove_plugin_default" }> = {
       type: "remove_plugin_default",
       instanceId: plugin.id,
     };
@@ -622,18 +649,19 @@ export async function buildCreatorActionCatalog(
   const appendMoveAction = async (
     target: CreatorActionTarget,
     effect: CreatorActionEffect,
-    operation: Extract<CreatorActionOperation, { type: "move_plugin_to" }>,
+    operation: CreatorActionBindingOperation,
     label: string,
     description: string,
   ): Promise<void> => {
-    let plan: ReturnType<typeof planPluginMove>;
+    let changed: boolean;
     try {
-      plan = planPluginMove(
-        input.model,
-        operation,
-        contracts,
-        input.workspacePolicy,
-      );
+      changed = operation.type === "workspace_region_move"
+        ? planWorkspaceRegionMove(
+            input.model,
+            operation,
+            input.workspacePolicy,
+          ).changed
+        : planPluginMove(input.model, operation, contracts).changed;
     } catch (error) {
       if (isExpectedCreatorActionRejection(error)) return;
       actionCatalogBuildFailed(
@@ -641,7 +669,7 @@ export async function buildCreatorActionCatalog(
         { cause: error instanceof Error ? error.message : String(error) },
       );
     }
-    const status: CreatorActionStatus = plan.changed
+    const status: CreatorActionStatus = changed
       ? "ready"
       : "already_satisfied";
     if (status === "ready" && !(await validateCandidateBindingInMemory(input, operation, workspaceTopology))) {
@@ -719,10 +747,11 @@ export async function buildCreatorActionCatalog(
         await appendMoveAction(
           target,
           { type: "workspace_region", region: destinationRegion },
-          pluginMoveOperation(targetRegion.instanceId, {
-            type: "workspace_region",
+          {
+            type: "workspace_region_move",
+            instanceId: targetRegion.instanceId,
             region: destinationRegion,
-          }),
+          },
           `Move ${targetRegion.pluginName} to Workspace.${destinationLabel}`,
           `Move the ${targetRegion.pluginName} Plugin to the semantic Workspace.${destinationLabel} Region.`,
         );

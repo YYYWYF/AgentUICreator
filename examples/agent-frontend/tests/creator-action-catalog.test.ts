@@ -11,6 +11,8 @@ import {
 import type { AgentUIWorkspacePolicy } from "../framework/contracts/agent-ui-workspace";
 import {
   applyAppUIOperations as applyAuthoringOperations,
+  lowerWorkspaceRegionMovePlan,
+  planWorkspaceRegionMove,
 } from "../scripts/ui-project/app-ui-operations";
 import {
   actionIdFor,
@@ -543,19 +545,21 @@ describe("Creator Action Catalog", () => {
     expect(initialBinding).toMatchObject({
       status: "ready",
       operation: {
-        type: "move_plugin_to",
+        type: "workspace_region_move",
         instanceId: "history-main",
-        placement: {
-          type: "workspace_region",
-          region: "right",
-        },
+        region: "right",
       },
     });
 
     if (initialBinding?.status !== "ready") throw new Error("fixture did not produce a Workspace binding");
+    const movePlan = planWorkspaceRegionMove(
+      initialModel,
+      initialBinding.operation,
+      platformMode.workspace,
+    );
     const moved = applyAuthoringOperations(
       initialModel,
-      [initialBinding.operation],
+      lowerWorkspaceRegionMovePlan(movePlan),
       {
         pluginMoveContracts: pluginMoveContractsForGeneration(initial.generation),
         workspacePolicy: platformMode.workspace,
@@ -581,7 +585,8 @@ describe("Creator Action Catalog", () => {
     expect(changed.catalog.bindings.get(changedRight!.actionId)).toMatchObject({
       status: "ready",
       operation: {
-        placement: { type: "workspace_region", region: "right" },
+        type: "workspace_region_move",
+        region: "right",
       },
     });
   });

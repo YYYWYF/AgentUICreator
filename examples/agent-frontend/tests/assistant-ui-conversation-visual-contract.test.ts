@@ -18,6 +18,10 @@ const globalsUrl = new URL(
   "../../../packages/react/src/styles.css",
   import.meta.url,
 );
+const pluginRuntimeStylesUrl = new URL(
+  "../runtime/plugins/plugin-runtime.css",
+  import.meta.url,
+);
 const surfaceDefinitionUrl = new URL(
   "../plugins/conversation-surface/definition.ts",
   import.meta.url,
@@ -128,6 +132,20 @@ describe("assistant-ui conversation visual contract", () => {
     ]) {
       expect(thread).toContain(dataSlot);
     }
+  });
+
+  it("keeps fill child Slots and Conversation surfaces at full size", async () => {
+    const [pluginRuntimeStyles, globals] = await Promise.all([
+      readFile(pluginRuntimeStylesUrl, "utf8"),
+      readFile(globalsUrl, "utf8"),
+    ]);
+
+    expect(pluginRuntimeStyles).toMatch(
+      /\.app-ui-plugin-slot-width-probe\[data-slot-sizing="fill"\]\s*>\s*\.app-ui-plugin-slot-content\s*>\s*\.app-ui-plugin-instance\s*\{[\s\S]*?width:\s*100%;[\s\S]*?height:\s*100%;/u,
+    );
+    expect(globals).toMatch(
+      /\.agent-ui-conversation\s*\{[\s\S]*?width:\s*100%;[\s\S]*?height:\s*100%;/u,
+    );
   });
 
   it("separates canonical presentation config from replacement instances", async () => {

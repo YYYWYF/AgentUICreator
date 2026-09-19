@@ -4,6 +4,7 @@ import type { AppUIModel } from "../framework/contracts/app-ui-model";
 import { platformMode } from "../framework/modes/platform";
 import {
   applyAppUIOperations,
+  lowerWorkspaceRegionMovePlan,
   planWorkspaceRegionMove,
 } from "../scripts/ui-project/app-ui-operations";
 import { projectWorkspaceTopology } from "../scripts/ui-project/workspace-topology";
@@ -62,8 +63,8 @@ describe("Workspace topology", () => {
     row(["280px", "280px"], ["a-main", "b-main"]),
     row(["280px", "280px", "minmax(0, 1fr)"], ["a-main", "b-main", "c-main"]),
   ])("fails closed for unsupported topology", (model) => {
-    expect(() => projectWorkspaceTopology(model, workspacePolicy)).toThrow(
-      "WORKSPACE_TOPOLOGY_UNSUPPORTED",
+    expect(() => projectWorkspaceTopology(model, workspacePolicy)).toThrowError(
+      expect.objectContaining({ code: "WORKSPACE_TOPOLOGY_UNSUPPORTED" }),
     );
   });
 
@@ -81,12 +82,16 @@ describe("Workspace topology", () => {
       ["history-main", "conversation-main"],
     );
     const operation = {
-      type: "move_plugin_to" as const,
+      type: "workspace_region_move" as const,
       instanceId: "history-main",
-      placement: { type: "workspace_region" as const, region: "right" as const },
+      region: "right" as const,
     };
     const plan = planWorkspaceRegionMove(model, operation, workspacePolicy);
-    const moved = applyAppUIOperations(model, [operation], { workspacePolicy });
+    const moved = applyAppUIOperations(
+      model,
+      lowerWorkspaceRegionMovePlan(plan),
+      { workspacePolicy },
+    );
 
     expect(plan.expectedPlacement).toEqual({
       type: "relative",
@@ -116,11 +121,17 @@ describe("Workspace topology", () => {
       ["conversation-main", "history-main"],
     );
     const operation = {
-      type: "move_plugin_to" as const,
+      type: "workspace_region_move" as const,
       instanceId: "history-main",
-      placement: { type: "workspace_region" as const, region: "left" as const },
+      region: "left" as const,
     };
-    const moved = applyAppUIOperations(model, [operation], { workspacePolicy });
+    const moved = applyAppUIOperations(
+      model,
+      lowerWorkspaceRegionMovePlan(
+        planWorkspaceRegionMove(model, operation, workspacePolicy),
+      ),
+      { workspacePolicy },
+    );
 
     expect(moved.root).toMatchObject({
       type: "row",
@@ -144,21 +155,21 @@ describe("Workspace topology", () => {
     expect(() => planWorkspaceRegionMove(
       threeRegions,
       {
-        type: "move_plugin_to",
+        type: "workspace_region_move",
         instanceId: "left-main",
-        placement: { type: "workspace_region", region: "right" },
+        region: "right",
       },
       workspacePolicy,
-    )).toThrow("AUTHORING_MOVE_INCOMPATIBLE");
+    )).toThrowError(expect.objectContaining({ code: "AUTHORING_MOVE_INCOMPATIBLE" }));
 
     expect(() => planWorkspaceRegionMove(
       threeRegions,
       {
-        type: "move_plugin_to",
+        type: "workspace_region_move",
         instanceId: "conversation-main",
-        placement: { type: "workspace_region", region: "left" },
+        region: "left",
       },
       workspacePolicy,
-    )).toThrow("AUTHORING_MOVE_INCOMPATIBLE");
+    )).toThrowError(expect.objectContaining({ code: "AUTHORING_MOVE_INCOMPATIBLE" }));
   });
 });

@@ -14,6 +14,7 @@ import {
   COMPOSITION_REVISION_PATH,
   mutateAppUIModel,
 } from "../scripts/ui-project/app-ui-transaction";
+import { actionIdFor } from "../scripts/ui-project/creator-action-catalog";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
   generatePluginRegistry,
@@ -222,8 +223,12 @@ describe("AppUIModel transaction", () => {
       await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
     )).toEqual({
       root: {
-        type: "slot",
-        plugins: [{ id: "sample-main", pluginId: "sample", enabled: true }],
+        type: "row",
+        sizes: ["1fr"],
+        children: [{
+          type: "slot",
+          plugins: [{ id: "sample-main", pluginId: "sample", enabled: true }],
+        }],
       },
     });
   });
@@ -263,14 +268,18 @@ describe("AppUIModel transaction", () => {
       operation: "remove_plugin_default",
       semanticLoweringSucceeded: true,
       expectedRuntime: { absentInstanceIds: ["history-main"] },
-      reflow: "collapsed-dedicated-region",
+      reflow: "preserved-container",
     });
     expect(JSON.parse(
       await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
     )).toEqual({
       root: {
-        type: "slot",
-        plugins: [{ id: "sample-main", pluginId: "sample", enabled: true }],
+        type: "row",
+        sizes: ["1fr"],
+        children: [{
+          type: "slot",
+          plugins: [{ id: "sample-main", pluginId: "sample", enabled: true }],
+        }],
       },
     });
   });
@@ -718,7 +727,7 @@ describe("AppUIModel transaction", () => {
     expect(removeResult.semanticComposition).toMatchObject({
       operation: "remove_plugin_default",
       semanticLoweringSucceeded: true,
-      reflow: "collapsed-dedicated-region",
+      reflow: "preserved-container",
     });
 
     const afterRemoveSource = await readFile(
@@ -728,16 +737,20 @@ describe("AppUIModel transaction", () => {
     const afterRemove = JSON.parse(afterRemoveSource) as AppUIModel;
     expect(afterRemove).toEqual({
       root: {
-        type: "panel",
-        width: "minmax(0, 1fr)",
-        child: {
-          type: "slot",
-          plugins: [{
-            id: "conversation-surface-main",
-            pluginId: "conversation-surface",
-            enabled: true,
-          }],
-        },
+        type: "row",
+        sizes: ["minmax(0, 1fr)"],
+        children: [{
+          type: "panel",
+          width: "minmax(0, 1fr)",
+          child: {
+            type: "slot",
+            plugins: [{
+              id: "conversation-surface-main",
+              pluginId: "conversation-surface",
+              enabled: true,
+            }],
+          },
+        }],
       },
     });
 
@@ -1532,6 +1545,79 @@ describe("AppUIModel transaction", () => {
         plugins: [{ id: "history-main", props: { preserved: true } }],
       },
     });
+  });
+
+  it("lowers a Workspace Region Action through the Host private binding", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["minmax(0, 1fr)", "280px"],
+        children: [
+          {
+            type: "panel",
+            width: "minmax(0, 1fr)",
+            child: {
+              type: "slot",
+              plugins: [{ id: "conversation-main", pluginId: "conversation", enabled: true }],
+            },
+          },
+          {
+            type: "panel",
+            width: "280px",
+            child: {
+              type: "slot",
+              plugins: [{ id: "history-main", pluginId: "history", enabled: true }],
+            },
+          },
+        ],
+      },
+    };
+    const { projectRoot, source } = await createProject(
+      {},
+      model,
+      [
+        ["conversation", { capabilities: ["visual"] }],
+        ["history", { capabilities: ["visual"] }],
+      ],
+    );
+    const actionId = actionIdFor({
+      kind: "move_plugin",
+      subject: { pluginId: "history", instanceId: "history-main" },
+      effect: { type: "workspace_region", region: "left" },
+    });
+
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{ type: "execute_creator_action", actionId }],
+    });
+
+    expect(result.creatorAction).toMatchObject({
+      actionId,
+      actionKind: "move_plugin",
+      status: "ready",
+    });
+    expect(result.semanticComposition).toMatchObject({
+      operation: "move_plugin_to",
+      expectedRuntime: { presentInstanceIds: ["history-main"] },
+      expectedPlacement: {
+        type: "relative",
+        instanceId: "history-main",
+        anchorInstanceId: "conversation-main",
+        relation: "before",
+      },
+    });
+
+    const written = JSON.parse(await readFile(
+      path.join(projectRoot, "app-ui", "app-ui.json"),
+      "utf8",
+    )) as AppUIModel;
+    if (written.root.type !== "row") throw new Error("Expected Workspace Row root.");
+    expect(written.root.sizes).toEqual(["280px", "minmax(0, 1fr)"]);
+    expect(written.root.children.map((child) =>
+      child.type === "panel" && child.child.type === "slot"
+        ? child.child.plugins[0]?.id
+        : undefined,
+    )).toEqual(["history-main", "conversation-main"]);
   });
 
   it("commits a Plugin Slot move with manifest compatibility and dedicated cleanup", async () => {

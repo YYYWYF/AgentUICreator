@@ -107,6 +107,39 @@ def test_app_ui_remove_plugin_schema_accepts_explicit_reflow_mode():
         )
 
 
+def test_public_plugin_move_schema_rejects_workspace_region_placement():
+    for placement in (
+        {
+            "type": "relative",
+            "anchorInstanceId": "conversation-main",
+            "relation": "after",
+        },
+        {
+            "type": "plugin_slot",
+            "parentInstanceId": "conversation-main",
+            "slot": "content",
+        },
+    ):
+        _validate(
+            "app-ui-model-operation.schema.json",
+            {
+                "type": "move_plugin_to",
+                "instanceId": "history-main",
+                "placement": placement,
+            },
+        )
+
+    with pytest.raises(ValidationError):
+        _validate(
+            "app-ui-model-operation.schema.json",
+            {
+                "type": "move_plugin_to",
+                "instanceId": "history-main",
+                "placement": {"type": "workspace_region", "region": "right"},
+            },
+        )
+
+
 def test_creator_layout_track_sizes_require_explicit_css_strings():
     valid_relative = {
         "type": "insert_layout_relative",

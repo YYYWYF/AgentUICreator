@@ -6,6 +6,7 @@ import {
   type AppUIPanelNode,
   type AppUIModel,
 } from "../framework/contracts/app-ui-model";
+import { platformMode } from "../framework/modes/platform";
 import {
   AppUIOperationError,
   appUIOperationsSchema,
@@ -29,6 +30,8 @@ function pluginMoveContracts(
       ["badge", ["badge"]],
       ["composer", ["composer"]],
       ["toolbar", ["toolbar"]],
+      ["history", ["history"]],
+      ["conversation", ["conversation"]],
     ]),
     pluginSlots: slotOverrides,
   };
@@ -431,6 +434,14 @@ describe("AppUIModel semantic operations", () => {
         anchorInstanceId: "conversation-main",
         relation: "after",
         anchorPluginId: "legacy-anchor",
+      },
+    }]).success).toBe(false);
+    expect(appUIOperationsSchema.safeParse([{
+      type: "move_plugin_to",
+      instanceId: "button-main",
+      placement: {
+        type: "workspace_region",
+        region: "right",
       },
     }]).success).toBe(false);
   });
@@ -1621,6 +1632,92 @@ describe("AppUIModel semantic operations", () => {
         { type: "slot", plugins: [{ id: "a-main" }] },
         { type: "slot", plugins: [{ id: "c-main" }] },
       ],
+    });
+  });
+
+  it.each([
+    "right",
+    "left",
+  ] as const)("preserves the Workspace root Row when removing the optional %s Region", (removedRegion) => {
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: removedRegion === "right"
+          ? ["minmax(0, 1fr)", "280px"]
+          : ["280px", "minmax(0, 1fr)"],
+        children: removedRegion === "right"
+          ? [
+              visualBranch("conversation-main", "conversation", { width: "minmax(0, 1fr)" }),
+              visualBranch("history-main", "history", { width: "280px" }),
+            ]
+          : [
+              visualBranch("history-main", "history", { width: "280px" }),
+              visualBranch("conversation-main", "conversation", { width: "minmax(0, 1fr)" }),
+            ],
+      },
+    };
+
+    const result = applyAppUIOperations(model, [{
+      type: "remove_plugin_default",
+      instanceId: "history-main",
+    }], { workspacePolicy: platformMode.workspace });
+
+    expect(result.root).toMatchObject({ type: "row", sizes: ["minmax(0, 1fr)"] });
+    if (result.root.type !== "row") throw new Error("Expected Workspace Row root.");
+    expect(result.root.children).toHaveLength(1);
+    expect(result.root.sizes).toEqual(["minmax(0, 1fr)"]);
+    expect(result.root.children[0]).toMatchObject({
+      type: "panel",
+      child: { type: "slot", plugins: [{ id: "conversation-main" }] },
+    });
+  });
+
+  it("preserves the Workspace root Row when moving an optional side Plugin into a Plugin Slot", () => {
+    const source: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["minmax(0, 1fr)", "280px"],
+        children: [
+          visualBranch("conversation-main", "conversation", { width: "minmax(0, 1fr)" }),
+          visualBranch("history-main", "history", { width: "280px" }),
+        ],
+      },
+    };
+    const result = applyAppUIOperations(source, [{
+      type: "move_plugin_to",
+      instanceId: "history-main",
+      placement: {
+        type: "plugin_slot",
+        parentInstanceId: "conversation-main",
+        slot: "content",
+      },
+    }], {
+      pluginMoveContracts: pluginMoveContracts({
+        conversation: {
+          content: {
+            description: "Conversation child content",
+            cardinality: "many",
+            optional: true,
+            accepts: { anyOfCapabilities: ["history"] },
+          },
+        },
+      }),
+      workspacePolicy: platformMode.workspace,
+    });
+
+    expect(result.root).toMatchObject({
+      type: "row",
+      sizes: ["minmax(0, 1fr)"],
+      children: [{
+        type: "panel",
+        child: {
+          type: "slot",
+          plugins: [{
+            id: "conversation-main",
+            slots: { content: [{ id: "history-main" }] },
+          }],
+        },
+      }],
     });
   });
 

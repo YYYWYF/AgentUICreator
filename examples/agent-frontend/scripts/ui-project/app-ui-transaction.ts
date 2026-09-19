@@ -25,7 +25,8 @@ import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime
 import {
   appUIOperationsSchema,
   applyAppUIOperations,
-  planPluginMove,
+  lowerWorkspaceRegionMovePlan,
+  planWorkspaceRegionMove,
   resolveDefaultPluginRemovalReflow,
   type AppUIOperation,
   type AppUIOperationApplyOptions,
@@ -807,12 +808,6 @@ async function lowerSemanticCompositionOperations(
   if (operation.type === "move_plugin_to") {
     const generation = currentGeneration ?? await generatePluginRegistry(projectRoot, model);
     const pluginMoveContracts = pluginMoveContractsForGeneration(generation);
-    const movePlan = planPluginMove(
-      model,
-      operation,
-      pluginMoveContracts,
-      workspacePolicy,
-    );
     const expectedPlacement = operation.placement.type === "relative"
       ? {
           type: "relative" as const,
@@ -825,11 +820,9 @@ async function lowerSemanticCompositionOperations(
             type: "plugin_slot" as const,
             instanceId: operation.instanceId,
             parentInstanceId: operation.placement.parentInstanceId,
-            slot: operation.placement.slot,
-          }
-        : movePlan.type === "workspace_region"
-          ? movePlan.expectedPlacement
-          : undefined;
+          slot: operation.placement.slot,
+        }
+      : undefined;
     return {
       operations: [operation],
       pluginMoveContracts,
@@ -848,6 +841,7 @@ async function lowerSemanticCompositionOperations(
     const reflow = resolveDefaultPluginRemovalReflow(
       model,
       operation.instanceId,
+      workspacePolicy,
     );
     return {
       operations: [operation],
@@ -1022,7 +1016,27 @@ async function runTransaction(
           resolved.candidate,
         );
       } else {
-        loweredOperations = [resolved.binding.operation];
+        if (resolved.binding.operation.type === "workspace_region_move") {
+          const workspacePlan = planWorkspaceRegionMove(
+            beforeModel,
+            resolved.binding.operation,
+            workspacePolicy,
+          );
+          loweredOperations = lowerWorkspaceRegionMovePlan(workspacePlan);
+          operationApplyOptions = { workspacePolicy };
+          semanticComposition = {
+            operation: "move_plugin_to",
+            semanticLoweringSucceeded: true,
+            expectedRuntime: {
+              presentInstanceIds: [resolved.binding.operation.instanceId],
+            },
+            ...(workspacePlan.expectedPlacement === undefined
+              ? {}
+              : { expectedPlacement: workspacePlan.expectedPlacement }),
+          };
+        } else {
+          loweredOperations = [resolved.binding.operation];
+        }
       }
     }
 

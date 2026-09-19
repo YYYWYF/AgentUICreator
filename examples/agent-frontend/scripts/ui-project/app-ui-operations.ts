@@ -54,10 +54,6 @@ const pluginMovePlacementSchema = z.discriminatedUnion("type", [
     parentInstanceId: nonBlankStringSchema,
     slot: nonBlankStringSchema,
   }),
-  z.strictObject({
-    type: z.literal("workspace_region"),
-    region: z.enum(WORKSPACE_REGIONS),
-  }),
 ]);
 
 type AppUILayoutMutationNode =
@@ -227,6 +223,17 @@ export type AppUIPluginTarget = z.infer<typeof appUIPluginTargetSchema>;
 export type AppUIPluginMoveOperation = Extract<AppUIOperation, { type: "move_plugin_to" }>;
 export type AppUIPluginMovePlacement = AppUIPluginMoveOperation["placement"];
 
+/**
+ * Host-only binding for a semantic Workspace Region Action. This is lowered
+ * to generic Layout operations before the public AppUI mutation protocol is
+ * applied.
+ */
+export interface CreatorWorkspaceRegionMoveBinding {
+  readonly type: "workspace_region_move";
+  readonly instanceId: string;
+  readonly region: WorkspaceRegion;
+}
+
 type ChildrenNode = AppUIRowNode | AppUIColumnNode | AppUIStackNode;
 export type LayoutReflowParent = AppUIRowNode | AppUIColumnNode;
 
@@ -306,14 +313,13 @@ export interface WorkspaceRegionMovePlan {
   parentRef: string;
   sourceIndex: number;
   insertionIndex: number;
-  destinationTrack: AppUILayoutSize;
+  destinationTrack: string;
   expectedPlacement?: WorkspaceRegionExpectedPlacement | undefined;
 }
 
 export type PluginMovePlan =
   | RelativePluginMovePlan
-  | PluginSlotMovePlan
-  | WorkspaceRegionMovePlan;
+  | PluginSlotMovePlan;
 
 export type DefaultPluginRemovalReflow =
   | "collapsed-dedicated-region"
@@ -636,17 +642,34 @@ function tryPlanDefaultLayoutReflow(
 export function resolveDefaultPluginRemovalReflow(
   source: AppUIModel,
   instanceId: string,
+  workspacePolicy?: AgentUIWorkspacePolicy,
 ): DefaultPluginRemovalReflow {
   const model = structuredClone(source);
   const context: MutationContext = {
     model,
     snapshot: buildLayoutRefIndex(model.root),
     localRefs: new Map(),
+    ...(workspacePolicy === undefined ? {} : { workspacePolicy }),
   };
   const location = requiredPluginLocation(model, instanceId);
-  return tryPlanDefaultLayoutReflow(context, location) === undefined
+  const plan = tryPlanDefaultLayoutReflow(context, location);
+  return plan === undefined || (
+    isWorkspaceRoot(context, plan.parent) &&
+    plan.parent.children.length === 2
+  )
     ? "preserved-container"
     : "collapsed-dedicated-region";
+}
+
+function isWorkspaceRoot(
+  context: MutationContext,
+  parent: LayoutReflowParent,
+): parent is AppUIRowNode {
+  return (
+    context.workspacePolicy !== undefined &&
+    context.model.root === parent &&
+    parent.type === "row"
+  );
 }
 
 function applyLayoutReflow(context: MutationContext, plan: LayoutReflowPlan): void {
@@ -666,6 +689,11 @@ function applyLayoutReflow(context: MutationContext, plan: LayoutReflowPlan): vo
   // A zero-child Row or Column remains an explicit empty Layout container.
   // There is no remaining content that can safely replace it.
   if (parent.children.length !== 1) return;
+
+  // The Mode Workspace root is a semantic container. Preserve its canonical
+  // Row shape when an optional Region disappears, even when only Center
+  // remains occupied.
+  if (isWorkspaceRoot(context, parent)) return;
 
   replaceNode(context, parent, parent.children[0]!);
 }
@@ -836,13 +864,9 @@ function workspaceBranchInstanceId(
 
 function planWorkspaceRegionMoveInContext(
   context: MutationContext,
-  operation: Extract<AppUIOperation, { type: "move_plugin_to" }>,
+  operation: CreatorWorkspaceRegionMoveBinding,
   workspacePolicy: AgentUIWorkspacePolicy,
 ): WorkspaceRegionMovePlan {
-  if (operation.placement.type !== "workspace_region") {
-    throw new Error("Workspace Region planner received a non-Workspace placement.");
-  }
-
   const topology = projectWorkspaceTopology(context.model, workspacePolicy);
   const targetLocation = collectAppUIPluginLocations(context.model).find(
     ({ plugin }) => plugin.id === operation.instanceId,
@@ -868,6 +892,13 @@ function planWorkspaceRegionMoveInContext(
       { instanceId: operation.instanceId },
     );
   }
+  if (targetRegion.branch.type !== "panel") {
+    moveUnsupported(
+      "non-panel-workspace-region",
+      `Workspace Region Plugin instance "${operation.instanceId}" must occupy a Panel branch.`,
+      { instanceId: operation.instanceId, branchType: targetRegion.branch.type },
+    );
+  }
 
   const sourceEntry = WORKSPACE_REGIONS.flatMap((region) => {
     const occupancy = topology.regions[region];
@@ -881,13 +912,20 @@ function planWorkspaceRegionMoveInContext(
     );
   }
 
-  const destinationRegion = operation.placement.region;
+  const destinationRegion = operation.region;
   const destinationPolicy = workspacePolicy.regions[destinationRegion];
   if (destinationPolicy === undefined) {
     moveUnsupported(
       "destination-region-unavailable",
       `Workspace Region "${destinationRegion}" is not available in the current Mode.`,
       { destinationRegion },
+    );
+  }
+  if (typeof destinationPolicy.track !== "string") {
+    moveUnsupported(
+      "workspace-track-size-not-explicit",
+      `Workspace Region "${destinationRegion}" must declare an explicit CSS track size for Host lowering.`,
+      { destinationRegion, track: destinationPolicy.track },
     );
   }
 
@@ -973,7 +1011,7 @@ function planWorkspaceRegionMoveInContext(
 
 export function planWorkspaceRegionMove(
   source: AppUIModel,
-  operation: Extract<AppUIOperation, { type: "move_plugin_to" }>,
+  operation: CreatorWorkspaceRegionMoveBinding,
   workspacePolicy: AgentUIWorkspacePolicy,
 ): WorkspaceRegionMovePlan {
   const context: MutationContext = {
@@ -983,6 +1021,37 @@ export function planWorkspaceRegionMove(
     workspacePolicy,
   };
   return planWorkspaceRegionMoveInContext(context, operation, workspacePolicy);
+}
+
+/**
+ * Lower a Host-only Workspace Region plan into the generic Layout IR already
+ * accepted by the public AppUIModel mutation protocol.
+ */
+export function lowerWorkspaceRegionMovePlan(
+  plan: WorkspaceRegionMovePlan,
+): AppUIOperation[] {
+  if (!plan.changed) return [];
+  if (plan.branch.type !== "panel") {
+    operationError(
+      "AUTHORING_MOVE_UNSUPPORTED",
+      `Workspace Region Plugin instance "${plan.instanceId}" must occupy a Panel branch.`,
+      { instanceId: plan.instanceId, branchType: plan.branch.type },
+    );
+  }
+  return [
+    {
+      type: "move_layout_node",
+      nodeRef: plan.branchRef,
+      newParentRef: plan.parentRef,
+      index: plan.insertionIndex,
+      size: plan.destinationTrack,
+    },
+    {
+      type: "update_layout_node_props",
+      nodeRef: plan.branchRef,
+      set: { width: plan.destinationTrack },
+    },
+  ];
 }
 
 export function relativeInsertionIndex(
@@ -1049,25 +1118,13 @@ export function planPluginMove(
   source: AppUIModel,
   operation: AppUIPluginMoveOperation,
   contracts?: AppUIPluginMoveContracts,
-  workspacePolicy?: AgentUIWorkspacePolicy,
 ): PluginMovePlan {
   const context: MutationContext = {
     model: source,
     snapshot: buildLayoutRefIndex(source.root),
     localRefs: new Map(),
     ...(contracts === undefined ? {} : { pluginMoveContracts: contracts }),
-    ...(workspacePolicy === undefined ? {} : { workspacePolicy }),
   };
-
-  if (operation.placement.type === "workspace_region") {
-    if (workspacePolicy === undefined) {
-      moveUnsupported(
-        "workspace-policy-unavailable",
-        "Workspace Region moves require the current Mode Workspace Policy.",
-      );
-    }
-    return planWorkspaceRegionMoveInContext(context, operation, workspacePolicy);
-  }
 
   const targetLocation = collectAppUIPluginLocations(source).find(
     ({ plugin }) => plugin.id === operation.instanceId,
@@ -1266,39 +1323,6 @@ function applyPluginMovePlan(
   plan: PluginMovePlan,
 ): void {
   if (!plan.changed) return;
-  if (plan.type === "workspace_region") {
-    const entry = currentEntry(context, plan.branch);
-    if (
-      entry === undefined ||
-      entry.parent !== plan.parent ||
-      entry.parentKind !== "children" ||
-      entry.index === undefined
-    ) {
-      operationError(
-        "AUTHORING_MOVE_UNSUPPORTED",
-        "The Workspace Region branch changed before the move could be applied.",
-        { instanceId: plan.instanceId },
-      );
-    }
-    const detached = detachChild(entry);
-    if (detached.node !== plan.branch) {
-      operationError(
-        "AUTHORING_MOVE_UNSUPPORTED",
-        "The Workspace Region branch changed before the move could be applied.",
-        { instanceId: plan.instanceId },
-      );
-    }
-    insertChild(
-      plan.parent,
-      detached.node,
-      plan.insertionIndex,
-      plan.destinationTrack,
-    );
-    if (detached.node.type === "panel") {
-      detached.node.width = plan.destinationTrack;
-    }
-    return;
-  }
   if (plan.type === "relative") {
     applyOperation(context, {
       type: "move_layout_node",
@@ -1571,7 +1595,6 @@ function applyOperation(context: MutationContext, operation: AppUIOperation): vo
           context.model,
           operation,
           context.pluginMoveContracts,
-          context.workspacePolicy,
         ),
       );
       return;
