@@ -15,6 +15,7 @@ from agent_ui_creator.app_ui_model import (
     AppUIModelMutationService,
     ProjectMutationCoordinator,
     MAX_MUTATION_RESULT_CHARACTERS,
+    classify_mutation_error,
 )
 from agent_ui_creator.app_ui_model.mutation_tool import (
     APP_UI_MODEL_MUTATION_TOOL_SCHEMA,
@@ -834,6 +835,51 @@ def test_operation_precondition_keeps_observation_and_returns_recovery(tmp_path)
     }
     assert observations.current_hash(current_revision=0) == "a" * 64
     assert observations.metrics.invalidations == 0
+
+
+def test_headless_lifecycle_protection_is_operation_precondition():
+    assert classify_mutation_error(
+        "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED"
+    ) == "operation_precondition"
+
+
+def test_headless_lifecycle_protection_tool_error_returns_typed_recovery(tmp_path):
+    root = _create_project(tmp_path)
+
+    class HeadlessProtectionClient:
+        async def request_app_ui_model_mutation(self, _input):
+            raise ProjectControlError(
+                "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED",
+                "Generic lifecycle operations are not allowed for Headless Plugins.",
+            )
+
+    service, _activity = _service(root, HeadlessProtectionClient())
+    observations = _observations(service, "a" * 64)
+    tool = create_app_ui_model_mutation_tool(service, observations)
+    output = json.loads(
+        asyncio.run(
+            tool.ainvoke(
+                {
+                    "operations": [
+                        {
+                            "type": "remove_plugin",
+                            "instanceId": "conversation-service-main",
+                        }
+                    ]
+                }
+            )
+        )
+    )
+
+    assert output["error"]["code"] == "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED"
+    assert output["error"]["category"] == "operation_precondition"
+    assert output["error"]["stateChanged"] is False
+    assert output["error"]["observationStillValid"] is True
+    assert output["error"]["recovery"] == {
+        "action": "reform_semantic_delta",
+        "atomicRetryAllowed": True,
+        "maxSemanticReplans": 1,
+    }
 
 
 def test_workspace_integrity_error_keeps_observation_and_forbids_cross_layer_repair(
