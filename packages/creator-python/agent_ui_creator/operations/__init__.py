@@ -78,6 +78,7 @@ from .presentation import (
     route_for_operation,
 )
 from .engine import ProductizedOperationEngine, ProductizedOperationRun
+from .action_playbook import CreatorActionExecutionPlaybook
 from .playbooks import (
     AddExistingPluginPlaybook,
     MovePluginPlaybook,
@@ -138,6 +139,7 @@ __all__ = [
     "route_for_operation",
     "ProductizedOperationEngine",
     "ProductizedOperationRun",
+    "CreatorActionExecutionPlaybook",
     "AddExistingPluginPlaybook",
     "MovePluginPlaybook",
     "RemovePluginPlaybook",
