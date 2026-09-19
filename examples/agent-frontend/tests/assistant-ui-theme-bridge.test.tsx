@@ -35,7 +35,6 @@ const model: AppUIRuntimeModel = {
       id: "theme-bridge-provider-main",
       pluginId: "theme-provider",
       enabled: true,
-      props: { defaultMode: "dark" },
     },
   },
 };
@@ -91,8 +90,8 @@ describe("assistant-ui theme bridge", () => {
 
     const root = () => renderer!.root.findByType("div");
     expect(root().props).toMatchObject({
-      className: "dark",
-      "data-theme": "dark",
+      className: undefined,
+      "data-theme": "light",
     });
     expect(onMount).toHaveBeenCalledTimes(1);
 
@@ -102,8 +101,8 @@ describe("assistant-ui theme bridge", () => {
     });
 
     expect(root().props).toMatchObject({
-      className: undefined,
-      "data-theme": "light",
+      className: "dark",
+      "data-theme": "dark",
     });
     expect(onMount).toHaveBeenCalledTimes(1);
   });

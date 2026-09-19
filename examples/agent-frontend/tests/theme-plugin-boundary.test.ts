@@ -33,7 +33,7 @@ describe("theme plugin boundary", () => {
       capabilities: expect.arrayContaining(["plugin-service-provider", "theme", "headless"]),
     });
     expect(providerDefinition).toContain("provides: [AGENT_UI_THEME_SERVICE]");
-    expect(providerDefinition).toContain("readAgentUIThemeMode");
+    expect(providerDefinition).toContain("agentUIThemeConfig.defaultMode");
     expect(providerDefinition).not.toContain("updateInstanceProps");
     expect(providerComponent).toMatch(/ThemeProviderPlugin\(\)\s*\{\s*return null;/u);
 
@@ -48,9 +48,10 @@ describe("theme plugin boundary", () => {
     expect(switchSource).not.toContain("ant-btn");
 
     expect(plugins.get("theme-provider-main")).toMatchObject({
-      plugin: { pluginId: "theme-provider", enabled: true, props: { defaultMode: "light" } },
+      plugin: { pluginId: "theme-provider", enabled: true },
       target: { type: "application" },
     });
+    expect(plugins.get("theme-provider-main")?.plugin).not.toHaveProperty("props");
     expect(plugins.has("theme-switch-main")).toBe(false);
     expect(JSON.stringify(model.root)).not.toContain("theme-control");
     expect(JSON.stringify(model.root)).not.toContain("workspace.inspector");

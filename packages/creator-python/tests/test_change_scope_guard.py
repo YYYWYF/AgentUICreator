@@ -118,8 +118,9 @@ def test_composition_document_key_does_not_authorize_other_plugin_instance():
             {
                 "operations": [
                     {
-                        "type": "update_plugin_props",
+                        "type": "set_plugin_enabled",
                         "instanceId": "foo-main",
+                        "enabled": False,
                     }
                 ]
             },
@@ -143,8 +144,9 @@ def test_composition_document_key_does_not_authorize_other_plugin_instance():
             {
                 "operations": [
                     {
-                        "type": "update_plugin_props",
+                        "type": "set_plugin_enabled",
                         "instanceId": "bar-main",
+                        "enabled": False,
                     }
                 ]
             },

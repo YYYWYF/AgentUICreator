@@ -6,8 +6,10 @@ Before any side effect:
 
 1. Identify the user's desired final App state.
 2. Classify every required change into one or more owning layers:
-   - Composition: AppUIModel plugin presence, enabled state, props, placement,
+   - Composition: AppUIModel plugin presence, enabled state, placement,
      Layout, Panels, Rows, Columns, Stacks, Slots, and Slot composition.
+     Product content, presentation copy, Runtime configuration, and Plugin
+     behavior are source/runtime-layer concerns, not AppUIModel composition.
    - Plugin Behavior: /plugins/** rendering, interaction, behavior, and child
      Slot contracts.
    - Runtime Capability: Services, Runtime stores, shared state, Runtime

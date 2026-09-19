@@ -26,6 +26,7 @@ import type {
 } from "./threads/types.js";
 import type { ConversationToolkit } from "@agent-ui/react";
 import type { ReactNode } from "react";
+import type { ConversationStarterSuggestion } from "./conversation-types.js";
 
 export interface ConversationAgentFactoryConfig {
   endpoint: string;
@@ -41,6 +42,7 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   threadBinding: ConversationThreadBinding<TState>;
   frontendTools?: AgentFrontendToolSource | undefined;
   toolkit?: ConversationToolkit | undefined;
+  suggestions?: readonly ConversationStarterSuggestion[] | undefined;
   children: ReactNode;
   onError?: ((error: Error) => void) | undefined;
   unstable_agentFactory?: ConversationAgentFactory | undefined;
@@ -125,6 +127,10 @@ export function createEphemeralConversationThreadBinding(): ConversationThreadBi
     },
   };
 }
+
+export type {
+  ConversationStarterSuggestion,
+} from "./conversation-types.js";
 
 export type {
   ConversationLoadedThread,

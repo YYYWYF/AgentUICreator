@@ -15,7 +15,6 @@ import type {
 import {
   createPluginRegistry,
 } from "../runtime/plugins";
-import { usePluginInstance } from "../runtime/context";
 import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
 const runtimeActions = {
@@ -40,11 +39,10 @@ function HealthyPlugin() {
 }
 
 function RenderFailurePlugin(_props: UIPluginComponentProps) {
-  const instance = usePluginInstance();
-  if (instance.props?.shouldFail !== false) {
-    throw new Error("Render fixture failed.");
-  }
+  throw new Error("Render fixture failed.");
+}
 
+function RenderRecoveredPlugin() {
   return <div>Render fixture recovered.</div>;
 }
 
@@ -82,6 +80,11 @@ const registry = createPluginRegistry([
     RenderFailurePlugin,
   ),
   createDefinition(
+    "render-recovered",
+    "Render Failure Plugin",
+    RenderRecoveredPlugin,
+  ),
+  createDefinition(
     "mount-failure",
     "Mount Failure Plugin",
     MountFailurePlugin,
@@ -112,9 +115,8 @@ function createModel(
         ...(mountedInstanceIds.includes("render-failure-main")
           ? { mount: { slotId: "boundary-slot", order: mountedInstanceIds.indexOf("render-failure-main") } }
           : {}),
-        pluginId: "render-failure",
+        pluginId: renderShouldFail ? "render-failure" : "render-recovered",
         enabled: true,
-        props: { shouldFail: renderShouldFail },
       },
       "mount-failure-main": {
         id: "mount-failure-main",
@@ -285,7 +287,7 @@ describe("PluginErrorBoundary", () => {
     expect(healthyUnmounts).toBe(0);
   });
 
-  it("resets the failed instance when its props change and renders its recovery", async () => {
+  it("resets the failed instance when its Plugin definition changes and renders its recovery", async () => {
     await render(createModel(["healthy-main", "render-failure-main"]));
     expect(findFailures().map(getText).join(" ")).toContain(
       "Render fixture failed.",

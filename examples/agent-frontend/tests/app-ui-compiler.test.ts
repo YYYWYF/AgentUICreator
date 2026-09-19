@@ -4,7 +4,11 @@ import {
   AppUICompilerError,
   compileAppUIModel,
 } from "../framework/contracts/app-ui-compiler";
-import type { AppUIModel } from "../framework/contracts/app-ui-model";
+import {
+  parseAppUIModel,
+  type AppUIModel,
+} from "../framework/contracts/app-ui-model";
+import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import {
   type PluginCompositionCatalog,
   resolveRuntimePluginSlotId,
@@ -171,24 +175,33 @@ describe("compileAppUIModel", () => {
     );
   });
 
-  it("preserves authoring props and settings without sharing mutable objects", () => {
-    const source = model();
-    source.settings = { theme: "light" };
-    if (source.root.type !== "slot") throw new Error("fixture");
-    source.root.plugins[0]!.props = { density: "compact" };
-
-    const runtime = compileAppUIModel(source, catalog);
-    expect(runtime.settings).toEqual({ theme: "light" });
-    expect(runtime.pluginInstances["surface-main"]?.props).toEqual({
-      density: "compact",
-    });
-
-    source.settings.theme = "dark";
-    source.root.plugins[0]!.props!.density = "comfortable";
-    expect(runtime.settings).toEqual({ theme: "light" });
-    expect(runtime.pluginInstances["surface-main"]?.props).toEqual({
-      density: "compact",
-    });
+  it("rejects Plugin props and model settings at both authoring and Runtime boundaries", () => {
+    expect(() => parseAppUIModel({
+      root: { type: "slot", plugins: [] },
+      settings: { theme: "dark" },
+    })).toThrow();
+    expect(() => parseAppUIModel({
+      root: {
+        type: "slot",
+        plugins: [{ id: "surface-main", pluginId: "surface", enabled: true, props: {} }],
+      },
+    })).toThrow();
+    expect(() => parseAppUIRuntimeModel({
+      root: { type: "slot", id: "root", slotId: "root" },
+      pluginInstances: {},
+      settings: { theme: "dark" },
+    })).toThrow();
+    expect(() => parseAppUIRuntimeModel({
+      root: { type: "slot", id: "root", slotId: "root" },
+      pluginInstances: {
+        "surface-main": {
+          id: "surface-main",
+          pluginId: "surface",
+          enabled: true,
+          props: {},
+        },
+      },
+    })).toThrow();
   });
 
   it("enforces required and one-cardinality child Slots", () => {

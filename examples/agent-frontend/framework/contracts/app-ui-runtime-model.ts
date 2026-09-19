@@ -18,13 +18,11 @@ export interface AppUIRuntimePluginInstance {
   pluginId: string;
   enabled: boolean;
   mount?: { slotId: string; order?: number | undefined } | undefined;
-  props?: Record<string, unknown> | undefined;
 }
 
 export interface AppUIRuntimeModel {
   root: LayoutNode;
   pluginInstances: Record<string, AppUIRuntimePluginInstance>;
-  settings?: { theme?: string | undefined } | undefined;
 }
 
 const nonBlankStringSchema = z.string().refine(
@@ -90,13 +88,11 @@ export const appUIRuntimePluginInstanceSchema: z.ZodType<AppUIRuntimePluginInsta
       slotId: nonBlankStringSchema,
       order: z.number().finite().optional(),
     }).optional(),
-    props: z.record(z.string(), z.unknown()).optional(),
   });
 
 const appUIRuntimeModelShapeSchema: z.ZodType<AppUIRuntimeModel> = z.strictObject({
   root: runtimeLayoutNodeSchema,
   pluginInstances: z.record(z.string(), appUIRuntimePluginInstanceSchema),
-  settings: z.strictObject({ theme: nonBlankStringSchema.optional() }).optional(),
 });
 
 export const appUIRuntimeModelSchema = appUIRuntimeModelShapeSchema.superRefine(

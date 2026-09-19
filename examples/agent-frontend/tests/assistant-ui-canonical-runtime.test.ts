@@ -24,7 +24,10 @@ describe("assistant-ui canonical runtime", () => {
 
     expect(
       model.pluginInstances["conversation-thread-list-main"],
-    ).toBeUndefined();
+    ).toMatchObject({
+      pluginId: "conversation-thread-list",
+      enabled: true,
+    });
     expect(
       model.pluginInstances["agent-conversation-surface-main"],
     ).toMatchObject({
@@ -49,7 +52,7 @@ describe("assistant-ui canonical runtime", () => {
     expect(
       Object.values(model.pluginInstances)
         .filter((instance) => instance.enabled),
-    ).toHaveLength(5);
+    ).toHaveLength(6);
     expect(
       model.pluginInstances["conversation-suggestions-main"],
     ).toMatchObject({

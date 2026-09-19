@@ -125,9 +125,9 @@ def test_real_target_mutation_uses_temp_copy_and_python_transaction(tmp_path):
             app_ui_model_hash=inspection["hash"],
             operations=[
                 {
-                    "type": "update_plugin_props",
+                    "type": "set_plugin_enabled",
                     "instanceId": instance_id,
-                    "set": {"phase3B2Integration": True},
+                    "enabled": False,
                 }
             ],
         )
@@ -163,9 +163,9 @@ def test_real_agent_tools_inspect_once_then_mutate_with_host_owned_hash(tmp_path
                 {
                     "operations": [
                         {
-                            "type": "update_plugin_props",
+                            "type": "set_plugin_enabled",
                             "instanceId": instance_id,
-                            "set": {"hostOwnedHashIntegration": True},
+                            "enabled": False,
                         }
                     ]
                 }

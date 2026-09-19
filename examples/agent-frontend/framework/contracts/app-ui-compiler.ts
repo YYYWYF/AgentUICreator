@@ -161,7 +161,6 @@ export function compileAppUIModel(
       pluginId: plugin.pluginId,
       enabled: plugin.enabled,
       ...(mount === undefined ? {} : { mount }),
-      ...(plugin.props === undefined ? {} : { props: structuredClone(plugin.props) }),
     };
 
     const declaredSlots = pluginChildSlotDefinitions(pluginCatalog, plugin.pluginId);
@@ -225,7 +224,6 @@ export function compileAppUIModel(
   const runtimeModel = parseAppUIRuntimeModel({
     root: compileLayout(model.root, layoutPaths),
     pluginInstances,
-    ...(model.settings === undefined ? {} : { settings: structuredClone(model.settings) }),
   });
   validateAppUIComposition(runtimeModel, pluginCatalog);
   return runtimeModel;

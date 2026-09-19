@@ -142,7 +142,6 @@ describe("PluginServiceRuntime", () => {
           id: "theme-provider-main",
           pluginId: "theme-provider",
           enabled: true,
-          props: { defaultMode: "dark" },
         },
       },
     });
@@ -157,7 +156,7 @@ describe("PluginServiceRuntime", () => {
 
     expect(runtime.getActivation("theme-provider-main")?.status).toBe("active");
     expect(runtime.getActivation("theme-consumer-main")?.status).toBe("active");
-    expect(observed?.getMode()).toBe("dark");
+    expect(observed?.getMode()).toBe("light");
 
     observed?.setMode("dark");
     expect(observed?.getMode()).toBe("dark");

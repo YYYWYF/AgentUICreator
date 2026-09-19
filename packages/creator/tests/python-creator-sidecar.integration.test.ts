@@ -307,9 +307,9 @@ async function createDomainWriteMockChatCompletionsServer(
               appUIModelHash,
               operations: [
                 {
-                  type: "update_plugin_props",
+                  type: "set_plugin_enabled",
                   instanceId,
-                  set: { phase3B2NodePython: true },
+                  enabled: false,
                 },
               ],
             }),
@@ -984,7 +984,7 @@ server.serve_forever()
     ]);
     expect(toolStarts).not.toContain("edit_file");
     expect(await readFile(appUIModelPath, "utf8")).toContain(
-      '"phase3B2NodePython": true',
+      '"enabled": false',
     );
     expect(events.at(-1)?.result).toMatchObject({
       runtime: "python",

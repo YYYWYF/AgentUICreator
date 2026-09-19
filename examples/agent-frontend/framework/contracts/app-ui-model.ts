@@ -10,7 +10,6 @@ export interface AppUIPluginNode {
   id: string;
   pluginId: string;
   enabled: boolean;
-  props?: Record<string, unknown> | undefined;
   slots?: Record<string, AppUIPluginNode[]> | undefined;
 }
 
@@ -59,7 +58,6 @@ export type AppUILayoutNode =
 export interface AppUIModel {
   applicationPlugins?: AppUIPluginNode[] | undefined;
   root: AppUILayoutNode;
-  settings?: { theme?: string | undefined } | undefined;
 }
 
 export interface AppUILayoutWalkEntry {
@@ -111,7 +109,6 @@ export const appUIPluginNodeSchema: z.ZodType<AppUIPluginNode> = z.lazy(() =>
     id: nonBlankStringSchema,
     pluginId: nonBlankStringSchema,
     enabled: z.boolean(),
-    props: z.record(z.string(), z.unknown()).optional(),
     slots: z.record(nonBlankStringSchema, z.array(appUIPluginNodeSchema)).optional(),
   }),
 );
@@ -154,7 +151,6 @@ export const layoutNodeSchema: z.ZodType<AppUILayoutNode> = z.lazy(() =>
 const appUIModelShapeSchema: z.ZodType<AppUIModel> = z.strictObject({
   applicationPlugins: z.array(appUIPluginNodeSchema).optional(),
   root: layoutNodeSchema,
-  settings: z.strictObject({ theme: nonBlankStringSchema.optional() }).optional(),
 });
 
 export function walkAppUILayout(root: AppUILayoutNode): AppUILayoutWalkEntry[] {

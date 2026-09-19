@@ -30,7 +30,6 @@ const model = parseAppUIRuntimeModel({
       id: "theme-provider-main",
       pluginId: "theme-provider",
       enabled: true,
-      props: { defaultMode: "light" },
     },
     "theme-switch-main": {
       id: "theme-switch-main",

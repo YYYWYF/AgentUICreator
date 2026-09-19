@@ -169,12 +169,6 @@ export const appUIOperationSchema = z.discriminatedUnion("type", [
     replacement: appUIPluginNodeSchema,
   }),
   z.strictObject({
-    type: z.literal("update_plugin_props"),
-    instanceId: nonBlankStringSchema,
-    set: z.record(z.string(), z.unknown()).optional(),
-    removeKeys: removeKeysSchema,
-  }),
-  z.strictObject({
     type: z.literal("set_plugin_enabled"),
     instanceId: nonBlankStringSchema,
     enabled: z.boolean(),
@@ -1610,15 +1604,6 @@ function applyOperation(context: MutationContext, operation: AppUIOperation): vo
       const location = requiredPluginLocation(context.model, operation.instanceId);
       assertUniquePluginIds(context.model, operation.replacement, pluginSubtreeIds(location.plugin));
       pluginContainerForLocation(context, location)[location.index] = structuredClone(operation.replacement);
-      return;
-    }
-    case "update_plugin_props": {
-      const plugin = requiredPluginLocation(context.model, operation.instanceId).plugin;
-      const props = { ...(plugin.props ?? {}) };
-      Object.assign(props, operation.set ?? {});
-      for (const key of operation.removeKeys ?? []) delete props[key];
-      if (Object.keys(props).length === 0) delete plugin.props;
-      else plugin.props = props;
       return;
     }
     case "set_plugin_enabled":

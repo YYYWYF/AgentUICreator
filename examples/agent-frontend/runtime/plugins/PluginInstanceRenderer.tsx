@@ -22,16 +22,6 @@ import {
   type UIPluginRuntimeActions,
 } from "./PluginServiceRuntime";
 
-function createPropsResetKey(
-  props: AppUIRuntimePluginInstance["props"],
-): string | AppUIRuntimePluginInstance["props"] {
-  try {
-    return JSON.stringify(props ?? null);
-  } catch {
-    return props;
-  }
-}
-
 function RuntimePluginMountProbe({
   children,
   instanceId,
@@ -131,7 +121,6 @@ export function PluginInstanceRenderer<TState = unknown>({
         PluginComponent,
         activationKey,
         instance.pluginId,
-        createPropsResetKey(instance.props),
       ]}
     >
       {mountSlotId === undefined ? content : (

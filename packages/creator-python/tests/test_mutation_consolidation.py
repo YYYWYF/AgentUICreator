@@ -29,7 +29,6 @@ FINAL_PLUGIN = {
     "id": INSTANCE_ID,
     "pluginId": "session-manager",
     "enabled": True,
-    "props": {"title": "Sessions"},
 }
 ADD = [{
     "type": "insert_plugin",
@@ -89,7 +88,7 @@ def test_tool_and_prompt_preserve_final_state_transaction_contract(tmp_path):
     for rule in (
         "atomic transaction", "one resolved user intent", "complete desired state",
         "Do not call this tool once per semantic operation",
-        "insert_plugin includes its final enabled state, props",
+        "insert_plugin includes its final enabled state",
         "move_plugin", "replace_plugin", "changed=false",
         "APP_UI_MODEL_HASH_CONFLICT", "APP_UI_MODEL_OBSERVATION_REQUIRED",
         "insert_plugin_default",

@@ -10,7 +10,7 @@ const themeHookUrl = new URL(
   "../agent-ui/theme/useAgentUITheme.ts",
   import.meta.url,
 );
-const presentationResolverUrl = new URL(
+const presentationConfigUrl = new URL(
   "../agent-ui/conversation/config/conversation-presentation-config.ts",
   import.meta.url,
 );
@@ -148,17 +148,19 @@ describe("assistant-ui conversation visual contract", () => {
     );
   });
 
-  it("separates canonical presentation config from replacement instances", async () => {
-    const resolver = await readFile(presentationResolverUrl, "utf8");
+  it("keeps canonical presentation config in application source", async () => {
+    const config = await readFile(presentationConfigUrl, "utf8");
 
-    expect(resolver).toContain('"agent-conversation-surface-main"');
-    expect(resolver).toContain("conversationPresentation");
+    expect(config).toContain("conversationWelcomeConfig");
+    expect(config).not.toContain("AppUIRuntimeModel");
+    expect(config).not.toContain("pluginInstances");
+    expect(config).not.toContain("resolveConversationPresentationConfig");
     for (const disabledReplacementId of [
       "agent-welcome-main",
       "agent-prompts-main",
       "agent-sender-main",
     ]) {
-      expect(resolver).not.toContain(disabledReplacementId);
+      expect(config).not.toContain(disabledReplacementId);
     }
   });
 

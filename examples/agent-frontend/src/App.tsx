@@ -36,7 +36,8 @@ import { ModeShell } from "../runtime/mode-shell";
 import { useAgentUIThemeMode } from "../agent-ui/theme/useAgentUITheme";
 import {
   ConversationPresentationConfigProvider,
-  resolveConversationPresentationConfig,
+  conversationPresentationConfig,
+  conversationStarterSuggestions,
 } from "../agent-ui/conversation/config";
 import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
 import { createConversationServiceThreadBinding } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
@@ -155,11 +156,6 @@ function RuntimeConnectedPreview({
     }),
     [runtime],
   );
-  const presentationConfig = useMemo(
-    () => resolveConversationPresentationConfig(composition.runtimeModel),
-    [composition.runtimeModel],
-  );
-
   return (
     <PreviewCompositionBoundary
       revision={composition.revision}
@@ -204,7 +200,7 @@ function RuntimeConnectedPreview({
           registry={composition.activeRegistry}
         >
           <ConversationThreadBindingConnector />
-          <ConversationPresentationConfigProvider value={presentationConfig}>
+          <ConversationPresentationConfigProvider value={conversationPresentationConfig}>
             <ModeShell mode={currentAgentUIMode}>
               <AgentFrontendSurface
                 actions={pluginActions}
@@ -278,6 +274,7 @@ function ConversationRuntimeBoundary({
     <ConversationRuntimeProvider<AppAgentState>
       endpoint={endpoint}
       frontendTools={appFrontendToolRuntime}
+      suggestions={conversationStarterSuggestions}
       toolkit={toolkit}
       threadBinding={threadBinding}
     >

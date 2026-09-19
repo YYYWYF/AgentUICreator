@@ -76,7 +76,6 @@ async function createProject(
         id: "sample-main",
         pluginId: "sample",
         enabled: true,
-        props: { title: "Before" },
       }],
     },
   };
@@ -120,9 +119,9 @@ describe("AppUIModel transaction", () => {
     const result = await mutateAppUIModel(projectRoot, {
       appUIModelHash: hash(source),
       operations: [{
-        type: "update_plugin_props",
+        type: "set_plugin_enabled",
         instanceId: "sample-main",
-        set: { title: "After" },
+        enabled: false,
       }],
     });
 
@@ -132,7 +131,7 @@ describe("AppUIModel transaction", () => {
       await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
     ) as AppUIModel;
     if (written.root.type !== "slot") throw new Error("fixture");
-    expect(written.root.plugins[0]?.props?.title).toBe("After");
+    expect(written.root.plugins[0]?.enabled).toBe(false);
   });
 
   it("removes an existing instance without rewriting the capability catalog", async () => {
@@ -1308,7 +1307,6 @@ describe("AppUIModel transaction", () => {
               id: "sample-main",
               pluginId: "sample",
               enabled: true,
-              props: { title: "Before" },
             }],
           },
         },
@@ -1603,7 +1601,6 @@ describe("AppUIModel transaction", () => {
                 id: "history-main",
                 pluginId: "sample",
                 enabled: true,
-                props: { preserved: true },
               }],
             },
           },
@@ -1661,7 +1658,7 @@ describe("AppUIModel transaction", () => {
       width: "280px",
       child: {
         type: "slot",
-        plugins: [{ id: "history-main", props: { preserved: true } }],
+        plugins: [{ id: "history-main", pluginId: "sample", enabled: true }],
       },
     });
   });

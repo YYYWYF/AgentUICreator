@@ -318,7 +318,6 @@ Runtime / SlotRegistry / PluginServiceRuntime
 interface AppUIModel {
   applicationPlugins?: AppUIPluginNode[]
   root: AppUILayoutNode
-  settings?: { theme?: string }
 }
 ```
 
@@ -499,24 +498,12 @@ interface AppUIPluginNode {
 
   enabled: boolean
 
-  props?: Record<string, unknown>
-
   slots?: Record<string, AppUIPluginNode[]>
 }
 ```
 
-例如：
-
-```json
-{
-  "id": "file-preview-right",
-  "pluginId": "file-preview",
-  "enabled": true,
-  "props": {
-    "showHeader": true
-  }
-}
-```
+Plugin content and implementation configuration are owned by application or
+Plugin source, not by this composition node.
 
 Plugin child Slot 使用 manifest 声明的 instance-local name。Plugin implementation 调用 `renderSlot(localName)`；Compiler/Runtime 使用 `plugin:<instance.id>:<localName>` 生成全局 identity，因此同一个 Plugin 可以安全创建多个实例。
 
@@ -660,10 +647,6 @@ interface UIPluginActions {
   startNewConversation(): Promise<void>
 
   abortRun(): void
-
-  updateInstanceProps(
-    props: Record<string, unknown>
-  ): void
 }
 ```
 
@@ -837,7 +820,7 @@ plugins/registry.generated.ts
 - 所有合法 `plugins/*/manifest.json` 都进入 Capability Catalog；AppUIModel selection 不影响 membership。
 - definition 始终 lazy import；未被选择的实现不进入当前 Preview module graph。
 - AppUIModel 只决定 candidate 要 resolve 哪些 definition，以及 published snapshot 中的 Active Registry。
-- 移动、隐藏、删除实例、修改 props 或 layout 不改 Capability Catalog。
+- 移动、隐藏、删除实例或修改 layout 不改 Capability Catalog。
 - 外部模板 Catalog 只用于发现、预览和复制模板；项目内 Plugin Capability Catalog 不得引用外部模板实现。
 - Catalog 与 `_shared` 等非 Plugin 目录必须由目标项目配置显式声明，扫描器不得靠目录命名规则猜测或静默忽略未知目录。
 
@@ -1122,7 +1105,6 @@ insert_plugin
 move_plugin
 remove_plugin
 replace_plugin
-update_plugin_props
 set_plugin_enabled
 
 insert_layout_node

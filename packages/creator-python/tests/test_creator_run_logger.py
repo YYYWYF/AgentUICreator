@@ -117,7 +117,15 @@ def test_run_logger_records_bounded_tool_trajectory(tmp_path):
         phase="after_first_mutation",
         arguments={
             "operations": [
-                {"type": "insert_plugin", "plugin": {"props": {"secret": "value"}}}
+                {
+                    "type": "insert_plugin",
+                    "plugin": {
+                        "id": "sample-main",
+                        "pluginId": "sample",
+                        "enabled": True,
+                    },
+                    "target": {"type": "application"},
+                }
             ]
         },
         result={"ok": False, "error": {"code": "APP_UI_MODEL_HASH_CONFLICT"}},

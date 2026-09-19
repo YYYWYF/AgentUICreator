@@ -78,7 +78,6 @@ async function createProject(
         id: "sample-main",
         pluginId: "sample",
         enabled: true,
-        props: { title: "Sample title" },
       }],
     },
   };
@@ -327,9 +326,9 @@ describe("ui-project-control", () => {
               actionId: "act_unknown_creator_action",
             },
             {
-              type: "update_plugin_props",
+              type: "set_plugin_enabled",
               instanceId: "sample-main",
-              set: { title: "Rejected" },
+              enabled: false,
             },
           ],
         },
@@ -516,7 +515,10 @@ describe("ui-project-control", () => {
       .digest("hex");
     const changedSource = `${JSON.stringify({
       ...JSON.parse(appUIModelSource),
-      settings: { theme: "dark" },
+      root: {
+        ...JSON.parse(appUIModelSource).root,
+        plugins: [{ id: "sample-main", pluginId: "sample", enabled: false }],
+      },
     }, null, 2)}\n`;
     await writeFile(
       path.join(projectRoot, "app-ui", "app-ui.json"),
@@ -825,7 +827,10 @@ describe("ui-project-control", () => {
       path.join(projectRoot, "app-ui", "app-ui.json"),
       `${JSON.stringify({
         ...JSON.parse(appUIModelSource),
-        settings: { theme: "dark" },
+        root: {
+          ...JSON.parse(appUIModelSource).root,
+          plugins: [{ id: "sample-main", pluginId: "sample", enabled: false }],
+        },
       }, null, 2)}\n`,
     );
 
@@ -869,9 +874,9 @@ describe("ui-project-control", () => {
             .digest("hex"),
           operations: [
             {
-              type: "update_plugin_props",
+              type: "set_plugin_enabled",
               instanceId: "sample-main",
-              set: { title: "Updated through control" },
+              enabled: false,
             },
           ],
         },

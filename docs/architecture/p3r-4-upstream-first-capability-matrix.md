@@ -56,8 +56,8 @@ Every target status in this matrix is one of these values:
 | --- | --- | --- | --- | --- |
 | Thread shell | `Thread` | `conversation-surface` hosts the product boundary | `assistant-ui-canonical` | Keep `conversation-surface` as a structural wrapper and pass through the upstream Thread. |
 | Viewport / scroll | Thread viewport, auto-scroll, scroll-to-bottom | Legacy message list has its own viewport behavior | `assistant-ui-canonical` | Use upstream behavior in assistant-ui mode; keep the legacy path for A/B. |
-| Welcome | `ThreadWelcome` | `agent-thread-welcome` consumes AppUIModel title and description | `assistant-ui-with-agent-ui-adapter` | P3R-4B uses native `ThreadWelcome`; the adapter supplies live AppUIModel title and description. |
-| Starter Suggestions | `ThreadPrimitive.Suggestions`, `SuggestionPrimitive`, and upstream presentation | `agent-suggestions` consumes AppUIModel starter items | `assistant-ui-with-agent-ui-adapter` | P3R-4B maps live AppUIModel items through `AuiConfig` and `Suggestions()`. |
+| Welcome | `ThreadWelcome` | `agent-thread-welcome` consumes application conversation config | `assistant-ui-with-agent-ui-adapter` | The adapter supplies application-owned title and description. |
+| Starter Suggestions | `ThreadPrimitive.Suggestions`, `SuggestionPrimitive`, and upstream presentation | `agent-suggestions` consumes the assistant-ui runtime suggestion scope | `assistant-ui-with-agent-ui-adapter` | Application/runtime config enters `AuiConfig` through `Suggestions()`. |
 | Follow-up Suggestions | Suggestion primitives and Thread composition | AgentUICreator owns product suggestion data and action binding | `assistant-ui-with-agent-ui-adapter` | Keep Runtime `thread.suggestions` independent from static starter configuration. |
 | Composer | Composer primitives for input, send, cancel, attachments, dictation, and slash-command trigger popover | `agent-composer` remains only in the normal-mode A/B path | `assistant-ui-with-agent-ui-adapter` | P3R-4C uses the native Composer; AgentUICreator adapts product placeholder, history read-only policy, and AppUIModel quick prompts through the official TriggerPopover and SlashCommandAdapter. |
 | Composer attachments | Composer attachment primitives and upload presentation | Native Composer exposes attachment UI according to Runtime capability | `assistant-ui-with-agent-ui-adapter` | Presentation is assistant-ui canonical; transport availability remains governed by the active Runtime capability. |
@@ -92,9 +92,9 @@ instances. They do not change Slot IDs or move Slot ownership.
 | `agent-reasoning` / `agent-reasoning-main` | `legacy-only` | Disabled only in assistant-ui mode; retained and enabled in normal mode. |
 | `agent-tool` / `agent-tool-message-main` | `legacy-only` | Disabled only in assistant-ui mode; retained and enabled in normal mode. |
 | `agent-message-attachments` / `agent-message-attachments-main` | `legacy-only` | Disabled only in assistant-ui mode; retained and enabled in normal mode. |
-| `agent-thread-welcome` / `agent-welcome-main` | `legacy-only` | Disabled only in assistant-ui mode; its live AppUIModel props remain the adapter configuration source. |
-| `agent-suggestions` / `agent-prompts-main` | `legacy-only` | Disabled only in assistant-ui mode; its live AppUIModel items remain the adapter configuration source. |
-| `agent-composer` / `agent-sender-main` | `legacy-only` | Disabled only in assistant-ui mode; its live AppUIModel props remain the adapter configuration source. |
+| `agent-thread-welcome` / `agent-welcome-main` | `legacy-only` | Disabled only in assistant-ui mode; application conversation config remains the adapter configuration source. |
+| `agent-suggestions` / `agent-prompts-main` | `legacy-only` | Disabled only in assistant-ui mode; assistant-ui runtime suggestion scope remains the adapter configuration source. |
+| `agent-composer` / `agent-sender-main` | `legacy-only` | Disabled only in assistant-ui mode; application/runtime source owns presentation defaults. |
 | `agent-conversations` / `agent-conversations-main` | `legacy-only` | Enabled in normal mode and disabled only in assistant-ui mode; retained for the normal-mode A/B path and remains a P3R-6 deletion candidate. |
 | `assistant-ui-thread-list` / `assistant-ui-thread-list-main` | `assistant-ui-with-agent-ui-adapter` | Disabled in normal mode and enabled only in assistant-ui mode; renders the pinned ThreadList from the Conversation Service-backed thread catalog. |
 

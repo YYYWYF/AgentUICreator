@@ -1,7 +1,12 @@
 import { HttpAgent, type AbstractAgent } from "@ag-ui/client";
 import type { ConversationToolkit } from "@agent-ui/react";
 import type { AgentFrontendToolSource } from "@agent-ui/runtime-core";
-import { AuiConfig, AssistantRuntimeProvider, Tools } from "@assistant-ui/react";
+import {
+  AuiConfig,
+  AssistantRuntimeProvider,
+  Suggestions,
+  Tools,
+} from "@assistant-ui/react";
 import {
   useAgUiRuntime,
   type UseAgUiRuntimeAdapters,
@@ -29,6 +34,7 @@ import type {
   ConversationThreadListSnapshot,
 } from "./threads/types.js";
 import { createConversationFrontendToolPort } from "./tools/types.js";
+import type { ConversationStarterSuggestion } from "./conversation-types.js";
 
 export interface ConversationAgentFactoryConfig {
   endpoint: string;
@@ -44,6 +50,7 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   threadBinding: ConversationThreadBinding<TState>;
   frontendTools?: AgentFrontendToolSource | undefined;
   toolkit?: ConversationToolkit | undefined;
+  suggestions?: readonly ConversationStarterSuggestion[] | undefined;
   children: ReactNode;
   onError?: ((error: Error) => void) | undefined;
   /** Test seam; production callers should use the default single HttpAgent. */
@@ -62,16 +69,34 @@ export function ConversationRuntimeProvider<TState = unknown>({
   threadBinding,
   frontendTools,
   toolkit,
+  suggestions,
   children,
   onError,
   unstable_agentFactory = defaultAgentFactory,
 }: Readonly<ConversationRuntimeProviderProps<TState>>) {
-  const config = useMemo(
-    () => toolkit === undefined
+  const config = useMemo(() => {
+    const tools = toolkit === undefined
       ? undefined
-      : AuiConfig({ tools: Tools({ toolkit: toolkit as never }) }),
-    [toolkit],
-  );
+      : Tools({ toolkit: toolkit as never });
+    const staticSuggestions = suggestions === undefined
+      ? undefined
+      : Suggestions(
+        suggestions.map((suggestion) => ({
+          title: suggestion.title ?? suggestion.prompt,
+          label: suggestion.label ?? "",
+          prompt: suggestion.prompt,
+        })),
+      );
+    if (tools === undefined && staticSuggestions === undefined) {
+      return undefined;
+    }
+    return AuiConfig({
+      ...(tools === undefined ? {} : { tools }),
+      ...(staticSuggestions === undefined
+        ? {}
+        : { suggestions: staticSuggestions }),
+    });
+  }, [suggestions, toolkit]);
   const subscribeThreadBinding = useCallback(
     (listener: () => void) => threadBinding.subscribe(listener),
     [threadBinding],

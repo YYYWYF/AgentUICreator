@@ -222,7 +222,8 @@ type AppUIOperation =
 关键行为：
 
 - `insert_plugin` 接受完整 plugin node、authoring target 和可选数组位置；
-- `update_plugin_props` 使用显式 `set` 与 `removeKeys`，不接受含糊的递归 merge；
+- Plugin instance configuration is not part of AppUIModel; application/runtime
+  source edits own product content and behavior configuration.
 - `move_plugin` 在一个操作内移动完整 plugin subtree；
 - `replace_plugin` 在原位置原子替换完整 plugin subtree；
 - target 只能是 application、snapshot-scoped Layout Slot `slotRef` 或 parent Plugin 的 local Slot，不能传 Runtime slot id 或 mount；

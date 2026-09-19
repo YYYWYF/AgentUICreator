@@ -1399,13 +1399,8 @@ describe("AppUIModel semantic operations", () => {
     }])).toThrow(AppUIOperationError);
   });
 
-  it("updates, disables, replaces, and removes authoring plugin nodes", () => {
+  it("disables, replaces, and removes authoring plugin nodes", () => {
     const updated = applyAppUIOperations(model(), [
-      {
-        type: "update_plugin_props",
-        instanceId: "surface-main",
-        set: { title: "Surface" },
-      },
       {
         type: "set_plugin_enabled",
         instanceId: "surface-main",
@@ -1434,6 +1429,15 @@ describe("AppUIModel semantic operations", () => {
     }]);
     if (removed.root.type !== "slot") throw new Error("fixture");
     expect(removed.root.plugins).toEqual([]);
+  });
+
+  it("rejects removed Plugin configuration operations", () => {
+    const removedOperationType = ["update", "plugin_props"].join("_");
+    expect(appUIOperationsSchema.safeParse([{
+      type: removedOperationType,
+      instanceId: "surface-main",
+      set: { title: "Rejected" },
+    }]).success).toBe(false);
   });
 
   it("preserves a dedicated Layout region for the default Plugin removal", () => {

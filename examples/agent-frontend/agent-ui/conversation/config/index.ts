@@ -4,7 +4,9 @@ export {
   type ConversationPresentationConfigProviderProps,
 } from "./ConversationPresentationConfigContext";
 export {
-  resolveConversationPresentationConfig,
+  conversationPresentationConfig,
+  conversationWelcomeConfig,
   type ConversationPresentationConfig,
   type ConversationWelcomeConfig,
 } from "./conversation-presentation-config";
+export { conversationStarterSuggestions } from "./conversation-runtime-config";

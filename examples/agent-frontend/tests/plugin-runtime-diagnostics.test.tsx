@@ -15,7 +15,6 @@ import {
   createPluginRegistry,
   type RuntimeDiagnostic,
 } from "../runtime/plugins";
-import { usePluginInstance } from "../runtime/context";
 import { sha256Text } from "../runtime/diagnostics";
 import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
@@ -56,21 +55,20 @@ function createModel(shouldFail = true) {
     pluginInstances: {
       "diagnostic-main": {
         id: "diagnostic-main",
-        pluginId: "diagnostic-plugin",
+        pluginId: shouldFail ? "diagnostic-plugin" : "diagnostic-plugin-recovered",
         enabled: true,
         mount: { slotId: "diagnostic-slot" },
-        props: { shouldFail },
       },
     },
   });
 }
 
 function RuntimeFixture({
-  definition,
+  definitions,
   model = createModel(),
   reporter,
 }: {
-  definition: UIPluginDefinition;
+  definitions: readonly UIPluginDefinition[];
   model?: ReturnType<typeof createModel> | undefined;
   reporter(diagnostic: RuntimeDiagnostic): void;
 }) {
@@ -84,7 +82,7 @@ function RuntimeFixture({
       messages={[]}
       model={model}
       onRuntimeDiagnostic={reporter}
-      registry={createPluginRegistry([definition])}
+      registry={createPluginRegistry(definitions)}
       run={{ status: "idle" }}
       state={null}
     />
@@ -116,17 +114,17 @@ describe("plugin runtime diagnostics", () => {
     const diagnostics: RuntimeDiagnostic[] = [];
     const definition = createDefinition("diagnostic-plugin", {
       Component: () => {
-        if (usePluginInstance().props?.shouldFail === true) {
-          throw new Error("Diagnostic render failed.");
-        }
-        return <div>Recovered</div>;
+        throw new Error("Diagnostic render failed.");
       },
+    });
+    const recoveredDefinition = createDefinition("diagnostic-plugin-recovered", {
+      Component: () => <div>Recovered</div>,
     });
 
     await act(async () => {
       renderer = create(
         <RuntimeFixture
-          definition={definition}
+          definitions={[definition, recoveredDefinition]}
           reporter={(diagnostic) => diagnostics.push(diagnostic)}
         />,
       );
@@ -150,7 +148,7 @@ describe("plugin runtime diagnostics", () => {
     await act(async () => {
       renderer?.update(
         <RuntimeFixture
-          definition={definition}
+          definitions={[definition, recoveredDefinition]}
           model={createModel(false)}
           reporter={(diagnostic) => diagnostics.push(diagnostic)}
         />,
@@ -178,7 +176,7 @@ describe("plugin runtime diagnostics", () => {
     await act(async () => {
       renderer = create(
         <RuntimeFixture
-          definition={definition}
+          definitions={[definition]}
           reporter={(diagnostic) => diagnostics.push(diagnostic)}
         />,
       );
@@ -210,7 +208,7 @@ describe("plugin runtime diagnostics", () => {
     await act(async () => {
       renderer = create(
         <RuntimeFixture
-          definition={definition}
+          definitions={[definition]}
           reporter={() => {
             throw new Error("Endpoint unavailable");
           }}
@@ -233,7 +231,7 @@ describe("plugin runtime diagnostics", () => {
     await act(async () => {
       renderer = create(
         <RuntimeFixture
-          definition={definition}
+          definitions={[definition]}
           reporter={(diagnostic) => diagnostics.push(diagnostic)}
         />,
       );

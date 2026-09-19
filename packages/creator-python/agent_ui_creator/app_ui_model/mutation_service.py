@@ -107,7 +107,6 @@ def _semantic_operation_summary(operation: Any) -> dict[str, Any]:
         "remove_plugin",
         "remove_plugin_default",
         "set_plugin_enabled",
-        "update_plugin_props",
         "move_plugin",
         "move_plugin_to",
     }:
@@ -121,15 +120,6 @@ def _semantic_operation_summary(operation: Any) -> dict[str, Any]:
             summary["instanceId"] = instance_id
         if operation_type == "set_plugin_enabled":
             summary["enabled"] = operation.get("enabled") is True
-        elif operation_type == "update_plugin_props":
-            keys: list[str] = []
-            values = operation.get("set")
-            if isinstance(values, dict):
-                keys.extend(key for key in values if isinstance(key, str))
-            remove_keys = operation.get("removeKeys")
-            if isinstance(remove_keys, list):
-                keys.extend(key for key in remove_keys if isinstance(key, str))
-            summary["keys"] = list(dict.fromkeys(keys))[:50]
         elif operation_type in {"move_plugin", "move_plugin_to"}:
             target = _semantic_target_summary(
                 operation.get("target")

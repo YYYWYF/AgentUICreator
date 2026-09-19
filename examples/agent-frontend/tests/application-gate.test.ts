@@ -77,7 +77,7 @@ function definition(
   };
 }
 
-function gateModel(workspaceProps: Record<string, unknown> = {}) {
+function gateModel() {
   return parseAppUIRuntimeModel({
     root: { type: "slot", id: "main-node", slotId: "main" },
     pluginInstances: {
@@ -92,7 +92,6 @@ function gateModel(workspaceProps: Record<string, unknown> = {}) {
         pluginId: "workspace",
         enabled: true,
         mount: { slotId: "main" },
-        props: workspaceProps,
       },
       telemetry: {
         id: "telemetry",
@@ -274,7 +273,7 @@ describe("Application Gate lifecycle", () => {
     expect(runtime.applicationLifecycle.getSnapshot().phase).toBe("blocked");
   });
 
-  it("preserves the foundation activation across Workspace-only model changes", () => {
+  it("preserves the foundation activation across equivalent composition snapshots", () => {
     const gate = new TestGateService("ready");
     const gateSetup = vi.fn(({ services }: UIPluginSetupContext) =>
       services.provide("auth.gate", gate),
@@ -290,10 +289,10 @@ describe("Application Gate lifecycle", () => {
       definition("telemetry", { headless: true }),
     ]);
     const runtime = new PluginServiceRuntime();
-    runtime.reconcile(gateModel({ version: 1 }), registry, runtimeActions);
+    runtime.reconcile(gateModel(), registry, runtimeActions);
     const activationId = runtime.getActivation("gate");
 
-    runtime.reconcile(gateModel({ version: 2 }), registry, runtimeActions);
+    runtime.reconcile(gateModel(), registry, runtimeActions);
 
     expect(runtime.getActivation("gate")).toEqual(activationId);
     expect(gateSetup).toHaveBeenCalledOnce();
@@ -382,13 +381,13 @@ describe("Application Gate lifecycle", () => {
     const runtime = new PluginServiceRuntime();
 
     runtime.reconcile(
-      gateModel({ workspaceRevision: 1 }),
+      gateModel(),
       registry,
       runtimeActions,
       diagnosticsFor("a".repeat(64)),
     );
     runtime.reconcile(
-      gateModel({ workspaceRevision: 2 }),
+      gateModel(),
       registry,
       runtimeActions,
       diagnosticsFor("b".repeat(64)),

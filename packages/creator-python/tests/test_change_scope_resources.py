@@ -101,7 +101,7 @@ def _tool_result(call_id, payload, *, status=None):
             {
                 "operations": [
                     {"type": "move_plugin", "instanceId": "foo-main", "target": {"type": "application"}},
-                    {"type": "update_plugin_props", "instanceId": "bar-main"},
+                    {"type": "set_plugin_enabled", "instanceId": "bar-main", "enabled": False},
                     {"type": "set_plugin_enabled", "instanceId": "baz-main", "enabled": False},
                 ]
             },
@@ -262,7 +262,7 @@ def test_failed_composition_mutation_does_not_authorize_new_instance():
             "mutate_app_ui_model",
             {
                 "operations": [
-                    {"type": "update_plugin_props", "instanceId": "foo-main"}
+                    {"type": "set_plugin_enabled", "instanceId": "foo-main", "enabled": False}
                 ]
             },
             "foo-mutation",
@@ -276,7 +276,7 @@ def test_failed_composition_mutation_does_not_authorize_new_instance():
             "mutate_app_ui_model",
             {
                 "operations": [
-                    {"type": "update_plugin_props", "instanceId": "bar-main"}
+                    {"type": "set_plugin_enabled", "instanceId": "bar-main", "enabled": False}
                 ]
             },
             "bar-failed-mutation",
@@ -298,7 +298,7 @@ def test_failed_composition_mutation_does_not_authorize_new_instance():
             "mutate_app_ui_model",
             {
                 "operations": [
-                    {"type": "update_plugin_props", "instanceId": "bar-main"}
+                    {"type": "set_plugin_enabled", "instanceId": "bar-main", "enabled": False}
                 ]
             },
             "bar-repair",

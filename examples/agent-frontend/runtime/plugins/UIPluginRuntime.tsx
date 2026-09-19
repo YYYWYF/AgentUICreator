@@ -381,7 +381,6 @@ function UIPluginRuntimeContent<TState = unknown>({
     <LayoutRenderer
       className={className}
       root={model.root}
-      theme={model.settings?.theme}
       renderSlot={(slot: SlotNode) => (
         <LayoutSlotOutlet
           actions={actions}

@@ -109,8 +109,8 @@ export function createInstanceActions(
  * Instance-scoped named services for UI plugins.
  *
  * Workspace activations are rebuilt when AppUIRuntimeModel changes. Application Gate
- * foundations are retained while their definition, dependency graph, and
- * instance props signature remains stable.
+ * foundations are retained while their definition and dependency graph remain
+ * stable.
  */
 export class PluginServiceRuntime {
   readonly slots = new SlotRegistry();

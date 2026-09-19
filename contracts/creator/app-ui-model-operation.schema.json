@@ -49,7 +49,6 @@
         "id": { "$ref": "#/$defs/nonBlankString" },
         "pluginId": { "$ref": "#/$defs/nonBlankString" },
         "enabled": { "type": "boolean" },
-        "props": { "type": "object" },
         "slots": {
           "type": "object",
           "propertyNames": { "$ref": "#/$defs/nonBlankString" },
@@ -256,17 +255,6 @@
         "type": { "const": "replace_plugin" },
         "instanceId": { "$ref": "#/$defs/nonBlankString" },
         "replacement": { "$ref": "#/$defs/plugin" }
-      }
-    },
-    {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["type", "instanceId"],
-      "properties": {
-        "type": { "const": "update_plugin_props" },
-        "instanceId": { "$ref": "#/$defs/nonBlankString" },
-        "set": { "type": "object" },
-        "removeKeys": { "$ref": "#/$defs/removeKeys" }
       }
     },
     {

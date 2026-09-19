@@ -96,7 +96,7 @@ Overlay 不调用 AgentUICreator Runtime，不参与 Thread UI 的状态或交�
 - 错误、断线、重连与运行锁的行为
 - 历史会话、conversation data source 与 thread switching
 - frontend tool execution、HITL、Subagent、附件、Sources 和自定义 Tool UI
-- AppUIModel props 对 assistant-ui Thread 的可配置边界
+- Application/runtime config 对 assistant-ui Thread 的可配置边界
 - Tailwind utilities 与现有 App/Ant Design 样式在生产 bundle 中的实际冲突面
 
 ## 与现有 agent-runtime 的能力对照（待场景证实）

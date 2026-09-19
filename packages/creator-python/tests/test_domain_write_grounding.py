@@ -409,13 +409,6 @@ def apply_authoring_operation(model, operation):
         plugins.insert(operation.get("index", len(plugins)), plugin)
     elif kind == "set_plugin_enabled":
         plugin["enabled"] = operation["enabled"]
-    elif kind == "update_plugin_props":
-        props = plugin.setdefault("props", {})
-        props.update(copy.deepcopy(operation.get("set", {})))
-        for key in operation.get("removeKeys", []):
-            props.pop(key, None)
-        if not props:
-            plugin.pop("props", None)
     elif kind == "remove_plugin":
         current_plugins.remove(plugin)
     elif kind == "replace_plugin":

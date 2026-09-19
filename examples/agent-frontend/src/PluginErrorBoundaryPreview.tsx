@@ -19,7 +19,6 @@ import {
 } from "../runtime/plugins";
 import {
   AgentRuntimeProvider,
-  usePluginInstance,
 } from "../runtime/context";
 import { App } from "./App";
 
@@ -33,11 +32,10 @@ type PreviewState =
   | "repaired";
 
 function RenderFailurePreviewPlugin(_props: UIPluginComponentProps) {
-  const instance = usePluginInstance();
-  if (instance.props?.shouldFail !== false) {
-    throw new Error("The dynamically loaded insights plugin failed to render.");
-  }
+  throw new Error("The dynamically loaded insights plugin failed to render.");
+}
 
+function RenderRecoveredPreviewPlugin(_props: UIPluginComponentProps) {
   return (
     <section className="plugin-boundary-recovered">
       <span>Runtime insights</span>
@@ -67,6 +65,16 @@ const renderFailurePlugin: UIPluginDefinition = {
   Component: RenderFailurePreviewPlugin,
 };
 
+const renderRecoveredPlugin: UIPluginDefinition = {
+  manifest: {
+    id: "preview-render-recovered",
+    name: "Runtime Insights Plugin",
+    description: "Development fixture that renders after repair",
+    version: "1.0.0",
+  },
+  Component: RenderRecoveredPreviewPlugin,
+};
+
 const mountFailurePlugin: UIPluginDefinition = {
   manifest: {
     id: "preview-mount-failure",
@@ -77,7 +85,11 @@ const mountFailurePlugin: UIPluginDefinition = {
   Component: MountFailurePreviewPlugin,
 };
 
-const previewPlugins = [renderFailurePlugin, mountFailurePlugin] as const;
+const previewPlugins = [
+  renderFailurePlugin,
+  renderRecoveredPlugin,
+  mountFailurePlugin,
+] as const;
 const previewRegistry = createPluginRegistry(previewPlugins);
 const previewActions: UIPluginRuntimeActions = {
   abortRun: () => undefined,
@@ -94,9 +106,10 @@ function createPreviewModel(state: PreviewState) {
   if (state === "render-error" || state === "both" || state === "repaired") {
     plugins.push({
       id: "preview-render-failure-main",
-      pluginId: "preview-render-failure",
+      pluginId: state === "repaired"
+        ? "preview-render-recovered"
+        : "preview-render-failure",
       enabled: true,
-      props: { shouldFail: state !== "repaired" },
     });
   }
   if (state === "mount-error" || state === "both") {

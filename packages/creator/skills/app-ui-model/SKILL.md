@@ -1,6 +1,6 @@
 ---
 name: app-ui-model
-description: Load for low-level AppUIModel composition changes, including custom add, remove, hide, move, resize, placement, props, Layout, or nested Plugin Slot changes. The Host-owned insert_plugin_default semantic fast path does not require this Skill.
+description: Load for low-level AppUIModel composition changes, including custom add, remove, hide, move, resize, placement, Layout, or nested Plugin Slot changes. The Host-owned insert_plugin_default semantic fast path does not require this Skill.
 compatibility: Agent UI Plugin Creator authoring model.
 allowed-tools: read_file ls glob grep inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin mutate_app_ui_model execute
 ---
@@ -12,7 +12,9 @@ Use this Skill for low-level Composition changes, not for the Host-owned
 complete desired insertion and the Host deterministically resolves its
 authoring-default placement.
 AppUIModel owns which Plugin instances exist, whether they are enabled, their
-authoring props and placement, and the Layout tree that contains visual regions.
+placement, child Slot topology, and the Layout tree that contains visual
+regions. Product content, presentation copy, Runtime configuration, and Plugin
+behavior belong to application/source or Runtime layers.
 
 Always reason in this order:
 
@@ -28,8 +30,9 @@ Do not choose a tool operation from the wording alone.
 
 ## Ownership boundary
 
-- Composition owns AppUIModel plugin presence, enabled state, props, placement,
-  Layout, Panels, Rows, Columns, Stacks, Slots, and Slot occupants.
+- Composition owns AppUIModel plugin presence, enabled state, identity,
+  placement, child Slot topology, Layout, Panels, Rows, Columns, Stacks, Slots,
+  and Slot occupants.
 - Plugin Behavior owns `/plugins/**` rendering, interaction, and child Slot
   declarations.
 - Runtime Capability owns Services, Runtime stores, shared state, and Runtime
@@ -72,8 +75,8 @@ Composition revision; it does not need a separate Service scan.
 
 - Read visual composition from `root` downward. Layout nodes are structural;
   Layout Slots contain ordered Plugin arrays.
-- A Plugin node contains persistent `id`, `pluginId`, `enabled`, optional
-  `props`, and optional child `slots` keyed by local Slot name.
+- A Plugin node contains only persistent `id`, `pluginId`, `enabled`, and
+  optional child `slots` keyed by local Slot name.
 - Plugin instance ids are persistent. Inspection `nodeRef` and `slotRef` values
   are snapshot-scoped authoring references.
 - Array order is display order; do not create a separate contribution order.
@@ -118,7 +121,6 @@ Composition revision; it does not need a separate Service scan.
   Do not manually update Row/Column sizes when deterministic reflow expresses
   the requested result.
 - `replace_plugin`: replace an instance subtree in place.
-- `update_plugin_props`: change authoring configuration.
 - `set_plugin_enabled`: hide or restore an existing instance.
 - Layout operations use snapshot-scoped refs. All refs in a transaction are
   bound to the starting snapshot. A new node may declare a transaction-only
@@ -243,7 +245,7 @@ Incorrect: delete emptySuggestions from the parent manifest or edit the parent.
 ```text
 User request: Move the existing inspector to the right region.
 Current composition: one inspector instance in another Slot; destination known.
-Desired state: same persistent instance and props in the destination.
+Desired state: same persistent instance in the destination.
 Owning layer: Composition.
 Semantic delta: placement only.
 Correct tool: move_plugin.
@@ -269,7 +271,7 @@ User request: Add a theme switch.
 Current composition: Theme Switch asset exists but is not selected.
 Desired state: one enabled instance in the requested or uniquely resolved Slot.
 Owning layer: Composition.
-Semantic delta: insert the existing asset with final props and placement.
+Semantic delta: insert the existing asset with final identity and placement.
 Correct tools: inspect_ui_project(view=composition), then insert_plugin in one
 mutation.
 Incorrect: create a duplicate Theme Switch Plugin or add Runtime theme state.

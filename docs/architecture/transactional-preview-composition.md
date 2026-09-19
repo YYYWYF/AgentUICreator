@@ -31,7 +31,7 @@ AppUIModel + PluginCapabilityCatalog
 
 `plugins/registry.generated.ts` is retained as a generated filename for tool
 compatibility, but its contract is a stable capability catalog. Pure layout,
-props, enablement, or instance-membership changes do not rewrite it.
+enablement, or instance-membership changes do not rewrite it.
 
 ## Candidate and published state
 

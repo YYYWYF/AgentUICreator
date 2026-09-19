@@ -116,6 +116,34 @@ export interface ConversationSuggestionProps
   children?: ReactNode;
 }
 
+export interface ConversationSuggestionState {
+  readonly title: string;
+  readonly label: string;
+  readonly prompt: string;
+}
+
+export interface ConversationSuggestionsProps {
+  children: (suggestion: ConversationSuggestionState) => ReactNode;
+}
+
+/**
+ * Renders the current assistant-ui runtime suggestion scope through the
+ * stable Agent UI facade.
+ */
+export function ConversationSuggestions({
+  children,
+}: Readonly<ConversationSuggestionsProps>) {
+  return (
+    <ThreadPrimitive.Suggestions>
+      {({ suggestion }) => children({
+        title: suggestion.title,
+        label: suggestion.label,
+        prompt: suggestion.prompt,
+      })}
+    </ThreadPrimitive.Suggestions>
+  );
+}
+
 export function ConversationSuggestion({
   prompt,
   send,

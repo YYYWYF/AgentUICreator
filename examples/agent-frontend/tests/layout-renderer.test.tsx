@@ -18,7 +18,6 @@ describe("LayoutRenderer integration", () => {
     const html = renderToStaticMarkup(
       <LayoutRenderer
         root={model.root}
-        theme={model.settings?.theme}
         renderSlot={(slot) => (
           <article>
             {slot.slotId}

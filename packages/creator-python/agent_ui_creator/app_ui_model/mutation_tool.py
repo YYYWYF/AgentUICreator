@@ -133,7 +133,7 @@ def create_app_ui_model_mutation_tool(
             "AppUIModel from current authoritative observations before calling. Submit "
             "all already-determinable semantic changes together in one operations array. "
             "Do not call this tool once per semantic operation. Prefer the most "
-            "expressive operation: insert_plugin includes its final enabled state, props, "
+            "expressive operation: insert_plugin includes its final enabled state, "
             "nested child Slots, and authoring target. Prefer move_plugin when relocating "
             "an existing plugin and replace_plugin for an in-place replacement. A second successful "
             "mutation for the same resolved user intent should be exceptional. "

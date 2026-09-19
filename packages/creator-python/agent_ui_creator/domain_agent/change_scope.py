@@ -165,7 +165,6 @@ def _resource_keys_for_app_ui_operations(
             "remove_plugin",
             "move_plugin",
             "replace_plugin",
-            "update_plugin_props",
             "set_plugin_enabled",
         }:
             _append_resource(
