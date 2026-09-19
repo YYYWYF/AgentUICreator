@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Callable
@@ -293,6 +294,7 @@ class ProductizedOperationEngine:
                     "status": "failed",
                     "errorCode": _error_code(error),
                     **self._action_selector_metrics_metadata(),
+                    **_action_selector_failure_metadata(error),
                 },
             )
             raise
@@ -504,7 +506,7 @@ class ProductizedOperationEngine:
             "actionSelectorContextCharacters": metrics.contextCharacters,
         }
 
-    def _action_selector_metrics_metadata(self) -> dict[str, int]:
+    def _action_selector_metrics_metadata(self) -> dict[str, object]:
         metrics = self.selector.metrics
         return {
             "modelCalls": metrics.modelCalls,
@@ -515,7 +517,7 @@ class ProductizedOperationEngine:
             "contextCharacters": metrics.contextCharacters,
         }
 
-    def _action_selector_step_metadata(self) -> dict[str, int]:
+    def _action_selector_step_metadata(self) -> dict[str, object]:
         return {
             **self._action_selector_metrics_metadata(),
             **self._action_selector_metrics(),
@@ -622,3 +624,24 @@ def _error_code(error: BaseException) -> str:
     if isinstance(code, str) and code:
         return code
     return type(error).__name__
+
+
+def _action_selector_failure_metadata(error: BaseException) -> dict[str, str]:
+    if not isinstance(error, CreatorActionSelectionError):
+        return {}
+    details = error.details
+    if not isinstance(details, Mapping):
+        return {}
+    reason_code = details.get("reasonCode")
+    reason = details.get("reason")
+    if (
+        not isinstance(reason_code, str)
+        or len(reason_code) > 64
+        or not isinstance(reason, str)
+        or len(reason) > 500
+    ):
+        return {}
+    return {
+        "selectorFailureReasonCode": reason_code,
+        "selectorFailureReason": reason,
+    }

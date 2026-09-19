@@ -13,6 +13,7 @@ from agent_ui_creator.domain_state import CompositionFastPathMetrics
 from agent_ui_creator.model_protocol.errors import AgentNoProgressError
 from agent_ui_creator.model_protocol.trace import ToolProtocolMetrics
 from agent_ui_creator.observability import CreatorRunLogger, CreatorRunTelemetry
+from agent_ui_creator.operations import CreatorActionSelectionError
 from agent_ui_creator.project_control import ProjectControlMetrics
 from agent_ui_creator.run_control import CreatorRunControlState
 from agent_ui_creator.server import _execute_agent_run
@@ -172,3 +173,39 @@ def test_action_selector_calls_do_not_overwrite_general_agent_model_calls():
     assert metrics["toolCalls"] == 4
     assert metrics["actionSelectorCalls"] == 1
     assert metrics["totalModelCalls"] == 6
+
+
+def test_action_selector_failure_details_are_retained_in_run_finished(tmp_path):
+    logger = CreatorRunLogger(tmp_path)
+    logger.begin(run_id="selector-failure", agent_mode="domain-write")
+    error = CreatorActionSelectionError(
+        "Creator Action Selector returned an invalid selection.",
+        {
+            "attempts": 2,
+            "reasonCode": "unknown_action_id",
+            "reason": "The selected actionId is not one of the supplied current Action Candidates.",
+            "returnedActionId": "act_invented",
+            "candidateCount": 10,
+        },
+    )
+
+    logger.finish("error", error=error)
+
+    entries = [
+        json.loads(line)
+        for line in logger.path.read_text(encoding="utf-8").splitlines()
+    ]
+    finished = [entry for entry in entries if entry["type"] == "run_finished"]
+    assert len(finished) == 1
+    data = finished[0]["data"]
+    assert data["error"] == "Creator Action Selector returned an invalid selection."
+    assert data["errorDetails"] == {
+        "code": "ACTION_SELECTION_FAILED",
+        "details": {
+            "attempts": 2,
+            "reasonCode": "unknown_action_id",
+            "reason": "The selected actionId is not one of the supplied current Action Candidates.",
+            "returnedActionId": "act_invented",
+            "candidateCount": 10,
+        },
+    }

@@ -40,6 +40,33 @@ describe("Creator debug mode", () => {
 });
 
 describe("Creator stage projection", () => {
+  it("projects bounded Action Selector failure reasons for Debug mode", () => {
+    const failed = projectCreatorIntentStage(undefined, {
+      kind: "finished",
+      name: "creator.resolve",
+      metadata: {
+        creator: {
+          phase: "understanding",
+          status: "failed",
+          errorCode: "ACTION_SELECTION_FAILED",
+          selectorFailureReasonCode: "unknown_action_id",
+          selectorFailureReason:
+            "The selected actionId is not one of the supplied current Action Candidates.",
+        },
+      },
+    });
+
+    expect(failed).toMatchObject({
+      status: "failed",
+      metadata: {
+        errorCode: "ACTION_SELECTION_FAILED",
+        selectorFailureReasonCode: "unknown_action_id",
+        selectorFailureReason:
+          "The selected actionId is not one of the supplied current Action Candidates.",
+      },
+    });
+  });
+
   it("shows the selected Action and realtime selector metrics before execution", () => {
     const running = projectCreatorIntentStage(undefined, {
       kind: "started",

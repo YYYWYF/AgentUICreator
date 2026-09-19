@@ -4,7 +4,7 @@ import inspect
 import json
 from collections.abc import Callable, Mapping
 from time import monotonic
-from typing import Any
+from typing import Any, Literal
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import ValidationError
@@ -19,6 +19,12 @@ from .models import (
 
 MAX_ACTION_SELECTOR_REPAIR_CALLS = 1
 MAX_ACTION_SELECTOR_OUTPUT_TOKENS = 256
+
+InvalidActionSelectionReason = Literal[
+    "structured_parse_failed",
+    "schema_validation_failed",
+    "unknown_action_id",
+]
 
 _SELECTOR_SYSTEM_PROMPT = """You are the Creator Action Selector.
 
@@ -69,11 +75,65 @@ class CreatorActionSelectionError(RuntimeError):
 
 
 class _InvalidActionSelection(ValueError):
-    pass
+    def __init__(
+        self,
+        reason_code: InvalidActionSelectionReason,
+        message: str,
+        details: Mapping[str, Any] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.reason_code = reason_code
+        self.details = dict(details or {})
 
 
 def _bounded_error(error: BaseException) -> str:
     return str(error).strip()[:500] or error.__class__.__name__
+
+
+def _repair_feedback(
+    *, reason_code: InvalidActionSelectionReason, reason: str
+) -> str:
+    if reason_code == "unknown_action_id":
+        return (
+            "Your previous selection used an actionId that is not one of the "
+            "supplied current Action Candidates.\n\n"
+            "Copy exactly one actionId from actionSelectorContext.actions.\n\n"
+            "Do not:\n"
+            "- invent an actionId\n"
+            "- shorten it\n"
+            "- transform it\n"
+            "- reuse an id from another request\n\n"
+            "Do not reinterpret the original user request.\n"
+            f"Host validation reason: {reason}"
+        )
+    if reason_code == "schema_validation_failed":
+        return (
+            "Your previous structured response did not satisfy the "
+            "CreatorActionSelection schema.\n\n"
+            "Return exactly one valid decision.\n\n"
+            "For select_action:\n"
+            '- decision = "select_action"\n'
+            "- actionId = one exact supplied actionId\n"
+            "- clarificationQuestion = null / omitted\n\n"
+            "For needs_clarification:\n"
+            '- decision = "needs_clarification"\n'
+            "- actionId = null / omitted\n"
+            "- clarificationQuestion = non-empty\n\n"
+            "For general_change and unsupported_product_action:\n"
+            "- actionId = null / omitted\n"
+            "- clarificationQuestion = null / omitted\n\n"
+            "Do not reinterpret the original user request.\n"
+            f"Host validation reason: {reason}"
+        )
+    return (
+        "Your previous response could not be parsed as the required "
+        "structured CreatorActionSelection.\n\n"
+        "Return only a valid structured result matching the supplied schema.\n\n"
+        "Do not add prose.\n"
+        "Do not construct an operation.\n"
+        "Do not reinterpret the original user request.\n"
+        f"Host validation reason: {reason}"
+    )
 
 
 def _coerce_context(
@@ -135,7 +195,7 @@ class CreatorActionSelector:
             )
             self.metrics.candidateCount = len(normalized_context.actions)
             self.metrics.contextCharacters = len(context_json)
-            last_error: str | None = None
+            last_error: tuple[InvalidActionSelectionReason, str] | None = None
 
             for attempt in range(MAX_ACTION_SELECTOR_REPAIR_CALLS + 1):
                 if attempt > 0:
@@ -150,13 +210,15 @@ class CreatorActionSelector:
                     return selection
                 except _InvalidActionSelection as error:
                     self.metrics.invalidResponses += 1
-                    last_error = _bounded_error(error)
+                    last_error = (error.reason_code, _bounded_error(error))
                     if attempt >= MAX_ACTION_SELECTOR_REPAIR_CALLS:
                         raise CreatorActionSelectionError(
                             "Creator Action Selector returned an invalid selection.",
                             {
                                 "attempts": attempt + 1,
-                                "reason": last_error,
+                                **error.details,
+                                "reasonCode": error.reason_code,
+                                "reason": _bounded_error(error),
                             },
                         ) from error
 
@@ -175,13 +237,26 @@ class CreatorActionSelector:
         if selection.decision == "select_action":
             if selection.actionId is None:
                 raise _InvalidActionSelection(
-                    "select_action requires an actionId."
+                    "schema_validation_failed",
+                    "Structured Action Selector output failed schema validation.",
+                    {"cause": "select_action requires an actionId."},
                 )
-            if selection.actionId not in {
+            candidate_ids = [
                 candidate.actionId for candidate in normalized_context.actions
-            }:
+            ]
+            if selection.actionId not in set(candidate_ids):
+                details: dict[str, Any] = {
+                    "returnedActionId": selection.actionId,
+                    "candidateCount": len(candidate_ids),
+                }
+                if len(candidate_ids) <= 32:
+                    details["candidateActionIds"] = candidate_ids
+                else:
+                    details["candidateIdsTruncated"] = True
                 raise _InvalidActionSelection(
-                    "The selected actionId is not one of the supplied current Action Candidates."
+                    "unknown_action_id",
+                    "The selected actionId is not one of the supplied current Action Candidates.",
+                    details,
                 )
 
     async def _invoke(
@@ -189,7 +264,7 @@ class CreatorActionSelector:
         *,
         user_message: str,
         context: CreatorActionSelectorContext,
-        repair_reason: str | None,
+        repair_reason: tuple[InvalidActionSelectionReason, str] | None,
     ) -> CreatorActionSelection:
         structured_model = self._get_structured_model()
         messages = self._messages(
@@ -227,8 +302,9 @@ class CreatorActionSelector:
             parsing_error = result.get("parsing_error")
             if parsing_error is not None:
                 raise _InvalidActionSelection(
-                    "Structured Action Selector output could not be parsed: "
-                    f"{_bounded_error(parsing_error)}"
+                    "structured_parse_failed",
+                    "Structured Action Selector output could not be parsed.",
+                    {"cause": _bounded_error(parsing_error)},
                 )
             result = result.get("parsed")
         try:
@@ -239,8 +315,9 @@ class CreatorActionSelector:
             )
         except ValidationError as error:
             raise _InvalidActionSelection(
-                "Structured Action Selector output failed schema validation: "
-                f"{_bounded_error(error)}"
+                "schema_validation_failed",
+                "Structured Action Selector output failed schema validation.",
+                {"cause": _bounded_error(error)},
             ) from error
 
     def _get_structured_model(self) -> Any:
@@ -310,7 +387,7 @@ class CreatorActionSelector:
         *,
         user_message: str,
         context: CreatorActionSelectorContext,
-        repair_reason: str | None,
+        repair_reason: tuple[InvalidActionSelectionReason, str] | None,
     ) -> list[SystemMessage | HumanMessage]:
         payload: dict[str, Any] = {
             "userMessage": user_message,
@@ -319,11 +396,9 @@ class CreatorActionSelector:
             ),
         }
         if repair_reason is not None:
-            payload["hostValidationFeedback"] = (
-                "The selected actionId is not one of the supplied current Action Candidates. "
-                "Choose an exact supplied actionId or change the decision. "
-                "Do not reinterpret the original user request. "
-                f"Reason: {repair_reason}"
+            payload["hostValidationFeedback"] = _repair_feedback(
+                reason_code=repair_reason[0],
+                reason=repair_reason[1],
             )
         return [
             SystemMessage(content=_SELECTOR_SYSTEM_PROMPT),

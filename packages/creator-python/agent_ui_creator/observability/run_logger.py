@@ -40,6 +40,28 @@ def _redact(value: Any, key: str = "") -> Any:
     return str(value)
 
 
+def _exception_details(error: BaseException) -> dict[str, object] | None:
+    """Project only bounded, explicitly structured exception evidence."""
+
+    to_dict = getattr(error, "to_dict", None)
+    if callable(to_dict):
+        try:
+            value = to_dict()
+        except Exception:
+            value = None
+        if isinstance(value, Mapping):
+            return _redact(dict(value))
+
+    result: dict[str, object] = {}
+    code = getattr(error, "code", None)
+    if isinstance(code, str):
+        result["code"] = code
+    details = getattr(error, "details", None)
+    if details is not None:
+        result["details"] = _redact(details)
+    return result or None
+
+
 def _sanitized_tool_arguments(
     tool_name: str, arguments: Mapping[str, Any]
 ) -> dict[str, object]:
@@ -323,13 +345,7 @@ class CreatorRunLogger:
         if self._finished:
             return
         self._finished = True
-        error_details = None
-        if error is not None:
-            to_dict = getattr(error, "to_dict", None)
-            if callable(to_dict):
-                value = to_dict()
-                if isinstance(value, Mapping):
-                    error_details = dict(value)
+        error_details = _exception_details(error) if error is not None else None
         self.record(
             "run_finished",
             {

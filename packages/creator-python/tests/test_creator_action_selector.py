@@ -48,6 +48,23 @@ def action(
     }
 
 
+def add_action(action_id: str = "act_conversation_thread_list_add") -> dict[str, object]:
+    return {
+        "actionId": action_id,
+        "kind": "add_existing_plugin",
+        "status": "ready",
+        "label": "Add Conversation Thread List",
+        "description": (
+            "Add the existing Conversation Thread List Plugin using its default placement."
+        ),
+        "target": {
+            "pluginId": "conversation-thread-list",
+            "pluginName": "Conversation Thread List",
+        },
+        "effect": {"type": "add_default"},
+    }
+
+
 def context(*, right_status: str = "ready") -> CreatorActionSelectorContext:
     return CreatorActionSelectorContext(
         catalogRevision="c" * 64,
@@ -114,6 +131,8 @@ def test_selector_repairs_one_unknown_action_id_with_host_feedback():
     assert selector.metrics.invalidResponses == 1
     feedback = json.loads(model.messages[1][1].content)["hostValidationFeedback"]
     assert "not one of the supplied current Action Candidates" in feedback
+    assert "Copy exactly one actionId" in feedback
+    assert "schema" not in feedback.lower()
     assert "Do not reinterpret the original user request" in feedback
 
 
@@ -131,9 +150,127 @@ def test_selector_fails_after_one_bounded_repair():
 
     assert raised.value.code == "ACTION_SELECTION_FAILED"
     assert raised.value.details["attempts"] == 2
+    assert raised.value.details["reasonCode"] == "unknown_action_id"
+    assert raised.value.details["reason"] == (
+        "The selected actionId is not one of the supplied current Action Candidates."
+    )
+    assert raised.value.details["returnedActionId"] == "act_still_invented"
+    assert raised.value.details["candidateCount"] == 2
+    assert raised.value.details["candidateActionIds"] == [
+        "act_history_right",
+        "act_history_left",
+    ]
     assert selector.metrics.modelCalls == 2
     assert selector.metrics.repairCalls == 1
     assert selector.metrics.invalidResponses == 2
+
+
+def test_selector_repairs_schema_failure_with_schema_specific_feedback():
+    model = StaticStructuredModel(
+        [
+            {"decision": "select_action"},
+            {"decision": "select_action", "actionId": "act_history_right"},
+        ]
+    )
+    selector = CreatorActionSelector(structured_model=model)
+
+    result = asyncio.run(selector.select("把会话管理放到右边", context()))
+
+    assert result.actionId == "act_history_right"
+    feedback = json.loads(model.messages[1][1].content)["hostValidationFeedback"]
+    assert "did not satisfy the CreatorActionSelection schema" in feedback
+    assert "not one of the supplied current Action Candidates" not in feedback
+    assert selector.metrics.modelCalls == 2
+    assert selector.metrics.repairCalls == 1
+    assert selector.metrics.invalidResponses == 1
+
+
+def test_selector_repairs_structured_parse_failure_with_parse_specific_feedback():
+    model = StaticStructuredModel(
+        [
+            {
+                "parsed": None,
+                "parsing_error": ValueError("synthetic parse failure"),
+            },
+            {"decision": "select_action", "actionId": "act_history_right"},
+        ]
+    )
+    selector = CreatorActionSelector(structured_model=model)
+
+    result = asyncio.run(selector.select("把会话管理放到右边", context()))
+
+    assert result.actionId == "act_history_right"
+    feedback = json.loads(model.messages[1][1].content)["hostValidationFeedback"]
+    assert "could not be parsed" in feedback
+    assert "Do not add prose" in feedback
+    assert "did not satisfy the CreatorActionSelection schema" not in feedback
+    assert selector.metrics.modelCalls == 2
+    assert selector.metrics.repairCalls == 1
+    assert selector.metrics.invalidResponses == 1
+
+
+def test_selector_fails_with_structured_parse_reason_after_one_repair():
+    model = StaticStructuredModel(
+        [
+            {
+                "parsed": None,
+                "parsing_error": ValueError("first parse failure"),
+            },
+            {
+                "parsed": None,
+                "parsing_error": ValueError("second parse failure"),
+            },
+        ]
+    )
+    selector = CreatorActionSelector(structured_model=model)
+
+    with pytest.raises(CreatorActionSelectionError) as raised:
+        asyncio.run(selector.select("把会话管理放到右边", context()))
+
+    assert raised.value.details["attempts"] == 2
+    assert raised.value.details["reasonCode"] == "structured_parse_failed"
+    assert raised.value.details["reason"] == (
+        "Structured Action Selector output could not be parsed."
+    )
+    assert raised.value.details["cause"] == "second parse failure"
+
+
+def test_selector_accepts_the_conversation_thread_list_add_action():
+    source = context().model_dump(mode="python")
+    source["actions"] = [add_action()]
+    source["pluginSemantics"] = [
+        {
+            "pluginId": "conversation-thread-list",
+            "name": "Conversation Thread List",
+            "description": "Manage and select conversation history.",
+            "capabilities": [
+                "conversation-create",
+                "conversation-history",
+                "conversation-selection",
+            ],
+            "intents": [
+                "add conversation management",
+                "browse conversation history",
+                "select an existing conversation",
+                "start a new conversation",
+            ],
+            "visualRole": "conversation navigation",
+        }
+    ]
+    thread_list_context = CreatorActionSelectorContext.model_validate(source)
+    model = StaticStructuredModel(
+        [{"decision": "select_action", "actionId": "act_conversation_thread_list_add"}]
+    )
+    selector = CreatorActionSelector(structured_model=model)
+
+    result = asyncio.run(
+        selector.select("我想要新增会话管理的功能", thread_list_context)
+    )
+
+    assert result.decision == "select_action"
+    assert result.actionId == "act_conversation_thread_list_add"
+    assert selector.metrics.modelCalls == 1
+    assert selector.metrics.repairCalls == 0
 
 
 def test_selector_accepts_already_satisfied_actions():

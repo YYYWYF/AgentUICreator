@@ -657,6 +657,9 @@ function CreatorStageDebugDetails({
           <section>
             <h3>Understanding</h3>
             {rows([
+              ["Error", metadata.errorCode],
+              ["Selector failure", metadata.selectorFailureReasonCode],
+              ["Reason", metadata.selectorFailureReason],
               ["Decision", metadata.decision ?? metadata.intent],
               ["Action ID", metadata.actionId],
               ["Action kind", metadata.actionKind],

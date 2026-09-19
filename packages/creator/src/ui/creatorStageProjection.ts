@@ -71,6 +71,8 @@ export interface CreatorStageMetadata {
   contextCharacters?: number;
   totalModelCalls?: number;
   errorCode?: string;
+  selectorFailureReasonCode?: string;
+  selectorFailureReason?: string;
 }
 
 export interface CreatorStageActivity {
@@ -182,6 +184,8 @@ export function parseCreatorStepMetadata(
     "staticStatus",
     "runtimeStatus",
     "errorCode",
+    "selectorFailureReasonCode",
+    "selectorFailureReason",
   ] as const;
   for (const field of stringFields) {
     if (typeof creator[field] === "string") {
@@ -361,6 +365,14 @@ function finalActionSelectorMetadata(
     for (const [field, source] of selectorFields) {
       const number = nonNegativeNumber(selector[source]);
       if (number !== undefined) metadata[field] = number;
+    }
+    for (const field of [
+      "selectorFailureReasonCode",
+      "selectorFailureReason",
+    ] as const) {
+      if (typeof selector[field] === "string") {
+        metadata[field] = selector[field];
+      }
     }
     if (metadata.actionSelectorCalls !== undefined) {
       metadata.modelCalls = metadata.actionSelectorCalls;
