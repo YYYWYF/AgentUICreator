@@ -90,6 +90,7 @@ const definitions: UIPluginDefinition[] = [
   },
 ];
 const registry = createPluginRegistry(definitions);
+const APP_UI_MODEL_HASH = "a".repeat(64);
 
 function createModel(options: {
   reasoning?: "enabled" | "disabled" | "removed";
@@ -134,7 +135,8 @@ function RuntimeFixture({ chatModel, initialMessages, model, onRuntime, onRuntim
   const runtime = useLocalRuntime(chatModel, { initialMessages: initialMessages as never });
   useEffect(() => onRuntime(runtime), [onRuntime, runtime]);
   return <AssistantRuntimeProvider config={config} runtime={runtime}>
-    <PluginRuntimeFixture actions={actions} conversation={{ id: "conversation-test" }} executions={[]}
+    <PluginRuntimeFixture actions={actions} appUIModelHash={APP_UI_MODEL_HASH}
+      conversation={{ id: "conversation-test" }} executions={[]}
       interrupts={[]} messages={[]} model={model} onRuntimeDiagnostic={onRuntimeDiagnostic}
       registry={registry} run={{ status: "idle" }} state={null} />
   </AssistantRuntimeProvider>;
