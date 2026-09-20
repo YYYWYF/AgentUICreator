@@ -36,6 +36,8 @@ import {
 import { createStaticAgentRuntime } from "./agent-runtime-fixture";
 import { ThemeSwitchPlugin } from "../plugins/theme-switch";
 import { themeProviderPlugin } from "../plugins/theme-provider/definition";
+import { localeProviderPlugin } from "../plugins/locale-provider/definition";
+import { AGENT_UI_LOCALE_SERVICE, type AgentUILocaleService } from "../services/agent-ui-locale";
 import { themeSwitchPlugin } from "../plugins/theme-switch/definition";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
@@ -47,6 +49,11 @@ const model = parseAppUIRuntimeModel({
     "theme-provider-main": {
       id: "theme-provider-main",
       pluginId: "theme-provider",
+      enabled: true,
+    },
+    "locale-provider-main": {
+      id: "locale-provider-main",
+      pluginId: "locale-provider",
       enabled: true,
     },
     "theme-switch-main": {
@@ -90,6 +97,7 @@ describe("theme-switch plugin", () => {
     };
     const registry = createPluginRegistry([
       themeProviderPlugin,
+      localeProviderPlugin,
       themeSwitchPlugin,
     ]);
     const runtime = new PluginServiceRuntime();
@@ -118,6 +126,22 @@ describe("theme-switch plugin", () => {
     const root = () => renderer!.root.findByProps({ "data-ui-plugin": "theme-switch" });
 
     expect(control().props).toMatchObject({
+      "aria-label": "切换到浅色模式",
+      "aria-pressed": true,
+      title: "切换到浅色模式",
+    });
+    expect(root().props["aria-label"]).toBe("主题设置");
+    expect(root().props).toMatchObject({
+      className: "theme-switch-plugin agent-ui-conversation dark",
+      "data-theme": "dark",
+    });
+
+    await act(async () => {
+      control().props.onClick();
+      await Promise.resolve();
+    });
+
+    expect(control().props).toMatchObject({
       "aria-label": "切换到深色模式",
       "aria-pressed": false,
       title: "切换到深色模式",
@@ -128,18 +152,20 @@ describe("theme-switch plugin", () => {
     });
 
     await act(async () => {
-      control().props.onClick();
-      await Promise.resolve();
+      runtime.get<AgentUILocaleService>(AGENT_UI_LOCALE_SERVICE)?.setLocale("en-US");
+    });
+    expect(root().props["aria-label"]).toBe("Theme settings");
+    expect(control().props).toMatchObject({
+      "aria-label": "Switch to dark mode",
+      title: "Switch to dark mode",
     });
 
-    expect(control().props).toMatchObject({
-      "aria-label": "切换到浅色模式",
-      "aria-pressed": true,
-      title: "切换到浅色模式",
+    await act(async () => {
+      control().props.onClick();
     });
-    expect(root().props).toMatchObject({
-      className: "theme-switch-plugin agent-ui-conversation dark",
-      "data-theme": "dark",
+    expect(control().props).toMatchObject({
+      "aria-label": "Switch to light mode",
+      title: "Switch to light mode",
     });
   });
 
@@ -229,7 +255,7 @@ describe("theme-switch plugin", () => {
     );
     const control = header?.querySelector("button") as HTMLButtonElement | null;
     expect(control).not.toBeNull();
-    expect(control?.getAttribute("aria-pressed")).toBe("false");
+    expect(control?.getAttribute("aria-pressed")).toBe("true");
     expect(header?.querySelector('[data-ui-plugin="theme-switch"]')).not.toBeNull();
 
     await act(async () => {
@@ -237,8 +263,8 @@ describe("theme-switch plugin", () => {
       await Promise.resolve();
     });
 
-    expect(control?.getAttribute("aria-pressed")).toBe("true");
+    expect(control?.getAttribute("aria-pressed")).toBe("false");
     expect(header?.querySelector('[data-ui-plugin="theme-switch"]')?.getAttribute("data-theme"))
-      .toBe("dark");
+      .toBe("light");
   });
 });

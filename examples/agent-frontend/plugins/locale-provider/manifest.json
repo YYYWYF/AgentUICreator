@@ -1,0 +1,7 @@
+{
+  "id": "locale-provider",
+  "name": "Headless Locale Service Provider",
+  "description": "Provides the shared application locale service to UI plugins.",
+  "version": "1.0.0",
+  "capabilities": ["plugin-service-provider", "locale", "headless"]
+}

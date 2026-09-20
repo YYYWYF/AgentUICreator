@@ -3,6 +3,7 @@ import { Moon, Sun } from "lucide-react";
 
 import { Button } from "@agent-ui/react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 import { usePluginInstance } from "../../runtime/context";
 import { usePluginService } from "../../runtime/plugins";
 import {
@@ -30,17 +31,18 @@ function ThemeSwitch({
   contextId: string;
   theme: AgentUIThemeService;
 }) {
+  const locale = useAgentUILocale("theme");
   const mode = useSyncExternalStore(
     theme.subscribe,
     theme.getMode,
     theme.getMode,
   );
   const isDark = mode === "dark";
-  const nextModeLabel = isDark ? "切换到浅色模式" : "切换到深色模式";
+  const nextModeLabel = isDark ? locale.switchToLight : locale.switchToDark;
 
   return (
     <section
-      aria-label="主题设置"
+      aria-label={locale.settings}
       className={[
         "theme-switch-plugin agent-ui-conversation",
         isDark ? "dark" : undefined,

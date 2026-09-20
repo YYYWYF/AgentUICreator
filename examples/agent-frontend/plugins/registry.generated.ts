@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "e5e1bb69074894022b526cb700a781fe3cd90a3ecdb1e3ca26141e756cd53a2c";
+export const capabilityCatalogRevision = "a4e4d4a5c2f7316b12d518daa05a41971eb5c98c713dbec6eb513fcdafc6316a";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -183,6 +183,26 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   },
   {
     manifest: {
+      "id": "locale-provider",
+      "name": "Headless Locale Service Provider",
+      "description": "Provides the shared application locale service to UI plugins.",
+      "version": "1.0.0",
+      "capabilities": [
+        "plugin-service-provider",
+        "locale",
+        "headless"
+      ]
+    },
+    provides: ["agent-ui.locale"],
+    inject: [],
+    optionalInject: [],
+    loadDefinition: () =>
+      import("./locale-provider/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
       "id": "theme-provider",
       "name": "Headless Theme Service Provider",
       "description": "Provides the shared light and dark theme service to other UI plugins.",
@@ -230,7 +250,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     },
     provides: [],
     inject: ["agent-ui.theme"],
-    optionalInject: [],
+    optionalInject: ["agent-ui.locale"],
     loadDefinition: () =>
       import("./theme-switch/definition").then(
         ({ default: definition }) => definition,

@@ -95,6 +95,7 @@ Do not introduce:
 - Do not couple the generated project to Creator packages, build tooling, runtime services, or UI dependencies.
 - Treat `runtime/*` and `framework/*` as read-only unless explicitly working on the framework.
 - Inspect existing project conventions before editing.
+- New user-visible or screen-reader UI copy in Agent UI Plugins must use the Agent UI locale layer. Add a namespace when the UI domain needs one; use an existing namespace instead of hard-coding its presentation copy. Protocol IDs, service IDs, capability names, slots, event names, tool names, error codes, and test identifiers are not presentation copy.
 - Prefer the smallest correct change.
 - Run relevant validation/typecheck after meaningful changes.
 - Do not redesign unrelated architecture.
