@@ -20,8 +20,8 @@ function Owner({ renderScopedSlot }: UIPluginComponentProps) {
   const status = useContext(RuntimeStatusContext);
   useEffect(() => { ownerMounts += 1; }, []);
   return <section>
-    {renderScopedSlot("entity", { kind: "sample.entity", value: { label: "A", status } }, <i>fallback A</i>)}
-    {renderScopedSlot("entity", { kind: "sample.entity", value: { label: "B", status } }, <i>fallback B</i>)}
+    {renderScopedSlot("entity", { kind: "sample.entity", value: { label: "A", status } })}
+    {renderScopedSlot("entity", { kind: "sample.entity", value: { label: "B", status } })}
   </section>;
 }
 
@@ -97,16 +97,24 @@ describe("scoped renderer runtime composition", () => {
       .toEqual(["renderer-a:A:running", "renderer-a:B:running"]);
   });
 
-  it("falls back for disabled and removed instances and replaces a renderer through the model", async () => {
+  it("renders nothing when an optional Renderer Slot has no occupant", async () => {
+    await act(async () => {
+      renderer = create(<Fixture rendererId={null} />);
+      await Promise.resolve();
+    });
+    expect(renderer!.root.findAllByType("section")).toHaveLength(1);
+    expect(renderer!.root.findAllByType("strong")).toHaveLength(0);
+  });
+
+  it("renders nothing for disabled and removed instances and replaces a renderer through the model", async () => {
     await act(async () => {
       renderer = create(<Fixture rendererId="renderer-a" />);
       await Promise.resolve();
     });
     await act(async () => renderer!.update(<Fixture rendererId="renderer-a" enabled={false} />));
-    expect(renderer!.root.findAllByType("i").map((node) => node.children.join("")))
-      .toEqual(["fallback A", "fallback B"]);
+    expect(renderer!.root.findAllByType("strong")).toHaveLength(0);
     await act(async () => renderer!.update(<Fixture rendererId={null} />));
-    expect(renderer!.root.findAllByType("i")).toHaveLength(2);
+    expect(renderer!.root.findAllByType("strong")).toHaveLength(0);
     await act(async () => renderer!.update(<Fixture rendererId="renderer-b" />));
     expect(renderer!.root.findAllByType("strong").map((node) => node.children.join("")))
       .toEqual(["renderer-b:A:running", "renderer-b:B:running"]);

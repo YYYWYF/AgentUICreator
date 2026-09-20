@@ -63,7 +63,6 @@ export interface PluginInstanceRendererProps<TState = unknown> {
   renderScopedSlot(
     slotId: string,
     scope: UIPluginRenderScope,
-    fallback: ReactNode,
   ): ReactNode;
   onPluginError(failure: PluginRenderFailure): void;
   onPluginReset(instanceId: string): void;

@@ -16,7 +16,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ConversationAdapter } from "../agent-ui/conversation/ConversationAdapter";
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
-import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
+import {
+  parseAppUIRuntimeModel,
+  type AppUIRuntimeModel,
+} from "../framework/contracts/app-ui-runtime-model";
 import type { UIPluginComponentProps, UIPluginDefinition, UIPluginRenderScope } from "../framework/contracts/ui-plugin";
 import { AssistantUiReasoningPlugin } from "../plugins/assistant-ui-reasoning";
 import { AssistantUiToolFallbackPlugin } from "../plugins/assistant-ui-tool-fallback";
@@ -83,18 +86,32 @@ const definitions: UIPluginDefinition[] = [
   },
 ];
 const registry = createPluginRegistry(definitions);
-const model = parseAppUIRuntimeModel({
-  root: { type: "slot", id: "root", slotId: "root-slot" },
-  pluginInstances: {
-    host: { id: "host", pluginId: "conversation-test-host", enabled: true, mount: { slotId: "root-slot" } },
-    reasoning: { id: "reasoning", pluginId: "reasoning-test", enabled: true,
-      mount: { slotId: "plugin:host:reasoningGroup" } },
-    toolGroup: { id: "toolGroup", pluginId: "tool-group-test", enabled: true,
-      mount: { slotId: "plugin:host:toolGroup" } },
-    fallback: { id: "fallback", pluginId: "tool-fallback-test", enabled: true,
-      mount: { slotId: "plugin:host:toolFallback" } },
-  },
-});
+
+function createModel(options: {
+  reasoning?: "enabled" | "disabled" | "removed";
+  toolGroup?: boolean;
+  toolFallback?: boolean;
+} = {}): AppUIRuntimeModel {
+  const reasoning = options.reasoning ?? "enabled";
+  return parseAppUIRuntimeModel({
+    root: { type: "slot", id: "root", slotId: "root-slot" },
+    pluginInstances: {
+      host: { id: "host", pluginId: "conversation-test-host", enabled: true, mount: { slotId: "root-slot" } },
+      ...(reasoning === "removed" ? {} : {
+        reasoning: { id: "reasoning", pluginId: "reasoning-test", enabled: reasoning === "enabled",
+          mount: { slotId: "plugin:host:reasoningGroup" } },
+      }),
+      ...(options.toolGroup === false ? {} : {
+        toolGroup: { id: "toolGroup", pluginId: "tool-group-test", enabled: true,
+          mount: { slotId: "plugin:host:toolGroup" } },
+      }),
+      ...(options.toolFallback === false ? {} : {
+        fallback: { id: "fallback", pluginId: "tool-fallback-test", enabled: true,
+          mount: { slotId: "plugin:host:toolFallback" } },
+      }),
+    },
+  });
+}
 const actions = {
   sendMessage: async () => undefined,
   resumeInterrupts: async () => undefined,
@@ -103,9 +120,10 @@ const actions = {
 };
 const config = AuiConfig({ tools: Tools({ toolkit: createConversationToolkit() }) });
 
-function RuntimeFixture({ chatModel, initialMessages, onRuntime }: {
+function RuntimeFixture({ chatModel, initialMessages, model, onRuntime }: {
   chatModel: ChatModelAdapter;
   initialMessages: ThreadMessage[];
+  model: AppUIRuntimeModel;
   onRuntime(runtime: AssistantRuntime): void;
 }) {
   const runtime = useLocalRuntime(chatModel, { initialMessages: initialMessages as never });
@@ -122,18 +140,22 @@ function message(content: Extract<ThreadMessage, { role: "assistant" }>["content
   } };
 }
 
-async function mount(initialMessages: ThreadMessage[], chatModel: ChatModelAdapter = { run: async () => ({ content: [] }) }) {
+async function mount(
+  initialMessages: ThreadMessage[],
+  chatModel: ChatModelAdapter = { run: async () => ({ content: [] }) },
+  model: AppUIRuntimeModel = createModel(),
+) {
   let runtime: AssistantRuntime | undefined;
   const container = document.createElement("div");
   document.body.append(container);
   const root = createRoot(container);
   roots.push(root);
   await act(async () => {
-    root.render(<RuntimeFixture chatModel={chatModel} initialMessages={initialMessages} onRuntime={(value) => { runtime = value; }} />);
+    root.render(<RuntimeFixture chatModel={chatModel} initialMessages={initialMessages} model={model} onRuntime={(value) => { runtime = value; }} />);
     await Promise.resolve();
   });
   if (runtime === undefined) throw new Error("Assistant runtime was not captured");
-  return { container, runtime };
+  return { container, root, runtime };
 }
 
 afterEach(async () => {
@@ -188,6 +210,76 @@ describe("Conversation scoped renderer integration", () => {
       value: { group: { indices: [0, 1], status: { type: "complete" } } },
     });
     expect(hostMounts).toBe(1);
+  });
+
+  it("removes reasoning presentation when its Renderer occupant is disabled or removed", async () => {
+    const content = [
+      { type: "reasoning" as const, text: "Thinking", status: { type: "complete" as const } },
+      { type: "text" as const, text: "Answer" },
+    ];
+    const { container, root } = await mount([message(content)]);
+    expect(container.querySelector('[data-slot="reasoning-root"]')).not.toBeNull();
+    expect(container.textContent).toContain("Answer");
+
+    await act(async () => {
+      root.render(<RuntimeFixture chatModel={{ run: async () => ({ content: [] }) }}
+        initialMessages={[message(content)]} model={createModel({ reasoning: "disabled" })}
+        onRuntime={() => undefined} />);
+      await Promise.resolve();
+    });
+    expect(container.querySelector('[data-slot="reasoning-root"]')).toBeNull();
+    expect(container.textContent).toContain("Answer");
+
+    await act(async () => {
+      root.render(<RuntimeFixture chatModel={{ run: async () => ({ content: [] }) }}
+        initialMessages={[message(content)]} model={createModel({ reasoning: "removed" })}
+        onRuntime={() => undefined} />);
+      await Promise.resolve();
+    });
+    expect(container.querySelector('[data-slot="reasoning-root"]')).toBeNull();
+    expect(container.textContent).toContain("Answer");
+    expect(hostMounts).toBe(1);
+  });
+
+  it("removes the ToolFallback presentation without affecting named Tool UI", async () => {
+    const unknownTool = { type: "tool-call" as const, toolCallId: "unknown-2", toolName: "unknown_tool",
+      args: { query: "hello" }, argsText: '{"query":"hello"}' };
+    const namedTool = { type: "tool-call" as const, toolCallId: "search-2", toolName: "search_files",
+      args: { keyword: "AG-UI" }, argsText: '{"keyword":"AG-UI"}', result: { files: ["src/App.tsx"] } };
+    const { container, root, runtime } = await mount([message([unknownTool])]);
+    expect(container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();
+
+    await act(async () => {
+      root.render(<RuntimeFixture chatModel={{ run: async () => ({ content: [] }) }}
+        initialMessages={[message([unknownTool])]} model={createModel({ toolFallback: false })}
+        onRuntime={() => undefined} />);
+      await Promise.resolve();
+    });
+    expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
+
+    await act(async () => runtime.thread.reset([message([namedTool])]));
+    expect(container.querySelector('[data-slot="tool-call"]')).not.toBeNull();
+    expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
+  });
+
+  it("removes the entire grouped tool presentation when ToolGroup has no occupant", async () => {
+    const unknownTool = { type: "tool-call" as const, toolCallId: "unknown-3", toolName: "unknown_tool",
+      args: { query: "hello" }, argsText: '{"query":"hello"}' };
+    const namedTool = { type: "tool-call" as const, toolCallId: "search-3", toolName: "search_files",
+      args: { keyword: "AG-UI" }, argsText: '{"keyword":"AG-UI"}', result: { files: ["src/App.tsx"] } };
+    const { container, root, runtime } = await mount([message([unknownTool])]);
+    await act(async () => {
+      root.render(<RuntimeFixture chatModel={{ run: async () => ({ content: [] }) }}
+        initialMessages={[message([unknownTool])]} model={createModel({ toolGroup: false })}
+        onRuntime={() => undefined} />);
+      await Promise.resolve();
+    });
+    expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
+    expect(container.querySelector('[data-slot="tool-call"]')).toBeNull();
+
+    await act(async () => runtime.thread.reset([message([namedTool])]));
+    expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
+    expect(container.querySelector('[data-slot="tool-call"]')).toBeNull();
   });
 
   it("forwards an approval click through the real unknown-tool fallback path", async () => {

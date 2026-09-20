@@ -97,8 +97,10 @@ Composition revision; it does not need a separate Service scan.
   The declaration is Parent Plugin capability; its occupants are Composition.
 - A child Slot with `mode: "renderer"` accepts one Plugin that renders the
   current runtime entity through local scoped context. Change its occupant in
-  AppUIModel to change presentation. Omitted `mode` remains ordinary content;
-  do not place a `requiresRenderScope` Plugin in a Layout or content Slot.
+  AppUIModel to change presentation. An empty Renderer Slot renders nothing;
+  disabling or removing its occupant does not reveal an implicit host or
+  assistant-ui fallback. Omitted `mode` remains ordinary content; do not place
+  a `requiresRenderScope` Plugin in a Layout or content Slot.
 - Layout Slot nodes do not gain descriptions, hints, roles, or accepts lists.
 
 ## Semantic operations
@@ -318,4 +320,25 @@ post-commit verification. Load this Skill and `ui-layout` only when the
 semantic operation is unavailable or the request specifies custom placement.
 Incorrect: read the manifest, inspect Services, read Plugin source/CSS, or scan
 the project to preflight checks listed in hostGuarantees.
+```
+
+### 9. Remove or restore a Renderer presentation
+
+```text
+User request: I don't want to show the reasoning process.
+Current composition: conversation-surface.reasoningGroup contains the selected
+assistant-ui-reasoning Renderer Plugin.
+Desired state: reasoning presentation absent while conversation text remains.
+Owning layer: Composition.
+Semantic delta: remove the reasoningGroup occupant.
+Correct tool: remove_plugin(assistant-ui-reasoning-main).
+Result: reasoningGroup is empty and renders nothing; the Host does not reveal a
+hidden canonical fallback or modify the assistant-ui Thread.
+Incorrect: edit ConversationAdapter, edit assistant-ui Thread/grouping, create
+a hidden Renderer Plugin, or modify reasoning Runtime state.
+
+User request: Restore the reasoning process.
+Semantic delta: insert the existing assistant-ui-reasoning capability into
+conversation-surface.reasoningGroup.
+Correct tool: insert the existing Plugin instance through Composition.
 ```

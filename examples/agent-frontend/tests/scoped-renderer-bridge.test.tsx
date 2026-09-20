@@ -19,6 +19,30 @@ function ScopeReader() {
 }
 
 describe("scoped renderer bridge", () => {
+  it("renders no presentation when the Renderer Bridge is absent", () => {
+    const tool = {
+      toolCallId: "tool-1",
+      toolName: "unknown_tool",
+      args: { query: "hello" },
+      argsText: '{"query":"hello"}',
+      result: { ok: false },
+      isError: true,
+      onApprove: () => undefined,
+      status: { type: "incomplete" as const, reason: "error" },
+    };
+    expect(renderToStaticMarkup(
+      <>
+        <ScopedReasoningGroup group={{ type: "group-reasoning", indices: [0], status: { type: "complete" } }}>
+          reasoning
+        </ScopedReasoningGroup>
+        <ScopedToolGroup group={{ type: "group-tool", indices: [1], status: { type: "complete" } }}>
+          tools
+        </ScopedToolGroup>
+        <ScopedToolFallback {...tool} />
+      </>,
+    )).toBe("");
+  });
+
   it("isolates repeated entities and restores the parent scope after nesting", () => {
     const a: UIPluginRenderScope<string> = { kind: "sample", value: "A" };
     const b: UIPluginRenderScope<string> = { kind: "sample", value: "B" };

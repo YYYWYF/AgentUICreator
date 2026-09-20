@@ -105,7 +105,7 @@ export function ApplicationGateSurface<TState = unknown>({
     );
   }
 
-  const rejectChildSlot = (slotId: string, _fallback?: ReactNode): ReactNode => {
+  const rejectChildSlot = (slotId: string, _value?: unknown): ReactNode => {
     throw new Error(
       `Application Gate instance "${instance.id}" cannot render child Slot "${slotId}".`,
     );

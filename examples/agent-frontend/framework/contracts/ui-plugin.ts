@@ -171,7 +171,6 @@ export interface UIPluginComponentProps {
   renderScopedSlot(
     localSlotName: string,
     scope: UIPluginRenderScope,
-    fallback: ReactNode,
   ): ReactNode;
 }
 

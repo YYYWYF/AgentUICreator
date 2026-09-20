@@ -44,7 +44,7 @@ Every target status in this matrix is one of these values:
 
 | Status | Meaning |
 | --- | --- |
-| `assistant-ui-canonical` | assistant-ui provides the complete default presentation; AgentUICreator must not maintain a parallel default UI. |
+| `assistant-ui-canonical` | assistant-ui provides the canonical presentation implementation; for a Renderer Slot, the default presentation is selected by an explicit canonical Renderer Plugin in AppUIModel, and AgentUICreator must not maintain a parallel default UI or implicit Host fallback. |
 | `assistant-ui-with-agent-ui-adapter` | assistant-ui provides the canonical UI, while AgentUICreator supplies product data, configuration, policy, or Runtime integration. |
 | `agent-ui-extension` | The pinned assistant-ui version lacks the complete product capability or presentation, so an AgentUICreator implementation is allowed. |
 | `structural-host` | The component owns semantic Slot composition or product structure, not canonical leaf presentation. |
@@ -54,7 +54,10 @@ For Reasoning, Tool Group, and Tool Fallback, canonical presentation may be
 called from a scoped Renderer Plugin. AgentUICreator selects that Plugin through
 AppUIModel, while assistant-ui retains grouping, part order, named Tool UI
 priority, streaming state, and the canonical component anatomy. See
-[Scoped Renderer Plugins](scoped-renderer-plugin.md).
+[Scoped Renderer Plugins](scoped-renderer-plugin.md). The canonical label means
+that the default Renderer Plugin calls the canonical assistant-ui component; it
+does not allow the Host or Adapter to restore that presentation when the Slot
+is empty, disabled, or unavailable.
 
 ## 3. Capability matrix
 
@@ -71,8 +74,8 @@ priority, streaming state, and the canonical component anatomy. See
 | Assistant message | Upstream AssistantMessage presentation | Legacy timeline renders the normal-mode message | `assistant-ui-canonical` | Use upstream presentation in assistant-ui mode. |
 | Markdown text | Upstream message text and Markdown presentation | Legacy message components render normal-mode text | `assistant-ui-canonical` | Use upstream presentation in assistant-ui mode. |
 | Reasoning | Reasoning group, root, trigger, content, and text | `agent-reasoning` overrides `conversation.message.reasoning` | `assistant-ui-canonical` | P3R-4A disables `agent-reasoning-main` in assistant-ui mode. |
-| Tool Group | Upstream ToolGroup | `agent-tool-activity` declares the semantic Tool Item child Slot | `assistant-ui-canonical` | Preserve upstream ToolGroup through the structural host fallback. |
-| Tool Item | Upstream ToolFallback; named upstream Tool UI retains precedence | `agent-tool` overrides `conversation.message.tool-item` | `assistant-ui-canonical` | P3R-4A disables `agent-tool-message-main` in assistant-ui mode. |
+| Tool Group | Upstream ToolGroup | `agent-tool-activity` declares the semantic Tool Item child Slot | `assistant-ui-canonical` | Preserve upstream ToolGroup through the explicit default Renderer Plugin mounted in AppUIModel. |
+| Tool Item | Upstream ToolFallback; named upstream Tool UI retains precedence | `agent-tool` overrides `conversation.message.tool-item` | `assistant-ui-canonical` | Preserve upstream ToolFallback through the explicit default Renderer Plugin; named Tool UI retains precedence. |
 | Message Attachments | Upstream UserMessageAttachments and attachment presentation | `agent-message-attachments` overrides `conversation.message.attachments` | `assistant-ui-canonical` | P3R-4A disables `agent-message-attachments-main` in assistant-ui mode. |
 | Sources | Source data can be expressed, but the pinned version has no sufficient default Sources presentation | `agent-message-sources` renders the product Sources UI | `agent-ui-extension` | Keep `agent-message-sources-main` enabled. |
 | Error presentation | Upstream thread and message error presentation | AgentUICreator retains product diagnostics and transport policy | `assistant-ui-with-agent-ui-adapter` | Reuse upstream UI while retaining AgentUICreator error-policy integration. |
@@ -158,7 +161,8 @@ agent-ui-extension
 `structural-host` remains available for semantic composition without taking
 leaf presentation ownership. `legacy-only` is not a valid target for new work.
 Creator enforcement is intentionally deferred until the adapter migrations are
-complete; this phase records the policy only.
+complete; this phase records the policy only. An empty Renderer Slot is an
+intentional no-op, not a request to recreate the canonical presentation.
 
 ## 7. Phase boundary
 

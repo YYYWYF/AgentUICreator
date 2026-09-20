@@ -306,7 +306,7 @@ describe("verifyUIProject", () => {
       mounted: true,
       childSlots: ["sample.child"],
       pluginSource:
-        'export function Sample({ renderScopedSlot }) { return renderScopedSlot("sample.child", { kind: "sample", value: 1 }, null); }\n',
+        'export function Sample({ renderScopedSlot }) { return renderScopedSlot("sample.child", { kind: "sample", value: 1 }); }\n',
     });
     const result = await verifyUIProject(projectRoot, fixtureConfig);
     expect(result.errors).toContainEqual(expect.objectContaining({

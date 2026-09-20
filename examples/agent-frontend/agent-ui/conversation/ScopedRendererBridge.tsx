@@ -1,8 +1,5 @@
 import { createContext, useContext, type ReactNode } from "react";
 import {
-  ConversationCanonicalReasoningGroup,
-  ConversationCanonicalToolGroup,
-  ConversationToolFallback,
   toConversationMessagePartGroup,
   type ConversationReasoningGroupRenderScope,
   type ConversationToolGroupRenderScope,
@@ -33,25 +30,22 @@ export function ScopedRendererBridgeProvider({
 export function ScopedReasoningGroup({ group: rawGroup, children }: { group: unknown; children?: ReactNode }) {
   const renderScopedSlot = useContext(ScopedRendererBridgeContext);
   const group = toConversationMessagePartGroup(rawGroup);
-  const fallback = <ConversationCanonicalReasoningGroup group={group}>{children}</ConversationCanonicalReasoningGroup>;
-  if (renderScopedSlot === null) return fallback;
+  if (renderScopedSlot === null) return null;
   const value: ConversationReasoningGroupRenderScope = { group, children };
-  return renderScopedSlot("reasoningGroup", { kind: "conversation.reasoning-group", value }, fallback);
+  return renderScopedSlot("reasoningGroup", { kind: "conversation.reasoning-group", value });
 }
 
 export function ScopedToolGroup({ group: rawGroup, children }: { group: unknown; children?: ReactNode }) {
   const renderScopedSlot = useContext(ScopedRendererBridgeContext);
   const group = toConversationMessagePartGroup(rawGroup);
-  const fallback = <ConversationCanonicalToolGroup group={group}>{children}</ConversationCanonicalToolGroup>;
-  if (renderScopedSlot === null) return fallback;
+  if (renderScopedSlot === null) return null;
   const value: ConversationToolGroupRenderScope = { group, children };
-  return renderScopedSlot("toolGroup", { kind: "conversation.tool-group", value }, fallback);
+  return renderScopedSlot("toolGroup", { kind: "conversation.tool-group", value });
 }
 
 export function ScopedToolFallback(tool: ConversationToolCallProps) {
   const renderScopedSlot = useContext(ScopedRendererBridgeContext);
-  const fallback = <ConversationToolFallback {...tool} />;
-  if (renderScopedSlot === null) return fallback;
+  if (renderScopedSlot === null) return null;
   const value: ConversationToolFallbackRenderScope = { tool };
-  return renderScopedSlot("toolFallback", { kind: "conversation.tool-fallback", value }, fallback);
+  return renderScopedSlot("toolFallback", { kind: "conversation.tool-fallback", value });
 }

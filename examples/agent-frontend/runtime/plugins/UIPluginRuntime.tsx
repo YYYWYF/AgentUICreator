@@ -145,6 +145,7 @@ function SlotContent<TState = unknown>({
   onPluginError,
   onPluginReset,
 }: SlotContentProps<TState>) {
+  const diagnostics = useOptionalPluginDiagnosticContext();
   const serviceRuntime = usePluginServiceRuntime();
   const slots = serviceRuntime.slots;
   const getSnapshot = useCallback(
@@ -153,18 +154,113 @@ function SlotContent<TState = unknown>({
   );
   const contributions = useSyncExternalStore(slots.subscribe, getSnapshot, getSnapshot);
 
+  const scopedContribution = contributions.length === 1 ? contributions[0] : undefined;
+  const scopedInstance = scopedContribution === undefined
+    ? undefined
+    : model.pluginInstances[scopedContribution.instanceId];
+  const scopedDefinition = scopedInstance === undefined
+    ? undefined
+    : registry.get(scopedInstance.pluginId);
+  const scopedActivation = scopedInstance === undefined
+    ? undefined
+    : serviceRuntime.getActivation(scopedInstance.id);
+  const scopedEvents = scopedInstance === undefined
+    ? undefined
+    : serviceRuntime.getEvents(scopedInstance.id);
+  const scopedCapabilityMismatch = acceptedCapabilities !== undefined &&
+    scopedDefinition !== undefined &&
+    !scopedDefinition.manifest.capabilities?.some((capability) =>
+      acceptedCapabilities.includes(capability),
+    );
+  let scopedDiagnostic: {
+    pluginId?: string;
+    pluginName?: string;
+    instanceId?: string;
+    errorMessage: string;
+  } | undefined;
+  if (scope !== undefined && contributions.length > 0) {
+    if (contributions.length !== 1) {
+      scopedDiagnostic = {
+        errorMessage: `Renderer Slot "${slotId}" has multiple contributions; expected at most one.`,
+      };
+    } else if (scopedInstance === undefined) {
+      scopedDiagnostic = {
+        ...(scopedContribution === undefined
+          ? {}
+          : { instanceId: scopedContribution.instanceId }),
+        errorMessage: `Renderer Slot "${slotId}" references an unavailable Plugin instance.`,
+      };
+    } else if (!scopedInstance.enabled) {
+      scopedDiagnostic = {
+        instanceId: scopedInstance.id,
+        pluginId: scopedInstance.pluginId,
+        errorMessage: `Renderer Plugin instance "${scopedInstance.id}" is disabled.`,
+      };
+    } else if (scopedInstance.mount?.slotId !== slotId) {
+      scopedDiagnostic = {
+        instanceId: scopedInstance.id,
+        pluginId: scopedInstance.pluginId,
+        errorMessage: `Renderer Plugin instance "${scopedInstance.id}" is mounted in a different Slot.`,
+      };
+    } else if (scopedDefinition === undefined) {
+      scopedDiagnostic = {
+        instanceId: scopedInstance.id,
+        pluginId: scopedInstance.pluginId,
+        errorMessage: `Renderer Plugin "${scopedInstance.pluginId}" is unavailable.`,
+      };
+    } else if (scopedActivation?.status !== "active") {
+      scopedDiagnostic = {
+        instanceId: scopedInstance.id,
+        pluginId: scopedDefinition.manifest.id,
+        pluginName: scopedDefinition.manifest.name,
+        errorMessage: `Renderer Plugin instance "${scopedInstance.id}" is not active.`,
+      };
+    } else if (scopedEvents === undefined) {
+      scopedDiagnostic = {
+        instanceId: scopedInstance.id,
+        pluginId: scopedDefinition.manifest.id,
+        pluginName: scopedDefinition.manifest.name,
+        errorMessage: `Renderer Plugin instance "${scopedInstance.id}" has no event scope.`,
+      };
+    } else if (scopedCapabilityMismatch) {
+      scopedDiagnostic = {
+        instanceId: scopedInstance.id,
+        pluginId: scopedDefinition.manifest.id,
+        pluginName: scopedDefinition.manifest.name,
+        errorMessage: `Renderer Plugin "${scopedDefinition.manifest.id}" does not satisfy the Slot capability contract.`,
+      };
+    }
+  }
+  useEffect(() => {
+    if (scopedDiagnostic === undefined || diagnostics === null) return;
+    diagnostics.report({
+      kind: "plugin-render",
+      status: "error",
+      ...(scopedDiagnostic.pluginId === undefined ? {} : { pluginId: scopedDiagnostic.pluginId }),
+      ...(scopedDiagnostic.pluginName === undefined ? {} : { pluginName: scopedDiagnostic.pluginName }),
+      ...(scopedDiagnostic.instanceId === undefined ? {} : { instanceId: scopedDiagnostic.instanceId }),
+      slotId,
+      errorMessage: scopedDiagnostic.errorMessage,
+    });
+  }, [
+    diagnostics,
+    scopedDiagnostic?.errorMessage,
+    scopedDiagnostic?.instanceId,
+    scopedDiagnostic?.pluginId,
+    scopedDiagnostic?.pluginName,
+    slotId,
+  ]);
+
   if (scope !== undefined) {
-    const contribution = contributions.length === 1 ? contributions[0] : undefined;
-    const instance = contribution === undefined ? undefined : model.pluginInstances[contribution.instanceId];
-    const definition = instance === undefined ? undefined : registry.get(instance.pluginId);
-    const activation = instance === undefined ? undefined : serviceRuntime.getActivation(instance.id);
-    const events = instance === undefined ? undefined : serviceRuntime.getEvents(instance.id);
+    const instance = scopedInstance;
+    const definition = scopedDefinition;
+    const activation = scopedActivation;
+    const events = scopedEvents;
     if (
       instance === undefined || !instance.enabled || instance.mount?.slotId !== slotId ||
       definition === undefined || activation?.status !== "active" || events === undefined ||
-      (acceptedCapabilities !== undefined &&
-        !definition.manifest.capabilities?.some((capability) => acceptedCapabilities.includes(capability)))
-    ) return fallback ?? null;
+      scopedCapabilityMismatch
+    ) return null;
 
     const renderChildSlot = (
       requestedSlotId: string,
@@ -187,14 +283,13 @@ function SlotContent<TState = unknown>({
     const renderChildScopedSlot = (
       requestedSlotId: string,
       requestedScope: UIPluginRenderScope,
-      requestedFallback: ReactNode,
     ): ReactNode => {
       const child = definition.manifest.slots?.children?.[requestedSlotId];
       if (child?.mode !== "renderer") {
         throw new Error(`Plugin instance "${instance.id}" cannot render scoped Slot "${requestedSlotId}"`);
       }
       return <SlotContent actions={actions} acceptedCapabilities={child.accepts?.anyOfCapabilities}
-        fallback={requestedFallback} model={model} onPluginError={onPluginError}
+        model={model} onPluginError={onPluginError}
         onPluginReset={onPluginReset} registry={registry}
         scope={requestedScope} slotId={resolveRuntimePluginSlotId(instance.id, requestedSlotId)} />;
     };
@@ -281,7 +376,6 @@ function SlotContent<TState = unknown>({
         const renderScopedSlot = (
           requestedSlotId: string,
           requestedScope: UIPluginRenderScope,
-          requestedFallback: ReactNode,
         ): ReactNode => {
           const child = definition.manifest.slots?.children?.[requestedSlotId];
           if (child?.mode !== "renderer") {
@@ -289,7 +383,7 @@ function SlotContent<TState = unknown>({
           }
           return (
             <SlotContent actions={actions} acceptedCapabilities={child.accepts?.anyOfCapabilities}
-              fallback={requestedFallback} model={model} onPluginError={onPluginError}
+              model={model} onPluginError={onPluginError}
               onPluginReset={onPluginReset} registry={registry}
               scope={requestedScope} slotId={resolveRuntimePluginSlotId(instance.id, requestedSlotId)} />
           );
