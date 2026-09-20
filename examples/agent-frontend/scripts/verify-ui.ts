@@ -17,8 +17,10 @@ import {
   PLUGIN_REGISTRY_ENTRY_SOURCE,
 } from "./ui-project/registry-generator";
 import { inspectUIServiceDependencies } from "./ui-project/service-dependency-inspector";
+import { analyzePluginAuthoringReadiness } from "./ui-project/plugin-authoring-readiness";
 import type {
   InspectedService,
+  PluginCreatorReadiness,
   ProjectIssue,
   UIProjectControlConfig,
 } from "./ui-project/types";
@@ -42,6 +44,9 @@ export interface UIProjectVerification {
     headlessPluginIds: string[];
   };
   services: InspectedService[];
+  creatorReadiness: {
+    plugins: PluginCreatorReadiness[];
+  };
   errors: VerificationIssue[];
   warnings: VerificationIssue[];
 }
@@ -146,11 +151,16 @@ export async function verifyUIProject(
   let applicationGatePluginIds: string[] = [];
   let generatedFileFresh = false;
   let services: InspectedService[] = [];
+  let creatorReadiness: PluginCreatorReadiness[] = [];
   let runtimeModel: AppUIRuntimeModel | undefined;
   if (model !== undefined) {
     const registry = await generatePluginRegistry(projectRoot, model, config);
     errors.push(...registry.errors);
     errors.push(...(await verifyPluginChildSlots(projectRoot, registry.assets)));
+    const authoringReadiness = analyzePluginAuthoringReadiness(registry.assets);
+    creatorReadiness = authoringReadiness.plugins;
+    errors.push(...authoringReadiness.errors);
+    warnings.push(...authoringReadiness.warnings);
     const serviceInspection = inspectUIServiceDependencies(
       projectRoot,
       model,
@@ -239,6 +249,9 @@ export async function verifyUIProject(
       headlessPluginIds,
     },
     services,
+    creatorReadiness: {
+      plugins: creatorReadiness,
+    },
     errors,
     warnings,
   };

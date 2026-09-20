@@ -27,6 +27,44 @@ Inspect project conventions before deciding that Plugin source must change:
 4. For an ordinary Plugin, insert its node into a Layout Slot or parent plugin's local Slot through AppUIModel. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
 5. When the user requires login, License, organization selection, onboarding, or initialization before the Workspace can be used, prefer a first-class `manifest.application.gate` Plugin in `applicationPlugins`; it is an Application lifecycle surface, not visual Slot composition.
 
+## Creator Authoring Contract
+
+Runtime-compatible, Composition-compatible, and Creator-operable are separate
+decisions:
+
+- Runtime-compatible means the Plugin can be activated by the UI Runtime.
+- Composition-compatible means its Layout or child Slot contract is valid.
+- Creator-operable means the Host can discover, add, and restore it
+  deterministically.
+
+The existing `manifest.authoring` fields are the Creator Authoring Contract.
+Do not add `creatorReady`, a readiness score, or Plugin-specific Creator logic.
+The Host derives readiness from the manifest, capabilities, and child Slot
+contracts; it does not inspect React source to guess placement.
+
+Before writing source, classify the Plugin and decide whether users should be
+able to ask Creator to add or restore it:
+
+- A visual Plugin intended for natural-language Add/Restore declares semantic
+  `authoring.intents` and a deterministic `defaultPlacement`.
+- A relative placement points at an existing unique anchor. `before`/`after`
+  needs `recommendedSize.width`; `above`/`below` needs
+  `recommendedSize.height` when a portable insertion size is required.
+- A `plugin_slot` placement points at an existing parent child Slot, matches
+  one of that Slot's accepted capabilities, and matches renderer mode.
+- A Plugin with `requiresRenderScope: true` uses a renderer child Slot; a
+  non-renderer Plugin must not target one.
+- A visual Plugin without `authoring` is intentionally `manual-only` and is
+  valid. `authoring` without `defaultPlacement` is discoverable but
+  `limited`, with Add/Restore unavailable.
+- A Plugin with `capabilities: ["headless"]` or `manifest.application.gate` is
+  not a visual placement target and does not need authoring metadata.
+
+Read the readiness diagnostics returned by `validate_creator_changes` through
+the existing `verify:ui` result. A limited warning is not automatically a
+failure: if the Plugin should be Creator-operable, repair its authoring
+contract; if it is intentionally manual-only, do not invent a placement.
+
 ## Service dependency and ownership decision
 
 When a Plugin needs another capability, call `inspect_ui_services` instead of
@@ -69,17 +107,18 @@ Plugin needs capability X
 
 ## Creating a Plugin
 
-1. Read `/framework/contracts/ui-plugin.ts` and one closest existing Plugin end to end.
-2. Create `/plugins/<plugin-id>/manifest.json` with a unique id, useful description, version, capabilities when applicable, and accurate `data.messages`, `data.state`, or `data.events` declarations.
-3. Create `index.tsx` with a named React component. Accept `UIPluginComponentProps` only when it needs `renderSlot`; read Agent and instance data through Runtime Context hooks and narrow unknown state safely.
-4. Create `definition.ts` that validates the manifest and exports a `UIPluginDefinition`.
-5. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
-6. Default-export the definition so the target-owned generator can include it in the static Registry. Do not spread a template catalog into the production registry.
-7. Submit `pluginId` and all currently known new Plugin files together in one `create_ui_plugin` call, using `relativePath` values inside that Plugin directory. It requires `manifest.json`, `definition.ts`, and `index.tsx`, is create-only, and transactionally rolls back the whole call on failure. Never use it to replace an existing Plugin directory or file.
-8. Run `validate_creator_changes`. Fix returned diagnostics with `read_file` plus `edit_file`, then validate the new revision again.
-9. Add exactly one AppUIPluginNode through `mutate_app_ui_model`; target an ordinary Plugin at the intended authoring Slot, or target an Application Gate at application scope. That transaction updates the generated Registry in both cases.
-10. Because composition changes the Activity revision, run `validate_creator_changes` again for the final revision.
-11. Call `inspect_runtime_errors`. Fresh current-hash evidence with zero current errors is required before claiming Runtime success.
+1. Classify the Plugin, decide whether it should be Creator-operable, and define its Runtime, Composition, and optional Creator Authoring contracts.
+2. Read `/framework/contracts/ui-plugin.ts` and one closest existing Plugin end to end.
+3. Create `/plugins/<plugin-id>/manifest.json` with a unique id, useful description, version, capabilities when applicable, accurate `data.messages`, `data.state`, or `data.events` declarations, and the authoring contract when Add/Restore is intended.
+4. Create `index.tsx` with a named React component. Accept `UIPluginComponentProps` only when it needs `renderSlot`; read Agent and instance data through Runtime Context hooks and narrow unknown state safely.
+5. Create `definition.ts` that validates the manifest and exports a `UIPluginDefinition`.
+6. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
+7. Default-export the definition so the target-owned generator can include it in the static Registry. Do not spread a template catalog into the production registry.
+8. Submit `pluginId` and all currently known new Plugin files together in one `create_ui_plugin` call, using `relativePath` values inside that Plugin directory. It requires `manifest.json`, `definition.ts`, and `index.tsx`, is create-only, and transactionally rolls back the whole call on failure. Never use it to replace an existing Plugin directory or file.
+9. Run `validate_creator_changes`. Fix returned diagnostics with `read_file` plus `edit_file`, then validate the new revision again.
+10. Add exactly one AppUIPluginNode through `mutate_app_ui_model`; target an ordinary Plugin at the intended authoring Slot, or target an Application Gate at application scope. That transaction updates the generated Registry in both cases.
+11. Because composition changes the Activity revision, run `validate_creator_changes` again for the final revision.
+12. Call `inspect_runtime_errors`. Fresh current-hash evidence with zero current errors is required before claiming Runtime success.
 
 ## Development completion loop
 

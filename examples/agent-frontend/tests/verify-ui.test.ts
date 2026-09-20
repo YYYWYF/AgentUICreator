@@ -26,6 +26,7 @@ async function createProject(options: {
   mounted: boolean;
   headless?: boolean;
   childSlots?: readonly string[];
+  manifest?: Record<string, unknown>;
   pluginSource?: string;
   definitionSource?: string;
 }): Promise<string> {
@@ -64,6 +65,7 @@ async function createProject(options: {
               ])),
             },
           }),
+      ...(options.manifest ?? {}),
     }),
   );
   await writeFile(
@@ -123,6 +125,62 @@ afterEach(async () => {
 });
 
 describe("verifyUIProject", () => {
+  it("reports limited Creator readiness without failing verification", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+      manifest: {
+        authoring: { intents: ["show the sample Plugin"] },
+      },
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("passed");
+    expect(result.creatorReadiness.plugins).toContainEqual(
+      expect.objectContaining({
+        pluginId: "sample",
+        status: "limited",
+        discoverable: true,
+        addRestore: "unavailable",
+      }),
+    );
+    expect(result.errors).toEqual([]);
+    expect(result.warnings).toContainEqual(
+      expect.objectContaining({
+        code: "CREATOR_ADD_RESTORE_UNAVAILABLE",
+        pluginId: "sample",
+      }),
+    );
+  });
+
+  it("fails when a declared Creator default placement is invalid", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+      manifest: {
+        authoring: {
+          intents: ["show the sample Plugin"],
+          defaultPlacement: {
+            type: "plugin_slot",
+            parentPluginId: "missing-parent",
+            slot: "content",
+          },
+        },
+      },
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "CREATOR_DEFAULT_PLACEMENT_PARENT_NOT_FOUND",
+        pluginId: "sample",
+      }),
+    );
+  });
+
   it("rejects a visual plugin in application scope", async () => {
     const projectRoot = await createProject({
       instancePluginId: "sample",

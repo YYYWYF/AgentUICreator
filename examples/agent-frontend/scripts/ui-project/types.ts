@@ -90,6 +90,31 @@ export interface PluginAsset {
   childSlots?: Record<string, PluginChildSlotDefinition> | undefined;
 }
 
+export type CreatorReadinessStatus =
+  | "ready"
+  | "limited"
+  | "manual-only"
+  | "not-applicable";
+
+export type CreatorReadinessAddRestore =
+  | "ready"
+  | "unavailable"
+  | "not-applicable";
+
+export interface PluginCreatorReadiness {
+  pluginId: string;
+  status: CreatorReadinessStatus;
+  discoverable: boolean;
+  addRestore: CreatorReadinessAddRestore;
+  reasons: string[];
+}
+
+export interface PluginAuthoringReadiness {
+  plugins: PluginCreatorReadiness[];
+  errors: ProjectIssue[];
+  warnings: ProjectIssue[];
+}
+
 export type CreatorAuthoringTargetKind = "application_config" | "plugin_source";
 
 export interface CreatorAuthoringTargetCandidate {
