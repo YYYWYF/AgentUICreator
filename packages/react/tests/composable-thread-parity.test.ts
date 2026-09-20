@@ -11,6 +11,11 @@ const upstreamThreadPath = path.join(
   vendorRoot,
   "components/assistant-ui/elements/thread.aui.tsx",
 );
+const upstreamAttachmentPath = path.join(
+  vendorRoot,
+  "components/assistant-ui/elements/attachment.aui.tsx",
+);
+const publicFacadePath = path.join(packageRoot, "src/public.tsx");
 
 describe("ComposableThread upstream parity", () => {
   it("keeps the upstream Thread anatomy and product Composer outlet", async () => {
@@ -69,5 +74,44 @@ describe("ComposableThread upstream parity", () => {
     );
     expect(composableThread).not.toContain("AppUIModel");
     expect(composableThread).not.toContain("Plugin Runtime");
+  });
+
+  it("keeps canonical presentation defaults explicit at the facade boundary", async () => {
+    const [facade, attachment, upstreamThread] = await Promise.all([
+      readFile(publicFacadePath, "utf8"),
+      readFile(upstreamAttachmentPath, "utf8"),
+      readFile(upstreamThreadPath, "utf8"),
+    ]);
+
+    for (const token of [
+      'placeholder = "Send a message..."',
+      'inputAriaLabel = "Message input"',
+      'label = "Voice input"',
+      'label = "Stop voice input"',
+      'label = "Send message"',
+      'label = "Stop generating"',
+      'tooltip="Copy"',
+      'tooltip="Refresh"',
+      'tooltip="Export as Markdown"',
+      'nextLabel = "Next"',
+      'previousLabel = "Previous"',
+    ]) {
+      expect(facade, token).toContain(token);
+    }
+
+    for (const token of [
+      'tooltip="Add Attachment"',
+      'tooltip="Copy"',
+      'tooltip="Refresh"',
+      'Export as Markdown',
+      'tooltip="Previous"',
+      'tooltip="Next"',
+      'tooltip="Voice input"',
+      'aria-label="Stop voice input"',
+      'aria-label="Send message"',
+      'aria-label="Stop generating"',
+    ]) {
+      expect(`${attachment}\n${upstreamThread}`, token).toContain(token);
+    }
   });
 });

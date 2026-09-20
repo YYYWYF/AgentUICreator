@@ -169,3 +169,30 @@ intentional no-op, not a request to recreate the canonical presentation.
 P3R-4D does not make assistant-ui the default mode and does not delete legacy
 code. It integrates the native ThreadList only in the explicit assistant-ui
 projection; final legacy deletion remains a P3R-6 concern.
+
+## 8. Canonical leaf presentation and locale boundary
+
+Canonical assistant-ui Plugins are semantic composition units. They decide
+whether a capability is mounted and which semantic Slot receives it; they do
+not own canonical labels, icons, aria text, tooltips, or translations.
+
+The default presentation remains upstream-owned and is exposed through the
+`@agent-ui/react` facade when an integration seam is required. In particular,
+the following canonical Plugins must not inject or read `agent-ui.locale`:
+
+```text
+assistant-ui-copy-action
+assistant-ui-reload-action
+assistant-ui-export-markdown-action
+assistant-ui-message-footer
+assistant-ui-composer
+assistant-ui-add-attachment-action
+assistant-ui-dictation-action
+assistant-ui-submit-action
+```
+
+AgentUICreator-owned UI such as thread-list extensions, theme controls,
+Inspector surfaces, and application gates may continue to use
+`AgentUILocaleService`. Future assistant-ui localization must enter through a
+single complete adapter at the canonical facade boundary rather than through
+individual action Plugins.
