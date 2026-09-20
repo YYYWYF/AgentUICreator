@@ -64,6 +64,7 @@ export interface UIPluginRuntimeProps<TState = unknown> {
 interface SlotContentProps<TState = unknown> {
   slotId: string;
   fallback?: ReactNode | undefined;
+  layout: "stack" | "inline";
   scope?: UIPluginRenderScope | undefined;
   acceptedCapabilities?: readonly string[] | undefined;
   model: AppUIRuntimeModel;
@@ -75,8 +76,20 @@ interface SlotContentProps<TState = unknown> {
 
 interface SlotWidthProbeProps {
   children: ReactNode;
+  layout: "stack" | "inline";
   sizing: "fill" | "content";
   slotId: string;
+}
+
+function resolveSlotRenderOptions(
+  options: UIPluginRenderSlotOptions | undefined,
+): { layout: "stack" | "inline"; sizing: "fill" | "content" } {
+  const layout = options?.layout ?? "stack";
+  const sizing = options?.sizing ?? "content";
+  if (layout === "inline" && sizing === "fill") {
+    throw new Error("inline Slot cannot use fill sizing");
+  }
+  return { layout, sizing };
 }
 
 function PluginRuntimeError({ children }: { children: ReactNode }) {
@@ -89,6 +102,7 @@ function PluginRuntimeError({ children }: { children: ReactNode }) {
 
 function SlotWidthProbe({
   children,
+  layout,
   sizing,
   slotId,
 }: SlotWidthProbeProps) {
@@ -126,6 +140,7 @@ function SlotWidthProbe({
       ref={elementRef}
       className="app-ui-plugin-slot-width-probe"
       data-slot-id={slotId}
+      data-slot-layout={layout}
       data-slot-sizing={sizing}
       data-slot-width-class={widthClass}
     >
@@ -137,6 +152,7 @@ function SlotWidthProbe({
 function SlotContent<TState = unknown>({
   slotId,
   fallback,
+  layout,
   scope,
   acceptedCapabilities,
   model,
@@ -192,10 +208,11 @@ function SlotContent<TState = unknown>({
       if (child === undefined || child.mode === "renderer") {
         throw new Error(`Plugin instance "${instance.id}" cannot render content Slot "${requestedSlotId}"`);
       }
+      const resolvedOptions = resolveSlotRenderOptions(options);
       const runtimeSlotId = resolveRuntimePluginSlotId(instance.id, requestedSlotId);
       return (
-        <SlotWidthProbe sizing={options?.sizing ?? "content"} slotId={runtimeSlotId}>
-          <SlotContent actions={actions} fallback={requestedFallback} model={model}
+        <SlotWidthProbe {...resolvedOptions} slotId={runtimeSlotId}>
+          <SlotContent actions={actions} fallback={requestedFallback} layout={resolvedOptions.layout} model={model}
             onPluginError={onPluginError} onPluginReset={onPluginReset}
             registry={registry} slotId={runtimeSlotId} />
         </SlotWidthProbe>
@@ -210,7 +227,7 @@ function SlotContent<TState = unknown>({
         throw new Error(`Plugin instance "${instance.id}" cannot render scoped Slot "${requestedSlotId}"`);
       }
       return <SlotContent actions={actions} acceptedCapabilities={child.accepts?.anyOfCapabilities}
-        model={model} onPluginError={onPluginError}
+        layout="stack" model={model} onPluginError={onPluginError}
         onPluginReset={onPluginReset} registry={registry}
         scope={requestedScope} slotId={resolveRuntimePluginSlotId(instance.id, requestedSlotId)} />;
     };
@@ -231,6 +248,7 @@ function SlotContent<TState = unknown>({
     <div
       className="app-ui-plugin-slot-content"
       data-slot-id={slotId}
+      data-slot-layout={layout}
     >
       {contributions.map(({ instanceId }) => {
         const instance = model.pluginInstances[instanceId];
@@ -273,18 +291,20 @@ function SlotContent<TState = unknown>({
               `Plugin instance "${instance.id}" cannot render undeclared child Slot "${requestedSlotId}"`,
             );
           }
+          const resolvedOptions = resolveSlotRenderOptions(options);
           const runtimeSlotId = resolveRuntimePluginSlotId(
             instance.id,
             requestedSlotId,
           );
           return (
             <SlotWidthProbe
-              sizing={options?.sizing ?? "content"}
+              {...resolvedOptions}
               slotId={runtimeSlotId}
             >
               <SlotContent
                 actions={actions}
                 fallback={requestedFallback}
+                layout={resolvedOptions.layout}
                 model={model}
                 onPluginError={onPluginError}
                 onPluginReset={onPluginReset}
@@ -304,7 +324,7 @@ function SlotContent<TState = unknown>({
           }
           return (
             <SlotContent actions={actions} acceptedCapabilities={child.accepts?.anyOfCapabilities}
-              model={model} onPluginError={onPluginError}
+              layout="stack" model={model} onPluginError={onPluginError}
               onPluginReset={onPluginReset} registry={registry}
               scope={requestedScope} slotId={resolveRuntimePluginSlotId(instance.id, requestedSlotId)} />
           );
@@ -330,7 +350,7 @@ function SlotContent<TState = unknown>({
 }
 
 interface LayoutSlotOutletProps<TState = unknown>
-  extends Omit<SlotContentProps<TState>, "slotId"> {
+  extends Omit<SlotContentProps<TState>, "layout" | "slotId"> {
   slot: SlotNode;
 }
 
@@ -349,10 +369,11 @@ function LayoutSlotOutlet<TState = unknown>({
   );
   return (
     <SlotWidthProbe
+      layout="stack"
       sizing="fill"
       slotId={slot.slotId}
     >
-      <SlotContent {...props} slotId={slot.slotId} />
+      <SlotContent {...props} layout="stack" slotId={slot.slotId} />
     </SlotWidthProbe>
   );
 }

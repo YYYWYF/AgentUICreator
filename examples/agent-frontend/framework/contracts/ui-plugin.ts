@@ -160,6 +160,7 @@ export type UIPluginSetupCleanup = void | (() => void);
 
 export interface UIPluginRenderSlotOptions {
   sizing?: "content" | "fill";
+  layout?: "stack" | "inline";
 }
 
 export interface UIPluginComponentProps {
