@@ -1,6 +1,8 @@
 import { createContext, useContext, type ReactNode } from "react";
 import {
+  ConversationCanonicalAssistantMessage,
   toConversationMessagePartGroup,
+  type ConversationAssistantMessageFooterRenderScope,
   type ConversationReasoningGroupRenderScope,
   type ConversationToolGroupRenderScope,
   type ConversationToolFallbackRenderScope,
@@ -33,6 +35,25 @@ export function ScopedReasoningGroup({ group: rawGroup, children }: { group: unk
   if (renderScopedSlot === null) return null;
   const value: ConversationReasoningGroupRenderScope = { group, children };
   return renderScopedSlot("reasoningGroup", { kind: "conversation.reasoning-group", value });
+}
+
+export function ScopedAssistantMessage() {
+  const renderScopedSlot = useContext(ScopedRendererBridgeContext);
+  const footer = renderScopedSlot === null
+    ? null
+    : renderScopedSlot("assistantMessageFooter", {
+        kind: "conversation.assistant-message-footer",
+        value: {} satisfies ConversationAssistantMessageFooterRenderScope,
+      });
+
+  return (
+    <ConversationCanonicalAssistantMessage
+      footer={footer}
+      reasoningGroup={ScopedReasoningGroup}
+      toolFallback={ScopedToolFallback}
+      toolGroup={ScopedToolGroup}
+    />
+  );
 }
 
 export function ScopedToolGroup({ group: rawGroup, children }: { group: unknown; children?: ReactNode }) {

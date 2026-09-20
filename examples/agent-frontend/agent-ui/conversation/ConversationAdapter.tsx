@@ -12,6 +12,7 @@ import { useAgentUIThemeMode } from "../theme/useAgentUITheme";
 import { ConversationSurface } from "./ConversationSurface";
 import {
   ScopedReasoningGroup,
+  ScopedAssistantMessage,
   ScopedRendererBridgeProvider,
   ScopedToolFallback,
   ScopedToolGroup,
@@ -57,6 +58,7 @@ export function ConversationWelcomeFallback() {
 
 export function createConversationSemanticThreadComponents(): ConversationThreadComponents {
   return {
+    AssistantMessage: ScopedAssistantMessage,
     Welcome: ConversationEmptyState,
     ReasoningGroup: ScopedReasoningGroup,
     ToolGroup: ScopedToolGroup,

@@ -37,6 +37,7 @@ export function ConversationSurfacePlugin({
       case "reasoningGroup": return renderScopedSlot("reasoningGroup", scope);
       case "toolGroup": return renderScopedSlot("toolGroup", scope);
       case "toolFallback": return renderScopedSlot("toolFallback", scope);
+      case "assistantMessageFooter": return renderScopedSlot("assistantMessageFooter", scope);
       default: throw new Error(`Unknown Conversation renderer Slot "${slotName}"`);
     }
   };

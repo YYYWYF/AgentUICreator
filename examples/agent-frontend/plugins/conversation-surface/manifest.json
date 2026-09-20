@@ -56,6 +56,15 @@
         "optional": true,
         "mode": "renderer",
         "accepts": { "anyOfCapabilities": ["conversation-tool-fallback-renderer"] }
+      },
+      "assistantMessageFooter": {
+        "description": "Renderer for the assistant message footer.",
+        "cardinality": "one",
+        "optional": true,
+        "mode": "renderer",
+        "accepts": {
+          "anyOfCapabilities": ["conversation-assistant-message-footer-renderer"]
+        }
       }
     }
   },

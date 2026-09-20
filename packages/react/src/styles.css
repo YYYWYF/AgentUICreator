@@ -187,6 +187,11 @@
   display: none;
 }
 
+/* An optional semantic Footer Renderer may have no active contribution. */
+.agent-ui-conversation [data-slot="aui_assistant-message-footer"]:empty {
+  display: none;
+}
+
 /* The runtime keeps a child Slot host for empty slots, so key separation on
  * the canonical Suggestions contribution rather than on the host wrapper. */
 .agent-ui-conversation

@@ -20,7 +20,7 @@ describe("assistant-ui message composition", () => {
     expect(thread).toContain("ToolGroup");
   });
 
-  it("keeps the whole message upstream while exposing scoped renderer adapters", async () => {
+  it("uses the public message facade while exposing scoped renderer adapters", async () => {
     const adapter = await readFile(
       path.join(projectRoot, "agent-ui/conversation/ConversationAdapter.tsx"),
       "utf8",
@@ -31,6 +31,6 @@ describe("assistant-ui message composition", () => {
     expect(adapter).toContain("ScopedReasoningGroup");
     expect(adapter).toContain("ScopedToolGroup");
     expect(adapter).toContain("ScopedToolFallback");
-    expect(adapter).not.toContain("AssistantMessage:");
+    expect(adapter).toContain("AssistantMessage: ScopedAssistantMessage");
   });
 });
