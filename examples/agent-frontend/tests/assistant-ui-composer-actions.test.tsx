@@ -290,7 +290,7 @@ describe("assistant-ui Composer action Plugins", () => {
     const run = vi.fn<ChatModelAdapter["run"]>(async () => ({
       content: [{ type: "text", text: "Answer" }],
     }));
-    const { container } = await mount(run);
+    const { container } = await mount({ run });
     const input = findComposerInput(container);
 
     await act(async () => {
@@ -319,7 +319,7 @@ describe("assistant-ui Composer action Plugins", () => {
       });
       return { content: [] };
     });
-    const { container } = await mount(run);
+    const { container } = await mount({ run });
     const input = findComposerInput(container);
 
     await act(async () => {
@@ -352,7 +352,7 @@ describe("assistant-ui Composer action Plugins", () => {
 
   it("keeps Input and Submit functional without the attachment action Plugin", async () => {
     const run = vi.fn<ChatModelAdapter["run"]>(async () => ({ content: [] }));
-    const { container } = await mount(run, { attachment: false });
+    const { container } = await mount({ run }, { attachment: false });
 
     expect(
       container.querySelector('[data-plugin-id="assistant-ui-add-attachment-action"]'),
@@ -369,7 +369,7 @@ describe("assistant-ui Composer action Plugins", () => {
 
   it("keeps Input and Submit functional without the dictation action Plugin", async () => {
     const run = vi.fn<ChatModelAdapter["run"]>(async () => ({ content: [] }));
-    const { container } = await mount(run, { dictation: false });
+    const { container } = await mount({ run }, { dictation: false });
 
     expect(
       container.querySelector('[data-plugin-id="assistant-ui-dictation-action"]'),

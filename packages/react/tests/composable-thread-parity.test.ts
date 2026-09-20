@@ -56,6 +56,8 @@ describe("ComposableThread upstream parity", () => {
     const lock = JSON.parse(lockSource) as { elements?: Record<string, string> };
     const upstreamPath = "components/assistant-ui/elements/thread.aui.tsx";
 
+    expect(upstreamThread).toContain("autoFocus = true");
+    expect(composableThread).toContain("autoFocus = true");
     expect(manifest.owned).toContain(upstreamPath);
     expect(lock.elements?.[upstreamPath]).toMatch(/^[0-9a-f]{64}$/u);
     expect(upstreamThread).toContain("export const Thread");

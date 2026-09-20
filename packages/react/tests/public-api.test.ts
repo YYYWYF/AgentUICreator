@@ -36,6 +36,12 @@ describe("@agent-ui/react public API", () => {
       "ConversationBranchPicker",
       "ConversationTooltipIconButton",
       "ConversationThreadListRoot",
+      "ConversationCanonicalComposer",
+      "ConversationComposerAddAttachment",
+      "ConversationComposerDictate",
+      "ConversationComposerStopDictation",
+      "ConversationComposerSend",
+      "ConversationComposerCancel",
       "useConversationState",
       "Button",
     ]) {

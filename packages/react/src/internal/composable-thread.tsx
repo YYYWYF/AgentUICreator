@@ -143,7 +143,7 @@ const ThreadHistorySkeleton: FC = () => (
 
 export const ComposableThread: FC<ThreadProps> = ({
   components = EMPTY_COMPONENTS,
-  autoFocus = false,
+  autoFocus = true,
   composer = null,
 }) => {
   const isEmpty = useAuiState(isNewChatView);
