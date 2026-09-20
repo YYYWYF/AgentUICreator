@@ -211,12 +211,50 @@ export function ConversationComposerAddAttachment({ label = "Add Attachment" }: 
   return <InternalConversationComposerAddAttachment label={label} />;
 }
 
-export function ConversationComposerDictate({ label = "Voice input" }: Readonly<{ label?: string }> = {}) {
-  return <InternalConversationComposerDictate label={label} />;
+export interface ConversationComposerDictateProps {
+  tooltip?: string | undefined;
+  ariaLabel?: string | undefined;
+  /**
+   * Backward-compatible shorthand. Prefer tooltip + ariaLabel for exact
+   * presentation control.
+   */
+  label?: string | undefined;
 }
 
-export function ConversationComposerStopDictation({ label = "Stop voice input" }: Readonly<{ label?: string }> = {}) {
-  return <InternalConversationComposerStopDictation label={label} />;
+export function ConversationComposerDictate({
+  tooltip,
+  ariaLabel,
+  label,
+}: Readonly<ConversationComposerDictateProps> = {}) {
+  return (
+    <InternalConversationComposerDictate
+      tooltip={tooltip ?? label ?? "Voice input"}
+      ariaLabel={ariaLabel ?? label ?? "Start voice input"}
+    />
+  );
+}
+
+export interface ConversationComposerStopDictationProps {
+  tooltip?: string | undefined;
+  ariaLabel?: string | undefined;
+  /**
+   * Backward-compatible shorthand. Prefer tooltip + ariaLabel for exact
+   * presentation control.
+   */
+  label?: string | undefined;
+}
+
+export function ConversationComposerStopDictation({
+  tooltip,
+  ariaLabel,
+  label,
+}: Readonly<ConversationComposerStopDictationProps> = {}) {
+  return (
+    <InternalConversationComposerStopDictation
+      tooltip={tooltip ?? label ?? "Stop dictation"}
+      ariaLabel={ariaLabel ?? label ?? "Stop voice input"}
+    />
+  );
 }
 
 export function ConversationComposerSend({ label = "Send message" }: Readonly<{ label?: string }> = {}) {
@@ -411,7 +449,6 @@ export function ConversationCanonicalCopyAction() {
         <ConversationIf condition={(state) => state.message.isCopied}>
           <CheckIcon
             data-slot="assistant-ui-copy-action-copied"
-            aria-label="Copied"
             className="animate-in zoom-in-50 fade-in duration-200 ease-out"
           />
         </ConversationIf>
@@ -429,7 +466,7 @@ export function ConversationCanonicalCopyAction() {
 export function ConversationCanonicalReloadAction() {
   return (
     <ConversationActionReload>
-      <ConversationTooltipIconButton tooltip="Refresh" type="button">
+      <ConversationTooltipIconButton tooltip="Refresh">
         <RefreshCwIcon />
       </ConversationTooltipIconButton>
     </ConversationActionReload>

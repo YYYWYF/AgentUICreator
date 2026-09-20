@@ -374,17 +374,25 @@ export const ComposerAddAttachmentAction: FC<{ label?: string }> = ({ label }) =
   return <ComposerAddAttachmentOverride label={label} />;
 };
 
-export const ComposerDictateAction: FC<{ label: string }> = ({ label }) => (
+interface ComposerDictateActionProps {
+  tooltip: string;
+  ariaLabel: string;
+}
+
+export const ComposerDictateAction: FC<ComposerDictateActionProps> = ({
+  tooltip,
+  ariaLabel,
+}) => (
   <AuiIf condition={(s) => s.thread.capabilities.dictation && s.composer.dictation == null}>
     <ComposerPrimitive.Dictate asChild>
       <TooltipIconButton
-        tooltip={label}
+        tooltip={tooltip}
         side="bottom"
         type="button"
         variant="ghost"
         size="icon"
         className="aui-composer-dictate text-muted-foreground hover:text-foreground size-7 rounded-full"
-        aria-label={label}
+        aria-label={ariaLabel}
       >
         <MicIcon className="aui-composer-dictate-icon size-4" />
       </TooltipIconButton>
@@ -392,17 +400,25 @@ export const ComposerDictateAction: FC<{ label: string }> = ({ label }) => (
   </AuiIf>
 );
 
-export const ComposerStopDictationAction: FC<{ label: string }> = ({ label }) => (
+interface ComposerStopDictationActionProps {
+  tooltip: string;
+  ariaLabel: string;
+}
+
+export const ComposerStopDictationAction: FC<ComposerStopDictationActionProps> = ({
+  tooltip,
+  ariaLabel,
+}) => (
   <AuiIf condition={(s) => s.thread.capabilities.dictation && s.composer.dictation != null}>
     <ComposerPrimitive.StopDictation asChild>
       <TooltipIconButton
-        tooltip={label}
+        tooltip={tooltip}
         side="bottom"
         type="button"
         variant="ghost"
         size="icon"
         className="aui-composer-stop-dictation text-destructive size-7 rounded-full"
-        aria-label={label}
+        aria-label={ariaLabel}
       >
         <SquareIcon className="aui-composer-stop-dictation-icon size-3.5 animate-pulse fill-current" />
       </TooltipIconButton>
@@ -437,7 +453,6 @@ export const ComposerCancelAction: FC<{ label: string }> = ({ label }) => (
         size="icon"
         className="aui-composer-cancel size-7 rounded-full"
         aria-label={label}
-        title={label}
       >
         <SquareIcon className="aui-composer-cancel-icon size-3.5 fill-current" />
       </Button>

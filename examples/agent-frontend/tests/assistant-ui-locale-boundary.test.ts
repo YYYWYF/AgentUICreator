@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
+import { pluginCapabilityCatalog } from "../plugins";
+
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const canonicalPluginIds = [
   "assistant-ui-copy-action",
@@ -29,6 +31,14 @@ describe("assistant-ui canonical localization boundary", () => {
       expect(source).not.toContain("useAgentUILocale");
       expect(source).not.toContain("AGENT_UI_LOCALE_SERVICE");
       expect(source).not.toContain("agent-ui.locale");
+    }
+  });
+
+  it("keeps generated canonical capability entries free from locale injection", () => {
+    for (const pluginId of canonicalPluginIds) {
+      const entry = pluginCapabilityCatalog.get(pluginId);
+      expect(entry, pluginId).toBeDefined();
+      expect(entry?.optionalInject, pluginId).toEqual([]);
     }
   });
 });

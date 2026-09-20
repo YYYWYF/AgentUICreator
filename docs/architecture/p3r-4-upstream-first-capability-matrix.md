@@ -196,3 +196,25 @@ Inspector surfaces, and application gates may continue to use
 `AgentUILocaleService`. Future assistant-ui localization must enter through a
 single complete adapter at the canonical facade boundary rather than through
 individual action Plugins.
+
+### Canonical defaults and intentional adaptations
+
+The canonical facade preserves these pinned assistant-ui defaults:
+
+```text
+- Composer Add Attachment: direct upstream reuse
+- Composer Dictation: thin facade mirror
+- Composer Submit: thin facade mirror
+- Copy / Reload: thin facade mirror
+- Branch Picker: thin facade mirror
+```
+
+The following are intentional composition adaptations rather than upstream
+presentation replacements:
+
+```text
+- Composer child Slots
+- Footer child action Slots
+- Export Markdown promoted from the upstream More menu to a direct action
+- Stable data-slot hooks used only for tests and composition diagnostics
+```
