@@ -1,0 +1,55 @@
+{
+  "id": "assistant-ui-composer",
+  "name": "Assistant UI Composer",
+  "description": "Renders the canonical assistant-ui conversation composer with composable action Slots.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-composer"],
+  "authoring": {
+    "intents": [
+      "show the primary conversation composer",
+      "compose conversation input actions"
+    ],
+    "visualRole": "conversation composer",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "conversation-surface",
+      "slot": "composer"
+    }
+  },
+  "slots": {
+    "children": {
+      "beforeInput": {
+        "description": "Content displayed between attachments and the composer input.",
+        "cardinality": "many",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": ["conversation-composer-before-input"]
+        }
+      },
+      "leadingActions": {
+        "description": "Inline actions displayed on the leading side of the composer.",
+        "cardinality": "many",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": ["conversation-composer-leading-action"]
+        }
+      },
+      "trailingActions": {
+        "description": "Inline actions displayed before the composer submit action.",
+        "cardinality": "many",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": ["conversation-composer-trailing-action"]
+        }
+      },
+      "submitAction": {
+        "description": "The primary send or stop action for the composer.",
+        "cardinality": "one",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": ["conversation-composer-submit-action"]
+        }
+      }
+    }
+  }
+}

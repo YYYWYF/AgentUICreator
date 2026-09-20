@@ -10,6 +10,10 @@ export interface AgentUILocaleMessages {
   };
   composer: {
     placeholder: string;
+    input: string;
+    addAttachment: string;
+    dictate: string;
+    stopDictation: string;
     send: string;
     stop: string;
   };

@@ -8,6 +8,10 @@ export const zhCN = {
   },
   composer: {
     placeholder: "输入消息...",
+    input: "消息输入",
+    addAttachment: "添加附件",
+    dictate: "开始语音输入",
+    stopDictation: "停止语音输入",
     send: "发送",
     stop: "停止生成",
   },

@@ -8,6 +8,10 @@ export const enUS = {
   },
   composer: {
     placeholder: "Send a message...",
+    input: "Message input",
+    addAttachment: "Add attachment",
+    dictate: "Start voice input",
+    stopDictation: "Stop voice input",
     send: "Send",
     stop: "Stop generating",
   },

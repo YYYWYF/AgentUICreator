@@ -2,7 +2,7 @@
   "id": "conversation-surface",
   "name": "Conversation Surface",
   "description": "组合 Live 与只读 History 会话的空状态、消息时间线与输入区。",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "capabilities": ["conversation-surface"],
   "authoring": {
     "intents": [
@@ -34,6 +34,14 @@
         "optional": true,
         "accepts": {
           "anyOfCapabilities": ["theme-control"]
+        }
+      },
+      "composer": {
+        "description": "Primary conversation composer.",
+        "cardinality": "one",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": ["conversation-composer"]
         }
       },
       "reasoningGroup": {

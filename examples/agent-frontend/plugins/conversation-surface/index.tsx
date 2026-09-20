@@ -29,6 +29,7 @@ export function ConversationSurfacePlugin({
   const welcome = renderSlot("emptyWelcome", <ConversationWelcomeFallback />);
   const suggestions = renderSlot("emptySuggestions", null);
   const headerActions = renderSlot("headerActions", null);
+  const composer = renderSlot("composer", null);
   const renderConversationScopedSlot = (
     slotName: string,
     scope: UIPluginRenderScope,
@@ -55,7 +56,12 @@ export function ConversationSurfacePlugin({
       >
         {headerActions}
       </div>
-      <ConversationAdapter welcome={welcome} suggestions={suggestions} renderScopedSlot={renderConversationScopedSlot} />
+      <ConversationAdapter
+        welcome={welcome}
+        suggestions={suggestions}
+        composer={composer}
+        renderScopedSlot={renderConversationScopedSlot}
+      />
     </div>
   );
 }
