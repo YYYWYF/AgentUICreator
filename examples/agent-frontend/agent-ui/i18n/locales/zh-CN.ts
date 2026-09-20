@@ -11,6 +11,14 @@ export const zhCN = {
     send: "发送",
     stop: "停止生成",
   },
+  messageActions: {
+    copy: "复制",
+    copied: "已复制",
+    reload: "重新生成",
+    exportMarkdown: "导出 Markdown",
+    previous: "上一条",
+    next: "下一条",
+  },
   theme: {
     settings: "主题设置",
     switchToLight: "切换到浅色模式",

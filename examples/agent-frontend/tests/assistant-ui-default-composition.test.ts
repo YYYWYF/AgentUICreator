@@ -20,6 +20,13 @@ describe("assistant-ui default composition", () => {
     } });
     expect(slots?.toolGroup?.mode).toBe("renderer");
     expect(slots?.toolFallback?.mode).toBe("renderer");
+    expect(slots?.assistantMessageFooter).toMatchObject({
+      mode: "renderer",
+      cardinality: "one",
+      accepts: {
+        anyOfCapabilities: ["conversation-assistant-message-footer-renderer"],
+      },
+    });
     const locations = collectAppUIPluginLocations(parseAppUIModel(appUIJson));
     expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-reasoning-main")?.target)
       .toMatchObject({ type: "plugin_slot", parentInstanceId: "agent-conversation-surface-main", slot: "reasoningGroup" });
@@ -48,6 +55,11 @@ describe("assistant-ui default composition", () => {
       parentPluginId: "conversation-surface",
       slot: "toolFallback",
     });
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-message-footer")?.manifest.authoring?.defaultPlacement).toEqual({
+      type: "plugin_slot",
+      parentPluginId: "conversation-surface",
+      slot: "assistantMessageFooter",
+    });
   });
   it("keeps the default model to application plugins and semantic child Slot plugins", () => {
     const model = parseAppUIModel(appUIJson);
@@ -63,6 +75,10 @@ describe("assistant-ui default composition", () => {
       "assistant-ui-reasoning-main",
       "assistant-ui-tool-group-main",
       "assistant-ui-tool-fallback-main",
+      "assistant-ui-message-footer-main",
+      "assistant-ui-copy-action-main",
+      "assistant-ui-reload-action-main",
+      "assistant-ui-export-markdown-action-main",
     ]);
     expect(locations.map(({ plugin }) => plugin.id)).toEqual([
       "agent-conversation-data-main",
@@ -75,6 +91,10 @@ describe("assistant-ui default composition", () => {
       "assistant-ui-reasoning-main",
       "assistant-ui-tool-group-main",
       "assistant-ui-tool-fallback-main",
+      "assistant-ui-message-footer-main",
+      "assistant-ui-copy-action-main",
+      "assistant-ui-reload-action-main",
+      "assistant-ui-export-markdown-action-main",
     ]);
     expect(locations.filter(({ plugin, target }) => plugin.enabled && target.type === "application").map(({ plugin }) => plugin.id)).toEqual([
       "agent-conversation-data-main",
@@ -170,7 +190,7 @@ describe("assistant-ui default composition", () => {
     ]) {
       expect(thread).toContain(`data-slot=\"${slot}\"`);
     }
-    expect(conversationAdapter).not.toContain("AssistantMessage:");
+    expect(conversationAdapter).toContain("AssistantMessage: ScopedAssistantMessage");
     expect(conversationAdapter).toContain("ScopedReasoningGroup");
     expect(conversationAdapter).toContain("ScopedToolGroup");
     expect(conversationAdapter).toContain("ScopedToolFallback");

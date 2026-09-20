@@ -4,9 +4,112 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "d69f1062777a84b5fd9b9d3a2c1a6028165750957697a120012f198b15cc6410";
+export const capabilityCatalogRevision = "333b1bff35b864e50c8388aa7dc4b60786ec59ec0b47a789e74422cdb5178415";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
+  {
+    manifest: {
+      "id": "assistant-ui-copy-action",
+      "name": "Assistant UI Copy Action",
+      "description": "Copies the current assistant message through assistant-ui.",
+      "version": "1.0.0",
+      "capabilities": [
+        "conversation-message-action"
+      ],
+      "authoring": {
+        "intents": [
+          "copy assistant message content"
+        ],
+        "visualRole": "assistant message copy action",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "assistant-ui-message-footer",
+          "slot": "actions"
+        }
+      }
+    },
+    provides: [],
+    inject: [],
+    optionalInject: ["agent-ui.locale"],
+    loadDefinition: () =>
+      import("./assistant-ui-copy-action/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
+      "id": "assistant-ui-export-markdown-action",
+      "name": "Assistant UI Export Markdown Action",
+      "description": "Exports the current assistant message as Markdown through assistant-ui.",
+      "version": "1.0.0",
+      "capabilities": [
+        "conversation-message-action"
+      ],
+      "authoring": {
+        "intents": [
+          "export an assistant message as Markdown"
+        ],
+        "visualRole": "assistant message Markdown export action",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "assistant-ui-message-footer",
+          "slot": "actions"
+        }
+      }
+    },
+    provides: [],
+    inject: [],
+    optionalInject: ["agent-ui.locale"],
+    loadDefinition: () =>
+      import("./assistant-ui-export-markdown-action/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
+      "id": "assistant-ui-message-footer",
+      "name": "Assistant UI Message Footer",
+      "description": "Renders the canonical assistant message footer and its composable actions.",
+      "version": "1.0.0",
+      "capabilities": [
+        "conversation-assistant-message-footer-renderer"
+      ],
+      "requiresRenderScope": true,
+      "authoring": {
+        "intents": [
+          "show assistant message branch and action controls",
+          "compose assistant message footer actions"
+        ],
+        "visualRole": "assistant message footer",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "assistantMessageFooter"
+        }
+      },
+      "slots": {
+        "children": {
+          "actions": {
+            "description": "Actions displayed in the assistant message footer.",
+            "cardinality": "many",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-message-action"
+              ]
+            }
+          }
+        }
+      }
+    },
+    provides: [],
+    inject: [],
+    optionalInject: ["agent-ui.locale"],
+    loadDefinition: () =>
+      import("./assistant-ui-message-footer/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
   {
     manifest: {
       "id": "assistant-ui-reasoning",
@@ -36,6 +139,35 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     optionalInject: [],
     loadDefinition: () =>
       import("./assistant-ui-reasoning/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
+      "id": "assistant-ui-reload-action",
+      "name": "Assistant UI Reload Action",
+      "description": "Regenerates the current assistant message through assistant-ui.",
+      "version": "1.0.0",
+      "capabilities": [
+        "conversation-message-action"
+      ],
+      "authoring": {
+        "intents": [
+          "regenerate an assistant message"
+        ],
+        "visualRole": "assistant message reload action",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "assistant-ui-message-footer",
+          "slot": "actions"
+        }
+      }
+    },
+    provides: [],
+    inject: [],
+    optionalInject: ["agent-ui.locale"],
+    loadDefinition: () =>
+      import("./assistant-ui-reload-action/definition").then(
         ({ default: definition }) => definition,
       ),
   },
@@ -253,6 +385,17 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
             "accepts": {
               "anyOfCapabilities": [
                 "conversation-tool-fallback-renderer"
+              ]
+            }
+          },
+          "assistantMessageFooter": {
+            "description": "Renderer for the assistant message footer.",
+            "cardinality": "one",
+            "mode": "renderer",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-assistant-message-footer-renderer"
               ]
             }
           }

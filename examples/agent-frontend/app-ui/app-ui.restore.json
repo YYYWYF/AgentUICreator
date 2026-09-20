@@ -71,6 +71,32 @@
                       ]
                     }
                   }
+                ],
+                "assistantMessageFooter": [
+                  {
+                    "id": "assistant-ui-message-footer-main",
+                    "pluginId": "assistant-ui-message-footer",
+                    "enabled": true,
+                    "slots": {
+                      "actions": [
+                        {
+                          "id": "assistant-ui-copy-action-main",
+                          "pluginId": "assistant-ui-copy-action",
+                          "enabled": true
+                        },
+                        {
+                          "id": "assistant-ui-reload-action-main",
+                          "pluginId": "assistant-ui-reload-action",
+                          "enabled": true
+                        },
+                        {
+                          "id": "assistant-ui-export-markdown-action-main",
+                          "pluginId": "assistant-ui-export-markdown-action",
+                          "enabled": true
+                        }
+                      ]
+                    }
+                  }
                 ]
               }
             }
