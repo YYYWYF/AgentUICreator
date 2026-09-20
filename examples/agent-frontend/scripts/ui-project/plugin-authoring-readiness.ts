@@ -99,7 +99,7 @@ function validateRelativePlacement(
     addWarning(
       diagnostics,
       CREATOR_DEFAULT_PLACEMENT_SIZE_NOT_PORTABLE,
-      `Plugin "${asset.pluginId}" uses relative ${placement.relation} placement without recommendedSize.${axis}; Add may work in some layouts, but deterministic restore is not portable.`,
+      `Plugin "${asset.pluginId}" uses relative ${placement.relation} placement but lacks recommendedSize.${axis}; deterministic Creator Add/Restore is unavailable.`,
       asset.pluginId,
     );
   }

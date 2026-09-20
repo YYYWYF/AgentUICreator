@@ -79,8 +79,9 @@ before / after  -> recommendedSize.width
 above / below   -> recommendedSize.height
 ```
 
-Missing axis sizing is a non-blocking portability warning because insertion
-may still work in some valid Layout topologies.
+Missing required axis sizing makes deterministic Creator Add/Restore
+unavailable. The Analyzer reports this as a non-blocking readiness warning so
+the Plugin can remain limited without making `verify:ui` fail.
 
 For a `plugin_slot` placement, the parent Plugin and child Slot must exist and
 be unique. The Slot's accepted capability must match the child Plugin's
@@ -115,7 +116,7 @@ The rules are:
 | Visual, no `authoring` | `manual-only` | `unavailable` | None |
 | `authoring` without `defaultPlacement` | `limited` | `unavailable` | `CREATOR_ADD_RESTORE_UNAVAILABLE` warning |
 | Valid authoring and placement | `ready` | `ready` | None |
-| Placement with non-portable relative sizing | `limited` | `unavailable` | `CREATOR_DEFAULT_PLACEMENT_SIZE_NOT_PORTABLE` warning |
+| Relative placement missing its required axis size | `limited` | `unavailable` | `CREATOR_DEFAULT_PLACEMENT_SIZE_NOT_PORTABLE` warning |
 | Declared placement with an invalid target, capability, or renderer mode | `limited` | `unavailable` | Blocking `CREATOR_DEFAULT_PLACEMENT_*` error |
 
 `manual-only` is intentional and is not a warning. A warning means that the

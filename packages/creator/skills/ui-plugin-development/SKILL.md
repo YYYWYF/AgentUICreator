@@ -47,9 +47,10 @@ able to ask Creator to add or restore it:
 
 - A visual Plugin intended for natural-language Add/Restore declares semantic
   `authoring.intents` and a deterministic `defaultPlacement`.
-- A relative placement points at an existing unique anchor. `before`/`after`
-  needs `recommendedSize.width`; `above`/`below` needs
-  `recommendedSize.height` when a portable insertion size is required.
+- A relative `before`/`after` `defaultPlacement` requires
+  `recommendedSize.width`.
+- A relative `above`/`below` `defaultPlacement` requires
+  `recommendedSize.height`.
 - A `plugin_slot` placement points at an existing parent child Slot, matches
   one of that Slot's accepted capabilities, and matches renderer mode.
 - A Plugin with `requiresRenderScope: true` uses a renderer child Slot; a
