@@ -7,7 +7,7 @@ const workspaceRoot = fileURLToPath(new URL("../../..", import.meta.url));
 const exampleRoot = path.join(workspaceRoot, "examples/agent-frontend");
 const pluginRoot = path.join(exampleRoot, "plugins");
 const coreRoot = path.join(workspaceRoot, "packages/runtime-core");
-const adapterRoot = path.join(workspaceRoot, "packages/runtime-agui");
+const conversationRoot = path.join(workspaceRoot, "packages/runtime-conversation");
 const reactRuntimeRoot = path.join(workspaceRoot, "packages/runtime-react");
 const creatorRoots = [
   path.join(workspaceRoot, "packages/creator"),
@@ -22,7 +22,7 @@ const ignoredDirectories = new Set([
 type PackageManifest = Record<string, Record<string, string> | undefined>;
 type RuntimePackageName =
   | "runtime-core"
-  | "runtime-agui"
+  | "runtime-conversation"
   | "runtime-react";
 
 async function pathExists(filename: string): Promise<boolean> {
@@ -125,15 +125,15 @@ function sourceViolations(
     if (targetsPlugin(filename, specifier)) {
       violations.push(`${relative}: ${packageName} imports plugin ${specifier}`);
     }
-    if (packageName === "runtime-react" && targetsCreator(filename, specifier)) {
-      violations.push(`${relative}: runtime-react imports Creator ${specifier}`);
+    if (targetsCreator(filename, specifier)) {
+      violations.push(`${relative}: ${packageName} imports Creator ${specifier}`);
     }
     if (
       packageName === "runtime-core" &&
-      (specifier === "@agent-ui/runtime-agui" ||
-        specifier.startsWith("@agent-ui/runtime-agui/"))
+      (specifier === "@agent-ui/runtime-conversation" ||
+        specifier.startsWith("@agent-ui/runtime-conversation/"))
     ) {
-      violations.push(`${relative}: runtime-core imports runtime-agui ${specifier}`);
+      violations.push(`${relative}: runtime-core imports runtime-conversation ${specifier}`);
     }
   }
 
@@ -156,13 +156,13 @@ async function packageSourceViolations(
 }
 
 describe("runtime package dependency direction", () => {
-  it("allows runtime-agui to depend on runtime-core without reverse dependencies", async () => {
+  it("allows runtime-conversation to depend on runtime-core without reverse dependencies", async () => {
     const coreDependencies = dependencyNames(await readPackage(coreRoot));
-    const adapterDependencies = dependencyNames(await readPackage(adapterRoot));
+    const conversationDependencies = dependencyNames(await readPackage(conversationRoot));
 
-    expect(adapterDependencies).toContain("@agent-ui/runtime-core");
-    expect(adapterDependencies).not.toContain("@agent-ui/example-agent-frontend");
-    expect(coreDependencies).not.toContain("@agent-ui/runtime-agui");
+    expect(conversationDependencies).toContain("@agent-ui/runtime-core");
+    expect(conversationDependencies).not.toContain("@agent-ui/example-agent-frontend");
+    expect(coreDependencies).not.toContain("@agent-ui/runtime-conversation");
     expect(coreDependencies).not.toContain("@agent-ui/example-agent-frontend");
     expect(coreDependencies.filter((name) => name.startsWith("@agent-ui/plugin-"))).toEqual([]);
   });
@@ -170,7 +170,7 @@ describe("runtime package dependency direction", () => {
   it("keeps Runtime packages independent from the example, plugins, and Creator", async () => {
     expect([
       ...await packageSourceViolations(coreRoot, "runtime-core"),
-      ...await packageSourceViolations(adapterRoot, "runtime-agui"),
+      ...await packageSourceViolations(conversationRoot, "runtime-conversation"),
       ...await packageSourceViolations(reactRuntimeRoot, "runtime-react"),
     ]).toEqual([]);
   });

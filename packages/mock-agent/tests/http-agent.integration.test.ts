@@ -4,8 +4,6 @@ import type { AddressInfo } from "node:net";
 
 import { HttpAgent, type RunAgentParameters } from "@ag-ui/client";
 import { EventType, type BaseEvent, type ResumeEntry } from "@ag-ui/core";
-import { createAgUiTransport } from "@agent-ui/runtime-agui";
-import { createAgentRuntime, type AgentRuntimeSnapshot } from "@agent-ui/runtime-core";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { builtinMockScenarios } from "../src/builtins/index.js";
@@ -49,7 +47,7 @@ function integrationScenario(): MockScenario {
         type: "tool",
         name: "search_files",
         args: { keyword: "AG-UI" },
-        result: { files: ["AgUiTransport.ts"] },
+        result: { files: ["ConversationRuntimeProvider.tsx"] },
         prepareDurationMs: 4,
         durationMs: 8,
       },
@@ -90,82 +88,6 @@ describe("Mock Agent HTTP endpoint", () => {
       EventType.TEXT_MESSAGE_END,
       EventType.RUN_FINISHED,
     ]);
-  });
-
-  it("drives AgUiTransport and LifecycleProjector state transitions", async () => {
-    const endpoint = await startMockServer([integrationScenario()]);
-    const runtime = createAgentRuntime<{ mock?: boolean }>({
-      transport: createAgUiTransport<{ mock?: boolean }>({ endpoint }),
-    });
-    const snapshots: AgentRuntimeSnapshot<{ mock?: boolean }>[] = [
-      runtime.getSnapshot(),
-    ];
-    const unsubscribe = runtime.subscribe(() => {
-      snapshots.push(runtime.getSnapshot());
-    });
-
-    await runtime.sendMessage("检查项目");
-    unsubscribe();
-
-    const statusesFor = (type: "reasoning" | "tool") => snapshots.flatMap(
-      ({ executions }) => executions
-        .filter((execution) => execution.type === type)
-        .map(({ status }) => status),
-    );
-    expect(snapshots.some(({ run }) => run.status === "running")).toBe(true);
-    expect(runtime.getSnapshot().run.status).toBe("idle");
-    expect(statusesFor("reasoning")).toContain("running");
-    expect(statusesFor("reasoning")).toContain("completed");
-    const toolStatuses = statusesFor("tool");
-    expect(toolStatuses).toContain("preparing");
-    expect(toolStatuses).toContain("awaiting-result");
-    expect(toolStatuses).toContain("completed");
-    expect(toolStatuses.indexOf("preparing")).toBeLessThan(
-      toolStatuses.indexOf("awaiting-result"),
-    );
-    expect(snapshots.some(({ messages }) => messages.some((message) =>
-      message.role === "assistant" && message.streamStatus === "streaming"
-    ))).toBe(true);
-    expect(runtime.getSnapshot().messages).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        role: "assistant",
-        content: "完成",
-        streamStatus: "completed",
-      }),
-    ]));
-    expect(runtime.getSnapshot().state).toEqual({ mock: true });
-    runtime.dispose();
-  });
-
-  it("projects standard subagent lifecycle events through AgUiTransport", async () => {
-    const endpoint = await startMockServer(builtinMockScenarios);
-    const runtime = createAgentRuntime({
-      transport: createAgUiTransport({
-        endpoint: `${endpoint}?scenario=subagent-lifecycle&speed=0`,
-      }),
-    });
-
-    try {
-      await runtime.sendMessage("检查子 Agent 生命周期");
-      expect(runtime.getSnapshot()).toMatchObject({
-        run: { status: "idle" },
-        executions: [
-          {
-            type: "subagent",
-            id: "lifecycle-completed",
-            status: "completed",
-          },
-          {
-            type: "subagent",
-            id: "lifecycle-error",
-            status: "error",
-            error: { message: "Worker failed", code: "WORKER_FAILED" },
-          },
-        ],
-      });
-    } finally {
-      runtime.dispose();
-    }
   });
 
   it("uses the default scenario when the query parameter is absent", async () => {
@@ -461,93 +383,6 @@ describe("Mock Agent HTTP endpoint", () => {
       type: EventType.RUN_FINISHED,
       outcome: { type: "success" },
     });
-  });
-
-  it("approval-resume drives awaiting-input and resumes through AgUiTransport", async () => {
-    const endpoint = await startMockServer(builtinMockScenarios);
-    const runtime = createAgentRuntime({
-      transport: createAgUiTransport({
-        endpoint: `${endpoint}?scenario=approval-resume&speed=0`,
-      }),
-    });
-
-    try {
-      await runtime.sendMessage("允许清理");
-      expect(runtime.getSnapshot()).toMatchObject({
-        run: { status: "awaiting-input" },
-        interrupts: [{
-          id: "approval-resume-1",
-          toolExecutionId: "approval-dangerous-tool",
-        }],
-      });
-
-      await runtime.resumeInterrupts([{
-        interruptId: "approval-resume-1",
-        status: "resolved",
-        payload: { approved: true },
-      }]);
-
-      const snapshot = runtime.getSnapshot();
-      expect(snapshot).toMatchObject({
-        run: { status: "idle" },
-        interrupts: [],
-      });
-      expect(snapshot.executions).toContainEqual(expect.objectContaining({
-        type: "tool",
-        id: "approval-dangerous-tool",
-        status: "completed",
-      }));
-      expect(snapshot.messages).toEqual(expect.arrayContaining([
-        expect.objectContaining({
-          role: "assistant",
-          content: expect.stringContaining("已获得许可"),
-        }),
-      ]));
-    } finally {
-      runtime.dispose();
-    }
-  });
-
-  it("approval-resume cancels through AgUiTransport without completing the tool", async () => {
-    const endpoint = await startMockServer(builtinMockScenarios);
-    const runtime = createAgentRuntime({
-      transport: createAgUiTransport({
-        endpoint: `${endpoint}?scenario=approval-resume&speed=0`,
-      }),
-    });
-
-    try {
-      await runtime.sendMessage("拒绝清理");
-      expect(runtime.getSnapshot().run.status).toBe("awaiting-input");
-
-      await runtime.resumeInterrupts([{
-        interruptId: "approval-resume-1",
-        status: "cancelled",
-      }]);
-
-      const snapshot = runtime.getSnapshot();
-      expect(snapshot).toMatchObject({
-        run: { status: "idle" },
-        interrupts: [],
-      });
-      expect(snapshot.executions).toContainEqual(expect.objectContaining({
-        type: "tool",
-        id: "approval-dangerous-tool",
-        status: "interrupted",
-      }));
-      expect(snapshot.executions).not.toContainEqual(expect.objectContaining({
-        id: "approval-dangerous-tool",
-        status: "completed",
-      }));
-      expect(snapshot.messages).toEqual(expect.arrayContaining([
-        expect.objectContaining({
-          role: "assistant",
-          content: expect.stringContaining("拒绝"),
-        }),
-      ]));
-    } finally {
-      runtime.dispose();
-    }
   });
 
   it("returns a 404 JSON error for an unknown scenario", async () => {

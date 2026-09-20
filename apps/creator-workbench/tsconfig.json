@@ -25,7 +25,6 @@
         "../../packages/creator/src/visual-observation/VisualObservationReporter.ts"
       ],
       "@agent-ui/example-agent-frontend/App": ["../../examples/agent-frontend/src/App.tsx"],
-      "@agent-ui/runtime-agui": ["../../packages/runtime-agui/src/index.ts"],
       "@agent-ui/mock-agent": ["../../packages/mock-agent/src/index.ts"],
       "@agent-ui/react": [
         "../../packages/react/src/index.ts"
@@ -56,7 +55,6 @@
     "../../examples/agent-frontend/runtime/**/*.tsx",
     "../../examples/agent-frontend/src/App.tsx",
     "../../examples/agent-frontend/src/preview-data.ts",
-    "../../packages/runtime-agui/src/**/*.ts",
     "../../packages/mock-agent/src/**/*.ts",
     "../../packages/react/src/**/*.ts",
     "../../packages/react/src/**/*.tsx",

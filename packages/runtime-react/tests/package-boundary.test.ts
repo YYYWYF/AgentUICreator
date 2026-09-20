@@ -14,7 +14,7 @@ const creatorRoots = [
 ];
 const runtimePackageRoots = [
   path.join(workspaceRoot, "packages/runtime-core"),
-  path.join(workspaceRoot, "packages/runtime-agui"),
+  path.join(workspaceRoot, "packages/runtime-conversation"),
 ];
 const ignoredDirectories = new Set([
   "node_modules",
@@ -99,7 +99,7 @@ function targetsCreator(filename: string, specifier: string): boolean {
 }
 
 function targetsRuntimePackage(filename: string, specifier: string): boolean {
-  return ["@agent-ui/runtime-core", "@agent-ui/runtime-agui"].some(
+  return ["@agent-ui/runtime-core", "@agent-ui/runtime-conversation"].some(
     (packageName) => specifier === packageName || specifier.startsWith(`${packageName}/`),
   ) || runtimePackageRoots.some(
     (root) => resolvesInside(filename, specifier, root),
@@ -157,7 +157,7 @@ describe("runtime-react package boundary", () => {
   it("detects forbidden source imports", () => {
     const filename = path.join(packageRoot, "src/illegal-import.ts");
     const exampleSpecifier = "../../../examples/agent-frontend/src/index";
-    const runtimeSpecifier = "../../runtime-agui/src/index";
+    const runtimeSpecifier = "../../runtime-conversation/src/index";
 
     expect(sourceViolations(
       filename,

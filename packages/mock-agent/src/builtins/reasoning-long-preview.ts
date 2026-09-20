@@ -12,8 +12,8 @@ export const reasoningLongPreviewScenario = defineScenario({
       durationMs: 10_000,
       text: [
         "我先梳理当前请求的约束、数据来源和组件边界。",
-        "第一步，确认 AG-UI reasoning 事件仍由 runtime-agui 投影，而不是由界面猜测状态。",
-        "第二步，确认 runtime-core 中的 reasoning execution 是 running、completed 与 interrupted 的唯一事实来源。",
+        "第一步，确认 AG-UI reasoning 事件由 canonical Conversation Runtime 处理。",
+        "第二步，确认 Conversation Runtime 中的 reasoning 状态覆盖 running、completed 与 interrupted。",
         "第三步，检查 MessageRenderContext 是否把 message、execution 和 running 稳定交给 renderer plugin。",
         "第四步，保持 AgentReasoning 为纯 Presentation，只通过 props、DOM refs 和稳定 data-slot 暴露能力。",
         "第五步，把 disclosure ownership 放在 Plugin Controller：streaming 临时控制，用户第一次操作后永久接管。",

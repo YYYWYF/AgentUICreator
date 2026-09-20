@@ -11,11 +11,7 @@
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-    "paths": {
-      "@agent-ui/runtime-agui": ["../runtime-agui/src/index.ts"],
-      "@agent-ui/runtime-core": ["../runtime-core/src/index.ts"]
-    }
+    "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "vitest.config.ts"]
+  "include": ["src/**/*.ts", "tests/**/*.ts"]
 }

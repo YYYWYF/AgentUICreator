@@ -26,7 +26,7 @@ describe("runMockScenario", () => {
           type: "tool",
           name: "search_files",
           args: { keyword: "AG-UI" },
-          result: { files: ["AgUiTransport.ts"] },
+          result: { files: ["ConversationRuntimeProvider.tsx"] },
           prepareDurationMs: 0,
           durationMs: 0,
         },
@@ -75,7 +75,7 @@ describe("runMockScenario", () => {
       {
         messageId: "tool-result-4",
         toolCallId: "tool-call-3",
-        content: '{"files":["AgUiTransport.ts"]}',
+        content: '{"files":["ConversationRuntimeProvider.tsx"]}',
       },
     ]);
   });

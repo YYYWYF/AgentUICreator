@@ -73,7 +73,7 @@ describe("assistant-ui canonical runtime", () => {
       'import "../agent-ui/conversation/styles.css";',
     );
     expect(app).not.toMatch(
-      /createAgUiTransport|createAgentRuntime|LegacyRuntimeBoundary|RuntimeModeBoundary|resolveConversationRuntimeMode|legacyRuntime|conversationSpike/u,
+      /createAgentRuntime|LegacyRuntimeBoundary|RuntimeModeBoundary|resolveConversationRuntimeMode|legacyRuntime|conversationSpike/u,
     );
   });
 

@@ -1,5 +1,9 @@
 # assistant-ui Official Agent Elements Contract Map
 
+> Historical P4-3C contract snapshot. References to the retired
+> `packages/runtime-agui` projector describe the implementation at that phase,
+> not the current production Conversation Runtime.
+
 P4-3C records the production contracts found before binding official
 assistant-ui `AgentPlan`, `AgentStatus`, and `SubagentList` elements. The map is
 intentionally based on this repository's runtime and AG-UI projections; names

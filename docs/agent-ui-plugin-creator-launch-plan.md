@@ -4,6 +4,11 @@
 >
 > 配套实施文档：[Creator 开发控制面实施计划](./creator-control-plane-implementation-plan.md)
 
+> Conversation Runtime 更新：当前生产链路由
+> `packages/runtime-conversation` 的 `ConversationRuntimeProvider` 通过
+> `@assistant-ui/react-ag-ui` / `useAgUiRuntime()` 和 `@ag-ui/client` 接入 AG-UI。
+> 旧版 Generic Runtime 的传输设计仅作为历史背景；旧 Adapter 包已退役。
+
 ## 1. 项目目标
 
 本项目是一个 **Agent 前端 UI Plugin Creator**。
@@ -174,7 +179,7 @@ Creator 负责：
 反馈证据
 ```
 
-Creator 不进入生成应用的生产依赖。项目观察、语义化修改、撤销、澄清、诊断收集和完成门禁都属于开发控制面；确定性的 Agent Runtime 领域模型、AG-UI Adapter 和 React Layout Runtime 分别由 `@agent-ui/runtime-core`、`@agent-ui/runtime-agui`、`@agent-ui/runtime-react` 提供，Plugin Runtime、AppUIModel、Plugin 实现和项目服务仍属于生成项目。三个 Runtime Library 会作为普通生产依赖编译进最终 Frontend Bundle，但不依赖 Creator。
+Creator 不进入生成应用的生产依赖。项目观察、语义化修改、撤销、澄清、诊断收集和完成门禁都属于开发控制面；协议无关的 Runtime 合同、正式 Conversation AG-UI 集成和 React Layout Runtime 分别由 `@agent-ui/runtime-core`、`@agent-ui/runtime-conversation`、`@agent-ui/runtime-react` 提供，Plugin Runtime、AppUIModel、Plugin 实现和项目服务仍属于生成项目。这些 Runtime Library 作为普通生产依赖编译进最终 Frontend Bundle，不依赖 Creator。
 
 不要为了提升 Creator 的开发体验，把动态 Package Runner、任意运行时源码加载器或 Creator 私有协议带入最终应用。
 
@@ -652,9 +657,9 @@ interface UIPluginActions {
 
 `conversation`、`messages`、`state`、`run`、`executions` 与 `interrupts` 由 Agent Runtime 提供稳定、协议无关的前端状态。`run` 表示一个 wire request；当标准 structured interrupt 暂停执行时，其状态为 `awaiting-input`。`interrupts` 只包含当前 Conversation 尚待处理的输入，不是历史记录。`executions` 是当前 fresh user turn 的 live execution projection：普通 `sendMessage` 开始新的 execution chain 并清理上一条 chain，由 Interrupt 触发的 `resumeInterrupts` 是原 chain 的 continuation，因此 Tool、Reasoning、Step 与 Subagent execution 跨多个 resume run 保留，直到下一次 fresh user turn；它仍然不是持久化 execution history。Message 通过 `producer` 保留 Root/Subagent 归属，并只在观察到标准流式生命周期时携带 `streamStatus`。
 
-`events` 是 Backend-originated、application-specific、live-only 的瞬时 Application Event 通道，产品能力名称为 **Custom Event Protocol**。AG-UI `CUSTOM` 只存在于 `@agent-ui/runtime-agui`；Generated Application 在 `agent-contract/agent-events.ts` 统一注册名称和 payload schema，Plugin Manifest 的 `data.events` 只声明消费权限。未知名称、非法 payload 和未声明订阅必须丢弃并产生无 payload 的诊断；每个 listener 获得独立 payload clone，handler 错误不得影响其他 listener 或 Agent Run。Event 不 replay、不持久化、不进入 Snapshot，也不得替代 State、Activity 或标准 lifecycle。
+`events` 是 Backend-originated、application-specific、live-only 的瞬时 Application Event 通道，产品能力名称为 **Custom Event Protocol**。AG-UI `CUSTOM` 的 wire 集成由 `@agent-ui/runtime-conversation` 持有；Generated Application 在 `agent-contract/agent-events.ts` 统一注册名称和 payload schema，Plugin Manifest 的 `data.events` 只声明消费权限。未知名称、非法 payload 和未声明订阅必须丢弃并产生无 payload 的诊断；每个 listener 获得独立 payload clone，handler 错误不得影响其他 listener 或 Agent Run。Event 不 replay、不持久化、不进入 Snapshot，也不得替代 State、Activity 或标准 lifecycle。
 
-标准 HITL 只通过 `RUN_FINISHED` 的 structured interrupt outcome 映射为 `AgentInterrupt[]`，并通过 `AgentInterruptResponse[]` 映射到新 Run 的 `RunAgentInput.resume[]`。Plugin 必须一次覆盖全部 pending interrupt，可通过 `producer` 关联 Root/Subagent、通过 `toolExecutionId` 关联 Tool，但不得直接消费 AG-UI 类型、SDK pending object、CUSTOM/RAW event，也不得把响应伪装成普通 UserMessage。AG-UI 的 `threadId`、`runId`、`subagentRunId`、`Interrupt`、`ResumeEntry` 和 Event 类型只允许存在于 `@agent-ui/runtime-agui`；Plugin 不直接订阅底层 Run Event。
+标准 HITL 通过 `RUN_FINISHED` 的 structured interrupt outcome 映射为应用可消费的中断状态，并通过 Conversation Runtime 的恢复动作发起新 Run。Plugin 必须一次覆盖全部 pending interrupt，可通过 `producer` 关联 Root/Subagent、通过 `toolExecutionId` 关联 Tool，但不得直接消费 AG-UI 类型、SDK pending object、CUSTOM/RAW event，也不得把响应伪装成普通 UserMessage。AG-UI 的 `threadId`、`runId`、`subagentRunId`、`Interrupt`、`ResumeEntry` 和 Event 类型由 `@agent-ui/runtime-conversation` 的集成边界处理；Plugin 不直接订阅底层 Run Event。
 
 不要过早加入大量 Runtime API。
 

@@ -238,8 +238,8 @@ const reasoningToolReplay: ConversationReplay = {
           args: { keyword: "AG-UI" },
           result: {
             files: [
-              "packages/runtime-agui/src/AgUiTransport.ts",
-              "packages/runtime-agui/src/lifecycle-projector.ts",
+              "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+              "packages/runtime-conversation/src/compatibility/conversation-execution-projector.ts",
             ],
           },
         },

@@ -1,5 +1,11 @@
 # P3R-0: assistant-ui Conversation Domain Architecture Rebaseline
 
+> Historical migration baseline. Its descriptions of `runtime-agui`, the A/B
+> period, and package deletion gates record the P3R-0 state. The current
+> production owner is `packages/runtime-conversation`:
+> `ConversationRuntimeProvider` -> `@assistant-ui/react-ag-ui` -> `useAgUiRuntime()`
+> -> `@ag-ui/client` `HttpAgent`. The legacy package has been retired.
+
 状态：Accepted architecture baseline  
 基线：`dev@477f1dd03c881590e6e73514cb536d6beb5cce79`  
 范围：P3R-0 只定义架构，不迁移源码、不改变 Runtime 行为、不修改 AppUIModel Schema、不切换默认 Conversation Surface。

@@ -1,5 +1,10 @@
 # P3R-2 assistant-ui Canonical Runtime
 
+> Historical P3R-2 implementation record. Its legacy/A/B branches and
+> `runtime-assistant-ui` package names describe the migration period. The
+> current production integration is `packages/runtime-conversation` through
+> `ConversationRuntimeProvider` and `useAgUiRuntime()`.
+
 ## Status and scope
 
 P3R-2 formalizes the already pinned assistant-ui AG-UI integration as

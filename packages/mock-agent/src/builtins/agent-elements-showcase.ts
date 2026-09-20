@@ -56,7 +56,7 @@ export const agentElementsShowcaseScenario = defineScenario({
         {
           id: "showcase-inspect-runtime",
           name: "inspect_runtime",
-          args: { package: "runtime-agui" },
+          args: { package: "runtime-conversation" },
           result: { lifecycle: ["step", "subagent", "interrupt"] },
           startDelayMs: 80,
           prepareDurationMs: 200,
