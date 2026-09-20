@@ -8,23 +8,6 @@ export interface AgentUILocaleMessages {
     newChat: string;
     search: string;
   };
-  composer: {
-    placeholder: string;
-    input: string;
-    addAttachment: string;
-    dictate: string;
-    stopDictation: string;
-    send: string;
-    stop: string;
-  };
-  messageActions: {
-    copy: string;
-    copied: string;
-    reload: string;
-    exportMarkdown: string;
-    previous: string;
-    next: string;
-  };
   theme: {
     settings: string;
     switchToLight: string;

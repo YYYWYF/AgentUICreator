@@ -74,6 +74,10 @@ import { useMemo } from "react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
+  CheckIcon,
+  CopyIcon,
+  DownloadIcon,
+  RefreshCwIcon,
 } from "lucide-react";
 import { cn } from "./internal/vendor/assistant-ui/lib/utils.js";
 
@@ -203,23 +207,23 @@ export function ConversationCanonicalComposer({
   );
 }
 
-export function ConversationComposerAddAttachment({ label }: Readonly<{ label: string }>) {
+export function ConversationComposerAddAttachment({ label = "Add Attachment" }: Readonly<{ label?: string }> = {}) {
   return <InternalConversationComposerAddAttachment label={label} />;
 }
 
-export function ConversationComposerDictate({ label }: Readonly<{ label: string }>) {
+export function ConversationComposerDictate({ label = "Voice input" }: Readonly<{ label?: string }> = {}) {
   return <InternalConversationComposerDictate label={label} />;
 }
 
-export function ConversationComposerStopDictation({ label }: Readonly<{ label: string }>) {
+export function ConversationComposerStopDictation({ label = "Stop voice input" }: Readonly<{ label?: string }> = {}) {
   return <InternalConversationComposerStopDictation label={label} />;
 }
 
-export function ConversationComposerSend({ label }: Readonly<{ label: string }>) {
+export function ConversationComposerSend({ label = "Send message" }: Readonly<{ label?: string }> = {}) {
   return <InternalConversationComposerSend label={label} />;
 }
 
-export function ConversationComposerCancel({ label }: Readonly<{ label: string }>) {
+export function ConversationComposerCancel({ label = "Stop generating" }: Readonly<{ label?: string }> = {}) {
   return <InternalConversationComposerCancel label={label} />;
 }
 
@@ -400,16 +404,58 @@ export function ConversationActionExportMarkdown({
   );
 }
 
+export function ConversationCanonicalCopyAction() {
+  return (
+    <ConversationActionCopy>
+      <ConversationTooltipIconButton tooltip="Copy">
+        <ConversationIf condition={(state) => state.message.isCopied}>
+          <CheckIcon
+            data-slot="assistant-ui-copy-action-copied"
+            aria-label="Copied"
+            className="animate-in zoom-in-50 fade-in duration-200 ease-out"
+          />
+        </ConversationIf>
+        <ConversationIf condition={(state) => !state.message.isCopied}>
+          <CopyIcon
+            data-slot="assistant-ui-copy-action-idle"
+            className="animate-in zoom-in-75 fade-in duration-150"
+          />
+        </ConversationIf>
+      </ConversationTooltipIconButton>
+    </ConversationActionCopy>
+  );
+}
+
+export function ConversationCanonicalReloadAction() {
+  return (
+    <ConversationActionReload>
+      <ConversationTooltipIconButton tooltip="Refresh" type="button">
+        <RefreshCwIcon />
+      </ConversationTooltipIconButton>
+    </ConversationActionReload>
+  );
+}
+
+export function ConversationCanonicalExportMarkdownAction() {
+  return (
+    <ConversationActionExportMarkdown>
+      <ConversationTooltipIconButton tooltip="Export as Markdown" type="button">
+        <DownloadIcon />
+      </ConversationTooltipIconButton>
+    </ConversationActionExportMarkdown>
+  );
+}
+
 export interface ConversationBranchPickerProps
   extends Omit<ComponentProps<typeof BranchPickerPrimitive.Root>, "children"> {
-  previousLabel: string;
-  nextLabel: string;
+  previousLabel?: string | undefined;
+  nextLabel?: string | undefined;
 }
 
 export function ConversationBranchPicker({
   className,
-  nextLabel,
-  previousLabel,
+  nextLabel = "Next",
+  previousLabel = "Previous",
   ...rest
 }: Readonly<ConversationBranchPickerProps>) {
   return (

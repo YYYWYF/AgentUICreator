@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ComposerAddAttachment as UpstreamComposerAddAttachment,
   ComposerAttachments,
   UserMessageAttachments,
 } from "./vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.js";
@@ -346,7 +347,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
   );
 };
 
-export const ComposerAddAttachmentAction: FC<{ label: string }> = ({ label }) => {
+const ComposerAddAttachmentOverride: FC<{ label: string }> = ({ label }) => {
   return (
     <ComposerPrimitive.AddAttachment
       render={
@@ -363,6 +364,14 @@ export const ComposerAddAttachmentAction: FC<{ label: string }> = ({ label }) =>
       <PlusIcon className="aui-attachment-add-icon size-4" />
     </ComposerPrimitive.AddAttachment>
   );
+};
+
+export const ComposerAddAttachmentAction: FC<{ label?: string }> = ({ label }) => {
+  if (label === undefined || label === "Add Attachment") {
+    return <UpstreamComposerAddAttachment />;
+  }
+
+  return <ComposerAddAttachmentOverride label={label} />;
 };
 
 export const ComposerDictateAction: FC<{ label: string }> = ({ label }) => (

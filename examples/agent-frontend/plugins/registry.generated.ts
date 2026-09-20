@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "2394bb4b7e600763bc1876199cbb56ac80e4eeb785b518f3c34149e058701736";
+export const capabilityCatalogRevision = "a99ec68159475510cbb5037f5483acbb74702799c36e5cef21b65e10b17dd870";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -30,7 +30,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     },
     provides: [],
     inject: [],
-    optionalInject: ["agent-ui.locale"],
+    optionalInject: [],
     loadDefinition: () =>
       import("./assistant-ui-add-attachment-action/definition").then(
         ({ default: definition }) => definition,
@@ -104,7 +104,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     },
     provides: [],
     inject: [],
-    optionalInject: ["agent-ui.locale"],
+    optionalInject: [],
     loadDefinition: () =>
       import("./assistant-ui-composer/definition").then(
         ({ default: definition }) => definition,
@@ -133,7 +133,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     },
     provides: [],
     inject: [],
-    optionalInject: ["agent-ui.locale"],
+    optionalInject: [],
     loadDefinition: () =>
       import("./assistant-ui-copy-action/definition").then(
         ({ default: definition }) => definition,
@@ -162,7 +162,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     },
     provides: [],
     inject: [],
-    optionalInject: ["agent-ui.locale"],
+    optionalInject: [],
     loadDefinition: () =>
       import("./assistant-ui-dictation-action/definition").then(
         ({ default: definition }) => definition,
@@ -191,7 +191,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     },
     provides: [],
     inject: [],
-    optionalInject: ["agent-ui.locale"],
+    optionalInject: [],
     loadDefinition: () =>
       import("./assistant-ui-export-markdown-action/definition").then(
         ({ default: definition }) => definition,
@@ -236,7 +236,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     },
     provides: [],
     inject: [],
-    optionalInject: ["agent-ui.locale"],
+    optionalInject: [],
     loadDefinition: () =>
       import("./assistant-ui-message-footer/definition").then(
         ({ default: definition }) => definition,
@@ -297,7 +297,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     },
     provides: [],
     inject: [],
-    optionalInject: ["agent-ui.locale"],
+    optionalInject: [],
     loadDefinition: () =>
       import("./assistant-ui-reload-action/definition").then(
         ({ default: definition }) => definition,
@@ -326,7 +326,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     },
     provides: [],
     inject: [],
-    optionalInject: ["agent-ui.locale"],
+    optionalInject: [],
     loadDefinition: () =>
       import("./assistant-ui-submit-action/definition").then(
         ({ default: definition }) => definition,
