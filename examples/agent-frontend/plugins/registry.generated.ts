@@ -4,9 +4,112 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "333b1bff35b864e50c8388aa7dc4b60786ec59ec0b47a789e74422cdb5178415";
+export const capabilityCatalogRevision = "2394bb4b7e600763bc1876199cbb56ac80e4eeb785b518f3c34149e058701736";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
+  {
+    manifest: {
+      "id": "assistant-ui-add-attachment-action",
+      "name": "Assistant UI Add Attachment Action",
+      "description": "Adds assistant-ui's attachment picker to the conversation composer.",
+      "version": "1.0.0",
+      "capabilities": [
+        "conversation-composer-leading-action"
+      ],
+      "authoring": {
+        "intents": [
+          "add attachments to the conversation composer"
+        ],
+        "visualRole": "conversation composer attachment action",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "assistant-ui-composer",
+          "slot": "leadingActions"
+        }
+      }
+    },
+    provides: [],
+    inject: [],
+    optionalInject: ["agent-ui.locale"],
+    loadDefinition: () =>
+      import("./assistant-ui-add-attachment-action/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
+      "id": "assistant-ui-composer",
+      "name": "Assistant UI Composer",
+      "description": "Renders the canonical assistant-ui conversation composer with composable action Slots.",
+      "version": "1.0.0",
+      "capabilities": [
+        "conversation-composer"
+      ],
+      "authoring": {
+        "intents": [
+          "show the primary conversation composer",
+          "compose conversation input actions"
+        ],
+        "visualRole": "conversation composer",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "composer"
+        }
+      },
+      "slots": {
+        "children": {
+          "beforeInput": {
+            "description": "Content displayed between attachments and the composer input.",
+            "cardinality": "many",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-composer-before-input"
+              ]
+            }
+          },
+          "leadingActions": {
+            "description": "Inline actions displayed on the leading side of the composer.",
+            "cardinality": "many",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-composer-leading-action"
+              ]
+            }
+          },
+          "trailingActions": {
+            "description": "Inline actions displayed before the composer submit action.",
+            "cardinality": "many",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-composer-trailing-action"
+              ]
+            }
+          },
+          "submitAction": {
+            "description": "The primary send or stop action for the composer.",
+            "cardinality": "one",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-composer-submit-action"
+              ]
+            }
+          }
+        }
+      }
+    },
+    provides: [],
+    inject: [],
+    optionalInject: ["agent-ui.locale"],
+    loadDefinition: () =>
+      import("./assistant-ui-composer/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
   {
     manifest: {
       "id": "assistant-ui-copy-action",
@@ -33,6 +136,35 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     optionalInject: ["agent-ui.locale"],
     loadDefinition: () =>
       import("./assistant-ui-copy-action/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
+      "id": "assistant-ui-dictation-action",
+      "name": "Assistant UI Dictation Action",
+      "description": "Adds assistant-ui dictation controls to the conversation composer.",
+      "version": "1.0.0",
+      "capabilities": [
+        "conversation-composer-trailing-action"
+      ],
+      "authoring": {
+        "intents": [
+          "add voice dictation to the conversation composer"
+        ],
+        "visualRole": "conversation composer dictation action",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "assistant-ui-composer",
+          "slot": "trailingActions"
+        }
+      }
+    },
+    provides: [],
+    inject: [],
+    optionalInject: ["agent-ui.locale"],
+    loadDefinition: () =>
+      import("./assistant-ui-dictation-action/definition").then(
         ({ default: definition }) => definition,
       ),
   },
@@ -168,6 +300,35 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     optionalInject: ["agent-ui.locale"],
     loadDefinition: () =>
       import("./assistant-ui-reload-action/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
+      "id": "assistant-ui-submit-action",
+      "name": "Assistant UI Submit Action",
+      "description": "Adds assistant-ui send and stop controls to the conversation composer.",
+      "version": "1.0.0",
+      "capabilities": [
+        "conversation-composer-submit-action"
+      ],
+      "authoring": {
+        "intents": [
+          "add the conversation composer send and stop action"
+        ],
+        "visualRole": "conversation composer submit action",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "assistant-ui-composer",
+          "slot": "submitAction"
+        }
+      }
+    },
+    provides: [],
+    inject: [],
+    optionalInject: ["agent-ui.locale"],
+    loadDefinition: () =>
+      import("./assistant-ui-submit-action/definition").then(
         ({ default: definition }) => definition,
       ),
   },
@@ -315,7 +476,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
       "id": "conversation-surface",
       "name": "Conversation Surface",
       "description": "组合 Live 与只读 History 会话的空状态、消息时间线与输入区。",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "capabilities": [
         "conversation-surface"
       ],
@@ -352,6 +513,16 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
             "accepts": {
               "anyOfCapabilities": [
                 "theme-control"
+              ]
+            }
+          },
+          "composer": {
+            "description": "Primary conversation composer.",
+            "cardinality": "one",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-composer"
               ]
             }
           },

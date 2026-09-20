@@ -54,6 +54,36 @@
                     "enabled": true
                   }
                 ],
+                "composer": [
+                  {
+                    "id": "assistant-ui-composer-main",
+                    "pluginId": "assistant-ui-composer",
+                    "enabled": true,
+                    "slots": {
+                      "leadingActions": [
+                        {
+                          "id": "assistant-ui-add-attachment-action-main",
+                          "pluginId": "assistant-ui-add-attachment-action",
+                          "enabled": true
+                        }
+                      ],
+                      "trailingActions": [
+                        {
+                          "id": "assistant-ui-dictation-action-main",
+                          "pluginId": "assistant-ui-dictation-action",
+                          "enabled": true
+                        }
+                      ],
+                      "submitAction": [
+                        {
+                          "id": "assistant-ui-submit-action-main",
+                          "pluginId": "assistant-ui-submit-action",
+                          "enabled": true
+                        }
+                      ]
+                    }
+                  }
+                ],
                 "reasoningGroup": [
                   {
                     "id": "assistant-ui-reasoning-main",
