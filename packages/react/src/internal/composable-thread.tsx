@@ -3,28 +3,28 @@
 import {
   ComposerAttachments,
   UserMessageAttachments,
-} from "./attachment.aui";
-import { File } from "./file";
-import { ThreadFollowupSuggestions } from "./follow-up-suggestions.aui";
-import { Image } from "./image";
-import { MarkdownText } from "./markdown-text";
+} from "./vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.js";
+import { File } from "./vendor/assistant-ui/components/assistant-ui/elements/file.js";
+import { ThreadFollowupSuggestions } from "./vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.js";
+import { Image } from "./vendor/assistant-ui/components/assistant-ui/elements/image.js";
+import { MarkdownText } from "./vendor/assistant-ui/components/assistant-ui/elements/markdown-text.js";
 import {
   Reasoning,
   ReasoningContent,
   ReasoningRoot,
   ReasoningText,
   ReasoningTrigger,
-} from "./reasoning.aui";
-import { ToolFallback } from "./tool-fallback.aui";
+} from "./vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
+import { ToolFallback } from "./vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
 import {
   ToolGroupContent,
   ToolGroupRoot,
   ToolGroupTrigger,
-} from "./tool-group.aui";
-import { TooltipIconButton } from "./tooltip-icon-button";
-import { Button } from "../../ui/button";
-import { Skeleton } from "../../ui/skeleton";
-import { cn } from "../../../lib/utils";
+} from "./vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
+import { TooltipIconButton } from "./vendor/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
+import { Button } from "./vendor/assistant-ui/components/ui/button.js";
+import { Skeleton } from "./vendor/assistant-ui/components/ui/skeleton.js";
+import { cn } from "./vendor/assistant-ui/lib/utils.js";
 import {
   ActionBarMorePrimitive,
   ActionBarPrimitive,
@@ -99,6 +99,14 @@ const EMPTY_COMPONENTS: ThreadComponents = {};
 const ThreadComponentsContext =
   createContext<ThreadComponents>(EMPTY_COMPONENTS);
 
+interface ComposerHostConfig {
+  autoFocus: boolean;
+}
+
+const ComposerHostConfigContext = createContext<ComposerHostConfig>({
+  autoFocus: false,
+});
+
 // Startup exposes a loading placeholder thread; treat it as a new chat so
 // the composer mounts centered. Loads after startup keep the docked layout.
 const isNewChatView = (s: AssistantState) =>
@@ -135,25 +143,25 @@ const ThreadHistorySkeleton: FC = () => (
 
 export const ComposableThread: FC<ThreadProps> = ({
   components = EMPTY_COMPONENTS,
-  autoFocus = true,
+  autoFocus = false,
   composer = null,
 }) => {
   const isEmpty = useAuiState(isNewChatView);
 
   return (
     <ThreadComponentsContext.Provider value={components}>
-      <ThreadRoot isEmpty={isEmpty} autoFocus={autoFocus} composer={composer} />
+      <ComposerHostConfigContext.Provider value={{ autoFocus }}>
+        <ThreadRoot isEmpty={isEmpty} composer={composer} />
+      </ComposerHostConfigContext.Provider>
     </ThreadComponentsContext.Provider>
   );
 };
 
 const ThreadRoot: FC<{
   isEmpty: boolean;
-  autoFocus: boolean;
   composer: ReactNode | null;
 }> = ({
   isEmpty,
-  autoFocus,
   composer,
 }) => {
   const { Welcome = ThreadWelcome } = useContext(ThreadComponentsContext);
@@ -287,7 +295,7 @@ export interface CanonicalComposerProps {
 }
 
 export const CanonicalComposer: FC<CanonicalComposerProps> = ({
-  autoFocus = true,
+  autoFocus,
   placeholder,
   inputAriaLabel,
   beforeInput,
@@ -295,6 +303,9 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
   trailingActions,
   submitAction,
 }) => {
+  const inheritedHostConfig = useContext(ComposerHostConfigContext);
+  const resolvedAutoFocus = autoFocus ?? inheritedHostConfig.autoFocus;
+
   return (
     <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col">
       <ComposerPrimitive.AttachmentDropzone asChild>
@@ -310,7 +321,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
             placeholder={placeholder}
             className="aui-composer-input caret-primary placeholder:text-muted-foreground/60 max-h-48 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base leading-6 outline-none"
             rows={1}
-            autoFocus={autoFocus}
+            autoFocus={resolvedAutoFocus}
             enterKeyHint="send"
             aria-label={inputAriaLabel}
           />

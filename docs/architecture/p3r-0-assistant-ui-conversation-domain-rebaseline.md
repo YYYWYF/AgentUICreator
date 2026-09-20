@@ -259,6 +259,30 @@ Plugin/Slot decides **which semantic capability** is used. assistant-ui override
 
 Fallback behavior is required for every child Slot so a missing/disabled Plugin cannot make the Thread structurally invalid.
 
+### Composer seam and upstream parity
+
+The pinned assistant-ui release does not provide a typed Composer component
+override on `Thread`. Until that upstream seam exists, the product-owned
+`ComposableThread` is a narrow composition fork responsible only for Thread
+anatomy and the Composer outlet. It must not own AppUIModel, Plugin Runtime,
+model selection, locale services or product business state.
+
+The fork consumes the existing vendored assistant-ui leaf components. The
+vendored `thread.aui.tsx` remains upstream-owned and protected by the upstream
+lock; `composable-thread.tsx` remains product-owned. Its footer order is kept
+at:
+
+```text
+ThreadScrollToBottom
+  -> ThreadFollowupSuggestions
+  -> {composer}
+  -> ThreadSuggestions
+```
+
+Every assistant-ui upgrade must review the ComposableThread parity guard. If a
+future pinned release provides a native Composer override, remove this fork and
+move the integration back to the native Thread seam.
+
 ## 11. Conversation Service / History Strategy
 
 AgentUICreator Conversation Service keeps ownership of:

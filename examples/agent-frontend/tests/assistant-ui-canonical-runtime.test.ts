@@ -57,7 +57,7 @@ describe("assistant-ui canonical runtime", () => {
     expect(
       Object.values(model.pluginInstances)
         .filter((instance) => instance.enabled),
-    ).toHaveLength(14);
+    ).toHaveLength(18);
     expect(
       model.pluginInstances["conversation-suggestions-main"],
     ).toMatchObject({
@@ -65,6 +65,14 @@ describe("assistant-ui canonical runtime", () => {
       enabled: true,
       mount: { slotId: "plugin:agent-conversation-surface-main:emptySuggestions" },
     });
+    expect(model.pluginInstances["assistant-ui-composer-main"]?.mount?.slotId)
+      .toBe("plugin:agent-conversation-surface-main:composer");
+    expect(model.pluginInstances["assistant-ui-add-attachment-action-main"]?.mount?.slotId)
+      .toBe("plugin:assistant-ui-composer-main:leadingActions");
+    expect(model.pluginInstances["assistant-ui-dictation-action-main"]?.mount?.slotId)
+      .toBe("plugin:assistant-ui-composer-main:trailingActions");
+    expect(model.pluginInstances["assistant-ui-submit-action-main"]?.mount?.slotId)
+      .toBe("plugin:assistant-ui-composer-main:submitAction");
     expect(model.pluginInstances["assistant-ui-reasoning-main"]?.mount?.slotId)
       .toBe("plugin:agent-conversation-surface-main:reasoningGroup");
     expect(model.pluginInstances["assistant-ui-tool-group-main"]?.mount?.slotId)

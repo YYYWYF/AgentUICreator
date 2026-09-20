@@ -30,6 +30,14 @@ describe("assistant-ui default composition", () => {
     const locations = collectAppUIPluginLocations(parseAppUIModel(appUIJson));
     expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-reasoning-main")?.target)
       .toMatchObject({ type: "plugin_slot", parentInstanceId: "agent-conversation-surface-main", slot: "reasoningGroup" });
+    expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-composer-main")?.target)
+      .toMatchObject({ type: "plugin_slot", parentInstanceId: "agent-conversation-surface-main", slot: "composer" });
+    expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-add-attachment-action-main")?.target)
+      .toMatchObject({ type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "leadingActions" });
+    expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-dictation-action-main")?.target)
+      .toMatchObject({ type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "trailingActions" });
+    expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-submit-action-main")?.target)
+      .toMatchObject({ type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "submitAction" });
   });
   it("projects canonical authoring placement for default renderer assets", () => {
     expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-reasoning")?.manifest.authoring).toEqual({
@@ -60,6 +68,26 @@ describe("assistant-ui default composition", () => {
       parentPluginId: "conversation-surface",
       slot: "assistantMessageFooter",
     });
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-composer")?.manifest.authoring?.defaultPlacement).toEqual({
+      type: "plugin_slot",
+      parentPluginId: "conversation-surface",
+      slot: "composer",
+    });
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-add-attachment-action")?.manifest.authoring?.defaultPlacement).toEqual({
+      type: "plugin_slot",
+      parentPluginId: "assistant-ui-composer",
+      slot: "leadingActions",
+    });
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-dictation-action")?.manifest.authoring?.defaultPlacement).toEqual({
+      type: "plugin_slot",
+      parentPluginId: "assistant-ui-composer",
+      slot: "trailingActions",
+    });
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-submit-action")?.manifest.authoring?.defaultPlacement).toEqual({
+      type: "plugin_slot",
+      parentPluginId: "assistant-ui-composer",
+      slot: "submitAction",
+    });
   });
   it("keeps the default model to application plugins and semantic child Slot plugins", () => {
     const model = parseAppUIModel(appUIJson);
@@ -72,6 +100,10 @@ describe("assistant-ui default composition", () => {
       "conversation-thread-list-main",
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
+      "assistant-ui-composer-main",
+      "assistant-ui-add-attachment-action-main",
+      "assistant-ui-dictation-action-main",
+      "assistant-ui-submit-action-main",
       "assistant-ui-reasoning-main",
       "assistant-ui-tool-group-main",
       "assistant-ui-tool-fallback-main",
@@ -88,6 +120,10 @@ describe("assistant-ui default composition", () => {
       "conversation-thread-list-main",
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
+      "assistant-ui-composer-main",
+      "assistant-ui-add-attachment-action-main",
+      "assistant-ui-dictation-action-main",
+      "assistant-ui-submit-action-main",
       "assistant-ui-reasoning-main",
       "assistant-ui-tool-group-main",
       "assistant-ui-tool-fallback-main",
