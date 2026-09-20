@@ -182,13 +182,12 @@ describe("plugin runtime diagnostics", () => {
       );
     });
 
-    expect(
-      diagnostics.find(
-        (diagnostic) =>
-          diagnostic.kind === "plugin-activation" &&
-          diagnostic.status === "error",
-      ),
-    ).toMatchObject({
+    expect(diagnostics.filter((diagnostic) => diagnostic.status === "error")).toHaveLength(1);
+    expect(diagnostics.find(
+      (diagnostic) =>
+        diagnostic.kind === "plugin-activation" &&
+        diagnostic.status === "error",
+    )).toMatchObject({
       appUIModelHash,
       errorMessage: "Diagnostic setup failed.",
       instanceId: "diagnostic-main",
@@ -196,6 +195,11 @@ describe("plugin runtime diagnostics", () => {
       slotId: "diagnostic-slot",
       slotPath: "root.child",
     });
+    expect(diagnostics.some(
+      (diagnostic) =>
+        diagnostic.kind === "plugin-render" &&
+        diagnostic.status === "error",
+    )).toBe(false);
   });
 
   it("keeps the frontend alive when the optional reporter is unavailable", async () => {

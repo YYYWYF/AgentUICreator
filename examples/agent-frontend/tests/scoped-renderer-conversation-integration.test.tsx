@@ -24,7 +24,11 @@ import type { UIPluginComponentProps, UIPluginDefinition, UIPluginRenderScope } 
 import { AssistantUiReasoningPlugin } from "../plugins/assistant-ui-reasoning";
 import { AssistantUiToolFallbackPlugin } from "../plugins/assistant-ui-tool-fallback";
 import { AssistantUiToolGroupPlugin } from "../plugins/assistant-ui-tool-group";
-import { createPluginRegistry, usePluginRenderScope } from "../runtime/plugins";
+import {
+  createPluginRegistry,
+  type RuntimeDiagnostic,
+  usePluginRenderScope,
+} from "../runtime/plugins";
 import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
 const roots: Root[] = [];
@@ -120,17 +124,19 @@ const actions = {
 };
 const config = AuiConfig({ tools: Tools({ toolkit: createConversationToolkit() }) });
 
-function RuntimeFixture({ chatModel, initialMessages, model, onRuntime }: {
+function RuntimeFixture({ chatModel, initialMessages, model, onRuntime, onRuntimeDiagnostic }: {
   chatModel: ChatModelAdapter;
   initialMessages: ThreadMessage[];
   model: AppUIRuntimeModel;
   onRuntime(runtime: AssistantRuntime): void;
+  onRuntimeDiagnostic?(diagnostic: RuntimeDiagnostic): void;
 }) {
   const runtime = useLocalRuntime(chatModel, { initialMessages: initialMessages as never });
   useEffect(() => onRuntime(runtime), [onRuntime, runtime]);
   return <AssistantRuntimeProvider config={config} runtime={runtime}>
     <PluginRuntimeFixture actions={actions} conversation={{ id: "conversation-test" }} executions={[]}
-      interrupts={[]} messages={[]} model={model} registry={registry} run={{ status: "idle" }} state={null} />
+      interrupts={[]} messages={[]} model={model} onRuntimeDiagnostic={onRuntimeDiagnostic}
+      registry={registry} run={{ status: "idle" }} state={null} />
   </AssistantRuntimeProvider>;
 }
 
@@ -144,6 +150,7 @@ async function mount(
   initialMessages: ThreadMessage[],
   chatModel: ChatModelAdapter = { run: async () => ({ content: [] }) },
   model: AppUIRuntimeModel = createModel(),
+  onRuntimeDiagnostic?: (diagnostic: RuntimeDiagnostic) => void,
 ) {
   let runtime: AssistantRuntime | undefined;
   const container = document.createElement("div");
@@ -151,7 +158,8 @@ async function mount(
   const root = createRoot(container);
   roots.push(root);
   await act(async () => {
-    root.render(<RuntimeFixture chatModel={chatModel} initialMessages={initialMessages} model={model} onRuntime={(value) => { runtime = value; }} />);
+    root.render(<RuntimeFixture chatModel={chatModel} initialMessages={initialMessages} model={model}
+      onRuntime={(value) => { runtime = value; }} onRuntimeDiagnostic={onRuntimeDiagnostic} />);
     await Promise.resolve();
   });
   if (runtime === undefined) throw new Error("Assistant runtime was not captured");
@@ -212,33 +220,51 @@ describe("Conversation scoped renderer integration", () => {
     expect(hostMounts).toBe(1);
   });
 
-  it("removes reasoning presentation when its Renderer occupant is disabled or removed", async () => {
+  it("does not report a plugin-render error when its Renderer occupant is disabled", async () => {
+    const diagnostics: RuntimeDiagnostic[] = [];
+    const reportDiagnostic = (diagnostic: RuntimeDiagnostic) => diagnostics.push(diagnostic);
     const content = [
       { type: "reasoning" as const, text: "Thinking", status: { type: "complete" as const } },
       { type: "text" as const, text: "Answer" },
     ];
-    const { container, root } = await mount([message(content)]);
+    const { container, root } = await mount([message(content)], undefined, undefined, reportDiagnostic);
     expect(container.querySelector('[data-slot="reasoning-root"]')).not.toBeNull();
     expect(container.textContent).toContain("Answer");
 
     await act(async () => {
       root.render(<RuntimeFixture chatModel={{ run: async () => ({ content: [] }) }}
         initialMessages={[message(content)]} model={createModel({ reasoning: "disabled" })}
-        onRuntime={() => undefined} />);
+        onRuntime={() => undefined} onRuntimeDiagnostic={reportDiagnostic} />);
       await Promise.resolve();
     });
     expect(container.querySelector('[data-slot="reasoning-root"]')).toBeNull();
+    expect(container.textContent).toContain("Answer");
+    expect(diagnostics.filter((diagnostic) => diagnostic.status === "error")).toHaveLength(0);
+    expect(diagnostics.some((diagnostic) =>
+      diagnostic.errorMessage === 'Renderer Plugin instance "reasoning" is disabled.',
+    )).toBe(false);
+  });
+
+  it("does not report a plugin-render error when its Renderer occupant is removed", async () => {
+    const diagnostics: RuntimeDiagnostic[] = [];
+    const reportDiagnostic = (diagnostic: RuntimeDiagnostic) => diagnostics.push(diagnostic);
+    const content = [
+      { type: "reasoning" as const, text: "Thinking", status: { type: "complete" as const } },
+      { type: "text" as const, text: "Answer" },
+    ];
+    const { container, root } = await mount([message(content)], undefined, undefined, reportDiagnostic);
+    expect(container.querySelector('[data-slot="reasoning-root"]')).not.toBeNull();
     expect(container.textContent).toContain("Answer");
 
     await act(async () => {
       root.render(<RuntimeFixture chatModel={{ run: async () => ({ content: [] }) }}
         initialMessages={[message(content)]} model={createModel({ reasoning: "removed" })}
-        onRuntime={() => undefined} />);
+        onRuntime={() => undefined} onRuntimeDiagnostic={reportDiagnostic} />);
       await Promise.resolve();
     });
     expect(container.querySelector('[data-slot="reasoning-root"]')).toBeNull();
     expect(container.textContent).toContain("Answer");
-    expect(hostMounts).toBe(1);
+    expect(diagnostics.filter((diagnostic) => diagnostic.status === "error")).toHaveLength(0);
   });
 
   it("removes the ToolFallback presentation without affecting named Tool UI", async () => {

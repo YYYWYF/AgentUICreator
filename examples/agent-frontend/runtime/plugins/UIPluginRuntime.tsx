@@ -145,7 +145,6 @@ function SlotContent<TState = unknown>({
   onPluginError,
   onPluginReset,
 }: SlotContentProps<TState>) {
-  const diagnostics = useOptionalPluginDiagnosticContext();
   const serviceRuntime = usePluginServiceRuntime();
   const slots = serviceRuntime.slots;
   const getSnapshot = useCallback(
@@ -172,84 +171,6 @@ function SlotContent<TState = unknown>({
     !scopedDefinition.manifest.capabilities?.some((capability) =>
       acceptedCapabilities.includes(capability),
     );
-  let scopedDiagnostic: {
-    pluginId?: string;
-    pluginName?: string;
-    instanceId?: string;
-    errorMessage: string;
-  } | undefined;
-  if (scope !== undefined && contributions.length > 0) {
-    if (contributions.length !== 1) {
-      scopedDiagnostic = {
-        errorMessage: `Renderer Slot "${slotId}" has multiple contributions; expected at most one.`,
-      };
-    } else if (scopedInstance === undefined) {
-      scopedDiagnostic = {
-        ...(scopedContribution === undefined
-          ? {}
-          : { instanceId: scopedContribution.instanceId }),
-        errorMessage: `Renderer Slot "${slotId}" references an unavailable Plugin instance.`,
-      };
-    } else if (!scopedInstance.enabled) {
-      scopedDiagnostic = {
-        instanceId: scopedInstance.id,
-        pluginId: scopedInstance.pluginId,
-        errorMessage: `Renderer Plugin instance "${scopedInstance.id}" is disabled.`,
-      };
-    } else if (scopedInstance.mount?.slotId !== slotId) {
-      scopedDiagnostic = {
-        instanceId: scopedInstance.id,
-        pluginId: scopedInstance.pluginId,
-        errorMessage: `Renderer Plugin instance "${scopedInstance.id}" is mounted in a different Slot.`,
-      };
-    } else if (scopedDefinition === undefined) {
-      scopedDiagnostic = {
-        instanceId: scopedInstance.id,
-        pluginId: scopedInstance.pluginId,
-        errorMessage: `Renderer Plugin "${scopedInstance.pluginId}" is unavailable.`,
-      };
-    } else if (scopedActivation?.status !== "active") {
-      scopedDiagnostic = {
-        instanceId: scopedInstance.id,
-        pluginId: scopedDefinition.manifest.id,
-        pluginName: scopedDefinition.manifest.name,
-        errorMessage: `Renderer Plugin instance "${scopedInstance.id}" is not active.`,
-      };
-    } else if (scopedEvents === undefined) {
-      scopedDiagnostic = {
-        instanceId: scopedInstance.id,
-        pluginId: scopedDefinition.manifest.id,
-        pluginName: scopedDefinition.manifest.name,
-        errorMessage: `Renderer Plugin instance "${scopedInstance.id}" has no event scope.`,
-      };
-    } else if (scopedCapabilityMismatch) {
-      scopedDiagnostic = {
-        instanceId: scopedInstance.id,
-        pluginId: scopedDefinition.manifest.id,
-        pluginName: scopedDefinition.manifest.name,
-        errorMessage: `Renderer Plugin "${scopedDefinition.manifest.id}" does not satisfy the Slot capability contract.`,
-      };
-    }
-  }
-  useEffect(() => {
-    if (scopedDiagnostic === undefined || diagnostics === null) return;
-    diagnostics.report({
-      kind: "plugin-render",
-      status: "error",
-      ...(scopedDiagnostic.pluginId === undefined ? {} : { pluginId: scopedDiagnostic.pluginId }),
-      ...(scopedDiagnostic.pluginName === undefined ? {} : { pluginName: scopedDiagnostic.pluginName }),
-      ...(scopedDiagnostic.instanceId === undefined ? {} : { instanceId: scopedDiagnostic.instanceId }),
-      slotId,
-      errorMessage: scopedDiagnostic.errorMessage,
-    });
-  }, [
-    diagnostics,
-    scopedDiagnostic?.errorMessage,
-    scopedDiagnostic?.instanceId,
-    scopedDiagnostic?.pluginId,
-    scopedDiagnostic?.pluginName,
-    slotId,
-  ]);
 
   if (scope !== undefined) {
     const instance = scopedInstance;
