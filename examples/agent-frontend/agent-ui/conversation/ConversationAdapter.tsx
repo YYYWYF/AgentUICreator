@@ -21,6 +21,7 @@ import {
 export interface ConversationEmptyStateProps {
   welcome?: ReactNode;
   suggestions?: ReactNode;
+  composer?: ReactNode;
 }
 
 const ConversationEmptyStateContext = createContext<ConversationEmptyStateProps>({});
@@ -69,6 +70,7 @@ export function createConversationSemanticThreadComponents(): ConversationThread
 export function ConversationAdapter({
   welcome,
   suggestions,
+  composer,
   renderScopedSlot,
 }: ConversationEmptyStateProps & {
   renderScopedSlot?: UIPluginComponentProps["renderScopedSlot"];
@@ -81,7 +83,7 @@ export function ConversationAdapter({
   );
   const surface = (
     <ConversationEmptyStateContext.Provider value={emptyState}>
-      <ConversationSurface components={components} theme={theme} />
+      <ConversationSurface components={components} theme={theme} composer={composer} />
     </ConversationEmptyStateContext.Provider>
   );
   return renderScopedSlot === undefined ? surface : (

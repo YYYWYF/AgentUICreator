@@ -11,6 +11,7 @@ export interface ConversationSurfaceProps {
   children?: ReactNode;
   className?: string;
   components?: ConversationThreadComponents;
+  composer?: ReactNode | null;
   theme?: ConversationTheme;
 }
 
@@ -21,6 +22,7 @@ export function ConversationSurface({
   children,
   className,
   components,
+  composer = null,
   theme = "light",
 }: ConversationSurfaceProps) {
   return (
@@ -38,6 +40,7 @@ export function ConversationSurface({
         <ConversationThread
           autoFocus={autoFocus}
           components={components}
+          composer={composer}
         />
         {children}
       </TooltipProvider>

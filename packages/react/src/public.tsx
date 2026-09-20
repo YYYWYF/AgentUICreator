@@ -1,7 +1,14 @@
 import {
-  Thread as InternalConversationThread,
+  CanonicalComposer as InternalConversationCanonicalComposer,
+  ComposerAddAttachmentAction as InternalConversationComposerAddAttachment,
+  ComposerCancelAction as InternalConversationComposerCancel,
+  ComposerDictateAction as InternalConversationComposerDictate,
+  ComposerSendAction as InternalConversationComposerSend,
+  ComposerStopDictationAction as InternalConversationComposerStopDictation,
+  ComposableThread as InternalConversationThread,
+  type CanonicalComposerProps as InternalCanonicalComposerProps,
   type ThreadComponents as InternalThreadComponents,
-} from "./internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.js";
+} from "./internal/composable-thread.js";
 import { File as InternalFile } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/file.js";
 import { Image as InternalImage } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/image.js";
 import { ToolCall as InternalToolCall } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.js";
@@ -153,11 +160,13 @@ export function toConversationMessagePartGroup(group: unknown): ConversationMess
 export interface ConversationThreadProps {
   components?: ConversationThreadComponents | undefined;
   autoFocus?: boolean | undefined;
+  composer?: ReactNode | null | undefined;
 }
 
 export function ConversationThread({
   components,
   autoFocus,
+  composer,
 }: Readonly<ConversationThreadProps>) {
   return (
     <InternalConversationThread
@@ -165,8 +174,53 @@ export function ConversationThread({
         ? {}
         : { components: components as unknown as InternalThreadComponents })}
       {...(autoFocus === undefined ? {} : { autoFocus })}
+      composer={composer}
     />
   );
+}
+
+export interface ConversationCanonicalComposerProps
+  extends Omit<InternalCanonicalComposerProps, "placeholder" | "inputAriaLabel"> {
+  placeholder?: string | undefined;
+  inputAriaLabel?: string | undefined;
+}
+
+/**
+ * Product-owned Composer composition. The host supplies semantic child Slot
+ * content while assistant-ui owns the Root, attachment, input, and state.
+ */
+export function ConversationCanonicalComposer({
+  placeholder = "Send a message...",
+  inputAriaLabel = "Message input",
+  ...props
+}: Readonly<ConversationCanonicalComposerProps>) {
+  return (
+    <InternalConversationCanonicalComposer
+      {...props}
+      placeholder={placeholder}
+      inputAriaLabel={inputAriaLabel}
+    />
+  );
+}
+
+export function ConversationComposerAddAttachment({ label }: Readonly<{ label: string }>) {
+  return <InternalConversationComposerAddAttachment label={label} />;
+}
+
+export function ConversationComposerDictate({ label }: Readonly<{ label: string }>) {
+  return <InternalConversationComposerDictate label={label} />;
+}
+
+export function ConversationComposerStopDictation({ label }: Readonly<{ label: string }>) {
+  return <InternalConversationComposerStopDictation label={label} />;
+}
+
+export function ConversationComposerSend({ label }: Readonly<{ label: string }>) {
+  return <InternalConversationComposerSend label={label} />;
+}
+
+export function ConversationComposerCancel({ label }: Readonly<{ label: string }>) {
+  return <InternalConversationComposerCancel label={label} />;
 }
 
 export interface ConversationSuggestionProps
