@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
 import { createPluginRegistry } from "../runtime/plugins";
+import { resolveSlotRenderOptions } from "../runtime/plugins/UIPluginRuntime";
 import { PluginRuntimeFixture } from "./agent-runtime-fixture";
 
 const runtimeActions = {
@@ -190,6 +191,12 @@ describe("inline child Slot layout", () => {
       renderer!.root.findByProps({ className: "app-ui-plugin-slot-width-probe" })
         .props["data-slot-layout"],
     ).toBe("stack");
+  });
+
+  it("rejects inline Slots that request fill sizing", () => {
+    expect(() =>
+      resolveSlotRenderOptions({ layout: "inline", sizing: "fill" }),
+    ).toThrow("inline Slot cannot use fill sizing");
   });
 
   it("documents the inline width and overflow contract in Runtime CSS", async () => {

@@ -13,6 +13,7 @@ export function AssistantUiMessageFooterPlugin({
 
   return (
     <div
+      className="flex items-center"
       data-ui-plugin="assistant-ui-message-footer"
       data-slot="aui_assistant-message-footer-plugin"
     >

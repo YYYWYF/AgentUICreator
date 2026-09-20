@@ -81,7 +81,7 @@ interface SlotWidthProbeProps {
   slotId: string;
 }
 
-function resolveSlotRenderOptions(
+export function resolveSlotRenderOptions(
   options: UIPluginRenderSlotOptions | undefined,
 ): { layout: "stack" | "inline"; sizing: "fill" | "content" } {
   const layout = options?.layout ?? "stack";
