@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "6018c4a7741b3ede77f58c16dba45f3259b165c541e699708795dedd0b202368";
+export const capabilityCatalogRevision = "d69f1062777a84b5fd9b9d3a2c1a6028165750957697a120012f198b15cc6410";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -16,7 +16,20 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
       "capabilities": [
         "conversation-reasoning-renderer"
       ],
-      "requiresRenderScope": true
+      "requiresRenderScope": true,
+      "authoring": {
+        "intents": [
+          "show the reasoning process",
+          "restore reasoning presentation",
+          "show deep thinking"
+        ],
+        "visualRole": "assistant reasoning presentation",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "reasoningGroup"
+        }
+      }
     },
     provides: [],
     inject: [],
@@ -35,7 +48,19 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
       "capabilities": [
         "conversation-tool-fallback-renderer"
       ],
-      "requiresRenderScope": true
+      "requiresRenderScope": true,
+      "authoring": {
+        "intents": [
+          "show unregistered tool calls",
+          "restore tool fallback presentation"
+        ],
+        "visualRole": "assistant tool fallback presentation",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "toolFallback"
+        }
+      }
     },
     provides: [],
     inject: [],
@@ -54,7 +79,19 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
       "capabilities": [
         "conversation-tool-group-renderer"
       ],
-      "requiresRenderScope": true
+      "requiresRenderScope": true,
+      "authoring": {
+        "intents": [
+          "show grouped tool activity",
+          "restore tool group presentation"
+        ],
+        "visualRole": "assistant tool group presentation",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "toolGroup"
+        }
+      }
     },
     provides: [],
     inject: [],

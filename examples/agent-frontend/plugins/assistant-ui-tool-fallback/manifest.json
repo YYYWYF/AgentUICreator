@@ -4,5 +4,17 @@
   "description": "Displays an unregistered tool call with canonical assistant-ui presentation.",
   "version": "1.0.0",
   "capabilities": ["conversation-tool-fallback-renderer"],
-  "requiresRenderScope": true
+  "requiresRenderScope": true,
+  "authoring": {
+    "intents": [
+      "show unregistered tool calls",
+      "restore tool fallback presentation"
+    ],
+    "visualRole": "assistant tool fallback presentation",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "conversation-surface",
+      "slot": "toolFallback"
+    }
+  }
 }

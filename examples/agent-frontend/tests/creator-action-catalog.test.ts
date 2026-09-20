@@ -392,6 +392,23 @@ describe("Creator Action Catalog", () => {
     const absentModel = JSON.parse(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")) as AppUIModel;
     expect(collectAppUIPluginLocations(absentModel).some(({ plugin }) => plugin.pluginId === "conversation-suggestions")).toBe(false);
     const afterRemove = await buildCatalog(projectRoot, absentModel);
+    expect(afterRemove.projectFacts.assets.find(
+      (asset) => asset.pluginId === "assistant-ui-reasoning",
+    )).toMatchObject({
+      authoring: {
+        intents: [
+          "show the reasoning process",
+          "restore reasoning presentation",
+          "show deep thinking",
+        ],
+        visualRole: "assistant reasoning presentation",
+        defaultPlacement: {
+          type: "plugin_slot",
+          parentPluginId: "conversation-surface",
+          slot: "reasoningGroup",
+        },
+      },
+    });
     const add = afterRemove.catalog.candidates.find((candidate) =>
       candidate.kind === "add_existing_plugin" && candidate.target.pluginId === "conversation-suggestions" && candidate.status === "ready");
     expect(add?.effect).toMatchObject({
@@ -421,6 +438,141 @@ describe("Creator Action Catalog", () => {
       pluginId: "conversation-suggestions",
       enabled: true,
     });
+  });
+
+  it("rebuilds and lowers the Reasoning Renderer Add Action after Remove", async () => {
+    const parent: AppUIPluginNode = {
+      id: "agent-conversation-surface-main",
+      pluginId: "conversation-surface",
+      enabled: true,
+      slots: {
+        reasoningGroup: [{
+          id: "assistant-ui-reasoning-main",
+          pluginId: "assistant-ui-reasoning",
+          enabled: true,
+        }],
+      },
+    };
+    const model = childSlotModel([parent]);
+    const projectRoot = await createFixtureProject(model, [
+      ["conversation-surface", {
+        name: "Conversation Surface",
+        capabilities: ["conversation-surface"],
+        slots: {
+          children: {
+            reasoningGroup: {
+              description: "Reasoning content displayed with assistant messages.",
+              cardinality: "one",
+              optional: true,
+              mode: "renderer",
+              accepts: { anyOfCapabilities: ["conversation-reasoning-renderer"] },
+            },
+          },
+        },
+      }],
+      ["assistant-ui-reasoning", {
+        name: "Assistant UI Reasoning Renderer",
+        capabilities: ["conversation-reasoning-renderer"],
+        requiresRenderScope: true,
+        authoring: {
+          intents: [
+            "show the reasoning process",
+            "restore reasoning presentation",
+            "show deep thinking",
+          ],
+          visualRole: "assistant reasoning presentation",
+          defaultPlacement: {
+            type: "plugin_slot",
+            parentPluginId: "conversation-surface",
+            slot: "reasoningGroup",
+          },
+        },
+      }],
+    ]);
+
+    const before = await buildCatalog(projectRoot, model);
+    const remove = before.catalog.candidates.find((candidate) =>
+      candidate.kind === "remove_plugin" &&
+      candidate.target.pluginId === "assistant-ui-reasoning" &&
+      candidate.status === "ready",
+    );
+    if (remove === undefined) throw new Error("Expected Reasoning Renderer Remove Action");
+
+    const removed = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(`${JSON.stringify(model, null, 2)}\n`),
+      operations: [{ type: "execute_creator_action", actionId: remove.actionId }],
+    });
+    const absentModel = JSON.parse(
+      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
+    ) as AppUIModel;
+    expect(collectAppUIPluginLocations(absentModel).some(
+      ({ plugin }) => plugin.pluginId === "assistant-ui-reasoning",
+    )).toBe(false);
+
+    const afterRemove = await buildCatalog(projectRoot, absentModel);
+    const add = afterRemove.catalog.candidates.find((candidate) =>
+      candidate.kind === "add_existing_plugin" &&
+      candidate.target.pluginId === "assistant-ui-reasoning" &&
+      candidate.status === "ready",
+    );
+    expect(add).toMatchObject({
+      kind: "add_existing_plugin",
+      status: "ready",
+      target: { pluginId: "assistant-ui-reasoning" },
+      effect: { type: "add_default", placementDomain: "plugin_slot" },
+    });
+    if (add === undefined) throw new Error("Expected Reasoning Renderer Add Action");
+
+    const binding = afterRemove.catalog.bindings.get(add.actionId);
+    if (binding?.status !== "ready" || binding.operation.type !== "insert_plugin_default") {
+      throw new Error("Expected a ready Reasoning Renderer insert_plugin_default binding");
+    }
+    const plan = planDefaultPluginInsertion(
+      absentModel,
+      binding.operation,
+      afterRemove.generation,
+    );
+    expect(plan.operations).toEqual([{
+      type: "insert_plugin",
+      plugin: {
+        id: "assistant-ui-reasoning-main",
+        pluginId: "assistant-ui-reasoning",
+        enabled: true,
+      },
+      target: {
+        type: "plugin_slot",
+        parentInstanceId: "agent-conversation-surface-main",
+        slot: "reasoningGroup",
+      },
+    }]);
+    expect(plan.expectedPlacement).toEqual({
+      type: "plugin_slot",
+      instanceId: "assistant-ui-reasoning-main",
+      parentInstanceId: "agent-conversation-surface-main",
+      slot: "reasoningGroup",
+    });
+
+    const restored = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: removed.appUIModel.afterHash,
+      operations: [{ type: "execute_creator_action", actionId: add.actionId }],
+    });
+    expect(restored.semanticComposition?.expectedPlacement).toEqual(plan.expectedPlacement);
+    const restoredModel = JSON.parse(
+      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
+    ) as AppUIModel;
+    expect(collectAppUIPluginLocations(restoredModel).find(
+      ({ plugin }) => plugin.pluginId === "assistant-ui-reasoning",
+    )?.plugin).toEqual({
+      id: "assistant-ui-reasoning-main",
+      pluginId: "assistant-ui-reasoning",
+      enabled: true,
+    });
+    const finalCatalog = await buildCatalog(projectRoot, restoredModel);
+    expect(finalCatalog.catalog.candidates).toContainEqual(expect.objectContaining({
+      actionId: add.actionId,
+      kind: "add_existing_plugin",
+      status: "already_satisfied",
+    }));
   });
 
   it("emits Theme Switch Add only for the Conversation headerActions Slot", async () => {

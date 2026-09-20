@@ -24,6 +24,31 @@ describe("assistant-ui default composition", () => {
     expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-reasoning-main")?.target)
       .toMatchObject({ type: "plugin_slot", parentInstanceId: "agent-conversation-surface-main", slot: "reasoningGroup" });
   });
+  it("projects canonical authoring placement for default renderer assets", () => {
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-reasoning")?.manifest.authoring).toEqual({
+      intents: [
+        "show the reasoning process",
+        "restore reasoning presentation",
+        "show deep thinking",
+      ],
+      visualRole: "assistant reasoning presentation",
+      defaultPlacement: {
+        type: "plugin_slot",
+        parentPluginId: "conversation-surface",
+        slot: "reasoningGroup",
+      },
+    });
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-tool-group")?.manifest.authoring?.defaultPlacement).toEqual({
+      type: "plugin_slot",
+      parentPluginId: "conversation-surface",
+      slot: "toolGroup",
+    });
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-tool-fallback")?.manifest.authoring?.defaultPlacement).toEqual({
+      type: "plugin_slot",
+      parentPluginId: "conversation-surface",
+      slot: "toolFallback",
+    });
+  });
   it("keeps the default model to application plugins and semantic child Slot plugins", () => {
     const model = parseAppUIModel(appUIJson);
     const locations = collectAppUIPluginLocations(model);

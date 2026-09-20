@@ -347,6 +347,50 @@ def test_explicit_region_action_and_unplaced_default_have_distinct_selection():
         assert selection.actionId == expected
 
 
+def test_reasoning_renderer_restore_selects_the_plugin_slot_add_action():
+    reasoning_action = {
+        "actionId": "act_reasoning_add_default",
+        "kind": "add_existing_plugin",
+        "status": "ready",
+        "label": "Add Assistant UI Reasoning Renderer",
+        "description": "Add the Assistant UI Reasoning Renderer to the Conversation Surface.reasoningGroup Slot.",
+        "target": {
+            "pluginId": "assistant-ui-reasoning",
+            "pluginName": "Assistant UI Reasoning Renderer",
+        },
+        "effect": {"type": "add_default", "placementDomain": "plugin_slot"},
+    }
+    context = CreatorActionSelectorContext(
+        catalogRevision="c" * 64,
+        actions=[reasoning_action],
+        pluginSemantics=[{
+            "pluginId": "assistant-ui-reasoning",
+            "name": "Assistant UI Reasoning Renderer",
+            "description": "Displays assistant reasoning content.",
+            "capabilities": ["conversation-reasoning-renderer"],
+            "intents": [
+                "show the reasoning process",
+                "restore reasoning presentation",
+                "show deep thinking",
+            ],
+            "visualRole": "assistant reasoning presentation",
+        }],
+    )
+    model = StaticChatModel(["SELECT A1"])
+
+    result = asyncio.run(
+        CreatorActionSelector(model=model).select(
+            "我需要把思考过程展示出来",
+            context,
+        )
+    )
+
+    assert result == CreatorActionSelection(
+        decision="select_action",
+        actionId="act_reasoning_add_default",
+    )
+
+
 @pytest.mark.parametrize("message", [
     "把会话管理放到 History 前面",
     "把会话管理放到主会话后面",

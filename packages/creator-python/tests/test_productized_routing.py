@@ -15,6 +15,7 @@ from agent_ui_creator.operations import (
     CreatorActionCatalogSnapshot,
     CreatorActionSelection,
     CreatorActionSelectionError,
+    CreatorActionSelector,
     CreatorActionSelectorMetrics,
     CreatorAuthoringTargetBinding,
     CreatorAuthoringTargetCandidate,
@@ -93,6 +94,14 @@ class _Selector:
         if isinstance(self.selection, BaseException):
             raise self.selection
         return self.selection
+
+
+class _StaticChatModel:
+    def __init__(self, response: str) -> None:
+        self.response = response
+
+    async def ainvoke(self, _messages):
+        return SimpleNamespace(content=self.response, response_metadata={})
 
 
 class _ActionPlaybook:
@@ -407,6 +416,43 @@ def test_engine_exposes_only_selector_and_action_playbook():
     assert not hasattr(engine, "resolver")
     assert not hasattr(engine, "registry")
     assert len(playbook.calls) == 1
+
+
+def test_reasoning_renderer_restore_uses_productized_route_with_static_selector():
+    candidate = CreatorActionCandidate(
+        actionId="act_reasoning_add_default",
+        kind="add_existing_plugin",
+        status="ready",
+        label="Add Assistant UI Reasoning Renderer",
+        description="Add the Assistant UI Reasoning Renderer to the Conversation Surface.reasoningGroup Slot.",
+        target=CreatorActionTarget(
+            pluginId="assistant-ui-reasoning",
+            pluginName="Assistant UI Reasoning Renderer",
+        ),
+        effect=AddDefaultActionEffect(type="add_default", placementDomain="plugin_slot"),
+    )
+    engine, _stub_selector, action_playbook, telemetry = _engine(
+        CreatorActionSelection(decision="select_action", actionId=candidate.actionId),
+        playbook=_ActionPlaybook(_operation_result(operation="add_existing_plugin")),
+        candidates=[candidate],
+    )
+    engine.selector = CreatorActionSelector(model=_StaticChatModel("SELECT A1"))
+
+    result = asyncio.run(engine.run([{
+        "role": "user",
+        "content": "我需要把思考过程展示出来",
+    }]))
+
+    assert isinstance(result, ProductizedOperationRun)
+    assert result.selection == CreatorActionSelection(
+        decision="select_action",
+        actionId="act_reasoning_add_default",
+    )
+    assert result.selected_action is candidate
+    assert len(action_playbook.calls) == 1
+    assert telemetry.operation_route["route"] == "productized"
+    assert telemetry.operation_route["productized"] is True
+    assert telemetry.operation_route["generalAgent"] is False
 
 
 def test_operations_public_api_excludes_retired_pipeline():
