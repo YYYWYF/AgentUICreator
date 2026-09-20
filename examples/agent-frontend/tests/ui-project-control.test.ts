@@ -29,18 +29,21 @@ const fixtureConfig: UIProjectControlConfig = {
   agentUI: { sourceRoot: "agent-ui", metadataRoot: ".agent-ui" },
 };
 
+type AdditionalFixturePlugin = readonly [
+  pluginId: string,
+  manifestOverrides: Record<string, unknown>,
+];
+
 async function createProject(
   definitionSource =
     "const Component = () => null;\nexport default { manifest: {}, Component };\n",
   manifestOverrides: Record<string, unknown> = {},
   modelOverride?: AppUIModel,
+  additionalPlugins: readonly AdditionalFixturePlugin[] = [],
 ) {
   const projectRoot = await mkdtemp(path.join(tmpdir(), "ui-control-"));
   temporaryProjects.push(projectRoot);
   await mkdir(path.join(projectRoot, "app-ui"));
-  await mkdir(path.join(projectRoot, "plugins", "sample"), {
-    recursive: true,
-  });
   await writeFile(
     path.join(projectRoot, "package.json"),
     JSON.stringify({ dependencies: { react: "19.2.8" } }),
@@ -56,21 +59,30 @@ async function createProject(
       include: ["plugins/**/*.ts"],
     }),
   );
-  await writeFile(
-    path.join(projectRoot, "plugins", "sample", "manifest.json"),
-    JSON.stringify({
-      id: "sample",
-      name: "Sample",
-      description: "Fixture",
-      version: "1.0.0",
-      capabilities: ["visual"],
-      ...manifestOverrides,
-    }),
-  );
-  await writeFile(
-    path.join(projectRoot, "plugins", "sample", "definition.ts"),
-    definitionSource,
-  );
+  const fixturePlugins: readonly AdditionalFixturePlugin[] = [
+    ["sample", { name: "Sample", description: "Fixture", ...manifestOverrides }],
+    ...additionalPlugins,
+  ];
+  for (const [pluginId, pluginManifestOverrides] of fixturePlugins) {
+    await mkdir(path.join(projectRoot, "plugins", pluginId), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(projectRoot, "plugins", pluginId, "manifest.json"),
+      JSON.stringify({
+        id: pluginId,
+        name: pluginId,
+        description: "Fixture",
+        version: "1.0.0",
+        capabilities: ["visual"],
+        ...pluginManifestOverrides,
+      }),
+    );
+    await writeFile(
+      path.join(projectRoot, "plugins", pluginId, "definition.ts"),
+      definitionSource,
+    );
+  }
   const model: AppUIModel = modelOverride ?? {
     root: {
       type: "slot",
@@ -205,7 +217,7 @@ describe("ui-project-control", () => {
 
   it("executes a Workspace Region Creator Action through the transaction Host", async () => {
     const model = rowModel(["history", "conversation"]);
-    const { projectRoot } = await createProject({}, model, [
+    const { projectRoot } = await createProject(undefined, {}, model, [
       ["history", {}],
       ["conversation", {}],
     ]);

@@ -102,6 +102,11 @@ export type CreatorActionBindingOperation =
   | { type: "workspace_region_insert"; plugin: { id: string; pluginId: string; enabled: true }; region: WorkspaceRegion }
   | CreatorWorkspaceRegionMoveBinding;
 
+type CreatorActionMoveOperation = Extract<
+  CreatorActionBindingOperation,
+  { type: "move_plugin_to" | "workspace_region_move" }
+>;
+
 export type CreatorActionBinding =
   | {
       actionId: string;
@@ -738,7 +743,7 @@ export async function buildCreatorActionCatalog(
   const appendMoveAction = async (
     target: CreatorActionTarget,
     effect: CreatorActionEffect,
-    operation: CreatorActionBindingOperation,
+    operation: CreatorActionMoveOperation,
     label: string,
     description: string,
   ): Promise<void> => {
@@ -818,7 +823,7 @@ export async function buildCreatorActionCatalog(
         region: targetRegion.workspaceRegion,
       };
       const currentRegionLabel =
-        targetRegion.workspaceRegion[0].toUpperCase() +
+        targetRegion.workspaceRegion.charAt(0).toUpperCase() +
         targetRegion.workspaceRegion.slice(1);
       appendAlreadySatisfiedMoveAction(
         target,
@@ -832,7 +837,7 @@ export async function buildCreatorActionCatalog(
         if (input.workspacePolicy.regions[destinationRegion] === undefined) continue;
         if (workspaceTopology.regions[destinationRegion] !== undefined) continue;
         const destinationLabel =
-          destinationRegion[0].toUpperCase() + destinationRegion.slice(1);
+          destinationRegion.charAt(0).toUpperCase() + destinationRegion.slice(1);
         await appendMoveAction(
           target,
           { type: "workspace_region", region: destinationRegion },

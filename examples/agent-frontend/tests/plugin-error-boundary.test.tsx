@@ -38,7 +38,7 @@ function HealthyPlugin() {
   return <button type="button">Healthy plugin action</button>;
 }
 
-function RenderFailurePlugin(_props: UIPluginComponentProps) {
+function RenderFailurePlugin(_props: UIPluginComponentProps): never {
   throw new Error("Render fixture failed.");
 }
 

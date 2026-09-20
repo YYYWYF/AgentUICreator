@@ -284,7 +284,7 @@ describe("generatePluginRegistry", () => {
     );
 
     expect(result.errors).toEqual([]);
-    expect(result.source).toContain('import("./inactive/definition")');
+    expect(result.capabilityCatalog.source).toContain('import("./inactive/definition")');
   });
 
   it("scopes declaration issues to selected Plugins", async () => {

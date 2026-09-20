@@ -1189,14 +1189,15 @@ async function runTransaction(
         operationApplyOptions ?? { workspacePolicy },
       ),
     );
-    if (requestedWorkspaceInsert !== undefined) {
-      const actual = projectWorkspaceTopology(afterModel, workspacePolicy).regions[requestedWorkspaceInsert.region];
-      if (actual?.index !== requestedWorkspaceInsert.trackIndex || actual.branch.type !== "panel" ||
+    const workspaceInsert = requestedWorkspaceInsert;
+    if (workspaceInsert !== undefined) {
+      const actual = projectWorkspaceTopology(afterModel, workspacePolicy).regions[workspaceInsert.region];
+      if (actual?.index !== workspaceInsert.trackIndex || actual.branch.type !== "panel" ||
           actual.branch.child.type !== "slot" ||
-          !actual.branch.child.plugins.some((plugin) => plugin.id === requestedWorkspaceInsert.instanceId)) {
+          !actual.branch.child.plugins.some((plugin) => plugin.id === workspaceInsert.instanceId)) {
         throw new AppUITransactionError(
           "WORKSPACE_INSERT_PLACEMENT_MISMATCH",
-          `The inserted Plugin did not occupy Workspace.${requestedWorkspaceInsert.region}.`,
+          `The inserted Plugin did not occupy Workspace.${workspaceInsert.region}.`,
         );
       }
     }

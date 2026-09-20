@@ -10,8 +10,8 @@ export interface PluginChildSlotAccepts {
 export interface PluginChildSlotDefinition {
   readonly description: string;
   readonly cardinality: "one" | "many";
-  readonly optional?: boolean;
-  readonly accepts?: PluginChildSlotAccepts;
+  readonly optional?: boolean | undefined;
+  readonly accepts?: PluginChildSlotAccepts | undefined;
 }
 
 /** Static child Slot declarations keyed by UI Plugin manifest id. */

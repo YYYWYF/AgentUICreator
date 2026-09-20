@@ -1055,7 +1055,9 @@ describe("Creator Action Catalog", () => {
       },
     });
 
-    if (initialBinding?.status !== "ready") throw new Error("fixture did not produce a Workspace binding");
+    if (initialBinding?.status !== "ready" || initialBinding.operation.type !== "workspace_region_move") {
+      throw new Error("fixture did not produce a Workspace binding");
+    }
     const movePlan = planWorkspaceRegionMove(
       initialModel,
       initialBinding.operation,

@@ -58,20 +58,20 @@ const pluginMovePlacementSchema = z.discriminatedUnion("type", [
 ]);
 
 type AppUILayoutMutationNode =
-  | ({ type: "row" | "column"; children: AppUILayoutMutationNode[]; gap?: number; sizes?: string[] } & { localRef?: string })
-  | ({ type: "stack"; children: AppUILayoutMutationNode[]; activeIndex?: number } & { localRef?: string })
-  | ({ type: "panel"; child: AppUILayoutMutationNode; width?: AppUIPanelDimension; height?: AppUIPanelDimension; minWidth?: number; maxWidth?: number; resizable?: boolean } & { localRef?: string })
-  | ({ type: "slot"; plugins: AppUIPluginNode[] } & { localRef?: string });
+  | ({ type: "row" | "column"; children: AppUILayoutMutationNode[]; gap?: number | undefined; sizes?: string[] | undefined } & { localRef?: string | undefined })
+  | ({ type: "stack"; children: AppUILayoutMutationNode[]; activeIndex?: number | undefined } & { localRef?: string | undefined })
+  | ({ type: "panel"; child: AppUILayoutMutationNode; width?: AppUIPanelDimension | undefined; height?: AppUIPanelDimension | undefined; minWidth?: number | undefined; maxWidth?: number | undefined; resizable?: boolean | undefined } & { localRef?: string | undefined })
+  | ({ type: "slot"; plugins: AppUIPluginNode[] } & { localRef?: string | undefined });
 
 type LayoutNodeProps = {
-  gap?: number;
-  sizes?: string[];
-  activeIndex?: number;
-  width?: AppUIPanelDimension;
-  height?: AppUIPanelDimension;
-  minWidth?: number;
-  maxWidth?: number;
-  resizable?: boolean;
+  gap?: number | undefined;
+  sizes?: string[] | undefined;
+  activeIndex?: number | undefined;
+  width?: AppUIPanelDimension | undefined;
+  height?: AppUIPanelDimension | undefined;
+  minWidth?: number | undefined;
+  maxWidth?: number | undefined;
+  resizable?: boolean | undefined;
 };
 
 const layoutNodePropsSchema: z.ZodType<LayoutNodeProps> = z.strictObject({
@@ -400,8 +400,13 @@ function materializeMutationNode(
       ...(input.maxWidth === undefined ? {} : { maxWidth: input.maxWidth }),
       ...(input.resizable === undefined ? {} : { resizable: input.resizable }),
     };
-  } else {
+  } else if (input.type === "slot") {
     node = { type: "slot", plugins: structuredClone(input.plugins) };
+  } else {
+    operationError(
+      "INVALID_LAYOUT_NODE",
+      `Unsupported mutation Layout node type "${input.type}".`,
+    );
   }
   if (localRef !== undefined) context.localRefs.set(localRef, node);
   return node;
@@ -479,8 +484,8 @@ function pluginContainer(context: MutationContext, target: AppUIPluginTarget): A
   }
   const parent = requiredPluginLocation(context.model, target.parentInstanceId).plugin;
   parent.slots ??= {};
-  parent.slots[target.slot] ??= [];
-  return parent.slots[target.slot];
+  const container = parent.slots[target.slot] ?? (parent.slots[target.slot] = []);
+  return container;
 }
 
 function pluginContainerForLocation(context: MutationContext, location: AppUIPluginLocation): AppUIPluginNode[] {
@@ -491,8 +496,8 @@ function pluginContainerForLocation(context: MutationContext, location: AppUIPlu
   if (location.target.type === "layout_slot") return location.target.slotNode.plugins;
   const parent = requiredPluginLocation(context.model, location.target.parentInstanceId).plugin;
   parent.slots ??= {};
-  parent.slots[location.target.slot] ??= [];
-  return parent.slots[location.target.slot];
+  const container = parent.slots[location.target.slot] ?? (parent.slots[location.target.slot] = []);
+  return container;
 }
 
 function detachPlugin(context: MutationContext, instanceId: string): { plugin: AppUIPluginNode; container: AppUIPluginNode[]; index: number } {
@@ -848,7 +853,7 @@ function workspaceBranchInstanceId(
       const region = resolveMoveVisualRegion(
         context,
         location,
-        "workspace anchor",
+        "anchor",
         location.plugin.id,
       );
       if (region.parent === topology.root && region.branch === branch) {
@@ -1179,8 +1184,9 @@ export function planPluginMove(
     );
   }
 
-  if (operation.placement.type === "relative") {
-    if (operation.instanceId === operation.placement.anchorInstanceId) {
+  const placement = operation.placement;
+  if (placement.type === "relative") {
+    if (operation.instanceId === placement.anchorInstanceId) {
       moveIncompatible(
         "self-anchor",
         `Plugin instance "${operation.instanceId}" cannot be moved relative to itself.`,
@@ -1188,13 +1194,13 @@ export function planPluginMove(
       );
     }
     const anchorLocation = collectAppUIPluginLocations(source).find(
-      ({ plugin }) => plugin.id === operation.placement.anchorInstanceId,
+      ({ plugin }) => plugin.id === placement.anchorInstanceId,
     );
     if (anchorLocation === undefined) {
       moveUnsupported(
         "anchor-not-found",
-        `Anchor Plugin instance "${operation.placement.anchorInstanceId}" does not exist.`,
-        { anchorInstanceId: operation.placement.anchorInstanceId },
+        `Anchor Plugin instance "${placement.anchorInstanceId}" does not exist.`,
+        { anchorInstanceId: placement.anchorInstanceId },
       );
     }
     const targetRegion = resolveMoveVisualRegion(
@@ -1207,7 +1213,7 @@ export function planPluginMove(
       context,
       anchorLocation,
       "anchor",
-      operation.placement.anchorInstanceId,
+      placement.anchorInstanceId,
     );
     if (targetRegion.parent !== anchorRegion.parent) {
       moveUnsupported(
@@ -1215,24 +1221,24 @@ export function planPluginMove(
         "Relative Plugin moves require the target and anchor visual regions to share the same direct Row parent.",
         {
           instanceId: operation.instanceId,
-          anchorInstanceId: operation.placement.anchorInstanceId,
+          anchorInstanceId: placement.anchorInstanceId,
         },
       );
     }
     const insertionIndex = relativeInsertionIndex(
       targetRegion.index,
       anchorRegion.index,
-      operation.placement.relation,
+      placement.relation,
     );
-    const alreadySatisfied = operation.placement.relation === "before"
+    const alreadySatisfied = placement.relation === "before"
       ? targetRegion.index === anchorRegion.index - 1
       : targetRegion.index === anchorRegion.index + 1;
     return {
       type: "relative",
       changed: !alreadySatisfied,
       instanceId: operation.instanceId,
-      anchorInstanceId: operation.placement.anchorInstanceId,
-      relation: operation.placement.relation,
+      anchorInstanceId: placement.anchorInstanceId,
+      relation: placement.relation,
       branch: targetRegion.branch,
       parent: targetRegion.parent,
       branchRef: targetRegion.branchRef,
@@ -1244,20 +1250,20 @@ export function planPluginMove(
   }
 
   const parentLocation = collectAppUIPluginLocations(source).find(
-    ({ plugin }) => plugin.id === operation.placement.parentInstanceId,
+    ({ plugin }) => plugin.id === placement.parentInstanceId,
   );
   if (parentLocation === undefined) {
     moveUnsupported(
       "destination-parent-not-found",
-      `Destination parent Plugin instance "${operation.placement.parentInstanceId}" does not exist.`,
-      { parentInstanceId: operation.placement.parentInstanceId },
+      `Destination parent Plugin instance "${placement.parentInstanceId}" does not exist.`,
+      { parentInstanceId: placement.parentInstanceId },
     );
   }
   if (contracts === undefined) {
     moveUnsupported(
       "destination-contract-unavailable",
       "Plugin Slot moves require the Host-resolved Plugin manifest contract.",
-      { parentInstanceId: operation.placement.parentInstanceId, slot: operation.placement.slot },
+      { parentInstanceId: placement.parentInstanceId, slot: placement.slot },
     );
   }
   const targetSubtree = pluginSubtreeIds(targetLocation.plugin);
@@ -1268,17 +1274,17 @@ export function planPluginMove(
       {
         instanceId: operation.instanceId,
         parentInstanceId: parentLocation.plugin.id,
-        slot: operation.placement.slot,
+        slot: placement.slot,
       },
     );
   }
 
   const alreadySatisfied = targetLocation.target.type === "plugin_slot" &&
     targetLocation.target.parentInstanceId === parentLocation.plugin.id &&
-    targetLocation.target.slot === operation.placement.slot;
+    targetLocation.target.slot === placement.slot;
   assertPluginSlotDestination(
     parentLocation.plugin,
-    operation.placement.slot,
+    placement.slot,
     targetLocation.plugin.pluginId,
     operation.instanceId,
     contracts,
@@ -1290,7 +1296,7 @@ export function planPluginMove(
       changed: false,
       instanceId: operation.instanceId,
       parentInstanceId: parentLocation.plugin.id,
-      slot: operation.placement.slot,
+      slot: placement.slot,
       source: "plugin_slot",
     };
   }
@@ -1301,7 +1307,7 @@ export function planPluginMove(
     changed: true,
     instanceId: operation.instanceId,
     parentInstanceId: parentLocation.plugin.id,
-    slot: operation.placement.slot,
+    slot: placement.slot,
     source: sourcePlan.source,
     ...(sourcePlan.sourceReflow === undefined
       ? {}

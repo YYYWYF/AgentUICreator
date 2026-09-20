@@ -134,9 +134,9 @@ export function planWorkspaceRegionInsertion(
     const occupied = topology.regions[candidate];
     return occupied !== undefined && WORKSPACE_REGIONS.indexOf(candidate) < destinationOrder;
   }).length;
-  const panel: AppUILayoutNode = {
-    type: "panel",
-    child: { type: "slot", plugins: [structuredClone(plugin)] },
+  const panel = {
+    type: "panel" as const,
+    child: { type: "slot" as const, plugins: [structuredClone(plugin)] },
   };
   return {
     instanceId: plugin.id,
@@ -265,8 +265,9 @@ function resolveVisualRegion(
   }
 
   const refs = buildLayoutRefIndex(model.root);
+  const slotPath = location.target.slotPath;
   const slotEntry = refs.entries.find(
-    (entry) => entry.path === location.target.slotPath,
+    (entry) => entry.path === slotPath,
   );
   if (slotEntry === undefined || slotEntry.node.type !== "slot") {
     semanticPlacementError(
@@ -556,10 +557,10 @@ function planRelativeInsertion(
     : placement.relation === "after"
       ? "right"
       : placement.relation;
-  const panel: AppUILayoutNode = {
-    type: "panel",
+  const panel = {
+    type: "panel" as const,
     child: {
-      type: "slot",
+      type: "slot" as const,
       plugins: [structuredClone(operation.plugin) as AppUIPluginNode],
     },
   };

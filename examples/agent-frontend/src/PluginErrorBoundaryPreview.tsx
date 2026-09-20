@@ -31,7 +31,7 @@ type PreviewState =
   | "both"
   | "repaired";
 
-function RenderFailurePreviewPlugin(_props: UIPluginComponentProps) {
+function RenderFailurePreviewPlugin(_props: UIPluginComponentProps): never {
   throw new Error("The dynamically loaded insights plugin failed to render.");
 }
 

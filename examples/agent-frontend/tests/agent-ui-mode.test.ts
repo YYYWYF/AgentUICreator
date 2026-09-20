@@ -21,12 +21,12 @@ import {
 import { platformMode } from "../framework/modes/platform";
 import { generatePluginRegistry } from "../scripts/ui-project/registry-generator";
 
-function collectLayoutSlots(
+function collectLayoutPluginIds(
   node: ReturnType<typeof parseAppUIModel>["root"],
 ): string[] {
-  if (node.type === "slot") return [node.id];
-  if (node.type === "panel") return collectLayoutSlots(node.child);
-  return node.children.flatMap(collectLayoutSlots);
+  if (node.type === "slot") return node.plugins.map((plugin) => plugin.pluginId);
+  if (node.type === "panel") return collectLayoutPluginIds(node.child);
+  return node.children.flatMap(collectLayoutPluginIds);
 }
 
 describe("Agent UI Mode", () => {
@@ -87,14 +87,14 @@ describe("Agent UI Mode", () => {
       ).not.toThrow();
     }
 
-    const platformSlots = collectLayoutSlots(
+    const platformPluginIds = collectLayoutPluginIds(
       agentUIModeRegistry.get("platform").createInitialAppUIModel().root,
     );
     const currentAppUIModel = parseAppUIModelJson(
       await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
     );
 
-    expect(platformSlots).toContain("conversation-navigation");
+    expect(platformPluginIds).toContain("conversation-surface");
     expect(
       agentUIModeRegistry.get("platform").createInitialAppUIModel(),
     ).toEqual(currentAppUIModel);

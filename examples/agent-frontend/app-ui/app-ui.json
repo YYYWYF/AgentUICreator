@@ -40,25 +40,11 @@
             }
           ]
         }
-      },
-      {
-        "type": "panel",
-        "child": {
-          "type": "slot",
-          "plugins": [
-            {
-              "id": "conversation-thread-list-main",
-              "pluginId": "conversation-thread-list",
-              "enabled": true
-            }
-          ]
-        }
       }
     ],
     "gap": 0,
     "sizes": [
-      "minmax(0, 1fr)",
-      "280px"
+      "minmax(0, 1fr)"
     ]
   }
 }
