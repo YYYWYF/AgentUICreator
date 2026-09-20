@@ -57,6 +57,7 @@ def verify(current_hash: str, store) -> object:
     return asyncio.run(CompositionOperationVerificationService(
         validation=_Validation(), runtime=_Runtime(current_hash),
         visual_observations=store,
+        verification_mode="static_and_runtime",
     ).verify(
         mutation_result={"appUIModel": {"afterHash": current_hash}},
         expected_runtime={"presentInstanceIds": [], "absentInstanceIds": []},

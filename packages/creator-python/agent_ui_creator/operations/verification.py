@@ -9,6 +9,10 @@ from urllib.parse import quote
 
 from ..validation import CreatorValidationService
 from ..visual_observation import VisualObservationStore
+from ..verification_policy import (
+    CreatorVerificationMode,
+    DEFAULT_CREATOR_VERIFICATION_MODE,
+)
 from .models import CreatorOperationVerificationResult, CreatorVisualObservationEvidence
 
 
@@ -375,10 +379,12 @@ class CompositionOperationVerificationService:
         validation: CreatorValidationService,
         runtime: RuntimeInspectionForOperation,
         visual_observations: VisualObservationStore | None = None,
+        verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
     ) -> None:
         self.validation = validation
         self.runtime = runtime
         self.visual_observations = visual_observations
+        self.verification_mode = verification_mode
 
     async def _visual_evidence(self, expected_hash: str) -> dict[str, Any]:
         store = self.visual_observations
@@ -449,6 +455,14 @@ class CompositionOperationVerificationService:
                 runtimeFreshnessWaitMs=0,
             )
 
+        if self.verification_mode == "static_only":
+            return CreatorOperationVerificationResult(
+                staticStatus="passed",
+                runtimeStatus="not-run",
+                runtimeFreshnessAttempts=0,
+                runtimeFreshnessWaitMs=0,
+            )
+
         started_at = monotonic()
         runtime_result: dict[str, Any] | None = None
         attempts = 0
@@ -498,6 +512,14 @@ class CompositionOperationVerificationService:
                 runtimeFreshnessWaitMs=wait_ms,
             )
 
+        if result.get("runtimeObserved") is False:
+            return CreatorOperationVerificationResult(
+                staticStatus="passed",
+                runtimeStatus="unavailable",
+                runtimeFreshnessAttempts=attempts,
+                runtimeFreshnessWaitMs=wait_ms,
+            )
+
         mutation_model = mutation_result.get("appUIModel")
         expected_hash = (
             mutation_model.get("afterHash")
@@ -520,10 +542,32 @@ class CompositionOperationVerificationService:
 
         current_errors = result.get("currentErrors")
         composition_verified = result.get("compositionVerified")
-        if current_errors or composition_verified is False or runtime_status == "failed":
+        composition_checks = result.get("compositionChecks")
+        failed_composition_check = isinstance(composition_checks, list) and any(
+            isinstance(check, Mapping) and check.get("status") != "passed"
+            for check in composition_checks
+        )
+        fresh_current_errors = current_errors and result.get("diagnosticFresh") is not False
+        if (
+            fresh_current_errors
+            or composition_verified is False
+            or failed_composition_check
+        ):
             return CreatorOperationVerificationResult(
                 staticStatus="passed",
                 runtimeStatus="failed",
+                runtimeFreshnessAttempts=attempts,
+                runtimeFreshnessWaitMs=wait_ms,
+                compositionVerified=(
+                    composition_verified
+                    if isinstance(composition_verified, bool)
+                    else None
+                ),
+            )
+        if runtime_status == "failed":
+            return CreatorOperationVerificationResult(
+                staticStatus="passed",
+                runtimeStatus="unavailable",
                 runtimeFreshnessAttempts=attempts,
                 runtimeFreshnessWaitMs=wait_ms,
                 compositionVerified=(

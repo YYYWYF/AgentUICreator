@@ -54,6 +54,10 @@ from .operations import (
 )
 from .project_control import ProjectControlClient
 from .streaming import CreatorEventBus, CreatorEventSink, map_runtime_event
+from .verification_policy import (
+    CreatorVerificationMode,
+    DEFAULT_CREATOR_VERIFICATION_MODE,
+)
 
 MAX_CREATOR_REQUEST_BYTES = 512 * 1024
 MAX_CREATOR_CONVERSATION_MESSAGES = 6
@@ -240,6 +244,7 @@ async def _domain_read_agent_result(
         thread_id=thread_id,
         max_retries=model_settings.max_retries,
         recovery_factory=recovery_factory,
+        verification_mode=settings.verification_mode,
     )
     return await agent.run_messages(messages)
 
@@ -296,6 +301,7 @@ async def _domain_write_agent_result(
         provider_trace_collector=provider_trace_collector,
         telemetry=telemetry,
         event_sink=event_sink,
+        verification_mode=settings.verification_mode,
     )
     productized_result = await engine.run(messages)
     if isinstance(productized_result, ProductizedOperationRun):
@@ -365,6 +371,7 @@ async def _general_domain_write_agent_result(
         telemetry=telemetry,
         max_retries=model_settings.max_retries,
         recovery_factory=recovery_factory,
+        verification_mode=settings.verification_mode,
     )
     return await agent.run_messages(_authoring_handoff_messages(messages, handoff))
 
@@ -384,6 +391,41 @@ class _AgentExecution:
     receipt: dict[str, Any]
 
 
+def _verification_telemetry(
+    result: Any,
+    receipt: dict[str, Any],
+    telemetry: CreatorRunTelemetry,
+) -> tuple[str | None, str | None]:
+    static_status: str | None = None
+    runtime_status: str | None = None
+    if isinstance(result, ProductizedOperationRun):
+        verification = (
+            result.operation_result.verification
+            if result.operation_result is not None
+            else None
+        )
+        if verification is not None:
+            static_status = verification.staticStatus
+            runtime_status = verification.runtimeStatus
+    else:
+        validation = telemetry.validation
+        current_result = (
+            validation.current_result()
+            if validation is not None
+            and callable(getattr(validation, "current_result", None))
+            else None
+        )
+        if current_result is not None:
+            static_status = getattr(current_result, "status", None)
+    verification_receipt = receipt.get("verification")
+    if isinstance(verification_receipt, dict):
+        runtime_status = verification_receipt.get("runtimeStatus", runtime_status)
+    return (
+        static_status if isinstance(static_status, str) else None,
+        runtime_status if isinstance(runtime_status, str) else None,
+    )
+
+
 async def _execute_agent_run(
     agent_result: Awaitable[Any],
     *,
@@ -391,6 +433,7 @@ async def _execute_agent_run(
     logger: CreatorRunLogger,
     event_bus: CreatorEventBus,
     telemetry: CreatorRunTelemetry | None = None,
+    verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
 ) -> _AgentExecution:
     run_telemetry = telemetry or CreatorRunTelemetry(activity=activity)
     try:
@@ -409,9 +452,15 @@ async def _execute_agent_run(
             }
             else "success"
         )
+        static_validation_status, runtime_verification_status = _verification_telemetry(
+            result, receipt, run_telemetry
+        )
         if isinstance(result, ProductizedOperationRun):
             logger.finish(
                 outcome,
+                verification_mode=verification_mode,
+                static_validation_status=static_validation_status,
+                runtime_verification_status=runtime_verification_status,
                 metrics=result.metrics.to_dict(),
                 mutation_metrics=result.app_ui_model_mutations.summary(),
                 change_layer_metrics=result.change_layer_metrics,
@@ -456,6 +505,9 @@ async def _execute_agent_run(
         else:
             logger.finish(
                 outcome,
+                verification_mode=verification_mode,
+                static_validation_status=static_validation_status,
+                runtime_verification_status=runtime_verification_status,
                 metrics=run_telemetry.model_tool_metrics(),
                 mutation_metrics=run_telemetry.mutation_metrics(),
                 change_layer_metrics=run_telemetry.change_layer_metrics(),
@@ -479,6 +531,8 @@ async def _execute_agent_run(
             pass
         logger.finish(
             "error",
+            verification_mode=verification_mode,
+            runtime_verification_status="not-run",
             metrics=run_telemetry.model_tool_metrics(),
             mutation_metrics=run_telemetry.mutation_metrics(),
             change_layer_metrics=run_telemetry.change_layer_metrics(),
@@ -533,6 +587,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
             "runtime": "python",
             "protocolVersion": CREATOR_PYTHON_PROTOCOL_VERSION,
             "projectRoot": str(settings.project_root),
+            "verificationMode": settings.verification_mode,
             "phase": (
                 f"{agent_mode}-agent"
                 if agent_mode in {"domain-read", "domain-write"}
@@ -586,6 +641,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                         run_id=run_input.runId,
                         thread_id=run_input.threadId,
                         agent_mode=agent_mode,
+                        verification_mode=settings.verification_mode,
                     )
                     activity = CreatorActivityRecorder(
                         settings.project_root, logger=logger
@@ -642,6 +698,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                 logger=logger,
                                 event_bus=event_bus,
                                 telemetry=telemetry,
+                                verification_mode=settings.verification_mode,
                             )
                         )
 
@@ -815,6 +872,14 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                         }
                     completion = str(getattr(result, "completion", "success"))
                     run_result["completion"] = completion
+                    static_validation_status, runtime_verification_status = (
+                        _verification_telemetry(result, execution.receipt, telemetry)
+                    )
+                    run_result["verificationMode"] = settings.verification_mode
+                    if static_validation_status is not None:
+                        run_result["staticValidationStatus"] = static_validation_status
+                    if runtime_verification_status is not None:
+                        run_result["runtimeVerificationStatus"] = runtime_verification_status
                     blocker = getattr(result, "blocker", None)
                     if isinstance(blocker, dict):
                         run_result["blocker"] = blocker

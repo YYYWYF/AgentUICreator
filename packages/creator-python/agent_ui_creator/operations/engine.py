@@ -28,6 +28,10 @@ from ..streaming.runtime_events import (
 )
 from ..validation import CreatorValidationService
 from ..visual_observation import VisualObservationStore
+from ..verification_policy import (
+    CreatorVerificationMode,
+    DEFAULT_CREATOR_VERIFICATION_MODE,
+)
 from .action_playbook import CreatorActionExecutionPlaybook
 from .clarification import (
     PendingCreatorClarificationStore,
@@ -135,9 +139,24 @@ def _operation_text(
     if operation.status == "already_satisfied":
         return f"Already satisfied: {operation_name}."
     if operation.status == "committed_unverified":
+        runtime_status = (
+            operation.verification.runtimeStatus
+            if operation.verification is not None
+            else "unavailable"
+        )
+        if runtime_status == "stale":
+            return (
+                f"已提交 Productized operation，但 Runtime 未观测到当前修改的最新证据："
+                f"{operation_name}。"
+            )
+        if runtime_status == "unavailable":
+            return (
+                f"已提交 Productized operation，但 Runtime 暂不可用，未完成运行时观测："
+                f"{operation_name}。"
+            )
         return (
-            f"Committed Productized operation, but runtime verification is not yet fresh: "
-            f"{operation_name}."
+            f"已提交 Productized operation，但当前没有可用的 Runtime 观测证据："
+            f"{operation_name}。"
         )
     detail = operation.message or operation.errorCode or "the Host rejected the operation"
     return f"Productized operation was not completed: {detail}"
@@ -165,12 +184,14 @@ class ProductizedOperationEngine:
         event_sink: CreatorEventSink | None = None,
         visual_observations: VisualObservationStore | None = None,
         pending_clarifications: PendingCreatorClarificationStore | None = None,
+        verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
     ) -> None:
         self.project_root = Path(project_root).resolve()
         self.thread_id = thread_id
         self.activity = activity
         self.project_control = project_control
         self.event_sink = event_sink
+        self.verification_mode = verification_mode
         self.observations = DomainObservationContext()
         self.repair_state = CreatorRepairState()
         self.snapshot_provider = CreatorDomainSnapshotProvider(project_control)
@@ -199,6 +220,7 @@ class ProductizedOperationEngine:
             validation=self.validation,
             runtime=self.runtime_inspection,
             visual_observations=visual_observations,
+            verification_mode=verification_mode,
         )
         self.action_playbook = CreatorActionExecutionPlaybook(
             mutation_service=self.mutation_service,
@@ -475,6 +497,7 @@ class ProductizedOperationEngine:
                 source="productized_operation",
                 reason="already-satisfied",
             )
+        self._record_operation_verification(operation_result)
         if self.activity.logger is not None:
             self.activity.logger.record(
                 "productized_operation_finished",
@@ -517,6 +540,125 @@ class ProductizedOperationEngine:
             intent_presentation=presentation,
             composition_fast_path_metrics=self.observations.composition_fast_path_metrics,
         )
+
+    def _record_operation_verification(
+        self,
+        operation: CreatorOperationExecutionResult,
+    ) -> None:
+        """Project Host-owned Productized evidence into the user receipt."""
+
+        if operation.status == "already_satisfied":
+            self.activity.record_verification(
+                {
+                    "status": "no-project-change",
+                    "verificationMode": self.verification_mode,
+                    "projectRevision": self.activity.revision,
+                    "auditAttempts": 0,
+                    "checks": [
+                        {
+                            "id": "semantic-noop",
+                            "status": "passed",
+                            "evidence": "Host reported that the requested Productized state was already satisfied.",
+                        }
+                    ],
+                }
+            )
+            return
+
+        verification = operation.verification
+        if verification is None:
+            if operation.status == "failed":
+                self.activity.record_verification(
+                    {
+                        "status": "failed",
+                        "verificationMode": self.verification_mode,
+                        "projectRevision": self.activity.revision,
+                        "auditAttempts": 0,
+                        "checks": [
+                            {
+                                "id": "productized-operation",
+                                "status": "failed",
+                                "evidence": operation.message
+                                or operation.errorCode
+                                or "The Host did not produce a completed operation verification.",
+                            }
+                        ],
+                    }
+                )
+            return
+
+        runtime_status = verification.runtimeStatus
+        static_check_status = (
+            "passed"
+            if verification.staticStatus == "passed"
+            else "unavailable"
+            if verification.staticStatus in {"unavailable", "not-run"}
+            else "failed"
+        )
+        committed_without_fresh_runtime = (
+            self.verification_mode != "static_only"
+            and operation.mutationChanged
+            and verification.staticStatus == "passed"
+            and runtime_status in {"stale", "unavailable", "not-run"}
+        )
+        receipt_status = (
+            "changed-and-statically-verified"
+            if self.verification_mode == "static_only"
+            and operation.status == "success"
+            and operation.mutationChanged
+            and verification.staticStatus == "passed"
+            else "changed-and-verified"
+            if operation.status == "success"
+            and verification.staticStatus == "passed"
+            and runtime_status == "passed"
+            else "changed-unverified"
+            if committed_without_fresh_runtime
+            or operation.status == "committed_unverified"
+            else "failed"
+        )
+        checks: list[dict[str, str]] = [
+            {
+                "id": "net-project-change",
+                "status": "passed" if operation.mutationChanged else "failed",
+                "evidence": (
+                    f"mutationChanged={operation.mutationChanged}; "
+                    f"mutationRevision={operation.mutationRevision}."
+                ),
+            },
+            {
+                "id": "static-validation",
+                "status": static_check_status,
+                "evidence": f"staticStatus={verification.staticStatus}.",
+            },
+        ]
+        if self.verification_mode != "static_only":
+            runtime_check_status = (
+                "passed"
+                if runtime_status == "passed"
+                else runtime_status
+                if runtime_status in {"stale", "unavailable"}
+                else "failed"
+            )
+            checks.append(
+                {
+                    "id": "runtime-verification",
+                    "status": runtime_check_status,
+                    "evidence": (
+                        "Fresh Runtime evidence for the current operation passed."
+                        if runtime_status == "passed"
+                        else f"runtimeStatus={runtime_status}; fresh contradictory evidence is required before marking the committed operation failed."
+                    ),
+                }
+            )
+        receipt: dict[str, Any] = {
+            "status": receipt_status,
+            "verificationMode": self.verification_mode,
+            "runtimeStatus": runtime_status,
+            "projectRevision": self.activity.revision,
+            "auditAttempts": verification.runtimeFreshnessAttempts,
+            "checks": checks,
+        }
+        self.activity.record_verification(receipt)
 
     def _terminal_run(
         self,
@@ -649,8 +791,8 @@ class ProductizedOperationEngine:
             metadata["region"] = action.effect.region
         return metadata
 
-    @staticmethod
     def _operation_step_metadata(
+        self,
         operation: CreatorOperationExecutionResult,
     ) -> dict[str, object]:
         verification = operation.verification
@@ -658,6 +800,7 @@ class ProductizedOperationEngine:
         return {
             "phase": "execution",
             "status": operation.status,
+            "verificationMode": self.verification_mode,
             "operation": operation.operation,
             "executionModelCalls": metrics.executionModelCalls,
             "toolCalls": 0,

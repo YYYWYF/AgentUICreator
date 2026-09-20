@@ -299,6 +299,7 @@ def test_composition_completion_reports_seven_existing_errors_as_warning(tmp_pat
         validation=service,
         runtime=_PassingRuntime(),
         repair_state=CreatorRepairState(),
+        verification_mode="static_and_runtime",
     )
     decision = gate.review("已完成会话管理删除")
 

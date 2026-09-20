@@ -10,6 +10,10 @@ from ..runtime_diagnostics import RuntimeDiagnosticInspectionService
 from ..run_control import CreatorRunControlState
 from ..validation import CREATOR_COMPLETION_VALIDATIONS, CreatorValidationService
 from ..repair import CreatorRepairState
+from ..verification_policy import (
+    CreatorVerificationMode,
+    DEFAULT_CREATOR_VERIFICATION_MODE,
+)
 from .change_scope import runtime_failure_layers
 
 
@@ -27,7 +31,7 @@ class ServiceAuthorizationFinalizer(Protocol):
 
 
 class CreatorDevelopmentCompletionGate:
-    """Prevent a final success claim without current static and Runtime evidence."""
+    """Enforce the configured static-only or static-plus-Runtime completion boundary."""
 
     def __init__(
         self,
@@ -38,6 +42,7 @@ class CreatorDevelopmentCompletionGate:
         repair_state: CreatorRepairState,
         service_authorization_finalizer: ServiceAuthorizationFinalizer | None = None,
         run_control: CreatorRunControlState | None = None,
+        verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
     ) -> None:
         self.activity = activity
         self.validation = validation
@@ -45,6 +50,7 @@ class CreatorDevelopmentCompletionGate:
         self.repair_state = repair_state
         self.service_authorization_finalizer = service_authorization_finalizer
         self.run_control = run_control
+        self.verification_mode = verification_mode
 
     @staticmethod
     def _check(identifier: str, passed: bool, evidence: str) -> dict[str, str]:
@@ -53,6 +59,53 @@ class CreatorDevelopmentCompletionGate:
             "status": "passed" if passed else "failed",
             "evidence": evidence,
         }
+
+    @staticmethod
+    def _has_fresh_runtime_contradiction(runtime: object) -> bool:
+        if not isinstance(runtime, dict):
+            return False
+        if runtime.get("compositionFresh") is not True:
+            return False
+        if runtime.get("runtimeObserved") is False:
+            return False
+        current_errors = runtime.get("currentErrors")
+        if (
+            isinstance(current_errors, list)
+            and current_errors
+            and runtime.get("diagnosticFresh") is not False
+        ):
+            return True
+        if runtime.get("compositionVerified") is False:
+            return True
+        composition_checks = runtime.get("compositionChecks")
+        if isinstance(composition_checks, list) and any(
+            isinstance(check, dict) and check.get("status") != "passed"
+            for check in composition_checks
+        ):
+            return True
+        verification_tail = runtime.get("verificationTail")
+        if isinstance(verification_tail, dict):
+            geometry = verification_tail.get("geometryVerification")
+            if isinstance(geometry, dict) and geometry.get("status") == "failed":
+                return True
+        return False
+
+    @staticmethod
+    def _runtime_observation_text(runtime_status: str) -> str:
+        if runtime_status == "stale":
+            return (
+                "静态验证已经通过；Runtime 未观测到当前修改的最新证据。"
+                "修改已提交，暂不判定为 Runtime 失败。"
+            )
+        if runtime_status == "unavailable":
+            return (
+                "静态验证已经通过；Runtime 暂不可用。"
+                "修改已提交，暂不判定为 Runtime 失败。"
+            )
+        return (
+            "静态验证已经通过；当前没有 fresh Runtime 证据明确矛盾。"
+            "修改已提交，暂不判定为 Runtime 失败。"
+        )
 
     @staticmethod
     def _workspace_warning_text(validation: object) -> str | None:
@@ -88,6 +141,7 @@ class CreatorDevelopmentCompletionGate:
                     self.activity.record_verification(
                         {
                             "status": "failed",
+                            "verificationMode": self.verification_mode,
                             "projectRevision": self.activity.revision,
                             "auditAttempts": self.repair_state.repair_rounds,
                             "checks": [
@@ -104,13 +158,19 @@ class CreatorDevelopmentCompletionGate:
                         "无法确认请求已经完成：当前 Service authorization 尚未完成最终验证。",
                         (
                             "Applied Service authorization cannot be completed by a semantic noop. "
-                            "Run current-revision Host validation and Runtime verification."
+                            "Run current-revision Host validation"
+                            + (
+                                " and Runtime verification."
+                                if self.verification_mode == "static_and_runtime"
+                                else "."
+                            )
                         ),
                     )
                 semantic_noop = self.activity.semantic_noop or {}
                 self.activity.record_verification(
                     {
                         "status": "already-satisfied",
+                        "verificationMode": self.verification_mode,
                         "projectRevision": self.activity.revision,
                         "auditAttempts": self.repair_state.repair_rounds,
                         "checks": [
@@ -135,6 +195,7 @@ class CreatorDevelopmentCompletionGate:
                 self.activity.record_verification(
                     {
                         "status": "failed",
+                        "verificationMode": self.verification_mode,
                         "projectRevision": self.activity.revision,
                         "auditAttempts": self.repair_state.repair_rounds,
                         "checks": [
@@ -163,6 +224,7 @@ class CreatorDevelopmentCompletionGate:
             self.activity.record_verification(
                 {
                     "status": "no-project-change",
+                    "verificationMode": self.verification_mode,
                     "projectRevision": self.activity.revision,
                     "auditAttempts": self.repair_state.repair_rounds,
                     "checks": [
@@ -230,6 +292,7 @@ class CreatorDevelopmentCompletionGate:
             self.activity.record_verification(
                 {
                     "status": "failed",
+                    "verificationMode": self.verification_mode,
                     "projectRevision": self.activity.revision,
                     "auditAttempts": self.repair_state.repair_rounds,
                     "checks": checks,
@@ -279,6 +342,11 @@ class CreatorDevelopmentCompletionGate:
                 )
             if self.repair_state.limit_reached:
                 return CompletionDecision(True, text)
+            verification_next_step = (
+                "before Runtime verification"
+                if self.verification_mode == "static_and_runtime"
+                else "then finish the run"
+            )
             return CompletionDecision(
                 False,
                 text,
@@ -286,16 +354,37 @@ class CreatorDevelopmentCompletionGate:
                     "The current mutation revision has not passed Host validation. "
                     "Repair only an introduced or explicitly in-scope defect using "
                     "this bounded evidence, then call "
-                    "validate_creator_changes again before Runtime verification:\n\n"
+                    f"validate_creator_changes again {verification_next_step}:\n\n"
                     f"{validation_evidence}"
                 ),
             )
 
+        if self.verification_mode == "static_only":
+            self.activity.record_verification(
+                {
+                    "status": "changed-and-statically-verified",
+                    "verificationMode": self.verification_mode,
+                    "runtimeStatus": "not-run",
+                    "projectRevision": self.activity.revision,
+                    "auditAttempts": self.repair_state.repair_rounds,
+                    "checks": checks,
+                }
+            )
+            if self.service_authorization_finalizer is not None:
+                self.service_authorization_finalizer.complete_current_applied()
+            return CompletionDecision(
+                True, self._with_workspace_warning(candidate, validation)
+            )
+
         runtime = self.runtime.current_result()
         runtime_status = (
-            "unverified" if runtime is None else str(runtime["runtimeStatus"])
+            "unavailable" if runtime is None else str(runtime["runtimeStatus"])
         )
         runtime_passed = runtime_status == "passed"
+        fresh_runtime_contradiction = (
+            runtime_status == "failed"
+            and self._has_fresh_runtime_contradiction(runtime)
+        )
         checks.append(
             self._check(
                 "runtime-verification",
@@ -303,16 +392,40 @@ class CreatorDevelopmentCompletionGate:
                 (
                     "Fresh Runtime evidence for the current AppUIModel hash has no open errors."
                     if runtime_passed
-                    else f"runtimeStatus={runtime_status}; fresh evidence is required after the latest mutation."
+                    else "Fresh Runtime evidence explicitly contradicts the requested state."
+                    if fresh_runtime_contradiction
+                    else f"runtimeStatus={runtime_status}; no fresh contradictory evidence is available."
                 ),
             )
         )
+        checks[-1]["status"] = (
+            "passed"
+            if runtime_passed
+            else "failed"
+            if fresh_runtime_contradiction
+            else "stale"
+            if runtime_status == "stale"
+            else "unavailable"
+        )
         self.activity.record_verification(
             {
-                "status": "changed-and-verified" if runtime_passed else "failed",
+                "status": (
+                    "changed-and-verified"
+                    if runtime_passed
+                    else "failed"
+                    if fresh_runtime_contradiction
+                    else "changed-unverified"
+                ),
+                "verificationMode": self.verification_mode,
                 "projectRevision": self.activity.revision,
                 "auditAttempts": self.repair_state.repair_rounds,
                 "checks": checks,
+                **(
+                    {"runtimeStatus": runtime_status}
+                    if not runtime_passed
+                    and runtime_status in {"failed", "stale", "unavailable"}
+                    else {}
+                ),
             }
         )
         if runtime_passed:
@@ -321,39 +434,13 @@ class CreatorDevelopmentCompletionGate:
             return CompletionDecision(
                 True, self._with_workspace_warning(candidate, validation)
             )
-        if runtime_status == "unavailable":
+        if not fresh_runtime_contradiction:
             if self.service_authorization_finalizer is not None:
                 self.service_authorization_finalizer.complete_current_applied()
             return CompletionDecision(
                 True,
                 self._with_workspace_warning(
-                    (
-                        "静态验证已经通过；当前没有可用的 Runtime 验证证据。"
-                        "源码和组合修改已保留，但不能声称已经通过运行时验证。"
-                    ),
-                    validation,
-                ),
-            )
-        verification_tail = (
-            runtime.get("verificationTail")
-            if isinstance(runtime, dict)
-            else None
-        )
-        if (
-            runtime_status == "stale"
-            and isinstance(verification_tail, dict)
-            and verification_tail.get("staticValidationStatus") == "passed"
-            and verification_tail.get("freshnessExhausted") is True
-        ):
-            if self.service_authorization_finalizer is not None:
-                self.service_authorization_finalizer.complete_current_applied()
-            return CompletionDecision(
-                True,
-                self._with_workspace_warning(
-                    (
-                        "静态验证已经通过；Host 已完成有界 Runtime freshness 等待，但当前证据仍然早于"
-                        "本次 Composition 修改，因此不能声称已经通过 Runtime 验证。"
-                    ),
+                    self._runtime_observation_text(runtime_status),
                     validation,
                 ),
             )

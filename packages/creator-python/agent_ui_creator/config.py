@@ -5,6 +5,12 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from .verification_policy import (
+    CreatorVerificationMode,
+    DEFAULT_CREATOR_VERIFICATION_MODE,
+    resolve_creator_verification_mode,
+)
+
 CREATOR_PYTHON_PROTOCOL_VERSION = "1"
 
 
@@ -20,6 +26,7 @@ class CreatorServerSettings:
     host: str = "127.0.0.1"
     port: int = 0
     config_root: Path | None = None
+    verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE
     parent_pid: int | None = None
 
     @classmethod
@@ -76,5 +83,8 @@ class CreatorServerSettings:
             auth_token=parsed.auth_token,
             host=parsed.host,
             port=parsed.port,
+            verification_mode=resolve_creator_verification_mode(
+                config_root=config_root
+            ),
             parent_pid=parsed.parent_pid,
         )

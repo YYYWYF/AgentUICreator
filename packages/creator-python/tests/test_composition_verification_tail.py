@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from types import SimpleNamespace
 
 import pytest
@@ -64,8 +65,10 @@ class FakeRuntime:
         self.results = iter(results)
         self.layout = layout
         self.latest_result = None
+        self.inspect_calls = 0
 
     async def inspect(self):
+        self.inspect_calls += 1
         return next(self.results)
 
     async def inspect_layout(self, *, instance_ids):
@@ -125,6 +128,25 @@ def mutation_result(*, expected_geometry=None):
     )
 
 
+def test_static_only_tail_records_not_run_without_runtime_observation(tmp_path):
+    activity = activity_for_revision(tmp_path)
+    runtime = FakeRuntime([])
+    tail = CompositionVerificationTail(
+        activity=activity,
+        validation=FakeValidation(),
+        runtime=runtime,
+        metrics=CompositionFastPathMetrics(),
+    )
+
+    result = asyncio.run(tail.run_if_needed(mutation_result()))
+
+    assert result is not None
+    assert result["verificationMode"] == "static_only"
+    assert result["staticValidationStatus"] == "passed"
+    assert result["runtimeStatus"] == "not-run"
+    assert runtime.inspect_calls == 0
+
+
 def activity_for_revision(tmp_path):
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("verification-tail")
@@ -177,6 +199,7 @@ async def test_tail_verifies_expected_semantic_geometry(tmp_path):
         validation=FakeValidation(),
         runtime=runtime,
         metrics=CompositionFastPathMetrics(),
+        verification_mode="static_and_runtime",
     )
 
     result = await tail.run_if_needed(
@@ -219,6 +242,7 @@ async def test_tail_bounds_stale_runtime_wait_without_claiming_pass(
         validation=FakeValidation(),
         runtime=runtime,
         metrics=metrics,
+        verification_mode="static_and_runtime",
     )
 
     result = await tail.run_if_needed(
@@ -264,6 +288,7 @@ async def test_tail_retries_stale_once_before_fresh_runtime(tmp_path, monkeypatc
         validation=FakeValidation(),
         runtime=runtime,
         metrics=CompositionFastPathMetrics(),
+        verification_mode="static_and_runtime",
     )
 
     result = await tail.run_if_needed(mutation_result())
@@ -304,6 +329,7 @@ async def test_tail_rejects_fresh_geometry_mismatch(tmp_path):
         validation=FakeValidation(),
         runtime=runtime,
         metrics=CompositionFastPathMetrics(),
+        verification_mode="static_and_runtime",
     )
 
     result = await tail.run_if_needed(
@@ -360,6 +386,7 @@ async def test_agent_lifecycle_accepts_stale_then_fresh_without_second_graph_inv
         validation=validation,
         runtime=runtime_diagnostics,
         metrics=metrics,
+        verification_mode="static_and_runtime",
     )
     mutation_service = SimpleNamespace(
         last_result=AppUIModelMutationResult(
@@ -397,6 +424,7 @@ async def test_agent_lifecycle_accepts_stale_then_fresh_without_second_graph_inv
         runtime=runtime_diagnostics,
         repair_state=CreatorRepairState(),
         run_control=run_control,
+        verification_mode="static_and_runtime",
     )
     agent = CreatorDomainWriteAgent(
         graph=graph,

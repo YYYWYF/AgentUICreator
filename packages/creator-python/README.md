@@ -76,8 +76,15 @@ CREATOR_MODEL_MAX_TOKENS=2048
 CREATOR_MODEL_TIMEOUT_SECONDS=120
 CREATOR_MODEL_MAX_RETRIES=2
 CREATOR_SELECTOR_MAX_TOKENS=512
+# 默认安全关闭 Runtime Verification；需要时显式打开
+CREATOR_VERIFICATION_MODE=static_only
 # CREATOR_SELECTOR_REASONING_EFFORT=low
 ```
+
+`CREATOR_VERIFICATION_MODE` 只有两个值：默认的 `static_only` 只以当前 revision 的
+Host 静态验证作为完成门槛，Runtime diagnostics、store 和 endpoint 仍保留用于观测；
+需要运行时验证时显式设置为 `static_and_runtime`。静态模式不会把 Runtime 的
+`stale` 或 `unavailable` 当成提交失败。
 
 Selector 使用单独的非流式模型副本，默认输出上限为 512，temperature 不发送。
 仅在网关模型明确支持时设置 `CREATOR_SELECTOR_REASONING_EFFORT`；2026-09-19
@@ -117,8 +124,8 @@ CREATOR_PYTHON_AGENT_MODE=domain-write
 `mutate_app_ui_model` 复用正式 AppUIModel operation JSON Schema，由
 `AppUIModelMutationService` 在 project-level lock 内统一完成双文件 capture-before、
 ProjectControl transaction、真实磁盘 changedPaths 对账、Activity touch、receipt 与 undo
-证据记录。Hash conflict 不会自动重试，必须重新 inspect；成功只表示静态组合 transaction
-提交，不代表 Runtime Verification 或 Host Validation 通过。
+证据记录。Hash conflict 不会自动重试，必须重新 inspect；完成回执会记录当前验证模式、
+静态验证状态和 Runtime 状态。
 
 `create_ui_plugin` 以 create-only 事务创建一个完整 Plugin；已有 Plugin 的单文件小修改
 继续使用 `edit_file`，跨多个 Plugin 文件或“修改已有文件 + 创建 Plugin 内新文件”的需求

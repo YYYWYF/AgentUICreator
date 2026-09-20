@@ -8,6 +8,10 @@ from typing import Any
 from langchain_core.tools import BaseTool, tool
 
 from ..domain_state import DomainObservationContext, DomainObservationError
+from ..verification_policy import (
+    CreatorVerificationMode,
+    DEFAULT_CREATOR_VERIFICATION_MODE,
+)
 from .mutation_models import (
     MAX_MUTATION_RESULT_CHARACTERS,
     AppUIModelMutationError,
@@ -123,7 +127,15 @@ def _bounded_error(
 def create_app_ui_model_mutation_tool(
     service: AppUIModelMutationService,
     observations: DomainObservationContext,
+    verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
 ) -> BaseTool:
+    verification_guidance = (
+        "For this run, current-revision Host static validation is the completion boundary; "
+        "Runtime diagnostics remain observability only and are not a required tool step."
+        if verification_mode == "static_only"
+        else "For an eligible insert_plugin_default, the Host also runs the current-revision static and bounded Runtime verification tail; stale or unavailable evidence is reported without a Runtime PASS claim."
+    )
+
     @tool(
         "mutate_app_ui_model",
         args_schema=APP_UI_MODEL_MUTATION_TOOL_SCHEMA,
@@ -157,9 +169,8 @@ def create_app_ui_model_mutation_tool(
             "operation_precondition and semantically replan at most once. Stop on a "
             "workspace_integrity blocker instead of repairing another layer. Stale-state "
             "refresh does not consume the semantic replan. Success is a static composition commit only for "
-            "low-level operations. For an eligible insert_plugin_default, the Host also runs the "
-            "current-revision static and bounded Runtime verification tail; stale or unavailable "
-            "evidence is reported without a Runtime PASS claim."
+            "low-level operations. "
+            + verification_guidance
         ),
     )
     async def mutate_app_ui_model(

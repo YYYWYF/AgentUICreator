@@ -16,7 +16,11 @@ from ..domain_state import (
 from ..minimal_agent.path_policy import PolicyFilesystemBackend
 from ..minimal_agent.tool_policy import tool_name
 from ..model_protocol.trace import ToolProtocolMetrics
-from .tool_policy import READ_ONLY_TOOL_NAMES
+from ..verification_policy import (
+    CreatorVerificationMode,
+    DEFAULT_CREATOR_VERIFICATION_MODE,
+)
+from .tool_policy import READ_ONLY_TOOL_NAMES, RUNTIME_VERIFICATION_TOOL_NAMES
 
 
 COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
@@ -54,14 +58,19 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         observations: DomainObservationContext,
         backend: PolicyFilesystemBackend,
         protocol_metrics: ToolProtocolMetrics | None = None,
+        verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
     ) -> None:
         self.observations = observations
         self.backend = backend
         self.protocol_metrics = protocol_metrics or ToolProtocolMetrics()
+        self.verification_mode = verification_mode
 
     @staticmethod
     def _composition_lane_tools(
-        tools: Sequence[Any], *, after_mutation: bool
+        tools: Sequence[Any],
+        *,
+        after_mutation: bool,
+        verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
     ) -> list[Any]:
         allowed_names = frozenset(
             COMPOSITION_POST_MUTATION_TOOL_NAMES
@@ -78,6 +87,12 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
             if after_mutation
             else COMPOSITION_PRE_MUTATION_TOOL_NAMES
         )
+        if verification_mode == "static_only":
+            names = tuple(
+                name
+                for name in names
+                if name not in RUNTIME_VERIFICATION_TOOL_NAMES
+            )
         return [by_name[name] for name in names if name in by_name]
 
     def _request(self, request: ModelRequest) -> ModelRequest:
@@ -103,6 +118,7 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
             tools=self._composition_lane_tools(
                 request.tools,
                 after_mutation=after_mutation,
+                verification_mode=self.verification_mode,
             ),
         )
 

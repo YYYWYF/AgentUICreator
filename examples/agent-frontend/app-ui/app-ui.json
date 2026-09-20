@@ -25,6 +25,19 @@
           "type": "slot",
           "plugins": [
             {
+              "id": "conversation-thread-list-main",
+              "pluginId": "conversation-thread-list",
+              "enabled": true
+            }
+          ]
+        }
+      },
+      {
+        "type": "panel",
+        "child": {
+          "type": "slot",
+          "plugins": [
+            {
               "id": "agent-conversation-surface-main",
               "pluginId": "conversation-surface",
               "enabled": true,
@@ -44,6 +57,7 @@
     ],
     "gap": 0,
     "sizes": [
+      "280px",
       "minmax(0, 1fr)"
     ]
   }

@@ -56,6 +56,7 @@ export interface CreatorStageMetadata {
   mutationAttempts?: number;
   snapshotRefreshes?: number;
   staticStatus?: string;
+  verificationMode?: string;
   runtimeStatus?: string;
   runtimeFreshnessAttempts?: number;
   runtimeFreshnessWaitMs?: number;
@@ -184,6 +185,7 @@ export function parseCreatorStepMetadata(
     "actionStatus",
     "operation",
     "staticStatus",
+    "verificationMode",
     "runtimeStatus",
     "errorCode",
     "selectorFailureReasonCode",
@@ -519,6 +521,7 @@ function finalProductizedMetadata(
   if (verification !== undefined) {
     const fields = [
       "staticStatus",
+      "verificationMode",
       "runtimeStatus",
       "runtimeFreshnessAttempts",
       "runtimeFreshnessWaitMs",

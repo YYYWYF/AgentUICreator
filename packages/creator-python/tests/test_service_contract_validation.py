@@ -119,13 +119,28 @@ def test_runtime_repair_rechecks_applied_authorization(tmp_path):
 class RuntimeResult:
     def __init__(self, status):
         self.status = status
+        self.calls = 0
 
     def current_result(self):
-        return {"runtimeStatus": self.status, "currentErrors": []}
+        self.calls += 1
+        return {
+            "runtimeStatus": self.status,
+            "runtimeObserved": self.status != "unavailable",
+            "compositionFresh": self.status in {"passed", "failed"},
+            "compositionVerified": (
+                False if self.status == "failed" else self.status == "passed"
+            ),
+            "currentErrors": (
+                [{"kind": "plugin-render", "code": "SYNTHETIC_RUNTIME_ERROR"}]
+                if self.status == "failed"
+                else []
+            ),
+        }
 
 
-def completion_fixture(tmp_path, runtime_status):
+def completion_fixture(tmp_path, runtime_status, *, verification_mode="static_only"):
     service, store, record = validation(tmp_path, TopologyControl())
+    asyncio.run(service.ensure_baseline())
     target = tmp_path / "plugins/change.ts"
     target.parent.mkdir()
     target.write_text("before\n", encoding="utf-8")
@@ -141,12 +156,52 @@ def completion_fixture(tmp_path, runtime_status):
         runtime=RuntimeResult(runtime_status),
         repair_state=CreatorRepairState(),
         service_authorization_finalizer=verifier,
+        verification_mode=verification_mode,
     )
     return gate, store, record
 
 
+def test_default_static_only_completion_skips_runtime_and_completes_authorization(
+    tmp_path,
+):
+    gate, store, record = completion_fixture(tmp_path, "failed")
+
+    decision = gate.review("complete")
+
+    assert decision.accepted is True
+    assert store.get_proposal(record.proposal_id).status == "completed"
+    assert gate.runtime.calls == 0
+    receipt = gate.activity.snapshot()
+    assert receipt["verification"] == {
+        "status": "changed-and-statically-verified",
+        "verificationMode": "static_only",
+        "runtimeStatus": "not-run",
+        "projectRevision": 1,
+        "auditAttempts": 0,
+        "checks": [
+            {
+                "id": "net-project-change",
+                "status": "passed",
+                "evidence": "1 net changed file(s).",
+            },
+            {
+                "id": "pnpm verify:ui",
+                "status": "passed",
+                "evidence": "revision=1; source=executed; exitCode=0",
+            },
+            {
+                "id": "pnpm typecheck",
+                "status": "passed",
+                "evidence": "revision=1; source=executed; exitCode=0",
+            },
+        ],
+    }
+
+
 def test_final_runtime_pass_completes_authorization(tmp_path):
-    gate, store, record = completion_fixture(tmp_path, "passed")
+    gate, store, record = completion_fixture(
+        tmp_path, "passed", verification_mode="static_and_runtime"
+    )
 
     decision = gate.review("complete")
 
@@ -155,18 +210,45 @@ def test_final_runtime_pass_completes_authorization(tmp_path):
 
 
 def test_runtime_unavailable_accepted_completion_completes_authorization(tmp_path):
-    gate, store, record = completion_fixture(tmp_path, "unavailable")
+    gate, store, record = completion_fixture(
+        tmp_path, "unavailable", verification_mode="static_and_runtime"
+    )
 
     decision = gate.review("complete")
 
     assert decision.accepted is True
     assert store.get_proposal(record.proposal_id).status == "completed"
+    receipt = gate.activity.snapshot()["verification"]
+    assert receipt["status"] == "changed-unverified"
+    assert receipt["runtimeStatus"] == "unavailable"
+    assert receipt["checks"][-1]["status"] == "unavailable"
+
+
+def test_runtime_stale_accepted_completion_is_not_red(tmp_path):
+    gate, store, record = completion_fixture(
+        tmp_path, "stale", verification_mode="static_and_runtime"
+    )
+
+    decision = gate.review("complete")
+
+    assert decision.accepted is True
+    assert store.get_proposal(record.proposal_id).status == "completed"
+    receipt = gate.activity.snapshot()["verification"]
+    assert receipt["status"] == "changed-unverified"
+    assert receipt["runtimeStatus"] == "stale"
+    assert receipt["checks"][-1]["status"] == "stale"
 
 
 def test_runtime_failure_keeps_authorization_applied(tmp_path):
-    gate, store, record = completion_fixture(tmp_path, "failed")
+    gate, store, record = completion_fixture(
+        tmp_path, "failed", verification_mode="static_and_runtime"
+    )
 
     decision = gate.review("complete")
 
     assert decision.accepted is False
     assert store.get_proposal(record.proposal_id).status == "applied"
+    receipt = gate.activity.snapshot()["verification"]
+    assert receipt["status"] == "failed"
+    assert receipt["runtimeStatus"] == "failed"
+    assert receipt["checks"][-1]["status"] == "failed"

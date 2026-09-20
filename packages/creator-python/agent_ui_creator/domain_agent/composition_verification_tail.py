@@ -16,6 +16,10 @@ from ..operations.verification import (
 )
 from ..runtime_diagnostics import RuntimeDiagnosticInspectionService
 from ..validation import CreatorValidationService
+from ..verification_policy import (
+    CreatorVerificationMode,
+    DEFAULT_CREATOR_VERIFICATION_MODE,
+)
 
 
 class CompositionVerificationTail:
@@ -28,11 +32,13 @@ class CompositionVerificationTail:
         validation: CreatorValidationService,
         runtime: RuntimeDiagnosticInspectionService,
         metrics: CompositionFastPathMetrics,
+        verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
     ) -> None:
         self.activity = activity
         self.validation = validation
         self.runtime = runtime
         self.metrics = metrics
+        self.verification_mode = verification_mode
         self._last_revision: int | None = None
         self._last_result: dict[str, Any] | None = None
 
@@ -72,6 +78,7 @@ class CompositionVerificationTail:
         tail: dict[str, Any] = {
             "verificationTailRan": True,
             "mutationRevision": revision,
+            "verificationMode": self.verification_mode,
             "runtimeFreshnessAttempts": 0,
             "runtimeFreshnessWaitMs": 0,
             "geometryVerified": None,
@@ -88,6 +95,14 @@ class CompositionVerificationTail:
 
         if validation is None or validation.status != "passed":
             tail["runtimeStatus"] = "not-run"
+            tail["verificationMode"] = self.verification_mode
+            self.metrics.record_verification_tail(tail)
+            self._publish(tail, runtime_result=None)
+            return tail
+
+        if self.verification_mode == "static_only":
+            tail["runtimeStatus"] = "not-run"
+            tail["verificationMode"] = self.verification_mode
             self.metrics.record_verification_tail(tail)
             self._publish(tail, runtime_result=None)
             return tail

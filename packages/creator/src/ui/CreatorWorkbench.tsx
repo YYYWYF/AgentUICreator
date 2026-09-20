@@ -18,6 +18,7 @@ import "./creator-workbench.css";
 import type {
   CreatorFileChangeReceipt,
   CreatorRunReceipt,
+  CreatorVerificationCheck,
   CreatorValidationReceipt,
 } from "../receiptTypes.js";
 import { CREATOR_API_PATH } from "../shared.js";
@@ -125,12 +126,24 @@ const validationStatusLabels: Record<
   failed: "失败",
 };
 
+const verificationCheckStatusLabels: Record<
+  CreatorVerificationCheck["status"],
+  string
+> = {
+  passed: "通过",
+  failed: "失败",
+  stale: "Runtime 未观测到",
+  unavailable: "Runtime 暂不可用",
+};
+
 const verificationStatusLabels: Record<
   NonNullable<CreatorRunReceipt["verification"]>["status"],
   string
 > = {
   "not-run": "未执行完成验证",
+  "changed-and-statically-verified": "修改已通过静态验证",
   "changed-and-verified": "修改已验证",
+  "changed-unverified": "已提交，Runtime 未观测到",
   "no-project-change": "无需项目修改",
   failed: "完成验证失败",
 };
@@ -189,17 +202,31 @@ function isCreatorRunReceipt(value: unknown): value is CreatorRunReceipt {
     (value.verification === undefined ||
       (isRecord(value.verification) &&
         (value.verification.status === "not-run" ||
+          value.verification.status === "changed-and-statically-verified" ||
           value.verification.status === "changed-and-verified" ||
+          value.verification.status === "changed-unverified" ||
           value.verification.status === "no-project-change" ||
           value.verification.status === "failed") &&
         typeof value.verification.projectRevision === "number" &&
         typeof value.verification.auditAttempts === "number" &&
+        (value.verification.verificationMode === undefined ||
+          value.verification.verificationMode === "static_only" ||
+          value.verification.verificationMode === "static_and_runtime") &&
+        (value.verification.runtimeStatus === undefined ||
+          value.verification.runtimeStatus === "not-run" ||
+          value.verification.runtimeStatus === "passed" ||
+          value.verification.runtimeStatus === "stale" ||
+          value.verification.runtimeStatus === "unavailable" ||
+          value.verification.runtimeStatus === "failed") &&
         Array.isArray(value.verification.checks) &&
         value.verification.checks.every(
           (check) =>
             isRecord(check) &&
             typeof check.id === "string" &&
-            (check.status === "passed" || check.status === "failed") &&
+            (check.status === "passed" ||
+              check.status === "failed" ||
+              check.status === "stale" ||
+              check.status === "unavailable") &&
             typeof check.evidence === "string",
         ))) &&
     (value.diagnosticLog === undefined ||
@@ -393,8 +420,22 @@ function CreatorMarkdown({ content }: { content: string }) {
 function CreatorReceipt({ receipt }: { receipt: CreatorRunReceipt }) {
   const verification = receipt.verification;
   const verificationPassed =
+    verification?.status === "changed-and-statically-verified" ||
     verification?.status === "changed-and-verified" ||
     verification?.status === "no-project-change";
+  const verificationTone =
+    verification?.status === "changed-unverified"
+      ? "unavailable"
+      : verificationPassed
+        ? "passed"
+        : "failed";
+  const verificationLabel =
+    verification?.status === "changed-unverified" &&
+    verification.runtimeStatus === "unavailable"
+      ? "已提交，Runtime 暂不可用"
+      : verification === undefined
+        ? ""
+        : verificationStatusLabels[verification.status];
 
   return (
     <section className="creator-receipt" aria-label="修改回执">
@@ -430,10 +471,10 @@ function CreatorReceipt({ receipt }: { receipt: CreatorRunReceipt }) {
           <div className="creator-receipt-meta">
             <span
               className={`creator-receipt-status creator-receipt-status--${
-                verificationPassed ? "passed" : "failed"
+                verificationTone
               }`}
             >
-              {verificationStatusLabels[verification.status]}
+              {verificationLabel}
             </span>{" "}
             · Revision {verification.projectRevision} · 复核 {verification.auditAttempts} 次
           </div>
@@ -443,7 +484,7 @@ function CreatorReceipt({ receipt }: { receipt: CreatorRunReceipt }) {
                 <span
                   className={`creator-receipt-status creator-receipt-status--${check.status}`}
                 >
-                  {validationStatusLabels[check.status]}
+                  {verificationCheckStatusLabels[check.status]}
                 </span>
                 <code>{check.id}</code>
               </summary>
@@ -592,6 +633,15 @@ function stageTitle(activity: CreatorStageActivity): string {
   if (activity.status === "failed") return "修改未完成";
   if (activity.metadata?.status === "already_satisfied") {
     return "当前状态已满足，无需修改";
+  }
+  if (activity.metadata?.runtimeStatus === "not-run") {
+    return "已应用并通过静态验证";
+  }
+  if (activity.metadata?.runtimeStatus === "stale") {
+    return "已应用修改，Runtime 未观测到";
+  }
+  if (activity.metadata?.runtimeStatus === "unavailable") {
+    return "已应用修改，Runtime 暂不可用";
   }
   if (
     activity.metadata?.runtimeStatus !== undefined &&
@@ -749,6 +799,7 @@ function CreatorStageDebugDetails({
           <section>
             <h3>Verification</h3>
             {rows([
+              ["Mode", metadata.verificationMode],
               ["Static", metadata.staticStatus],
               ["Runtime", metadata.runtimeStatus],
               ["Freshness attempts", metadata.runtimeFreshnessAttempts],

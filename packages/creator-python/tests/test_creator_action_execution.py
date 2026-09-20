@@ -216,6 +216,7 @@ def verification(runtime_results: list[dict[str, object]]):
     return CompositionOperationVerificationService(
         validation=FakeValidation(),
         runtime=FakeRuntime(runtime_results),
+        verification_mode="static_and_runtime",
     )
 
 
@@ -647,6 +648,29 @@ def test_action_static_validation_failure_skips_runtime():
     assert result.status == "failed"
     assert result.verification is not None
     assert result.verification.staticStatus == "failed"
+    assert result.verification.runtimeStatus == "not-run"
+    assert runtime.inspect_calls == 0
+
+
+def test_action_static_only_skips_runtime_after_static_validation():
+    candidate = action("remove_plugin")
+    source = snapshot(candidate)
+    mutation_service = FakeMutation([mutation(candidate)])
+    runtime = FakeRuntime([])
+    playbook = CreatorActionExecutionPlaybook(
+        mutation_service=mutation_service,
+        snapshot_provider=SequenceSnapshotProvider([source]),  # type: ignore[arg-type]
+        verification=CompositionOperationVerificationService(
+            validation=FakeValidation(),
+            runtime=runtime,
+        ),
+    )
+
+    result = asyncio.run(playbook.execute(source, candidate))
+
+    assert result.status == "success"
+    assert result.verification is not None
+    assert result.verification.staticStatus == "passed"
     assert result.verification.runtimeStatus == "not-run"
     assert runtime.inspect_calls == 0
 

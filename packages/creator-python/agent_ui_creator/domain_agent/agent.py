@@ -75,6 +75,10 @@ from ..validation import (
     ValidationCommandRunner,
     create_validation_tool,
 )
+from ..verification_policy import (
+    CreatorVerificationMode,
+    DEFAULT_CREATOR_VERIFICATION_MODE,
+)
 from .completion_gate import CreatorDevelopmentCompletionGate
 from .composition_verification_tail import CompositionVerificationTail
 from .grounding_convergence import CompositionGroundingConvergenceMiddleware
@@ -82,7 +86,11 @@ from .change_scope import (
     ScopeAwareRecoveryGuard,
     build_change_layer_run_metrics,
 )
-from .prompt import DOMAIN_READ_AGENT_PROMPT, DOMAIN_WRITE_AGENT_PROMPT
+from .prompt import (
+    DOMAIN_READ_AGENT_PROMPT,
+    DOMAIN_WRITE_AGENT_PROMPT,
+    creator_verification_prompt,
+)
 from .runtime_guard import RepeatedProjectControlReadGuard
 from .skills import create_domain_skills_backend, default_creator_skills_root
 from .tool_batch_policy import DomainToolBatchPolicyMiddleware
@@ -343,6 +351,7 @@ def create_domain_read_creator_agent(
     thread_id: str | None = None,
     max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES,
     recovery_factory: Callable[[], BaseChatModel] | None = None,
+    verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
 ) -> CreatorDomainReadAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -365,7 +374,8 @@ def create_domain_read_creator_agent(
         observations=observations,
         activity=backend.activity,
     )
-    domain_tools = (*domain_tools, create_runtime_layout_tool(runtime_inspection))
+    if verification_mode == "static_and_runtime":
+        domain_tools = (*domain_tools, create_runtime_layout_tool(runtime_inspection))
     metrics = ToolProtocolMetrics()
     run_control = CreatorRunControlState()
     protocol = ToolProtocolMiddleware(
@@ -405,14 +415,16 @@ def create_domain_read_creator_agent(
     graph = create_deep_agent(
         model=model,
         tools=list(domain_tools),
-        system_prompt=DOMAIN_READ_AGENT_PROMPT,
+        system_prompt=creator_verification_prompt(
+            DOMAIN_READ_AGENT_PROMPT, verification_mode
+        ),
         backend=backend,
         subagents=[],
         skills=None,
         memory=None,
         middleware=[
             filesystem,
-            DomainReadToolPolicyMiddleware(),
+            DomainReadToolPolicyMiddleware(verification_mode),
             repeated_read_guard,
             runtime,
             model_retry,
@@ -455,6 +467,7 @@ def create_domain_write_creator_agent(
     telemetry: CreatorRunTelemetry | None = None,
     max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES,
     recovery_factory: Callable[[], BaseChatModel] | None = None,
+    verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
 ) -> CreatorDomainWriteAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -579,8 +592,9 @@ def create_domain_write_creator_agent(
         validation=validation,
         runtime=runtime_inspection,
         metrics=observations.composition_fast_path_metrics,
+        verification_mode=verification_mode,
     )
-    domain_tools = (
+    domain_tools = [
         *create_project_control_tools(
             client,
             observations=observations,
@@ -593,11 +607,20 @@ def create_domain_write_creator_agent(
             service_creation,
             service_mutation,
         ),
-        create_app_ui_model_mutation_tool(service, observations),
+        create_app_ui_model_mutation_tool(
+            service,
+            observations,
+            verification_mode=verification_mode,
+        ),
         create_validation_tool(validation),
-        create_runtime_diagnostic_tool(runtime_inspection),
-        create_runtime_layout_tool(runtime_inspection),
-    )
+    ]
+    if verification_mode == "static_and_runtime":
+        domain_tools.extend(
+            [
+                create_runtime_diagnostic_tool(runtime_inspection),
+                create_runtime_layout_tool(runtime_inspection),
+            ]
+        )
     metrics = ToolProtocolMetrics()
     protocol = ToolProtocolMiddleware(
         metrics=metrics,
@@ -639,19 +662,22 @@ def create_domain_write_creator_agent(
     )
     graph = create_deep_agent(
         model=model,
-        tools=list(domain_tools),
-        system_prompt=DOMAIN_WRITE_AGENT_PROMPT,
+        tools=domain_tools,
+        system_prompt=creator_verification_prompt(
+            DOMAIN_WRITE_AGENT_PROMPT, verification_mode
+        ),
         backend=skills_backend,
         subagents=[],
         skills=["/skills/"],
         memory=None,
         middleware=[
             filesystem,
-            DomainWriteToolPolicyMiddleware(),
+            DomainWriteToolPolicyMiddleware(verification_mode),
             CompositionGroundingConvergenceMiddleware(
                 observations,
                 backend,
                 protocol_metrics=metrics,
+                verification_mode=verification_mode,
             ),
             scope_guard,
             repeated_read_guard,
@@ -683,6 +709,7 @@ def create_domain_write_creator_agent(
             repair_state=repair_state,
             service_authorization_finalizer=service_verifier,
             run_control=run_control,
+            verification_mode=verification_mode,
         ),
         automatic_completion_repair=automatic_completion_repair,
         service_contract_authorizations=service_authorizations,

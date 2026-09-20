@@ -607,7 +607,13 @@ class CreatorActionExecutionPlaybook:
             )
             if (
                 verification.staticStatus == "passed"
-                and verification.runtimeStatus == "passed"
+                and (
+                    verification.runtimeStatus == "passed"
+                    or (
+                        self.verification.verification_mode == "static_only"
+                        and verification.runtimeStatus == "not-run"
+                    )
+                )
             ):
                 status = "success"
             elif verification.runtimeStatus in {"stale", "unavailable"}:

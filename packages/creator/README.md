@@ -54,7 +54,14 @@ Creator 只使用 Python 控制面，默认 agent mode 为 `domain-write`。正�
 CREATOR_MODEL_NAME=mimo-v2.5-pro
 CREATOR_MODEL_BASE_URL=https://example.com/v1
 CREATOR_MODEL_API_KEY=your-key
+# 默认安全关闭 Runtime Verification；需要时显式打开
+CREATOR_VERIFICATION_MODE=static_only
 ```
+
+`CREATOR_VERIFICATION_MODE=static_only` 是默认值：完成门槛只使用当前 revision 的
+Host 静态验证，Runtime diagnostics 仍保留用于观测。需要 Runtime Verification 时，
+把它改成 `static_and_runtime`；Runtime `stale` 或 `unavailable` 不会把已经提交的修改
+标成红色失败。
 
 未显式配置 executable 时，sidecar 优先使用 `packages/creator-python/.venv`（Windows
 为 `.venv/Scripts/python.exe`，macOS/Linux 为 `.venv/bin/python`），不存在时才回退
@@ -116,8 +123,8 @@ CREATOR_PYTHON_AGENT_MODE=domain-write
 capture-before、changedPaths 对账、Activity revision、receipt、transaction 与 undo。
 `app-ui/app-ui.json`、`app-ui/composition-revision.generated.json` 和
 `plugins/registry.generated.ts` 仍禁止通用文件工具直接编辑。
-Runtime Verification、Host Validation、Completion、回执与 transaction 状态同样由
-Python Creator 持有。
+Runtime Verification（可选）、Host Validation、Completion、回执与 transaction 状态同样
+由 Python Creator 持有。
 
 仓库根目录的 `pnpm test` 会先运行 Python unit/contract tests，再运行 Node host、
 Workbench 与前端 TypeScript tests（其中包含真实 sidecar 进程集成测试）。可以使用

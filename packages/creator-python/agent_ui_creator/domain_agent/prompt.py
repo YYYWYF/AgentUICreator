@@ -1,3 +1,6 @@
+from ..verification_policy import CreatorVerificationMode
+
+
 CHANGE_LAYER_KERNEL = """Change-layer reasoning
 
 Desired state first, operations second.
@@ -33,6 +36,16 @@ Before any side effect:
 Do not map request wording directly to a tool operation. Use this order:
 user request -> current state -> desired state -> semantic delta -> operations.
 Do not add a separate intent model, planner agent, subagent, or delegation step.
+"""
+
+
+STATIC_ONLY_VERIFICATION_POLICY_PROMPT = """Current Creator Verification Policy: static_only.
+
+For this run, current-revision static validation is the completion boundary after
+a requested mutation passes. Do not call inspect_runtime_errors or
+inspect_runtime_layout, do not wait for Runtime freshness, and do not start a
+Runtime repair round. Runtime diagnostics remain developer observability only;
+never claim Runtime PASS when the policy did not run Runtime verification.
 """
 
 
@@ -502,3 +515,12 @@ invalidates earlier validation evidence. Complete only after current-revision Ho
 validation and scoped Runtime verification, preserving the change layer during
 any repair.
 """
+
+
+def creator_verification_prompt(
+    prompt: str,
+    verification_mode: CreatorVerificationMode,
+) -> str:
+    if verification_mode == "static_only":
+        return f"{prompt}\n\n{STATIC_ONLY_VERIFICATION_POLICY_PROMPT}"
+    return prompt

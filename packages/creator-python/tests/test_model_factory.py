@@ -15,6 +15,7 @@ from agent_ui_creator.model_settings import (
 from agent_ui_creator.config import CreatorServerSettings
 from agent_ui_creator.operations import CreatorActionSelector
 from agent_ui_creator.server import _domain_write_agent_result
+from agent_ui_creator.verification_policy import resolve_creator_verification_mode
 
 
 def test_model_factory_sets_creator_user_agent_without_provider_session_header():
@@ -273,4 +274,28 @@ def test_python_agent_mode_rejects_invalid_values():
     with pytest.raises(CreatorModelConfigurationError):
         load_python_agent_mode(
             environment={"CREATOR_PYTHON_AGENT_MODE": "other"}
+        )
+
+
+def test_creator_verification_mode_defaults_to_static_only():
+    assert resolve_creator_verification_mode(environment={}) == "static_only"
+
+
+def test_creator_verification_mode_prefers_environment_and_accepts_runtime_opt_in(
+    tmp_path,
+):
+    (tmp_path / ".env.creator.local").write_text(
+        "CREATOR_VERIFICATION_MODE=static_only\n", encoding="utf-8"
+    )
+
+    assert resolve_creator_verification_mode(
+        config_root=tmp_path,
+        environment={"CREATOR_VERIFICATION_MODE": "static_and_runtime"},
+    ) == "static_and_runtime"
+
+
+def test_creator_verification_mode_rejects_invalid_values():
+    with pytest.raises(CreatorModelConfigurationError):
+        resolve_creator_verification_mode(
+            environment={"CREATOR_VERIFICATION_MODE": "runtime"}
         )

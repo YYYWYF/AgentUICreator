@@ -16,19 +16,23 @@ export interface CreatorValidationReceipt {
 
 export interface CreatorVerificationCheck {
   id: string;
-  status: "passed" | "failed";
+  status: "passed" | "failed" | "stale" | "unavailable";
   evidence: string;
 }
 
 export interface CreatorVerificationReceipt {
   status:
     | "not-run"
+    | "changed-and-statically-verified"
     | "changed-and-verified"
+    | "changed-unverified"
     | "no-project-change"
     | "failed";
   projectRevision: number;
   auditAttempts: number;
   checks: CreatorVerificationCheck[];
+  verificationMode?: "static_only" | "static_and_runtime";
+  runtimeStatus?: "not-run" | "passed" | "stale" | "unavailable" | "failed";
 }
 
 export interface CreatorDiagnosticLogReceipt {

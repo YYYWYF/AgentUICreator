@@ -245,6 +245,7 @@ class CreatorRunLogger:
         run_id: str,
         thread_id: str | None = None,
         agent_mode: str = "domain-write",
+        verification_mode: str | None = None,
     ) -> None:
         self.run_id = run_id
         self.thread_id = thread_id
@@ -268,7 +269,15 @@ class CreatorRunLogger:
             self.path = directory / f"{timestamp}_{_safe_segment(run_id)}.jsonl"
             self.record(
                 "run_started",
-                {"runtime": "python", "agentMode": self.agent_mode},
+                {
+                    "runtime": "python",
+                    "agentMode": self.agent_mode,
+                    **(
+                        {"verificationMode": verification_mode}
+                        if verification_mode is not None
+                        else {}
+                    ),
+                },
             )
         except (OSError, ValueError):
             self.path = None
@@ -347,6 +356,9 @@ class CreatorRunLogger:
         authoring_handoff: Mapping[str, object] | None = None,
         creator_intent: Mapping[str, object] | None = None,
         productized_operation: Mapping[str, object] | None = None,
+        verification_mode: str | None = None,
+        static_validation_status: str | None = None,
+        runtime_verification_status: str | None = None,
         error: BaseException | None = None,
     ) -> None:
         if self._finished:
@@ -360,6 +372,21 @@ class CreatorRunLogger:
                 "agentMode": self.agent_mode,
                 "status": outcome,
                 "outcome": outcome,
+                **(
+                    {"verificationMode": verification_mode}
+                    if verification_mode is not None
+                    else {}
+                ),
+                **(
+                    {"staticValidationStatus": static_validation_status}
+                    if static_validation_status is not None
+                    else {}
+                ),
+                **(
+                    {"runtimeVerificationStatus": runtime_verification_status}
+                    if runtime_verification_status is not None
+                    else {}
+                ),
                 "modelToolMetrics": dict(metrics) if metrics is not None else {},
                 **(dict(mutation_metrics) if mutation_metrics is not None else {}),
                 **(
