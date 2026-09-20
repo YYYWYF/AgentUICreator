@@ -6,9 +6,16 @@ import {
 } from "react";
 
 import type { ConversationThreadComponents } from "@agent-ui/react";
+import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useConversationPresentationConfig } from "./config";
 import { useAgentUIThemeMode } from "../theme/useAgentUITheme";
 import { ConversationSurface } from "./ConversationSurface";
+import {
+  ScopedReasoningGroup,
+  ScopedRendererBridgeProvider,
+  ScopedToolFallback,
+  ScopedToolGroup,
+} from "./ScopedRendererBridge";
 
 export interface ConversationEmptyStateProps {
   welcome?: ReactNode;
@@ -49,22 +56,35 @@ export function ConversationWelcomeFallback() {
 }
 
 export function createConversationSemanticThreadComponents(): ConversationThreadComponents {
-  return { Welcome: ConversationEmptyState };
+  return {
+    Welcome: ConversationEmptyState,
+    ReasoningGroup: ScopedReasoningGroup,
+    ToolGroup: ScopedToolGroup,
+    ToolFallback: ScopedToolFallback,
+  };
 }
 
 export function ConversationAdapter({
   welcome,
   suggestions,
-}: ConversationEmptyStateProps = {}) {
+  renderScopedSlot,
+}: ConversationEmptyStateProps & {
+  renderScopedSlot?: UIPluginComponentProps["renderScopedSlot"];
+} = {}) {
   const theme = useAgentUIThemeMode();
   const components = useMemo(() => createConversationSemanticThreadComponents(), []);
   const emptyState = useMemo(
     () => ({ welcome, suggestions }),
     [welcome, suggestions],
   );
-  return (
+  const surface = (
     <ConversationEmptyStateContext.Provider value={emptyState}>
       <ConversationSurface components={components} theme={theme} />
     </ConversationEmptyStateContext.Provider>
+  );
+  return renderScopedSlot === undefined ? surface : (
+    <ScopedRendererBridgeProvider renderScopedSlot={renderScopedSlot}>
+      {surface}
+    </ScopedRendererBridgeProvider>
   );
 }

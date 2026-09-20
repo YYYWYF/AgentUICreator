@@ -30,6 +30,8 @@ export interface UIPluginManifest {
   description: string;
   version: string;
   capabilities?: string[] | undefined;
+  /** This Plugin requires a runtime entity scope and cannot mount as static content. */
+  requiresRenderScope?: boolean | undefined;
   layout?:
     | {
         width?: "narrow" | "wide" | undefined;
@@ -166,6 +168,17 @@ export interface UIPluginComponentProps {
     fallback?: ReactNode,
     options?: UIPluginRenderSlotOptions,
   ): ReactNode;
+  renderScopedSlot(
+    localSlotName: string,
+    scope: UIPluginRenderScope,
+    fallback: ReactNode,
+  ): ReactNode;
+}
+
+/** A value supplied synchronously by the host rendering one runtime entity. */
+export interface UIPluginRenderScope<T = unknown> {
+  readonly kind: string;
+  readonly value: T;
 }
 
 export interface UIPluginDefinition<TState = unknown> {
@@ -265,6 +278,7 @@ const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
   description: nonBlankStringSchema,
   version: nonBlankStringSchema,
   capabilities: z.array(nonBlankStringSchema).optional(),
+  requiresRenderScope: z.boolean().optional(),
   layout: z
     .strictObject({
       width: z.enum(["narrow", "wide"]).optional(),
@@ -315,6 +329,7 @@ const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
         z.strictObject({
           description: childSlotDescriptionSchema,
           cardinality: z.enum(["one", "many"]),
+          mode: z.enum(["content", "renderer"]).optional(),
           optional: z.boolean().optional(),
           accepts: childSlotAcceptsSchema.optional(),
         }),
@@ -370,6 +385,14 @@ export const uiPluginManifestSchema = manifestShapeSchema.superRefine(
     });
 
     for (const [slotName, slot] of Object.entries(manifest.slots?.children ?? {})) {
+      if (slot.mode === "renderer" && slot.cardinality !== "one") {
+        context.addIssue({
+          code: "custom",
+          path: ["slots", "children", slotName, "cardinality"],
+          message: `Renderer Slot "${slotName}" must have cardinality "one"`,
+          input: slot.cardinality,
+        });
+      }
       const acceptedCapabilities = slot.accepts?.anyOfCapabilities;
       if (acceptedCapabilities === undefined) continue;
       const seen = new Set<string>();

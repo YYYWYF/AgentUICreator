@@ -45,6 +45,10 @@
   overflow: hidden;
 }
 
+.app-ui-plugin-instance[data-plugin-renderer="true"] {
+  overflow: visible;
+}
+
 .app-ui-plugin-error {
   min-width: 0;
   padding: 1rem;

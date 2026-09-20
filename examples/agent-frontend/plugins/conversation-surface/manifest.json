@@ -35,6 +35,27 @@
         "accepts": {
           "anyOfCapabilities": ["theme-control"]
         }
+      },
+      "reasoningGroup": {
+        "description": "Renderer for one assistant reasoning group.",
+        "cardinality": "one",
+        "optional": true,
+        "mode": "renderer",
+        "accepts": { "anyOfCapabilities": ["conversation-reasoning-renderer"] }
+      },
+      "toolGroup": {
+        "description": "Renderer for one assistant tool group.",
+        "cardinality": "one",
+        "optional": true,
+        "mode": "renderer",
+        "accepts": { "anyOfCapabilities": ["conversation-tool-group-renderer"] }
+      },
+      "toolFallback": {
+        "description": "Renderer for an unnamed tool UI fallback.",
+        "cardinality": "one",
+        "optional": true,
+        "mode": "renderer",
+        "accepts": { "anyOfCapabilities": ["conversation-tool-fallback-renderer"] }
       }
     }
   },

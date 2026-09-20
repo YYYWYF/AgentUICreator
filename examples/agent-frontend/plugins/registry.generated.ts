@@ -4,9 +4,66 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "a4e4d4a5c2f7316b12d518daa05a41971eb5c98c713dbec6eb513fcdafc6316a";
+export const capabilityCatalogRevision = "6018c4a7741b3ede77f58c16dba45f3259b165c541e699708795dedd0b202368";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
+  {
+    manifest: {
+      "id": "assistant-ui-reasoning",
+      "name": "Assistant UI Reasoning Renderer",
+      "description": "Displays one assistant-ui reasoning group with canonical presentation.",
+      "version": "1.0.0",
+      "capabilities": [
+        "conversation-reasoning-renderer"
+      ],
+      "requiresRenderScope": true
+    },
+    provides: [],
+    inject: [],
+    optionalInject: [],
+    loadDefinition: () =>
+      import("./assistant-ui-reasoning/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
+      "id": "assistant-ui-tool-fallback",
+      "name": "Assistant UI Tool Fallback Renderer",
+      "description": "Displays an unregistered tool call with canonical assistant-ui presentation.",
+      "version": "1.0.0",
+      "capabilities": [
+        "conversation-tool-fallback-renderer"
+      ],
+      "requiresRenderScope": true
+    },
+    provides: [],
+    inject: [],
+    optionalInject: [],
+    loadDefinition: () =>
+      import("./assistant-ui-tool-fallback/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
+      "id": "assistant-ui-tool-group",
+      "name": "Assistant UI Tool Group Renderer",
+      "description": "Displays one assistant-ui tool group with canonical presentation.",
+      "version": "1.0.0",
+      "capabilities": [
+        "conversation-tool-group-renderer"
+      ],
+      "requiresRenderScope": true
+    },
+    provides: [],
+    inject: [],
+    optionalInject: [],
+    loadDefinition: () =>
+      import("./assistant-ui-tool-group/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
   {
     manifest: {
       "id": "conversation-data-source",
@@ -126,6 +183,39 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
             "accepts": {
               "anyOfCapabilities": [
                 "theme-control"
+              ]
+            }
+          },
+          "reasoningGroup": {
+            "description": "Renderer for one assistant reasoning group.",
+            "cardinality": "one",
+            "mode": "renderer",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-reasoning-renderer"
+              ]
+            }
+          },
+          "toolGroup": {
+            "description": "Renderer for one assistant tool group.",
+            "cardinality": "one",
+            "mode": "renderer",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-tool-group-renderer"
+              ]
+            }
+          },
+          "toolFallback": {
+            "description": "Renderer for an unnamed tool UI fallback.",
+            "cardinality": "one",
+            "mode": "renderer",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-tool-fallback-renderer"
               ]
             }
           }

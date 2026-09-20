@@ -50,6 +50,12 @@ Every target status in this matrix is one of these values:
 | `structural-host` | The component owns semantic Slot composition or product structure, not canonical leaf presentation. |
 | `legacy-only` | assistant-ui owns the canonical implementation, but the old implementation remains temporarily for the normal-mode A/B path and is a P3R-6 deletion candidate. |
 
+For Reasoning, Tool Group, and Tool Fallback, canonical presentation may be
+called from a scoped Renderer Plugin. AgentUICreator selects that Plugin through
+AppUIModel, while assistant-ui retains grouping, part order, named Tool UI
+priority, streaming state, and the canonical component anatomy. See
+[Scoped Renderer Plugins](scoped-renderer-plugin.md).
+
 ## 3. Capability matrix
 
 | Capability | assistant-ui upstream | Current AgentUICreator | Target status | Current phase action |

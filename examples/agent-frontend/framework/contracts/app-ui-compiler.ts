@@ -27,6 +27,9 @@ export type AppUICompilerIssueCode =
   | "plugin-slot-not-declared"
   | "plugin-slot-cardinality"
   | "plugin-slot-required"
+  | "plugin-slot-capability-mismatch"
+  | "renderer-slot-cardinality"
+  | "renderer-plugin-outside-renderer-slot"
   | "application-plugin-must-be-headless"
   | "headless-plugin-must-be-application";
 
@@ -121,16 +124,26 @@ export function compileAppUIModel(
     plugin: AppUIPluginNode,
     path: string,
     mount?: { slotId: string; order: number },
+    slotMode: "content" | "renderer" = "content",
   ): void => {
     const entry: PluginCompositionCatalogEntry | undefined =
       pluginCatalog[plugin.pluginId];
-    if (entry === undefined) {
+    if (entry === undefined && slotMode !== "renderer") {
       issues.push({
         code: "plugin-not-found",
         instanceId: plugin.id,
         pluginId: plugin.pluginId,
         path,
         message: `Plugin instance "${plugin.id}" references unknown plugin "${plugin.pluginId}".`,
+      });
+    }
+    if (entry?.requiresRenderScope === true && slotMode !== "renderer") {
+      issues.push({
+        code: "renderer-plugin-outside-renderer-slot",
+        instanceId: plugin.id,
+        pluginId: plugin.pluginId,
+        path,
+        message: `Renderer plugin "${plugin.pluginId}" requires a renderer Slot.`,
       });
     }
     const isApplication = mount === undefined;
@@ -198,12 +211,39 @@ export function compileAppUIModel(
           message: `Plugin instance "${plugin.id}" child Slot "${slot}" accepts at most one plugin.`,
         });
       }
+      if (definition.mode === "renderer" && definition.cardinality !== "one") {
+        issues.push({
+          code: "renderer-slot-cardinality",
+          instanceId: plugin.id,
+          pluginId: plugin.pluginId,
+          path: `${path}.slots.${slot}`,
+          slot,
+          message: `Renderer Slot "${slot}" must accept exactly one plugin at most.`,
+        });
+      }
+      for (const [index, child] of children.entries()) {
+        const accepted = definition.accepts?.anyOfCapabilities;
+        const childEntry = pluginCatalog[child.pluginId];
+        const capabilities = childEntry?.capabilities ?? [];
+        if (accepted !== undefined &&
+            !(definition.mode === "renderer" && definition.optional === true && childEntry === undefined) &&
+            !capabilities.some((capability) => accepted.includes(capability))) {
+          issues.push({
+            code: "plugin-slot-capability-mismatch",
+            instanceId: child.id,
+            pluginId: child.pluginId,
+            path: `${path}.slots.${slot}[${index}]`,
+            slot,
+            message: `Plugin "${child.pluginId}" does not provide a capability accepted by Slot "${slot}".`,
+          });
+        }
+      }
       const runtimeSlotId = resolveRuntimePluginSlotId(plugin.id, slot);
       children.forEach((child, index) =>
         compilePlugin(child, `${path}.slots.${slot}[${index}]`, {
           slotId: runtimeSlotId,
           order: index,
-        }),
+        }, definition.mode ?? "content"),
       );
     }
   };

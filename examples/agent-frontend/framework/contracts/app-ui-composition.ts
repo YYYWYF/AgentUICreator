@@ -10,6 +10,8 @@ export interface PluginChildSlotAccepts {
 export interface PluginChildSlotDefinition {
   readonly description: string;
   readonly cardinality: "one" | "many";
+  /** Omitted means an ordinary, static content Slot. */
+  readonly mode?: "content" | "renderer" | undefined;
   readonly optional?: boolean | undefined;
   readonly accepts?: PluginChildSlotAccepts | undefined;
 }
@@ -26,6 +28,7 @@ export interface PluginCompositionCatalogEntry {
     readonly priority?: number;
   };
   readonly capabilities?: readonly string[];
+  readonly requiresRenderScope?: boolean;
   readonly provides?: readonly string[];
   readonly inject?: readonly string[];
 }
@@ -38,6 +41,8 @@ export type AppUICompositionIssueCode =
   | "mount-slot-unreachable"
   | "plugin-child-slot-owner-duplicate"
   | "plugin-child-slot-layout-collision"
+  | "plugin-slot-capability-mismatch"
+  | "renderer-plugin-outside-renderer-slot"
   | "application-gate-must-not-mount"
   | "application-gate-must-not-declare-child-slots"
   | "application-gate-service-not-provided"

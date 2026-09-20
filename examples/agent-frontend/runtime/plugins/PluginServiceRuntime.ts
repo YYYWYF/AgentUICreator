@@ -108,9 +108,9 @@ export function createInstanceActions(
 /**
  * Instance-scoped named services for UI plugins.
  *
- * Workspace activations are rebuilt when AppUIRuntimeModel changes. Application Gate
- * foundations are retained while their definition and dependency graph remain
- * stable.
+ * Workspace activations are rebuilt when AppUIRuntimeModel changes, except
+ * isolated scoped renderer substitutions. Application Gate foundations are
+ * retained while their definition and dependency graph remain stable.
  */
 export class PluginServiceRuntime {
   readonly slots = new SlotRegistry();
@@ -223,6 +223,9 @@ export class PluginServiceRuntime {
           .map(([instanceId]) => instanceId),
       );
       if (gateInstanceIds.size === 0) {
+        if (this.#reconcileScopedRendererChanges(nextState, actions, diagnostics, previouslyFailed)) {
+          return;
+        }
         this.#deactivateAll();
         this.#foundationSignature = undefined;
         this.#currentState = nextState;
@@ -531,6 +534,77 @@ export class PluginServiceRuntime {
       this.#activationStages.delete(instanceId);
     }
     if (stage === "workspace") this.#workspaceReconciled = false;
+  }
+
+  /** Preserve structural hosts when only leaf renderer instances change. */
+  #reconcileScopedRendererChanges(
+    nextState: ReconcileState,
+    actions: UIPluginRuntimeActions,
+    diagnostics: PluginDiagnosticContextValue | null | undefined,
+    previouslyFailed: ReadonlySet<string>,
+  ): boolean {
+    const previous = this.#currentState;
+    if (previous === undefined || !this.#workspaceReconciled ||
+        this.applicationLifecycle.getSnapshot().phase !== "ready" ||
+        JSON.stringify(previous.model.root) !== JSON.stringify(nextState.model.root)) return false;
+
+    const ids = new Set([
+      ...Object.keys(previous.model.pluginInstances),
+      ...Object.keys(nextState.model.pluginInstances),
+    ]);
+    const changed = [...ids].filter((id) =>
+      JSON.stringify(previous.model.pluginInstances[id]) !== JSON.stringify(nextState.model.pluginInstances[id]),
+    );
+    if (changed.length === 0) return false;
+
+    for (const id of ids) {
+      const oldInstance = previous.model.pluginInstances[id];
+      const newInstance = nextState.model.pluginInstances[id];
+      const oldDefinition = oldInstance === undefined ? undefined : previous.registry.get(oldInstance.pluginId);
+      const newDefinition = newInstance === undefined ? undefined : nextState.registry.get(newInstance.pluginId);
+      if (changed.includes(id)) {
+        if ((oldInstance !== undefined &&
+              (oldDefinition?.manifest.requiresRenderScope !== true || oldInstance.mount === undefined ||
+               (oldDefinition.provides?.length ?? 0) > 0)) ||
+            (newInstance !== undefined &&
+              (newDefinition?.manifest.requiresRenderScope !== true || newInstance.mount === undefined ||
+               (newDefinition.provides?.length ?? 0) > 0))) return false;
+      } else if (oldInstance !== undefined && newInstance !== undefined &&
+                 !this.#sameDefinition(oldDefinition, newDefinition)) return false;
+    }
+
+    for (const id of changed) {
+      const record = this.#activePlugins.find((item) => item.instanceId === id);
+      if (record !== undefined) {
+        this.#runCleanups(record);
+        this.#activePlugins.splice(this.#activePlugins.indexOf(record), 1);
+      }
+      this.#activations.delete(id);
+      this.#eventScopes.delete(id);
+      this.#activationStages.delete(id);
+    }
+    this.#currentState = nextState;
+    const changedIds = new Set(changed);
+    this.#activateCandidates(
+      this.#workspaceCandidates(nextState).filter(({ instance }) => changedIds.has(instance.id)),
+      "workspace",
+      actions,
+      diagnostics,
+      new Set([...previouslyFailed].filter((id) => changedIds.has(id))),
+    );
+    return true;
+  }
+
+  #sameDefinition(
+    left: UIPluginDefinition | undefined,
+    right: UIPluginDefinition | undefined,
+  ): boolean {
+    if (left === undefined || right === undefined) return left === right;
+    return left.Component === right.Component && left.setup === right.setup &&
+      JSON.stringify(left.manifest) === JSON.stringify(right.manifest) &&
+      JSON.stringify(left.provides ?? []) === JSON.stringify(right.provides ?? []) &&
+      JSON.stringify(left.inject ?? []) === JSON.stringify(right.inject ?? []) &&
+      JSON.stringify(left.optionalInject ?? []) === JSON.stringify(right.optionalInject ?? []);
   }
 
   #activateCandidates(

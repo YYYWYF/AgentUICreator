@@ -120,6 +120,7 @@ export function createPluginCompositionCatalog<TState = unknown>(
               },
             }),
         capabilities: [...(definition.manifest.capabilities ?? [])],
+        requiresRenderScope: definition.manifest.requiresRenderScope === true,
         provides: [...(definition.provides ?? [])],
         inject: [...(definition.inject ?? [])],
       },

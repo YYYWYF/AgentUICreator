@@ -208,7 +208,7 @@ function SuggestionRuntimeSurface({
     throw new Error("assistant-ui Runtime was not created");
   }
   onRuntime(runtime);
-  return showSuggestions ? <ConversationSuggestionsPlugin renderSlot={() => null} /> : null;
+  return showSuggestions ? <ConversationSuggestionsPlugin renderSlot={() => null} renderScopedSlot={() => null} /> : null;
 }
 
 function AssistantRuntimeProbe({

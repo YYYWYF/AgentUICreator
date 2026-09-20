@@ -18,7 +18,10 @@ describe("assistant-ui interaction state contract", () => {
     );
 
     expect(adapter).toContain("Welcome:");
-    expect(adapter).not.toMatch(/ReasoningGroup|ToolGroup|ToolFallback/u);
+    expect(adapter).toContain("ScopedReasoningGroup");
+    expect(adapter).toContain("ScopedToolGroup");
+    expect(adapter).toContain("ScopedToolFallback");
+    expect(adapter).not.toContain("AssistantMessage:");
     expect(thread).toContain("MessagePrimitive.Parts");
     expect(thread).toContain("Reasoning");
     expect(thread).toContain("ToolGroup");

@@ -7,10 +7,23 @@ import { describe, expect, it } from "vitest";
 import appUIJson from "../app-ui/app-ui.json";
 import { conversationPresentationConfig } from "../agent-ui/conversation/config";
 import { collectAppUIPluginLocations, parseAppUIModel } from "../framework/contracts/app-ui-model";
+import { pluginCapabilityCatalog } from "../plugins";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("assistant-ui default composition", () => {
+  it("exposes renderer mode, accepted capability, and mounted Plugin in authoring facts", () => {
+    const manifest = pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "conversation-surface")?.manifest;
+    const slots = manifest?.slots?.children;
+    expect(slots?.reasoningGroup).toMatchObject({ mode: "renderer", cardinality: "one", accepts: {
+      anyOfCapabilities: ["conversation-reasoning-renderer"],
+    } });
+    expect(slots?.toolGroup?.mode).toBe("renderer");
+    expect(slots?.toolFallback?.mode).toBe("renderer");
+    const locations = collectAppUIPluginLocations(parseAppUIModel(appUIJson));
+    expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-reasoning-main")?.target)
+      .toMatchObject({ type: "plugin_slot", parentInstanceId: "agent-conversation-surface-main", slot: "reasoningGroup" });
+  });
   it("keeps the default model to application plugins and semantic child Slot plugins", () => {
     const model = parseAppUIModel(appUIJson);
     const locations = collectAppUIPluginLocations(model);
@@ -21,6 +34,9 @@ describe("assistant-ui default composition", () => {
     expect(visible).toEqual([
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
+      "assistant-ui-reasoning-main",
+      "assistant-ui-tool-group-main",
+      "assistant-ui-tool-fallback-main",
       "conversation-thread-list-main",
     ]);
     expect(locations.map(({ plugin }) => plugin.id)).toEqual([
@@ -29,6 +45,9 @@ describe("assistant-ui default composition", () => {
       "theme-provider-main",
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
+      "assistant-ui-reasoning-main",
+      "assistant-ui-tool-group-main",
+      "assistant-ui-tool-fallback-main",
       "conversation-thread-list-main",
     ]);
     expect(locations.filter(({ plugin, target }) => plugin.enabled && target.type === "application").map(({ plugin }) => plugin.id)).toEqual([
@@ -125,9 +144,9 @@ describe("assistant-ui default composition", () => {
       expect(thread).toContain(`data-slot=\"${slot}\"`);
     }
     expect(conversationAdapter).not.toContain("AssistantMessage:");
-    expect(conversationAdapter).not.toContain("ReasoningGroup");
-    expect(conversationAdapter).not.toContain("ToolGroup");
-    expect(conversationAdapter).not.toContain("ToolFallback");
+    expect(conversationAdapter).toContain("ScopedReasoningGroup");
+    expect(conversationAdapter).toContain("ScopedToolGroup");
+    expect(conversationAdapter).toContain("ScopedToolFallback");
     expect(conversationAdapter).toContain("Welcome:");
     expect(conversationAdapter).not.toContain("ToolCallWrapper");
     expect(thread).toContain("ActionBarMorePrimitive");

@@ -181,6 +181,7 @@ export interface InspectedPluginSlot {
   target: { type: "plugin_slot"; parentInstanceId: string; slot: string };
   description: string;
   cardinality: "one" | "many";
+  mode: "content" | "renderer";
   optional: boolean;
   accepts?: PluginChildSlotDefinition["accepts"];
   owner: {

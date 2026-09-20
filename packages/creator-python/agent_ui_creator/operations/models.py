@@ -208,6 +208,7 @@ class PluginChildSlotCapability(BaseModel):
     name: BoundedPluginChildSlotName
     description: BoundedPluginChildSlotDescription
     cardinality: Literal["one", "many"]
+    mode: Literal["content", "renderer"] = "content"
     optional: bool
     acceptedCapabilities: list[BoundedPluginCapability] = Field(
         default_factory=list,

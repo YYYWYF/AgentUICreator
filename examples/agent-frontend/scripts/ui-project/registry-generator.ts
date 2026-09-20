@@ -335,6 +335,7 @@ export function generatePluginRegistryFromFacts(
             ? {}
             : { applicationGate: asset.applicationGate }),
           capabilities: asset.capabilities,
+          requiresRenderScope: asset.manifest.requiresRenderScope === true,
           provides: declaration?.provides ?? [],
           inject: declaration?.inject ?? [],
         },

@@ -1,4 +1,5 @@
-import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import type { ReactNode } from "react";
+import type { UIPluginComponentProps, UIPluginRenderScope } from "../../framework/contracts/ui-plugin";
 import {
   ConversationAdapter,
   ConversationWelcomeFallback,
@@ -16,6 +17,7 @@ import "./styles.css";
 
 export function ConversationSurfacePlugin({
   renderSlot,
+  renderScopedSlot,
 }: UIPluginComponentProps) {
   const conversation = usePluginService<ConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
@@ -27,6 +29,18 @@ export function ConversationSurfacePlugin({
   const welcome = renderSlot("emptyWelcome", <ConversationWelcomeFallback />);
   const suggestions = renderSlot("emptySuggestions", null);
   const headerActions = renderSlot("headerActions", null);
+  const renderConversationScopedSlot = (
+    slotName: string,
+    scope: UIPluginRenderScope,
+    fallback: ReactNode,
+  ): ReactNode => {
+    switch (slotName) {
+      case "reasoningGroup": return renderScopedSlot("reasoningGroup", scope, fallback);
+      case "toolGroup": return renderScopedSlot("toolGroup", scope, fallback);
+      case "toolFallback": return renderScopedSlot("toolFallback", scope, fallback);
+      default: throw new Error(`Unknown Conversation renderer Slot "${slotName}"`);
+    }
+  };
 
   return (
     <div
@@ -41,7 +55,7 @@ export function ConversationSurfacePlugin({
       >
         {headerActions}
       </div>
-      <ConversationAdapter welcome={welcome} suggestions={suggestions} />
+      <ConversationAdapter welcome={welcome} suggestions={suggestions} renderScopedSlot={renderConversationScopedSlot} />
     </div>
   );
 }

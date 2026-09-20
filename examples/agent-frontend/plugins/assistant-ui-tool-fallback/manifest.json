@@ -1,0 +1,8 @@
+{
+  "id": "assistant-ui-tool-fallback",
+  "name": "Assistant UI Tool Fallback Renderer",
+  "description": "Displays an unregistered tool call with canonical assistant-ui presentation.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-tool-fallback-renderer"],
+  "requiresRenderScope": true
+}

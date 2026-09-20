@@ -127,6 +127,7 @@ export function ApplicationGateSurface<TState = unknown>({
         onPluginError={onPluginError}
         onPluginReset={onPluginReset}
         renderSlot={rejectChildSlot}
+        renderScopedSlot={rejectChildSlot}
       />
     </main>
   );

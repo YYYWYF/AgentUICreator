@@ -22,6 +22,31 @@ import {
 } from "../runtime/context";
 
 describe("UIPluginManifest", () => {
+  it("parses renderer Slots while leaving legacy child Slots in content mode", () => {
+    const manifest = parseUIPluginManifest({
+      id: "scoped-owner",
+      name: "Scoped owner",
+      description: "Fixture",
+      version: "1.0.0",
+      slots: { children: {
+        content: { description: "Static content", cardinality: "many" },
+        entity: {
+          description: "One entity renderer",
+          cardinality: "one",
+          mode: "renderer",
+          accepts: { anyOfCapabilities: ["entity-renderer"] },
+        },
+      } },
+    });
+    expect(manifest.slots?.children?.content?.mode).toBeUndefined();
+    expect(manifest.slots?.children?.entity?.mode).toBe("renderer");
+    expect(() => parseUIPluginManifest({
+      ...manifest,
+      slots: { children: { entity: {
+        description: "Invalid renderer", cardinality: "many", mode: "renderer",
+      } } },
+    })).toThrow(/cardinality "one"/u);
+  });
   it.each(["narrow", "wide"] as const)(
     "accepts the %s width requirement",
     (width) => {

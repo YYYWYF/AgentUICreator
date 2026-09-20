@@ -58,13 +58,25 @@ export async function buildRuntimeComposition<TState = unknown>(
 ): Promise<RuntimeCompositionBuildResult<TState>> {
   const appUIModelHash = await sha256Text(input.appUIModelSource);
   const appUIModel = parseAppUIModelJson(input.appUIModelSource);
+  const locations = collectAppUIPluginLocations(appUIModel);
+  const locationsById = new Map(locations.map((location) => [location.plugin.id, location]));
+  const isMissingOptionalRenderer = (pluginId: string): boolean => {
+    const references = locations.filter(({ plugin }) => plugin.pluginId === pluginId);
+    return references.length > 0 && references.every(({ target }) => {
+      if (target.type !== "plugin_slot") return false;
+      const parent = locationsById.get(target.parentInstanceId);
+      const slot = parent === undefined ? undefined : input.capabilityCatalog.get(parent.plugin.pluginId)
+        ?.manifest.slots?.children?.[target.slot];
+      return slot?.mode === "renderer" && slot.optional === true;
+    });
+  };
   const selectedPluginIds = [
     ...new Set(
-      collectAppUIPluginLocations(appUIModel).map(
+      locations.map(
         ({ plugin }) => plugin.pluginId,
       ),
     ),
-  ].sort();
+  ].filter((pluginId) => input.capabilityCatalog.get(pluginId) !== undefined || !isMissingOptionalRenderer(pluginId)).sort();
   const definitions = await Promise.all(
     selectedPluginIds.map(async (pluginId) => {
       const capability = input.capabilityCatalog.get(pluginId);

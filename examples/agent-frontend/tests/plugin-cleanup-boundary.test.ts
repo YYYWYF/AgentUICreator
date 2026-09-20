@@ -8,17 +8,19 @@ import { pluginCapabilityCatalog } from "../plugins";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const canonicalPluginIds = [
+  "assistant-ui-reasoning",
+  "assistant-ui-tool-fallback",
+  "assistant-ui-tool-group",
   "conversation-data-source",
   "conversation-service",
   "conversation-suggestions",
   "conversation-surface",
   "conversation-thread-list",
+  "locale-provider",
   "theme-provider",
   "theme-switch",
 ] as const;
 const forbiddenImplementationTokens = [
-  "assistant-ui-",
-  "AssistantUi",
   "@assistant-ui/",
   "runtime-assistant-ui",
 ] as const;
@@ -35,7 +37,7 @@ async function collectFiles(root: string, current = root): Promise<string[]> {
 }
 
 describe("canonical Conversation plugin cleanup boundary", () => {
-  it("keeps exactly the seven supported plugin manifests", async () => {
+  it("keeps supported Plugin manifests in the generated catalog", async () => {
     const pluginRoot = path.join(projectRoot, "plugins");
     const directories = (await readdir(pluginRoot, { withFileTypes: true }))
       .filter((entry) => entry.isDirectory())
@@ -49,7 +51,7 @@ describe("canonical Conversation plugin cleanup boundary", () => {
       ) as { id: string }),
     );
     expect(manifests.map(({ id }) => id).sort()).toEqual(directories);
-    expect(pluginCapabilityCatalog.list()).toHaveLength(7);
+    expect(pluginCapabilityCatalog.list()).toHaveLength(canonicalPluginIds.length);
     expect(pluginCapabilityCatalog.list().map(({ manifest }) => manifest.id).sort()).toEqual(directories);
   });
 

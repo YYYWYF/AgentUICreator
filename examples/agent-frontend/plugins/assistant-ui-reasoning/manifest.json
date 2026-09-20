@@ -1,0 +1,8 @@
+{
+  "id": "assistant-ui-reasoning",
+  "name": "Assistant UI Reasoning Renderer",
+  "description": "Displays one assistant-ui reasoning group with canonical presentation.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-reasoning-renderer"],
+  "requiresRenderScope": true
+}

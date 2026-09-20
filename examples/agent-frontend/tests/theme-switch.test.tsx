@@ -114,7 +114,7 @@ describe("theme-switch plugin", () => {
             events={runtime.getEvents("theme-switch-main")!}
             instance={instance}
           >
-            <ThemeSwitchPlugin renderSlot={() => null} />
+            <ThemeSwitchPlugin renderSlot={() => null} renderScopedSlot={() => null} />
           </PluginInstanceProvider>
         </PluginServiceRuntimeContext.Provider>,
       );

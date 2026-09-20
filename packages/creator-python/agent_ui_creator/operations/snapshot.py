@@ -576,6 +576,11 @@ def _build_plugin_child_slots(
             raise _invalid(
                 f"Unsupported child Slot cardinality {cardinality!r} for Plugin Slot {bounded_slot_name}."
             )
+        mode = slot.get("mode", "content")
+        if not isinstance(mode, str) or mode not in {"content", "renderer"}:
+            raise _invalid(f"Unsupported child Slot mode {mode!r} for Plugin Slot {bounded_slot_name}.")
+        if mode == "renderer" and cardinality != "one":
+            raise _invalid(f"Renderer Slot {bounded_slot_name} must have cardinality 'one'.")
         optional = slot.get("optional", False)
         if not isinstance(optional, bool):
             raise _invalid(f"Domain snapshot field {slot_path}.optional must be a boolean.")
@@ -619,6 +624,7 @@ def _build_plugin_child_slots(
                 name=bounded_slot_name,
                 description=description,
                 cardinality=cardinality,
+                mode=mode,
                 optional=optional,
                 acceptedCapabilities=accepted_capabilities,
             )

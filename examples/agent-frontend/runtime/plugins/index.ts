@@ -3,6 +3,7 @@ export * from "./PluginServiceContext";
 export * from "./PluginServiceProvider";
 export * from "./PluginServiceRuntime";
 export * from "./PluginInstanceRenderer";
+export * from "./PluginRenderScope";
 export * from "./PluginErrorBoundary";
 export * from "./usePluginServiceSnapshot";
 export * from "./UIPluginRuntime";

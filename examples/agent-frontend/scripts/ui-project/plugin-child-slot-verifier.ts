@@ -25,6 +25,7 @@ const TEST_FILE_PATTERN = /\.(?:test|spec)\.(?:[cm]?ts|tsx|js|jsx)$/u;
 
 export interface RenderedChildSlot {
   slotId: string;
+  mode: "content" | "renderer";
   path: string;
   line: number;
   column: number;
@@ -78,18 +79,19 @@ async function collectPluginSourceFiles(
   return files;
 }
 
-function isRenderSlotCall(node: Node): boolean {
+function renderedSlotMode(node: Node): "content" | "renderer" | null {
   if (!isCallExpression(node)) {
-    return false;
+    return null;
   }
   if (isIdentifier(node.expression)) {
-    return node.expression.text === "renderSlot";
+    if (node.expression.text === "renderSlot") return "content";
+    if (node.expression.text === "renderScopedSlot") return "renderer";
+    return null;
   }
-  return (
-    isPropertyAccessExpression(node.expression) &&
-    isIdentifier(node.expression.name) &&
-    node.expression.name.text === "renderSlot"
-  );
+  if (!isPropertyAccessExpression(node.expression) || !isIdentifier(node.expression.name)) return null;
+  if (node.expression.name.text === "renderSlot") return "content";
+  if (node.expression.name.text === "renderScopedSlot") return "renderer";
+  return null;
 }
 
 function sourceLocation(sourceFile: SourceFile, node: Node): {
@@ -111,12 +113,14 @@ function inspectRenderedChildSlots(
   const dynamic: DynamicRenderedChildSlot[] = [];
   const relativePath = projectPath(projectRoot, sourceFile.fileName);
   const visit = (node: Node): void => {
-    if (isCallExpression(node) && isRenderSlotCall(node)) {
+    const mode = renderedSlotMode(node);
+    if (mode !== null) {
       const argument = node.arguments[0];
       const location = sourceLocation(sourceFile, node);
       if (argument !== undefined && isStringLiteral(argument)) {
         rendered.push({
           slotId: argument.text,
+          mode,
           path: relativePath,
           ...location,
         });
@@ -213,6 +217,15 @@ export async function verifyPluginChildSlots(
         code: "plugin-child-slot-rendered-not-declared",
         message: `${location.path}:${location.line}:${location.column}: Plugin "${asset.pluginId}" renders child Slot "${slotId}", but ${asset.manifestPath} does not declare it in slots.children.`,
       });
+    }
+    for (const location of inspection.rendered) {
+      const definition = asset.childSlots?.[location.slotId];
+      if (definition !== undefined && (definition.mode ?? "content") !== location.mode) {
+        issues.push({
+          code: "plugin-child-slot-mode-mismatch",
+          message: `${location.path}:${location.line}:${location.column}: Plugin "${asset.pluginId}" renders Slot "${location.slotId}" as ${location.mode}, but its manifest declares ${definition.mode ?? "content"}.`,
+        });
+      }
     }
   }
   return issues;

@@ -18,13 +18,17 @@ describe("UI plugin identity", () => {
     }
   });
 
-  it("keeps the generated capability catalog on the canonical seven-plugin set", () => {
+  it("keeps the generated capability catalog on the canonical plugin set", () => {
     expect(pluginCapabilityCatalog.list().map(({ manifest }) => manifest.id)).toEqual([
+      "assistant-ui-reasoning",
+      "assistant-ui-tool-fallback",
+      "assistant-ui-tool-group",
       "conversation-data-source",
       "conversation-service",
       "conversation-suggestions",
       "conversation-surface",
       "conversation-thread-list",
+      "locale-provider",
       "theme-provider",
       "theme-switch",
     ]);

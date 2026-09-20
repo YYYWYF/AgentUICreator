@@ -7,6 +7,17 @@ import { ToolFallback as InternalToolFallback } from "./internal/vendor/assistan
 import { MarkdownText as InternalMarkdownText } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/markdown-text.js";
 import { Reasoning as InternalReasoning } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
 import {
+  ReasoningRoot as InternalReasoningRoot,
+  ReasoningTrigger as InternalReasoningTrigger,
+  ReasoningContent as InternalReasoningContent,
+  ReasoningText as InternalReasoningText,
+} from "./internal/vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
+import {
+  ToolGroupRoot as InternalToolGroupRoot,
+  ToolGroupTrigger as InternalToolGroupTrigger,
+  ToolGroupContent as InternalToolGroupContent,
+} from "./internal/vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
+import {
   Collapsible as InternalCollapsible,
   CollapsibleContent as InternalCollapsibleContent,
   CollapsibleTrigger as InternalCollapsibleTrigger,
@@ -90,6 +101,32 @@ export type ConversationThreadComponents = {
   ToolGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
   ReasoningGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
 };
+
+/** Stable metadata projected from assistant-ui GroupedParts at the facade edge. */
+export interface ConversationMessagePartGroup {
+  readonly type: "group-reasoning" | "group-tool";
+  readonly indices: readonly number[];
+  readonly status: { readonly type: string };
+}
+
+export interface ConversationReasoningGroupRenderScope {
+  readonly group: ConversationMessagePartGroup;
+  readonly children: ReactNode;
+}
+
+export interface ConversationToolGroupRenderScope {
+  readonly group: ConversationMessagePartGroup;
+  readonly children: ReactNode;
+}
+
+export interface ConversationToolFallbackRenderScope {
+  readonly tool: ConversationToolCallProps;
+}
+
+export function toConversationMessagePartGroup(group: unknown): ConversationMessagePartGroup {
+  const source = group as { type: ConversationMessagePartGroup["type"]; indices: readonly number[]; status: { type: string } };
+  return { type: source.type, indices: source.indices, status: source.status };
+}
 
 export interface ConversationThreadProps {
   components?: ConversationThreadComponents | undefined;
@@ -199,6 +236,8 @@ export interface ConversationToolCallProps {
   result?: unknown;
   isError?: boolean | undefined;
   status: ConversationToolCallStatus;
+  /** Preserve assistant-ui extension fields and callbacks at the facade seam. */
+  readonly [key: string]: unknown;
 }
 
 export type ConversationToolCallComponent = ComponentType<ConversationToolCallProps>;
@@ -245,6 +284,33 @@ export function ConversationMarkdownText() {
 
 export function ConversationReasoning() {
   return <InternalReasoning {...({} as ComponentProps<typeof InternalReasoning>)} />;
+}
+
+export function ConversationCanonicalReasoningGroup({ group, children }: {
+  group: ConversationMessagePartGroup;
+  children: ReactNode;
+}) {
+  const running = group.status.type === "running";
+  return (
+    <InternalReasoningRoot streaming={running}>
+      <InternalReasoningTrigger active={running} />
+      <InternalReasoningContent aria-busy={running}>
+        <InternalReasoningText>{children}</InternalReasoningText>
+      </InternalReasoningContent>
+    </InternalReasoningRoot>
+  );
+}
+
+export function ConversationCanonicalToolGroup({ group, children }: {
+  group: ConversationMessagePartGroup;
+  children: ReactNode;
+}) {
+  return (
+    <InternalToolGroupRoot variant="ghost">
+      <InternalToolGroupTrigger count={group.indices.length} active={group.status.type === "running"} />
+      <InternalToolGroupContent>{children}</InternalToolGroupContent>
+    </InternalToolGroupRoot>
+  );
 }
 
 export interface ConversationThreadListGroup {

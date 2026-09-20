@@ -95,6 +95,10 @@ Composition revision; it does not need a separate Service scan.
 - Panel `minWidth` must not exceed `maxWidth`.
 - A Plugin child Slot must be declared by its manifest and obey cardinality.
   The declaration is Parent Plugin capability; its occupants are Composition.
+- A child Slot with `mode: "renderer"` accepts one Plugin that renders the
+  current runtime entity through local scoped context. Change its occupant in
+  AppUIModel to change presentation. Omitted `mode` remains ordinary content;
+  do not place a `requiresRenderScope` Plugin in a Layout or content Slot.
 - Layout Slot nodes do not gain descriptions, hints, roles, or accepts lists.
 
 ## Semantic operations

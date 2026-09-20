@@ -5,6 +5,7 @@ import type {
   UIPluginDefinition,
   UIPluginRenderSlotOptions,
   UIPluginEvents,
+  UIPluginRenderScope,
 } from "../../framework/contracts/ui-plugin";
 import { PluginInstanceProvider } from "../context";
 import {
@@ -59,9 +60,15 @@ export interface PluginInstanceRendererProps<TState = unknown> {
     fallback?: ReactNode,
     options?: UIPluginRenderSlotOptions,
   ): ReactNode;
+  renderScopedSlot(
+    slotId: string,
+    scope: UIPluginRenderScope,
+    fallback: ReactNode,
+  ): ReactNode;
   onPluginError(failure: PluginRenderFailure): void;
   onPluginReset(instanceId: string): void;
   mountSlotId?: string | undefined;
+  scoped?: boolean | undefined;
 }
 
 export function PluginInstanceRenderer<TState = unknown>({
@@ -71,9 +78,11 @@ export function PluginInstanceRenderer<TState = unknown>({
   events,
   actions,
   renderSlot,
+  renderScopedSlot,
   onPluginError,
   onPluginReset,
   mountSlotId,
+  scoped,
 }: PluginInstanceRendererProps<TState>) {
   const PluginComponent = definition.Component;
   const instanceActions = createInstanceActions(instance, actions);
@@ -86,6 +95,7 @@ export function PluginInstanceRenderer<TState = unknown>({
   const content = (
     <div
       className="app-ui-plugin-instance"
+      data-plugin-renderer={scoped ? "true" : undefined}
       data-plugin-id={definition.manifest.id}
       data-plugin-instance-id={instance.id}
     >
@@ -103,7 +113,7 @@ export function PluginInstanceRenderer<TState = unknown>({
           events={events}
           instance={instance}
         >
-          <PluginComponent renderSlot={renderSlot} />
+          <PluginComponent renderSlot={renderSlot} renderScopedSlot={renderScopedSlot} />
         </PluginInstanceProvider>
       </PluginServiceConsumerContext.Provider>
     </div>

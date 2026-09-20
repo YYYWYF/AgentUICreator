@@ -151,6 +151,7 @@ def test_snapshot_provider_uses_one_authoritative_composition_read():
                         "name": "actions",
                         "description": "Compact actions beside the composer input.",
                         "cardinality": "many",
+                        "mode": "content",
                         "optional": True,
                         "acceptedCapabilities": ["composer-action"],
                     }
@@ -190,6 +191,33 @@ def test_snapshot_provider_projects_child_slot_contracts_and_plugin_capabilities
         if plugin.pluginId == "conversation-surface"
     )
     assert surface.capabilities == ["conversation-surface"]
+    assert surface.childSlots[0].model_dump(mode="json") == {
+        "name": "actions",
+        "description": "Compact actions beside the composer input.",
+        "cardinality": "many",
+        "mode": "content",
+        "optional": True,
+        "acceptedCapabilities": ["composer-action"],
+    }
+
+
+def test_snapshot_provider_projects_renderer_slot_mode():
+    result = snapshot_result()
+    result["capabilitySummaries"][1]["childSlots"]["reasoningGroup"] = {
+        "description": "Render one reasoning group.",
+        "cardinality": "one",
+        "mode": "renderer",
+        "optional": True,
+        "accepts": {"anyOfCapabilities": ["conversation-reasoning-renderer"]},
+    }
+    snapshot = CreatorDomainSnapshotProvider._parse(result)
+    surface = next(
+        plugin for plugin in snapshot.plugin_index.plugins
+        if plugin.pluginId == "conversation-surface"
+    )
+    renderer = next(slot for slot in surface.childSlots if slot.name == "reasoningGroup")
+    assert renderer.mode == "renderer"
+    assert renderer.acceptedCapabilities == ["conversation-reasoning-renderer"]
 
 
 def test_snapshot_provider_projects_plugin_slot_default_placement():
@@ -207,13 +235,6 @@ def test_snapshot_provider_projects_plugin_slot_default_placement():
     assert plugin.defaultPlacement.type == "plugin_slot"
     assert plugin.defaultPlacement.parentPluginId == "conversation-surface"
     assert plugin.defaultPlacement.slot == "emptySuggestions"
-    assert surface.childSlots[0].model_dump(mode="json") == {
-        "name": "actions",
-        "description": "Compact actions beside the composer input.",
-        "cardinality": "many",
-        "optional": True,
-        "acceptedCapabilities": ["composer-action"],
-    }
 
 
 def test_snapshot_provider_fails_fast_on_project_control_failure():

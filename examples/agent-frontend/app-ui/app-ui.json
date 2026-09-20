@@ -53,6 +53,27 @@
                     "pluginId": "conversation-suggestions",
                     "enabled": true
                   }
+                ],
+                "reasoningGroup": [
+                  {
+                    "id": "assistant-ui-reasoning-main",
+                    "pluginId": "assistant-ui-reasoning",
+                    "enabled": true
+                  }
+                ],
+                "toolGroup": [
+                  {
+                    "id": "assistant-ui-tool-group-main",
+                    "pluginId": "assistant-ui-tool-group",
+                    "enabled": true
+                  }
+                ],
+                "toolFallback": [
+                  {
+                    "id": "assistant-ui-tool-fallback-main",
+                    "pluginId": "assistant-ui-tool-fallback",
+                    "enabled": true
+                  }
                 ]
               }
             }

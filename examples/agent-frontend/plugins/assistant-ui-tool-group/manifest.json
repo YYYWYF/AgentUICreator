@@ -1,0 +1,8 @@
+{
+  "id": "assistant-ui-tool-group",
+  "name": "Assistant UI Tool Group Renderer",
+  "description": "Displays one assistant-ui tool group with canonical presentation.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-tool-group-renderer"],
+  "requiresRenderScope": true
+}

@@ -229,6 +229,7 @@ async function inspectUICompositionData(
         target: { type: "plugin_slot", parentInstanceId: location.plugin.id, slot },
         description: definition.description,
         cardinality: definition.cardinality,
+        mode: definition.mode ?? "content",
         optional: definition.optional === true,
         ...(definition.accepts === undefined
           ? {}

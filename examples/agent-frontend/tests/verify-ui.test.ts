@@ -299,4 +299,18 @@ describe("verifyUIProject", () => {
       }),
     );
   });
+
+  it("rejects rendering a content Slot as a scoped renderer", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+      childSlots: ["sample.child"],
+      pluginSource:
+        'export function Sample({ renderScopedSlot }) { return renderScopedSlot("sample.child", { kind: "sample", value: 1 }, null); }\n',
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.errors).toContainEqual(expect.objectContaining({
+      code: "plugin-child-slot-mode-mismatch",
+    }));
+  });
 });

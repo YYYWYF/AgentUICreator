@@ -52,7 +52,7 @@ describe("assistant-ui canonical runtime", () => {
     expect(
       Object.values(model.pluginInstances)
         .filter((instance) => instance.enabled),
-    ).toHaveLength(6);
+    ).toHaveLength(9);
     expect(
       model.pluginInstances["conversation-suggestions-main"],
     ).toMatchObject({
@@ -60,6 +60,12 @@ describe("assistant-ui canonical runtime", () => {
       enabled: true,
       mount: { slotId: "plugin:agent-conversation-surface-main:emptySuggestions" },
     });
+    expect(model.pluginInstances["assistant-ui-reasoning-main"]?.mount?.slotId)
+      .toBe("plugin:agent-conversation-surface-main:reasoningGroup");
+    expect(model.pluginInstances["assistant-ui-tool-group-main"]?.mount?.slotId)
+      .toBe("plugin:agent-conversation-surface-main:toolGroup");
+    expect(model.pluginInstances["assistant-ui-tool-fallback-main"]?.mount?.slotId)
+      .toBe("plugin:agent-conversation-surface-main:toolFallback");
   });
 
   it("keeps App on one assistant-ui Runtime owner", async () => {

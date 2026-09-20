@@ -235,6 +235,35 @@ describe("compileAppUIModel", () => {
     );
   });
 
+  it("validates renderer capability and scoped placement", () => {
+    const rendererCatalog: PluginCompositionCatalog = {
+      ...catalog,
+      surface: { childSlots: {
+        content: { description: "Static content", cardinality: "many", optional: true },
+        renderer: {
+          description: "Runtime renderer", cardinality: "one", mode: "renderer", optional: true,
+          accepts: { anyOfCapabilities: ["entity-renderer"] },
+        },
+      } },
+      item: { capabilities: ["entity-renderer"], requiresRenderScope: true },
+      wrong: { capabilities: ["other"] },
+    };
+    const valid = model();
+    if (valid.root.type !== "slot") throw new Error("fixture");
+    valid.root.plugins[0]!.slots = {
+      renderer: [{ id: "item-main", pluginId: "item", enabled: true }],
+    };
+    expect(() => compileAppUIModel(valid, rendererCatalog)).not.toThrow();
+
+    const wrongCapability = structuredClone(valid);
+    if (wrongCapability.root.type !== "slot") throw new Error("fixture");
+    wrongCapability.root.plugins[0]!.slots!.renderer![0]!.pluginId = "wrong";
+    expect(() => compileAppUIModel(wrongCapability, rendererCatalog)).toThrow(/does not provide a capability/u);
+
+    const wrongPlacement = model();
+    expect(() => compileAppUIModel(wrongPlacement, rendererCatalog)).toThrow(/requires a renderer Slot/u);
+  });
+
   it("enforces application and visual placement boundaries", () => {
     const visualAtApplication = model();
     visualAtApplication.applicationPlugins!.push({

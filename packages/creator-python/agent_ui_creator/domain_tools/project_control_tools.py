@@ -220,7 +220,7 @@ def create_project_control_tools(
         target: dict[str, Any] | None = None,
         appUIModelHash: str | None = None,
     ) -> str:
-        """Inspect current Slot declarations and occupancy for a specific authoring target. Plugin-local results describe current declaration, cardinality, and optional state; use this only when current Slot facts are needed. Layout Slot targets require the latest AppUIModel hash."""
+        """Inspect current Slot declarations and occupancy for a specific authoring target. Plugin-local results describe mode (content or renderer), accepted capabilities, cardinality, optional state, and occupants; use this only when current Slot facts are needed. Layout Slot targets require the latest AppUIModel hash."""
         covered = already_covered(("composition.slots",))
         if covered is not None:
             return covered

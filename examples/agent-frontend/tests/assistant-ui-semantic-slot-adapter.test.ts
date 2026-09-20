@@ -31,9 +31,9 @@ describe("assistant-ui semantic Slot adapter", () => {
     expect(plugin).toContain('renderSlot("emptyWelcome"');
     expect(plugin).toContain('renderSlot("emptySuggestions"');
     expect(plugin).toContain('renderSlot("headerActions"');
-    expect(adapter).not.toContain("ReasoningGroup");
-    expect(adapter).not.toContain("ToolGroup");
-    expect(adapter).not.toContain("ToolFallback");
+    expect(adapter).toContain("ScopedReasoningGroup");
+    expect(adapter).toContain("ScopedToolGroup");
+    expect(adapter).toContain("ScopedToolFallback");
     expect(adapter).not.toMatch(
       /ThreadPresentation|ToolCallWrapper|ComposerAddon|WelcomeWrapper|TimelineWrapper|InitialSuggestionsWrapper/u,
     );

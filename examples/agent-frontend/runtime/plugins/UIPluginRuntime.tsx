@@ -14,7 +14,7 @@ import {
 
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
 import { resolveRuntimePluginSlotId } from "../../framework/contracts/app-ui-composition";
-import type { UIPluginRenderSlotOptions } from "../../framework/contracts/ui-plugin";
+import type { UIPluginRenderScope, UIPluginRenderSlotOptions } from "../../framework/contracts/ui-plugin";
 import {
   classifyContainerWidth,
   type RuntimeWidthClass,
@@ -45,6 +45,7 @@ import {
   useOptionalApplicationLifecycleRuntime,
 } from "../application/ApplicationLifecycleContext";
 import { PluginInstanceRenderer } from "./PluginInstanceRenderer";
+import { PluginRenderScopeProvider } from "./PluginRenderScope";
 
 import "./plugin-runtime.css";
 
@@ -63,6 +64,8 @@ export interface UIPluginRuntimeProps<TState = unknown> {
 interface SlotContentProps<TState = unknown> {
   slotId: string;
   fallback?: ReactNode | undefined;
+  scope?: UIPluginRenderScope | undefined;
+  acceptedCapabilities?: readonly string[] | undefined;
   model: AppUIRuntimeModel;
   registry: PluginRegistry<TState>;
   actions: UIPluginRuntimeActions;
@@ -134,6 +137,8 @@ function SlotWidthProbe({
 function SlotContent<TState = unknown>({
   slotId,
   fallback,
+  scope,
+  acceptedCapabilities,
   model,
   registry,
   actions,
@@ -147,6 +152,62 @@ function SlotContent<TState = unknown>({
     [slots, slotId],
   );
   const contributions = useSyncExternalStore(slots.subscribe, getSnapshot, getSnapshot);
+
+  if (scope !== undefined) {
+    const contribution = contributions.length === 1 ? contributions[0] : undefined;
+    const instance = contribution === undefined ? undefined : model.pluginInstances[contribution.instanceId];
+    const definition = instance === undefined ? undefined : registry.get(instance.pluginId);
+    const activation = instance === undefined ? undefined : serviceRuntime.getActivation(instance.id);
+    const events = instance === undefined ? undefined : serviceRuntime.getEvents(instance.id);
+    if (
+      instance === undefined || !instance.enabled || instance.mount?.slotId !== slotId ||
+      definition === undefined || activation?.status !== "active" || events === undefined ||
+      (acceptedCapabilities !== undefined &&
+        !definition.manifest.capabilities?.some((capability) => acceptedCapabilities.includes(capability)))
+    ) return fallback ?? null;
+
+    const renderChildSlot = (
+      requestedSlotId: string,
+      requestedFallback?: ReactNode,
+      options?: UIPluginRenderSlotOptions,
+    ): ReactNode => {
+      const child = definition.manifest.slots?.children?.[requestedSlotId];
+      if (child === undefined || child.mode === "renderer") {
+        throw new Error(`Plugin instance "${instance.id}" cannot render content Slot "${requestedSlotId}"`);
+      }
+      const runtimeSlotId = resolveRuntimePluginSlotId(instance.id, requestedSlotId);
+      return (
+        <SlotWidthProbe sizing={options?.sizing ?? "content"} slotId={runtimeSlotId}>
+          <SlotContent actions={actions} fallback={requestedFallback} model={model}
+            onPluginError={onPluginError} onPluginReset={onPluginReset}
+            registry={registry} slotId={runtimeSlotId} />
+        </SlotWidthProbe>
+      );
+    };
+    const renderChildScopedSlot = (
+      requestedSlotId: string,
+      requestedScope: UIPluginRenderScope,
+      requestedFallback: ReactNode,
+    ): ReactNode => {
+      const child = definition.manifest.slots?.children?.[requestedSlotId];
+      if (child?.mode !== "renderer") {
+        throw new Error(`Plugin instance "${instance.id}" cannot render scoped Slot "${requestedSlotId}"`);
+      }
+      return <SlotContent actions={actions} acceptedCapabilities={child.accepts?.anyOfCapabilities}
+        fallback={requestedFallback} model={model} onPluginError={onPluginError}
+        onPluginReset={onPluginReset} registry={registry}
+        scope={requestedScope} slotId={resolveRuntimePluginSlotId(instance.id, requestedSlotId)} />;
+    };
+    return (
+      <PluginRenderScopeProvider scope={scope}>
+        <PluginInstanceRenderer actions={actions} activation={activation} definition={definition}
+          events={events} instance={instance} mountSlotId={slotId}
+          onPluginError={onPluginError} onPluginReset={onPluginReset}
+          scoped
+          renderSlot={renderChildSlot} renderScopedSlot={renderChildScopedSlot} />
+      </PluginRenderScopeProvider>
+    );
+  }
 
   if (contributions.length === 0) return fallback ?? null;
 
@@ -191,7 +252,7 @@ function SlotContent<TState = unknown>({
           options?: UIPluginRenderSlotOptions,
         ): ReactNode => {
           const childSlots = definition.manifest.slots?.children ?? {};
-          if (childSlots[requestedSlotId] === undefined) {
+          if (childSlots[requestedSlotId] === undefined || childSlots[requestedSlotId]?.mode === "renderer") {
             throw new Error(
               `Plugin instance "${instance.id}" cannot render undeclared child Slot "${requestedSlotId}"`,
             );
@@ -217,6 +278,22 @@ function SlotContent<TState = unknown>({
             </SlotWidthProbe>
           );
         };
+        const renderScopedSlot = (
+          requestedSlotId: string,
+          requestedScope: UIPluginRenderScope,
+          requestedFallback: ReactNode,
+        ): ReactNode => {
+          const child = definition.manifest.slots?.children?.[requestedSlotId];
+          if (child?.mode !== "renderer") {
+            throw new Error(`Plugin instance "${instance.id}" cannot render scoped Slot "${requestedSlotId}"`);
+          }
+          return (
+            <SlotContent actions={actions} acceptedCapabilities={child.accepts?.anyOfCapabilities}
+              fallback={requestedFallback} model={model} onPluginError={onPluginError}
+              onPluginReset={onPluginReset} registry={registry}
+              scope={requestedScope} slotId={resolveRuntimePluginSlotId(instance.id, requestedSlotId)} />
+          );
+        };
         return (
           <PluginInstanceRenderer
             actions={actions}
@@ -229,6 +306,7 @@ function SlotContent<TState = unknown>({
             onPluginError={onPluginError}
             onPluginReset={onPluginReset}
             renderSlot={renderSlot}
+            renderScopedSlot={renderScopedSlot}
           />
         );
       })}
