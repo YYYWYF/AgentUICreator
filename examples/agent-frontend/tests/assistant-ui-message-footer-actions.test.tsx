@@ -215,19 +215,21 @@ async function mount(chatModel: ChatModelAdapter) {
   return { container, runtime };
 }
 
-function findFooterButton(container: HTMLDivElement, label: string): HTMLButtonElement {
-  const footer = container.querySelector(
-    '[data-ui-plugin="assistant-ui-message-footer"]',
+function findActionButton(
+  container: HTMLDivElement,
+  pluginId: string,
+): HTMLButtonElement {
+  const plugin = container.querySelector(
+    `[data-plugin-id="${pluginId}"]`,
   );
-  if (!(footer instanceof HTMLElement)) {
-    throw new Error("Assistant message footer is missing");
+
+  if (!(plugin instanceof HTMLElement)) {
+    throw new Error(`Action Plugin "${pluginId}" is missing`);
   }
 
-  const button = [...footer.querySelectorAll("button")].find((candidate) =>
-    candidate.textContent?.includes(label),
-  );
+  const button = plugin.querySelector("button");
   if (!(button instanceof HTMLButtonElement)) {
-    throw new Error(`Footer action button "${label}" is missing`);
+    throw new Error(`Action Plugin "${pluginId}" does not render a button`);
   }
   return button;
 }
@@ -279,7 +281,7 @@ describe("assistant-ui message footer action Plugins", () => {
       expect(footer?.classList.contains("flex")).toBe(true);
       expect(footer?.classList.contains("items-center")).toBe(true);
 
-      const copy = findFooterButton(container, "复制");
+      const copy = findActionButton(container, "assistant-ui-copy-action");
       expect(copy.disabled).toBe(false);
       await act(async () => {
         copy.click();
@@ -287,7 +289,11 @@ describe("assistant-ui message footer action Plugins", () => {
       });
 
       expect(writeText).toHaveBeenCalledWith("Answer");
-      expect(container.querySelector('[aria-label="已复制"]')).not.toBeNull();
+      expect(
+        container.querySelector(
+          '[data-slot="assistant-ui-copy-action-copied"]',
+        ),
+      ).not.toBeNull();
     } finally {
       restoreClipboard();
     }
@@ -299,7 +305,7 @@ describe("assistant-ui message footer action Plugins", () => {
     }));
     const { container } = await mount({ run });
 
-    const reload = findFooterButton(container, "重新生成");
+    const reload = findActionButton(container, "assistant-ui-reload-action");
     expect(reload.disabled).toBe(false);
     await act(async () => {
       reload.click();
@@ -320,7 +326,10 @@ describe("assistant-ui message footer action Plugins", () => {
     const { container } = await mount({ run: async () => ({ content: [] }) });
 
     await act(async () => {
-      findFooterButton(container, "导出 Markdown").click();
+      findActionButton(
+        container,
+        "assistant-ui-export-markdown-action",
+      ).click();
       await Promise.resolve();
     });
 
