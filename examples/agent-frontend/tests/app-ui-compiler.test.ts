@@ -255,6 +255,23 @@ describe("compileAppUIModel", () => {
     };
     expect(() => compileAppUIModel(valid, rendererCatalog)).not.toThrow();
 
+    const emptyOptional = structuredClone(valid);
+    if (emptyOptional.root.type !== "slot") throw new Error("fixture");
+    emptyOptional.root.plugins[0]!.slots!.renderer = [];
+    expect(() => compileAppUIModel(emptyOptional, rendererCatalog)).not.toThrow();
+
+    const missingRenderer = structuredClone(valid);
+    if (missingRenderer.root.type !== "slot") throw new Error("fixture");
+    missingRenderer.root.plugins[0]!.slots!.renderer![0]!.pluginId = "missing-renderer";
+    try {
+      compileAppUIModel(missingRenderer, rendererCatalog);
+      throw new Error("Expected an unknown renderer error");
+    } catch (error) {
+      expect(error).toBeInstanceOf(AppUICompilerError);
+      expect((error as AppUICompilerError).issues.map((issue) => issue.code))
+        .toEqual(["plugin-not-found"]);
+    }
+
     const wrongCapability = structuredClone(valid);
     if (wrongCapability.root.type !== "slot") throw new Error("fixture");
     wrongCapability.root.plugins[0]!.slots!.renderer![0]!.pluginId = "wrong";

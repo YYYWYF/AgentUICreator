@@ -267,6 +267,7 @@ export function resolveAppUIComposition(
   const reachableInstances = new Set<string>();
   const childOwners = new Map<string, string>();
   const slotOwners = new Map(layoutSlotOwners);
+  const childSlotDefinitions = new Map<string, PluginChildSlotDefinition>();
   const issues: AppUICompositionIssue[] = [];
   const mountedInstances = Object.values(model.pluginInstances)
     .filter((instance) => instance.mount !== undefined)
@@ -287,8 +288,8 @@ export function resolveAppUIComposition(
       reachableInstances.add(instance.id);
       madeProgress = true;
 
-      const childSlots = Object.keys(pluginChildSlotDefinitions(slotCatalog, instance.pluginId));
-      for (const localSlotName of childSlots) {
+      const childSlots = pluginChildSlotDefinitions(slotCatalog, instance.pluginId);
+      for (const [localSlotName, definition] of Object.entries(childSlots)) {
         const childSlotId = resolveRuntimePluginSlotId(
           instance.id,
           localSlotName,
@@ -318,6 +319,7 @@ export function resolveAppUIComposition(
               instanceId: instance.id,
               pluginId: instance.pluginId,
             });
+            childSlotDefinitions.set(childSlotId, definition);
           }
         }
 
@@ -327,6 +329,27 @@ export function resolveAppUIComposition(
   }
 
   for (const instance of mountedInstances) {
+    const slotId = instance.mount!.slotId;
+    const definition = childSlotDefinitions.get(slotId);
+    const entry = catalogEntry(slotCatalog, instance.pluginId);
+    if (entry.requiresRenderScope === true && definition?.mode !== "renderer") {
+      issues.push({
+        code: "renderer-plugin-outside-renderer-slot",
+        instanceId: instance.id,
+        slotId,
+        message: `Renderer plugin "${instance.pluginId}" requires a renderer Slot.`,
+      });
+    }
+    const accepted = definition?.accepts?.anyOfCapabilities;
+    if (accepted !== undefined &&
+        !(entry.capabilities ?? []).some((capability) => accepted.includes(capability))) {
+      issues.push({
+        code: "plugin-slot-capability-mismatch",
+        instanceId: instance.id,
+        slotId,
+        message: `Plugin "${instance.pluginId}" does not provide a capability accepted by Slot "${slotId}".`,
+      });
+    }
     if (!reachableInstances.has(instance.id)) {
       issues.push({
         code: "mount-slot-unreachable",

@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 import { compileAppUIModel } from "../framework/contracts/app-ui-compiler";
+import { resolveRuntimeLayoutSlotId } from "../framework/contracts/app-ui-composition";
 import { pluginCapabilityCatalog } from "../plugins";
 import { loadPluginDefinitions } from "../runtime/composition";
 import { createPluginCompositionCatalog, createPluginRegistry } from "../runtime/plugins";
@@ -33,7 +34,7 @@ describe("assistant-ui canonical runtime", () => {
     ).toMatchObject({
       pluginId: "conversation-surface",
       enabled: true,
-      mount: { slotId: "layout:conversation-surface" },
+      mount: { slotId: resolveRuntimeLayoutSlotId("root.children[1].child") },
     });
     expect(model.pluginInstances["agent-conversation-service-main"]).toMatchObject({
       pluginId: "conversation-service",
@@ -41,6 +42,10 @@ describe("assistant-ui canonical runtime", () => {
     });
     expect(model.pluginInstances["theme-provider-main"]).toMatchObject({
       pluginId: "theme-provider",
+      enabled: true,
+    });
+    expect(model.pluginInstances["locale-provider-main"]).toMatchObject({
+      pluginId: "locale-provider",
       enabled: true,
     });
     expect(model.pluginInstances["theme-switch-main"]).toBeUndefined();
@@ -52,7 +57,7 @@ describe("assistant-ui canonical runtime", () => {
     expect(
       Object.values(model.pluginInstances)
         .filter((instance) => instance.enabled),
-    ).toHaveLength(9);
+    ).toHaveLength(10);
     expect(
       model.pluginInstances["conversation-suggestions-main"],
     ).toMatchObject({

@@ -128,7 +128,7 @@ export function compileAppUIModel(
   ): void => {
     const entry: PluginCompositionCatalogEntry | undefined =
       pluginCatalog[plugin.pluginId];
-    if (entry === undefined && slotMode !== "renderer") {
+    if (entry === undefined) {
       issues.push({
         code: "plugin-not-found",
         instanceId: plugin.id,
@@ -224,10 +224,8 @@ export function compileAppUIModel(
       for (const [index, child] of children.entries()) {
         const accepted = definition.accepts?.anyOfCapabilities;
         const childEntry = pluginCatalog[child.pluginId];
-        const capabilities = childEntry?.capabilities ?? [];
-        if (accepted !== undefined &&
-            !(definition.mode === "renderer" && definition.optional === true && childEntry === undefined) &&
-            !capabilities.some((capability) => accepted.includes(capability))) {
+        if (childEntry !== undefined && accepted !== undefined &&
+            !(childEntry.capabilities ?? []).some((capability) => accepted.includes(capability))) {
           issues.push({
             code: "plugin-slot-capability-mismatch",
             instanceId: child.id,

@@ -32,28 +32,30 @@ describe("assistant-ui default composition", () => {
       .map(({ plugin }) => plugin.id);
 
     expect(visible).toEqual([
+      "conversation-thread-list-main",
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
       "assistant-ui-reasoning-main",
       "assistant-ui-tool-group-main",
       "assistant-ui-tool-fallback-main",
-      "conversation-thread-list-main",
     ]);
     expect(locations.map(({ plugin }) => plugin.id)).toEqual([
       "agent-conversation-data-main",
       "agent-conversation-service-main",
       "theme-provider-main",
+      "locale-provider-main",
+      "conversation-thread-list-main",
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
       "assistant-ui-reasoning-main",
       "assistant-ui-tool-group-main",
       "assistant-ui-tool-fallback-main",
-      "conversation-thread-list-main",
     ]);
     expect(locations.filter(({ plugin, target }) => plugin.enabled && target.type === "application").map(({ plugin }) => plugin.id)).toEqual([
       "agent-conversation-data-main",
       "agent-conversation-service-main",
       "theme-provider-main",
+      "locale-provider-main",
     ]);
 
   });
@@ -74,7 +76,7 @@ describe("assistant-ui default composition", () => {
     if (root.type !== "row") {
       throw new Error("Expected the default root to be a row");
     }
-    const conversationPanel = root.children[0];
+    const conversationPanel = root.children[1];
     expect(conversationPanel).toMatchObject({
       type: "panel",
       child: { type: "slot" },
@@ -86,7 +88,7 @@ describe("assistant-ui default composition", () => {
       .toBe(true);
     expect(locations.some(({ plugin }) => plugin.id === "theme-switch-main")).toBe(false);
     expect(locations.find(({ plugin }) => plugin.id === "agent-conversation-surface-main")?.target)
-      .toMatchObject({ type: "layout_slot", slotPath: "root.children[0].child" });
+      .toMatchObject({ type: "layout_slot", slotPath: "root.children[1].child" });
   });
 
   it("keeps Welcome presentation in application configuration", () => {

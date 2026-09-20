@@ -1,5 +1,10 @@
 # Scoped Renderer Plugins
 
+Status: CLOSED. AppUIModel must name a cataloged Plugin for every occupied
+Slot, including optional renderer Slots. An optional Slot may have no occupant.
+Runtime fallback handles temporarily unavailable valid contributions; it does
+not make an unknown Plugin id a valid authored selection.
+
 The AppUIModel composition graph now supports two child Slot modes. An omitted
 `mode` means ordinary `content`; `mode: "renderer"` means the host renders one
 runtime entity through the Slot. Renderer Slots have `cardinality: "one"` and

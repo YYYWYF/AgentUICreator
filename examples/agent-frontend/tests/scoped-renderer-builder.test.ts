@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { buildRuntimeComposition, createPluginCapabilityCatalog } from "../runtime/composition";
 
 describe("optional renderer composition", () => {
-  it("keeps the host loadable when an optional renderer Plugin is absent from the catalog", async () => {
+  const fixture = (occupants: unknown[]) => {
     const manifest = {
       id: "surface", name: "Surface", description: "Host fixture", version: "1.0.0",
       slots: { children: { entity: {
@@ -18,15 +18,29 @@ describe("optional renderer composition", () => {
     }]);
     const source = JSON.stringify({ root: { type: "slot", plugins: [{
       id: "surface-main", pluginId: "surface", enabled: true,
-      slots: { entity: [{ id: "missing-main", pluginId: "missing-renderer", enabled: true }] },
+      slots: { entity: occupants },
     }] } });
+    return { catalog, source };
+  };
+
+  it("builds an empty optional renderer Slot", async () => {
+    const { catalog, source } = fixture([]);
     const result = await buildRuntimeComposition({
       appUIModelSource: source,
       capabilityCatalog: catalog,
       capabilityCatalogRevision: "a".repeat(64),
     });
-    expect(result.activeRegistry.get("missing-renderer")).toBeUndefined();
-    expect(result.runtimeModel.pluginInstances["missing-main"]?.mount?.slotId)
-      .toBe("plugin:surface-main:entity");
+    expect(Object.keys(result.runtimeModel.pluginInstances)).toEqual(["surface-main"]);
+  });
+
+  it("rejects a declared renderer missing from the catalog", async () => {
+    const { catalog, source } = fixture([
+      { id: "missing-main", pluginId: "missing-renderer", enabled: true },
+    ]);
+    await expect(buildRuntimeComposition({
+      appUIModelSource: source,
+      capabilityCatalog: catalog,
+      capabilityCatalogRevision: "a".repeat(64),
+    })).rejects.toThrow('AppUIModel selects UI plugin "missing-renderer"');
   });
 });

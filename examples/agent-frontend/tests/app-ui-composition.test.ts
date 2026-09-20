@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  AppUICompositionError,
+  resolveRuntimePluginSlotId,
   validateAppUIComposition,
   type PluginCompositionCatalog,
 } from "../framework/contracts/app-ui-composition";
@@ -52,6 +54,66 @@ function childSlots(...names: string[]) {
 }
 
 describe("AppUIRuntimeModel composition", () => {
+  const rendererSlot = {
+    description: "Scoped renderer",
+    cardinality: "one" as const,
+    mode: "renderer" as const,
+    optional: true,
+    accepts: { anyOfCapabilities: ["entity-renderer"] },
+  };
+
+  it("rejects a Renderer Plugin mounted into a content Slot", () => {
+    const slotId = resolveRuntimePluginSlotId("owner", "content");
+    const model = createModel({
+      owner: mounted("owner", "owner-plugin", "root"),
+      renderer: mounted("renderer", "renderer-plugin", slotId),
+    });
+    const catalog: PluginCompositionCatalog = {
+      "owner-plugin": { childSlots: childSlots("content") },
+      "renderer-plugin": { capabilities: ["entity-renderer"], requiresRenderScope: true },
+    };
+    try {
+      validateAppUIComposition(model, catalog);
+      throw new Error("Expected a renderer placement error");
+    } catch (error) {
+      expect(error).toBeInstanceOf(AppUICompositionError);
+      expect((error as AppUICompositionError).issues.map((issue) => issue.code))
+        .toContain("renderer-plugin-outside-renderer-slot");
+    }
+  });
+
+  it("rejects a wrong capability in a renderer Slot", () => {
+    const slotId = resolveRuntimePluginSlotId("owner", "entity");
+    const model = createModel({
+      owner: mounted("owner", "owner-plugin", "root"),
+      wrong: mounted("wrong", "wrong-plugin", slotId),
+    });
+    const catalog: PluginCompositionCatalog = {
+      "owner-plugin": { childSlots: { entity: rendererSlot } },
+      "wrong-plugin": { capabilities: ["other-renderer"] },
+    };
+    try {
+      validateAppUIComposition(model, catalog);
+      throw new Error("Expected a capability error");
+    } catch (error) {
+      expect(error).toBeInstanceOf(AppUICompositionError);
+      expect((error as AppUICompositionError).issues.map((issue) => issue.code))
+        .toContain("plugin-slot-capability-mismatch");
+    }
+  });
+
+  it("applies child Slot capability constraints to content Slots too", () => {
+    const slotId = resolveRuntimePluginSlotId("owner", "content");
+    const model = createModel({
+      owner: mounted("owner", "owner-plugin", "root"),
+      wrong: mounted("wrong", "wrong-plugin", slotId),
+    });
+    expect(() => validateAppUIComposition(model, {
+      "owner-plugin": { childSlots: { content: { ...rendererSlot, mode: "content" } } },
+      "wrong-plugin": { capabilities: ["other-renderer"] },
+    })).toThrow("does not provide a capability accepted by Slot");
+  });
+
   it("allows Layout mounts and one-level child Slot mounts", () => {
     const model = createModel({
       owner: mounted("owner", "owner-plugin", "root"),
