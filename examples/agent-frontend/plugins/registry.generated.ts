@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "5c21ebb88153bf0b17a0390d1565fb3b9dbf0a55f1b5306f6ad398de85b2586c";
+export const capabilityCatalogRevision = "bb618383ff744c878ba6100bf88cfa6ef1c29832977a0aa6ca8ff222f3baa74a";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -516,16 +516,6 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
               ]
             }
           },
-          "liveStatus": {
-            "description": "Persistent live status UI driven by the active conversation runtime state.",
-            "cardinality": "many",
-            "optional": true,
-            "accepts": {
-              "anyOfCapabilities": [
-                "conversation-live-status"
-              ]
-            }
-          },
           "composer": {
             "description": "Primary conversation composer.",
             "cardinality": "one",
@@ -640,36 +630,6 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     optionalInject: ["agent-ui.theme"],
     loadDefinition: () =>
       import("./conversation-thread-list/definition").then(
-        ({ default: definition }) => definition,
-      ),
-  },
-  {
-    manifest: {
-      "id": "job-progress",
-      "name": "Job Progress",
-      "description": "Displays persistent live job progress from conversation runtime state.",
-      "version": "1.0.0",
-      "capabilities": [
-        "conversation-live-status"
-      ],
-      "authoring": {
-        "intents": [
-          "show persistent live job progress",
-          "show state-driven task stages"
-        ],
-        "visualRole": "conversation live status",
-        "defaultPlacement": {
-          "type": "plugin_slot",
-          "parentPluginId": "conversation-surface",
-          "slot": "liveStatus"
-        }
-      }
-    },
-    provides: [],
-    inject: [],
-    optionalInject: [],
-    loadDefinition: () =>
-      import("./job-progress/definition").then(
         ({ default: definition }) => definition,
       ),
   },

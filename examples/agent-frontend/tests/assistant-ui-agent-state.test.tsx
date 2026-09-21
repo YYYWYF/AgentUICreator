@@ -31,6 +31,64 @@ const mockInput: Parameters<typeof runMockScenario>[0] = {
   forwardedProps: {},
 };
 
+const initialState = {
+  jobs: {
+    "ci-job-1": {
+      stageIndex: 0,
+      stageProgress: 0.1,
+      eta: "about 4 min",
+    },
+  },
+};
+
+const deltaStates = [
+  {
+    jobs: {
+      "ci-job-1": {
+        stageIndex: 0,
+        stageProgress: 0.7,
+        eta: "about 3 min",
+      },
+    },
+  },
+  {
+    jobs: {
+      "ci-job-1": {
+        stageIndex: 1,
+        stageProgress: 0.3,
+        eta: "about 3 min",
+      },
+    },
+  },
+  {
+    jobs: {
+      "ci-job-1": {
+        stageIndex: 2,
+        stageProgress: 0.55,
+        eta: "about 2 min",
+      },
+    },
+  },
+  {
+    jobs: {
+      "ci-job-1": {
+        stageIndex: 3,
+        stageProgress: 0.75,
+        eta: "less than 1 min",
+      },
+    },
+  },
+  {
+    jobs: {
+      "ci-job-1": {
+        stageIndex: 4,
+        stageProgress: 0,
+        eta: "less than 1 min",
+      },
+    },
+  },
+] as const;
+
 const mountedRoots: Root[] = [];
 
 class ScenarioEventAgent extends AbstractAgent {
@@ -115,14 +173,7 @@ describe("assistant-ui AG-UI State → Job Progress projection", () => {
     const deltaIndexes = events.flatMap((event, index) =>
       event.type === EventType.STATE_DELTA ? [index] : [],
     );
-    const firstDeltaIndex = deltaIndexes[0];
-    const secondDeltaIndex = deltaIndexes[1];
-    if (
-      snapshotIndex < 0 ||
-      deltaIndexes.length !== 5 ||
-      firstDeltaIndex === undefined ||
-      secondDeltaIndex === undefined
-    ) {
+    if (snapshotIndex < 0 || deltaIndexes.length !== 5) {
       throw new Error("state showcase did not emit the expected state events");
     }
 
@@ -145,119 +196,28 @@ describe("assistant-ui AG-UI State → Job Progress projection", () => {
         firstRunEvents.next(event);
       }
     });
-    expect(runtime.thread.getState().state).toEqual({
-      jobProgress: {
-        id: "ci-verification",
-        title: "Verify the current change on CI",
-        stages: [
-          { name: "clone", weight: 1 },
-          { name: "install", weight: 3 },
-          { name: "build", weight: 3 },
-          { name: "test", weight: 3 },
-        ],
-        stageIndex: 0,
-        stageProgress: 0.1,
-        eta: "about 4 min",
-      },
-    });
+    expect(runtime.thread.getState().state).toEqual(initialState);
+
+    let cursor = snapshotIndex + 1;
+    for (const [index, deltaIndex] of deltaIndexes.entries()) {
+      await act(async () => {
+        for (const event of events.slice(cursor, deltaIndex + 1)) {
+          firstRunEvents.next(event);
+        }
+      });
+      expect(runtime.thread.getState().state).toEqual(deltaStates[index]);
+      cursor = deltaIndex + 1;
+    }
 
     await act(async () => {
-      for (const event of events.slice(snapshotIndex + 1, firstDeltaIndex + 1)) {
-        firstRunEvents.next(event);
-      }
-    });
-    expect(runtime.thread.getState().state).toEqual({
-      jobProgress: {
-        id: "ci-verification",
-        title: "Verify the current change on CI",
-        stages: [
-          { name: "clone", weight: 1 },
-          { name: "install", weight: 3 },
-          { name: "build", weight: 3 },
-          { name: "test", weight: 3 },
-        ],
-        stageIndex: 0,
-        stageProgress: 0.7,
-        eta: "about 3 min",
-      },
-    });
-
-    await act(async () => {
-      for (const event of events.slice(firstDeltaIndex + 1, secondDeltaIndex + 1)) {
-        firstRunEvents.next(event);
-      }
-    });
-    expect(runtime.thread.getState().state).toEqual({
-      jobProgress: {
-        id: "ci-verification",
-        title: "Verify the current change on CI",
-        stages: [
-          { name: "clone", weight: 1 },
-          { name: "install", weight: 3 },
-          { name: "build", weight: 3 },
-          { name: "test", weight: 3 },
-        ],
-        stageIndex: 1,
-        stageProgress: 0.3,
-        eta: "about 3 min",
-      },
-    });
-
-    await act(async () => {
-      for (const event of events.slice(secondDeltaIndex + 1, deltaIndexes[2]! + 1)) {
-        firstRunEvents.next(event);
-      }
-    });
-    expect(runtime.thread.getState().state).toMatchObject({
-      jobProgress: {
-        stageIndex: 2,
-        stageProgress: 0.55,
-        eta: "about 2 min",
-      },
-    });
-
-    await act(async () => {
-      for (const event of events.slice(deltaIndexes[2]! + 1, deltaIndexes[3]! + 1)) {
-        firstRunEvents.next(event);
-      }
-    });
-    expect(runtime.thread.getState().state).toMatchObject({
-      jobProgress: {
-        stageIndex: 3,
-        stageProgress: 0.75,
-        eta: "less than 1 min",
-      },
-    });
-
-    await act(async () => {
-      for (const event of events.slice(deltaIndexes[3]! + 1, deltaIndexes[4]! + 1)) {
-        firstRunEvents.next(event);
-      }
-    });
-
-    await act(async () => {
-      for (const event of events.slice(deltaIndexes[4]! + 1)) {
+      for (const event of events.slice(cursor)) {
         firstRunEvents.next(event);
       }
       firstRunEvents.complete();
       await appendPromise;
     });
 
-    const finalState = {
-      jobProgress: {
-        id: "ci-verification",
-        title: "Verify the current change on CI",
-        stages: [
-          { name: "clone", weight: 1 },
-          { name: "install", weight: 3 },
-          { name: "build", weight: 3 },
-          { name: "test", weight: 3 },
-        ],
-        stageIndex: 4,
-        stageProgress: 0,
-        eta: "less than 1 min",
-      },
-    };
+    const finalState = deltaStates[deltaStates.length - 1];
     expect(runtime.thread.getState().state).toEqual(finalState);
 
     let secondAppendPromise!: Promise<void>;

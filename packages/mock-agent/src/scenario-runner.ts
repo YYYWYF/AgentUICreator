@@ -239,6 +239,17 @@ async function* runSteps(
         timingScale,
       )) return;
       yield event({ type: EventType.TOOL_CALL_END, toolCallId });
+      if (step.during !== undefined) {
+        yield* runSteps(
+          input,
+          step.during,
+          createId,
+          signal,
+          timingScale,
+          context,
+        );
+        if (signal?.aborted) return;
+      }
       if (!await waitForDelay(
         normalizeDelay(step.durationMs, DEFAULT_TOOL_DURATION_MS),
         signal,

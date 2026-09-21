@@ -24,23 +24,21 @@ async function expectThreadViewportToFillSurface(
 }
 
 test.describe("ConversationSurface layout", () => {
-  test("keeps the empty liveStatus surface thread full-height", async ({ page }) => {
+  test("keeps the empty conversation thread full-height", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
 
     const preview = page.locator("[data-agent-ui-preview-root]");
     const surface = preview.locator(".conversation-surface-plugin");
-    const liveStatus = surface.locator(".conversation-surface-live-status");
     const viewport = surface.locator(
-      '.conversation-surface-thread [data-slot="aui_thread-viewport"]',
+      '[data-slot="aui_thread-viewport"]',
     );
 
     await expect(surface).toBeVisible();
-    await expect(liveStatus).toHaveCSS("display", "none");
     await expectThreadViewportToFillSurface(surface, viewport);
   });
 
-  test("keeps JobProgress above a full-height thread within the surface", async ({ page }) => {
+  test("places JobProgress in the transcript while the conversation stays full-height", async ({ page }) => {
     await page.addInitScript((storageKey) => {
       window.sessionStorage.setItem(storageKey, "1");
     }, MOCK_SCENARIO_AUTORUN_STORAGE_KEY);
@@ -49,39 +47,14 @@ test.describe("ConversationSurface layout", () => {
 
     const preview = page.locator("[data-agent-ui-preview-root]");
     const surface = preview.locator(".conversation-surface-plugin");
-    const liveStatus = surface.locator(".conversation-surface-live-status");
-    const jobProgress = liveStatus.locator('[data-slot="job-progress"]');
-    const thread = surface.locator(".conversation-surface-thread");
-    const viewport = thread.locator('[data-slot="aui_thread-viewport"]');
+    const jobProgress = surface.locator(
+      '[data-slot="aui_message-group"] [data-slot="job-progress"]',
+    );
+    const viewport = surface.locator('[data-slot="aui_thread-viewport"]');
 
     await expect(surface).toBeVisible();
     await expect(jobProgress).toBeVisible();
-    await expect(liveStatus).toBeVisible();
+    await expect(surface.locator(".conversation-surface-live-status")).toHaveCount(0);
     await expectThreadViewportToFillSurface(surface, viewport);
-
-    await expect.poll(async () => {
-      const [surfaceBox, statusBox, threadBox, viewportBox] = await Promise.all([
-        surface.boundingBox(),
-        jobProgress.boundingBox(),
-        thread.boundingBox(),
-        viewport.boundingBox(),
-      ]);
-      if (
-        surfaceBox === null ||
-        statusBox === null ||
-        threadBox === null ||
-        viewportBox === null
-      ) {
-        return Number.POSITIVE_INFINITY;
-      }
-
-      return Math.max(
-        surfaceBox.top - statusBox.top,
-        statusBox.bottom - surfaceBox.bottom,
-        statusBox.bottom - threadBox.top,
-        threadBox.bottom - surfaceBox.bottom,
-        Math.abs(viewportBox.bottom - threadBox.bottom),
-      );
-    }).toBeLessThanOrEqual(2);
   });
 });

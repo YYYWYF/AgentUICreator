@@ -27,6 +27,7 @@ import {
   ConversationPresentationConfigProvider,
   conversationPresentationConfig,
 } from "../agent-ui/conversation/config";
+import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
 import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
 import { createConversationServiceThreadBinding } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
 import { RuntimePanel } from "../src/dev/DevStudio/RuntimePanel";
@@ -47,6 +48,7 @@ import {
 } from "../runtime/composition";
 
 const mountedRoots: Root[] = [];
+const fullAppToolkit = createConversationToolkit({ mockAgentElements: true });
 
 type IndexedEvent = {
   event: BaseEvent;
@@ -208,6 +210,13 @@ function applicationStatePanel(container: HTMLElement): HTMLElement | null {
   ) ?? null;
 }
 
+function transcriptJobProgress(container: HTMLElement): HTMLElement | null {
+  return container.querySelector(
+    '[data-slot="aui_message-group"] [data-slot="job-progress"], ' +
+    '[data-slot="aui_assistant-message-root"] [data-slot="job-progress"]',
+  );
+}
+
 afterEach(async () => {
   await act(async () => {
     for (const root of mountedRoots.splice(0)) root.unmount();
@@ -216,20 +225,15 @@ afterEach(async () => {
 });
 
 describe("AG-UI State → JobProgress full application chain", () => {
-  it("projects the canonical scenario into Runtime, Plugin, DOM, and Dev Studio state", async () => {
+  it("anchors the Tool UI in the transcript while State updates it in place", async () => {
     const composition = await buildRuntimeComposition({
       appUIModelSource: JSON.stringify(appUIJson),
       capabilityCatalog: pluginCapabilityCatalog,
       capabilityCatalogRevision,
     });
-    const jobProgressInstance =
-      composition.runtimeModel.pluginInstances["job-progress-main"];
-    expect(jobProgressInstance).toMatchObject({
-      pluginId: "job-progress",
-      enabled: true,
-      mount: { slotId: "plugin:agent-conversation-surface-main:liveStatus" },
-    });
-    expect(composition.activeRegistry.get("job-progress")).toBeDefined();
+    expect(composition.runtimeModel.pluginInstances["job-progress-main"])
+      .toBeUndefined();
+    expect(composition.activeRegistry.get("job-progress")).toBeUndefined();
 
     const container = document.createElement("div");
     document.body.append(container);
@@ -245,6 +249,7 @@ describe("AG-UI State → JobProgress full application chain", () => {
         <ConversationRuntimeProvider<AppAgentState>
           endpoint="/__agent-ui/mock"
           threadBinding={binding}
+          toolkit={fullAppToolkit}
           unstable_agentFactory={() => agent}
         >
           <FullAppHarness
@@ -278,16 +283,50 @@ describe("AG-UI State → JobProgress full application chain", () => {
     });
 
     const initialState = agentRuntime.getSnapshot().state;
-    expect(initialState).toMatchObject({
-      jobProgress: {
-        id: "ci-verification",
-        stageIndex: 0,
-        stageProgress: 0.1,
+    expect(initialState).toEqual({
+      jobs: {
+        "ci-job-1": {
+          stageIndex: 0,
+          stageProgress: 0.1,
+          eta: "about 4 min",
+        },
       },
     });
     expect(assistantRuntime.thread.getState().state).toEqual(initialState);
 
-    const initialJobProgress = container.querySelector('[data-slot="job-progress"]');
+    const toolStart = await agent.waitFor(EventType.TOOL_CALL_START, snapshotEvent.index);
+    const toolArgs = await agent.waitFor(EventType.TOOL_CALL_ARGS, toolStart.index);
+    const toolEndPromise = agent.waitFor(EventType.TOOL_CALL_END, toolArgs.index);
+    let toolEnd!: IndexedEvent;
+    await act(async () => {
+      toolEnd = await toolEndPromise;
+      await flushReact();
+    });
+
+    expect(toolStart.event).toMatchObject({
+      type: EventType.TOOL_CALL_START,
+      toolCallId: "ci-job-1",
+      toolCallName: "run_ci_job",
+    });
+    expect(toolArgs.event).toMatchObject({
+      type: EventType.TOOL_CALL_ARGS,
+      toolCallId: "ci-job-1",
+    });
+    expect(JSON.parse(String((toolArgs.event as { delta: string }).delta))).toEqual({
+      target: "Verify the current change on CI",
+      stages: [
+        { name: "clone", weight: 1 },
+        { name: "install", weight: 3 },
+        { name: "build", weight: 3 },
+        { name: "test", weight: 3 },
+      ],
+    });
+    expect(toolEnd.event).toMatchObject({
+      type: EventType.TOOL_CALL_END,
+      toolCallId: "ci-job-1",
+    });
+
+    const initialJobProgress = transcriptJobProgress(container);
     expect(initialJobProgress).not.toBeNull();
     expect(initialJobProgress?.textContent).toContain("Verify the current change on CI");
     expect(initialJobProgress?.textContent).toContain("clone");
@@ -296,32 +335,69 @@ describe("AG-UI State → JobProgress full application chain", () => {
     expect(initialJobProgress?.textContent).toContain("test");
     expect(initialJobProgress?.textContent).toContain("about 4 min");
     expect(initialJobProgress?.querySelector('[role="progressbar"]')).not.toBeNull();
+    expect(container.querySelector(".conversation-surface-live-status")).toBeNull();
 
     const messagesBeforeDelta = assistantRuntime.thread.getState().messages;
-    const firstDelta = agent.waitFor(EventType.STATE_DELTA, snapshotEvent.index);
-    let firstDeltaEvent!: IndexedEvent;
+    const firstDeltaPromise = agent.waitFor(EventType.STATE_DELTA, toolEnd.index);
+    let firstDelta!: IndexedEvent;
     await act(async () => {
-      firstDeltaEvent = await firstDelta;
+      firstDelta = await firstDeltaPromise;
       await flushReact();
     });
-    const firstDeltaState = agentRuntime.getSnapshot().state;
-    expect(firstDeltaState).toMatchObject({
-      jobProgress: {
-        stageIndex: 0,
-        stageProgress: 0.7,
-        eta: "about 3 min",
+    expect(firstDelta.index).toBeGreaterThan(toolEnd.index);
+    expect(agent.emittedEvents.slice(toolEnd.index + 1, firstDelta.index)
+      .some(({ type }) => type === EventType.TOOL_CALL_RESULT)).toBe(false);
+    expect(agentRuntime.getSnapshot().state).toMatchObject({
+      jobs: {
+        "ci-job-1": {
+          stageIndex: 0,
+          stageProgress: 0.7,
+          eta: "about 3 min",
+        },
       },
     });
-    expect(assistantRuntime.thread.getState().state).toEqual(firstDeltaState);
     expect(assistantRuntime.thread.getState().messages).toBe(messagesBeforeDelta);
-    expect(container.querySelector('[data-slot="job-progress"]')).toBe(initialJobProgress);
-    expect(
-      container
-        .querySelector('[data-slot="job-progress"] [role="progressbar"]')
-        ?.getAttribute("aria-valuenow"),
-    ).toBe("7");
+    expect(transcriptJobProgress(container)).toBe(initialJobProgress);
 
-    const finished = agent.waitFor(EventType.RUN_FINISHED, firstDeltaEvent.index);
+    let lastDelta = firstDelta;
+    for (let count = 1; count < 5; count += 1) {
+      const nextDeltaPromise = agent.waitFor(EventType.STATE_DELTA, lastDelta.index);
+      await act(async () => {
+        lastDelta = await nextDeltaPromise;
+        await flushReact();
+      });
+    }
+    expect(lastDelta.index).toBeGreaterThan(firstDelta.index);
+    expect(agentRuntime.getSnapshot().state).toMatchObject({
+      jobs: {
+        "ci-job-1": {
+          stageIndex: 4,
+          stageProgress: 0,
+          eta: "less than 1 min",
+        },
+      },
+    });
+    expect(transcriptJobProgress(container)).toBe(initialJobProgress);
+
+    const toolResultPromise = agent.waitFor(EventType.TOOL_CALL_RESULT, lastDelta.index);
+    let toolResult!: IndexedEvent;
+    await act(async () => {
+      toolResult = await toolResultPromise;
+      await flushReact();
+    });
+    expect(toolEnd.index).toBeLessThan(firstDelta.index);
+    expect(firstDelta.index).toBeLessThan(lastDelta.index);
+    expect(lastDelta.index).toBeLessThan(toolResult.index);
+    expect(toolResult.event).toMatchObject({
+      type: EventType.TOOL_CALL_RESULT,
+      toolCallId: "ci-job-1",
+      content: JSON.stringify({
+        success: true,
+        summary: "All CI stages passed",
+      }),
+    });
+
+    const finished = agent.waitFor(EventType.RUN_FINISHED, toolResult.index);
     await act(async () => {
       await finished;
       await sendPromise;
@@ -330,23 +406,19 @@ describe("AG-UI State → JobProgress full application chain", () => {
 
     expect(agent.emittedEvents.filter(({ type }) => type === EventType.STATE_DELTA))
       .toHaveLength(5);
-    expect(agent.emittedEvents.some(({ type }) => type === EventType.TOOL_CALL_START))
-      .toBe(false);
-    expect(agent.emittedEvents.some(({ type }) => type === EventType.TOOL_CALL_RESULT))
-      .toBe(false);
-
     const finalState = agentRuntime.getSnapshot().state;
     expect(finalState).toMatchObject({
-      jobProgress: {
-        id: "ci-verification",
-        stageIndex: 4,
-        stageProgress: 0,
+      jobs: {
+        "ci-job-1": {
+          stageIndex: 4,
+          stageProgress: 0,
+        },
       },
     });
     expect(assistantRuntime.thread.getState().state).toEqual(finalState);
     expect(assistantRuntime.thread.getState().isRunning).toBe(false);
 
-    const finalJobProgress = container.querySelector('[data-slot="job-progress"]');
+    const finalJobProgress = transcriptJobProgress(container);
     expect(finalJobProgress).toBe(initialJobProgress);
     expect(finalJobProgress?.textContent).toContain("done");
     expect(
@@ -354,13 +426,13 @@ describe("AG-UI State → JobProgress full application chain", () => {
     ).toBe("100");
     expect(finalJobProgress?.querySelector('[aria-label="Cancel the job"]')).toBeNull();
 
-    expect(container.textContent).toContain("我已经启动 CI 验证，进度会持续更新。");
+    expect(container.textContent).toContain("我来运行 CI 验证。");
     expect(container.textContent).toContain("CI 验证完成，所有阶段通过。");
     expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
 
     const statePanel = applicationStatePanel(container);
     expect(statePanel).not.toBeNull();
-    expect(statePanel?.textContent).toContain("ci-verification");
+    expect(statePanel?.textContent).toContain("ci-job-1");
     expect(statePanel?.textContent).toContain('"stageIndex": 4');
   });
 });

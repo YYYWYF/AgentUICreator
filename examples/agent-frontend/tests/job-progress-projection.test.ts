@@ -1,48 +1,70 @@
 import { describe, expect, it } from "vitest";
 
-import { projectJobProgressState } from "../agent-ui/conversation/state/job-progress-projection";
+import {
+  projectJobProgressState,
+  projectRunCiJobArgs,
+} from "../agent-ui/conversation/state/job-progress-projection";
 
-const validJob = {
-  id: "ci-verification",
-  title: "Verify the current change on CI",
+const validArgs = {
+  target: "Verify the current change on CI",
   stages: [
     { name: "clone", weight: 1 },
     { name: "install", weight: 3 },
-  ],
+  ] as const,
+};
+
+const validState = {
   stageIndex: 0,
   stageProgress: 0.1,
   eta: "about 4 min",
 };
 
 describe("JobProgress state projection", () => {
-  it("projects the semantic JobProgress view model", () => {
-    expect(projectJobProgressState({ jobProgress: validJob })).toEqual(validJob);
-  });
-
-  it("returns null when jobProgress is missing", () => {
-    expect(projectJobProgressState({ other: true })).toBeNull();
-    expect(projectJobProgressState(undefined)).toBeNull();
-  });
-
-  it("returns null when a stage is invalid", () => {
+  it("projects dynamic state by toolCallId", () => {
     expect(projectJobProgressState({
-      jobProgress: { ...validJob, stages: [{ name: "clone", weight: "1" }] },
+      jobs: { "ci-job-1": validState },
+    }, "ci-job-1")).toEqual(validState);
+  });
+
+  it("ignores other jobs and unknown toolCallIds", () => {
+    expect(projectJobProgressState({
+      jobs: {
+        "other-job": validState,
+      },
+    }, "ci-job-1")).toBeNull();
+  });
+
+  it("returns null when progress state is missing or invalid", () => {
+    expect(projectJobProgressState({ other: true }, "ci-job-1")).toBeNull();
+    expect(projectJobProgressState(undefined, "ci-job-1")).toBeNull();
+    expect(projectJobProgressState({
+      jobs: { "ci-job-1": { ...validState, stageIndex: Number.NaN } },
+    }, "ci-job-1")).toBeNull();
+    expect(projectJobProgressState({
+      jobs: { "ci-job-1": { ...validState, stageProgress: Number.POSITIVE_INFINITY } },
+    }, "ci-job-1")).toBeNull();
+  });
+
+  it("projects static Tool args separately", () => {
+    expect(projectRunCiJobArgs(validArgs)).toEqual(validArgs);
+    expect(projectRunCiJobArgs({
+      target: "",
+      stages: validArgs.stages,
     })).toBeNull();
-  });
-
-  it("returns null when progress numbers are not finite", () => {
-    expect(projectJobProgressState({
-      jobProgress: { ...validJob, stageIndex: Number.NaN },
+    expect(projectRunCiJobArgs({
+      target: validArgs.target,
+      stages: [{ name: "clone", weight: "1" }],
     })).toBeNull();
-    expect(projectJobProgressState({
-      jobProgress: { ...validJob, stageProgress: Number.POSITIVE_INFINITY },
+    expect(projectRunCiJobArgs({
+      target: validArgs.target,
+      stages: [{ name: "", weight: 1 }],
     })).toBeNull();
   });
 
   it("ignores unrelated state fields without inventing presentation data", () => {
     expect(projectJobProgressState({
       requestId: "run-1",
-      jobProgress: { ...validJob, backendOnly: { traceId: "trace-1" } },
-    })).toEqual(validJob);
+      jobs: { "ci-job-1": { ...validState, backendOnly: { traceId: "trace-1" } } },
+    }, "ci-job-1")).toEqual(validState);
   });
 });

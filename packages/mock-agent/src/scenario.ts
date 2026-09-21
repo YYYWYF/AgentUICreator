@@ -108,6 +108,7 @@ export type MockScenarioStep =
       toolCallId?: string | undefined;
       prepareDurationMs?: number | undefined;
       durationMs?: number | undefined;
+      during?: MockScenarioStep[] | undefined;
       error?: MockToolError | undefined;
     }
   | {

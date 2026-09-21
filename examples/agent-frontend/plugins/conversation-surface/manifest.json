@@ -36,14 +36,6 @@
           "anyOfCapabilities": ["theme-control"]
         }
       },
-      "liveStatus": {
-        "description": "Persistent live status UI driven by the active conversation runtime state.",
-        "cardinality": "many",
-        "optional": true,
-        "accepts": {
-          "anyOfCapabilities": ["conversation-live-status"]
-        }
-      },
       "composer": {
         "description": "Primary conversation composer.",
         "cardinality": "one",

@@ -11,6 +11,7 @@ export {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
   MockDispatchSubagentToolUI,
+  MockRunCiJobToolUI,
 } from "./mock";
 export {
   CONVERSATION_TOOL_PRESENTATION,

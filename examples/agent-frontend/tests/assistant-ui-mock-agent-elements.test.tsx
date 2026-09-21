@@ -9,6 +9,7 @@ import {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
   MockDispatchSubagentToolUI,
+  MockRunCiJobToolUI,
   createConversationToolkit,
 } from "../agent-ui/conversation/toolkit";
 import {
@@ -63,23 +64,29 @@ describe("Mock Agent official element renderers", () => {
     expect(production).not.toHaveProperty("mock_agent_plan");
     expect(production).not.toHaveProperty("mock_agent_status");
     expect(production).not.toHaveProperty("mock_dispatch_subagent");
+    expect(production).not.toHaveProperty("run_ci_job");
     const mockAgentPlan = mock.mock_agent_plan;
     const mockAgentStatus = mock.mock_agent_status;
     const mockDispatchSubagent = mock.mock_dispatch_subagent;
+    const mockRunCiJob = mock.run_ci_job;
     expect(mockAgentPlan).toBeDefined();
     expect(mockAgentStatus).toBeDefined();
     expect(mockDispatchSubagent).toBeDefined();
+    expect(mockRunCiJob).toBeDefined();
     if (
       mockAgentPlan === undefined ||
       mockAgentStatus === undefined ||
-      mockDispatchSubagent === undefined
+      mockDispatchSubagent === undefined ||
+      mockRunCiJob === undefined
     ) {
       throw new Error("Mock Agent Elements toolkit entries are missing.");
     }
     expect(mockAgentPlan.type).toBe("backend");
     expect(mockAgentStatus.type).toBe("backend");
     expect(mockDispatchSubagent.type).toBe("backend");
+    expect(mockRunCiJob.type).toBe("backend");
     expect(mockDispatchSubagent.render).toBe(MockDispatchSubagentToolUI);
+    expect(mockRunCiJob.render).toBe(MockRunCiJobToolUI);
     expect("execute" in mockAgentPlan).toBe(false);
   });
 

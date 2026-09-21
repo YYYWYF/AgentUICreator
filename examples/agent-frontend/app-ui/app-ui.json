@@ -54,13 +54,6 @@
                     "enabled": true
                   }
                 ],
-                "liveStatus": [
-                  {
-                    "id": "job-progress-main",
-                    "pluginId": "job-progress",
-                    "enabled": true
-                  }
-                ],
                 "composer": [
                   {
                     "id": "assistant-ui-composer-main",

@@ -8,6 +8,7 @@ import {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
   MockDispatchSubagentToolUI,
+  MockRunCiJobToolUI,
 } from "./mock";
 
 export interface CreateConversationToolkitOptions {
@@ -39,6 +40,11 @@ export function createConversationToolkit({
             type: "backend" as const,
             display: "standalone" as const,
             render: MockDispatchSubagentToolUI,
+          },
+          run_ci_job: {
+            type: "backend" as const,
+            display: "standalone" as const,
+            render: MockRunCiJobToolUI,
           },
         }
       : {}),

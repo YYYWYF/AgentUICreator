@@ -1,12 +1,14 @@
 import type { JobProgressStage } from "@agent-ui/react";
 
-export interface JobProgressViewModel {
-  readonly id: string;
-  readonly title: string;
-  readonly stages: readonly JobProgressStage[];
+export interface JobProgressRuntimeState {
   readonly stageIndex: number;
   readonly stageProgress: number;
   readonly eta: string;
+}
+
+export interface RunCiJobArgs {
+  readonly target: string;
+  readonly stages: readonly JobProgressStage[];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -19,14 +21,13 @@ function isFiniteNumber(value: unknown): value is number {
 
 export function projectJobProgressState(
   state: unknown,
-): JobProgressViewModel | null {
-  if (!isRecord(state) || !isRecord(state.jobProgress)) return null;
+  toolCallId: string,
+): JobProgressRuntimeState | null {
+  if (!isRecord(state) || !isRecord(state.jobs)) return null;
 
-  const job = state.jobProgress;
+  const job = state.jobs[toolCallId];
   if (
-    typeof job.id !== "string" ||
-    typeof job.title !== "string" ||
-    !Array.isArray(job.stages) ||
+    !isRecord(job) ||
     !isFiniteNumber(job.stageIndex) ||
     !isFiniteNumber(job.stageProgress) ||
     typeof job.eta !== "string"
@@ -34,11 +35,27 @@ export function projectJobProgressState(
     return null;
   }
 
+  return {
+    stageIndex: job.stageIndex,
+    stageProgress: job.stageProgress,
+    eta: job.eta,
+  };
+}
+
+export function projectRunCiJobArgs(args: unknown): RunCiJobArgs | null {
+  if (!isRecord(args)) return null;
+  const target = args.target;
+  if (typeof target !== "string" || target.trim() === "") {
+    return null;
+  }
+  if (!Array.isArray(args.stages)) return null;
+
   const stages: JobProgressStage[] = [];
-  for (const stage of job.stages) {
+  for (const stage of args.stages) {
     if (
       !isRecord(stage) ||
       typeof stage.name !== "string" ||
+      stage.name.trim() === "" ||
       !isFiniteNumber(stage.weight)
     ) {
       return null;
@@ -46,12 +63,5 @@ export function projectJobProgressState(
     stages.push({ name: stage.name, weight: stage.weight });
   }
 
-  return {
-    id: job.id,
-    title: job.title,
-    stages,
-    stageIndex: job.stageIndex,
-    stageProgress: job.stageProgress,
-    eta: job.eta,
-  };
+  return { target, stages };
 }

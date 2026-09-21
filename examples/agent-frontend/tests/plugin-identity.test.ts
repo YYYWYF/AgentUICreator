@@ -6,7 +6,6 @@ describe("UI plugin identity", () => {
   it("requires default placement and matching semantics for official Creator-addable visual Plugins", () => {
     for (const pluginId of [
       "conversation-suggestions",
-      "job-progress",
       "conversation-thread-list",
       "theme-switch",
     ]) {
@@ -33,7 +32,6 @@ describe("UI plugin identity", () => {
       "conversation-suggestions",
       "conversation-surface",
       "conversation-thread-list",
-      "job-progress",
       "locale-provider",
       "theme-provider",
       "theme-switch",
