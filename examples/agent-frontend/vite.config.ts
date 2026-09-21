@@ -31,7 +31,9 @@ export default defineConfig(async ({ command, mode }) => {
         endpoint: "/__agent-ui/mock",
         scenarios: builtinMockScenarios.map((scenario) => ({
           ...scenario,
-          initialState: previewAgentState,
+          ...(scenario.id === "agent-state-sync"
+            ? {}
+            : { initialState: previewAgentState }),
         })),
         defaultScenarioId: "reasoning-tool-success",
       }),

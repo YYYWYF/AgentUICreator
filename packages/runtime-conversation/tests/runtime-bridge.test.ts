@@ -19,6 +19,7 @@ function createFixture() {
   const listeners = new Set<() => void>();
   let isRunning = false;
   let messages: unknown[] = [];
+  let state: unknown = { count: 1 };
   let interrupts: AgUiInterrupt[] = [];
   const append = vi.fn(() => {
     isRunning = true;
@@ -48,7 +49,7 @@ function createFixture() {
       getState: () => ({
         isRunning,
         messages,
-        state: { count: 1 },
+        state,
       }),
     },
     threads: {
@@ -82,6 +83,10 @@ function createFixture() {
       interrupts = next;
       for (const listener of listeners) listener();
     },
+    setState(nextState: unknown) {
+      state = nextState;
+      for (const listener of listeners) listener();
+    },
     submit,
     switchToNewThread,
   };
@@ -113,6 +118,28 @@ describe("ConversationAgentRuntimeBridge", () => {
     expect(fixture.switchToNewThread).toHaveBeenCalledTimes(1);
     expect(fixture.bridge.getSnapshot().conversation.id).not.toBe(oldId);
     expect(fixture.bridge.getSnapshot().messages).toEqual([]);
+  });
+
+  it("projects the assistant-ui thread state without a second state owner", () => {
+    const fixture = createFixture();
+
+    fixture.setState({
+      trip: {
+        destination: "Tokyo",
+        days: 5,
+        status: "ready",
+        budget: 1200,
+      },
+    });
+
+    expect(fixture.bridge.getSnapshot().state).toEqual({
+      trip: {
+        destination: "Tokyo",
+        days: 5,
+        status: "ready",
+        budget: 1200,
+      },
+    });
   });
 
   it("rejects unsupported media without silently dropping it", async () => {

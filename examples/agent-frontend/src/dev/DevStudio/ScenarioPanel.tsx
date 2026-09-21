@@ -26,6 +26,7 @@ type CatalogState =
 
 const categoryOrder: MockScenarioCategory[] = [
   "agent",
+  "state",
   "tool",
   "approval",
   "reasoning",
@@ -38,6 +39,7 @@ const categoryLabels: Record<MockScenarioCategory, string> = {
   approval: "Approval",
   reasoning: "Reasoning",
   conversation: "Conversation",
+  state: "State",
 };
 
 const capabilityLabels: Record<MockScenarioCapability, string> = {
@@ -50,6 +52,7 @@ const capabilityLabels: Record<MockScenarioCapability, string> = {
   "agent-status": "Status",
   subagent: "Subagent",
   sources: "Sources",
+  "state-sync": "State Sync",
 };
 
 const speedOptions = [
@@ -68,6 +71,7 @@ function clampSpeed(value: string | undefined): number {
 
 function scenarioMarker(scenario: MockScenarioSummary): string | undefined {
   if (scenario.id === "nested-subagent-conversation") return "Recommended";
+  if (scenario.id === "agent-state-sync") return "Recommended";
   if (scenario.id === "nested-subagent-task-group") return "Task Group";
   if (scenario.id === "nested-subagent-recursive") return "Advanced";
   if (scenario.id === "nested-subagent-error") return "Error Case";

@@ -166,6 +166,30 @@ describe("RuntimePanel", () => {
     expect(text).toContain("completed");
   });
 
+  it("renders the latest Application State from the AgentRuntime snapshot", async () => {
+    const runtime = createRuntime(snapshot({
+      state: { trip: { status: "planning" } },
+    })) as AgentRuntime & { publish(next: AgentRuntimeSnapshot): void };
+    const renderer = create(
+      <AgentRuntimeProvider runtime={runtime}>
+        <RuntimePanel endpoint="https://agent.example/api" mockEnabled={false} />
+      </AgentRuntimeProvider>,
+    );
+
+    expect(renderedText(renderer)).toContain("Application State");
+    expect(renderedText(renderer)).toContain("planning");
+
+    await act(async () => {
+      runtime.publish(snapshot({
+        state: { trip: { status: "ready", budget: 1200 } },
+      }));
+    });
+
+    const text = renderedText(renderer);
+    expect(text).toContain("ready");
+    expect(text).toContain("1200");
+  });
+
   it("keeps both normalized and assistant-ui raw snapshots available", () => {
     const renderer = create(
       <RuntimePanelView

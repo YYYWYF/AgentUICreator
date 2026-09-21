@@ -69,6 +69,31 @@ const catalog = {
       },
     },
     {
+      id: "agent-state-sync",
+      title: "AG-UI Agent State",
+      description: "STATE_SNAPSHOT and STATE_DELTA JSON Patch state sync.",
+      category: "state",
+      capabilities: ["state-sync"],
+      reference: {
+        protocol: "AG-UI",
+        pattern: "Agent State Synchronization",
+        presentation: "Dev Studio Runtime / Application State",
+        eventFlow: [
+          "RUN_STARTED",
+          "STATE_SNAPSHOT",
+          "STATE_DELTA",
+          "STATE_DELTA",
+          "RUN_FINISHED",
+        ],
+        notes: [
+          "STATE_SNAPSHOT replaces the complete external agent state.",
+          "STATE_DELTA applies JSON Patch operations to the current state.",
+          "AG-UI state is not AppUIModel or Plugin configuration.",
+          "Run the scenario and watch Runtime → Application State.",
+        ],
+      },
+    },
+    {
       id: "nested-subagent-task-group",
       title: "AG-UI Subagent Task Group",
       description: "Sibling nested Subagents.",
@@ -255,6 +280,30 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     expect(panelText).toContain("SUBAGENT_STARTED");
     expect(panelText).toContain("subagentRunId");
     expect(panelText).toContain("parentToolCallId");
+    renderer.unmount();
+  });
+
+  it("labels the Agent State catalog and explains snapshot/delta observation", async () => {
+    const renderer = await mountStudio();
+
+    expect(testInstanceText(scenarioButtonWithTitle(
+      renderer,
+      "AG-UI Agent State",
+    )!)).toContain("Recommended");
+
+    await act(async () => {
+      scenarioButtonWithTitle(renderer, "AG-UI Agent State")?.props.onClick();
+    });
+
+    const panelText = testInstanceText(renderer.root);
+    expect(panelText).toContain("State");
+    expect(panelText).toContain("State Sync");
+    expect(panelText).toContain("Agent State Synchronization");
+    expect(panelText).toContain("Dev Studio Runtime / Application State");
+    expect(panelText).toContain("STATE_SNAPSHOT");
+    expect(panelText).toContain("STATE_DELTA");
+    expect(panelText).toContain("JSON Patch");
+    expect(panelText).toContain("AppUIModel");
     renderer.unmount();
   });
 

@@ -1,9 +1,12 @@
+import type { StateDeltaEvent } from "@ag-ui/core";
+
 export type MockScenarioCategory =
   | "conversation"
   | "reasoning"
   | "tool"
   | "approval"
-  | "agent";
+  | "agent"
+  | "state";
 
 export type MockScenarioCapability =
   | "reasoning"
@@ -14,7 +17,11 @@ export type MockScenarioCapability =
   | "plan"
   | "agent-status"
   | "subagent"
-  | "sources";
+  | "sources"
+  | "state-sync";
+
+/** The JSON Patch payload from the official AG-UI STATE_DELTA event. */
+export type MockStateDelta = StateDeltaEvent["delta"];
 
 export interface MockScenarioReference {
   protocol?: string | undefined;
@@ -118,6 +125,11 @@ export type MockScenarioStep =
       type: "step";
       name: string;
       durationMs?: number | undefined;
+    }
+  | {
+      type: "state-delta";
+      delta: MockStateDelta;
+      delayMs?: number | undefined;
     }
   | {
       type: "subagent";

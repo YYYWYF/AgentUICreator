@@ -329,6 +329,22 @@ async function* runSteps(
       continue;
     }
 
+    if (step.type === "state-delta") {
+      if (!await waitForDelay(
+        normalizeDelay(step.delayMs, 0),
+        signal,
+        timingScale,
+      )) return;
+      yield withSubagentRunId(
+        {
+          type: EventType.STATE_DELTA,
+          delta: structuredClone(step.delta),
+        },
+        context.subagentRunId,
+      ) as AGUIEvent;
+      continue;
+    }
+
     if (step.type === "subagent") {
       yield {
         type: EventType.SUBAGENT_STARTED,

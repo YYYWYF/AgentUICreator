@@ -8,6 +8,7 @@ export {
   type MockScenarioReference,
   type MockScenarioResumeSteps,
   type MockScenarioStep,
+  type MockStateDelta,
   type MockSubagentToolStep,
   type MockToolError,
 } from "./scenario.js";
@@ -35,6 +36,7 @@ export {
   agentElementsShowcaseScenario,
   agentPlanScenario,
   agentStatusScenario,
+  agentStateSyncScenario,
   approvalResumeScenario,
   multiToolScenario,
   nestedSubagentConversationScenario,

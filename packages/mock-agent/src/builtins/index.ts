@@ -1,6 +1,7 @@
 import { agentElementsShowcaseScenario } from "./agent-elements-showcase.js";
 import { agentPlanScenario } from "./agent-plan.js";
 import { agentStatusScenario } from "./agent-status.js";
+import { agentStateSyncScenario } from "./agent-state-sync.js";
 import { approvalResumeScenario } from "./approval-resume.js";
 import { multiToolScenario } from "./multi-tool.js";
 import { nestedSubagentConversationScenario } from "./nested-subagent-conversation.js";
@@ -23,6 +24,7 @@ export {
   agentElementsShowcaseScenario,
   agentPlanScenario,
   agentStatusScenario,
+  agentStateSyncScenario,
   approvalResumeScenario,
   multiToolScenario,
   nestedSubagentConversationScenario,
@@ -63,4 +65,5 @@ export const builtinMockScenarios = [
   subagentsScenario,
   subagentsOutOfOrderScenario,
   agentElementsShowcaseScenario,
+  agentStateSyncScenario,
 ];
