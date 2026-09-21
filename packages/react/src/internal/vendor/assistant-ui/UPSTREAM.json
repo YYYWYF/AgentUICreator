@@ -1,50 +1,400 @@
 {
   "schemaVersion": 1,
   "project": "assistant-ui/assistant-ui",
-  "revision": "bd7e8fa9f79ffea10fab0741026d53cdba4cfa70",
+  "revision": "b712ee83bde9a89fce2812968f951a5742d757b9",
   "license": "MIT",
   "sourceForm": "official Base UI registry output",
   "packages": {
-    "@assistant-ui/react": "0.15.19",
-    "@assistant-ui/react-ag-ui": "0.0.59"
+    "@assistant-ui/react": "0.15.21",
+    "@assistant-ui/react-ag-ui": "0.0.60",
+    "@assistant-ui/react-markdown": "0.14.16",
+    "@ag-ui/client": "0.0.59"
   },
   "files": [
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/attachment.aui.tsx", "localPath": "components/assistant-ui/elements/attachment.aui.tsx", "upstreamSha256": "fa1bf7d0ef55cc5c24897fc6e4d445e8bdfa9b584a4eb2411cf35852a0fa120f", "installedSha256": "74b8a3d8b079893cdab6aff2ea1ded1d0ddc9af5381a0331dbea1e253f68fa9a", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/agent-plan.tsx", "localPath": "components/assistant-ui/elements/agent-plan.tsx", "upstreamSha256": "649fe62e87c0842ea6e569fb748a81424eb49f92ac1d47e162123d6776b7b87f", "installedSha256": "54bf9e06211f95b54b455c0356270d6e2c0f82110ab113f2612da1f60bb5f240", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/agent-status.tsx", "localPath": "components/assistant-ui/elements/agent-status.tsx", "upstreamSha256": "43203b3b54ba5f4f9ebe34a52192511f63b8a01ef7ec7838fe7d6baf382fdf23", "installedSha256": "903fbcd93457907a0f3bf4117f996839690ec3235c76683f3a582c6b39eba628", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/composer-trigger-popover.aui.tsx", "localPath": "components/assistant-ui/elements/composer-trigger-popover.aui.tsx", "upstreamSha256": "592d5681d4fe197174d54a0fc7243ef64155f0d2c7bd878117a04f6d050fad81", "installedSha256": "06c9b2b6fa021bbfe58ba226d4d5c6a46e448369aebf362d02f8b56032c69ba2", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/file.tsx", "localPath": "components/assistant-ui/elements/file.tsx", "upstreamSha256": "236409d8299adf4cf5b1de701ce219854cd9a1d03609f1c4e39dd55106d3cd6f", "installedSha256": "9ea826839bcb30f99620e9c166e24fa638e9261d84bac5d54347fb6701dacfcf", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/follow-up-suggestions.aui.tsx", "localPath": "components/assistant-ui/elements/follow-up-suggestions.aui.tsx", "upstreamSha256": "ba2f213a1241f281c9d87805fe8eb2a78bb725a788e05013d1fe117e79aac60b", "installedSha256": "ba2f213a1241f281c9d87805fe8eb2a78bb725a788e05013d1fe117e79aac60b", "adaptations": [] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/image.tsx", "localPath": "components/assistant-ui/elements/image.tsx", "upstreamSha256": "981625b96bd02ea13e0e71aa4c81300168203c57d21405fd071d602423ab6bcb", "installedSha256": "4c5fb79d783d3cb1318497c3b50340b8bba9af5aaf89d5fa7b1b7d00422857c1", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/markdown-text.tsx", "localPath": "components/assistant-ui/elements/markdown-text.tsx", "upstreamSha256": "4621787f69160d9f34a170da8fb76005a811a7cfa704280e463518a67eb7fc8d", "installedSha256": "b041132faa98790395e4161329249eb1a38642ce7a5603042a67e7ab7ff72808", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/reasoning.aui.tsx", "localPath": "components/assistant-ui/elements/reasoning.aui.tsx", "upstreamSha256": "96738041df6542b9aca4085b0ee539100aa5836bdd359b69c2dabb63747e863b", "installedSha256": "32c3b000370561900797a633d606a7172f6d465a2c06f3e39b6e820535dcd79f", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/reasoning.tsx", "localPath": "components/assistant-ui/elements/reasoning.tsx", "upstreamSha256": "e59cdb4c4ccd6da31fb170603fbec624e2b7988a7ef2711e5a24ee455615ea20", "installedSha256": "6e629d6cab9204b903120f7195b3d3126ed48d5ecd7191dbb0174ad9ccf8dfb0", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/sources.aui.tsx", "localPath": "components/assistant-ui/elements/sources.aui.tsx", "upstreamSha256": "0f2a85db1a4134230cdf07ed55b6fdc31b2c7853e1dea7d749d2fce92593fb60", "installedSha256": "0c514eec19a43c734d6d12410615d034eab2ea6e2d6b0b7ca3766c9fb3cbbeae", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/subagent-list.tsx", "localPath": "components/assistant-ui/elements/subagent-list.tsx", "upstreamSha256": "fa6fe53c5e125c9f4090ca0f4d7f6b2d1948b131fb67e8ca707df90152695a02", "installedSha256": "0abc5933a9b27ceb24e179d6d6307e4c8980d49c8c58903ecbada8e558ccca0b", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/surfaces.tsx", "localPath": "components/assistant-ui/elements/surfaces.tsx", "upstreamSha256": "a82542ec08f0afd0565b220a1d32235b1fd7c08b394c55977119665da3860d3a", "installedSha256": "fcc704686fc4bf3a15dc40f2600da759ba46a796d6d8a9c97eb37b2d21907885", "adaptations": ["import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/thread.aui.tsx", "localPath": "components/assistant-ui/elements/thread.aui.tsx", "upstreamSha256": "1aaf40d76106ab11050398423c714dc2097f1b8004e6d836adc626e4afd9561e", "installedSha256": "e990c181bf4e2c9dcd47aa3cc50b520c21cf78e24ba34558ea9973a67211f7d3", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/tool-call.tsx", "localPath": "components/assistant-ui/elements/tool-call.tsx", "upstreamSha256": "4f41b05a3f64c5bc37f8f67d9b5931cfde1b69140cfbe0a3c2507e9d7cf3a174", "installedSha256": "1fd4f2aa297d146059a9e4e436063f3bc83eee5e9a69f7e44c1aa5f8935d8bef", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/tool-fallback.aui.tsx", "localPath": "components/assistant-ui/elements/tool-fallback.aui.tsx", "upstreamSha256": "8dcb549054f42f29a380b8d6958b32afb76593bd62ce7a6bedd54b6fadf36962", "installedSha256": "36fc3ac28ad8a0fc67a6e0b6953f771c7fe231986916b04d94f87055fe49bd3e", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/tool-group.aui.tsx", "localPath": "components/assistant-ui/elements/tool-group.aui.tsx", "upstreamSha256": "6fa7eb02ceefeb956cac1e34ab12bf95919e52036f58083d4dbd1aa69fb310e8", "installedSha256": "50e5d21a865de8bead130bd9bcfa968ab1a330c4b0082374bf3d1a84951a9b08", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/thread-list.aui.tsx", "localPath": "components/assistant-ui/elements/thread-list.aui.tsx", "upstreamSha256": "ab9d03a356cf554b5aa7969ed9d03a553644dbbeb2fc52b5a1d9f1056e056d52", "installedSha256": "841d2b374aa5197c7603060143d184ebcc5d5f4d401a5eed789ca2b9753b6faf", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/tooltip-icon-button.tsx", "localPath": "components/assistant-ui/elements/tooltip-icon-button.tsx", "upstreamSha256": "98580531a6f5a213cccd6964c0c75fd097d97b77bcca05f904df562512273363", "installedSha256": "94e64103f5e1faad3ad82502b94c298158126e70ceef138e88e28117f62dd77d", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/assistant-ui/utils/range.ts", "localPath": "components/assistant-ui/utils/range.ts", "upstreamSha256": "3506d5f07865c042a4ef9b96904f687d19372a14e7dfccf946749860a3606182", "installedSha256": "3506d5f07865c042a4ef9b96904f687d19372a14e7dfccf946749860a3606182", "adaptations": [] },
-    { "upstreamPath": "templates/minimal/components/ui/avatar.tsx", "localPath": "components/ui/avatar.tsx", "upstreamSha256": "56acc1c16834672164b7d1d920ef939bc4d5330640059bf0ec0f81cbdc7c168e", "installedSha256": "bff76087ea9af25c6aa5a5306088dc66e62204a126752c38561736acff00717f", "adaptations": ["official-registry-base-ui-rendering"] },
-    { "upstreamPath": "packages/ui/src/components/react/ui/base/badge.tsx", "localPath": "components/ui/badge.tsx", "upstreamSha256": "610c24620259c690cacbb8a79fe3278aad6eaacb66e78e365de6337cdd73920c", "installedSha256": "fbf07bf1759ca6b84bb074d9f41c93a38489588be38e4f2f90ff0e249c873e28", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "templates/minimal/components/ui/button.tsx", "localPath": "components/ui/button.tsx", "upstreamSha256": "de5e06ef482e702cc56abe8fbe0b1dfcfee9c30db4eafad24a38b5360188c42f", "installedSha256": "313353436d0fcc8e44ab470adb614b9fd013d28626f624328ea0d66d41a6c81b", "adaptations": ["official-registry-base-ui-rendering"] },
-    { "upstreamPath": "templates/minimal/components/ui/collapsible.tsx", "localPath": "components/ui/collapsible.tsx", "upstreamSha256": "cf6333da05adc3d96abf7ce0928c0c9a3fe3c6df46f7771551220a9205c41975", "installedSha256": "3de60b605e64c835588cecc189fbcf907eb602b0158f970d614b067e868b491e", "adaptations": ["official-registry-base-ui-rendering"] },
-    { "upstreamPath": "templates/minimal/components/ui/dialog.tsx", "localPath": "components/ui/dialog.tsx", "upstreamSha256": "662c25e6d4873ba41c12db62a378a1cb873d6c3846e855fc85039793823cd903", "installedSha256": "332d9c448486cadd51dd65e52480e021c3e182af7cb02910766e897c0f2a7b59", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/ui/base/input.tsx", "localPath": "components/ui/input.tsx", "upstreamSha256": "8a73d44c2e8cdf574079b731be47105ee13f32612e1478c2dbde902eb1dde51a", "installedSha256": "2928155132802eddf3b5400b3603c965211fe42eacbb38d5c6af1556d0a4099c", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/ui/base/separator.tsx", "localPath": "components/ui/separator.tsx", "upstreamSha256": "6a261491da5a262c7cf884d9793a226aa50073563b8c0c799a1edcde3bacd2d9", "installedSha256": "5ac46f37a0059f50556c69aade352a80f8e42a54c9e895e6bb4c7ebc8291997d", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/ui/base/sheet.tsx", "localPath": "components/ui/sheet.tsx", "upstreamSha256": "89748ad1285f6d3ad44185e4ca4d4bf8b9fa878559cc0ffa492f81be4cb1f832", "installedSha256": "56d09016b4d57fb14b3a0dbdfdb57d9920b6ef8737b4229c39a7ec27dab5b6da", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/ui/base/sidebar.tsx", "localPath": "components/ui/sidebar.tsx", "upstreamSha256": "c35f083ae4c37440cd94f579a8cd36df260e4c9be80686c9d30265fa77f3646f", "installedSha256": "6289a09ebea0df90e6445396fad6f29a42795e2e24dc26513c479084ceb77b23", "adaptations": ["official-registry-base-ui-rendering", "import-alias-to-relative"] },
-    { "upstreamPath": "packages/ui/src/components/react/ui/base/skeleton.tsx", "localPath": "components/ui/skeleton.tsx", "upstreamSha256": "a61009cda0a56be88eb94bfecad0fdeb7a895611e87049ee1f2617fc25cd6620", "installedSha256": "4c2af7fa9c645358a0fb188779deab6f0b981733b62befc25e18aaebea1350dc", "adaptations": ["official-registry-base-ui-rendering"] },
-    { "upstreamPath": "templates/minimal/components/ui/textarea.tsx", "localPath": "components/ui/textarea.tsx", "upstreamSha256": "abab274474743d7b6d30e67848e4341c2fbd491a8a300010e5da1176c7f9624f", "installedSha256": "82601c91ffc6c727d924162c78d7cb853114bcced4e2eb922a68ca12d4239c0f", "adaptations": ["official-registry-base-ui-rendering"] },
-    { "upstreamPath": "templates/minimal/components/ui/tooltip.tsx", "localPath": "components/ui/tooltip.tsx", "upstreamSha256": "43cf8405ec5856165c2e7543d9e07c7bdf186c0b9f39270141a42de3dc11d0cc", "installedSha256": "100101631756e1bebc1f1831e1642b26cd11a6a6c4affb6c638c42001dc14e83", "adaptations": ["official-registry-base-ui-rendering"] },
-    { "upstreamPath": "packages/ui/src/hooks/use-attachment-src.ts", "localPath": "hooks/use-attachment-src.ts", "upstreamSha256": "dfb621f1a18f4013994aa29815beddb436020105164526ab7c86b0b0a32040a1", "installedSha256": "dfb621f1a18f4013994aa29815beddb436020105164526ab7c86b0b0a32040a1", "adaptations": [] },
-    { "upstreamPath": "packages/ui/src/hooks/use-copy-to-clipboard.ts", "localPath": "hooks/use-copy-to-clipboard.ts", "upstreamSha256": "2deb9436899718f7a2ff6ccc4738d1ce50d1467e5e36d1cda4d82f61b544be11", "installedSha256": "2deb9436899718f7a2ff6ccc4738d1ce50d1467e5e36d1cda4d82f61b544be11", "adaptations": [] },
-    { "upstreamPath": "packages/ui/src/hooks/use-mobile.ts", "localPath": "hooks/use-mobile.ts", "upstreamSha256": "5bcc5a7a1dc430d5933d3d856aed231e7d3383eb4aed8491374e5964232fd201", "installedSha256": "5bcc5a7a1dc430d5933d3d856aed231e7d3383eb4aed8491374e5964232fd201", "adaptations": [] },
-    { "upstreamPath": "packages/ui/src/lib/utils.ts", "localPath": "lib/utils.ts", "upstreamSha256": "55bbdc94cef3e0c8a8bba386e94f97228dd2c967fe61466fc565378890550c08", "installedSha256": "55bbdc94cef3e0c8a8bba386e94f97228dd2c967fe61466fc565378890550c08", "adaptations": [] }
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/agent-plan.tsx",
+      "localPath": "components/assistant-ui/elements/agent-plan.tsx",
+      "upstreamSha256": "15e81dd3c8bb7716e203a3c5cfa6d041a5ffd9f92fecc5102f99109015619e3f",
+      "installedSha256": "ee904c3e1d62f5534e6b3a8b20218e3f233bbed7939305e458c34b4410a9bc89",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/agent-status.aui.tsx",
+      "localPath": "components/assistant-ui/elements/agent-status.aui.tsx",
+      "upstreamSha256": "6de374c05c1d5535b584b2ab7c64de0cccc9bfd712088816d24f2b83c1c4c8dd",
+      "installedSha256": "38b7341850638c1bcccb168d4eb3598ee86ccb0185e74e152dac552ee986fb12",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/agent-status.tsx",
+      "localPath": "components/assistant-ui/elements/agent-status.tsx",
+      "upstreamSha256": "de3b83e8a22232deda34efe67b64927c1b0d859b79418b57fa32128f203ea2f5",
+      "installedSha256": "33d38370a15688fe59d01ebee6205a2b84b531ad8fd3000e2fd42a19d203da25",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/attachment.aui.tsx",
+      "localPath": "components/assistant-ui/elements/attachment.aui.tsx",
+      "upstreamSha256": "7dd758a4cbd1adbfc30598d17dff3132e6b8679ffe39a8a2915c4430ef6813a2",
+      "installedSha256": "c7319f45b50ee0741da49efdfa65a94f8dcddac51becc7dc70221931836b4691",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "localPath": "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "upstreamSha256": "fc4402853fb29f82bbf9ab2151770dd368c9f780aa8e45e6f2feb84a880b2570",
+      "installedSha256": "f8ee72581458a16056d5fa9e5c0a5f0b51c1c026e680909dbec7a96d6e879235",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/file.tsx",
+      "localPath": "components/assistant-ui/elements/file.tsx",
+      "upstreamSha256": "2c8f69fe504535467fae75a3fcef3d009d4aab692fc91b1f098ab14df40d3698",
+      "installedSha256": "9b23ed30d81b0b6d7f82b50e4e64ff834782a08d550e565a876cfcbb8c5026ff",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/follow-up-suggestions.aui.tsx",
+      "localPath": "components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
+      "upstreamSha256": "1a0422d1089c1ae207c62aa4b1f0a5d14efbde8e787901e722ce51315e58ea11",
+      "installedSha256": "1a0422d1089c1ae207c62aa4b1f0a5d14efbde8e787901e722ce51315e58ea11",
+      "adaptations": []
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/image.tsx",
+      "localPath": "components/assistant-ui/elements/image.tsx",
+      "upstreamSha256": "b7a0a3a38a50c10750f0610fa98e9b9ebe870e7707740c12f82fa685d93c3552",
+      "installedSha256": "1264fad5c224a8307158cea5a3fb9ab83825abdf7ebfd103fbdec0c45f8b6a45",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/markdown-text.tsx",
+      "localPath": "components/assistant-ui/elements/markdown-text.tsx",
+      "upstreamSha256": "b76d44eefc3bf58de24f558a5543a31f37de887008449072e4699afe2d6f6d1f",
+      "installedSha256": "e3b0c0f4f58e216f7ec29c234cbf4c6675c721b1f8d1fec44bbd518b5d1aeab4",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/reasoning.aui.tsx",
+      "localPath": "components/assistant-ui/elements/reasoning.aui.tsx",
+      "upstreamSha256": "ba0a6de18d8eb9102917e5ec412e4472236e761d6ce9bc92682a083df9153405",
+      "installedSha256": "088f1ab5d085e29c787e5712bbab14df61ad7175f32644c63fad55ed2e5f64e5",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/reasoning.tsx",
+      "localPath": "components/assistant-ui/elements/reasoning.tsx",
+      "upstreamSha256": "58bebc9a373d80b3963de6a2891fa2f15ed364d6e37004d1c90d0ea9d1c82666",
+      "installedSha256": "526decf382602834edba36f7cb3f2579c31bc6f5e7f76df6143ba22937c91314",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/sources.aui.tsx",
+      "localPath": "components/assistant-ui/elements/sources.aui.tsx",
+      "upstreamSha256": "9dbd99b1f4f279d9c4230a893b863b09567a91034b18d2b3bcf86a6b7c9465e8",
+      "installedSha256": "f58e135f63d4734cb4f3b7a91a9e858ffc128de25ce64b042be0e842b6c6c8d5",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/subagent-list.tsx",
+      "localPath": "components/assistant-ui/elements/subagent-list.tsx",
+      "upstreamSha256": "70d5f5ab5ddfe71da10543d8e4ac3ca0b8e7be588b1a4270e410d3aa0df5c797",
+      "installedSha256": "e6bb64a384d64c817949aca5ab3ca6f80f1a2d6a376984ab9f1dc716ff5eb46e",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/surfaces.tsx",
+      "localPath": "components/assistant-ui/elements/surfaces.tsx",
+      "upstreamSha256": "024a95e6e510f5da40af8b2cb7facd637d590b376c39aa8cb79125f1c157b23d",
+      "installedSha256": "e2f8f51e1856584952a6a1c2c3a2bc25dbee84fce0d706ec7eac4dba8a765985",
+      "adaptations": [
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/task-card.aui.tsx",
+      "localPath": "components/assistant-ui/elements/task-card.aui.tsx",
+      "upstreamSha256": "a3eeef6f034168d8faea5674c5adf2c0de3e359d443f2b0ff4f39116945522d1",
+      "installedSha256": "b9e39197a51d4e1963cab0441abcf5f7d58ae4f1e5d211bf38070e8c1e456cdf",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/task-card.tsx",
+      "localPath": "components/assistant-ui/elements/task-card.tsx",
+      "upstreamSha256": "3f0d51b273c2d05c7fc57229e1cbdca2d8e90394fdbcad259a4c441508792ce9",
+      "installedSha256": "dcf53cba56469ebfd26c6068ffea9e59a13f20d44015009657ce3cab37edbe4c",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/thread-list.aui.tsx",
+      "localPath": "components/assistant-ui/elements/thread-list.aui.tsx",
+      "upstreamSha256": "1636dfa5cf3313e85098cd0c82c70ea29bf9eb268c9a796f6c6f7169d6a7da67",
+      "installedSha256": "0f8c0f9cd496ca0ce4d927f1474f117b42b0e9750be6cdc38ae118f36a0af64e",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/thread.aui.tsx",
+      "localPath": "components/assistant-ui/elements/thread.aui.tsx",
+      "upstreamSha256": "675d34ed1b306672563fe06638f57c045824269b6d0b42e3704342f7f68669ca",
+      "installedSha256": "8a1e238fbafbcfa6da2a7e2e9f7a5a1e81d327a682ea6b00eaf7828aca80fa14",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/tool-call.tsx",
+      "localPath": "components/assistant-ui/elements/tool-call.tsx",
+      "upstreamSha256": "a4a4d532c10edd109f11abe23a3ff3e5c24ffb56fe256970dbf798140d003c4b",
+      "installedSha256": "6202018edb851870ead4fb8640fd0e528c0bee8c3b06b18ee82c035dabe21bc8",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/tool-fallback.aui.tsx",
+      "localPath": "components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "upstreamSha256": "15fef29fa814e47b9ce7e0b988219f7aa68f6ab63d10e9a4b6b9103059ce0d1e",
+      "installedSha256": "aca2120a57e2920920cc655d9216d5b4ca3d8a41cc77fafc91429b2f2fcf4207",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/tool-group.aui.tsx",
+      "localPath": "components/assistant-ui/elements/tool-group.aui.tsx",
+      "upstreamSha256": "8d2da67440eec0cbe4b0da0ff086c5ba41ef3f6bf1c4714c0ecba7d3b1952bdd",
+      "installedSha256": "a5087f36950af1cd9788666436654dc1ef5e53082d0599d39270ff2facce60c2",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/tooltip-icon-button.tsx",
+      "localPath": "components/assistant-ui/elements/tooltip-icon-button.tsx",
+      "upstreamSha256": "1dca97b948ff10e17f948858d0884be4f817f7cd14531222ed123bba49e739a6",
+      "installedSha256": "314577dd074be42769403e2a7bf25449039206ea2f8e323e85d34b05a001b2d5",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/utils/range.ts",
+      "localPath": "components/assistant-ui/utils/range.ts",
+      "upstreamSha256": "29970cd23ad5009552277903080d6718503e43f841d72be381ae3d691312e286",
+      "installedSha256": "29970cd23ad5009552277903080d6718503e43f841d72be381ae3d691312e286",
+      "adaptations": []
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/utils/task.ts",
+      "localPath": "components/assistant-ui/utils/task.ts",
+      "upstreamSha256": "ca69c1e87a97755718ebe9bd5cd4e8bab02b4982b6311f4ac3985f17c6548be1",
+      "installedSha256": "ca69c1e87a97755718ebe9bd5cd4e8bab02b4982b6311f4ac3985f17c6548be1",
+      "adaptations": [
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "templates/minimal/components/ui/avatar.tsx",
+      "localPath": "components/ui/avatar.tsx",
+      "upstreamSha256": "a5cf72112f15bb09511ca71d51b4e418c76faa847d6ee02c555ce38b2a53e862",
+      "installedSha256": "25608ae4933ddaccdf7186e9d17e98589f8319df2a50efc39c8147e5d0788e02",
+      "adaptations": [
+        "official-registry-base-ui-rendering"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/ui/base/badge.tsx",
+      "localPath": "components/ui/badge.tsx",
+      "upstreamSha256": "cead07f7f6aefa8717393d335391aa8388b7206100208e3491b1ff779d1df23d",
+      "installedSha256": "7a8cb9cbe766b9b2ff8d990d9f93a9b9e0d1268d61a4b57cbe012beae2aa8ada",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "templates/minimal/components/ui/button.tsx",
+      "localPath": "components/ui/button.tsx",
+      "upstreamSha256": "97146198904438ccacfe1513ec621b38eec8d1fa1841fcbdb9d1135385001495",
+      "installedSha256": "58b90fcafe7efd29f79bc0caa2a3dddd19759ef7dbfb594c96112757b0985784",
+      "adaptations": [
+        "official-registry-base-ui-rendering"
+      ]
+    },
+    {
+      "upstreamPath": "templates/minimal/components/ui/collapsible.tsx",
+      "localPath": "components/ui/collapsible.tsx",
+      "upstreamSha256": "867d4cfcb5fb4786546bcf0688026f9f38102021dc58c8be7af4456869f68af5",
+      "installedSha256": "867d4cfcb5fb4786546bcf0688026f9f38102021dc58c8be7af4456869f68af5",
+      "adaptations": [
+        "official-registry-base-ui-rendering"
+      ]
+    },
+    {
+      "upstreamPath": "templates/minimal/components/ui/dialog.tsx",
+      "localPath": "components/ui/dialog.tsx",
+      "upstreamSha256": "1d9d1bd70a3a912ff088f9061f45ae75c73f60d2ec3203722d43eb8d40a5f4cb",
+      "installedSha256": "9b0854198e5618610c13d094aae534eee66e5ce6bc373744d71b8acaff4ae938",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/ui/base/input.tsx",
+      "localPath": "components/ui/input.tsx",
+      "upstreamSha256": "4fe7c5ac9d1d2a991cfc9379b8500b672ae5a8e77a4a46fa171a13a131df1840",
+      "installedSha256": "14dddecb9fdccb154ae3322ff88eb9eb9cbabcf0b9173612656fd6307c63f27b",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/ui/base/popover.tsx",
+      "localPath": "components/ui/popover.tsx",
+      "upstreamSha256": "1e02c49a2eaac141c9545adcb2a9021d10ac98fa630558cf1beb70e2bff06ad2",
+      "installedSha256": "a2fd6da6f40f6964a52b61a6f58621c9d9fd89f45e73861718af2c4ae26fe361",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/ui/base/separator.tsx",
+      "localPath": "components/ui/separator.tsx",
+      "upstreamSha256": "beb6f7aed0e5ef58b0b14a5df92bfdb7800b587b81960d492650a0420305cdcb",
+      "installedSha256": "6560b9d7e6670a8d6f6ffb7b5f93869a5b5a20107e73faf2805da8ef865be91a",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/ui/base/sheet.tsx",
+      "localPath": "components/ui/sheet.tsx",
+      "upstreamSha256": "53f66692d2855f75068bc2afe31d80bc2012d4a05c75efbc34e31b4bb60ca7e7",
+      "installedSha256": "a821151bce2eb7f4ca40924e4d50b0a20d1de4ee008804506312e91b4e2e5870",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/ui/base/sidebar.tsx",
+      "localPath": "components/ui/sidebar.tsx",
+      "upstreamSha256": "45e777e3627ffc463346cf06d9cff1b6ae4110117f6022e606417c82786e570f",
+      "installedSha256": "20b55052ffd8e2dbd02da13305ea78c99644d28f536836fbc399bc3c076cdff8",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/ui/base/skeleton.tsx",
+      "localPath": "components/ui/skeleton.tsx",
+      "upstreamSha256": "112bcd7745a37241c981f550d7faacbafc4fbca4e89ae78908f5cca58227a98a",
+      "installedSha256": "6d211c1025da5e78c8bba1f636aca7271c62819ea5d83b977adaf4ea6338e688",
+      "adaptations": [
+        "official-registry-base-ui-rendering"
+      ]
+    },
+    {
+      "upstreamPath": "templates/minimal/components/ui/textarea.tsx",
+      "localPath": "components/ui/textarea.tsx",
+      "upstreamSha256": "48d32bf8f7e78b87f4997b2404318bcc90caba42ab7aaaa49608a71fa9d6ef7a",
+      "installedSha256": "0ccd966911c341e2f0a8cf8951ab672e11e1da20a0f46dc0678976d4762c684d",
+      "adaptations": [
+        "official-registry-base-ui-rendering"
+      ]
+    },
+    {
+      "upstreamPath": "templates/minimal/components/ui/tooltip.tsx",
+      "localPath": "components/ui/tooltip.tsx",
+      "upstreamSha256": "5efbfdeba97e0affac548f26ec773526e0a044174075571cc13635acaa0199c8",
+      "installedSha256": "58e48e75c4dd7336d5394aa32041f2ad29106b77e1560a9f6e1528f992e98c77",
+      "adaptations": [
+        "official-registry-base-ui-rendering"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/hooks/use-attachment-src.ts",
+      "localPath": "hooks/use-attachment-src.ts",
+      "upstreamSha256": "7aa2fff529468db118ae7c06a4189eaced2fae64e4c1411ea037084d4f35e55f",
+      "installedSha256": "7aa2fff529468db118ae7c06a4189eaced2fae64e4c1411ea037084d4f35e55f",
+      "adaptations": []
+    },
+    {
+      "upstreamPath": "packages/ui/src/hooks/use-copy-to-clipboard.ts",
+      "localPath": "hooks/use-copy-to-clipboard.ts",
+      "upstreamSha256": "a670d28ab5fbfd06538947df91ca8f99f96649d34be8a796637c618bb24691b7",
+      "installedSha256": "a670d28ab5fbfd06538947df91ca8f99f96649d34be8a796637c618bb24691b7",
+      "adaptations": []
+    },
+    {
+      "upstreamPath": "packages/ui/src/hooks/use-mobile.ts",
+      "localPath": "hooks/use-mobile.ts",
+      "upstreamSha256": "9490b7a915ee478ac2d1031403218ad2f8031ff9d57f098158baca97824c2306",
+      "installedSha256": "9490b7a915ee478ac2d1031403218ad2f8031ff9d57f098158baca97824c2306",
+      "adaptations": []
+    },
+    {
+      "upstreamPath": "packages/ui/src/lib/utils.ts",
+      "localPath": "lib/utils.ts",
+      "upstreamSha256": "ecb39e1aae09782704d88e25f20f84671a1dae5400d67b03e5275abac094ca6a",
+      "installedSha256": "ecb39e1aae09782704d88e25f20f84671a1dae5400d67b03e5275abac094ca6a",
+      "adaptations": []
+    }
   ],
   "patches": []
 }

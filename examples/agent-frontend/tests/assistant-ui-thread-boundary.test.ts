@@ -57,6 +57,8 @@ describe("assistant-ui Thread composition boundary", () => {
 
     expect(thread).toContain("export type ThreadProps");
     expect(thread).toContain("components?: ThreadComponents | undefined");
+    expect(thread).toContain("TaskGroup?: ComponentType<{ group: ThreadGroupPart }> | undefined");
+    expect(thread).toContain("taskAwareGroupBy");
     expect(thread).not.toContain("ThreadPresentation");
     expect(thread).not.toContain("ToolCallWrapper");
     expect(surface).not.toContain("presentation=");

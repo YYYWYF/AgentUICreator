@@ -1,0 +1,209 @@
+{
+  "schemaVersion": 1,
+  "fromRevision": "bd7e8fa9f79ffea10fab0741026d53cdba4cfa70",
+  "toRevision": "b712ee83bde9a89fce2812968f951a5742d757b9",
+  "packagesChanged": [
+    "package.json",
+    "packages/react/package.json",
+    "packages/runtime-conversation/package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml"
+  ],
+  "vendorFilesChanged": [
+    "components/assistant-ui/elements/agent-plan.tsx",
+    "components/assistant-ui/elements/agent-status.tsx",
+    "components/assistant-ui/elements/attachment.aui.tsx",
+    "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+    "components/assistant-ui/elements/file.tsx",
+    "components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
+    "components/assistant-ui/elements/image.tsx",
+    "components/assistant-ui/elements/markdown-text.tsx",
+    "components/assistant-ui/elements/reasoning.aui.tsx",
+    "components/assistant-ui/elements/reasoning.tsx",
+    "components/assistant-ui/elements/sources.aui.tsx",
+    "components/assistant-ui/elements/subagent-list.tsx",
+    "components/assistant-ui/elements/surfaces.tsx",
+    "components/assistant-ui/elements/thread-list.aui.tsx",
+    "components/assistant-ui/elements/thread.aui.tsx",
+    "components/assistant-ui/elements/tool-call.tsx",
+    "components/assistant-ui/elements/tool-fallback.aui.tsx",
+    "components/assistant-ui/elements/tool-group.aui.tsx",
+    "components/assistant-ui/elements/tooltip-icon-button.tsx",
+    "components/assistant-ui/utils/range.ts",
+    "components/ui/avatar.tsx",
+    "components/ui/badge.tsx",
+    "components/ui/button.tsx",
+    "components/ui/collapsible.tsx",
+    "components/ui/dialog.tsx",
+    "components/ui/input.tsx",
+    "components/ui/separator.tsx",
+    "components/ui/sheet.tsx",
+    "components/ui/sidebar.tsx",
+    "components/ui/skeleton.tsx",
+    "components/ui/textarea.tsx",
+    "components/ui/tooltip.tsx",
+    "hooks/use-attachment-src.ts",
+    "hooks/use-copy-to-clipboard.ts",
+    "hooks/use-mobile.ts",
+    "lib/utils.ts"
+  ],
+  "vendorFilesAdded": [
+    "components/assistant-ui/elements/agent-status.aui.tsx",
+    "components/assistant-ui/elements/task-card.aui.tsx",
+    "components/assistant-ui/elements/task-card.tsx",
+    "components/assistant-ui/utils/task.ts",
+    "components/ui/popover.tsx"
+  ],
+  "vendorFilesRemoved": [],
+  "vendorFilesRenamed": [],
+  "newTransitiveDependencies": [
+    "components/assistant-ui/utils/task.ts",
+    "components/ui/popover.tsx"
+  ],
+  "localFacadeFilesChanged": [
+    "packages/react/src/internal/composable-thread.tsx",
+    "packages/react/src/public.tsx"
+  ],
+  "runtimeAdapterFilesChanged": [
+    "packages/runtime-conversation/package.json"
+  ],
+  "pluginFilesChanged": [
+    "examples/agent-frontend/plugins/conversation-surface/index.tsx",
+    "examples/agent-frontend/plugins/conversation-surface/manifest.json",
+    "examples/agent-frontend/plugins/registry.generated.ts",
+    "examples/agent-frontend/plugins/subagent-conversation/definition.ts",
+    "examples/agent-frontend/plugins/subagent-conversation/index.tsx",
+    "examples/agent-frontend/plugins/subagent-conversation/manifest.json",
+    "examples/agent-frontend/plugins/task-group/"
+  ],
+  "appUIModelFilesChanged": [
+    "examples/agent-frontend/app-ui/app-ui.json"
+  ],
+  "creatorFilesChanged": [],
+  "testsChanged": [
+    "examples/agent-frontend/tests/ag-ui-boundary.test.ts",
+    "examples/agent-frontend/tests/assistant-ui-canonical-runtime.test.ts",
+    "examples/agent-frontend/tests/assistant-ui-default-composition.test.ts",
+    "examples/agent-frontend/tests/assistant-ui-nested-subagent.test.tsx",
+    "examples/agent-frontend/tests/assistant-ui-thread-boundary.test.ts",
+    "examples/agent-frontend/tests/scoped-renderer-bridge.test.tsx",
+    "examples/agent-frontend/tests/scoped-renderer-conversation-integration.test.tsx",
+    "examples/agent-frontend/tests/subagent-conversation-boundary.test.ts",
+    "examples/agent-frontend/tests/task-group-boundary.test.ts",
+    "packages/react/tests/public-api.test.ts",
+    "packages/react/tests/upstream-provenance.test.ts"
+  ],
+  "_inventory": {
+    "fromFiles": [
+      "components/assistant-ui/elements/agent-plan.tsx",
+      "components/assistant-ui/elements/agent-status.tsx",
+      "components/assistant-ui/elements/attachment.aui.tsx",
+      "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "components/assistant-ui/elements/file.tsx",
+      "components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
+      "components/assistant-ui/elements/image.tsx",
+      "components/assistant-ui/elements/markdown-text.tsx",
+      "components/assistant-ui/elements/reasoning.aui.tsx",
+      "components/assistant-ui/elements/reasoning.tsx",
+      "components/assistant-ui/elements/sources.aui.tsx",
+      "components/assistant-ui/elements/subagent-list.tsx",
+      "components/assistant-ui/elements/surfaces.tsx",
+      "components/assistant-ui/elements/thread-list.aui.tsx",
+      "components/assistant-ui/elements/thread.aui.tsx",
+      "components/assistant-ui/elements/tool-call.tsx",
+      "components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "components/assistant-ui/elements/tool-group.aui.tsx",
+      "components/assistant-ui/elements/tooltip-icon-button.tsx",
+      "components/assistant-ui/utils/range.ts",
+      "components/ui/avatar.tsx",
+      "components/ui/badge.tsx",
+      "components/ui/button.tsx",
+      "components/ui/collapsible.tsx",
+      "components/ui/dialog.tsx",
+      "components/ui/input.tsx",
+      "components/ui/separator.tsx",
+      "components/ui/sheet.tsx",
+      "components/ui/sidebar.tsx",
+      "components/ui/skeleton.tsx",
+      "components/ui/textarea.tsx",
+      "components/ui/tooltip.tsx",
+      "hooks/use-attachment-src.ts",
+      "hooks/use-copy-to-clipboard.ts",
+      "hooks/use-mobile.ts",
+      "lib/utils.ts"
+    ],
+    "toFiles": [
+      "components/assistant-ui/elements/agent-plan.tsx",
+      "components/assistant-ui/elements/agent-status.aui.tsx",
+      "components/assistant-ui/elements/agent-status.tsx",
+      "components/assistant-ui/elements/attachment.aui.tsx",
+      "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "components/assistant-ui/elements/file.tsx",
+      "components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
+      "components/assistant-ui/elements/image.tsx",
+      "components/assistant-ui/elements/markdown-text.tsx",
+      "components/assistant-ui/elements/reasoning.aui.tsx",
+      "components/assistant-ui/elements/reasoning.tsx",
+      "components/assistant-ui/elements/sources.aui.tsx",
+      "components/assistant-ui/elements/subagent-list.tsx",
+      "components/assistant-ui/elements/surfaces.tsx",
+      "components/assistant-ui/elements/task-card.aui.tsx",
+      "components/assistant-ui/elements/task-card.tsx",
+      "components/assistant-ui/elements/thread-list.aui.tsx",
+      "components/assistant-ui/elements/thread.aui.tsx",
+      "components/assistant-ui/elements/tool-call.tsx",
+      "components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "components/assistant-ui/elements/tool-group.aui.tsx",
+      "components/assistant-ui/elements/tooltip-icon-button.tsx",
+      "components/assistant-ui/utils/range.ts",
+      "components/assistant-ui/utils/task.ts",
+      "components/ui/avatar.tsx",
+      "components/ui/badge.tsx",
+      "components/ui/button.tsx",
+      "components/ui/collapsible.tsx",
+      "components/ui/dialog.tsx",
+      "components/ui/input.tsx",
+      "components/ui/popover.tsx",
+      "components/ui/separator.tsx",
+      "components/ui/sheet.tsx",
+      "components/ui/sidebar.tsx",
+      "components/ui/skeleton.tsx",
+      "components/ui/textarea.tsx",
+      "components/ui/tooltip.tsx",
+      "hooks/use-attachment-src.ts",
+      "hooks/use-copy-to-clipboard.ts",
+      "hooks/use-mobile.ts",
+      "lib/utils.ts"
+    ]
+  },
+  "capabilityAudit": [
+    {
+      "capability": "ThreadComponents.TaskGroup",
+      "status": "NEW UPSTREAM CAPABILITY"
+    },
+    {
+      "capability": "thread.tasks",
+      "status": "NEW UPSTREAM CAPABILITY"
+    },
+    {
+      "capability": "TaskCard / TaskGroup",
+      "status": "NEW UPSTREAM CAPABILITY"
+    },
+    {
+      "capability": "AgentStatus / TaskTray",
+      "status": "NEW UPSTREAM CAPABILITY"
+    },
+    {
+      "capability": "ReasoningGroup / ToolGroup / ToolFallback",
+      "status": "UNCHANGED"
+    },
+    {
+      "capability": "Composer / Message Footer / Thread List / Attachments / Suggestions",
+      "status": "UNCHANGED"
+    },
+    {
+      "capability": "ConversationSubagentTool compatibility presentation",
+      "status": "LOCAL COMPATIBILITY NO LONGER NEEDED"
+    }
+  ]
+}

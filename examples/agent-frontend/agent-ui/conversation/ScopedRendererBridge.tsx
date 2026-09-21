@@ -1,9 +1,9 @@
 import { createContext, useContext, type ReactNode } from "react";
 import {
   ConversationCanonicalAssistantMessage,
+  type ConversationTaskGroupRenderScope,
   toConversationMessagePartGroup,
   type ConversationAssistantMessageFooterRenderScope,
-  type ConversationSubagentRenderScope,
   type ConversationReasoningGroupRenderScope,
   type ConversationToolGroupRenderScope,
   type ConversationToolFallbackRenderScope,
@@ -65,20 +65,23 @@ export function ScopedToolGroup({ group: rawGroup, children }: { group: unknown;
   return renderScopedSlot("toolGroup", { kind: "conversation.tool-group", value });
 }
 
+export function ScopedTaskGroup({ group, children }: { group: unknown; children?: ReactNode }) {
+  const renderScopedSlot = useContext(ScopedRendererBridgeContext);
+  const value: ConversationTaskGroupRenderScope = { group, children };
+  if (renderScopedSlot === null) return children ?? null;
+  return renderScopedSlot(
+    "taskGroup",
+    { kind: "conversation.task-group", value },
+    children,
+  );
+}
+
 export function ScopedToolFallback(tool: ConversationToolCallProps) {
   const renderScopedSlot = useContext(ScopedRendererBridgeContext);
   if (renderScopedSlot === null) return null;
   const fallbackValue: ConversationToolFallbackRenderScope = { tool };
-  const fallback = renderScopedSlot("toolFallback", {
+  return renderScopedSlot("toolFallback", {
     kind: "conversation.tool-fallback",
     value: fallbackValue,
   });
-  if (!Array.isArray(tool.messages)) return fallback;
-
-  const subagentValue: ConversationSubagentRenderScope = { tool };
-  return renderScopedSlot(
-    "subagentConversation",
-    { kind: "conversation.subagent", value: subagentValue },
-    fallback,
-  );
 }

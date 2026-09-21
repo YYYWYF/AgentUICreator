@@ -27,12 +27,15 @@
     "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs",
     "check:public-boundary": "node scripts/check-public-boundary.mjs",
     "check:assistant-ui-upstream": "node scripts/check-assistant-ui-upstream.mjs",
+    "check:assistant-ui-latest": "node scripts/check-assistant-ui-latest.mjs",
+    "check:assistant-ui-revision": "node scripts/check-assistant-ui-revision.mjs",
+    "sync:assistant-ui-upstream": "node scripts/sync-assistant-ui-upstream.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@assistant-ui/react": "0.15.19",
-    "@assistant-ui/react-markdown": "0.14.15",
+    "@assistant-ui/react": "0.15.21",
+    "@assistant-ui/react-markdown": "0.14.16",
     "@base-ui/react": "1.8.0",
     "class-variance-authority": "0.7.1",
     "cn": "0.2.6",

@@ -14,6 +14,7 @@ import {
   ScopedReasoningGroup,
   ScopedAssistantMessage,
   ScopedRendererBridgeProvider,
+  ScopedTaskGroup,
   ScopedToolFallback,
   ScopedToolGroup,
 } from "./ScopedRendererBridge";
@@ -63,6 +64,7 @@ export function createConversationSemanticThreadComponents(): ConversationThread
     Welcome: ConversationEmptyState,
     ReasoningGroup: ScopedReasoningGroup,
     ToolGroup: ScopedToolGroup,
+    TaskGroup: ScopedTaskGroup,
     ToolFallback: ScopedToolFallback,
   };
 }

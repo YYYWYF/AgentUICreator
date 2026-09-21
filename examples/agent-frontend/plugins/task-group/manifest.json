@@ -1,0 +1,22 @@
+{
+  "id": "task-group",
+  "name": "Task Group",
+  "description": "Renders nested agent work as expandable task cards.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-task-group-renderer"],
+  "requiresRenderScope": true,
+  "authoring": {
+    "intents": [
+      "show agent tasks",
+      "show nested agent work",
+      "show delegated agent tasks",
+      "group nested tool tasks"
+    ],
+    "visualRole": "conversation task group",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "conversation-surface",
+      "slot": "taskGroup"
+    }
+  }
+}

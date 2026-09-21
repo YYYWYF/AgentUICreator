@@ -41,7 +41,6 @@ import {
   AuiIf as InternalConversationIf,
   BranchPickerPrimitive,
   ErrorPrimitive,
-  MessagePartPrimitive,
   MessagePrimitive,
   SuggestionPrimitive,
   ThreadListPrimitive as InternalConversationThreadListPrimitive,
@@ -60,7 +59,12 @@ import {
 } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.js";
 import { AgentPlan as InternalAgentPlan } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan.js";
 import { AgentStatus as InternalAgentStatus } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.js";
+import {
+  AgentStatus as InternalTaskAgentStatus,
+  TaskTray as InternalTaskTray,
+} from "./internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.aui.js";
 import { SubagentList as InternalSubagentList } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.js";
+import { TaskGroup as InternalTaskGroup } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/task-card.aui.js";
 import { Badge as InternalBadge } from "./internal/vendor/assistant-ui/components/ui/badge.js";
 import { Input as InternalInput } from "./internal/vendor/assistant-ui/components/ui/input.js";
 import { Skeleton as InternalSkeleton } from "./internal/vendor/assistant-ui/components/ui/skeleton.js";
@@ -130,6 +134,7 @@ export type ConversationThreadComponents = {
   ToolFallback?: ComponentType<ConversationToolCallProps> | undefined;
   ToolGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
   ReasoningGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
+  TaskGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
 };
 
 /** Stable metadata projected from assistant-ui GroupedParts at the facade edge. */
@@ -153,8 +158,9 @@ export interface ConversationToolFallbackRenderScope {
   readonly tool: ConversationToolCallProps;
 }
 
-export interface ConversationSubagentRenderScope {
-  readonly tool: ConversationToolCallProps;
+export interface ConversationTaskGroupRenderScope {
+  readonly group: unknown;
+  readonly children?: ReactNode;
 }
 
 /** The footer keeps its scope intentionally data-free; actions read Message Context. */
@@ -780,6 +786,39 @@ export function AgentStatus(props: Readonly<ConversationAgentStatusProps>) {
   return <InternalAgentStatus {...(props as ComponentProps<typeof InternalAgentStatus>)} />;
 }
 
+/** Stable facade for the upstream thread task summary. */
+export function ConversationAgentStatus({
+  className,
+}: Readonly<{ className?: string }>) {
+  return <InternalTaskAgentStatus className={className} />;
+}
+
+/** Stable facade for the upstream thread task tray. */
+export function ConversationTaskTray({
+  className,
+}: Readonly<{ className?: string }>) {
+  return <InternalTaskTray className={className} />;
+}
+
+/**
+ * Product-neutral TaskGroup seam. The upstream TaskGroup implementation is
+ * intentionally hidden behind this facade so Plugins never import vendor code.
+ */
+export function ConversationTaskGroup({
+  group,
+  className,
+}: Readonly<{
+  group: unknown;
+  className?: string;
+}>) {
+  return (
+    <InternalTaskGroup
+      group={group as ComponentProps<typeof InternalTaskGroup>["group"]}
+      className={className}
+    />
+  );
+}
+
 export interface ConversationSubagentItem {
   name: string;
   model: string;
@@ -796,70 +835,6 @@ export interface ConversationSubagentListProps
 
 export function SubagentList(props: Readonly<ConversationSubagentListProps>) {
   return <InternalSubagentList {...(props as ComponentProps<typeof InternalSubagentList>)} />;
-}
-
-export function ConversationSubagentMessages() {
-  return (
-    <MessagePartPrimitive.Messages>
-      {() => (
-        <MessagePrimitive.Root
-          data-slot="subagent-conversation-message"
-          data-role="assistant"
-          className="my-2 min-w-0"
-        >
-          <MessagePrimitive.Parts
-            components={{
-              Text: ConversationMarkdownText,
-              Reasoning: ConversationReasoning,
-              tools: { Fallback: ConversationNestedToolFallback as never },
-            }}
-          />
-          <ConversationCanonicalMessageError />
-        </MessagePrimitive.Root>
-      )}
-    </MessagePartPrimitive.Messages>
-  );
-}
-
-function ConversationNestedToolFallback(
-  props: Readonly<ConversationToolCallProps>,
-) {
-  return Array.isArray(props.messages)
-    ? <ConversationSubagentTool {...props} />
-    : <ConversationToolFallback {...props} />;
-}
-
-function shouldUseConversationToolFallback(
-  props: ConversationToolCallProps,
-): boolean {
-  return props.isError === true ||
-    props.status.type === "requires-action" ||
-    props.status.type === "incomplete";
-}
-
-/**
- * Generic presentation for a tool call whose canonical conversation part
- * contains nested messages. The runtime decides whether the part has
- * messages; this facade only owns the reusable tool shell and nested view.
- */
-export function ConversationSubagentTool(
-  props: Readonly<ConversationToolCallProps>,
-) {
-  if (shouldUseConversationToolFallback(props)) {
-    return <ConversationToolFallback {...props} />;
-  }
-
-  return (
-    <>
-      <ConversationToolFallback {...props} />
-      <div
-        data-slot="subagent-conversation-content"
-        className="ms-5 mt-1 min-w-0 pb-1"
-      >
-        <ConversationSubagentMessages />
-      </div>
-    </>
-  );
 }
 
 export function useConversationNavigation(): ConversationNavigation {

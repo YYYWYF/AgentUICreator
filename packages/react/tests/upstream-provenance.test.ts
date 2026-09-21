@@ -18,11 +18,11 @@ describe("assistant-ui upstream provenance", () => {
     expect(provenance).toContain("Repository: https://github.com/assistant-ui/assistant-ui");
     expect(provenance).toContain("Branch: `main`");
     expect(provenance).toMatch(/Commit: `[0-9a-f]{40}`/u);
-    expect(provenance).toContain("@assistant-ui/react` = `0.15.19");
-    expect(provenance).toContain("@assistant-ui/react-ag-ui` = `0.0.59");
-    expect(provenance).toContain("@assistant-ui/react-markdown` = `0.14.15");
+    expect(provenance).toContain("@assistant-ui/react` = `0.15.21");
+    expect(provenance).toContain("@assistant-ui/react-ag-ui` = `0.0.60");
+    expect(provenance).toContain("@assistant-ui/react-markdown` = `0.14.16");
     expect(provenance).toContain("@ag-ui/client` = `0.0.59");
-    expect(metadata.revision).toBe("bd7e8fa9f79ffea10fab0741026d53cdba4cfa70");
+    expect(metadata.revision).toBe("b712ee83bde9a89fce2812968f951a5742d757b9");
     expect(provenance).toContain(metadata.revision);
   });
 
@@ -44,9 +44,14 @@ describe("assistant-ui upstream provenance", () => {
       "components/assistant-ui/elements/surfaces.tsx",
       "components/ui/badge.tsx",
       "components/assistant-ui/elements/agent-plan.tsx",
+      "components/assistant-ui/elements/agent-status.aui.tsx",
       "components/assistant-ui/elements/agent-status.tsx",
+      "components/assistant-ui/elements/task-card.aui.tsx",
+      "components/assistant-ui/elements/task-card.tsx",
       "components/assistant-ui/elements/subagent-list.tsx",
       "components/assistant-ui/utils/range.ts",
+      "components/assistant-ui/utils/task.ts",
+      "components/ui/popover.tsx",
       "hooks/use-mobile.ts",
     ];
 

@@ -20,11 +20,11 @@ describe("assistant-ui default composition", () => {
     } });
     expect(slots?.toolGroup?.mode).toBe("renderer");
     expect(slots?.toolFallback?.mode).toBe("renderer");
-    expect(slots?.subagentConversation).toMatchObject({
+    expect(slots?.taskGroup).toMatchObject({
       mode: "renderer",
       cardinality: "one",
       accepts: {
-        anyOfCapabilities: ["conversation-subagent-renderer"],
+        anyOfCapabilities: ["conversation-task-group-renderer"],
       },
     });
     expect(slots?.assistantMessageFooter).toMatchObject({
@@ -70,10 +70,10 @@ describe("assistant-ui default composition", () => {
       parentPluginId: "conversation-surface",
       slot: "toolFallback",
     });
-    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "subagent-conversation")?.manifest.authoring?.defaultPlacement).toEqual({
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "task-group")?.manifest.authoring?.defaultPlacement).toEqual({
       type: "plugin_slot",
       parentPluginId: "conversation-surface",
-      slot: "subagentConversation",
+      slot: "taskGroup",
     });
     expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-message-footer")?.manifest.authoring?.defaultPlacement).toEqual({
       type: "plugin_slot",
@@ -119,7 +119,7 @@ describe("assistant-ui default composition", () => {
       "assistant-ui-reasoning-main",
       "assistant-ui-tool-group-main",
       "assistant-ui-tool-fallback-main",
-      "subagent-conversation-main",
+      "task-group-main",
       "assistant-ui-message-footer-main",
       "assistant-ui-copy-action-main",
       "assistant-ui-reload-action-main",
@@ -140,7 +140,7 @@ describe("assistant-ui default composition", () => {
       "assistant-ui-reasoning-main",
       "assistant-ui-tool-group-main",
       "assistant-ui-tool-fallback-main",
-      "subagent-conversation-main",
+      "task-group-main",
       "assistant-ui-message-footer-main",
       "assistant-ui-copy-action-main",
       "assistant-ui-reload-action-main",

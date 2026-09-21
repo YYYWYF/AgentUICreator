@@ -24,7 +24,7 @@ import type { UIPluginComponentProps, UIPluginDefinition, UIPluginRenderScope } 
 import { AssistantUiReasoningPlugin } from "../plugins/assistant-ui-reasoning";
 import { AssistantUiToolFallbackPlugin } from "../plugins/assistant-ui-tool-fallback";
 import { AssistantUiToolGroupPlugin } from "../plugins/assistant-ui-tool-group";
-import { SubagentConversationPlugin } from "../plugins/subagent-conversation";
+import { TaskGroupPlugin } from "../plugins/task-group";
 import {
   createPluginRegistry,
   type RuntimeDiagnostic,
@@ -63,8 +63,8 @@ const definitions: UIPluginDefinition[] = [
           accepts: { anyOfCapabilities: ["conversation-tool-group-renderer"] } },
         toolFallback: { description: "Tool fallback renderer", cardinality: "one", mode: "renderer", optional: true,
           accepts: { anyOfCapabilities: ["conversation-tool-fallback-renderer"] } },
-        subagentConversation: { description: "Subagent conversation renderer", cardinality: "one", mode: "renderer", optional: true,
-          accepts: { anyOfCapabilities: ["conversation-subagent-renderer"] } },
+        taskGroup: { description: "Task group renderer", cardinality: "one", mode: "renderer", optional: true,
+          accepts: { anyOfCapabilities: ["conversation-task-group-renderer"] } },
       } },
     },
     Component: Host,
@@ -92,9 +92,9 @@ const definitions: UIPluginDefinition[] = [
     },
   },
   {
-    manifest: { id: "subagent-conversation-test", name: "Subagent conversation", description: "Subagent conversation renderer", version: "1.0.0",
-      capabilities: ["conversation-subagent-renderer"], requiresRenderScope: true },
-    Component: SubagentConversationPlugin,
+    manifest: { id: "task-group-test", name: "Task group", description: "Task group renderer", version: "1.0.0",
+      capabilities: ["conversation-task-group-renderer"], requiresRenderScope: true },
+    Component: TaskGroupPlugin,
   },
 ];
 const registry = createPluginRegistry(definitions);
@@ -104,7 +104,7 @@ function createModel(options: {
   reasoning?: "enabled" | "disabled" | "removed";
   toolGroup?: boolean;
   toolFallback?: boolean;
-  subagentConversation?: boolean;
+  taskGroup?: boolean;
 } = {}): AppUIRuntimeModel {
   const reasoning = options.reasoning ?? "enabled";
   return parseAppUIRuntimeModel({
@@ -123,9 +123,9 @@ function createModel(options: {
         fallback: { id: "fallback", pluginId: "tool-fallback-test", enabled: true,
           mount: { slotId: "plugin:host:toolFallback" } },
       }),
-      ...(options.subagentConversation === false ? {} : {
-        subagentConversation: { id: "subagentConversation", pluginId: "subagent-conversation-test", enabled: true,
-          mount: { slotId: "plugin:host:subagentConversation" } },
+      ...(options.taskGroup === false ? {} : {
+        taskGroup: { id: "taskGroup", pluginId: "task-group-test", enabled: true,
+          mount: { slotId: "plugin:host:taskGroup" } },
       }),
     },
   });
@@ -205,13 +205,14 @@ describe("Conversation scoped renderer integration", () => {
 
   it("lets the named search_files Tool UI take precedence over the fallback Plugin", async () => {
     const { container } = await mount([message([{ type: "tool-call", toolCallId: "search-1", toolName: "search_files",
-      args: { keyword: "AG-UI" }, argsText: '{"keyword":"AG-UI"}', result: { files: ["src/App.tsx"] } }])]);
+      args: { keyword: "AG-UI" }, argsText: '{"keyword":"AG-UI"}', messages: [message([{ type: "text", text: "Nested search result" }])], result: { files: ["src/App.tsx"] } }])]);
     expect(container.querySelector('[data-slot="tool-call"]')).not.toBeNull();
     expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
+    expect(container.querySelector('[data-slot="task-card"]')).toBeNull();
     expect(fallbackInvocations).not.toHaveBeenCalled();
   });
 
-  it("routes nested tool messages to the generic renderer and falls back when it is disabled", async () => {
+  it("routes nested tool messages to TaskCard and falls back when the Plugin is disabled", async () => {
     const nestedTool: Extract<ThreadMessage["content"][number], { type: "tool-call" }> = {
       type: "tool-call",
       toolCallId: "nested-1",
@@ -221,18 +222,22 @@ describe("Conversation scoped renderer integration", () => {
       messages: [message([{ type: "text", text: "Nested result" }])],
     };
     const { container, root } = await mount([message([nestedTool])]);
-    expect(container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();
-    expect(container.querySelector('[data-slot="subagent-conversation-content"]')?.textContent)
+    expect(container.querySelector('[data-slot="task-card"]')).not.toBeNull();
+    expect(container.querySelector('[data-slot="task-card-transcript"]')).toBeNull();
+    const taskCardButton = container.querySelector('[data-slot="task-card"] button');
+    expect(taskCardButton).not.toBeNull();
+    await act(async () => { (taskCardButton as HTMLButtonElement).click(); });
+    expect(container.querySelector('[data-slot="task-card-transcript"]')?.textContent)
       .toContain("Nested result");
 
     await act(async () => {
       root.render(<RuntimeFixture chatModel={{ run: async () => ({ content: [] }) }}
-        initialMessages={[message([nestedTool])]} model={createModel({ subagentConversation: false })}
+        initialMessages={[message([nestedTool])]} model={createModel({ taskGroup: false })}
         onRuntime={() => undefined} />);
       await Promise.resolve();
     });
-    expect(container.querySelector('[data-slot="subagent-conversation-content"]')).toBeNull();
     expect(container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();
+    expect(container.querySelector('[data-slot="task-card"]')).toBeNull();
   });
 
   it("passes one assistant-ui grouped reasoning scope for two parts and preserves the host", async () => {

@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "3ce4a05525bee794b620abfe71a6b82b76ffe93e917d05a3c71ccab8191e8ece";
+export const capabilityCatalogRevision = "bb618383ff744c878ba6100bf88cfa6ef1c29832977a0aa6ca8ff222f3baa74a";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -559,14 +559,14 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
               ]
             }
           },
-          "subagentConversation": {
-            "description": "Renderer for a tool call containing a nested subagent conversation.",
+          "taskGroup": {
+            "description": "Renderer for one or more tool calls containing nested agent tasks.",
             "cardinality": "one",
             "mode": "renderer",
             "optional": true,
             "accepts": {
               "anyOfCapabilities": [
-                "conversation-subagent-renderer"
+                "conversation-task-group-renderer"
               ]
             }
           },
@@ -655,26 +655,26 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   },
   {
     manifest: {
-      "id": "subagent-conversation",
-      "name": "Subagent Conversation",
-      "description": "Renders a nested conversation carried by a tool call presentation.",
+      "id": "task-group",
+      "name": "Task Group",
+      "description": "Renders nested agent work as expandable task cards.",
       "version": "1.0.0",
       "capabilities": [
-        "conversation-subagent-renderer"
+        "conversation-task-group-renderer"
       ],
       "requiresRenderScope": true,
       "authoring": {
         "intents": [
-          "show subagent conversations",
+          "show agent tasks",
           "show nested agent work",
-          "show delegated agent conversations",
-          "show multi-agent nested conversations"
+          "show delegated agent tasks",
+          "group nested tool tasks"
         ],
-        "visualRole": "nested subagent conversation",
+        "visualRole": "conversation task group",
         "defaultPlacement": {
           "type": "plugin_slot",
           "parentPluginId": "conversation-surface",
-          "slot": "subagentConversation"
+          "slot": "taskGroup"
         }
       }
     },
@@ -682,7 +682,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () =>
-      import("./subagent-conversation/definition").then(
+      import("./task-group/definition").then(
         ({ default: definition }) => definition,
       ),
   },

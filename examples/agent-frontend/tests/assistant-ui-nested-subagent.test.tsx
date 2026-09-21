@@ -29,7 +29,7 @@ import { runMockScenario } from "@agent-ui/mock-agent";
 import { ConversationAdapter } from "../agent-ui/conversation/ConversationAdapter";
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
 import { AssistantUiMessageFooterPlugin } from "../plugins/assistant-ui-message-footer";
-import { SubagentConversationPlugin } from "../plugins/subagent-conversation";
+import { TaskGroupPlugin } from "../plugins/task-group";
 import type { UIPluginRenderScope } from "../framework/contracts/ui-plugin";
 import { PluginRenderScopeProvider } from "../runtime/plugins";
 
@@ -103,10 +103,10 @@ function renderConversationScopedSlot(
   if (slotName === "toolGroup" || slotName === "reasoningGroup") {
     return (scope.value as { children?: ReactNode }).children ?? null;
   }
-  if (slotName !== "subagentConversation") return fallback ?? null;
+  if (slotName !== "taskGroup") return fallback ?? null;
   return (
     <PluginRenderScopeProvider scope={scope}>
-      <SubagentConversationPlugin
+      <TaskGroupPlugin
         renderSlot={() => null}
         renderScopedSlot={() => null}
       />
@@ -148,6 +148,16 @@ async function mountRuntime(agent: AbstractAgent) {
   });
   if (runtime === undefined) throw new Error("assistant-ui runtime was not captured");
   return { container, runtime };
+}
+
+async function openTaskCards(container: HTMLElement) {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const button = [...container.querySelectorAll<HTMLButtonElement>(
+      '[data-slot="task-card"] button[aria-expanded="false"]',
+    )][0];
+    if (button === undefined) return;
+    await act(async () => button.click());
+  }
 }
 
 function assistantMessages(runtime: AgUiAssistantRuntime): ThreadMessage[] {
@@ -227,39 +237,28 @@ describe("official nested assistant-ui conversation", () => {
       });
     });
 
+    await openTaskCards(runtimeFixture.container);
+
     const nested = runtimeFixture.container.querySelector(
-      '[data-slot="subagent-conversation-content"]',
+      '[data-slot="task-card-transcript"]',
     );
     expect(nested).not.toBeNull();
-    expect(nested?.classList.contains("border-s")).toBe(false);
-    expect(nested?.classList.contains("border-border/60")).toBe(false);
-    expect(nested?.classList.contains("ps-5")).toBe(false);
-    expect(nested?.classList.contains("ms-[7px]")).toBe(false);
-    expect(nested?.classList.contains("ms-5")).toBe(true);
     expect(nested?.textContent).toContain("我先检查 Agent UI 的核心 Runtime");
     expect(nested?.textContent).toContain("Searched files");
     expect(nested?.textContent).toContain("检查完成：当前项目由 Conversation Runtime");
 
     expect(
       runtimeFixture.container.querySelectorAll(
-        '[data-slot="subagent-conversation-message"]',
+        '[data-slot="aui_task-transcript-message"]',
       ),
     ).toHaveLength(1);
     const nestedMessage = runtimeFixture.container.querySelector(
-      '[data-slot="subagent-conversation-message"]',
+      '[data-slot="aui_task-transcript-message"]',
     );
     expect(nestedMessage).not.toBeNull();
-    expect(nestedMessage?.classList.contains("rounded-xl")).toBe(false);
-    expect(nestedMessage?.classList.contains("border")).toBe(false);
-    expect(nestedMessage?.classList.contains("bg-card/40")).toBe(false);
     expect(
       runtimeFixture.container.querySelectorAll(
-        '[data-slot="aui_assistant-message-root"]',
-      ),
-    ).toHaveLength(1);
-    expect(
-      runtimeFixture.container.querySelectorAll(
-        ".aui-assistant-action-bar-root",
+        '[data-slot="aui_task-transcript-message"]',
       ),
     ).toHaveLength(1);
     expect(runtimeFixture.container.textContent).not.toContain(
@@ -270,7 +269,7 @@ describe("official nested assistant-ui conversation", () => {
     );
   });
 
-  it("uses the canonical tool fallback without a second disclosure shell", async () => {
+  it("uses the official TaskCard disclosure for nested work", async () => {
     const runtimeFixture = await mountRuntime(
       new ScenarioEventAgent(await collectScenarioEvents()),
     );
@@ -283,31 +282,11 @@ describe("official nested assistant-ui conversation", () => {
       });
     });
 
-    expect(
-      runtimeFixture.container.querySelector('[data-slot="tool-fallback-root"]'),
-    ).not.toBeNull();
-    expect(
-      runtimeFixture.container.querySelector('[data-slot="subagent-conversation-root"]'),
-    ).toBeNull();
-    expect(
-      runtimeFixture.container.querySelector('[data-slot="subagent-conversation-trigger"]'),
-    ).toBeNull();
-    expect(
-      runtimeFixture.container.querySelector('[data-slot="subagent-conversation-chevron"]'),
-    ).toBeNull();
+    expect(runtimeFixture.container.querySelector('[data-slot="task-card"]')).not.toBeNull();
+    expect(runtimeFixture.container.querySelector('[data-slot="task-card-transcript"]')).toBeNull();
 
     const matches = runtimeFixture.container.textContent?.match(/delegate_specialist/g) ?? [];
     expect(matches).toHaveLength(1);
-    expect(
-      runtimeFixture.container.querySelectorAll(
-        '[data-slot="subagent-conversation-content"]',
-      ),
-    ).toHaveLength(1);
-    expect(
-      runtimeFixture.container.querySelectorAll(
-        '[data-slot="subagent-conversation-message"]',
-      ),
-    ).toHaveLength(1);
   });
 
   it("routes an unknown parent tool name through the same presentation", async () => {
@@ -326,9 +305,7 @@ describe("official nested assistant-ui conversation", () => {
       });
     });
 
-    expect(
-      runtimeFixture.container.querySelector('[data-slot="tool-fallback-root"]'),
-    ).not.toBeNull();
+    expect(runtimeFixture.container.querySelector('[data-slot="task-card"]')).not.toBeNull();
     expect(runtimeFixture.container.textContent).toContain(
       "customer_defined_agent_tool",
     );
@@ -349,6 +326,8 @@ describe("official nested assistant-ui conversation", () => {
       });
     });
 
+    await openTaskCards(runtimeFixture.container);
+
     const parentMessage = assistantMessages(runtimeFixture.runtime).at(-1);
     const parentTool = parentMessage?.content.find(
       (part): part is Extract<ThreadMessage["content"][number], { type: "tool-call" }> =>
@@ -367,7 +346,7 @@ describe("official nested assistant-ui conversation", () => {
     );
     expect(
       runtimeFixture.container.querySelectorAll(
-        '[data-slot="subagent-conversation-message"]',
+        '[data-slot="aui_task-transcript-message"]',
       ),
     ).toHaveLength(2);
   });
@@ -387,6 +366,8 @@ describe("official nested assistant-ui conversation", () => {
       });
     });
 
+    await openTaskCards(runtimeFixture.container);
+
     const parentMessage = assistantMessages(runtimeFixture.runtime).at(-1);
     const parentTool = parentMessage?.content.find(
       (part): part is Extract<ThreadMessage["content"][number], { type: "tool-call" }> =>
@@ -405,7 +386,7 @@ describe("official nested assistant-ui conversation", () => {
       "SUBAGENT_RESEARCH_FAILED",
     );
     const errorAlert = runtimeFixture.container
-      .querySelector('[data-slot="subagent-conversation-message"]')
+      .querySelector('[data-slot="aui_task-transcript-message"]')
       ?.querySelector('[role="alert"]');
     expect(errorAlert).not.toBeNull();
     expect(errorAlert?.textContent).toContain(

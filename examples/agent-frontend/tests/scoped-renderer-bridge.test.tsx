@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   ScopedReasoningGroup,
   ScopedRendererBridgeProvider,
+  ScopedTaskGroup,
   ScopedToolFallback,
   ScopedToolGroup,
 } from "../agent-ui/conversation/ScopedRendererBridge";
@@ -92,7 +93,7 @@ describe("scoped renderer bridge", () => {
     expect(observed[3]?.scope).toMatchObject({ kind: "conversation.tool-fallback", value: { tool } });
   });
 
-  it("routes tool parts with nested messages to the subagent renderer with fallback", () => {
+  it("routes the official task group seam with ordinary-tool fallback", () => {
     const observed: Array<{
       slot: string;
       scope: UIPluginRenderScope;
@@ -106,28 +107,19 @@ describe("scoped renderer bridge", () => {
       observed.push({ slot, scope, fallback });
       return <span>{slot}</span>;
     };
-    const tool = {
-      toolCallId: "nested-tool-1",
-      toolName: "customer_defined_agent_tool",
-      args: {},
-      messages: [],
-      status: { type: "complete" as const },
-    };
-
     renderToStaticMarkup(
       <ScopedRendererBridgeProvider renderScopedSlot={renderScopedSlot}>
-        <ScopedToolFallback {...tool} />
+        <ScopedTaskGroup group={{ type: "group-task", indices: [0], counts: { running: 0, requiresAction: 0 } }}>
+          <span>ordinary tool</span>
+        </ScopedTaskGroup>
       </ScopedRendererBridgeProvider>,
     );
 
-    expect(observed.map(({ slot }) => slot)).toEqual([
-      "toolFallback",
-      "subagentConversation",
-    ]);
-    expect(observed[1]?.scope).toMatchObject({
-      kind: "conversation.subagent",
-      value: { tool: { toolName: "customer_defined_agent_tool", messages: [] } },
+    expect(observed.map(({ slot }) => slot)).toEqual(["taskGroup"]);
+    expect(observed[0]?.scope).toMatchObject({
+      kind: "conversation.task-group",
+      value: { group: { type: "group-task", indices: [0] }, children: expect.anything() },
     });
-    expect(observed[1]?.fallback).toBeDefined();
+    expect(observed[0]?.fallback).toBeDefined();
   });
 });

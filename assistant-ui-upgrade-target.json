@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "project": "assistant-ui/assistant-ui",
+  "source": "local checkout main",
+  "revision": "b712ee83bde9a89fce2812968f951a5742d757b9",
+  "packages": {
+    "@assistant-ui/react": "0.15.21",
+    "@assistant-ui/react-ag-ui": "0.0.60",
+    "@assistant-ui/react-markdown": "0.14.16"
+  },
+  "agUi": {
+    "@ag-ui/core": "0.0.59",
+    "@ag-ui/client": "0.0.59"
+  }
+}

@@ -105,10 +105,10 @@
                     "enabled": true
                   }
                 ],
-                "subagentConversation": [
+                "taskGroup": [
                   {
-                    "id": "subagent-conversation-main",
-                    "pluginId": "subagent-conversation",
+                    "id": "task-group-main",
+                    "pluginId": "task-group",
                     "enabled": true
                   }
                 ],

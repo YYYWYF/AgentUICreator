@@ -1,42 +1,27 @@
-# assistant-ui upstream provenance
+# Vendored assistant-ui source
 
 Repository: https://github.com/assistant-ui/assistant-ui
-
 Branch: `main`
+Commit: `b712ee83bde9a89fce2812968f951a5742d757b9`
+Previous commit: `bd7e8fa9f79ffea10fab0741026d53cdba4cfa70`
+License: MIT
+Source form: official Base UI registry output plus declared mechanical import adaptations
 
-Commit: `bd7e8fa9f79ffea10fab0741026d53cdba4cfa70`
+## Runtime package versions
 
-Synced at: `2026-09-13`
-
-The vendored presentation files are based on the assistant-ui Base UI registry
-output at the commit above. This update adds the official AgentPlan,
-AgentStatus, and SubagentList elements plus their shared range utility, and the
-official Sidebar, Sheet, Separator, and mobile hook foundation; their import
-paths remain mechanically adapted for this project's vendor root.
-
-Runtime packages:
-
-- `@assistant-ui/react` = `0.15.19`
-- `@assistant-ui/react-ag-ui` = `0.0.59`
-- `@assistant-ui/react-markdown` = `0.14.15`
+- `@assistant-ui/react` = `0.15.21`
+- `@assistant-ui/react-ag-ui` = `0.0.60`
+- `@assistant-ui/react-markdown` = `0.14.16`
 - `@ag-ui/client` = `0.0.59`
 
-The selected upstream-owned Element set is declared in `upstream-elements.json`.
-All declared elements, including `thread.aui.tsx`, are pinned to the local
-assistant-ui revision above and may only receive mechanical import adaptations.
+## Ownership
 
-`assistant-ui-upstream.lock.json` records the SHA-256 of each installed,
-import-adapted upstream-owned Element. Run the project
-`check:assistant-ui-upstream` command before changing this boundary.
+The files below are copied from the frozen revision above. Vendor sync may adapt only upstream import aliases and the registry's base-ui relative paths. Product presentation and policy stay in the Agent UI facade and Plugin layers.
 
-AgentUICreator local patches are limited to thin adapter seams:
+- 41 tracked vendor files
+- 22 official Element files
+- AG-UI remains at `0.0.59` because it follows the react-ag-ui compatibility matrix
 
-- semantic Slot wrappers;
-- explicit presentation configuration seam;
-- requires-action native fallback protection;
-- additive Agent Message composition seam;
-- ThreadBinding compatibility;
-- import path adaptation.
+## Upgrade command
 
-There is no custom visual redesign, spacing, color, or card layout in the
-vendored files declared `owned`.
+`pnpm assistant-ui:update` resolves versions, freezes a revision, syncs the vendor, and writes the impact report.
