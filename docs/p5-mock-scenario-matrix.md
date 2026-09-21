@@ -1,33 +1,97 @@
-# P5-A Mock Scenario Matrix
+# Mock Scenario Catalog
 
-P5-A extends the existing `@agent-ui/mock-agent` Vite development endpoint. Each
-scenario is compiled into standard `@ag-ui/core@0.0.59` events and continues
-through `HttpAgent`, `runtime-agui`, `runtime-assistant-ui`, and assistant-ui.
-The mock endpoint is development-only; it is not a production Agent Contract.
+The Mock Agent is a development-only simulator. It emits standard
+`@ag-ui/core` events and exercises the same live frontend path as a real Agent
+endpoint:
 
-| Scenario | Reasoning | Tool | Parallel | Approval | Plan | Status | Subagents | Error |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| `reasoning-tool-success` | ✅ | ✅ | | | | | | |
-| `tool-long-running` | ✅ | ✅ | | | | | | |
-| `parallel-tools` | | ✅ | ✅ | | | | | |
-| `tool-error` | | ✅ | | | | | | ✅ |
-| `step-lifecycle` | ✅ | | | | | | | |
-| `subagent-lifecycle` | | | | | | | ✅ | ✅ |
-| `approval-resume` | ✅ | ✅ | | ✅ | | | | |
-| `agent-plan` | ✅ | ✅ | | | ✅ | | | |
-| `agent-status` | | ✅ | | | | ✅ | | |
-| `subagents` | ✅ | ✅ | | | | | ✅ | |
-| `subagents-out-of-order` | | ✅ | | | | | ✅ | |
-| `agent-elements-showcase` | ✅ | ✅ | ✅ | | ✅ | ✅ | ✅ | |
+```text
+Mock Scenario
+→ @ag-ui/core events
+→ HTTP SSE
+→ @ag-ui/client HttpAgent
+→ @assistant-ui/react-ag-ui
+→ Conversation Runtime
+→ assistant-ui
+```
 
-Sources discovery is intentionally deferred in P5-A. No standard live
-AG-UI-to-source-part projection is added here, and no `CUSTOM` event is used to
-pretend that it exists. Persisted source metadata remains available for the
-planned P5-B conversation/history work.
+The Vite Mock endpoint and Scenario Studio expose the showcase catalog only.
+Regression fixtures remain available through `@agent-ui/mock-agent` imports and
+direct `runMockScenario()` calls.
 
-Persisted rich conversation replay is covered by P5-B.
+## Showcase Catalog
 
-## Development URLs
+| Section | Scenario ID | Display purpose | Reference level |
+|---|---|---|---|
+| Basics | `simple-chat` | Minimal text streaming | |
+| Basics | `reasoning-chat` | Reasoning → Answer | |
+| Basics | `reasoning-tool-success` | Reasoning → Tool → Reasoning → Answer | Recommended |
+| Tools | `parallel-tools` | Parallel Tool Calls | |
+| Tools | `tool-error` | Tool Call followed by standard `RUN_ERROR` | |
+| Human in the Loop | `approval-resume` | Interrupt → Allow/Deny → Resume | |
+| State | `agent-state-sync` | `STATE_SNAPSHOT / STATE_DELTA` → JobProgress | Recommended |
+| Multi-Agent | `nested-subagent-conversation` | Standard `SUBAGENT_*` → TaskCard | Recommended |
+| Multi-Agent | `nested-subagent-task-group` | Sibling Subagents → TaskGroup | Advanced |
+| Presentation | `agent-plan` | Application-defined Tool Result → AgentPlan | |
+| Presentation | `agent-status` | Application-defined Tool Result → AgentStatus | |
+| Advanced | `nested-subagent-recursive` | Recursive Subagent | Advanced |
+| Advanced | `nested-subagent-error` | Nested Subagent Error | Edge case |
+
+The default scenario is `reasoning-tool-success`.
+
+`agent-plan` and `agent-status` are application-defined tool contracts. AG-UI
+does not define `AgentPlan` or `AgentStatus` events, so these scenarios do not
+invent `PLAN_*` or `AGENT_STATUS` protocol events. Their flow is:
+
+```text
+TOOL_CALL_START
+→ TOOL_CALL_ARGS
+→ TOOL_CALL_END
+→ TOOL_CALL_RESULT
+→ application projector
+→ AgentPlan / AgentStatus
+```
+
+`tool-error` describes a run failure during a Tool Call. The event is
+`RUN_ERROR`; there is no `TOOL_ERROR` event.
+
+## Regression Fixtures
+
+These fixtures retain implementation coverage but are not user-facing catalog
+entries:
+
+| Scenario ID | Regression purpose |
+|---|---|
+| `reasoning-long-preview` | Long reasoning, scrolling, and disclosure behavior |
+| `multi-tool` | Sequential Tool lifecycle |
+| `tool-long-running` | Long pending/loading/cancel behavior |
+| `subagent-lifecycle` | Pure `SUBAGENT_*` protocol lifecycle |
+
+`STEP_*`:
+
+```text
+The Mock runner can emit STEP_STARTED / STEP_FINISHED.
+The current assistant-ui react-ag-ui integration does not project them.
+Therefore STEP lifecycle remains a runner primitive and is not a user-facing scenario.
+```
+
+## Legacy Replay Compatibility
+
+The removed `step-lifecycle`, `subagents`, `subagents-out-of-order`, and
+`agent-elements-showcase` fixtures are no longer production builtins. The
+legacy `mock_dispatch_subagent` toolkit registration, replay renderer, and
+`subagent-projection` remain because persisted Conversation Replay fixtures
+still contain that tool name.
+
+```text
+mock_dispatch_subagent = legacy persisted replay compatibility only
+```
+
+It is not a live AG-UI Subagent reference. New live scenarios use
+`SUBAGENT_STARTED`, child events attributed by `subagentRunId`, and
+`SUBAGENT_FINISHED` / `SUBAGENT_ERROR`, rendered through the canonical nested
+assistant-ui path.
+
+## Development Endpoint
 
 From `examples/agent-frontend`, start the existing Vite app:
 
@@ -35,38 +99,9 @@ From `examples/agent-frontend`, start the existing Vite app:
 pnpm --filter @agent-ui/example-agent-frontend dev
 ```
 
-Then select a fixture with one of these query parameters:
+Select a showcase with `?mockScenario=<scenario-id>`. The default remains
+`reasoning-tool-success`. `mockSpeed` controls development timing and can be
+used to accelerate long-running showcase steps.
 
-```text
-?mockScenario=agent-plan
-?mockScenario=agent-status
-?mockScenario=subagents
-?mockScenario=parallel-tools
-?mockScenario=approval-resume
-?mockScenario=agent-elements-showcase
-?mockScenario=subagent-lifecycle
-```
-
-The long-running fixture can be accelerated without changing its declared
-two-minute duration:
-
-```text
-?mockScenario=tool-long-running&mockSpeed=0.05
-```
-
-`mockSpeed` is clamped by the HTTP handler to `0..10`; invalid values use the
-normal speed of `1`. The default remains `reasoning-tool-success`.
-
-## Boundaries
-
-- `mock_agent_plan`, `mock_agent_status`, and `mock_dispatch_subagent` are
-  mock-only backend presentation fixtures. Each dispatch call is aggregated at
-  the assistant-message level into one `SubagentList`.
-- `subagent-lifecycle` is a protocol-only fixture for standard
-  `SUBAGENT_STARTED`, `SUBAGENT_FINISHED`, and `SUBAGENT_ERROR` projection; it
-  does not drive the `SubagentList` presentation.
-- Production toolkit configuration and `appFrontendTools` remain unchanged.
-- The P4-3C contract map remains dormant for AgentPlan, AgentStatus, and
-  SubagentList.
-- The AppUIModel and Workspace Shell composition are not changed by these
-  scenarios.
+Mock scenarios do not change AppUIModel, Workspace Shell composition, runtime
+ownership, or Conversation Replay data format.

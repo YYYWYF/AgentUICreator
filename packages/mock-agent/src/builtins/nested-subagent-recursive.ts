@@ -12,7 +12,7 @@ export const nestedSubagentRecursiveScenario = defineScenario({
   id: "nested-subagent-recursive",
   title: "Recursive AG-UI Subagents",
   description: "通过标准 AG-UI attribution 展示 Subagent A 委托 child Tool 并递归生成 Subagent B 的 nested TaskCard。",
-  category: "agent",
+  category: "advanced",
   capabilities: ["reasoning", "tool", "subagent"],
   reference: {
     protocol: "AG-UI",

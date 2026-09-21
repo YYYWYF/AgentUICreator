@@ -6,7 +6,7 @@ import { HttpAgent, type RunAgentParameters } from "@ag-ui/client";
 import { EventType, type BaseEvent, type ResumeEntry } from "@ag-ui/core";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { builtinMockScenarios } from "../src/builtins/index.js";
+import { showcaseMockScenarios } from "../src/builtins/index.js";
 import { createMockAgentHttpHandler } from "../src/http-handler.js";
 import { createScenarioRegistry } from "../src/scenario-registry.js";
 import { defineScenario, type MockScenario } from "../src/scenario.js";
@@ -135,7 +135,7 @@ describe("Mock Agent HTTP endpoint", () => {
   });
 
   it("runs parallel-tools through the real HttpAgent", async () => {
-    const endpoint = await startMockServer(builtinMockScenarios);
+    const endpoint = await startMockServer(showcaseMockScenarios);
     const agent = new HttpAgent({
       url: `${endpoint}?scenario=parallel-tools&speed=0`,
       threadId: "thread-parallel-tools",
@@ -169,41 +169,8 @@ describe("Mock Agent HTTP endpoint", () => {
     });
   });
 
-  it("runs the subagent demo through the real HttpAgent", async () => {
-    const endpoint = await startMockServer(builtinMockScenarios);
-    const agent = new HttpAgent({
-      url: `${endpoint}?scenario=subagents&speed=0`,
-      threadId: "thread-subagents",
-    });
-    agent.addMessage({
-      id: "user-subagents",
-      role: "user",
-      content: "请并行检查当前 Agent UI 的架构、Runtime 和界面实现。",
-    });
-
-    const events = await collectAgentRun(agent, { runId: "run-subagents" });
-    const starts = events.filter((event) =>
-      event.type === EventType.TOOL_CALL_START,
-    );
-    const firstResultIndex = events.findIndex((event) =>
-      event.type === EventType.TOOL_CALL_RESULT,
-    );
-
-    expect(starts).toHaveLength(3);
-    expect(starts.every((event) => event.toolCallName === "mock_dispatch_subagent"))
-      .toBe(true);
-    expect(firstResultIndex).toBeGreaterThan(-1);
-    expect(events.slice(0, firstResultIndex).filter((event) =>
-      event.type === EventType.TOOL_CALL_START,
-    )).toHaveLength(3);
-    expect(events.at(-1)).toMatchObject({
-      type: EventType.RUN_FINISHED,
-      outcome: { type: "success" },
-    });
-  });
-
   it("runs the nested subagent conversation through the real HttpAgent", async () => {
-    const endpoint = await startMockServer(builtinMockScenarios);
+    const endpoint = await startMockServer(showcaseMockScenarios);
     const agent = new HttpAgent({
       url: `${endpoint}?scenario=nested-subagent-conversation&speed=0`,
       threadId: "thread-nested-subagent",
@@ -255,45 +222,8 @@ describe("Mock Agent HTTP endpoint", () => {
     });
   });
 
-  it("runs agent-elements-showcase through the real HttpAgent", async () => {
-    const endpoint = await startMockServer(builtinMockScenarios);
-    const agent = new HttpAgent({
-      url: `${endpoint}?scenario=agent-elements-showcase&speed=0`,
-      threadId: "thread-agent-elements-showcase",
-    });
-    agent.addMessage({
-      id: "user-agent-elements-showcase",
-      role: "user",
-      content: "展示 Agent Elements",
-    });
-
-    const events = await collectAgentRun(agent, {
-      runId: "run-agent-elements-showcase",
-    });
-    const toolNames = new Set(events
-      .filter((event) => event.type === EventType.TOOL_CALL_START)
-      .map((event) => event.toolCallName));
-
-    expect(events.some(({ type }) => type === EventType.REASONING_START)).toBe(true);
-    expect(toolNames).toEqual(new Set([
-      "mock_agent_plan",
-      "mock_agent_status",
-      "search_files",
-      "inspect_runtime",
-      "read_config",
-      "mock_dispatch_subagent",
-    ]));
-    expect(events.some(({ type }) => type === EventType.TEXT_MESSAGE_START)).toBe(true);
-    expect(events.some(({ type }) => type === EventType.TEXT_MESSAGE_CONTENT)).toBe(true);
-    expect(events.some(({ type }) => type === EventType.TEXT_MESSAGE_END)).toBe(true);
-    expect(events.at(-1)).toMatchObject({
-      type: EventType.RUN_FINISHED,
-      outcome: { type: "success" },
-    });
-  });
-
   it("runs approval-resume through HTTP and resumes the same interrupted tool", async () => {
-    const endpoint = await startMockServer(builtinMockScenarios);
+    const endpoint = await startMockServer(showcaseMockScenarios);
     const agent = new HttpAgent({
       url: `${endpoint}?scenario=approval-resume&speed=0`,
       threadId: "thread-approval-allow",
@@ -358,7 +288,7 @@ describe("Mock Agent HTTP endpoint", () => {
   });
 
   it("runs approval-resume through HTTP and keeps the denied tool without a result", async () => {
-    const endpoint = await startMockServer(builtinMockScenarios);
+    const endpoint = await startMockServer(showcaseMockScenarios);
     const agent = new HttpAgent({
       url: `${endpoint}?scenario=approval-resume&speed=0`,
       threadId: "thread-approval-deny",
@@ -411,7 +341,7 @@ describe("Mock Agent HTTP endpoint", () => {
 
   it("lists scenario metadata without fixture implementation details", async () => {
     const endpoint = await startMockServer(
-      builtinMockScenarios,
+      showcaseMockScenarios,
       "reasoning-tool-success",
     );
     const response = await fetch(`${endpoint}/scenarios`);
@@ -423,20 +353,38 @@ describe("Mock Agent HTTP endpoint", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("application/json");
     expect(body.defaultScenarioId).toBe("reasoning-tool-success");
-    expect(body.scenarios).toHaveLength(builtinMockScenarios.length);
+    expect(body.scenarios).toHaveLength(showcaseMockScenarios.length);
+    expect(body.scenarios.map(({ id }) => id)).toEqual([
+      "simple-chat",
+      "reasoning-chat",
+      "reasoning-tool-success",
+      "parallel-tools",
+      "tool-error",
+      "approval-resume",
+      "agent-state-sync",
+      "nested-subagent-conversation",
+      "nested-subagent-task-group",
+      "agent-plan",
+      "agent-status",
+      "nested-subagent-recursive",
+      "nested-subagent-error",
+    ]);
     expect(body.scenarios[0]).not.toHaveProperty("steps");
     expect(body.scenarios[0]).not.toHaveProperty("initialState");
-    expect(body.scenarios.find(({ id }) => id === "agent-elements-showcase"))
+    expect(body.scenarios.find(({ id }) => id === "tool-error"))
       .toMatchObject({
-        category: "agent",
-        capabilities: [
-          "reasoning",
-          "tool",
-          "parallel-tool",
-          "plan",
-          "agent-status",
-          "subagent",
-        ],
+        title: "Run Error During Tool",
+        category: "tools",
+        capabilities: ["tool", "run-error"],
+      });
+    expect(body.scenarios.find(({ id }) => id === "agent-plan"))
+      .toMatchObject({
+        title: "Custom Tool → AgentPlan",
+        reference: {
+          protocol: "AG-UI Tool Call",
+          pattern: "Application-defined Tool Result → Agent Element",
+          presentation: "assistant-ui AgentPlan",
+        },
       });
   });
 });

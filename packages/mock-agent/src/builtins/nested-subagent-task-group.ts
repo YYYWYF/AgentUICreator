@@ -9,7 +9,7 @@ export const nestedSubagentTaskGroupScenario = defineScenario({
   id: "nested-subagent-task-group",
   title: "AG-UI Subagent Task Group",
   description: "多个 sibling nested Subagent 通过标准 AG-UI 事件自然组成 official TaskGroup。",
-  category: "agent",
+  category: "multi-agent",
   capabilities: ["tool", "subagent"],
   reference: {
     protocol: "AG-UI",

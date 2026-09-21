@@ -4,7 +4,7 @@ export const parallelToolsScenario = defineScenario({
   id: "parallel-tools",
   title: "Parallel Tools",
   description: "三个工具以确定性的交错顺序并行执行。",
-  category: "tool",
+  category: "tools",
   capabilities: ["tool", "parallel-tool"],
   steps: [
     {

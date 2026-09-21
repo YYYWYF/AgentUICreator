@@ -8,9 +8,11 @@ import { describe, expect, it } from "vitest";
 import {
   approvalResumeScenario,
   builtinMockScenarios,
+  mockRegressionScenarios,
   parallelToolsScenario,
+  showcaseMockScenarios,
   subagentLifecycleScenario,
-  subagentsScenario,
+  toolErrorScenario,
 } from "../src/builtins/index.js";
 import { runMockScenario } from "../src/scenario-runner.js";
 import { defineScenario, type MockScenario } from "../src/scenario.js";
@@ -91,6 +93,16 @@ describe("P5-A mock scenarios", () => {
     }
   });
 
+  it("keeps the live catalog limited to showcase scenarios", () => {
+    expect(showcaseMockScenarios).toHaveLength(13);
+    expect(mockRegressionScenarios.map(({ id }) => id)).toEqual([
+      "reasoning-long-preview",
+      "multi-tool",
+      "tool-long-running",
+      "subagent-lifecycle",
+    ]);
+  });
+
   it("uses resume steps for structured approval interrupts", async () => {
     const first = await collect(approvalResumeScenario);
     const interrupt = first.find((event) =>
@@ -121,6 +133,16 @@ describe("P5-A mock scenarios", () => {
     });
   });
 
+  it("models a failed Tool Call with standard RUN_ERROR", async () => {
+    const events = await collect(toolErrorScenario);
+
+    expect(events).toContainEqual(expect.objectContaining({
+      type: EventType.RUN_ERROR,
+      code: "MOCK_SERVICE_UNAVAILABLE",
+    }));
+    expect(events.some(({ type }) => type === EventType.TOOL_CALL_RESULT)).toBe(false);
+  });
+
   it("keeps standard subagent lifecycle separate from dispatch presentation", async () => {
     const events = await collect(subagentLifecycleScenario);
     expect(events).toContainEqual(expect.objectContaining({
@@ -144,34 +166,4 @@ describe("P5-A mock scenarios", () => {
     }));
   });
 
-  it("runs the parallel agent status demo as three parallel dispatches", async () => {
-    const events = await collect(subagentsScenario);
-    const starts = events.filter((event) =>
-      event.type === EventType.TOOL_CALL_START,
-    );
-    const firstResultIndex = events.findIndex((event) =>
-      event.type === EventType.TOOL_CALL_RESULT,
-    );
-
-    expect(subagentsScenario).toMatchObject({
-      category: "agent",
-      capabilities: ["tool", "parallel-tool", "agent-status"],
-    });
-    expect(starts).toHaveLength(3);
-    expect(starts.map((event) => event.toolCallId)).toEqual([
-      "subagent-architecture",
-      "subagent-runtime",
-      "subagent-ui",
-    ]);
-    expect(starts.every((event) => event.toolCallName === "mock_dispatch_subagent"))
-      .toBe(true);
-    expect(firstResultIndex).toBeGreaterThan(-1);
-    expect(events.slice(0, firstResultIndex).filter((event) =>
-      event.type === EventType.TOOL_CALL_START,
-    )).toHaveLength(3);
-    expect(events).toContainEqual(expect.objectContaining({
-      type: EventType.TEXT_MESSAGE_CONTENT,
-      delta: "三",
-    }));
-  });
 });

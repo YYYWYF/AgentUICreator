@@ -4,7 +4,7 @@ export const nestedSubagentErrorScenario = defineScenario({
   id: "nested-subagent-error",
   title: "AG-UI Subagent Error",
   description: "展示带有归属内容的 SUBAGENT_ERROR nested reference case：nested assistant message 标记为 incomplete/error，保留错误前的 transcript。",
-  category: "agent",
+  category: "advanced",
   capabilities: ["tool", "subagent"],
   reference: {
     protocol: "AG-UI",

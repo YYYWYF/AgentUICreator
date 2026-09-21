@@ -2,10 +2,26 @@ import { defineScenario } from "../scenario.js";
 
 export const agentStatusScenario = defineScenario({
   id: "agent-status",
-  title: "Agent Status",
-  description: "依次展示 working、waiting、done 三个显式状态。",
-  category: "agent",
+  title: "Custom Tool → AgentStatus",
+  description: "用 application-defined tool result 驱动 assistant-ui AgentStatus。",
+  category: "presentation",
   capabilities: ["tool", "agent-status"],
+  reference: {
+    protocol: "AG-UI Tool Call",
+    pattern: "Application-defined Tool Result → Agent Element",
+    presentation: "assistant-ui AgentStatus",
+    eventFlow: [
+      "TOOL_CALL_START",
+      "TOOL_CALL_ARGS",
+      "TOOL_CALL_END",
+      "TOOL_CALL_RESULT",
+      "application projector",
+      "AgentStatus",
+    ],
+    notes: [
+      "AG-UI does not define an AgentStatus event. This scenario demonstrates an application-defined tool contract rendered with assistant-ui AgentStatus.",
+    ],
+  },
   steps: [
     {
       type: "tool",

@@ -1,4 +1,3 @@
-import { agentElementsShowcaseScenario } from "./agent-elements-showcase.js";
 import { agentPlanScenario } from "./agent-plan.js";
 import { agentStatusScenario } from "./agent-status.js";
 import { agentStateSyncScenario } from "./agent-state-sync.js";
@@ -13,15 +12,12 @@ import { reasoningChatScenario } from "./reasoning-chat.js";
 import { reasoningLongPreviewScenario } from "./reasoning-long-preview.js";
 import { reasoningToolSuccessScenario } from "./reasoning-tool-success.js";
 import { simpleChatScenario } from "./simple-chat.js";
-import { stepLifecycleScenario } from "./step-lifecycle.js";
 import { subagentLifecycleScenario } from "./subagent-lifecycle.js";
-import { subagentsOutOfOrderScenario } from "./subagents-out-of-order.js";
-import { subagentsScenario } from "./subagents.js";
 import { toolErrorScenario } from "./tool-error.js";
 import { toolLongRunningScenario } from "./tool-long-running.js";
+import type { MockScenario } from "../scenario.js";
 
 export {
-  agentElementsShowcaseScenario,
   agentPlanScenario,
   agentStatusScenario,
   agentStateSyncScenario,
@@ -36,34 +32,35 @@ export {
   reasoningLongPreviewScenario,
   reasoningToolSuccessScenario,
   simpleChatScenario,
-  stepLifecycleScenario,
   subagentLifecycleScenario,
-  subagentsOutOfOrderScenario,
-  subagentsScenario,
   toolErrorScenario,
   toolLongRunningScenario,
 };
 
-export const builtinMockScenarios = [
+export const showcaseMockScenarios: MockScenario[] = [
   simpleChatScenario,
   reasoningChatScenario,
-  reasoningLongPreviewScenario,
   reasoningToolSuccessScenario,
-  multiToolScenario,
-  toolLongRunningScenario,
   parallelToolsScenario,
   toolErrorScenario,
-  stepLifecycleScenario,
-  subagentLifecycleScenario,
   approvalResumeScenario,
+  agentStateSyncScenario,
+  nestedSubagentConversationScenario,
+  nestedSubagentTaskGroupScenario,
   agentPlanScenario,
   agentStatusScenario,
-  nestedSubagentConversationScenario,
-  nestedSubagentErrorScenario,
   nestedSubagentRecursiveScenario,
-  nestedSubagentTaskGroupScenario,
-  subagentsScenario,
-  subagentsOutOfOrderScenario,
-  agentElementsShowcaseScenario,
-  agentStateSyncScenario,
+  nestedSubagentErrorScenario,
+];
+
+export const mockRegressionScenarios: MockScenario[] = [
+  reasoningLongPreviewScenario,
+  multiToolScenario,
+  toolLongRunningScenario,
+  subagentLifecycleScenario,
+];
+
+export const builtinMockScenarios: MockScenario[] = [
+  ...showcaseMockScenarios,
+  ...mockRegressionScenarios,
 ];

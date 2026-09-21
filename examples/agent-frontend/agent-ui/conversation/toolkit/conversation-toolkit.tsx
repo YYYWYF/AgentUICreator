@@ -36,6 +36,8 @@ export function createConversationToolkit({
             display: "standalone" as const,
             render: MockAgentStatusToolUI,
           },
+          // Legacy replay compatibility only. New live Mock Agent scenarios
+          // must use standard AG-UI SUBAGENT_* events instead.
           mock_dispatch_subagent: {
             type: "backend" as const,
             display: "standalone" as const,

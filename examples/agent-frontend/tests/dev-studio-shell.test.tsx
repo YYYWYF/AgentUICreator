@@ -16,13 +16,13 @@ import { AgentRuntimeProvider } from "../runtime/context";
 import { DevStudio } from "../src/dev/DevStudio/DevStudio";
 
 const catalog = {
-  defaultScenarioId: "subagents",
+  defaultScenarioId: "nested-subagent-conversation",
   scenarios: [
     {
-      id: "subagents",
-      title: "Subagents",
-      description: "Dispatches semantic subagents.",
-      category: "agent",
+      id: "nested-subagent-conversation",
+      title: "AG-UI Subagent → Task Card",
+      description: "Renders a standard nested Subagent conversation.",
+      category: "multi-agent",
       capabilities: ["subagent"],
     },
   ],

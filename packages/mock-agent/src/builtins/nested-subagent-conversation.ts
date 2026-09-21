@@ -20,7 +20,7 @@ export const nestedSubagentConversationScenario = defineScenario({
   id: "nested-subagent-conversation",
   title: "AG-UI Subagent → Task Card",
   description: "标准 AG-UI Subagent 参考案例：父 ToolCall 启动 Researcher，SUBAGENT_* 事件由 react-ag-ui 投影为 nested messages，最终由 assistant-ui TaskCard 展示。",
-  category: "agent",
+  category: "multi-agent",
   capabilities: ["reasoning", "tool", "subagent"],
   reference: {
     protocol: "AG-UI",

@@ -1,18 +1,19 @@
 import type { StateDeltaEvent } from "@ag-ui/core";
 
 export type MockScenarioCategory =
-  | "conversation"
-  | "reasoning"
-  | "tool"
-  | "approval"
-  | "agent"
-  | "state";
+  | "basics"
+  | "tools"
+  | "human-in-loop"
+  | "state"
+  | "multi-agent"
+  | "presentation"
+  | "advanced";
 
 export type MockScenarioCapability =
   | "reasoning"
   | "tool"
   | "parallel-tool"
-  | "tool-error"
+  | "run-error"
   | "approval"
   | "plan"
   | "agent-status"

@@ -9,7 +9,7 @@ export const subagentLifecycleScenario = defineScenario({
   id: "subagent-lifecycle",
   title: "Subagent Lifecycle",
   description: "用于验证 SUBAGENT_STARTED / FINISHED / ERROR 生命周期本身，不是 nested TaskCard UI showcase。",
-  category: "agent",
+  category: "advanced",
   capabilities: ["subagent"],
   reference: {
     protocol: "AG-UI",

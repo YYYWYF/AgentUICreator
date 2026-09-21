@@ -4,7 +4,7 @@ export const reasoningLongPreviewScenario = defineScenario({
   id: "reasoning-long-preview",
   title: "Long Reasoning Preview",
   description: "持续流式输出超出预览高度的 reasoning，用于检查跟随、滚动接管和完成态。",
-  category: "reasoning",
+  category: "advanced",
   capabilities: ["reasoning"],
   steps: [
     {

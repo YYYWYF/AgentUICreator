@@ -25,28 +25,30 @@ type CatalogState =
   | { status: "ready"; value: ScenarioCatalogResponse };
 
 const categoryOrder: MockScenarioCategory[] = [
-  "agent",
+  "basics",
+  "tools",
+  "human-in-loop",
   "state",
-  "tool",
-  "approval",
-  "reasoning",
-  "conversation",
+  "multi-agent",
+  "presentation",
+  "advanced",
 ];
 
 const categoryLabels: Record<MockScenarioCategory, string> = {
-  agent: "Agent",
-  tool: "Tools",
-  approval: "Approval",
-  reasoning: "Reasoning",
-  conversation: "Conversation",
+  basics: "Basics",
+  tools: "Tools",
+  "human-in-loop": "Human in the Loop",
   state: "State",
+  "multi-agent": "Multi-Agent",
+  presentation: "Presentation Patterns",
+  advanced: "Advanced",
 };
 
 const capabilityLabels: Record<MockScenarioCapability, string> = {
   reasoning: "Reasoning",
   tool: "Tool",
   "parallel-tool": "Parallel Tool",
-  "tool-error": "Tool Error",
+  "run-error": "Run Error",
   approval: "Approval",
   plan: "Plan",
   "agent-status": "Status",
@@ -69,16 +71,16 @@ function clampSpeed(value: string | undefined): number {
   return Math.min(10, Math.max(0, parsed));
 }
 
+const referenceLevelLabels = {
+  recommended: "Recommended",
+  advanced: "Advanced",
+  edge: "Edge case",
+  protocol: "Protocol",
+} as const;
+
 function scenarioMarker(scenario: MockScenarioSummary): string | undefined {
-  if (scenario.id === "nested-subagent-conversation") return "Recommended";
-  if (scenario.id === "agent-state-sync") return "Recommended";
-  if (scenario.id === "nested-subagent-task-group") return "Task Group";
-  if (scenario.id === "nested-subagent-recursive") return "Advanced";
-  if (scenario.id === "nested-subagent-error") return "Error Case";
-  if (scenario.id === "subagent-lifecycle") return "Protocol Only";
-  if (scenario.id === "subagents") return "Element Demo";
-  if (scenario.id === "subagents-out-of-order") return "Edge case";
-  return undefined;
+  const level = scenario.reference?.level;
+  return level === undefined ? undefined : referenceLevelLabels[level];
 }
 
 function readScenarioCatalog(value: unknown): ScenarioCatalogResponse {

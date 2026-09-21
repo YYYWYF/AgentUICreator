@@ -33,29 +33,59 @@ const catalog = {
   defaultScenarioId: "reasoning-tool-success",
   scenarios: [
     {
-      id: "reasoning-tool-success",
-      title: "Reasoning + Tool",
-      description: "A normal reasoning and tool run.",
-      category: "agent",
-      capabilities: ["reasoning", "tool"],
+      id: "simple-chat",
+      title: "Simple Chat",
+      description: "A minimal text streaming run.",
+      category: "basics",
+      capabilities: [],
     },
     {
-      id: "subagents",
-      title: "Parallel Agent Status",
-      description: "Parallel dispatch status showcase.",
-      category: "agent",
-      capabilities: ["tool", "parallel-tool", "agent-status"],
+      id: "reasoning-chat",
+      title: "Reasoning + Message",
+      description: "Reasoning followed by an answer.",
+      category: "basics",
+      capabilities: ["reasoning"],
+    },
+    {
+      id: "reasoning-tool-success",
+      title: "Reasoning → Tool → Answer",
+      description: "A normal reasoning and tool run.",
+      category: "basics",
+      capabilities: ["reasoning", "tool"],
+      reference: { level: "recommended" },
+    },
+    {
+      id: "parallel-tools",
+      title: "Parallel Tools",
+      description: "Parallel Tool Calls.",
+      category: "tools",
+      capabilities: ["tool", "parallel-tool"],
+    },
+    {
+      id: "tool-error",
+      title: "Run Error During Tool",
+      description: "A run fails with standard RUN_ERROR during a Tool Call.",
+      category: "tools",
+      capabilities: ["tool", "run-error"],
+    },
+    {
+      id: "approval-resume",
+      title: "Approval Resume",
+      description: "Interrupt, allow or deny, then resume.",
+      category: "human-in-loop",
+      capabilities: ["reasoning", "tool", "approval"],
     },
     {
       id: "nested-subagent-conversation",
       title: "AG-UI Subagent → Task Card",
       description: "Canonical nested Subagent reference.",
-      category: "agent",
+      category: "multi-agent",
       capabilities: ["reasoning", "tool", "subagent"],
       reference: {
         protocol: "AG-UI",
         pattern: "Agents as Tools / Nested Subagent",
         presentation: "assistant-ui TaskCard",
+        level: "recommended",
         eventFlow: [
           "TOOL_CALL_START",
           "SUBAGENT_STARTED",
@@ -113,29 +143,55 @@ const catalog = {
       id: "nested-subagent-task-group",
       title: "AG-UI Subagent Task Group",
       description: "Sibling nested Subagents.",
-      category: "agent",
+      category: "multi-agent",
       capabilities: ["tool", "subagent"],
+      reference: { level: "advanced" },
+    },
+    {
+      id: "agent-plan",
+      title: "Custom Tool → AgentPlan",
+      description: "Application-defined tool result rendered with AgentPlan.",
+      category: "presentation",
+      capabilities: ["tool", "plan"],
+      reference: {
+        protocol: "AG-UI Tool Call",
+        pattern: "Application-defined Tool Result → Agent Element",
+        presentation: "assistant-ui AgentPlan",
+        notes: [
+          "AG-UI does not define an AgentPlan event. This scenario demonstrates an application-defined tool contract rendered with assistant-ui AgentPlan.",
+        ],
+      },
+    },
+    {
+      id: "agent-status",
+      title: "Custom Tool → AgentStatus",
+      description: "Application-defined tool result rendered with AgentStatus.",
+      category: "presentation",
+      capabilities: ["tool", "agent-status"],
+      reference: {
+        protocol: "AG-UI Tool Call",
+        pattern: "Application-defined Tool Result → Agent Element",
+        presentation: "assistant-ui AgentStatus",
+        notes: [
+          "AG-UI does not define an AgentStatus event. This scenario demonstrates an application-defined tool contract rendered with assistant-ui AgentStatus.",
+        ],
+      },
     },
     {
       id: "nested-subagent-recursive",
       title: "Recursive AG-UI Subagents",
       description: "Recursive nested Subagents.",
-      category: "agent",
+      category: "advanced",
       capabilities: ["reasoning", "tool", "subagent"],
+      reference: { level: "advanced" },
     },
     {
       id: "nested-subagent-error",
       title: "AG-UI Subagent Error",
       description: "Attributed error case.",
-      category: "agent",
+      category: "advanced",
       capabilities: ["tool", "subagent"],
-    },
-    {
-      id: "subagent-lifecycle",
-      title: "Subagent Lifecycle",
-      description: "Protocol-only lifecycle fixture.",
-      category: "agent",
-      capabilities: ["subagent"],
+      reference: { level: "edge" },
     },
   ],
 };
@@ -267,7 +323,7 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     expect(testInstanceText(scenarioButtonWithTitle(
       renderer,
       "AG-UI Subagent Task Group",
-    )!)).toContain("Task Group");
+    )!)).toContain("Advanced");
     expect(testInstanceText(scenarioButtonWithTitle(
       renderer,
       "Recursive AG-UI Subagents",
@@ -275,15 +331,7 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     expect(testInstanceText(scenarioButtonWithTitle(
       renderer,
       "AG-UI Subagent Error",
-    )!)).toContain("Error Case");
-    expect(testInstanceText(scenarioButtonWithTitle(
-      renderer,
-      "Subagent Lifecycle",
-    )!)).toContain("Protocol Only");
-    expect(testInstanceText(scenarioButtonWithTitle(
-      renderer,
-      "Parallel Agent Status",
-    )!)).toContain("Element Demo");
+    )!)).toContain("Edge case");
 
     await act(async () => {
       scenarioButtonWithTitle(renderer, "AG-UI Subagent → Task Card")?.props.onClick();
@@ -327,7 +375,7 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     const fetchMock = globalThis.fetch as unknown as ReturnType<typeof vi.fn>;
 
     const renderer = await mountStudio({
-      endpoint: "/__agent-ui/mock?scenario=subagents&speed=1",
+      endpoint: "/__agent-ui/mock?scenario=nested-subagent-conversation&speed=1",
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -335,7 +383,7 @@ describe("Scenario Panel and Dev Studio autorun", () => {
       expect.objectContaining({ headers: { Accept: "application/json" } }),
     );
     expect(scenarioCatalogEndpoint(
-      "https://agent.example/__agent-ui/mock?scenario=subagents",
+      "https://agent.example/__agent-ui/mock?scenario=nested-subagent-conversation",
     )).toBe("https://agent.example/__agent-ui/mock/scenarios");
     renderer.unmount();
   });
@@ -345,7 +393,7 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     const renderer = await mountStudio({ navigate });
 
     await act(async () => {
-      renderer.root.findAllByProps({ "aria-pressed": false })[0]!.props.onClick();
+      scenarioButtonWithTitle(renderer, "Simple Chat")?.props.onClick();
       renderer.root.findByProps({ "aria-label": "Mock scenario speed" })
         .props.onChange({ target: { value: "0.5" } });
     });
@@ -355,7 +403,7 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     });
 
     expect(navigate).toHaveBeenCalledWith(
-      "/?mockScenario=subagents&mockSpeed=0.5",
+      "/?mockScenario=simple-chat&mockSpeed=0.5",
     );
     expect(window.sessionStorage.getItem(MOCK_SCENARIO_AUTORUN_STORAGE_KEY))
       .toBe("1");
@@ -391,7 +439,7 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     const sendMessage = vi.fn(async () => undefined);
 
     const renderer = await mountDevStudio({
-      endpoint: "/__agent-ui/mock?scenario=subagents&speed=1",
+      endpoint: "/__agent-ui/mock?scenario=nested-subagent-conversation&speed=1",
       runtime: createRuntime(sendMessage),
       strictMode: true,
     });
@@ -428,7 +476,7 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     window.history.replaceState(
       null,
       "",
-      "/?mockScenario=subagents&mockSpeed=1",
+      "/?mockScenario=nested-subagent-conversation&mockSpeed=1",
     );
     const navigate = vi.fn();
     const firstRenderer = await mountStudio({ navigate });
@@ -438,13 +486,13 @@ describe("Scenario Panel and Dev Studio autorun", () => {
       buttonWithText(firstRenderer, "Restart Scenario")!.props.onClick();
     });
     expect(navigate).toHaveBeenCalledWith(
-      "/?mockScenario=subagents&mockSpeed=1",
+      "/?mockScenario=nested-subagent-conversation&mockSpeed=1",
     );
     firstRenderer.unmount();
 
     const sendMessage = vi.fn(async () => undefined);
     const secondRenderer = await mountDevStudio({
-      endpoint: "/__agent-ui/mock?scenario=subagents&speed=1",
+      endpoint: "/__agent-ui/mock?scenario=nested-subagent-conversation&speed=1",
       runtime: createRuntime(sendMessage),
       strictMode: true,
     });
@@ -470,7 +518,7 @@ describe("Scenario Panel and Dev Studio autorun", () => {
 
     const sendMessage = vi.fn(async () => undefined);
     const reloadedRenderer = await mountDevStudio({
-      endpoint: "/__agent-ui/mock?scenario=subagents&speed=1",
+      endpoint: "/__agent-ui/mock?scenario=nested-subagent-conversation&speed=1",
       runtime: createRuntime(sendMessage),
       strictMode: true,
     });
@@ -500,8 +548,8 @@ describe("Scenario Panel and Dev Studio autorun", () => {
   it("builds a scenario URL without mixing transient autorun state into it", () => {
     window.history.replaceState(null, "", "/workspace?tab=conversation#run");
 
-    expect(buildScenarioSelectionUrl("subagents", 1)).toBe(
-      "/workspace?tab=conversation&mockScenario=subagents&mockSpeed=1#run",
+    expect(buildScenarioSelectionUrl("nested-subagent-conversation", 1)).toBe(
+      "/workspace?tab=conversation&mockScenario=nested-subagent-conversation&mockSpeed=1#run",
     );
     expect(consumeMockScenarioAutorunMarker()).toBe(false);
   });

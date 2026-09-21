@@ -6,7 +6,7 @@ export const approvalResumeScenario = defineScenario({
   id: "approval-resume",
   title: "Approval Resume",
   description: "标准 structured interrupt 的 Allow / Deny 一次性恢复流程。",
-  category: "approval",
+  category: "human-in-loop",
   capabilities: ["reasoning", "tool", "approval"],
   steps: [
     {

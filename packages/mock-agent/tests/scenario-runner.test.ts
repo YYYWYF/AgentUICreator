@@ -15,6 +15,36 @@ const input: RunAgentInput = {
 };
 
 describe("runMockScenario", () => {
+  it("retains the standard STEP lifecycle primitive", async () => {
+    const scenario = defineScenario({
+      id: "step-primitive",
+      title: "Step Primitive",
+      steps: [{ type: "step", name: "inspect-workspace", durationMs: 0 }],
+    });
+    const events: BaseEvent[] = [];
+
+    for await (const event of runMockScenario(input, scenario, {
+      timingScale: 0,
+    })) {
+      events.push(event);
+    }
+
+    expect(events.map(({ type }) => type)).toEqual([
+      EventType.RUN_STARTED,
+      EventType.STEP_STARTED,
+      EventType.STEP_FINISHED,
+      EventType.RUN_FINISHED,
+    ]);
+    expect(events[1]).toMatchObject({
+      type: EventType.STEP_STARTED,
+      stepName: "inspect-workspace",
+    });
+    expect(events[2]).toMatchObject({
+      type: EventType.STEP_FINISHED,
+      stepName: "inspect-workspace",
+    });
+  });
+
   it("converts scenario steps into ordered standard AG-UI lifecycles", async () => {
     const scenario = defineScenario({
       id: "runner-test",

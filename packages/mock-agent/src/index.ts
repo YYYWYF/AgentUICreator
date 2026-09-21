@@ -33,7 +33,6 @@ export {
 } from "./vite-plugin.js";
 export {
   builtinMockScenarios,
-  agentElementsShowcaseScenario,
   agentPlanScenario,
   agentStatusScenario,
   agentStateSyncScenario,
@@ -48,10 +47,9 @@ export {
   reasoningLongPreviewScenario,
   reasoningToolSuccessScenario,
   simpleChatScenario,
-  stepLifecycleScenario,
   subagentLifecycleScenario,
-  subagentsOutOfOrderScenario,
-  subagentsScenario,
   toolErrorScenario,
   toolLongRunningScenario,
+  mockRegressionScenarios,
+  showcaseMockScenarios,
 } from "./builtins/index.js";

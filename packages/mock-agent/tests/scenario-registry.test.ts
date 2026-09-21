@@ -1,10 +1,50 @@
 import { describe, expect, it } from "vitest";
 
-import { builtinMockScenarios } from "../src/builtins/index.js";
+import {
+  builtinMockScenarios,
+  mockRegressionScenarios,
+  showcaseMockScenarios,
+} from "../src/builtins/index.js";
 import { createScenarioRegistry } from "../src/scenario-registry.js";
 import { defineScenario } from "../src/scenario.js";
 
 describe("createScenarioRegistry", () => {
+  it("keeps the showcase catalog separate from regression fixtures", () => {
+    expect(showcaseMockScenarios.map(({ id }) => id)).toEqual([
+      "simple-chat",
+      "reasoning-chat",
+      "reasoning-tool-success",
+      "parallel-tools",
+      "tool-error",
+      "approval-resume",
+      "agent-state-sync",
+      "nested-subagent-conversation",
+      "nested-subagent-task-group",
+      "agent-plan",
+      "agent-status",
+      "nested-subagent-recursive",
+      "nested-subagent-error",
+    ]);
+    expect(mockRegressionScenarios.map(({ id }) => id)).toEqual([
+      "reasoning-long-preview",
+      "multi-tool",
+      "tool-long-running",
+      "subagent-lifecycle",
+    ]);
+    expect(builtinMockScenarios.map(({ id }) => id)).toEqual([
+      ...showcaseMockScenarios.map(({ id }) => id),
+      ...mockRegressionScenarios.map(({ id }) => id),
+    ]);
+    expect(builtinMockScenarios.map(({ id }) => id)).not.toEqual(
+      expect.arrayContaining([
+        "step-lifecycle",
+        "subagents",
+        "subagents-out-of-order",
+        "agent-elements-showcase",
+      ]),
+    );
+  });
+
   it("registers and lists every scenario as metadata only", () => {
     const registry = createScenarioRegistry({
       scenarios: builtinMockScenarios,

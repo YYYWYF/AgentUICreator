@@ -4,7 +4,7 @@ export const toolLongRunningScenario = defineScenario({
   id: "tool-long-running",
   title: "Long-running Tool",
   description: "模拟一个真实两分钟工具，并允许开发时按 speed 加速。",
-  category: "tool",
+  category: "tools",
   capabilities: ["reasoning", "tool"],
   steps: [
     {

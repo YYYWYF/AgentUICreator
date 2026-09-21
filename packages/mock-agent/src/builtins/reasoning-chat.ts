@@ -4,7 +4,7 @@ export const reasoningChatScenario = defineScenario({
   id: "reasoning-chat",
   title: "Reasoning + Message",
   description: "模拟一次思考和最终回复。",
-  category: "reasoning",
+  category: "basics",
   capabilities: ["reasoning"],
   steps: [
     {

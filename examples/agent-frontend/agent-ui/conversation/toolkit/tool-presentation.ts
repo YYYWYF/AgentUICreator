@@ -19,6 +19,7 @@ export const CONVERSATION_TOOL_PRESENTATION = {
   search_files: { kind: "ordinary" },
   mock_agent_plan: { kind: "agent-element", element: "plan" },
   mock_agent_status: { kind: "agent-element", element: "status" },
+  // Legacy replay compatibility only; do not use for new live scenarios.
   mock_dispatch_subagent: { kind: "subagent-dispatch" },
 } as const satisfies Readonly<Record<string, ConversationToolPresentation>>;
 
