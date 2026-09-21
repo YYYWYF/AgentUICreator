@@ -2,8 +2,8 @@
 
 Repository: https://github.com/assistant-ui/assistant-ui.git
 Branch: `main`
-Commit: `c2917dba8783b3e250ab484102627901e611c56a`
-Previous commit: `b712ee83bde9a89fce2812968f951a5742d757b9`
+Commit: `039c3c32822632f2a564164f089f538926886124`
+Previous commit: `c2917dba8783b3e250ab484102627901e611c56a`
 License: MIT
 Source form: official Base UI registry output plus declared mechanical import adaptations
 

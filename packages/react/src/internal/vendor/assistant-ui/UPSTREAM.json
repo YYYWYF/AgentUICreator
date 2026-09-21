@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "assistant-ui/assistant-ui",
-  "revision": "c2917dba8783b3e250ab484102627901e611c56a",
+  "revision": "039c3c32822632f2a564164f089f538926886124",
   "license": "MIT",
   "sourceForm": "official Base UI registry output",
   "packages": {

@@ -2,17 +2,17 @@
 
 From:
 - packages: unchanged in report metadata
-- upstream revision: b712ee83bde9a89fce2812968f951a5742d757b9
+- upstream revision: c2917dba8783b3e250ab484102627901e611c56a
 
 To:
 - @assistant-ui/react 0.15.21
 - @assistant-ui/react-ag-ui 0.0.60
 - @assistant-ui/react-markdown 0.14.16
-- upstream revision: c2917dba8783b3e250ab484102627901e611c56a
+- upstream revision: 039c3c32822632f2a564164f089f538926886124
 
 ## Vendor changes
 
-- changed 41 files
+- changed 0 files
 - added 0 files
 - removed 0 files
 - new transitive dependencies: 0
@@ -152,7 +152,7 @@ To:
 
 - newly adopted: none
 - removed upstream Elements: none
-- changed tracked upstream Elements: components/assistant-ui/elements/agent-plan.tsx, components/assistant-ui/elements/agent-status.aui.tsx, components/assistant-ui/elements/agent-status.tsx, components/assistant-ui/elements/attachment.aui.tsx, components/assistant-ui/elements/composer-trigger-popover.aui.tsx, components/assistant-ui/elements/file.tsx, components/assistant-ui/elements/follow-up-suggestions.aui.tsx, components/assistant-ui/elements/image.tsx, components/assistant-ui/elements/markdown-text.tsx, components/assistant-ui/elements/reasoning.aui.tsx, components/assistant-ui/elements/reasoning.tsx, components/assistant-ui/elements/sources.aui.tsx, components/assistant-ui/elements/subagent-list.tsx, components/assistant-ui/elements/surfaces.tsx, components/assistant-ui/elements/task-card.aui.tsx, components/assistant-ui/elements/task-card.tsx, components/assistant-ui/elements/thread-list.aui.tsx, components/assistant-ui/elements/thread.aui.tsx, components/assistant-ui/elements/tool-call.tsx, components/assistant-ui/elements/tool-fallback.aui.tsx, components/assistant-ui/elements/tool-group.aui.tsx, components/assistant-ui/elements/tooltip-icon-button.tsx
+- changed tracked upstream Elements: none
 
 ### Explicitly ignored with rationale
 

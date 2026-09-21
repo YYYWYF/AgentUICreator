@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "project": "assistant-ui/assistant-ui",
   "source": "https://github.com/assistant-ui/assistant-ui.git#refs/heads/main",
-  "revision": "c2917dba8783b3e250ab484102627901e611c56a",
+  "revision": "039c3c32822632f2a564164f089f538926886124",
   "packages": {
     "@assistant-ui/react": "0.15.21",
     "@assistant-ui/react-ag-ui": "0.0.60",

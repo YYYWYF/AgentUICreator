@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "source": "https://r.assistant-ui.com",
   "style": "base-nova",
-  "revision": "c2917dba8783b3e250ab484102627901e611c56a",
+  "revision": "039c3c32822632f2a564164f089f538926886124",
   "elements": {
     "components/assistant-ui/elements/agent-plan.tsx": "54bf9e06211f95b54b455c0356270d6e2c0f82110ab113f2612da1f60bb5f240",
     "components/assistant-ui/elements/agent-status.aui.tsx": "1c6661f8459e3b73052ed40deb7730637ca21fcf84eb719e797046a877f5e417",
