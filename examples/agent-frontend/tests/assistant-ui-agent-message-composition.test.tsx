@@ -20,9 +20,17 @@ describe("assistant-ui message composition", () => {
     expect(thread).toContain("ToolGroup");
   });
 
-  it("uses the public message facade while exposing scoped renderer adapters", async () => {
+  it("keeps canonical AssistantMessage ownership while exposing scoped renderer adapters", async () => {
     const adapter = await readFile(
       path.join(projectRoot, "agent-ui/conversation/ConversationAdapter.tsx"),
+      "utf8",
+    );
+    const bridge = await readFile(
+      path.join(projectRoot, "agent-ui/conversation/ScopedRendererBridge.tsx"),
+      "utf8",
+    );
+    const composableThread = await readFile(
+      path.join(projectRoot, "../../packages/react/src/internal/composable-thread.tsx"),
       "utf8",
     );
 
@@ -31,6 +39,10 @@ describe("assistant-ui message composition", () => {
     expect(adapter).toContain("ScopedReasoningGroup");
     expect(adapter).toContain("ScopedToolGroup");
     expect(adapter).toContain("ScopedToolFallback");
-    expect(adapter).toContain("AssistantMessage: ScopedAssistantMessage");
+    expect(adapter).toContain("AssistantMessageFooter: ScopedAssistantMessageFooter");
+    expect(adapter).not.toContain("AssistantMessage: ScopedAssistantMessage");
+    expect(bridge).toContain("ScopedAssistantMessageFooter");
+    expect(bridge).not.toContain("ConversationCanonicalAssistantMessage");
+    expect(composableThread).toContain("taskAwareGroupBy");
   });
 });

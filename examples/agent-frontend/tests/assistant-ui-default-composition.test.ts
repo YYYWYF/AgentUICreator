@@ -240,7 +240,8 @@ describe("assistant-ui default composition", () => {
     ]) {
       expect(thread).toContain(`data-slot=\"${slot}\"`);
     }
-    expect(conversationAdapter).toContain("AssistantMessage: ScopedAssistantMessage");
+    expect(conversationAdapter).toContain("AssistantMessageFooter: ScopedAssistantMessageFooter");
+    expect(conversationAdapter).not.toContain("AssistantMessage: ScopedAssistantMessage");
     expect(conversationAdapter).toContain("ScopedReasoningGroup");
     expect(conversationAdapter).toContain("ScopedToolGroup");
     expect(conversationAdapter).toContain("ScopedToolFallback");

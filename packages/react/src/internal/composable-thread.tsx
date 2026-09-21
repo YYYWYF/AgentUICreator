@@ -72,13 +72,14 @@ export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
 
 /**
  * Optional component overrides for the thread. `AssistantMessage` and
- * `Welcome` replace whole sections; the remaining slots override how the
- * assistant message renders tool calls and part groups. Tool UIs registered
- * by name (toolkit `render`, `useAssistantDataUI`) take precedence over
+ * `Welcome` replace whole sections; the remaining slots override assistant
+ * message groups, tool calls, or its footer. Tool UIs registered by name
+ * (toolkit `render`, `useAssistantDataUI`) take precedence over
  * `ToolFallback`.
  */
 export type ThreadComponents = {
   AssistantMessage?: ComponentType | undefined;
+  AssistantMessageFooter?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
   ToolFallback?: ToolCallMessagePartComponent | undefined;
   ToolGroup?:
@@ -510,6 +511,7 @@ const AssistantMessage: FC = () => {
     ToolGroup,
     ReasoningGroup,
     TaskGroup: TaskGroupComponent,
+    AssistantMessageFooter: AssistantMessageFooterComponent,
   } = useContext(ThreadComponentsContext);
   const groupBy = TaskGroupComponent ? taskAwareGroupBy : messageGroupBy;
 
@@ -607,8 +609,14 @@ const AssistantMessage: FC = () => {
         data-slot="aui_assistant-message-footer"
         className={cn("ms-2 flex items-center", ACTION_BAR_HEIGHT)}
       >
-        <BranchPicker />
-        <AssistantActionBar />
+        {AssistantMessageFooterComponent ? (
+          <AssistantMessageFooterComponent />
+        ) : (
+          <>
+            <BranchPicker />
+            <AssistantActionBar />
+          </>
+        )}
       </div>
     </MessagePrimitive.Root>
   );

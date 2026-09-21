@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   ScopedReasoningGroup,
+  ScopedAssistantMessageFooter,
   ScopedRendererBridgeProvider,
   ScopedTaskGroup,
   ScopedToolFallback,
@@ -121,5 +122,26 @@ describe("scoped renderer bridge", () => {
       value: { group: { type: "group-task", indices: [0] }, children: expect.anything() },
     });
     expect(observed[0]?.fallback).toBeDefined();
+  });
+
+  it("routes the message Footer seam without duplicating message data", () => {
+    const observed: Array<{ slot: string; scope: UIPluginRenderScope }> = [];
+    const renderScopedSlot = (slot: string, scope: UIPluginRenderScope) => {
+      observed.push({ slot, scope });
+      return <span>{slot}</span>;
+    };
+
+    expect(renderToStaticMarkup(
+      <ScopedRendererBridgeProvider renderScopedSlot={renderScopedSlot}>
+        <ScopedAssistantMessageFooter />
+      </ScopedRendererBridgeProvider>,
+    )).toBe("<span>assistantMessageFooter</span>");
+    expect(observed).toMatchObject([{
+      slot: "assistantMessageFooter",
+      scope: {
+        kind: "conversation.assistant-message-footer",
+        value: {},
+      },
+    }]);
   });
 });

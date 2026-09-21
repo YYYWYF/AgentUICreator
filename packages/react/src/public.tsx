@@ -46,7 +46,6 @@ import {
   ThreadListPrimitive as InternalConversationThreadListPrimitive,
   ThreadPrimitive,
   defineToolkit,
-  groupPartByType,
   useAuiState as useInternalConversationState,
   useAui,
 } from "@assistant-ui/react";
@@ -130,6 +129,7 @@ export function ConversationIf({
 
 export type ConversationThreadComponents = {
   AssistantMessage?: ComponentType | undefined;
+  AssistantMessageFooter?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
   ToolFallback?: ComponentType<ConversationToolCallProps> | undefined;
   ToolGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
@@ -539,135 +539,6 @@ export function ConversationCanonicalMessageError() {
         <ErrorPrimitive.Message className="aui-message-error-message line-clamp-2" />
       </ErrorPrimitive.Root>
     </MessagePrimitive.Error>
-  );
-}
-
-export interface ConversationCanonicalAssistantMessageProps {
-  reasoningGroup?: ComponentType<{
-    children?: ReactNode;
-    group: unknown;
-  }> | undefined;
-  toolGroup?: ComponentType<{
-    children?: ReactNode;
-    group: unknown;
-  }> | undefined;
-  toolFallback?: ConversationToolCallComponent | undefined;
-  footer?: ReactNode;
-}
-
-/**
- * The upstream AssistantMessage composition with a product-owned Footer seam.
- * Message parts, grouping, errors, and named Tool UI priority stay canonical.
- */
-export function ConversationCanonicalAssistantMessage({
-  reasoningGroup,
-  toolGroup,
-  toolFallback,
-  footer,
-}: Readonly<ConversationCanonicalAssistantMessageProps>) {
-  const ToolFallbackComponent = toolFallback ?? ConversationToolFallback;
-
-  return (
-    <MessagePrimitive.Root
-      data-slot="aui_assistant-message-root"
-      data-role="assistant"
-      className="fade-in slide-in-from-bottom-1 animate-in relative -mb-7.5 pb-7.5 duration-150 [contain-intrinsic-size:auto_200px] [content-visibility:auto]"
-    >
-      <div
-        data-slot="aui_assistant-message-content"
-        className="text-foreground px-2 leading-relaxed wrap-break-word"
-      >
-        <MessagePrimitive.GroupedParts
-          groupBy={groupPartByType({
-            reasoning: ["group-chainOfThought", "group-reasoning"],
-            "tool-call": ["group-chainOfThought", "group-tool"],
-            "standalone-tool-call": [],
-          })}
-        >
-          {({ part, children }) => {
-            switch (part.type) {
-              case "group-chainOfThought":
-                return <div data-slot="aui_chain-of-thought">{children}</div>;
-              case "group-tool":
-                if (toolGroup !== undefined) {
-                  const ToolGroupComponent = toolGroup;
-                  return (
-                    <ToolGroupComponent group={part}>{children}</ToolGroupComponent>
-                  );
-                }
-                return (
-                  <InternalToolGroupRoot variant="ghost">
-                    <InternalToolGroupTrigger
-                      count={part.indices.length}
-                      active={part.status.type === "running"}
-                    />
-                    <InternalToolGroupContent>{children}</InternalToolGroupContent>
-                  </InternalToolGroupRoot>
-                );
-              case "group-reasoning":
-                if (reasoningGroup !== undefined) {
-                  const ReasoningGroupComponent = reasoningGroup;
-                  return (
-                    <ReasoningGroupComponent group={part}>
-                      {children}
-                    </ReasoningGroupComponent>
-                  );
-                }
-                return (
-                  <InternalReasoningRoot streaming={part.status.type === "running"}>
-                    <InternalReasoningTrigger active={part.status.type === "running"} />
-                    <InternalReasoningContent aria-busy={part.status.type === "running"}>
-                      <InternalReasoningText>{children}</InternalReasoningText>
-                    </InternalReasoningContent>
-                  </InternalReasoningRoot>
-                );
-              case "text":
-                return <InternalMarkdownText />;
-              case "reasoning":
-                return <InternalReasoning {...part} />;
-              case "tool-call":
-                return part.toolUI ?? <ToolFallbackComponent {...part} />;
-              case "data":
-                return part.dataRendererUI;
-              case "file":
-                return (
-                  <div data-slot="aui_assistant-message-file" className="py-1">
-                    <InternalFile {...part} />
-                  </div>
-                );
-              case "image":
-                return (
-                  <div data-slot="aui_assistant-message-image" className="py-1">
-                    <InternalImage {...part} />
-                  </div>
-                );
-              case "indicator":
-                return (
-                  <span
-                    data-slot="aui_assistant-message-indicator"
-                    className="animate-pulse font-sans"
-                    aria-label="Assistant is working"
-                  >
-                    {"●"}
-                  </span>
-                );
-              default:
-                return null;
-            }
-          }}
-        </MessagePrimitive.GroupedParts>
-        <ConversationCanonicalMessageError />
-      </div>
-
-      {footer === undefined || footer === null ? null : (
-        <div
-          data-slot="aui_assistant-message-footer"
-          className="ms-2 flex min-h-7.5 items-center pt-1.5"
-        >
-          {footer}
-        </div>
-      )}
-    </MessagePrimitive.Root>
   );
 }
 

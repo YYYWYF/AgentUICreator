@@ -12,7 +12,7 @@ import { useAgentUIThemeMode } from "../theme/useAgentUITheme";
 import { ConversationSurface } from "./ConversationSurface";
 import {
   ScopedReasoningGroup,
-  ScopedAssistantMessage,
+  ScopedAssistantMessageFooter,
   ScopedRendererBridgeProvider,
   ScopedTaskGroup,
   ScopedToolFallback,
@@ -60,12 +60,12 @@ export function ConversationWelcomeFallback() {
 
 export function createConversationSemanticThreadComponents(): ConversationThreadComponents {
   return {
-    AssistantMessage: ScopedAssistantMessage,
     Welcome: ConversationEmptyState,
     ReasoningGroup: ScopedReasoningGroup,
     ToolGroup: ScopedToolGroup,
     TaskGroup: ScopedTaskGroup,
     ToolFallback: ScopedToolFallback,
+    AssistantMessageFooter: ScopedAssistantMessageFooter,
   };
 }
 

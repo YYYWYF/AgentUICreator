@@ -310,7 +310,9 @@ describe("official nested assistant-ui conversation", () => {
       });
     });
 
-    expect(runtimeFixture.container.querySelector('[data-slot="task-card"]')).not.toBeNull();
+    const taskCard = runtimeFixture.container.querySelector('[data-slot="task-card"]');
+    expect(taskCard).not.toBeNull();
+    expect(taskCard?.querySelector("button")).not.toBeNull();
     expect(runtimeFixture.container.querySelector('[data-slot="task-card-transcript"]')).toBeNull();
     expect(
       runtimeFixture.container

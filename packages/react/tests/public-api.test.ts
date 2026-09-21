@@ -33,7 +33,7 @@ describe("@agent-ui/react public API", () => {
       "ConversationAgentStatus",
       "ConversationTaskTray",
       "ConversationCanonicalMessageError",
-      "ConversationCanonicalAssistantMessage",
+      "ConversationAssistantMessageFooterRenderScope",
       "ConversationActionBarRoot",
       "ConversationActionCopy",
       "ConversationActionReload",

@@ -26,12 +26,11 @@ as static content and returns `null` if rendered without its expected scope.
 The first host is `conversation-surface`. Its stable Thread component adapters
 receive assistant-ui `GroupedParts` groups and tool fallback props, project
 stable facade values, and select the `reasoningGroup`, `toolGroup`,
-`toolFallback`, or `assistantMessageFooter` renderer Slot. The adapter replaces
-only the whole-message presentation through the public
-`ConversationCanonicalAssistantMessage` facade so the Footer can be a semantic
-Renderer Slot; it does not reimplement the message domain. assistant-ui
-continues to own message parts, order, grouping, streaming, named Tool UI
-selection, approvals, results, and errors. The Thread's
+`toolFallback`, `taskGroup`, or `assistantMessageFooter` renderer Slot. The
+adapter does not replace the whole AssistantMessage: assistant-ui's canonical
+ComposableThread owns message parts, order, grouping, streaming, named Tool UI
+selection, approvals, results, and errors. AgentUICreator adds only semantic
+group and Footer seams through the Thread component map. The Thread's
 `part.toolUI ?? ToolFallback` selection still gives named Tool UIs priority.
 Text and Markdown are unchanged.
 
