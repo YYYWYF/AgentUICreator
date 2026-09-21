@@ -426,8 +426,28 @@ describe("AG-UI State → JobProgress full application chain", () => {
     ).toBe("100");
     expect(finalJobProgress?.querySelector('[aria-label="Cancel the job"]')).toBeNull();
 
-    expect(container.textContent).toContain("我来运行 CI 验证。");
     expect(container.textContent).toContain("CI 验证完成，所有阶段通过。");
+
+    const assistantMessages = container.querySelectorAll(
+      '[data-slot="aui_assistant-message-root"]',
+    );
+    expect(assistantMessages).toHaveLength(1);
+
+    const footers = container.querySelectorAll(
+      '[data-slot="aui_assistant-message-footer"]',
+    );
+    expect(footers).toHaveLength(1);
+
+    const footerPlugins = container.querySelectorAll(
+      '[data-slot="aui_assistant-message-footer-plugin"]',
+    );
+    expect(footerPlugins).toHaveLength(1);
+
+    const assistantMessage = assistantMessages[0]!;
+    expect(
+      assistantMessage.querySelector('[data-slot="job-progress"]'),
+    ).not.toBeNull();
+    expect(assistantMessage.textContent).toContain("CI 验证完成，所有阶段通过。");
     expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
 
     const statePanel = applicationStatePanel(container);

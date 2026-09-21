@@ -51,7 +51,6 @@ describe("AG-UI State → Job Progress showcase", () => {
       .toEqual([
         EventType.RUN_STARTED,
         EventType.STATE_SNAPSHOT,
-        EventType.TEXT_MESSAGE_START,
         EventType.TOOL_CALL_START,
         EventType.TOOL_CALL_ARGS,
         EventType.TOOL_CALL_END,
@@ -61,9 +60,13 @@ describe("AG-UI State → Job Progress showcase", () => {
         EventType.STATE_DELTA,
         EventType.STATE_DELTA,
         EventType.TOOL_CALL_RESULT,
-        EventType.TEXT_MESSAGE_START,
         EventType.RUN_FINISHED,
       ]);
+
+    const textStarts = parsedEvents.filter(
+      ({ type }) => type === EventType.TEXT_MESSAGE_START,
+    );
+    expect(textStarts).toHaveLength(1);
 
     const stateDeltaEvents = events.filter(
       (event): event is Extract<AGUIEvent, { type: EventType.STATE_DELTA }> =>

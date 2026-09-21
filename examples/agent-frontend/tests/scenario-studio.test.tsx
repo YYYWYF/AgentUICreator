@@ -81,7 +81,6 @@ const catalog = {
         eventFlow: [
           "RUN_STARTED",
           "STATE_SNAPSHOT",
-          "TEXT_MESSAGE_START/CONTENT/END",
           "TOOL_CALL_START",
           "TOOL_CALL_ARGS",
           "TOOL_CALL_END",

@@ -56,5 +56,24 @@ test.describe("ConversationSurface layout", () => {
     await expect(jobProgress).toBeVisible();
     await expect(surface.locator(".conversation-surface-live-status")).toHaveCount(0);
     await expectThreadViewportToFillSurface(surface, viewport);
+
+    await expect(surface).toContainText("CI 验证完成，所有阶段通过。");
+    await expect(
+      surface.locator('[data-slot="aui_assistant-message-root"]'),
+    ).toHaveCount(1);
+    await expect(
+      surface.locator('[data-slot="aui_assistant-message-footer"]'),
+    ).toHaveCount(1);
+    await expect(
+      surface.locator('[data-slot="aui_assistant-message-footer-plugin"]'),
+    ).toHaveCount(1);
+    await expect(
+      surface.locator(
+        '[data-slot="aui_assistant-message-root"] [data-slot="job-progress"]',
+      ),
+    ).toHaveCount(1);
+    await expect(
+      surface.locator('[data-slot="aui_assistant-message-root"]'),
+    ).toContainText("CI 验证完成，所有阶段通过。");
   });
 });
