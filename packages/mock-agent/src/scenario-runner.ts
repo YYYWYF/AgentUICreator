@@ -335,13 +335,10 @@ async function* runSteps(
         signal,
         timingScale,
       )) return;
-      yield withSubagentRunId(
-        {
-          type: EventType.STATE_DELTA,
-          delta: structuredClone(step.delta),
-        },
-        context.subagentRunId,
-      ) as AGUIEvent;
+      yield {
+        type: EventType.STATE_DELTA,
+        delta: structuredClone(step.delta),
+      } as AGUIEvent;
       continue;
     }
 

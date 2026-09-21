@@ -6,6 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 import {
   builtinMockScenarios,
   createMockAgentVitePlugin,
+  type MockScenario,
 } from "../../packages/mock-agent/src/index";
 import { defineConfig, loadEnv } from "vite";
 
@@ -13,6 +14,15 @@ import { createMockConversationApiVitePlugin } from "./dev-mock/conversations/vi
 import { previewAgentState } from "./src/preview-data";
 
 const workspaceRoot = fileURLToPath(new URL("../..", import.meta.url));
+
+export function withPreviewAgentState(scenario: MockScenario): MockScenario {
+  return {
+    ...scenario,
+    ...(scenario.initialState === undefined
+      ? { initialState: previewAgentState }
+      : {}),
+  };
+}
 
 export default defineConfig(async ({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), "VITE_");
@@ -29,12 +39,7 @@ export default defineConfig(async ({ command, mode }) => {
       tailwindcss(),
       createMockAgentVitePlugin({
         endpoint: "/__agent-ui/mock",
-        scenarios: builtinMockScenarios.map((scenario) => ({
-          ...scenario,
-          ...(scenario.id === "agent-state-sync"
-            ? {}
-            : { initialState: previewAgentState }),
-        })),
+        scenarios: builtinMockScenarios.map(withPreviewAgentState),
         defaultScenarioId: "reasoning-tool-success",
       }),
       createMockConversationApiVitePlugin({

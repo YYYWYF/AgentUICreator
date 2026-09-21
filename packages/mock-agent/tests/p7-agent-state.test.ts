@@ -28,7 +28,7 @@ async function collectScenarioEvents(
     agentStateSyncScenario,
     { timingScale: 0 },
   )) {
-    events.push(EventSchemas.parse(event));
+    events.push(event);
   }
   return events;
 }
@@ -36,12 +36,23 @@ async function collectScenarioEvents(
 describe("AG-UI Agent State showcase", () => {
   it("emits the standard snapshot and delta protocol flow", async () => {
     const events = await collectScenarioEvents();
-    const protocolEvents = events.filter(({ type }) => [
+    const parsedEvents = events.map((event) => EventSchemas.parse(event));
+    const protocolEvents = parsedEvents.filter(({ type }) => [
       EventType.RUN_STARTED,
       EventType.STATE_SNAPSHOT,
       EventType.STATE_DELTA,
       EventType.RUN_FINISHED,
     ].includes(type));
+
+    const stateDeltaEvents = events.filter(
+      (event): event is Extract<AGUIEvent, { type: EventType.STATE_DELTA }> =>
+        event.type === EventType.STATE_DELTA,
+    );
+    for (const event of stateDeltaEvents) {
+      expect(Object.keys(event).sort()).toEqual(["delta", "type"]);
+      expect("subagentRunId" in event ? event.subagentRunId : undefined)
+        .toBeUndefined();
+    }
 
     expect(protocolEvents.map(({ type }) => type)).toEqual([
       EventType.RUN_STARTED,
@@ -51,7 +62,7 @@ describe("AG-UI Agent State showcase", () => {
       EventType.RUN_FINISHED,
     ]);
 
-    const snapshots = events.filter(
+    const snapshots = parsedEvents.filter(
       (event): event is Extract<AGUIEvent, { type: EventType.STATE_SNAPSHOT }> =>
         event.type === EventType.STATE_SNAPSHOT,
     );
@@ -64,7 +75,7 @@ describe("AG-UI Agent State showcase", () => {
       },
     });
 
-    const deltas = events.filter(
+    const deltas = parsedEvents.filter(
       (event): event is Extract<AGUIEvent, { type: EventType.STATE_DELTA }> =>
         event.type === EventType.STATE_DELTA,
     );
