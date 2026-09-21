@@ -2,6 +2,7 @@ import type {
   MockScenario,
   MockScenarioCapability,
   MockScenarioCategory,
+  MockScenarioReference,
 } from "./scenario.js";
 
 export interface MockScenarioSummary {
@@ -10,6 +11,7 @@ export interface MockScenarioSummary {
   description?: string | undefined;
   category?: MockScenarioCategory | undefined;
   capabilities?: readonly MockScenarioCapability[] | undefined;
+  reference?: MockScenarioReference | undefined;
 }
 
 export interface MockScenarioRegistry {
@@ -68,6 +70,7 @@ export function createScenarioRegistry({
     description,
     category,
     capabilities,
+    reference,
   }) => ({
     id,
     title,
@@ -75,6 +78,17 @@ export function createScenarioRegistry({
     ...(category === undefined ? {} : { category }),
     ...(capabilities === undefined ? {} : {
       capabilities: [...capabilities],
+    }),
+    ...(reference === undefined ? {} : {
+      reference: {
+        ...reference,
+        ...(reference.eventFlow === undefined ? {} : {
+          eventFlow: [...reference.eventFlow],
+        }),
+        ...(reference.notes === undefined ? {} : {
+          notes: [...reference.notes],
+        }),
+      },
     }),
   }));
 

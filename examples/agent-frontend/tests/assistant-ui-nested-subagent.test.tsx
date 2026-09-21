@@ -24,6 +24,7 @@ import {
   nestedSubagentConversationScenario,
   nestedSubagentErrorScenario,
   nestedSubagentRecursiveScenario,
+  nestedSubagentTaskGroupScenario,
 } from "@agent-ui/mock-agent";
 import { runMockScenario } from "@agent-ui/mock-agent";
 import { ConversationAdapter } from "../agent-ui/conversation/ConversationAdapter";
@@ -196,6 +197,10 @@ describe("official nested assistant-ui conversation", () => {
       throw new Error("official adapter did not materialize the parent tool call");
     }
 
+    expect(parentTool.args).toEqual({
+      task: "Inspect Conversation Runtime",
+      subagent_type: "researcher",
+    });
     expect(parentTool.messages).toHaveLength(1);
     const nestedText = parentTool.messages
       ?.filter(
@@ -207,7 +212,7 @@ describe("official nested assistant-ui conversation", () => {
       .map(({ text }) => text)
       .join("");
     expect(nestedText).toContain(
-      "检查完成：当前项目由 Conversation Runtime",
+      "检查完成：Conversation Runtime 负责 assistant-ui Runtime 集成",
     );
 
     const nestedMessage = parentTool.messages?.find(
@@ -220,7 +225,7 @@ describe("official nested assistant-ui conversation", () => {
       };
     } | undefined;
     expect(nestedMetadata?.custom?.agui?.result).toEqual({
-      summary: "Architecture inspection complete",
+      summary: "Conversation Runtime inspection complete",
     });
   });
 
@@ -243,9 +248,12 @@ describe("official nested assistant-ui conversation", () => {
       '[data-slot="task-card-transcript"]',
     );
     expect(nested).not.toBeNull();
-    expect(nested?.textContent).toContain("我先检查 Agent UI 的核心 Runtime");
+    expect(nested?.textContent).toContain("我先检查 Conversation Runtime 和 Conversation Adapter");
     expect(nested?.textContent).toContain("Searched files");
-    expect(nested?.textContent).toContain("检查完成：当前项目由 Conversation Runtime");
+    expect(nested?.textContent).toContain("检查完成：Conversation Runtime 负责 assistant-ui Runtime 集成");
+    expect(runtimeFixture.container.textContent).toContain(
+      "Conversation Runtime inspection complete",
+    );
 
     expect(
       runtimeFixture.container.querySelectorAll(
@@ -265,7 +273,7 @@ describe("official nested assistant-ui conversation", () => {
       "我把架构检查交给 Researcher 子 Agent。",
     );
     expect(runtimeFixture.container.textContent).toContain(
-      "Researcher 已完成架构检查，我已经收到它的结果。",
+      "Researcher 已完成 Conversation Runtime 检查，我已经收到它的结果。",
     );
   });
 
@@ -284,6 +292,16 @@ describe("official nested assistant-ui conversation", () => {
 
     expect(runtimeFixture.container.querySelector('[data-slot="task-card"]')).not.toBeNull();
     expect(runtimeFixture.container.querySelector('[data-slot="task-card-transcript"]')).toBeNull();
+    expect(
+      runtimeFixture.container
+        .querySelector('[data-slot="task-card"] [data-slot="tool-fallback-root"]'),
+    ).toBeNull();
+    expect(runtimeFixture.container.textContent).toContain("Inspect Conversation Runtime");
+    expect(runtimeFixture.container.textContent).toContain("researcher");
+    expect(
+      runtimeFixture.container.querySelector('[data-slot="task-card-result"]')
+        ?.textContent,
+    ).toContain("Conversation Runtime inspection complete");
 
     const matches = runtimeFixture.container.textContent?.match(/delegate_specialist/g) ?? [];
     expect(matches).toHaveLength(1);
@@ -309,6 +327,40 @@ describe("official nested assistant-ui conversation", () => {
     expect(runtimeFixture.container.textContent).toContain(
       "customer_defined_agent_tool",
     );
+  });
+
+  it("renders sibling nested subagents through the official TaskGroup", async () => {
+    const runtimeFixture = await mountRuntime(
+      new ScenarioEventAgent(
+        await collectScenarioEvents(nestedSubagentTaskGroupScenario),
+      ),
+    );
+
+    await act(async () => {
+      await runtimeFixture.runtime.thread.append({
+        role: "user",
+        content: [{ type: "text", text: "检查多个 Agent 任务" }],
+        startRun: true,
+      });
+    });
+
+    const parentMessage = assistantMessages(runtimeFixture.runtime).at(-1);
+    const parentTools = parentMessage?.content.filter(
+      (part): part is Extract<ThreadMessage["content"][number], { type: "tool-call" }> =>
+        part.type === "tool-call",
+    ) ?? [];
+    expect(parentTools).toHaveLength(3);
+    expect(parentTools.every((part) => part.messages?.length === 1)).toBe(true);
+
+    const taskGroup = runtimeFixture.container.querySelector(
+      '[data-slot="aui_task-group"]',
+    );
+    expect(taskGroup).not.toBeNull();
+    expect(taskGroup?.textContent).toContain("3 tasks");
+    expect(taskGroup?.querySelectorAll('[data-slot="task-card"]')).toHaveLength(3);
+    expect(taskGroup?.textContent).toContain("Inspect Architecture");
+    expect(taskGroup?.textContent).toContain("Inspect Conversation Runtime");
+    expect(taskGroup?.textContent).toContain("Review Conversation UI");
   });
 
   it("recursively renders a second subagent through ToolCallMessagePart.messages", async () => {

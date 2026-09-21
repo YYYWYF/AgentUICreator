@@ -236,6 +236,65 @@
   gap: var(--aui-space-1);
 }
 
+.reference {
+  display: grid;
+  gap: var(--aui-space-3);
+  padding-top: var(--aui-space-3);
+  border-top: 1px solid var(--aui-border);
+}
+
+.referenceGrid {
+  display: grid;
+  gap: var(--aui-space-2);
+}
+
+.referenceGrid > div,
+.referenceSection {
+  display: grid;
+  gap: var(--aui-space-1);
+}
+
+.referenceValue {
+  color: var(--aui-fg);
+  font-size: var(--aui-font-size-sm);
+  line-height: var(--aui-line-height-normal);
+}
+
+.protocolFlow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--aui-space-1);
+}
+
+.protocolFlowItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--aui-space-1);
+}
+
+.protocolStep {
+  color: var(--aui-fg);
+  font-family: var(--aui-font-mono);
+  font-size: var(--aui-font-size-xs);
+  line-height: var(--aui-line-height-normal);
+  white-space: normal;
+}
+
+.protocolArrow {
+  color: var(--aui-fg-subtle);
+}
+
+.referenceNotes {
+  display: grid;
+  gap: var(--aui-space-1);
+  margin: 0;
+  padding-left: var(--aui-space-4);
+  color: var(--aui-fg-muted);
+  font-size: var(--aui-font-size-xs);
+  line-height: var(--aui-line-height-normal);
+}
+
 .detailLabel,
 .speedField > span {
   color: var(--aui-fg-subtle);

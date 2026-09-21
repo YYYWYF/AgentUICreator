@@ -1,7 +1,12 @@
 // @vitest-environment jsdom
 
 import { StrictMode } from "react";
-import { act, create, type ReactTestRenderer } from "react-test-renderer";
+import {
+  act,
+  create,
+  type ReactTestInstance,
+  type ReactTestRenderer,
+} from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
@@ -36,10 +41,60 @@ const catalog = {
     },
     {
       id: "subagents",
-      title: "Subagents",
-      description: "Dispatches three semantic subagents in parallel.",
+      title: "Parallel Agent Status",
+      description: "Parallel dispatch status showcase.",
       category: "agent",
-      capabilities: ["tool", "parallel-tool", "subagent"],
+      capabilities: ["tool", "parallel-tool", "agent-status"],
+    },
+    {
+      id: "nested-subagent-conversation",
+      title: "AG-UI Subagent → Task Card",
+      description: "Canonical nested Subagent reference.",
+      category: "agent",
+      capabilities: ["reasoning", "tool", "subagent"],
+      reference: {
+        protocol: "AG-UI",
+        pattern: "Agents as Tools / Nested Subagent",
+        presentation: "assistant-ui TaskCard",
+        eventFlow: [
+          "TOOL_CALL_START",
+          "SUBAGENT_STARTED",
+          "Child events tagged with subagentRunId",
+          "TOOL_CALL_RESULT",
+        ],
+        notes: [
+          "parentToolCallId attaches the subagent run to the spawning tool call.",
+          "subagentRunId attributes child events to the subagent.",
+        ],
+      },
+    },
+    {
+      id: "nested-subagent-task-group",
+      title: "AG-UI Subagent Task Group",
+      description: "Sibling nested Subagents.",
+      category: "agent",
+      capabilities: ["tool", "subagent"],
+    },
+    {
+      id: "nested-subagent-recursive",
+      title: "Recursive AG-UI Subagents",
+      description: "Recursive nested Subagents.",
+      category: "agent",
+      capabilities: ["reasoning", "tool", "subagent"],
+    },
+    {
+      id: "nested-subagent-error",
+      title: "AG-UI Subagent Error",
+      description: "Attributed error case.",
+      category: "agent",
+      capabilities: ["tool", "subagent"],
+    },
+    {
+      id: "subagent-lifecycle",
+      title: "Subagent Lifecycle",
+      description: "Protocol-only lifecycle fixture.",
+      category: "agent",
+      capabilities: ["subagent"],
     },
   ],
 };
@@ -74,6 +129,22 @@ function buttonWithText(
 ) {
   return renderer.root.findAllByType("button").find((button) =>
     button.children.includes(text),
+  );
+}
+
+function testInstanceText(instance: ReactTestInstance): string {
+  return instance.children
+    .map((child) => typeof child === "string" ? child : testInstanceText(child))
+    .join("");
+}
+
+function scenarioButtonWithTitle(
+  renderer: ReactTestRenderer,
+  title: string,
+): ReactTestInstance | undefined {
+  return renderer.root.findAllByType("button").find((button) =>
+    button.props["aria-pressed"] !== undefined &&
+    button.findAllByType("strong").some((strong) => testInstanceText(strong) === title),
   );
 }
 
@@ -143,6 +214,48 @@ describe("Scenario Panel and Dev Studio autorun", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it("labels the Subagent catalog and explains the canonical AG-UI reference", async () => {
+    const renderer = await mountStudio();
+
+    expect(testInstanceText(scenarioButtonWithTitle(
+      renderer,
+      "AG-UI Subagent → Task Card",
+    )!)).toContain("Recommended");
+    expect(testInstanceText(scenarioButtonWithTitle(
+      renderer,
+      "AG-UI Subagent Task Group",
+    )!)).toContain("Task Group");
+    expect(testInstanceText(scenarioButtonWithTitle(
+      renderer,
+      "Recursive AG-UI Subagents",
+    )!)).toContain("Advanced");
+    expect(testInstanceText(scenarioButtonWithTitle(
+      renderer,
+      "AG-UI Subagent Error",
+    )!)).toContain("Error Case");
+    expect(testInstanceText(scenarioButtonWithTitle(
+      renderer,
+      "Subagent Lifecycle",
+    )!)).toContain("Protocol Only");
+    expect(testInstanceText(scenarioButtonWithTitle(
+      renderer,
+      "Parallel Agent Status",
+    )!)).toContain("Element Demo");
+
+    await act(async () => {
+      scenarioButtonWithTitle(renderer, "AG-UI Subagent → Task Card")?.props.onClick();
+    });
+
+    const panelText = testInstanceText(renderer.root);
+    expect(panelText).toContain("AG-UI");
+    expect(panelText).toContain("Agents as Tools / Nested Subagent");
+    expect(panelText).toContain("assistant-ui TaskCard");
+    expect(panelText).toContain("SUBAGENT_STARTED");
+    expect(panelText).toContain("subagentRunId");
+    expect(panelText).toContain("parentToolCallId");
+    renderer.unmount();
   });
 
   it("loads its catalog from the Mock endpoint scenarios route", async () => {

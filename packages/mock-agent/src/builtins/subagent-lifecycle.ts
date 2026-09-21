@@ -8,9 +8,23 @@ import { defineScenario } from "../scenario.js";
 export const subagentLifecycleScenario = defineScenario({
   id: "subagent-lifecycle",
   title: "Subagent Lifecycle",
-  description: "使用标准 SUBAGENT_STARTED / FINISHED / ERROR 验证生命周期投影。",
+  description: "用于验证 SUBAGENT_STARTED / FINISHED / ERROR 生命周期本身，不是 nested TaskCard UI showcase。",
   category: "agent",
   capabilities: ["subagent"],
+  reference: {
+    protocol: "AG-UI",
+    pattern: "Subagent lifecycle",
+    presentation: "Protocol-only fixture",
+    level: "protocol",
+    eventFlow: [
+      "SUBAGENT_STARTED",
+      "SUBAGENT_FINISHED",
+      "SUBAGENT_ERROR",
+    ],
+    notes: [
+      "This fixture has no parentToolCallId and is not a nested TaskCard showcase.",
+    ],
+  },
   steps: [
     {
       type: "subagent",

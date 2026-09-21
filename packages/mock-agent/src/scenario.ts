@@ -16,6 +16,15 @@ export type MockScenarioCapability =
   | "subagent"
   | "sources";
 
+export interface MockScenarioReference {
+  protocol?: string | undefined;
+  pattern?: string | undefined;
+  presentation?: string | undefined;
+  level?: "recommended" | "advanced" | "edge" | "protocol" | undefined;
+  eventFlow?: readonly string[] | undefined;
+  notes?: readonly string[] | undefined;
+}
+
 export interface MockParallelTool {
   id?: string | undefined;
   name: string;
@@ -65,6 +74,7 @@ export interface MockScenario {
   description?: string | undefined;
   category?: MockScenarioCategory | undefined;
   capabilities?: readonly MockScenarioCapability[] | undefined;
+  reference?: MockScenarioReference | undefined;
   initialState?: Record<string, unknown> | undefined;
   steps: MockScenarioStep[];
   resumeSteps?: MockScenarioResumeSteps | undefined;

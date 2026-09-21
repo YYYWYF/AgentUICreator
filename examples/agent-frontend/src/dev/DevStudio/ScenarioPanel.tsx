@@ -67,10 +67,13 @@ function clampSpeed(value: string | undefined): number {
 }
 
 function scenarioMarker(scenario: MockScenarioSummary): string | undefined {
-  if (scenario.id === "nested-subagent-conversation") return "Nested UI";
-  if (scenario.id === "subagents") return "Recommended";
+  if (scenario.id === "nested-subagent-conversation") return "Recommended";
+  if (scenario.id === "nested-subagent-task-group") return "Task Group";
+  if (scenario.id === "nested-subagent-recursive") return "Advanced";
+  if (scenario.id === "nested-subagent-error") return "Error Case";
+  if (scenario.id === "subagent-lifecycle") return "Protocol Only";
+  if (scenario.id === "subagents") return "Element Demo";
   if (scenario.id === "subagents-out-of-order") return "Edge case";
-  if (scenario.id === "subagent-lifecycle") return "Protocol validation";
   return undefined;
 }
 
@@ -207,6 +210,11 @@ export function ScenarioPanel({ endpoint, navigate }: ScenarioPanelProps) {
         scenario.description,
         scenario.category,
         ...(scenario.capabilities ?? []),
+        scenario.reference?.protocol,
+        scenario.reference?.pattern,
+        scenario.reference?.presentation,
+        ...(scenario.reference?.eventFlow ?? []),
+        ...(scenario.reference?.notes ?? []),
       ]
         .filter((value): value is string => value !== undefined)
         .some((value) => value.toLocaleLowerCase().includes(normalizedQuery)),
@@ -338,6 +346,64 @@ export function ScenarioPanel({ endpoint, navigate }: ScenarioPanelProps) {
                 <code>{currentScenario.id}</code>
               </div>
             </div>
+            {currentScenario.reference ? (
+              <div className={styles.reference}>
+                <span className={styles.detailLabel}>Reference</span>
+                <div className={styles.referenceGrid}>
+                  {currentScenario.reference.protocol ? (
+                    <div>
+                      <span className={styles.detailLabel}>Protocol</span>
+                      <span className={styles.referenceValue}>
+                        {currentScenario.reference.protocol}
+                      </span>
+                    </div>
+                  ) : null}
+                  {currentScenario.reference.pattern ? (
+                    <div>
+                      <span className={styles.detailLabel}>Pattern</span>
+                      <span className={styles.referenceValue}>
+                        {currentScenario.reference.pattern}
+                      </span>
+                    </div>
+                  ) : null}
+                  {currentScenario.reference.presentation ? (
+                    <div>
+                      <span className={styles.detailLabel}>Presentation</span>
+                      <span className={styles.referenceValue}>
+                        {currentScenario.reference.presentation}
+                      </span>
+                    </div>
+                  ) : null}
+                </div>
+                {currentScenario.reference.eventFlow?.length ? (
+                  <div className={styles.referenceSection}>
+                    <span className={styles.detailLabel}>Protocol Flow</span>
+                    <div className={styles.protocolFlow}>
+                      {currentScenario.reference.eventFlow.map((step, index) => (
+                        <span className={styles.protocolFlowItem} key={`${step}-${index}`}>
+                          {index > 0 ? (
+                            <span className={styles.protocolArrow} aria-hidden="true">
+                              →
+                            </span>
+                          ) : null}
+                          <code className={styles.protocolStep}>{step}</code>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                {currentScenario.reference.notes?.length ? (
+                  <div className={styles.referenceSection}>
+                    <span className={styles.detailLabel}>Notes</span>
+                    <ul className={styles.referenceNotes}>
+                      {currentScenario.reference.notes.map((note) => (
+                        <li key={note}>{note}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </section>
         ) : null}
       </div>

@@ -11,18 +11,40 @@ describe("createScenarioRegistry", () => {
       defaultScenarioId: "reasoning-tool-success",
     });
 
-    expect(registry.list()).toHaveLength(17);
+    expect(registry.list()).toHaveLength(builtinMockScenarios.length);
     expect(registry.list()).toEqual(builtinMockScenarios.map(
-      ({ id, title, description, category, capabilities }) => ({
+      ({ id, title, description, category, capabilities, reference }) => ({
         id,
         title,
         ...(description === undefined ? {} : { description }),
         ...(category === undefined ? {} : { category }),
         ...(capabilities === undefined ? {} : { capabilities }),
+        ...(reference === undefined ? {} : { reference }),
       }),
     ));
     expect(registry.list()[0]).not.toHaveProperty("steps");
     expect(registry.list()[0]).not.toHaveProperty("initialState");
+  });
+
+  it("exposes reference documentation without exposing scenario execution data", () => {
+    const registry = createScenarioRegistry({
+      scenarios: builtinMockScenarios,
+      defaultScenarioId: "reasoning-tool-success",
+    });
+    const canonical = registry.list().find(
+      ({ id }) => id === "nested-subagent-conversation",
+    );
+
+    expect(canonical?.reference).toMatchObject({
+      protocol: "AG-UI",
+      pattern: "Agents as Tools / Nested Subagent",
+      presentation: "assistant-ui TaskCard",
+      level: "recommended",
+    });
+    expect(canonical?.reference?.eventFlow?.some((step) =>
+      step.includes("subagentRunId"),
+    )).toBe(true);
+    expect(canonical).not.toHaveProperty("steps");
   });
 
   it("includes a long streaming reasoning preview scenario", () => {

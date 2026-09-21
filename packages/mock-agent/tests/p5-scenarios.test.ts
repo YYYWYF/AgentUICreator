@@ -144,7 +144,7 @@ describe("P5-A mock scenarios", () => {
     }));
   });
 
-  it("runs the recommended subagent demo as three parallel dispatches", async () => {
+  it("runs the parallel agent status demo as three parallel dispatches", async () => {
     const events = await collect(subagentsScenario);
     const starts = events.filter((event) =>
       event.type === EventType.TOOL_CALL_START,
@@ -155,7 +155,7 @@ describe("P5-A mock scenarios", () => {
 
     expect(subagentsScenario).toMatchObject({
       category: "agent",
-      capabilities: ["tool", "parallel-tool", "subagent"],
+      capabilities: ["tool", "parallel-tool", "agent-status"],
     });
     expect(starts).toHaveLength(3);
     expect(starts.map((event) => event.toolCallId)).toEqual([

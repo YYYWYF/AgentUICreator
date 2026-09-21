@@ -36,10 +36,10 @@ export function subagentDispatchTool(
 
 export const subagentsScenario = defineScenario({
   id: "subagents",
-  title: "Subagents",
-  description: "并行检查架构、Runtime 和界面实现，观察三个子 Agent 的进度。",
+  title: "Parallel Agent Status",
+  description: "通过 parallel dispatch tool calls 展示多个 Agent 的进度状态。这是 Agent Element / status showcase，不是 AG-UI SUBAGENT_* reference。",
   category: "agent",
-  capabilities: ["tool", "parallel-tool", "subagent"],
+  capabilities: ["tool", "parallel-tool", "agent-status"],
   steps: [
     {
       type: "reasoning",

@@ -10,6 +10,7 @@ import {
   nestedSubagentConversationScenario,
   nestedSubagentErrorScenario,
   nestedSubagentRecursiveScenario,
+  nestedSubagentTaskGroupScenario,
 } from "../src/builtins/index.js";
 import { runMockScenario } from "../src/scenario-runner.js";
 
@@ -168,5 +169,44 @@ describe("nested subagent AG-UI reference contract", () => {
       type: EventType.RUN_FINISHED,
       outcome: { type: "success" },
     });
+  });
+
+  it("preserves parent-to-subagent relations for every TaskGroup sibling", async () => {
+    const events = [] as BaseEvent[];
+    for await (const event of runMockScenario(
+      input,
+      nestedSubagentTaskGroupScenario,
+      { timingScale: 0 },
+    )) {
+      events.push(EventSchemas.parse(event));
+    }
+
+    const started = events.filter((event) =>
+      event.type === EventType.SUBAGENT_STARTED,
+    );
+    expect(started).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        subagentRunId: "architecture-agent",
+        parentToolCallId: "architecture-tool",
+      }),
+      expect.objectContaining({
+        subagentRunId: "runtime-agent",
+        parentToolCallId: "runtime-tool",
+      }),
+      expect.objectContaining({
+        subagentRunId: "ui-agent",
+        parentToolCallId: "ui-tool",
+      }),
+    ]));
+
+    for (const subagentRunId of [
+      "architecture-agent",
+      "runtime-agent",
+      "ui-agent",
+    ]) {
+      expect(events.filter((event) =>
+        "subagentRunId" in event && event.subagentRunId === subagentRunId,
+      ).length).toBeGreaterThan(1);
+    }
   });
 });
