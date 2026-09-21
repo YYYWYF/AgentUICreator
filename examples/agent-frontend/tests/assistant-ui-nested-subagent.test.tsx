@@ -404,6 +404,13 @@ describe("official nested assistant-ui conversation", () => {
     expect(errorMetadata?.custom?.agui?.errorCode).toBe(
       "SUBAGENT_RESEARCH_FAILED",
     );
+    const errorAlert = runtimeFixture.container
+      .querySelector('[data-slot="subagent-conversation-message"]')
+      ?.querySelector('[role="alert"]');
+    expect(errorAlert).not.toBeNull();
+    expect(errorAlert?.textContent).toContain(
+      "Researcher failed during runtime inspection",
+    );
     expect(runtimeFixture.container.textContent).toContain(
       "我已经定位到失败分支",
     );

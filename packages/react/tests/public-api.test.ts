@@ -31,6 +31,7 @@ describe("@agent-ui/react public API", () => {
       "ConversationSubagentMessages",
       "ConversationSubagentTool",
       "ConversationSubagentRenderScope",
+      "ConversationCanonicalMessageError",
       "ConversationCanonicalAssistantMessage",
       "ConversationActionBarRoot",
       "ConversationActionCopy",

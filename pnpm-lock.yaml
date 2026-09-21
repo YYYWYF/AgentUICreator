@@ -96,6 +96,9 @@ importers:
         specifier: 5.0.15
         version: 5.0.15(@types/react@19.3.0)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
     devDependencies:
+      '@ag-ui/client':
+        specifier: 0.0.59
+        version: 0.0.59
       '@agent-ui/mock-agent':
         specifier: workspace:^
         version: link:../../packages/mock-agent
@@ -129,6 +132,9 @@ importers:
       react-test-renderer:
         specifier: 19.2.8
         version: 19.2.8(react@19.3.0)
+      rxjs:
+        specifier: 7.8.1
+        version: 7.8.1
       semver:
         specifier: ^7.7.3
         version: 7.8.5

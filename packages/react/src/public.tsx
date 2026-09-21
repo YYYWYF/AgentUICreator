@@ -526,7 +526,7 @@ export function ConversationBranchPicker({
   );
 }
 
-function ConversationMessageError() {
+export function ConversationCanonicalMessageError() {
   return (
     <MessagePrimitive.Error>
       <ErrorPrimitive.Root className="aui-message-error-root border-destructive bg-destructive/10 text-destructive dark:bg-destructive/5 mt-2 rounded-md border p-3 text-sm dark:text-red-200">
@@ -650,7 +650,7 @@ export function ConversationCanonicalAssistantMessage({
             }
           }}
         </MessagePrimitive.GroupedParts>
-        <ConversationMessageError />
+        <ConversationCanonicalMessageError />
       </div>
 
       {footer === undefined || footer === null ? null : (
@@ -814,6 +814,7 @@ export function ConversationSubagentMessages() {
               tools: { Fallback: ConversationNestedToolFallback as never },
             }}
           />
+          <ConversationCanonicalMessageError />
         </MessagePrimitive.Root>
       )}
     </MessagePartPrimitive.Messages>
