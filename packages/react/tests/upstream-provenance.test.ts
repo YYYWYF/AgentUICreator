@@ -22,7 +22,7 @@ describe("assistant-ui upstream provenance", () => {
     expect(provenance).toContain("@assistant-ui/react-ag-ui` = `0.0.60");
     expect(provenance).toContain("@assistant-ui/react-markdown` = `0.14.16");
     expect(provenance).toContain("@ag-ui/client` = `0.0.59");
-    expect(metadata.revision).toBe("b712ee83bde9a89fce2812968f951a5742d757b9");
+    expect(metadata.revision).toBe("039c3c32822632f2a564164f089f538926886124");
     expect(provenance).toContain(metadata.revision);
   });
 
@@ -46,6 +46,7 @@ describe("assistant-ui upstream provenance", () => {
       "components/assistant-ui/elements/agent-plan.tsx",
       "components/assistant-ui/elements/agent-status.aui.tsx",
       "components/assistant-ui/elements/agent-status.tsx",
+      "components/assistant-ui/elements/job-progress.tsx",
       "components/assistant-ui/elements/task-card.aui.tsx",
       "components/assistant-ui/elements/task-card.tsx",
       "components/assistant-ui/elements/subagent-list.tsx",

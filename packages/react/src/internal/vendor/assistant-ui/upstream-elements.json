@@ -12,6 +12,7 @@
     "components/assistant-ui/elements/file.tsx",
     "components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
     "components/assistant-ui/elements/image.tsx",
+    "components/assistant-ui/elements/job-progress.tsx",
     "components/assistant-ui/elements/markdown-text.tsx",
     "components/assistant-ui/elements/reasoning.aui.tsx",
     "components/assistant-ui/elements/reasoning.tsx",

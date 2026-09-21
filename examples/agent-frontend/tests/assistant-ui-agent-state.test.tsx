@@ -104,7 +104,7 @@ afterEach(async () => {
   document.body.replaceChildren();
 });
 
-describe("assistant-ui AG-UI Agent State projection", () => {
+describe("assistant-ui AG-UI State → Job Progress projection", () => {
   it("applies STATE_SNAPSHOT and STATE_DELTA through the upstream runtime", async () => {
     const agent = new ScenarioEventAgent();
     const runtime = await mountRuntime(agent);
@@ -119,6 +119,7 @@ describe("assistant-ui AG-UI Agent State projection", () => {
     const secondDeltaIndex = deltaIndexes[1];
     if (
       snapshotIndex < 0 ||
+      deltaIndexes.length !== 5 ||
       firstDeltaIndex === undefined ||
       secondDeltaIndex === undefined
     ) {
@@ -129,7 +130,7 @@ describe("assistant-ui AG-UI Agent State projection", () => {
     await act(async () => {
       appendPromise = runtime.thread.append({
         role: "user",
-        content: [{ type: "text", text: "规划东京旅行" }],
+        content: [{ type: "text", text: "验证当前修改能否通过 CI" }],
         startRun: true,
       });
       await Promise.resolve();
@@ -145,10 +146,18 @@ describe("assistant-ui AG-UI Agent State projection", () => {
       }
     });
     expect(runtime.thread.getState().state).toEqual({
-      trip: {
-        destination: "Tokyo",
-        days: 5,
-        status: "planning",
+      jobProgress: {
+        id: "ci-verification",
+        title: "Verify the current change on CI",
+        stages: [
+          { name: "clone", weight: 1 },
+          { name: "install", weight: 3 },
+          { name: "build", weight: 3 },
+          { name: "test", weight: 3 },
+        ],
+        stageIndex: 0,
+        stageProgress: 0.1,
+        eta: "about 4 min",
       },
     });
 
@@ -158,11 +167,18 @@ describe("assistant-ui AG-UI Agent State projection", () => {
       }
     });
     expect(runtime.thread.getState().state).toEqual({
-      trip: {
-        destination: "Tokyo",
-        days: 5,
-        status: "researching",
-        budget: 1200,
+      jobProgress: {
+        id: "ci-verification",
+        title: "Verify the current change on CI",
+        stages: [
+          { name: "clone", weight: 1 },
+          { name: "install", weight: 3 },
+          { name: "build", weight: 3 },
+          { name: "test", weight: 3 },
+        ],
+        stageIndex: 0,
+        stageProgress: 0.7,
+        eta: "about 3 min",
       },
     });
 
@@ -172,16 +188,55 @@ describe("assistant-ui AG-UI Agent State projection", () => {
       }
     });
     expect(runtime.thread.getState().state).toEqual({
-      trip: {
-        destination: "Tokyo",
-        days: 5,
-        status: "ready",
-        budget: 1200,
+      jobProgress: {
+        id: "ci-verification",
+        title: "Verify the current change on CI",
+        stages: [
+          { name: "clone", weight: 1 },
+          { name: "install", weight: 3 },
+          { name: "build", weight: 3 },
+          { name: "test", weight: 3 },
+        ],
+        stageIndex: 1,
+        stageProgress: 0.3,
+        eta: "about 3 min",
       },
     });
 
     await act(async () => {
-      for (const event of events.slice(secondDeltaIndex + 1)) {
+      for (const event of events.slice(secondDeltaIndex + 1, deltaIndexes[2]! + 1)) {
+        firstRunEvents.next(event);
+      }
+    });
+    expect(runtime.thread.getState().state).toMatchObject({
+      jobProgress: {
+        stageIndex: 2,
+        stageProgress: 0.55,
+        eta: "about 2 min",
+      },
+    });
+
+    await act(async () => {
+      for (const event of events.slice(deltaIndexes[2]! + 1, deltaIndexes[3]! + 1)) {
+        firstRunEvents.next(event);
+      }
+    });
+    expect(runtime.thread.getState().state).toMatchObject({
+      jobProgress: {
+        stageIndex: 3,
+        stageProgress: 0.75,
+        eta: "less than 1 min",
+      },
+    });
+
+    await act(async () => {
+      for (const event of events.slice(deltaIndexes[3]! + 1, deltaIndexes[4]! + 1)) {
+        firstRunEvents.next(event);
+      }
+    });
+
+    await act(async () => {
+      for (const event of events.slice(deltaIndexes[4]! + 1)) {
         firstRunEvents.next(event);
       }
       firstRunEvents.complete();
@@ -189,11 +244,18 @@ describe("assistant-ui AG-UI Agent State projection", () => {
     });
 
     const finalState = {
-      trip: {
-        destination: "Tokyo",
-        days: 5,
-        status: "ready",
-        budget: 1200,
+      jobProgress: {
+        id: "ci-verification",
+        title: "Verify the current change on CI",
+        stages: [
+          { name: "clone", weight: 1 },
+          { name: "install", weight: 3 },
+          { name: "build", weight: 3 },
+          { name: "test", weight: 3 },
+        ],
+        stageIndex: 4,
+        stageProgress: 0,
+        eta: "less than 1 min",
       },
     };
     expect(runtime.thread.getState().state).toEqual(finalState);
@@ -202,7 +264,7 @@ describe("assistant-ui AG-UI Agent State projection", () => {
     await act(async () => {
       secondAppendPromise = runtime.thread.append({
         role: "user",
-        content: [{ type: "text", text: "继续生成详细行程" }],
+        content: [{ type: "text", text: "继续检查 CI 验证结果" }],
         startRun: true,
       });
       await Promise.resolve();

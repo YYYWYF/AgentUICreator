@@ -3,7 +3,7 @@
 Repository: https://github.com/assistant-ui/assistant-ui.git
 Branch: `main`
 Commit: `039c3c32822632f2a564164f089f538926886124`
-Previous commit: `c2917dba8783b3e250ab484102627901e611c56a`
+Previous commit: `039c3c32822632f2a564164f089f538926886124`
 License: MIT
 Source form: official Base UI registry output plus declared mechanical import adaptations
 
@@ -18,10 +18,10 @@ Source form: official Base UI registry output plus declared mechanical import ad
 
 The files below are copied from the frozen revision above. Vendor sync may adapt only upstream import aliases and the registry's base-ui relative paths. Product presentation and policy stay in the Agent UI facade and Plugin layers.
 
-- 41 tracked vendor files
-- 22 tracked official Element files
+- 42 tracked vendor files
+- 23 tracked official Element files
 - 148 official Element files discovered upstream
-- 126 upstream Element files not adopted into the tracked set
+- 125 upstream Element files not adopted into the tracked set
 - AG-UI remains at `0.0.59` because it follows the react-ag-ui compatibility matrix
 
 ## Upgrade command

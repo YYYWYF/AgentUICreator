@@ -30,6 +30,8 @@ describe("@agent-ui/react public API", () => {
       "ConversationToolCall",
       "ConversationTaskGroup",
       "ConversationTaskGroupRenderScope",
+      "JobProgress",
+      "JobProgressStage",
       "ConversationAgentStatus",
       "ConversationTaskTray",
       "ConversationCanonicalMessageError",

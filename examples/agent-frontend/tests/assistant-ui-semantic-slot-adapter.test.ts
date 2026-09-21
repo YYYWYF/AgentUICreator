@@ -31,6 +31,7 @@ describe("assistant-ui semantic Slot adapter", () => {
     expect(plugin).toContain('renderSlot("emptyWelcome"');
     expect(plugin).toContain('renderSlot("emptySuggestions"');
     expect(plugin).toContain('renderSlot("headerActions"');
+    expect(plugin).toContain('renderSlot("liveStatus"');
     expect(adapter).toContain("ScopedReasoningGroup");
     expect(adapter).toContain("ScopedToolGroup");
     expect(adapter).toContain("ScopedToolFallback");

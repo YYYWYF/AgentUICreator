@@ -91,6 +91,16 @@
       ]
     },
     {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/job-progress.tsx",
+      "localPath": "components/assistant-ui/elements/job-progress.tsx",
+      "upstreamSha256": "160cb61f6d335f6170610ff639b62b4ebcf1e1440131c4fd8c81d9cbbdd01d2f",
+      "installedSha256": "5c88f5c20239cf6cd8758311b66aa22a931c8d3223cfd699ec23f97a967c28a7",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/markdown-text.tsx",
       "localPath": "components/assistant-ui/elements/markdown-text.tsx",
       "upstreamSha256": "4621787f69160d9f34a170da8fb76005a811a7cfa704280e463518a67eb7fc8d",

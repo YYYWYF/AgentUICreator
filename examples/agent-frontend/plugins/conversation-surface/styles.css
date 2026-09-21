@@ -5,6 +5,8 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .conversation-surface-header-actions {
@@ -26,4 +28,23 @@
   align-items: center;
   gap: 0.5rem;
   pointer-events: auto;
+}
+
+.conversation-surface-live-status {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1rem 1rem 0;
+}
+
+.conversation-surface-live-status:has(.app-ui-plugin-slot-width-probe:empty),
+.conversation-surface-live-status:has(.app-ui-plugin-instance:empty) {
+  display: none;
+}
+
+.conversation-surface-thread {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }

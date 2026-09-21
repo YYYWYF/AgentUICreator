@@ -1,10 +1,12 @@
 {
   "schemaVersion": 1,
-  "fromRevision": "c2917dba8783b3e250ab484102627901e611c56a",
+  "fromRevision": "039c3c32822632f2a564164f089f538926886124",
   "toRevision": "039c3c32822632f2a564164f089f538926886124",
   "packagesChanged": [],
   "vendorFilesChanged": [],
-  "vendorFilesAdded": [],
+  "vendorFilesAdded": [
+    "components/assistant-ui/elements/job-progress.tsx"
+  ],
   "vendorFilesRemoved": [],
   "vendorFilesRenamed": [],
   "newTransitiveDependencies": [],
@@ -61,7 +63,6 @@
     "components/assistant-ui/elements/heat-graph.tsx",
     "components/assistant-ui/elements/image-generation.tsx",
     "components/assistant-ui/elements/inline-citation.tsx",
-    "components/assistant-ui/elements/job-progress.tsx",
     "components/assistant-ui/elements/launcher-bubble.tsx",
     "components/assistant-ui/elements/loading-state.tsx",
     "components/assistant-ui/elements/logos.tsx",
@@ -136,7 +137,9 @@
     "components/assistant-ui/elements/web-preview.tsx",
     "components/assistant-ui/elements/web-search.tsx"
   ],
-  "newlyAdoptedElements": [],
+  "newlyAdoptedElements": [
+    "components/assistant-ui/elements/job-progress.tsx"
+  ],
   "removedUpstreamElements": [],
   "changedUpstreamElements": [],
   "ignoredUpstreamElements": [
@@ -346,10 +349,6 @@
     },
     {
       "localPath": "components/assistant-ui/elements/inline-citation.tsx",
-      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
-    },
-    {
-      "localPath": "components/assistant-ui/elements/job-progress.tsx",
       "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
     },
     {
@@ -662,6 +661,7 @@
       "components/assistant-ui/elements/file.tsx",
       "components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
       "components/assistant-ui/elements/image.tsx",
+      "components/assistant-ui/elements/job-progress.tsx",
       "components/assistant-ui/elements/markdown-text.tsx",
       "components/assistant-ui/elements/reasoning.aui.tsx",
       "components/assistant-ui/elements/reasoning.tsx",
@@ -705,6 +705,7 @@
       "components/assistant-ui/elements/file.tsx",
       "components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
       "components/assistant-ui/elements/image.tsx",
+      "components/assistant-ui/elements/job-progress.tsx",
       "components/assistant-ui/elements/markdown-text.tsx",
       "components/assistant-ui/elements/reasoning.aui.tsx",
       "components/assistant-ui/elements/reasoning.tsx",
@@ -799,8 +800,7 @@
       "components/assistant-ui/elements/heat-graph.tsx",
       "components/assistant-ui/elements/image-generation.tsx",
       "components/assistant-ui/elements/image.tsx",
-      "components/assistant-ui/elements/inline-citation.tsx",
-      "components/assistant-ui/elements/job-progress.tsx",
+    "components/assistant-ui/elements/inline-citation.tsx",
       "components/assistant-ui/elements/launcher-bubble.tsx",
       "components/assistant-ui/elements/loading-state.tsx",
       "components/assistant-ui/elements/logos.tsx",

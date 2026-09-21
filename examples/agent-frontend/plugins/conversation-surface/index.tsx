@@ -29,6 +29,7 @@ export function ConversationSurfacePlugin({
   const welcome = renderSlot("emptyWelcome", <ConversationWelcomeFallback />);
   const suggestions = renderSlot("emptySuggestions", null);
   const headerActions = renderSlot("headerActions", null);
+  const liveStatus = renderSlot("liveStatus", null, { sizing: "content" });
   const composer = renderSlot("composer", null);
   const renderConversationScopedSlot = (
     slotName: string,
@@ -58,12 +59,20 @@ export function ConversationSurfacePlugin({
       >
         {headerActions}
       </div>
-      <ConversationAdapter
-        welcome={welcome}
-        suggestions={suggestions}
-        composer={composer}
-        renderScopedSlot={renderConversationScopedSlot}
-      />
+      <div
+        className="conversation-surface-live-status"
+        data-conversation-surface-slot="liveStatus"
+      >
+        {liveStatus}
+      </div>
+      <div className="conversation-surface-thread">
+        <ConversationAdapter
+          welcome={welcome}
+          suggestions={suggestions}
+          composer={composer}
+          renderScopedSlot={renderConversationScopedSlot}
+        />
+      </div>
     </div>
   );
 }

@@ -34,11 +34,18 @@ describe("assistant-ui default composition", () => {
         anyOfCapabilities: ["conversation-assistant-message-footer-renderer"],
       },
     });
+    expect(slots?.liveStatus).toMatchObject({
+      cardinality: "many",
+      optional: true,
+      accepts: { anyOfCapabilities: ["conversation-live-status"] },
+    });
     const locations = collectAppUIPluginLocations(parseAppUIModel(appUIJson));
     expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-reasoning-main")?.target)
       .toMatchObject({ type: "plugin_slot", parentInstanceId: "agent-conversation-surface-main", slot: "reasoningGroup" });
     expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-composer-main")?.target)
       .toMatchObject({ type: "plugin_slot", parentInstanceId: "agent-conversation-surface-main", slot: "composer" });
+    expect(locations.find(({ plugin }) => plugin.id === "job-progress-main")?.target)
+      .toMatchObject({ type: "plugin_slot", parentInstanceId: "agent-conversation-surface-main", slot: "liveStatus" });
     expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-add-attachment-action-main")?.target)
       .toMatchObject({ type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "leadingActions" });
     expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-dictation-action-main")?.target)
@@ -100,6 +107,11 @@ describe("assistant-ui default composition", () => {
       parentPluginId: "assistant-ui-composer",
       slot: "submitAction",
     });
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "job-progress")?.manifest.authoring?.defaultPlacement).toEqual({
+      type: "plugin_slot",
+      parentPluginId: "conversation-surface",
+      slot: "liveStatus",
+    });
   });
   it("keeps the default model to application plugins and semantic child Slot plugins", () => {
     const model = parseAppUIModel(appUIJson);
@@ -112,6 +124,7 @@ describe("assistant-ui default composition", () => {
       "conversation-thread-list-main",
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
+      "job-progress-main",
       "assistant-ui-composer-main",
       "assistant-ui-add-attachment-action-main",
       "assistant-ui-dictation-action-main",
@@ -133,6 +146,7 @@ describe("assistant-ui default composition", () => {
       "conversation-thread-list-main",
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
+      "job-progress-main",
       "assistant-ui-composer-main",
       "assistant-ui-add-attachment-action-main",
       "assistant-ui-dictation-action-main",

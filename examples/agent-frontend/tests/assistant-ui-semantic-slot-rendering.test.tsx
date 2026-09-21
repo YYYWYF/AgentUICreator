@@ -21,6 +21,9 @@ describe("assistant-ui semantic Slot rendering", () => {
     expect(plugin).toContain('renderSlot("emptyWelcome"');
     expect(plugin).toContain('renderSlot("emptySuggestions"');
     expect(plugin).toContain('renderSlot("headerActions"');
+    expect(plugin).toContain('renderSlot("liveStatus"');
+    expect(plugin).toContain('data-conversation-surface-slot="liveStatus"');
+    expect(await read("plugins/conversation-surface/styles.css")).toContain("grid-template-rows: auto minmax(0, 1fr)");
     expect(adapter).toContain("welcome?: ReactNode");
     expect(adapter).toContain("suggestions?: ReactNode");
     expect(adapter).not.toContain("renderSlot");

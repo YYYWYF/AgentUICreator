@@ -12,6 +12,7 @@
     "components/assistant-ui/elements/file.tsx": "0d91bcd9a468b0d62c19ee325c53682cc509243685ba27d50dea33ead1e58d61",
     "components/assistant-ui/elements/follow-up-suggestions.aui.tsx": "f0db1e9cfc5f648adeb57c8ac61fbeca4ebbb4d55267a9c107709af01b73abb4",
     "components/assistant-ui/elements/image.tsx": "d9496b7f96be35ec462766a78b171b917c410202c2a8514f53bdc51b9963d17b",
+    "components/assistant-ui/elements/job-progress.tsx": "5c88f5c20239cf6cd8758311b66aa22a931c8d3223cfd699ec23f97a967c28a7",
     "components/assistant-ui/elements/markdown-text.tsx": "b041132faa98790395e4161329249eb1a38642ce7a5603042a67e7ab7ff72808",
     "components/assistant-ui/elements/reasoning.aui.tsx": "32c3b000370561900797a633d606a7172f6d465a2c06f3e39b6e820535dcd79f",
     "components/assistant-ui/elements/reasoning.tsx": "6e629d6cab9204b903120f7195b3d3126ed48d5ecd7191dbb0174ad9ccf8dfb0",

@@ -70,26 +70,33 @@ const catalog = {
     },
     {
       id: "agent-state-sync",
-      title: "AG-UI Agent State",
-      description: "STATE_SNAPSHOT and STATE_DELTA JSON Patch state sync.",
+      title: "AG-UI State → Job Progress",
+      description: "STATE_SNAPSHOT initializes a CI JobProgress and STATE_DELTA advances it.",
       category: "state",
       capabilities: ["state-sync"],
       reference: {
         protocol: "AG-UI",
-        pattern: "Agent State Synchronization",
-        presentation: "Dev Studio Runtime / Application State",
+        pattern: "Live Job State Synchronization",
+        presentation: "assistant-ui JobProgress + Dev Studio Runtime State",
         eventFlow: [
           "RUN_STARTED",
           "STATE_SNAPSHOT",
           "STATE_DELTA",
           "STATE_DELTA",
+          "STATE_DELTA",
+          "STATE_DELTA",
+          "STATE_DELTA",
           "RUN_FINISHED",
         ],
         notes: [
-          "STATE_SNAPSHOT replaces the complete external agent state.",
-          "STATE_DELTA applies JSON Patch operations to the current state.",
-          "AG-UI state is not AppUIModel or Plugin configuration.",
-          "Run the scenario and watch Runtime → Application State.",
+          "STATE_SNAPSHOT initializes the complete job state.",
+          "STATE_DELTA updates the same job without producing new messages or tool results.",
+          "STATE_DELTA carries standard JSON Patch operations for each stage update.",
+          "JobProgress is used in assistant-ui standalone controlled mode.",
+          "Tool results are one-shot and are not appropriate for continuous stage progress.",
+          "The latest state is included in the next AG-UI run input.",
+          "Dev Studio → Runtime → Application State shows the raw current state.",
+          "AG-UI state is not AppUIModel, app-ui.json, Plugin configuration, ConversationService, conversation persistence, or Creator working state.",
         ],
       },
     },
@@ -288,18 +295,18 @@ describe("Scenario Panel and Dev Studio autorun", () => {
 
     expect(testInstanceText(scenarioButtonWithTitle(
       renderer,
-      "AG-UI Agent State",
+      "AG-UI State → Job Progress",
     )!)).toContain("Recommended");
 
     await act(async () => {
-      scenarioButtonWithTitle(renderer, "AG-UI Agent State")?.props.onClick();
+      scenarioButtonWithTitle(renderer, "AG-UI State → Job Progress")?.props.onClick();
     });
 
     const panelText = testInstanceText(renderer.root);
     expect(panelText).toContain("State");
     expect(panelText).toContain("State Sync");
-    expect(panelText).toContain("Agent State Synchronization");
-    expect(panelText).toContain("Dev Studio Runtime / Application State");
+    expect(panelText).toContain("Live Job State Synchronization");
+    expect(panelText).toContain("assistant-ui JobProgress + Dev Studio Runtime State");
     expect(panelText).toContain("STATE_SNAPSHOT");
     expect(panelText).toContain("STATE_DELTA");
     expect(panelText).toContain("JSON Patch");

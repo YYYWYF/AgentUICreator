@@ -63,6 +63,7 @@ import {
   TaskTray as InternalTaskTray,
 } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.aui.js";
 import { SubagentList as InternalSubagentList } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.js";
+import { JobProgress as InternalJobProgress } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.js";
 import { TaskGroup as InternalTaskGroup } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/task-card.aui.js";
 import { Badge as InternalBadge } from "./internal/vendor/assistant-ui/components/ui/badge.js";
 import { Input as InternalInput } from "./internal/vendor/assistant-ui/components/ui/input.js";
@@ -706,6 +707,29 @@ export interface ConversationSubagentListProps
 
 export function SubagentList(props: Readonly<ConversationSubagentListProps>) {
   return <InternalSubagentList {...(props as ComponentProps<typeof InternalSubagentList>)} />;
+}
+
+export interface JobProgressStage {
+  name: string;
+  weight: number;
+}
+
+export interface JobProgressProps
+  extends Omit<
+    React.ComponentProps<"div">,
+    "children" | "title" | "stages" | "stageIndex" | "stageProgress" | "eta" | "onCancel"
+  > {
+  title: string;
+  stages: readonly JobProgressStage[];
+  stageIndex: number;
+  stageProgress: number;
+  eta: string;
+  onCancel?: (() => void) | undefined;
+}
+
+/** Stable facade for the official assistant-ui standalone JobProgress Element. */
+export function JobProgress(props: Readonly<JobProgressProps>) {
+  return <InternalJobProgress {...(props as ComponentProps<typeof InternalJobProgress>)} />;
 }
 
 export function useConversationNavigation(): ConversationNavigation {

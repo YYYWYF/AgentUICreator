@@ -2,7 +2,7 @@
 
 From:
 - packages: unchanged in report metadata
-- upstream revision: c2917dba8783b3e250ab484102627901e611c56a
+- upstream revision: 039c3c32822632f2a564164f089f538926886124
 
 To:
 - @assistant-ui/react 0.15.21
@@ -13,7 +13,7 @@ To:
 ## Vendor changes
 
 - changed 0 files
-- added 0 files
+- added 1 files
 - removed 0 files
 - new transitive dependencies: 0
 
@@ -73,7 +73,6 @@ To:
 - components/assistant-ui/elements/heat-graph.tsx
 - components/assistant-ui/elements/image-generation.tsx
 - components/assistant-ui/elements/inline-citation.tsx
-- components/assistant-ui/elements/job-progress.tsx
 - components/assistant-ui/elements/launcher-bubble.tsx
 - components/assistant-ui/elements/loading-state.tsx
 - components/assistant-ui/elements/logos.tsx
@@ -150,7 +149,7 @@ To:
 
 ### Adoption
 
-- newly adopted: none
+- newly adopted: components/assistant-ui/elements/job-progress.tsx
 - removed upstream Elements: none
 - changed tracked upstream Elements: none
 
@@ -208,7 +207,6 @@ To:
 - components/assistant-ui/elements/heat-graph.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
 - components/assistant-ui/elements/image-generation.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
 - components/assistant-ui/elements/inline-citation.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
-- components/assistant-ui/elements/job-progress.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
 - components/assistant-ui/elements/launcher-bubble.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
 - components/assistant-ui/elements/loading-state.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
 - components/assistant-ui/elements/logos.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.

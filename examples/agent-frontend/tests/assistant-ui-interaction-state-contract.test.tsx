@@ -40,6 +40,7 @@ describe("assistant-ui interaction state contract", () => {
     expect(plugin).toContain('renderSlot("emptyWelcome"');
     expect(plugin).toContain('renderSlot("emptySuggestions"');
     expect(plugin).toContain('renderSlot("headerActions"');
+    expect(plugin).toContain('renderSlot("liveStatus"');
     expect(adapter).not.toContain("renderSlot");
     expect(adapter).not.toContain("emptyWelcome");
     expect(adapter).not.toContain("emptySuggestions");

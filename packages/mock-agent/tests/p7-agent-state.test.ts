@@ -33,7 +33,7 @@ async function collectScenarioEvents(
   return events;
 }
 
-describe("AG-UI Agent State showcase", () => {
+describe("AG-UI State → Job Progress showcase", () => {
   it("emits the standard snapshot and delta protocol flow", async () => {
     const events = await collectScenarioEvents();
     const parsedEvents = events.map((event) => EventSchemas.parse(event));
@@ -59,8 +59,12 @@ describe("AG-UI Agent State showcase", () => {
       EventType.STATE_SNAPSHOT,
       EventType.STATE_DELTA,
       EventType.STATE_DELTA,
+      EventType.STATE_DELTA,
+      EventType.STATE_DELTA,
+      EventType.STATE_DELTA,
       EventType.RUN_FINISHED,
     ]);
+    expect(events.filter(({ type }) => type === EventType.TEXT_MESSAGE_START)).toHaveLength(2);
 
     const snapshots = parsedEvents.filter(
       (event): event is Extract<AGUIEvent, { type: EventType.STATE_SNAPSHOT }> =>
@@ -68,10 +72,18 @@ describe("AG-UI Agent State showcase", () => {
     );
     expect(snapshots).toHaveLength(1);
     expect(snapshots[0]?.snapshot).toEqual({
-      trip: {
-        destination: "Tokyo",
-        days: 5,
-        status: "planning",
+      jobProgress: {
+        id: "ci-verification",
+        title: "Verify the current change on CI",
+        stages: [
+          { name: "clone", weight: 1 },
+          { name: "install", weight: 3 },
+          { name: "build", weight: 3 },
+          { name: "test", weight: 3 },
+        ],
+        stageIndex: 0,
+        stageProgress: 0.1,
+        eta: "about 4 min",
       },
     });
 
@@ -83,16 +95,34 @@ describe("AG-UI Agent State showcase", () => {
       [
         {
           op: "replace",
-          path: "/trip/status",
-          value: "researching",
+          path: "/jobProgress/stageProgress",
+          value: 0.7,
         },
         {
-          op: "add",
-          path: "/trip/budget",
-          value: 1200,
+          op: "replace",
+          path: "/jobProgress/eta",
+          value: "about 3 min",
         },
       ],
-      [{ op: "replace", path: "/trip/status", value: "ready" }],
+      [
+        { op: "replace", path: "/jobProgress/stageIndex", value: 1 },
+        { op: "replace", path: "/jobProgress/stageProgress", value: 0.3 },
+        { op: "replace", path: "/jobProgress/eta", value: "about 3 min" },
+      ],
+      [
+        { op: "replace", path: "/jobProgress/stageIndex", value: 2 },
+        { op: "replace", path: "/jobProgress/stageProgress", value: 0.55 },
+        { op: "replace", path: "/jobProgress/eta", value: "about 2 min" },
+      ],
+      [
+        { op: "replace", path: "/jobProgress/stageIndex", value: 3 },
+        { op: "replace", path: "/jobProgress/stageProgress", value: 0.75 },
+        { op: "replace", path: "/jobProgress/eta", value: "less than 1 min" },
+      ],
+      [
+        { op: "replace", path: "/jobProgress/stageIndex", value: 4 },
+        { op: "replace", path: "/jobProgress/stageProgress", value: 0 },
+      ],
     ]);
   });
 
