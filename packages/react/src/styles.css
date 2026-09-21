@@ -176,6 +176,13 @@
   position: relative;
 }
 
+.agent-ui-conversation [data-slot="aui_assistant-message-parts"],
+.agent-ui-conversation [data-slot="aui_chain-of-thought"] {
+  display: flex;
+  flex-direction: column;
+  row-gap: 1rem;
+}
+
 /*
  * Canonical starter suggestions are owned by
  * the conversation-surface `emptySuggestions` child Slot and

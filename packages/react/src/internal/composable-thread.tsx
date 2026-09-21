@@ -531,7 +531,6 @@ const AssistantMessage: FC = () => {
       >
         <div
           data-slot="aui_assistant-message-parts"
-          className="flex flex-col gap-y-4"
         >
           <MessagePrimitive.GroupedParts groupBy={groupBy}>
             {({ part, children }) => {
@@ -540,7 +539,6 @@ const AssistantMessage: FC = () => {
                   return (
                     <div
                       data-slot="aui_chain-of-thought"
-                      className="flex flex-col gap-y-4"
                     >
                       {children}
                     </div>

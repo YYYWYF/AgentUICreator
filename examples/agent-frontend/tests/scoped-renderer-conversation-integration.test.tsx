@@ -225,13 +225,7 @@ describe("Conversation scoped renderer integration", () => {
     const chainOfThought = container.querySelector('[data-slot="aui_chain-of-thought"]');
 
     expect(parts).not.toBeNull();
-    expect(parts?.classList.contains("flex")).toBe(true);
-    expect(parts?.classList.contains("flex-col")).toBe(true);
-    expect(parts?.classList.contains("gap-y-4")).toBe(true);
     expect(chainOfThought).not.toBeNull();
-    expect(chainOfThought?.classList.contains("flex")).toBe(true);
-    expect(chainOfThought?.classList.contains("flex-col")).toBe(true);
-    expect(chainOfThought?.classList.contains("gap-y-4")).toBe(true);
     expect(
       [...(parts?.querySelectorAll('[data-slot="reasoning-root"], [data-slot="tool-call"], .aui-md') ?? [])].map(
         (element) => element.classList.contains("aui-md") ? "text" : element.getAttribute("data-slot"),

@@ -170,16 +170,17 @@ describe("assistant-ui conversation visual contract", () => {
   });
 
   it("owns assistant message vertical rhythm at the message composition layer", async () => {
-    const [composableThread, publicSource] = await Promise.all([
+    const [composableThread, publicSource, globals] = await Promise.all([
       readFile(composableThreadUrl, "utf8"),
       readFile(publicUrl, "utf8"),
+      readFile(globalsUrl, "utf8"),
     ]);
 
-    expect(composableThread).toMatch(
-      /data-slot="aui_assistant-message-parts"[\s\S]*className="flex flex-col gap-y-4"/u,
-    );
-    expect(composableThread).toMatch(
-      /data-slot="aui_chain-of-thought"[\s\S]*className="flex flex-col gap-y-4"/u,
+    expect(composableThread).toContain('data-slot="aui_assistant-message-parts"');
+    expect(composableThread).toContain('data-slot="aui_chain-of-thought"');
+    expect(composableThread).not.toContain("gap-y-4");
+    expect(globals).toMatch(
+      /\.agent-ui-conversation\s+\[data-slot="aui_assistant-message-parts"\],\s*\.agent-ui-conversation\s+\[data-slot="aui_chain-of-thought"\]\s*\{[\s\S]*?display:\s*flex;[\s\S]*?flex-direction:\s*column;[\s\S]*?row-gap:\s*1rem;/u,
     );
     expect(composableThread).toContain('<ReasoningRoot className="mb-0"');
     expect(publicSource).toContain('<InternalReasoningRoot className="mb-0"');
