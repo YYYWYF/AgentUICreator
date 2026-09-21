@@ -172,6 +172,8 @@ export interface UIPluginComponentProps {
   renderScopedSlot(
     localSlotName: string,
     scope: UIPluginRenderScope,
+    /** Explicit degradation content when the optional Renderer Slot is empty. */
+    fallback?: ReactNode,
   ): ReactNode;
 }
 

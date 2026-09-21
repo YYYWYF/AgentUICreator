@@ -1,5 +1,17 @@
 import { defineScenario } from "../scenario.js";
 
+/**
+ * User-facing AG-UI 0.0.59 Subagent reference:
+ *
+ * TOOL_CALL_START / TOOL_CALL_ARGS (parent)
+ * SUBAGENT_STARTED({ subagentRunId, parentToolCallId })
+ * REASONING_*, TOOL_CALL_*, and TEXT_MESSAGE_* with subagentRunId
+ * SUBAGENT_FINISHED({ subagentRunId })
+ * TOOL_CALL_RESULT / TOOL_CALL_END (parent)
+ *
+ * Nested output is correlated by subagentRunId; parentToolCallId attaches the
+ * subagent run to the spawning parent ToolCall.
+ */
 const researcherResult = {
   summary: "Architecture inspection complete",
 };
@@ -14,7 +26,7 @@ export const nestedSubagentConversationScenario = defineScenario({
     {
       type: "subagent-tool",
       toolCallId: "invoke-researcher-1",
-      toolName: "mock_invoke_researcher",
+      toolName: "delegate_specialist",
       args: { task: "Inspect the Agent UI architecture" },
       prepareDurationMs: 300,
       subagent: {
@@ -30,7 +42,7 @@ export const nestedSubagentConversationScenario = defineScenario({
           {
             type: "tool",
             name: "search_files",
-            args: { keyword: "assistant-ui runtime" },
+            args: { keyword: "conversation runtime" },
             result: {
               files: [
                 "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
@@ -42,7 +54,7 @@ export const nestedSubagentConversationScenario = defineScenario({
           },
           {
             type: "message",
-            text: "检查完成：当前项目由 assistant-ui Runtime 负责 Conversation presentation，AgentUICreator 保留产品扩展层。",
+            text: "检查完成：当前项目由 Conversation Runtime 负责会话呈现，AgentUICreator 保留产品扩展层。",
             intervalMs: 25,
           },
         ],

@@ -57,7 +57,7 @@ describe("assistant-ui canonical runtime", () => {
     expect(
       Object.values(model.pluginInstances)
         .filter((instance) => instance.enabled),
-    ).toHaveLength(18);
+    ).toHaveLength(19);
     expect(
       model.pluginInstances["conversation-suggestions-main"],
     ).toMatchObject({
@@ -79,6 +79,8 @@ describe("assistant-ui canonical runtime", () => {
       .toBe("plugin:agent-conversation-surface-main:toolGroup");
     expect(model.pluginInstances["assistant-ui-tool-fallback-main"]?.mount?.slotId)
       .toBe("plugin:agent-conversation-surface-main:toolFallback");
+    expect(model.pluginInstances["subagent-conversation-main"]?.mount?.slotId)
+      .toBe("plugin:agent-conversation-surface-main:subagentConversation");
     expect(model.pluginInstances["assistant-ui-message-footer-main"]?.mount?.slotId)
       .toBe("plugin:agent-conversation-surface-main:assistantMessageFooter");
     expect(model.pluginInstances["assistant-ui-copy-action-main"]?.mount?.slotId)

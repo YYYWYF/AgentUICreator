@@ -24,6 +24,7 @@ import type { UIPluginComponentProps, UIPluginDefinition, UIPluginRenderScope } 
 import { AssistantUiReasoningPlugin } from "../plugins/assistant-ui-reasoning";
 import { AssistantUiToolFallbackPlugin } from "../plugins/assistant-ui-tool-fallback";
 import { AssistantUiToolGroupPlugin } from "../plugins/assistant-ui-tool-group";
+import { SubagentConversationPlugin } from "../plugins/subagent-conversation";
 import {
   createPluginRegistry,
   type RuntimeDiagnostic,
@@ -62,6 +63,8 @@ const definitions: UIPluginDefinition[] = [
           accepts: { anyOfCapabilities: ["conversation-tool-group-renderer"] } },
         toolFallback: { description: "Tool fallback renderer", cardinality: "one", mode: "renderer", optional: true,
           accepts: { anyOfCapabilities: ["conversation-tool-fallback-renderer"] } },
+        subagentConversation: { description: "Subagent conversation renderer", cardinality: "one", mode: "renderer", optional: true,
+          accepts: { anyOfCapabilities: ["conversation-subagent-renderer"] } },
       } },
     },
     Component: Host,
@@ -88,6 +91,11 @@ const definitions: UIPluginDefinition[] = [
       return <AssistantUiToolFallbackPlugin {...props} />;
     },
   },
+  {
+    manifest: { id: "subagent-conversation-test", name: "Subagent conversation", description: "Subagent conversation renderer", version: "1.0.0",
+      capabilities: ["conversation-subagent-renderer"], requiresRenderScope: true },
+    Component: SubagentConversationPlugin,
+  },
 ];
 const registry = createPluginRegistry(definitions);
 const APP_UI_MODEL_HASH = "a".repeat(64);
@@ -96,6 +104,7 @@ function createModel(options: {
   reasoning?: "enabled" | "disabled" | "removed";
   toolGroup?: boolean;
   toolFallback?: boolean;
+  subagentConversation?: boolean;
 } = {}): AppUIRuntimeModel {
   const reasoning = options.reasoning ?? "enabled";
   return parseAppUIRuntimeModel({
@@ -113,6 +122,10 @@ function createModel(options: {
       ...(options.toolFallback === false ? {} : {
         fallback: { id: "fallback", pluginId: "tool-fallback-test", enabled: true,
           mount: { slotId: "plugin:host:toolFallback" } },
+      }),
+      ...(options.subagentConversation === false ? {} : {
+        subagentConversation: { id: "subagentConversation", pluginId: "subagent-conversation-test", enabled: true,
+          mount: { slotId: "plugin:host:subagentConversation" } },
       }),
     },
   });
@@ -196,6 +209,31 @@ describe("Conversation scoped renderer integration", () => {
     expect(container.querySelector('[data-slot="tool-call"]')).not.toBeNull();
     expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
     expect(fallbackInvocations).not.toHaveBeenCalled();
+  });
+
+  it("routes nested tool messages to the generic renderer and falls back when it is disabled", async () => {
+    const nestedTool: Extract<ThreadMessage["content"][number], { type: "tool-call" }> = {
+      type: "tool-call",
+      toolCallId: "nested-1",
+      toolName: "customer_defined_agent_tool",
+      args: { task: "inspect" },
+      argsText: '{"task":"inspect"}',
+      messages: [message([{ type: "text", text: "Nested result" }])],
+    };
+    const { container, root } = await mount([message([nestedTool])]);
+    expect(container.querySelector('[data-slot="subagent-conversation-root"]')).not.toBeNull();
+    expect(container.querySelector('[data-slot="subagent-conversation-content"]')?.textContent)
+      .toContain("Nested result");
+    expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
+
+    await act(async () => {
+      root.render(<RuntimeFixture chatModel={{ run: async () => ({ content: [] }) }}
+        initialMessages={[message([nestedTool])]} model={createModel({ subagentConversation: false })}
+        onRuntime={() => undefined} />);
+      await Promise.resolve();
+    });
+    expect(container.querySelector('[data-slot="subagent-conversation-root"]')).toBeNull();
+    expect(container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();
   });
 
   it("passes one assistant-ui grouped reasoning scope for two parts and preserves the host", async () => {

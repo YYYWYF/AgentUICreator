@@ -31,7 +31,7 @@ async function collectScenario(): Promise<BaseEvent[]> {
   return events;
 }
 
-describe("P6-A nested subagent conversation", () => {
+describe("nested subagent AG-UI reference contract", () => {
   it("creates a reachable parent tool before the subagent lifecycle", async () => {
     const events = await collectScenario();
     const lifecycle = events.filter((event) =>
@@ -47,7 +47,6 @@ describe("P6-A nested subagent conversation", () => {
     expect(lifecycle.map(({ type }) => type)).toEqual([
       EventType.TOOL_CALL_START,
       EventType.TOOL_CALL_ARGS,
-      EventType.TOOL_CALL_END,
       EventType.SUBAGENT_STARTED,
       EventType.TOOL_CALL_START,
       EventType.TOOL_CALL_ARGS,
@@ -55,20 +54,21 @@ describe("P6-A nested subagent conversation", () => {
       EventType.TOOL_CALL_RESULT,
       EventType.SUBAGENT_FINISHED,
       EventType.TOOL_CALL_RESULT,
+      EventType.TOOL_CALL_END,
     ]);
 
     expect(lifecycle[0]).toMatchObject({
       type: EventType.TOOL_CALL_START,
       toolCallId: "invoke-researcher-1",
-      toolCallName: "mock_invoke_researcher",
+      toolCallName: "delegate_specialist",
     });
-    expect(lifecycle[3]).toMatchObject({
+    expect(lifecycle[2]).toMatchObject({
       type: EventType.SUBAGENT_STARTED,
       subagentRunId: "researcher-1",
       parentToolCallId: "invoke-researcher-1",
       name: "Architecture Researcher",
     });
-    expect(lifecycle[8]).toMatchObject({
+    expect(lifecycle[7]).toMatchObject({
       type: EventType.SUBAGENT_FINISHED,
       subagentRunId: "researcher-1",
     });
@@ -95,10 +95,19 @@ describe("P6-A nested subagent conversation", () => {
       type === EventType.REASONING_START,
     )).toBe(true);
     expect(childEvents.some(({ type }) =>
+      type === EventType.REASONING_MESSAGE_CONTENT,
+    )).toBe(true);
+    expect(childEvents.some(({ type }) =>
       type === EventType.TEXT_MESSAGE_START,
     )).toBe(true);
     expect(childEvents.some(({ type }) =>
+      type === EventType.TEXT_MESSAGE_CONTENT,
+    )).toBe(true);
+    expect(childEvents.some(({ type }) =>
       type === EventType.TOOL_CALL_START,
+    )).toBe(true);
+    expect(childEvents.some(({ type }) =>
+      type === EventType.TOOL_CALL_RESULT,
     )).toBe(true);
   });
 });

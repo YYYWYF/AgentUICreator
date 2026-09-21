@@ -70,13 +70,14 @@ import type {
   ReactElement,
   ReactNode,
 } from "react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CheckIcon,
   CopyIcon,
   DownloadIcon,
+  Loader2Icon,
   RefreshCwIcon,
 } from "lucide-react";
 import { cn } from "./internal/vendor/assistant-ui/lib/utils.js";
@@ -150,6 +151,10 @@ export interface ConversationToolGroupRenderScope {
 }
 
 export interface ConversationToolFallbackRenderScope {
+  readonly tool: ConversationToolCallProps;
+}
+
+export interface ConversationSubagentRenderScope {
   readonly tool: ConversationToolCallProps;
 }
 
@@ -798,7 +803,7 @@ export function ConversationSubagentMessages() {
     <MessagePartPrimitive.Messages>
       {() => (
         <MessagePrimitive.Root
-          data-slot="conversation-nested-assistant-message"
+          data-slot="subagent-conversation-message"
           data-role="assistant"
           className="my-2 min-w-0"
         >
@@ -812,6 +817,76 @@ export function ConversationSubagentMessages() {
         </MessagePrimitive.Root>
       )}
     </MessagePartPrimitive.Messages>
+  );
+}
+
+function shouldUseConversationToolFallback(
+  props: ConversationToolCallProps,
+): boolean {
+  return props.isError === true ||
+    props.status.type === "requires-action" ||
+    props.status.type === "incomplete";
+}
+
+/**
+ * Generic presentation for a tool call whose canonical conversation part
+ * contains nested messages. The runtime decides whether the part has
+ * messages; this facade only owns the reusable tool shell and nested view.
+ */
+export function ConversationSubagentTool(
+  props: Readonly<ConversationToolCallProps>,
+) {
+  const [open, setOpen] = useState(true);
+  if (shouldUseConversationToolFallback(props)) {
+    return <ConversationToolFallback {...props} />;
+  }
+
+  const running = props.status.type === "running";
+  return (
+    <InternalCollapsible
+      data-slot="subagent-conversation-root"
+      data-status={props.status.type}
+      open={open}
+      onOpenChange={setOpen}
+      className="my-2 w-full max-w-xl"
+    >
+      <InternalCollapsibleTrigger
+        data-slot="subagent-conversation-trigger"
+        className="text-foreground/70 hover:text-foreground flex w-full items-center gap-2 py-1.5 text-sm transition-colors outline-none"
+      >
+        <ChevronRightIcon
+          data-slot="subagent-conversation-chevron"
+          aria-hidden="true"
+          className={[
+            "size-3.5 shrink-0 transition-transform duration-200",
+            "motion-reduce:transition-none",
+            open ? "rotate-90" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        />
+        <span className="font-medium">{props.toolName}</span>
+        <span
+          data-slot="subagent-conversation-status"
+          className="ms-auto flex size-4 shrink-0 items-center justify-center"
+          aria-hidden="true"
+        >
+          {running ? (
+            <Loader2Icon className="size-3.5 animate-spin motion-reduce:animate-none" />
+          ) : (
+            <CheckIcon className="size-3.5 text-emerald-500" />
+          )}
+        </span>
+      </InternalCollapsibleTrigger>
+
+      <InternalCollapsibleContent
+        data-slot="subagent-conversation-content"
+        aria-label={props.toolName}
+        className="ms-5 mt-1 min-w-0 pb-1 outline-none"
+      >
+        <ConversationSubagentMessages />
+      </InternalCollapsibleContent>
+    </InternalCollapsible>
   );
 }
 

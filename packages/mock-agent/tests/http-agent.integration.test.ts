@@ -225,7 +225,7 @@ describe("Mock Agent HTTP endpoint", () => {
     );
     const parentStart = events.findIndex((event) =>
       event.type === EventType.TOOL_CALL_START &&
-      event.toolCallName === "mock_invoke_researcher",
+      event.toolCallName === "delegate_specialist",
     );
     const parentResult = events.findIndex((event) =>
       event.type === EventType.TOOL_CALL_RESULT &&
@@ -234,7 +234,7 @@ describe("Mock Agent HTTP endpoint", () => {
 
     expect(events[parentStart]).toMatchObject({
       toolCallId: "invoke-researcher-1",
-      toolCallName: "mock_invoke_researcher",
+      toolCallName: "delegate_specialist",
     });
     expect(events[started]).toMatchObject({
       type: EventType.SUBAGENT_STARTED,

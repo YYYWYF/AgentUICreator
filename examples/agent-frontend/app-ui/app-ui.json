@@ -105,6 +105,13 @@
                     "enabled": true
                   }
                 ],
+                "subagentConversation": [
+                  {
+                    "id": "subagent-conversation-main",
+                    "pluginId": "subagent-conversation",
+                    "enabled": true
+                  }
+                ],
                 "assistantMessageFooter": [
                   {
                     "id": "assistant-ui-message-footer-main",

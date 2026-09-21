@@ -33,12 +33,14 @@ export function ConversationSurfacePlugin({
   const renderConversationScopedSlot = (
     slotName: string,
     scope: UIPluginRenderScope,
+    fallback?: ReactNode,
   ): ReactNode => {
     switch (slotName) {
-      case "reasoningGroup": return renderScopedSlot("reasoningGroup", scope);
-      case "toolGroup": return renderScopedSlot("toolGroup", scope);
-      case "toolFallback": return renderScopedSlot("toolFallback", scope);
-      case "assistantMessageFooter": return renderScopedSlot("assistantMessageFooter", scope);
+      case "reasoningGroup": return renderScopedSlot("reasoningGroup", scope, fallback);
+      case "toolGroup": return renderScopedSlot("toolGroup", scope, fallback);
+      case "toolFallback": return renderScopedSlot("toolFallback", scope, fallback);
+      case "subagentConversation": return renderScopedSlot("subagentConversation", scope, fallback);
+      case "assistantMessageFooter": return renderScopedSlot("assistantMessageFooter", scope, fallback);
       default: throw new Error(`Unknown Conversation renderer Slot "${slotName}"`);
     }
   };

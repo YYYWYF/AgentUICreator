@@ -3,6 +3,7 @@ import {
   ConversationCanonicalAssistantMessage,
   toConversationMessagePartGroup,
   type ConversationAssistantMessageFooterRenderScope,
+  type ConversationSubagentRenderScope,
   type ConversationReasoningGroupRenderScope,
   type ConversationToolGroupRenderScope,
   type ConversationToolFallbackRenderScope,
@@ -67,6 +68,17 @@ export function ScopedToolGroup({ group: rawGroup, children }: { group: unknown;
 export function ScopedToolFallback(tool: ConversationToolCallProps) {
   const renderScopedSlot = useContext(ScopedRendererBridgeContext);
   if (renderScopedSlot === null) return null;
-  const value: ConversationToolFallbackRenderScope = { tool };
-  return renderScopedSlot("toolFallback", { kind: "conversation.tool-fallback", value });
+  const fallbackValue: ConversationToolFallbackRenderScope = { tool };
+  const fallback = renderScopedSlot("toolFallback", {
+    kind: "conversation.tool-fallback",
+    value: fallbackValue,
+  });
+  if (!Array.isArray(tool.messages)) return fallback;
+
+  const subagentValue: ConversationSubagentRenderScope = { tool };
+  return renderScopedSlot(
+    "subagentConversation",
+    { kind: "conversation.subagent", value: subagentValue },
+    fallback,
+  );
 }

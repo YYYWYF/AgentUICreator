@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "a99ec68159475510cbb5037f5483acbb74702799c36e5cef21b65e10b17dd870";
+export const capabilityCatalogRevision = "3ce4a05525bee794b620abfe71a6b82b76ffe93e917d05a3c71ccab8191e8ece";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -559,6 +559,17 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
               ]
             }
           },
+          "subagentConversation": {
+            "description": "Renderer for a tool call containing a nested subagent conversation.",
+            "cardinality": "one",
+            "mode": "renderer",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-subagent-renderer"
+              ]
+            }
+          },
           "assistantMessageFooter": {
             "description": "Renderer for the assistant message footer.",
             "cardinality": "one",
@@ -639,6 +650,39 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     optionalInject: [],
     loadDefinition: () =>
       import("./locale-provider/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
+      "id": "subagent-conversation",
+      "name": "Subagent Conversation",
+      "description": "Renders a nested conversation carried by a tool call presentation.",
+      "version": "1.0.0",
+      "capabilities": [
+        "conversation-subagent-renderer"
+      ],
+      "requiresRenderScope": true,
+      "authoring": {
+        "intents": [
+          "show subagent conversations",
+          "show nested agent work",
+          "show delegated agent conversations",
+          "show multi-agent nested conversations"
+        ],
+        "visualRole": "nested subagent conversation",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "subagentConversation"
+        }
+      }
+    },
+    provides: [],
+    inject: [],
+    optionalInject: [],
+    loadDefinition: () =>
+      import("./subagent-conversation/definition").then(
         ({ default: definition }) => definition,
       ),
   },

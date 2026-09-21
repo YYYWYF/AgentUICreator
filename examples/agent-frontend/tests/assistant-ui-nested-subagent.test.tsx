@@ -10,14 +10,18 @@ import {
   useAgUiRuntime,
   type AgUiAssistantRuntime,
 } from "@assistant-ui/react-ag-ui";
-import { act } from "react";
+import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { nestedSubagentConversationScenario } from "@agent-ui/mock-agent";
 import { runMockScenario } from "@agent-ui/mock-agent";
+import { ConversationAdapter } from "../agent-ui/conversation/ConversationAdapter";
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
-import { ConversationThread as Thread } from "@agent-ui/react";
+import { AssistantUiMessageFooterPlugin } from "../plugins/assistant-ui-message-footer";
+import { SubagentConversationPlugin } from "../plugins/subagent-conversation";
+import type { UIPluginRenderScope } from "../framework/contracts/ui-plugin";
+import { PluginRenderScopeProvider } from "../runtime/plugins";
 
 type AssistantAgent = Parameters<typeof useAgUiRuntime>[0]["agent"];
 
@@ -51,6 +55,17 @@ async function collectScenarioEvents(): Promise<unknown[]> {
   return events;
 }
 
+function renameParentTool(events: readonly unknown[], toolName: string): unknown[] {
+  return events.map((event) => {
+    if (typeof event !== "object" || event === null) return event;
+    const candidate = event as { type?: unknown; toolCallId?: unknown };
+    return candidate.type === "TOOL_CALL_START" &&
+        candidate.toolCallId === "invoke-researcher-1"
+      ? { ...event, toolCallName: toolName }
+      : event;
+  });
+}
+
 function createEventAgent(events: readonly unknown[]): AssistantAgent {
   return {
     threadId: "p6-thread",
@@ -64,6 +79,33 @@ function createEventAgent(events: readonly unknown[]): AssistantAgent {
   } as unknown as AssistantAgent;
 }
 
+function renderConversationScopedSlot(
+  slotName: string,
+  scope: UIPluginRenderScope,
+  fallback?: ReactNode,
+) {
+  if (slotName === "assistantMessageFooter") {
+    return (
+      <AssistantUiMessageFooterPlugin
+        renderSlot={() => null}
+        renderScopedSlot={() => null}
+      />
+    );
+  }
+  if (slotName === "toolGroup" || slotName === "reasoningGroup") {
+    return (scope.value as { children?: ReactNode }).children ?? null;
+  }
+  if (slotName !== "subagentConversation") return fallback ?? null;
+  return (
+    <PluginRenderScopeProvider scope={scope}>
+      <SubagentConversationPlugin
+        renderSlot={() => null}
+        renderScopedSlot={() => null}
+      />
+    </PluginRenderScopeProvider>
+  );
+}
+
 function RuntimeHarness({
   agent,
   onRuntime,
@@ -75,7 +117,7 @@ function RuntimeHarness({
   onRuntime(runtime);
   return (
     <AssistantRuntimeProvider config={assistantConfig} runtime={runtime}>
-      <Thread autoFocus={false} />
+      <ConversationAdapter renderScopedSlot={renderConversationScopedSlot} />
     </AssistantRuntimeProvider>
   );
 }
@@ -130,7 +172,7 @@ describe("official nested assistant-ui conversation", () => {
     const parentMessage = assistantMessages(runtimeFixture.runtime).at(-1);
     const parentTool = parentMessage?.content.find((part) =>
       part.type === "tool-call" &&
-      part.toolName === "mock_invoke_researcher",
+      part.toolName === "delegate_specialist",
     );
     if (parentTool?.type !== "tool-call") {
       throw new Error("official adapter did not materialize the parent tool call");
@@ -163,7 +205,7 @@ describe("official nested assistant-ui conversation", () => {
     });
 
     const nested = runtimeFixture.container.querySelector(
-      '[data-slot="mock-nested-subagent-conversation"]',
+      '[data-slot="subagent-conversation-content"]',
     );
     expect(nested).not.toBeNull();
     expect(nested?.classList.contains("border-s")).toBe(false);
@@ -173,15 +215,15 @@ describe("official nested assistant-ui conversation", () => {
     expect(nested?.classList.contains("ms-5")).toBe(true);
     expect(nested?.textContent).toContain("我先检查 Agent UI 的核心 Runtime");
     expect(nested?.textContent).toContain("Searched files");
-    expect(nested?.textContent).toContain("检查完成：当前项目由 assistant-ui Runtime");
+    expect(nested?.textContent).toContain("检查完成：当前项目由 Conversation Runtime");
 
     expect(
       runtimeFixture.container.querySelectorAll(
-        '[data-slot="mock-nested-assistant-message"]',
+        '[data-slot="subagent-conversation-message"]',
       ),
     ).toHaveLength(1);
     const nestedMessage = runtimeFixture.container.querySelector(
-      '[data-slot="mock-nested-assistant-message"]',
+      '[data-slot="subagent-conversation-message"]',
     );
     expect(nestedMessage).not.toBeNull();
     expect(nestedMessage?.classList.contains("rounded-xl")).toBe(false);
@@ -205,7 +247,7 @@ describe("official nested assistant-ui conversation", () => {
     );
   });
 
-  it("uses one nested disclosure and keeps the researcher identity singular", async () => {
+  it("uses one nested disclosure and keeps the tool identity singular", async () => {
     const runtimeFixture = await mountRuntime(
       createEventAgent(await collectScenarioEvents()),
     );
@@ -219,16 +261,16 @@ describe("official nested assistant-ui conversation", () => {
     });
 
     const nestedTool = runtimeFixture.container.querySelector(
-      '[data-slot="mock-invoke-researcher-tool"]',
+      '[data-slot="subagent-conversation-root"]',
     );
     const trigger = nestedTool?.querySelector(
-      '[data-slot="mock-nested-subagent-trigger"]',
+      '[data-slot="subagent-conversation-trigger"]',
     ) as HTMLButtonElement | null;
     const chevron = nestedTool?.querySelector(
-      '[data-slot="mock-nested-subagent-chevron"]',
+      '[data-slot="subagent-conversation-chevron"]',
     );
     const conversation = nestedTool?.querySelector(
-      '[data-slot="mock-nested-subagent-conversation"]',
+      '[data-slot="subagent-conversation-content"]',
     );
 
     expect(nestedTool).not.toBeNull();
@@ -239,16 +281,16 @@ describe("official nested assistant-ui conversation", () => {
     expect(conversation).not.toBeNull();
 
     const matches =
-      nestedTool?.textContent?.match(/Architecture Researcher/g) ?? [];
+      nestedTool?.textContent?.match(/delegate_specialist/g) ?? [];
     expect(matches).toHaveLength(1);
     expect(
       nestedTool?.querySelectorAll(
-        '[data-slot="mock-nested-subagent-conversation"]',
+        '[data-slot="subagent-conversation-content"]',
       ),
     ).toHaveLength(1);
     expect(
       nestedTool?.querySelectorAll(
-        '[data-slot="mock-nested-assistant-message"]',
+        '[data-slot="subagent-conversation-message"]',
       ),
     ).toHaveLength(1);
 
@@ -257,7 +299,7 @@ describe("official nested assistant-ui conversation", () => {
     expect(chevron?.classList.contains("rotate-90")).toBe(false);
     expect(
       nestedTool?.querySelector(
-        '[data-slot="mock-nested-subagent-conversation"]',
+        '[data-slot="subagent-conversation-content"]',
       ),
     ).toBeNull();
 
@@ -266,16 +308,42 @@ describe("official nested assistant-ui conversation", () => {
     expect(chevron?.classList.contains("rotate-90")).toBe(true);
     expect(
       nestedTool?.querySelector(
-        '[data-slot="mock-nested-subagent-conversation"]',
+        '[data-slot="subagent-conversation-content"]',
       ),
     ).not.toBeNull();
   });
 
-  it("keeps the nested researcher tool mock-only", () => {
+  it("routes an unknown parent tool name through the same presentation", async () => {
+    const runtimeFixture = await mountRuntime(
+      createEventAgent(renameParentTool(
+        await collectScenarioEvents(),
+        "customer_defined_agent_tool",
+      )),
+    );
+
+    await act(async () => {
+      await runtimeFixture.runtime.thread.append({
+        role: "user",
+        content: [{ type: "text", text: "检查 Agent UI 架构" }],
+        startRun: true,
+      });
+    });
+
+    expect(
+      runtimeFixture.container.querySelector(
+        '[data-slot="subagent-conversation-root"]',
+      ),
+    ).not.toBeNull();
+    expect(runtimeFixture.container.textContent).toContain(
+      "customer_defined_agent_tool",
+    );
+  });
+
+  it("does not register the nested conversation by tool name", () => {
     const productionToolkit = createConversationToolkit() as Record<string, unknown>;
     const mockToolkit = createConversationToolkit({ mockAgentElements: true }) as Record<string, unknown>;
 
-    expect(productionToolkit.mock_invoke_researcher).toBeUndefined();
-    expect(mockToolkit.mock_invoke_researcher).toBeDefined();
+    expect(productionToolkit.delegate_specialist).toBeUndefined();
+    expect(mockToolkit.delegate_specialist).toBeUndefined();
   });
 });

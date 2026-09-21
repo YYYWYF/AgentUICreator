@@ -91,4 +91,43 @@ describe("scoped renderer bridge", () => {
     } });
     expect(observed[3]?.scope).toMatchObject({ kind: "conversation.tool-fallback", value: { tool } });
   });
+
+  it("routes tool parts with nested messages to the subagent renderer with fallback", () => {
+    const observed: Array<{
+      slot: string;
+      scope: UIPluginRenderScope;
+      fallback?: unknown;
+    }> = [];
+    const renderScopedSlot = (
+      slot: string,
+      scope: UIPluginRenderScope,
+      fallback?: unknown,
+    ) => {
+      observed.push({ slot, scope, fallback });
+      return <span>{slot}</span>;
+    };
+    const tool = {
+      toolCallId: "nested-tool-1",
+      toolName: "customer_defined_agent_tool",
+      args: {},
+      messages: [],
+      status: { type: "complete" as const },
+    };
+
+    renderToStaticMarkup(
+      <ScopedRendererBridgeProvider renderScopedSlot={renderScopedSlot}>
+        <ScopedToolFallback {...tool} />
+      </ScopedRendererBridgeProvider>,
+    );
+
+    expect(observed.map(({ slot }) => slot)).toEqual([
+      "toolFallback",
+      "subagentConversation",
+    ]);
+    expect(observed[1]?.scope).toMatchObject({
+      kind: "conversation.subagent",
+      value: { tool: { toolName: "customer_defined_agent_tool", messages: [] } },
+    });
+    expect(observed[1]?.fallback).toBeDefined();
+  });
 });

@@ -197,7 +197,7 @@ function SlotContent<TState = unknown>({
       instance === undefined || !instance.enabled || instance.mount?.slotId !== slotId ||
       definition === undefined || activation?.status !== "active" || events === undefined ||
       scopedCapabilityMismatch
-    ) return null;
+    ) return fallback ?? null;
 
     const renderChildSlot = (
       requestedSlotId: string,
@@ -221,12 +221,14 @@ function SlotContent<TState = unknown>({
     const renderChildScopedSlot = (
       requestedSlotId: string,
       requestedScope: UIPluginRenderScope,
+      requestedFallback?: ReactNode,
     ): ReactNode => {
       const child = definition.manifest.slots?.children?.[requestedSlotId];
       if (child?.mode !== "renderer") {
         throw new Error(`Plugin instance "${instance.id}" cannot render scoped Slot "${requestedSlotId}"`);
       }
       return <SlotContent actions={actions} acceptedCapabilities={child.accepts?.anyOfCapabilities}
+        fallback={requestedFallback}
         layout="stack" model={model} onPluginError={onPluginError}
         onPluginReset={onPluginReset} registry={registry}
         scope={requestedScope} slotId={resolveRuntimePluginSlotId(instance.id, requestedSlotId)} />;
@@ -317,6 +319,7 @@ function SlotContent<TState = unknown>({
         const renderScopedSlot = (
           requestedSlotId: string,
           requestedScope: UIPluginRenderScope,
+          requestedFallback?: ReactNode,
         ): ReactNode => {
           const child = definition.manifest.slots?.children?.[requestedSlotId];
           if (child?.mode !== "renderer") {
@@ -324,6 +327,7 @@ function SlotContent<TState = unknown>({
           }
           return (
             <SlotContent actions={actions} acceptedCapabilities={child.accepts?.anyOfCapabilities}
+              fallback={requestedFallback}
               layout="stack" model={model} onPluginError={onPluginError}
               onPluginReset={onPluginReset} registry={registry}
               scope={requestedScope} slotId={resolveRuntimePluginSlotId(instance.id, requestedSlotId)} />
