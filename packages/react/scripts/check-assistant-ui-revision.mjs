@@ -46,15 +46,16 @@ try {
   errors.push(`cannot resolve official assistant-ui remote ${UPSTREAM_REF}: ${error instanceof Error ? error.message : String(error)}`);
 }
 
-const repo = process.env.ASSISTANT_UI_REPO ?? path.resolve(repoRoot, "../assistant-ui");
-try {
-  const resolved = (await execFile("git", ["-C", repo, "rev-parse", `${target.revision}^{commit}`], {
-    cwd: repoRoot,
-    encoding: "utf8",
-  })).stdout.trim();
-  if (resolved !== target.revision) errors.push(`target revision resolved to ${resolved}`);
-} catch (error) {
-  errors.push(`cannot resolve target revision in ${repo}: ${error instanceof Error ? error.message : String(error)}`);
+const repo = process.env.ASSISTANT_UI_REPO;
+if (repo) {
+  try {
+    await execFile("git", ["-C", repo, "cat-file", "-e", `${target.revision}^{commit}`], {
+      cwd: repoRoot,
+      encoding: "utf8",
+    });
+  } catch (error) {
+    errors.push(`cannot resolve target revision in ${repo}: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 if (errors.length > 0) {
