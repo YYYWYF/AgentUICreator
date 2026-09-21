@@ -548,6 +548,22 @@ async function* runSteps(
   }
 }
 
+type MockScenarioResumeBranch = "approved" | "denied" | "cancelled";
+
+function selectResumeBranch(input: RunAgentInput): MockScenarioResumeBranch {
+  const response = input.resume?.[0];
+  if (response?.status !== "resolved") return "cancelled";
+
+  const payload = response.payload;
+  if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+    return "cancelled";
+  }
+  if (!("approved" in payload)) return "cancelled";
+  if (payload.approved === true) return "approved";
+  if (payload.approved === false) return "denied";
+  return "cancelled";
+}
+
 function selectSteps(
   input: RunAgentInput,
   scenario: MockScenario,
@@ -557,9 +573,7 @@ function selectSteps(
   }
 
   if (Array.isArray(scenario.resumeSteps)) return scenario.resumeSteps;
-  return input.resume?.some(({ status }) => status === "resolved") === true
-    ? scenario.resumeSteps.resolved
-    : scenario.resumeSteps.cancelled;
+  return scenario.resumeSteps[selectResumeBranch(input)];
 }
 
 /** Converts a high-level scenario into the same standard AG-UI events as a backend. */

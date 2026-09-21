@@ -253,13 +253,14 @@ describe("Mock Agent HTTP endpoint", () => {
     expect(firstToolEndIndex).toBeGreaterThan(-1);
     expect(firstToolEndIndex).toBeLessThan(firstRunFinishedIndex);
     expect(firstRun).toContainEqual(expect.objectContaining({
-      type: EventType.RUN_FINISHED,
-      outcome: {
-        type: "interrupt",
-        interrupts: [expect.objectContaining({
-          id: "approval-resume-1",
-          toolCallId: "approval-dangerous-tool",
-        })],
+        type: EventType.RUN_FINISHED,
+        outcome: {
+          type: "interrupt",
+          interrupts: [expect.objectContaining({
+            id: "approval-resume-1",
+            reason: "tool_call",
+            toolCallId: "approval-dangerous-tool",
+          })],
       },
     }));
     expect(firstRun.some((event) =>
@@ -297,6 +298,11 @@ describe("Mock Agent HTTP endpoint", () => {
     expect(toolArgsIndex).toBe(-1);
     expect(toolEndIndex).toBe(-1);
     expect(toolResultIndex).toBeGreaterThan(-1);
+    expect(secondRun[toolResultIndex]).toMatchObject({
+      type: EventType.TOOL_CALL_RESULT,
+      toolCallId: "approval-dangerous-tool",
+      content: JSON.stringify({ deleted: ["dist/", ".cache/"] }),
+    });
     expect(secondRun.some(({ type }) => type === EventType.TEXT_MESSAGE_START)).toBe(true);
     expect(secondRun.some(({ type }) => type === EventType.TEXT_MESSAGE_CONTENT)).toBe(true);
     expect(secondRun.some(({ type }) => type === EventType.TEXT_MESSAGE_END)).toBe(true);
@@ -306,7 +312,7 @@ describe("Mock Agent HTTP endpoint", () => {
     });
   });
 
-  it("runs approval-resume through HTTP and keeps the denied tool without a result", async () => {
+  it("runs approval-resume through HTTP and resumes the denied tool with a result", async () => {
     const endpoint = await startMockServer(showcaseMockScenarios);
     const agent = new HttpAgent({
       url: `${endpoint}?scenario=approval-resume&speed=0`,
@@ -323,6 +329,46 @@ describe("Mock Agent HTTP endpoint", () => {
       runId: "run-approval-deny-2",
       resume: [{
         interruptId: "approval-resume-1",
+        status: "resolved",
+        payload: { approved: false },
+      }],
+    });
+
+    expect(secondRun.some((event) =>
+      event.type === EventType.TOOL_CALL_START ||
+      event.type === EventType.TOOL_CALL_ARGS ||
+      event.type === EventType.TOOL_CALL_END
+    )).toBe(false);
+    expect(secondRun.some((event) =>
+      event.type === EventType.TOOL_CALL_RESULT &&
+      event.toolCallId === "approval-dangerous-tool",
+    )).toBe(true);
+    expect(textFromEvents(secondRun)).toContain(
+      "操作已取消，未删除任何文件。",
+    );
+    expect(secondRun.at(-1)).toMatchObject({
+      type: EventType.RUN_FINISHED,
+      outcome: { type: "success" },
+    });
+  });
+
+  it("runs approval-resume through HTTP and keeps a cancelled interrupt without a result", async () => {
+    const endpoint = await startMockServer(showcaseMockScenarios);
+    const agent = new HttpAgent({
+      url: `${endpoint}?scenario=approval-resume&speed=0`,
+      threadId: "thread-approval-cancelled",
+    });
+    agent.addMessage({
+      id: "user-approval-cancelled",
+      role: "user",
+      content: "取消确认",
+    });
+
+    await collectAgentRun(agent, { runId: "run-approval-cancelled-1" });
+    const secondRun = await collectAgentRun(agent, {
+      runId: "run-approval-cancelled-2",
+      resume: [{
+        interruptId: "approval-resume-1",
         status: "cancelled",
       }],
     });
@@ -333,12 +379,8 @@ describe("Mock Agent HTTP endpoint", () => {
       event.type === EventType.TOOL_CALL_END ||
       event.type === EventType.TOOL_CALL_RESULT
     )).toBe(false);
-    expect(secondRun.some((event) =>
-      event.type === EventType.TOOL_CALL_RESULT &&
-      event.toolCallId === "approval-dangerous-tool",
-    )).toBe(false);
     expect(textFromEvents(secondRun)).toContain(
-      "你拒绝了这次操作，我保留了工作区文件。",
+      "确认已取消，未删除任何文件。",
     );
     expect(secondRun.at(-1)).toMatchObject({
       type: EventType.RUN_FINISHED,

@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
+  MockApprovalToolUI,
   MockDispatchSubagentToolUI,
   MockRunCiJobToolUI,
   createConversationToolkit,
@@ -63,19 +64,23 @@ describe("Mock Agent official element renderers", () => {
 
     expect(production).not.toHaveProperty("mock_agent_plan");
     expect(production).not.toHaveProperty("mock_agent_status");
+    expect(production).not.toHaveProperty("delete_generated_artifacts");
     expect(production).not.toHaveProperty("mock_dispatch_subagent");
     expect(production).not.toHaveProperty("run_ci_job");
     const mockAgentPlan = mock.mock_agent_plan;
     const mockAgentStatus = mock.mock_agent_status;
+    const mockApproval = mock.delete_generated_artifacts;
     const mockDispatchSubagent = mock.mock_dispatch_subagent;
     const mockRunCiJob = mock.run_ci_job;
     expect(mockAgentPlan).toBeDefined();
     expect(mockAgentStatus).toBeDefined();
+    expect(mockApproval).toBeDefined();
     expect(mockDispatchSubagent).toBeDefined();
     expect(mockRunCiJob).toBeDefined();
     if (
       mockAgentPlan === undefined ||
       mockAgentStatus === undefined ||
+      mockApproval === undefined ||
       mockDispatchSubagent === undefined ||
       mockRunCiJob === undefined
     ) {
@@ -83,10 +88,13 @@ describe("Mock Agent official element renderers", () => {
     }
     expect(mockAgentPlan.type).toBe("backend");
     expect(mockAgentStatus.type).toBe("backend");
+    expect(mockApproval.type).toBe("backend");
+    expect(mockApproval.display).toBe("standalone");
     expect(mockDispatchSubagent.type).toBe("backend");
     expect(mockRunCiJob.type).toBe("backend");
     expect(mockDispatchSubagent.render).toBe(MockDispatchSubagentToolUI);
     expect(mockRunCiJob.render).toBe(MockRunCiJobToolUI);
+    expect(mockApproval.render).toBe(MockApprovalToolUI);
     expect("execute" in mockAgentPlan).toBe(false);
   });
 

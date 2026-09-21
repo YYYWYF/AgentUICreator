@@ -70,8 +70,8 @@ const catalog = {
     },
     {
       id: "approval-resume",
-      title: "Approval Resume",
-      description: "Interrupt, allow or deny, then resume.",
+      title: "AG-UI Tool Approval",
+      description: "Human in the Loop · Allow / Deny → Resume",
       category: "human-in-loop",
       capabilities: ["reasoning", "tool", "approval"],
     },

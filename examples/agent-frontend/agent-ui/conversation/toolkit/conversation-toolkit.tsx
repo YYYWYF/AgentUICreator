@@ -7,6 +7,7 @@ import { SearchFilesToolUI } from "./SearchFilesToolUI";
 import {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
+  MockApprovalToolUI,
   MockDispatchSubagentToolUI,
   MockRunCiJobToolUI,
 } from "./mock";
@@ -35,6 +36,11 @@ export function createConversationToolkit({
             type: "backend" as const,
             display: "standalone" as const,
             render: MockAgentStatusToolUI,
+          },
+          delete_generated_artifacts: {
+            type: "backend" as const,
+            display: "standalone" as const,
+            render: MockApprovalToolUI,
           },
           // Legacy replay compatibility only. New live Mock Agent scenarios
           // must use standard AG-UI SUBAGENT_* events instead.

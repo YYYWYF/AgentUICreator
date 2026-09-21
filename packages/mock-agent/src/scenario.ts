@@ -88,10 +88,12 @@ export interface MockScenario {
   resumeSteps?: MockScenarioResumeSteps | undefined;
 }
 
+/** Resume branches keep an explicit denial distinct from steer-away cancellation. */
 export type MockScenarioResumeSteps =
   | MockScenarioStep[]
   | {
-      resolved: MockScenarioStep[];
+      approved: MockScenarioStep[];
+      denied: MockScenarioStep[];
       cancelled: MockScenarioStep[];
     };
 

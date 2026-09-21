@@ -4,8 +4,8 @@ const approvalToolCallId = "approval-dangerous-tool";
 
 export const approvalResumeScenario = defineScenario({
   id: "approval-resume",
-  title: "Approval Resume",
-  description: "标准 structured interrupt 的 Allow / Deny 一次性恢复流程。",
+  title: "AG-UI Tool Approval",
+  description: "Human in the Loop · Allow / Deny → Resume",
   category: "human-in-loop",
   capabilities: ["reasoning", "tool", "approval"],
   steps: [
@@ -24,7 +24,7 @@ export const approvalResumeScenario = defineScenario({
       },
       interrupt: {
         id: "approval-resume-1",
-        reason: "tool-approval",
+        reason: "tool_call",
         message: "允许删除生成的临时构建产物吗？",
         toolCallId: approvalToolCallId,
         responseSchema: {
@@ -36,7 +36,7 @@ export const approvalResumeScenario = defineScenario({
     },
   ],
   resumeSteps: {
-    resolved: [
+    approved: [
       {
         type: "tool-result",
         toolCallId: approvalToolCallId,
@@ -45,8 +45,17 @@ export const approvalResumeScenario = defineScenario({
       },
       { type: "message", text: "已获得许可，临时构建产物已清理。", intervalMs: 35 },
     ],
+    denied: [
+      {
+        type: "tool-result",
+        toolCallId: approvalToolCallId,
+        result: { skipped: true, reason: "denied by user" },
+        durationMs: 500,
+      },
+      { type: "message", text: "操作已取消，未删除任何文件。", intervalMs: 35 },
+    ],
     cancelled: [
-      { type: "message", text: "你拒绝了这次操作，我保留了工作区文件。", intervalMs: 35 },
+      { type: "message", text: "确认已取消，未删除任何文件。", intervalMs: 35 },
     ],
   },
 });

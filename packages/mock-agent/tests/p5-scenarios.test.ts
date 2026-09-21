@@ -113,7 +113,10 @@ describe("P5-A mock scenarios", () => {
     );
     expect(interrupt).toMatchObject({
       type: EventType.RUN_FINISHED,
-      outcome: { type: "interrupt" },
+      outcome: {
+        type: "interrupt",
+        interrupts: [expect.objectContaining({ reason: "tool_call" })],
+      },
     });
     if (interrupt?.type !== EventType.RUN_FINISHED ||
       interrupt.outcome?.type !== "interrupt") return;
@@ -128,12 +131,43 @@ describe("P5-A mock scenarios", () => {
       })),
     });
     expect(resumed).toContainEqual(expect.objectContaining({
+      type: EventType.TOOL_CALL_RESULT,
+      toolCallId: "approval-dangerous-tool",
+      content: JSON.stringify({ deleted: ["dist/", ".cache/"] }),
+    }));
+    expect(resumed).toContainEqual(expect.objectContaining({
       type: EventType.TEXT_MESSAGE_START,
     }));
     expect(resumed.at(-1)).toMatchObject({
       type: EventType.RUN_FINISHED,
       outcome: { type: "success" },
     });
+
+    const denied = await collect(approvalResumeScenario, {
+      ...input,
+      runId: "p5-denied",
+      resume: interrupt.outcome.interrupts.map(({ id }) => ({
+        interruptId: id,
+        status: "resolved" as const,
+        payload: { approved: false },
+      })),
+    });
+    expect(denied).toContainEqual(expect.objectContaining({
+      type: EventType.TOOL_CALL_RESULT,
+      toolCallId: "approval-dangerous-tool",
+      content: JSON.stringify({ skipped: true, reason: "denied by user" }),
+    }));
+
+    const cancelled = await collect(approvalResumeScenario, {
+      ...input,
+      runId: "p5-cancelled",
+      resume: interrupt.outcome.interrupts.map(({ id }) => ({
+        interruptId: id,
+        status: "cancelled" as const,
+      })),
+    });
+    expect(cancelled.some(({ type }) => type === EventType.TOOL_CALL_RESULT))
+      .toBe(false);
   });
 
   it("models a failed Tool Call with standard RUN_ERROR", async () => {
