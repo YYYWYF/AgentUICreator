@@ -50,6 +50,20 @@ const assistantConfig = AuiConfig({
   }),
 });
 
+const namedToolUiConfig = AuiConfig({
+  tools: Tools({
+    toolkit: {
+      customer_defined_agent_tool: {
+        type: "backend" as const,
+        display: "standalone" as const,
+        render: () => (
+          <div data-slot="named-task-tool-ui">Named Task UI</div>
+        ),
+      },
+    } as never,
+  }),
+});
+
 const mountedRoots: Root[] = [];
 
 async function collectScenarioEvents(
@@ -118,20 +132,25 @@ function renderConversationScopedSlot(
 function RuntimeHarness({
   agent,
   onRuntime,
+  config = assistantConfig,
 }: {
   agent: AbstractAgent;
   onRuntime: (runtime: AgUiAssistantRuntime) => void;
+  config?: typeof assistantConfig;
 }) {
   const runtime = useAgUiRuntime({ agent });
   onRuntime(runtime);
   return (
-    <AssistantRuntimeProvider config={assistantConfig} runtime={runtime}>
+    <AssistantRuntimeProvider config={config} runtime={runtime}>
       <ConversationAdapter renderScopedSlot={renderConversationScopedSlot} />
     </AssistantRuntimeProvider>
   );
 }
 
-async function mountRuntime(agent: AbstractAgent) {
+async function mountRuntime(
+  agent: AbstractAgent,
+  config: typeof assistantConfig = assistantConfig,
+) {
   const container = document.createElement("div");
   document.body.append(container);
   const root = createRoot(container);
@@ -141,6 +160,7 @@ async function mountRuntime(agent: AbstractAgent) {
     root.render(
       <RuntimeHarness
         agent={agent}
+        config={config}
         onRuntime={(nextRuntime) => {
           runtime = nextRuntime;
         }}
@@ -437,6 +457,12 @@ describe("official nested assistant-ui conversation", () => {
     expect(errorMetadata?.custom?.agui?.errorCode).toBe(
       "SUBAGENT_RESEARCH_FAILED",
     );
+    expect(runtimeFixture.container.querySelector('[data-slot="task-card"]')).not.toBeNull();
+    expect(
+      runtimeFixture.container.querySelector(
+        '[data-slot="task-card"][data-state="done"]',
+      ),
+    ).not.toBeNull();
     const errorAlert = runtimeFixture.container
       .querySelector('[data-slot="aui_task-transcript-message"]')
       ?.querySelector('[role="alert"]');
@@ -447,6 +473,35 @@ describe("official nested assistant-ui conversation", () => {
     expect(runtimeFixture.container.textContent).toContain(
       "我已经定位到失败分支",
     );
+  });
+
+  it("prioritizes a registered named Tool UI over TaskGroup for nested messages", async () => {
+    const runtimeFixture = await mountRuntime(
+      new ScenarioEventAgent(renameParentTool(
+        await collectScenarioEvents(),
+        "customer_defined_agent_tool",
+      )),
+      namedToolUiConfig,
+    );
+
+    await act(async () => {
+      await runtimeFixture.runtime.thread.append({
+        role: "user",
+        content: [{ type: "text", text: "检查命名 Agent Tool UI" }],
+        startRun: true,
+      });
+    });
+
+    const parentMessage = assistantMessages(runtimeFixture.runtime).at(-1);
+    const parentTool = parentMessage?.content.find(
+      (part): part is Extract<ThreadMessage["content"][number], { type: "tool-call" }> =>
+        part.type === "tool-call" && part.toolName === "customer_defined_agent_tool",
+    );
+    expect(parentTool?.messages).toHaveLength(1);
+    expect(
+      runtimeFixture.container.querySelector('[data-slot="named-task-tool-ui"]'),
+    ).not.toBeNull();
+    expect(runtimeFixture.container.querySelector('[data-slot="task-card"]')).toBeNull();
   });
 
   it("does not register the nested conversation by tool name", () => {

@@ -3,13 +3,13 @@ import { defineScenario } from "../scenario.js";
 export const nestedSubagentErrorScenario = defineScenario({
   id: "nested-subagent-error",
   title: "AG-UI Subagent Error",
-  description: "展示带有归属内容的 SUBAGENT_ERROR nested reference case，保留失败前的 transcript。",
+  description: "展示带有归属内容的 SUBAGENT_ERROR nested reference case：nested assistant message 标记为 incomplete/error，保留错误前的 transcript。",
   category: "agent",
   capabilities: ["tool", "subagent"],
   reference: {
     protocol: "AG-UI",
     pattern: "Nested Subagent Error",
-    presentation: "Failed TaskCard",
+    presentation: "assistant-ui TaskCard with nested error",
     level: "edge",
     eventFlow: [
       "TOOL_CALL_*",
@@ -20,7 +20,9 @@ export const nestedSubagentErrorScenario = defineScenario({
     ],
     notes: [
       "SUBAGENT_ERROR does not remove attributed nested content.",
-      "The official TaskCard owns the failed state and error presentation.",
+      "SUBAGENT_ERROR marks the nested assistant message incomplete/error.",
+      "If the parent ToolCall subsequently returns a result, the parent TaskCard remains completed while the nested transcript preserves the Subagent error.",
+      "The framework must not synthesize a failed parent TaskCard from SUBAGENT_ERROR.",
     ],
   },
   steps: [
