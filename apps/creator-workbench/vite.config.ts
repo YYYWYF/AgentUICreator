@@ -28,7 +28,9 @@ export default defineConfig({
       endpoint: "/__agent-ui/mock",
       scenarios: builtinMockScenarios.map((scenario) => ({
         ...scenario,
-        initialState: previewAgentState,
+        ...(scenario.initialState === undefined
+          ? { initialState: previewAgentState }
+          : {}),
       })),
       defaultScenarioId: "reasoning-tool-success",
     }),
