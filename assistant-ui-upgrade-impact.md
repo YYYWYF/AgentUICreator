@@ -1,38 +1,304 @@
 # assistant-ui Upgrade Impact Report
 
 From:
-- packages: package.json, packages/react/package.json, packages/runtime-conversation/package.json, pnpm-lock.yaml, pnpm-workspace.yaml
-- upstream revision: bd7e8fa9f79ffea10fab0741026d53cdba4cfa70
+- packages: unchanged in report metadata
+- upstream revision: b712ee83bde9a89fce2812968f951a5742d757b9
 
 To:
 - @assistant-ui/react 0.15.21
 - @assistant-ui/react-ag-ui 0.0.60
 - @assistant-ui/react-markdown 0.14.16
-- upstream revision: b712ee83bde9a89fce2812968f951a5742d757b9
+- upstream revision: c2917dba8783b3e250ab484102627901e611c56a
 
 ## Vendor changes
 
-- changed 36 files
-- added 5 files
+- changed 41 files
+- added 0 files
 - removed 0 files
-- new transitive dependencies: 2
+- new transitive dependencies: 0
+
+## Upstream Element discovery
+
+### NEW UPSTREAM ELEMENTS
+
+- components/assistant-ui/elements/activity-graph.tsx
+- components/assistant-ui/elements/agent-card.tsx
+- components/assistant-ui/elements/agent-handoff.tsx
+- components/assistant-ui/elements/approval-card.tsx
+- components/assistant-ui/elements/artifact-card.tsx
+- components/assistant-ui/elements/assistant-modal.aui.radix.tsx
+- components/assistant-ui/elements/assistant-modal.aui.tsx
+- components/assistant-ui/elements/assistant-sidebar.aui.tsx
+- components/assistant-ui/elements/attachment.aui.radix.tsx
+- components/assistant-ui/elements/background-inbox.tsx
+- components/assistant-ui/elements/canvas-split.tsx
+- components/assistant-ui/elements/chart.tsx
+- components/assistant-ui/elements/chat-panel.tsx
+- components/assistant-ui/elements/checkpoint-history.tsx
+- components/assistant-ui/elements/code-diff.tsx
+- components/assistant-ui/elements/code-runner.tsx
+- components/assistant-ui/elements/command-palette.tsx
+- components/assistant-ui/elements/comparison-card.tsx
+- components/assistant-ui/elements/composer.tsx
+- components/assistant-ui/elements/computer-use.tsx
+- components/assistant-ui/elements/confidence-marker.tsx
+- components/assistant-ui/elements/connection-state.tsx
+- components/assistant-ui/elements/context-breakdown.tsx
+- components/assistant-ui/elements/context-display.aui.tsx
+- components/assistant-ui/elements/context-display.radix.tsx
+- components/assistant-ui/elements/context-display.tsx
+- components/assistant-ui/elements/conversation-map.aui.tsx
+- components/assistant-ui/elements/conversation-map.tsx
+- components/assistant-ui/elements/conversation-search.tsx
+- components/assistant-ui/elements/cost-meter.tsx
+- components/assistant-ui/elements/data-table.tsx
+- components/assistant-ui/elements/day-separator.tsx
+- components/assistant-ui/elements/diagram.tsx
+- components/assistant-ui/elements/directive-text.aui.tsx
+- components/assistant-ui/elements/directive-text.tsx
+- components/assistant-ui/elements/document-reference.tsx
+- components/assistant-ui/elements/draft-restore.tsx
+- components/assistant-ui/elements/edit-message.tsx
+- components/assistant-ui/elements/elicitation-form.tsx
+- components/assistant-ui/elements/empty-state.tsx
+- components/assistant-ui/elements/error-state.tsx
+- components/assistant-ui/elements/feedback-dialog.tsx
+- components/assistant-ui/elements/file-tree.tsx
+- components/assistant-ui/elements/flow-canvas.tsx
+- components/assistant-ui/elements/flow-expand.tsx
+- components/assistant-ui/elements/flow-graph.tsx
+- components/assistant-ui/elements/flow.tsx
+- components/assistant-ui/elements/generative-ui.tsx
+- components/assistant-ui/elements/guardrail-notice.tsx
+- components/assistant-ui/elements/heat-graph.tsx
+- components/assistant-ui/elements/image-generation.tsx
+- components/assistant-ui/elements/inline-citation.tsx
+- components/assistant-ui/elements/job-progress.tsx
+- components/assistant-ui/elements/launcher-bubble.tsx
+- components/assistant-ui/elements/loading-state.tsx
+- components/assistant-ui/elements/logos.tsx
+- components/assistant-ui/elements/map-answer.tsx
+- components/assistant-ui/elements/math-block.tsx
+- components/assistant-ui/elements/mcp-config.aui.radix.tsx
+- components/assistant-ui/elements/mcp-config.aui.tsx
+- components/assistant-ui/elements/mcp-server-panel.tsx
+- components/assistant-ui/elements/memory-chips.tsx
+- components/assistant-ui/elements/mermaid-diagram.aui.tsx
+- components/assistant-ui/elements/mermaid-diagram.tsx
+- components/assistant-ui/elements/message-actions.tsx
+- components/assistant-ui/elements/message-attachment.tsx
+- components/assistant-ui/elements/message-branches.tsx
+- components/assistant-ui/elements/message-pair.tsx
+- components/assistant-ui/elements/message-queue.tsx
+- components/assistant-ui/elements/message-timing.aui.radix.tsx
+- components/assistant-ui/elements/message-timing.aui.tsx
+- components/assistant-ui/elements/message-timing.tsx
+- components/assistant-ui/elements/mobile-composer.tsx
+- components/assistant-ui/elements/model-picker.tsx
+- components/assistant-ui/elements/model-selector.aui.tsx
+- components/assistant-ui/elements/model-selector.radix.tsx
+- components/assistant-ui/elements/model-selector.tsx
+- components/assistant-ui/elements/number-ticker.tsx
+- components/assistant-ui/elements/onboarding.tsx
+- components/assistant-ui/elements/permission-grant.tsx
+- components/assistant-ui/elements/prompt-library.tsx
+- components/assistant-ui/elements/quota-banner.tsx
+- components/assistant-ui/elements/quote-reply.tsx
+- components/assistant-ui/elements/quote.aui.tsx
+- components/assistant-ui/elements/read-aloud.tsx
+- components/assistant-ui/elements/reasoning-effort.tsx
+- components/assistant-ui/elements/reasoning-panel.tsx
+- components/assistant-ui/elements/recommendation-card.tsx
+- components/assistant-ui/elements/regenerate-menu.tsx
+- components/assistant-ui/elements/research-report.tsx
+- components/assistant-ui/elements/retrieval-chunks.tsx
+- components/assistant-ui/elements/reviewable-diff.tsx
+- components/assistant-ui/elements/schedule-card.tsx
+- components/assistant-ui/elements/score-breakdown.tsx
+- components/assistant-ui/elements/scroll-anchor.tsx
+- components/assistant-ui/elements/settings-panel.tsx
+- components/assistant-ui/elements/shared-conversation.tsx
+- components/assistant-ui/elements/shiki-highlighter.aui.tsx
+- components/assistant-ui/elements/shiki-highlighter.tsx
+- components/assistant-ui/elements/sources.tsx
+- components/assistant-ui/elements/speaker-identity.tsx
+- components/assistant-ui/elements/spec-sheet.tsx
+- components/assistant-ui/elements/stopped-run.tsx
+- components/assistant-ui/elements/streaming-text.tsx
+- components/assistant-ui/elements/suggestions.tsx
+- components/assistant-ui/elements/syntax-highlighter.tsx
+- components/assistant-ui/elements/terminal-block.tsx
+- components/assistant-ui/elements/thinking-indicator.tsx
+- components/assistant-ui/elements/thread-list.tsx
+- components/assistant-ui/elements/thread-search.tsx
+- components/assistant-ui/elements/threadlist-sidebar.aui.radix.tsx
+- components/assistant-ui/elements/threadlist-sidebar.aui.tsx
+- components/assistant-ui/elements/timeline.tsx
+- components/assistant-ui/elements/todo-list.tsx
+- components/assistant-ui/elements/tool-error.tsx
+- components/assistant-ui/elements/tool-group.tsx
+- components/assistant-ui/elements/tool-timeline.tsx
+- components/assistant-ui/elements/tooltip-icon-button.radix.tsx
+- components/assistant-ui/elements/trace-waterfall.tsx
+- components/assistant-ui/elements/typing-indicator.tsx
+- components/assistant-ui/elements/voice-conversation.aui.tsx
+- components/assistant-ui/elements/voice-conversation.tsx
+- components/assistant-ui/elements/voice.aui.tsx
+- components/assistant-ui/elements/voice.tsx
+- components/assistant-ui/elements/web-preview.tsx
+- components/assistant-ui/elements/web-search.tsx
+
+### Adoption
+
+- newly adopted: none
+- removed upstream Elements: none
+- changed tracked upstream Elements: components/assistant-ui/elements/agent-plan.tsx, components/assistant-ui/elements/agent-status.aui.tsx, components/assistant-ui/elements/agent-status.tsx, components/assistant-ui/elements/attachment.aui.tsx, components/assistant-ui/elements/composer-trigger-popover.aui.tsx, components/assistant-ui/elements/file.tsx, components/assistant-ui/elements/follow-up-suggestions.aui.tsx, components/assistant-ui/elements/image.tsx, components/assistant-ui/elements/markdown-text.tsx, components/assistant-ui/elements/reasoning.aui.tsx, components/assistant-ui/elements/reasoning.tsx, components/assistant-ui/elements/sources.aui.tsx, components/assistant-ui/elements/subagent-list.tsx, components/assistant-ui/elements/surfaces.tsx, components/assistant-ui/elements/task-card.aui.tsx, components/assistant-ui/elements/task-card.tsx, components/assistant-ui/elements/thread-list.aui.tsx, components/assistant-ui/elements/thread.aui.tsx, components/assistant-ui/elements/tool-call.tsx, components/assistant-ui/elements/tool-fallback.aui.tsx, components/assistant-ui/elements/tool-group.aui.tsx, components/assistant-ui/elements/tooltip-icon-button.tsx
+
+### Explicitly ignored with rationale
+
+- components/assistant-ui/elements/activity-graph.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/agent-card.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/agent-handoff.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/approval-card.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/artifact-card.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/assistant-modal.aui.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/assistant-modal.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/assistant-sidebar.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/attachment.aui.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/background-inbox.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/canvas-split.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/chart.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/chat-panel.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/checkpoint-history.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/code-diff.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/code-runner.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/command-palette.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/comparison-card.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/composer.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/computer-use.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/confidence-marker.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/connection-state.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/context-breakdown.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/context-display.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/context-display.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/context-display.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/conversation-map.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/conversation-map.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/conversation-search.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/cost-meter.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/data-table.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/day-separator.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/diagram.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/directive-text.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/directive-text.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/document-reference.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/draft-restore.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/edit-message.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/elicitation-form.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/empty-state.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/error-state.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/feedback-dialog.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/file-tree.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/flow-canvas.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/flow-expand.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/flow-graph.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/flow.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/generative-ui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/guardrail-notice.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/heat-graph.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/image-generation.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/inline-citation.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/job-progress.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/launcher-bubble.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/loading-state.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/logos.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/map-answer.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/math-block.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/mcp-config.aui.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/mcp-config.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/mcp-server-panel.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/memory-chips.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/mermaid-diagram.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/mermaid-diagram.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-actions.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-attachment.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-branches.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-pair.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-queue.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-timing.aui.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-timing.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-timing.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/mobile-composer.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/model-picker.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/model-selector.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/model-selector.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/model-selector.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/number-ticker.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/onboarding.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/permission-grant.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/prompt-library.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/quota-banner.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/quote-reply.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/quote.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/read-aloud.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/reasoning-effort.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/reasoning-panel.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/recommendation-card.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/regenerate-menu.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/research-report.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/retrieval-chunks.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/reviewable-diff.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/schedule-card.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/score-breakdown.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/scroll-anchor.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/settings-panel.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/shared-conversation.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/shiki-highlighter.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/shiki-highlighter.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/sources.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/speaker-identity.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/spec-sheet.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/stopped-run.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/streaming-text.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/suggestions.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/syntax-highlighter.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/terminal-block.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/thinking-indicator.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/thread-list.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/thread-search.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/threadlist-sidebar.aui.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/threadlist-sidebar.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/timeline.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/todo-list.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/tool-error.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/tool-group.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/tool-timeline.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/tooltip-icon-button.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/trace-waterfall.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/typing-indicator.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/voice-conversation.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/voice-conversation.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/voice.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/voice.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/web-preview.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/web-search.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
 
 ## Public facade changes
 
-- 2 files: packages/react/src/internal/composable-thread.tsx, packages/react/src/public.tsx
+- 0 files: none
 
 ## Runtime adapter changes
 
-- 1 files: packages/runtime-conversation/package.json
+- 0 files: none
 
 ## Plugin changes
 
-- 7 files across 3 Plugin directories
-- examples/agent-frontend/plugins/conversation-surface/index.tsx, examples/agent-frontend/plugins/conversation-surface/manifest.json, examples/agent-frontend/plugins/registry.generated.ts, examples/agent-frontend/plugins/subagent-conversation/definition.ts, examples/agent-frontend/plugins/subagent-conversation/index.tsx, examples/agent-frontend/plugins/subagent-conversation/manifest.json, examples/agent-frontend/plugins/task-group/
+- 0 files across 0 Plugin directories
+- none
 
 ## AppUIModel changes
 
-- 1 files: examples/agent-frontend/app-ui/app-ui.json
+- 0 files: none
 
 ## Creator changes
 
@@ -60,10 +326,10 @@ To:
 
 ## Tests changed
 
-- 11 files: examples/agent-frontend/tests/ag-ui-boundary.test.ts, examples/agent-frontend/tests/assistant-ui-canonical-runtime.test.ts, examples/agent-frontend/tests/assistant-ui-default-composition.test.ts, examples/agent-frontend/tests/assistant-ui-nested-subagent.test.tsx, examples/agent-frontend/tests/assistant-ui-thread-boundary.test.ts, examples/agent-frontend/tests/scoped-renderer-bridge.test.tsx, examples/agent-frontend/tests/scoped-renderer-conversation-integration.test.tsx, examples/agent-frontend/tests/subagent-conversation-boundary.test.ts, examples/agent-frontend/tests/task-group-boundary.test.ts, packages/react/tests/public-api.test.ts, packages/react/tests/upstream-provenance.test.ts
+- 0 files: none
 
 ## Upgrade cost assessment
 
-Medium
+Low
 
 Reason: vendor changes are expected; the assessment tracks whether the public facade, runtime adapter, existing Plugins, AppUIModel, or Creator expanded beyond the intended seam.

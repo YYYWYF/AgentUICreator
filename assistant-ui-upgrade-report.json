@@ -1,16 +1,11 @@
 {
   "schemaVersion": 1,
-  "fromRevision": "bd7e8fa9f79ffea10fab0741026d53cdba4cfa70",
-  "toRevision": "b712ee83bde9a89fce2812968f951a5742d757b9",
-  "packagesChanged": [
-    "package.json",
-    "packages/react/package.json",
-    "packages/runtime-conversation/package.json",
-    "pnpm-lock.yaml",
-    "pnpm-workspace.yaml"
-  ],
+  "fromRevision": "b712ee83bde9a89fce2812968f951a5742d757b9",
+  "toRevision": "c2917dba8783b3e250ab484102627901e611c56a",
+  "packagesChanged": [],
   "vendorFilesChanged": [
     "components/assistant-ui/elements/agent-plan.tsx",
+    "components/assistant-ui/elements/agent-status.aui.tsx",
     "components/assistant-ui/elements/agent-status.tsx",
     "components/assistant-ui/elements/attachment.aui.tsx",
     "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
@@ -23,6 +18,8 @@
     "components/assistant-ui/elements/sources.aui.tsx",
     "components/assistant-ui/elements/subagent-list.tsx",
     "components/assistant-ui/elements/surfaces.tsx",
+    "components/assistant-ui/elements/task-card.aui.tsx",
+    "components/assistant-ui/elements/task-card.tsx",
     "components/assistant-ui/elements/thread-list.aui.tsx",
     "components/assistant-ui/elements/thread.aui.tsx",
     "components/assistant-ui/elements/tool-call.tsx",
@@ -30,12 +27,14 @@
     "components/assistant-ui/elements/tool-group.aui.tsx",
     "components/assistant-ui/elements/tooltip-icon-button.tsx",
     "components/assistant-ui/utils/range.ts",
+    "components/assistant-ui/utils/task.ts",
     "components/ui/avatar.tsx",
     "components/ui/badge.tsx",
     "components/ui/button.tsx",
     "components/ui/collapsible.tsx",
     "components/ui/dialog.tsx",
     "components/ui/input.tsx",
+    "components/ui/popover.tsx",
     "components/ui/separator.tsx",
     "components/ui/sheet.tsx",
     "components/ui/sidebar.tsx",
@@ -47,55 +46,681 @@
     "hooks/use-mobile.ts",
     "lib/utils.ts"
   ],
-  "vendorFilesAdded": [
-    "components/assistant-ui/elements/agent-status.aui.tsx",
-    "components/assistant-ui/elements/task-card.aui.tsx",
-    "components/assistant-ui/elements/task-card.tsx",
-    "components/assistant-ui/utils/task.ts",
-    "components/ui/popover.tsx"
-  ],
+  "vendorFilesAdded": [],
   "vendorFilesRemoved": [],
   "vendorFilesRenamed": [],
-  "newTransitiveDependencies": [
-    "components/assistant-ui/utils/task.ts",
-    "components/ui/popover.tsx"
+  "newTransitiveDependencies": [],
+  "newAvailableElements": [
+    "components/assistant-ui/elements/activity-graph.tsx",
+    "components/assistant-ui/elements/agent-card.tsx",
+    "components/assistant-ui/elements/agent-handoff.tsx",
+    "components/assistant-ui/elements/approval-card.tsx",
+    "components/assistant-ui/elements/artifact-card.tsx",
+    "components/assistant-ui/elements/assistant-modal.aui.radix.tsx",
+    "components/assistant-ui/elements/assistant-modal.aui.tsx",
+    "components/assistant-ui/elements/assistant-sidebar.aui.tsx",
+    "components/assistant-ui/elements/attachment.aui.radix.tsx",
+    "components/assistant-ui/elements/background-inbox.tsx",
+    "components/assistant-ui/elements/canvas-split.tsx",
+    "components/assistant-ui/elements/chart.tsx",
+    "components/assistant-ui/elements/chat-panel.tsx",
+    "components/assistant-ui/elements/checkpoint-history.tsx",
+    "components/assistant-ui/elements/code-diff.tsx",
+    "components/assistant-ui/elements/code-runner.tsx",
+    "components/assistant-ui/elements/command-palette.tsx",
+    "components/assistant-ui/elements/comparison-card.tsx",
+    "components/assistant-ui/elements/composer.tsx",
+    "components/assistant-ui/elements/computer-use.tsx",
+    "components/assistant-ui/elements/confidence-marker.tsx",
+    "components/assistant-ui/elements/connection-state.tsx",
+    "components/assistant-ui/elements/context-breakdown.tsx",
+    "components/assistant-ui/elements/context-display.aui.tsx",
+    "components/assistant-ui/elements/context-display.radix.tsx",
+    "components/assistant-ui/elements/context-display.tsx",
+    "components/assistant-ui/elements/conversation-map.aui.tsx",
+    "components/assistant-ui/elements/conversation-map.tsx",
+    "components/assistant-ui/elements/conversation-search.tsx",
+    "components/assistant-ui/elements/cost-meter.tsx",
+    "components/assistant-ui/elements/data-table.tsx",
+    "components/assistant-ui/elements/day-separator.tsx",
+    "components/assistant-ui/elements/diagram.tsx",
+    "components/assistant-ui/elements/directive-text.aui.tsx",
+    "components/assistant-ui/elements/directive-text.tsx",
+    "components/assistant-ui/elements/document-reference.tsx",
+    "components/assistant-ui/elements/draft-restore.tsx",
+    "components/assistant-ui/elements/edit-message.tsx",
+    "components/assistant-ui/elements/elicitation-form.tsx",
+    "components/assistant-ui/elements/empty-state.tsx",
+    "components/assistant-ui/elements/error-state.tsx",
+    "components/assistant-ui/elements/feedback-dialog.tsx",
+    "components/assistant-ui/elements/file-tree.tsx",
+    "components/assistant-ui/elements/flow-canvas.tsx",
+    "components/assistant-ui/elements/flow-expand.tsx",
+    "components/assistant-ui/elements/flow-graph.tsx",
+    "components/assistant-ui/elements/flow.tsx",
+    "components/assistant-ui/elements/generative-ui.tsx",
+    "components/assistant-ui/elements/guardrail-notice.tsx",
+    "components/assistant-ui/elements/heat-graph.tsx",
+    "components/assistant-ui/elements/image-generation.tsx",
+    "components/assistant-ui/elements/inline-citation.tsx",
+    "components/assistant-ui/elements/job-progress.tsx",
+    "components/assistant-ui/elements/launcher-bubble.tsx",
+    "components/assistant-ui/elements/loading-state.tsx",
+    "components/assistant-ui/elements/logos.tsx",
+    "components/assistant-ui/elements/map-answer.tsx",
+    "components/assistant-ui/elements/math-block.tsx",
+    "components/assistant-ui/elements/mcp-config.aui.radix.tsx",
+    "components/assistant-ui/elements/mcp-config.aui.tsx",
+    "components/assistant-ui/elements/mcp-server-panel.tsx",
+    "components/assistant-ui/elements/memory-chips.tsx",
+    "components/assistant-ui/elements/mermaid-diagram.aui.tsx",
+    "components/assistant-ui/elements/mermaid-diagram.tsx",
+    "components/assistant-ui/elements/message-actions.tsx",
+    "components/assistant-ui/elements/message-attachment.tsx",
+    "components/assistant-ui/elements/message-branches.tsx",
+    "components/assistant-ui/elements/message-pair.tsx",
+    "components/assistant-ui/elements/message-queue.tsx",
+    "components/assistant-ui/elements/message-timing.aui.radix.tsx",
+    "components/assistant-ui/elements/message-timing.aui.tsx",
+    "components/assistant-ui/elements/message-timing.tsx",
+    "components/assistant-ui/elements/mobile-composer.tsx",
+    "components/assistant-ui/elements/model-picker.tsx",
+    "components/assistant-ui/elements/model-selector.aui.tsx",
+    "components/assistant-ui/elements/model-selector.radix.tsx",
+    "components/assistant-ui/elements/model-selector.tsx",
+    "components/assistant-ui/elements/number-ticker.tsx",
+    "components/assistant-ui/elements/onboarding.tsx",
+    "components/assistant-ui/elements/permission-grant.tsx",
+    "components/assistant-ui/elements/prompt-library.tsx",
+    "components/assistant-ui/elements/quota-banner.tsx",
+    "components/assistant-ui/elements/quote-reply.tsx",
+    "components/assistant-ui/elements/quote.aui.tsx",
+    "components/assistant-ui/elements/read-aloud.tsx",
+    "components/assistant-ui/elements/reasoning-effort.tsx",
+    "components/assistant-ui/elements/reasoning-panel.tsx",
+    "components/assistant-ui/elements/recommendation-card.tsx",
+    "components/assistant-ui/elements/regenerate-menu.tsx",
+    "components/assistant-ui/elements/research-report.tsx",
+    "components/assistant-ui/elements/retrieval-chunks.tsx",
+    "components/assistant-ui/elements/reviewable-diff.tsx",
+    "components/assistant-ui/elements/schedule-card.tsx",
+    "components/assistant-ui/elements/score-breakdown.tsx",
+    "components/assistant-ui/elements/scroll-anchor.tsx",
+    "components/assistant-ui/elements/settings-panel.tsx",
+    "components/assistant-ui/elements/shared-conversation.tsx",
+    "components/assistant-ui/elements/shiki-highlighter.aui.tsx",
+    "components/assistant-ui/elements/shiki-highlighter.tsx",
+    "components/assistant-ui/elements/sources.tsx",
+    "components/assistant-ui/elements/speaker-identity.tsx",
+    "components/assistant-ui/elements/spec-sheet.tsx",
+    "components/assistant-ui/elements/stopped-run.tsx",
+    "components/assistant-ui/elements/streaming-text.tsx",
+    "components/assistant-ui/elements/suggestions.tsx",
+    "components/assistant-ui/elements/syntax-highlighter.tsx",
+    "components/assistant-ui/elements/terminal-block.tsx",
+    "components/assistant-ui/elements/thinking-indicator.tsx",
+    "components/assistant-ui/elements/thread-list.tsx",
+    "components/assistant-ui/elements/thread-search.tsx",
+    "components/assistant-ui/elements/threadlist-sidebar.aui.radix.tsx",
+    "components/assistant-ui/elements/threadlist-sidebar.aui.tsx",
+    "components/assistant-ui/elements/timeline.tsx",
+    "components/assistant-ui/elements/todo-list.tsx",
+    "components/assistant-ui/elements/tool-error.tsx",
+    "components/assistant-ui/elements/tool-group.tsx",
+    "components/assistant-ui/elements/tool-timeline.tsx",
+    "components/assistant-ui/elements/tooltip-icon-button.radix.tsx",
+    "components/assistant-ui/elements/trace-waterfall.tsx",
+    "components/assistant-ui/elements/typing-indicator.tsx",
+    "components/assistant-ui/elements/voice-conversation.aui.tsx",
+    "components/assistant-ui/elements/voice-conversation.tsx",
+    "components/assistant-ui/elements/voice.aui.tsx",
+    "components/assistant-ui/elements/voice.tsx",
+    "components/assistant-ui/elements/web-preview.tsx",
+    "components/assistant-ui/elements/web-search.tsx"
   ],
-  "localFacadeFilesChanged": [
-    "packages/react/src/internal/composable-thread.tsx",
-    "packages/react/src/public.tsx"
+  "newlyAdoptedElements": [],
+  "removedUpstreamElements": [],
+  "changedUpstreamElements": [
+    "components/assistant-ui/elements/agent-plan.tsx",
+    "components/assistant-ui/elements/agent-status.aui.tsx",
+    "components/assistant-ui/elements/agent-status.tsx",
+    "components/assistant-ui/elements/attachment.aui.tsx",
+    "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+    "components/assistant-ui/elements/file.tsx",
+    "components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
+    "components/assistant-ui/elements/image.tsx",
+    "components/assistant-ui/elements/markdown-text.tsx",
+    "components/assistant-ui/elements/reasoning.aui.tsx",
+    "components/assistant-ui/elements/reasoning.tsx",
+    "components/assistant-ui/elements/sources.aui.tsx",
+    "components/assistant-ui/elements/subagent-list.tsx",
+    "components/assistant-ui/elements/surfaces.tsx",
+    "components/assistant-ui/elements/task-card.aui.tsx",
+    "components/assistant-ui/elements/task-card.tsx",
+    "components/assistant-ui/elements/thread-list.aui.tsx",
+    "components/assistant-ui/elements/thread.aui.tsx",
+    "components/assistant-ui/elements/tool-call.tsx",
+    "components/assistant-ui/elements/tool-fallback.aui.tsx",
+    "components/assistant-ui/elements/tool-group.aui.tsx",
+    "components/assistant-ui/elements/tooltip-icon-button.tsx"
   ],
-  "runtimeAdapterFilesChanged": [
-    "packages/runtime-conversation/package.json"
+  "ignoredUpstreamElements": [
+    {
+      "localPath": "components/assistant-ui/elements/activity-graph.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/agent-card.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/agent-handoff.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/approval-card.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/artifact-card.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/assistant-modal.aui.radix.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/assistant-modal.aui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/assistant-sidebar.aui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/attachment.aui.radix.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/background-inbox.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/canvas-split.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/chart.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/chat-panel.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/checkpoint-history.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/code-diff.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/code-runner.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/command-palette.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/comparison-card.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/composer.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/computer-use.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/confidence-marker.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/connection-state.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/context-breakdown.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/context-display.aui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/context-display.radix.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/context-display.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/conversation-map.aui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/conversation-map.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/conversation-search.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/cost-meter.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/data-table.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/day-separator.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/diagram.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/directive-text.aui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/directive-text.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/document-reference.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/draft-restore.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/edit-message.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/elicitation-form.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/empty-state.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/error-state.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/feedback-dialog.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/file-tree.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/flow-canvas.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/flow-expand.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/flow-graph.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/flow.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/generative-ui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/guardrail-notice.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/heat-graph.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/image-generation.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/inline-citation.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/job-progress.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/launcher-bubble.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/loading-state.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/logos.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/map-answer.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/math-block.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/mcp-config.aui.radix.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/mcp-config.aui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/mcp-server-panel.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/memory-chips.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/mermaid-diagram.aui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/mermaid-diagram.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/message-actions.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/message-attachment.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/message-branches.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/message-pair.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/message-queue.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/message-timing.aui.radix.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/message-timing.aui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/message-timing.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/mobile-composer.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/model-picker.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/model-selector.aui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/model-selector.radix.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/model-selector.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/number-ticker.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/onboarding.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/permission-grant.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/prompt-library.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/quota-banner.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/quote-reply.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/quote.aui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/read-aloud.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/reasoning-effort.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/reasoning-panel.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/recommendation-card.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/regenerate-menu.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/research-report.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/retrieval-chunks.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/reviewable-diff.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/schedule-card.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/score-breakdown.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/scroll-anchor.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/settings-panel.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/shared-conversation.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/shiki-highlighter.aui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/shiki-highlighter.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/sources.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/speaker-identity.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/spec-sheet.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/stopped-run.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/streaming-text.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/suggestions.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/syntax-highlighter.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/terminal-block.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/thinking-indicator.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/thread-list.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/thread-search.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/threadlist-sidebar.aui.radix.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/threadlist-sidebar.aui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/timeline.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/todo-list.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/tool-error.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/tool-group.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/tool-timeline.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/tooltip-icon-button.radix.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/trace-waterfall.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/typing-indicator.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/voice-conversation.aui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/voice-conversation.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/voice.aui.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/voice.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/web-preview.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/web-search.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    }
   ],
-  "pluginFilesChanged": [
-    "examples/agent-frontend/plugins/conversation-surface/index.tsx",
-    "examples/agent-frontend/plugins/conversation-surface/manifest.json",
-    "examples/agent-frontend/plugins/registry.generated.ts",
-    "examples/agent-frontend/plugins/subagent-conversation/definition.ts",
-    "examples/agent-frontend/plugins/subagent-conversation/index.tsx",
-    "examples/agent-frontend/plugins/subagent-conversation/manifest.json",
-    "examples/agent-frontend/plugins/task-group/"
-  ],
-  "appUIModelFilesChanged": [
-    "examples/agent-frontend/app-ui/app-ui.json"
-  ],
+  "missingTransitiveDependencies": [],
+  "localFacadeFilesChanged": [],
+  "runtimeAdapterFilesChanged": [],
+  "pluginFilesChanged": [],
+  "appUIModelFilesChanged": [],
   "creatorFilesChanged": [],
-  "testsChanged": [
-    "examples/agent-frontend/tests/ag-ui-boundary.test.ts",
-    "examples/agent-frontend/tests/assistant-ui-canonical-runtime.test.ts",
-    "examples/agent-frontend/tests/assistant-ui-default-composition.test.ts",
-    "examples/agent-frontend/tests/assistant-ui-nested-subagent.test.tsx",
-    "examples/agent-frontend/tests/assistant-ui-thread-boundary.test.ts",
-    "examples/agent-frontend/tests/scoped-renderer-bridge.test.tsx",
-    "examples/agent-frontend/tests/scoped-renderer-conversation-integration.test.tsx",
-    "examples/agent-frontend/tests/subagent-conversation-boundary.test.ts",
-    "examples/agent-frontend/tests/task-group-boundary.test.ts",
-    "packages/react/tests/public-api.test.ts",
-    "packages/react/tests/upstream-provenance.test.ts"
-  ],
+  "testsChanged": [],
   "_inventory": {
     "fromFiles": [
       "components/assistant-ui/elements/agent-plan.tsx",
+      "components/assistant-ui/elements/agent-status.aui.tsx",
       "components/assistant-ui/elements/agent-status.tsx",
       "components/assistant-ui/elements/attachment.aui.tsx",
       "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
@@ -108,6 +733,8 @@
       "components/assistant-ui/elements/sources.aui.tsx",
       "components/assistant-ui/elements/subagent-list.tsx",
       "components/assistant-ui/elements/surfaces.tsx",
+      "components/assistant-ui/elements/task-card.aui.tsx",
+      "components/assistant-ui/elements/task-card.tsx",
       "components/assistant-ui/elements/thread-list.aui.tsx",
       "components/assistant-ui/elements/thread.aui.tsx",
       "components/assistant-ui/elements/tool-call.tsx",
@@ -115,12 +742,14 @@
       "components/assistant-ui/elements/tool-group.aui.tsx",
       "components/assistant-ui/elements/tooltip-icon-button.tsx",
       "components/assistant-ui/utils/range.ts",
+      "components/assistant-ui/utils/task.ts",
       "components/ui/avatar.tsx",
       "components/ui/badge.tsx",
       "components/ui/button.tsx",
       "components/ui/collapsible.tsx",
       "components/ui/dialog.tsx",
       "components/ui/input.tsx",
+      "components/ui/popover.tsx",
       "components/ui/separator.tsx",
       "components/ui/sheet.tsx",
       "components/ui/sidebar.tsx",
@@ -174,6 +803,156 @@
       "hooks/use-copy-to-clipboard.ts",
       "hooks/use-mobile.ts",
       "lib/utils.ts"
+    ],
+    "upstreamElements": [
+      "components/assistant-ui/elements/activity-graph.tsx",
+      "components/assistant-ui/elements/agent-card.tsx",
+      "components/assistant-ui/elements/agent-handoff.tsx",
+      "components/assistant-ui/elements/agent-plan.tsx",
+      "components/assistant-ui/elements/agent-status.aui.tsx",
+      "components/assistant-ui/elements/agent-status.tsx",
+      "components/assistant-ui/elements/approval-card.tsx",
+      "components/assistant-ui/elements/artifact-card.tsx",
+      "components/assistant-ui/elements/assistant-modal.aui.radix.tsx",
+      "components/assistant-ui/elements/assistant-modal.aui.tsx",
+      "components/assistant-ui/elements/assistant-sidebar.aui.tsx",
+      "components/assistant-ui/elements/attachment.aui.radix.tsx",
+      "components/assistant-ui/elements/attachment.aui.tsx",
+      "components/assistant-ui/elements/background-inbox.tsx",
+      "components/assistant-ui/elements/canvas-split.tsx",
+      "components/assistant-ui/elements/chart.tsx",
+      "components/assistant-ui/elements/chat-panel.tsx",
+      "components/assistant-ui/elements/checkpoint-history.tsx",
+      "components/assistant-ui/elements/code-diff.tsx",
+      "components/assistant-ui/elements/code-runner.tsx",
+      "components/assistant-ui/elements/command-palette.tsx",
+      "components/assistant-ui/elements/comparison-card.tsx",
+      "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "components/assistant-ui/elements/composer.tsx",
+      "components/assistant-ui/elements/computer-use.tsx",
+      "components/assistant-ui/elements/confidence-marker.tsx",
+      "components/assistant-ui/elements/connection-state.tsx",
+      "components/assistant-ui/elements/context-breakdown.tsx",
+      "components/assistant-ui/elements/context-display.aui.tsx",
+      "components/assistant-ui/elements/context-display.radix.tsx",
+      "components/assistant-ui/elements/context-display.tsx",
+      "components/assistant-ui/elements/conversation-map.aui.tsx",
+      "components/assistant-ui/elements/conversation-map.tsx",
+      "components/assistant-ui/elements/conversation-search.tsx",
+      "components/assistant-ui/elements/cost-meter.tsx",
+      "components/assistant-ui/elements/data-table.tsx",
+      "components/assistant-ui/elements/day-separator.tsx",
+      "components/assistant-ui/elements/diagram.tsx",
+      "components/assistant-ui/elements/directive-text.aui.tsx",
+      "components/assistant-ui/elements/directive-text.tsx",
+      "components/assistant-ui/elements/document-reference.tsx",
+      "components/assistant-ui/elements/draft-restore.tsx",
+      "components/assistant-ui/elements/edit-message.tsx",
+      "components/assistant-ui/elements/elicitation-form.tsx",
+      "components/assistant-ui/elements/empty-state.tsx",
+      "components/assistant-ui/elements/error-state.tsx",
+      "components/assistant-ui/elements/feedback-dialog.tsx",
+      "components/assistant-ui/elements/file-tree.tsx",
+      "components/assistant-ui/elements/file.tsx",
+      "components/assistant-ui/elements/flow-canvas.tsx",
+      "components/assistant-ui/elements/flow-expand.tsx",
+      "components/assistant-ui/elements/flow-graph.tsx",
+      "components/assistant-ui/elements/flow.tsx",
+      "components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
+      "components/assistant-ui/elements/generative-ui.tsx",
+      "components/assistant-ui/elements/guardrail-notice.tsx",
+      "components/assistant-ui/elements/heat-graph.tsx",
+      "components/assistant-ui/elements/image-generation.tsx",
+      "components/assistant-ui/elements/image.tsx",
+      "components/assistant-ui/elements/inline-citation.tsx",
+      "components/assistant-ui/elements/job-progress.tsx",
+      "components/assistant-ui/elements/launcher-bubble.tsx",
+      "components/assistant-ui/elements/loading-state.tsx",
+      "components/assistant-ui/elements/logos.tsx",
+      "components/assistant-ui/elements/map-answer.tsx",
+      "components/assistant-ui/elements/markdown-text.tsx",
+      "components/assistant-ui/elements/math-block.tsx",
+      "components/assistant-ui/elements/mcp-config.aui.radix.tsx",
+      "components/assistant-ui/elements/mcp-config.aui.tsx",
+      "components/assistant-ui/elements/mcp-server-panel.tsx",
+      "components/assistant-ui/elements/memory-chips.tsx",
+      "components/assistant-ui/elements/mermaid-diagram.aui.tsx",
+      "components/assistant-ui/elements/mermaid-diagram.tsx",
+      "components/assistant-ui/elements/message-actions.tsx",
+      "components/assistant-ui/elements/message-attachment.tsx",
+      "components/assistant-ui/elements/message-branches.tsx",
+      "components/assistant-ui/elements/message-pair.tsx",
+      "components/assistant-ui/elements/message-queue.tsx",
+      "components/assistant-ui/elements/message-timing.aui.radix.tsx",
+      "components/assistant-ui/elements/message-timing.aui.tsx",
+      "components/assistant-ui/elements/message-timing.tsx",
+      "components/assistant-ui/elements/mobile-composer.tsx",
+      "components/assistant-ui/elements/model-picker.tsx",
+      "components/assistant-ui/elements/model-selector.aui.tsx",
+      "components/assistant-ui/elements/model-selector.radix.tsx",
+      "components/assistant-ui/elements/model-selector.tsx",
+      "components/assistant-ui/elements/number-ticker.tsx",
+      "components/assistant-ui/elements/onboarding.tsx",
+      "components/assistant-ui/elements/permission-grant.tsx",
+      "components/assistant-ui/elements/prompt-library.tsx",
+      "components/assistant-ui/elements/quota-banner.tsx",
+      "components/assistant-ui/elements/quote-reply.tsx",
+      "components/assistant-ui/elements/quote.aui.tsx",
+      "components/assistant-ui/elements/read-aloud.tsx",
+      "components/assistant-ui/elements/reasoning-effort.tsx",
+      "components/assistant-ui/elements/reasoning-panel.tsx",
+      "components/assistant-ui/elements/reasoning.aui.tsx",
+      "components/assistant-ui/elements/reasoning.tsx",
+      "components/assistant-ui/elements/recommendation-card.tsx",
+      "components/assistant-ui/elements/regenerate-menu.tsx",
+      "components/assistant-ui/elements/research-report.tsx",
+      "components/assistant-ui/elements/retrieval-chunks.tsx",
+      "components/assistant-ui/elements/reviewable-diff.tsx",
+      "components/assistant-ui/elements/schedule-card.tsx",
+      "components/assistant-ui/elements/score-breakdown.tsx",
+      "components/assistant-ui/elements/scroll-anchor.tsx",
+      "components/assistant-ui/elements/settings-panel.tsx",
+      "components/assistant-ui/elements/shared-conversation.tsx",
+      "components/assistant-ui/elements/shiki-highlighter.aui.tsx",
+      "components/assistant-ui/elements/shiki-highlighter.tsx",
+      "components/assistant-ui/elements/sources.aui.tsx",
+      "components/assistant-ui/elements/sources.tsx",
+      "components/assistant-ui/elements/speaker-identity.tsx",
+      "components/assistant-ui/elements/spec-sheet.tsx",
+      "components/assistant-ui/elements/stopped-run.tsx",
+      "components/assistant-ui/elements/streaming-text.tsx",
+      "components/assistant-ui/elements/subagent-list.tsx",
+      "components/assistant-ui/elements/suggestions.tsx",
+      "components/assistant-ui/elements/surfaces.tsx",
+      "components/assistant-ui/elements/syntax-highlighter.tsx",
+      "components/assistant-ui/elements/task-card.aui.tsx",
+      "components/assistant-ui/elements/task-card.tsx",
+      "components/assistant-ui/elements/terminal-block.tsx",
+      "components/assistant-ui/elements/thinking-indicator.tsx",
+      "components/assistant-ui/elements/thread-list.aui.tsx",
+      "components/assistant-ui/elements/thread-list.tsx",
+      "components/assistant-ui/elements/thread-search.tsx",
+      "components/assistant-ui/elements/thread.aui.tsx",
+      "components/assistant-ui/elements/threadlist-sidebar.aui.radix.tsx",
+      "components/assistant-ui/elements/threadlist-sidebar.aui.tsx",
+      "components/assistant-ui/elements/timeline.tsx",
+      "components/assistant-ui/elements/todo-list.tsx",
+      "components/assistant-ui/elements/tool-call.tsx",
+      "components/assistant-ui/elements/tool-error.tsx",
+      "components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "components/assistant-ui/elements/tool-group.aui.tsx",
+      "components/assistant-ui/elements/tool-group.tsx",
+      "components/assistant-ui/elements/tool-timeline.tsx",
+      "components/assistant-ui/elements/tooltip-icon-button.radix.tsx",
+      "components/assistant-ui/elements/tooltip-icon-button.tsx",
+      "components/assistant-ui/elements/trace-waterfall.tsx",
+      "components/assistant-ui/elements/typing-indicator.tsx",
+      "components/assistant-ui/elements/voice-conversation.aui.tsx",
+      "components/assistant-ui/elements/voice-conversation.tsx",
+      "components/assistant-ui/elements/voice.aui.tsx",
+      "components/assistant-ui/elements/voice.tsx",
+      "components/assistant-ui/elements/web-preview.tsx",
+      "components/assistant-ui/elements/web-search.tsx"
     ]
   },
   "capabilityAudit": [

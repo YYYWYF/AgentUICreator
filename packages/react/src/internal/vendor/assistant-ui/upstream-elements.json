@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "source": "https://r.assistant-ui.com",
   "style": "base-nova",
-  "revision": "b712ee83bde9a89fce2812968f951a5742d757b9",
+  "revision": "c2917dba8783b3e250ab484102627901e611c56a",
   "owned": [
     "components/assistant-ui/elements/agent-plan.tsx",
     "components/assistant-ui/elements/agent-status.aui.tsx",

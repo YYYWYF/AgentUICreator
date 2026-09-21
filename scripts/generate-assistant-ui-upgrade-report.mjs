@@ -21,6 +21,11 @@ async function changedFiles() {
 const prior = JSON.parse(await readFile(reportPath, "utf8"));
 const files = [...new Set(await changedFiles())].sort();
 const select = (predicate) => files.filter(predicate);
+const newAvailableElements = prior.newAvailableElements ?? [];
+const newlyAdoptedElements = prior.newlyAdoptedElements ?? [];
+const removedUpstreamElements = prior.removedUpstreamElements ?? [];
+const changedUpstreamElements = prior.changedUpstreamElements ?? [];
+const ignoredUpstreamElements = prior.ignoredUpstreamElements ?? [];
 const capabilityAudit = [
   { capability: "ThreadComponents.TaskGroup", status: "NEW UPSTREAM CAPABILITY" },
   { capability: "thread.tasks", status: "NEW UPSTREAM CAPABILITY" },
@@ -40,6 +45,11 @@ const current = {
   appUIModelFilesChanged: select((file) => file.startsWith("examples/agent-frontend/app-ui/")),
   creatorFilesChanged: select((file) => file.startsWith("packages/creator/")),
   testsChanged: select((file) => file.includes("/tests/") || file.endsWith(".test.ts") || file.endsWith(".test.tsx") || file.endsWith(".test.mjs")),
+  newAvailableElements,
+  newlyAdoptedElements,
+  removedUpstreamElements,
+  changedUpstreamElements,
+  ignoredUpstreamElements,
   capabilityAudit,
 };
 
@@ -72,6 +82,24 @@ To:
 - added ${current.vendorFilesAdded.length} files
 - removed ${current.vendorFilesRemoved.length} files
 - new transitive dependencies: ${current.newTransitiveDependencies.length}
+
+## Upstream Element discovery
+
+### NEW UPSTREAM ELEMENTS
+
+${current.newAvailableElements.length === 0 ? "- none" : current.newAvailableElements.map((file) => `- ${file}`).join("\n")}
+
+### Adoption
+
+- newly adopted: ${current.newlyAdoptedElements.length === 0 ? "none" : current.newlyAdoptedElements.join(", ")}
+- removed upstream Elements: ${current.removedUpstreamElements.length === 0 ? "none" : current.removedUpstreamElements.join(", ")}
+- changed tracked upstream Elements: ${current.changedUpstreamElements.length === 0 ? "none" : current.changedUpstreamElements.join(", ")}
+
+### Explicitly ignored with rationale
+
+${current.ignoredUpstreamElements.length === 0
+    ? "- none"
+    : current.ignoredUpstreamElements.map(({ localPath, rationale }) => `- ${localPath}: ${rationale}`).join("\n")}
 
 ## Public facade changes
 

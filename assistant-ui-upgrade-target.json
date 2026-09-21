@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "project": "assistant-ui/assistant-ui",
-  "source": "local checkout main",
-  "revision": "b712ee83bde9a89fce2812968f951a5742d757b9",
+  "source": "https://github.com/assistant-ui/assistant-ui.git#refs/heads/main",
+  "revision": "c2917dba8783b3e250ab484102627901e611c56a",
   "packages": {
     "@assistant-ui/react": "0.15.21",
     "@assistant-ui/react-ag-ui": "0.0.60",
