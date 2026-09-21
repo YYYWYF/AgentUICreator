@@ -40,7 +40,6 @@ describe("AG-UI State → Job Progress showcase", () => {
     const majorTypes = new Set([
       EventType.RUN_STARTED,
       EventType.STATE_SNAPSHOT,
-      EventType.TEXT_MESSAGE_START,
       EventType.TOOL_CALL_START,
       EventType.TOOL_CALL_ARGS,
       EventType.TOOL_CALL_END,

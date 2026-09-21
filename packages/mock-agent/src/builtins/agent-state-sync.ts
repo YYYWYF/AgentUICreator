@@ -104,7 +104,6 @@ export const agentStateSyncScenario = defineScenario({
     eventFlow: [
       "RUN_STARTED",
       "STATE_SNAPSHOT",
-      "TEXT_MESSAGE_START/CONTENT/END",
       "TOOL_CALL_START",
       "TOOL_CALL_ARGS",
       "TOOL_CALL_END",
@@ -143,10 +142,6 @@ export const agentStateSyncScenario = defineScenario({
     },
   },
   steps: [
-    {
-      type: "message",
-      text: "我来运行 CI 验证。",
-    },
     {
       type: "tool",
       name: "run_ci_job",
