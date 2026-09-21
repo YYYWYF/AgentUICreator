@@ -1,8 +1,10 @@
+import { verifyEvents } from "@ag-ui/client";
 import {
   EventSchemas,
   EventType,
   type RunAgentInput,
 } from "@ag-ui/core";
+import { from, lastValueFrom } from "rxjs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -37,6 +39,7 @@ async function collect(
   })) {
     events.push(EventSchemas.parse(event));
   }
+  await lastValueFrom(from(events).pipe(verifyEvents()));
   return events;
 }
 
@@ -84,7 +87,7 @@ describe("P5-A mock scenarios", () => {
     );
   });
 
-  it("compiles every builtin through the pinned AG-UI schemas", async () => {
+  it("compiles and verifies every builtin through the pinned AG-UI client", async () => {
     for (const scenario of builtinMockScenarios) {
       const events = await collect(scenario);
       expect(events[0]).toMatchObject({ type: EventType.RUN_STARTED });

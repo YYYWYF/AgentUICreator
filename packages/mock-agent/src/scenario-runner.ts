@@ -274,6 +274,8 @@ async function* runSteps(
     }
 
     if (step.type === "tool-result") {
+      // tool-result is used to deliver a result for an already closed ToolCall,
+      // including a cross-run result after an interrupt resume.
       const event = (value: Record<string, unknown>): AGUIEvent =>
         withSubagentRunId(value, context.subagentRunId) as AGUIEvent;
       if (!await waitForDelay(
@@ -281,7 +283,6 @@ async function* runSteps(
         signal,
         timingScale,
       )) return;
-      yield event({ type: EventType.TOOL_CALL_END, toolCallId: step.toolCallId });
       if (step.error !== undefined) {
         yield event({
           type: EventType.RUN_ERROR,
@@ -488,6 +489,7 @@ async function* runSteps(
         toolCallId: step.toolCallId,
         delta: serializeToolValue(step.args),
       });
+      yield event({ type: EventType.TOOL_CALL_END, toolCallId: step.toolCallId });
       yield {
         type: EventType.RUN_FINISHED,
         threadId: input.threadId,

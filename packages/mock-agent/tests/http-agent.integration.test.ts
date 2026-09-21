@@ -243,6 +243,15 @@ describe("Mock Agent HTTP endpoint", () => {
       type: EventType.TOOL_CALL_ARGS,
       toolCallId: "approval-dangerous-tool",
     }));
+    const firstToolEndIndex = firstRun.findIndex((event) =>
+      event.type === EventType.TOOL_CALL_END &&
+      event.toolCallId === "approval-dangerous-tool",
+    );
+    const firstRunFinishedIndex = firstRun.findIndex((event) =>
+      event.type === EventType.RUN_FINISHED,
+    );
+    expect(firstToolEndIndex).toBeGreaterThan(-1);
+    expect(firstToolEndIndex).toBeLessThan(firstRunFinishedIndex);
     expect(firstRun).toContainEqual(expect.objectContaining({
       type: EventType.RUN_FINISHED,
       outcome: {
@@ -267,6 +276,14 @@ describe("Mock Agent HTTP endpoint", () => {
       runId: "run-approval-2",
       resume: [resume],
     });
+    const toolStartIndex = secondRun.findIndex((event) =>
+      event.type === EventType.TOOL_CALL_START &&
+      event.toolCallId === "approval-dangerous-tool",
+    );
+    const toolArgsIndex = secondRun.findIndex((event) =>
+      event.type === EventType.TOOL_CALL_ARGS &&
+      event.toolCallId === "approval-dangerous-tool",
+    );
     const toolEndIndex = secondRun.findIndex((event) =>
       event.type === EventType.TOOL_CALL_END &&
       event.toolCallId === "approval-dangerous-tool",
@@ -276,8 +293,10 @@ describe("Mock Agent HTTP endpoint", () => {
       event.toolCallId === "approval-dangerous-tool",
     );
 
-    expect(toolEndIndex).toBeGreaterThan(-1);
-    expect(toolResultIndex).toBeGreaterThan(toolEndIndex);
+    expect(toolStartIndex).toBe(-1);
+    expect(toolArgsIndex).toBe(-1);
+    expect(toolEndIndex).toBe(-1);
+    expect(toolResultIndex).toBeGreaterThan(-1);
     expect(secondRun.some(({ type }) => type === EventType.TEXT_MESSAGE_START)).toBe(true);
     expect(secondRun.some(({ type }) => type === EventType.TEXT_MESSAGE_CONTENT)).toBe(true);
     expect(secondRun.some(({ type }) => type === EventType.TEXT_MESSAGE_END)).toBe(true);
@@ -308,6 +327,12 @@ describe("Mock Agent HTTP endpoint", () => {
       }],
     });
 
+    expect(secondRun.some((event) =>
+      event.type === EventType.TOOL_CALL_START ||
+      event.type === EventType.TOOL_CALL_ARGS ||
+      event.type === EventType.TOOL_CALL_END ||
+      event.type === EventType.TOOL_CALL_RESULT
+    )).toBe(false);
     expect(secondRun.some((event) =>
       event.type === EventType.TOOL_CALL_RESULT &&
       event.toolCallId === "approval-dangerous-tool",
