@@ -4,6 +4,8 @@ import { agentStatusScenario } from "./agent-status.js";
 import { approvalResumeScenario } from "./approval-resume.js";
 import { multiToolScenario } from "./multi-tool.js";
 import { nestedSubagentConversationScenario } from "./nested-subagent-conversation.js";
+import { nestedSubagentErrorScenario } from "./nested-subagent-error.js";
+import { nestedSubagentRecursiveScenario } from "./nested-subagent-recursive.js";
 import { parallelToolsScenario } from "./parallel-tools.js";
 import { reasoningChatScenario } from "./reasoning-chat.js";
 import { reasoningLongPreviewScenario } from "./reasoning-long-preview.js";
@@ -23,6 +25,8 @@ export {
   approvalResumeScenario,
   multiToolScenario,
   nestedSubagentConversationScenario,
+  nestedSubagentErrorScenario,
+  nestedSubagentRecursiveScenario,
   parallelToolsScenario,
   reasoningChatScenario,
   reasoningLongPreviewScenario,
@@ -51,6 +55,8 @@ export const builtinMockScenarios = [
   agentPlanScenario,
   agentStatusScenario,
   nestedSubagentConversationScenario,
+  nestedSubagentErrorScenario,
+  nestedSubagentRecursiveScenario,
   subagentsScenario,
   subagentsOutOfOrderScenario,
   agentElementsShowcaseScenario,

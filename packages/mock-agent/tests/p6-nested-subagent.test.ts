@@ -6,7 +6,11 @@ import {
 } from "@ag-ui/core";
 import { describe, expect, it } from "vitest";
 
-import { nestedSubagentConversationScenario } from "../src/builtins/index.js";
+import {
+  nestedSubagentConversationScenario,
+  nestedSubagentErrorScenario,
+  nestedSubagentRecursiveScenario,
+} from "../src/builtins/index.js";
 import { runMockScenario } from "../src/scenario-runner.js";
 
 const input: RunAgentInput = {
@@ -47,6 +51,7 @@ describe("nested subagent AG-UI reference contract", () => {
     expect(lifecycle.map(({ type }) => type)).toEqual([
       EventType.TOOL_CALL_START,
       EventType.TOOL_CALL_ARGS,
+      EventType.TOOL_CALL_END,
       EventType.SUBAGENT_STARTED,
       EventType.TOOL_CALL_START,
       EventType.TOOL_CALL_ARGS,
@@ -54,7 +59,6 @@ describe("nested subagent AG-UI reference contract", () => {
       EventType.TOOL_CALL_RESULT,
       EventType.SUBAGENT_FINISHED,
       EventType.TOOL_CALL_RESULT,
-      EventType.TOOL_CALL_END,
     ]);
 
     expect(lifecycle[0]).toMatchObject({
@@ -63,14 +67,22 @@ describe("nested subagent AG-UI reference contract", () => {
       toolCallName: "delegate_specialist",
     });
     expect(lifecycle[2]).toMatchObject({
+      type: EventType.TOOL_CALL_END,
+      toolCallId: "invoke-researcher-1",
+    });
+    expect(lifecycle[3]).toMatchObject({
       type: EventType.SUBAGENT_STARTED,
       subagentRunId: "researcher-1",
       parentToolCallId: "invoke-researcher-1",
       name: "Architecture Researcher",
     });
-    expect(lifecycle[7]).toMatchObject({
+    expect(lifecycle[8]).toMatchObject({
       type: EventType.SUBAGENT_FINISHED,
       subagentRunId: "researcher-1",
+    });
+    expect(lifecycle[9]).toMatchObject({
+      type: EventType.TOOL_CALL_RESULT,
+      toolCallId: "invoke-researcher-1",
     });
   });
 
@@ -109,5 +121,52 @@ describe("nested subagent AG-UI reference contract", () => {
     expect(childEvents.some(({ type }) =>
       type === EventType.TOOL_CALL_RESULT,
     )).toBe(true);
+  });
+
+  it("keeps recursive subagent attribution attached to the child tool", async () => {
+    const events = [] as BaseEvent[];
+    for await (const event of runMockScenario(
+      input,
+      nestedSubagentRecursiveScenario,
+      { timingScale: 0 },
+    )) {
+      events.push(EventSchemas.parse(event));
+    }
+
+    const started = events.find((event) =>
+      event.type === EventType.SUBAGENT_STARTED &&
+      event.subagentRunId === "subagent-b",
+    );
+    expect(started).toMatchObject({
+      parentSubagentRunId: "subagent-a",
+      parentToolCallId: "child-tool",
+    });
+
+    const childEvents = events.filter((event) =>
+      "subagentRunId" in event && event.subagentRunId === "subagent-b",
+    );
+    expect(childEvents.some(({ type }) => type === EventType.TEXT_MESSAGE_CONTENT)).toBe(true);
+    expect(childEvents.some(({ type }) => type === EventType.TOOL_CALL_RESULT)).toBe(true);
+  });
+
+  it("keeps an attributed message visible when a nested subagent errors", async () => {
+    const events = [] as BaseEvent[];
+    for await (const event of runMockScenario(
+      input,
+      nestedSubagentErrorScenario,
+      { timingScale: 0 },
+    )) {
+      events.push(EventSchemas.parse(event));
+    }
+
+    expect(events).toContainEqual(expect.objectContaining({
+      type: EventType.SUBAGENT_ERROR,
+      subagentRunId: "subagent-error",
+      code: "SUBAGENT_RESEARCH_FAILED",
+    }));
+    expect(events.at(-1)).toMatchObject({
+      type: EventType.RUN_FINISHED,
+      outcome: { type: "success" },
+    });
   });
 });

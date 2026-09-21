@@ -400,6 +400,7 @@ async function* runSteps(
         signal,
         timingScale,
       )) return;
+      yield event({ type: EventType.TOOL_CALL_END, toolCallId: step.toolCallId });
       yield {
         type: EventType.SUBAGENT_STARTED,
         subagentRunId: step.subagent.id,
@@ -447,7 +448,6 @@ async function* runSteps(
         content: serializeToolValue(step.result),
         role: "tool",
       });
-      yield event({ type: EventType.TOOL_CALL_END, toolCallId: step.toolCallId });
       continue;
     }
 

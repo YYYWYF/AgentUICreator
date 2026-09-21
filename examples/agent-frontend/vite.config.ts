@@ -70,6 +70,14 @@ export default defineConfig(async ({ command, mode }) => {
           workspaceRoot,
           "packages/runtime-react/src/index.ts",
         ),
+        "@ag-ui/client": path.join(
+          workspaceRoot,
+          "packages/runtime-conversation/node_modules/@ag-ui/client/dist/index.mjs",
+        ),
+        rxjs: path.join(
+          workspaceRoot,
+          "node_modules/.pnpm/rxjs@7.8.1/node_modules/rxjs/dist/esm5/index.js",
+        ),
       },
     },
   };

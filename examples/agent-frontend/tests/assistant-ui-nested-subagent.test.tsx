@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 
 import {
+  AbstractAgent,
+  type BaseEvent,
+  type RunAgentInput,
+} from "@ag-ui/client";
+import { Observable } from "rxjs";
+import {
   AssistantRuntimeProvider,
   AuiConfig,
   Tools,
@@ -14,7 +20,11 @@ import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { nestedSubagentConversationScenario } from "@agent-ui/mock-agent";
+import {
+  nestedSubagentConversationScenario,
+  nestedSubagentErrorScenario,
+  nestedSubagentRecursiveScenario,
+} from "@agent-ui/mock-agent";
 import { runMockScenario } from "@agent-ui/mock-agent";
 import { ConversationAdapter } from "../agent-ui/conversation/ConversationAdapter";
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
@@ -22,8 +32,6 @@ import { AssistantUiMessageFooterPlugin } from "../plugins/assistant-ui-message-
 import { SubagentConversationPlugin } from "../plugins/subagent-conversation";
 import type { UIPluginRenderScope } from "../framework/contracts/ui-plugin";
 import { PluginRenderScopeProvider } from "../runtime/plugins";
-
-type AssistantAgent = Parameters<typeof useAgUiRuntime>[0]["agent"];
 
 const mockInput: Parameters<typeof runMockScenario>[0] = {
   threadId: "p6-thread",
@@ -43,11 +51,13 @@ const assistantConfig = AuiConfig({
 
 const mountedRoots: Root[] = [];
 
-async function collectScenarioEvents(): Promise<unknown[]> {
-  const events: unknown[] = [];
+async function collectScenarioEvents(
+  scenario = nestedSubagentConversationScenario,
+): Promise<BaseEvent[]> {
+  const events: BaseEvent[] = [];
   for await (const event of runMockScenario(
     mockInput,
-    nestedSubagentConversationScenario,
+    scenario,
     { timingScale: 0 },
   )) {
     events.push(event);
@@ -55,28 +65,26 @@ async function collectScenarioEvents(): Promise<unknown[]> {
   return events;
 }
 
-function renameParentTool(events: readonly unknown[], toolName: string): unknown[] {
+function renameParentTool(events: readonly BaseEvent[], toolName: string): BaseEvent[] {
   return events.map((event) => {
-    if (typeof event !== "object" || event === null) return event;
-    const candidate = event as { type?: unknown; toolCallId?: unknown };
-    return candidate.type === "TOOL_CALL_START" &&
-        candidate.toolCallId === "invoke-researcher-1"
+    return event.type === "TOOL_CALL_START" &&
+        event.toolCallId === "invoke-researcher-1"
       ? { ...event, toolCallName: toolName }
       : event;
   });
 }
 
-function createEventAgent(events: readonly unknown[]): AssistantAgent {
-  return {
-    threadId: "p6-thread",
-    runAgent: async (
-      _input: unknown,
-      options?: { onEvent?: (payload: { event: unknown }) => void },
-    ) => {
-      for (const event of events) options?.onEvent?.({ event });
-    },
-    abortRun: () => undefined,
-  } as unknown as AssistantAgent;
+class ScenarioEventAgent extends AbstractAgent {
+  constructor(private readonly scenarioEvents: readonly BaseEvent[]) {
+    super({ threadId: "p6-thread" });
+  }
+
+  override run(_input: RunAgentInput): Observable<BaseEvent> {
+    return new Observable((subscriber) => {
+      for (const event of this.scenarioEvents) subscriber.next(event);
+      subscriber.complete();
+    });
+  }
 }
 
 function renderConversationScopedSlot(
@@ -110,7 +118,7 @@ function RuntimeHarness({
   agent,
   onRuntime,
 }: {
-  agent: AssistantAgent;
+  agent: AbstractAgent;
   onRuntime: (runtime: AgUiAssistantRuntime) => void;
 }) {
   const runtime = useAgUiRuntime({ agent });
@@ -122,7 +130,7 @@ function RuntimeHarness({
   );
 }
 
-async function mountRuntime(agent: AssistantAgent) {
+async function mountRuntime(agent: AbstractAgent) {
   const container = document.createElement("div");
   document.body.append(container);
   const root = createRoot(container);
@@ -158,7 +166,7 @@ afterEach(async () => {
 describe("official nested assistant-ui conversation", () => {
   it("exposes ToolCallMessagePart.messages through the pinned AG-UI adapter", async () => {
     const runtimeFixture = await mountRuntime(
-      createEventAgent(await collectScenarioEvents()),
+      new ScenarioEventAgent(await collectScenarioEvents()),
     );
 
     await act(async () => {
@@ -188,12 +196,27 @@ describe("official nested assistant-ui conversation", () => {
       .filter((part): part is { type: "text"; text: string } => part.type === "text")
       .map(({ text }) => text)
       .join("");
-    expect(nestedText).toContain("Architecture inspection complete");
+    expect(nestedText).toContain(
+      "检查完成：当前项目由 Conversation Runtime",
+    );
+
+    const nestedMessage = parentTool.messages?.find(
+      (message): message is Extract<ThreadMessage, { role: "assistant" }> =>
+        message.role === "assistant",
+    );
+    const nestedMetadata = nestedMessage?.metadata as {
+      custom?: {
+        agui?: { result?: unknown };
+      };
+    } | undefined;
+    expect(nestedMetadata?.custom?.agui?.result).toEqual({
+      summary: "Architecture inspection complete",
+    });
   });
 
   it("renders nested messages with inherited toolkit UI inside the parent tool", async () => {
     const runtimeFixture = await mountRuntime(
-      createEventAgent(await collectScenarioEvents()),
+      new ScenarioEventAgent(await collectScenarioEvents()),
     );
 
     await act(async () => {
@@ -247,9 +270,9 @@ describe("official nested assistant-ui conversation", () => {
     );
   });
 
-  it("uses one nested disclosure and keeps the tool identity singular", async () => {
+  it("uses the canonical tool fallback without a second disclosure shell", async () => {
     const runtimeFixture = await mountRuntime(
-      createEventAgent(await collectScenarioEvents()),
+      new ScenarioEventAgent(await collectScenarioEvents()),
     );
 
     await act(async () => {
@@ -260,62 +283,36 @@ describe("official nested assistant-ui conversation", () => {
       });
     });
 
-    const nestedTool = runtimeFixture.container.querySelector(
-      '[data-slot="subagent-conversation-root"]',
-    );
-    const trigger = nestedTool?.querySelector(
-      '[data-slot="subagent-conversation-trigger"]',
-    ) as HTMLButtonElement | null;
-    const chevron = nestedTool?.querySelector(
-      '[data-slot="subagent-conversation-chevron"]',
-    );
-    const conversation = nestedTool?.querySelector(
-      '[data-slot="subagent-conversation-content"]',
-    );
+    expect(
+      runtimeFixture.container.querySelector('[data-slot="tool-fallback-root"]'),
+    ).not.toBeNull();
+    expect(
+      runtimeFixture.container.querySelector('[data-slot="subagent-conversation-root"]'),
+    ).toBeNull();
+    expect(
+      runtimeFixture.container.querySelector('[data-slot="subagent-conversation-trigger"]'),
+    ).toBeNull();
+    expect(
+      runtimeFixture.container.querySelector('[data-slot="subagent-conversation-chevron"]'),
+    ).toBeNull();
 
-    expect(nestedTool).not.toBeNull();
-    expect(trigger).not.toBeNull();
-    expect(chevron).not.toBeNull();
-    expect(trigger?.getAttribute("aria-expanded")).toBe("true");
-    expect(chevron?.classList.contains("rotate-90")).toBe(true);
-    expect(conversation).not.toBeNull();
-
-    const matches =
-      nestedTool?.textContent?.match(/delegate_specialist/g) ?? [];
+    const matches = runtimeFixture.container.textContent?.match(/delegate_specialist/g) ?? [];
     expect(matches).toHaveLength(1);
     expect(
-      nestedTool?.querySelectorAll(
+      runtimeFixture.container.querySelectorAll(
         '[data-slot="subagent-conversation-content"]',
       ),
     ).toHaveLength(1);
     expect(
-      nestedTool?.querySelectorAll(
+      runtimeFixture.container.querySelectorAll(
         '[data-slot="subagent-conversation-message"]',
       ),
     ).toHaveLength(1);
-
-    await act(async () => trigger?.click());
-    expect(trigger?.getAttribute("aria-expanded")).toBe("false");
-    expect(chevron?.classList.contains("rotate-90")).toBe(false);
-    expect(
-      nestedTool?.querySelector(
-        '[data-slot="subagent-conversation-content"]',
-      ),
-    ).toBeNull();
-
-    await act(async () => trigger?.click());
-    expect(trigger?.getAttribute("aria-expanded")).toBe("true");
-    expect(chevron?.classList.contains("rotate-90")).toBe(true);
-    expect(
-      nestedTool?.querySelector(
-        '[data-slot="subagent-conversation-content"]',
-      ),
-    ).not.toBeNull();
   });
 
   it("routes an unknown parent tool name through the same presentation", async () => {
     const runtimeFixture = await mountRuntime(
-      createEventAgent(renameParentTool(
+      new ScenarioEventAgent(renameParentTool(
         await collectScenarioEvents(),
         "customer_defined_agent_tool",
       )),
@@ -330,12 +327,85 @@ describe("official nested assistant-ui conversation", () => {
     });
 
     expect(
-      runtimeFixture.container.querySelector(
-        '[data-slot="subagent-conversation-root"]',
-      ),
+      runtimeFixture.container.querySelector('[data-slot="tool-fallback-root"]'),
     ).not.toBeNull();
     expect(runtimeFixture.container.textContent).toContain(
       "customer_defined_agent_tool",
+    );
+  });
+
+  it("recursively renders a second subagent through ToolCallMessagePart.messages", async () => {
+    const runtimeFixture = await mountRuntime(
+      new ScenarioEventAgent(
+        await collectScenarioEvents(nestedSubagentRecursiveScenario),
+      ),
+    );
+
+    await act(async () => {
+      await runtimeFixture.runtime.thread.append({
+        role: "user",
+        content: [{ type: "text", text: "递归检查 Agent UI 架构" }],
+        startRun: true,
+      });
+    });
+
+    const parentMessage = assistantMessages(runtimeFixture.runtime).at(-1);
+    const parentTool = parentMessage?.content.find(
+      (part): part is Extract<ThreadMessage["content"][number], { type: "tool-call" }> =>
+        part.type === "tool-call" && part.toolCallId === "parent-tool",
+    );
+    const subagentA = parentTool?.messages?.[0];
+    const childTool = subagentA?.content.find(
+      (part): part is Extract<ThreadMessage["content"][number], { type: "tool-call" }> =>
+        part.type === "tool-call" && part.toolCallId === "child-tool",
+    );
+
+    expect(parentTool?.messages).toHaveLength(1);
+    expect(childTool?.messages).toHaveLength(1);
+    expect(runtimeFixture.container.textContent).toContain(
+      "Subagent B 已完成 Runtime 检查。",
+    );
+    expect(
+      runtimeFixture.container.querySelectorAll(
+        '[data-slot="subagent-conversation-message"]',
+      ),
+    ).toHaveLength(2);
+  });
+
+  it("keeps attributed content and the canonical incomplete status for SUBAGENT_ERROR", async () => {
+    const runtimeFixture = await mountRuntime(
+      new ScenarioEventAgent(
+        await collectScenarioEvents(nestedSubagentErrorScenario),
+      ),
+    );
+
+    await act(async () => {
+      await runtimeFixture.runtime.thread.append({
+        role: "user",
+        content: [{ type: "text", text: "检查失败的 Agent UI 分支" }],
+        startRun: true,
+      });
+    });
+
+    const parentMessage = assistantMessages(runtimeFixture.runtime).at(-1);
+    const parentTool = parentMessage?.content.find(
+      (part): part is Extract<ThreadMessage["content"][number], { type: "tool-call" }> =>
+        part.type === "tool-call" && part.toolCallId === "error-parent-tool",
+    );
+    const errorMessage = parentTool?.messages?.[0];
+    const errorMetadata = errorMessage?.metadata as {
+      custom?: { agui?: { errorCode?: unknown } };
+    } | undefined;
+
+    expect(errorMessage?.status).toMatchObject({
+      type: "incomplete",
+      reason: "error",
+    });
+    expect(errorMetadata?.custom?.agui?.errorCode).toBe(
+      "SUBAGENT_RESEARCH_FAILED",
+    );
+    expect(runtimeFixture.container.textContent).toContain(
+      "我已经定位到失败分支",
     );
   });
 

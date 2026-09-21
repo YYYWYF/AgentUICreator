@@ -34,6 +34,12 @@
       "@agent-ui/runtime-react": ["../../packages/runtime-react/src/index.ts"],
       "@agent-ui/runtime-core/testing": [
         "../../packages/runtime-core/src/testing/index.ts"
+      ],
+      "@ag-ui/client": [
+        "../../packages/runtime-conversation/node_modules/@ag-ui/client/dist/index.d.ts"
+      ],
+      "rxjs": [
+        "../../node_modules/.pnpm/rxjs@7.8.1/node_modules/rxjs/dist/types/index.d.ts"
       ]
     }
   },

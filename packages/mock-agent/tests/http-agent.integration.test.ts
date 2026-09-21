@@ -227,6 +227,10 @@ describe("Mock Agent HTTP endpoint", () => {
       event.type === EventType.TOOL_CALL_START &&
       event.toolCallName === "delegate_specialist",
     );
+    const parentEnd = events.findIndex((event) =>
+      event.type === EventType.TOOL_CALL_END &&
+      event.toolCallId === "invoke-researcher-1",
+    );
     const parentResult = events.findIndex((event) =>
       event.type === EventType.TOOL_CALL_RESULT &&
       event.toolCallId === "invoke-researcher-1",
@@ -241,6 +245,8 @@ describe("Mock Agent HTTP endpoint", () => {
       subagentRunId: "researcher-1",
       parentToolCallId: "invoke-researcher-1",
     });
+    expect(parentEnd).toBeGreaterThan(parentStart);
+    expect(parentEnd).toBeLessThan(started);
     expect(finished).toBeGreaterThan(started);
     expect(parentResult).toBeGreaterThan(finished);
     expect(events.at(-1)).toMatchObject({

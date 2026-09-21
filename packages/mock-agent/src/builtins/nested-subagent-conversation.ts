@@ -3,11 +3,11 @@ import { defineScenario } from "../scenario.js";
 /**
  * User-facing AG-UI 0.0.59 Subagent reference:
  *
- * TOOL_CALL_START / TOOL_CALL_ARGS (parent)
+ * TOOL_CALL_START / TOOL_CALL_ARGS / TOOL_CALL_END (parent)
  * SUBAGENT_STARTED({ subagentRunId, parentToolCallId })
  * REASONING_*, TOOL_CALL_*, and TEXT_MESSAGE_* with subagentRunId
  * SUBAGENT_FINISHED({ subagentRunId })
- * TOOL_CALL_RESULT / TOOL_CALL_END (parent)
+ * TOOL_CALL_RESULT (parent)
  *
  * Nested output is correlated by subagentRunId; parentToolCallId attaches the
  * subagent run to the spawning parent ToolCall.

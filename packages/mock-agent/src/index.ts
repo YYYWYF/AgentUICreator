@@ -37,6 +37,8 @@ export {
   approvalResumeScenario,
   multiToolScenario,
   nestedSubagentConversationScenario,
+  nestedSubagentErrorScenario,
+  nestedSubagentRecursiveScenario,
   parallelToolsScenario,
   reasoningChatScenario,
   reasoningLongPreviewScenario,

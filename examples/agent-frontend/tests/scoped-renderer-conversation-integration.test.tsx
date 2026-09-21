@@ -221,10 +221,9 @@ describe("Conversation scoped renderer integration", () => {
       messages: [message([{ type: "text", text: "Nested result" }])],
     };
     const { container, root } = await mount([message([nestedTool])]);
-    expect(container.querySelector('[data-slot="subagent-conversation-root"]')).not.toBeNull();
+    expect(container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();
     expect(container.querySelector('[data-slot="subagent-conversation-content"]')?.textContent)
       .toContain("Nested result");
-    expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
 
     await act(async () => {
       root.render(<RuntimeFixture chatModel={{ run: async () => ({ content: [] }) }}
@@ -232,7 +231,7 @@ describe("Conversation scoped renderer integration", () => {
         onRuntime={() => undefined} />);
       await Promise.resolve();
     });
-    expect(container.querySelector('[data-slot="subagent-conversation-root"]')).toBeNull();
+    expect(container.querySelector('[data-slot="subagent-conversation-content"]')).toBeNull();
     expect(container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();
   });
 

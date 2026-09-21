@@ -70,14 +70,13 @@ import type {
   ReactElement,
   ReactNode,
 } from "react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CheckIcon,
   CopyIcon,
   DownloadIcon,
-  Loader2Icon,
   RefreshCwIcon,
 } from "lucide-react";
 import { cn } from "./internal/vendor/assistant-ui/lib/utils.js";
@@ -357,6 +356,7 @@ export interface ConversationToolCallProps {
   args: unknown;
   argsText?: string | undefined;
   result?: unknown;
+  messages?: readonly ConversationMessage[];
   isError?: boolean | undefined;
   status: ConversationToolCallStatus;
   /** Preserve assistant-ui extension fields and callbacks at the facade seam. */
@@ -811,13 +811,21 @@ export function ConversationSubagentMessages() {
             components={{
               Text: ConversationMarkdownText,
               Reasoning: ConversationReasoning,
-              tools: { Fallback: ConversationToolFallback as never },
+              tools: { Fallback: ConversationNestedToolFallback as never },
             }}
           />
         </MessagePrimitive.Root>
       )}
     </MessagePartPrimitive.Messages>
   );
+}
+
+function ConversationNestedToolFallback(
+  props: Readonly<ConversationToolCallProps>,
+) {
+  return Array.isArray(props.messages)
+    ? <ConversationSubagentTool {...props} />
+    : <ConversationToolFallback {...props} />;
 }
 
 function shouldUseConversationToolFallback(
@@ -836,57 +844,20 @@ function shouldUseConversationToolFallback(
 export function ConversationSubagentTool(
   props: Readonly<ConversationToolCallProps>,
 ) {
-  const [open, setOpen] = useState(true);
   if (shouldUseConversationToolFallback(props)) {
     return <ConversationToolFallback {...props} />;
   }
 
-  const running = props.status.type === "running";
   return (
-    <InternalCollapsible
-      data-slot="subagent-conversation-root"
-      data-status={props.status.type}
-      open={open}
-      onOpenChange={setOpen}
-      className="my-2 w-full max-w-xl"
-    >
-      <InternalCollapsibleTrigger
-        data-slot="subagent-conversation-trigger"
-        className="text-foreground/70 hover:text-foreground flex w-full items-center gap-2 py-1.5 text-sm transition-colors outline-none"
-      >
-        <ChevronRightIcon
-          data-slot="subagent-conversation-chevron"
-          aria-hidden="true"
-          className={[
-            "size-3.5 shrink-0 transition-transform duration-200",
-            "motion-reduce:transition-none",
-            open ? "rotate-90" : "",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        />
-        <span className="font-medium">{props.toolName}</span>
-        <span
-          data-slot="subagent-conversation-status"
-          className="ms-auto flex size-4 shrink-0 items-center justify-center"
-          aria-hidden="true"
-        >
-          {running ? (
-            <Loader2Icon className="size-3.5 animate-spin motion-reduce:animate-none" />
-          ) : (
-            <CheckIcon className="size-3.5 text-emerald-500" />
-          )}
-        </span>
-      </InternalCollapsibleTrigger>
-
-      <InternalCollapsibleContent
+    <>
+      <ConversationToolFallback {...props} />
+      <div
         data-slot="subagent-conversation-content"
-        aria-label={props.toolName}
-        className="ms-5 mt-1 min-w-0 pb-1 outline-none"
+        className="ms-5 mt-1 min-w-0 pb-1"
       >
         <ConversationSubagentMessages />
-      </InternalCollapsibleContent>
-    </InternalCollapsible>
+      </div>
+    </>
   );
 }
 
