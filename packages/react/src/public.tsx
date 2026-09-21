@@ -557,7 +557,7 @@ export function ConversationCanonicalReasoningGroup({ group, children }: {
 }) {
   const running = group.status.type === "running";
   return (
-    <InternalReasoningRoot streaming={running}>
+    <InternalReasoningRoot className="mb-0" streaming={running}>
       <InternalReasoningTrigger active={running} />
       <InternalReasoningContent aria-busy={running}>
         <InternalReasoningText>{children}</InternalReasoningText>

@@ -212,6 +212,34 @@ describe("Conversation scoped renderer integration", () => {
     expect(fallbackInvocations).not.toHaveBeenCalled();
   });
 
+  it("keeps reasoning, named tool, reasoning, and text in the assistant message rhythm stacks", async () => {
+    const content = [
+      { type: "reasoning" as const, text: "Before tool", status: { type: "complete" as const } },
+      { type: "tool-call" as const, toolCallId: "search-rhythm", toolName: "search_files",
+        args: { keyword: "vertical rhythm" }, argsText: '{"keyword":"vertical rhythm"}', result: { files: ["src/App.tsx"] } },
+      { type: "reasoning" as const, text: "After tool", status: { type: "complete" as const } },
+      { type: "text" as const, text: "Answer" },
+    ];
+    const { container } = await mount([message(content)]);
+    const parts = container.querySelector('[data-slot="aui_assistant-message-parts"]');
+    const chainOfThought = container.querySelector('[data-slot="aui_chain-of-thought"]');
+
+    expect(parts).not.toBeNull();
+    expect(parts?.classList.contains("flex")).toBe(true);
+    expect(parts?.classList.contains("flex-col")).toBe(true);
+    expect(parts?.classList.contains("gap-y-4")).toBe(true);
+    expect(chainOfThought).not.toBeNull();
+    expect(chainOfThought?.classList.contains("flex")).toBe(true);
+    expect(chainOfThought?.classList.contains("flex-col")).toBe(true);
+    expect(chainOfThought?.classList.contains("gap-y-4")).toBe(true);
+    expect(
+      [...(parts?.querySelectorAll('[data-slot="reasoning-root"], [data-slot="tool-call"], .aui-md') ?? [])].map(
+        (element) => element.classList.contains("aui-md") ? "text" : element.getAttribute("data-slot"),
+      ),
+    ).toEqual(["reasoning-root", "tool-call", "reasoning-root", "text"]);
+    expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
+  });
+
   it("routes nested tool messages to TaskCard and falls back when the Plugin is disabled", async () => {
     const nestedTool: Extract<ThreadMessage["content"][number], { type: "tool-call" }> = {
       type: "tool-call",

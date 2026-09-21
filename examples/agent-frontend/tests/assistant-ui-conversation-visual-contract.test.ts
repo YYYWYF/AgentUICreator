@@ -43,6 +43,11 @@ const threadUrl = new URL(
   "../../../packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
   import.meta.url,
 );
+const composableThreadUrl = new URL(
+  "../../../packages/react/src/internal/composable-thread.tsx",
+  import.meta.url,
+);
+const publicUrl = new URL("../../../packages/react/src/public.tsx", import.meta.url);
 
 describe("assistant-ui conversation visual contract", () => {
   it("keeps theme ownership and root class mapping explicit", async () => {
@@ -162,6 +167,22 @@ describe("assistant-ui conversation visual contract", () => {
     ]) {
       expect(config).not.toContain(disabledReplacementId);
     }
+  });
+
+  it("owns assistant message vertical rhythm at the message composition layer", async () => {
+    const [composableThread, publicSource] = await Promise.all([
+      readFile(composableThreadUrl, "utf8"),
+      readFile(publicUrl, "utf8"),
+    ]);
+
+    expect(composableThread).toMatch(
+      /data-slot="aui_assistant-message-parts"[\s\S]*className="flex flex-col gap-y-4"/u,
+    );
+    expect(composableThread).toMatch(
+      /data-slot="aui_chain-of-thought"[\s\S]*className="flex flex-col gap-y-4"/u,
+    );
+    expect(composableThread).toContain('<ReasoningRoot className="mb-0"');
+    expect(publicSource).toContain('<InternalReasoningRoot className="mb-0"');
   });
 
   it(
