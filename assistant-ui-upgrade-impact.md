@@ -10,6 +10,26 @@ To:
 - @assistant-ui/react-markdown 0.14.16
 - upstream revision: 039c3c32822632f2a564164f089f538926886124
 
+## AG-UI transport compatibility
+
+Pinned @ag-ui/client:
+0.0.59
+
+Previous react-ag-ui range:
+^0.0.59
+
+Target react-ag-ui range:
+^0.0.59
+
+Resolved lockfile versions:
+0.0.59
+
+CancellationAwareHttpAgent: ACTIVE
+
+Status:
+SAFE: AG-UI transport baseline unchanged
+
+
 ## Vendor changes
 
 - changed 0 files
@@ -321,6 +341,7 @@ To:
 | ReasoningGroup / ToolGroup / ToolFallback | UNCHANGED |
 | Composer / Message Footer / Thread List / Attachments / Suggestions | UNCHANGED |
 | ConversationSubagentTool compatibility presentation | LOCAL COMPATIBILITY NO LONGER NEEDED |
+| CancellationAwareHttpAgent / AG-UI transport | SAFE: AG-UI transport baseline unchanged |
 
 ## Tests changed
 

@@ -800,7 +800,7 @@
       "components/assistant-ui/elements/heat-graph.tsx",
       "components/assistant-ui/elements/image-generation.tsx",
       "components/assistant-ui/elements/image.tsx",
-    "components/assistant-ui/elements/inline-citation.tsx",
+      "components/assistant-ui/elements/inline-citation.tsx",
       "components/assistant-ui/elements/launcher-bubble.tsx",
       "components/assistant-ui/elements/loading-state.tsx",
       "components/assistant-ui/elements/logos.tsx",
@@ -918,6 +918,50 @@
     {
       "capability": "ConversationSubagentTool compatibility presentation",
       "status": "LOCAL COMPATIBILITY NO LONGER NEEDED"
+    },
+    {
+      "capability": "CancellationAwareHttpAgent / AG-UI transport",
+      "status": "SAFE: AG-UI transport baseline unchanged"
     }
-  ]
+  ],
+  "cancellationCompatibility": {
+    "packageName": "@assistant-ui/react-ag-ui",
+    "reactAgUiVersion": "0.0.60",
+    "reactAgUiClientRange": "^0.0.59",
+    "pinnedClientVersion": "0.0.59",
+    "status": "SAFE: AG-UI transport baseline unchanged",
+    "compatible": true,
+    "guardStatus": "PASS",
+    "cancellationShim": "ACTIVE",
+    "previousAgUi": {
+      "@ag-ui/client": "0.0.59"
+    },
+    "previousAgUiCompatibility": {
+      "packageName": "@assistant-ui/react-ag-ui",
+      "reactAgUiVersion": "0.0.60",
+      "reactAgUiClientRange": "^0.0.59",
+      "pinnedClientVersion": "0.0.59",
+      "status": "PASS",
+      "compatible": true
+    },
+    "nextAgUiCompatibility": {
+      "packageName": "@assistant-ui/react-ag-ui",
+      "reactAgUiVersion": "0.0.60",
+      "reactAgUiClientRange": "^0.0.59",
+      "pinnedClientVersion": "0.0.59",
+      "status": "PASS",
+      "compatible": true
+    },
+    "resolvedAgUiClientVersions": [
+      "0.0.59"
+    ],
+    "duplicateClientVersions": false,
+    "dependencyRangeChanged": false,
+    "agUiPinnedVersionChanged": false,
+    "upstreamChangedFiles": [],
+    "cancellationRelevantUpstreamChanges": [],
+    "transportBaselineChanged": false,
+    "reAuditRequired": false,
+    "reasons": []
+  }
 }
