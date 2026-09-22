@@ -8,6 +8,21 @@ export const approvalResumeScenario = defineScenario({
   description: "Human in the Loop · Allow / Deny → Resume",
   category: "human-in-loop",
   capabilities: ["reasoning", "tool", "approval"],
+  reference: {
+    audience: "backend",
+    protocol: "AG-UI 0.0.59",
+    pattern: "Interrupt → Resume",
+    presentation: "assistant-ui approval resume",
+    eventFlow: [
+      "TOOL_CALL_START/ARGS/END",
+      "RUN_FINISHED(outcome: interrupt)",
+      "TOOL_CALL_RESULT (resume run)",
+    ],
+    notes: [
+      "This fixture contains one interrupt.",
+      "Production implementations correlate resume entries by interruptId, not by array position.",
+    ],
+  },
   steps: [
     {
       type: "reasoning",

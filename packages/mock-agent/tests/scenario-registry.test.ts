@@ -1,15 +1,34 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  backendReferenceMockScenarios,
   builtinMockScenarios,
+  frontendPresentationMockScenarios,
   mockRegressionScenarios,
   showcaseMockScenarios,
 } from "../src/builtins/index.js";
 import { createScenarioRegistry } from "../src/scenario-registry.js";
-import { defineScenario } from "../src/scenario.js";
+import { defineScenario, type MockScenario } from "../src/scenario.js";
 
 describe("createScenarioRegistry", () => {
   it("keeps the showcase catalog separate from regression fixtures", () => {
+    expect(backendReferenceMockScenarios.map(({ id }) => id)).toEqual([
+      "simple-chat",
+      "reasoning-chat",
+      "reasoning-tool-success",
+      "parallel-tools",
+      "tool-error",
+      "approval-resume",
+      "agent-state-sync",
+      "nested-subagent-conversation",
+    ]);
+    expect(backendReferenceMockScenarios).toHaveLength(8);
+    expect(backendReferenceMockScenarios.every(({ reference }) =>
+      reference?.audience === "backend",
+    )).toBe(true);
+    expect(frontendPresentationMockScenarios.every(({ reference }) =>
+      reference?.audience === "frontend",
+    )).toBe(true);
     expect(showcaseMockScenarios.map(({ id }) => id)).toEqual([
       "simple-chat",
       "reasoning-chat",
@@ -31,6 +50,12 @@ describe("createScenarioRegistry", () => {
       "tool-long-running",
       "subagent-lifecycle",
     ]);
+    expect(mockRegressionScenarios.every(({ reference }) =>
+      reference?.audience === "internal",
+    )).toBe(true);
+    expect(showcaseMockScenarios).not.toEqual(
+      expect.arrayContaining(mockRegressionScenarios),
+    );
     expect(builtinMockScenarios.map(({ id }) => id)).toEqual([
       ...showcaseMockScenarios.map(({ id }) => id),
       ...mockRegressionScenarios.map(({ id }) => id),
@@ -135,5 +160,75 @@ describe("createScenarioRegistry", () => {
       scenarios: [],
       defaultScenarioId: "missing",
     })).toThrow("Mock scenario registry requires at least one scenario.");
+  });
+
+  it("rejects interrupts nested inside a subagent", () => {
+    const invalid = defineScenario({
+      id: "nested-interrupt",
+      title: "Nested Interrupt",
+      steps: [{
+        type: "subagent",
+        id: "researcher-1",
+        name: "Researcher",
+        steps: [{
+          type: "interrupt",
+          toolCallId: "approval-1",
+          toolName: "approve_change",
+          args: {},
+          interrupt: { id: "interrupt-1", reason: "tool_call" },
+        }],
+        outcome: { type: "completed" },
+      }],
+    });
+
+    expect(() => createScenarioRegistry({
+      scenarios: [invalid],
+      defaultScenarioId: invalid.id,
+    })).toThrow(
+      "Nested subagent interrupts are not supported by the current AG-UI 0.0.59 + assistant-ui reference profile.",
+    );
+  });
+
+  it("rejects run-scoped Tool errors inside a subagent", () => {
+    const invalid = defineScenario({
+      id: "subagent-tool-error",
+      title: "Subagent Tool Error",
+      steps: [{
+        type: "subagent",
+        id: "researcher-1",
+        name: "Researcher",
+        steps: [{
+          type: "tool",
+          name: "read_file",
+          args: {},
+          result: null,
+          error: { type: "error", message: "failed" },
+        }],
+        outcome: { type: "completed" },
+      }],
+    });
+
+    expect(() => createScenarioRegistry({
+      scenarios: [invalid],
+      defaultScenarioId: invalid.id,
+    })).toThrow("contains a Tool error inside subagent");
+  });
+
+  it("rejects non-object canonical Tool args", () => {
+    const invalid = {
+      id: "invalid-tool-args",
+      title: "Invalid Tool Args",
+      steps: [{
+        type: "tool",
+        name: "bad_tool",
+        args: ["not-an-object"],
+        result: {},
+      }],
+    } as unknown as MockScenario;
+
+    expect(() => createScenarioRegistry({
+      scenarios: [invalid],
+      defaultScenarioId: invalid.id,
+    })).toThrow("args must be a JSON object");
   });
 });

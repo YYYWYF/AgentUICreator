@@ -6,6 +6,12 @@ export const multiToolScenario = defineScenario({
   description: "模拟一次思考、两个顺序工具调用和最终回复。",
   category: "tools",
   capabilities: ["reasoning", "tool"],
+  reference: {
+    audience: "internal",
+    protocol: "AG-UI",
+    pattern: "Sequential Tool lifecycle",
+    presentation: "Internal regression fixture",
+  },
   steps: [
     {
       type: "reasoning",

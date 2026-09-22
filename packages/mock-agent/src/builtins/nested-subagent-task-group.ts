@@ -12,6 +12,7 @@ export const nestedSubagentTaskGroupScenario = defineScenario({
   category: "multi-agent",
   capabilities: ["tool", "subagent"],
   reference: {
+    audience: "frontend",
     protocol: "AG-UI",
     pattern: "Sibling nested Subagents / Task Group",
     presentation: "assistant-ui TaskGroup",

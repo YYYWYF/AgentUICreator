@@ -1,8 +1,9 @@
-import type {
-  MockScenario,
-  MockScenarioCapability,
-  MockScenarioCategory,
-  MockScenarioReference,
+import {
+  validateMockScenario,
+  type MockScenario,
+  type MockScenarioCapability,
+  type MockScenarioCategory,
+  type MockScenarioReference,
 } from "./scenario.js";
 
 export interface MockScenarioSummary {
@@ -36,6 +37,7 @@ export function createScenarioRegistry({
 
   const scenarioById = new Map<string, MockScenario>();
   for (const scenario of scenarios) {
+    validateMockScenario(scenario);
     if (scenario.id.trim().length === 0) {
       throw new Error("Mock scenario id must not be empty.");
     }

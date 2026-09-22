@@ -8,8 +8,6 @@ import { AgentElementFrame } from "../../elements/AgentElementFrame";
 import { AgentPlan } from "@agent-ui/react";
 import { ConversationToolFallback } from "@agent-ui/react";
 
-type MockAgentPlanArgs = Record<string, unknown>;
-
 function shouldUseFallback(
   props: ConversationToolCallProps,
 ): boolean {
@@ -19,7 +17,7 @@ function shouldUseFallback(
 }
 
 export const MockAgentPlanToolUI: ConversationToolCallComponent = (props) => {
-  const view = projectAgentPlan(props.result);
+  const view = projectAgentPlan(props.args);
   if (shouldUseFallback(props) || view === null) {
     return <ConversationToolFallback {...props} />;
   }

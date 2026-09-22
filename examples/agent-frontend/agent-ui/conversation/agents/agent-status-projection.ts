@@ -1,3 +1,5 @@
+import type { ConversationToolCallStatus } from "@agent-ui/react";
+
 export type AgentStatusState = "working" | "waiting" | "done";
 
 export interface AgentStatusViewModel {
@@ -12,21 +14,28 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
     : undefined;
 }
 
-function isAgentStatusState(value: unknown): value is AgentStatusState {
-  return value === "working" || value === "waiting" || value === "done";
+function stateFromToolStatus(
+  status: ConversationToolCallStatus,
+): AgentStatusState | null {
+  if (status.type === "running") return "working";
+  if (status.type === "requires-action") return "waiting";
+  if (status.type === "complete") return "done";
+  return null;
 }
 
 /**
- * Projects only an explicitly supplied status semantic. In particular, this
- * never derives a label from a tool name or fabricates elapsed time.
+ * Projects presentation data from Tool args while deriving lifecycle state
+ * from the canonical ConversationToolCall status.
  */
 export function projectAgentStatus(
   value: unknown,
+  status: ConversationToolCallStatus,
 ): AgentStatusViewModel | null {
   const record = asRecord(value);
+  const state = stateFromToolStatus(status);
   if (
     record === undefined ||
-    !isAgentStatusState(record.state) ||
+    state === null ||
     typeof record.label !== "string" ||
     record.label.trim().length === 0
   ) {
@@ -41,11 +50,11 @@ export function projectAgentStatus(
       return null;
     }
     return {
-      state: record.state,
+      state,
       label: record.label,
       elapsed: record.elapsed,
     };
   }
 
-  return { state: record.state, label: record.label };
+  return { state, label: record.label };
 }

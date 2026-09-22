@@ -12,6 +12,7 @@ export const subagentLifecycleScenario = defineScenario({
   category: "advanced",
   capabilities: ["subagent"],
   reference: {
+    audience: "internal",
     protocol: "AG-UI",
     pattern: "Subagent lifecycle",
     presentation: "Protocol-only fixture",

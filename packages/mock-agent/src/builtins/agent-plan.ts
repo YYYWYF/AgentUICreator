@@ -2,13 +2,14 @@ import { defineScenario } from "../scenario.js";
 
 export const agentPlanScenario = defineScenario({
   id: "agent-plan",
-  title: "Custom Tool → AgentPlan",
-  description: "用 application-defined tool result 驱动 assistant-ui AgentPlan。",
+  title: "Application-defined Tool Args → AgentPlan",
+  description: "用 application-defined tool args 驱动 assistant-ui AgentPlan；Tool Result 只确认应用已应用。",
   category: "presentation",
   capabilities: ["tool", "plan"],
   reference: {
+    audience: "frontend",
     protocol: "AG-UI Tool Call",
-    pattern: "Application-defined Tool Result → Agent Element",
+    pattern: "Application-defined Tool Args → AgentPlan",
     presentation: "assistant-ui AgentPlan",
     eventFlow: [
       "TOOL_CALL_START",
@@ -19,7 +20,8 @@ export const agentPlanScenario = defineScenario({
       "AgentPlan",
     ],
     notes: [
-      "AG-UI does not define an AgentPlan event. This scenario demonstrates an application-defined tool contract rendered with assistant-ui AgentPlan.",
+      "AG-UI does not define an AgentPlan event. This scenario demonstrates an application-defined tool args contract rendered with assistant-ui AgentPlan.",
+      "The Tool Result is only an application acknowledgement; the AgentPlan projection reads props.args.",
     ],
   },
   steps: [
@@ -31,8 +33,7 @@ export const agentPlanScenario = defineScenario({
     {
       type: "tool",
       name: "mock_agent_plan",
-      args: { source: "p5-a" },
-      result: {
+      args: {
         steps: [
           "Inspect current implementation",
           "Compare AG-UI runtime",
@@ -41,6 +42,7 @@ export const agentPlanScenario = defineScenario({
         ],
         activeIndex: 2,
       },
+      result: { applied: true },
       prepareDurationMs: 300,
       durationMs: 3_000,
     },

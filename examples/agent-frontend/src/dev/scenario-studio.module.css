@@ -96,6 +96,37 @@
   font-size: var(--aui-font-size-sm);
 }
 
+.profileNote {
+  display: grid;
+  gap: var(--aui-space-2);
+  padding: var(--aui-space-3);
+  border: 1px solid var(--aui-border);
+  border-radius: var(--aui-radius-md);
+  color: var(--aui-fg-muted);
+  font-size: var(--aui-font-size-xs);
+  line-height: var(--aui-line-height-normal);
+  background: var(--aui-bg-subtle);
+}
+
+.profileNoteHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--aui-space-2);
+  color: var(--aui-fg);
+}
+
+.profileNote p,
+.profileNote ul {
+  margin: 0;
+}
+
+.profileNote ul {
+  display: grid;
+  gap: var(--aui-space-1);
+  padding-left: var(--aui-space-4);
+}
+
 .errorState {
   display: grid;
   gap: var(--aui-space-3);
@@ -175,6 +206,14 @@
   font-size: var(--aui-font-size-sm);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.scenarioMarkers {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--aui-space-1);
 }
 
 .scenarioDescription {

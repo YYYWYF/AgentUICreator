@@ -7,6 +7,7 @@ export const reasoningToolSuccessScenario = defineScenario({
   category: "basics",
   capabilities: ["reasoning", "tool"],
   reference: {
+    audience: "backend",
     protocol: "AG-UI",
     pattern: "Reasoning → Tool → Reasoning → Answer",
     presentation: "assistant-ui Reasoning + ToolCall + Message",

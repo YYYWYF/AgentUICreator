@@ -3,6 +3,7 @@ export {
   type MockInterrupt,
   type MockParallelTool,
   type MockScenario,
+  type MockScenarioAudience,
   type MockScenarioCapability,
   type MockScenarioCategory,
   type MockScenarioReference,
@@ -11,6 +12,7 @@ export {
   type MockStateDelta,
   type MockSubagentToolStep,
   type MockToolError,
+  validateMockScenario,
 } from "./scenario.js";
 export {
   createScenarioRegistry,
@@ -37,6 +39,8 @@ export {
   agentStatusScenario,
   agentStateSyncScenario,
   approvalResumeScenario,
+  backendReferenceMockScenarios,
+  frontendPresentationMockScenarios,
   multiToolScenario,
   nestedSubagentConversationScenario,
   nestedSubagentErrorScenario,

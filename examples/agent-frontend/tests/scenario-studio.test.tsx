@@ -34,6 +34,7 @@ const catalog = {
       description: "A minimal text streaming run.",
       category: "basics",
       capabilities: [],
+      reference: { audience: "backend" },
     },
     {
       id: "reasoning-chat",
@@ -41,6 +42,7 @@ const catalog = {
       description: "Reasoning followed by an answer.",
       category: "basics",
       capabilities: ["reasoning"],
+      reference: { audience: "backend" },
     },
     {
       id: "reasoning-tool-success",
@@ -48,7 +50,7 @@ const catalog = {
       description: "A normal reasoning and tool run.",
       category: "basics",
       capabilities: ["reasoning", "tool"],
-      reference: { level: "recommended" },
+      reference: { audience: "backend", level: "recommended" },
     },
     {
       id: "parallel-tools",
@@ -56,6 +58,7 @@ const catalog = {
       description: "Parallel Tool Calls.",
       category: "tools",
       capabilities: ["tool", "parallel-tool"],
+      reference: { audience: "backend" },
     },
     {
       id: "tool-error",
@@ -63,6 +66,7 @@ const catalog = {
       description: "A run fails with standard RUN_ERROR during a Tool Call.",
       category: "tools",
       capabilities: ["tool", "run-error"],
+      reference: { audience: "backend" },
     },
     {
       id: "approval-resume",
@@ -70,6 +74,7 @@ const catalog = {
       description: "Human in the Loop · Allow / Deny → Resume",
       category: "human-in-loop",
       capabilities: ["reasoning", "tool", "approval"],
+      reference: { audience: "backend" },
     },
     {
       id: "nested-subagent-conversation",
@@ -78,6 +83,7 @@ const catalog = {
       category: "multi-agent",
       capabilities: ["reasoning", "tool", "subagent"],
       reference: {
+        audience: "backend",
         protocol: "AG-UI",
         pattern: "Agents as Tools / Nested Subagent",
         presentation: "assistant-ui TaskCard",
@@ -101,6 +107,7 @@ const catalog = {
       category: "state",
       capabilities: ["state-sync"],
       reference: {
+        audience: "backend",
         level: "recommended",
         protocol: "AG-UI",
         pattern: "Live Job State Synchronization",
@@ -142,35 +149,37 @@ const catalog = {
       description: "Sibling nested Subagents.",
       category: "multi-agent",
       capabilities: ["tool", "subagent"],
-      reference: { level: "advanced" },
+      reference: { audience: "frontend", level: "advanced" },
     },
     {
       id: "agent-plan",
-      title: "Custom Tool → AgentPlan",
-      description: "Application-defined tool result rendered with AgentPlan.",
+      title: "Application-defined Tool Args → AgentPlan",
+      description: "Application-defined tool args rendered with AgentPlan.",
       category: "presentation",
       capabilities: ["tool", "plan"],
       reference: {
+        audience: "frontend",
         protocol: "AG-UI Tool Call",
-        pattern: "Application-defined Tool Result → Agent Element",
+        pattern: "Application-defined Tool Args → AgentPlan",
         presentation: "assistant-ui AgentPlan",
         notes: [
-          "AG-UI does not define an AgentPlan event. This scenario demonstrates an application-defined tool contract rendered with assistant-ui AgentPlan.",
+          "AG-UI does not define an AgentPlan event. This scenario demonstrates an application-defined tool args contract rendered with assistant-ui AgentPlan.",
         ],
       },
     },
     {
       id: "agent-status",
-      title: "Custom Tool → AgentStatus",
-      description: "Application-defined tool result rendered with AgentStatus.",
+      title: "Application-defined Tool Args → AgentStatus",
+      description: "Application-defined tool args rendered with AgentStatus.",
       category: "presentation",
       capabilities: ["tool", "agent-status"],
       reference: {
+        audience: "frontend",
         protocol: "AG-UI Tool Call",
-        pattern: "Application-defined Tool Result → Agent Element",
+        pattern: "Application-defined Tool Args → AgentStatus",
         presentation: "assistant-ui AgentStatus",
         notes: [
-          "AG-UI does not define an AgentStatus event. This scenario demonstrates an application-defined tool contract rendered with assistant-ui AgentStatus.",
+          "AG-UI does not define an AgentStatus event. This scenario demonstrates an application-defined tool args contract rendered with assistant-ui AgentStatus.",
         ],
       },
     },
@@ -180,7 +189,7 @@ const catalog = {
       description: "Recursive nested Subagents.",
       category: "advanced",
       capabilities: ["reasoning", "tool", "subagent"],
-      reference: { level: "advanced" },
+      reference: { audience: "frontend", level: "advanced" },
     },
     {
       id: "nested-subagent-error",
@@ -188,7 +197,15 @@ const catalog = {
       description: "Attributed error case.",
       category: "advanced",
       capabilities: ["tool", "subagent"],
-      reference: { level: "edge" },
+      reference: { audience: "frontend", level: "edge" },
+    },
+    {
+      id: "subagent-lifecycle",
+      title: "Subagent Lifecycle",
+      description: "Internal regression fixture.",
+      category: "advanced",
+      capabilities: ["subagent"],
+      reference: { audience: "internal", level: "protocol" },
     },
   ],
 };
@@ -353,6 +370,10 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     expect(testInstanceText(scenarioButtonWithTitle(
       renderer,
       "AG-UI Subagent → Task Card",
+    )!)).toContain("Backend Reference");
+    expect(testInstanceText(scenarioButtonWithTitle(
+      renderer,
+      "AG-UI Subagent → Task Card",
     )!)).toContain("Recommended");
     expect(testInstanceText(scenarioButtonWithTitle(
       renderer,
@@ -372,6 +393,9 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     });
 
     const panelText = testInstanceText(renderer.root);
+    expect(panelText).toContain("Backend Reference Profile");
+    expect(panelText).toContain("AG-UI 0.0.59");
+    expect(panelText).toContain("TOOL_CALL_ARGS.delta is streamed text");
     expect(panelText).toContain("AG-UI");
     expect(panelText).toContain("Agents as Tools / Nested Subagent");
     expect(panelText).toContain("assistant-ui TaskCard");
@@ -419,6 +443,13 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     expect(scenarioCatalogEndpoint(
       "https://agent.example/__agent-ui/mock?scenario=nested-subagent-conversation",
     )).toBe("https://agent.example/__agent-ui/mock/scenarios");
+    renderer.unmount();
+  });
+
+  it("keeps internal regression fixtures out of the ordinary selector", async () => {
+    const renderer = await mountStudio();
+
+    expect(scenarioButtonWithTitle(renderer, "Subagent Lifecycle")).toBeUndefined();
     renderer.unmount();
   });
 

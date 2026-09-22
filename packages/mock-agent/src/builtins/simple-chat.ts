@@ -5,6 +5,13 @@ export const simpleChatScenario = defineScenario({
   title: "Simple Chat",
   description: "模拟一次纯文本流式回复。",
   category: "basics",
+  reference: {
+    audience: "backend",
+    protocol: "AG-UI",
+    pattern: "Text Message Streaming",
+    presentation: "assistant-ui Message",
+    eventFlow: ["TEXT_MESSAGE_START/CONTENT/END"],
+  },
   steps: [
     {
       type: "message",

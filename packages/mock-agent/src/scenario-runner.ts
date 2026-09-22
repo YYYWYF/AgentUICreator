@@ -4,10 +4,11 @@ import {
   type RunAgentInput,
 } from "@ag-ui/core";
 
-import type {
-  MockParallelTool,
-  MockScenario,
-  MockScenarioStep,
+import {
+  validateMockScenario,
+  type MockParallelTool,
+  type MockScenario,
+  type MockScenarioStep,
 } from "./scenario.js";
 
 const DEFAULT_REASONING_DURATION_MS = 600;
@@ -46,6 +47,14 @@ function serializeToolValue(value: unknown): string {
   if (typeof value === "string") return value;
   const serialized = JSON.stringify(value);
   return serialized === undefined ? String(value) : serialized;
+}
+
+function serializeToolArgs(args: Record<string, unknown>): string {
+  const serialized = JSON.stringify(args);
+  if (serialized === undefined) {
+    throw new Error("Mock Tool args must be JSON-serializable.");
+  }
+  return serialized;
 }
 
 function withSubagentRunId<T extends Record<string, unknown>>(
@@ -135,7 +144,7 @@ function makeToolCallEvents(
       event: event({
         type: EventType.TOOL_CALL_ARGS,
         toolCallId,
-        delta: serializeToolValue(tool.args),
+        delta: serializeToolArgs(tool.args),
       }),
     },
     {
@@ -218,17 +227,19 @@ async function* runSteps(
     if (step.type === "tool") {
       const toolCallId = step.toolCallId ?? createId("tool-call");
       const resultMessageId = createId("tool-result");
-      const event = (value: Record<string, unknown>): AGUIEvent =>
+      const attributedEvent = (value: Record<string, unknown>): AGUIEvent =>
         withSubagentRunId(value, context.subagentRunId) as AGUIEvent;
-      yield event({
+      const runEvent = (value: Record<string, unknown>): AGUIEvent =>
+        value as AGUIEvent;
+      yield attributedEvent({
         type: EventType.TOOL_CALL_START,
         toolCallId,
         toolCallName: step.name,
       });
-      yield event({
+      yield attributedEvent({
         type: EventType.TOOL_CALL_ARGS,
         toolCallId,
-        delta: serializeToolValue(step.args),
+        delta: serializeToolArgs(step.args),
       });
       if (!await waitForDelay(
         normalizeDelay(
@@ -238,7 +249,7 @@ async function* runSteps(
         signal,
         timingScale,
       )) return;
-      yield event({ type: EventType.TOOL_CALL_END, toolCallId });
+      yield attributedEvent({ type: EventType.TOOL_CALL_END, toolCallId });
       if (step.during !== undefined) {
         yield* runSteps(
           input,
@@ -256,14 +267,14 @@ async function* runSteps(
         timingScale,
       )) return;
       if (step.error !== undefined) {
-        yield event({
+        yield runEvent({
           type: EventType.RUN_ERROR,
           message: step.error.message,
           ...(step.error.code === undefined ? {} : { code: step.error.code }),
         });
         return;
       }
-      yield event({
+      yield attributedEvent({
         type: EventType.TOOL_CALL_RESULT,
         messageId: resultMessageId,
         toolCallId,
@@ -276,22 +287,24 @@ async function* runSteps(
     if (step.type === "tool-result") {
       // tool-result is used to deliver a result for an already closed ToolCall,
       // including a cross-run result after an interrupt resume.
-      const event = (value: Record<string, unknown>): AGUIEvent =>
+      const attributedEvent = (value: Record<string, unknown>): AGUIEvent =>
         withSubagentRunId(value, context.subagentRunId) as AGUIEvent;
+      const runEvent = (value: Record<string, unknown>): AGUIEvent =>
+        value as AGUIEvent;
       if (!await waitForDelay(
         normalizeDelay(step.durationMs, DEFAULT_TOOL_DURATION_MS),
         signal,
         timingScale,
       )) return;
       if (step.error !== undefined) {
-        yield event({
+        yield runEvent({
           type: EventType.RUN_ERROR,
           message: step.error.message,
           ...(step.error.code === undefined ? {} : { code: step.error.code }),
         });
         return;
       }
-      yield event({
+      yield attributedEvent({
         type: EventType.TOOL_CALL_RESULT,
         messageId: createId("tool-result"),
         toolCallId: step.toolCallId,
@@ -347,10 +360,10 @@ async function* runSteps(
         signal,
         timingScale,
       )) return;
-      yield {
+      yield withSubagentRunId({
         type: EventType.STATE_DELTA,
         delta: structuredClone(step.delta),
-      } as AGUIEvent;
+      }, context.subagentRunId) as AGUIEvent;
       continue;
     }
 
@@ -415,7 +428,7 @@ async function* runSteps(
       yield event({
         type: EventType.TOOL_CALL_ARGS,
         toolCallId: step.toolCallId,
-        delta: serializeToolValue(step.args),
+        delta: serializeToolArgs(step.args),
       });
       if (!await waitForDelay(
         normalizeDelay(
@@ -487,7 +500,7 @@ async function* runSteps(
       yield event({
         type: EventType.TOOL_CALL_ARGS,
         toolCallId: step.toolCallId,
-        delta: serializeToolValue(step.args),
+        delta: serializeToolArgs(step.args),
       });
       yield event({ type: EventType.TOOL_CALL_END, toolCallId: step.toolCallId });
       yield {
@@ -582,6 +595,7 @@ export async function* runMockScenario(
   scenario: MockScenario,
   options: MockScenarioRunnerOptions = {},
 ): AsyncGenerator<AGUIEvent> {
+  validateMockScenario(scenario);
   let sequence = 0;
   const createId = options.createId
     ?? ((prefix: string) => `${input.runId}:${prefix}:${++sequence}`);

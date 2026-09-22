@@ -15,6 +15,7 @@ export const nestedSubagentRecursiveScenario = defineScenario({
   category: "advanced",
   capabilities: ["reasoning", "tool", "subagent"],
   reference: {
+    audience: "frontend",
     protocol: "AG-UI",
     pattern: "Subagent A → child Tool → Subagent B",
     presentation: "Nested TaskCard",

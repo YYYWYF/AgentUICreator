@@ -23,19 +23,33 @@ describe("assistant-ui official agent element projections", () => {
     expect(projectAgentPlan(null)).toBeNull();
   });
 
-  it("accepts explicit status semantics without inventing elapsed", () => {
-    expect(projectAgentStatus({ state: "working", label: "Refactoring", elapsed: "0:12" })).toEqual({
+  it("derives status state from ToolCall lifecycle and keeps args presentation data", () => {
+    expect(projectAgentStatus(
+      { label: "Refactoring", elapsed: "0:12" },
+      { type: "running" },
+    )).toEqual({
       state: "working",
       label: "Refactoring",
       elapsed: "0:12",
     });
-    expect(projectAgentStatus({ state: "waiting", label: "Waiting for approval" })).toEqual({
+    expect(projectAgentStatus(
+      { label: "Waiting for approval" },
+      { type: "requires-action" },
+    )).toEqual({
       state: "waiting",
       label: "Waiting for approval",
     });
-    expect(projectAgentStatus({ state: "done", label: "Finished", elapsed: 12 })).toBeNull();
-    expect(projectAgentStatus({ state: "working", label: "" })).toBeNull();
-    expect(projectAgentStatus({ state: "working", label: "run_project_scan" })).toEqual({
+    expect(projectAgentStatus(
+      { label: "Finished", elapsed: "0:24" },
+      { type: "complete" },
+    )).toEqual({
+      state: "done",
+      label: "Finished",
+      elapsed: "0:24",
+    });
+    expect(projectAgentStatus({ label: "Finished" }, { type: "incomplete" })).toBeNull();
+    expect(projectAgentStatus({ label: "" }, { type: "running" })).toBeNull();
+    expect(projectAgentStatus({ label: "run_project_scan" }, { type: "running" })).toEqual({
       state: "working",
       label: "run_project_scan",
     });
@@ -79,7 +93,7 @@ describe("assistant-ui official agent element projections", () => {
     ]);
     expect(projected.view?.agents).toEqual([{ name: "A", model: "m" }]);
     expect(projected.ineligibleParts).toHaveLength(1);
-    expect(projectAgentStatus({ state: "done", label: "Finished" })).toEqual({
+    expect(projectAgentStatus({ label: "Finished" }, { type: "complete" })).toEqual({
       state: "done",
       label: "Finished",
     });

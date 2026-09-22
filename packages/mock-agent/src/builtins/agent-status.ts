@@ -2,13 +2,14 @@ import { defineScenario } from "../scenario.js";
 
 export const agentStatusScenario = defineScenario({
   id: "agent-status",
-  title: "Custom Tool → AgentStatus",
-  description: "用 application-defined tool result 驱动 assistant-ui AgentStatus。",
+  title: "Application-defined Tool Args → AgentStatus",
+  description: "用 application-defined tool args 提供 AgentStatus 文案；state 由前端 ToolCall 状态推导。",
   category: "presentation",
   capabilities: ["tool", "agent-status"],
   reference: {
+    audience: "frontend",
     protocol: "AG-UI Tool Call",
-    pattern: "Application-defined Tool Result → Agent Element",
+    pattern: "Application-defined Tool Args → AgentStatus",
     presentation: "assistant-ui AgentStatus",
     eventFlow: [
       "TOOL_CALL_START",
@@ -19,33 +20,18 @@ export const agentStatusScenario = defineScenario({
       "AgentStatus",
     ],
     notes: [
-      "AG-UI does not define an AgentStatus event. This scenario demonstrates an application-defined tool contract rendered with assistant-ui AgentStatus.",
+      "AG-UI does not define an AgentStatus event. This scenario demonstrates an application-defined tool args contract rendered with assistant-ui AgentStatus.",
+      "AgentStatus.state is derived from ConversationToolCallProps.status; label and elapsed come from props.args.",
     ],
   },
   steps: [
     {
       type: "tool",
       name: "mock_agent_status",
-      args: { phase: "working" },
-      result: { state: "working", label: "Analyzing workspace", elapsed: "0:12" },
+      args: { label: "Analyzing workspace", elapsed: "0:12" },
+      result: { applied: true },
       prepareDurationMs: 250,
-      durationMs: 900,
-    },
-    {
-      type: "tool",
-      name: "mock_agent_status",
-      args: { phase: "waiting" },
-      result: { state: "waiting", label: "Waiting for dependency", elapsed: "0:18" },
-      prepareDurationMs: 250,
-      durationMs: 900,
-    },
-    {
-      type: "tool",
-      name: "mock_agent_status",
-      args: { phase: "done" },
-      result: { state: "done", label: "Analysis complete", elapsed: "0:24" },
-      prepareDurationMs: 250,
-      durationMs: 900,
+      durationMs: 1_800,
     },
     { type: "message", text: "状态展示完成。", intervalMs: 35 },
   ],

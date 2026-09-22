@@ -68,8 +68,7 @@ const agentElementsReplay: ConversationReplay = {
           type: "tool-call",
           toolCallId: "replay-plan-1",
           toolName: "mock_agent_plan",
-          args: { source: "persisted-replay" },
-          result: {
+          args: {
             steps: [
               "Inspect current implementation",
               "Compare AG-UI runtime",
@@ -78,13 +77,14 @@ const agentElementsReplay: ConversationReplay = {
             ],
             activeIndex: 4,
           },
+          result: { applied: true },
         },
         {
           type: "tool-call",
           toolCallId: "replay-status-1",
           toolName: "mock_agent_status",
-          args: { phase: "done" },
-          result: { state: "done", label: "Analysis complete", elapsed: "0:24" },
+          args: { label: "Analysis complete", elapsed: "0:24" },
+          result: { applied: true },
         },
         {
           type: "tool-call",

@@ -7,6 +7,7 @@ export const nestedSubagentErrorScenario = defineScenario({
   category: "advanced",
   capabilities: ["tool", "subagent"],
   reference: {
+    audience: "frontend",
     protocol: "AG-UI",
     pattern: "Nested Subagent Error",
     presentation: "assistant-ui TaskCard with nested error",

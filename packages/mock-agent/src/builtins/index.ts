@@ -37,7 +37,7 @@ export {
   toolLongRunningScenario,
 };
 
-export const showcaseMockScenarios: MockScenario[] = [
+export const backendReferenceMockScenarios: MockScenario[] = [
   simpleChatScenario,
   reasoningChatScenario,
   reasoningToolSuccessScenario,
@@ -46,11 +46,19 @@ export const showcaseMockScenarios: MockScenario[] = [
   approvalResumeScenario,
   agentStateSyncScenario,
   nestedSubagentConversationScenario,
+];
+
+export const frontendPresentationMockScenarios: MockScenario[] = [
   nestedSubagentTaskGroupScenario,
   agentPlanScenario,
   agentStatusScenario,
   nestedSubagentRecursiveScenario,
   nestedSubagentErrorScenario,
+];
+
+export const showcaseMockScenarios: MockScenario[] = [
+  ...backendReferenceMockScenarios,
+  ...frontendPresentationMockScenarios,
 ];
 
 export const mockRegressionScenarios: MockScenario[] = [

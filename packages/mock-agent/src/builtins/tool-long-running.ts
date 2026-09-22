@@ -6,6 +6,12 @@ export const toolLongRunningScenario = defineScenario({
   description: "模拟一个真实两分钟工具，并允许开发时按 speed 加速。",
   category: "tools",
   capabilities: ["reasoning", "tool"],
+  reference: {
+    audience: "internal",
+    protocol: "AG-UI",
+    pattern: "Long-running Tool lifecycle",
+    presentation: "Internal regression fixture",
+  },
   steps: [
     {
       type: "reasoning",

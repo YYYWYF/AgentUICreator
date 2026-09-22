@@ -6,6 +6,13 @@ export const reasoningChatScenario = defineScenario({
   description: "模拟一次思考和最终回复。",
   category: "basics",
   capabilities: ["reasoning"],
+  reference: {
+    audience: "backend",
+    protocol: "AG-UI",
+    pattern: "Reasoning → Answer",
+    presentation: "assistant-ui Reasoning + Message",
+    eventFlow: ["REASONING_*", "TEXT_MESSAGE_*"],
+  },
   steps: [
     {
       type: "reasoning",

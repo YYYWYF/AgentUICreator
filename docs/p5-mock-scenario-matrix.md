@@ -18,38 +18,65 @@ The Vite Mock endpoint and Scenario Studio expose the showcase catalog only.
 Regression fixtures remain available through `@agent-ui/mock-agent` imports and
 direct `runMockScenario()` calls.
 
+## Backend Reference Profile
+
+```text
+AG-UI: 0.0.59
+Transport: HTTP SSE
+Consumer: @assistant-ui/react-ag-ui
+```
+
+Scenarios marked `backend` are intended as backend implementation references.
+Application-defined presentation scenarios are marked `frontend`, and
+regression fixtures are marked `internal`.
+
+The profile uses these wire-level rules:
+
+- `TOOL_CALL_ARGS.delta` is streamed text containing JSON arguments.
+- `TOOL_CALL_END` means argument streaming has finished; it does not mean tool execution has finished.
+- `TOOL_CALL_RESULT.content` is a string in the current 0.0.59 profile.
+- `subagentRunId` identifies event attribution; it does not create isolated subagent state.
+
+The `approval-resume` fixture contains one interrupt. Production implementations
+correlate resume entries by `interruptId`, not by array position.
+
 ## Showcase Catalog
 
-| Section | Scenario ID | Display purpose | Reference level |
-|---|---|---|---|
-| Basics | `simple-chat` | Minimal text streaming | |
-| Basics | `reasoning-chat` | Reasoning → Answer | |
-| Basics | `reasoning-tool-success` | Reasoning → Tool → Reasoning → Answer | Recommended |
-| Tools | `parallel-tools` | Parallel Tool Calls | |
-| Tools | `tool-error` | Tool Call followed by standard `RUN_ERROR` | |
-| Human in the Loop | `approval-resume` | Interrupt → Allow/Deny → Resume | |
-| State | `agent-state-sync` | `STATE_SNAPSHOT / STATE_DELTA` → JobProgress | Recommended |
-| Multi-Agent | `nested-subagent-conversation` | Standard `SUBAGENT_*` → TaskCard | Recommended |
-| Multi-Agent | `nested-subagent-task-group` | Sibling Subagents → TaskGroup | Advanced |
-| Presentation | `agent-plan` | Application-defined Tool Result → AgentPlan | |
-| Presentation | `agent-status` | Application-defined Tool Result → AgentStatus | |
-| Advanced | `nested-subagent-recursive` | Recursive Subagent | Advanced |
-| Advanced | `nested-subagent-error` | Nested Subagent Error | Edge case |
+| Section | Scenario ID | Display purpose | Audience | Reference level |
+|---|---|---|---|---|
+| Basics | `simple-chat` | Minimal text streaming | Backend Reference | |
+| Basics | `reasoning-chat` | Reasoning → Answer | Backend Reference | |
+| Basics | `reasoning-tool-success` | Reasoning → Tool → Reasoning → Answer | Backend Reference | Recommended |
+| Tools | `parallel-tools` | Parallel Tool Calls | Backend Reference | |
+| Tools | `tool-error` | Tool Call followed by standard `RUN_ERROR` | Backend Reference | |
+| Human in the Loop | `approval-resume` | Interrupt → Allow/Deny → Resume | Backend Reference | |
+| State | `agent-state-sync` | `STATE_SNAPSHOT / STATE_DELTA` → JobProgress | Backend Reference | Recommended |
+| Multi-Agent | `nested-subagent-conversation` | Standard `SUBAGENT_*` → TaskCard | Backend Reference | Recommended |
+| Multi-Agent | `nested-subagent-task-group` | Sibling Subagents → TaskGroup | Frontend Presentation | Advanced |
+| Presentation | `agent-plan` | Application-defined Tool Args → AgentPlan | Frontend Presentation | |
+| Presentation | `agent-status` | Application-defined Tool Args → AgentStatus | Frontend Presentation | |
+| Advanced | `nested-subagent-recursive` | Recursive Subagent | Frontend Presentation | Advanced |
+| Advanced | `nested-subagent-error` | Nested Subagent Error | Frontend Presentation | Edge case |
 
 The default scenario is `reasoning-tool-success`.
 
-`agent-plan` and `agent-status` are application-defined tool contracts. AG-UI
-does not define `AgentPlan` or `AgentStatus` events, so these scenarios do not
-invent `PLAN_*` or `AGENT_STATUS` protocol events. Their flow is:
+`agent-plan` and `agent-status` are application-defined frontend tool contracts.
+AG-UI does not define `AgentPlan` or `AgentStatus` events, so these scenarios do
+not invent `PLAN_*` or `AGENT_STATUS` protocol events. Their flow is:
 
 ```text
 TOOL_CALL_START
-→ TOOL_CALL_ARGS
+→ TOOL_CALL_ARGS (application-defined Tool Args)
 → TOOL_CALL_END
-→ TOOL_CALL_RESULT
+→ TOOL_CALL_RESULT (acknowledgement)
 → application projector
 → AgentPlan / AgentStatus
 ```
+
+`AgentPlan` reads its plan from Tool Args. `AgentStatus` reads `label` and
+`elapsed` from Tool Args, while `state` is derived from the frontend
+`ConversationToolCallProps.status` (`running` → `working`, `requires-action` →
+`waiting`, `complete` → `done`).
 
 `tool-error` describes a run failure during a Tool Call. The event is
 `RUN_ERROR`; there is no `TOOL_ERROR` event.
@@ -65,6 +92,9 @@ entries:
 | `multi-tool` | Sequential Tool lifecycle |
 | `tool-long-running` | Long pending/loading/cancel behavior |
 | `subagent-lifecycle` | Pure `SUBAGENT_*` protocol lifecycle |
+
+All regression fixtures have audience `internal` and are excluded from the
+ordinary Scenario Studio selector.
 
 `STEP_*`:
 

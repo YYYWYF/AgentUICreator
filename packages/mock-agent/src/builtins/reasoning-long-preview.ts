@@ -6,6 +6,12 @@ export const reasoningLongPreviewScenario = defineScenario({
   description: "持续流式输出超出预览高度的 reasoning，用于检查跟随、滚动接管和完成态。",
   category: "advanced",
   capabilities: ["reasoning"],
+  reference: {
+    audience: "internal",
+    protocol: "AG-UI",
+    pattern: "Long reasoning preview",
+    presentation: "Internal regression fixture",
+  },
   steps: [
     {
       type: "reasoning",

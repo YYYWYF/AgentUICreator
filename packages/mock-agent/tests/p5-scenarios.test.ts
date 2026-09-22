@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   approvalResumeScenario,
+  backendReferenceMockScenarios,
   builtinMockScenarios,
   mockRegressionScenarios,
   parallelToolsScenario,
@@ -96,6 +97,27 @@ describe("P5-A mock scenarios", () => {
     }
   });
 
+  it("keeps the eight Backend Reference scenarios parseable as AG-UI 0.0.59", async () => {
+    expect(backendReferenceMockScenarios).toHaveLength(8);
+
+    for (const scenario of backendReferenceMockScenarios) {
+      const events = await collect(scenario);
+      expect(events[0]).toMatchObject({ type: EventType.RUN_STARTED });
+
+      for (const event of events) {
+        EventSchemas.parse(event);
+      }
+
+      for (const event of events) {
+        if (event.type !== EventType.TOOL_CALL_ARGS) continue;
+        const args = JSON.parse(event.delta) as unknown;
+        expect(args).toEqual(expect.any(Object));
+        expect(Array.isArray(args)).toBe(false);
+        expect(args).not.toBeNull();
+      }
+    }
+  });
+
   it("keeps the live catalog limited to showcase scenarios", () => {
     expect(showcaseMockScenarios).toHaveLength(13);
     expect(mockRegressionScenarios.map(({ id }) => id)).toEqual([
@@ -177,6 +199,8 @@ describe("P5-A mock scenarios", () => {
       type: EventType.RUN_ERROR,
       code: "MOCK_SERVICE_UNAVAILABLE",
     }));
+    const runError = events.find(({ type }) => type === EventType.RUN_ERROR);
+    expect(runError).not.toHaveProperty("subagentRunId");
     expect(events.some(({ type }) => type === EventType.TOOL_CALL_RESULT)).toBe(false);
   });
 

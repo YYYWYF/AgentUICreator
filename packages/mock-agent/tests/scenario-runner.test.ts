@@ -202,4 +202,43 @@ describe("runMockScenario", () => {
 
     expect(await pendingEvent).toEqual({ done: true, value: undefined });
   });
+
+  it("attributes shared state deltas to the current subagent without isolating state", async () => {
+    const scenario = defineScenario({
+      id: "state-delta-attribution",
+      title: "State Delta Attribution",
+      steps: [
+        { type: "state-delta", delta: [] },
+        {
+          type: "subagent",
+          id: "subagent-a",
+          name: "Researcher",
+          steps: [
+            { type: "state-delta", delta: [] },
+            {
+              type: "subagent",
+              id: "subagent-b",
+              name: "Specialist",
+              steps: [{ type: "state-delta", delta: [] }],
+              outcome: { type: "completed" },
+            },
+          ],
+          outcome: { type: "completed" },
+        },
+      ],
+    });
+    const events: BaseEvent[] = [];
+
+    for await (const event of runMockScenario(input, scenario, {
+      timingScale: 0,
+    })) {
+      events.push(event);
+    }
+
+    const deltas = events.filter((event) => event.type === EventType.STATE_DELTA);
+    expect(deltas).toHaveLength(3);
+    expect(deltas[0]).not.toHaveProperty("subagentRunId");
+    expect(deltas[1]).toMatchObject({ subagentRunId: "subagent-a" });
+    expect(deltas[2]).toMatchObject({ subagentRunId: "subagent-b" });
+  });
 });

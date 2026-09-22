@@ -97,6 +97,7 @@ export const agentStateSyncScenario = defineScenario({
   category: "state",
   capabilities: ["state-sync"],
   reference: {
+    audience: "backend",
     protocol: "AG-UI",
     pattern: "Live Job State Synchronization",
     presentation: "assistant-ui JobProgress + Dev Studio Runtime State",
@@ -130,6 +131,7 @@ export const agentStateSyncScenario = defineScenario({
       "Dev Studio → Runtime → Application State shows the raw current state.",
       "AG-UI state is not AppUIModel, app-ui.json, Plugin configuration, ConversationService, conversation persistence, or Creator working state.",
       "initialState is emitted as STATE_SNAPSHOT only for the initial run; resume keeps the same runtime continuity.",
+      "subagentRunId identifies event attribution; it does not create isolated subagent state.",
     ],
   },
   initialState: {

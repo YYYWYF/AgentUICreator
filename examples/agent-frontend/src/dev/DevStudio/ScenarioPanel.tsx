@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type {
+  MockScenarioAudience,
   MockScenarioCapability,
   MockScenarioCategory,
   MockScenarioSummary,
@@ -70,6 +71,19 @@ const referenceLevelLabels = {
   edge: "Edge case",
   protocol: "Protocol",
 } as const;
+
+const scenarioAudienceLabels: Record<MockScenarioAudience, string> = {
+  backend: "Backend Reference",
+  frontend: "Frontend Presentation",
+  internal: "Internal Regression",
+};
+
+function scenarioAudience(
+  scenario: MockScenarioSummary,
+): string | undefined {
+  const audience = scenario.reference?.audience;
+  return audience === undefined ? undefined : scenarioAudienceLabels[audience];
+}
 
 function scenarioMarker(scenario: MockScenarioSummary): string | undefined {
   const level = scenario.reference?.level;
@@ -157,7 +171,11 @@ export function ScenarioPanel({
     return () => controller.abort();
   }, [catalogEndpoint, catalogRequestKey]);
 
-  const scenarios = catalog.status === "ready" ? catalog.value.scenarios : [];
+  const scenarios = catalog.status === "ready"
+    ? catalog.value.scenarios.filter(
+      (scenario) => scenario.reference?.audience !== "internal",
+    )
+    : [];
   const defaultScenarioId = catalog.status === "ready"
     ? catalog.value.defaultScenarioId
     : undefined;
@@ -177,6 +195,7 @@ export function ScenarioPanel({
         scenario.description,
         scenario.category,
         ...(scenario.capabilities ?? []),
+        scenario.reference?.audience,
         scenario.reference?.protocol,
         scenario.reference?.pattern,
         scenario.reference?.presentation,
@@ -236,6 +255,25 @@ export function ScenarioPanel({
           value={query}
         />
 
+        <section className={styles.profileNote} aria-label="Backend Reference Profile">
+          <div className={styles.profileNoteHeader}>
+            <strong>Backend Reference Profile</strong>
+            <Badge variant="outline">AG-UI 0.0.59</Badge>
+          </div>
+          <p>Transport: HTTP SSE · Consumer: @assistant-ui/react-ag-ui</p>
+          <p>
+            Backend Reference scenarios are intended as backend implementation
+            references. Application-defined presentation scenarios are marked
+            separately.
+          </p>
+          <ul>
+            <li>TOOL_CALL_ARGS.delta is streamed text containing JSON arguments.</li>
+            <li>TOOL_CALL_END ends argument streaming; it does not end execution.</li>
+            <li>TOOL_CALL_RESULT.content is a string in this 0.0.59 profile.</li>
+            <li>subagentRunId attributes events; it does not isolate shared state.</li>
+          </ul>
+        </section>
+
         {catalog.status === "loading" ? (
           <p className={styles.status}>Loading scenarios…</p>
         ) : catalog.status === "error" ? (
@@ -266,7 +304,14 @@ export function ScenarioPanel({
                       >
                         <span className={styles.scenarioCardHeader}>
                           <strong>{scenario.title}</strong>
-                          {marker ? <Badge variant="outline">{marker}</Badge> : null}
+                          <span className={styles.scenarioMarkers}>
+                            {scenarioAudience(scenario) ? (
+                              <Badge variant="outline">
+                                {scenarioAudience(scenario)}
+                              </Badge>
+                            ) : null}
+                            {marker ? <Badge variant="outline">{marker}</Badge> : null}
+                          </span>
                         </span>
                         <span className={styles.scenarioDescription}>
                           {scenario.description ?? "No description provided."}
@@ -310,6 +355,12 @@ export function ScenarioPanel({
                 <span className={styles.detailLabel}>Scenario ID</span>
                 <code>{currentScenario.id}</code>
               </div>
+              {currentScenario.reference?.audience ? (
+                <div>
+                  <span className={styles.detailLabel}>Audience</span>
+                  <span>{scenarioAudience(currentScenario)}</span>
+                </div>
+              ) : null}
             </div>
             {currentScenario.reference ? (
               <div className={styles.reference}>

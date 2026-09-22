@@ -100,10 +100,15 @@ describe("Mock Agent official element renderers", () => {
 
   it("renders the official AgentPlan from the shared projection", async () => {
     const container = await renderTool(
-      <MockAgentPlanToolUI {...createProps({
-        steps: ["Inspect", "Compare", "Update"],
-        activeIndex: 1,
-      })} />,
+      <MockAgentPlanToolUI {...createProps(
+        { applied: true },
+        {
+          args: {
+            steps: ["Inspect", "Compare", "Update"],
+            activeIndex: 1,
+          },
+        },
+      )} />,
     );
 
     expect(container.querySelector('[data-slot="agent-plan"]')).not.toBeNull();
@@ -111,16 +116,31 @@ describe("Mock Agent official element renderers", () => {
     expect(container.textContent).toContain("1 of 3");
   });
 
-  it("renders official AgentStatus states from explicit values", async () => {
+  it("renders official AgentStatus states from ToolCall status and args", async () => {
     const fixtures = [
-      { state: "working", label: "Analyzing workspace", elapsed: "0:12" },
-      { state: "waiting", label: "Waiting for approval", elapsed: "0:13" },
-      { state: "done", label: "Analysis complete", elapsed: "0:24" },
+      {
+        state: "working",
+        status: { type: "running" },
+        args: { label: "Analyzing workspace", elapsed: "0:12" },
+      },
+      {
+        state: "waiting",
+        status: { type: "requires-action" },
+        args: { label: "Waiting for approval", elapsed: "0:13" },
+      },
+      {
+        state: "done",
+        status: { type: "complete" },
+        args: { label: "Analysis complete", elapsed: "0:24" },
+      },
     ] as const;
 
     for (const fixture of fixtures) {
       const container = await renderTool(
-        <MockAgentStatusToolUI {...createProps(fixture)} />,
+        <MockAgentStatusToolUI {...createProps(
+          { applied: true },
+          { args: fixture.args, status: fixture.status },
+        )} />,
       );
 
       expect(container.querySelector('[data-slot="agent-status"]'))
@@ -151,22 +171,22 @@ describe("Mock Agent official element renderers", () => {
         >
           <MockAgentStatusToolUI
             {...createProps(
+              { applied: true },
               {
-                state: "working",
-                label: "First status",
-                elapsed: "0:01",
+                args: { label: "First status", elapsed: "0:01" },
+                status: { type: "running" },
+                toolCallId: "status-1",
               },
-              { toolCallId: "status-1" },
             )}
           />
           <MockAgentStatusToolUI
             {...createProps(
+              { applied: true },
               {
-                state: "waiting",
-                label: "Second status",
-                elapsed: "0:02",
+                args: { label: "Second status", elapsed: "0:02" },
+                status: { type: "requires-action" },
+                toolCallId: "status-2",
               },
-              { toolCallId: "status-2" },
             )}
           />
         </div>,
@@ -304,10 +324,10 @@ describe("Mock Agent official element renderers", () => {
 
   it("falls back to ToolFallback for malformed plan data", async () => {
     const container = await renderTool(
-      <MockAgentPlanToolUI {...createProps({
-        steps: ["Inspect"],
-        activeIndex: "not-a-number",
-      })} />,
+      <MockAgentPlanToolUI {...createProps(
+        { applied: true },
+        { args: { steps: ["Inspect"], activeIndex: "not-a-number" } },
+      )} />,
     );
 
     expect(container.querySelector('[data-slot="agent-plan"]')).toBeNull();
@@ -317,11 +337,13 @@ describe("Mock Agent official element renderers", () => {
 
   it("falls back to ToolFallback for malformed status data", async () => {
     const container = await renderTool(
-      <MockAgentStatusToolUI {...createProps({
-        state: "working",
-        label: "Analyzing workspace",
-        elapsed: 12,
-      })} />,
+      <MockAgentStatusToolUI {...createProps(
+        { applied: true },
+        {
+          args: { label: "Analyzing workspace", elapsed: 12 },
+          status: { type: "running" },
+        },
+      )} />,
     );
 
     expect(container.querySelector('[data-slot="agent-status"]')).toBeNull();
@@ -330,20 +352,38 @@ describe("Mock Agent official element renderers", () => {
   });
 
   it.each([
-    { status: { type: "requires-action", reason: "tool-calls" } },
     { status: { type: "incomplete", reason: "error" } },
     { isError: true },
   ] as const)("keeps status and errors on ToolFallback", async (overrides) => {
     const container = await renderTool(
-      <MockAgentStatusToolUI {...createProps({
-        state: "working",
-        label: "Analyzing workspace",
-        elapsed: "0:12",
-      }, overrides)} />,
+      <MockAgentStatusToolUI {...createProps(
+        { applied: true },
+        {
+          args: { label: "Analyzing workspace", elapsed: "0:12" },
+          ...overrides,
+        },
+      )} />,
     );
 
     expect(container.querySelector('[data-slot="agent-status"]')).toBeNull();
     expect(container.querySelector('[data-slot="tool-fallback-root"]'))
       .not.toBeNull();
+  });
+
+  it("derives waiting from requires-action without reading result.state", async () => {
+    const container = await renderTool(
+      <MockAgentStatusToolUI {...createProps(
+        { state: "done", label: "Wrong result state" },
+        {
+          args: { label: "Waiting for dependency", elapsed: "0:18" },
+          status: { type: "requires-action", reason: "tool-calls" },
+        },
+      )} />,
+    );
+
+    expect(container.querySelector('[data-slot="agent-status"]')).not.toBeNull();
+    expect(container.textContent).toContain("waiting");
+    expect(container.textContent).toContain("Waiting for dependency");
+    expect(container.textContent).not.toContain("Wrong result state");
   });
 });

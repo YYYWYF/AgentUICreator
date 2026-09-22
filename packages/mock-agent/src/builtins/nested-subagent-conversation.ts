@@ -23,6 +23,7 @@ export const nestedSubagentConversationScenario = defineScenario({
   category: "multi-agent",
   capabilities: ["reasoning", "tool", "subagent"],
   reference: {
+    audience: "backend",
     protocol: "AG-UI",
     pattern: "Agents as Tools / Nested Subagent",
     presentation: "assistant-ui TaskCard",

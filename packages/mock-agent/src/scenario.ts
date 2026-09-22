@@ -21,10 +21,13 @@ export type MockScenarioCapability =
   | "sources"
   | "state-sync";
 
+export type MockScenarioAudience = "backend" | "frontend" | "internal";
+
 /** The JSON Patch payload from the official AG-UI STATE_DELTA event. */
 export type MockStateDelta = StateDeltaEvent["delta"];
 
 export interface MockScenarioReference {
+  audience?: MockScenarioAudience | undefined;
   protocol?: string | undefined;
   pattern?: string | undefined;
   presentation?: string | undefined;
@@ -36,7 +39,7 @@ export interface MockScenarioReference {
 export interface MockParallelTool {
   id?: string | undefined;
   name: string;
-  args: unknown;
+  args: Record<string, unknown>;
   result: unknown;
   startDelayMs?: number | undefined;
   prepareDurationMs?: number | undefined;
@@ -62,7 +65,7 @@ export interface MockSubagentToolStep {
   type: "subagent-tool";
   toolCallId: string;
   toolName: string;
-  args: unknown;
+  args: Record<string, unknown>;
   prepareDurationMs?: number | undefined;
   subagent: {
     id: string;
@@ -106,7 +109,7 @@ export type MockScenarioStep =
   | {
       type: "tool";
       name: string;
-      args: unknown;
+      args: Record<string, unknown>;
       result: unknown;
       toolCallId?: string | undefined;
       prepareDurationMs?: number | undefined;
@@ -151,7 +154,7 @@ export type MockScenarioStep =
       type: "interrupt";
       toolCallId: string;
       toolName: string;
-      args: unknown;
+      args: Record<string, unknown>;
       interrupt: MockInterrupt;
     }
   | {
@@ -166,6 +169,112 @@ export type MockScenarioStep =
       delayMs?: number | undefined;
       subagentRunId?: string | undefined;
     };
+
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function validateToolArgs(
+  scenarioId: string,
+  args: unknown,
+  location: string,
+): void {
+  if (!isJsonObject(args)) {
+    throw new Error(
+      `Scenario "${scenarioId}" ${location} args must be a JSON object.`,
+    );
+  }
+
+  try {
+    JSON.stringify(args);
+  } catch {
+    throw new Error(
+      `Scenario "${scenarioId}" ${location} args must be JSON-serializable.`,
+    );
+  }
+}
+
+interface ScenarioValidationContext {
+  subagentRunId?: string | undefined;
+}
+
+function validateSteps(
+  scenarioId: string,
+  steps: readonly MockScenarioStep[],
+  context: ScenarioValidationContext,
+): void {
+  for (const step of steps) {
+    if (step.type === "interrupt" && context.subagentRunId !== undefined) {
+      throw new Error(
+        `Scenario "${scenarioId}" contains an interrupt inside a subagent.\n` +
+        "Nested subagent interrupts are not supported by the current " +
+        "AG-UI 0.0.59 + assistant-ui reference profile.",
+      );
+    }
+
+    if (
+      context.subagentRunId !== undefined &&
+      ((step.type === "tool" && step.error !== undefined) ||
+        (step.type === "tool-result" && step.error !== undefined))
+    ) {
+      throw new Error(
+        `Scenario "${scenarioId}" contains a Tool error inside subagent ` +
+        `"${context.subagentRunId}". Subagent tool failures must use ` +
+        "outcome: { type: \"error\" } so the runner emits SUBAGENT_ERROR.",
+      );
+    }
+
+    if (step.type === "tool") {
+      validateToolArgs(scenarioId, step.args, `tool "${step.name}"`);
+      if (step.during !== undefined) {
+        validateSteps(scenarioId, step.during, context);
+      }
+      continue;
+    }
+
+    if (step.type === "parallel-tools") {
+      for (const tool of step.tools) {
+        validateToolArgs(scenarioId, tool.args, `parallel tool "${tool.name}"`);
+      }
+      continue;
+    }
+
+    if (step.type === "subagent") {
+      if (step.steps !== undefined) {
+        validateSteps(scenarioId, step.steps, {
+          subagentRunId: step.id,
+        });
+      }
+      continue;
+    }
+
+    if (step.type === "subagent-tool") {
+      validateToolArgs(scenarioId, step.args, `subagent tool "${step.toolName}"`);
+      validateSteps(scenarioId, step.subagent.steps, {
+        subagentRunId: step.subagent.id,
+      });
+      continue;
+    }
+
+    if (step.type === "interrupt") {
+      validateToolArgs(scenarioId, step.args, `interrupt tool "${step.toolName}"`);
+    }
+  }
+}
+
+/** Validates the readiness constraints of a mock scenario before serving it. */
+export function validateMockScenario(scenario: MockScenario): void {
+  validateSteps(scenario.id, scenario.steps, {});
+
+  if (scenario.resumeSteps === undefined) return;
+  if (Array.isArray(scenario.resumeSteps)) {
+    validateSteps(scenario.id, scenario.resumeSteps, {});
+    return;
+  }
+  validateSteps(scenario.id, scenario.resumeSteps.approved, {});
+  validateSteps(scenario.id, scenario.resumeSteps.denied, {});
+  validateSteps(scenario.id, scenario.resumeSteps.cancelled, {});
+}
 
 export function defineScenario(scenario: MockScenario): MockScenario {
   return scenario;

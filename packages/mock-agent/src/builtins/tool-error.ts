@@ -6,6 +6,14 @@ export const toolErrorScenario = defineScenario({
   description: "Tool call 已建立但尚未产生结果时，Agent Run 通过标准 RUN_ERROR 失败。",
   category: "tools",
   capabilities: ["tool", "run-error"],
+  reference: {
+    audience: "backend",
+    protocol: "AG-UI",
+    pattern: "Tool Call → RUN_ERROR",
+    presentation: "assistant-ui ToolCall error",
+    eventFlow: ["TOOL_CALL_START/ARGS/END", "RUN_ERROR"],
+    notes: ["RUN_ERROR is run-scoped and never carries subagentRunId."],
+  },
   steps: [
     {
       type: "tool",
