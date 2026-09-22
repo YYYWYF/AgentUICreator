@@ -14,14 +14,15 @@ export const agentPlanScenario = defineScenario({
     eventFlow: [
       "TOOL_CALL_START",
       "TOOL_CALL_ARGS",
+      "application projector → AgentPlan",
       "TOOL_CALL_END",
-      "TOOL_CALL_RESULT",
-      "application projector",
-      "AgentPlan",
+      "TOOL_CALL_RESULT (acknowledgement)",
     ],
     notes: [
       "AG-UI does not define an AgentPlan event. This scenario demonstrates an application-defined tool args contract rendered with assistant-ui AgentPlan.",
-      "The Tool Result is only an application acknowledgement; the AgentPlan projection reads props.args.",
+      "AgentPlan can render from Tool Args before TOOL_CALL_RESULT arrives.",
+      "TOOL_CALL_RESULT only acknowledges that the application-defined plan command settled.",
+      "application projector → AgentPlan is a frontend presentation step, not an AG-UI wire event.",
     ],
   },
   steps: [

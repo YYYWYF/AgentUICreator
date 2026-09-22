@@ -112,6 +112,28 @@ describe("createScenarioRegistry", () => {
     expect(canonical).not.toHaveProperty("steps");
   });
 
+  it("documents presentation projection before terminal Tool acknowledgement", () => {
+    const registry = createScenarioRegistry({
+      scenarios: builtinMockScenarios,
+      defaultScenarioId: "reasoning-tool-success",
+    });
+
+    expect(registry.list().find(({ id }) => id === "agent-plan")?.reference?.eventFlow).toEqual([
+      "TOOL_CALL_START",
+      "TOOL_CALL_ARGS",
+      "application projector → AgentPlan",
+      "TOOL_CALL_END",
+      "TOOL_CALL_RESULT (acknowledgement)",
+    ]);
+    expect(registry.list().find(({ id }) => id === "agent-status")?.reference?.eventFlow).toEqual([
+      "TOOL_CALL_START",
+      "TOOL_CALL_ARGS",
+      "application projector → AgentStatus",
+      "TOOL_CALL_END",
+      "TOOL_CALL_RESULT (acknowledgement)",
+    ]);
+  });
+
   it("includes a long streaming reasoning preview scenario", () => {
     const scenario = builtinMockScenarios.find(
       ({ id }) => id === "reasoning-long-preview",

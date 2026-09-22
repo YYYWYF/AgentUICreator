@@ -14,14 +14,15 @@ export const agentStatusScenario = defineScenario({
     eventFlow: [
       "TOOL_CALL_START",
       "TOOL_CALL_ARGS",
+      "application projector → AgentStatus",
       "TOOL_CALL_END",
-      "TOOL_CALL_RESULT",
-      "application projector",
-      "AgentStatus",
+      "TOOL_CALL_RESULT (acknowledgement)",
     ],
     notes: [
       "AG-UI does not define an AgentStatus event. This scenario demonstrates an application-defined tool args contract rendered with assistant-ui AgentStatus.",
-      "AgentStatus.state is derived from ConversationToolCallProps.status; label and elapsed come from props.args.",
+      "AgentStatus presentation data comes from Tool Args.",
+      "Its lifecycle state is derived from ConversationToolCallProps.status, so the UI may render while the Tool Call is still running.",
+      "application projector → AgentStatus is a frontend presentation step, not an AG-UI wire event.",
     ],
   },
   steps: [

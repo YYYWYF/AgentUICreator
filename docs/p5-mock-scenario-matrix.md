@@ -67,16 +67,24 @@ not invent `PLAN_*` or `AGENT_STATUS` protocol events. Their flow is:
 ```text
 TOOL_CALL_START
 → TOOL_CALL_ARGS (application-defined Tool Args)
+→ application projector → AgentPlan / AgentStatus
 → TOOL_CALL_END
 → TOOL_CALL_RESULT (acknowledgement)
-→ application projector
-→ AgentPlan / AgentStatus
 ```
 
-`AgentPlan` reads its plan from Tool Args. `AgentStatus` reads `label` and
-`elapsed` from Tool Args, while `state` is derived from the frontend
-`ConversationToolCallProps.status` (`running` → `working`, `requires-action` →
-`waiting`, `complete` → `done`).
+The presentation does not depend on `TOOL_CALL_RESULT`.
+
+`AgentPlan` reads `steps` and `activeIndex` from Tool Args.
+
+`AgentStatus` reads `label` and `elapsed` from Tool Args and derives its state
+from the frontend `ConversationToolCallProps.status` (`running` → `working`,
+`requires-action` → `waiting`, `complete` → `done`). It may therefore render
+while the Tool Call is still running.
+
+`TOOL_CALL_RESULT` only represents the terminal acknowledgement of the
+application-defined tool. `application projector → AgentPlan / AgentStatus` is
+a frontend presentation step, not an AG-UI wire event. The runner wire stream
+remains `TOOL_CALL_START → TOOL_CALL_ARGS → TOOL_CALL_END → TOOL_CALL_RESULT`.
 
 `tool-error` describes a run failure during a Tool Call. The event is
 `RUN_ERROR`; there is no `TOOL_ERROR` event.
