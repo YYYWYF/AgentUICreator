@@ -31,6 +31,7 @@ describe("runtime-assistant-ui package policy", () => {
       "@agent-ui/runtime-core",
       "@assistant-ui/react",
       "@assistant-ui/react-ag-ui",
+      "@assistant-ui/react-langgraph",
       "react",
     ].sort());
   });

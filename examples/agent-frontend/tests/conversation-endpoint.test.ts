@@ -10,9 +10,14 @@ describe("resolveConversationDataEndpoint", () => {
     })).toBe("https://backend.example/api");
   });
 
-  it("uses the application mock API only in development", () => {
-    expect(resolveConversationDataEndpoint({ isDev: true }))
+  it("uses the application mock API only when explicitly enabled in development", () => {
+    expect(resolveConversationDataEndpoint({ isDev: true, dataMode: "mock" }))
       .toBe("/__agent-ui/mock-data");
+    expect(resolveConversationDataEndpoint({ isDev: true })).toBeUndefined();
+    expect(resolveConversationDataEndpoint({ isDev: true, dataMode: "empty" }))
+      .toBeUndefined();
+    expect(resolveConversationDataEndpoint({ isDev: false, dataMode: "mock" }))
+      .toBeUndefined();
     expect(resolveConversationDataEndpoint({ isDev: false })).toBeUndefined();
   });
 });

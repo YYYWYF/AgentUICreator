@@ -10,7 +10,6 @@ import {
   type ConversationThreadBinding,
 } from "@agent-ui/runtime-conversation";
 import type { UIPluginComponentProps, UIPluginDefinition } from "../framework/contracts/ui-plugin";
-import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import {
   parseAppUIRuntimeModel,
   type AppUIRuntimeModel,
@@ -133,14 +132,14 @@ function createHistoryBinding() {
     get: async (id) => ({
       id,
       title: "History thread",
-      messages: [
-        {
+      history: {
+        format: "langchain",
+        messages: [{
           id: "history-user",
-          producer: { type: "root" },
-          role: "user",
+          type: "human",
           content: "previous message",
-        } satisfies AgentMessage,
-      ],
+        }],
+      },
     }),
   };
   const service = createConversationService({ dataSource });

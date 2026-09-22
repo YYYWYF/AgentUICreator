@@ -28,6 +28,8 @@ import type { ConversationToolkit } from "@agent-ui/react";
 import type { ReactNode } from "react";
 import type { ConversationStarterSuggestion } from "./conversation-types.js";
 
+export { projectLangChainHistory } from "./history/langchain-history-projector.js";
+
 export interface ConversationAgentFactoryConfig {
   endpoint: string;
   threadId: string;

@@ -1,9 +1,8 @@
-import type { AgentMessage } from "../../framework/contracts/ui-plugin";
 import {
   conversationDetailResponseSchema,
   conversationListResponseSchema,
+  type ConversationDetail,
   type ConversationDetailResponse,
-  type ConversationHistoryMessageDto,
 } from "./contract";
 import type { ConversationDataSource } from "./data-source";
 
@@ -41,38 +40,19 @@ async function readResponseJson(response: Response): Promise<unknown> {
   return response.json();
 }
 
-function toAgentMessage(
-  conversationId: string,
-  dto: ConversationHistoryMessageDto,
-): AgentMessage {
-  const common = {
-    id: dto.id,
-    producer: { type: "root" as const },
-    metadata: {
-      ...dto.metadata,
-      conversationId,
-    },
-  };
-  switch (dto.role) {
-    case "user":
-      return { ...common, role: "user", content: dto.content };
-    case "assistant":
-      return { ...common, role: "assistant", content: dto.content };
-    case "system":
-      return { ...common, role: "system", content: dto.content };
-    case "developer":
-      return { ...common, role: "developer", content: dto.content };
-  }
-}
-
-function toConversationDetail(response: ConversationDetailResponse) {
+function toConversationDetail(
+  response: ConversationDetailResponse,
+): ConversationDetail {
   return {
     id: response.id,
     title: response.title,
-    messages: response.messages.map((message) =>
-      toAgentMessage(response.id, message),
-    ),
-    ...(response.replay === undefined ? {} : { replay: response.replay }),
+    history: {
+      format: "langchain",
+      messages: response.state.values.messages ?? [],
+    },
+    ...(response.agentState === undefined
+      ? {}
+      : { agentState: response.agentState }),
   };
 }
 

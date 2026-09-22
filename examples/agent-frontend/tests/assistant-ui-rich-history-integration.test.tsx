@@ -1,7 +1,5 @@
 // @vitest-environment jsdom
 
-import { act } from "react";
-import { createRoot, type Root } from "react-dom/client";
 import {
   AssistantRuntimeProvider,
   AuiConfig,
@@ -9,24 +7,25 @@ import {
   useLocalRuntime,
   type ChatModelAdapter,
 } from "@assistant-ui/react";
+import { projectLangChainHistory } from "@agent-ui/runtime-conversation";
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createConversationSemanticThreadComponents } from "../agent-ui/conversation";
 import { ConversationSurface } from "../agent-ui/conversation/ConversationSurface";
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
-import { projectConversationReplay } from "../agent-ui/conversation/threads/conversation-history-projector";
 import { mockConversationFixtures } from "../dev-mock/conversations/fixtures";
+
 const chatModel: ChatModelAdapter = { run: async () => ({ content: [] }) };
 const mountedRoots: Root[] = [];
 
-(
-  globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
-).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
+  .IS_REACT_ACT_ENVIRONMENT = true;
 
 class ResizeObserverMock {
-  constructor(_callback: ResizeObserverCallback) {}
-  observe(_target: Element): void {}
-  unobserve(_target: Element): void {}
+  observe(): void {}
+  unobserve(): void {}
   disconnect(): void {}
 }
 
@@ -36,48 +35,22 @@ Object.defineProperty(HTMLElement.prototype, "scrollTo", {
   value: () => undefined,
 });
 
-async function expandTool(container: HTMLDivElement): Promise<void> {
-  const trigger = container.querySelector('[data-slot="tool-call"] button');
-  if (!(trigger instanceof HTMLElement)) {
-    throw new Error("Tool call trigger is missing.");
-  }
-  await act(async () => {
-    trigger.click();
-    await Promise.resolve();
-  });
-}
-
-async function revealAttachmentName(container: HTMLDivElement): Promise<void> {
-  const trigger = container.querySelector('[aria-label="Document attachment"]');
-  if (!(trigger instanceof HTMLElement)) {
-    throw new Error("Document attachment trigger is missing.");
-  }
-  await act(async () => {
-    trigger.focus();
-    trigger.dispatchEvent(new Event("focusin", { bubbles: true }));
-    await Promise.resolve();
-  });
-}
-
-function RichHistoryFixture({ conversationId }: { conversationId: string }) {
+function HistoryFixture({ conversationId }: { conversationId: string }) {
   const fixture = mockConversationFixtures.find(
     (candidate) => candidate.detail.id === conversationId,
   );
-  if (fixture?.detail.replay === undefined) {
-    throw new Error(`Rich replay fixture not found: ${conversationId}`);
-  }
-
+  if (fixture === undefined) throw new Error(`History fixture missing: ${conversationId}`);
   const runtime = useLocalRuntime(chatModel, {
-    initialMessages: projectConversationReplay(fixture.detail.replay) as never,
+    initialMessages: projectLangChainHistory(
+      fixture.detail.state.values.messages ?? [],
+    ) as never,
   });
   const config = AuiConfig({
-    tools: Tools({ toolkit: createConversationToolkit({ mockAgentElements: true }) }),
+    tools: Tools({ toolkit: createConversationToolkit() }),
   });
   return (
     <AssistantRuntimeProvider config={config} runtime={runtime}>
-      <ConversationSurface
-        components={createConversationSemanticThreadComponents()}
-      />
+      <ConversationSurface components={createConversationSemanticThreadComponents()} />
     </AssistantRuntimeProvider>
   );
 }
@@ -88,8 +61,7 @@ async function renderHistory(conversationId: string): Promise<HTMLDivElement> {
   const root = createRoot(container);
   mountedRoots.push(root);
   await act(async () => {
-    root.render(<RichHistoryFixture conversationId={conversationId} />);
-    await Promise.resolve();
+    root.render(<HistoryFixture conversationId={conversationId} />);
     await Promise.resolve();
   });
   return container;
@@ -102,57 +74,19 @@ afterEach(async () => {
   document.body.replaceChildren();
 });
 
-describe("assistant-ui rich history UI integration", () => {
-  it("renders persisted Agent Elements through the toolkit", async () => {
-    const container = await renderHistory("conversation-replay-agent-elements");
-
-    expect(container.querySelector('[data-slot="agent-plan"]')).not.toBeNull();
-    expect(container.querySelector('[data-slot="agent-status"]')).not.toBeNull();
-    expect(container.querySelector('[data-slot="subagent-list"]')).not.toBeNull();
-    const subagentList = container.querySelector('[data-slot="subagent-list"]');
-    expect(subagentList?.classList.contains("min-h-[14.5rem]")).toBe(true);
-    expect(container.textContent).toContain("Analysis complete");
-  });
-
-  it("renders the dedicated Subagents replay as one compact aggregate", async () => {
-    const container = await renderHistory("conversation-replay-subagents");
-
-    const subagentLists = container.querySelectorAll('[data-slot="subagent-list"]');
-    expect(subagentLists).toHaveLength(1);
-    const subagentList = subagentLists[0];
-    expect(subagentList?.classList.contains("min-h-[14.5rem]")).toBe(true);
-    expect(container.querySelector('[data-slot="tool-group-trigger"]')).toBeNull();
-    expect(container.textContent).toContain("Architecture Researcher");
-    expect(container.textContent).toContain("Runtime Inspector");
-    expect(container.textContent).toContain("UI Reviewer");
-    expect(container.textContent).toContain("三个子 Agent 的检查都已完成，结果已经汇总。");
-    expect(container.textContent).not.toContain("3 tool calls");
-  });
-
-  it("renders persisted SearchFiles history through the official Tool UI", async () => {
-    const container = await renderHistory("conversation-replay-tool");
+describe("assistant-ui LangGraph history UI integration", () => {
+  it("renders a completed persisted tool call without a loading state", async () => {
+    const container = await renderHistory("mock-history-tool");
 
     expect(container.querySelector('[data-slot="tool-call"]')).not.toBeNull();
-    await expandTool(container);
-    expect(container.textContent).toContain("Searched files");
-    expect(container.textContent).toContain("Request");
-    expect(container.textContent).toContain("Result");
+    expect(container.textContent).not.toContain("Running");
   });
 
-  it("renders persisted attachments while leaving sources to data projection", async () => {
-    const container = await renderHistory("conversation-replay-sources-attachments");
+  it("renders reasoning only from the official supported LangChain shape", async () => {
+    const container = await renderHistory("mock-history-reasoning");
 
-    await revealAttachmentName(container);
-    expect(document.body.textContent).toContain("architecture-notes.md");
-    expect(container.textContent).not.toContain("AG-UI Runtime Notes");
-    expect(container.textContent).not.toContain("Architecture Notes");
-  });
-
-  it("renders persisted tool errors as terminal fallback UI", async () => {
-    const container = await renderHistory("conversation-replay-tool-error");
-
-    expect(container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();
-    expect(container.querySelector('[data-slot="tool-call"]')).toBeNull();
-    expect(container.textContent).not.toContain("Allow");
+    expect(container.textContent).toContain(
+      "这样 Thread 的身份、消息与只读策略只有一个权威来源。",
+    );
   });
 });

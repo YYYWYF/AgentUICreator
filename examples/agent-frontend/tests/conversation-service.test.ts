@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import {
   createConversationService,
   type ConversationDataSource,
@@ -17,12 +16,14 @@ function deferred<T>() {
   return { promise, resolve, reject };
 }
 
-function message(id: string): AgentMessage {
+function detail(id: string): ConversationDetail {
   return {
     id,
-    producer: { type: "root" },
-    role: "assistant",
-    content: id,
+    title: id,
+    history: {
+      format: "langchain",
+      messages: [{ id, type: "ai", content: id }],
+    },
   };
 }
 
@@ -31,7 +32,7 @@ describe("ConversationService", () => {
     const list = deferred<Array<{ id: string; title: string }>>();
     const dataSource: ConversationDataSource = {
       list: () => list.promise,
-      get: async () => ({ id: "unused", title: "Unused", messages: [] }),
+      get: async () => detail("unused"),
     };
     const service = createConversationService({
       dataSource,
@@ -49,7 +50,7 @@ describe("ConversationService", () => {
   it("selects history, then returns to live", async () => {
     const dataSource: ConversationDataSource = {
       list: async () => [],
-      get: async (id) => ({ id, title: id, messages: [message(id)] }),
+      get: async (id) => detail(id),
     };
     const service = createConversationService({
       dataSource,
@@ -63,13 +64,13 @@ describe("ConversationService", () => {
     await request;
     expect(service.getSnapshot()).toMatchObject({
       detailStatus: "ready",
-      historyMessages: [expect.objectContaining({ id: "conversation-1" })],
+      activeConversation: expect.objectContaining({ id: "conversation-1" }),
     });
     service.showLiveConversation();
     expect(service.getSnapshot()).toMatchObject({
       mode: "live",
       detailStatus: "idle",
-      historyMessages: [],
+      activeConversation: undefined,
     });
     expect(service.getSnapshot().activeConversationId).toBeUndefined();
   });
@@ -104,7 +105,7 @@ describe("ConversationService", () => {
       list: async () => [],
       get: async (id) => {
         if (shouldFail) throw new Error("temporary failure");
-        return { id, title: id, messages: [message(id)] };
+        return detail(id);
       },
     };
     const service = createConversationService({
@@ -119,7 +120,7 @@ describe("ConversationService", () => {
       mode: "history",
       activeConversationId: "history-retry",
       detailStatus: "ready",
-      historyMessages: [expect.objectContaining({ id: "history-retry" })],
+      activeConversation: expect.objectContaining({ id: "history-retry" }),
     });
     expect(service.getSnapshot().detailError).toBeUndefined();
     expect(service.getSnapshot().detailErrorConversationId).toBeUndefined();
@@ -140,20 +141,20 @@ describe("ConversationService", () => {
     });
     const first = service.selectConversation("A");
     const second = service.selectConversation("B");
-    requests.get("B")?.resolve({ id: "B", title: "B", messages: [message("B")] });
+    requests.get("B")?.resolve(detail("B"));
     await second;
-    requests.get("A")?.resolve({ id: "A", title: "A", messages: [message("A")] });
+    requests.get("A")?.resolve(detail("A"));
     await first;
     expect(service.getSnapshot()).toMatchObject({
       activeConversationId: "B",
-      historyMessages: [expect.objectContaining({ id: "B" })],
+      activeConversation: expect.objectContaining({ id: "B" }),
     });
   });
 
   it("resets history state for a Runtime-owned new conversation", async () => {
     const dataSource: ConversationDataSource = {
       list: async () => [],
-      get: async (id) => ({ id, title: id, messages: [message(id)] }),
+      get: async (id) => detail(id),
     };
     const service = createConversationService({
       dataSource,
@@ -164,7 +165,7 @@ describe("ConversationService", () => {
     expect(service.getSnapshot()).toMatchObject({
       mode: "live",
       activeConversationId: undefined,
-      historyMessages: [],
+      activeConversation: undefined,
       detailStatus: "idle",
       detailError: undefined,
       detailErrorConversationId: undefined,

@@ -1,7 +1,6 @@
 import type { ThreadMessage } from "@assistant-ui/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import {
   ConversationNavigationLockedError,
   ConversationThreadSelectionDisabledError,
@@ -12,19 +11,6 @@ import type {
   ConversationDetail,
   ConversationSnapshot,
 } from "../services/conversations";
-
-function agentMessage(
-  id: string,
-  role: "user" | "assistant",
-  content: string,
-): AgentMessage {
-  return {
-    id,
-    producer: { type: "root" },
-    role,
-    content,
-  };
-}
 
 function threadMessage(id: string, role: "user" | "assistant"): ThreadMessage {
   if (role === "user") {
@@ -75,7 +61,7 @@ class FakeConversationService implements ConversationService {
         ...this.snapshot,
         mode: "history",
         activeConversationId: id,
-        historyMessages: detail.messages,
+        activeConversation: detail,
         detailStatus: "ready",
         detailError: undefined,
         detailErrorConversationId: undefined,
@@ -93,7 +79,6 @@ class FakeConversationService implements ConversationService {
     this.snapshot = {
       mode: "live",
       conversations: summaries,
-      historyMessages: [],
       listStatus: "ready",
       detailStatus: "idle",
     };
@@ -119,7 +104,7 @@ class FakeConversationService implements ConversationService {
       ...this.snapshot,
       mode: "live",
       activeConversationId: undefined,
-      historyMessages: [],
+      activeConversation: undefined,
       detailStatus: "idle",
       detailError: undefined,
       detailErrorConversationId: undefined,
@@ -132,7 +117,7 @@ class FakeConversationService implements ConversationService {
       ...this.snapshot,
       mode: "live",
       activeConversationId: undefined,
-      historyMessages: [],
+      activeConversation: undefined,
       detailStatus: "idle",
       detailError: undefined,
       detailErrorConversationId: undefined,
@@ -154,31 +139,40 @@ function createBindingFixture() {
       ["history-1", {
         id: "history-1",
         title: "Alpha",
-        messages: [
-          agentMessage("history-user", "user", "old user"),
-          agentMessage("history-assistant", "assistant", "old assistant"),
-        ],
+        history: {
+          format: "langchain",
+          messages: [
+            { id: "history-user", type: "human", content: "old user" },
+            { id: "history-assistant", type: "ai", content: "old assistant" },
+          ],
+        },
+        agentState: { persisted: true },
       }],
       ["history-rich", {
         id: "history-rich",
         title: "Rich history",
-        messages: [agentMessage("rich-legacy", "assistant", "Done")],
-        replay: {
-          version: 1,
-          messages: [{
-            id: "rich-assistant",
-            role: "assistant",
-            parts: [
-              { type: "reasoning", text: "Persisted reasoning" },
-              {
-                type: "tool-call",
-                toolCallId: "rich-tool-1",
-                toolName: "search_files",
+        history: {
+          format: "langchain",
+          messages: [
+            {
+              id: "rich-assistant",
+              type: "ai",
+              content: "",
+              tool_calls: [{
+                id: "rich-tool-1",
+                name: "search_files",
                 args: { keyword: "history" },
-                result: { files: ["history.ts"] },
-              },
-            ],
-          }],
+              }],
+            },
+            {
+              id: "rich-tool-result",
+              type: "tool",
+              tool_call_id: "rich-tool-1",
+              name: "search_files",
+              status: "success",
+              content: '{"files":["history.ts"]}',
+            },
+          ],
         },
       }],
     ]),
@@ -194,20 +188,26 @@ function messageIds(messages: readonly { id: string }[]): string[] {
 }
 
 describe("ConversationServiceThreadBinding", () => {
-  it("projects the live thread and conversation catalog metadata", () => {
+  it("starts with no persisted list items while retaining a live thread id", () => {
+    const binding = createConversationServiceThreadBinding();
+
+    expect(binding.getThreadId()).toMatch(/\S/u);
+    expect(binding.getThreadListSnapshot().threads).toEqual([]);
+  });
+
+  it("lists only persisted histories while retaining an internal live id", () => {
     const { binding } = createBindingFixture();
     const snapshot = binding.getThreadListSnapshot();
 
     expect(snapshot.threads.map((item) => item.id)).toEqual([
-      binding.getThreadId(),
       "history-1",
       "history-2",
     ]);
-    expect(snapshot.threads[1]).toMatchObject({
+    expect(snapshot.threads[0]).toMatchObject({
       title: "Alpha",
       custom: { group: "custom", updatedAt: "2026-09-12" },
     });
-    expect(snapshot.threads[2]).toMatchObject({
+    expect(snapshot.threads[1]).toMatchObject({
       title: "Beta",
       custom: { agentUiDisabled: true },
     });
@@ -239,6 +239,7 @@ describe("ConversationServiceThreadBinding", () => {
       "history-user",
       "history-assistant",
     ]);
+    expect(history.state).toEqual({ persisted: true });
 
     const restored = await binding.selectThread(liveThreadId);
     expect(binding.getThreadId()).toBe(liveThreadId);
@@ -273,21 +274,16 @@ describe("ConversationServiceThreadBinding", () => {
       role: "assistant",
     });
     expect(assistant?.role === "assistant" ? assistant.content : [])
-      .toEqual([
-        {
-          type: "reasoning",
-          text: "Persisted reasoning",
-          status: { type: "complete" },
-        },
-        {
+      .toEqual(expect.arrayContaining([
+        expect.objectContaining({
           type: "tool-call",
           toolCallId: "rich-tool-1",
           toolName: "search_files",
           args: { keyword: "history" },
           argsText: '{"keyword":"history"}',
-          result: { files: ["history.ts"] },
-        },
-      ]);
+          result: '{"files":["history.ts"]}',
+        }),
+      ]));
   });
 
   it("does not commit a failed history identity and exposes its error target", async () => {
@@ -371,6 +367,8 @@ describe("ConversationServiceThreadBinding", () => {
     expect(newId).not.toBe(oldId);
     expect(binding.getThreadId()).toBe(newId);
     expect(loaded.messages).toEqual([]);
+    expect(binding.getThreadListSnapshot().threads.map((item) => item.id))
+      .toEqual(["history-1", "history-2"]);
     expect(messageIds(live.messages)).toEqual(["live-user", "live-assistant"]);
   });
 

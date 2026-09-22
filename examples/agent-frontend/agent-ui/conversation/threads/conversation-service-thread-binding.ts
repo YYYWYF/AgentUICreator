@@ -103,22 +103,12 @@ function historyItem(
 }
 
 function createListSnapshot(
-  liveThreadId: string,
   serviceSnapshot: ConversationSnapshot | undefined,
 ): ConversationThreadListSnapshot {
   const histories = serviceSnapshot?.conversations ?? [];
   return {
     isLoading: serviceSnapshot?.listStatus === "loading",
-    threads: [
-      {
-        id: liveThreadId,
-        status: "regular",
-        title: "当前会话",
-      },
-      ...histories
-        .filter((item) => item.id !== liveThreadId)
-        .map(historyItem),
-    ],
+    threads: histories.map(historyItem),
     archivedThreads: [],
   };
 }
@@ -138,7 +128,7 @@ export function createConversationServiceThreadBinding<
   let conversationSnapshot: ConversationSnapshot | undefined;
   let serviceUnsubscribe: (() => void) | undefined;
   let navigationLocked = false;
-  let threadListSnapshot = createListSnapshot(liveThreadId, undefined);
+  let threadListSnapshot = createListSnapshot(undefined);
   const listeners = new Set<() => void>();
 
   const emit = (): void => {
@@ -146,7 +136,7 @@ export function createConversationServiceThreadBinding<
   };
 
   const rebuildThreadListSnapshot = (): void => {
-    const next = createListSnapshot(liveThreadId, conversationSnapshot);
+    const next = createListSnapshot(conversationSnapshot);
     if (sameListSnapshot(threadListSnapshot, next)) return;
     threadListSnapshot = next;
     emit();
@@ -226,6 +216,9 @@ export function createConversationServiceThreadBinding<
 
       const loaded: ConversationLoadedThread<TState> = {
         messages: projectConversationDetail(detail),
+        ...(detail.agentState === undefined
+          ? {}
+          : { state: detail.agentState as TState }),
       };
       activeThreadId = threadId;
       activeThreadSnapshot = loaded;

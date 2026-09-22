@@ -20,70 +20,49 @@ describe("HttpConversationDataSource", () => {
     }));
   });
 
-  it("maps validated detail DTOs to frontend AgentMessage values", async () => {
+  it("maps a validated StateSnapshot envelope to LangChain history", async () => {
     const source = createHttpConversationDataSource({
       endpoint: "/api",
       fetch: async () => new Response(JSON.stringify({
         id: "conversation-1",
         title: "Conversation 1",
-        messages: [{
-          id: "message-1",
-          role: "assistant",
-          content: "Hello",
-          metadata: { source: "fixture" },
-        }],
+        state: {
+          values: {
+            messages: [{ id: "message-1", type: "ai", content: "Hello" }],
+            businessState: { keep: true },
+          },
+        },
+        agentState: { job: { status: "completed" } },
       }), { status: 200 }),
     });
 
     await expect(source.get("conversation-1")).resolves.toEqual({
       id: "conversation-1",
       title: "Conversation 1",
-      messages: [{
-        id: "message-1",
-        producer: { type: "root" },
-        role: "assistant",
-        content: "Hello",
-        metadata: {
-          source: "fixture",
-          conversationId: "conversation-1",
-        },
-      }],
+      history: {
+        format: "langchain",
+        messages: [{ id: "message-1", type: "ai", content: "Hello" }],
+      },
+      agentState: { job: { status: "completed" } },
     });
   });
 
-  it("preserves a validated rich replay alongside legacy AgentMessage values", async () => {
-    const replay = {
-      version: 1 as const,
-      messages: [{
-        id: "assistant-1",
-        role: "assistant" as const,
-        parts: [{
-          type: "tool-call" as const,
-          toolCallId: "tool-1",
-          toolName: "search_files",
-          args: { keyword: "AG-UI" },
-          result: { files: ["src/runtime.ts"] },
-        }],
-      }],
-    };
+  it("allows an empty message collection and unknown future state fields", async () => {
     const source = createHttpConversationDataSource({
       endpoint: "/api",
       fetch: async () => new Response(JSON.stringify({
         id: "conversation-1",
         title: "Conversation 1",
-        messages: [{
-          id: "assistant-1",
-          role: "assistant",
-          content: "Done",
-        }],
-        replay,
+        state: {
+          values: { arbitraryFutureField: { enabled: true } },
+          futureSnapshotField: "preserved by the envelope parser",
+        },
       }), { status: 200 }),
     });
 
     await expect(source.get("conversation-1")).resolves.toMatchObject({
       id: "conversation-1",
-      messages: [{ id: "assistant-1", content: "Done" }],
-      replay,
+      history: { format: "langchain", messages: [] },
     });
   });
 
@@ -109,34 +88,20 @@ describe("HttpConversationDataSource", () => {
       fetch: async () => new Response(JSON.stringify({
         id: "conversation-1",
         title: "Conversation 1",
-        messages: [{ id: "message-1", role: "tool", content: "invalid" }],
+        state: { values: { messages: "invalid" } },
       })),
     });
     await expect(listSource.list()).rejects.toThrow();
     await expect(detailSource.get("conversation-1")).rejects.toThrow();
   });
 
-  it("rejects malformed replay parts and historical running status", async () => {
+  it("rejects a missing StateSnapshot envelope", async () => {
     const source = createHttpConversationDataSource({
       endpoint: "/api",
       fetch: async () => new Response(JSON.stringify({
         id: "conversation-1",
         title: "Conversation 1",
         messages: [],
-        replay: {
-          version: 1,
-          messages: [{
-            id: "assistant-1",
-            role: "assistant",
-            parts: [{
-              type: "tool-call",
-              toolCallId: "tool-1",
-              toolName: "search_files",
-              args: {},
-            }],
-            status: { type: "running" },
-          }],
-        },
       }), { status: 200 }),
     });
 

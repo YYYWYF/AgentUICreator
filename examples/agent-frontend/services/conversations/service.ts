@@ -1,4 +1,3 @@
-import type { AgentMessage } from "../../framework/contracts/ui-plugin";
 import type { ConversationDetail, ConversationSummary } from "./contract";
 import type { ConversationDataSource } from "./data-source";
 
@@ -11,7 +10,7 @@ export interface ConversationSnapshot {
   mode: ConversationViewMode;
   conversations: ConversationSummary[];
   activeConversationId?: string | undefined;
-  historyMessages: AgentMessage[];
+  activeConversation?: ConversationDetail | undefined;
   listStatus: ConversationLoadStatus;
   detailStatus: ConversationLoadStatus;
   listError?: string | undefined;
@@ -40,7 +39,6 @@ export interface ConversationServiceOptions {
 export const EMPTY_CONVERSATION_SNAPSHOT: ConversationSnapshot = {
   mode: "live",
   conversations: [],
-  historyMessages: [],
   listStatus: "idle",
   detailStatus: "idle",
 };
@@ -82,7 +80,7 @@ export function createConversationService({
       ...snapshot,
       mode: "live",
       activeConversationId: undefined,
-      historyMessages: [],
+      activeConversation: undefined,
       detailStatus: "idle",
       detailError: undefined,
       detailErrorConversationId: undefined,
@@ -141,7 +139,7 @@ export function createConversationService({
         ...snapshot,
         mode: "history",
         activeConversationId: normalizedId,
-        historyMessages: [],
+        activeConversation: undefined,
         detailStatus: "loading",
         detailError: undefined,
         detailErrorConversationId: undefined,
@@ -155,7 +153,7 @@ export function createConversationService({
         }
         update({
           ...snapshot,
-          historyMessages: detail.messages,
+          activeConversation: detail,
           detailStatus: "ready",
           detailError: undefined,
           detailErrorConversationId: undefined,
@@ -195,36 +193,6 @@ export function createConversationService({
       listeners.clear();
     },
   };
-}
-
-export function getConversationViewMessages(
-  liveMessages: readonly AgentMessage[],
-  snapshot: ConversationSnapshot,
-): AgentMessage[] {
-  return snapshot.mode === "history"
-    ? [...snapshot.historyMessages]
-    : [...liveMessages];
-}
-
-export type ChatVisibleMessage = Extract<
-  AgentMessage,
-  { role: "user" | "assistant" }
->;
-
-/** Ordinary chat content; system and developer messages remain internal context. */
-export function isChatVisibleMessage(
-  message: AgentMessage,
-): message is ChatVisibleMessage {
-  return message.role === "user" || message.role === "assistant";
-}
-
-export function getVisibleConversationMessages(
-  liveMessages: readonly AgentMessage[],
-  snapshot: ConversationSnapshot,
-): ChatVisibleMessage[] {
-  return getConversationViewMessages(liveMessages, snapshot).filter(
-    isChatVisibleMessage,
-  );
 }
 
 declare module "../../framework/contracts/ui-plugin" {

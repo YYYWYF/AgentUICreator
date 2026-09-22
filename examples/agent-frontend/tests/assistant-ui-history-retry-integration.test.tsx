@@ -6,7 +6,6 @@ import {
 } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
-import type { AgentMessage } from "../framework/contracts/ui-plugin";
 import {
   ConversationRuntimeProvider,
   useConversationRuntimeBridge,
@@ -24,19 +23,6 @@ import {
   type ConversationDataSource,
   type ConversationSnapshot,
 } from "../services/conversations";
-
-function agentMessage(
-  id: string,
-  role: "user" | "assistant",
-  content: string,
-): AgentMessage {
-  return {
-    id,
-    producer: { type: "root" },
-    role,
-    content,
-  };
-}
 
 function threadMessage(id: string, role: "user" | "assistant"): ThreadMessage {
   if (role === "user") {
@@ -75,7 +61,6 @@ class RetryConversationService implements ConversationService {
   private snapshot: ConversationSnapshot = {
     mode: "live",
     conversations: [{ id: "history-retry", title: "History Retry" }],
-    historyMessages: [],
     listStatus: "ready",
     detailStatus: "idle",
   };
@@ -97,16 +82,19 @@ class RetryConversationService implements ConversationService {
       const detail: ConversationDetail = {
         id,
         title: "History Retry",
-        messages: [
-          agentMessage("history-user", "user", "old user"),
-          agentMessage("history-assistant", "assistant", "old assistant"),
-        ],
+        history: {
+          format: "langchain",
+          messages: [
+            { id: "history-user", type: "human", content: "old user" },
+            { id: "history-assistant", type: "ai", content: "old assistant" },
+          ],
+        },
       };
       this.snapshot = {
         ...this.snapshot,
         mode: "history",
         activeConversationId: id,
-        historyMessages: detail.messages,
+        activeConversation: detail,
         detailStatus: "ready",
         detailError: undefined,
         detailErrorConversationId: undefined,
@@ -132,7 +120,7 @@ class RetryConversationService implements ConversationService {
       ...this.snapshot,
       mode: "live",
       activeConversationId: undefined,
-      historyMessages: [],
+      activeConversation: undefined,
       detailStatus: "idle",
       detailError: undefined,
       detailErrorConversationId: undefined,
@@ -145,7 +133,7 @@ class RetryConversationService implements ConversationService {
       ...this.snapshot,
       mode: "live",
       activeConversationId: undefined,
-      historyMessages: [],
+      activeConversation: undefined,
       detailStatus: "idle",
       detailError: undefined,
       detailErrorConversationId: undefined,
@@ -221,7 +209,11 @@ describe("assistant-ui history retry navigation", () => {
   it("routes ThreadList and Plugin Action New Thread through one Runtime owner", async () => {
     const dataSource: ConversationDataSource = {
       list: async () => [],
-      get: async (id) => ({ id, title: id, messages: [] }),
+      get: async (id) => ({
+        id,
+        title: id,
+        history: { format: "langchain", messages: [] },
+      }),
     };
     const service = createConversationService({ dataSource });
     const binding = createConversationServiceThreadBinding();
@@ -278,7 +270,7 @@ describe("assistant-ui history retry navigation", () => {
       expect(service.getSnapshot()).toMatchObject({
         mode: "live",
         activeConversationId: undefined,
-        historyMessages: [],
+        activeConversation: undefined,
         detailStatus: "idle",
         detailError: undefined,
         detailErrorConversationId: undefined,

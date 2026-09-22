@@ -24,6 +24,17 @@ export function createUnavailableConversationDataSource(): ConversationDataSourc
   };
 }
 
+export function createEmptyConversationDataSource(): ConversationDataSource {
+  return {
+    list: async () => [],
+    get: async (id) => {
+      throw new Error(
+        `Conversation "${id}" does not exist in the empty data source.`,
+      );
+    },
+  };
+}
+
 declare module "../../framework/contracts/ui-plugin" {
   interface UIPluginServiceMap {
     [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE]: ConversationDataSource;

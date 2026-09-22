@@ -41,117 +41,53 @@ describe("Mock Conversation API", () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
       conversations: expect.arrayContaining([
-        expect.objectContaining({ id: "conversation-agent-ui" }),
-        expect.objectContaining({ id: "conversation-replay-agent-elements" }),
+        expect.objectContaining({ id: "mock-history-basic" }),
         expect.objectContaining({
-          id: "conversation-replay-subagents",
-          title: "回放：Subagents",
+          id: "mock-history-tool",
+          title: "历史：已完成工具调用",
         }),
-        expect.objectContaining({ id: "conversation-replay-tool-error" }),
+        expect.objectContaining({ id: "mock-history-long" }),
       ]),
     });
   });
 
   it("returns a known conversation detail", async () => {
     const response = await fetch(
-      `${origin}/__agent-ui/mock-data/conversations/conversation-tool`,
+      `${origin}/__agent-ui/mock-data/conversations/mock-history-basic`,
     );
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
-      id: "conversation-tool",
-      messages: expect.arrayContaining([
-        expect.objectContaining({ role: "assistant" }),
-      ]),
-    });
-  });
-
-  it("returns rich replay data without rerunning an Agent scenario", async () => {
-    const response = await fetch(
-      `${origin}/__agent-ui/mock-data/conversations/conversation-replay-agent-elements`,
-    );
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      replay: {
-        version: 1,
-        messages: [
-          expect.objectContaining({
-            id: "replay-agent-elements-user",
-            role: "user",
-          }),
-          expect.objectContaining({
-            id: "replay-agent-elements-assistant",
-            role: "assistant",
-            status: { type: "complete", reason: "stop" },
-          }),
-        ],
-      },
-    });
-  });
-
-  it("returns the dedicated Subagents replay fixture", async () => {
-    const response = await fetch(
-      `${origin}/__agent-ui/mock-data/conversations/conversation-replay-subagents`,
-    );
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      id: "conversation-replay-subagents",
-      title: "回放：Subagents",
-      replay: {
-        messages: [
-          expect.objectContaining({
-            id: "replay-subagents-user",
-            role: "user",
-          }),
-          expect.objectContaining({
-            id: "replay-subagents-assistant",
-            role: "assistant",
-            parts: expect.arrayContaining([
-              expect.objectContaining({
-                toolName: "mock_dispatch_subagent",
-                result: expect.objectContaining({
-                  status: "completed",
-                  progress: 100,
-                }),
-              }),
-            ]),
-          }),
-        ],
-      },
-    });
-  });
-
-  it("returns sources, attachments, and terminal tool errors from fixtures", async () => {
-    const sourcesResponse = await fetch(
-      `${origin}/__agent-ui/mock-data/conversations/conversation-replay-sources-attachments`,
-    );
-    await expect(sourcesResponse.json()).resolves.toMatchObject({
-      replay: {
-        messages: [
-          expect.objectContaining({ attachments: expect.any(Array) }),
-          expect.objectContaining({
-            parts: expect.arrayContaining([
-              expect.objectContaining({ sourceType: "url" }),
-              expect.objectContaining({ sourceType: "document" }),
-            ]),
-          }),
-        ],
-      },
-    });
-
-    const errorResponse = await fetch(
-      `${origin}/__agent-ui/mock-data/conversations/conversation-replay-tool-error`,
-    );
-    const errorPayload = await errorResponse.json();
-    expect(errorPayload).toEqual(expect.objectContaining({
-      replay: expect.objectContaining({
-        messages: expect.arrayContaining([expect.objectContaining({
-          status: expect.objectContaining({ type: "incomplete", reason: "error" }),
-          parts: expect.arrayContaining([
-            expect.objectContaining({ isError: true }),
+      id: "mock-history-basic",
+      state: {
+        values: {
+          messages: expect.arrayContaining([
+            expect.objectContaining({ type: "ai" }),
           ]),
-        })]),
-      }),
-    }));
+        },
+      },
+    });
+  });
+
+  it("returns completed tool history in the LangGraph snapshot", async () => {
+    const response = await fetch(
+      `${origin}/__agent-ui/mock-data/conversations/mock-history-tool`,
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      state: {
+        values: { messages: [
+          expect.objectContaining({
+            type: "human",
+          }),
+          expect.objectContaining({
+            type: "ai",
+            tool_calls: expect.any(Array),
+          }),
+          expect.objectContaining({ type: "tool", status: "success" }),
+          expect.objectContaining({ type: "ai" }),
+        ] },
+      },
+    });
   });
 
   it("returns 404 for an unknown conversation", async () => {

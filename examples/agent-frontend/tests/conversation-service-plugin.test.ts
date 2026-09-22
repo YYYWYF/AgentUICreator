@@ -66,7 +66,11 @@ describe("conversationServicePlugin", () => {
     const list = vi.fn(async () => []);
     const dataSource: ConversationDataSource = {
       list,
-      get: async (id) => ({ id, title: id, messages: [] }),
+      get: async (id) => ({
+        id,
+        title: id,
+        history: { format: "langchain", messages: [] },
+      }),
     };
     const runtime = new PluginServiceRuntime();
     const startNewConversation = vi.fn(async () => {
@@ -103,7 +107,11 @@ describe("conversationServicePlugin", () => {
         signal = options?.signal;
         return new Promise(() => undefined);
       },
-      get: async (id) => ({ id, title: id, messages: [] }),
+      get: async (id) => ({
+        id,
+        title: id,
+        history: { format: "langchain", messages: [] },
+      }),
     };
     const runtime = new PluginServiceRuntime();
     runtime.reconcile(
@@ -130,7 +138,11 @@ describe("conversationServicePlugin", () => {
   it("keeps Conversation Service available without navigation and with a replacement UI", () => {
     const dataSource: ConversationDataSource = {
       list: async () => [],
-      get: async (id) => ({ id, title: id, messages: [] }),
+      get: async (id) => ({
+        id,
+        title: id,
+        history: { format: "langchain", messages: [] },
+      }),
     };
     const customNavigation: UIPluginDefinition = {
       manifest: {
