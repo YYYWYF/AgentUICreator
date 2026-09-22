@@ -8,9 +8,9 @@ function createWaitingFetch(error: Error) {
   const started = new Promise<void>((resolve) => {
     resolveStarted = resolve;
   });
-  const fetch = vi.fn(async (_url: string, init: RequestInit) => {
+  const fetch = vi.fn((_url: string, init: RequestInit): Promise<Response> => {
     resolveStarted();
-    await new Promise<never>((_resolve, reject) => {
+    return new Promise<never>((_resolve, reject) => {
       if (init.signal?.aborted) {
         reject(error);
         return;
@@ -57,5 +57,64 @@ describe("CancellationAwareHttpAgent", () => {
 
     await expect(agent.runAgent(undefined, { onRunFailed })).rejects.toBe(error);
     expect(onRunFailed).toHaveBeenCalledWith(expect.objectContaining({ error }));
+  });
+
+  it("does not leak a raw body-stream rejection from reader cleanup", async () => {
+    let resolveStarted!: () => void;
+    const started = new Promise<void>((resolve) => {
+      resolveStarted = resolve;
+    });
+    const fetch = vi.fn(async (_url: string, init: RequestInit) => {
+      const encoder = new TextEncoder();
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({
+                type: "RUN_STARTED",
+                threadId: "cancel-thread",
+                runId: "cancel-run",
+              })}\n\n`,
+            ),
+          );
+          resolveStarted();
+          const abort = () =>
+            controller.error(new Error("BodyStreamBuffer was aborted"));
+          if (init.signal?.aborted) abort();
+          else init.signal?.addEventListener("abort", abort, { once: true });
+        },
+      });
+      return new Response(body, {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      });
+    });
+    const agent = new CancellationAwareHttpAgent({
+      url: "http://example.test/agent",
+      threadId: "cancel-thread",
+      fetch,
+    });
+    const onRunFailed = vi.fn<NonNullable<AgentSubscriber["onRunFailed"]>>();
+    const unhandled: unknown[] = [];
+    const onUnhandledRejection = (reason: unknown) => {
+      unhandled.push(reason);
+    };
+    process.on("unhandledRejection", onUnhandledRejection);
+
+    try {
+      const run = agent.runAgent(undefined, { onRunFailed });
+      await started;
+      agent.abortRun();
+
+      await expect(run).resolves.toEqual({ result: undefined, newMessages: [] });
+      await new Promise<void>((resolve) => setImmediate(resolve));
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+
+    expect(unhandled).toEqual([]);
+    expect(onRunFailed).toHaveBeenCalledWith(expect.objectContaining({
+      error: expect.objectContaining({ name: "AbortError" }),
+    }));
   });
 });
