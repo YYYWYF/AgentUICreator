@@ -120,6 +120,25 @@ describe("ConversationAgentRuntimeBridge", () => {
     expect(fixture.bridge.getSnapshot().messages).toEqual([]);
   });
 
+  it("settles pending sends and clears projected errors on cancellation", async () => {
+    const fixture = createFixture();
+    const send = fixture.bridge.sendMessage("A");
+
+    fixture.bridge.recordCancellation();
+
+    await expect(send).resolves.toBeUndefined();
+    expect(fixture.bridge.getSnapshot().run).toEqual({ status: "idle" });
+
+    fixture.bridge.recordError(new Error("server failed"));
+    expect(fixture.bridge.getSnapshot().run).toEqual({
+      status: "error",
+      error: { message: "server failed" },
+    });
+
+    fixture.bridge.recordCancellation();
+    expect(fixture.bridge.getSnapshot().run).toEqual({ status: "idle" });
+  });
+
   it("projects the assistant-ui thread state without a second state owner", () => {
     const fixture = createFixture();
 

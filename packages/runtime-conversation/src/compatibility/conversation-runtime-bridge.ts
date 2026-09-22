@@ -209,6 +209,12 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
     else this.sync();
   }
 
+  recordCancellation(): void {
+    this.runtimeError = undefined;
+    this.finishPending();
+    this.sync();
+  }
+
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
@@ -220,7 +226,8 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
     for (const unsubscribe of this.unsubscribers) unsubscribe();
     this.unsubscribers.length = 0;
     this.observationSource.stop();
-    this.finishPending(new Error("The conversation runtime disconnected"));
+    this.runtimeError = undefined;
+    this.finishPending();
   }
 
   private assertAvailable(): void {

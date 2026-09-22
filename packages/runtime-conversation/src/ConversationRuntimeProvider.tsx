@@ -28,6 +28,7 @@ import {
   createConversationAgentRuntimeBridge,
   type ConversationAgentRuntimeBridge,
 } from "./compatibility/conversation-runtime-bridge.js";
+import { isExpectedCancellationError } from "./errors.js";
 import { ConversationApplicationEventSource } from "./events/conversation-application-event-source.js";
 import type {
   ConversationThreadBinding,
@@ -169,7 +170,14 @@ export function ConversationRuntimeProvider<TState = unknown>({
     [agent, threadBinding, threadId, threadListSnapshot],
   );
   const bridgeRef = useRef<ConversationAgentRuntimeBridge<TState> | null>(null);
+  const handleCancel = useCallback(() => {
+    bridgeRef.current?.recordCancellation();
+  }, []);
   const handleError = useCallback((error: Error) => {
+    if (isExpectedCancellationError(error)) {
+      bridgeRef.current?.recordCancellation();
+      return;
+    }
     bridgeRef.current?.recordError(error);
     onError?.(error);
   }, [onError]);
@@ -179,6 +187,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
     showThinking: true,
     unstable_enableMessageQueue: false,
     adapters: { threadList },
+    onCancel: handleCancel,
     onError: handleError,
   });
   const applicationEvents = useMemo(

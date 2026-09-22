@@ -90,6 +90,46 @@ describe("Mock Agent HTTP endpoint", () => {
     ]);
   });
 
+  it("does not translate a client abort after partial content into RUN_ERROR", async () => {
+    const endpoint = await startMockServer([
+      defineScenario({
+        id: "slow-cancel",
+        title: "Slow cancellation",
+        steps: [{
+          type: "message",
+          text: "这是一段足够慢的流式回复",
+          intervalMs: 10,
+        }],
+      }),
+    ]);
+    const agent = new HttpAgent({
+      url: `${endpoint}?scenario=slow-cancel`,
+      threadId: "thread-cancel",
+    });
+    agent.addMessage({
+      id: "user-cancel",
+      role: "user",
+      content: "停止生成",
+    });
+
+    const events: BaseEvent[] = [];
+    let aborted = false;
+    await agent.runAgent({ runId: "run-cancel" }, {
+      onEvent: ({ event }) => {
+        events.push(event);
+        if (!aborted && event.type === EventType.TEXT_MESSAGE_CONTENT) {
+          aborted = true;
+          agent.abortRun();
+        }
+      },
+    });
+
+    expect(aborted).toBe(true);
+    expect(events.some((event) => event.type === EventType.TEXT_MESSAGE_CONTENT))
+      .toBe(true);
+    expect(events.some((event) => event.type === EventType.RUN_ERROR)).toBe(false);
+  });
+
   it("uses the default scenario when the query parameter is absent", async () => {
     const endpoint = await startMockServer(
       selectionScenarios(),

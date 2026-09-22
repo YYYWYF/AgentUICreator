@@ -80,6 +80,7 @@ export function useConversationRuntimeObservation(): ConversationObservationSnap
 export interface ConversationAgentRuntimeBridge<TState = unknown>
   extends AgentRuntime<TState> {
   readonly observation: ConversationObservationSource;
+  recordCancellation(): void;
   recordError(value: unknown): void;
 }
 
