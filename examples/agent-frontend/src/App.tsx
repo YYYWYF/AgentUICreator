@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   ConversationRuntimeProvider,
   useConversationRuntimeBridge,
@@ -44,6 +50,7 @@ import { createConversationServiceThreadBinding } from "../agent-ui/conversation
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
 import {
   isMockAgentEndpoint,
+  type MockScenarioSelection,
   resolveAgentEndpoint,
   shouldRenderDevStudio,
 } from "./agent-endpoint";
@@ -79,20 +86,24 @@ const appFrontendToolRegistry = new AppFrontendToolRegistry(appFrontendTools);
 const appFrontendToolRuntime = new AppFrontendToolRuntime(
   appFrontendToolRegistry,
 );
-const endpoint = resolveAgentEndpoint({
-  configuredEndpoint: import.meta.env.VITE_AGENT_ENDPOINT,
-  isDev: import.meta.env.DEV,
-  search: window.location.search,
-});
+const configuredAgentEndpoint = import.meta.env.VITE_AGENT_ENDPOINT;
 
 function AgentFrontendSurface({
   actions,
   composition,
+  endpoint,
+  mockRunRevision,
+  mockSelection,
+  onMockScenarioRun,
   runtimeMode,
   onPreviewCommitted,
 }: {
   actions: UIPluginRuntimeActions;
   composition: RuntimeCompositionSnapshot<AppAgentState>;
+  endpoint: string;
+  mockRunRevision: number;
+  mockSelection: MockScenarioSelection | undefined;
+  onMockScenarioRun: (selection: MockScenarioSelection) => void;
   runtimeMode: string;
   onPreviewCommitted?: PreviewCommitReporter | undefined;
 }) {
@@ -126,7 +137,12 @@ function AgentFrontendSurface({
         registry={composition.activeRegistry}
       />
       {shouldRenderDevStudio({ isDev: import.meta.env.DEV }) ? (
-        <DevStudio endpoint={endpoint} />
+        <DevStudio
+          endpoint={endpoint}
+          mockRunRevision={mockRunRevision}
+          mockSelection={mockSelection}
+          onMockScenarioRun={onMockScenarioRun}
+        />
       ) : null}
     </div>
   );
@@ -136,12 +152,20 @@ export type PreviewCommitReporter = (currentHash: string, root: HTMLElement) => 
 
 function RuntimeConnectedPreview({
   composition,
+  endpoint,
+  mockRunRevision,
+  mockSelection,
+  onMockScenarioRun,
   onRuntimeComposition,
   onRuntimeDiagnostic,
   onPreviewCommitted,
   runtime,
 }: {
   composition: RuntimeCompositionSnapshot<AppAgentState>;
+  endpoint: string;
+  mockRunRevision: number;
+  mockSelection: MockScenarioSelection | undefined;
+  onMockScenarioRun: (selection: MockScenarioSelection) => void;
   onRuntimeComposition?: RuntimeCompositionReporter | undefined;
   onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
   onPreviewCommitted?: PreviewCommitReporter | undefined;
@@ -205,6 +229,10 @@ function RuntimeConnectedPreview({
               <AgentFrontendSurface
                 actions={pluginActions}
                 composition={composition}
+                endpoint={endpoint}
+                mockRunRevision={mockRunRevision}
+                mockSelection={mockSelection}
+                onMockScenarioRun={onMockScenarioRun}
                 runtimeMode={runtime.mode}
                 onPreviewCommitted={onPreviewCommitted}
               />
@@ -218,11 +246,19 @@ function RuntimeConnectedPreview({
 
 function RuntimeControlPlane({
   composition,
+  endpoint,
+  mockRunRevision,
+  mockSelection,
+  onMockScenarioRun,
   onRuntimeComposition,
   onRuntimeDiagnostic,
   onPreviewCommitted,
 }: {
   composition: RuntimeCompositionSnapshot<AppAgentState> | undefined;
+  endpoint: string;
+  mockRunRevision: number;
+  mockSelection: MockScenarioSelection | undefined;
+  onMockScenarioRun: (selection: MockScenarioSelection) => void;
   onRuntimeComposition?: RuntimeCompositionReporter | undefined;
   onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
   onPreviewCommitted?: PreviewCommitReporter | undefined;
@@ -236,6 +272,10 @@ function RuntimeControlPlane({
       ) : (
         <RuntimeConnectedPreview
           composition={composition}
+          endpoint={endpoint}
+          mockRunRevision={mockRunRevision}
+          mockSelection={mockSelection}
+          onMockScenarioRun={onMockScenarioRun}
           onRuntimeComposition={onRuntimeComposition}
           onRuntimeDiagnostic={onRuntimeDiagnostic}
           onPreviewCommitted={onPreviewCommitted}
@@ -248,11 +288,19 @@ function RuntimeControlPlane({
 
 function ConversationRuntimeBoundary({
   composition,
+  endpoint,
+  mockRunRevision,
+  mockSelection,
+  onMockScenarioRun,
   onRuntimeComposition,
   onRuntimeDiagnostic,
   onPreviewCommitted,
 }: {
   composition: RuntimeCompositionSnapshot<AppAgentState> | undefined;
+  endpoint: string | undefined;
+  mockRunRevision: number;
+  mockSelection: MockScenarioSelection | undefined;
+  onMockScenarioRun: (selection: MockScenarioSelection) => void;
   onRuntimeComposition?: RuntimeCompositionReporter | undefined;
   onRuntimeDiagnostic?: RuntimeDiagnosticReporter | undefined;
   onPreviewCommitted?: PreviewCommitReporter | undefined;
@@ -261,11 +309,12 @@ function ConversationRuntimeBoundary({
     () => createConversationServiceThreadBinding<AppAgentState>(),
     [],
   );
+  const mockAgentElements = isMockAgentEndpoint(endpoint);
   const toolkit = useMemo(
     () => createConversationToolkit({
-      mockAgentElements: isMockAgentEndpoint(endpoint),
+      mockAgentElements,
     }),
-    [],
+    [mockAgentElements],
   );
   if (endpoint === undefined) {
     throw new Error("The Conversation mode requires an AG-UI endpoint.");
@@ -280,6 +329,10 @@ function ConversationRuntimeBoundary({
     >
       <RuntimeControlPlane
         composition={composition}
+        endpoint={endpoint}
+        mockRunRevision={mockRunRevision}
+        mockSelection={mockSelection}
+        onMockScenarioRun={onMockScenarioRun}
         onRuntimeComposition={onRuntimeComposition}
         onRuntimeDiagnostic={onRuntimeDiagnostic}
         onPreviewCommitted={onPreviewCommitted}
@@ -299,6 +352,24 @@ export function App({
   onRuntimeDiagnostic,
   onPreviewCommitted,
 }: AppProps = {}) {
+  const [mockSelection, setMockSelection] = useState<MockScenarioSelection>();
+  const [mockRunRevision, setMockRunRevision] = useState(0);
+  const endpoint = useMemo(
+    () => resolveAgentEndpoint({
+      configuredEndpoint: configuredAgentEndpoint,
+      isDev: import.meta.env.DEV,
+      mockSelection,
+      search: "",
+    }),
+    [mockSelection],
+  );
+  const onMockScenarioRun = useMemo(
+    () => (selection: MockScenarioSelection) => {
+      setMockSelection(selection);
+      setMockRunRevision((current) => current + 1);
+    },
+    [],
+  );
   const composition = useSyncExternalStore(
     runtimeCompositionStore.subscribe,
     runtimeCompositionStore.getSnapshot,
@@ -360,6 +431,10 @@ export function App({
   return (
     <ConversationRuntimeBoundary
       composition={composition}
+      endpoint={endpoint}
+      mockRunRevision={mockRunRevision}
+      mockSelection={mockSelection}
+      onMockScenarioRun={onMockScenarioRun}
       onRuntimeComposition={onRuntimeComposition}
       onRuntimeDiagnostic={onRuntimeDiagnostic}
       onPreviewCommitted={onPreviewCommitted}

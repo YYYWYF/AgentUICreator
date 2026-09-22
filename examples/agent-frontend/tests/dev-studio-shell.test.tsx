@@ -1,6 +1,10 @@
 // @vitest-environment jsdom
 
-import { act, create } from "react-test-renderer";
+import {
+  act,
+  create,
+  type ReactTestRenderer,
+} from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
@@ -68,15 +72,18 @@ describe("Agent UI Dev Studio shell", () => {
   });
 
   it("shows Scenario and Runtime tabs for Mock development", async () => {
-    const renderer = create(
-      <AgentRuntimeProvider runtime={createRuntime()}>
-        <DevStudio endpoint="/__agent-ui/mock" />
-      </AgentRuntimeProvider>,
-    );
+    let renderer!: ReactTestRenderer;
+    await act(async () => {
+      renderer = create(
+        <AgentRuntimeProvider runtime={createRuntime()}>
+          <DevStudio endpoint="/__agent-ui/mock" />
+        </AgentRuntimeProvider>,
+      );
+    });
 
     await act(async () => {
       renderer.root.findByProps({
-        "aria-label": "Open Agent UI Dev Studio",
+        "aria-label": "Open Mock Agent panel",
       }).props.onClick();
     });
 
@@ -88,7 +95,7 @@ describe("Agent UI Dev Studio shell", () => {
 
     await act(async () => {
       renderer.root.findByProps({
-        "aria-label": "Close Agent UI Dev Studio",
+        "aria-label": "Close Mock Agent panel",
       }).props.onClick();
     });
 
@@ -96,11 +103,14 @@ describe("Agent UI Dev Studio shell", () => {
   });
 
   it("shows only Runtime for a real development endpoint", async () => {
-    const renderer = create(
-      <AgentRuntimeProvider runtime={createRuntime()}>
-        <DevStudio endpoint="https://agent.example/api" />
-      </AgentRuntimeProvider>,
-    );
+    let renderer!: ReactTestRenderer;
+    await act(async () => {
+      renderer = create(
+        <AgentRuntimeProvider runtime={createRuntime()}>
+          <DevStudio endpoint="https://agent.example/api" />
+        </AgentRuntimeProvider>,
+      );
+    });
 
     await act(async () => {
       renderer.root.findByProps({
@@ -112,5 +122,55 @@ describe("Agent UI Dev Studio shell", () => {
     expect(JSON.stringify(renderer.toJSON())).toContain("Runtime panel");
     expect(JSON.stringify(renderer.toJSON())).not.toContain("Scenario");
     expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it("starts collapsed after a page reload and stays open until the user closes it", async () => {
+    let firstRenderer!: ReactTestRenderer;
+    await act(async () => {
+      firstRenderer = create(
+        <AgentRuntimeProvider runtime={createRuntime()}>
+          <DevStudio endpoint="/__agent-ui/mock" />
+        </AgentRuntimeProvider>,
+      );
+    });
+
+    await act(async () => {
+      firstRenderer.root.findByProps({
+        "aria-label": "Open Mock Agent panel",
+      }).props.onClick();
+    });
+    firstRenderer.unmount();
+
+    let renderer!: ReactTestRenderer;
+    await act(async () => {
+      renderer = create(
+        <AgentRuntimeProvider runtime={createRuntime()}>
+          <DevStudio endpoint="/__agent-ui/mock" />
+        </AgentRuntimeProvider>,
+      );
+    });
+
+    expect(renderer.root.findByProps({
+      "aria-label": "Open Mock Agent panel",
+    })).toBeDefined();
+
+    await act(async () => {
+      renderer.root.findByProps({
+        "aria-label": "Open Mock Agent panel",
+      }).props.onClick();
+    });
+
+    expect(renderer.root.findByProps({
+      "aria-label": "Close Mock Agent panel",
+    })).toBeDefined();
+
+    await act(async () => {
+      renderer.root.findByProps({
+        "aria-label": "Close Mock Agent panel",
+      }).props.onClick();
+    });
+    expect(renderer.root.findByProps({
+      "aria-label": "Open Mock Agent panel",
+    })).toBeDefined();
   });
 });

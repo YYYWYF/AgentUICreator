@@ -156,6 +156,34 @@
   font-weight: 700;
 }
 
+.creator-panel-header .creator-panel-dev-studio-dock
+  button[data-agent-ui-dev-studio-entry="mock"] {
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border: 1px solid #84adff;
+  color: #175cd3;
+  background: #eff8ff;
+  box-shadow: 0 0 0 2px rgb(23 92 211 / 12%);
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
+
+.creator-panel-header .creator-panel-dev-studio-dock
+  button[data-agent-ui-dev-studio-entry="mock"]:hover,
+.creator-panel-header .creator-panel-dev-studio-dock
+  button[data-agent-ui-dev-studio-entry="mock"][aria-expanded="true"] {
+  border-color: #175cd3;
+  color: #ffffff;
+  background: #175cd3;
+  box-shadow: 0 0 0 2px rgb(23 92 211 / 18%);
+}
+
+.creator-panel-header .creator-panel-dev-studio-dock
+  button[data-agent-ui-dev-studio-entry="mock"]:focus-visible {
+  border-color: #175cd3;
+  box-shadow: 0 0 0 3px rgb(46 144 250 / 35%);
+}
+
 .creator-panel-body {
   display: flex;
   min-height: 0;

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { StrictMode } from "react";
+import { StrictMode, useState } from "react";
 import {
   act,
   create,
@@ -16,16 +16,12 @@ import type {
 
 import { AgentRuntimeProvider } from "../runtime/context";
 import {
-  MOCK_SCENARIO_AUTORUN_STORAGE_KEY,
   MOCK_SCENARIO_AUTORUN_TRIGGER,
+  type MockScenarioSelection,
 } from "../src/agent-endpoint";
 import {
-  buildScenarioSelectionUrl,
-  consumeMockScenarioAutorunMarker,
-  hasMockScenarioAutorunMarker,
   ScenarioPanel,
   scenarioCatalogEndpoint,
-  writeMockScenarioAutorunMarker,
 } from "../src/dev/DevStudio/ScenarioPanel";
 import { DevStudio } from "../src/dev/DevStudio/DevStudio";
 
@@ -105,6 +101,7 @@ const catalog = {
       category: "state",
       capabilities: ["state-sync"],
       reference: {
+        level: "recommended",
         protocol: "AG-UI",
         pattern: "Live Job State Synchronization",
         presentation: "assistant-ui JobProgress + Dev Studio Runtime State",
@@ -247,18 +244,18 @@ function scenarioButtonWithTitle(
 
 async function mountStudio({
   endpoint = "/__agent-ui/mock",
-  navigate,
+  onRun,
   runtime = createRuntime(),
 }: {
   endpoint?: string;
-  navigate?: (url: string) => void;
+  onRun?: (selection: MockScenarioSelection) => void;
   runtime?: AgentRuntime;
 } = {}) {
   let renderer!: ReactTestRenderer;
   await act(async () => {
     renderer = create(
       <AgentRuntimeProvider runtime={runtime}>
-        <ScenarioPanel endpoint={endpoint} navigate={navigate} />
+        <ScenarioPanel endpoint={endpoint} onRun={onRun} />
       </AgentRuntimeProvider>,
     );
     await Promise.resolve();
@@ -270,10 +267,16 @@ async function mountStudio({
 
 async function mountDevStudio({
   endpoint = "/__agent-ui/mock",
+  mockRunRevision = 0,
+  mockSelection,
+  onMockScenarioRun,
   runtime = createRuntime(),
   strictMode = false,
 }: {
   endpoint?: string;
+  mockRunRevision?: number;
+  mockSelection?: MockScenarioSelection;
+  onMockScenarioRun?: (selection: MockScenarioSelection) => void;
   runtime?: AgentRuntime;
   strictMode?: boolean;
 } = {}) {
@@ -281,13 +284,44 @@ async function mountDevStudio({
   await act(async () => {
     const tree = (
       <AgentRuntimeProvider runtime={runtime}>
-        <DevStudio endpoint={endpoint} />
+        <DevStudio
+          endpoint={endpoint}
+          mockRunRevision={mockRunRevision}
+          mockSelection={mockSelection}
+          onMockScenarioRun={onMockScenarioRun}
+        />
       </AgentRuntimeProvider>
     );
     renderer = create(strictMode ? <StrictMode>{tree}</StrictMode> : tree);
     await Promise.resolve();
   });
   return renderer;
+}
+
+function MockDevStudioHarness({
+  runtime,
+}: {
+  runtime: AgentRuntime;
+}) {
+  const [mockSelection, setMockSelection] = useState<MockScenarioSelection>();
+  const [mockRunRevision, setMockRunRevision] = useState(0);
+  const endpoint = mockSelection === undefined
+    ? "/__agent-ui/mock"
+    : `/__agent-ui/mock?scenario=${encodeURIComponent(mockSelection.scenarioId)}&speed=${mockSelection.speed}`;
+
+  return (
+    <AgentRuntimeProvider runtime={runtime}>
+      <DevStudio
+        endpoint={endpoint}
+        mockRunRevision={mockRunRevision}
+        mockSelection={mockSelection}
+        onMockScenarioRun={(selection) => {
+          setMockSelection(selection);
+          setMockRunRevision((current) => current + 1);
+        }}
+      />
+    </AgentRuntimeProvider>
+  );
 }
 
 async function flushAutorun(): Promise<void> {
@@ -388,9 +422,9 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     renderer.unmount();
   });
 
-  it("writes the selected scenario and speed to the shareable URL", async () => {
-    const navigate = vi.fn();
-    const renderer = await mountStudio({ navigate });
+  it("keeps the selected scenario and speed in the current page state", async () => {
+    const onRun = vi.fn();
+    const renderer = await mountStudio({ onRun });
 
     await act(async () => {
       scenarioButtonWithTitle(renderer, "Simple Chat")?.props.onClick();
@@ -402,18 +436,18 @@ describe("Scenario Panel and Dev Studio autorun", () => {
       buttonWithText(renderer, "Run Scenario")!.props.onClick();
     });
 
-    expect(navigate).toHaveBeenCalledWith(
-      "/?mockScenario=simple-chat&mockSpeed=0.5",
-    );
-    expect(window.sessionStorage.getItem(MOCK_SCENARIO_AUTORUN_STORAGE_KEY))
-      .toBe("1");
+    expect(onRun).toHaveBeenCalledWith({ scenarioId: "simple-chat", speed: 0.5 });
+    expect(window.location.search).toBe("");
+    renderer.unmount();
   });
 
   it("keeps the fixed mock trigger on the normal Runtime sendMessage path", async () => {
     const sendMessage = vi.fn(async () => undefined);
-    writeMockScenarioAutorunMarker();
 
-    const renderer = await mountDevStudio({ runtime: createRuntime(sendMessage) });
+    const renderer = await mountDevStudio({
+      mockRunRevision: 1,
+      runtime: createRuntime(sendMessage),
+    });
     await flushAutorun();
 
     expect(sendMessage).toHaveBeenCalledOnce();
@@ -421,25 +455,21 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     renderer.unmount();
   });
 
-  it("consumes the one-shot marker when the timer starts the run", async () => {
-    writeMockScenarioAutorunMarker();
+  it("does not autorun on a fresh Mock mount", async () => {
     const sendMessage = vi.fn(async () => undefined);
 
     const renderer = await mountDevStudio({ runtime: createRuntime(sendMessage) });
-
-    expect(hasMockScenarioAutorunMarker()).toBe(true);
     await flushAutorun();
-    expect(sendMessage).toHaveBeenCalledOnce();
-    expect(hasMockScenarioAutorunMarker()).toBe(false);
+    expect(sendMessage).not.toHaveBeenCalled();
     renderer.unmount();
   });
 
   it("autoruns exactly once through Runtime under StrictMode", async () => {
-    writeMockScenarioAutorunMarker();
     const sendMessage = vi.fn(async () => undefined);
 
     const renderer = await mountDevStudio({
       endpoint: "/__agent-ui/mock?scenario=nested-subagent-conversation&speed=1",
+      mockRunRevision: 1,
       runtime: createRuntime(sendMessage),
       strictMode: true,
     });
@@ -447,14 +477,13 @@ describe("Scenario Panel and Dev Studio autorun", () => {
 
     expect(sendMessage).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith(MOCK_SCENARIO_AUTORUN_TRIGGER);
-    expect(hasMockScenarioAutorunMarker()).toBe(false);
     renderer.unmount();
   });
 
-  it("does not rerun after a second mount once the marker was consumed", async () => {
-    writeMockScenarioAutorunMarker();
+  it("runs the same scenario again when the in-memory revision changes", async () => {
     const firstSendMessage = vi.fn(async () => undefined);
     const firstRenderer = await mountDevStudio({
+      mockRunRevision: 1,
       runtime: createRuntime(firstSendMessage),
     });
     await flushAutorun();
@@ -462,95 +491,77 @@ describe("Scenario Panel and Dev Studio autorun", () => {
 
     const secondSendMessage = vi.fn(async () => undefined);
     const secondRenderer = await mountDevStudio({
+      mockRunRevision: 2,
       runtime: createRuntime(secondSendMessage),
       strictMode: true,
     });
     await flushAutorun();
 
     expect(firstSendMessage).toHaveBeenCalledOnce();
-    expect(secondSendMessage).not.toHaveBeenCalled();
+    expect(secondSendMessage).toHaveBeenCalledOnce();
     secondRenderer.unmount();
   });
 
-  it("restarts the current scenario through a fresh Runtime after reload", async () => {
-    window.history.replaceState(
-      null,
-      "",
-      "/?mockScenario=nested-subagent-conversation&mockSpeed=1",
-    );
-    const navigate = vi.fn();
-    const firstRenderer = await mountStudio({ navigate });
-
-    expect(buttonWithText(firstRenderer, "Restart Scenario")).toBeDefined();
-    await act(async () => {
-      buttonWithText(firstRenderer, "Restart Scenario")!.props.onClick();
-    });
-    expect(navigate).toHaveBeenCalledWith(
-      "/?mockScenario=nested-subagent-conversation&mockSpeed=1",
-    );
-    firstRenderer.unmount();
-
+  it("runs and restarts in place without changing the browser URL", async () => {
     const sendMessage = vi.fn(async () => undefined);
-    const secondRenderer = await mountDevStudio({
-      endpoint: "/__agent-ui/mock?scenario=nested-subagent-conversation&speed=1",
-      runtime: createRuntime(sendMessage),
-      strictMode: true,
-    });
-    await flushAutorun();
-
-    expect(sendMessage).toHaveBeenCalledOnce();
-    expect(hasMockScenarioAutorunMarker()).toBe(false);
-    secondRenderer.unmount();
-  });
-
-  it("runs a selected scenario after Run Scenario navigation and StrictMode reload", async () => {
-    const renderer = await mountStudio({
-      navigate: (url) => window.history.replaceState(null, "", url),
+    let renderer!: ReactTestRenderer;
+    await act(async () => {
+      renderer = create(
+        <MockDevStudioHarness runtime={createRuntime(sendMessage)} />,
+      );
     });
 
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      renderer.root.findByProps({ "aria-label": "Open Mock Agent panel" })
+        .props.onClick();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
     await act(async () => {
       renderer.root.findAllByProps({ "aria-pressed": false })[0]!.props.onClick();
     });
+    expect(buttonWithText(renderer, "Run Scenario")).toBeDefined();
+
     await act(async () => {
       buttonWithText(renderer, "Run Scenario")!.props.onClick();
-    });
-    renderer.unmount();
-
-    const sendMessage = vi.fn(async () => undefined);
-    const reloadedRenderer = await mountDevStudio({
-      endpoint: "/__agent-ui/mock?scenario=nested-subagent-conversation&speed=1",
-      runtime: createRuntime(sendMessage),
-      strictMode: true,
     });
     await flushAutorun();
 
     expect(sendMessage).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith(MOCK_SCENARIO_AUTORUN_TRIGGER);
-    expect(hasMockScenarioAutorunMarker()).toBe(false);
-    reloadedRenderer.unmount();
+    expect(window.location.search).toBe("");
+    expect(buttonWithText(renderer, "Restart Scenario")).toBeDefined();
+    expect(renderer.root.findByProps({
+      "aria-label": "Close Mock Agent panel",
+    })).toBeDefined();
+    await act(async () => {
+      buttonWithText(renderer, "Restart Scenario")!.props.onClick();
+    });
+    await flushAutorun();
+
+    expect(sendMessage).toHaveBeenCalledTimes(2);
+    expect(sendMessage).toHaveBeenCalledWith(MOCK_SCENARIO_AUTORUN_TRIGGER);
+    expect(window.location.search).toBe("");
+    expect(renderer.root.findByProps({
+      "aria-label": "Close Mock Agent panel",
+    })).toBeDefined();
+    renderer.unmount();
   });
 
   it("never autoruns for a non-Mock endpoint", async () => {
-    writeMockScenarioAutorunMarker();
     const sendMessage = vi.fn(async () => undefined);
     const renderer = await mountDevStudio({
       endpoint: "https://agent.example/api",
+      mockRunRevision: 1,
       runtime: createRuntime(sendMessage),
     });
     await flushAutorun();
 
     expect(sendMessage).not.toHaveBeenCalled();
-    expect(window.sessionStorage.getItem(MOCK_SCENARIO_AUTORUN_STORAGE_KEY))
-      .toBe("1");
     renderer.unmount();
-  });
-
-  it("builds a scenario URL without mixing transient autorun state into it", () => {
-    window.history.replaceState(null, "", "/workspace?tab=conversation#run");
-
-    expect(buildScenarioSelectionUrl("nested-subagent-conversation", 1)).toBe(
-      "/workspace?tab=conversation&mockScenario=nested-subagent-conversation&mockSpeed=1#run",
-    );
-    expect(consumeMockScenarioAutorunMarker()).toBe(false);
   });
 });

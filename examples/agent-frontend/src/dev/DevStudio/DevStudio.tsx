@@ -1,11 +1,11 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDownIcon } from "lucide-react";
 
 import { Button } from "@agent-ui/react";
 import {
   isMockAgentEndpoint,
-  resolveMockScenarioSearchParams,
+  type MockScenarioSelection,
 } from "../../agent-endpoint";
 import { RuntimePanel } from "./RuntimePanel";
 import { ScenarioPanel } from "./ScenarioPanel";
@@ -16,25 +16,32 @@ type DevStudioTab = "scenario" | "runtime";
 
 export interface DevStudioProps {
   endpoint: string | undefined;
+  mockRunRevision?: number;
+  mockSelection?: MockScenarioSelection | undefined;
+  onMockScenarioRun?: ((selection: MockScenarioSelection) => void) | undefined;
 }
 
 const DEV_STUDIO_DOCK_SELECTOR = '[data-slot="agent-ui-dev-studio-dock"]';
 const DEV_STUDIO_PANEL_SELECTOR = '[data-slot="agent-ui-dev-studio-panel"]';
 
-function formatSpeed(value: string | undefined): string {
+function formatSpeed(value: number | undefined): string {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return "1×";
   return parsed === 0 ? "Instant" : `${Math.min(10, Math.max(0, parsed))}×`;
 }
 
-function mockEntryLabel(): string {
-  const { scenario, speed } = resolveMockScenarioSearchParams(
-    window.location.search,
-  );
-  return `Dev · Mock · ${scenario ?? "default"} · ${formatSpeed(speed)}`;
+function mockEntryLabel(selection: MockScenarioSelection | undefined): string {
+  return `Dev · Mock · ${selection?.scenarioId ?? "default"} · ${formatSpeed(
+    selection?.speed,
+  )}`;
 }
 
-export function DevStudio({ endpoint }: DevStudioProps) {
+export function DevStudio({
+  endpoint,
+  mockRunRevision = 0,
+  mockSelection,
+  onMockScenarioRun,
+}: DevStudioProps) {
   const mockEnabled = isMockAgentEndpoint(endpoint);
   const [open, setOpen] = useState(false);
   const [dock, setDock] = useState<Element | null>(null);
@@ -43,11 +50,19 @@ export function DevStudio({ endpoint }: DevStudioProps) {
     mockEnabled ? "scenario" : "runtime",
   );
 
-  useMockScenarioAutorun(endpoint);
+  useMockScenarioAutorun(endpoint, mockRunRevision);
 
   useEffect(() => {
-    if (!mockEnabled) setActiveTab("runtime");
+    if (!mockEnabled) {
+      setActiveTab("runtime");
+      setOpen(false);
+      return;
+    }
   }, [mockEnabled]);
+
+  const setPanelOpen = useCallback((nextOpen: boolean) => {
+    setOpen(nextOpen);
+  }, []);
 
   useLayoutEffect(() => {
     const resolveDock = () => {
@@ -64,29 +79,36 @@ export function DevStudio({ endpoint }: DevStudioProps) {
   useEffect(() => {
     if (!open) return;
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") setPanelOpen(false);
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open]);
+  }, [open, setPanelOpen]);
 
-  const entryLabel = mockEnabled ? mockEntryLabel() : "Dev · Runtime";
+  const entryLabel = mockEnabled
+    ? mockEntryLabel(mockSelection)
+    : "Dev · Runtime";
   const entry = (
     <Button
       data-agent-ui-preview-exclude=""
+      data-agent-ui-dev-studio-entry={mockEnabled ? "mock" : "runtime"}
       aria-controls="agent-ui-dev-studio-panel"
       aria-expanded={open}
-      aria-label={open
-        ? "Close Agent UI Dev Studio"
-        : "Open Agent UI Dev Studio"}
-      className={dock === null ? styles.entry : styles.dockedEntry}
-      onClick={() => setOpen((current) => !current)}
+      aria-label={mockEnabled
+        ? open ? "Close Mock Agent panel" : "Open Mock Agent panel"
+        : open ? "Close Agent UI Dev Studio" : "Open Agent UI Dev Studio"}
+      className={
+        `${dock === null ? styles.entry : styles.dockedEntry}${
+          mockEnabled ? ` ${styles.mockEntry}` : ""
+        }`
+      }
+      onClick={() => setPanelOpen(!open)}
       size="sm"
       title={entryLabel}
       variant="outline"
     >
       <span className={styles.entryDot} aria-hidden="true" />
-      {dock === null ? entryLabel : mockEnabled ? "Mock" : "Runtime"}
+      {dock === null ? entryLabel : mockEnabled ? "Mock Agent" : "Runtime"}
       <ChevronDownIcon
         aria-hidden="true"
         className={`${styles.entryChevron}${open ? ` ${styles.entryChevronOpen}` : ""}`}
@@ -149,7 +171,11 @@ export function DevStudio({ endpoint }: DevStudioProps) {
         role={mockEnabled ? "tabpanel" : undefined}
       >
         {activeTab === "scenario" && mockEnabled ? (
-          <ScenarioPanel endpoint={endpoint!} />
+          <ScenarioPanel
+            currentSelection={mockSelection}
+            endpoint={endpoint!}
+            onRun={onMockScenarioRun}
+          />
         ) : (
           <RuntimePanel endpoint={endpoint} mockEnabled={mockEnabled} />
         )}

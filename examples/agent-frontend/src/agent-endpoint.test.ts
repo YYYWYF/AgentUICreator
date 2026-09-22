@@ -42,6 +42,14 @@ describe("resolveAgentEndpoint", () => {
     })).toBe("/__agent-ui/mock?scenario=tool-long-running&speed=0.05");
   });
 
+  it("uses the current-page Mock selection without requiring browser URL state", () => {
+    expect(resolveAgentEndpoint({
+      isDev: true,
+      mockSelection: { scenarioId: "simple-chat", speed: 0.5 },
+      search: "?mockScenario=stale&mockSpeed=9",
+    })).toBe("/__agent-ui/mock?scenario=simple-chat&speed=0.5");
+  });
+
   it("parses mock scenario controls without affecting real endpoints", () => {
     expect(resolveMockScenarioSearchParams(
       "?mockScenario=agent-plan&mockSpeed=0.05",

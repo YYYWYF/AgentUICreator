@@ -9,8 +9,7 @@ import type {
 import { Badge, Button, Input } from "@agent-ui/react";
 import {
   isMockAgentEndpoint,
-  MOCK_SCENARIO_AUTORUN_STORAGE_KEY,
-  resolveMockScenarioSearchParams,
+  type MockScenarioSelection,
 } from "../../agent-endpoint";
 import styles from "../scenario-studio.module.css";
 
@@ -65,12 +64,6 @@ const speedOptions = [
   { value: 2, label: "Slow" },
 ];
 
-function clampSpeed(value: string | undefined): number {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return 1;
-  return Math.min(10, Math.max(0, parsed));
-}
-
 const referenceLevelLabels = {
   recommended: "Recommended",
   advanced: "Advanced",
@@ -103,8 +96,9 @@ function readScenarioCatalog(value: unknown): ScenarioCatalogResponse {
 }
 
 export interface ScenarioPanelProps {
+  currentSelection?: MockScenarioSelection | undefined;
   endpoint: string;
-  navigate?: ((url: string) => void) | undefined;
+  onRun?: ((selection: MockScenarioSelection) => void) | undefined;
 }
 
 export function scenarioCatalogEndpoint(endpoint: string): string {
@@ -117,59 +111,29 @@ export function scenarioCatalogEndpoint(endpoint: string): string {
     : url.toString();
 }
 
-export function buildScenarioSelectionUrl(
-  scenarioId: string,
-  speed: number,
-): string {
-  const params = new URLSearchParams(window.location.search);
-  params.set("mockScenario", scenarioId);
-  params.set("mockSpeed", String(speed));
-  const queryString = params.toString();
-  return `${window.location.pathname}${queryString ? `?${queryString}` : ""}${window.location.hash}`;
-}
-
-export function writeMockScenarioAutorunMarker(
-  storage: Pick<Storage, "setItem"> = window.sessionStorage,
-): void {
-  storage.setItem(MOCK_SCENARIO_AUTORUN_STORAGE_KEY, "1");
-}
-
-export function hasMockScenarioAutorunMarker(
-  storage: Pick<Storage, "getItem"> = window.sessionStorage,
-): boolean {
-  return storage.getItem(MOCK_SCENARIO_AUTORUN_STORAGE_KEY) !== null;
-}
-
-export function consumeMockScenarioAutorunMarker(
-  storage: Pick<Storage, "getItem" | "removeItem"> = window.sessionStorage,
-): boolean {
-  if (storage.getItem(MOCK_SCENARIO_AUTORUN_STORAGE_KEY) === null) {
-    return false;
-  }
-  storage.removeItem(MOCK_SCENARIO_AUTORUN_STORAGE_KEY);
-  return true;
-}
-
-export function ScenarioPanel({ endpoint, navigate }: ScenarioPanelProps) {
+export function ScenarioPanel({
+  currentSelection,
+  endpoint,
+  onRun,
+}: ScenarioPanelProps) {
   const [query, setQuery] = useState("");
   const [catalog, setCatalog] = useState<CatalogState>({ status: "loading" });
   const [catalogRequestKey, setCatalogRequestKey] = useState(0);
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | undefined>(
-    () => resolveMockScenarioSearchParams(window.location.search).scenario,
+    () => currentSelection?.scenarioId,
   );
-  const [selectedSpeed, setSelectedSpeed] = useState(() =>
-    clampSpeed(resolveMockScenarioSearchParams(window.location.search).speed),
-  );
+  const [selectedSpeed, setSelectedSpeed] = useState(() => currentSelection?.speed ?? 1);
 
   const loadCatalog = useCallback(() => {
     setCatalogRequestKey((current) => current + 1);
   }, []);
+  const catalogEndpoint = scenarioCatalogEndpoint(endpoint);
 
   useEffect(() => {
     const controller = new AbortController();
     setCatalog({ status: "loading" });
 
-    void fetch(scenarioCatalogEndpoint(endpoint), {
+    void fetch(catalogEndpoint, {
       headers: { Accept: "application/json" },
       signal: controller.signal,
     })
@@ -191,7 +155,7 @@ export function ScenarioPanel({ endpoint, navigate }: ScenarioPanelProps) {
       });
 
     return () => controller.abort();
-  }, [catalogRequestKey, endpoint]);
+  }, [catalogEndpoint, catalogRequestKey]);
 
   const scenarios = catalog.status === "ready" ? catalog.value.scenarios : [];
   const defaultScenarioId = catalog.status === "ready"
@@ -199,12 +163,9 @@ export function ScenarioPanel({ endpoint, navigate }: ScenarioPanelProps) {
     : undefined;
   const currentScenarioId = selectedScenarioId ?? defaultScenarioId;
   const currentScenario = scenarios.find(({ id }) => id === currentScenarioId);
-  const currentUrlParams = resolveMockScenarioSearchParams(window.location.search);
-  const currentUrlSpeed = clampSpeed(currentUrlParams.speed);
-  const selectionChanged =
-    currentScenarioId !== currentUrlParams.scenario &&
-    !(currentScenarioId === defaultScenarioId && currentUrlParams.scenario === undefined)
-      || selectedSpeed !== currentUrlSpeed;
+  const selectionChanged = currentSelection === undefined ||
+    currentSelection.scenarioId !== currentScenarioId ||
+    currentSelection.speed !== selectedSpeed;
 
   const filteredScenarios = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase();
@@ -260,9 +221,7 @@ export function ScenarioPanel({ endpoint, navigate }: ScenarioPanelProps) {
 
   const applySelection = () => {
     if (currentScenarioId === undefined || !isMockAgentEndpoint(endpoint)) return;
-    writeMockScenarioAutorunMarker();
-    (navigate ?? ((url: string) => window.location.assign(url)))
-      (buildScenarioSelectionUrl(currentScenarioId, selectedSpeed));
+    onRun?.({ scenarioId: currentScenarioId, speed: selectedSpeed });
   };
 
   return (
