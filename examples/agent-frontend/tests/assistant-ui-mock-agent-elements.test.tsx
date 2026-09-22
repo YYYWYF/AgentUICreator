@@ -133,6 +133,76 @@ describe("Mock Agent official element renderers", () => {
     }
   });
 
+  it("keeps consecutive AgentStatus frames on the Conversation parent gap", async () => {
+    const container = document.createElement("div");
+    document.body.append(container);
+    const root = createRoot(container);
+    mountedRoots.push(root);
+
+    await act(async () => {
+      root.render(
+        <div
+          data-slot="aui_assistant-message-parts"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            rowGap: "16px",
+          }}
+        >
+          <MockAgentStatusToolUI
+            {...createProps(
+              {
+                state: "working",
+                label: "First status",
+                elapsed: "0:01",
+              },
+              { toolCallId: "status-1" },
+            )}
+          />
+          <MockAgentStatusToolUI
+            {...createProps(
+              {
+                state: "waiting",
+                label: "Second status",
+                elapsed: "0:02",
+              },
+              { toolCallId: "status-2" },
+            )}
+          />
+        </div>,
+      );
+    });
+
+    const parts = container.querySelector<HTMLElement>(
+      '[data-slot="aui_assistant-message-parts"]',
+    );
+    const frames = [
+      ...container.querySelectorAll<HTMLElement>(
+        '[data-agent-ui-composition-part="status"]',
+      ),
+    ];
+
+    expect(parts).not.toBeNull();
+    expect(frames).toHaveLength(2);
+    if (parts === null || frames.length !== 2) {
+      throw new Error("Consecutive AgentStatus frames are missing.");
+    }
+
+    // Keep this contract at the frame boundary; AgentStatus internals own
+    // their own dimensions and are deliberately not measured here.
+    const pixels = (value: string) => Number.parseFloat(value || "0");
+    const firstFrameStyle = getComputedStyle(frames[0]);
+    const secondFrameStyle = getComputedStyle(frames[1]);
+    const externalSpacing =
+      pixels(getComputedStyle(parts).rowGap) +
+      pixels(firstFrameStyle.marginBottom) +
+      pixels(secondFrameStyle.marginTop);
+
+    expect(externalSpacing).toBeCloseTo(16, 0);
+    expect(frames[0].classList.contains("my-3")).toBe(false);
+    expect(frames[1].classList.contains("my-3")).toBe(false);
+  });
+
   it("projects separate dispatch calls into one aggregate view", () => {
     const parts: SubagentToolCallPart[] = [
       {

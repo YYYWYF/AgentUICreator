@@ -11,7 +11,7 @@ export function AgentElementFrame({
   return (
     <div
       data-agent-ui-composition-part={kind}
-      className="my-3 w-fit max-w-full"
+      className="w-fit max-w-full"
     >
       {children}
     </div>
