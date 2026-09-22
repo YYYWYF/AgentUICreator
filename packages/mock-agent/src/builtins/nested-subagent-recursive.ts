@@ -39,7 +39,7 @@ export const nestedSubagentRecursiveScenario = defineScenario({
       toolCallId: "parent-tool",
       toolName: "delegate_specialist",
       args: { task: "Inspect the Agent UI architecture recursively" },
-      prepareDurationMs: 0,
+      prepareDurationMs: 300,
       subagent: {
         id: "subagent-a",
         name: "Architecture Researcher",
@@ -48,14 +48,14 @@ export const nestedSubagentRecursiveScenario = defineScenario({
           {
             type: "reasoning",
             text: "我先把 Runtime 细节交给更深一层的 Specialist。",
-            durationMs: 0,
+            durationMs: 800,
           },
           {
             type: "subagent-tool",
             toolCallId: "child-tool",
             toolName: "delegate_specialist",
             args: { task: "Inspect the Conversation Runtime" },
-            prepareDurationMs: 0,
+            prepareDurationMs: 300,
             subagent: {
               id: "subagent-b",
               name: "Runtime Specialist",
@@ -64,20 +64,20 @@ export const nestedSubagentRecursiveScenario = defineScenario({
                 {
                   type: "reasoning",
                   text: "我检查 Conversation Runtime 的事件归属。",
-                  durationMs: 0,
+                  durationMs: 900,
                 },
                 {
                   type: "tool",
                   name: "read_runtime",
                   args: { file: "ConversationRuntimeProvider.tsx" },
                   result: { status: "read" },
-                  prepareDurationMs: 0,
-                  durationMs: 0,
+                  prepareDurationMs: 300,
+                  durationMs: 800,
                 },
                 {
                   type: "message",
                   text: "Subagent B 已完成 Runtime 检查。",
-                  intervalMs: 0,
+                  intervalMs: 30,
                 },
               ],
               outcome: { type: "completed", result: deepResearchResult },
@@ -87,7 +87,7 @@ export const nestedSubagentRecursiveScenario = defineScenario({
           {
             type: "message",
             text: "Subagent A 已收到更深层 Specialist 的结果。",
-            intervalMs: 0,
+            intervalMs: 30,
           },
         ],
         outcome: { type: "completed", result: researcherResult },
@@ -97,7 +97,7 @@ export const nestedSubagentRecursiveScenario = defineScenario({
     {
       type: "message",
       text: "递归 Subagent 检查已完成。",
-      intervalMs: 0,
+      intervalMs: 30,
     },
   ],
 });
