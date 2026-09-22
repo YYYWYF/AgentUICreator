@@ -4,9 +4,17 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import { checkAssistantUiAgUiCompatibility } from "./check-assistant-ui-agui-compat.mjs";
+
 const execFile = promisify(execFileCallback);
 const defaultRepoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SESSION_FILE = ".assistant-ui-update-session.json";
+const CANCELLATION_UPSTREAM_PATTERNS = [
+  /(^|\/)packages\/react-ag-ui\/src\/runtime\/adapter\/subscriber\./u,
+  /(^|\/)packages\/react-ag-ui\/src\/runtime\/AgUiThreadRuntimeCore\./u,
+  /(^|\/)packages\/react-ag-ui\/src\/useAgUiRuntime\./u,
+  /(^|\/)(?:run[-/]?http[-/]?request|transform[-/]?http|httpagent|cancell?ation)/iu,
+];
 
 function option(name, args) {
   const index = args.indexOf(name);
@@ -69,6 +77,52 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
   const removedUpstreamElements = prior.removedUpstreamElements ?? [];
   const changedUpstreamElements = prior.changedUpstreamElements ?? [];
   const ignoredUpstreamElements = prior.ignoredUpstreamElements ?? [];
+  const upstreamChangedFiles = Array.isArray(session?.upstreamChangedFiles)
+    ? session.upstreamChangedFiles
+    : [];
+  const cancellationRelevantUpstreamChanges = upstreamChangedFiles.filter((file) =>
+    CANCELLATION_UPSTREAM_PATTERNS.some((pattern) => pattern.test(file)),
+  );
+  const compatibility = session?.agUiCompatibility ?? await checkAssistantUiAgUiCompatibility({
+    repoRoot,
+    target,
+    fetchRegistry: false,
+  });
+  const previousAgUi = session?.previousAgUi ?? prior.cancellationCompatibility?.previousAgUi;
+  const targetClientVersion = target.agUi?.["@ag-ui/client"];
+  const transportBaselineChanged =
+    (typeof previousAgUi?.["@ag-ui/client"] === "string" &&
+      previousAgUi["@ag-ui/client"] !== targetClientVersion) ||
+    (typeof prior.cancellationCompatibility?.pinnedClientVersion === "string" &&
+      prior.cancellationCompatibility.pinnedClientVersion !== compatibility.pinnedClientVersion) ||
+    (typeof prior.cancellationCompatibility?.reactAgUiClientRange === "string" &&
+      prior.cancellationCompatibility.reactAgUiClientRange !== compatibility.reactAgUiClientRange);
+  const upstreamDiffUnavailable = session?.upstreamChangedFiles === null;
+  const cancellationShimReauditRequired =
+    !compatibility.compatible ||
+    transportBaselineChanged ||
+    cancellationRelevantUpstreamChanges.length > 0 ||
+    upstreamDiffUnavailable;
+  const cancellationStatus = !compatibility.compatible
+    ? "REVIEW REQUIRED: AG-UI dependency changed"
+    : transportBaselineChanged
+      ? "REVIEW REQUIRED: AG-UI transport baseline changed"
+      : cancellationRelevantUpstreamChanges.length > 0
+        ? "REVIEW REQUIRED: cancellation-related upstream files changed"
+        : upstreamDiffUnavailable
+          ? "REVIEW REQUIRED: upstream change set unavailable"
+          : "SAFE: AG-UI transport baseline unchanged";
+  const cancellationCompatibility = {
+    ...compatibility,
+    guardStatus: compatibility.status,
+    cancellationShim: "ACTIVE",
+    previousAgUi,
+    upstreamChangedFiles,
+    cancellationRelevantUpstreamChanges,
+    transportBaselineChanged,
+    reAuditRequired: cancellationShimReauditRequired,
+    status: cancellationStatus,
+  };
   const capabilityAudit = [
     { capability: "ThreadComponents.TaskGroup", status: "NEW UPSTREAM CAPABILITY" },
     { capability: "thread.tasks", status: "NEW UPSTREAM CAPABILITY" },
@@ -77,6 +131,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     { capability: "ReasoningGroup / ToolGroup / ToolFallback", status: "UNCHANGED" },
     { capability: "Composer / Message Footer / Thread List / Attachments / Suggestions", status: "UNCHANGED" },
     { capability: "ConversationSubagentTool compatibility presentation", status: "LOCAL COMPATIBILITY NO LONGER NEEDED" },
+    { capability: "CancellationAwareHttpAgent / AG-UI transport", status: cancellationStatus },
   ];
   const current = {
     ...prior,
@@ -94,6 +149,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     removedUpstreamElements,
     changedUpstreamElements,
     ignoredUpstreamElements,
+    cancellationCompatibility,
     capabilityAudit,
   };
 
@@ -120,6 +176,19 @@ To:
 - @assistant-ui/react-ag-ui ${target.packages["@assistant-ui/react-ag-ui"]}
 - @assistant-ui/react-markdown ${target.packages["@assistant-ui/react-markdown"]}
 - upstream revision: ${current.toRevision}
+
+## AG-UI transport compatibility
+
+@ag-ui/client pinned: ${cancellationCompatibility.pinnedClientVersion ?? "unknown"}
+react-ag-ui requested range: ${cancellationCompatibility.reactAgUiClientRange ?? "unknown"}
+CancellationAwareHttpAgent: ${cancellationCompatibility.cancellationShim}
+
+Status: ${cancellationStatus}
+${cancellationCompatibility.cancellationRelevantUpstreamChanges.length === 0
+    ? ""
+    : `Cancellation shim re-audit required for: ${cancellationCompatibility.cancellationRelevantUpstreamChanges.join(", ")}\n`}${cancellationCompatibility.reAuditRequired && cancellationCompatibility.cancellationRelevantUpstreamChanges.length === 0
+    ? "Cancellation shim re-audit required.\n"
+    : ""}
 
 ## Vendor changes
 

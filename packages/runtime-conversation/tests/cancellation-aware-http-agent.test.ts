@@ -43,6 +43,45 @@ describe("CancellationAwareHttpAgent", () => {
     }));
   });
 
+  it("normalizes a locally aborted AbortError before AbstractAgent.onError", async () => {
+    const abortError = new Error("request aborted");
+    abortError.name = "AbortError";
+    const { fetch, started } = createWaitingFetch(abortError);
+    const agent = new CancellationAwareHttpAgent({
+      url: "http://example.test/agent",
+      threadId: "cancel-thread",
+      fetch,
+    });
+    const onRunFailed = vi.fn<NonNullable<AgentSubscriber["onRunFailed"]>>();
+    const run = agent.runAgent(undefined, { onRunFailed });
+
+    await started;
+    agent.abortRun();
+
+    await expect(run).resolves.toEqual({ result: undefined, newMessages: [] });
+    expect(onRunFailed).toHaveBeenCalledWith(expect.objectContaining({
+      error: expect.objectContaining({ name: "AbortError" }),
+    }));
+  });
+
+  it("keeps a normal network failure as an error after local cancellation", async () => {
+    const error = new Error("socket reset");
+    const { fetch, started } = createWaitingFetch(error);
+    const agent = new CancellationAwareHttpAgent({
+      url: "http://example.test/agent",
+      threadId: "cancel-thread",
+      fetch,
+    });
+    const onRunFailed = vi.fn<NonNullable<AgentSubscriber["onRunFailed"]>>();
+    const run = agent.runAgent(undefined, { onRunFailed });
+
+    await started;
+    agent.abortRun();
+
+    await expect(run).rejects.toBe(error);
+    expect(onRunFailed).toHaveBeenCalledWith(expect.objectContaining({ error }));
+  });
+
   it("does not classify a transport-shaped error without local cancellation", async () => {
     const error = new Error("BodyStreamBuffer was aborted");
     const fetch = vi.fn(async (_url: string, _init: RequestInit) => {
@@ -64,30 +103,41 @@ describe("CancellationAwareHttpAgent", () => {
     const started = new Promise<void>((resolve) => {
       resolveStarted = resolve;
     });
+    let rejectPendingRead!: (reason: unknown) => void;
+    const cancel = vi.fn(() => Promise.reject(new Error("BodyStreamBuffer was aborted")));
     const fetch = vi.fn(async (_url: string, init: RequestInit) => {
       const encoder = new TextEncoder();
-      const body = new ReadableStream<Uint8Array>({
-        start(controller) {
-          controller.enqueue(
-            encoder.encode(
+      const reader = {
+        read: vi.fn()
+          .mockResolvedValueOnce({
+            done: false,
+            value: encoder.encode(
               `data: ${JSON.stringify({
                 type: "RUN_STARTED",
                 threadId: "cancel-thread",
                 runId: "cancel-run",
               })}\n\n`,
             ),
-          );
-          resolveStarted();
-          const abort = () =>
-            controller.error(new Error("BodyStreamBuffer was aborted"));
-          if (init.signal?.aborted) abort();
-          else init.signal?.addEventListener("abort", abort, { once: true });
-        },
+          })
+          .mockImplementationOnce(() => {
+            resolveStarted();
+            return new Promise<ReadableStreamReadResult<Uint8Array>>((_resolve, reject) => {
+              rejectPendingRead = reject;
+            });
+          }),
+        cancel,
+        releaseLock: vi.fn(),
+        closed: Promise.resolve(),
       });
-      return new Response(body, {
+      const abort = () => rejectPendingRead(new Error("BodyStreamBuffer was aborted"));
+      if (init.signal?.aborted) abort();
+      else init.signal?.addEventListener("abort", abort, { once: true });
+      return {
+        ok: true,
         status: 200,
-        headers: { "Content-Type": "text/event-stream" },
-      });
+        headers: new Headers({ "Content-Type": "text/event-stream" }),
+        body: { getReader: () => reader },
+      } as unknown as Response;
     });
     const agent = new CancellationAwareHttpAgent({
       url: "http://example.test/agent",
@@ -113,6 +163,7 @@ describe("CancellationAwareHttpAgent", () => {
     }
 
     expect(unhandled).toEqual([]);
+    expect(cancel).toHaveBeenCalled();
     expect(onRunFailed).toHaveBeenCalledWith(expect.objectContaining({
       error: expect.objectContaining({ name: "AbortError" }),
     }));

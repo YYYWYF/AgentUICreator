@@ -1,4 +1,7 @@
-import { AgUiThreadRuntimeCore } from "../node_modules/@assistant-ui/react-ag-ui/dist/runtime/AgUiThreadRuntimeCore.js";
+import { AssistantRuntimeProvider, type AssistantRuntime } from "@assistant-ui/react";
+import { useAgUiRuntime } from "@assistant-ui/react-ag-ui";
+import { useEffect } from "react";
+import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it } from "vitest";
 
 import { CancellationAwareHttpAgent } from "../src/compatibility/cancellation-aware-http-agent.js";
@@ -60,38 +63,90 @@ function createAbortFailingAgent() {
   return { agent, content };
 }
 
-describe("assistant-ui cancellation boundary", () => {
-  it("dispatches cancellation instead of a synthetic RUN_ERROR", async () => {
-    const { agent, content } = createAbortFailingAgent();
-    const core = new AgUiThreadRuntimeCore({
-      agent,
-      logger: { debug: () => {}, error: () => {} },
-      showThinking: true,
-      notifyUpdate: () => {},
-    });
+function RuntimeFixture({
+  agent,
+  onRuntime,
+}: {
+  agent: CancellationAwareHttpAgent;
+  onRuntime: (runtime: AssistantRuntime) => void;
+}) {
+  const runtime = useAgUiRuntime({
+    agent,
+    showThinking: true,
+    unstable_enableMessageQueue: false,
+  });
+  useEffect(() => onRuntime(runtime), [onRuntime, runtime]);
 
-    const run = core.append({
-      role: "user",
-      content: [{ type: "text", text: "开始慢流" }],
-      startRun: true,
-    });
+  return <AssistantRuntimeProvider runtime={runtime}>{null}</AssistantRuntimeProvider>;
+}
 
-    await content;
+async function waitFor(condition: () => boolean): Promise<void> {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    if (condition()) return;
     await new Promise<void>((resolve) => setImmediate(resolve));
-    expect(
-      core.getMessages().some((message) => message.role === "assistant"),
-    ).toBe(true);
+  }
+  throw new Error("Timed out waiting for assistant-ui Runtime state");
+}
 
-    await core.cancel();
-    await run;
+describe("assistant-ui cancellation boundary", () => {
+  it("dispatches cancellation through the public assistant-ui Runtime APIs", async () => {
+    const { agent, content } = createAbortFailingAgent();
+    let runtime: AssistantRuntime | undefined;
+    let renderer: ReactTestRenderer | undefined;
 
-    const assistantMessage = core
-      .getMessages()
-      .find((message) => message.role === "assistant");
-    expect(assistantMessage?.status).toMatchObject({
-      type: "incomplete",
-      reason: "cancelled",
-    });
-    expect(assistantMessage?.status).not.toMatchObject({ reason: "error" });
+    try {
+      await act(async () => {
+        renderer = create(
+          <RuntimeFixture
+            agent={agent}
+            onRuntime={(nextRuntime) => {
+              runtime = nextRuntime;
+            }}
+          />,
+        );
+        await Promise.resolve();
+      });
+      if (runtime === undefined) throw new Error("Assistant runtime was not captured");
+
+      const assistantRuntime = runtime;
+      await act(async () => {
+        assistantRuntime.thread.append({
+          role: "user",
+          content: [{ type: "text", text: "开始慢流" }],
+          startRun: true,
+        });
+        await content;
+        await waitFor(() => assistantRuntime.thread.getState().messages.some(
+          (message) => message.role === "assistant" && message.content.some(
+            (part) => part.type === "text" && part.text === "partial",
+          ),
+        ));
+      });
+
+      await act(async () => {
+        assistantRuntime.thread.cancelRun();
+        await waitFor(() => !assistantRuntime.thread.getState().isRunning);
+      });
+
+      const assistantMessage = assistantRuntime.thread
+        .getState()
+        .messages
+        .find((message) => message.role === "assistant");
+      expect(assistantMessage?.content).toContainEqual({
+        type: "text",
+        text: "partial",
+      });
+      expect(assistantMessage?.status).toMatchObject({
+        type: "incomplete",
+        reason: "cancelled",
+      });
+      expect(assistantMessage?.status).not.toMatchObject({ reason: "error" });
+    } finally {
+      if (renderer !== undefined) {
+        await act(async () => {
+          renderer?.unmount();
+        });
+      }
+    }
   });
 });

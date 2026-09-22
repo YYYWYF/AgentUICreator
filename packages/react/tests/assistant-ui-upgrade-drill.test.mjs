@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { checkAssistantUiAgUiCompatibility } from "../../scripts/check-assistant-ui-agui-compat.mjs";
 import { main as generateReport } from "../../scripts/generate-assistant-ui-upgrade-report.mjs";
 import {
   ensureSourceCache,
@@ -47,6 +48,51 @@ afterEach(async () => {
 });
 
 describe("assistant-ui upgrade drill", () => {
+  it("passes when react-ag-ui keeps the pinned AG-UI client compatible", async () => {
+    const result = await checkAssistantUiAgUiCompatibility({
+      fetchRegistry: false,
+      packageManifest: {
+        name: "@assistant-ui/react-ag-ui",
+        version: "0.0.60",
+        dependencies: { "@ag-ui/client": "^0.0.59" },
+      },
+      target: {
+        packages: { "@assistant-ui/react-ag-ui": "0.0.60" },
+        agUi: { "@ag-ui/client": "0.0.59" },
+      },
+    });
+
+    expect(result).toMatchObject({
+      compatible: true,
+      status: "PASS",
+      reactAgUiClientRange: "^0.0.59",
+      pinnedClientVersion: "0.0.59",
+    });
+  });
+
+  it("requires review when react-ag-ui raises the AG-UI dependency floor", async () => {
+    const result = await checkAssistantUiAgUiCompatibility({
+      fetchRegistry: false,
+      packageManifest: {
+        name: "@assistant-ui/react-ag-ui",
+        version: "0.0.61",
+        dependencies: { "@ag-ui/client": "^0.0.60" },
+      },
+      target: {
+        packages: { "@assistant-ui/react-ag-ui": "0.0.61" },
+        agUi: { "@ag-ui/client": "0.0.59" },
+      },
+    });
+
+    expect(result).toMatchObject({
+      compatible: false,
+      status: "REVIEW REQUIRED",
+      reactAgUiClientRange: "^0.0.60",
+      pinnedClientVersion: "0.0.59",
+    });
+    expect(result.message).toContain("Review CancellationAwareHttpAgent before upgrading.");
+  });
+
   it("resolves remote main B when a local source cache is still at A", async () => {
     const localA = "a".repeat(40);
     const remoteB = "b".repeat(40);
@@ -137,6 +183,9 @@ exit 99
         "@assistant-ui/react": "0.15.21",
         "@assistant-ui/react-ag-ui": "0.0.60",
         "@assistant-ui/react-markdown": "0.14.16",
+      },
+      agUi: {
+        "@ag-ui/client": "0.0.59",
       },
     }, null, 2));
     await writeFixtureFile(root, "packages/react/src/internal/vendor/assistant-ui/UPSTREAM.json", JSON.stringify({ revision: "b".repeat(40) }, null, 2));

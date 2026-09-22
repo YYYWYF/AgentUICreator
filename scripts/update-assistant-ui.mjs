@@ -4,6 +4,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import { checkAssistantUiAgUiCompatibility } from "./check-assistant-ui-agui-compat.mjs";
+
 const execFile = promisify(execFileCallback);
 const defaultRepoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const UPSTREAM_REPOSITORY = "https://github.com/assistant-ui/assistant-ui.git";
@@ -55,6 +57,16 @@ async function hasCommit(repo, revision, { repoRoot = defaultRepoRoot, gitRunner
     return true;
   } catch {
     return false;
+  }
+}
+
+async function upstreamChangedFiles(repo, fromRevision, toRevision, repoRoot) {
+  if (!fromRevision || fromRevision === toRevision) return [];
+  try {
+    const output = await git(repo, ["diff", "--name-only", `${fromRevision}..${toRevision}`], repoRoot);
+    return output.split("\n").filter(Boolean).sort();
+  } catch {
+    return null;
   }
 }
 
@@ -110,19 +122,39 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     const repo = option("--repo", args) ?? process.env.ASSISTANT_UI_REPO ?? path.resolve(repoRoot, "../assistant-ui");
     const skipNpm = args.includes("--skip-npm");
     const revision = await remoteMainRevision({ repoRoot });
-    const session = {
-      baseGitSha,
-      fromRevision: previousProvenance.revision,
-      toRevision: revision,
-    };
-    await writeFile(sessionPath, `${JSON.stringify(session, null, 2)}\n`, "utf8");
-
     await ensureSourceCache(repo, revision, { repoRoot });
     const packages = skipNpm
       ? target.packages
       : Object.fromEntries(await Promise.all(
         Object.keys(target.packages).map(async (name) => [name, await latest(repoRoot, name)]),
       ));
+    const nextTarget = {
+      ...target,
+      source: `${UPSTREAM_REPOSITORY}#${UPSTREAM_REF}`,
+      revision,
+      packages,
+    };
+    const agUiCompatibility = await checkAssistantUiAgUiCompatibility({
+      repoRoot,
+      target: nextTarget,
+    });
+    if (!agUiCompatibility.compatible) {
+      throw new Error(agUiCompatibility.message);
+    }
+    const session = {
+      baseGitSha,
+      fromRevision: previousProvenance.revision,
+      toRevision: revision,
+      previousAgUi: target.agUi,
+      agUiCompatibility,
+      upstreamChangedFiles: await upstreamChangedFiles(
+        repo,
+        previousProvenance.revision,
+        revision,
+        repoRoot,
+      ),
+    };
+    await writeFile(sessionPath, `${JSON.stringify(session, null, 2)}\n`, "utf8");
     for (const packagePath of packagePaths) {
       const manifest = JSON.parse(await readFile(packagePath, "utf8"));
       for (const [name, version] of Object.entries(packages)) {
@@ -144,12 +176,6 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     }
     await writeFile(workspacePath, workspace, "utf8");
 
-    const nextTarget = {
-      ...target,
-      source: `${UPSTREAM_REPOSITORY}#${UPSTREAM_REF}`,
-      revision,
-      packages,
-    };
     await writeFile(targetPath, `${JSON.stringify(nextTarget, null, 2)}\n`, "utf8");
 
     await execFile("pnpm", ["install", "--lockfile-only"], { cwd: repoRoot, stdio: "inherit" });

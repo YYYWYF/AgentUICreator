@@ -19,15 +19,6 @@ function toTransportAbortError(error: unknown): Error {
   return new Error("BodyStreamBuffer was aborted", { cause: error });
 }
 
-/**
- * @ag-ui/client cancels its response reader again when the request observable
- * is torn down. Chromium can reject that second cancellation with the same
- * body-stream abort that was already delivered to the reader. A native
- * AbortError must stay out of the AG-UI HTTP transform: that transform turns
- * it into RUN_ERROR. Keep the transport failure as a non-AbortError so the
- * AbstractAgent.onError boundary can normalize it before assistant-ui sees it.
- * Keep cleanup rejection handling here as well.
- */
 function wrapAbortableResponse(
   response: Response,
   signal: AbortSignal | null | undefined,
@@ -81,13 +72,18 @@ function createCancellationAwareFetch(fetchImpl: HttpAgentFetchFn): HttpAgentFet
 }
 
 /**
- * Compatibility shim for the current AG-UI / assistant-ui baseline.
+ * Compatibility shim for @ag-ui/client 0.0.59.
  *
- * Chromium may surface a locally aborted response body as
- * "BodyStreamBuffer was aborted", which these pinned versions do not
- * classify as cancellation.
+ * Works around two upstream behaviours:
+ * 1. Chromium may surface local abort as
+ *    "BodyStreamBuffer was aborted".
+ * 2. @ag-ui/client 0.0.59 reader teardown may leak
+ *    reader.cancel() rejection.
  *
- * Remove once the pinned upstream stack normalizes this case itself.
+ * This implementation intentionally depends on the
+ * 0.0.59 HttpAgent/runHttpRequest transport shape.
+ *
+ * Re-audit or remove when @ag-ui/client changes.
  */
 export class CancellationAwareHttpAgent extends HttpAgent {
   private localCancellationRequested = false;
