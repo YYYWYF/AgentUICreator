@@ -83,6 +83,16 @@ describe("Agent UI Dev Studio shell", () => {
     expect(renderer.root.findAllByProps({ role: "tab" })).toHaveLength(2);
     expect(renderer.root.findAllByProps({ children: "Scenario" })).toHaveLength(1);
     expect(renderer.root.findAllByProps({ children: "Runtime" })).toHaveLength(1);
+    expect(renderer.root.findAllByProps({ "aria-modal": "true" })).toHaveLength(0);
+    expect(renderer.root.findAllByProps({ role: "dialog" })).toHaveLength(0);
+
+    await act(async () => {
+      renderer.root.findByProps({
+        "aria-label": "Close Agent UI Dev Studio",
+      }).props.onClick();
+    });
+
+    expect(renderer.root.findAllByProps({ role: "tab" })).toHaveLength(0);
   });
 
   it("shows only Runtime for a real development endpoint", async () => {

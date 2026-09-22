@@ -1336,53 +1336,60 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
             </div>
           </header>
 
-          <div className="creator-panel-messages" ref={messageList}>
-            {items.filter(
-              (item) => creatorDebug || item.kind !== "stage" || item.name !== "creator.grounding",
-            ).length === 0 ? (
-              <div className="creator-panel-empty">
-                <strong>描述你想做的前端修改。</strong>
-                <p>Creator 可以修改本项目的 app-ui 和 UI Plugin 源码。</p>
-              </div>
-            ) : (
-              items.map((item) =>
-                item.kind === "stage" ? (
-                  <CreatorStageActivityCard
-                    activity={item}
-                    debug={creatorDebug}
-                    key={item.id}
-                  />
-                ) : item.kind === "tool" ? (
-                  <CreatorToolActivityCard activity={item} key={item.id} />
-                ) : (
-                  <article
-                    className={`creator-panel-message creator-panel-message--${item.role}`}
-                    key={item.id}
-                  >
-                    <span>{roleLabels[item.role]}</span>
-                    {item.role === "assistant" ? (
-                      <CreatorMarkdown content={item.content} />
-                    ) : (
-                      <p>{item.content}</p>
-                    )}
-                    {item.streaming === true ? (
-                      <span
-                        className="creator-stream-cursor"
-                        aria-hidden="true"
-                      />
-                    ) : null}
-                    {item.receipt === undefined ? null : (
-                      <CreatorReceipt receipt={item.receipt} />
-                    )}
-                  </article>
-                ),
-              )
-            )}
-            {isRunning ? (
-              <p className="creator-panel-running" role="status">
-                Creator 正在检查并修改项目…
-              </p>
-            ) : null}
+          <div className="creator-panel-body">
+            <div
+              className="creator-panel-dev-studio-panel"
+              data-slot="agent-ui-dev-studio-panel"
+            />
+
+            <div className="creator-panel-messages" ref={messageList}>
+              {items.filter(
+                (item) => creatorDebug || item.kind !== "stage" || item.name !== "creator.grounding",
+              ).length === 0 ? (
+                <div className="creator-panel-empty">
+                  <strong>描述你想做的前端修改。</strong>
+                  <p>Creator 可以修改本项目的 app-ui 和 UI Plugin 源码。</p>
+                </div>
+              ) : (
+                items.map((item) =>
+                  item.kind === "stage" ? (
+                    <CreatorStageActivityCard
+                      activity={item}
+                      debug={creatorDebug}
+                      key={item.id}
+                    />
+                  ) : item.kind === "tool" ? (
+                    <CreatorToolActivityCard activity={item} key={item.id} />
+                  ) : (
+                    <article
+                      className={`creator-panel-message creator-panel-message--${item.role}`}
+                      key={item.id}
+                    >
+                      <span>{roleLabels[item.role]}</span>
+                      {item.role === "assistant" ? (
+                        <CreatorMarkdown content={item.content} />
+                      ) : (
+                        <p>{item.content}</p>
+                      )}
+                      {item.streaming === true ? (
+                        <span
+                          className="creator-stream-cursor"
+                          aria-hidden="true"
+                        />
+                      ) : null}
+                      {item.receipt === undefined ? null : (
+                        <CreatorReceipt receipt={item.receipt} />
+                      )}
+                    </article>
+                  ),
+                )
+              )}
+              {isRunning ? (
+                <p className="creator-panel-running" role="status">
+                  Creator 正在检查并修改项目…
+                </p>
+              ) : null}
+            </div>
           </div>
 
           <form className="creator-panel-composer" onSubmit={submit}>

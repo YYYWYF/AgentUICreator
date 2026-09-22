@@ -13,6 +13,7 @@
   height: 2rem;
   gap: 0.375rem;
   padding-inline: 0.625rem;
+  flex: 0 0 auto;
   white-space: nowrap;
 }
 
@@ -21,38 +22,59 @@
   height: 0.45rem;
   flex: 0 0 auto;
   border-radius: var(--aui-radius-full);
-  background: var(--aui-success);
+  background: var(--aui-success, #16865b);
 }
 
-.scrim {
-  position: fixed;
-  z-index: 1001;
-  inset: 0;
-  background: var(--aui-overlay);
+.entryChevron {
+  display: block;
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: 0 0 auto;
+  transition: transform var(--aui-duration-fast, 120ms) var(--aui-ease-standard, ease);
 }
 
-.drawer {
-  position: fixed;
-  z-index: 1002;
-  top: 0;
-  right: 0;
+.entryChevronOpen {
+  transform: rotate(180deg);
+}
+
+.panel,
+.previewPanel {
   display: flex;
-  width: min(32rem, calc(100vw - var(--aui-space-4)));
-  height: 100dvh;
+  min-width: 0;
+  min-height: 0;
   flex-direction: column;
-  border-left: 1px solid var(--aui-border);
+  overflow: hidden;
+  border: 1px solid var(--aui-border);
   color: var(--aui-fg);
   background: var(--aui-bg-elevated);
   box-shadow: var(--aui-shadow-lg);
 }
 
+.panel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+}
+
+.previewPanel {
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+}
+
 .header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--aui-space-4);
+  min-width: 0;
   padding: var(--aui-space-5) var(--aui-space-5) var(--aui-space-4);
   border-bottom: 1px solid var(--aui-border);
+}
+
+.header > div {
+  min-width: 0;
 }
 
 .header h2,
@@ -75,11 +97,6 @@
   font-weight: var(--aui-font-weight-semibold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.closeButton {
-  flex: 0 0 auto;
-  font-size: 1.25rem;
 }
 
 .tabs {
@@ -323,11 +340,6 @@
 }
 
 @media (max-width: 38rem) {
-  .entry {
-    right: var(--aui-space-2);
-    max-width: calc(100vw - var(--aui-space-4));
-  }
-
   .header,
   .tabs,
   .panelContent {

@@ -9,6 +9,9 @@ import {
 import { createVisualObservationReporter } from "@agent-ui/creator/visual-observation";
 import { App } from "@agent-ui/example-agent-frontend/App";
 
+const visualObservationEnabled =
+  import.meta.env.VITE_ENABLE_VISUAL_OBSERVATION === "true";
+
 interface PreviewThreadIdRef {
   current: string;
 }
@@ -32,7 +35,13 @@ const TargetPreview = memo(function TargetPreview({
       }),
     [threadIdRef],
   );
-  const onPreviewCommitted = useMemo(() => createVisualObservationReporter(), []);
+  const onPreviewCommitted = useMemo(
+    () =>
+      visualObservationEnabled
+        ? createVisualObservationReporter()
+        : undefined,
+    [],
+  );
   return (
     <App
       onPreviewCommitted={onPreviewCommitted}
