@@ -31,7 +31,7 @@ export const nestedSubagentErrorScenario = defineScenario({
       toolCallId: "error-parent-tool",
       toolName: "delegate_specialist",
       args: { task: "Inspect the failing architecture branch" },
-      prepareDurationMs: 0,
+      prepareDurationMs: 300,
       subagent: {
         id: "subagent-error",
         name: "Failing Researcher",
@@ -40,7 +40,7 @@ export const nestedSubagentErrorScenario = defineScenario({
           {
             type: "message",
             text: "我已经定位到失败分支，接下来无法继续读取 Runtime。",
-            intervalMs: 0,
+            intervalMs: 35,
           },
         ],
         outcome: {

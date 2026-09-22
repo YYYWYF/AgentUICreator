@@ -171,6 +171,128 @@ describe("nested subagent AG-UI reference contract", () => {
     });
   });
 
+  it("paces attributed content before nested subagent error", async () => {
+    vi.useFakeTimers();
+    try {
+      const events: BaseEvent[] = [];
+      const completed = (async () => {
+        for await (const event of runMockScenario(
+          input,
+          nestedSubagentErrorScenario,
+          { timingScale: 1 },
+        )) {
+          events.push(EventSchemas.parse(event));
+        }
+      })();
+
+      const hasEvent = (type: EventType): boolean =>
+        events.some((event) => event.type === type);
+      const hasSubagentEvent = (type: EventType): boolean =>
+        events.some((event) =>
+          event.type === type &&
+          "subagentRunId" in event &&
+          event.subagentRunId === "subagent-error",
+        );
+      const eventIndex = (
+        predicate: (event: BaseEvent) => boolean,
+      ): number => events.findIndex(predicate);
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(events.map(({ type }) => type)).toEqual([
+        EventType.RUN_STARTED,
+        EventType.TOOL_CALL_START,
+        EventType.TOOL_CALL_ARGS,
+      ]);
+      expect(hasSubagentEvent(EventType.SUBAGENT_STARTED)).toBe(false);
+      expect(hasSubagentEvent(EventType.SUBAGENT_ERROR)).toBe(false);
+      expect(hasEvent(EventType.TOOL_CALL_RESULT)).toBe(false);
+      expect(hasEvent(EventType.RUN_FINISHED)).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(299);
+      expect(hasSubagentEvent(EventType.SUBAGENT_STARTED)).toBe(false);
+      expect(hasSubagentEvent(EventType.SUBAGENT_ERROR)).toBe(false);
+      expect(hasEvent(EventType.TOOL_CALL_RESULT)).toBe(false);
+      expect(hasEvent(EventType.RUN_FINISHED)).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(events).toContainEqual(expect.objectContaining({
+        type: EventType.TOOL_CALL_END,
+        toolCallId: "error-parent-tool",
+      }));
+      expect(events).toContainEqual(expect.objectContaining({
+        type: EventType.SUBAGENT_STARTED,
+        subagentRunId: "subagent-error",
+        parentToolCallId: "error-parent-tool",
+      }));
+      expect(hasSubagentEvent(EventType.SUBAGENT_ERROR)).toBe(false);
+      expect(hasEvent(EventType.TOOL_CALL_RESULT)).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(35);
+      expect(events).toContainEqual(expect.objectContaining({
+        type: EventType.TEXT_MESSAGE_START,
+        subagentRunId: "subagent-error",
+      }));
+      expect(events).toContainEqual(expect.objectContaining({
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        subagentRunId: "subagent-error",
+      }));
+      expect(hasSubagentEvent(EventType.SUBAGENT_ERROR)).toBe(false);
+
+      await vi.runAllTimersAsync();
+      await completed;
+
+      const subagentStarted = eventIndex((event) =>
+        event.type === EventType.SUBAGENT_STARTED &&
+        event.subagentRunId === "subagent-error",
+      );
+      const messageStart = eventIndex((event) =>
+        event.type === EventType.TEXT_MESSAGE_START &&
+        "subagentRunId" in event &&
+        event.subagentRunId === "subagent-error",
+      );
+      const messageContent = eventIndex((event) =>
+        event.type === EventType.TEXT_MESSAGE_CONTENT &&
+        "subagentRunId" in event &&
+        event.subagentRunId === "subagent-error",
+      );
+      const messageEnd = eventIndex((event) =>
+        event.type === EventType.TEXT_MESSAGE_END &&
+        "subagentRunId" in event &&
+        event.subagentRunId === "subagent-error",
+      );
+      const subagentError = eventIndex((event) =>
+        event.type === EventType.SUBAGENT_ERROR &&
+        event.subagentRunId === "subagent-error",
+      );
+      const parentResult = eventIndex((event) =>
+        event.type === EventType.TOOL_CALL_RESULT &&
+        event.toolCallId === "error-parent-tool",
+      );
+      const runFinished = eventIndex((event) =>
+        event.type === EventType.RUN_FINISHED,
+      );
+
+      expect(messageStart).toBeGreaterThan(subagentStarted);
+      expect(messageContent).toBeGreaterThan(messageStart);
+      expect(messageEnd).toBeGreaterThan(messageContent);
+      expect(subagentError).toBeGreaterThan(messageEnd);
+      expect(parentResult).toBeGreaterThan(subagentError);
+      expect(runFinished).toBeGreaterThan(parentResult);
+      expect(events[subagentError]).toMatchObject({
+        type: EventType.SUBAGENT_ERROR,
+        subagentRunId: "subagent-error",
+        code: "SUBAGENT_RESEARCH_FAILED",
+      });
+      expect(events[parentResult]).toMatchObject({
+        type: EventType.TOOL_CALL_RESULT,
+        toolCallId: "error-parent-tool",
+        content: '{"ok":false,"reason":"subagent-error"}',
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("preserves parent-to-subagent relations for every TaskGroup sibling", async () => {
     const events = [] as BaseEvent[];
     for await (const event of runMockScenario(
