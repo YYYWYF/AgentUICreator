@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 import { checkAssistantUiAgUiCompatibility } from "./check-assistant-ui-agui-compat.mjs";
+import { checkAgUiLockfile } from "./check-ag-ui-lockfile.mjs";
 
 const execFile = promisify(execFileCallback);
 const defaultRepoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -98,7 +99,15 @@ export function generatedUntrackedArtifacts(status, sessionFile = SESSION_FILE) 
     .sort();
 }
 
-export async function main({ repoRoot = defaultRepoRoot, args = process.argv.slice(2) } = {}) {
+export async function main({
+  repoRoot = defaultRepoRoot,
+  args = process.argv.slice(2),
+  remoteRevisionResolver = remoteMainRevision,
+  sourceCacheEnsurer = ensureSourceCache,
+  latestVersionResolver = latest,
+  compatibilityChecker = checkAssistantUiAgUiCompatibility,
+  lockfileChecker = checkAgUiLockfile,
+} = {}) {
   const status = await git(repoRoot, ["status", "--porcelain=v1"], repoRoot);
   if (status.length > 0) {
     throw new Error([
@@ -121,12 +130,16 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     const previousProvenance = JSON.parse(await readFile(provenancePath, "utf8"));
     const repo = option("--repo", args) ?? process.env.ASSISTANT_UI_REPO ?? path.resolve(repoRoot, "../assistant-ui");
     const skipNpm = args.includes("--skip-npm");
-    const revision = await remoteMainRevision({ repoRoot });
-    await ensureSourceCache(repo, revision, { repoRoot });
+    const previousAgUiCompatibility = await compatibilityChecker({
+      repoRoot,
+      target,
+    });
+    const revision = await remoteRevisionResolver({ repoRoot });
+    await sourceCacheEnsurer(repo, revision, { repoRoot });
     const packages = skipNpm
       ? target.packages
       : Object.fromEntries(await Promise.all(
-        Object.keys(target.packages).map(async (name) => [name, await latest(repoRoot, name)]),
+        Object.keys(target.packages).map(async (name) => [name, await latestVersionResolver(repoRoot, name)]),
       ));
     const nextTarget = {
       ...target,
@@ -134,19 +147,21 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
       revision,
       packages,
     };
-    const agUiCompatibility = await checkAssistantUiAgUiCompatibility({
+    const nextAgUiCompatibility = await compatibilityChecker({
       repoRoot,
       target: nextTarget,
     });
-    if (!agUiCompatibility.compatible) {
-      throw new Error(agUiCompatibility.message);
+    if (!nextAgUiCompatibility.compatible) {
+      throw new Error(nextAgUiCompatibility.message);
     }
     const session = {
       baseGitSha,
       fromRevision: previousProvenance.revision,
       toRevision: revision,
       previousAgUi: target.agUi,
-      agUiCompatibility,
+      previousAgUiCompatibility,
+      nextAgUiCompatibility,
+      agUiCompatibility: nextAgUiCompatibility,
       upstreamChangedFiles: await upstreamChangedFiles(
         repo,
         previousProvenance.revision,
@@ -179,6 +194,13 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     await writeFile(targetPath, `${JSON.stringify(nextTarget, null, 2)}\n`, "utf8");
 
     await execFile("pnpm", ["install", "--lockfile-only"], { cwd: repoRoot, stdio: "inherit" });
+    const agUiLockfileGuard = await lockfileChecker({
+      repoRoot,
+      target: nextTarget,
+    });
+    if (!agUiLockfileGuard.passed) {
+      throw new Error(agUiLockfileGuard.message);
+    }
     await execFile("pnpm", ["--filter", "@agent-ui/react", "sync:assistant-ui-upstream", "--", "--revision", revision, "--repo", repo], {
       cwd: repoRoot,
       stdio: "inherit",
@@ -186,6 +208,8 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
 
     const generated = {
       ...session,
+      resolvedAgUiClientVersions: agUiLockfileGuard.resolvedAgUiClientVersions,
+      agUiLockfileGuard,
       generatedUntrackedArtifacts: generatedUntrackedArtifacts(
         await git(repoRoot, ["status", "--porcelain=v1"], repoRoot),
       ),

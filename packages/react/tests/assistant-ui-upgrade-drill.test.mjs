@@ -7,6 +7,7 @@ import { promisify } from "node:util";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { checkAssistantUiAgUiCompatibility } from "../../scripts/check-assistant-ui-agui-compat.mjs";
+import { checkAgUiLockfile } from "../../scripts/check-ag-ui-lockfile.mjs";
 import { main as generateReport } from "../../scripts/generate-assistant-ui-upgrade-report.mjs";
 import {
   ensureSourceCache,
@@ -41,6 +42,46 @@ async function writeFixtureFile(root, relativePath, content) {
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, content, "utf8");
   return filePath;
+}
+
+async function createReportFixture(root) {
+  await writeFixtureFile(root, "assistant-ui-upgrade-target.json", JSON.stringify({
+    packages: {
+      "@assistant-ui/react": "0.15.21",
+      "@assistant-ui/react-ag-ui": "0.0.60",
+      "@assistant-ui/react-markdown": "0.14.16",
+    },
+    agUi: {
+      "@ag-ui/client": "0.0.59",
+    },
+  }, null, 2));
+  await writeFixtureFile(root, "packages/react/src/internal/vendor/assistant-ui/UPSTREAM.json", JSON.stringify({ revision: "b".repeat(40) }, null, 2));
+  await writeFixtureFile(root, "assistant-ui-upgrade-report.json", JSON.stringify({
+    schemaVersion: 1,
+    fromRevision: "a".repeat(40),
+    toRevision: "a".repeat(40),
+    packagesChanged: [],
+    vendorFilesChanged: [],
+    vendorFilesAdded: [],
+    vendorFilesRemoved: [],
+    vendorFilesRenamed: [],
+    newTransitiveDependencies: [],
+    newAvailableElements: [],
+    newlyAdoptedElements: [],
+    removedUpstreamElements: [],
+    changedUpstreamElements: [],
+    ignoredUpstreamElements: [],
+    localFacadeFilesChanged: [],
+    runtimeAdapterFilesChanged: [],
+    pluginFilesChanged: [],
+    appUIModelFilesChanged: [],
+    creatorFilesChanged: [],
+    testsChanged: [],
+  }, null, 2));
+  await writeFixtureFile(root, "assistant-ui-upgrade-impact.md", "before\n");
+  await git(root, ["add", "."]);
+  await git(root, ["commit", "--quiet", "-m", "fixture"]);
+  return git(root, ["rev-parse", "HEAD"]);
 }
 
 afterEach(async () => {
@@ -91,6 +132,89 @@ describe("assistant-ui upgrade drill", () => {
       pinnedClientVersion: "0.0.59",
     });
     expect(result.message).toContain("Review CancellationAwareHttpAgent before upgrading.");
+  });
+
+  it("requires re-audit when a compatible react-ag-ui dependency range changes", async () => {
+    const root = await createGitFixture();
+    const baseGitSha = await createReportFixture(root);
+    await writeFixtureFile(root, ".assistant-ui-update-session.json", JSON.stringify({
+      baseGitSha,
+      fromRevision: "a".repeat(40),
+      toRevision: "b".repeat(40),
+      previousAgUi: { "@ag-ui/client": "0.0.59" },
+      previousAgUiCompatibility: {
+        reactAgUiVersion: "0.0.60",
+        reactAgUiClientRange: "^0.0.59",
+        pinnedClientVersion: "0.0.59",
+        compatible: true,
+      },
+      nextAgUiCompatibility: {
+        reactAgUiVersion: "0.0.61",
+        reactAgUiClientRange: ">=0.0.59 <0.1.0",
+        pinnedClientVersion: "0.0.59",
+        compatible: true,
+      },
+      resolvedAgUiClientVersions: ["0.0.59"],
+      upstreamChangedFiles: [],
+    }, null, 2));
+
+    await generateReport({ repoRoot: root });
+    const report = JSON.parse(await readFile(path.join(root, "assistant-ui-upgrade-report.json"), "utf8"));
+    const impact = await readFile(path.join(root, "assistant-ui-upgrade-impact.md"), "utf8");
+
+    expect(report.cancellationCompatibility).toMatchObject({
+      dependencyRangeChanged: true,
+      duplicateClientVersions: false,
+      reAuditRequired: true,
+      status: "REVIEW REQUIRED",
+      reasons: ["react-ag-ui AG-UI dependency range changed"],
+    });
+    expect(impact).toContain("Previous react-ag-ui range:\n^0.0.59");
+    expect(impact).toContain("Target react-ag-ui range:\n>=0.0.59 <0.1.0");
+    expect(impact).toContain("Resolved lockfile versions:\n0.0.59");
+  });
+
+  it("blocks an upgrade when the lockfile resolves multiple AG-UI client versions", () => {
+    const result = checkAgUiLockfile({
+      target: { agUi: { "@ag-ui/client": "0.0.59" } },
+      lockfileText: [
+        "packages:",
+        "  '@ag-ui/client@0.0.59':",
+        "    resolution: {}",
+        "  '@ag-ui/client@0.0.63':",
+        "    resolution: {}",
+        "snapshots:",
+        "  '@ag-ui/client@0.0.59': {}",
+        "  '@ag-ui/client@0.0.63': {}",
+      ].join("\n"),
+    });
+
+    expect(result).toMatchObject({
+      passed: false,
+      duplicateClientVersions: true,
+      resolvedAgUiClientVersions: ["0.0.59", "0.0.63"],
+    });
+    expect(result.message).toContain("Multiple @ag-ui/client versions are resolved:");
+    expect(result.message).toContain("CancellationAwareHttpAgent targets 0.0.59.");
+  });
+
+  it("passes the lockfile guard when only the pinned AG-UI client is resolved", () => {
+    const result = checkAgUiLockfile({
+      target: { agUi: { "@ag-ui/client": "0.0.59" } },
+      lockfileText: [
+        "packages:",
+        "  '@ag-ui/client@0.0.59':",
+        "    resolution: {}",
+        "snapshots:",
+        "  '@ag-ui/client@0.0.59': {}",
+      ].join("\n"),
+    });
+
+    expect(result).toMatchObject({
+      passed: true,
+      duplicateClientVersions: false,
+      resolvedAgUiClientVersions: ["0.0.59"],
+    });
   });
 
   it("resolves remote main B when a local source cache is still at A", async () => {
@@ -174,6 +298,54 @@ exit 99
     );
     expect(await readFile(packagePath, "utf8")).toBe(packageBefore);
     expect(await readFile(vendorPath, "utf8")).toBe(vendorBefore);
+  });
+
+  it("fails before changing package or vendor files when the next AG-UI range is incompatible", async () => {
+    const root = await createGitFixture();
+    await writeFixtureFile(root, "assistant-ui-upgrade-target.json", JSON.stringify({
+      packages: {
+        "@assistant-ui/react": "0.15.21",
+        "@assistant-ui/react-ag-ui": "0.0.60",
+        "@assistant-ui/react-markdown": "0.14.16",
+      },
+      agUi: { "@ag-ui/client": "0.0.59" },
+    }, null, 2));
+    await writeFixtureFile(root, "packages/react/src/internal/vendor/assistant-ui/UPSTREAM.json", JSON.stringify({ revision: "a".repeat(40) }, null, 2));
+    const packagePath = await writeFixtureFile(root, "packages/react/package.json", JSON.stringify({
+      dependencies: {
+        "@assistant-ui/react": "0.15.21",
+        "@assistant-ui/react-ag-ui": "0.0.60",
+        "@assistant-ui/react-markdown": "0.14.16",
+      },
+    }, null, 2));
+    const vendorPath = await writeFixtureFile(root, "packages/react/src/internal/vendor/assistant-ui/elements.ts", "export const sentinel = true;\n");
+    const targetPath = path.join(root, "assistant-ui-upgrade-target.json");
+    await git(root, ["add", "."]);
+    await git(root, ["commit", "--quiet", "-m", "fixture"]);
+
+    const packageBefore = await readFile(packagePath, "utf8");
+    const vendorBefore = await readFile(vendorPath, "utf8");
+    const targetBefore = await readFile(targetPath, "utf8");
+
+    await expect(updateAssistantUi({
+      repoRoot: root,
+      remoteRevisionResolver: async () => "b".repeat(40),
+      sourceCacheEnsurer: async () => {},
+      latestVersionResolver: async () => "0.0.61",
+      compatibilityChecker: async ({ target }) => {
+        const compatible = target.packages["@assistant-ui/react-ag-ui"] !== "0.0.61";
+        return {
+          compatible,
+          message: compatible
+            ? "assistant-ui AG-UI compatibility: PASS"
+            : "REVIEW REQUIRED: incompatible AG-UI dependency",
+        };
+      },
+    })).rejects.toThrow("incompatible AG-UI dependency");
+
+    expect(await readFile(packagePath, "utf8")).toBe(packageBefore);
+    expect(await readFile(vendorPath, "utf8")).toBe(vendorBefore);
+    expect(await readFile(targetPath, "utf8")).toBe(targetBefore);
   });
 
   it("builds a clean report from the base SHA plus explicit generated artifacts", async () => {

@@ -83,44 +83,65 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
   const cancellationRelevantUpstreamChanges = upstreamChangedFiles.filter((file) =>
     CANCELLATION_UPSTREAM_PATTERNS.some((pattern) => pattern.test(file)),
   );
-  const compatibility = session?.agUiCompatibility ?? await checkAssistantUiAgUiCompatibility({
+  const previousCompatibility = session?.previousAgUiCompatibility;
+  const nextCompatibility = session?.nextAgUiCompatibility ?? session?.agUiCompatibility ?? await checkAssistantUiAgUiCompatibility({
     repoRoot,
     target,
     fetchRegistry: false,
   });
-  const previousAgUi = session?.previousAgUi ?? prior.cancellationCompatibility?.previousAgUi;
-  const targetClientVersion = target.agUi?.["@ag-ui/client"];
+  const previousAgUi = session?.previousAgUi;
+  const previousPinnedClientVersion = previousCompatibility?.pinnedClientVersion ?? previousAgUi?.["@ag-ui/client"];
+  const nextPinnedClientVersion = nextCompatibility.pinnedClientVersion ?? target.agUi?.["@ag-ui/client"];
+  const agUiPinnedVersionChanged =
+    typeof previousPinnedClientVersion === "string" &&
+    typeof nextPinnedClientVersion === "string" &&
+    previousPinnedClientVersion !== nextPinnedClientVersion;
+  const dependencyRangeChanged =
+    previousCompatibility?.reactAgUiClientRange !== undefined &&
+    previousCompatibility.reactAgUiClientRange !== nextCompatibility.reactAgUiClientRange;
+  const resolvedAgUiClientVersions = Array.isArray(session?.resolvedAgUiClientVersions)
+    ? session.resolvedAgUiClientVersions
+    : [];
+  const duplicateClientVersions = resolvedAgUiClientVersions.length > 1;
   const transportBaselineChanged =
-    (typeof previousAgUi?.["@ag-ui/client"] === "string" &&
-      previousAgUi["@ag-ui/client"] !== targetClientVersion) ||
-    (typeof prior.cancellationCompatibility?.pinnedClientVersion === "string" &&
-      prior.cancellationCompatibility.pinnedClientVersion !== compatibility.pinnedClientVersion) ||
-    (typeof prior.cancellationCompatibility?.reactAgUiClientRange === "string" &&
-      prior.cancellationCompatibility.reactAgUiClientRange !== compatibility.reactAgUiClientRange);
+    dependencyRangeChanged ||
+    agUiPinnedVersionChanged ||
+    duplicateClientVersions;
   const upstreamDiffUnavailable = session?.upstreamChangedFiles === null;
+  const reasons = [];
+  if (!nextCompatibility.compatible) reasons.push("react-ag-ui AG-UI dependency is incompatible with the pinned @ag-ui/client");
+  if (dependencyRangeChanged) reasons.push("react-ag-ui AG-UI dependency range changed");
+  if (agUiPinnedVersionChanged) reasons.push("@ag-ui/client pinned version changed");
+  if (duplicateClientVersions) reasons.push("multiple @ag-ui/client versions resolved");
+  if (cancellationRelevantUpstreamChanges.length > 0) reasons.push("cancellation-related upstream transport files changed");
+  if (upstreamDiffUnavailable) reasons.push("upstream change set unavailable");
   const cancellationShimReauditRequired =
-    !compatibility.compatible ||
+    !nextCompatibility.compatible ||
+    dependencyRangeChanged ||
+    agUiPinnedVersionChanged ||
+    duplicateClientVersions ||
     transportBaselineChanged ||
     cancellationRelevantUpstreamChanges.length > 0 ||
     upstreamDiffUnavailable;
-  const cancellationStatus = !compatibility.compatible
-    ? "REVIEW REQUIRED: AG-UI dependency changed"
-    : transportBaselineChanged
-      ? "REVIEW REQUIRED: AG-UI transport baseline changed"
-      : cancellationRelevantUpstreamChanges.length > 0
-        ? "REVIEW REQUIRED: cancellation-related upstream files changed"
-        : upstreamDiffUnavailable
-          ? "REVIEW REQUIRED: upstream change set unavailable"
-          : "SAFE: AG-UI transport baseline unchanged";
+  const cancellationStatus = cancellationShimReauditRequired
+    ? "REVIEW REQUIRED"
+    : "SAFE: AG-UI transport baseline unchanged";
   const cancellationCompatibility = {
-    ...compatibility,
-    guardStatus: compatibility.status,
+    ...nextCompatibility,
+    guardStatus: nextCompatibility.status,
     cancellationShim: "ACTIVE",
     previousAgUi,
+    previousAgUiCompatibility: previousCompatibility,
+    nextAgUiCompatibility: nextCompatibility,
+    resolvedAgUiClientVersions,
+    duplicateClientVersions,
+    dependencyRangeChanged,
+    agUiPinnedVersionChanged,
     upstreamChangedFiles,
     cancellationRelevantUpstreamChanges,
     transportBaselineChanged,
     reAuditRequired: cancellationShimReauditRequired,
+    reasons,
     status: cancellationStatus,
   };
   const capabilityAudit = [
@@ -179,16 +200,23 @@ To:
 
 ## AG-UI transport compatibility
 
-@ag-ui/client pinned: ${cancellationCompatibility.pinnedClientVersion ?? "unknown"}
-react-ag-ui requested range: ${cancellationCompatibility.reactAgUiClientRange ?? "unknown"}
+Pinned @ag-ui/client:
+${nextPinnedClientVersion ?? "unknown"}
+
+Previous react-ag-ui range:
+${previousCompatibility?.reactAgUiClientRange ?? "unknown"}
+
+Target react-ag-ui range:
+${nextCompatibility.reactAgUiClientRange ?? "unknown"}
+
+Resolved lockfile versions:
+${resolvedAgUiClientVersions.length === 0 ? "unknown" : resolvedAgUiClientVersions.join(", ")}
+
 CancellationAwareHttpAgent: ${cancellationCompatibility.cancellationShim}
 
-Status: ${cancellationStatus}
-${cancellationCompatibility.cancellationRelevantUpstreamChanges.length === 0
-    ? ""
-    : `Cancellation shim re-audit required for: ${cancellationCompatibility.cancellationRelevantUpstreamChanges.join(", ")}\n`}${cancellationCompatibility.reAuditRequired && cancellationCompatibility.cancellationRelevantUpstreamChanges.length === 0
-    ? "Cancellation shim re-audit required.\n"
-    : ""}
+Status:
+${cancellationStatus}
+${reasons.length === 0 ? "" : `\nReasons:\n${reasons.map((reason) => `- ${reason}`).join("\n")}\n`}
 
 ## Vendor changes
 
