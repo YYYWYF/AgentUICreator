@@ -209,4 +209,69 @@ describe("nested subagent AG-UI reference contract", () => {
       ).length).toBeGreaterThan(1);
     }
   });
+
+  it("paces TaskGroup siblings and streams child progress sequentially", async () => {
+    vi.useFakeTimers();
+    try {
+      const events: BaseEvent[] = [];
+      const completed = (async () => {
+        for await (const event of runMockScenario(
+          input,
+          nestedSubagentTaskGroupScenario,
+          { timingScale: 1 },
+        )) {
+          events.push(EventSchemas.parse(event));
+        }
+      })();
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(events.map(({ type }) => type)).toEqual([
+        EventType.RUN_STARTED,
+        EventType.TOOL_CALL_START,
+        EventType.TOOL_CALL_ARGS,
+      ]);
+
+      await vi.advanceTimersByTimeAsync(249);
+      expect(events.some(({ type }) => type === EventType.SUBAGENT_STARTED)).toBe(false);
+      expect(events.some(({ type }) => type === EventType.RUN_FINISHED)).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(events).toContainEqual(expect.objectContaining({
+        type: EventType.SUBAGENT_STARTED,
+        subagentRunId: "architecture-agent",
+      }));
+      expect(events.some(({ type }) => type === EventType.REASONING_START)).toBe(true);
+      expect(events.some(({ type }) => type === EventType.REASONING_MESSAGE_CONTENT)).toBe(false);
+      expect(events.some(({ type }) => type === EventType.RUN_FINISHED)).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(12);
+      expect(events.some(({ type }) => type === EventType.REASONING_MESSAGE_CONTENT)).toBe(true);
+
+      await vi.runAllTimersAsync();
+      await completed;
+
+      const lifecycle = events
+        .map((event, index) => ({ event, index }))
+        .filter(({ event }) =>
+          event.type === EventType.SUBAGENT_STARTED ||
+          event.type === EventType.SUBAGENT_FINISHED ||
+          event.type === EventType.RUN_FINISHED,
+        );
+      const indexOf = (type: EventType, subagentRunId?: string): number =>
+        lifecycle.find(({ event }) =>
+          event.type === type &&
+          (subagentRunId === undefined ||
+            ("subagentRunId" in event && event.subagentRunId === subagentRunId)),
+        )?.index ?? -1;
+
+      expect(indexOf(EventType.SUBAGENT_FINISHED, "architecture-agent"))
+        .toBeLessThan(indexOf(EventType.SUBAGENT_STARTED, "runtime-agent"));
+      expect(indexOf(EventType.SUBAGENT_FINISHED, "runtime-agent"))
+        .toBeLessThan(indexOf(EventType.SUBAGENT_STARTED, "ui-agent"));
+      expect(indexOf(EventType.SUBAGENT_FINISHED, "ui-agent"))
+        .toBeLessThan(indexOf(EventType.RUN_FINISHED));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

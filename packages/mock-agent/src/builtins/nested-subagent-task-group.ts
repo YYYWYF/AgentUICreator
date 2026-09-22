@@ -34,16 +34,21 @@ export const nestedSubagentTaskGroupScenario = defineScenario({
       toolCallId: "architecture-tool",
       toolName: "delegate_specialist",
       args: { task: "Inspect Architecture", subagent_type: "researcher" },
-      prepareDurationMs: 0,
+      prepareDurationMs: 250,
       subagent: {
         id: "architecture-agent",
         name: "Architecture Researcher",
         description: "Inspects the Agent UI architecture",
         steps: [
           {
+            type: "reasoning",
+            text: "Inspecting the Agent UI architecture and composition boundaries.",
+            durationMs: 700,
+          },
+          {
             type: "message",
-            text: "架构检查完成。",
-            intervalMs: 0,
+            text: "Architecture inspection complete.",
+            intervalMs: 25,
           },
         ],
         outcome: {
@@ -58,16 +63,21 @@ export const nestedSubagentTaskGroupScenario = defineScenario({
       toolCallId: "runtime-tool",
       toolName: "delegate_specialist",
       args: { task: "Inspect Conversation Runtime", subagent_type: "runtime" },
-      prepareDurationMs: 0,
+      prepareDurationMs: 250,
       subagent: {
         id: "runtime-agent",
         name: "Runtime Inspector",
         description: "Inspects the Conversation Runtime",
         steps: [
           {
+            type: "reasoning",
+            text: "Inspecting the Conversation Runtime and adapter boundaries.",
+            durationMs: 700,
+          },
+          {
             type: "message",
-            text: "Conversation Runtime 检查完成。",
-            intervalMs: 0,
+            text: "Conversation Runtime inspection complete.",
+            intervalMs: 25,
           },
         ],
         outcome: {
@@ -82,16 +92,21 @@ export const nestedSubagentTaskGroupScenario = defineScenario({
       toolCallId: "ui-tool",
       toolName: "delegate_specialist",
       args: { task: "Review Conversation UI", subagent_type: "reviewer" },
-      prepareDurationMs: 0,
+      prepareDurationMs: 250,
       subagent: {
         id: "ui-agent",
         name: "UI Reviewer",
         description: "Reviews the Conversation UI",
         steps: [
           {
+            type: "reasoning",
+            text: "Reviewing the Conversation UI and TaskGroup presentation.",
+            durationMs: 700,
+          },
+          {
             type: "message",
             text: "Conversation UI review complete.",
-            intervalMs: 0,
+            intervalMs: 25,
           },
         ],
         outcome: {
