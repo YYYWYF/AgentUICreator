@@ -174,8 +174,8 @@ describe("assistant-ui upgrade drill", () => {
     expect(impact).toContain("Resolved lockfile versions:\n0.0.59");
   });
 
-  it("blocks an upgrade when the lockfile resolves multiple AG-UI client versions", () => {
-    const result = checkAgUiLockfile({
+  it("blocks an upgrade when the lockfile resolves multiple AG-UI client versions", async () => {
+    const result = await checkAgUiLockfile({
       target: { agUi: { "@ag-ui/client": "0.0.59" } },
       lockfileText: [
         "packages:",
@@ -198,8 +198,8 @@ describe("assistant-ui upgrade drill", () => {
     expect(result.message).toContain("CancellationAwareHttpAgent targets 0.0.59.");
   });
 
-  it("passes the lockfile guard when only the pinned AG-UI client is resolved", () => {
-    const result = checkAgUiLockfile({
+  it("passes the lockfile guard when only the pinned AG-UI client is resolved", async () => {
+    const result = await checkAgUiLockfile({
       target: { agUi: { "@ag-ui/client": "0.0.59" } },
       lockfileText: [
         "packages:",
@@ -346,6 +346,75 @@ exit 99
     expect(await readFile(packagePath, "utf8")).toBe(packageBefore);
     expect(await readFile(vendorPath, "utf8")).toBe(vendorBefore);
     expect(await readFile(targetPath, "utf8")).toBe(targetBefore);
+  });
+
+  it("continues through vendor sync with the default lockfile checker", async () => {
+    const root = await createGitFixture();
+    const revision = "b".repeat(40);
+    await writeFixtureFile(root, "assistant-ui-upgrade-target.json", JSON.stringify({
+      packages: {
+        "@assistant-ui/react": "0.15.21",
+        "@assistant-ui/react-ag-ui": "0.0.60",
+        "@assistant-ui/react-markdown": "0.14.16",
+      },
+      agUi: { "@ag-ui/client": "0.0.59" },
+    }, null, 2));
+    await writeFixtureFile(root, "packages/react/src/internal/vendor/assistant-ui/UPSTREAM.json", JSON.stringify({ revision }, null, 2));
+    await writeFixtureFile(root, "packages/react/package.json", JSON.stringify({
+      dependencies: {
+        "@assistant-ui/react": "0.15.21",
+        "@assistant-ui/react-ag-ui": "0.0.60",
+        "@assistant-ui/react-markdown": "0.14.16",
+      },
+    }, null, 2));
+    await writeFixtureFile(root, "packages/runtime-conversation/package.json", JSON.stringify({
+      dependencies: {
+        "@assistant-ui/react": "0.15.21",
+        "@assistant-ui/react-ag-ui": "0.0.60",
+      },
+    }, null, 2));
+    await writeFixtureFile(root, "pnpm-workspace.yaml", "minimumReleaseAgeExclude:\n  - '@assistant-ui/react@0.15.21'\n");
+    await writeFixtureFile(root, "pnpm-lock.yaml", [
+      "lockfileVersion: '9.0'",
+      "",
+      "packages:",
+      "  '@ag-ui/client@0.0.59':",
+      "    resolution: {}",
+      "",
+      "snapshots:",
+      "  '@ag-ui/client@0.0.59': {}",
+      "",
+    ].join("\n"));
+    await git(root, ["add", "."]);
+    await git(root, ["commit", "--quiet", "-m", "fixture"]);
+
+    const commandCalls = [];
+    await updateAssistantUi({
+      repoRoot: root,
+      args: ["--skip-npm"],
+      remoteRevisionResolver: async () => revision,
+      sourceCacheEnsurer: async () => {},
+      compatibilityChecker: async () => ({
+        compatible: true,
+        status: "PASS",
+        reactAgUiClientRange: "^0.0.59",
+        pinnedClientVersion: "0.0.59",
+        message: "assistant-ui AG-UI compatibility: PASS",
+      }),
+      commandRunner: async (file, args) => {
+        commandCalls.push({ file, args });
+        return { stdout: "", stderr: "" };
+      },
+    });
+
+    const installIndex = commandCalls.findIndex(({ file, args }) =>
+      file === "pnpm" && args.join(" ") === "install --lockfile-only",
+    );
+    const syncIndex = commandCalls.findIndex(({ file, args }) =>
+      file === "pnpm" && args.includes("sync:assistant-ui-upstream"),
+    );
+    expect(installIndex).toBeGreaterThanOrEqual(0);
+    expect(syncIndex).toBeGreaterThan(installIndex);
   });
 
   it("builds a clean report from the base SHA plus explicit generated artifacts", async () => {

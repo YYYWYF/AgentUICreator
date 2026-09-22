@@ -107,6 +107,7 @@ export async function main({
   latestVersionResolver = latest,
   compatibilityChecker = checkAssistantUiAgUiCompatibility,
   lockfileChecker = checkAgUiLockfile,
+  commandRunner = execFile,
 } = {}) {
   const status = await git(repoRoot, ["status", "--porcelain=v1"], repoRoot);
   if (status.length > 0) {
@@ -193,7 +194,7 @@ export async function main({
 
     await writeFile(targetPath, `${JSON.stringify(nextTarget, null, 2)}\n`, "utf8");
 
-    await execFile("pnpm", ["install", "--lockfile-only"], { cwd: repoRoot, stdio: "inherit" });
+    await commandRunner("pnpm", ["install", "--lockfile-only"], { cwd: repoRoot, stdio: "inherit" });
     const agUiLockfileGuard = await lockfileChecker({
       repoRoot,
       target: nextTarget,
@@ -201,7 +202,7 @@ export async function main({
     if (!agUiLockfileGuard.passed) {
       throw new Error(agUiLockfileGuard.message);
     }
-    await execFile("pnpm", ["--filter", "@agent-ui/react", "sync:assistant-ui-upstream", "--", "--revision", revision, "--repo", repo], {
+    await commandRunner("pnpm", ["--filter", "@agent-ui/react", "sync:assistant-ui-upstream", "--", "--revision", revision, "--repo", repo], {
       cwd: repoRoot,
       stdio: "inherit",
     });
@@ -215,7 +216,7 @@ export async function main({
       ),
     };
     await writeFile(sessionPath, `${JSON.stringify(generated, null, 2)}\n`, "utf8");
-    await execFile(process.execPath, [
+    await commandRunner(process.execPath, [
       path.join(repoRoot, "scripts/generate-assistant-ui-upgrade-report.mjs"),
       "--base-git-sha",
       baseGitSha,

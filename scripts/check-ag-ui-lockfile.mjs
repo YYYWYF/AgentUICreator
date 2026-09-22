@@ -32,9 +32,14 @@ export function collectResolvedAgUiClientVersions(lockfileText) {
   return [...versions].sort(versionCompare);
 }
 
-export function checkAgUiLockfile({ target, lockfileText } = {}) {
+export async function checkAgUiLockfile({
+  repoRoot = defaultRepoRoot,
+  target,
+  lockfileText,
+} = {}) {
+  const resolvedLockfileText = lockfileText ?? await readFile(path.join(repoRoot, "pnpm-lock.yaml"), "utf8");
   const pinnedClientVersion = target?.agUi?.[AG_UI_CLIENT];
-  const resolvedAgUiClientVersions = collectResolvedAgUiClientVersions(lockfileText);
+  const resolvedAgUiClientVersions = collectResolvedAgUiClientVersions(resolvedLockfileText);
   const duplicateClientVersions = resolvedAgUiClientVersions.length > 1;
   const passed =
     typeof pinnedClientVersion === "string" &&
@@ -88,7 +93,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
   const lockfilePath = option("--lockfile", args) ?? path.join(repoRoot, "pnpm-lock.yaml");
   const target = JSON.parse(await readFile(targetPath, "utf8"));
   const lockfileText = await readFile(lockfilePath, "utf8");
-  const result = checkAgUiLockfile({ target, lockfileText });
+  const result = await checkAgUiLockfile({ target, lockfileText });
 
   if (result.passed) console.log(result.message);
   else {
