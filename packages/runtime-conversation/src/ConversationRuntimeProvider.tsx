@@ -28,6 +28,7 @@ import {
   createConversationAgentRuntimeBridge,
   type ConversationAgentRuntimeBridge,
 } from "./compatibility/conversation-runtime-bridge.js";
+import { createCancellationAwareAgent } from "./compatibility/cancellation-aware-agent.js";
 import { isExpectedCancellationError } from "./errors.js";
 import { ConversationApplicationEventSource } from "./events/conversation-application-event-source.js";
 import type {
@@ -59,11 +60,11 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
 }
 
 const defaultAgentFactory: ConversationAgentFactory = ({ endpoint, threadId }) =>
-  new HttpAgent({
+  createCancellationAwareAgent(new HttpAgent({
     url: endpoint,
     threadId,
     headers: { Accept: "text/event-stream" },
-  });
+  }));
 
 export function ConversationRuntimeProvider<TState = unknown>({
   endpoint,

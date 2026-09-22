@@ -79,6 +79,9 @@ function createFixture() {
       isRunning = false;
       for (const listener of listeners) listener();
     },
+    setRunning(nextIsRunning: boolean) {
+      isRunning = nextIsRunning;
+    },
     setInterrupts(next: AgUiInterrupt[]) {
       interrupts = next;
       for (const listener of listeners) listener();
@@ -124,6 +127,7 @@ describe("ConversationAgentRuntimeBridge", () => {
     const fixture = createFixture();
     const send = fixture.bridge.sendMessage("A");
 
+    fixture.setRunning(false);
     fixture.bridge.recordCancellation();
 
     await expect(send).resolves.toBeUndefined();
