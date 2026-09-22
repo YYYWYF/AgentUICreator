@@ -1,14 +1,3 @@
-.entry {
-  position: fixed;
-  z-index: 1000;
-  top: var(--aui-space-3);
-  right: var(--aui-space-3);
-  max-width: min(32rem, calc(100vw - var(--aui-space-6)));
-  overflow: hidden;
-  white-space: nowrap;
-  box-shadow: var(--aui-shadow-md);
-}
-
 .dockedEntry {
   height: 2.25rem;
   gap: 0.45rem;
@@ -18,24 +7,24 @@
 }
 
 .dockedEntry.mockEntry {
-  border: 1px solid #84adff;
-  color: #175cd3;
-  background: #eff8ff;
-  box-shadow: 0 0 0 2px rgb(23 92 211 / 12%);
+  border: 1px solid #d0d5dd;
+  color: #344054;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgb(16 24 40 / 10%);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .dockedEntry.mockEntry:hover,
 .dockedEntry.mockEntry[aria-expanded="true"] {
-  border-color: #175cd3;
-  color: #ffffff;
-  background: #175cd3;
-  box-shadow: 0 0 0 2px rgb(23 92 211 / 18%);
+  border-color: #98a2b3;
+  color: #172033;
+  background: #f9fafb;
+  box-shadow: 0 4px 12px rgb(16 24 40 / 12%);
 }
 
 .dockedEntry.mockEntry:focus-visible {
-  border-color: #175cd3;
+  border-color: #98a2b3;
   box-shadow: 0 0 0 3px rgb(46 144 250 / 35%);
 }
 
@@ -59,17 +48,14 @@
   transform: rotate(180deg);
 }
 
-.panel,
-.previewPanel {
+.panel {
   display: flex;
   min-width: 0;
   min-height: 0;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--aui-border);
   color: var(--aui-fg);
-  background: var(--aui-bg-elevated);
-  box-shadow: var(--aui-shadow-lg);
+  background: var(--aui-bg);
 }
 
 .panel {
@@ -77,12 +63,6 @@
   width: 100%;
   height: 100%;
   flex: 1;
-}
-
-.previewPanel {
-  position: absolute;
-  z-index: 20;
-  inset: 0;
 }
 
 .header {

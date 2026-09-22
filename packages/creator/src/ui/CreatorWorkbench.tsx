@@ -1284,7 +1284,7 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
       </CreatorWorkbenchPreview>
 
       {isOpen ? (
-        <aside className="creator-panel" aria-label="Creator 智能体" ref={panel}>
+        <aside className="creator-panel" aria-label="Creator" ref={panel}>
           <div
             aria-label="调整 Creator 面板宽度"
             aria-orientation="vertical"
@@ -1300,15 +1300,7 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
             <div>
               <span>仅用于开发</span>
               <h1>
-                Creator 智能体
-                {creatorDebug ? (
-                  <small
-                    className="creator-debug-badge"
-                    title="通过 URL 开启 Creator 调试信息"
-                  >
-                    Resolver Debug
-                  </small>
-                ) : null}
+                Creator
               </h1>
             </div>
             <div className="creator-panel-header-actions">
@@ -1413,11 +1405,14 @@ export function CreatorWorkbench({ children }: CreatorWorkbenchProps) {
         </aside>
       ) : (
         <button
+          aria-label="打开 Creator 面板"
           className="creator-panel-open"
           onClick={() => setIsOpen(true)}
           type="button"
         >
-          打开 Creator
+          <span aria-hidden="true" className="creator-panel-open-dot" />
+          <span>打开 Creator</span>
+          <span aria-hidden="true" className="creator-panel-open-chevron" />
         </button>
       )}
     </div>

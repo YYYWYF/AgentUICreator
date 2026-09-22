@@ -45,6 +45,13 @@ describe("ComposableThread upstream parity", () => {
     expect(footerOrder).toEqual([...footerOrder].sort((left, right) => left - right));
   });
 
+  it("uses normal bottom-following behavior for streaming turns", async () => {
+    const source = await readFile(composableThreadPath, "utf8");
+
+    expect(source).toContain('turnAnchor="bottom"');
+    expect(source).not.toContain('turnAnchor="top"');
+  });
+
   it("keeps vendored Thread ownership and product fork ownership separate", async () => {
     const [manifestSource, lockSource, upstreamThread, composableThread] = await Promise.all([
       readFile(path.join(vendorRoot, "upstream-elements.json"), "utf8"),

@@ -12,6 +12,10 @@ import {
   isMockAgentEndpoint,
   type MockScenarioSelection,
 } from "../../agent-endpoint";
+import {
+  useAgentRun,
+  useAgentRuntimeActions,
+} from "../../../runtime/context";
 import styles from "../scenario-studio.module.css";
 
 interface ScenarioCatalogResponse {
@@ -130,6 +134,8 @@ export function ScenarioPanel({
   endpoint,
   onRun,
 }: ScenarioPanelProps) {
+  const run = useAgentRun();
+  const { abortRun } = useAgentRuntimeActions();
   const [query, setQuery] = useState("");
   const [catalog, setCatalog] = useState<CatalogState>({ status: "loading" });
   const [catalogRequestKey, setCatalogRequestKey] = useState(0);
@@ -181,6 +187,7 @@ export function ScenarioPanel({
     : undefined;
   const currentScenarioId = selectedScenarioId ?? defaultScenarioId;
   const currentScenario = scenarios.find(({ id }) => id === currentScenarioId);
+  const isDemoRunning = run.status === "running" || run.status === "awaiting-input";
   const selectionChanged = currentSelection === undefined ||
     currentSelection.scenarioId !== currentScenarioId ||
     currentSelection.speed !== selectedSpeed;
@@ -243,12 +250,21 @@ export function ScenarioPanel({
     onRun?.({ scenarioId: currentScenarioId, speed: selectedSpeed });
   };
 
+  const handleRunButtonClick = () => {
+    if (isDemoRunning) {
+      abortRun();
+      return;
+    }
+    applySelection();
+  };
+
   return (
     <>
       <div className={styles.content}>
         <Input
           aria-label="Search scenarios"
           className={styles.search}
+          disabled={isDemoRunning}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search scenarios..."
           type="search"
@@ -298,6 +314,7 @@ export function ScenarioPanel({
                       <button
                         aria-pressed={selected}
                         className={`${styles.scenarioCard}${selected ? ` ${styles.scenarioCardSelected}` : ""}`}
+                        disabled={isDemoRunning}
                         key={scenario.id}
                         onClick={() => setSelectedScenarioId(scenario.id)}
                         type="button"
@@ -429,6 +446,7 @@ export function ScenarioPanel({
           <span>Speed</span>
           <select
             aria-label="Mock scenario speed"
+            disabled={isDemoRunning}
             onChange={(event) => {
               if (event.target.value !== "custom") {
                 setSelectedSpeed(Number(event.target.value));
@@ -447,11 +465,19 @@ export function ScenarioPanel({
           </select>
         </label>
         <Button
+          aria-busy={isDemoRunning}
+          aria-label={isDemoRunning ? "Stop running scenario" : undefined}
           className={styles.runButton}
-          disabled={currentScenarioId === undefined}
-          onClick={applySelection}
+          data-running={isDemoRunning ? "true" : undefined}
+          disabled={!isDemoRunning && currentScenarioId === undefined}
+          onClick={handleRunButtonClick}
         >
-          {selectionChanged ? "Run Scenario" : "Restart Scenario"}
+          {isDemoRunning ? (
+            <span className={styles.runButtonContent}>
+              <span aria-hidden="true" className={styles.loadingSpinner} />
+              Stop Scenario
+            </span>
+          ) : selectionChanged ? "Run Scenario" : "Restart Scenario"}
         </Button>
       </footer>
     </>

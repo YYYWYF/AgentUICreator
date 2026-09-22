@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
-import { StrictMode, useState } from "react";
+import { act as domAct, StrictMode, useState } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import {
   act,
   create,
@@ -234,6 +235,44 @@ function createRuntime(
   };
 }
 
+function createControllableRuntime(): {
+  abort: ReturnType<typeof vi.fn>;
+  runtime: AgentRuntime;
+} {
+  let snapshot: AgentRuntimeSnapshot = {
+    conversation: { id: "scenario-studio-controllable-test" },
+    messages: [],
+    state: undefined,
+    run: { status: "idle" },
+    executions: [],
+    interrupts: [],
+  };
+  const listeners = new Set<() => void>();
+  const publish = (status: "idle" | "running") => {
+    snapshot = { ...snapshot, run: { status } };
+    listeners.forEach((listener) => listener());
+  };
+  const abort = vi.fn(() => publish("idle"));
+
+  return {
+    abort,
+    runtime: {
+      mode: "test",
+      getSnapshot: () => snapshot,
+      subscribe: (listener) => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+      subscribeApplicationEvents: () => () => undefined,
+      sendMessage: vi.fn(async () => publish("running")),
+      resumeInterrupts: async () => undefined,
+      startNewConversation: async () => undefined,
+      abort,
+      dispose: () => undefined,
+    },
+  };
+}
+
 function buttonWithText(
   renderer: ReactTestRenderer,
   text: string,
@@ -260,10 +299,12 @@ function scenarioButtonWithTitle(
 }
 
 async function mountStudio({
+  currentSelection,
   endpoint = "/__agent-ui/mock",
   onRun,
   runtime = createRuntime(),
 }: {
+  currentSelection?: MockScenarioSelection;
   endpoint?: string;
   onRun?: (selection: MockScenarioSelection) => void;
   runtime?: AgentRuntime;
@@ -272,7 +313,11 @@ async function mountStudio({
   await act(async () => {
     renderer = create(
       <AgentRuntimeProvider runtime={runtime}>
-        <ScenarioPanel endpoint={endpoint} onRun={onRun} />
+        <ScenarioPanel
+          currentSelection={currentSelection}
+          endpoint={endpoint}
+          onRun={onRun}
+        />
       </AgentRuntimeProvider>,
     );
     await Promise.resolve();
@@ -339,6 +384,40 @@ function MockDevStudioHarness({
       />
     </AgentRuntimeProvider>
   );
+}
+
+interface MountedMockDevStudio {
+  dock: HTMLDivElement;
+  panelHost: HTMLDivElement;
+  root: Root;
+  container: HTMLDivElement;
+}
+
+async function mountMockDevStudioInCreatorHost(
+  runtime: AgentRuntime,
+): Promise<MountedMockDevStudio> {
+  const container = document.createElement("div");
+  const dock = document.createElement("div");
+  const panelHost = document.createElement("div");
+  dock.dataset.slot = "agent-ui-dev-studio-dock";
+  panelHost.dataset.slot = "agent-ui-dev-studio-panel";
+  document.body.append(dock, panelHost, container);
+  const root = createRoot(container);
+
+  await domAct(async () => {
+    root.render(<MockDevStudioHarness runtime={runtime} />);
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+
+  return { container, dock, panelHost, root };
+}
+
+function unmountMockDevStudio(mounted: MountedMockDevStudio): void {
+  mounted.root.unmount();
+  mounted.container.remove();
+  mounted.dock.remove();
+  mounted.panelHost.remove();
 }
 
 async function flushAutorun(): Promise<void> {
@@ -486,6 +565,38 @@ describe("Scenario Panel and Dev Studio autorun", () => {
     renderer.unmount();
   });
 
+  it("shows a loading stop action and aborts the active Runtime run", async () => {
+    const { abort, runtime } = createControllableRuntime();
+    const renderer = await mountStudio({
+      currentSelection: { scenarioId: "reasoning-tool-success", speed: 1 },
+      endpoint: "/__agent-ui/mock?scenario=reasoning-tool-success&speed=1",
+      runtime,
+    });
+
+    expect(buttonWithText(renderer, "Restart Scenario")).toBeDefined();
+    await act(async () => {
+      await runtime.sendMessage("Run mock scenario.");
+    });
+
+    const stopButton = renderer.root.findByProps({
+      "aria-label": "Stop running scenario",
+    });
+    expect(stopButton.props["aria-busy"]).toBe(true);
+    expect(stopButton.findAllByType("span").length).toBeGreaterThan(0);
+    expect(renderer.root.findByProps({ "aria-label": "Mock scenario speed" }).props.disabled)
+      .toBe(true);
+    expect(scenarioButtonWithTitle(renderer, "Simple Chat")?.props.disabled)
+      .toBe(true);
+
+    await act(async () => {
+      stopButton.props.onClick();
+    });
+
+    expect(abort).toHaveBeenCalledOnce();
+    expect(buttonWithText(renderer, "Restart Scenario")).toBeDefined();
+    renderer.unmount();
+  });
+
   it("does not autorun on a fresh Mock mount", async () => {
     const sendMessage = vi.fn(async () => undefined);
 
@@ -535,52 +646,56 @@ describe("Scenario Panel and Dev Studio autorun", () => {
 
   it("runs and restarts in place without changing the browser URL", async () => {
     const sendMessage = vi.fn(async () => undefined);
-    let renderer!: ReactTestRenderer;
-    await act(async () => {
-      renderer = create(
-        <MockDevStudioHarness runtime={createRuntime(sendMessage)} />,
-      );
-    });
+    const mounted = await mountMockDevStudioInCreatorHost(
+      createRuntime(sendMessage),
+    );
 
-    await act(async () => {
+    await domAct(async () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    await act(async () => {
-      renderer.root.findByProps({ "aria-label": "Open Mock Agent panel" })
-        .props.onClick();
+    await domAct(async () => {
+      mounted.dock.querySelector<HTMLButtonElement>(
+        '[aria-label="Open Mock Agent panel"]',
+      )?.click();
       await Promise.resolve();
       await Promise.resolve();
     });
-    await act(async () => {
-      renderer.root.findAllByProps({ "aria-pressed": false })[0]!.props.onClick();
+    await domAct(async () => {
+      mounted.panelHost.querySelector<HTMLButtonElement>(
+        'button[aria-pressed="false"]',
+      )?.click();
     });
-    expect(buttonWithText(renderer, "Run Scenario")).toBeDefined();
+    const findButton = (text: string) => [
+      ...mounted.panelHost.querySelectorAll("button"),
+    ].find((button) => button.textContent?.includes(text));
+    expect(findButton("Run Scenario")).toBeDefined();
 
-    await act(async () => {
-      buttonWithText(renderer, "Run Scenario")!.props.onClick();
+    await domAct(async () => {
+      findButton("Run Scenario")?.click();
     });
-    await flushAutorun();
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
 
     expect(sendMessage).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith(MOCK_SCENARIO_AUTORUN_TRIGGER);
     expect(window.location.search).toBe("");
-    expect(buttonWithText(renderer, "Restart Scenario")).toBeDefined();
-    expect(renderer.root.findByProps({
-      "aria-label": "Close Mock Agent panel",
-    })).toBeDefined();
-    await act(async () => {
-      buttonWithText(renderer, "Restart Scenario")!.props.onClick();
+    expect(findButton("Restart Scenario")).toBeDefined();
+    expect(mounted.dock.querySelector(
+      '[aria-label="Close Mock Agent panel"]',
+    )).not.toBeNull();
+    await domAct(async () => {
+      findButton("Restart Scenario")?.click();
     });
-    await flushAutorun();
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
 
     expect(sendMessage).toHaveBeenCalledTimes(2);
     expect(sendMessage).toHaveBeenCalledWith(MOCK_SCENARIO_AUTORUN_TRIGGER);
     expect(window.location.search).toBe("");
-    expect(renderer.root.findByProps({
-      "aria-label": "Close Mock Agent panel",
-    })).toBeDefined();
-    renderer.unmount();
+    expect(findButton("Restart Scenario")).toBeDefined();
+    expect(mounted.dock.querySelector(
+      '[aria-label="Close Mock Agent panel"]',
+    )).not.toBeNull();
+    unmountMockDevStudio(mounted);
   });
 
   it("never autoruns for a non-Mock endpoint", async () => {

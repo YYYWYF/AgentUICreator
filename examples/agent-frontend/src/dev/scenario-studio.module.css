@@ -420,6 +420,28 @@
   cursor: not-allowed;
 }
 
+.runButtonContent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--aui-space-2);
+}
+
+.loadingSpinner {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 2px solid rgb(255 255 255 / 38%);
+  border-top-color: #ffffff;
+  border-radius: var(--aui-radius-full);
+  animation: scenario-button-spin 0.7s linear infinite;
+}
+
+@keyframes scenario-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 38rem) {
   .entry {
     right: var(--aui-space-2);
@@ -435,7 +457,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .scenarioCard {
+  .scenarioCard,
+  .loadingSpinner {
     transition-duration: 0ms;
+    animation-duration: 0ms;
   }
 }

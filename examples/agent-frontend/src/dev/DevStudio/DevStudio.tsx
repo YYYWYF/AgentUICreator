@@ -97,11 +97,7 @@ export function DevStudio({
       aria-label={mockEnabled
         ? open ? "Close Mock Agent panel" : "Open Mock Agent panel"
         : open ? "Close Agent UI Dev Studio" : "Open Agent UI Dev Studio"}
-      className={
-        `${dock === null ? styles.entry : styles.dockedEntry}${
-          mockEnabled ? ` ${styles.mockEntry}` : ""
-        }`
-      }
+      className={`${styles.dockedEntry}${mockEnabled ? ` ${styles.mockEntry}` : ""}`}
       onClick={() => setPanelOpen(!open)}
       size="sm"
       title={entryLabel}
@@ -120,7 +116,7 @@ export function DevStudio({
     <aside
       data-agent-ui-preview-exclude=""
       aria-label="Agent UI Dev Studio"
-      className={panelHost === null ? styles.previewPanel : styles.panel}
+      className={styles.panel}
       id="agent-ui-dev-studio-panel"
       role="region"
     >
@@ -185,13 +181,9 @@ export function DevStudio({
 
   return (
     <>
-      {dock === null ? entry : createPortal(entry, dock)}
+      {dock === null ? null : createPortal(entry, dock)}
 
-      {open
-        ? panelHost === null
-          ? panel
-          : createPortal(panel, panelHost)
-        : null}
+      {open && panelHost !== null ? createPortal(panel, panelHost) : null}
     </>
   );
 }
