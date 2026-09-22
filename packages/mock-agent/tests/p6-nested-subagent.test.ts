@@ -208,13 +208,13 @@ describe("nested subagent AG-UI reference contract", () => {
       expect(hasEvent(EventType.TOOL_CALL_RESULT)).toBe(false);
       expect(hasEvent(EventType.RUN_FINISHED)).toBe(false);
 
-      await vi.advanceTimersByTimeAsync(299);
+      await vi.advanceTimersToNextTimerAsync();
       expect(hasSubagentEvent(EventType.SUBAGENT_STARTED)).toBe(false);
       expect(hasSubagentEvent(EventType.SUBAGENT_ERROR)).toBe(false);
       expect(hasEvent(EventType.TOOL_CALL_RESULT)).toBe(false);
       expect(hasEvent(EventType.RUN_FINISHED)).toBe(false);
 
-      await vi.advanceTimersByTimeAsync(1);
+      await vi.advanceTimersToNextTimerAsync();
       expect(events).toContainEqual(expect.objectContaining({
         type: EventType.TOOL_CALL_END,
         toolCallId: "error-parent-tool",
@@ -227,7 +227,7 @@ describe("nested subagent AG-UI reference contract", () => {
       expect(hasSubagentEvent(EventType.SUBAGENT_ERROR)).toBe(false);
       expect(hasEvent(EventType.TOOL_CALL_RESULT)).toBe(false);
 
-      await vi.advanceTimersByTimeAsync(35);
+      await vi.advanceTimersToNextTimerAsync();
       expect(events).toContainEqual(expect.objectContaining({
         type: EventType.TEXT_MESSAGE_START,
         subagentRunId: "subagent-error",
