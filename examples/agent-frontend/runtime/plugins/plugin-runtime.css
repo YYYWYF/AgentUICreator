@@ -78,6 +78,8 @@
 .app-ui-plugin-slot-width-probe[data-slot-layout="inline"]
   > .app-ui-plugin-slot-content
   > .app-ui-plugin-instance {
+  display: flex;
+  align-items: center;
   width: auto;
   height: auto;
   overflow: visible;
