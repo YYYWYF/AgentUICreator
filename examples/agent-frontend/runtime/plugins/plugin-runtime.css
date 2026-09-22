@@ -5,10 +5,12 @@
 }
 
 .app-ui-plugin-slot-width-probe[data-slot-layout="inline"] {
+  display: inline-flex;
   width: auto;
   min-width: 0;
   min-height: 0;
   height: auto;
+  align-items: center;
 }
 
 .app-ui-plugin-slot-width-probe[data-slot-layout="inline"]:empty {
