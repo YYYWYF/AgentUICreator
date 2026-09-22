@@ -274,4 +274,146 @@ describe("nested subagent AG-UI reference contract", () => {
       vi.useRealTimers();
     }
   });
+
+  it("paces recursive subagents and exposes nested streaming states", async () => {
+    vi.useFakeTimers();
+    try {
+      const events: BaseEvent[] = [];
+      const completed = (async () => {
+        for await (const event of runMockScenario(
+          input,
+          nestedSubagentRecursiveScenario,
+          { timingScale: 1 },
+        )) {
+          events.push(EventSchemas.parse(event));
+        }
+      })();
+
+      const hasEvent = (type: EventType, id?: string): boolean =>
+        events.some((event) =>
+          event.type === type &&
+          (id === undefined ||
+            ("toolCallId" in event && event.toolCallId === id) ||
+            ("subagentRunId" in event && event.subagentRunId === id)),
+        );
+      const eventIndex = (type: EventType, id?: string): number =>
+        events.findIndex((event) =>
+          event.type === type &&
+          (id === undefined ||
+            ("toolCallId" in event && event.toolCallId === id) ||
+            ("subagentRunId" in event && event.subagentRunId === id)),
+        );
+      const toolCallStartIndex = (toolName: string): number =>
+        events.findIndex((event) =>
+          event.type === EventType.TOOL_CALL_START &&
+          "toolCallName" in event &&
+          event.toolCallName === toolName,
+        );
+      const advanceTo = async (
+        predicate: () => boolean,
+        maxTimers = 256,
+      ): Promise<void> => {
+        for (let timer = 0; timer < maxTimers; timer += 1) {
+          if (predicate()) return;
+          await vi.advanceTimersToNextTimerAsync();
+        }
+        expect(predicate()).toBe(true);
+      };
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(events.map(({ type }) => type)).toEqual([
+        EventType.RUN_STARTED,
+        EventType.TOOL_CALL_START,
+        EventType.TOOL_CALL_ARGS,
+      ]);
+      expect(hasEvent(EventType.SUBAGENT_STARTED, "subagent-a")).toBe(false);
+      expect(hasEvent(EventType.RUN_FINISHED)).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(hasEvent(EventType.SUBAGENT_STARTED, "subagent-a")).toBe(false);
+      expect(hasEvent(EventType.RUN_FINISHED)).toBe(false);
+
+      await vi.advanceTimersToNextTimerAsync();
+      expect(hasEvent(EventType.SUBAGENT_STARTED, "subagent-a")).toBe(true);
+      expect(hasEvent(EventType.REASONING_START, "subagent-a")).toBe(true);
+      expect(hasEvent(EventType.REASONING_MESSAGE_CONTENT, "subagent-a")).toBe(false);
+      expect(hasEvent(EventType.RUN_FINISHED)).toBe(false);
+
+      await vi.advanceTimersToNextTimerAsync();
+      expect(hasEvent(EventType.REASONING_MESSAGE_CONTENT, "subagent-a")).toBe(true);
+
+      await advanceTo(() => hasEvent(EventType.TOOL_CALL_START, "child-tool"));
+      const childToolStart = eventIndex(EventType.TOOL_CALL_START, "child-tool");
+      expect(eventIndex(EventType.TOOL_CALL_END, "child-tool")).toBe(-1);
+      expect(eventIndex(EventType.TOOL_CALL_RESULT, "child-tool")).toBe(-1);
+
+      await vi.advanceTimersToNextTimerAsync();
+      const childToolEnd = eventIndex(EventType.TOOL_CALL_END, "child-tool");
+      expect(childToolEnd).toBeGreaterThan(childToolStart);
+
+      await advanceTo(() => hasEvent(EventType.SUBAGENT_STARTED, "subagent-b"));
+      const subagentAStarted = eventIndex(EventType.SUBAGENT_STARTED, "subagent-a");
+      const subagentBStarted = eventIndex(EventType.SUBAGENT_STARTED, "subagent-b");
+      expect(subagentBStarted).toBeGreaterThan(subagentAStarted);
+      expect(events[subagentBStarted]).toMatchObject({
+        type: EventType.SUBAGENT_STARTED,
+        subagentRunId: "subagent-b",
+        parentSubagentRunId: "subagent-a",
+        parentToolCallId: "child-tool",
+      });
+      expect(hasEvent(EventType.REASONING_START, "subagent-b")).toBe(true);
+      expect(hasEvent(EventType.REASONING_MESSAGE_CONTENT, "subagent-b")).toBe(false);
+
+      await vi.advanceTimersToNextTimerAsync();
+      expect(hasEvent(EventType.REASONING_MESSAGE_CONTENT, "subagent-b")).toBe(true);
+
+      await advanceTo(() => toolCallStartIndex("read_runtime") >= 0);
+      const readRuntimeStart = toolCallStartIndex("read_runtime");
+      expect(readRuntimeStart).toBeGreaterThanOrEqual(0);
+      const readRuntimeStartEvent = events[readRuntimeStart];
+      if (readRuntimeStartEvent === undefined || !("toolCallId" in readRuntimeStartEvent)) {
+        throw new Error("read_runtime TOOL_CALL_START did not expose toolCallId");
+      }
+      const readRuntimeToolCallId = readRuntimeStartEvent.toolCallId;
+      expect(eventIndex(EventType.TOOL_CALL_END, readRuntimeToolCallId)).toBe(-1);
+      expect(eventIndex(EventType.TOOL_CALL_RESULT, readRuntimeToolCallId)).toBe(-1);
+
+      await vi.advanceTimersToNextTimerAsync();
+      const readRuntimeEnd = eventIndex(EventType.TOOL_CALL_END, readRuntimeToolCallId);
+      expect(readRuntimeEnd).toBeGreaterThan(readRuntimeStart);
+      expect(eventIndex(EventType.TOOL_CALL_RESULT, readRuntimeToolCallId)).toBe(-1);
+
+      await vi.advanceTimersToNextTimerAsync();
+      const readRuntimeResult = eventIndex(EventType.TOOL_CALL_RESULT, readRuntimeToolCallId);
+      expect(readRuntimeResult).toBeGreaterThan(readRuntimeEnd);
+
+      await vi.runAllTimersAsync();
+      await completed;
+
+      const lifecycle = events
+        .map((event, index) => ({ event, index }))
+        .filter(({ event }) =>
+          event.type === EventType.SUBAGENT_STARTED ||
+          event.type === EventType.SUBAGENT_FINISHED ||
+          event.type === EventType.RUN_FINISHED,
+        );
+      const lifecycleIndex = (type: EventType, subagentRunId?: string): number =>
+        lifecycle.find(({ event }) =>
+          event.type === type &&
+          (subagentRunId === undefined ||
+            ("subagentRunId" in event && event.subagentRunId === subagentRunId)),
+        )?.index ?? -1;
+
+      expect(lifecycleIndex(EventType.SUBAGENT_STARTED, "subagent-a"))
+        .toBeLessThan(lifecycleIndex(EventType.SUBAGENT_STARTED, "subagent-b"));
+      expect(lifecycleIndex(EventType.SUBAGENT_STARTED, "subagent-b"))
+        .toBeLessThan(lifecycleIndex(EventType.SUBAGENT_FINISHED, "subagent-b"));
+      expect(lifecycleIndex(EventType.SUBAGENT_FINISHED, "subagent-b"))
+        .toBeLessThan(lifecycleIndex(EventType.SUBAGENT_FINISHED, "subagent-a"));
+      expect(lifecycleIndex(EventType.SUBAGENT_FINISHED, "subagent-a"))
+        .toBeLessThan(lifecycleIndex(EventType.RUN_FINISHED));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
