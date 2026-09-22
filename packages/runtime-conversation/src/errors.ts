@@ -16,6 +16,11 @@ export class AgentUiRuntimeBusyError extends Error {
   }
 }
 
+const ABORT_LIKE_MESSAGES = new Set([
+  "Fetch is aborted",
+  "signal is aborted without reason",
+  "component unmounted",
+]);
 const CHROMIUM_BODY_STREAM_ABORT_MESSAGE = "BodyStreamBuffer was aborted";
 const MAX_CAUSE_DEPTH = 8;
 
@@ -23,8 +28,8 @@ function isObjectLike(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-/** Identifies transport cancellation without swallowing ordinary failures. */
-export function isExpectedCancellationError(value: unknown): boolean {
+/** Identifies abort-shaped transport errors without assigning cancellation ownership. */
+export function isAbortLikeTransportError(value: unknown): boolean {
   const seen = new Set<object>();
   let current: unknown = value;
 
@@ -38,7 +43,9 @@ export function isExpectedCancellationError(value: unknown): boolean {
     if (
       name === "AbortError" ||
       (typeof message === "string" &&
-        message.includes(CHROMIUM_BODY_STREAM_ABORT_MESSAGE))
+        (ABORT_LIKE_MESSAGES.has(message) ||
+          message.includes(CHROMIUM_BODY_STREAM_ABORT_MESSAGE))) ||
+      String(current) === "component unmounted"
     ) {
       return true;
     }
@@ -47,4 +54,13 @@ export function isExpectedCancellationError(value: unknown): boolean {
   }
 
   return false;
+}
+
+/** Converts an abort-shaped transport error to the cross-runtime canonical form. */
+export function toCanonicalAbortError(value: unknown): Error {
+  if (value instanceof Error && value.name === "AbortError") return value;
+
+  const normalized = new Error("The operation was aborted", { cause: value });
+  normalized.name = "AbortError";
+  return normalized;
 }

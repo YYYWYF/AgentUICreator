@@ -1,4 +1,4 @@
-import { HttpAgent, type AbstractAgent } from "@ag-ui/client";
+import type { AbstractAgent } from "@ag-ui/client";
 import type { ConversationToolkit } from "@agent-ui/react";
 import type { AgentFrontendToolSource } from "@agent-ui/runtime-core";
 import {
@@ -28,8 +28,7 @@ import {
   createConversationAgentRuntimeBridge,
   type ConversationAgentRuntimeBridge,
 } from "./compatibility/conversation-runtime-bridge.js";
-import { createCancellationAwareAgent } from "./compatibility/cancellation-aware-agent.js";
-import { isExpectedCancellationError } from "./errors.js";
+import { CancellationAwareHttpAgent } from "./compatibility/cancellation-aware-http-agent.js";
 import { ConversationApplicationEventSource } from "./events/conversation-application-event-source.js";
 import type {
   ConversationThreadBinding,
@@ -60,11 +59,11 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
 }
 
 const defaultAgentFactory: ConversationAgentFactory = ({ endpoint, threadId }) =>
-  createCancellationAwareAgent(new HttpAgent({
+  new CancellationAwareHttpAgent({
     url: endpoint,
     threadId,
     headers: { Accept: "text/event-stream" },
-  }));
+  });
 
 export function ConversationRuntimeProvider<TState = unknown>({
   endpoint,
@@ -175,10 +174,6 @@ export function ConversationRuntimeProvider<TState = unknown>({
     bridgeRef.current?.recordCancellation();
   }, []);
   const handleError = useCallback((error: Error) => {
-    if (isExpectedCancellationError(error)) {
-      bridgeRef.current?.recordCancellation();
-      return;
-    }
     bridgeRef.current?.recordError(error);
     onError?.(error);
   }, [onError]);

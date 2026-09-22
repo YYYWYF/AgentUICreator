@@ -1,4 +1,3 @@
-import { HttpAgent } from "@ag-ui/client";
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
 import {
   useAgUiRuntime,
@@ -7,13 +6,13 @@ import {
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
-import { createCancellationAwareAgent } from "../src/compatibility/cancellation-aware-agent.js";
+import { CancellationAwareHttpAgent } from "../src/compatibility/cancellation-aware-http-agent.js";
 
 function RuntimeFixture({
   agent,
   onRuntime,
 }: {
-  agent: ReturnType<typeof createCancellationAwareAgent>;
+  agent: CancellationAwareHttpAgent;
   onRuntime: (runtime: AgUiAssistantRuntime) => void;
 }) {
   const runtime = useAgUiRuntime({ agent });
@@ -30,7 +29,7 @@ function createAbortFailingAgent() {
   const partial = new Promise<void>((resolve) => {
     resolvePartial = resolve;
   });
-  const inner = new HttpAgent({
+  const agent = new CancellationAwareHttpAgent({
     url: "http://example.test/agent",
     threadId: "cancel-thread",
     fetch: vi.fn(async (_url: string, init: RequestInit) => {
@@ -75,7 +74,7 @@ function createAbortFailingAgent() {
       });
     }),
   });
-  return { agent: createCancellationAwareAgent(inner), partial };
+  return { agent, partial };
 }
 
 describe("assistant-ui cancellation boundary", () => {
