@@ -141,46 +141,132 @@ async function installedInputs(repoRoot, packageJsonPath) {
   };
 }
 
-export async function checkAssistantUiLangGraphCompatibility({
-  repoRoot = defaultRepoRoot,
-  target,
+function inspectLangGraphExports(inputs) {
+  const exportsName = (source, name) => {
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`\\bexport\\s+(?:type\\s+)?\\{[^}]*\\b${escapedName}\\b[^}]*\\}`, "su").test(source);
+  };
+  const exports = {
+    convertLangChainMessages: exportsName(inputs.langGraphIndex, "convertLangChainMessages"),
+    LangChainMessage: exportsName(inputs.langGraphIndex, "LangChainMessage"),
+    unstable_convertExternalMessages: exportsName(inputs.reactIndex, "unstable_convertExternalMessages"),
+  };
+  const reasons = [];
+  if (!exports.convertLangChainMessages) {
+    reasons.push(`${LANGGRAPH_PACKAGE} does not export convertLangChainMessages.`);
+  }
+  if (!exports.LangChainMessage) {
+    reasons.push(`${LANGGRAPH_PACKAGE} does not export LangChainMessage.`);
+  }
+  if (!exports.unstable_convertExternalMessages) {
+    reasons.push("@assistant-ui/react does not export unstable_convertExternalMessages.");
+  }
+  return { exports, reasons };
+}
+
+function inspectLangGraphApi(inputs) {
+  const dependencies = inputs.manifest.dependencies ?? {};
+  const { exports, reasons } = inspectLangGraphExports(inputs);
+  if (inputs.manifest.name !== LANGGRAPH_PACKAGE) {
+    reasons.push(`Inspected package is ${inputs.manifest.name ?? "unnamed"}, expected ${LANGGRAPH_PACKAGE}.`);
+  }
+  const missingDependencies = REQUIRED_DEPENDENCIES.filter((name) => typeof dependencies[name] !== "string");
+  if (missingDependencies.length > 0) {
+    reasons.push(`${LANGGRAPH_PACKAGE} is missing required dependency declarations: ${missingDependencies.join(", ")}.`);
+  }
+  return { exports, dependencies, reasons };
+}
+
+function failedInspection(error, source) {
+  const reason = error instanceof Error ? error.message : String(error);
+  return {
+    packageName: LANGGRAPH_PACKAGE,
+    status: "REVIEW REQUIRED",
+    compatible: false,
+    source,
+    exports: {
+      convertLangChainMessages: false,
+      LangChainMessage: false,
+      unstable_convertExternalMessages: false,
+    },
+    reasons: [reason],
+    message: `REVIEW REQUIRED: unable to inspect ${LANGGRAPH_PACKAGE}.\n- ${reason}`,
+  };
+}
+
+export async function checkAssistantUiLangGraphSourceCompatibility({
   sourceRepo,
-  packageJsonPath,
   packageManifest,
   langGraphIndex,
   reactIndex,
-  lockfileText,
-  checkLockfile = true,
 } = {}) {
-  const expectedVersion = target?.packages?.[LANGGRAPH_PACKAGE];
-  let inputs;
   try {
-    inputs = packageManifest === undefined
-      ? sourceRepo === undefined
-        ? await installedInputs(repoRoot, packageJsonPath)
-        : await sourceInputs(sourceRepo)
+    const inputs = packageManifest === undefined
+      ? await sourceInputs(sourceRepo)
       : {
           manifest: packageManifest,
           langGraphIndex: langGraphIndex ?? "",
           reactIndex: reactIndex ?? "",
-          source: packageJsonPath ?? "provided package manifest",
+          source: sourceRepo ?? "provided assistant-ui source",
         };
+    if (inputs === undefined) {
+      throw new Error("assistant-ui source repository was not provided.");
+    }
+    const inspection = inspectLangGraphApi(inputs);
+    const compatible = inspection.reasons.length === 0;
+    return {
+      packageName: LANGGRAPH_PACKAGE,
+      exports: inspection.exports,
+      dependencies: Object.fromEntries(REQUIRED_DEPENDENCIES.map((name) => [name, inspection.dependencies[name]])),
+      status: compatible ? "PASS" : "REVIEW REQUIRED",
+      compatible,
+      source: inputs.source,
+      reasons: inspection.reasons,
+      message: compatible
+        ? `${LANGGRAPH_PACKAGE} source API compatibility: PASS`
+        : ["REVIEW REQUIRED:", ...inspection.reasons.map((reason) => `- ${reason}`)].join("\n"),
+    };
   } catch (error) {
+    return failedInspection(error, sourceRepo);
+  }
+}
+
+export async function checkAssistantUiLangGraphPackageCompatibility({
+  repoRoot = defaultRepoRoot,
+  target,
+  packageManifest,
+  lockfileText,
+  source = "published package manifest",
+} = {}) {
+  const expectedVersion = target?.packages?.[LANGGRAPH_PACKAGE];
+  if (packageManifest === undefined) {
     return {
       packageName: LANGGRAPH_PACKAGE,
       expectedVersion,
       status: "REVIEW REQUIRED",
       compatible: false,
-      source: sourceRepo ?? packageJsonPath,
-      reasons: [error instanceof Error ? error.message : String(error)],
-      message: `REVIEW REQUIRED: unable to inspect ${LANGGRAPH_PACKAGE}.`,
+      source,
+      reasons: ["Published package manifest was not provided."],
+      message: "REVIEW REQUIRED: published package manifest was not provided.",
+    };
+  }
+  let resolvedLockfile;
+  try {
+    resolvedLockfile = lockfileText ?? await readFile(path.join(repoRoot, "pnpm-lock.yaml"), "utf8");
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    return {
+      packageName: LANGGRAPH_PACKAGE,
+      expectedVersion,
+      status: "REVIEW REQUIRED",
+      compatible: false,
+      source,
+      reasons: [reason],
+      message: `REVIEW REQUIRED: unable to inspect pnpm-lock.yaml.\n- ${reason}`,
     };
   }
 
-  const resolvedLockfile = checkLockfile
-    ? lockfileText ?? await readFile(path.join(repoRoot, "pnpm-lock.yaml"), "utf8")
-    : "";
-  const manifest = inputs.manifest;
+  const manifest = packageManifest;
   const dependencies = manifest.dependencies ?? {};
   const lockfileResolvedVersions = Object.fromEntries(
     REQUIRED_DEPENDENCIES.concat(LANGGRAPH_PACKAGE).map((name) => [
@@ -188,7 +274,7 @@ export async function checkAssistantUiLangGraphCompatibility({
       collectLockfileVersions(resolvedLockfile, name),
     ]),
   );
-  const snapshotDependencies = checkLockfile
+  const snapshotDependencies = typeof expectedVersion === "string"
     ? collectLangGraphSnapshotDependencies(resolvedLockfile, expectedVersion)
     : [];
   const resolvedDependencies = Object.fromEntries(REQUIRED_DEPENDENCIES.map((name) => [
@@ -196,6 +282,7 @@ export async function checkAssistantUiLangGraphCompatibility({
     [...new Set(snapshotDependencies.map((dependencies) => dependencies[name]).filter(Boolean))],
   ]));
   const reasons = [];
+
   if (typeof expectedVersion !== "string") {
     reasons.push(`assistant-ui-upgrade-target.json does not pin ${LANGGRAPH_PACKAGE}.`);
   }
@@ -205,37 +292,25 @@ export async function checkAssistantUiLangGraphCompatibility({
   if (manifest.version !== expectedVersion) {
     reasons.push(`Inspected package version ${manifest.version ?? "unknown"} does not match pinned ${expectedVersion ?? "unknown"}.`);
   }
-  if (!inputs.langGraphIndex.includes("convertLangChainMessages")) {
-    reasons.push(`${LANGGRAPH_PACKAGE} does not export convertLangChainMessages.`);
-  }
-  if (!inputs.langGraphIndex.includes("LangChainMessage")) {
-    reasons.push(`${LANGGRAPH_PACKAGE} does not export LangChainMessage.`);
-  }
-  if (!inputs.reactIndex.includes("unstable_convertExternalMessages")) {
-    reasons.push("@assistant-ui/react does not export unstable_convertExternalMessages.");
-  }
-
   const missingDependencies = REQUIRED_DEPENDENCIES.filter((name) => typeof dependencies[name] !== "string");
   if (missingDependencies.length > 0) {
-    reasons.push(`${LANGGRAPH_PACKAGE} is missing required dependency declarations: ${missingDependencies.join(", " )}.`);
+    reasons.push(`${LANGGRAPH_PACKAGE} is missing required dependency declarations: ${missingDependencies.join(", ")}.`);
   }
-  if (checkLockfile) {
-    if (snapshotDependencies.length === 0) {
-      reasons.push(`pnpm-lock.yaml has no ${LANGGRAPH_PACKAGE}@${expectedVersion ?? "unknown"} dependency snapshot.`);
+  if (snapshotDependencies.length === 0) {
+    reasons.push(`pnpm-lock.yaml has no ${LANGGRAPH_PACKAGE}@${expectedVersion ?? "unknown"} dependency snapshot.`);
+  }
+  for (const name of REQUIRED_DEPENDENCIES) {
+    const range = dependencies[name];
+    const versions = resolvedDependencies[name] ?? [];
+    if (typeof range === "string" && (
+      versions.length === 0 || versions.some((version) => !satisfiesRange(version, range))
+    )) {
+      reasons.push(`${LANGGRAPH_PACKAGE} lockfile snapshot resolves ${name} as ${versions.join(", ") || "missing"}, outside ${range}.`);
     }
-    for (const name of REQUIRED_DEPENDENCIES) {
-      const range = dependencies[name];
-      const versions = resolvedDependencies[name] ?? [];
-      if (typeof range === "string" && (
-        versions.length === 0 || versions.some((version) => !satisfiesRange(version, range))
-      )) {
-        reasons.push(`${LANGGRAPH_PACKAGE} lockfile snapshot resolves ${name} as ${versions.join(", ") || "missing"}, outside ${range}.`);
-      }
-    }
-    const lockfileLangGraphVersions = lockfileResolvedVersions[LANGGRAPH_PACKAGE] ?? [];
-    if (!lockfileLangGraphVersions.includes(expectedVersion)) {
-      reasons.push(`pnpm-lock.yaml does not resolve ${LANGGRAPH_PACKAGE}@${expectedVersion ?? "unknown"}.`);
-    }
+  }
+  const lockfileLangGraphVersions = lockfileResolvedVersions[LANGGRAPH_PACKAGE] ?? [];
+  if (typeof expectedVersion === "string" && !lockfileLangGraphVersions.includes(expectedVersion)) {
+    reasons.push(`pnpm-lock.yaml does not resolve ${LANGGRAPH_PACKAGE}@${expectedVersion}.`);
   }
 
   const compatible = reasons.length === 0;
@@ -248,10 +323,56 @@ export async function checkAssistantUiLangGraphCompatibility({
     resolvedDependencies,
     status: compatible ? "PASS" : "REVIEW REQUIRED",
     compatible,
+    source,
+    reasons,
+    message: compatible
+      ? `${LANGGRAPH_PACKAGE} package compatibility: PASS (${manifest.version})`
+      : ["REVIEW REQUIRED:", ...reasons.map((reason) => `- ${reason}`)].join("\n"),
+  };
+}
+
+export async function checkAssistantUiLangGraphInstalledCompatibility({
+  repoRoot = defaultRepoRoot,
+  target,
+  packageJsonPath,
+  packageManifest,
+  langGraphIndex,
+  reactIndex,
+  lockfileText,
+} = {}) {
+  let inputs;
+  try {
+    inputs = packageManifest === undefined
+      ? await installedInputs(repoRoot, packageJsonPath)
+      : {
+          manifest: packageManifest,
+          langGraphIndex: langGraphIndex ?? "",
+          reactIndex: reactIndex ?? "",
+          source: packageJsonPath ?? "provided installed package",
+        };
+  } catch (error) {
+    return { ...failedInspection(error, packageJsonPath), expectedVersion: target?.packages?.[LANGGRAPH_PACKAGE] };
+  }
+
+  const packageCompatibility = await checkAssistantUiLangGraphPackageCompatibility({
+    repoRoot,
+    target,
+    packageManifest: inputs.manifest,
+    lockfileText,
+    source: inputs.source,
+  });
+  const apiInspection = inspectLangGraphExports(inputs);
+  const reasons = [...packageCompatibility.reasons, ...apiInspection.reasons];
+  const compatible = reasons.length === 0;
+  return {
+    ...packageCompatibility,
+    exports: apiInspection.exports,
+    status: compatible ? "PASS" : "REVIEW REQUIRED",
+    compatible,
     source: inputs.source,
     reasons,
     message: compatible
-      ? `${LANGGRAPH_PACKAGE} history compatibility: PASS (${manifest.version})`
+      ? `${LANGGRAPH_PACKAGE} installed compatibility: PASS (${inputs.manifest.version})`
       : ["REVIEW REQUIRED:", ...reasons.map((reason) => `- ${reason}`)].join("\n"),
   };
 }
@@ -259,7 +380,7 @@ export async function checkAssistantUiLangGraphCompatibility({
 async function main({ repoRoot = defaultRepoRoot, args = process.argv.slice(2) } = {}) {
   const targetPath = option("--target", args) ?? path.join(repoRoot, "assistant-ui-upgrade-target.json");
   const target = await readJson(targetPath);
-  const result = await checkAssistantUiLangGraphCompatibility({
+  const result = await checkAssistantUiLangGraphInstalledCompatibility({
     repoRoot,
     target,
     packageJsonPath: option("--package-json", args),

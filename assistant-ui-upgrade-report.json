@@ -934,7 +934,17 @@
     "targetVersion": "0.14.29",
     "converterSeam": "@assistant-ui/react-langgraph.convertLangChainMessages",
     "externalMessageSeam": "@assistant-ui/react.unstable_convertExternalMessages",
-    "compatibility": {
+    "sourceCompatibility": {
+      "packageName": "@assistant-ui/react-langgraph",
+      "exports": {
+        "convertLangChainMessages": true,
+        "LangChainMessage": true,
+        "unstable_convertExternalMessages": true
+      },
+      "compatible": true,
+      "status": "PASS"
+    },
+    "packageCompatibility": {
       "packageName": "@assistant-ui/react-langgraph",
       "packageVersion": "0.14.29",
       "expectedVersion": "0.14.29",
@@ -948,6 +958,12 @@
         "@assistant-ui/core": ["0.3.20"],
         "@assistant-ui/react-langchain": ["0.0.32"],
         "@assistant-ui/react-langgraph": ["0.14.29"],
+        "@assistant-ui/store": ["0.3.14"],
+        "assistant-stream": ["0.3.44"]
+      },
+      "resolvedDependencies": {
+        "@assistant-ui/core": ["0.3.20"],
+        "@assistant-ui/react-langchain": ["0.0.32"],
         "@assistant-ui/store": ["0.3.14"],
         "assistant-stream": ["0.3.44"]
       },

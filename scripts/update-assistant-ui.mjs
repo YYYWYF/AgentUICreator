@@ -5,7 +5,11 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 import { checkAssistantUiAgUiCompatibility } from "./check-assistant-ui-agui-compat.mjs";
-import { checkAssistantUiLangGraphCompatibility } from "./check-assistant-ui-langgraph-compat.mjs";
+import {
+  checkAssistantUiLangGraphInstalledCompatibility,
+  checkAssistantUiLangGraphPackageCompatibility,
+  checkAssistantUiLangGraphSourceCompatibility,
+} from "./check-assistant-ui-langgraph-compat.mjs";
 import { checkAgUiLockfile } from "./check-ag-ui-lockfile.mjs";
 
 const execFile = promisify(execFileCallback);
@@ -35,6 +39,15 @@ async function latest(repoRoot, name) {
   });
   const value = JSON.parse(result.stdout);
   return Array.isArray(value) ? value.at(-1) : value;
+}
+
+async function publishedPackageManifest(repoRoot, name, version) {
+  const result = await execFile("npm", ["view", `${name}@${version}`, "--json"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    maxBuffer: 4 * 1024 * 1024,
+  });
+  return JSON.parse(result.stdout);
 }
 
 export async function remoteMainRevision({
@@ -120,8 +133,11 @@ export async function main({
   sourceCacheEnsurer = ensureSourceCache,
   langGraphSourceResolver = langGraphSourceAtRevision,
   latestVersionResolver = latest,
+  langGraphPackageManifestResolver = publishedPackageManifest,
   compatibilityChecker = checkAssistantUiAgUiCompatibility,
-  langGraphCompatibilityChecker = checkAssistantUiLangGraphCompatibility,
+  langGraphInstalledCompatibilityChecker = checkAssistantUiLangGraphInstalledCompatibility,
+  langGraphPackageCompatibilityChecker = checkAssistantUiLangGraphPackageCompatibility,
+  langGraphSourceCompatibilityChecker = checkAssistantUiLangGraphSourceCompatibility,
   lockfileChecker = checkAgUiLockfile,
   commandRunner = execFile,
 } = {}) {
@@ -151,12 +167,12 @@ export async function main({
       repoRoot,
       target,
     });
-    const previousLangGraphCompatibility = await langGraphCompatibilityChecker({
+    const previousLangGraphInstalledCompatibility = await langGraphInstalledCompatibilityChecker({
       repoRoot,
       target,
     });
-    if (!previousLangGraphCompatibility.compatible) {
-      throw new Error(previousLangGraphCompatibility.message);
+    if (!previousLangGraphInstalledCompatibility.compatible) {
+      throw new Error(previousLangGraphInstalledCompatibility.message);
     }
     const revision = await remoteRevisionResolver({ repoRoot });
     await sourceCacheEnsurer(repo, revision, { repoRoot });
@@ -171,22 +187,29 @@ export async function main({
       revision,
       packages,
     };
+    const nextLangGraphPackageManifest = skipNpm
+      ? JSON.parse(await readFile(path.join(
+          repoRoot,
+          "packages/runtime-conversation/node_modules/@assistant-ui/react-langgraph/package.json",
+        ), "utf8"))
+      : await langGraphPackageManifestResolver(
+          repoRoot,
+          "@assistant-ui/react-langgraph",
+          packages["@assistant-ui/react-langgraph"],
+        );
+    const nextLangGraphSource = await langGraphSourceResolver(repo, revision, repoRoot);
+    const nextLangGraphSourceCompatibility = await langGraphSourceCompatibilityChecker({
+      ...nextLangGraphSource,
+    });
+    if (!nextLangGraphSourceCompatibility.compatible) {
+      throw new Error(nextLangGraphSourceCompatibility.message);
+    }
     const nextAgUiCompatibility = await compatibilityChecker({
       repoRoot,
       target: nextTarget,
     });
     if (!nextAgUiCompatibility.compatible) {
       throw new Error(nextAgUiCompatibility.message);
-    }
-    const nextLangGraphSource = await langGraphSourceResolver(repo, revision, repoRoot);
-    const nextLangGraphCompatibility = await langGraphCompatibilityChecker({
-      repoRoot,
-      target: nextTarget,
-      ...nextLangGraphSource,
-      checkLockfile: false,
-    });
-    if (!nextLangGraphCompatibility.compatible) {
-      throw new Error(nextLangGraphCompatibility.message);
     }
     const session = {
       baseGitSha,
@@ -195,10 +218,10 @@ export async function main({
       previousAgUi: target.agUi,
       previousAgUiCompatibility,
       previousAssistantUiPackages: target.packages,
-      previousLangGraphCompatibility,
+      previousLangGraphInstalledCompatibility,
       nextAgUiCompatibility,
       nextAssistantUiPackages: packages,
-      nextLangGraphCompatibility,
+      nextLangGraphSourceCompatibility,
       agUiCompatibility: nextAgUiCompatibility,
       upstreamChangedFiles: await upstreamChangedFiles(
         repo,
@@ -239,13 +262,13 @@ export async function main({
     if (!agUiLockfileGuard.passed) {
       throw new Error(agUiLockfileGuard.message);
     }
-    const resolvedLangGraphCompatibility = await langGraphCompatibilityChecker({
+    const resolvedLangGraphPackageCompatibility = await langGraphPackageCompatibilityChecker({
       repoRoot,
       target: nextTarget,
-      ...nextLangGraphSource,
+      packageManifest: nextLangGraphPackageManifest,
     });
-    if (!resolvedLangGraphCompatibility.compatible) {
-      throw new Error(resolvedLangGraphCompatibility.message);
+    if (!resolvedLangGraphPackageCompatibility.compatible) {
+      throw new Error(resolvedLangGraphPackageCompatibility.message);
     }
     await commandRunner("pnpm", ["--filter", "@agent-ui/react", "sync:assistant-ui-upstream", "--", "--revision", revision, "--repo", repo], {
       cwd: repoRoot,
@@ -256,7 +279,7 @@ export async function main({
       ...session,
       resolvedAgUiClientVersions: agUiLockfileGuard.resolvedAgUiClientVersions,
       agUiLockfileGuard,
-      nextLangGraphCompatibility: resolvedLangGraphCompatibility,
+      nextLangGraphPackageCompatibility: resolvedLangGraphPackageCompatibility,
       generatedUntrackedArtifacts: generatedUntrackedArtifacts(
         await git(repoRoot, ["status", "--porcelain=v1"], repoRoot),
       ),

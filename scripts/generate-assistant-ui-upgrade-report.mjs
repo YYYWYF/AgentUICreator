@@ -151,16 +151,28 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     typeof previousLangGraphVersion === "string" &&
     typeof nextLangGraphVersion === "string" &&
     previousLangGraphVersion !== nextLangGraphVersion;
-  const langGraphCompatibility = session?.nextLangGraphCompatibility;
-  const langGraphReasons = [...(langGraphCompatibility?.reasons ?? [])];
+  const langGraphSourceCompatibility = session?.nextLangGraphSourceCompatibility;
+  const langGraphPackageCompatibility =
+    session?.nextLangGraphPackageCompatibility ??
+    session?.nextLangGraphInstalledCompatibility ??
+    session?.nextLangGraphCompatibility;
+  const langGraphReasons = [
+    ...(langGraphSourceCompatibility?.reasons ?? []),
+    ...(langGraphPackageCompatibility?.reasons ?? []),
+  ];
   if (langGraphVersionChanged) {
     langGraphReasons.push("@assistant-ui/react-langgraph version changed; review persisted history conversion.");
   }
-  if (langGraphCompatibility?.compatible !== true && langGraphReasons.length === 0) {
-    langGraphReasons.push("LangGraph history compatibility was not proven by the upgrade run.");
+  if (langGraphSourceCompatibility?.compatible !== true && (langGraphSourceCompatibility?.reasons?.length ?? 0) === 0) {
+    langGraphReasons.push("LangGraph source API compatibility was not proven by the upgrade run.");
+  }
+  if (langGraphPackageCompatibility?.compatible !== true && (langGraphPackageCompatibility?.reasons?.length ?? 0) === 0) {
+    langGraphReasons.push("LangGraph published package compatibility was not proven by the upgrade run.");
   }
   const langGraphReviewRequired =
-    langGraphVersionChanged || langGraphCompatibility?.compatible !== true;
+    langGraphVersionChanged ||
+    langGraphSourceCompatibility?.compatible !== true ||
+    langGraphPackageCompatibility?.compatible !== true;
   const langGraphStatus = langGraphReviewRequired
     ? "REVIEW REQUIRED"
     : "UNCHANGED";
@@ -170,7 +182,8 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     targetVersion: nextLangGraphVersion,
     converterSeam: "@assistant-ui/react-langgraph.convertLangChainMessages",
     externalMessageSeam: "@assistant-ui/react.unstable_convertExternalMessages",
-    compatibility: langGraphCompatibility,
+    sourceCompatibility: langGraphSourceCompatibility,
+    packageCompatibility: langGraphPackageCompatibility,
     versionChanged: langGraphVersionChanged,
     reAuditRequired: langGraphReviewRequired,
     reasons: langGraphReasons,
@@ -255,15 +268,28 @@ ${reasons.length === 0 ? "" : `\nReasons:\n${reasons.map((reason) => `- ${reason
 
 ## LangGraph history compatibility
 
-Persisted history conversion:
+Source API seams:
 - ${historyCompatibility.converterSeam}
+- @assistant-ui/react-langgraph.LangChainMessage
 - ${historyCompatibility.externalMessageSeam}
-- pinned version: ${historyCompatibility.targetVersion ?? "unknown"}
-- lockfile dependencies: ${Object.entries(langGraphCompatibility?.lockfileResolvedVersions ?? {})
+
+Source status:
+${langGraphSourceCompatibility?.status ?? "REVIEW REQUIRED"}
+
+Target package:
+@assistant-ui/react-langgraph ${historyCompatibility.targetVersion ?? "unknown"}
+
+Resolved dependencies:
+${Object.entries(langGraphPackageCompatibility?.resolvedDependencies ?? {})
+    .map(([name, versions]) => `${name} ${versions.join(", ") || "unknown"}`)
+    .join("; ") || Object.entries(langGraphPackageCompatibility?.lockfileResolvedVersions ?? {})
     .map(([name, versions]) => `${name} ${versions.join(", ") || "unknown"}`)
     .join("; ") || "unknown"}
 
-Status:
+Published package / lockfile compatibility:
+${langGraphPackageCompatibility?.status ?? "REVIEW REQUIRED"}
+
+Overall status:
 ${langGraphStatus}
 ${langGraphReasons.length === 0 ? "" : `\nReasons:\n${langGraphReasons.map((reason) => `- ${reason}`).join("\n")}\n`}
 

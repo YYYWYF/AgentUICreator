@@ -132,9 +132,9 @@ Therefore STEP lifecycle remains a runner primitive and is not a user-facing sce
 
 `packages/mock-agent` remains the live AG-UI simulator. Synthetic checkpoint
 fixtures live in `examples/agent-frontend/dev-mock/conversations` and are
-enabled independently with `VITE_CONVERSATION_DATA_MODE=mock`. They do not
-restore removed `ConversationReplay` data contracts or tool names. Standard
-live subagents use `SUBAGENT_STARTED`, child events attributed by
+enabled independently with `VITE_CONVERSATION_DATA_MODE=mock`. They remain
+separate from live Mock Agent protocols. Standard live subagents use
+`SUBAGENT_STARTED`, child events attributed by
 `subagentRunId`, and `SUBAGENT_FINISHED` / `SUBAGENT_ERROR`, rendered through
 the canonical nested assistant-ui path.
 

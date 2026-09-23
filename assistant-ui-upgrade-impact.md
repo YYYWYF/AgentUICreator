@@ -32,13 +32,27 @@ SAFE: AG-UI transport baseline unchanged
 
 ## LangGraph history compatibility
 
-Persisted history conversion:
+Source API seams:
 - @assistant-ui/react-langgraph.convertLangChainMessages
+- @assistant-ui/react-langgraph.LangChainMessage
 - @assistant-ui/react.unstable_convertExternalMessages
-- pinned version: 0.14.29
-- lockfile dependencies: @assistant-ui/core 0.3.20; @assistant-ui/react-langchain 0.0.32; @assistant-ui/react-langgraph 0.14.29; @assistant-ui/store 0.3.14; assistant-stream 0.3.44
 
-Status:
+Source status:
+PASS
+
+Target package:
+@assistant-ui/react-langgraph 0.14.29
+
+Resolved dependencies:
+- @assistant-ui/core 0.3.20
+- @assistant-ui/react-langchain 0.0.32
+- @assistant-ui/store 0.3.14
+- assistant-stream 0.3.44
+
+Published package / lockfile compatibility:
+PASS
+
+Overall status:
 UNCHANGED
 
 
