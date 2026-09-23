@@ -184,6 +184,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     externalMessageSeam: "@assistant-ui/react.unstable_convertExternalMessages",
     sourceCompatibility: langGraphSourceCompatibility,
     packageCompatibility: langGraphPackageCompatibility,
+    publishedPackageExports: langGraphPackageCompatibility?.exports,
     versionChanged: langGraphVersionChanged,
     reAuditRequired: langGraphReviewRequired,
     reasons: langGraphReasons,
@@ -288,6 +289,11 @@ ${Object.entries(langGraphPackageCompatibility?.resolvedDependencies ?? {})
 
 Published package / lockfile compatibility:
 ${langGraphPackageCompatibility?.status ?? "REVIEW REQUIRED"}
+
+Published package API exports:
+- @assistant-ui/react-langgraph.convertLangChainMessages: ${langGraphPackageCompatibility?.exports?.convertLangChainMessages === true ? "PASS" : "REVIEW REQUIRED"}
+- @assistant-ui/react-langgraph.LangChainMessage: ${langGraphPackageCompatibility?.exports?.LangChainMessage === true ? "PASS" : "REVIEW REQUIRED"}
+- @assistant-ui/react.unstable_convertExternalMessages: ${langGraphPackageCompatibility?.exports?.unstable_convertExternalMessages === true ? "PASS" : "REVIEW REQUIRED"}
 
 Overall status:
 ${langGraphStatus}

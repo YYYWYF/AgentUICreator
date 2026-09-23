@@ -1,5 +1,6 @@
 import { execFile as execFileCallback } from "node:child_process";
-import { readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
@@ -41,13 +42,82 @@ async function latest(repoRoot, name) {
   return Array.isArray(value) ? value.at(-1) : value;
 }
 
-async function publishedPackageManifest(repoRoot, name, version) {
-  const result = await execFile("npm", ["view", `${name}@${version}`, "--json"], {
-    cwd: repoRoot,
-    encoding: "utf8",
-    maxBuffer: 4 * 1024 * 1024,
-  });
-  return JSON.parse(result.stdout);
+function packageTypesEntry(manifest) {
+  const resolve = (value) => {
+    if (typeof value === "string") return value;
+    if (value === null || typeof value !== "object") return undefined;
+    for (const key of ["types", "import", "require", "node", "default"]) {
+      const entry = resolve(value[key]);
+      if (entry !== undefined) return entry;
+    }
+    return undefined;
+  };
+  return resolve(manifest.exports?.["."]) ?? manifest.types ?? manifest.typings;
+}
+
+async function packageArtifact(name, version, packageRoot, source) {
+  const manifest = JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8"));
+  if (manifest.name !== name || manifest.version !== version) {
+    throw new Error(`Inspected package ${manifest.name ?? "unnamed"}@${manifest.version ?? "unknown"}, expected ${name}@${version}.`);
+  }
+  const typeEntry = packageTypesEntry(manifest);
+  if (typeof typeEntry !== "string") {
+    throw new Error(`${name}@${version} does not declare a TypeScript type entry.`);
+  }
+  const typesPath = path.resolve(packageRoot, typeEntry);
+  const relativeTypesPath = path.relative(packageRoot, typesPath);
+  if (relativeTypesPath === ".." || relativeTypesPath.startsWith(`..${path.sep}`) || path.isAbsolute(relativeTypesPath)) {
+    throw new Error(`${name}@${version} declares a type entry outside its package: ${typeEntry}.`);
+  }
+  return {
+    manifest,
+    types: await readFile(typesPath, "utf8"),
+    source,
+  };
+}
+
+async function publishedPackageArtifact(repoRoot, name, version) {
+  const destination = await mkdtemp(path.join(os.tmpdir(), "assistant-ui-npm-package-"));
+  try {
+    const result = await execFile("npm", [
+      "pack",
+      `${name}@${version}`,
+      "--json",
+      "--pack-destination",
+      destination,
+    ], {
+      cwd: repoRoot,
+      encoding: "utf8",
+      maxBuffer: 8 * 1024 * 1024,
+    });
+    const packed = JSON.parse(result.stdout);
+    const tarball = packed[0]?.filename;
+    if (typeof tarball !== "string") throw new Error(`npm pack did not return a tarball for ${name}@${version}.`);
+    const tarballPath = path.join(destination, tarball);
+    await execFile("tar", ["-xzf", tarballPath, "-C", destination], {
+      cwd: repoRoot,
+      encoding: "utf8",
+      maxBuffer: 8 * 1024 * 1024,
+    });
+    return await packageArtifact(
+      name,
+      version,
+      path.join(destination, "package"),
+      `npm tarball ${name}@${version}`,
+    );
+  } finally {
+    await rm(destination, { recursive: true, force: true });
+  }
+}
+
+async function installedPackageArtifact(repoRoot, name, version) {
+  const packageRoot = path.join(repoRoot, "packages/runtime-conversation/node_modules", name);
+  return packageArtifact(
+    name,
+    version,
+    packageRoot,
+    `installed package ${name}@${version}`,
+  );
 }
 
 export async function remoteMainRevision({
@@ -133,7 +203,8 @@ export async function main({
   sourceCacheEnsurer = ensureSourceCache,
   langGraphSourceResolver = langGraphSourceAtRevision,
   latestVersionResolver = latest,
-  langGraphPackageManifestResolver = publishedPackageManifest,
+  packageArtifactResolver = publishedPackageArtifact,
+  installedPackageArtifactResolver = installedPackageArtifact,
   compatibilityChecker = checkAssistantUiAgUiCompatibility,
   langGraphInstalledCompatibilityChecker = checkAssistantUiLangGraphInstalledCompatibility,
   langGraphPackageCompatibilityChecker = checkAssistantUiLangGraphPackageCompatibility,
@@ -187,16 +258,21 @@ export async function main({
       revision,
       packages,
     };
-    const nextLangGraphPackageManifest = skipNpm
-      ? JSON.parse(await readFile(path.join(
-          repoRoot,
-          "packages/runtime-conversation/node_modules/@assistant-ui/react-langgraph/package.json",
-        ), "utf8"))
-      : await langGraphPackageManifestResolver(
-          repoRoot,
-          "@assistant-ui/react-langgraph",
-          packages["@assistant-ui/react-langgraph"],
-        );
+    const resolvePackageArtifact = skipNpm
+      ? installedPackageArtifactResolver
+      : packageArtifactResolver;
+    const [nextLangGraphPackage, nextReactPackage] = await Promise.all([
+      resolvePackageArtifact(
+        repoRoot,
+        "@assistant-ui/react-langgraph",
+        packages["@assistant-ui/react-langgraph"],
+      ),
+      resolvePackageArtifact(
+        repoRoot,
+        "@assistant-ui/react",
+        packages["@assistant-ui/react"],
+      ),
+    ]);
     const nextLangGraphSource = await langGraphSourceResolver(repo, revision, repoRoot);
     const nextLangGraphSourceCompatibility = await langGraphSourceCompatibilityChecker({
       ...nextLangGraphSource,
@@ -265,7 +341,11 @@ export async function main({
     const resolvedLangGraphPackageCompatibility = await langGraphPackageCompatibilityChecker({
       repoRoot,
       target: nextTarget,
-      packageManifest: nextLangGraphPackageManifest,
+      packageManifest: nextLangGraphPackage.manifest,
+      langGraphTypes: nextLangGraphPackage.types,
+      reactPackageManifest: nextReactPackage.manifest,
+      reactTypes: nextReactPackage.types,
+      source: `${nextLangGraphPackage.source}; ${nextReactPackage.source}`,
     });
     if (!resolvedLangGraphPackageCompatibility.compatible) {
       throw new Error(resolvedLangGraphPackageCompatibility.message);

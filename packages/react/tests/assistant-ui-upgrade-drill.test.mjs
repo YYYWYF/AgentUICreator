@@ -62,6 +62,21 @@ function langGraphPackageManifestFixture(version = "0.14.30") {
   };
 }
 
+function packageArtifactFixture(name, version) {
+  if (name === "@assistant-ui/react-langgraph") {
+    return {
+      manifest: langGraphPackageManifestFixture(version),
+      types: "export { convertLangChainMessages }; export type { LangChainMessage };",
+      source: `npm tarball ${name}@${version}`,
+    };
+  }
+  return {
+    manifest: { name, version },
+    types: "export { convertExternalMessages as unstable_convertExternalMessages };",
+    source: `npm tarball ${name}@${version}`,
+  };
+}
+
 function langGraphSourceFixture(version = "0.15.0-canary.1") {
   return {
     packageManifest: {
@@ -177,6 +192,7 @@ describe("assistant-ui upgrade drill", () => {
     const lockfileText = [
       "packages:",
       "  '@assistant-ui/core@0.3.20':",
+      "  '@assistant-ui/react@0.15.21':",
       "  '@assistant-ui/react-langchain@0.0.32':",
       "  '@assistant-ui/react-langgraph@0.14.29':",
       "  '@assistant-ui/store@0.3.14':",
@@ -191,10 +207,11 @@ describe("assistant-ui upgrade drill", () => {
       "      assistant-stream: 0.3.44",
     ].join("\n");
     const input = {
-      target: { packages: { "@assistant-ui/react-langgraph": "0.14.29" } },
+      target: { packages: { "@assistant-ui/react": "0.15.21", "@assistant-ui/react-langgraph": "0.14.29" } },
       packageManifest,
       langGraphIndex: "export { convertLangChainMessages }; export type { LangChainMessage };",
       reactIndex: "export { convertExternalMessages as unstable_convertExternalMessages };",
+      reactPackageManifest: { name: "@assistant-ui/react", version: "0.15.21" },
       lockfileText,
     };
 
@@ -204,6 +221,7 @@ describe("assistant-ui upgrade drill", () => {
       packageVersion: "0.14.29",
       lockfileResolvedVersions: {
         "@assistant-ui/core": ["0.3.20"],
+        "@assistant-ui/react": ["0.15.21"],
         "@assistant-ui/react-langchain": ["0.0.32"],
         "@assistant-ui/react-langgraph": ["0.14.29"],
         "@assistant-ui/store": ["0.3.14"],
@@ -252,7 +270,7 @@ describe("assistant-ui upgrade drill", () => {
 
     const packageVersionMismatch = await checkAssistantUiLangGraphInstalledCompatibility({
       ...input,
-      target: { packages: { "@assistant-ui/react-langgraph": "0.14.30" } },
+      target: { packages: { ...input.target.packages, "@assistant-ui/react-langgraph": "0.14.30" } },
     });
     expect(packageVersionMismatch).toMatchObject({ compatible: false, status: "REVIEW REQUIRED" });
     expect(packageVersionMismatch.reasons).toContain(
@@ -287,32 +305,58 @@ describe("assistant-ui upgrade drill", () => {
     });
     expect(result).not.toHaveProperty("packageVersion");
 
-    const publishedPackage = await checkAssistantUiLangGraphPackageCompatibility({
-      target: { packages: { "@assistant-ui/react-langgraph": "0.14.30" } },
+    const publishedLockfileText = [
+      "packages:",
+      "  '@assistant-ui/core@0.3.20':",
+      "  '@assistant-ui/react@0.15.22':",
+      "  '@assistant-ui/react-langchain@0.0.32':",
+      "  '@assistant-ui/react-langgraph@0.14.30':",
+      "  '@assistant-ui/store@0.3.14':",
+      "  assistant-stream@0.3.44:",
+      "",
+      "snapshots:",
+      "  '@assistant-ui/react-langgraph@0.14.30':",
+      "    dependencies:",
+      "      '@assistant-ui/core': 0.3.20",
+      "      '@assistant-ui/react-langchain': 0.0.32",
+      "      '@assistant-ui/store': 0.3.14",
+      "      assistant-stream: 0.3.44",
+    ].join("\n");
+    const publishedPackageInput = {
+      target: { packages: { "@assistant-ui/react": "0.15.22", "@assistant-ui/react-langgraph": "0.14.30" } },
       packageManifest: { ...langGraphPackageManifestFixture("0.14.30") },
-      lockfileText: [
-        "packages:",
-        "  '@assistant-ui/core@0.3.20':",
-        "  '@assistant-ui/react-langchain@0.0.32':",
-        "  '@assistant-ui/react-langgraph@0.14.30':",
-        "  '@assistant-ui/store@0.3.14':",
-        "  assistant-stream@0.3.44:",
-        "",
-        "snapshots:",
-        "  '@assistant-ui/react-langgraph@0.14.30':",
-        "    dependencies:",
-        "      '@assistant-ui/core': 0.3.20",
-        "      '@assistant-ui/react-langchain': 0.0.32",
-        "      '@assistant-ui/store': 0.3.14",
-        "      assistant-stream: 0.3.44",
-      ].join("\n"),
-    });
+      langGraphTypes: "export { convertLangChainMessages }; export type { LangChainMessage };",
+      reactPackageManifest: { name: "@assistant-ui/react", version: "0.15.22" },
+      reactTypes: "export { convertExternalMessages as unstable_convertExternalMessages };",
+      lockfileText: publishedLockfileText,
+    };
+    const publishedPackage = await checkAssistantUiLangGraphPackageCompatibility(publishedPackageInput);
     expect(publishedPackage).toMatchObject({
       compatible: true,
       status: "PASS",
       packageVersion: "0.14.30",
       expectedVersion: "0.14.30",
     });
+
+    const sourcePasses = await checkAssistantUiLangGraphSourceCompatibility(langGraphSourceFixture());
+    const npmTargetMissingConverter = await checkAssistantUiLangGraphPackageCompatibility({
+      ...publishedPackageInput,
+      langGraphTypes: "export type { LangChainMessage };",
+    });
+    expect(sourcePasses).toMatchObject({ compatible: true, status: "PASS" });
+    expect(npmTargetMissingConverter).toMatchObject({ compatible: false, status: "REVIEW REQUIRED" });
+    expect(npmTargetMissingConverter.reasons).toContain(
+      "Published @assistant-ui/react-langgraph@0.14.30 does not export convertLangChainMessages.",
+    );
+
+    const npmReactTargetMissingExternalConverter = await checkAssistantUiLangGraphPackageCompatibility({
+      ...publishedPackageInput,
+      reactTypes: "export {}",
+    });
+    expect(npmReactTargetMissingExternalConverter).toMatchObject({ compatible: false, status: "REVIEW REQUIRED" });
+    expect(npmReactTargetMissingExternalConverter.reasons).toContain(
+      "Published @assistant-ui/react@0.15.22 does not export unstable_convertExternalMessages.",
+    );
 
     for (const [langGraphIndex, reactIndex, expectedReason] of [
       ["export type { LangChainMessage };", "export { unstable_convertExternalMessages };", "does not export convertLangChainMessages"],
@@ -536,8 +580,7 @@ exit 99
       repoRoot: root,
       remoteRevisionResolver: async () => "b".repeat(40),
       sourceCacheEnsurer: async () => {},
-      langGraphPackageManifestResolver: async (_repoRoot, _name, version) =>
-        langGraphPackageManifestFixture(version),
+      packageArtifactResolver: async (_repoRoot, name, version) => packageArtifactFixture(name, version),
       langGraphSourceResolver: async () => langGraphSourceFixture(),
       latestVersionResolver: async () => "0.0.61",
       compatibilityChecker: async ({ target }) => {
@@ -626,8 +669,7 @@ exit 99
       repoRoot: root,
       remoteRevisionResolver: async () => revision,
       sourceCacheEnsurer: async () => {},
-      langGraphPackageManifestResolver: async (_repoRoot, _name, version) =>
-        langGraphPackageManifestFixture(version),
+      packageArtifactResolver: async (_repoRoot, name, version) => packageArtifactFixture(name, version),
       langGraphSourceResolver: async () => langGraphSourceFixture(),
       latestVersionResolver: async (_repoRoot, name) => {
         requestedPackages.push(name);
@@ -768,11 +810,18 @@ exit 99
       nextLangGraphPackageCompatibility: {
         packageName: "@assistant-ui/react-langgraph",
         packageVersion: "0.14.29",
+        reactPackageVersion: "0.15.21",
         expectedVersion: "0.14.29",
         compatible: true,
         status: "PASS",
+        exports: {
+          convertLangChainMessages: true,
+          LangChainMessage: true,
+          unstable_convertExternalMessages: true,
+        },
         lockfileResolvedVersions: {
           "@assistant-ui/core": ["0.3.20"],
+          "@assistant-ui/react": ["0.15.21"],
           "@assistant-ui/react-langchain": ["0.0.32"],
           "@assistant-ui/react-langgraph": ["0.14.29"],
           "@assistant-ui/store": ["0.3.14"],
@@ -799,6 +848,11 @@ exit 99
       externalMessageSeam: "@assistant-ui/react.unstable_convertExternalMessages",
       sourceCompatibility: { compatible: true, status: "PASS" },
       packageCompatibility: { compatible: true, status: "PASS" },
+      publishedPackageExports: {
+        convertLangChainMessages: true,
+        LangChainMessage: true,
+        unstable_convertExternalMessages: true,
+      },
       status: "UNCHANGED",
       reAuditRequired: false,
     });
@@ -807,6 +861,9 @@ exit 99
     expect(impact).toContain("@assistant-ui/react-langgraph.convertLangChainMessages");
     expect(impact).toContain("Source status:\nPASS");
     expect(impact).toContain("Published package / lockfile compatibility:\nPASS");
+    expect(impact).toContain("Published package API exports:");
+    expect(impact).toContain("@assistant-ui/react-langgraph.convertLangChainMessages: PASS");
+    expect(impact).toContain("@assistant-ui/react.unstable_convertExternalMessages: PASS");
     expect(impact).toContain("LangChain / LangGraph persisted message conversion | UNCHANGED");
 
     const targetPath = path.join(root, "assistant-ui-upgrade-target.json");
