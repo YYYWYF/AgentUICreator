@@ -916,6 +916,10 @@
       "status": "UNCHANGED"
     },
     {
+      "capability": "LangChain / LangGraph persisted message conversion",
+      "status": "UNCHANGED"
+    },
+    {
       "capability": "ConversationSubagentTool compatibility presentation",
       "status": "LOCAL COMPATIBILITY NO LONGER NEEDED"
     },
@@ -924,6 +928,37 @@
       "status": "SAFE: AG-UI transport baseline unchanged"
     }
   ],
+  "historyCompatibility": {
+    "packageName": "@assistant-ui/react-langgraph",
+    "previousVersion": "0.14.29",
+    "targetVersion": "0.14.29",
+    "converterSeam": "@assistant-ui/react-langgraph.convertLangChainMessages",
+    "externalMessageSeam": "@assistant-ui/react.unstable_convertExternalMessages",
+    "compatibility": {
+      "packageName": "@assistant-ui/react-langgraph",
+      "packageVersion": "0.14.29",
+      "expectedVersion": "0.14.29",
+      "dependencies": {
+        "@assistant-ui/core": "^0.3.20",
+        "@assistant-ui/react-langchain": "^0.0.32",
+        "@assistant-ui/store": "^0.3.14",
+        "assistant-stream": "^0.3.44"
+      },
+      "lockfileResolvedVersions": {
+        "@assistant-ui/core": ["0.3.20"],
+        "@assistant-ui/react-langchain": ["0.0.32"],
+        "@assistant-ui/react-langgraph": ["0.14.29"],
+        "@assistant-ui/store": ["0.3.14"],
+        "assistant-stream": ["0.3.44"]
+      },
+      "status": "PASS",
+      "compatible": true
+    },
+    "versionChanged": false,
+    "reAuditRequired": false,
+    "reasons": [],
+    "status": "UNCHANGED"
+  },
   "cancellationCompatibility": {
     "packageName": "@assistant-ui/react-ag-ui",
     "reactAgUiVersion": "0.0.60",

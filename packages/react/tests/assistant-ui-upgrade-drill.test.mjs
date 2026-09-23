@@ -7,6 +7,7 @@ import { promisify } from "node:util";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { checkAssistantUiAgUiCompatibility } from "../../scripts/check-assistant-ui-agui-compat.mjs";
+import { checkAssistantUiLangGraphCompatibility } from "../../scripts/check-assistant-ui-langgraph-compat.mjs";
 import { checkAgUiLockfile } from "../../scripts/check-ag-ui-lockfile.mjs";
 import { main as generateReport } from "../../scripts/generate-assistant-ui-upgrade-report.mjs";
 import {
@@ -49,6 +50,7 @@ async function createReportFixture(root) {
     packages: {
       "@assistant-ui/react": "0.15.21",
       "@assistant-ui/react-ag-ui": "0.0.60",
+      "@assistant-ui/react-langgraph": "0.14.29",
       "@assistant-ui/react-markdown": "0.14.16",
     },
     agUi: {
@@ -132,6 +134,59 @@ describe("assistant-ui upgrade drill", () => {
       pinnedClientVersion: "0.0.59",
     });
     expect(result.message).toContain("Review CancellationAwareHttpAgent before upgrading.");
+  });
+
+  it("guards the LangGraph converter exports, package version, and key lockfile dependencies", async () => {
+    const packageManifest = {
+      name: "@assistant-ui/react-langgraph",
+      version: "0.14.29",
+      dependencies: {
+        "@assistant-ui/core": "^0.3.20",
+        "@assistant-ui/react-langchain": "^0.0.32",
+        "@assistant-ui/store": "^0.3.14",
+        "assistant-stream": "^0.3.44",
+      },
+    };
+    const lockfileText = [
+      "packages:",
+      "  '@assistant-ui/core@0.3.20':",
+      "  '@assistant-ui/react-langchain@0.0.32':",
+      "  '@assistant-ui/react-langgraph@0.14.29':",
+      "  '@assistant-ui/store@0.3.14':",
+      "  assistant-stream@0.3.44:",
+    ].join("\n");
+    const input = {
+      target: { packages: { "@assistant-ui/react-langgraph": "0.14.29" } },
+      packageManifest,
+      langGraphIndex: "export { convertLangChainMessages }; export type { LangChainMessage };",
+      reactIndex: "export { convertExternalMessages as unstable_convertExternalMessages };",
+      lockfileText,
+    };
+
+    await expect(checkAssistantUiLangGraphCompatibility(input)).resolves.toMatchObject({
+      compatible: true,
+      status: "PASS",
+      packageVersion: "0.14.29",
+      lockfileResolvedVersions: {
+        "@assistant-ui/core": ["0.3.20"],
+        "@assistant-ui/react-langchain": ["0.0.32"],
+        "@assistant-ui/react-langgraph": ["0.14.29"],
+        "@assistant-ui/store": ["0.3.14"],
+        "assistant-stream": ["0.3.44"],
+      },
+    });
+
+    const incompatible = await checkAssistantUiLangGraphCompatibility({
+      ...input,
+      target: { packages: { "@assistant-ui/react-langgraph": "0.14.30" } },
+      langGraphIndex: "export type { LangChainMessage };",
+    });
+    expect(incompatible).toMatchObject({ compatible: false, status: "REVIEW REQUIRED" });
+    expect(incompatible.reasons).toEqual(expect.arrayContaining([
+      expect.stringContaining("does not match pinned 0.14.30"),
+      expect.stringContaining("does not export convertLangChainMessages"),
+      expect.stringContaining("does not resolve @assistant-ui/react-langgraph@0.14.30"),
+    ]));
   });
 
   it("requires re-audit when a compatible react-ag-ui dependency range changes", async () => {
@@ -306,6 +361,7 @@ exit 99
       packages: {
         "@assistant-ui/react": "0.15.21",
         "@assistant-ui/react-ag-ui": "0.0.60",
+        "@assistant-ui/react-langgraph": "0.14.29",
         "@assistant-ui/react-markdown": "0.14.16",
       },
       agUi: { "@ag-ui/client": "0.0.59" },
@@ -341,6 +397,11 @@ exit 99
             : "REVIEW REQUIRED: incompatible AG-UI dependency",
         };
       },
+      langGraphCompatibilityChecker: async () => ({
+        compatible: true,
+        status: "PASS",
+        message: "LangGraph history compatibility: PASS",
+      }),
     })).rejects.toThrow("incompatible AG-UI dependency");
 
     expect(await readFile(packagePath, "utf8")).toBe(packageBefore);
@@ -355,6 +416,7 @@ exit 99
       packages: {
         "@assistant-ui/react": "0.15.21",
         "@assistant-ui/react-ag-ui": "0.0.60",
+        "@assistant-ui/react-langgraph": "0.14.29",
         "@assistant-ui/react-markdown": "0.14.16",
       },
       agUi: { "@ag-ui/client": "0.0.59" },
@@ -364,6 +426,7 @@ exit 99
       dependencies: {
         "@assistant-ui/react": "0.15.21",
         "@assistant-ui/react-ag-ui": "0.0.60",
+        "@assistant-ui/react-langgraph": "0.14.29",
         "@assistant-ui/react-markdown": "0.14.16",
       },
     }, null, 2));
@@ -371,9 +434,15 @@ exit 99
       dependencies: {
         "@assistant-ui/react": "0.15.21",
         "@assistant-ui/react-ag-ui": "0.0.60",
+        "@assistant-ui/react-langgraph": "0.14.29",
       },
     }, null, 2));
-    await writeFixtureFile(root, "pnpm-workspace.yaml", "minimumReleaseAgeExclude:\n  - '@assistant-ui/react@0.15.21'\n");
+    await writeFixtureFile(root, "pnpm-workspace.yaml", [
+      "minimumReleaseAgeExclude:",
+      "  - '@assistant-ui/react@0.15.21'",
+      "  - '@assistant-ui/react-langgraph@0.14.29'",
+      "",
+    ].join("\n"));
     await writeFixtureFile(root, "pnpm-lock.yaml", [
       "lockfileVersion: '9.0'",
       "",
@@ -389,17 +458,33 @@ exit 99
     await git(root, ["commit", "--quiet", "-m", "fixture"]);
 
     const commandCalls = [];
+    const requestedPackages = [];
     await updateAssistantUi({
       repoRoot: root,
-      args: ["--skip-npm"],
       remoteRevisionResolver: async () => revision,
       sourceCacheEnsurer: async () => {},
+      langGraphSourceResolver: async () => ({ packageManifest: {}, langGraphIndex: "", reactIndex: "" }),
+      latestVersionResolver: async (_repoRoot, name) => {
+        requestedPackages.push(name);
+        return name === "@assistant-ui/react-langgraph"
+          ? "0.14.30"
+          : {
+              "@assistant-ui/react": "0.15.21",
+              "@assistant-ui/react-ag-ui": "0.0.60",
+              "@assistant-ui/react-markdown": "0.14.16",
+            }[name];
+      },
       compatibilityChecker: async () => ({
         compatible: true,
         status: "PASS",
         reactAgUiClientRange: "^0.0.59",
         pinnedClientVersion: "0.0.59",
         message: "assistant-ui AG-UI compatibility: PASS",
+      }),
+      langGraphCompatibilityChecker: async () => ({
+        compatible: true,
+        status: "PASS",
+        message: "LangGraph history compatibility: PASS",
       }),
       commandRunner: async (file, args) => {
         commandCalls.push({ file, args });
@@ -415,6 +500,18 @@ exit 99
     );
     expect(installIndex).toBeGreaterThanOrEqual(0);
     expect(syncIndex).toBeGreaterThan(installIndex);
+    expect(requestedPackages).toEqual(expect.arrayContaining([
+      "@assistant-ui/react",
+      "@assistant-ui/react-ag-ui",
+      "@assistant-ui/react-langgraph",
+      "@assistant-ui/react-markdown",
+    ]));
+    await expect(readFile(path.join(root, "packages/runtime-conversation/package.json"), "utf8"))
+      .resolves.toContain('"@assistant-ui/react-langgraph": "0.14.30"');
+    await expect(readFile(path.join(root, "assistant-ui-upgrade-target.json"), "utf8"))
+      .resolves.toContain('"@assistant-ui/react-langgraph": "0.14.30"');
+    await expect(readFile(path.join(root, "pnpm-workspace.yaml"), "utf8"))
+      .resolves.toContain("'@assistant-ui/react-langgraph@0.14.30'");
   });
 
   it("builds a clean report from the base SHA plus explicit generated artifacts", async () => {
@@ -423,6 +520,7 @@ exit 99
       packages: {
         "@assistant-ui/react": "0.15.21",
         "@assistant-ui/react-ag-ui": "0.0.60",
+        "@assistant-ui/react-langgraph": "0.14.29",
         "@assistant-ui/react-markdown": "0.14.16",
       },
       agUi: {
@@ -464,6 +562,21 @@ exit 99
       baseGitSha,
       fromRevision: "a".repeat(40),
       toRevision: "b".repeat(40),
+      previousAssistantUiPackages: { "@assistant-ui/react-langgraph": "0.14.29" },
+      nextLangGraphCompatibility: {
+        packageName: "@assistant-ui/react-langgraph",
+        packageVersion: "0.14.29",
+        expectedVersion: "0.14.29",
+        compatible: true,
+        status: "PASS",
+        lockfileResolvedVersions: {
+          "@assistant-ui/core": ["0.3.20"],
+          "@assistant-ui/react-langchain": ["0.0.32"],
+          "@assistant-ui/react-langgraph": ["0.14.29"],
+          "@assistant-ui/store": ["0.3.14"],
+          "assistant-stream": ["0.3.44"],
+        },
+      },
       generatedUntrackedArtifacts: ["examples/agent-frontend/plugins/generated.ts"],
     }, null, 2));
 
@@ -478,5 +591,39 @@ exit 99
       "examples/agent-frontend/plugins/generated.ts",
     ]);
     expect(report.pluginFilesChanged).not.toContain("packages/creator/example.ts");
+    expect(report.historyCompatibility).toMatchObject({
+      packageName: "@assistant-ui/react-langgraph",
+      converterSeam: "@assistant-ui/react-langgraph.convertLangChainMessages",
+      externalMessageSeam: "@assistant-ui/react.unstable_convertExternalMessages",
+      status: "UNCHANGED",
+      reAuditRequired: false,
+    });
+    const impact = await readFile(path.join(root, "assistant-ui-upgrade-impact.md"), "utf8");
+    expect(impact).toContain("@assistant-ui/react-langgraph 0.14.29");
+    expect(impact).toContain("@assistant-ui/react-langgraph.convertLangChainMessages");
+    expect(impact).toContain("LangChain / LangGraph persisted message conversion | UNCHANGED");
+
+    const targetPath = path.join(root, "assistant-ui-upgrade-target.json");
+    const changedTarget = JSON.parse(await readFile(targetPath, "utf8"));
+    changedTarget.packages["@assistant-ui/react-langgraph"] = "0.14.30";
+    await writeFile(targetPath, `${JSON.stringify(changedTarget, null, 2)}\n`, "utf8");
+    const sessionPath = path.join(root, ".assistant-ui-update-session.json");
+    const changedSession = JSON.parse(await readFile(sessionPath, "utf8"));
+    changedSession.nextLangGraphCompatibility.packageVersion = "0.14.30";
+    changedSession.nextLangGraphCompatibility.expectedVersion = "0.14.30";
+    changedSession.nextLangGraphCompatibility.lockfileResolvedVersions[
+      "@assistant-ui/react-langgraph"
+    ] = ["0.14.30"];
+    await writeFile(sessionPath, `${JSON.stringify(changedSession, null, 2)}\n`, "utf8");
+
+    await generateReport({ repoRoot: root });
+    const changedReport = JSON.parse(await readFile(path.join(root, "assistant-ui-upgrade-report.json"), "utf8"));
+    expect(changedReport.historyCompatibility).toMatchObject({
+      previousVersion: "0.14.29",
+      targetVersion: "0.14.30",
+      versionChanged: true,
+      reAuditRequired: true,
+      status: "REVIEW REQUIRED",
+    });
   });
 });

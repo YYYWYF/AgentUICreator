@@ -18,10 +18,6 @@ describe("assistant-ui semantic Slot adapter", () => {
     const surface = await read(
       "agent-ui/conversation/ConversationSurface.tsx",
     );
-    const toolkit = await read(
-      "agent-ui/conversation/toolkit/mock/MockDispatchSubagentToolUI.tsx",
-    );
-
     const plugin = await read(
       "plugins/conversation-surface/index.tsx",
     );
@@ -39,9 +35,6 @@ describe("assistant-ui semantic Slot adapter", () => {
       /ThreadPresentation|ToolCallWrapper|ComposerAddon|WelcomeWrapper|TimelineWrapper|InitialSuggestionsWrapper/u,
     );
     expect(surface).not.toContain("presentation=");
-    expect(toolkit).toContain("useAuiState");
-    expect(toolkit).toContain("projectSubagentToolCalls");
-    expect(toolkit).toContain("<ToolFallback {...props} />");
   });
 
   it("keeps Plugin child Slot names out of the reusable Agent UI layer", async () => {

@@ -6,7 +6,12 @@ import {
 
 import type { ConversationMessage } from "../threads/types.js";
 
-/** Official assistant-ui conversion boundary for persisted LangChain history. */
+/**
+ * The only AgentUICreator boundary that depends on @assistant-ui/react-langgraph.
+ *
+ * LangGraph Runtime ownership stays with useAgUiRuntime. react-langgraph is
+ * used here only for the official persisted LangChain message conversion.
+ */
 export function projectLangChainHistory(
   messages: readonly unknown[],
 ): ConversationMessage[] {

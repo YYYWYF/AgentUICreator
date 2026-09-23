@@ -10,12 +10,5 @@ export {
 export {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
-  MockDispatchSubagentToolUI,
   MockRunCiJobToolUI,
 } from "./mock";
-export {
-  CONVERSATION_TOOL_PRESENTATION,
-  getConversationToolPresentation,
-  isConversationSubagentDispatchTool,
-  type ConversationToolPresentation,
-} from "./tool-presentation";

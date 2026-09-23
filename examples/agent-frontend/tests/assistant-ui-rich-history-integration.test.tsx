@@ -89,4 +89,18 @@ describe("assistant-ui LangGraph history UI integration", () => {
       "这样 Thread 的身份、消息与只读策略只有一个权威来源。",
     );
   });
+
+  it("renders persisted image and file content parts from LangGraph history", async () => {
+    const container = await renderHistory("mock-history-attachments");
+
+    const image = container.querySelector<HTMLImageElement>(
+      '[data-slot="aui_user-message-image"] img',
+    );
+    expect(image?.getAttribute("src")).toBe(
+      "https://example.test/architecture.png",
+    );
+    expect(container.querySelector('[data-slot="aui_user-message-file"]'))
+      .not.toBeNull();
+    expect(container.textContent).toContain("architecture.pdf");
+  });
 });

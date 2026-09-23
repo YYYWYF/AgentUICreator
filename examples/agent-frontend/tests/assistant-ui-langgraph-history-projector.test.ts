@@ -63,6 +63,27 @@ describe("assistant-ui LangChain history projector", () => {
     });
   });
 
+  it("preserves reasoning only through the official LangChain shape", () => {
+    const messages = projectConversationDetail(detail([{
+      id: "ai-reasoning",
+      type: "ai",
+      content: "Answer",
+      additional_kwargs: {
+        reasoning: {
+          type: "reasoning",
+          reasoning: "Compare the ownership boundaries.",
+        },
+      },
+    }]));
+
+    expect(messages[0]).toMatchObject({
+      content: expect.arrayContaining([
+        { type: "reasoning", text: "Compare the ownership boundaries." },
+        { type: "text", text: "Answer" },
+      ]),
+    });
+  });
+
   it("accepts an empty checkpoint history", () => {
     expect(projectConversationDetail(detail([]))).toEqual([]);
   });

@@ -9,15 +9,9 @@ import {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
   MockApprovalToolUI,
-  MockDispatchSubagentToolUI,
   MockRunCiJobToolUI,
   createConversationToolkit,
 } from "../agent-ui/conversation/toolkit";
-import {
-  isEligibleSubagentToolCall,
-  projectSubagentToolCalls,
-  type SubagentToolCallPart,
-} from "../agent-ui/conversation/agents/subagent-projection";
 
 type MockToolProps = ToolCallMessagePartProps<Record<string, unknown>, unknown>;
 const mountedRoots: Root[] = [];
@@ -65,23 +59,19 @@ describe("Mock Agent official element renderers", () => {
     expect(production).not.toHaveProperty("mock_agent_plan");
     expect(production).not.toHaveProperty("mock_agent_status");
     expect(production).not.toHaveProperty("delete_generated_artifacts");
-    expect(production).not.toHaveProperty("mock_dispatch_subagent");
     expect(production).not.toHaveProperty("run_ci_job");
     const mockAgentPlan = mock.mock_agent_plan;
     const mockAgentStatus = mock.mock_agent_status;
     const mockApproval = mock.delete_generated_artifacts;
-    const mockDispatchSubagent = mock.mock_dispatch_subagent;
     const mockRunCiJob = mock.run_ci_job;
     expect(mockAgentPlan).toBeDefined();
     expect(mockAgentStatus).toBeDefined();
     expect(mockApproval).toBeDefined();
-    expect(mockDispatchSubagent).toBeDefined();
     expect(mockRunCiJob).toBeDefined();
     if (
       mockAgentPlan === undefined ||
       mockAgentStatus === undefined ||
       mockApproval === undefined ||
-      mockDispatchSubagent === undefined ||
       mockRunCiJob === undefined
     ) {
       throw new Error("Mock Agent Elements toolkit entries are missing.");
@@ -90,9 +80,7 @@ describe("Mock Agent official element renderers", () => {
     expect(mockAgentStatus.type).toBe("backend");
     expect(mockApproval.type).toBe("backend");
     expect(mockApproval.display).toBe("standalone");
-    expect(mockDispatchSubagent.type).toBe("backend");
     expect(mockRunCiJob.type).toBe("backend");
-    expect(mockDispatchSubagent.render).toBe(MockDispatchSubagentToolUI);
     expect(mockRunCiJob.render).toBe(MockRunCiJobToolUI);
     expect(mockApproval.render).toBe(MockApprovalToolUI);
     expect("execute" in mockAgentPlan).toBe(false);
@@ -221,105 +209,6 @@ describe("Mock Agent official element renderers", () => {
     expect(externalSpacing).toBeCloseTo(16, 0);
     expect(frames[0].classList.contains("my-3")).toBe(false);
     expect(frames[1].classList.contains("my-3")).toBe(false);
-  });
-
-  it("projects separate dispatch calls into one aggregate view", () => {
-    const parts: SubagentToolCallPart[] = [
-      {
-        type: "tool-call",
-        toolCallId: "dispatch-a",
-        toolName: "mock_dispatch_subagent",
-        args: { name: "Agent A", model: "mimo-v2.5-pro" },
-        result: { name: "Agent A", model: "mimo-v2.5-pro", status: "running", progress: 20 },
-        status: { type: "running" },
-      },
-      {
-        type: "tool-call",
-        toolCallId: "dispatch-b",
-        toolName: "mock_dispatch_subagent",
-        args: { name: "Agent B", model: "mimo-v2.5-pro" },
-        result: { name: "Agent B", model: "mimo-v2.5-pro", status: "completed", progress: 100 },
-        status: { type: "complete" },
-      },
-      {
-        type: "tool-call",
-        toolCallId: "dispatch-c",
-        toolName: "mock_dispatch_subagent",
-        args: { name: "Agent C", model: "mimo-v2.5-pro" },
-        result: { name: "Agent C", model: "mimo-v2.5-pro", status: "running", progress: 55 },
-        status: { type: "running" },
-      },
-    ];
-
-    expect(projectSubagentToolCalls(parts)).toEqual({
-      view: {
-        agents: [
-          { name: "Agent A", model: "mimo-v2.5-pro" },
-          { name: "Agent B", model: "mimo-v2.5-pro" },
-          { name: "Agent C", model: "mimo-v2.5-pro" },
-        ],
-        progress: [20, 100, 55],
-        completedCount: 0,
-        showSummary: false,
-        summaryAgent: { name: "", model: "" },
-      },
-      eligibleToolCallIds: ["dispatch-a", "dispatch-b", "dispatch-c"],
-    });
-  });
-
-  it("uses the shared dispatch eligibility projection and official fallback", async () => {
-    const validProps = createProps({
-      name: "Agent A",
-      model: "mimo-v2.5-pro",
-      status: "completed",
-      progress: 100,
-    }, {
-      toolName: "mock_dispatch_subagent",
-    });
-    expect(isEligibleSubagentToolCall(validProps)).toBe(true);
-    const validContainer = await renderTool(
-      <MockDispatchSubagentToolUI {...validProps} />,
-    );
-    expect(validContainer.innerHTML).toBe("");
-
-    const invalidFixtures = [
-      createProps({ name: "Missing model", status: "completed" }, {
-        toolName: "mock_dispatch_subagent",
-      }),
-      createProps({
-        name: "Agent A",
-        model: "mimo-v2.5-pro",
-        status: "completed",
-      }, {
-        toolName: "mock_dispatch_subagent",
-        isError: true,
-      }),
-      createProps({
-        name: "Agent A",
-        model: "mimo-v2.5-pro",
-        status: "running",
-      }, {
-        toolName: "mock_dispatch_subagent",
-        status: { type: "requires-action", reason: "tool-calls" },
-      }),
-      createProps({
-        name: "Agent A",
-        model: "mimo-v2.5-pro",
-        status: "running",
-      }, {
-        toolName: "mock_dispatch_subagent",
-        status: { type: "incomplete", reason: "error" },
-      }),
-    ];
-
-    for (const props of invalidFixtures) {
-      expect(isEligibleSubagentToolCall(props)).toBe(false);
-      const container = await renderTool(
-        <MockDispatchSubagentToolUI {...props} />,
-      );
-      expect(container.querySelector('[data-slot="tool-fallback-root"]'))
-        .not.toBeNull();
-    }
   });
 
   it("falls back to ToolFallback for malformed plan data", async () => {

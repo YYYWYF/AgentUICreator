@@ -7,6 +7,7 @@ From:
 To:
 - @assistant-ui/react 0.15.21
 - @assistant-ui/react-ag-ui 0.0.60
+- @assistant-ui/react-langgraph 0.14.29
 - @assistant-ui/react-markdown 0.14.16
 - upstream revision: 039c3c32822632f2a564164f089f538926886124
 
@@ -28,6 +29,17 @@ CancellationAwareHttpAgent: ACTIVE
 
 Status:
 SAFE: AG-UI transport baseline unchanged
+
+## LangGraph history compatibility
+
+Persisted history conversion:
+- @assistant-ui/react-langgraph.convertLangChainMessages
+- @assistant-ui/react.unstable_convertExternalMessages
+- pinned version: 0.14.29
+- lockfile dependencies: @assistant-ui/core 0.3.20; @assistant-ui/react-langchain 0.0.32; @assistant-ui/react-langgraph 0.14.29; @assistant-ui/store 0.3.14; assistant-stream 0.3.44
+
+Status:
+UNCHANGED
 
 
 ## Vendor changes
@@ -340,6 +352,7 @@ SAFE: AG-UI transport baseline unchanged
 | AgentStatus / TaskTray | NEW UPSTREAM CAPABILITY |
 | ReasoningGroup / ToolGroup / ToolFallback | UNCHANGED |
 | Composer / Message Footer / Thread List / Attachments / Suggestions | UNCHANGED |
+| LangChain / LangGraph persisted message conversion | UNCHANGED |
 | ConversationSubagentTool compatibility presentation | LOCAL COMPATIBILITY NO LONGER NEEDED |
 | CancellationAwareHttpAgent / AG-UI transport | SAFE: AG-UI transport baseline unchanged |
 

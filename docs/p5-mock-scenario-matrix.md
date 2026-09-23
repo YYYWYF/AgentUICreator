@@ -18,6 +18,10 @@ The Vite Mock endpoint and Scenario Studio expose the showcase catalog only.
 Regression fixtures remain available through `@agent-ui/mock-agent` imports and
 direct `runMockScenario()` calls.
 
+Live Mock Agent scenarios and synthetic Conversation History fixtures are
+separate catalogs. The Mock Agent emits AG-UI events; Mock History serves
+LangGraph `StateSnapshot` data and never emits AG-UI events.
+
 ## Backend Reference Profile
 
 ```text
@@ -112,22 +116,27 @@ The current assistant-ui react-ag-ui integration does not project them.
 Therefore STEP lifecycle remains a runner primitive and is not a user-facing scenario.
 ```
 
-## Legacy Replay Compatibility
+## Capability Coverage
 
-The removed `step-lifecycle`, `subagents`, `subagents-out-of-order`, and
-`agent-elements-showcase` fixtures are no longer production builtins. The
-legacy `mock_dispatch_subagent` toolkit registration, replay renderer, and
-`subagent-projection` remain because persisted Conversation Replay fixtures
-still contain that tool name.
+| Capability | Current owner | Fixture or status |
+|---|---|---|
+| Agent Elements | Mock Agent | `agent-plan`, `agent-status` |
+| Subagents | Mock Agent | `nested-subagent-conversation`, `nested-subagent-task-group`, and related regression fixtures |
+| Reasoning + Tool | Mock Agent | `reasoning-tool-success` |
+| Tool Error | Mock Agent | `tool-error` |
+| Long live reasoning | Mock Agent | `reasoning-long-preview` regression fixture |
+| Long persisted transcript | Mock Conversation History | `mock-history-long` |
+| Image and file content | Mock Conversation History | `mock-history-attachments`; LangGraph message parts render inline |
+| Persisted Sources | Conversation History | `DEFERRED` |
+| Live AG-UI Sources | AG-UI profile 0.0.59 | `DEFERRED`; no private event is added |
 
-```text
-mock_dispatch_subagent = legacy persisted replay compatibility only
-```
-
-It is not a live AG-UI Subagent reference. New live scenarios use
-`SUBAGENT_STARTED`, child events attributed by `subagentRunId`, and
-`SUBAGENT_FINISHED` / `SUBAGENT_ERROR`, rendered through the canonical nested
-assistant-ui path.
+`packages/mock-agent` remains the live AG-UI simulator. Synthetic checkpoint
+fixtures live in `examples/agent-frontend/dev-mock/conversations` and are
+enabled independently with `VITE_CONVERSATION_DATA_MODE=mock`. They do not
+restore removed `ConversationReplay` data contracts or tool names. Standard
+live subagents use `SUBAGENT_STARTED`, child events attributed by
+`subagentRunId`, and `SUBAGENT_FINISHED` / `SUBAGENT_ERROR`, rendered through
+the canonical nested assistant-ui path.
 
 ## Development Endpoint
 
@@ -142,4 +151,4 @@ Select a showcase with `?mockScenario=<scenario-id>`. The default remains
 used to accelerate long-running showcase steps.
 
 Mock scenarios do not change AppUIModel, Workspace Shell composition, runtime
-ownership, or Conversation Replay data format.
+ownership, or the LangGraph StateSnapshot history contract.

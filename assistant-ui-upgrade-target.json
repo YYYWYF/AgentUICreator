@@ -6,6 +6,7 @@
   "packages": {
     "@assistant-ui/react": "0.15.21",
     "@assistant-ui/react-ag-ui": "0.0.60",
+    "@assistant-ui/react-langgraph": "0.14.29",
     "@assistant-ui/react-markdown": "0.14.16"
   },
   "agUi": {

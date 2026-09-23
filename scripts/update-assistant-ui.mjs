@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 import { checkAssistantUiAgUiCompatibility } from "./check-assistant-ui-agui-compat.mjs";
+import { checkAssistantUiLangGraphCompatibility } from "./check-assistant-ui-langgraph-compat.mjs";
 import { checkAgUiLockfile } from "./check-ag-ui-lockfile.mjs";
 
 const execFile = promisify(execFileCallback);
@@ -71,6 +72,19 @@ async function upstreamChangedFiles(repo, fromRevision, toRevision, repoRoot) {
   }
 }
 
+async function langGraphSourceAtRevision(repo, revision, repoRoot) {
+  const [packageText, langGraphIndex, reactIndex] = await Promise.all([
+    git(repo, ["show", `${revision}:packages/react-langgraph/package.json`], repoRoot),
+    git(repo, ["show", `${revision}:packages/react-langgraph/src/index.ts`], repoRoot),
+    git(repo, ["show", `${revision}:packages/react/src/index.ts`], repoRoot),
+  ]);
+  return {
+    packageManifest: JSON.parse(packageText),
+    langGraphIndex,
+    reactIndex,
+  };
+}
+
 export async function ensureSourceCache(
   repo,
   revision,
@@ -104,8 +118,10 @@ export async function main({
   args = process.argv.slice(2),
   remoteRevisionResolver = remoteMainRevision,
   sourceCacheEnsurer = ensureSourceCache,
+  langGraphSourceResolver = langGraphSourceAtRevision,
   latestVersionResolver = latest,
   compatibilityChecker = checkAssistantUiAgUiCompatibility,
+  langGraphCompatibilityChecker = checkAssistantUiLangGraphCompatibility,
   lockfileChecker = checkAgUiLockfile,
   commandRunner = execFile,
 } = {}) {
@@ -135,6 +151,13 @@ export async function main({
       repoRoot,
       target,
     });
+    const previousLangGraphCompatibility = await langGraphCompatibilityChecker({
+      repoRoot,
+      target,
+    });
+    if (!previousLangGraphCompatibility.compatible) {
+      throw new Error(previousLangGraphCompatibility.message);
+    }
     const revision = await remoteRevisionResolver({ repoRoot });
     await sourceCacheEnsurer(repo, revision, { repoRoot });
     const packages = skipNpm
@@ -155,13 +178,27 @@ export async function main({
     if (!nextAgUiCompatibility.compatible) {
       throw new Error(nextAgUiCompatibility.message);
     }
+    const nextLangGraphSource = await langGraphSourceResolver(repo, revision, repoRoot);
+    const nextLangGraphCompatibility = await langGraphCompatibilityChecker({
+      repoRoot,
+      target: nextTarget,
+      ...nextLangGraphSource,
+      checkLockfile: false,
+    });
+    if (!nextLangGraphCompatibility.compatible) {
+      throw new Error(nextLangGraphCompatibility.message);
+    }
     const session = {
       baseGitSha,
       fromRevision: previousProvenance.revision,
       toRevision: revision,
       previousAgUi: target.agUi,
       previousAgUiCompatibility,
+      previousAssistantUiPackages: target.packages,
+      previousLangGraphCompatibility,
       nextAgUiCompatibility,
+      nextAssistantUiPackages: packages,
+      nextLangGraphCompatibility,
       agUiCompatibility: nextAgUiCompatibility,
       upstreamChangedFiles: await upstreamChangedFiles(
         repo,
@@ -202,6 +239,14 @@ export async function main({
     if (!agUiLockfileGuard.passed) {
       throw new Error(agUiLockfileGuard.message);
     }
+    const resolvedLangGraphCompatibility = await langGraphCompatibilityChecker({
+      repoRoot,
+      target: nextTarget,
+      ...nextLangGraphSource,
+    });
+    if (!resolvedLangGraphCompatibility.compatible) {
+      throw new Error(resolvedLangGraphCompatibility.message);
+    }
     await commandRunner("pnpm", ["--filter", "@agent-ui/react", "sync:assistant-ui-upstream", "--", "--revision", revision, "--repo", repo], {
       cwd: repoRoot,
       stdio: "inherit",
@@ -211,6 +256,7 @@ export async function main({
       ...session,
       resolvedAgUiClientVersions: agUiLockfileGuard.resolvedAgUiClientVersions,
       agUiLockfileGuard,
+      nextLangGraphCompatibility: resolvedLangGraphCompatibility,
       generatedUntrackedArtifacts: generatedUntrackedArtifacts(
         await git(repoRoot, ["status", "--porcelain=v1"], repoRoot),
       ),

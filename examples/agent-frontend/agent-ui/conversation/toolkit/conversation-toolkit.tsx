@@ -8,7 +8,6 @@ import {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
   MockApprovalToolUI,
-  MockDispatchSubagentToolUI,
   MockRunCiJobToolUI,
 } from "./mock";
 
@@ -41,13 +40,6 @@ export function createConversationToolkit({
             type: "backend" as const,
             display: "standalone" as const,
             render: MockApprovalToolUI,
-          },
-          // Legacy replay compatibility only. New live Mock Agent scenarios
-          // must use standard AG-UI SUBAGENT_* events instead.
-          mock_dispatch_subagent: {
-            type: "backend" as const,
-            display: "standalone" as const,
-            render: MockDispatchSubagentToolUI,
           },
           run_ci_job: {
             type: "backend" as const,

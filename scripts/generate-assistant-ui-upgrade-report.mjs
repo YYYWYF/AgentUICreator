@@ -144,6 +144,38 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     reasons,
     status: cancellationStatus,
   };
+  const previousAssistantUiPackages = session?.previousAssistantUiPackages;
+  const previousLangGraphVersion = previousAssistantUiPackages?.["@assistant-ui/react-langgraph"];
+  const nextLangGraphVersion = target.packages["@assistant-ui/react-langgraph"];
+  const langGraphVersionChanged =
+    typeof previousLangGraphVersion === "string" &&
+    typeof nextLangGraphVersion === "string" &&
+    previousLangGraphVersion !== nextLangGraphVersion;
+  const langGraphCompatibility = session?.nextLangGraphCompatibility;
+  const langGraphReasons = [...(langGraphCompatibility?.reasons ?? [])];
+  if (langGraphVersionChanged) {
+    langGraphReasons.push("@assistant-ui/react-langgraph version changed; review persisted history conversion.");
+  }
+  if (langGraphCompatibility?.compatible !== true && langGraphReasons.length === 0) {
+    langGraphReasons.push("LangGraph history compatibility was not proven by the upgrade run.");
+  }
+  const langGraphReviewRequired =
+    langGraphVersionChanged || langGraphCompatibility?.compatible !== true;
+  const langGraphStatus = langGraphReviewRequired
+    ? "REVIEW REQUIRED"
+    : "UNCHANGED";
+  const historyCompatibility = {
+    packageName: "@assistant-ui/react-langgraph",
+    previousVersion: previousLangGraphVersion,
+    targetVersion: nextLangGraphVersion,
+    converterSeam: "@assistant-ui/react-langgraph.convertLangChainMessages",
+    externalMessageSeam: "@assistant-ui/react.unstable_convertExternalMessages",
+    compatibility: langGraphCompatibility,
+    versionChanged: langGraphVersionChanged,
+    reAuditRequired: langGraphReviewRequired,
+    reasons: langGraphReasons,
+    status: langGraphStatus,
+  };
   const capabilityAudit = [
     { capability: "ThreadComponents.TaskGroup", status: "NEW UPSTREAM CAPABILITY" },
     { capability: "thread.tasks", status: "NEW UPSTREAM CAPABILITY" },
@@ -151,6 +183,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     { capability: "AgentStatus / TaskTray", status: "NEW UPSTREAM CAPABILITY" },
     { capability: "ReasoningGroup / ToolGroup / ToolFallback", status: "UNCHANGED" },
     { capability: "Composer / Message Footer / Thread List / Attachments / Suggestions", status: "UNCHANGED" },
+    { capability: "LangChain / LangGraph persisted message conversion", status: langGraphStatus },
     { capability: "ConversationSubagentTool compatibility presentation", status: "LOCAL COMPATIBILITY NO LONGER NEEDED" },
     { capability: "CancellationAwareHttpAgent / AG-UI transport", status: cancellationStatus },
   ];
@@ -171,6 +204,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     changedUpstreamElements,
     ignoredUpstreamElements,
     cancellationCompatibility,
+    historyCompatibility,
     capabilityAudit,
   };
 
@@ -195,6 +229,7 @@ From:
 To:
 - @assistant-ui/react ${target.packages["@assistant-ui/react"]}
 - @assistant-ui/react-ag-ui ${target.packages["@assistant-ui/react-ag-ui"]}
+- @assistant-ui/react-langgraph ${target.packages["@assistant-ui/react-langgraph"]}
 - @assistant-ui/react-markdown ${target.packages["@assistant-ui/react-markdown"]}
 - upstream revision: ${current.toRevision}
 
@@ -217,6 +252,20 @@ CancellationAwareHttpAgent: ${cancellationCompatibility.cancellationShim}
 Status:
 ${cancellationStatus}
 ${reasons.length === 0 ? "" : `\nReasons:\n${reasons.map((reason) => `- ${reason}`).join("\n")}\n`}
+
+## LangGraph history compatibility
+
+Persisted history conversion:
+- ${historyCompatibility.converterSeam}
+- ${historyCompatibility.externalMessageSeam}
+- pinned version: ${historyCompatibility.targetVersion ?? "unknown"}
+- lockfile dependencies: ${Object.entries(langGraphCompatibility?.lockfileResolvedVersions ?? {})
+    .map(([name, versions]) => `${name} ${versions.join(", ") || "unknown"}`)
+    .join("; ") || "unknown"}
+
+Status:
+${langGraphStatus}
+${langGraphReasons.length === 0 ? "" : `\nReasons:\n${langGraphReasons.map((reason) => `- ${reason}`).join("\n")}\n`}
 
 ## Vendor changes
 

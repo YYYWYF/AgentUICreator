@@ -9,6 +9,9 @@ const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 async function collectSourceFiles(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
   const nested = await Promise.all(entries.map((entry) => {
+    if ([".git", "coverage", "dist", "node_modules", "build"].includes(entry.name)) {
+      return [];
+    }
     const fullPath = path.join(directory, entry.name);
     return entry.isDirectory()
       ? collectSourceFiles(fullPath)
@@ -34,6 +37,25 @@ describe("runtime-assistant-ui package policy", () => {
       "@assistant-ui/react-langgraph",
       "react",
     ].sort());
+  });
+
+  it("keeps react-langgraph imports inside the persisted-history projector", async () => {
+    const workspaceRoot = path.resolve(packageRoot, "../..");
+    const sourceRoots = ["packages", "examples"].map((directory) =>
+      path.join(workspaceRoot, directory),
+    );
+    const files = (await Promise.all(sourceRoots.map(collectSourceFiles))).flat();
+    const directImports: string[] = [];
+    for (const file of files) {
+      const source = await readFile(file, "utf8");
+      if (/(?:from\s*|import\s*\(\s*)["']@assistant-ui\/react-langgraph["']/u.test(source)) {
+        directImports.push(path.relative(workspaceRoot, file).split(path.sep).join("/"));
+      }
+    }
+
+    expect(directImports).toEqual([
+      "packages/runtime-conversation/src/history/langchain-history-projector.ts",
+    ]);
   });
 
   it("does not deep import or directly drive runAgent", async () => {

@@ -8,6 +8,7 @@ import { act, useCallback } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
+import type { ConversationToolkit } from "@agent-ui/react";
 import {
   ConversationRuntimeProvider,
   type ConversationAgentFactory,
@@ -17,6 +18,7 @@ import {
   type ConversationServiceThreadBinding,
 } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
 import { createMockConversationApiHandler } from "../dev-mock/conversations/handler";
+import { ConversationSurface } from "../agent-ui/conversation/ConversationSurface";
 import {
   createConversationService,
   createHttpConversationDataSource,
@@ -33,6 +35,14 @@ let origin: string;
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;
+
+class ResizeObserverMock {
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+}
+
+vi.stubGlobal("ResizeObserver", ResizeObserverMock);
 
 function createAgent(): ReturnType<ConversationAgentFactory> {
   return {
@@ -58,24 +68,36 @@ function HistoryRuntimeFixture({
   agent,
   binding,
   onRuntime,
+  toolkit,
+  showSurface = false,
 }: {
   agent: ReturnType<ConversationAgentFactory>;
   binding: ConversationServiceThreadBinding;
   onRuntime: (runtime: AssistantRuntime) => void;
+  toolkit?: ConversationToolkit | undefined;
+  showSurface?: boolean | undefined;
 }) {
   const agentFactory = useCallback(() => agent, [agent]);
   return (
     <ConversationRuntimeProvider
       endpoint="http://example.test/agent"
       threadBinding={binding}
+      toolkit={toolkit}
       unstable_agentFactory={agentFactory}
     >
       <RuntimeCapture onRuntime={onRuntime} />
+      {showSurface ? <ConversationSurface /> : null}
     </ConversationRuntimeProvider>
   );
 }
 
-async function mountRuntime() {
+async function mountRuntime({
+  toolkit,
+  showSurface = false,
+}: {
+  toolkit?: ConversationToolkit | undefined;
+  showSurface?: boolean | undefined;
+} = {}) {
   const dataSource = createHttpConversationDataSource({
     endpoint: `${origin}/__agent-ui/mock-data`,
   });
@@ -112,7 +134,9 @@ async function mountRuntime() {
   const liveThreadId = binding.getThreadId();
   const agent = createAgent();
   let runtime: AssistantRuntime | undefined;
-  const root = createRoot(document.createElement("div"));
+  const container = document.createElement("div");
+  document.body.append(container);
+  const root = createRoot(container);
   mountedRoots.push(root);
   mountedFixtures.push({ detach, service });
 
@@ -121,6 +145,8 @@ async function mountRuntime() {
       <HistoryRuntimeFixture
         agent={agent}
         binding={binding}
+        toolkit={toolkit}
+        showSurface={showSurface}
         onRuntime={(nextRuntime) => {
           runtime = nextRuntime;
         }}
@@ -133,7 +159,7 @@ async function mountRuntime() {
     runtime?.thread.reset(liveMessages);
     await Promise.resolve();
   });
-  return { agent, binding, liveThreadId, runtime };
+  return { agent, binding, container, liveThreadId, runtime };
 }
 
 beforeAll(async () => {
@@ -164,6 +190,7 @@ afterEach(async () => {
     fixture.detach();
     fixture.service.dispose();
   }
+  document.body.replaceChildren();
 });
 
 afterAll(async () => {
@@ -210,6 +237,45 @@ describe("assistant-ui LangGraph history navigation", () => {
       toolCallId: "history-search-files-1",
       result: expect.any(String),
     });
+    expect(agent.runAgent).not.toHaveBeenCalled();
+  });
+
+  it("hydrates a completed frontend tool without executing its side effect", async () => {
+    const execute = vi.fn(async () => "new side-effect result");
+    const frontendToolkit = {
+      dangerous_frontend_tool: {
+        type: "frontend",
+        display: "standalone",
+        execute,
+        render: ({ result }: { result?: unknown }) => (
+          <div data-slot="history-dangerous-frontend-tool">
+            {typeof result === "string" ? result : ""}
+          </div>
+        ),
+      },
+    } as unknown as ConversationToolkit;
+    const { agent, container, runtime } = await mountRuntime({
+      toolkit: frontendToolkit,
+      showSurface: true,
+    });
+
+    await act(async () => {
+      await runtime.threads.switchToThread("mock-history-frontend-tool");
+    });
+
+    const toolPart = runtime.thread.getState().messages
+      .flatMap((message) => message.content)
+      .find((part) => part.type === "tool-call");
+    expect(toolPart).toMatchObject({
+      type: "tool-call",
+      toolCallId: "history-dangerous-frontend-tool-1",
+      result: "persisted side-effect receipt",
+      status: { type: "complete" },
+    });
+    expect(container.querySelector('[data-slot="history-dangerous-frontend-tool"]'))
+      .not.toBeNull();
+    expect(container.textContent).toContain("persisted side-effect receipt");
+    expect(execute).not.toHaveBeenCalled();
     expect(agent.runAgent).not.toHaveBeenCalled();
   });
 
