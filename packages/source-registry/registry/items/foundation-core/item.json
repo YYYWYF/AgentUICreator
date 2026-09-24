@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "foundation/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "kind": "foundation",
   "description": "Public Agent UI entry and generated Plugin Registry entry",
   "requires": [
@@ -11,6 +11,14 @@
     {
       "source": "files/index.ts",
       "target": "index.ts"
+    },
+    {
+      "source": "files/application/Agent.tsx",
+      "target": "application/Agent.tsx"
+    },
+    {
+      "source": "files/application/composition-store.ts",
+      "target": "application/composition-store.ts"
     },
     {
       "source": "files/plugins/index.ts",

@@ -10,5 +10,7 @@ __pycache__/
 .venv/
 *.pyc
 examples/agent-frontend/.agent-ui/visual-observations/
+examples/creator-host-sandbox/.agent-ui/
+examples/creator-host-sandbox/src/agent-ui/
 apps/creator-workbench/test-results/
 apps/creator-workbench/playwright-report/

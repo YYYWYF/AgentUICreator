@@ -1,0 +1,39 @@
+{
+  "name": "@agent-ui/creator-host-sandbox",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5176 --strictPort",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "reset": "node scripts/reset-agent-ui.mjs",
+    "inspect": "tsx scripts/host-project.ts inspect",
+    "init:assistant": "tsx scripts/host-project.ts init assistant",
+    "init:embedded": "tsx scripts/host-project.ts init embedded",
+    "init:platform": "tsx scripts/host-project.ts init platform"
+  },
+  "dependencies": {
+    "@agent-ui/react": "workspace:^",
+    "@agent-ui/runtime-conversation": "workspace:^",
+    "@agent-ui/runtime-core": "workspace:^",
+    "@agent-ui/runtime-react": "workspace:^",
+    "lucide-react": "1.41.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@tailwindcss/vite": "4.3.3",
+    "@vitejs/plugin-react": "^6.1.1",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.20.6",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2"
+  }
+}
