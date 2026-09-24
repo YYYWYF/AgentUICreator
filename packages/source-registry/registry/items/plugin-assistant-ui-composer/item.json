@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/assistant-ui-composer",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-assistant-ui-composer source",
+  "files": [
+    {
+      "source": "files/plugins/assistant-ui-composer/definition.ts",
+      "target": "plugins/assistant-ui-composer/definition.ts"
+    },
+    {
+      "source": "files/plugins/assistant-ui-composer/index.tsx",
+      "target": "plugins/assistant-ui-composer/index.tsx"
+    },
+    {
+      "source": "files/plugins/assistant-ui-composer/manifest.json",
+      "target": "plugins/assistant-ui-composer/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

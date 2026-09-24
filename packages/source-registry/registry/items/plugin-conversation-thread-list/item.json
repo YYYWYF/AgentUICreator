@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/conversation-thread-list",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-conversation-thread-list source",
+  "files": [
+    {
+      "source": "files/plugins/conversation-thread-list/PolicyThreadList.tsx",
+      "target": "plugins/conversation-thread-list/PolicyThreadList.tsx"
+    },
+    {
+      "source": "files/plugins/conversation-thread-list/definition.ts",
+      "target": "plugins/conversation-thread-list/definition.ts"
+    },
+    {
+      "source": "files/plugins/conversation-thread-list/index.tsx",
+      "target": "plugins/conversation-thread-list/index.tsx"
+    },
+    {
+      "source": "files/plugins/conversation-thread-list/manifest.json",
+      "target": "plugins/conversation-thread-list/manifest.json"
+    },
+    {
+      "source": "files/plugins/conversation-thread-list/styles.css",
+      "target": "plugins/conversation-thread-list/styles.css"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "lucide-react": "^1.41.0"
+  }
+}

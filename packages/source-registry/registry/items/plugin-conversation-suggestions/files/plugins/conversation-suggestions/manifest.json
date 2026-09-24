@@ -1,0 +1,18 @@
+{
+  "id": "conversation-suggestions",
+  "name": "Conversation Suggestions",
+  "description": "Renders starter prompts through the Conversation public surface.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-suggestions"],
+  "authoring": {
+    "intents": [
+      "show starter prompts and suggested conversation actions"
+    ],
+    "visualRole": "conversation empty-state suggestions",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "conversation-surface",
+      "slot": "emptySuggestions"
+    }
+  }
+}

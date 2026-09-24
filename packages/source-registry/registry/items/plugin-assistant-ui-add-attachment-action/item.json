@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/assistant-ui-add-attachment-action",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-assistant-ui-add-attachment-action source",
+  "files": [
+    {
+      "source": "files/plugins/assistant-ui-add-attachment-action/definition.ts",
+      "target": "plugins/assistant-ui-add-attachment-action/definition.ts"
+    },
+    {
+      "source": "files/plugins/assistant-ui-add-attachment-action/index.tsx",
+      "target": "plugins/assistant-ui-add-attachment-action/index.tsx"
+    },
+    {
+      "source": "files/plugins/assistant-ui-add-attachment-action/manifest.json",
+      "target": "plugins/assistant-ui-add-attachment-action/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

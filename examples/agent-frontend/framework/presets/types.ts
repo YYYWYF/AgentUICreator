@@ -1,13 +1,4 @@
-import type { AgentUIMode } from "../contracts/agent-ui-mode";
+import type { AgentUIPresetDefinition as BootstrapAgentUIPresetDefinition } from "@agent-ui/bootstrap";
 import type { AppUIModel } from "../contracts/app-ui-model";
 
-export interface AgentUIPresetDefinition {
-  readonly id: string;
-  readonly mode: AgentUIMode;
-
-  /** Returns a fresh initial AppUIModel for each project initialization. */
-  createAppUIModel(): AppUIModel;
-
-  /** Source Registry foundations required by this initial composition. */
-  readonly sourceItems?: readonly string[];
-}
+export type AgentUIPresetDefinition = BootstrapAgentUIPresetDefinition<AppUIModel>;

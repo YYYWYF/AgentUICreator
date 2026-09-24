@@ -1,5 +1,7 @@
 export {
   applyAgentUISourceItem,
+  installAgentUISourceItems,
+  resolveAgentUISourceItems,
   removeAgentUISourceItems,
 } from "./installer";
 export {

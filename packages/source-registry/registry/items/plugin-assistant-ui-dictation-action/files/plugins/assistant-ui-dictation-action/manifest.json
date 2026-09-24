@@ -1,0 +1,16 @@
+{
+  "id": "assistant-ui-dictation-action",
+  "name": "Assistant UI Dictation Action",
+  "description": "Adds assistant-ui dictation controls to the conversation composer.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-composer-trailing-action"],
+  "authoring": {
+    "intents": ["add voice dictation to the conversation composer"],
+    "visualRole": "conversation composer dictation action",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "assistant-ui-composer",
+      "slot": "trailingActions"
+    }
+  }
+}

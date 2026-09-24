@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "id": "foundation/core-adapters",
+  "version": "0.1.0",
+  "kind": "foundation",
+  "description": "Managed Agent UI foundation-core-adapters source",
+  "files": [
+    {
+      "source": "files/agent-ui/authoring/creator-authoring-targets.ts",
+      "target": "agent-ui/authoring/creator-authoring-targets.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/ConversationAdapter.tsx",
+      "target": "agent-ui/conversation/ConversationAdapter.tsx"
+    },
+    {
+      "source": "files/agent-ui/conversation/ConversationSurface.tsx",
+      "target": "agent-ui/conversation/ConversationSurface.tsx"
+    },
+    {
+      "source": "files/agent-ui/conversation/ScopedRendererBridge.tsx",
+      "target": "agent-ui/conversation/ScopedRendererBridge.tsx"
+    },
+    {
+      "source": "files/agent-ui/conversation/agents/agent-plan-projection.ts",
+      "target": "agent-ui/conversation/agents/agent-plan-projection.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/agents/agent-status-projection.ts",
+      "target": "agent-ui/conversation/agents/agent-status-projection.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/agents/index.ts",
+      "target": "agent-ui/conversation/agents/index.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/config/ConversationPresentationConfigContext.tsx",
+      "target": "agent-ui/conversation/config/ConversationPresentationConfigContext.tsx"
+    },
+    {
+      "source": "files/agent-ui/conversation/config/conversation-presentation-config.ts",
+      "target": "agent-ui/conversation/config/conversation-presentation-config.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/config/conversation-runtime-config.ts",
+      "target": "agent-ui/conversation/config/conversation-runtime-config.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/config/index.ts",
+      "target": "agent-ui/conversation/config/index.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/conversation-extension-seams.ts",
+      "target": "agent-ui/conversation/conversation-extension-seams.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/elements/AgentElementFrame.tsx",
+      "target": "agent-ui/conversation/elements/AgentElementFrame.tsx"
+    },
+    {
+      "source": "files/agent-ui/conversation/index.ts",
+      "target": "agent-ui/conversation/index.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/state/job-progress-projection.ts",
+      "target": "agent-ui/conversation/state/job-progress-projection.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/styles.css",
+      "target": "agent-ui/conversation/styles.css"
+    },
+    {
+      "source": "files/agent-ui/conversation/threads/ConversationThreadBindingConnector.tsx",
+      "target": "agent-ui/conversation/threads/ConversationThreadBindingConnector.tsx"
+    },
+    {
+      "source": "files/agent-ui/conversation/threads/conversation-history-projector.ts",
+      "target": "agent-ui/conversation/threads/conversation-history-projector.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/threads/conversation-service-thread-binding.ts",
+      "target": "agent-ui/conversation/threads/conversation-service-thread-binding.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/toolkit/SearchFilesToolUI.tsx",
+      "target": "agent-ui/conversation/toolkit/SearchFilesToolUI.tsx"
+    },
+    {
+      "source": "files/agent-ui/conversation/toolkit/conversation-toolkit.tsx",
+      "target": "agent-ui/conversation/toolkit/conversation-toolkit.tsx"
+    },
+    {
+      "source": "files/agent-ui/conversation/toolkit/index.ts",
+      "target": "agent-ui/conversation/toolkit/index.ts"
+    },
+    {
+      "source": "files/agent-ui/i18n/locale-config.ts",
+      "target": "agent-ui/i18n/locale-config.ts"
+    },
+    {
+      "source": "files/agent-ui/i18n/locale-registry.ts",
+      "target": "agent-ui/i18n/locale-registry.ts"
+    },
+    {
+      "source": "files/agent-ui/i18n/locale-types.ts",
+      "target": "agent-ui/i18n/locale-types.ts"
+    },
+    {
+      "source": "files/agent-ui/i18n/locales/en-US.ts",
+      "target": "agent-ui/i18n/locales/en-US.ts"
+    },
+    {
+      "source": "files/agent-ui/i18n/locales/index.ts",
+      "target": "agent-ui/i18n/locales/index.ts"
+    },
+    {
+      "source": "files/agent-ui/i18n/locales/zh-CN.ts",
+      "target": "agent-ui/i18n/locales/zh-CN.ts"
+    },
+    {
+      "source": "files/agent-ui/i18n/useAgentUILocale.ts",
+      "target": "agent-ui/i18n/useAgentUILocale.ts"
+    },
+    {
+      "source": "files/agent-ui/theme/theme-config.ts",
+      "target": "agent-ui/theme/theme-config.ts"
+    },
+    {
+      "source": "files/agent-ui/theme/useAgentUITheme.ts",
+      "target": "agent-ui/theme/useAgentUITheme.ts"
+    }
+  ],
+  "requires": [
+    "foundation/core-runtime"
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "@agent-ui/react": "^0.1.0",
+    "@agent-ui/runtime-conversation": "^0.1.0",
+    "lucide-react": "^1.41.0"
+  }
+}

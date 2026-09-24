@@ -1,0 +1,248 @@
+import type {
+  ConversationLoadedThread,
+  ConversationThreadBinding,
+  ConversationThreadListItem,
+  ConversationThreadListSnapshot,
+} from "@agent-ui/runtime-conversation";
+
+import {
+  projectConversationDetail,
+} from "./conversation-history-projector";
+import type {
+  ConversationService,
+  ConversationSnapshot,
+  ConversationSummary,
+} from "../../../services/conversations";
+
+export interface ConversationServiceThreadBinding<TState = unknown>
+  extends ConversationThreadBinding<TState> {
+  getThreadListSnapshot(): ConversationThreadListSnapshot;
+  selectThread(threadId: string): Promise<ConversationLoadedThread<TState>>;
+  setNavigationLocked(locked: boolean): void;
+  attachConversationService(
+    service: ConversationService,
+  ): () => void;
+  captureLiveThread(snapshot: ConversationLoadedThread<TState>): void;
+}
+
+export class ConversationThreadSelectionDisabledError extends Error {
+  readonly code = "AGENT_UI_CONVERSATION_SELECTION_DISABLED";
+
+  constructor(threadId: string) {
+    super(`Conversation "${threadId}" is disabled and cannot be selected.`);
+    this.name = "ConversationThreadSelectionDisabledError";
+  }
+}
+
+export class ConversationNavigationLockedError extends Error {
+  readonly code = "AGENT_UI_CONVERSATION_NAVIGATION_LOCKED";
+
+  constructor() {
+    super("Conversation navigation is locked while the agent run is active.");
+    this.name = "ConversationNavigationLockedError";
+  }
+}
+
+function sameCustom(
+  left: Record<string, unknown> | undefined,
+  right: Record<string, unknown> | undefined,
+): boolean {
+  const leftKeys = Object.keys(left ?? {});
+  const rightKeys = Object.keys(right ?? {});
+  if (leftKeys.length !== rightKeys.length) return false;
+  return leftKeys.every((key) => left?.[key] === right?.[key]);
+}
+
+function sameItem<TStatus extends "regular" | "archived">(
+  left: ConversationThreadListItem<TStatus>,
+  right: ConversationThreadListItem<TStatus>,
+): boolean {
+  return left.id === right.id &&
+    left.status === right.status &&
+    left.title === right.title &&
+    sameCustom(left.custom, right.custom);
+}
+
+function sameItems<TStatus extends "regular" | "archived">(
+  left: readonly ConversationThreadListItem<TStatus>[],
+  right: readonly ConversationThreadListItem<TStatus>[],
+): boolean {
+  return left.length === right.length &&
+    left.every((item, index) => {
+      const other = right[index];
+      return other !== undefined && sameItem(item, other);
+    });
+}
+
+function sameListSnapshot(
+  left: ConversationThreadListSnapshot,
+  right: ConversationThreadListSnapshot,
+): boolean {
+  return left.isLoading === right.isLoading &&
+    sameItems(left.threads, right.threads) &&
+    sameItems(left.archivedThreads, right.archivedThreads);
+}
+
+function conversationCustom(item: ConversationSummary): Record<string, unknown> {
+  return {
+    ...(item.group === undefined ? {} : { group: item.group }),
+    ...(item.updatedAt === undefined ? {} : { updatedAt: item.updatedAt }),
+    ...(item.disabled === true ? { agentUiDisabled: true } : {}),
+  };
+}
+
+function historyItem(
+  item: ConversationSummary,
+): ConversationThreadListItem<"regular"> {
+  return {
+    id: item.id,
+    status: "regular",
+    title: item.title,
+    custom: conversationCustom(item),
+  };
+}
+
+function createListSnapshot(
+  serviceSnapshot: ConversationSnapshot | undefined,
+): ConversationThreadListSnapshot {
+  const histories = serviceSnapshot?.conversations ?? [];
+  return {
+    isLoading: serviceSnapshot?.listStatus === "loading",
+    threads: histories.map(historyItem),
+    archivedThreads: [],
+  };
+}
+
+function emptyLoadedThread<TState>(): ConversationLoadedThread<TState> {
+  return { messages: [] };
+}
+
+export function createConversationServiceThreadBinding<
+  TState = unknown,
+>(): ConversationServiceThreadBinding<TState> {
+  let liveThreadId: string = crypto.randomUUID();
+  let activeThreadId: string = liveThreadId;
+  let liveThreadSnapshot = emptyLoadedThread<TState>();
+  let activeThreadSnapshot = liveThreadSnapshot;
+  let conversationService: ConversationService | undefined;
+  let conversationSnapshot: ConversationSnapshot | undefined;
+  let serviceUnsubscribe: (() => void) | undefined;
+  let navigationLocked = false;
+  let threadListSnapshot = createListSnapshot(undefined);
+  const listeners = new Set<() => void>();
+
+  const emit = (): void => {
+    listeners.forEach((listener) => listener());
+  };
+
+  const rebuildThreadListSnapshot = (): void => {
+    const next = createListSnapshot(conversationSnapshot);
+    if (sameListSnapshot(threadListSnapshot, next)) return;
+    threadListSnapshot = next;
+    emit();
+  };
+
+  const updateConversationSnapshot = (
+    next: ConversationSnapshot,
+  ): void => {
+    conversationSnapshot = next;
+    rebuildThreadListSnapshot();
+  };
+
+  return {
+    getThreadId: () => activeThreadId,
+    getIsDisabled: () => activeThreadId !== liveThreadId,
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    getThreadListSnapshot: () => threadListSnapshot,
+    setNavigationLocked(locked) {
+      navigationLocked = locked;
+    },
+    attachConversationService(service) {
+      serviceUnsubscribe?.();
+      conversationService = service;
+      updateConversationSnapshot(service.getSnapshot());
+      serviceUnsubscribe = service.subscribe(() => {
+        updateConversationSnapshot(service.getSnapshot());
+      });
+      return () => {
+        if (conversationService !== service) return;
+        serviceUnsubscribe?.();
+        serviceUnsubscribe = undefined;
+        conversationService = undefined;
+        conversationSnapshot = undefined;
+        rebuildThreadListSnapshot();
+      };
+    },
+    captureLiveThread(snapshot) {
+      if (activeThreadId !== liveThreadId) return;
+      if (
+        snapshot.messages.length === 0 &&
+        liveThreadSnapshot.messages.length > 0
+      ) {
+        return;
+      }
+      liveThreadSnapshot = snapshot;
+      activeThreadSnapshot = snapshot;
+    },
+    async selectThread(threadId) {
+      if (navigationLocked) {
+        throw new ConversationNavigationLockedError();
+      }
+
+      if (threadId === liveThreadId) {
+        const returningToLiveThread = activeThreadId !== liveThreadId;
+        activeThreadId = liveThreadId;
+        activeThreadSnapshot = liveThreadSnapshot;
+        if (returningToLiveThread) {
+          conversationService?.showLiveConversation();
+        }
+        emit();
+        return activeThreadSnapshot;
+      }
+
+      const summary = conversationService
+        ?.getSnapshot()
+        .conversations.find((item) => item.id === threadId);
+      if (summary?.disabled === true) {
+        throw new ConversationThreadSelectionDisabledError(threadId);
+      }
+
+      if (conversationService === undefined) return activeThreadSnapshot;
+      const detail = await conversationService.selectConversation(threadId);
+      if (detail === undefined) return activeThreadSnapshot;
+
+      const loaded: ConversationLoadedThread<TState> = {
+        messages: projectConversationDetail(detail),
+        ...(detail.agentState === undefined
+          ? {}
+          : { state: detail.agentState as TState }),
+      };
+      activeThreadId = threadId;
+      activeThreadSnapshot = loaded;
+      emit();
+      return loaded;
+    },
+    async createNewThread() {
+      if (navigationLocked) {
+        throw new ConversationNavigationLockedError();
+      }
+
+      if (conversationService !== undefined) {
+        conversationService.resetForNewConversation();
+      }
+
+      const nextLiveThreadId = crypto.randomUUID();
+      const nextLiveThreadSnapshot = emptyLoadedThread<TState>();
+
+      liveThreadId = nextLiveThreadId;
+      activeThreadId = nextLiveThreadId;
+      liveThreadSnapshot = nextLiveThreadSnapshot;
+      activeThreadSnapshot = nextLiveThreadSnapshot;
+      rebuildThreadListSnapshot();
+      return nextLiveThreadId;
+    },
+  };
+}

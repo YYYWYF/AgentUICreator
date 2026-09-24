@@ -1,0 +1,21 @@
+{
+  "id": "assistant-ui-reasoning",
+  "name": "Assistant UI Reasoning Renderer",
+  "description": "Displays one assistant-ui reasoning group with canonical presentation.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-reasoning-renderer"],
+  "requiresRenderScope": true,
+  "authoring": {
+    "intents": [
+      "show the reasoning process",
+      "restore reasoning presentation",
+      "show deep thinking"
+    ],
+    "visualRole": "assistant reasoning presentation",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "conversation-surface",
+      "slot": "reasoningGroup"
+    }
+  }
+}

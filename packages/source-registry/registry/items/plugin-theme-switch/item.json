@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/theme-switch",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-theme-switch source",
+  "files": [
+    {
+      "source": "files/plugins/theme-switch/definition.ts",
+      "target": "plugins/theme-switch/definition.ts"
+    },
+    {
+      "source": "files/plugins/theme-switch/index.tsx",
+      "target": "plugins/theme-switch/index.tsx"
+    },
+    {
+      "source": "files/plugins/theme-switch/manifest.json",
+      "target": "plugins/theme-switch/manifest.json"
+    },
+    {
+      "source": "files/plugins/theme-switch/styles.css",
+      "target": "plugins/theme-switch/styles.css"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "lucide-react": "^1.41.0"
+  }
+}

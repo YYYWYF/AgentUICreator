@@ -1,0 +1,18 @@
+{
+  "id": "theme-switch",
+  "name": "Theme Switch",
+  "description": "Calls the shared theme service exposed by another UI plugin.",
+  "version": "1.0.0",
+  "capabilities": ["theme-control", "plugin-service-consumer"],
+  "authoring": {
+    "intents": [
+      "let the user switch between light and dark themes"
+    ],
+    "visualRole": "theme control",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "conversation-surface",
+      "slot": "headerActions"
+    }
+  }
+}

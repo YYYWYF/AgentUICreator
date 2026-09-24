@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/conversation-service",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-conversation-service source",
+  "files": [
+    {
+      "source": "files/plugins/conversation-service/definition.ts",
+      "target": "plugins/conversation-service/definition.ts"
+    },
+    {
+      "source": "files/plugins/conversation-service/index.tsx",
+      "target": "plugins/conversation-service/index.tsx"
+    },
+    {
+      "source": "files/plugins/conversation-service/manifest.json",
+      "target": "plugins/conversation-service/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

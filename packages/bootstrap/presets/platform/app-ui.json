@@ -1,0 +1,153 @@
+{
+  "applicationPlugins": [
+    {
+      "id": "agent-conversation-data-main",
+      "pluginId": "conversation-data-source",
+      "enabled": true
+    },
+    {
+      "id": "agent-conversation-service-main",
+      "pluginId": "conversation-service",
+      "enabled": true
+    },
+    {
+      "id": "theme-provider-main",
+      "pluginId": "theme-provider",
+      "enabled": true
+    },
+    {
+      "id": "locale-provider-main",
+      "pluginId": "locale-provider",
+      "enabled": true
+    }
+  ],
+  "root": {
+    "type": "row",
+    "children": [
+      {
+        "type": "panel",
+        "child": {
+          "type": "slot",
+          "plugins": [
+            {
+              "id": "conversation-thread-list-main",
+              "pluginId": "conversation-thread-list",
+              "enabled": true
+            }
+          ]
+        }
+      },
+      {
+        "type": "panel",
+        "child": {
+          "type": "slot",
+          "plugins": [
+            {
+              "id": "agent-conversation-surface-main",
+              "pluginId": "conversation-surface",
+              "enabled": true,
+              "slots": {
+                "emptySuggestions": [
+                  {
+                    "id": "conversation-suggestions-main",
+                    "pluginId": "conversation-suggestions",
+                    "enabled": true
+                  }
+                ],
+                "composer": [
+                  {
+                    "id": "assistant-ui-composer-main",
+                    "pluginId": "assistant-ui-composer",
+                    "enabled": true,
+                    "slots": {
+                      "leadingActions": [
+                        {
+                          "id": "assistant-ui-add-attachment-action-main",
+                          "pluginId": "assistant-ui-add-attachment-action",
+                          "enabled": true
+                        }
+                      ],
+                      "trailingActions": [
+                        {
+                          "id": "assistant-ui-dictation-action-main",
+                          "pluginId": "assistant-ui-dictation-action",
+                          "enabled": true
+                        }
+                      ],
+                      "submitAction": [
+                        {
+                          "id": "assistant-ui-submit-action-main",
+                          "pluginId": "assistant-ui-submit-action",
+                          "enabled": true
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "reasoningGroup": [
+                  {
+                    "id": "assistant-ui-reasoning-main",
+                    "pluginId": "assistant-ui-reasoning",
+                    "enabled": true
+                  }
+                ],
+                "toolGroup": [
+                  {
+                    "id": "assistant-ui-tool-group-main",
+                    "pluginId": "assistant-ui-tool-group",
+                    "enabled": true
+                  }
+                ],
+                "toolFallback": [
+                  {
+                    "id": "assistant-ui-tool-fallback-main",
+                    "pluginId": "assistant-ui-tool-fallback",
+                    "enabled": true
+                  }
+                ],
+                "taskGroup": [
+                  {
+                    "id": "task-group-main",
+                    "pluginId": "task-group",
+                    "enabled": true
+                  }
+                ],
+                "assistantMessageFooter": [
+                  {
+                    "id": "assistant-ui-message-footer-main",
+                    "pluginId": "assistant-ui-message-footer",
+                    "enabled": true,
+                    "slots": {
+                      "actions": [
+                        {
+                          "id": "assistant-ui-copy-action-main",
+                          "pluginId": "assistant-ui-copy-action",
+                          "enabled": true
+                        },
+                        {
+                          "id": "assistant-ui-reload-action-main",
+                          "pluginId": "assistant-ui-reload-action",
+                          "enabled": true
+                        },
+                        {
+                          "id": "assistant-ui-export-markdown-action-main",
+                          "pluginId": "assistant-ui-export-markdown-action",
+                          "enabled": true
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "gap": 0,
+    "sizes": [
+      "280px",
+      "minmax(0, 1fr)"
+    ]
+  }
+}

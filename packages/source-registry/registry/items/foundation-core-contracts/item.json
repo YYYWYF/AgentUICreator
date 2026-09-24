@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "id": "foundation/core-contracts",
+  "version": "0.1.0",
+  "kind": "foundation",
+  "description": "Managed Agent UI foundation-core-contracts source",
+  "files": [
+    {
+      "source": "files/framework/contracts/agent-ui-mode.ts",
+      "target": "framework/contracts/agent-ui-mode.ts"
+    },
+    {
+      "source": "files/framework/contracts/agent-ui-project.ts",
+      "target": "framework/contracts/agent-ui-project.ts"
+    },
+    {
+      "source": "files/framework/contracts/agent-ui-workspace.ts",
+      "target": "framework/contracts/agent-ui-workspace.ts"
+    },
+    {
+      "source": "files/framework/contracts/app-ui-compiler.ts",
+      "target": "framework/contracts/app-ui-compiler.ts"
+    },
+    {
+      "source": "files/framework/contracts/app-ui-composition.ts",
+      "target": "framework/contracts/app-ui-composition.ts"
+    },
+    {
+      "source": "files/framework/contracts/app-ui-model.ts",
+      "target": "framework/contracts/app-ui-model.ts"
+    },
+    {
+      "source": "files/framework/contracts/app-ui-runtime-model.ts",
+      "target": "framework/contracts/app-ui-runtime-model.ts"
+    },
+    {
+      "source": "files/framework/contracts/custom-event-protocol.ts",
+      "target": "framework/contracts/custom-event-protocol.ts"
+    },
+    {
+      "source": "files/framework/contracts/index.ts",
+      "target": "framework/contracts/index.ts"
+    },
+    {
+      "source": "files/framework/contracts/panel-dimension.ts",
+      "target": "framework/contracts/panel-dimension.ts"
+    },
+    {
+      "source": "files/framework/contracts/ui-plugin.ts",
+      "target": "framework/contracts/ui-plugin.ts"
+    }
+  ],
+  "packages": {
+    "zod": "^4.5.0",
+    "@agent-ui/runtime-react": "^0.1.0"
+  }
+}

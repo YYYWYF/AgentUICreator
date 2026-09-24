@@ -1,0 +1,18 @@
+{
+  "id": "assistant-ui-copy-action",
+  "name": "Assistant UI Copy Action",
+  "description": "Copies the current assistant message through assistant-ui.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-message-action"],
+  "authoring": {
+    "intents": [
+      "copy assistant message content"
+    ],
+    "visualRole": "assistant message copy action",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "assistant-ui-message-footer",
+      "slot": "actions"
+    }
+  }
+}

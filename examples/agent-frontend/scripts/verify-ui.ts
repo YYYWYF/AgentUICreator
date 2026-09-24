@@ -11,6 +11,7 @@ import type { AppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-mo
 import { uiProjectControlConfig } from "./ui-project/project-config";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths, projectRelativePath } from "./ui-project/agent-ui-project-paths";
 import { readAgentUIProjectConfig } from "./ui-project/project-mode";
+import type { AgentUIProjectConfig } from "../framework/contracts/agent-ui-project";
 import { verifyPluginChildSlots } from "./ui-project/plugin-child-slot-verifier";
 import {
   generatePluginRegistry,
@@ -128,12 +129,13 @@ function verifyInstances(
 export async function verifyUIProject(
   projectRoot: string,
   config: UIProjectControlConfig = uiProjectControlConfig,
+  options: { projectConfigOverride?: AgentUIProjectConfig } = {},
 ): Promise<UIProjectVerification> {
   const errors: VerificationIssue[] = [];
   const warnings: VerificationIssue[] = [];
   let model: AppUIModel | undefined;
-  const projectConfig = await readAgentUIProjectConfig(projectRoot, config.agentUI.metadataRoot);
-  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config, config);
+  const projectConfig = options.projectConfigOverride ?? (await readAgentUIProjectConfig(projectRoot, config.agentUI.metadataRoot)).config;
+  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig, config);
   const effectiveConfig = projectControlConfigForPaths(paths, config);
   const registryRelativePath = projectRelativePath(projectRoot, paths.generatedPluginRegistryPath);
   const entryRelativePath = projectRelativePath(projectRoot, paths.pluginRegistryEntryPath);

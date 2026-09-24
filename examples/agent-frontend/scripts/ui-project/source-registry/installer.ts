@@ -34,6 +34,12 @@ export interface RemoveAgentUISourceItemsInput {
   expectedStateHash: string;
 }
 
+export interface InstallAgentUISourceItemsResult {
+  readonly installedSourceItems: readonly string[];
+  readonly createdPaths: readonly string[];
+  readonly stateHash: string;
+}
+
 function dependencyClosure(
   registry: LoadedAgentUISourceRegistry,
   itemId: string,
@@ -67,6 +73,17 @@ function dependencyClosure(
   return result;
 }
 
+export function resolveAgentUISourceItems(
+  registry: LoadedAgentUISourceRegistry,
+  itemIds: readonly string[],
+): LoadedAgentUISourceItem[] {
+  const ordered = new Map<string, LoadedAgentUISourceItem>();
+  for (const itemId of itemIds) {
+    for (const item of dependencyClosure(registry, itemId)) ordered.set(item.id, item);
+  }
+  return [...ordered.values()];
+}
+
 function stateError(itemId: string, status: string): AgentUISourceError {
   const code =
     status === "customized"
@@ -79,6 +96,61 @@ function stateError(itemId: string, status: string): AgentUISourceError {
     `Agent UI source item ${itemId} is ${status}; refusing to overwrite project source.`,
     { itemId, status },
   );
+}
+
+/** Installs a clean dependency closure as one Source Registry transaction. */
+export async function installAgentUISourceItems(
+  projectRoot: string,
+  itemIds: readonly string[],
+  config: UIProjectControlConfig,
+  registry?: LoadedAgentUISourceRegistry,
+): Promise<InstallAgentUISourceItemsResult> {
+  await recoverPendingAgentUISourceTransaction(projectRoot, config);
+  const loadedRegistry = registry ?? await loadAgentUISourceRegistry();
+  const items = resolveAgentUISourceItems(loadedRegistry, itemIds);
+  const before = await inspectAgentUISources(projectRoot, config, loadedRegistry);
+  const inspectionById = new Map(before.items.map((item) => [item.id, item]));
+  for (const item of items) {
+    const status = inspectionById.get(item.id)?.status;
+    if (status !== "not-installed") throw stateError(item.id, status ?? "unavailable");
+  }
+  const packageInspection = await inspectAgentUIPackages(projectRoot, items);
+  if (packageInspection.issues.length > 0) {
+    throw new AgentUISourceError(
+      "AGENT_UI_PACKAGE_REQUIREMENTS_UNMET",
+      "Agent UI package requirements are not installed or are incompatible.",
+      packageInspection.issues,
+    );
+  }
+  const { lock } = await readAgentUISourceLock(projectRoot, config);
+  if (Object.keys(lock.items).length > 0) {
+    throw new AgentUISourceError("AGENT_UI_SOURCE_PATH_CONFLICT", "Clean installation requires an empty Source Registry lock.");
+  }
+  const nextLock: AgentUISourceLock = structuredClone(lock);
+  const mutations: AgentUISourceFileMutation[] = [];
+  for (const item of items) {
+    for (const file of item.loadedFiles) {
+      mutations.push({ target: file.target, content: file.content });
+    }
+    nextLock.items[item.id] = {
+      version: item.version,
+      files: Object.fromEntries(item.loadedFiles.map((file) => [file.target, { sha256: sha256(file.content) }])),
+    };
+  }
+  mutations.sort((left, right) => left.target.localeCompare(right.target));
+  await commitAgentUISourceTransaction(
+    projectRoot, config, "initialization", "0.1.0", mutations,
+    serializeAgentUISourceLock(nextLock),
+  );
+  const after = await inspectAgentUISources(projectRoot, config, loadedRegistry);
+  return {
+    installedSourceItems: items.map((item) => item.id),
+    createdPaths: [
+      ...mutations.map((mutation) => `${config.agentUI.sourceRoot}/${mutation.target}`),
+      `${config.agentUI.metadataRoot}/source-lock.json`,
+    ],
+    stateHash: after.stateHash,
+  };
 }
 
 export async function applyAgentUISourceItem(

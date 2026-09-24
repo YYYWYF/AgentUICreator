@@ -7,10 +7,10 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "pnpm --filter @agent-ui/creator-workbench dev",
+    "dev": "pnpm --filter @agent-ui/bootstrap build && pnpm --filter @agent-ui/creator-workbench dev",
     "dev:app": "pnpm --filter @agent-ui/example-agent-frontend dev",
     "creator:python": "scripts/start-creator-python.sh",
-    "build": "pnpm --filter @agent-ui/runtime-core build && pnpm --filter @agent-ui/react build && pnpm --filter @agent-ui/runtime-conversation build && pnpm --filter @agent-ui/runtime-react build && pnpm --filter @agent-ui/mock-agent build && pnpm --filter @agent-ui/source-registry build && pnpm --filter @agent-ui/creator build && pnpm --filter @agent-ui/example-agent-frontend build",
+    "build": "pnpm --filter @agent-ui/runtime-core build && pnpm --filter @agent-ui/react build && pnpm --filter @agent-ui/runtime-conversation build && pnpm --filter @agent-ui/runtime-react build && pnpm --filter @agent-ui/mock-agent build && pnpm --filter @agent-ui/source-registry build && pnpm --filter @agent-ui/bootstrap build && pnpm --filter @agent-ui/creator build && pnpm --filter @agent-ui/example-agent-frontend build",
     "check:assistant-ui-upstream": "pnpm --filter @agent-ui/react check:assistant-ui-upstream",
     "check:assistant-ui-latest": "pnpm --filter @agent-ui/react check:assistant-ui-latest",
     "check:assistant-ui-revision": "pnpm --filter @agent-ui/react check:assistant-ui-revision",

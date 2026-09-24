@@ -1,0 +1,16 @@
+{
+  "id": "assistant-ui-add-attachment-action",
+  "name": "Assistant UI Add Attachment Action",
+  "description": "Adds assistant-ui's attachment picker to the conversation composer.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-composer-leading-action"],
+  "authoring": {
+    "intents": ["add attachments to the conversation composer"],
+    "visualRole": "conversation composer attachment action",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "assistant-ui-composer",
+      "slot": "leadingActions"
+    }
+  }
+}

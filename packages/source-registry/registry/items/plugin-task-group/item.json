@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/task-group",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-task-group source",
+  "files": [
+    {
+      "source": "files/plugins/task-group/definition.ts",
+      "target": "plugins/task-group/definition.ts"
+    },
+    {
+      "source": "files/plugins/task-group/index.tsx",
+      "target": "plugins/task-group/index.tsx"
+    },
+    {
+      "source": "files/plugins/task-group/manifest.json",
+      "target": "plugins/task-group/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "conversation-service",
+  "name": "Conversation Service",
+  "description": "Provides shared application conversation state and history navigation independently from presentation plugins.",
+  "version": "1.0.0",
+  "capabilities": [
+    "headless",
+    "conversation-service",
+    "plugin-service-provider"
+  ],
+  "authoring": {
+    "intents": [
+      "provide shared conversation management state and history navigation"
+    ]
+  }
+}

@@ -102,6 +102,9 @@ importers:
       '@ag-ui/core':
         specifier: 0.0.59
         version: 0.0.59
+      '@agent-ui/bootstrap':
+        specifier: workspace:^
+        version: link:../../packages/bootstrap
       '@agent-ui/mock-agent':
         specifier: workspace:^
         version: link:../../packages/mock-agent
@@ -159,6 +162,15 @@ importers:
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
+
+  packages/bootstrap:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.43
+        version: 20.19.43
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
 
   packages/creator:
     dependencies:

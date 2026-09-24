@@ -1,0 +1,16 @@
+{
+  "id": "assistant-ui-submit-action",
+  "name": "Assistant UI Submit Action",
+  "description": "Adds assistant-ui send and stop controls to the conversation composer.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-composer-submit-action"],
+  "authoring": {
+    "intents": ["add the conversation composer send and stop action"],
+    "visualRole": "conversation composer submit action",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "assistant-ui-composer",
+      "slot": "submitAction"
+    }
+  }
+}

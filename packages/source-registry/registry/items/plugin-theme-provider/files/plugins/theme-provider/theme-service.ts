@@ -1,0 +1,36 @@
+import type {
+  AgentUIThemeMode,
+  AgentUIThemeService,
+} from "../../services/agent-ui-theme";
+
+export function readAgentUIThemeMode(value: unknown): AgentUIThemeMode {
+  return value === "dark" ? "dark" : "light";
+}
+
+export function createAgentUIThemeService(
+  initialMode: AgentUIThemeMode,
+): AgentUIThemeService {
+  let mode = initialMode;
+  const listeners = new Set<() => void>();
+
+  const service: AgentUIThemeService = {
+    getMode: () => mode,
+    setMode: (nextMode) => {
+      if (mode === nextMode) {
+        return;
+      }
+
+      mode = nextMode;
+      listeners.forEach((listener) => listener());
+    },
+    toggle: () => {
+      service.setMode(mode === "dark" ? "light" : "dark");
+    },
+    subscribe: (listener) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+  };
+
+  return service;
+}

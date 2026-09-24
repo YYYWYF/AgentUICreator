@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "id": "foundation/core-runtime",
+  "version": "0.1.0",
+  "kind": "foundation",
+  "description": "Managed Agent UI foundation-core-runtime source",
+  "files": [
+    {
+      "source": "files/runtime/application/ApplicationGateSurface.tsx",
+      "target": "runtime/application/ApplicationGateSurface.tsx"
+    },
+    {
+      "source": "files/runtime/application/ApplicationLifecycleContext.tsx",
+      "target": "runtime/application/ApplicationLifecycleContext.tsx"
+    },
+    {
+      "source": "files/runtime/application/ApplicationLifecycleRuntime.ts",
+      "target": "runtime/application/ApplicationLifecycleRuntime.ts"
+    },
+    {
+      "source": "files/runtime/application/application.css",
+      "target": "runtime/application/application.css"
+    },
+    {
+      "source": "files/runtime/application/index.ts",
+      "target": "runtime/application/index.ts"
+    },
+    {
+      "source": "files/runtime/composition/PluginCapabilityCatalog.ts",
+      "target": "runtime/composition/PluginCapabilityCatalog.ts"
+    },
+    {
+      "source": "files/runtime/composition/RuntimeCompositionBuilder.ts",
+      "target": "runtime/composition/RuntimeCompositionBuilder.ts"
+    },
+    {
+      "source": "files/runtime/composition/RuntimeCompositionStore.ts",
+      "target": "runtime/composition/RuntimeCompositionStore.ts"
+    },
+    {
+      "source": "files/runtime/composition/index.ts",
+      "target": "runtime/composition/index.ts"
+    },
+    {
+      "source": "files/runtime/context/AgentRuntimeContext.tsx",
+      "target": "runtime/context/AgentRuntimeContext.tsx"
+    },
+    {
+      "source": "files/runtime/context/AgentRuntimeProvider.tsx",
+      "target": "runtime/context/AgentRuntimeProvider.tsx"
+    },
+    {
+      "source": "files/runtime/context/PluginInstanceContext.tsx",
+      "target": "runtime/context/PluginInstanceContext.tsx"
+    },
+    {
+      "source": "files/runtime/context/agent-runtime-hooks.ts",
+      "target": "runtime/context/agent-runtime-hooks.ts"
+    },
+    {
+      "source": "files/runtime/context/index.ts",
+      "target": "runtime/context/index.ts"
+    },
+    {
+      "source": "files/runtime/diagnostics/PluginDiagnosticContext.tsx",
+      "target": "runtime/diagnostics/PluginDiagnosticContext.tsx"
+    },
+    {
+      "source": "files/runtime/diagnostics/app-ui-model-hash.ts",
+      "target": "runtime/diagnostics/app-ui-model-hash.ts"
+    },
+    {
+      "source": "files/runtime/diagnostics/index.ts",
+      "target": "runtime/diagnostics/index.ts"
+    },
+    {
+      "source": "files/runtime/diagnostics/layout-observation.ts",
+      "target": "runtime/diagnostics/layout-observation.ts"
+    },
+    {
+      "source": "files/runtime/diagnostics/types.ts",
+      "target": "runtime/diagnostics/types.ts"
+    },
+    {
+      "source": "files/runtime/diagnostics/width-compatibility.ts",
+      "target": "runtime/diagnostics/width-compatibility.ts"
+    },
+    {
+      "source": "files/runtime/events/AppEventRegistry.ts",
+      "target": "runtime/events/AppEventRegistry.ts"
+    },
+    {
+      "source": "files/runtime/events/AppEventRuntime.ts",
+      "target": "runtime/events/AppEventRuntime.ts"
+    },
+    {
+      "source": "files/runtime/events/index.ts",
+      "target": "runtime/events/index.ts"
+    },
+    {
+      "source": "files/runtime/mode-shell/AssistantShell.tsx",
+      "target": "runtime/mode-shell/AssistantShell.tsx"
+    },
+    {
+      "source": "files/runtime/mode-shell/EmbeddedShell.tsx",
+      "target": "runtime/mode-shell/EmbeddedShell.tsx"
+    },
+    {
+      "source": "files/runtime/mode-shell/ModeShell.tsx",
+      "target": "runtime/mode-shell/ModeShell.tsx"
+    },
+    {
+      "source": "files/runtime/mode-shell/PlatformShell.tsx",
+      "target": "runtime/mode-shell/PlatformShell.tsx"
+    },
+    {
+      "source": "files/runtime/mode-shell/index.ts",
+      "target": "runtime/mode-shell/index.ts"
+    },
+    {
+      "source": "files/runtime/mode-shell/mode-shell.css",
+      "target": "runtime/mode-shell/mode-shell.css"
+    },
+    {
+      "source": "files/runtime/plugins/PluginErrorBoundary.tsx",
+      "target": "runtime/plugins/PluginErrorBoundary.tsx"
+    },
+    {
+      "source": "files/runtime/plugins/PluginInstanceRenderer.tsx",
+      "target": "runtime/plugins/PluginInstanceRenderer.tsx"
+    },
+    {
+      "source": "files/runtime/plugins/PluginRegistry.ts",
+      "target": "runtime/plugins/PluginRegistry.ts"
+    },
+    {
+      "source": "files/runtime/plugins/PluginRenderScope.tsx",
+      "target": "runtime/plugins/PluginRenderScope.tsx"
+    },
+    {
+      "source": "files/runtime/plugins/PluginServiceContext.ts",
+      "target": "runtime/plugins/PluginServiceContext.ts"
+    },
+    {
+      "source": "files/runtime/plugins/PluginServiceProvider.tsx",
+      "target": "runtime/plugins/PluginServiceProvider.tsx"
+    },
+    {
+      "source": "files/runtime/plugins/PluginServiceRuntime.ts",
+      "target": "runtime/plugins/PluginServiceRuntime.ts"
+    },
+    {
+      "source": "files/runtime/plugins/UIPluginRuntime.tsx",
+      "target": "runtime/plugins/UIPluginRuntime.tsx"
+    },
+    {
+      "source": "files/runtime/plugins/index.ts",
+      "target": "runtime/plugins/index.ts"
+    },
+    {
+      "source": "files/runtime/plugins/plugin-runtime.css",
+      "target": "runtime/plugins/plugin-runtime.css"
+    },
+    {
+      "source": "files/runtime/plugins/usePluginServiceSnapshot.ts",
+      "target": "runtime/plugins/usePluginServiceSnapshot.ts"
+    },
+    {
+      "source": "files/runtime/slots/SlotRegistry.ts",
+      "target": "runtime/slots/SlotRegistry.ts"
+    },
+    {
+      "source": "files/runtime/tools/AppFrontendToolRegistry.ts",
+      "target": "runtime/tools/AppFrontendToolRegistry.ts"
+    },
+    {
+      "source": "files/runtime/tools/AppFrontendToolRuntime.ts",
+      "target": "runtime/tools/AppFrontendToolRuntime.ts"
+    },
+    {
+      "source": "files/runtime/tools/index.ts",
+      "target": "runtime/tools/index.ts"
+    }
+  ],
+  "requires": [
+    "foundation/core-contracts"
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "@agent-ui/runtime-core": "^0.1.0",
+    "@agent-ui/runtime-react": "^0.1.0"
+  }
+}

@@ -4,6 +4,106 @@
     {
       "id": "foundation/conversation",
       "path": "items/foundation-conversation/item.json"
+    },
+    {
+      "id": "foundation/core",
+      "path": "items/foundation-core/item.json"
+    },
+    {
+      "id": "foundation/core-adapters",
+      "path": "items/foundation-core-adapters/item.json"
+    },
+    {
+      "id": "foundation/core-application",
+      "path": "items/foundation-core-application/item.json"
+    },
+    {
+      "id": "foundation/core-contracts",
+      "path": "items/foundation-core-contracts/item.json"
+    },
+    {
+      "id": "foundation/core-runtime",
+      "path": "items/foundation-core-runtime/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-add-attachment-action",
+      "path": "items/plugin-assistant-ui-add-attachment-action/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-composer",
+      "path": "items/plugin-assistant-ui-composer/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-copy-action",
+      "path": "items/plugin-assistant-ui-copy-action/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-dictation-action",
+      "path": "items/plugin-assistant-ui-dictation-action/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-export-markdown-action",
+      "path": "items/plugin-assistant-ui-export-markdown-action/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-message-footer",
+      "path": "items/plugin-assistant-ui-message-footer/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-reasoning",
+      "path": "items/plugin-assistant-ui-reasoning/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-reload-action",
+      "path": "items/plugin-assistant-ui-reload-action/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-submit-action",
+      "path": "items/plugin-assistant-ui-submit-action/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-tool-fallback",
+      "path": "items/plugin-assistant-ui-tool-fallback/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-tool-group",
+      "path": "items/plugin-assistant-ui-tool-group/item.json"
+    },
+    {
+      "id": "plugin/conversation-data-source",
+      "path": "items/plugin-conversation-data-source/item.json"
+    },
+    {
+      "id": "plugin/conversation-service",
+      "path": "items/plugin-conversation-service/item.json"
+    },
+    {
+      "id": "plugin/conversation-suggestions",
+      "path": "items/plugin-conversation-suggestions/item.json"
+    },
+    {
+      "id": "plugin/conversation-surface",
+      "path": "items/plugin-conversation-surface/item.json"
+    },
+    {
+      "id": "plugin/conversation-thread-list",
+      "path": "items/plugin-conversation-thread-list/item.json"
+    },
+    {
+      "id": "plugin/locale-provider",
+      "path": "items/plugin-locale-provider/item.json"
+    },
+    {
+      "id": "plugin/task-group",
+      "path": "items/plugin-task-group/item.json"
+    },
+    {
+      "id": "plugin/theme-provider",
+      "path": "items/plugin-theme-provider/item.json"
+    },
+    {
+      "id": "plugin/theme-switch",
+      "path": "items/plugin-theme-switch/item.json"
     }
   ]
 }

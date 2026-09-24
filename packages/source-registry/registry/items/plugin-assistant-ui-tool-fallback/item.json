@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/assistant-ui-tool-fallback",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-assistant-ui-tool-fallback source",
+  "files": [
+    {
+      "source": "files/plugins/assistant-ui-tool-fallback/definition.ts",
+      "target": "plugins/assistant-ui-tool-fallback/definition.ts"
+    },
+    {
+      "source": "files/plugins/assistant-ui-tool-fallback/index.tsx",
+      "target": "plugins/assistant-ui-tool-fallback/index.tsx"
+    },
+    {
+      "source": "files/plugins/assistant-ui-tool-fallback/manifest.json",
+      "target": "plugins/assistant-ui-tool-fallback/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

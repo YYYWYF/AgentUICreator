@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/assistant-ui-reasoning",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-assistant-ui-reasoning source",
+  "files": [
+    {
+      "source": "files/plugins/assistant-ui-reasoning/definition.ts",
+      "target": "plugins/assistant-ui-reasoning/definition.ts"
+    },
+    {
+      "source": "files/plugins/assistant-ui-reasoning/index.tsx",
+      "target": "plugins/assistant-ui-reasoning/index.tsx"
+    },
+    {
+      "source": "files/plugins/assistant-ui-reasoning/manifest.json",
+      "target": "plugins/assistant-ui-reasoning/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "lucide-react": "^1.41.0"
+  }
+}

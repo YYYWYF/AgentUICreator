@@ -18,6 +18,7 @@
     "skipLibCheck": true,
     "paths": {
       "@/*": ["./src/*"],
+      "@agent-ui/bootstrap": ["../../packages/bootstrap/src/index.ts"],
       "@agent-ui/mock-agent": ["../../packages/mock-agent/src/index.ts"],
       "@agent-ui/source-registry": ["../../packages/source-registry/src/index.ts"],
       "@agent-ui/react": ["../../packages/react/src/index.ts"],

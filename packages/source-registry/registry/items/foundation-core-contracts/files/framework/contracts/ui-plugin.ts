@@ -1,0 +1,436 @@
+import type {
+  AgentApplicationEvent,
+  AgentInterruptResponse,
+  AgentUserInput,
+} from "@agent-ui/runtime-core";
+import type { ComponentType, ReactNode } from "react";
+import { z } from "zod";
+
+import type { AppUIRuntimePluginInstance } from "./app-ui-runtime-model";
+import type { AppUILayoutTrackSize } from "./app-ui-model";
+import type { PluginChildSlotDefinition } from "./app-ui-composition";
+import { customEventNameSchema } from "./custom-event-protocol";
+
+export type {
+  AgentApplicationEvent,
+  AgentConversation,
+  AgentExecution,
+  AgentInterrupt,
+  AgentInterruptResponse,
+  AgentInterruptResponseStatus,
+  AgentMessage,
+  AgentRunState,
+  AgentToolCall,
+  AgentUserInput,
+} from "@agent-ui/runtime-core";
+
+export interface UIPluginManifest {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  capabilities?: string[] | undefined;
+  /** This Plugin requires a runtime entity scope and cannot mount as static content. */
+  requiresRenderScope?: boolean | undefined;
+  layout?:
+    | {
+        width?: "narrow" | "wide" | undefined;
+      }
+    | undefined;
+  authoring?:
+    | {
+        intents: string[];
+        visualRole?: string | undefined;
+        defaultPlacement?: PluginDefaultPlacement | undefined;
+        recommendedSize?:
+          | {
+              width?: AppUILayoutTrackSize | undefined;
+              height?: AppUILayoutTrackSize | undefined;
+            }
+          | undefined;
+      }
+    | undefined;
+  application?:
+    | {
+        gate?:
+          | {
+              service: string;
+              priority?: number | undefined;
+            }
+          | undefined;
+      }
+    | undefined;
+  slots?:
+    | {
+        children?: Readonly<Record<string, PluginChildSlotDefinition>> | undefined;
+      }
+    | undefined;
+  data?:
+    | {
+        messages?: boolean | undefined;
+        state?: boolean | undefined;
+        /** Declares consumption; schemas are registered by agent-contract. */
+        events?: readonly string[] | undefined;
+      }
+    | undefined;
+}
+
+export type PluginDefaultPlacement =
+  | {
+      type: "relative";
+      relation: "before" | "after" | "above" | "below";
+      anchorPluginId: string;
+    }
+  | {
+      type: "plugin_slot";
+      parentPluginId: string;
+      slot: string;
+    };
+
+export interface UIPluginActions {
+  sendMessage(input: string | AgentUserInput): Promise<void>;
+  resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void>;
+  startNewConversation(): Promise<void>;
+  abortRun(): void;
+}
+
+export interface UIPluginObservableService<TSnapshot> {
+  getSnapshot(): TSnapshot;
+  subscribe(listener: () => void): () => void;
+}
+
+export type UIApplicationGateStatus =
+  | "checking"
+  | "blocked"
+  | "ready"
+  | "error";
+
+export interface UIApplicationGateSnapshot {
+  status: UIApplicationGateStatus;
+  message?: string | undefined;
+}
+
+export interface UIApplicationGateService
+  extends UIPluginObservableService<UIApplicationGateSnapshot> {}
+
+/**
+ * Plugins may augment this interface to type their named services.
+ *
+ * @example
+ * declare module "../../framework/contracts/ui-plugin" {
+ *   interface UIPluginServiceMap {
+ *     "acme.search": SearchService;
+ *   }
+ * }
+ */
+export interface UIPluginServiceMap {}
+
+export interface UIPluginServices {
+  get<K extends keyof UIPluginServiceMap & string>(
+    name: K,
+  ): UIPluginServiceMap[K] | undefined;
+  get<T = unknown>(name: string): T | undefined;
+}
+
+export interface UIPluginEvents {
+  subscribe<TPayload = unknown>(
+    name: string,
+    listener: (
+      event: AgentApplicationEvent<TPayload>,
+    ) => void | Promise<void>,
+  ): () => void;
+}
+
+export interface UIPluginServiceRegistrar extends UIPluginServices {
+  provide<K extends keyof UIPluginServiceMap & string>(
+    name: K,
+    value: UIPluginServiceMap[K],
+  ): () => void;
+  provide<T>(name: string, value: T): () => void;
+}
+
+export interface UIPluginSetupContext {
+  instance: AppUIRuntimePluginInstance;
+  actions: UIPluginActions;
+  events: UIPluginEvents;
+  services: UIPluginServiceRegistrar;
+}
+
+export type UIPluginSetupCleanup = void | (() => void);
+
+export interface UIPluginRenderSlotOptions {
+  sizing?: "content" | "fill";
+  layout?: "stack" | "inline";
+}
+
+export interface UIPluginComponentProps {
+  renderSlot(
+    localSlotName: string,
+    fallback?: ReactNode,
+    options?: UIPluginRenderSlotOptions,
+  ): ReactNode;
+  renderScopedSlot(
+    localSlotName: string,
+    scope: UIPluginRenderScope,
+    /** Explicit degradation content when the optional Renderer Slot is empty. */
+    fallback?: ReactNode,
+  ): ReactNode;
+}
+
+/** A value supplied synchronously by the host rendering one runtime entity. */
+export interface UIPluginRenderScope<T = unknown> {
+  readonly kind: string;
+  readonly value: T;
+}
+
+export interface UIPluginDefinition<TState = unknown> {
+  manifest: UIPluginManifest;
+  /** Named capabilities provided by this plugin instance. */
+  provides?: readonly string[] | undefined;
+  /** Named services that must exist before this plugin instance becomes active. */
+  inject?: readonly string[] | undefined;
+  /** Named enhancement services that never gate plugin activation. */
+  optionalInject?: readonly string[] | undefined;
+  /** Instance-lifetime setup. Services provided here are removed on deactivation. */
+  setup?:
+    | ((context: UIPluginSetupContext) => UIPluginSetupCleanup)
+    | undefined;
+  Component: ComponentType<UIPluginComponentProps>;
+}
+
+const nonBlankStringSchema = z
+  .string()
+  .refine((value) => value.trim().length > 0, "Must not be blank");
+
+const authoringTextSchema = z
+  .string()
+  .max(200, "Authoring metadata must be at most 200 characters")
+  .refine((value) => value.trim().length > 0, "Must not be blank");
+
+const authoringIntentListSchema = z
+  .array(authoringTextSchema)
+  .min(1)
+  .max(8)
+  .superRefine((intents, context) => {
+    const seen = new Set<string>();
+    intents.forEach((intent, index) => {
+      if (seen.has(intent)) {
+        context.addIssue({
+          code: "custom",
+          path: [index],
+          message: `Duplicate authoring intent "${intent}"`,
+          input: intent,
+        });
+      }
+      seen.add(intent);
+    });
+  });
+
+const serviceNameSchema = z
+  .string()
+  .refine((value) => value.trim().length > 0, "Must not be blank")
+  .refine(
+    (value) =>
+      /^(?:[a-z0-9]+(?:-[a-z0-9]+)*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)*)$/.test(
+        value,
+      ),
+    "Must be lowercase dot-separated (for example: editor, workspace.files)",
+  );
+
+const serviceNameListSchema = z.array(serviceNameSchema).superRefine((names, context) => {
+  const seen = new Set<string>();
+
+  names.forEach((name, index) => {
+    if (seen.has(name)) {
+      context.addIssue({
+        code: "custom",
+        path: [index],
+        message: `Duplicate service name "${name}"`,
+        input: name,
+      });
+    }
+    seen.add(name);
+  });
+});
+
+const authoringTrackSizeSchema: z.ZodType<AppUILayoutTrackSize> = z.union([
+  z.number().finite().nonnegative().max(10_000),
+  z
+    .string()
+    .max(100, "Authoring size metadata must be at most 100 characters")
+    .refine((value) => value.trim().length > 0, "Must not be blank"),
+]);
+
+const childSlotNameSchema = nonBlankStringSchema.max(
+  100,
+  "Child Slot names must be at most 100 characters",
+);
+const childSlotDescriptionSchema = nonBlankStringSchema.max(
+  300,
+  "Child Slot descriptions must be at most 300 characters",
+);
+const childSlotCapabilitySchema = nonBlankStringSchema;
+const childSlotAcceptsSchema = z.strictObject({
+  anyOfCapabilities: z.array(childSlotCapabilitySchema).min(1).max(16),
+});
+
+const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
+  id: nonBlankStringSchema,
+  name: nonBlankStringSchema,
+  description: nonBlankStringSchema,
+  version: nonBlankStringSchema,
+  capabilities: z.array(nonBlankStringSchema).optional(),
+  requiresRenderScope: z.boolean().optional(),
+  layout: z
+    .strictObject({
+      width: z.enum(["narrow", "wide"]).optional(),
+    })
+    .optional(),
+  authoring: z
+    .strictObject({
+      intents: authoringIntentListSchema,
+      visualRole: authoringTextSchema.optional(),
+      defaultPlacement: z.discriminatedUnion("type", [
+        z.strictObject({
+          type: z.literal("relative"),
+          relation: z.enum(["before", "after", "above", "below"]),
+          anchorPluginId: authoringTextSchema,
+        }),
+        z.strictObject({
+          type: z.literal("plugin_slot"),
+          parentPluginId: authoringTextSchema,
+          slot: childSlotNameSchema,
+        }),
+      ]).optional(),
+      recommendedSize: z
+        .strictObject({
+          width: authoringTrackSizeSchema.optional(),
+          height: authoringTrackSizeSchema.optional(),
+        })
+        .refine(
+          (value) => value.width !== undefined || value.height !== undefined,
+          "At least one recommended dimension is required",
+        )
+        .optional(),
+    })
+    .optional(),
+  application: z
+    .strictObject({
+      gate: z
+        .strictObject({
+          service: serviceNameSchema,
+          priority: z.number().finite().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+  slots: z
+    .strictObject({
+      children: z.record(
+        childSlotNameSchema,
+        z.strictObject({
+          description: childSlotDescriptionSchema,
+          cardinality: z.enum(["one", "many"]),
+          mode: z.enum(["content", "renderer"]).optional(),
+          optional: z.boolean().optional(),
+          accepts: childSlotAcceptsSchema.optional(),
+        }),
+      ).optional(),
+    })
+    .optional(),
+  data: z
+    .strictObject({
+      messages: z.boolean().optional(),
+      state: z.boolean().optional(),
+      events: z.array(customEventNameSchema).optional(),
+    })
+    .optional(),
+});
+
+export const uiPluginManifestSchema = manifestShapeSchema.superRefine(
+  (manifest, context) => {
+    const capabilities = new Set<string>();
+    manifest.capabilities?.forEach((capability, index) => {
+      if (capabilities.has(capability)) {
+        context.addIssue({
+          code: "custom",
+          path: ["capabilities", index],
+          message: `Duplicate capability "${capability}"`,
+          input: capability,
+        });
+      }
+      capabilities.add(capability);
+    });
+    if (
+      manifest.application?.gate !== undefined &&
+      capabilities.has("app-gate")
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["capabilities"],
+        message: 'Use application.gate as the sole Gate declaration; do not add capability "app-gate"',
+        input: manifest.capabilities,
+      });
+    }
+
+    const applicationEvents = new Set<string>();
+    manifest.data?.events?.forEach((eventName, index) => {
+      if (applicationEvents.has(eventName)) {
+        context.addIssue({
+          code: "custom",
+          path: ["data", "events", index],
+          message: `Duplicate application event declaration "${eventName}"`,
+          input: eventName,
+        });
+      }
+      applicationEvents.add(eventName);
+    });
+
+    for (const [slotName, slot] of Object.entries(manifest.slots?.children ?? {})) {
+      if (slot.mode === "renderer" && slot.cardinality !== "one") {
+        context.addIssue({
+          code: "custom",
+          path: ["slots", "children", slotName, "cardinality"],
+          message: `Renderer Slot "${slotName}" must have cardinality "one"`,
+          input: slot.cardinality,
+        });
+      }
+      const acceptedCapabilities = slot.accepts?.anyOfCapabilities;
+      if (acceptedCapabilities === undefined) continue;
+      const seen = new Set<string>();
+      acceptedCapabilities.forEach((capability, index) => {
+        if (seen.has(capability)) {
+          context.addIssue({
+            code: "custom",
+            path: ["slots", "children", slotName, "accepts", "anyOfCapabilities", index],
+            message: `Duplicate accepted capability "${capability}"`,
+            input: capability,
+          });
+        }
+        seen.add(capability);
+      });
+    }
+  },
+);
+
+export const uiPluginInjectSchema = serviceNameListSchema;
+
+export const uiPluginProvidesSchema = serviceNameListSchema;
+
+export const uiPluginOptionalInjectSchema = serviceNameListSchema;
+
+export function parseUIPluginManifest(input: unknown): UIPluginManifest {
+  return uiPluginManifestSchema.parse(input);
+}
+
+export function parseUIPluginInject(input: unknown): string[] {
+  return serviceNameListSchema.parse(input);
+}
+
+export function parseUIPluginProvides(input: unknown): string[] {
+  return serviceNameListSchema.parse(input);
+}
+
+export function parseUIPluginOptionalInject(input: unknown): string[] {
+  return serviceNameListSchema.parse(input);
+}

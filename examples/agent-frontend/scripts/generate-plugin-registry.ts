@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 import { readAgentUIProjectConfig } from "./ui-project/project-mode";
+import type { AgentUIProjectConfig } from "../framework/contracts/agent-ui-project";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths, projectRelativePath } from "./ui-project/agent-ui-project-paths";
 import {
   generatePluginRegistry,
@@ -28,13 +29,14 @@ async function readOptional(filePath: string): Promise<string | undefined> {
 
 export async function writeGeneratedPluginRegistry(
   projectRoot: string,
+  options: { projectConfigOverride?: AgentUIProjectConfig } = {},
 ): Promise<{
   changed: boolean;
   path: string;
   pluginIds: string[];
 }> {
-  const projectConfig = await readAgentUIProjectConfig(projectRoot);
-  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config);
+  const projectConfig = options.projectConfigOverride ?? (await readAgentUIProjectConfig(projectRoot)).config;
+  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig);
   const model = parseAppUIModelJson(
     await readFile(paths.appUIModelPath, "utf8"),
   );
@@ -48,9 +50,21 @@ export async function writeGeneratedPluginRegistry(
   const registryPath = paths.generatedPluginRegistryPath;
   const relativePath = projectRelativePath(projectRoot, registryPath);
   const currentSource = await readOptional(registryPath);
+  if (options.projectConfigOverride !== undefined && currentSource !== undefined) {
+    throw new Error(`Refusing to overwrite existing generated Plugin Registry: ${relativePath}`);
+  }
   if (currentSource === generation.capabilityCatalog.source) {
     return {
       changed: false,
+      path: relativePath,
+      pluginIds: generation.capabilityCatalog.pluginIds,
+    };
+  }
+
+  if (options.projectConfigOverride !== undefined) {
+    await writeFile(registryPath, generation.capabilityCatalog.source, { flag: "wx" });
+    return {
+      changed: true,
       path: relativePath,
       pluginIds: generation.capabilityCatalog.pluginIds,
     };

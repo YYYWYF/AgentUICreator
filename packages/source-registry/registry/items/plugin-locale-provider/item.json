@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/locale-provider",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-locale-provider source",
+  "files": [
+    {
+      "source": "files/plugins/locale-provider/definition.ts",
+      "target": "plugins/locale-provider/definition.ts"
+    },
+    {
+      "source": "files/plugins/locale-provider/index.tsx",
+      "target": "plugins/locale-provider/index.tsx"
+    },
+    {
+      "source": "files/plugins/locale-provider/locale-service.ts",
+      "target": "plugins/locale-provider/locale-service.ts"
+    },
+    {
+      "source": "files/plugins/locale-provider/manifest.json",
+      "target": "plugins/locale-provider/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

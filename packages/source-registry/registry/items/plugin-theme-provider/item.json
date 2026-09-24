@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/theme-provider",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-theme-provider source",
+  "files": [
+    {
+      "source": "files/plugins/theme-provider/definition.ts",
+      "target": "plugins/theme-provider/definition.ts"
+    },
+    {
+      "source": "files/plugins/theme-provider/index.tsx",
+      "target": "plugins/theme-provider/index.tsx"
+    },
+    {
+      "source": "files/plugins/theme-provider/manifest.json",
+      "target": "plugins/theme-provider/manifest.json"
+    },
+    {
+      "source": "files/plugins/theme-provider/theme-service.ts",
+      "target": "plugins/theme-provider/theme-service.ts"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

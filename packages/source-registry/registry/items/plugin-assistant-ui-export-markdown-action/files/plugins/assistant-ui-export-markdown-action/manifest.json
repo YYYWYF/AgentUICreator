@@ -1,0 +1,18 @@
+{
+  "id": "assistant-ui-export-markdown-action",
+  "name": "Assistant UI Export Markdown Action",
+  "description": "Exports the current assistant message as Markdown through assistant-ui.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-message-action"],
+  "authoring": {
+    "intents": [
+      "export an assistant message as Markdown"
+    ],
+    "visualRole": "assistant message Markdown export action",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "assistant-ui-message-footer",
+      "slot": "actions"
+    }
+  }
+}

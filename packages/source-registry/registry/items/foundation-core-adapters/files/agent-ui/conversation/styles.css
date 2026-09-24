@@ -1,0 +1,6 @@
+@import "@agent-ui/react/styles.css";
+
+/* The package owns its internal presentation scan. The project owns these
+ * editable integration and Plugin sources. */
+@source ".";
+@source "../../plugins";

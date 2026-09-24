@@ -48,6 +48,10 @@ export async function inspectCreatorProjectStructure(
   const configSource = await optionalFile(configPath);
   const legacyConfig: AgentUIProjectConfigV1 = { version: "1", mode: LEGACY_AGENT_UI_MODE };
   if (configSource === undefined) {
+    const initJournal = await optionalFile(path.join(root, config.agentUI.metadataRoot, "init-transaction.json"));
+    if (initJournal !== undefined) {
+      return broken("AGENT_UI_INITIALIZATION_INTERRUPTED", "Agent UI initialization was interrupted before project.json was committed.");
+    }
     const paths = resolveAgentUIProjectPaths(root, legacyConfig, config);
     const modelSource = await optionalFile(paths.appUIModelPath);
     if (modelSource === undefined) return { status: "uninitialized" };

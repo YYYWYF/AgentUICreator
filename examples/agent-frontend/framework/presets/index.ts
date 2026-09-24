@@ -1,20 +1,14 @@
-import { AgentUIPresetRegistry } from "./AgentUIPresetRegistry";
-import { assistantDefaultPreset } from "./assistant";
-import { embeddedDefaultPreset } from "./embedded";
-import { platformDefaultPreset } from "./platform";
+import { createDefaultAgentUIPresetRegistry } from "@agent-ui/bootstrap";
+import { parseAppUIModel } from "../contracts/app-ui-model";
 
 export * from "./AgentUIPresetRegistry";
 export * from "./types";
-export * from "./assistant";
-export * from "./embedded";
-export * from "./platform";
 
-export function createAgentUIPresetRegistry(): AgentUIPresetRegistry {
-  const registry = new AgentUIPresetRegistry();
-  registry.register(assistantDefaultPreset);
-  registry.register(embeddedDefaultPreset);
-  registry.register(platformDefaultPreset);
-  return registry;
+export function createAgentUIPresetRegistry() {
+  return createDefaultAgentUIPresetRegistry(parseAppUIModel);
 }
 
 export const agentUIPresetRegistry = createAgentUIPresetRegistry();
+export const assistantDefaultPreset = agentUIPresetRegistry.get("assistant/default");
+export const embeddedDefaultPreset = agentUIPresetRegistry.get("embedded/default");
+export const platformDefaultPreset = agentUIPresetRegistry.get("platform/default");

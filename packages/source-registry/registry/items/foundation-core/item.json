@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "foundation/core",
+  "version": "0.1.0",
+  "kind": "foundation",
+  "description": "Public Agent UI entry and generated Plugin Registry entry",
+  "requires": [
+    "foundation/core-application"
+  ],
+  "files": [
+    {
+      "source": "files/index.ts",
+      "target": "index.ts"
+    },
+    {
+      "source": "files/plugins/index.ts",
+      "target": "plugins/index.ts"
+    }
+  ]
+}
