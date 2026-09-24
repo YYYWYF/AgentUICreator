@@ -16,6 +16,8 @@ import { CreatorWorkspaceManager } from "../../packages/creator/src/workspace/Cr
 import { PythonCreatorProcessManager } from "../../packages/creator/src/PythonCreatorProcessManager.js";
 // TODO: move the host inspector adapter out of the example when the shared project contract is extracted.
 import { inspectCreatorProject } from "../../examples/agent-frontend/scripts/ui-project/creator-project-inspector";
+import { initializeAgentUIProject } from "../../examples/agent-frontend/scripts/ui-project/initialize-agent-ui-project";
+import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "../../packages/bootstrap/src/source-root";
 import { createMockConversationApiVitePlugin } from "../../examples/agent-frontend/dev-mock/conversations/vite-plugin";
 import { withPreviewAgentState } from "../../examples/agent-frontend/src/mock-scenario-preview";
 
@@ -26,6 +28,9 @@ const workspaceRoot = path.resolve(
 const frontendRoot = path.join(workspaceRoot, "examples/agent-frontend");
 const workspaceManager = new CreatorWorkspaceManager({
   inspectProject: inspectCreatorProject,
+  initializeProject: initializeAgentUIProject,
+  validateProjectSetup: validateAgentUIProjectSetup,
+  suggestSourceRoot: suggestAgentUISourceRoot,
   createPythonManager: (projectRoot) => new PythonCreatorProcessManager({
     projectRoot,
     configRoot: workspaceRoot,

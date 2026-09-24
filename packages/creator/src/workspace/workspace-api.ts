@@ -1,8 +1,16 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { CreatorWorkspaceError, CreatorWorkspaceManager } from "./CreatorWorkspaceManager.js";
-import { publicWorkspaceState, CREATOR_WORKSPACE_API_PATH } from "./types.js";
+import { publicWorkspaceState, CREATOR_PROJECT_MODES, CREATOR_WORKSPACE_API_PATH,
+  type CreatorWorkspaceInitializeInput, type CreatorWorkspaceSetupInfo } from "./types.js";
 export { CREATOR_WORKSPACE_API_PATH } from "./types.js";
+
+const MODE_PRESENTATION: Record<CreatorWorkspaceInitializeInput["mode"], { title: string; description: string }> = {
+  assistant: { title: "Assistant", description: "Add a global AI assistant to an existing application." },
+  embedded: { title: "Embedded", description: "Place Agent capabilities inside an existing workflow." },
+  platform: { title: "Platform", description: "Build a standalone Agent workspace." },
+};
+const SETUP_MODES: CreatorWorkspaceSetupInfo["modes"] = CREATOR_PROJECT_MODES.map((id) => ({ id, ...MODE_PRESENTATION[id] }));
 
 function sendJson(response: ServerResponse, status: number, value: unknown): void {
   response.statusCode = status;
@@ -21,6 +29,31 @@ async function readBody(request: IncomingMessage): Promise<unknown> {
   catch { throw new CreatorWorkspaceError("CREATOR_WORKSPACE_INPUT_INVALID", "Workspace request must contain JSON."); }
 }
 
+async function readSetupInput(request: IncomingMessage): Promise<CreatorWorkspaceInitializeInput> {
+  const body = await readBody(request);
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
+    throw new CreatorWorkspaceError("CREATOR_WORKSPACE_INPUT_INVALID", "Setup requires mode and sourceRoot.");
+  }
+  const fields = body as Record<string, unknown>;
+  if (Object.keys(fields).sort().join(",") !== "mode,sourceRoot" ||
+      typeof fields.mode !== "string" ||
+      !(CREATOR_PROJECT_MODES as readonly string[]).includes(fields.mode) ||
+      typeof fields.sourceRoot !== "string" || fields.sourceRoot.trim() === "") {
+    throw new CreatorWorkspaceError("CREATOR_WORKSPACE_INPUT_INVALID", "Setup requires a supported mode and nonempty sourceRoot.");
+  }
+  return { mode: fields.mode as CreatorWorkspaceInitializeInput["mode"], sourceRoot: fields.sourceRoot };
+}
+
+function publicDetails(details: unknown, projectRoot: string | undefined): readonly { code: string; message: string }[] | undefined {
+  if (!Array.isArray(details)) return undefined;
+  if (!details.every((issue) => typeof issue === "object" && issue !== null &&
+      typeof issue.code === "string" && typeof issue.message === "string")) return undefined;
+  return details.map((issue: { code: string; message: string }) => ({
+    code: issue.code,
+    message: projectRoot === undefined ? issue.message : issue.message.replaceAll(projectRoot, "<project>"),
+  }));
+}
+
 export async function handleCreatorWorkspaceRequest(
   request: IncomingMessage,
   response: ServerResponse,
@@ -30,6 +63,13 @@ export async function handleCreatorWorkspaceRequest(
   try {
     if (request.method === "GET" && (route === "/" || route === "")) {
       sendJson(response, 200, publicWorkspaceState(manager.getState()));
+      return;
+    }
+    if (request.method === "GET" && route === "/setup") {
+      sendJson(response, 200, {
+        suggestedSourceRoot: await manager.suggestSourceRoot(),
+        modes: SETUP_MODES,
+      } satisfies CreatorWorkspaceSetupInfo);
       return;
     }
     if (request.method !== "POST") {
@@ -52,6 +92,14 @@ export async function handleCreatorWorkspaceRequest(
       sendJson(response, 200, publicWorkspaceState(await manager.selectProject(projectRoot)));
       return;
     }
+    if (route === "/setup/validate") {
+      sendJson(response, 200, await manager.validateSetup(await readSetupInput(request)));
+      return;
+    }
+    if (route === "/initialize") {
+      sendJson(response, 200, publicWorkspaceState(await manager.initializeProject(await readSetupInput(request))));
+      return;
+    }
     if (route === "/clear") {
       await manager.clear();
       sendJson(response, 200, publicWorkspaceState(manager.getState()));
@@ -64,9 +112,14 @@ export async function handleCreatorWorkspaceRequest(
     sendJson(response, 404, { code: "CREATOR_WORKSPACE_ROUTE_NOT_FOUND" });
   } catch (error) {
     const workspaceError = error instanceof CreatorWorkspaceError ? error : undefined;
-    sendJson(response, workspaceError === undefined ? 500 : 400, {
-      code: workspaceError?.code ?? "CREATOR_WORKSPACE_REQUEST_FAILED",
+    const errorCode = workspaceError?.code ?? (typeof error === "object" && error !== null && "code" in error && typeof error.code === "string" ? error.code : undefined);
+    const state = manager.getState();
+    const projectRoot = state.status === "none" ? undefined : state.workspace.projectRoot;
+    const details = typeof error === "object" && error !== null && "details" in error ? publicDetails(error.details, projectRoot) : undefined;
+    sendJson(response, errorCode === undefined ? 500 : 400, {
+      code: errorCode ?? "CREATOR_WORKSPACE_REQUEST_FAILED",
       error: error instanceof Error ? error.message : String(error),
+      ...(details === undefined ? {} : { details }),
     });
   }
 }
