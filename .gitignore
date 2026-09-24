@@ -4,6 +4,7 @@ coverage/
 *.tsbuildinfo
 .DS_Store
 .env.creator.local
+examples/agent-frontend/.env.local
 __pycache__/
 .pytest_cache/
 .venv/

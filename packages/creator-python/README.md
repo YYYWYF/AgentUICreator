@@ -82,8 +82,8 @@ CREATOR_VERIFICATION_MODE=static_only
 ```
 
 `CREATOR_VERIFICATION_MODE` 只有两个值：默认的 `static_only` 只以当前 revision 的
-Host 静态验证作为完成门槛，Runtime diagnostics、store 和 endpoint 仍保留用于观测；
-需要运行时验证时显式设置为 `static_and_runtime`。静态模式不会把 Runtime 的
+Host 静态验证作为完成门槛，并关闭 Workbench 对 Runtime diagnostics endpoint 的上报；
+设置为 `static_and_runtime` 时同时启用上报和运行时验证。静态模式不会把 Runtime 的
 `stale` 或 `unavailable` 当成提交失败。
 
 Selector 使用单独的非流式模型副本，默认输出上限为 512，temperature 不发送。

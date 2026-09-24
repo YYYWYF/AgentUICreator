@@ -7,6 +7,7 @@ import {
 import { proxyPythonCreatorRequest } from "./PythonCreatorProxy.js";
 import {
   resolveCreatorPythonAgentMode,
+  resolveCreatorVerificationMode,
   type LoadCreatorHostConfigOptions,
 } from "./creatorRuntimeConfig.js";
 import {
@@ -56,6 +57,9 @@ export function createCreatorDevServerPlugin({
     configRoot,
     environment,
   });
+  const runtimeDiagnosticsEnabled =
+    resolveCreatorVerificationMode({ configRoot, environment }) ===
+    "static_and_runtime";
   creatorLog(`runtime=python agentMode=${agentMode}`);
 
   const pythonManager = new PythonCreatorProcessManager({
@@ -69,6 +73,15 @@ export function createCreatorDevServerPlugin({
   return {
     name: "agent-ui-creator-dev-server",
     apply: "serve",
+    config() {
+      return {
+        define: {
+          __CREATOR_RUNTIME_DIAGNOSTICS_ENABLED__: JSON.stringify(
+            runtimeDiagnosticsEnabled,
+          ),
+        },
+      };
+    },
     configureServer(server) {
       server.httpServer?.once("close", () => {
         void pythonManager.dispose();

@@ -9,6 +9,10 @@ import {
 import { createVisualObservationReporter } from "@agent-ui/creator/visual-observation";
 import { App } from "@agent-ui/example-agent-frontend/App";
 
+declare const __CREATOR_RUNTIME_DIAGNOSTICS_ENABLED__: boolean;
+
+const runtimeDiagnosticsEnabled =
+  __CREATOR_RUNTIME_DIAGNOSTICS_ENABLED__;
 const visualObservationEnabled =
   import.meta.env.VITE_ENABLE_VISUAL_OBSERVATION === "true";
 
@@ -23,16 +27,20 @@ const TargetPreview = memo(function TargetPreview({
 }) {
   const onRuntimeDiagnostic = useMemo(
     () =>
-      createCreatorRuntimeDiagnosticReporter({
-        threadId: () => threadIdRef.current,
-      }),
+      runtimeDiagnosticsEnabled
+        ? createCreatorRuntimeDiagnosticReporter({
+            threadId: () => threadIdRef.current,
+          })
+        : undefined,
     [threadIdRef],
   );
   const onRuntimeComposition = useMemo(
     () =>
-      createCreatorRuntimeCompositionReporter({
-        threadId: () => threadIdRef.current,
-      }),
+      runtimeDiagnosticsEnabled
+        ? createCreatorRuntimeCompositionReporter({
+            threadId: () => threadIdRef.current,
+          })
+        : undefined,
     [threadIdRef],
   );
   const onPreviewCommitted = useMemo(

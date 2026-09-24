@@ -59,9 +59,9 @@ CREATOR_VERIFICATION_MODE=static_only
 ```
 
 `CREATOR_VERIFICATION_MODE=static_only` 是默认值：完成门槛只使用当前 revision 的
-Host 静态验证，Runtime diagnostics 仍保留用于观测。需要 Runtime Verification 时，
-把它改成 `static_and_runtime`；Runtime `stale` 或 `unavailable` 不会把已经提交的修改
-标成红色失败。
+Host 静态验证，Workbench 也不会发送 Runtime diagnostics 或 composition reports。
+需要 Runtime Verification 和这些上报时，把它改成 `static_and_runtime`；Runtime
+`stale` 或 `unavailable` 不会把已经提交的修改标成红色失败。
 
 未显式配置 executable 时，sidecar 优先使用 `packages/creator-python/.venv`（Windows
 为 `.venv/Scripts/python.exe`，macOS/Linux 为 `.venv/bin/python`），不存在时才回退

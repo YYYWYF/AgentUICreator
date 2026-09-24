@@ -4,7 +4,10 @@ import path from "node:path";
 import {
   CREATOR_PYTHON_AGENT_MODE_ENV,
   CREATOR_PYTHON_AGENT_MODES,
+  CREATOR_VERIFICATION_MODE_ENV,
+  CREATOR_VERIFICATION_MODES,
   type CreatorPythonAgentMode,
+  type CreatorVerificationMode,
 } from "./shared.js";
 
 export const CREATOR_HOST_ENV_FILE = ".env.creator.local";
@@ -65,4 +68,22 @@ export function resolveCreatorPythonAgentMode(
     );
   }
   return mode as CreatorPythonAgentMode;
+}
+
+export function resolveCreatorVerificationMode(
+  {
+    configRoot,
+    environment = process.env,
+  }: LoadCreatorHostConfigOptions = {},
+): CreatorVerificationMode {
+  const mode =
+    environment[CREATOR_VERIFICATION_MODE_ENV]?.trim() ||
+    readCreatorHostConfigValue(configRoot, CREATOR_VERIFICATION_MODE_ENV) ||
+    "static_only";
+  if (!(CREATOR_VERIFICATION_MODES as readonly string[]).includes(mode)) {
+    throw new Error(
+      `${CREATOR_VERIFICATION_MODE_ENV} must be one of: ${CREATOR_VERIFICATION_MODES.join(", ")}.`,
+    );
+  }
+  return mode as CreatorVerificationMode;
 }

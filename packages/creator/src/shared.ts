@@ -7,6 +7,11 @@ export const CREATOR_PYTHON_AGENT_MODE_ENV = "CREATOR_PYTHON_AGENT_MODE";
 export const CREATOR_PYTHON_ENDPOINT_ENV = "CREATOR_PYTHON_ENDPOINT";
 export const CREATOR_PYTHON_AUTH_TOKEN_ENV = "CREATOR_PYTHON_AUTH_TOKEN";
 export const CREATOR_PYTHON_HOT_RELOAD_ENV = "CREATOR_PYTHON_HOT_RELOAD";
+export const CREATOR_VERIFICATION_MODE_ENV = "CREATOR_VERIFICATION_MODE";
+export const CREATOR_VERIFICATION_MODES = [
+  "static_only",
+  "static_and_runtime",
+] as const;
 export const CREATOR_PYTHON_AGENT_MODES = [
   "echo",
   "minimal",
@@ -16,3 +21,5 @@ export const CREATOR_PYTHON_AGENT_MODES = [
 
 export type CreatorPythonAgentMode =
   (typeof CREATOR_PYTHON_AGENT_MODES)[number];
+export type CreatorVerificationMode =
+  (typeof CREATOR_VERIFICATION_MODES)[number];

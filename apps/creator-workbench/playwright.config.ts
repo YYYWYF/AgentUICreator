@@ -9,9 +9,12 @@ export default defineConfig({
     browserName: "chromium",
   },
   webServer: {
-    command:
-      "VITE_ENABLE_VISUAL_OBSERVATION=true pnpm dev --host 127.0.0.1 --port 5179 --strictPort",
+    command: "pnpm dev --host 127.0.0.1 --port 5179 --strictPort",
     url: "http://127.0.0.1:5179",
+    env: {
+      CREATOR_VERIFICATION_MODE: "static_and_runtime",
+      VITE_ENABLE_VISUAL_OBSERVATION: "true",
+    },
     reuseExistingServer: false,
     timeout: 120_000,
   },
