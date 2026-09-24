@@ -493,7 +493,11 @@ describe("nested subagent AG-UI reference contract", () => {
       const readRuntimeStart = toolCallStartIndex("read_runtime");
       expect(readRuntimeStart).toBeGreaterThanOrEqual(0);
       const readRuntimeStartEvent = events[readRuntimeStart];
-      if (readRuntimeStartEvent === undefined || !("toolCallId" in readRuntimeStartEvent)) {
+      if (
+        readRuntimeStartEvent === undefined ||
+        !("toolCallId" in readRuntimeStartEvent) ||
+        typeof readRuntimeStartEvent.toolCallId !== "string"
+      ) {
         throw new Error("read_runtime TOOL_CALL_START did not expose toolCallId");
       }
       const readRuntimeToolCallId = readRuntimeStartEvent.toolCallId;

@@ -169,7 +169,7 @@ describe("Agent UI locale foundation", () => {
       setup: ({ services }) => {
         services.provide(AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, {
           list: async () => [{ id: "saved", title: "Saved" }],
-          get: async (id) => ({
+          get: async (id: string) => ({
             id,
             title: "Saved",
             history: { format: "langchain", messages: [] },

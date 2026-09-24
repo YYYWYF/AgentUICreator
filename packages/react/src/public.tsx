@@ -662,14 +662,20 @@ export function AgentStatus(props: Readonly<ConversationAgentStatusProps>) {
 export function ConversationAgentStatus({
   className,
 }: Readonly<{ className?: string }>) {
-  return <InternalTaskAgentStatus className={className} />;
+  return (
+    <InternalTaskAgentStatus
+      {...(className === undefined ? {} : { className })}
+    />
+  );
 }
 
 /** Stable facade for the upstream thread task tray. */
 export function ConversationTaskTray({
   className,
 }: Readonly<{ className?: string }>) {
-  return <InternalTaskTray className={className} />;
+  return (
+    <InternalTaskTray {...(className === undefined ? {} : { className })} />
+  );
 }
 
 /**
@@ -686,7 +692,7 @@ export function ConversationTaskGroup({
   return (
     <InternalTaskGroup
       group={group as ComponentProps<typeof InternalTaskGroup>["group"]}
-      className={className}
+      {...(className === undefined ? {} : { className })}
     />
   );
 }

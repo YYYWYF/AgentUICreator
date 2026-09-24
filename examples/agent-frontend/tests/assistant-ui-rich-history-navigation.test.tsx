@@ -33,6 +33,24 @@ const mountedFixtures: Array<{
 let server: Server;
 let origin: string;
 
+function findToolCallPart(
+  messages: readonly ThreadMessage[],
+): Record<string, unknown> | undefined {
+  for (const message of messages) {
+    for (const part of message.content as readonly unknown[]) {
+      if (
+        typeof part === "object" &&
+        part !== null &&
+        "type" in part &&
+        part.type === "tool-call"
+      ) {
+        return part as Record<string, unknown>;
+      }
+    }
+  }
+  return undefined;
+}
+
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -229,9 +247,7 @@ describe("assistant-ui LangGraph history navigation", () => {
       await runtime.threads.switchToThread("mock-history-tool");
     });
 
-    const toolPart = runtime.thread.getState().messages
-      .flatMap((message) => message.content)
-      .find((part) => part.type === "tool-call");
+    const toolPart = findToolCallPart(runtime.thread.getState().messages);
     expect(toolPart).toMatchObject({
       type: "tool-call",
       toolCallId: "history-search-files-1",
@@ -263,9 +279,7 @@ describe("assistant-ui LangGraph history navigation", () => {
       await runtime.threads.switchToThread("mock-history-frontend-tool");
     });
 
-    const toolPart = runtime.thread.getState().messages
-      .flatMap((message) => message.content)
-      .find((part) => part.type === "tool-call");
+    const toolPart = findToolCallPart(runtime.thread.getState().messages);
     expect(toolPart).toMatchObject({
       type: "tool-call",
       toolCallId: "history-dangerous-frontend-tool-1",

@@ -25,10 +25,8 @@ const scenarioWithState: MockScenario = {
 
 describe("Agent Frontend mock scenario preview state", () => {
   it("merges previewAgentState with scenario-owned initialState", () => {
-    const [withPreviewState, withOwnedState] = [
-      scenarioWithoutState,
-      scenarioWithState,
-    ].map(withPreviewAgentState);
+    const withPreviewState = withPreviewAgentState(scenarioWithoutState);
+    const withOwnedState = withPreviewAgentState(scenarioWithState);
 
     expect(withPreviewState.initialState).toEqual(previewAgentState);
     expect(withOwnedState.initialState).toEqual({

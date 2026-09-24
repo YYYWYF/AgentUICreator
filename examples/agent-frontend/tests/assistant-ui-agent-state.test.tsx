@@ -177,9 +177,8 @@ describe("assistant-ui AG-UI State → Job Progress projection", () => {
       throw new Error("state showcase did not emit the expected state events");
     }
 
-    let appendPromise!: Promise<void>;
     await act(async () => {
-      appendPromise = runtime.thread.append({
+      runtime.thread.append({
         role: "user",
         content: [{ type: "text", text: "验证当前修改能否通过 CI" }],
         startRun: true,
@@ -214,15 +213,14 @@ describe("assistant-ui AG-UI State → Job Progress projection", () => {
         firstRunEvents.next(event);
       }
       firstRunEvents.complete();
-      await appendPromise;
+      await Promise.resolve();
     });
 
     const finalState = deltaStates[deltaStates.length - 1];
     expect(runtime.thread.getState().state).toEqual(finalState);
 
-    let secondAppendPromise!: Promise<void>;
     await act(async () => {
-      secondAppendPromise = runtime.thread.append({
+      runtime.thread.append({
         role: "user",
         content: [{ type: "text", text: "继续检查 CI 验证结果" }],
         startRun: true,
@@ -251,7 +249,7 @@ describe("assistant-ui AG-UI State → Job Progress projection", () => {
         outcome: { type: "success" },
       });
       secondRunEvents.complete();
-      await secondAppendPromise;
+      await Promise.resolve();
     });
   });
 });

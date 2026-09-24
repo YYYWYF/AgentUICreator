@@ -60,7 +60,12 @@ it("captures one observation per hash despite rerenders", async () => {
   report(HASH_A, root);
   report(HASH_A, root);
   await vi.waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
-  const body = JSON.parse(upload.mock.calls[0][1].body);
+  const uploadCall = upload.mock.calls[0];
+  const requestBody = uploadCall?.[1]?.body;
+  if (typeof requestBody !== "string") {
+    throw new Error("Visual observation request did not include a JSON body");
+  }
+  const body = JSON.parse(requestBody);
   expect(body.currentHash).toBe(HASH_A);
   expect(body.image.width).toBeGreaterThan(0);
   expect(vi.mocked(toCanvas)).toHaveBeenCalledTimes(1);

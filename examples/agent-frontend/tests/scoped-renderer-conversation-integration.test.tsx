@@ -37,6 +37,24 @@ const fallbackInvocations = vi.fn();
 const reasoningScopes = vi.fn((_scope: UIPluginRenderScope<{ group: { indices: readonly number[]; status: { type: string } }; children: unknown }> | null) => undefined);
 let hostMounts = 0;
 
+function findToolCallPart(
+  messages: readonly ThreadMessage[],
+): Record<string, unknown> | undefined {
+  for (const message of messages) {
+    for (const part of message.content as readonly unknown[]) {
+      if (
+        typeof part === "object" &&
+        part !== null &&
+        "type" in part &&
+        part.type === "tool-call"
+      ) {
+        return part as Record<string, unknown>;
+      }
+    }
+  }
+  return undefined;
+}
+
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 class ResizeObserverMock {
@@ -174,7 +192,8 @@ async function mount(
   roots.push(root);
   await act(async () => {
     root.render(<RuntimeFixture chatModel={chatModel} initialMessages={initialMessages} model={model}
-      onRuntime={(value) => { runtime = value; }} onRuntimeDiagnostic={onRuntimeDiagnostic} />);
+      onRuntime={(value) => { runtime = value; }}
+      {...(onRuntimeDiagnostic === undefined ? {} : { onRuntimeDiagnostic })} />);
     await Promise.resolve();
   });
   if (runtime === undefined) throw new Error("Assistant runtime was not captured");
@@ -375,7 +394,8 @@ describe("Conversation scoped renderer integration", () => {
   });
 
   it("forwards an approval click through the real unknown-tool fallback path", async () => {
-    const runs = vi.fn<ChatModelAdapter["run"]>(async () => runs.mock.calls.length === 1 ? {
+    const runs = vi.fn<ChatModelAdapter["run"]>();
+    runs.mockImplementation(async () => runs.mock.calls.length === 1 ? {
       content: [{ type: "tool-call", toolCallId: "approval-call", toolName: "unknown_tool",
         args: {}, argsText: "{}", approval: { id: "approval-1", prompt: "Allow this action?" } }],
       status: { type: "requires-action", reason: "tool-calls" },
@@ -394,8 +414,7 @@ describe("Conversation scoped renderer integration", () => {
     if (allow === undefined) throw new Error("Approval Allow button is missing");
     await act(async () => { allow.click(); await Promise.resolve(); });
     expect(runs).toHaveBeenCalledTimes(2);
-    const approved = runtime.thread.getState().messages.flatMap((item) => item.content)
-      .find((part) => part.type === "tool-call" && part.toolCallId === "approval-call");
+    const approved = findToolCallPart(runtime.thread.getState().messages);
     expect(approved).toMatchObject({ approval: { id: "approval-1", approved: true } });
   });
 });

@@ -10,5 +10,6 @@ export {
 export {
   MockAgentPlanToolUI,
   MockAgentStatusToolUI,
+  MockApprovalToolUI,
   MockRunCiJobToolUI,
 } from "./mock";

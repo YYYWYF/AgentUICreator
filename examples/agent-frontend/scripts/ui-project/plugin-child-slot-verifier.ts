@@ -114,7 +114,7 @@ function inspectRenderedChildSlots(
   const relativePath = projectPath(projectRoot, sourceFile.fileName);
   const visit = (node: Node): void => {
     const mode = renderedSlotMode(node);
-    if (mode !== null) {
+    if (mode !== null && isCallExpression(node)) {
       const argument = node.arguments[0];
       const location = sourceLocation(sourceFile, node);
       if (argument !== undefined && isStringLiteral(argument)) {

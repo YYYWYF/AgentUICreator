@@ -317,7 +317,9 @@ describe("assistant-ui message footer action Plugins", () => {
   });
 
   it("triggers assistant-ui Markdown export from the child Plugin", async () => {
-    const createObjectURL = vi.fn(() => "blob:assistant-action");
+    const createObjectURL = vi.fn(
+      (_object: Blob | MediaSource) => "blob:assistant-action",
+    );
     const revokeObjectURL = vi.fn();
     vi.stubGlobal("URL", { createObjectURL, revokeObjectURL });
     const anchorClick = vi

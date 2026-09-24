@@ -113,7 +113,7 @@ describe("Mock Agent official element renderers", () => {
       },
       {
         state: "waiting",
-        status: { type: "requires-action" },
+        status: { type: "requires-action", reason: "tool-calls" },
         args: { label: "Waiting for approval", elapsed: "0:13" },
       },
       {
@@ -134,9 +134,9 @@ describe("Mock Agent official element renderers", () => {
       expect(container.querySelector('[data-slot="agent-status"]'))
         .not.toBeNull();
       expect(container.textContent).toContain(fixture.state);
-      expect(container.textContent).toContain(fixture.label);
+      expect(container.textContent).toContain(fixture.args.label);
       if (fixture.state !== "done") {
-        expect(container.textContent).toContain(fixture.elapsed);
+        expect(container.textContent).toContain(fixture.args.elapsed);
       }
     }
   });
@@ -172,7 +172,7 @@ describe("Mock Agent official element renderers", () => {
               { applied: true },
               {
                 args: { label: "Second status", elapsed: "0:02" },
-                status: { type: "requires-action" },
+                status: { type: "requires-action", reason: "tool-calls" },
                 toolCallId: "status-2",
               },
             )}
@@ -192,23 +192,25 @@ describe("Mock Agent official element renderers", () => {
 
     expect(parts).not.toBeNull();
     expect(frames).toHaveLength(2);
-    if (parts === null || frames.length !== 2) {
+    const firstFrame = frames[0];
+    const secondFrame = frames[1];
+    if (parts === null || firstFrame === undefined || secondFrame === undefined) {
       throw new Error("Consecutive AgentStatus frames are missing.");
     }
 
     // Keep this contract at the frame boundary; AgentStatus internals own
     // their own dimensions and are deliberately not measured here.
     const pixels = (value: string) => Number.parseFloat(value || "0");
-    const firstFrameStyle = getComputedStyle(frames[0]);
-    const secondFrameStyle = getComputedStyle(frames[1]);
+    const firstFrameStyle = getComputedStyle(firstFrame);
+    const secondFrameStyle = getComputedStyle(secondFrame);
     const externalSpacing =
       pixels(getComputedStyle(parts).rowGap) +
       pixels(firstFrameStyle.marginBottom) +
       pixels(secondFrameStyle.marginTop);
 
     expect(externalSpacing).toBeCloseTo(16, 0);
-    expect(frames[0].classList.contains("my-3")).toBe(false);
-    expect(frames[1].classList.contains("my-3")).toBe(false);
+    expect(firstFrame.classList.contains("my-3")).toBe(false);
+    expect(secondFrame.classList.contains("my-3")).toBe(false);
   });
 
   it("falls back to ToolFallback for malformed plan data", async () => {

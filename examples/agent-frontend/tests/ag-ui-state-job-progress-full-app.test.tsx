@@ -269,11 +269,13 @@ describe("AG-UI State → JobProgress full application chain", () => {
     if (assistantRuntime === undefined || agentRuntime === undefined) {
       throw new Error("The full application runtime was not captured");
     }
+    const activeAssistantRuntime = assistantRuntime;
+    const activeAgentRuntime = agentRuntime;
 
     const snapshot = agent.waitFor(EventType.STATE_SNAPSHOT);
     let sendPromise!: Promise<void>;
     await act(async () => {
-      sendPromise = agentRuntime.sendMessage("验证当前修改能否通过 CI");
+      sendPromise = activeAgentRuntime.sendMessage("验证当前修改能否通过 CI");
       await flushReact();
     });
     let snapshotEvent!: IndexedEvent;
@@ -282,7 +284,7 @@ describe("AG-UI State → JobProgress full application chain", () => {
       await flushReact();
     });
 
-    const initialState = agentRuntime.getSnapshot().state;
+    const initialState = activeAgentRuntime.getSnapshot().state;
     expect(initialState).toEqual({
       jobs: {
         "ci-job-1": {
@@ -292,7 +294,7 @@ describe("AG-UI State → JobProgress full application chain", () => {
         },
       },
     });
-    expect(assistantRuntime.thread.getState().state).toEqual(initialState);
+    expect(activeAssistantRuntime.thread.getState().state).toEqual(initialState);
 
     const toolStart = await agent.waitFor(EventType.TOOL_CALL_START, snapshotEvent.index);
     const toolArgs = await agent.waitFor(EventType.TOOL_CALL_ARGS, toolStart.index);
@@ -312,7 +314,10 @@ describe("AG-UI State → JobProgress full application chain", () => {
       type: EventType.TOOL_CALL_ARGS,
       toolCallId: "ci-job-1",
     });
-    expect(JSON.parse(String((toolArgs.event as { delta: string }).delta))).toEqual({
+    if (!("delta" in toolArgs.event) || typeof toolArgs.event.delta !== "string") {
+      throw new Error("CI tool arguments did not contain a string delta");
+    }
+    expect(JSON.parse(toolArgs.event.delta)).toEqual({
       target: "Verify the current change on CI",
       stages: [
         { name: "clone", weight: 1 },

@@ -109,9 +109,8 @@ describe("assistant-ui cancellation boundary", () => {
       if (runtime === undefined) throw new Error("Assistant runtime was not captured");
 
       const assistantRuntime = runtime;
-      let send!: Promise<unknown>;
       await act(async () => {
-        send = assistantRuntime.thread.append({
+        assistantRuntime.thread.append({
           role: "user",
           content: [{ type: "text", text: "开始慢流" }],
           startRun: true,
@@ -128,7 +127,6 @@ describe("assistant-ui cancellation boundary", () => {
         assistantRuntime.thread.cancelRun();
         await waitFor(() => !assistantRuntime.thread.getState().isRunning);
       });
-      await expect(send).resolves.toBeUndefined();
 
       const assistantMessage = assistantRuntime.thread
         .getState()

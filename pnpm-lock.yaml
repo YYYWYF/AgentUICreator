@@ -99,6 +99,9 @@ importers:
       '@ag-ui/client':
         specifier: 0.0.59
         version: 0.0.59
+      '@ag-ui/core':
+        specifier: 0.0.59
+        version: 0.0.59
       '@agent-ui/mock-agent':
         specifier: workspace:^
         version: link:../../packages/mock-agent

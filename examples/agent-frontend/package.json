@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@ag-ui/client": "0.0.59",
+    "@ag-ui/core": "0.0.59",
     "@agent-ui/mock-agent": "workspace:^",
     "@agent-ui/source-registry": "workspace:^",
     "@types/node": "^20.19.43",

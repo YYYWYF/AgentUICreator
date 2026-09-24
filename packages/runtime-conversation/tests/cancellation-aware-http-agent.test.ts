@@ -128,7 +128,7 @@ describe("CancellationAwareHttpAgent", () => {
         cancel,
         releaseLock: vi.fn(),
         closed: Promise.resolve(),
-      });
+      };
       const abort = () => rejectPendingRead(new Error("BodyStreamBuffer was aborted"));
       if (init.signal?.aborted) abort();
       else init.signal?.addEventListener("abort", abort, { once: true });
