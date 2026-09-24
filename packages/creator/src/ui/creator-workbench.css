@@ -193,6 +193,8 @@
 .creator-workspace-status input { min-width: 0; padding: 0.4rem; border: 1px solid #d0d5dd; border-radius: 0.35rem; }
 .creator-workspace-status button { margin-right: 0.4rem; padding: 0.35rem 0.55rem; border: 1px solid #d0d5dd; border-radius: 0.35rem; background: #f9fafb; cursor: pointer; }
 .creator-workspace-status p { margin: 0; color: #b42318; }
+.creator-workspace-status button:disabled { opacity: 0.55; cursor: not-allowed; }
+.creator-workspace-warnings { display: grid; gap: 0.25rem; padding: 0.45rem; border-radius: 0.35rem; color: #92400e; background: #fffaeb; }
 
 .creator-panel-header .creator-panel-dev-studio-dock
   button[data-agent-ui-dev-studio-entry="mock"]:hover,
@@ -269,6 +271,8 @@
 
 .creator-panel-body:has(.creator-panel-dev-studio-panel:not(:empty))
   > .creator-panel-messages,
+.creator-panel-body:has(.creator-panel-dev-studio-panel:not(:empty))
+  > .creator-project-setup,
 .creator-panel:has(.creator-panel-dev-studio-panel:not(:empty))
   > .creator-panel-composer {
   display: none;

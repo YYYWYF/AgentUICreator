@@ -22,8 +22,10 @@ import type {
   CreatorValidationReceipt,
 } from "../receiptTypes.js";
 import { CREATOR_API_PATH } from "../shared.js";
-import { CREATOR_WORKSPACE_API_PATH, CREATOR_WORKSPACE_ID_HEADER, type CreatorWorkspacePublicState } from "../workspace/types.js";
+import { CREATOR_WORKSPACE_ID_HEADER, type CreatorProjectMode, type CreatorWorkspacePublicState } from "../workspace/types.js";
 import { resolveCreatorDebugMode } from "./creatorDebug.js";
+import { CreatorProjectSetup, type CreatorSetupDraft, type CreatorSetupError, type CreatorSetupInfoState, setupIssueMessage } from "./setup/CreatorProjectSetup.js";
+import { CreatorWorkspaceRequestError, clearWorkspaceProject, getWorkspaceSetup, getWorkspaceState, initializeWorkspaceProjectRequest, refreshWorkspaceProject, selectWorkspaceProject, validateWorkspaceSetup } from "./workspaceClient.js";
 import {
   creatorStageTitle,
   interruptCreatorStage,
@@ -840,17 +842,20 @@ function CreatorStageActivityCard({
   );
 }
 
-async function workspaceRequest(route = "", projectRoot?: string): Promise<CreatorWorkspacePublicState> {
-  const response = await fetch(`${CREATOR_WORKSPACE_API_PATH}${route}`, projectRoot === undefined && route === ""
-    ? undefined
-    : {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(projectRoot === undefined ? {} : { projectRoot }),
-      });
-  const result = await response.json() as CreatorWorkspacePublicState | { error?: string };
-  if (!response.ok) throw new Error("error" in result ? result.error ?? "工作区请求失败" : "工作区请求失败");
-  return result as CreatorWorkspacePublicState;
+const emptySetupDraft = (): CreatorSetupDraft => ({
+  mode: null,
+  sourceRoot: "",
+  validation: { status: "idle" },
+  initializing: false,
+  error: null,
+});
+
+function setupError(error: unknown): CreatorSetupError {
+  if (error instanceof CreatorWorkspaceRequestError) {
+    return { message: error.message, ...(error.code === undefined ? {} : { code: error.code }),
+      ...(error.details === undefined ? {} : { details: error.details }) };
+  }
+  return { message: error instanceof Error ? error.message : String(error) };
 }
 
 export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbenchProps) {
@@ -873,6 +878,10 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
   const [workspaceBusy, setWorkspaceBusy] = useState(false);
   const [showWorkspaceSelector, setShowWorkspaceSelector] = useState(true);
+  const [setupInfo, setSetupInfo] = useState<CreatorSetupInfoState>({ status: "idle" });
+  const [setupDraft, setSetupDraft] = useState<CreatorSetupDraft>(emptySetupDraft);
+  const [setupValidationEpoch, setSetupValidationEpoch] = useState(0);
+  const [setupNeedsRefresh, setSetupNeedsRefresh] = useState(false);
   const messageList = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLElement>(null);
   const resizeStart = useRef<{
@@ -884,6 +893,21 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
   const agentRef = useRef<HttpAgent | null>(null);
   const workspaceIdRef = useRef<string | undefined>(undefined);
   const sessionRef = useRef(0);
+  const setupValidationRef = useRef<{ generation: number; controller?: AbortController }>({ generation: 0 });
+  const setupInfoRef = useRef<{ generation: number; controller?: AbortController }>({ generation: 0 });
+  const initializingRef = useRef(false);
+
+  const invalidateSetupValidation = () => {
+    setupValidationRef.current.generation += 1;
+    setupValidationRef.current.controller?.abort();
+    setupValidationRef.current.controller = undefined;
+  };
+
+  const invalidateSetupInfo = () => {
+    setupInfoRef.current.generation += 1;
+    setupInfoRef.current.controller?.abort();
+    setupInfoRef.current.controller = undefined;
+  };
 
   const updateItems = (
     updater: (current: CreatorConversationItem[]) => CreatorConversationItem[],
@@ -903,8 +927,16 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
       saveConversation(agentRef.current, itemsRef.current, oldId);
     }
     const id = next.status === "none" ? undefined : next.workspace.id;
+    if (oldId !== id || next.status !== "uninitialized") {
+      invalidateSetupValidation();
+      invalidateSetupInfo();
+      setSetupInfo({ status: "idle" });
+      setSetupDraft(emptySetupDraft());
+      setSetupNeedsRefresh(false);
+    }
     workspaceIdRef.current = id;
-    const conversation = id === undefined ? emptyConversation() : storedConversation(id);
+    const conversation = id === undefined || next.status === "uninitialized" || next.status === "broken"
+      ? emptyConversation() : storedConversation(id);
     agentRef.current = (next.status === "ready" || next.status === "legacy") && next.runtime.status === "ready"
       ? new HttpAgent({ url: CREATOR_API_PATH, headers: { [CREATOR_WORKSPACE_ID_HEADER]: id! }, threadId: conversation.threadId, initialMessages: conversation.agentMessages })
       : null;
@@ -918,7 +950,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
 
   useEffect(() => {
     let active = true;
-    void workspaceRequest().then((state) => {
+    void getWorkspaceState().then((state) => {
       if (active) {
         installWorkspace(state);
         setShowWorkspaceSelector(state.status === "none");
@@ -928,6 +960,59 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
     });
     return () => { active = false; };
   }, []);
+
+  const setupWorkspaceId = workspaceState?.status === "uninitialized" ? workspaceState.workspace.id : undefined;
+
+  const loadSetupInfo = (workspaceId: string) => {
+    invalidateSetupInfo();
+    const generation = setupInfoRef.current.generation;
+    const controller = new AbortController();
+    setupInfoRef.current.controller = controller;
+    setSetupInfo({ status: "loading" });
+    void getWorkspaceSetup(controller.signal).then((info) => {
+      if (controller.signal.aborted || generation !== setupInfoRef.current.generation || workspaceIdRef.current !== workspaceId) return;
+      setSetupInfo({ status: "ready", info });
+      setSetupDraft({ ...emptySetupDraft(), sourceRoot: info.suggestedSourceRoot });
+    }).catch((error: unknown) => {
+      if (controller.signal.aborted || generation !== setupInfoRef.current.generation || workspaceIdRef.current !== workspaceId) return;
+      setSetupInfo({ status: "failed", error: error instanceof Error ? error.message : String(error) });
+    });
+  };
+
+  useEffect(() => {
+    if (setupWorkspaceId === undefined) return;
+    loadSetupInfo(setupWorkspaceId);
+    return () => {
+      invalidateSetupInfo();
+      invalidateSetupValidation();
+    };
+  }, [setupWorkspaceId]);
+
+  useEffect(() => {
+    if (setupWorkspaceId === undefined || workspaceBusy || setupInfo.status !== "ready" ||
+        setupDraft.mode === null || setupDraft.sourceRoot.trim() === "") return;
+    const workspaceId = setupWorkspaceId;
+    const mode = setupDraft.mode;
+    const sourceRoot = setupDraft.sourceRoot;
+    const timer = window.setTimeout(() => {
+      invalidateSetupValidation();
+      const generation = setupValidationRef.current.generation;
+      const controller = new AbortController();
+      setupValidationRef.current.controller = controller;
+      setSetupDraft((current) => ({ ...current, validation: { status: "validating" } }));
+      void validateWorkspaceSetup({ mode, sourceRoot }, controller.signal).then((result) => {
+        if (controller.signal.aborted || generation !== setupValidationRef.current.generation || workspaceIdRef.current !== workspaceId) return;
+        setSetupDraft((current) => ({ ...current, validation: {
+          status: result.valid && (result.sourceRoot.targetState === "missing" || result.sourceRoot.targetState === "empty") ? "valid" : "invalid",
+          result,
+        } }));
+      }).catch((error: unknown) => {
+        if (controller.signal.aborted || generation !== setupValidationRef.current.generation || workspaceIdRef.current !== workspaceId) return;
+        setSetupDraft((current) => ({ ...current, validation: { status: "idle" }, error: setupError(error) }));
+      });
+    }, 275);
+    return () => window.clearTimeout(timer);
+  }, [setupWorkspaceId, workspaceBusy, setupInfo.status, setupDraft.mode, setupDraft.sourceRoot, setupValidationEpoch]);
 
   useEffect(() => {
     const agent = agentRef.current;
@@ -1271,13 +1356,13 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
 
   const selectWorkspace = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (workspaceBusy || workspacePath.trim() === "") return;
+    if (workspaceBusy || initializingRef.current || workspacePath.trim() === "") return;
     setWorkspaceBusy(true);
     setWorkspaceError(null);
     sessionRef.current += 1;
     agentRef.current?.abortRun();
     try {
-      installWorkspace(await workspaceRequest("/select", workspacePath.trim()));
+      installWorkspace(await selectWorkspaceProject(workspacePath.trim()));
       setShowWorkspaceSelector(false);
     } catch (error) {
       setWorkspaceError(error instanceof Error ? error.message : String(error));
@@ -1287,12 +1372,13 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
   };
 
   const clearWorkspace = async () => {
+    if (workspaceBusy || initializingRef.current) return;
     setWorkspaceBusy(true);
     setWorkspaceError(null);
     sessionRef.current += 1;
     agentRef.current?.abortRun();
     try {
-      installWorkspace(await workspaceRequest("/clear"));
+      installWorkspace(await clearWorkspaceProject());
       setWorkspacePath("");
       setShowWorkspaceSelector(true);
     } catch (error) {
@@ -1303,17 +1389,95 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
   };
 
   const refreshWorkspace = async () => {
-    if (workspaceBusy) return;
+    if (workspaceBusy || initializingRef.current) return;
     setWorkspaceBusy(true);
     setWorkspaceError(null);
+    if (workspaceState?.status === "uninitialized") {
+      invalidateSetupValidation();
+      setSetupDraft((current) => ({ ...current, validation: { status: "idle" } }));
+    }
     sessionRef.current += 1;
     agentRef.current?.abortRun();
     try {
-      installWorkspace(await workspaceRequest("/refresh"));
+      const refreshed = await refreshWorkspaceProject();
+      installWorkspace(refreshed);
+      if (refreshed.status === "uninitialized") setSetupValidationEpoch((current) => current + 1);
     } catch (error) {
       setWorkspaceError(error instanceof Error ? error.message : String(error));
+      if (workspaceState?.status === "uninitialized") setSetupValidationEpoch((current) => current + 1);
     } finally {
       setWorkspaceBusy(false);
+    }
+  };
+
+  const changeSetupMode = (mode: CreatorProjectMode) => {
+    if (initializingRef.current || workspaceState?.status !== "uninitialized") return;
+    invalidateSetupValidation();
+    setSetupDraft((current) => ({ ...current, mode, validation: { status: "idle" },
+      error: setupNeedsRefresh ? current.error : null }));
+  };
+
+  const changeSetupSourceRoot = (sourceRoot: string) => {
+    if (initializingRef.current || workspaceState?.status !== "uninitialized") return;
+    invalidateSetupValidation();
+    setSetupDraft((current) => ({ ...current, sourceRoot, validation: { status: "idle" },
+      error: setupNeedsRefresh ? current.error : null }));
+  };
+
+  const canInitialize = workspaceState?.status === "uninitialized" &&
+    setupDraft.mode !== null &&
+    setupDraft.validation.status === "valid" &&
+    setupDraft.validation.result.valid &&
+    (setupDraft.validation.result.sourceRoot.targetState === "missing" ||
+      setupDraft.validation.result.sourceRoot.targetState === "empty") &&
+    !setupDraft.initializing && !workspaceBusy && !setupNeedsRefresh;
+
+  const initializeWorkspaceProject = async () => {
+    if (!canInitialize || initializingRef.current || setupDraft.mode === null) return;
+    const workspaceId = workspaceIdRef.current;
+    if (workspaceId === undefined) return;
+    initializingRef.current = true;
+    setSetupDraft((current) => ({ ...current, initializing: true, error: null }));
+    try {
+      const result = await initializeWorkspaceProjectRequest({
+        mode: setupDraft.mode,
+        sourceRoot: setupDraft.sourceRoot,
+      });
+      if (workspaceIdRef.current === workspaceId) {
+        installWorkspace(result);
+        if (result.status === "uninitialized") {
+          setSetupNeedsRefresh(true);
+          setSetupDraft((current) => ({ ...current, validation: { status: "idle" },
+            error: { message: "初始化未返回就绪状态，请刷新项目状态后重试。" } }));
+        }
+      }
+    } catch (error) {
+      if (workspaceIdRef.current !== workspaceId) return;
+      if (error instanceof CreatorWorkspaceRequestError &&
+          error.code === "AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED") {
+        setSetupNeedsRefresh(true);
+        try {
+          const refreshed = await refreshWorkspaceProject();
+          if (workspaceIdRef.current !== workspaceId) return;
+          installWorkspace(refreshed);
+          if (refreshed.status === "uninitialized") {
+            setSetupDraft((current) => ({ ...current, validation: { status: "idle" },
+              error: { message: "初始化结果尚未确认，请刷新项目状态后重试。", code: error.code } }));
+          }
+        } catch (refreshError) {
+          if (workspaceIdRef.current === workspaceId) {
+            setSetupDraft((current) => ({ ...current, validation: { status: "idle" },
+              error: { message: `初始化结果尚未确认；刷新项目状态失败：${setupError(refreshError).message}`, code: error.code } }));
+          }
+        }
+      } else {
+        setSetupDraft((current) => ({ ...current, error: setupError(error) }));
+      }
+    } finally {
+      initializingRef.current = false;
+      if (workspaceIdRef.current === workspaceId) {
+        setSetupDraft((current) => ({ ...current, initializing: false }));
+      }
     }
   };
 
@@ -1371,12 +1535,17 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
             } as CSSProperties)
       }
     >
-      {workspaceState !== null && workspaceState.status !== "none" && workspaceState.workspace.id === previewWorkspaceId ? (
+      {workspaceState !== null && (workspaceState.status === "ready" || workspaceState.status === "legacy") && workspaceState.workspace.id === previewWorkspaceId ? (
         <CreatorWorkbenchPreview threadId={threadId} workspaceId={workspaceState.workspace.id}>{children}</CreatorWorkbenchPreview>
       ) : (
         <section className="creator-workbench-preview creator-workbench-preview-placeholder" aria-label="项目预览">
-          <strong>当前项目没有连接预览</strong>
-          <p>启动项目后可在后续阶段连接它的预览。</p>
+          {workspaceState?.status === "uninitialized" ? (
+            <><strong>Agent UI 尚未初始化</strong><p>选择产品形态并完成初始化后，Creator 才能开始编辑 Agent UI。</p></>
+          ) : workspaceState === null || workspaceState.status === "none" ? (
+            <strong>请先选择项目</strong>
+          ) : (
+            <><strong>当前项目没有连接预览</strong><p>启动项目后可在后续阶段连接它的预览。</p></>
+          )}
         </section>
       )}
 
@@ -1432,22 +1601,34 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
                 <span>Path: {workspaceState.workspace.displayPath}</span>
                 {workspaceState.status === "ready" || workspaceState.status === "legacy" ? (
                   <span>Mode: {workspaceState.project.mode} · Agent UI: {workspaceState.project.sourceRoot ?? "agent-ui (V1)"}</span>
+                ) : workspaceState.status === "uninitialized" ? (
+                  <span>Agent UI: 未初始化</span>
+                ) : <span>Agent UI: 配置异常</span>}
+                {(workspaceState.status === "ready" || workspaceState.status === "legacy") && workspaceState.warnings?.length ? (
+                  <div className="creator-workspace-warnings" role="status">
+                    <strong>⚠ Agent UI 初始化需要恢复检查</strong>
+                    {workspaceState.warnings.map((issue, index) => (
+                      <span key={`${issue.code}-${index}`}>{issue.code === "AGENT_UI_INITIALIZATION_RECOVERY_REQUIRED"
+                        ? "上次初始化已提交，但清理流程没有完整结束。项目当前可以继续使用。"
+                        : setupIssueMessage(issue)}</span>
+                    ))}
+                  </div>
                 ) : null}
                 <div>
-                  <button type="button" disabled={workspaceBusy} onClick={() => void refreshWorkspace()}>刷新</button>
-                  <button type="button" disabled={workspaceBusy} onClick={() => {
+                  <button type="button" disabled={workspaceBusy || setupDraft.initializing} onClick={() => void refreshWorkspace()}>刷新</button>
+                  <button type="button" disabled={workspaceBusy || setupDraft.initializing} onClick={() => {
                     setWorkspacePath(workspaceState.workspace.displayPath);
                     setShowWorkspaceSelector(true);
                   }}>切换项目</button>
-                  <button type="button" disabled={workspaceBusy} onClick={() => void clearWorkspace()}>清除项目</button>
+                  <button type="button" disabled={workspaceBusy || setupDraft.initializing} onClick={() => void clearWorkspace()}>清除项目</button>
                 </div>
               </>
             ) : <strong>请选择一个项目工作区</strong>}
             {showWorkspaceSelector ? (
               <form onSubmit={selectWorkspace}>
                 <label htmlFor="creator-workspace-path">Project Root</label>
-                <input id="creator-workspace-path" value={workspacePath} onChange={(event) => setWorkspacePath(event.target.value)} placeholder="/path/to/project" />
-                <button type="submit" disabled={workspaceBusy || workspacePath.trim() === ""}>选择项目</button>
+                <input id="creator-workspace-path" value={workspacePath} disabled={workspaceBusy || setupDraft.initializing} onChange={(event) => setWorkspacePath(event.target.value)} placeholder="/path/to/project" />
+                <button type="submit" disabled={workspaceBusy || setupDraft.initializing || workspacePath.trim() === ""}>选择项目</button>
               </form>
             ) : null}
             {workspaceError === null ? null : <p role="alert">{workspaceError}</p>}
@@ -1459,10 +1640,13 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
               data-slot="agent-ui-dev-studio-panel"
             />
 
-            <div className="creator-panel-messages" ref={messageList}>
-              {workspaceState?.status === "uninitialized" ? (
-                <div className="creator-panel-empty"><strong>这个项目还没有 Agent UI</strong><p>项目初始化将在下一阶段提供。</p></div>
-              ) : workspaceState?.status === "broken" ? (
+            {workspaceState?.status === "uninitialized" ? (
+              <CreatorProjectSetup infoState={setupInfo} draft={setupDraft} canInitialize={canInitialize}
+                debug={creatorDebug} onModeChange={changeSetupMode} onSourceRootChange={changeSetupSourceRoot}
+                onInitialize={() => void initializeWorkspaceProject()}
+                onRetryInfo={() => { if (setupWorkspaceId !== undefined) loadSetupInfo(setupWorkspaceId); }} />
+            ) : <div className="creator-panel-messages" ref={messageList}>
+              {workspaceState?.status === "broken" ? (
                 <div className="creator-panel-empty"><strong>项目配置需要修复</strong>{workspaceState.issues.map((issue) => <p key={issue.code}>{issue.code}: {issue.message}</p>)}</div>
               ) : (workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "unavailable" ? (
                 <div className="creator-panel-empty"><strong>Agent UI 项目已识别，但 Creator Runtime 暂不可用。</strong><p>{workspaceState.runtime.code}: {workspaceState.runtime.message}</p></div>
@@ -1514,10 +1698,10 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
                   Creator 正在检查并修改项目…
                 </p>
               ) : null}
-            </div>
+            </div>}
           </div>
 
-          <form className="creator-panel-composer" onSubmit={submit}>
+          {workspaceState?.status === "ready" || workspaceState?.status === "legacy" ? <form className="creator-panel-composer" onSubmit={submit}>
             <label htmlFor="creator-request">修改需求</label>
             <textarea
               disabled={isRunning || !creatorRuntimeReady}
@@ -1534,7 +1718,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
                 {isRunning ? "处理中…" : "发送"}
               </button>
             </div>
-          </form>
+          </form> : null}
         </aside>
       ) : (
         <button
