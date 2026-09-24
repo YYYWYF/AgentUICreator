@@ -196,9 +196,18 @@ importers:
       '@types/react':
         specifier: ^19.2.18
         version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.2.5
+        version: 19.3.0(@types/react@19.3.0)
+      jsdom:
+        specifier: ^27.0.0
+        version: 27.4.0
       react:
         specifier: ^19.2.8
         version: 19.3.0
+      react-dom:
+        specifier: ^19.2.8
+        version: 19.3.0(react@19.3.0)
       typescript:
         specifier: ^7.0.2
         version: 7.0.2

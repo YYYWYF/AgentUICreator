@@ -25,6 +25,7 @@ import { CREATOR_API_PATH } from "../shared.js";
 import { CREATOR_WORKSPACE_ID_HEADER, type CreatorProjectMode, type CreatorWorkspacePublicState } from "../workspace/types.js";
 import { resolveCreatorDebugMode } from "./creatorDebug.js";
 import { CreatorProjectSetup, type CreatorSetupDraft, type CreatorSetupError, type CreatorSetupInfoState, setupIssueMessage } from "./setup/CreatorProjectSetup.js";
+import { canInitializeCreatorProject, createEmptyCreatorSetupDraft, isCreatorSetupValidationUsable, isSetupRequestCurrent, shouldRefreshAfterInitializeError } from "./setup/creatorSetupState.js";
 import { CreatorWorkspaceRequestError, clearWorkspaceProject, getWorkspaceSetup, getWorkspaceState, initializeWorkspaceProjectRequest, refreshWorkspaceProject, selectWorkspaceProject, validateWorkspaceSetup } from "./workspaceClient.js";
 import {
   creatorStageTitle,
@@ -842,14 +843,6 @@ function CreatorStageActivityCard({
   );
 }
 
-const emptySetupDraft = (): CreatorSetupDraft => ({
-  mode: null,
-  sourceRoot: "",
-  validation: { status: "idle" },
-  initializing: false,
-  error: null,
-});
-
 function setupError(error: unknown): CreatorSetupError {
   if (error instanceof CreatorWorkspaceRequestError) {
     return { message: error.message, ...(error.code === undefined ? {} : { code: error.code }),
@@ -879,7 +872,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
   const [workspaceBusy, setWorkspaceBusy] = useState(false);
   const [showWorkspaceSelector, setShowWorkspaceSelector] = useState(true);
   const [setupInfo, setSetupInfo] = useState<CreatorSetupInfoState>({ status: "idle" });
-  const [setupDraft, setSetupDraft] = useState<CreatorSetupDraft>(emptySetupDraft);
+  const [setupDraft, setSetupDraft] = useState<CreatorSetupDraft>(createEmptyCreatorSetupDraft);
   const [setupValidationEpoch, setSetupValidationEpoch] = useState(0);
   const [setupNeedsRefresh, setSetupNeedsRefresh] = useState(false);
   const messageList = useRef<HTMLDivElement>(null);
@@ -931,7 +924,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
       invalidateSetupValidation();
       invalidateSetupInfo();
       setSetupInfo({ status: "idle" });
-      setSetupDraft(emptySetupDraft());
+      setSetupDraft(createEmptyCreatorSetupDraft());
       setSetupNeedsRefresh(false);
     }
     workspaceIdRef.current = id;
@@ -970,11 +963,13 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
     setupInfoRef.current.controller = controller;
     setSetupInfo({ status: "loading" });
     void getWorkspaceSetup(controller.signal).then((info) => {
-      if (controller.signal.aborted || generation !== setupInfoRef.current.generation || workspaceIdRef.current !== workspaceId) return;
+      if (!isSetupRequestCurrent({ requestGeneration: generation, currentGeneration: setupInfoRef.current.generation,
+        requestWorkspaceId: workspaceId, currentWorkspaceId: workspaceIdRef.current, aborted: controller.signal.aborted })) return;
       setSetupInfo({ status: "ready", info });
-      setSetupDraft({ ...emptySetupDraft(), sourceRoot: info.suggestedSourceRoot });
+      setSetupDraft({ ...createEmptyCreatorSetupDraft(), sourceRoot: info.suggestedSourceRoot });
     }).catch((error: unknown) => {
-      if (controller.signal.aborted || generation !== setupInfoRef.current.generation || workspaceIdRef.current !== workspaceId) return;
+      if (!isSetupRequestCurrent({ requestGeneration: generation, currentGeneration: setupInfoRef.current.generation,
+        requestWorkspaceId: workspaceId, currentWorkspaceId: workspaceIdRef.current, aborted: controller.signal.aborted })) return;
       setSetupInfo({ status: "failed", error: error instanceof Error ? error.message : String(error) });
     });
   };
@@ -1001,13 +996,15 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
       setupValidationRef.current.controller = controller;
       setSetupDraft((current) => ({ ...current, validation: { status: "validating" } }));
       void validateWorkspaceSetup({ mode, sourceRoot }, controller.signal).then((result) => {
-        if (controller.signal.aborted || generation !== setupValidationRef.current.generation || workspaceIdRef.current !== workspaceId) return;
+        if (!isSetupRequestCurrent({ requestGeneration: generation, currentGeneration: setupValidationRef.current.generation,
+          requestWorkspaceId: workspaceId, currentWorkspaceId: workspaceIdRef.current, aborted: controller.signal.aborted })) return;
         setSetupDraft((current) => ({ ...current, validation: {
-          status: result.valid && (result.sourceRoot.targetState === "missing" || result.sourceRoot.targetState === "empty") ? "valid" : "invalid",
+          status: isCreatorSetupValidationUsable(result) ? "valid" : "invalid",
           result,
         } }));
       }).catch((error: unknown) => {
-        if (controller.signal.aborted || generation !== setupValidationRef.current.generation || workspaceIdRef.current !== workspaceId) return;
+        if (!isSetupRequestCurrent({ requestGeneration: generation, currentGeneration: setupValidationRef.current.generation,
+          requestWorkspaceId: workspaceId, currentWorkspaceId: workspaceIdRef.current, aborted: controller.signal.aborted })) return;
         setSetupDraft((current) => ({ ...current, validation: { status: "idle" }, error: setupError(error) }));
       });
     }, 275);
@@ -1424,13 +1421,9 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
       error: setupNeedsRefresh ? current.error : null }));
   };
 
-  const canInitialize = workspaceState?.status === "uninitialized" &&
-    setupDraft.mode !== null &&
-    setupDraft.validation.status === "valid" &&
-    setupDraft.validation.result.valid &&
-    (setupDraft.validation.result.sourceRoot.targetState === "missing" ||
-      setupDraft.validation.result.sourceRoot.targetState === "empty") &&
-    !setupDraft.initializing && !workspaceBusy && !setupNeedsRefresh;
+  const canInitialize = canInitializeCreatorProject({
+    workspaceStatus: workspaceState?.status ?? null, draft: setupDraft, workspaceBusy, setupNeedsRefresh,
+  });
 
   const initializeWorkspaceProject = async () => {
     if (!canInitialize || initializingRef.current || setupDraft.mode === null) return;
@@ -1453,8 +1446,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
       }
     } catch (error) {
       if (workspaceIdRef.current !== workspaceId) return;
-      if (error instanceof CreatorWorkspaceRequestError &&
-          error.code === "AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED") {
+      if (shouldRefreshAfterInitializeError(error)) {
         setSetupNeedsRefresh(true);
         try {
           const refreshed = await refreshWorkspaceProject();
