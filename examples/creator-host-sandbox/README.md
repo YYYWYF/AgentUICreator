@@ -17,7 +17,7 @@ The sandbox declares the dependencies required by the default Assistant, Embedde
 1. Run `pnpm reset:host-sandbox`, then `pnpm inspect:host-sandbox`. The status should be `uninitialized`.
 2. Run `pnpm dev:host-sandbox` yourself and open <http://127.0.0.1:5176/>. Keep it running.
 3. Start Creator Workbench separately. Set Project Root to `examples/creator-host-sandbox` and confirm that Agent UI is uninitialized.
-4. Choose Assistant and `src/agent-ui`, then initialize. Workbench should report `ready`. Inspect `.agent-ui/project.json`, `.agent-ui/source-lock.json`, and `src/agent-ui/index.ts`.
+4. Choose Assistant and `src/agent-ui`, then initialize. Workbench should report `ready`. Inspect `.agent-ui/project.json`, `.agent-ui/source-lock.json`, `src/agent-ui/index.ts`, and `src/agent-ui/application/runtime-config.generated.ts`.
 5. Edit the **host-owned** `src/AgentMount.tsx` by hand:
 
    ```tsx
@@ -32,6 +32,8 @@ The sandbox declares the dependencies required by the default Assistant, Embedde
 6. With Vite still running, ask Creator to change the welcome text, for example `把欢迎语改成“你好，我是你的助手”`. The change under `src/agent-ui/**` should appear through HMR.
 
 The Host imports only the public `src/agent-ui/index.ts` entry. It does not import managed `runtime`, `framework`, `plugins`, or `app-ui` paths. The initializer never edits `App.tsx` or `AgentMount.tsx`.
+
+`.agent-ui/project.json` is Creator control-plane metadata. Initialization derives the Mode into `src/agent-ui/application/runtime-config.generated.ts`; the production `<Agent />` import reads that generated source and does not require `.agent-ui/**` in the deployed app.
 
 ## Other modes
 
@@ -59,4 +61,4 @@ pnpm init:host-sandbox:platform
 pnpm inspect:host-sandbox
 ```
 
-`pnpm --filter @agent-ui/creator-host-sandbox test` contains a public entry build test using a temporary host and a Host import boundary test. The temporary test host is separate from this sandbox.
+`pnpm --filter @agent-ui/creator-host-sandbox test` contains a Host import boundary test and temporary Host TypeScript/Vite build tests for all three Modes. Each temporary Host removes `.agent-ui/**` before compiling to cover deployment without Creator metadata.

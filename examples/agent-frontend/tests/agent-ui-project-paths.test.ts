@@ -27,6 +27,7 @@ describe("Agent UI project paths", () => {
     expect(paths.appUIModelPath).toBe(path.join(root, sourceRoot, "app-ui/app-ui.json"));
     expect(paths.pluginsRoot).toBe(path.join(root, sourceRoot, "plugins"));
     expect(paths.generatedPluginRegistryPath).toBe(path.join(root, sourceRoot, "plugins/registry.generated.ts"));
+    expect(paths.generatedRuntimeConfigPath).toBe(path.join(root, sourceRoot, "application/runtime-config.generated.ts"));
     expect(paths.pluginRegistryEntryPath).toBe(path.join(root, sourceRoot, "plugins/index.ts"));
     expect(paths.runtimeRoot).toBe(path.join(root, sourceRoot, "runtime"));
     expect(paths.projectConfigPath).toBe(path.join(root, ".agent-ui/project.json"));

@@ -59,6 +59,7 @@ export async function initializeAgentUIProject(input: InitializeAgentUIProjectIn
             projectRelativePath(projectRoot, path.join(paths.sourceRoot, file.target)))),
           projectRelativePath(projectRoot, paths.sourceLockPath),
           projectRelativePath(projectRoot, paths.appUIModelPath),
+          projectRelativePath(projectRoot, paths.generatedRuntimeConfigPath),
           projectRelativePath(projectRoot, paths.generatedPluginRegistryPath),
         ],
       };
@@ -72,6 +73,16 @@ export async function initializeAgentUIProject(input: InitializeAgentUIProjectIn
       await mkdir(path.dirname(paths.appUIModelPath), { recursive: true });
       await writeFile(paths.appUIModelPath, `${JSON.stringify(model, null, 2)}\n`, { flag: "wx" });
       return projectRelativePath(projectRoot, paths.appUIModelPath);
+    },
+    async writeGeneratedRuntimeConfig(projectRoot, projectConfig) {
+      const { paths } = context(projectRoot, projectConfig);
+      await mkdir(path.dirname(paths.generatedRuntimeConfigPath), { recursive: true });
+      await writeFile(paths.generatedRuntimeConfigPath, [
+        "/** Generated from the Agent UI project Mode during initialization. Do not edit by hand. */",
+        `export const agentUIRuntimeConfig = { mode: ${JSON.stringify(projectConfig.mode)} } as const;`,
+        "",
+      ].join("\n"), { flag: "wx" });
+      return projectRelativePath(projectRoot, paths.generatedRuntimeConfigPath);
     },
     async writeGeneratedRegistry(projectRoot, projectConfig) {
       const result = await writeGeneratedPluginRegistry(projectRoot, { projectConfigOverride: projectConfig });

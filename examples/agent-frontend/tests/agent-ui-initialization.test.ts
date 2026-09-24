@@ -96,6 +96,8 @@ describe("deterministic Agent UI initializer", () => {
     expect(state.status).toBe("ready");
     const lock = JSON.parse(await readFile(path.join(root, ".agent-ui/source-lock.json"), "utf8")) as { sourceRoot: string };
     expect(lock.sourceRoot).toBe(sourceRoot);
+    expect(await readFile(path.join(root, sourceRoot, "application/runtime-config.generated.ts"), "utf8"))
+      .toContain(`agentUIRuntimeConfig = { mode: "${mode}" } as const`);
     if (mode === "platform") {
       const model = JSON.parse(await readFile(path.join(root, sourceRoot, "app-ui/app-ui.json"), "utf8")) as {
         root: { children: Array<{ child: { plugins: Array<{ pluginId: string }> } }> };

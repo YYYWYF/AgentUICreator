@@ -8,7 +8,6 @@ import appUIModelSource from "../app-ui/app-ui.json?raw";
 import type { AppAgentState } from "../agent-contract/agent-state";
 import { appEventSchemas } from "../agent-contract/agent-events";
 import { appFrontendTools } from "../agent-contract/agent-tools";
-import { resolveAgentUIProjectConfig } from "../framework/contracts/agent-ui-project";
 import {
   capabilityCatalogRevision,
   pluginCapabilityCatalog,
@@ -28,19 +27,10 @@ import { ConversationThreadBindingConnector } from "../agent-ui/conversation/thr
 import { createConversationServiceThreadBinding } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
 import { agentCompositionStore } from "./composition-store";
+import { agentUIRuntimeConfig } from "./runtime-config.generated";
 
 import "../agent-ui/conversation/styles.css";
 
-const projectConfigSources = import.meta.glob<string>("/.agent-ui/project.json", {
-  eager: true,
-  import: "default",
-  query: "?raw",
-});
-const projectConfigSource = projectConfigSources["/.agent-ui/project.json"];
-if (projectConfigSource === undefined) {
-  throw new Error("Agent UI project metadata is missing.");
-}
-const mode = resolveAgentUIProjectConfig(JSON.parse(projectConfigSource)).config.mode;
 const appEventRegistry = new AppEventRegistry(appEventSchemas);
 const frontendToolRuntime = new AppFrontendToolRuntime(
   new AppFrontendToolRegistry(appFrontendTools),
@@ -74,7 +64,7 @@ function AgentSurface({ composition }: {
       >
         <ConversationThreadBindingConnector />
         <ConversationPresentationConfigProvider value={conversationPresentationConfig}>
-          <ModeShell mode={mode}>
+          <ModeShell mode={agentUIRuntimeConfig.mode}>
             <UIPluginRuntime
               actions={actions}
               className="development-preview"

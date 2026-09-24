@@ -37,6 +37,7 @@ export interface AgentUIInitializationHost<TModel> {
     readonly createdPaths: readonly string[];
   }>;
   writeAppUIModel(projectRoot: string, model: TModel, config: AgentUIProjectConfigV2): Promise<string>;
+  writeGeneratedRuntimeConfig(projectRoot: string, config: AgentUIProjectConfigV2): Promise<string>;
   writeGeneratedRegistry(projectRoot: string, config: AgentUIProjectConfigV2): Promise<string>;
   verifyProject(projectRoot: string, config: AgentUIProjectConfigV2): Promise<{ status: "passed" | "failed"; errors: readonly { code: string; message: string }[] }>;
   rollbackCreatedPaths(projectRoot: string, paths: readonly string[], config: AgentUIProjectConfigV2, plannedPaths: readonly string[], sourceRootWasMissing: boolean): Promise<void>;
@@ -139,11 +140,12 @@ export async function initializeAgentUIProject<TModel>(
     await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "sources-installed" }, false);
     createdPaths.add(await host.writeAppUIModel(projectRoot, model, projectConfig));
     try {
+      createdPaths.add(await host.writeGeneratedRuntimeConfig(projectRoot, projectConfig));
       createdPaths.add(await host.writeGeneratedRegistry(projectRoot, projectConfig));
     } catch (error) {
       throw new AgentUIInitializationError(
         "AGENT_UI_INITIALIZATION_VERIFICATION_FAILED",
-        "Could not generate the initial Plugin Registry.", error,
+        "Could not generate the initial Agent UI runtime artifacts.", error,
       );
     }
     await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "model-written" }, false);

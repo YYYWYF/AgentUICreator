@@ -38,40 +38,54 @@ test("Host-owned source imports only the public Agent UI entry", async () => {
   }
 });
 
-test("a plain temporary Host can initialize and bundle the public Agent entry", async () => {
-  const projectRoot = await mkdtemp(path.join(os.tmpdir(), "creator-host-entry-"));
-  try {
-    await writeFile(path.join(projectRoot, "package.json"), await readFile(path.join(sandboxRoot, "package.json")));
-    await symlink(path.join(sandboxRoot, "node_modules"), path.join(projectRoot, "node_modules"), "dir");
-    await mkdir(path.join(projectRoot, "src"));
-    await writeFile(path.join(projectRoot, "index.html"),
-      '<div id="root"></div><script type="module" src="/src/main.tsx"></script>\n');
-    await writeFile(path.join(projectRoot, "src/main.tsx"),
-      'import { createRoot } from "react-dom/client";\nimport { Agent } from "./agent-ui";\ncreateRoot(document.getElementById("root")!).render(<Agent />);\n');
+for (const mode of ["assistant", "embedded", "platform"] as const) {
+  test(`a plain temporary Host can initialize ${mode} and bundle the public Agent entry without metadata`, async () => {
+    const projectRoot = await mkdtemp(path.join(os.tmpdir(), "creator-host-entry-"));
+    try {
+      await writeFile(path.join(projectRoot, "package.json"), await readFile(path.join(sandboxRoot, "package.json")));
+      await symlink(path.join(sandboxRoot, "node_modules"), path.join(projectRoot, "node_modules"), "dir");
+      await mkdir(path.join(projectRoot, "src"));
+      await writeFile(path.join(projectRoot, "index.html"),
+        '<div id="root"></div><script type="module" src="/src/main.tsx"></script>\n');
+      await writeFile(path.join(projectRoot, "src/main.tsx"),
+        'import { createRoot } from "react-dom/client";\nimport { Agent } from "./agent-ui";\ncreateRoot(document.getElementById("root")!).render(<Agent />);\n');
 
-    assert.equal((await inspectCreatorProject(projectRoot)).status, "uninitialized");
-    await initializeAgentUIProject({ projectRoot, mode: "assistant", sourceRoot: "src/agent-ui" });
-    assert.equal((await inspectCreatorProject(projectRoot)).status, "ready");
+      assert.equal((await inspectCreatorProject(projectRoot)).status, "uninitialized");
+      await initializeAgentUIProject({ projectRoot, mode, sourceRoot: "src/agent-ui" });
+      assert.equal((await inspectCreatorProject(projectRoot)).status, "ready");
+      const runtimeConfig = await readFile(
+        path.join(projectRoot, "src/agent-ui/application/runtime-config.generated.ts"),
+        "utf8",
+      );
+      assert.ok(runtimeConfig.includes(`agentUIRuntimeConfig = { mode: "${mode}" } as const`));
+      assert.doesNotMatch(
+        await readFile(path.join(projectRoot, "src/agent-ui/application/Agent.tsx"), "utf8"),
+        /\.agent-ui\/|import\.meta\.glob/u,
+      );
 
-    await writeFile(path.join(projectRoot, "tsconfig.json"), JSON.stringify({
-      extends: path.join(sandboxRoot, "tsconfig.json"),
-      include: ["src"],
-    }));
-    await execFileAsync(process.execPath, [
-      path.join(sandboxRoot, "node_modules/typescript/bin/tsc"),
-      "--project", path.join(projectRoot, "tsconfig.json"),
-      "--noEmit",
-    ]);
+      // Simulate deployment that excludes Creator control-plane metadata.
+      await rm(path.join(projectRoot, ".agent-ui"), { recursive: true });
 
-    await build({
-      root: projectRoot,
-      configFile: false,
-      plugins: [react(), tailwindcss()],
-      resolve: { alias: runtimeAliases },
-      build: { outDir: path.join(projectRoot, "dist"), emptyOutDir: true },
-      logLevel: "silent",
-    });
-  } finally {
-    await rm(projectRoot, { recursive: true, force: true });
-  }
-});
+      await writeFile(path.join(projectRoot, "tsconfig.json"), JSON.stringify({
+        extends: path.join(sandboxRoot, "tsconfig.json"),
+        include: ["src"],
+      }));
+      await execFileAsync(process.execPath, [
+        path.join(sandboxRoot, "node_modules/typescript/bin/tsc"),
+        "--project", path.join(projectRoot, "tsconfig.json"),
+        "--noEmit",
+      ]);
+
+      await build({
+        root: projectRoot,
+        configFile: false,
+        plugins: [react(), tailwindcss()],
+        resolve: { alias: runtimeAliases },
+        build: { outDir: path.join(projectRoot, "dist"), emptyOutDir: true },
+        logLevel: "silent",
+      });
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+}

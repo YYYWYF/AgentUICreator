@@ -14,6 +14,7 @@ export interface AgentUIProjectPaths {
   readonly sourceLockPath: string;
   readonly pluginsRoot: string;
   readonly generatedPluginRegistryPath: string;
+  readonly generatedRuntimeConfigPath: string;
   readonly pluginRegistryEntryPath: string;
   readonly runtimeRoot: string;
 }
@@ -58,6 +59,7 @@ export function resolveAgentUIProjectPaths(
     sourceLockPath: path.join(metadataRoot, "source-lock.json"),
     pluginsRoot,
     generatedPluginRegistryPath: path.join(pluginsRoot, "registry.generated.ts"),
+    generatedRuntimeConfigPath: path.join(managedRoot, "application", "runtime-config.generated.ts"),
     pluginRegistryEntryPath: path.join(pluginsRoot, "index.ts"),
     runtimeRoot: path.join(managedRoot, "runtime"),
   };

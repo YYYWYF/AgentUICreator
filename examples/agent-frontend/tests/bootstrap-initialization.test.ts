@@ -23,7 +23,7 @@ async function exists(filePath: string): Promise<boolean> {
 async function fixture() {
   const root = await mkdtemp(path.join(os.tmpdir(), "bootstrap-boundary-"));
   roots.push(root);
-  const paths = ["agent-ui/managed.ts", "agent-ui/app-ui/app-ui.json", "agent-ui/registry.generated.ts"];
+  const paths = ["agent-ui/managed.ts", "agent-ui/app-ui/app-ui.json", "agent-ui/registry.generated.ts", "agent-ui/application/runtime-config.generated.ts"];
   const host: AgentUIInitializationHost<unknown> = {
     inspectProject: vi.fn().mockResolvedValueOnce({ status: "uninitialized" }).mockResolvedValue({ status: "ready" }),
     parseAppUIModel: (value) => value,
@@ -37,6 +37,11 @@ async function fixture() {
       await mkdir(path.join(root, "agent-ui/app-ui"), { recursive: true });
       await writeFile(path.join(root, paths[1]!), "{}\n");
       return paths[1]!;
+    }),
+    writeGeneratedRuntimeConfig: vi.fn(async () => {
+      await mkdir(path.join(root, "agent-ui/application"), { recursive: true });
+      await writeFile(path.join(root, paths[3]!), 'export const agentUIRuntimeConfig = { mode: "assistant" } as const;\n');
+      return paths[3]!;
     }),
     writeGeneratedRegistry: vi.fn(async () => {
       await writeFile(path.join(root, paths[2]!), "export {};\n");
@@ -99,10 +104,11 @@ describe("bootstrap initialization commit boundary", () => {
     expect(await exists(journalPath(root))).toBe(false);
   });
 
-  it("classifies registry and prospective verification failures before commit", async () => {
-    for (const failure of ["registry", "verification"] as const) {
+  it("classifies runtime config, registry, and prospective verification failures before commit", async () => {
+    for (const failure of ["runtime-config", "registry", "verification"] as const) {
       const { root, host } = await fixture();
-      if (failure === "registry") host.writeGeneratedRegistry = vi.fn().mockRejectedValue(new Error("registry"));
+      if (failure === "runtime-config") host.writeGeneratedRuntimeConfig = vi.fn().mockRejectedValue(new Error("runtime config"));
+      else if (failure === "registry") host.writeGeneratedRegistry = vi.fn().mockRejectedValue(new Error("registry"));
       else host.verifyProject = vi.fn().mockResolvedValue({ status: "failed", errors: [{ code: "BAD", message: "bad" }] });
       await expect(initializeAgentUIProject(input(root), host)).rejects.toMatchObject({
         code: "AGENT_UI_INITIALIZATION_VERIFICATION_FAILED",
