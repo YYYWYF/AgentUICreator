@@ -14,6 +14,9 @@ export type CreatorIntentRoute =
 export interface CreatorStageMetadata {
   phase?: string;
   status?: string;
+  postconditionStatus?: "passed" | "failed" | "unavailable";
+  postconditionKind?: "instance_present" | "instance_absent" | "placement";
+  postconditionEvidence?: string;
   displayIntent?: string;
   intent?: string;
   decision?:
@@ -152,6 +155,24 @@ function effectTypeValue(
     : undefined;
 }
 
+function postconditionStatusValue(
+  value: unknown,
+): CreatorStageMetadata["postconditionStatus"] {
+  return value === "passed" || value === "failed" || value === "unavailable"
+    ? value
+    : undefined;
+}
+
+function postconditionKindValue(
+  value: unknown,
+): CreatorStageMetadata["postconditionKind"] {
+  return value === "instance_present" ||
+    value === "instance_absent" ||
+    value === "placement"
+    ? value
+    : undefined;
+}
+
 function regionValue(value: unknown): CreatorStageMetadata["region"] {
   return value === "left" || value === "center" || value === "right"
     ? value
@@ -180,6 +201,7 @@ export function parseCreatorStepMetadata(
     "status",
     "displayIntent",
     "intent",
+    "postconditionEvidence",
     "actionId",
     "actionKind",
     "actionStatus",
@@ -201,6 +223,16 @@ export function parseCreatorStepMetadata(
 
   const decision = decisionValue(creator.decision);
   if (decision !== undefined) metadata.decision = decision;
+  const postconditionStatus = postconditionStatusValue(
+    creator.postconditionStatus,
+  );
+  if (postconditionStatus !== undefined) {
+    metadata.postconditionStatus = postconditionStatus;
+  }
+  const postconditionKind = postconditionKindValue(creator.postconditionKind);
+  if (postconditionKind !== undefined) {
+    metadata.postconditionKind = postconditionKind;
+  }
   const effectType = effectTypeValue(creator.effectType);
   if (effectType !== undefined) metadata.effectType = effectType;
   const region = regionValue(creator.region);
@@ -291,6 +323,59 @@ function statusFromMetadata(
     return "completed";
   }
   return fallback;
+}
+
+/** Describe operation completion separately from its static and Runtime checks. */
+export function creatorStageTitle(activity: CreatorStageActivity): string {
+  if (activity.name === "creator.grounding") {
+    if (activity.status === "running") return "正在读取项目状态…";
+    if (activity.status === "failed") return "读取项目状态失败";
+    return "项目状态已读取";
+  }
+  if (activity.name === "creator.resolve") {
+    if (activity.status === "running") return "正在理解你的请求…";
+    if (activity.status === "failed") return "理解请求失败";
+    if (activity.metadata?.route === "clarification") {
+      return "需要确认修改目标";
+    }
+    if (activity.metadata?.route === "unsupported") {
+      return "当前没有可安全执行的对应操作";
+    }
+    return "已识别意图";
+  }
+  if (activity.status === "running") return "正在应用并验证修改…";
+  if (activity.status === "failed" || activity.metadata?.status === "failed") {
+    return "修改未完成";
+  }
+  if (activity.metadata?.status === "already_satisfied") {
+    return "当前状态已满足，无需修改";
+  }
+  if (activity.metadata?.status === "committed_unverified") {
+    return "修改已提交，但无法确认请求结果";
+  }
+  if (activity.metadata?.status === "success") {
+    if (activity.metadata.staticStatus === "failed") {
+      return "请求的修改已完成，静态验证未通过";
+    }
+    if (activity.metadata.runtimeStatus === "stale") {
+      return "请求的修改已完成，Runtime 尚未观测到最新状态";
+    }
+    if (activity.metadata.runtimeStatus === "unavailable") {
+      return "请求的修改已完成，Runtime 暂不可用";
+    }
+    if (activity.metadata.runtimeStatus === "failed") {
+      return "请求的修改已完成，但 Runtime 验证未通过";
+    }
+    if (
+      activity.metadata.staticStatus === "passed" &&
+      (activity.metadata.runtimeStatus === "passed" ||
+        activity.metadata.runtimeStatus === "not-run")
+    ) {
+      return "请求的修改已完成";
+    }
+    return "请求的修改已完成，但部分验证未完成";
+  }
+  return "修改状态未确认";
 }
 
 /** Project one official Step callback into the Creator-only stage model. */

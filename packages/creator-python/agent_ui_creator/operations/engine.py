@@ -135,13 +135,27 @@ def _operation_text(
         "move_plugin": "移动插件实例",
     }[operation.operation]
     if operation.status == "success":
-        return f"已完成：{operation_name}。"
+        text = f"已完成：{operation_name}。"
+        verification = operation.verification
+        if verification is None:
+            return text
+        if verification.staticStatus == "failed":
+            return text + " 另外，修改后的项目静态验证未通过，请查看验证结果。"
+        if verification.staticStatus in {"unavailable", "not-run"}:
+            return text + " 另外，修改后的项目静态验证尚未完成。"
+        if verification.runtimeStatus == "stale":
+            return text + " 修改已持久化，但 Runtime 尚未观测到最新状态。"
+        if verification.runtimeStatus == "unavailable":
+            return text + " 修改已持久化，但 Runtime 当前暂不可用。"
+        if verification.runtimeStatus == "failed":
+            return text + " 另外，Runtime 验证未通过，请查看验证结果。"
+        return text
     if operation.status == "already_satisfied":
         return f"无需修改，已满足：{operation_name}。"
     if operation.status == "committed_unverified":
         if operation.postcondition is not None:
             return (
-                f"已应用修改（{operation_name}），但无法确认请求结果是否已持久化："
+                f"修改已提交（{operation_name}），但无法确认请求结果是否成立："
                 f"{operation.postcondition.evidence}"
             )
         runtime_status = (
@@ -649,7 +663,7 @@ class ProductizedOperationEngine:
             )
         checks: list[dict[str, str]] = [
             {
-                "id": "net-project-change",
+                "id": "operation-postcondition",
                 "status": postcondition_status,
                 "evidence": (
                     f"{postcondition_evidence} 修改版本={operation.mutationRevision}。"
@@ -835,6 +849,21 @@ class ProductizedOperationEngine:
             "status": operation.status,
             "verificationMode": self.verification_mode,
             "operation": operation.operation,
+            "postconditionStatus": (
+                operation.postcondition.status
+                if operation.postcondition is not None
+                else None
+            ),
+            "postconditionKind": (
+                operation.postcondition.kind
+                if operation.postcondition is not None
+                else None
+            ),
+            "postconditionEvidence": (
+                operation.postcondition.evidence
+                if operation.postcondition is not None
+                else None
+            ),
             "executionModelCalls": metrics.executionModelCalls,
             "toolCalls": 0,
             "deepAgentCalls": 0,

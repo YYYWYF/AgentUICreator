@@ -109,8 +109,159 @@ def snapshot(
     *,
     app_ui_model_hash: str = "a" * 64,
 ) -> CreatorDomainSnapshot:
+    if candidate.status == "already_satisfied":
+        return post_mutation_snapshot(
+            candidate,
+            app_ui_model_hash=app_ui_model_hash,
+        )
+    if candidate.kind == "add_existing_plugin":
+        return post_mutation_snapshot(
+            candidate,
+            app_ui_model_hash=app_ui_model_hash,
+            instances=[],
+        )
+    if candidate.kind == "remove_plugin":
+        return post_mutation_snapshot(
+            candidate,
+            app_ui_model_hash=app_ui_model_hash,
+            instances=[{
+                "id": candidate.target.instanceId or "history-main",
+                "pluginId": candidate.target.pluginId,
+                "enabled": True,
+                "target": {"type": "layout_slot", "slotRef": "track-0-slot"},
+                "index": 0,
+            }],
+            track_index=0,
+        )
+    return post_mutation_snapshot(
+        candidate,
+        app_ui_model_hash=app_ui_model_hash,
+        track_index=0,
+    )
+
+
+def post_mutation_snapshot(
+    candidate: CreatorActionCandidate,
+    *,
+    app_ui_model_hash: str = "c" * 64,
+    instances: list[dict[str, object]] | None = None,
+    layout: dict[str, object] | None = None,
+    slots: list[dict[str, object]] | None = None,
+    expected_placement: dict[str, object] | None = None,
+    track_index: int | None = None,
+) -> CreatorDomainSnapshot:
+    instance_id = candidate.target.instanceId or "history-main"
+    if expected_placement is not None and expected_placement.get("type") == "plugin_slot":
+        if instances is None:
+            instances = [{
+                "id": instance_id,
+                "pluginId": candidate.target.pluginId,
+                "enabled": True,
+                "target": expected_placement,
+            }]
+    elif expected_placement is not None and expected_placement.get("type") == "relative":
+        anchor_id = str(expected_placement["anchorInstanceId"])
+        relation = expected_placement["relation"]
+        target_index, anchor_index = (
+            (0, 1) if relation == "before" else (1, 0)
+        )
+        if instances is None:
+            instances = [
+                {
+                    "id": instance_id,
+                    "pluginId": candidate.target.pluginId,
+                    "enabled": True,
+                    "target": {"type": "layout_slot", "slotRef": "shared-slot"},
+                    "index": target_index,
+                },
+                {
+                    "id": anchor_id,
+                    "pluginId": "conversation",
+                    "enabled": True,
+                    "target": {"type": "layout_slot", "slotRef": "shared-slot"},
+                    "index": anchor_index,
+                },
+            ]
+        if layout is None:
+            layout = {
+                "type": "row",
+                "children": [{"type": "column", "nodeRef": "shared-node"}],
+            }
+        if slots is None:
+            slots = [{
+                "nodeRef": "shared-node",
+                "target": {"type": "layout_slot", "slotRef": "shared-slot"},
+            }]
+    else:
+        target_track = track_index
+        if target_track is None and candidate.kind != "remove_plugin":
+            target_track = 1 if candidate.effect.type == "workspace_region" else 0
+        child_count = max(1, (target_track or 0) + 1)
+        if target_track == 1:
+            child_count = 2
+        if layout is None:
+            layout = {
+                "type": "row",
+                "children": [
+                    {"type": "column", "nodeRef": f"track-{index}-node"}
+                    for index in range(child_count)
+                ],
+            }
+        if slots is None:
+            slots = [
+                {
+                    "nodeRef": f"track-{index}-node",
+                    "target": {
+                        "type": "layout_slot",
+                        "slotRef": f"track-{index}-slot",
+                    },
+                }
+                for index in range(child_count)
+            ]
+        if instances is None:
+            instances = []
+            if candidate.kind == "remove_plugin":
+                if track_index is not None:
+                    instances.append({
+                        "id": "conversation-main",
+                        "pluginId": "conversation",
+                        "enabled": True,
+                        "target": {
+                            "type": "layout_slot",
+                            "slotRef": f"track-{track_index}-slot",
+                        },
+                        "index": 0,
+                    })
+            else:
+                instances.append({
+                    "id": instance_id,
+                    "pluginId": candidate.target.pluginId,
+                    "enabled": True,
+                    "target": {
+                        "type": "layout_slot",
+                        "slotRef": f"track-{target_track or 0}-slot",
+                    },
+                    "index": 0,
+                })
+                if target_track == 1:
+                    instances.append({
+                        "id": "conversation-main",
+                        "pluginId": "conversation",
+                        "enabled": True,
+                        "target": {
+                            "type": "layout_slot",
+                            "slotRef": "track-0-slot",
+                        },
+                        "index": 0,
+                    })
+
+    raw_app_ui_model = {
+        "hash": app_ui_model_hash,
+        "layout": layout or {"type": "row", "children": []},
+        "slots": slots or [],
+    }
     return CreatorDomainSnapshot(
-        raw={},
+        raw={"appUIModel": raw_app_ui_model, "pluginInstances": instances or []},
         app_ui_model_hash=app_ui_model_hash,
         capability_catalog_revision="b" * 64,
         observation_coverage=(),
@@ -126,6 +277,8 @@ def mutation(
     candidate: CreatorActionCandidate,
     *,
     changed: bool = True,
+    before_hash: str = "a" * 64,
+    after_hash: str | None = None,
     action_id: str | None = None,
     semantic_action_id: str | None = None,
     action_kind: str | None = None,
@@ -152,6 +305,17 @@ def mutation(
         }
     else:
         expected_runtime = {"presentInstanceIds": [instance_id], "absentInstanceIds": []}
+    if (
+        expected_workspace_fill is None
+        and candidate.kind == "move_plugin"
+        and candidate.effect.type == "workspace_region"
+    ):
+        expected_workspace_fill = [{
+            "instanceId": instance_id,
+            "region": candidate.effect.region,
+            "axis": "width",
+            "trackIndex": 1,
+        }]
     semantic: dict[str, object] = {
         "operation": operation,
         "semanticLoweringSucceeded": True,
@@ -178,7 +342,10 @@ def mutation(
         "transactionId": "transaction",
         "changed": changed,
         "changedPaths": ["app-ui/app-ui.json"] if changed else [],
-        "appUIModel": {"beforeHash": "a" * 64, "afterHash": "c" * 64},
+        "appUIModel": {
+            "beforeHash": before_hash,
+            "afterHash": after_hash or ("c" * 64 if changed else before_hash),
+        },
         "creatorAction": {
             "actionId": action_id or candidate.actionId,
             "actionKind": action_kind or candidate.kind,
@@ -272,13 +439,20 @@ def test_ready_action_executes_one_host_action_and_verifies_host_expectations():
     )
     playbook = make_playbook(
         mutation_service,
-        SequenceSnapshotProvider([source]),
+        SequenceSnapshotProvider([
+            post_mutation_snapshot(
+                candidate,
+                expected_placement=expected_placement,
+            )
+        ]),
         successful_move_runtime(),
     )
 
     result = asyncio.run(playbook.execute(source, candidate))
 
     assert result.status == "success"
+    assert result.postcondition is not None
+    assert result.postcondition.status == "passed"
     assert result.instanceId == "history-main"
     assert result.metrics.executionModelCalls == 0
     assert result.metrics.mutationAttempts == 1
@@ -294,11 +468,11 @@ def test_ready_action_executes_one_host_action_and_verifies_host_expectations():
 
 def test_already_satisfied_action_still_reaches_host_and_skips_post_mutation_verification():
     candidate = action("move_plugin", status="already_satisfied")
-    source = snapshot(candidate)
+    source = post_mutation_snapshot(candidate, app_ui_model_hash="a" * 64)
     mutation_service = FakeMutation([mutation(candidate, changed=False)])
     playbook = make_playbook(
         mutation_service,
-        SequenceSnapshotProvider([source]),
+        SequenceSnapshotProvider([post_mutation_snapshot(candidate)]),
         [],
     )
 
@@ -306,7 +480,10 @@ def test_already_satisfied_action_still_reaches_host_and_skips_post_mutation_ver
 
     assert result.status == "already_satisfied"
     assert result.mutationChanged is False
+    assert result.postcondition is not None
+    assert result.postcondition.status == "passed"
     assert result.verification is None
+    assert result.errorCode is None
     assert mutation_service.calls[0]["operations"] == [
         {"type": "execute_creator_action", "actionId": candidate.actionId}
     ]
@@ -318,7 +495,7 @@ def test_workspace_region_move_does_not_require_a_synthetic_expected_anchor():
     mutation_service = FakeMutation([mutation(candidate)])
     playbook = make_playbook(
         mutation_service,
-        SequenceSnapshotProvider([source]),
+        SequenceSnapshotProvider([post_mutation_snapshot(candidate)]),
         successful_move_runtime(),
     )
 
@@ -328,7 +505,7 @@ def test_workspace_region_move_does_not_require_a_synthetic_expected_anchor():
     assert result.instanceId == "history-main"
 
 
-def test_remove_action_fails_when_surviving_workspace_branch_does_not_fill_track():
+def test_remove_postcondition_success_is_independent_of_runtime_workspace_fill_failure():
     candidate = action("remove_plugin")
     source = snapshot(candidate)
     mutation_service = FakeMutation([mutation(candidate, expected_workspace_fill=[{
@@ -336,7 +513,9 @@ def test_remove_action_fails_when_surviving_workspace_branch_does_not_fill_track
     }])])
     playbook = make_playbook(
         mutation_service,
-        SequenceSnapshotProvider([source]),
+        SequenceSnapshotProvider([
+            post_mutation_snapshot(candidate, track_index=0)
+        ]),
         [{
             "currentHash": "c" * 64,
             "runtimeStatus": "passed",
@@ -355,7 +534,10 @@ def test_remove_action_fails_when_surviving_workspace_branch_does_not_fill_track
         }],
     )
     result = asyncio.run(playbook.execute(source, candidate))
-    assert result.status == "failed"
+    assert result.status == "success"
+    assert result.postcondition is not None
+    assert result.postcondition.status == "passed"
+    assert result.errorCode is None
     assert result.verification is not None
     assert result.verification.runtimeStatus == "failed"
     assert result.verification.compositionVerified is True
@@ -376,10 +558,20 @@ def test_hash_conflict_refreshes_once_and_retries_the_same_action_id():
     mutation_service = FakeMutation(
         [
             AppUIModelMutationError("APP_UI_MODEL_HASH_CONFLICT", "stale hash"),
-            mutation(refreshed_candidate, expected_placement=expected_placement),
+            mutation(
+                refreshed_candidate,
+                before_hash="b" * 64,
+                expected_placement=expected_placement,
+            ),
         ]
     )
-    provider = SequenceSnapshotProvider([refreshed])
+    provider = SequenceSnapshotProvider([
+        refreshed,
+        post_mutation_snapshot(
+            refreshed_candidate,
+            expected_placement=expected_placement,
+        ),
+    ])
     playbook = make_playbook(
         mutation_service,
         provider,
@@ -391,7 +583,7 @@ def test_hash_conflict_refreshes_once_and_retries_the_same_action_id():
     assert result.status == "success"
     assert result.metrics.mutationAttempts == 2
     assert result.metrics.snapshotRefreshes == 1
-    assert provider.build_calls == 1
+    assert provider.build_calls == 2
     assert [
         call["operations"] for call in mutation_service.calls
     ] == [
@@ -405,11 +597,18 @@ def test_hash_conflict_retry_uses_refreshed_already_satisfied_status():
     candidate = action("move_plugin")
     refreshed_candidate = action("move_plugin", status="already_satisfied")
     source = snapshot(candidate)
-    refreshed = snapshot(refreshed_candidate, app_ui_model_hash="b" * 64)
+    refreshed = post_mutation_snapshot(
+        refreshed_candidate,
+        app_ui_model_hash="b" * 64,
+    )
     mutation_service = FakeMutation(
         [
             AppUIModelMutationError("APP_UI_MODEL_HASH_CONFLICT", "stale hash"),
-            mutation(refreshed_candidate, changed=False),
+            mutation(
+                refreshed_candidate,
+                changed=False,
+                before_hash="b" * 64,
+            ),
         ]
     )
     provider = SequenceSnapshotProvider([refreshed])
@@ -537,7 +736,7 @@ def test_add_result_instance_id_comes_from_host_expected_runtime():
     mutation_service = FakeMutation([mutation(candidate)])
     playbook = make_playbook(
         mutation_service,
-        SequenceSnapshotProvider([source]),
+        SequenceSnapshotProvider([post_mutation_snapshot(candidate)]),
         [
             {
                 "currentHash": "c" * 64,
@@ -565,7 +764,7 @@ def test_add_result_instance_id_comes_from_host_expected_runtime():
     assert result.instanceId == "history-main"
 
 
-def test_add_plugin_slot_requires_verified_runtime_mount():
+def test_persisted_plugin_slot_add_stays_success_when_runtime_mount_is_wrong():
     candidate = action("add_existing_plugin", instance_id=None)
     source = snapshot(candidate)
     expected_placement = {
@@ -587,17 +786,30 @@ def test_add_plugin_slot_requires_verified_runtime_mount():
     }
     playbook = make_playbook(
         FakeMutation([mutation(candidate, expected_placement=expected_placement)]),
-        SequenceSnapshotProvider([source]),
+        SequenceSnapshotProvider([
+            post_mutation_snapshot(
+                candidate,
+                expected_placement=expected_placement,
+            )
+        ]),
         [runtime],
     )
-    failed = asyncio.run(playbook.execute(source, candidate))
-    assert failed.status == "failed"
-    assert failed.verification.placementVerified is False
+    runtime_mismatch = asyncio.run(playbook.execute(source, candidate))
+    assert runtime_mismatch.status == "success"
+    assert runtime_mismatch.postcondition is not None
+    assert runtime_mismatch.postcondition.status == "passed"
+    assert runtime_mismatch.errorCode is None
+    assert runtime_mismatch.verification.placementVerified is False
 
     runtime["runtimeInstances"][0]["slotId"] = "plugin:conversation-main:slotX"
     playbook = make_playbook(
         FakeMutation([mutation(candidate, expected_placement=expected_placement)]),
-        SequenceSnapshotProvider([source]),
+        SequenceSnapshotProvider([
+            post_mutation_snapshot(
+                candidate,
+                expected_placement=expected_placement,
+            )
+        ]),
         [runtime],
     )
     passed = asyncio.run(playbook.execute(source, candidate))
@@ -611,7 +823,7 @@ def test_remove_action_succeeds_when_host_and_runtime_agree():
     mutation_service = FakeMutation([mutation(candidate)])
     playbook = make_playbook(
         mutation_service,
-        SequenceSnapshotProvider([source]),
+        SequenceSnapshotProvider([post_mutation_snapshot(candidate)]),
         [{
             "currentHash": "c" * 64,
             "runtimeStatus": "passed",
@@ -625,6 +837,8 @@ def test_remove_action_succeeds_when_host_and_runtime_agree():
     result = asyncio.run(playbook.execute(source, candidate))
 
     assert result.status == "success"
+    assert result.postcondition is not None
+    assert result.postcondition.status == "passed"
     assert result.verification is not None
     assert result.verification.absentInstancesVerified == ["history-main"]
 
@@ -637,7 +851,9 @@ def test_action_static_validation_failure_skips_runtime():
     runtime = FakeRuntime([])
     playbook = CreatorActionExecutionPlaybook(
         mutation_service=mutation_service,
-        snapshot_provider=SequenceSnapshotProvider([source]),  # type: ignore[arg-type]
+        snapshot_provider=SequenceSnapshotProvider([
+            post_mutation_snapshot(candidate)
+        ]),  # type: ignore[arg-type]
         verification=CompositionOperationVerificationService(
             validation=validation, runtime=runtime
         ),
@@ -645,7 +861,10 @@ def test_action_static_validation_failure_skips_runtime():
 
     result = asyncio.run(playbook.execute(source, candidate))
 
-    assert result.status == "failed"
+    assert result.status == "success"
+    assert result.postcondition is not None
+    assert result.postcondition.status == "passed"
+    assert result.errorCode is None
     assert result.verification is not None
     assert result.verification.staticStatus == "failed"
     assert result.verification.runtimeStatus == "not-run"
@@ -659,7 +878,9 @@ def test_action_static_only_skips_runtime_after_static_validation():
     runtime = FakeRuntime([])
     playbook = CreatorActionExecutionPlaybook(
         mutation_service=mutation_service,
-        snapshot_provider=SequenceSnapshotProvider([source]),  # type: ignore[arg-type]
+        snapshot_provider=SequenceSnapshotProvider([
+            post_mutation_snapshot(candidate)
+        ]),  # type: ignore[arg-type]
         verification=CompositionOperationVerificationService(
             validation=FakeValidation(),
             runtime=runtime,
@@ -669,27 +890,98 @@ def test_action_static_only_skips_runtime_after_static_validation():
     result = asyncio.run(playbook.execute(source, candidate))
 
     assert result.status == "success"
+    assert result.postcondition is not None
+    assert result.postcondition.status == "passed"
     assert result.verification is not None
     assert result.verification.staticStatus == "passed"
     assert result.verification.runtimeStatus == "not-run"
     assert runtime.inspect_calls == 0
 
 
-def test_action_reports_committed_unverified_for_stale_runtime():
+def test_action_success_is_preserved_when_runtime_is_stale_and_postcondition_passes():
     candidate = action("remove_plugin")
     source = snapshot(candidate)
     mutation_service = FakeMutation([mutation(candidate)])
     playbook = make_playbook(
         mutation_service,
-        SequenceSnapshotProvider([source]),
+        SequenceSnapshotProvider([post_mutation_snapshot(candidate)]),
         [{"runtimeStatus": "stale", "compositionFresh": False}] * 3,
     )
 
     result = asyncio.run(playbook.execute(source, candidate))
 
-    assert result.status == "committed_unverified"
+    assert result.status == "success"
     assert result.mutationChanged is True
+    assert result.postcondition is not None
+    assert result.postcondition.status == "passed"
+    assert result.verification is not None
+    assert result.verification.runtimeStatus == "stale"
+    assert result.errorCode is None
     assert result.metrics.verificationRuntimeFreshnessAttempts == 3
+
+
+def test_action_is_committed_unverified_when_postcondition_readback_is_unavailable():
+    candidate = action("remove_plugin")
+    source = snapshot(candidate)
+    mutation_service = FakeMutation([mutation(candidate)])
+    playbook = make_playbook(
+        mutation_service,
+        SequenceSnapshotProvider([
+            post_mutation_snapshot(candidate, app_ui_model_hash="d" * 64)
+        ]),
+        [{
+            "currentHash": "c" * 64,
+            "runtimeStatus": "passed",
+            "compositionFresh": True,
+            "compositionVerified": True,
+            "currentErrors": [],
+            "runtimeInstances": [],
+        }],
+    )
+
+    result = asyncio.run(playbook.execute(source, candidate))
+
+    assert result.status == "committed_unverified"
+    assert result.postcondition is not None
+    assert result.postcondition.status == "unavailable"
+    assert result.verification is not None
+    assert result.verification.staticStatus == "passed"
+    assert result.verification.runtimeStatus == "passed"
+    assert result.errorCode is None
+
+
+def test_action_fails_when_persisted_postcondition_is_proven_false():
+    candidate = action("remove_plugin")
+    source = snapshot(candidate)
+    mutation_service = FakeMutation([mutation(candidate)])
+    playbook = make_playbook(
+        mutation_service,
+        SequenceSnapshotProvider([
+            post_mutation_snapshot(
+                candidate,
+                instances=[{
+                    "id": "history-main",
+                    "pluginId": "history",
+                    "enabled": True,
+                }],
+            )
+        ]),
+        [{
+            "currentHash": "c" * 64,
+            "runtimeStatus": "passed",
+            "compositionFresh": True,
+            "compositionVerified": True,
+            "currentErrors": [],
+            "runtimeInstances": [],
+        }],
+    )
+
+    result = asyncio.run(playbook.execute(source, candidate))
+
+    assert result.status == "failed"
+    assert result.postcondition is not None
+    assert result.postcondition.status == "failed"
+    assert result.errorCode == "PRODUCT_OPERATION_POSTCONDITION_FAILED"
 
 
 def test_action_normalizes_host_mutation_failure_without_verification():

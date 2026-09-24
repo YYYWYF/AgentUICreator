@@ -11,7 +11,8 @@ from agent_ui_creator.operations import (
     CreatorOperationVerificationResult,
     resolve_runtime_plugin_slot_id,
 )
-from agent_ui_creator.operations.engine import ProductizedOperationEngine
+from agent_ui_creator.operations.models import CreatorOperationPostconditionResult
+from agent_ui_creator.operations.engine import ProductizedOperationEngine, _operation_text
 
 
 class _Validation:
@@ -118,6 +119,14 @@ def test_static_only_productized_receipt_is_green_without_runtime_claim(tmp_path
         instanceId="history-main",
         mutationChanged=True,
         mutationRevision=1,
+        postcondition=CreatorOperationPostconditionResult(
+            status="passed",
+            kind="placement",
+            instanceId="history-main",
+            pluginId="history",
+            appUIModelHash="c" * 64,
+            evidence="The persisted placement matches the requested region.",
+        ),
         verification=CreatorOperationVerificationResult(
             staticStatus="passed",
             runtimeStatus="not-run",
@@ -143,9 +152,12 @@ def test_static_only_productized_receipt_is_green_without_runtime_claim(tmp_path
         "auditAttempts": 0,
         "checks": [
             {
-                "id": "net-project-change",
+                "id": "operation-postcondition",
                 "status": "passed",
-                "evidence": "mutationChanged=True; mutationRevision=1.",
+                "evidence": (
+                    "The persisted placement matches the requested region. "
+                    "已读回持久化 AppUIModel，哈希=" + "c" * 64 + "。 修改版本=1。"
+                ),
             },
             {
                 "id": "static-validation",
@@ -154,3 +166,134 @@ def test_static_only_productized_receipt_is_green_without_runtime_claim(tmp_path
             },
         ],
     }
+
+
+def test_success_text_reports_static_failure_without_failing_operation(tmp_path):
+    operation = CreatorOperationExecutionResult(
+        operation="remove_plugin",
+        status="success",
+        pluginId="history",
+        instanceId="history-main",
+        mutationChanged=True,
+        mutationRevision=1,
+        postcondition=CreatorOperationPostconditionResult(
+            status="passed",
+            kind="instance_absent",
+            instanceId="history-main",
+            pluginId="history",
+            appUIModelHash="c" * 64,
+            evidence="The requested instance is absent from persisted state.",
+        ),
+        verification=CreatorOperationVerificationResult(
+            staticStatus="failed",
+            runtimeStatus="not-run",
+            runtimeFreshnessAttempts=0,
+            runtimeFreshnessWaitMs=0,
+        ),
+        metrics=CreatorOperationMetrics(
+            operationDurationMs=1,
+            executionModelCalls=0,
+            mutationAttempts=1,
+            snapshotRefreshes=0,
+            verificationRuntimeFreshnessAttempts=0,
+        ),
+        errorCode=None,
+    )
+
+    assert operation.status == "success"
+    assert operation.errorCode is None
+    assert _operation_text(operation) == (
+        "已完成：移除插件实例。 另外，修改后的项目静态验证未通过，请查看验证结果。"
+    )
+
+    engine = ProductizedOperationEngine.__new__(ProductizedOperationEngine)
+    engine.verification_mode = "static_only"
+    metadata = engine._operation_step_metadata(operation)
+    assert metadata["postconditionStatus"] == "passed"
+    assert metadata["postconditionKind"] == "instance_absent"
+    assert metadata["postconditionEvidence"] == (
+        "The requested instance is absent from persisted state."
+    )
+
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("static-failed-but-complete")
+    engine.activity = activity
+    engine._record_operation_verification(operation)
+    receipt = activity.snapshot()["verification"]
+    assert receipt["status"] == "failed"
+    assert receipt["checks"][0]["id"] == "operation-postcondition"
+    assert receipt["checks"][0]["status"] == "passed"
+    assert receipt["checks"][1]["id"] == "static-validation"
+    assert receipt["checks"][1]["status"] == "failed"
+
+
+def test_success_text_reports_runtime_stale_as_separate_verification_result():
+    operation = CreatorOperationExecutionResult(
+        operation="remove_plugin",
+        status="success",
+        pluginId="history",
+        instanceId="history-main",
+        mutationChanged=True,
+        mutationRevision=1,
+        postcondition=CreatorOperationPostconditionResult(
+            status="passed",
+            kind="instance_absent",
+            instanceId="history-main",
+            pluginId="history",
+            evidence="The requested instance is absent from persisted state.",
+        ),
+        verification=CreatorOperationVerificationResult(
+            staticStatus="passed",
+            runtimeStatus="stale",
+            runtimeFreshnessAttempts=3,
+            runtimeFreshnessWaitMs=1_000,
+        ),
+        metrics=CreatorOperationMetrics(
+            operationDurationMs=1,
+            executionModelCalls=0,
+            mutationAttempts=1,
+            snapshotRefreshes=0,
+            verificationRuntimeFreshnessAttempts=3,
+        ),
+    )
+
+    assert operation.status == "success"
+    assert _operation_text(operation) == (
+        "已完成：移除插件实例。 修改已持久化，但 Runtime 尚未观测到最新状态。"
+    )
+
+
+def test_committed_unverified_text_names_unconfirmed_request_result():
+    operation = CreatorOperationExecutionResult(
+        operation="remove_plugin",
+        status="committed_unverified",
+        pluginId="history",
+        instanceId="history-main",
+        mutationChanged=True,
+        mutationRevision=1,
+        postcondition=CreatorOperationPostconditionResult(
+            status="unavailable",
+            kind="instance_absent",
+            instanceId="history-main",
+            pluginId="history",
+            evidence="Persisted AppUIModel readback was unavailable.",
+        ),
+        verification=CreatorOperationVerificationResult(
+            staticStatus="passed",
+            runtimeStatus="passed",
+            runtimeFreshnessAttempts=1,
+            runtimeFreshnessWaitMs=0,
+        ),
+        metrics=CreatorOperationMetrics(
+            operationDurationMs=1,
+            executionModelCalls=0,
+            mutationAttempts=1,
+            snapshotRefreshes=0,
+            verificationRuntimeFreshnessAttempts=1,
+        ),
+    )
+
+    assert _operation_text(operation) == (
+        "修改已提交（移除插件实例），但无法确认请求结果是否成立："
+        "Persisted AppUIModel readback was unavailable."
+    )

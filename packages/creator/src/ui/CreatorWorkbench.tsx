@@ -24,6 +24,7 @@ import type {
 import { CREATOR_API_PATH } from "../shared.js";
 import { resolveCreatorDebugMode } from "./creatorDebug.js";
 import {
+  creatorStageTitle,
   interruptCreatorStage,
   isCreatorStageName,
   parseCreatorStepMetadata,
@@ -136,6 +137,18 @@ const verificationCheckStatusLabels: Record<
   unavailable: "Runtime 暂不可用",
 };
 
+function verificationCheckStatusLabel(check: CreatorVerificationCheck): string {
+  if (check.id === "operation-postcondition") {
+    if (check.status === "unavailable") return "请求结果未确认";
+    if (check.status === "failed") return "请求目标未满足";
+  }
+  if (check.id === "static-validation") {
+    if (check.status === "unavailable") return "静态验证未完成";
+    if (check.status === "failed") return "静态验证未通过";
+  }
+  return verificationCheckStatusLabels[check.status];
+}
+
 const verificationStatusLabels: Record<
   NonNullable<CreatorRunReceipt["verification"]>["status"],
   string
@@ -143,7 +156,7 @@ const verificationStatusLabels: Record<
   "not-run": "未执行完成验证",
   "changed-and-statically-verified": "修改已通过静态验证",
   "changed-and-verified": "修改已验证",
-  "changed-unverified": "已提交，Runtime 未观测到",
+  "changed-unverified": "修改已提交，但完成验证未确认",
   "no-project-change": "无需项目修改",
   failed: "完成验证失败",
 };
@@ -430,11 +443,20 @@ function CreatorReceipt({ receipt }: { receipt: CreatorRunReceipt }) {
         ? "passed"
         : "failed";
   const verificationLabel =
-    verification?.status === "changed-unverified" &&
-    verification.runtimeStatus === "unavailable"
-      ? "已提交，Runtime 暂不可用"
-      : verification === undefined
-        ? ""
+    verification === undefined
+      ? ""
+      : verification.status === "changed-unverified"
+        ? verification.checks.some(
+            (check) =>
+              check.id === "operation-postcondition" &&
+              check.status === "unavailable",
+          )
+          ? "修改已提交，但请求结果尚未确认"
+          : verification.runtimeStatus === "stale"
+            ? "修改已提交，Runtime 尚未观测到"
+            : verification.runtimeStatus === "unavailable"
+              ? "修改已提交，Runtime 暂不可用"
+              : "修改已提交，但请求结果尚未确认"
         : verificationStatusLabels[verification.status];
 
   return (
@@ -484,7 +506,7 @@ function CreatorReceipt({ receipt }: { receipt: CreatorRunReceipt }) {
                 <span
                   className={`creator-receipt-status creator-receipt-status--${check.status}`}
                 >
-                  {verificationCheckStatusLabels[check.status]}
+                  {verificationCheckStatusLabel(check)}
                 </span>
                 <code>{check.id}</code>
               </summary>
@@ -610,53 +632,6 @@ function CreatorToolActivityCard({
       )}
     </article>
   );
-}
-
-function stageTitle(activity: CreatorStageActivity): string {
-  if (activity.name === "creator.grounding") {
-    if (activity.status === "running") return "正在读取项目状态…";
-    if (activity.status === "failed") return "读取项目状态失败";
-    return "项目状态已读取";
-  }
-  if (activity.name === "creator.resolve") {
-    if (activity.status === "running") return "正在理解你的请求…";
-    if (activity.status === "failed") return "理解请求失败";
-    if (activity.metadata?.route === "clarification") {
-      return "需要确认修改目标";
-    }
-    if (activity.metadata?.route === "unsupported") {
-      return "当前没有可安全执行的对应操作";
-    }
-    return "已识别意图";
-  }
-  if (activity.status === "running") return "正在应用并验证修改…";
-  if (activity.status === "failed") return "修改未完成";
-  if (activity.metadata?.status === "already_satisfied") {
-    return "当前状态已满足，无需修改";
-  }
-  if (activity.metadata?.staticStatus === "failed") {
-    return activity.metadata.status === "success"
-      ? "请求的修改已完成，静态验证未通过"
-      : "已应用修改，静态验证未通过";
-  }
-  if (activity.metadata?.runtimeStatus === "not-run") {
-    return activity.metadata.staticStatus === "passed"
-      ? "已应用并通过静态验证"
-      : "已应用修改，静态验证未完成";
-  }
-  if (activity.metadata?.runtimeStatus === "stale") {
-    return "已应用修改，Runtime 未观测到";
-  }
-  if (activity.metadata?.runtimeStatus === "unavailable") {
-    return "已应用修改，Runtime 暂不可用";
-  }
-  if (
-    activity.metadata?.runtimeStatus !== undefined &&
-    activity.metadata.runtimeStatus !== "passed"
-  ) {
-    return "已应用修改，但验证未完成";
-  }
-  return "已应用并验证修改";
 }
 
 function stageSymbol(status: CreatorStageActivity["status"]): string {
@@ -833,7 +808,7 @@ function CreatorStageActivityCard({
   }
   return (
     <article
-      aria-label={debug ? `Creator 阶段 ${activity.name}` : stageTitle(activity)}
+      aria-label={debug ? `Creator 阶段 ${activity.name}` : creatorStageTitle(activity)}
       className={`creator-stage-activity creator-stage-activity--${activity.status}`}
     >
       <div className="creator-stage-summary">
@@ -841,7 +816,7 @@ function CreatorStageActivityCard({
           {stageSymbol(activity.status)}
         </span>
         <div>
-          <strong>{stageTitle(activity)}</strong>
+          <strong>{creatorStageTitle(activity)}</strong>
           {activity.name === "creator.resolve" &&
           activity.displayIntent !== undefined &&
           activity.metadata?.route !== "clarification" &&
