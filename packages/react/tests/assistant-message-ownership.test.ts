@@ -8,6 +8,15 @@ const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const repoRoot = path.resolve(packageRoot, "../..");
 
 describe("assistant message ownership", () => {
+  it("keeps Data Message rendering generic", async () => {
+    const source = await readFile(
+      path.join(packageRoot, "src/internal/composable-thread.tsx"),
+      "utf8",
+    );
+    expect(source).toMatch(/case "data":\s*return part\.dataRendererUI;/u);
+    expect(source).not.toContain('"chart"');
+  });
+
   it("keeps grouping policy and the Footer seam in ComposableThread", async () => {
     const publicSource = await readFile(
       path.join(packageRoot, "src/public.tsx"),

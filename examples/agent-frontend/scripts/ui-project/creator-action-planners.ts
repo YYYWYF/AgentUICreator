@@ -170,6 +170,7 @@ export function isVisualAsset(asset: PluginAsset | undefined): asset is PluginAs
   return (
     asset !== undefined &&
     asset.applicationGate === undefined &&
+    asset.manifest.data?.messageUI !== true &&
     !asset.capabilities.includes("headless")
   );
 }

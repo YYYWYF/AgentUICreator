@@ -31,6 +31,7 @@ import {
   UIPluginRuntime,
   type UIPluginRuntimeActions,
 } from "../runtime/plugins";
+import { PluginDataMessageUIHost } from "../runtime/plugins/PluginDataMessageUIHost";
 import {
   PluginDiagnosticProvider,
   RUNTIME_DIAGNOSTIC_SCHEMA_VERSION,
@@ -223,6 +224,10 @@ function RuntimeConnectedPreview({
           model={composition.runtimeModel}
           registry={composition.activeRegistry}
         >
+          <PluginDataMessageUIHost
+            model={composition.runtimeModel}
+            registry={composition.activeRegistry}
+          />
           <ConversationThreadBindingConnector />
           <ConversationPresentationConfigProvider value={conversationPresentationConfig}>
             <ModeShell mode={currentAgentUIMode}>

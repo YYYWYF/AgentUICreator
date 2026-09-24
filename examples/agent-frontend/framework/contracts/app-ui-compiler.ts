@@ -150,13 +150,14 @@ export function compileAppUIModel(
     const isHeadless =
       entry?.capabilities?.includes("headless") === true ||
       entry?.applicationGate !== undefined;
-    if (isApplication && entry !== undefined && !isHeadless) {
+    const isDataMessageUI = entry?.dataMessageUI === true;
+    if (isApplication && entry !== undefined && !isHeadless && !isDataMessageUI) {
       issues.push({
         code: "application-plugin-must-be-headless",
         instanceId: plugin.id,
         pluginId: plugin.pluginId,
         path,
-        message: `Application plugin instance "${plugin.id}" must be headless or an Application Gate.`,
+        message: `Application plugin instance "${plugin.id}" must be headless, a Data Message UI, or an Application Gate.`,
       });
     }
     if (!isApplication && isHeadless) {

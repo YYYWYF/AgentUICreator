@@ -84,6 +84,12 @@ import {
   RefreshCwIcon,
 } from "lucide-react";
 import { cn } from "./internal/vendor/assistant-ui/lib/utils.js";
+export {
+  DataMessageUIRegistration,
+  defineDataMessageUI,
+  type DataMessageUIDefinition,
+  type DataMessageUIRenderProps,
+} from "./internal/data-message-ui.js";
 
 export interface ConversationMessage {
   readonly id: string;

@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "bb618383ff744c878ba6100bf88cfa6ef1c29832977a0aa6ca8ff222f3baa74a";
+export const capabilityCatalogRevision = "08fb983293e56603b8b4244b054ba0a7479d4d50d7a59d1b80ccad18ddd94ff4";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -391,6 +391,29 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     optionalInject: [],
     loadDefinition: () =>
       import("./assistant-ui-tool-group/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
+      "id": "chart-message",
+      "name": "Chart Message",
+      "description": "Renders named chart data inside assistant messages.",
+      "version": "1.0.0",
+      "authoring": {
+        "intents": [
+          "render structured chart data in assistant messages"
+        ]
+      },
+      "data": {
+        "messageUI": true
+      }
+    },
+    provides: [],
+    inject: [],
+    optionalInject: [],
+    loadDefinition: () =>
+      import("./chart-message/definition").then(
         ({ default: definition }) => definition,
       ),
   },

@@ -1,5 +1,6 @@
 import { agentPlanScenario } from "./agent-plan.js";
 import { agentStatusScenario } from "./agent-status.js";
+import { dataMessageChartScenario } from "./data-message-chart.js";
 import { agentStateSyncScenario } from "./agent-state-sync.js";
 import { approvalResumeScenario } from "./approval-resume.js";
 import { multiToolScenario } from "./multi-tool.js";
@@ -20,6 +21,7 @@ import type { MockScenario } from "../scenario.js";
 export {
   agentPlanScenario,
   agentStatusScenario,
+  dataMessageChartScenario,
   agentStateSyncScenario,
   approvalResumeScenario,
   multiToolScenario,
@@ -49,6 +51,7 @@ export const backendReferenceMockScenarios: MockScenario[] = [
 ];
 
 export const frontendPresentationMockScenarios: MockScenario[] = [
+  dataMessageChartScenario,
   nestedSubagentTaskGroupScenario,
   agentPlanScenario,
   agentStatusScenario,

@@ -59,7 +59,9 @@ function addWarning(
 
 function isNonVisualPlugin(asset: PluginAsset): boolean {
   return (
-    asset.applicationGate !== undefined || asset.capabilities.includes("headless")
+    asset.applicationGate !== undefined ||
+    asset.capabilities.includes("headless") ||
+    asset.manifest.data?.messageUI === true
   );
 }
 

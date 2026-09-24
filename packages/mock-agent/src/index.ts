@@ -38,6 +38,7 @@ export {
   agentPlanScenario,
   agentStatusScenario,
   agentStateSyncScenario,
+  dataMessageChartScenario,
   approvalResumeScenario,
   backendReferenceMockScenarios,
   frontendPresentationMockScenarios,
