@@ -9,6 +9,8 @@ import {
 import { compileAppUIModel } from "../framework/contracts/app-ui-compiler.ts";
 import type { AppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model.ts";
 import { uiProjectControlConfig } from "./ui-project/project-config";
+import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./ui-project/agent-ui-project-paths";
+import { readAgentUIProjectConfig } from "./ui-project/project-mode";
 import { verifyPluginChildSlots } from "./ui-project/plugin-child-slot-verifier";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
@@ -132,10 +134,13 @@ export async function verifyUIProject(
   const errors: VerificationIssue[] = [];
   const warnings: VerificationIssue[] = [];
   let model: AppUIModel | undefined;
+  const projectConfig = await readAgentUIProjectConfig(projectRoot, config.agentUI.metadataRoot);
+  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config, config);
+  const effectiveConfig = projectControlConfigForPaths(paths, config);
 
   try {
     model = parseAppUIModelJson(
-      await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
+      await readFile(paths.appUIModelPath, "utf8"),
     );
   } catch (error) {
     errors.push({
@@ -154,7 +159,7 @@ export async function verifyUIProject(
   let creatorReadiness: PluginCreatorReadiness[] = [];
   let runtimeModel: AppUIRuntimeModel | undefined;
   if (model !== undefined) {
-    const registry = await generatePluginRegistry(projectRoot, model, config);
+    const registry = await generatePluginRegistry(projectRoot, model, effectiveConfig);
     errors.push(...registry.errors);
     errors.push(...(await verifyPluginChildSlots(projectRoot, registry.assets)));
     const authoringReadiness = analyzePluginAuthoringReadiness(registry.assets);

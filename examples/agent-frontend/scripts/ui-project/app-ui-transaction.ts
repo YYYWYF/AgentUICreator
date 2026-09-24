@@ -52,6 +52,7 @@ import {
   type CreatorActionBinding,
 } from "./creator-action-catalog";
 import { readAgentUIProjectConfig } from "./project-mode";
+import { resolveAgentUIProjectPaths } from "./agent-ui-project-paths";
 import { verifyPluginChildSlots } from "./plugin-child-slot-verifier";
 import type {
   GeneratePluginCatalogResult,
@@ -60,7 +61,6 @@ import type {
 } from "./types";
 import { projectWorkspaceTopology, WorkspaceTopologyError } from "./workspace-topology";
 
-const APP_UI_MODEL_PATH = "app-ui/app-ui.json";
 export const COMPOSITION_REVISION_PATH =
   "app-ui/composition-revision.generated.json";
 const TRANSACTION_DIRECTORY_PATH = ".agentuicreator/control";
@@ -382,7 +382,7 @@ async function writeJournal(
   );
 }
 
-function parseJournal(input: unknown): AppUITransactionJournal {
+function parseJournal(input: unknown, appUIModelPath: string, compositionRevisionPath: string): AppUITransactionJournal {
   const stateSchema = z.strictObject({
     exists: z.boolean(),
     source: z.string().optional(),
@@ -393,11 +393,7 @@ function parseJournal(input: unknown): AppUITransactionJournal {
     transactionId: z.string().uuid(),
     files: z.array(
       z.strictObject({
-        relativePath: z.enum([
-          APP_UI_MODEL_PATH,
-          COMPOSITION_REVISION_PATH,
-          GENERATED_PLUGIN_REGISTRY_PATH,
-        ]),
+        relativePath: z.string().refine((value) => [appUIModelPath, compositionRevisionPath, GENERATED_PLUGIN_REGISTRY_PATH].includes(value)),
         temporaryPath: z.string().min(1),
         before: stateSchema,
         after: stateSchema,
@@ -439,7 +435,11 @@ export async function recoverPendingAppUITransaction(
   }
   let journal: AppUITransactionJournal;
   try {
-    journal = parseJournal(JSON.parse(source) as unknown);
+    const projectConfig = await readAgentUIProjectConfig(projectRoot);
+    const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config);
+    const appUIModelPath = path.relative(projectRoot, paths.appUIModelPath);
+    const compositionRevisionPath = path.join(path.dirname(appUIModelPath), "composition-revision.generated.json");
+    journal = parseJournal(JSON.parse(source) as unknown, appUIModelPath, compositionRevisionPath);
   } catch (error) {
     throw new AppUITransactionError(
       "APP_UI_TRANSACTION_JOURNAL_INVALID",
@@ -1038,10 +1038,13 @@ async function runTransaction(
 ): Promise<AppUITransactionResult> {
   await recoverPendingAppUITransaction(projectRoot);
   const projectConfig = await readAgentUIProjectConfig(projectRoot);
+  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config);
+  const appUIModelRelativePath = path.relative(projectRoot, paths.appUIModelPath);
+  const compositionRevisionRelativePath = path.join(path.dirname(appUIModelRelativePath), "composition-revision.generated.json");
   const workspacePolicy = agentUIModeRegistry.get(
     projectConfig.config.mode,
   ).workspace;
-  const appUIModelPath = path.join(projectRoot, APP_UI_MODEL_PATH);
+  const appUIModelPath = paths.appUIModelPath;
   const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
   const beforeModelSource = await readFile(appUIModelPath, "utf8");
   const beforeHash = hash(beforeModelSource);
@@ -1297,7 +1300,7 @@ async function runTransaction(
   };
   const compositionRevisionPath = path.join(
     projectRoot,
-    COMPOSITION_REVISION_PATH,
+    compositionRevisionRelativePath,
   );
   const beforeCompositionRevisionSource = await readOptional(
     compositionRevisionPath,
@@ -1309,13 +1312,13 @@ async function runTransaction(
   const changes = [
     ...(catalogChanged
       ? [{
-          relativePath: COMPOSITION_REVISION_PATH,
+          relativePath: compositionRevisionRelativePath,
           before: beforeCompositionRevisionSource,
           after: afterCompositionRevisionSource,
         }]
       : []),
     {
-      relativePath: APP_UI_MODEL_PATH,
+      relativePath: appUIModelRelativePath,
       before: beforeModelSource,
       after: afterModelSource,
     },

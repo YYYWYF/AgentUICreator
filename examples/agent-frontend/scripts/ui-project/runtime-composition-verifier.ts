@@ -15,7 +15,8 @@ import {
   compileAppUIModel,
 } from "../../framework/contracts/app-ui-compiler";
 import { generatePluginRegistry } from "./registry-generator";
-import { COMPOSITION_REVISION_PATH } from "./app-ui-transaction";
+import { readAgentUIProjectConfig } from "./project-mode";
+import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./agent-ui-project-paths";
 
 const appUIModelHashSchema = z.string().regex(/^[a-f0-9]{64}$/u);
 const runtimeIdentifierSchema = z.string().trim().min(1).max(200);
@@ -154,8 +155,10 @@ export async function verifyRuntimeComposition(
   rawInput: unknown,
 ): Promise<RuntimeCompositionVerificationResult> {
   const input = verifyRuntimeCompositionInputSchema.parse(rawInput);
+  const projectConfig = await readAgentUIProjectConfig(projectRoot);
+  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config);
   const appUIModelSource = await readFile(
-    `${projectRoot}/app-ui/app-ui.json`,
+    paths.appUIModelPath,
     "utf8",
   );
   const currentHash = createHash("sha256")
@@ -180,7 +183,7 @@ export async function verifyRuntimeComposition(
   }
 
   const model = parseAppUIModelJson(appUIModelSource);
-  const registry = await generatePluginRegistry(projectRoot, model);
+  const registry = await generatePluginRegistry(projectRoot, model, projectControlConfigForPaths(paths));
   if (registry.errors.length > 0) {
     throw new RuntimeCompositionVerificationError(
       "RUNTIME_COMPOSITION_VERIFICATION_FAILED",
@@ -203,7 +206,7 @@ export async function verifyRuntimeComposition(
   }
   try {
     const descriptor = JSON.parse(await readFile(
-      path.join(projectRoot, COMPOSITION_REVISION_PATH),
+      path.join(path.dirname(paths.appUIModelPath), "composition-revision.generated.json"),
       "utf8",
     )) as Record<string, unknown>;
     if (

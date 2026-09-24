@@ -14,7 +14,8 @@ import {
 import { inspectUIComposition, inspectUIProject } from "./ui-project/project-inspector";
 import { inspectPluginSourceReferences } from "./ui-project/plugin-source-references";
 import { collectPluginAssets } from "./ui-project/plugin-assets";
-import { uiProjectControlConfig } from "./ui-project/project-config";
+import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./ui-project/agent-ui-project-paths";
+import { readAgentUIProjectConfig } from "./ui-project/project-mode";
 import { inspectUIServiceDependencies } from "./ui-project/service-dependency-inspector";
 import {
   applyAgentUISourceItem,
@@ -176,14 +177,16 @@ function boundedText(source: string, limit: number) {
 }
 
 async function inspectAppUIModel(projectRoot: string): Promise<unknown> {
+  const projectConfig = await readAgentUIProjectConfig(projectRoot);
+  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config);
   const source = await readFile(
-    path.join(projectRoot, "app-ui", "app-ui.json"),
+    paths.appUIModelPath,
     "utf8",
   );
   if (source.length > MAX_APP_UI_MODEL_CHARACTERS) {
     throw new UIProjectControlError(
       "APP_UI_MODEL_TOO_LARGE",
-      `app-ui/app-ui.json has ${source.length} characters; the inspect limit is ${MAX_APP_UI_MODEL_CHARACTERS}. Use the bounded project snapshot or read the file in sections.`,
+      `${path.relative(projectRoot, paths.appUIModelPath)} has ${source.length} characters; the inspect limit is ${MAX_APP_UI_MODEL_CHARACTERS}. Use the bounded project snapshot or read the file in sections.`,
       { characters: source.length, limit: MAX_APP_UI_MODEL_CHARACTERS },
     );
   }
@@ -337,14 +340,16 @@ async function inspectUIPlugin(
 }
 
 async function inspectUIServices(projectRoot: string) {
+  const projectConfig = await readAgentUIProjectConfig(projectRoot);
+  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config);
   const appUIModelSource = await readFile(
-    path.join(projectRoot, "app-ui", "app-ui.json"),
+    paths.appUIModelPath,
     "utf8",
   );
   const model = parseAppUIModelJson(appUIModelSource);
   const inventory = await collectPluginAssets(
     projectRoot,
-    uiProjectControlConfig,
+    projectControlConfigForPaths(paths),
   );
   const inspection = inspectUIServiceDependencies(
     projectRoot,
@@ -385,6 +390,10 @@ async function executeRequest(
   request: UIProjectControlRequest,
   projectRoot: string,
 ): Promise<unknown> {
+  const projectConfig = await readAgentUIProjectConfig(projectRoot);
+  const effectiveConfig = projectControlConfigForPaths(
+    resolveAgentUIProjectPaths(projectRoot, projectConfig.config),
+  );
   switch (request.operation) {
     case "inspect_ui_project":
       return "view" in request.input && request.input.view === "composition"
@@ -410,11 +419,11 @@ async function executeRequest(
     case "mutate_app_ui_model":
       return mutateAppUIModel(projectRoot, request.input);
     case "inspect_agent_ui_sources":
-      return inspectAgentUISources(projectRoot);
+      return inspectAgentUISources(projectRoot, effectiveConfig);
     case "apply_agent_ui_source_item":
-      return applyAgentUISourceItem(projectRoot, request.input);
+      return applyAgentUISourceItem(projectRoot, request.input, effectiveConfig);
     case "remove_agent_ui_source_items":
-      return removeAgentUISourceItems(projectRoot, request.input);
+      return removeAgentUISourceItems(projectRoot, request.input, effectiveConfig);
   }
 }
 
@@ -470,10 +479,14 @@ export async function handleUIProjectControlRequest(
   projectRoot = defaultProjectRoot,
 ): Promise<UIProjectControlResponse> {
   try {
+    const projectConfig = await readAgentUIProjectConfig(projectRoot);
+    const effectiveConfig = projectControlConfigForPaths(
+      resolveAgentUIProjectPaths(projectRoot, projectConfig.config),
+    );
     await recoverPendingAppUITransaction(projectRoot);
     await recoverPendingAgentUISourceTransaction(
       projectRoot,
-      uiProjectControlConfig,
+      effectiveConfig,
     );
     return {
       schemaVersion: UI_PROJECT_CONTROL_SCHEMA_VERSION,

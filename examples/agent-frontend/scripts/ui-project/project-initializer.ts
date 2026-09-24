@@ -3,7 +3,7 @@ import path from "node:path";
 
 import {
   AGENT_UI_PROJECT_CONFIG_VERSION,
-  type AgentUIProjectConfig,
+  type AgentUIProjectConfigV1,
 } from "../../framework/contracts/agent-ui-project";
 import {
   parseAgentUIMode,
@@ -14,6 +14,7 @@ import {
   type AppUIModel,
 } from "../../framework/contracts/app-ui-model";
 import { AGENT_UI_PROJECT_CONFIG_FILE } from "./project-mode";
+import { resolveAgentUIProjectPaths } from "./agent-ui-project-paths";
 
 export interface CreateUIProjectOptions {
   readonly projectRoot: string;
@@ -24,7 +25,7 @@ export interface CreateUIProjectOptions {
 
 export interface CreateUIProjectResult {
   readonly mode: AgentUIMode;
-  readonly projectConfig: AgentUIProjectConfig;
+  readonly projectConfig: AgentUIProjectConfigV1;
   readonly appUIModel: AppUIModel;
   readonly projectConfigPath: string;
   readonly appUIModelPath: string;
@@ -51,7 +52,7 @@ export async function createUIProject({
 }: CreateUIProjectOptions): Promise<CreateUIProjectResult> {
   const resolvedMode = parseAgentUIMode(mode);
   const appUIModel = parseAppUIModel(initialAppUIModel);
-  const projectConfig: AgentUIProjectConfig = {
+  const projectConfig: AgentUIProjectConfigV1 = {
     version: AGENT_UI_PROJECT_CONFIG_VERSION,
     mode: resolvedMode,
   };
@@ -59,7 +60,7 @@ export async function createUIProject({
     metadataRoot,
     AGENT_UI_PROJECT_CONFIG_FILE,
   );
-  const appUIModelPath = "app-ui/app-ui.json";
+  const appUIModelPath = path.relative(projectRoot, resolveAgentUIProjectPaths(projectRoot, projectConfig).appUIModelPath);
   const absoluteProjectConfigPath = path.join(projectRoot, projectConfigPath);
   const absoluteAppUIModelPath = path.join(projectRoot, appUIModelPath);
 

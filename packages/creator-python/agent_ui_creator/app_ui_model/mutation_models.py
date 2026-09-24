@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+from pathlib import Path
 from typing import Any, Literal
+
+from ..project_paths import v2_source_root
 
 APP_UI_MODEL_PATH = "app-ui/app-ui.json"
 COMPOSITION_REVISION_PATH = "app-ui/composition-revision.generated.json"
@@ -11,6 +14,18 @@ MUTABLE_PATHS = (
     COMPOSITION_REVISION_PATH,
     REGISTRY_PATH,
 )
+
+
+def resolve_mutable_paths(project_root: Path) -> tuple[str, str, str]:
+    """Resolve the AppUIModel path from project metadata, retaining V1 layout."""
+    raw = v2_source_root(project_root)
+    if raw is None:
+        return MUTABLE_PATHS
+    return (
+        f"{raw}/app-ui/app-ui.json",
+        f"{raw}/app-ui/composition-revision.generated.json",
+        REGISTRY_PATH,
+    )
 MAX_MUTATION_RESULT_CHARACTERS = 48_000
 MAX_SEMANTIC_COMPOSITION_REPLANS = 1
 

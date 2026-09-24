@@ -12,6 +12,7 @@ import {
 import { pathExists } from "./plugin-assets";
 import { uiProjectControlConfig } from "./project-config";
 import { readAgentUIProjectConfig } from "./project-mode";
+import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./agent-ui-project-paths";
 import { agentUIModeRegistry } from "../../framework/modes";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
@@ -134,6 +135,8 @@ export async function inspectUIProject(
     projectRoot,
     config.agentUI.metadataRoot,
   );
+  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config, config);
+  const effectiveConfig = projectControlConfigForPaths(paths, config);
   const generatedSource = await readOptional(
     path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
   );
@@ -145,7 +148,7 @@ export async function inspectUIProject(
   ) as unknown;
   const versions = dependencyVersions(packageJson);
   const agentUI = agentUISourceSummary(
-    await inspectAgentUISources(projectRoot, config),
+    await inspectAgentUISources(projectRoot, effectiveConfig),
   );
 
   return {
@@ -198,16 +201,15 @@ async function inspectUICompositionData(
     projectRoot,
     config.agentUI.metadataRoot,
   );
+  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config, config);
+  const effectiveConfig = projectControlConfigForPaths(paths, config);
   const workspacePolicy = agentUIModeRegistry.get(
     projectConfig.config.mode,
   ).workspace;
-  const appUIModelSource = await readFile(
-    path.join(projectRoot, "app-ui", "app-ui.json"),
-    "utf8",
-  );
+  const appUIModelSource = await readFile(paths.appUIModelPath, "utf8");
   const model = parseAppUIModelJson(appUIModelSource);
   const appUIModelHash = createHash("sha256").update(appUIModelSource).digest("hex");
-  const projectFacts = await collectPluginProjectFacts(projectRoot, config);
+  const projectFacts = await collectPluginProjectFacts(projectRoot, effectiveConfig);
   const generation = generatePluginRegistryFromFacts(model, projectFacts);
   const refIndex = buildLayoutRefIndex(model.root);
   const layout = compactLayout(model.root, "root", refIndex.byPath.get("root")!, refIndex);
@@ -278,7 +280,7 @@ async function inspectUICompositionData(
   });
   const authoringTargetCatalog = await buildCreatorAuthoringTargetCatalog({
     projectRoot,
-    config,
+    config: effectiveConfig,
     projectFacts,
   });
 

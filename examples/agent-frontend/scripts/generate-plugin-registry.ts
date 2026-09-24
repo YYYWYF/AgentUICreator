@@ -4,6 +4,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
+import { readAgentUIProjectConfig } from "./ui-project/project-mode";
+import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./ui-project/agent-ui-project-paths";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
   generatePluginRegistry,
@@ -32,10 +34,12 @@ export async function writeGeneratedPluginRegistry(
   path: string;
   pluginIds: string[];
 }> {
+  const projectConfig = await readAgentUIProjectConfig(projectRoot);
+  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config);
   const model = parseAppUIModelJson(
-    await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
+    await readFile(paths.appUIModelPath, "utf8"),
   );
-  const generation = await generatePluginRegistry(projectRoot, model);
+  const generation = await generatePluginRegistry(projectRoot, model, projectControlConfigForPaths(paths));
   if (generation.errors.length > 0) {
     throw new Error(JSON.stringify({ errors: generation.errors }, null, 2));
   }

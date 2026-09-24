@@ -11,9 +11,8 @@ from ..files import CreatorFileState, read_creator_file_state
 from ..project_control import ProjectControlClient, ProjectControlError
 from .mutation_lock import ProjectMutationCoordinator
 from .mutation_models import (
-    APP_UI_MODEL_PATH,
-    MUTABLE_PATHS,
     REGISTRY_PATH,
+    resolve_mutable_paths,
     AppUIModelMutationError,
     AppUIModelMutationMetrics,
     AppUIModelMutationResult,
@@ -182,6 +181,8 @@ class AppUIModelMutationService:
         thread_id: str | None = None,
     ) -> None:
         self.project_root = Path(project_root).resolve()
+        self.mutable_paths = resolve_mutable_paths(self.project_root)
+        self.app_ui_model_path = self.mutable_paths[0]
         self.project_control = project_control
         self.activity = activity
         self.mutation_coordinator = mutation_coordinator
@@ -363,7 +364,7 @@ class AppUIModelMutationService:
         operations: list[dict[str, Any]],
     ) -> AppUIModelMutationResult:
         async with self.mutation_coordinator.transaction(self.project_root):
-            for path in MUTABLE_PATHS:
+            for path in self.mutable_paths:
                 self.activity.capture_before(path)
             before_states = self._read_mutable_states()
             try:
@@ -436,7 +437,7 @@ class AppUIModelMutationService:
     def _read_mutable_states(self) -> dict[str, CreatorFileState]:
         return {
             path: read_creator_file_state(self.project_root, path)
-            for path in MUTABLE_PATHS
+            for path in self.mutable_paths
         }
 
     def _reconcile(
@@ -445,7 +446,7 @@ class AppUIModelMutationService:
         after_states = self._read_mutable_states()
         actual_changed_paths = {
             path
-            for path in MUTABLE_PATHS
+            for path in self.mutable_paths
             if before_states[path] != after_states[path]
         }
         for path in sorted(actual_changed_paths):
@@ -497,12 +498,12 @@ class AppUIModelMutationService:
                 "APP_UI_MODEL_CHANGED_PATH_INVALID",
                 "Target mutation result changedPaths contains duplicates.",
             )
-        unexpected = sorted(set(changed_paths).difference(MUTABLE_PATHS))
+        unexpected = sorted(set(changed_paths).difference(self.mutable_paths))
         if unexpected:
             raise AppUIModelMutationError(
                 "APP_UI_MODEL_CHANGED_PATH_INVALID",
                 "Target mutation reported a path outside the AppUIModel mutation allowlist.",
-                {"changedPaths": unexpected, "allowedPaths": list(MUTABLE_PATHS)},
+                {"changedPaths": unexpected, "allowedPaths": list(self.mutable_paths)},
             )
         reported_changed_paths = set(changed_paths)
         if reported_changed_paths != actual_changed_paths or changed != bool(actual_changed_paths):
@@ -560,7 +561,7 @@ class AppUIModelMutationService:
         if (
             before_hash != requested_hash
             or after_hash != snapshot_app_hash
-            or after_hash != after_states[APP_UI_MODEL_PATH].hash
+            or after_hash != after_states[self.app_ui_model_path].hash
             or snapshot_catalog_source_hash != after_states[REGISTRY_PATH].hash
         ):
             raise AppUIModelMutationError(
@@ -571,7 +572,7 @@ class AppUIModelMutationService:
                     "beforeHash": before_hash,
                     "afterHash": after_hash,
                     "snapshotAppUIModelHash": snapshot_app_hash,
-                    "diskAppUIModelHash": after_states[APP_UI_MODEL_PATH].hash,
+                    "diskAppUIModelHash": after_states[self.app_ui_model_path].hash,
                     "snapshotCapabilityCatalogSourceHash": snapshot_catalog_source_hash,
                     "diskCapabilityCatalogSourceHash": after_states[REGISTRY_PATH].hash,
                 },
