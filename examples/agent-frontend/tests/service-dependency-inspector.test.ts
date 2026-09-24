@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import type { AppUIModel } from "../framework/contracts/app-ui-model";
 import { collectPluginAssets } from "../scripts/ui-project/plugin-assets";
+import { legacyProjectPaths } from "./legacy-project-paths";
 import { inspectUIServiceDependencies } from "../scripts/ui-project/service-dependency-inspector";
 
 const temporaryProjects: string[] = [];
@@ -65,7 +66,7 @@ async function createServiceProject() {
       source,
     );
   }
-  const inventory = await collectPluginAssets(projectRoot, config);
+  const inventory = await collectPluginAssets(projectRoot, legacyProjectPaths(projectRoot, config), config);
   return { projectRoot, assets: inventory.assets };
 }
 
@@ -123,7 +124,7 @@ async function createDependencyGraphProject(
       enabled: true,
     });
   }
-  const inventory = await collectPluginAssets(projectRoot, config);
+  const inventory = await collectPluginAssets(projectRoot, legacyProjectPaths(projectRoot, config), config);
   const graphModel: AppUIModel = {
     applicationPlugins,
     root: { type: "slot", plugins: [] },

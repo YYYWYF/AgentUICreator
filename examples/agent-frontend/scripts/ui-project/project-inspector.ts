@@ -12,13 +12,12 @@ import {
 import { pathExists } from "./plugin-assets";
 import { uiProjectControlConfig } from "./project-config";
 import { readAgentUIProjectConfig } from "./project-mode";
-import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./agent-ui-project-paths";
+import { resolveAgentUIProjectPaths, projectControlConfigForPaths, type AgentUIProjectPaths } from "./agent-ui-project-paths";
+import type { ReadAgentUIProjectConfigResult } from "./project-mode";
 import { agentUIModeRegistry } from "../../framework/modes";
 import {
-  GENERATED_PLUGIN_REGISTRY_PATH,
   collectPluginProjectFacts,
   generatePluginRegistryFromFacts,
-  PLUGIN_REGISTRY_ENTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
 } from "./registry-generator";
 import {
@@ -130,18 +129,18 @@ export async function inspectUIProject(
   projectRoot: string,
   config: UIProjectControlConfig = uiProjectControlConfig,
 ): Promise<UIProjectInspection> {
-  const composition = await inspectUICompositionData(projectRoot, config);
   const projectConfig = await readAgentUIProjectConfig(
     projectRoot,
     config.agentUI.metadataRoot,
   );
   const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config, config);
   const effectiveConfig = projectControlConfigForPaths(paths, config);
+  const composition = await inspectUICompositionData(projectRoot, config, { projectConfig, paths, effectiveConfig });
   const generatedSource = await readOptional(
-    path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
+    paths.generatedPluginRegistryPath,
   );
   const entrySource = await readOptional(
-    path.join(projectRoot, PLUGIN_REGISTRY_ENTRY_PATH),
+    paths.pluginRegistryEntryPath,
   );
   const packageJson = JSON.parse(
     await readFile(path.join(projectRoot, "package.json"), "utf8"),
@@ -196,20 +195,25 @@ interface UICompositionInspectionInternal extends UICompositionInspection {
 async function inspectUICompositionData(
   projectRoot: string,
   config: UIProjectControlConfig = uiProjectControlConfig,
+  resolved?: {
+    projectConfig: ReadAgentUIProjectConfigResult;
+    paths: AgentUIProjectPaths;
+    effectiveConfig: UIProjectControlConfig;
+  },
 ): Promise<UICompositionInspectionInternal> {
-  const projectConfig = await readAgentUIProjectConfig(
+  const projectConfig = resolved?.projectConfig ?? await readAgentUIProjectConfig(
     projectRoot,
     config.agentUI.metadataRoot,
   );
-  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config, config);
-  const effectiveConfig = projectControlConfigForPaths(paths, config);
+  const paths = resolved?.paths ?? resolveAgentUIProjectPaths(projectRoot, projectConfig.config, config);
+  const effectiveConfig = resolved?.effectiveConfig ?? projectControlConfigForPaths(paths, config);
   const workspacePolicy = agentUIModeRegistry.get(
     projectConfig.config.mode,
   ).workspace;
   const appUIModelSource = await readFile(paths.appUIModelPath, "utf8");
   const model = parseAppUIModelJson(appUIModelSource);
   const appUIModelHash = createHash("sha256").update(appUIModelSource).digest("hex");
-  const projectFacts = await collectPluginProjectFacts(projectRoot, effectiveConfig);
+  const projectFacts = await collectPluginProjectFacts(projectRoot, effectiveConfig, paths);
   const generation = generatePluginRegistryFromFacts(model, projectFacts);
   const refIndex = buildLayoutRefIndex(model.root);
   const layout = compactLayout(model.root, "root", refIndex.byPath.get("root")!, refIndex);
@@ -281,6 +285,7 @@ async function inspectUICompositionData(
   const authoringTargetCatalog = await buildCreatorAuthoringTargetCatalog({
     projectRoot,
     config: effectiveConfig,
+    paths,
     projectFacts,
   });
 

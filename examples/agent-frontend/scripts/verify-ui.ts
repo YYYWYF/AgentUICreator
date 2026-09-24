@@ -9,13 +9,11 @@ import {
 import { compileAppUIModel } from "../framework/contracts/app-ui-compiler.ts";
 import type { AppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model.ts";
 import { uiProjectControlConfig } from "./ui-project/project-config";
-import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./ui-project/agent-ui-project-paths";
+import { resolveAgentUIProjectPaths, projectControlConfigForPaths, projectRelativePath } from "./ui-project/agent-ui-project-paths";
 import { readAgentUIProjectConfig } from "./ui-project/project-mode";
 import { verifyPluginChildSlots } from "./ui-project/plugin-child-slot-verifier";
 import {
-  GENERATED_PLUGIN_REGISTRY_PATH,
   generatePluginRegistry,
-  PLUGIN_REGISTRY_ENTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
 } from "./ui-project/registry-generator";
 import { inspectUIServiceDependencies } from "./ui-project/service-dependency-inspector";
@@ -137,6 +135,8 @@ export async function verifyUIProject(
   const projectConfig = await readAgentUIProjectConfig(projectRoot, config.agentUI.metadataRoot);
   const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config, config);
   const effectiveConfig = projectControlConfigForPaths(paths, config);
+  const registryRelativePath = projectRelativePath(projectRoot, paths.generatedPluginRegistryPath);
+  const entryRelativePath = projectRelativePath(projectRoot, paths.pluginRegistryEntryPath);
 
   try {
     model = parseAppUIModelJson(
@@ -159,7 +159,7 @@ export async function verifyUIProject(
   let creatorReadiness: PluginCreatorReadiness[] = [];
   let runtimeModel: AppUIRuntimeModel | undefined;
   if (model !== undefined) {
-    const registry = await generatePluginRegistry(projectRoot, model, effectiveConfig);
+    const registry = await generatePluginRegistry(projectRoot, model, { config: effectiveConfig, paths });
     errors.push(...registry.errors);
     errors.push(...(await verifyPluginChildSlots(projectRoot, registry.assets)));
     const authoringReadiness = analyzePluginAuthoringReadiness(registry.assets);
@@ -188,12 +188,12 @@ export async function verifyUIProject(
     }
 
     const generatedSource = await readOptional(
-      path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
+      paths.generatedPluginRegistryPath,
     );
     if (registry.errors.length === 0 && generatedSource === undefined) {
       errors.push({
         code: "plugin-registry-generated-missing",
-        message: `${GENERATED_PLUGIN_REGISTRY_PATH} is missing. Run pnpm generate:registry.`,
+        message: `${registryRelativePath} is missing. Run pnpm generate:registry.`,
       });
     } else if (
       registry.errors.length === 0 &&
@@ -201,17 +201,17 @@ export async function verifyUIProject(
     ) {
       errors.push({
         code: "plugin-registry-generated-stale",
-        message: `${GENERATED_PLUGIN_REGISTRY_PATH} is stale. Run pnpm generate:registry.`,
+        message: `${registryRelativePath} is stale. Run pnpm generate:registry.`,
       });
     }
 
     const entrySource = await readOptional(
-      path.join(projectRoot, PLUGIN_REGISTRY_ENTRY_PATH),
+      paths.pluginRegistryEntryPath,
     );
     if (entrySource !== PLUGIN_REGISTRY_ENTRY_SOURCE) {
       errors.push({
         code: "plugin-registry-entry",
-        message: `${PLUGIN_REGISTRY_ENTRY_PATH} must only re-export the generated capability catalog.`,
+        message: `${entryRelativePath} must only re-export the generated capability catalog.`,
       });
     }
     generatedFileFresh =

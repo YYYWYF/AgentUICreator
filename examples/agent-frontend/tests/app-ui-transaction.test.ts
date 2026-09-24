@@ -17,8 +17,8 @@ import {
 import { actionIdFor } from "../scripts/ui-project/creator-action-catalog";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
-  generatePluginRegistry,
 } from "../scripts/ui-project/registry-generator";
+import { generatePluginRegistry } from "./legacy-project-paths";
 
 const temporaryProjects: string[] = [];
 const hash = (source: string) => createHash("sha256").update(source).digest("hex");

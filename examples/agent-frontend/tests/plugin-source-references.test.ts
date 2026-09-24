@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
+import { legacyProjectPaths } from "./legacy-project-paths";
 
 import { inspectPluginSourceReferences } from "../scripts/ui-project/plugin-source-references";
 
@@ -78,6 +79,7 @@ describe("inspectPluginSourceReferences", () => {
 
     const result = await inspectPluginSourceReferences(
       projectRoot,
+      legacyProjectPaths(projectRoot),
       "target-plugin",
       "target",
     );

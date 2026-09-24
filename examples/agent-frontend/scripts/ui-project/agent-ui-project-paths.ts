@@ -11,6 +11,14 @@ export interface AgentUIProjectPaths {
   readonly sourceRoot: string;
   readonly appUIModelPath: string;
   readonly sourceLockPath: string;
+  readonly pluginsRoot: string;
+  readonly generatedPluginRegistryPath: string;
+  readonly pluginRegistryEntryPath: string;
+  readonly runtimeRoot: string;
+}
+
+export function projectRelativePath(projectRoot: string, absolutePath: string): string {
+  return path.relative(projectRoot, absolutePath).split(path.sep).join("/");
 }
 
 export class AgentUISourceRootError extends Error {
@@ -67,14 +75,18 @@ export function resolveAgentUIProjectPaths(
   const sourceRoot = projectConfig.version === "2"
     ? validateAgentUISourceRoot(root, projectConfig.sourceRoot)
     : validateAgentUISourceRoot(root, config.agentUI.sourceRoot);
+  const managedRoot = projectConfig.version === "2" ? sourceRoot : root;
+  const pluginsRoot = path.join(managedRoot, "plugins");
   return {
     projectRoot: root,
     metadataRoot,
     projectConfigPath: path.join(metadataRoot, "project.json"),
     sourceRoot,
-    appUIModelPath: projectConfig.version === "2"
-      ? path.join(sourceRoot, "app-ui", "app-ui.json")
-      : path.join(root, "app-ui", "app-ui.json"),
+    appUIModelPath: path.join(managedRoot, "app-ui", "app-ui.json"),
     sourceLockPath: path.join(metadataRoot, "source-lock.json"),
+    pluginsRoot,
+    generatedPluginRegistryPath: path.join(pluginsRoot, "registry.generated.ts"),
+    pluginRegistryEntryPath: path.join(pluginsRoot, "index.ts"),
+    runtimeRoot: path.join(managedRoot, "runtime"),
   };
 }

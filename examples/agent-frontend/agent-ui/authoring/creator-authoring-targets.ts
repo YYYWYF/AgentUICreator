@@ -26,7 +26,7 @@ export const creatorApplicationAuthoringTargets = [
       "customize empty-state suggestions",
       "modify example questions",
     ],
-    ownerPath: "agent-ui/conversation/config/conversation-runtime-config.ts",
+    ownerPath: "conversation/config/conversation-runtime-config.ts",
     relatedPluginIds: ["conversation-suggestions"],
   },
   {
@@ -39,7 +39,7 @@ export const creatorApplicationAuthoringTargets = [
       "edit conversation welcome title",
       "customize empty-state welcome copy",
     ],
-    ownerPath: "agent-ui/conversation/config/conversation-presentation-config.ts",
+    ownerPath: "conversation/config/conversation-presentation-config.ts",
     relatedPluginIds: ["conversation-surface"],
   },
   {
@@ -52,7 +52,7 @@ export const creatorApplicationAuthoringTargets = [
       "start in dark mode",
       "change application theme default",
     ],
-    ownerPath: "agent-ui/theme/theme-config.ts",
+    ownerPath: "theme/theme-config.ts",
     relatedPluginIds: ["theme-provider", "theme-switch"],
   },
 ] as const satisfies readonly CreatorApplicationAuthoringTarget[];

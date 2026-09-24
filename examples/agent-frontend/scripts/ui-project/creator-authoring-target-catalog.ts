@@ -12,6 +12,8 @@ import type {
   PluginProjectFacts,
   UIProjectControlConfig,
 } from "./types";
+import type { AgentUIProjectPaths } from "./agent-ui-project-paths";
+import { projectRelativePath as resolvedProjectRelativePath } from "./agent-ui-project-paths";
 
 export const MAX_CREATOR_AUTHORING_TARGETS = 64;
 export const MAX_AUTHORING_TARGET_INTENTS = 16;
@@ -23,6 +25,7 @@ export const MAX_AUTHORING_TARGET_PATH_CHARS = 400;
 export interface CreatorAuthoringTargetCatalogInput {
   projectRoot: string;
   config: UIProjectControlConfig;
+  paths: AgentUIProjectPaths;
   projectFacts: PluginProjectFacts;
   /** Test and host extension point for application-owned declarations. */
   applicationTargets?: readonly CreatorApplicationAuthoringTarget[];
@@ -153,7 +156,7 @@ function pluginSourceTarget(asset: PluginAsset): {
     binding: {
       targetId,
       kind: "plugin_source",
-      ownerRoot: `plugins/${asset.directory}`,
+      ownerRoot: path.posix.dirname(asset.manifestPath),
       definitionPath: asset.definitionPath,
       manifestPath: asset.manifestPath,
       pluginId: asset.pluginId,
@@ -206,8 +209,15 @@ export async function buildCreatorAuthoringTargetCatalog(
   };
 
   for (const declaration of input.applicationTargets ?? creatorApplicationAuthoringTargets) {
-    const ownerPath = projectRelativePath(input.projectRoot, declaration.ownerPath, `${declaration.id}.ownerPath`);
-    underRoot(input.projectRoot, input.config.agentUI.sourceRoot, ownerPath, `${declaration.id}.ownerPath`);
+    if (input.applicationTargets === undefined &&
+        !(declaration.relatedPluginIds ?? []).every((pluginId) => pluginIds.has(pluginId))) {
+      continue;
+    }
+    const declaredPath = input.applicationTargets === undefined
+      ? resolvedProjectRelativePath(input.projectRoot, path.join(input.paths.sourceRoot, declaration.ownerPath))
+      : declaration.ownerPath;
+    const ownerPath = projectRelativePath(input.projectRoot, declaredPath, `${declaration.id}.ownerPath`);
+    underRoot(input.projectRoot, resolvedProjectRelativePath(input.projectRoot, input.paths.sourceRoot), ownerPath, `${declaration.id}.ownerPath`);
     await requireFile(input.projectRoot, ownerPath, `${declaration.id}.ownerPath`);
     const relatedPluginIds = [...(declaration.relatedPluginIds ?? [])];
     const candidate: CreatorAuthoringTargetCandidate = {
@@ -232,7 +242,7 @@ export async function buildCreatorAuthoringTargetCatalog(
     const ownerRoot = projectRelativePath(input.projectRoot, sourceTarget.binding.ownerRoot!, `${sourceTarget.candidate.id}.ownerRoot`);
     const definitionPath = projectRelativePath(input.projectRoot, sourceTarget.binding.definitionPath!, `${sourceTarget.candidate.id}.definitionPath`);
     const manifestPath = projectRelativePath(input.projectRoot, sourceTarget.binding.manifestPath!, `${sourceTarget.candidate.id}.manifestPath`);
-    underRoot(input.projectRoot, "plugins", ownerRoot, `${sourceTarget.candidate.id}.ownerRoot`);
+    underRoot(input.projectRoot, resolvedProjectRelativePath(input.projectRoot, input.paths.pluginsRoot), ownerRoot, `${sourceTarget.candidate.id}.ownerRoot`);
     await requireDirectory(input.projectRoot, ownerRoot, `${sourceTarget.candidate.id}.ownerRoot`);
     await requireFile(input.projectRoot, definitionPath, `${sourceTarget.candidate.id}.definitionPath`);
     await requireFile(input.projectRoot, manifestPath, `${sourceTarget.candidate.id}.manifestPath`);

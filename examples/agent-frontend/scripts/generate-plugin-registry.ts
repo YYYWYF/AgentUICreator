@@ -5,9 +5,8 @@ import { fileURLToPath } from "node:url";
 
 import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 import { readAgentUIProjectConfig } from "./ui-project/project-mode";
-import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./ui-project/agent-ui-project-paths";
+import { resolveAgentUIProjectPaths, projectControlConfigForPaths, projectRelativePath } from "./ui-project/agent-ui-project-paths";
 import {
-  GENERATED_PLUGIN_REGISTRY_PATH,
   generatePluginRegistry,
 } from "./ui-project/registry-generator";
 
@@ -39,17 +38,20 @@ export async function writeGeneratedPluginRegistry(
   const model = parseAppUIModelJson(
     await readFile(paths.appUIModelPath, "utf8"),
   );
-  const generation = await generatePluginRegistry(projectRoot, model, projectControlConfigForPaths(paths));
+  const generation = await generatePluginRegistry(projectRoot, model, {
+    config: projectControlConfigForPaths(paths), paths,
+  });
   if (generation.errors.length > 0) {
     throw new Error(JSON.stringify({ errors: generation.errors }, null, 2));
   }
 
-  const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
+  const registryPath = paths.generatedPluginRegistryPath;
+  const relativePath = projectRelativePath(projectRoot, registryPath);
   const currentSource = await readOptional(registryPath);
   if (currentSource === generation.capabilityCatalog.source) {
     return {
       changed: false,
-      path: GENERATED_PLUGIN_REGISTRY_PATH,
+      path: relativePath,
       pluginIds: generation.capabilityCatalog.pluginIds,
     };
   }
@@ -69,7 +71,7 @@ export async function writeGeneratedPluginRegistry(
 
   return {
     changed: true,
-    path: GENERATED_PLUGIN_REGISTRY_PATH,
+    path: relativePath,
     pluginIds: generation.capabilityCatalog.pluginIds,
   };
 }

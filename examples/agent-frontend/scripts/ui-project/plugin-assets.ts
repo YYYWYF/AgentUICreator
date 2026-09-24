@@ -2,6 +2,7 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 
 import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
+import type { AgentUIProjectPaths } from "./agent-ui-project-paths";
 import type {
   PluginAsset,
   PluginAssetInventory,
@@ -31,9 +32,10 @@ export async function pathExists(filePath: string): Promise<boolean> {
 
 export async function collectPluginAssets(
   projectRoot: string,
+  paths: AgentUIProjectPaths,
   config: UIProjectControlConfig,
 ): Promise<PluginAssetInventory> {
-  const pluginsRoot = path.join(projectRoot, "plugins");
+  const pluginsRoot = paths.pluginsRoot;
   const excludedPaths = new Set([
     ...config.catalogs,
     ...(config.nonPluginDirectories ?? []),

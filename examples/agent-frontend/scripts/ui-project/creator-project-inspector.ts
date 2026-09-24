@@ -8,19 +8,22 @@ import {
   type AgentUIProjectConfigV1,
 } from "../../framework/contracts/agent-ui-project";
 import { parseAppUIModelJson } from "../../framework/contracts/app-ui-model";
-import { resolveAgentUIProjectPaths, type AgentUIProjectPaths } from "./agent-ui-project-paths";
+import { resolveAgentUIProjectPaths, projectControlConfigForPaths, projectRelativePath, type AgentUIProjectPaths } from "./agent-ui-project-paths";
+import { generatePluginRegistry, PLUGIN_REGISTRY_ENTRY_SOURCE } from "./registry-generator";
+import { verifyPluginChildSlots } from "./plugin-child-slot-verifier";
 import { uiProjectControlConfig } from "./project-config";
 import type { UIProjectControlConfig } from "./types";
 
 export interface CreatorProjectIssue {
   readonly code: string;
   readonly message: string;
+  readonly severity?: "error" | "warning";
 }
 
 export type CreatorProjectState =
   | { readonly status: "uninitialized" }
-  | { readonly status: "ready"; readonly projectConfig: AgentUIProjectConfig; readonly paths: AgentUIProjectPaths }
-  | { readonly status: "legacy"; readonly projectConfig: AgentUIProjectConfigV1; readonly paths: AgentUIProjectPaths }
+  | { readonly status: "ready"; readonly projectConfig: AgentUIProjectConfig; readonly paths: AgentUIProjectPaths; readonly warnings?: CreatorProjectIssue[] }
+  | { readonly status: "legacy"; readonly projectConfig: AgentUIProjectConfigV1; readonly paths: AgentUIProjectPaths; readonly warnings?: CreatorProjectIssue[] }
   | { readonly status: "broken"; readonly issues: CreatorProjectIssue[] };
 
 async function optionalFile(filePath: string): Promise<string | undefined> {
@@ -33,10 +36,10 @@ async function optionalFile(filePath: string): Promise<string | undefined> {
 }
 
 function broken(code: string, error: unknown): CreatorProjectState {
-  return { status: "broken", issues: [{ code, message: error instanceof Error ? error.message : String(error) }] };
+  return { status: "broken", issues: [{ code, message: error instanceof Error ? error.message : String(error), severity: "error" }] };
 }
 
-export async function inspectCreatorProject(
+export async function inspectCreatorProjectStructure(
   projectRoot: string,
   config: UIProjectControlConfig = uiProjectControlConfig,
 ): Promise<CreatorProjectState> {
@@ -109,4 +112,58 @@ export async function inspectCreatorProject(
     }
   }
   return { status: "ready", projectConfig, paths };
+}
+
+export async function inspectCreatorProject(
+  projectRoot: string,
+  config: UIProjectControlConfig = uiProjectControlConfig,
+): Promise<CreatorProjectState> {
+  const structure = await inspectCreatorProjectStructure(projectRoot, config);
+  if (structure.status !== "ready" && structure.status !== "legacy") return structure;
+
+  const { paths, projectConfig } = structure;
+  try {
+    const model = parseAppUIModelJson(await readFile(paths.appUIModelPath, "utf8"));
+    const generation = await generatePluginRegistry(projectRoot, model, {
+      config: projectControlConfigForPaths(paths, config), paths,
+    });
+    const selected = new Set(generation.activeComposition.selectedPluginIds);
+    const childSlotIssues = await verifyPluginChildSlots(
+      projectRoot,
+      generation.assets.filter((asset) => selected.has(asset.pluginId)),
+    );
+    const errors = [
+      ...generation.errors,
+      ...generation.serviceDependencies.issues,
+      ...childSlotIssues,
+    ];
+    if (errors.length > 0) {
+      return { status: "broken", issues: errors.map((issue) => ({
+        code: issue.code, message: issue.message, severity: "error" as const,
+      })) };
+    }
+    const warnings: CreatorProjectIssue[] = [];
+    const generatedSource = await optionalFile(paths.generatedPluginRegistryPath);
+    if (generatedSource !== generation.capabilityCatalog.source) {
+      warnings.push({
+        code: "AGENT_UI_GENERATED_REGISTRY_STALE",
+        message: `${projectRelativePath(projectRoot, paths.generatedPluginRegistryPath)} is missing or stale.`,
+        severity: "warning",
+      });
+    }
+    const entrySource = await optionalFile(paths.pluginRegistryEntryPath);
+    if (entrySource !== PLUGIN_REGISTRY_ENTRY_SOURCE) {
+      warnings.push({
+        code: "AGENT_UI_REGISTRY_ENTRY_STALE",
+        message: `${projectRelativePath(projectRoot, paths.pluginRegistryEntryPath)} is missing or stale.`,
+        severity: "warning",
+      });
+    }
+    if (structure.status === "legacy") {
+      return { ...structure, ...(warnings.length === 0 ? {} : { warnings }) };
+    }
+    return { ...structure, ...(warnings.length === 0 ? {} : { warnings }) };
+  } catch (error) {
+    return broken("AGENT_UI_STATIC_INSPECTION_FAILED", error);
+  }
 }

@@ -25,6 +25,10 @@ describe("Agent UI project paths", () => {
     const paths = resolveAgentUIProjectPaths(root, config);
     expect(paths.sourceRoot).toBe(path.join(root, sourceRoot));
     expect(paths.appUIModelPath).toBe(path.join(root, sourceRoot, "app-ui/app-ui.json"));
+    expect(paths.pluginsRoot).toBe(path.join(root, sourceRoot, "plugins"));
+    expect(paths.generatedPluginRegistryPath).toBe(path.join(root, sourceRoot, "plugins/registry.generated.ts"));
+    expect(paths.pluginRegistryEntryPath).toBe(path.join(root, sourceRoot, "plugins/index.ts"));
+    expect(paths.runtimeRoot).toBe(path.join(root, sourceRoot, "runtime"));
     expect(paths.projectConfigPath).toBe(path.join(root, ".agent-ui/project.json"));
     expect(paths.sourceLockPath).toBe(path.join(root, ".agent-ui/source-lock.json"));
   });
@@ -40,5 +44,9 @@ describe("Agent UI project paths", () => {
     const paths = resolveAgentUIProjectPaths(root, { version: "1", mode: "platform" });
     expect(paths.sourceRoot).toBe(path.join(root, "agent-ui"));
     expect(paths.appUIModelPath).toBe(path.join(root, "app-ui/app-ui.json"));
+    expect(paths.pluginsRoot).toBe(path.join(root, "plugins"));
+    expect(paths.generatedPluginRegistryPath).toBe(path.join(root, "plugins/registry.generated.ts"));
+    expect(paths.pluginRegistryEntryPath).toBe(path.join(root, "plugins/index.ts"));
+    expect(paths.runtimeRoot).toBe(path.join(root, "runtime"));
   });
 });

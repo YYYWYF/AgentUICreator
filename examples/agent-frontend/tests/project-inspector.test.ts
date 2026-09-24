@@ -13,10 +13,10 @@ import {
 } from "../scripts/ui-project/project-inspector";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
-  generatePluginRegistry,
   PLUGIN_REGISTRY_ENTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
 } from "../scripts/ui-project/registry-generator";
+import { generatePluginRegistry } from "./legacy-project-paths";
 import type { UIProjectControlConfig } from "../scripts/ui-project/types";
 
 const temporaryProjects: string[] = [];

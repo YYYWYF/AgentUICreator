@@ -35,7 +35,6 @@ import {
   type AppUIPluginTarget,
 } from "./app-ui-operations";
 import {
-  GENERATED_PLUGIN_REGISTRY_PATH,
   collectPluginProjectFacts,
   generatePluginRegistry,
   generatePluginRegistryFromFacts,
@@ -52,12 +51,13 @@ import {
   type CreatorActionBinding,
 } from "./creator-action-catalog";
 import { readAgentUIProjectConfig } from "./project-mode";
-import { resolveAgentUIProjectPaths } from "./agent-ui-project-paths";
+import { resolveAgentUIProjectPaths, projectControlConfigForPaths, projectRelativePath, type AgentUIProjectPaths } from "./agent-ui-project-paths";
 import { verifyPluginChildSlots } from "./plugin-child-slot-verifier";
 import type {
   GeneratePluginCatalogResult,
   PluginProjectFacts,
   ProjectIssue,
+  UIProjectControlConfig,
 } from "./types";
 import { projectWorkspaceTopology, WorkspaceTopologyError } from "./workspace-topology";
 
@@ -382,7 +382,7 @@ async function writeJournal(
   );
 }
 
-function parseJournal(input: unknown, appUIModelPath: string, compositionRevisionPath: string): AppUITransactionJournal {
+function parseJournal(input: unknown, appUIModelPath: string, compositionRevisionPath: string, registryPath: string): AppUITransactionJournal {
   const stateSchema = z.strictObject({
     exists: z.boolean(),
     source: z.string().optional(),
@@ -393,7 +393,7 @@ function parseJournal(input: unknown, appUIModelPath: string, compositionRevisio
     transactionId: z.string().uuid(),
     files: z.array(
       z.strictObject({
-        relativePath: z.string().refine((value) => [appUIModelPath, compositionRevisionPath, GENERATED_PLUGIN_REGISTRY_PATH].includes(value)),
+        relativePath: z.string().refine((value) => [appUIModelPath, compositionRevisionPath, registryPath].includes(value)),
         temporaryPath: z.string().min(1),
         before: stateSchema,
         after: stateSchema,
@@ -439,7 +439,8 @@ export async function recoverPendingAppUITransaction(
     const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config);
     const appUIModelPath = path.relative(projectRoot, paths.appUIModelPath);
     const compositionRevisionPath = path.join(path.dirname(appUIModelPath), "composition-revision.generated.json");
-    journal = parseJournal(JSON.parse(source) as unknown, appUIModelPath, compositionRevisionPath);
+    const registryPath = projectRelativePath(projectRoot, paths.generatedPluginRegistryPath);
+    journal = parseJournal(JSON.parse(source) as unknown, appUIModelPath, compositionRevisionPath, registryPath);
   } catch (error) {
     throw new AppUITransactionError(
       "APP_UI_TRANSACTION_JOURNAL_INVALID",
@@ -741,12 +742,14 @@ function semanticCompositionForAlreadySatisfiedAction(
 
 async function resolveCreatorActionExecution(
   projectRoot: string,
+  config: UIProjectControlConfig,
+  paths: AgentUIProjectPaths,
   model: AppUIModel,
   appUIModelHash: string,
   operation: Extract<AppUIOperation, { type: "execute_creator_action" }>,
   workspacePolicy: AgentUIWorkspacePolicy,
 ): Promise<CreatorActionExecutionResolution> {
-  const projectFacts = await collectPluginProjectFacts(projectRoot);
+  const projectFacts = await collectPluginProjectFacts(projectRoot, config, paths);
   const generation = generatePluginRegistryFromFacts(model, projectFacts);
   const catalog = await buildCreatorActionCatalog({
     model,
@@ -793,7 +796,7 @@ function isHeadlessLifecycleOperation(
 }
 
 async function assertHeadlessPluginLifecycleProtected(
-  projectRoot: string,
+  generateCurrentRegistry: (model: AppUIModel) => Promise<GeneratePluginCatalogResult>,
   model: AppUIModel,
   operations: readonly AppUIOperation[],
   generation?: GeneratePluginCatalogResult,
@@ -801,7 +804,7 @@ async function assertHeadlessPluginLifecycleProtected(
   const lifecycleOperations = operations.filter(isHeadlessLifecycleOperation);
   if (lifecycleOperations.length === 0) return generation;
 
-  const currentGeneration = generation ?? await generatePluginRegistry(projectRoot, model);
+  const currentGeneration = generation ?? await generateCurrentRegistry(model);
   const headlessPluginIds = new Set(
     currentGeneration.assets
       .filter((asset) => asset.capabilities.includes("headless"))
@@ -850,7 +853,7 @@ function semanticPlacementError(
 
 
 async function lowerSemanticCompositionOperations(
-  projectRoot: string,
+  generateCurrentRegistry: (model: AppUIModel) => Promise<GeneratePluginCatalogResult>,
   model: AppUIModel,
   operations: readonly AppUIOperation[],
   currentGeneration?: GeneratePluginCatalogResult,
@@ -885,7 +888,7 @@ async function lowerSemanticCompositionOperations(
 
   const operation = semanticOperations[0]!;
   if (operation.type === "move_plugin_to") {
-    const generation = currentGeneration ?? await generatePluginRegistry(projectRoot, model);
+    const generation = currentGeneration ?? await generateCurrentRegistry(model);
     const pluginMoveContracts = pluginMoveContractsForGeneration(generation);
     const expectedPlacement = operation.placement.type === "relative"
       ? {
@@ -935,7 +938,7 @@ async function lowerSemanticCompositionOperations(
     };
   }
 
-  const sharedGeneration = currentGeneration ?? await generatePluginRegistry(projectRoot, model);
+  const sharedGeneration = currentGeneration ?? await generateCurrentRegistry(model);
   const sharedPlan = planDefaultPluginInsertion(
     model,
     operation,
@@ -1039,13 +1042,17 @@ async function runTransaction(
   await recoverPendingAppUITransaction(projectRoot);
   const projectConfig = await readAgentUIProjectConfig(projectRoot);
   const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config);
+  const effectiveConfig = projectControlConfigForPaths(paths);
+  const generateCurrentRegistry = (model: AppUIModel) =>
+    generatePluginRegistry(projectRoot, model, { config: effectiveConfig, paths });
   const appUIModelRelativePath = path.relative(projectRoot, paths.appUIModelPath);
   const compositionRevisionRelativePath = path.join(path.dirname(appUIModelRelativePath), "composition-revision.generated.json");
+  const registryRelativePath = projectRelativePath(projectRoot, paths.generatedPluginRegistryPath);
   const workspacePolicy = agentUIModeRegistry.get(
     projectConfig.config.mode,
   ).workspace;
   const appUIModelPath = paths.appUIModelPath;
-  const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
+  const registryPath = paths.generatedPluginRegistryPath;
   const beforeModelSource = await readFile(appUIModelPath, "utf8");
   const beforeHash = hash(beforeModelSource);
   if (beforeHash !== input.appUIModelHash) {
@@ -1080,7 +1087,7 @@ async function runTransaction(
 
     if (!input.operations.some((operation) => operation.type === "execute_creator_action")) {
       currentGeneration = await assertHeadlessPluginLifecycleProtected(
-        projectRoot,
+        generateCurrentRegistry,
         beforeModel,
         loweredOperations,
       );
@@ -1090,6 +1097,8 @@ async function runTransaction(
     if (requestedOperation?.type === "execute_creator_action") {
       const resolved = await resolveCreatorActionExecution(
         projectRoot,
+        effectiveConfig,
+        paths,
         beforeModel,
         input.appUIModelHash,
         requestedOperation,
@@ -1154,7 +1163,7 @@ async function runTransaction(
 
     if (semanticComposition === undefined) {
       const lowered = await lowerSemanticCompositionOperations(
-        projectRoot,
+        generateCurrentRegistry,
         beforeModel,
         loweredOperations,
         currentGeneration,
@@ -1180,7 +1189,7 @@ async function runTransaction(
       };
     }
     currentGeneration = await assertHeadlessPluginLifecycleProtected(
-      projectRoot,
+      generateCurrentRegistry,
       beforeModel,
       loweredOperations,
       currentGeneration,
@@ -1250,7 +1259,7 @@ async function runTransaction(
   }
 
   const generation = projectFacts === undefined
-    ? await generatePluginRegistry(projectRoot, afterModel)
+    ? await generateCurrentRegistry(afterModel)
     : generatePluginRegistryFromFacts(afterModel, projectFacts);
   if (generation.errors.length > 0) {
     throw new AppUITransactionError(
@@ -1323,7 +1332,7 @@ async function runTransaction(
       after: afterModelSource,
     },
     {
-      relativePath: GENERATED_PLUGIN_REGISTRY_PATH,
+      relativePath: registryRelativePath,
       before: beforeRegistrySource,
       after: generation.capabilityCatalog.source,
     },

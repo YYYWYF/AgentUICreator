@@ -37,9 +37,9 @@ import {
   buildCreatorActionCatalog,
 } from "../scripts/ui-project/creator-action-catalog";
 import {
-  collectPluginProjectFacts,
   generatePluginRegistryFromFacts,
 } from "../scripts/ui-project/registry-generator";
+import { collectPluginProjectFacts } from "./legacy-project-paths";
 import type { UIProjectControlConfig } from "../scripts/ui-project/types";
 
 const mountedRoots: Root[] = [];

@@ -20,7 +20,7 @@ import {
   type PluginSlotCatalog,
   type PluginCompositionCatalog,
 } from "../../framework/contracts/app-ui-composition";
-import { uiProjectControlConfig } from "./project-config";
+import type { AgentUIProjectPaths } from "./agent-ui-project-paths";
 import { collectPluginAssets, pathExists } from "./plugin-assets";
 import {
   analyzePluginServiceDeclarations,
@@ -35,7 +35,9 @@ import type {
   UIProjectControlConfig,
 } from "./types";
 
+/** Legacy V1 fixture paths. Production paths come from AgentUIProjectPaths. */
 export const GENERATED_PLUGIN_REGISTRY_PATH = "plugins/registry.generated.ts";
+/** Legacy V1 fixture path. Production paths come from AgentUIProjectPaths. */
 export const PLUGIN_REGISTRY_ENTRY_PATH = "plugins/index.ts";
 export const PLUGIN_REGISTRY_ENTRY_SOURCE =
   [
@@ -227,9 +229,10 @@ async function collectPluginDefinitionFacts(
 
 export async function collectPluginProjectFacts(
   projectRoot: string,
-  config: UIProjectControlConfig = uiProjectControlConfig,
+  config: UIProjectControlConfig,
+  paths: AgentUIProjectPaths,
 ): Promise<PluginProjectFacts> {
-  const inventory = await collectPluginAssets(projectRoot, config);
+  const inventory = await collectPluginAssets(projectRoot, paths, config);
   const canAnalyzeServiceContracts = await pathExists(
     path.join(projectRoot, "tsconfig.json"),
   );
@@ -385,8 +388,8 @@ export function generatePluginRegistryFromFacts(
 export async function generatePluginRegistry(
   projectRoot: string,
   model: AppUIModel,
-  config: UIProjectControlConfig = uiProjectControlConfig,
+  options: { readonly config: UIProjectControlConfig; readonly paths: AgentUIProjectPaths },
 ): Promise<GeneratePluginCatalogResult> {
-  const facts = await collectPluginProjectFacts(projectRoot, config);
+  const facts = await collectPluginProjectFacts(projectRoot, options.config, options.paths);
   return generatePluginRegistryFromFacts(model, facts);
 }

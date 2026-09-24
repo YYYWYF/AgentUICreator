@@ -183,7 +183,9 @@ export async function verifyRuntimeComposition(
   }
 
   const model = parseAppUIModelJson(appUIModelSource);
-  const registry = await generatePluginRegistry(projectRoot, model, projectControlConfigForPaths(paths));
+  const registry = await generatePluginRegistry(projectRoot, model, {
+    config: projectControlConfigForPaths(paths), paths,
+  });
   if (registry.errors.length > 0) {
     throw new RuntimeCompositionVerificationError(
       "RUNTIME_COMPOSITION_VERIFICATION_FAILED",

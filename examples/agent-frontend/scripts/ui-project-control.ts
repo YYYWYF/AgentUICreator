@@ -283,14 +283,14 @@ async function inspectUIPlugin(
       `UI plugin "${pluginId}" is unavailable.`,
     );
   }
-  const pluginRoot = path.join(projectRoot, "plugins", asset.directory);
+  const pluginRoot = path.join(projectRoot, path.dirname(asset.manifestPath));
   const allEntries = (await readdir(pluginRoot, { withFileTypes: true })).sort(
     (left, right) => left.name.localeCompare(right.name),
   );
   const entries = allEntries.slice(0, MAX_PLUGIN_FILES);
   const files = await Promise.all(
     entries.map(async (entry) => {
-      const relativePath = `plugins/${asset.directory}/${entry.name}`;
+      const relativePath = path.posix.join(path.posix.dirname(asset.manifestPath), entry.name);
       if (!entry.isFile()) {
         return {
           path: relativePath,
@@ -349,6 +349,7 @@ async function inspectUIServices(projectRoot: string) {
   const model = parseAppUIModelJson(appUIModelSource);
   const inventory = await collectPluginAssets(
     projectRoot,
+    paths,
     projectControlConfigForPaths(paths),
   );
   const inspection = inspectUIServiceDependencies(
@@ -381,6 +382,7 @@ async function inspectUIPluginSourceReferences(
   }
   return inspectPluginSourceReferences(
     projectRoot,
+    resolveAgentUIProjectPaths(projectRoot, (await readAgentUIProjectConfig(projectRoot)).config),
     pluginId,
     matches[0].directory,
   );

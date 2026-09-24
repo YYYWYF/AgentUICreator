@@ -17,6 +17,7 @@ import {
   isStringLiteralLikeNode,
 } from "typescript/unstable/ast/is";
 import { API, SymbolFlags, type Project } from "typescript/unstable/sync";
+import type { AgentUIProjectPaths } from "./agent-ui-project-paths";
 
 export const MAX_PLUGIN_SOURCE_REFERENCES = 200;
 
@@ -57,6 +58,7 @@ function isWithin(root: string, candidate: string): boolean {
 
 function sourceScope(
   projectRoot: string,
+  paths: AgentUIProjectPaths,
   targetPluginRoot: string,
   filePath: string,
 ): boolean {
@@ -64,9 +66,8 @@ function sourceScope(
   if (isWithin(targetPluginRoot, resolved)) {
     return false;
   }
-  return ["plugins", "services", "src"].some((directory) =>
-    isWithin(path.join(projectRoot, directory), resolved),
-  );
+  return [paths.pluginsRoot, path.join(projectRoot, "services"), path.join(projectRoot, "src")]
+    .some((root) => isWithin(root, resolved));
 }
 
 function moduleReference(node: StringLiteralLikeNode): boolean {
@@ -220,32 +221,30 @@ function configuredPaths(value: unknown): Record<string, string[]> {
 
 export async function inspectPluginSourceReferences(
   projectRoot: string,
+  paths: AgentUIProjectPaths,
   pluginId: string,
   directory: string,
 ): Promise<PluginSourceReferenceInspection> {
   const resolvedProjectRoot = path.resolve(projectRoot);
-  const targetPluginRoot = path.join(
-    resolvedProjectRoot,
-    "plugins",
-    directory,
-  );
+  const targetPluginRoot = path.join(paths.pluginsRoot, directory);
   const scopedFiles = (
     await Promise.all(
-      ["plugins", "services", "src"].map((directoryName) =>
+      [paths.pluginsRoot, path.join(resolvedProjectRoot, "services"), path.join(resolvedProjectRoot, "src")].map((scopeRoot) =>
         collectFiles(
-          path.join(resolvedProjectRoot, directoryName),
+          scopeRoot,
           (filePath) => SOURCE_EXTENSIONS.includes(path.extname(filePath)),
         ),
       ),
     )
   ).flat();
+  const uniqueScopedFiles = [...new Set(scopedFiles)];
   const api = new API();
   const configFilePath = path.join(resolvedProjectRoot, "tsconfig.json");
   const config = api.parseConfigFile(configFilePath);
   const pathMappings = configuredPaths(config.options.paths);
   const snapshot = api.updateSnapshot({
     openProjects: [configFilePath],
-    openFiles: scopedFiles,
+    openFiles: uniqueScopedFiles,
   });
   const references: PluginSourceReference[] = [];
   const seen = new Set<string>();
@@ -258,8 +257,8 @@ export async function inspectPluginSourceReferences(
   };
 
   try {
-    for (const fileName of scopedFiles) {
-      if (!sourceScope(resolvedProjectRoot, targetPluginRoot, fileName)) {
+    for (const fileName of uniqueScopedFiles) {
+      if (!sourceScope(resolvedProjectRoot, paths, targetPluginRoot, fileName)) {
         continue;
       }
       const project = snapshot.getDefaultProjectForFile(fileName);
@@ -320,16 +319,16 @@ export async function inspectPluginSourceReferences(
 
   const styleFiles = (
     await Promise.all(
-      ["plugins", "src"].map((directoryName) =>
+      [paths.pluginsRoot, path.join(resolvedProjectRoot, "src")].map((scopeRoot) =>
         collectFiles(
-          path.join(resolvedProjectRoot, directoryName),
+          scopeRoot,
           (filePath) => STYLE_EXTENSIONS.includes(path.extname(filePath)),
         ),
       ),
     )
   ).flat();
-  for (const styleFile of styleFiles) {
-    if (!sourceScope(resolvedProjectRoot, targetPluginRoot, styleFile)) {
+  for (const styleFile of new Set(styleFiles)) {
+    if (!sourceScope(resolvedProjectRoot, paths, targetPluginRoot, styleFile)) {
       continue;
     }
     const source = await readFile(styleFile, "utf8");
@@ -358,7 +357,7 @@ export async function inspectPluginSourceReferences(
   }
 
   const manifestPaths = await collectFiles(
-    path.join(resolvedProjectRoot, "plugins"),
+    paths.pluginsRoot,
     (filePath) => path.basename(filePath) === "manifest.json",
   );
   for (const manifestPath of manifestPaths) {

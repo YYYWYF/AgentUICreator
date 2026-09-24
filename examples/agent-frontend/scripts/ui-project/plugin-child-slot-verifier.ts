@@ -143,7 +143,7 @@ export async function verifyPluginChildSlots(
     assets.map(async (asset) => ({
       asset,
       files: await collectPluginSourceFiles(
-        path.join(resolvedProjectRoot, "plugins", asset.directory),
+        path.join(resolvedProjectRoot, path.dirname(asset.manifestPath)),
       ),
     })),
   );

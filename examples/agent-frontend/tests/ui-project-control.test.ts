@@ -12,10 +12,10 @@ import {
 } from "../scripts/ui-project-control";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
-  generatePluginRegistry,
   PLUGIN_REGISTRY_ENTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
 } from "../scripts/ui-project/registry-generator";
+import { generatePluginRegistry } from "./legacy-project-paths";
 import {
   resolveRuntimeLayoutSlotId,
   resolveRuntimePluginSlotId,

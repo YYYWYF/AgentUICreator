@@ -28,9 +28,9 @@ import {
   pluginMoveContractsForGeneration,
 } from "../scripts/ui-project/creator-action-planners";
 import {
-  collectPluginProjectFacts,
   generatePluginRegistryFromFacts,
 } from "../scripts/ui-project/registry-generator";
+import { collectPluginProjectFacts, legacyProjectPaths } from "./legacy-project-paths";
 import { platformMode } from "../framework/modes/platform";
 import { projectWorkspaceTopology } from "../scripts/ui-project/workspace-topology";
 import * as registryGenerator from "../scripts/ui-project/registry-generator";
@@ -1145,6 +1145,7 @@ describe("Creator Action Catalog", () => {
     const projectFacts = await registryGenerator.collectPluginProjectFacts(
       projectRoot,
       fixtureConfig,
+      legacyProjectPaths(projectRoot, fixtureConfig),
     );
     const generation = registryGenerator.generatePluginRegistryFromFacts(
       model,

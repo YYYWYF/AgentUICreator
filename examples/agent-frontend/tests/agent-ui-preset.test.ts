@@ -14,7 +14,7 @@ import {
   agentUIPresetRegistry,
 } from "../framework/presets";
 import { agentUIModeRegistry } from "../framework/modes";
-import { generatePluginRegistry } from "../scripts/ui-project/registry-generator";
+import { generatePluginRegistry } from "./legacy-project-paths";
 import { projectWorkspaceTopology } from "../scripts/ui-project/workspace-topology";
 
 function collectLayoutPluginIds(
