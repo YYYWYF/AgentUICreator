@@ -4,6 +4,7 @@ import {
   creatorStageTitle,
   parseCreatorStepMetadata,
   projectCreatorIntentStage,
+  reconcileCreatorStagesFromRunResult,
 } from "../src/ui/creatorStageProjection.js";
 
 function productizedStage(creator: Record<string, unknown>) {
@@ -95,5 +96,53 @@ describe("Creator productized completion presentation", () => {
         },
       }),
     ).toEqual({});
+  });
+
+  it("restores postcondition metadata from the final RUN_FINISHED result", () => {
+    const [stage] = reconcileCreatorStagesFromRunResult([], {
+      productizedOperation: {
+        operation: "remove_plugin",
+        status: "committed_unverified",
+        postcondition: {
+          status: "unavailable",
+          kind: "instance_absent",
+          evidence: "Persisted AppUIModel readback was unavailable.",
+        },
+        verification: {
+          staticStatus: "passed",
+          runtimeStatus: "passed",
+        },
+      },
+    });
+
+    expect(stage?.metadata).toMatchObject({
+      status: "committed_unverified",
+      postconditionStatus: "unavailable",
+      postconditionKind: "instance_absent",
+      postconditionEvidence: "Persisted AppUIModel readback was unavailable.",
+      staticStatus: "passed",
+      runtimeStatus: "passed",
+    });
+    expect(creatorStageTitle(stage!)).toBe(
+      "修改已提交，但无法确认请求结果",
+    );
+  });
+
+  it("does not project invalid final postcondition fields", () => {
+    const [stage] = reconcileCreatorStagesFromRunResult([], {
+      productizedOperation: {
+        operation: "remove_plugin",
+        status: "committed_unverified",
+        postcondition: {
+          status: "maybe",
+          kind: "whole_project",
+          evidence: 123,
+        },
+      },
+    });
+
+    expect(stage?.metadata).not.toHaveProperty("postconditionStatus");
+    expect(stage?.metadata).not.toHaveProperty("postconditionKind");
+    expect(stage?.metadata).not.toHaveProperty("postconditionEvidence");
   });
 });

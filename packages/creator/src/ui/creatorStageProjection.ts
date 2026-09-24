@@ -583,6 +583,7 @@ function finalProductizedMetadata(
   if (operation === undefined) return undefined;
   const metrics = finalRecord(operation.metrics);
   const verification = finalRecord(operation.verification);
+  const postcondition = finalRecord(operation.postcondition);
   const intent = finalIntentMetadata(result);
   const actionSelector = finalActionSelectorMetadata(result);
   const metadata: CreatorStageMetadata = {
@@ -593,6 +594,15 @@ function finalProductizedMetadata(
   if (intent !== undefined) Object.assign(metadata, intent);
   if (actionSelector !== undefined) Object.assign(metadata, actionSelector);
   metadata.route = "productized";
+  if (postcondition !== undefined) {
+    const status = postconditionStatusValue(postcondition.status);
+    if (status !== undefined) metadata.postconditionStatus = status;
+    const kind = postconditionKindValue(postcondition.kind);
+    if (kind !== undefined) metadata.postconditionKind = kind;
+    if (typeof postcondition.evidence === "string") {
+      metadata.postconditionEvidence = postcondition.evidence;
+    }
+  }
   if (metrics !== undefined) {
     const fields = [
       "executionModelCalls",

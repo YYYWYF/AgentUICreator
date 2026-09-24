@@ -489,6 +489,63 @@ def test_already_satisfied_action_still_reaches_host_and_skips_post_mutation_ver
     ]
 
 
+def test_already_satisfied_requires_persisted_postcondition_evidence():
+    candidate = action("remove_plugin", status="already_satisfied")
+    source = post_mutation_snapshot(
+        candidate,
+        app_ui_model_hash="a" * 64,
+        instances=[{
+            "id": "history-main",
+            "pluginId": "history",
+            "enabled": True,
+            "target": {"type": "layout_slot", "slotRef": "track-0-slot"},
+            "index": 0,
+        }],
+    )
+    mutation_service = FakeMutation([
+        mutation(candidate, changed=False, after_hash="a" * 64)
+    ])
+    playbook = make_playbook(
+        mutation_service,
+        SequenceSnapshotProvider([source]),
+        [],
+    )
+
+    result = asyncio.run(playbook.execute(source, candidate))
+
+    assert result.status == "failed"
+    assert result.mutationChanged is False
+    assert result.postcondition is not None
+    assert result.postcondition.status == "failed"
+    assert result.errorCode == "PRODUCT_OPERATION_POSTCONDITION_UNCONFIRMED"
+
+
+def test_already_satisfied_fails_when_postcondition_cannot_be_confirmed():
+    candidate = action("remove_plugin", status="already_satisfied")
+    source = post_mutation_snapshot(candidate, app_ui_model_hash="d" * 64)
+    mutation_service = FakeMutation([
+        mutation(
+            candidate,
+            changed=False,
+            before_hash="d" * 64,
+            after_hash="a" * 64,
+        )
+    ])
+    playbook = make_playbook(
+        mutation_service,
+        SequenceSnapshotProvider([source]),
+        [],
+    )
+
+    result = asyncio.run(playbook.execute(source, candidate))
+
+    assert result.status == "failed"
+    assert result.mutationChanged is False
+    assert result.postcondition is not None
+    assert result.postcondition.status == "unavailable"
+    assert result.errorCode == "PRODUCT_OPERATION_POSTCONDITION_UNCONFIRMED"
+
+
 def test_workspace_region_move_does_not_require_a_synthetic_expected_anchor():
     candidate = action("move_plugin")
     source = snapshot(candidate)
