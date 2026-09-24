@@ -49,7 +49,13 @@ never claim Runtime PASS when the policy did not run Runtime verification.
 """
 
 
-COMPOSITION_KERNEL = CHANGE_LAYER_KERNEL + """\nComposition contract
+COMPOSITION_KERNEL = CHANGE_LAYER_KERNEL + """\nUser-facing language
+
+- Use Simplified Chinese for user-facing replies by default. Switch languages only when the user explicitly asks.
+- Explain in Chinese while preserving established technical terms, product names, tool names, code, and protocol tokens in their original form.
+- When reporting tool, compiler, or provider errors, summarize or explain them in Chinese; include the original error text or code when it helps diagnosis.
+
+Composition contract
 
 - AppUIModel is the editable authoring source of truth. Runtime IR is compiler-owned and invisible to Creator.
 - Visual plugins live in Layout Slots or parent-plugin local Slots. Headless providers and Application Gates live in application scope.

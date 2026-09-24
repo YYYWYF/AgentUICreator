@@ -219,13 +219,13 @@ class CreatorDomainReadAgent:
         except GraphRecursionError as error:
             self.protocol.metrics.repeatedToolLoops += int(self.runtime.no_progress)
             raise AgentNoProgressError(
-                "Domain-read agent exceeded its recursion limit."
+                "Creator Agent 的调用次数已达到上限，请缩小请求范围后重试。"
             ) from error
         except AgentNoProgressError:
             self.protocol.metrics.repeatedToolLoops += 1
             raise
         except (httpx.TimeoutException, openai.APITimeoutError, TimeoutError) as error:
-            raise ModelTimeoutError("Creator model request timed out.") from error
+            raise ModelTimeoutError("Creator Agent 等待模型响应超时，请稍后重试。") from error
         if terminal_blocked or self.run_control.blocked:
             return self._build_result(
                 text=self.run_control.render_blocker_response(),

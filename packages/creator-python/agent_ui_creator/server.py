@@ -727,7 +727,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             RunErrorEvent(
                                 type=EventType.RUN_ERROR,
                                 code=_error_code(error),
-                                message=str(error),
+                                message=f"Creator Agent 执行失败：{error}",
                             )
                         )
                         return

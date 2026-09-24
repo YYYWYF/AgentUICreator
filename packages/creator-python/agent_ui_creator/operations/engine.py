@@ -130,14 +130,14 @@ def _operation_text(
     operation: CreatorOperationExecutionResult,
 ) -> str:
     operation_name = {
-        "add_existing_plugin": "add existing Plugin",
-        "remove_plugin": "remove Plugin instance",
-        "move_plugin": "move Plugin instance",
+        "add_existing_plugin": "添加现有插件",
+        "remove_plugin": "移除插件实例",
+        "move_plugin": "移动插件实例",
     }[operation.operation]
     if operation.status == "success":
-        return f"Completed Productized operation: {operation_name}."
+        return f"已完成：{operation_name}。"
     if operation.status == "already_satisfied":
-        return f"Already satisfied: {operation_name}."
+        return f"无需修改，已满足：{operation_name}。"
     if operation.status == "committed_unverified":
         runtime_status = (
             operation.verification.runtimeStatus
@@ -146,20 +146,17 @@ def _operation_text(
         )
         if runtime_status == "stale":
             return (
-                f"已提交 Productized operation，但 Runtime 未观测到当前修改的最新证据："
-                f"{operation_name}。"
+                f"已应用修改（{operation_name}），但运行时未观测到本次修改的最新状态。"
             )
         if runtime_status == "unavailable":
             return (
-                f"已提交 Productized operation，但 Runtime 暂不可用，未完成运行时观测："
-                f"{operation_name}。"
+                f"已应用修改（{operation_name}），但运行时暂不可用，无法完成运行时核验。"
             )
         return (
-            f"已提交 Productized operation，但当前没有可用的 Runtime 观测证据："
-            f"{operation_name}。"
+            f"已应用修改（{operation_name}），但当前没有可用的运行时核验结果。"
         )
-    detail = operation.message or operation.errorCode or "the Host rejected the operation"
-    return f"Productized operation was not completed: {detail}"
+    detail = operation.message or operation.errorCode or "宿主环境拒绝了此操作"
+    return f"操作未完成：{detail}"
 
 
 class ProductizedOperationEngine:
@@ -558,7 +555,7 @@ class ProductizedOperationEngine:
                         {
                             "id": "semantic-noop",
                             "status": "passed",
-                            "evidence": "Host reported that the requested Productized state was already satisfied.",
+                            "evidence": "宿主环境确认：请求的操作已经满足，无需修改。",
                         }
                     ],
                 }
@@ -580,7 +577,7 @@ class ProductizedOperationEngine:
                                 "status": "failed",
                                 "evidence": operation.message
                                 or operation.errorCode
-                                or "The Host did not produce a completed operation verification.",
+                                or "宿主环境未提供完整的操作核验结果。",
                             }
                         ],
                     }
@@ -621,14 +618,14 @@ class ProductizedOperationEngine:
                 "id": "net-project-change",
                 "status": "passed" if operation.mutationChanged else "failed",
                 "evidence": (
-                    f"mutationChanged={operation.mutationChanged}; "
-                    f"mutationRevision={operation.mutationRevision}."
+                    f"是否发生修改={operation.mutationChanged}；"
+                    f"修改版本={operation.mutationRevision}。"
                 ),
             },
             {
                 "id": "static-validation",
                 "status": static_check_status,
-                "evidence": f"staticStatus={verification.staticStatus}.",
+                "evidence": f"静态验证状态={verification.staticStatus}。",
             },
         ]
         if self.verification_mode != "static_only":
@@ -644,9 +641,9 @@ class ProductizedOperationEngine:
                     "id": "runtime-verification",
                     "status": runtime_check_status,
                     "evidence": (
-                        "Fresh Runtime evidence for the current operation passed."
+                        "与当前操作对应的最新运行时证据已通过核验。"
                         if runtime_status == "passed"
-                        else f"runtimeStatus={runtime_status}; fresh contradictory evidence is required before marking the committed operation failed."
+                        else f"运行时状态={runtime_status}；在将已应用的操作判为失败前，需要取得最新且明确矛盾的证据。"
                     ),
                 }
             )

@@ -30,6 +30,6 @@ def resolve_creator_verification_mode(
     )
     if value not in {"static_only", "static_and_runtime"}:
         raise CreatorModelConfigurationError(
-            "CREATOR_VERIFICATION_MODE must be static_only or static_and_runtime."
+            "CREATOR_VERIFICATION_MODE 必须是 static_only 或 static_and_runtime。"
         )
     return value  # type: ignore[return-value]

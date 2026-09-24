@@ -99,7 +99,7 @@ class CreatorRunControlState:
             code=str(code),
             source=str(source),
             message=str(message).strip()
-            or "The Creator Host found a workspace-integrity blocker.",
+            or "Creator 环境发现了工作区完整性问题。",
             details=_copy_mapping(details),
             recovery=normalized_recovery,
         )
@@ -126,9 +126,9 @@ class CreatorRunControlState:
         if blocker is None:
             raise RuntimeError("Cannot render a missing terminal blocker.")
         return (
-            "未完成修改：当前项目存在 workspace-integrity blocker。\n"
+            "本次修改未完成：当前项目存在工作区完整性问题。\n"
             f"原因：{blocker.message}\n"
-            "本轮没有跨任务范围自动修改相关源码。"
+            "本轮没有跨越任务范围自动修改相关源码。"
         )
 
     def blocker_dict(self) -> dict[str, Any] | None:

@@ -29,14 +29,14 @@ def _parse_environment_file(config_root: Path | None) -> dict[str, str]:
             continue
         if "=" not in line:
             raise CreatorModelConfigurationError(
-                f"{CREATOR_HOST_ENV_FILE} line {index} is not a valid assignment."
+                f"{CREATOR_HOST_ENV_FILE} 第 {index} 行格式不正确，应为 KEY=VALUE。"
             )
         key, raw_value = line.split("=", 1)
         key = key.strip()
         value = raw_value.strip()
         if not key.replace("_", "a").isalnum() or key[0].isdigit():
             raise CreatorModelConfigurationError(
-                f"{CREATOR_HOST_ENV_FILE} line {index} has an invalid key."
+                f"{CREATOR_HOST_ENV_FILE} 第 {index} 行的变量名称无效。"
             )
         if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
             value = value[1:-1]
@@ -57,7 +57,7 @@ def load_python_agent_mode(
     )
     if mode not in {"echo", "minimal", "domain-read", "domain-write"}:
         raise CreatorModelConfigurationError(
-            "CREATOR_PYTHON_AGENT_MODE must be echo, minimal, domain-read, or domain-write."
+            "CREATOR_PYTHON_AGENT_MODE 必须是 echo、minimal、domain-read 或 domain-write。"
         )
     return mode
 
@@ -89,9 +89,9 @@ def _number(
     try:
         parsed = cast(value)
     except ValueError as error:
-        raise CreatorModelConfigurationError(f"{name} must be numeric.") from error
+        raise CreatorModelConfigurationError(f"{name} 必须是数字。") from error
     if parsed < 0:
-        raise CreatorModelConfigurationError(f"{name} must not be negative.")
+        raise CreatorModelConfigurationError(f"{name} 不能小于 0。")
     return parsed
 
 
@@ -118,7 +118,7 @@ class CreatorModelSettings:
         provider = _first_value(environment, file_values, "CREATOR_MODEL_PROVIDER", "MODEL_PROVIDER")
         if provider is not None and provider != "openai":
             raise CreatorModelConfigurationError(
-                "Python Creator requires an OpenAI-compatible provider."
+                "Python Creator 需要使用兼容 OpenAI API 的模型服务。"
             )
 
         model_name = _first_value(
@@ -140,11 +140,11 @@ class CreatorModelSettings:
         )
         if base_url is None:
             raise CreatorModelConfigurationError(
-                "Missing Creator model base URL. Set CREATOR_MODEL_BASE_URL or MODEL_BASE_URL."
+                "缺少 Creator 模型服务地址。请设置 CREATOR_MODEL_BASE_URL 或 MODEL_BASE_URL。"
             )
         if api_key is None:
             raise CreatorModelConfigurationError(
-                "Missing Creator model API key. Set CREATOR_MODEL_API_KEY, MODEL_API_KEY, or OPENAI_API_KEY."
+                "缺少 Creator 模型 API 密钥。请设置 CREATOR_MODEL_API_KEY、MODEL_API_KEY 或 OPENAI_API_KEY。"
             )
 
         temperature = _number(
@@ -176,7 +176,7 @@ class CreatorModelSettings:
         ) == "1"
         if max_tokens == 0 or timeout_seconds == 0:
             raise CreatorModelConfigurationError(
-                "Creator model max tokens and timeout must be positive."
+                "Creator 模型的最大 token 数和超时时间必须大于 0。"
             )
         return cls(
             model_name=model_name,
@@ -211,7 +211,9 @@ class CreatorSelectorModelSettings:
             cast=int,
         )
         if max_tokens == 0:
-            raise CreatorModelConfigurationError("CREATOR_SELECTOR_MAX_TOKENS must be positive.")
+            raise CreatorModelConfigurationError(
+                "CREATOR_SELECTOR_MAX_TOKENS 必须大于 0。"
+            )
         reasoning_effort = _first_value(
             environment, file_values, "CREATOR_SELECTOR_REASONING_EFFORT"
         )

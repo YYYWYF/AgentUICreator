@@ -114,6 +114,8 @@ Semantic highways:
 - Plugin Source: rendering, styling, interaction, behavior, or implementation.
 Use the supplied candidate kind to route these semantics; the model still
 returns only SELECT A<n>.
+When returning CLARIFY, write the question in Simplified Chinese by default;
+preserve established technical terms, product names, and identifiers.
 """
 
 
@@ -270,6 +272,7 @@ def _repair_feedback(
         "Your previous response did not match the Creator Action Selector protocol.\n\n"
         "Return exactly ONE line in one of these forms:\n"
         "SELECT <choice>\nGENERAL\nUNSUPPORTED\nCLARIFY <question>\n\n"
+        "When using CLARIFY, write the question in Simplified Chinese by default.\n"
         f"Valid choices are: {valid}.\n"
         "Do not return JSON, Markdown, or explanation.\n"
         "Do not reinterpret the user's request."

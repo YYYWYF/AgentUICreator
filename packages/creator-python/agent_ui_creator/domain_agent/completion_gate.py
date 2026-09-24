@@ -94,17 +94,17 @@ class CreatorDevelopmentCompletionGate:
     def _runtime_observation_text(runtime_status: str) -> str:
         if runtime_status == "stale":
             return (
-                "静态验证已经通过；Runtime 未观测到当前修改的最新证据。"
-                "修改已提交，暂不判定为 Runtime 失败。"
+                "静态检查已通过，但运行时尚未反馈本次修改后的最新状态。"
+                "修改已应用，暂时无法确认运行时状态。"
             )
         if runtime_status == "unavailable":
             return (
-                "静态验证已经通过；Runtime 暂不可用。"
-                "修改已提交，暂不判定为 Runtime 失败。"
+                "静态检查已通过，但运行时当前不可用。"
+                "修改已应用，暂时无法完成运行时核验。"
             )
         return (
-            "静态验证已经通过；当前没有 fresh Runtime 证据明确矛盾。"
-            "修改已提交，暂不判定为 Runtime 失败。"
+            "静态检查已通过；目前没有最新运行时证据表明存在问题。"
+            "修改已应用，暂时无法确认运行时状态。"
         )
 
     @staticmethod
@@ -148,14 +148,14 @@ class CreatorDevelopmentCompletionGate:
                                 self._check(
                                     "service-authorization",
                                     False,
-                                    "Applied Service authorization requires current Host validation.",
+                                    "已应用的服务授权需要通过当前宿主环境验证。",
                                 )
                             ],
                         }
                     )
                     return CompletionDecision(
                         False,
-                        "无法确认请求已经完成：当前 Service authorization 尚未完成最终验证。",
+                        "无法确认请求已经完成：当前服务授权尚未完成最终验证。",
                         (
                             "Applied Service authorization cannot be completed by a semantic noop. "
                             "Run current-revision Host validation"
@@ -178,9 +178,9 @@ class CreatorDevelopmentCompletionGate:
                                 "semantic-noop",
                                 True,
                                 (
-                                    "Host-validated semantic mutation reported changed=false; "
-                                    f"source={semantic_noop.get('source', 'unknown')}; "
-                                    f"reason={semantic_noop.get('reason', 'already-satisfied')}."
+                                    "宿主环境报告：语义操作未产生变更；"
+                                    f"来源={semantic_noop.get('source', 'unknown')}；"
+                                    f"原因={semantic_noop.get('reason', 'already-satisfied')}。"
                                 ),
                             )
                         ],
@@ -202,7 +202,7 @@ class CreatorDevelopmentCompletionGate:
                             self._check(
                                 "net-project-change",
                                 False,
-                                "The run produced no net project file change and was not declared read-only.",
+                                "本次运行没有产生项目文件变更，也未声明为只读任务。",
                             )
                         ],
                     }
@@ -231,7 +231,7 @@ class CreatorDevelopmentCompletionGate:
                         self._check(
                             "net-project-change",
                             True,
-                            "No net project file change was produced by this run.",
+                            "本次运行没有产生项目文件变更。",
                         )
                     ],
                 }
@@ -281,8 +281,8 @@ class CreatorDevelopmentCompletionGate:
                         f"exitCode={check.exit_code}"
                         if check is not None
                         else (
-                            "No passing validation exists for current revision "
-                            f"{self.activity.revision}."
+                            "当前修改版本尚无通过的验证结果："
+                            f"{self.activity.revision}。"
                         )
                     ),
                 )
@@ -312,14 +312,14 @@ class CreatorDevelopmentCompletionGate:
                 return CompletionDecision(
                     True,
                     (
-                        "当前修改已保留，但 Creator Host 发现了不属于本轮可自动修复范围的 "
-                        "workspace-integrity 阻塞。为保持任务边界，未跨层修改源码；"
-                        f"归因={attribution}。请先单独处理该阻塞，或明确授权把它纳入任务范围。"
+                        "当前修改已保留，但 Creator 环境发现了超出本轮自动修复范围的工作区完整性问题。"
+                        "为保持任务边界，本轮未跨层修改源码；"
+                        f"归因：{attribution}。请先单独处理该问题，或明确将它纳入本次任务范围。"
                     ),
                 )
             text = (
-                "无法确认本次插件开发已经完成：当前 mutation revision 尚未通过 "
-                "Creator Host 的 verify:ui 与 typecheck。修改已保留，请根据最新验证证据继续修复。"
+                "无法确认本次插件开发已经完成：当前修改版本尚未通过 Creator 环境的 "
+                "verify:ui 和类型检查（typecheck）。修改已保留，请根据最新验证结果继续修复。"
             )
             validation_evidence = (
                 "No validation was run for the current revision."
@@ -390,11 +390,11 @@ class CreatorDevelopmentCompletionGate:
                 "runtime-verification",
                 runtime_passed,
                 (
-                    "Fresh Runtime evidence for the current AppUIModel hash has no open errors."
+                    "与当前 AppUIModel 哈希对应的最新运行时证据中没有未解决错误。"
                     if runtime_passed
-                    else "Fresh Runtime evidence explicitly contradicts the requested state."
+                    else "最新运行时证据明确表明当前状态与请求不符。"
                     if fresh_runtime_contradiction
-                    else f"runtimeStatus={runtime_status}; no fresh contradictory evidence is available."
+                    else f"运行时状态={runtime_status}；目前没有最新证据表明存在矛盾。"
                 ),
             )
         )
@@ -455,8 +455,8 @@ class CreatorDevelopmentCompletionGate:
                 and geometry_verification.get("status") == "failed"
             ):
                 text = (
-                    "无法确认本次插件开发已经完成：Host 的最新 Runtime 几何证据与请求的"
-                    " Composition placement 或尺寸矛盾。修改已保留，请继续修复并重新验证。"
+                    "无法确认本次插件开发已经完成：最新运行时几何证据与请求的界面组合位置或尺寸不一致。"
+                    "修改已保留，请继续修复并重新验证。"
                 )
                 if self.repair_state.limit_reached:
                     return CompletionDecision(True, text)
@@ -479,13 +479,13 @@ class CreatorDevelopmentCompletionGate:
             ]
             if not current_errors and composition_failures:
                 text = (
-                    "无法确认本次插件开发已经完成：最新 Runtime composition 与当前启用挂载不一致，"
+                    "无法确认本次插件开发已经完成：最新运行时组合状态与当前启用的插件挂载不一致，"
                     f"仍有 {len(composition_failures)} 个实例检查未通过。修改已保留，请继续修复并重新验证。"
                 )
             else:
                 text = (
-                    "无法确认本次插件开发已经完成：最新 Runtime 证据仍有 "
-                    f"{len(current_errors)} 个未解决错误。修改已保留，请继续修复并重新验证。"
+                    "无法确认本次插件开发已经完成：最新运行时证据中仍有 "
+                    f"{len(current_errors)} 个未解决的问题。修改已保留，请继续修复并重新验证。"
                 )
             changed_paths = [
                 str(item.get("path"))
@@ -512,9 +512,9 @@ class CreatorDevelopmentCompletionGate:
                 return CompletionDecision(
                     True,
                     (
-                        "当前 Composition 修改已保留，但最新 Runtime 证据暴露了当前层之外"
-                        "或无法可靠归因的 workspace-integrity 阻塞。该错误不授权本轮跨层"
-                        "修改；请单独处理，或明确把相应 repair 纳入任务范围。"
+                        "当前界面组合修改已保留，但最新运行时证据显示问题位于当前任务范围之外，"
+                        "或无法可靠判断问题归属。该问题不代表可以在本轮跨层修改；"
+                        "请单独处理，或明确将相关修复纳入本次任务范围。"
                     ),
                 )
             if self.repair_state.limit_reached:
@@ -530,8 +530,8 @@ class CreatorDevelopmentCompletionGate:
                 ),
             )
         text = (
-            "无法确认本次插件开发已经完成：Runtime 证据缺失或早于最后一次源码/组合修改。"
-            "修改已保留，请在最新 Runtime 观察到达后重新验证。"
+            "无法确认本次插件开发已经完成：缺少最新运行时证据，或现有证据早于最后一次源码/界面组合修改。"
+            "修改已保留，待运行时产生最新观察后再重新验证。"
         )
         if self.repair_state.limit_reached:
             return CompletionDecision(True, text)

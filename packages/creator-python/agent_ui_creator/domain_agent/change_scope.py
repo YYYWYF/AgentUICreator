@@ -461,7 +461,7 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
                 source=str(evidence.get("source") or "creator-host"),
                 message=str(
                     evidence.get("message")
-                    or "The Creator Host found a workspace-integrity blocker."
+                    or "Creator 环境发现了工作区完整性问题。"
                 ),
                 details=(
                     evidence.get("details")
@@ -725,15 +725,15 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
             code = "CROSS_LAYER_REPAIR_PROHIBITED"
             self.metrics.blockedCrossLayerRepairAttempts += 1
             message = (
-                "The current task-scope boundary does not authorize automatic "
-                f"repair in the {layer} layer. Stop and report the blocker."
+                "当前任务范围不允许自动修复其他层的内容。"
+                "请停止修改，并向用户说明阻塞原因。"
             )
         else:
             code = "CROSS_RESOURCE_REPAIR_PROHIBITED"
             self.metrics.blockedCrossResourceRepairAttempts += 1
             message = (
-                "The current task-scope boundary does not authorize automatic "
-                "repair of the requested resource. Stop and report the blocker."
+                "当前任务范围不允许自动修复该资源。"
+                "请停止修改，并向用户说明阻塞原因。"
             )
         content = json.dumps(
             {
