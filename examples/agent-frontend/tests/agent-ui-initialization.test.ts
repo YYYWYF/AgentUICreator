@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, readFile, symlink, writeFile } from "node:fs/promises";
+import { lstat, mkdtemp, mkdir, readFile, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,7 +16,7 @@ import { initializeAgentUIProject } from "../scripts/ui-project/initialize-agent
 const exampleRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const roots: string[] = [];
 
-async function hostProject(sourceParent?: string): Promise<string> {
+async function hostProject(sourceParent?: string, linkDependencies = true): Promise<string> {
   const projectRoot = await mkdtemp(path.join(os.tmpdir(), "agent-ui-bootstrap-"));
   roots.push(projectRoot);
   const examplePackage = JSON.parse(await readFile(path.join(exampleRoot, "package.json"), "utf8")) as {
@@ -27,7 +27,9 @@ async function hostProject(sourceParent?: string): Promise<string> {
     private: true,
     dependencies: examplePackage.dependencies,
   }));
-  await symlink(path.join(exampleRoot, "node_modules"), path.join(projectRoot, "node_modules"), "dir");
+  if (linkDependencies) {
+    await symlink(path.join(exampleRoot, "node_modules"), path.join(projectRoot, "node_modules"), "dir");
+  }
   if (sourceParent !== undefined) await mkdir(path.join(projectRoot, sourceParent), { recursive: true });
   return projectRoot;
 }
@@ -70,6 +72,15 @@ describe("Agent UI project setup", () => {
 });
 
 describe("deterministic Agent UI initializer", () => {
+  it("fails package preflight without creating project files or sourceRoot", async () => {
+    const root = await hostProject(undefined, false);
+    await expect(initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "agent-ui" }))
+      .rejects.toMatchObject({ code: "AGENT_UI_PACKAGE_REQUIREMENTS_UNMET" });
+    await expect(readFile(path.join(root, ".agent-ui/project.json"))).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(lstat(path.join(root, "agent-ui"))).rejects.toMatchObject({ code: "ENOENT" });
+    expect((await inspectCreatorProject(root)).status).toBe("uninitialized");
+  });
+
   it.each([
     ["assistant", "src/agent-ui", "src"],
     ["embedded", "agent-ui", undefined],

@@ -118,7 +118,7 @@ export async function inspectCreatorProjectStructure(
   return { status: "ready", projectConfig, paths };
 }
 
-export async function inspectCreatorProject(
+async function inspectCreatorProjectCore(
   projectRoot: string,
   config: UIProjectControlConfig = uiProjectControlConfig,
 ): Promise<CreatorProjectState> {
@@ -170,4 +170,31 @@ export async function inspectCreatorProject(
   } catch (error) {
     return broken("AGENT_UI_STATIC_INSPECTION_FAILED", error);
   }
+}
+
+export async function inspectCreatorProject(
+  projectRoot: string,
+  config: UIProjectControlConfig = uiProjectControlConfig,
+): Promise<CreatorProjectState> {
+  const state = await inspectCreatorProjectCore(projectRoot, config);
+  const metadataRoot = path.join(path.resolve(projectRoot), config.agentUI.metadataRoot);
+  if (await optionalFile(path.join(metadataRoot, "project.json")) === undefined ||
+      await optionalFile(path.join(metadataRoot, "init-transaction.json")) === undefined) {
+    return state;
+  }
+  if (state.status === "broken") {
+    return { ...state, issues: [...state.issues, {
+      code: "AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED",
+      message: "Committed Agent UI initialization needs recovery after static inspection failed.",
+      severity: "error",
+    }] };
+  }
+  if (state.status === "ready" || state.status === "legacy") {
+    return { ...state, warnings: [...(state.warnings ?? []), {
+      code: "AGENT_UI_INITIALIZATION_RECOVERY_REQUIRED",
+      message: "Committed Agent UI initialization left a journal that needs recovery.",
+      severity: "warning",
+    }] };
+  }
+  return state;
 }

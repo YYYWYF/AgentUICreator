@@ -63,6 +63,27 @@ describe("Creator Project Inspector", () => {
     });
   });
 
+  it("keeps a valid committed project ready with a recovery warning when its journal remains", async () => {
+    const { projectRoot } = await createV2ProjectFixture();
+    projects.push(projectRoot);
+    await writeFile(path.join(projectRoot, ".agent-ui/init-transaction.json"), JSON.stringify({ phase: "committed" }));
+    expect(await inspectCreatorProject(projectRoot)).toMatchObject({
+      status: "ready",
+      warnings: expect.arrayContaining([expect.objectContaining({ code: "AGENT_UI_INITIALIZATION_RECOVERY_REQUIRED" })]),
+    });
+  });
+
+  it("adds a postcondition issue when committed static inspection is broken", async () => {
+    const root = await project();
+    await config(root, { version: "2", mode: "assistant", sourceRoot: "src/agent-ui" });
+    await writeFile(path.join(root, ".agent-ui/init-transaction.json"), JSON.stringify({ phase: "postcondition-failed" }));
+    const state = await inspectCreatorProject(root);
+    expect(state.status).toBe("broken");
+    if (state.status === "broken") {
+      expect(state.issues.map((issue) => issue.code)).toContain("AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED");
+    }
+  });
+
   it("keeps structural inspection separate from static readiness", async () => {
     const root = await project();
     await model(root, "src/agent-ui/app-ui/app-ui.json");

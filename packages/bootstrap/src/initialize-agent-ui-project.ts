@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, rename, unlink, writeFile } from "node:fs/promises";
+import { mkdir, rename, rmdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { agentUIModeRegistry, type AgentUIMode } from "./project-definition.js";
@@ -39,7 +39,9 @@ export interface AgentUIInitializationHost<TModel> {
   writeAppUIModel(projectRoot: string, model: TModel, config: AgentUIProjectConfigV2): Promise<string>;
   writeGeneratedRegistry(projectRoot: string, config: AgentUIProjectConfigV2): Promise<string>;
   verifyProject(projectRoot: string, config: AgentUIProjectConfigV2): Promise<{ status: "passed" | "failed"; errors: readonly { code: string; message: string }[] }>;
-  rollbackCreatedPaths(projectRoot: string, paths: readonly string[], config: AgentUIProjectConfigV2, plannedPaths: readonly string[]): Promise<void>;
+  rollbackCreatedPaths(projectRoot: string, paths: readonly string[], config: AgentUIProjectConfigV2, plannedPaths: readonly string[], sourceRootWasMissing: boolean): Promise<void>;
+  /** Optional persistence seam for failure-path tests. */
+  writeInitializationJournal?(filePath: string, journal: AgentUIInitializationJournal, create: boolean): Promise<void>;
 }
 
 export class AgentUIInitializationError extends Error {
@@ -54,8 +56,10 @@ interface AgentUIInitializationJournal {
   readonly transactionId: string;
   readonly mode: AgentUIMode;
   readonly sourceRoot: string;
+  readonly plannedPaths: readonly string[];
   readonly createdPaths: readonly string[];
-  readonly phase: "preparing" | "sources-installed" | "model-written" | "verified";
+  readonly phase: "preparing" | "sources-installed" | "model-written" | "verified" | "committed" | "postcondition-failed";
+  readonly failure?: { readonly code: string; readonly message: string };
 }
 
 async function writeJournal(filePath: string, journal: AgentUIInitializationJournal, create = false): Promise<void> {
@@ -105,21 +109,25 @@ export async function initializeAgentUIProject<TModel>(
   const metadataRoot = path.join(projectRoot, ".agent-ui");
   const projectConfigPath = path.join(metadataRoot, "project.json");
   const journalPath = path.join(metadataRoot, "init-transaction.json");
+  const persistJournal = host.writeInitializationJournal ?? writeJournal;
   const createdPaths = new Set<string>();
-  let projectConfigWritten = false;
   let journalCreated = false;
   const journal: AgentUIInitializationJournal = {
     version: 1, transactionId: randomUUID(), mode: input.mode,
     sourceRoot: projectConfig.sourceRoot,
-    createdPaths: [...preflight.plannedPaths].sort(), phase: "preparing",
+    plannedPaths: [...preflight.plannedPaths].sort(), createdPaths: [], phase: "preparing",
   };
+  let installed: Awaited<ReturnType<typeof host.installSources>>;
+  // Before project.json is created, this transaction may roll back its own files.
+  // Once the create-only write succeeds, the project is committed; later failures
+  // require recovery and must never trigger automatic rollback.
   try {
     await mkdir(metadataRoot, { recursive: true });
-    await writeJournal(journalPath, journal, true);
+    await persistJournal(journalPath, journal, true);
     journalCreated = true;
-    const installed = await host.installSources(projectRoot, itemIds, projectConfig);
+    installed = await host.installSources(projectRoot, itemIds, projectConfig);
     for (const createdPath of installed.createdPaths) createdPaths.add(createdPath);
-    await writeJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "sources-installed" });
+    await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "sources-installed" }, false);
     createdPaths.add(await host.writeAppUIModel(projectRoot, model, projectConfig));
     try {
       createdPaths.add(await host.writeGeneratedRegistry(projectRoot, projectConfig));
@@ -129,7 +137,7 @@ export async function initializeAgentUIProject<TModel>(
         "Could not generate the initial Plugin Registry.", error,
       );
     }
-    await writeJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "model-written" });
+    await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "model-written" }, false);
     let verification: Awaited<ReturnType<typeof host.verifyProject>>;
     try {
       verification = await host.verifyProject(projectRoot, projectConfig);
@@ -146,7 +154,7 @@ export async function initializeAgentUIProject<TModel>(
         verification.errors,
       );
     }
-    await writeJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "verified" });
+    await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "verified" }, false);
     try {
       await writeFile(projectConfigPath, `${JSON.stringify(projectConfig, null, 2)}\n`, { flag: "wx" });
     } catch (error) {
@@ -158,27 +166,14 @@ export async function initializeAgentUIProject<TModel>(
       }
       throw error;
     }
-    projectConfigWritten = true;
-    const finalState = await host.inspectProject(projectRoot);
-    if (finalState.status !== "ready") {
-      throw new AgentUIInitializationError(
-        "AGENT_UI_INITIALIZATION_VERIFICATION_FAILED",
-        `Committed Agent UI project inspected as ${finalState.status}.`,
-      );
-    }
-    await unlink(journalPath);
-    journalCreated = false;
-    return {
-      projectConfig, presetId: preset.id,
-      createdPaths: [...createdPaths, path.relative(projectRoot, projectConfigPath).split(path.sep).join("/")].sort(),
-      installedSourceItems: installed.installedSourceItems,
-    };
   } catch (error) {
     if (!journalCreated) throw error;
-    if (projectConfigWritten) await unlink(projectConfigPath);
     try {
-      await host.rollbackCreatedPaths(projectRoot, [...createdPaths], projectConfig, preflight.plannedPaths);
-      if (journalCreated) await unlink(journalPath);
+      await host.rollbackCreatedPaths(projectRoot, [...createdPaths], projectConfig, preflight.plannedPaths, setup.sourceRoot.targetState === "missing");
+      await unlink(journalPath);
+      await rmdir(metadataRoot).catch((cleanupError: NodeJS.ErrnoException) => {
+        if (cleanupError.code !== "ENOENT" && cleanupError.code !== "ENOTEMPTY") throw cleanupError;
+      });
     } catch (rollbackError) {
       throw new AgentUIInitializationError(
         "AGENT_UI_INITIALIZATION_ROLLBACK_FAILED",
@@ -187,5 +182,40 @@ export async function initializeAgentUIProject<TModel>(
       );
     }
     throw error;
+  }
+
+  // The project.json write above is the only commit point. Everything below is post-commit.
+  try {
+    await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "committed" }, false);
+    const finalState = await host.inspectProject(projectRoot);
+    if (finalState.status !== "ready") {
+      throw new AgentUIInitializationError(
+        "AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED",
+        `Committed Agent UI project inspected as ${finalState.status}.`,
+        { finalState },
+      );
+    }
+    await unlink(journalPath);
+    return {
+      projectConfig, presetId: preset.id,
+      createdPaths: [...createdPaths, path.relative(projectRoot, projectConfigPath).split(path.sep).join("/")].sort(),
+      installedSourceItems: installed.installedSourceItems,
+    };
+  } catch (error) {
+    const failure = error instanceof AgentUIInitializationError && error.code === "AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED"
+      ? error
+      : new AgentUIInitializationError(
+        "AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED",
+        "Committed Agent UI project could not complete postcondition inspection.", error,
+      );
+    try {
+      await persistJournal(journalPath, {
+        ...journal, createdPaths: [...createdPaths].sort(), phase: "postcondition-failed",
+        failure: { code: failure.code, message: failure.message },
+      }, false);
+    } catch {
+      // Keep the original postcondition failure if the diagnostic journal cannot be updated.
+    }
+    throw failure;
   }
 }

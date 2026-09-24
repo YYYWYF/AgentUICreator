@@ -81,7 +81,7 @@ export async function initializeAgentUIProject(input: InitializeAgentUIProjectIn
       const result = await verifyUIProject(projectRoot, undefined, { projectConfigOverride: projectConfig });
       return { status: result.status, errors: result.errors };
     },
-    async rollbackCreatedPaths(projectRoot, createdPaths, projectConfig, plannedPaths) {
+    async rollbackCreatedPaths(projectRoot, createdPaths, projectConfig, plannedPaths, sourceRootWasMissing) {
       const { config, paths } = context(projectRoot, projectConfig);
       await recoverPendingAgentUISourceTransaction(projectRoot, config);
       for (const relativePath of [...new Set(createdPaths)].sort((left, right) => right.localeCompare(left))) {
@@ -90,17 +90,24 @@ export async function initializeAgentUIProject(input: InitializeAgentUIProjectIn
           if (error.code !== "ENOENT") throw error;
         });
       }
-      const sourcePrefix = `${paths.sourceRoot}${path.sep}`;
       const directories = new Set<string>();
       for (const relativePath of plannedPaths) {
         let parent = path.dirname(path.join(projectRoot, relativePath));
-        while (parent.startsWith(sourcePrefix) && parent !== paths.sourceRoot) {
+        let withinSourceRoot = path.relative(paths.sourceRoot, parent);
+        while (withinSourceRoot !== "" && withinSourceRoot !== ".." &&
+               !withinSourceRoot.startsWith(`..${path.sep}`) && !path.isAbsolute(withinSourceRoot)) {
           directories.add(parent);
           parent = path.dirname(parent);
+          withinSourceRoot = path.relative(paths.sourceRoot, parent);
         }
       }
       for (const directory of [...directories].sort((left, right) => right.length - left.length)) {
         await rmdir(directory).catch((error: NodeJS.ErrnoException) => {
+          if (error.code !== "ENOENT" && error.code !== "ENOTEMPTY") throw error;
+        });
+      }
+      if (sourceRootWasMissing) {
+        await rmdir(paths.sourceRoot).catch((error: NodeJS.ErrnoException) => {
           if (error.code !== "ENOENT" && error.code !== "ENOTEMPTY") throw error;
         });
       }
