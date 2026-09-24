@@ -634,8 +634,15 @@ function stageTitle(activity: CreatorStageActivity): string {
   if (activity.metadata?.status === "already_satisfied") {
     return "当前状态已满足，无需修改";
   }
+  if (activity.metadata?.staticStatus === "failed") {
+    return activity.metadata.status === "success"
+      ? "请求的修改已完成，静态验证未通过"
+      : "已应用修改，静态验证未通过";
+  }
   if (activity.metadata?.runtimeStatus === "not-run") {
-    return "已应用并通过静态验证";
+    return activity.metadata.staticStatus === "passed"
+      ? "已应用并通过静态验证"
+      : "已应用修改，静态验证未完成";
   }
   if (activity.metadata?.runtimeStatus === "stale") {
     return "已应用修改，Runtime 未观测到";

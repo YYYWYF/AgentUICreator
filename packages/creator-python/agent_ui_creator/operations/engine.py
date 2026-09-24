@@ -139,6 +139,11 @@ def _operation_text(
     if operation.status == "already_satisfied":
         return f"无需修改，已满足：{operation_name}。"
     if operation.status == "committed_unverified":
+        if operation.postcondition is not None:
+            return (
+                f"已应用修改（{operation_name}），但无法确认请求结果是否已持久化："
+                f"{operation.postcondition.evidence}"
+            )
         runtime_status = (
             operation.verification.runtimeStatus
             if operation.verification is not None
@@ -502,6 +507,11 @@ class ProductizedOperationEngine:
                     "operation": operation_result.operation,
                     "status": operation_result.status,
                     "errorCode": operation_result.errorCode,
+                    "postcondition": (
+                        None
+                        if operation_result.postcondition is None
+                        else operation_result.postcondition.model_dump(mode="json")
+                    ),
                     "metrics": operation_result.metrics.model_dump(mode="json"),
                 },
             )
@@ -613,13 +623,36 @@ class ProductizedOperationEngine:
             or operation.status == "committed_unverified"
             else "failed"
         )
+        postcondition_status = (
+            operation.postcondition.status
+            if operation.postcondition is not None
+            else "unavailable"
+            if operation.mutationChanged
+            else "failed"
+        )
+        postcondition_evidence = (
+            operation.postcondition.evidence
+            if operation.postcondition is not None
+            else (
+                "宿主环境报告了变更，但没有提供请求后置条件的持久化读回证据。"
+                if operation.mutationChanged
+                else "没有发生已确认的项目变更。"
+            )
+        )
+        if (
+            operation.postcondition is not None
+            and operation.postcondition.appUIModelHash is not None
+        ):
+            postcondition_evidence += (
+                " 已读回持久化 AppUIModel，哈希="
+                f"{operation.postcondition.appUIModelHash}。"
+            )
         checks: list[dict[str, str]] = [
             {
                 "id": "net-project-change",
-                "status": "passed" if operation.mutationChanged else "failed",
+                "status": postcondition_status,
                 "evidence": (
-                    f"是否发生修改={operation.mutationChanged}；"
-                    f"修改版本={operation.mutationRevision}。"
+                    f"{postcondition_evidence} 修改版本={operation.mutationRevision}。"
                 ),
             },
             {
@@ -628,7 +661,10 @@ class ProductizedOperationEngine:
                 "evidence": f"静态验证状态={verification.staticStatus}。",
             },
         ]
-        if self.verification_mode != "static_only":
+        if (
+            self.verification_mode != "static_only"
+            and runtime_status != "not-run"
+        ):
             runtime_check_status = (
                 "passed"
                 if runtime_status == "passed"

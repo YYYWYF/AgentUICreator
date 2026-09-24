@@ -11,6 +11,7 @@ from .models import (
     CreatorDomainSnapshot,
     CreatorOperationExecutionResult,
     CreatorOperationMetrics,
+    CreatorOperationPostconditionResult,
     CreatorOperationVerificationResult,
 )
 from .snapshot import CreatorDomainSnapshotProvider
@@ -346,6 +347,341 @@ def _validate_host_result(
     )
 
 
+def _layout_node_paths(layout: Mapping[str, Any]) -> dict[str, tuple[int, ...]]:
+    paths: dict[str, tuple[int, ...]] = {}
+
+    def visit(node: Any, path: tuple[int, ...]) -> None:
+        if not isinstance(node, Mapping):
+            return
+        node_ref = node.get("nodeRef")
+        if isinstance(node_ref, str):
+            paths[node_ref] = path
+        children = node.get("children")
+        if isinstance(children, list):
+            for index, child in enumerate(children):
+                visit(child, (*path, index))
+        child = node.get("child")
+        if isinstance(child, Mapping):
+            visit(child, (*path, 0))
+
+    visit(layout, ())
+    return paths
+
+
+def _instance_layout_path(
+    snapshot: CreatorDomainSnapshot,
+    instance: Mapping[str, Any],
+    paths: Mapping[str, tuple[int, ...]],
+) -> tuple[int, ...] | None:
+    target = instance.get("target")
+    if not isinstance(target, Mapping) or target.get("type") != "layout_slot":
+        return None
+    slot_ref = target.get("slotRef")
+    raw_app_ui_model = snapshot.raw.get("appUIModel")
+    slots = (
+        raw_app_ui_model.get("slots")
+        if isinstance(raw_app_ui_model, Mapping)
+        else None
+    )
+    if not isinstance(slot_ref, str) or not isinstance(slots, list):
+        return None
+    slot = next(
+        (
+            item
+            for item in slots
+            if isinstance(item, Mapping)
+            and isinstance(item.get("target"), Mapping)
+            and item["target"].get("type") == "layout_slot"
+            and item["target"].get("slotRef") == slot_ref
+        ),
+        None,
+    )
+    node_ref = slot.get("nodeRef") if isinstance(slot, Mapping) else None
+    return paths.get(node_ref) if isinstance(node_ref, str) else None
+
+
+def _relative_order_matches(
+    snapshot: CreatorDomainSnapshot,
+    instances_by_id: Mapping[str, Mapping[str, Any]],
+    instance_id: str,
+    anchor_instance_id: str,
+    relation: str,
+) -> bool | None:
+    raw_app_ui_model = snapshot.raw.get("appUIModel")
+    layout = raw_app_ui_model.get("layout") if isinstance(raw_app_ui_model, Mapping) else None
+    if not isinstance(layout, Mapping):
+        return None
+    paths = _layout_node_paths(layout)
+
+    def order_key(target_id: str) -> tuple[int, ...] | None:
+        instance = instances_by_id.get(target_id)
+        if instance is None:
+            return None
+        path = _instance_layout_path(snapshot, instance, paths)
+        index = instance.get("index")
+        if path is None or not isinstance(index, int) or isinstance(index, bool):
+            return None
+        return (*path, index)
+
+    target_key = order_key(instance_id)
+    anchor_key = order_key(anchor_instance_id)
+    if target_key is None or anchor_key is None:
+        return None
+    return target_key < anchor_key if relation == "before" else target_key > anchor_key
+
+
+def _workspace_track_matches(
+    snapshot: CreatorDomainSnapshot,
+    instances_by_id: Mapping[str, Mapping[str, Any]],
+    expected_workspace_fill: list[Mapping[str, Any]],
+) -> bool | None:
+    raw_app_ui_model = snapshot.raw.get("appUIModel")
+    if not isinstance(raw_app_ui_model, Mapping):
+        return None
+    layout = raw_app_ui_model.get("layout")
+    if not isinstance(layout, Mapping) or layout.get("type") != "row":
+        return None
+    children = layout.get("children")
+    if not isinstance(children, list):
+        return None
+    paths = _layout_node_paths(layout)
+    for expectation in expected_workspace_fill:
+        instance_id = expectation.get("instanceId")
+        track_index = expectation.get("trackIndex")
+        instance = (
+            instances_by_id.get(instance_id)
+            if isinstance(instance_id, str)
+            else None
+        )
+        if (
+            instance is None
+            or not isinstance(track_index, int)
+            or isinstance(track_index, bool)
+        ):
+            return False
+        path = _instance_layout_path(snapshot, instance, paths)
+        if (
+            path is None
+            or not path
+            or path[0] != track_index
+            or track_index >= len(children)
+        ):
+            return False
+    return True
+
+
+def _postcondition_for_snapshot(
+    snapshot: CreatorDomainSnapshot,
+    candidate: CreatorActionCandidate,
+    expectations: _HostExpectations,
+    *,
+    expected_hash: str | None,
+) -> CreatorOperationPostconditionResult:
+    kind = (
+        "instance_absent"
+        if candidate.kind == "remove_plugin"
+        else "instance_present"
+        if candidate.kind == "add_existing_plugin"
+        else "placement"
+    )
+    instance_id = expectations.instance_id
+    if instance_id is None and candidate.kind != "remove_plugin":
+        return CreatorOperationPostconditionResult(
+            status="unavailable",
+            kind=kind,
+            instanceId=candidate.target.instanceId,
+            pluginId=candidate.target.pluginId,
+            appUIModelHash=snapshot.app_ui_model_hash,
+            evidence="宿主环境未识别受影响的插件实例。",
+        )
+    if expected_hash is None or snapshot.app_ui_model_hash != expected_hash:
+        return CreatorOperationPostconditionResult(
+            status="unavailable",
+            kind=kind,
+            instanceId=instance_id,
+            pluginId=candidate.target.pluginId,
+            appUIModelHash=snapshot.app_ui_model_hash,
+            evidence="读回的 AppUIModel 哈希与宿主环境提交的哈希不一致。",
+        )
+
+    raw_instances = snapshot.raw.get("pluginInstances")
+    if not isinstance(raw_instances, list) or not all(
+        isinstance(item, Mapping) for item in raw_instances
+    ):
+        return CreatorOperationPostconditionResult(
+            status="unavailable",
+            kind=kind,
+            instanceId=instance_id,
+            pluginId=candidate.target.pluginId,
+            appUIModelHash=snapshot.app_ui_model_hash,
+            evidence="当前组合快照未包含插件实例列表。",
+        )
+    instances_by_id = {
+        item["id"]: item
+        for item in raw_instances
+        if isinstance(item.get("id"), str)
+    }
+    instance = instances_by_id.get(instance_id) if instance_id is not None else None
+
+    if candidate.kind == "remove_plugin":
+        passed = (
+            instance is None
+            if instance_id is not None
+            else all(
+                item.get("pluginId") != candidate.target.pluginId
+                for item in raw_instances
+            )
+        )
+        evidence = (
+            (
+                f"实例 {instance_id} 已从持久化 AppUIModel 中移除。"
+                if instance_id is not None
+                else f"持久化 AppUIModel 中已无 {candidate.target.pluginId} 插件实例。"
+            )
+            if passed
+            else (
+                f"实例 {instance_id} 仍存在于持久化 AppUIModel 中。"
+                if instance_id is not None
+                else f"持久化 AppUIModel 中仍存在 {candidate.target.pluginId} 插件实例。"
+            )
+        )
+    else:
+        passed = (
+            instance is not None
+            and instance.get("pluginId") == candidate.target.pluginId
+            and instance.get("enabled") is True
+        )
+        evidence = (
+            f"实例 {instance_id} 已存在并启用，插件为 {candidate.target.pluginId}。"
+            if passed
+            else f"实例 {instance_id} 缺失、已禁用，或属于其他插件。"
+        )
+
+    if passed and candidate.kind != "remove_plugin":
+        assert instance_id is not None
+        placement = expectations.expected_placement
+        if placement is not None and placement.get("type") == "plugin_slot":
+            target = instance.get("target") if instance is not None else None
+            passed = (
+                isinstance(target, Mapping)
+                and target.get("type") == "plugin_slot"
+                and target.get("parentInstanceId")
+                == placement.get("parentInstanceId")
+                and target.get("slot") == placement.get("slot")
+            )
+            evidence = (
+                f"实例 {instance_id} 位于插件槽 "
+                f"{placement.get('parentInstanceId')}.{placement.get('slot')}。"
+                if passed
+                else f"实例 {instance_id} 未位于预期的插件槽。"
+            )
+        elif placement is not None and placement.get("type") == "relative":
+            anchor_id = placement.get("anchorInstanceId")
+            relation = placement.get("relation")
+            relative_match = (
+                _relative_order_matches(
+                    snapshot,
+                    instances_by_id,
+                    instance_id,
+                    anchor_id,
+                    relation,
+                )
+                if isinstance(anchor_id, str) and relation in {"before", "after"}
+                else None
+            )
+            if relative_match is None:
+                return CreatorOperationPostconditionResult(
+                    status="unavailable",
+                    kind=kind,
+                    instanceId=instance_id,
+                    pluginId=candidate.target.pluginId,
+                    appUIModelHash=snapshot.app_ui_model_hash,
+                    evidence="持久化布局信息不足，无法确认请求的相对位置。",
+                )
+            passed = relative_match
+            relation_label = "前" if relation == "before" else "后"
+            evidence = (
+                f"实例 {instance_id} 在持久化布局中位于锚点 {anchor_id} 的{relation_label}侧。"
+                if passed
+                else "持久化布局未满足请求的相对位置。"
+            )
+        elif expectations.expected_workspace_fill:
+            workspace_match = _workspace_track_matches(
+                snapshot, instances_by_id, expectations.expected_workspace_fill
+            )
+            if workspace_match is None:
+                return CreatorOperationPostconditionResult(
+                    status="unavailable",
+                    kind=kind,
+                    instanceId=instance_id,
+                    pluginId=candidate.target.pluginId,
+                    appUIModelHash=snapshot.app_ui_model_hash,
+                    evidence="持久化布局未提供可核对的 Workspace 行轨道。",
+                )
+            passed = workspace_match
+            evidence = (
+                "持久化 Workspace 实例位于预期的行轨道。"
+                if passed
+                else "持久化布局未满足预期的 Workspace 行轨道。"
+            )
+        elif candidate.effect.type == "row_edge":
+            raw_app_ui_model = snapshot.raw.get("appUIModel")
+            layout = (
+                raw_app_ui_model.get("layout")
+                if isinstance(raw_app_ui_model, Mapping)
+                else None
+            )
+            children = (
+                layout.get("children") if isinstance(layout, Mapping) else None
+            )
+            paths = _layout_node_paths(layout) if isinstance(layout, Mapping) else {}
+            path = _instance_layout_path(snapshot, instance, paths) if instance is not None else None
+            edge = getattr(candidate.effect, "edge", None)
+            if (
+                not isinstance(children, list)
+                or not children
+                or path is None
+                or not path
+            ):
+                return CreatorOperationPostconditionResult(
+                    status="unavailable",
+                    kind=kind,
+                    instanceId=instance_id,
+                    pluginId=candidate.target.pluginId,
+                    appUIModelHash=snapshot.app_ui_model_hash,
+                    evidence="持久化布局未提供目标行分支信息。",
+                )
+            passed = (
+                path[0] == 0
+                if edge == "left"
+                else path[0] == len(children) - 1
+            )
+            evidence = (
+                f"实例 {instance_id} 位于持久化行布局的"
+                f"{'左' if edge == 'left' else '右'}侧。"
+                if passed
+                else f"持久化布局未满足行布局的{'左' if edge == 'left' else '右'}侧位置。"
+            )
+        elif candidate.effect.type == "workspace_region":
+            return CreatorOperationPostconditionResult(
+                status="unavailable",
+                kind=kind,
+                instanceId=instance_id,
+                pluginId=candidate.target.pluginId,
+                appUIModelHash=snapshot.app_ui_model_hash,
+                evidence="宿主环境未提供可核对的 Workspace 轨道预期。",
+            )
+
+    return CreatorOperationPostconditionResult(
+        status="passed" if passed else "failed",
+        kind=kind,
+        instanceId=instance_id,
+        pluginId=candidate.target.pluginId,
+        appUIModelHash=snapshot.app_ui_model_hash,
+        evidence=evidence,
+    )
+
+
 class CreatorActionExecutionPlaybook:
     """Execute one exact Host-generated Creator Action by actionId."""
 
@@ -385,6 +721,7 @@ class CreatorActionExecutionPlaybook:
         instance_id: str | None = None,
         mutation_changed: bool = False,
         mutation_revision: int | None = None,
+        postcondition: CreatorOperationPostconditionResult | None = None,
         verification: CreatorOperationVerificationResult | None = None,
         error_code: str | None = None,
         message: str | None = None,
@@ -399,6 +736,7 @@ class CreatorActionExecutionPlaybook:
             instanceId=instance_id,
             mutationChanged=mutation_changed,
             mutationRevision=mutation_revision,
+            postcondition=postcondition,
             verification=verification,
             metrics=self._metrics(
                 started_at,
@@ -419,6 +757,78 @@ class CreatorActionExecutionPlaybook:
     def _mutation_revision(mutation: Mapping[str, Any]) -> int | None:
         value = mutation.get("mutationRevision")
         return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+    async def _postcondition_after_mutation(
+        self,
+        *,
+        candidate: CreatorActionCandidate,
+        expectations: _HostExpectations,
+        mutation: Mapping[str, Any],
+    ) -> CreatorOperationPostconditionResult:
+        app_ui_model = mutation.get("appUIModel")
+        expected_hash = (
+            app_ui_model.get("afterHash")
+            if isinstance(app_ui_model, Mapping)
+            else None
+        )
+        changed_paths = mutation.get("changedPaths")
+        if (
+            mutation.get("changed") is not True
+            or not isinstance(changed_paths, list)
+            or "app-ui/app-ui.json" not in changed_paths
+        ):
+            return CreatorOperationPostconditionResult(
+                status="failed",
+                kind=(
+                    "instance_absent"
+                    if candidate.kind == "remove_plugin"
+                    else "instance_present"
+                    if candidate.kind == "add_existing_plugin"
+                    else "placement"
+                ),
+                instanceId=expectations.instance_id or candidate.target.instanceId,
+                pluginId=candidate.target.pluginId,
+                evidence="宿主环境未报告 AppUIModel 文件发生持久化变更。",
+            )
+        if not isinstance(expected_hash, str):
+            return CreatorOperationPostconditionResult(
+                status="unavailable",
+                kind=(
+                    "instance_absent"
+                    if candidate.kind == "remove_plugin"
+                    else "instance_present"
+                    if candidate.kind == "add_existing_plugin"
+                    else "placement"
+                ),
+                instanceId=expectations.instance_id or candidate.target.instanceId,
+                pluginId=candidate.target.pluginId,
+                evidence="宿主环境未提供提交后的 AppUIModel 哈希。",
+            )
+        try:
+            snapshot = await self.snapshot_provider.build()
+        except Exception as error:
+            return CreatorOperationPostconditionResult(
+                status="unavailable",
+                kind=(
+                    "instance_absent"
+                    if candidate.kind == "remove_plugin"
+                    else "instance_present"
+                    if candidate.kind == "add_existing_plugin"
+                    else "placement"
+                ),
+                instanceId=expectations.instance_id or candidate.target.instanceId,
+                pluginId=candidate.target.pluginId,
+                evidence=(
+                    "无法读回持久化 AppUIModel（"
+                    f"{type(error).__name__}）。"
+                ),
+            )
+        return _postcondition_for_snapshot(
+            snapshot,
+            candidate,
+            expectations,
+            expected_hash=expected_hash,
+        )
 
     def _mutation_failure(
         self,
@@ -587,17 +997,55 @@ class CreatorActionExecutionPlaybook:
 
             mutation_revision = self._mutation_revision(mutation)
             if mutation.get("changed") is False:
+                raw_app_ui_model = mutation.get("appUIModel")
+                after_hash = (
+                    raw_app_ui_model.get("afterHash")
+                    if isinstance(raw_app_ui_model, Mapping)
+                    else None
+                )
+                postcondition = _postcondition_for_snapshot(
+                    current_snapshot,
+                    current_candidate,
+                    expectations,
+                    expected_hash=after_hash if isinstance(after_hash, str) else None,
+                )
+                status = (
+                    "already_satisfied"
+                    if postcondition.status == "passed"
+                    else "failed"
+                )
                 return self._result(
                     started_at,
                     candidate=current_candidate,
-                    status="already_satisfied",
+                    status=status,
                     instance_id=expectations.instance_id,
                     mutation_changed=False,
                     mutation_revision=mutation_revision,
+                    postcondition=postcondition,
+                    error_code=(
+                        None
+                        if status == "already_satisfied"
+                        else "PRODUCT_OPERATION_POSTCONDITION_UNCONFIRMED"
+                    ),
+                    message=(
+                        None
+                        if status == "already_satisfied"
+                        else "当前 AppUIModel 未能证明请求的操作已满足。"
+                    ),
+                    details=(
+                        None
+                        if status == "already_satisfied"
+                        else postcondition.model_dump(mode="json")
+                    ),
                     mutation_attempts=mutation_attempts,
                     snapshot_refreshes=snapshot_refreshes,
                 )
 
+            postcondition = await self._postcondition_after_mutation(
+                candidate=current_candidate,
+                expectations=expectations,
+                mutation=mutation,
+            )
             verification = await self.verification.verify(
                 mutation_result=mutation,
                 expected_runtime=expectations.expected_runtime,
@@ -605,18 +1053,9 @@ class CreatorActionExecutionPlaybook:
                 expected_placement=expectations.expected_placement,
                 expected_workspace_fill=expectations.expected_workspace_fill,
             )
-            if (
-                verification.staticStatus == "passed"
-                and (
-                    verification.runtimeStatus == "passed"
-                    or (
-                        self.verification.verification_mode == "static_only"
-                        and verification.runtimeStatus == "not-run"
-                    )
-                )
-            ):
+            if postcondition.status == "passed":
                 status = "success"
-            elif verification.runtimeStatus in {"stale", "unavailable"}:
+            elif postcondition.status == "unavailable":
                 status = "committed_unverified"
             else:
                 status = "failed"
@@ -627,7 +1066,25 @@ class CreatorActionExecutionPlaybook:
                 instance_id=expectations.instance_id,
                 mutation_changed=True,
                 mutation_revision=mutation_revision,
+                postcondition=postcondition,
                 verification=verification,
+                error_code=(
+                    "PRODUCT_OPERATION_POSTCONDITION_FAILED"
+                    if postcondition.status == "failed"
+                    else None
+                ),
+                message=(
+                    "持久化 AppUIModel 未满足请求的操作后置条件。"
+                    if postcondition.status == "failed"
+                    else "AppUIModel 变更已持久化，但无法确认请求的操作后置条件。"
+                    if postcondition.status == "unavailable"
+                    else None
+                ),
+                details=(
+                    None
+                    if postcondition.status == "passed"
+                    else postcondition.model_dump(mode="json")
+                ),
                 mutation_attempts=mutation_attempts,
                 snapshot_refreshes=snapshot_refreshes,
             )

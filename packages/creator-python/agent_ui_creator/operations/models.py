@@ -731,6 +731,19 @@ class CreatorOperationVerificationResult(BaseModel):
     visualObservationBytes: int | None = Field(default=None, ge=0)
 
 
+class CreatorOperationPostconditionResult(BaseModel):
+    """Evidence that the requested AppUIModel effect exists in persisted state."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["passed", "failed", "unavailable"]
+    kind: Literal["instance_present", "instance_absent", "placement"]
+    instanceId: BoundedPluginInstanceId | None = None
+    pluginId: BoundedPluginId
+    appUIModelHash: str | None = None
+    evidence: Annotated[str, Field(max_length=600)]
+
+
 class CreatorOperationMetrics(BaseModel):
     """Minimal metrics kept local to the Productized operation path."""
 
@@ -755,6 +768,7 @@ class CreatorOperationExecutionResult(BaseModel):
     instanceId: BoundedPluginInstanceId | None = None
     mutationChanged: bool = False
     mutationRevision: int | None = Field(default=None, ge=0)
+    postcondition: CreatorOperationPostconditionResult | None = None
     verification: CreatorOperationVerificationResult | None = None
     metrics: CreatorOperationMetrics
     errorCode: str | None = None
