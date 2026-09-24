@@ -1,0 +1,27 @@
+{
+  "valid": [
+    "agent-ui",
+    "src/agent-ui",
+    "packages/web/agent-ui",
+    "foo.bar/agent-ui",
+    "foo_bar/agent-ui"
+  ],
+  "invalid": [
+    "",
+    " ",
+    ".",
+    "..",
+    "../agent-ui",
+    "src/../agent-ui",
+    "/agent-ui",
+    "C:\\agent-ui",
+    "src\\agent-ui",
+    "foo:bar/agent-ui",
+    "src//agent-ui",
+    " src/agent-ui",
+    "src/agent-ui ",
+    "src/./agent-ui",
+    "src/agent-ui/",
+    "src/agent-ui\u0000"
+  ]
+}

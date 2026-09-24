@@ -122,6 +122,31 @@ def test_mutates_two_existing_files_atomically_and_records_receipt(tmp_path):
     assert receipt["transaction"]["undoable"] is True
 
 
+def test_v2_mutation_uses_source_root_and_preserves_project_root_plugin(tmp_path):
+    metadata = tmp_path / ".agent-ui"
+    metadata.mkdir()
+    (metadata / "project.json").write_text(
+        json.dumps({"version": "2", "mode": "assistant", "sourceRoot": "src/agent-ui"}),
+        encoding="utf-8",
+    )
+    make_plugin(tmp_path / "src/agent-ui")
+    make_plugin(tmp_path)
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("v2-plugin-mutation")
+    activity.file_observations.observe("/src/agent-ui/plugins/task-status/index.tsx")
+    service = UIPluginSourceMutationService(
+        project_root=tmp_path,
+        activity=activity,
+        mutation_coordinator=ProjectMutationCoordinator(),
+    )
+
+    result = asyncio.run(service.mutate("task-status", changes(edit("index.tsx", "Ready", "Updated"))))
+
+    assert result.modified_paths == ("src/agent-ui/plugins/task-status/index.tsx",)
+    assert "Updated" in (tmp_path / "src/agent-ui/plugins/task-status/index.tsx").read_text()
+    assert "Ready" in (tmp_path / "plugins/task-status/index.tsx").read_text()
+
+
 def test_mutates_existing_file_and_creates_nested_file_with_undo(tmp_path):
     service, activity = make_service(tmp_path)
     observe(activity, "index.tsx")

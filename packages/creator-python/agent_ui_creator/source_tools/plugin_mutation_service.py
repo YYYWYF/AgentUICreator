@@ -18,7 +18,7 @@ from ..files import (
     resolve_creator_project_file,
 )
 from ..minimal_agent.path_policy import MinimalAgentPathPolicy, PathPolicyViolation
-from ..project_paths import v2_source_root
+from ..project_paths import agent_ui_source_path, v2_source_root
 from ..transactions import CreatorTransactionError
 from .models import (
     MAX_PLUGIN_MUTATION_EDITS_PER_CALL,
@@ -97,7 +97,7 @@ class UIPluginSourceMutationService:
 
     def _plugin_root(self, plugin_id: str) -> Path:
         return resolve_creator_project_file(
-            self.project_root, f"/plugins/{plugin_id}"
+            self.project_root, agent_ui_source_path(self.project_root, f"plugins/{plugin_id}")
         ).absolute_path
 
     @staticmethod
@@ -131,7 +131,9 @@ class UIPluginSourceMutationService:
         total_bytes = len(plugin_id.encode("utf-8"))
         for change in changes:
             relative_path = self._normalize_relative_path(change.relativePath)
-            virtual_path = f"/plugins/{plugin_id}/{relative_path}"
+            virtual_path = agent_ui_source_path(
+                self.project_root, f"plugins/{plugin_id}/{relative_path}"
+            )
             try:
                 self.policy.assert_write(virtual_path)
             except PathPolicyViolation as error:

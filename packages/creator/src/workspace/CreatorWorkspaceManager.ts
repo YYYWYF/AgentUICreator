@@ -62,14 +62,19 @@ export class CreatorWorkspaceManager {
       inspection = { status: "broken", issues: [{ code: "CREATOR_WORKSPACE_INSPECTION_FAILED", message: error instanceof Error ? error.message : String(error) }] };
     }
     if (inspection.status === "ready" || inspection.status === "legacy") {
+      this.#state = { status: inspection.status, workspace, project: inspection.projectConfig, runtime: { status: "starting" } };
       try {
         this.#python = this.#createPython(workspace.projectRoot);
         await this.#python.ensureStarted();
-        this.#state = { status: inspection.status, workspace, project: inspection.projectConfig };
+        this.#state = { status: inspection.status, workspace, project: inspection.projectConfig, runtime: { status: "ready" } };
       } catch (error) {
-        await this.#python?.dispose();
+        try { await this.#python?.dispose(); } catch { /* Preserve the startup error. */ }
         this.#python = undefined;
-        this.#state = { status: "broken", workspace, issues: [{ code: "CREATOR_WORKSPACE_RUNTIME_INVALID", message: error instanceof Error ? error.message : String(error) }] };
+        this.#state = { status: inspection.status, workspace, project: inspection.projectConfig, runtime: {
+          status: "unavailable",
+          code: typeof error === "object" && error !== null && "code" in error && typeof error.code === "string" ? error.code : "CREATOR_RUNTIME_START_FAILED",
+          message: error instanceof Error ? error.message : String(error),
+        } };
       }
     } else if (inspection.status === "broken") {
       this.#state = { status: "broken", workspace, issues: inspection.issues };
@@ -122,7 +127,7 @@ export class CreatorWorkspaceManager {
         : "CREATOR_WORKSPACE_INVALID";
       throw new CreatorWorkspaceError(code, `Creator is unavailable while workspace status is ${state.status}.`);
     }
-    if (this.#python === undefined) throw new CreatorWorkspaceError("CREATOR_WORKSPACE_INVALID", "Creator runtime is unavailable.");
+    if (state.runtime.status !== "ready" || this.#python === undefined) throw new CreatorWorkspaceError("CREATOR_RUNTIME_UNAVAILABLE", state.runtime.status === "unavailable" ? state.runtime.message : "Creator runtime is unavailable.");
     return this.#python;
   }
 }

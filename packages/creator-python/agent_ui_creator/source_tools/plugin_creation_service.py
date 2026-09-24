@@ -6,6 +6,7 @@ from pathlib import Path, PurePosixPath
 
 from ..activity import CreatorActivityRecorder
 from ..files import resolve_creator_project_file
+from ..project_paths import agent_ui_source_path
 from .models import (
     PluginCreationResult,
     SourceCreationError,
@@ -69,7 +70,7 @@ class UIPluginCreationService:
 
         plugin_directory = f"/plugins/{plugin_id}"
         if resolve_creator_project_file(
-            self.project_root, plugin_directory
+            self.project_root, agent_ui_source_path(self.project_root, plugin_directory[1:])
         ).absolute_path.exists():
             raise SourceCreationError(
                 "PLUGIN_ALREADY_EXISTS",
@@ -140,7 +141,9 @@ class UIPluginCreationService:
                     {"pluginId": plugin_id, "path": f"plugins/{plugin_id}"},
                 ) from error
             raise
-        self.activity.record_created_directory(plugin_directory)
+        self.activity.record_created_directory(
+            agent_ui_source_path(self.project_root, plugin_directory[1:]).lstrip("/")
+        )
         return PluginCreationResult(
             plugin_id=plugin_id,
             created_paths=result.created_paths,

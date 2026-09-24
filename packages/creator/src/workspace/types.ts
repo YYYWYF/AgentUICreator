@@ -26,23 +26,27 @@ export type CreatorProjectInspection =
   | { readonly status: "ready" | "legacy"; readonly projectConfig: CreatorProjectConfig; readonly paths: { readonly sourceRoot: string } }
   | { readonly status: "broken"; readonly issues: CreatorProjectIssue[] };
 
+export type CreatorRuntimeState =
+  | { readonly status: "stopped" | "starting" | "ready" }
+  | { readonly status: "unavailable"; readonly code: string; readonly message: string };
+
 export type CreatorWorkspaceState =
   | { readonly status: "none" }
   | { readonly status: "uninitialized"; readonly workspace: CreatorWorkspaceDescriptor }
-  | { readonly status: "ready" | "legacy"; readonly workspace: CreatorWorkspaceDescriptor; readonly project: CreatorProjectConfig }
+  | { readonly status: "ready" | "legacy"; readonly workspace: CreatorWorkspaceDescriptor; readonly project: CreatorProjectConfig; readonly runtime: CreatorRuntimeState }
   | { readonly status: "broken"; readonly workspace: CreatorWorkspaceDescriptor; readonly issues: CreatorProjectIssue[] };
 
 export type CreatorWorkspacePublicState =
   | { readonly status: "none" }
   | { readonly status: "uninitialized"; readonly workspace: Omit<CreatorWorkspaceDescriptor, "projectRoot"> }
-  | { readonly status: "ready" | "legacy"; readonly workspace: Omit<CreatorWorkspaceDescriptor, "projectRoot">; readonly project: CreatorProjectConfig }
+  | { readonly status: "ready" | "legacy"; readonly workspace: Omit<CreatorWorkspaceDescriptor, "projectRoot">; readonly project: CreatorProjectConfig; readonly runtime: CreatorRuntimeState }
   | { readonly status: "broken"; readonly workspace: Omit<CreatorWorkspaceDescriptor, "projectRoot">; readonly issues: CreatorProjectIssue[] };
 
 export function publicWorkspaceState(state: CreatorWorkspaceState): CreatorWorkspacePublicState {
   if (state.status === "none") return state;
   const { projectRoot: _projectRoot, ...workspace } = state.workspace;
   if (state.status === "ready" || state.status === "legacy") {
-    return { status: state.status, workspace, project: state.project };
+    return { status: state.status, workspace, project: state.project, runtime: state.runtime };
   }
   if (state.status === "broken") return { status: "broken", workspace, issues: state.issues };
   return { status: "uninitialized", workspace };

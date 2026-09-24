@@ -16,7 +16,7 @@ from ..files import (
     resolve_creator_project_file,
 )
 from ..minimal_agent.path_policy import MinimalAgentPathPolicy, PathPolicyViolation
-from ..project_paths import v2_source_root
+from ..project_paths import agent_ui_source_path, v2_source_root
 from ..transactions import CreatorTransactionError
 from .models import (
     MAX_SOURCE_TOTAL_BYTES,
@@ -45,25 +45,27 @@ class UISourceCreationService:
         self.policy = replace(base_policy, source_root=source_root) if source_root is not None else base_policy
 
     def _authorize(self, path: str) -> tuple[str, str]:
-        try:
-            normalized = self.policy.assert_write(path)
-        except PathPolicyViolation as error:
-            raise SourceCreationError("SOURCE_PATH_DENIED", str(error)) from error
+        logical_path = path[1:] if path.startswith("/") else path
         if not (
-            normalized.startswith("/plugins/")
-            or normalized.startswith("/services/")
+            logical_path.startswith("plugins/")
+            or logical_path.startswith("services/")
         ):
             raise SourceCreationError(
                 "SOURCE_PATH_DENIED",
                 "New source files are limited to /plugins/** and /services/**.",
-                {"path": normalized},
+                {"path": path},
             )
-        if normalized == "/plugins/registry.generated.ts":
+        if logical_path == "plugins/registry.generated.ts":
             raise SourceCreationError(
                 "SOURCE_PATH_DENIED",
                 "plugins/registry.generated.ts is generated and cannot be created directly.",
-                {"path": normalized},
+                {"path": path},
             )
+        try:
+            virtual_path = agent_ui_source_path(self.project_root, logical_path)
+            normalized = self.policy.assert_write(virtual_path)
+        except (PathPolicyViolation, ValueError) as error:
+            raise SourceCreationError("SOURCE_PATH_DENIED", str(error)) from error
         receipt_path = resolve_creator_project_file(
             self.project_root, normalized
         ).receipt_path
@@ -116,7 +118,10 @@ class UISourceCreationService:
                 None
                 if require_absent_directory is None
                 else resolve_creator_project_file(
-                    self.project_root, require_absent_directory
+                    self.project_root, agent_ui_source_path(
+                        self.project_root,
+                        require_absent_directory.removeprefix("/"),
+                    )
                 ).absolute_path
             )
             if absent_directory is not None and absent_directory.exists():

@@ -14,6 +14,7 @@ import { defineConfig } from "vite";
 import { createCreatorDevServerPlugin } from "../../packages/creator/src/vitePlugin.js";
 import { CreatorWorkspaceManager } from "../../packages/creator/src/workspace/CreatorWorkspaceManager.js";
 import { PythonCreatorProcessManager } from "../../packages/creator/src/PythonCreatorProcessManager.js";
+// TODO: move the host inspector adapter out of the example when the shared project contract is extracted.
 import { inspectCreatorProject } from "../../examples/agent-frontend/scripts/ui-project/creator-project-inspector";
 import { createMockConversationApiVitePlugin } from "../../examples/agent-frontend/dev-mock/conversations/vite-plugin";
 import { withPreviewAgentState } from "../../examples/agent-frontend/src/mock-scenario-preview";

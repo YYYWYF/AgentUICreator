@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from pathlib import Path
 
 import pytest
@@ -98,6 +99,38 @@ def test_internal_source_primitive_creates_multiple_files_atomically(tmp_path):
     }
     assert activity.revision == 3
     assert (tmp_path / "plugins/task-status/index.tsx").is_file()
+
+
+def test_v2_source_creation_uses_source_root(tmp_path):
+    metadata = tmp_path / ".agent-ui"
+    metadata.mkdir()
+    (metadata / "project.json").write_text(
+        json.dumps({"version": "2", "mode": "assistant", "sourceRoot": "src/agent-ui"}),
+        encoding="utf-8",
+    )
+    root_plugin = tmp_path / "plugins/foo/index.ts"
+    root_plugin.parent.mkdir(parents=True)
+    root_plugin.write_text("host file\n", encoding="utf-8")
+    creation, _activity = service(tmp_path)
+    result = asyncio.run(creation.create([source("/plugins/foo/index.ts")]))
+    assert result.created_paths == ("src/agent-ui/plugins/foo/index.ts",)
+    assert (tmp_path / "src/agent-ui/plugins/foo/index.ts").is_file()
+    assert root_plugin.read_text(encoding="utf-8") == "host file\n"
+
+
+def test_v2_plugin_creation_uses_source_root(tmp_path):
+    metadata = tmp_path / ".agent-ui"
+    metadata.mkdir()
+    (metadata / "project.json").write_text(
+        json.dumps({"version": "2", "mode": "assistant", "sourceRoot": "src/agent-ui"}),
+        encoding="utf-8",
+    )
+
+    plugin_creation, _activity = plugin_service(tmp_path, "v2-plugin-create")
+    result = asyncio.run(plugin_creation.create("task-status", plugin_sources()))
+    assert "src/agent-ui/plugins/task-status/index.tsx" in result.created_paths
+    assert (tmp_path / "src/agent-ui/plugins/task-status/index.tsx").is_file()
+    assert not (tmp_path / "plugins/task-status").exists()
 
 
 def test_create_ui_plugin_enforces_plugin_domain_and_creates_atomically(tmp_path):

@@ -3,11 +3,19 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { parseAgentUIProjectConfig } from "../framework/contracts/agent-ui-project";
-import { resolveAgentUIProjectPaths } from "../scripts/ui-project/agent-ui-project-paths";
+import { resolveAgentUIProjectPaths, validateAgentUISourceRoot } from "../scripts/ui-project/agent-ui-project-paths";
+import sourceRootCases from "../../../contracts/fixtures/agent-ui-source-root.json";
 
 const root = path.resolve("/tmp/creator-path-contract");
 
 describe("Agent UI project paths", () => {
+  it.each(sourceRootCases.valid)("accepts shared sourceRoot contract %s", (sourceRoot) => {
+    expect(validateAgentUISourceRoot(root, sourceRoot)).toBe(path.join(root, sourceRoot));
+  });
+
+  it.each(sourceRootCases.invalid)("rejects shared sourceRoot contract %s", (sourceRoot) => {
+    expect(() => validateAgentUISourceRoot(root, sourceRoot)).toThrow();
+  });
   it.each([
     "src/agent-ui",
     "agent-ui",

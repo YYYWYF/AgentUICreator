@@ -905,7 +905,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
     const id = next.status === "none" ? undefined : next.workspace.id;
     workspaceIdRef.current = id;
     const conversation = id === undefined ? emptyConversation() : storedConversation(id);
-    agentRef.current = next.status === "ready" || next.status === "legacy"
+    agentRef.current = (next.status === "ready" || next.status === "legacy") && next.runtime.status === "ready"
       ? new HttpAgent({ url: CREATOR_API_PATH, headers: { [CREATOR_WORKSPACE_ID_HEADER]: id! }, threadId: conversation.threadId, initialMessages: conversation.agentMessages })
       : null;
     itemsRef.current = conversation.items;
@@ -983,7 +983,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
   const submit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
     const request = input.trim();
-    if (request === "" || isRunning || (workspaceState?.status !== "ready" && workspaceState?.status !== "legacy")) {
+    if (request === "" || isRunning || !((workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "ready")) {
       return;
     }
     const agent = agentRef.current;
@@ -1251,7 +1251,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
   };
 
   const startNewConversation = () => {
-    if (isRunning || (workspaceState?.status !== "ready" && workspaceState?.status !== "legacy")) {
+    if (isRunning || !((workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "ready")) {
       return;
     }
     const nextThreadId = crypto.randomUUID();
@@ -1302,6 +1302,21 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
     }
   };
 
+  const refreshWorkspace = async () => {
+    if (workspaceBusy) return;
+    setWorkspaceBusy(true);
+    setWorkspaceError(null);
+    sessionRef.current += 1;
+    agentRef.current?.abortRun();
+    try {
+      installWorkspace(await workspaceRequest("/refresh"));
+    } catch (error) {
+      setWorkspaceError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setWorkspaceBusy(false);
+    }
+  };
+
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -1340,6 +1355,8 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
       ),
     );
   };
+
+  const creatorRuntimeReady = (workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "ready";
 
   return (
     <div
@@ -1387,7 +1404,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
               <button
                 aria-label="新建 Creator 会话"
                 className="creator-panel-new-conversation"
-                disabled={isRunning || (workspaceState?.status !== "ready" && workspaceState?.status !== "legacy")}
+                disabled={isRunning || !creatorRuntimeReady}
                 onClick={startNewConversation}
                 title="清空上下文并新建会话"
                 type="button"
@@ -1417,6 +1434,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
                   <span>Mode: {workspaceState.project.mode} · Agent UI: {workspaceState.project.sourceRoot ?? "agent-ui (V1)"}</span>
                 ) : null}
                 <div>
+                  <button type="button" disabled={workspaceBusy} onClick={() => void refreshWorkspace()}>刷新</button>
                   <button type="button" disabled={workspaceBusy} onClick={() => {
                     setWorkspacePath(workspaceState.workspace.displayPath);
                     setShowWorkspaceSelector(true);
@@ -1446,6 +1464,8 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
                 <div className="creator-panel-empty"><strong>这个项目还没有 Agent UI</strong><p>项目初始化将在下一阶段提供。</p></div>
               ) : workspaceState?.status === "broken" ? (
                 <div className="creator-panel-empty"><strong>项目配置需要修复</strong>{workspaceState.issues.map((issue) => <p key={issue.code}>{issue.code}: {issue.message}</p>)}</div>
+              ) : (workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "unavailable" ? (
+                <div className="creator-panel-empty"><strong>Agent UI 项目已识别，但 Creator Runtime 暂不可用。</strong><p>{workspaceState.runtime.code}: {workspaceState.runtime.message}</p></div>
               ) : workspaceState?.status !== "ready" && workspaceState?.status !== "legacy" ? (
                 <div className="creator-panel-empty"><strong>选择项目后才能使用 Creator。</strong></div>
               ) : items.filter(
@@ -1500,7 +1520,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
           <form className="creator-panel-composer" onSubmit={submit}>
             <label htmlFor="creator-request">修改需求</label>
             <textarea
-              disabled={isRunning || (workspaceState?.status !== "ready" && workspaceState?.status !== "legacy")}
+              disabled={isRunning || !creatorRuntimeReady}
               id="creator-request"
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={handleKeyDown}
@@ -1510,7 +1530,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
             />
             <div>
               <small>Enter 发送 · Shift+Enter 换行</small>
-              <button disabled={isRunning || input.trim() === "" || (workspaceState?.status !== "ready" && workspaceState?.status !== "legacy")} type="submit">
+              <button disabled={isRunning || input.trim() === "" || !creatorRuntimeReady} type="submit">
                 {isRunning ? "处理中…" : "发送"}
               </button>
             </div>

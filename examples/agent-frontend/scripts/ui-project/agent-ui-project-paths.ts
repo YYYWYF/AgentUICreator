@@ -26,6 +26,7 @@ export function validateAgentUISourceRoot(projectRoot: string, sourceRoot: strin
     path.isAbsolute(sourceRoot) ||
     path.win32.isAbsolute(sourceRoot) ||
     /^[A-Za-z]:/.test(sourceRoot) ||
+    sourceRoot.includes(":") ||
     sourceRoot.includes("\0") ||
     segments.includes("..") ||
     segments.includes("") ||
