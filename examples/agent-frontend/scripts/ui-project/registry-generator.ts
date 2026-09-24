@@ -149,6 +149,15 @@ function addDefinitionIssue(
   issuesByPath.set(asset.definitionPath, issues);
 }
 
+function issuesForSelectedPlugins(
+  issues: readonly ProjectIssue[],
+  selectedPluginIds: ReadonlySet<string>,
+): ProjectIssue[] {
+  return issues.filter(
+    (issue) => issue.pluginId === undefined || selectedPluginIds.has(issue.pluginId),
+  );
+}
+
 async function collectPluginDefinitionFacts(
   projectRoot: string,
   assets: readonly PluginAsset[],
@@ -270,11 +279,8 @@ export function generatePluginRegistryFromFacts(
   const selectedPluginIdSet = new Set(selectedPluginIds);
   const errors: ProjectIssue[] = [
     ...facts.inventoryIssues,
-    ...facts.dataMessageUIIssues,
-    ...facts.declarations.issues.filter(
-      (issue) =>
-        issue.pluginId === undefined || selectedPluginIdSet.has(issue.pluginId),
-    ),
+    ...issuesForSelectedPlugins(facts.dataMessageUIIssues, selectedPluginIdSet),
+    ...issuesForSelectedPlugins(facts.declarations.issues, selectedPluginIdSet),
   ];
   const declarationsByPluginId = new Map(
     facts.declarations.plugins.map((declaration) => [declaration.pluginId, declaration]),
