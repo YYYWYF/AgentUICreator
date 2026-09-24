@@ -71,7 +71,7 @@ async function readOptional(filePath: string): Promise<string | undefined> {
 function verifyInstances(
   model: AppUIRuntimeModel,
   pluginIds: ReadonlySet<string>,
-  headlessPluginIds: ReadonlySet<string>,
+  unmountedAllowedPluginIds: ReadonlySet<string>,
 ): {
   mountedInstanceIds: string[];
   unmountedEnabledInstanceIds: string[];
@@ -106,7 +106,7 @@ function verifyInstances(
       (instance) =>
         instance.enabled &&
         !mounted.has(instance.id) &&
-        !headlessPluginIds.has(instance.pluginId),
+        !unmountedAllowedPluginIds.has(instance.pluginId),
     );
   const unmountedEnabledInstanceIds = unmountedEnabledInstances
     .map((instance) => instance.id)
@@ -156,6 +156,7 @@ export async function verifyUIProject(
   let capabilityPluginIds: string[] = [];
   let headlessPluginIds: string[] = [];
   let applicationGatePluginIds: string[] = [];
+  let dataMessageUIPluginIds: string[] = [];
   let generatedFileFresh = false;
   let services: InspectedService[] = [];
   let creatorReadiness: PluginCreatorReadiness[] = [];
@@ -181,6 +182,9 @@ export async function verifyUIProject(
     headlessPluginIds = registry.activeComposition.headlessPluginIds;
     applicationGatePluginIds = registry.assets
       .filter((asset) => asset.applicationGate !== undefined)
+      .map((asset) => asset.pluginId);
+    dataMessageUIPluginIds = registry.assets
+      .filter((asset) => asset.manifest.data?.messageUI === true)
       .map((asset) => asset.pluginId);
     if (registry.errors.length === 0) {
       runtimeModel = compileAppUIModel(
@@ -234,7 +238,11 @@ export async function verifyUIProject(
       : verifyInstances(
           runtimeModel,
           new Set(pluginIds),
-          new Set([...headlessPluginIds, ...applicationGatePluginIds]),
+          new Set([
+            ...headlessPluginIds,
+            ...applicationGatePluginIds,
+            ...dataMessageUIPluginIds,
+          ]),
         );
   errors.push(...instances.errors);
   warnings.push(...instances.warnings);

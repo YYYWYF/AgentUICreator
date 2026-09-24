@@ -81,6 +81,8 @@ export interface PluginAsset {
   manifestPath: string;
   definitionPath: string;
   capabilities: string[];
+  /** Renderer routing names extracted from Plugin source, not its manifest. */
+  dataMessageUINames?: readonly string[] | undefined;
   authoring?: NonNullable<UIPluginManifest["authoring"]> | undefined;
   layoutWidth?: "narrow" | "wide" | undefined;
   applicationGate?: {
@@ -160,6 +162,7 @@ export interface PluginProjectFacts {
   inventoryIssues: ProjectIssue[];
   declarations: AnalyzedDeclarations;
   definitionIssuesByPath: ReadonlyMap<string, readonly ProjectIssue[]>;
+  dataMessageUIIssues: ProjectIssue[];
 }
 
 export interface GeneratePluginCatalogResult {

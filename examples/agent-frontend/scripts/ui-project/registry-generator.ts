@@ -22,6 +22,7 @@ import {
 } from "../../framework/contracts/app-ui-composition";
 import type { AgentUIProjectPaths } from "./agent-ui-project-paths";
 import { collectPluginAssets, pathExists } from "./plugin-assets";
+import { analyzeDataMessageUIs } from "./data-message-ui-analyzer";
 import {
   analyzePluginServiceDeclarations,
   inspectUIServiceDependenciesFromDeclarations,
@@ -243,11 +244,13 @@ export async function collectPluginProjectFacts(
     projectRoot,
     inventory.assets,
   );
+  const dataMessageUIIssues = await analyzeDataMessageUIs(projectRoot, inventory.assets);
   return {
     assets: inventory.assets,
     inventoryIssues: inventory.errors,
     declarations,
     definitionIssuesByPath,
+    dataMessageUIIssues,
   };
 }
 
@@ -267,6 +270,7 @@ export function generatePluginRegistryFromFacts(
   const selectedPluginIdSet = new Set(selectedPluginIds);
   const errors: ProjectIssue[] = [
     ...facts.inventoryIssues,
+    ...facts.dataMessageUIIssues,
     ...facts.declarations.issues.filter(
       (issue) =>
         issue.pluginId === undefined || selectedPluginIdSet.has(issue.pluginId),
@@ -325,6 +329,27 @@ export function generatePluginRegistryFromFacts(
     }
 
     resolvedAssets.push(asset);
+  }
+
+  const resolvedById = new Map(resolvedAssets.map((asset) => [asset.pluginId, asset]));
+  const registeredNames = new Map<string, { pluginId: string; instanceId: string }>();
+  for (const { plugin: instance } of collectAppUIPluginLocations(model)
+    .filter(({ plugin }) => plugin.enabled)
+    .sort((a, b) => a.plugin.id.localeCompare(b.plugin.id))) {
+    const asset = resolvedById.get(instance.pluginId);
+    if (asset?.manifest.data?.messageUI !== true) continue;
+    for (const name of asset.dataMessageUINames ?? []) {
+      const conflict = registeredNames.get(name);
+      if (conflict !== undefined) {
+        errors.push({
+          code: "DATA_MESSAGE_UI_NAME_CONFLICT",
+          pluginId: instance.pluginId,
+          message: `Data Message UI name "${name}" in plugin "${instance.pluginId}" instance "${instance.id}" conflicts with plugin "${conflict.pluginId}" instance "${conflict.instanceId}".`,
+        });
+      } else {
+        registeredNames.set(name, { pluginId: instance.pluginId, instanceId: instance.id });
+      }
+    }
   }
 
   const compositionCatalog: PluginCompositionCatalog = Object.fromEntries(

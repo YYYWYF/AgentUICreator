@@ -1,6 +1,7 @@
 import type { DataMessageUIDefinition } from "@agent-ui/react";
 
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
+import { isValidDataMessageUIName } from "../../framework/contracts/data-message-ui";
 import type { PluginRegistry } from "./PluginRegistry";
 import type { PluginServiceRuntime } from "./PluginServiceRuntime";
 
@@ -36,7 +37,7 @@ function collectRegistrations<TState>(
     const definition = registry.get(instance.pluginId);
     for (const dataUI of definition?.dataMessageUIs ?? []) {
       const name = dataUI.name;
-      if (typeof name !== "string" || name.length === 0 || name.trim() !== name) {
+      if (!isValidDataMessageUIName(name)) {
         throw new DataMessageUIRegistrationError(
           "DATA_MESSAGE_UI_INVALID_NAME",
           `Data Message UI name ${JSON.stringify(name)} in plugin "${instance.pluginId}" instance "${instance.id}" must be nonempty and trimmed.`,
