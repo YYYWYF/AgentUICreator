@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
 from typing import Literal
 from uuid import uuid4
@@ -25,6 +25,7 @@ from ..files import (
     replace_creator_file_atomically,
 )
 from ..transactions import CreatorTransactionError
+from ..project_paths import v2_source_root
 
 _DENIED_DIRECTORY_NAMES = frozenset(
     {
@@ -47,6 +48,7 @@ class PathPolicyViolation(ValueError):
 class MinimalAgentPathPolicy:
     mode: Literal["development", "conformance"] = "development"
     generic_service_writes: bool = False
+    source_root: str | None = None
 
     @classmethod
     def development(cls) -> "MinimalAgentPathPolicy":
@@ -92,6 +94,21 @@ class MinimalAgentPathPolicy:
                     "TOOL_PERMISSION_DENIED: /.agent-ui/** is Host-managed metadata. "
                     "Use the dedicated Agent UI source domain capability."
                 )
+            if self.source_root is not None:
+                managed_prefix = f"/{self.source_root}/"
+                if not normalized.startswith(managed_prefix):
+                    raise PathPolicyViolation(
+                        f"TOOL_PERMISSION_DENIED: writes outside /{self.source_root}/** require explicit Host Integration."
+                    )
+                if normalized in {
+                    f"/{self.source_root}/app-ui/app-ui.json",
+                    f"/{self.source_root}/app-ui/composition-revision.generated.json",
+                    f"/{self.source_root}/plugins/registry.generated.ts",
+                }:
+                    raise PathPolicyViolation(
+                        "TOOL_PERMISSION_DENIED: generated and composition files are Host-managed."
+                    )
+                return normalized
             if normalized.startswith("/services/") and not self.generic_service_writes:
                 raise PathPolicyViolation(
                     "TOOL_PERMISSION_DENIED: Service contracts under /services/** "
@@ -137,7 +154,8 @@ class PolicyFilesystemBackend(FilesystemBackend):
         enforce_observations: bool | None = None,
     ):
         super().__init__(root_dir=root_dir, virtual_mode=True)
-        self.policy = policy
+        source_root = v2_source_root(root_dir) if policy.mode == "development" else None
+        self.policy = replace(policy, source_root=source_root) if source_root is not None else policy
         self.activity = activity or CreatorActivityRecorder(self.cwd)
         if activity is None:
             self.activity.begin(str(uuid4()))

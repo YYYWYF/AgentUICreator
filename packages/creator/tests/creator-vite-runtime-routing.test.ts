@@ -52,6 +52,7 @@ import {
   CREATOR_VISUAL_OBSERVATION_API_PATH,
   createCreatorDevServerPlugin,
 } from "../src/vitePlugin.js";
+import { CreatorWorkspaceManager } from "../src/workspace/CreatorWorkspaceManager.js";
 
 type Middleware = (request: unknown, response: unknown) => Promise<void>;
 
@@ -96,6 +97,19 @@ afterEach(() => {
 });
 
 describe("Creator Vite Python routing", () => {
+  it("rejects direct Creator requests while no workspace is selected", async () => {
+    const workspaceManager = new CreatorWorkspaceManager({
+      inspectProject: async () => ({ status: "uninitialized" }),
+      createPythonManager: () => { throw new Error("should not start Python"); },
+    });
+    const middleware = configuredMiddlewares({ workspaceManager }).get(CREATOR_API_PATH);
+    const response = responseDouble();
+    await middleware?.({ headers: {} }, response);
+    expect(response.statusCode).toBe(409);
+    expect(response.end).toHaveBeenCalledWith(expect.stringContaining("CREATOR_WORKSPACE_REQUIRED"));
+    expect(runtimeMocks.managerInstances).toHaveLength(0);
+    expect(runtimeMocks.proxyPythonRequest).not.toHaveBeenCalled();
+  });
   it("routes run, diagnostics, and visual observations through Python", async () => {
     vi.stubEnv("CREATOR_PYTHON_AGENT_MODE", "");
     const log = vi.fn();

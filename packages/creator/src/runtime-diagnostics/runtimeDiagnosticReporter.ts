@@ -1,4 +1,5 @@
 import { CREATOR_RUNTIME_DIAGNOSTICS_API_PATH } from "../shared.js";
+import { CREATOR_WORKSPACE_ID_HEADER } from "../workspace/types.js";
 
 export const MAX_CREATOR_RUNTIME_DIAGNOSTIC_REPORT_BYTES = 48 * 1_024;
 
@@ -6,6 +7,7 @@ export type CreatorRuntimeThreadId = string | (() => string);
 
 export interface CreatorRuntimeDiagnosticReporterOptions {
   threadId: CreatorRuntimeThreadId;
+  workspaceId?: string | undefined;
   endpoint?: string | undefined;
 }
 
@@ -15,6 +17,7 @@ function resolveThreadId(threadId: CreatorRuntimeThreadId): string {
 
 export function createCreatorRuntimeDiagnosticReporter({
   threadId,
+  workspaceId,
   endpoint = CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
 }: CreatorRuntimeDiagnosticReporterOptions): (diagnostic: object) => void {
   return (diagnostic: object) => {
@@ -32,7 +35,7 @@ export function createCreatorRuntimeDiagnosticReporter({
     }
     void fetch(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...(workspaceId === undefined ? {} : { [CREATOR_WORKSPACE_ID_HEADER]: workspaceId }) },
       body,
       keepalive: true,
     }).catch(() => undefined);
@@ -41,6 +44,7 @@ export function createCreatorRuntimeDiagnosticReporter({
 
 export function createCreatorRuntimeCompositionReporter({
   threadId,
+  workspaceId,
   endpoint = CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
 }: CreatorRuntimeDiagnosticReporterOptions): (composition: object) => void {
   return (composition: object) => {
@@ -61,7 +65,7 @@ export function createCreatorRuntimeCompositionReporter({
     }
     void fetch(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...(workspaceId === undefined ? {} : { [CREATOR_WORKSPACE_ID_HEADER]: workspaceId }) },
       body,
       keepalive: true,
     }).catch(() => undefined);

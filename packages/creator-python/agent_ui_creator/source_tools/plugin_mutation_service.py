@@ -18,6 +18,7 @@ from ..files import (
     resolve_creator_project_file,
 )
 from ..minimal_agent.path_policy import MinimalAgentPathPolicy, PathPolicyViolation
+from ..project_paths import v2_source_root
 from ..transactions import CreatorTransactionError
 from .models import (
     MAX_PLUGIN_MUTATION_EDITS_PER_CALL,
@@ -66,7 +67,8 @@ class UIPluginSourceMutationService:
         self.project_root = Path(project_root).resolve()
         self.activity = activity
         self.mutation_coordinator = mutation_coordinator
-        self.policy = MinimalAgentPathPolicy.development()
+        source_root = v2_source_root(self.project_root)
+        self.policy = MinimalAgentPathPolicy(source_root=source_root)
 
     @staticmethod
     def _normalize_relative_path(relative_path: str) -> str:

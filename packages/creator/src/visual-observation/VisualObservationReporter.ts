@@ -1,12 +1,14 @@
 import { toCanvas } from "html-to-image";
 
 import { CREATOR_VISUAL_OBSERVATION_API_PATH } from "../shared.js";
+import { CREATOR_WORKSPACE_ID_HEADER } from "../workspace/types.js";
 
 export const MAX_VISUAL_OBSERVATION_REQUEST_BYTES = 1_024 * 1_024;
 const HASH = /^[a-f0-9]{64}$/;
 
 export interface VisualObservationReporterOptions {
   endpoint?: string;
+  workspaceId?: string | undefined;
   onError?: (error: unknown) => void;
 }
 
@@ -42,6 +44,7 @@ function base64(blob: Blob): Promise<string> {
 /** Host observation; the target App only reports a published hash and Preview root. */
 export function createVisualObservationReporter({
   endpoint = CREATOR_VISUAL_OBSERVATION_API_PATH,
+  workspaceId,
   onError = (error) => console.warn("Visual observation unavailable", error),
 }: VisualObservationReporterOptions = {}): (currentHash: string, root: HTMLElement) => void {
   let lastObservedHash: string | undefined;
@@ -112,7 +115,7 @@ export function createVisualObservationReporter({
       }
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(workspaceId === undefined ? {} : { [CREATOR_WORKSPACE_ID_HEADER]: workspaceId }) },
         body,
       });
       if (!response.ok) throw new Error(`Preview upload returned ${response.status}.`);

@@ -1,3 +1,5 @@
+import json
+
 import agent_ui_creator.minimal_agent.path_policy as path_policy_module
 
 from agent_ui_creator.minimal_agent.path_policy import (
@@ -5,6 +7,26 @@ from agent_ui_creator.minimal_agent.path_policy import (
     PathPolicyViolation,
     PolicyFilesystemBackend,
 )
+
+
+def test_v2_project_writes_stay_inside_declared_source_root(tmp_path):
+    metadata = tmp_path / ".agent-ui"
+    metadata.mkdir()
+    (metadata / "project.json").write_text(
+        json.dumps({"version": "2", "mode": "assistant", "sourceRoot": "src/agent-ui"}),
+        encoding="utf-8",
+    )
+    managed = tmp_path / "src" / "agent-ui" / "plugins" / "example.ts"
+    managed.parent.mkdir(parents=True)
+    managed.write_text("before\n", encoding="utf-8")
+    host = tmp_path / "plugins" / "host.ts"
+    host.parent.mkdir()
+    host.write_text("before\n", encoding="utf-8")
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+
+    assert backend.edit("/src/agent-ui/plugins/example.ts", "before", "after").error is None
+    assert "TOOL_PERMISSION_DENIED" in backend.edit("/plugins/host.ts", "before", "after").error
+    assert host.read_text(encoding="utf-8") == "before\n"
 
 
 def test_development_path_policy_allows_frontend_capability_contract_edits(tmp_path):

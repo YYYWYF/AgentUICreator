@@ -10,6 +10,7 @@ import { createVisualObservationReporter } from "@agent-ui/creator/visual-observ
 import { App } from "@agent-ui/example-agent-frontend/App";
 
 declare const __CREATOR_RUNTIME_DIAGNOSTICS_ENABLED__: boolean;
+declare const __CREATOR_EXAMPLE_WORKSPACE_ID__: string;
 
 const runtimeDiagnosticsEnabled =
   __CREATOR_RUNTIME_DIAGNOSTICS_ENABLED__;
@@ -22,33 +23,37 @@ interface PreviewThreadIdRef {
 
 const TargetPreview = memo(function TargetPreview({
   threadIdRef,
+  workspaceId,
 }: {
   threadIdRef: PreviewThreadIdRef;
+  workspaceId: string;
 }) {
   const onRuntimeDiagnostic = useMemo(
     () =>
       runtimeDiagnosticsEnabled
         ? createCreatorRuntimeDiagnosticReporter({
             threadId: () => threadIdRef.current,
+            workspaceId,
           })
         : undefined,
-    [threadIdRef],
+    [threadIdRef, workspaceId],
   );
   const onRuntimeComposition = useMemo(
     () =>
       runtimeDiagnosticsEnabled
         ? createCreatorRuntimeCompositionReporter({
             threadId: () => threadIdRef.current,
+            workspaceId,
           })
         : undefined,
-    [threadIdRef],
+    [threadIdRef, workspaceId],
   );
   const onPreviewCommitted = useMemo(
     () =>
       visualObservationEnabled
-        ? createVisualObservationReporter()
+        ? createVisualObservationReporter({ workspaceId })
         : undefined,
-    [],
+    [workspaceId],
   );
   return (
     <App
@@ -59,11 +64,11 @@ const TargetPreview = memo(function TargetPreview({
   );
 });
 
-function TargetPreviewHost({ threadId }: { threadId: string }) {
+function TargetPreviewHost({ threadId, workspaceId }: { threadId: string; workspaceId: string }) {
   const threadIdRef = useRef(threadId);
   threadIdRef.current = threadId;
 
-  return <TargetPreview threadIdRef={threadIdRef} />;
+  return <TargetPreview threadIdRef={threadIdRef} workspaceId={workspaceId} />;
 }
 
 const rootElement = document.getElementById("root");
@@ -74,8 +79,8 @@ if (rootElement === null) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <CreatorWorkbench>
-      {({ threadId }) => <TargetPreviewHost threadId={threadId} />}
+    <CreatorWorkbench previewWorkspaceId={__CREATOR_EXAMPLE_WORKSPACE_ID__}>
+      {({ threadId, workspaceId }) => <TargetPreviewHost threadId={threadId} workspaceId={workspaceId} />}
     </CreatorWorkbench>
   </StrictMode>,
 );

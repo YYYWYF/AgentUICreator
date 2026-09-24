@@ -30,6 +30,7 @@ export interface PythonCreatorEndpoint {
 
 export interface PythonCreatorProcessManagerOptions {
   projectRoot: string;
+  allowExternalEndpoint?: boolean | undefined;
   configRoot?: string | undefined;
   skillsRoot?: string | undefined;
   pythonExecutable?: string | undefined;
@@ -290,6 +291,7 @@ export class PythonCreatorProcessManager {
 
   constructor({
     projectRoot,
+    allowExternalEndpoint = true,
     configRoot,
     skillsRoot = defaultSkillsRoot(),
     pythonExecutable,
@@ -321,7 +323,7 @@ export class PythonCreatorProcessManager {
       });
     this.#pythonPackageRoot = path.resolve(pythonPackageRoot);
     this.#environment = environment;
-    this.#externalEndpoint = resolveConfiguredCreatorPythonEndpoint({
+    this.#externalEndpoint = allowExternalEndpoint ? resolveConfiguredCreatorPythonEndpoint({
       endpoint:
         environment[CREATOR_PYTHON_ENDPOINT_ENV]?.trim() ||
         readCreatorHostConfigValue(this.#configRoot, CREATOR_PYTHON_ENDPOINT_ENV),
@@ -331,7 +333,7 @@ export class PythonCreatorProcessManager {
           this.#configRoot,
           CREATOR_PYTHON_AUTH_TOKEN_ENV,
         ),
-    });
+    }) : undefined;
     this.#startupTimeoutMs = startupTimeoutMs;
     this.#stopTimeoutMs = stopTimeoutMs;
     this.#log = log;

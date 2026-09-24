@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
+from dataclasses import replace
 from pathlib import Path
 
 from ..activity import CreatorActivityRecorder
@@ -15,6 +16,7 @@ from ..files import (
     resolve_creator_project_file,
 )
 from ..minimal_agent.path_policy import MinimalAgentPathPolicy, PathPolicyViolation
+from ..project_paths import v2_source_root
 from ..transactions import CreatorTransactionError
 from .models import (
     MAX_SOURCE_TOTAL_BYTES,
@@ -38,7 +40,9 @@ class UISourceCreationService:
         self.project_root = Path(project_root).resolve()
         self.activity = activity
         self.mutation_coordinator = mutation_coordinator
-        self.policy = path_policy or MinimalAgentPathPolicy.development()
+        base_policy = path_policy or MinimalAgentPathPolicy.development()
+        source_root = v2_source_root(self.project_root)
+        self.policy = replace(base_policy, source_root=source_root) if source_root is not None else base_policy
 
     def _authorize(self, path: str) -> tuple[str, str]:
         try:

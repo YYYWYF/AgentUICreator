@@ -1,10 +1,14 @@
 import type { Plugin } from "vite";
+import type { ServerResponse } from "node:http";
 
 import {
   PythonCreatorProcessManager,
   type PythonCreatorProcessManagerOptions,
 } from "./PythonCreatorProcessManager.js";
 import { proxyPythonCreatorRequest } from "./PythonCreatorProxy.js";
+import { CreatorWorkspaceManager, CreatorWorkspaceError } from "./workspace/CreatorWorkspaceManager.js";
+import { CREATOR_WORKSPACE_API_PATH, handleCreatorWorkspaceRequest } from "./workspace/workspace-api.js";
+import { CREATOR_WORKSPACE_ID_HEADER } from "./workspace/types.js";
 import {
   resolveCreatorPythonAgentMode,
   resolveCreatorVerificationMode,
@@ -35,7 +39,8 @@ export {
 } from "./PythonCreatorProcessManager.js";
 
 export interface CreatorDevServerPluginOptions {
-  projectRoot: string;
+  projectRoot?: string | undefined;
+  workspaceManager?: CreatorWorkspaceManager | undefined;
   configRoot?: string | undefined;
   python?:
     | Omit<
@@ -47,6 +52,7 @@ export interface CreatorDevServerPluginOptions {
 
 export function createCreatorDevServerPlugin({
   projectRoot,
+  workspaceManager,
   configRoot,
   python,
 }: CreatorDevServerPluginOptions): Plugin {
@@ -62,13 +68,22 @@ export function createCreatorDevServerPlugin({
     "static_and_runtime";
   creatorLog(`runtime=python agentMode=${agentMode}`);
 
-  const pythonManager = new PythonCreatorProcessManager({
-    projectRoot,
-    ...(configRoot === undefined ? {} : { configRoot }),
-    ...(python ?? {}),
-    environment,
-    log: creatorLog,
+  if (workspaceManager === undefined && projectRoot === undefined) {
+    throw new Error("Creator Dev Server requires a workspace manager or a legacy projectRoot.");
+  }
+  const legacyPythonManager = projectRoot === undefined ? undefined : new PythonCreatorProcessManager({
+    projectRoot, ...(configRoot === undefined ? {} : { configRoot }),
+    ...(python ?? {}), environment, log: creatorLog,
   });
+
+  function gateError(response: ServerResponse, error: unknown): void {
+    response.statusCode = 409;
+    response.setHeader("Content-Type", "application/json; charset=utf-8");
+    response.end(JSON.stringify({
+      code: error instanceof CreatorWorkspaceError ? error.code : "CREATOR_WORKSPACE_INVALID",
+      error: error instanceof Error ? error.message : String(error),
+    }));
+  }
 
   return {
     name: "agent-ui-creator-dev-server",
@@ -84,42 +99,58 @@ export function createCreatorDevServerPlugin({
     },
     configureServer(server) {
       server.httpServer?.once("close", () => {
-        void pythonManager.dispose();
+        void workspaceManager?.clear();
+        void legacyPythonManager?.dispose();
       });
       server.watcher.once("close", () => {
-        void pythonManager.dispose();
+        void workspaceManager?.clear();
+        void legacyPythonManager?.dispose();
       });
+      if (workspaceManager !== undefined) {
+        server.middlewares.use(CREATOR_WORKSPACE_API_PATH, (request, response) => {
+          void handleCreatorWorkspaceRequest(request, response, workspaceManager);
+        });
+      }
+      const proxy = async (
+        request: Parameters<typeof proxyPythonCreatorRequest>[0],
+        response: ServerResponse,
+        route: Parameters<typeof proxyPythonCreatorRequest>[3],
+      ) => {
+        let manager: PythonCreatorProcessManager;
+        try {
+          manager = workspaceManager?.ensureCreatorRuntime() ?? legacyPythonManager!;
+          if (workspaceManager !== undefined) {
+            const state = workspaceManager.getState();
+            const selectedId = state.status === "none" ? undefined : state.workspace.id;
+            if (request.headers[CREATOR_WORKSPACE_ID_HEADER] !== selectedId) {
+              throw new CreatorWorkspaceError("CREATOR_WORKSPACE_CHANGED", "The selected Project Root changed. Refresh the workspace and retry.");
+            }
+          }
+        } catch (error) {
+          gateError(response, error);
+          return;
+        }
+        const untrack = workspaceManager?.trackRequest(() => response.destroy());
+        if (untrack !== undefined) response.once("close", untrack);
+        await proxyPythonCreatorRequest(request, response, manager, route);
+        untrack?.();
+      };
       server.middlewares.use(
         CREATOR_VISUAL_OBSERVATION_API_PATH,
         async (request, response) => {
-          await proxyPythonCreatorRequest(
-            request,
-            response,
-            pythonManager,
-            "/visual-observation",
-          );
+          await proxy(request, response, "/visual-observation");
         },
       );
       server.middlewares.use(
         CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
         async (request, response) => {
-          await proxyPythonCreatorRequest(
-            request,
-            response,
-            pythonManager,
-            "/runtime-diagnostics",
-          );
+          await proxy(request, response, "/runtime-diagnostics");
         },
       );
       server.middlewares.use(
         CREATOR_API_PATH,
         async (request, response) => {
-          await proxyPythonCreatorRequest(
-            request,
-            response,
-            pythonManager,
-            "/creator",
-          );
+          await proxy(request, response, "/creator");
         },
       );
     },

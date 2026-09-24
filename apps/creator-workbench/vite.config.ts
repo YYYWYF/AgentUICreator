@@ -1,4 +1,6 @@
 import path from "node:path";
+import { createHash } from "node:crypto";
+import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import tailwindcss from "@tailwindcss/vite";
@@ -10,6 +12,9 @@ import {
 import { defineConfig } from "vite";
 
 import { createCreatorDevServerPlugin } from "../../packages/creator/src/vitePlugin.js";
+import { CreatorWorkspaceManager } from "../../packages/creator/src/workspace/CreatorWorkspaceManager.js";
+import { PythonCreatorProcessManager } from "../../packages/creator/src/PythonCreatorProcessManager.js";
+import { inspectCreatorProject } from "../../examples/agent-frontend/scripts/ui-project/creator-project-inspector";
 import { createMockConversationApiVitePlugin } from "../../examples/agent-frontend/dev-mock/conversations/vite-plugin";
 import { withPreviewAgentState } from "../../examples/agent-frontend/src/mock-scenario-preview";
 
@@ -18,9 +23,22 @@ const workspaceRoot = path.resolve(
   "../..",
 );
 const frontendRoot = path.join(workspaceRoot, "examples/agent-frontend");
+const workspaceManager = new CreatorWorkspaceManager({
+  inspectProject: inspectCreatorProject,
+  createPythonManager: (projectRoot) => new PythonCreatorProcessManager({
+    projectRoot,
+    configRoot: workspaceRoot,
+    allowExternalEndpoint: false,
+  }),
+});
 
 export default defineConfig({
   envDir: frontendRoot,
+  define: {
+    __CREATOR_EXAMPLE_WORKSPACE_ID__: JSON.stringify(
+      createHash("sha256").update(realpathSync(frontendRoot)).digest("hex"),
+    ),
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -33,7 +51,7 @@ export default defineConfig({
       endpoint: "/__agent-ui/mock-data",
     }),
     createCreatorDevServerPlugin({
-      projectRoot: frontendRoot,
+      workspaceManager,
       configRoot: workspaceRoot,
     }),
   ],
