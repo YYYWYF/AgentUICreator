@@ -100,6 +100,9 @@ describe("Creator Vite Python routing", () => {
   it("rejects direct Creator requests while no workspace is selected", async () => {
     const workspaceManager = new CreatorWorkspaceManager({
       inspectProject: async () => ({ status: "uninitialized" }),
+      initializeProject: async () => undefined,
+      validateProjectSetup: async () => ({ valid: true, sourceRoot: { normalized: "agent-ui", parentExists: true, targetState: "missing" }, issues: [] }),
+      suggestSourceRoot: async () => "agent-ui",
       createPythonManager: () => { throw new Error("should not start Python"); },
     });
     const middleware = configuredMiddlewares({ workspaceManager }).get(CREATOR_API_PATH);

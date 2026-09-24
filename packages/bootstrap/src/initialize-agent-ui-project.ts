@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, rename, rmdir, unlink, writeFile } from "node:fs/promises";
+import { lstat, mkdir, rename, rmdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { agentUIModeRegistry, type AgentUIMode } from "./project-definition.js";
@@ -79,6 +79,14 @@ async function writeJournal(filePath: string, journal: AgentUIInitializationJour
   }
 }
 
+async function pathExists(filePath: string): Promise<boolean> {
+  try { await lstat(filePath); return true; }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+    throw error;
+  }
+}
+
 /** Host bootstrap transaction. Generated-project parsing and verification stay in the Host adapter. */
 export async function initializeAgentUIProject<TModel>(
   input: InitializeAgentUIProjectInput,
@@ -107,6 +115,7 @@ export async function initializeAgentUIProject<TModel>(
   const itemIds = preset.sourceItems ?? [];
   const preflight = await host.preflightSources(projectRoot, itemIds, projectConfig);
   const metadataRoot = path.join(projectRoot, ".agent-ui");
+  const metadataRootWasMissing = !(await pathExists(metadataRoot));
   const projectConfigPath = path.join(metadataRoot, "project.json");
   const journalPath = path.join(metadataRoot, "init-transaction.json");
   const persistJournal = host.writeInitializationJournal ?? writeJournal;
@@ -171,9 +180,11 @@ export async function initializeAgentUIProject<TModel>(
     try {
       await host.rollbackCreatedPaths(projectRoot, [...createdPaths], projectConfig, preflight.plannedPaths, setup.sourceRoot.targetState === "missing");
       await unlink(journalPath);
-      await rmdir(metadataRoot).catch((cleanupError: NodeJS.ErrnoException) => {
-        if (cleanupError.code !== "ENOENT" && cleanupError.code !== "ENOTEMPTY") throw cleanupError;
-      });
+      if (metadataRootWasMissing) {
+        await rmdir(metadataRoot).catch((cleanupError: NodeJS.ErrnoException) => {
+          if (cleanupError.code !== "ENOENT" && cleanupError.code !== "ENOTEMPTY") throw cleanupError;
+        });
+      }
     } catch (rollbackError) {
       throw new AgentUIInitializationError(
         "AGENT_UI_INITIALIZATION_ROLLBACK_FAILED",

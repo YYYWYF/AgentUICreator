@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, readFile, rm, unlink, writeFile } from "node:fs/promises";
+import { lstat, mkdtemp, mkdir, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -87,6 +87,15 @@ describe("bootstrap initialization commit boundary", () => {
     await expect(initializeAgentUIProject(input(root), host)).rejects.toThrow("model write");
     expect(host.rollbackCreatedPaths).toHaveBeenCalledOnce();
     expect(await exists(configPath(root))).toBe(false);
+    expect(await exists(journalPath(root))).toBe(false);
+  });
+
+  it("preserves a pre-existing empty metadata directory after pre-commit failure", async () => {
+    const { root, host } = await fixture();
+    await mkdir(path.join(root, ".agent-ui"));
+    host.writeAppUIModel = vi.fn().mockRejectedValue(new Error("model write"));
+    await expect(initializeAgentUIProject(input(root), host)).rejects.toThrow("model write");
+    expect((await lstat(path.join(root, ".agent-ui"))).isDirectory()).toBe(true);
     expect(await exists(journalPath(root))).toBe(false);
   });
 

@@ -5,8 +5,10 @@ import path from "node:path";
 import type { PythonCreatorProcessManager } from "../PythonCreatorProcessManager.js";
 import type {
   CreatorProjectInspection,
+  CreatorProjectSetupValidation,
   CreatorPythonManagerFactory,
   CreatorWorkspaceDescriptor,
+  CreatorWorkspaceInitializeInput,
   CreatorWorkspaceState,
 } from "./types.js";
 
@@ -19,6 +21,9 @@ export class CreatorWorkspaceError extends Error {
 
 export class CreatorWorkspaceManager {
   readonly #inspect: (projectRoot: string) => Promise<CreatorProjectInspection>;
+  readonly #initialize: (input: CreatorWorkspaceInitializeInput & { projectRoot: string }) => Promise<unknown>;
+  readonly #validateSetup: (input: CreatorWorkspaceInitializeInput & { projectRoot: string }) => Promise<CreatorProjectSetupValidation>;
+  readonly #suggestSourceRoot: (projectRoot: string) => Promise<string>;
   readonly #createPython: CreatorPythonManagerFactory;
   #state: CreatorWorkspaceState = { status: "none" };
   #python: PythonCreatorProcessManager | undefined;
@@ -27,9 +32,15 @@ export class CreatorWorkspaceManager {
 
   constructor(options: {
     inspectProject: (projectRoot: string) => Promise<CreatorProjectInspection>;
+    initializeProject: (input: CreatorWorkspaceInitializeInput & { projectRoot: string }) => Promise<unknown>;
+    validateProjectSetup: (input: CreatorWorkspaceInitializeInput & { projectRoot: string }) => Promise<CreatorProjectSetupValidation>;
+    suggestSourceRoot: (projectRoot: string) => Promise<string>;
     createPythonManager: CreatorPythonManagerFactory;
   }) {
     this.#inspect = options.inspectProject;
+    this.#initialize = options.initializeProject;
+    this.#validateSetup = options.validateProjectSetup;
+    this.#suggestSourceRoot = options.suggestSourceRoot;
     this.#createPython = options.createPythonManager;
   }
 
@@ -54,23 +65,25 @@ export class CreatorWorkspaceManager {
     if (python !== undefined) await python.dispose();
   }
 
-  async #inspectCurrent(workspace: CreatorWorkspaceDescriptor): Promise<CreatorWorkspaceState> {
+  async #inspectCurrent(workspace: CreatorWorkspaceDescriptor, knownInspection?: CreatorProjectInspection): Promise<CreatorWorkspaceState> {
     let inspection: CreatorProjectInspection;
     try {
-      inspection = await this.#inspect(workspace.projectRoot);
+      inspection = knownInspection ?? await this.#inspect(workspace.projectRoot);
     } catch (error) {
       inspection = { status: "broken", issues: [{ code: "CREATOR_WORKSPACE_INSPECTION_FAILED", message: error instanceof Error ? error.message : String(error) }] };
     }
     if (inspection.status === "ready" || inspection.status === "legacy") {
-      this.#state = { status: inspection.status, workspace, project: inspection.projectConfig, runtime: { status: "starting" } };
+      const projectState = { status: inspection.status, workspace, project: inspection.projectConfig,
+        ...(inspection.warnings === undefined ? {} : { warnings: inspection.warnings }) } as const;
+      this.#state = { ...projectState, runtime: { status: "starting" } };
       try {
         this.#python = this.#createPython(workspace.projectRoot);
         await this.#python.ensureStarted();
-        this.#state = { status: inspection.status, workspace, project: inspection.projectConfig, runtime: { status: "ready" } };
+        this.#state = { ...projectState, runtime: { status: "ready" } };
       } catch (error) {
         try { await this.#python?.dispose(); } catch { /* Preserve the startup error. */ }
         this.#python = undefined;
-        this.#state = { status: inspection.status, workspace, project: inspection.projectConfig, runtime: {
+        this.#state = { ...projectState, runtime: {
           status: "unavailable",
           code: typeof error === "object" && error !== null && "code" in error && typeof error.code === "string" ? error.code : "CREATOR_RUNTIME_START_FAILED",
           message: error instanceof Error ? error.message : String(error),
@@ -82,6 +95,54 @@ export class CreatorWorkspaceManager {
       this.#state = { status: "uninitialized", workspace };
     }
     return this.#state;
+  }
+
+  #requireUninitialized(): CreatorWorkspaceDescriptor {
+    const state = this.#state;
+    if (state.status === "uninitialized") return state.workspace;
+    const code = state.status === "none" ? "CREATOR_WORKSPACE_REQUIRED"
+      : state.status === "broken" ? "AGENT_UI_PROJECT_INVALID_STATE"
+      : "AGENT_UI_PROJECT_ALREADY_INITIALIZED";
+    throw new CreatorWorkspaceError(code, `Agent UI setup is unavailable while workspace status is ${state.status}.`);
+  }
+
+  suggestSourceRoot(): Promise<string> {
+    return this.#exclusive(() => this.#suggestSourceRoot(this.#requireUninitialized().projectRoot));
+  }
+
+  validateSetup(input: CreatorWorkspaceInitializeInput): Promise<CreatorProjectSetupValidation> {
+    return this.#exclusive(() => this.#validateSetup({ ...input, projectRoot: this.#requireUninitialized().projectRoot }));
+  }
+
+  initializeProject(input: CreatorWorkspaceInitializeInput): Promise<CreatorWorkspaceState> {
+    return this.#exclusive(async () => {
+      const workspace = this.#requireUninitialized();
+      try { await this.#initialize({ ...input, projectRoot: workspace.projectRoot }); }
+      catch (error) {
+        if (typeof error === "object" && error !== null && "code" in error &&
+            error.code === "AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED") {
+          const inspected = await this.#inspectCurrent(workspace);
+          if (inspected.status === "uninitialized") {
+            this.#state = { status: "broken", workspace, issues: [{
+              code: "AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED",
+              message: "Initialized project still appears uninitialized; refresh before retrying.",
+            }] };
+          }
+        }
+        throw error;
+      }
+      let inspection: CreatorProjectInspection;
+      try { inspection = await this.#inspect(workspace.projectRoot); }
+      catch (error) {
+        this.#state = { status: "broken", workspace, issues: [{ code: "AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED", message: "Initialized project inspection failed." }] };
+        throw new CreatorWorkspaceError("AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED", error instanceof Error ? error.message : String(error));
+      }
+      if (inspection.status !== "ready") {
+        this.#state = { status: "broken", workspace, issues: [{ code: "AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED", message: `Initialized project inspected as ${inspection.status}.` }] };
+        throw new CreatorWorkspaceError("AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED", `Initialized Agent UI project inspected as ${inspection.status}.`);
+      }
+      return this.#inspectCurrent(workspace, inspection);
+    });
   }
 
   selectProject(projectRoot: string): Promise<CreatorWorkspaceState> {
