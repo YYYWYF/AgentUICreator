@@ -1,5 +1,3 @@
-import platformAppUIModel from "../../app-ui/app-ui.json";
-import { parseAppUIModel } from "../contracts/app-ui-model";
 import type { AgentUIModeDefinition } from "../contracts/agent-ui-mode";
 
 export const platformMode: AgentUIModeDefinition = {
@@ -20,6 +18,5 @@ export const platformMode: AgentUIModeDefinition = {
       },
     },
   },
-  createInitialAppUIModel: () =>
-    parseAppUIModel(structuredClone(platformAppUIModel)),
+  defaultPresetId: "platform/default",
 };

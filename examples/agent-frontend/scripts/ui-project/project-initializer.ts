@@ -5,14 +5,20 @@ import {
   AGENT_UI_PROJECT_CONFIG_VERSION,
   type AgentUIProjectConfig,
 } from "../../framework/contracts/agent-ui-project";
-import type { AgentUIMode } from "../../framework/contracts/agent-ui-mode";
-import type { AppUIModel } from "../../framework/contracts/app-ui-model";
-import { agentUIModeRegistry } from "../../framework/modes";
+import {
+  parseAgentUIMode,
+  type AgentUIMode,
+} from "../../framework/contracts/agent-ui-mode";
+import {
+  parseAppUIModel,
+  type AppUIModel,
+} from "../../framework/contracts/app-ui-model";
 import { AGENT_UI_PROJECT_CONFIG_FILE } from "./project-mode";
 
 export interface CreateUIProjectOptions {
   readonly projectRoot: string;
-  readonly mode?: AgentUIMode;
+  readonly mode: AgentUIMode;
+  readonly appUIModel: AppUIModel;
   readonly metadataRoot?: string;
 }
 
@@ -36,17 +42,18 @@ async function assertPathDoesNotExist(filePath: string): Promise<void> {
   throw new Error(`Refusing to overwrite existing project file: ${filePath}`);
 }
 
-/** Initializes Mode and composition files after the target project scaffold exists. */
+/** Persists the selected Mode and validated AppUIModel without resolving a Preset. */
 export async function createUIProject({
   projectRoot,
-  mode = "platform",
+  mode,
+  appUIModel: initialAppUIModel,
   metadataRoot = ".agent-ui",
 }: CreateUIProjectOptions): Promise<CreateUIProjectResult> {
-  const definition = agentUIModeRegistry.get(mode);
-  const appUIModel = definition.createInitialAppUIModel();
+  const resolvedMode = parseAgentUIMode(mode);
+  const appUIModel = parseAppUIModel(initialAppUIModel);
   const projectConfig: AgentUIProjectConfig = {
     version: AGENT_UI_PROJECT_CONFIG_VERSION,
-    mode,
+    mode: resolvedMode,
   };
   const projectConfigPath = path.posix.join(
     metadataRoot,
@@ -91,7 +98,7 @@ export async function createUIProject({
   }
 
   return {
-    mode,
+    mode: resolvedMode,
     projectConfig,
     appUIModel,
     projectConfigPath,

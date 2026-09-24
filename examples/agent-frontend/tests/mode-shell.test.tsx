@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { AgentUIMode } from "../framework/contracts/agent-ui-mode";
 import { ModeShell } from "../runtime/mode-shell";
 
 describe("ModeShell", () => {
@@ -20,7 +19,7 @@ describe("ModeShell", () => {
     ["assistant", "section", "agent-ui-assistant-shell"],
     ["embedded", "section", "agent-ui-embedded-shell"],
     ["platform", "main", "agent-ui-platform-shell"],
-  ] satisfies ReadonlyArray<readonly [AgentUIMode | "assistant" | "embedded", string, string]>)(
+  ] as const)(
     "routes %s through its dedicated shell",
     async (mode, element, className) => {
       let renderer: ReactTestRenderer | undefined;
@@ -39,6 +38,13 @@ describe("ModeShell", () => {
       expect(shell.props.className).toBe(className);
       expect(renderer!.root.findByProps({ "data-test-surface": true }))
         .toBeDefined();
+      if (mode !== "assistant") {
+        expect(
+          renderer!.root.findAllByProps({
+            className: "agent-ui-assistant-trigger",
+          }),
+        ).toHaveLength(0);
+      }
 
       await act(async () => renderer!.unmount());
     },

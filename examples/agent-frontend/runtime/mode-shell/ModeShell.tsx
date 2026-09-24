@@ -6,7 +6,7 @@ import { EmbeddedShell } from "./EmbeddedShell";
 import { PlatformShell } from "./PlatformShell";
 
 export interface ModeShellProps {
-  mode: AgentUIMode | "assistant" | "embedded";
+  mode: AgentUIMode;
   children: ReactNode;
 }
 

@@ -284,13 +284,13 @@ Plugin 源码继续由通用 Coding Agent 在权限范围内编辑；AppUIModel 
 
 ## 3.11 Mode 是独立的项目级产品形态
 
-Agent UI 项目只支持 `assistant`、`embedded` 和 `platform` 三种 Mode。Mode 负责声明项目整体产品形态并提供一个全新的 Initial AppUIModel；不同 Mode 可以拥有不同的 Layout Tree 和 Slot topology。
+Agent UI 项目支持 `assistant`、`embedded` 和 `platform` 三种 Mode。Mode 声明产品容器形态、Workspace Policy 和初始化时使用的默认 Preset ID；Mode 不创建或持有 AppUIModel。
 
-Mode 保存在 `.agent-ui/project.json`，不进入 AppUIModel。没有该配置的旧项目解析为 `platform`，但项目检查结果必须标记其来自 legacy fallback。已有 `app-ui/app-ui.json` 时，应用启动只读取 Mode 和当前模型，绝不能调用 Mode Blueprint 覆盖用户已经修改的 composition。
+Mode 保存在 `.agent-ui/project.json`，不进入 AppUIModel。没有该配置的旧项目解析为 `platform`，但项目检查结果必须标记其来自 legacy fallback。Preset Registry 在项目初始化时解析默认组合并返回 fresh AppUIModel；初始化完成后，当前 `app-ui/app-ui.json` 是项目的组合事实源。运行时只读取项目 Mode 和当前 AppUIModel，不加载 Preset，也不根据 Mode 改写组合。
 
-Mode Registry 只负责注册和查找 Mode Definition，不是新的 Plugin 系统。UI Plugin、SlotRegistry、LayoutRenderer 和 UIPluginRuntime 均不感知 Mode；第一阶段也不引入 Host、surface、density、`supportsModes`、Template、DOM 注入或 Mode 迁移规则。
+Mode Registry 只负责注册和查找 Mode Definition，不是新的 Plugin 系统。Preset Registry 只负责发现初始化组合，不安装 Plugin 或进入 Runtime。UI Plugin、SlotRegistry、LayoutRenderer、AppUICompiler 和 UIPluginRuntime 均不感知 Mode；第一阶段也不引入 Host、surface、density、`supportsModes`、DOM 注入或 Mode 迁移规则。
 
-运行时通过 `runtime/mode-shell` 中唯一的 `ModeShell` 路由 `AssistantShell`、`EmbeddedShell` 和 `PlatformShell`。ModeShell 只决定整套 Agent UI 的外部形态，AppUIModel 继续决定壳内布局和 Plugin 组合；Shell 不创建 Slot，也不直接渲染业务 Plugin。`AgentRuntimeProvider` 与 `PluginServiceProvider` 位于 ModeShell 外部，Assistant 收起时只隐藏 Panel、保持运行时 Surface 挂载，不能销毁会话、运行状态或 Plugin Service。Mode Definition 继续只提供 Initial AppUIModel，不引用 React Shell，也不增加 ModeShell Registry。
+运行时通过 `runtime/mode-shell` 中唯一的 `ModeShell` 路由 `AssistantShell`、`EmbeddedShell` 和 `PlatformShell`。ModeShell 只决定整套 Agent UI 的外部形态，AppUIModel 继续决定壳内布局和 Plugin 组合；Shell 不创建 Slot，也不直接渲染业务 Plugin。`AgentRuntimeProvider` 与 `PluginServiceProvider` 位于 ModeShell 外部，Assistant 收起时只隐藏 Panel、保持运行时 Surface 挂载，不能销毁会话、运行状态或 Plugin Service。Mode Definition 不引用 Preset 内容或 React Shell，也不增加 ModeShell Registry。
 
 ---
 
@@ -753,7 +753,7 @@ Generated Application 使用 Zod strict object 作为 Tool 输入校验和 JSON 
 
 稳定的 React Layout Runtime 由官方 `@agent-ui/runtime-react` 包维护。它拥有 `Row`、`Column`、`Stack`、`Panel`、`Slot` 的 Runtime Layout Language、`LayoutRenderer` 和 Layout CSS，只接收编译后的 `root`、`theme` 与项目提供的 `renderSlot`。生成项目继续拥有 AppUIModel、AppUIRuntimeModel、Compiler、SlotRegistry、Plugin Runtime、Services 与 Agent Contract。
 
-Creator 改变具体布局时只通过 `mutate_app_ui_model` 修改 `app-ui/app-ui.json`。新增 Grid、Dock 等 Layout Language 才是官方 Runtime 的框架开发任务。Mode 只在项目创建时提供 Initial AppUIModel，不得在启动时覆盖用户后续修改。
+Creator 改变具体布局时只通过 `mutate_app_ui_model` 修改 `app-ui/app-ui.json`。新增 Grid、Dock 等 Layout Language 才是官方 Runtime 的框架开发任务。Preset 只在项目初始化时提供初始 AppUIModel，不得在启动时覆盖用户后续修改；Mode 不参与 AppUICompiler 或 Plugin 组合分支。
 
 UI Runtime 负责：
 

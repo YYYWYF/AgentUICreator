@@ -1,9 +1,10 @@
 import { z } from "zod";
 
-import type { AppUIModel } from "./app-ui-model";
 import type { AgentUIWorkspacePolicy } from "./agent-ui-workspace";
 
 export const AGENT_UI_MODES = [
+  "assistant",
+  "embedded",
   "platform",
 ] as const;
 
@@ -17,8 +18,8 @@ export interface AgentUIModeDefinition {
   /** Determines which logical Workspace Regions the Mode can materialize. */
   readonly workspace: AgentUIWorkspacePolicy;
 
-  /** Creates a fresh initial composition for this project Mode. */
-  createInitialAppUIModel(): AppUIModel;
+  /** Canonical initialization preset; Runtime must not consume this field. */
+  readonly defaultPresetId: string;
 }
 
 export function parseAgentUIMode(input: unknown): AgentUIMode {

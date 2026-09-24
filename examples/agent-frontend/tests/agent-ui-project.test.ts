@@ -10,6 +10,7 @@ import {
 } from "../framework/contracts/agent-ui-project";
 import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 import { agentUIModeRegistry } from "../framework/modes";
+import { agentUIPresetRegistry } from "../framework/presets";
 import { createUIProject } from "../scripts/ui-project/project-initializer";
 import { readAgentUIProjectConfig } from "../scripts/ui-project/project-mode";
 
@@ -60,46 +61,36 @@ describe("Agent UI project Mode persistence", () => {
     });
   });
 
-  it("initializes independent Mode and AppUIModel files", async () => {
-    const projectRoot = await temporaryProject();
-    const result = await createUIProject({ projectRoot, mode: "platform" });
-    const projectConfigSource = await readFile(
-      path.join(projectRoot, ".agent-ui", "project.json"),
-      "utf8",
-    );
-    const appUIModelSource = await readFile(
-      path.join(projectRoot, "app-ui", "app-ui.json"),
-      "utf8",
-    );
+  it("persists each explicitly supplied Mode and independent AppUIModel", async () => {
+    for (const mode of ["assistant", "embedded", "platform"] as const) {
+      const projectRoot = await temporaryProject();
+      const appUIModel = agentUIPresetRegistry
+        .getDefaultForMode(mode, agentUIModeRegistry)
+        .createAppUIModel();
+      const result = await createUIProject({ projectRoot, mode, appUIModel });
+      const projectConfigSource = await readFile(
+        path.join(projectRoot, ".agent-ui", "project.json"),
+        "utf8",
+      );
+      const appUIModelSource = await readFile(
+        path.join(projectRoot, "app-ui", "app-ui.json"),
+        "utf8",
+      );
 
-    expect(JSON.parse(projectConfigSource)).toEqual({
-      version: "1",
-      mode: "platform",
-    });
-    expect(parseAppUIModelJson(appUIModelSource)).toEqual(result.appUIModel);
-    expect(JSON.parse(appUIModelSource)).not.toHaveProperty("mode");
+      expect(JSON.parse(projectConfigSource)).toEqual({ version: "1", mode });
+      expect(parseAppUIModelJson(appUIModelSource)).toEqual(appUIModel);
+      expect(JSON.parse(appUIModelSource)).not.toHaveProperty("mode");
+      expect(result.appUIModel).toEqual(appUIModel);
 
-    await writeFile(
-      path.join(projectRoot, "app-ui", "app-ui.json"),
-      `${JSON.stringify(
-        agentUIModeRegistry.get("platform").createInitialAppUIModel(),
-        null,
-        2,
-      )}\n`,
-    );
-    await expect(readAgentUIProjectConfig(projectRoot)).resolves.toEqual({
-      config: { version: "1", mode: "platform" },
-      legacy: false,
-      path: ".agent-ui/project.json",
-    });
+      await expect(readAgentUIProjectConfig(projectRoot)).resolves.toEqual({
+        config: { version: "1", mode },
+        legacy: false,
+        path: ".agent-ui/project.json",
+      });
+    }
   });
 
-  it("defaults project creation to platform and does not overwrite existing composition", async () => {
-    const defaultRoot = await temporaryProject();
-    await expect(createUIProject({ projectRoot: defaultRoot })).resolves.toEqual(
-      expect.objectContaining({ mode: "platform" }),
-    );
-
+  it("does not overwrite an existing composition", async () => {
     const existingRoot = await temporaryProject();
     await mkdir(path.join(existingRoot, "app-ui"), { recursive: true });
     const existingSource = '{"userLayout":true}\n';
@@ -113,13 +104,45 @@ describe("Agent UI project Mode persistence", () => {
     ).resolves.toBe(existingSource);
 
     await expect(
-      createUIProject({ projectRoot: existingRoot, mode: "platform" }),
+      createUIProject({
+        projectRoot: existingRoot,
+        mode: "platform",
+        appUIModel: agentUIPresetRegistry
+          .getDefaultForMode("platform", agentUIModeRegistry)
+          .createAppUIModel(),
+      }),
     ).rejects.toThrow("Refusing to overwrite");
     await expect(
       readFile(path.join(existingRoot, "app-ui", "app-ui.json"), "utf8"),
     ).resolves.toBe(existingSource);
     await expect(
       readFile(path.join(existingRoot, ".agent-ui", "project.json"), "utf8"),
+    ).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("refuses to overwrite an existing project config before writing composition", async () => {
+    const existingRoot = await temporaryProject();
+    await mkdir(path.join(existingRoot, ".agent-ui"), { recursive: true });
+    const existingSource = '{"version":"1","mode":"platform"}\n';
+    await writeFile(
+      path.join(existingRoot, ".agent-ui", "project.json"),
+      existingSource,
+    );
+
+    await expect(
+      createUIProject({
+        projectRoot: existingRoot,
+        mode: "assistant",
+        appUIModel: agentUIPresetRegistry
+          .getDefaultForMode("assistant", agentUIModeRegistry)
+          .createAppUIModel(),
+      }),
+    ).rejects.toThrow("Refusing to overwrite");
+    await expect(
+      readFile(path.join(existingRoot, ".agent-ui", "project.json"), "utf8"),
+    ).resolves.toBe(existingSource);
+    await expect(
+      readFile(path.join(existingRoot, "app-ui", "app-ui.json"), "utf8"),
     ).rejects.toMatchObject({ code: "ENOENT" });
   });
 });
