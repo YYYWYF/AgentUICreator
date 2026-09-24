@@ -11,7 +11,7 @@ import {
   PLUGIN_REGISTRY_ENTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
 } from "../scripts/ui-project/registry-generator";
-import { generatePluginRegistry } from "./legacy-project-paths";
+import { collectPluginProjectFacts, generatePluginRegistry } from "./legacy-project-paths";
 import type { UIProjectControlConfig } from "../scripts/ui-project/types";
 
 const temporaryProjects: string[] = [];
@@ -120,7 +120,11 @@ async function createProject(options: {
   return projectRoot;
 }
 
-async function addSecondDataMessageUI(projectRoot: string, enabled: boolean): Promise<void> {
+async function addSecondDataMessageUI(
+  projectRoot: string,
+  enabled: boolean,
+  name = "chart",
+): Promise<void> {
   const pluginRoot = path.join(projectRoot, "plugins", "second");
   await mkdir(pluginRoot);
   await writeFile(path.join(pluginRoot, "manifest.json"), JSON.stringify({
@@ -130,7 +134,7 @@ async function addSecondDataMessageUI(projectRoot: string, enabled: boolean): Pr
   await writeFile(path.join(pluginRoot, "definition.ts"), dataMessageUIDefinition);
   await writeFile(path.join(pluginRoot, "index.tsx"),
     'import { defineDataMessageUI as defineMessageUI } from "@agent-ui/react";\n' +
-    'export const messageUI = defineMessageUI({ name: "chart", render: () => null });\n');
+    `export const messageUI = defineMessageUI({ name: ${JSON.stringify(name)}, render: () => null });\n`);
   const model: AppUIModel = {
     applicationPlugins: [
       { id: "sample-main", pluginId: "sample", enabled: true },
@@ -191,6 +195,29 @@ describe("verifyUIProject", () => {
     expect(result.errors).toContainEqual(expect.objectContaining({ code: "DATA_MESSAGE_UI_RENDERER_MISSING" }));
   });
 
+  it("does not count an unregistered renderer toward the manifest requirement", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      pluginSource: dataMessageUISource("chart"),
+      definitionSource: "export default { manifest: {}, Component: () => null, dataMessageUIs: [] };\n",
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.errors).toContainEqual(expect.objectContaining({
+      code: "DATA_MESSAGE_UI_RENDERER_MISSING",
+    }));
+  });
+
+  it("ignores an unregistered renderer when the manifest omits Data Message UI", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: true,
+      pluginSource: dataMessageUISource("chart"),
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.errors.some((issue) => issue.code === "DATA_MESSAGE_UI_MANIFEST_MISSING"))
+      .toBe(false);
+  });
+
   it("rejects a renderer whose manifest omits Data Message UI", async () => {
     const projectRoot = await createProject({
       instancePluginId: "sample", mounted: true,
@@ -245,6 +272,60 @@ describe("verifyUIProject", () => {
       expect(result.errors.find((issue) => issue.code === "DATA_MESSAGE_UI_NAME_CONFLICT")?.message)
         .toContain('plugin "sample" instance "sample-main"');
     }
+  });
+
+  it("ignores unregistered names when checking enabled Plugin conflicts", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      pluginSource: dataMessageUISource("chart") +
+        'export const debugUI = defineDataMessageUI({ name: "debug", render: () => null });\n',
+      definitionSource: dataMessageUIDefinition,
+    });
+    await addSecondDataMessageUI(projectRoot, true, "debug");
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.status).toBe("passed");
+    expect(result.errors.some((issue) => issue.code === "DATA_MESSAGE_UI_NAME_CONFLICT"))
+      .toBe(false);
+  });
+
+  it("extracts multiple registered names through imported symbols", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      pluginSource: dataMessageUISource("chart") +
+        'export const sourcesUI = defineDataMessageUI({ name: "sources", render: () => null });\n',
+      definitionSource: 'import { messageUI, sourcesUI } from "./index";\n' +
+        'export default { manifest: {}, Component: () => null, dataMessageUIs: [messageUI, sourcesUI] };\n',
+    });
+    const facts = await collectPluginProjectFacts(projectRoot, fixtureConfig);
+    expect(facts.assets.find((asset) => asset.pluginId === "sample")?.dataMessageUINames)
+      .toEqual(["chart", "sources"]);
+  });
+
+  it("resolves an inline renderer in the default definition", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      definitionSource: 'import { defineDataMessageUI as defineMessageUI } from "@agent-ui/react";\n' +
+        'export default { manifest: {}, Component: () => null, dataMessageUIs: [' +
+        'defineMessageUI({ name: "chart", render: () => null })] };\n',
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.status).toBe("passed");
+  });
+
+  it("reports a dynamic registration array explicitly", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      definitionSource: 'export default { manifest: {}, Component: () => null, ' +
+        'dataMessageUIs: createRenderers() };\n',
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.errors).toContainEqual(expect.objectContaining({
+      code: "DATA_MESSAGE_UI_DEFINITION_NOT_STATIC",
+    }));
   });
 
   it("ignores same-named functions from other packages", async () => {
