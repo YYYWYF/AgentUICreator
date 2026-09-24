@@ -180,6 +180,48 @@ describe("RuntimeCompositionStore", () => {
     );
   });
 
+  it("reports a Data Message UI name conflict without publishing the candidate", async () => {
+    const store = createRuntimeCompositionStore();
+    const dataMessageDefinitions: UIPluginDefinition[] = ["first", "second"].map((pluginId) => ({
+      manifest: {
+        id: pluginId,
+        name: pluginId,
+        description: `${pluginId} fixture`,
+        version: "1.0.0",
+        data: { messageUI: true },
+      },
+      dataMessageUIs: [{ name: "chart", render: () => null }],
+      Component: () => null,
+    }));
+    const capabilityCatalog = createPluginCapabilityCatalog(dataMessageDefinitions.map((plugin) => ({
+      manifest: plugin.manifest,
+      provides: [],
+      inject: [],
+      optionalInject: [],
+      loadDefinition: async () => plugin,
+    })));
+    const failed = waitForError(store);
+    store.stageCandidate({
+      appUIModelSource: JSON.stringify({
+        applicationPlugins: dataMessageDefinitions.map((plugin) => ({
+          id: `${plugin.manifest.id}-main`,
+          pluginId: plugin.manifest.id,
+          enabled: true,
+        })),
+        root: { type: "slot", plugins: [] },
+      }),
+      capabilityCatalog,
+      capabilityCatalogRevision: "a".repeat(64),
+    });
+    await failed;
+
+    expect(store.getSnapshot()).toBeUndefined();
+    expect(store.getCandidateDiagnostic()).toMatchObject({
+      status: "error",
+      errorMessage: expect.stringContaining("DATA_MESSAGE_UI_NAME_CONFLICT"),
+    });
+  });
+
   it("publishes a capability removal only after the descriptor target is complete", async () => {
     const store = createRuntimeCompositionStore();
     const initialSource = modelSource(["alpha", "beta"]);

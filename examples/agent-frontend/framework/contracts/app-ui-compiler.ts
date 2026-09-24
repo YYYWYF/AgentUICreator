@@ -31,7 +31,8 @@ export type AppUICompilerIssueCode =
   | "renderer-slot-cardinality"
   | "renderer-plugin-outside-renderer-slot"
   | "application-plugin-must-be-headless"
-  | "headless-plugin-must-be-application";
+  | "headless-plugin-must-be-application"
+  | "data-message-ui-must-be-application";
 
 export interface AppUICompilerIssue {
   readonly code: AppUICompilerIssueCode;
@@ -167,6 +168,15 @@ export function compileAppUIModel(
         pluginId: plugin.pluginId,
         path,
         message: `Headless plugin instance "${plugin.id}" must be declared in applicationPlugins.`,
+      });
+    }
+    if (!isApplication && isDataMessageUI) {
+      issues.push({
+        code: "data-message-ui-must-be-application",
+        instanceId: plugin.id,
+        pluginId: plugin.pluginId,
+        path,
+        message: `Data Message UI plugin instance "${plugin.id}" must be declared in applicationPlugins and cannot mount into Layout.`,
       });
     }
 
