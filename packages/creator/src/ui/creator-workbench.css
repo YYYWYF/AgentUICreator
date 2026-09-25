@@ -28,33 +28,6 @@
 
 .creator-workbench-preview-placeholder p { margin: 0; }
 
-.creator-workbench-preview-integration {
-  align-content: safe center;
-  justify-items: stretch;
-  padding: 1.5rem;
-  overflow: auto;
-}
-
-.creator-workbench-preview-integration .creator-project-integration-guide {
-  width: min(100%, 42rem);
-  margin: auto;
-  font-size: 0.875rem;
-  box-shadow: 0 1rem 2.5rem rgb(16 24 40 / 8%);
-}
-
-.creator-workbench-preview-integration .creator-project-integration-guide > header,
-.creator-workbench-preview-integration .creator-project-integration-guide-body {
-  padding: 1.25rem;
-}
-
-.creator-workbench-preview-integration .creator-project-integration-guide > header strong {
-  font-size: 1.125rem;
-}
-
-.creator-workbench-preview-integration .creator-project-integration-guide-body {
-  padding-top: 0;
-}
-
 .creator-panel {
   position: relative;
   display: grid;
@@ -244,10 +217,13 @@
 .creator-project-integration-guide-body { padding: 0 0.85rem 0.85rem; }
 .creator-project-integration-guide-body p { margin: 0.5rem 0; line-height: 1.5; }
 .creator-project-integration-guide-body code { overflow-wrap: anywhere; }
-.creator-project-integration-guide-body pre { margin: 0.65rem 0 0.45rem; padding: 0.7rem; border: 1px solid #d0d5dd; border-radius: 0.45rem; background: #fff; overflow-x: auto; font-size: 0.75rem; line-height: 1.5; }
+.creator-project-integration-code-header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.65rem; }
+.creator-project-integration-guide-body pre { margin: 0.35rem 0 0.45rem; padding: 0.7rem; border: 1px solid #d0d5dd; border-radius: 0.45rem; background: #fff; overflow-x: auto; font-size: 0.75rem; line-height: 1.5; }
 .creator-project-integration-guide-body pre code { overflow-wrap: normal; }
 .creator-project-integration-guide .creator-project-integration-copy { padding: 0.3rem 0; }
 .creator-project-integration-guide-body [role="alert"] { display: block; color: #b42318; }
+.creator-project-integration-guide-body details { margin-top: 0.65rem; }
+.creator-project-integration-guide-body summary { color: #175cd3; font-weight: 700; cursor: pointer; }
 
 .creator-panel-header .creator-panel-dev-studio-dock
   button[data-agent-ui-dev-studio-entry="mock"]:hover,

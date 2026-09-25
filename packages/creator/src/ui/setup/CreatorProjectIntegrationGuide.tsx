@@ -55,15 +55,21 @@ export function CreatorProjectIntegrationGuide({ sourceRoot, mode }: {
       </header>
       {expanded ? (
         <div className="creator-project-integration-guide-body">
-          <p>公共入口：<code>{sourceRoot}/index.ts</code></p>
-          <p>在你项目自己的 React 组件中引入。以下以 <code>src/AgentMount.tsx</code> 为例：</p>
+          <p>从公共入口 <code>{sourceRoot}/index.ts</code> 引入。以下以你项目中的组件为例：</p>
+          <div className="creator-project-integration-code-header">
+            <code>src/AgentMount.tsx</code>
+            <button type="button" className="creator-project-integration-copy" onClick={() => void copySnippet()}>
+              {copyState === "copied" ? "已复制" : "复制代码"}
+            </button>
+          </div>
           <pre><code>{snippet}</code></pre>
-          <button type="button" className="creator-project-integration-copy" onClick={() => void copySnippet()}>
-            {copyState === "copied" ? "已复制" : "复制代码"}
-          </button>
           {copyState === "failed" ? <span role="alert">复制失败，请手动选择代码。</span> : null}
-          <p>在你已有的页面或布局中渲染 <code>{'<AgentMount />'}</code>。{placementByMode[mode]} 如果组件不在 <code>src/</code> 目录，请按该文件的位置调整相对导入路径。</p>
-          <p>默认 AG-UI 接口为 <code>/agent</code>；地址不同时可传入 <code>endpoint</code>，例如 <code>{'<Agent endpoint="/api/agent" />'}</code>。保存组件后，你自己的开发服务器会更新页面。</p>
+          <p>在已有页面或布局中渲染 <code>{'<AgentMount />'}</code>。{placementByMode[mode]}</p>
+          <details>
+            <summary>导入路径与接口地址</summary>
+            <p>如果组件不在 <code>src/</code> 目录，请按该文件的位置调整相对导入路径。</p>
+            <p>AG-UI 接口默认读取 <code>VITE_AGENT_ENDPOINT</code>，否则使用 <code>/agent</code>；地址不同时可传入 <code>endpoint</code>，例如 <code>{'<Agent endpoint="/api/agent" />'}</code>。保存组件后，你自己的开发服务器会更新页面。</p>
+          </details>
         </div>
       ) : null}
     </section>

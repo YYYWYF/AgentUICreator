@@ -1019,10 +1019,11 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
       saveConversation(agent, items, workspaceIdRef.current);
     }
     messageList.current?.scrollTo({
-      top: messageList.current.scrollHeight,
+      top: workspaceState?.status === "ready" && workspaceState.project.version === "2" && items.length === 0
+        ? 0 : messageList.current.scrollHeight,
       behavior: "smooth",
     });
-  }, [items]);
+  }, [items, workspaceState]);
 
   useEffect(
     () => () => {
@@ -1550,15 +1551,11 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
       {workspaceState !== null && (workspaceState.status === "ready" || workspaceState.status === "legacy") && workspaceState.workspace.id === previewWorkspaceId ? (
         <CreatorWorkbenchPreview threadId={threadId} workspaceId={workspaceState.workspace.id}>{children}</CreatorWorkbenchPreview>
       ) : (
-        <section className={`creator-workbench-preview creator-workbench-preview-placeholder${workspaceState?.status === "ready" && workspaceState.project.version === "2" ? " creator-workbench-preview-integration" : ""}`} aria-label="项目预览">
+        <section className="creator-workbench-preview creator-workbench-preview-placeholder" aria-label="项目预览">
           {workspaceState?.status === "uninitialized" ? (
             <><strong>Agent UI 尚未初始化</strong><p>选择产品形态并完成初始化后，Creator 才能开始编辑 Agent UI。</p></>
           ) : workspaceState === null || workspaceState.status === "none" ? (
             <strong>请先选择项目</strong>
-          ) : workspaceState.status === "ready" && workspaceState.project.version === "2" &&
-            workspaceState.project.sourceRoot !== undefined ? (
-            <CreatorProjectIntegrationGuide key={workspaceState.workspace.id} mode={workspaceState.project.mode}
-              sourceRoot={workspaceState.project.sourceRoot} />
           ) : (
             <><strong>当前项目没有连接预览</strong><p>启动项目后可在后续阶段连接它的预览。</p></>
           )}
@@ -1683,8 +1680,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
                 onInitialize={() => void initializeWorkspaceProject()}
                 onRetryInfo={() => { if (setupWorkspaceId !== undefined) loadSetupInfo(setupWorkspaceId); }} />
             ) : <div className="creator-panel-messages" ref={messageList}>
-              {workspaceState?.status === "ready" && workspaceState.workspace.id === previewWorkspaceId &&
-                workspaceState.project.version === "2" &&
+              {workspaceState?.status === "ready" && workspaceState.project.version === "2" &&
                 workspaceState.project.sourceRoot !== undefined ? (
                 <CreatorProjectIntegrationGuide key={workspaceState.workspace.id} mode={workspaceState.project.mode}
                   sourceRoot={workspaceState.project.sourceRoot} />
