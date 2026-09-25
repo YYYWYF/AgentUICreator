@@ -879,6 +879,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
   const [setupNeedsRefresh, setSetupNeedsRefresh] = useState(false);
   const messageList = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLElement>(null);
+  const workspaceControl = useRef<HTMLDivElement>(null);
   const resizeStart = useRef<{
     pointerId: number;
     x: number;
@@ -955,6 +956,22 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
     });
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    if (!showWorkspaceSelector || workspaceState?.status === "none") return;
+    const closeOnOutsideClick = (event: globalThis.PointerEvent) => {
+      if (!workspaceControl.current?.contains(event.target as Node)) setShowWorkspaceSelector(false);
+    };
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") setShowWorkspaceSelector(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [showWorkspaceSelector, workspaceState?.status]);
 
   const setupWorkspaceId = workspaceState?.status === "uninitialized" ? workspaceState.workspace.id : undefined;
 
@@ -1607,67 +1624,6 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
             </div>
           </header>
 
-          <section className="creator-workspace-status" aria-label="当前项目">
-            {workspaceState !== null && workspaceState.status !== "none" ? (
-              <>
-                <strong>项目：{workspaceState.workspace.name}</strong>
-                <span className="creator-workspace-location">
-                  <span>位置</span>
-                  <code title={workspaceState.workspace.displayPath}>{workspaceState.workspace.displayPath}</code>
-                </span>
-                {workspaceState.status === "ready" || workspaceState.status === "legacy" ? (
-                  <span>Mode: {workspaceState.project.mode} · Agent UI: {workspaceState.project.sourceRoot ?? "agent-ui (V1)"}</span>
-                ) : workspaceState.status === "uninitialized" ? (
-                  <span>Agent UI: 未初始化</span>
-                ) : <span>Agent UI: 配置异常</span>}
-                {(workspaceState.status === "ready" || workspaceState.status === "legacy") && workspaceState.warnings?.length ? (
-                  <div className="creator-workspace-warnings" role="status">
-                    <strong>⚠ Agent UI 初始化需要恢复检查</strong>
-                    {workspaceState.warnings.map((issue, index) => (
-                      <span key={`${issue.code}-${index}`}>{issue.code === "AGENT_UI_INITIALIZATION_RECOVERY_REQUIRED"
-                        ? "上次初始化已提交，但清理流程没有完整结束。项目当前可以继续使用。"
-                        : setupIssueMessage(issue)}</span>
-                    ))}
-                  </div>
-                ) : null}
-                <div>
-                  <button type="button" disabled={workspaceBusy || setupDraft.initializing} onClick={() => void refreshWorkspace()}>刷新</button>
-                  <button type="button" disabled={workspaceBusy || setupDraft.initializing} onClick={() => {
-                    setWorkspacePath(workspaceState.workspace.displayPath);
-                    setShowWorkspaceSelector(true);
-                  }}>切换项目</button>
-                  <button type="button" disabled={workspaceBusy || setupDraft.initializing} onClick={() => void clearWorkspace()}>移除选择</button>
-                </div>
-              </>
-            ) : <strong>尚未选择项目</strong>}
-            {showWorkspaceSelector ? (
-              <div className="creator-workspace-selector">
-                <strong>选择前端项目文件夹</strong>
-                <span>点击后在系统文件夹窗口中选择已有项目。</span>
-                <button className="creator-workspace-browse" type="button"
-                  disabled={workspaceState === null || workspaceBusy || setupDraft.initializing}
-                  onClick={() => void chooseWorkspace()}>
-                  {workspacePicking ? "等待文件夹选择…" : "打开系统文件夹窗口…"}
-                </button>
-                {workspacePicking ? <span role="status">请在系统窗口中选择项目，或取消返回。</span> : null}
-                <details>
-                  <summary>手动输入项目路径</summary>
-                  <form onSubmit={selectWorkspace}>
-                    <label htmlFor="creator-workspace-path">项目文件夹的绝对路径</label>
-                    <input id="creator-workspace-path" value={workspacePath} disabled={workspaceBusy || setupDraft.initializing}
-                      onChange={(event) => setWorkspacePath(event.target.value)} placeholder="/path/to/project" />
-                    <button type="submit" disabled={workspaceBusy || setupDraft.initializing || workspacePath.trim() === ""}>使用这个文件夹</button>
-                  </form>
-                </details>
-                {workspaceState !== null && workspaceState.status !== "none" ? (
-                  <button className="creator-workspace-cancel" type="button" disabled={workspaceBusy || setupDraft.initializing}
-                    onClick={() => setShowWorkspaceSelector(false)}>取消切换</button>
-                ) : null}
-              </div>
-            ) : null}
-            {workspaceError === null ? null : <p role="alert">{workspaceError}</p>}
-          </section>
-
           <div className="creator-panel-body">
             <div
               className="creator-panel-dev-studio-panel"
@@ -1740,24 +1696,104 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
             </div>}
           </div>
 
-          {workspaceState?.status === "ready" || workspaceState?.status === "legacy" ? <form className="creator-panel-composer" onSubmit={submit}>
-            <label htmlFor="creator-request">修改需求</label>
-            <textarea
-              disabled={isRunning || !creatorRuntimeReady}
-              id="creator-request"
-              onChange={(event) => setInput(event.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="例如：右边增加一个工具调用详情面板"
-              rows={3}
-              value={input}
-            />
-            <div>
-              <small>Enter 发送 · Shift+Enter 换行</small>
-              <button disabled={isRunning || input.trim() === "" || !creatorRuntimeReady} type="submit">
-                {isRunning ? "处理中…" : "发送"}
+          <div className="creator-panel-footer">
+            <div className="creator-workspace-control" ref={workspaceControl}>
+              <button
+                aria-controls="creator-workspace-menu"
+                aria-expanded={showWorkspaceSelector}
+                aria-label={workspaceState !== null && workspaceState.status !== "none"
+                  ? `当前项目：${workspaceState.workspace.name}，点击切换项目` : "选择项目文件夹"}
+                className="creator-workspace-trigger"
+                disabled={workspaceBusy || setupDraft.initializing}
+                onClick={() => {
+                  if (workspaceState !== null && workspaceState.status !== "none") {
+                    setWorkspacePath(workspaceState.workspace.displayPath);
+                  }
+                  setShowWorkspaceSelector((current) => !current);
+                }}
+                title={workspaceState !== null && workspaceState.status !== "none"
+                  ? workspaceState.workspace.displayPath : "选择项目文件夹"}
+                type="button"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M3.5 6.5h6l2 2h9v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-11Z" />
+                  <path d="M3.5 10h17" />
+                </svg>
+                <span>{workspaceState !== null && workspaceState.status !== "none"
+                  ? workspaceState.workspace.name : "选择项目"}</span>
+                {workspaceState !== null && (workspaceState.status === "ready" || workspaceState.status === "legacy") &&
+                  workspaceState.warnings?.length ? <span aria-label="项目有提示" className="creator-workspace-warning-dot">!</span> : null}
+                <span aria-hidden="true" className="creator-workspace-chevron">⌄</span>
               </button>
+              {showWorkspaceSelector ? (
+                <section className="creator-workspace-menu" id="creator-workspace-menu" aria-label="选择前端项目文件夹">
+                  {workspaceState !== null && workspaceState.status !== "none" ? (
+                    <div className="creator-workspace-current">
+                      <strong>{workspaceState.workspace.name}</strong>
+                      <code title={workspaceState.workspace.displayPath}>{workspaceState.workspace.displayPath}</code>
+                      {workspaceState.status === "ready" || workspaceState.status === "legacy" ? (
+                        <span>Mode: {workspaceState.project.mode} · Agent UI: {workspaceState.project.sourceRoot ?? "agent-ui (V1)"}</span>
+                      ) : workspaceState.status === "uninitialized" ? (
+                        <span>Agent UI: 未初始化</span>
+                      ) : <span>Agent UI: 配置异常</span>}
+                      {(workspaceState.status === "ready" || workspaceState.status === "legacy") && workspaceState.warnings?.length ? (
+                        <div className="creator-workspace-warnings" role="status">
+                          <strong>⚠ Agent UI 初始化需要恢复检查</strong>
+                          {workspaceState.warnings.map((issue, index) => (
+                            <span key={`${issue.code}-${index}`}>{issue.code === "AGENT_UI_INITIALIZATION_RECOVERY_REQUIRED"
+                              ? "上次初始化已提交，但清理流程没有完整结束。项目当前可以继续使用。"
+                              : setupIssueMessage(issue)}</span>
+                          ))}
+                        </div>
+                      ) : null}
+                      <div className="creator-workspace-actions">
+                        <button type="button" disabled={workspaceBusy || setupDraft.initializing} onClick={() => void refreshWorkspace()}>刷新</button>
+                        <button type="button" disabled={workspaceBusy || setupDraft.initializing} onClick={() => void clearWorkspace()}>移除选择</button>
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="creator-workspace-selector">
+                    <strong>{workspaceState !== null && workspaceState.status !== "none" ? "切换项目" : "选择前端项目文件夹"}</strong>
+                    <span>在系统文件夹窗口中选择已有项目。</span>
+                    <button className="creator-workspace-browse" type="button"
+                      disabled={workspaceState === null || workspaceBusy || setupDraft.initializing}
+                      onClick={() => void chooseWorkspace()}>
+                      {workspacePicking ? "等待文件夹选择…" : "打开系统文件夹窗口…"}
+                    </button>
+                    {workspacePicking ? <span role="status">请在系统窗口中选择项目，或取消返回。</span> : null}
+                    <details>
+                      <summary>手动输入项目路径</summary>
+                      <form onSubmit={selectWorkspace}>
+                        <label htmlFor="creator-workspace-path">项目文件夹的绝对路径</label>
+                        <input id="creator-workspace-path" value={workspacePath} disabled={workspaceBusy || setupDraft.initializing}
+                          onChange={(event) => setWorkspacePath(event.target.value)} placeholder="/path/to/project" />
+                        <button type="submit" disabled={workspaceBusy || setupDraft.initializing || workspacePath.trim() === ""}>使用这个文件夹</button>
+                      </form>
+                    </details>
+                  </div>
+                  {workspaceError === null ? null : <p role="alert">{workspaceError}</p>}
+                </section>
+              ) : null}
             </div>
-          </form> : null}
+            {workspaceState?.status === "ready" || workspaceState?.status === "legacy" ? <form className="creator-panel-composer" onSubmit={submit}>
+              <label htmlFor="creator-request">修改需求</label>
+              <textarea
+                disabled={isRunning || !creatorRuntimeReady}
+                id="creator-request"
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="例如：右边增加一个工具调用详情面板"
+                rows={3}
+                value={input}
+              />
+              <div>
+                <small>Enter 发送 · Shift+Enter 换行</small>
+                <button disabled={isRunning || input.trim() === "" || !creatorRuntimeReady} type="submit">
+                  {isRunning ? "处理中…" : "发送"}
+                </button>
+              </div>
+            </form> : null}
+          </div>
         </aside>
       ) : (
         <button
