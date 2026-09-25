@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
@@ -18,7 +18,7 @@ afterEach(async () => {
 async function projectRoot(): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), "creator-workspace-api-"));
   roots.push(root);
-  return root;
+  return realpath(root);
 }
 
 function fixture() {
@@ -43,7 +43,8 @@ function fixture() {
   return { manager, initializeProject, validateProjectSetup };
 }
 
-async function request(manager: CreatorWorkspaceManager, method: string, route: string, body?: unknown, origin = "http://localhost:5174") {
+async function request(manager: CreatorWorkspaceManager, method: string, route: string, body?: unknown,
+  origin = "http://localhost:5174", browseStartPath?: string) {
   const stream = Readable.from(body === undefined ? [] : [JSON.stringify(body)]);
   const incoming = Object.assign(stream, {
     method, url: route,
@@ -55,11 +56,28 @@ async function request(manager: CreatorWorkspaceManager, method: string, route: 
     setHeader: vi.fn(),
     end(value: string) { output = value; },
   } as unknown as ServerResponse;
-  await handleCreatorWorkspaceRequest(incoming, response, manager);
+  await handleCreatorWorkspaceRequest(incoming, response, manager, browseStartPath);
   return { status: response.statusCode, body: JSON.parse(output) as Record<string, unknown> };
 }
 
 describe("Creator Workspace setup API", () => {
+  it("browses local folders without changing the selected workspace", async () => {
+    const root = await projectRoot();
+    await mkdir(path.join(root, "examples"));
+    await writeFile(path.join(root, "README.md"), "fixture");
+    const { manager } = fixture();
+    const listing = await request(manager, "POST", "/browse", {}, undefined, root);
+    expect(listing.body).toMatchObject({ path: root, startPath: root,
+      directories: [{ name: "examples", path: path.join(root, "examples") }] });
+    expect(manager.getState().status).toBe("none");
+    expect((await request(manager, "POST", "/browse", { path: path.join(root, "examples") }, undefined, root)).body)
+      .toMatchObject({ path: path.join(root, "examples"), parentPath: root, directories: [] });
+    expect((await request(manager, "POST", "/browse", { path: root }, "http://evil.example", root)).body)
+      .toMatchObject({ code: "CREATOR_WORKSPACE_ORIGIN_DENIED" });
+    expect((await request(manager, "POST", "/browse", { path: "relative" }, undefined, root)).body)
+      .toMatchObject({ code: "CREATOR_WORKSPACE_INPUT_INVALID" });
+  });
+
   it("selects, suggests, validates, and initializes into a public ready state", async () => {
     const root = await projectRoot();
     const { manager, initializeProject, validateProjectSetup } = fixture();

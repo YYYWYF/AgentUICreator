@@ -1,6 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+import path from "node:path";
 
 import { CreatorWorkspaceError, CreatorWorkspaceManager } from "./CreatorWorkspaceManager.js";
+import { browseProjectDirectories } from "./project-directory-browser.js";
 import { publicWorkspaceState, CREATOR_PROJECT_MODES, CREATOR_WORKSPACE_API_PATH,
   type CreatorWorkspaceInitializeInput, type CreatorWorkspaceSetupInfo } from "./types.js";
 export { CREATOR_WORKSPACE_API_PATH } from "./types.js";
@@ -58,6 +60,7 @@ export async function handleCreatorWorkspaceRequest(
   request: IncomingMessage,
   response: ServerResponse,
   manager: CreatorWorkspaceManager,
+  browseStartPath: string = process.cwd(),
 ): Promise<void> {
   const route = request.url?.split("?", 1)[0] ?? "/";
   try {
@@ -90,6 +93,19 @@ export async function handleCreatorWorkspaceRequest(
       const projectRoot = (body as { projectRoot: string }).projectRoot.trim();
       if (projectRoot === "") throw new CreatorWorkspaceError("CREATOR_WORKSPACE_INPUT_INVALID", "Project Root is required.");
       sendJson(response, 200, publicWorkspaceState(await manager.selectProject(projectRoot)));
+      return;
+    }
+    if (route === "/browse") {
+      const body = await readBody(request);
+      if (typeof body !== "object" || body === null || Array.isArray(body) ||
+          Object.keys(body).some((key) => key !== "path") ||
+          ("path" in body && (typeof body.path !== "string" || body.path.trim() === "" || !path.isAbsolute(body.path)))) {
+        throw new CreatorWorkspaceError("CREATOR_WORKSPACE_INPUT_INVALID", "Browse requires an absolute directory path.");
+      }
+      const state = manager.getState();
+      const requestedPath = "path" in body ? body.path as string
+        : state.status === "none" ? undefined : state.workspace.projectRoot;
+      sendJson(response, 200, await browseProjectDirectories(requestedPath, browseStartPath));
       return;
     }
     if (route === "/setup/validate") {

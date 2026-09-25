@@ -39,6 +39,15 @@ export interface CreatorWorkspaceSetupInfo {
   readonly modes: readonly { readonly id: CreatorProjectMode; readonly title: string; readonly description: string }[];
 }
 
+export interface CreatorWorkspaceDirectoryListing {
+  readonly path: string;
+  readonly parentPath: string | null;
+  readonly homePath: string;
+  readonly startPath: string;
+  readonly breadcrumbs: readonly { readonly label: string; readonly path: string }[];
+  readonly directories: readonly { readonly name: string; readonly path: string }[];
+}
+
 export interface CreatorProjectConfig {
   readonly version: "1" | "2";
   readonly mode: CreatorProjectMode;

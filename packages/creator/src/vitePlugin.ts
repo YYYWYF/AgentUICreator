@@ -108,7 +108,7 @@ export function createCreatorDevServerPlugin({
       });
       if (workspaceManager !== undefined) {
         server.middlewares.use(CREATOR_WORKSPACE_API_PATH, (request, response) => {
-          void handleCreatorWorkspaceRequest(request, response, workspaceManager);
+          void handleCreatorWorkspaceRequest(request, response, workspaceManager, configRoot);
         });
       }
       const proxy = async (

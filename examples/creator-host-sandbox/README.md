@@ -16,7 +16,7 @@ The sandbox declares the dependencies required by the default Assistant, Embedde
 
 1. Run `pnpm reset:host-sandbox`, then `pnpm inspect:host-sandbox`. The status should be `uninitialized`.
 2. Run `pnpm dev:host-sandbox` yourself and open <http://127.0.0.1:5176/>. Keep it running.
-3. Start Creator Workbench separately. Set Project Root to `examples/creator-host-sandbox` and confirm that Agent UI is uninitialized.
+3. Start Creator Workbench separately. Click **浏览文件夹**, open `examples` → `creator-host-sandbox`, then click **选择这个文件夹**. Confirm that Agent UI is uninitialized. The manual path field is an optional fallback.
 4. Choose Assistant and `src/agent-ui`, then initialize. Workbench should report `ready`. Inspect `.agent-ui/project.json`, `.agent-ui/source-lock.json`, `src/agent-ui/index.ts`, and `src/agent-ui/application/runtime-config.generated.ts`.
 5. Edit the **host-owned** `src/AgentMount.tsx` by hand:
 
