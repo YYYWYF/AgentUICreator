@@ -1,0 +1,39 @@
+:root { font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #243247; background: #fff; }
+* { box-sizing: border-box; }
+html, body, #root { width: 100%; height: 100%; margin: 0; }
+button { font: inherit; }
+.split-workspace { display: grid; grid-template-columns: minmax(0, 2fr) minmax(22rem, 1fr); width: 100%; height: 100dvh; overflow: hidden; }
+.document-pane { display: flex; flex-direction: column; min-width: 0; height: 100%; background: #fff; }
+.app-bar { display: flex; justify-content: space-between; align-items: center; height: 4.25rem; flex: none; padding: 0 2.5rem; border-bottom: 1px solid #e8edf3; }
+.app-brand { display: flex; align-items: center; gap: .5rem; color: #243247; font-size: .88rem; font-weight: 760; letter-spacing: -.03em; }
+.app-brand-icon { display: grid; width: 1.65rem; height: 1.65rem; margin-right: .25rem; border-radius: .45rem; color: #fff; background: #525eb8; place-items: center; }
+.app-brand-divider { margin: 0 .4rem; color: #cbd3df; font-weight: 400; }
+.app-user { display: flex; align-items: center; gap: .65rem; color: #7e8a9a; font-size: .76rem; }
+.app-user span, .meta-avatar { display: grid; width: 1.9rem; height: 1.9rem; border-radius: 50%; color: #6978a4; background: #e7eaf4; font-size: .72rem; place-items: center; }
+.document-scroll { overflow: auto; padding: 2.6rem clamp(2rem, 5vw, 6rem) 5rem; }
+.breadcrumbs { color: #99a5b5; font-size: .75rem; }
+.breadcrumbs span { margin: 0 .5rem; color: #c2cbd8; }
+.document-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 3.2rem; }
+.document-heading h1 { margin: .6rem 0 .5rem; color: #1f2d43; font-size: clamp(2rem, 3vw, 2.8rem); letter-spacing: -.06em; }
+.document-heading p { margin: 0; color: #8a97a7; font-size: .9rem; }
+.document-heading button { flex: none; padding: .65rem .95rem; border: 1px solid #dde4ee; border-radius: .6rem; color: #43516a; background: #fff; font-size: .75rem; font-weight: 680; }
+.document-tag { padding: .35rem .55rem; border-radius: .3rem; color: #5868b5; background: #edf0fd; font-size: .68rem; font-weight: 750; }
+.document-meta { display: flex; align-items: center; gap: .55rem; margin: 2rem 0 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e9edf3; color: #8c98a8; font-size: .72rem; }
+.meta-status { margin-left: auto; color: #45a387; }
+.document-card { margin-bottom: 2.8rem; }
+.section-number { color: #6073bd; font-size: .68rem; font-weight: 780; letter-spacing: .13em; text-transform: uppercase; }
+.document-card h2 { margin: .8rem 0 1rem; color: #26354b; font-size: 1.25rem; letter-spacing: -.035em; }
+.document-card p { max-width: 47rem; margin: 0; color: #6d7a8c; font-size: .86rem; line-height: 1.95; }
+.callout { display: flex; gap: .8rem; align-items: start; margin-top: 1.5rem; padding: 1.1rem 1.3rem; border-left: 3px solid #7181d3; border-radius: 0 .55rem .55rem 0; background: #f3f5fc; }
+.callout span { color: #7181d3; }
+.callout p { color: #53627d; font-size: .79rem; }
+.milestones { border: 1px solid #e7ebf1; border-radius: .8rem; }
+.milestone { display: flex; align-items: center; gap: .7rem; min-height: 3.7rem; padding: .7rem 1rem; color: #8290a1; font-size: .72rem; }
+.milestone + .milestone { border-top: 1px solid #edf0f4; }
+.milestone strong { flex: 1; color: #3a485d; font-size: .8rem; }
+.milestone small { width: 3.5rem; text-align: right; font-size: .7rem; }
+.milestone-dot { width: .7rem; height: .7rem; border: 2px solid #cbd3df; border-radius: 50%; }
+.milestone-dot.done { border-color: #58a88b; background: #58a88b; }
+.agent-pane { min-width: 0; min-height: 0; height: 100%; overflow: hidden; border-left: 1px solid #e1e6ef; background: #fff; }
+.agent-pane > .agent-ui-embedded-shell { height: 100%; }
+@media (max-width: 800px) { .split-workspace { grid-template-columns: minmax(0, 1fr); height: auto; overflow: visible; } .document-pane { min-height: 60dvh; } .agent-pane { height: 70dvh; border-top: 1px solid #e1e6ef; border-left: 0; } .document-scroll { padding: 2rem 1.5rem; } .app-bar { padding: 0 1.5rem; } }

@@ -12,5 +12,9 @@ __pycache__/
 examples/agent-frontend/.agent-ui/visual-observations/
 examples/creator-host-sandbox/.agent-ui/
 examples/creator-host-sandbox/src/agent-ui/
+examples/creator-assistant-host/.agent-ui/
+examples/creator-assistant-host/src/agent-ui/
+examples/creator-embedded-host/.agent-ui/
+examples/creator-embedded-host/src/agent-ui/
 apps/creator-workbench/test-results/
 apps/creator-workbench/playwright-report/

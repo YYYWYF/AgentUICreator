@@ -1,66 +1,21 @@
-# Creator Host Sandbox
+# Three independent Host examples
 
-This is an ordinary React/Vite host project for development testing. On a fresh checkout it has no `.agent-ui/` or `src/agent-ui/` directory, so the Creator Project Inspector reports `uninitialized`. Creator does not start or manage this Vite server.
+These ordinary React/Vite projects show the three Agent UI Modes inside user-owned applications. Each starts its own Vite server and imports only the generated `src/agent-ui` public entry. On first `dev` or `build`, the matching Source Registry preset is initialized into that Host if it is still uninitialized. Existing Agent UI source is never replaced by startup.
 
-## Ownership
+| Project | Mode | Host layout | URL | Start |
+| --- | --- | --- | --- | --- |
+| `examples/creator-host-sandbox` | Platform | Agent fills the viewport | <http://localhost:5176/> | `pnpm dev:host-sandbox` |
+| `examples/creator-assistant-host` | Assistant | User page fills the viewport; Agent ball at bottom right | <http://localhost:5177/> | `pnpm dev:assistant-host` |
+| `examples/creator-embedded-host` | Embedded | User page left 2/3; Agent right 1/3 | <http://localhost:5178/> | `pnpm dev:embedded-host` |
 
-| Owner | Paths |
-| --- | --- |
-| Host application | `src/App.tsx`, `src/AgentMount.tsx`, `src/main.tsx`, `dev/creator-dock.ts`, `vite.config.ts`, `package.json` |
-| AgentUICreator source | `src/agent-ui/**` after initialization |
-| AgentUICreator metadata | `.agent-ui/**` after initialization |
+Run `pnpm install` once at the workspace root. Start any Host with its command above. Start Creator separately with `pnpm dev` (port 5174). On each Host page, use the small **Creator Agent** tab at the top right to open the Creator window. Choose that Host's directory in the system folder dialog. The public Agent's own floating button is at the bottom right only in Assistant Mode.
 
-The sandbox declares the dependencies required by the default Assistant, Embedded, and Platform Source Registry presets. Its dev dependencies are only for the host's Vite tooling and the local helper scripts. Install workspace dependencies with `pnpm install` before using the helpers.
+Creator is injected only by the Host's Vite dev configuration. It loads `http://localhost:5174/dock.html` in an iframe and never controls the Host's HMR. `VITE_CREATOR_DOCK_URL` overrides the Creator URL. Production builds omit the Creator dock. The generated Agent app has no Creator runtime dependency and does not read `.agent-ui/**` at runtime.
 
-## Workbench initialization
+## Ownership and reset
 
-1. Run `pnpm reset:host-sandbox`, then `pnpm inspect:host-sandbox`. The status should be `uninitialized`.
-2. Run `pnpm dev:host-sandbox` yourself and open <http://localhost:5176/>. Keep it running.
-3. Start the Creator service separately with `pnpm dev`. Keep its `localhost:5174` server running, but work in the Host page at <http://localhost:5176/>. Click the **Creator** button at the bottom right, then choose `examples/creator-host-sandbox` in the system folder dialog. The manual path field is an optional fallback.
-4. In the floating Creator window, choose Assistant and `src/agent-ui`, then initialize. Creator should report `ready`. Inspect `.agent-ui/project.json`, `.agent-ui/source-lock.json`, `src/agent-ui/index.ts`, and `src/agent-ui/application/runtime-config.generated.ts`.
-5. Edit the **host-owned** `src/AgentMount.tsx` by hand:
+Each Host owns its `src/App.tsx`, `src/AgentMount.tsx`, `src/main.tsx`, `src/host.css`, Vite config, and package file. Creator owns `src/agent-ui/**` after initialization; `.agent-ui/**` is control-plane metadata. The Host integrates Agent UI only through `import { Agent } from "./agent-ui"` and `<Agent />`.
 
-   ```tsx
-   import { Agent } from "./agent-ui";
+The shared helper scripts under this project's `scripts/` initialize or inspect one named Host and reset only its `.agent-ui` and `src/agent-ui` directories. They reject symlinks and unsafe paths. After reset, the next `dev` or `build` initializes that Host's default Mode again. The Platform Host also keeps its explicit `init:assistant`, `init:embedded`, and `init:platform` scripts for Source Registry experiments; using a different Mode requires reset first and the matching Host layout is only guaranteed in its named example.
 
-   export function AgentMount() {
-     return <Agent />;
-   }
-   ```
-
-   Vite should update the page through HMR. The Host page and Assistant should coexist. The default Agent endpoint is `/agent`; pass `endpoint` or set `VITE_AGENT_ENDPOINT` for a real AG-UI service.
-6. With the Host's Vite server still running, ask the floating Creator to change the welcome text, for example `把欢迎语改成“你好，我是你的助手”`. The change under `src/agent-ui/**` should appear through the Host's own HMR.
-
-The floating Creator is injected by this Host's Vite configuration only while serving the development page. It loads Creator UI from `localhost:5174/dock.html` in an iframe and does not own the Host's HMR. Set `VITE_CREATOR_DOCK_URL` if the Creator service uses a different local URL. The production build does not inject the dock or depend on the Creator package.
-
-The Host imports only the public `src/agent-ui/index.ts` entry. It does not import managed `runtime`, `framework`, `plugins`, or `app-ui` paths. The initializer never edits `App.tsx` or `AgentMount.tsx`.
-
-`.agent-ui/project.json` is Creator control-plane metadata. Initialization derives the Mode into `src/agent-ui/application/runtime-config.generated.ts`; the production `<Agent />` import reads that generated source and does not require `.agent-ui/**` in the deployed app.
-
-## Other modes
-
-Use `pnpm reset:host-sandbox` and initialize Embedded or Platform in Workbench, always with `src/agent-ui`. The Host integration stays `import { Agent } from "./agent-ui"` and `<Agent />`.
-
-For Embedded, the Host can place `<Agent />` inside `<div className="agent-area">`. For Platform, it can place it inside `<div className="platform-demo">`. Confirm the Platform default AppUI includes both thread list and conversation. A missing Mode shell behavior belongs in the managed source, not in this fixture.
-
-The reset command removes only `.agent-ui/` and `src/agent-ui/`. It leaves `AgentMount.tsx` intact. If that file still imports `./agent-ui`, restore its initial null component by hand before running the uninitialized Host app.
-
-## Direct initialization helpers
-
-These development scripts call the existing Host initializer and Inspector. They require `uninitialized` and never reset automatically:
-
-```text
-pnpm reset:host-sandbox
-pnpm init:host-sandbox:assistant
-pnpm inspect:host-sandbox
-
-pnpm reset:host-sandbox
-pnpm init:host-sandbox:embedded
-pnpm inspect:host-sandbox
-
-pnpm reset:host-sandbox
-pnpm init:host-sandbox:platform
-pnpm inspect:host-sandbox
-```
-
-`pnpm --filter @agent-ui/creator-host-sandbox test` contains a Host import boundary test and temporary Host TypeScript/Vite build tests for all three Modes. Each temporary Host removes `.agent-ui/**` before compiling to cover deployment without Creator metadata.
+The public-entry test in this project builds temporary Hosts for all three Modes after removing `.agent-ui/**`, covering deployment without Creator metadata.

@@ -10,6 +10,8 @@
     "dev": "pnpm --filter @agent-ui/bootstrap build && pnpm --filter @agent-ui/creator-workbench dev",
     "dev:app": "pnpm --filter @agent-ui/example-agent-frontend dev",
     "dev:host-sandbox": "pnpm --filter @agent-ui/creator-host-sandbox dev",
+    "dev:assistant-host": "pnpm --filter @agent-ui/creator-assistant-host dev",
+    "dev:embedded-host": "pnpm --filter @agent-ui/creator-embedded-host dev",
     "reset:host-sandbox": "pnpm --filter @agent-ui/creator-host-sandbox reset",
     "inspect:host-sandbox": "pnpm --filter @agent-ui/creator-host-sandbox inspect",
     "init:host-sandbox:assistant": "pnpm --filter @agent-ui/creator-host-sandbox init:assistant",

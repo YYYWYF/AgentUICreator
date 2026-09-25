@@ -16,14 +16,18 @@ import { inspectCreatorProject } from "../../agent-frontend/scripts/ui-project/c
 import { runtimeAliases } from "../vite.config";
 
 const sandboxRoot = fileURLToPath(new URL("..", import.meta.url));
-const hostSourceRoot = path.join(sandboxRoot, "src");
+const hostSourceRoots = [
+  sandboxRoot,
+  path.join(sandboxRoot, "..", "creator-assistant-host"),
+  path.join(sandboxRoot, "..", "creator-embedded-host"),
+].map((root) => path.join(root, "src"));
 const prohibited = /(?:\/|\\)agent-ui(?:\/|\\)(?:runtime|framework|plugins|app-ui)(?:\/|\\)/u;
 const execFileAsync = promisify(execFile);
 
 async function hostFiles(directory: string): Promise<string[]> {
   const files: string[] = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
-    if (entry.name === "agent-ui" && directory === hostSourceRoot) continue;
+    if (entry.name === "agent-ui" && hostSourceRoots.includes(directory)) continue;
     const absolute = path.join(directory, entry.name);
     if (entry.isDirectory()) files.push(...await hostFiles(absolute));
     else if (/\.[cm]?[jt]sx?$/u.test(entry.name)) files.push(absolute);
@@ -32,9 +36,11 @@ async function hostFiles(directory: string): Promise<string[]> {
 }
 
 test("Host-owned source imports only the public Agent UI entry", async () => {
-  for (const file of await hostFiles(hostSourceRoot)) {
-    const source = await readFile(file, "utf8");
-    assert.doesNotMatch(source, prohibited, file);
+  for (const root of hostSourceRoots) {
+    for (const file of await hostFiles(root)) {
+      const source = await readFile(file, "utf8");
+      assert.doesNotMatch(source, prohibited, file);
+    }
   }
 });
 

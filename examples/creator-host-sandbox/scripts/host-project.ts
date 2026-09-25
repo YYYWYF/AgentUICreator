@@ -4,9 +4,20 @@ import { fileURLToPath } from "node:url";
 import { inspectCreatorProject } from "../../agent-frontend/scripts/ui-project/creator-project-inspector";
 import { initializeAgentUIProject } from "../../agent-frontend/scripts/ui-project/initialize-agent-ui-project";
 
-const projectRoot = fileURLToPath(new URL("..", import.meta.url));
+const examplesRoot = fileURLToPath(new URL("../..", import.meta.url));
 const sourceRoot = "src/agent-ui";
 const command = process.argv[2];
+const mode = command === "inspect" ? undefined : process.argv[3];
+const projectName = command === "inspect" ? process.argv[3] : process.argv[4];
+const allowedProjects = new Set([
+  "creator-host-sandbox",
+  "creator-assistant-host",
+  "creator-embedded-host",
+]);
+if (projectName !== undefined && !allowedProjects.has(projectName)) {
+  throw new Error(`Unknown Host project: ${projectName}`);
+}
+const projectRoot = path.join(examplesRoot, projectName ?? "creator-host-sandbox");
 
 function describeState(state: Awaited<ReturnType<typeof inspectCreatorProject>>) {
   if (state.status === "ready") {
@@ -25,13 +36,18 @@ async function main() {
     return;
   }
 
-  const mode = process.argv[3];
-  if (command !== "init" || (mode !== "assistant" && mode !== "embedded" && mode !== "platform")) {
-    throw new Error("Usage: host-project.ts inspect | init assistant|embedded|platform");
+  if ((command !== "init" && command !== "ensure") || (mode !== "assistant" && mode !== "embedded" && mode !== "platform")) {
+    throw new Error("Usage: host-project.ts inspect [project] | init|ensure assistant|embedded|platform [project]");
   }
   const before = await inspectCreatorProject(projectRoot);
+  if (command === "ensure" && before.status === "ready") {
+    if (before.projectConfig.mode !== mode || before.projectConfig.version !== "2" || before.projectConfig.sourceRoot !== sourceRoot) {
+      throw new Error(`Project is already initialized with a different configuration: ${JSON.stringify(describeState(before))}`);
+    }
+    return;
+  }
   if (before.status !== "uninitialized") {
-    throw new Error(`Project status is ${before.status}. Run pnpm reset:host-sandbox first.`);
+    throw new Error(`Project status is ${before.status}. Run this Host project's reset script before initializing again.`);
   }
 
   await initializeAgentUIProject({ projectRoot, mode, sourceRoot });

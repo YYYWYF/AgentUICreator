@@ -2,7 +2,12 @@ import { lstat, readdir, realpath, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const sandboxRoot = fileURLToPath(new URL("..", import.meta.url));
+const examplesRoot = fileURLToPath(new URL("../..", import.meta.url));
+const projectName = process.argv[2] ?? "creator-host-sandbox";
+if (!["creator-host-sandbox", "creator-assistant-host", "creator-embedded-host"].includes(projectName)) {
+  throw new Error(`Unknown Host project: ${projectName}`);
+}
+const sandboxRoot = path.join(examplesRoot, projectName);
 const allowedTargets = [".agent-ui", "src/agent-ui"];
 
 async function rejectLinksRecursively(directory) {
