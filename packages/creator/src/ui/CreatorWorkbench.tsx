@@ -22,11 +22,11 @@ import type {
   CreatorValidationReceipt,
 } from "../receiptTypes.js";
 import { CREATOR_API_PATH } from "../shared.js";
-import { CREATOR_WORKSPACE_ID_HEADER, type CreatorProjectMode, type CreatorWorkspaceDirectoryListing, type CreatorWorkspacePublicState } from "../workspace/types.js";
+import { CREATOR_WORKSPACE_ID_HEADER, type CreatorProjectMode, type CreatorWorkspacePublicState } from "../workspace/types.js";
 import { resolveCreatorDebugMode } from "./creatorDebug.js";
 import { CreatorProjectSetup, type CreatorSetupDraft, type CreatorSetupError, type CreatorSetupInfoState, setupIssueMessage } from "./setup/CreatorProjectSetup.js";
 import { canInitializeCreatorProject, createEmptyCreatorSetupDraft, isCreatorSetupValidationUsable, isSetupRequestCurrent, shouldRefreshAfterInitializeError } from "./setup/creatorSetupState.js";
-import { CreatorWorkspaceRequestError, browseWorkspaceDirectories, clearWorkspaceProject, getWorkspaceSetup, getWorkspaceState, initializeWorkspaceProjectRequest, refreshWorkspaceProject, selectWorkspaceProject, validateWorkspaceSetup } from "./workspaceClient.js";
+import { CreatorWorkspaceRequestError, chooseWorkspaceProject, clearWorkspaceProject, getWorkspaceSetup, getWorkspaceState, initializeWorkspaceProjectRequest, refreshWorkspaceProject, selectWorkspaceProject, validateWorkspaceSetup } from "./workspaceClient.js";
 import {
   creatorStageTitle,
   interruptCreatorStage,
@@ -870,9 +870,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
   const [workspacePath, setWorkspacePath] = useState("");
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
   const [workspaceBusy, setWorkspaceBusy] = useState(false);
-  const [directoryListing, setDirectoryListing] = useState<CreatorWorkspaceDirectoryListing | null>(null);
-  const [directoryBusy, setDirectoryBusy] = useState(false);
-  const [directoryError, setDirectoryError] = useState<string | null>(null);
+  const [workspacePicking, setWorkspacePicking] = useState(false);
   const [showWorkspaceSelector, setShowWorkspaceSelector] = useState(true);
   const [setupInfo, setSetupInfo] = useState<CreatorSetupInfoState>({ status: "idle" });
   const [setupDraft, setSetupDraft] = useState<CreatorSetupDraft>(createEmptyCreatorSetupDraft);
@@ -889,7 +887,6 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
   const agentRef = useRef<HttpAgent | null>(null);
   const workspaceIdRef = useRef<string | undefined>(undefined);
   const sessionRef = useRef(0);
-  const directoryRequestRef = useRef(0);
   const setupValidationRef = useRef<{ generation: number; controller: AbortController | undefined }>({ generation: 0, controller: undefined });
   const setupInfoRef = useRef<{ generation: number; controller: AbortController | undefined }>({ generation: 0, controller: undefined });
   const initializingRef = useRef(false);
@@ -1370,41 +1367,22 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
     }
   };
 
-  const browseWorkspace = async (path?: string) => {
-    if (workspaceState === null || workspaceBusy || directoryBusy || initializingRef.current) return;
-    const request = ++directoryRequestRef.current;
-    setDirectoryBusy(true);
-    setDirectoryError(null);
-    try {
-      const listing = await browseWorkspaceDirectories(path);
-      if (request === directoryRequestRef.current) setDirectoryListing(listing);
-    } catch (error) {
-      if (request === directoryRequestRef.current) setDirectoryError(error instanceof Error ? error.message : String(error));
-    } finally {
-      if (request === directoryRequestRef.current) setDirectoryBusy(false);
-    }
-  };
-
-  const closeDirectoryBrowser = () => {
-    directoryRequestRef.current += 1;
-    setDirectoryListing(null);
-    setDirectoryBusy(false);
-    setDirectoryError(null);
-  };
-
-  const chooseBrowsedWorkspace = async () => {
-    if (directoryListing === null || directoryBusy || workspaceBusy || initializingRef.current) return;
+  const chooseWorkspace = async () => {
+    if (workspaceState === null || workspaceBusy || initializingRef.current) return;
     setWorkspaceBusy(true);
+    setWorkspacePicking(true);
     setWorkspaceError(null);
     try {
-      const selected = await selectWorkspaceProject(directoryListing.path);
-      installWorkspace(selected);
-      setWorkspacePath(directoryListing.path);
-      closeDirectoryBrowser();
+      const result = await chooseWorkspaceProject();
+      if (result.status === "cancelled") return;
+      if (result.status === "none") throw new Error("没有选择项目文件夹。");
+      installWorkspace(result);
+      setWorkspacePath(result.workspace.displayPath);
       setShowWorkspaceSelector(false);
     } catch (error) {
       setWorkspaceError(error instanceof Error ? error.message : String(error));
     } finally {
+      setWorkspacePicking(false);
       setWorkspaceBusy(false);
     }
   };
@@ -1418,7 +1396,6 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
     try {
       installWorkspace(await clearWorkspaceProject());
       setWorkspacePath("");
-      closeDirectoryBrowser();
       setShowWorkspaceSelector(true);
     } catch (error) {
       setWorkspaceError(error instanceof Error ? error.message : String(error));
@@ -1655,7 +1632,6 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
                   <button type="button" disabled={workspaceBusy || setupDraft.initializing} onClick={() => void refreshWorkspace()}>刷新</button>
                   <button type="button" disabled={workspaceBusy || setupDraft.initializing} onClick={() => {
                     setWorkspacePath(workspaceState.workspace.displayPath);
-                    closeDirectoryBrowser();
                     setShowWorkspaceSelector(true);
                   }}>切换项目</button>
                   <button type="button" disabled={workspaceBusy || setupDraft.initializing} onClick={() => void clearWorkspace()}>移除选择</button>
@@ -1665,51 +1641,13 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
             {showWorkspaceSelector ? (
               <div className="creator-workspace-selector">
                 <strong>选择前端项目文件夹</strong>
-                <span>选择已有项目；Agent UI 初始化会在下一步单独进行。</span>
-                {directoryListing === null ? (
-                  <button className="creator-workspace-browse" type="button"
-                    disabled={workspaceState === null || workspaceBusy || directoryBusy || setupDraft.initializing}
-                    onClick={() => void browseWorkspace()}>
-                    {directoryBusy ? "正在打开文件夹…" : "浏览文件夹"}
-                  </button>
-                ) : (
-                  <div className="creator-directory-browser" aria-label="文件夹浏览器">
-                    <div className="creator-directory-shortcuts">
-                      <button type="button" disabled={directoryBusy || workspaceBusy} onClick={() => void browseWorkspace(directoryListing.startPath)}>项目目录</button>
-                      <button type="button" disabled={directoryBusy || workspaceBusy} onClick={() => void browseWorkspace(directoryListing.homePath)}>主目录</button>
-                    </div>
-                    <nav className="creator-directory-breadcrumbs" aria-label="当前文件夹路径">
-                      {directoryListing.breadcrumbs.map((part, index) => (
-                        <button key={part.path} type="button" disabled={directoryBusy || workspaceBusy || part.path === directoryListing.path}
-                          onClick={() => void browseWorkspace(part.path)}>
-                          {index === 0 ? part.label : `› ${part.label}`}
-                        </button>
-                      ))}
-                    </nav>
-                    <div className="creator-directory-list" aria-label="子文件夹">
-                      {directoryListing.parentPath === null ? null : (
-                        <button type="button" disabled={directoryBusy || workspaceBusy}
-                          onClick={() => void browseWorkspace(directoryListing.parentPath ?? undefined)}>↑ 上一级</button>
-                      )}
-                      {directoryListing.directories.map((directory) => (
-                        <button key={directory.path} type="button" disabled={directoryBusy || workspaceBusy}
-                          onClick={() => void browseWorkspace(directory.path)}>
-                          <span aria-hidden="true">📁</span> {directory.name}
-                        </button>
-                      ))}
-                      {directoryListing.directories.length === 0 ? <span>没有子文件夹</span> : null}
-                    </div>
-                    <span className="creator-directory-current" title={directoryListing.path}>当前：{directoryListing.path}</span>
-                    <div className="creator-directory-actions">
-                      <button className="creator-workspace-browse" type="button" disabled={directoryBusy || workspaceBusy}
-                        onClick={() => void chooseBrowsedWorkspace()}>
-                        {workspaceBusy ? "正在选择…" : "选择这个文件夹"}
-                      </button>
-                      <button type="button" disabled={workspaceBusy} onClick={closeDirectoryBrowser}>关闭浏览</button>
-                    </div>
-                  </div>
-                )}
-                {directoryError === null ? null : <p role="alert">{directoryError}</p>}
+                <span>点击后在系统文件夹窗口中选择已有项目。</span>
+                <button className="creator-workspace-browse" type="button"
+                  disabled={workspaceState === null || workspaceBusy || setupDraft.initializing}
+                  onClick={() => void chooseWorkspace()}>
+                  {workspacePicking ? "等待文件夹选择…" : "打开系统文件夹窗口…"}
+                </button>
+                {workspacePicking ? <span role="status">请在系统窗口中选择项目，或取消返回。</span> : null}
                 <details>
                   <summary>手动输入项目路径</summary>
                   <form onSubmit={selectWorkspace}>
@@ -1721,7 +1659,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
                 </details>
                 {workspaceState !== null && workspaceState.status !== "none" ? (
                   <button className="creator-workspace-cancel" type="button" disabled={workspaceBusy || setupDraft.initializing}
-                    onClick={() => { closeDirectoryBrowser(); setShowWorkspaceSelector(false); }}>取消切换</button>
+                    onClick={() => setShowWorkspaceSelector(false)}>取消切换</button>
                 ) : null}
               </div>
             ) : null}

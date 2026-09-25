@@ -3,7 +3,6 @@ import {
   type CreatorProjectIssue,
   type CreatorProjectSetupValidation,
   type CreatorWorkspaceInitializeInput,
-  type CreatorWorkspaceDirectoryListing,
   type CreatorWorkspacePublicState,
   type CreatorWorkspaceSetupInfo,
 } from "../workspace/types.js";
@@ -48,8 +47,8 @@ async function workspaceFetch<T>(route: string, body?: unknown, signal?: AbortSi
 export const getWorkspaceState = () => workspaceFetch<CreatorWorkspacePublicState>("");
 export const selectWorkspaceProject = (projectRoot: string) =>
   workspaceFetch<CreatorWorkspacePublicState>("/select", { projectRoot });
-export const browseWorkspaceDirectories = (path?: string) =>
-  workspaceFetch<CreatorWorkspaceDirectoryListing>("/browse", path === undefined ? {} : { path });
+export const chooseWorkspaceProject = () =>
+  workspaceFetch<CreatorWorkspacePublicState | { readonly status: "cancelled" }>("/choose-directory", {});
 export const clearWorkspaceProject = () =>
   workspaceFetch<CreatorWorkspacePublicState>("/clear", {});
 export const refreshWorkspaceProject = () =>

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { CREATOR_WORKSPACE_API_PATH } from "../src/workspace/types.js";
 import {
   CreatorWorkspaceRequestError,
-  browseWorkspaceDirectories,
+  chooseWorkspaceProject,
   getWorkspaceSetup,
   initializeWorkspaceProjectRequest,
   validateWorkspaceSetup,
@@ -23,18 +23,13 @@ function respond(body: unknown, ok = true): Response {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("workspace client Setup API", () => {
-  it("browses local directories through the workspace API", async () => {
-    const listing = { path: "/A", parentPath: "/", homePath: "/Users/me", startPath: "/A",
-      breadcrumbs: [{ label: "/", path: "/" }, { label: "A", path: "/A" }], directories: [] };
-    const fetchMock = vi.fn().mockResolvedValue(respond(listing));
+  it("requests the system folder chooser and distinguishes cancellation", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(respond({ status: "cancelled" })).mockResolvedValueOnce(respond(ready));
     vi.stubGlobal("fetch", fetchMock);
-    expect(await browseWorkspaceDirectories()).toEqual(listing);
-    expect(await browseWorkspaceDirectories("/A")).toEqual(listing);
-    expect(fetchMock).toHaveBeenCalledWith(`${CREATOR_WORKSPACE_API_PATH}/browse`, {
+    expect(await chooseWorkspaceProject()).toEqual({ status: "cancelled" });
+    expect(await chooseWorkspaceProject()).toEqual(ready);
+    expect(fetchMock).toHaveBeenCalledWith(`${CREATOR_WORKSPACE_API_PATH}/choose-directory`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
-    });
-    expect(fetchMock).toHaveBeenCalledWith(`${CREATOR_WORKSPACE_API_PATH}/browse`, {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: '{"path":"/A"}',
     });
   });
 

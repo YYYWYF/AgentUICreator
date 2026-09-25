@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, realpath, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
@@ -44,7 +44,8 @@ function fixture() {
 }
 
 async function request(manager: CreatorWorkspaceManager, method: string, route: string, body?: unknown,
-  origin = "http://localhost:5174", browseStartPath?: string) {
+  origin = "http://localhost:5174", pickerStartDirectory?: string,
+  pickDirectory?: (startDirectory: string) => Promise<string | undefined>) {
   const stream = Readable.from(body === undefined ? [] : [JSON.stringify(body)]);
   const incoming = Object.assign(stream, {
     method, url: route,
@@ -56,26 +57,27 @@ async function request(manager: CreatorWorkspaceManager, method: string, route: 
     setHeader: vi.fn(),
     end(value: string) { output = value; },
   } as unknown as ServerResponse;
-  await handleCreatorWorkspaceRequest(incoming, response, manager, browseStartPath);
+  await handleCreatorWorkspaceRequest(incoming, response, manager, pickerStartDirectory, pickDirectory);
   return { status: response.statusCode, body: JSON.parse(output) as Record<string, unknown> };
 }
 
 describe("Creator Workspace setup API", () => {
-  it("browses local folders without changing the selected workspace", async () => {
-    const root = await projectRoot();
-    await mkdir(path.join(root, "examples"));
-    await writeFile(path.join(root, "README.md"), "fixture");
+  it("opens the system folder chooser and keeps the current project on cancellation", async () => {
+    const currentRoot = await projectRoot();
+    const nextRoot = await projectRoot();
     const { manager } = fixture();
-    const listing = await request(manager, "POST", "/browse", {}, undefined, root);
-    expect(listing.body).toMatchObject({ path: root, startPath: root,
-      directories: [{ name: "examples", path: path.join(root, "examples") }] });
-    expect(manager.getState().status).toBe("none");
-    expect((await request(manager, "POST", "/browse", { path: path.join(root, "examples") }, undefined, root)).body)
-      .toMatchObject({ path: path.join(root, "examples"), parentPath: root, directories: [] });
-    expect((await request(manager, "POST", "/browse", { path: root }, "http://evil.example", root)).body)
+    await manager.selectProject(currentRoot);
+    const picker = vi.fn().mockResolvedValueOnce(undefined).mockResolvedValueOnce(nextRoot);
+    expect((await request(manager, "POST", "/choose-directory", {}, undefined, undefined, picker)).body)
+      .toEqual({ status: "cancelled" });
+    expect(manager.getState()).toMatchObject({ status: "uninitialized", workspace: { projectRoot: currentRoot } });
+    const selected = await request(manager, "POST", "/choose-directory", {}, undefined, undefined, picker);
+    expect(selected.body).toMatchObject({ status: "uninitialized", workspace: { displayPath: nextRoot } });
+    expect(picker).toHaveBeenNthCalledWith(1, currentRoot);
+    expect(picker).toHaveBeenNthCalledWith(2, currentRoot);
+    expect((await request(manager, "POST", "/choose-directory", {}, "http://evil.example", undefined, picker)).body)
       .toMatchObject({ code: "CREATOR_WORKSPACE_ORIGIN_DENIED" });
-    expect((await request(manager, "POST", "/browse", { path: "relative" }, undefined, root)).body)
-      .toMatchObject({ code: "CREATOR_WORKSPACE_INPUT_INVALID" });
+    expect(picker).toHaveBeenCalledTimes(2);
   });
 
   it("selects, suggests, validates, and initializes into a public ready state", async () => {
