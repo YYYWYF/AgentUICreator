@@ -6,7 +6,7 @@ This is an ordinary React/Vite host project for development testing. On a fresh 
 
 | Owner | Paths |
 | --- | --- |
-| Host application | `src/App.tsx`, `src/AgentMount.tsx`, `src/main.tsx`, `vite.config.ts`, `package.json` |
+| Host application | `src/App.tsx`, `src/AgentMount.tsx`, `src/main.tsx`, `dev/creator-dock.ts`, `vite.config.ts`, `package.json` |
 | AgentUICreator source | `src/agent-ui/**` after initialization |
 | AgentUICreator metadata | `.agent-ui/**` after initialization |
 
@@ -15,9 +15,9 @@ The sandbox declares the dependencies required by the default Assistant, Embedde
 ## Workbench initialization
 
 1. Run `pnpm reset:host-sandbox`, then `pnpm inspect:host-sandbox`. The status should be `uninitialized`.
-2. Run `pnpm dev:host-sandbox` yourself and open <http://127.0.0.1:5176/>. Keep it running.
-3. Start Creator Workbench separately. Click **打开系统文件夹窗口…**, choose `examples/creator-host-sandbox` in the system dialog, and confirm that Agent UI is uninitialized. The manual path field is an optional fallback.
-4. Choose Assistant and `src/agent-ui`, then initialize. Workbench should report `ready`. Inspect `.agent-ui/project.json`, `.agent-ui/source-lock.json`, `src/agent-ui/index.ts`, and `src/agent-ui/application/runtime-config.generated.ts`.
+2. Run `pnpm dev:host-sandbox` yourself and open <http://localhost:5176/>. Keep it running.
+3. Start the Creator service separately with `pnpm dev`. Keep its `localhost:5174` server running, but work in the Host page at <http://localhost:5176/>. Click the **Creator** button at the bottom right, then choose `examples/creator-host-sandbox` in the system folder dialog. The manual path field is an optional fallback.
+4. In the floating Creator window, choose Assistant and `src/agent-ui`, then initialize. Creator should report `ready`. Inspect `.agent-ui/project.json`, `.agent-ui/source-lock.json`, `src/agent-ui/index.ts`, and `src/agent-ui/application/runtime-config.generated.ts`.
 5. Edit the **host-owned** `src/AgentMount.tsx` by hand:
 
    ```tsx
@@ -29,7 +29,9 @@ The sandbox declares the dependencies required by the default Assistant, Embedde
    ```
 
    Vite should update the page through HMR. The Host page and Assistant should coexist. The default Agent endpoint is `/agent`; pass `endpoint` or set `VITE_AGENT_ENDPOINT` for a real AG-UI service.
-6. With Vite still running, ask Creator to change the welcome text, for example `把欢迎语改成“你好，我是你的助手”`. The change under `src/agent-ui/**` should appear through HMR.
+6. With the Host's Vite server still running, ask the floating Creator to change the welcome text, for example `把欢迎语改成“你好，我是你的助手”`. The change under `src/agent-ui/**` should appear through the Host's own HMR.
+
+The floating Creator is injected by this Host's Vite configuration only while serving the development page. It loads Creator UI from `localhost:5174/dock.html` in an iframe and does not own the Host's HMR. Set `VITE_CREATOR_DOCK_URL` if the Creator service uses a different local URL. The production build does not inject the dock or depend on the Creator package.
 
 The Host imports only the public `src/agent-ui/index.ts` entry. It does not import managed `runtime`, `framework`, `plugins`, or `app-ui` paths. The initializer never edits `App.tsx` or `AgentMount.tsx`.
 

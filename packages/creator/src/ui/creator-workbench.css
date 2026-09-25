@@ -13,6 +13,19 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+.creator-workbench[data-creator-layout="dock"] {
+  --creator-panel-width: 100%;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: minmax(0, 1fr);
+  background: #ffffff;
+}
+
+.creator-workbench[data-creator-layout="dock"] .creator-panel {
+  border-left: 0;
+  box-shadow: none;
+}
+
 .creator-workbench-preview {
   min-width: 0;
   min-height: 0;

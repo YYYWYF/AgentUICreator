@@ -151,6 +151,10 @@ export class CreatorWorkspaceManager {
       if (!(await stat(canonicalRoot)).isDirectory()) {
         throw new CreatorWorkspaceError("CREATOR_WORKSPACE_NOT_DIRECTORY", "Project Root must be a directory.");
       }
+      if ((this.#state.status === "ready" || this.#state.status === "legacy") &&
+          this.#state.runtime.status === "ready" && this.#state.workspace.projectRoot === canonicalRoot) {
+        return this.#state;
+      }
       await this.#stopCurrent();
       this.#state = { status: "none" };
       const workspace: CreatorWorkspaceDescriptor = {

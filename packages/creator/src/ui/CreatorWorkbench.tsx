@@ -40,7 +40,19 @@ import {
 } from "./creatorStageProjection.js";
 
 const STORAGE_KEY = "agent-ui-creator-conversation";
+const WORKSPACE_PATH_STORAGE_KEY = "agent-ui-creator-selected-project-root";
 const conversationKey = (workspaceId: string) => `${STORAGE_KEY}:${workspaceId}`;
+
+function rememberedWorkspacePath(): string | null {
+  try { return localStorage.getItem(WORKSPACE_PATH_STORAGE_KEY); } catch { return null; }
+}
+
+function rememberWorkspacePath(path: string | null): void {
+  try {
+    if (path === null) localStorage.removeItem(WORKSPACE_PATH_STORAGE_KEY);
+    else localStorage.setItem(WORKSPACE_PATH_STORAGE_KEY, path);
+  } catch { /* The project remains usable without browser storage. */ }
+}
 const CREATOR_PANEL_MIN_WIDTH = 280;
 const CREATOR_PANEL_MAX_WIDTH = 720;
 const CREATOR_PREVIEW_MIN_WIDTH = 320;
@@ -64,6 +76,7 @@ export interface CreatorWorkbenchContext {
 
 interface CreatorWorkbenchProps {
   previewWorkspaceId?: string | undefined;
+  layout?: "workbench" | "dock" | undefined;
   children:
     | ReactNode
     | ((context: CreatorWorkbenchContext) => ReactNode);
@@ -852,7 +865,7 @@ function setupError(error: unknown): CreatorSetupError {
   return { message: error instanceof Error ? error.message : String(error) };
 }
 
-export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbenchProps) {
+export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workbench" }: CreatorWorkbenchProps) {
   const creatorDebug = resolveCreatorDebugMode({
     hostname: window.location.hostname,
     search: window.location.search,
@@ -942,18 +955,37 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
     setInput("");
     setIsRunning(false);
     setWorkspaceState(next);
+    rememberWorkspacePath(next.status === "none" ? null : next.workspace.displayPath);
   };
 
   useEffect(() => {
     let active = true;
-    void getWorkspaceState().then((state) => {
-      if (active) {
-        installWorkspace(state);
-        setShowWorkspaceSelector(state.status === "none");
+    const loadWorkspace = async () => {
+      setWorkspaceBusy(true);
+      try {
+        let state = await getWorkspaceState();
+        if (state.status === "none") {
+          const previousPath = rememberedWorkspacePath();
+          if (previousPath !== null) {
+            try {
+              state = await selectWorkspaceProject(previousPath);
+            } catch (error) {
+              rememberWorkspacePath(null);
+              if (active) setWorkspaceError(error instanceof Error ? error.message : String(error));
+            }
+          }
+        }
+        if (active) {
+          installWorkspace(state);
+          setShowWorkspaceSelector(state.status === "none");
+        }
+      } catch (error) {
+        if (active) setWorkspaceError(error instanceof Error ? error.message : String(error));
+      } finally {
+        if (active) setWorkspaceBusy(false);
       }
-    }).catch((error: unknown) => {
-      if (active) setWorkspaceError(error instanceof Error ? error.message : String(error));
-    });
+    };
+    void loadWorkspace();
     return () => { active = false; };
   }, []);
 
@@ -1555,6 +1587,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
   return (
     <div
       className="creator-workbench"
+      data-creator-layout={layout}
       data-creator-panel-open={isOpen}
       data-creator-panel-resizing={isResizing}
       style={
@@ -1565,7 +1598,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
             } as CSSProperties)
       }
     >
-      {workspaceState !== null && (workspaceState.status === "ready" || workspaceState.status === "legacy") && workspaceState.workspace.id === previewWorkspaceId ? (
+      {layout === "dock" ? null : workspaceState !== null && (workspaceState.status === "ready" || workspaceState.status === "legacy") && workspaceState.workspace.id === previewWorkspaceId ? (
         <CreatorWorkbenchPreview threadId={threadId} workspaceId={workspaceState.workspace.id}>{children}</CreatorWorkbenchPreview>
       ) : (
         <section className="creator-workbench-preview creator-workbench-preview-placeholder" aria-label="项目预览">
@@ -1574,14 +1607,14 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
           ) : workspaceState === null || workspaceState.status === "none" ? (
             <strong>请先选择项目</strong>
           ) : (
-            <><strong>当前项目没有连接预览</strong><p>启动项目后可在后续阶段连接它的预览。</p></>
+            <><strong>请打开项目自己的开发页面</strong><p>项目页面由它自己的开发服务器渲染；Creator 在该页面的开发期浮层中使用。</p></>
           )}
         </section>
       )}
 
       {isOpen ? (
         <aside className="creator-panel" aria-label="Creator" ref={panel}>
-          <div
+          {layout === "dock" ? null : <div
             aria-label="调整 Creator 面板宽度"
             aria-orientation="vertical"
             className="creator-panel-resizer"
@@ -1591,7 +1624,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
             role="separator"
             tabIndex={0}
             title="拖动调整宽度，双击恢复默认"
-          />
+          />}
           <header className="creator-panel-header">
             <div>
               <span>仅用于开发</span>
@@ -1614,13 +1647,13 @@ export function CreatorWorkbench({ children, previewWorkspaceId }: CreatorWorkbe
                 className="creator-panel-dev-studio-dock"
                 data-slot="agent-ui-dev-studio-dock"
               />
-              <button
+              {layout === "dock" ? null : <button
                 aria-label="关闭 Creator 面板"
                 onClick={() => setIsOpen(false)}
                 type="button"
               >
                 ×
-              </button>
+              </button>}
             </div>
           </header>
 

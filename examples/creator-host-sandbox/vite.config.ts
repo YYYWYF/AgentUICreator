@@ -1,9 +1,17 @@
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import { fileURLToPath } from "node:url";
 
 const workspaceRoot = fileURLToPath(new URL("../..", import.meta.url));
+
+const creatorDockPlugin: Plugin = {
+  name: "creator-host-sandbox-dock",
+  apply: "serve",
+  transformIndexHtml() {
+    return [{ tag: "script", attrs: { type: "module", src: "/dev/creator-dock.ts" }, injectTo: "body" }];
+  },
+};
 
 export const runtimeAliases = {
   "@agent-ui/react/styles.css": `${workspaceRoot}/packages/react/src/styles.css`,
@@ -14,7 +22,7 @@ export const runtimeAliases = {
 };
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), creatorDockPlugin],
   resolve: { alias: runtimeAliases },
   server: { host: "127.0.0.1", port: 5176, strictPort: true },
 });

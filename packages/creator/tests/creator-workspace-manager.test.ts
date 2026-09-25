@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, realpath, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -16,7 +16,7 @@ afterEach(async () => {
 async function root(): Promise<string> {
   const value = await mkdtemp(path.join(tmpdir(), "creator-workspace-"));
   roots.push(value);
-  return value;
+  return realpath(value);
 }
 
 function setupDependencies() {
@@ -74,6 +74,24 @@ describe("CreatorWorkspaceManager", () => {
     await manager.clear();
     expect(managers[1]?.dispose).toHaveBeenCalledOnce();
     expect(manager.getState()).toEqual({ status: "none" });
+  });
+
+  it("keeps the runtime when the selected Project Root is selected again", async () => {
+    const python = { ensureStarted: vi.fn(async () => undefined), dispose: vi.fn(async () => undefined) };
+    const createPythonManager = vi.fn(() => python as unknown as PythonCreatorProcessManager);
+    const manager = new CreatorWorkspaceManager({
+      ...setupDependencies(),
+      inspectProject: async () => ({
+        status: "ready", projectConfig: { version: "2", mode: "assistant", sourceRoot: "src/agent-ui" },
+        paths: { sourceRoot: "src/agent-ui" },
+      }),
+      createPythonManager,
+    });
+    const projectRoot = await root();
+    const selected = await manager.selectProject(projectRoot);
+    expect(await manager.selectProject(projectRoot)).toBe(selected);
+    expect(createPythonManager).toHaveBeenCalledOnce();
+    expect(python.dispose).not.toHaveBeenCalled();
   });
 
   it("keeps broken workspaces closed to Creator requests", async () => {
