@@ -173,6 +173,7 @@ export async function verifyUIProject(
       projectRoot,
       model,
       registry.assets,
+      path.dirname(paths.pluginsRoot),
     );
     services = serviceInspection.services;
     errors.push(...serviceInspection.issues);

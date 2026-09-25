@@ -247,7 +247,7 @@ export async function collectPluginProjectFacts(
     path.join(projectRoot, "tsconfig.json"),
   );
   const declarations: AnalyzedDeclarations = canAnalyzeServiceContracts
-    ? analyzePluginServiceDeclarations(projectRoot, inventory.assets)
+    ? analyzePluginServiceDeclarations(projectRoot, inventory.assets, path.dirname(paths.pluginsRoot))
     : { plugins: [], issues: [], seamPaths: new Map() };
   const definitionIssuesByPath = await collectPluginDefinitionFacts(
     projectRoot,

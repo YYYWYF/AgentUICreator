@@ -82,6 +82,7 @@ function findPluginDefinition(
 
 function recordServiceSeam(
   projectRoot: string,
+  managedSourceRoot: string,
   project: Project,
   node: Node,
   serviceName: string,
@@ -94,9 +95,8 @@ function recordServiceSeam(
     : project.checker.getAliasedSymbol(symbol);
   const paths = seamPaths.get(serviceName) ?? new Set<string>();
   for (const declaration of resolved.declarations) {
-    const relativePath = projectPath(projectRoot, declaration.path);
-    if (relativePath.startsWith("services/")) {
-      paths.add(relativePath);
+    if (projectPath(managedSourceRoot, declaration.path).startsWith("services/")) {
+      paths.add(projectPath(projectRoot, declaration.path));
     }
   }
   if (paths.size > 0) seamPaths.set(serviceName, paths);
@@ -104,6 +104,7 @@ function recordServiceSeam(
 
 function parseServiceProperty(
   projectRoot: string,
+  managedSourceRoot: string,
   project: Project,
   definition: ObjectLiteralExpression,
   pluginId: string,
@@ -139,7 +140,7 @@ function parseServiceProperty(
       return [];
     }
     names.push(type.value);
-    recordServiceSeam(projectRoot, project, element, type.value, seamPaths);
+    recordServiceSeam(projectRoot, managedSourceRoot, project, element, type.value, seamPaths);
   }
   return names;
 }
@@ -147,6 +148,7 @@ function parseServiceProperty(
 export function analyzePluginServiceDeclarations(
   projectRoot: string,
   assets: readonly PluginAsset[],
+  managedSourceRoot: string = projectRoot,
 ): AnalyzedDeclarations {
   const definitionPaths = assets.map((asset) =>
     path.join(projectRoot, asset.definitionPath),
@@ -194,6 +196,7 @@ export function analyzePluginServiceDeclarations(
       }
       const provides = parseServiceProperty(
           projectRoot,
+          managedSourceRoot,
           project,
           definition,
           asset.pluginId,
@@ -203,6 +206,7 @@ export function analyzePluginServiceDeclarations(
         );
       const inject = parseServiceProperty(
           projectRoot,
+          managedSourceRoot,
           project,
           definition,
           asset.pluginId,
@@ -212,6 +216,7 @@ export function analyzePluginServiceDeclarations(
         );
       const optionalInject = parseServiceProperty(
           projectRoot,
+          managedSourceRoot,
           project,
           definition,
           asset.pluginId,
@@ -465,9 +470,11 @@ export function inspectUIServiceDependencies(
   projectRoot: string,
   model: AppUIModel,
   assets: readonly PluginAsset[],
+  managedSourceRoot: string = projectRoot,
   declarations: AnalyzedDeclarations = analyzePluginServiceDeclarations(
     projectRoot,
     assets,
+    managedSourceRoot,
   ),
 ): UIServiceDependencyInspection {
   return inspectUIServiceDependenciesFromDeclarations(

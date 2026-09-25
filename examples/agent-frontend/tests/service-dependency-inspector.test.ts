@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import type { AppUIModel } from "../framework/contracts/app-ui-model";
 import { collectPluginAssets } from "../scripts/ui-project/plugin-assets";
+import { projectControlConfigForPaths, resolveAgentUIProjectPaths } from "../scripts/ui-project/agent-ui-project-paths";
 import { legacyProjectPaths } from "./legacy-project-paths";
 import { inspectUIServiceDependencies } from "../scripts/ui-project/service-dependency-inspector";
 
@@ -16,10 +17,11 @@ const config = {
   agentUI: { sourceRoot: "agent-ui", metadataRoot: ".agent-ui" },
 };
 
-async function createServiceProject() {
+async function createServiceProject(sourceRoot?: string) {
   const projectRoot = await mkdtemp(path.join(tmpdir(), "ui-services-"));
   temporaryProjects.push(projectRoot);
-  await mkdir(path.join(projectRoot, "services"));
+  const managedSourceRoot = sourceRoot === undefined ? projectRoot : path.join(projectRoot, sourceRoot);
+  await mkdir(path.join(managedSourceRoot, "services"), { recursive: true });
   await writeFile(
     path.join(projectRoot, "tsconfig.json"),
     JSON.stringify({
@@ -28,11 +30,11 @@ async function createServiceProject() {
         moduleResolution: "Bundler",
         target: "ES2022",
       },
-      include: ["plugins/**/*.ts", "services/**/*.ts"],
+      include: sourceRoot === undefined ? ["plugins/**/*.ts", "services/**/*.ts"] : ["src/**/*.ts"],
     }),
   );
   await writeFile(
-    path.join(projectRoot, "services", "workspace-files.ts"),
+    path.join(managedSourceRoot, "services", "workspace-files.ts"),
     'export const WORKSPACE_FILE_SERVICE = "workspace.files" as const;\n',
   );
   const definitions = {
@@ -50,9 +52,9 @@ async function createServiceProject() {
       "export default { manifest: {}, optionalInject: [WORKSPACE_FILE_SERVICE], Component };\n",
   };
   for (const [pluginId, source] of Object.entries(definitions)) {
-    await mkdir(path.join(projectRoot, "plugins", pluginId), { recursive: true });
+    await mkdir(path.join(managedSourceRoot, "plugins", pluginId), { recursive: true });
     await writeFile(
-      path.join(projectRoot, "plugins", pluginId, "manifest.json"),
+      path.join(managedSourceRoot, "plugins", pluginId, "manifest.json"),
       JSON.stringify({
         id: pluginId,
         name: pluginId,
@@ -62,12 +64,14 @@ async function createServiceProject() {
       }),
     );
     await writeFile(
-      path.join(projectRoot, "plugins", pluginId, "definition.ts"),
+      path.join(managedSourceRoot, "plugins", pluginId, "definition.ts"),
       source,
     );
   }
-  const inventory = await collectPluginAssets(projectRoot, legacyProjectPaths(projectRoot, config), config);
-  return { projectRoot, assets: inventory.assets };
+  const paths = sourceRoot === undefined ? legacyProjectPaths(projectRoot, config)
+    : resolveAgentUIProjectPaths(projectRoot, { version: "2", mode: "assistant", sourceRoot }, config);
+  const inventory = await collectPluginAssets(projectRoot, paths, projectControlConfigForPaths(paths, config));
+  return { projectRoot, managedSourceRoot, assets: inventory.assets };
 }
 
 interface GraphPluginDefinition {
@@ -163,6 +167,18 @@ afterEach(async () => {
 });
 
 describe("service dependency inspector", () => {
+  it("recognizes shared Service seams under a V2 sourceRoot", async () => {
+    const { projectRoot, managedSourceRoot, assets } = await createServiceProject("src/agent-ui");
+    const inspection = inspectUIServiceDependencies(projectRoot, model(), assets, managedSourceRoot);
+
+    expect(inspection.services).toContainEqual(expect.objectContaining({
+      name: "workspace.files",
+      contractPaths: ["src/agent-ui/services/workspace-files.ts"],
+      status: "available",
+    }));
+    expect(inspection.issues).toEqual([]);
+  });
+
   it("resolves constant Service Names and reports provider/consumer topology", async () => {
     const { projectRoot, assets } = await createServiceProject();
 

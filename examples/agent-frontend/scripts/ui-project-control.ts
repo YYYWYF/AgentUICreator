@@ -356,6 +356,7 @@ async function inspectUIServices(projectRoot: string) {
     projectRoot,
     model,
     inventory.assets,
+    path.dirname(paths.pluginsRoot),
   );
   return {
     appUIModelHash: createHash("sha256").update(appUIModelSource).digest("hex"),
