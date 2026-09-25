@@ -28,6 +28,33 @@
 
 .creator-workbench-preview-placeholder p { margin: 0; }
 
+.creator-workbench-preview-integration {
+  align-content: safe center;
+  justify-items: stretch;
+  padding: 1.5rem;
+  overflow: auto;
+}
+
+.creator-workbench-preview-integration .creator-project-integration-guide {
+  width: min(100%, 42rem);
+  margin: auto;
+  font-size: 0.875rem;
+  box-shadow: 0 1rem 2.5rem rgb(16 24 40 / 8%);
+}
+
+.creator-workbench-preview-integration .creator-project-integration-guide > header,
+.creator-workbench-preview-integration .creator-project-integration-guide-body {
+  padding: 1.25rem;
+}
+
+.creator-workbench-preview-integration .creator-project-integration-guide > header strong {
+  font-size: 1.125rem;
+}
+
+.creator-workbench-preview-integration .creator-project-integration-guide-body {
+  padding-top: 0;
+}
+
 .creator-panel {
   position: relative;
   display: grid;
@@ -206,6 +233,21 @@
 .creator-workspace-selector details form { margin-top: 0.6rem; }
 .creator-workspace-status .creator-workspace-cancel { width: fit-content; padding-left: 0; border: 0; color: #475467; background: transparent; }
 .creator-workspace-warnings { display: grid; gap: 0.25rem; padding: 0.45rem; border-radius: 0.35rem; color: #92400e; background: #fffaeb; }
+
+.creator-project-integration-guide { flex: 0 0 auto; border: 1px solid #a6d8bc; border-radius: 0.7rem; background: #f3fbf6; color: #344054; font-size: 0.8rem; }
+.creator-project-integration-guide > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.65rem; padding: 0.85rem; }
+.creator-project-integration-guide > header > div { display: grid; gap: 0.2rem; }
+.creator-project-integration-guide > header strong { color: #075e3b; font-size: 0.9rem; }
+.creator-project-integration-guide > header span { line-height: 1.4; }
+.creator-project-integration-guide button { flex: 0 0 auto; border: 0; border-radius: 0.4rem; background: transparent; color: #175cd3; font: inherit; font-weight: 700; cursor: pointer; }
+.creator-project-integration-guide button:hover { text-decoration: underline; }
+.creator-project-integration-guide-body { padding: 0 0.85rem 0.85rem; }
+.creator-project-integration-guide-body p { margin: 0.5rem 0; line-height: 1.5; }
+.creator-project-integration-guide-body code { overflow-wrap: anywhere; }
+.creator-project-integration-guide-body pre { margin: 0.65rem 0 0.45rem; padding: 0.7rem; border: 1px solid #d0d5dd; border-radius: 0.45rem; background: #fff; overflow-x: auto; font-size: 0.75rem; line-height: 1.5; }
+.creator-project-integration-guide-body pre code { overflow-wrap: normal; }
+.creator-project-integration-guide .creator-project-integration-copy { padding: 0.3rem 0; }
+.creator-project-integration-guide-body [role="alert"] { display: block; color: #b42318; }
 
 .creator-panel-header .creator-panel-dev-studio-dock
   button[data-agent-ui-dev-studio-entry="mock"]:hover,
