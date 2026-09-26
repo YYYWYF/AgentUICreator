@@ -10,7 +10,7 @@ import type { AppUIRuntimePluginInstance } from "./app-ui-runtime-model";
 import type { AppUILayoutTrackSize } from "./app-ui-model";
 import type { PluginChildSlotDefinition } from "./app-ui-composition";
 import { customEventNameSchema } from "./custom-event-protocol";
-import type { DataMessageUIDefinition } from "@agent-ui/react";
+import type { DataMessageUIDefinition, ConversationToolkit } from "@agent-ui/react";
 
 export type {
   AgentApplicationEvent,
@@ -190,6 +190,8 @@ export interface UIPluginDefinition<TState = unknown> {
   manifest: UIPluginManifest;
   /** Named conversation message renderers, installed while this instance is active. */
   dataMessageUIs?: readonly DataMessageUIDefinition<never>[] | undefined;
+  /** Application-selected renderers for backend tool messages; no tool execution. */
+  toolkit?: ConversationToolkit | undefined;
   /** Named capabilities provided by this plugin instance. */
   provides?: readonly string[] | undefined;
   /** Named services that must exist before this plugin instance becomes active. */

@@ -28,6 +28,7 @@ export interface PluginCompositionCatalogEntry {
     readonly priority?: number;
   };
   readonly capabilities?: readonly string[];
+  readonly dataMessageUI?: boolean;
   readonly requiresRenderScope?: boolean;
   readonly provides?: readonly string[];
   readonly inject?: readonly string[];

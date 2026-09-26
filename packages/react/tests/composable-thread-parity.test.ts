@@ -52,6 +52,33 @@ describe("ComposableThread upstream parity", () => {
     expect(source).not.toContain('turnAnchor="top"');
   });
 
+  it("preserves upstream footer sizing while reserving product Plugin footers in message flow", async () => {
+    const [source, upstream] = await Promise.all([
+      readFile(composableThreadPath, "utf8"),
+      readFile(upstreamThreadPath, "utf8"),
+    ]);
+    const assistantSection = (text: string) => text.slice(
+      text.indexOf("const AssistantMessage: FC"),
+      text.indexOf("const AssistantActionBar: FC"),
+    );
+    const productMessage = assistantSection(source);
+    const upstreamMessage = assistantSection(upstream);
+    const footerSizing = (text: string) => text.match(/const ACTION_BAR_HEIGHT = `([^`]+)`/u)?.[1];
+    const footerPadding = (text: string) => text.match(/const ACTION_BAR_PT = "([^"]+)"/u)?.[1];
+
+    // An upstream sizing change needs review; do not silently keep an old copy.
+    expect(footerSizing(upstreamMessage)).toBeDefined();
+    expect(footerPadding(upstreamMessage)).toBeDefined();
+    expect(footerSizing(productMessage)).toBe(footerSizing(upstreamMessage));
+    expect(footerPadding(productMessage)).toBe(footerPadding(upstreamMessage));
+
+    // Intentional host policy: unlike upstream's fixed-height compensation,
+    // reserve the complete height of arbitrary semantic Footer Renderers.
+    expect(productMessage).not.toMatch(/-mb-|marginBottom|margin-bottom/u);
+    expect(productMessage).toContain("<AssistantMessageFooterComponent />");
+    expect(source).toContain('className="mb-14 flex flex-col gap-y-6 empty:hidden"');
+  });
+
   it("keeps vendored Thread ownership and product fork ownership separate", async () => {
     const [manifestSource, lockSource, upstreamThread, composableThread] = await Promise.all([
       readFile(path.join(vendorRoot, "upstream-elements.json"), "utf8"),

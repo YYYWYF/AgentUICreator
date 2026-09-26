@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "foundation/core",
-  "version": "0.1.2",
+  "version": "0.1.5",
   "kind": "foundation",
   "description": "Public Agent UI entry and generated Plugin Registry entry",
   "requires": [

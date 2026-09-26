@@ -87,6 +87,30 @@ async function publishInitial(
 }
 
 describe("RuntimeCompositionStore", () => {
+  it("retains the previous module's published snapshot until a fresh candidate is valid", async () => {
+    const previousStore = createRuntimeCompositionStore();
+    await publishInitial(previousStore);
+    const previousSnapshot = previousStore.getSnapshot();
+    const store = createRuntimeCompositionStore(previousSnapshot);
+    expect(store.getSnapshot()).toBe(previousSnapshot);
+    expect(store.getCandidateDiagnostic()).toBeUndefined();
+
+    const failed = waitForError(store);
+    store.stageCandidate({
+      appUIModelSource: modelSource(["alpha", "beta"]),
+      capabilityCatalog: catalog(["alpha"]),
+      capabilityCatalogRevision: "a".repeat(64),
+    });
+    await failed;
+    expect(store.getSnapshot()).toBe(previousSnapshot);
+
+    await publishInitial(store, modelSource(["alpha", "beta"]), ["alpha", "beta"]);
+    expect(store.getSnapshot()).not.toBe(previousSnapshot);
+    expect(Object.keys(store.getSnapshot()!.runtimeModel.pluginInstances)).toEqual([
+      "alpha-main", "beta-main",
+    ]);
+  });
+
   it("keeps the published snapshot when a model arrives before its capability", async () => {
     const store = createRuntimeCompositionStore();
     const publishListener = vi.fn();

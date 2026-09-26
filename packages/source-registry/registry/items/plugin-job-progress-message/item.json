@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/job-progress-message",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Job Progress named Tool UI",
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "@agent-ui/react": "^0.1.0"
+  },
+  "files": [
+    {
+      "source": "files/plugins/job-progress-message/definition.ts",
+      "target": "plugins/job-progress-message/definition.ts"
+    },
+    {
+      "source": "files/plugins/job-progress-message/index.tsx",
+      "target": "plugins/job-progress-message/index.tsx"
+    },
+    {
+      "source": "files/plugins/job-progress-message/manifest.json",
+      "target": "plugins/job-progress-message/manifest.json"
+    }
+  ]
+}

@@ -46,6 +46,16 @@ export class CreatorWorkspaceManager {
 
   getState(): CreatorWorkspaceState { return this.#state; }
 
+  runProjectOperation<T>(workspaceId: string, operation: (projectRoot: string) => Promise<T>): Promise<T> {
+    return this.#exclusive(async () => {
+      const state = this.#state;
+      if ((state.status !== "ready" && state.status !== "legacy") || state.workspace.id !== workspaceId) {
+        throw new CreatorWorkspaceError("CREATOR_WORKSPACE_CHANGED", "当前项目已改变，请刷新面板后重试。");
+      }
+      return operation(state.workspace.projectRoot);
+    });
+  }
+
   trackRequest(abort: () => void): () => void {
     this.#activeRequests.add(abort);
     return () => this.#activeRequests.delete(abort);

@@ -47,6 +47,7 @@
     "cli": "node dist/cli.js"
   },
   "dependencies": {
+    "@agent-ui/mock-agent": "workspace:^",
     "@ag-ui/client": "0.0.59",
     "@ag-ui/core": "0.0.59",
     "html-to-image": "1.11.13",

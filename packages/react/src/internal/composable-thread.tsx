@@ -516,7 +516,10 @@ const AssistantMessage: FC = () => {
   const groupBy = TaskGroupComponent ? taskAwareGroupBy : messageGroupBy;
 
   const ACTION_BAR_PT = "pt-1.5";
-  const ACTION_BAR_HEIGHT = `-mb-7.5 min-h-7.5 ${ACTION_BAR_PT}`;
+  // Product layout policy: reserve the semantic footer's full height in flow.
+  // Plugin footers can vary in height, so cancelling a fixed action-bar height
+  // would let the next message overlap them. Keep this policy on the host.
+  const ACTION_BAR_HEIGHT = `min-h-7.5 ${ACTION_BAR_PT}`;
 
   return (
     <MessagePrimitive.Root

@@ -85,6 +85,10 @@ class TransactionalRuntimeCompositionStore<TState = unknown>
   readonly #listeners = new Set<() => void>();
   readonly #diagnosticListeners = new Set<() => void>();
 
+  constructor(previousSnapshot?: RuntimeCompositionSnapshot<TState>) {
+    this.#published = previousSnapshot;
+  }
+
   getSnapshot = (): RuntimeCompositionSnapshot<TState> | undefined =>
     this.#published;
 
@@ -198,6 +202,8 @@ class TransactionalRuntimeCompositionStore<TState = unknown>
   }
 }
 
-export function createRuntimeCompositionStore<TState = unknown>(): RuntimeCompositionStore<TState> {
-  return new TransactionalRuntimeCompositionStore<TState>();
+export function createRuntimeCompositionStore<TState = unknown>(
+  previousSnapshot?: RuntimeCompositionSnapshot<TState>,
+): RuntimeCompositionStore<TState> {
+  return new TransactionalRuntimeCompositionStore<TState>(previousSnapshot);
 }

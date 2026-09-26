@@ -5,6 +5,9 @@ coverage/
 .DS_Store
 .env.creator.local
 examples/agent-frontend/.env.local
+examples/creator-host-sandbox/.env.local
+examples/creator-assistant-host/.env.local
+examples/creator-embedded-host/.env.local
 __pycache__/
 .pytest_cache/
 .venv/

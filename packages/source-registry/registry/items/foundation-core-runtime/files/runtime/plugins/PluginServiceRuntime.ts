@@ -601,6 +601,8 @@ export class PluginServiceRuntime {
   ): boolean {
     if (left === undefined || right === undefined) return left === right;
     return left.Component === right.Component && left.setup === right.setup &&
+      left.dataMessageUIs === right.dataMessageUIs &&
+      left.toolkit === right.toolkit &&
       JSON.stringify(left.manifest) === JSON.stringify(right.manifest) &&
       JSON.stringify(left.provides ?? []) === JSON.stringify(right.provides ?? []) &&
       JSON.stringify(left.inject ?? []) === JSON.stringify(right.inject ?? []) &&
@@ -676,7 +678,8 @@ export class PluginServiceRuntime {
         const definition = state.registry.get(instance.pluginId);
         return (
           instance.mount !== undefined ||
-          definition?.manifest.capabilities?.includes("headless") === true
+          definition?.manifest.capabilities?.includes("headless") === true ||
+          (definition?.dataMessageUIs?.length ?? 0) > 0
         );
       })
       .sort((left, right) => left.id.localeCompare(right.id))

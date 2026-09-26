@@ -602,6 +602,7 @@ export class PluginServiceRuntime {
     if (left === undefined || right === undefined) return left === right;
     return left.Component === right.Component && left.setup === right.setup &&
       left.dataMessageUIs === right.dataMessageUIs &&
+      left.toolkit === right.toolkit &&
       JSON.stringify(left.manifest) === JSON.stringify(right.manifest) &&
       JSON.stringify(left.provides ?? []) === JSON.stringify(right.provides ?? []) &&
       JSON.stringify(left.inject ?? []) === JSON.stringify(right.inject ?? []) &&

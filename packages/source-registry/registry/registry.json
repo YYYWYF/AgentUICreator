@@ -26,6 +26,14 @@
       "path": "items/foundation-core-runtime/item.json"
     },
     {
+      "id": "plugin/agent-plan-message",
+      "path": "items/plugin-agent-plan-message/item.json"
+    },
+    {
+      "id": "plugin/agent-status-message",
+      "path": "items/plugin-agent-status-message/item.json"
+    },
+    {
       "id": "plugin/assistant-ui-add-attachment-action",
       "path": "items/plugin-assistant-ui-add-attachment-action/item.json"
     },
@@ -70,6 +78,10 @@
       "path": "items/plugin-assistant-ui-tool-group/item.json"
     },
     {
+      "id": "plugin/chart-message",
+      "path": "items/plugin-chart-message/item.json"
+    },
+    {
       "id": "plugin/conversation-data-source",
       "path": "items/plugin-conversation-data-source/item.json"
     },
@@ -88,6 +100,10 @@
     {
       "id": "plugin/conversation-thread-list",
       "path": "items/plugin-conversation-thread-list/item.json"
+    },
+    {
+      "id": "plugin/job-progress-message",
+      "path": "items/plugin-job-progress-message/item.json"
     },
     {
       "id": "plugin/locale-provider",

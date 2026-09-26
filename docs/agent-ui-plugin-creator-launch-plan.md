@@ -518,6 +518,8 @@ Plugin child Slot 使用 manifest 声明的 instance-local name。Plugin impleme
 
 # 7. UI Plugin Definition
 
+可选的命名 Tool UI 资源通过 `UIPluginDefinition.toolkit` 提供 backend/standalone 渲染项。此类不占布局位置的 UI Plugin 使用 headless capability，并由 AppUIModel `applicationPlugins` 启用。Generated Application 将已启用 Plugin 的 toolkit 合并到基础 Conversation toolkit，继续使用同一个 Conversation Runtime；重名注册拒绝发布。此入口只决定工具消息如何展示，不提供工具执行或 Agent 后端逻辑，也不根据 Mock endpoint 自动启用资源。
+
 每个 UI Plugin 使用固定目录：
 
 ```text

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "foundation/core-runtime",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "kind": "foundation",
   "description": "Managed Agent UI foundation-core-runtime source",
   "files": [
@@ -122,6 +122,10 @@
       "target": "runtime/mode-shell/mode-shell.css"
     },
     {
+      "source": "files/runtime/plugins/PluginDataMessageUIHost.tsx",
+      "target": "runtime/plugins/PluginDataMessageUIHost.tsx"
+    },
+    {
       "source": "files/runtime/plugins/PluginErrorBoundary.tsx",
       "target": "runtime/plugins/PluginErrorBoundary.tsx"
     },
@@ -154,8 +158,16 @@
       "target": "runtime/plugins/UIPluginRuntime.tsx"
     },
     {
+      "source": "files/runtime/plugins/data-message-ui-registrations.ts",
+      "target": "runtime/plugins/data-message-ui-registrations.ts"
+    },
+    {
       "source": "files/runtime/plugins/index.ts",
       "target": "runtime/plugins/index.ts"
+    },
+    {
+      "source": "files/runtime/plugins/plugin-conversation-toolkit.ts",
+      "target": "runtime/plugins/plugin-conversation-toolkit.ts"
     },
     {
       "source": "files/runtime/plugins/plugin-runtime.css",

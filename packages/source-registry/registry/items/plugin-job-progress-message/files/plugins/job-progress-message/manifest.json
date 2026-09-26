@@ -1,0 +1,18 @@
+{
+  "id": "job-progress-message",
+  "name": "Job Progress",
+  "description": "Renders run_ci_job tool calls with the conversation UI facade.",
+  "version": "1.0.0",
+  "capabilities": [
+    "headless"
+  ],
+  "data": {
+    "messages": true,
+    "state": true
+  },
+  "authoring": {
+    "intents": [
+      "render job progress in assistant messages"
+    ]
+  }
+}

@@ -345,6 +345,9 @@ importers:
       '@ag-ui/core':
         specifier: 0.0.59
         version: 0.0.59
+      '@agent-ui/mock-agent':
+        specifier: workspace:^
+        version: link:../mock-agent
       html-to-image:
         specifier: 1.11.13
         version: 1.11.13

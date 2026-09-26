@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/agent-status-message",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Agent Status named Tool UI",
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "@agent-ui/react": "^0.1.0"
+  },
+  "files": [
+    {
+      "source": "files/plugins/agent-status-message/definition.ts",
+      "target": "plugins/agent-status-message/definition.ts"
+    },
+    {
+      "source": "files/plugins/agent-status-message/index.tsx",
+      "target": "plugins/agent-status-message/index.tsx"
+    },
+    {
+      "source": "files/plugins/agent-status-message/manifest.json",
+      "target": "plugins/agent-status-message/manifest.json"
+    }
+  ]
+}

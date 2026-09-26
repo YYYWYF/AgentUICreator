@@ -1,3 +1,11 @@
+.creator-workbench,
+.creator-panel,
+.creator-panel *,
+.creator-panel *::before,
+.creator-panel *::after {
+  box-sizing: border-box;
+}
+
 .creator-workbench {
   --creator-panel-width: 25rem;
 
@@ -200,7 +208,7 @@
   background: #ffffff;
 }
 
-.creator-workspace-control { position: relative; padding: 0.65rem 1rem 0; }
+.creator-workspace-control { position: relative; padding: 0.5rem 1rem 0; }
 .creator-workspace-trigger {
   display: inline-flex;
   align-items: center;
@@ -221,7 +229,8 @@
 .creator-workspace-trigger:disabled { opacity: 0.55; cursor: not-allowed; }
 .creator-workspace-trigger svg { width: 1rem; height: 1rem; flex: 0 0 auto; }
 .creator-workspace-trigger > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.creator-workspace-chevron { flex: 0 0 auto; margin-left: 0.1rem; font-size: 1rem; line-height: 0.7; }
+.creator-workspace-chevron { display: block; flex: 0 0 auto; margin-left: 0.1rem; }
+.creator-workspace-trigger[aria-expanded="true"] .creator-workspace-chevron { transform: rotate(180deg); }
 .creator-workspace-warning-dot { display: grid; width: 1rem; height: 1rem; flex: 0 0 auto; place-items: center; border-radius: 50%; color: #fff; background: #a86308; font-size: 0.65rem; }
 .creator-workspace-menu {
   position: absolute;
@@ -716,6 +725,24 @@
   border-top: 1px solid #eaecf0;
 }
 
+.creator-stage-diagnostics {
+  margin-top: 0.5rem;
+  min-width: 0;
+}
+
+.creator-stage-diagnostics > summary {
+  width: fit-content;
+  color: #475467;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.creator-stage-diagnostics > summary:focus-visible {
+  outline: 2px solid #2e90fa;
+  outline-offset: 3px;
+  border-radius: 0.2rem;
+}
+
 .creator-stage-debug section + section {
   margin-top: 0.8rem;
 }
@@ -734,7 +761,7 @@
 
 .creator-stage-details-list > div {
   display: grid;
-  grid-template-columns: minmax(7rem, 0.9fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 0.5rem;
   padding: 0.18rem 0;
   font-size: 0.67rem;
@@ -742,6 +769,7 @@
 }
 
 .creator-stage-details-list dt {
+  overflow-wrap: anywhere;
   color: #667085;
 }
 
@@ -809,6 +837,10 @@
 
 .creator-receipt-item + .creator-receipt-item {
   margin-top: 0.45rem;
+}
+
+.creator-receipt-meta + .creator-receipt-item {
+  margin-top: 0.5rem;
 }
 
 .creator-receipt-item summary {
@@ -899,7 +931,8 @@
 }
 
 .creator-panel-composer {
-  padding: 0.55rem 1rem 1rem;
+  min-width: 0;
+  padding: 0.4rem 1rem 0.65rem;
 }
 
 .creator-panel-composer > label {
@@ -914,9 +947,14 @@
 }
 
 .creator-panel-composer textarea {
+  display: block;
+  box-sizing: border-box;
   width: 100%;
+  min-width: 0;
+  min-height: 4rem;
+  max-height: min(9rem, 25dvh);
   resize: vertical;
-  padding: 0.75rem;
+  padding: 0.6rem 0.75rem;
   border: 1px solid #cfd7e3;
   border-radius: 0.7rem;
   color: inherit;
@@ -927,10 +965,11 @@
 
 .creator-panel-composer > div {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-top: 0.65rem;
+  margin-top: 0.45rem;
 }
 
 .creator-panel-composer small {
@@ -950,7 +989,9 @@
 }
 
 .creator-panel-composer button {
-  padding: 0.65rem 0.9rem;
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 0.5rem 0.85rem;
 }
 
 .creator-panel-composer button:disabled,
@@ -1011,3 +1052,66 @@
     --creator-panel-width: min(23rem, 42vw);
   }
 }
+
+/* Creator owns the independent Mock service; the old preview-local Mock
+   launcher must not create a second entry. Runtime inspection stays available. */
+.creator-panel-dev-studio-dock [data-agent-ui-dev-studio-entry="mock"] { display: none; }
+.creator-panel-header .creator-panel-mock-toggle {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  width: auto; padding: 0 0.55rem; font-size: 0.75rem; font-weight: 700; color: #175cd3;
+}
+.creator-panel-mock-toggle svg { width: 0.9rem; height: 0.9rem; flex: none; }
+.creator-panel-mock-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.creator-workbench[data-creator-mock-open="true"] .creator-panel-body > .creator-panel-messages,
+.creator-workbench[data-creator-mock-open="true"] .creator-panel-body > .creator-project-setup,
+.creator-workbench[data-creator-mock-open="true"] .creator-panel-body > .creator-panel-dev-studio-panel,
+.creator-workbench[data-creator-mock-open="true"] .creator-panel-footer { display: none; }
+.creator-mock-panel { flex: 1; min-width: 0; min-height: 0; padding: 1rem; overflow: auto; font-size: 0.8rem; }
+.creator-mock-panel h2 { margin: 0; font-size: 1rem; }
+.creator-mock-panel h3 { margin: 0 0 0.5rem; font-size: 0.9rem; }
+.creator-mock-panel p { margin: 0.55rem 0; color: #667085; line-height: 1.5; }
+.creator-mock-panel button { padding: 0.45rem 0.65rem; border: 1px solid #cfd7e3; border-radius: 0.45rem; background: #fff; color: #175cd3; font: inherit; cursor: pointer; }
+.creator-mock-panel button:disabled, .creator-mock-panel select:disabled { opacity: 0.55; cursor: not-allowed; }
+.creator-mock-panel :is(button, input, select):focus-visible { outline: 2px solid #2e90fa; outline-offset: 2px; }
+.creator-mock-panel :is(input:not([type="radio"]), select) { min-width: 0; width: 100%; padding: 0.5rem; border: 1px solid #cfd7e3; border-radius: 0.45rem; color: #344054; background: #fff; font: inherit; }
+.creator-mock-service { margin-top: 1rem; padding: 0.75rem; border: 1px solid #d0d5dd; border-radius: 0.65rem; background: #f9fafb; }
+.creator-mock-service-actions { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+.creator-mock-address, .creator-mock-search, .creator-mock-speed { display: grid; gap: 0.4rem; margin: 0.75rem 0; }
+.creator-mock-address input { font-family: ui-monospace, monospace; }
+.creator-mock-service pre { margin: 0.5rem 0; padding: 0.5rem; border-radius: 0.4rem; background: #fff; white-space: pre-wrap; overflow-wrap: anywhere; }
+.creator-mock-notice { min-height: 1.2rem; }
+.creator-mock-panel .creator-mock-notice { color: #175cd3; }
+.creator-mock-error { margin-top: 0.75rem; padding: 0.7rem; color: #b42318; background: #fff1f0; border-radius: 0.5rem; }
+.creator-mock-error button { display: block; margin-top: 0.5rem; }
+.creator-mock-scenarios { display: grid; gap: 0.6rem; }
+.creator-mock-scenario { padding: 0.7rem; border: 1px solid #d0d5dd; border-radius: 0.6rem; }
+.creator-mock-scenario[data-selected="true"] { border-color: #84adff; background: #eff4ff; }
+.creator-mock-scenario-choice { display: flex; align-items: flex-start; gap: 0.6rem; cursor: pointer; }
+.creator-mock-scenario-choice > input { flex: none; margin: 0.2rem 0 0; accent-color: #175cd3; }
+.creator-mock-scenario-choice > span { display: grid; min-width: 0; gap: 0.3rem; }
+.creator-mock-scenario-choice > span > span { color: #667085; line-height: 1.45; }
+.creator-mock-scenario-footer { display: grid; gap: 0.5rem; margin: 0.35rem 0 0 1.5rem; }
+.creator-mock-resource-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.creator-mock-resource-actions { display: flex; align-items: center; gap: 0.5rem; flex: none; margin-left: auto; }
+.creator-mock-resource-actions > button { white-space: nowrap; }
+.creator-mock-preview { position: relative; display: inline-flex; }
+.creator-mock-panel .creator-mock-preview-help { display: inline-flex; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem; padding: 0; border-radius: 50%; border-color: #d0d5dd; color: #667085; font-size: 0.8rem; }
+.creator-mock-preview-popover { display: none; position: absolute; right: 0; bottom: 100%; z-index: 10; width: min(20rem, calc(100vw - 4rem)); padding: 0.75rem; border: 1px solid #d0d5dd; border-radius: 0.6rem; background: #fff; color: #344054; box-shadow: 0 4px 16px rgb(16 24 40 / 12%); }
+.creator-mock-preview:hover .creator-mock-preview-popover,
+.creator-mock-preview:focus-within .creator-mock-preview-popover { display: grid; gap: 0.5rem; }
+.creator-mock-preview-popover img { display: block; width: 100%; height: auto; border-radius: 0.25rem; }
+.creator-mock-preview-popover > span { font-size: 0.75rem; line-height: 1.5; color: #667085; }
+.creator-mock-install-status { margin: 0.4rem 0 0 1.5rem; line-height: 1.5; overflow-wrap: anywhere; color: #175cd3; }
+.creator-mock-install-status[data-status="success"] { color: #027a48; }
+.creator-mock-install-status[data-status="error"] { color: #b42318; }
+.creator-mock-scenario code { color: #667085; font-size: 0.7rem; overflow-wrap: anywhere; }
+.creator-mock-integration { margin-top: 0.65rem; }
+.creator-mock-integration > summary { color: #175cd3; cursor: pointer; }
+.creator-mock-integration pre { white-space: pre; overflow-x: auto; }
+.creator-mock-status { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.55rem; border-radius: 999px; background: #eaecf0; color: #475467; }
+.creator-mock-status::before { content: ''; width: 0.4rem; height: 0.4rem; border-radius: 50%; background: currentColor; }
+.creator-mock-status[data-running="true"] { background: #ecfdf3; color: #027a48; }
+.creator-mock-panel .creator-mock-copy[data-copied="true"] { color: #027a48; border-color: #abefc6; background: #ecfdf3; }
+.creator-mock-requirement { margin: 0.6rem 0; padding: 0.65rem; border: 1px solid #fedf89; border-radius: 0.5rem; background: #fffaeb; color: #93370d; }
+.creator-mock-panel .creator-mock-requirement p,
+.creator-mock-requirement-label { color: #93370d; }

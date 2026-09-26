@@ -26,6 +26,7 @@ import { CREATOR_WORKSPACE_ID_HEADER, type CreatorProjectMode, type CreatorWorks
 import { resolveCreatorDebugMode } from "./creatorDebug.js";
 import { CreatorProjectSetup, type CreatorSetupDraft, type CreatorSetupError, type CreatorSetupInfoState, setupIssueMessage } from "./setup/CreatorProjectSetup.js";
 import { CreatorProjectIntegrationGuide } from "./setup/CreatorProjectIntegrationGuide.js";
+import { MockServicePanel } from "./MockServicePanel.js";
 import { canInitializeCreatorProject, createEmptyCreatorSetupDraft, isCreatorSetupValidationUsable, isSetupRequestCurrent, shouldRefreshAfterInitializeError } from "./setup/creatorSetupState.js";
 import { CreatorWorkspaceRequestError, chooseWorkspaceProject, clearWorkspaceProject, getWorkspaceSetup, getWorkspaceState, initializeWorkspaceProjectRequest, refreshWorkspaceProject, selectWorkspaceProject, validateWorkspaceSetup } from "./workspaceClient.js";
 import {
@@ -666,10 +667,33 @@ function stageSymbol(status: CreatorStageActivity["status"]): string {
 
 function debugValue(value: unknown): string {
   if (Array.isArray(value)) return value.length === 0 ? "—" : value.join(", ");
-  if (value === true) return "yes";
-  if (value === false) return "no";
+  if (value === true) return "是";
+  if (value === false) return "否";
   if (value === null || value === undefined) return "—";
   return String(value);
+}
+
+// Translate presentation values while preserving raw diagnostic values in titles.
+function creatorDiagnosticValue(value: unknown): string {
+  const labels: Record<string, string> = {
+    static_only: "仅静态验证",
+    static_and_runtime: "静态与运行时验证",
+    "not-run": "未执行",
+    passed: "通过",
+    failed: "未通过",
+    stale: "尚未更新",
+    unavailable: "不可用",
+    running: "进行中",
+    completed: "已完成",
+    success: "成功",
+    committed_unverified: "已提交，未验证",
+    already_satisfied: "当前已满足",
+    productized: "预定义操作",
+    "general-agent": "通用 Agent",
+    clarification: "需要澄清",
+    unsupported: "暂不支持",
+  };
+  return typeof value === "string" ? labels[value] ?? value : debugValue(value);
 }
 
 function CreatorStageDebugDetails({
@@ -689,7 +713,7 @@ function CreatorStageDebugDetails({
       {values.map(([label, value]) => (
         <div key={label}>
           <dt>{label}</dt>
-          <dd>{debugValue(value)}</dd>
+          <dd title={debugValue(value)}>{creatorDiagnosticValue(value)}</dd>
         </div>
       ))}
     </dl>
@@ -699,11 +723,11 @@ function CreatorStageDebugDetails({
     <div className="creator-stage-debug">
       {isGrounding ? (
         <section>
-          <h3>Grounding</h3>
+          <h3>上下文准备</h3>
           {rows([
-            ["Snapshot build", metadata.snapshotBuildMs === undefined ? "—" : `${metadata.snapshotBuildMs} ms`],
-            ["Model calls", metadata.modelCalls ?? 0],
-            ["Error", metadata.errorCode],
+            ["快照生成耗时", metadata.snapshotBuildMs === undefined ? "—" : `${metadata.snapshotBuildMs} ms`],
+            ["模型调用", metadata.modelCalls ?? 0],
+            ["错误代码", metadata.errorCode],
           ])}
         </section>
       ) : null}
@@ -711,80 +735,80 @@ function CreatorStageDebugDetails({
       {isUnderstanding ? (
         <>
           <section>
-            <h3>Understanding</h3>
+            <h3>需求理解</h3>
             {rows([
-              ["Error", metadata.errorCode],
-              ["Selector failure", metadata.selectorFailureReasonCode],
-              ["Reason", metadata.selectorFailureReason],
-              ["Decision", metadata.decision ?? metadata.intent],
-              ["Action ID", metadata.actionId],
-              ["Action kind", metadata.actionKind],
-              ["Action status", metadata.actionStatus],
-              ["Action selector calls", metadata.actionSelectorCalls],
-              ["Action selector repairs", metadata.actionSelectorRepairCalls],
-              ["Action selector invalid", metadata.actionSelectorInvalidResponses],
+              ["错误代码", metadata.errorCode],
+              ["选择失败代码", metadata.selectorFailureReasonCode],
+              ["原因", metadata.selectorFailureReason],
+              ["决策", metadata.decision ?? metadata.intent],
+              ["操作 ID", metadata.actionId],
+              ["操作类型", metadata.actionKind],
+              ["操作状态", metadata.actionStatus],
+              ["操作选择次数", metadata.actionSelectorCalls],
+              ["选择修复次数", metadata.actionSelectorRepairCalls],
+              ["无效选择响应", metadata.actionSelectorInvalidResponses],
               ...(metadata.actionSelectorRepairCalls !== undefined && metadata.actionSelectorRepairCalls > 0
                 ? [
-                    ["Repair reason code", metadata.actionSelectorRepairReasonCode] as [string, unknown],
-                    ["Repair reason", metadata.actionSelectorRepairReason] as [string, unknown],
+                    ["修复原因代码", metadata.actionSelectorRepairReasonCode] as [string, unknown],
+                    ["修复原因", metadata.actionSelectorRepairReason] as [string, unknown],
                   ]
                 : []),
-              ["Model calls", metadata.modelCalls],
-              ["Repair calls", metadata.repairCalls],
-              ["Duration", metadata.durationMs === undefined ? "—" : `${metadata.durationMs} ms`],
-              ["Candidates", metadata.candidateCount],
-              ["Context characters", metadata.contextCharacters],
+              ["模型调用", metadata.modelCalls],
+              ["修复调用", metadata.repairCalls],
+              ["耗时", metadata.durationMs === undefined ? "—" : `${metadata.durationMs} ms`],
+              ["候选数量", metadata.candidateCount],
+              ["上下文字数", metadata.contextCharacters],
             ])}
           </section>
           <section>
-            <h3>Target</h3>
+            <h3>修改目标</h3>
             {rows([
-              ["Plugin", metadata.targetPluginIds],
-              ["Instance", metadata.targetInstanceIds],
+              ["插件", metadata.targetPluginIds],
+              ["实例", metadata.targetInstanceIds],
             ])}
           </section>
           {metadata.placementType === undefined ? null : (
             <section>
-              <h3>Placement</h3>
+              <h3>位置验证</h3>
               {rows([
-                ["Type", metadata.placementType],
-                ["Anchor Plugin", metadata.anchorPluginId],
-                ["Anchor Instance", metadata.anchorInstanceId],
-                ["Relation", metadata.relation],
-                ["Parent Plugin", metadata.parentPluginId],
-                ["Parent Instance", metadata.parentInstanceId],
-                ["Slot", metadata.slot],
+                ["类型", metadata.placementType],
+                ["锚点插件", metadata.anchorPluginId],
+                ["锚点实例", metadata.anchorInstanceId],
+                ["相对关系", metadata.relation],
+                ["父插件", metadata.parentPluginId],
+                ["父实例", metadata.parentInstanceId],
+                ["插槽", metadata.slot],
               ])}
             </section>
           )}
           {metadata.effectType === undefined ? null : (
             <section>
-              <h3>Effect</h3>
+              <h3>作用范围</h3>
               {rows([
-                ["Type", metadata.effectType],
-                ["Region", metadata.region],
-                ["Parent Plugin", metadata.parentPluginId],
-                ["Parent Instance", metadata.parentInstanceId],
-                ["Slot", metadata.slot],
+                ["类型", metadata.effectType],
+                ["区域", metadata.region],
+                ["父插件", metadata.parentPluginId],
+                ["父实例", metadata.parentInstanceId],
+                ["插槽", metadata.slot],
               ])}
             </section>
           )}
           <section>
-            <h3>Route</h3>
+            <h3>执行路径</h3>
             {rows([
-              ["Productized", metadata.route === "productized"],
-              ["General Agent", metadata.route === "general-agent"],
-              ["Clarification", metadata.route === "clarification"],
-              ["Unsupported", metadata.route === "unsupported"],
+              ["预定义操作", metadata.route === "productized"],
+              ["通用 Agent", metadata.route === "general-agent"],
+              ["需要澄清", metadata.route === "clarification"],
+              ["暂不支持", metadata.route === "unsupported"],
             ])}
           </section>
           {metadata.route === "general-agent" ? (
             <section>
-              <h3>General Agent</h3>
+              <h3>通用 Agent</h3>
               {rows([
-                ["Model calls", metadata.generalAgentModelCalls],
-                ["Tool calls", metadata.generalAgentToolCalls],
-                ["Total model calls", metadata.totalModelCalls],
+                ["模型调用", metadata.generalAgentModelCalls],
+                ["工具调用", metadata.generalAgentToolCalls],
+                ["模型调用总数", metadata.totalModelCalls],
               ])}
             </section>
           ) : null}
@@ -794,24 +818,24 @@ function CreatorStageDebugDetails({
       {isExecution ? (
         <>
           <section>
-            <h3>Execution</h3>
+            <h3>修改执行</h3>
             {rows([
-              ["Execution model calls", metadata.executionModelCalls],
-              ["Tool calls", metadata.toolCalls],
-              ["DeepAgent calls", metadata.deepAgentCalls],
-              ["Mutation attempts", metadata.mutationAttempts],
+              ["执行模型调用", metadata.executionModelCalls],
+              ["工具调用", metadata.toolCalls],
+              ["DeepAgent 调用", metadata.deepAgentCalls],
+              ["修改尝试", metadata.mutationAttempts],
             ])}
           </section>
           <section>
-            <h3>Verification</h3>
+            <h3>验证结果</h3>
             {rows([
-              ["Mode", metadata.verificationMode],
-              ["Static", metadata.staticStatus],
-              ["Runtime", metadata.runtimeStatus],
-              ["Freshness attempts", metadata.runtimeFreshnessAttempts],
-              ["Runtime wait", metadata.runtimeFreshnessWaitMs === undefined ? "—" : `${metadata.runtimeFreshnessWaitMs} ms`],
-              ["Placement", metadata.placementVerified],
-              ["Geometry", metadata.geometryVerified],
+              ["验证方式", metadata.verificationMode],
+              ["静态验证", metadata.staticStatus],
+              ["运行时验证", metadata.runtimeStatus],
+              ["最新状态检查次数", metadata.runtimeFreshnessAttempts],
+              ["运行时等待", metadata.runtimeFreshnessWaitMs === undefined ? "—" : `${metadata.runtimeFreshnessWaitMs} ms`],
+              ["位置验证", metadata.placementVerified],
+              ["尺寸验证", metadata.geometryVerified],
             ])}
           </section>
         </>
@@ -852,7 +876,12 @@ function CreatorStageActivityCard({
           )}
         </div>
       </div>
-      {debug ? <CreatorStageDebugDetails activity={activity} /> : null}
+      {debug ? (
+        <details className="creator-stage-diagnostics">
+          <summary>诊断详情</summary>
+          <CreatorStageDebugDetails activity={activity} />
+        </details>
+      ) : null}
     </article>
   );
 }
@@ -876,6 +905,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   );
   const [input, setInput] = useState("");
   const [isOpen, setIsOpen] = useState(true);
+  const [mockPanelOpen, setMockPanelOpen] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [panelWidth, setPanelWidth] = useState<number | null>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -1589,6 +1619,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
       className="creator-workbench"
       data-creator-layout={layout}
       data-creator-panel-open={isOpen}
+      data-creator-mock-open={mockPanelOpen}
       data-creator-panel-resizing={isResizing}
       style={
         panelWidth === null
@@ -1634,6 +1665,18 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
             </div>
             <div className="creator-panel-header-actions">
               <button
+                className="creator-panel-mock-toggle"
+                data-creator-mock-entry=""
+                aria-controls="creator-mock-panel"
+                aria-expanded={mockPanelOpen}
+                aria-label={mockPanelOpen ? "关闭 Mock Agent 面板" : "打开 Mock Agent 面板"}
+                onClick={() => setMockPanelOpen((open) => !open)}
+                type="button"
+              >
+                Mock Agent
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+              </button>
+              <button
                 aria-label="新建 Creator 会话"
                 className="creator-panel-new-conversation"
                 disabled={isRunning || !creatorRuntimeReady}
@@ -1658,6 +1701,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
           </header>
 
           <div className="creator-panel-body">
+            {mockPanelOpen ? <MockServicePanel {...(workspaceState && workspaceState.status !== "none" ? { projectId: workspaceState.workspace.id } : {})} /> : null}
             <div
               className="creator-panel-dev-studio-panel"
               data-slot="agent-ui-dev-studio-panel"
@@ -1756,7 +1800,9 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                   ? workspaceState.workspace.name : "选择项目"}</span>
                 {workspaceState !== null && (workspaceState.status === "ready" || workspaceState.status === "legacy") &&
                   workspaceState.warnings?.length ? <span aria-label="项目有提示" className="creator-workspace-warning-dot">!</span> : null}
-                <span aria-hidden="true" className="creator-workspace-chevron">⌄</span>
+                <svg aria-hidden="true" className="creator-workspace-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
               </button>
               {showWorkspaceSelector ? (
                 <section className="creator-workspace-menu" id="creator-workspace-menu" aria-label="选择前端项目文件夹">
@@ -1816,7 +1862,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="例如：右边增加一个工具调用详情面板"
-                rows={3}
+                rows={2}
                 value={input}
               />
               <div>

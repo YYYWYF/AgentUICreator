@@ -16,6 +16,7 @@ import { AgentRuntimeProvider } from "../runtime/context";
 import { AppEventRegistry } from "../runtime/events";
 import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../runtime/tools";
 import { PluginServiceProvider, UIPluginRuntime } from "../runtime/plugins";
+import { PluginDataMessageUIHost } from "../runtime/plugins/PluginDataMessageUIHost";
 import { ModeShell } from "../runtime/mode-shell";
 import type { RuntimeCompositionSnapshot } from "../runtime/composition";
 import {
@@ -26,6 +27,7 @@ import {
 import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
 import { createConversationServiceThreadBinding } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
+import { resolvePluginConversationToolkit } from "../runtime/plugins/plugin-conversation-toolkit";
 import { agentCompositionStore } from "./composition-store";
 import { agentUIRuntimeConfig } from "./runtime-config.generated";
 
@@ -62,6 +64,7 @@ function AgentSurface({ composition }: {
         model={composition.runtimeModel}
         registry={composition.activeRegistry}
       >
+        <PluginDataMessageUIHost model={composition.runtimeModel} registry={composition.activeRegistry} />
         <ConversationThreadBindingConnector />
         <ConversationPresentationConfigProvider value={conversationPresentationConfig}>
           <ModeShell mode={agentUIRuntimeConfig.mode}>
@@ -88,7 +91,8 @@ export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
     () => createConversationServiceThreadBinding<AppAgentState>(),
     [],
   );
-  const toolkit = useMemo(() => createConversationToolkit(), []);
+  const toolkit = useMemo(() => composition === undefined ? createConversationToolkit()
+    : resolvePluginConversationToolkit(composition.runtimeModel, composition.activeRegistry, createConversationToolkit()), [composition]);
 
   useEffect(() => {
     agentCompositionStore.stageCandidate({

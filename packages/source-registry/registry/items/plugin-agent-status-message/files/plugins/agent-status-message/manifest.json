@@ -1,0 +1,17 @@
+{
+  "id": "agent-status-message",
+  "name": "Agent Status",
+  "description": "Renders mock_agent_status tool calls with the conversation UI facade.",
+  "version": "1.0.0",
+  "capabilities": [
+    "headless"
+  ],
+  "data": {
+    "messages": true
+  },
+  "authoring": {
+    "intents": [
+      "render agent status in assistant messages"
+    ]
+  }
+}

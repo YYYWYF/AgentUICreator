@@ -14,6 +14,7 @@ import {
   type PluginRegistry,
 } from "../plugins/PluginRegistry";
 import { validateDataMessageUIDefinitions } from "../plugins/data-message-ui-registrations";
+import { resolvePluginConversationToolkit } from "../plugins/plugin-conversation-toolkit";
 import type { PluginCapabilityCatalog } from "./PluginCapabilityCatalog";
 
 export interface RuntimeCompositionBuildInput<TState = unknown> {
@@ -110,6 +111,7 @@ export async function buildRuntimeComposition<TState = unknown>(
   const compositionCatalog = createPluginCompositionCatalog(activeRegistry);
   const runtimeModel = compileAppUIModel(appUIModel, compositionCatalog);
   validateDataMessageUIDefinitions(runtimeModel, activeRegistry);
+  resolvePluginConversationToolkit(runtimeModel, activeRegistry);
 
   return {
     appUIModelHash,

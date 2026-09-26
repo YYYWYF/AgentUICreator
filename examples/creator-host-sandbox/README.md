@@ -12,6 +12,40 @@ Run `pnpm install` once at the workspace root. Start any Host with its command a
 
 Creator is injected only by the Host's Vite dev configuration. It loads `http://localhost:5174/dock.html` in an iframe and never controls the Host's HMR. `VITE_CREATOR_DOCK_URL` overrides the Creator URL. Production builds omit the Creator dock. The generated Agent app has no Creator runtime dependency and does not read `.agent-ui/**` at runtime.
 
+## 配置用户工程的 AG-UI 地址（`.env.local`）
+
+示例只提供前端，不自带真实 Agent 后端。推荐使用项目自己的 `.env.local` 配置接口地址；若使用 `<Agent endpoint="..." />` 直接传入地址，则无需配置该环境变量，组件参数优先。
+
+以 Platform 示例为例，文件位置是：
+
+```text
+AgentUICreator/
+└── examples/
+    └── creator-host-sandbox/
+        ├── package.json
+        ├── .env.example
+        ├── .env.local       ← 在这里创建，与本示例的 package.json 同级
+        └── src/
+            └── AgentMount.tsx
+```
+
+1. 从仓库根目录运行 `pnpm dev` 启动 Creator，再在另一个终端运行 `pnpm dev:host-sandbox` 启动示例。
+2. 打开 `http://localhost:5176`，点击右上角 **Creator Agent**，打开 **Mock Agent** 面板并启动服务，复制实际地址。已有真实 AG-UI 后端时直接使用其完整地址。
+3. 在 `examples/creator-host-sandbox/.env.local` 中填写：
+
+   ```dotenv
+   VITE_AGENT_ENDPOINT=从Mock面板复制的完整地址
+   ```
+
+   将等号右边替换为实际 URL，不能保留占位文字。可从同目录 `.env.example` 创建 `.env.local`；已有 `.env.local` 时仅编辑对应配置，不覆盖其他内容。
+4. 停止并重新运行 `pnpm dev:host-sandbox`，再刷新示例页面。无需重启 Creator。
+
+`.env.local` 属于**用户前端工程**，不要放在本仓库根目录，不要将此配置写到 Creator 的 `.env.creator.local`。示例的 `src/AgentMount.tsx` 默认使用 `<Agent />`，会读取这项环境变量；如果你已经写了 `<Agent endpoint="..." />`，应修改组件中的地址，或去掉这个参数后使用环境变量。
+
+其他两个示例分别使用自己的 `examples/creator-assistant-host/.env.local` 和 `examples/creator-embedded-host/.env.local`，修改后重启对应示例的开发服务。三个示例均提供 `.env.example`；本地 `.env.local` 不提交到 Git。
+
+Mock 服务停止后该地址不可用，再次启动需要复制新地址并更新 `.env.local`、重启示例。没有配置地址时默认请求本示例的 `/agent`；该路径没有后端服务就会返回 HTTP 404。
+
 ## Ownership and reset
 
 Each Host owns its `src/App.tsx`, `src/AgentMount.tsx`, `src/main.tsx`, `src/host.css`, Vite config, package file, and `scripts/ui-project-control.ts`. Creator owns `src/agent-ui/**` after initialization; `.agent-ui/**` is control-plane metadata. The Host integrates Agent UI only through `import { Agent } from "./agent-ui"` and `<Agent />`.

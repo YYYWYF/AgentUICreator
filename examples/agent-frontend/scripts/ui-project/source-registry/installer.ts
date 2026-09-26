@@ -214,6 +214,9 @@ export async function applyAgentUISourceItem(
       if (!nextTargets.has(oldTarget)) mutations.set(oldTarget, { target: oldTarget });
     }
     for (const file of item.loadedFiles) {
+      // A version bump can leave most files unchanged. Replacing those files
+      // needlessly invalidates their Vite modules (including shared contexts).
+      if (previous?.files[file.target]?.sha256 === sha256(file.content)) continue;
       mutations.set(file.target, { target: file.target, content: file.content });
     }
     nextLock.items[item.id] = {

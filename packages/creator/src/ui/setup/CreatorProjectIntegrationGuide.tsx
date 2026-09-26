@@ -69,6 +69,9 @@ export function CreatorProjectIntegrationGuide({ sourceRoot, mode }: {
             <summary>导入路径与接口地址</summary>
             <p>如果组件不在 <code>src/</code> 目录，请按该文件的位置调整相对导入路径。</p>
             <p>AG-UI 接口默认读取 <code>VITE_AGENT_ENDPOINT</code>，否则使用 <code>/agent</code>；地址不同时可传入 <code>endpoint</code>，例如 <code>{'<Agent endpoint="/api/agent" />'}</code>。保存组件后，你自己的开发服务器会更新页面。</p>
+            <p>使用环境变量时，在你自己的前端项目根目录（与 <code>package.json</code> 同级）创建或编辑 <code>.env.local</code>，填写下面这一行，并将地址替换为真实后端或 Mock 面板复制的完整地址：</p>
+            <pre><code>VITE_AGENT_ENDPOINT=你的完整 AG-UI 地址</code></pre>
+            <p>保存后重启这个前端项目的开发服务。如果已在组件中显式传入 <code>endpoint</code>，则组件中的地址优先。</p>
           </details>
         </div>
       ) : null}

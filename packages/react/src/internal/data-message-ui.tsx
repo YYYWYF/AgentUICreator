@@ -13,8 +13,10 @@ export interface DataMessageUIDefinition<TData = unknown> {
 /** The payload type helps authors at compile time; the AG-UI payload is not validated here. */
 export function defineDataMessageUI<TData>(
   definition: DataMessageUIDefinition<TData>,
-): DataMessageUIDefinition<TData> {
-  return definition;
+): DataMessageUIDefinition<never> {
+  // Keep authoring props typed above, then erase the payload at the host
+  // registration boundary, which supports heterogeneous named renderers.
+  return definition as unknown as DataMessageUIDefinition<never>;
 }
 
 /** Internal host bridge. Plugin authors never register with assistant-ui directly. */

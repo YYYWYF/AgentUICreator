@@ -1,0 +1,17 @@
+{
+  "id": "agent-plan-message",
+  "name": "Agent Plan",
+  "description": "Renders mock_agent_plan tool calls with the conversation UI facade.",
+  "version": "1.0.0",
+  "capabilities": [
+    "headless"
+  ],
+  "data": {
+    "messages": true
+  },
+  "authoring": {
+    "intents": [
+      "render agent plan in assistant messages"
+    ]
+  }
+}

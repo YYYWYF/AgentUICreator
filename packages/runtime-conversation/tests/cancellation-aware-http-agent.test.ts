@@ -22,6 +22,31 @@ function createWaitingFetch(error: Error) {
 }
 
 describe("CancellationAwareHttpAgent", () => {
+  it.each([
+    { status: 500, contentType: "text/plain", body: "upstream unavailable" },
+    { status: 422, contentType: "application/json", body: '{"detail":"invalid request"}' },
+  ])("preserves the HTTP $status response body through the cancellation wrapper", async ({ status, contentType, body }) => {
+    const fetch = vi.fn(async () => new Response(body, {
+      status,
+      headers: { "Content-Type": contentType },
+    }));
+    const agent = new CancellationAwareHttpAgent({
+      url: "http://example.test/agent",
+      threadId: "http-error-thread",
+      fetch,
+    });
+    const onRunFailed = vi.fn<NonNullable<AgentSubscriber["onRunFailed"]>>();
+
+    await expect(agent.runAgent(undefined, { onRunFailed })).rejects.toMatchObject({
+      message: `HTTP ${status}: ${body}`,
+      status,
+      payload: contentType === "application/json" ? JSON.parse(body) : body,
+    });
+    expect(onRunFailed).toHaveBeenCalledWith(expect.objectContaining({
+      error: expect.objectContaining({ status }),
+    }));
+  });
+
   it("normalizes a locally aborted transport failure before AbstractAgent.onError", async () => {
     const { fetch, started } = createWaitingFetch(
       new Error("BodyStreamBuffer was aborted"),

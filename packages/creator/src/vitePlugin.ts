@@ -9,6 +9,9 @@ import { proxyPythonCreatorRequest } from "./PythonCreatorProxy.js";
 import { CreatorWorkspaceManager, CreatorWorkspaceError } from "./workspace/CreatorWorkspaceManager.js";
 import { CREATOR_WORKSPACE_API_PATH, handleCreatorWorkspaceRequest } from "./workspace/workspace-api.js";
 import { CREATOR_WORKSPACE_ID_HEADER } from "./workspace/types.js";
+import { CreatorMockService } from "./mock/CreatorMockService.js";
+import { CREATOR_MOCK_API_PATH } from "./mock/types.js";
+import { handleCreatorMockRequest } from "./mock/mock-api.js";
 import {
   resolveCreatorPythonAgentMode,
   resolveCreatorVerificationMode,
@@ -39,6 +42,7 @@ export {
 } from "./PythonCreatorProcessManager.js";
 
 export interface CreatorDevServerPluginOptions {
+  installMockPlugin?: ((projectRoot: string, pluginId: string) => Promise<void>) | undefined;
   projectRoot?: string | undefined;
   workspaceManager?: CreatorWorkspaceManager | undefined;
   configRoot?: string | undefined;
@@ -55,6 +59,7 @@ export function createCreatorDevServerPlugin({
   workspaceManager,
   configRoot,
   python,
+  installMockPlugin,
 }: CreatorDevServerPluginOptions): Plugin {
   const creatorLog =
     python?.log ?? ((message: string) => console.error(`[Creator] ${message}`));
@@ -75,6 +80,7 @@ export function createCreatorDevServerPlugin({
     projectRoot, ...(configRoot === undefined ? {} : { configRoot }),
     ...(python ?? {}), environment, log: creatorLog,
   });
+  const mockService = new CreatorMockService();
 
   function gateError(response: ServerResponse, error: unknown): void {
     response.statusCode = 409;
@@ -99,12 +105,32 @@ export function createCreatorDevServerPlugin({
     },
     configureServer(server) {
       server.httpServer?.once("close", () => {
+        void mockService.dispose();
         void workspaceManager?.clear();
         void legacyPythonManager?.dispose();
       });
       server.watcher.once("close", () => {
+        void mockService.dispose();
         void workspaceManager?.clear();
         void legacyPythonManager?.dispose();
+      });
+      server.middlewares.use(CREATOR_MOCK_API_PATH, (request, response) => {
+        void handleCreatorMockRequest(request, response, mockService, () => {
+          if (workspaceManager !== undefined) {
+            const state = workspaceManager.getState();
+            if (state.status !== "ready" && state.status !== "legacy") return undefined;
+            return { id: state.workspace.id, projectRoot: state.workspace.projectRoot,
+              ...(state.project.sourceRoot === undefined ? {} : { sourceRoot: state.project.sourceRoot }) };
+          }
+          return projectRoot === undefined ? undefined : { id: projectRoot, projectRoot };
+        }, installMockPlugin === undefined ? undefined : async (id, pluginId) => {
+          if (workspaceManager !== undefined) {
+            await workspaceManager.runProjectOperation(id, root => installMockPlugin(root, pluginId));
+          } else {
+            if (projectRoot === undefined || id !== projectRoot) throw new Error("当前项目已改变。");
+            await installMockPlugin(projectRoot, pluginId);
+          }
+        });
       });
       if (workspaceManager !== undefined) {
         server.middlewares.use(CREATOR_WORKSPACE_API_PATH, (request, response) => {

@@ -10,8 +10,8 @@ if (document.getElementById(dockId) === null) {
     :host { all: initial; position: fixed; right: 1rem; top: 0; z-index: 2147483000; font-family: system-ui, sans-serif; }
     button { display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.85rem; border: 1px solid #d9e1ee; border-top: 0; border-radius: 0 0 0.8rem 0.8rem; color: #344054; background: #fff; box-shadow: 0 0.35rem 1rem rgb(16 24 40 / 12%); font: inherit; font-size: 0.82rem; font-weight: 650; cursor: pointer; }
     button::before { content: '✦'; color: #175cd3; font-size: 1rem; }
-    button::after { content: '⌄'; color: #667085; font-size: 1rem; transition: transform 160ms ease; }
-    button[aria-expanded='true']::after { transform: rotate(180deg); }
+    button::after { content: ''; display: block; flex: 0 0 auto; width: 0.45rem; height: 0.45rem; box-sizing: border-box; border-right: 2px solid #667085; border-bottom: 2px solid #667085; transform: translateY(-0.1rem) rotate(45deg); }
+    button[aria-expanded='true']::after { transform: translateY(0.1rem) rotate(225deg); }
     button:hover { background: #f8faff; }
     button:focus-visible { outline: 3px solid #84caff; outline-offset: 3px; }
     iframe { position: absolute; right: 0; top: 3rem; width: min(27rem, calc(100vw - 1.5rem)); height: min(43rem, calc(100dvh - 4rem)); border: 1px solid #d0d5dd; border-radius: 0.9rem; background: #fff; box-shadow: 0 1rem 3rem rgb(16 24 40 / 22%); }

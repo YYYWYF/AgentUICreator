@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, readdir, rm, stat, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,6 +16,7 @@ import { inspectCreatorProject } from "../../agent-frontend/scripts/ui-project/c
 import { handleUIProjectControlRequest } from "../../agent-frontend/scripts/ui-project-control";
 import { verifyUIProject } from "../../agent-frontend/scripts/verify-ui";
 import { runtimeAliases } from "../vite.config";
+import { installDemoPlugin } from "../../agent-frontend/scripts/ui-project/install-demo-plugin";
 
 const sandboxRoot = fileURLToPath(new URL("..", import.meta.url));
 const hostSourceRoots = [
@@ -64,7 +65,49 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
 
       assert.equal((await inspectCreatorProject(projectRoot)).status, "uninitialized");
       await initializeAgentUIProject({ projectRoot, mode, sourceRoot: "src/agent-ui" });
+      const initializedModel = JSON.parse(await readFile(
+        path.join(projectRoot, "src/agent-ui/app-ui/app-ui.json"), "utf8",
+      )) as { applicationPlugins: Array<{ pluginId: string; enabled: boolean }> };
+      assert.equal(initializedModel.applicationPlugins.some((plugin) =>
+        plugin.pluginId === "chart-message"), false);
+      await assert.rejects(readFile(path.join(projectRoot, "src/agent-ui/plugins/chart-message/definition.ts")), { code: "ENOENT" });
+      assert.match(await readFile(
+        path.join(projectRoot, "src/agent-ui/application/Agent.tsx"), "utf8",
+      ), /<PluginDataMessageUIHost/u);
       assert.equal((await inspectCreatorProject(projectRoot)).status, "ready");
+      if (mode === "platform") {
+        // A foundation version upgrade must preserve byte-identical files,
+        // avoiding needless HMR invalidation of shared React contexts.
+        const unchangedPath = path.join(projectRoot, "src/agent-ui/runtime/plugins/PluginServiceContext.ts");
+        const beforeUnchanged = await stat(unchangedPath);
+        const lockPath = path.join(projectRoot, ".agent-ui/source-lock.json");
+        const lock = JSON.parse(await readFile(lockPath, "utf8"));
+        lock.items["foundation/core-runtime"].version = "0.0.0";
+        await writeFile(lockPath, JSON.stringify(lock));
+        await installDemoPlugin(projectRoot, "chart-message");
+        const afterUnchanged = await stat(unchangedPath);
+        assert.equal(afterUnchanged.ino, beforeUnchanged.ino);
+        assert.equal(afterUnchanged.mtimeMs, beforeUnchanged.mtimeMs);
+        const updatedLock = JSON.parse(await readFile(lockPath, "utf8"));
+        assert.notEqual(updatedLock.items["foundation/core-runtime"].version, "0.0.0");
+        await installDemoPlugin(projectRoot, "chart-message");
+        const after = JSON.parse(await readFile(path.join(projectRoot, "src/agent-ui/app-ui/app-ui.json"), "utf8"));
+        const charts = after.applicationPlugins.filter((plugin: { pluginId: string }) => plugin.pluginId === "chart-message");
+        assert.equal(charts.length, 1);
+        assert.equal(charts[0].enabled, true);
+        assert.match(await readFile(path.join(projectRoot, "src/agent-ui/plugins/registry.generated.ts"), "utf8"), /chart-message\/definition/u);
+        charts[0].enabled = false;
+        await writeFile(path.join(projectRoot, "src/agent-ui/app-ui/app-ui.json"), JSON.stringify(after));
+        await installDemoPlugin(projectRoot, "chart-message");
+        const reenabled = JSON.parse(await readFile(path.join(projectRoot, "src/agent-ui/app-ui/app-ui.json"), "utf8"));
+        assert.equal(reenabled.applicationPlugins.find((plugin: { pluginId: string }) => plugin.pluginId === "chart-message").enabled, true);
+        for (const pluginId of ["job-progress-message", "agent-plan-message", "agent-status-message"]) {
+          await installDemoPlugin(projectRoot, pluginId);
+          const current = JSON.parse(await readFile(path.join(projectRoot, "src/agent-ui/app-ui/app-ui.json"), "utf8"));
+          assert.equal(current.applicationPlugins.find((plugin: { pluginId: string }) => plugin.pluginId === pluginId).enabled, true);
+          assert.match(await readFile(path.join(projectRoot, `src/agent-ui/plugins/${pluginId}/definition.ts`), "utf8"), /toolkit:/u);
+        }
+      }
       const controlResponse = await handleUIProjectControlRequest({
         schemaVersion: 3,
         operation: "inspect_ui_project",

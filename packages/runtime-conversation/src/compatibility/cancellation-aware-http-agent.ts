@@ -59,7 +59,9 @@ function wrapAbortableResponse(
   return new Proxy(response, {
     get(target, property) {
       if (property === "body") return wrappedBody;
-      return Reflect.get(target, property, target);
+      // Native Response methods require the original receiver, not the proxy.
+      const value = Reflect.get(target, property, target);
+      return typeof value === "function" ? value.bind(target) : value;
     },
   });
 }

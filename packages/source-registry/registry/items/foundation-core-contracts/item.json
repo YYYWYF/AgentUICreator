@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "foundation/core-contracts",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "kind": "foundation",
   "description": "Managed Agent UI foundation-core-contracts source",
   "files": [
@@ -36,6 +36,10 @@
     {
       "source": "files/framework/contracts/custom-event-protocol.ts",
       "target": "framework/contracts/custom-event-protocol.ts"
+    },
+    {
+      "source": "files/framework/contracts/data-message-ui.ts",
+      "target": "framework/contracts/data-message-ui.ts"
     },
     {
       "source": "files/framework/contracts/index.ts",

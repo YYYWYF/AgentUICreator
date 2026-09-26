@@ -26,6 +26,12 @@ export class StaticPluginRegistry<TState = unknown>
 
   register(plugin: UIPluginDefinition<TState>): void {
     const manifest = parseUIPluginManifest(plugin.manifest);
+    if ((plugin.dataMessageUIs?.length ?? 0) > 0 && manifest.data?.messageUI !== true) {
+      throw new Error(`UI plugin "${manifest.id}" declares Data Message UIs without data.messageUI in its manifest`);
+    }
+    if (manifest.data?.messageUI === true && (plugin.dataMessageUIs?.length ?? 0) === 0) {
+      throw new Error(`UI plugin "${manifest.id}" declares data.messageUI without a renderer`);
+    }
     const inject = parseUIPluginInject(plugin.inject ?? []);
     const provides = parseUIPluginProvides(plugin.provides ?? []);
     const optionalInject = parseUIPluginOptionalInject(
@@ -120,6 +126,7 @@ export function createPluginCompositionCatalog<TState = unknown>(
               },
             }),
         capabilities: [...(definition.manifest.capabilities ?? [])],
+        dataMessageUI: definition.manifest.data?.messageUI === true,
         requiresRenderScope: definition.manifest.requiresRenderScope === true,
         provides: [...(definition.provides ?? [])],
         inject: [...(definition.inject ?? [])],

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/chart-message",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Named chart Data Message UI for assistant messages",
+  "files": [
+    {
+      "source": "files/plugins/chart-message/definition.ts",
+      "target": "plugins/chart-message/definition.ts"
+    },
+    {
+      "source": "files/plugins/chart-message/index.tsx",
+      "target": "plugins/chart-message/index.tsx"
+    },
+    {
+      "source": "files/plugins/chart-message/manifest.json",
+      "target": "plugins/chart-message/manifest.json"
+    },
+    {
+      "source": "files/plugins/chart-message/style.css",
+      "target": "plugins/chart-message/style.css"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "@agent-ui/react": "^0.1.0"
+  }
+}
