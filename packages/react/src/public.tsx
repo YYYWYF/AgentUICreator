@@ -1,3 +1,4 @@
+import { ConversationTurnProvider as InternalConversationTurnProvider } from "./internal/conversation-turn.js";
 import {
   CanonicalComposer as InternalConversationCanonicalComposer,
   ComposerAddAttachmentAction as InternalConversationComposerAddAttachment,
@@ -904,4 +905,14 @@ export {
 export type { AssistantResponseGroup as ConversationAssistantResponseGroup } from "./internal/assistant-response.js";
 
 // Product adapter seam; existing Footer/Plugin API is unchanged.
-export { ConversationTurnProvider, type ConversationTurnSource } from "./internal/conversation-turn.js";
+// Keep public declarations self-contained: internal declarations are pruned at build.
+export interface ConversationTurnSource {
+  getSnapshot(): Readonly<Record<string, string>>;
+  subscribe(listener: () => void): () => void;
+}
+export function ConversationTurnProvider({ source, children }: {
+  source: ConversationTurnSource;
+  children: ReactNode;
+}) {
+  return <InternalConversationTurnProvider source={source}>{children}</InternalConversationTurnProvider>;
+}

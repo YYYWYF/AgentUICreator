@@ -520,6 +520,7 @@ const AssistantMessage: FC = () => {
   } = useContext(ThreadComponentsContext);
   const messages = useAuiState((s) => s.thread.messages);
   const messageIndex = useAuiState((s) => s.message.index);
+  const isRunning = useAuiState((s) => s.thread.isRunning);
   const response = resolveAssistantResponseGroup(messages, messageIndex);
   const turnOwnership = useConversationTurnOwnership(messages, messages[messageIndex]?.id ?? "");
   const isFooterOwner = turnOwnership?.isFooterOwner === true;
@@ -627,7 +628,7 @@ const AssistantMessage: FC = () => {
         <MessageError />
       </div>
 
-      {isFooterOwner && response ? (
+      {isFooterOwner && response && !isRunning ? (
         <AssistantResponseRuntimeProvider key={response.headMessageId} group={response}>
           <div
             data-slot="aui_assistant-response-footer"

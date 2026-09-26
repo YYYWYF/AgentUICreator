@@ -31,9 +31,9 @@ describe("Mock requirements from formal inspection", () => {
   });
 
   it("requires formal chart renderer registration and rejects partial sources", () => {
-    const snapshot = { pluginSources: [{ pluginId: "chart-message", status: "available" as const, dataMessageUINames: [] }], pluginInstances: [] };
+    const snapshot: ProjectCompositionInspection = { pluginSources: [{ pluginId: "chart-message", status: "available" as const, dataMessageUINames: [] }], pluginInstances: [] };
     expect(status(snapshot, "chart-message")).toBe("missing");
-    snapshot.pluginSources[0]!.dataMessageUINames = ["chart"] as never[];
+    snapshot.pluginSources[0]!.dataMessageUINames = ["chart"];
     expect(inspectMockDemoCompatibility(snapshot, { items: [{ id: "plugin/chart-message", status: "partial" }] }).requirements.find(r => r.pluginId === "chart-message")?.status).toBe("missing");
   });
 

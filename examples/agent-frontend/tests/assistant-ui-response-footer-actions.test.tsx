@@ -10,6 +10,7 @@ import {
   type ChatModelAdapter,
   type ThreadMessage,
 } from "@assistant-ui/react";
+import { projectLangChainHistory } from "@agent-ui/runtime-conversation";
 import { useConversationState } from "@agent-ui/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -382,6 +383,34 @@ describe("multi-message Response actions", () => {
     expect(container.querySelectorAll('[data-slot="aui_assistant-message-root"]')).toHaveLength(5);
   });
 
+  it("moves the semantic Footer when another assistant message arrives in the same turn", async () => {
+    const { container, runtime } = await mount({ run: async () => ({ content: [] }) });
+    await hydrate(runtime, [userMessage("u"), assistantMessage("First", "a")]);
+    expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(1);
+    await hydrate(runtime, [userMessage("u"), assistantMessage("First", "a"), assistantMessage("Second", "b")]);
+    const assistants = container.querySelectorAll('[data-slot="aui_assistant-message-root"]');
+    expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(1);
+    expect(assistants[0]?.querySelector('[data-slot="aui_assistant-response-footer"]')).toBeNull();
+    expect(assistants[1]?.querySelector('[data-slot="aui_assistant-response-footer"]')).not.toBeNull();
+  });
+
+  it("reconstructs checkpoint turns after history is loaded into a fresh runtime", async () => {
+    const history = projectLangChainHistory([
+      { id: "u", type: "human", content: "Question" },
+      { id: "a", type: "ai", content: "First" },
+      { id: "b", type: "ai", content: "Second" },
+      { id: "u2", type: "human", content: "Next question" },
+      { id: "c", type: "ai", content: "Next" },
+      { id: "d", type: "ai", content: "Done" },
+    ]) as unknown as ThreadMessage[];
+    const first = await mount({ run: async () => ({ content: [] }) });
+    await hydrate(first.runtime, history);
+    expect(first.container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(2);
+    const restored = await mount({ run: async () => ({ content: [] }) });
+    await hydrate(restored.runtime, history);
+    expect(restored.container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(2);
+  });
+
   it("copies all response text once and keeps copied feedback local", async () => {
     const writeText = vi.fn(async () => undefined);
     const restore = installClipboardMock(writeText);
@@ -438,6 +467,7 @@ describe("multi-message Response actions", () => {
     const next = container.querySelector('.aui-branch-picker-root button:last-child') as HTMLButtonElement;
     await act(async () => next.click());
     expect(runtime.thread.getState().messages.map(({ id }) => id)).toEqual(["u", "alt"]);
+    expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(1);
     expect(container.querySelector('.aui-branch-picker-state')?.textContent).toBe("2 / 2");
     const previous = container.querySelector('.aui-branch-picker-root button:first-child') as HTMLButtonElement;
     await act(async () => previous.click());

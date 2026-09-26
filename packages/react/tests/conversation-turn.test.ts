@@ -4,7 +4,7 @@ const messages = (roles: string[]) => roles.map((role, index) => ({ id: String(i
 const owners = (roles: string[], liveIds?: Record<string, string>) => [...projectConversationTurnOwnership(messages(roles), liveIds)].filter(([, metadata]) => metadata.isFooterOwner).map(([id]) => id);
 
 describe("turn Footer ownership on the visible branch", () => {
-  it.each([
+  it.each<[string[], string[]]>([
     [["user", "assistant"], ["1"]],
     [["user", "assistant", "assistant", "assistant"], ["3"]],
     [["user", "assistant", "assistant", "user", "assistant", "assistant"], ["2", "5"]],

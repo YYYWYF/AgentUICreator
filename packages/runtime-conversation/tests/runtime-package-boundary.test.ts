@@ -31,6 +31,7 @@ describe("runtime-assistant-ui package policy", () => {
     ];
     expect(productionDependencies.sort()).toEqual([
       "@ag-ui/client",
+      "@agent-ui/react",
       "@agent-ui/runtime-core",
       "@assistant-ui/react",
       "@assistant-ui/react-ag-ui",

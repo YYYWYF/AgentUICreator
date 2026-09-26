@@ -31,6 +31,14 @@ describe("live root-run attribution adapter", () => {
     expect(f.source.getSnapshot()).toEqual({ a: "run-1", b: "run-1" });
     f.source.stop(); expect(f.unsubscribe).toHaveBeenCalledTimes(2);
   });
+  it("keeps HITL continuation in the first root run's user turn", () => {
+    const f = fixture(); f.start("run-1"); f.append("a"); f.finish();
+    f.start("resume-2"); f.append("b");
+    expect(f.source.getSnapshot()).toEqual({ a: "run-1", b: "run-1" });
+    f.finish(); f.append("next-user", "user", "complete"); f.start("run-3"); f.append("c");
+    expect(f.source.getSnapshot()).toEqual({ a: "run-1", b: "run-1", c: "run-3" });
+    f.source.stop();
+  });
   it("captures an upstream running placeholder created before RUN_STARTED", () => {
     const f = fixture(); f.append("placeholder"); f.start("run-1");
     expect(f.source.getSnapshot()).toEqual({ placeholder: "run-1" });

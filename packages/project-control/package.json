@@ -28,6 +28,7 @@
     "typescript": "7.0.2"
   },
   "devDependencies": {
-    "esbuild": "0.25.12"
+    "esbuild": "0.25.12",
+    "zod": "^4.5.4"
   }
 }

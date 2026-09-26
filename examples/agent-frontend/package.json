@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "verify:ui": "tsx scripts/verify-ui.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "pretest": "pnpm --filter @agent-ui/project-control build && pnpm --filter @agent-ui/bootstrap build"
   },
   "dependencies": {
     "@agent-ui/react": "workspace:^",

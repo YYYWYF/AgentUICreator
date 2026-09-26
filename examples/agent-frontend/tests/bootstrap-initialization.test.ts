@@ -23,7 +23,7 @@ async function exists(filePath: string): Promise<boolean> {
 async function fixture() {
   const root = await mkdtemp(path.join(os.tmpdir(), "bootstrap-boundary-"));
   roots.push(root);
-  const paths = ["agent-ui/managed.ts", "agent-ui/app-ui/app-ui.json", "agent-ui/registry.generated.ts", "agent-ui/application/runtime-config.generated.ts"];
+  const paths = ["agent-ui/managed.ts", "agent-ui/app-ui/app-ui.json", "agent-ui/registry.generated.ts", "agent-ui/application/runtime-config.generated.ts", ".agent-ui/control/project-control.mjs"];
   const host: AgentUIInitializationHost<unknown> = {
     inspectProject: vi.fn().mockResolvedValueOnce({ status: "uninitialized" }).mockResolvedValue({ status: "ready" }),
     parseAppUIModel: (value) => value,
@@ -46,6 +46,11 @@ async function fixture() {
     writeGeneratedRegistry: vi.fn(async () => {
       await writeFile(path.join(root, paths[2]!), "export {};\n");
       return paths[2]!;
+    }),
+    installControlPlane: vi.fn(async () => {
+      await mkdir(path.join(root, ".agent-ui/control"), { recursive: true });
+      await writeFile(path.join(root, paths[4]!), "// managed control test fixture\n", { flag: "wx" });
+      return [paths[4]!];
     }),
     verifyProject: vi.fn().mockResolvedValue({ status: "passed", errors: [] }),
     rollbackCreatedPaths: vi.fn(async (_root, _created, _config, planned) => {
@@ -167,8 +172,17 @@ describe("bootstrap initialization commit boundary", () => {
     const { root, host } = await fixture();
     const result = await initializeAgentUIProject(input(root), host);
     expect(result.installedSourceItems).toEqual(["foundation/core"]);
+    expect(await exists(path.join(root, ".agent-ui/control/project-control.mjs"))).toBe(true);
     expect(await exists(configPath(root))).toBe(true);
     expect(await exists(journalPath(root))).toBe(false);
     expect(host.rollbackCreatedPaths).not.toHaveBeenCalled();
   });
+  it("does not commit an initialized project when control-plane installation fails", async () => {
+    const { root, host } = await fixture();
+    host.installControlPlane = vi.fn().mockRejectedValue(new Error("control installation failed"));
+    await expect(initializeAgentUIProject(input(root), host)).rejects.toThrow("control installation failed");
+    expect(await exists(configPath(root))).toBe(false);
+    expect(host.rollbackCreatedPaths).toHaveBeenCalledOnce();
+  });
+
 });

@@ -11,7 +11,8 @@ entry imports the compiled runtime from the installed tool, and resolves the Hos
 root from its own location. The Host does not install tsx or ship control code in
 its production app. Build this tool package as part of the development-tool
 release, before initializing Hosts. When the tool installation moves, reinstall
-the managed entry through the installer; never hand-edit Host source scripts.
+the managed entry through `installManagedProjectControl(root, { upgrade: true })`;
+this atomically updates only a marked managed entry. Never hand-edit Host source scripts.
 
 Keep legacy scripts/tsx fallback for at least one full migration cycle. Remove
 it only after managed-path tests and all three Host modes have passed. No legacy
