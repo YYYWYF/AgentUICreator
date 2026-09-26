@@ -510,6 +510,46 @@ const MessageError: FC = () => {
   );
 };
 
+function useIsAssistantResponseTail(): boolean {
+  return useAuiState((s) => {
+    const index = s.message.index;
+    return s.message.role === "assistant" &&
+      s.thread.messages[index + 1]?.role !== "assistant";
+  });
+}
+
+const AssistantResponseFooterHost: FC<{
+  FooterComponent?: ComponentType | undefined;
+}> = ({ FooterComponent }) => {
+  const messages = useAuiState((s) => s.thread.messages);
+  const messageIndex = useAuiState((s) => s.message.index);
+  const response = resolveAssistantResponseGroup(messages, messageIndex);
+  const turnOwnership = useConversationTurnOwnership(messages, messages[messageIndex]?.id ?? "");
+
+  if (!response || turnOwnership?.isFooterOwner !== true) return null;
+
+  // Product layout policy: reserve the semantic footer's full height in flow.
+  // Plugin footers can vary in height, so cancelling a fixed action-bar height
+  // would let the next message overlap them. Keep this policy on the host.
+  return (
+    <AssistantResponseRuntimeProvider key={response.headMessageId} group={response}>
+      <div
+        data-slot="aui_assistant-response-footer"
+        className={cn("ms-2 flex items-center", "min-h-7.5 pt-1.5")}
+      >
+        {FooterComponent ? (
+          <FooterComponent />
+        ) : (
+          <>
+            <ResponseBranchPicker />
+            <AssistantActionBar />
+          </>
+        )}
+      </div>
+    </AssistantResponseRuntimeProvider>
+  );
+};
+
 const AssistantMessage: FC = () => {
   const {
     ToolFallback: ToolFallbackComponent = ToolFallback,
@@ -518,19 +558,9 @@ const AssistantMessage: FC = () => {
     TaskGroup: TaskGroupComponent,
     AssistantResponseFooter: AssistantResponseFooterComponent,
   } = useContext(ThreadComponentsContext);
-  const messages = useAuiState((s) => s.thread.messages);
-  const messageIndex = useAuiState((s) => s.message.index);
+  const isResponseTail = useIsAssistantResponseTail();
   const isRunning = useAuiState((s) => s.thread.isRunning);
-  const response = resolveAssistantResponseGroup(messages, messageIndex);
-  const turnOwnership = useConversationTurnOwnership(messages, messages[messageIndex]?.id ?? "");
-  const isFooterOwner = turnOwnership?.isFooterOwner === true;
   const groupBy = TaskGroupComponent ? taskAwareGroupBy : messageGroupBy;
-
-  const ACTION_BAR_PT = "pt-1.5";
-  // Product layout policy: reserve the semantic footer's full height in flow.
-  // Plugin footers can vary in height, so cancelling a fixed action-bar height
-  // would let the next message overlap them. Keep this policy on the host.
-  const ACTION_BAR_HEIGHT = `min-h-7.5 ${ACTION_BAR_PT}`;
 
   return (
     <MessagePrimitive.Root
@@ -628,22 +658,8 @@ const AssistantMessage: FC = () => {
         <MessageError />
       </div>
 
-      {isFooterOwner && response && !isRunning ? (
-        <AssistantResponseRuntimeProvider key={response.headMessageId} group={response}>
-          <div
-            data-slot="aui_assistant-response-footer"
-            className={cn("ms-2 flex items-center", ACTION_BAR_HEIGHT)}
-          >
-            {AssistantResponseFooterComponent ? (
-              <AssistantResponseFooterComponent />
-            ) : (
-              <>
-                <ResponseBranchPicker />
-                <AssistantActionBar />
-              </>
-            )}
-          </div>
-        </AssistantResponseRuntimeProvider>
+      {isResponseTail && !isRunning ? (
+        <AssistantResponseFooterHost FooterComponent={AssistantResponseFooterComponent} />
       ) : null}
     </MessagePrimitive.Root>
   );

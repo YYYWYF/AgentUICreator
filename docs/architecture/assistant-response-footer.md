@@ -1,6 +1,6 @@
 # Assistant Response Group and Footer
 
-Status: implemented; validation deferred at the user's request.
+Status: implemented; validation pending.
 
 An Assistant Response is a contiguous block of assistant messages in the active
 top-level Thread. Every non-assistant message is a boundary. Nested subagent
@@ -15,6 +15,10 @@ MessagePrimitive.Root, parts, identity, and upstream streaming presentation.
 Only the tail renders `AssistantResponseFooter`; no response Footer is mounted
 while the Thread is running, including gaps between TEXT_MESSAGE_END and the
 next TEXT_MESSAGE_START. This prevents transient actions on an incomplete group.
+AssistantMessage subscribes only to boolean response-tail and Thread running
+state for Footer placement. Full messages and grouping are read in
+AssistantResponseFooterHost, which mounts only for a tail while the Thread is
+not running and retains the current turn-scoped Footer ownership guard.
 
 The single semantic Slot is `assistantResponseFooter`, implemented by
 `assistant-ui-response-footer`. Its scope is data-free; actions consume the
@@ -32,14 +36,20 @@ Message action facade APIs retain message semantics. Separate Response APIs are:
 - `ConversationCanonicalResponseExportMarkdownAction`
 - `useConversationResponseRuntime`
 
-The visual ActionBar shell reuses upstream ActionBarPrimitive.Root, including
-hover/autohide. Response actions do not use message-scoped Copy, Reload, Export,
+Footer ownership and action targets are response-level. The visual ActionBar
+shell reuses upstream ActionBarPrimitive.Root with `autohide="not-last"`:
+autohide/hover presentation still reads the tail Message Context's
+`message.isLast` and `message.isHovering`. Hovering an earlier message in a
+historical response does not reveal its Footer. This is not full response hover
+semantics; a separate Response hover scope should be designed only if hovering
+any message in the response needs to reveal the Footer.
+Response actions do not use message-scoped Copy, Reload, Export,
 or BranchPicker primitives. Text extraction includes only text parts, joined
 with two newlines within and between messages. Copy feedback is local to the
 Response action and does not update upstream message copied state. Markdown
 export uses the same text.
 
-The pinned version's public `aui.thread().message({ id: headMessageId })` client
+The pinned version's public `aui.thread.message({ id: headMessageId })` client
 is the equivalent of `thread.getMessageById(headMessageId)`. Reload and branch
 switch delegate through that client to upstream runtime methods. Branch counts
 come from the head. Capability, disabled, voice, and running policy guard

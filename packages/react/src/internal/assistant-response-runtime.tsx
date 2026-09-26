@@ -36,7 +36,7 @@ export function AssistantResponseRuntimeProvider({ group, children }: {
   // Public client equivalent of thread.getMessageById(id). Its reload and
   // switchToBranch delegate to upstream runtime lifecycle with the head target.
   const getHeadState = useCallback(() => {
-    const threadClient = aui.thread();
+    const threadClient = aui.thread;
     // A branch switch can notify subscribers before React removes the old footer.
     if (!threadClient.getState().messages.some(({ id }) => id === group.headMessageId))
       return EMPTY_HEAD_STATE;
@@ -58,15 +58,15 @@ export function AssistantResponseRuntimeProvider({ group, children }: {
     branchNumber: head.branchNumber,
     branchCount: head.branchCount,
     reload() {
-      if (canReload) aui.thread().message({ id: group.headMessageId }).reload();
+      if (canReload) aui.thread.message({ id: group.headMessageId }).reload();
     },
     switchToPreviousBranch() {
       if (canSwitchBranch && head.branchNumber > 1)
-        aui.thread().message({ id: group.headMessageId }).switchToBranch({ position: "previous" });
+        aui.thread.message({ id: group.headMessageId }).switchToBranch({ position: "previous" });
     },
     switchToNextBranch() {
       if (canSwitchBranch && head.branchNumber < head.branchCount)
-        aui.thread().message({ id: group.headMessageId }).switchToBranch({ position: "next" });
+        aui.thread.message({ id: group.headMessageId }).switchToBranch({ position: "next" });
     },
   };
   return <AssistantResponseContext.Provider value={value}>{children}</AssistantResponseContext.Provider>;
