@@ -27,7 +27,7 @@ for (const [name, revision] of revisions) {
 }
 if (String(target.revision).includes("main")) errors.push("target revision must be an exact SHA, not main");
 
-try {
+if (!target.releasePinned) try {
   const remote = (await execFile("git", ["ls-remote", UPSTREAM_REPOSITORY, UPSTREAM_REF], {
     cwd: repoRoot,
     encoding: "utf8",
@@ -46,9 +46,14 @@ try {
   errors.push(`cannot resolve official assistant-ui remote ${UPSTREAM_REF}: ${error instanceof Error ? error.message : String(error)}`);
 }
 
-const repo = process.env.ASSISTANT_UI_REPO;
+const repo = process.env.ASSISTANT_UI_REPO ?? (target.releasePinned ? path.resolve(repoRoot, "../assistant-ui") : undefined);
 if (repo) {
   try {
+    for (const [name, revision] of Object.entries(target.packageRevisions ?? {})) {
+      const version = target.packages[name];
+      const actual = (await execFile("git", ["-C", repo, "rev-parse", `${name}@${version}^{commit}`], { encoding: "utf8" })).stdout.trim();
+      if (actual !== revision) errors.push(`${name}@${version} release revision mismatch`);
+    }
     await execFile("git", ["-C", repo, "cat-file", "-e", `${target.revision}^{commit}`], {
       cwd: repoRoot,
       encoding: "utf8",

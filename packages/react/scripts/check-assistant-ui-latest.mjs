@@ -23,8 +23,8 @@ async function packageFiles(current) {
   return result;
 }
 
-async function npmLatest(name) {
-  const result = await execFile("npm", ["view", `${name}@latest`, "version", "--json"], {
+async function npmLatest(name, version = "latest") {
+  const result = await execFile("npm", ["view", `${name}@${version}`, "version", "--json"], {
     cwd: repoRoot,
     encoding: "utf8",
     maxBuffer: 1024 * 1024,
@@ -52,7 +52,7 @@ for (const manifestPath of manifests) {
 for (const [name, expectedVersion] of Object.entries(expected)) {
   let latest;
   try {
-    latest = await npmLatest(name);
+    latest = await npmLatest(name, target.releasePinned ? expectedVersion : "latest");
   } catch (error) {
     throw new Error(`Unable to resolve npm latest for ${name}: ${error instanceof Error ? error.message : String(error)}`);
   }

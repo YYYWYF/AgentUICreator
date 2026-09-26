@@ -1,12 +1,20 @@
 {
   "schemaVersion": 1,
   "fromRevision": "039c3c32822632f2a564164f089f538926886124",
-  "toRevision": "039c3c32822632f2a564164f089f538926886124",
-  "packagesChanged": [],
-  "vendorFilesChanged": [],
-  "vendorFilesAdded": [
-    "components/assistant-ui/elements/job-progress.tsx"
+  "toRevision": "da9a624496ae97864ae30e90f85c7533092a228d",
+  "packagesChanged": [
+    "@assistant-ui/react",
+    "@assistant-ui/react-ag-ui"
   ],
+  "vendorFilesChanged": [
+    "components/assistant-ui/elements/attachment.aui.tsx",
+    "components/assistant-ui/elements/image.tsx",
+    "components/assistant-ui/elements/task-card.aui.tsx",
+    "components/assistant-ui/elements/thread.aui.tsx",
+    "components/assistant-ui/elements/tool-fallback.aui.tsx",
+    "hooks/use-copy-to-clipboard.ts"
+  ],
+  "vendorFilesAdded": [],
   "vendorFilesRemoved": [],
   "vendorFilesRenamed": [],
   "newTransitiveDependencies": [],
@@ -137,11 +145,15 @@
     "components/assistant-ui/elements/web-preview.tsx",
     "components/assistant-ui/elements/web-search.tsx"
   ],
-  "newlyAdoptedElements": [
-    "components/assistant-ui/elements/job-progress.tsx"
-  ],
+  "newlyAdoptedElements": [],
   "removedUpstreamElements": [],
-  "changedUpstreamElements": [],
+  "changedUpstreamElements": [
+    "components/assistant-ui/elements/attachment.aui.tsx",
+    "components/assistant-ui/elements/image.tsx",
+    "components/assistant-ui/elements/task-card.aui.tsx",
+    "components/assistant-ui/elements/thread.aui.tsx",
+    "components/assistant-ui/elements/tool-fallback.aui.tsx"
+  ],
   "ignoredUpstreamElements": [
     {
       "localPath": "components/assistant-ui/elements/activity-graph.tsx",
@@ -801,6 +813,7 @@
       "components/assistant-ui/elements/image-generation.tsx",
       "components/assistant-ui/elements/image.tsx",
       "components/assistant-ui/elements/inline-citation.tsx",
+      "components/assistant-ui/elements/job-progress.tsx",
       "components/assistant-ui/elements/launcher-bubble.tsx",
       "components/assistant-ui/elements/loading-state.tsx",
       "components/assistant-ui/elements/logos.tsx",
@@ -889,130 +902,5 @@
       "components/assistant-ui/elements/web-preview.tsx",
       "components/assistant-ui/elements/web-search.tsx"
     ]
-  },
-  "capabilityAudit": [
-    {
-      "capability": "ThreadComponents.TaskGroup",
-      "status": "NEW UPSTREAM CAPABILITY"
-    },
-    {
-      "capability": "thread.tasks",
-      "status": "NEW UPSTREAM CAPABILITY"
-    },
-    {
-      "capability": "TaskCard / TaskGroup",
-      "status": "NEW UPSTREAM CAPABILITY"
-    },
-    {
-      "capability": "AgentStatus / TaskTray",
-      "status": "NEW UPSTREAM CAPABILITY"
-    },
-    {
-      "capability": "ReasoningGroup / ToolGroup / ToolFallback",
-      "status": "UNCHANGED"
-    },
-    {
-      "capability": "Composer / Message Footer / Thread List / Attachments / Suggestions",
-      "status": "UNCHANGED"
-    },
-    {
-      "capability": "LangChain / LangGraph persisted message conversion",
-      "status": "UNCHANGED"
-    },
-    {
-      "capability": "ConversationSubagentTool compatibility presentation",
-      "status": "LOCAL COMPATIBILITY NO LONGER NEEDED"
-    },
-    {
-      "capability": "CancellationAwareHttpAgent / AG-UI transport",
-      "status": "SAFE: AG-UI transport baseline unchanged"
-    }
-  ],
-  "historyCompatibility": {
-    "packageName": "@assistant-ui/react-langgraph",
-    "previousVersion": "0.14.29",
-    "targetVersion": "0.14.29",
-    "converterSeam": "@assistant-ui/react-langgraph.convertLangChainMessages",
-    "externalMessageSeam": "@assistant-ui/react.unstable_convertExternalMessages",
-    "sourceCompatibility": {
-      "packageName": "@assistant-ui/react-langgraph",
-      "exports": {
-        "convertLangChainMessages": true,
-        "LangChainMessage": true,
-        "unstable_convertExternalMessages": true
-      },
-      "compatible": true,
-      "status": "PASS"
-    },
-    "packageCompatibility": {
-      "packageName": "@assistant-ui/react-langgraph",
-      "packageVersion": "0.14.29",
-      "expectedVersion": "0.14.29",
-      "dependencies": {
-        "@assistant-ui/core": "^0.3.20",
-        "@assistant-ui/react-langchain": "^0.0.32",
-        "@assistant-ui/store": "^0.3.14",
-        "assistant-stream": "^0.3.44"
-      },
-      "lockfileResolvedVersions": {
-        "@assistant-ui/core": ["0.3.20"],
-        "@assistant-ui/react-langchain": ["0.0.32"],
-        "@assistant-ui/react-langgraph": ["0.14.29"],
-        "@assistant-ui/store": ["0.3.14"],
-        "assistant-stream": ["0.3.44"]
-      },
-      "resolvedDependencies": {
-        "@assistant-ui/core": ["0.3.20"],
-        "@assistant-ui/react-langchain": ["0.0.32"],
-        "@assistant-ui/store": ["0.3.14"],
-        "assistant-stream": ["0.3.44"]
-      },
-      "status": "PASS",
-      "compatible": true
-    },
-    "versionChanged": false,
-    "reAuditRequired": false,
-    "reasons": [],
-    "status": "UNCHANGED"
-  },
-  "cancellationCompatibility": {
-    "packageName": "@assistant-ui/react-ag-ui",
-    "reactAgUiVersion": "0.0.60",
-    "reactAgUiClientRange": "^0.0.59",
-    "pinnedClientVersion": "0.0.59",
-    "status": "SAFE: AG-UI transport baseline unchanged",
-    "compatible": true,
-    "guardStatus": "PASS",
-    "cancellationShim": "ACTIVE",
-    "previousAgUi": {
-      "@ag-ui/client": "0.0.59"
-    },
-    "previousAgUiCompatibility": {
-      "packageName": "@assistant-ui/react-ag-ui",
-      "reactAgUiVersion": "0.0.60",
-      "reactAgUiClientRange": "^0.0.59",
-      "pinnedClientVersion": "0.0.59",
-      "status": "PASS",
-      "compatible": true
-    },
-    "nextAgUiCompatibility": {
-      "packageName": "@assistant-ui/react-ag-ui",
-      "reactAgUiVersion": "0.0.60",
-      "reactAgUiClientRange": "^0.0.59",
-      "pinnedClientVersion": "0.0.59",
-      "status": "PASS",
-      "compatible": true
-    },
-    "resolvedAgUiClientVersions": [
-      "0.0.59"
-    ],
-    "duplicateClientVersions": false,
-    "dependencyRangeChanged": false,
-    "agUiPinnedVersionChanged": false,
-    "upstreamChangedFiles": [],
-    "cancellationRelevantUpstreamChanges": [],
-    "transportBaselineChanged": false,
-    "reAuditRequired": false,
-    "reasons": []
   }
 }

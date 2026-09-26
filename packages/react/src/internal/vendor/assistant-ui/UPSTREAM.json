@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "project": "assistant-ui/assistant-ui",
-  "revision": "039c3c32822632f2a564164f089f538926886124",
+  "revision": "da9a624496ae97864ae30e90f85c7533092a228d",
   "license": "MIT",
   "sourceForm": "official Base UI registry output",
   "packages": {
-    "@assistant-ui/react": "0.15.21",
-    "@assistant-ui/react-ag-ui": "0.0.60",
+    "@assistant-ui/react": "0.15.22",
+    "@assistant-ui/react-ag-ui": "0.0.62",
     "@assistant-ui/react-markdown": "0.14.16",
     "@ag-ui/client": "0.0.59"
   },
@@ -44,8 +44,8 @@
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/attachment.aui.tsx",
       "localPath": "components/assistant-ui/elements/attachment.aui.tsx",
-      "upstreamSha256": "4264c00021378b4a5ca386998f51f6f69d4c24701f265dca5a9119940391e6d3",
-      "installedSha256": "bc6596387b126599d5844eecdbdab85bb169dbc240e433031a823e3e4a67a13d",
+      "upstreamSha256": "f5f22a132d4e656854f62099a321d1f671ee9441b6f2c4a4efcdfbd4e115086a",
+      "installedSha256": "e8d56f198d67d9879d93659cbee7a25e0e275dc5066bc5b81740d075a439ca76",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
@@ -83,8 +83,8 @@
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/image.tsx",
       "localPath": "components/assistant-ui/elements/image.tsx",
-      "upstreamSha256": "8cfca511901475dc15e50e24fb3f0aaa324a2496a5198375872e08e26014dba4",
-      "installedSha256": "d9496b7f96be35ec462766a78b171b917c410202c2a8514f53bdc51b9963d17b",
+      "upstreamSha256": "3e88d0dbc830f10f2ac67fe3e404896a7ea7fd7b65cc827ef4b2ede9e16638b3",
+      "installedSha256": "89f7ef2a9a3ab0608045834cd27c0854e9ce41489bed4b80b2709a58ed8cf56e",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
@@ -163,8 +163,8 @@
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/task-card.aui.tsx",
       "localPath": "components/assistant-ui/elements/task-card.aui.tsx",
-      "upstreamSha256": "67fa618428fac689fd2808b10ee2408b89f21864ea62fc2b7ca5d14f099cd0de",
-      "installedSha256": "9e921720b71dc380dc1521acbc6eda9f748b573235d46928fdef55e5098b4e04",
+      "upstreamSha256": "5246c2e82dda8f3492b55e2a4448bb54fc63af34bd53e3186f0986586c8271d5",
+      "installedSha256": "ea9e05d7404e497b4569471ad03c3c7235f8f23d54c0c37d14e92fcae57fe59b",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
@@ -193,8 +193,8 @@
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/thread.aui.tsx",
       "localPath": "components/assistant-ui/elements/thread.aui.tsx",
-      "upstreamSha256": "c74579ed610b9e3386499bbea478f650e00a4ba168a5b46296d7a49f8bfdf149",
-      "installedSha256": "4de3fbb95b981e48d2f621bf444c1965b67df80f01a8e0ae817d11b23b944b4e",
+      "upstreamSha256": "64cb85b4076644dd319325b319264ec8e998e619a97c19e0f001d3fa5a03a016",
+      "installedSha256": "672ab839f38f282293e70de66f81e397750bf8bec706f5b474596a6708f89b0b",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
@@ -213,8 +213,8 @@
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/tool-fallback.aui.tsx",
       "localPath": "components/assistant-ui/elements/tool-fallback.aui.tsx",
-      "upstreamSha256": "bd2c54792fb2658f10e520e2755998d95bf0300709c66c949ca9576c996d983a",
-      "installedSha256": "882c0a51a608dca24e32ba9e61673a44b741990f8deabee8e77ed9e4c02ac079",
+      "upstreamSha256": "6bb5eb8ada837722197db2cbd32fa5132d23d93fced8093b25df287adc2c3f76",
+      "installedSha256": "196629ce188860dee25c8251132483a0649860f49b653d2965ee581418397632",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
@@ -395,8 +395,8 @@
     {
       "upstreamPath": "packages/ui/src/hooks/use-copy-to-clipboard.ts",
       "localPath": "hooks/use-copy-to-clipboard.ts",
-      "upstreamSha256": "2deb9436899718f7a2ff6ccc4738d1ce50d1467e5e36d1cda4d82f61b544be11",
-      "installedSha256": "2deb9436899718f7a2ff6ccc4738d1ce50d1467e5e36d1cda4d82f61b544be11",
+      "upstreamSha256": "1f3b8a1bab79cef961f62eb25d6b58a0d16c957d63ba1faf086ad09c99712c0a",
+      "installedSha256": "1f3b8a1bab79cef961f62eb25d6b58a0d16c957d63ba1faf086ad09c99712c0a",
       "adaptations": []
     },
     {

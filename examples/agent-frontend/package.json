@@ -61,6 +61,6 @@
     "vitest": "^4.1.11",
     "react-hook-form": "^7",
     "@assistant-ui/react-hook-form": "0.12.34",
-    "@assistant-ui/react-generative-ui": "0.0.19"
+    "@assistant-ui/react-generative-ui": "0.0.21"
   }
 }

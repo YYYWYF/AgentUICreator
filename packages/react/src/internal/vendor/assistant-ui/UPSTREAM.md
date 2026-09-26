@@ -2,15 +2,15 @@
 
 Repository: https://github.com/assistant-ui/assistant-ui.git
 Branch: `main`
-Commit: `039c3c32822632f2a564164f089f538926886124`
+Commit: `da9a624496ae97864ae30e90f85c7533092a228d`
 Previous commit: `039c3c32822632f2a564164f089f538926886124`
 License: MIT
 Source form: official Base UI registry output plus declared mechanical import adaptations
 
 ## Runtime package versions
 
-- `@assistant-ui/react` = `0.15.21`
-- `@assistant-ui/react-ag-ui` = `0.0.60`
+- `@assistant-ui/react` = `0.15.22`
+- `@assistant-ui/react-ag-ui` = `0.0.62`
 - `@assistant-ui/react-markdown` = `0.14.16`
 - `@ag-ui/client` = `0.0.59`
 

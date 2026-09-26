@@ -15,7 +15,7 @@
     "project": "assistant-ui/assistant-ui",
     "component": "@assistant-ui/react-hook-form",
     "implementation": "formTools semantics adapted to AgentUICreator application-owned Frontend Tools",
-    "revision": "039c3c32822632f2a564164f089f538926886124",
+    "revision": "da9a624496ae97864ae30e90f85c7533092a228d",
     "mode": "adapted",
     "license": "MIT"
   },
