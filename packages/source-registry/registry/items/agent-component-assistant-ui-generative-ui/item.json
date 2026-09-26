@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "agent-component/assistant-ui-generative-ui",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Official assistant-ui styled Generative UI vocabulary and Host-scoped vocabulary CSS",
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "@assistant-ui/react-generative-ui": "0.0.21",
+    "react-markdown": "10.1.0",
+    "remark-gfm": "4.0.1"
+  },
+  "upstream": {
+    "project": "assistant-ui/assistant-ui",
+    "component": "styledGenerativeUILibrary and generativeUiVocabularyCss",
+    "implementation": "unmodified official styled element; official vocabulary CSS serialization with mechanical selector scoping only",
+    "revision": "da9a624496ae97864ae30e90f85c7533092a228d",
+    "mode": "adapted",
+    "license": "MIT"
+  },
+  "files": [
+    {
+      "source": "files/agent-ui/vendor/assistant-ui/generative-ui/styled-generative-ui.tsx",
+      "target": "agent-ui/vendor/assistant-ui/generative-ui/styled-generative-ui.tsx"
+    },
+    {
+      "source": "files/agent-ui/vendor/assistant-ui/generative-ui/generative-ui.css",
+      "target": "agent-ui/vendor/assistant-ui/generative-ui/generative-ui.css"
+    },
+    {
+      "source": "files/agent-ui/vendor/assistant-ui/generative-ui/UPSTREAM.json",
+      "target": "agent-ui/vendor/assistant-ui/generative-ui/UPSTREAM.json"
+    }
+  ]
+}

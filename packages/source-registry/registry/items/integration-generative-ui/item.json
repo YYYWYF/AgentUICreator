@@ -1,11 +1,12 @@
 {
   "schemaVersion": 1,
   "id": "integration/generative-ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "kind": "integration",
   "description": "Official assistant-ui Generative UI vocabulary, renderer and action capabilities; no automatic Tool permission",
   "requires": [
-    "foundation/core"
+    "foundation/core",
+    "agent-component/assistant-ui-generative-ui"
   ],
   "packages": {
     "@assistant-ui/react-generative-ui": "0.0.21"
@@ -26,10 +27,6 @@
     {
       "source": "files/integrations/generative-ui/create-generative-ui.ts",
       "target": "integrations/generative-ui/create-generative-ui.ts"
-    },
-    {
-      "source": "files/integrations/generative-ui/generative-ui.css",
-      "target": "integrations/generative-ui/generative-ui.css"
     }
   ]
 }

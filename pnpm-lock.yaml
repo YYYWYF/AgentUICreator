@@ -144,6 +144,9 @@ importers:
       react-hook-form:
         specifier: ^7
         version: 7.88.0(react@19.3.0)
+      react-markdown:
+        specifier: 10.1.0
+        version: 10.1.0(@types/react@19.3.0)(react@19.3.0)
       react-test-renderer:
         specifier: 19.2.8
         version: 19.2.8(react@19.3.0)

@@ -24,7 +24,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "sync:generative-ui-upstream": "node scripts/sync-generative-ui-upstream.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.19.43",

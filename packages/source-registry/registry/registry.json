@@ -144,6 +144,10 @@
     {
       "id": "integration/generative-ui",
       "path": "items/integration-generative-ui/item.json"
+    },
+    {
+      "id": "agent-component/assistant-ui-generative-ui",
+      "path": "items/agent-component-assistant-ui-generative-ui/item.json"
     }
   ]
 }

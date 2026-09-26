@@ -77,11 +77,18 @@ call `useAssistantForm`. The assistant-ui MIT notice above applies.
 
 ## assistant-ui A2UI integration
 
-`integration/a2ui` adapts the public `JSONGenerativeUI`,
-`defaultGenerativeUILibrary`, and `createActionRegistry` contracts from
-`@assistant-ui/react-generative-ui` 0.0.19 at assistant-ui revision
-`039c3c32822632f2a564164f089f538926886124` (MIT, AgentbaseAI Inc.).
-Native AG-UI surface conversion and actions remain in `@assistant-ui/react-ag-ui`
-0.0.60; the integration does not copy their parser, reducer or converter.
-The default vocabulary is imported from the installed official package, with
-Agent UI semantic-token styling. The assistant-ui MIT notice above applies.
+`integration/a2ui` adapts the native renderer/action entry points via
+`integration/generative-ui`. Native surface conversion and actions remain in
+`@assistant-ui/react-ag-ui` 0.0.62; it does not copy their parser or reducer.
+The shared vocabulary comes from `@assistant-ui/react-generative-ui` 0.0.21.
+The assistant-ui MIT notice above applies.
+
+## assistant-ui Generative UI
+
+`agent-component/assistant-ui-generative-ui` carries the official styled element
+and mechanically scoped vocabulary CSS from release revision
+`da9a624496ae97864ae30e90f85c7533092a228d` (MIT, AgentbaseAI Inc.).
+Its installed `UPSTREAM.json` records original paths, source and installed hashes,
+and the selector-only Host adaptation. `integration/generative-ui` owns the
+public factories from `@assistant-ui/react-generative-ui` 0.0.21; A2UI consumes
+that capability. No parser, vocabulary implementation or tool permission is copied.

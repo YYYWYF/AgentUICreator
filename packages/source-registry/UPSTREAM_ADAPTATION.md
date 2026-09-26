@@ -22,3 +22,14 @@ complete:
 - [ ] Add stable `data-slot` attributes and expose state through data attributes.
 - [ ] Add component and runtime tests.
 - [ ] Record complete `upstream` metadata in the Registry item.
+
+## Official Generative UI source
+
+Run `pnpm --filter @agent-ui/source-registry sync:generative-ui-upstream` to
+regenerate the styled element, CSS and provenance from the exact release revision
+in `assistant-ui-upgrade-target.json`, using the local assistant-ui repository.
+The styled source is unchanged. Official vocabulary CSS declarations are unchanged;
+each selector is mechanically prefixed with `.agent-ui-conversation`, including
+comma-separated selectors and rules within media queries. No theme translation,
+visual redesign or local vocabulary is introduced. The installed `UPSTREAM.json`
+is Registry-managed alongside both source files.
