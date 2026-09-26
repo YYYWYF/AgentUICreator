@@ -235,7 +235,7 @@ describe("theme-switch plugin", () => {
         <ConversationRuntimeProvider
           endpoint="http://example.test/agent"
           threadBinding={binding}
-          unstable_agentFactory={() => agent}
+          unstable_agentFactory={({ threadId }) => ({ ...agent, threadId }) as never}
         >
           <AgentRuntimeProvider runtime={pluginRuntime}>
             <UIPluginRuntime

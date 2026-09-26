@@ -18,11 +18,8 @@ export interface ConversationServiceThreadBinding<TState = unknown>
   extends ConversationThreadBinding<TState> {
   getThreadListSnapshot(): ConversationThreadListSnapshot;
   selectThread(threadId: string): Promise<ConversationLoadedThread<TState>>;
-  setNavigationLocked(locked: boolean): void;
-  attachConversationService(
-    service: ConversationService,
-  ): () => void;
-  captureLiveThread(snapshot: ConversationLoadedThread<TState>): void;
+  attachConversationService(service: ConversationService): () => void;
+
 }
 
 export class ConversationThreadSelectionDisabledError extends Error {
@@ -31,15 +28,6 @@ export class ConversationThreadSelectionDisabledError extends Error {
   constructor(threadId: string) {
     super(`Conversation "${threadId}" is disabled and cannot be selected.`);
     this.name = "ConversationThreadSelectionDisabledError";
-  }
-}
-
-export class ConversationNavigationLockedError extends Error {
-  readonly code = "AGENT_UI_CONVERSATION_NAVIGATION_LOCKED";
-
-  constructor() {
-    super("Conversation navigation is locked while the agent run is active.");
-    this.name = "ConversationNavigationLockedError";
   }
 }
 
@@ -120,129 +108,81 @@ function emptyLoadedThread<TState>(): ConversationLoadedThread<TState> {
 export function createConversationServiceThreadBinding<
   TState = unknown,
 >(): ConversationServiceThreadBinding<TState> {
-  let liveThreadId: string = crypto.randomUUID();
-  let activeThreadId: string = liveThreadId;
-  let liveThreadSnapshot = emptyLoadedThread<TState>();
-  let activeThreadSnapshot = liveThreadSnapshot;
+  let activeThreadId: string = crypto.randomUUID();
+  const createdThreads = new Set<string>([activeThreadId]);
   let conversationService: ConversationService | undefined;
-  let conversationSnapshot: ConversationSnapshot | undefined;
   let serviceUnsubscribe: (() => void) | undefined;
-  let navigationLocked = false;
   let threadListSnapshot = createListSnapshot(undefined);
   const listeners = new Set<() => void>();
-
-  const emit = (): void => {
-    listeners.forEach((listener) => listener());
-  };
-
-  const rebuildThreadListSnapshot = (): void => {
-    const next = createListSnapshot(conversationSnapshot);
+  const emit = () => listeners.forEach(listener => listener());
+  const rebuild = () => {
+    const next = createListSnapshot(conversationService?.getSnapshot());
     if (sameListSnapshot(threadListSnapshot, next)) return;
     threadListSnapshot = next;
     emit();
   };
-
-  const updateConversationSnapshot = (
-    next: ConversationSnapshot,
-  ): void => {
-    conversationSnapshot = next;
-    rebuildThreadListSnapshot();
+  const getThreadIsDisabled = (id: string) => conversationService?.getSnapshot().conversations.find(item => item.id === id)?.disabled === true;
+  const loadThread = async (id: string): Promise<ConversationLoadedThread<TState>> => {
+    if (getThreadIsDisabled(id)) throw new ConversationThreadSelectionDisabledError(id);
+    if (createdThreads.has(id)) return emptyLoadedThread<TState>();
+    if (conversationService === undefined) throw new Error("Conversation service is unavailable.");
+    const detail = await conversationService.loadConversation(id);
+    return {
+      messages: projectConversationDetail(detail),
+      ...(detail.agentState === undefined ? {} : { state: detail.agentState as TState }),
+    };
   };
-
+  const activateThread = (id: string) => {
+    if (activeThreadId === id) return;
+    activeThreadId = id;
+    if (createdThreads.has(id)) conversationService?.showLiveConversation();
+    else conversationService?.showConversation(id);
+    emit();
+  };
   return {
     getThreadId: () => activeThreadId,
-    getIsDisabled: () => activeThreadId !== liveThreadId,
-    subscribe(listener) {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
+    getIsDisabled: () => getThreadIsDisabled(activeThreadId),
+    getThreadIsDisabled,
+    loadThread,
+    activateThread,
+    reserveThread: id => { createdThreads.add(id); },
+    async initializeThread(id) {
+      // This backend creates a conversation on its first AG-UI request.
+      createdThreads.add(id);
+      return id;
     },
+    async getThreadMetadata(id) {
+      const summary = conversationService?.getSnapshot().conversations.find(item => item.id === id);
+      if (summary !== undefined) return historyItem(summary);
+      if (conversationService === undefined) throw new Error("Conversation service is unavailable.");
+      const detail = await conversationService.loadConversation(id);
+      return { id, status: "regular", title: detail.title };
+    },
+    subscribe(listener) { listeners.add(listener); return () => { listeners.delete(listener); }; },
     getThreadListSnapshot: () => threadListSnapshot,
-    setNavigationLocked(locked) {
-      navigationLocked = locked;
-    },
     attachConversationService(service) {
       serviceUnsubscribe?.();
       conversationService = service;
-      updateConversationSnapshot(service.getSnapshot());
-      serviceUnsubscribe = service.subscribe(() => {
-        updateConversationSnapshot(service.getSnapshot());
-      });
+      rebuild();
+      serviceUnsubscribe = service.subscribe(rebuild);
       return () => {
         if (conversationService !== service) return;
         serviceUnsubscribe?.();
         serviceUnsubscribe = undefined;
         conversationService = undefined;
-        conversationSnapshot = undefined;
-        rebuildThreadListSnapshot();
+        rebuild();
       };
     },
-    captureLiveThread(snapshot) {
-      if (activeThreadId !== liveThreadId) return;
-      if (
-        snapshot.messages.length === 0 &&
-        liveThreadSnapshot.messages.length > 0
-      ) {
-        return;
-      }
-      liveThreadSnapshot = snapshot;
-      activeThreadSnapshot = snapshot;
-    },
-    async selectThread(threadId) {
-      if (navigationLocked) {
-        throw new ConversationNavigationLockedError();
-      }
-
-      if (threadId === liveThreadId) {
-        const returningToLiveThread = activeThreadId !== liveThreadId;
-        activeThreadId = liveThreadId;
-        activeThreadSnapshot = liveThreadSnapshot;
-        if (returningToLiveThread) {
-          conversationService?.showLiveConversation();
-        }
-        emit();
-        return activeThreadSnapshot;
-      }
-
-      const summary = conversationService
-        ?.getSnapshot()
-        .conversations.find((item) => item.id === threadId);
-      if (summary?.disabled === true) {
-        throw new ConversationThreadSelectionDisabledError(threadId);
-      }
-
-      if (conversationService === undefined) return activeThreadSnapshot;
-      const detail = await conversationService.selectConversation(threadId);
-      if (detail === undefined) return activeThreadSnapshot;
-
-      const loaded: ConversationLoadedThread<TState> = {
-        messages: projectConversationDetail(detail),
-        ...(detail.agentState === undefined
-          ? {}
-          : { state: detail.agentState as TState }),
-      };
-      activeThreadId = threadId;
-      activeThreadSnapshot = loaded;
-      emit();
+    async selectThread(id) {
+      const loaded = await loadThread(id);
+      activateThread(id);
       return loaded;
     },
     async createNewThread() {
-      if (navigationLocked) {
-        throw new ConversationNavigationLockedError();
-      }
-
-      if (conversationService !== undefined) {
-        conversationService.resetForNewConversation();
-      }
-
-      const nextLiveThreadId = crypto.randomUUID();
-      const nextLiveThreadSnapshot = emptyLoadedThread<TState>();
-
-      liveThreadId = nextLiveThreadId;
-      activeThreadId = nextLiveThreadId;
-      liveThreadSnapshot = nextLiveThreadSnapshot;
-      activeThreadSnapshot = nextLiveThreadSnapshot;
-      rebuildThreadListSnapshot();
-      return nextLiveThreadId;
+      const id = crypto.randomUUID();
+      createdThreads.add(id);
+      activateThread(id);
+      return id;
     },
   };
 }

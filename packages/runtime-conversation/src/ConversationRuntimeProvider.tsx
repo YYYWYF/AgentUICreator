@@ -6,16 +6,23 @@ import {
   AssistantRuntimeProvider,
   Suggestions,
   Tools,
+  useAui,
+  useAuiState,
+  useRemoteThreadListRuntime,
+  type AssistantRuntime,
+  type ThreadHistoryAdapter,
+  type ThreadMessage,
 } from "@assistant-ui/react";
 import {
   useAgUiRuntime,
-  type UseAgUiRuntimeAdapters,
 } from "@assistant-ui/react-ag-ui";
 import {
   useCallback,
   useEffect,
   useMemo,
+  useLayoutEffect,
   useRef,
+  useState,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
@@ -32,8 +39,9 @@ import { CancellationAwareHttpAgent } from "./compatibility/cancellation-aware-h
 import { ConversationApplicationEventSource } from "./events/conversation-application-event-source.js";
 import type {
   ConversationThreadBinding,
-  ConversationThreadListSnapshot,
+  ConversationLoadedThread,
 } from "./threads/types.js";
+import { createConversationRemoteThreadListAdapter } from "./threads/conversation-remote-thread-list-adapter.js";
 import { createConversationFrontendToolPort } from "./tools/types.js";
 import type { ConversationStarterSuggestion } from "./conversation-types.js";
 
@@ -54,7 +62,7 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   suggestions?: readonly ConversationStarterSuggestion[] | undefined;
   children: ReactNode;
   onError?: ((error: Error) => void) | undefined;
-  /** Test seam; production callers should use the default single HttpAgent. */
+  /** Test seam; production callers should use the default per-thread HttpAgent. */
   unstable_agentFactory?: ConversationAgentFactory | undefined;
 }
 
@@ -98,139 +106,138 @@ export function ConversationRuntimeProvider<TState = unknown>({
         : { suggestions: staticSuggestions }),
     });
   }, [suggestions, toolkit]);
-  const subscribeThreadBinding = useCallback(
-    (listener: () => void) => threadBinding.subscribe(listener),
-    [threadBinding],
-  );
-  const getThreadId = useCallback(
-    () => threadBinding.getThreadId(),
-    [threadBinding],
-  );
-  const threadId = useSyncExternalStore(
-    subscribeThreadBinding,
-    getThreadId,
-    getThreadId,
-  );
-  const getIsDisabled = useCallback(
-    () => threadBinding.getIsDisabled?.() ?? false,
-    [threadBinding],
-  );
-  const isDisabled = useSyncExternalStore(
-    subscribeThreadBinding,
-    getIsDisabled,
-    getIsDisabled,
-  );
-  const fallbackThreadListSnapshot = useMemo<ConversationThreadListSnapshot>(
-    () => ({
-      threads: [{ id: threadId, status: "regular" as const }],
-      archivedThreads: [],
-    }),
-    [threadId],
-  );
-  const getThreadListSnapshot = useCallback(
-    () =>
-      threadBinding.getThreadListSnapshot?.() ?? fallbackThreadListSnapshot,
-    [fallbackThreadListSnapshot, threadBinding],
-  );
-  const threadListSnapshot = useSyncExternalStore(
-    subscribeThreadBinding,
-    getThreadListSnapshot,
-    getThreadListSnapshot,
-  );
-  const agent = useMemo(
-    () => unstable_agentFactory({ endpoint, threadId }),
-    [endpoint, unstable_agentFactory],
-  );
-  agent.threadId = threadId;
-
-  const threadList = useMemo<NonNullable<UseAgUiRuntimeAdapters["threadList"]>>(
-    () => ({
-      threadId,
-      ...(threadListSnapshot.isLoading === undefined
-        ? {}
-        : { isLoading: threadListSnapshot.isLoading }),
-      threads: threadListSnapshot.threads,
-      archivedThreads: threadListSnapshot.archivedThreads,
-      onSwitchToNewThread: async () => {
-        agent.threadId = await threadBinding.createNewThread();
+  const persistence = useMemo(() => createConversationRemoteThreadListAdapter(threadBinding), [threadBinding]);
+  const sessions = useMemo(() => new ConversationThreadSessions<TState>(), [threadBinding]);
+  const outerRuntime = useRef<AssistantRuntime | null>(null);
+  const runtimeHook = useCallback(function useConversationThreadRuntime() {
+    const aui = useAui();
+    const item = aui.threadListItem().getState();
+    // Pin ownership at mount. Optimistic assistant-ui IDs never become backend IDs.
+    const [ownedId] = useState(() => persistence.identity(item.id, item.remoteId));
+    const agent = useMemo(() => unstable_agentFactory({ endpoint, threadId: ownedId }), [endpoint, ownedId, unstable_agentFactory]);
+    const bridgeRef = useRef<ConversationAgentRuntimeBridge<TState> | null>(null);
+    const ownedBinding = useMemo<ConversationThreadBinding<TState>>(() => ({
+      getThreadId: () => ownedId,
+      subscribe: listener => threadBinding.subscribe(listener),
+      createNewThread: () => threadBinding.createNewThread(),
+    }), [ownedId, threadBinding]);
+    const [historyFailed, setHistoryFailed] = useState(false);
+    const history = useMemo<ThreadHistoryAdapter>(() => ({
+      async load() {
+        let loaded: ConversationLoadedThread<TState>;
+        try {
+          loaded = item.remoteId === undefined ? { messages: [] } :
+            await (threadBinding.loadThread?.(ownedId) ?? threadBinding.selectThread?.(ownedId) ?? Promise.resolve({ messages: [] }));
+        } catch (error) {
+          setHistoryFailed(true);
+          throw error;
+        }
+        return {
+          messages: loaded.messages.map((message, index) => ({
+            parentId: index === 0 ? null : loaded.messages[index - 1]!.id,
+            message: message as unknown as ThreadMessage,
+          })),
+          ...(loaded.state === undefined ? {} : { state: loaded.state as never }),
+        };
       },
-      ...(threadBinding.selectThread === undefined
-        ? {}
-        : {
-            onSwitchToThread: async (nextThreadId: string) => {
-              const loaded = await threadBinding.selectThread!(nextThreadId);
-              agent.threadId = threadBinding.getThreadId();
-              return {
-                messages: loaded.messages as never,
-                ...(loaded.state === undefined ? {} : { state: loaded.state as never }),
-              };
-            },
-          }),
-    }),
-    [agent, threadBinding, threadId, threadListSnapshot],
-  );
-  const bridgeRef = useRef<ConversationAgentRuntimeBridge<TState> | null>(null);
-  const handleCancel = useCallback(() => {
-    bridgeRef.current?.recordCancellation();
-  }, []);
-  const handleError = useCallback((error: Error) => {
-    bridgeRef.current?.recordError(error);
-    onError?.(error);
-  }, [onError]);
-  const assistantRuntime = useAgUiRuntime({
-    agent,
-    isDisabled,
-    showThinking: true,
-    unstable_enableMessageQueue: false,
-    adapters: { threadList },
-    onCancel: handleCancel,
-    onError: handleError,
-  });
-  const applicationEvents = useMemo(
-    () => new ConversationApplicationEventSource(agent),
-    [agent],
-  );
-  const agentRuntime = useMemo(
-    () => createConversationAgentRuntimeBridge<TState>({
-      runtime: assistantRuntime,
-      threadBinding,
-      applicationEvents,
-    }),
-    [applicationEvents, assistantRuntime, threadBinding],
-  );
-  bridgeRef.current = agentRuntime;
-  const bridge = useMemo<ConversationRuntimeBridge<TState>>(
-    () => ({
-      agentRuntime,
-      applicationEvents,
-      observation: agentRuntime.observation,
-      threadBinding,
-      ...(frontendTools === undefined
-        ? {}
-        : { frontendTools: createConversationFrontendToolPort(frontendTools) }),
-    }),
-    [agentRuntime, applicationEvents, frontendTools, threadBinding],
-  );
-
-  useEffect(() => {
+      async append() { await aui.threadListItem().initialize(); },
+    }), [aui, ownedId, threadBinding]);
+    const isDisabled = useSyncExternalStore(
+      ownedBinding.subscribe,
+      () => threadBinding.getThreadIsDisabled?.(ownedId) ?? false,
+      () => threadBinding.getThreadIsDisabled?.(ownedId) ?? false,
+    );
+    const runtime = useAgUiRuntime({
+      agent, isDisabled: isDisabled || historyFailed, showThinking: true, unstable_enableMessageQueue: false,
+      adapters: { history },
+      onCancel: () => bridgeRef.current?.recordCancellation(),
+      onError: error => {
+        bridgeRef.current?.recordError(error);
+        // A foreground callback must not project a background error into the current UI.
+        if (outerRuntime.current?.threads.getState().mainThreadId === item.id) onError?.(error);
+      },
+    });
+    const applicationEvents = useMemo(() => new ConversationApplicationEventSource(agent), [agent]);
+    const agentRuntime = useMemo(() => createConversationAgentRuntimeBridge<TState>({
+      runtime, threadBinding: ownedBinding, applicationEvents,
+      switchToNewThread: () => outerRuntime.current!.threads.switchToNewThread(),
+    }), [runtime, ownedBinding, applicationEvents]);
     bridgeRef.current = agentRuntime;
-    applicationEvents.start();
-    agentRuntime.start();
-    return () => {
-      bridgeRef.current = null;
-      agentRuntime.stop();
-      applicationEvents.stop();
-    };
-  }, [agentRuntime, applicationEvents]);
-
+    const bridge = useMemo<ConversationRuntimeBridge<TState>>(() => ({
+      agentRuntime, applicationEvents, observation: agentRuntime.observation, threadBinding,
+      ...(frontendTools === undefined ? {} : { frontendTools: createConversationFrontendToolPort(frontendTools) }),
+    }), [agentRuntime, applicationEvents, threadBinding, frontendTools]);
+    useLayoutEffect(() => {
+      applicationEvents.start();
+      agentRuntime.start();
+      const unregister = sessions.register(item.id, bridge);
+      return () => {
+        unregister();
+        agentRuntime.stop();
+        applicationEvents.stop();
+      };
+    }, [agentRuntime, applicationEvents, bridge, item.id]);
+    return runtime;
+  }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, frontendTools, onError]);
+  const assistantRuntime = useRemoteThreadListRuntime({
+    adapter: persistence.adapter, runtimeHook, initialThreadId: persistence.initialId,
+  });
+  outerRuntime.current = assistantRuntime;
+  useEffect(() => {
+    // Metadata refresh does not navigate or reload any mounted thread's history.
+    let previous = threadBinding.getThreadListSnapshot?.();
+    return threadBinding.subscribe(() => {
+      const next = threadBinding.getThreadListSnapshot?.();
+      if (next === previous) return;
+      previous = next;
+      void assistantRuntime.threads.reload();
+    });
+  }, [assistantRuntime, threadBinding]);
   return (
-    <ConversationRuntimeBridgeProvider bridge={bridge}>
-      <AssistantRuntimeProvider
-        runtime={assistantRuntime}
-        {...(config === undefined ? {} : { config })}
-      >
+    <AssistantRuntimeProvider runtime={assistantRuntime} {...(config === undefined ? {} : { config })}>
+      <CurrentConversationBridge sessions={sessions} persistence={persistence} threadBinding={threadBinding}>
         {children}
-      </AssistantRuntimeProvider>
-    </ConversationRuntimeBridgeProvider>
+      </CurrentConversationBridge>
+    </AssistantRuntimeProvider>
   );
+}
+
+/** Observation registry only: never starts, switches, or keeps runtimes alive. */
+class ConversationThreadSessions<TState> {
+  private readonly bridges = new Map<string, ConversationRuntimeBridge<TState>>();
+  private readonly listeners = new Set<() => void>();
+  subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
+  get = (id: string) => this.bridges.get(id);
+  register(id: string, bridge: ConversationRuntimeBridge<TState>) {
+    this.bridges.set(id, bridge);
+    this.listeners.forEach(listener => listener());
+    return () => {
+      if (this.bridges.get(id) !== bridge) return;
+      this.bridges.delete(id);
+      this.listeners.forEach(listener => listener());
+    };
+  }
+}
+
+function CurrentConversationBridge<TState>({ sessions, persistence, threadBinding, children }: {
+  sessions: ConversationThreadSessions<TState>;
+  persistence: ReturnType<typeof createConversationRemoteThreadListAdapter<TState>>;
+  threadBinding: ConversationThreadBinding<TState>;
+  children: ReactNode;
+}) {
+  const id = useAuiState(s => s.threads.mainThreadId);
+  const aui = useAui();
+  const bridge = useSyncExternalStore(sessions.subscribe, () => sessions.get(id), () => sessions.get(id));
+  const previousBridge = useRef<ConversationRuntimeBridge<TState> | undefined>(undefined);
+  if (bridge !== undefined) previousBridge.current = bridge;
+  useLayoutEffect(() => {
+    if (bridge === undefined) return;
+    const item = aui.threads().item({ id }).getState();
+    threadBinding.activateThread?.(persistence.identity(id, item.remoteId));
+  }, [aui, id, persistence, threadBinding, bridge]);
+  // Keep host services mounted during the upstream attachment commit. The new
+  // session registers in layout, before the browser can receive another event.
+  const currentBridge = bridge ?? previousBridge.current;
+  if (currentBridge === undefined) return null;
+  return <ConversationRuntimeBridgeProvider bridge={currentBridge}>{children}</ConversationRuntimeBridgeProvider>;
 }

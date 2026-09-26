@@ -6,6 +6,11 @@ export function createEphemeralConversationThreadBinding(): ConversationThreadBi
 
   return {
     getThreadId: () => threadId,
+    activateThread(id) {
+      if (threadId === id) return;
+      threadId = id;
+      for (const listener of listeners) listener();
+    },
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);

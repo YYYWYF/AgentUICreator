@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "foundation/core-application",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "kind": "foundation",
   "description": "Managed Agent UI foundation-core-application source",
   "files": [

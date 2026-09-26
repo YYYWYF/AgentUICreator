@@ -29,8 +29,8 @@ import { PluginDataMessageUIHost } from "../runtime/plugins/PluginDataMessageUIH
 class ChartScenarioAgent extends AbstractAgent {
   readonly events: BaseEvent[] = [];
 
-  constructor() {
-    super({ threadId: "data-message-chart" });
+  constructor(threadId = "data-message-chart") {
+    super({ threadId });
   }
 
   override run(input: RunAgentInput): Observable<BaseEvent> {
@@ -87,8 +87,8 @@ describe("AG-UI CUSTOM → Data Message UI", () => {
       capabilityCatalog: pluginCapabilityCatalog,
       capabilityCatalogRevision,
     });
-    const agent = new ChartScenarioAgent();
     const threadBinding = createConversationServiceThreadBinding();
+    const agent = new ChartScenarioAgent(threadBinding.getThreadId());
     const container = document.createElement("div");
     document.body.append(container);
     const root = createRoot(container);
@@ -99,7 +99,7 @@ describe("AG-UI CUSTOM → Data Message UI", () => {
           <ConversationRuntimeProvider
             endpoint="/__agent-ui/mock"
             threadBinding={threadBinding}
-            unstable_agentFactory={() => agent}
+            unstable_agentFactory={({ threadId }) => threadId === agent.threadId ? agent : new ChartScenarioAgent(threadId)}
           >
             <Harness
               model={composition.runtimeModel}

@@ -29,6 +29,14 @@ export interface ConversationThreadListSnapshot {
 export interface ConversationThreadBinding<TState = unknown> {
   getThreadId(): string;
   getIsDisabled?(): boolean;
+  getThreadIsDisabled?(threadId: string): boolean;
+  /** Load once per upstream-owned runtime, independently of navigation. */
+  loadThread?(threadId: string): Promise<ConversationLoadedThread<TState>>;
+  /** Synchronize business selection without loading or replacing runtime state. */
+  activateThread?(threadId: string): void;
+  reserveThread?(threadId: string): void;
+  initializeThread?(threadId: string): Promise<string>;
+  getThreadMetadata?(threadId: string): Promise<ConversationThreadListItem<"regular">>;
   subscribe(listener: () => void): () => void;
   createNewThread(): Promise<string>;
   getThreadListSnapshot?(): ConversationThreadListSnapshot;

@@ -144,6 +144,8 @@ function conversationService(
     subscribe: () => () => undefined,
     refresh: vi.fn(async () => undefined),
     selectConversation: vi.fn(async () => undefined),
+    loadConversation: vi.fn(async () => { throw new Error("unavailable"); }),
+    showConversation: vi.fn(),
     showLiveConversation: vi.fn(),
     resetForNewConversation: vi.fn(),
   };
@@ -222,7 +224,7 @@ describe("ConversationThreadListPlugin", () => {
           (button) => textContent(button) === "New Thread",
         );
         expect(newThread).toBeDefined();
-        expect(newThread?.props.disabled).toBe(status !== "idle");
+        expect(newThread?.props.disabled).toBeFalsy();
       } finally {
         await act(async () => mounted.renderer.unmount());
       }
@@ -312,7 +314,7 @@ describe("ConversationThreadListPlugin", () => {
   });
 
   it.each(["running", "awaiting-input"] as const)(
-    "disables detail retry while %s navigation is locked",
+    "allows detail retry while another thread is %s",
     async (status) => {
       const mounted = await renderPlugin(
         {
@@ -327,7 +329,7 @@ describe("ConversationThreadListPlugin", () => {
         const retry = mounted.renderer.root.findAllByType(Button).find(
           (button) => textContent(button) === "重试",
         );
-        expect(retry?.props.disabled).toBe(true);
+        expect(retry?.props.disabled).toBe(false);
       } finally {
         await act(async () => mounted.renderer.unmount());
       }

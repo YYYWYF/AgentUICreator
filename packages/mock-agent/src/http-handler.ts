@@ -66,7 +66,7 @@ function isScenarioListRequest(url: URL): boolean {
 
 function parseTimingScale(url: URL): number {
   const value = Number(url.searchParams.get("speed"));
-  if (!Number.isFinite(value)) return 1;
+  if (!url.searchParams.has("speed") || !Number.isFinite(value)) return 1;
   return Math.min(10, Math.max(0, value));
 }
 
@@ -74,8 +74,14 @@ function parseTimingScale(url: URL): number {
 export function createMockAgentHttpHandler({
   registry,
 }: MockAgentHttpHandlerOptions): MockAgentHttpHandler {
+  const events: Array<{ threadId: string; runId: string; type: string; timestamp: number }> = [];
   return async (request, response) => {
     const requestUrl = parseRequestUrl(request);
+
+    if (requestUrl.pathname.endsWith("/events") && request.method === "GET") {
+      sendJson(response, 200, { events });
+      return;
+    }
 
     if (isScenarioListRequest(requestUrl)) {
       if (request.method !== "GET") {
@@ -147,6 +153,8 @@ export function createMockAgentHttpHandler({
       })) {
         if (controller.signal.aborted || response.destroyed) return;
         const standardEvent = EventSchemas.parse(event);
+        events.push({ threadId: parsedInput.data.threadId, runId: parsedInput.data.runId, type: standardEvent.type, timestamp: Date.now() });
+        if (events.length > 500) events.shift();
         response.write(`data: ${JSON.stringify(standardEvent)}\n\n`);
       }
       if (!response.destroyed) response.end();

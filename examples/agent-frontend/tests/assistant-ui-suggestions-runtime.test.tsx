@@ -256,7 +256,7 @@ describe("Conversation Suggestions Runtime integration", () => {
             { title: "B", label: "B label", prompt: "Prompt B" },
             { title: "C", label: "C label", prompt: "Prompt C" },
           ]}
-          unstable_agentFactory={() => agent}
+          unstable_agentFactory={({ threadId }) => ({ ...agent, threadId }) as never}
         >
           <SuggestionRuntimeSurface onRuntime={(next) => { runtime = next; }} />
         </ConversationRuntimeProvider>,
@@ -386,7 +386,7 @@ describe("Conversation Suggestions Runtime integration", () => {
             endpoint="http://example.test/agent"
             threadBinding={binding}
             suggestions={suggestions}
-            unstable_agentFactory={() => agent}
+            unstable_agentFactory={({ threadId }) => ({ ...agent, threadId }) as never}
           >
             <AgentRuntimeProvider runtime={pluginRuntime}>
               <AssistantRuntimeProbe onRuntime={(runtime) => {

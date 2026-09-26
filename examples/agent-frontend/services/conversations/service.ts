@@ -23,6 +23,10 @@ export interface ConversationService {
   subscribe(listener: () => void): () => void;
   refresh(): Promise<void>;
   selectConversation(id: string): Promise<ConversationDetail | undefined>;
+  /** Independent per-thread history read; never cancels a sibling thread request. */
+  loadConversation(id: string): Promise<ConversationDetail>;
+  /** Business selection only; does not refetch history. */
+  showConversation(id: string): void;
   /** Select the already-existing live conversation. */
   showLiveConversation(): void;
   /**
@@ -59,6 +63,8 @@ export function createConversationService({
   dispose(): void;
 } {
   let snapshot = EMPTY_CONVERSATION_SNAPSHOT;
+  // Business detail observation only; messages in mounted runtimes remain upstream-owned.
+  const historyReads = new Map<string, { status: ConversationLoadStatus; detail?: ConversationDetail; error?: string }>();
   let listRequest: AbortController | undefined;
   let detailRequest: AbortController | undefined;
   let disposed = false;
@@ -176,6 +182,30 @@ export function createConversationService({
       } finally {
         if (detailRequest === request) detailRequest = undefined;
       }
+    },
+    async loadConversation(id) {
+      if (disposed) throw new Error("Conversation service was disposed.");
+      historyReads.set(id, { status: "loading" });
+      if (snapshot.activeConversationId === id) update({ ...snapshot, detailStatus: "loading", detailError: undefined, detailErrorConversationId: undefined });
+      try {
+        const detail = await dataSource.get(id);
+        historyReads.set(id, { status: "ready", detail });
+        if (snapshot.activeConversationId === id) update({ ...snapshot, activeConversation: detail, detailStatus: "ready", detailError: undefined, detailErrorConversationId: undefined });
+        return detail;
+      } catch (error) {
+        historyReads.set(id, { status: "error", error: errorMessage(error) });
+        if (snapshot.activeConversationId === id) update({ ...snapshot, detailStatus: "error", detailError: errorMessage(error), detailErrorConversationId: id });
+        throw error;
+      }
+    },
+    showConversation(id) {
+      detailRequest?.abort();
+      detailRequest = undefined;
+      const read = historyReads.get(id);
+      update({ ...snapshot, mode: "history", activeConversationId: id,
+        activeConversation: read?.detail, detailStatus: read?.status ?? "idle",
+        detailError: read?.error, detailErrorConversationId: read?.status === "error" ? id : undefined,
+      });
     },
     showLiveConversation() {
       resetToLiveState();

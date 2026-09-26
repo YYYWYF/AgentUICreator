@@ -15,6 +15,7 @@ interface RuntimePanelViewProps<TState = unknown> {
   mockEnabled: boolean;
   snapshot: AgentRuntimeSnapshot<TState>;
   conversationObservation: ConversationObservationSnapshot;
+  streamEvents?: readonly { threadId: string; runId: string; type: string; timestamp: number }[];
 }
 
 function roleLabel(role: AgentMessage["role"]): string {
@@ -67,6 +68,7 @@ export function RuntimePanelView<TState = unknown>({
   mockEnabled,
   snapshot,
   conversationObservation,
+  streamEvents = [],
 }: RuntimePanelViewProps<TState>) {
   const roleCounts = messageRoleCounts(snapshot.messages);
 
@@ -77,6 +79,18 @@ export function RuntimePanelView<TState = unknown>({
         <h3>Runtime</h3>
       </div>
 
+      {streamEvents.length > 0 && (
+        <section className={styles.runtimeSection}>
+          <h4>Mock stream events</h4>
+          <ol className={styles.compactList}>
+            {streamEvents.slice(-60).map((event, index) => (
+              <li key={`${event.timestamp}:${index}`}>
+                <code>{event.threadId} / {event.runId} / {event.type}</code>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
       <section className={styles.runtimeSection}>
         <h4>Environment</h4>
         <dl className={styles.definitionList}>

@@ -26,8 +26,7 @@ export function ConversationThreadListPlugin(_props: UIPluginComponentProps) {
     conversation,
     EMPTY_CONVERSATION_SNAPSHOT,
   );
-  const navigationLocked =
-    run.status === "running" || run.status === "awaiting-input";
+
 
   return (
     <aside
@@ -41,7 +40,7 @@ export function ConversationThreadListPlugin(_props: UIPluginComponentProps) {
       data-theme={theme}
       data-ui-plugin="conversation-thread-list"
     >
-      <PolicyThreadList navigationLocked={navigationLocked} />
+      <PolicyThreadList />
 
       {snapshot.listStatus === "error" ? (
         <div className="conversation-thread-list-error" role="alert">
@@ -75,13 +74,16 @@ export function ConversationThreadListPlugin(_props: UIPluginComponentProps) {
           <Button
             disabled={
               conversation === undefined ||
-              snapshot.detailErrorConversationId === undefined ||
-              navigationLocked
+              snapshot.detailErrorConversationId === undefined
             }
             onClick={() => {
               const failedConversationId = snapshot.detailErrorConversationId;
               if (failedConversationId === undefined) return;
-              void conversationNavigation.switchToThread(failedConversationId);
+              if (snapshot.activeConversationId === failedConversationId) {
+                void conversationNavigation.reloadCurrentThread();
+              } else {
+                void conversationNavigation.switchToThread(failedConversationId);
+              }
             }}
             size="sm"
             variant="outline"

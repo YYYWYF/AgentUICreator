@@ -757,6 +757,7 @@ export function useConversationNavigation(): ConversationNavigation {
     switchToNewThread: async () => {
       runtime.threads.switchToNewThread();
     },
+    reloadCurrentThread: () => runtime.threads.reloadMainThread(),
   };
 }
 
@@ -797,6 +798,7 @@ export function useConversationMessageParts(): readonly unknown[] {
 }
 
 export interface ConversationNavigation {
+  reloadCurrentThread(): Promise<void>;
   switchToThread(threadId: string): Promise<unknown>;
   switchToNewThread(): Promise<unknown>;
 }

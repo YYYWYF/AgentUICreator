@@ -66,8 +66,8 @@ class ScenarioAgent extends AbstractAgent {
   readonly emittedEvents: BaseEvent[] = [];
   private readonly waiters: EventWaiter[] = [];
 
-  constructor() {
-    super({ threadId: "state-job-progress-full-app" });
+  constructor(threadId = "state-job-progress-full-app") {
+    super({ threadId });
   }
 
   override run(input: RunAgentInput): Observable<BaseEvent> {
@@ -239,8 +239,8 @@ describe("AG-UI State → JobProgress full application chain", () => {
     document.body.append(container);
     const root = createRoot(container);
     mountedRoots.push(root);
-    const agent = new ScenarioAgent();
     const binding = createConversationServiceThreadBinding<AppAgentState>();
+    const agent = new ScenarioAgent(binding.getThreadId());
     let assistantRuntime: AssistantRuntime | undefined;
     let agentRuntime: ConversationAgentRuntimeBridge<AppAgentState> | undefined;
 
@@ -250,7 +250,7 @@ describe("AG-UI State → JobProgress full application chain", () => {
           endpoint="/__agent-ui/mock"
           threadBinding={binding}
           toolkit={fullAppToolkit}
-          unstable_agentFactory={() => agent}
+          unstable_agentFactory={({ threadId }) => threadId === agent.threadId ? agent : new ScenarioAgent(threadId)}
         >
           <FullAppHarness
             composition={composition}

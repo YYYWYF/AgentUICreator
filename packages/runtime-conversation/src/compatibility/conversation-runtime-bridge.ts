@@ -78,6 +78,7 @@ export interface ConversationAgentRuntimeBridgeOptions<TState> {
   runtime: AgUiAssistantRuntime;
   threadBinding: ConversationThreadBinding<TState>;
   applicationEvents: ConversationApplicationEventSource;
+  switchToNewThread?: (() => Promise<void>) | undefined;
 }
 
 /** Passive compatibility projection over the upstream-owned Runtime. */
@@ -180,20 +181,8 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
   }
 
   async startNewConversation(): Promise<void> {
-    this.assertAvailable();
-    if (this.options.runtime.thread.getState().isRunning) {
-      throw new AgentUiRuntimeBusyError();
-    }
-    this.actionInFlight = true;
-    this.projectionSuspended = true;
-    try {
-      await this.options.runtime.threads.switchToNewThread();
-    } finally {
-      this.projectionSuspended = false;
-      this.actionInFlight = false;
-      this.runtimeError = undefined;
-      this.sync();
-    }
+    if (this.disposed) throw new Error("The conversation runtime was disposed");
+    await (this.options.switchToNewThread?.() ?? this.options.runtime.threads.switchToNewThread());
   }
 
   abort(): void {

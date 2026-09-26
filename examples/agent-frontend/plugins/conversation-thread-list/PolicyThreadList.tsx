@@ -11,16 +11,13 @@ import {
   useConversationState,
   useConversationThreadListGroups,
 } from "@agent-ui/react";
-import { createContext, Fragment, useContext, useState, type FC } from "react";
-
-const NavigationLockContext = createContext(false);
+import { Fragment, useState, type FC } from "react";
 
 function PolicyThreadListItem() {
-  const navigationLocked = useContext(NavigationLockContext);
   const disabledByConversation = useConversationState(
     (s) => s.threadListItem.custom?.agentUiDisabled === true,
   );
-  const disabled = navigationLocked || disabledByConversation;
+  const disabled = disabledByConversation;
 
   return (
     <div
@@ -118,19 +115,17 @@ const PolicyThreadListItems: FC<{ searchQuery?: string }> = ({
   );
 };
 
-export function PolicyThreadList({ navigationLocked }: { navigationLocked: boolean }) {
+export function PolicyThreadList() {
   const [search, setSearch] = useState("");
   const hasThreads = useConversationState((s) => s.threads.threadIds.length > 0);
 
   return (
-    <NavigationLockContext.Provider value={navigationLocked}>
       <ConversationThreadListRoot>
-        <ConversationThreadListNew disabled={navigationLocked} />
+        <ConversationThreadListNew />
         {hasThreads && (
           <ConversationThreadListSearch value={search} onValueChange={setSearch} />
         )}
         <PolicyThreadListItems searchQuery={hasThreads ? search : ""} />
       </ConversationThreadListRoot>
-    </NavigationLockContext.Provider>
   );
 }

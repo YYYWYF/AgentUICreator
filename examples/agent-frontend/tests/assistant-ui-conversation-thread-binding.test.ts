@@ -2,7 +2,6 @@ import type { ThreadMessage } from "@assistant-ui/react";
 import { describe, expect, it, vi } from "vitest";
 
 import {
-  ConversationNavigationLockedError,
   ConversationThreadSelectionDisabledError,
   createConversationServiceThreadBinding,
 } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
@@ -97,6 +96,15 @@ class FakeConversationService implements ConversationService {
     this.listeners.forEach((listener) => listener());
   }
 
+  async loadConversation(id: string): Promise<ConversationDetail> {
+    const detail = await this.selectConversation(id);
+    if (detail === undefined) throw new Error("Conversation API request failed (500)");
+    return detail;
+  }
+  showConversation(id: string): void {
+    this.snapshot = { ...this.snapshot, mode: "history", activeConversationId: id };
+    this.emit();
+  }
   async refresh(): Promise<void> {}
 
   readonly showLiveConversation = vi.fn(() => {
@@ -179,7 +187,6 @@ function createBindingFixture() {
   );
   const binding = createConversationServiceThreadBinding();
   binding.attachConversationService(service);
-  binding.captureLiveThread(live);
   return { binding, live, service };
 }
 
@@ -213,40 +220,7 @@ describe("ConversationServiceThreadBinding", () => {
     });
   });
 
-  it("preserves live transcript across assistant-ui intermediate empty snapshots", async () => {
-    const { binding, live } = createBindingFixture();
-    const liveThreadId = binding.getThreadId();
-
-    binding.captureLiveThread({ messages: [] });
-    await binding.selectThread("history-1");
-    binding.captureLiveThread({ messages: [] });
-    const restored = await binding.selectThread(liveThreadId);
-
-    expect(messageIds(restored.messages)).toEqual(messageIds(live.messages));
-  });
-
-  it("switches live to history and history back to the original live transcript", async () => {
-    const { binding, live, service } = createBindingFixture();
-    const liveThreadId = binding.getThreadId();
-
-    const history = await binding.selectThread("history-1");
-    expect(binding.getThreadId()).toBe("history-1");
-    expect(service.getSnapshot()).toMatchObject({
-      mode: "history",
-      activeConversationId: "history-1",
-    });
-    expect(messageIds(history.messages)).toEqual([
-      "history-user",
-      "history-assistant",
-    ]);
-    expect(history.state).toEqual({ persisted: true });
-
-    const restored = await binding.selectThread(liveThreadId);
-    expect(binding.getThreadId()).toBe(liveThreadId);
-    expect(messageIds(restored.messages)).toEqual(messageIds(live.messages));
-  });
-
-  it("publishes readonly state through the runtime binding", async () => {
+  it("keeps persisted history writable through the runtime binding", async () => {
     const { binding } = createBindingFixture();
     const liveThreadId = binding.getThreadId();
     const changes: boolean[] = [];
@@ -256,10 +230,10 @@ describe("ConversationServiceThreadBinding", () => {
 
     expect(binding.getIsDisabled?.()).toBe(false);
     await binding.selectThread("history-1");
-    expect(binding.getIsDisabled?.()).toBe(true);
+    expect(binding.getIsDisabled?.()).toBe(false);
     await binding.selectThread(liveThreadId);
     expect(binding.getIsDisabled?.()).toBe(false);
-    expect(changes).toEqual([true, false]);
+    expect(changes.every(disabled => disabled === false)).toBe(true);
     unsubscribe();
   });
 
@@ -290,10 +264,9 @@ describe("ConversationServiceThreadBinding", () => {
     const { binding, live, service } = createBindingFixture();
     const liveThreadId = binding.getThreadId();
 
-    const loaded = await binding.selectThread("history-broken");
+    await expect(binding.selectThread("history-broken")).rejects.toThrow("500");
 
     expect(binding.getThreadId()).toBe(liveThreadId);
-    expect(messageIds(loaded.messages)).toEqual(messageIds(live.messages));
     expect(service.getSnapshot()).toMatchObject({
       mode: "live",
       detailStatus: "error",
@@ -313,48 +286,6 @@ describe("ConversationServiceThreadBinding", () => {
     expect(service.selectConversation).not.toHaveBeenCalled();
   });
 
-  it("rejects selection while navigation is locked without changing active state", async () => {
-    const { binding, live, service } = createBindingFixture();
-    const liveThreadId = binding.getThreadId();
-
-    binding.setNavigationLocked(true);
-
-    await expect(binding.selectThread("history-1")).rejects.toBeInstanceOf(
-      ConversationNavigationLockedError,
-    );
-    expect(service.selectConversation).not.toHaveBeenCalled();
-    expect(binding.getThreadId()).toBe(liveThreadId);
-    expect(binding.getIsDisabled?.()).toBe(false);
-    expect(live.messages).toHaveLength(2);
-  });
-
-  it("rejects creating a new thread while navigation is locked before reset", async () => {
-    const { binding, service } = createBindingFixture();
-    const liveThreadId = binding.getThreadId();
-
-    binding.setNavigationLocked(true);
-
-    await expect(binding.createNewThread()).rejects.toBeInstanceOf(
-      ConversationNavigationLockedError,
-    );
-    expect(service.resetForNewConversation).not.toHaveBeenCalled();
-    expect(binding.getThreadId()).toBe(liveThreadId);
-  });
-
-  it("restores selection and new-thread behavior after navigation unlocks", async () => {
-    const { binding, service } = createBindingFixture();
-
-    binding.setNavigationLocked(true);
-    binding.setNavigationLocked(false);
-
-    await binding.selectThread("history-1");
-    expect(service.selectConversation).toHaveBeenCalledWith("history-1");
-    const nextLiveThreadId = await binding.createNewThread();
-
-    expect(service.resetForNewConversation).toHaveBeenCalledOnce();
-    expect(binding.getThreadId()).toBe(nextLiveThreadId);
-  });
-
   it("creates a fresh empty thread without leaking the old live transcript", async () => {
     const { binding, live, service } = createBindingFixture();
     const oldId = binding.getThreadId();
@@ -362,8 +293,7 @@ describe("ConversationServiceThreadBinding", () => {
     const newId = await binding.createNewThread();
     const loaded = await binding.selectThread(newId);
 
-    expect(service.resetForNewConversation).toHaveBeenCalledOnce();
-    expect(service.showLiveConversation).not.toHaveBeenCalled();
+    expect(service.showLiveConversation).toHaveBeenCalledOnce();
     expect(newId).not.toBe(oldId);
     expect(binding.getThreadId()).toBe(newId);
     expect(loaded.messages).toEqual([]);

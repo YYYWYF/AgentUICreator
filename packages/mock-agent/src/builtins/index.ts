@@ -1,3 +1,4 @@
+import { concurrentConversationsScenario } from "./concurrent-conversations.js";
 import { multiMessageResponseScenario } from "./multi-message-response.js";
 import { agentPlanScenario } from "./agent-plan.js";
 import { agentStatusScenario } from "./agent-status.js";
@@ -20,6 +21,7 @@ import { toolLongRunningScenario } from "./tool-long-running.js";
 import type { MockScenario } from "../scenario.js";
 
 export {
+  concurrentConversationsScenario,
   multiMessageResponseScenario,
   agentPlanScenario,
   agentStatusScenario,
@@ -42,6 +44,7 @@ export {
 };
 
 export const backendReferenceMockScenarios: MockScenario[] = [
+  concurrentConversationsScenario,
   simpleChatScenario,
   reasoningChatScenario,
   reasoningToolSuccessScenario,

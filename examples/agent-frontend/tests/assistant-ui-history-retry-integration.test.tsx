@@ -113,6 +113,15 @@ class RetryConversationService implements ConversationService {
     return () => this.listeners.delete(listener);
   }
 
+  async loadConversation(id: string): Promise<ConversationDetail> {
+    const detail = await this.selectConversation(id);
+    if (detail === undefined) throw new Error("Conversation API request failed (500)");
+    return detail;
+  }
+  showConversation(id: string): void {
+    this.snapshot = { ...this.snapshot, mode: "history", activeConversationId: id };
+    this.emit();
+  }
   async refresh(): Promise<void> {}
 
   readonly showLiveConversation = vi.fn(() => {
@@ -205,243 +214,73 @@ function RuntimeFixture({
   );
 }
 
-describe("assistant-ui history retry navigation", () => {
-  it("routes ThreadList and Plugin Action New Thread through one Runtime owner", async () => {
-    const dataSource: ConversationDataSource = {
-      list: async () => [],
-      get: async (id) => ({
-        id,
-        title: id,
-        history: { format: "langchain", messages: [] },
-      }),
-    };
-    const service = createConversationService({ dataSource });
-    const binding = createConversationServiceThreadBinding();
-    const detach = binding.attachConversationService(service);
-    const liveMessages = [
-      threadMessage("live-user", "user"),
-      threadMessage("live-assistant", "assistant"),
-    ];
-    binding.captureLiveThread({ messages: liveMessages });
-    const firstThreadId = binding.getThreadId();
-    const agent = createAgent();
-    let runtime: AssistantRuntime | undefined;
-    let bridge: ConversationAgentRuntimeBridge | undefined;
-    let renderer: ReactTestRenderer | undefined;
-
-    try {
-      await act(async () => {
-        renderer = create(
-          <RuntimeFixture
-            agent={agent}
-            binding={binding}
-            onRuntime={(nextRuntime) => {
-              runtime = nextRuntime;
-            }}
-            onBridge={(nextRuntime) => {
-              bridge = nextRuntime;
-            }}
-          />,
-        );
-        await Promise.resolve();
-      });
-      if (runtime === undefined || bridge === undefined) {
-        throw new Error("assistant-ui Runtime bridge was not captured");
-      }
-      const assistantRuntime = runtime;
-      const agentRuntime = bridge;
-
-      await act(async () => {
-        assistantRuntime.thread.reset(liveMessages);
-        await Promise.resolve();
-        await assistantRuntime.threads.switchToNewThread();
-      });
-
-      const threadListThreadId = binding.getThreadId();
-      expect(threadListThreadId).not.toBe(firstThreadId);
-      expect(assistantRuntime.threads.getState().mainThreadId).toBe(
-        threadListThreadId,
-      );
-      expect(assistantRuntime.thread.getState().threadId).toBe(
-        threadListThreadId,
-      );
-      expect(agent.threadId).toBe(threadListThreadId);
-      expect(assistantRuntime.thread.getState().messages).toEqual([]);
-      expect(service.getSnapshot()).toMatchObject({
-        mode: "live",
-        activeConversationId: undefined,
-        activeConversation: undefined,
-        detailStatus: "idle",
-        detailError: undefined,
-        detailErrorConversationId: undefined,
-      });
-
-      await act(async () => {
-        await agentRuntime.startNewConversation();
-      });
-
-      const pluginActionThreadId = binding.getThreadId();
-      expect(pluginActionThreadId).not.toBe(threadListThreadId);
-      expect(assistantRuntime.threads.getState().mainThreadId).toBe(
-        pluginActionThreadId,
-      );
-      expect(assistantRuntime.thread.getState().threadId).toBe(
-        pluginActionThreadId,
-      );
-      expect(agent.threadId).toBe(pluginActionThreadId);
-      expect(agentRuntime.getSnapshot().conversation.id).toBe(
-        pluginActionThreadId,
-      );
-    } finally {
-      detach();
-      service.dispose();
-      if (renderer !== undefined) {
-        await act(async () => {
-          renderer?.unmount();
-        });
-      }
-    }
+async function flush() { await new Promise<void>(resolve => setImmediate(resolve)); }
+async function mount(service: ConversationService) {
+  const binding = createConversationServiceThreadBinding();
+  const detach = binding.attachConversationService(service);
+  const agent = createAgent();
+  let runtime!: AssistantRuntime;
+  let bridge!: ConversationAgentRuntimeBridge;
+  let renderer!: ReactTestRenderer;
+  await act(async () => {
+    renderer = create(<RuntimeFixture agent={agent} binding={binding}
+      onRuntime={next => { runtime = next; }} onBridge={next => { bridge = next; }} />);
+    await flush();
   });
+  return { binding, agent, runtime, get bridge() { return bridge; },
+    async dispose() { await act(async () => { renderer.unmount(); await flush(); }); detach(); },
+  };
+}
 
-  it("keeps the live thread on failure and hydrates history through retry", async () => {
-    const service = new RetryConversationService();
-    const binding = createConversationServiceThreadBinding();
-    const detach = binding.attachConversationService(service);
-    const liveMessages = [
-      threadMessage("live-user", "user"),
-      threadMessage("live-assistant", "assistant"),
-    ];
-    binding.captureLiveThread({ messages: liveMessages });
-    const liveThreadId = binding.getThreadId();
-    const agent = createAgent();
-    let runtime: AssistantRuntime | undefined;
-    let renderer: ReactTestRenderer | undefined;
-
+describe("assistant-ui history and new-thread integration", () => {
+  it("uses both ThreadList and Plugin new-thread actions without changing old Agent ownership", async () => {
+    const service = createConversationService({ dataSource: { list: async () => [], get: async id => ({ id, title: id, history: { format: "langchain", messages: [] } }) } });
+    const f = await mount(service);
     try {
-      await act(async () => {
-        renderer = create(
-          <RuntimeFixture
-            agent={agent}
-            binding={binding}
-            onRuntime={(nextRuntime) => {
-              runtime = nextRuntime;
-            }}
-          />,
-        );
-        await Promise.resolve();
-      });
-      if (runtime === undefined) throw new Error("Runtime was not captured");
-      const assistantRuntime = runtime;
-
-      await act(async () => {
-        assistantRuntime.thread.reset(liveMessages);
-        await Promise.resolve();
-      });
-
-      await act(async () => {
-        await assistantRuntime.threads.switchToThread("history-retry");
-      });
-      expect(binding.getThreadId()).toBe(liveThreadId);
-      expect(assistantRuntime.thread.getState().threadId).toBe(liveThreadId);
-      expect(messageIds(assistantRuntime.thread.getState().messages)).toEqual([
-        "live-user",
-        "live-assistant",
-      ]);
-      expect(service.getSnapshot()).toMatchObject({
-        mode: "live",
-        detailStatus: "error",
-        detailErrorConversationId: "history-retry",
-      });
-
-      await act(async () => {
-        await assistantRuntime.threads.switchToThread("history-retry");
-      });
-      expect(service.getSnapshot()).toMatchObject({
-        mode: "history",
-        activeConversationId: "history-retry",
-        detailStatus: "ready",
-        detailError: undefined,
-        detailErrorConversationId: undefined,
-      });
-      expect(binding.getThreadId()).toBe("history-retry");
-      expect(assistantRuntime.threads.getState().mainThreadId).toBe("history-retry");
-      expect(messageIds(assistantRuntime.thread.getState().messages)).toEqual([
-        "history-user",
-        "history-assistant",
-      ]);
-      expect(agent.runAgent).not.toHaveBeenCalled();
-      expect(agent.threadId).toBe("history-retry");
-      expect(service.selectConversation).toHaveBeenCalledTimes(2);
-
-      await act(async () => {
-        await assistantRuntime.threads.switchToThread(liveThreadId);
-      });
+      const first = f.binding.getThreadId();
+      await act(async () => { void f.runtime.threads.switchToNewThread(); await flush(); });
+      const second = f.binding.getThreadId();
+      expect(second).not.toBe(first);
+      expect(f.runtime.thread.getState().messages).toEqual([]);
+      expect(f.bridge.getSnapshot().conversation.id).toBe(second);
+      expect(f.runtime.threads.mainItem.getState().remoteId).toBeUndefined();
+      await act(async () => { void f.bridge.startNewConversation(); await flush(); });
+      expect(f.binding.getThreadId()).not.toBe(second);
+      expect(f.bridge.getSnapshot().conversation.id).toBe(f.binding.getThreadId());
+      expect(f.agent.threadId).toBe("live");
       expect(service.getSnapshot().mode).toBe("live");
-      expect(binding.getThreadId()).toBe(liveThreadId);
-      expect(messageIds(assistantRuntime.thread.getState().messages)).toEqual([
-        "live-user",
-        "live-assistant",
-      ]);
-    } finally {
-      detach();
-      if (renderer !== undefined) {
-        await act(async () => {
-          renderer?.unmount();
-        });
-      }
-    }
+    } finally { await f.dispose(); service.dispose(); }
   });
-
-  it("keeps Runtime and Service aligned after New Thread succeeds", async () => {
+  it("retains live history while a failed history runtime is retried", async () => {
     const service = new RetryConversationService();
-    const binding = createConversationServiceThreadBinding();
-    const detach = binding.attachConversationService(service);
-    const liveMessages = [
-      threadMessage("live-user", "user"),
-      threadMessage("live-assistant", "assistant"),
-    ];
-    binding.captureLiveThread({ messages: liveMessages });
-    const oldThreadId = binding.getThreadId();
-    const agent = createAgent();
-    let runtime: AssistantRuntime | undefined;
-    let renderer: ReactTestRenderer | undefined;
-
+    const f = await mount(service);
     try {
-      await act(async () => {
-        renderer = create(
-          <RuntimeFixture
-            agent={agent}
-            binding={binding}
-            onRuntime={(nextRuntime) => {
-              runtime = nextRuntime;
-            }}
-          />,
-        );
-        await Promise.resolve();
-      });
-      if (runtime === undefined) throw new Error("Runtime was not captured");
-      const assistantRuntime = runtime;
-
-      await act(async () => {
-        assistantRuntime.thread.reset(liveMessages);
-        await Promise.resolve();
-        await assistantRuntime.threads.switchToNewThread();
-      });
-
-      const newThreadId = binding.getThreadId();
-      expect(service.resetForNewConversation).toHaveBeenCalledOnce();
-      expect(newThreadId).not.toBe(oldThreadId);
-      expect(assistantRuntime.threads.getState().mainThreadId).toBe(newThreadId);
-      expect(assistantRuntime.thread.getState().threadId).toBe(newThreadId);
-      expect(assistantRuntime.thread.getState().messages).toEqual([]);
-      expect(agent.threadId).toBe(newThreadId);
-    } finally {
-      detach();
-      if (renderer !== undefined) {
-        await act(async () => {
-          renderer?.unmount();
-        });
-      }
-    }
+      const initial = f.binding.getThreadId();
+      const liveMessages = [threadMessage("live-user", "user"), threadMessage("live-assistant", "assistant")];
+      await act(async () => { f.runtime.thread.reset(liveMessages); await flush(); });
+      await act(async () => { void f.runtime.threads.switchToThread("history-retry"); await flush(); });
+      expect(f.runtime.thread.getState().isDisabled).toBe(true);
+      expect(f.bridge.getSnapshot().run.status).toBe("error");
+      expect(messageIds(f.runtime.threads.getById(initial).getState().messages)).toEqual(["live-user", "live-assistant"]);
+      await act(async () => { void f.runtime.threads.reloadMainThread(); await flush(); });
+      expect(f.runtime.thread.getState().isDisabled).toBe(false);
+      expect(messageIds(f.runtime.thread.getState().messages)).toEqual(["history-user", "history-assistant"]);
+      expect(service.selectConversation).toHaveBeenCalledTimes(2);
+      expect(f.agent.runAgent).not.toHaveBeenCalled();
+      await act(async () => { void f.runtime.threads.switchToThread(initial); await flush(); });
+      expect(messageIds(f.runtime.thread.getState().messages)).toEqual(["live-user", "live-assistant"]);
+      expect(service.selectConversation).toHaveBeenCalledTimes(2);
+    } finally { await f.dispose(); }
+  });
+  it("keeps business selection aligned with a writable empty new thread", async () => {
+    const f = await mount(new RetryConversationService());
+    try {
+      const previous = f.binding.getThreadId();
+      await act(async () => { void f.runtime.threads.switchToNewThread(); await flush(); });
+      expect(f.binding.getThreadId()).not.toBe(previous);
+      expect(f.bridge.getSnapshot().conversation.id).toBe(f.binding.getThreadId());
+      expect(f.runtime.thread.getState().messages).toEqual([]);
+      expect(f.runtime.thread.getState().isDisabled).toBe(false);
+    } finally { await f.dispose(); }
   });
 });

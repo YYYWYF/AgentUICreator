@@ -24,6 +24,7 @@ export function createMockAgentVitePlugin({
 
   const registry = createScenarioRegistry({ scenarios, defaultScenarioId });
   const handler = createMockAgentHttpHandler({ registry });
+  const eventsEndpoint = `${endpoint.replace(/\/$/, "")}/events`;
   const scenariosEndpoint = `${endpoint.replace(/\/$/, "")}/scenarios`;
   return {
     name: "agent-ui-mock-agent",
@@ -31,7 +32,7 @@ export function createMockAgentVitePlugin({
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
         const pathname = request.url?.split("?", 1)[0];
-        if (pathname !== endpoint && pathname !== scenariosEndpoint) {
+        if (pathname !== endpoint && pathname !== scenariosEndpoint && pathname !== eventsEndpoint) {
           next();
           return;
         }

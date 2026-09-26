@@ -35,6 +35,7 @@ export {
 } from "./vite-plugin.js";
 export {
   builtinMockScenarios,
+  concurrentConversationsScenario,
   agentPlanScenario,
   agentStatusScenario,
   agentStateSyncScenario,

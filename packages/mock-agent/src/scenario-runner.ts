@@ -595,6 +595,14 @@ export async function* runMockScenario(
   scenario: MockScenario,
   options: MockScenarioRunnerOptions = {},
 ): AsyncGenerator<AGUIEvent> {
+  if (scenario.id === "concurrent-conversations") {
+    const lastUser = [...input.messages].reverse().find(message => message.role === "user");
+    const label = typeof lastUser?.content === "string" && lastUser.content.trim() === "BBB" ? "B" : "A";
+    scenario = { ...scenario, initialState: { owner: input.threadId, label }, steps: [
+      { type: "custom", name: "concurrent-thread", value: { threadId: input.threadId, runId: input.runId, label } },
+      { type: "message", text: `${label}-1\n${label}-2\n${label}-3\n`, intervalMs: 750 },
+    ] };
+  }
   validateMockScenario(scenario);
   let sequence = 0;
   const createId = options.createId

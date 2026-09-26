@@ -72,6 +72,8 @@ function createBinding() {
     },
     getThreadListSnapshot: () => threadListSnapshot,
     selectThread,
+    loadThread: id => id === "live" ? Promise.resolve({ messages: [] }) : selectThread(id),
+    activateThread: id => { threadId = id; },
   };
   return { binding, historyMessages, liveMessages, selectThread };
 }
@@ -94,7 +96,7 @@ function RuntimeFixture({
   binding: ConversationThreadBinding;
   onRuntime: (runtime: AssistantRuntime) => void;
 }) {
-  const agentFactory: ConversationAgentFactory = () => agent;
+  const agentFactory: ConversationAgentFactory = ({ threadId }) => ({ ...agent, threadId }) as never;
   return (
     <ConversationRuntimeProvider
       endpoint="http://example.test/agent"
@@ -132,7 +134,8 @@ describe("runtime-assistant-ui thread-list binding", () => {
 
       await act(async () => {
         assistantRuntime.thread.reset(liveMessages);
-        await assistantRuntime.threads.switchToThread("history");
+        void assistantRuntime.threads.switchToThread("history");
+        await new Promise<void>(resolve => setImmediate(resolve));
       });
 
       expect(selectThread).toHaveBeenCalledOnce();
@@ -140,7 +143,7 @@ describe("runtime-assistant-ui thread-list binding", () => {
       expect(binding.getThreadId()).toBe("history");
       expect(assistantRuntime.threads.getState().mainThreadId).toBe("history");
       expect(assistantRuntime.thread.getState().messages).toEqual(historyMessages);
-      expect(agent.threadId).toBe("history");
+      expect(agent.threadId).toBe("live");
     } finally {
       if (renderer !== undefined) {
         await act(async () => {

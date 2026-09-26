@@ -159,7 +159,7 @@ function RuntimeFixture({
     <ConversationRuntimeProvider
       endpoint="http://example.test/agent"
       threadBinding={binding}
-      unstable_agentFactory={() => agent}
+      unstable_agentFactory={({ threadId }) => ({ ...agent, threadId }) as never}
     >
       <PluginRuntimeFixture
         actions={pluginActions}
@@ -215,8 +215,8 @@ afterEach(async () => {
   vi.clearAllMocks();
 });
 
-describe("assistant-ui Composer history read-only behavior", () => {
-  it("keeps the composed Composer disabled and does not run the Agent on history threads", async () => {
+describe("assistant-ui Composer history continuation behavior", () => {
+  it("enables the composed Composer on persisted history without starting a run merely by opening it", async () => {
     const { binding, detach, service } = createHistoryBinding();
     const agent = createAgent();
     const container = document.createElement("div");
@@ -227,7 +227,7 @@ describe("assistant-ui Composer history read-only behavior", () => {
     try {
       await service.refresh();
       await binding.selectThread("history-thread");
-      expect(binding.getIsDisabled?.()).toBe(true);
+      expect(binding.getIsDisabled?.()).toBe(false);
 
       await act(async () => {
         root.render(<RuntimeFixture agent={agent} binding={binding} />);
@@ -237,7 +237,7 @@ describe("assistant-ui Composer history read-only behavior", () => {
 
       const input = findComposerInput(container);
       const send = findSendButton(container);
-      expect(input.disabled).toBe(true);
+      expect(input.disabled).toBe(false);
       expect(send.disabled).toBe(true);
 
       await act(async () => {
