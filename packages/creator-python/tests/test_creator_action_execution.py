@@ -1055,3 +1055,25 @@ def test_action_normalizes_host_mutation_failure_without_verification():
     assert result.errorCode == "HOST_MOVE_REJECTED"
     assert result.verification is None
     assert result.metrics.mutationAttempts == 1
+
+
+def test_written_mutation_check_failure_reports_changes_without_claiming_success():
+    from agent_ui_creator.operations.engine import _operation_text
+
+    candidate = action("remove_plugin")
+    source = snapshot(candidate)
+    mutation = FakeMutation([AppUIModelMutationError(
+        "APP_UI_MODEL_MUTATION_RESULT_CHECK_FAILED",
+        "result check failed",
+        {"changedPaths": ["src/agent-ui/app-ui/app-ui.json"]},
+        state_changed=True,
+    )])
+    playbook = make_playbook(mutation, SequenceSnapshotProvider([source]), [])
+
+    result = asyncio.run(playbook.execute(source, candidate))
+
+    assert result.status == "failed"
+    assert result.mutationChanged is True
+    assert result.details["changedPaths"] == ["src/agent-ui/app-ui/app-ui.json"]
+    assert result.verification is None
+    assert _operation_text(result) == "修改已写入，但结果检查失败：result check failed"

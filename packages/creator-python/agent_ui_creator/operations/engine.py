@@ -175,6 +175,8 @@ def _operation_text(
             f"已应用修改（{operation_name}），但当前没有可用的运行时核验结果。"
         )
     detail = operation.message or operation.errorCode or "宿主环境拒绝了此操作"
+    if operation.status == "failed" and operation.mutationChanged:
+        return f"修改已写入，但结果检查失败：{detail}"
     return f"操作未完成：{detail}"
 
 

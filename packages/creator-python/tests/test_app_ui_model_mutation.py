@@ -23,6 +23,7 @@ from agent_ui_creator.app_ui_model.mutation_tool import (
     load_app_ui_model_mutation_tool_schema,
 )
 from agent_ui_creator.files import creator_content_hash, read_creator_file_state
+from agent_ui_creator.app_ui_model.mutation_models import resolve_mutable_paths
 from agent_ui_creator.domain_state import DomainObservationContext
 from agent_ui_creator.domain_tools import create_project_control_tools
 from agent_ui_creator.project_control import ProjectControlError
@@ -48,6 +49,7 @@ def _create_project(tmp_path: Path) -> Path:
 
 
 def _result(root: Path, before_hash: str, changed_paths: list[str]) -> dict:
+    app_path, _, registry_path = resolve_mutable_paths(root)
     return {
         "schemaVersion": 1,
         "transactionId": "transaction-1",
@@ -55,12 +57,12 @@ def _result(root: Path, before_hash: str, changed_paths: list[str]) -> dict:
         "changedPaths": changed_paths,
         "appUIModel": {
             "beforeHash": before_hash,
-            "afterHash": read_creator_file_state(root, APP_UI_MODEL_PATH).hash,
+            "afterHash": read_creator_file_state(root, app_path).hash,
         },
         "snapshotToken": {
-            "appUIModelHash": read_creator_file_state(root, APP_UI_MODEL_PATH).hash,
+            "appUIModelHash": read_creator_file_state(root, app_path).hash,
             "capabilityCatalogSourceHash": read_creator_file_state(
-                root, REGISTRY_PATH
+                root, registry_path
             ).hash,
         },
     }
@@ -78,7 +80,7 @@ class FakeMutationClient:
     async def request_app_ui_model_mutation(self, input):
         self.calls += 1
         self.inputs.append(copy.deepcopy(input))
-        before_hash = read_creator_file_state(self.root, APP_UI_MODEL_PATH).hash
+        before_hash = read_creator_file_state(self.root, resolve_mutable_paths(self.root)[0]).hash
         for path in self.changed_paths:
             target = self.root / path
             target.write_text(target.read_text(encoding="utf-8") + f"// change {self.calls}\n", encoding="utf-8")
@@ -1076,3 +1078,66 @@ def test_conflict_then_inspect_allows_retry_with_new_host_hash(tmp_path):
         {"appUIModelHash": initial_hash, "operations": arguments["operations"]},
         {"appUIModelHash": external_hash, "operations": arguments["operations"]},
     ]
+
+
+@pytest.mark.parametrize("source_root", [None, "src/agent-ui", "client/custom-agent"])
+def test_mutation_validates_project_resolved_artifact_paths(tmp_path, source_root):
+    root = _create_project(tmp_path)
+    if source_root is not None:
+        (root / ".agent-ui").mkdir()
+        (root / ".agent-ui/project.json").write_text(json.dumps({
+            "version": "2", "mode": "platform", "sourceRoot": source_root,
+        }))
+        managed = root / source_root
+        managed.mkdir(parents=True)
+        (root / "app-ui").rename(managed / "app-ui")
+        (root / "plugins").rename(managed / "plugins")
+    app_path, _, registry_path = resolve_mutable_paths(root)
+    before_hash = read_creator_file_state(root, app_path).hash
+    service, activity = _service(root, FakeMutationClient(
+        root, changed_paths=(app_path, registry_path),
+    ))
+
+    result = _mutate(service, before_hash)
+
+    assert result.target_result["changed"] is True
+    assert result.mutation_revision == 2
+    assert {file["path"] for file in activity.finish()["files"]} == {app_path, registry_path}
+
+
+def test_unexpected_result_check_failure_preserves_disk_change_evidence(tmp_path, monkeypatch):
+    root = _create_project(tmp_path)
+    before_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
+    service, activity = _service(root, FakeMutationClient(
+        root, changed_paths=(APP_UI_MODEL_PATH,),
+    ))
+    events = []
+
+    class Logger:
+        def record(self, kind, data):
+            events.append((kind, data))
+
+        def reference(self):
+            return None
+
+    activity.logger = Logger()
+
+    def fail_check(*args, **kwargs):
+        raise NameError("broken result checker")
+
+    monkeypatch.setattr(service, "_validate_result", fail_check)
+    with pytest.raises(AppUIModelMutationError) as raised:
+        _mutate(service, before_hash)
+
+    error = raised.value
+    assert error.code == "APP_UI_MODEL_MUTATION_RESULT_CHECK_FAILED"
+    assert error.state_changed is True
+    assert error.observation_still_valid is False
+    assert error.details["changedPaths"] == [APP_UI_MODEL_PATH]
+    event = next(data for kind, data in events if kind == "app_ui_model_mutation")
+    assert event["result"] == {"ok": False, "changed": True}
+    assert event["changedPaths"] == [APP_UI_MODEL_PATH]
+    receipt = activity.finish()
+    assert receipt["files"][0]["path"] == APP_UI_MODEL_PATH
+    assert receipt["verification"]["status"] == "not-run"
+    assert read_creator_file_state(root, APP_UI_MODEL_PATH).hash != before_hash

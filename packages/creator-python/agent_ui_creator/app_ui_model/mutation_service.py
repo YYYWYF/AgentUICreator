@@ -11,7 +11,6 @@ from ..files import CreatorFileState, read_creator_file_state
 from ..project_control import ProjectControlClient, ProjectControlError
 from .mutation_lock import ProjectMutationCoordinator
 from .mutation_models import (
-    REGISTRY_PATH,
     resolve_mutable_paths,
     AppUIModelMutationError,
     AppUIModelMutationMetrics,
@@ -183,6 +182,7 @@ class AppUIModelMutationService:
         self.project_root = Path(project_root).resolve()
         self.mutable_paths = resolve_mutable_paths(self.project_root)
         self.app_ui_model_path = self.mutable_paths[0]
+        self.registry_path = self.mutable_paths[2]
         self.project_control = project_control
         self.activity = activity
         self.mutation_coordinator = mutation_coordinator
@@ -298,8 +298,15 @@ class AppUIModelMutationService:
                 "operationCount": len(operations),
                 "operationTypes": [operation.get("type") for operation in operations],
                 "operationSummary": semantic_operation_summary(operations),
-                "result": {"ok": result is not None, "changed": target.get("changed")},
-                "changedPaths": target.get("changedPaths", []),
+                "result": {
+                    "ok": result is not None,
+                    "changed": target.get("changed", getattr(error, "state_changed", None)),
+                },
+                "changedPaths": target.get("changedPaths", (
+                    error.details.get("changedPaths", [])
+                    if isinstance(error, AppUIModelMutationError) and isinstance(error.details, dict)
+                    else []
+                )),
                 **({"errorCode": getattr(error, "code", type(error).__name__)} if error is not None else {}),
                 **(
                     {
@@ -424,8 +431,21 @@ class AppUIModelMutationService:
                 )
             except AppUIModelMutationError as error:
                 self.metrics.resultMismatches += 1
+                error.details = {
+                    **(error.details if isinstance(error.details, dict) else {}),
+                    "changedPaths": sorted(actual_changed_paths),
+                }
                 raise error.with_disk_state(
                     state_changed=bool(actual_changed_paths)
+                ) from error
+            except Exception as error:
+                self.metrics.resultMismatches += 1
+                logger.exception("Unexpected AppUIModel mutation result validation failure")
+                raise AppUIModelMutationError(
+                    "APP_UI_MODEL_MUTATION_RESULT_CHECK_FAILED",
+                    "The mutation result check failed after the target returned its result.",
+                    {"changedPaths": sorted(actual_changed_paths), "cause": type(error).__name__},
+                    state_changed=bool(actual_changed_paths),
                 ) from error
             if raw_result["changed"] is False:
                 self.activity.record_semantic_noop(
@@ -455,8 +475,8 @@ class AppUIModelMutationService:
         self.metrics.changedPaths += len(actual_changed_paths)
         return actual_changed_paths, after_states
 
-    @staticmethod
     def _validate_result(
+        self,
         result: Any,
         *,
         requested_hash: str,
@@ -562,7 +582,7 @@ class AppUIModelMutationService:
             before_hash != requested_hash
             or after_hash != snapshot_app_hash
             or after_hash != after_states[self.app_ui_model_path].hash
-            or snapshot_catalog_source_hash != after_states[REGISTRY_PATH].hash
+            or snapshot_catalog_source_hash != after_states[self.registry_path].hash
         ):
             raise AppUIModelMutationError(
                 "APP_UI_MODEL_MUTATION_RESULT_INCONSISTENT",
@@ -574,6 +594,6 @@ class AppUIModelMutationService:
                     "snapshotAppUIModelHash": snapshot_app_hash,
                     "diskAppUIModelHash": after_states[self.app_ui_model_path].hash,
                     "snapshotCapabilityCatalogSourceHash": snapshot_catalog_source_hash,
-                    "diskCapabilityCatalogSourceHash": after_states[REGISTRY_PATH].hash,
+                    "diskCapabilityCatalogSourceHash": after_states[self.registry_path].hash,
                 },
             )

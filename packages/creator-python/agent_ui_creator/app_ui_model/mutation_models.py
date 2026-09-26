@@ -24,7 +24,7 @@ def resolve_mutable_paths(project_root: Path) -> tuple[str, str, str]:
     return (
         f"{raw}/app-ui/app-ui.json",
         f"{raw}/app-ui/composition-revision.generated.json",
-        REGISTRY_PATH,
+        f"{raw}/{REGISTRY_PATH}",
     )
 MAX_MUTATION_RESULT_CHARACTERS = 48_000
 MAX_SEMANTIC_COMPOSITION_REPLANS = 1
