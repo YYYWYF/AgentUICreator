@@ -44,6 +44,8 @@ export {
 
 export interface CreatorDevServerPluginOptions {
   inspectMockProject?: MockProjectInspector | undefined;
+  installMockResource?: ((projectRoot: string, sourceItemId: string) => Promise<void>) | undefined;
+  /** @deprecated Use installMockResource. */
   installScenarioResources?: ((projectRoot: string, sourceItemId: string) => Promise<void>) | undefined;
   installMockPlugin?: ((projectRoot: string, pluginId: string) => Promise<void>) | undefined;
   projectRoot?: string | undefined;
@@ -63,9 +65,11 @@ export function createCreatorDevServerPlugin({
   configRoot,
   python,
   installMockPlugin,
+  installMockResource,
   installScenarioResources,
   inspectMockProject,
 }: CreatorDevServerPluginOptions): Plugin {
+  const installResource = installMockResource ?? installScenarioResources;
   const creatorLog =
     python?.log ?? ((message: string) => console.error(`[Creator] ${message}`));
   const environment = python?.environment ?? process.env;
@@ -135,12 +139,12 @@ export function createCreatorDevServerPlugin({
             if (projectRoot === undefined || id !== projectRoot) throw new Error("当前项目已改变。");
             await installMockPlugin(projectRoot, pluginId);
           }
-        }, inspectMockProject, installScenarioResources === undefined ? undefined : async (id, sourceItemId) => {
+        }, inspectMockProject, installResource === undefined ? undefined : async (id, sourceItemId) => {
           if (workspaceManager !== undefined) {
-            await workspaceManager.runProjectOperation(id, root => installScenarioResources(root, sourceItemId));
+            await workspaceManager.runProjectOperation(id, root => installResource(root, sourceItemId));
           } else {
             if (projectRoot === undefined || id !== projectRoot) throw new Error("当前项目已改变。");
-            await installScenarioResources(projectRoot, sourceItemId);
+            await installResource(projectRoot, sourceItemId);
           }
         });
       });

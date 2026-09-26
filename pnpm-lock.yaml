@@ -111,6 +111,9 @@ importers:
       '@agent-ui/source-registry':
         specifier: workspace:^
         version: link:../../packages/source-registry
+      '@assistant-ui/react-hook-form':
+        specifier: 0.12.34
+        version: 0.12.34(@assistant-ui/tap@0.9.18(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(assistant-cloud@0.2.2)(react-hook-form@7.88.0(react@19.3.0))(react@19.3.0)
       '@tailwindcss/vite':
         specifier: 4.3.3
         version: 4.3.3(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
@@ -135,6 +138,9 @@ importers:
       jsdom:
         specifier: ^27.0.0
         version: 27.4.0
+      react-hook-form:
+        specifier: ^7
+        version: 7.88.0(react@19.3.0)
       react-test-renderer:
         specifier: 19.2.8
         version: 19.2.8(react@19.3.0)
@@ -628,6 +634,16 @@ packages:
       '@types/react': '*'
       react: ^18 || ^19
       zod: ^4.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
+  '@assistant-ui/react-hook-form@0.12.34':
+    resolution: {integrity: sha512-LMKuBpLTbM29ah6t+TPsgYCTl9v2C2OWulULH+pf5zoZI358O21iJzHGlNtXqx4tzzbzlT1a6YJWYGZmlCDPOA==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^18 || ^19
+      react-hook-form: ^7
     peerDependenciesMeta:
       '@types/react':
         optional: true
@@ -2712,6 +2728,12 @@ packages:
     peerDependencies:
       react: ^19.3.0
 
+  react-hook-form@7.88.0:
+    resolution: {integrity: sha512-QRaLOWhX93YCnMiRfnOFRSwWXZNt8qhm2JTZwypoDvKpSffTJHmpzMXt8U6PV5UThvL3IiiLDUWe2nHMtz6Mmw==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18 || ^19
+
   react-is@19.3.0:
     resolution: {integrity: sha512-UpMYezM4v5/18F28aC66AEsjXIgE02kyEMH6yLdgLXu/UTfa1Ntwck/nNLrbqJsEXW7gPb0coNO9FQse9WTovA==}
 
@@ -3246,6 +3268,21 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.3.0
     transitivePeerDependencies:
+      - ioredis
+      - redis
+
+  '@assistant-ui/react-hook-form@0.12.34(@assistant-ui/tap@0.9.18(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(assistant-cloud@0.2.2)(react-hook-form@7.88.0(react@19.3.0))(react@19.3.0)':
+    dependencies:
+      '@assistant-ui/core': 0.3.20(@assistant-ui/store@0.3.14(@assistant-ui/tap@0.9.18(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0))(@assistant-ui/tap@0.9.18(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(assistant-cloud@0.2.2)(react@19.3.0)
+      '@assistant-ui/store': 0.3.14(@assistant-ui/tap@0.9.18(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0)
+      react: 19.3.0
+      react-hook-form: 7.88.0(react@19.3.0)
+      zod: 4.6.5
+    optionalDependencies:
+      '@types/react': 19.3.0
+    transitivePeerDependencies:
+      - '@assistant-ui/tap'
+      - assistant-cloud
       - ioredis
       - redis
 
@@ -5368,6 +5405,10 @@ snapshots:
     dependencies:
       react: 19.3.0
       scheduler: 0.28.0
+
+  react-hook-form@7.88.0(react@19.3.0):
+    dependencies:
+      react: 19.3.0
 
   react-is@19.3.0: {}
 

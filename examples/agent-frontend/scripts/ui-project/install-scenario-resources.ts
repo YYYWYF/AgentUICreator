@@ -8,7 +8,7 @@ import { resourcePaths } from "./optional-resource-paths";
 import { installOptionalAgentUIResource } from "./install-optional-agent-ui-resource";
 import type { AppUIOperation } from "./app-ui-operations";
 
-const bundles = {
+const demoCompositions = {
   "demo/frontend-tool-dialog": "frontend-tool-dialog-demo",
   "demo/frontend-tool-form": "frontend-tool-form-demo",
 } as const;
@@ -19,11 +19,11 @@ export async function inspectScenarioResources(projectRoot: string) {
 }
 
 /** Cross-layer resource installation through the existing source/composition transactions. */
-export async function installScenarioResources(projectRoot: string, sourceItemId: string): Promise<void> {
-  if (!Object.hasOwn(bundles, sourceItemId)) throw new Error("Unsupported scenario resource bundle");
-  const pluginId = bundles[sourceItemId as keyof typeof bundles];
-  const { paths } = await resourcePaths(projectRoot);
+export async function installMockResource(projectRoot: string, sourceItemId: string): Promise<void> {
   await installOptionalAgentUIResource(projectRoot, sourceItemId);
+  if (!Object.hasOwn(demoCompositions, sourceItemId)) return;
+  const pluginId = demoCompositions[sourceItemId as keyof typeof demoCompositions];
+  const { paths } = await resourcePaths(projectRoot);
   const source = await readFile(paths.appUIModelPath, "utf8");
   const model = parseAppUIModelJson(source);
   const locations = collectAppUIPluginLocations(model);
@@ -56,3 +56,6 @@ export async function installScenarioResources(projectRoot: string, sourceItemId
 }
 
 export { installOptionalAgentUIResource } from "./install-optional-agent-ui-resource";
+
+/** Compatibility alias for hosts using the previous option. */
+export const installScenarioResources = installMockResource;

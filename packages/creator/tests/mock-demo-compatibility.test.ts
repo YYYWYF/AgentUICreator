@@ -3,36 +3,41 @@ import { inspectMockDemoCompatibility, inspectMockProjectCompatibility, mockDemo
 
 const sources = { items: mockDemoRequirements.filter(item => item.sourceItemId).map(item => ({ id: item.sourceItemId!, status: "managed", resolvedRequirements: [] })) };
 const empty: ProjectCompositionInspection = { pluginSources: [], pluginInstances: [] };
-function status(snapshot: ProjectCompositionInspection, pluginId: string) {
-  return inspectMockDemoCompatibility(snapshot, sources).requirements.find(requirement => requirement.plugin!.id === pluginId)?.status;
+function statusByResource(snapshot: ProjectCompositionInspection, id: string) {
+  return inspectMockDemoCompatibility(snapshot, sources).requirements.find(requirement => requirement.id === id)?.status;
 }
 
 describe("Mock requirements from formal inspection", () => {
   it.each(mockDemoRequirements)("checks $id source, activation and renderer placement", requirement => {
+    const plugin = requirement.plugin;
+    if (!plugin) {
+      expect(statusByResource(empty, requirement.id)).toBe("ready");
+      return;
+    }
     const snapshot: ProjectCompositionInspection = {
-      pluginSources: [{ pluginId: requirement.plugin!.id, status: "available", dataMessageUINames: ["chart"] }],
+      pluginSources: [{ pluginId: plugin.id, status: "available", dataMessageUINames: ["chart"] }],
       pluginInstances: [],
     };
-    expect(status(empty, requirement.plugin!.id)).toBe("missing");
-    expect(status(snapshot, requirement.plugin!.id)).toBe("disabled");
+    expect(statusByResource(empty, requirement.id)).toBe("missing");
+    expect(statusByResource(snapshot, requirement.id)).toBe("disabled");
     const parent = { id: "surface", pluginId: "conversation-surface", enabled: true, effectiveEnabled: true, target: { type: "application" } };
-    const instance = { id: "demo", pluginId: requirement.plugin!.id, enabled: true, effectiveEnabled: false, target: { type: "plugin_slot", parentInstanceId: "surface", slot: requirement.plugin!.slot ?? "body" } };
+    const instance = { id: "demo", pluginId: plugin.id, enabled: true, effectiveEnabled: false, target: { type: "plugin_slot", parentInstanceId: "surface", slot: plugin.slot ?? "body" } };
     snapshot.pluginInstances = [parent, instance];
-    expect(status(snapshot, requirement.plugin!.id)).toBe("disabled");
+    expect(statusByResource(snapshot, requirement.id)).toBe("disabled");
     instance.effectiveEnabled = true;
-    expect(status(snapshot, requirement.plugin!.id)).toBe("ready");
-    if (requirement.plugin!.slot) {
+    expect(statusByResource(snapshot, requirement.id)).toBe("ready");
+    if (plugin.slot) {
       instance.target.slot = "wrong";
-      expect(status(snapshot, requirement.plugin!.id)).toBe("disabled");
-      instance.target.slot = requirement.plugin!.slot;
+      expect(statusByResource(snapshot, requirement.id)).toBe("disabled");
+      instance.target.slot = plugin.slot;
       parent.pluginId = "other";
-      expect(status(snapshot, requirement.plugin!.id)).toBe("disabled");
+      expect(statusByResource(snapshot, requirement.id)).toBe("disabled");
     }
   });
 
   it("requires formal chart renderer registration and rejects partial sources", () => {
     const snapshot: ProjectCompositionInspection = { pluginSources: [{ pluginId: "chart-message", status: "available" as const, dataMessageUINames: [] }], pluginInstances: [] };
-    expect(status(snapshot, "chart-message")).toBe("missing");
+    expect(statusByResource(snapshot, "chart-message")).toBe("missing");
     snapshot.pluginSources[0]!.dataMessageUINames = ["chart"];
     expect(inspectMockDemoCompatibility(snapshot, { items: [{ id: "plugin/chart-message", status: "partial" }] }).requirements.find(r => r.plugin?.id === "chart-message")?.status).toBe("missing");
   });
@@ -53,7 +58,7 @@ describe("Scenario Resource readiness", () => {
       pluginInstances: [{ id: "form", pluginId, enabled: true, effectiveEnabled: true, target: { type: "layout_slot" } }],
     };
     const bundle = { id: "demo/frontend-tool-form", status: "not-installed", resolvedRequirements: [{ name: "react-hook-form", required: "^7", compatible: false }] };
-    const inspect = () => inspectMockDemoCompatibility(snapshot, { items: [bundle] }).requirements.find(item => item.plugin?.id === pluginId)!;
+    const inspect = () => inspectMockDemoCompatibility(snapshot, { items: [bundle] }).requirements.find(item => item.id === "frontend-tool-form")!;
     expect(inspect().status).toBe("missing");
     expect(inspect().missingPackages).toEqual([{ name: "react-hook-form", required: "^7" }]);
     bundle.status = "managed"; bundle.resolvedRequirements[0]!.compatible = true;

@@ -1,3 +1,4 @@
+import { loadAgentUISourceRegistry, isOptionalAgentUISourceItem } from "@agent-ui/source-registry";
 import { writeGeneratedPluginRegistry } from "../generate-plugin-registry";
 import { writeGeneratedFrontendToolRegistries } from "../generate-frontend-tool-registry";
 import { inspectAgentUISources, applyAgentUISourceItem } from "./source-registry";
@@ -9,7 +10,8 @@ export async function installOptionalAgentUIResource(projectRoot: string, source
   const { config } = await resourcePaths(projectRoot);
   const inspection = await inspectAgentUISources(projectRoot, config);
   const item = inspection.items.find(item => item.id === sourceItemId);
-  if (!item || !/^(integration|demo)\//.test(sourceItemId)) throw new Error("Optional Agent UI resource is unavailable");
+  const definition = (await loadAgentUISourceRegistry()).byId.get(sourceItemId);
+  if (!item || !definition || !isOptionalAgentUISourceItem(definition)) throw new Error("Optional Agent UI resource is unavailable");
   const missing = item.resolvedRequirements.filter(requirement => !requirement.compatible).map(({ name, required }) => ({ name, required }));
   if (missing.length) throw new AgentUISourceError("AGENT_UI_PACKAGE_REQUIREMENTS_UNMET", `缺少依赖：${missing.map(item => `${item.name} ${item.required}`).join(", ")}`, missing);
   // Also repairs dependency closure and synchronizes clean older versions.

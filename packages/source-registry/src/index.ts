@@ -22,3 +22,4 @@ export type {
   LoadedAgentUISourceRegistry,
 } from "./types.js";
 export { resolveAgentUISourceItemClosure } from "./closure.js";
+export { isOptionalAgentUISourceItem } from "./optional-resource.js";

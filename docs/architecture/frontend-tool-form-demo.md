@@ -69,15 +69,14 @@ Replay coverage should exercise:
 This document states the intended contract. No runtime acceptance is claimed for
 this implementation delivery; checks are skipped when requested by the user.
 
-The native Form regression harness is retained as a development template at
-`packages/source-registry/registry/items/demo-frontend-tool-form/tests/frontend-tool-form-lifecycle.test.tsx.template`.
-It is deliberately excluded from resource installation to keep generated projects
-free of the test harness's dev-only Mock Agent/Vitest dependencies. After installing
-the Form bundle into the example target and its RHF dependency, copy this template
-to `examples/agent-frontend/tests/frontend-tool-form-lifecycle.test.tsx` to run it in
-that target's existing test environment. Dialog coverage remains in the example's
-lifecycle tests with test-only fixtures. Catalog and readiness coverage is in the
-Mock Agent, Source Registry and Creator test suites.
+The native Form lifecycle and Integration contract regressions are active in the
+example target's ordinary test suite. Their fixtures under
+`tests/fixtures/official-form` are byte-identical copies of installable Registry
+source; `official-form-fixture.test.ts` checks equivalence. Small fixture facades
+connect relative imports to the project's real Runtime and locale layer. RHF and
+its assistant-ui contract package are test-only development dependencies of the
+example; installed generated projects still own their production dependencies.
+
 
 ## Official Integration resource contract
 
@@ -102,9 +101,9 @@ adds Demo composition and project verification afterward. Neither runs a package
 manager. Direct `requirements` remain item-local; `dependencies`,
 `resolvedRequirements` and `dependencyIssues` describe transitive readiness.
 Installed consumers prevent dependency removal with
-`AGENT_UI_SOURCE_DEPENDENCY_IN_USE`. Legacy v1 hosts explicitly provide the existing
-core Runtime: its source files are checked, never adopted or overwritten by the
-optional-resource lock. V2 foundations remain managed through the project source lock.
+`AGENT_UI_SOURCE_DEPENDENCY_IN_USE`. Legacy v1 hosts derive all host-owned foundations from Registry kind, including
+core contracts and core Runtime: their source files are checked, never adopted or
+overwritten by the optional-resource lock. V2 foundations remain managed through the project source lock.
 
 ## Future A2UI public boundary (contract only)
 
@@ -116,7 +115,12 @@ import `useAgUiSendA2uiAction` directly from `@assistant-ui/react-ag-ui`.
 Integration adapters should centralize `JSONGenerativeUI` and
 `defaultGenerativeUILibrary` usage so assistant-ui API changes stay at that boundary.
 
-The Integration's upstream semantic and permission regression template lives at
-`packages/source-registry/registry/items/integration-react-hook-form/tests/frontend-tool-contract.test.ts.template`.
-Copy it to the example target's `tests/` after explicitly installing the resource
-and its dependencies. It is excluded from production resource installation.
+
+The Creator host uses `installMockResource` for both Demo and pluginless resources.
+It always installs source first and composes a Plugin only for entries in the Demo
+composition map. `installScenarioResources` remains a compatibility alias, and the
+Creator Dev Server prefers `installMockResource` over the deprecated option.
+Workbench inspection merges both Demo and Integration kinds from the optional
+source lock, plus legacy host-owned foundation facts from actual files. The active
+legacy readiness regression covers installation, composition, this merge, and
+`frontend-tool-form` becoming ready without adopting any foundation source.

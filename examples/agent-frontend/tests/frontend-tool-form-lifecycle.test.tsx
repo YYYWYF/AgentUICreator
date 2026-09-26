@@ -1,0 +1,157 @@
+// @vitest-environment jsdom
+import { StrictMode, act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { useAui, type AssistantRuntime, type ThreadMessage } from "@assistant-ui/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { ConversationRuntimeProvider, type ConversationThreadBinding } from "@agent-ui/runtime-conversation";
+import { HttpAgent } from "@ag-ui/client";
+import type { RunAgentInput } from "@ag-ui/core";
+import { runMockScenario } from "@agent-ui/mock-agent";
+import { frontendToolFillFormScenario } from "@agent-ui/mock-agent";
+import { frontendTools as appFrontendTools } from "./fixtures/official-form/agent-contract/frontend-tools/demo-form-tools";
+import { frontendToolUIs } from "./fixtures/official-form/agent-ui/conversation/frontend-tool-uis/demo-form-tools";
+import { ConversationSurface } from "../agent-ui/conversation/ConversationSurface";
+import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
+import frontendToolFormDemoPlugin from "./fixtures/official-form/plugins/frontend-tool-form-demo/definition";
+import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../runtime/tools";
+import { PluginServiceRuntime, PluginServiceRuntimeContext, createPluginRegistry, UIPluginRuntime } from "../runtime/plugins";
+import { DEMO_FORM_SERVICE, type DemoFormService } from "./fixtures/official-form/services/demo-form";
+
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+class ResizeObserverMock { observe() {} unobserve() {} disconnect() {} }
+vi.stubGlobal("ResizeObserver", ResizeObserverMock);
+const roots: Root[] = [];
+const tick = () => new Promise(resolve => setTimeout(resolve, 0));
+async function settle(predicate: () => boolean) { for (let i = 0; i < 100 && !predicate(); i++) await act(async () => { await tick(); }); expect(predicate()).toBe(true); }
+const cleanups: Array<() => void> = [];
+afterEach(async () => { await act(async () => { roots.splice(0).forEach(root => root.unmount()); }); cleanups.splice(0).forEach(cleanup => cleanup()); document.body.replaceChildren(); });
+const actions = { sendMessage: vi.fn(async () => {}), resumeInterrupts: vi.fn(async () => {}), startNewConversation: vi.fn(async () => {}), abortRun: vi.fn() };
+function model(enabled = true) {
+  return parseAppUIRuntimeModel({ root: { type: "slot", id: "demo-slot", slotId: "demo-slot" }, pluginInstances: {
+    demo: { id: "demo", pluginId: "frontend-tool-form-demo", enabled, mount: { slotId: "demo-slot" } },
+  } });
+}
+function resolvedHistory(): ThreadMessage[] {
+  return [{ id: "stored-dialog", role: "assistant", createdAt: new Date(0),
+    status: { type: "complete", reason: "stop" },
+    content: [{ type: "tool-call", toolCallId: "stored-call", toolName: "set_form_field", args: { name: "firstName", value: "Alice" }, argsText: '{"name":"firstName","value":"Alice"}', result: { success: true, name: "firstName", value: "Alice" } }],
+    metadata: { unstable_state: null, unstable_annotations: [], unstable_data: [], steps: [], custom: {} },
+  }];
+}
+async function fixture(coldHistory = false) {
+  const services = new PluginServiceRuntime();
+  const registry = createPluginRegistry([frontendToolFormDemoPlugin]);
+  services.reconcile(model(), registry, actions);
+  const dialog = services.get<DemoFormService>(DEMO_FORM_SERVICE)!;
+  const open = vi.spyOn(dialog, "setField");
+  const source = new AppFrontendToolRuntime(new AppFrontendToolRegistry(appFrontendTools));
+  const disconnect = source.connectServices(services.services, services.subscribe);
+  const execute = vi.spyOn(source, "execute");
+  cleanups.push(() => { disconnect(); services.dispose(); });
+  let current = coldHistory ? "history" : "live";
+  const threadList = { threads: ["live", "history", "other"].map(id => ({ id, status: "regular" as const })), archivedThreads: [] };
+  const binding: ConversationThreadBinding = {
+    getThreadId: () => current,
+    subscribe: () => () => {},
+    getThreadListSnapshot: () => threadList,
+    activateThread: id => { current = id; },
+    createNewThread: async () => "new",
+    loadThread: async id => ({ messages: id === "history" ? resolvedHistory() : [] }),
+  };
+  let runtime!: AssistantRuntime;
+  function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
+  const inputs: RunAgentInput[] = [];
+  const agents: HttpAgent[] = [];
+  const agentFactory = ({ threadId }: { threadId: string }) => {
+    const agent = new HttpAgent({ url: "http://example.test/agent", threadId, fetch: async (_url, init) => {
+      const input = JSON.parse(String(init.body)) as RunAgentInput;
+      inputs.push(input);
+      const encoder = new TextEncoder();
+      const lastUser = [...input.messages].reverse().find(message => message.role === "user");
+      const requested = lastUser?.content === "submit form" ? "submit_form" : lastUser?.content === "reset form" ? "reset_form" : undefined;
+      const scenario = requested ? { ...frontendToolFillFormScenario,
+        steps: [{ type: "tool" as const, frontend: true, name: requested, args: {}, result: null }],
+        frontendContinuation: { toolName: requested, successText: "Done", errorText: "Failed" },
+      } : frontendToolFillFormScenario;
+      const body = new ReadableStream<Uint8Array>({ async start(controller) {
+        try {
+          for await (const event of runMockScenario(input, scenario, { timingScale: 0 })) controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+          controller.close();
+        } catch (error) { controller.error(error); }
+      } });
+      return new Response(body, { headers: { "Content-Type": "text/event-stream" } });
+    } });
+    vi.spyOn(agent, "runAgent"); agents.push(agent); return agent;
+  };
+  const container = document.createElement("div"); document.body.append(container);
+  const root = createRoot(container); roots.push(root);
+  await act(async () => { root.render(<StrictMode>
+    <ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} frontendTools={source} frontendToolUIs={frontendToolUIs} unstable_agentFactory={agentFactory}>
+      <PluginServiceRuntimeContext.Provider value={services}>
+        <Capture />
+        <ConversationSurface />
+        <UIPluginRuntime model={model()} registry={registry} actions={actions} />
+      </PluginServiceRuntimeContext.Provider>
+    </ConversationRuntimeProvider>
+  </StrictMode>); await tick(); });
+  return { runtime, dialog, open, execute, inputs, agents, container, services, source, registry };
+}
+
+describe("React Hook Form native frontend tools and replay safety", () => {
+  it("fills both fields once and preserves a manual edit across conversation replay", async () => {
+    const f = await fixture();
+    await act(async () => { f.runtime.thread.append({ role: "user", content: [{ type: "text", text: "fill form" }], startRun: true }); await tick(); });
+    await settle(() => f.inputs.length === 2 && !f.runtime.thread.getState().isRunning);
+    expect(f.open).toHaveBeenCalledTimes(2);
+    expect(f.execute).toHaveBeenCalledTimes(2);
+    const field = f.container.querySelector<HTMLInputElement>('input[name="firstName"]')!;
+    expect(field.value).toBe("Alice");
+    expect(f.container.querySelector<HTMLInputElement>('input[name="email"]')!.value).toBe("alice@example.com");
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(field, "Bob");
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      field.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(f.dialog.getSnapshot().values.firstName).toBe("Bob");
+    await act(async () => { await f.runtime.threads.switchToThread("other"); });
+    await act(async () => { await f.runtime.threads.switchToThread("live"); });
+    expect(field.value).toBe("Bob");
+    expect(f.container.textContent).toContain("Alice");
+    expect(f.open).toHaveBeenCalledTimes(2);
+    expect(f.dialog.getSnapshot().submitCount).toBe(0);
+  });
+  it("historical submit/reset receipts never invoke the form controller", async () => {
+    const f = await fixture();
+    await act(async () => { await f.dialog.setField("firstName", "Bob"); await f.dialog.setField("email", "bob@example.com"); });
+    await act(async () => { f.runtime.thread.append({ role: "user", content: [{ type: "text", text: "submit form" }], startRun: true }); await tick(); });
+    await settle(() => f.inputs.length === 2 && !f.runtime.thread.getState().isRunning);
+    expect(f.dialog.getSnapshot().submitCount).toBe(1);
+    const submit = vi.spyOn(f.dialog, "submit"); const reset = vi.spyOn(f.dialog, "reset");
+
+    await act(async () => { await f.runtime.threads.switchToThread("other"); });
+    await act(async () => { await f.runtime.threads.switchToThread("live"); });
+    expect(submit).not.toHaveBeenCalled(); expect(reset).not.toHaveBeenCalled();
+    expect(f.dialog.getSnapshot().values.firstName).toBe("Bob");
+    expect(f.dialog.getSnapshot().submitCount).toBe(1);
+    // Reset once live, edit afterward, then revisit the historical reset receipt.
+    await act(async () => { f.runtime.thread.append({ role: "user", content: [{ type: "text", text: "reset form" }], startRun: true }); await tick(); });
+    await settle(() => f.inputs.length === 4 && !f.runtime.thread.getState().isRunning);
+    expect(reset).toHaveBeenCalledTimes(1);
+    await act(async () => { await f.dialog.setField("firstName", "Bob"); });
+    await act(async () => { await f.runtime.threads.switchToThread("other"); });
+    await act(async () => { await f.runtime.threads.switchToThread("live"); });
+    expect(reset).toHaveBeenCalledTimes(1);
+    expect(submit).not.toHaveBeenCalled();
+    expect(f.dialog.getSnapshot().values.firstName).toBe("Bob");
+  });
+  it("hides every form tool after provider removal", async () => {
+    const f = await fixture();
+    expect(f.source.listTools().map(tool => tool.name).sort()).toEqual(["reset_form", "set_form_field", "submit_form"]);
+    await act(async () => { f.services.reconcile(model(false), f.registry, actions); });
+    expect(f.source.listTools()).toEqual([]);
+    await act(async () => { f.runtime.thread.append({ role: "user", content: [{ type: "text", text: "fill form" }], startRun: true }); await tick(); });
+    await settle(() => f.inputs.length > 0 && !f.runtime.thread.getState().isRunning);
+    expect(f.inputs[0]!.tools).toEqual([]);
+    expect(f.execute).not.toHaveBeenCalled();
+  });
+});

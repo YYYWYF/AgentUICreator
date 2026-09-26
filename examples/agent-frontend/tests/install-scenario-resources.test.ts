@@ -1,8 +1,8 @@
-import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
-import { installScenarioResources } from "../scripts/ui-project/install-scenario-resources";
+import { installScenarioResources, installMockResource } from "../scripts/ui-project/install-scenario-resources";
 vi.mock("../scripts/generate-plugin-registry", () => ({ writeGeneratedPluginRegistry: vi.fn() }));
 vi.mock("../scripts/generate-frontend-tool-registry", () => ({ writeGeneratedFrontendToolRegistries: vi.fn() }));
 vi.mock("../scripts/verify-ui", () => ({ verifyUIProject: vi.fn(async () => ({ status: "passed" })) }));
@@ -18,6 +18,7 @@ vi.mock("../scripts/ui-project/source-registry", () => ({
   }),
 }));
 vi.mock("../scripts/ui-project/app-ui-transaction", () => ({ mutateAppUIModel: vi.fn() }));
+import { verifyUIProject } from "../scripts/verify-ui";
 import { mutateAppUIModel } from "../scripts/ui-project/app-ui-transaction";
 import { applyAgentUISourceItem, inspectAgentUISources } from "../scripts/ui-project/source-registry";
 import { writeGeneratedPluginRegistry } from "../scripts/generate-plugin-registry";
@@ -46,4 +47,21 @@ it("reports missing dependencies before any source or composition mutation", asy
   expect(applyAgentUISourceItem).not.toHaveBeenCalled();
   expect(writeGeneratedPluginRegistry).not.toHaveBeenCalled();
   expect(mutateAppUIModel).not.toHaveBeenCalled();
+});
+
+it("installs a pluginless Integration through the same Mock seam without composition", async () => {
+  const root = await project();
+  vi.mocked(inspectAgentUISources)
+    .mockResolvedValueOnce({ stateHash: "hash", items: [{ id: "integration/react-hook-form", status: "not-installed", dependencies: [], dependencyIssues: [], resolvedRequirements: [] }] } as unknown as Awaited<ReturnType<typeof inspectAgentUISources>>);
+  vi.mocked(applyAgentUISourceItem).mockImplementationOnce(async () => {
+    vi.mocked(inspectAgentUISources).mockResolvedValueOnce({ stateHash: "after", items: [{ id: "integration/react-hook-form", status: "managed", dependencies: [], dependencyIssues: [], resolvedRequirements: [] }] } as unknown as Awaited<ReturnType<typeof inspectAgentUISources>>);
+    return {} as Awaited<ReturnType<typeof applyAgentUISourceItem>>;
+  });
+  const before = await readFile(path.join(root, "model.json"), "utf8");
+  await installMockResource(root, "integration/react-hook-form");
+  expect(applyAgentUISourceItem).toHaveBeenCalledWith(root, { itemId: "integration/react-hook-form", expectedStateHash: "hash" }, {});
+  expect(writeGeneratedFrontendToolRegistries).toHaveBeenCalledWith(root);
+  expect(mutateAppUIModel).not.toHaveBeenCalled();
+  expect(verifyUIProject).not.toHaveBeenCalled();
+  expect(await readFile(path.join(root, "model.json"), "utf8")).toBe(before);
 });
