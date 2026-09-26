@@ -91,7 +91,7 @@ afterEach(() => {
 
 describe("Agent UI locale foundation", () => {
   it("registers complete messages and direction metadata for each locale", () => {
-    const namespaces: (keyof AgentUILocaleMessages)[] = ["threadList", "theme"];
+    const namespaces: (keyof AgentUILocaleMessages)[] = ["threadList", "theme", "auth"];
     expect(Object.keys(AGENT_UI_LOCALES).sort()).toEqual(["en-US", "zh-CN"]);
     expect(Object.keys(AGENT_UI_LOCALE_METADATA).sort()).toEqual(Object.keys(AGENT_UI_LOCALES).sort());
     for (const locale of Object.keys(AGENT_UI_LOCALES) as (keyof typeof AGENT_UI_LOCALES)[]) {

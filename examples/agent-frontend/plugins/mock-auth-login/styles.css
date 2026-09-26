@@ -1,0 +1,54 @@
+.mock-auth-login {
+  box-sizing: border-box;
+  display: grid;
+  min-height: 100%;
+  padding: 1.5rem;
+  place-items: center;
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.mock-auth-login-card {
+  box-sizing: border-box;
+  display: grid;
+  width: min(100%, 24rem);
+  gap: 1rem;
+  padding: clamp(1.25rem, 5vw, 2rem);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--card);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 5%);
+}
+
+.mock-auth-login-icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: 0.875rem;
+  background: var(--muted);
+}
+
+.mock-auth-login-badge,
+.mock-auth-login-card small {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.mock-auth-login-card h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.mock-auth-login-card p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.mock-auth-login-button {
+  width: 100%;
+}

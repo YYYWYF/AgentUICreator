@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "08fb983293e56603b8b4244b054ba0a7479d4d50d7a59d1b80ccad18ddd94ff4";
+export const capabilityCatalogRevision = "c32b364f7e875c7ac0d286f1dff4057e5711442a809eda9486bfc3d7b61f69ad";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -673,6 +673,34 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     optionalInject: [],
     loadDefinition: () =>
       import("./locale-provider/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
+      "id": "mock-auth-login",
+      "name": "Mock Authentication",
+      "description": "Demonstrates application login with an in-memory session, ready for an internal identity provider.",
+      "version": "2.0.0",
+      "authoring": {
+        "intents": [
+          "show a login demo",
+          "require login before entering the app"
+        ],
+        "visualRole": "application login"
+      },
+      "application": {
+        "gate": {
+          "service": "auth.gate",
+          "priority": 100
+        }
+      }
+    },
+    provides: ["auth.gate","auth.session"],
+    inject: ["agent-ui.locale","agent-ui.theme"],
+    optionalInject: [],
+    loadDefinition: () =>
+      import("./mock-auth-login/definition").then(
         ({ default: definition }) => definition,
       ),
   },

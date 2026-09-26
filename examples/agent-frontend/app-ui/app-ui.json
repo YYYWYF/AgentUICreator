@@ -24,6 +24,11 @@
       "id": "chart-message-main",
       "pluginId": "chart-message",
       "enabled": true
+    },
+    {
+      "id": "mock-auth-login-main",
+      "pluginId": "mock-auth-login",
+      "enabled": true
     }
   ],
   "root": {

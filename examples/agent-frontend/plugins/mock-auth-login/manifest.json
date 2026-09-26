@@ -1,0 +1,13 @@
+{
+  "id": "mock-auth-login",
+  "name": "Mock Authentication",
+  "description": "Demonstrates application login with an in-memory session, ready for an internal identity provider.",
+  "version": "2.0.0",
+  "authoring": {
+    "intents": ["show a login demo", "require login before entering the app"],
+    "visualRole": "application login"
+  },
+  "application": {
+    "gate": { "service": "auth.gate", "priority": 100 }
+  }
+}
