@@ -25,7 +25,7 @@ describe("Agent UI Source Registry public conversation contract", () => {
     expect(registry.items.filter(entry => entry.kind === "demo")).toHaveLength(2);
     expect(registry.items[0]?.kind).toBe("foundation");
     expect(registry.items.filter((entry) => entry.kind === "primitive")).toHaveLength(0);
-    expect(registry.items.filter((entry) => entry.kind === "agent-component")).toHaveLength(0);
+    expect(registry.items.filter((entry) => entry.kind === "agent-component").map(entry => entry.id)).toEqual(["agent-component/assistant-ui-generative-ui"]);
   });
 
   it("installs only the public Conversation bridge", async () => {

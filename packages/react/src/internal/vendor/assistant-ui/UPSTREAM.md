@@ -1,7 +1,7 @@
 # Vendored assistant-ui source
 
 Repository: https://github.com/assistant-ui/assistant-ui.git
-Branch: `main`
+Source policy: fixed published release
 Commit: `da9a624496ae97864ae30e90f85c7533092a228d`
 Previous commit: `039c3c32822632f2a564164f089f538926886124`
 License: MIT

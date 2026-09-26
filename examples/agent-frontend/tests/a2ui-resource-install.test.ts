@@ -7,13 +7,13 @@ import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "@age
 import { installMockResource, inspectScenarioResources } from "../scripts/ui-project/install-scenario-resources";
 const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
-async function fixture(legacy = false) {
+async function fixture(legacy = false, itemId = "integration/a2ui") {
   const root = await mkdtemp(path.join(tmpdir(), "a2ui-resource-")); roots.push(root);
   const sourceRoot = legacy ? root : path.join(root, "custom-ui");
   await mkdir(path.join(root, ".agent-ui"));
   await writeFile(path.join(root, ".agent-ui/project.json"), JSON.stringify(legacy ? { version: "1", mode: "platform" } : { version: "2", mode: "platform", sourceRoot: "custom-ui" }));
   const registry = await loadAgentUISourceRegistry();
-  const closure = resolveAgentUISourceItemClosure(registry, "integration/a2ui");
+  const closure = resolveAgentUISourceItemClosure(registry, itemId);
   const dependencies = Object.assign({}, ...closure.map(item => item.packages ?? {})) as Record<string, string>;
   await writeFile(path.join(root, "package.json"), JSON.stringify({ dependencies }));
   for (const [name, required] of Object.entries(dependencies)) {
@@ -37,6 +37,9 @@ it.each([false, true])("installs a pluginless/tool-less A2UI resource without ch
   await installMockResource(f.root, "integration/a2ui");
   expect(await readFile(f.modelPath, "utf8")).toBe(model);
   const inspection = await inspectScenarioResources(f.root);
+  for (const id of ["agent-component/assistant-ui-generative-ui", "integration/generative-ui", "integration/a2ui"]) {
+    expect(inspection.items.find(item => item.id === id)).toMatchObject({ status: "managed", dependencyIssues: [] });
+  }
   expect(inspection.items.find(item => item.id === "integration/a2ui")).toMatchObject({ status: "managed", dependencyIssues: [] });
   expect(inspection.items.find(item => item.id === "integration/a2ui")!.resolvedRequirements.every(requirement => requirement.compatible)).toBe(true);
   const generated = await readFile(path.join(f.sourceRoot, "agent-ui/conversation/integrations.generated.tsx"), "utf8");
@@ -51,4 +54,21 @@ it("reports incompatible optional dependencies before writing source", async () 
   await writeFile(path.join(f.root, "node_modules/@assistant-ui/react-generative-ui/package.json"), JSON.stringify({ name: "@assistant-ui/react-generative-ui", version: "0.0.18" }));
   await expect(installMockResource(f.root, "integration/a2ui")).rejects.toMatchObject({ code: "AGENT_UI_PACKAGE_REQUIREMENTS_UNMET" });
   await expect(readFile(path.join(f.sourceRoot, "integrations/a2ui/index.ts"))).rejects.toMatchObject({ code: "ENOENT" });
+});
+
+it.each([false, true])("installs Generative UI alone without changing layout or mounting Tool permission (legacy=%s)", async legacy => {
+  const f = await fixture(legacy, "integration/generative-ui");
+  const model = await readFile(f.modelPath, "utf8");
+  await installMockResource(f.root, "integration/generative-ui");
+  expect(await readFile(f.modelPath, "utf8")).toBe(model);
+  const inspection = await inspectScenarioResources(f.root);
+  for (const id of ["agent-component/assistant-ui-generative-ui", "integration/generative-ui"]) {
+    expect(inspection.items.find(item => item.id === id)).toMatchObject({ status: "managed", dependencyIssues: [] });
+  }
+  expect(inspection.items.find(item => item.id === "integration/a2ui")?.status).not.toBe("managed");
+  const tools = await readFile(path.join(f.sourceRoot, "agent-contract/frontend-tools.generated.ts"), "utf8");
+  expect(tools).not.toContain("present"); expect(tools).not.toContain("prompt_user");
+  const host = await readFile(path.join(f.sourceRoot, "agent-ui/conversation/integrations.generated.tsx"), "utf8");
+  expect(host).not.toContain('from "./integrations/generative-ui"');
+  expect(host).not.toContain('from "./integrations/a2ui"');
 });

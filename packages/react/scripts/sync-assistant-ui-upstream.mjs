@@ -67,7 +67,6 @@ async function hasCommit(repo, revision) {
 }
 
 async function ensureRevision(repo, revision) {
-  await git(repo, ["fetch", "origin", "main"]);
   if (await hasCommit(repo, revision)) return;
 
   try {
@@ -273,7 +272,7 @@ function upstreamMarkdown({ revision, oldRevision, target, files, inventory, new
   const packageVersions = packageMetadata(target);
   return `# Vendored assistant-ui source\n\n` +
     `Repository: ${UPSTREAM_REPOSITORY}\n` +
-    `Branch: \`main\`\n` +
+    (target.releasePinned ? `Source policy: fixed published release\n` : `Branch: \`main\`\n`) +
     `Commit: \`${revision}\`\n` +
     `Previous commit: \`${oldRevision}\`\n` +
     `License: MIT\n` +

@@ -10,16 +10,18 @@ afterEach(async () => {
   await Promise.all(servers.splice(0).map(server => new Promise<void>(resolve => { server.close(() => resolve()); server.closeAllConnections(); })));
 });
 
-it("gates A2UI selection on the same source resource accepted by the installation API", async () => {
+it.each(["a2ui-interactive-order", "a2ui-form-controls"])("gates %s on the same source resource accepted by the installation API", async scenarioId => {
   const service = new CreatorMockService(); services.push(service);
   let installed = false;
   const installResources = vi.fn(async () => { installed = true; });
   const inspector = vi.fn(async () => ({
     composition: { pluginSources: [], pluginInstances: [] },
     sources: { items: [
-      { id: "integration/a2ui", status: installed ? "managed" : "not-installed", dependencies: ["foundation/core"], dependencyIssues: [],
-        resolvedRequirements: [{ name: "@assistant-ui/react-generative-ui", required: "0.0.19", compatible: true }] },
+      { id: "integration/a2ui", status: installed ? "managed" : "not-installed", dependencies: ["foundation/core", "agent-component/assistant-ui-generative-ui", "integration/generative-ui"], dependencyIssues: [],
+        resolvedRequirements: [{ name: "@assistant-ui/react-generative-ui", required: "0.0.21", compatible: true }] },
       { id: "foundation/core", status: "managed" },
+      { id: "agent-component/assistant-ui-generative-ui", status: installed ? "managed" : "not-installed" },
+      { id: "integration/generative-ui", status: installed ? "managed" : "not-installed" },
     ] },
   }));
   const server = createServer((request, response) => { void handleCreatorMockRequest(request, response, service,
@@ -31,10 +33,10 @@ it("gates A2UI selection on the same source resource accepted by the installatio
   const post = (route: string, body: unknown) => fetch(`${base}${route}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const initial = await (await fetch(`${base}/compatibility`)).json();
   expect(initial.requirements.find((item: { id: string }) => item.id === "a2ui")).toMatchObject({ sourceItemId: "integration/a2ui", status: "missing" });
-  const denied = await post("/select", { scenarioId: "a2ui-interactive-order", speed: 0 });
+  const denied = await post("/select", { scenarioId, speed: 0 });
   expect(denied.status).toBe(400);
   expect((await denied.json()).error).toContain("请先安装");
-  expect(service.getState().scenarioId).not.toBe("a2ui-interactive-order");
+  expect(service.getState().scenarioId).not.toBe(scenarioId);
   expect(installResources).not.toHaveBeenCalled();
   const unsupported = await post("/install-resources", { projectId: "project", sourceItemId: "plugin/chart-message" });
   expect(unsupported.status).toBe(400);
@@ -49,7 +51,7 @@ it("gates A2UI selection on the same source resource accepted by the installatio
   expect(requirement).toMatchObject({ sourceItemId: "integration/a2ui", status: "ready" });
   expect(requirement.plugin).toBeUndefined();
   expect(compatibility.canInstallResources).toBe(true);
-  const selected = await post("/select", { scenarioId: "a2ui-interactive-order", speed: 0 });
+  const selected = await post("/select", { scenarioId, speed: 0 });
   expect(selected.status).toBe(200);
-  expect(await selected.json()).toMatchObject({ scenarioId: "a2ui-interactive-order" });
+  expect(await selected.json()).toMatchObject({ scenarioId });
 });

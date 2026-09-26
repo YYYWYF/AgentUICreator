@@ -9,6 +9,8 @@ import { JSONGenerativeUI, defaultGenerativeUILibrary, createActionRegistry } fr
 import { afterEach, describe, expect, it } from "vitest";
 import { A2uiConversationIntegration } from "../../../packages/source-registry/registry/items/integration-a2ui/files/integrations/a2ui/A2uiConversationIntegration";
 import { createA2uiConversationToolkit } from "../../../packages/source-registry/registry/items/integration-a2ui/files/integrations/a2ui/create-a2ui-toolkit";
+import { createAgentUIGenerativeUI } from "../../../packages/source-registry/registry/items/integration-generative-ui/files/integrations/generative-ui";
+import { a2uiFormControlsSnapshot } from "../../../packages/mock-agent/src/builtins/a2ui-form-controls";
 import { a2uiOrderSnapshot } from "../../../packages/mock-agent/src/builtins/a2ui-interactive-order";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -21,7 +23,7 @@ async function until(predicate: () => boolean) {
 }
 function Message() { return <MessagePrimitive.Root><MessagePrimitive.Parts /></MessagePrimitive.Root>; }
 
-async function fixture() {
+async function fixture(withA2ui = true) {
   let currentId = "A";
   const binding: ConversationThreadBinding = {
     getThreadId: () => currentId,
@@ -37,7 +39,7 @@ async function fixture() {
   let maxActive = 0;
   let runtime!: AssistantRuntime;
   function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
-  const container = document.createElement("div"); document.body.append(container);
+  const container = document.createElement("div"); container.className = "agent-ui-conversation"; document.body.append(container);
   const root: Root = createRoot(container);
   await act(async () => {
     root.render(<ConversationRuntimeProvider endpoint="http://example.test/a2ui" threadBinding={binding}
@@ -59,7 +61,7 @@ async function fixture() {
           return new Response(body, { headers: { "Content-Type": "text/event-stream" } });
         },
       })}>
-      <A2uiConversationIntegration><Capture /><ThreadPrimitive.Messages components={{ Message }} /></A2uiConversationIntegration>
+      {withA2ui ? <A2uiConversationIntegration><Capture /><ThreadPrimitive.Messages components={{ Message }} /></A2uiConversationIntegration> : <><Capture /><ThreadPrimitive.Messages components={{ Message }} /></>}
     </ConversationRuntimeProvider>);
     await tick();
   });
@@ -166,5 +168,66 @@ describe("A2UI Official Integration (active native runtime)", () => {
     expect(f.container.querySelectorAll('[data-aui="card"]')).toHaveLength(1);
     expect(f.inputs).toHaveLength(1);
     expect(f.parts()).toHaveLength(1);
+  });
+});
+
+
+describe("upgraded official Generative UI and A2UI contracts", () => {
+  it("keeps available Generative UI capabilities out of RunAgentInput.tools", async () => {
+    const generative = createAgentUIGenerativeUI();
+    expect(generative.present().type).toBe("frontend");
+    expect(generative.promptUser().type).toBe("human");
+    const f = await fixture(false); await f.start(); await f.finish();
+    expect(f.inputs[0]!.tools).toEqual([]);
+  });
+  it("renders the supported Form Controls catalog from standard wire events", async () => {
+    const f = await fixture(); await f.start();
+    const step = a2uiFormControlsSnapshot();
+    await act(async () => { f.streams[0]!.emit({ ...step, type: "ACTIVITY_SNAPSHOT" }); await tick(); });
+    await act(async () => { await until(() => f.container.querySelector('[data-aui="datepicker"]') !== null); });
+    for (const component of ["icon", "input", "checkbox", "radiogroup", "select", "datepicker", "listview", "button"]) {
+      expect(f.container.querySelector(`[data-aui="${component}"]`), component).not.toBeNull();
+    }
+    expect(f.container.querySelectorAll('[data-aui="radiogroup"] input[type="radio"]')).toHaveLength(2);
+    expect(f.container.querySelector('[data-aui="select"]')?.getAttribute("aria-label")).toBe("Destination");
+    expect(f.container.querySelector<HTMLInputElement>('input[type="date"]')!.value).toBe("2026-10-10");
+    expect(f.container.textContent).toContain("Singapore");
+    expect(f.inputs[0]!.tools).toEqual([]);
+    await f.finish();
+    const save = [...f.container.querySelectorAll("button")].find(button => button.textContent === "Save")!;
+    await act(async () => { save.click(); await until(() => f.inputs.length === 2); });
+    expect(f.inputs[1]!.forwardedProps.a2uiAction.userAction).toMatchObject({ name: "save_trip", surfaceId: "trip", sourceComponentId: "save" });
+    expect(f.inputs[1]!.tools).toEqual([]); await f.finish(1);
+  });
+  it("keeps official rebuild operations in the synthesized present artifact", async () => {
+    const f = await fixture(); await f.start(); await f.snapshot(); await f.finish();
+    expect(f.parts()[0]).toMatchObject({ toolName: "present", toolCallId: "a2ui:order", artifact: { a2ui: expect.any(Array) } });
+    const part = f.parts()[0]!;
+    if (part.type !== "tool-call") throw new Error("Expected synthesized Tool part");
+    const operations = (part.artifact as { a2ui: unknown[] }).a2ui;
+    // Replay public operations over the wire; do not inspect the private converter.
+    await act(async () => { await f.runtime.threads.switchToThread("B"); await tick(); });
+    await act(async () => {
+      f.runtime.thread.append({ role: "user", content: [{ type: "text", text: "Replay" }], startRun: true });
+      await until(() => f.streams.length === 2);
+      f.streams[1]!.emit({ type: "ACTIVITY_SNAPSHOT", messageId: "replayed", activityType: "a2ui-surface", replace: true, content: { a2ui_operations: operations } });
+      await tick();
+    });
+    await act(async () => { await until(() => f.container.querySelector('[data-aui="card"]') !== null); });
+    expect(f.container.textContent).toContain("Developer Plan");
+    expect(f.inputs).toHaveLength(2); await f.finish(1);
+  });
+  it("preserves non-A2UI Activity data without creating a surface", async () => {
+    const f = await fixture(); await f.start();
+    await act(async () => {
+      f.streams[0]!.emit({ type: "ACTIVITY_SNAPSHOT", messageId: "other-activity", activityType: "other", replace: true, content: { progress: 42 } });
+      await tick();
+    });
+    await f.finish();
+    expect(f.parts()).toEqual([]);
+    expect(f.container.querySelector('[data-aui="root"]')).toBeNull();
+    expect(f.runtime.thread.getState().messages.flatMap(message => message.content)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: "data", name: "agui-activity/other", data: { progress: 42 } }),
+    ]));
   });
 });

@@ -902,5 +902,24 @@
       "components/assistant-ui/elements/web-preview.tsx",
       "components/assistant-ui/elements/web-search.tsx"
     ]
-  }
+  },
+  "releasePinned": true,
+  "packageRevisions": {
+    "@assistant-ui/react": "f008537f39f0936992b0f6d2433c092935df5faf",
+    "@assistant-ui/react-ag-ui": "da9a624496ae97864ae30e90f85c7533092a228d",
+    "@assistant-ui/react-generative-ui": "da9a624496ae97864ae30e90f85c7533092a228d"
+  },
+  "validation": {
+    "tests": "skipped by user request",
+    "typecheck": "skipped by user request",
+    "build": "skipped by user request",
+    "upstreamChecks": "skipped by user request",
+    "visualAndRuntimeAcceptance": "skipped by user request"
+  },
+  "upstreamCapabilityGaps": [
+    "Slider absent from vocabulary and A2UI converter",
+    "CheckboxGroup absent from vocabulary; no ChoicePicker multipleSelection mapping",
+    "$field resolution absent",
+    "Input.defaultValue absent"
+  ]
 }

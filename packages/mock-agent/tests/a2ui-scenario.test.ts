@@ -46,3 +46,12 @@ describe("standard activity snapshots and generic A2UI action branches", () => {
     expect(() => validateMockScenario(defineScenario({ id: "invalid", title: "Invalid", steps: [], a2uiActions: { branches: { bad: [{ type: "activity-snapshot", activityType: " ", content: {} }] } } }))).toThrow("activityType");
   });
 });
+
+it("offers Form Controls as the same pluginless optional A2UI resource", async () => {
+  const { a2uiFormControlsScenario, a2uiFormControlsSnapshot } = await import("../src/builtins/a2ui-form-controls.js");
+  expect(a2uiFormControlsScenario.resources).toEqual(a2uiInteractiveOrderScenario.resources);
+  const step = a2uiFormControlsSnapshot();
+  expect(step).toMatchObject({ type: "activity-snapshot", activityType: "a2ui-surface", replace: true });
+  expect(a2uiFormControlsScenario.a2uiActions?.branches.save_trip).toBeDefined();
+  expect(a2uiFormControlsScenario.reference?.notes?.join(" ")).toContain("no Slider");
+});

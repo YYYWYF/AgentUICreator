@@ -258,6 +258,9 @@ export async function main({
       revision,
       packages,
     };
+    // A normal latest upgrade leaves the explicitly frozen release policy.
+    delete nextTarget.releasePinned;
+    delete nextTarget.packageRevisions;
     const resolvePackageArtifact = skipNpm
       ? installedPackageArtifactResolver
       : packageArtifactResolver;
