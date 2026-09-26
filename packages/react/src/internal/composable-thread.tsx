@@ -69,6 +69,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { useConversationTurnOwnership } from "./conversation-turn.js";
 import { resolveAssistantResponseGroup } from "./assistant-response.js";
 import { AssistantResponseRuntimeProvider, useAssistantResponseRuntime } from "./assistant-response-runtime.js";
 
@@ -519,9 +520,9 @@ const AssistantMessage: FC = () => {
   } = useContext(ThreadComponentsContext);
   const messages = useAuiState((s) => s.thread.messages);
   const messageIndex = useAuiState((s) => s.message.index);
-  const isRunning = useAuiState((s) => s.thread.isRunning);
   const response = resolveAssistantResponseGroup(messages, messageIndex);
-  const isResponseTail = response?.tailIndex === messageIndex;
+  const turnOwnership = useConversationTurnOwnership(messages, messages[messageIndex]?.id ?? "");
+  const isFooterOwner = turnOwnership?.isFooterOwner === true;
   const groupBy = TaskGroupComponent ? taskAwareGroupBy : messageGroupBy;
 
   const ACTION_BAR_PT = "pt-1.5";
@@ -626,7 +627,7 @@ const AssistantMessage: FC = () => {
         <MessageError />
       </div>
 
-      {isResponseTail && response && !isRunning ? (
+      {isFooterOwner && response ? (
         <AssistantResponseRuntimeProvider key={response.headMessageId} group={response}>
           <div
             data-slot="aui_assistant-response-footer"

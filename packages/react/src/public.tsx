@@ -902,3 +902,6 @@ export {
   type AssistantResponseRuntime as ConversationResponseRuntime,
 } from "./internal/assistant-response-runtime.js";
 export type { AssistantResponseGroup as ConversationAssistantResponseGroup } from "./internal/assistant-response.js";
+
+// Product adapter seam; existing Footer/Plugin API is unchanged.
+export { ConversationTurnProvider, type ConversationTurnSource } from "./internal/conversation-turn.js";
