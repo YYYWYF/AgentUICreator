@@ -42,5 +42,6 @@ h1 span { color: #e6af51; font-size: .72em; }
 .note-card { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 2rem; padding: 1.7rem 2rem; border: 1px solid #e2e6f5; border-radius: 1rem; background: #f0f2fc; }
 .note-card p { margin: .7rem 0 0; color: #7e8aa1; font-size: .8rem; }
 .note-symbol { color: #a2ade0; font-size: 3.5rem; }
+.agent-ui-assistant-panel { max-width: calc(100vw - 3rem); max-height: calc(100dvh - 8.5rem); }
 @media (max-width: 800px) { .workspace-shell { grid-template-columns: 1fr; } .sidebar { display: none; } .topbar { padding: 0 1.5rem; } .topbar-date { padding-right: 7rem; } .content { padding: 3rem 1.5rem; } }
 @media (max-width: 600px) { .stats { grid-template-columns: 1fr; } .task-date, .task-status { display: none; } }
