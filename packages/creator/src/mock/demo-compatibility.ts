@@ -1,3 +1,5 @@
+import { showcaseMockScenarios, type MockScenario } from "@agent-ui/mock-agent";
+
 export interface MockProjectTarget {
   id: string;
   projectRoot: string;
@@ -26,9 +28,33 @@ export type MockDemoResource = Omit<MockDemoRequirement, "status" | "missingPack
 const toolScenarios = ["reasoning-tool-success", "parallel-tools", "tool-error", "approval-resume", "agent-state-sync", "agent-plan", "agent-status", "nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error"];
 const reasoningScenarios = ["reasoning-chat", "reasoning-tool-success", "approval-resume", "agent-plan", "nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive"];
 
-export const mockDemoRequirements: ReadonlyArray<MockDemoResource> = [
-  { id: "frontend-tool-dialog", plugin: { id: "frontend-tool-dialog-demo" }, name: "Dialog Frontend Tool Demo", sourceItemId: "demo/frontend-tool-dialog", scenarioIds: ["frontend-tool-open-dialog"] },
-  { id: "frontend-tool-form", plugin: { id: "frontend-tool-form-demo" }, name: "React Hook Form Demo", sourceItemId: "demo/frontend-tool-form", scenarioIds: ["frontend-tool-fill-form"] },
+/** Scenario declarations are the sole authority for source resource metadata. */
+export function collectScenarioResourceRequirements(scenarios: readonly MockScenario[]): MockDemoResource[] {
+  const byId = new Map<string, MockDemoResource>();
+  const sourceIds = new Map<string, string>();
+  for (const scenario of scenarios) for (const resource of scenario.resources ?? []) {
+    const existing = byId.get(resource.id);
+    if (existing && (existing.sourceItemId !== resource.sourceItemId || existing.name !== resource.label)) {
+      throw new Error(`Conflicting Mock resource metadata for "${resource.id}" in scenario "${scenario.id}".`);
+    }
+    const sourceOwner = sourceIds.get(resource.sourceItemId);
+    if (sourceOwner !== undefined && sourceOwner !== resource.id) {
+      throw new Error(`Mock source resource "${resource.sourceItemId}" has conflicting IDs "${sourceOwner}" and "${resource.id}".`);
+    }
+    if (existing) {
+      if (!existing.scenarioIds.includes(scenario.id)) existing.scenarioIds.push(scenario.id);
+    } else {
+      byId.set(resource.id, { id: resource.id, name: resource.label, sourceItemId: resource.sourceItemId, scenarioIds: [scenario.id] });
+      sourceIds.set(resource.sourceItemId, resource.id);
+    }
+  }
+  return [...byId.values()];
+}
+
+export const scenarioSourceResources: ReadonlyArray<MockDemoResource> = collectScenarioResourceRequirements(showcaseMockScenarios);
+export const installableScenarioSourceItemIds: ReadonlySet<string> = new Set(scenarioSourceResources.map(resource => resource.sourceItemId!));
+
+const pluginPresentationRequirements: ReadonlyArray<MockDemoResource> = [
   { id: "assistant-ui-reasoning", plugin: { id: "assistant-ui-reasoning", slot: "reasoningGroup" }, name: "推理展示资源", scenarioIds: reasoningScenarios },
   { id: "assistant-ui-tool-group", plugin: { id: "assistant-ui-tool-group", slot: "toolGroup" }, name: "工具分组资源", scenarioIds: toolScenarios },
   { id: "assistant-ui-tool-fallback", plugin: { id: "assistant-ui-tool-fallback", slot: "toolFallback" }, name: "工具调用与审批资源", scenarioIds: toolScenarios },
@@ -39,6 +65,11 @@ export const mockDemoRequirements: ReadonlyArray<MockDemoResource> = [
   { id: "task-group", plugin: { id: "task-group", slot: "taskGroup" }, name: "任务卡片插件", scenarioIds: [
     "nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error",
   ] },
+];
+
+export const mockDemoRequirements: ReadonlyArray<MockDemoResource> = [
+  ...scenarioSourceResources,
+  ...pluginPresentationRequirements,
 ];
 
 /** Read-only projection of the formal protocol, deliberately excluding AppUIModel. */

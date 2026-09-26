@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { inspectMockProjectThroughControl } from "./project-inspector.js";
 import { CreatorMockService, isLocalMockOrigin } from "./CreatorMockService.js";
-import { inspectMockProjectCompatibility, mockDemoRequirements, type MockProjectTarget, type MockProjectInspector } from "./demo-compatibility.js";
+import { inspectMockProjectCompatibility, installableScenarioSourceItemIds, mockDemoRequirements, type MockProjectTarget, type MockProjectInspector } from "./demo-compatibility.js";
 
 export async function handleCreatorMockRequest(
   request: IncomingMessage, response: ServerResponse, service: CreatorMockService,
@@ -45,7 +45,7 @@ export async function handleCreatorMockRequest(
       const fields = input as { projectId?: unknown; sourceItemId?: unknown };
       const project = resolveProject?.();
       if (!project || fields.projectId !== project.id) throw new Error("当前项目已改变，请刷新后重试。");
-      if (typeof fields.sourceItemId !== "string" || !mockDemoRequirements.some(item => item.sourceItemId === fields.sourceItemId)) throw new Error("不支持的 Demo 资源包。");
+      if (typeof fields.sourceItemId !== "string" || !installableScenarioSourceItemIds.has(fields.sourceItemId)) throw new Error("不支持的 Demo 资源包。");
       if (!installResources) throw new Error("当前宿主未配置 Demo 资源安装。");
       await installResources(project.id, fields.sourceItemId);
       const current = resolveProject?.();
@@ -77,7 +77,7 @@ export async function handleCreatorMockRequest(
       const scenario = service.getState().scenarios.find(item => item.id === selection.scenarioId);
       if (scenario?.resources?.length) {
         const compatibility = await inspectMockProjectCompatibility(resolveProject?.(), inspector);
-        if (compatibility.status !== "checked" || scenario.resources.some(resource => !compatibility.requirements.some(item => item.sourceItemId === resource.sourceItemId && item.status === "ready"))) throw new Error("请先安装并启用 Demo 资源，再运行场景。");
+        if (compatibility.status !== "checked" || scenario.resources.some(resource => !compatibility.requirements.some(item => item.sourceItemId === resource.sourceItemId && item.status === "ready"))) throw new Error("请先安装所需的 Agent UI 资源，再运行场景。");
       }
       state = service.select(selection.scenarioId, selection.speed);
     } else { response.statusCode = 404; response.end(JSON.stringify({ error: "未知 Mock 操作。" })); return; }

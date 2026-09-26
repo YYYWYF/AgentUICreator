@@ -43,7 +43,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
     inFlight.current = true;
     const current = ++compatibilityVersion.current;
     setBusy(true); setError(null); setNotice("");
-    setInstallation({ scenarioId, resourceId, status: "installing", message: "正在引入资源…" });
+    setInstallation({ scenarioId, resourceId, status: "installing", message: "正在安装资源…" });
     try {
       const response = await fetch(`${CREATOR_MOCK_API_PATH}${requirement.sourceItemId ? "/install-resources" : "/install-plugin"}`, {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -51,11 +51,11 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
       });
       const result = await response.json();
       if (current !== compatibilityVersion.current) return;
-      if (!response.ok) throw new Error(result.error ?? "插件引入失败，请重试。");
+      if (!response.ok) throw new Error(result.error ?? "资源安装失败，请重试。");
       setCompatibility(result as MockDemoCompatibility);
-      setInstallation({ scenarioId, resourceId, status: "success", message: "已引入并启用，可以发送消息测试。" });
+      setInstallation({ scenarioId, resourceId, status: "success", message: "资源已安装并就绪，可以运行场景。" });
     } catch (failure) {
-      if (current === compatibilityVersion.current) setInstallation({ scenarioId, resourceId, status: "error", message: failure instanceof Error ? failure.message : "插件引入失败，请重试。" });
+      if (current === compatibilityVersion.current) setInstallation({ scenarioId, resourceId, status: "error", message: failure instanceof Error ? failure.message : "资源安装失败，请重试。" });
     } finally { inFlight.current = false; setBusy(false); }
   }
 
@@ -182,9 +182,9 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
         <p className="creator-mock-notice" role="status">{notice}</p>
         <section aria-label="选择预置 Demo">
           <h3>预置 Demo</h3>
-          <p>Demo 只提供模拟数据，不会自动安装前端插件。基础模板提供会话能力，扩展展示由 Creator 按需引入。</p>
+          <p>部分 Demo 需要额外的 Agent UI 资源，Creator 会在运行前检查并提示安装。</p>
           <p>当前：<strong>{selected?.title ?? state.scenarioId}</strong>。选择后，在已接入的 Agent UI 中发送一条消息来播放。正在运行的请求保持原场景。</p>
-          {compatibility?.status !== "checked" ? <p className="creator-mock-requirement" role="status">{compatibility === null ? "正在检查当前项目的 Demo 支持…" : "无法检查当前项目的插件，请确认已选择并初始化项目。"}</p> : null}
+          {compatibility?.status !== "checked" ? <p className="creator-mock-requirement" role="status">{compatibility === null ? "正在检查当前项目的 Demo 支持…" : "无法检查当前项目的资源，请确认已选择并初始化项目。"}</p> : null}
           <label className="creator-mock-speed">播放时长倍率
             <select disabled={busy} value={state.speed} onChange={(event) => void act("/select", { scenarioId: state.scenarioId, speed: Number(event.target.value) }, "播放时长已更新，下一次请求生效。") }>
               <option value={0}>立即完成</option><option value={0.1}>快速测试（0.1×）</option><option value={0.5}>较快（0.5×）</option><option value={1}>正常（1×）</option><option value={2}>较慢（2×）</option>
@@ -205,8 +205,8 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
                   <span className="creator-mock-requirement-label">{requirement.status === "missing" ? `当前项目缺少${requirement.name}` : `当前项目未启用或未正确放置${requirement.name}`}</span>
                   {(requirement.sourceItemId ? compatibility?.canInstallResources : compatibility?.canInstall) ? <div className="creator-mock-resource-actions">
                     <button type="button" disabled={busy || !!requirement.missingPackages?.length} onClick={() => void installRequirement(requirement.id, scenario.id)}>
-                      {installation?.scenarioId === scenario.id && installation.resourceId === requirement.id && installation.status === "installing" ? "正在引入…"
-                        : installation?.scenarioId === scenario.id && installation.resourceId === requirement.id && installation.status === "error" ? "重试引入"
+                      {installation?.scenarioId === scenario.id && installation.resourceId === requirement.id && installation.status === "installing" ? "正在安装…"
+                        : installation?.scenarioId === scenario.id && installation.resourceId === requirement.id && installation.status === "error" ? "重试安装"
                         : requirement.sourceItemId ? "安装资源" : `${requirement.status === "disabled" ? "启用" : "引入"}${resourceLabels[requirement.plugin?.id ?? requirement.id] ?? requirement.name}`}
                     </button>
                     {requirement.status === "missing" && mockResourcePreviews[requirement.plugin?.id ?? requirement.id] ? <span className="creator-mock-preview">
@@ -221,7 +221,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
                 </div>)}
               </div>
               {scenario.resources?.length && resourceSelection === scenario.id ? <div>
-                <p>{compatibility?.status === "checked" && requirementsFor(scenario.id).length === 0 ? "Demo 资源已安装" : "此场景使用 Frontend Tools，需要安装并启用 Demo 资源。"}</p>
+                <p>{compatibility?.status === "checked" && requirementsFor(scenario.id).length === 0 ? "所需资源已就绪" : "此场景需要额外的 Agent UI 资源，请先安装资源。"}</p>
                 <button type="button" disabled={busy || compatibility?.status !== "checked" || requirementsFor(scenario.id).length > 0}
                   onClick={() => void act("/select", { scenarioId: scenario.id, speed: state.speed }, `已启用 ${scenario.title}，在 Agent UI 中发送消息运行。`)}>运行场景</button>
               </div> : null}
