@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "2cdfc811cc0db3f0be8579ca3055de0a7335410ce55e045ee3d1f3c490f52945";
+export const capabilityCatalogRevision = "8c1160f75d4348cc9473da9a1cda4af92e98650ae9a3422ae9a331f839a641a6";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -117,7 +117,8 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
       "description": "Copies text from the complete assistant response.",
       "version": "1.0.0",
       "capabilities": [
-        "conversation-assistant-response-action"
+        "conversation-assistant-response-action",
+        "conversation-message-action"
       ],
       "authoring": {
         "intents": [
@@ -175,7 +176,8 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
       "description": "Exports the complete assistant response as Markdown.",
       "version": "1.0.0",
       "capabilities": [
-        "conversation-assistant-response-action"
+        "conversation-assistant-response-action",
+        "conversation-message-action"
       ],
       "authoring": {
         "intents": [
@@ -194,6 +196,51 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     optionalInject: [],
     loadDefinition: () =>
       import("./assistant-ui-export-markdown-action/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
+      "id": "assistant-ui-message-footer",
+      "name": "Assistant UI Message Footer",
+      "description": "Deprecated compatibility wrapper for the canonical turn footer.",
+      "version": "1.0.0",
+      "capabilities": [
+        "conversation-assistant-message-footer-renderer"
+      ],
+      "requiresRenderScope": true,
+      "authoring": {
+        "intents": [
+          "show assistant response branch and action controls",
+          "compose assistant response footer actions"
+        ],
+        "visualRole": "assistant response footer",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "assistantMessageFooter"
+        }
+      },
+      "slots": {
+        "children": {
+          "actions": {
+            "description": "Actions displayed in the assistant response footer.",
+            "cardinality": "many",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-message-action"
+              ]
+            }
+          }
+        }
+      }
+    },
+    provides: [],
+    inject: [],
+    optionalInject: [],
+    loadDefinition: () =>
+      import("./assistant-ui-message-footer/definition").then(
         ({ default: definition }) => definition,
       ),
   },
@@ -236,7 +283,8 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
       "description": "Regenerates the current assistant response through assistant-ui.",
       "version": "1.0.0",
       "capabilities": [
-        "conversation-assistant-response-action"
+        "conversation-assistant-response-action",
+        "conversation-message-action"
       ],
       "authoring": {
         "intents": [
@@ -601,6 +649,17 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
             "accepts": {
               "anyOfCapabilities": [
                 "conversation-assistant-response-footer-renderer"
+              ]
+            }
+          },
+          "assistantMessageFooter": {
+            "description": "Deprecated compatibility renderer for the turn footer. Use assistantResponseFooter.",
+            "cardinality": "one",
+            "mode": "renderer",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-assistant-message-footer-renderer"
               ]
             }
           }

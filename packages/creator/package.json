@@ -52,7 +52,8 @@
     "@ag-ui/core": "0.0.59",
     "html-to-image": "1.11.13",
     "react-markdown": "10.1.0",
-    "remark-gfm": "4.0.1"
+    "remark-gfm": "4.0.1",
+    "@agent-ui/project-control": "workspace:^"
   },
   "peerDependencies": {
     "react": ">=19"

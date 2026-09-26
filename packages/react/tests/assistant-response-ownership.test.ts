@@ -28,30 +28,24 @@ describe("Assistant Response ownership", () => {
 
   it("keeps full-message grouping subscriptions out of the AssistantMessage hot path", async () => {
     const source = await read("internal/composable-thread.tsx");
-    const tailHookStart = source.indexOf("function useIsAssistantResponseTail()");
     const footerHostStart = source.indexOf("const AssistantResponseFooterHost:");
     const messageStart = source.indexOf("const AssistantMessage:");
     const messageEnd = source.indexOf("export const ResponseActionBarRoot");
-    expect(tailHookStart).toBeGreaterThanOrEqual(0);
-    expect(footerHostStart).toBeGreaterThan(tailHookStart);
+    expect(footerHostStart).toBeGreaterThanOrEqual(0);
     expect(messageStart).toBeGreaterThan(footerHostStart);
     expect(messageEnd).toBeGreaterThan(messageStart);
 
-    const tailHook = source.slice(tailHookStart, footerHostStart);
     const footerHost = source.slice(footerHostStart, messageStart);
     const assistantMessage = source.slice(messageStart, messageEnd);
     const fullMessagesSubscription = /useAuiState\(\s*\(?\s*(\w+)\s*\)?\s*=>\s*\1\.thread\.messages\s*\)/u;
-    for (const hotPath of [tailHook, assistantMessage]) {
+    for (const hotPath of [assistantMessage]) {
       expect(hotPath).not.toMatch(fullMessagesSubscription);
       expect(hotPath).not.toContain("resolveAssistantResponseGroup(");
       expect(hotPath).not.toContain("useConversationTurnOwnership(");
     }
-    expect(tailHook).toContain('s.message.role === "assistant"');
-    expect(tailHook).toContain('s.thread.messages[index + 1]?.role !== "assistant"');
-    expect(assistantMessage).toContain("const isResponseTail = useIsAssistantResponseTail();");
-    expect(assistantMessage).toMatch(/isResponseTail && !isRunning\s*\?\s*\(\s*<AssistantResponseFooterHost/u);
+    expect(assistantMessage).toMatch(/!isRunning\s*\?\s*\(\s*<AssistantResponseFooterHost/u);
     expect(footerHost).toMatch(fullMessagesSubscription);
-    expect(footerHost).toContain("resolveAssistantResponseGroup(messages, messageIndex)");
-    expect(footerHost).toContain("turnOwnership?.isFooterOwner !== true");
+    expect(footerHost).toContain("assistantResponseGroupFromTurn(messages, turn)");
+    expect(footerHost).toContain("turn.footerOwnerMessageId !== messages[messageIndex]?.id");
   });
 });

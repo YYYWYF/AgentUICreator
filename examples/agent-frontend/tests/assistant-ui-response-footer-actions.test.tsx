@@ -21,6 +21,8 @@ import type {
 } from "../framework/contracts/ui-plugin";
 import { assistantUiCopyActionPlugin } from "../plugins/assistant-ui-copy-action/definition";
 import { assistantUiExportMarkdownActionPlugin } from "../plugins/assistant-ui-export-markdown-action/definition";
+import { assistantUiMessageFooterPlugin } from "../plugins/assistant-ui-message-footer/definition";
+import { conversationSurfacePlugin } from "../plugins/conversation-surface/definition";
 import { assistantUiResponseFooterPlugin } from "../plugins/assistant-ui-response-footer/definition";
 import { assistantUiReloadActionPlugin } from "../plugins/assistant-ui-reload-action/definition";
 import { AGENT_UI_THEME_SERVICE } from "../services/agent-ui-theme";
@@ -91,6 +93,8 @@ const conversationActionHostPlugin: UIPluginDefinition = {
 
 const registry = createPluginRegistry([
   conversationActionHostPlugin,
+  conversationSurfacePlugin,
+  assistantUiMessageFooterPlugin,
   assistantUiResponseFooterPlugin,
   assistantUiCopyActionPlugin,
   assistantUiReloadActionPlugin,
@@ -169,8 +173,10 @@ function assistantMessage(text = "Answer", id = "assistant-action-message"): Thr
 function RuntimeFixture({
   chatModel,
   onRuntime,
+  runtimeModel = model,
 }: {
   chatModel: ChatModelAdapter;
+  runtimeModel?: AppUIRuntimeModel;
   onRuntime(runtime: AssistantRuntime): void;
 }) {
   const runtime = useLocalRuntime(chatModel, {
@@ -187,7 +193,7 @@ function RuntimeFixture({
         executions={[]}
         interrupts={[]}
         messages={[]}
-        model={model}
+        model={runtimeModel}
         registry={registry}
         run={{ status: "idle" }}
         state={null}
@@ -196,7 +202,7 @@ function RuntimeFixture({
   );
 }
 
-async function mount(chatModel: ChatModelAdapter) {
+async function mount(chatModel: ChatModelAdapter, runtimeModel: AppUIRuntimeModel = model) {
   let runtime: AssistantRuntime | undefined;
   const container = document.createElement("div");
   document.body.append(container);
@@ -207,6 +213,7 @@ async function mount(chatModel: ChatModelAdapter) {
     root.render(
       <RuntimeFixture
         chatModel={chatModel}
+        runtimeModel={runtimeModel}
         onRuntime={(value) => {
           runtime = value;
         }}
@@ -361,7 +368,11 @@ async function hydrate(runtime: AssistantRuntime, messages: ThreadMessage[]) {
   });
 }
 
-const responseMessages = () => [userMessage("u"), assistantMessage("Hello", "a"), assistantMessage("World", "b"), assistantMessage("Summary", "c")];
+const responseMessages = () => [
+  userMessage("u"), assistantMessage("Hello", "a"),
+  { ...assistantMessage("Internal", "s"), role: "system" } as ThreadMessage,
+  assistantMessage("World", "b"), assistantMessage("Summary", "c"),
+];
 
 describe("multi-message Response actions", () => {
   it("hydrates separate messages and places one Footer under the tail", async () => {
@@ -373,7 +384,7 @@ describe("multi-message Response actions", () => {
     expect(roots[0]?.querySelector('[data-slot="aui_assistant-response-footer"]')).toBeNull();
     expect(roots[1]?.querySelector('[data-slot="aui_assistant-response-footer"]')).toBeNull();
     expect(roots[2]?.querySelector('[data-slot="aui_assistant-response-footer"]')).not.toBeNull();
-    expect(runtime.thread.getState().messages.map(({ id }) => id)).toEqual(["u", "a", "b", "c"]);
+    expect(runtime.thread.getState().messages.map(({ id }) => id)).toEqual(["u", "a", "s", "b", "c"]);
   });
 
   it("renders one Footer per response across two requests", async () => {
@@ -471,7 +482,7 @@ describe("multi-message Response actions", () => {
     expect(container.querySelector('.aui-branch-picker-state')?.textContent).toBe("2 / 2");
     const previous = container.querySelector('.aui-branch-picker-root button:first-child') as HTMLButtonElement;
     await act(async () => previous.click());
-    expect(runtime.thread.getState().messages.map(({ id }) => id)).toEqual(["u", "a", "b", "c"]);
+    expect(runtime.thread.getState().messages.map(({ id }) => id)).toEqual(["u", "a", "s", "b", "c"]);
   });
 
   it("hides the Footer throughout generation and restores it after completion", async () => {
@@ -484,4 +495,21 @@ describe("multi-message Response actions", () => {
     await act(async () => { finish?.({ content: [{ type: "text", text: "Complete" }] }); await Promise.resolve(); });
     expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(1);
   });
+});
+
+it("renders the old Footer slot and Plugin with latest surface and action sources", async () => {
+  const legacy = structuredClone(model);
+  legacy.pluginInstances.host!.pluginId = "conversation-surface";
+  legacy.pluginInstances.footer!.pluginId = "assistant-ui-message-footer";
+  legacy.pluginInstances.footer!.mount = { slotId: resolveRuntimePluginSlotId("host", "assistantMessageFooter") };
+  const writeText = vi.fn(async () => undefined);
+  const restore = installClipboardMock(writeText);
+  try {
+    const { container, runtime } = await mount({ run: async () => ({ content: [] }) }, legacy);
+    await hydrate(runtime, responseMessages());
+    expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(1);
+    expect(container.querySelector('[data-plugin-id="assistant-ui-message-footer"]')).not.toBeNull();
+    await act(async () => { findActionButton(container, "assistant-ui-copy-action").click(); });
+    expect(writeText).toHaveBeenCalledExactlyOnceWith("Hello\n\nWorld\n\nSummary");
+  } finally { restore(); }
 });

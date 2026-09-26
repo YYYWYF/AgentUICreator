@@ -339,6 +339,9 @@ importers:
 
   packages/creator:
     dependencies:
+      '@agent-ui/project-control':
+        specifier: workspace:^
+        version: link:../project-control
       '@ag-ui/client':
         specifier: 0.0.59
         version: 0.0.59

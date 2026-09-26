@@ -1,3 +1,4 @@
+import { projectConversationTurns, type ConversationTurnProjection } from "./conversation-turn.js";
 import type { ThreadMessage } from "@assistant-ui/react";
 
 /** Product grouping policy, independent of protocol runs and live-stream metadata. */
@@ -15,17 +16,22 @@ export function resolveAssistantResponseGroup(
   messageIndex: number,
 ): AssistantResponseGroup | null {
   if (!Number.isInteger(messageIndex) || messages[messageIndex]?.role !== "assistant") return null;
-  let headIndex = messageIndex;
-  let tailIndex = messageIndex;
-  while (messages[headIndex - 1]?.role === "assistant") headIndex--;
-  while (messages[tailIndex + 1]?.role === "assistant") tailIndex++;
+  const turn = [...projectConversationTurns(messages).values()]
+    .find((turn) => turn.assistantMessageIds.includes(messages[messageIndex]!.id));
+  return turn ? assistantResponseGroupFromTurn(messages, turn) : null;
+}
+
+/** Compatibility shape for existing response actions; boundaries come from turns. */
+export function assistantResponseGroupFromTurn(
+  messages: readonly ThreadMessage[], turn: ConversationTurnProjection,
+): AssistantResponseGroup {
   return {
-    headMessageId: messages[headIndex]!.id,
-    tailMessageId: messages[tailIndex]!.id,
-    messageIds: messages.slice(headIndex, tailIndex + 1).map(({ id }) => id),
-    headIndex,
-    tailIndex,
-    requestMessageId: messages[headIndex - 1]?.id ?? null,
+    headMessageId: turn.headAssistantMessageId,
+    tailMessageId: turn.tailAssistantMessageId,
+    messageIds: turn.assistantMessageIds,
+    headIndex: messages.findIndex(({ id }) => id === turn.headAssistantMessageId),
+    tailIndex: messages.findIndex(({ id }) => id === turn.tailAssistantMessageId),
+    requestMessageId: turn.requestMessageId,
   };
 }
 

@@ -3,7 +3,10 @@
   "name": "Assistant UI Export Markdown Action",
   "description": "Exports the complete assistant response as Markdown.",
   "version": "1.0.0",
-  "capabilities": ["conversation-assistant-response-action"],
+  "capabilities": [
+    "conversation-assistant-response-action",
+    "conversation-message-action"
+  ],
   "authoring": {
     "intents": [
       "export an assistant response as Markdown"

@@ -1,9 +1,11 @@
 {
   "id": "conversation-surface",
   "name": "Conversation Surface",
-  "description": "组合 Live 与只读 History 会话的空状态、消息时间线与输入区。",
+  "description": "\u7ec4\u5408 Live \u4e0e\u53ea\u8bfb History \u4f1a\u8bdd\u7684\u7a7a\u72b6\u6001\u3001\u6d88\u606f\u65f6\u95f4\u7ebf\u4e0e\u8f93\u5165\u533a\u3002",
   "version": "2.1.0",
-  "capabilities": ["conversation-surface"],
+  "capabilities": [
+    "conversation-surface"
+  ],
   "authoring": {
     "intents": [
       "show the primary live and historical conversation experience"
@@ -25,7 +27,9 @@
         "cardinality": "many",
         "optional": true,
         "accepts": {
-          "anyOfCapabilities": ["conversation-suggestions"]
+          "anyOfCapabilities": [
+            "conversation-suggestions"
+          ]
         }
       },
       "headerActions": {
@@ -33,7 +37,9 @@
         "cardinality": "many",
         "optional": true,
         "accepts": {
-          "anyOfCapabilities": ["theme-control"]
+          "anyOfCapabilities": [
+            "theme-control"
+          ]
         }
       },
       "composer": {
@@ -41,7 +47,9 @@
         "cardinality": "one",
         "optional": true,
         "accepts": {
-          "anyOfCapabilities": ["conversation-composer"]
+          "anyOfCapabilities": [
+            "conversation-composer"
+          ]
         }
       },
       "reasoningGroup": {
@@ -49,28 +57,44 @@
         "cardinality": "one",
         "optional": true,
         "mode": "renderer",
-        "accepts": { "anyOfCapabilities": ["conversation-reasoning-renderer"] }
+        "accepts": {
+          "anyOfCapabilities": [
+            "conversation-reasoning-renderer"
+          ]
+        }
       },
       "toolGroup": {
         "description": "Renderer for one assistant tool group.",
         "cardinality": "one",
         "optional": true,
         "mode": "renderer",
-        "accepts": { "anyOfCapabilities": ["conversation-tool-group-renderer"] }
+        "accepts": {
+          "anyOfCapabilities": [
+            "conversation-tool-group-renderer"
+          ]
+        }
       },
       "toolFallback": {
         "description": "Renderer for an unnamed tool UI fallback.",
         "cardinality": "one",
         "optional": true,
         "mode": "renderer",
-        "accepts": { "anyOfCapabilities": ["conversation-tool-fallback-renderer"] }
+        "accepts": {
+          "anyOfCapabilities": [
+            "conversation-tool-fallback-renderer"
+          ]
+        }
       },
       "taskGroup": {
         "description": "Renderer for one or more tool calls containing nested agent tasks.",
         "cardinality": "one",
         "optional": true,
         "mode": "renderer",
-        "accepts": { "anyOfCapabilities": ["conversation-task-group-renderer"] }
+        "accepts": {
+          "anyOfCapabilities": [
+            "conversation-task-group-renderer"
+          ]
+        }
       },
       "assistantResponseFooter": {
         "description": "Renderer for the assistant message footer.",
@@ -78,7 +102,20 @@
         "optional": true,
         "mode": "renderer",
         "accepts": {
-          "anyOfCapabilities": ["conversation-assistant-response-footer-renderer"]
+          "anyOfCapabilities": [
+            "conversation-assistant-response-footer-renderer"
+          ]
+        }
+      },
+      "assistantMessageFooter": {
+        "description": "Deprecated compatibility renderer for the turn footer. Use assistantResponseFooter.",
+        "cardinality": "one",
+        "optional": true,
+        "mode": "renderer",
+        "accepts": {
+          "anyOfCapabilities": [
+            "conversation-assistant-message-footer-renderer"
+          ]
         }
       }
     }

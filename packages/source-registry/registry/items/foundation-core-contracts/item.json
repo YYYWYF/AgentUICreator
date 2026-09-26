@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "foundation/core-contracts",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "kind": "foundation",
   "description": "Managed Agent UI foundation-core-contracts source",
   "files": [

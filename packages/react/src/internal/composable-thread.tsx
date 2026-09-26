@@ -69,8 +69,8 @@ import {
   type ReactNode,
 } from "react";
 
-import { useConversationTurnOwnership } from "./conversation-turn.js";
-import { resolveAssistantResponseGroup } from "./assistant-response.js";
+import { useConversationTurn } from "./conversation-turn.js";
+import { assistantResponseGroupFromTurn } from "./assistant-response.js";
 import { AssistantResponseRuntimeProvider, useAssistantResponseRuntime } from "./assistant-response-runtime.js";
 
 export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
@@ -85,6 +85,8 @@ export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
 export type ThreadComponents = {
   AssistantMessage?: ComponentType | undefined;
   AssistantResponseFooter?: ComponentType | undefined;
+  /** @deprecated Use AssistantResponseFooter. */
+  AssistantMessageFooter?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
   ToolFallback?: ToolCallMessagePartComponent | undefined;
   ToolGroup?:
@@ -510,23 +512,14 @@ const MessageError: FC = () => {
   );
 };
 
-function useIsAssistantResponseTail(): boolean {
-  return useAuiState((s) => {
-    const index = s.message.index;
-    return s.message.role === "assistant" &&
-      s.thread.messages[index + 1]?.role !== "assistant";
-  });
-}
-
 const AssistantResponseFooterHost: FC<{
   FooterComponent?: ComponentType | undefined;
 }> = ({ FooterComponent }) => {
   const messages = useAuiState((s) => s.thread.messages);
   const messageIndex = useAuiState((s) => s.message.index);
-  const response = resolveAssistantResponseGroup(messages, messageIndex);
-  const turnOwnership = useConversationTurnOwnership(messages, messages[messageIndex]?.id ?? "");
-
-  if (!response || turnOwnership?.isFooterOwner !== true) return null;
+  const turn = useConversationTurn(messages, messages[messageIndex]?.id ?? "");
+  if (!turn || turn.footerOwnerMessageId !== messages[messageIndex]?.id) return null;
+  const response = assistantResponseGroupFromTurn(messages, turn);
 
   // Product layout policy: reserve the semantic footer's full height in flow.
   // Plugin footers can vary in height, so cancelling a fixed action-bar height
@@ -540,10 +533,7 @@ const AssistantResponseFooterHost: FC<{
         {FooterComponent ? (
           <FooterComponent />
         ) : (
-          <>
-            <ResponseBranchPicker />
-            <AssistantActionBar />
-          </>
+          <CanonicalAssistantResponseFooter />
         )}
       </div>
     </AssistantResponseRuntimeProvider>
@@ -556,9 +546,10 @@ const AssistantMessage: FC = () => {
     ToolGroup,
     ReasoningGroup,
     TaskGroup: TaskGroupComponent,
-    AssistantResponseFooter: AssistantResponseFooterComponent,
+    AssistantResponseFooter,
+    AssistantMessageFooter,
   } = useContext(ThreadComponentsContext);
-  const isResponseTail = useIsAssistantResponseTail();
+  const AssistantResponseFooterComponent = AssistantResponseFooter ?? AssistantMessageFooter;
   const isRunning = useAuiState((s) => s.thread.isRunning);
   const groupBy = TaskGroupComponent ? taskAwareGroupBy : messageGroupBy;
 
@@ -658,7 +649,7 @@ const AssistantMessage: FC = () => {
         <MessageError />
       </div>
 
-      {isResponseTail && !isRunning ? (
+      {!isRunning ? (
         <AssistantResponseFooterHost FooterComponent={AssistantResponseFooterComponent} />
       ) : null}
     </MessagePrimitive.Root>
@@ -764,6 +755,10 @@ export const ResponseBranchPicker: FC = () => {
     </div>
   );
 };
+
+export const CanonicalAssistantResponseFooter: FC = () => (
+  <><ResponseBranchPicker /><AssistantActionBar /></>
+);
 
 const AssistantActionBar: FC = () => (
   <ResponseActionBarRoot>

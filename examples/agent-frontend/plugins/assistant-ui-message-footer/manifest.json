@@ -1,0 +1,36 @@
+{
+  "id": "assistant-ui-message-footer",
+  "name": "Assistant UI Message Footer",
+  "description": "Deprecated compatibility wrapper for the canonical turn footer.",
+  "version": "1.0.0",
+  "capabilities": [
+    "conversation-assistant-message-footer-renderer"
+  ],
+  "requiresRenderScope": true,
+  "authoring": {
+    "intents": [
+      "show assistant response branch and action controls",
+      "compose assistant response footer actions"
+    ],
+    "visualRole": "assistant response footer",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "conversation-surface",
+      "slot": "assistantMessageFooter"
+    }
+  },
+  "slots": {
+    "children": {
+      "actions": {
+        "description": "Actions displayed in the assistant response footer.",
+        "cardinality": "many",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": [
+            "conversation-message-action"
+          ]
+        }
+      }
+    }
+  }
+}

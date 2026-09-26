@@ -1,5 +1,6 @@
 import { createContext, useContext, type ReactNode } from "react";
 import {
+  ConversationCanonicalAssistantResponseFooter,
   type ConversationTaskGroupRenderScope,
   toConversationMessagePartGroup,
   type ConversationAssistantResponseFooterRenderScope,
@@ -39,11 +40,12 @@ export function ScopedReasoningGroup({ group: rawGroup, children }: { group: unk
 
 export function ScopedAssistantResponseFooter() {
   const renderScopedSlot = useContext(ScopedRendererBridgeContext);
-  if (renderScopedSlot === null) return null;
+  const fallback = <ConversationCanonicalAssistantResponseFooter />;
+  if (renderScopedSlot === null) return fallback;
   return renderScopedSlot("assistantResponseFooter", {
     kind: "conversation.assistant-response-footer",
     value: {} satisfies ConversationAssistantResponseFooterRenderScope,
-  });
+  }, fallback);
 }
 
 export function ScopedToolGroup({ group: rawGroup, children }: { group: unknown; children?: ReactNode }) {

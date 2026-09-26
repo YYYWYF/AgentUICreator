@@ -75,7 +75,7 @@ describe("ComposableThread upstream parity", () => {
     // Intentional host policy: unlike upstream's fixed-height compensation,
     // reserve the complete height of arbitrary semantic Footer Renderers.
     expect(productMessage).not.toMatch(/-mb-|marginBottom|margin-bottom/u);
-    expect(productMessage).toContain("<AssistantResponseFooterComponent />");
+    expect(productMessage).toContain("<AssistantResponseFooterHost FooterComponent={AssistantResponseFooterComponent} />");
     expect(source).toContain('className="mb-14 flex flex-col gap-y-6 empty:hidden"');
   });
 

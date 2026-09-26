@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { projectConversationTurnOwnership } from "../src/internal/conversation-turn.js";
+import { projectConversationTurnOwnership, projectConversationTurns } from "../src/internal/conversation-turn.js";
 const messages = (roles: string[]) => roles.map((role, index) => ({ id: String(index), role }));
 const owners = (roles: string[], liveIds?: Record<string, string>) => [...projectConversationTurnOwnership(messages(roles), liveIds)].filter(([, metadata]) => metadata.isFooterOwner).map(([id]) => id);
 
@@ -34,5 +34,24 @@ describe("turn Footer ownership on the visible branch", () => {
     expect(projectConversationTurnOwnership([u, a], ids).get("a")?.isFooterOwner).toBe(true);
     expect(projectConversationTurnOwnership([u, a, b], ids).get("a")?.isFooterOwner).toBe(false);
     expect(projectConversationTurnOwnership([u, a, b], ids).get("b")?.isFooterOwner).toBe(true);
+  });
+});
+
+describe("turn action projection", () => {
+  it("shares head, tail and scope across intervening system/tool messages", () => {
+    const turns = [...projectConversationTurns(messages(["user", "assistant", "system", "tool", "assistant"])).values()];
+    expect(turns).toEqual([{
+      turnId: "history:user:0", requestMessageId: "0", assistantMessageIds: ["1", "4"],
+      headAssistantMessageId: "1", tailAssistantMessageId: "4", footerOwnerMessageId: "4",
+    }]);
+  });
+  it("uses the same projection for a root run and attributed HITL continuation", () => {
+    const visible = messages(["user", "assistant", "system", "assistant"]);
+    const live = [...projectConversationTurns(visible, { "1": "root", "3": "root" }).values()];
+    const history = [...projectConversationTurns(JSON.parse(JSON.stringify(visible))).values()];
+    expect(live).toHaveLength(1);
+    expect(live[0]?.assistantMessageIds).toEqual(history[0]?.assistantMessageIds);
+    expect(live[0]?.headAssistantMessageId).toBe(history[0]?.headAssistantMessageId);
+    expect(live[0]?.footerOwnerMessageId).toBe(history[0]?.footerOwnerMessageId);
   });
 });

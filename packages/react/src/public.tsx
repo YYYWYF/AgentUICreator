@@ -138,6 +138,8 @@ export function ConversationIf({
 export type ConversationThreadComponents = {
   AssistantMessage?: ComponentType | undefined;
   AssistantResponseFooter?: ComponentType | undefined;
+  /** @deprecated Use AssistantResponseFooter. */
+  AssistantMessageFooter?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
   ToolFallback?: ComponentType<ConversationToolCallProps> | undefined;
   ToolGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
@@ -173,6 +175,8 @@ export interface ConversationTaskGroupRenderScope {
 
 /** The footer keeps its scope intentionally data-free; actions read Response Context. */
 export type ConversationAssistantResponseFooterRenderScope = Record<string, never>;
+/** @deprecated Use ConversationAssistantResponseFooterRenderScope. */
+export type ConversationAssistantMessageFooterRenderScope = ConversationAssistantResponseFooterRenderScope;
 
 export function toConversationMessagePartGroup(group: unknown): ConversationMessagePartGroup {
   const source = group as { type: ConversationMessagePartGroup["type"]; indices: readonly number[]; status: { type: string } };
@@ -892,6 +896,7 @@ export function TooltipProvider(
 
 /** Response APIs are separate from the existing message-scoped actions. */
 export {
+  CanonicalAssistantResponseFooter as ConversationCanonicalAssistantResponseFooter,
   ResponseActionBarRoot as ConversationResponseActionBarRoot,
   ResponseBranchPicker as ConversationResponseBranchPicker,
   CanonicalResponseCopyAction as ConversationCanonicalResponseCopyAction,

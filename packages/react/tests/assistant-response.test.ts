@@ -17,8 +17,8 @@ describe("Assistant Response resolver", () => {
     [["user", "assistant", "assistant", "user", "assistant", "assistant"], 1, [1, 2]],
     [["user", "assistant", "assistant", "user", "assistant", "assistant"], 5, [4, 5]],
     [["system", "assistant", "assistant"], 2, [1, 2]],
-    [["user", "assistant", "assistant", "system", "assistant"], 2, [1, 2]],
-    [["user", "assistant", "assistant", "system", "assistant"], 4, [4, 4]],
+    [["user", "assistant", "assistant", "system", "assistant"], 2, [1, 4]],
+    [["user", "assistant", "assistant", "system", "assistant"], 4, [1, 4]],
     [["assistant", "assistant"], 0, [0, 1]],
   ] as const)("groups %j at %i", (roles, index, [head, tail]) => {
     const messages = roles.map((role, i) => message(String(i), role));
@@ -27,8 +27,8 @@ describe("Assistant Response resolver", () => {
     expect(group).toEqual({
       headMessageId: String(head), tailMessageId: String(tail),
       headIndex: head, tailIndex: tail,
-      requestMessageId: head === 0 ? null : String(head - 1),
-      messageIds: messages.slice(head, tail + 1).map(({ id }) => id),
+      requestMessageId: roles[0] === "user" ? String(head - 1) : null,
+      messageIds: messages.slice(head, tail + 1).filter(({ role }) => role === "assistant").map(({ id }) => id),
     });
     expect(messages).toEqual(before);
     messages.forEach((entry, i) => expect(entry).toBe(before[i]));

@@ -132,3 +132,35 @@ describe("fresh user Host architecture regression", () => {
     }
   }, 120_000);
 });
+
+it("upgrades the 7a31b5f AppUIModel with latest source without migrating Footer IDs", async () => {
+  const root = await freshUserHost("src/agent-ui");
+  await initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "src/agent-ui" });
+  const paths = resolveAgentUIProjectPaths(root, { version: "2", mode: "assistant", sourceRoot: "src/agent-ui" });
+  const config = projectControlConfigForPaths(paths);
+  const { applyAgentUISourceItem } = await import("../scripts/ui-project/source-registry/installer");
+  const { inspectAgentUISources } = await import("../scripts/ui-project/source-registry/inspector");
+  const before = await inspectAgentUISources(root, config);
+  await applyAgentUISourceItem(root, { itemId: "plugin/assistant-ui-message-footer", expectedStateHash: before.stateHash }, config);
+  const source = await readFile(new URL("./fixtures/assistant-app-ui-7a31b5f.json", import.meta.url), "utf8");
+  await writeFile(paths.appUIModelPath, source);
+  const { writeGeneratedPluginRegistry } = await import("../scripts/generate-plugin-registry");
+  await writeGeneratedPluginRegistry(root);
+  expect((await inspectCreatorProject(root)).status).toBe("ready");
+  expect((await verifyUIProject(root)).status).toBe("passed");
+  const model = parseAppUIModelJson(source);
+  const generation = await generatePluginRegistry(root, model, { config, paths });
+  const runtime = compileAppUIModel(model, generation.activeComposition.compositionCatalog);
+  expect(runtime.pluginInstances["assistant-ui-message-footer-main"]?.mount?.slotId)
+    .toBe("plugin:agent-conversation-surface-main:assistantMessageFooter");
+  expect(await readFile(paths.appUIModelPath, "utf8")).toBe(source);
+  const duplicate = structuredClone(runtime);
+  duplicate.pluginInstances["duplicate-footer"] = {
+    id: "duplicate-footer", pluginId: "assistant-ui-response-footer", enabled: true,
+    mount: { slotId: "plugin:agent-conversation-surface-main:assistantResponseFooter" },
+  };
+  const { resolveAppUIComposition } = await import("../framework/contracts/app-ui-composition");
+  expect(resolveAppUIComposition(duplicate, generation.activeComposition.compositionCatalog).issues)
+    .toEqual(expect.arrayContaining([expect.objectContaining({ code: "conversation-footer-slot-conflict" })]));
+
+});

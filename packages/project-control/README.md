@@ -10,9 +10,11 @@ Initialization installs `.agent-ui/control/project-control.mjs`. This versioned
 entry imports the compiled runtime from the installed tool, and resolves the Host
 root from its own location. The Host does not install tsx or ship control code in
 its production app. Build this tool package as part of the development-tool
-release, before initializing Hosts. When the tool installation moves, reinstall
-the managed entry through `installManagedProjectControl(root, { upgrade: true })`;
-this atomically updates only a marked managed entry. Never hand-edit Host source scripts.
+release, before initializing Hosts. Creator select/refresh calls
+`ensureManagedProjectControl` before starting Python: current entries are a noop,
+stale versions or relocated tool URLs are atomically upgraded, and modified entries
+are refused. Missing v2 entries are installed; legacy projects retain their fallback.
+Metadata lives inside the entry, without changing the public project schema.
 
 Keep legacy scripts/tsx fallback for at least one full migration cycle. Remove
 it only after managed-path tests and all three Host modes have passed. No legacy

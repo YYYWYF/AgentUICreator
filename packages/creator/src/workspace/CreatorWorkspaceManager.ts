@@ -1,3 +1,4 @@
+import { ensureManagedProjectControl } from "@agent-ui/project-control";
 import { createHash } from "node:crypto";
 import { realpath, stat } from "node:fs/promises";
 import path from "node:path";
@@ -20,6 +21,7 @@ export class CreatorWorkspaceError extends Error {
 }
 
 export class CreatorWorkspaceManager {
+  readonly #ensureControl: typeof ensureManagedProjectControl;
   readonly #inspect: (projectRoot: string) => Promise<CreatorProjectInspection>;
   readonly #initialize: (input: CreatorWorkspaceInitializeInput & { projectRoot: string }) => Promise<unknown>;
   readonly #validateSetup: (input: CreatorWorkspaceInitializeInput & { projectRoot: string }) => Promise<CreatorProjectSetupValidation>;
@@ -36,7 +38,9 @@ export class CreatorWorkspaceManager {
     validateProjectSetup: (input: CreatorWorkspaceInitializeInput & { projectRoot: string }) => Promise<CreatorProjectSetupValidation>;
     suggestSourceRoot: (projectRoot: string) => Promise<string>;
     createPythonManager: CreatorPythonManagerFactory;
+    ensureProjectControl?: typeof ensureManagedProjectControl;
   }) {
+    this.#ensureControl = options.ensureProjectControl ?? ensureManagedProjectControl;
     this.#inspect = options.inspectProject;
     this.#initialize = options.initializeProject;
     this.#validateSetup = options.validateProjectSetup;
@@ -87,6 +91,7 @@ export class CreatorWorkspaceManager {
         ...(inspection.warnings === undefined ? {} : { warnings: inspection.warnings }) } as const;
       this.#state = { ...projectState, runtime: { status: "starting" } };
       try {
+        await this.#ensureControl(workspace.projectRoot, { managed: inspection.projectConfig.version === "2" });
         this.#python = this.#createPython(workspace.projectRoot);
         await this.#python.ensureStarted();
         this.#state = { ...projectState, runtime: { status: "ready" } };
@@ -163,7 +168,18 @@ export class CreatorWorkspaceManager {
       }
       if ((this.#state.status === "ready" || this.#state.status === "legacy") &&
           this.#state.runtime.status === "ready" && this.#state.workspace.projectRoot === canonicalRoot) {
-        return this.#state;
+        try {
+          await this.#ensureControl(canonicalRoot, { managed: this.#state.project.version === "2" });
+          return this.#state;
+        } catch (error) {
+          const previous = this.#state;
+          await this.#stopCurrent();
+          this.#state = { ...previous, runtime: {
+            status: "unavailable", code: "CREATOR_CONTROL_ENSURE_FAILED",
+            message: error instanceof Error ? error.message : String(error),
+          } };
+          return this.#state;
+        }
       }
       await this.#stopCurrent();
       this.#state = { status: "none" };

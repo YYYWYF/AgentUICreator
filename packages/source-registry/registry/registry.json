@@ -120,6 +120,10 @@
     {
       "id": "plugin/theme-switch",
       "path": "items/plugin-theme-switch/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-message-footer",
+      "path": "items/plugin-assistant-ui-message-footer/item.json"
     }
   ]
 }
