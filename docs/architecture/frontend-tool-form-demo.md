@@ -21,9 +21,13 @@ source root and source lock. The legacy adapter registry remains independent.
 
 ## Upstream reference and adaptation
 
-Pinned assistant-ui revision: `039c3c32822632f2a564164f089f538926886124`.
+React Hook Form reference revision: `039c3c32822632f2a564164f089f538926886124`,
+which contains `@assistant-ui/react-hook-form 0.12.34`. This integration keeps
+its own provenance pin rather than adopting the Generative UI release revision.
 The local source repository is `/Users/yifei/Coding/assistant-ui`.
-`@assistant-ui/react` is `0.15.21`, `@assistant-ui/react-ag-ui` is `0.0.60`.
+The current shared runtime uses `@assistant-ui/react 0.15.22` and
+`@assistant-ui/react-ag-ui 0.0.62`; the React Hook Form package and behavior
+remain unchanged.
 
 Dialog follows `examples/with-ag-ui/app/page.tsx`: the `browser_alert` frontend
 tool provides description, parameters, execute and render. Our `open_demo_dialog`
@@ -120,7 +124,9 @@ The Creator host uses `installMockResource` for both Demo and pluginless resourc
 It always installs source first and composes a Plugin only for entries in the Demo
 composition map. `installScenarioResources` remains a compatibility alias, and the
 Creator Dev Server prefers `installMockResource` over the deprecated option.
-Workbench inspection merges both Demo and Integration kinds from the optional
-source lock, plus legacy host-owned foundation facts from actual files. The active
+Workbench inspection uses optional-resource inspection for every lock-owned or
+provided item, identified by `installedVersion`, regardless of Source kind.
+Unowned items retain normal inspection; Demo/Integration remain the only optional
+installation roots. Legacy Host foundations are provided rather than adopted. The active
 legacy readiness regression covers installation, composition, this merge, and
 `frontend-tool-form` becoming ready without adopting any foundation source.

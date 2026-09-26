@@ -29,6 +29,8 @@ The lockfile resolves core 0.3.21, store 0.3.15, tap 0.9.19 and assistant-stream
 0.3.45 without forced overrides. React Hook Form remains 0.12.34; Markdown
 remains 0.14.16 and LangGraph remains 0.14.29. Their execution regressions were
 not run for this delivery.
+`integration/react-hook-form` retains its separate provenance revision
+`039c3c32822632f2a564164f089f538926886124`, which actually contains 0.12.34.
 
 assistant-ui owns vocabulary, rendering, actions and form collection.
 AgentUICreator supplies only thin factories and optional source installation:
@@ -70,6 +72,13 @@ The factory exposes official `present()` and `promptUser()` capabilities.
 human Tool definition. Installing the Integration authorizes neither. No files
 are installed in the frontend Tool contract or automatic conversation Host seam.
 Nothing adds `present` or `prompt_user` to `RunAgentInput.tools`.
+
+For legacy v1 projects, the separate scenario-resource lock owns every installed
+dependency, including the styled agent-component. Workbench merges resource
+inspection for entries with `installedVersion`, representing lock-owned source
+or provided Host foundations, regardless of Source kind or inspection status.
+Unowned entries keep normal inspection. The installation root allowlist remains
+demo/integration; Host foundations remain provided, unadopted and unwritten.
 
 A2UI takes only `present.render` for a backend presentation item. Explicit
 `integration/generative-ui-present` and `integration/generative-ui-prompt-user`

@@ -53,6 +53,14 @@ resolved through `AgentUIProjectPaths`; V1 host entry equivalents are inspected
 through explicit read-only path mappings, never adopted into the optional lock.
 Foundations provide a pass-through Host before any optional installation.
 
+Legacy v1 uses a separate `.agent-ui/scenario-resources/source-lock.json` for the
+entire optional closure, including `agent-component/assistant-ui-generative-ui`.
+Workbench adopts resource inspection for items with `installedVersion` (locked
+or provided ownership), not by Source kind or status. This prevents normal
+inspection's unowned-file conflicts from hiding installed transitive dependencies.
+Host foundation implementations stay unchanged and outside the optional lock;
+the existing installer still regenerates derived integration/Tool registries.
+
 ## Interaction and replay
 
 A Button action reaches `a2ui:action`, the official action registry and the
