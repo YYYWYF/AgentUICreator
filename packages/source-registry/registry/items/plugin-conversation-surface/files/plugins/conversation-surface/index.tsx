@@ -40,7 +40,7 @@ export function ConversationSurfacePlugin({
       case "toolGroup": return renderScopedSlot("toolGroup", scope, fallback);
       case "toolFallback": return renderScopedSlot("toolFallback", scope, fallback);
       case "taskGroup": return renderScopedSlot("taskGroup", scope, fallback);
-      case "assistantMessageFooter": return renderScopedSlot("assistantMessageFooter", scope, fallback);
+      case "assistantResponseFooter": return renderScopedSlot("assistantResponseFooter", scope, fallback);
       default: throw new Error(`Unknown Conversation renderer Slot "${slotName}"`);
     }
   };

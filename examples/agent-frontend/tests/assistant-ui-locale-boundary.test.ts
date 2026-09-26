@@ -11,7 +11,7 @@ const canonicalPluginIds = [
   "assistant-ui-copy-action",
   "assistant-ui-reload-action",
   "assistant-ui-export-markdown-action",
-  "assistant-ui-message-footer",
+  "assistant-ui-response-footer",
   "assistant-ui-composer",
   "assistant-ui-add-attachment-action",
   "assistant-ui-dictation-action",

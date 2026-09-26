@@ -439,12 +439,12 @@ describe("AG-UI State → JobProgress full application chain", () => {
     expect(assistantMessages).toHaveLength(1);
 
     const footers = container.querySelectorAll(
-      '[data-slot="aui_assistant-message-footer"]',
+      '[data-slot="aui_assistant-response-footer"]',
     );
     expect(footers).toHaveLength(1);
 
     const footerPlugins = container.querySelectorAll(
-      '[data-slot="aui_assistant-message-footer-plugin"]',
+      '[data-slot="aui_assistant-response-footer-plugin"]',
     );
     expect(footerPlugins).toHaveLength(1);
 

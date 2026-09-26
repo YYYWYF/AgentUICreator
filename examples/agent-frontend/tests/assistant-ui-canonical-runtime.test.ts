@@ -81,14 +81,14 @@ describe("assistant-ui canonical runtime", () => {
       .toBe("plugin:agent-conversation-surface-main:toolFallback");
     expect(model.pluginInstances["task-group-main"]?.mount?.slotId)
       .toBe("plugin:agent-conversation-surface-main:taskGroup");
-    expect(model.pluginInstances["assistant-ui-message-footer-main"]?.mount?.slotId)
-      .toBe("plugin:agent-conversation-surface-main:assistantMessageFooter");
+    expect(model.pluginInstances["assistant-ui-response-footer-main"]?.mount?.slotId)
+      .toBe("plugin:agent-conversation-surface-main:assistantResponseFooter");
     expect(model.pluginInstances["assistant-ui-copy-action-main"]?.mount?.slotId)
-      .toBe("plugin:assistant-ui-message-footer-main:actions");
+      .toBe("plugin:assistant-ui-response-footer-main:actions");
     expect(model.pluginInstances["assistant-ui-reload-action-main"]?.mount?.slotId)
-      .toBe("plugin:assistant-ui-message-footer-main:actions");
+      .toBe("plugin:assistant-ui-response-footer-main:actions");
     expect(model.pluginInstances["assistant-ui-export-markdown-action-main"]?.mount?.slotId)
-      .toBe("plugin:assistant-ui-message-footer-main:actions");
+      .toBe("plugin:assistant-ui-response-footer-main:actions");
   });
 
   it("keeps App on one assistant-ui Runtime owner", async () => {

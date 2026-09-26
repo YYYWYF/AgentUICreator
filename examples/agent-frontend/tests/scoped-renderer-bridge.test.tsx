@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   ScopedReasoningGroup,
-  ScopedAssistantMessageFooter,
+  ScopedAssistantResponseFooter,
   ScopedRendererBridgeProvider,
   ScopedTaskGroup,
   ScopedToolFallback,
@@ -133,13 +133,13 @@ describe("scoped renderer bridge", () => {
 
     expect(renderToStaticMarkup(
       <ScopedRendererBridgeProvider renderScopedSlot={renderScopedSlot}>
-        <ScopedAssistantMessageFooter />
+        <ScopedAssistantResponseFooter />
       </ScopedRendererBridgeProvider>,
-    )).toBe("<span>assistantMessageFooter</span>");
+    )).toBe("<span>assistantResponseFooter</span>");
     expect(observed).toMatchObject([{
-      slot: "assistantMessageFooter",
+      slot: "assistantResponseFooter",
       scope: {
-        kind: "conversation.assistant-message-footer",
+        kind: "conversation.assistant-response-footer",
         value: {},
       },
     }]);

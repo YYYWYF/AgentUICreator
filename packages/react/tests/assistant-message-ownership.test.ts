@@ -28,7 +28,7 @@ describe("assistant message ownership", () => {
     );
 
     expect(composableThread).toContain("taskAwareGroupBy");
-    expect(composableThread).toContain("AssistantMessageFooter");
+    expect(composableThread).toContain("AssistantResponseFooter");
     for (const forbidden of [
       "MessagePrimitive.GroupedParts",
       "groupPartByType",

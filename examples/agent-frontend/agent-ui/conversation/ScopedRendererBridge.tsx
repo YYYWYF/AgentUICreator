@@ -2,7 +2,7 @@ import { createContext, useContext, type ReactNode } from "react";
 import {
   type ConversationTaskGroupRenderScope,
   toConversationMessagePartGroup,
-  type ConversationAssistantMessageFooterRenderScope,
+  type ConversationAssistantResponseFooterRenderScope,
   type ConversationReasoningGroupRenderScope,
   type ConversationToolGroupRenderScope,
   type ConversationToolFallbackRenderScope,
@@ -37,12 +37,12 @@ export function ScopedReasoningGroup({ group: rawGroup, children }: { group: unk
   return renderScopedSlot("reasoningGroup", { kind: "conversation.reasoning-group", value });
 }
 
-export function ScopedAssistantMessageFooter() {
+export function ScopedAssistantResponseFooter() {
   const renderScopedSlot = useContext(ScopedRendererBridgeContext);
   if (renderScopedSlot === null) return null;
-  return renderScopedSlot("assistantMessageFooter", {
-    kind: "conversation.assistant-message-footer",
-    value: {} satisfies ConversationAssistantMessageFooterRenderScope,
+  return renderScopedSlot("assistantResponseFooter", {
+    kind: "conversation.assistant-response-footer",
+    value: {} satisfies ConversationAssistantResponseFooterRenderScope,
   });
 }
 

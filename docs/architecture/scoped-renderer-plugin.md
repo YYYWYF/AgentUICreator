@@ -26,7 +26,7 @@ as static content and returns `null` if rendered without its expected scope.
 The first host is `conversation-surface`. Its stable Thread component adapters
 receive assistant-ui `GroupedParts` groups and tool fallback props, project
 stable facade values, and select the `reasoningGroup`, `toolGroup`,
-`toolFallback`, `taskGroup`, or `assistantMessageFooter` renderer Slot. The
+`toolFallback`, `taskGroup`, or `assistantResponseFooter` renderer Slot. The
 adapter does not replace the whole AssistantMessage: assistant-ui's canonical
 ComposableThread owns message parts, order, grouping, streaming, named Tool UI
 selection, approvals, results, and errors. AgentUICreator adds only semantic
@@ -34,12 +34,12 @@ group and Footer seams through the Thread component map. The Thread's
 `part.toolUI ?? ToolFallback` selection still gives named Tool UIs priority.
 Text and Markdown are unchanged.
 
-The default Reasoning, Tool Group, Tool Fallback, and message Footer Renderer
+The default Reasoning, Tool Group, Tool Fallback, and Response Footer Renderer
 Plugins call canonical presentation components exposed by `@agent-ui/react`.
-The default message Footer is composed by `assistant-ui-message-footer` and its
-`conversation-message-action` child Plugins. The Footer owns the canonical
-BranchPicker and ActionBar root, while Copy, Reload, and Export Markdown remain
-independent assistant-ui Primitive wrappers. The `actions` child Slot is
+The default Response Footer is composed by `assistant-ui-response-footer` and its
+`conversation-assistant-response-action` child Plugins. The Footer reuses the upstream ActionBar visual root. Copy and Export use the
+complete response text; Reload and Branch select its head through public
+assistant-ui runtime APIs. The `actions` child Slot is
 `inline`; removing or reordering those instances changes the Footer through
 AppUIModel without editing React source. The default canonical presentation
 exists only when the corresponding Renderer and action Plugin instances are
@@ -47,11 +47,12 @@ explicitly mounted in AppUIModel. Replacing, disabling, or removing a renderer
 changes or removes its presentation through that model. The vendored
 assistant-ui Elements remain untouched.
 
-## Assistant Message Footer and Composer Boundary
+## Assistant Response Footer and Composer Boundary
 
-`assistantMessageFooter` is a `one` / optional Renderer Slot owned by
+`assistantResponseFooter` is a `one` / optional Renderer Slot owned by
 `conversation-surface`. Its scope is intentionally data-free because every
-Footer action runs inside the current assistant-ui Message Context. The shared
+Footer action reads the product-owned Response Context installed only at the
+response tail. See [Assistant Response Footer](assistant-response-footer.md). The shared
 `renderSlot` contract uses `layout: "inline"` for the Footer's `actions` child
 Slot; `inline` is a parent outlet layout requirement and never a child Plugin
 property. `inline` and `fill` are an invalid combination.

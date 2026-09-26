@@ -21,6 +21,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  multiMessageResponseScenario,
   nestedSubagentConversationScenario,
   nestedSubagentErrorScenario,
   nestedSubagentRecursiveScenario,
@@ -29,7 +30,7 @@ import {
 import { runMockScenario } from "@agent-ui/mock-agent";
 import { ConversationAdapter } from "../agent-ui/conversation/ConversationAdapter";
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
-import { AssistantUiMessageFooterPlugin } from "../plugins/assistant-ui-message-footer";
+import { AssistantUiResponseFooterPlugin } from "../plugins/assistant-ui-response-footer";
 import { TaskGroupPlugin } from "../plugins/task-group";
 import type { UIPluginRenderScope } from "../framework/contracts/ui-plugin";
 import { PluginRenderScopeProvider } from "../runtime/plugins";
@@ -107,9 +108,9 @@ function renderConversationScopedSlot(
   scope: UIPluginRenderScope,
   fallback?: ReactNode,
 ) {
-  if (slotName === "assistantMessageFooter") {
+  if (slotName === "assistantResponseFooter") {
     return (
-      <AssistantUiMessageFooterPlugin
+      <AssistantUiResponseFooterPlugin
         renderSlot={() => null}
         renderScopedSlot={() => null}
       />
@@ -512,5 +513,46 @@ describe("official nested assistant-ui conversation", () => {
 
     expect(productionToolkit.delegate_specialist).toBeUndefined();
     expect(mockToolkit.delegate_specialist).toBeUndefined();
+  });
+});
+
+describe("standard AG-UI multi-message Response", () => {
+  it("projects three ThreadMessages and one tail Footer through react-ag-ui", async () => {
+    const events = await collectScenarioEvents(multiMessageResponseScenario);
+    const { container, runtime } = await mountRuntime(new ScenarioEventAgent(events));
+    await act(async () => { await runtime.thread.append({ role: "user", content: [{ type: "text", text: "回答" }], startRun: true }); });
+    const messages = assistantMessages(runtime);
+    expect(messages).toHaveLength(3);
+    expect(messages.map((message) => message.content.filter((part) => part.type === "text").map((part) => part.text).join("")))
+      .toEqual(["第一段回答", "第二段回答", "最终总结"]);
+    const roots = container.querySelectorAll('[data-slot="aui_assistant-message-root"]');
+    expect(roots).toHaveLength(3);
+    expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(1);
+    expect(roots[2]?.querySelector('[data-slot="aui_assistant-response-footer"]')).not.toBeNull();
+  });
+
+  it("keeps actions absent between streamed messages until RUN_FINISHED", async () => {
+    const events = await collectScenarioEvents(multiMessageResponseScenario);
+    let emit: ((event: BaseEvent) => void) | undefined;
+    let complete: (() => void) | undefined;
+    class PausedScenarioAgent extends AbstractAgent {
+      constructor() { super({ threadId: "p6-thread" }); }
+      override run(_input: RunAgentInput): Observable<BaseEvent> {
+        return new Observable((subscriber) => {
+          emit = (event) => subscriber.next(event);
+          complete = () => subscriber.complete();
+        });
+      }
+    }
+    const { container, runtime } = await mountRuntime(new PausedScenarioAgent());
+    await act(async () => { runtime.thread.append({ role: "user", content: [{ type: "text", text: "回答" }], startRun: true }); });
+    const firstEnd = events.findIndex((event) => event.type === "TEXT_MESSAGE_END");
+    await act(async () => { events.slice(0, firstEnd + 1).forEach((event) => emit?.(event)); });
+    expect(assistantMessages(runtime)).toHaveLength(1);
+    expect(runtime.thread.getState().isRunning).toBe(true);
+    expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(0);
+    await act(async () => { events.slice(firstEnd + 1).forEach((event) => emit?.(event)); complete?.(); });
+    expect(assistantMessages(runtime)).toHaveLength(3);
+    expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(1);
   });
 });

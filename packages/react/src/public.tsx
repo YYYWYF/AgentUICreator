@@ -136,7 +136,7 @@ export function ConversationIf({
 
 export type ConversationThreadComponents = {
   AssistantMessage?: ComponentType | undefined;
-  AssistantMessageFooter?: ComponentType | undefined;
+  AssistantResponseFooter?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
   ToolFallback?: ComponentType<ConversationToolCallProps> | undefined;
   ToolGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
@@ -170,8 +170,8 @@ export interface ConversationTaskGroupRenderScope {
   readonly children?: ReactNode;
 }
 
-/** The footer keeps its scope intentionally data-free; actions read Message Context. */
-export type ConversationAssistantMessageFooterRenderScope = Record<string, never>;
+/** The footer keeps its scope intentionally data-free; actions read Response Context. */
+export type ConversationAssistantResponseFooterRenderScope = Record<string, never>;
 
 export function toConversationMessagePartGroup(group: unknown): ConversationMessagePartGroup {
   const source = group as { type: ConversationMessagePartGroup["type"]; indices: readonly number[]; status: { type: string } };
@@ -888,3 +888,17 @@ export function TooltipProvider(
 ) {
   return <InternalTooltipProvider {...(props as ComponentProps<typeof InternalTooltipProvider>)} />;
 }
+
+/** Response APIs are separate from the existing message-scoped actions. */
+export {
+  ResponseActionBarRoot as ConversationResponseActionBarRoot,
+  ResponseBranchPicker as ConversationResponseBranchPicker,
+  CanonicalResponseCopyAction as ConversationCanonicalResponseCopyAction,
+  CanonicalResponseReloadAction as ConversationCanonicalResponseReloadAction,
+  CanonicalResponseExportMarkdownAction as ConversationCanonicalResponseExportMarkdownAction,
+} from "./internal/composable-thread.js";
+export {
+  useAssistantResponseRuntime as useConversationResponseRuntime,
+  type AssistantResponseRuntime as ConversationResponseRuntime,
+} from "./internal/assistant-response-runtime.js";
+export type { AssistantResponseGroup as ConversationAssistantResponseGroup } from "./internal/assistant-response.js";

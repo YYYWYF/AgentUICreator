@@ -10,6 +10,7 @@ import {
   type ChatModelAdapter,
   type ThreadMessage,
 } from "@assistant-ui/react";
+import { useConversationState } from "@agent-ui/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ConversationAdapter } from "../agent-ui/conversation/ConversationAdapter";
@@ -19,7 +20,7 @@ import type {
 } from "../framework/contracts/ui-plugin";
 import { assistantUiCopyActionPlugin } from "../plugins/assistant-ui-copy-action/definition";
 import { assistantUiExportMarkdownActionPlugin } from "../plugins/assistant-ui-export-markdown-action/definition";
-import { assistantUiMessageFooterPlugin } from "../plugins/assistant-ui-message-footer/definition";
+import { assistantUiResponseFooterPlugin } from "../plugins/assistant-ui-response-footer/definition";
 import { assistantUiReloadActionPlugin } from "../plugins/assistant-ui-reload-action/definition";
 import { AGENT_UI_THEME_SERVICE } from "../services/agent-ui-theme";
 import {
@@ -44,14 +45,19 @@ class ResizeObserverMock {
   disconnect(): void {}
 }
 
+function MessageCopiedProbe() {
+  const copied = useConversationState((s) => s.message.isCopied);
+  return <span data-slot="message-copied-probe" data-copied={String(copied)} />;
+}
+
 function ConversationActionHost({
   renderScopedSlot,
 }: UIPluginComponentProps) {
   return (
     <ConversationAdapter
       renderScopedSlot={(slotName, scope) =>
-        slotName === "assistantMessageFooter"
-          ? renderScopedSlot(slotName, scope)
+        slotName === "assistantResponseFooter"
+          ? <>{renderScopedSlot(slotName, scope)}<MessageCopiedProbe /></>
           : null
       }
     />
@@ -66,13 +72,13 @@ const conversationActionHostPlugin: UIPluginDefinition = {
     version: "1.0.0",
     slots: {
       children: {
-        assistantMessageFooter: {
+        assistantResponseFooter: {
           description: "Assistant message footer renderer.",
           cardinality: "one",
           mode: "renderer",
           optional: true,
           accepts: {
-            anyOfCapabilities: ["conversation-assistant-message-footer-renderer"],
+            anyOfCapabilities: ["conversation-assistant-response-footer-renderer"],
           },
         },
       },
@@ -84,7 +90,7 @@ const conversationActionHostPlugin: UIPluginDefinition = {
 
 const registry = createPluginRegistry([
   conversationActionHostPlugin,
-  assistantUiMessageFooterPlugin,
+  assistantUiResponseFooterPlugin,
   assistantUiCopyActionPlugin,
   assistantUiReloadActionPlugin,
   assistantUiExportMarkdownActionPlugin,
@@ -105,12 +111,12 @@ const model: AppUIRuntimeModel = parseAppUIRuntimeModel({
     },
     footer: {
       id: "footer",
-      pluginId: "assistant-ui-message-footer",
+      pluginId: "assistant-ui-response-footer",
       enabled: true,
       mount: {
         slotId: resolveRuntimePluginSlotId(
           "host",
-          "assistantMessageFooter",
+          "assistantResponseFooter",
         ),
       },
     },
@@ -142,9 +148,9 @@ const pluginActions = {
   abortRun: vi.fn(),
 };
 
-function assistantMessage(text = "Answer"): ThreadMessage {
+function assistantMessage(text = "Answer", id = "assistant-action-message"): ThreadMessage {
   return {
-    id: "assistant-action-message",
+    id,
     role: "assistant",
     content: [{ type: "text", text }],
     status: { type: "complete", reason: "stop" },
@@ -268,7 +274,7 @@ afterEach(async () => {
   vi.clearAllMocks();
 });
 
-describe("assistant-ui message footer action Plugins", () => {
+describe("assistant-ui response footer action Plugins", () => {
   it("keeps the Footer root horizontal and updates copied state through the child Plugin", async () => {
     const writeText = vi.fn(async () => undefined);
     const restoreClipboard = installClipboardMock(writeText);
@@ -276,7 +282,7 @@ describe("assistant-ui message footer action Plugins", () => {
     try {
       const { container } = await mount({ run: async () => ({ content: [] }) });
       const footer = container.querySelector(
-        '[data-ui-plugin="assistant-ui-message-footer"]',
+        '[data-ui-plugin="assistant-ui-response-footer"]',
       );
       expect(footer?.classList.contains("flex")).toBe(true);
       expect(footer?.classList.contains("items-center")).toBe(true);
@@ -299,7 +305,7 @@ describe("assistant-ui message footer action Plugins", () => {
     }
   });
 
-  it("routes Reload from the child Plugin to the current assistant message", async () => {
+  it("routes Reload from the child Plugin to the response head", async () => {
     const run = vi.fn<ChatModelAdapter["run"]>(async () => ({
       content: [{ type: "text", text: "Reloaded" }],
     }));
@@ -316,7 +322,7 @@ describe("assistant-ui message footer action Plugins", () => {
     expect(run).toHaveBeenCalledTimes(1);
   });
 
-  it("triggers assistant-ui Markdown export from the child Plugin", async () => {
+  it("exports response Markdown from the child Plugin", async () => {
     const createObjectURL = vi.fn(
       (_object: Blob | MediaSource) => "blob:assistant-action",
     );
@@ -338,5 +344,114 @@ describe("assistant-ui message footer action Plugins", () => {
     expect(createObjectURL).toHaveBeenCalledTimes(1);
     expect(createObjectURL.mock.calls[0]?.[0]).toBeInstanceOf(Blob);
     expect(anchorClick).toHaveBeenCalledTimes(1);
+  });
+});
+
+function userMessage(id: string): ThreadMessage {
+  return { ...assistantMessage("Question", id), role: "user" } as ThreadMessage;
+}
+
+async function hydrate(runtime: AssistantRuntime, messages: ThreadMessage[]) {
+  await act(async () => {
+    runtime.thread.import({
+      headId: messages.at(-1)?.id ?? null,
+      messages: messages.map((message, index) => ({ message, parentId: messages[index - 1]?.id ?? null })),
+    });
+  });
+}
+
+const responseMessages = () => [userMessage("u"), assistantMessage("Hello", "a"), assistantMessage("World", "b"), assistantMessage("Summary", "c")];
+
+describe("multi-message Response actions", () => {
+  it("hydrates separate messages and places one Footer under the tail", async () => {
+    const { container, runtime } = await mount({ run: async () => ({ content: [] }) });
+    await hydrate(runtime, responseMessages());
+    const roots = container.querySelectorAll('[data-slot="aui_assistant-message-root"]');
+    expect(roots).toHaveLength(3);
+    expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(1);
+    expect(roots[0]?.querySelector('[data-slot="aui_assistant-response-footer"]')).toBeNull();
+    expect(roots[1]?.querySelector('[data-slot="aui_assistant-response-footer"]')).toBeNull();
+    expect(roots[2]?.querySelector('[data-slot="aui_assistant-response-footer"]')).not.toBeNull();
+    expect(runtime.thread.getState().messages.map(({ id }) => id)).toEqual(["u", "a", "b", "c"]);
+  });
+
+  it("renders one Footer per response across two requests", async () => {
+    const { container, runtime } = await mount({ run: async () => ({ content: [] }) });
+    await hydrate(runtime, [...responseMessages(), userMessage("u2"), assistantMessage("Next", "d"), assistantMessage("Done", "e")]);
+    expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(2);
+    expect(container.querySelectorAll('[data-slot="aui_assistant-message-root"]')).toHaveLength(5);
+  });
+
+  it("copies all response text once and keeps copied feedback local", async () => {
+    const writeText = vi.fn(async () => undefined);
+    const restore = installClipboardMock(writeText);
+    try {
+      const { container, runtime } = await mount({ run: async () => ({ content: [] }) });
+      await hydrate(runtime, responseMessages());
+      await act(async () => { findActionButton(container, "assistant-ui-copy-action").click(); await Promise.resolve(); });
+      expect(writeText).toHaveBeenCalledExactlyOnceWith("Hello\n\nWorld\n\nSummary");
+      expect(container.querySelector('[data-slot="message-copied-probe"]')?.getAttribute("data-copied")).toBe("false");
+      expect(container.querySelector('[data-slot="assistant-ui-copy-action-copied"]')).not.toBeNull();
+    } finally { restore(); }
+  });
+
+  it("exports the same complete response text", async () => {
+    const createObjectURL = vi.fn((_blob: Blob | MediaSource) => "blob:response");
+    vi.stubGlobal("URL", { createObjectURL, revokeObjectURL: vi.fn() });
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    const { container, runtime } = await mount({ run: async () => ({ content: [] }) });
+    await hydrate(runtime, responseMessages());
+    await act(async () => { findActionButton(container, "assistant-ui-export-markdown-action").click(); });
+    const blob = createObjectURL.mock.calls[0]![0] as Blob;
+    const text = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.readAsText(blob);
+    });
+    expect(text).toBe("Hello\n\nWorld\n\nSummary");
+  });
+
+  it("reloads from the request before the response head", async () => {
+    const run = vi.fn<ChatModelAdapter["run"]>(async () => ({ content: [{ type: "text", text: "Regenerated" }] }));
+    const { container, runtime } = await mount({ run });
+    await hydrate(runtime, responseMessages());
+    await act(async () => { findActionButton(container, "assistant-ui-reload-action").click(); await Promise.resolve(); });
+    expect(run).toHaveBeenCalledOnce();
+    expect(run.mock.calls[0]![0].messages.map(({ id }) => id)).toEqual(["u"]);
+    expect(runtime.thread.getState().messages.map(({ id }) => id)).not.toContain("a");
+    expect(runtime.thread.getState().messages.map(({ id }) => id)).not.toContain("c");
+  });
+
+  it("shows and switches branches at the head rather than tail", async () => {
+    const { container, runtime } = await mount({ run: async () => ({ content: [] }) });
+    const messages = responseMessages();
+    await act(async () => runtime.thread.import({
+      headId: "c",
+      messages: [
+        ...messages.map((message, i) => ({ message, parentId: messages[i - 1]?.id ?? null })),
+        { message: assistantMessage("Alternative", "alt"), parentId: "u" },
+      ],
+    }));
+    expect(runtime.thread.getMessageById("a").getState().branchCount).toBe(2);
+    expect(runtime.thread.getMessageById("c").getState().branchCount).toBe(1);
+    expect(container.querySelector('.aui-branch-picker-state')?.textContent).toBe("1 / 2");
+    const next = container.querySelector('.aui-branch-picker-root button:last-child') as HTMLButtonElement;
+    await act(async () => next.click());
+    expect(runtime.thread.getState().messages.map(({ id }) => id)).toEqual(["u", "alt"]);
+    expect(container.querySelector('.aui-branch-picker-state')?.textContent).toBe("2 / 2");
+    const previous = container.querySelector('.aui-branch-picker-root button:first-child') as HTMLButtonElement;
+    await act(async () => previous.click());
+    expect(runtime.thread.getState().messages.map(({ id }) => id)).toEqual(["u", "a", "b", "c"]);
+  });
+
+  it("hides the Footer throughout generation and restores it after completion", async () => {
+    let finish: ((result: { content: [{ type: "text"; text: string }] }) => void) | undefined;
+    const { container, runtime } = await mount({ run: () => new Promise((resolve) => { finish = resolve; }) });
+    await hydrate(runtime, responseMessages());
+    await act(async () => { findActionButton(container, "assistant-ui-reload-action").click(); });
+    expect(runtime.thread.getState().isRunning).toBe(true);
+    expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(0);
+    await act(async () => { finish?.({ content: [{ type: "text", text: "Complete" }] }); await Promise.resolve(); });
+    expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(1);
   });
 });

@@ -62,10 +62,10 @@ test.describe("ConversationSurface layout", () => {
       surface.locator('[data-slot="aui_assistant-message-root"]'),
     ).toHaveCount(1);
     await expect(
-      surface.locator('[data-slot="aui_assistant-message-footer"]'),
+      surface.locator('[data-slot="aui_assistant-response-footer"]'),
     ).toHaveCount(1);
     await expect(
-      surface.locator('[data-slot="aui_assistant-message-footer-plugin"]'),
+      surface.locator('[data-slot="aui_assistant-response-footer-plugin"]'),
     ).toHaveCount(1);
     await expect(
       surface.locator(

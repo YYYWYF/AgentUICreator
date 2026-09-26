@@ -42,6 +42,7 @@ export {
   approvalResumeScenario,
   backendReferenceMockScenarios,
   frontendPresentationMockScenarios,
+  multiMessageResponseScenario,
   multiToolScenario,
   nestedSubagentConversationScenario,
   nestedSubagentErrorScenario,

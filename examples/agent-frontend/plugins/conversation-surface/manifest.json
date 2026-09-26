@@ -72,13 +72,13 @@
         "mode": "renderer",
         "accepts": { "anyOfCapabilities": ["conversation-task-group-renderer"] }
       },
-      "assistantMessageFooter": {
+      "assistantResponseFooter": {
         "description": "Renderer for the assistant message footer.",
         "cardinality": "one",
         "optional": true,
         "mode": "renderer",
         "accepts": {
-          "anyOfCapabilities": ["conversation-assistant-message-footer-renderer"]
+          "anyOfCapabilities": ["conversation-assistant-response-footer-renderer"]
         }
       }
     }

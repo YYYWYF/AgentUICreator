@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/assistant-ui-response-footer",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-assistant-ui-response-footer source",
+  "files": [
+    {
+      "source": "files/plugins/assistant-ui-response-footer/definition.ts",
+      "target": "plugins/assistant-ui-response-footer/definition.ts"
+    },
+    {
+      "source": "files/plugins/assistant-ui-response-footer/index.tsx",
+      "target": "plugins/assistant-ui-response-footer/index.tsx"
+    },
+    {
+      "source": "files/plugins/assistant-ui-response-footer/manifest.json",
+      "target": "plugins/assistant-ui-response-footer/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

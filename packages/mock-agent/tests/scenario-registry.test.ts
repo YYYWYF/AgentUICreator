@@ -38,6 +38,8 @@ describe("createScenarioRegistry", () => {
       "approval-resume",
       "agent-state-sync",
       "nested-subagent-conversation",
+      "multi-message-response",
+      "data-message-chart",
       "nested-subagent-task-group",
       "agent-plan",
       "agent-status",

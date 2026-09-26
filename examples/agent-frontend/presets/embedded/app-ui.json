@@ -99,10 +99,10 @@
                     "enabled": true
                   }
                 ],
-                "assistantMessageFooter": [
+                "assistantResponseFooter": [
                   {
-                    "id": "assistant-ui-message-footer-main",
-                    "pluginId": "assistant-ui-message-footer",
+                    "id": "assistant-ui-response-footer-main",
+                    "pluginId": "assistant-ui-response-footer",
                     "enabled": true,
                     "slots": {
                       "actions": [

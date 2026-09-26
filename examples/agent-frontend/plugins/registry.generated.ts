@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "c32b364f7e875c7ac0d286f1dff4057e5711442a809eda9486bfc3d7b61f69ad";
+export const capabilityCatalogRevision = "2cdfc811cc0db3f0be8579ca3055de0a7335410ce55e045ee3d1f3c490f52945";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -114,19 +114,19 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     manifest: {
       "id": "assistant-ui-copy-action",
       "name": "Assistant UI Copy Action",
-      "description": "Copies the current assistant message through assistant-ui.",
+      "description": "Copies text from the complete assistant response.",
       "version": "1.0.0",
       "capabilities": [
-        "conversation-message-action"
+        "conversation-assistant-response-action"
       ],
       "authoring": {
         "intents": [
-          "copy assistant message content"
+          "copy assistant response content"
         ],
-        "visualRole": "assistant message copy action",
+        "visualRole": "assistant response copy action",
         "defaultPlacement": {
           "type": "plugin_slot",
-          "parentPluginId": "assistant-ui-message-footer",
+          "parentPluginId": "assistant-ui-response-footer",
           "slot": "actions"
         }
       }
@@ -172,19 +172,19 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     manifest: {
       "id": "assistant-ui-export-markdown-action",
       "name": "Assistant UI Export Markdown Action",
-      "description": "Exports the current assistant message as Markdown through assistant-ui.",
+      "description": "Exports the complete assistant response as Markdown.",
       "version": "1.0.0",
       "capabilities": [
-        "conversation-message-action"
+        "conversation-assistant-response-action"
       ],
       "authoring": {
         "intents": [
-          "export an assistant message as Markdown"
+          "export an assistant response as Markdown"
         ],
-        "visualRole": "assistant message Markdown export action",
+        "visualRole": "assistant response Markdown export action",
         "defaultPlacement": {
           "type": "plugin_slot",
-          "parentPluginId": "assistant-ui-message-footer",
+          "parentPluginId": "assistant-ui-response-footer",
           "slot": "actions"
         }
       }
@@ -194,51 +194,6 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     optionalInject: [],
     loadDefinition: () =>
       import("./assistant-ui-export-markdown-action/definition").then(
-        ({ default: definition }) => definition,
-      ),
-  },
-  {
-    manifest: {
-      "id": "assistant-ui-message-footer",
-      "name": "Assistant UI Message Footer",
-      "description": "Renders the canonical assistant message footer and its composable actions.",
-      "version": "1.0.0",
-      "capabilities": [
-        "conversation-assistant-message-footer-renderer"
-      ],
-      "requiresRenderScope": true,
-      "authoring": {
-        "intents": [
-          "show assistant message branch and action controls",
-          "compose assistant message footer actions"
-        ],
-        "visualRole": "assistant message footer",
-        "defaultPlacement": {
-          "type": "plugin_slot",
-          "parentPluginId": "conversation-surface",
-          "slot": "assistantMessageFooter"
-        }
-      },
-      "slots": {
-        "children": {
-          "actions": {
-            "description": "Actions displayed in the assistant message footer.",
-            "cardinality": "many",
-            "optional": true,
-            "accepts": {
-              "anyOfCapabilities": [
-                "conversation-message-action"
-              ]
-            }
-          }
-        }
-      }
-    },
-    provides: [],
-    inject: [],
-    optionalInject: [],
-    loadDefinition: () =>
-      import("./assistant-ui-message-footer/definition").then(
         ({ default: definition }) => definition,
       ),
   },
@@ -278,19 +233,19 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     manifest: {
       "id": "assistant-ui-reload-action",
       "name": "Assistant UI Reload Action",
-      "description": "Regenerates the current assistant message through assistant-ui.",
+      "description": "Regenerates the current assistant response through assistant-ui.",
       "version": "1.0.0",
       "capabilities": [
-        "conversation-message-action"
+        "conversation-assistant-response-action"
       ],
       "authoring": {
         "intents": [
-          "regenerate an assistant message"
+          "regenerate an assistant response"
         ],
-        "visualRole": "assistant message reload action",
+        "visualRole": "assistant response reload action",
         "defaultPlacement": {
           "type": "plugin_slot",
-          "parentPluginId": "assistant-ui-message-footer",
+          "parentPluginId": "assistant-ui-response-footer",
           "slot": "actions"
         }
       }
@@ -300,6 +255,51 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     optionalInject: [],
     loadDefinition: () =>
       import("./assistant-ui-reload-action/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
+      "id": "assistant-ui-response-footer",
+      "name": "Assistant UI Response Footer",
+      "description": "Renders the canonical assistant response footer and its composable actions.",
+      "version": "1.0.0",
+      "capabilities": [
+        "conversation-assistant-response-footer-renderer"
+      ],
+      "requiresRenderScope": true,
+      "authoring": {
+        "intents": [
+          "show assistant response branch and action controls",
+          "compose assistant response footer actions"
+        ],
+        "visualRole": "assistant response footer",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "assistantResponseFooter"
+        }
+      },
+      "slots": {
+        "children": {
+          "actions": {
+            "description": "Actions displayed in the assistant response footer.",
+            "cardinality": "many",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-assistant-response-action"
+              ]
+            }
+          }
+        }
+      }
+    },
+    provides: [],
+    inject: [],
+    optionalInject: [],
+    loadDefinition: () =>
+      import("./assistant-ui-response-footer/definition").then(
         ({ default: definition }) => definition,
       ),
   },
@@ -593,14 +593,14 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
               ]
             }
           },
-          "assistantMessageFooter": {
+          "assistantResponseFooter": {
             "description": "Renderer for the assistant message footer.",
             "cardinality": "one",
             "mode": "renderer",
             "optional": true,
             "accepts": {
               "anyOfCapabilities": [
-                "conversation-assistant-message-footer-renderer"
+                "conversation-assistant-response-footer-renderer"
               ]
             }
           }

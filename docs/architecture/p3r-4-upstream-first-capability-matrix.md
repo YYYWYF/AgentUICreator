@@ -79,6 +79,7 @@ is empty, disabled, or unavailable.
 | Message Attachments | Upstream UserMessageAttachments and attachment presentation | `agent-message-attachments` overrides `conversation.message.attachments` | `assistant-ui-canonical` | P3R-4A disables `agent-message-attachments-main` in assistant-ui mode. |
 | Sources | Source data can be expressed, but the pinned version has no sufficient default Sources presentation | `agent-message-sources` renders the product Sources UI | `agent-ui-extension` | Keep `agent-message-sources-main` enabled. |
 | Error presentation | Upstream thread and message error presentation | AgentUICreator retains product diagnostics and transport policy | `assistant-ui-with-agent-ui-adapter` | Reuse upstream UI while retaining AgentUICreator error-policy integration. |
+| Assistant Response Group / Response Footer | Thread, Message, ActionBar, BranchPicker, and turnAnchor; actions remain Message Context scoped | Pure top-level grouping, tail placement, and response head action adapter in `@agent-ui/react` | `agent-ui-extension` | Reuse canonical assistant message presentation and ActionBar visual shell; group copy/export text and select the head for reload/branch. See [Assistant Response Footer](assistant-response-footer.md) for ownership and deletion conditions. |
 | Action bar | Upstream message action bar primitives | Legacy message actions remain in the normal path | `assistant-ui-canonical` | Use upstream default in assistant-ui mode; prove product action parity before deletion. |
 | Branch picker | Upstream branch picker primitives | No canonical AgentUICreator replacement is required | `assistant-ui-canonical` | Use upstream presentation when branching data is available. |
 | Thread List | ThreadList, ThreadListItem, search, loading, and New primitives | `assistant-ui-thread-list` binds the Conversation Service catalog and history hydration | `assistant-ui-with-agent-ui-adapter` | P3R-4D uses the pinned native ThreadList; AgentUICreator supplies live/history identity, catalog data, disabled-navigation policy, and the list error/retry extension. |
@@ -184,7 +185,7 @@ the following canonical Plugins must not inject or read `agent-ui.locale`:
 assistant-ui-copy-action
 assistant-ui-reload-action
 assistant-ui-export-markdown-action
-assistant-ui-message-footer
+assistant-ui-response-footer
 assistant-ui-composer
 assistant-ui-add-attachment-action
 assistant-ui-dictation-action
@@ -199,7 +200,7 @@ individual action Plugins.
 
 ### Canonical defaults and intentional adaptations
 
-The canonical facade preserves these pinned assistant-ui defaults:
+The message facade preserves these pinned assistant-ui defaults:
 
 ```text
 - Composer Add Attachment: direct upstream reuse
@@ -218,3 +219,8 @@ presentation replacements:
 - Export Markdown promoted from the upstream More menu to a direct action
 - Stable data-slot hooks used only for tests and composition diagnostics
 ```
+
+Assistant message presentation remains `assistant-ui-canonical`. The Response
+extension owns only multi-message grouping, tail placement, and action targets.
+Its Copy/Export adapters use response text; Reload/Branch delegate to public
+upstream head-message methods. Existing message action APIs keep their semantics.

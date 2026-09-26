@@ -1,3 +1,4 @@
+import { multiMessageResponseScenario } from "./multi-message-response.js";
 import { agentPlanScenario } from "./agent-plan.js";
 import { agentStatusScenario } from "./agent-status.js";
 import { dataMessageChartScenario } from "./data-message-chart.js";
@@ -19,6 +20,7 @@ import { toolLongRunningScenario } from "./tool-long-running.js";
 import type { MockScenario } from "../scenario.js";
 
 export {
+  multiMessageResponseScenario,
   agentPlanScenario,
   agentStatusScenario,
   dataMessageChartScenario,
@@ -51,6 +53,7 @@ export const backendReferenceMockScenarios: MockScenario[] = [
 ];
 
 export const frontendPresentationMockScenarios: MockScenario[] = [
+  multiMessageResponseScenario,
   dataMessageChartScenario,
   nestedSubagentTaskGroupScenario,
   agentPlanScenario,

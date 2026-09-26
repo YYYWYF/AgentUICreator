@@ -22,7 +22,7 @@ describe("UI plugin identity", () => {
     expect(pluginCapabilityCatalog.list().map(({ manifest }) => manifest.id)).toEqual([
       "assistant-ui-copy-action",
       "assistant-ui-export-markdown-action",
-      "assistant-ui-message-footer",
+      "assistant-ui-response-footer",
       "assistant-ui-reasoning",
       "assistant-ui-reload-action",
       "assistant-ui-tool-fallback",

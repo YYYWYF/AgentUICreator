@@ -27,11 +27,11 @@ describe("assistant-ui default composition", () => {
         anyOfCapabilities: ["conversation-task-group-renderer"],
       },
     });
-    expect(slots?.assistantMessageFooter).toMatchObject({
+    expect(slots?.assistantResponseFooter).toMatchObject({
       mode: "renderer",
       cardinality: "one",
       accepts: {
-        anyOfCapabilities: ["conversation-assistant-message-footer-renderer"],
+        anyOfCapabilities: ["conversation-assistant-response-footer-renderer"],
       },
     });
     const locations = collectAppUIPluginLocations(parseAppUIModel(appUIJson));
@@ -75,10 +75,10 @@ describe("assistant-ui default composition", () => {
       parentPluginId: "conversation-surface",
       slot: "taskGroup",
     });
-    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-message-footer")?.manifest.authoring?.defaultPlacement).toEqual({
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-response-footer")?.manifest.authoring?.defaultPlacement).toEqual({
       type: "plugin_slot",
       parentPluginId: "conversation-surface",
-      slot: "assistantMessageFooter",
+      slot: "assistantResponseFooter",
     });
     expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-composer")?.manifest.authoring?.defaultPlacement).toEqual({
       type: "plugin_slot",
@@ -120,7 +120,7 @@ describe("assistant-ui default composition", () => {
       "assistant-ui-tool-group-main",
       "assistant-ui-tool-fallback-main",
       "task-group-main",
-      "assistant-ui-message-footer-main",
+      "assistant-ui-response-footer-main",
       "assistant-ui-copy-action-main",
       "assistant-ui-reload-action-main",
       "assistant-ui-export-markdown-action-main",
@@ -141,7 +141,7 @@ describe("assistant-ui default composition", () => {
       "assistant-ui-tool-group-main",
       "assistant-ui-tool-fallback-main",
       "task-group-main",
-      "assistant-ui-message-footer-main",
+      "assistant-ui-response-footer-main",
       "assistant-ui-copy-action-main",
       "assistant-ui-reload-action-main",
       "assistant-ui-export-markdown-action-main",
@@ -240,7 +240,7 @@ describe("assistant-ui default composition", () => {
     ]) {
       expect(thread).toContain(`data-slot=\"${slot}\"`);
     }
-    expect(conversationAdapter).toContain("AssistantMessageFooter: ScopedAssistantMessageFooter");
+    expect(conversationAdapter).toContain("AssistantResponseFooter: ScopedAssistantResponseFooter");
     expect(conversationAdapter).not.toContain("AssistantMessage: ScopedAssistantMessage");
     expect(conversationAdapter).toContain("ScopedReasoningGroup");
     expect(conversationAdapter).toContain("ScopedToolGroup");

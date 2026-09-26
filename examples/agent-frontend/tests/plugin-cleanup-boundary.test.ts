@@ -10,7 +10,7 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const canonicalPluginIds = [
   "assistant-ui-copy-action",
   "assistant-ui-export-markdown-action",
-  "assistant-ui-message-footer",
+  "assistant-ui-response-footer",
   "assistant-ui-reasoning",
   "assistant-ui-reload-action",
   "assistant-ui-tool-fallback",

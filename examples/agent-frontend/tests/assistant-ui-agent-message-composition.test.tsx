@@ -39,9 +39,9 @@ describe("assistant-ui message composition", () => {
     expect(adapter).toContain("ScopedReasoningGroup");
     expect(adapter).toContain("ScopedToolGroup");
     expect(adapter).toContain("ScopedToolFallback");
-    expect(adapter).toContain("AssistantMessageFooter: ScopedAssistantMessageFooter");
+    expect(adapter).toContain("AssistantResponseFooter: ScopedAssistantResponseFooter");
     expect(adapter).not.toContain("AssistantMessage: ScopedAssistantMessage");
-    expect(bridge).toContain("ScopedAssistantMessageFooter");
+    expect(bridge).toContain("ScopedAssistantResponseFooter");
     expect(bridge).not.toContain("ConversationCanonicalAssistantMessage");
     expect(composableThread).toContain("taskAwareGroupBy");
   });

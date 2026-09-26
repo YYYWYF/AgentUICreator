@@ -1,0 +1,32 @@
+{
+  "id": "assistant-ui-response-footer",
+  "name": "Assistant UI Response Footer",
+  "description": "Renders the canonical assistant response footer and its composable actions.",
+  "version": "1.0.0",
+  "capabilities": ["conversation-assistant-response-footer-renderer"],
+  "requiresRenderScope": true,
+  "authoring": {
+    "intents": [
+      "show assistant response branch and action controls",
+      "compose assistant response footer actions"
+    ],
+    "visualRole": "assistant response footer",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "conversation-surface",
+      "slot": "assistantResponseFooter"
+    }
+  },
+  "slots": {
+    "children": {
+      "actions": {
+        "description": "Actions displayed in the assistant response footer.",
+        "cardinality": "many",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": ["conversation-assistant-response-action"]
+        }
+      }
+    }
+  }
+}

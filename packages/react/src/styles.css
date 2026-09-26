@@ -195,7 +195,7 @@
 }
 
 /* An optional semantic Footer Renderer may have no active contribution. */
-.agent-ui-conversation [data-slot="aui_assistant-message-footer"]:empty {
+.agent-ui-conversation [data-slot="aui_assistant-response-footer"]:empty {
   display: none;
 }
 

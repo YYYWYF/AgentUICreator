@@ -54,8 +54,8 @@
       "path": "items/plugin-assistant-ui-export-markdown-action/item.json"
     },
     {
-      "id": "plugin/assistant-ui-message-footer",
-      "path": "items/plugin-assistant-ui-message-footer/item.json"
+      "id": "plugin/assistant-ui-response-footer",
+      "path": "items/plugin-assistant-ui-response-footer/item.json"
     },
     {
       "id": "plugin/assistant-ui-reasoning",

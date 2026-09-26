@@ -1,17 +1,17 @@
 {
   "id": "assistant-ui-copy-action",
   "name": "Assistant UI Copy Action",
-  "description": "Copies the current assistant message through assistant-ui.",
+  "description": "Copies text from the complete assistant response.",
   "version": "1.0.0",
-  "capabilities": ["conversation-message-action"],
+  "capabilities": ["conversation-assistant-response-action"],
   "authoring": {
     "intents": [
-      "copy assistant message content"
+      "copy assistant response content"
     ],
-    "visualRole": "assistant message copy action",
+    "visualRole": "assistant response copy action",
     "defaultPlacement": {
       "type": "plugin_slot",
-      "parentPluginId": "assistant-ui-message-footer",
+      "parentPluginId": "assistant-ui-response-footer",
       "slot": "actions"
     }
   }

@@ -35,7 +35,7 @@ describe("@agent-ui/react public API", () => {
       "ConversationAgentStatus",
       "ConversationTaskTray",
       "ConversationCanonicalMessageError",
-      "ConversationAssistantMessageFooterRenderScope",
+      "ConversationAssistantResponseFooterRenderScope",
       "ConversationActionBarRoot",
       "ConversationActionCopy",
       "ConversationActionReload",
@@ -57,6 +57,11 @@ describe("@agent-ui/react public API", () => {
     ]) {
       expect(source, publicName).toMatch(new RegExp(`export (?:function|interface|type) ${publicName}\\b`, "u"));
     }
+    for (const name of [
+      "ConversationResponseActionBarRoot", "ConversationResponseBranchPicker",
+      "ConversationCanonicalResponseCopyAction", "ConversationCanonicalResponseReloadAction",
+      "ConversationCanonicalResponseExportMarkdownAction", "useConversationResponseRuntime",
+    ]) expect(source).toContain(`as ${name}`);
     for (const forbiddenName of [
       "ThreadPrimitive",
       "useAui",

@@ -28,7 +28,6 @@ import { Button } from "./vendor/assistant-ui/components/ui/button.js";
 import { Skeleton } from "./vendor/assistant-ui/components/ui/skeleton.js";
 import { cn } from "./vendor/assistant-ui/lib/utils.js";
 import {
-  ActionBarMorePrimitive,
   ActionBarPrimitive,
   AuiIf,
   type AssistantState,
@@ -53,7 +52,6 @@ import {
   CopyIcon,
   DownloadIcon,
   MicIcon,
-  MoreHorizontalIcon,
   PlusIcon,
   PencilIcon,
   RefreshCwIcon,
@@ -62,11 +60,17 @@ import {
 import {
   createContext,
   useContext,
+  useEffect,
+  useRef,
+  useState,
   type ComponentType,
   type FC,
   type PropsWithChildren,
   type ReactNode,
 } from "react";
+
+import { resolveAssistantResponseGroup } from "./assistant-response.js";
+import { AssistantResponseRuntimeProvider, useAssistantResponseRuntime } from "./assistant-response-runtime.js";
 
 export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
 
@@ -79,7 +83,7 @@ export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
  */
 export type ThreadComponents = {
   AssistantMessage?: ComponentType | undefined;
-  AssistantMessageFooter?: ComponentType | undefined;
+  AssistantResponseFooter?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
   ToolFallback?: ToolCallMessagePartComponent | undefined;
   ToolGroup?:
@@ -511,8 +515,13 @@ const AssistantMessage: FC = () => {
     ToolGroup,
     ReasoningGroup,
     TaskGroup: TaskGroupComponent,
-    AssistantMessageFooter: AssistantMessageFooterComponent,
+    AssistantResponseFooter: AssistantResponseFooterComponent,
   } = useContext(ThreadComponentsContext);
+  const messages = useAuiState((s) => s.thread.messages);
+  const messageIndex = useAuiState((s) => s.message.index);
+  const isRunning = useAuiState((s) => s.thread.isRunning);
+  const response = resolveAssistantResponseGroup(messages, messageIndex);
+  const isResponseTail = response?.tailIndex === messageIndex;
   const groupBy = TaskGroupComponent ? taskAwareGroupBy : messageGroupBy;
 
   const ACTION_BAR_PT = "pt-1.5";
@@ -617,71 +626,134 @@ const AssistantMessage: FC = () => {
         <MessageError />
       </div>
 
-      <div
-        data-slot="aui_assistant-message-footer"
-        className={cn("ms-2 flex items-center", ACTION_BAR_HEIGHT)}
-      >
-        {AssistantMessageFooterComponent ? (
-          <AssistantMessageFooterComponent />
-        ) : (
-          <>
-            <BranchPicker />
-            <AssistantActionBar />
-          </>
-        )}
-      </div>
+      {isResponseTail && response && !isRunning ? (
+        <AssistantResponseRuntimeProvider key={response.headMessageId} group={response}>
+          <div
+            data-slot="aui_assistant-response-footer"
+            className={cn("ms-2 flex items-center", ACTION_BAR_HEIGHT)}
+          >
+            {AssistantResponseFooterComponent ? (
+              <AssistantResponseFooterComponent />
+            ) : (
+              <>
+                <ResponseBranchPicker />
+                <AssistantActionBar />
+              </>
+            )}
+          </div>
+        </AssistantResponseRuntimeProvider>
+      ) : null}
     </MessagePrimitive.Root>
   );
 };
 
-const AssistantActionBar: FC = () => {
+export const ResponseActionBarRoot: FC<PropsWithChildren> = ({ children }) => (
+  <ActionBarPrimitive.Root
+    hideWhenRunning
+    autohide="not-last"
+    className="aui-assistant-action-bar-root text-muted-foreground animate-in fade-in col-start-3 row-start-2 -ms-1 flex gap-1 duration-200"
+  >
+    {children}
+  </ActionBarPrimitive.Root>
+);
+
+export const CanonicalResponseCopyAction: FC = () => {
+  const response = useAssistantResponseRuntime();
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const generation = useRef(0);
+  useEffect(() => {
+    setCopied(false);
+    generation.current++;
+    return () => {
+      generation.current++;
+      clearTimeout(timer.current);
+    };
+  }, [response.group.headMessageId, response.text]);
+  const disabled = response.isRunning || !response.text;
   return (
-    <ActionBarPrimitive.Root
-      hideWhenRunning
-      autohide="not-last"
-      className="aui-assistant-action-bar-root text-muted-foreground animate-in fade-in col-start-3 row-start-2 -ms-1 flex gap-1 duration-200"
+    <TooltipIconButton
+      tooltip="Copy"
+      type="button"
+      disabled={disabled}
+      {...(copied ? { "data-copied": "true" } : {})}
+      onClick={async () => {
+        if (disabled) return;
+        const current = generation.current;
+        try {
+          await navigator.clipboard.writeText(response.text);
+          if (current !== generation.current) return;
+          clearTimeout(timer.current);
+          setCopied(true);
+          timer.current = setTimeout(() => setCopied(false), 3000);
+        } catch (error) {
+          console.error("[agent-ui] response copy failed:", error);
+        }
+      }}
     >
-      <ActionBarPrimitive.Copy asChild>
-        <TooltipIconButton tooltip="Copy">
-          <AuiIf condition={(s) => s.message.isCopied}>
-            <CheckIcon className="animate-in zoom-in-50 fade-in duration-200 ease-out" />
-          </AuiIf>
-          <AuiIf condition={(s) => !s.message.isCopied}>
-            <CopyIcon className="animate-in zoom-in-75 fade-in duration-150" />
-          </AuiIf>
-        </TooltipIconButton>
-      </ActionBarPrimitive.Copy>
-      <ActionBarPrimitive.Reload asChild>
-        <TooltipIconButton tooltip="Refresh">
-          <RefreshCwIcon />
-        </TooltipIconButton>
-      </ActionBarPrimitive.Reload>
-      <ActionBarMorePrimitive.Root>
-        <ActionBarMorePrimitive.Trigger asChild>
-          <TooltipIconButton
-            tooltip="More"
-            className="data-[state=open]:bg-accent"
-          >
-            <MoreHorizontalIcon />
-          </TooltipIconButton>
-        </ActionBarMorePrimitive.Trigger>
-        <ActionBarMorePrimitive.Content
-          side="bottom"
-          align="start"
-          sideOffset={6}
-          className="aui-action-bar-more-content bg-popover text-popover-foreground data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:animate-out data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] overflow-hidden rounded-xl border p-1.5"
-        >
-          <ActionBarPrimitive.ExportMarkdown asChild>
-            <ActionBarMorePrimitive.Item className="aui-action-bar-more-item hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none">
-              <DownloadIcon className="size-4" />
-              Export as Markdown
-            </ActionBarMorePrimitive.Item>
-          </ActionBarPrimitive.ExportMarkdown>
-        </ActionBarMorePrimitive.Content>
-      </ActionBarMorePrimitive.Root>
-    </ActionBarPrimitive.Root>
+      {copied ? (
+        <CheckIcon data-slot="assistant-ui-copy-action-copied" className="animate-in zoom-in-50 fade-in duration-200 ease-out" />
+      ) : (
+        <CopyIcon data-slot="assistant-ui-copy-action-idle" className="animate-in zoom-in-75 fade-in duration-150" />
+      )}
+    </TooltipIconButton>
   );
 };
+
+export const CanonicalResponseReloadAction: FC = () => {
+  const response = useAssistantResponseRuntime();
+  return (
+    <TooltipIconButton tooltip="Refresh" type="button" disabled={!response.canReload} onClick={response.reload}>
+      <RefreshCwIcon />
+    </TooltipIconButton>
+  );
+};
+
+export const CanonicalResponseExportMarkdownAction: FC = () => {
+  const response = useAssistantResponseRuntime();
+  const disabled = response.isRunning || !response.text;
+  return (
+    <TooltipIconButton tooltip="Export as Markdown" type="button" disabled={disabled} onClick={() => {
+      if (disabled) return;
+      const blob = new Blob([response.text], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      try {
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `response-${Date.now()}.md`;
+        anchor.click();
+      } finally {
+        setTimeout(() => URL.revokeObjectURL(url), 40_000);
+      }
+    }}>
+      <DownloadIcon />
+    </TooltipIconButton>
+  );
+};
+
+export const ResponseBranchPicker: FC = () => {
+  const response = useAssistantResponseRuntime();
+  if (response.branchCount <= 1 || !response.canSwitchBranch) return null;
+  return (
+    <div className="aui-branch-picker-root text-muted-foreground -ms-2 me-2 inline-flex items-center text-xs">
+      <TooltipIconButton tooltip="Previous" type="button" disabled={response.branchNumber <= 1} onClick={response.switchToPreviousBranch}>
+        <ChevronLeftIcon />
+      </TooltipIconButton>
+      <span className="aui-branch-picker-state font-medium">{response.branchNumber} / {response.branchCount}</span>
+      <TooltipIconButton tooltip="Next" type="button" disabled={response.branchNumber >= response.branchCount} onClick={response.switchToNextBranch}>
+        <ChevronRightIcon />
+      </TooltipIconButton>
+    </div>
+  );
+};
+
+const AssistantActionBar: FC = () => (
+  <ResponseActionBarRoot>
+    <CanonicalResponseCopyAction />
+    <CanonicalResponseReloadAction />
+    <CanonicalResponseExportMarkdownAction />
+  </ResponseActionBarRoot>
+);
 
 const UserFilePart: FileMessagePartComponent = (part) => (
   <div data-slot="aui_user-message-file" className="py-1">
