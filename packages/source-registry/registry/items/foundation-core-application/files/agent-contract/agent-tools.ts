@@ -1,4 +1,4 @@
-import type { AppFrontendToolDefinition } from "../runtime/tools";
+import { generatedFrontendTools } from "./frontend-tools.generated";
 
-/** Application-owned allowlist of capability operations exposed to the Agent. */
-export const appFrontendTools = [] satisfies readonly AppFrontendToolDefinition[];
+/** Application-owned allowlist. Installing optional resources explicitly grants permission. */
+export const appFrontendTools = [...generatedFrontendTools];

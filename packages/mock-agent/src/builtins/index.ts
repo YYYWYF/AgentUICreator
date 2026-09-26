@@ -1,3 +1,4 @@
+import { frontendToolFillFormScenario } from "./frontend-tool-fill-form.js";
 import { frontendToolOpenDialogScenario } from "./frontend-tool-open-dialog.js";
 import { concurrentConversationsScenario } from "./concurrent-conversations.js";
 import { multiMessageResponseScenario } from "./multi-message-response.js";
@@ -23,6 +24,7 @@ import type { MockScenario } from "../scenario.js";
 
 export {
   frontendToolOpenDialogScenario,
+  frontendToolFillFormScenario,
   concurrentConversationsScenario,
   multiMessageResponseScenario,
   agentPlanScenario,
@@ -59,6 +61,7 @@ export const backendReferenceMockScenarios: MockScenario[] = [
 
 export const frontendPresentationMockScenarios: MockScenario[] = [
   frontendToolOpenDialogScenario,
+  frontendToolFillFormScenario,
   multiMessageResponseScenario,
   dataMessageChartScenario,
   nestedSubagentTaskGroupScenario,

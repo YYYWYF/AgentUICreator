@@ -79,7 +79,14 @@ export interface MockSubagentToolStep {
   result: unknown;
 }
 
+export interface MockScenarioResourceRequirement {
+  id: string;
+  label: string;
+  sourceItemId: string;
+}
+
 export interface MockScenario {
+  resources?: readonly MockScenarioResourceRequirement[] | undefined;
   id: string;
   title: string;
   description?: string | undefined;

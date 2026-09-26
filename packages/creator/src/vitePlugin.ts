@@ -44,6 +44,7 @@ export {
 
 export interface CreatorDevServerPluginOptions {
   inspectMockProject?: MockProjectInspector | undefined;
+  installScenarioResources?: ((projectRoot: string, sourceItemId: string) => Promise<void>) | undefined;
   installMockPlugin?: ((projectRoot: string, pluginId: string) => Promise<void>) | undefined;
   projectRoot?: string | undefined;
   workspaceManager?: CreatorWorkspaceManager | undefined;
@@ -62,6 +63,7 @@ export function createCreatorDevServerPlugin({
   configRoot,
   python,
   installMockPlugin,
+  installScenarioResources,
   inspectMockProject,
 }: CreatorDevServerPluginOptions): Plugin {
   const creatorLog =
@@ -133,7 +135,14 @@ export function createCreatorDevServerPlugin({
             if (projectRoot === undefined || id !== projectRoot) throw new Error("当前项目已改变。");
             await installMockPlugin(projectRoot, pluginId);
           }
-        }, inspectMockProject);
+        }, inspectMockProject, installScenarioResources === undefined ? undefined : async (id, sourceItemId) => {
+          if (workspaceManager !== undefined) {
+            await workspaceManager.runProjectOperation(id, root => installScenarioResources(root, sourceItemId));
+          } else {
+            if (projectRoot === undefined || id !== projectRoot) throw new Error("当前项目已改变。");
+            await installScenarioResources(projectRoot, sourceItemId);
+          }
+        });
       });
       if (workspaceManager !== undefined) {
         server.middlewares.use(CREATOR_WORKSPACE_API_PATH, (request, response) => {

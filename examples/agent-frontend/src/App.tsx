@@ -48,7 +48,7 @@ import {
 } from "../agent-ui/conversation/config";
 import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
 import { createConversationServiceThreadBinding } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
-import { frontendToolUIs } from "../agent-ui/conversation/toolkit/OpenDemoDialogToolUI";
+import { generatedFrontendToolUIs } from "../agent-ui/conversation/frontend-tool-uis.generated";
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
 import {
   isMockAgentEndpoint,
@@ -329,7 +329,7 @@ function ConversationRuntimeBoundary({
     <ConversationRuntimeProvider<AppAgentState>
       endpoint={endpoint}
       frontendTools={appFrontendToolRuntime}
-      frontendToolUIs={frontendToolUIs}
+      frontendToolUIs={generatedFrontendToolUIs}
       suggestions={conversationStarterSuggestions}
       toolkit={toolkit}
       threadBinding={threadBinding}

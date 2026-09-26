@@ -1,7 +1,8 @@
 export type AgentUISourceItemKind =
   | "foundation"
   | "primitive"
-  | "agent-component";
+  | "agent-component"
+  | "demo";
 
 export interface AgentUISourceFile {
   source: string;

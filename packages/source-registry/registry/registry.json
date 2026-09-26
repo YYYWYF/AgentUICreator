@@ -124,6 +124,14 @@
     {
       "id": "plugin/assistant-ui-message-footer",
       "path": "items/plugin-assistant-ui-message-footer/item.json"
+    },
+    {
+      "id": "demo/frontend-tool-dialog",
+      "path": "items/demo-frontend-tool-dialog/item.json"
+    },
+    {
+      "id": "demo/frontend-tool-form",
+      "path": "items/demo-frontend-tool-form/item.json"
     }
   ]
 }

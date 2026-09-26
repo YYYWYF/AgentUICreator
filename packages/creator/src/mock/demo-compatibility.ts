@@ -6,10 +6,13 @@ export interface MockProjectTarget {
 
 export interface MockDemoCompatibility {
   canInstall?: boolean;
+  canInstallResources?: boolean;
   projectId: string | null;
   status: "checked" | "unknown";
   requirements: Array<{
     pluginId: string;
+    sourceItemId?: string;
+    missingPackages?: readonly { name: string; required: string }[];
     name: string;
     scenarioIds: string[];
     status: "ready" | "missing" | "disabled";
@@ -19,7 +22,9 @@ export interface MockDemoCompatibility {
 const toolScenarios = ["reasoning-tool-success", "parallel-tools", "tool-error", "approval-resume", "agent-state-sync", "agent-plan", "agent-status", "nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error"];
 const reasoningScenarios = ["reasoning-chat", "reasoning-tool-success", "approval-resume", "agent-plan", "nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive"];
 
-export const mockDemoRequirements: ReadonlyArray<{ pluginId: string; name: string; scenarioIds: string[]; slot?: string }> = [
+export const mockDemoRequirements: ReadonlyArray<{ pluginId: string; name: string; scenarioIds: string[]; slot?: string; sourceItemId?: string }> = [
+  { pluginId: "frontend-tool-dialog-demo", name: "Dialog Frontend Tool Demo", sourceItemId: "demo/frontend-tool-dialog", scenarioIds: ["frontend-tool-open-dialog"] },
+  { pluginId: "frontend-tool-form-demo", name: "React Hook Form Demo", sourceItemId: "demo/frontend-tool-form", scenarioIds: ["frontend-tool-fill-form"] },
   { pluginId: "assistant-ui-reasoning", name: "推理展示资源", scenarioIds: reasoningScenarios, slot: "reasoningGroup" },
   { pluginId: "assistant-ui-tool-group", name: "工具分组资源", scenarioIds: toolScenarios, slot: "toolGroup" },
   { pluginId: "assistant-ui-tool-fallback", name: "工具调用与审批资源", scenarioIds: toolScenarios, slot: "toolFallback" },
@@ -44,7 +49,7 @@ export interface ProjectCompositionInspection {
   }[];
 }
 export interface AgentUISourceInspection {
-  items: readonly { id: string; status: string }[];
+  items: readonly { id: string; status: string; requirements?: readonly { name: string; required: string; compatible: boolean }[] }[];
 }
 export type MockProjectInspector = (target: MockProjectTarget) => Promise<{
   composition: ProjectCompositionInspection;
@@ -62,15 +67,17 @@ export function inspectMockDemoCompatibility(
     projectId, status: "checked",
     requirements: mockDemoRequirements.map(requirement => {
       const source = snapshot.pluginSources.find(source => source.pluginId === requirement.pluginId);
-      const item = sourceInspection.items.find(item => item.id === `plugin/${requirement.pluginId}`);
-      const installed = source?.status === "available" && item?.status !== "partial" &&
+      const item = sourceInspection.items.find(item => item.id === (requirement.sourceItemId ?? `plugin/${requirement.pluginId}`));
+      const missingPackages = item?.requirements?.filter(item => !item.compatible).map(({ name, required }) => ({ name, required })) ?? [];
+      const bundleReady = !requirement.sourceItemId || (item && ["managed", "customized"].includes(item.status) && missingPackages.length === 0);
+      const installed = bundleReady && source?.status === "available" && item?.status !== "partial" &&
         (requirement.pluginId !== "chart-message" || source.dataMessageUINames.includes("chart"));
       const ready = snapshot.pluginInstances.some(instance =>
         instance.pluginId === requirement.pluginId && instance.effectiveEnabled &&
         (requirement.slot === undefined ||
           (instance.target.type === "plugin_slot" && instance.target.slot === requirement.slot &&
             parents.get(instance.target.parentInstanceId ?? "")?.pluginId === "conversation-surface")));
-      return { ...requirement, status: !installed ? "missing" as const : ready ? "ready" as const : "disabled" as const };
+      return { ...requirement, ...(requirement.sourceItemId ? { missingPackages } : {}), status: !installed ? "missing" as const : ready ? "ready" as const : "disabled" as const };
     }),
   };
 }

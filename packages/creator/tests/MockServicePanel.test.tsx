@@ -153,3 +153,22 @@ describe("Creator Mock service panel", () => {
     expect(container.textContent).not.toContain("Unexpected token");
   });
 });
+
+it("shows optional resources and keeps Run disabled until the bundle is ready", async () => {
+  const state = { ...initial, scenarios: [...initial.scenarios, { id: "frontend-tool-fill-form", title: "Frontend Tool · Fill Form", resources: [{ id: "frontend-tool-form", label: "Form", sourceItemId: "demo/frontend-tool-form" }] }] };
+  let ready = false;
+  const compatibility = () => ({ projectId: "project", canInstallResources: true, status: "checked", requirements: [{ pluginId: "frontend-tool-form-demo", sourceItemId: "demo/frontend-tool-form", name: "Form", scenarioIds: ["frontend-tool-fill-form"], status: ready ? "ready" : "missing", missingPackages: [] }] });
+  const fetch = vi.fn(async (url: string) => {
+    if (url.endsWith("/install-resources")) { ready = true; return json(compatibility()); }
+    return json(url.endsWith("/compatibility") ? compatibility() : state);
+  });
+  vi.stubGlobal("fetch", fetch);
+  const container = await render();
+  const radio = container.querySelectorAll<HTMLInputElement>('input[type="radio"]')[2]!;
+  await act(async () => radio.click());
+  const run = [...container.querySelectorAll("button")].find(button => button.textContent === "运行场景")!;
+  expect(run.disabled).toBe(true);
+  await click(container, "安装 Demo 资源");
+  expect(run.disabled).toBe(false);
+  expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/install-resources`, expect.objectContaining({ body: JSON.stringify({ projectId: "project", sourceItemId: "demo/frontend-tool-form" }) }));
+});

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { inspectMockDemoCompatibility, inspectMockProjectCompatibility, mockDemoRequirements, type ProjectCompositionInspection } from "../src/mock/demo-compatibility.js";
 
-const sources = { items: [] };
+const sources = { items: mockDemoRequirements.filter(item => item.sourceItemId).map(item => ({ id: item.sourceItemId!, status: "managed", requirements: [] })) };
 const empty: ProjectCompositionInspection = { pluginSources: [], pluginInstances: [] };
 function status(snapshot: ProjectCompositionInspection, pluginId: string) {
   return inspectMockDemoCompatibility(snapshot, sources).requirements.find(requirement => requirement.pluginId === pluginId)?.status;
@@ -42,5 +42,24 @@ describe("Mock requirements from formal inspection", () => {
     expect(await inspectMockProjectCompatibility(undefined, inspector)).toEqual({ projectId: null, status: "unknown", requirements: [] });
     expect(inspector).not.toHaveBeenCalled();
     expect(await inspectMockProjectCompatibility({ id: "host", projectRoot: "/fresh-host" }, inspector)).toEqual({ projectId: "host", status: "unknown", requirements: [] });
+  });
+});
+
+describe("Scenario Resource readiness", () => {
+  it("requires complete bundle, compatible packages and active provider", () => {
+    const pluginId = "frontend-tool-form-demo";
+    const snapshot: ProjectCompositionInspection = {
+      pluginSources: [{ pluginId, status: "available", dataMessageUINames: [] }],
+      pluginInstances: [{ id: "form", pluginId, enabled: true, effectiveEnabled: true, target: { type: "layout_slot" } }],
+    };
+    const bundle = { id: "demo/frontend-tool-form", status: "not-installed", requirements: [{ name: "react-hook-form", required: "^7", compatible: false }] };
+    const inspect = () => inspectMockDemoCompatibility(snapshot, { items: [bundle] }).requirements.find(item => item.pluginId === pluginId)!;
+    expect(inspect().status).toBe("missing");
+    expect(inspect().missingPackages).toEqual([{ name: "react-hook-form", required: "^7" }]);
+    bundle.status = "managed"; bundle.requirements[0]!.compatible = true;
+    expect(inspect().status).toBe("ready");
+    bundle.status = "partial"; expect(inspect().status).toBe("missing");
+    bundle.status = "managed"; snapshot.pluginInstances[0]!.effectiveEnabled = false;
+    expect(inspect().status).toBe("disabled");
   });
 });

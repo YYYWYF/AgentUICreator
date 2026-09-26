@@ -7,6 +7,7 @@ export {
   type MockScenarioCapability,
   type MockScenarioCategory,
   type MockScenarioReference,
+  type MockScenarioResourceRequirement,
   type MockScenarioResumeSteps,
   type MockScenarioStep,
   type MockStateDelta,
@@ -35,6 +36,8 @@ export {
 } from "./vite-plugin.js";
 export {
   builtinMockScenarios,
+  frontendToolOpenDialogScenario,
+  frontendToolFillFormScenario,
   concurrentConversationsScenario,
   agentPlanScenario,
   agentStatusScenario,

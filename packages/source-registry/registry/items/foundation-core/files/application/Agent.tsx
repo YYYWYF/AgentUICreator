@@ -8,6 +8,7 @@ import appUIModelSource from "../app-ui/app-ui.json?raw";
 import type { AppAgentState } from "../agent-contract/agent-state";
 import { appEventSchemas } from "../agent-contract/agent-events";
 import { appFrontendTools } from "../agent-contract/agent-tools";
+import { generatedFrontendToolUIs } from "../agent-ui/conversation/frontend-tool-uis.generated";
 import {
   capabilityCatalogRevision,
   pluginCapabilityCatalog,
@@ -106,6 +107,7 @@ export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
     <ConversationRuntimeProvider<AppAgentState>
       endpoint={endpoint}
       frontendTools={frontendToolRuntime}
+      frontendToolUIs={generatedFrontendToolUIs}
       suggestions={conversationStarterSuggestions}
       threadBinding={threadBinding}
       toolkit={toolkit}

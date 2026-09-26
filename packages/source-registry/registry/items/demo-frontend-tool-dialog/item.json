@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "demo/frontend-tool-dialog",
+  "version": "0.1.0",
+  "kind": "demo",
+  "description": "Optional dialog frontend tool scenario resources",
+  "packages": {
+    "@base-ui/react": "^1"
+  },
+  "files": [
+    {
+      "source": "files/plugins/frontend-tool-dialog-demo/index.tsx",
+      "target": "plugins/frontend-tool-dialog-demo/index.tsx"
+    },
+    {
+      "source": "files/plugins/frontend-tool-dialog-demo/styles.css",
+      "target": "plugins/frontend-tool-dialog-demo/styles.css"
+    },
+    {
+      "source": "files/plugins/frontend-tool-dialog-demo/definition.ts",
+      "target": "plugins/frontend-tool-dialog-demo/definition.ts"
+    },
+    {
+      "source": "files/plugins/frontend-tool-dialog-demo/dialog-service.ts",
+      "target": "plugins/frontend-tool-dialog-demo/dialog-service.ts"
+    },
+    {
+      "source": "files/plugins/frontend-tool-dialog-demo/manifest.json",
+      "target": "plugins/frontend-tool-dialog-demo/manifest.json"
+    },
+    {
+      "source": "files/services/demo-dialog.ts",
+      "target": "services/demo-dialog.ts"
+    },
+    {
+      "source": "files/agent-contract/frontend-tools/open-demo-dialog.ts",
+      "target": "agent-contract/frontend-tools/open-demo-dialog.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/frontend-tool-uis/open-demo-dialog.tsx",
+      "target": "agent-ui/conversation/frontend-tool-uis/open-demo-dialog.tsx"
+    }
+  ]
+}

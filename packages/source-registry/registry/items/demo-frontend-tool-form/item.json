@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "demo/frontend-tool-form",
+  "version": "0.1.0",
+  "kind": "demo",
+  "description": "Optional form frontend tool scenario resources",
+  "packages": {
+    "react-hook-form": "^7"
+  },
+  "files": [
+    {
+      "source": "files/services/demo-form.ts",
+      "target": "services/demo-form.ts"
+    },
+    {
+      "source": "files/plugins/frontend-tool-form-demo/form-service.ts",
+      "target": "plugins/frontend-tool-form-demo/form-service.ts"
+    },
+    {
+      "source": "files/plugins/frontend-tool-form-demo/manifest.json",
+      "target": "plugins/frontend-tool-form-demo/manifest.json"
+    },
+    {
+      "source": "files/plugins/frontend-tool-form-demo/definition.ts",
+      "target": "plugins/frontend-tool-form-demo/definition.ts"
+    },
+    {
+      "source": "files/plugins/frontend-tool-form-demo/index.tsx",
+      "target": "plugins/frontend-tool-form-demo/index.tsx"
+    },
+    {
+      "source": "files/plugins/frontend-tool-form-demo/styles.css",
+      "target": "plugins/frontend-tool-form-demo/styles.css"
+    },
+    {
+      "source": "files/agent-contract/frontend-tools/demo-form-tools.ts",
+      "target": "agent-contract/frontend-tools/demo-form-tools.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/frontend-tool-uis/demo-form-tools.tsx",
+      "target": "agent-ui/conversation/frontend-tool-uis/demo-form-tools.tsx"
+    }
+  ]
+}

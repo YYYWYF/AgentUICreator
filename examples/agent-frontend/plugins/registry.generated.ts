@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "35b16a38f57763bbcb32cb04da32a18192d6577e0005036ea09543f345a5118c";
+export const capabilityCatalogRevision = "328ac39e600767885333c9f0e5f76056015f9204f25ebc64bbc615bae934a88b";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -712,25 +712,6 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     optionalInject: ["agent-ui.theme","agent-ui.locale"],
     loadDefinition: () =>
       import("./conversation-thread-list/definition").then(
-        ({ default: definition }) => definition,
-      ),
-  },
-  {
-    manifest: {
-      "id": "frontend-tool-dialog-demo",
-      "name": "Frontend Tool Dialog Demo",
-      "description": "Provides an application dialog capability, with a portal driven by service state.",
-      "version": "1.0.0",
-      "capabilities": [
-        "plugin-service-provider",
-        "dialog"
-      ]
-    },
-    provides: ["demo.dialog"],
-    inject: [],
-    optionalInject: ["agent-ui.locale"],
-    loadDefinition: () =>
-      import("./frontend-tool-dialog-demo/definition").then(
         ({ default: definition }) => definition,
       ),
   },

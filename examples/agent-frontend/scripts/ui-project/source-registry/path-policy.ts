@@ -98,7 +98,9 @@ export async function resolveAgentUISourceRoots(
   config: UIProjectControlConfig,
   options: { createMetadata?: boolean } = {},
 ) {
-  await assertNoSymbolicLinkTraversal(
+  // Legacy projects keep managed application files at Project Root. This internal
+  // registry config is distinct from the validated v2 project sourceRoot setting.
+  if (config.agentUI.sourceRoot !== ".") await assertNoSymbolicLinkTraversal(
     path.resolve(projectRoot),
     config.agentUI.sourceRoot,
   );
@@ -106,7 +108,7 @@ export async function resolveAgentUISourceRoots(
     path.resolve(projectRoot),
     config.agentUI.metadataRoot,
   );
-  const sourceRoot = resolveProjectPath(
+  const sourceRoot = config.agentUI.sourceRoot === "." ? path.resolve(projectRoot) : resolveProjectPath(
     projectRoot,
     config.agentUI.sourceRoot,
     "Agent UI Source Root",

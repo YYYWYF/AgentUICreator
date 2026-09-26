@@ -1,0 +1,10 @@
+{
+  "id": "frontend-tool-dialog-demo",
+  "name": "Frontend Tool Dialog Demo",
+  "description": "Provides an application dialog capability, with a portal driven by service state.",
+  "version": "1.0.0",
+  "capabilities": [
+    "plugin-service-provider",
+    "dialog"
+  ]
+}

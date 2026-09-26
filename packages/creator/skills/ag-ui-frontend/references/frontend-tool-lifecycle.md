@@ -70,3 +70,14 @@ identity/signal forwarding, live single-fire execution, standard result and
 continuation, subsequent streaming frames, resolved cold history, thread revisits,
 and StrictMode. A ToolMessage's standard error field marks failure; the runner
 must not infer success from a tool-specific receipt field such as opened.
+
+## Framework integrations
+
+When assistant-ui offers a specialized integration (for example
+`@assistant-ui/react-hook-form`), first inspect its canonical product/tool semantics
+at the project's pinned upstream revision. Reuse `set_form_field`, `submit_form`
+and `reset_form` semantics and React Hook Form, while preserving application-owned
+permission and activation-scoped Service capability boundaries. Do not ignore the
+integration and invent another vocabulary; do not register tools directly through
+an upstream hook when that bypasses application permission. The optional Form Demo
+is the reference adaptation; see `docs/architecture/frontend-tool-form-demo.md`.

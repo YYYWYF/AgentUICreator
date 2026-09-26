@@ -588,12 +588,16 @@ function selectSteps(
     input.messages.forEach((message, index) => { if (message.role === "user") lastUserIndex = index; });
     const turn = input.messages.slice(lastUserIndex + 1);
     const calls = turn.flatMap(message => message.role === "assistant" ? message.toolCalls ?? [] : []);
-    const call = calls.find(call => call.function.name === continuation.toolName);
-    const result = call === undefined ? undefined : turn.find(message => message.role === "tool" && message.toolCallId === call.id);
-    if (result !== undefined && result.role === "tool") {
+    const matching = calls.filter(call => call.function.name === continuation.toolName);
+    const results = matching.map(call => turn.find(message => message.role === "tool" && message.toolCallId === call.id));
+    if (matching.length && results.some(result => result === undefined)) return [];
+    if (matching.length && results.every(result => result?.role === "tool")) {
+      const failed = results.some(result => result?.role === "tool" && (result.error !== undefined || (() => {
+        try { return JSON.parse(result.content).success === false; } catch { return false; }
+      })()));
       // AG-UI ToolMessage.error is the native frontend failure marker. Content
       // is an opaque receipt; successful tools may return JSON or plain text.
-      return [{ type: "message", text: result.error === undefined
+      return [{ type: "message", text: !failed
         ? continuation.successText : continuation.errorText }];
     }
     if (!input.tools.some(tool => tool.name === continuation.toolName)) {

@@ -8,14 +8,14 @@ import { HttpAgent } from "@ag-ui/client";
 import type { RunAgentInput } from "@ag-ui/core";
 import { runMockScenario } from "../../../packages/mock-agent/src/scenario-runner";
 import { frontendToolOpenDialogScenario } from "../../../packages/mock-agent/src/builtins/frontend-tool-open-dialog";
-import { appFrontendTools } from "../agent-contract/agent-tools";
-import { frontendToolUIs } from "../agent-ui/conversation/toolkit/OpenDemoDialogToolUI";
+import { frontendTools as appFrontendTools } from "./fixtures/dialog/agent-contract/frontend-tools/open-demo-dialog";
+import { frontendToolUIs } from "./fixtures/dialog/agent-ui/conversation/frontend-tool-uis/open-demo-dialog";
 import { ConversationSurface } from "../agent-ui/conversation/ConversationSurface";
 import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
-import { frontendToolDialogDemoPlugin } from "../plugins/frontend-tool-dialog-demo/definition";
+import { frontendToolDialogDemoPlugin } from "./fixtures/dialog/plugins/frontend-tool-dialog-demo/definition";
 import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../runtime/tools";
 import { PluginServiceProvider, PluginServiceRuntime, PluginServiceRuntimeContext, createPluginRegistry, UIPluginRuntime } from "../runtime/plugins";
-import { DEMO_DIALOG_SERVICE, type DemoDialogService } from "../services/demo-dialog";
+import { DEMO_DIALOG_SERVICE, type DemoDialogService } from "./fixtures/dialog/services/demo-dialog";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 class ResizeObserverMock { observe() {} unobserve() {} disconnect() {} }

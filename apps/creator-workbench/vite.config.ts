@@ -19,6 +19,7 @@ import { inspectCreatorProject } from "../../examples/agent-frontend/scripts/ui-
 import { initializeAgentUIProject } from "../../examples/agent-frontend/scripts/ui-project/initialize-agent-ui-project";
 import { handleUIProjectControlRequest } from "../../examples/agent-frontend/scripts/ui-project-control";
 import type { MockProjectInspector } from "../../packages/creator/src/mock/demo-compatibility";
+import { installScenarioResources, inspectScenarioResources } from "../../examples/agent-frontend/scripts/ui-project/install-scenario-resources";
 import { installDemoPlugin } from "../../examples/agent-frontend/scripts/ui-project/install-demo-plugin";
 import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "../../packages/bootstrap/src/source-root";
 import { createMockConversationApiVitePlugin } from "../../examples/agent-frontend/dev-mock/conversations/vite-plugin";
@@ -62,12 +63,18 @@ export default defineConfig({
     createCreatorDevServerPlugin({
       workspaceManager,
       installMockPlugin: installDemoPlugin,
+      installScenarioResources,
       // Host adapter calls the same formal protocol as Python Creator tools.
       inspectMockProject: async target => {
         const composition = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_ui_project", input: { view: "composition" } }, target.projectRoot);
         const sources = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_agent_ui_sources", input: {} }, target.projectRoot);
         if (!composition.ok || !sources.ok) throw new Error("Project inspection failed");
-        return { composition: composition.result, sources: sources.result } as Awaited<ReturnType<MockProjectInspector>>;
+        const result = { composition: composition.result, sources: sources.result } as Awaited<ReturnType<MockProjectInspector>>;
+        const resources = await inspectScenarioResources(target.projectRoot);
+        return { ...result, sources: { ...result.sources, items: [
+          ...result.sources.items.filter(item => !item.id.startsWith("demo/")),
+          ...resources.items.filter(item => item.id.startsWith("demo/")),
+        ] } };
       },
       configRoot: workspaceRoot,
     }),
