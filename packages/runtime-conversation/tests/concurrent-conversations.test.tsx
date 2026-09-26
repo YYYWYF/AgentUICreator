@@ -1,4 +1,4 @@
-import { useConversationNavigation, type ConversationNavigation } from "../../react/src/public.js";
+import { useConversationNavigation, type ConversationNavigation } from "@agent-ui/react";
 import { useAui, type AssistantRuntime } from "@assistant-ui/react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
@@ -6,15 +6,72 @@ import type { AgentRuntime } from "@agent-ui/runtime-core";
 import { ConversationRuntimeProvider } from "../src/ConversationRuntimeProvider.js";
 import { useConversationRuntimeBridge } from "../src/ConversationRuntimeBridgeContext.js";
 import { CancellationAwareHttpAgent } from "../src/compatibility/cancellation-aware-http-agent.js";
-import type { ConversationThreadBinding } from "../src/threads/types.js";
-import { createConversationServiceThreadBinding } from "../../../examples/agent-frontend/agent-ui/conversation/threads/conversation-service-thread-binding";
-import { createConversationService } from "../../../examples/agent-frontend/services/conversations/service";
-import type { ConversationDetail } from "../../../examples/agent-frontend/services/conversations/contract";
+import type {
+  ConversationLoadedThread,
+  ConversationThreadBinding,
+  ConversationThreadListSnapshot,
+} from "../src/threads/types.js";
 
 async function tick() { await new Promise<void>(resolve => setImmediate(resolve)); }
 async function until(predicate: () => boolean) {
   for (let n = 0; n < 100; n++) { if (predicate()) return; await tick(); }
   throw new Error("Timed out waiting for thread runtime");
+}
+
+/** Contract fixture only; application persistence policy is tested by the example. */
+function createPersistenceFixture() {
+  let activeId = "A";
+  const persistedIds = new Set<string>(["A"]);
+  const ephemeralIds = new Set<string>();
+  const listeners = new Set<() => void>();
+  const persistedHistory = (id: string): ConversationLoadedThread => ({
+    messages: [
+      { id: `${id}-user`, role: "user", content: [{ type: "text", text: `request ${id}` }],
+        attachments: [], createdAt: new Date(0), metadata: { custom: {} } },
+      { id: `${id}-answer`, role: "assistant", content: [{ type: "text", text: `complete ${id}` }],
+        status: { type: "complete", reason: "stop" }, createdAt: new Date(0),
+        metadata: { unstable_state: null, unstable_annotations: [], unstable_data: [], steps: [], custom: {} } },
+    ],
+    state: { owner: id },
+  });
+  const histories = new Map<string, ConversationLoadedThread>([["A", persistedHistory("A")]]);
+  const readHistory = vi.fn(async (id: string) => {
+    const loaded = histories.get(id);
+    if (loaded === undefined) throw new Error(`Missing persisted conversation ${id}`);
+    return loaded;
+  });
+  const loadThread = vi.fn(async (id: string): Promise<ConversationLoadedThread> =>
+    ephemeralIds.has(id) ? { messages: [] } : readHistory(id));
+  const activateThread = vi.fn((id: string) => { activeId = id; });
+  const reserveThread = (id: string) => { ephemeralIds.add(id); };
+  let snapshot: ConversationThreadListSnapshot = {
+    threads: [{ id: "A", status: "regular" }], archivedThreads: [],
+  };
+  const binding: ConversationThreadBinding = {
+    getThreadId: () => activeId,
+    loadThread,
+    activateThread,
+    reserveThread,
+    initializeThread: async id => { reserveThread(id); return id; },
+    getThreadListSnapshot: () => snapshot,
+    subscribe: listener => { listeners.add(listener); return () => { listeners.delete(listener); }; },
+    createNewThread: async () => {
+      const id = crypto.randomUUID();
+      reserveThread(id);
+      activateThread(id);
+      return id;
+    },
+  };
+  return { binding, persistedIds, ephemeralIds, loadThread, readHistory, activateThread,
+    persistThread(id: string) {
+      // Simulate persistence confirmation through the binding's list snapshot.
+      histories.set(id, persistedHistory(id));
+      persistedIds.add(id);
+      ephemeralIds.delete(id);
+      snapshot = { threads: [...persistedIds].map(id => ({ id, status: "regular" })), archivedThreads: [] };
+      listeners.forEach(listener => listener());
+    },
+  };
 }
 
 type Stream = { emit(event: Record<string, unknown>): void; finish(outcome?: Record<string, unknown>): void; fail(): void; input: { threadId: string; runId: string; resume?: unknown[] } };
@@ -104,30 +161,9 @@ async function fixture(failFirstBHistory = false, providedBinding?: Conversation
 
 describe("upstream-owned concurrent AG-UI threads", () => {
   it("reloads a newly persisted C from history without restarting background A", async () => {
-    const details = new Map<string, ConversationDetail>();
-    const persistedDetail = (id: string): ConversationDetail => ({
-      id, title: id,
-      history: { format: "langchain", messages: [
-        { id: `${id}-user`, type: "human", content: `request ${id}` },
-        { id: `${id}-answer`, type: "ai", content: `complete ${id}` },
-      ] },
-      agentState: { owner: id },
-    });
-    details.set("A", persistedDetail("A"));
-    const readHistory = vi.fn(async (id: string) => {
-      const detail = details.get(id);
-      if (detail === undefined) throw new Error(`Missing persisted conversation ${id}`);
-      return detail;
-    });
-    const service = createConversationService({ dataSource: {
-      list: async () => [...details.values()].map(({ id, title }) => ({ id, title })),
-      get: readHistory,
-    } });
-    await service.refresh();
-    const binding = createConversationServiceThreadBinding();
-    const detach = binding.attachConversationService(service);
-    const loadThread = vi.spyOn(binding, "loadThread");
-    const f = await fixture(false, binding);
+    const persistence = createPersistenceFixture();
+    const { loadThread, readHistory } = persistence;
+    const f = await fixture(false, persistence.binding);
     try {
       await f.start("A");
       const agentA = f.agents.get("A");
@@ -139,18 +175,19 @@ describe("upstream-owned concurrent AG-UI threads", () => {
         await until(() => f.streams.has(idC));
       });
       expect(f.runtime.threads.mainItem.getState().remoteId).toBe(idC);
-      expect(service.getSnapshot().mode).toBe("live");
+      expect(persistence.ephemeralIds.has(idC)).toBe(true);
+      expect(persistence.persistedIds.has(idC)).toBe(false);
       expect(readHistory.mock.calls.filter(([id]) => id === idC)).toHaveLength(0);
       await f.emit(idC, { type: "TEXT_MESSAGE_CONTENT", messageId: `${idC}-answer`, delta: `complete ${idC}` });
-      // The backend list confirms persistence while C is still running.
-      details.set(idC, persistedDetail(idC));
-      await act(async () => { await service.refresh(); });
+      await act(async () => { persistence.persistThread(idC); });
+      expect(persistence.persistedIds.has(idC)).toBe(true);
+      expect(persistence.ephemeralIds.has(idC)).toBe(false);
       expect(f.runtime.thread.getState().isRunning).toBe(true);
       await act(async () => { f.streams.get(idC)!.finish(); await tick(); });
       await f.switchTo("A");
       const messagesA = f.runtime.thread.getState().messages;
       await f.switchTo(idC);
-      expect(service.getSnapshot()).toMatchObject({ mode: "history", activeConversationId: idC });
+      expect(persistence.activateThread).toHaveBeenLastCalledWith(idC);
       const oldAgentC = f.agents.get(idC);
       await act(async () => { await f.navigation.reloadCurrentThread(); });
       expect(loadThread).toHaveBeenCalledWith(idC);
@@ -170,12 +207,14 @@ describe("upstream-owned concurrent AG-UI threads", () => {
       await f.emit("A", { type: "TEXT_MESSAGE_CONTENT", messageId: "A-answer", delta: "after C reload" });
       expect(f.text("A")).toContain("after C reload");
       expect(f.text(idC)).not.toContain("after C reload");
-    } finally { await f.dispose(); detach(); service.dispose(); }
+    } finally { await f.dispose(); }
   });
 
-  it("awaits navigation until B history and the current bridge are ready", async () => {
+  it("switches to B with loaded history and projects the committed bridge", async () => {
     const f = await fixture();
     try {
+      // act flushes the React commit that projects CurrentConversationBridge;
+      // bridge readiness is not part of the navigation Promise contract.
       await act(async () => { await f.navigation.switchToThread("B"); });
       expect(f.runtime.threads.getState().mainThreadId).toBe("B");
       expect(f.text("B")).toContain("history B");
