@@ -2,7 +2,7 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { a2uiInteractiveOrderScenario } from "@agent-ui/mock-agent";
+import { a2uiInteractiveOrderScenario, frontendToolFillFormScenario } from "@agent-ui/mock-agent";
 import { inspectMockDemoCompatibility } from "../src/mock/demo-compatibility.js";
 import { MockServicePanel } from "../src/ui/MockServicePanel.js";
 import { CREATOR_MOCK_API_PATH, type CreatorMockState } from "../src/mock/types.js";
@@ -209,4 +209,35 @@ it("shows the A2UI resource installation path and enables Run only after compati
   expect(run.disabled).toBe(false);
   await click(card, "运行场景");
   expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/select`, expect.objectContaining({ body: JSON.stringify({ scenarioId: "a2ui-interactive-order", speed: 1 }) }));
+});
+
+it("offers resource repair and blocks Run when an installed Form Provider is disabled", async () => {
+  const state = { ...initial, scenarios: [...initial.scenarios, frontendToolFillFormScenario] };
+  let enabled = false;
+  const pluginId = "frontend-tool-form-demo";
+  const compatibility = () => ({
+    ...inspectMockDemoCompatibility({
+      pluginSources: [{ pluginId, status: "available", dataMessageUINames: [] }],
+      pluginInstances: [{ id: "form", pluginId, enabled, effectiveEnabled: enabled, target: { type: "layout_slot" } }],
+    }, { items: [{ id: "demo/frontend-tool-form", status: "managed", resolvedRequirements: [] }] }, "project"),
+    canInstallResources: true,
+  });
+  const fetch = vi.fn(async (url: string) => {
+    if (url.endsWith("/install-resources")) { enabled = true; return json(compatibility()); }
+    return json(url.endsWith("/compatibility") ? compatibility() : state);
+  });
+  vi.stubGlobal("fetch", fetch);
+  const container = await render();
+  const card = [...container.querySelectorAll<HTMLElement>(".creator-mock-scenario")].find(element => element.textContent?.includes("frontend-tool-fill-form"))!;
+  await act(async () => card.querySelector<HTMLInputElement>('input[type="radio"]')!.click());
+  const run = [...card.querySelectorAll("button")].find(button => button.textContent === "运行场景")!;
+  expect(run.disabled).toBe(true);
+  expect(card.textContent).toContain("未启用或未正确放置");
+  expect(card.textContent).not.toContain("所需资源已就绪");
+  await click(card, "安装/修复资源");
+  expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/install-resources`, expect.objectContaining({ body: JSON.stringify({ projectId: "project", sourceItemId: "demo/frontend-tool-form" }) }));
+  expect(card.textContent).toContain("所需资源已就绪");
+  expect(card.textContent).toContain("资源已安装并就绪，可以运行场景。");
+  expect(run.disabled).toBe(false);
+  expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
 });

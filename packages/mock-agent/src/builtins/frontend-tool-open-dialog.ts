@@ -2,7 +2,7 @@ import { defineScenario } from "../scenario.js";
 export const frontendToolOpenDialogScenario = defineScenario({
   id: "frontend-tool-open-dialog",
   title: "Frontend Tool · Open Dialog",
-  resources: [{ id: "frontend-tool-dialog", label: "Dialog Frontend Tool Demo", sourceItemId: "demo/frontend-tool-dialog" }],
+  resources: [{ id: "frontend-tool-dialog", label: "Dialog Frontend Tool Demo", sourceItemId: "demo/frontend-tool-dialog", plugin: { id: "frontend-tool-dialog-demo" } }],
   description: "标准 AG-UI 工具调用 → 浏览器弹窗能力 → Tool Result → continuation。",
   category: "tools",
   capabilities: ["tool"],

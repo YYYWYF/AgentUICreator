@@ -34,7 +34,8 @@ export function collectScenarioResourceRequirements(scenarios: readonly MockScen
   const sourceIds = new Map<string, string>();
   for (const scenario of scenarios) for (const resource of scenario.resources ?? []) {
     const existing = byId.get(resource.id);
-    if (existing && (existing.sourceItemId !== resource.sourceItemId || existing.name !== resource.label)) {
+    if (existing && (existing.sourceItemId !== resource.sourceItemId || existing.name !== resource.label ||
+      existing.plugin?.id !== resource.plugin?.id || existing.plugin?.slot !== resource.plugin?.slot)) {
       throw new Error(`Conflicting Mock resource metadata for "${resource.id}" in scenario "${scenario.id}".`);
     }
     const sourceOwner = sourceIds.get(resource.sourceItemId);
@@ -44,7 +45,9 @@ export function collectScenarioResourceRequirements(scenarios: readonly MockScen
     if (existing) {
       if (!existing.scenarioIds.includes(scenario.id)) existing.scenarioIds.push(scenario.id);
     } else {
-      byId.set(resource.id, { id: resource.id, name: resource.label, sourceItemId: resource.sourceItemId, scenarioIds: [scenario.id] });
+      byId.set(resource.id, { id: resource.id, name: resource.label, sourceItemId: resource.sourceItemId, scenarioIds: [scenario.id],
+        ...(resource.plugin === undefined ? {} : { plugin: { ...resource.plugin } }),
+      });
       sourceIds.set(resource.sourceItemId, resource.id);
     }
   }

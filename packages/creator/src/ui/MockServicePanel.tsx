@@ -207,7 +207,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
                     <button type="button" disabled={busy || !!requirement.missingPackages?.length} onClick={() => void installRequirement(requirement.id, scenario.id)}>
                       {installation?.scenarioId === scenario.id && installation.resourceId === requirement.id && installation.status === "installing" ? "正在安装…"
                         : installation?.scenarioId === scenario.id && installation.resourceId === requirement.id && installation.status === "error" ? "重试安装"
-                        : requirement.sourceItemId ? "安装资源" : `${requirement.status === "disabled" ? "启用" : "引入"}${resourceLabels[requirement.plugin?.id ?? requirement.id] ?? requirement.name}`}
+                        : requirement.sourceItemId ? (requirement.status === "disabled" ? "安装/修复资源" : "安装资源") : `${requirement.status === "disabled" ? "启用" : "引入"}${resourceLabels[requirement.plugin?.id ?? requirement.id] ?? requirement.name}`}
                     </button>
                     {requirement.status === "missing" && mockResourcePreviews[requirement.plugin?.id ?? requirement.id] ? <span className="creator-mock-preview">
                       <button type="button" className="creator-mock-preview-help" aria-label={`查看${requirement.name}示意图`} aria-describedby={`mock-resource-preview-${scenario.id}-${requirement.id}`}>?</button>

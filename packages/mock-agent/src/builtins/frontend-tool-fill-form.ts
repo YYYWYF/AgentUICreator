@@ -3,7 +3,7 @@ export const frontendToolFillFormScenario = defineScenario({
   id: "frontend-tool-fill-form", title: "Frontend Tool · Fill Form",
   description: "标准 AG-UI Frontend Tool 填写 React Hook Form，不提交表单。",
   category: "tools", capabilities: ["tool"],
-  resources: [{ id: "frontend-tool-form", label: "React Hook Form Frontend Tool Demo", sourceItemId: "demo/frontend-tool-form" }],
+  resources: [{ id: "frontend-tool-form", label: "React Hook Form Frontend Tool Demo", sourceItemId: "demo/frontend-tool-form", plugin: { id: "frontend-tool-form-demo" } }],
   reference: { audience: "frontend", protocol: "AG-UI", pattern: "Frontend Tool → Form state mutation → ToolMessage → continuation",
     eventFlow: ["TOOL_CALL_START/ARGS/END", "RUN_FINISHED", "ToolMessage", "continuation"],
     notes: ["Semantics follow assistant-ui @assistant-ui/react-hook-form.", "Tools use the application-owned permission layer.", "Viewing history never rewrites, resets or submits the current form."] },

@@ -84,6 +84,9 @@ export interface MockScenarioResourceRequirement {
   id: string;
   label: string;
   sourceItemId: string;
+  /** Runtime/presentation capability that must be active after installation.
+   * Pluginless Integrations such as A2UI omit this. */
+  plugin?: { id: string; slot?: string };
 }
 
 export interface MockScenario {

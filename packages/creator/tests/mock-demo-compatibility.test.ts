@@ -51,7 +51,7 @@ describe("Mock requirements from formal inspection", () => {
 });
 
 describe("Scenario Resource readiness", () => {
-  it("requires complete source bundle and compatible packages independently of Plugin presentation policy", () => {
+  it("requires the source bundle and any declared runtime Plugin capability", () => {
     const pluginId = "frontend-tool-form-demo";
     const snapshot: ProjectCompositionInspection = {
       pluginSources: [{ pluginId, status: "available", dataMessageUINames: [] }],
@@ -65,7 +65,7 @@ describe("Scenario Resource readiness", () => {
     expect(inspect().status).toBe("ready");
     bundle.status = "partial"; expect(inspect().status).toBe("missing");
     bundle.status = "managed"; snapshot.pluginInstances[0]!.effectiveEnabled = false;
-    expect(inspect().status).toBe("ready");
+    expect(inspect().status).toBe("disabled");
   });
 });
 
