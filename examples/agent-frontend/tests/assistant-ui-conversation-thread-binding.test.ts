@@ -92,6 +92,11 @@ class FakeConversationService implements ConversationService {
     return () => this.listeners.delete(listener);
   }
 
+  setConversations(conversations: ConversationSnapshot["conversations"]): void {
+    this.snapshot = { ...this.snapshot, conversations };
+    this.emit();
+  }
+
   private emit(): void {
     this.listeners.forEach((listener) => listener());
   }
@@ -195,6 +200,41 @@ function messageIds(messages: readonly { id: string }[]): string[] {
 }
 
 describe("ConversationServiceThreadBinding", () => {
+  it("keeps initialization ephemeral until a list snapshot confirms persistence", async () => {
+    const { binding, service } = createBindingFixture();
+    const id = await binding.createNewThread();
+    expect(await binding.initializeThread?.(id)).toBe(id);
+    expect(await binding.loadThread?.(id)).toEqual({ messages: [] });
+    expect(service.selectConversation).not.toHaveBeenCalled();
+    expect(service.getSnapshot().mode).toBe("live");
+  });
+
+  it("reconciles created ids on list updates before any history read", async () => {
+    const details = new Map<string, ConversationDetail>();
+    const service = new FakeConversationService([], details);
+    const binding = createConversationServiceThreadBinding();
+    binding.attachConversationService(service);
+    const id = await binding.createNewThread();
+    await binding.initializeThread?.(id);
+    details.set(id, {
+      id, title: "Created history",
+      history: { format: "langchain", messages: [
+        { id: "created-user", type: "human", content: "request" },
+        { id: "created-assistant", type: "ai", content: "complete" },
+      ] },
+    });
+    service.setConversations([{ id, title: "Created history" }]);
+    // A subsequent transient list omission must not undo confirmed persistence.
+    service.setConversations([]);
+    const otherId = await binding.createNewThread();
+    expect(otherId).not.toBe(id);
+    const loaded = await binding.selectThread(id);
+    expect(messageIds(loaded.messages)).toEqual(["created-user", "created-assistant"]);
+    expect(service.selectConversation).toHaveBeenCalledWith(id);
+    expect(service.getSnapshot()).toMatchObject({ mode: "history", activeConversationId: id });
+  });
+
+
   it("starts with no persisted list items while retaining a live thread id", () => {
     const binding = createConversationServiceThreadBinding();
 

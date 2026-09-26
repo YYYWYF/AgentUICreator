@@ -1,3 +1,4 @@
+import { useConversationNavigation, type ConversationNavigation } from "../../react/src/public.js";
 import { useAui, type AssistantRuntime } from "@assistant-ui/react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
@@ -6,6 +7,9 @@ import { ConversationRuntimeProvider } from "../src/ConversationRuntimeProvider.
 import { useConversationRuntimeBridge } from "../src/ConversationRuntimeBridgeContext.js";
 import { CancellationAwareHttpAgent } from "../src/compatibility/cancellation-aware-http-agent.js";
 import type { ConversationThreadBinding } from "../src/threads/types.js";
+import { createConversationServiceThreadBinding } from "../../../examples/agent-frontend/agent-ui/conversation/threads/conversation-service-thread-binding";
+import { createConversationService } from "../../../examples/agent-frontend/services/conversations/service";
+import type { ConversationDetail } from "../../../examples/agent-frontend/services/conversations/contract";
 
 async function tick() { await new Promise<void>(resolve => setImmediate(resolve)); }
 async function until(predicate: () => boolean) {
@@ -14,7 +18,7 @@ async function until(predicate: () => boolean) {
 }
 
 type Stream = { emit(event: Record<string, unknown>): void; finish(outcome?: Record<string, unknown>): void; fail(): void; input: { threadId: string; runId: string; resume?: unknown[] } };
-async function fixture(failFirstBHistory = false) {
+async function fixture(failFirstBHistory = false, providedBinding?: ConversationThreadBinding) {
   const agents = new Map<string, CancellationAwareHttpAgent>();
   const streams = new Map<string, Stream>();
   const bridges = new Map<string, AgentRuntime>();
@@ -26,7 +30,7 @@ async function fixture(failFirstBHistory = false) {
     messages: [{ id: `${id}-history`, role: "user" as const, content: [{ type: "text", text: `history ${id}` }], attachments: [], createdAt: new Date(0), metadata: { custom: {} } }],
     state: { owner: id },
   }); });
-  const binding: ConversationThreadBinding = {
+  const binding: ConversationThreadBinding = providedBinding ?? {
     getThreadId: () => currentId,
     activateThread: id => { currentId = id; },
     subscribe: () => () => {},
@@ -35,10 +39,14 @@ async function fixture(failFirstBHistory = false) {
     getThreadListSnapshot: () => ({ threads: [{ id: "A", status: "regular" }, { id: "B", status: "regular" }], archivedThreads: [] }),
   };
   let runtime!: AssistantRuntime;
+  let navigation!: ConversationNavigation;
+  let currentBridge!: AgentRuntime;
   function Capture() {
     const aui = useAui();
     runtime = aui.threads.__internal_getAssistantRuntime!();
+    navigation = useConversationNavigation();
     const { agentRuntime } = useConversationRuntimeBridge();
+    currentBridge = agentRuntime;
     bridges.set(agentRuntime.getSnapshot().conversation.id, agentRuntime);
     return null;
   }
@@ -72,8 +80,9 @@ async function fixture(failFirstBHistory = false) {
     await tick();
   });
   const switchTo = async (id: string) => {
-    await act(async () => { void runtime.threads.switchToThread(id); await tick(); });
-    await act(async () => { await until(() => runtime.threads.getState().mainThreadId === id && bridges.has(id)); });
+    await act(async () => { await navigation.switchToThread(id); });
+    expect(runtime.threads.mainItem.getState().remoteId).toBe(id);
+    expect(currentBridge.getSnapshot().conversation.id).toBe(id);
   };
   const start = async (id: string) => {
     await switchTo(id);
@@ -87,11 +96,97 @@ async function fixture(failFirstBHistory = false) {
   };
   const text = (id: string) => runtime.threads.getById(id).getState().messages.flatMap(m => m.content).filter(p => p.type === "text").map(p => p.text).join("|");
   return { agents, streams, bridges, runtime, load, switchTo, start, emit, text,
+    get navigation() { return navigation; },
+    get currentBridge() { return currentBridge; },
     async dispose() { await act(async () => { for (const agent of agents.values()) agent.abortRun(); renderer.unmount(); await tick(); }); },
   };
 }
 
 describe("upstream-owned concurrent AG-UI threads", () => {
+  it("reloads a newly persisted C from history without restarting background A", async () => {
+    const details = new Map<string, ConversationDetail>();
+    const persistedDetail = (id: string): ConversationDetail => ({
+      id, title: id,
+      history: { format: "langchain", messages: [
+        { id: `${id}-user`, type: "human", content: `request ${id}` },
+        { id: `${id}-answer`, type: "ai", content: `complete ${id}` },
+      ] },
+      agentState: { owner: id },
+    });
+    details.set("A", persistedDetail("A"));
+    const readHistory = vi.fn(async (id: string) => {
+      const detail = details.get(id);
+      if (detail === undefined) throw new Error(`Missing persisted conversation ${id}`);
+      return detail;
+    });
+    const service = createConversationService({ dataSource: {
+      list: async () => [...details.values()].map(({ id, title }) => ({ id, title })),
+      get: readHistory,
+    } });
+    await service.refresh();
+    const binding = createConversationServiceThreadBinding();
+    const detach = binding.attachConversationService(service);
+    const loadThread = vi.spyOn(binding, "loadThread");
+    const f = await fixture(false, binding);
+    try {
+      await f.start("A");
+      const agentA = f.agents.get("A");
+      const bridgeA = f.bridges.get("A");
+      await act(async () => { await f.navigation.switchToNewThread(); });
+      const idC = f.currentBridge.getSnapshot().conversation.id;
+      await act(async () => {
+        f.runtime.thread.append({ role: "user", content: [{ type: "text", text: "request C" }], startRun: true });
+        await until(() => f.streams.has(idC));
+      });
+      expect(f.runtime.threads.mainItem.getState().remoteId).toBe(idC);
+      expect(service.getSnapshot().mode).toBe("live");
+      expect(readHistory.mock.calls.filter(([id]) => id === idC)).toHaveLength(0);
+      await f.emit(idC, { type: "TEXT_MESSAGE_CONTENT", messageId: `${idC}-answer`, delta: `complete ${idC}` });
+      // The backend list confirms persistence while C is still running.
+      details.set(idC, persistedDetail(idC));
+      await act(async () => { await service.refresh(); });
+      expect(f.runtime.thread.getState().isRunning).toBe(true);
+      await act(async () => { f.streams.get(idC)!.finish(); await tick(); });
+      await f.switchTo("A");
+      const messagesA = f.runtime.thread.getState().messages;
+      await f.switchTo(idC);
+      expect(service.getSnapshot()).toMatchObject({ mode: "history", activeConversationId: idC });
+      const oldAgentC = f.agents.get(idC);
+      await act(async () => { await f.navigation.reloadCurrentThread(); });
+      expect(loadThread).toHaveBeenCalledWith(idC);
+      expect(readHistory.mock.calls.filter(([id]) => id === idC)).toHaveLength(1);
+      expect(f.runtime.thread.getState().messages.map(message => message.id)).toEqual([`${idC}-user`, `${idC}-answer`]);
+      expect(f.text(idC)).toContain(`complete ${idC}`);
+      expect(f.agents.get(idC)).not.toBe(oldAgentC);
+      await f.switchTo("A");
+      await f.switchTo(idC);
+      expect(f.text(idC)).toContain(`complete ${idC}`);
+      expect(readHistory.mock.calls.filter(([id]) => id === idC)).toHaveLength(1);
+      expect(f.agents.get("A")).toBe(agentA);
+      expect(f.bridges.get("A")).toBe(bridgeA);
+      expect(agentA!.abortRun).not.toHaveBeenCalled();
+      expect(f.runtime.threads.getById("A").getState().messages).toEqual(messagesA);
+      expect(f.runtime.threads.getById("A").getState().isRunning).toBe(true);
+      await f.emit("A", { type: "TEXT_MESSAGE_CONTENT", messageId: "A-answer", delta: "after C reload" });
+      expect(f.text("A")).toContain("after C reload");
+      expect(f.text(idC)).not.toContain("after C reload");
+    } finally { await f.dispose(); detach(); service.dispose(); }
+  });
+
+  it("awaits navigation until B history and the current bridge are ready", async () => {
+    const f = await fixture();
+    try {
+      await act(async () => { await f.navigation.switchToThread("B"); });
+      expect(f.runtime.threads.getState().mainThreadId).toBe("B");
+      expect(f.text("B")).toContain("history B");
+      expect(f.currentBridge).toBe(f.bridges.get("B"));
+      expect(f.currentBridge.getSnapshot().conversation.id).toBe("B");
+      expect(f.load.mock.calls.filter(([id]) => id === "B")).toHaveLength(1);
+      await f.switchTo("A");
+      await f.switchTo("B");
+      expect(f.load.mock.calls.filter(([id]) => id === "B")).toHaveLength(1);
+    } finally { await f.dispose(); }
+  });
   it("keeps two independent runtimes, agents and running ThreadList items", async () => {
     const f = await fixture();
     try {
@@ -178,15 +273,23 @@ describe("upstream-owned concurrent AG-UI threads", () => {
     const f = await fixture();
     try {
       await f.start("A");
-      await act(async () => { void f.bridges.get("A")!.startNewConversation(); await tick(); });
+      await act(async () => { await f.navigation.switchToNewThread(); });
       const localId = f.runtime.threads.getState().mainThreadId;
       expect(localId).not.toBe("A");
+      expect(f.runtime.threads.mainItem.getState().remoteId).toBeUndefined();
+      expect(f.currentBridge).not.toBe(f.bridges.get("A"));
+      const newBridge = f.currentBridge;
+      const newAgent = f.agents.get(newBridge.getSnapshot().conversation.id);
       expect(f.runtime.thread.getState().isDisabled).toBe(false);
       expect(f.runtime.threads.getById("A").getState().isRunning).toBe(true);
       await act(async () => { f.runtime.thread.append({ role: "user", content: [{ type: "text", text: "new" }], startRun: true }); await tick(); });
       const remoteId = f.runtime.threads.mainItem.getState().remoteId;
       expect(remoteId).toBeDefined(); expect(remoteId).not.toBe(localId);
       expect(f.agents.get(remoteId!)!.threadId).toBe(remoteId);
+      expect(f.agents.get(remoteId!)).toBe(newAgent);
+      expect(f.currentBridge).toBe(newBridge);
+      expect(f.runtime.threads.getState().mainThreadId).toBe(localId);
+      expect(f.load.mock.calls.filter(([id]) => id === remoteId)).toHaveLength(0);
     } finally { await f.dispose(); }
   });
   it("retries a failed history runtime through the official lifecycle without stopping A", async () => {

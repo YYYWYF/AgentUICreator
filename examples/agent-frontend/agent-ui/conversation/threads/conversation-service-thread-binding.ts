@@ -109,13 +109,21 @@ export function createConversationServiceThreadBinding<
   TState = unknown,
 >(): ConversationServiceThreadBinding<TState> {
   let activeThreadId: string = crypto.randomUUID();
-  const createdThreads = new Set<string>([activeThreadId]);
+  const ephemeralThreadIds = new Set<string>([activeThreadId]);
   let conversationService: ConversationService | undefined;
   let serviceUnsubscribe: (() => void) | undefined;
   let threadListSnapshot = createListSnapshot(undefined);
   const listeners = new Set<() => void>();
   const emit = () => listeners.forEach(listener => listener());
+  const hasPersistedThread = (id: string) =>
+    conversationService?.getSnapshot().conversations.some(item => item.id === id) === true;
+  const reconcileEphemeralThreads = () => {
+    for (const id of ephemeralThreadIds) {
+      if (hasPersistedThread(id)) ephemeralThreadIds.delete(id);
+    }
+  };
   const rebuild = () => {
+    reconcileEphemeralThreads();
     const next = createListSnapshot(conversationService?.getSnapshot());
     if (sameListSnapshot(threadListSnapshot, next)) return;
     threadListSnapshot = next;
@@ -124,7 +132,8 @@ export function createConversationServiceThreadBinding<
   const getThreadIsDisabled = (id: string) => conversationService?.getSnapshot().conversations.find(item => item.id === id)?.disabled === true;
   const loadThread = async (id: string): Promise<ConversationLoadedThread<TState>> => {
     if (getThreadIsDisabled(id)) throw new ConversationThreadSelectionDisabledError(id);
-    if (createdThreads.has(id)) return emptyLoadedThread<TState>();
+    if (ephemeralThreadIds.has(id) && !hasPersistedThread(id)) return emptyLoadedThread<TState>();
+    ephemeralThreadIds.delete(id);
     if (conversationService === undefined) throw new Error("Conversation service is unavailable.");
     const detail = await conversationService.loadConversation(id);
     return {
@@ -135,8 +144,12 @@ export function createConversationServiceThreadBinding<
   const activateThread = (id: string) => {
     if (activeThreadId === id) return;
     activeThreadId = id;
-    if (createdThreads.has(id)) conversationService?.showLiveConversation();
-    else conversationService?.showConversation(id);
+    if (ephemeralThreadIds.has(id) && !hasPersistedThread(id)) {
+      conversationService?.showLiveConversation();
+    } else {
+      ephemeralThreadIds.delete(id);
+      conversationService?.showConversation(id);
+    }
     emit();
   };
   return {
@@ -145,10 +158,10 @@ export function createConversationServiceThreadBinding<
     getThreadIsDisabled,
     loadThread,
     activateThread,
-    reserveThread: id => { createdThreads.add(id); },
+    reserveThread: id => { ephemeralThreadIds.add(id); },
     async initializeThread(id) {
-      // This backend creates a conversation on its first AG-UI request.
-      createdThreads.add(id);
+      // Reserve identity only; the first AG-UI request creates the backend record.
+      ephemeralThreadIds.add(id);
       return id;
     },
     async getThreadMetadata(id) {
@@ -180,7 +193,7 @@ export function createConversationServiceThreadBinding<
     },
     async createNewThread() {
       const id = crypto.randomUUID();
-      createdThreads.add(id);
+      ephemeralThreadIds.add(id);
       activateThread(id);
       return id;
     },

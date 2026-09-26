@@ -179,8 +179,10 @@ export function ConversationRuntimeProvider<TState = unknown>({
     }, [agentRuntime, applicationEvents, bridge, item.id]);
     return runtime;
   }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, frontendTools, onError]);
+  const [controlledThreadId, setControlledThreadId] = useState<string | undefined>(persistence.initialId);
   const assistantRuntime = useRemoteThreadListRuntime({
-    adapter: persistence.adapter, runtimeHook, initialThreadId: persistence.initialId,
+    adapter: persistence.adapter, runtimeHook,
+    threadId: controlledThreadId, onThreadIdChange: setControlledThreadId,
   });
   outerRuntime.current = assistantRuntime;
   useEffect(() => {
