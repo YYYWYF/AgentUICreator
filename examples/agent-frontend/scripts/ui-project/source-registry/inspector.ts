@@ -201,7 +201,7 @@ export async function inspectAgentUISources(
         inspectFile(
           sourceRoot,
           config.agentUI.sourceRoot,
-          target,
+          provided ? config.agentUI.providedSourceFilePaths?.[target] ?? target : target,
           locked?.files[target]?.sha256 ?? (provided && item.loadedFiles.some(file => file.target === target) ? sha256(item.loadedFiles.find(file => file.target === target)!.content) : undefined),
         ),
       ),

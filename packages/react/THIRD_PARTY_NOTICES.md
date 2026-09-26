@@ -17,3 +17,7 @@ TaskCard, TaskGroup, and TaskTray elements.
 AgentUICreator-owned changes in the upstream-owned Elements are limited to the
 mechanical module-resolution adaptations recorded in `UPSTREAM.json`. There are
 no local presentation patches in the upstream-owned Elements.
+
+The Conversation Toolkit provider facade uses the pinned assistant-ui public
+`AuiProvider`, `AuiConfig`, `Tools` and renderer registration APIs to compose
+optional render-only integrations. No A2UI parser or renderer is copied.

@@ -1,3 +1,4 @@
+import { a2uiInteractiveOrderScenario } from "./a2ui-interactive-order.js";
 import { frontendToolFillFormScenario } from "./frontend-tool-fill-form.js";
 import { frontendToolOpenDialogScenario } from "./frontend-tool-open-dialog.js";
 import { concurrentConversationsScenario } from "./concurrent-conversations.js";
@@ -23,6 +24,7 @@ import { toolLongRunningScenario } from "./tool-long-running.js";
 import type { MockScenario } from "../scenario.js";
 
 export {
+  a2uiInteractiveOrderScenario,
   frontendToolOpenDialogScenario,
   frontendToolFillFormScenario,
   concurrentConversationsScenario,
@@ -60,6 +62,7 @@ export const backendReferenceMockScenarios: MockScenario[] = [
 ];
 
 export const frontendPresentationMockScenarios: MockScenario[] = [
+  a2uiInteractiveOrderScenario,
   frontendToolOpenDialogScenario,
   frontendToolFillFormScenario,
   multiMessageResponseScenario,

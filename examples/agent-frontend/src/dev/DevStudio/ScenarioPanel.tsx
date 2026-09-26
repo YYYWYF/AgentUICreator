@@ -59,6 +59,7 @@ const capabilityLabels: Record<MockScenarioCapability, string> = {
   subagent: "Subagent",
   sources: "Sources",
   "state-sync": "State Sync",
+  a2ui: "A2UI",
 };
 
 const speedOptions = [

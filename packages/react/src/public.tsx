@@ -1,3 +1,4 @@
+import { InternalConversationToolkitProvider } from "./internal/conversation-toolkit-provider.js";
 import {
   ConversationThreadListItemComposition,
   type ConversationThreadListItemProps,
@@ -402,6 +403,16 @@ export function createConversationToolkit(
   toolkit: ConversationToolkit,
 ): ConversationToolkit {
   return defineToolkit(toolkit as never) as unknown as ConversationToolkit;
+}
+
+export interface ConversationToolkitProviderProps {
+  toolkit: ConversationToolkit;
+  children: ReactNode;
+}
+
+/** Extend the current Conversation Runtime with render-only toolkit entries. */
+export function ConversationToolkitProvider({ toolkit, children }: ConversationToolkitProviderProps) {
+  return <InternalConversationToolkitProvider toolkit={toolkit}>{children}</InternalConversationToolkitProvider>;
 }
 
 export function ConversationToolCall(

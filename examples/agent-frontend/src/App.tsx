@@ -48,6 +48,7 @@ import {
 } from "../agent-ui/conversation/config";
 import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
 import { createConversationServiceThreadBinding } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
+import { GeneratedConversationIntegrations } from "../agent-ui/conversation/integrations.generated";
 import { generatedFrontendToolUIs } from "../agent-ui/conversation/frontend-tool-uis.generated";
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
 import {
@@ -334,16 +335,18 @@ function ConversationRuntimeBoundary({
       toolkit={toolkit}
       threadBinding={threadBinding}
     >
-      <RuntimeControlPlane
-        composition={composition}
-        endpoint={endpoint}
-        mockRunRevision={mockRunRevision}
-        mockSelection={mockSelection}
-        onMockScenarioRun={onMockScenarioRun}
-        onRuntimeComposition={onRuntimeComposition}
-        onRuntimeDiagnostic={onRuntimeDiagnostic}
-        onPreviewCommitted={onPreviewCommitted}
-      />
+      <GeneratedConversationIntegrations>
+        <RuntimeControlPlane
+          composition={composition}
+          endpoint={endpoint}
+          mockRunRevision={mockRunRevision}
+          mockSelection={mockSelection}
+          onMockScenarioRun={onMockScenarioRun}
+          onRuntimeComposition={onRuntimeComposition}
+          onRuntimeDiagnostic={onRuntimeDiagnostic}
+          onPreviewCommitted={onPreviewCommitted}
+        />
+      </GeneratedConversationIntegrations>
     </ConversationRuntimeProvider>
   );
 }

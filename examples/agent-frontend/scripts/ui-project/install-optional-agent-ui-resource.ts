@@ -1,5 +1,6 @@
 import { loadAgentUISourceRegistry, isOptionalAgentUISourceItem } from "@agent-ui/source-registry";
 import { writeGeneratedPluginRegistry } from "../generate-plugin-registry";
+import { writeGeneratedConversationIntegrationRegistry } from "../generate-conversation-integration-registry";
 import { writeGeneratedFrontendToolRegistries } from "../generate-frontend-tool-registry";
 import { inspectAgentUISources, applyAgentUISourceItem } from "./source-registry";
 import { AgentUISourceError } from "./source-registry/path-policy";
@@ -22,6 +23,7 @@ export async function installOptionalAgentUIResource(projectRoot: string, source
   }
   await writeGeneratedPluginRegistry(projectRoot);
   await writeGeneratedFrontendToolRegistries(projectRoot);
+  await writeGeneratedConversationIntegrationRegistry(projectRoot);
   const after = await inspectAgentUISources(projectRoot, config);
   const resource = after.items.find(item => item.id === sourceItemId);
   const closureIds = new Set([sourceItemId, ...(resource?.dependencies ?? [])]);

@@ -71,6 +71,8 @@ export interface UIProjectControlConfig {
     metadataRoot: string;
     /** Legacy host-owned foundations: inspect their files but never overwrite or adopt them. */
     providedSourceItems?: readonly string[];
+    /** Existing host entry paths for equivalent provided foundation files. Inspection only. */
+    providedSourceFilePaths?: Readonly<Record<string, string>>;
   };
 }
 

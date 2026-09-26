@@ -179,6 +179,18 @@ async function* runSteps(
   for (const step of steps) {
     if (signal?.aborted) return;
 
+    if (step.type === "activity-snapshot") {
+      if (!await waitForDelay(normalizeDelay(step.delayMs, 0), signal, timingScale)) return;
+      yield withSubagentRunId({
+        type: EventType.ACTIVITY_SNAPSHOT,
+        messageId: step.messageId ?? createId("activity-message"),
+        activityType: step.activityType,
+        content: structuredClone(step.content),
+        ...(step.replace === undefined ? {} : { replace: step.replace }),
+      }, step.subagentRunId ?? context.subagentRunId) as AGUIEvent;
+      continue;
+    }
+
     if (step.type === "reasoning") {
       const reasoningId = createId("reasoning");
       const messageId = createId("reasoning-message");
@@ -578,10 +590,24 @@ function selectResumeBranch(input: RunAgentInput): MockScenarioResumeBranch {
   return "cancelled";
 }
 
+function getA2uiAction(input: RunAgentInput): Record<string, unknown> | undefined {
+  const envelope = input.forwardedProps?.a2uiAction;
+  if (!envelope || typeof envelope !== "object" || Array.isArray(envelope)) return undefined;
+  const action = envelope.userAction;
+  return action && typeof action === "object" && !Array.isArray(action) ? action : undefined;
+}
+
 function selectSteps(
   input: RunAgentInput,
   scenario: MockScenario,
 ): readonly MockScenarioStep[] {
+  const action = getA2uiAction(input);
+  if (action !== undefined && scenario.a2uiActions !== undefined) {
+    const name = action.name;
+    return typeof name === "string" && Object.hasOwn(scenario.a2uiActions.branches, name)
+      ? scenario.a2uiActions.branches[name]!
+      : scenario.a2uiActions.fallback ?? [];
+  }
   if (scenario.frontendContinuation !== undefined) {
     const continuation = scenario.frontendContinuation;
     let lastUserIndex = -1;
@@ -640,7 +666,7 @@ export async function* runMockScenario(
     runId: input.runId,
   };
 
-  if (!isResume && scenario.initialState !== undefined) {
+  if (!isResume && getA2uiAction(input) === undefined && scenario.initialState !== undefined) {
     yield {
       type: EventType.STATE_SNAPSHOT,
       snapshot: structuredClone(scenario.initialState),

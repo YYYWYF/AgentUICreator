@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "integration/a2ui",
+  "version": "0.1.0",
+  "kind": "integration",
+  "description": "Official AgentUICreator integration for A2UI over AG-UI",
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "@assistant-ui/react-generative-ui": "0.0.19"
+  },
+  "upstream": {
+    "project": "assistant-ui/assistant-ui",
+    "component": "A2UI over AG-UI",
+    "implementation": "native useAgUiRuntime A2UI surface conversion with AgentUICreator rendering/action facades",
+    "revision": "039c3c32822632f2a564164f089f538926886124",
+    "mode": "adapted",
+    "license": "MIT"
+  },
+  "files": [
+    {
+      "source": "files/integrations/a2ui/create-a2ui-toolkit.tsx",
+      "target": "integrations/a2ui/create-a2ui-toolkit.tsx"
+    },
+    {
+      "source": "files/integrations/a2ui/A2uiConversationIntegration.tsx",
+      "target": "integrations/a2ui/A2uiConversationIntegration.tsx"
+    },
+    {
+      "source": "files/integrations/a2ui/index.ts",
+      "target": "integrations/a2ui/index.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/integrations/a2ui.tsx",
+      "target": "agent-ui/conversation/integrations/a2ui.tsx"
+    },
+    {
+      "source": "files/integrations/a2ui/a2ui.css",
+      "target": "integrations/a2ui/a2ui.css"
+    }
+  ]
+}

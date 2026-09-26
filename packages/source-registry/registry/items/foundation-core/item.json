@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "foundation/core",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "kind": "foundation",
   "description": "Public Agent UI entry and generated Plugin Registry entry",
   "requires": [
@@ -23,6 +23,10 @@
     {
       "source": "files/plugins/index.ts",
       "target": "plugins/index.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/integrations.generated.tsx",
+      "target": "agent-ui/conversation/integrations.generated.tsx"
     }
   ]
 }

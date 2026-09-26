@@ -136,6 +136,10 @@
     {
       "id": "integration/react-hook-form",
       "path": "items/integration-react-hook-form/item.json"
+    },
+    {
+      "id": "integration/a2ui",
+      "path": "items/integration-a2ui/item.json"
     }
   ]
 }

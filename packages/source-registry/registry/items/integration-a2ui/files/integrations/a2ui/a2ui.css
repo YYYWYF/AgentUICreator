@@ -1,0 +1,14 @@
+/* Scope defaults to the official generative renderer and Agent UI semantic tokens. */
+[data-aui="root"] { color: var(--aui-fg); line-height: 1.5; }
+[data-aui="root"] [data-aui="card"] { background: var(--aui-bg-elevated); border: 1px solid var(--aui-border); border-radius: var(--aui-radius-lg); padding: var(--aui-space-4); }
+[data-aui="root"] [data-aui="card-title"] { font-weight: 600; margin-bottom: var(--aui-space-3); }
+[data-aui="root"] :is([data-aui="row"], [data-aui="col"], [data-aui="form"]) { display: flex; gap: var(--aui-space-3); }
+[data-aui="root"] :is([data-aui="col"], [data-aui="form"]) { flex-direction: column; }
+[data-aui="root"] [data-aui="row"] { flex-wrap: wrap; align-items: center; }
+[data-aui="root"] :is([data-aui="button"], [data-aui="card-confirm"], [data-aui="card-cancel"]) { background: var(--aui-accent); color: var(--primary-foreground); border: 1px solid var(--aui-border); border-radius: var(--aui-radius-md); padding: var(--aui-space-2) var(--aui-space-3); cursor: pointer; font: inherit; }
+[data-aui="root"] :is(button, input, select, textarea):focus-visible { outline: 2px solid var(--aui-focus); outline-offset: 2px; }
+[data-aui="root"] :is(button, input, select, textarea):disabled { opacity: .5; cursor: default; }
+[data-aui="root"] :is([data-aui="input"], [data-aui="select"], [data-aui="textarea"]) { color: var(--aui-fg); background: var(--aui-bg); border: 1px solid var(--aui-border); border-radius: var(--aui-radius-md); padding: var(--aui-space-2); font: inherit; }
+[data-aui="root"] [data-aui="badge"] { background: var(--aui-bg-subtle); border-radius: var(--aui-radius-sm); padding: var(--aui-space-1) var(--aui-space-2); }
+[data-aui="root"] [data-aui="divider"] { border: 0; border-top: 1px solid var(--aui-border); margin-block: var(--aui-space-3); }
+[data-aui="root"] [data-aui="image"] { max-width: 100%; height: auto; }

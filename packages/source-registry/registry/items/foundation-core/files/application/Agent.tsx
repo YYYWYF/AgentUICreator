@@ -27,6 +27,7 @@ import {
 } from "../agent-ui/conversation/config";
 import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
 import { createConversationServiceThreadBinding } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
+import { GeneratedConversationIntegrations } from "../agent-ui/conversation/integrations.generated";
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
 import { resolvePluginConversationToolkit } from "../runtime/plugins/plugin-conversation-toolkit";
 import { agentCompositionStore } from "./composition-store";
@@ -112,7 +113,9 @@ export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
       threadBinding={threadBinding}
       toolkit={toolkit}
     >
-      {composition === undefined ? null : <AgentSurface composition={composition} />}
+      <GeneratedConversationIntegrations>
+        {composition === undefined ? null : <AgentSurface composition={composition} />}
+      </GeneratedConversationIntegrations>
     </ConversationRuntimeProvider>
   );
 }

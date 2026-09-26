@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
 import { installScenarioResources, installMockResource } from "../scripts/ui-project/install-scenario-resources";
+vi.mock("../scripts/generate-conversation-integration-registry", () => ({ writeGeneratedConversationIntegrationRegistry: vi.fn() }));
 vi.mock("../scripts/generate-plugin-registry", () => ({ writeGeneratedPluginRegistry: vi.fn() }));
 vi.mock("../scripts/generate-frontend-tool-registry", () => ({ writeGeneratedFrontendToolRegistries: vi.fn() }));
 vi.mock("../scripts/verify-ui", () => ({ verifyUIProject: vi.fn(async () => ({ status: "passed" })) }));

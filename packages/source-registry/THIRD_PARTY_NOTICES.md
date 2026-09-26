@@ -74,3 +74,14 @@ SOFTWARE.
 assistant-ui revision `039c3c32822632f2a564164f089f538926886124` (MIT, AgentbaseAI Inc.).
 It imports official descriptions from the installed package and does not copy or
 call `useAssistantForm`. The assistant-ui MIT notice above applies.
+
+## assistant-ui A2UI integration
+
+`integration/a2ui` adapts the public `JSONGenerativeUI`,
+`defaultGenerativeUILibrary`, and `createActionRegistry` contracts from
+`@assistant-ui/react-generative-ui` 0.0.19 at assistant-ui revision
+`039c3c32822632f2a564164f089f538926886124` (MIT, AgentbaseAI Inc.).
+Native AG-UI surface conversion and actions remain in `@assistant-ui/react-ag-ui`
+0.0.60; the integration does not copy their parser, reducer or converter.
+The default vocabulary is imported from the installed official package, with
+Agent UI semantic-token styling. The assistant-ui MIT notice above applies.

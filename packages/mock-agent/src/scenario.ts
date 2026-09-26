@@ -1,4 +1,4 @@
-import type { StateDeltaEvent } from "@ag-ui/core";
+import type { ActivitySnapshotEvent, StateDeltaEvent } from "@ag-ui/core";
 
 export type MockScenarioCategory =
   | "basics"
@@ -19,7 +19,8 @@ export type MockScenarioCapability =
   | "agent-status"
   | "subagent"
   | "sources"
-  | "state-sync";
+  | "state-sync"
+  | "a2ui";
 
 export type MockScenarioAudience = "backend" | "frontend" | "internal";
 
@@ -96,6 +97,7 @@ export interface MockScenario {
   initialState?: Record<string, unknown> | undefined;
   steps: MockScenarioStep[];
   resumeSteps?: MockScenarioResumeSteps | undefined;
+  a2uiActions?: { branches: Record<string, MockScenarioStep[]>; fallback?: MockScenarioStep[] } | undefined;
   frontendContinuation?: { toolName: string; successText: string; errorText: string } | undefined;
 }
 
@@ -109,6 +111,10 @@ export type MockScenarioResumeSteps =
     };
 
 export type MockScenarioStep =
+  | ({ type: "activity-snapshot"; delayMs?: number | undefined }
+      & Pick<ActivitySnapshotEvent, "activityType" | "content">
+      & Partial<Pick<ActivitySnapshotEvent, "replace" | "subagentRunId">>
+      & { messageId?: ActivitySnapshotEvent["messageId"] | undefined })
   | {
       type: "reasoning";
       text: string;
@@ -234,6 +240,12 @@ function validateSteps(
       );
     }
 
+    if (step.type === "activity-snapshot") {
+      validateToolArgs(scenarioId, step.content, "activity snapshot");
+      if (!step.activityType.trim()) throw new Error(`Scenario "${scenarioId}" requires an activityType.`);
+      continue;
+    }
+
     if (step.type === "tool") {
       if (step.frontend && context.subagentRunId !== undefined) {
         throw new Error(`Scenario "${scenarioId}" cannot invoke a root-only Frontend Tool from a subagent.`);
@@ -278,6 +290,9 @@ function validateSteps(
 /** Validates the readiness constraints of a mock scenario before serving it. */
 export function validateMockScenario(scenario: MockScenario): void {
   validateSteps(scenario.id, scenario.steps, {});
+
+  for (const branch of Object.values(scenario.a2uiActions?.branches ?? {})) validateSteps(scenario.id, branch, {});
+  if (scenario.a2uiActions?.fallback) validateSteps(scenario.id, scenario.a2uiActions.fallback, {});
 
   if (scenario.resumeSteps === undefined) return;
   if (Array.isArray(scenario.resumeSteps)) {

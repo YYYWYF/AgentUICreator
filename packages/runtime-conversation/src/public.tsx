@@ -26,7 +26,16 @@ import type {
 } from "./threads/types.js";
 import type { ConversationToolkit } from "@agent-ui/react";
 import type { ReactNode } from "react";
+import { useAgUiSendA2uiAction } from "@assistant-ui/react-ag-ui";
 import type { ConversationStarterSuggestion } from "./conversation-types.js";
+
+export type ConversationA2uiAction = Readonly<Record<string, unknown>>;
+
+/** Native action continuation; must be called inside ConversationRuntimeProvider. */
+export function useConversationA2uiAction(): (action: ConversationA2uiAction) => void {
+  return useAgUiSendA2uiAction();
+}
+
 
 export { projectLangChainHistory } from "./history/langchain-history-projector.js";
 
