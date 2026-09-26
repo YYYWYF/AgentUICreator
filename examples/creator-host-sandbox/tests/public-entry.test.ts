@@ -13,6 +13,7 @@ import { build } from "vite";
 
 import { initializeAgentUIProject } from "../../agent-frontend/scripts/ui-project/initialize-agent-ui-project";
 import { inspectCreatorProject } from "../../agent-frontend/scripts/ui-project/creator-project-inspector";
+import { handleUIProjectControlRequest } from "../../agent-frontend/scripts/ui-project-control";
 import { runtimeAliases } from "../vite.config";
 
 const sandboxRoot = fileURLToPath(new URL("..", import.meta.url));
@@ -59,6 +60,12 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
       assert.equal((await inspectCreatorProject(projectRoot)).status, "uninitialized");
       await initializeAgentUIProject({ projectRoot, mode, sourceRoot: "src/agent-ui" });
       assert.equal((await inspectCreatorProject(projectRoot)).status, "ready");
+      const controlResponse = await handleUIProjectControlRequest({
+        schemaVersion: 3,
+        operation: "inspect_ui_project",
+        input: { view: "composition" },
+      }, projectRoot);
+      assert.equal(controlResponse.ok, true, JSON.stringify(controlResponse));
       const runtimeConfig = await readFile(
         path.join(projectRoot, "src/agent-ui/application/runtime-config.generated.ts"),
         "utf8",

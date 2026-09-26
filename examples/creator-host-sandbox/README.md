@@ -14,7 +14,9 @@ Creator is injected only by the Host's Vite dev configuration. It loads `http://
 
 ## Ownership and reset
 
-Each Host owns its `src/App.tsx`, `src/AgentMount.tsx`, `src/main.tsx`, `src/host.css`, Vite config, and package file. Creator owns `src/agent-ui/**` after initialization; `.agent-ui/**` is control-plane metadata. The Host integrates Agent UI only through `import { Agent } from "./agent-ui"` and `<Agent />`.
+Each Host owns its `src/App.tsx`, `src/AgentMount.tsx`, `src/main.tsx`, `src/host.css`, Vite config, package file, and `scripts/ui-project-control.ts`. Creator owns `src/agent-ui/**` after initialization; `.agent-ui/**` is control-plane metadata. The Host integrates Agent UI only through `import { Agent } from "./agent-ui"` and `<Agent />`.
+
+The fixed `scripts/ui-project-control.ts` entry is used by the development-only Creator sidecar. These three workspace examples delegate to the shared Project Control implementation in `examples/agent-frontend`; the entry supplies each Host's own project root. It is outside `src/` and is not included in the Host's production bundle. Run `pnpm install` at the workspace root before using Creator so each Host has its local `node_modules/.bin/tsx` executable.
 
 The shared helper scripts under this project's `scripts/` initialize or inspect one named Host and reset only its `.agent-ui` and `src/agent-ui` directories. They reject symlinks and unsafe paths. After reset, the next `dev` or `build` initializes that Host's default Mode again. The Platform Host also keeps its explicit `init:assistant`, `init:embedded`, and `init:platform` scripts for Source Registry experiments; using a different Mode requires reset first and the matching Host layout is only guaranteed in its named example.
 

@@ -515,12 +515,12 @@ async function readStandardInput(): Promise<string> {
   return source;
 }
 
-async function main(): Promise<void> {
+export async function runUIProjectControlCli(projectRoot = defaultProjectRoot): Promise<void> {
   let response: UIProjectControlResponse;
   try {
     response = await handleUIProjectControlRequest(
       JSON.parse(await readStandardInput()) as unknown,
-      defaultProjectRoot,
+      projectRoot,
     );
   } catch (error) {
     response = failure(error);
@@ -547,5 +547,5 @@ if (
   process.argv[1] !== undefined &&
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
-  await main();
+  await runUIProjectControlCli();
 }

@@ -214,10 +214,10 @@ export async function buildCreatorAuthoringTargetCatalog(
       continue;
     }
     const declaredPath = input.applicationTargets === undefined
-      ? resolvedProjectRelativePath(input.projectRoot, path.join(input.paths.sourceRoot, declaration.ownerPath))
+      ? resolvedProjectRelativePath(input.projectRoot, path.join(input.paths.agentUIAdaptersRoot, declaration.ownerPath))
       : declaration.ownerPath;
     const ownerPath = projectRelativePath(input.projectRoot, declaredPath, `${declaration.id}.ownerPath`);
-    underRoot(input.projectRoot, resolvedProjectRelativePath(input.projectRoot, input.paths.sourceRoot), ownerPath, `${declaration.id}.ownerPath`);
+    underRoot(input.projectRoot, resolvedProjectRelativePath(input.projectRoot, input.paths.agentUIAdaptersRoot), ownerPath, `${declaration.id}.ownerPath`);
     await requireFile(input.projectRoot, ownerPath, `${declaration.id}.ownerPath`);
     const relatedPluginIds = [...(declaration.relatedPluginIds ?? [])];
     const candidate: CreatorAuthoringTargetCandidate = {

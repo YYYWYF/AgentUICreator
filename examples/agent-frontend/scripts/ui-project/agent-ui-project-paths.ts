@@ -10,6 +10,7 @@ export interface AgentUIProjectPaths {
   readonly metadataRoot: string;
   readonly projectConfigPath: string;
   readonly sourceRoot: string;
+  readonly agentUIAdaptersRoot: string;
   readonly appUIModelPath: string;
   readonly sourceLockPath: string;
   readonly pluginsRoot: string;
@@ -55,6 +56,7 @@ export function resolveAgentUIProjectPaths(
     metadataRoot,
     projectConfigPath: path.join(metadataRoot, "project.json"),
     sourceRoot,
+    agentUIAdaptersRoot: path.join(managedRoot, "agent-ui"),
     appUIModelPath: path.join(managedRoot, "app-ui", "app-ui.json"),
     sourceLockPath: path.join(metadataRoot, "source-lock.json"),
     pluginsRoot,
