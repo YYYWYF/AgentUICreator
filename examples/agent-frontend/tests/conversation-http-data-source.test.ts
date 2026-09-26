@@ -122,3 +122,23 @@ describe("HttpConversationDataSource", () => {
     await expect(request).rejects.toMatchObject({ name: "AbortError" });
   });
 });
+
+
+describe("HTTP conversation DELETE", () => {
+  it.each([200, 202, 204])("accepts %s without reading JSON and encodes the id", async status => {
+    const response = new Response(null, { status });
+    const json = vi.spyOn(response, "json");
+    const fetch = vi.fn(async () => response);
+    const signal = new AbortController().signal;
+    const source = createHttpConversationDataSource({ endpoint: "/api/", fetch });
+    await expect(source.delete("id /?#", { signal })).resolves.toBeUndefined();
+    expect(fetch).toHaveBeenCalledExactlyOnceWith("/api/conversations/id%20%2F%3F%23", { method: "DELETE", signal });
+    expect(json).not.toHaveBeenCalled();
+  });
+
+  it("surfaces HTTP delete errors", async () => {
+    const source = createHttpConversationDataSource({ endpoint: "/api", fetch: async () =>
+      new Response(JSON.stringify({ error: "delete failed" }), { status: 500 }) });
+    await expect(source.delete("A")).rejects.toThrow("Conversation API request failed (500): delete failed");
+  });
+});

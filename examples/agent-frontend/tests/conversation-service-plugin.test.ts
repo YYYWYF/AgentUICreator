@@ -65,6 +65,7 @@ describe("conversationServicePlugin", () => {
   it("injects the DataSource, provides Conversation Service, and refreshes", async () => {
     const list = vi.fn(async () => []);
     const dataSource: ConversationDataSource = {
+      delete: async () => { throw new Error("Delete is not configured in this fixture."); },
       list,
       get: async (id) => ({
         id,
@@ -103,6 +104,7 @@ describe("conversationServicePlugin", () => {
   it("disposes the service and aborts pending refresh on removal", () => {
     let signal: AbortSignal | undefined;
     const dataSource: ConversationDataSource = {
+      delete: async () => { throw new Error("Delete is not configured in this fixture."); },
       list: (options) => {
         signal = options?.signal;
         return new Promise(() => undefined);
@@ -137,6 +139,7 @@ describe("conversationServicePlugin", () => {
 
   it("keeps Conversation Service available without navigation and with a replacement UI", () => {
     const dataSource: ConversationDataSource = {
+      delete: async () => { throw new Error("Delete is not configured in this fixture."); },
       list: async () => [],
       get: async (id) => ({
         id,

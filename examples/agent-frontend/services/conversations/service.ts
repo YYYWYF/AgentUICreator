@@ -22,6 +22,7 @@ export interface ConversationService {
   getSnapshot(): ConversationSnapshot;
   subscribe(listener: () => void): () => void;
   refresh(): Promise<void>;
+  deleteConversation(id: string): Promise<void>;
   selectConversation(id: string): Promise<ConversationDetail | undefined>;
   /** Independent per-thread history read; never cancels a sibling thread request. */
   loadConversation(id: string): Promise<ConversationDetail>;
@@ -99,6 +100,34 @@ export function createConversationService({
       if (disposed) return () => undefined;
       listeners.add(listener);
       return () => listeners.delete(listener);
+    },
+    async deleteConversation(id) {
+      const normalizedId = id.trim();
+      if (normalizedId.length === 0) throw new Error("Conversation id must not be blank.");
+      if (disposed) throw new Error("Conversation service was disposed.");
+      await dataSource.delete(normalizedId);
+      // Invalidate observations only after persistence succeeds; navigation is upstream-owned.
+      listRequest?.abort();
+      listRequest = undefined;
+      historyReads.delete(normalizedId);
+      const deletingActive = snapshot.activeConversationId === normalizedId;
+      if (deletingActive) {
+        detailRequest?.abort();
+        detailRequest = undefined;
+      }
+      update({
+        ...snapshot,
+        conversations: snapshot.conversations.filter(item => item.id !== normalizedId),
+        listStatus: snapshot.listStatus === "loading" ? "idle" : snapshot.listStatus,
+        ...(deletingActive ? {
+          mode: "live" as const,
+          activeConversationId: undefined,
+          activeConversation: undefined,
+          detailStatus: "idle" as const,
+          detailError: undefined,
+          detailErrorConversationId: undefined,
+        } : {}),
+      });
     },
     async refresh() {
       listRequest?.abort();
@@ -185,14 +214,17 @@ export function createConversationService({
     },
     async loadConversation(id) {
       if (disposed) throw new Error("Conversation service was disposed.");
-      historyReads.set(id, { status: "loading" });
+      const read = { status: "loading" as const };
+      historyReads.set(id, read);
       if (snapshot.activeConversationId === id) update({ ...snapshot, detailStatus: "loading", detailError: undefined, detailErrorConversationId: undefined });
       try {
         const detail = await dataSource.get(id);
+        if (disposed || historyReads.get(id) !== read) throw new DOMException("History read invalidated.", "AbortError");
         historyReads.set(id, { status: "ready", detail });
         if (snapshot.activeConversationId === id) update({ ...snapshot, activeConversation: detail, detailStatus: "ready", detailError: undefined, detailErrorConversationId: undefined });
         return detail;
       } catch (error) {
+        if (disposed || historyReads.get(id) !== read) throw error;
         historyReads.set(id, { status: "error", error: errorMessage(error) });
         if (snapshot.activeConversationId === id) update({ ...snapshot, detailStatus: "error", detailError: errorMessage(error), detailErrorConversationId: id });
         throw error;

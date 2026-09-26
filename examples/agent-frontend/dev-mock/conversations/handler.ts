@@ -59,9 +59,7 @@ export function createMockConversationApiHandler({
   const detailsById = new Map(
     fixtures.map((fixture) => [fixture.detail.id, fixture.detail]),
   );
-  const conversationList = {
-    conversations: fixtures.map((fixture) => fixture.summary),
-  };
+  const deletedIds = new Set<string>();
 
   return async (request, response) => {
     const url = new URL(request.url ?? "/", "http://mock-data.local");
@@ -70,9 +68,9 @@ export function createMockConversationApiHandler({
     const isDetail = url.pathname.startsWith(detailPrefix);
     if (!isList && !isDetail) return false;
 
-    if (request.method !== "GET") {
-      response.setHeader("Allow", "GET");
-      sendJson(response, 405, { error: "Conversation API only accepts GET." });
+    if (request.method !== "GET" && !(isDetail && request.method === "DELETE")) {
+      response.setHeader("Allow", isList ? "GET" : "GET, DELETE");
+      sendJson(response, 405, { error: "Method not allowed for this conversation endpoint." });
       return true;
     }
 
@@ -85,7 +83,11 @@ export function createMockConversationApiHandler({
       if (controller.signal.aborted || response.destroyed) return true;
 
       if (isList) {
-        sendJson(response, 200, conversationList);
+        sendJson(response, 200, {
+          conversations: fixtures
+            .filter(fixture => !deletedIds.has(fixture.summary.id))
+            .map(fixture => fixture.summary),
+        });
         return true;
       }
 
@@ -98,6 +100,16 @@ export function createMockConversationApiHandler({
       }
       const detail = detailsById.get(id);
       if (detail === undefined) {
+        sendJson(response, 404, { error: `Conversation not found: ${id}` });
+        return true;
+      }
+      if (request.method === "DELETE") {
+        deletedIds.add(id);
+        response.statusCode = 204;
+        response.end();
+        return true;
+      }
+      if (deletedIds.has(id)) {
         sendJson(response, 404, { error: `Conversation not found: ${id}` });
         return true;
       }

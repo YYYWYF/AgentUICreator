@@ -19,7 +19,7 @@ function normalizeEndpoint(endpoint: string): string {
   return normalized;
 }
 
-async function readResponseJson(response: Response): Promise<unknown> {
+async function assertResponseOk(response: Response): Promise<void> {
   if (!response.ok) {
     let detail = "";
     try {
@@ -37,6 +37,10 @@ async function readResponseJson(response: Response): Promise<unknown> {
     }
     throw new Error(`Conversation API request failed (${response.status})${detail}`);
   }
+}
+
+async function readResponseJson(response: Response): Promise<unknown> {
+  await assertResponseOk(response);
   return response.json();
 }
 
@@ -63,6 +67,16 @@ export function createHttpConversationDataSource({
   const baseEndpoint = normalizeEndpoint(endpoint);
 
   return {
+    async delete(id, options) {
+      const response = await fetchImplementation(
+        `${baseEndpoint}/conversations/${encodeURIComponent(id)}`,
+        {
+          method: "DELETE",
+          ...(options?.signal === undefined ? {} : { signal: options.signal }),
+        },
+      );
+      await assertResponseOk(response);
+    },
     async list(options) {
       const response = await fetchImplementation(`${baseEndpoint}/conversations`, {
         method: "GET",

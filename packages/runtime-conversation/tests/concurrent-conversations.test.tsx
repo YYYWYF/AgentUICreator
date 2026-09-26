@@ -53,6 +53,13 @@ function createPersistenceFixture() {
     activateThread,
     reserveThread,
     initializeThread: async id => { reserveThread(id); return id; },
+    deleteThread: async id => {
+      persistedIds.delete(id);
+      ephemeralIds.delete(id);
+      histories.delete(id);
+      snapshot = { threads: [...persistedIds].map(id => ({ id, status: "regular" })), archivedThreads: [] };
+      listeners.forEach(listener => listener());
+    },
     getThreadListSnapshot: () => snapshot,
     subscribe: listener => { listeners.add(listener); return () => { listeners.delete(listener); }; },
     createNewThread: async () => {
@@ -160,6 +167,34 @@ async function fixture(failFirstBHistory = false, providedBinding?: Conversation
 }
 
 describe("upstream-owned concurrent AG-UI threads", () => {
+  it("deletes non-current B while preserving A's running session and subsequent tokens", async () => {
+    const persistence = createPersistenceFixture();
+    persistence.persistThread("B");
+    const f = await fixture(false, persistence.binding);
+    try {
+      await f.switchTo("B");
+      await f.start("A");
+      const threadA = f.runtime.thread;
+      const agentA = f.agents.get("A");
+      const bridgeA = f.bridges.get("A");
+      const messagesA = threadA.getState().messages;
+      const loadCount = persistence.loadThread.mock.calls.length;
+      await act(async () => { await f.runtime.threads.getItemById("B").delete(); await tick(); });
+      expect(f.runtime.threads.getState().mainThreadId).toBe("A");
+      expect(f.runtime.thread).toBe(threadA);
+      expect(f.runtime.thread.getState().messages).toEqual(messagesA);
+      expect(f.runtime.thread.getState().isRunning).toBe(true);
+      expect(f.agents.get("A")).toBe(agentA);
+      expect(f.bridges.get("A")).toBe(bridgeA);
+      expect(agentA!.abortRun).not.toHaveBeenCalled();
+      expect(persistence.loadThread).toHaveBeenCalledTimes(loadCount);
+      await act(async () => { await f.runtime.threads.reload(); });
+      expect(f.runtime.threads.getState().threadIds).not.toContain("B");
+      await f.emit("A", { type: "TEXT_MESSAGE_CONTENT", messageId: "A-answer", delta: "after B deletion" });
+      expect(f.text("A")).toContain("after B deletion");
+      expect(f.runtime.thread.getState().isRunning).toBe(true);
+    } finally { await f.dispose(); }
+  });
   it("reloads a newly persisted C from history without restarting background A", async () => {
     const persistence = createPersistenceFixture();
     const { loadThread, readHistory } = persistence;

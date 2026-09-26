@@ -8,6 +8,7 @@ export interface ConversationDataSourceOptions {
 }
 
 export interface ConversationDataSource {
+  delete(id: string, options?: ConversationDataSourceOptions): Promise<void>;
   list(options?: ConversationDataSourceOptions): Promise<ConversationSummary[]>;
   get(
     id: string,
@@ -21,12 +22,16 @@ export function createUnavailableConversationDataSource(): ConversationDataSourc
   return {
     list: async () => Promise.reject(new Error(unavailableMessage)),
     get: async () => Promise.reject(new Error(unavailableMessage)),
+    delete: async () => Promise.reject(new Error(unavailableMessage)),
   };
 }
 
 export function createEmptyConversationDataSource(): ConversationDataSource {
   return {
     list: async () => [],
+    delete: async (id) => {
+      throw new Error(`Conversation "${id}" does not exist in the empty data source.`);
+    },
     get: async (id) => {
       throw new Error(
         `Conversation "${id}" does not exist in the empty data source.`,

@@ -5,6 +5,7 @@ import type { ConversationThreadBinding, ConversationThreadListItem } from "./ty
 export function createConversationRemoteThreadListAdapter<TState>(binding: ConversationThreadBinding<TState>) {
   const identities = new Map<string, string>();
   const initialized = new Map<string, RemoteThreadMetadata>();
+  const pendingDeletes = new Map<string, Promise<void>>();
   const initialId = binding.getThreadId();
   const identity = (localId: string, remoteId?: string) => {
     const existing = identities.get(localId);
@@ -22,6 +23,9 @@ export function createConversationRemoteThreadListAdapter<TState>(binding: Conve
   const unsupported = async () => { throw new Error("Conversation persistence does not support this operation."); };
   const adapter: RemoteThreadListAdapter = {
     async list() {
+      // Service notifications can trigger reload before delete finishes clearing
+      // initialized metadata. Wait so that reload cannot restore the deleted row.
+      await Promise.allSettled(pendingDeletes.values());
       const snapshot = binding.getThreadListSnapshot?.();
       const items = [...(snapshot?.threads ?? []), ...(snapshot?.archivedThreads ?? [])].map(metadata);
       const ids = new Set(items.map(item => item.remoteId));
@@ -57,7 +61,28 @@ export function createConversationRemoteThreadListAdapter<TState>(binding: Conve
       initialized.set(remoteId, { remoteId, status: "regular" });
       return { remoteId };
     },
-    rename: unsupported, archive: unsupported, unarchive: unsupported, delete: unsupported,
+    rename: unsupported, archive: unsupported, unarchive: unsupported,
+    async delete(remoteId) {
+      if (binding.deleteThread === undefined) {
+        throw new Error("Conversation persistence does not support deleting threads.");
+      }
+      const existing = pendingDeletes.get(remoteId);
+      if (existing !== undefined) return existing;
+      const deleteThread = binding.deleteThread.bind(binding);
+      const deletion = Promise.resolve().then(async () => {
+        await deleteThread(remoteId);
+        initialized.delete(remoteId);
+        for (const [localId, id] of identities) {
+          if (id === remoteId) identities.delete(localId);
+        }
+      });
+      pendingDeletes.set(remoteId, deletion);
+      try {
+        await deletion;
+      } finally {
+        pendingDeletes.delete(remoteId);
+      }
+    },
     async generateTitle() {
       // Existing backends own titles. Do not invent a second title workflow.
       return new ReadableStream({ start(controller) { controller.close(); } });

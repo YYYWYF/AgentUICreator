@@ -11,3 +11,10 @@ describe("EmptyConversationDataSource", () => {
     );
   });
 });
+
+
+it("rejects deletion of nonexistent persisted conversations", async () => {
+  await expect(createEmptyConversationDataSource().delete("missing")).rejects.toThrow(
+    'Conversation "missing" does not exist in the empty data source.',
+  );
+});

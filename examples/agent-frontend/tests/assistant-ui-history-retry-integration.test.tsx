@@ -122,6 +122,7 @@ class RetryConversationService implements ConversationService {
     this.snapshot = { ...this.snapshot, mode: "history", activeConversationId: id };
     this.emit();
   }
+  async deleteConversation(): Promise<void> { throw new Error("Delete is not configured in this fixture."); }
   async refresh(): Promise<void> {}
 
   readonly showLiveConversation = vi.fn(() => {
@@ -234,7 +235,7 @@ async function mount(service: ConversationService) {
 
 describe("assistant-ui history and new-thread integration", () => {
   it("uses both ThreadList and Plugin new-thread actions without changing old Agent ownership", async () => {
-    const service = createConversationService({ dataSource: { list: async () => [], get: async id => ({ id, title: id, history: { format: "langchain", messages: [] } }) } });
+    const service = createConversationService({ dataSource: { delete: async () => { throw new Error("Delete is not configured in this fixture."); }, list: async () => [], get: async id => ({ id, title: id, history: { format: "langchain", messages: [] } }) } });
     const f = await mount(service);
     try {
       const first = f.binding.getThreadId();

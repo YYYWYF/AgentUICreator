@@ -1,3 +1,4 @@
+import { createConversationRemoteThreadListAdapter } from "../src/threads/conversation-remote-thread-list-adapter.js";
 import { useAui, type AssistantRuntime, type ThreadMessage } from "@assistant-ui/react";
 import {
   act,
@@ -152,4 +153,52 @@ describe("runtime-assistant-ui thread-list binding", () => {
       }
     }
   });
+});
+
+
+describe("conversation remote adapter deletion", () => {
+  it("delegates exact identity and forgets initialized threads only after success", async () => {
+    const { binding } = createBinding();
+    const deleteThread = vi.fn(async () => undefined);
+    const createNewThread = vi.spyOn(binding, "createNewThread");
+    const activateThread = vi.spyOn(binding, "activateThread");
+    binding.deleteThread = deleteThread;
+    const { adapter, identity } = createConversationRemoteThreadListAdapter(binding);
+    const { remoteId } = await adapter.initialize("local");
+    expect((await adapter.list()).threads.some(item => item.remoteId === remoteId)).toBe(true);
+    await adapter.delete(remoteId);
+    expect(deleteThread).toHaveBeenCalledExactlyOnceWith(remoteId);
+    expect((await adapter.list()).threads.some(item => item.remoteId === remoteId)).toBe(false);
+    expect(identity("local")).not.toBe(remoteId);
+    expect(createNewThread).not.toHaveBeenCalled();
+    expect(activateThread).not.toHaveBeenCalled();
+  });
+
+  it("preserves metadata and local identity on persistence failure", async () => {
+    const { binding } = createBinding();
+    binding.deleteThread = vi.fn(async () => { throw new Error("delete failed"); });
+    const { adapter, identity } = createConversationRemoteThreadListAdapter(binding);
+    const { remoteId } = await adapter.initialize("local");
+    await expect(adapter.delete(remoteId)).rejects.toThrow("delete failed");
+    expect(identity("local")).toBe(remoteId);
+    expect((await adapter.list()).threads.some(item => item.remoteId === remoteId)).toBe(true);
+  });
+
+  it("rejects deletion when the binding has no persistence capability", async () => {
+    const { binding } = createBinding();
+    const { adapter } = createConversationRemoteThreadListAdapter(binding);
+    await expect(adapter.delete("history")).rejects.toThrow("does not support deleting threads");
+  });
+});
+
+
+it("does not resurrect initialized metadata when persistence notifications trigger a reload", async () => {
+  const { binding } = createBinding();
+  const { adapter } = createConversationRemoteThreadListAdapter(binding);
+  const { remoteId } = await adapter.initialize("local");
+  let reload: ReturnType<typeof adapter.list> | undefined;
+  binding.deleteThread = async () => { reload = adapter.list(); };
+  await adapter.delete(remoteId);
+  expect(reload).toBeDefined();
+  expect((await reload!).threads.some(item => item.remoteId === remoteId)).toBe(false);
 });

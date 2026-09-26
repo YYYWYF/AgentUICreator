@@ -1,3 +1,4 @@
+import { createConversationService } from "../services/conversations";
 import type { ThreadMessage } from "@assistant-ui/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -110,6 +111,7 @@ class FakeConversationService implements ConversationService {
     this.snapshot = { ...this.snapshot, mode: "history", activeConversationId: id };
     this.emit();
   }
+  async deleteConversation(): Promise<void> { throw new Error("Delete is not configured in this fixture."); }
   async refresh(): Promise<void> {}
 
   readonly showLiveConversation = vi.fn(() => {
@@ -342,4 +344,57 @@ describe("ConversationServiceThreadBinding", () => {
     expect(messageIds(live.messages)).toEqual(["live-user", "live-assistant"]);
   });
 
+});
+
+
+describe("ConversationServiceThreadBinding deletion", () => {
+  it("deletes ephemeral identity without persistence or changing the active thread", async () => {
+    const remove = vi.fn(async () => undefined);
+    const service = createConversationService({ dataSource: {
+      list: async () => [], get: async () => { throw new Error("not persisted"); }, delete: remove,
+    } });
+    const binding = createConversationServiceThreadBinding();
+    const detach = binding.attachConversationService(service);
+    try {
+      const id = binding.getThreadId();
+      await binding.deleteThread!(id);
+      expect(remove).not.toHaveBeenCalled();
+      expect(binding.getThreadId()).toBe(id);
+      // Removed identity can no longer be treated as an empty local conversation.
+      await expect(binding.loadThread!(id)).rejects.toThrow("not persisted");
+    } finally { detach(); service.dispose(); }
+  });
+
+  it("deletes a promoted persisted thread through the service without navigating", async () => {
+    const remove = vi.fn(async () => undefined);
+    const binding = createConversationServiceThreadBinding();
+    const id = binding.getThreadId();
+    const service = createConversationService({ dataSource: {
+      list: async () => [{ id, title: id }], get: async () => { throw new Error("unused"); }, delete: remove,
+    } });
+    const detach = binding.attachConversationService(service);
+    try {
+      await service.refresh();
+      await binding.deleteThread!(id);
+      expect(remove).toHaveBeenCalledExactlyOnceWith(id);
+      expect(binding.getThreadId()).toBe(id);
+      expect(binding.getThreadListSnapshot().threads).toEqual([]);
+    } finally { detach(); service.dispose(); }
+  });
+
+  it("preserves persisted metadata when deleting through the service fails", async () => {
+    const binding = createConversationServiceThreadBinding();
+    const id = binding.getThreadId();
+    const service = createConversationService({ dataSource: {
+      list: async () => [{ id, title: id }], get: async () => { throw new Error("unused"); },
+      delete: async () => { throw new Error("delete failed"); },
+    } });
+    const detach = binding.attachConversationService(service);
+    try {
+      await service.refresh();
+      await expect(binding.deleteThread!(id)).rejects.toThrow("delete failed");
+      expect(binding.getThreadListSnapshot().threads.map(item => item.id)).toEqual([id]);
+      expect(binding.getThreadId()).toBe(id);
+    } finally { detach(); service.dispose(); }
+  });
 });

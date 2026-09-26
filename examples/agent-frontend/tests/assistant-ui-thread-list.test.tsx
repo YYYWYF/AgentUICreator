@@ -142,6 +142,7 @@ function conversationService(
   return {
     getSnapshot: () => snapshot,
     subscribe: () => () => undefined,
+    deleteConversation: vi.fn(async () => { throw new Error("Delete is not configured in this fixture."); }),
     refresh: vi.fn(async () => undefined),
     selectConversation: vi.fn(async () => undefined),
     loadConversation: vi.fn(async () => { throw new Error("unavailable"); }),
@@ -259,8 +260,10 @@ describe("ConversationThreadListPlugin", () => {
       "utf8",
     );
     expect(css).toContain(
-      ".conversation-thread-list-plugin\n  [data-slot=\"aui_thread-list-item-more\"]",
+      "[data-slot=\"aui_thread-list-item-more-item\"]:has(.lucide-pencil)",
     );
+    expect(css).toContain('[data-slot="aui_thread-list-item-more-item"]:has(.lucide-archive)');
+    expect(css).not.toContain('[data-slot="aui_thread-list-item-more"]');
     expect(css).toContain("display: none");
   });
 

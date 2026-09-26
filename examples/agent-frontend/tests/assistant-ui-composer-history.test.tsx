@@ -128,6 +128,7 @@ function createAgent(): ReturnType<ConversationAgentFactory> {
 
 function createHistoryBinding() {
   const dataSource: ConversationDataSource = {
+      delete: async () => { throw new Error("Delete is not configured in this fixture."); },
     list: async () => [{ id: "history-thread", title: "History thread" }],
     get: async (id) => ({
       id,

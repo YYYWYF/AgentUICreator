@@ -164,6 +164,15 @@ export function createConversationServiceThreadBinding<
       ephemeralThreadIds.add(id);
       return id;
     },
+    async deleteThread(id) {
+      if (ephemeralThreadIds.has(id) && !hasPersistedThread(id)) {
+        ephemeralThreadIds.delete(id);
+        return;
+      }
+      if (conversationService === undefined) throw new Error("Conversation service is unavailable.");
+      await conversationService.deleteConversation(id);
+      ephemeralThreadIds.delete(id);
+    },
     async getThreadMetadata(id) {
       const summary = conversationService?.getSnapshot().conversations.find(item => item.id === id);
       if (summary !== undefined) return historyItem(summary);

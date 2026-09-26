@@ -37,6 +37,7 @@ export interface ConversationThreadBinding<TState = unknown> {
   reserveThread?(threadId: string): void;
   initializeThread?(threadId: string): Promise<string>;
   getThreadMetadata?(threadId: string): Promise<ConversationThreadListItem<"regular">>;
+  deleteThread?(threadId: string): Promise<void>;
   subscribe(listener: () => void): () => void;
   createNewThread(): Promise<string>;
   getThreadListSnapshot?(): ConversationThreadListSnapshot;
