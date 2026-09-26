@@ -3,6 +3,12 @@ export type AgentUILocaleCode = "zh-CN" | "en-US";
 export type AgentUIDirection = "ltr" | "rtl";
 
 export interface AgentUILocaleMessages {
+  frontendTools: {
+    close: string;
+    opening: string;
+    opened: string;
+    failed: string;
+  };
   threadList: {
     newThread: string;
     newChat: string;

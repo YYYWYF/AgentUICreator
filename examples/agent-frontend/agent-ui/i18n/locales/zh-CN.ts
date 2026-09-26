@@ -1,6 +1,12 @@
 import type { AgentUILocaleMessages } from "../locale-types";
 
 export const zhCN = {
+  frontendTools: {
+    close: "关闭",
+    opening: "正在打开弹窗…",
+    opened: "已打开弹窗",
+    failed: "无法打开弹窗",
+  },
   threadList: {
     newThread: "新建会话",
     newChat: "新会话",

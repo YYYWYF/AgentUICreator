@@ -274,6 +274,7 @@ async function* runSteps(
         });
         return;
       }
+      if (step.frontend) continue;
       yield attributedEvent({
         type: EventType.TOOL_CALL_RESULT,
         messageId: resultMessageId,
@@ -581,6 +582,23 @@ function selectSteps(
   input: RunAgentInput,
   scenario: MockScenario,
 ): readonly MockScenarioStep[] {
+  if (scenario.frontendContinuation !== undefined) {
+    const continuation = scenario.frontendContinuation;
+    let lastUserIndex = -1;
+    input.messages.forEach((message, index) => { if (message.role === "user") lastUserIndex = index; });
+    const turn = input.messages.slice(lastUserIndex + 1);
+    const calls = turn.flatMap(message => message.role === "assistant" ? message.toolCalls ?? [] : []);
+    const call = calls.find(call => call.function.name === continuation.toolName);
+    const result = call === undefined ? undefined : turn.find(message => message.role === "tool" && message.toolCallId === call.id);
+    if (result !== undefined && result.role === "tool") {
+      let success = false;
+      try { success = JSON.parse(result.content).opened === true; } catch { /* error result */ }
+      return [{ type: "message", text: success ? continuation.successText : continuation.errorText }];
+    }
+    if (!input.tools.some(tool => tool.name === continuation.toolName)) {
+      return [{ type: "message", text: continuation.errorText }];
+    }
+  }
   if ((input.resume?.length ?? 0) === 0 || scenario.resumeSteps === undefined) {
     return scenario.steps;
   }

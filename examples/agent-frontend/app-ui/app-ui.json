@@ -149,6 +149,11 @@
                   }
                 ]
               }
+            },
+            {
+              "id": "frontend-tool-dialog-demo-main",
+              "pluginId": "frontend-tool-dialog-demo",
+              "enabled": true
             }
           ]
         }

@@ -61,7 +61,7 @@ export function PluginServiceProvider<TState = unknown>({
   );
 
   useLayoutEffect(
-    () => frontendTools?.connectServices(runtime.services),
+    () => frontendTools?.connectServices(runtime.services, runtime.subscribe),
     [frontendTools, runtime],
   );
 

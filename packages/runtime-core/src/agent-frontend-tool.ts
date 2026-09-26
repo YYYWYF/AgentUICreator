@@ -24,6 +24,9 @@ export interface AgentFrontendToolExecuteOptions {
 }
 
 export interface AgentFrontendToolSource {
+  /** Changes when the advertised capability set changes. */
+  subscribe(listener: () => void): () => void;
+  getRevision(): number;
   listTools(): readonly AgentFrontendToolDefinition[];
   execute(
     call: AgentFrontendToolCall,

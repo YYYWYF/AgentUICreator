@@ -89,6 +89,7 @@ export interface MockScenario {
   initialState?: Record<string, unknown> | undefined;
   steps: MockScenarioStep[];
   resumeSteps?: MockScenarioResumeSteps | undefined;
+  frontendContinuation?: { toolName: string; successText: string; errorText: string } | undefined;
 }
 
 /** Resume branches keep an explicit denial distinct from steer-away cancellation. */
@@ -108,6 +109,8 @@ export type MockScenarioStep =
     }
   | {
       type: "tool";
+      /** Browser owns the result; backend emits only TOOL_CALL frames. */
+      frontend?: boolean | undefined;
       name: string;
       args: Record<string, unknown>;
       result: unknown;
@@ -225,6 +228,9 @@ function validateSteps(
     }
 
     if (step.type === "tool") {
+      if (step.frontend && context.subagentRunId !== undefined) {
+        throw new Error(`Scenario "${scenarioId}" cannot invoke a root-only Frontend Tool from a subagent.`);
+      }
       validateToolArgs(scenarioId, step.args, `tool "${step.name}"`);
       if (step.during !== undefined) {
         validateSteps(scenarioId, step.during, context);

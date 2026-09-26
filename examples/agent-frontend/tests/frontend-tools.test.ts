@@ -140,3 +140,45 @@ describe("AppFrontendToolRuntime", () => {
     });
   });
 });
+
+
+describe("observable frontend capability lifecycle", () => {
+  it("notifies only availability changes and releases replaced connections", () => {
+    const values = new Map<string, unknown>();
+    const listeners = new Set<() => void>();
+    const subscribe = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
+    const runtime = new AppFrontendToolRuntime(new AppFrontendToolRegistry([createEditorTool()]));
+    const changed = vi.fn();
+    runtime.subscribe(changed);
+    const disconnect = runtime.connectServices(createServices(values), subscribe);
+    expect(runtime.getRevision()).toBe(0);
+    values.set("editor", { openFile: vi.fn() });
+    listeners.forEach(listener => listener());
+    expect(runtime.listTools()).toHaveLength(1);
+    expect(runtime.getRevision()).toBe(1);
+    listeners.forEach(listener => listener());
+    expect(changed).toHaveBeenCalledTimes(1);
+    values.delete("editor");
+    listeners.forEach(listener => listener());
+    expect(runtime.getRevision()).toBe(2);
+    values.set("editor", { openFile: vi.fn() });
+    listeners.forEach(listener => listener());
+    const disconnectNew = runtime.connectServices(createServices(values), subscribe);
+    disconnect(); // Old cleanup must not disconnect the new connection.
+    expect(runtime.listTools()).toHaveLength(1);
+    expect(listeners.size).toBe(1);
+    disconnectNew();
+    expect(runtime.listTools()).toEqual([]);
+    expect(listeners.size).toBe(0);
+    expect(runtime.getRevision()).toBe(4);
+  });
+  it("skips pre-aborted capability execution", async () => {
+    const handler = vi.fn();
+    const runtime = new AppFrontendToolRuntime(new AppFrontendToolRegistry([createEditorTool(handler)]));
+    runtime.connectServices(createServices(new Map([["editor", { openFile: vi.fn() }]])));
+    const controller = new AbortController(); controller.abort();
+    const result = await runtime.execute({ id: "aborted", name: "editor_open_file", input: { path: "file" }, producer: { type: "root" } }, { signal: controller.signal });
+    expect(result.error).toContain("aborted");
+    expect(handler).not.toHaveBeenCalled();
+  });
+});

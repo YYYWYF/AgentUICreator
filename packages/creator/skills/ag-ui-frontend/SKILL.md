@@ -1,6 +1,6 @@
 ---
 name: ag-ui-frontend
-description: Use for frontend consumption of AG-UI messages, shared state, run status, executions, interrupts, and controlled Application Events through project Runtime hooks.
+description: Use for frontend consumption of AG-UI messages, shared state, run status, executions, interrupts, and controlled Application Events, Frontend Tools, Agent-controlled frontend capabilities, and browser/client tool execution through project Runtime hooks.
 compatibility: One AG-UI Agent Runtime per generated frontend; Phase 8 permits Plugin source writes while Runtime remains read-only.
 allowed-tools: read_file ls glob grep edit_file write_file execute
 ---
@@ -41,3 +41,28 @@ AG-UI / Mock transport -> Agent Runtime -> Runtime Context Hooks -> UI Plugin ->
 - During Phase 8, implement AG-UI presentation inside `/plugins/` while keeping Runtime and Framework source read-only.
 
 For interaction semantics, reason from product needs and AG-UI first. Treat external Agent UI projects as references, not runtime dependencies or public contracts.
+
+## Frontend Tool execution and replay contract
+
+Follow `docs/architecture/frontend-tool-lifecycle.md` in the workspace reference.
+
+1. Product side effects belong only in Tool `execute`: open dialog, navigate,
+   select item, change editor file, modify application state, write storage, copy
+   clipboard, download, call mutation API, submit form, or trigger a host action.
+2. A Tool renderer is a replayable projection. Assume history load, thread/branch
+   switch, remount, React StrictMode and virtualization can mount it again.
+   `render / mount useEffect != tool invocation`.
+3. Never implement Agent behavior with
+   `useEffect(() => capability.doSomething(), [])`. Instead use
+   `execute -> capability.doSomething()` and `render -> args/result/status`.
+   UI measurement, ResizeObserver, subscription cleanup, focus and animation
+   effects remain legitimate.
+4. Results must carry a historical receipt sufficient to render args/result/status
+   without checking today's application state. An opened dialog result can contain
+   `{ opened: true, title: "Settings" }`; history does not require it to stay open.
+5. History restoration must never execute Frontend Tools. An execute on history
+   load is a Runtime bug; do not patch it with renderer `isHistory` workarounds.
+6. Keep `Plugin -> Service`, `Application agent-tools -> allowed operation`,
+   `Runtime adapter -> assistant-ui native frontend execute`. Plugins never
+   register Tools. Preserve root-only execution scope until subagent attribution
+   has its own contract. Do not add another TOOL_CALL executor or CUSTOM protocol.

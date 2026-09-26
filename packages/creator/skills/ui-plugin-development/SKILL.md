@@ -198,3 +198,16 @@ For a runtime entity renderer, declare `mode: "renderer"`, `cardinality: "one"`,
 - Do not modify `/runtime` or `/framework` for Plugin-specific behavior.
 - Do not rewrite unrelated registration entries.
 - Hiding, removing an instance, and replacing a feature all preserve Plugin source. Do not delete a Plugin directory with generic file tools. Permanent source deletion may only use the dedicated gated domain tool after exact authorization and reference checks; if that tool is unavailable, report the gate instead of approximating it.
+
+## Frontend Tool capability consumers
+
+A Plugin capability consumed by an application-owned Frontend Tool is a valid
+cross-boundary reason for a public Service seam: Plugin provides Service,
+Frontend Tool consumes Service. Follow existing Service ownership and authorization
+rules; Service existence does not grant Agent exposure permission.
+
+Plugin Component effects manage UI/component lifecycle only. They must never
+simulate Frontend Tool execution by opening a dialog, navigating or mutating a
+capability when a Tool renderer mounts. Follow the `ag-ui-frontend` skill's
+Frontend Tool execution and replay contract and the workspace reference
+`docs/architecture/frontend-tool-lifecycle.md`.

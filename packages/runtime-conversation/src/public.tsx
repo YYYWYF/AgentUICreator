@@ -43,6 +43,7 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   endpoint: string;
   threadBinding: ConversationThreadBinding<TState>;
   frontendTools?: AgentFrontendToolSource | undefined;
+  frontendToolUIs?: import("./tools/types.js").ConversationFrontendToolUIRegistry | undefined;
   toolkit?: ConversationToolkit | undefined;
   suggestions?: readonly ConversationStarterSuggestion[] | undefined;
   children: ReactNode;
@@ -97,21 +98,9 @@ export interface ConversationObservationSource {
   subscribe(listener: () => void): () => void;
 }
 
-export interface ConversationFrontendToolPort {
-  source: AgentFrontendToolSource;
-  integrationPoint: "ConversationRuntime.frontendTools";
-  status: "deferred";
-}
-
-export function createConversationFrontendToolPort(
-  source: AgentFrontendToolSource,
-): ConversationFrontendToolPort {
-  return {
-    source,
-    integrationPoint: "ConversationRuntime.frontendTools",
-    status: "deferred",
-  };
-}
+export { createConversationFrontendToolPort } from "./tools/types.js";
+export type { ConversationFrontendToolPort, ConversationFrontendToolUIEntry, ConversationFrontendToolUIRegistry } from "./tools/types.js";
+import type { ConversationFrontendToolPort } from "./tools/types.js";
 
 export function createEphemeralConversationThreadBinding(): ConversationThreadBinding {
   let threadId = crypto.randomUUID();

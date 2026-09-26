@@ -34,19 +34,44 @@ function serializeResult(value: unknown): string {
 
 export class AppFrontendToolRuntime implements AgentFrontendToolSource {
   readonly #registry: AppFrontendToolRegistry;
-  #connection: { services: UIPluginServices } | undefined;
+  #connection: { services: UIPluginServices; unsubscribe?: (() => void) | undefined } | undefined;
+  #revision = 0;
+  #availability = "[]";
+  readonly #listeners = new Set<() => void>();
+
+  readonly subscribe = (listener: () => void): (() => void) => {
+    this.#listeners.add(listener);
+    return () => { this.#listeners.delete(listener); };
+  };
+
+  readonly getRevision = (): number => this.#revision;
+
+  #refreshAvailability = (): void => {
+    const availability = JSON.stringify(this.listTools().map(tool => tool.name));
+    if (availability === this.#availability) return;
+    this.#availability = availability;
+    this.#revision++;
+    this.#listeners.forEach(listener => listener());
+  };
 
   constructor(registry: AppFrontendToolRegistry) {
     this.#registry = registry;
   }
 
-  connectServices(services: UIPluginServices): () => void {
-    const connection = { services };
+  connectServices(
+    services: UIPluginServices,
+    subscribe?: (listener: () => void) => () => void,
+  ): () => void {
+    this.#connection?.unsubscribe?.();
+    const connection = { services, unsubscribe: subscribe?.(this.#refreshAvailability) };
     this.#connection = connection;
+    this.#refreshAvailability();
     let connected = true;
     return () => {
       if (connected && this.#connection === connection) {
+        connection.unsubscribe?.();
         this.#connection = undefined;
+        this.#refreshAvailability();
       }
       connected = false;
     };
