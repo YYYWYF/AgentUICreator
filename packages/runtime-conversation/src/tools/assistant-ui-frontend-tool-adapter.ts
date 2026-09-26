@@ -20,7 +20,7 @@ export function createAssistantUiFrontendToolkit(
       type: "frontend",
       description: definition.description,
       parameters: definition.inputSchema,
-      display: ui?.display ?? "standalone",
+      ...(ui?.display === undefined ? {} : { display: ui.display }),
       render: (ui?.render ?? ConversationToolFallback) as never,
       execute: async (args, context) => {
         const result = await source!.execute({
@@ -34,6 +34,16 @@ export function createAssistantUiFrontendToolkit(
         try { return JSON.parse(result.content) as unknown; }
         catch { return result.content; }
       },
+    };
+  }
+  // UI registration never grants execution permission. Upstream excludes backend
+  // entries from the model schema, while Tools still registers their renderers.
+  for (const [name, ui] of Object.entries(frontendUIs)) {
+    if (Object.hasOwn(toolkit, name)) continue;
+    toolkit[name] = {
+      type: "backend",
+      ...(ui.display === undefined ? {} : { display: ui.display }),
+      render: ui.render as never,
     };
   }
   return toolkit;

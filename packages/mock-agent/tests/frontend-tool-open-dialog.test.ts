@@ -24,6 +24,22 @@ describe("dialog frontend tool scenario", () => {
     const fresh = await events({ ...continuation, runId: "r3", messages: [...continuation.messages, { id: "u2", role: "user", content: "open again" }] });
     expect(fresh.some(event => event.type === EventType.TOOL_CALL_START)).toBe(true);
   });
+  it.each(['{"opened":true}', '{"selected":true}', "plain-text receipt", '{"opened":false}'])(
+    "treats successful ToolMessage content as opaque: %s", async content => {
+      const result = await events({ ...input, messages: [...input.messages,
+        { id: "a", role: "assistant", toolCalls: [{ id: "call", type: "function", function: { name: "open_demo_dialog", arguments: "{}" } }] },
+        { id: "result", role: "tool", toolCallId: "call", content },
+      ] });
+      expect(result.filter(event => event.type === EventType.TEXT_MESSAGE_CONTENT).map(event => event.delta).join("")).toContain("已经打开设置弹窗");
+    },
+  );
+  it("uses the standard ToolMessage error marker", async () => {
+    const result = await events({ ...input, messages: [...input.messages,
+      { id: "a", role: "assistant", toolCalls: [{ id: "call", type: "function", function: { name: "open_demo_dialog", arguments: "{}" } }] },
+      { id: "result", role: "tool", toolCallId: "call", content: '{"selected":true}', error: "Capability unavailable" },
+    ] });
+    expect(result.filter(event => event.type === EventType.TEXT_MESSAGE_CONTENT).map(event => event.delta).join("")).toContain("无法打开弹窗");
+  });
   it("does not call an unavailable tool", async () => {
     const result = await events({ ...input, tools: [] });
     expect(result.some(event => event.type === EventType.TOOL_CALL_START)).toBe(false);

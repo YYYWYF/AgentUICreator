@@ -44,7 +44,8 @@ For interaction semantics, reason from product needs and AG-UI first. Treat exte
 
 ## Frontend Tool execution and replay contract
 
-Follow `docs/architecture/frontend-tool-lifecycle.md` in the workspace reference.
+For capability or renderer integration details, read the packaged
+[Frontend Tool lifecycle reference](references/frontend-tool-lifecycle.md).
 
 1. Product side effects belong only in Tool `execute`: open dialog, navigate,
    select item, change editor file, modify application state, write storage, copy

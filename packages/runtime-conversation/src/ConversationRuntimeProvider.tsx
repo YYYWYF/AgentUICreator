@@ -6,7 +6,6 @@ import {
   AssistantRuntimeProvider,
   Suggestions,
   Tools,
-  useAssistantToolUI,
   useAui,
   useAuiState,
   useRemoteThreadListRuntime,
@@ -208,9 +207,6 @@ export function ConversationRuntimeProvider<TState = unknown>({
   }, [assistantRuntime, threadBinding]);
   return (
     <AssistantRuntimeProvider runtime={assistantRuntime} {...(config === undefined ? {} : { config })}>
-      {Object.entries(frontendToolUIs ?? {}).filter(([name]) => !Object.hasOwn(resolvedToolkit, name)).map(([name, ui]) => (
-        <HistoricalFrontendToolUI key={name} name={name} ui={ui} />
-      ))}
       <CurrentConversationBridge sessions={sessions} persistence={persistence} threadBinding={threadBinding}>
         {children}
       </CurrentConversationBridge>
@@ -256,10 +252,4 @@ function CurrentConversationBridge<TState>({ sessions, persistence, threadBindin
   const currentBridge = bridge ?? previousBridge.current;
   if (currentBridge === undefined) return null;
   return <ConversationRuntimeBridgeProvider bridge={currentBridge}>{children}</ConversationRuntimeBridgeProvider>;
-}
-
-/** Preserve history presentation when a capability is absent, without advertising a tool. */
-function HistoricalFrontendToolUI({ name, ui }: { name: string; ui: ConversationFrontendToolUIRegistry[string] }) {
-  useAssistantToolUI({ toolName: name, render: ui.render as never, ...(ui.display === undefined ? {} : { display: ui.display }) });
-  return null;
 }

@@ -62,7 +62,11 @@ history adapter. History loading, thread/branch switching, remounts, StrictMode 
 future virtualization must not invoke execute. If restoration executes a tool,
 repair the runtime boundary rather than adding an isHistory renderer workaround.
 Frontend UI registrations remain available for history even when their Service is
-absent; these registrations never add a definition to model context.
+absent. They become backend render-only Toolkit entries, with no description,
+parameters or execute, and are filtered from the model tools. Both live and
+historical renderers use Tools({ toolkit }); no deprecated registration API is
+needed. Display is forwarded only when the application explicitly chooses it,
+preserving the upstream default otherwise.
 
 ## Availability and cancellation
 
@@ -95,6 +99,13 @@ Plugin is disabled or its Service is absent. DevStudio's
 `Frontend Tool：Open Dialog` scenario emits standard Tool frames without a backend
 result, then recognizes the current turn's ToolMessage and streams a confirmation.
 Each fresh user turn creates a new call id; prior results cannot satisfy a new turn.
+The generic runner uses ToolMessage.error for failure and treats content as an
+opaque receipt rather than inspecting dialog-specific fields. The fixed demo is
+manual-only and does not declare Add/Restore authoring metadata.
+
+Creator skills read their bundled `ag-ui-frontend/references/frontend-tool-lifecycle.md`,
+which ships under the package's existing skills publication scope; this repository
+document remains the architecture reference for maintainers.
 
 Regression cases cover availability revisions, schema/error/signal adaptation,
 native live execution once, result/continuation, later streaming frames, thread

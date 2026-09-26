@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "ade1d400dd590d722b1f365b96c969b4a68c54e6506115a56855b4f864830b13";
+export const capabilityCatalogRevision = "35b16a38f57763bbcb32cb04da32a18192d6577e0005036ea09543f345a5118c";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -724,12 +724,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
       "capabilities": [
         "plugin-service-provider",
         "dialog"
-      ],
-      "authoring": {
-        "intents": [
-          "let the Agent open an application dialog"
-        ]
-      }
+      ]
     },
     provides: ["demo.dialog"],
     inject: [],

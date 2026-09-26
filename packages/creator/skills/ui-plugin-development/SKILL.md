@@ -209,5 +209,5 @@ rules; Service existence does not grant Agent exposure permission.
 Plugin Component effects manage UI/component lifecycle only. They must never
 simulate Frontend Tool execution by opening a dialog, navigating or mutating a
 capability when a Tool renderer mounts. Follow the `ag-ui-frontend` skill's
-Frontend Tool execution and replay contract and the workspace reference
-`docs/architecture/frontend-tool-lifecycle.md`.
+Frontend Tool execution and replay contract. For integration details, read the
+packaged [Frontend Tool lifecycle reference](../ag-ui-frontend/references/frontend-tool-lifecycle.md).

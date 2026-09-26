@@ -591,9 +591,10 @@ function selectSteps(
     const call = calls.find(call => call.function.name === continuation.toolName);
     const result = call === undefined ? undefined : turn.find(message => message.role === "tool" && message.toolCallId === call.id);
     if (result !== undefined && result.role === "tool") {
-      let success = false;
-      try { success = JSON.parse(result.content).opened === true; } catch { /* error result */ }
-      return [{ type: "message", text: success ? continuation.successText : continuation.errorText }];
+      // AG-UI ToolMessage.error is the native frontend failure marker. Content
+      // is an opaque receipt; successful tools may return JSON or plain text.
+      return [{ type: "message", text: result.error === undefined
+        ? continuation.successText : continuation.errorText }];
     }
     if (!input.tools.some(tool => tool.name === continuation.toolName)) {
       return [{ type: "message", text: continuation.errorText }];

@@ -14,7 +14,7 @@ import { ConversationSurface } from "../agent-ui/conversation/ConversationSurfac
 import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import { frontendToolDialogDemoPlugin } from "../plugins/frontend-tool-dialog-demo/definition";
 import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../runtime/tools";
-import { PluginServiceRuntime, PluginServiceRuntimeContext, createPluginRegistry, UIPluginRuntime } from "../runtime/plugins";
+import { PluginServiceProvider, PluginServiceRuntime, PluginServiceRuntimeContext, createPluginRegistry, UIPluginRuntime } from "../runtime/plugins";
 import { DEMO_DIALOG_SERVICE, type DemoDialogService } from "../services/demo-dialog";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -93,12 +93,89 @@ async function fixture(coldHistory = false) {
   </StrictMode>); await tick(); });
   return { runtime, dialog, open, execute, inputs, agents, container, services, source, registry };
 }
+async function mountProviderFixture({ enabled = true, history = false } = {}) {
+  const source = new AppFrontendToolRuntime(new AppFrontendToolRegistry(appFrontendTools));
+  const availabilityReads = vi.spyOn(source, "listTools");
+  const execute = vi.spyOn(source, "execute");
+  const registry = createPluginRegistry([frontendToolDialogDemoPlugin]);
+  const activeModel = model();
+  const inactiveModel = model(false);
+  const threadId = history ? "history" : "live";
+  const threadList = { threads: [{ id: threadId, status: "regular" as const }], archivedThreads: [] };
+  const binding: ConversationThreadBinding = {
+    getThreadId: () => threadId,
+    subscribe: () => () => {},
+    getThreadListSnapshot: () => threadList,
+    createNewThread: async () => "new",
+    loadThread: async () => ({ messages: history ? resolvedHistory() : [] }),
+  };
+  let runtime!: AssistantRuntime;
+  function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
+  const inputs: RunAgentInput[] = [];
+  const agentFactory = ({ threadId }: { threadId: string }) => new HttpAgent({
+    url: "http://example.test/agent", threadId,
+    fetch: async (_url, init) => {
+      const input = JSON.parse(String(init.body)) as RunAgentInput;
+      inputs.push(input);
+      const messageId = `${input.runId}:response`;
+      const events = [
+        { type: "RUN_STARTED", threadId, runId: input.runId },
+        { type: "TEXT_MESSAGE_START", messageId, role: "assistant" },
+        { type: "TEXT_MESSAGE_CONTENT", messageId, delta: "Ready" },
+        { type: "TEXT_MESSAGE_END", messageId },
+        { type: "RUN_FINISHED", threadId, runId: input.runId },
+      ];
+      return new Response(events.map(event => `data: ${JSON.stringify(event)}\n\n`).join(""), { headers: { "Content-Type": "text/event-stream" } });
+    },
+  });
+  const container = document.createElement("div"); document.body.append(container);
+  const root = createRoot(container); roots.push(root);
+  const render = async (providerEnabled: boolean) => {
+    const currentModel = providerEnabled ? activeModel : inactiveModel;
+    await act(async () => { root.render(<StrictMode>
+      <ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} frontendTools={source} frontendToolUIs={frontendToolUIs} unstable_agentFactory={agentFactory}>
+        <PluginServiceProvider model={currentModel} registry={registry} actions={actions} frontendTools={source}>
+          <Capture />
+          <ConversationSurface />
+          <UIPluginRuntime model={currentModel} registry={registry} actions={actions} />
+        </PluginServiceProvider>
+      </ConversationRuntimeProvider>
+    </StrictMode>); await tick(); });
+  };
+  await render(enabled);
+  return { source, availabilityReads, execute, container, inputs, render, get runtime() { return runtime; } };
+}
 async function tick() { await new Promise<void>(resolve => setTimeout(resolve, 0)); }
 async function settle(predicate: () => boolean) {
   for (let index = 0; index < 100; index++) { if (predicate()) return; await act(async () => { await tick(); }); }
   throw new Error("Timed out awaiting native frontend tool pipeline");
 }
 describe("dialog frontend tool native lifecycle", () => {
+  it("starts unavailable and advertises the tool after the real child Service Provider mounts", async () => {
+    const f = await mountProviderFixture();
+    // The adapter's first render sees no Services; only the real Provider may
+    // connect/reconcile them. No capability is prepared before mount.
+    expect(f.availabilityReads.mock.results[0]!.value).toEqual([]);
+    await settle(() => f.source.listTools().some(tool => tool.name === "open_demo_dialog"));
+    expect(f.source.getRevision()).toBeGreaterThan(0);
+    await act(async () => { f.runtime.thread.append({ role: "user", content: [{ type: "text", text: "first request" }], startRun: true }); await tick(); });
+    await settle(() => f.inputs.length === 1 && !f.runtime.thread.getState().isRunning);
+    expect(f.inputs[0]!.tools.some(tool => tool.name === "open_demo_dialog")).toBe(true);
+    await f.render(false);
+    expect(f.source.listTools()).toEqual([]);
+    await act(async () => { f.runtime.thread.append({ role: "user", content: [{ type: "text", text: "next request" }], startRun: true }); await tick(); });
+    await settle(() => f.inputs.length === 2 && !f.runtime.thread.getState().isRunning);
+    expect(f.inputs[1]!.tools.some(tool => tool.name === "open_demo_dialog")).toBe(false);
+  });
+  it("renders specialized cold history without capability or model advertisement", async () => {
+    const f = await mountProviderFixture({ enabled: false, history: true });
+    await settle(() => f.container.querySelector('[data-frontend-tool="open_demo_dialog"]') !== null);
+    expect(f.container.textContent).toContain("Settings");
+    expect(f.source.listTools()).toEqual([]);
+    expect(f.execute).not.toHaveBeenCalled();
+    expect(f.inputs).toHaveLength(0);
+    expect(document.querySelector('[role="dialog"]')).toBeNull();
+  });
   it("executes once, sends result on continuation, and never reopens on thread revisit", async () => {
     const f = await fixture();
     await act(async () => { f.runtime.thread.append({ role: "user", content: [{ type: "text", text: "帮我打开设置弹窗" }], startRun: true }); await tick(); });
