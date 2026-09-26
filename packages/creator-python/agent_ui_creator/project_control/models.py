@@ -4,7 +4,9 @@ from dataclasses import asdict, dataclass, field
 from typing import Literal, TypeAlias
 
 PROJECT_CONTROL_SCHEMA_VERSION = 3
-PROJECT_CONTROL_ENTRY_PATH = "scripts/ui-project-control.ts"
+PROJECT_CONTROL_ENTRY_PATH = ".agent-ui/control/project-control.mjs"
+# Remove after one full migration cycle and managed Host coverage passes.
+LEGACY_PROJECT_CONTROL_ENTRY_PATH = "scripts/ui-project-control.ts"
 PROJECT_CONTROL_TIMEOUT_SECONDS = 15.0
 MAX_PROJECT_CONTROL_OUTPUT_BYTES = 1_000_000
 

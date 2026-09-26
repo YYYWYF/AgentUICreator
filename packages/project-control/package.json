@@ -1,0 +1,33 @@
+{
+  "name": "@agent-ui/project-control",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Development-only managed Agent UI control plane",
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/install.d.mts",
+      "import": "./src/install.mjs"
+    },
+    "./protocol": "./dist/runtime/project-control-runtime.mjs"
+  },
+  "files": [
+    "dist",
+    "src/install.mjs",
+    "src/install.d.mts"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  },
+  "dependencies": {
+    "typescript": "7.0.2"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}

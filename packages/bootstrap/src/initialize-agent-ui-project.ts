@@ -41,6 +41,8 @@ export interface AgentUIInitializationHost<TModel> {
   writeGeneratedRegistry(projectRoot: string, config: AgentUIProjectConfigV2): Promise<string>;
   verifyProject(projectRoot: string, config: AgentUIProjectConfigV2): Promise<{ status: "passed" | "failed"; errors: readonly { code: string; message: string }[] }>;
   rollbackCreatedPaths(projectRoot: string, paths: readonly string[], config: AgentUIProjectConfigV2, plannedPaths: readonly string[], sourceRootWasMissing: boolean): Promise<void>;
+  /** Install the development control plane before committing project.json. */
+  installControlPlane?(projectRoot: string): Promise<readonly string[]>;
   /** Optional persistence seam for failure-path tests. */
   writeInitializationJournal?(filePath: string, journal: AgentUIInitializationJournal, create: boolean): Promise<void>;
 }
@@ -164,6 +166,9 @@ export async function initializeAgentUIProject<TModel>(
         "Prospective Agent UI project failed static verification.",
         verification.errors,
       );
+    }
+    if (host.installControlPlane !== undefined) {
+      for (const controlPath of await host.installControlPlane(projectRoot)) createdPaths.add(controlPath);
     }
     await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "verified" }, false);
     try {

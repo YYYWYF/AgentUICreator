@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import shutil
 import time
 from pathlib import Path
 from typing import Any, Literal
@@ -15,6 +16,7 @@ from .errors import ProjectControlError
 from .models import (
     MAX_PROJECT_CONTROL_OUTPUT_BYTES,
     PROJECT_CONTROL_ENTRY_PATH,
+    LEGACY_PROJECT_CONTROL_ENTRY_PATH,
     PROJECT_CONTROL_SCHEMA_VERSION,
     PROJECT_CONTROL_TIMEOUT_SECONDS,
     ProjectControlMetrics,
@@ -55,10 +57,12 @@ class ProjectControlClient:
         project_root: Path,
         timeout_seconds: float = PROJECT_CONTROL_TIMEOUT_SECONDS,
         max_output_bytes: int = MAX_PROJECT_CONTROL_OUTPUT_BYTES,
+        node_executable: str | None = None,
     ) -> None:
         self.project_root = Path(project_root).resolve()
         self.timeout_seconds = timeout_seconds
         self.max_output_bytes = max_output_bytes
+        self._node_executable = node_executable or os.environ.get("CREATOR_NODE_EXECUTABLE") or shutil.which("node")
         self.entry_path = self.project_root / PROJECT_CONTROL_ENTRY_PATH
         runtime_name = "tsx.cmd" if os.name == "nt" else "tsx"
         self.executable_path = self.project_root / "node_modules" / ".bin" / runtime_name
@@ -194,16 +198,21 @@ class ProjectControlClient:
             )
 
     def _ensure_fixed_runtime(self) -> None:
-        if not self.entry_path.is_file():
-            raise ProjectControlError(
-                "CONTROL_ENTRY_MISSING",
-                f"Target project control entry is missing: {PROJECT_CONTROL_ENTRY_PATH}.",
-            )
+        managed = self.project_root / PROJECT_CONTROL_ENTRY_PATH
+        legacy = self.project_root / LEGACY_PROJECT_CONTROL_ENTRY_PATH
+        if managed.is_file():
+            self.entry_path = managed
+            if not self._node_executable:
+                raise ProjectControlError("CONTROL_RUNTIME_MISSING", "Creator Node runtime is unavailable.")
+            self.executable_path = Path(self._node_executable)
+        elif legacy.is_file():
+            self.entry_path = legacy
+            runtime_name = "tsx.cmd" if os.name == "nt" else "tsx"
+            self.executable_path = self.project_root / "node_modules" / ".bin" / runtime_name
+        else:
+            raise ProjectControlError("CONTROL_ENTRY_MISSING", f"Neither {PROJECT_CONTROL_ENTRY_PATH} nor {LEGACY_PROJECT_CONTROL_ENTRY_PATH} exists.")
         if not self.executable_path.is_file():
-            raise ProjectControlError(
-                "CONTROL_RUNTIME_MISSING",
-                "Target project dependencies are not installed; node_modules/.bin/tsx is unavailable.",
-            )
+            raise ProjectControlError("CONTROL_RUNTIME_MISSING", f"Project control runtime is unavailable: {self.executable_path}.")
 
     def _validate_protocol(self, value: Any, *, request: bool) -> None:
         if not isinstance(value, dict) or value.get("schemaVersion") != PROJECT_CONTROL_SCHEMA_VERSION:

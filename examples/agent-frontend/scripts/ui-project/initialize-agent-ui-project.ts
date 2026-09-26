@@ -7,6 +7,7 @@ import {
   type AgentUIProjectConfigV2,
   type InitializeAgentUIProjectInput,
 } from "@agent-ui/bootstrap";
+import { installManagedProjectControl, MANAGED_CONTROL_ENTRY } from "../../../../packages/project-control/src/install.mjs";
 import { loadAgentUISourceRegistry } from "@agent-ui/source-registry";
 
 import { parseAppUIModel, type AppUIModel } from "../../framework/contracts/app-ui-model";
@@ -36,6 +37,7 @@ function context(projectRoot: string, projectConfig: AgentUIProjectConfigV2) {
 export async function initializeAgentUIProject(input: InitializeAgentUIProjectInput) {
   return initializeBootstrapProject<AppUIModel>(input, {
     inspectProject: inspectCreatorProject,
+    installControlPlane: installManagedProjectControl,
     parseAppUIModel,
     async preflightSources(projectRoot, itemIds, projectConfig) {
       const { paths, config } = context(projectRoot, projectConfig);
@@ -55,6 +57,7 @@ export async function initializeAgentUIProject(input: InitializeAgentUIProjectIn
       }
       return {
         plannedPaths: [
+          MANAGED_CONTROL_ENTRY,
           ...items.flatMap((item) => item.loadedFiles.map((file) =>
             projectRelativePath(projectRoot, path.join(paths.sourceRoot, file.target)))),
           projectRelativePath(projectRoot, paths.sourceLockPath),
@@ -117,6 +120,9 @@ export async function initializeAgentUIProject(input: InitializeAgentUIProjectIn
           if (error.code !== "ENOENT" && error.code !== "ENOTEMPTY") throw error;
         });
       }
+      await rmdir(path.join(projectRoot, ".agent-ui/control")).catch((error: NodeJS.ErrnoException) => {
+        if (error.code !== "ENOENT" && error.code !== "ENOTEMPTY") throw error;
+      });
       if (sourceRootWasMissing) {
         await rmdir(paths.sourceRoot).catch((error: NodeJS.ErrnoException) => {
           if (error.code !== "ENOENT" && error.code !== "ENOTEMPTY") throw error;

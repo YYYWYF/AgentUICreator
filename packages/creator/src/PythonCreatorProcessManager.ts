@@ -464,6 +464,7 @@ export class PythonCreatorProcessManager {
       cwd: this.#projectRoot,
       env: {
         ...this.#environment,
+        CREATOR_NODE_EXECUTABLE: process.execPath,
         PYTHONIOENCODING: "utf-8",
         PYTHONUNBUFFERED: "1",
         PYTHONPATH:

@@ -1137,7 +1137,7 @@ delete_ui_plugin_source
 
 Capability Catalog 由 Plugin inventory 自动生成，Active Registry 由 published composition 解析，因此不再向模型暴露 `register_plugin` / `unregister_plugin` bookkeeping 工具。
 
-专项工具通过目标项目自带的 Project Control Adapter 使用目标项目自己的 Schema、Registry generator 和验证逻辑。Creator package 负责模型工具、权限、事务编排与回执，不在自身复制一份 AppUIModel 或 Plugin Contract；目标项目也不反向依赖 Creator。Adapter 使用固定入口和结构化 JSON 输入输出，不能退化成可由模型传入任意 shell 命令的执行器。
+专项工具通过 Agent UI 管理的 Project Control Adapter 使用目标项目自己的 Schema、Registry generator 和验证逻辑。Creator package 负责模型工具、权限、事务编排与回执，不在自身复制一份 AppUIModel 或 Plugin Contract；目标项目也不反向依赖 Creator。初始化在 `.agent-ui/control/project-control.mjs` 安装版本化 Node 入口，正式协议 implementation 由 development-only `@agent-ui/project-control` 提供；不要求 Host 手写脚本或安装 tsx。Adapter 使用固定入口和结构化 JSON 输入输出，不能退化成可由模型传入任意 shell 命令的执行器。
 
 Creator 可以自主选择工具。
 
@@ -1371,9 +1371,9 @@ Vite 集成和浏览器诊断 reporter 留在 TypeScript；模型、Agent loop�
 Agent 控制面。Python 启动失败必须显式失败，不得切换到另一套 Agent。
 第一阶段仅建立版本化合同、Python FastAPI health/echo sidecar、随机端口鉴权
 handshake、流式代理和 diagnostics 代理；不得在 transport 稳定前迁移 Agent，
-也不得静默 fallback。Project Control 继续调用目标项目固定的
-`scripts/ui-project-control.ts` JSON 协议，AppUIModel mutation engine 不得在 Python
-重复实现。
+也不得静默 fallback。Project Control 优先调用 `.agent-ui/control/project-control.mjs`
+Node JSON 协议入口；旧 `scripts/ui-project-control.ts` / tsx 仅保留一个完整迁移周期，
+managed 路径稳定并完成 Host 回归后才能删除。AppUIModel mutation engine 不得在 Python 重复实现。
 
 第二阶段只在显式 `CREATOR_PYTHON_AGENT_MODE=minimal` 下接入预初始化的
 OpenAI-compatible `ChatOpenAI` 与 DeepAgents，用受限的 read/edit/grep 文件工具验证

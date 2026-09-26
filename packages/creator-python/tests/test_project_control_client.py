@@ -356,3 +356,36 @@ sys.stderr.write("y" * 1024)
     with pytest.raises(ProjectControlError) as raised:
         asyncio.run(client.inspect_ui_project())
     assert raised.value.code == "CONTROL_OUTPUT_TOO_LARGE"
+
+
+def test_managed_entry_uses_known_runtime_without_host_tsx(tmp_path):
+    root = tmp_path / "fresh-user-host"
+    entry = root / ".agent-ui/control/project-control.mjs"
+    entry.parent.mkdir(parents=True)
+    # Runtime injection exercises transport selection without depending on a local Node install.
+    entry.write_text(_success(), encoding="utf-8")
+    client = ProjectControlClient(project_root=root, node_executable=sys.executable)
+    assert asyncio.run(client.inspect_ui_project()) == {"foo": "bar"}
+    assert client.entry_path == entry
+    assert client.executable_path == Path(sys.executable)
+    assert not (root / "node_modules/.bin/tsx").exists()
+
+
+def test_managed_entry_has_priority_over_legacy(tmp_path):
+    root, _legacy = _control_project(tmp_path, _success('{"path":"legacy"}'))
+    entry = root / ".agent-ui/control/project-control.mjs"
+    entry.parent.mkdir(parents=True)
+    entry.write_text(_success('{"path":"managed"}'), encoding="utf-8")
+    client = ProjectControlClient(project_root=root, node_executable=sys.executable)
+    assert asyncio.run(client.inspect_ui_project()) == {"path": "managed"}
+
+
+def test_broken_managed_runtime_does_not_fall_back_to_legacy(tmp_path):
+    root, _legacy = _control_project(tmp_path, _success())
+    entry = root / ".agent-ui/control/project-control.mjs"
+    entry.parent.mkdir(parents=True)
+    entry.write_text(_success(), encoding="utf-8")
+    client = ProjectControlClient(project_root=root, node_executable=str(root / "missing-node"))
+    with pytest.raises(ProjectControlError) as failure:
+        asyncio.run(client.inspect_ui_project())
+    assert failure.value.code == "CONTROL_RUNTIME_MISSING"
