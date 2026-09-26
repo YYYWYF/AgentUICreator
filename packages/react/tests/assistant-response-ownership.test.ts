@@ -6,7 +6,7 @@ const read = (path: string) => readFile(new URL(`../src/${path}`, import.meta.ur
 describe("Assistant Response ownership", () => {
   it("uses public assistant-ui APIs and leaves protocol identity outside grouping", async () => {
     const files = await Promise.all([
-      read("internal/assistant-response.ts"),
+      read("internal/conversation-turn.tsx"),
       read("internal/assistant-response-runtime.tsx"),
       read("internal/composable-thread.tsx"),
     ]);
@@ -16,12 +16,14 @@ describe("Assistant Response ownership", () => {
       expect(source).not.toMatch(/from ["'][^"']*vendor[^"']*(?:runtime|primitive|store)/);
     }
     expect(files[0]).not.toContain("runId");
+    expect(files[0]).not.toContain("liveTurnIds");
+    expect(files[0]).not.toContain("ConversationTurnSource");
     expect(files[0]).not.toContain("vendor/");
     expect(files[1]).not.toContain("vendor/");
     expect(files[1]).not.toContain("startRun(");
     expect(files[1]).not.toContain("aui.thread()");
     expect(files[1]).not.toMatch(/\baui\s*\.\s*thread\s*\(/u);
-    expect(files[1]).toContain("group.headMessageId");
+    expect(files[1]).toContain("group.headAssistantMessageId");
     const responseActions = files[2]!.slice(files[2]!.indexOf("export const CanonicalResponseCopyAction"), files[2]!.indexOf("const UserFilePart"));
     expect(responseActions).not.toMatch(/ActionBarPrimitive\.(Copy|Reload|ExportMarkdown)|BranchPickerPrimitive|message\.isCopied/);
   });
@@ -45,7 +47,9 @@ describe("Assistant Response ownership", () => {
     }
     expect(assistantMessage).toMatch(/!isRunning\s*\?\s*\(\s*<AssistantResponseFooterHost/u);
     expect(footerHost).toMatch(fullMessagesSubscription);
-    expect(footerHost).toContain("assistantResponseGroupFromTurn(messages, turn)");
-    expect(footerHost).toContain("turn.footerOwnerMessageId !== messages[messageIndex]?.id");
+    expect(footerHost).toContain("resolveConversationTurnGroup(messages, messages[messageIndex]?.id");
+    expect(footerHost).toContain("group={turn}");
+    expect(footerHost).not.toContain("assistantResponseGroupFromTurn");
+    expect(footerHost).toContain("turn.tailAssistantMessageId !== messages[messageIndex]?.id");
   });
 });

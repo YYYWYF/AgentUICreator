@@ -375,6 +375,66 @@ const responseMessages = () => [
 ];
 
 describe("multi-message Response actions", () => {
+  it("keeps Footer, Copy, Export, Reload and Branch on one turn across a system record", async () => {
+    const writeText = vi.fn(async () => undefined);
+    const restore = installClipboardMock(writeText);
+    const createObjectURL = vi.fn((_blob: Blob | MediaSource) => "blob:turn");
+    vi.stubGlobal("URL", { createObjectURL, revokeObjectURL: vi.fn() });
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    const run = vi.fn<ChatModelAdapter["run"]>(async () => ({
+      content: [{ type: "text", text: "Regenerated" }],
+    }));
+    try {
+      const { container, runtime } = await mount({ run });
+      const messages = responseMessages(); // User, A, System, B, C
+      await act(async () => runtime.thread.import({
+        headId: "c",
+        messages: [
+          ...messages.map((message, i) => ({ message, parentId: messages[i - 1]?.id ?? null })),
+          { message: assistantMessage("Alternative", "alt"), parentId: "u" },
+        ],
+      }));
+      const assistants = container.querySelectorAll('[data-slot="aui_assistant-message-root"]');
+      expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(1);
+      expect(Array.from(assistants, (message) =>
+        message.querySelector('[data-slot="aui_assistant-response-footer"]') !== null,
+      )).toEqual([false, false, true]);
+      await act(async () => {
+        findActionButton(container, "assistant-ui-copy-action").click();
+        await Promise.resolve();
+        findActionButton(container, "assistant-ui-export-markdown-action").click();
+      });
+      const expectedText = "Hello\n\nWorld\n\nSummary";
+      expect(writeText).toHaveBeenCalledExactlyOnceWith(expectedText);
+      const exported = createObjectURL.mock.calls[0]![0] as Blob;
+      const exportedText = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.readAsText(exported);
+      });
+      expect(exportedText).toBe(expectedText);
+      expect(exportedText).not.toContain("Internal");
+      expect(runtime.thread.getMessageById("a").getState().branchCount).toBe(2);
+      expect(runtime.thread.getMessageById("b").getState().branchCount).toBe(1);
+      expect(runtime.thread.getMessageById("c").getState().branchCount).toBe(1);
+      expect(container.querySelector('.aui-branch-picker-state')?.textContent).toBe("1 / 2");
+      await act(async () => {
+        (container.querySelector('.aui-branch-picker-root button:last-child') as HTMLButtonElement).click();
+      });
+      expect(runtime.thread.getState().messages.map(({ id }) => id)).toEqual(["u", "alt"]);
+      await act(async () => {
+        (container.querySelector('.aui-branch-picker-root button:first-child') as HTMLButtonElement).click();
+      });
+      expect(runtime.thread.getState().messages.map(({ id }) => id)).toEqual(["u", "a", "s", "b", "c"]);
+      await act(async () => {
+        findActionButton(container, "assistant-ui-reload-action").click();
+        await Promise.resolve();
+      });
+      expect(run).toHaveBeenCalledOnce();
+      expect(run.mock.calls[0]![0].messages.map(({ id }) => id)).toEqual(["u"]);
+    } finally { restore(); }
+  });
+
   it("hydrates separate messages and places one Footer under the tail", async () => {
     const { container, runtime } = await mount({ run: async () => ({ content: [] }) });
     await hydrate(runtime, responseMessages());
@@ -387,11 +447,15 @@ describe("multi-message Response actions", () => {
     expect(runtime.thread.getState().messages.map(({ id }) => id)).toEqual(["u", "a", "s", "b", "c"]);
   });
 
-  it("renders one Footer per response across two requests", async () => {
+  it("renders one Turn Footer per user request across system records", async () => {
     const { container, runtime } = await mount({ run: async () => ({ content: [] }) });
     await hydrate(runtime, [...responseMessages(), userMessage("u2"), assistantMessage("Next", "d"), assistantMessage("Done", "e")]);
     expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(2);
-    expect(container.querySelectorAll('[data-slot="aui_assistant-message-root"]')).toHaveLength(5);
+    const assistants = container.querySelectorAll('[data-slot="aui_assistant-message-root"]');
+    expect(assistants).toHaveLength(5);
+    expect(Array.from(assistants, (message) =>
+      message.querySelector('[data-slot="aui_assistant-response-footer"]') !== null,
+    )).toEqual([false, false, true, false, true]);
   });
 
   it("moves the semantic Footer when another assistant message arrives in the same turn", async () => {

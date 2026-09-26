@@ -1,5 +1,5 @@
 import type { AbstractAgent } from "@ag-ui/client";
-import { ConversationTurnProvider, type ConversationToolkit } from "@agent-ui/react";
+import type { ConversationToolkit } from "@agent-ui/react";
 import type { AgentFrontendToolSource } from "@agent-ui/runtime-core";
 import {
   AuiConfig,
@@ -28,7 +28,6 @@ import {
   createConversationAgentRuntimeBridge,
   type ConversationAgentRuntimeBridge,
 } from "./compatibility/conversation-runtime-bridge.js";
-import { LiveConversationTurnSource } from "./compatibility/conversation-turn-source.js";
 import { CancellationAwareHttpAgent } from "./compatibility/cancellation-aware-http-agent.js";
 import { ConversationApplicationEventSource } from "./events/conversation-application-event-source.js";
 import type {
@@ -187,15 +186,6 @@ export function ConversationRuntimeProvider<TState = unknown>({
     onCancel: handleCancel,
     onError: handleError,
   });
-  const turnSource = useMemo(
-    () => new LiveConversationTurnSource(agent, assistantRuntime.thread, () => threadBinding.getThreadId()),
-    [agent, assistantRuntime, threadBinding],
-  );
-  useEffect(() => {
-    turnSource.start();
-    const unsubscribe = threadBinding.subscribe(() => turnSource.sync());
-    return () => { unsubscribe(); turnSource.stop(); };
-  }, [turnSource, threadBinding]);
   const applicationEvents = useMemo(
     () => new ConversationApplicationEventSource(agent),
     [agent],
@@ -239,7 +229,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
         runtime={assistantRuntime}
         {...(config === undefined ? {} : { config })}
       >
-        <ConversationTurnProvider source={turnSource}>{children}</ConversationTurnProvider>
+        {children}
       </AssistantRuntimeProvider>
     </ConversationRuntimeBridgeProvider>
   );

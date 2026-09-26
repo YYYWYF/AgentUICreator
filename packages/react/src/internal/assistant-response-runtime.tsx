@@ -2,10 +2,11 @@
 
 import { useAui, useAuiState } from "@assistant-ui/react";
 import { createContext, useCallback, useContext, useSyncExternalStore, type ReactNode } from "react";
-import { getAssistantResponseText, type AssistantResponseGroup } from "./assistant-response.js";
+import { getAssistantResponseText } from "./assistant-response.js";
+import type { ConversationTurnGroup } from "./conversation-turn.js";
 
 export interface AssistantResponseRuntime {
-  group: AssistantResponseGroup;
+  group: ConversationTurnGroup;
   text: string;
   isRunning: boolean;
   canReload: boolean;
@@ -28,7 +29,7 @@ export function useAssistantResponseRuntime(): AssistantResponseRuntime {
 }
 
 export function AssistantResponseRuntimeProvider({ group, children }: {
-  group: AssistantResponseGroup;
+  group: ConversationTurnGroup;
   children?: ReactNode;
 }) {
   const aui = useAui();
@@ -38,11 +39,11 @@ export function AssistantResponseRuntimeProvider({ group, children }: {
   const getHeadState = useCallback(() => {
     const threadClient = aui.thread;
     // A branch switch can notify subscribers before React removes the old footer.
-    if (!threadClient.getState().messages.some(({ id }) => id === group.headMessageId))
+    if (!threadClient.getState().messages.some(({ id }) => id === group.headAssistantMessageId))
       return EMPTY_HEAD_STATE;
-    return threadClient.message({ id: group.headMessageId }).getState();
+    return threadClient.message({ id: group.headAssistantMessageId }).getState();
   },
-  [aui, group.headMessageId]);
+  [aui, group.headAssistantMessageId]);
   const subscribe = useCallback((listener: () => void) => aui.subscribe(listener), [aui]);
   const head = useSyncExternalStore(subscribe, getHeadState, getHeadState);
   const canReload = !thread.isRunning && !thread.isDisabled &&
@@ -58,15 +59,15 @@ export function AssistantResponseRuntimeProvider({ group, children }: {
     branchNumber: head.branchNumber,
     branchCount: head.branchCount,
     reload() {
-      if (canReload) aui.thread.message({ id: group.headMessageId }).reload();
+      if (canReload) aui.thread.message({ id: group.headAssistantMessageId }).reload();
     },
     switchToPreviousBranch() {
       if (canSwitchBranch && head.branchNumber > 1)
-        aui.thread.message({ id: group.headMessageId }).switchToBranch({ position: "previous" });
+        aui.thread.message({ id: group.headAssistantMessageId }).switchToBranch({ position: "previous" });
     },
     switchToNextBranch() {
       if (canSwitchBranch && head.branchNumber < head.branchCount)
-        aui.thread.message({ id: group.headMessageId }).switchToBranch({ position: "next" });
+        aui.thread.message({ id: group.headAssistantMessageId }).switchToBranch({ position: "next" });
     },
   };
   return <AssistantResponseContext.Provider value={value}>{children}</AssistantResponseContext.Provider>;

@@ -69,8 +69,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { useConversationTurn } from "./conversation-turn.js";
-import { assistantResponseGroupFromTurn } from "./assistant-response.js";
+import { resolveConversationTurnGroup } from "./conversation-turn.js";
 import { AssistantResponseRuntimeProvider, useAssistantResponseRuntime } from "./assistant-response-runtime.js";
 
 export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
@@ -517,15 +516,14 @@ const AssistantResponseFooterHost: FC<{
 }> = ({ FooterComponent }) => {
   const messages = useAuiState((s) => s.thread.messages);
   const messageIndex = useAuiState((s) => s.message.index);
-  const turn = useConversationTurn(messages, messages[messageIndex]?.id ?? "");
-  if (!turn || turn.footerOwnerMessageId !== messages[messageIndex]?.id) return null;
-  const response = assistantResponseGroupFromTurn(messages, turn);
+  const turn = resolveConversationTurnGroup(messages, messages[messageIndex]?.id ?? "");
+  if (!turn || turn.tailAssistantMessageId !== messages[messageIndex]?.id) return null;
 
   // Product layout policy: reserve the semantic footer's full height in flow.
   // Plugin footers can vary in height, so cancelling a fixed action-bar height
   // would let the next message overlap them. Keep this policy on the host.
   return (
-    <AssistantResponseRuntimeProvider key={response.headMessageId} group={response}>
+    <AssistantResponseRuntimeProvider key={turn.turnId} group={turn}>
       <div
         data-slot="aui_assistant-response-footer"
         className={cn("ms-2 flex items-center", "min-h-7.5 pt-1.5")}
@@ -678,7 +676,7 @@ export const CanonicalResponseCopyAction: FC = () => {
       generation.current++;
       clearTimeout(timer.current);
     };
-  }, [response.group.headMessageId, response.text]);
+  }, [response.group.headAssistantMessageId, response.text]);
   const disabled = response.isRunning || !response.text;
   return (
     <TooltipIconButton

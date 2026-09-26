@@ -279,16 +279,17 @@ ThreadScrollToBottom
   -> ThreadSuggestions
 ```
 
-Semantic Footer ownership is product-owned and scoped to an Agent turn. The
-runtime adapter records root live `runId` against assistant-ui message IDs in an
-internal observable source. Continuations for the same user input retain the
-first root run identity, matching the existing execution-chain contract. It does
-not extend AG-UI or upstream messages.
-For checkpoint/history messages without run IDs, the adapter reconstructs turns
-deterministically from user-message IDs (including intervening system records).
-The final assistant message on the visible branch is the only Footer owner.
-Existing Footer slots/actions, hide-while-running behavior and normal-flow
-sizing remain unchanged; ownership moves while streaming even when hidden.
+Semantic Footer ownership and response actions are product-owned and use one
+`ConversationTurnGroup` projected from the visible assistant-ui messages. A Turn
+starts with a user request and ends at the next user request; intervening system
+or tool records do not split it. Leading assistants form a synthetic leading
+Turn. Only assistant messages enter Copy/Export; Reload and Branch target the
+first assistant, and only the final assistant renders the Footer.
+Live streaming, continuation runs and checkpoint/history reconstruction all use
+this user-message boundary without runId attribution or additional protocol
+lifecycle subscriptions. The Turn projection does not extend AG-UI or upstream
+messages. Footer slots/actions, hide-while-running behavior and normal-flow
+sizing retain their existing presentation policy.
 
 Every assistant-ui upgrade must review the ComposableThread parity guard. If a
 future pinned release provides a native Composer override, remove this fork and
