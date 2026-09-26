@@ -15,7 +15,8 @@
     "inspect": "node --import tsx scripts/host-project.ts inspect",
     "init:assistant": "node --import tsx scripts/host-project.ts init assistant",
     "init:embedded": "node --import tsx scripts/host-project.ts init embedded",
-    "init:platform": "node --import tsx scripts/host-project.ts init platform"
+    "init:platform": "node --import tsx scripts/host-project.ts init platform",
+    "verify:ui": "node --import tsx scripts/verify-ui.ts"
   },
   "dependencies": {
     "@agent-ui/react": "workspace:^",

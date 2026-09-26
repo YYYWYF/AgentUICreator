@@ -565,6 +565,7 @@ def create_domain_write_creator_agent(
 
     run_control = CreatorRunControlState()
     scope_guard = ScopeAwareRecoveryGuard(
+        project_root=str(workspace),
         run_control=run_control,
         service_resource_resolver=service_resource_resolver
     )

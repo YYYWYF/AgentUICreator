@@ -273,8 +273,8 @@ export async function verifyUIProject(
   };
 }
 
-async function main(): Promise<void> {
-  const result = await verifyUIProject(defaultProjectRoot);
+export async function runUIProjectVerificationCli(projectRoot = defaultProjectRoot): Promise<void> {
+  const result = await verifyUIProject(projectRoot);
 
   const output = JSON.stringify(result, null, 2);
   if (result.status === "passed") {
@@ -289,5 +289,5 @@ if (
   process.argv[1] !== undefined &&
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
-  await main();
+  await runUIProjectVerificationCli();
 }

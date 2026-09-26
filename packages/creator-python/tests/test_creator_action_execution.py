@@ -49,6 +49,8 @@ class FakeRuntime:
 
 
 class FakeMutation:
+    app_ui_model_path = "app-ui/app-ui.json"
+
     def __init__(self, outcomes: list[object]) -> None:
         self.outcomes = iter(outcomes)
         self.calls: list[dict[str, object]] = []
@@ -1077,3 +1079,23 @@ def test_written_mutation_check_failure_reports_changes_without_claiming_success
     assert result.details["changedPaths"] == ["src/agent-ui/app-ui/app-ui.json"]
     assert result.verification is None
     assert _operation_text(result) == "修改已写入，但结果检查失败：result check failed"
+
+
+@pytest.mark.parametrize("source_root", ["src/agent-ui", "client/custom-agent"])
+@pytest.mark.parametrize("kind", ["add_existing_plugin", "remove_plugin", "move_plugin"])
+def test_action_postcondition_uses_managed_app_ui_model_path(source_root, kind):
+    candidate = action(kind)
+    source = snapshot(candidate)
+    committed = mutation(candidate)
+    committed.target_result["changedPaths"] = [f"{source_root}/app-ui/app-ui.json"]
+    mutation_service = FakeMutation([committed])
+    mutation_service.app_ui_model_path = f"{source_root}/app-ui/app-ui.json"
+    provider = SequenceSnapshotProvider([post_mutation_snapshot(candidate)])
+    playbook = make_playbook(mutation_service, provider, [])
+
+    result = asyncio.run(playbook.execute(source, candidate))
+
+    assert result.postcondition is not None
+    assert result.postcondition.status == "passed"
+    assert result.status == "success"
+    assert provider.build_calls == 1

@@ -15,6 +15,7 @@ from ..resource_scope import (
     ChangeLayer,
     ResourceKey,
     change_layer_for_path,
+    project_logical_path,
     resource_keys_for_path,
 )
 from ..run_control import CreatorRunControlState
@@ -374,6 +375,7 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         | None = None,
         baseline_capture: Callable[[], Awaitable[Any]] | None = None,
         run_control: CreatorRunControlState | None = None,
+        project_root: str | None = None,
     ) -> None:
         self.metrics = ChangeScopeMetrics()
         self._blocked_layers: frozenset[ChangeLayer] | None = None
@@ -382,6 +384,7 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         self._service_resource_resolver = service_resource_resolver
         self._baseline_capture = baseline_capture
         self.run_control = run_control
+        self.project_root = project_root
 
     def set_baseline_capture(
         self, baseline_capture: Callable[[], Awaitable[Any]] | None
@@ -479,10 +482,16 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
             return
         self._preserve_scope(evidence, workspace_integrity=True)
 
+    def _logical_arguments(self, arguments: Mapping[str, Any]) -> Mapping[str, Any]:
+        path = arguments.get("file_path")
+        if isinstance(path, str):
+            return {**arguments, "file_path": project_logical_path(path, self.project_root)}
+        return arguments
+
     def _resources_for_call(
         self, name: str, arguments: Mapping[str, Any]
     ) -> tuple[ResourceKey, ...]:
-        resources = list(resource_keys_for_tool_call(name, arguments))
+        resources = list(resource_keys_for_tool_call(name, self._logical_arguments(arguments)))
         if self._service_resource_resolver is not None:
             try:
                 resolved = self._service_resource_resolver(name, arguments) or ()
@@ -823,7 +832,7 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
     def wrap_tool_call(self, request: Any, handler: Callable[[Any], Any]) -> Any:
         self._assert_tool_runnable()
         call, name, arguments = self._call(request)
-        layer = change_layer_for_tool_call(name, arguments)
+        layer = change_layer_for_tool_call(name, self._logical_arguments(arguments))
         resources = self._resources_for_call(name, arguments)
         if layer is not None:
             self.metrics.record_attempt(layer, resources)
@@ -850,7 +859,7 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
     ) -> Any:
         self._assert_tool_runnable()
         call, name, arguments = self._call(request)
-        layer = change_layer_for_tool_call(name, arguments)
+        layer = change_layer_for_tool_call(name, self._logical_arguments(arguments))
         resources = self._resources_for_call(name, arguments)
         if layer is not None:
             self.metrics.record_attempt(layer, resources)
@@ -892,7 +901,7 @@ def build_change_layer_run_metrics(
     source_write_events = [
         path
         for path in mutation_paths
-        if change_layer_for_path(path) != "composition"
+        if change_layer_for_path(path, project_root=getattr(activity, "project_root", None)) != "composition"
     ]
     source_paths = list(dict.fromkeys(source_write_events))
     by_operation = getattr(project_control, "requestsByOperation", {})

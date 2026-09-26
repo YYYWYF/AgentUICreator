@@ -13,7 +13,8 @@
     "test": "node --import tsx --test ../creator-host-sandbox/tests/public-entry.test.ts",
     "reset": "node ../creator-host-sandbox/scripts/reset-agent-ui.mjs creator-embedded-host",
     "inspect": "node --import tsx ../creator-host-sandbox/scripts/host-project.ts inspect creator-embedded-host",
-    "init": "node --import tsx ../creator-host-sandbox/scripts/host-project.ts init embedded creator-embedded-host"
+    "init": "node --import tsx ../creator-host-sandbox/scripts/host-project.ts init embedded creator-embedded-host",
+    "verify:ui": "node --import tsx scripts/verify-ui.ts"
   },
   "dependencies": {
     "@agent-ui/react": "workspace:^",

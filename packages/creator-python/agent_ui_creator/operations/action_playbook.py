@@ -775,7 +775,7 @@ class CreatorActionExecutionPlaybook:
         if (
             mutation.get("changed") is not True
             or not isinstance(changed_paths, list)
-            or "app-ui/app-ui.json" not in changed_paths
+            or self.mutation_service.app_ui_model_path not in changed_paths
         ):
             return CreatorOperationPostconditionResult(
                 status="failed",

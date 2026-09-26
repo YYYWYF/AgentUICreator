@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Literal, TypeAlias
 
 from ..resource_scope import (
@@ -25,6 +26,7 @@ class ValidationAttributionContext:
     scope_resources: tuple[str, ...]
     changed_resources: tuple[str, ...]
     changed_paths: tuple[str, ...]
+    project_root: str | Path | None = None
 
 
 def _attribution_context(activity: Any, scope: Any) -> ValidationAttributionContext:
@@ -34,8 +36,9 @@ def _attribution_context(activity: Any, scope: Any) -> ValidationAttributionCont
         for item in receipt.get("files", [])
         if isinstance(item, dict) and isinstance(item.get("path"), str)
     )
-    changed_resources = resource_keys_for_paths(changed_paths)
-    changed_layers = change_layers_for_paths(changed_paths)
+    project_root = getattr(activity, "project_root", None)
+    changed_resources = resource_keys_for_paths(changed_paths, project_root=project_root)
+    changed_layers = change_layers_for_paths(changed_paths, project_root=project_root)
     return ValidationAttributionContext(
         task_scope=(
             tuple(scope.taskChangeLayers)
@@ -49,6 +52,7 @@ def _attribution_context(activity: Any, scope: Any) -> ValidationAttributionCont
         ),
         changed_resources=tuple(changed_resources),
         changed_paths=changed_paths,
+        project_root=project_root,
     )
 
 
@@ -92,10 +96,11 @@ def _unknown_fail_closed(
 
 def _diagnostic_layers(
     diagnostics: Sequence[TypeScriptDiagnostic],
+    project_root: str | Path | None = None,
 ) -> list[str]:
     layers: list[str] = []
     for diagnostic in diagnostics:
-        layer = change_layer_for_path(diagnostic.path)
+        layer = change_layer_for_path(diagnostic.path, project_root=project_root)
         if layer is not None and layer not in layers:
             layers.append(layer)
     return layers
@@ -180,7 +185,7 @@ def attribute_validation_failure(
     ):
         category = "workspace_integrity"
         attribution = "introduced"
-        failure_layers = _diagnostic_layers(introduced_diagnostics)
+        failure_layers = _diagnostic_layers(introduced_diagnostics, context.project_root)
         automatic_repair_allowed = True
         automatic_cross_layer_repair_allowed = True
         return {
@@ -212,7 +217,7 @@ def attribute_validation_failure(
             "taskScopeResources": list(context.scope_resources),
             "scopeResources": list(context.scope_resources),
             "changedResources": list(context.changed_resources),
-            "failureLayers": _diagnostic_layers(current_diagnostics),
+            "failureLayers": _diagnostic_layers(current_diagnostics, context.project_root),
             "changedPaths": list(context.changed_paths),
             "validationMode": validation_mode,
             "differentialStatus": differential.status,

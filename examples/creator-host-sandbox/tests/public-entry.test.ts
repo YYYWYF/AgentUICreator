@@ -14,6 +14,7 @@ import { build } from "vite";
 import { initializeAgentUIProject } from "../../agent-frontend/scripts/ui-project/initialize-agent-ui-project";
 import { inspectCreatorProject } from "../../agent-frontend/scripts/ui-project/creator-project-inspector";
 import { handleUIProjectControlRequest } from "../../agent-frontend/scripts/ui-project-control";
+import { verifyUIProject } from "../../agent-frontend/scripts/verify-ui";
 import { runtimeAliases } from "../vite.config";
 
 const sandboxRoot = fileURLToPath(new URL("..", import.meta.url));
@@ -52,6 +53,10 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
       await writeFile(path.join(projectRoot, "package.json"), await readFile(path.join(sandboxRoot, "package.json")));
       await symlink(path.join(sandboxRoot, "node_modules"), path.join(projectRoot, "node_modules"), "dir");
       await mkdir(path.join(projectRoot, "src"));
+      await writeFile(path.join(projectRoot, "tsconfig.json"), JSON.stringify({
+        extends: path.join(sandboxRoot, "tsconfig.json"),
+        include: ["src"],
+      }));
       await writeFile(path.join(projectRoot, "index.html"),
         '<div id="root"></div><script type="module" src="/src/main.tsx"></script>\n');
       await writeFile(path.join(projectRoot, "src/main.tsx"),
@@ -66,6 +71,42 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
         input: { view: "composition" },
       }, projectRoot);
       assert.equal(controlResponse.ok, true, JSON.stringify(controlResponse));
+      const verification = await verifyUIProject(projectRoot);
+      assert.equal(verification.status, "passed", JSON.stringify(verification.errors));
+      // Exercise both sides of the composition edit in a disposable Host.
+      let inspection = controlResponse.result as {
+        appUIModel: { hash: string };
+        creatorActions: { candidates: Array<{
+          actionId: string; kind: string; status: string; target: { pluginId: string };
+        }> };
+      };
+      const roundTripPlugin = mode === "platform" ? "conversation-thread-list" : "conversation-suggestions";
+      for (let index = 0; index < 2; index += 1) {
+        const action = inspection.creatorActions.candidates.find((candidate) =>
+          candidate.target.pluginId === roundTripPlugin && candidate.status === "ready" &&
+          (candidate.kind === "add_existing_plugin" || candidate.kind === "remove_plugin"));
+        assert.ok(action, JSON.stringify(inspection.creatorActions.candidates.filter((candidate) =>
+          candidate.target.pluginId === roundTripPlugin)));
+        const mutation = await handleUIProjectControlRequest({
+          schemaVersion: 3,
+          operation: "mutate_app_ui_model",
+          input: {
+            appUIModelHash: inspection.appUIModel.hash,
+            operations: [{ type: "execute_creator_action", actionId: action.actionId }],
+          },
+        }, projectRoot);
+        assert.equal(mutation.ok, true, JSON.stringify(mutation));
+        const result = mutation.result as { changed: boolean; changedPaths: string[] };
+        assert.equal(result.changed, true);
+        assert.ok(result.changedPaths.includes("src/agent-ui/app-ui/app-ui.json"));
+        const verified = await verifyUIProject(projectRoot);
+        assert.equal(verified.status, "passed", JSON.stringify(verified.errors));
+        const refreshed = await handleUIProjectControlRequest({
+          schemaVersion: 3, operation: "inspect_ui_project", input: { view: "composition" },
+        }, projectRoot);
+        assert.equal(refreshed.ok, true, JSON.stringify(refreshed));
+        inspection = refreshed.result as typeof inspection;
+      }
       const runtimeConfig = await readFile(
         path.join(projectRoot, "src/agent-ui/application/runtime-config.generated.ts"),
         "utf8",

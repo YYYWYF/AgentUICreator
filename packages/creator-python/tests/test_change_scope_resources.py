@@ -400,3 +400,25 @@ def test_inspection_result_does_not_expand_resource_scope():
     )
 
     assert guard.metrics.scopeResources == []
+
+
+@pytest.mark.parametrize("source_root", ["src/agent-ui", "client/custom-agent"])
+def test_managed_source_paths_preserve_scope_identity(tmp_path, source_root):
+    from agent_ui_creator.resource_scope import change_layer_for_path, resource_keys_for_path
+
+    (tmp_path / ".agent-ui").mkdir()
+    (tmp_path / ".agent-ui/project.json").write_text(json.dumps({
+        "version": "2", "sourceRoot": source_root,
+    }))
+    app_path = f"{source_root}/app-ui/app-ui.json"
+    plugin_path = f"{source_root}/plugins/sample/index.tsx"
+    assert change_layer_for_path(app_path, project_root=tmp_path) == "composition"
+    assert resource_keys_for_path(app_path, project_root=tmp_path) == ("app-ui-model",)
+    assert change_layer_for_path(str(tmp_path / plugin_path), project_root=tmp_path) == "plugin_behavior"
+    assert resource_keys_for_path(plugin_path, project_root=tmp_path) == ("plugin:sample",)
+    assert change_layer_for_path("src/host/App.tsx", project_root=tmp_path) is None
+    guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path))
+    guard.wrap_tool_call(_request("edit_file", {"file_path": "/" + plugin_path}, "managed-edit"),
+                         lambda _: ToolMessage(content="Successfully edited file", tool_call_id="managed-edit"))
+    assert guard.metrics.taskChangeLayers == ["plugin_behavior"]
+    assert guard.metrics.scopeResources == ["plugin:sample"]

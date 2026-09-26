@@ -20,4 +20,6 @@ The fixed `scripts/ui-project-control.ts` entry is used by the development-only 
 
 The shared helper scripts under this project's `scripts/` initialize or inspect one named Host and reset only its `.agent-ui` and `src/agent-ui` directories. They reject symlinks and unsafe paths. After reset, the next `dev` or `build` initializes that Host's default Mode again. The Platform Host also keeps its explicit `init:assistant`, `init:embedded`, and `init:platform` scripts for Source Registry experiments; using a different Mode requires reset first and the matching Host layout is only guaranteed in its named example.
 
-The public-entry test in this project builds temporary Hosts for all three Modes after removing `.agent-ui/**`, covering deployment without Creator metadata.
+Each Host also provides `pnpm verify:ui`, backed by the shared target verifier with that Host's own project root. Creator runs it together with `pnpm typecheck` after edits; it validates the managed model, capability catalog, composition, and Service contracts without writing generated files.
+
+The public-entry test in this project initializes temporary Hosts for all three Modes, executes add/remove actions, reads back composition and verifies the UI, then builds after removing `.agent-ui/**`, covering deployment without Creator metadata.

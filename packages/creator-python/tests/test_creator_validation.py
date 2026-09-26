@@ -331,3 +331,28 @@ def test_validation_reports_two_round_repair_limit(tmp_path):
     assert payload["result"]["repairRounds"] == 2
     assert payload["result"]["maxRepairRounds"] == 2
     assert payload["result"]["repairLimitReached"] is True
+
+
+def test_managed_composition_failure_keeps_project_scope(tmp_path):
+    (tmp_path / ".agent-ui").mkdir()
+    (tmp_path / ".agent-ui/project.json").write_text(json.dumps({
+        "version": "2", "sourceRoot": "src/agent-ui",
+    }))
+    runner = FakeValidationRunner([
+        CommandExecutionResult("", 0, False),
+        CommandExecutionResult("app-ui/app-ui.json: invalid", 1, False),
+        CommandExecutionResult("", 0, False),
+    ])
+    service, activity = validation_service(tmp_path, runner)
+    path = "src/agent-ui/app-ui/app-ui.json"
+    asyncio.run(service.ensure_baseline())
+    (tmp_path / path).parent.mkdir(parents=True)
+    activity.capture_before_content(path, None)
+    (tmp_path / path).write_text("{}")
+    activity.touch(path)
+
+    result = asyncio.run(service.validate())
+
+    assert result.failure_semantics["taskScope"] == ["composition"]
+    assert result.failure_semantics["changedResources"] == ["app-ui-model"]
+    assert result.failure_semantics["attribution"] == "introduced"

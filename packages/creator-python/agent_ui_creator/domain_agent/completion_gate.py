@@ -492,7 +492,7 @@ class CreatorDevelopmentCompletionGate:
                 for item in receipt.get("files", [])
                 if isinstance(item, dict) and isinstance(item.get("path"), str)
             ]
-            if change_layers_for_paths(changed_paths) == ("composition",):
+            if change_layers_for_paths(changed_paths, project_root=self.activity.project_root) == ("composition",):
                 failure_layers = runtime_failure_layers(runtime or {})
                 if failure_layers and all(
                     layer == "composition" for layer in failure_layers
