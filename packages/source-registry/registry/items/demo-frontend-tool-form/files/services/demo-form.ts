@@ -1,3 +1,5 @@
+import type { ReactHookFormCapability } from "../integrations/react-hook-form";
+
 export const DEMO_FORM_SERVICE = "demo.form" as const;
 export const DEMO_FORM_FIELDS = ["firstName", "lastName", "email", "projectIdea"] as const;
 export type DemoFormField = typeof DEMO_FORM_FIELDS[number];
@@ -9,13 +11,10 @@ export interface DemoFormController {
   reset(): void;
   submit(): Promise<DemoFormSubmitResult>;
 }
-export interface DemoFormService {
+export interface DemoFormService extends ReactHookFormCapability<DemoFormField> {
   attach(controller: DemoFormController): () => void;
   publish(values: DemoFormValues): void;
   recordSubmission(values: DemoFormValues): void;
-  setField(name: DemoFormField, value: string): Promise<{ success: true }>;
-  reset(): Promise<{ success: true }>;
-  submit(): Promise<DemoFormSubmitResult>;
   getSnapshot(): DemoFormSnapshot;
   subscribe(listener: () => void): () => void;
 }

@@ -132,6 +132,10 @@
     {
       "id": "demo/frontend-tool-form",
       "path": "items/demo-frontend-tool-form/item.json"
+    },
+    {
+      "id": "integration/react-hook-form",
+      "path": "items/integration-react-hook-form/item.json"
     }
   ]
 }

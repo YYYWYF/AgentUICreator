@@ -2,6 +2,7 @@ export type AgentUISourceItemKind =
   | "foundation"
   | "primitive"
   | "agent-component"
+  | "integration"
   | "demo";
 
 export interface AgentUISourceFile {

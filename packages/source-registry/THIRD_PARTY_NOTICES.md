@@ -66,3 +66,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## assistant-ui React Hook Form integration
+
+`integration/react-hook-form` adapts application-owned execution to the public
+`formTools` contract of `@assistant-ui/react-hook-form` 0.12.34, pinned at
+assistant-ui revision `039c3c32822632f2a564164f089f538926886124` (MIT, AgentbaseAI Inc.).
+It imports official descriptions from the installed package and does not copy or
+call `useAssistantForm`. The assistant-ui MIT notice above applies.

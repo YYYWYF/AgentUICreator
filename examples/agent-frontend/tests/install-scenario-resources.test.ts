@@ -12,8 +12,10 @@ vi.mock("../scripts/ui-project/agent-ui-project-paths", () => ({
   projectControlConfigForPaths: () => ({}),
 }));
 vi.mock("../scripts/ui-project/source-registry", () => ({
-  inspectAgentUISources: vi.fn(async () => ({ stateHash: "hash", items: [{ id: "demo/frontend-tool-form", status: "not-installed", requirements: [{ name: "react-hook-form", required: "^7", compatible: true }] }] })),
-  applyAgentUISourceItem: vi.fn(),
+  inspectAgentUISources: vi.fn(async () => ({ stateHash: "hash", items: [{ id: "demo/frontend-tool-form", status: "not-installed", dependencies: [], dependencyIssues: [], resolvedRequirements: [{ name: "react-hook-form", required: "^7", compatible: true }] }] })),
+  applyAgentUISourceItem: vi.fn(async () => {
+    vi.mocked(inspectAgentUISources).mockResolvedValueOnce({ stateHash: "after", items: [{ id: "demo/frontend-tool-form", status: "managed", dependencies: [], dependencyIssues: [], resolvedRequirements: [] }] } as unknown as Awaited<ReturnType<typeof inspectAgentUISources>>);
+  }),
 }));
 vi.mock("../scripts/ui-project/app-ui-transaction", () => ({ mutateAppUIModel: vi.fn() }));
 import { mutateAppUIModel } from "../scripts/ui-project/app-ui-transaction";
@@ -39,8 +41,8 @@ it("installs the bundle, generates both registries and places a visible Form bes
   })] }));
 });
 it("reports missing dependencies before any source or composition mutation", async () => {
-  vi.mocked(inspectAgentUISources).mockResolvedValueOnce({ stateHash: "hash", items: [{ id: "demo/frontend-tool-form", status: "not-installed", requirements: [{ name: "react-hook-form", required: "^7", compatible: false }] }] } as Awaited<ReturnType<typeof inspectAgentUISources>>);
-  await expect(installScenarioResources(await project(), "demo/frontend-tool-form")).rejects.toThrow("pnpm add react-hook-form");
+  vi.mocked(inspectAgentUISources).mockResolvedValueOnce({ stateHash: "hash", items: [{ id: "demo/frontend-tool-form", status: "not-installed", dependencies: [], dependencyIssues: [], resolvedRequirements: [{ name: "react-hook-form", required: "^7", compatible: false }] }] } as Awaited<ReturnType<typeof inspectAgentUISources>>);
+  await expect(installScenarioResources(await project(), "demo/frontend-tool-form")).rejects.toThrow("react-hook-form ^7");
   expect(applyAgentUISourceItem).not.toHaveBeenCalled();
   expect(writeGeneratedPluginRegistry).not.toHaveBeenCalled();
   expect(mutateAppUIModel).not.toHaveBeenCalled();

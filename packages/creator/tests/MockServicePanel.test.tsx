@@ -28,7 +28,7 @@ async function click(container: HTMLElement, text: string) {
 describe("Creator Mock service panel", () => {
   it("keeps installation errors and retry inside the Demo card without selecting its radio", async () => {
     const state = { ...initial, scenarios: [...initial.scenarios, { id: "data-message-chart", title: "Chart" }] };
-    const compatibility = { projectId: "project", canInstall: true, status: "checked", requirements: [{ pluginId: "chart-message", name: "图表插件", scenarioIds: ["data-message-chart"], status: "missing" }] };
+    const compatibility = { projectId: "project", canInstall: true, status: "checked", requirements: [{ id: "chart-message", plugin: { id: "chart-message" }, name: "图表插件", scenarioIds: ["data-message-chart"], status: "missing" }] };
     const fetch = vi.fn(async (url: string) => {
       if (url.endsWith("/install-plugin")) return new Response(JSON.stringify({ error: "项目文件已改变，请重试。" }), { status: 400, headers: { "Content-Type": "application/json" } });
       return json(url.endsWith("/compatibility") ? compatibility : state);
@@ -52,7 +52,7 @@ describe("Creator Mock service panel", () => {
     vi.useFakeTimers();
     let status = "missing";
     const state = { ...initial, scenarioId: "data-message-chart", scenarios: [{ id: "data-message-chart", title: "Chart" }] };
-    const compatibility = () => ({ projectId: "project", canInstall: true, status: "checked", requirements: [{ pluginId: "chart-message", name: "图表插件", scenarioIds: ["data-message-chart"], status }] });
+    const compatibility = () => ({ projectId: "project", canInstall: true, status: "checked", requirements: [{ id: "chart-message", plugin: { id: "chart-message" }, name: "图表插件", scenarioIds: ["data-message-chart"], status }] });
     const fetch = vi.fn(async (url: string, _init?: RequestInit) => {
       if (url.endsWith("/install-plugin")) { status = "ready"; return json(compatibility()); }
       return json(url.endsWith("/compatibility") ? compatibility() : state);
@@ -85,15 +85,15 @@ describe("Creator Mock service panel", () => {
   it("offers every missing resource and installs the clicked resource without selecting the Demo", async () => {
     const state = { ...initial, scenarios: [{ id: "approval-resume", title: "Approval" }] };
     const requirements = [
-      { pluginId: "assistant-ui-reasoning", name: "推理展示资源", scenarioIds: ["approval-resume"], status: "missing" },
-      { pluginId: "assistant-ui-tool-fallback", name: "工具调用与审批资源", scenarioIds: ["approval-resume"], status: "missing" },
-      { pluginId: "assistant-ui-tool-group", name: "工具分组资源", scenarioIds: ["approval-resume"], status: "disabled" },
+      { id: "assistant-ui-reasoning", plugin: { id: "assistant-ui-reasoning" }, name: "推理展示资源", scenarioIds: ["approval-resume"], status: "missing" },
+      { id: "assistant-ui-tool-fallback", plugin: { id: "assistant-ui-tool-fallback" }, name: "工具调用与审批资源", scenarioIds: ["approval-resume"], status: "missing" },
+      { id: "assistant-ui-tool-group", plugin: { id: "assistant-ui-tool-group" }, name: "工具分组资源", scenarioIds: ["approval-resume"], status: "disabled" },
     ];
     const compatibility = { projectId: "project", canInstall: true, status: "checked", requirements };
     const fetch = vi.fn(async (url: string, init?: RequestInit) => {
       if (url.endsWith("/install-plugin")) {
         const { pluginId } = JSON.parse(String(init?.body));
-        requirements.find(requirement => requirement.pluginId === pluginId)!.status = "ready";
+        requirements.find(requirement => requirement.plugin.id === pluginId)!.status = "ready";
       }
       return json(url === CREATOR_MOCK_API_PATH ? state : compatibility);
     });
@@ -157,7 +157,7 @@ describe("Creator Mock service panel", () => {
 it("shows optional resources and keeps Run disabled until the bundle is ready", async () => {
   const state = { ...initial, scenarios: [...initial.scenarios, { id: "frontend-tool-fill-form", title: "Frontend Tool · Fill Form", resources: [{ id: "frontend-tool-form", label: "Form", sourceItemId: "demo/frontend-tool-form" }] }] };
   let ready = false;
-  const compatibility = () => ({ projectId: "project", canInstallResources: true, status: "checked", requirements: [{ pluginId: "frontend-tool-form-demo", sourceItemId: "demo/frontend-tool-form", name: "Form", scenarioIds: ["frontend-tool-fill-form"], status: ready ? "ready" : "missing", missingPackages: [] }] });
+  const compatibility = () => ({ projectId: "project", canInstallResources: true, status: "checked", requirements: [{ id: "frontend-tool-form", plugin: { id: "frontend-tool-form-demo" }, sourceItemId: "demo/frontend-tool-form", name: "Form", scenarioIds: ["frontend-tool-fill-form"], status: ready ? "ready" : "missing", missingPackages: [] }] });
   const fetch = vi.fn(async (url: string) => {
     if (url.endsWith("/install-resources")) { ready = true; return json(compatibility()); }
     return json(url.endsWith("/compatibility") ? compatibility() : state);

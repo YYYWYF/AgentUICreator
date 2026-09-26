@@ -58,13 +58,13 @@ export async function handleCreatorMockRequest(
       const fields = input as { projectId?: unknown; pluginId?: unknown };
       const project = resolveProject?.();
       if (!project || fields.projectId !== project.id) throw new Error("当前项目已改变，请刷新面板后重试。");
-      if (typeof fields.pluginId !== "string" || !mockDemoRequirements.some(requirement => requirement.pluginId === fields.pluginId && !requirement.sourceItemId)) throw new Error("此插件不支持从 Mock 面板引入。");
+      if (typeof fields.pluginId !== "string" || !mockDemoRequirements.some(requirement => requirement.plugin?.id === fields.pluginId && !requirement.sourceItemId)) throw new Error("此插件不支持从 Mock 面板引入。");
       if (!installPlugin) throw new Error("当前 Creator 宿主尚未配置一键引入。");
       await installPlugin(project.id, fields.pluginId);
       const current = resolveProject?.();
       if (current?.id !== project.id) throw new Error("项目已切换，请查看当前项目的插件状态。");
       const compatibility = await inspectMockProjectCompatibility(current, inspector);
-      if (compatibility.requirements.find(requirement => requirement.pluginId === fields.pluginId && !requirement.sourceItemId)?.status !== "ready") {
+      if (compatibility.requirements.find(requirement => requirement.plugin?.id === fields.pluginId && !requirement.sourceItemId)?.status !== "ready") {
         throw new Error("插件操作已完成，但尚未确认启用成功，请重新检查项目后重试。");
       }
       response.end(JSON.stringify({ ...compatibility, canInstall: true, canInstallResources: installResources !== undefined })); return;

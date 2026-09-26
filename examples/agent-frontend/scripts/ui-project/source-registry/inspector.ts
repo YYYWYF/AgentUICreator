@@ -3,6 +3,7 @@ import path from "node:path";
 
 import {
   loadAgentUISourceRegistry,
+  resolveAgentUISourceItemClosure,
   type LoadedAgentUISourceItem,
   type LoadedAgentUISourceRegistry,
 } from "@agent-ui/source-registry";
@@ -190,6 +191,7 @@ export async function inspectAgentUISources(
 
   for (const item of loadedRegistry.items) {
     const locked = lock.items[item.id];
+    const provided = config.agentUI.providedSourceItems?.includes(item.id) ?? false;
     const targets = new Set([
       ...item.files.map((file) => file.target),
       ...Object.keys(locked?.files ?? {}),
@@ -200,12 +202,19 @@ export async function inspectAgentUISources(
           sourceRoot,
           config.agentUI.sourceRoot,
           target,
-          locked?.files[target]?.sha256,
+          locked?.files[target]?.sha256 ?? (provided && item.loadedFiles.some(file => file.target === target) ? sha256(item.loadedFiles.find(file => file.target === target)!.content) : undefined),
         ),
       ),
     );
-    const status = aggregateStatus(locked !== undefined, files);
+    const status = aggregateStatus(locked !== undefined || provided, files);
     const packageInspection = await inspectAgentUIPackages(projectRoot, [item]);
+    const closure = resolveAgentUISourceItemClosure(loadedRegistry, item.id);
+    const dependencies = closure.filter(dependency => dependency.id !== item.id);
+    const resolvedPackages = await inspectAgentUIPackages(projectRoot, closure);
+    const dependencyIssues: AgentUISourceIssue[] = dependencies.filter(dependency => !lock.items[dependency.id] && !config.agentUI.providedSourceItems?.includes(dependency.id)).map(dependency => ({
+      code: "AGENT_UI_SOURCE_DEPENDENCY_NOT_INSTALLED", itemId: dependency.id,
+      message: `${item.id} requires installed source item ${dependency.id}.`,
+    }));
     const itemIssues: AgentUISourceIssue[] = [];
     if (status !== "managed" && status !== "not-installed") {
       itemIssues.push({
@@ -221,14 +230,30 @@ export async function inspectAgentUISources(
     }
     items.push({
       id: item.id,
-      ...(locked === undefined ? {} : { installedVersion: locked.version }),
+      ...(locked === undefined ? (provided ? { installedVersion: item.version } : {}) : { installedVersion: locked.version }),
       availableVersion: item.version,
       status,
       files,
       requirements: packageInspection.packages,
+      dependencies: dependencies.map(dependency => dependency.id),
+      resolvedRequirements: resolvedPackages.packages,
+      dependencyIssues,
       issues: itemIssues,
     });
     issues.push(...itemIssues);
+    if (locked) issues.push(...dependencyIssues);
+  }
+
+  const inspectionById = new Map(items.map(item => [item.id, item]));
+  for (const item of items) {
+    for (const id of item.dependencies) {
+      const dependency = inspectionById.get(id);
+      if (dependency && ["partial", "blocked"].includes(dependency.status)) {
+        const issue = { code: "AGENT_UI_SOURCE_DEPENDENCY_INCOMPLETE", itemId: id, message: `${item.id} requires complete source item ${id}.` };
+        item.dependencyIssues.push(issue);
+        if (lock.items[item.id]) issues.push(issue);
+      }
+    }
   }
 
   for (const itemId of Object.keys(lock.items).sort()) {
@@ -241,17 +266,9 @@ export async function inspectAgentUISources(
     }
   }
   const installedItems = new Map<string, LoadedAgentUISourceItem>();
-  const visitInstalled = (item: LoadedAgentUISourceItem): void => {
-    if (installedItems.has(item.id)) return;
-    installedItems.set(item.id, item);
-    for (const requiredId of item.requires ?? []) {
-      const required = loadedRegistry.byId.get(requiredId);
-      if (required !== undefined) visitInstalled(required);
-    }
-  };
   for (const itemId of Object.keys(lock.items)) {
-    const item = loadedRegistry.byId.get(itemId);
-    if (item !== undefined) visitInstalled(item);
+    if (!loadedRegistry.byId.has(itemId)) continue;
+    for (const item of resolveAgentUISourceItemClosure(loadedRegistry, itemId)) installedItems.set(item.id, item);
   }
   const packageInspection = await inspectAgentUIPackages(
     projectRoot,

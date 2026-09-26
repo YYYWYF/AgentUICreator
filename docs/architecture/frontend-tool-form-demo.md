@@ -3,8 +3,9 @@
 Dialog and Form scenarios are always listed in Mock Studio. Their code belongs to
 `demo/frontend-tool-dialog` and `demo/frontend-tool-form` Source Registry bundles
 (kind `demo`), rather than the default foundation. Select a scenario to see its
-resource readiness; install resources explicitly before activating it. A missing
-`react-hook-form ^7` dependency is reported with `pnpm add react-hook-form`.
+resource readiness; install resources explicitly before activating it. Missing packages are reported from the full dependency closure, including
+`react-hook-form ^7` and `@assistant-ui/react-hook-form 0.12.34`; Mock Studio
+generates a copyable package command from these requirements.
 The installer never runs a package manager.
 
 `installScenarioResources` installs source through the existing registry transaction,
@@ -30,13 +31,14 @@ uses the application-owned `demo.dialog` service instead of `alert()`.
 
 Form references `packages/react-hook-form` (`0.12.34` at the pinned revision),
 especially `src/formTools.ts` and `src/useAssistantForm.ts`. Canonical tools are
-`set_form_field`, `submit_form` and `reset_form`. AgentUICreator mirrors these tool
-semantics but routes execution through its application-owned Frontend Tool policy.
+`set_form_field`, `submit_form` and `reset_form`. `integration/react-hook-form` imports the public `formTools` contract from
+`@assistant-ui/react-hook-form 0.12.34` as the source of truth for descriptions,
+then routes execution through application-owned Frontend Tool policy.
 `useAssistantForm` is appropriate for ordinary assistant-ui applications; its direct
 model-context registration does not fit our explicit permission boundary. This demo
 uses React Hook Form's `useForm`, `FormProvider`, `register`, `setValue`, `reset`,
-`handleSubmit` and `formState`; it does not install the assistant-ui form hook package
-or copy its implementation. Agent submission requests the native form submit event
+`handleSubmit` and `formState`; it uses the assistant-ui package only for its public `formTools` contract,
+never calls `useAssistantForm`, and does not copy its implementation. Agent submission requests the native form submit event
 and awaits React Hook Form validation and the same handler used for manual submit.
 
 The default scenario fills Alice's first name and email and returns a continuation
@@ -76,3 +78,45 @@ to `examples/agent-frontend/tests/frontend-tool-form-lifecycle.test.tsx` to run 
 that target's existing test environment. Dialog coverage remains in the example's
 lifecycle tests with test-only fixtures. Catalog and readiness coverage is in the
 Mock Agent, Source Registry and Creator test suites.
+
+## Official Integration resource contract
+
+Source Registry supports `integration` for official adaptations of third-party
+frameworks, protocols and specialized assistant-ui capabilities. An Integration
+need not contribute a Plugin, Frontend Tool or AppUIModel instance.
+`integration/react-hook-form` owns package requirements, `ReactHookFormCapability`,
+`reactHookFormToolContracts` and `createReactHookFormFrontendTools`. Form Demo
+requires that Integration and owns its fields, visible UI, controller, snapshots,
+Tool modules and historical receipts. Dialog remains an independent Demo.
+
+The factory requires an explicit `expose` list. Installing the Integration creates
+no application Tool module and grants no Agent permission. Only modules included
+in the application generated allowlist expose tools; service availability continues
+to filter them through `AppFrontendToolRuntime`. Do not combine `useAssistantForm`
+(which directly registers with model context) with this factory.
+
+`installOptionalAgentUIResource(projectRoot, sourceItemId)` installs a full
+requires closure, checks package readiness, regenerates source-derived registries,
+and checks source integrity without changing AppUIModel. `installScenarioResources`
+adds Demo composition and project verification afterward. Neither runs a package
+manager. Direct `requirements` remain item-local; `dependencies`,
+`resolvedRequirements` and `dependencyIssues` describe transitive readiness.
+Installed consumers prevent dependency removal with
+`AGENT_UI_SOURCE_DEPENDENCY_IN_USE`. Legacy v1 hosts explicitly provide the existing
+core Runtime: its source files are checked, never adopted or overwritten by the
+optional-resource lock. V2 foundations remain managed through the project source lock.
+
+## Future A2UI public boundary (contract only)
+
+A future `integration/a2ui` may supply Runtime, renderer and action bridges without
+any Plugin or Frontend Tool. A future Demo can depend on that resource. This change
+does not implement A2UI. Ordinary Plugins should consume a thin public facade in
+`@agent-ui/runtime-conversation`, such as `useConversationA2uiAction`, rather than
+import `useAgUiSendA2uiAction` directly from `@assistant-ui/react-ag-ui`.
+Integration adapters should centralize `JSONGenerativeUI` and
+`defaultGenerativeUILibrary` usage so assistant-ui API changes stay at that boundary.
+
+The Integration's upstream semantic and permission regression template lives at
+`packages/source-registry/registry/items/integration-react-hook-form/tests/frontend-tool-contract.test.ts.template`.
+Copy it to the example target's `tests/` after explicitly installing the resource
+and its dependencies. It is excluded from production resource installation.

@@ -69,6 +69,8 @@ export interface UIProjectControlConfig {
   agentUI: {
     sourceRoot: string;
     metadataRoot: string;
+    /** Legacy host-owned foundations: inspect their files but never overwrite or adopt them. */
+    providedSourceItems?: readonly string[];
   };
 }
 
@@ -389,7 +391,12 @@ export interface AgentUISourceItemInspection {
   availableVersion: string;
   status: AgentUISourceStatus;
   files: AgentUISourceFileInspection[];
+  /** Packages declared directly by this item. */
   requirements: AgentUISourcePackageInspection[];
+  /** Full requires closure, excluding self. */
+  dependencies: string[];
+  resolvedRequirements: AgentUISourcePackageInspection[];
+  dependencyIssues: AgentUISourceIssue[];
   issues: AgentUISourceIssue[];
 }
 

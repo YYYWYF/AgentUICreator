@@ -9,32 +9,36 @@ export interface MockDemoCompatibility {
   canInstallResources?: boolean;
   projectId: string | null;
   status: "checked" | "unknown";
-  requirements: Array<{
-    pluginId: string;
-    sourceItemId?: string;
-    missingPackages?: readonly { name: string; required: string }[];
-    name: string;
-    scenarioIds: string[];
-    status: "ready" | "missing" | "disabled";
-  }>;
+  requirements: MockDemoRequirement[];
 }
+
+export interface MockDemoRequirement {
+  id: string;
+  name: string;
+  scenarioIds: string[];
+  sourceItemId?: string;
+  plugin?: { id: string; slot?: string };
+  missingPackages?: readonly { name: string; required: string }[];
+  status: "ready" | "missing" | "disabled";
+}
+export type MockDemoResource = Omit<MockDemoRequirement, "status" | "missingPackages">;
 
 const toolScenarios = ["reasoning-tool-success", "parallel-tools", "tool-error", "approval-resume", "agent-state-sync", "agent-plan", "agent-status", "nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error"];
 const reasoningScenarios = ["reasoning-chat", "reasoning-tool-success", "approval-resume", "agent-plan", "nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive"];
 
-export const mockDemoRequirements: ReadonlyArray<{ pluginId: string; name: string; scenarioIds: string[]; slot?: string; sourceItemId?: string }> = [
-  { pluginId: "frontend-tool-dialog-demo", name: "Dialog Frontend Tool Demo", sourceItemId: "demo/frontend-tool-dialog", scenarioIds: ["frontend-tool-open-dialog"] },
-  { pluginId: "frontend-tool-form-demo", name: "React Hook Form Demo", sourceItemId: "demo/frontend-tool-form", scenarioIds: ["frontend-tool-fill-form"] },
-  { pluginId: "assistant-ui-reasoning", name: "推理展示资源", scenarioIds: reasoningScenarios, slot: "reasoningGroup" },
-  { pluginId: "assistant-ui-tool-group", name: "工具分组资源", scenarioIds: toolScenarios, slot: "toolGroup" },
-  { pluginId: "assistant-ui-tool-fallback", name: "工具调用与审批资源", scenarioIds: toolScenarios, slot: "toolFallback" },
-  { pluginId: "chart-message", name: "图表插件", scenarioIds: ["data-message-chart"] },
-  { pluginId: "job-progress-message", name: "进度展示资源", scenarioIds: ["agent-state-sync"] },
-  { pluginId: "agent-plan-message", name: "计划展示资源", scenarioIds: ["agent-plan"] },
-  { pluginId: "agent-status-message", name: "状态展示资源", scenarioIds: ["agent-status"] },
-  { pluginId: "task-group", name: "任务卡片插件", scenarioIds: [
+export const mockDemoRequirements: ReadonlyArray<MockDemoResource> = [
+  { id: "frontend-tool-dialog", plugin: { id: "frontend-tool-dialog-demo" }, name: "Dialog Frontend Tool Demo", sourceItemId: "demo/frontend-tool-dialog", scenarioIds: ["frontend-tool-open-dialog"] },
+  { id: "frontend-tool-form", plugin: { id: "frontend-tool-form-demo" }, name: "React Hook Form Demo", sourceItemId: "demo/frontend-tool-form", scenarioIds: ["frontend-tool-fill-form"] },
+  { id: "assistant-ui-reasoning", plugin: { id: "assistant-ui-reasoning", slot: "reasoningGroup" }, name: "推理展示资源", scenarioIds: reasoningScenarios },
+  { id: "assistant-ui-tool-group", plugin: { id: "assistant-ui-tool-group", slot: "toolGroup" }, name: "工具分组资源", scenarioIds: toolScenarios },
+  { id: "assistant-ui-tool-fallback", plugin: { id: "assistant-ui-tool-fallback", slot: "toolFallback" }, name: "工具调用与审批资源", scenarioIds: toolScenarios },
+  { id: "chart-message", plugin: { id: "chart-message" }, name: "图表插件", scenarioIds: ["data-message-chart"] },
+  { id: "job-progress-message", plugin: { id: "job-progress-message" }, name: "进度展示资源", scenarioIds: ["agent-state-sync"] },
+  { id: "agent-plan-message", plugin: { id: "agent-plan-message" }, name: "计划展示资源", scenarioIds: ["agent-plan"] },
+  { id: "agent-status-message", plugin: { id: "agent-status-message" }, name: "状态展示资源", scenarioIds: ["agent-status"] },
+  { id: "task-group", plugin: { id: "task-group", slot: "taskGroup" }, name: "任务卡片插件", scenarioIds: [
     "nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error",
-  ], slot: "taskGroup" },
+  ] },
 ];
 
 /** Read-only projection of the formal protocol, deliberately excluding AppUIModel. */
@@ -49,7 +53,7 @@ export interface ProjectCompositionInspection {
   }[];
 }
 export interface AgentUISourceInspection {
-  items: readonly { id: string; status: string; requirements?: readonly { name: string; required: string; compatible: boolean }[] }[];
+  items: readonly { id: string; status: string; resolvedRequirements?: readonly { name: string; required: string; compatible: boolean }[]; dependencies?: readonly string[]; dependencyIssues?: readonly { code: string }[] }[];
 }
 export type MockProjectInspector = (target: MockProjectTarget) => Promise<{
   composition: ProjectCompositionInspection;
@@ -61,22 +65,26 @@ export function inspectMockDemoCompatibility(
   snapshot: ProjectCompositionInspection,
   sourceInspection: AgentUISourceInspection,
   projectId: string | null = null,
+  resources: readonly MockDemoResource[] = mockDemoRequirements,
 ): MockDemoCompatibility {
   const parents = new Map(snapshot.pluginInstances.map(instance => [instance.id, instance]));
   return {
     projectId, status: "checked",
-    requirements: mockDemoRequirements.map(requirement => {
-      const source = snapshot.pluginSources.find(source => source.pluginId === requirement.pluginId);
-      const item = sourceInspection.items.find(item => item.id === (requirement.sourceItemId ?? `plugin/${requirement.pluginId}`));
-      const missingPackages = item?.requirements?.filter(item => !item.compatible).map(({ name, required }) => ({ name, required })) ?? [];
-      const bundleReady = !requirement.sourceItemId || (item && ["managed", "customized"].includes(item.status) && missingPackages.length === 0);
-      const installed = bundleReady && source?.status === "available" && item?.status !== "partial" &&
-        (requirement.pluginId !== "chart-message" || source.dataMessageUINames.includes("chart"));
-      const ready = snapshot.pluginInstances.some(instance =>
-        instance.pluginId === requirement.pluginId && instance.effectiveEnabled &&
-        (requirement.slot === undefined ||
-          (instance.target.type === "plugin_slot" && instance.target.slot === requirement.slot &&
+    requirements: resources.map(requirement => {
+      const plugin = requirement.plugin;
+      const source = plugin && snapshot.pluginSources.find(source => source.pluginId === plugin.id);
+      const item = sourceInspection.items.find(item => item.id === (requirement.sourceItemId ?? `plugin/${plugin?.id}`));
+      const missingPackages = item?.resolvedRequirements?.filter(item => !item.compatible).map(({ name, required }) => ({ name, required })) ?? [];
+      const closureReady = item?.dependencies?.every(id => sourceInspection.items.some(dependency => dependency.id === id && ["managed", "customized"].includes(dependency.status))) ?? true;
+      const bundleReady = !requirement.sourceItemId || (item && ["managed", "customized"].includes(item.status) && missingPackages.length === 0 && closureReady && !item.dependencyIssues?.length);
+      const installed = bundleReady && (!plugin || (source?.status === "available" && item?.status !== "partial" &&
+        (plugin.id !== "chart-message" || source.dataMessageUINames.includes("chart"))));
+      const ready = !plugin || snapshot.pluginInstances.some(instance =>
+        instance.pluginId === plugin.id && instance.effectiveEnabled &&
+        (plugin.slot === undefined ||
+          (instance.target.type === "plugin_slot" && instance.target.slot === plugin.slot &&
             parents.get(instance.target.parentInstanceId ?? "")?.pluginId === "conversation-surface")));
+
       return { ...requirement, ...(requirement.sourceItemId ? { missingPackages } : {}), status: !installed ? "missing" as const : ready ? "ready" as const : "disabled" as const };
     }),
   };

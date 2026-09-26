@@ -93,7 +93,7 @@ describe("fresh user Host architecture regression", () => {
     await installDemoPlugin(root, "chart-message");
     const installed = await request("inspect_ui_project", { view: "composition" });
     const installedSources = await request<AgentUISourceInspection>("inspect_agent_ui_sources");
-    expect(inspectMockDemoCompatibility(installed, installedSources).requirements.find(requirement => requirement.pluginId === "chart-message")?.status).toBe("ready");
+    expect(inspectMockDemoCompatibility(installed, installedSources).requirements.find(requirement => requirement.plugin?.id === "chart-message")?.status).toBe("ready");
     // A real source plugin, independent of the preset's provider cardinality.
     const pluginRoot = path.join(root, sourceRoot, "plugins/regression-probe");
     await mkdir(pluginRoot);

@@ -107,7 +107,7 @@ export function parseSourceItem(value: unknown, manifestPath: string): AgentUISo
       `${manifestPath} has an invalid semantic version.`,
     );
   }
-  if (!(["foundation", "primitive", "agent-component", "demo"] as const).includes(value.kind as never)) {
+  if (!(["foundation", "primitive", "agent-component", "integration", "demo"] as const).includes(value.kind as never)) {
     throw new AgentUISourceRegistryError(
       "AGENT_UI_SOURCE_ITEM_INVALID",
       `${manifestPath} has an invalid kind.`,

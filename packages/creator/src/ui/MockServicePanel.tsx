@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CREATOR_MOCK_API_PATH, type CreatorMockState } from "../mock/types.js";
 import type { MockDemoCompatibility } from "../mock/demo-compatibility.js";
+import { packageInstallCommand } from "./package-install-guidance.js";
 import { mockResourcePreviews } from "./mock-demo-previews.js";
 
 async function mockRequest(route = "", body?: unknown, signal?: AbortSignal): Promise<CreatorMockState> {
@@ -30,29 +31,31 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
   const inFlight = useRef(false);
   const [compatibility, setCompatibility] = useState<MockDemoCompatibility | null>(null);
   const compatibilityVersion = useRef(0);
-  const [installation, setInstallation] = useState<{ scenarioId: string; pluginId: string; status: "installing" | "success" | "error"; message: string } | null>(null);
+  const [installation, setInstallation] = useState<{ scenarioId: string; resourceId: string; status: "installing" | "success" | "error"; message: string } | null>(null);
   const resourceLabels: Record<string, string> = { "assistant-ui-reasoning": "推理展示", "assistant-ui-tool-group": "工具分组", "assistant-ui-tool-fallback": "工具调用与审批", "chart-message": "图表", "task-group": "任务卡片", "job-progress-message": "进度展示", "agent-plan-message": "计划展示", "agent-status-message": "状态展示" };
 
   const [resourceSelection, setResourceSelection] = useState<string | null>(null);
 
-  async function installRequirement(pluginId: string, scenarioId: string) {
+  async function installRequirement(resourceId: string, scenarioId: string) {
     if (inFlight.current || !compatibility?.projectId) return;
+    const requirement = compatibility.requirements.find(item => item.id === resourceId);
+    if (!requirement || (!requirement.sourceItemId && !requirement.plugin)) return;
     inFlight.current = true;
     const current = ++compatibilityVersion.current;
     setBusy(true); setError(null); setNotice("");
-    setInstallation({ scenarioId, pluginId, status: "installing", message: "正在引入并启用插件…" });
+    setInstallation({ scenarioId, resourceId, status: "installing", message: "正在引入资源…" });
     try {
-      const response = await fetch(`${CREATOR_MOCK_API_PATH}${compatibility.requirements.find(item => item.pluginId === pluginId)?.sourceItemId ? "/install-resources" : "/install-plugin"}`, {
+      const response = await fetch(`${CREATOR_MOCK_API_PATH}${requirement.sourceItemId ? "/install-resources" : "/install-plugin"}`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId: compatibility.projectId, ...(compatibility.requirements.find(item => item.pluginId === pluginId)?.sourceItemId ? { sourceItemId: compatibility.requirements.find(item => item.pluginId === pluginId)!.sourceItemId } : { pluginId }) }),
+        body: JSON.stringify({ projectId: compatibility.projectId, ...(requirement.sourceItemId ? { sourceItemId: requirement.sourceItemId } : { pluginId: requirement.plugin!.id }) }),
       });
       const result = await response.json();
       if (current !== compatibilityVersion.current) return;
       if (!response.ok) throw new Error(result.error ?? "插件引入失败，请重试。");
       setCompatibility(result as MockDemoCompatibility);
-      setInstallation({ scenarioId, pluginId, status: "success", message: "已引入并启用，可以发送消息测试。" });
+      setInstallation({ scenarioId, resourceId, status: "success", message: "已引入并启用，可以发送消息测试。" });
     } catch (failure) {
-      if (current === compatibilityVersion.current) setInstallation({ scenarioId, pluginId, status: "error", message: failure instanceof Error ? failure.message : "插件引入失败，请重试。" });
+      if (current === compatibilityVersion.current) setInstallation({ scenarioId, resourceId, status: "error", message: failure instanceof Error ? failure.message : "插件引入失败，请重试。" });
     } finally { inFlight.current = false; setBusy(false); }
   }
 
@@ -196,20 +199,21 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
               </span></label>
               <div className="creator-mock-scenario-footer">
                 <code>{scenario.id}</code>
-                {requirementsFor(scenario.id).map(requirement => <div className="creator-mock-resource-row" key={requirement.pluginId}>
-                  {requirement.missingPackages?.map(item => <p key={item.name}>缺少依赖：{item.name} {item.required}。请在项目中安装后重试：<code>pnpm add {item.name}</code></p>)}
+                {requirementsFor(scenario.id).map(requirement => <div className="creator-mock-resource-row" key={requirement.id}>
+                  {requirement.missingPackages?.map(item => <p key={item.name}>缺少依赖：{item.name} {item.required}。</p>)}
+                  {requirement.missingPackages?.length ? <p>请在项目中安装后重试：<code>{packageInstallCommand(requirement.missingPackages)}</code></p> : null}
                   <span className="creator-mock-requirement-label">{requirement.status === "missing" ? `当前项目缺少${requirement.name}` : `当前项目未启用或未正确放置${requirement.name}`}</span>
                   {(requirement.sourceItemId ? compatibility?.canInstallResources : compatibility?.canInstall) ? <div className="creator-mock-resource-actions">
-                    <button type="button" disabled={busy || !!requirement.missingPackages?.length} onClick={() => void installRequirement(requirement.pluginId, scenario.id)}>
-                      {installation?.scenarioId === scenario.id && installation.pluginId === requirement.pluginId && installation.status === "installing" ? "正在引入…"
-                        : installation?.scenarioId === scenario.id && installation.pluginId === requirement.pluginId && installation.status === "error" ? "重试引入"
-                        : requirement.sourceItemId ? "安装 Demo 资源" : `${requirement.status === "disabled" ? "启用" : "引入"}${resourceLabels[requirement.pluginId] ?? requirement.name}`}
+                    <button type="button" disabled={busy || !!requirement.missingPackages?.length} onClick={() => void installRequirement(requirement.id, scenario.id)}>
+                      {installation?.scenarioId === scenario.id && installation.resourceId === requirement.id && installation.status === "installing" ? "正在引入…"
+                        : installation?.scenarioId === scenario.id && installation.resourceId === requirement.id && installation.status === "error" ? "重试引入"
+                        : requirement.sourceItemId ? "安装资源" : `${requirement.status === "disabled" ? "启用" : "引入"}${resourceLabels[requirement.plugin?.id ?? requirement.id] ?? requirement.name}`}
                     </button>
-                    {requirement.status === "missing" && mockResourcePreviews[requirement.pluginId] ? <span className="creator-mock-preview">
-                      <button type="button" className="creator-mock-preview-help" aria-label={`查看${requirement.name}示意图`} aria-describedby={`mock-resource-preview-${scenario.id}-${requirement.pluginId}`}>?</button>
-                      <span className="creator-mock-preview-popover" id={`mock-resource-preview-${scenario.id}-${requirement.pluginId}`} role="tooltip">
+                    {requirement.status === "missing" && mockResourcePreviews[requirement.plugin?.id ?? requirement.id] ? <span className="creator-mock-preview">
+                      <button type="button" className="creator-mock-preview-help" aria-label={`查看${requirement.name}示意图`} aria-describedby={`mock-resource-preview-${scenario.id}-${requirement.id}`}>?</button>
+                      <span className="creator-mock-preview-popover" id={`mock-resource-preview-${scenario.id}-${requirement.id}`} role="tooltip">
                         <strong>{requirement.name}</strong>
-                        <img src={mockResourcePreviews[requirement.pluginId]} alt={`${requirement.name}示意图`} width="480" height="260" />
+                        <img src={mockResourcePreviews[requirement.plugin?.id ?? requirement.id]} alt={`${requirement.name}示意图`} width="480" height="260" />
                         <span>即将引入此资源，实际展示取决于项目样式与 Agent 数据。</span>
                       </span>
                     </span> : null}

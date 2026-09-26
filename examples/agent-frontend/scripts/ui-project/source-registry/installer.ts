@@ -1,5 +1,6 @@
 import {
   loadAgentUISourceRegistry,
+  resolveAgentUISourceItemClosure,
   type LoadedAgentUISourceItem,
   type LoadedAgentUISourceRegistry,
 } from "@agent-ui/source-registry";
@@ -40,46 +41,13 @@ export interface InstallAgentUISourceItemsResult {
   readonly stateHash: string;
 }
 
-function dependencyClosure(
-  registry: LoadedAgentUISourceRegistry,
-  itemId: string,
-): LoadedAgentUISourceItem[] {
-  const requested = registry.byId.get(itemId);
-  if (requested === undefined) {
-    throw new AgentUISourceError(
-      "AGENT_UI_SOURCE_ITEM_NOT_FOUND",
-      `Agent UI source item ${itemId} does not exist.`,
-      { itemId },
-    );
-  }
-  const result: LoadedAgentUISourceItem[] = [];
-  const visited = new Set<string>();
-  const visit = (item: LoadedAgentUISourceItem): void => {
-    if (visited.has(item.id)) return;
-    visited.add(item.id);
-    for (const requiredId of item.requires ?? []) {
-      const required = registry.byId.get(requiredId);
-      if (required === undefined) {
-        throw new AgentUISourceError(
-          "AGENT_UI_SOURCE_REQUIREMENT_NOT_FOUND",
-          `Agent UI source item ${item.id} requires unavailable item ${requiredId}.`,
-        );
-      }
-      visit(required);
-    }
-    result.push(item);
-  };
-  visit(requested);
-  return result;
-}
-
 export function resolveAgentUISourceItems(
   registry: LoadedAgentUISourceRegistry,
   itemIds: readonly string[],
 ): LoadedAgentUISourceItem[] {
   const ordered = new Map<string, LoadedAgentUISourceItem>();
   for (const itemId of itemIds) {
-    for (const item of dependencyClosure(registry, itemId)) ordered.set(item.id, item);
+    for (const item of resolveAgentUISourceItemClosure(registry, itemId)) ordered.set(item.id, item);
   }
   return [...ordered.values()];
 }
@@ -162,7 +130,7 @@ export async function applyAgentUISourceItem(
 ): Promise<AgentUISourceApplyResult> {
   await recoverPendingAgentUISourceTransaction(projectRoot, config);
   const loadedRegistry = registry ?? await loadAgentUISourceRegistry();
-  const closure = dependencyClosure(loadedRegistry, input.itemId);
+  const closure = resolveAgentUISourceItemClosure(loadedRegistry, input.itemId);
   const before = await inspectAgentUISources(projectRoot, config, loadedRegistry);
   if (before.stateHash !== input.expectedStateHash) {
     throw new AgentUISourceError(
@@ -176,6 +144,10 @@ export async function applyAgentUISourceItem(
     const inspection = byId.get(item.id);
     const status = inspection?.status;
     if (status === "blocked" || status === "partial") throw stateError(item.id, status);
+    if (config.agentUI.providedSourceItems?.includes(item.id)) {
+      if (item.id === input.itemId) throw new AgentUISourceError("AGENT_UI_SOURCE_HOST_OWNED", "Host-owned foundation cannot be installed through optional resources.");
+      continue;
+    }
     if (status === "customized" && item.id === input.itemId) throw stateError(item.id, status);
     if (
       status === "customized" &&
@@ -205,6 +177,7 @@ export async function applyAgentUISourceItem(
   const mutations = new Map<string, AgentUISourceFileMutation>();
   const changedItems: string[] = [];
   for (const item of closure) {
+    if (config.agentUI.providedSourceItems?.includes(item.id)) continue;
     const inspection = byId.get(item.id);
     if (inspection?.status === "customized") continue;
     if (inspection?.status === "managed" && inspection.installedVersion === item.version) continue;
@@ -292,6 +265,11 @@ export async function removeAgentUISourceItems(
 
   const { lock } = await readAgentUISourceLock(projectRoot, config);
   const removeIds = [...new Set(input.itemIds)].sort();
+  for (const remainingId of Object.keys(lock.items).filter(id => !removeIds.includes(id))) {
+    if (!loadedRegistry.byId.has(remainingId)) throw new AgentUISourceError("AGENT_UI_SOURCE_ITEM_UNAVAILABLE", `Cannot determine dependencies of installed item ${remainingId}.`);
+    const dependency = resolveAgentUISourceItemClosure(loadedRegistry, remainingId).find(item => removeIds.includes(item.id));
+    if (dependency) throw new AgentUISourceError("AGENT_UI_SOURCE_DEPENDENCY_IN_USE", `${remainingId} requires ${dependency.id}; remove its consumers first.`, { itemId: dependency.id, consumerId: remainingId });
+  }
   const nextLock: AgentUISourceLock = structuredClone(lock);
   const removedFileTargets = new Set<string>();
   for (const itemId of removeIds) {

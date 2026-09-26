@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "integration/react-hook-form",
+  "version": "0.1.0",
+  "kind": "integration",
+  "description": "AgentUICreator integration for assistant-ui React Hook Form frontend-tool semantics",
+  "requires": [
+    "foundation/core-runtime"
+  ],
+  "packages": {
+    "react-hook-form": "^7",
+    "@assistant-ui/react-hook-form": "0.12.34"
+  },
+  "upstream": {
+    "project": "assistant-ui/assistant-ui",
+    "component": "@assistant-ui/react-hook-form",
+    "implementation": "formTools semantics adapted to AgentUICreator application-owned Frontend Tools",
+    "revision": "039c3c32822632f2a564164f089f538926886124",
+    "mode": "adapted",
+    "license": "MIT"
+  },
+  "files": [
+    {
+      "source": "files/integrations/react-hook-form/form-tool-contract.ts",
+      "target": "integrations/react-hook-form/form-tool-contract.ts"
+    },
+    {
+      "source": "files/integrations/react-hook-form/create-frontend-tools.ts",
+      "target": "integrations/react-hook-form/create-frontend-tools.ts"
+    },
+    {
+      "source": "files/integrations/react-hook-form/index.ts",
+      "target": "integrations/react-hook-form/index.ts"
+    }
+  ]
+}
