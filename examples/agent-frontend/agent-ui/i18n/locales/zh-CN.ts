@@ -5,6 +5,11 @@ export const zhCN = {
     newThread: "新建会话",
     newChat: "新会话",
     search: "搜索会话",
+    moreOptions: "更多选项",
+    running: "运行中",
+    rename: "重命名",
+    archive: "归档",
+    delete: "删除",
   },
   theme: {
     settings: "主题设置",

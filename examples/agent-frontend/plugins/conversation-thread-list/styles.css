@@ -15,17 +15,6 @@
   min-width: 0;
 }
 
-/* The upstream menu is portaled to body. Keep its Delete action and hide
-   unsupported Rename / Archive by their existing icon markers. */
-body:has(.conversation-thread-list-plugin)
-  [data-slot="aui_thread-list-item-more-content"]
-  [data-slot="aui_thread-list-item-more-item"]:has(.lucide-pencil),
-body:has(.conversation-thread-list-plugin)
-  [data-slot="aui_thread-list-item-more-content"]
-  [data-slot="aui_thread-list-item-more-item"]:has(.lucide-archive) {
-  display: none;
-}
-
 .conversation-thread-list-error {
   display: flex;
   min-width: 0;

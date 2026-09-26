@@ -202,3 +202,59 @@ it("does not resurrect initialized metadata when persistence notifications trigg
   expect(reload).toBeDefined();
   expect((await reload!).threads.some(item => item.remoteId === remoteId)).toBe(false);
 });
+
+
+describe("conversation deletion tombstones", () => {
+  it("never recreates a deleted initialId through the initial fallback", async () => {
+    const { binding } = createBinding();
+    // No snapshot metadata: fetch can only use the initialId fallback.
+    binding.getThreadListSnapshot = () => ({ threads: [], archivedThreads: [] });
+    binding.deleteThread = vi.fn(async () => undefined);
+    const { adapter, initialId } = createConversationRemoteThreadListAdapter(binding);
+    await expect(adapter.fetch(initialId)).resolves.toMatchObject({ remoteId: initialId });
+    await adapter.delete(initialId);
+    await expect(adapter.fetch(initialId)).rejects.toThrow(`Conversation "${initialId}" was deleted.`);
+    expect((await adapter.list()).threads).toEqual([]);
+  });
+
+  it("filters deleted regular and archived ids from a stale binding snapshot", async () => {
+    const { binding } = createBinding();
+    binding.getThreadListSnapshot = () => ({
+      threads: [{ id: "live", status: "regular" }, { id: "history", status: "regular" }],
+      archivedThreads: [{ id: "archived", status: "archived" }],
+    });
+    binding.deleteThread = vi.fn(async () => undefined);
+    const { adapter } = createConversationRemoteThreadListAdapter(binding);
+    await adapter.fetch("history");
+    await adapter.delete("history");
+    await adapter.delete("archived");
+    expect((await adapter.list()).threads.map(item => item.remoteId)).toEqual(["live"]);
+    await expect(adapter.fetch("history")).rejects.toThrow("was deleted");
+    await expect(adapter.fetch("archived")).rejects.toThrow("was deleted");
+  });
+
+  it("does not tombstone the initial id after a failed deletion", async () => {
+    const { binding } = createBinding();
+    binding.getThreadListSnapshot = () => ({ threads: [], archivedThreads: [] });
+    binding.deleteThread = vi.fn(async () => { throw new Error("delete failed"); });
+    const { adapter, initialId } = createConversationRemoteThreadListAdapter(binding);
+    await adapter.fetch(initialId);
+    await expect(adapter.delete(initialId)).rejects.toThrow("delete failed");
+    await expect(adapter.fetch(initialId)).resolves.toMatchObject({ remoteId: initialId });
+    expect((await adapter.list()).threads.map(item => item.remoteId)).toEqual([initialId]);
+  });
+
+  it("does not cache a metadata read that completes after deletion", async () => {
+    const { binding } = createBinding();
+    let resolve!: (item: { id: string; status: "regular" }) => void;
+    binding.getThreadMetadata = () => new Promise(done => { resolve = done; });
+    binding.deleteThread = vi.fn(async () => undefined);
+    const { adapter } = createConversationRemoteThreadListAdapter(binding);
+    const reading = adapter.fetch("late");
+    const rejected = expect(reading).rejects.toThrow('Conversation "late" was deleted.');
+    await adapter.delete("late");
+    resolve({ id: "late", status: "regular" });
+    await rejected;
+    expect((await adapter.list()).threads.some(item => item.remoteId === "late")).toBe(false);
+  });
+});

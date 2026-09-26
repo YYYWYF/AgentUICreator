@@ -1,4 +1,13 @@
 import {
+  ConversationThreadListItemComposition,
+  type ConversationThreadListItemProps,
+} from "./internal/conversation-thread-list-item.js";
+export type {
+  ConversationThreadListItemActions,
+  ConversationThreadListItemLabels,
+  ConversationThreadListItemProps,
+} from "./internal/conversation-thread-list-item.js";
+import {
   CanonicalComposer as InternalConversationCanonicalComposer,
   ComposerAddAttachmentAction as InternalConversationComposerAddAttachment,
   ComposerCancelAction as InternalConversationComposerCancel,
@@ -50,7 +59,6 @@ import {
   useAui,
 } from "@assistant-ui/react";
 import {
-  ThreadListItem as InternalConversationThreadListItem,
   ThreadListNew as InternalConversationThreadListNew,
   ThreadListRoot as InternalConversationThreadListRoot,
   ThreadListSearch as InternalConversationThreadListSearch,
@@ -605,8 +613,8 @@ export function useConversationThreadListGroups(
   return useInternalConversationThreadListGroups(searchQuery) as unknown as ConversationThreadListGroups;
 }
 
-export function ConversationThreadListItem() {
-  return <InternalConversationThreadListItem />;
+export function ConversationThreadListItem(props: ConversationThreadListItemProps = {}) {
+  return <ConversationThreadListItemComposition {...props} />;
 }
 
 export function ConversationThreadListNew(

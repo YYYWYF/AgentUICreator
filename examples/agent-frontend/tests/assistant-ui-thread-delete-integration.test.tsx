@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConversationRuntimeProvider, type ConversationAgentFactory } from "@agent-ui/runtime-conversation";
 import { createConversationServiceThreadBinding } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
 import { createMockConversationApiHandler } from "../dev-mock/conversations/handler";
+import { zhCN } from "../agent-ui/i18n/locales/zh-CN";
 import { PolicyThreadList } from "../plugins/conversation-thread-list/PolicyThreadList";
 import { createConversationService, createHttpConversationDataSource } from "../services/conversations";
 
@@ -79,7 +80,7 @@ async function mount() {
     root!.render(
       <ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} unstable_agentFactory={agentFactory}>
         <Capture />
-        <PolicyThreadList />
+        <PolicyThreadList labels={zhCN.threadList} />
       </ConversationRuntimeProvider>,
     );
   });
@@ -91,15 +92,17 @@ async function mount() {
 async function deleteFromNativeMenu(container: HTMLElement) {
   const row = Array.from(container.querySelectorAll('[data-slot="aui_thread-list-item"]'))
     .find(item => item.textContent?.includes("历史：基础会话"));
-  const more = row?.querySelector<HTMLButtonElement>('[data-slot="aui_thread-list-item-more"]');
+  const more = row?.querySelector<HTMLButtonElement>('[data-slot="agent-ui-thread-action-more"]');
   if (more === null || more === undefined) throw new Error("Native More trigger was not found.");
   await act(async () => {
     more.focus();
     // Use the primitive's public keyboard interaction to open the portaled menu.
     more.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
   });
-  const selector = '[data-slot="aui_thread-list-item-more-item"]:has(.lucide-trash)';
+  const selector = '[data-slot="agent-ui-thread-action-delete"]';
   await settleUntil(() => document.querySelector(selector) !== null);
+  expect(document.querySelector('[data-slot="agent-ui-thread-action-rename"]')).toBeNull();
+  expect(document.querySelector('[data-slot="agent-ui-thread-action-archive"]')).toBeNull();
   await act(async () => {
     document.querySelector<HTMLElement>(selector)!.click();
   });

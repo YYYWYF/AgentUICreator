@@ -1,7 +1,5 @@
 // @vitest-environment jsdom
 
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import {
   act,
   create,
@@ -114,7 +112,9 @@ vi.mock("@assistant-ui/react", async (importOriginal) => {
 });
 
 import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";
-import { Button } from "@agent-ui/react";
+import { Button, ConversationThreadListItem } from "@agent-ui/react";
+import { zhCN } from "../agent-ui/i18n/locales/zh-CN";
+import { AGENT_UI_LOCALE_SERVICE } from "../services/agent-ui-locale";
 import { parseAppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import { AGENT_UI_THEME_SERVICE } from "../services/agent-ui-theme";
 import {
@@ -251,20 +251,36 @@ describe("ConversationThreadListPlugin", () => {
     }
   });
 
-  it("scopes unsupported item actions to the product plugin", async () => {
-    const css = await readFile(
-      path.join(
-        path.dirname(new URL(import.meta.url).pathname),
-        "../plugins/conversation-thread-list/styles.css",
-      ),
-      "utf8",
-    );
-    expect(css).toContain(
-      "[data-slot=\"aui_thread-list-item-more-item\"]:has(.lucide-pencil)",
-    );
-    expect(css).toContain('[data-slot="aui_thread-list-item-more-item"]:has(.lucide-archive)');
-    expect(css).not.toContain('[data-slot="aui_thread-list-item-more"]');
-    expect(css).toContain("display: none");
+  it("renders Delete while omitting unsupported Rename and Archive actions", async () => {
+    const mounted = await renderPlugin(EMPTY_CONVERSATION_SNAPSHOT);
+    try {
+      expect(mounted.renderer.root.findAllByProps({ "data-slot": "agent-ui-thread-action-delete" }).length).toBeGreaterThan(0);
+      expect(mounted.renderer.root.findAllByProps({ "data-slot": "agent-ui-thread-action-rename" })).toHaveLength(0);
+      expect(mounted.renderer.root.findAllByProps({ "data-slot": "agent-ui-thread-action-archive" })).toHaveLength(0);
+    } finally { await act(async () => mounted.renderer.unmount()); }
+  });
+
+  it("keeps action capability configuration independent between item compositions", async () => {
+    let renderer: ReactTestRenderer | undefined;
+    try {
+      await act(async () => {
+        renderer = create(<>
+          <section data-item="delete-only">
+            <ConversationThreadListItem actions={{ delete: true }} labels={zhCN.threadList} />
+          </section>
+          <section data-item="other-list">
+            <ConversationThreadListItem actions={{ rename: true, archive: true }} labels={zhCN.threadList} />
+          </section>
+        </>);
+      });
+      const first = renderer!.root.findByProps({ "data-item": "delete-only" });
+      const second = renderer!.root.findByProps({ "data-item": "other-list" });
+      expect(first.findAllByProps({ "data-slot": "agent-ui-thread-action-delete" }).length).toBeGreaterThan(0);
+      expect(first.findAllByProps({ "data-slot": "agent-ui-thread-action-rename" })).toHaveLength(0);
+      expect(second.findAllByProps({ "data-slot": "agent-ui-thread-action-delete" })).toHaveLength(0);
+      expect(second.findAllByProps({ "data-slot": "agent-ui-thread-action-rename" }).length).toBeGreaterThan(0);
+      expect(second.findAllByProps({ "data-slot": "agent-ui-thread-action-archive" }).length).toBeGreaterThan(0);
+    } finally { await act(async () => renderer?.unmount()); }
   });
 
   it("declares theme as optional while requiring conversation data", () => {
@@ -273,6 +289,7 @@ describe("ConversationThreadListPlugin", () => {
     ]);
     expect(conversationThreadListPlugin.optionalInject).toEqual([
       AGENT_UI_THEME_SERVICE,
+      AGENT_UI_LOCALE_SERVICE,
     ]);
   });
 

@@ -5,6 +5,7 @@ import type { ConversationThreadBinding, ConversationThreadListItem } from "./ty
 export function createConversationRemoteThreadListAdapter<TState>(binding: ConversationThreadBinding<TState>) {
   const identities = new Map<string, string>();
   const initialized = new Map<string, RemoteThreadMetadata>();
+  const deletedIds = new Set<string>();
   const pendingDeletes = new Map<string, Promise<void>>();
   const initialId = binding.getThreadId();
   const identity = (localId: string, remoteId?: string) => {
@@ -27,11 +28,12 @@ export function createConversationRemoteThreadListAdapter<TState>(binding: Conve
       // initialized metadata. Wait so that reload cannot restore the deleted row.
       await Promise.allSettled(pendingDeletes.values());
       const snapshot = binding.getThreadListSnapshot?.();
-      const items = [...(snapshot?.threads ?? []), ...(snapshot?.archivedThreads ?? [])].map(metadata);
+      const items = [...(snapshot?.threads ?? []), ...(snapshot?.archivedThreads ?? [])].map(metadata).filter(item => !deletedIds.has(item.remoteId));
       const ids = new Set(items.map(item => item.remoteId));
-      return { threads: [...items, ...[...initialized.values()].filter(item => !ids.has(item.remoteId))] };
+      return { threads: [...items, ...[...initialized.values()].filter(item => !ids.has(item.remoteId) && !deletedIds.has(item.remoteId))] };
     },
     async fetch(id) {
+      if (deletedIds.has(id)) throw new Error(`Conversation "${id}" was deleted.`);
       const snapshot = binding.getThreadListSnapshot?.();
       const item = [...(snapshot?.threads ?? []), ...(snapshot?.archivedThreads ?? [])].find(item => item.id === id);
       if (item !== undefined) {
@@ -48,6 +50,8 @@ export function createConversationRemoteThreadListAdapter<TState>(binding: Conve
       }
       if (binding.getThreadMetadata !== undefined) {
         const found = metadata(await binding.getThreadMetadata(id));
+        // A metadata read may have begun before persistence deletion completed.
+        if (deletedIds.has(id)) throw new Error(`Conversation "${id}" was deleted.`);
         initialized.set(id, found);
         return found;
       }
@@ -71,6 +75,7 @@ export function createConversationRemoteThreadListAdapter<TState>(binding: Conve
       const deleteThread = binding.deleteThread.bind(binding);
       const deletion = Promise.resolve().then(async () => {
         await deleteThread(remoteId);
+        deletedIds.add(remoteId);
         initialized.delete(remoteId);
         for (const [localId, id] of identities) {
           if (id === remoteId) identities.delete(localId);

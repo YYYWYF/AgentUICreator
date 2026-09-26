@@ -5,6 +5,11 @@ export const enUS = {
     newThread: "New Thread",
     newChat: "New Chat",
     search: "Search threads",
+    moreOptions: "More options",
+    running: "Running",
+    rename: "Rename",
+    archive: "Archive",
+    delete: "Delete",
   },
   theme: {
     settings: "Theme settings",

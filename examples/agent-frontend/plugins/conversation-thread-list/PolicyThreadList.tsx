@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type ConversationThreadListItemLabels,
   ConversationIf,
   ConversationThreadListItem,
   ConversationThreadListItemByIndex,
@@ -11,9 +12,13 @@ import {
   useConversationState,
   useConversationThreadListGroups,
 } from "@agent-ui/react";
-import { Fragment, useState, type FC } from "react";
+import { createContext, Fragment, useContext, useState, type FC } from "react";
+
+const ThreadListLabelsContext = createContext<ConversationThreadListItemLabels | undefined>(undefined);
 
 function PolicyThreadListItem() {
+  const labels = useContext(ThreadListLabelsContext);
+  if (labels === undefined) throw new Error("Thread List labels are missing.");
   const disabledByConversation = useConversationState(
     (s) => s.threadListItem.custom?.agentUiDisabled === true,
   );
@@ -25,7 +30,10 @@ function PolicyThreadListItem() {
       aria-disabled={disabled || undefined}
       inert={disabled || undefined}
     >
-      <ConversationThreadListItem />
+      <ConversationThreadListItem
+        actions={{ rename: false, archive: false, delete: true }}
+        labels={labels}
+      />
     </div>
   );
 }
@@ -115,11 +123,12 @@ const PolicyThreadListItems: FC<{ searchQuery?: string }> = ({
   );
 };
 
-export function PolicyThreadList() {
+export function PolicyThreadList({ labels }: { labels: ConversationThreadListItemLabels }) {
   const [search, setSearch] = useState("");
   const hasThreads = useConversationState((s) => s.threads.threadIds.length > 0);
 
   return (
+    <ThreadListLabelsContext.Provider value={labels}>
       <ConversationThreadListRoot>
         <ConversationThreadListNew />
         {hasThreads && (
@@ -127,5 +136,6 @@ export function PolicyThreadList() {
         )}
         <PolicyThreadListItems searchQuery={hasThreads ? search : ""} />
       </ConversationThreadListRoot>
+    </ThreadListLabelsContext.Provider>
   );
 }

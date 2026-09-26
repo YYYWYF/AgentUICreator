@@ -7,6 +7,11 @@ export interface AgentUILocaleMessages {
     newThread: string;
     newChat: string;
     search: string;
+    moreOptions: string;
+    running: string;
+    rename: string;
+    archive: string;
+    delete: string;
   };
   theme: {
     settings: string;

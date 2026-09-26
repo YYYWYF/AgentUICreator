@@ -11,11 +11,13 @@ import {
   EMPTY_CONVERSATION_SNAPSHOT,
   type ConversationService,
 } from "../../services/conversations";
+import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 import { PolicyThreadList } from "./PolicyThreadList";
 
 import "./styles.css";
 
 export function ConversationThreadListPlugin(_props: UIPluginComponentProps) {
+  const labels = useAgentUILocale("threadList");
   const conversationNavigation = useConversationNavigation();
   const theme = useAgentUIThemeMode();
   const run = useAgentRun();
@@ -40,7 +42,7 @@ export function ConversationThreadListPlugin(_props: UIPluginComponentProps) {
       data-theme={theme}
       data-ui-plugin="conversation-thread-list"
     >
-      <PolicyThreadList />
+      <PolicyThreadList labels={labels} />
 
       {snapshot.listStatus === "error" ? (
         <div className="conversation-thread-list-error" role="alert">
