@@ -2,14 +2,14 @@ import { useId, useState } from "react";
 import { ArrowRight, UserRound } from "lucide-react";
 import { Button } from "@agent-ui/react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
-import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
+import { useMockAuthLocale } from "./i18n";
 import { useAgentUIThemeMode } from "../../agent-ui/theme/useAgentUITheme";
 import { usePluginService } from "../../runtime/plugins";
 import { AUTH_SESSION_SERVICE, type AuthSessionService } from "../../services/auth-session";
 import "./styles.css";
 
 export function MockAuthLoginPlugin(_props: UIPluginComponentProps) {
-  const locale = useAgentUILocale("auth");
+  const { messages: locale, direction } = useMockAuthLocale();
   const theme = useAgentUIThemeMode();
   const session = usePluginService<AuthSessionService>(AUTH_SESSION_SERVICE);
   const titleId = useId();
@@ -32,6 +32,7 @@ export function MockAuthLoginPlugin(_props: UIPluginComponentProps) {
   return (
     <section
       aria-labelledby={titleId}
+      dir={direction}
       className={`mock-auth-login agent-ui-conversation${theme === "dark" ? " dark" : ""}`}
       data-theme={theme}
       data-ui-plugin="mock-auth-login"
