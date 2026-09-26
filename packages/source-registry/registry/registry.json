@@ -140,6 +140,10 @@
     {
       "id": "integration/a2ui",
       "path": "items/integration-a2ui/item.json"
+    },
+    {
+      "id": "integration/generative-ui",
+      "path": "items/integration-generative-ui/item.json"
     }
   ]
 }

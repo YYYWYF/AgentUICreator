@@ -39,6 +39,7 @@ export default defineConfig(async ({ command, mode }) => {
     resolve: {
       dedupe: ["@assistant-ui/react-generative-ui"],
       alias: {
+        "../generative-ui": path.join(workspaceRoot, "packages/source-registry/registry/items/integration-generative-ui/files/integrations/generative-ui/index.ts"),
         "@": path.join(workspaceRoot, "examples/agent-frontend/src"),
         "@agent-ui/react/styles.css": path.join(
           workspaceRoot,
