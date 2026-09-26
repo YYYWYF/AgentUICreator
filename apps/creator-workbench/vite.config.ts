@@ -17,6 +17,8 @@ import { PythonCreatorProcessManager } from "../../packages/creator/src/PythonCr
 // TODO: move the host inspector adapter out of the example when the shared project contract is extracted.
 import { inspectCreatorProject } from "../../examples/agent-frontend/scripts/ui-project/creator-project-inspector";
 import { initializeAgentUIProject } from "../../examples/agent-frontend/scripts/ui-project/initialize-agent-ui-project";
+import { handleUIProjectControlRequest } from "../../examples/agent-frontend/scripts/ui-project-control";
+import type { MockProjectInspector } from "../../packages/creator/src/mock/demo-compatibility";
 import { installDemoPlugin } from "../../examples/agent-frontend/scripts/ui-project/install-demo-plugin";
 import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "../../packages/bootstrap/src/source-root";
 import { createMockConversationApiVitePlugin } from "../../examples/agent-frontend/dev-mock/conversations/vite-plugin";
@@ -60,6 +62,13 @@ export default defineConfig({
     createCreatorDevServerPlugin({
       workspaceManager,
       installMockPlugin: installDemoPlugin,
+      // Host adapter calls the same formal protocol as Python Creator tools.
+      inspectMockProject: async target => {
+        const composition = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_ui_project", input: { view: "composition" } }, target.projectRoot);
+        const sources = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_agent_ui_sources", input: {} }, target.projectRoot);
+        if (!composition.ok || !sources.ok) throw new Error("Project inspection failed");
+        return { composition: composition.result, sources: sources.result } as Awaited<ReturnType<MockProjectInspector>>;
+      },
       configRoot: workspaceRoot,
     }),
   ],

@@ -258,6 +258,21 @@ async function inspectUICompositionData(
         : target,
       index,
     }));
+  // Activation is a composition fact. Consumers must not walk AppUIModel slots.
+  const instancesById = new Map(pluginInstances.map(instance => [instance.id, instance]));
+  function effectiveEnabled(instance: typeof pluginInstances[number], visited = new Set<string>()): boolean {
+    if (!instance.enabled || visited.has(instance.id)) return false;
+    visited.add(instance.id);
+    if (instance.target.type !== "plugin_slot") return true;
+    const parent = instancesById.get(instance.target.parentInstanceId);
+    return parent !== undefined && effectiveEnabled(parent, visited);
+  }
+  const inspectedInstances = pluginInstances.map(instance => ({ ...instance, effectiveEnabled: effectiveEnabled(instance) }));
+  const pluginSources = await Promise.all(generation.assets.map(async asset => ({
+    pluginId: asset.pluginId,
+    status: await pathExists(path.join(projectRoot, asset.definitionPath)) ? "available" as const : "missing" as const,
+    dataMessageUINames: asset.dataMessageUINames ?? [],
+  })));
   const selectedPluginIds = generation.activeComposition.selectedPluginIds;
   const pluginAssets = generation.assets.map(({ manifest: _manifest, ...asset }) => ({
     ...asset,
@@ -298,7 +313,8 @@ async function inspectUICompositionData(
       layout,
       slots,
     },
-    pluginInstances,
+    pluginInstances: inspectedInstances,
+    pluginSources,
     capabilitySummaries: pluginAssets.map((asset) => ({
       pluginId: asset.pluginId,
       name: asset.name,

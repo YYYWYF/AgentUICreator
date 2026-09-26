@@ -34,7 +34,13 @@ describe("Creator independent local Mock service", () => {
           await writeFile(path.join(projectRoot, "plugins/chart-message/manifest.json"), JSON.stringify({ id: "chart-message", data: { messageUI: true } }));
           await writeFile(path.join(projectRoot, "plugins/chart-message/definition.ts"), "export default {};\n");
           await writeFile(path.join(projectRoot, "app-ui/app-ui.json"), JSON.stringify({ applicationPlugins: [{ pluginId: "chart-message", enabled: true }] }));
-        }); });
+        }, async () => ({
+          composition: {
+            pluginSources: installed.map(pluginId => ({ pluginId, status: "available" as const, dataMessageUINames: ["chart"] })),
+            pluginInstances: installed.map(pluginId => ({ id: "demo", pluginId, enabled: true, effectiveEnabled: true, target: { type: "application" } })),
+          },
+          sources: { items: [] },
+        })); });
       controlServers.push(server);
       await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
       const address = server.address();

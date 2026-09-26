@@ -1,79 +1,46 @@
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
-import { describe, expect, it } from "vitest";
-import { inspectMockDemoCompatibility } from "../src/mock/demo-compatibility.js";
+import { describe, expect, it, vi } from "vitest";
+import { inspectMockDemoCompatibility, inspectMockProjectCompatibility, mockDemoRequirements, type ProjectCompositionInspection } from "../src/mock/demo-compatibility.js";
 
-describe("Mock Demo project requirements", () => {
-  it("distinguishes absent, installed but disabled, and enabled plugins from current files", async () => {
-    const projectRoot = await mkdtemp(path.join(os.tmpdir(), "mock-demo-project-"));
-    try {
-      const source = path.join(projectRoot, "custom-ui");
-      await mkdir(path.join(source, "app-ui"), { recursive: true });
-      const model = path.join(source, "app-ui/app-ui.json");
-      const target = { id: "project", projectRoot, sourceRoot: "custom-ui" };
-      const chart = async () => (await inspectMockDemoCompatibility(target)).requirements.find(r => r.pluginId === "chart-message");
-      await writeFile(model, JSON.stringify({ applicationPlugins: [] }));
-      expect((await chart())?.status).toBe("missing");
-      const missing = await inspectMockDemoCompatibility(target);
-      for (const pluginId of ["job-progress-message", "agent-plan-message", "agent-status-message"]) {
-        expect(missing.requirements.find(requirement => requirement.pluginId === pluginId)?.status).toBe("missing");
-      }
-      const plugin = path.join(source, "plugins/chart-message");
-      await mkdir(plugin, { recursive: true });
-      await writeFile(path.join(plugin, "manifest.json"), JSON.stringify({ id: "chart-message", data: { messageUI: true } }));
-      await writeFile(path.join(plugin, "definition.ts"), "export default {};\n");
-      expect((await chart())?.status).toBe("disabled");
-      await writeFile(model, JSON.stringify({ applicationPlugins: [{ pluginId: "chart-message", enabled: false }] }));
-      expect((await chart())?.status).toBe("disabled");
-      await writeFile(model, JSON.stringify({ applicationPlugins: [{ pluginId: "chart-message", enabled: true }] }));
-      expect((await chart())?.status).toBe("ready");
-      await writeFile(model, JSON.stringify({ applicationPlugins: [{ pluginId: "another", config: { pluginId: "chart-message" } }] }));
-      expect((await chart())?.status).toBe("disabled");
-      await writeFile(model, JSON.stringify({ root: { type: "slot", plugins: [{ pluginId: "parent", enabled: true, slots: { body: [{ pluginId: "chart-message", enabled: true }] } }] } }));
-      expect((await chart())?.status).toBe("ready");
-      await writeFile(model, JSON.stringify({ root: { type: "slot", plugins: [{ pluginId: "parent", enabled: false, slots: { body: [{ pluginId: "chart-message", enabled: true }] } }] } }));
-      expect((await chart())?.status).toBe("disabled");
-      await mkdir(path.join(projectRoot, ".agent-ui"));
-      await writeFile(path.join(projectRoot, ".agent-ui/project.json"), JSON.stringify({ sourceRoot: "custom-ui" }));
-      expect((await inspectMockDemoCompatibility({ id: "legacy-host", projectRoot })).status).toBe("checked");
-      await writeFile(model, "broken");
-      expect((await inspectMockDemoCompatibility(target)).status).toBe("unknown");
-      expect((await inspectMockDemoCompatibility({ ...target, sourceRoot: "../outside" })).status).toBe("unknown");
-    } finally { await rm(projectRoot, { recursive: true, force: true }); }
+const sources = { items: [] };
+const empty: ProjectCompositionInspection = { pluginSources: [], pluginInstances: [] };
+function status(snapshot: ProjectCompositionInspection, pluginId: string) {
+  return inspectMockDemoCompatibility(snapshot, sources).requirements.find(requirement => requirement.pluginId === pluginId)?.status;
+}
+
+describe("Mock requirements from formal inspection", () => {
+  it.each(mockDemoRequirements)("checks $pluginId source, activation and renderer placement", requirement => {
+    const snapshot: ProjectCompositionInspection = {
+      pluginSources: [{ pluginId: requirement.pluginId, status: "available", dataMessageUINames: ["chart"] }],
+      pluginInstances: [],
+    };
+    expect(status(empty, requirement.pluginId)).toBe("missing");
+    expect(status(snapshot, requirement.pluginId)).toBe("disabled");
+    const parent = { id: "surface", pluginId: "conversation-surface", enabled: true, effectiveEnabled: true, target: { type: "application" } };
+    const instance = { id: "demo", pluginId: requirement.pluginId, enabled: true, effectiveEnabled: false, target: { type: "plugin_slot", parentInstanceId: "surface", slot: requirement.slot ?? "body" } };
+    snapshot.pluginInstances = [parent, instance];
+    expect(status(snapshot, requirement.pluginId)).toBe("disabled");
+    instance.effectiveEnabled = true;
+    expect(status(snapshot, requirement.pluginId)).toBe("ready");
+    if (requirement.slot) {
+      instance.target.slot = "wrong";
+      expect(status(snapshot, requirement.pluginId)).toBe("disabled");
+      instance.target.slot = requirement.slot;
+      parent.pluginId = "other";
+      expect(status(snapshot, requirement.pluginId)).toBe("disabled");
+    }
   });
 
-  it("checks basic Demo renderers in their semantic Slots and through enabled ancestors", async () => {
-    const projectRoot = await mkdtemp(path.join(os.tmpdir(), "mock-renderers-"));
-    try {
-      await mkdir(path.join(projectRoot, "app-ui"), { recursive: true });
-      const model = path.join(projectRoot, "app-ui/app-ui.json");
-      const target = { id: "project", projectRoot };
-      await writeFile(model, JSON.stringify({ applicationPlugins: [] }));
-      const missing = await inspectMockDemoCompatibility(target);
-      expect(missing.requirements.filter(r => r.scenarioIds.includes("approval-resume"))).toEqual(expect.arrayContaining([
-        expect.objectContaining({ pluginId: "assistant-ui-reasoning", status: "missing" }),
-        expect.objectContaining({ pluginId: "assistant-ui-tool-group", status: "missing" }),
-        expect.objectContaining({ pluginId: "assistant-ui-tool-fallback", status: "missing" }),
-      ]));
-      const directory = path.join(projectRoot, "plugins/assistant-ui-reasoning");
-      await mkdir(directory, { recursive: true });
-      await writeFile(path.join(directory, "manifest.json"), JSON.stringify({ id: "assistant-ui-reasoning" }));
-      await writeFile(path.join(directory, "definition.ts"), "export default {};\n");
-      const renderer = { pluginId: "assistant-ui-reasoning", enabled: true };
-      const status = async () => (await inspectMockDemoCompatibility(target)).requirements.find(r => r.pluginId === renderer.pluginId)?.status;
-      await writeFile(model, JSON.stringify({ applicationPlugins: [renderer] }));
-      expect(await status()).toBe("disabled");
-      const surface = { pluginId: "conversation-surface", enabled: true, slots: { reasoningGroup: [renderer] } };
-      await writeFile(model, JSON.stringify({ root: { type: "slot", plugins: [surface] } }));
-      expect(await status()).toBe("ready");
-      surface.enabled = false;
-      await writeFile(model, JSON.stringify({ root: { type: "slot", plugins: [surface] } }));
-      expect(await status()).toBe("disabled");
-    } finally { await rm(projectRoot, { recursive: true, force: true }); }
+  it("requires formal chart renderer registration and rejects partial sources", () => {
+    const snapshot = { pluginSources: [{ pluginId: "chart-message", status: "available" as const, dataMessageUINames: [] }], pluginInstances: [] };
+    expect(status(snapshot, "chart-message")).toBe("missing");
+    snapshot.pluginSources[0]!.dataMessageUINames = ["chart"] as never[];
+    expect(inspectMockDemoCompatibility(snapshot, { items: [{ id: "plugin/chart-message", status: "partial" }] }).requirements.find(r => r.pluginId === "chart-message")?.status).toBe("missing");
   });
 
-  it("does not claim support when no project is selected", async () => {
-    expect(await inspectMockDemoCompatibility()).toEqual({ projectId: null, status: "unknown", requirements: [] });
+  it("returns unknown without reading files when inspection is unavailable", async () => {
+    const inspector = vi.fn().mockRejectedValue(new Error("CONTROL_ENTRY_MISSING"));
+    expect(await inspectMockProjectCompatibility(undefined, inspector)).toEqual({ projectId: null, status: "unknown", requirements: [] });
+    expect(inspector).not.toHaveBeenCalled();
+    expect(await inspectMockProjectCompatibility({ id: "host", projectRoot: "/fresh-host" }, inspector)).toEqual({ projectId: "host", status: "unknown", requirements: [] });
   });
 });

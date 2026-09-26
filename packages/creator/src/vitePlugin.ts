@@ -11,6 +11,7 @@ import { CREATOR_WORKSPACE_API_PATH, handleCreatorWorkspaceRequest } from "./wor
 import { CREATOR_WORKSPACE_ID_HEADER } from "./workspace/types.js";
 import { CreatorMockService } from "./mock/CreatorMockService.js";
 import { CREATOR_MOCK_API_PATH } from "./mock/types.js";
+import type { MockProjectInspector } from "./mock/demo-compatibility.js";
 import { handleCreatorMockRequest } from "./mock/mock-api.js";
 import {
   resolveCreatorPythonAgentMode,
@@ -42,6 +43,7 @@ export {
 } from "./PythonCreatorProcessManager.js";
 
 export interface CreatorDevServerPluginOptions {
+  inspectMockProject?: MockProjectInspector | undefined;
   installMockPlugin?: ((projectRoot: string, pluginId: string) => Promise<void>) | undefined;
   projectRoot?: string | undefined;
   workspaceManager?: CreatorWorkspaceManager | undefined;
@@ -60,6 +62,7 @@ export function createCreatorDevServerPlugin({
   configRoot,
   python,
   installMockPlugin,
+  inspectMockProject,
 }: CreatorDevServerPluginOptions): Plugin {
   const creatorLog =
     python?.log ?? ((message: string) => console.error(`[Creator] ${message}`));
@@ -130,7 +133,7 @@ export function createCreatorDevServerPlugin({
             if (projectRoot === undefined || id !== projectRoot) throw new Error("当前项目已改变。");
             await installMockPlugin(projectRoot, pluginId);
           }
-        });
+        }, inspectMockProject);
       });
       if (workspaceManager !== undefined) {
         server.middlewares.use(CREATOR_WORKSPACE_API_PATH, (request, response) => {

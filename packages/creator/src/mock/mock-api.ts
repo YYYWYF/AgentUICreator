@@ -1,11 +1,13 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { inspectMockProjectThroughControl } from "./project-inspector.js";
 import { CreatorMockService, isLocalMockOrigin } from "./CreatorMockService.js";
-import { inspectMockDemoCompatibility, mockDemoRequirements, type MockProjectTarget } from "./demo-compatibility.js";
+import { inspectMockProjectCompatibility, mockDemoRequirements, type MockProjectTarget, type MockProjectInspector } from "./demo-compatibility.js";
 
 export async function handleCreatorMockRequest(
   request: IncomingMessage, response: ServerResponse, service: CreatorMockService,
   resolveProject?: () => MockProjectTarget | undefined,
   installPlugin?: (projectId: string, pluginId: string) => Promise<void>,
+  inspector: MockProjectInspector = inspectMockProjectThroughControl,
 ): Promise<void> {
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   const origin = request.headers.origin;
@@ -17,7 +19,7 @@ export async function handleCreatorMockRequest(
   const route = (request.url ?? "/").split("?", 1)[0];
   try {
     if (route === "/compatibility" && request.method === "GET") {
-      response.end(JSON.stringify({ ...await inspectMockDemoCompatibility(resolveProject?.()), canInstall: installPlugin !== undefined })); return;
+      response.end(JSON.stringify({ ...await inspectMockProjectCompatibility(resolveProject?.(), inspector), canInstall: installPlugin !== undefined })); return;
     }
     if ((route === "/" || route === "") && request.method === "GET") {
       response.end(JSON.stringify(service.getState())); return;
@@ -47,7 +49,7 @@ export async function handleCreatorMockRequest(
       await installPlugin(project.id, fields.pluginId);
       const current = resolveProject?.();
       if (current?.id !== project.id) throw new Error("项目已切换，请查看当前项目的插件状态。");
-      const compatibility = await inspectMockDemoCompatibility(current);
+      const compatibility = await inspectMockProjectCompatibility(current, inspector);
       if (compatibility.requirements.find(requirement => requirement.pluginId === fields.pluginId)?.status !== "ready") {
         throw new Error("插件操作已完成，但尚未确认启用成功，请重新检查项目后重试。");
       }

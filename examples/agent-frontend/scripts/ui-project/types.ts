@@ -324,7 +324,8 @@ export interface UICompositionInspection {
     layout: CompactLayoutNode;
     slots: InspectedSlot[];
   };
-  pluginInstances: InspectedPlugin[];
+  pluginInstances: Array<InspectedPlugin & { effectiveEnabled: boolean }>;
+  pluginSources: Array<{ pluginId: string; status: "available" | "missing"; dataMessageUINames: readonly string[] }>;
   capabilitySummaries: CompositionPluginCapabilitySummary[];
   activeComposition: {
     selectedPluginIds: string[];
