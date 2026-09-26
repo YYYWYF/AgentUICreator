@@ -375,7 +375,7 @@ const responseMessages = () => [
 ];
 
 describe("multi-message Response actions", () => {
-  it("keeps Footer, Copy, Export, Reload and Branch on one turn across a system record", async () => {
+  it.each(["canonical", "legacy"] as const)("keeps %s Footer, Copy, Export, Reload and Branch on one turn across a system record", async composition => {
     const writeText = vi.fn(async () => undefined);
     const restore = installClipboardMock(writeText);
     const createObjectURL = vi.fn((_blob: Blob | MediaSource) => "blob:turn");
@@ -385,7 +385,15 @@ describe("multi-message Response actions", () => {
       content: [{ type: "text", text: "Regenerated" }],
     }));
     try {
-      const { container, runtime } = await mount({ run });
+      const compositionModel = structuredClone(model);
+      if (composition === "legacy") {
+        compositionModel.pluginInstances.host!.pluginId = "conversation-surface";
+        compositionModel.pluginInstances.footer!.pluginId = "assistant-ui-message-footer";
+        compositionModel.pluginInstances.footer!.mount = {
+          slotId: resolveRuntimePluginSlotId("host", "assistantMessageFooter"),
+        };
+      }
+      const { container, runtime } = await mount({ run }, compositionModel);
       const messages = responseMessages(); // User, A, System, B, C
       await act(async () => runtime.thread.import({
         headId: "c",
@@ -395,6 +403,7 @@ describe("multi-message Response actions", () => {
         ],
       }));
       const assistants = container.querySelectorAll('[data-slot="aui_assistant-message-root"]');
+      expect(assistants).toHaveLength(3);
       expect(container.querySelectorAll('[data-slot="aui_assistant-response-footer"]')).toHaveLength(1);
       expect(Array.from(assistants, (message) =>
         message.querySelector('[data-slot="aui_assistant-response-footer"]') !== null,

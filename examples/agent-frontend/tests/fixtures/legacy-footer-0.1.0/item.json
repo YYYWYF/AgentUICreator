@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "plugin/assistant-ui-message-footer",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "kind": "agent-component",
   "description": "Managed Agent UI plugin-assistant-ui-message-footer source",
   "files": [
@@ -19,8 +19,7 @@
     }
   ],
   "requires": [
-    "foundation/core",
-    "plugin/assistant-ui-response-footer"
+    "foundation/core"
   ],
   "packages": {
     "react": "^19.2.0"

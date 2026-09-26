@@ -1,0 +1,154 @@
+[
+  {
+    "id": "plugin/assistant-ui-message-footer",
+    "revision": "7a31b5fa59db274339b7c17e7c40683ba2314f65",
+    "version": "0.1.0",
+    "files": {
+      "plugins/assistant-ui-message-footer/definition.ts": "a01f00bae8f4dcfe5dce126c2b0b47b23b00c125da1349a6bc55cf33a9fbac59",
+      "plugins/assistant-ui-message-footer/index.tsx": "9a8f3e829b01626c808db9ce55b4f0dee3f799cba48b085ba771df028c967302",
+      "plugins/assistant-ui-message-footer/manifest.json": "c1c38db783e717bc17e8ebad56a6f07b9312b0b3041a1ba30f1833c8d46effaa"
+    },
+    "requires": [
+      "foundation/core"
+    ],
+    "packages": {
+      "react": "^19.2.0"
+    }
+  },
+  {
+    "id": "plugin/assistant-ui-copy-action",
+    "revision": "46b4c3146d94f67f4e631879a686c7d4c5a4cbd5",
+    "version": "0.1.0",
+    "files": {
+      "plugins/assistant-ui-copy-action/definition.ts": "010c0937bb9b3c6ebcefb6d3a29ff2da6d750e0d9132f04e4dca01d3b8f174bb",
+      "plugins/assistant-ui-copy-action/index.tsx": "f4d8746ef46436a77732c7b3ef67453a1769039345b8c94acaeff01294e8bd77",
+      "plugins/assistant-ui-copy-action/manifest.json": "7d499b6884ca15f78b728cb3a88ee20a6da125c1fbd139406a112ecb4d63fc85"
+    },
+    "requires": [
+      "foundation/core"
+    ],
+    "packages": {
+      "react": "^19.2.0"
+    }
+  },
+  {
+    "id": "plugin/assistant-ui-reload-action",
+    "revision": "46b4c3146d94f67f4e631879a686c7d4c5a4cbd5",
+    "version": "0.1.0",
+    "files": {
+      "plugins/assistant-ui-reload-action/definition.ts": "e18a8a3f7436b8d61f5e3628d995c9341748673372637d132194c682381a3f44",
+      "plugins/assistant-ui-reload-action/index.tsx": "1bb37c0cef476152c0401c19ebcaec7532af79a95e8d42591182561dad7a36df",
+      "plugins/assistant-ui-reload-action/manifest.json": "05b4de363ce749a46607b6766ab777e08e12f3fec15618b5ac983b11dd3a067f"
+    },
+    "requires": [
+      "foundation/core"
+    ],
+    "packages": {
+      "react": "^19.2.0"
+    }
+  },
+  {
+    "id": "plugin/assistant-ui-export-markdown-action",
+    "revision": "46b4c3146d94f67f4e631879a686c7d4c5a4cbd5",
+    "version": "0.1.0",
+    "files": {
+      "plugins/assistant-ui-export-markdown-action/definition.ts": "3206ed051c90c98b2b15d6bf660bd0670c479fcb2ab1bc57031d72bcbd8ec68f",
+      "plugins/assistant-ui-export-markdown-action/index.tsx": "67cd9438a7ac93cdfdf562fd5f8f314e0ee01eb257d7241abd791957ce8df521",
+      "plugins/assistant-ui-export-markdown-action/manifest.json": "34fd71a29a8f2e6eb0f9357f920f7e49f9d7889d513425f65dd34838f9350d7e"
+    },
+    "requires": [
+      "foundation/core"
+    ],
+    "packages": {
+      "react": "^19.2.0"
+    }
+  },
+  {
+    "id": "plugin/conversation-surface",
+    "revision": "46b4c3146d94f67f4e631879a686c7d4c5a4cbd5",
+    "version": "0.1.0",
+    "files": {
+      "plugins/conversation-surface/definition.ts": "9750d51e01670a51fc77c16261b8cddfbd9e70aca5210babc62c5ced5154e3be",
+      "plugins/conversation-surface/index.tsx": "2853ab337cd16e17a48d62edf6c5d02336e23e7330dd210ff7483464bca198c0",
+      "plugins/conversation-surface/manifest.json": "bb69c1c9d574a18ef7883c1f59418d615ea3987364c08cd4413cae7213aa9966",
+      "plugins/conversation-surface/styles.css": "a34ec9331ae0b60d807002a2dad7952b2923ece3a11603818839d69076f2e534"
+    },
+    "requires": [
+      "foundation/core"
+    ],
+    "packages": {
+      "react": "^19.2.0"
+    }
+  },
+  {
+    "id": "foundation/core-adapters",
+    "revision": "46b4c3146d94f67f4e631879a686c7d4c5a4cbd5",
+    "version": "0.1.0",
+    "files": {
+      "agent-ui/authoring/creator-authoring-targets.ts": "139aeb580ca42dac0fd4f3d338971b2be563b07ad75e5822bd6bdcc5e0417e61",
+      "agent-ui/conversation/ConversationAdapter.tsx": "9150731d5c7cccb5eaaedae6db92893ae028b2146ae895911dd988f8d8816244",
+      "agent-ui/conversation/ConversationSurface.tsx": "5b9746147e9182cc4f2f6eb27377665e298eff78f21bd5238c14303b0026af12",
+      "agent-ui/conversation/ScopedRendererBridge.tsx": "404829f80ea3cd3a4bc622a714b30e4d673c7eb86ae5dff0311bf4136de215ac",
+      "agent-ui/conversation/agents/agent-plan-projection.ts": "eac6fb2d4c0c505730c0340d67c28db7b461834abab25cc373e68cde44025d36",
+      "agent-ui/conversation/agents/agent-status-projection.ts": "3831f6ce39e14fedc99cfe2d165066c32cc0378131865c128c8b969b5fd4cfe7",
+      "agent-ui/conversation/agents/index.ts": "8b57f78ea466edd23b228afbb33fd21252280d7706ba5ea9c1d5794de55b9dcb",
+      "agent-ui/conversation/config/ConversationPresentationConfigContext.tsx": "e30655612568fe0397586f953a0289a2816667992864f1146c5f922abc8eaa3c",
+      "agent-ui/conversation/config/conversation-presentation-config.ts": "0fcf799042700b7a0577134fa03240828082305c894895c7d15491ccf89a3bcb",
+      "agent-ui/conversation/config/conversation-runtime-config.ts": "3bb6b7dc0bc399cc08a2e01427d5be7030e4b5c50a3c891b41c5f83b18337087",
+      "agent-ui/conversation/config/index.ts": "59e5c89e101d02a8a00aa52b595e5543da94c1d4d2038f745fd4475e09564d91",
+      "agent-ui/conversation/conversation-extension-seams.ts": "6f82e63df4de78899f36c14b538b648a35354a038c1219f5f766a726386727b7",
+      "agent-ui/conversation/elements/AgentElementFrame.tsx": "9e1021aebeb2424c39f3eab5f24f831641f0c0430d284c3010d14fdbdc69f669",
+      "agent-ui/conversation/index.ts": "4f0fd21d0dc09e706aa35a55d58df2b21b84c97df17071d0df48806965763583",
+      "agent-ui/conversation/state/job-progress-projection.ts": "124e7bcd0cc0e41dbbace2a8d6f95ed52a6ec49d2a5dcf3500a24cd7e0e687fb",
+      "agent-ui/conversation/styles.css": "69c98455450b7f350ee4cc1ba698b7058cd851ad706eb677d968d97755a1240b",
+      "agent-ui/conversation/threads/ConversationThreadBindingConnector.tsx": "5ff09156a7c4bf1be8d29b20b21e13d560e47082ca29bcb6d6c7cb6bc064c45c",
+      "agent-ui/conversation/threads/conversation-history-projector.ts": "17e8656c9947d8a04ed489ce94c78339351e815cde4d290c9797c6c86312388d",
+      "agent-ui/conversation/threads/conversation-service-thread-binding.ts": "ffeaae9e1f684aa6abb23ecd2d9ef4dfac67536f8af4c78789f4c50ce4dbd4c8",
+      "agent-ui/conversation/toolkit/SearchFilesToolUI.tsx": "8dbe47ef11aa48087011363c623f6bfd2493a9e8556ea843e74a99899f7b3ddf",
+      "agent-ui/conversation/toolkit/conversation-toolkit.tsx": "bbb913917a7b778ff22d3f6df72147ebab4113d6dab8d8641a77a727f8c2c98f",
+      "agent-ui/conversation/toolkit/index.ts": "e09cedc39fd2fe6bab0cf83e01c2d9d19996970b44f7886e34a2c2c11189dcea",
+      "agent-ui/i18n/locale-config.ts": "b545a2a67bbffa902f3e1e0b164024bfef9f7bca3d052ae32d73427e8617045a",
+      "agent-ui/i18n/locale-registry.ts": "0517862c71a97d029109f34cce5b3c8f50f941e422bcd27d6bb989adb56427a5",
+      "agent-ui/i18n/locale-types.ts": "000b77e11fef9df6c122bfaf4fc1c199224dc0d0ab886856abf89affb2181c47",
+      "agent-ui/i18n/locales/en-US.ts": "a701c978fa500c10334d43ef3fe1a85ea225d991a0bd33a736a77d0e6a4903a3",
+      "agent-ui/i18n/locales/index.ts": "628181cee7733a5c49c4d3e51e40ec6700ba2de87029fbbc189793dac7be5016",
+      "agent-ui/i18n/locales/zh-CN.ts": "b77a005b48ee6201a5cd48d09e30749ae5d5dc983cbc8acb9909499d03f80607",
+      "agent-ui/i18n/useAgentUILocale.ts": "54762eb26e029e3158e3e0d891653c9c920643a79d08ae5b5101885949fdacc0",
+      "agent-ui/theme/theme-config.ts": "2ae1f3995873a7b2abdb91a294dba400a24529ee784c24e39097313903c30e9a",
+      "agent-ui/theme/useAgentUITheme.ts": "ecf12b12e1fea81f4487eef3708f1f247d71d7bc4340f3e6c0dfc21d69e6c856"
+    },
+    "requires": [
+      "foundation/core-runtime"
+    ],
+    "packages": {
+      "react": "^19.2.0",
+      "@agent-ui/react": "^0.1.0",
+      "@agent-ui/runtime-conversation": "^0.1.0",
+      "lucide-react": "^1.41.0"
+    }
+  },
+  {
+    "id": "foundation/core-contracts",
+    "revision": "46b4c3146d94f67f4e631879a686c7d4c5a4cbd5",
+    "version": "0.1.2",
+    "files": {
+      "framework/contracts/agent-ui-mode.ts": "6658484e8184465a5ac2d01bede9abf08ca4ce3b6beca6135633d1c70101a96e",
+      "framework/contracts/agent-ui-project.ts": "82f3f676cd8b8b0f666dfe5958d1a2da64e54b704f87f340bf83ae269179051d",
+      "framework/contracts/agent-ui-workspace.ts": "68abafeb4be7471c48e3108a5f1ae22b5cf13e6b89a684d44449b1f1c8e69c42",
+      "framework/contracts/app-ui-compiler.ts": "96130fa58657f60c0a0a1d0a55135809239f0724b445e327003bc689ec410cb4",
+      "framework/contracts/app-ui-composition.ts": "fb767b3e586b1be5414ba185d4de8d4fe4ef07561267d2640fcfddd979ef1e53",
+      "framework/contracts/app-ui-model.ts": "e0d09f627941ae21e6de2defa3d1895fac5e2d3c11e448e6c7bdc0e3374b78c1",
+      "framework/contracts/app-ui-runtime-model.ts": "09844ee16404e781ae20cab901ce5444ee290a7417a10ff1d75f4338afb76f7b",
+      "framework/contracts/custom-event-protocol.ts": "2181d8beda8230f5dc5c103c5da58529b489d2ddd5220f9f386dff99e7573130",
+      "framework/contracts/data-message-ui.ts": "52f5254008cafbb0eb083b95acaee258f39383d093710bcecc00b8a42bd82b5c",
+      "framework/contracts/index.ts": "c774213938901c9e47810cecc4972614322619e5399605408a19d4a7739e4ba4",
+      "framework/contracts/panel-dimension.ts": "e55264a56f587eb4857d4139fb3f743005e03f8f9704b017d31aead088dfd8dc",
+      "framework/contracts/ui-plugin.ts": "54d17ccd0e0291b7daf30474c6c7ff8670e5975fe740e4e7380ea04c5f768e25"
+    },
+    "requires": [],
+    "packages": {
+      "zod": "^4.5.0",
+      "@agent-ui/runtime-react": "^0.1.0"
+    }
+  }
+]

@@ -38,6 +38,7 @@
       ]
     }
   },
+  "exclude": ["tests/fixtures/legacy-footer-0.1.0"],
   "include": [
     "agent-ui/**/*.ts",
     "agent-ui/**/*.tsx",

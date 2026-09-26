@@ -16,6 +16,8 @@ import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "../scr
 import { inspectMockDemoCompatibility } from "../../../packages/creator/src/mock/demo-compatibility";
 import { installDemoPlugin } from "../scripts/ui-project/install-demo-plugin";
 import { verifyUIProject } from "../scripts/verify-ui";
+import { loadAgentUISourceRegistry } from "@agent-ui/source-registry";
+import { readAgentUISourceLock, serializeAgentUISourceLock, sha256 } from "../scripts/ui-project/source-registry/lock";
 
 const exampleRoot = fileURLToPath(new URL("../", import.meta.url));
 const roots: string[] = [];
@@ -133,17 +135,58 @@ describe("fresh user Host architecture regression", () => {
   }, 120_000);
 });
 
-it("upgrades the 7a31b5f AppUIModel with latest source without migrating Footer IDs", async () => {
+it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIModel", async () => {
   const root = await freshUserHost("src/agent-ui");
   await initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "src/agent-ui" });
   const paths = resolveAgentUIProjectPaths(root, { version: "2", mode: "assistant", sourceRoot: "src/agent-ui" });
   const config = projectControlConfigForPaths(paths);
   const { applyAgentUISourceItem } = await import("../scripts/ui-project/source-registry/installer");
   const { inspectAgentUISources } = await import("../scripts/ui-project/source-registry/inspector");
-  const before = await inspectAgentUISources(root, config);
-  await applyAgentUISourceItem(root, { itemId: "plugin/assistant-ui-message-footer", expectedStateHash: before.stateHash }, config);
+  const registry = await loadAgentUISourceRegistry();
+  const footerId = "plugin/assistant-ui-message-footer";
+  const responseId = "plugin/assistant-ui-response-footer";
+  const { lock, path: lockPath } = await readAgentUISourceLock(root, config);
+  // Initialization installs the current preset. Restore historical managed bytes
+  // and remove the new dependency so apply must resolve its installation.
+  const response = registry.byId.get(responseId)!;
+  for (const file of response.files) await rm(path.join(paths.sourceRoot, file.target), { force: true });
+  delete lock.items[responseId];
+  const oldFiles: Record<string, { sha256: string }> = {};
+  for (const file of registry.byId.get(footerId)!.files) {
+    const content = await readFile(new URL(`./fixtures/legacy-footer-0.1.0/${file.target}`, import.meta.url));
+    const target = path.join(paths.sourceRoot, file.target);
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, content);
+    oldFiles[file.target] = { sha256: sha256(content) };
+  }
+  lock.items[footerId] = { version: "0.1.0", files: oldFiles };
+  await writeFile(lockPath, serializeAgentUISourceLock(lock));
   const source = await readFile(new URL("./fixtures/assistant-app-ui-7a31b5f.json", import.meta.url), "utf8");
   await writeFile(paths.appUIModelPath, source);
+  const beforeAppUIModel = await readFile(paths.appUIModelPath, "utf8");
+  const before = await inspectAgentUISources(root, config);
+  expect(before.items.find(item => item.id === footerId)).toMatchObject({
+    installedVersion: "0.1.0", availableVersion: "0.1.1", status: "managed",
+  });
+  expect(before.items.find(item => item.id === responseId)).toMatchObject({ status: "not-installed" });
+  const result = await applyAgentUISourceItem(root, { itemId: footerId, expectedStateHash: before.stateHash }, config);
+  expect(result.changed).toBe(true);
+  expect(result.changedItems).toEqual(expect.arrayContaining([footerId, responseId]));
+  const { lock: upgradedLock } = await readAgentUISourceLock(root, config);
+  expect(upgradedLock.items[footerId]?.version).toBe("0.1.1");
+  expect(upgradedLock.items[responseId]?.version).toBe(response.version);
+  for (const id of [footerId, responseId]) {
+    for (const file of registry.byId.get(id)!.loadedFiles) {
+      expect(upgradedLock.items[id]?.files[file.target]?.sha256).toBe(sha256(file.content));
+      expect(await readFile(path.join(paths.sourceRoot, file.target))).toEqual(file.content);
+    }
+  }
+  const after = await inspectAgentUISources(root, config);
+  expect(after.items.find(item => item.id === footerId)).toMatchObject({
+    installedVersion: "0.1.1", availableVersion: "0.1.1", status: "managed",
+  });
+  expect(after.items.find(item => item.id === responseId)?.status).toBe("managed");
+  expect(await readFile(paths.appUIModelPath, "utf8")).toBe(beforeAppUIModel);
   const { writeGeneratedPluginRegistry } = await import("../scripts/generate-plugin-registry");
   await writeGeneratedPluginRegistry(root);
   expect((await inspectCreatorProject(root)).status).toBe("ready");
