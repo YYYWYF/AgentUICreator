@@ -79,8 +79,48 @@ Backend result：
   成功 File、非成功官方 fallback、PDF icon、Download DOM contract；不点击下载。
 - 现有 Host 公共入口集成测试增加该 Plugin 的安装和 AppUIModel 启用覆盖。
 
-本次按“做完推送，不要验收”交付：上述测试代码已添加，未运行测试、
+初次实现提交 `42fa6c6` 按“做完推送，不要验收”交付，当时未运行测试、
 typecheck、build、上游检查或人工 UI 验收。
+
+## 最终验证记录（2026-09-27）
+
+用户随后授权执行以下验证。React typecheck 首次发现集成测试对全部消息
+`flatMap(message.content)` 时混合 assistant/user part union 的类型错误。
+修复为只收集 assistant message content；最终 typecheck 和 React focused tests 均通过。
+生产实现未作修改。
+
+| 验证命令 | 最终结果 |
+| --- | --- |
+| `pnpm --filter @agent-ui/mock-agent exec vitest run tests/file-output.test.ts` | 1 test passed |
+| `pnpm --filter @agent-ui/react exec vitest run tests/migrated/generated-file-ag-ui-integration.test.tsx tests/migrated/generated-file-message.test.tsx` | 2 files / 23 tests passed |
+| `pnpm --filter @agent-ui/project-control exec vitest run tests/host-public-entry.integration.test.ts` | 4 tests passed |
+| `pnpm --filter @agent-ui/mock-agent typecheck` | Passed |
+| `pnpm --filter @agent-ui/mock-agent build` | Passed |
+| `pnpm --filter @agent-ui/react typecheck` | Passed |
+| `pnpm --filter @agent-ui/react build` | Passed; public declaration boundary OK |
+| `pnpm --filter @agent-ui/source-registry typecheck` | Passed |
+| `pnpm --filter @agent-ui/source-registry build` | Passed |
+| `pnpm --filter @agent-ui/project-control typecheck` | Passed |
+
+共 28 个 focused tests 通过。验收重点对应如下：
+
+| 验收重点 | 通过的证据 |
+| --- | --- |
+| 1. `TOOL_CALL_RESULT.content` 仍为 string | Mock protocol test 对真实 scenario 事件进行 AG-UI schema parse 并断言 string 和 JSON 内容 |
+| 2. 没有 CUSTOM | 同一 protocol test 明确断言无 `EventType.CUSTOM` |
+| 3. react-ag-ui 将 JSON string 转为 result object | 集成测试经过真实 Mock SSE / HttpAgent / ConversationRuntimeProvider，读取 assistant tool-call.result 对象 |
+| 4. `generate_file` 不进入 `RunAgentInput.tools` | 集成测试检查真实发出的请求 tools |
+| 5. named renderer 命中 `GenerateFileToolUI` | Plugin Toolkit 注册 identity 断言，集成测试只安装该 Toolkit、保留官方 fallback 后实际渲染 File 下载入口 |
+| 6. `quarterly-report.pdf` 显示 | Tool UI 和 File DOM 测试断言文件名 |
+| 7. Download href 为虚拟 URL | File DOM 和集成测试断言精确 href |
+| 8. download 为 `quarterly-report.pdf` | File DOM 和集成测试断言精确 download 属性 |
+| 9. malformed/error/running 使用 ToolFallback | Tool UI 参数化测试断言官方 fallback DOM 存在、File DOM 不存在；同时覆盖 incomplete/requires-action |
+| 10. 普通 Assistant 文本正常出现 | 集成测试断言页面包含 `报告已经生成。` |
+
+本轮是协议、真实 adapter 集成、DOM contract、Host 初始化/打包和 Type / Build
+验证；未进行浏览器人工点击下载或远程 URL 可用性检查。
+pnpm 的 node_modules/lockfile 配置提示和 Vite 对未来 native config loader 的提示
+未阻止上述命令通过。
 
 ## 后续升级边界
 

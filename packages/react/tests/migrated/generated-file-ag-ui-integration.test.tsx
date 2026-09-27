@@ -56,7 +56,7 @@ it("converts the real Mock SSE JSON result through react-ag-ui and resolves the 
       captured.thread.append({ role: "user", content: [{ type: "text", text: "帮我生成一份 PDF 报告" }], startRun: true });
       await until(() => requests.length === 1 && !captured.thread.getState().isRunning);
     });
-    const parts = captured.thread.getState().messages.flatMap(message => message.content);
+    const parts = captured.thread.getState().messages.flatMap(message => message.role === "assistant" ? message.content : []);
     expect(parts).toContainEqual(expect.objectContaining({ type: "tool-call", toolName: "generate_file", result: {
       filename: "quarterly-report.pdf", mimeType: "application/pdf", url: "https://example.com/generated/quarterly-report.pdf",
     } }));
