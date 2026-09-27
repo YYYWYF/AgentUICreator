@@ -5,7 +5,7 @@ import {
   type ReactNode,
 } from "react";
 
-import type { ConversationThreadComponents } from "@agent-ui/react";
+import type { ConversationThreadComponents, ConversationThreadLabels } from "@agent-ui/react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useConversationPresentationConfig } from "./config";
 import { useAgentUIThemeMode } from "../theme/useAgentUITheme";
@@ -73,8 +73,10 @@ export function ConversationAdapter({
   welcome,
   suggestions,
   composer,
+  labels,
   renderScopedSlot,
 }: ConversationEmptyStateProps & {
+  labels?: ConversationThreadLabels;
   renderScopedSlot?: UIPluginComponentProps["renderScopedSlot"];
 } = {}) {
   const theme = useAgentUIThemeMode();
@@ -85,7 +87,12 @@ export function ConversationAdapter({
   );
   const surface = (
     <ConversationEmptyStateContext.Provider value={emptyState}>
-      <ConversationSurface components={components} theme={theme} composer={composer} />
+      <ConversationSurface
+        components={components}
+        theme={theme}
+        composer={composer}
+        {...(labels === undefined ? {} : { labels })}
+      />
     </ConversationEmptyStateContext.Provider>
   );
   return renderScopedSlot === undefined ? surface : (

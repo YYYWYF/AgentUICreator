@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 import type { UIPluginComponentProps, UIPluginRenderScope } from "../../framework/contracts/ui-plugin";
 import {
   ConversationAdapter,
@@ -19,6 +20,7 @@ export function ConversationSurfacePlugin({
   renderSlot,
   renderScopedSlot,
 }: UIPluginComponentProps) {
+  const messages = useAgentUILocale("conversation");
   const conversation = usePluginService<ConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
   );
@@ -62,6 +64,7 @@ export function ConversationSurfacePlugin({
         {headerActions}
       </div>
       <ConversationAdapter
+        labels={messages}
         welcome={welcome}
         suggestions={suggestions}
         composer={composer}

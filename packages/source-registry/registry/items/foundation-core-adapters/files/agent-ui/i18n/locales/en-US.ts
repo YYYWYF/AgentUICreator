@@ -1,6 +1,9 @@
 import type { AgentUILocaleMessages } from "../locale-types";
 
 export const enUS = {
+  conversation: {
+    generationStopped: "Generation stopped",
+  },
   frontendTools: {
     formTitle: "Profile Form",
     firstName: "First name",

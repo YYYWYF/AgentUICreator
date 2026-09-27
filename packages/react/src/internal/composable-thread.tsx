@@ -131,6 +131,7 @@ const taskAwareGroupBy = (
 
 export type ThreadProps = {
   components?: ThreadComponents | undefined;
+  labels?: { generationStopped: string } | undefined;
   autoFocus?: boolean | undefined;
   /** Product-owned composition seam; null means the host intentionally has no Composer. */
   composer?: ReactNode | null | undefined;
@@ -140,6 +141,9 @@ const EMPTY_COMPONENTS: ThreadComponents = {};
 
 const ThreadComponentsContext =
   createContext<ThreadComponents>(EMPTY_COMPONENTS);
+
+const DEFAULT_THREAD_LABELS = { generationStopped: "Generation stopped" };
+const ThreadLabelsContext = createContext(DEFAULT_THREAD_LABELS);
 
 interface ComposerHostConfig {
   autoFocus: boolean;
@@ -185,6 +189,7 @@ const ThreadHistorySkeleton: FC = () => (
 
 export const ComposableThread: FC<ThreadProps> = ({
   components = EMPTY_COMPONENTS,
+  labels = DEFAULT_THREAD_LABELS,
   autoFocus = true,
   composer = null,
 }) => {
@@ -192,9 +197,11 @@ export const ComposableThread: FC<ThreadProps> = ({
 
   return (
     <ThreadComponentsContext.Provider value={components}>
-      <ComposerHostConfigContext.Provider value={{ autoFocus }}>
-        <ThreadRoot isEmpty={isEmpty} composer={composer} />
-      </ComposerHostConfigContext.Provider>
+      <ThreadLabelsContext.Provider value={labels}>
+        <ComposerHostConfigContext.Provider value={{ autoFocus }}>
+          <ThreadRoot isEmpty={isEmpty} composer={composer} />
+        </ComposerHostConfigContext.Provider>
+      </ThreadLabelsContext.Provider>
     </ThreadComponentsContext.Provider>
   );
 };
@@ -549,6 +556,13 @@ const AssistantMessage: FC = () => {
   } = useContext(ThreadComponentsContext);
   const AssistantResponseFooterComponent = AssistantResponseFooter ?? AssistantMessageFooter;
   const isRunning = useAuiState((s) => s.thread.isRunning);
+  const labels = useContext(ThreadLabelsContext);
+  // Presentation only: response actions and persistence still read real content.
+  const showCancelledEmptyFallback = useAuiState((s) =>
+    s.message.status?.type === "incomplete" &&
+    s.message.status.reason === "cancelled" &&
+    s.message.content.length === 0,
+  );
   const groupBy = TaskGroupComponent ? taskAwareGroupBy : messageGroupBy;
 
   return (
@@ -561,89 +575,96 @@ const AssistantMessage: FC = () => {
         data-slot="aui_assistant-message-content"
         className="text-foreground px-2 leading-relaxed wrap-break-word"
       >
-        <div
-          data-slot="aui_assistant-message-parts"
-        >
-          <MessagePrimitive.GroupedParts groupBy={groupBy}>
-            {({ part, children }) => {
-              switch (part.type) {
-                case "group-chainOfThought":
-                  return (
-                    <div
-                      data-slot="aui_chain-of-thought"
-                    >
-                      {children}
-                    </div>
-                  );
-                case "group-task":
-                  return TaskGroupComponent ? (
-                    <TaskGroupComponent group={part}>{children}</TaskGroupComponent>
-                  ) : children;
-                case "group-tool":
-                  if (ToolGroup) {
-                    return <ToolGroup group={part}>{children}</ToolGroup>;
-                  }
-                  return (
-                    <ToolGroupRoot variant="ghost">
-                      <ToolGroupTrigger
-                        count={part.indices.length}
-                        active={part.status.type === "running"}
-                      />
-                      <ToolGroupContent>{children}</ToolGroupContent>
-                    </ToolGroupRoot>
-                  );
-                case "group-reasoning": {
-                  if (ReasoningGroup) {
+        {showCancelledEmptyFallback ? (
+          <div
+            data-slot="aui_assistant-message-cancelled"
+            className="text-muted-foreground"
+          >
+            {labels.generationStopped}
+          </div>
+        ) : (
+          <div data-slot="aui_assistant-message-parts">
+            <MessagePrimitive.GroupedParts groupBy={groupBy}>
+              {({ part, children }) => {
+                switch (part.type) {
+                  case "group-chainOfThought":
                     return (
-                      <ReasoningGroup group={part}>{children}</ReasoningGroup>
+                      <div
+                        data-slot="aui_chain-of-thought"
+                      >
+                        {children}
+                      </div>
+                    );
+                  case "group-task":
+                    return TaskGroupComponent ? (
+                      <TaskGroupComponent group={part}>{children}</TaskGroupComponent>
+                    ) : children;
+                  case "group-tool":
+                    if (ToolGroup) {
+                      return <ToolGroup group={part}>{children}</ToolGroup>;
+                    }
+                    return (
+                      <ToolGroupRoot variant="ghost">
+                        <ToolGroupTrigger
+                          count={part.indices.length}
+                          active={part.status.type === "running"}
+                        />
+                        <ToolGroupContent>{children}</ToolGroupContent>
+                      </ToolGroupRoot>
+                    );
+                  case "group-reasoning": {
+                    if (ReasoningGroup) {
+                      return (
+                        <ReasoningGroup group={part}>{children}</ReasoningGroup>
+                      );
+                    }
+                    const running = part.status.type === "running";
+                    return (
+                      <ReasoningRoot className="mb-0" streaming={running}>
+                        <ReasoningTrigger active={running} />
+                        <ReasoningContent aria-busy={running}>
+                          <ReasoningText>{children}</ReasoningText>
+                        </ReasoningContent>
+                      </ReasoningRoot>
                     );
                   }
-                  const running = part.status.type === "running";
-                  return (
-                    <ReasoningRoot className="mb-0" streaming={running}>
-                      <ReasoningTrigger active={running} />
-                      <ReasoningContent aria-busy={running}>
-                        <ReasoningText>{children}</ReasoningText>
-                      </ReasoningContent>
-                    </ReasoningRoot>
-                  );
+                  case "text":
+                    return <MarkdownText />;
+                  case "reasoning":
+                    return <Reasoning {...part} />;
+                  case "tool-call":
+                    return part.toolUI ?? <ToolFallbackComponent {...part} />;
+                  case "data":
+                    return part.dataRendererUI;
+                  case "file":
+                    return (
+                      <div data-slot="aui_assistant-message-file" className="py-1">
+                        <File {...part} />
+                      </div>
+                    );
+                  case "image":
+                    return (
+                      <div data-slot="aui_assistant-message-image" className="py-1">
+                        <Image {...part} />
+                      </div>
+                    );
+                  case "indicator":
+                    return (
+                      <span
+                        data-slot="aui_assistant-message-indicator"
+                        className="animate-pulse font-sans"
+                        aria-label="Assistant is working"
+                      >
+                        {"●"}
+                      </span>
+                    );
+                  default:
+                    return null;
                 }
-                case "text":
-                  return <MarkdownText />;
-                case "reasoning":
-                  return <Reasoning {...part} />;
-                case "tool-call":
-                  return part.toolUI ?? <ToolFallbackComponent {...part} />;
-                case "data":
-                  return part.dataRendererUI;
-                case "file":
-                  return (
-                    <div data-slot="aui_assistant-message-file" className="py-1">
-                      <File {...part} />
-                    </div>
-                  );
-                case "image":
-                  return (
-                    <div data-slot="aui_assistant-message-image" className="py-1">
-                      <Image {...part} />
-                    </div>
-                  );
-                case "indicator":
-                  return (
-                    <span
-                      data-slot="aui_assistant-message-indicator"
-                      className="animate-pulse font-sans"
-                      aria-label="Assistant is working"
-                    >
-                      {"●"}
-                    </span>
-                  );
-                default:
-                  return null;
-              }
-            }}
-          </MessagePrimitive.GroupedParts>
-        </div>
+              }}
+            </MessagePrimitive.GroupedParts>
+          </div>
+        )}
         <MessageError />
       </div>
 

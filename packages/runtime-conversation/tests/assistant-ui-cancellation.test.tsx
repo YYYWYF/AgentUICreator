@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { CancellationAwareHttpAgent } from "../src/compatibility/cancellation-aware-http-agent.js";
 
-function createAbortFailingAgent() {
+function createAbortFailingAgent({ emitContent = true } = {}) {
   let resolveContent!: () => void;
   const content = new Promise<void>((resolve) => {
     resolveContent = resolve;
@@ -32,16 +32,18 @@ function createAbortFailingAgent() {
             threadId: input.threadId,
             runId: input.runId,
           });
-          enqueue({
-            type: "TEXT_MESSAGE_START",
-            messageId: "assistant-cancel-1",
-            role: "assistant",
-          });
-          enqueue({
-            type: "TEXT_MESSAGE_CONTENT",
-            messageId: "assistant-cancel-1",
-            delta: "partial",
-          });
+          if (emitContent) {
+            enqueue({
+              type: "TEXT_MESSAGE_START",
+              messageId: "assistant-cancel-1",
+              role: "assistant",
+            });
+            enqueue({
+              type: "TEXT_MESSAGE_CONTENT",
+              messageId: "assistant-cancel-1",
+              delta: "partial",
+            });
+          }
           resolveContent();
 
           init.signal?.addEventListener(
@@ -89,6 +91,47 @@ async function waitFor(condition: () => boolean): Promise<void> {
 }
 
 describe("assistant-ui cancellation boundary", () => {
+  it("retains one empty cancelled assistant when stopped before any assistant event", async () => {
+    const { agent, content: requestStarted } = createAbortFailingAgent({ emitContent: false });
+    let runtime: AssistantRuntime | undefined;
+    let renderer: ReactTestRenderer | undefined;
+
+    try {
+      await act(async () => {
+        renderer = create(<RuntimeFixture agent={agent} onRuntime={(value) => { runtime = value; }} />);
+      });
+      if (runtime === undefined) throw new Error("Assistant runtime was not captured");
+      const assistantRuntime = runtime;
+      await act(async () => {
+        assistantRuntime.thread.append({
+          role: "user",
+          content: [{ type: "text", text: "Stop before the first output" }],
+          startRun: true,
+        });
+        await requestStarted;
+        await waitFor(() => assistantRuntime.thread.getState().isRunning &&
+          assistantRuntime.thread.getState().messages.some((message) => message.role === "assistant"));
+      });
+      const before = assistantRuntime.thread.getState().messages.find((message) => message.role === "assistant");
+      expect(before?.content).toEqual([]);
+      expect(before?.status).toMatchObject({ type: "running" });
+
+      await act(async () => {
+        assistantRuntime.thread.cancelRun();
+        await waitFor(() => !assistantRuntime.thread.getState().isRunning);
+      });
+      const messages = assistantRuntime.thread.getState().messages;
+      const assistants = messages.filter((message) => message.role === "assistant");
+      expect(messages).toHaveLength(2);
+      expect(assistants).toHaveLength(1);
+      expect(assistants[0]?.id).toBe(before?.id);
+      expect(assistants[0]?.content).toEqual([]);
+      expect(assistants[0]?.status).toEqual({ type: "incomplete", reason: "cancelled" });
+    } finally {
+      if (renderer !== undefined) await act(async () => renderer?.unmount());
+    }
+  });
+
   it("dispatches cancellation through the public assistant-ui Runtime APIs", async () => {
     const { agent, content } = createAbortFailingAgent();
     let runtime: AssistantRuntime | undefined;

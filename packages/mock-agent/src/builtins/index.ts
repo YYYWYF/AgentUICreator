@@ -6,6 +6,7 @@ import { frontendToolFillFormScenario } from "./frontend-tool-fill-form.js";
 import { frontendToolOpenDialogScenario } from "./frontend-tool-open-dialog.js";
 import { concurrentConversationsScenario } from "./concurrent-conversations.js";
 import { multiMessageResponseScenario } from "./multi-message-response.js";
+import { cancelBeforeFirstOutputScenario } from "./cancel-before-first-output.js";
 import { agentPlanScenario } from "./agent-plan.js";
 import { agentStatusScenario } from "./agent-status.js";
 import { dataMessageChartScenario } from "./data-message-chart.js";
@@ -27,6 +28,7 @@ import { toolLongRunningScenario } from "./tool-long-running.js";
 import type { MockScenario } from "../scenario.js";
 
 export {
+  cancelBeforeFirstOutputScenario,
   fileOutputScenario,
   multimodalInputScenario,
   a2uiFormControlsScenario,
@@ -69,6 +71,7 @@ export const backendReferenceMockScenarios: MockScenario[] = [
 ];
 
 export const frontendPresentationMockScenarios: MockScenario[] = [
+  cancelBeforeFirstOutputScenario,
   fileOutputScenario,
   a2uiFormControlsScenario,
   a2uiInteractiveOrderScenario,

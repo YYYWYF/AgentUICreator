@@ -42,6 +42,7 @@ describe("createScenarioRegistry", () => {
       "approval-resume",
       "agent-state-sync",
       "nested-subagent-conversation",
+      "cancel-before-first-output",
       "file-output",
       "a2ui-form-controls",
       "a2ui-interactive-order",

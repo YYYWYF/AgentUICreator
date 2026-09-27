@@ -1,6 +1,9 @@
 import type { AgentUILocaleMessages } from "../locale-types";
 
 export const zhCN = {
+  conversation: {
+    generationStopped: "已停止生成",
+  },
   frontendTools: {
     formTitle: "个人资料表单",
     firstName: "名",

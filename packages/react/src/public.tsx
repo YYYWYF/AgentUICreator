@@ -208,14 +208,21 @@ export function toConversationMessagePartGroup(group: unknown): ConversationMess
   return { type: source.type, indices: source.indices, status: source.status };
 }
 
+export interface ConversationThreadLabels {
+  generationStopped: string;
+}
+
 export interface ConversationThreadProps {
   components?: ConversationThreadComponents | undefined;
+  /** Product integrations supply presentation copy through their locale layer. */
+  labels?: ConversationThreadLabels | undefined;
   autoFocus?: boolean | undefined;
   composer?: ReactNode | null | undefined;
 }
 
 export function ConversationThread({
   components,
+  labels,
   autoFocus,
   composer,
 }: Readonly<ConversationThreadProps>) {
@@ -225,6 +232,7 @@ export function ConversationThread({
         ? {}
         : { components: components as unknown as InternalThreadComponents })}
       {...(autoFocus === undefined ? {} : { autoFocus })}
+      labels={labels}
       composer={composer}
     />
   );

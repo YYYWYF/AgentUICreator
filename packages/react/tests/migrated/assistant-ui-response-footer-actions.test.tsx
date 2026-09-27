@@ -283,6 +283,23 @@ afterEach(async () => {
 });
 
 describe("assistant-ui response footer action Plugins", () => {
+  it("keeps Copy and Export disabled for the localized empty cancelled response", async () => {
+    const runtimeModel = structuredClone(model);
+    runtimeModel.pluginInstances.host!.pluginId = "conversation-surface";
+    const { container, runtime } = await mount({ run: async () => ({ content: [] }) }, runtimeModel);
+    const cancelled: ThreadMessage = {
+      ...assistantMessage("", "cancelled-empty"),
+      content: [],
+      status: { type: "incomplete", reason: "cancelled" },
+    };
+    await hydrate(runtime, [userMessage("u"), cancelled]);
+    expect(container.querySelector('[data-slot="aui_assistant-message-cancelled"]')?.textContent).toBe("已停止生成");
+    expect(findActionButton(container, "assistant-ui-copy-action").disabled).toBe(true);
+    expect(findActionButton(container, "assistant-ui-export-markdown-action").disabled).toBe(true);
+    expect(findActionButton(container, "assistant-ui-reload-action").disabled).toBe(false);
+    expect(runtime.thread.getState().messages.at(-1)?.content).toEqual([]);
+  });
+
   it("keeps the Footer root horizontal and updates copied state through the child Plugin", async () => {
     const writeText = vi.fn(async () => undefined);
     const restoreClipboard = installClipboardMock(writeText);

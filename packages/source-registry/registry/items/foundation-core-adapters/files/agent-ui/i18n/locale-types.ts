@@ -3,6 +3,9 @@ export type AgentUILocaleCode = "zh-CN" | "en-US";
 export type AgentUIDirection = "ltr" | "rtl";
 
 export interface AgentUILocaleMessages {
+  conversation: {
+    generationStopped: string;
+  };
   frontendTools: {
     formTitle: string;
     firstName: string;
