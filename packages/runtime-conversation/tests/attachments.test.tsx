@@ -5,6 +5,8 @@ import { describe, expect, it, vi } from "vitest";
 import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "../src/index.js";
 import { projectLangChainHistory } from "../src/history/langchain-history-projector.js";
 
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
 // Test-only adapter: serialization remains entirely in the installed react-ag-ui.
 const adapter: AttachmentAdapter = {
   accept: "image/*,application/pdf",
@@ -43,15 +45,26 @@ async function fixture(attachmentAdapter?: AttachmentAdapter) {
       { headers: { "Content-Type": "text/event-stream" } });
   } });
   const run = vi.spyOn(agent, "runAgent");
-  let runtime!: AssistantRuntime;
-  function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
+  let capturedRuntime: AssistantRuntime | undefined;
+  function Capture() { capturedRuntime = useAui().threads.__internal_getAssistantRuntime?.(); return null; }
   let renderer!: ReactTestRenderer;
   const binding = createEphemeralConversationThreadBinding();
   await act(async () => {
     renderer = create(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding}
       attachmentAdapter={attachmentAdapter} unstable_agentFactory={() => agent}><Capture /></ConversationRuntimeProvider>);
-    await until(() => runtime?.thread.getState().isLoading === false);
+    await Promise.resolve();
   });
+  if (capturedRuntime === undefined) {
+    await act(async () => renderer.unmount());
+    throw new Error("Assistant runtime was not captured after mount.");
+  }
+  const runtime = capturedRuntime;
+  try {
+    await act(async () => until(() => runtime.thread.getState().isLoading === false));
+  } catch (error) {
+    await act(async () => renderer.unmount());
+    throw error;
+  }
   return { runtime, run, requests, async dispose() { await act(async () => renderer.unmount()); } };
 }
 
@@ -125,7 +138,7 @@ it("restores multimodal HumanMessage through the official history converter", ()
   const message = messages[0]! as unknown as ThreadMessage;
   // Upstream may lift non-text parts to attachments; both are public message state.
   const parts = [...message.content, ...(message.role === "user" ? message.attachments.flatMap(a => a.content) : [])];
-  expect(parts).toContainEqual({ type: "text", text: "Describe" });
+  expect(parts).toContainEqual(expect.objectContaining({ type: "text", text: "Describe" }));
   expect(parts).toContainEqual(expect.objectContaining({ type: "image", image }));
   expect(parts).toContainEqual(expect.objectContaining({ type: "file", mimeType: "application/pdf", data: "JVBERi0xLjc=" }));
 });

@@ -1,7 +1,8 @@
 /** The sole upstream type seam in public declarations. Value imports are never allowed. */
 export const allowedAssistantUiTypeImports = new Map([
   ["@assistant-ui/react", new Set(["AttachmentAdapter"])],
-  // react re-exports this same official type from core; declarations may name its defining module.
+  // Defining-module fallback: react 0.15.22 pulls invalid Radix declarations into strict consumers.
+  // The published-package consumer check requires core to be a declared dependency.
   ["@assistant-ui/core", new Set(["AttachmentAdapter"])],
 ]);
 

@@ -143,3 +143,67 @@ Automated checks executed on 2026-09-27, without manual/browser acceptance:
 Unrelated dirty worktree changes are preserved outside the repair commit.
 These failures were reported, not suppressed or expanded into an unrelated
 Runtime/UI/fixture redesign. Existing multimodal wire regressions remain intact.
+
+## Final focused multimodal acceptance repair
+
+The wire fixture now exits its mount act after an effect flush, checks that the
+Runtime was captured, and waits for readiness in a later act. No Runtime,
+attachment lifecycle or transport behavior changed. All six real Composer ->
+react-ag-ui -> HttpAgent -> HTTP cases pass: text-only string, text/image,
+text/PDF document, ordered images, removed image and attachment-only send.
+The capability injection regression also passes.
+
+The canonical UI test locates Remove file by button accessible text (including
+upstream sr-only text), rather than assuming aria-label. Draft updates are flushed
+before clicking Send, and completion requires observing the HTTP request. Select,
+preview, remove, send, UserMessage echo, absence of sent-message removal, drop and
+paste all pass without changing canonical presentation.
+
+The official LangChain projector output contains text, image and PDF file parts.
+The original exact text comparison failed because upstream adds Symbol metadata;
+the regression now compares public fields, just as the image/PDF assertions do.
+Image/PDF history restoration passes; there is no media-shape upstream gap for
+this fixture and no converter fork. History remains separate from live input.
+
+### Public type seam investigation and isolated package evidence
+
+Importing AttachmentAdapter from @assistant-ui/react does emit a formal react
+entry in dist/public.d.ts. That route was tried first, but strict consumer
+checking (exactOptionalPropertyTypes: true, skipLibCheck: false) traverses the
+pinned react 0.15.22 declaration surface and fails in upstream Radix declarations:
+@radix-ui/primitive references setImmediate, and @radix-ui/react-select 2.3.7 has
+incompatible onPlaced inheritance (TS2320). Weakening consumer checks, patching
+upstream or upgrading unrelated presentation dependencies is outside this repair.
+
+The supported defining-module fallback therefore remains AttachmentAdapter from
+@assistant-ui/core 0.3.21, which is already a real runtime-conversation dependency
+in package.json/lockfile. The explicit allowlist permits only AttachmentAdapter;
+react-ag-ui, other types, primitives, runtime types and value imports stay rejected.
+Revisit this fallback when the upstream formal entry supports strict consumers.
+
+check-consumer-types.mjs now packs the actual runtime-conversation, react and
+runtime-core publishable tarballs and installs them in a separate temporary
+project. Overrides point only the local unpublished Agent UI packages to their
+real tarballs; external dependencies use the package manager. Copy import mode,
+a local virtual store and empty NODE_PATH prevent borrowing workspace package
+node_modules. Realpath assertions require both Runtime and its core dependency
+to resolve inside the isolated install. The consumer does not directly declare
+core, verifies the packed Runtime's dependency declaration, checks a valid
+AttachmentAdapter and rejects an incomplete adapter via @ts-expect-error.
+Installation prefers the package cache but may need registry access; dependency
+fetches have bounded timeout/retries. Consumer typecheck remains skipLibCheck:false.
+
+### Final focused results (2026-09-27)
+
+- runtime-conversation attachment/wire/history tests: 8 passed.
+- mock-agent demo attachment tests: 6 passed.
+- react canonical attachment UI tests: 3 passed.
+- public declaration allowlist tests: 24 passed.
+- runtime-conversation, mock-agent and react typecheck/build: all passed.
+- Real emitted public boundary and isolated published-package consumer: passed.
+
+The earlier project-control Rolldown, bootstrap fixture paths and other full-suite
+failures are pre-existing/unrelated to this focused repair; their earlier reports
+remain above. Workspace-wide suites were not rerun or repaired in this final
+pass. No production ConversationRuntimeProvider, converter, HttpAgent or
+canonical Attachment UI changes were made for test success.

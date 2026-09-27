@@ -12,6 +12,7 @@ import { CancellationAwareHttpAgent } from "../../../runtime-conversation/src/co
 let root: Root | undefined;
 let runtime: AssistantRuntime;
 let container: HTMLDivElement;
+let receivedRequests = 0;
 
 async function until(predicate: () => boolean) {
   for (let i = 0; i < 100; i++) {
@@ -21,14 +22,20 @@ async function until(predicate: () => boolean) {
   throw new Error("Timed out waiting for canonical attachment UI");
 }
 function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
+function findButton(label: string): HTMLButtonElement | undefined {
+  return Array.from(container.querySelectorAll("button")).find(element =>
+    (element.getAttribute("aria-label") ?? element.textContent ?? "").trim() === label,
+  );
+}
 function button(label: string): HTMLButtonElement {
-  const element = container.querySelector(`button[aria-label="${label}"]`);
-  if (!(element instanceof HTMLButtonElement)) throw new Error(`Missing ${label} button`);
+  const element = findButton(label);
+  if (element === undefined) throw new Error(`Missing ${label} button`);
   return element;
 }
 function imageFile() { return new File(["small-image"], "demo.png", { type: "image/png" }); }
 
 beforeEach(async () => {
+  receivedRequests = 0;
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
   if (globalThis.PointerEvent === undefined) vi.stubGlobal("PointerEvent", MouseEvent);
   vi.stubGlobal("URL", class extends URL {
@@ -37,6 +44,7 @@ beforeEach(async () => {
   });
   Object.defineProperty(HTMLElement.prototype, "scrollTo", { configurable: true, value: () => {} });
   const agent = new CancellationAwareHttpAgent({ url: "http://example.test/agent", fetch: async (_url, init) => {
+    receivedRequests += 1;
     const input = JSON.parse(String(init.body)) as { threadId: string; runId: string };
     return new Response([
       { type: "RUN_STARTED", threadId: input.threadId, runId: input.runId },
@@ -78,13 +86,17 @@ describe("canonical assistant-ui attachment UI", () => {
     await act(async () => { button("Add Attachment").click(); await until(() => runtime.thread.composer.getState().attachments.length === 1); });
     await act(async () => {
       runtime.thread.composer.setText("Describe this image");
+    });
+    await act(async () => {
       button("Send").click();
-      await until(() => runtime.thread.getState().messages.some(message => message.role === "user") && !runtime.thread.getState().isRunning);
+    });
+    await act(async () => {
+      await until(() => receivedRequests === 1 && !runtime.thread.getState().isRunning);
     });
     expect(runtime.thread.composer.getState().attachments).toHaveLength(0);
     expect(container.textContent).toContain("Describe this image");
     expect(container.querySelector('[role="button"][aria-label="Image attachment"]')).not.toBeNull();
-    expect(container.querySelector('button[aria-label="Remove file"]')).toBeNull();
+    expect(findButton("Remove file")).toBeUndefined();
   });
 
   it.each(["drop", "paste"])("keeps upstream %s ingestion", async kind => {
