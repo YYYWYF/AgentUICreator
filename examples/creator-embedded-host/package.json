@@ -19,7 +19,9 @@
     "pretypecheck": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure embedded creator-embedded-host",
     "preinspect": "node ../../scripts/prepare-host-packages.mjs",
     "preverify:ui": "node ../../scripts/prepare-host-packages.mjs",
-    "preinit": "node ../../scripts/prepare-host-packages.mjs"
+    "preinit": "node ../../scripts/prepare-host-packages.mjs",
+    "pretest": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure embedded creator-embedded-host",
+    "test": "node --import tsx ../../scripts/host-examples/test-host-example.ts embedded creator-embedded-host"
   },
   "dependencies": {
     "@agent-ui/react": "workspace:^",

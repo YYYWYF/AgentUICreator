@@ -23,7 +23,9 @@
     "preverify:ui": "node ../../scripts/prepare-host-packages.mjs",
     "preinit:assistant": "node ../../scripts/prepare-host-packages.mjs",
     "preinit:embedded": "node ../../scripts/prepare-host-packages.mjs",
-    "preinit:platform": "node ../../scripts/prepare-host-packages.mjs"
+    "preinit:platform": "node ../../scripts/prepare-host-packages.mjs",
+    "pretest": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure platform creator-host-sandbox",
+    "test": "node --import tsx ../../scripts/host-examples/test-host-example.ts platform creator-host-sandbox"
   },
   "dependencies": {
     "@agent-ui/react": "workspace:^",

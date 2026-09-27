@@ -19,7 +19,9 @@
     "pretypecheck": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure assistant creator-assistant-host",
     "preinspect": "node ../../scripts/prepare-host-packages.mjs",
     "preverify:ui": "node ../../scripts/prepare-host-packages.mjs",
-    "preinit": "node ../../scripts/prepare-host-packages.mjs"
+    "preinit": "node ../../scripts/prepare-host-packages.mjs",
+    "pretest": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure assistant creator-assistant-host",
+    "test": "node --import tsx ../../scripts/host-examples/test-host-example.ts assistant creator-assistant-host"
   },
   "dependencies": {
     "@agent-ui/react": "workspace:^",
