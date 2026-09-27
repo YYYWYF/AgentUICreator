@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { createAgentUIInitializationHost } from "../../src/project/bootstrap-host";
 import { generatedProjectFixture } from "../support/generated-project";
 import { spawn } from "node:child_process";
@@ -144,8 +145,8 @@ it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIM
   await initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "src/agent-ui" }, initializationHost);
   const paths = resolveAgentUIProjectPaths(root, { version: "2", mode: "assistant", sourceRoot: "src/agent-ui" });
   const config = projectControlConfigForPaths(paths);
-  const { applyAgentUISourceItem } = await import("../scripts/ui-project/source-registry/installer");
-  const { inspectAgentUISources } = await import("../scripts/ui-project/source-registry/inspector");
+  const { applyAgentUISourceItem } = await import("../../src/project/source-registry/installer");
+  const { inspectAgentUISources } = await import("../../src/project/source-registry/inspector");
   const registry = await loadAgentUISourceRegistry();
   const footerId = "plugin/assistant-ui-message-footer";
   const responseId = "plugin/assistant-ui-response-footer";
@@ -191,7 +192,7 @@ it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIM
   });
   expect(after.items.find(item => item.id === responseId)?.status).toBe("managed");
   expect(await readFile(paths.appUIModelPath, "utf8")).toBe(beforeAppUIModel);
-  const { writeGeneratedPluginRegistry } = await import("../scripts/generate-plugin-registry");
+  const { writeGeneratedPluginRegistry } = await import("../../src/generate-plugin-registry");
   await writeGeneratedPluginRegistry(root);
   expect((await inspectCreatorProject(root)).status).toBe("ready");
   expect((await verifyUIProject(root)).status).toBe("passed");
@@ -206,7 +207,7 @@ it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIM
     id: "duplicate-footer", pluginId: "assistant-ui-response-footer", enabled: true,
     mount: { slotId: "plugin:agent-conversation-surface-main:assistantResponseFooter" },
   };
-  const { resolveAppUIComposition } = await import("../framework/contracts/app-ui-composition");
+  const { resolveAppUIComposition } = await import("../../src/framework/contracts/app-ui-composition");
   expect(resolveAppUIComposition(duplicate, generation.activeComposition.compositionCatalog).issues)
     .toEqual(expect.arrayContaining([expect.objectContaining({ code: "conversation-footer-slot-conflict" })]));
 

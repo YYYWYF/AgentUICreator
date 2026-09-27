@@ -603,6 +603,9 @@ importers:
       '@agent-ui/react':
         specifier: workspace:^
         version: link:../react
+      '@assistant-ui/core':
+        specifier: 0.3.21
+        version: 0.3.21(@assistant-ui/store@0.3.15(@assistant-ui/tap@0.9.19(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0))(@assistant-ui/tap@0.9.19(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(assistant-cloud@0.2.2)(react@19.3.0)
       '@assistant-ui/react':
         specifier: 0.15.22
         version: 0.15.22(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
@@ -612,6 +615,9 @@ importers:
       '@assistant-ui/react-langgraph':
         specifier: 0.14.29
         version: 0.14.29(@assistant-ui/tap@0.9.19(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0)
+      rxjs:
+        specifier: 7.8.1
+        version: 7.8.1
     devDependencies:
       '@agent-ui/runtime-core':
         specifier: workspace:^
@@ -733,6 +739,9 @@ importers:
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
+      zod:
+        specifier: ^4.5.4
+        version: 4.6.5
 
 packages:
 

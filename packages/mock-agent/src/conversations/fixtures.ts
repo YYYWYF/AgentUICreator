@@ -1,12 +1,25 @@
-import type {
-  ConversationDetailResponse,
-  ConversationListResponse,
-  ConversationSummary,
-} from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations.js";
-
+// Mock API payloads are owned by this development provider. Keep package
+// declarations independent of generated frontend template source files.
 export interface MockConversationFixture {
-  summary: ConversationSummary;
-  detail: ConversationDetailResponse;
+  summary: {
+    id: string;
+    title: string;
+    group?: string | undefined;
+    updatedAt?: string | undefined;
+    disabled?: boolean | undefined;
+  };
+  detail: {
+    id: string;
+    title: string;
+    state: {
+      values: { messages?: unknown[] | undefined; [key: string]: unknown };
+      next?: unknown;
+      metadata?: unknown;
+      createdAt?: string | undefined;
+      tasks?: unknown[] | undefined;
+    };
+    agentState?: unknown;
+  };
   /** Development documentation only; it is never consumed by the Runtime. */
   sourceScenarioId?: string | undefined;
 }
@@ -254,9 +267,9 @@ export const mockConversationFixtures: readonly MockConversationFixture[] = [
   },
 ];
 
-export const mockConversationList: ConversationListResponse = {
+export const mockConversationList: { conversations: MockConversationFixture["summary"][] } = {
   conversations: mockConversationFixtures.map((fixture) => fixture.summary),
 };
 
-export const mockConversationDetails: ConversationDetailResponse[] =
+export const mockConversationDetails: MockConversationFixture["detail"][] =
   mockConversationFixtures.map((fixture) => fixture.detail);

@@ -1,12 +1,15 @@
 import {
   HttpAgent,
   type AgentSubscriber,
+  type AgentStateMutation,
   type HttpAgentConfig,
   type HttpAgentFetchFn,
   type RunAgentInput,
   type RunAgentParameters,
   type RunAgentResult,
 } from "@ag-ui/client";
+
+import type { Observable } from "rxjs";
 
 import {
   isAbortLikeTransportError,
@@ -118,7 +121,7 @@ export class CancellationAwareHttpAgent extends HttpAgent {
     input: RunAgentInput,
     error: Error,
     subscribers: AgentSubscriber[],
-  ) {
+  ): Observable<AgentStateMutation> {
     const normalized =
       this.localCancellationRequested && isAbortLikeTransportError(error)
         ? toCanonicalAbortError(error)

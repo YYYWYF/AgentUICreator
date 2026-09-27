@@ -17,7 +17,7 @@ export type {
   AgentFrontendToolExecuteOptions,
   AgentFrontendToolResult,
   AgentFrontendToolSource,
-} from "./creator-host-sandbox-tool.js";
+} from "./frontend-tool.js";
 export type {
   AgentApplicationEvent,
   AgentApplicationEventListener,

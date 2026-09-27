@@ -68,6 +68,12 @@
       ],
       "remark-gfm": [
         "../../packages/react/node_modules/remark-gfm"
+      ],
+      "@base-ui/react/*": [
+        "./node_modules/@base-ui/react/*"
+      ],
+      "lucide-react": [
+        "./node_modules/lucide-react"
       ]
     },
     "rootDirs": [
@@ -108,7 +114,8 @@
       "../source-registry/registry/items/demo-frontend-tool-dialog/files",
       "../source-registry/registry/items/plugin-conversation-data-source/files",
       "../source-registry/registry/items/plugin-conversation-surface/files",
-      "../source-registry/registry/items/plugin-agent-plan-message/files"
+      "../source-registry/registry/items/plugin-agent-plan-message/files",
+      "../project-control/tests/support/typecheck-project"
     ]
   },
   "exclude": [

@@ -1,13 +1,24 @@
 import { InternalConversationToolkitProvider } from "./internal/conversation-toolkit-provider.js";
 import {
   ConversationThreadListItemComposition,
-  type ConversationThreadListItemProps,
 } from "./internal/conversation-thread-list-item.js";
-export type {
-  ConversationThreadListItemActions,
-  ConversationThreadListItemLabels,
-  ConversationThreadListItemProps,
-} from "./internal/conversation-thread-list-item.js";
+export interface ConversationThreadListItemActions {
+  rename?: boolean;
+  archive?: boolean;
+  delete?: boolean;
+}
+export interface ConversationThreadListItemLabels {
+  newChat: string;
+  moreOptions: string;
+  running: string;
+  rename: string;
+  archive: string;
+  delete: string;
+}
+export interface ConversationThreadListItemProps {
+  actions?: ConversationThreadListItemActions;
+  labels?: ConversationThreadListItemLabels;
+}
 import {
   CanonicalComposer as InternalConversationCanonicalComposer,
   ComposerAddAttachmentAction as InternalConversationComposerAddAttachment,
@@ -16,7 +27,6 @@ import {
   ComposerSendAction as InternalConversationComposerSend,
   ComposerStopDictationAction as InternalConversationComposerStopDictation,
   ComposableThread as InternalConversationThread,
-  type CanonicalComposerProps as InternalCanonicalComposerProps,
   type ThreadComponents as InternalThreadComponents,
 } from "./internal/composable-thread.js";
 import { File as InternalFile } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/file.js";
@@ -93,12 +103,19 @@ import {
   RefreshCwIcon,
 } from "lucide-react";
 import { cn } from "./internal/vendor/assistant-ui/lib/utils.js";
-export {
-  DataMessageUIRegistration,
-  defineDataMessageUI,
-  type DataMessageUIDefinition,
-  type DataMessageUIRenderProps,
+import {
+  DataMessageUIRegistration as InternalDataMessageUIRegistration,
+  defineDataMessageUI as internalDefineDataMessageUI,
 } from "./internal/data-message-ui.js";
+export interface DataMessageUIRenderProps<TData = unknown> {
+  data: TData;
+}
+export interface DataMessageUIDefinition<TData = unknown> {
+  name: string;
+  render: ComponentType<DataMessageUIRenderProps<TData>>;
+}
+export const defineDataMessageUI: <TData>(definition: DataMessageUIDefinition<TData>) => DataMessageUIDefinition<never> = internalDefineDataMessageUI;
+export const DataMessageUIRegistration: ComponentType<{ definition: DataMessageUIDefinition<never> }> = InternalDataMessageUIRegistration;
 
 export interface ConversationMessage {
   readonly id: string;
@@ -213,8 +230,12 @@ export function ConversationThread({
   );
 }
 
-export interface ConversationCanonicalComposerProps
-  extends Omit<InternalCanonicalComposerProps, "placeholder" | "inputAriaLabel"> {
+export interface ConversationCanonicalComposerProps {
+  autoFocus?: boolean | undefined;
+  beforeInput?: ReactNode;
+  leadingActions?: ReactNode;
+  trailingActions?: ReactNode;
+  submitAction?: ReactNode;
   placeholder?: string | undefined;
   inputAriaLabel?: string | undefined;
 }
@@ -322,9 +343,12 @@ export function ConversationSuggestions({
   );
 }
 
-export type ConversationSuggestionTriggerProps = ComponentProps<
-  typeof SuggestionPrimitive.Trigger
->;
+export type ConversationSuggestionTriggerProps = ComponentProps<"button"> & {
+  asChild?: boolean;
+  render?: ReactElement | undefined;
+  send?: boolean | undefined;
+  clearComposer?: boolean | undefined;
+};
 
 export function ConversationSuggestionTrigger(
   props: Readonly<ConversationSuggestionTriggerProps>,
@@ -332,9 +356,10 @@ export function ConversationSuggestionTrigger(
   return <SuggestionPrimitive.Trigger {...props} />;
 }
 
-export type ConversationSuggestionTitleProps = ComponentProps<
-  typeof SuggestionPrimitive.Title
->;
+export type ConversationSuggestionTitleProps = ComponentProps<"span"> & {
+  asChild?: boolean;
+  render?: ReactElement | undefined;
+};
 
 export function ConversationSuggestionTitle(
   props: Readonly<ConversationSuggestionTitleProps>,
@@ -342,9 +367,7 @@ export function ConversationSuggestionTitle(
   return <SuggestionPrimitive.Title {...props} />;
 }
 
-export type ConversationSuggestionDescriptionProps = ComponentProps<
-  typeof SuggestionPrimitive.Description
->;
+export type ConversationSuggestionDescriptionProps = ConversationSuggestionTitleProps;
 
 export function ConversationSuggestionDescription(
   props: Readonly<ConversationSuggestionDescriptionProps>,
@@ -437,9 +460,12 @@ export function ConversationToolFallback(
   return <InternalToolFallback {...(props as ComponentProps<typeof InternalToolFallback>)} />;
 }
 
-export type ConversationTooltipIconButtonProps = ComponentProps<
-  typeof InternalTooltipIconButton
->;
+export type ConversationTooltipIconButtonProps = import("@base-ui/react/button").Button.Props & {
+  tooltip: string;
+  side?: "top" | "bottom" | "left" | "right";
+  variant?: "default" | "outline" | "secondary" | "ghost" | "destructive" | "link" | null | undefined;
+  size?: "default" | "xs" | "sm" | "lg" | "icon" | "icon-xs" | "icon-sm" | "icon-lg" | null | undefined;
+};
 
 export function ConversationTooltipIconButton(
   props: Readonly<ConversationTooltipIconButtonProps>,
@@ -525,7 +551,10 @@ export function ConversationCanonicalExportMarkdownAction() {
 }
 
 export interface ConversationBranchPickerProps
-  extends Omit<ComponentProps<typeof BranchPickerPrimitive.Root>, "children"> {
+  extends Omit<ComponentProps<"div">, "children"> {
+  asChild?: boolean;
+  render?: ReactElement | undefined;
+  hideWhenSingleBranch?: boolean | undefined;
   previousLabel?: string | undefined;
   nextLabel?: string | undefined;
 }
@@ -911,20 +940,41 @@ export function TooltipProvider(
 }
 
 /** Response APIs are separate from the existing message-scoped actions. */
-export {
-  CanonicalAssistantResponseFooter as ConversationCanonicalAssistantResponseFooter,
-  ResponseActionBarRoot as ConversationResponseActionBarRoot,
-  ResponseBranchPicker as ConversationResponseBranchPicker,
-  CanonicalResponseCopyAction as ConversationCanonicalResponseCopyAction,
-  CanonicalResponseReloadAction as ConversationCanonicalResponseReloadAction,
-  CanonicalResponseExportMarkdownAction as ConversationCanonicalResponseExportMarkdownAction,
+import {
+  CanonicalAssistantResponseFooter,
+  ResponseActionBarRoot,
+  ResponseBranchPicker,
+  CanonicalResponseCopyAction,
+  CanonicalResponseReloadAction,
+  CanonicalResponseExportMarkdownAction,
 } from "./internal/composable-thread.js";
-export {
-  useAssistantResponseRuntime as useConversationResponseRuntime,
-  type AssistantResponseRuntime as ConversationResponseRuntime,
-} from "./internal/assistant-response-runtime.js";
-export type {
-  ConversationTurnGroup,
-  // Existing public name is an alias to the same Turn type, with no separate grouping.
-  ConversationTurnGroup as ConversationAssistantResponseGroup,
-} from "./internal/conversation-turn.js";
+import { useAssistantResponseRuntime } from "./internal/assistant-response-runtime.js";
+export const ConversationCanonicalAssistantResponseFooter: ComponentType = CanonicalAssistantResponseFooter;
+export const ConversationResponseActionBarRoot: ComponentType<{ children?: ReactNode }> = ResponseActionBarRoot;
+export const ConversationResponseBranchPicker: ComponentType = ResponseBranchPicker;
+export const ConversationCanonicalResponseCopyAction: ComponentType = CanonicalResponseCopyAction;
+export const ConversationCanonicalResponseReloadAction: ComponentType = CanonicalResponseReloadAction;
+export const ConversationCanonicalResponseExportMarkdownAction: ComponentType = CanonicalResponseExportMarkdownAction;
+export interface ConversationTurnGroup {
+  turnId: string;
+  requestMessageId: string | null;
+  assistantMessageIds: readonly string[];
+  headAssistantMessageId: string;
+  tailAssistantMessageId: string;
+  headAssistantIndex: number;
+  tailAssistantIndex: number;
+}
+export type ConversationAssistantResponseGroup = ConversationTurnGroup;
+export interface ConversationResponseRuntime {
+  group: ConversationTurnGroup;
+  text: string;
+  isRunning: boolean;
+  canReload: boolean;
+  canSwitchBranch: boolean;
+  branchNumber: number;
+  branchCount: number;
+  reload(): void;
+  switchToPreviousBranch(): void;
+  switchToNextBranch(): void;
+}
+export const useConversationResponseRuntime: () => ConversationResponseRuntime = useAssistantResponseRuntime;

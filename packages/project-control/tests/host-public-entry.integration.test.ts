@@ -168,7 +168,7 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
       assert.ok(runtimeConfig.includes(`agentUIRuntimeConfig = { mode: "${mode}" } as const`));
       assert.doesNotMatch(
         await readFile(path.join(projectRoot, "src/agent-ui/application/Agent.tsx"), "utf8"),
-        /\.agent-ui\/|import\.meta\.glob/u,
+        /\.agent-ui\//u,
       );
 
       // Simulate deployment that excludes Creator control-plane metadata.
@@ -184,7 +184,7 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
         "--noEmit",
       ]);
 
-      await build({
+      const bundled = await build({
         root: projectRoot,
         configFile: false,
         plugins: [react(), tailwindcss()],
@@ -192,6 +192,15 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
         build: { outDir: path.join(projectRoot, "dist"), emptyOutDir: true },
         logLevel: "silent",
       });
+      // HMR globs are allowed in development source, but neither development
+      // expressions nor Creator metadata access may remain in deployed chunks.
+      const outputs = Array.isArray(bundled) ? bundled : [bundled];
+      for (const output of outputs) {
+        assert.ok("output" in output);
+        for (const artifact of output.output) {
+          if (artifact.type === "chunk") assert.doesNotMatch(artifact.code, /\.agent-ui\/|import\.meta\.glob/u);
+        }
+      }
     } finally {
       await rm(projectRoot, { recursive: true, force: true });
     }

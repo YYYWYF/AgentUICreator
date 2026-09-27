@@ -95,15 +95,14 @@ describe("installed assistant-ui attachment integration", () => {
       await act(async () => {
         f.runtime.thread.composer.setText(text);
         for (const file of files) await f.runtime.thread.composer.addAttachment(file);
-        if (remove) await f.runtime.thread.composer.removeAttachment(f.runtime.thread.composer.getState().attachments[0]!.id);
+        if (remove) await f.runtime.thread.composer.getAttachmentByIndex(0).remove();
       });
       await act(async () => {
         f.runtime.thread.composer.send();
         await until(() => f.requests.length === 1 && !f.runtime.thread.getState().isRunning);
       });
       // Spy calls the real agent; neither the converter nor runAgent is mocked.
-      const call = f.run.mock.calls[0]![0]!;
-      expect(call.messages?.at(-1)).toMatchObject({ role: "user", content: expected });
+      expect(f.run).toHaveBeenCalledTimes(1);
       const user = f.requests[0]!.messages.at(-1)!;
       expect(user.role).toBe("user");
       expect(user.content).toEqual(expected);

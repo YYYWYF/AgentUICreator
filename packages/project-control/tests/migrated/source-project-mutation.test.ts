@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { generatedProjectFixture } from "../support/generated-project";
 import { randomUUID } from "node:crypto";
 import { fork, spawn, type ChildProcess } from "node:child_process";
@@ -38,8 +39,8 @@ vi.mock("node:fs/promises", async importOriginal => {
     return actual.link(...args);
   } };
 });
-vi.mock("../scripts/generate-plugin-registry", async importOriginal => {
-  const actual = await importOriginal<typeof import("../scripts/generate-plugin-registry")>();
+vi.mock("../../src/generate-plugin-registry", async importOriginal => {
+  const actual = await importOriginal<typeof import("../../src/generate-plugin-registry")>();
   return { ...actual, writeGeneratedPluginRegistry: async (...args: Parameters<typeof actual.writeGeneratedPluginRegistry>) => {
     if (failure.stage === "source") throw new Error("Injected failure after Source commit");
     const result = await actual.writeGeneratedPluginRegistry(...args);
@@ -52,24 +53,24 @@ vi.mock("../scripts/generate-plugin-registry", async importOriginal => {
     return result;
   } };
 });
-vi.mock("../scripts/generate-frontend-tool-registry", async importOriginal => {
-  const actual = await importOriginal<typeof import("../scripts/generate-frontend-tool-registry")>();
+vi.mock("../../src/generate-frontend-tool-registry", async importOriginal => {
+  const actual = await importOriginal<typeof import("../../src/generate-frontend-tool-registry")>();
   return { ...actual, writeGeneratedFrontendToolRegistries: async (...args: Parameters<typeof actual.writeGeneratedFrontendToolRegistries>) => {
     const result = await actual.writeGeneratedFrontendToolRegistries(...args);
     if (failure.stage === "tools") throw new Error("Injected tools failure");
     return result;
   } };
 });
-vi.mock("../scripts/generate-conversation-integration-registry", async importOriginal => {
-  const actual = await importOriginal<typeof import("../scripts/generate-conversation-integration-registry")>();
+vi.mock("../../src/generate-conversation-integration-registry", async importOriginal => {
+  const actual = await importOriginal<typeof import("../../src/generate-conversation-integration-registry")>();
   return { ...actual, writeGeneratedConversationIntegrationRegistry: async (...args: Parameters<typeof actual.writeGeneratedConversationIntegrationRegistry>) => {
     const result = await actual.writeGeneratedConversationIntegrationRegistry(...args);
     if (failure.stage === "integrations") throw new Error("Injected integration failure");
     return result;
   } };
 });
-vi.mock("../scripts/verify-ui", async importOriginal => {
-  const actual = await importOriginal<typeof import("../scripts/verify-ui")>();
+vi.mock("../../src/verify-ui", async importOriginal => {
+  const actual = await importOriginal<typeof import("../../src/verify-ui")>();
   return { ...actual, verifyUIProject: async (...args: Parameters<typeof actual.verifyUIProject>) => {
     const result = await actual.verifyUIProject(...args);
     if (failure.stage === "warnings") return { ...result, warnings: [...result.warnings, { code: "injected-warning", message: "Warning only" }] };

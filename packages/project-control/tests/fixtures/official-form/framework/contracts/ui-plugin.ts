@@ -1,1 +1,1 @@
-export * from "../../../../../framework/contracts/ui-plugin";
+export * from "../../../../../src/framework/contracts/ui-plugin";

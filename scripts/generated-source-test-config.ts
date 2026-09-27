@@ -19,7 +19,14 @@ export function generatedSourceTestConfig(packageRoot: string) {
     plugins: [{
       name: "generated-source-fixtures",
       async resolveId(this: any, source: string, importer: string | undefined) {
-        if (!importer || !source.startsWith(".")) return;
+        if (!importer) return;
+        // Templates use the test host's installed frontend stack, rather than
+        // requiring UI dependencies on the Source Registry package itself.
+        if (!source.startsWith(".")) {
+          if (!importer.includes("/registry/items/")) return;
+          return await this.resolve(source, path.join(packageRoot, "package.json"), { skipSelf: true })
+            ?? await this.resolve(source, path.join(root, "packages/react/package.json"), { skipSelf: true });
+        }
         if (source.endsWith("/foundation-core/files/plugins/index") || source.endsWith("/foundation-core/files/plugins/registry.generated")) {
           const fixture = await generatedProjectFixture();
           return path.join(fixture, "plugins", source.endsWith("/index") ? "index.ts" : "registry.generated.ts");

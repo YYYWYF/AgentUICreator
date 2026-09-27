@@ -34,7 +34,10 @@ import { GeneratedConversationIntegrations } from "../agent-ui/conversation/inte
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
 import { resolvePluginConversationToolkit } from "../runtime/plugins/plugin-conversation-toolkit";
 import { agentCompositionStore } from "./composition-store";
-import { agentUIRuntimeConfig } from "./runtime-config.generated";
+import { agentUIRuntimeConfig as generatedAgentUIRuntimeConfig } from "./runtime-config.generated";
+import type { AgentUIMode } from "../framework/contracts/agent-ui-mode";
+
+const agentUIRuntimeConfig: Readonly<{ mode: AgentUIMode }> = generatedAgentUIRuntimeConfig;
 
 import "../agent-ui/conversation/styles.css";
 

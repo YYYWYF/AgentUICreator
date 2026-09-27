@@ -8,7 +8,7 @@ import type {
   AgentUserInput,
 } from "@agent-ui/runtime-core";
 import type { AbstractAgent } from "@ag-ui/client";
-import type { AttachmentAdapter } from "@assistant-ui/react";
+import type { AttachmentAdapter } from "@assistant-ui/core";
 import {
   ConversationRuntimeProvider as InternalConversationRuntimeProvider,
   type ConversationAgentFactory as InternalConversationAgentFactory,

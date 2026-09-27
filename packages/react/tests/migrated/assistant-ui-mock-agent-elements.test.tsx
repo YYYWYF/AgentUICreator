@@ -5,13 +5,13 @@ import { createRoot, type Root } from "react-dom/client";
 import type { ToolCallMessagePartProps } from "@assistant-ui/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import {
-  MockAgentPlanToolUI,
-  MockAgentStatusToolUI,
-  MockApprovalToolUI,
-  MockRunCiJobToolUI,
-  createConversationToolkit,
-} from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
+import { MockAgentPlanToolUI } from "../../../source-registry/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/index";
+import { MockAgentStatusToolUI } from "../../../source-registry/registry/items/plugin-agent-status-message/files/plugins/agent-status-message/index";
+import { MockRunCiJobToolUI } from "../../../source-registry/registry/items/plugin-job-progress-message/files/plugins/job-progress-message/index";
+import agentPlanMessagePlugin from "../../../source-registry/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/definition";
+import agentStatusMessagePlugin from "../../../source-registry/registry/items/plugin-agent-status-message/files/plugins/agent-status-message/definition";
+import jobProgressMessagePlugin from "../../../source-registry/registry/items/plugin-job-progress-message/files/plugins/job-progress-message/definition";
+import { createConversationToolkit } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
 
 type MockToolProps = ToolCallMessagePartProps<Record<string, unknown>, unknown>;
 const mountedRoots: Root[] = [];
@@ -52,38 +52,14 @@ afterEach(async () => {
 });
 
 describe("Mock Agent official element renderers", () => {
-  it("registers mock-only backend tools without changing production toolkit", () => {
+  it("declares Mock backend renderers on their owning Plugins", () => {
     const production = createConversationToolkit();
-    const mock = createConversationToolkit({ mockAgentElements: true });
-
-    expect(production).not.toHaveProperty("mock_agent_plan");
-    expect(production).not.toHaveProperty("mock_agent_status");
-    expect(production).not.toHaveProperty("delete_generated_artifacts");
-    expect(production).not.toHaveProperty("run_ci_job");
-    const mockAgentPlan = mock.mock_agent_plan;
-    const mockAgentStatus = mock.mock_agent_status;
-    const mockApproval = mock.delete_generated_artifacts;
-    const mockRunCiJob = mock.run_ci_job;
-    expect(mockAgentPlan).toBeDefined();
-    expect(mockAgentStatus).toBeDefined();
-    expect(mockApproval).toBeDefined();
-    expect(mockRunCiJob).toBeDefined();
-    if (
-      mockAgentPlan === undefined ||
-      mockAgentStatus === undefined ||
-      mockApproval === undefined ||
-      mockRunCiJob === undefined
-    ) {
-      throw new Error("Mock Agent Elements toolkit entries are missing.");
+    for (const name of ["mock_agent_plan", "mock_agent_status", "delete_generated_artifacts", "run_ci_job"]) {
+      expect(production).not.toHaveProperty(name);
     }
-    expect(mockAgentPlan.type).toBe("backend");
-    expect(mockAgentStatus.type).toBe("backend");
-    expect(mockApproval.type).toBe("backend");
-    expect(mockApproval.display).toBe("standalone");
-    expect(mockRunCiJob.type).toBe("backend");
-    expect(mockRunCiJob.render).toBe(MockRunCiJobToolUI);
-    expect(mockApproval.render).toBe(MockApprovalToolUI);
-    expect("execute" in mockAgentPlan).toBe(false);
+    expect(agentPlanMessagePlugin.toolkit?.mock_agent_plan).toMatchObject({ type: "backend", render: MockAgentPlanToolUI });
+    expect(agentStatusMessagePlugin.toolkit?.mock_agent_status).toMatchObject({ type: "backend", render: MockAgentStatusToolUI });
+    expect(jobProgressMessagePlugin.toolkit?.run_ci_job).toMatchObject({ type: "backend", render: MockRunCiJobToolUI });
   });
 
   it("renders the official AgentPlan from the shared projection", async () => {
