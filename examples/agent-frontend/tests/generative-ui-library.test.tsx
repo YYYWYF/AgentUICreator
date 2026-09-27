@@ -10,12 +10,12 @@ import { generativeUIGallery } from "./fixtures/generative-ui-gallery";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const disposers: (() => Promise<void>)[] = [];
 afterEach(async () => { for (const dispose of disposers.splice(0)) await dispose(); });
-async function render(spec: Record<string, unknown>, handler = vi.fn()) {
+async function render(spec: ToolCallMessagePartProps["args"], handler = vi.fn()) {
   const ui = createAgentUIGenerativeUI({ actions: createAgentUIGenerativeActions({ save: handler }) });
   const Render = ui.present().render!;
   const container = document.createElement("div"); container.className = "agent-ui-conversation"; document.body.append(container);
   const root = createRoot(container);
-  const props = { type: "tool-call", toolName: "present", toolCallId: "gallery", args: spec, argsText: JSON.stringify(spec), result: {}, status: { type: "complete" }, addResult() {} } as ToolCallMessagePartProps<Record<string, unknown>, Record<string, never>>;
+  const props = { type: "tool-call", toolName: "present", toolCallId: "gallery", args: spec, argsText: JSON.stringify(spec), result: {}, status: { type: "complete" }, addResult() {}, resume() {}, async respondToApproval() {} } satisfies ToolCallMessagePartProps<Record<string, unknown>, Record<string, never>>;
   await act(async () => { root.render(<Render {...props} />); });
   disposers.push(async () => { await act(async () => root.unmount()); container.remove(); });
   return { container, handler };

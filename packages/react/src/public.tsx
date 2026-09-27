@@ -770,8 +770,8 @@ export function JobProgress(props: Readonly<JobProgressProps>) {
 export function useConversationNavigation(): ConversationNavigation {
   const runtime = useAui();
   return {
-    switchToThread: (threadId) => runtime.threads.switchToThread(threadId),
-    switchToNewThread: () => runtime.threads.switchToNewThread(),
+    switchToThread: (threadId) => Promise.resolve(runtime.threads.switchToThread(threadId)),
+    switchToNewThread: () => Promise.resolve(runtime.threads.switchToNewThread()),
     reloadCurrentThread: () => runtime.threads.reloadMainThread(),
   };
 }

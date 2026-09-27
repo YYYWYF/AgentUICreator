@@ -66,7 +66,7 @@ async function fixture(withA2ui = true) {
     await tick();
   });
   disposers.push(async () => { await act(async () => { streams.forEach(stream => stream.close()); await tick(); root.unmount(); }); container.remove(); });
-  const parts = () => runtime.thread.getState().messages.flatMap(message => message.content).filter(part => part.type === "tool-call" && part.toolName === "present");
+  const parts = () => runtime.thread.getState().messages.flatMap(message => message.content.filter(part => part.type === "tool-call" && part.toolName === "present"));
   return {
     inputs, streams, runtime, container, parts,
     get maxActive() { return maxActive; },
@@ -226,7 +226,7 @@ describe("upgraded official Generative UI and A2UI contracts", () => {
     await f.finish();
     expect(f.parts()).toEqual([]);
     expect(f.container.querySelector('[data-aui="root"]')).toBeNull();
-    expect(f.runtime.thread.getState().messages.flatMap(message => message.content)).toEqual(expect.arrayContaining([
+    expect(f.runtime.thread.getState().messages.flatMap(message => [...message.content])).toEqual(expect.arrayContaining([
       expect.objectContaining({ type: "data", name: "agui-activity/other", data: { progress: 42 } }),
     ]));
   });

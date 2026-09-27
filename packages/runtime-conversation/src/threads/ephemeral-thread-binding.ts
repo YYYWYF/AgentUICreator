@@ -1,7 +1,7 @@
 import type { ConversationThreadBinding } from "./types.js";
 
 export function createEphemeralConversationThreadBinding(): ConversationThreadBinding {
-  let threadId = crypto.randomUUID();
+  let threadId: string = crypto.randomUUID();
   const listeners = new Set<() => void>();
 
   return {

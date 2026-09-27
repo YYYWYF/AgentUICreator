@@ -158,7 +158,7 @@ async function fixture(failFirstBHistory = false, providedBinding?: Conversation
   const emit = async (id: string, event: Record<string, unknown>) => {
     await act(async () => { streams.get(id)!.emit(event); await tick(); });
   };
-  const text = (id: string) => runtime.threads.getById(id).getState().messages.flatMap(m => m.content).filter(p => p.type === "text").map(p => p.text).join("|");
+  const text = (id: string) => runtime.threads.getById(id).getState().messages.flatMap(m => m.content.filter(p => p.type === "text").map(p => p.text)).join("|");
   return { agents, streams, bridges, runtime, load, switchTo, start, emit, text,
     get navigation() { return navigation; },
     get currentBridge() { return currentBridge; },

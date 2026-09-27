@@ -110,7 +110,8 @@ describe("AG-UI CUSTOM → Data Message UI", () => {
         );
       });
       if (actions === undefined) throw new Error("Runtime actions were not mounted");
-      await act(async () => { await actions.sendMessage("Show quarterly sales"); });
+      const mountedActions = actions;
+      await act(async () => { await mountedActions.sendMessage("Show quarterly sales"); });
 
       expect(agent.events.some((event) => event.type === EventType.CUSTOM &&
         "name" in event && event.name === "chart")).toBe(true);

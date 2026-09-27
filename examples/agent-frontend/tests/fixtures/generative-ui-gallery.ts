@@ -1,5 +1,7 @@
 /** Development/test fixture: official $type vocabulary, not an A2UI wire scenario. */
-export const generativeUIGallery: Record<string, unknown> = {
+import type { ToolCallMessagePart } from "@assistant-ui/react";
+
+export const generativeUIGallery: ToolCallMessagePart["args"] = {
   $type: "Col",
   children: [
     { $type: "Card", title: "Official Vocabulary", children: [

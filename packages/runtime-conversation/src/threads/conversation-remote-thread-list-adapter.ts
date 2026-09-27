@@ -1,5 +1,7 @@
-import type { RemoteThreadListAdapter, RemoteThreadMetadata } from "@assistant-ui/react";
+import type { RemoteThreadListAdapter } from "@assistant-ui/react";
 import type { ConversationThreadBinding, ConversationThreadListItem } from "./types.js";
+
+type RemoteThreadMetadata = Awaited<ReturnType<RemoteThreadListAdapter["fetch"]>>;
 
 /** Persistence and identity only; assistant-ui owns the runtime cache and lifecycle. */
 export function createConversationRemoteThreadListAdapter<TState>(binding: ConversationThreadBinding<TState>) {
