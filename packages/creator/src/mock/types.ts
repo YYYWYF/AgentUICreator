@@ -7,5 +7,5 @@ export interface CreatorMockState {
   endpoint: string | null;
   scenarioId: string;
   speed: number;
-  scenarios: MockScenarioSummary[];
+  scenarios: Pick<MockScenarioSummary, "id" | "title" | "description" | "resources" | "category" | "capabilities">[];
 }

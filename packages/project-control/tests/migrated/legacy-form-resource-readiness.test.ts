@@ -43,7 +43,7 @@ it("transitions legacy Form resources from missing to ready using the Workbench 
     const normal = await inspectAgentUISources(root);
     const resources = await inspectScenarioResources(root);
     const sources = await mergeOptionalResourceInspection(normal, resources);
-    return { sources, requirement: inspectMockDemoCompatibility(composition, sources).requirements.find(item => item.id === "frontend-tool-form")! };
+    return { sources, requirement: inspectMockDemoCompatibility(composition, sources).requirements.find(item => item.id === "frontend-tool-form-demo")! };
   }
   expect((await compatibility()).requirement.status).toBe("missing");
   const before = await Promise.all(foundations.flatMap(item => item.loadedFiles).map(file => readFile(path.join(root, file.target))));

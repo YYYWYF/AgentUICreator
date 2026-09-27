@@ -8,6 +8,7 @@ export {
   type MockScenarioCategory,
   type MockScenarioReference,
   type MockScenarioResourceRequirement,
+  type MockScenarioResourceId,
   type MockScenarioResumeSteps,
   type MockScenarioStep,
   type MockStateDelta,

@@ -34,7 +34,13 @@ export class CreatorMockService {
       endpoint: this.endpoint,
       scenarioId: this.scenarioId,
       speed: this.speed,
-      scenarios: this.registry.list(),
+      scenarios: this.registry.list().map(({ id, title, description, resources, category, capabilities }) => ({
+        id, title,
+        ...(description === undefined ? {} : { description }),
+        ...(resources === undefined ? {} : { resources }),
+        ...(category === undefined ? {} : { category }),
+        ...(capabilities === undefined ? {} : { capabilities }),
+      })),
     };
   }
 
@@ -133,7 +139,7 @@ export class CreatorMockService {
     if (url.pathname === "/agent/scenarios") {
       response.setHeader("Content-Type", "application/json");
       if (request.method !== "GET") { response.statusCode = 405; response.end(); return; }
-      response.end(JSON.stringify({ defaultScenarioId: this.scenarioId, scenarios: this.registry.list() }));
+      response.end(JSON.stringify({ defaultScenarioId: this.scenarioId, scenarios: this.getState().scenarios }));
       return;
     }
     // Snapshot the panel selection for this request; changing the panel never

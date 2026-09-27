@@ -93,7 +93,7 @@ export function satisfiesAgentUIPackageRange(
 function dependencyVersions(packageJson: unknown): Record<string, string> {
   if (typeof packageJson !== "object" || packageJson === null || Array.isArray(packageJson)) return {};
   const result: Record<string, string> = {};
-  for (const field of ["dependencies", "devDependencies"]) {
+  for (const field of ["peerDependencies", "optionalDependencies", "dependencies", "devDependencies"]) {
     const value = (packageJson as Record<string, unknown>)[field];
     if (typeof value !== "object" || value === null || Array.isArray(value)) continue;
     for (const [name, version] of Object.entries(value)) {

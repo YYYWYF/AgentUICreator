@@ -18,9 +18,9 @@ const approval = preview(text(38, 54, "Tool execution / Approval") + text(38, 98
 
 export const mockResourcePreviews: Readonly<Record<string, string>> = {
   "generated-file-message": file,
-  "assistant-ui-reasoning": reasoning,
-  "assistant-ui-tool-group": tools,
-  "assistant-ui-tool-fallback": approval,
+  "reasoning": reasoning,
+  "tool-group": tools,
+  "tool-approval": approval,
   "chart-message": chart,
   "job-progress-message": progress,
   "agent-plan-message": plan,

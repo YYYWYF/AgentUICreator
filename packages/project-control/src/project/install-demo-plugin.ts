@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { officialResourceRegistry } from "@agent-ui/source-registry";
 import { readFile } from "node:fs/promises";
 import { collectAppUIPluginLocations, parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./agent-ui-project-paths";
@@ -10,7 +11,8 @@ import type { AppUIOperation } from "./app-ui-operations";
 
 /** Host adapter: reuse the same source and composition transactions as Creator tools. */
 export async function installDemoPlugin(projectRoot: string, pluginId: string): Promise<void> {
-  if (!["generated-file-message", "chart-message", "task-group", "job-progress-message", "agent-plan-message", "agent-status-message", "assistant-ui-reasoning", "assistant-ui-tool-group", "assistant-ui-tool-fallback"].includes(pluginId)) throw new Error("Unsupported Demo plugin");
+  const resource = officialResourceRegistry.resources.find(resource => resource.implementation.type === "plugin" && resource.implementation.pluginId === pluginId);
+  if (!resource || resource.implementation.type !== "plugin") throw new Error("Unsupported Demo plugin");
   const project = await readAgentUIProjectConfig(projectRoot);
   const paths = resolveAgentUIProjectPaths(projectRoot, project.config);
   const config = projectControlConfigForPaths(paths);
@@ -31,11 +33,7 @@ export async function installDemoPlugin(projectRoot: string, pluginId: string): 
   const matches = locations.filter(entry => entry.plugin.pluginId === pluginId);
   if (matches.length > 1) throw new Error("项目中存在多个对应插件实例，请先处理重复实例。");
   const operations: AppUIOperation[] = [];
-  const rendererSlots: Record<string, string> = {
-    "task-group": "taskGroup", "assistant-ui-reasoning": "reasoningGroup",
-    "assistant-ui-tool-group": "toolGroup", "assistant-ui-tool-fallback": "toolFallback",
-  };
-  const slot = rendererSlots[pluginId];
+  const slot = resource.implementation.slot;
   if (slot) {
     const parents = locations.filter(entry => entry.plugin.pluginId === "conversation-surface");
     if (parents.length !== 1) throw new Error("无法唯一确定会话展示位置，请先恢复会话区域。");

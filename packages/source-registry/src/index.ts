@@ -23,3 +23,6 @@ export type {
 } from "./types.js";
 export { resolveAgentUISourceItemClosure } from "./closure.js";
 export { isOptionalAgentUISourceItem } from "./optional-resource.js";
+export { OfficialResourceError } from "./official-resource.js";
+export type { OfficialAgentUIResource } from "./official-resource.js";
+export { createOfficialResourceRegistry, officialResourceRegistry, resolveOfficialResource, validateOfficialResourceSources } from "./official-resource-registry.js";

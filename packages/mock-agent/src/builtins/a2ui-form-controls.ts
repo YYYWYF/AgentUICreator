@@ -29,7 +29,7 @@ export const a2uiFormControlsScenario = defineScenario({
   id: "a2ui-form-controls", title: "A2UI · Form Controls",
   description: "Official Basic Catalog controls, using native surface conversion and action continuation.",
   category: "presentation", capabilities: ["a2ui"],
-  resources: [{ id: "a2ui", label: "A2UI Official Integration", sourceItemId: "integration/a2ui" }],
+  resources: ["a2ui"],
   reference: {
     audience: "frontend", protocol: "AG-UI 0.0.59 + A2UI v0.9",
     pattern: "ACTIVITY_SNAPSHOT → official converter → styled Generative UI → native A2UI action",

@@ -59,7 +59,8 @@ it("makes legacy A2UI ready through the real Workbench merge without adopting Ho
   await installMockResource(root, "integration/a2ui");
   const result = await compatibility();
   expect(result.requirement.status).toBe("ready");
-  expect(result.requirement.plugin).toBeUndefined();
+  expect(result.requirement).not.toHaveProperty("plugin");
+  expect(result.requirement).not.toHaveProperty("sourceItemId");
   expect(result.requirement.scenarioIds).toEqual(expect.arrayContaining(["a2ui-interactive-order", "a2ui-form-controls"]));
   const dependencyId = "agent-component/assistant-ui-generative-ui";
   // Normal inspection sees existing, unowned source. The optional lock owns it.

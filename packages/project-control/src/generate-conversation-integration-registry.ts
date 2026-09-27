@@ -28,7 +28,7 @@ function exportsIntegration(filename: string): boolean {
 }
 
 /** Deterministic installation-time composition, with no runtime discovery. */
-export async function writeGeneratedConversationIntegrationRegistry(projectRoot: string): Promise<{ changedPaths: string[] }> {
+export async function generateConversationIntegrationRegistry(projectRoot: string): Promise<{ destination: string; source: string }> {
   const project = await readAgentUIProjectConfig(projectRoot);
   const paths = resolveAgentUIProjectPaths(projectRoot, project.config);
   const sourceRoot = path.dirname(paths.pluginsRoot);
@@ -52,6 +52,11 @@ export async function writeGeneratedConversationIntegrationRegistry(projectRoot:
     `  return ${modules.length ? `(${content})` : "children"};`, "}", ""].join("\n");
   await assertNoSymbolicLinkTraversal(sourceRoot, output);
   const destination = path.join(sourceRoot, output);
+  return { destination, source };
+}
+
+export async function writeGeneratedConversationIntegrationRegistry(projectRoot: string): Promise<{ changedPaths: string[] }> {
+  const { destination, source } = await generateConversationIntegrationRegistry(projectRoot);
   const old = await readFile(destination, "utf8").catch(error => { if (error.code === "ENOENT") return undefined; throw error; });
   if (old === source) return { changedPaths: [] };
   await mkdir(path.dirname(destination), { recursive: true });

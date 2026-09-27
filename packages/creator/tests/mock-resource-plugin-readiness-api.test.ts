@@ -11,12 +11,12 @@ afterEach(async () => {
 });
 
 it.each([
-  { resourceId: "frontend-tool-form", scenarioId: "frontend-tool-fill-form" },
-  { resourceId: "frontend-tool-dialog", scenarioId: "frontend-tool-open-dialog" },
+  { resourceId: "frontend-tool-form-demo", scenarioId: "frontend-tool-fill-form" },
+  { resourceId: "frontend-tool-dialog-demo", scenarioId: "frontend-tool-open-dialog" },
 ])("rejects $resourceId after its Provider is disabled and allows selection after resource repair", async ({ resourceId, scenarioId }) => {
   const service = new CreatorMockService(); services.push(service);
-  const sourceItemId = `demo/${resourceId}`;
-  const pluginId = `${resourceId}-demo`;
+  const sourceItemId = `demo/${resourceId.replace(/-demo$/, "")}`;
+  const pluginId = resourceId;
   let enabled = false;
   const installResources = vi.fn(async (_projectId: string, _sourceItemId: string) => { enabled = true; });
   const inspector = vi.fn(async () => ({
@@ -34,16 +34,16 @@ it.each([
   const base = `http://127.0.0.1:${address.port}`;
   const post = (route: string, body: unknown) => fetch(`${base}${route}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const initial = await (await fetch(`${base}/compatibility`)).json();
-  expect(initial.requirements.find((item: { id: string }) => item.id === resourceId)).toMatchObject({ sourceItemId, plugin: { id: pluginId }, status: "disabled" });
+  expect(initial.requirements.find((item: { id: string }) => item.id === resourceId)).toMatchObject({ id: resourceId, status: "disabled", installable: true });
   const denied = await post("/select", { scenarioId, speed: 0 });
   expect(denied.status).toBe(400);
   expect((await denied.json()).error).toContain("请先安装");
   expect(service.getState().scenarioId).not.toBe(scenarioId);
   expect(installResources).not.toHaveBeenCalled();
-  const repaired = await post("/install-resources", { projectId: "project", sourceItemId });
+  const repaired = await post("/install-resources", { projectId: "project", resourceId });
   expect(repaired.status).toBe(200);
   expect(installResources).toHaveBeenCalledTimes(1);
-  expect(installResources).toHaveBeenCalledWith("project", sourceItemId);
+  expect(installResources).toHaveBeenCalledWith("project", resourceId);
   expect((await repaired.json()).requirements.find((item: { id: string }) => item.id === resourceId)).toMatchObject({ status: "ready" });
   const selected = await post("/select", { scenarioId, speed: 0 });
   expect(selected.status).toBe(200);

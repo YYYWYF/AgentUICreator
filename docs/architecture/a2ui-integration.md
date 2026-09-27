@@ -82,7 +82,8 @@ frontend surface database or checkpoint semantic change is claimed.
 ## Mock resource and regression scope
 
 `a2ui-interactive-order` and `a2ui-form-controls` appear under Frontend Presentation in Mock Studio and
-require only `integration/a2ui`. Install Resources uses the shared optional
+declare only the Official Resource ID `a2ui`, resolved internally to
+`integration/a2ui`. Install Resources uses the shared optional
 resource lifecycle without Plugin activation or placement. Readiness requires
 installed source, complete transitive foundations and compatible packages.
 
@@ -122,3 +123,42 @@ The 0.0.62 runtime preserves other Activity snapshots as scoped data parts;
 they must not be rendered as A2UI surfaces. Regressions cover this preservation,
 rebuild artifacts, wire-to-DOM supported controls, and both Mock readiness paths.
 No test, typecheck, build or acceptance was executed for this delivery.
+
+## Official Resource contract
+
+Mock Scenarios now declare `resources: ["a2ui"]`. The development-only Official
+Resource Catalog in `@agent-ui/source-registry` resolves this stable product ID to
+`integration/a2ui`; the existing Source Registry remains the sole authority for
+closure dependencies, package ranges, source files, upstream revisions and licenses.
+The same catalog owns Form/Dialog Demo resources and the presentation resources.
+No package requirement is duplicated in the product catalog.
+
+`POST /install-resources` accepts `{ projectId, resourceId: "a2ui" }`. Ordinary
+Compatibility DTOs contain only ID, product name, scenario membership,
+`ready | missing | disabled | conflict`, installability and product-level issues.
+Source IDs, package requirements and Plugin implementation metadata are exposed
+only through the explicitly requested `/resource-diagnostics` endpoint. Install
+failures receive product-level messages and a diagnostic ID; full errors remain
+in the development server and the developer diagnostics endpoint.
+
+`installOfficialAgentUIResource` resolves the source closure, intersects all package
+requirements and detects the selected project's package manager from `packageManager`
+or its lockfile (including an enclosing workspace). Workspace/local declarations
+are preserved and checked against resolved package versions. It adds absent direct dependencies, restores a compatible declaration's
+missing installation, and re-inspects packages before invoking the source primitive.
+Incompatible installed versions or direct declarations produce `RESOURCE_CONFLICT`;
+existing direct dependencies are never silently upgraded. Multiple manager lockfiles
+require an explicit selection. Package-manager failures may leave retryable partial
+dependencies, but source installation and a ready response cannot follow unmet packages.
+
+Source installation reuses `installOptionalAgentUIResource` and its existing source,
+lock, generated-registry and verification transaction. Resource-owned Plugin placement
+uses the existing AppUIModel transaction. Final readiness checks source closure,
+compatible packages, generated integration registry, Plugin activation and semantic
+placement, and project verification. Per-project installs serialize package changes.
+The old `installMockResource` and `installScenarioResources` APIs and Host options
+remain deprecated internal adapters for one compatibility cycle; Creator's new path
+uses Resource IDs exclusively. Generated applications gain no Creator runtime dependency.
+
+The product onboarding guide is [A2UI resource](../resources/a2ui.md); this architecture
+document intentionally retains the pinned assistant-ui implementation details.

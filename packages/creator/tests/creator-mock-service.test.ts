@@ -53,7 +53,7 @@ describe("Creator independent local Mock service", () => {
       expect(installed).toEqual([]);
       const response = await post({ projectId: "selected", pluginId: "chart-message" });
       expect(response.status).toBe(200);
-      expect((await response.json()).requirements).toEqual(expect.arrayContaining([expect.objectContaining({ pluginId: "chart-message", status: "ready" })]));
+      expect((await response.json()).requirements).toEqual(expect.arrayContaining([expect.objectContaining({ id: "chart-message", status: "ready" })]));
       expect(installed).toEqual(["chart-message"]);
     } finally { await rm(projectRoot, { recursive: true, force: true }); }
   });

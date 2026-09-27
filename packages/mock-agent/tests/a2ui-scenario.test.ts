@@ -20,7 +20,7 @@ describe("standard activity snapshots and generic A2UI action branches", () => {
     expect(events[1]).not.toHaveProperty("replace");
   });
   it("offers a pluginless Integration resource and emits only the standard surface lifecycle", async () => {
-    expect(a2uiInteractiveOrderScenario.resources).toEqual([{ id: "a2ui", label: "A2UI Official Integration", sourceItemId: "integration/a2ui" }]);
+    expect(a2uiInteractiveOrderScenario.resources).toEqual(["a2ui"]);
     const events = await collect(a2uiInteractiveOrderScenario);
     expect(events.map(event => event.type)).toEqual([EventType.RUN_STARTED, EventType.ACTIVITY_SNAPSHOT, EventType.RUN_FINISHED]);
     expect(events[1]).toMatchObject({ activityType: "a2ui-surface", replace: true, content: { a2ui_operations: expect.any(Array) } });

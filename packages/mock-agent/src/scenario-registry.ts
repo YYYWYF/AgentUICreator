@@ -4,11 +4,11 @@ import {
   type MockScenarioCapability,
   type MockScenarioCategory,
   type MockScenarioReference,
-  type MockScenarioResourceRequirement,
+  type MockScenarioResourceId,
 } from "./scenario.js";
 
 export interface MockScenarioSummary {
-  resources?: readonly MockScenarioResourceRequirement[] | undefined;
+  resources?: readonly MockScenarioResourceId[] | undefined;
   id: string;
   title: string;
   description?: string | undefined;
@@ -79,7 +79,7 @@ export function createScenarioRegistry({
   }) => ({
     id,
     title,
-    ...(resources === undefined ? {} : { resources: resources.map(resource => ({ ...resource })) }),
+    ...(resources === undefined ? {} : { resources: [...resources] }),
     ...(description === undefined ? {} : { description }),
     ...(category === undefined ? {} : { category }),
     ...(capabilities === undefined ? {} : {

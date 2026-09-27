@@ -80,17 +80,13 @@ export interface MockSubagentToolStep {
   result: unknown;
 }
 
-export interface MockScenarioResourceRequirement {
-  id: string;
-  label: string;
-  sourceItemId: string;
-  /** Runtime/presentation capability that must be active after installation.
-   * Pluginless Integrations such as A2UI omit this. */
-  plugin?: { id: string; slot?: string };
-}
+/** Stable Official Resource ID; implementation belongs to the development-time catalog. */
+export type MockScenarioResourceId = string;
+/** @deprecated Use MockScenarioResourceId. */
+export type MockScenarioResourceRequirement = MockScenarioResourceId;
 
 export interface MockScenario {
-  resources?: readonly MockScenarioResourceRequirement[] | undefined;
+  resources?: readonly MockScenarioResourceId[] | undefined;
   id: string;
   title: string;
   description?: string | undefined;
@@ -292,6 +288,9 @@ function validateSteps(
 
 /** Validates the readiness constraints of a mock scenario before serving it. */
 export function validateMockScenario(scenario: MockScenario): void {
+  for (const resourceId of scenario.resources ?? []) {
+    if (typeof resourceId !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(resourceId)) throw new Error(`Invalid official resource ID in scenario ${scenario.id}.`);
+  }
   validateSteps(scenario.id, scenario.steps, {});
 
   for (const branch of Object.values(scenario.a2uiActions?.branches ?? {})) validateSteps(scenario.id, branch, {});

@@ -29,7 +29,7 @@ export const a2uiInteractiveOrderScenario = defineScenario({
   id: "a2ui-interactive-order", title: "A2UI · Interactive Order Card",
   description: "A declarative Basic Catalog surface with native A2UI action continuation.",
   category: "presentation", capabilities: ["a2ui"],
-  resources: [{ id: "a2ui", label: "A2UI Official Integration", sourceItemId: "integration/a2ui" }],
+  resources: ["a2ui"],
   reference: {
     audience: "frontend", protocol: "AG-UI 0.0.59 + A2UI v0.9",
     pattern: "ACTIVITY_SNAPSHOT → native conversion → present renderer → user action → forwardedProps.a2uiAction → continuation Run",

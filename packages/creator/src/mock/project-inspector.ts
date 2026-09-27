@@ -1,3 +1,4 @@
+import { inspectScenarioResources, mergeOptionalResourceInspection } from "@agent-ui/project-control/dev";
 import { spawn } from "node:child_process";
 import { access } from "node:fs/promises";
 import path from "node:path";
@@ -42,5 +43,6 @@ async function inspect(target: MockProjectTarget, operation: string, input: obje
 export const inspectMockProjectThroughControl: MockProjectInspector = async target => {
   const composition = await inspect(target, "inspect_ui_project", { view: "composition" });
   const sources = await inspect(target, "inspect_agent_ui_sources");
-  return { composition, sources } as Awaited<ReturnType<MockProjectInspector>>;
+  const result = { composition, sources } as Awaited<ReturnType<MockProjectInspector>>;
+  return { ...result, sources: await mergeOptionalResourceInspection(result.sources, await inspectScenarioResources(target.projectRoot)) };
 };

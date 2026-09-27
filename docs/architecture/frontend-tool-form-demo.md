@@ -130,3 +130,14 @@ Unowned items retain normal inspection; Demo/Integration remain the only optiona
 installation roots. Legacy Host foundations are provided rather than adopted. The active
 legacy readiness regression covers installation, composition, this merge, and
 `frontend-tool-form` becoming ready without adopting any foundation source.
+
+
+## Official Resource installation
+
+Creator now uses `installOfficialAgentUIResource(projectRoot, "frontend-tool-form-demo")`
+and the Browser sends `resourceId` to `/install-resources`. Scenarios declare only that
+stable Resource ID. The Official Catalog owns its label, `demo/frontend-tool-form`
+source mapping, `frontend-tool-form-demo` Plugin and placement. Package requirements
+remain in the Source closure and missing dependencies are installed automatically;
+existing incompatible dependencies become product-level conflicts. Old source-ID
+Host APIs remain deprecated internal adapters for one compatibility cycle.

@@ -36,14 +36,14 @@ export async function resourcePaths(projectRoot: string) {
 }
 
 /** Use the same ownership projection for the Workbench and its regression tests. */
-export async function mergeOptionalResourceInspection<T extends { items: readonly { id: string; status: string; installedVersion?: string }[] }>(normal: T, resources: AgentUISourceInspection): Promise<T> {
+export async function mergeOptionalResourceInspection<T extends { items: readonly { id: string; status: string; installedVersion?: string }[] }>(normal: T, resources: AgentUISourceInspection & { integrationRegistryReady?: boolean }): Promise<T> {
   // installedVersion identifies resource-lock ownership or a provided Host item.
   // Dependency ownership is independent of the allowlist for installation roots
   // and remains authoritative even when owned source is customized or incomplete.
   const resourceOwnedIds = new Set(resources.items
     .filter(item => item.installedVersion !== undefined)
     .map(item => item.id));
-  return { ...normal, items: [
+  return { ...normal, ...(resources.integrationRegistryReady === undefined ? {} : { integrationRegistryReady: resources.integrationRegistryReady }), items: [
     ...normal.items.filter(item => !resourceOwnedIds.has(item.id)),
     ...resources.items.filter(item => resourceOwnedIds.has(item.id)),
   ] };

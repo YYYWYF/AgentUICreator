@@ -13,6 +13,7 @@ import { CreatorMockService } from "./mock/CreatorMockService.js";
 import { CREATOR_MOCK_API_PATH } from "./mock/types.js";
 import type { MockProjectInspector } from "./mock/demo-compatibility.js";
 import { handleCreatorMockRequest } from "./mock/mock-api.js";
+import { resolveOfficialResource } from "@agent-ui/project-control/dev";
 import {
   resolveCreatorPythonAgentMode,
   resolveCreatorVerificationMode,
@@ -44,8 +45,10 @@ export {
 
 export interface CreatorDevServerPluginOptions {
   inspectMockProject?: MockProjectInspector | undefined;
+  installOfficialAgentUIResource?: ((projectRoot: string, resourceId: string) => Promise<void>) | undefined;
+  /** @deprecated Internal compatibility adapter. Use installOfficialAgentUIResource. */
   installMockResource?: ((projectRoot: string, sourceItemId: string) => Promise<void>) | undefined;
-  /** @deprecated Use installMockResource. */
+  /** @deprecated Internal compatibility adapter. Use installOfficialAgentUIResource. */
   installScenarioResources?: ((projectRoot: string, sourceItemId: string) => Promise<void>) | undefined;
   installMockPlugin?: ((projectRoot: string, pluginId: string) => Promise<void>) | undefined;
   projectRoot?: string | undefined;
@@ -65,11 +68,19 @@ export function createCreatorDevServerPlugin({
   configRoot,
   python,
   installMockPlugin,
+  installOfficialAgentUIResource,
   installMockResource,
   installScenarioResources,
   inspectMockProject,
 }: CreatorDevServerPluginOptions): Plugin {
-  const installResource = installMockResource ?? installScenarioResources;
+  const legacyInstaller = installMockResource ?? installScenarioResources;
+  const installResource = installOfficialAgentUIResource ?? (legacyInstaller === undefined ? undefined : async (root: string, resourceId: string) => {
+    const implementation = resolveOfficialResource(resourceId).implementation;
+    if (implementation.type === "plugin") {
+      if (!installMockPlugin) throw new Error("Resource installation is unavailable in this Host.");
+      await installMockPlugin(root, implementation.pluginId);
+    } else await legacyInstaller(root, implementation.sourceItemId);
+  });
   const creatorLog =
     python?.log ?? ((message: string) => console.error(`[Creator] ${message}`));
   const environment = python?.environment ?? process.env;
@@ -139,14 +150,14 @@ export function createCreatorDevServerPlugin({
             if (projectRoot === undefined || id !== projectRoot) throw new Error("当前项目已改变。");
             await installMockPlugin(projectRoot, pluginId);
           }
-        }, inspectMockProject, installResource === undefined ? undefined : async (id, sourceItemId) => {
+        }, inspectMockProject, installResource === undefined ? undefined : async (id, resourceId) => {
           if (workspaceManager !== undefined) {
-            await workspaceManager.runProjectOperation(id, root => installResource(root, sourceItemId));
+            await workspaceManager.runProjectOperation(id, root => installResource(root, resourceId));
           } else {
             if (projectRoot === undefined || id !== projectRoot) throw new Error("当前项目已改变。");
-            await installResource(projectRoot, sourceItemId);
+            await installResource(projectRoot, resourceId);
           }
-        });
+        }, resourceId => installOfficialAgentUIResource !== undefined || resolveOfficialResource(resourceId).implementation.type !== "plugin" || installMockPlugin !== undefined);
       });
       if (workspaceManager !== undefined) {
         server.middlewares.use(CREATOR_WORKSPACE_API_PATH, (request, response) => {

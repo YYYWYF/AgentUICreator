@@ -268,3 +268,12 @@ describe("createScenarioRegistry", () => {
     })).toThrow("args must be a JSON object");
   });
 });
+
+
+it("serializes Scenario resources as stable IDs and rejects implementation objects", () => {
+  const registry = createScenarioRegistry({ scenarios: [{ id: "resource-demo", title: "Demo", steps: [], resources: ["a2ui"] }], defaultScenarioId: "resource-demo" });
+  expect(registry.list()[0]!.resources).toEqual(["a2ui"]);
+  expect(JSON.stringify(registry.list())).not.toContain("sourceItemId");
+  const malformed = { id: "a2ui", sourceItemId: "integration/a2ui" } as unknown as string;
+  expect(() => createScenarioRegistry({ scenarios: [{ id: "resource-demo", title: "Demo", steps: [], resources: [malformed] }], defaultScenarioId: "resource-demo" })).toThrow(/Invalid official resource/);
+});

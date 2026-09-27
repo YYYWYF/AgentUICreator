@@ -20,7 +20,7 @@ import { createAgentUIInitializationHost, inspectCreatorProject } from "@agent-u
 import { initializeAgentUIProject } from "@agent-ui/bootstrap";
 import { handleUIProjectControlRequest } from "@agent-ui/project-control/dev";
 import type { MockProjectInspector } from "../../packages/creator/src/mock/demo-compatibility";
-import { installMockResource, inspectScenarioResources } from "@agent-ui/project-control/dev";
+import { installOfficialAgentUIResource, inspectScenarioResources } from "@agent-ui/project-control/dev";
 import { mergeOptionalResourceInspection } from "@agent-ui/project-control/dev";
 import { installDemoPlugin } from "@agent-ui/project-control/dev";
 import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "@agent-ui/bootstrap";
@@ -70,7 +70,7 @@ export default defineConfig({
     createCreatorDevServerPlugin({
       workspaceManager,
       installMockPlugin: installDemoPlugin,
-      installMockResource,
+      installOfficialAgentUIResource,
       // Host adapter calls the same formal protocol as Python Creator tools.
       inspectMockProject: async target => {
         const composition = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_ui_project", input: { view: "composition" } }, target.projectRoot);
