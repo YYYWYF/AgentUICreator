@@ -1,5 +1,7 @@
 import { chmod, copyFile, cp, mkdir } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { assertContractParity } from "./contract-integrity.mjs";
 
 await mkdir(new URL("../dist/ui/", import.meta.url), { recursive: true });
 await copyFile(
@@ -22,5 +24,14 @@ await copyFile(
 await copyFile(
   new URL("../../creator-python/requirements.lock", import.meta.url),
   new URL("../dist/python/requirements.lock", import.meta.url),
+);
+await cp(
+  new URL("../../../contracts/creator/", import.meta.url),
+  new URL("../dist/python/agent_ui_creator/_contracts/creator/", import.meta.url),
+  { recursive: true },
+);
+await assertContractParity(
+  fileURLToPath(new URL("../../../contracts/creator/", import.meta.url)),
+  fileURLToPath(new URL("../dist/python/agent_ui_creator/_contracts/creator/", import.meta.url)),
 );
 await chmod(new URL("../dist/cli.js", import.meta.url), 0o755);

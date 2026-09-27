@@ -2,7 +2,12 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("../src/python/managed-python-environment.js", () => ({
+  ensureManagedPythonEnvironment: vi.fn(async () => "/cache/creator/venv/bin/python"),
+  validateCreatorPython: vi.fn(),
+}));
 
 import {
   PythonCreatorRuntimeError,
@@ -17,8 +22,11 @@ async function packageRootWithManagedPython(platform: NodeJS.Platform): Promise<
   packageRoot: string;
   executable: string;
 }> {
-  const packageRoot = await mkdtemp(path.join(tmpdir(), "creator-python-resolution-"));
-  temporaryDirectories.push(packageRoot);
+  const repository = await mkdtemp(path.join(tmpdir(), "creator-python-resolution-"));
+  temporaryDirectories.push(repository);
+  const packageRoot = path.join(repository, "packages", "creator-python");
+  await mkdir(packageRoot, { recursive: true });
+  await writeFile(path.join(repository, "pnpm-workspace.yaml"), "packages: []");
   const executable = path.join(
     packageRoot,
     ".venv",
@@ -130,15 +138,15 @@ describe("Creator Python executable resolution", () => {
     ).toBe("/config/python");
   });
 
-  it("falls back to the platform system executable when the managed environment is absent", async () => {
+  it("resolves a packaged cache environment when the workspace environment is absent", async () => {
     const packageRoot = await mkdtemp(path.join(tmpdir(), "creator-python-resolution-"));
     temporaryDirectories.push(packageRoot);
 
     await expect(
       resolveCreatorPythonExecutable({ pythonPackageRoot: packageRoot, platform: "linux" }),
-    ).resolves.toEqual({ executable: "python3", source: "system" });
+    ).resolves.toEqual({ executable: "/cache/creator/venv/bin/python", source: "packaged_venv" });
     await expect(
       resolveCreatorPythonExecutable({ pythonPackageRoot: packageRoot, platform: "win32" }),
-    ).resolves.toEqual({ executable: "python", source: "system" });
+    ).resolves.toEqual({ executable: "/cache/creator/venv/bin/python", source: "packaged_venv" });
   });
 });

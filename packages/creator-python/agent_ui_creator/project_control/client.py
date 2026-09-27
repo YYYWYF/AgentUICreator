@@ -12,6 +12,8 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 from referencing import Registry, Resource
 
+from ..contract_resources import read_creator_contract
+
 from .errors import ProjectControlError
 from .models import (
     MAX_PROJECT_CONTROL_OUTPUT_BYTES,
@@ -28,16 +30,10 @@ _TERMINATE_TIMEOUT_SECONDS = 1.0
 
 
 def _load_protocol_validator() -> Draft202012Validator:
-    repository_root = Path(__file__).resolve().parents[4]
-    contracts_root = repository_root / "contracts" / "creator"
-    schema_paths = (
-        contracts_root / "project-control.schema.json",
-        contracts_root / "app-ui-model-operation.schema.json",
-    )
-    try:
-        schemas = [json.loads(path.read_text(encoding="utf-8")) for path in schema_paths]
-    except (OSError, json.JSONDecodeError) as error:
-        raise RuntimeError("ProjectControl JSON Schema is unavailable.") from error
+    schemas = [read_creator_contract(name) for name in (
+        "project-control.schema.json",
+        "app-ui-model-operation.schema.json",
+    )]
     registry = Registry().with_resources(
         (schema["$id"], Resource.from_contents(schema)) for schema in schemas
     )

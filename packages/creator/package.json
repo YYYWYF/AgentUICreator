@@ -44,7 +44,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:python-sidecar": "vitest run tests/python-creator-sidecar.integration.test.ts",
-    "cli": "node dist/cli.js"
+    "cli": "node dist/cli.js",
+    "prepublishOnly": "pnpm --dir ../.. verify:creator-distribution"
   },
   "dependencies": {
     "@agent-ui/mock-agent": "workspace:^",

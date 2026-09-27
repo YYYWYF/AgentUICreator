@@ -63,11 +63,40 @@ Host 静态验证，Workbench 也不会发送 Runtime diagnostics 或 compositio
 需要 Runtime Verification 和这些上报时，把它改成 `static_and_runtime`；Runtime
 `stale` 或 `unavailable` 不会把已经提交的修改标成红色失败。
 
-未显式配置 executable 时，sidecar 优先使用 `packages/creator-python/.venv`（Windows
-为 `.venv/Scripts/python.exe`，macOS/Linux 为 `.venv/bin/python`），不存在时才回退
-到系统 `python` / `python3`。`pythonExecutable` option、环境变量
-`CREATOR_PYTHON_EXECUTABLE` 和 host config 中的同名配置依次优先于 managed `.venv`；
-显式路径不可用时会直接报错，不会静默回退。
+### Installed @agent-ui/creator
+
+安装 npm 包后，机器需要 Python 3.11+。第一次真正启动 Creator 时，会自动创建
+isolated managed Python environment 并安装随包发布的 `requirements.lock`；首次安装需要
+访问 Python package index。npm install 本身不安装 Python dependencies。
+系统 Python 只用于创建 venv，Sidecar 始终通过 venv 的 Python 启动。
+
+默认缓存位置为 macOS 的 `~/Library/Caches/agent-ui-creator/python/`、Linux 的
+`$XDG_CACHE_HOME/agent-ui-creator/python/`（未设置时使用 `~/.cache/agent-ui-creator/python/`），
+以及 Windows 的 `%LOCALAPPDATA%/agent-ui-creator/python/`。可通过
+`CREATOR_PYTHON_ENV_ROOT` 或 host config 中的同名配置指定缓存根目录。环境按 Creator
+版本、Python major.minor、platform、architecture 和 lockfile SHA-256 分开保存。
+旧缓存不会自动清理；中断进程留下的 bootstrap lock 需要在确认没有 Creator 进程运行后手动删除。
+
+`pythonExecutable` option、`CREATOR_PYTHON_EXECUTABLE` 环境变量、host config 中的同名
+配置按顺序优先。显式配置表示用户自行管理完整 Python 3.11+ dependency environment；
+Creator 检查版本并启动，不创建 venv，也不修改用户环境。缺依赖时直接报错。
+
+### Repository development
+
+仓库开发使用 `pnpm test:python:setup` 创建 `packages/creator-python/.venv`。
+未显式配置 Python 时，source checkout 优先复用该环境；不存在时使用上述独立缓存。
+
+### Distribution gate
+
+发布前执行 `pnpm test:python:setup`，再执行 `pnpm verify:creator-distribution`。
+该门禁包含 managed environment 单测、npm tarball 结构与完整 Contract parity、脱离仓库
+运行的 Contract / Sidecar health smoke、isolated wheel 安装与 validator 初始化，以及真实
+system Python → 临时缓存 venv → locked dependencies → Sidecar health 的 bootstrap。
+测试不发送模型请求。`prepublishOnly` 和 Creator distribution CI 使用此门禁。
+
+可分别执行 `pnpm verify:creator-package`、`pnpm verify:creator-python-wheel` 或较重的
+`pnpm test:creator-package-runtime`。Contract 的唯一源码是 `contracts/creator`；npm
+和 wheel 都自动打包为 `agent_ui_creator/_contracts/creator`，不依赖仓库目录结构。
 
 Vite 插件会按项目惰性启动一个 Python 进程，透明代理 AG-UI 与运行时诊断流，
 并在开发服务器关闭时终止 sidecar。Python 启动或模型配置失败会明确失败；工程中

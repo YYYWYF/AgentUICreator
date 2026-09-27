@@ -7,6 +7,9 @@ import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 
 import { readCreatorHostConfigValue } from "./creatorRuntimeConfig.js";
+import { ensureManagedPythonEnvironment, validateCreatorPython } from "./python/managed-python-environment.js";
+import { PythonCreatorRuntimeError } from "./python/runtime-error.js";
+export { PythonCreatorRuntimeError } from "./python/runtime-error.js";
 import {
   CREATOR_PYTHON_AUTH_TOKEN_ENV,
   CREATOR_PYTHON_AGENT_MODES,
@@ -50,7 +53,7 @@ export interface PythonCreatorExternalEndpoint {
 export type CreatorPythonExecutableSource =
   | "configured"
   | "managed_venv"
-  | "system";
+  | "packaged_venv";
 
 export interface ResolvedCreatorPythonExecutable {
   executable: string;
@@ -137,10 +140,12 @@ export async function resolveCreatorPythonExecutable({
   configuredExecutable,
   pythonPackageRoot,
   platform = process.platform,
+  environment = process.env,
 }: {
   configuredExecutable?: string | undefined;
   pythonPackageRoot: string;
   platform?: NodeJS.Platform | undefined;
+  environment?: NodeJS.ProcessEnv | undefined;
 }): Promise<ResolvedCreatorPythonExecutable> {
   const configured = configuredExecutable?.trim();
   if (configured) {
@@ -153,25 +158,13 @@ export async function resolveCreatorPythonExecutable({
     platform === "win32" ? "python.exe" : "python",
   );
   try {
+    // A .venv is trusted only in the monorepo source package, never node_modules.
+    if (path.basename(pythonPackageRoot) !== "creator-python" || path.basename(path.dirname(pythonPackageRoot)) !== "packages") throw new Error("Not a source checkout.");
+    await access(path.resolve(pythonPackageRoot, "../../pnpm-workspace.yaml"));
     await access(managedExecutable);
     return { executable: managedExecutable, source: "managed_venv" };
   } catch {
-    return {
-      executable: platform === "win32" ? "python" : "python3",
-      source: "system",
-    };
-  }
-}
-
-export class PythonCreatorRuntimeError extends Error {
-  readonly code: string;
-  readonly details: unknown;
-
-  constructor(code: string, message: string, details?: unknown) {
-    super(message);
-    this.name = "PythonCreatorRuntimeError";
-    this.code = code;
-    this.details = details;
+    return { executable: await ensureManagedPythonEnvironment({ pythonPackageRoot, platform, environment }), source: "packaged_venv" };
   }
 }
 
@@ -420,7 +413,7 @@ export class PythonCreatorProcessManager {
     } catch (error) {
       throw new PythonCreatorRuntimeError(
         "CREATOR_PYTHON_RUNTIME_MISSING",
-        `Python Creator runtime is required by default, but its package is unavailable at ${this.#pythonPackageRoot}. Run \`pnpm test:python:setup\` to install the managed environment.`,
+        `Packaged Python Creator runtime is unavailable at ${this.#pythonPackageRoot}. Reinstall @agent-ui/creator.`,
         { cause: error instanceof Error ? error.message : String(error) },
       );
     }
@@ -428,7 +421,17 @@ export class PythonCreatorProcessManager {
     const pythonRuntime = await resolveCreatorPythonExecutable({
       configuredExecutable: this.#configuredPythonExecutable,
       pythonPackageRoot: this.#pythonPackageRoot,
+      environment: {
+        ...this.#environment,
+        CREATOR_PYTHON_ENV_ROOT: this.#environment.CREATOR_PYTHON_ENV_ROOT ?? readCreatorHostConfigValue(this.#configRoot, "CREATOR_PYTHON_ENV_ROOT"),
+      },
     });
+    if (pythonRuntime.source !== "packaged_venv") {
+      await validateCreatorPython(pythonRuntime.executable, {
+        pythonPackageRoot: this.#pythonPackageRoot,
+        environment: this.#environment,
+      });
+    }
     this.#log(
       `python runtime: source=${pythonRuntime.source} executable=${pythonRuntime.executable}`,
     );
@@ -465,6 +468,7 @@ export class PythonCreatorProcessManager {
       env: {
         ...this.#environment,
         CREATOR_NODE_EXECUTABLE: process.execPath,
+        ...(pythonRuntime.source === "packaged_venv" ? { PYTHONHOME: undefined, VIRTUAL_ENV: undefined, PYTHONNOUSERSITE: "1" } : {}),
         PYTHONIOENCODING: "utf-8",
         PYTHONUNBUFFERED: "1",
         PYTHONPATH:
@@ -744,10 +748,10 @@ export class PythonCreatorProcessManager {
         reject(
           new PythonCreatorRuntimeError(
             dependencyMissing
-              ? "CREATOR_PYTHON_RUNTIME_MISSING"
+              ? "CREATOR_PYTHON_ENVIRONMENT_INVALID"
               : "CREATOR_PYTHON_START_FAILED",
             dependencyMissing
-              ? "Creator Python dependency environment is incomplete. Install packages/creator-python/requirements.lock into the configured Python 3.11+ environment."
+              ? "Configured Creator Python environment is missing runtime dependencies. Provide a complete Python 3.11+ environment or unset CREATOR_PYTHON_EXECUTABLE to use automatic bootstrap."
               : `Creator Python runtime exited before its handshake (code ${String(code)}).`,
             { stderr },
           ),

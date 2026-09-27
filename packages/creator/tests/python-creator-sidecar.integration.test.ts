@@ -1070,10 +1070,10 @@ server.serve_forever()
     });
 
     await expect(processManager.ensureStarted()).rejects.toMatchObject({
-      code: "CREATOR_PYTHON_RUNTIME_MISSING",
+      code: "CREATOR_PYTHON_BOOTSTRAP_RUNTIME_MISSING",
     });
     await expect(processManager.ensureStarted()).rejects.toMatchObject({
-      code: "CREATOR_PYTHON_RUNTIME_MISSING",
+      code: "CREATOR_PYTHON_BOOTSTRAP_RUNTIME_MISSING",
     });
     expect(processManager.processId).toBeUndefined();
   });
