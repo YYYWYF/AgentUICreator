@@ -120,11 +120,17 @@ describe("Markdown Showcase through the existing conversation presentation", () 
     for (const tag of tags) {
       expect(container.querySelector(tag), `missing ${tag}`).not.toBeNull();
     }
+    const inlineCode = container.querySelector(".aui-md-inline-code");
+    expect(inlineCode).not.toBeNull();
+    expect(inlineCode?.textContent).toBe("inline code");
+    expect(container.querySelector(".aui-md-p")).not.toBeNull();
     expect(container.querySelector("ul ul")).not.toBeNull();
     expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(2);
     expect(container.querySelector('input[type="checkbox"]:checked')).not.toBeNull();
-    expect(container.querySelector('th[align="center"]')).not.toBeNull();
-    expect(container.querySelector('td[align="right"]')).not.toBeNull();
+    expect(container.querySelector<HTMLTableCellElement>("thead th:nth-child(2)")?.style.textAlign)
+      .toBe("center");
+    expect(container.querySelector<HTMLTableCellElement>("tbody td:nth-child(3)")?.style.textAlign)
+      .toBe("right");
     expect(container.querySelector("a")?.getAttribute("href")).toBe("https://example.com");
     expect(container.querySelectorAll("pre code")).toHaveLength(2);
     expect([...container.querySelectorAll(".aui-code-header-language")].map(
