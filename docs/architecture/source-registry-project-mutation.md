@@ -34,12 +34,31 @@ unit tests may continue testing storage APIs directly.
 The Host recovers pending work before inspecting state, performs storage admission
 checks, and snapshots only affected Source files, the Source lock, and the four
 derived registry outputs. The atomic before-state journal lives at
-`<metadataRoot>/source-project-transaction.json`. An existing journal is recovered
-by first recovering the low-level transaction, then restoring the Host snapshot;
-recovery always rolls back, never guesses how to finish a partially completed
-operation. ProjectControl recovers before inspection, and product installers
-recover before obtaining their expectedStateHash. In-process Host calls share a
-project queue to avoid recovering an operation that is still running.
+`<metadataRoot>/source-project-transaction.json`. New journals use schema version 2
+and record a UUID `transactionId`, `ownerPid`, `createdAt`, and the before-state
+snapshot. In-process calls use the project queue. Cross-process callers coordinate
+through the Host journal owner: a living PID (including `EPERM` from the signal-zero
+probe) returns `AGENT_UI_SOURCE_PROJECT_MUTATION_PENDING` before touching the
+low-level journal, Source files, lock, or generated outputs. An active journal is
+never interpreted as a crash; callers retry inspection after the owner finishes.
+
+Only ownerless legacy v1 journals or v2 journals whose owner process no longer
+exists (`ESRCH`) are crash-recovered. Recovery first restores the low-level
+transaction and then the Host snapshot; it always rolls back, never resumes. If
+there is no Host journal, public recovery does not touch a low-level transaction:
+another process may acquire its Host journal immediately after that read. Source
+apply/remove recover their storage transaction under their own acquired Host
+journal, while initialization keeps its separate clean-install recovery.
+
+ProjectControl recovers before inspection, and product installers recover before
+obtaining their expectedStateHash. Journal publication remains atomic and
+create-only. An `EEXIST` loser re-reads the winning journal, refuses to recover a
+living owner's work, or recovers a stale journal and retries admission and snapshots
+once. Old admission results are never reused. An exception in the owning mutation
+may roll back its own live journal only when both its transaction ID and PID match;
+this internal authority is not exposed through public recovery. If that rollback
+fails, the retained journal remains protected while its owner process is alive and
+can be retried by a later Host after the owner exits.
 
 Every mutation refreshes every derived registry, including when the storage apply
 returns `changed: false`. Source closure must be managed or customized, without
@@ -70,3 +89,7 @@ remain separate work.
 Regression coverage lives in `source-project-mutation.test.ts` and
 `source-project-mutation-architecture.test.ts`. Failure injection uses module mocks
 around real registry writers and verification, with no test-only public options.
+Owner regressions cover live/dead PIDs, v1 compatibility, permission failures,
+create-only publication races, bounded admission retry, and real child processes:
+one process holds the journal while a separate ProjectControl process refuses
+inspect/apply/remove without changing its files, then recovers after owner exit.
