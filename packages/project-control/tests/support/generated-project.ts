@@ -3,8 +3,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { writeGeneratedPluginRegistry } from "../../src/generate-plugin-registry";
-const repositoryRoot = fileURLToPath(new URL("../../../..", import.meta.url));
-const fixtureRoot = fileURLToPath(new URL("../fixtures/project/", import.meta.url));
+const supportRoot = path.dirname(fileURLToPath(import.meta.url));
+const repositoryRoot = path.resolve(supportRoot, "../../../..");
+const fixtureRoot = path.resolve(supportRoot, "../fixtures/project");
 let generated: Promise<string> | undefined;
 /** Materialize a disposable legacy contract fixture from Source Registry templates. */
 export function generatedProjectFixture(): Promise<string> {

@@ -61,7 +61,7 @@ describe("@agent-ui/react public API", () => {
       "ConversationResponseActionBarRoot", "ConversationResponseBranchPicker",
       "ConversationCanonicalResponseCopyAction", "ConversationCanonicalResponseReloadAction",
       "ConversationCanonicalResponseExportMarkdownAction", "useConversationResponseRuntime",
-    ]) expect(source).toContain(`as ${name}`);
+    ]) expect(source).toMatch(new RegExp(`export const ${name}\\b`, "u"));
     for (const forbiddenName of [
       "ThreadPrimitive",
       "useAui",

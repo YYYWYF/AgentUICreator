@@ -195,9 +195,10 @@ ownership guard 保持严格 hash / provenance / inventory 检查。本次修正
 `@agent-ui/react` typecheck、build 与 public declaration boundary 通过。
 
 扩展检查中的旧 public API 文本断言、generated fixture URL 与 scoped integration
-的未声明 theme service 问题仍存在；后两者使用修改前 facade 复现了相同失败，
-前者要求的六个 alias 在修改前 source 中同样不存在。这些结果不计入本次
-Subagent focused acceptance，完整 workspace suite 未重新运行。
+fixture 已修复：按实际 const export 检查 response aliases，使用文件系统路径
+定位 generated fixture，声明 optional theme service 与 response Footer Slot，并
+展开官方默认折叠的 tool group 后验证其内容。具名 Tool UI 的 standalone
+行为仍被保留。相关 5 个 React 测试文件共 41 项全部通过。
 
 通过的产品 positive acceptance 包括：完成前 partial reasoning/text、A/B 递归
 reasoning、child tool running/result、错误前文本、错误后的 canonical alert、
@@ -209,11 +210,24 @@ rendered end-to-end through the tested product presentation path。
 本机浏览器检查使用现有 Host 与 `nested-subagent-conversation`（仅通过启动
 环境变量将 speed 设为 10，未更改 Scenario）：观察到 working TaskCard、完成前
 partial reasoning、child tool 从 Searching files 到 Searched files / result，以及
-partial text。当前 Host 的旧 conversation-surface 仍只声明
-`assistantMessageFooter`，Run 结束后遇到
-`Unknown Conversation renderer Slot "assistantResponseFooter"`，因此此次浏览器
-最终态检查未通过。该 Host 配置问题独立于 TaskCard presentation；不能将 focused
-测试通过等同于所有 Host / Mock Studio 的人工 Demo 已通过。
+partial text。旧 Host 的 conversation-surface 导致的
+`Unknown Conversation renderer Slot "assistantResponseFooter"` 已修复：Host
+`ensure` 通过正式 Source protocol 更新已安装且未修改的 managed plugins，
+Footer/action Source items 补齐默认父插件依赖并提升版本，旧 message Footer
+使用薄兼容 wrapper 保留 Slot 所有权。真实旧版 surface/Footer 文件与 lock/hash
+升级回归同时检查 AppUIModel 保留、自定义文件保护和重复升级无改动。
+Source Registry 的依赖与版本检查共 10 项通过。
+fresh Host 的三种模式、两个 sourceRoot 与旧版升级回归共 7 项通过，包含
+正式协议增删 visual Plugin 和独立生产构建。fixture 补齐现有 Tailwind 样式
+依赖／Vite 插件，使用可移除的 visual child Slot probe，保留 Headless 生命周期
+保护。`@agent-ui/project-control` 与 `@agent-ui/react` typecheck 通过。
+
+升级后浏览器最终态通过：TaskCard 为 done，仅一个 card、一个 nested message
+及一个 Footer；Stop generating 消失，Copy、Refresh、Export as Markdown 均
+出现，没有 Plugin error。Footer 在 parent Run streaming 时仍未出现。
+此次人工检查限定于 sandbox Host 的 conversation 场景，递归／错误的逐事件
+行为由 focused acceptance 覆盖；不能等同于所有 Host / Mock Studio 的人工
+Demo 已通过。完整 workspace suite 尚未通过，本次不作全量绿色声明。
 
 ```bash
 pnpm --filter @agent-ui/mock-agent test tests/p6-nested-subagent.test.ts

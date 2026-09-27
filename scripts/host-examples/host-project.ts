@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { handleUIProjectControlRequest, inspectCreatorProject } from "../../packages/project-control/dist/runtime/project-control-runtime.mjs";
 import { initializeAgentUIProject } from "../../packages/bootstrap/dist/index.js";
+import { ensureManagedHostPlugins } from "./ensure-managed-plugins.js";
 
 const initializationHost = createAgentUIInitializationHost();
 
@@ -58,8 +59,9 @@ async function main() {
       const upgraded = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "apply_agent_ui_source_item", input: {
         itemId: "foundation/core", expectedStateHash: inspection.stateHash,
       } }, projectRoot);
-      if (!upgraded.ok) throw new Error("Could not upgrade the managed Host foundation");
+      if (!upgraded.ok) throw new Error(`Could not upgrade the managed Host foundation: ${upgraded.error.code}: ${upgraded.error.message}`);
     }
+    await ensureManagedHostPlugins(request => handleUIProjectControlRequest({ schemaVersion: 3, ...request }, projectRoot));
     return;
   }
   if (before.status !== "uninitialized") {

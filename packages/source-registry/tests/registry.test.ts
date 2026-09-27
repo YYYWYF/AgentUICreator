@@ -16,16 +16,23 @@ const forbiddenPublicTokens = [
 ] as const;
 
 describe("Agent UI Source Registry public conversation contract", () => {
-  it("contains the generic Conversation foundation and optional demo bundles", async () => {
+  it("contains the generic Conversation foundation, managed plugins and optional demo bundles", async () => {
     const registry = await loadAgentUISourceRegistry();
 
     expect(registry.items.map((entry) => entry.id)).toEqual(expect.arrayContaining([
       "foundation/conversation", "demo/frontend-tool-dialog", "demo/frontend-tool-form",
     ]));
     expect(registry.items.filter(entry => entry.kind === "demo")).toHaveLength(2);
-    expect(registry.items[0]?.kind).toBe("foundation");
+    expect(registry.byId.get("foundation/conversation")?.kind).toBe("foundation");
     expect(registry.items.filter((entry) => entry.kind === "primitive")).toHaveLength(0);
-    expect(registry.items.filter((entry) => entry.kind === "agent-component").map(entry => entry.id)).toEqual(["agent-component/assistant-ui-generative-ui"]);
+    expect(registry.items.filter((entry) => entry.kind === "agent-component").map(entry => entry.id)).toEqual(expect.arrayContaining([
+      "agent-component/assistant-ui-generative-ui", "plugin/conversation-surface",
+      "plugin/assistant-ui-response-footer", "plugin/assistant-ui-message-footer",
+    ]));
+    expect(registry.byId.get("plugin/assistant-ui-response-footer")?.requires).toContain("plugin/conversation-surface");
+    for (const action of ["copy", "reload", "export-markdown"]) {
+      expect(registry.byId.get(`plugin/assistant-ui-${action}-action`)?.requires).toContain("plugin/assistant-ui-response-footer");
+    }
   });
 
   it("installs only the public Conversation bridge", async () => {

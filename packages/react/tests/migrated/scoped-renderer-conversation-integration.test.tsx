@@ -12,7 +12,7 @@ import {
   type ChatModelAdapter,
   type ThreadMessage,
 } from "@assistant-ui/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ConversationAdapter } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter";
 import { createConversationToolkit } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
@@ -65,6 +65,18 @@ class ResizeObserverMock {
 vi.stubGlobal("ResizeObserver", ResizeObserverMock);
 Object.defineProperty(HTMLElement.prototype, "scrollTo", { configurable: true, value: () => undefined });
 
+beforeEach(() => {
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: query === "(prefers-reduced-motion: reduce)", media: query,
+    addEventListener() {}, removeEventListener() {},
+  }));
+});
+
+async function openToolGroups(container: HTMLElement) {
+  const trigger = container.querySelector<HTMLButtonElement>('[data-slot="tool-group-trigger"][aria-expanded="false"]');
+  if (trigger) await act(async () => trigger.click());
+}
+
 function Host({ renderScopedSlot }: UIPluginComponentProps) {
   useEffect(() => { hostMounts += 1; }, []);
   return <ConversationAdapter renderScopedSlot={renderScopedSlot} />;
@@ -83,8 +95,11 @@ const definitions: UIPluginDefinition[] = [
           accepts: { anyOfCapabilities: ["conversation-tool-fallback-renderer"] } },
         taskGroup: { description: "Task group renderer", cardinality: "one", mode: "renderer", optional: true,
           accepts: { anyOfCapabilities: ["conversation-task-group-renderer"] } },
+        assistantResponseFooter: { description: "Response footer renderer", cardinality: "one", mode: "renderer", optional: true,
+          accepts: { anyOfCapabilities: ["conversation-assistant-response-footer-renderer"] } },
       } },
     },
+    optionalInject: ["agent-ui.theme"],
     Component: Host,
   },
   {
@@ -213,10 +228,12 @@ describe("Conversation scoped renderer integration", () => {
     const tool = { type: "tool-call" as const, toolCallId: "unknown-1", toolName: "unknown_tool",
       args: { query: "hello" }, argsText: '{"query":"hello"}' };
     const { container, runtime } = await mount([message([tool], { type: "running" })]);
+    await openToolGroups(container);
     expect(container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();
     expect(fallbackInvocations).toHaveBeenCalled();
 
     await act(async () => runtime.thread.reset([message([{ ...tool, result: { ok: true } }])]));
+    await openToolGroups(container);
     expect(container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();
     expect(fallbackInvocations.mock.calls.length).toBeGreaterThan(1);
     expect(hostMounts).toBe(1);
@@ -277,6 +294,7 @@ describe("Conversation scoped renderer integration", () => {
         onRuntime={() => undefined} />);
       await Promise.resolve();
     });
+    await openToolGroups(container);
     expect(container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();
     expect(container.querySelector('[data-slot="task-card"]')).toBeNull();
   });
@@ -358,6 +376,7 @@ describe("Conversation scoped renderer integration", () => {
     const namedTool = { type: "tool-call" as const, toolCallId: "search-2", toolName: "search_files",
       args: { keyword: "AG-UI" }, argsText: '{"keyword":"AG-UI"}', result: { files: ["src/App.tsx"] } };
     const { container, root, runtime } = await mount([message([unknownTool])]);
+    await openToolGroups(container);
     expect(container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();
 
     await act(async () => {
@@ -373,7 +392,7 @@ describe("Conversation scoped renderer integration", () => {
     expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
   });
 
-  it("removes the entire grouped tool presentation when ToolGroup has no occupant", async () => {
+  it("removes grouped unknown tools while preserving standalone named Tool UI", async () => {
     const unknownTool = { type: "tool-call" as const, toolCallId: "unknown-3", toolName: "unknown_tool",
       args: { query: "hello" }, argsText: '{"query":"hello"}' };
     const namedTool = { type: "tool-call" as const, toolCallId: "search-3", toolName: "search_files",
@@ -390,7 +409,7 @@ describe("Conversation scoped renderer integration", () => {
 
     await act(async () => runtime.thread.reset([message([namedTool])]));
     expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
-    expect(container.querySelector('[data-slot="tool-call"]')).toBeNull();
+    expect(container.querySelector('[data-slot="tool-call"]')).not.toBeNull();
   });
 
   it("forwards an approval click through the real unknown-tool fallback path", async () => {
@@ -405,6 +424,7 @@ describe("Conversation scoped renderer integration", () => {
       await runtime.thread.append({ role: "user", content: [{ type: "text", text: "Proceed" }], startRun: true });
       await Promise.resolve();
     });
+    await openToolGroups(container);
     expect(container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();
     expect(container.querySelector('[data-slot="tool-fallback-approval"]')).not.toBeNull();
     expect(container.textContent).toContain("Allow");

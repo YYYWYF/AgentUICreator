@@ -1,8 +1,11 @@
 // @vitest-environment node
+import { ensureManagedHostPlugins } from "../../../../scripts/host-examples/ensure-managed-plugins";
+import { handleUIProjectControlRequest } from "../../src/handler";
 import { createAgentUIInitializationHost } from "../../src/project/bootstrap-host";
 import { generatedProjectFixture } from "../support/generated-project";
 import { spawn } from "node:child_process";
 import { build } from "vite";
+import tailwindcss from "@tailwindcss/vite";
 import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -33,16 +36,17 @@ export async function freshUserHost(sourceRoot: string) {
   const root = await mkdtemp(path.join(tmpdir(), "fresh-user-host-"));
   roots.push(root);
   const pkg = JSON.parse(await readFile(path.join(exampleRoot, "package.json"), "utf8"));
-  await writeFile(path.join(root, "package.json"), JSON.stringify({ name: "fresh-user-host", type: "module", dependencies: pkg.dependencies }));
+  const devDependencies = { tailwindcss: pkg.devDependencies.tailwindcss, "@tailwindcss/vite": pkg.devDependencies["@tailwindcss/vite"], "tw-animate-css": pkg.devDependencies["tw-animate-css"] };
+  await writeFile(path.join(root, "package.json"), JSON.stringify({ name: "fresh-user-host", type: "module", dependencies: pkg.dependencies, devDependencies }));
   await mkdir(path.join(root, "src"));
   await mkdir(path.join(root, path.dirname(sourceRoot)), { recursive: true });
   await writeFile(path.join(root, "index.html"), '<div id="root"></div><script type="module" src="/src/main.tsx"></script>');
   await writeFile(path.join(root, "src/main.tsx"), 'import React from "react"; import { createRoot } from "react-dom/client"; createRoot(document.getElementById("root")!).render(<main>Host</main>);');
   await writeFile(path.join(root, "vite.config.ts"), 'import { defineConfig } from "vite"; export default defineConfig({});');
-  // Link only the Host's declared frontend dependencies. In particular this
+  // Link the Host's declared frontend and stylesheet dependencies. This
   // fresh Host has no tsx binary, bootstrap package or Creator dependency.
   await mkdir(path.join(root, "node_modules"));
-  for (const name of Object.keys(pkg.dependencies)) {
+  for (const name of Object.keys({ ...pkg.dependencies, ...devDependencies })) {
     const destination = path.join(root, "node_modules", name);
     await mkdir(path.dirname(destination), { recursive: true });
     await symlink(path.join(exampleRoot, "node_modules", name), destination, "dir");
@@ -85,7 +89,7 @@ describe("fresh user Host architecture regression", () => {
         child.stdin.on("error", reject);
         child.stdin.end(JSON.stringify({ schemaVersion: 3, operation, input }));
       });
-      expect(result).toMatchObject({ ok: true });
+      expect(result, JSON.stringify(result)).toMatchObject({ ok: true });
       if (!result.ok) throw new Error(result.error.message);
       return result.result as T;
     };
@@ -99,13 +103,15 @@ describe("fresh user Host architecture regression", () => {
     const installed = await request("inspect_ui_project", { view: "composition" });
     const installedSources = await request<AgentUISourceInspection>("inspect_agent_ui_sources");
     expect(inspectMockDemoCompatibility(installed, installedSources).requirements.find(requirement => requirement.plugin?.id === "chart-message")?.status).toBe("ready");
-    // A real source plugin, independent of the preset's provider cardinality.
+    // A removable visual source plugin in an optional Slot shared by all presets.
     const pluginRoot = path.join(root, sourceRoot, "plugins/regression-probe");
     await mkdir(pluginRoot);
-    await writeFile(path.join(pluginRoot, "manifest.json"), JSON.stringify({ id: "regression-probe", name: "Probe", description: "Regression probe", version: "1.0.0" }));
+    await writeFile(path.join(pluginRoot, "manifest.json"), JSON.stringify({ id: "regression-probe", name: "Probe", description: "Regression probe", version: "1.0.0", capabilities: ["theme-control"] }));
     await writeFile(path.join(pluginRoot, "definition.ts"), 'import manifest from "./manifest.json"; export default { manifest, Component: () => null };');
     let snapshot = await request("inspect_ui_project", { view: "composition" });
-    await request("mutate_app_ui_model", { appUIModelHash: snapshot.appUIModel.hash, operations: [{ type: "insert_plugin", plugin: { id: "probe", pluginId: "regression-probe", enabled: true }, target: { type: "application" }, index: 0 }] });
+    const surface = snapshot.pluginInstances.find(instance => instance.pluginId === "conversation-surface");
+    expect(surface).toBeDefined();
+    await request("mutate_app_ui_model", { appUIModelHash: snapshot.appUIModel.hash, operations: [{ type: "insert_plugin", plugin: { id: "probe", pluginId: "regression-probe", enabled: true }, target: { type: "plugin_slot", parentInstanceId: surface!.id, slot: "headerActions" }, index: 0 }] });
     snapshot = await request("inspect_ui_project", { view: "composition" });
     expect(snapshot.pluginInstances.some(instance => instance.id === "probe")).toBe(true);
     await request("mutate_app_ui_model", { appUIModelHash: snapshot.appUIModel.hash, operations: [{ type: "remove_plugin", instanceId: "probe" }] });
@@ -126,7 +132,7 @@ describe("fresh user Host architecture regression", () => {
     expect(verification.verified).toBe(true);
     const agentImport = path.relative(path.join(root, "src"), path.join(root, sourceRoot)).split(path.sep).join("/");
     await writeFile(path.join(root, "src/main.tsx"), `import React from "react"; import { createRoot } from "react-dom/client"; import { Agent } from ${JSON.stringify(agentImport.startsWith(".") ? agentImport : `./${agentImport}`)}; createRoot(document.getElementById("root")!).render(<Agent endpoint="/agent" />);`);
-    const bundle = await build({ root, configFile: false, logLevel: "silent", build: { write: false, minify: false } });
+    const bundle = await build({ root, configFile: false, plugins: [tailwindcss()], logLevel: "silent", build: { write: false, minify: false } });
     const bundles = Array.isArray(bundle) ? bundle : [bundle];
     for (const output of bundles) {
       if (!("output" in output)) throw new Error("Expected a production build result");
@@ -145,7 +151,6 @@ it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIM
   await initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "src/agent-ui" }, initializationHost);
   const paths = resolveAgentUIProjectPaths(root, { version: "2", mode: "assistant", sourceRoot: "src/agent-ui" });
   const config = projectControlConfigForPaths(paths);
-  const { applyAgentUISourceItem } = await import("../../src/project/source-registry/installer");
   const { inspectAgentUISources } = await import("../../src/project/source-registry/inspector");
   const registry = await loadAgentUISourceRegistry();
   const footerId = "plugin/assistant-ui-message-footer";
@@ -165,22 +170,44 @@ it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIM
     oldFiles[file.target] = { sha256: sha256(content) };
   }
   lock.items[footerId] = { version: "0.1.0", files: oldFiles };
+  const surfaceId = "plugin/conversation-surface";
+  const surfaceFiles: Record<string, { sha256: string }> = {};
+  for (const file of registry.byId.get(surfaceId)!.files) {
+    const content = await readFile(new URL(`../fixtures/legacy-conversation-surface-0.1.0/${file.target}`, import.meta.url));
+    await writeFile(path.join(paths.sourceRoot, file.target), content);
+    surfaceFiles[file.target] = { sha256: sha256(content) };
+  }
+  lock.items[surfaceId] = { version: "0.1.0", files: surfaceFiles };
   await writeFile(lockPath, serializeAgentUISourceLock(lock));
   const source = await readFile(new URL("../../../project-control/tests/fixtures/assistant-app-ui-7a31b5f.json", import.meta.url), "utf8");
   await writeFile(paths.appUIModelPath, source);
   const beforeAppUIModel = await readFile(paths.appUIModelPath, "utf8");
   const before = await inspectAgentUISources(root, config);
   expect(before.items.find(item => item.id === footerId)).toMatchObject({
-    installedVersion: "0.1.0", availableVersion: "0.1.1", status: "managed",
+    installedVersion: "0.1.0", availableVersion: "0.1.2", status: "managed",
   });
   expect(before.items.find(item => item.id === responseId)).toMatchObject({ status: "not-installed" });
-  const result = await applyAgentUISourceItem(root, { itemId: footerId, expectedStateHash: before.stateHash }, config);
-  expect(result.changed).toBe(true);
-  expect(result.changedItems).toEqual(expect.arrayContaining([footerId, responseId]));
+  const surfaceEntry = path.join(paths.sourceRoot, "plugins/conversation-surface/index.tsx");
+  const originalSurface = await readFile(surfaceEntry, "utf8");
+  const customizedSurface = `${originalSurface}\n// Host customization must survive an automatic upgrade.\n`;
+  await writeFile(surfaceEntry, customizedSurface);
+  await expect(ensureManagedHostPlugins(request => handleUIProjectControlRequest({
+    schemaVersion: 3, ...request,
+  } as Parameters<typeof handleUIProjectControlRequest>[0], root))).rejects.toThrow("AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY");
+  expect(await readFile(surfaceEntry, "utf8")).toBe(customizedSurface);
+  expect(await readAgentUISourceLock(root, config)).toMatchObject({ lock });
+  await writeFile(surfaceEntry, originalSurface);
+  const updated = await ensureManagedHostPlugins(request => handleUIProjectControlRequest({
+    schemaVersion: 3, ...request,
+  } as Parameters<typeof handleUIProjectControlRequest>[0], root));
+  expect(updated).toEqual(expect.arrayContaining([footerId, surfaceId]));
+  expect(await ensureManagedHostPlugins(request => handleUIProjectControlRequest({
+    schemaVersion: 3, ...request,
+  } as Parameters<typeof handleUIProjectControlRequest>[0], root))).toEqual([]);
   const { lock: upgradedLock } = await readAgentUISourceLock(root, config);
-  expect(upgradedLock.items[footerId]?.version).toBe("0.1.1");
+  expect(upgradedLock.items[footerId]?.version).toBe("0.1.2");
   expect(upgradedLock.items[responseId]?.version).toBe(response.version);
-  for (const id of [footerId, responseId]) {
+  for (const id of [footerId, responseId, surfaceId]) {
     for (const file of registry.byId.get(id)!.loadedFiles) {
       expect(upgradedLock.items[id]?.files[file.target]?.sha256).toBe(sha256(file.content));
       expect(await readFile(path.join(paths.sourceRoot, file.target))).toEqual(file.content);
@@ -188,7 +215,7 @@ it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIM
   }
   const after = await inspectAgentUISources(root, config);
   expect(after.items.find(item => item.id === footerId)).toMatchObject({
-    installedVersion: "0.1.1", availableVersion: "0.1.1", status: "managed",
+    installedVersion: "0.1.2", availableVersion: "0.1.2", status: "managed",
   });
   expect(after.items.find(item => item.id === responseId)?.status).toBe("managed");
   expect(await readFile(paths.appUIModelPath, "utf8")).toBe(beforeAppUIModel);

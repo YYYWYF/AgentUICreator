@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "plugin/assistant-ui-response-footer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "kind": "agent-component",
   "description": "Managed Agent UI plugin-assistant-ui-response-footer source",
   "files": [
@@ -19,7 +19,8 @@
     }
   ],
   "requires": [
-    "foundation/core"
+    "foundation/core",
+    "plugin/conversation-surface"
   ],
   "packages": {
     "react": "^19.2.0"

@@ -1,0 +1,89 @@
+{
+  "id": "conversation-surface",
+  "name": "Conversation Surface",
+  "description": "组合 Live 与只读 History 会话的空状态、消息时间线与输入区。",
+  "version": "2.1.0",
+  "capabilities": ["conversation-surface"],
+  "authoring": {
+    "intents": [
+      "show the primary live and historical conversation experience"
+    ],
+    "visualRole": "primary conversation surface",
+    "recommendedSize": {
+      "width": "minmax(0, 1fr)"
+    }
+  },
+  "slots": {
+    "children": {
+      "emptyWelcome": {
+        "description": "Welcome content displayed when the conversation is empty.",
+        "cardinality": "one",
+        "optional": true
+      },
+      "emptySuggestions": {
+        "description": "Suggested prompts or actions displayed when the conversation is empty.",
+        "cardinality": "many",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": ["conversation-suggestions"]
+        }
+      },
+      "headerActions": {
+        "description": "Top-right controls displayed on the Conversation surface.",
+        "cardinality": "many",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": ["theme-control"]
+        }
+      },
+      "composer": {
+        "description": "Primary conversation composer.",
+        "cardinality": "one",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": ["conversation-composer"]
+        }
+      },
+      "reasoningGroup": {
+        "description": "Renderer for one assistant reasoning group.",
+        "cardinality": "one",
+        "optional": true,
+        "mode": "renderer",
+        "accepts": { "anyOfCapabilities": ["conversation-reasoning-renderer"] }
+      },
+      "toolGroup": {
+        "description": "Renderer for one assistant tool group.",
+        "cardinality": "one",
+        "optional": true,
+        "mode": "renderer",
+        "accepts": { "anyOfCapabilities": ["conversation-tool-group-renderer"] }
+      },
+      "toolFallback": {
+        "description": "Renderer for an unnamed tool UI fallback.",
+        "cardinality": "one",
+        "optional": true,
+        "mode": "renderer",
+        "accepts": { "anyOfCapabilities": ["conversation-tool-fallback-renderer"] }
+      },
+      "taskGroup": {
+        "description": "Renderer for one or more tool calls containing nested agent tasks.",
+        "cardinality": "one",
+        "optional": true,
+        "mode": "renderer",
+        "accepts": { "anyOfCapabilities": ["conversation-task-group-renderer"] }
+      },
+      "assistantMessageFooter": {
+        "description": "Renderer for the assistant message footer.",
+        "cardinality": "one",
+        "optional": true,
+        "mode": "renderer",
+        "accepts": {
+          "anyOfCapabilities": ["conversation-assistant-message-footer-renderer"]
+        }
+      }
+    }
+  },
+  "data": {
+    "messages": true
+  }
+}
