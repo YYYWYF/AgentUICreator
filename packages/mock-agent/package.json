@@ -10,6 +10,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./attachments": {
+      "types": "./dist/demo-attachment-adapter.d.ts",
+      "import": "./dist/demo-attachment-adapter.js"
     }
   },
   "files": [
@@ -27,10 +31,14 @@
     "@ag-ui/core": "0.0.59"
   },
   "peerDependencies": {
-    "vite": ">=8"
+    "vite": ">=8",
+    "@assistant-ui/react": "^0.15.22"
   },
   "peerDependenciesMeta": {
     "vite": {
+      "optional": true
+    },
+    "@assistant-ui/react": {
       "optional": true
     }
   },
@@ -41,6 +49,7 @@
     "typescript": "^7.0.2",
     "vite": "^8.2.2",
     "vitest": "^4.1.11",
-    "jsdom": "^27.0.0"
+    "jsdom": "^27.0.0",
+    "@assistant-ui/react": "0.15.22"
   }
 }

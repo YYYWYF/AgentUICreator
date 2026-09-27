@@ -1,5 +1,5 @@
 import { HttpAgent, RunAgentInputSchema, type InputContent, type RunAgentInput } from "@ag-ui/client";
-import { useAui, type AssistantRuntime, type AttachmentAdapter } from "@assistant-ui/react";
+import { useAui, type AssistantRuntime, type AttachmentAdapter, type ThreadMessage } from "@assistant-ui/react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "../src/index.js";
@@ -120,10 +120,10 @@ it("restores multimodal HumanMessage through the official history converter", ()
   const messages = projectLangChainHistory([{ id: "history-multimodal", type: "human", content: [
     { type: "text", text: "Describe" },
     { type: "image_url", image_url: { url: image } },
-    { type: "file", mime_type: "application/pdf", data: "JVBERi0xLjc=", filename: "test.pdf" },
+    { type: "file", mime_type: "application/pdf", data: "JVBERi0xLjc=", metadata: { filename: "test.pdf" } },
   ] }]);
   expect(messages[0]).toMatchObject({ role: "user" });
-  const message = messages[0]!;
+  const message = messages[0]! as unknown as ThreadMessage;
   // Upstream may lift non-text parts to attachments; both are public message state.
   const parts = [...message.content, ...(message.role === "user" ? message.attachments.flatMap(a => a.content) : [])];
   expect(parts).toContainEqual({ type: "text", text: "Describe" });

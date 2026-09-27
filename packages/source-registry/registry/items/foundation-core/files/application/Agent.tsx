@@ -1,3 +1,4 @@
+import type { ConversationRuntimeProviderProps } from "@agent-ui/runtime-conversation";
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import {
   ConversationRuntimeProvider,
@@ -50,6 +51,8 @@ export interface AgentProps {
   /** The Host application's AG-UI endpoint. Defaults to VITE_AGENT_ENDPOINT or /agent. */
   endpoint?: string;
   observability?: AgentObservability;
+  /** Application-owned official assistant-ui attachment adapter. */
+  attachmentAdapter?: ConversationRuntimeProviderProps["attachmentAdapter"];
 }
 
 function AgentSurface({ composition, observability }: {
@@ -139,7 +142,7 @@ function AgentSurface({ composition, observability }: {
   );
 }
 
-export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability }: AgentProps = {}) {
+export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter }: AgentProps = {}) {
   const composition = useSyncExternalStore(
     agentCompositionStore.subscribe,
     agentCompositionStore.getSnapshot,
@@ -182,6 +185,7 @@ export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
   return (
     <ConversationRuntimeProvider<AppAgentState>
       endpoint={endpoint}
+      attachmentAdapter={attachmentAdapter}
       frontendTools={frontendToolRuntime}
       frontendToolUIs={generatedFrontendToolUIs}
       suggestions={conversationStarterSuggestions}
