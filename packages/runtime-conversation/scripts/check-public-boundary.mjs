@@ -35,7 +35,12 @@ if (missing.length > 0) {
 
 const violations = [];
 for (const filePath of [...reachable].sort()) {
-  const source = await readFile(filePath, "utf8");
+  const declaration = await readFile(filePath, "utf8");
+  // The attachment integration seam deliberately accepts the official public type.
+  // Keep every other assistant-ui declaration/import forbidden.
+  const source = path.basename(filePath) === "public.d.ts"
+    ? declaration.replace(/^import type \{ AttachmentAdapter \} from ["']@assistant-ui\/react["'];\r?\n/gmu, "")
+    : declaration;
   for (const token of forbiddenTokens) {
     if (source.includes(token)) {
       violations.push(`${path.relative(packageRoot, filePath)} contains ${token}`);

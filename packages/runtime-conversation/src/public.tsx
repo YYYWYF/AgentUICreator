@@ -8,6 +8,7 @@ import type {
   AgentUserInput,
 } from "@agent-ui/runtime-core";
 import type { AbstractAgent } from "@ag-ui/client";
+import type { AttachmentAdapter } from "@assistant-ui/react";
 import {
   ConversationRuntimeProvider as InternalConversationRuntimeProvider,
   type ConversationAgentFactory as InternalConversationAgentFactory,
@@ -55,6 +56,8 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   frontendToolUIs?: import("./tools/types.js").ConversationFrontendToolUIRegistry | undefined;
   toolkit?: ConversationToolkit | undefined;
   suggestions?: readonly ConversationStarterSuggestion[] | undefined;
+  /** Official assistant-ui adapter; the application owns file preparation and storage. */
+  attachmentAdapter?: AttachmentAdapter | undefined;
   children: ReactNode;
   onError?: ((error: Error) => void) | undefined;
   unstable_agentFactory?: ConversationAgentFactory | undefined;

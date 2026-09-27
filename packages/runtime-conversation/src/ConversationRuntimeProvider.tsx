@@ -10,6 +10,7 @@ import {
   useAuiState,
   useRemoteThreadListRuntime,
   type AssistantRuntime,
+  type AttachmentAdapter,
   type ThreadHistoryAdapter,
   type ThreadMessage,
 } from "@assistant-ui/react";
@@ -62,6 +63,8 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   frontendToolUIs?: ConversationFrontendToolUIRegistry | undefined;
   toolkit?: ConversationToolkit | undefined;
   suggestions?: readonly ConversationStarterSuggestion[] | undefined;
+  /** File preparation/storage belongs to the application-provided upstream adapter. */
+  attachmentAdapter?: AttachmentAdapter | undefined;
   children: ReactNode;
   onError?: ((error: Error) => void) | undefined;
   /** Test seam; production callers should use the default per-thread HttpAgent. */
@@ -82,6 +85,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
   frontendToolUIs,
   toolkit,
   suggestions,
+  attachmentAdapter,
   children,
   onError,
   unstable_agentFactory = defaultAgentFactory,
@@ -159,7 +163,10 @@ export function ConversationRuntimeProvider<TState = unknown>({
     );
     const runtime = useAgUiRuntime({
       agent, isDisabled: isDisabled || historyFailed, showThinking: true, unstable_enableMessageQueue: false,
-      adapters: { history },
+      adapters: {
+        history,
+        ...(attachmentAdapter === undefined ? {} : { attachments: attachmentAdapter }),
+      },
       onCancel: () => bridgeRef.current?.recordCancellation(),
       onError: error => {
         bridgeRef.current?.recordError(error);
@@ -188,7 +195,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
       };
     }, [agentRuntime, applicationEvents, bridge, item.id]);
     return runtime;
-  }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, frontendTools, onError]);
+  }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, frontendTools, onError, attachmentAdapter]);
   const [controlledThreadId, setControlledThreadId] = useState<string | undefined>(persistence.initialId);
   const assistantRuntime = useRemoteThreadListRuntime({
     adapter: persistence.adapter, runtimeHook,
