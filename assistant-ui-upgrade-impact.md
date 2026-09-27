@@ -98,3 +98,48 @@ paste), UserMessage attachment presentation, the real multimodal wire regression
 and official history restoration. Any unsupported media/history shape must be
 recorded as an upstream gap; never patch converters, hide files in metadata or
 introduce a custom event protocol to work around it.
+
+## Phase 1 upgrade-safety repair
+
+Demo images now use the public `SimpleImageAttachmentAdapter`; the public
+`CompositeAttachmentAdapter` owns routing and the combined accept string.
+`DemoAttachmentAdapter` adds only the 5 MiB entry policy, and
+`DemoPdfAttachmentAdapter` owns only PDF preparation. Local FileReader/abort
+handling is limited to PDFs. Application production storage remains external.
+
+The declaration checker now uses an explicit module/type allowlist without
+rewriting declaration text. The only allowed name is `AttachmentAdapter` in a
+named type import. Both its public react re-export and its official defining
+module `@assistant-ui/core` are recognized (the current workspace declaration
+names core). Other upstream types, value imports, namespace imports, re-exports,
+import() references, react-ag-ui and primitives remain rejected. Multiline imports
+are covered, and an allowed occurrence never exempts another forbidden import.
+The Runtime injection, Agent prop forwarding, wire converter and transport are
+unchanged by this repair.
+
+Automated checks executed on 2026-09-27, without manual/browser acceptance:
+
+- runtime-conversation, mock-agent and react: typecheck and build passed.
+- New demo adapter tests: 6 passed, including real official image/PDF routing,
+  accept, size bounds and pre-read abort.
+- New declaration allowlist tests: 24 passed. The real emitted declaration
+  boundary and consumer typecheck passed during runtime-conversation build.
+- Full runtime-conversation test command failed: 14 failures and 17 unhandled
+  errors, including existing package-policy expectations, wire-test fixture
+  readiness timeouts, history expectations and cancellation errors.
+- Full mock-agent tests (rerun outside the sandbox for local HTTP listening):
+  72 passed, 8 failed, including scenario catalog/count expectations and timing.
+- Full react tests (rerun outside the sandbox for local HTTP listening):
+  220 passed, 45 failed; 49 test files failed, including fixture import paths,
+  theme service declarations, history/tool expectations and the attachment smoke
+  test's missing Remove file button. No full attachment UI pass is claimed.
+- Workspace `pnpm typecheck` was rerun after an initial concurrent Host build
+  race; it failed in project-control/tests/host-public-entry.integration.test.ts
+  on RolldownOutput | RolldownWatcher.output (TS2339).
+- Workspace `pnpm test:ts` failed in existing bootstrap fixture paths
+  (/presets/assistant/app-ui.json and non-file import URLs), so it did not
+  establish a successful workspace regression baseline.
+
+Unrelated dirty worktree changes are preserved outside the repair commit.
+These failures were reported, not suppressed or expanded into an unrelated
+Runtime/UI/fixture redesign. Existing multimodal wire regressions remain intact.

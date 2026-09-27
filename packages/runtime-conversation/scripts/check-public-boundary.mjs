@@ -3,19 +3,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { buildDeclarationGraph } from "./declaration-graph.mjs";
+import { findPublicDeclarationViolations } from "./public-declaration-policy.mjs";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const declarationRoot = path.join(packageRoot, "dist");
-const forbiddenTokens = [
-  "@assistant-ui/",
-  "AssistantUi",
-  "ThreadPrimitive",
-  "ComposerPrimitive",
-  "MessagePrimitive",
-  "useAui",
-  "AuiConfig",
-  "runtime-assistant-ui",
-];
 
 const entryPath = path.join(declarationRoot, "index.d.ts");
 const { missing, reachable } = await buildDeclarationGraph(
@@ -35,16 +26,9 @@ if (missing.length > 0) {
 
 const violations = [];
 for (const filePath of [...reachable].sort()) {
-  const declaration = await readFile(filePath, "utf8");
-  // The attachment integration seam deliberately accepts the official public type.
-  // Keep every other assistant-ui declaration/import forbidden.
-  const source = path.basename(filePath) === "public.d.ts"
-    ? declaration.replace(/^import type \{ AttachmentAdapter \} from ["']@assistant-ui\/react["'];\r?\n/gmu, "")
-    : declaration;
-  for (const token of forbiddenTokens) {
-    if (source.includes(token)) {
-      violations.push(`${path.relative(packageRoot, filePath)} contains ${token}`);
-    }
+  const source = await readFile(filePath, "utf8");
+  for (const token of findPublicDeclarationViolations(source)) {
+    violations.push(`${path.relative(packageRoot, filePath)} contains ${token}`);
   }
 }
 

@@ -1,19 +1,38 @@
-import type { AttachmentAdapter, CompleteAttachment, PendingAttachment } from "@assistant-ui/react";
+import {
+  CompositeAttachmentAdapter,
+  SimpleImageAttachmentAdapter,
+  type AttachmentAdapter,
+  type CompleteAttachment,
+  type PendingAttachment,
+} from "@assistant-ui/react";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
-/** Development/demo only. Inline small images/PDFs; production storage belongs to the application. */
-export class DemoAttachmentAdapter implements AttachmentAdapter {
-  readonly accept = "image/*,application/pdf";
+function enforceDemoSize(file: File): void {
+  if (file.size > MAX_FILE_BYTES) throw new Error("Demo attachments are limited to 5 MiB per file.");
+}
+
+/** Development/demo only. Production storage belongs to the application's adapter. */
+export class DemoAttachmentAdapter extends CompositeAttachmentAdapter {
+  constructor() {
+    super([new SimpleImageAttachmentAdapter(), new DemoPdfAttachmentAdapter()]);
+  }
+
+  override add(state: { file: File }): ReturnType<AttachmentAdapter["add"]> {
+    enforceDemoSize(state.file);
+    return super.add(state);
+  }
+}
+
+/** Development/demo only: small PDFs, without an upload server or retained state. */
+export class DemoPdfAttachmentAdapter implements AttachmentAdapter {
+  readonly accept = "application/pdf";
 
   async add({ file }: { file: File }): Promise<PendingAttachment> {
-    if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
-      throw new Error("Demo attachments accept only images and PDF files.");
-    }
-    if (file.size > MAX_FILE_BYTES) throw new Error("Demo attachments are limited to 5 MiB per file.");
+    if (file.type !== this.accept) throw new Error("Demo PDF attachments accept only PDF files.");
+    enforceDemoSize(file);
     return {
-      id: crypto.randomUUID(),
-      type: file.type.startsWith("image/") ? "image" : "document",
+      id: crypto.randomUUID(), type: "document",
       name: file.name, contentType: file.type, file,
       status: { type: "requires-action", reason: "composer-send" },
     };
@@ -24,18 +43,16 @@ export class DemoAttachmentAdapter implements AttachmentAdapter {
   }
 
   async send(attachment: PendingAttachment, options?: { signal?: AbortSignal }): Promise<CompleteAttachment> {
-    const dataUrl = await readDemoFile(attachment.file, options?.signal);
+    const dataUrl = await readDemoPdf(attachment.file, options?.signal);
     return {
       ...attachment, status: { type: "complete" },
-      content: attachment.type === "image"
-        ? [{ type: "image", image: dataUrl, filename: attachment.name }]
-        : [{ type: "file", data: dataUrl, mimeType: attachment.file.type, filename: attachment.name }],
+      content: [{ type: "file", data: dataUrl, mimeType: attachment.file.type, filename: attachment.name }],
     };
   }
 }
 
-// File reading is a demo adapter policy, never a Runtime or AG-UI transport policy.
-function readDemoFile(file: File, signal?: AbortSignal): Promise<string> {
+// PDF reading is a demo adapter policy, never a Runtime or AG-UI transport policy.
+function readDemoPdf(file: File, signal?: AbortSignal): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     const cleanup = () => signal?.removeEventListener("abort", abort);
