@@ -17,11 +17,9 @@ import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "../../
 import { readAgentUIProjectConfig } from "../../../examples/agent-frontend/scripts/ui-project/project-mode";
 import { inspectUIServiceDependencies } from "../../../examples/agent-frontend/scripts/ui-project/service-dependency-inspector";
 import {
-  applyAgentUISourceItem,
   inspectAgentUISources,
-  removeAgentUISourceItems,
-  recoverPendingAgentUISourceTransaction,
 } from "../../../examples/agent-frontend/scripts/ui-project/source-registry";
+import { applyAgentUISourceProjectMutation, removeAgentUISourceProjectMutation, recoverPendingAgentUISourceProjectMutation } from "../../../examples/agent-frontend/scripts/ui-project/source-registry/project-mutation";
 import {
   verifyRuntimeComposition,
   verifyRuntimeCompositionInputSchema,
@@ -420,9 +418,9 @@ async function executeRequest(
     case "inspect_agent_ui_sources":
       return inspectAgentUISources(projectRoot, effectiveConfig);
     case "apply_agent_ui_source_item":
-      return applyAgentUISourceItem(projectRoot, request.input, effectiveConfig);
+      return applyAgentUISourceProjectMutation(projectRoot, request.input, { config: effectiveConfig });
     case "remove_agent_ui_source_items":
-      return removeAgentUISourceItems(projectRoot, request.input, effectiveConfig);
+      return removeAgentUISourceProjectMutation(projectRoot, request.input, { config: effectiveConfig });
   }
 }
 
@@ -483,7 +481,7 @@ export async function handleUIProjectControlRequest(
       resolveAgentUIProjectPaths(projectRoot, projectConfig.config),
     );
     await recoverPendingAppUITransaction(projectRoot);
-    await recoverPendingAgentUISourceTransaction(
+    await recoverPendingAgentUISourceProjectMutation(
       projectRoot,
       effectiveConfig,
     );

@@ -4,7 +4,6 @@ import path from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
 import { installDemoPlugin } from "../scripts/ui-project/install-demo-plugin";
 
-vi.mock("../scripts/generate-plugin-registry", () => ({ writeGeneratedPluginRegistry: vi.fn() }));
 vi.mock("../scripts/ui-project/project-mode", () => ({ readAgentUIProjectConfig: vi.fn(async () => ({ config: {} })) }));
 vi.mock("../scripts/ui-project/agent-ui-project-paths", () => ({
   resolveAgentUIProjectPaths: (root: string) => ({ appUIModelPath: path.join(root, "model.json") }),
@@ -15,11 +14,14 @@ vi.mock("../scripts/ui-project/source-registry", () => ({
     { id: "plugin/assistant-ui-reasoning", status: "missing" },
     { id: "plugin/assistant-ui-tool-fallback", status: "customized" },
   ] })),
-  applyAgentUISourceItem: vi.fn(),
+}));
+vi.mock("../scripts/ui-project/source-registry/project-mutation", () => ({
+  applyAgentUISourceProjectMutation: vi.fn(),
+  recoverPendingAgentUISourceProjectMutation: vi.fn(),
 }));
 vi.mock("../scripts/ui-project/app-ui-transaction", () => ({ mutateAppUIModel: vi.fn() }));
 import { mutateAppUIModel } from "../scripts/ui-project/app-ui-transaction";
-import { applyAgentUISourceItem } from "../scripts/ui-project/source-registry";
+import { applyAgentUISourceProjectMutation } from "../scripts/ui-project/source-registry/project-mutation";
 
 const roots: string[] = [];
 afterEach(async () => { vi.clearAllMocks(); await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
@@ -31,7 +33,7 @@ async function project(plugins: unknown[]) {
 it("installs missing reasoning source and uses its semantic default placement under an enabled surface", async () => {
   const root = await project([{ id: "surface", pluginId: "conversation-surface", enabled: false }]);
   await installDemoPlugin(root, "assistant-ui-reasoning");
-  expect(applyAgentUISourceItem).toHaveBeenCalledWith(root, { itemId: "plugin/assistant-ui-reasoning", expectedStateHash: "hash" }, {});
+  expect(applyAgentUISourceProjectMutation).toHaveBeenCalledWith(root, { itemId: "plugin/assistant-ui-reasoning", expectedStateHash: "hash" }, { config: {} });
   expect(mutateAppUIModel).toHaveBeenCalledWith(root, expect.objectContaining({ operations: [
     { type: "set_plugin_enabled", instanceId: "surface", enabled: true },
     { type: "insert_plugin_default", plugin: { id: "assistant-ui-reasoning-main", pluginId: "assistant-ui-reasoning", enabled: true } },
@@ -43,7 +45,7 @@ it("preserves customized tool source while moving and enabling its existing inst
     { id: "existing-tool", pluginId: "assistant-ui-tool-fallback", enabled: false },
   ]);
   await installDemoPlugin(root, "assistant-ui-tool-fallback");
-  expect(applyAgentUISourceItem).not.toHaveBeenCalled();
+  expect(applyAgentUISourceProjectMutation).not.toHaveBeenCalled();
   expect(mutateAppUIModel).toHaveBeenCalledWith(root, expect.objectContaining({ operations: [
     { type: "move_plugin", instanceId: "existing-tool", target: { type: "plugin_slot", parentInstanceId: "surface", slot: "toolFallback" } },
     { type: "set_plugin_enabled", instanceId: "existing-tool", enabled: true },

@@ -6,10 +6,11 @@ import { resolveAgentUIProjectPaths } from "./ui-project/agent-ui-project-paths"
 import { assertNoSymbolicLinkTraversal } from "./ui-project/source-registry/path-policy";
 
 /** Explicit installation-time imports; no runtime discovery or automatic permission. */
-export async function writeGeneratedFrontendToolRegistries(projectRoot: string): Promise<void> {
+export async function writeGeneratedFrontendToolRegistries(projectRoot: string): Promise<{ changedPaths: string[] }> {
   const project = await readAgentUIProjectConfig(projectRoot);
   const paths = resolveAgentUIProjectPaths(projectRoot, project.config);
   const sourceRoot = path.dirname(paths.pluginsRoot);
+  const changedPaths: string[] = [];
   for (const [directory, output, exportName, typeName, typeImport, extension] of [
     ["agent-contract/frontend-tools", "agent-contract/frontend-tools.generated.ts", "frontendTools", "readonly AppFrontendToolDefinition<any>[]", 'import type { AppFrontendToolDefinition } from "../runtime/tools";', ".ts"],
     ["agent-ui/conversation/frontend-tool-uis", "agent-ui/conversation/frontend-tool-uis.generated.ts", "frontendToolUIs", "ConversationFrontendToolUIRegistry", 'import type { ConversationFrontendToolUIRegistry } from "@agent-ui/runtime-conversation";', ".tsx"],
@@ -46,5 +47,7 @@ function mergeRegistries(resources: ConversationFrontendToolUIRegistry[]): Conve
     const temporary = `${destination}.${randomUUID()}.tmp`;
     await writeFile(temporary, source);
     await rename(temporary, destination);
+    changedPaths.push(path.relative(projectRoot, destination).split(path.sep).join("/"));
   }
+  return { changedPaths };
 }

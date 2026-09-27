@@ -1,10 +1,10 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { collectAppUIPluginLocations, parseAppUIModelJson } from "../../framework/contracts/app-ui-model";
-import { writeGeneratedPluginRegistry } from "../generate-plugin-registry";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./agent-ui-project-paths";
 import { readAgentUIProjectConfig } from "./project-mode";
-import { inspectAgentUISources, applyAgentUISourceItem } from "./source-registry";
+import { inspectAgentUISources } from "./source-registry";
+import { applyAgentUISourceProjectMutation, recoverPendingAgentUISourceProjectMutation } from "./source-registry/project-mutation";
 import { mutateAppUIModel } from "./app-ui-transaction";
 import type { AppUIOperation } from "./app-ui-operations";
 
@@ -14,15 +14,17 @@ export async function installDemoPlugin(projectRoot: string, pluginId: string): 
   const project = await readAgentUIProjectConfig(projectRoot);
   const paths = resolveAgentUIProjectPaths(projectRoot, project.config);
   const config = projectControlConfigForPaths(paths);
+  await recoverPendingAgentUISourceProjectMutation(projectRoot, config);
   const sources = await inspectAgentUISources(projectRoot, config);
   const item = sources.items.find(entry => entry.id === `plugin/${pluginId}`);
   if (!item) throw new Error("插件库中没有找到对应插件。");
-  if (item.status !== "managed" && item.status !== "customized") {
-    await applyAgentUISourceItem(projectRoot, {
+  // Existing customized Demo code can still be selected through composition;
+  // it is not a Source synchronization request.
+  if (item.status !== "customized") {
+    await applyAgentUISourceProjectMutation(projectRoot, {
       itemId: item.id, expectedStateHash: sources.stateHash,
-    }, config);
+    }, { config });
   }
-  await writeGeneratedPluginRegistry(projectRoot);
   const source = await readFile(paths.appUIModelPath, "utf8");
   const model = parseAppUIModelJson(source);
   const locations = collectAppUIPluginLocations(model);

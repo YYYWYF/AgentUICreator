@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { buildLayoutRefIndex, collectAppUIPluginLocations, parseAppUIModelJson } from "../../framework/contracts/app-ui-model";
 import { verifyUIProject } from "../verify-ui";
 import { inspectAgentUISources } from "./source-registry";
+import { recoverPendingAgentUISourceProjectMutation } from "./source-registry/project-mutation";
 import { mutateAppUIModel } from "./app-ui-transaction";
 import { resourcePaths } from "./optional-resource-paths";
 import { installOptionalAgentUIResource } from "./install-optional-agent-ui-resource";
@@ -15,6 +16,7 @@ const demoCompositions = {
 
 export async function inspectScenarioResources(projectRoot: string) {
   const { config } = await resourcePaths(projectRoot);
+  await recoverPendingAgentUISourceProjectMutation(projectRoot, config);
   return inspectAgentUISources(projectRoot, config);
 }
 

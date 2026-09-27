@@ -121,14 +121,13 @@ export async function installAgentUISourceItems(
   };
 }
 
-export async function applyAgentUISourceItem(
+/** Storage admission checks shared with the Host before its journal is written. */
+export async function preflightAgentUISourceApply(
   projectRoot: string,
   input: ApplyAgentUISourceItemInput,
-  config: UIProjectControlConfig = uiProjectControlConfig,
+  config: UIProjectControlConfig,
   registry?: LoadedAgentUISourceRegistry,
-  testOptions: AgentUISourceTransactionTestOptions = {},
-): Promise<AgentUISourceApplyResult> {
-  await recoverPendingAgentUISourceTransaction(projectRoot, config);
+) {
   const loadedRegistry = registry ?? await loadAgentUISourceRegistry();
   const closure = resolveAgentUISourceItemClosure(loadedRegistry, input.itemId);
   const before = await inspectAgentUISources(projectRoot, config, loadedRegistry);
@@ -173,6 +172,18 @@ export async function applyAgentUISourceItem(
   }
 
   const { lock } = await readAgentUISourceLock(projectRoot, config);
+  return { loadedRegistry, closure, before, byId, lock };
+}
+
+export async function applyAgentUISourceItem(
+  projectRoot: string,
+  input: ApplyAgentUISourceItemInput,
+  config: UIProjectControlConfig = uiProjectControlConfig,
+  registry?: LoadedAgentUISourceRegistry,
+  testOptions: AgentUISourceTransactionTestOptions = {},
+): Promise<AgentUISourceApplyResult> {
+  await recoverPendingAgentUISourceTransaction(projectRoot, config);
+  const { loadedRegistry, closure, before, byId, lock } = await preflightAgentUISourceApply(projectRoot, input, config, registry);
   const nextLock: AgentUISourceLock = structuredClone(lock);
   const mutations = new Map<string, AgentUISourceFileMutation>();
   const changedItems: string[] = [];
@@ -241,18 +252,12 @@ export async function applyAgentUISourceItem(
   };
 }
 
-/**
- * Removes managed source items and their files as one lock-aware transaction.
- * This is intentionally narrow: callers must inspect first and provide the
- * resulting state hash, just like source installation.
- */
-export async function removeAgentUISourceItems(
+export async function preflightAgentUISourceRemove(
   projectRoot: string,
   input: RemoveAgentUISourceItemsInput,
-  config: UIProjectControlConfig = uiProjectControlConfig,
+  config: UIProjectControlConfig,
   registry?: LoadedAgentUISourceRegistry,
-): Promise<AgentUISourceApplyResult> {
-  await recoverPendingAgentUISourceTransaction(projectRoot, config);
+) {
   const loadedRegistry = registry ?? await loadAgentUISourceRegistry();
   const before = await inspectAgentUISources(projectRoot, config, loadedRegistry);
   if (before.stateHash !== input.expectedStateHash) {
@@ -270,6 +275,25 @@ export async function removeAgentUISourceItems(
     const dependency = resolveAgentUISourceItemClosure(loadedRegistry, remainingId).find(item => removeIds.includes(item.id));
     if (dependency) throw new AgentUISourceError("AGENT_UI_SOURCE_DEPENDENCY_IN_USE", `${remainingId} requires ${dependency.id}; remove its consumers first.`, { itemId: dependency.id, consumerId: remainingId });
   }
+  for (const itemId of removeIds) {
+    if (!lock.items[itemId]) throw new AgentUISourceError("AGENT_UI_SOURCE_ITEM_NOT_INSTALLED", `Agent UI source item ${itemId} is not installed in the project lock.`, { itemId });
+  }
+  return { loadedRegistry, before, lock, removeIds };
+}
+
+/**
+ * Removes managed source items and their files as one lock-aware transaction.
+ * This is intentionally narrow: callers must inspect first and provide the
+ * resulting state hash, just like source installation.
+ */
+export async function removeAgentUISourceItems(
+  projectRoot: string,
+  input: RemoveAgentUISourceItemsInput,
+  config: UIProjectControlConfig = uiProjectControlConfig,
+  registry?: LoadedAgentUISourceRegistry,
+): Promise<AgentUISourceApplyResult> {
+  await recoverPendingAgentUISourceTransaction(projectRoot, config);
+  const { loadedRegistry, lock, removeIds } = await preflightAgentUISourceRemove(projectRoot, input, config, registry);
   const nextLock: AgentUISourceLock = structuredClone(lock);
   const removedFileTargets = new Set<string>();
   for (const itemId of removeIds) {
