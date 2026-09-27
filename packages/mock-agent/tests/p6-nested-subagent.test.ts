@@ -208,13 +208,19 @@ describe("nested subagent AG-UI reference contract", () => {
       expect(hasEvent(EventType.TOOL_CALL_RESULT)).toBe(false);
       expect(hasEvent(EventType.RUN_FINISHED)).toBe(false);
 
-      await vi.advanceTimersToNextTimerAsync();
+      const parentStep = nestedSubagentErrorScenario.steps[0];
+      if (parentStep?.type !== "subagent-tool") throw new Error("Missing parent tool");
+      const prepareDurationMs = parentStep.prepareDurationMs;
+      if (prepareDurationMs === undefined || prepareDurationMs < 1) {
+        throw new Error("Error reference must retain a visible preparation delay");
+      }
+      await vi.advanceTimersByTimeAsync(prepareDurationMs - 1);
       expect(hasSubagentEvent(EventType.SUBAGENT_STARTED)).toBe(false);
       expect(hasSubagentEvent(EventType.SUBAGENT_ERROR)).toBe(false);
       expect(hasEvent(EventType.TOOL_CALL_RESULT)).toBe(false);
       expect(hasEvent(EventType.RUN_FINISHED)).toBe(false);
 
-      await vi.advanceTimersToNextTimerAsync();
+      await vi.advanceTimersByTimeAsync(1);
       expect(events).toContainEqual(expect.objectContaining({
         type: EventType.TOOL_CALL_END,
         toolCallId: "error-parent-tool",

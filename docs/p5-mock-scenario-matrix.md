@@ -146,6 +146,50 @@ separate from live Mock Agent protocols. Standard live subagents use
 `subagentRunId`, and `SUBAGENT_FINISHED` / `SUBAGENT_ERROR`, rendered through
 the canonical nested assistant-ui path.
 
+## Subagent Streaming 验收边界
+
+`nested-subagent-conversation` 继续作为标准 Streaming Reference；递归与错误
+场景分别复用 `nested-subagent-recursive` 和 `nested-subagent-error`。
+这些场景已经包含 preparation、reasoning、execution 和逐字输出延迟，
+无需增加另一套 streaming Scenario 或 Subagent state store。
+
+前端增量测试位于
+`packages/react/tests/migrated/assistant-ui-nested-subagent.test.tsx`。
+test-only `StreamingScenarioAgent` 直接消费 `runMockScenario()` async iterator，
+每个事件立即交给 `AbstractAgent` Observable，再由真实 `useAgUiRuntime`
+投影到 `ToolCallMessagePart.messages`。它使用 fake timers，并允许在事件交付后
+暂停 iterator，以分别检查同一 tick 中相邻的 `SUBAGENT_FINISHED` 与 parent
+`TOOL_CALL_RESULT`；不提前收集事件，也不自行解析／投影 Subagent 状态。
+
+覆盖范围包括：运行中的 TaskCard、部分 reasoning、child tool 的参数结束与
+结果生命周期、部分文本增长、nested completion metadata、parent result、
+最终 Run／Footer、递归 B 在 A 完成前出现、错误前内容保留，以及 unsubscribe
+取消。原有 `ScenarioEventAgent` 仍用于最终态测试。
+
+**2026-09-27 状态：尚未闭环验收。** 当前 pinned assistant-ui
+`da9a624496ae97864ae30e90f85c7533092a228d` 的官方 TaskCard transcript
+没有向 `MessagePrimitive.Parts` 传入 Reasoning renderer，也没有挂载
+canonical `MessagePrimitive.Error`。Runtime 已有 reasoning 数据与
+`incomplete/error` 状态，但对应 UI 断言失败。该 Element 当前也没有 transcript
+override；仓库 upstream guard 禁止本地 Element presentation patch。
+在这些展示缺口解决并通过增量测试与浏览器检查前，不应宣称完整 Streaming
+验收通过。
+
+本次提交交付测试与验收记录，不修改 production renderer。前端 focused suite
+共 16 项：11 项通过、5 项失败。新增的普通、递归、错误测试各有展示断言失败；
+原有最终态 reasoning／error 展示测试也仍失败。`expect.soft` 用于让同一测试
+继续检查后续生命周期，失败仍会使测试及整个 suite 返回非零退出码；没有
+skip、expected-failure 或 test-only renderer 替换。Mock 协议 suite 的 8 项通过。
+
+```bash
+pnpm --filter @agent-ui/mock-agent test tests/p6-nested-subagent.test.ts
+pnpm --filter @agent-ui/react test tests/migrated/assistant-ui-nested-subagent.test.tsx
+```
+
+前者验证标准事件、归属、顺序和节奏；后者验证官方 Runtime 与真实 UI 的
+增量行为。测试通过、workspace validation 通过、浏览器 Demo 通过和代码推送
+是独立的交付事实。
+
 ## Development Endpoint
 
 From `examples/creator-host-sandbox`, start the existing Vite app:
