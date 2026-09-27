@@ -4,15 +4,15 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import type { AppUIModel } from "../../../project-control/src/framework/contracts/app-ui-model";
-import { verifyUIProject } from "../../../project-control/src/verify-ui";
+import type { AppUIModel } from "../../src/framework/contracts/app-ui-model";
+import { verifyUIProject } from "../../src/verify-ui";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
-} from "../../../project-control/src/project/registry-generator";
-import { collectPluginProjectFacts, generatePluginRegistry } from "../../../project-control/tests/support/legacy-project-paths";
-import type { UIProjectControlConfig } from "../../../project-control/src/project/types";
+} from "../../src/project/registry-generator";
+import { collectPluginProjectFacts, generatePluginRegistry } from "../support/legacy-project-paths";
+import type { UIProjectControlConfig } from "../../src/project/types";
 
 const temporaryProjects: string[] = [];
 const fixtureConfig: UIProjectControlConfig = {

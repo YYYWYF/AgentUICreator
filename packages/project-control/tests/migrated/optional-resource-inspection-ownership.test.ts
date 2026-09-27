@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { isOptionalAgentUISourceItem } from "@agent-ui/source-registry";
-import { mergeOptionalResourceInspection } from "../../../project-control/src/project/optional-resource-paths";
-import type { AgentUISourceInspection, AgentUISourceItemInspection } from "../../../project-control/src/project/types";
+import { mergeOptionalResourceInspection } from "../../src/project/optional-resource-paths";
+import type { AgentUISourceInspection, AgentUISourceItemInspection } from "../../src/project/types";
 
 function item(id: string, status: AgentUISourceItemInspection["status"], installedVersion?: string): AgentUISourceItemInspection {
   return {

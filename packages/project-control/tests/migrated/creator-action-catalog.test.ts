@@ -9,32 +9,32 @@ import {
   collectAppUIPluginLocations,
   type AppUIModel,
   type AppUIPluginNode,
-} from "../../../project-control/src/framework/contracts/app-ui-model";
-import type { AgentUIWorkspacePolicy } from "../../../project-control/src/framework/contracts/agent-ui-workspace";
+} from "../../src/framework/contracts/app-ui-model";
+import type { AgentUIWorkspacePolicy } from "../../src/framework/contracts/agent-ui-workspace";
 import {
   applyAppUIOperations as applyAuthoringOperations,
   lowerWorkspaceRegionMovePlan,
   planWorkspaceRegionMove,
-} from "../../../project-control/src/project/app-ui-operations";
-import { mutateAppUIModel } from "../../../project-control/src/project/app-ui-transaction";
+} from "../../src/project/app-ui-operations";
+import { mutateAppUIModel } from "../../src/project/app-ui-transaction";
 import {
   actionIdFor,
   buildCreatorActionCatalog,
   isExpectedCreatorActionRejection,
   semanticActionIdentity,
-} from "../../../project-control/src/project/creator-action-catalog";
+} from "../../src/project/creator-action-catalog";
 import {
   planDefaultPluginInsertion,
   pluginMoveContractsForGeneration,
-} from "../../../project-control/src/project/creator-action-planners";
+} from "../../src/project/creator-action-planners";
 import {
   generatePluginRegistryFromFacts,
-} from "../../../project-control/src/project/registry-generator";
-import { collectPluginProjectFacts, legacyProjectPaths } from "../../../project-control/tests/support/legacy-project-paths";
-import { platformMode } from "../../../project-control/src/framework/modes/platform";
-import { projectWorkspaceTopology } from "../../../project-control/src/project/workspace-topology";
-import * as registryGenerator from "../../../project-control/src/project/registry-generator";
-import type { UIProjectControlConfig } from "../../../project-control/src/project/types";
+} from "../../src/project/registry-generator";
+import { collectPluginProjectFacts, legacyProjectPaths } from "../support/legacy-project-paths";
+import { platformMode } from "../../src/framework/modes/platform";
+import { projectWorkspaceTopology } from "../../src/project/workspace-topology";
+import * as registryGenerator from "../../src/project/registry-generator";
+import type { UIProjectControlConfig } from "../../src/project/types";
 
 const temporaryProjects: string[] = [];
 const fixtureConfig: UIProjectControlConfig = {

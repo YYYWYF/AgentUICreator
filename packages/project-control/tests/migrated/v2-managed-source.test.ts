@@ -4,15 +4,15 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { writeGeneratedPluginRegistry } from "../../../project-control/src/generate-plugin-registry";
-import { verifyUIProject } from "../../../project-control/src/verify-ui";
-import { mutateAppUIModel } from "../../../project-control/src/project/app-ui-transaction";
-import { inspectCreatorProject } from "../../../project-control/src/project/creator-project-inspector";
-import { collectPluginAssets } from "../../../project-control/src/project/plugin-assets";
-import { inspectUIProject } from "../../../project-control/src/project/project-inspector";
-import { PLUGIN_REGISTRY_ENTRY_SOURCE } from "../../../project-control/src/project/registry-generator";
-import { uiProjectControlConfig } from "../../../project-control/src/project/project-config";
-import { createV2ProjectFixture } from "../../../project-control/tests/support/v2-project-fixture";
+import { writeGeneratedPluginRegistry } from "../../src/generate-plugin-registry";
+import { verifyUIProject } from "../../src/verify-ui";
+import { mutateAppUIModel } from "../../src/project/app-ui-transaction";
+import { inspectCreatorProject } from "../../src/project/creator-project-inspector";
+import { collectPluginAssets } from "../../src/project/plugin-assets";
+import { inspectUIProject } from "../../src/project/project-inspector";
+import { PLUGIN_REGISTRY_ENTRY_SOURCE } from "../../src/project/registry-generator";
+import { uiProjectControlConfig } from "../../src/project/project-config";
+import { createV2ProjectFixture } from "../support/v2-project-fixture";
 
 const roots: string[] = [];
 
