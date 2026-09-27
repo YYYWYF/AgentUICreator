@@ -1,0 +1,28 @@
+{
+  "asset": {
+    "pluginId": "fixture",
+    "name": "fixture",
+    "description": "fixture",
+    "directory": "fixture",
+    "manifestPath": "fixture",
+    "definitionPath": "fixture",
+    "capabilities": [],
+    "selected": false
+  },
+  "selected": false,
+  "instances": [],
+  "manifest": {},
+  "definitionSource": {
+    "content": "fixture",
+    "truncated": false,
+    "characters": 0
+  },
+  "services": {
+    "provides": [],
+    "required": [],
+    "optional": []
+  },
+  "files": [],
+  "filesTruncated": false,
+  "appUIModelHashRenamedByMistake": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

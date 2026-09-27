@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 3,
+  "operation": "apply_agent_ui_source_item",
+  "input": {
+    "itemId": "fixture"
+  }
+}

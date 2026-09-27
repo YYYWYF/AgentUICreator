@@ -64,6 +64,10 @@ class ProjectControlClient:
         self.executable_path = self.project_root / "node_modules" / ".bin" / runtime_name
         self.metrics = ProjectControlMetrics()
         self._validator = _load_protocol_validator()
+        self._result_defs = {
+            entry["name"]: entry["resultDef"]
+            for entry in read_creator_contract("project-control.operations.json")["operations"]
+        }
 
     async def inspect_ui_project(
         self, *, view: Literal["composition"] | None = None
@@ -128,6 +132,15 @@ class ProjectControlClient:
             {"itemId": item_id, "expectedStateHash": expected_state_hash},
         )
 
+    async def remove_agent_ui_source_items(
+        self, *, item_ids: list[str], expected_state_hash: str
+    ) -> dict[str, Any]:
+        """Internal Host capability; deliberately not exposed as an Agent Tool."""
+        return await self._request(
+            "remove_agent_ui_source_items",
+            {"itemIds": item_ids, "expectedStateHash": expected_state_hash},
+        )
+
     async def request_app_ui_model_mutation(
         self, input: dict[str, Any]
     ) -> dict[str, Any]:
@@ -164,7 +177,10 @@ class ProjectControlClient:
                         "cause": str(error),
                     },
                 ) from error
-            self._validate_protocol(decoded, request=False)
+            try:
+                self._validate_protocol(decoded, request=False)
+            except ProjectControlError as error:
+                raise ProjectControlError(error.code, str(error), {"operation": operation, "cause": str((error.details or {}).get("cause", str(error)))[:_ERROR_DETAIL_LIMIT]}) from error
             if not decoded["ok"]:
                 target_error = decoded["error"]
                 raise ProjectControlError(
@@ -179,11 +195,7 @@ class ProjectControlClient:
                     {"stderr": stderr.decode("utf-8", errors="replace")[:_ERROR_DETAIL_LIMIT]},
                 )
             result = decoded["result"]
-            if not isinstance(result, dict):
-                raise ProjectControlError(
-                    "CONTROL_PROTOCOL_INCOMPATIBLE",
-                    "The target project control result must be an object.",
-                )
+            self._validate_result(operation, result)
             failed = False
             return result
         finally:
@@ -229,6 +241,23 @@ class ProjectControlClient:
                 "CONTROL_PROTOCOL_INCOMPATIBLE",
                 f"The target project control {definition} is incompatible with schema version {PROJECT_CONTROL_SCHEMA_VERSION}.",
                 {"cause": error.message},
+            ) from error
+
+    def _validate_result(self, operation: ProjectControlOperation, value: Any) -> None:
+        try:
+            definition = self._result_defs[operation]
+            self._validator.evolve(schema={
+                "$schema": self._validator.schema["$schema"],
+                "$id": self._validator.schema["$id"],
+                "$defs": self._validator.schema["$defs"],
+                "$ref": f"#/$defs/{definition}",
+            }).validate(value)
+        except (ValidationError, KeyError) as error:
+            cause = error.message if isinstance(error, ValidationError) else "Unknown operation."
+            raise ProjectControlError(
+                "CONTROL_PROTOCOL_INCOMPATIBLE",
+                "The target project control result is incompatible with protocol v3.",
+                {"operation": operation, "cause": cause[:_ERROR_DETAIL_LIMIT]},
             ) from error
 
     async def _execute(self, payload: bytes) -> tuple[bytes, bytes, int]:

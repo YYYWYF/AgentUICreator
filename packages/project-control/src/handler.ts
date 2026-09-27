@@ -3,6 +3,7 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 
 import { z } from "zod";
+import { validateProjectControlResult } from "./result-contract.mjs";
 
 import { parseAppUIModelJson } from "../../../examples/agent-frontend/framework/contracts/app-ui-model";
 import {
@@ -46,8 +47,8 @@ const inspectedLayoutSlotTargetSchema = z.strictObject({
 });
 const inspectedPluginSlotTargetSchema = z.strictObject({
   type: z.literal("plugin_slot"),
-  parentInstanceId: z.string().trim().min(1).max(200),
-  slot: z.string().trim().min(1).max(200),
+  parentInstanceId: z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim()),
+  slot: z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim()),
 });
 const inspectUISlotsInputSchema = z.union([
   emptyInputSchema,
@@ -59,7 +60,7 @@ const inspectUISlotsInputSchema = z.union([
     target: inspectedPluginSlotTargetSchema,
   }),
 ]);
-const requestSchema = z.discriminatedUnion("operation", [
+export const requestSchema = z.discriminatedUnion("operation", [
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_ui_project"),
@@ -88,12 +89,12 @@ const requestSchema = z.discriminatedUnion("operation", [
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_ui_plugin"),
-    input: z.strictObject({ pluginId: z.string().trim().min(1).max(200) }),
+    input: z.strictObject({ pluginId: z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim()) }),
   }),
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_ui_plugin_source_references"),
-    input: z.strictObject({ pluginId: z.string().trim().min(1).max(200) }),
+    input: z.strictObject({ pluginId: z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim()) }),
   }),
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
@@ -114,7 +115,7 @@ const requestSchema = z.discriminatedUnion("operation", [
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("apply_agent_ui_source_item"),
     input: z.strictObject({
-      itemId: z.string().trim().min(1).max(200),
+      itemId: z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim()),
       expectedStateHash: z.string().regex(/^[a-f0-9]{64}$/),
     }),
   }),
@@ -122,7 +123,7 @@ const requestSchema = z.discriminatedUnion("operation", [
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("remove_agent_ui_source_items"),
     input: z.strictObject({
-      itemIds: z.array(z.string().trim().min(1).max(200)).min(1).max(100),
+      itemIds: z.array(z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim())).min(1).max(100),
       expectedStateHash: z.string().regex(/^[a-f0-9]{64}$/),
     }),
   }),
@@ -443,8 +444,8 @@ function failure(error: unknown): UIProjectControlFailure {
       schemaVersion: UI_PROJECT_CONTROL_SCHEMA_VERSION,
       ok: false,
       error: {
-        code: codedError.code,
-        message: codedError.message,
+        code: codedError.code.slice(0, 200) || "CONTROL_OPERATION_FAILED",
+        message: codedError.message.slice(0, 4000) || "ProjectControl operation failed.",
         ...(codedError.details === undefined
           ? {}
           : { details: codedError.details }),
@@ -457,7 +458,7 @@ function failure(error: unknown): UIProjectControlFailure {
       ok: false,
       error: {
         code: "INVALID_REQUEST",
-        message: z.prettifyError(error),
+        message: z.prettifyError(error).slice(0, 4000),
       },
     };
   }
@@ -466,7 +467,7 @@ function failure(error: unknown): UIProjectControlFailure {
     ok: false,
     error: {
       code: "CONTROL_OPERATION_FAILED",
-      message: error instanceof Error ? error.message : String(error),
+      message: (error instanceof Error ? error.message : String(error)).slice(0, 4000) || "ProjectControl operation failed.",
     },
   };
 }
@@ -485,11 +486,20 @@ export async function handleUIProjectControlRequest(
       projectRoot,
       effectiveConfig,
     );
-    return {
-      schemaVersion: UI_PROJECT_CONTROL_SCHEMA_VERSION,
-      ok: true,
-      result: await executeRequest(requestSchema.parse(input), projectRoot),
-    };
+    const request = requestSchema.parse(input);
+    const result = await executeRequest(request, projectRoot);
+    try {
+      validateProjectControlResult(request.operation, result);
+    } catch (error) {
+      throw new UIProjectControlError(
+        "CONTROL_RESULT_CONTRACT_VIOLATION",
+        "ProjectControl produced a result that does not match protocol v3.",
+        process.env.NODE_ENV === "development"
+          ? { operation: request.operation, cause: error instanceof Error ? error.message.slice(0, 2000) : "Invalid result." }
+          : undefined,
+      );
+    }
+    return { schemaVersion: UI_PROJECT_CONTROL_SCHEMA_VERSION, ok: true, result };
   } catch (error) {
     return failure(error);
   }

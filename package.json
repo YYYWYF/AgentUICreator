@@ -29,7 +29,7 @@
     "assistant-ui:report": "node scripts/generate-assistant-ui-upgrade-report.mjs",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm test:python && pnpm test:ts",
-    "test:ts": "pnpm --filter @agent-ui/project-control build && pnpm --filter @agent-ui/bootstrap build && node --test scripts/run-python-tests.test.mjs && pnpm -r --if-present test",
+    "test:ts": "pnpm --filter @agent-ui/project-control build && pnpm --filter @agent-ui/bootstrap build && pnpm check:project-control-contract && node --test scripts/run-python-tests.test.mjs && pnpm -r --if-present test",
     "test:python:setup": "node scripts/run-python-tests.mjs --setup-only",
     "test:python": "node scripts/run-python-tests.mjs",
     "test:python-live-model": "node scripts/run-python-tests.mjs --live-model",
@@ -40,6 +40,7 @@
     "verify:creator-package": "node scripts/verify-creator-package.mjs",
     "verify:creator-python-wheel": "node scripts/verify-creator-python-wheel.mjs",
     "test:creator-package-runtime": "node scripts/test-creator-package-runtime.mjs",
-    "verify:creator-distribution": "node scripts/verify-creator-distribution.mjs"
+    "verify:creator-distribution": "node scripts/verify-creator-distribution.mjs",
+    "check:project-control-contract": "node scripts/check-project-control-contract.mjs"
   }
 }

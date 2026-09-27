@@ -363,3 +363,81 @@ def test_real_target_invalid_operation_and_registry_failure_leave_disk_unchanged
     assert (project_root / "plugins/registry.generated.ts").read_bytes() == before_registry
     assert activity.revision == 0
     assert activity.finish()["files"] == []
+
+
+def test_real_managed_host_source_apply_and_internal_remove_contract(tmp_path):
+    """Real compiled TS Host, isolated V2 target, and request-scoped Python validation."""
+    import re
+    import subprocess
+
+    project_root = tmp_path / "source-contract-host"
+    metadata = project_root / ".agent-ui"
+    source = project_root / "custom-ui"
+    metadata.mkdir(parents=True)
+    (source / "plugins").mkdir(parents=True)
+    (source / "app-ui").mkdir()
+    (metadata / "project.json").write_text(json.dumps({"version": "2", "mode": "platform", "sourceRoot": "custom-ui"}))
+    (source / "app-ui/app-ui.json").write_text(json.dumps({"root": {"type": "slot", "plugins": []}}))
+    runtime = REPOSITORY_ROOT / "packages/project-control/dist/runtime/project-control-runtime.mjs"
+    assert runtime.is_file(), "Build @agent-ui/project-control before cross-language integration tests."
+    entry = metadata / "control/project-control.mjs"
+    entry.parent.mkdir()
+    entry.write_text(
+        f"import {{ runUIProjectControlCli }} from {json.dumps(runtime.as_uri())};\n"
+        f"await runUIProjectControlCli({json.dumps(str(project_root))});\n"
+    )
+    node = os.environ.get("CREATOR_NODE_EXECUTABLE") or shutil.which("node")
+    assert node, "Node is required for real Host integration."
+    # Use the same minimal package fixtures as the TS source-mutation suite.
+    # No backend, model, npm install, or production runtime is involved.
+    subprocess.run([node, "--input-type=module", "-e", """
+import { createRequire } from 'node:module';
+import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+const [repository, target] = process.argv.slice(1);
+const require = createRequire(path.join(repository, 'examples/agent-frontend/package.json'));
+const { minVersion } = require('semver');
+const registry = path.join(repository, 'packages/source-registry/registry/items');
+const byId = new Map();
+for (const directory of await readdir(registry)) {
+  const item = JSON.parse(await readFile(path.join(registry, directory, 'item.json'), 'utf8'));
+  byId.set(item.id, item);
+}
+const closure = new Map();
+function visit(id) {
+  if (closure.has(id)) return;
+  const item = byId.get(id);
+  if (!item) throw new Error(`Missing fixture source item ${id}`);
+  closure.set(id, item);
+  for (const dependency of item.requires ?? []) visit(dependency);
+}
+visit('integration/a2ui');
+const dependencies = Object.assign({}, ...[...closure.values()].map(item => item.packages ?? {}));
+await writeFile(path.join(target, 'package.json'), JSON.stringify({ dependencies }));
+for (const [name, range] of Object.entries(dependencies)) {
+  const directory = path.join(target, 'node_modules', name);
+  await mkdir(directory, { recursive: true });
+  await writeFile(path.join(directory, 'package.json'), JSON.stringify({ name, version: minVersion(range).version }));
+}
+""", str(REPOSITORY_ROOT), str(project_root)], check=True)
+    client = ProjectControlClient(project_root=project_root)
+    before = asyncio.run(client.inspect_agent_ui_sources())
+    applied = asyncio.run(client.apply_agent_ui_source_item(
+        item_id="integration/a2ui", expected_state_hash=before["stateHash"],
+    ))
+    installed = asyncio.run(client.inspect_agent_ui_sources())
+    removed = asyncio.run(client.remove_agent_ui_source_items(
+        item_ids=["integration/a2ui"], expected_state_hash=installed["stateHash"],
+    ))
+    for operation, result in (("apply", applied), ("remove", removed)):
+        assert result["schemaVersion"] == 1
+        assert result["operation"] == operation
+        assert type(result["changed"]) is bool
+        assert result["changed"] is True
+        for field in ("changedPaths", "sourceChangedPaths", "generatedChangedPaths", "changedItems"):
+            assert isinstance(result[field], list)
+            assert all(isinstance(value, str) for value in result[field])
+        assert re.fullmatch(r"[a-f0-9]{64}", result["stateHash"])
+    after = asyncio.run(client.inspect_agent_ui_sources())
+    assert after["stateHash"] == removed["stateHash"]
+    assert next(item for item in after["items"] if item["id"] == "integration/a2ui")["status"] == "not-installed"

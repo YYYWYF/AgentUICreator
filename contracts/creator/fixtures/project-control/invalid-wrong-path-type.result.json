@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "operation": "apply",
+  "changed": false,
+  "changedItems": [],
+  "sourceChangedPaths": [],
+  "generatedChangedPaths": [],
+  "changedPaths": [
+    42
+  ],
+  "stateHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

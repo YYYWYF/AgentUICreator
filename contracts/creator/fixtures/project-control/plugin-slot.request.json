@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 3,
+  "operation": "inspect_ui_slots",
+  "input": {
+    "target": {
+      "type": "plugin_slot",
+      "parentInstanceId": "fixture",
+      "slot": "content"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "sourceRoot": "fixture",
+  "metadataRoot": "fixture",
+  "stateHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "items": [
+    {
+      "id": "primitive/tooltip",
+      "availableVersion": "1.0.0",
+      "status": "managed",
+      "files": [
+        {
+          "path": "agent-ui/primitives/tooltip.tsx",
+          "status": "managed",
+          "currentSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "managedSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "requirements": [
+        {
+          "name": "react",
+          "required": "^19",
+          "installed": "19.2.8",
+          "compatible": true
+        }
+      ],
+      "dependencies": [
+        "foundation/core-contracts"
+      ],
+      "resolvedRequirements": [
+        {
+          "name": "react",
+          "required": "^19",
+          "installed": "19.2.8",
+          "compatible": true
+        }
+      ],
+      "issues": [],
+      "installedVersion": "1.0.0",
+      "dependencyIssuesRenamed": []
+    }
+  ],
+  "packages": [],
+  "issues": []
+}

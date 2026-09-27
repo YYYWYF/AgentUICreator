@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 3,
+  "operation": "verify_runtime_composition",
+  "input": {
+    "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "composition": {
+      "schemaVersion": 1,
+      "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "compositionRevision": "fixture",
+      "capabilityCatalogRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "publishedAt": "2026-09-27T00:00:00Z",
+      "observedAt": "2026-09-27T00:00:00Z",
+      "instances": [],
+      "slots": []
+    }
+  }
+}

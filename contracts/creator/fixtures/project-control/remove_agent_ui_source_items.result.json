@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "operation": "remove",
+  "changed": true,
+  "changedItems": [
+    "integration/a2ui"
+  ],
+  "sourceChangedPaths": [
+    "custom-ui/integrations/a2ui/index.ts",
+    ".agent-ui/source-lock.json"
+  ],
+  "generatedChangedPaths": [
+    "custom-ui/agent-ui/conversation/integrations.generated.tsx"
+  ],
+  "changedPaths": [
+    ".agent-ui/source-lock.json",
+    "custom-ui/agent-ui/conversation/integrations.generated.tsx",
+    "custom-ui/integrations/a2ui/index.ts"
+  ],
+  "stateHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

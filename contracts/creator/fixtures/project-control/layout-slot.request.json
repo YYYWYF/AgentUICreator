@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 3,
+  "operation": "inspect_ui_slots",
+  "input": {
+    "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "target": {
+      "type": "layout_slot",
+      "slotRef": "l1"
+    }
+  }
+}

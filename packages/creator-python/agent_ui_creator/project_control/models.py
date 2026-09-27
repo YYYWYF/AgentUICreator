@@ -24,6 +24,7 @@ ReadProjectControlOperation: TypeAlias = Literal[
 MutationProjectControlOperation: TypeAlias = Literal[
     "mutate_app_ui_model",
     "apply_agent_ui_source_item",
+    "remove_agent_ui_source_items",
 ]
 InternalProjectControlOperation: TypeAlias = Literal[
     "verify_runtime_composition",

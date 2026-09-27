@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": 3,
+  "operations": [
+    {
+      "name": "inspect_ui_project",
+      "kind": "read",
+      "inputDef": "inspectUIProjectInput",
+      "resultDef": "inspectUIProjectResult",
+      "agentExposed": true
+    },
+    {
+      "name": "inspect_app_ui_model",
+      "kind": "read",
+      "inputDef": "emptyInput",
+      "resultDef": "inspectAppUIModelResult",
+      "agentExposed": true
+    },
+    {
+      "name": "list_ui_plugins",
+      "kind": "read",
+      "inputDef": "emptyInput",
+      "resultDef": "listUIPluginsResult",
+      "agentExposed": true
+    },
+    {
+      "name": "inspect_ui_services",
+      "kind": "read",
+      "inputDef": "emptyInput",
+      "resultDef": "inspectUIServicesResult",
+      "agentExposed": true
+    },
+    {
+      "name": "inspect_agent_ui_sources",
+      "kind": "read",
+      "inputDef": "emptyInput",
+      "resultDef": "inspectAgentUISourcesResult",
+      "agentExposed": true
+    },
+    {
+      "name": "inspect_ui_slots",
+      "kind": "read",
+      "inputDef": "inspectUISlotsInput",
+      "resultDef": "inspectUISlotsResult",
+      "agentExposed": true
+    },
+    {
+      "name": "inspect_ui_plugin",
+      "kind": "read",
+      "inputDef": "pluginInput",
+      "resultDef": "inspectUIPluginResult",
+      "agentExposed": true
+    },
+    {
+      "name": "inspect_ui_plugin_source_references",
+      "kind": "read",
+      "inputDef": "pluginInput",
+      "resultDef": "inspectUIPluginSourceReferencesResult",
+      "agentExposed": true
+    },
+    {
+      "name": "verify_runtime_composition",
+      "kind": "read",
+      "inputDef": "verifyRuntimeCompositionInput",
+      "resultDef": "verifyRuntimeCompositionResult",
+      "agentExposed": false
+    },
+    {
+      "name": "mutate_app_ui_model",
+      "kind": "mutation",
+      "inputDef": "mutateAppUIModelInput",
+      "resultDef": "mutateAppUIModelResult",
+      "agentExposed": true
+    },
+    {
+      "name": "apply_agent_ui_source_item",
+      "kind": "mutation",
+      "inputDef": "applyAgentUISourceItemInput",
+      "resultDef": "applyAgentUISourceItemResult",
+      "agentExposed": true
+    },
+    {
+      "name": "remove_agent_ui_source_items",
+      "kind": "mutation",
+      "inputDef": "removeAgentUISourceItemsInput",
+      "resultDef": "removeAgentUISourceItemsResult",
+      "agentExposed": false
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "transactionId": "fixture",
+  "changed": false,
+  "changedPaths": [],
+  "appUIModel": {
+    "beforeHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "afterHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "diff": {},
+  "activeComposition": {
+    "selectedPluginIds": [],
+    "resolvedPluginIds": [],
+    "headlessPluginIds": []
+  },
+  "warnings": [],
+  "snapshotToken": {
+    "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "capabilityCatalogSourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "capabilityCatalogRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "schemaVersionRenamedByMistake": 1
+}

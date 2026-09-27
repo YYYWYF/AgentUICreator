@@ -20,8 +20,26 @@
     "schemaVersion": 3,
     "ok": true,
     "result": {
-      "changed": true,
-      "changedPaths": ["app-ui/app-ui.json"]
+      "schemaVersion": 1,
+      "transactionId": "fixture",
+      "changed": false,
+      "changedPaths": [],
+      "appUIModel": {
+        "beforeHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "afterHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "diff": {},
+      "activeComposition": {
+        "selectedPluginIds": [],
+        "resolvedPluginIds": [],
+        "headlessPluginIds": []
+      },
+      "warnings": [],
+      "snapshotToken": {
+        "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "capabilityCatalogSourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "capabilityCatalogRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
     }
   },
   "failure": {

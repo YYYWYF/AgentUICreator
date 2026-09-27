@@ -1139,6 +1139,13 @@ Capability Catalog 由 Plugin inventory 自动生成，Active Registry 由 publi
 
 专项工具通过 Agent UI 管理的 Project Control Adapter 使用目标项目自己的 Schema、Registry generator 和验证逻辑。Creator package 负责模型工具、权限、事务编排与回执，不在自身复制一份 AppUIModel 或 Plugin Contract；目标项目也不反向依赖 Creator。初始化在 `.agent-ui/control/project-control.mjs` 安装版本化 Node 入口，正式协议 implementation 由 development-only `@agent-ui/project-control` 提供；不要求 Host 手写脚本或安装 tsx。Adapter 使用固定入口和结构化 JSON 输入输出，不能退化成可由模型传入任意 shell 命令的执行器。
 
+ProjectControl v3 的 canonical wire contract 是 `contracts/creator/project-control.schema.json`，
+`contracts/creator/project-control.operations.json` 是 operation/input/result/Agent exposure 的单一清单。
+TypeScript Zod request parsing 是 Host 实现细节；Python Literal/client methods 是 transport bindings，
+两者不能独立定义协议。Host 返回前与 Python 接收后均根据请求 operation 校验 canonical Result Schema，
+保持 v3 response envelope 不变。Agent Tool exposure 是独立授权面：内部 remove capability 不开放给模型。
+删除字段、字段改名、改变类型或 response envelope 必须升级协议版本至 v4。
+
 Creator 可以自主选择工具。
 
 不要在 Runtime 中强制调用顺序。

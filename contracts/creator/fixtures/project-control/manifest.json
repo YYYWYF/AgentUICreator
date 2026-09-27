@@ -1,0 +1,265 @@
+{
+  "requests": [
+    {
+      "file": "inspect_ui_project.request.json",
+      "valid": true
+    },
+    {
+      "file": "inspect_app_ui_model.request.json",
+      "valid": true
+    },
+    {
+      "file": "list_ui_plugins.request.json",
+      "valid": true
+    },
+    {
+      "file": "inspect_ui_services.request.json",
+      "valid": true
+    },
+    {
+      "file": "inspect_agent_ui_sources.request.json",
+      "valid": true
+    },
+    {
+      "file": "inspect_ui_slots.request.json",
+      "valid": true
+    },
+    {
+      "file": "inspect_ui_plugin.request.json",
+      "valid": true
+    },
+    {
+      "file": "inspect_ui_plugin_source_references.request.json",
+      "valid": true
+    },
+    {
+      "file": "verify_runtime_composition.request.json",
+      "valid": true
+    },
+    {
+      "file": "mutate_app_ui_model.request.json",
+      "valid": true
+    },
+    {
+      "file": "apply_agent_ui_source_item.request.json",
+      "valid": true
+    },
+    {
+      "file": "remove_agent_ui_source_items.request.json",
+      "valid": true
+    },
+    {
+      "file": "composition.request.json",
+      "valid": true
+    },
+    {
+      "file": "layout-slot.request.json",
+      "valid": true
+    },
+    {
+      "file": "plugin-slot.request.json",
+      "valid": true
+    },
+    {
+      "file": "invalid-missing-state-hash.request.json",
+      "valid": false
+    },
+    {
+      "file": "invalid-unknown-property.request.json",
+      "valid": false
+    },
+    {
+      "file": "invalid-wrong-item-ids.request.json",
+      "valid": false
+    },
+    {
+      "file": "invalid-unknown-operation.request.json",
+      "valid": false
+    },
+    {
+      "file": "invalid-wrong-version.request.json",
+      "valid": false
+    },
+    {
+      "file": "invalid-empty-item-ids.request.json",
+      "valid": false
+    },
+    {
+      "file": "invalid-missing-layout-hash.request.json",
+      "valid": false
+    },
+    {
+      "file": "invalid-blank-item-id.request.json",
+      "valid": false
+    },
+    {
+      "file": "invalid-oversized-wire-plugin-id.request.json",
+      "valid": false
+    },
+    {
+      "file": "invalid-unknown-envelope-property.request.json",
+      "valid": false
+    },
+    {
+      "file": "invalid-unknown-remove-property.request.json",
+      "valid": false
+    }
+  ],
+  "results": [
+    {
+      "file": "inspect_ui_project.result.json",
+      "operation": "inspect_ui_project",
+      "valid": true
+    },
+    {
+      "file": "inspect_app_ui_model.result.json",
+      "operation": "inspect_app_ui_model",
+      "valid": true
+    },
+    {
+      "file": "list_ui_plugins.result.json",
+      "operation": "list_ui_plugins",
+      "valid": true
+    },
+    {
+      "file": "inspect_ui_services.result.json",
+      "operation": "inspect_ui_services",
+      "valid": true
+    },
+    {
+      "file": "inspect_agent_ui_sources.result.json",
+      "operation": "inspect_agent_ui_sources",
+      "valid": true
+    },
+    {
+      "file": "inspect_ui_slots.result.json",
+      "operation": "inspect_ui_slots",
+      "valid": true
+    },
+    {
+      "file": "inspect_ui_plugin.result.json",
+      "operation": "inspect_ui_plugin",
+      "valid": true
+    },
+    {
+      "file": "inspect_ui_plugin_source_references.result.json",
+      "operation": "inspect_ui_plugin_source_references",
+      "valid": true
+    },
+    {
+      "file": "verify_runtime_composition.result.json",
+      "operation": "verify_runtime_composition",
+      "valid": true
+    },
+    {
+      "file": "mutate_app_ui_model.result.json",
+      "operation": "mutate_app_ui_model",
+      "valid": true
+    },
+    {
+      "file": "apply_agent_ui_source_item.result.json",
+      "operation": "apply_agent_ui_source_item",
+      "valid": true
+    },
+    {
+      "file": "remove_agent_ui_source_items.result.json",
+      "operation": "remove_agent_ui_source_items",
+      "valid": true
+    },
+    {
+      "file": "composition.result.json",
+      "operation": "inspect_ui_project",
+      "valid": true
+    },
+    {
+      "file": "invalid-inspect_ui_project.result.json",
+      "operation": "inspect_ui_project",
+      "valid": false
+    },
+    {
+      "file": "invalid-inspect_app_ui_model.result.json",
+      "operation": "inspect_app_ui_model",
+      "valid": false
+    },
+    {
+      "file": "invalid-list_ui_plugins.result.json",
+      "operation": "list_ui_plugins",
+      "valid": false
+    },
+    {
+      "file": "invalid-inspect_ui_services.result.json",
+      "operation": "inspect_ui_services",
+      "valid": false
+    },
+    {
+      "file": "invalid-inspect_agent_ui_sources.result.json",
+      "operation": "inspect_agent_ui_sources",
+      "valid": false
+    },
+    {
+      "file": "invalid-inspect_ui_slots.result.json",
+      "operation": "inspect_ui_slots",
+      "valid": false
+    },
+    {
+      "file": "invalid-inspect_ui_plugin.result.json",
+      "operation": "inspect_ui_plugin",
+      "valid": false
+    },
+    {
+      "file": "invalid-inspect_ui_plugin_source_references.result.json",
+      "operation": "inspect_ui_plugin_source_references",
+      "valid": false
+    },
+    {
+      "file": "invalid-verify_runtime_composition.result.json",
+      "operation": "verify_runtime_composition",
+      "valid": false
+    },
+    {
+      "file": "invalid-mutate_app_ui_model.result.json",
+      "operation": "mutate_app_ui_model",
+      "valid": false
+    },
+    {
+      "file": "invalid-apply_agent_ui_source_item.result.json",
+      "operation": "apply_agent_ui_source_item",
+      "valid": false
+    },
+    {
+      "file": "invalid-remove_agent_ui_source_items.result.json",
+      "operation": "remove_agent_ui_source_items",
+      "valid": false
+    },
+    {
+      "file": "invalid-renamed-state-hash.result.json",
+      "operation": "apply_agent_ui_source_item",
+      "valid": false
+    },
+    {
+      "file": "invalid-wrong-mutation-operation.result.json",
+      "operation": "apply_agent_ui_source_item",
+      "valid": false
+    },
+    {
+      "file": "invalid-non-object.result.json",
+      "operation": "apply_agent_ui_source_item",
+      "valid": false
+    },
+    {
+      "file": "invalid-wrong-path-type.result.json",
+      "operation": "apply_agent_ui_source_item",
+      "valid": false
+    },
+    {
+      "file": "invalid-too-many-paths.result.json",
+      "operation": "apply_agent_ui_source_item",
+      "valid": false
+    },
+    {
+      "file": "invalid-source-item-drift.result.json",
+      "operation": "inspect_agent_ui_sources",
+      "valid": false
+    }
+  ]
+}

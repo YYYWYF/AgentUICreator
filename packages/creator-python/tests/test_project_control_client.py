@@ -25,7 +25,15 @@ def _control_project(tmp_path: Path, source: str) -> tuple[Path, ProjectControlC
     return project_root, ProjectControlClient(project_root=project_root)
 
 
-def _success(result: str = '{"foo":"bar"}') -> str:
+FIXTURE_ROOT = Path(__file__).resolve().parents[3] / "contracts/creator/fixtures/project-control"
+
+
+def _fixture(operation):
+    return json.loads((FIXTURE_ROOT / f"{operation}.result.json").read_text())
+
+
+def _success(result: str | None = None) -> str:
+    result = result or repr(_fixture("inspect_ui_project"))
     return (
         "import json\n"
         "import sys\n"
@@ -34,224 +42,60 @@ def _success(result: str = '{"foo":"bar"}') -> str:
     )
 
 
-def test_inspect_ui_project_returns_protocol_result(tmp_path):
-    _root, client = _control_project(tmp_path, _success())
-
-    assert asyncio.run(client.inspect_ui_project()) == {"foo": "bar"}
-    assert client.metrics.to_dict()["byOperation"] == {"inspect_ui_project": 1}
-
-
-def test_inspect_ui_project_sends_composition_view(tmp_path):
-    source = """
-import json
-import sys
-request = json.loads(sys.stdin.read())
-print(json.dumps({"schemaVersion": 3, "ok": True, "result": request}))
-"""
-    _root, client = _control_project(tmp_path, source)
-
-    result = asyncio.run(client.inspect_ui_project(view="composition"))
-
-    assert result == {
-        "schemaVersion": 3,
-        "operation": "inspect_ui_project",
-        "input": {"view": "composition"},
-    }
-
-
-def test_plugin_and_slot_methods_send_exact_versioned_requests(tmp_path):
-    source = """
-import json
-import sys
-request = json.loads(sys.stdin.read())
-print(json.dumps({"schemaVersion": 3, "ok": True, "result": request}))
-"""
-    _root, client = _control_project(tmp_path, source)
-
-    plugin = asyncio.run(client.inspect_ui_plugin("workspace-inspector"))
-    services = asyncio.run(client.inspect_ui_services())
-    layout_slots = asyncio.run(client.inspect_ui_slots(
-        target={"type": "layout_slot", "slotRef": "l2"},
-        app_ui_model_hash="a" * 64,
-    ))
-    plugin_slots = asyncio.run(client.inspect_ui_slots(
-        target={
-            "type": "plugin_slot",
-            "parentInstanceId": "workspace",
-            "slot": "content",
-        },
-    ))
-
-    assert plugin == {
-        "schemaVersion": 3,
-        "operation": "inspect_ui_plugin",
-        "input": {"pluginId": "workspace-inspector"},
-    }
-    assert layout_slots["input"] == {
-        "appUIModelHash": "a" * 64,
-        "target": {"type": "layout_slot", "slotRef": "l2"},
-    }
-    assert plugin_slots["input"] == {
-        "target": {
-            "type": "plugin_slot",
-            "parentInstanceId": "workspace",
-            "slot": "content",
-        },
-    }
-    assert services == {
-        "schemaVersion": 3,
-        "operation": "inspect_ui_services",
-        "input": {},
-    }
-
-
-def test_mutation_transport_sends_exact_protocol_v3_request(tmp_path):
-    source = """
-import json
-import sys
-request = json.loads(sys.stdin.read())
-print(json.dumps({"schemaVersion": 3, "ok": True, "result": request}))
-"""
-    _root, client = _control_project(tmp_path, source)
-    input = {
-        "appUIModelHash": "a" * 64,
-        "operations": [
-            {
-                "type": "set_plugin_enabled",
-                "instanceId": "sample-main",
-                "enabled": False,
-            }
-        ],
-    }
-
-    result = asyncio.run(client.request_app_ui_model_mutation(input))
-
-    assert result == {
-        "schemaVersion": 3,
-        "operation": "mutate_app_ui_model",
-        "input": input,
-    }
-    assert client.metrics.to_dict()["byOperation"] == {"mutate_app_ui_model": 1}
-
-
-@pytest.mark.parametrize(
-    "placement",
-    [
-        {
-            "type": "relative",
-            "anchorInstanceId": "conversation-main",
-            "relation": "after",
-        },
-        {
-            "type": "plugin_slot",
-            "parentInstanceId": "composer-main",
-            "slot": "actions",
-        },
-    ],
-)
-def test_mutation_transport_accepts_productized_plugin_move_placements(
-    tmp_path, placement
-):
-    source = """
-import json
-import sys
-request = json.loads(sys.stdin.read())
-print(json.dumps({"schemaVersion": 3, "ok": True, "result": request}))
-"""
-    _root, client = _control_project(tmp_path, source)
-    input = {
-        "appUIModelHash": "a" * 64,
-        "operations": [
-            {
-                "type": "move_plugin_to",
-                "instanceId": "history-main",
-                "placement": placement,
-            }
-        ],
-    }
-
-    assert asyncio.run(client.request_app_ui_model_mutation(input)) == {
-        "schemaVersion": 3,
-        "operation": "mutate_app_ui_model",
-        "input": input,
-    }
-
-
-@pytest.mark.parametrize(
-    "placement",
-    [
-        {
-            "type": "relative",
-            "anchorInstanceId": "conversation-main",
-            "relation": "after",
-            "anchorPluginId": "conversation-surface",
-        },
-        {
-            "type": "plugin_slot",
-            "parentInstanceId": "composer-main",
-            "slot": "actions",
-            "parentPluginId": "composer",
-        },
-        {
-            "type": "relative",
-            "anchorInstanceId": "conversation-main",
-            "relation": "after",
-            "layoutRef": "l2",
-        },
-        {
-            "type": "relative",
-            "anchorInstanceId": "conversation-main",
-            "relation": "after",
-            "index": 0,
-        },
-    ],
-)
-def test_mutation_transport_rejects_host_only_plugin_move_metadata(
-    tmp_path, placement
-):
-    _root, client = _control_project(tmp_path, _success())
-    input = {
-        "appUIModelHash": "a" * 64,
-        "operations": [
-            {
-                "type": "move_plugin_to",
-                "instanceId": "history-main",
-                "placement": placement,
-            }
-        ],
-    }
-
-    with pytest.raises(ProjectControlError) as raised:
-        asyncio.run(client.request_app_ui_model_mutation(input))
-
-    assert raised.value.code == "CONTROL_PROTOCOL_INCOMPATIBLE"
-
-
-def test_agent_ui_source_methods_send_exact_versioned_requests(tmp_path):
-    source = """
-import json
-import sys
-request = json.loads(sys.stdin.read())
-print(json.dumps({"schemaVersion": 3, "ok": True, "result": request}))
-"""
-    _root, client = _control_project(tmp_path, source)
-
-    inspection = asyncio.run(client.inspect_agent_ui_sources())
-    applied = asyncio.run(
-        client.apply_agent_ui_source_item(
-            item_id="primitive/dialog", expected_state_hash="a" * 64
-        )
+def _echo():
+    manifest = json.loads((FIXTURE_ROOT / "manifest.json").read_text())
+    results = {entry["operation"]: _fixture(entry["operation"]) for entry in manifest["results"] if entry["valid"] and entry["file"] != "composition.result.json"}
+    return (
+        "import json, sys, pathlib\n"
+        "request = json.loads(sys.stdin.read())\n"
+        "pathlib.Path(__file__).with_name('request.json').write_text(json.dumps(request))\n"
+        f"results = {results!r}\n"
+        "print(json.dumps({'schemaVersion': 3, 'ok': True, 'result': results[request['operation']]}))\n"
     )
 
-    assert inspection["operation"] == "inspect_agent_ui_sources"
-    assert applied == {
-        "schemaVersion": 3,
-        "operation": "apply_agent_ui_source_item",
-        "input": {
-            "itemId": "primitive/dialog",
-            "expectedStateHash": "a" * 64,
-        },
-    }
+
+def _captured(root):
+    return json.loads((root / "scripts/request.json").read_text())
+
+
+@pytest.mark.parametrize("operation,input,method,kwargs", [
+    ("inspect_ui_project", {}, "inspect_ui_project", {}),
+    ("inspect_ui_project", {"view": "composition"}, "inspect_ui_project", {"view": "composition"}),
+    ("inspect_app_ui_model", {}, "inspect_app_ui_model", {}),
+    ("list_ui_plugins", {}, "list_ui_plugins", {}),
+    ("inspect_ui_services", {}, "inspect_ui_services", {}),
+    ("inspect_ui_plugin", {"pluginId": "fixture"}, "inspect_ui_plugin", {"plugin_id": "fixture"}),
+    ("inspect_ui_plugin_source_references", {"pluginId": "fixture"}, "inspect_ui_plugin_source_references", {"plugin_id": "fixture"}),
+    ("inspect_ui_slots", {}, "inspect_ui_slots", {}),
+    ("inspect_agent_ui_sources", {}, "inspect_agent_ui_sources", {}),
+    ("apply_agent_ui_source_item", {"itemId": "primitive/tooltip", "expectedStateHash": "a" * 64}, "apply_agent_ui_source_item", {"item_id": "primitive/tooltip", "expected_state_hash": "a" * 64}),
+    ("remove_agent_ui_source_items", {"itemIds": ["primitive/tooltip"], "expectedStateHash": "a" * 64}, "remove_agent_ui_source_items", {"item_ids": ["primitive/tooltip"], "expected_state_hash": "a" * 64}),
+])
+def test_transport_sends_exact_versioned_requests_and_validates_result(tmp_path, operation, input, method, kwargs):
+    root, client = _control_project(tmp_path, _echo())
+    assert asyncio.run(getattr(client, method)(**kwargs)) == _fixture(operation)
+    assert _captured(root) == {"schemaVersion": 3, "operation": operation, "input": input}
+    assert client.metrics.to_dict()["byOperation"] == {operation: 1}
+
+
+@pytest.mark.parametrize("placement", [
+    {"type": "relative", "anchorInstanceId": "conversation-main", "relation": "after"},
+    {"type": "plugin_slot", "parentInstanceId": "composer-main", "slot": "actions"},
+])
+def test_mutation_transport_accepts_productized_plugin_move_placements(tmp_path, placement):
+    root, client = _control_project(tmp_path, _echo())
+    input = {"appUIModelHash": "a" * 64, "operations": [{"type": "move_plugin_to", "instanceId": "history-main", "placement": placement}]}
+    assert asyncio.run(client.request_app_ui_model_mutation(input)) == _fixture("mutate_app_ui_model")
+    assert _captured(root) == {"schemaVersion": 3, "operation": "mutate_app_ui_model", "input": input}
+
+
+@pytest.mark.parametrize("extra", ["anchorPluginId", "parentPluginId", "layoutRef", "index"])
+def test_mutation_transport_rejects_host_only_plugin_move_metadata(tmp_path, extra):
+    _root, client = _control_project(tmp_path, _success())
+    input = {"appUIModelHash": "a" * 64, "operations": [{"type": "move_plugin_to", "instanceId": "history-main", "placement": {"type": "relative", "anchorInstanceId": "conversation-main", "relation": "after", extra: "invalid"}}]}
+    with pytest.raises(ProjectControlError) as raised:
+        asyncio.run(client.request_app_ui_model_mutation(input))
+    assert raised.value.code == "CONTROL_PROTOCOL_INCOMPATIBLE"
 
 
 def test_missing_entry_and_runtime_have_stable_codes(tmp_path):
@@ -259,7 +103,7 @@ def test_missing_entry_and_runtime_have_stable_codes(tmp_path):
     project_root.mkdir()
     client = ProjectControlClient(project_root=project_root)
 
-    with pytest.raises(ProjectControlError, match="entry is missing") as missing_entry:
+    with pytest.raises(ProjectControlError, match="Neither") as missing_entry:
         asyncio.run(client.inspect_ui_project())
     assert missing_entry.value.code == "CONTROL_ENTRY_MISSING"
 
@@ -365,19 +209,19 @@ def test_managed_entry_uses_known_runtime_without_host_tsx(tmp_path):
     # Runtime injection exercises transport selection without depending on a local Node install.
     entry.write_text(_success(), encoding="utf-8")
     client = ProjectControlClient(project_root=root, node_executable=sys.executable)
-    assert asyncio.run(client.inspect_ui_project()) == {"foo": "bar"}
+    assert asyncio.run(client.inspect_ui_project()) == _fixture("inspect_ui_project")
     assert client.entry_path == entry
     assert client.executable_path == Path(sys.executable)
     assert not (root / "node_modules/.bin/tsx").exists()
 
 
 def test_managed_entry_has_priority_over_legacy(tmp_path):
-    root, _legacy = _control_project(tmp_path, _success('{"path":"legacy"}'))
+    root, _legacy = _control_project(tmp_path, _success(repr({**_fixture("inspect_ui_project"), "mode": "embedded"})))
     entry = root / ".agent-ui/control/project-control.mjs"
     entry.parent.mkdir(parents=True)
-    entry.write_text(_success('{"path":"managed"}'), encoding="utf-8")
+    entry.write_text(_success(), encoding="utf-8")
     client = ProjectControlClient(project_root=root, node_executable=sys.executable)
-    assert asyncio.run(client.inspect_ui_project()) == {"path": "managed"}
+    assert asyncio.run(client.inspect_ui_project())["mode"] == "assistant"
 
 
 def test_broken_managed_runtime_does_not_fall_back_to_legacy(tmp_path):

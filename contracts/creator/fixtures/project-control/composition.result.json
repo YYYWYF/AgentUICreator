@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 3,
+  "appUIModel": {
+    "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "layout": {},
+    "slots": []
+  },
+  "activeComposition": {
+    "selectedPluginIds": [],
+    "resolvedPluginIds": [],
+    "headlessPluginIds": []
+  },
+  "authoringTargetCatalog": {},
+  "view": "composition",
+  "observationCoverage": [],
+  "pluginInstances": [],
+  "pluginSources": [],
+  "capabilitySummaries": [],
+  "capabilityCatalogRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "creatorActions": {
+    "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "candidates": []
+  },
+  "layoutConstraints": {},
+  "hostGuarantees": {}
+}
