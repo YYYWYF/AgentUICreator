@@ -166,20 +166,54 @@ test-only `StreamingScenarioAgent` 直接消费 `runMockScenario()` async iterat
 最终 Run／Footer、递归 B 在 A 完成前出现、错误前内容保留，以及 unsubscribe
 取消。原有 `ScenarioEventAgent` 仍用于最终态测试。
 
-**2026-09-27 状态：尚未闭环验收。** 当前 pinned assistant-ui
-`da9a624496ae97864ae30e90f85c7533092a228d` 的官方 TaskCard transcript
-没有向 `MessagePrimitive.Parts` 传入 Reasoning renderer，也没有挂载
-canonical `MessagePrimitive.Error`。Runtime 已有 reasoning 数据与
-`incomplete/error` 状态，但对应 UI 断言失败。该 Element 当前也没有 transcript
-override；仓库 upstream guard 禁止本地 Element presentation patch。
-在这些展示缺口解决并通过增量测试与浏览器检查前，不应宣称完整 Streaming
-验收通过。
+**2026-09-27 状态：focused Streaming 与 product presentation 验收闭环。**
+测试拆成严格的 Streaming Contract Tests、product positive acceptance 与
+Upstream Presentation Gap Tests。前两者分别走固定版本官方 TaskCard 与真实
+`TaskGroupPlugin` / `ConversationTaskGroup` 产品路径，验证相同的逐事件生命周期。
+focused suite 共 19 项，全部通过，没有 skip、expected-failure 或 soft assertion。
 
-本次提交交付测试与验收记录，不修改 production renderer。前端 focused suite
-共 16 项：11 项通过、5 项失败。新增的普通、递归、错误测试各有展示断言失败；
-原有最终态 reasoning／error 展示测试也仍失败。`expect.soft` 用于让同一测试
-继续检查后续生命周期，失败仍会使测试及整个 suite 返回非零退出码；没有
-skip、expected-failure 或 test-only renderer 替换。Mock 协议 suite 的 8 项通过。
+固定 assistant-ui revision `da9a624496ae97864ae30e90f85c7533092a228d`
+的原生 TaskCard 仍没有 reasoning renderer、canonical nested error UI 或
+transcript override。两个独立 gap test 使用未修改的官方 TaskGroup，正向检查
+canonical message 中的 reasoning、`incomplete/error`、errorCode 与保留的文本，
+并断言其官方 transcript 目前缺少对应展示。测试校验 lock revision；未来官方
+修复后，gap test 应失败，提醒移除产品组合并将 positive acceptance 切回原生路径。
+
+产品补齐位于 `@agent-ui/react` 的现有 `ConversationTaskGroup` facade，
+内部最小 composition 复用官方 TaskCard shell、状态/计时 helpers、审批和 tool
+fallback。nested transcript 仅消费 `ToolCallMessagePart.messages`，通过
+`ReadonlyThreadProvider`、`MessagePrimitive.Root/Parts`、现有
+`ConversationMarkdownText` / `ConversationReasoning` 与
+`ConversationCanonicalMessageError` 渲染。工具具名 UI 仍由 canonical toolkit
+优先匹配，未知 nested tool 继续递归进入同一 presentation。readonly transcript
+保留官方审批边界，group indices/counts 继续来自 assistant-ui。没有修改 vendor、
+AG-UI Runtime 或 react-ag-ui，也没有新增 Subagent state、store 或 parser。
+
+ownership guard 保持严格 hash / provenance / inventory 检查。本次修正了
+其 inventory 扫描遗漏目录前缀的既有错误，并增加两个 TaskCard 文件的篡改
+检测；官方 Element、lock hash 与 provenance 均未修改。guard 的 9 项通过，
+`@agent-ui/react` typecheck、build 与 public declaration boundary 通过。
+
+扩展检查中的旧 public API 文本断言、generated fixture URL 与 scoped integration
+的未声明 theme service 问题仍存在；后两者使用修改前 facade 复现了相同失败，
+前者要求的六个 alias 在修改前 source 中同样不存在。这些结果不计入本次
+Subagent focused acceptance，完整 workspace suite 未重新运行。
+
+通过的产品 positive acceptance 包括：完成前 partial reasoning/text、A/B 递归
+reasoning、child tool running/result、错误前文本、错误后的 canonical alert、
+内容与 message identity 保留、无重复 card/message、独立 parent result，及仅在
+`RUN_FINISHED` 后出现的最终 Footer。由此可声明：Subagent reasoning, text,
+nested tools, recursive subagents, completion and error states are incrementally
+rendered end-to-end through the tested product presentation path。
+
+本机浏览器检查使用现有 Host 与 `nested-subagent-conversation`（仅通过启动
+环境变量将 speed 设为 10，未更改 Scenario）：观察到 working TaskCard、完成前
+partial reasoning、child tool 从 Searching files 到 Searched files / result，以及
+partial text。当前 Host 的旧 conversation-surface 仍只声明
+`assistantMessageFooter`，Run 结束后遇到
+`Unknown Conversation renderer Slot "assistantResponseFooter"`，因此此次浏览器
+最终态检查未通过。该 Host 配置问题独立于 TaskCard presentation；不能将 focused
+测试通过等同于所有 Host / Mock Studio 的人工 Demo 已通过。
 
 ```bash
 pnpm --filter @agent-ui/mock-agent test tests/p6-nested-subagent.test.ts

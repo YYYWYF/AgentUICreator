@@ -127,7 +127,8 @@ function elementPathsFromProvenance(provenance, errors) {
 
 async function collectElementInventory(vendorRoot, errors) {
   try {
-    return await collectFiles(path.join(vendorRoot, ELEMENTS_DIRECTORY));
+    const files = await collectFiles(path.join(vendorRoot, ELEMENTS_DIRECTORY));
+    return files.map((file) => `${ELEMENT_PATH_PREFIX}${file}`);
   } catch (error) {
     if (error?.code === "ENOENT") {
       errors.push(`${ELEMENTS_DIRECTORY} directory is missing.`);

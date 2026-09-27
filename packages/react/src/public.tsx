@@ -83,7 +83,7 @@ import {
 } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.aui.js";
 import { SubagentList as InternalSubagentList } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.js";
 import { JobProgress as InternalJobProgress } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.js";
-import { TaskGroup as InternalTaskGroup } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/task-card.aui.js";
+import { ConversationTaskGroupComposition as InternalTaskGroup } from "./internal/conversation-task-group.js";
 import { Badge as InternalBadge } from "./internal/vendor/assistant-ui/components/ui/badge.js";
 import { Input as InternalInput } from "./internal/vendor/assistant-ui/components/ui/input.js";
 import { Skeleton as InternalSkeleton } from "./internal/vendor/assistant-ui/components/ui/skeleton.js";
@@ -749,8 +749,8 @@ export function ConversationTaskTray({
 }
 
 /**
- * Product-neutral TaskGroup seam. The upstream TaskGroup implementation is
- * intentionally hidden behind this facade so Plugins never import vendor code.
+ * Product-owned transcript seam around the unchanged upstream TaskCard shell.
+ * Plugins consume canonical nested messages through this facade.
  */
 export function ConversationTaskGroup({
   group,
@@ -762,10 +762,17 @@ export function ConversationTaskGroup({
   return (
     <InternalTaskGroup
       group={group as ComponentProps<typeof InternalTaskGroup>["group"]}
+      components={taskTranscriptComponents}
       {...(className === undefined ? {} : { className })}
     />
   );
 }
+
+const taskTranscriptComponents = {
+  Text: ConversationMarkdownText,
+  Reasoning: ConversationReasoning,
+  Error: ConversationCanonicalMessageError,
+};
 
 export interface ConversationSubagentItem {
   name: string;

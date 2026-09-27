@@ -34,8 +34,13 @@ describe("assistant-ui upstream ownership guard", () => {
     expect(manifest.owned).toEqual(expect.arrayContaining([
       "components/assistant-ui/elements/thread-list.aui.tsx",
       "components/assistant-ui/elements/attachment.aui.tsx",
+      "components/assistant-ui/elements/task-card.aui.tsx",
+      "components/assistant-ui/elements/task-card.tsx",
     ]));
-    expect(manifest.owned).toHaveLength(19);
+    const lock = JSON.parse(await readFile(
+      path.join(vendorRoot, "assistant-ui-upstream.lock.json"), "utf8",
+    )) as { elements: Record<string, string> };
+    expect([...(manifest.owned ?? [])].sort()).toEqual(Object.keys(lock.elements).sort());
     expect(manifest.legacyExceptions).toEqual([]);
     await expect(execFileAsync("node", [guardScript, "--vendor-root", vendorRoot])).resolves.toMatchObject({
       stdout: expect.stringContaining("assistant-ui upstream-owned Elements: OK"),
@@ -45,6 +50,8 @@ describe("assistant-ui upstream ownership guard", () => {
   it.each([
     "thread-list.aui.tsx",
     "attachment.aui.tsx",
+    "task-card.aui.tsx",
+    "task-card.tsx",
   ])("fails when an upstream-owned Element is modified: %s", async (fileName) => {
     const temporaryRoot = await mkdtemp(path.join(packageRoot, ".tmp-upstream-element-guard-"));
     temporaryRoots.push(temporaryRoot);
