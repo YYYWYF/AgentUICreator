@@ -67,7 +67,7 @@ export const nestedSubagentConversationScenario = defineScenario({
             result: {
               files: [
                 "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
-                "examples/agent-frontend/agent-ui/conversation/ConversationAdapter.tsx",
+                "examples/creator-host-sandbox/src/agent-ui/conversation/ConversationAdapter.tsx",
               ],
             },
             prepareDurationMs: 250,

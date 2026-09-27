@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 from pathlib import Path
+import pytest
 
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.app_ui_model import (
@@ -23,7 +24,22 @@ from agent_ui_creator.files import read_creator_file_state
 from agent_ui_creator.project_control import ProjectControlClient
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
-TARGET_PROJECT = REPOSITORY_ROOT / "examples" / "agent-frontend"
+TARGET_PROJECT = REPOSITORY_ROOT / "examples" / "creator-host-sandbox"
+
+@pytest.fixture(scope="module", autouse=True)
+def _ensure_real_host_project():
+    import subprocess
+    subprocess.run(
+        ["pnpm", "--filter", "@agent-ui/project-control", "build"], cwd=REPOSITORY_ROOT, check=True,
+    )
+    subprocess.run(
+        ["pnpm", "--filter", "@agent-ui/bootstrap", "build"], cwd=REPOSITORY_ROOT, check=True,
+    )
+    subprocess.run(
+        ["pnpm", "--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "scripts/host-project.ts", "ensure", "platform"],
+        cwd=REPOSITORY_ROOT, check=True,
+    )
+
 
 
 def _authoring_plugins(model):
@@ -113,7 +129,7 @@ def test_real_target_project_read_operations_execute_through_tsx():
 
 
 def test_real_target_mutation_uses_temp_copy_and_python_transaction(tmp_path):
-    project_root = _copy_target(tmp_path, "agent-frontend")
+    project_root = _copy_target(tmp_path, "creator-host-sandbox")
     client, activity, service = _mutation_service(
         project_root, "python-real-target-mutation"
     )
@@ -134,7 +150,7 @@ def test_real_target_mutation_uses_temp_copy_and_python_transaction(tmp_path):
     )
     receipt = activity.finish()
 
-    assert result.target_result["changedPaths"] == ["app-ui/app-ui.json"]
+    assert result.target_result["changedPaths"] == ["src/agent-ui/app-ui/app-ui.json"]
     assert result.mutation_revision == 1
     assert receipt["transaction"]["undoable"] is True
     activity.transactions.undo("python-real-target-mutation")
@@ -321,8 +337,8 @@ def test_real_target_invalid_operation_and_registry_failure_leave_disk_unchanged
     project_root = _copy_target(tmp_path, "failures")
     client, activity, service = _mutation_service(project_root, "python-failures")
     inspection = asyncio.run(client.inspect_app_ui_model())
-    before_app = (project_root / "app-ui/app-ui.json").read_bytes()
-    before_registry = (project_root / "plugins/registry.generated.ts").read_bytes()
+    before_app = (project_root / "src/agent-ui/app-ui/app-ui.json").read_bytes()
+    before_registry = (project_root / "src/agent-ui/plugins/registry.generated.ts").read_bytes()
 
     for operations, expected_code in [
         (
@@ -359,8 +375,8 @@ def test_real_target_invalid_operation_and_registry_failure_leave_disk_unchanged
         else:
             raise AssertionError(f"Expected {expected_code}")
 
-    assert (project_root / "app-ui/app-ui.json").read_bytes() == before_app
-    assert (project_root / "plugins/registry.generated.ts").read_bytes() == before_registry
+    assert (project_root / "src/agent-ui/app-ui/app-ui.json").read_bytes() == before_app
+    assert (project_root / "src/agent-ui/plugins/registry.generated.ts").read_bytes() == before_registry
     assert activity.revision == 0
     assert activity.finish()["files"] == []
 
@@ -395,7 +411,7 @@ import { createRequire } from 'node:module';
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 const [repository, target] = process.argv.slice(1);
-const require = createRequire(path.join(repository, 'examples/agent-frontend/package.json'));
+const require = createRequire(path.join(repository, 'examples/creator-host-sandbox/package.json'));
 const { minVersion } = require('semver');
 const registry = path.join(repository, 'packages/source-registry/registry/items');
 const byId = new Map();

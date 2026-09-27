@@ -1,8 +1,8 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { inspectCreatorProject } from "../../agent-frontend/scripts/ui-project/creator-project-inspector";
-import { initializeAgentUIProject } from "../../agent-frontend/scripts/ui-project/initialize-agent-ui-project";
+import { inspectCreatorProject } from "@agent-ui/project-control/dev";
+import { initializeAgentUIProject } from "@agent-ui/bootstrap";
 
 const examplesRoot = fileURLToPath(new URL("../..", import.meta.url));
 const sourceRoot = "src/agent-ui";

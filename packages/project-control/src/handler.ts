@@ -5,26 +5,26 @@ import path from "node:path";
 import { z } from "zod";
 import { validateProjectControlResult } from "./result-contract.mjs";
 
-import { parseAppUIModelJson } from "../../../examples/agent-frontend/framework/contracts/app-ui-model";
+import { parseAppUIModelJson } from "./framework/contracts/app-ui-model";
 import {
   appUITransactionInputSchema,
   mutateAppUIModel,
   recoverPendingAppUITransaction,
-} from "../../../examples/agent-frontend/scripts/ui-project/app-ui-transaction";
-import { inspectUIComposition, inspectUIProject } from "../../../examples/agent-frontend/scripts/ui-project/project-inspector";
-import { inspectPluginSourceReferences } from "../../../examples/agent-frontend/scripts/ui-project/plugin-source-references";
-import { collectPluginAssets } from "../../../examples/agent-frontend/scripts/ui-project/plugin-assets";
-import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "../../../examples/agent-frontend/scripts/ui-project/agent-ui-project-paths";
-import { readAgentUIProjectConfig } from "../../../examples/agent-frontend/scripts/ui-project/project-mode";
-import { inspectUIServiceDependencies } from "../../../examples/agent-frontend/scripts/ui-project/service-dependency-inspector";
+} from "./project/app-ui-transaction";
+import { inspectUIComposition, inspectUIProject } from "./project/project-inspector";
+import { inspectPluginSourceReferences } from "./project/plugin-source-references";
+import { collectPluginAssets } from "./project/plugin-assets";
+import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./project/agent-ui-project-paths";
+import { readAgentUIProjectConfig } from "./project/project-mode";
+import { inspectUIServiceDependencies } from "./project/service-dependency-inspector";
 import {
   inspectAgentUISources,
-} from "../../../examples/agent-frontend/scripts/ui-project/source-registry";
-import { applyAgentUISourceProjectMutation, removeAgentUISourceProjectMutation, recoverPendingAgentUISourceProjectMutation } from "../../../examples/agent-frontend/scripts/ui-project/source-registry/project-mutation";
+} from "./project/source-registry/index";
+import { applyAgentUISourceProjectMutation, removeAgentUISourceProjectMutation, recoverPendingAgentUISourceProjectMutation } from "./project/source-registry/project-mutation";
 import {
   verifyRuntimeComposition,
   verifyRuntimeCompositionInputSchema,
-} from "../../../examples/agent-frontend/scripts/ui-project/runtime-composition-verifier";
+} from "./project/runtime-composition-verifier";
 
 export const UI_PROJECT_CONTROL_SCHEMA_VERSION = 3 as const;
 export const MAX_UI_PROJECT_CONTROL_INPUT_BYTES = 64_000;

@@ -64,3 +64,6 @@ export {
   mockRegressionScenarios,
   showcaseMockScenarios,
 } from "./builtins/index.js";
+
+export { createMockConversationApiVitePlugin } from "./conversations/vite-plugin.js";
+export { withPreviewAgentState } from "./preview/mock-scenario-preview.js";

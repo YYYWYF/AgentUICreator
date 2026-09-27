@@ -762,7 +762,7 @@ exit 99
       },
     }, null, 2));
     await writeFixtureFile(root, "packages/react/src/internal/vendor/assistant-ui/UPSTREAM.json", JSON.stringify({ revision: "b".repeat(40) }, null, 2));
-    await writeFixtureFile(root, "examples/agent-frontend/plugins/example.ts", "export const plugin = 'before';\n");
+    await writeFixtureFile(root, "examples/creator-host-sandbox/plugins/example.ts", "export const plugin = 'before';\n");
     await writeFixtureFile(root, "packages/creator/example.ts", "export const creator = 'unchanged';\n");
     await writeFixtureFile(root, "assistant-ui-upgrade-report.json", JSON.stringify({
       schemaVersion: 1,
@@ -790,8 +790,8 @@ exit 99
     await git(root, ["add", "."]);
     await git(root, ["commit", "--quiet", "-m", "fixture"]);
     const baseGitSha = await git(root, ["rev-parse", "HEAD"]);
-    await writeFixtureFile(root, "examples/agent-frontend/plugins/example.ts", "export const plugin = 'after';\n");
-    await writeFixtureFile(root, "examples/agent-frontend/plugins/generated.ts", "export const generated = true;\n");
+    await writeFixtureFile(root, "examples/creator-host-sandbox/plugins/example.ts", "export const plugin = 'after';\n");
+    await writeFixtureFile(root, "examples/creator-host-sandbox/plugins/generated.ts", "export const generated = true;\n");
     await writeFixtureFile(root, ".assistant-ui-update-session.json", JSON.stringify({
       baseGitSha,
       fromRevision: "a".repeat(40),
@@ -828,7 +828,7 @@ exit 99
           "assistant-stream": ["0.3.44"],
         },
       },
-      generatedUntrackedArtifacts: ["examples/agent-frontend/plugins/generated.ts"],
+      generatedUntrackedArtifacts: ["examples/creator-host-sandbox/plugins/generated.ts"],
     }, null, 2));
 
     await generateReport({ repoRoot: root });
@@ -838,8 +838,8 @@ exit 99
     expect(report.toRevision).toBe("b".repeat(40));
     expect(report.creatorFilesChanged).toEqual([]);
     expect(report.pluginFilesChanged).toEqual([
-      "examples/agent-frontend/plugins/example.ts",
-      "examples/agent-frontend/plugins/generated.ts",
+      "examples/creator-host-sandbox/plugins/example.ts",
+      "examples/creator-host-sandbox/plugins/generated.ts",
     ]);
     expect(report.pluginFilesChanged).not.toContain("packages/creator/example.ts");
     expect(report.historyCompatibility).toMatchObject({

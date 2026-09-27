@@ -1,3 +1,4 @@
+import { createMockAgentVitePlugin, createMockConversationApiVitePlugin, showcaseMockScenarios, withPreviewAgentState } from "@agent-ui/mock-agent";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, type Plugin } from "vite";
@@ -22,7 +23,7 @@ export const runtimeAliases = {
 };
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), creatorDockPlugin],
+  plugins: [react(), tailwindcss(), creatorDockPlugin, createMockAgentVitePlugin({ endpoint: "/agent", scenarios: showcaseMockScenarios.map(withPreviewAgentState), defaultScenarioId: "reasoning-tool-success" }), createMockConversationApiVitePlugin({ endpoint: "/__agent-ui/mock-data" })],
   resolve: { alias: runtimeAliases },
   server: { host: "127.0.0.1", port: 5176, strictPort: true },
 });

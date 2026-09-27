@@ -4,7 +4,6 @@ coverage/
 *.tsbuildinfo
 .DS_Store
 .env.creator.local
-examples/agent-frontend/.env.local
 examples/creator-host-sandbox/.env.local
 examples/creator-assistant-host/.env.local
 examples/creator-embedded-host/.env.local
@@ -12,7 +11,6 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.pyc
-examples/agent-frontend/.agent-ui/visual-observations/
 examples/creator-host-sandbox/.agent-ui/
 examples/creator-host-sandbox/src/agent-ui/
 examples/creator-assistant-host/.agent-ui/

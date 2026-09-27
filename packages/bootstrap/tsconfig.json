@@ -7,7 +7,14 @@
     "noEmit": true,
     "declaration": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "tests/migrated"
+  ]
 }

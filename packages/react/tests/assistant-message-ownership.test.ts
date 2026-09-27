@@ -42,8 +42,8 @@ describe("assistant message ownership", () => {
 
   it("does not route nested subagent data from the product conversation bridge", async () => {
     for (const relativePath of [
-      "examples/agent-frontend/agent-ui/conversation/ConversationAdapter.tsx",
-      "examples/agent-frontend/agent-ui/conversation/ScopedRendererBridge.tsx",
+      "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter.tsx",
+      "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ScopedRendererBridge.tsx",
     ]) {
       const source = await readFile(path.join(repoRoot, relativePath), "utf8");
       expect(source).not.toContain("part.messages");

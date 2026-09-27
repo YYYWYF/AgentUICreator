@@ -27,10 +27,25 @@ from agent_ui_creator.validation import CreatorValidationCommandRunner
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
-TARGET_PROJECT = REPOSITORY_ROOT / "examples" / "agent-frontend"
+TARGET_PROJECT = REPOSITORY_ROOT / "examples" / "creator-host-sandbox"
+
+@pytest.fixture(scope="module", autouse=True)
+def _ensure_real_host_project():
+    import subprocess
+    subprocess.run(
+        ["pnpm", "--filter", "@agent-ui/project-control", "build"], cwd=REPOSITORY_ROOT, check=True,
+    )
+    subprocess.run(
+        ["pnpm", "--filter", "@agent-ui/bootstrap", "build"], cwd=REPOSITORY_ROOT, check=True,
+    )
+    subprocess.run(
+        ["pnpm", "--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "scripts/host-project.ts", "ensure", "platform"],
+        cwd=REPOSITORY_ROOT, check=True,
+    )
+
 SKILLS_ROOT = REPOSITORY_ROOT / "packages" / "creator" / "skills"
-APP_UI_MODEL_PATH = "app-ui/app-ui.json"
-SURFACE_PLUGIN_ROOT = "plugins/conversation-surface"
+APP_UI_MODEL_PATH = "src/agent-ui/app-ui/app-ui.json"
+SURFACE_PLUGIN_ROOT = "src/agent-ui/plugins/conversation-surface"
 CASE_A_PROMPT = "我要会话管理的功能"
 CASE_B_PROMPT = "帮我去掉左边的历史会话"
 CASE_C_PROMPT = "给这个应用加一个主题切换功能"
@@ -53,7 +68,7 @@ def _live_slo_report():
 
 
 def _copy_target(tmp_path: Path) -> Path:
-    project_root = tmp_path / "agent-frontend"
+    project_root = tmp_path / "creator-host-sandbox"
     shutil.copytree(
         TARGET_PROJECT,
         project_root,

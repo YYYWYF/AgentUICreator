@@ -1164,7 +1164,9 @@ workspace/
 │       ├── skills/
 │       └── package.json
 ├── examples/
-│   └── agent-frontend/          # 可独立构建、部署的目标应用
+│   ├── creator-host-sandbox/    # platform Host
+│   ├── creator-assistant-host/  # assistant Host
+│   └── creator-embedded-host/   # embedded Host
 │       ├── app-ui/
 │       ├── plugins/
 │       ├── runtime/

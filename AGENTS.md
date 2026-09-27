@@ -27,7 +27,7 @@ UI Plugin implementation dependencies also belong to the generated project, incl
 ## Workspace Boundary
 
 - `packages/creator` is the publishable development tool, including Creator core, CLI, optional Vite integration, UI, prompts, skills, and tool permissions.
-- `examples/agent-frontend` is the independent Agent Frontend target and must not depend on `@agent-ui/creator`.
+- `examples/creator-host-sandbox`, `examples/creator-assistant-host`, and `examples/creator-embedded-host` are independent Host targets and must not depend on `@agent-ui/creator`.
 - `apps/creator-workbench` is a development-only composition shell that connects Creator to the example target through an explicit `projectRoot`.
 - Creator configuration belongs to the tool host, not the generated Agent Frontend. The workspace workbench reads `.env.creator.local` from the workspace root.
 - Keep the target project usable through its own `dev`, `test`, `typecheck`, and `build` scripts without the Creator package or workbench.

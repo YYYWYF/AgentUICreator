@@ -208,8 +208,8 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     packagesChanged: select((file) => file === "pnpm-lock.yaml" || file === "pnpm-workspace.yaml" || file.endsWith("/package.json") || file === "package.json"),
     localFacadeFilesChanged: select((file) => file.startsWith("packages/react/src/") && !file.startsWith("packages/react/src/internal/vendor/")),
     runtimeAdapterFilesChanged: select((file) => file.startsWith("packages/runtime-conversation/")),
-    pluginFilesChanged: select((file) => file.startsWith("examples/agent-frontend/plugins/")),
-    appUIModelFilesChanged: select((file) => file.startsWith("examples/agent-frontend/app-ui/")),
+    pluginFilesChanged: select((file) => file.startsWith("examples/creator-host-sandbox/plugins/")),
+    appUIModelFilesChanged: select((file) => file.startsWith("examples/creator-host-sandbox/app-ui/")),
     creatorFilesChanged: select((file) => file.startsWith("packages/creator/")),
     testsChanged: select((file) => file.includes("/tests/") || file.endsWith(".test.ts") || file.endsWith(".test.tsx") || file.endsWith(".test.mjs")),
     newAvailableElements,
@@ -224,7 +224,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
 
   const changedPluginDirectories = new Set(
     current.pluginFilesChanged
-      .filter((file) => file !== "examples/agent-frontend/plugins/registry.generated.ts")
+      .filter((file) => file !== "examples/creator-host-sandbox/plugins/registry.generated.ts")
       .map((file) => file.split("/").slice(0, 4).join("/")),
   );
   const existingPluginDirectories = [...changedPluginDirectories].filter((file) =>

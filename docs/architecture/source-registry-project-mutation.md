@@ -26,7 +26,7 @@ Initialization retains its separate clean-install transaction.
 
 Product callers use `applyAgentUISourceProjectMutation` or
 `removeAgentUISourceProjectMutation` from
-`examples/agent-frontend/scripts/ui-project/source-registry/project-mutation.ts`.
+`examples/creator-host-sandbox/scripts/ui-project/source-registry/project-mutation.ts`.
 The architecture guard rejects direct storage apply/remove references outside the
 storage module, its compatibility exports, and this Host orchestrator. Low-level
 unit tests may continue testing storage APIs directly.

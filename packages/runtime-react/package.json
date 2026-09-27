@@ -23,7 +23,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.tests.json",
     "test": "vitest run"
   },
   "peerDependencies": {
@@ -37,6 +37,29 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "jsdom": "^27.0.0",
+    "@agent-ui/runtime-conversation": "workspace:^",
+    "@agent-ui/runtime-core": "workspace:^",
+    "@agent-ui/source-registry": "workspace:^",
+    "@agent-ui/mock-agent": "workspace:^",
+    "@agent-ui/bootstrap": "workspace:^",
+    "@agent-ui/react": "workspace:^",
+    "zod": "^4.5.4",
+    "react-test-renderer": "19.2.8",
+    "@types/react-test-renderer": "19.1.0",
+    "tsx": "4.20.6",
+    "semver": "^7.7.3",
+    "@types/semver": "^7.7.1",
+    "@tailwindcss/vite": "4.3.3",
+    "@vitejs/plugin-react": "^6.1.1",
+    "vite": "^8.2.2",
+    "@ag-ui/client": "0.0.59",
+    "@ag-ui/core": "0.0.59",
+    "rxjs": "7.8.1",
+    "react-hook-form": "^7",
+    "@assistant-ui/react-hook-form": "0.12.34",
+    "@assistant-ui/react-generative-ui": "0.0.21",
+    "react-markdown": "10.1.0"
   }
 }

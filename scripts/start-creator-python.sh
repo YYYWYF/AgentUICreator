@@ -41,7 +41,7 @@ fi
 cd "${PYTHON_ROOT}"
 SERVER_ARGS=(
   -m agent_ui_creator.server
-  --project-root "${WORKSPACE_ROOT}/examples/agent-frontend"
+  --project-root "${WORKSPACE_ROOT}/examples/creator-host-sandbox"
   --skills-root "${WORKSPACE_ROOT}/packages/creator/skills"
   --config-root "${WORKSPACE_ROOT}"
   --port "${PORT}"

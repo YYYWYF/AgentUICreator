@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 const packageRoot = fileURLToPath(new URL("..", import.meta.url));
 const workspaceRoot = fileURLToPath(new URL("../../..", import.meta.url));
 const examplesRoot = path.join(workspaceRoot, "examples");
-const pluginRoot = path.join(examplesRoot, "agent-frontend/plugins");
+const pluginRoot = path.join(examplesRoot, "creator-host-sandbox/src/agent-ui/plugins");
 const creatorRoots = [
   path.join(workspaceRoot, "packages/creator"),
   path.join(workspaceRoot, "packages/creator-python"),
@@ -77,8 +77,8 @@ function resolvesInside(
 }
 
 function targetsExample(filename: string, specifier: string): boolean {
-  return specifier === "@agent-ui/example-agent-frontend" ||
-    specifier.startsWith("@agent-ui/example-agent-frontend/") ||
+  return specifier === "@agent-ui/creator-host-sandbox" ||
+    specifier.startsWith("@agent-ui/creator-host-sandbox/") ||
     specifier.includes("examples/") ||
     resolvesInside(filename, specifier, examplesRoot);
 }
@@ -156,7 +156,7 @@ describe("runtime-react package boundary", () => {
 
   it("detects forbidden source imports", () => {
     const filename = path.join(packageRoot, "src/illegal-import.ts");
-    const exampleSpecifier = "../../../examples/agent-frontend/src/index";
+    const exampleSpecifier = "../../../examples/creator-host-sandbox/src/index";
     const runtimeSpecifier = "../../runtime-conversation/src/index";
 
     expect(sourceViolations(

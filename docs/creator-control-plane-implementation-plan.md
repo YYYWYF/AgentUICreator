@@ -41,7 +41,7 @@
 
 | 能力 | 当前位置 | 实施策略 |
 | --- | --- | --- |
-| AppUIModel Zod 与跨字段校验 | `examples/agent-frontend/framework/contracts/app-ui-model.ts` | 继续作为目标项目事实源，不在 Creator 复制 Schema |
+| AppUIModel Zod 与跨字段校验 | `examples/creator-host-sandbox/src/agent-ui/framework/contracts/app-ui-model.ts` | 继续作为目标项目事实源，不在 Creator 复制 Schema |
 | Plugin Contract 与 Service 生命周期 | `framework/contracts/ui-plugin.ts`、`runtime/plugins/PluginServiceRuntime.ts` | 保留，不引入动态 Package 模型 |
 | Creator 文件和命令权限 | `packages/creator-python/agent_ui_creator/minimal_agent/`、`domain_agent/` | Python PathPolicy 与领域工具统一拥有 |
 | mutation revision 与修改回执 | `packages/creator-python/agent_ui_creator/activity/recorder.py` | 稳定 run id、hash 与 transaction 记录 |
@@ -379,24 +379,24 @@ interface AskCreatorUserInput {
 建议新增：
 
 ```text
-examples/agent-frontend/scripts/ui-project/types.ts
-examples/agent-frontend/scripts/ui-project/project-inspector.ts
-examples/agent-frontend/scripts/ui-project/project-config.ts
-examples/agent-frontend/scripts/ui-project/plugin-assets.ts
-examples/agent-frontend/scripts/ui-project/registry-generator.ts
-examples/agent-frontend/scripts/generate-plugin-registry.ts
-examples/agent-frontend/plugins/registry.generated.ts
-examples/agent-frontend/tests/plugin-registry-generator.test.ts
-examples/agent-frontend/tests/project-inspector.test.ts
+examples/creator-host-sandbox/scripts/ui-project/types.ts
+examples/creator-host-sandbox/scripts/ui-project/project-inspector.ts
+examples/creator-host-sandbox/scripts/ui-project/project-config.ts
+examples/creator-host-sandbox/scripts/ui-project/plugin-assets.ts
+examples/creator-host-sandbox/scripts/ui-project/registry-generator.ts
+examples/creator-host-sandbox/scripts/generate-plugin-registry.ts
+examples/creator-host-sandbox/src/agent-ui/plugins/registry.generated.ts
+examples/creator-host-sandbox/tests/plugin-registry-generator.test.ts
+examples/creator-host-sandbox/tests/project-inspector.test.ts
 ```
 
 建议修改：
 
 ```text
-examples/agent-frontend/plugins/*/definition.ts
-examples/agent-frontend/plugins/index.ts
-examples/agent-frontend/scripts/verify-ui.ts
-examples/agent-frontend/package.json
+examples/creator-host-sandbox/src/agent-ui/plugins/*/definition.ts
+examples/creator-host-sandbox/src/agent-ui/plugins/index.ts
+examples/creator-host-sandbox/scripts/verify-ui.ts
+examples/creator-host-sandbox/package.json
 ```
 
 实施步骤：
@@ -451,7 +451,7 @@ packages/creator-python/tests/test_domain_tools.py
 目标项目增加固定 JSON 控制入口：
 
 ```text
-examples/agent-frontend/scripts/ui-project-control.ts
+examples/creator-host-sandbox/scripts/ui-project-control.ts
 ```
 
 实现边界：
@@ -497,10 +497,10 @@ packages/creator/src/PythonCreatorClient.ts
 目标项目建议新增：
 
 ```text
-examples/agent-frontend/scripts/ui-project/app-ui-operations.ts
-examples/agent-frontend/scripts/ui-project/app-ui-transaction.ts
-examples/agent-frontend/tests/app-ui-operations.test.ts
-examples/agent-frontend/tests/app-ui-transaction.test.ts
+examples/creator-host-sandbox/scripts/ui-project/app-ui-operations.ts
+examples/creator-host-sandbox/scripts/ui-project/app-ui-transaction.ts
+examples/creator-host-sandbox/tests/app-ui-operations.test.ts
+examples/creator-host-sandbox/tests/app-ui-transaction.test.ts
 ```
 
 Creator 建议新增：
@@ -665,13 +665,13 @@ packages/creator/skills/ui-debugging/SKILL.md
 目标项目建议新增或修改：
 
 ```text
-examples/agent-frontend/runtime/diagnostics/types.ts
-examples/agent-frontend/runtime/diagnostics/PluginDiagnosticContext.ts
-examples/agent-frontend/runtime/plugins/PluginErrorBoundary.tsx
-examples/agent-frontend/runtime/plugins/UIPluginRuntime.tsx
-examples/agent-frontend/runtime/plugins/PluginServiceRuntime.ts
-examples/agent-frontend/src/App.tsx
-examples/agent-frontend/tests/plugin-runtime-diagnostics.test.tsx
+examples/creator-host-sandbox/src/agent-ui/runtime/diagnostics/types.ts
+examples/creator-host-sandbox/src/agent-ui/runtime/diagnostics/PluginDiagnosticContext.ts
+examples/creator-host-sandbox/src/agent-ui/runtime/plugins/PluginErrorBoundary.tsx
+examples/creator-host-sandbox/src/agent-ui/runtime/plugins/UIPluginRuntime.tsx
+examples/creator-host-sandbox/src/agent-ui/runtime/plugins/PluginServiceRuntime.ts
+examples/creator-host-sandbox/src/App.tsx
+examples/creator-host-sandbox/tests/plugin-runtime-diagnostics.test.tsx
 ```
 
 Creator 建议新增或修改：

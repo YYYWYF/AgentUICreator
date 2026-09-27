@@ -8,29 +8,28 @@ import react from "@vitejs/plugin-react";
 import {
   createMockAgentVitePlugin,
   showcaseMockScenarios,
+  createMockConversationApiVitePlugin,
+  withPreviewAgentState,
 } from "../../packages/mock-agent/src/index";
 import { defineConfig } from "vite";
 
 import { createCreatorDevServerPlugin } from "../../packages/creator/src/vitePlugin.js";
 import { CreatorWorkspaceManager } from "../../packages/creator/src/workspace/CreatorWorkspaceManager.js";
 import { PythonCreatorProcessManager } from "../../packages/creator/src/PythonCreatorProcessManager.js";
-// TODO: move the host inspector adapter out of the example when the shared project contract is extracted.
-import { inspectCreatorProject } from "../../examples/agent-frontend/scripts/ui-project/creator-project-inspector";
-import { initializeAgentUIProject } from "../../examples/agent-frontend/scripts/ui-project/initialize-agent-ui-project";
-import { handleUIProjectControlRequest } from "../../examples/agent-frontend/scripts/ui-project-control";
+import { inspectCreatorProject } from "@agent-ui/project-control/dev";
+import { initializeAgentUIProject } from "@agent-ui/bootstrap";
+import { handleUIProjectControlRequest } from "@agent-ui/project-control/dev";
 import type { MockProjectInspector } from "../../packages/creator/src/mock/demo-compatibility";
-import { installMockResource, inspectScenarioResources } from "../../examples/agent-frontend/scripts/ui-project/install-scenario-resources";
-import { mergeOptionalResourceInspection } from "../../examples/agent-frontend/scripts/ui-project/optional-resource-paths";
-import { installDemoPlugin } from "../../examples/agent-frontend/scripts/ui-project/install-demo-plugin";
-import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "../../packages/bootstrap/src/source-root";
-import { createMockConversationApiVitePlugin } from "../../examples/agent-frontend/dev-mock/conversations/vite-plugin";
-import { withPreviewAgentState } from "../../examples/agent-frontend/src/mock-scenario-preview";
+import { installMockResource, inspectScenarioResources } from "@agent-ui/project-control/dev";
+import { mergeOptionalResourceInspection } from "@agent-ui/project-control/dev";
+import { installDemoPlugin } from "@agent-ui/project-control/dev";
+import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "@agent-ui/bootstrap";
 
 const workspaceRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
 );
-const frontendRoot = path.join(workspaceRoot, "examples/agent-frontend");
+const hostProjectRoot = path.join(workspaceRoot, "examples/creator-host-sandbox");
 const workspaceManager = new CreatorWorkspaceManager({
   inspectProject: inspectCreatorProject,
   initializeProject: initializeAgentUIProject,
@@ -44,15 +43,21 @@ const workspaceManager = new CreatorWorkspaceManager({
 });
 
 export default defineConfig({
-  envDir: frontendRoot,
+  envDir: workspaceRoot,
   define: {
-    __CREATOR_EXAMPLE_WORKSPACE_ID__: JSON.stringify(
-      createHash("sha256").update(realpathSync(frontendRoot)).digest("hex"),
+    __CREATOR_HOST_WORKSPACE_ID__: JSON.stringify(
+      createHash("sha256").update(realpathSync(hostProjectRoot)).digest("hex"),
     ),
   },
   plugins: [
     react(),
     tailwindcss(),
+    {
+      name: "creator-default-host-project",
+      async configureServer() {
+        await workspaceManager.selectProject(hostProjectRoot);
+      },
+    },
     createMockAgentVitePlugin({
       endpoint: "/__agent-ui/mock",
       scenarios: showcaseMockScenarios.map(withPreviewAgentState),
@@ -79,7 +84,6 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.join(frontendRoot, "src"),
       "@agent-ui/react/styles.css": path.join(
         workspaceRoot,
         "packages/react/src/styles.css",
@@ -95,10 +99,6 @@ export default defineConfig({
       "@agent-ui/creator/visual-observation": path.join(
         workspaceRoot,
         "packages/creator/src/visual-observation/VisualObservationReporter.ts",
-      ),
-      "@agent-ui/example-agent-frontend/App": path.join(
-        frontendRoot,
-        "src/App.tsx",
       ),
       "@agent-ui/react": path.join(
         workspaceRoot,

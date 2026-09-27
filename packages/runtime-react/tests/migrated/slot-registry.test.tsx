@@ -1,0 +1,203 @@
+import { act, create, type ReactTestRenderer } from "react-test-renderer";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { parseAppUIRuntimeModel } from "../../../project-control/src/framework/contracts/app-ui-runtime-model";
+import {
+  createPluginRegistry,
+  PluginServiceRuntime,
+  PluginServiceRuntimeContext,
+  SlotRegistry,
+} from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+import { PluginRuntimeFixture } from "../../../project-control/tests/support/agent-runtime-fixture";
+
+const runtimeActions = {
+  sendMessage: vi.fn(async () => undefined),
+  resumeInterrupts: vi.fn(async () => undefined),
+  startNewConversation: vi.fn(async () => undefined),
+  abortRun: vi.fn(),
+};
+
+describe("SlotRegistry declarations", () => {
+  it("registers and exposes a live declaration", () => {
+    const slots = new SlotRegistry();
+    const declaration = {
+      slotId: "messages",
+      owner: { kind: "layout" as const, nodeId: "messages-node" },
+    };
+
+    slots.declare(declaration);
+
+    expect(slots.getDeclaration("messages")).toEqual(declaration);
+  });
+
+  it("removes a declaration through its disposer", () => {
+    const slots = new SlotRegistry();
+    const dispose = slots.declare({
+      slotId: "messages",
+      owner: { kind: "layout", nodeId: "messages-node" },
+    });
+
+    dispose();
+
+    expect(slots.getDeclaration("messages")).toBeUndefined();
+  });
+
+  it("rejects duplicate live declarations without replacing the owner", () => {
+    const slots = new SlotRegistry();
+    const first = {
+      slotId: "messages",
+      owner: { kind: "layout" as const, nodeId: "owner-a" },
+    };
+    slots.declare(first);
+
+    expect(() =>
+      slots.declare({
+        slotId: "messages",
+        owner: { kind: "layout", nodeId: "owner-b" },
+      }),
+    ).toThrow('Slot "messages" already has a live declaration');
+    expect(slots.getDeclaration("messages")).toEqual(first);
+  });
+
+  it("does not let a stale disposer remove a newer declaration", () => {
+    const slots = new SlotRegistry();
+    const disposeFirst = slots.declare({
+      slotId: "messages",
+      owner: { kind: "layout", nodeId: "owner-a" },
+    });
+    disposeFirst();
+    const second = {
+      slotId: "messages",
+      owner: { kind: "layout" as const, nodeId: "owner-b" },
+    };
+    slots.declare(second);
+
+    disposeFirst();
+
+    expect(slots.getDeclaration("messages")).toEqual(second);
+  });
+
+  it("notifies the existing subscription on declare and undeclare", () => {
+    const slots = new SlotRegistry();
+    const listener = vi.fn();
+    slots.subscribe(listener);
+
+    const dispose = slots.declare({
+      slotId: "messages",
+      owner: { kind: "layout", nodeId: "messages-node" },
+    });
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    dispose();
+    expect(listener).toHaveBeenCalledTimes(2);
+  });
+
+  it("binds an injection effect to repeated declaration lifetimes", () => {
+    const slots = new SlotRegistry();
+    const cleanup = vi.fn();
+    const effect = vi.fn(() => cleanup);
+    slots.inject("messages", effect);
+
+    expect(effect).not.toHaveBeenCalled();
+
+    const disposeFirstDeclaration = slots.declare({
+      slotId: "messages",
+      owner: { kind: "layout", nodeId: "messages-node" },
+    });
+    expect(effect).toHaveBeenCalledOnce();
+
+    disposeFirstDeclaration();
+    expect(cleanup).toHaveBeenCalledOnce();
+
+    slots.declare({
+      slotId: "messages",
+      owner: { kind: "layout", nodeId: "replacement-messages-node" },
+    });
+    expect(effect).toHaveBeenCalledTimes(2);
+  });
+
+  it("disposes an active injection and prevents later reactivation", () => {
+    const slots = new SlotRegistry();
+    const disposeDeclaration = slots.declare({
+      slotId: "messages",
+      owner: { kind: "layout", nodeId: "messages-node" },
+    });
+    const cleanup = vi.fn();
+    const effect = vi.fn(() => cleanup);
+    const disposeInjection = slots.inject("messages", effect);
+
+    expect(effect).toHaveBeenCalledOnce();
+
+    disposeInjection();
+    expect(cleanup).toHaveBeenCalledOnce();
+
+    disposeDeclaration();
+    slots.declare({
+      slotId: "messages",
+      owner: { kind: "layout", nodeId: "replacement-messages-node" },
+    });
+    expect(effect).toHaveBeenCalledOnce();
+    expect(cleanup).toHaveBeenCalledOnce();
+  });
+});
+
+describe("Layout Slot declarations", () => {
+  let renderer: ReactTestRenderer | undefined;
+
+  beforeEach(() => {
+    (
+      globalThis as typeof globalThis & {
+        IS_REACT_ACT_ENVIRONMENT: boolean;
+      }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    renderer = undefined;
+  });
+
+  afterEach(async () => {
+    if (renderer !== undefined) {
+      await act(async () => renderer?.unmount());
+    }
+  });
+
+  it("binds a mounted Layout SlotNode to declaration lifetime", async () => {
+    const serviceRuntime = new PluginServiceRuntime();
+    const model = parseAppUIRuntimeModel({
+      root: {
+        type: "slot",
+        id: "messages-node",
+        slotId: "messages",
+      },
+      pluginInstances: {},
+    });
+    const registry = createPluginRegistry([]);
+    serviceRuntime.reconcile(model, registry, runtimeActions);
+
+    await act(async () => {
+      renderer = create(
+        <PluginServiceRuntimeContext.Provider value={serviceRuntime}>
+          <PluginRuntimeFixture
+            actions={runtimeActions}
+            conversation={{ id: "slot-registry-test" }}
+            executions={[]}
+            interrupts={[]}
+            messages={[]}
+            model={model}
+            registry={registry}
+            run={{ status: "idle" }}
+            state={null}
+          />
+        </PluginServiceRuntimeContext.Provider>,
+      );
+    });
+
+    expect(serviceRuntime.slots.getDeclaration("messages")).toEqual({
+      slotId: "messages",
+      owner: { kind: "layout", nodeId: "messages-node" },
+    });
+
+    await act(async () => renderer?.unmount());
+    renderer = undefined;
+
+    expect(serviceRuntime.slots.getDeclaration("messages")).toBeUndefined();
+  });
+});

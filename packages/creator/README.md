@@ -7,14 +7,14 @@ Python Agent UI Creator 的开发时 Node host、CLI、Vite 代理与 React Work
 在包含 `.env.creator.local` 的目录运行：
 
 ```bash
-npx @agent-ui/creator --project ./my-agent-frontend
+npx @agent-ui/creator --project ./my-agent-app
 ```
 
 也可以执行单次需求：
 
 ```bash
 npx @agent-ui/creator \
-  --project ./my-agent-frontend \
+  --project ./my-agent-app \
   --message "把用户消息放在左边，AI 消息放在右边"
 ```
 
@@ -32,7 +32,7 @@ CREATOR_MODEL_NAME=your-model
 import { createPythonCreatorClient } from "@agent-ui/creator";
 
 const creator = createPythonCreatorClient({
-  projectRoot: "/path/to/agent-frontend",
+  projectRoot: "/path/to/creator-host-sandbox",
   configRoot: process.cwd(),
 });
 

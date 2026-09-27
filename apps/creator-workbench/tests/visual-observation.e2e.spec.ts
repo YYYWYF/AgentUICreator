@@ -7,9 +7,9 @@ import { fileURLToPath } from "node:url";
 import { expect, test } from "@playwright/test";
 
 const workspaceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
-const frontendRoot = path.join(workspaceRoot, "examples/agent-frontend");
-const appUIPath = path.join(frontendRoot, "app-ui/app-ui.json");
-const revisionPath = path.join(frontendRoot, "app-ui/composition-revision.generated.json");
+const frontendRoot = path.join(workspaceRoot, "examples/creator-host-sandbox");
+const appUIPath = path.join(frontendRoot, "src/agent-ui/app-ui/app-ui.json");
+const revisionPath = path.join(frontendRoot, "src/agent-ui/app-ui/composition-revision.generated.json");
 const python = path.join(workspaceRoot, "packages/creator-python/.venv/bin/python");
 
 type CompositionReport = {

@@ -11,12 +11,12 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { build } from "vite";
 
-import { initializeAgentUIProject } from "../../agent-frontend/scripts/ui-project/initialize-agent-ui-project";
-import { inspectCreatorProject } from "../../agent-frontend/scripts/ui-project/creator-project-inspector";
-import { handleUIProjectControlRequest } from "../../agent-frontend/scripts/ui-project-control";
-import { verifyUIProject } from "../../agent-frontend/scripts/verify-ui";
+import { initializeAgentUIProject } from "@agent-ui/bootstrap";
+import { inspectCreatorProject } from "@agent-ui/project-control/dev";
+import { handleUIProjectControlRequest } from "@agent-ui/project-control/dev";
+import { verifyUIProject } from "@agent-ui/project-control/dev";
 import { runtimeAliases } from "../vite.config";
-import { installDemoPlugin } from "../../agent-frontend/scripts/ui-project/install-demo-plugin";
+import { installDemoPlugin } from "@agent-ui/project-control/dev";
 
 const sandboxRoot = fileURLToPath(new URL("..", import.meta.url));
 const hostSourceRoots = [

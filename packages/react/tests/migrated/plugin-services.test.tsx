@@ -1,0 +1,1302 @@
+// @vitest-environment jsdom
+
+import type { ReactElement } from "react";
+import {
+  act,
+  create,
+  type ReactTestRenderer,
+} from "react-test-renderer";
+import { describe, expect, it, vi } from "vitest";
+
+import { parseAppUIRuntimeModel } from "../../../project-control/src/framework/contracts/app-ui-runtime-model";
+import type {
+  UIPluginObservableService,
+  UIPluginDefinition,
+  UIPluginSetupContext,
+} from "../../../project-control/src/framework/contracts/ui-plugin";
+import {
+  createAgentUIThemeService,
+  readAgentUIThemeMode,
+} from "../../../source-registry/registry/items/plugin-theme-provider/files/plugins/theme-provider/theme-service";
+import { themeProviderPlugin } from "../../../source-registry/registry/items/plugin-theme-provider/files/plugins/theme-provider/definition";
+import {
+  createPluginRegistry,
+  PluginServiceConsumerContext,
+  PluginServiceRuntime,
+  PluginServiceRuntimeContext,
+  SlotRegistry,
+  usePluginService,
+  usePluginServiceSnapshot,
+} from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+import {
+  AGENT_UI_THEME_SERVICE,
+  type AgentUIThemeService,
+} from "../../../source-registry/registry/items/foundation-core-application/files/services/agent-ui-theme";
+
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
+  .IS_REACT_ACT_ENVIRONMENT = true;
+
+function createInsideAct(element: ReactElement): ReactTestRenderer {
+  let renderer: ReactTestRenderer | undefined;
+  act(() => {
+    renderer = create(element);
+  });
+  if (renderer === undefined) {
+    throw new Error("Test renderer was not created");
+  }
+  return renderer;
+}
+
+const runtimeActions = {
+  sendMessage: vi.fn(async () => undefined),
+  resumeInterrupts: vi.fn(async () => undefined),
+  startNewConversation: vi.fn(async () => undefined),
+  abortRun: vi.fn(),
+};
+
+function createDefinition(
+  id: string,
+  definition: Pick<
+    UIPluginDefinition,
+    "inject" | "optionalInject" | "setup" | "provides"
+  > = {},
+  childSlots?: readonly string[],
+): UIPluginDefinition {
+  return {
+    manifest: {
+      id,
+      name: id,
+      description: `${id} test plugin`,
+      version: "1.0.0",
+      ...(definition.setup === undefined ? {} : { capabilities: ["headless"] }),
+      ...(childSlots === undefined
+        ? {}
+        : {
+            slots: {
+              children: Object.fromEntries(
+                childSlots.map((slot) => [
+                  slot,
+                  {
+                    description: `${slot} test Slot`,
+                    cardinality: "many" as const,
+                    optional: true,
+                  },
+                ]),
+              ),
+            },
+          }),
+    },
+    ...definition,
+    Component: () => null,
+  };
+}
+
+function createServiceModel(providerEnabled = true) {
+  return parseAppUIRuntimeModel({
+    root: {
+      type: "slot",
+      id: "services-slot-node",
+      slotId: "services-slot",
+    },
+    pluginInstances: {
+      // Deliberately list the consumer first: dependency resolution must not
+      // depend on AppUIRuntimeModel object order or layout order.
+      "consumer-main": {
+        id: "consumer-main",
+        pluginId: "consumer",
+        enabled: true,
+        mount: { slotId: "services-slot" },
+      },
+      "provider-main": {
+        id: "provider-main",
+        pluginId: "provider",
+        enabled: providerEnabled,
+      },
+    },
+  });
+}
+
+describe("PluginServiceRuntime", () => {
+  it("activates the headless theme provider before an injected consumer", () => {
+    let observed: AgentUIThemeService | undefined;
+    const consumer = createDefinition("theme-consumer", {
+      inject: [AGENT_UI_THEME_SERVICE],
+      setup: ({ services }) => {
+        observed = services.get<AgentUIThemeService>(AGENT_UI_THEME_SERVICE);
+      },
+    });
+    const model = parseAppUIRuntimeModel({
+      root: {
+        type: "slot",
+        id: "theme-services-slot-node",
+        slotId: "theme-services",
+      },
+      pluginInstances: {
+        "theme-consumer-main": {
+          id: "theme-consumer-main",
+          pluginId: "theme-consumer",
+          enabled: true,
+          mount: { slotId: "theme-services" },
+        },
+        "theme-provider-main": {
+          id: "theme-provider-main",
+          pluginId: "theme-provider",
+          enabled: true,
+        },
+      },
+    });
+    const actions = { ...runtimeActions };
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      model,
+      createPluginRegistry([consumer, themeProviderPlugin]),
+      actions,
+    );
+
+    expect(runtime.getActivation("theme-provider-main")?.status).toBe("active");
+    expect(runtime.getActivation("theme-consumer-main")?.status).toBe("active");
+    expect(observed?.getMode()).toBe("light");
+
+    observed?.setMode("dark");
+    expect(observed?.getMode()).toBe("dark");
+  });
+
+  it("rejects contributions to an undeclared Slot deterministically", () => {
+    const slots = new SlotRegistry();
+
+    expect(() =>
+      slots.register({ instanceId: "one", slotId: "messages" }),
+    ).toThrow('Cannot register contribution for undeclared Slot "messages"');
+  });
+
+  it("rejects multiple ordinary contributions from the same instance", () => {
+    const slots = new SlotRegistry();
+    slots.declare({
+      slotId: "left",
+      owner: { kind: "layout", nodeId: "left-node" },
+    });
+    slots.declare({
+      slotId: "right",
+      owner: { kind: "layout", nodeId: "right-node" },
+    });
+    slots.register({ instanceId: "one", slotId: "left" });
+
+    expect(() =>
+      slots.register({ instanceId: "one", slotId: "right" }),
+    ).toThrow('Plugin instance "one" already has a Slot contribution');
+  });
+
+  it("does not activate an enabled visual instance without mount", () => {
+    const model = createServiceModel();
+    delete model.pluginInstances["consumer-main"]!.mount;
+    const runtime = new PluginServiceRuntime();
+    runtime.reconcile(model, createPluginRegistry([createDefinition("consumer")]), runtimeActions);
+    expect(runtime.getActivation("consumer-main")).toBeUndefined();
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+  });
+
+  it("activates hard consumers after their named service becomes available", () => {
+    let greeting: string | undefined;
+    const provider = createDefinition("provider", {
+      provides: ["test.greeter"],
+      setup: ({ services }) => {
+        services.provide("test.greeter", {
+          greet: (who: string) => `Hello, ${who}!`,
+        });
+      },
+    });
+    const consumer = createDefinition("consumer", {
+      inject: ["test.greeter"],
+      setup: ({ services }) => {
+        greeting = services
+          .get<{ greet(who: string): string }>("test.greeter")
+          ?.greet("Agent");
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      createServiceModel(),
+      createPluginRegistry([consumer, provider]),
+      runtimeActions,
+    );
+
+    expect(greeting).toBe("Hello, Agent!");
+    expect(runtime.getActivation("provider-main")?.status).toBe("active");
+    expect(runtime.getActivation("consumer-main")?.status).toBe("active");
+  });
+
+  it("soft-orders an available optional Provider before Consumer setup", () => {
+    let observed: unknown;
+    const provider = createDefinition("provider", {
+      provides: ["test.optional"],
+      setup: ({ services }) => {
+        services.provide("test.optional", { available: true });
+      },
+    });
+    const consumer = createDefinition("consumer", {
+      optionalInject: ["test.optional"],
+      setup: ({ services }) => {
+        observed = services.get("test.optional");
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      createServiceModel(),
+      createPluginRegistry([consumer, provider]),
+      runtimeActions,
+    );
+
+    expect(observed).toEqual({ available: true });
+    expect(runtime.getActivation("consumer-main")?.status).toBe("active");
+  });
+
+  it("keeps a Consumer active when its optional Service is unavailable", () => {
+    let observed: unknown = "not-called";
+    const consumer = createDefinition("consumer", {
+      optionalInject: ["test.optional"],
+      setup: ({ services }) => {
+        observed = services.get("test.optional");
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      createServiceModel(false),
+      createPluginRegistry([consumer]),
+      runtimeActions,
+    );
+
+    expect(observed).toBeUndefined();
+    expect(runtime.getActivation("consumer-main")?.status).toBe("active");
+  });
+
+  it("breaks optional cycles without blocking activation", () => {
+    const first = createDefinition("first", {
+      provides: ["test.first"],
+      optionalInject: ["test.second"],
+      setup: ({ services }) => {
+        services.get("test.second");
+        services.provide("test.first", {});
+      },
+    });
+    const second = createDefinition("second", {
+      provides: ["test.second"],
+      optionalInject: ["test.first"],
+      setup: ({ services }) => {
+        services.get("test.first");
+        services.provide("test.second", {});
+      },
+    });
+    const model = parseAppUIRuntimeModel({
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        first: { id: "first", pluginId: "first", enabled: true },
+        second: { id: "second", pluginId: "second", enabled: true },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(model, createPluginRegistry([first, second]), runtimeActions);
+
+    expect(runtime.getActivation("first")?.status).toBe("active");
+    expect(runtime.getActivation("second")?.status).toBe("active");
+  });
+
+  it("breaks hard plus optional cycles without blocking activation", () => {
+    const first = createDefinition("first", {
+      provides: ["test.first"],
+      optionalInject: ["test.second"],
+      setup: ({ services }) => {
+        services.get("test.second");
+        services.provide("test.first", {});
+      },
+    });
+    const second = createDefinition("second", {
+      provides: ["test.second"],
+      inject: ["test.first"],
+      setup: ({ services }) => {
+        services.get("test.first");
+        services.provide("test.second", {});
+      },
+    });
+    const model = parseAppUIRuntimeModel({
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        first: { id: "first", pluginId: "first", enabled: true },
+        second: { id: "second", pluginId: "second", enabled: true },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(model, createPluginRegistry([first, second]), runtimeActions);
+
+    expect(runtime.getActivation("first")?.status).toBe("active");
+    expect(runtime.getActivation("second")?.status).toBe("active");
+  });
+
+  it("fails setup that reads an undeclared Service", () => {
+    const consumer = createDefinition("consumer", {
+      setup: ({ services }) => {
+        services.get("test.secret");
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      createServiceModel(false),
+      createPluginRegistry([consumer]),
+      runtimeActions,
+    );
+
+    expect(runtime.getActivation("consumer-main")).toEqual({
+      status: "failed",
+      errorMessage:
+        'Plugin "consumer" instance "consumer-main" accessed undeclared service "test.secret"',
+    });
+  });
+
+  it("enforces component declarations but leaves application lookup unrestricted", () => {
+    const runtime = new PluginServiceRuntime();
+    function Probe() {
+      usePluginService("test.secret");
+      return null;
+    }
+
+    expect(() =>
+      createInsideAct(
+        <PluginServiceRuntimeContext.Provider value={runtime}>
+          <PluginServiceConsumerContext.Provider
+            value={{
+              pluginId: "consumer",
+              instanceId: "consumer-main",
+              provides: [],
+              inject: [],
+              optionalInject: [],
+            }}
+          >
+            <Probe />
+          </PluginServiceConsumerContext.Provider>
+        </PluginServiceRuntimeContext.Provider>,
+      ),
+    ).toThrow(
+      'Plugin "consumer" instance "consumer-main" accessed undeclared service "test.secret"',
+    );
+
+    expect(() =>
+      createInsideAct(
+        <PluginServiceRuntimeContext.Provider value={runtime}>
+          <PluginServiceConsumerContext.Provider
+            value={{
+              pluginId: "provider",
+              instanceId: "provider-main",
+              provides: ["test.secret"],
+              inject: [],
+              optionalInject: [],
+            }}
+          >
+            <Probe />
+          </PluginServiceConsumerContext.Provider>
+        </PluginServiceRuntimeContext.Provider>,
+      ),
+    ).not.toThrow();
+
+    expect(() =>
+      createInsideAct(
+        <PluginServiceRuntimeContext.Provider value={runtime}>
+          <Probe />
+        </PluginServiceRuntimeContext.Provider>,
+      ),
+    ).not.toThrow();
+  });
+
+  it("emits a revision when a Provider disposes a Service outside reconcile", () => {
+    let disposeService: (() => void) | undefined;
+    const provider = createDefinition("provider", {
+      provides: ["test.disposable"],
+      setup: ({ services }) => {
+        disposeService = services.provide("test.disposable", {});
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+    runtime.reconcile(
+      createServiceModel(),
+      createPluginRegistry([provider]),
+      runtimeActions,
+    );
+    const revision = runtime.getRevision();
+
+    disposeService?.();
+
+    expect(runtime.get("test.disposable")).toBeUndefined();
+    expect(runtime.getRevision()).toBe(revision + 1);
+  });
+
+  it("reactively enhances and restores an optional component fallback", () => {
+    const provider = createDefinition("provider", {
+      provides: ["test.optional"],
+      setup: ({ services }) => {
+        services.provide("test.optional", { enhanced: true });
+      },
+    });
+    const registry = createPluginRegistry([provider]);
+    const runtime = new PluginServiceRuntime();
+    const providerModel = parseAppUIRuntimeModel({
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "provider-main": {
+          id: "provider-main",
+          pluginId: "provider",
+          enabled: true,
+        },
+      },
+    });
+    function Probe() {
+      const service = usePluginService<{ enhanced: boolean }>("test.optional");
+      return <span>{service?.enhanced === true ? "enhanced" : "fallback"}</span>;
+    }
+    const renderer = createInsideAct(
+      <PluginServiceRuntimeContext.Provider value={runtime}>
+        <PluginServiceConsumerContext.Provider
+          value={{
+            pluginId: "consumer",
+            instanceId: "consumer-main",
+            provides: [],
+            inject: [],
+            optionalInject: ["test.optional"],
+          }}
+        >
+          <Probe />
+        </PluginServiceConsumerContext.Provider>
+      </PluginServiceRuntimeContext.Provider>,
+    );
+    expect(renderer.toJSON()).toHaveProperty("children", ["fallback"]);
+
+    act(() => {
+      runtime.reconcile(providerModel, registry, runtimeActions);
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["enhanced"]);
+
+    act(() => {
+      const disabledProviderModel = structuredClone(providerModel);
+      disabledProviderModel.pluginInstances["provider-main"]!.enabled = false;
+      runtime.reconcile(disabledProviderModel, registry, runtimeActions);
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["fallback"]);
+    renderer.unmount();
+  });
+
+  it("rejects duplicate service providers deterministically", () => {
+    const first = createDefinition("first", {
+      provides: ["test.shared"],
+      setup: ({ services }) => {
+        services.provide("test.shared", { owner: "first" });
+      },
+    });
+    const second = createDefinition("second", {
+      provides: ["test.shared"],
+      setup: ({ services }) => {
+        services.provide("test.shared", { owner: "second" });
+      },
+    });
+    const model = parseAppUIRuntimeModel({
+      root: {
+        type: "slot",
+        id: "duplicate-slot-node",
+        slotId: "duplicate-slot",
+      },
+      pluginInstances: {
+        "z-provider": {
+          id: "z-provider",
+          pluginId: "second",
+          enabled: true,
+        },
+        "a-provider": {
+          id: "a-provider",
+          pluginId: "first",
+          enabled: true,
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      model,
+      createPluginRegistry([first, second]),
+      runtimeActions,
+    );
+
+    expect(runtime.get<{ owner: string }>("test.shared")?.owner).toBe(
+      "first",
+    );
+    expect(runtime.getActivation("a-provider")?.status).toBe("active");
+    expect(runtime.getActivation("z-provider")).toEqual({
+      status: "failed",
+      errorMessage:
+        'UI plugin service "test.shared" is already provided by instance "a-provider"',
+    });
+  });
+
+  it("fails when a plugin calls provide for an undeclared service", () => {
+    const provider = createDefinition("provider", {
+      setup: ({ services }) => {
+        services.provide("test.secret", {});
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      createServiceModel(),
+      createPluginRegistry([provider]),
+      runtimeActions,
+    );
+
+    expect(runtime.getActivation("provider-main")).toEqual({
+      status: "failed",
+      errorMessage:
+        'Plugin "provider" did not declare service "test.secret" in provides',
+    });
+    expect(runtime.get("test.secret")).toBeUndefined();
+  });
+
+  it("fails when declared services are not provided during activation", () => {
+    const provider = createDefinition("provider", {
+      provides: ["test.editor"],
+      setup: vi.fn(),
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      createServiceModel(),
+      createPluginRegistry([provider]),
+      runtimeActions,
+    );
+
+    expect(runtime.getActivation("provider-main")).toEqual({
+      status: "failed",
+      errorMessage:
+        'Plugin "provider" did not provide required service "test.editor" during activation',
+    });
+    expect(runtime.get("test.editor")).toBeUndefined();
+  });
+
+  it("updates snapshot consumers through service subscribe lifecycle", () => {
+    interface TestSnapshot {
+      value: number;
+    }
+
+    const listeners = new Set<() => void>();
+    let snapshot: TestSnapshot = { value: 0 };
+
+    const service: UIPluginObservableService<TestSnapshot> = {
+      getSnapshot: () => snapshot,
+      subscribe: (listener) => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+    };
+
+    function Counter({
+      currentService,
+    }: { currentService: UIPluginObservableService<TestSnapshot> | undefined }) {
+      const current = usePluginServiceSnapshot(currentService, { value: -1 });
+      return <span>{current.value}</span>;
+    }
+
+    const renderer = createInsideAct(<Counter currentService={service} />);
+
+    expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
+
+    act(() => {
+      snapshot = { value: 1 };
+      listeners.forEach((listener) => listener());
+    });
+
+    expect(renderer.toJSON()).toHaveProperty("children", ["1"]);
+
+    act(() => {
+      snapshot = { value: 2 };
+      listeners.forEach((listener) => listener());
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["2"]);
+
+    renderer.unmount();
+  });
+
+  it("supports class-based observable services without losing this", () => {
+    const EMPTY_SNAPSHOT = { value: 0 };
+    class CounterService
+      implements UIPluginObservableService<typeof EMPTY_SNAPSHOT>
+    {
+      private snapshot = EMPTY_SNAPSHOT;
+      private readonly listeners = new Set<() => void>();
+
+      getSnapshot() {
+        return this.snapshot;
+      }
+
+      subscribe(listener: () => void) {
+        this.listeners.add(listener);
+
+        return () => this.listeners.delete(listener);
+      }
+
+      increment() {
+        this.snapshot = {
+          value: this.snapshot.value + 1,
+        };
+        this.listeners.forEach((listener) => listener());
+      }
+    }
+
+    const service = new CounterService();
+
+    function Counter({
+      service: pluginService,
+    }: {
+      service: CounterService | undefined;
+    }) {
+      const snapshot = usePluginServiceSnapshot(pluginService, EMPTY_SNAPSHOT);
+
+      return <span>{snapshot.value}</span>;
+    }
+
+    const renderer = createInsideAct(<Counter service={service} />);
+
+    expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
+
+    act(() => {
+      service.increment();
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["1"]);
+
+    act(() => {
+      service.increment();
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["2"]);
+
+    renderer.unmount();
+  });
+
+  it("unsubscribes class service listeners on unmount", () => {
+    const EMPTY_SNAPSHOT = { value: 0 };
+    class CounterService
+      implements UIPluginObservableService<typeof EMPTY_SNAPSHOT>
+    {
+      private snapshot = EMPTY_SNAPSHOT;
+      private readonly listeners = new Set<() => void>();
+
+      getSnapshot() {
+        return this.snapshot;
+      }
+
+      subscribe(listener: () => void) {
+        this.listeners.add(listener);
+
+        return () => this.listeners.delete(listener);
+      }
+
+      get listenerCount() {
+        return this.listeners.size;
+      }
+    }
+
+    const service = new CounterService();
+
+    function Counter({
+      service: pluginService,
+    }: {
+      service: CounterService | undefined;
+    }) {
+      const snapshot = usePluginServiceSnapshot(pluginService, EMPTY_SNAPSHOT);
+
+      return <span>{snapshot.value}</span>;
+    }
+
+    const renderer = createInsideAct(<Counter service={service} />);
+
+    expect(service.listenerCount).toBe(1);
+    expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
+
+    act(() => renderer.unmount());
+    expect(service.listenerCount).toBe(0);
+  });
+
+  it("rebinds to a replacement observable service instance", () => {
+    const EMPTY_SNAPSHOT = { value: 0 };
+    class CounterService
+      implements UIPluginObservableService<typeof EMPTY_SNAPSHOT>
+    {
+      private snapshot = EMPTY_SNAPSHOT;
+      private readonly listeners = new Set<() => void>();
+
+      getSnapshot() {
+        return this.snapshot;
+      }
+
+      subscribe(listener: () => void) {
+        this.listeners.add(listener);
+
+        return () => this.listeners.delete(listener);
+      }
+
+      increment() {
+        this.snapshot = {
+          value: this.snapshot.value + 1,
+        };
+        this.listeners.forEach((listener) => listener());
+      }
+
+      get listenerCount() {
+        return this.listeners.size;
+      }
+    }
+
+    const firstService = new CounterService();
+    const secondService = new CounterService();
+
+    function Counter({
+      service: pluginService,
+    }: {
+      service: CounterService | undefined;
+    }) {
+      const snapshot = usePluginServiceSnapshot(pluginService, EMPTY_SNAPSHOT);
+
+      return <span>{snapshot.value}</span>;
+    }
+
+    const renderer = createInsideAct(<Counter service={firstService} />);
+
+    expect(firstService.listenerCount).toBe(1);
+    expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
+
+    act(() => {
+      firstService.increment();
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["1"]);
+
+    act(() => {
+      renderer.update(<Counter service={secondService} />);
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
+    expect(firstService.listenerCount).toBe(0);
+    expect(secondService.listenerCount).toBe(1);
+
+    act(() => {
+      firstService.increment();
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["0"]);
+
+    act(() => {
+      secondService.increment();
+    });
+    expect(renderer.toJSON()).toHaveProperty("children", ["1"]);
+
+    act(() => renderer.unmount());
+    expect(secondService.listenerCount).toBe(0);
+  });
+
+  it("cleans provider and consumer lifetimes before a dependency disappears", () => {
+    const providerCleanup = vi.fn();
+    const consumerCleanup = vi.fn();
+    let providerSequence = 0;
+    const provider = createDefinition("provider", {
+      provides: ["test.replaceable"],
+      setup: ({ services }) => {
+        const service = { sequence: ++providerSequence };
+        services.provide("test.replaceable", service);
+        return providerCleanup;
+      },
+    });
+    const consumer = createDefinition("consumer", {
+      inject: ["test.replaceable"],
+      setup: () => consumerCleanup,
+    });
+    const registry = createPluginRegistry([provider, consumer]);
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(createServiceModel(), registry, runtimeActions);
+    const firstService = runtime.get<{ sequence: number }>("test.replaceable");
+    const firstActivation = runtime.getActivation("consumer-main");
+
+    runtime.reconcile(createServiceModel(false), registry, runtimeActions);
+
+    expect(providerCleanup).toHaveBeenCalledOnce();
+    expect(consumerCleanup).toHaveBeenCalledOnce();
+    expect(runtime.get("test.replaceable")).toBeUndefined();
+    expect(runtime.getActivation("consumer-main")).toEqual({
+      status: "pending",
+      missingServices: ["test.replaceable"],
+    });
+
+    runtime.reconcile(createServiceModel(), registry, runtimeActions);
+    const secondService = runtime.get<{ sequence: number }>("test.replaceable");
+    const secondActivation = runtime.getActivation("consumer-main");
+
+    expect(secondService).not.toBe(firstService);
+    expect(secondService?.sequence).toBe(2);
+    expect(firstActivation?.status).toBe("active");
+    expect(secondActivation?.status).toBe("active");
+    if (
+      firstActivation?.status === "active" &&
+      secondActivation?.status === "active"
+    ) {
+      expect(secondActivation.activationId).toBeGreaterThan(
+        firstActivation.activationId,
+      );
+    }
+  });
+
+  it("keeps setup and services alive across Slot declaration lifetimes", () => {
+    const service = { id: "stable-slot-service" };
+    const setupCleanup = vi.fn();
+    const setup = vi.fn(({ services }: UIPluginSetupContext) => {
+      services.provide("test.slot-survival", service);
+      return setupCleanup;
+    });
+    const visual = createDefinition("visual", {
+      provides: ["test.slot-survival"],
+      setup,
+    });
+    const model = parseAppUIRuntimeModel({
+      root: { type: "slot", id: "test-slot-node", slotId: "test-slot" },
+      pluginInstances: {
+        "visual-main": {
+          id: "visual-main",
+          pluginId: "visual",
+          enabled: true,
+          mount: { slotId: "test-slot" },
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+    const registry = createPluginRegistry([visual]);
+
+    runtime.reconcile(model, registry, runtimeActions);
+    const activation = runtime.getActivation("visual-main");
+
+    expect(activation?.status).toBe("active");
+    expect(setup).toHaveBeenCalledOnce();
+    expect(runtime.get("test.slot-survival")).toBe(service);
+    expect(runtime.slots.getContributions("test-slot")).toEqual([]);
+
+    const disposeFirstDeclaration = runtime.slots.declare({
+      slotId: "test-slot",
+      owner: { kind: "layout", nodeId: "test-slot-node" },
+    });
+
+    expect(runtime.slots.getContributions("test-slot")).toEqual([
+      { instanceId: "visual-main", slotId: "test-slot" },
+    ]);
+    expect(setup).toHaveBeenCalledOnce();
+    expect(runtime.getActivation("visual-main")).toEqual(activation);
+
+    disposeFirstDeclaration();
+
+    expect(runtime.slots.getContributions("test-slot")).toEqual([]);
+    expect(runtime.getActivation("visual-main")).toEqual(activation);
+    expect(runtime.get("test.slot-survival")).toBe(service);
+    expect(setupCleanup).not.toHaveBeenCalled();
+
+    runtime.slots.declare({
+      slotId: "test-slot",
+      owner: { kind: "layout", nodeId: "replacement-test-slot-node" },
+    });
+
+    expect(runtime.slots.getContributions("test-slot")).toEqual([
+      { instanceId: "visual-main", slotId: "test-slot" },
+    ]);
+    expect(setup).toHaveBeenCalledOnce();
+    expect(runtime.get("test.slot-survival")).toBe(service);
+    expect(runtime.getActivation("visual-main")).toEqual(activation);
+
+    const disabled = structuredClone(model);
+    disabled.pluginInstances["visual-main"]!.enabled = false;
+    runtime.reconcile(disabled, registry, runtimeActions);
+
+    expect(setupCleanup).toHaveBeenCalledOnce();
+    expect(runtime.get("test.slot-survival")).toBeUndefined();
+    expect(runtime.slots.getContributions("test-slot")).toEqual([]);
+  });
+
+  it("binds a mount contribution to Plugin activation and Slot declaration", () => {
+    const runtime = new PluginServiceRuntime();
+    const registry = createPluginRegistry([createDefinition("consumer")]);
+    const mounted = createServiceModel();
+    delete mounted.pluginInstances["provider-main"];
+
+    runtime.reconcile(mounted, registry, runtimeActions);
+    const activation = runtime.getActivation("consumer-main");
+    expect(activation?.status).toBe("active");
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+
+    const disposeDeclaration = runtime.slots.declare({
+      slotId: "services-slot",
+      owner: { kind: "layout", nodeId: "services-slot-node" },
+    });
+    expect(runtime.slots.getContributions("services-slot")).toEqual([
+      { instanceId: "consumer-main", slotId: "services-slot" },
+    ]);
+
+    disposeDeclaration();
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+    expect(runtime.getActivation("consumer-main")).toEqual(activation);
+
+    const disposeReplacementDeclaration = runtime.slots.declare({
+      slotId: "services-slot",
+      owner: { kind: "layout", nodeId: "replacement-services-slot-node" },
+    });
+    expect(runtime.slots.getContributions("services-slot")).toEqual([
+      { instanceId: "consumer-main", slotId: "services-slot" },
+    ]);
+    expect(runtime.getActivation("consumer-main")).toEqual(activation);
+
+    const disabled = structuredClone(mounted);
+    disabled.pluginInstances["consumer-main"]!.enabled = false;
+    runtime.reconcile(disabled, registry, runtimeActions);
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+
+    disposeReplacementDeclaration();
+    runtime.slots.declare({
+      slotId: "services-slot",
+      owner: { kind: "layout", nodeId: "third-services-slot-node" },
+    });
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+
+    const removed = structuredClone(mounted);
+    delete removed.pluginInstances["consumer-main"];
+    runtime.reconcile(mounted, registry, runtimeActions);
+    expect(runtime.slots.getContributions("services-slot")).toHaveLength(1);
+    runtime.reconcile(removed, registry, runtimeActions);
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+
+    runtime.reconcile(mounted, registry, runtimeActions);
+    runtime.dispose();
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+  });
+
+  it("binds child declarations to their owner contribution lifetime", () => {
+    const setupCleanup = vi.fn();
+    const setup = vi.fn(() => setupCleanup);
+    const owner = createDefinition("owner", { setup }, ["owner.child"]);
+    const model = parseAppUIRuntimeModel({
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "owner-main": {
+          id: "owner-main",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      model,
+      createPluginRegistry([owner]),
+      runtimeActions,
+    );
+    const activation = runtime.getActivation("owner-main");
+
+    expect(activation?.status).toBe("active");
+    expect(setup).toHaveBeenCalledOnce();
+    expect(runtime.slots.getContributions("root")).toEqual([]);
+    expect(runtime.slots.getDeclaration("plugin:owner-main:owner.child")).toBeUndefined();
+
+    const disposeRoot = runtime.slots.declare({
+      slotId: "root",
+      owner: { kind: "layout", nodeId: "root-node" },
+    });
+
+    expect(runtime.slots.getContributions("root")).toEqual([
+      { instanceId: "owner-main", slotId: "root" },
+    ]);
+    expect(runtime.slots.getDeclaration("plugin:owner-main:owner.child")).toEqual({
+      slotId: "plugin:owner-main:owner.child",
+      owner: { kind: "plugin", instanceId: "owner-main" },
+    });
+
+    disposeRoot();
+
+    expect(runtime.slots.getContributions("root")).toEqual([]);
+    expect(runtime.slots.getDeclaration("plugin:owner-main:owner.child")).toBeUndefined();
+    expect(runtime.getActivation("owner-main")).toEqual(activation);
+    expect(setup).toHaveBeenCalledOnce();
+    expect(setupCleanup).not.toHaveBeenCalled();
+
+    runtime.slots.declare({
+      slotId: "root",
+      owner: { kind: "layout", nodeId: "replacement-root-node" },
+    });
+
+    expect(runtime.slots.getContributions("root")).toEqual([
+      { instanceId: "owner-main", slotId: "root" },
+    ]);
+    expect(runtime.slots.getDeclaration("plugin:owner-main:owner.child")).toEqual({
+      slotId: "plugin:owner-main:owner.child",
+      owner: { kind: "plugin", instanceId: "owner-main" },
+    });
+    expect(runtime.getActivation("owner-main")).toEqual(activation);
+    expect(setup).toHaveBeenCalledOnce();
+  });
+
+  it("composes child mounts independently of activation order and Slot lifetime", () => {
+    const ownerService = { id: "stable-owner-service" };
+    const consumerService = { id: "stable-consumer-service" };
+    const ownerSetup = vi.fn(({ services }: UIPluginSetupContext) => {
+      services.provide("test.owner-lifetime", ownerService);
+    });
+    const consumerSetup = vi.fn(({ services }: UIPluginSetupContext) => {
+      services.provide("test.consumer-lifetime", consumerService);
+    });
+    const owner = createDefinition(
+      "owner",
+      { provides: ["test.owner-lifetime"], setup: ownerSetup },
+      ["owner.child"],
+    );
+    const consumer = createDefinition("consumer", {
+      provides: ["test.consumer-lifetime"],
+      setup: consumerSetup,
+    });
+    const model = parseAppUIRuntimeModel({
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "a-consumer": {
+          id: "a-consumer",
+          pluginId: "consumer",
+          enabled: true,
+          mount: { slotId: "plugin:z-owner:owner.child" },
+        },
+        "z-owner": {
+          id: "z-owner",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(
+      model,
+      createPluginRegistry([consumer, owner]),
+      runtimeActions,
+    );
+    const ownerActivation = runtime.getActivation("z-owner");
+    const consumerActivation = runtime.getActivation("a-consumer");
+
+    expect(ownerActivation?.status).toBe("active");
+    expect(consumerActivation?.status).toBe("active");
+    expect(runtime.slots.getContributions("root")).toEqual([]);
+    expect(runtime.slots.getDeclaration("plugin:z-owner:owner.child")).toBeUndefined();
+    expect(runtime.slots.getContributions("plugin:z-owner:owner.child")).toEqual([]);
+
+    const disposeRoot = runtime.slots.declare({
+      slotId: "root",
+      owner: { kind: "layout", nodeId: "root-node" },
+    });
+
+    expect(runtime.slots.getContributions("root")).toEqual([
+      { instanceId: "z-owner", slotId: "root" },
+    ]);
+    expect(runtime.slots.getContributions("plugin:z-owner:owner.child")).toEqual([
+      { instanceId: "a-consumer", slotId: "plugin:z-owner:owner.child" },
+    ]);
+
+    disposeRoot();
+
+    expect(runtime.slots.getContributions("root")).toEqual([]);
+    expect(runtime.slots.getDeclaration("plugin:z-owner:owner.child")).toBeUndefined();
+    expect(runtime.slots.getContributions("plugin:z-owner:owner.child")).toEqual([]);
+    expect(runtime.getActivation("z-owner")).toEqual(ownerActivation);
+    expect(runtime.getActivation("a-consumer")).toEqual(consumerActivation);
+    expect(runtime.get("test.owner-lifetime")).toBe(ownerService);
+    expect(runtime.get("test.consumer-lifetime")).toBe(consumerService);
+    expect(ownerSetup).toHaveBeenCalledOnce();
+    expect(consumerSetup).toHaveBeenCalledOnce();
+
+    runtime.slots.declare({
+      slotId: "root",
+      owner: { kind: "layout", nodeId: "replacement-root-node" },
+    });
+
+    expect(runtime.slots.getContributions("root")).toEqual([
+      { instanceId: "z-owner", slotId: "root" },
+    ]);
+    expect(runtime.slots.getContributions("plugin:z-owner:owner.child")).toEqual([
+      { instanceId: "a-consumer", slotId: "plugin:z-owner:owner.child" },
+    ]);
+    expect(runtime.getActivation("z-owner")).toEqual(ownerActivation);
+    expect(runtime.getActivation("a-consumer")).toEqual(consumerActivation);
+    expect(ownerSetup).toHaveBeenCalledOnce();
+    expect(consumerSetup).toHaveBeenCalledOnce();
+  });
+
+  it("declares and removes every child Slot as one contribution lifetime", () => {
+    const owner = createDefinition("owner", {}, [
+      "owner.header",
+      "owner.body",
+      "owner.footer",
+    ]);
+    const model = parseAppUIRuntimeModel({
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "owner-main": {
+          id: "owner-main",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(model, createPluginRegistry([owner]), runtimeActions);
+    const disposeRoot = runtime.slots.declare({
+      slotId: "root",
+      owner: { kind: "layout", nodeId: "root-node" },
+    });
+
+    for (const slotId of [
+      "plugin:owner-main:owner.header",
+      "plugin:owner-main:owner.body",
+      "plugin:owner-main:owner.footer",
+    ]) {
+      expect(runtime.slots.getDeclaration(slotId)).toEqual({
+        slotId,
+        owner: { kind: "plugin", instanceId: "owner-main" },
+      });
+    }
+
+    disposeRoot();
+
+    for (const slotId of [
+      "plugin:owner-main:owner.header",
+      "plugin:owner-main:owner.body",
+      "plugin:owner-main:owner.footer",
+    ]) {
+      expect(runtime.slots.getDeclaration(slotId)).toBeUndefined();
+    }
+  });
+
+  it("rolls back the contribution and all new child declarations on collision", () => {
+    const owner = createDefinition("owner", {}, [
+      "owner.header",
+      "owner.body",
+      "owner.footer",
+    ]);
+    const model = parseAppUIRuntimeModel({
+      root: { type: "slot", id: "root-node", slotId: "root" },
+      pluginInstances: {
+        "owner-main": {
+          id: "owner-main",
+          pluginId: "owner",
+          enabled: true,
+          mount: { slotId: "root" },
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+    const existingBody = {
+      slotId: "plugin:owner-main:owner.body",
+      owner: { kind: "layout" as const, nodeId: "existing-body-node" },
+    };
+    runtime.slots.declare(existingBody);
+    runtime.reconcile(model, createPluginRegistry([owner]), runtimeActions);
+
+    expect(() =>
+      runtime.slots.declare({
+        slotId: "root",
+        owner: { kind: "layout", nodeId: "root-node" },
+      }),
+    ).toThrow('Slot "plugin:owner-main:owner.body" already has a live declaration');
+
+    expect(runtime.slots.getContributions("root")).toEqual([]);
+    expect(runtime.slots.getDeclaration("plugin:owner-main:owner.header")).toBeUndefined();
+    expect(runtime.slots.getDeclaration("plugin:owner-main:owner.footer")).toBeUndefined();
+    expect(runtime.slots.getDeclaration("plugin:owner-main:owner.body")).toEqual(existingBody);
+    expect(runtime.getActivation("owner-main")?.status).toBe("active");
+  });
+
+  it("orders multiple contributions by order and then instanceId", () => {
+    const runtime = new PluginServiceRuntime();
+    const definition = createDefinition("visual");
+    const model = parseAppUIRuntimeModel({
+      root: { type: "slot", id: "list-node", slotId: "list" },
+      pluginInstances: {
+        "z-last": { id: "z-last", pluginId: "visual", enabled: true, mount: { slotId: "list", order: 5 } },
+        "b-second": { id: "b-second", pluginId: "visual", enabled: true, mount: { slotId: "list", order: 1 } },
+        "a-first": { id: "a-first", pluginId: "visual", enabled: true, mount: { slotId: "list", order: 1 } },
+      },
+    });
+    runtime.slots.declare({
+      slotId: "list",
+      owner: { kind: "layout", nodeId: "list-node" },
+    });
+
+    runtime.reconcile(model, createPluginRegistry([definition]), runtimeActions);
+
+    expect(
+      runtime.slots.getContributions("list").map(({ instanceId }) => instanceId),
+    ).toEqual(["a-first", "b-second", "z-last"]);
+  });
+
+  it("activates a headless Plugin without an ordinary mount", () => {
+    const headless = createDefinition("headless", { setup: () => undefined });
+    const model = parseAppUIRuntimeModel({
+      root: { type: "slot", id: "unused-node", slotId: "unused" },
+      pluginInstances: {
+        background: {
+          id: "background",
+          pluginId: "headless",
+          enabled: true,
+        },
+      },
+    });
+    const runtime = new PluginServiceRuntime();
+
+    runtime.reconcile(model, createPluginRegistry([headless]), runtimeActions);
+
+    expect(runtime.getActivation("background")?.status).toBe("active");
+    expect(runtime.slots.getContributions("unused")).toEqual([]);
+  });
+});
+
+describe("AgentUIThemeService", () => {
+  it.each([
+    [undefined, "light"],
+    ["invalid", "light"],
+    ["light", "light"],
+    ["dark", "dark"],
+  ] as const)("normalizes %s to %s", (value, expected) => {
+    expect(readAgentUIThemeMode(value)).toBe(expected);
+  });
+
+  it("exposes callable theme functions and notifies subscribers", () => {
+    const subscriber = vi.fn();
+    const theme = createAgentUIThemeService("dark");
+    const unsubscribe = theme.subscribe(subscriber);
+
+    theme.setMode("light");
+    theme.toggle();
+    unsubscribe();
+    theme.setMode("light");
+
+    expect(subscriber).toHaveBeenCalledTimes(2);
+    expect(theme.getMode()).toBe("light");
+  });
+
+  it("does not notify or persist when setMode receives the current mode", () => {
+    const subscriber = vi.fn();
+    const theme = createAgentUIThemeService("light");
+    theme.subscribe(subscriber);
+
+    theme.setMode("light");
+
+    expect(subscriber).not.toHaveBeenCalled();
+    expect(theme.getMode()).toBe("light");
+  });
+});

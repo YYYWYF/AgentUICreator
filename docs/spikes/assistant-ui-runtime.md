@@ -38,9 +38,9 @@ Mock 场景继续由现有 `resolveAgentEndpoint()` 解析，例如：
 ## 依赖与源码边界
 
 - Runtime 精确锁定：`@assistant-ui/react@0.15.19`、`@assistant-ui/react-ag-ui@0.0.59`、`@ag-ui/client@0.0.59`。
-- assistant-ui 官方 Base UI Thread 及递归 registry 源码位于 `examples/agent-frontend/src/spikes/assistant-ui/**`。
-- Plugin 入口只位于 `examples/agent-frontend/plugins/assistant-ui-conversation-spike/**`。
-- `packages/source-registry/**` 与 `examples/agent-frontend/agent-ui/**` 继续禁止 assistant-ui、Tailwind、CVA 和 Lucide 依赖。
+- assistant-ui 官方 Base UI Thread 及递归 registry 源码位于 `examples/creator-host-sandbox/src/spikes/assistant-ui/**`。
+- Plugin 入口只位于 `examples/creator-host-sandbox/src/agent-ui/plugins/assistant-ui-conversation-spike/**`。
+- `packages/source-registry/**` 与 `examples/creator-host-sandbox/src/agent-ui/agent-ui/**` 继续禁止 assistant-ui、Tailwind、CVA 和 Lucide 依赖。
 - Tailwind CSS 只在 development query 开启时动态加载；Theme、Utilities 与基于 `tailwindcss@4.3.3` 的 scoped Preflight 分层加载，所有 reset 与颜色变量都限定在 `.assistant-ui-spike`。
 - Vendored assistant-ui presentation source 保持上游 Tailwind、CVA 与 Base UI 实现。AgentUICreator 不把上游 Tailwind class 翻译为 CSS Modules；集成层只负责 Runtime、Plugin/Slot 边界、theme containment 与 scoped Tailwind baseline。
 - 新增 policy test，禁止 assistant-ui 及其 Spike-only 实现依赖从上述两个实验目录泄漏到正式生产源码。

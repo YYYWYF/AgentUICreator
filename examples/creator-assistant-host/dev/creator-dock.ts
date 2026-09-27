@@ -1,6 +1,6 @@
 const dockId = "agent-ui-creator-dock";
 
-if (document.getElementById(dockId) === null) {
+if (!new URLSearchParams(location.search).has("creator-preview") && document.getElementById(dockId) === null) {
   const host = document.createElement("div");
   host.id = dockId;
   const shadow = host.attachShadow({ mode: "open" });

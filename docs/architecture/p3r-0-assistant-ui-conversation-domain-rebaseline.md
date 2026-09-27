@@ -29,7 +29,7 @@ Backend Agent
 核心 recommendation：
 
 1. `workspace.conversation` 继续挂载 AgentUICreator 的 `conversation-surface`；assistant-ui `Thread` 是其内部 canonical implementation，不是新的顶层产品 Plugin。
-2. upstream presentation 固定进入 `examples/agent-frontend/agent-ui/vendor/assistant-ui/`；项目集成进入 `examples/agent-frontend/agent-ui/adapters/assistant-ui/`。
+2. upstream presentation 固定进入 `examples/creator-host-sandbox/src/agent-ui/agent-ui/vendor/assistant-ui/`；项目集成进入 `examples/creator-host-sandbox/src/agent-ui/agent-ui/adapters/assistant-ui/`。
 3. P3R-2 新建 `packages/runtime-assistant-ui/`，由它唯一创建并拥有 canonical active-conversation Runtime。UI Plugin 不创建 Runtime。
 4. 现有 conversation semantic Slots 全部保留，Slot 只表达可替换能力，不发展成 visual micro-slot。
 5. `runtime-core`、`runtime-agui` 只能按 capability 迁移和删除；在 Frontend Tools、HITL、Custom Events、Subagent、History、Diagnostics 完成证明前，不允许 package 级删除。
@@ -181,7 +181,7 @@ Final repository paths:
 packages/
   runtime-assistant-ui/                 # P3R-2, Runtime integration only
 
-examples/agent-frontend/agent-ui/
+examples/creator-host-sandbox/src/agent-ui/agent-ui/
   vendor/assistant-ui/
     components/
     hooks/

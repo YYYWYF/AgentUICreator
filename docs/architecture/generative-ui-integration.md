@@ -104,7 +104,7 @@ and recording these gaps rather than implementing substitute components.
 
 Forms collect named controls through the official Form action's `$input` object.
 That mechanism is distinct from the unavailable `$field` expression. The gallery
-fixture in `examples/agent-frontend/tests/fixtures/generative-ui-gallery.ts` uses
+fixture in `examples/creator-host-sandbox/tests/fixtures/generative-ui-gallery.ts` uses
 only actual official `$type` vocabulary; it is not a Mock wire scenario. Table
 and Chart are never presented as A2UI Basic Catalog components.
 

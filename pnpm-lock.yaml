@@ -13,9 +13,6 @@ importers:
       '@agent-ui/creator':
         specifier: workspace:*
         version: link:../../packages/creator
-      '@agent-ui/example-agent-frontend':
-        specifier: workspace:*
-        version: link:../../examples/agent-frontend
       react:
         specifier: ^19.2.8
         version: 19.3.0
@@ -23,6 +20,15 @@ importers:
         specifier: ^19.2.8
         version: 19.3.0(react@19.3.0)
     devDependencies:
+      '@agent-ui/bootstrap':
+        specifier: workspace:^
+        version: link:../../packages/bootstrap
+      '@agent-ui/mock-agent':
+        specifier: workspace:^
+        version: link:../../packages/mock-agent
+      '@agent-ui/project-control':
+        specifier: workspace:^
+        version: link:../../packages/project-control
       '@playwright/test':
         specifier: ^1.63.0
         version: 1.63.0
@@ -49,131 +55,7 @@ importers:
         version: 7.0.2
       vite:
         specifier: ^8.2.2
-        version: 8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6)
-
-  examples/agent-frontend:
-    dependencies:
-      '@agent-ui/react':
-        specifier: workspace:^
-        version: link:../../packages/react
-      '@agent-ui/runtime-conversation':
-        specifier: workspace:^
-        version: link:../../packages/runtime-conversation
-      '@agent-ui/runtime-core':
-        specifier: workspace:^
-        version: link:../../packages/runtime-core
-      '@agent-ui/runtime-react':
-        specifier: workspace:*
-        version: link:../../packages/runtime-react
-      '@base-ui/react':
-        specifier: 1.8.0
-        version: 1.8.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      class-variance-authority:
-        specifier: 0.7.1
-        version: 0.7.1
-      cn:
-        specifier: 0.2.6
-        version: 0.2.6
-      lucide-react:
-        specifier: 1.41.0
-        version: 1.41.0(react@19.3.0)
-      react:
-        specifier: ^19.2.8
-        version: 19.3.0
-      react-dom:
-        specifier: ^19.2.8
-        version: 19.3.0(react@19.3.0)
-      remark-gfm:
-        specifier: 4.0.1
-        version: 4.0.1
-      tw-shimmer:
-        specifier: 0.4.13
-        version: 0.4.13(tailwindcss@4.3.3)
-      zod:
-        specifier: ^4.5.4
-        version: 4.6.2
-      zustand:
-        specifier: 5.0.15
-        version: 5.0.15(@types/react@19.3.0)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
-    devDependencies:
-      '@ag-ui/client':
-        specifier: 0.0.59
-        version: 0.0.59
-      '@ag-ui/core':
-        specifier: 0.0.59
-        version: 0.0.59
-      '@agent-ui/bootstrap':
-        specifier: workspace:^
-        version: link:../../packages/bootstrap
-      '@agent-ui/mock-agent':
-        specifier: workspace:^
-        version: link:../../packages/mock-agent
-      '@agent-ui/source-registry':
-        specifier: workspace:^
-        version: link:../../packages/source-registry
-      '@assistant-ui/react-generative-ui':
-        specifier: 0.0.21
-        version: 0.0.21(@assistant-ui/react@0.15.22(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))(@types/react@19.3.0)(react@19.3.0)(zod@4.6.2)
-      '@assistant-ui/react-hook-form':
-        specifier: 0.12.34
-        version: 0.12.34(@assistant-ui/tap@0.9.19(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(assistant-cloud@0.2.3)(react-hook-form@7.88.0(react@19.3.0))(react@19.3.0)
-      '@tailwindcss/vite':
-        specifier: 4.3.3
-        version: 4.3.3(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
-      '@types/node':
-        specifier: ^20.19.43
-        version: 20.19.43
-      '@types/react':
-        specifier: ^19.2.18
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: ^19.2.5
-        version: 19.3.0(@types/react@19.3.0)
-      '@types/react-test-renderer':
-        specifier: 19.1.0
-        version: 19.1.0
-      '@types/semver':
-        specifier: ^7.7.1
-        version: 7.8.0
-      '@vitejs/plugin-react':
-        specifier: ^6.1.1
-        version: 6.1.1(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
-      jsdom:
-        specifier: ^27.0.0
-        version: 27.4.0
-      react-hook-form:
-        specifier: ^7
-        version: 7.88.0(react@19.3.0)
-      react-markdown:
-        specifier: 10.1.0
-        version: 10.1.0(@types/react@19.3.0)(react@19.3.0)
-      react-test-renderer:
-        specifier: 19.2.8
-        version: 19.2.8(react@19.3.0)
-      rxjs:
-        specifier: 7.8.1
-        version: 7.8.1
-      semver:
-        specifier: ^7.7.3
-        version: 7.8.5
-      tailwindcss:
-        specifier: 4.3.3
-        version: 4.3.3
-      tsx:
-        specifier: 4.20.6
-        version: 4.20.6
-      tw-animate-css:
-        specifier: 1.4.0
-        version: 1.4.0
-      typescript:
-        specifier: ^7.0.2
-        version: 7.0.2
-      vite:
-        specifier: ^8.2.2
-        version: 8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6)
-      vitest:
-        specifier: ^4.1.11
-        version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
+        version: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
 
   examples/creator-assistant-host:
     dependencies:
@@ -202,6 +84,15 @@ importers:
         specifier: ^4.5.4
         version: 4.6.5
     devDependencies:
+      '@agent-ui/bootstrap':
+        specifier: workspace:^
+        version: link:../../packages/bootstrap
+      '@agent-ui/mock-agent':
+        specifier: workspace:^
+        version: link:../../packages/mock-agent
+      '@agent-ui/project-control':
+        specifier: workspace:^
+        version: link:../../packages/project-control
       '@tailwindcss/vite':
         specifier: 4.3.3
         version: 4.3.3(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
@@ -228,7 +119,7 @@ importers:
         version: 7.0.2
       vite:
         specifier: ^8.2.2
-        version: 8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6)
+        version: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
 
   examples/creator-embedded-host:
     dependencies:
@@ -257,6 +148,15 @@ importers:
         specifier: ^4.5.4
         version: 4.6.5
     devDependencies:
+      '@agent-ui/bootstrap':
+        specifier: workspace:^
+        version: link:../../packages/bootstrap
+      '@agent-ui/mock-agent':
+        specifier: workspace:^
+        version: link:../../packages/mock-agent
+      '@agent-ui/project-control':
+        specifier: workspace:^
+        version: link:../../packages/project-control
       '@tailwindcss/vite':
         specifier: 4.3.3
         version: 4.3.3(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
@@ -283,7 +183,7 @@ importers:
         version: 7.0.2
       vite:
         specifier: ^8.2.2
-        version: 8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6)
+        version: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
 
   examples/creator-host-sandbox:
     dependencies:
@@ -312,6 +212,15 @@ importers:
         specifier: ^4.5.4
         version: 4.6.5
     devDependencies:
+      '@agent-ui/bootstrap':
+        specifier: workspace:^
+        version: link:../../packages/bootstrap
+      '@agent-ui/mock-agent':
+        specifier: workspace:^
+        version: link:../../packages/mock-agent
+      '@agent-ui/project-control':
+        specifier: workspace:^
+        version: link:../../packages/project-control
       '@tailwindcss/vite':
         specifier: 4.3.3
         version: 4.3.3(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
@@ -338,16 +247,94 @@ importers:
         version: 7.0.2
       vite:
         specifier: ^8.2.2
-        version: 8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6)
+        version: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
 
   packages/bootstrap:
     devDependencies:
+      '@ag-ui/client':
+        specifier: 0.0.59
+        version: 0.0.59
+      '@ag-ui/core':
+        specifier: 0.0.59
+        version: 0.0.59
+      '@agent-ui/mock-agent':
+        specifier: workspace:^
+        version: link:../mock-agent
+      '@agent-ui/project-control':
+        specifier: workspace:^
+        version: link:../project-control
+      '@agent-ui/react':
+        specifier: workspace:^
+        version: link:../react
+      '@agent-ui/runtime-conversation':
+        specifier: workspace:^
+        version: link:../runtime-conversation
+      '@agent-ui/runtime-core':
+        specifier: workspace:^
+        version: link:../runtime-core
+      '@agent-ui/runtime-react':
+        specifier: workspace:^
+        version: link:../runtime-react
+      '@agent-ui/source-registry':
+        specifier: workspace:^
+        version: link:../source-registry
+      '@assistant-ui/react-generative-ui':
+        specifier: 0.0.21
+        version: 0.0.21(@assistant-ui/react@0.15.22(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))(@types/react@19.3.0)(react@19.3.0)(zod@4.6.5)
+      '@assistant-ui/react-hook-form':
+        specifier: 0.12.34
+        version: 0.12.34(@assistant-ui/tap@0.9.19(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(assistant-cloud@0.2.3)(react-hook-form@7.88.0(react@19.3.0))(react@19.3.0)
+      '@tailwindcss/vite':
+        specifier: 4.3.3
+        version: 4.3.3(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
       '@types/node':
         specifier: ^20.19.43
         version: 20.19.43
+      '@types/react-test-renderer':
+        specifier: 19.1.0
+        version: 19.1.0
+      '@types/semver':
+        specifier: ^7.7.1
+        version: 7.8.0
+      '@vitejs/plugin-react':
+        specifier: ^6.1.1
+        version: 6.1.1(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
+      jsdom:
+        specifier: ^27.0.0
+        version: 27.4.0
+      react-dom:
+        specifier: ^19.2.8
+        version: 19.3.0(react@19.3.0)
+      react-hook-form:
+        specifier: ^7
+        version: 7.88.0(react@19.3.0)
+      react-markdown:
+        specifier: 10.1.0
+        version: 10.1.0(@types/react@19.3.0)(react@19.3.0)
+      react-test-renderer:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.3.0)
+      rxjs:
+        specifier: 7.8.1
+        version: 7.8.1
+      semver:
+        specifier: ^7.7.3
+        version: 7.8.5
+      tsx:
+        specifier: 4.20.6
+        version: 4.20.6
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
+      vite:
+        specifier: ^8.2.2
+        version: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
+      zod:
+        specifier: ^4.5.4
+        version: 4.6.5
 
   packages/creator:
     dependencies:
@@ -396,7 +383,7 @@ importers:
         version: 7.0.2
       vite:
         specifier: ^8.2.2
-        version: 8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6)
+        version: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
@@ -413,6 +400,9 @@ importers:
       '@types/node':
         specifier: ^20.19.43
         version: 20.19.43
+      jsdom:
+        specifier: ^27.0.0
+        version: 27.4.0
       rxjs:
         specifier: 7.8.1
         version: 7.8.1
@@ -421,23 +411,107 @@ importers:
         version: 7.0.2
       vite:
         specifier: ^8.2.2
-        version: 8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6)
+        version: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
 
   packages/project-control:
     dependencies:
+      '@agent-ui/bootstrap':
+        specifier: workspace:^
+        version: link:../bootstrap
+      '@agent-ui/source-registry':
+        specifier: workspace:^
+        version: link:../source-registry
       typescript:
         specifier: 7.0.2
         version: 7.0.2
-    devDependencies:
-      esbuild:
-        specifier: 0.25.12
-        version: 0.25.12
       zod:
         specifier: ^4.5.4
         version: 4.6.5
+    devDependencies:
+      '@ag-ui/client':
+        specifier: 0.0.59
+        version: 0.0.59
+      '@ag-ui/core':
+        specifier: 0.0.59
+        version: 0.0.59
+      '@agent-ui/mock-agent':
+        specifier: workspace:^
+        version: link:../mock-agent
+      '@agent-ui/react':
+        specifier: workspace:^
+        version: link:../react
+      '@agent-ui/runtime-conversation':
+        specifier: workspace:^
+        version: link:../runtime-conversation
+      '@agent-ui/runtime-core':
+        specifier: workspace:^
+        version: link:../runtime-core
+      '@agent-ui/runtime-react':
+        specifier: workspace:^
+        version: link:../runtime-react
+      '@assistant-ui/react-generative-ui':
+        specifier: 0.0.21
+        version: 0.0.21(@assistant-ui/react@0.15.22(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))(@types/react@19.3.0)(react@19.3.0)(zod@4.6.5)
+      '@assistant-ui/react-hook-form':
+        specifier: 0.12.34
+        version: 0.12.34(@assistant-ui/tap@0.9.19(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(assistant-cloud@0.2.3)(react-hook-form@7.88.0(react@19.3.0))(react@19.3.0)
+      '@tailwindcss/vite':
+        specifier: 4.3.3
+        version: 4.3.3(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
+      '@types/node':
+        specifier: ^20.19.43
+        version: 20.19.43
+      '@types/react':
+        specifier: ^19.2.18
+        version: 19.3.0
+      '@types/react-test-renderer':
+        specifier: 19.1.0
+        version: 19.1.0
+      '@types/semver':
+        specifier: ^7.7.1
+        version: 7.8.0
+      '@vitejs/plugin-react':
+        specifier: ^6.1.1
+        version: 6.1.1(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
+      esbuild:
+        specifier: 0.25.12
+        version: 0.25.12
+      jsdom:
+        specifier: ^27.0.0
+        version: 27.4.0
+      react:
+        specifier: ^19.2.8
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.2.8
+        version: 19.3.0(react@19.3.0)
+      react-hook-form:
+        specifier: ^7
+        version: 7.88.0(react@19.3.0)
+      react-markdown:
+        specifier: 10.1.0
+        version: 10.1.0(@types/react@19.3.0)(react@19.3.0)
+      react-test-renderer:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.3.0)
+      rxjs:
+        specifier: 7.8.1
+        version: 7.8.1
+      semver:
+        specifier: ^7.7.3
+        version: 7.8.5
+      tsx:
+        specifier: 4.20.6
+        version: 4.20.6
+      vite:
+        specifier: ^8.2.2
+        version: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
 
   packages/react:
     dependencies:
@@ -472,6 +546,39 @@ importers:
         specifier: 5.0.15
         version: 5.0.15(@types/react@19.3.0)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
     devDependencies:
+      '@ag-ui/client':
+        specifier: 0.0.59
+        version: 0.0.59
+      '@ag-ui/core':
+        specifier: 0.0.59
+        version: 0.0.59
+      '@agent-ui/bootstrap':
+        specifier: workspace:^
+        version: link:../bootstrap
+      '@agent-ui/mock-agent':
+        specifier: workspace:^
+        version: link:../mock-agent
+      '@agent-ui/runtime-conversation':
+        specifier: workspace:^
+        version: link:../runtime-conversation
+      '@agent-ui/runtime-core':
+        specifier: workspace:^
+        version: link:../runtime-core
+      '@agent-ui/runtime-react':
+        specifier: workspace:^
+        version: link:../runtime-react
+      '@agent-ui/source-registry':
+        specifier: workspace:^
+        version: link:../source-registry
+      '@assistant-ui/react-generative-ui':
+        specifier: 0.0.21
+        version: 0.0.21(@assistant-ui/react@0.15.22(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))(@types/react@19.3.0)(react@19.3.0)(zod@4.6.5)
+      '@assistant-ui/react-hook-form':
+        specifier: 0.12.34
+        version: 0.12.34(@assistant-ui/tap@0.9.19(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(assistant-cloud@0.2.3)(react-hook-form@7.88.0(react@19.3.0))(react@19.3.0)
+      '@tailwindcss/vite':
+        specifier: 4.3.3
+        version: 4.3.3(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
       '@types/node':
         specifier: ^20.19.43
         version: 20.19.43
@@ -481,18 +588,54 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.5
         version: 19.3.0(@types/react@19.3.0)
+      '@types/react-test-renderer':
+        specifier: 19.1.0
+        version: 19.1.0
+      '@types/semver':
+        specifier: ^7.7.1
+        version: 7.8.0
+      '@vitejs/plugin-react':
+        specifier: ^6.1.1
+        version: 6.1.1(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
+      jsdom:
+        specifier: ^27.0.0
+        version: 27.4.0
       react:
         specifier: ^19.2.8
         version: 19.3.0
       react-dom:
         specifier: ^19.2.8
         version: 19.3.0(react@19.3.0)
+      react-hook-form:
+        specifier: ^7
+        version: 7.88.0(react@19.3.0)
+      react-markdown:
+        specifier: 10.1.0
+        version: 10.1.0(@types/react@19.3.0)(react@19.3.0)
+      react-test-renderer:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.3.0)
+      rxjs:
+        specifier: 7.8.1
+        version: 7.8.1
+      semver:
+        specifier: ^7.7.3
+        version: 7.8.5
+      tsx:
+        specifier: 4.20.6
+        version: 4.20.6
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
+      vite:
+        specifier: ^8.2.2
+        version: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
+      zod:
+        specifier: ^4.5.4
+        version: 4.6.5
 
   packages/runtime-conversation:
     dependencies:
@@ -548,6 +691,39 @@ importers:
 
   packages/runtime-react:
     devDependencies:
+      '@ag-ui/client':
+        specifier: 0.0.59
+        version: 0.0.59
+      '@ag-ui/core':
+        specifier: 0.0.59
+        version: 0.0.59
+      '@agent-ui/bootstrap':
+        specifier: workspace:^
+        version: link:../bootstrap
+      '@agent-ui/mock-agent':
+        specifier: workspace:^
+        version: link:../mock-agent
+      '@agent-ui/react':
+        specifier: workspace:^
+        version: link:../react
+      '@agent-ui/runtime-conversation':
+        specifier: workspace:^
+        version: link:../runtime-conversation
+      '@agent-ui/runtime-core':
+        specifier: workspace:^
+        version: link:../runtime-core
+      '@agent-ui/source-registry':
+        specifier: workspace:^
+        version: link:../source-registry
+      '@assistant-ui/react-generative-ui':
+        specifier: 0.0.21
+        version: 0.0.21(@assistant-ui/react@0.15.22(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))(@types/react@19.3.0)(react@19.3.0)(zod@4.6.5)
+      '@assistant-ui/react-hook-form':
+        specifier: 0.12.34
+        version: 0.12.34(@assistant-ui/tap@0.9.19(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(assistant-cloud@0.2.3)(react-hook-form@7.88.0(react@19.3.0))(react@19.3.0)
+      '@tailwindcss/vite':
+        specifier: 4.3.3
+        version: 4.3.3(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
       '@types/node':
         specifier: ^20.19.43
         version: 20.19.43
@@ -557,18 +733,54 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.5
         version: 19.3.0(@types/react@19.3.0)
+      '@types/react-test-renderer':
+        specifier: 19.1.0
+        version: 19.1.0
+      '@types/semver':
+        specifier: ^7.7.1
+        version: 7.8.0
+      '@vitejs/plugin-react':
+        specifier: ^6.1.1
+        version: 6.1.1(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
+      jsdom:
+        specifier: ^27.0.0
+        version: 27.4.0
       react:
         specifier: ^19.2.8
         version: 19.3.0
       react-dom:
         specifier: ^19.2.8
         version: 19.3.0(react@19.3.0)
+      react-hook-form:
+        specifier: ^7
+        version: 7.88.0(react@19.3.0)
+      react-markdown:
+        specifier: 10.1.0
+        version: 10.1.0(@types/react@19.3.0)(react@19.3.0)
+      react-test-renderer:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.3.0)
+      rxjs:
+        specifier: 7.8.1
+        version: 7.8.1
+      semver:
+        specifier: ^7.7.3
+        version: 7.8.5
+      tsx:
+        specifier: 4.20.6
+        version: 4.20.6
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
+      vite:
+        specifier: ^8.2.2
+        version: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
+      zod:
+        specifier: ^4.5.4
+        version: 4.6.5
 
   packages/source-registry:
     devDependencies:
@@ -3171,9 +3383,6 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
-  zod@4.6.2:
-    resolution: {integrity: sha512-lh5RCAGFa1Cm2hjtNwLQhSs/AsqdWnTQaBER9fEwN/88pSh7KOtJavtBx/0VlkN/uFd61SwYmljLMDAsHlvzBQ==}
-
   zod@4.6.5:
     resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
 
@@ -3294,19 +3503,6 @@ snapshots:
       - ioredis
       - redis
       - zod
-
-  '@assistant-ui/react-generative-ui@0.0.21(@assistant-ui/react@0.15.22(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))(@types/react@19.3.0)(react@19.3.0)(zod@4.6.2)':
-    dependencies:
-      '@assistant-ui/react': 0.15.22(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
-      '@types/json-schema': 7.0.15
-      assistant-stream: 0.3.45
-      react: 19.3.0
-      zod: 4.6.2
-    optionalDependencies:
-      '@types/react': 19.3.0
-    transitivePeerDependencies:
-      - ioredis
-      - redis
 
   '@assistant-ui/react-generative-ui@0.0.21(@assistant-ui/react@0.15.22(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))(@types/react@19.3.0)(react@19.3.0)(zod@4.6.5)':
     dependencies:
@@ -4466,7 +4662,7 @@ snapshots:
       '@tailwindcss/node': 4.3.3
       '@tailwindcss/oxide': 4.3.3
       tailwindcss: 4.3.3
-      vite: 8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6)
+      vite: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
 
   '@types/chai@5.2.3':
     dependencies:
@@ -4586,7 +4782,7 @@ snapshots:
   '@vitejs/plugin-react@6.1.1(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
-      vite: 8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6)
+      vite: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
 
   '@vitest/expect@4.1.11':
     dependencies:
@@ -4603,7 +4799,7 @@ snapshots:
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6)
+      vite: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
 
   '@vitest/pretty-format@4.1.11':
     dependencies:
@@ -5793,7 +5989,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6):
+  vite@8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -5802,6 +5998,7 @@ snapshots:
       tinyglobby: 0.2.17
     optionalDependencies:
       '@types/node': 20.19.43
+      esbuild: 0.25.12
       fsevents: 2.3.3
       jiti: 2.7.0
       tsx: 4.20.6
@@ -5826,7 +6023,7 @@ snapshots:
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.1
-      vite: 8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6)
+      vite: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 20.19.43
@@ -5861,8 +6058,6 @@ snapshots:
   xmlchars@2.2.0: {}
 
   zod@3.25.76: {}
-
-  zod@4.6.2: {}
 
   zod@4.6.5: {}
 

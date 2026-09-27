@@ -8,9 +8,9 @@ perform the canonical Runtime cutover planned for P3R-2.
 
 ## Final ownership
 
-- Vendor source: `examples/agent-frontend/agent-ui/vendor/assistant-ui`
-- Adapter surface: `examples/agent-frontend/agent-ui/adapters/assistant-ui/conversation`
-- Scoped styles: `examples/agent-frontend/agent-ui/adapters/assistant-ui/styles`
+- Vendor source: `examples/creator-host-sandbox/src/agent-ui/agent-ui/vendor/assistant-ui`
+- Adapter surface: `examples/creator-host-sandbox/src/agent-ui/agent-ui/adapters/assistant-ui/conversation`
+- Scoped styles: `examples/creator-host-sandbox/src/agent-ui/agent-ui/adapters/assistant-ui/styles`
 - Source Registry item: `foundation/assistant-ui-conversation`
 - Pinned upstream revision: `97bd4b39fce83163354c9ec8d9d4fb2c9bd1aac7`
 - Runtime packages retained by the project: `@assistant-ui/react@0.15.19` and

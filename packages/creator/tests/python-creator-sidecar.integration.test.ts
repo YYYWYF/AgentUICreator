@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
@@ -30,7 +31,7 @@ const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../../..",
 );
-const projectRoot = path.join(repositoryRoot, "examples/agent-frontend");
+const projectRoot = path.join(repositoryRoot, "examples/creator-host-sandbox");
 const pythonPackageRoot = path.join(repositoryRoot, "packages/creator-python");
 const skillsRoot = path.join(repositoryRoot, "packages/creator/skills");
 const contractsRoot = path.join(repositoryRoot, "contracts/creator/fixtures");
@@ -238,7 +239,7 @@ async function createDomainReadMockChatCompletionsServer(): Promise<string> {
           function: {
             name: "read_file",
             arguments: JSON.stringify({
-              file_path: "/plugins/workspace-inspector/manifest.json",
+              file_path: "/src/agent-ui/plugins/workspace-inspector/manifest.json",
             }),
           },
         },
@@ -357,6 +358,7 @@ async function createDomainWriteMockChatCompletionsServer(
 }
 
 async function copyTargetProject(label: string): Promise<string> {
+  execFileSync("pnpm", ["--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "scripts/host-project.ts", "ensure", "platform"], { cwd: repositoryRoot, stdio: "pipe" });
   const root = await mkdtemp(path.join(tmpdir(), `creator-${label}-`));
   temporaryDirectories.push(root);
   await cp(projectRoot, root, {
@@ -932,7 +934,7 @@ server.serve_forever()
 
   it("runs default Python domain-write through inspect and one semantic mutation", async () => {
     const fixtureRoot = await copyTargetProject("domain-write-project");
-    const appUIModelPath = path.join(fixtureRoot, "app-ui/app-ui.json");
+    const appUIModelPath = path.join(fixtureRoot, "src/agent-ui/app-ui/app-ui.json");
     const beforeSource = await readFile(appUIModelPath, "utf8");
     const appUIModelHash = createHash("sha256")
       .update(beforeSource)

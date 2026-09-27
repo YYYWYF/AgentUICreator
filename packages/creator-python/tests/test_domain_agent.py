@@ -23,7 +23,22 @@ from agent_ui_creator.model_protocol.errors import (
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
-TARGET_PROJECT = REPOSITORY_ROOT / "examples" / "agent-frontend"
+TARGET_PROJECT = REPOSITORY_ROOT / "examples" / "creator-host-sandbox"
+
+@pytest.fixture(scope="module", autouse=True)
+def _ensure_real_host_project():
+    import subprocess
+    subprocess.run(
+        ["pnpm", "--filter", "@agent-ui/project-control", "build"], cwd=REPOSITORY_ROOT, check=True,
+    )
+    subprocess.run(
+        ["pnpm", "--filter", "@agent-ui/bootstrap", "build"], cwd=REPOSITORY_ROOT, check=True,
+    )
+    subprocess.run(
+        ["pnpm", "--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "scripts/host-project.ts", "ensure", "platform"],
+        cwd=REPOSITORY_ROOT, check=True,
+    )
+
 
 
 class ToolCallingFakeModel(FakeMessagesListChatModel):
@@ -50,7 +65,7 @@ def test_domain_agent_uses_real_project_control_then_bounded_filesystem():
             ),
             call(
                 "read_file",
-                {"file_path": "/plugins/workspace-inspector/manifest.json"},
+                {"file_path": "/src/agent-ui/plugins/workspace-inspector/manifest.json"},
                 "call-3",
             ),
             AIMessage(content="workspace-inspector inspected from authoritative state."),
@@ -120,7 +135,7 @@ def test_domain_agent_cannot_edit_app_ui_model_to_bypass_read_only_control():
             call(
                 "edit_file",
                 {
-                    "file_path": "/app-ui/app-ui.json",
+                    "file_path": "/src/agent-ui/app-ui/app-ui.json",
                     "old_string": '"version": 1',
                     "new_string": '"version": 2',
                 },

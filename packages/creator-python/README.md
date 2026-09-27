@@ -44,7 +44,7 @@ pnpm test:python-live-model
 
 ```bash
 packages/creator-python/.venv/bin/python -m agent_ui_creator.server \
-  --project-root examples/agent-frontend \
+  --project-root examples/creator-host-sandbox \
   --skills-root packages/creator/skills \
   --port 0 \
   --auth-token development-only-token

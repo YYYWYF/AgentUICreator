@@ -3,21 +3,58 @@
   "version": "0.1.0",
   "description": "Development-time Agent UI project setup and initialization contracts",
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "presets"],
-  "publishConfig": { "access": "public" },
+  "files": [
+    "dist",
+    "presets"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.tests.json",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@types/node": "^20.19.43",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "@agent-ui/project-control": "workspace:^",
+    "@agent-ui/source-registry": "workspace:^",
+    "@agent-ui/runtime-core": "workspace:^",
+    "@agent-ui/runtime-react": "workspace:^",
+    "@agent-ui/react": "workspace:^",
+    "vitest": "^4.1.11",
+    "tsx": "4.20.6",
+    "zod": "^4.5.4",
+    "jsdom": "^27.0.0",
+    "@agent-ui/runtime-conversation": "workspace:^",
+    "@agent-ui/mock-agent": "workspace:^",
+    "react-test-renderer": "19.2.8",
+    "@types/react-test-renderer": "19.1.0",
+    "semver": "^7.7.3",
+    "@types/semver": "^7.7.1",
+    "@tailwindcss/vite": "4.3.3",
+    "@vitejs/plugin-react": "^6.1.1",
+    "vite": "^8.2.2",
+    "@ag-ui/client": "0.0.59",
+    "@ag-ui/core": "0.0.59",
+    "rxjs": "7.8.1",
+    "react-hook-form": "^7",
+    "@assistant-ui/react-hook-form": "0.12.34",
+    "@assistant-ui/react-generative-ui": "0.0.21",
+    "react-markdown": "10.1.0",
+    "react-dom": "^19.2.8"
+  },
+  "peerDependencies": {
+    "@agent-ui/project-control": "workspace:^"
   }
 }
