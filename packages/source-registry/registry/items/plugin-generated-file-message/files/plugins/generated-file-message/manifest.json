@@ -1,0 +1,9 @@
+{
+  "id": "generated-file-message",
+  "name": "Generated File",
+  "description": "Renders successful generate_file backend results with the official File element.",
+  "version": "1.0.0",
+  "capabilities": ["headless"],
+  "data": { "messages": true },
+  "authoring": { "intents": ["render generated file tool results in assistant messages"] }
+}

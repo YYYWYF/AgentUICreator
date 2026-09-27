@@ -1,4 +1,5 @@
 import { multimodalInputScenario } from "./multimodal-input.js";
+import { fileOutputScenario } from "./file-output.js";
 import { a2uiFormControlsScenario } from "./a2ui-form-controls.js";
 import { a2uiInteractiveOrderScenario } from "./a2ui-interactive-order.js";
 import { frontendToolFillFormScenario } from "./frontend-tool-fill-form.js";
@@ -26,6 +27,7 @@ import { toolLongRunningScenario } from "./tool-long-running.js";
 import type { MockScenario } from "../scenario.js";
 
 export {
+  fileOutputScenario,
   multimodalInputScenario,
   a2uiFormControlsScenario,
   a2uiInteractiveOrderScenario,
@@ -67,6 +69,7 @@ export const backendReferenceMockScenarios: MockScenario[] = [
 ];
 
 export const frontendPresentationMockScenarios: MockScenario[] = [
+  fileOutputScenario,
   a2uiFormControlsScenario,
   a2uiInteractiveOrderScenario,
   frontendToolOpenDialogScenario,

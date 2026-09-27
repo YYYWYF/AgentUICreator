@@ -98,7 +98,7 @@ describe("P5-A mock scenarios", () => {
   });
 
   it("keeps the Backend Reference scenarios parseable as AG-UI 0.0.59", async () => {
-    expect(backendReferenceMockScenarios).toHaveLength(9);
+    expect(backendReferenceMockScenarios).toHaveLength(10);
 
     for (const scenario of backendReferenceMockScenarios) {
       const events = await collect(scenario);
@@ -119,7 +119,8 @@ describe("P5-A mock scenarios", () => {
   });
 
   it("keeps the live catalog limited to showcase scenarios", () => {
-    expect(showcaseMockScenarios).toHaveLength(16);
+    expect(showcaseMockScenarios).toHaveLength(22);
+    expect(showcaseMockScenarios.map(({ id }) => id)).toContain("file-output");
     expect(showcaseMockScenarios.map(({ id }) => id)).toContain("multi-message-response");
     expect(mockRegressionScenarios.map(({ id }) => id)).toEqual([
       "reasoning-long-preview",

@@ -10,7 +10,7 @@ import type { AppUIOperation } from "./app-ui-operations";
 
 /** Host adapter: reuse the same source and composition transactions as Creator tools. */
 export async function installDemoPlugin(projectRoot: string, pluginId: string): Promise<void> {
-  if (!["chart-message", "task-group", "job-progress-message", "agent-plan-message", "agent-status-message", "assistant-ui-reasoning", "assistant-ui-tool-group", "assistant-ui-tool-fallback"].includes(pluginId)) throw new Error("Unsupported Demo plugin");
+  if (!["generated-file-message", "chart-message", "task-group", "job-progress-message", "agent-plan-message", "agent-status-message", "assistant-ui-reasoning", "assistant-ui-tool-group", "assistant-ui-tool-fallback"].includes(pluginId)) throw new Error("Unsupported Demo plugin");
   const project = await readAgentUIProjectConfig(projectRoot);
   const paths = resolveAgentUIProjectPaths(projectRoot, project.config);
   const config = projectControlConfigForPaths(paths);

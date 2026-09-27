@@ -106,6 +106,10 @@
       "path": "items/plugin-job-progress-message/item.json"
     },
     {
+      "id": "plugin/generated-file-message",
+      "path": "items/plugin-generated-file-message/item.json"
+    },
+    {
       "id": "plugin/locale-provider",
       "path": "items/plugin-locale-provider/item.json"
     },

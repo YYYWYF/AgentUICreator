@@ -112,7 +112,7 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
         await installDemoPlugin(projectRoot, "chart-message");
         const reenabled = JSON.parse(await readFile(path.join(projectRoot, "src/agent-ui/app-ui/app-ui.json"), "utf8"));
         assert.equal(reenabled.applicationPlugins.find((plugin: { pluginId: string }) => plugin.pluginId === "chart-message").enabled, true);
-        for (const pluginId of ["job-progress-message", "agent-plan-message", "agent-status-message"]) {
+        for (const pluginId of ["generated-file-message", "job-progress-message", "agent-plan-message", "agent-status-message"]) {
           await installDemoPlugin(projectRoot, pluginId);
           const current = JSON.parse(await readFile(path.join(projectRoot, "src/agent-ui/app-ui/app-ui.json"), "utf8"));
           assert.equal(current.applicationPlugins.find((plugin: { pluginId: string }) => plugin.pluginId === pluginId).enabled, true);

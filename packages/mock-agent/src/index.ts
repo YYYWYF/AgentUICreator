@@ -36,6 +36,7 @@ export {
 } from "./vite-plugin.js";
 export {
   builtinMockScenarios,
+  fileOutputScenario,
   multimodalInputScenario,
   a2uiInteractiveOrderScenario,
   frontendToolOpenDialogScenario,

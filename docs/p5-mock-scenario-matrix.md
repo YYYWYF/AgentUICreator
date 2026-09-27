@@ -59,10 +59,18 @@ correlate resume entries by `interruptId`, not by array position.
 | Multi-Agent | `nested-subagent-task-group` | Sibling Subagents → TaskGroup | Frontend Presentation | Advanced |
 | Presentation | `agent-plan` | Application-defined Tool Args → AgentPlan | Frontend Presentation | |
 | Presentation | `agent-status` | Application-defined Tool Args → AgentStatus | Frontend Presentation | |
+| Presentation | `file-output` | Backend Tool Result → named Tool UI → File / Download | Frontend Presentation | Recommended |
 | Advanced | `nested-subagent-recursive` | Recursive Subagent | Frontend Presentation | Advanced |
 | Advanced | `nested-subagent-error` | Nested Subagent Error | Frontend Presentation | Edge case |
 
 The default scenario is `reasoning-tool-success`.
+
+`file-output` demonstrates the standard `generate_file` backend Tool lifecycle.
+Its JSON string result is converted by the pinned react-ag-ui into an object and
+rendered by `plugin/generated-file-message` through `ConversationFile`. The URL
+is virtual; no file is generated or fetched by the renderer. See
+[Multimodal Output Phase 1](architecture/multimodal-output-phase-1.md) for the
+Tool-local schema, ownership, download contract and AG-UI 1.0 migration boundary.
 
 `agent-plan` and `agent-status` are application-defined frontend tool contracts.
 AG-UI does not define `AgentPlan` or `AgentStatus` events, so these scenarios do

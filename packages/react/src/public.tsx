@@ -460,6 +460,18 @@ export function ConversationToolFallback(
   return <InternalToolFallback {...(props as ComponentProps<typeof InternalToolFallback>)} />;
 }
 
+export interface ConversationFileProps {
+  filename?: string;
+  data: string;
+  mimeType: string;
+  sourceType?: "url" | "id";
+}
+
+/** Official File presentation and download behavior behind the public facade. */
+export function ConversationFile(props: Readonly<ConversationFileProps>) {
+  return <InternalFile type="file" status={{ type: "complete" }} {...props} />;
+}
+
 export type ConversationTooltipIconButtonProps = import("@base-ui/react/button").Button.Props & {
   tooltip: string;
   side?: "top" | "bottom" | "left" | "right";

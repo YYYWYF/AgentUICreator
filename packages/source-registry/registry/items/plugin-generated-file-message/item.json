@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "plugin/generated-file-message",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Generated File named backend Tool UI",
+  "requires": ["foundation/core"],
+  "packages": { "react": "^19.2.0", "@agent-ui/react": "^0.1.0" },
+  "files": [
+    { "source": "files/plugins/generated-file-message/definition.ts", "target": "plugins/generated-file-message/definition.ts" },
+    { "source": "files/plugins/generated-file-message/index.tsx", "target": "plugins/generated-file-message/index.tsx" },
+    { "source": "files/plugins/generated-file-message/generated-file-result.ts", "target": "plugins/generated-file-message/generated-file-result.ts" },
+    { "source": "files/plugins/generated-file-message/manifest.json", "target": "plugins/generated-file-message/manifest.json" }
+  ]
+}

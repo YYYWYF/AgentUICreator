@@ -10,11 +10,14 @@ const plan = preview(text(38, 50, "Execution plan") + ["✓ Inspect current impl
 const status = preview(`<circle cx="54" cy="105" r="7" fill="#3b82f6"/>` + text(76, 111, "Analyzing workspace") + text(381, 111, "0:12", "#667085") + line(38, 145, 390) + text(38, 202, "Working → Waiting → Done", "#667085"));
 const group = preview(text(38, 50, "Task group · 3 agents") + ["✓ Researcher", "✓ Reviewer", "✓ Writer"].map((s, n) => `<rect x="34" y="${67 + n * 52}" width="412" height="43" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>` + text(50, 94 + n * 52, s)).join(""));
 
+const file = preview(text(38, 54, "generate_file") + text(38, 110, "PDF") + text(98, 110, "quarterly-report.pdf") + text(98, 157, "Download", "#175cd3"));
+
 const reasoning = preview(text(38, 54, "Reasoning") + line(38, 82, 350) + line(38, 110, 280) + text(38, 166, "Assistant answer") + line(38, 188, 330));
 const tools = preview(text(38, 52, "Tool calls") + ["✓ Search files", "✓ Read document", "✓ Compare results"].map((label, n) => text(38, 98 + n * 48, label)).join(""));
 const approval = preview(text(38, 54, "Tool execution / Approval") + text(38, 98, "Allow this operation?") + text(38, 155, "Allow", "#027a48") + text(168, 155, "Deny", "#b42318"));
 
 export const mockResourcePreviews: Readonly<Record<string, string>> = {
+  "generated-file-message": file,
   "assistant-ui-reasoning": reasoning,
   "assistant-ui-tool-group": tools,
   "assistant-ui-tool-fallback": approval,

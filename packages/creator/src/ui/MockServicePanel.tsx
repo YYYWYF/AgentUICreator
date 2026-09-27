@@ -32,7 +32,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
   const [compatibility, setCompatibility] = useState<MockDemoCompatibility | null>(null);
   const compatibilityVersion = useRef(0);
   const [installation, setInstallation] = useState<{ scenarioId: string; resourceId: string; status: "installing" | "success" | "error"; message: string } | null>(null);
-  const resourceLabels: Record<string, string> = { "assistant-ui-reasoning": "推理展示", "assistant-ui-tool-group": "工具分组", "assistant-ui-tool-fallback": "工具调用与审批", "chart-message": "图表", "task-group": "任务卡片", "job-progress-message": "进度展示", "agent-plan-message": "计划展示", "agent-status-message": "状态展示" };
+  const resourceLabels: Record<string, string> = { "generated-file-message": "文件输出", "assistant-ui-reasoning": "推理展示", "assistant-ui-tool-group": "工具分组", "assistant-ui-tool-fallback": "工具调用与审批", "chart-message": "图表", "task-group": "任务卡片", "job-progress-message": "进度展示", "agent-plan-message": "计划展示", "agent-status-message": "状态展示" };
 
   const [resourceSelection, setResourceSelection] = useState<string | null>(null);
 

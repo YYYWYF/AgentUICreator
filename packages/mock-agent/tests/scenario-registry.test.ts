@@ -13,6 +13,7 @@ import { defineScenario, type MockScenario } from "../src/scenario.js";
 describe("createScenarioRegistry", () => {
   it("keeps the showcase catalog separate from regression fixtures", () => {
     expect(backendReferenceMockScenarios.map(({ id }) => id)).toEqual([
+      "multimodal-input",
       "concurrent-conversations",
       "simple-chat",
       "reasoning-chat",
@@ -23,7 +24,7 @@ describe("createScenarioRegistry", () => {
       "agent-state-sync",
       "nested-subagent-conversation",
     ]);
-    expect(backendReferenceMockScenarios).toHaveLength(9);
+    expect(backendReferenceMockScenarios).toHaveLength(10);
     expect(backendReferenceMockScenarios.every(({ reference }) =>
       reference?.audience === "backend",
     )).toBe(true);
@@ -31,6 +32,7 @@ describe("createScenarioRegistry", () => {
       reference?.audience === "frontend",
     )).toBe(true);
     expect(showcaseMockScenarios.map(({ id }) => id)).toEqual([
+      "multimodal-input",
       "concurrent-conversations",
       "simple-chat",
       "reasoning-chat",
@@ -40,6 +42,7 @@ describe("createScenarioRegistry", () => {
       "approval-resume",
       "agent-state-sync",
       "nested-subagent-conversation",
+      "file-output",
       "a2ui-form-controls",
       "a2ui-interactive-order",
       "frontend-tool-open-dialog",

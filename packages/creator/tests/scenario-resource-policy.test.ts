@@ -61,7 +61,7 @@ describe("Scenario resources are the Creator source requirement authority", () =
     }
     expect([...installableScenarioSourceItemIds]).toEqual([...new Set(sourceRequirements.map(item => item.sourceItemId))]);
     expect(mockDemoRequirements.filter(item => !item.sourceItemId).map(item => item.plugin?.id)).toEqual([
-      "assistant-ui-reasoning", "assistant-ui-tool-group", "assistant-ui-tool-fallback", "chart-message", "job-progress-message", "agent-plan-message", "agent-status-message", "task-group",
+      "generated-file-message", "assistant-ui-reasoning", "assistant-ui-tool-group", "assistant-ui-tool-fallback", "chart-message", "job-progress-message", "agent-plan-message", "agent-status-message", "task-group",
     ]);
     expect(installableScenarioSourceItemIds.has("plugin/chart-message")).toBe(false);
   });

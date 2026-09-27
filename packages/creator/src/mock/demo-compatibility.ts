@@ -25,7 +25,7 @@ export interface MockDemoRequirement {
 }
 export type MockDemoResource = Omit<MockDemoRequirement, "status" | "missingPackages">;
 
-const toolScenarios = ["reasoning-tool-success", "parallel-tools", "tool-error", "approval-resume", "agent-state-sync", "agent-plan", "agent-status", "nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error"];
+const toolScenarios = ["file-output", "reasoning-tool-success", "parallel-tools", "tool-error", "approval-resume", "agent-state-sync", "agent-plan", "agent-status", "nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error"];
 const reasoningScenarios = ["reasoning-chat", "reasoning-tool-success", "approval-resume", "agent-plan", "nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive"];
 
 /** Scenario declarations are the sole authority for source resource metadata. */
@@ -58,6 +58,7 @@ export const scenarioSourceResources: ReadonlyArray<MockDemoResource> = collectS
 export const installableScenarioSourceItemIds: ReadonlySet<string> = new Set(scenarioSourceResources.map(resource => resource.sourceItemId!));
 
 const pluginPresentationRequirements: ReadonlyArray<MockDemoResource> = [
+  { id: "generated-file-message", plugin: { id: "generated-file-message" }, name: "文件输出展示资源", scenarioIds: ["file-output"] },
   { id: "assistant-ui-reasoning", plugin: { id: "assistant-ui-reasoning", slot: "reasoningGroup" }, name: "推理展示资源", scenarioIds: reasoningScenarios },
   { id: "assistant-ui-tool-group", plugin: { id: "assistant-ui-tool-group", slot: "toolGroup" }, name: "工具分组资源", scenarioIds: toolScenarios },
   { id: "assistant-ui-tool-fallback", plugin: { id: "assistant-ui-tool-fallback", slot: "toolFallback" }, name: "工具调用与审批资源", scenarioIds: toolScenarios },
