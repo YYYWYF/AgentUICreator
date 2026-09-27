@@ -49,6 +49,7 @@ correlate resume entries by `interruptId`, not by array position.
 | Section | Scenario ID | Display purpose | Audience | Reference level |
 |---|---|---|---|---|
 | Basics | `simple-chat` | Minimal text streaming | Backend Reference | |
+| Basics | `markdown-showcase` | Markdown / GFM streaming showcase | Backend Reference | |
 | Basics | `reasoning-chat` | Reasoning → Answer | Backend Reference | |
 | Basics | `reasoning-tool-success` | Reasoning → Tool → Reasoning → Answer | Backend Reference | Recommended |
 | Tools | `parallel-tools` | Parallel Tool Calls | Backend Reference | |
@@ -64,6 +65,30 @@ correlate resume entries by `interruptId`, not by array position.
 | Advanced | `nested-subagent-error` | Nested Subagent Error | Frontend Presentation | Edge case |
 
 The default scenario is `reasoning-tool-success`.
+
+`simple-chat` and `markdown-showcase` use the same standard AG-UI text lifecycle:
+`TEXT_MESSAGE_START → TEXT_MESSAGE_CONTENT... → TEXT_MESSAGE_END`.
+Only the text carried in `TEXT_MESSAGE_CONTENT.delta` differs: plain text for
+`simple-chat`, Markdown / GFM text for `markdown-showcase`. Markdown parsing and
+rendering belong to frontend presentation, not the AG-UI wire protocol.
+
+`markdown-showcase` is a visual regression fixture for the current renderer.
+It covers h1–h6, bold / italic / strikethrough, inline code, a link, a multiline
+blockquote, unordered / nested / ordered / task lists, a horizontal rule, a
+table with default / center / right alignment, and TypeScript / JSON fenced
+code blocks (including a long line). It uses the existing
+`ConversationMarkdownText → MarkdownTextPrimitive → @assistant-ui/react-markdown`
+path and `remark-gfm`; it adds no renderer, custom events or extension plugins.
+Mermaid, math, embedded HTML, footnotes and custom directives are outside this
+fixture's scope. Code headers, language labels, copy buttons, overflow and
+incomplete Markdown during streaming remain presentation checks.
+
+Protocol coverage is in `packages/mock-agent/tests/markdown-showcase.test.ts`;
+focused presentation coverage is in
+`packages/react/tests/migrated/assistant-ui-markdown-showcase.test.tsx`, using
+standard scenario events through `useAgUiRuntime` and the existing Markdown
+component. Browser observation is still needed for streaming layout, overflow
+and Footer actions.
 
 `file-output` demonstrates the standard `generate_file` backend Tool lifecycle.
 Its JSON string result is converted by the pinned react-ag-ui into an object and
@@ -128,6 +153,7 @@ Therefore STEP lifecycle remains a runner primitive and is not a user-facing sce
 
 | Capability | Current owner | Fixture or status |
 |---|---|---|
+| Markdown / GFM text | Frontend presentation | `markdown-showcase`; standard AG-UI text streaming |
 | Agent Elements | Mock Agent | `agent-plan`, `agent-status` |
 | Subagents | Mock Agent | `nested-subagent-conversation`, `nested-subagent-task-group`, and related regression fixtures |
 | Reasoning + Tool | Mock Agent | `reasoning-tool-success` |

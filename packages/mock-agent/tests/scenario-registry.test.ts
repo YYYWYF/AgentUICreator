@@ -16,6 +16,7 @@ describe("createScenarioRegistry", () => {
       "multimodal-input",
       "concurrent-conversations",
       "simple-chat",
+      "markdown-showcase",
       "reasoning-chat",
       "reasoning-tool-success",
       "parallel-tools",
@@ -24,7 +25,7 @@ describe("createScenarioRegistry", () => {
       "agent-state-sync",
       "nested-subagent-conversation",
     ]);
-    expect(backendReferenceMockScenarios).toHaveLength(10);
+    expect(backendReferenceMockScenarios).toHaveLength(11);
     expect(backendReferenceMockScenarios.every(({ reference }) =>
       reference?.audience === "backend",
     )).toBe(true);
@@ -35,6 +36,7 @@ describe("createScenarioRegistry", () => {
       "multimodal-input",
       "concurrent-conversations",
       "simple-chat",
+      "markdown-showcase",
       "reasoning-chat",
       "reasoning-tool-success",
       "parallel-tools",

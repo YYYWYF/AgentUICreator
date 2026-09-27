@@ -22,6 +22,7 @@ import { reasoningChatScenario } from "./reasoning-chat.js";
 import { reasoningLongPreviewScenario } from "./reasoning-long-preview.js";
 import { reasoningToolSuccessScenario } from "./reasoning-tool-success.js";
 import { simpleChatScenario } from "./simple-chat.js";
+import { markdownShowcaseScenario } from "./markdown-showcase.js";
 import { subagentLifecycleScenario } from "./subagent-lifecycle.js";
 import { toolErrorScenario } from "./tool-error.js";
 import { toolLongRunningScenario } from "./tool-long-running.js";
@@ -52,6 +53,7 @@ export {
   reasoningLongPreviewScenario,
   reasoningToolSuccessScenario,
   simpleChatScenario,
+  markdownShowcaseScenario,
   subagentLifecycleScenario,
   toolErrorScenario,
   toolLongRunningScenario,
@@ -61,6 +63,7 @@ export const backendReferenceMockScenarios: MockScenario[] = [
   multimodalInputScenario,
   concurrentConversationsScenario,
   simpleChatScenario,
+  markdownShowcaseScenario,
   reasoningChatScenario,
   reasoningToolSuccessScenario,
   parallelToolsScenario,

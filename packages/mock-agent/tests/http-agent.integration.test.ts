@@ -461,21 +461,9 @@ describe("Mock Agent HTTP endpoint", () => {
     expect(response.headers.get("content-type")).toContain("application/json");
     expect(body.defaultScenarioId).toBe("reasoning-tool-success");
     expect(body.scenarios).toHaveLength(showcaseMockScenarios.length);
-    expect(body.scenarios.map(({ id }) => id)).toEqual([
-      "simple-chat",
-      "reasoning-chat",
-      "reasoning-tool-success",
-      "parallel-tools",
-      "tool-error",
-      "approval-resume",
-      "agent-state-sync",
-      "nested-subagent-conversation",
-      "nested-subagent-task-group",
-      "agent-plan",
-      "agent-status",
-      "nested-subagent-recursive",
-      "nested-subagent-error",
-    ]);
+    expect(body.scenarios.map(({ id }) => id)).toEqual(
+      showcaseMockScenarios.map(({ id }) => id),
+    );
     expect(body.scenarios[0]).not.toHaveProperty("steps");
     expect(body.scenarios[0]).not.toHaveProperty("initialState");
     expect(body.scenarios.find(({ id }) => id === "tool-error"))
