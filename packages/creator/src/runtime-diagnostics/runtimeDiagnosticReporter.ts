@@ -9,6 +9,7 @@ export interface CreatorRuntimeDiagnosticReporterOptions {
   threadId: CreatorRuntimeThreadId;
   workspaceId?: string | undefined;
   endpoint?: string | undefined;
+  fetch?: typeof globalThis.fetch;
 }
 
 function resolveThreadId(threadId: CreatorRuntimeThreadId): string {
@@ -19,6 +20,7 @@ export function createCreatorRuntimeDiagnosticReporter({
   threadId,
   workspaceId,
   endpoint = CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
+  fetch: upload = globalThis.fetch,
 }: CreatorRuntimeDiagnosticReporterOptions): (diagnostic: object) => void {
   return (diagnostic: object) => {
     let body: string;
@@ -33,7 +35,7 @@ export function createCreatorRuntimeDiagnosticReporter({
     ) {
       return;
     }
-    void fetch(endpoint, {
+    void upload(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...(workspaceId === undefined ? {} : { [CREATOR_WORKSPACE_ID_HEADER]: workspaceId }) },
       body,
@@ -46,6 +48,7 @@ export function createCreatorRuntimeCompositionReporter({
   threadId,
   workspaceId,
   endpoint = CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
+  fetch: upload = globalThis.fetch,
 }: CreatorRuntimeDiagnosticReporterOptions): (composition: object) => void {
   return (composition: object) => {
     let body: string;
@@ -63,7 +66,7 @@ export function createCreatorRuntimeCompositionReporter({
     ) {
       return;
     }
-    void fetch(endpoint, {
+    void upload(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...(workspaceId === undefined ? {} : { [CREATOR_WORKSPACE_ID_HEADER]: workspaceId }) },
       body,

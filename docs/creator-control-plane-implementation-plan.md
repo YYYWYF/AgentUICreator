@@ -1,5 +1,7 @@
 # Creator 开发控制面实施计划
 
+> 当前 ownership：Project Control 属于 `packages/project-control`，初始化 transaction 属于 `packages/bootstrap`，协议 Mock 属于 `packages/mock-agent`。下面的阶段记录保留历史设计语义，路径已按当前能力 owner 更新；Host example 只承载生成源文件与 Host Integration。
+>
 > 状态：Approved design companion / Creator 控制面已完成 Python-only 收口；React Workbench、Vite 代理和浏览器 reporter 继续保留在 TypeScript
 >
 > 设计依据：[Agent UI Plugin Creator 最终设计与启动计划](./agent-ui-plugin-creator-launch-plan.md) 与仓库根目录 `AGENTS.md`。本文负责把最终设计落实为可执行的工程阶段，不建立新的产品架构。
@@ -376,18 +378,18 @@ interface AskCreatorUserInput {
 
 实施状态（2026-09-02）：已完成。目标项目可独立生成、只读验证、typecheck、测试和生产构建；Phase 2 已通过固定控制入口将这些观察能力接入 Creator。
 
-建议新增：
+正式实现位置（2026-09-27 已归入 package）：
 
 ```text
-examples/creator-host-sandbox/scripts/ui-project/types.ts
-examples/creator-host-sandbox/scripts/ui-project/project-inspector.ts
-examples/creator-host-sandbox/scripts/ui-project/project-config.ts
-examples/creator-host-sandbox/scripts/ui-project/plugin-assets.ts
-examples/creator-host-sandbox/scripts/ui-project/registry-generator.ts
-examples/creator-host-sandbox/scripts/generate-plugin-registry.ts
+packages/project-control/src/project/types.ts
+packages/project-control/src/project/project-inspector.ts
+packages/project-control/src/project/project-config.ts
+packages/project-control/src/project/plugin-assets.ts
+packages/project-control/src/project/registry-generator.ts
+packages/project-control/src/generate-plugin-registry.ts
 examples/creator-host-sandbox/src/agent-ui/plugins/registry.generated.ts
-examples/creator-host-sandbox/tests/plugin-registry-generator.test.ts
-examples/creator-host-sandbox/tests/project-inspector.test.ts
+packages/project-control/tests/migrated/plugin-registry-generator.test.ts
+packages/project-control/tests/migrated/project-inspector.test.ts
 ```
 
 建议修改：
@@ -395,7 +397,7 @@ examples/creator-host-sandbox/tests/project-inspector.test.ts
 ```text
 examples/creator-host-sandbox/src/agent-ui/plugins/*/definition.ts
 examples/creator-host-sandbox/src/agent-ui/plugins/index.ts
-examples/creator-host-sandbox/scripts/verify-ui.ts
+packages/project-control/src/verify-ui.ts
 examples/creator-host-sandbox/package.json
 ```
 
@@ -448,10 +450,11 @@ packages/creator-python/tests/test_project_control_client.py
 packages/creator-python/tests/test_domain_tools.py
 ```
 
-目标项目增加固定 JSON 控制入口：
+正式协议实现由 Project Control package 持有；Host 初始化安装固定 Node JSON 控制入口：
 
 ```text
-examples/creator-host-sandbox/scripts/ui-project-control.ts
+packages/project-control/src/handler.ts
+<Host project>/.agent-ui/control/project-control.mjs
 ```
 
 实现边界：
@@ -497,8 +500,8 @@ packages/creator/src/PythonCreatorClient.ts
 目标项目建议新增：
 
 ```text
-examples/creator-host-sandbox/scripts/ui-project/app-ui-operations.ts
-examples/creator-host-sandbox/scripts/ui-project/app-ui-transaction.ts
+packages/project-control/src/project/app-ui-operations.ts
+packages/project-control/src/project/app-ui-transaction.ts
 examples/creator-host-sandbox/tests/app-ui-operations.test.ts
 examples/creator-host-sandbox/tests/app-ui-transaction.test.ts
 ```

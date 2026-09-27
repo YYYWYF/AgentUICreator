@@ -30,7 +30,16 @@
       "types": "./dist/visual-observation/VisualObservationReporter.d.ts",
       "import": "./dist/visual-observation/VisualObservationReporter.js"
     },
-    "./ui.css": "./dist/ui/creator-workbench.css"
+    "./ui.css": "./dist/ui/creator-workbench.css",
+    "./host-preview": {
+      "types": "./dist/host-preview/hostPreviewWorkbench.d.ts",
+      "import": "./dist/host-preview/hostPreviewWorkbench.js"
+    },
+    "./host-preview/client": "./dist/host-preview/hostPreviewClient.js",
+    "./host-preview/vite": {
+      "types": "./dist/host-preview/vite.d.ts",
+      "import": "./dist/host-preview/vite.js"
+    }
   },
   "files": [
     "dist",

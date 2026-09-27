@@ -9,6 +9,7 @@ const HASH = /^[a-f0-9]{64}$/;
 export interface VisualObservationReporterOptions {
   endpoint?: string;
   workspaceId?: string | undefined;
+  fetch?: typeof globalThis.fetch;
   onError?: (error: unknown) => void;
 }
 
@@ -45,6 +46,7 @@ function base64(blob: Blob): Promise<string> {
 export function createVisualObservationReporter({
   endpoint = CREATOR_VISUAL_OBSERVATION_API_PATH,
   workspaceId,
+  fetch: upload = globalThis.fetch,
   onError = (error) => console.warn("Visual observation unavailable", error),
 }: VisualObservationReporterOptions = {}): (currentHash: string, root: HTMLElement) => void {
   let lastObservedHash: string | undefined;
@@ -113,7 +115,7 @@ export function createVisualObservationReporter({
       if (new TextEncoder().encode(body).byteLength > MAX_VISUAL_OBSERVATION_REQUEST_BYTES) {
         throw new Error("Preview screenshot exceeds the upload limit.");
       }
-      const response = await fetch(endpoint, {
+      const response = await upload(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(workspaceId === undefined ? {} : { [CREATOR_WORKSPACE_ID_HEADER]: workspaceId }) },
         body,

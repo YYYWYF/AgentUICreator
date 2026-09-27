@@ -1,11 +1,18 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
-    "types": ["vite/client", "node"],
+    "types": [
+      "vite/client",
+      "node"
+    ],
     "strict": true,
     "noEmit": true,
     "isolatedModules": true,
@@ -15,13 +22,29 @@
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "paths": {
-      "@agent-ui/bootstrap": ["../../packages/bootstrap/src/index.ts"],
-      "@agent-ui/react": ["../../packages/react/src/index.ts"],
-      "@agent-ui/runtime-conversation": ["../../packages/runtime-conversation/src/index.ts"],
-      "@agent-ui/runtime-core": ["../../packages/runtime-core/src/index.ts"],
-      "@agent-ui/runtime-react": ["../../packages/runtime-react/src/index.ts"],
-      "@agent-ui/source-registry": ["../../packages/source-registry/src/index.ts"]
+      "@agent-ui/bootstrap": [
+        "../../packages/bootstrap/src/index.ts"
+      ],
+      "@agent-ui/react": [
+        "../../packages/react/src/index.ts"
+      ],
+      "@agent-ui/runtime-conversation": [
+        "../../packages/runtime-conversation/src/index.ts"
+      ],
+      "@agent-ui/runtime-core": [
+        "../../packages/runtime-core/src/index.ts"
+      ],
+      "@agent-ui/runtime-react": [
+        "../../packages/runtime-react/src/index.ts"
+      ],
+      "@agent-ui/source-registry": [
+        "../../packages/source-registry/src/index.ts"
+      ]
     }
   },
-  "include": ["src", "vite.config.ts"]
+  "include": [
+    "src",
+    "vite.config.ts",
+    "vite-runtime-aliases.ts"
+  ]
 }

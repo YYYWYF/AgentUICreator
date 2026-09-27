@@ -17,7 +17,7 @@ Mock / Real Conversation API
 ```
 
 History hydration != AG-UI event replay. `packages/mock-agent` owns live
-protocol and presentation scenarios. `examples/creator-host-sandbox/dev-mock/conversations`
+protocol and presentation scenarios. `packages/mock-agent/src/conversations`
 owns synthetic LangGraph snapshots. The two catalogs can be enabled
 independently.
 

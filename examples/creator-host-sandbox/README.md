@@ -1,6 +1,6 @@
 # Three independent Host examples
 
-These ordinary React/Vite projects show the three Agent UI Modes inside user-owned applications. Each starts its own Vite server and imports only the generated `src/agent-ui` public entry. On first `dev` or `build`, the matching Source Registry preset is initialized into that Host if it is still uninitialized. Existing Agent UI source is never replaced by startup.
+These ordinary React/Vite projects show the three Agent UI Modes inside user-owned applications. Each starts its own Vite server and imports only the generated `src/agent-ui` public entry. On first `dev`, `build`, `test`, or `typecheck`, the matching Source Registry preset is initialized into that Host if it is still uninitialized. Startup upgrades an unchanged managed foundation through Project Control when its registry version changes; customized or blocked foundations require an explicit upgrade.
 
 | Project | Mode | Host layout | URL | Start |
 | --- | --- | --- | --- | --- |
@@ -8,9 +8,13 @@ These ordinary React/Vite projects show the three Agent UI Modes inside user-own
 | `examples/creator-assistant-host` | Assistant | User page fills the viewport; Agent ball at bottom right | <http://localhost:5177/> | `pnpm dev:assistant-host` |
 | `examples/creator-embedded-host` | Embedded | User page left 2/3; Agent right 1/3 | <http://localhost:5178/> | `pnpm dev:embedded-host` |
 
-Run `pnpm install` once at the workspace root. Start any Host with its command above. Start Creator separately with `pnpm dev` (port 5174). On each Host page, use the small **Creator Agent** tab at the top right to open the Creator window. Choose that Host's directory in the system folder dialog. The public Agent's own floating button is at the bottom right only in Assistant Mode.
+Run `pnpm install` once at the workspace root. Start any Host with its command above. Root `pnpm dev` starts Creator (port 5174) together with the platform Host (5176); do not start a second platform server on the same port. To use an already running Assistant or Embedded Host, run Workbench's package-local `pnpm dev` with `VITE_CREATOR_HOST_PREVIEW_URL` pointing to that Host. On each Host page, use the small **Creator Agent** tab at the top right to open the Creator window. Choose that Host's directory in the system folder dialog. The public Agent's own floating button is at the bottom right only in Assistant Mode.
+
+Each Host's command lifecycle prepares the required workspace development packages using `scripts/prepare-host-packages.mjs`, including Mock and Project Control, so clean checkouts do not rely on previously built `dist`. The pure `vite-runtime-aliases.ts` module can be imported by contract tests without loading Vite configuration or Mock plugins. Host scripts explicitly compose Bootstrap with Project Control's initialization adapter; Bootstrap has no reverse dependency on Project Control.
 
 Creator is injected only by the Host's Vite dev configuration. It loads `http://localhost:5174/dock.html` in an iframe and never controls the Host's HMR. `VITE_CREATOR_DOCK_URL` overrides the Creator URL. Production builds omit the Creator dock. The generated Agent app has no Creator runtime dependency and does not read `.agent-ui/**` at runtime.
+
+The same dev configuration installs the shared Host Preview Bridge. Inside Workbench's real Host iframe, the adapter consumes generic Agent observations, captures screenshots in the Host document, and forwards existing reporter uploads over a workspace/thread-bound MessageChannel. Workbench reconnects after iframe reload. Outside the preview iframe, the adapter does not connect or require a Creator server. The bridge is omitted from production builds.
 
 ## 配置用户工程的 AG-UI 地址（`.env.local`）
 
@@ -29,7 +33,7 @@ AgentUICreator/
             └── AgentMount.tsx
 ```
 
-1. 从仓库根目录运行 `pnpm dev` 启动 Creator，再在另一个终端运行 `pnpm dev:host-sandbox` 启动示例。
+1. 从仓库根目录运行 `pnpm dev`，同时启动 Creator 和 Platform 示例。
 2. 打开 `http://localhost:5176`，点击右上角 **Creator Agent**，打开 **Mock Agent** 面板并启动服务，复制实际地址。已有真实 AG-UI 后端时直接使用其完整地址。
 3. 在 `examples/creator-host-sandbox/.env.local` 中填写：
 

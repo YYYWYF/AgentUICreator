@@ -7,16 +7,21 @@
     "node": ">=20"
   },
   "scripts": {
-    "predev": "node --import tsx ../creator-host-sandbox/scripts/host-project.ts ensure embedded creator-embedded-host",
+    "predev": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../creator-host-sandbox/scripts/host-project.ts ensure embedded creator-embedded-host",
     "dev": "vite --host 127.0.0.1 --port 5178 --strictPort",
-    "prebuild": "node --import tsx ../creator-host-sandbox/scripts/host-project.ts ensure embedded creator-embedded-host",
+    "prebuild": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../creator-host-sandbox/scripts/host-project.ts ensure embedded creator-embedded-host",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test ../creator-host-sandbox/tests/public-entry.test.ts",
     "reset": "node ../creator-host-sandbox/scripts/reset-agent-ui.mjs creator-embedded-host",
     "inspect": "node --import tsx ../creator-host-sandbox/scripts/host-project.ts inspect creator-embedded-host",
     "init": "node --import tsx ../creator-host-sandbox/scripts/host-project.ts init embedded creator-embedded-host",
-    "verify:ui": "node --import tsx scripts/verify-ui.ts"
+    "verify:ui": "node --import tsx scripts/verify-ui.ts",
+    "pretest": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../creator-host-sandbox/scripts/host-project.ts ensure embedded creator-embedded-host",
+    "pretypecheck": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../creator-host-sandbox/scripts/host-project.ts ensure embedded creator-embedded-host",
+    "preinspect": "node ../../scripts/prepare-host-packages.mjs",
+    "preverify:ui": "node ../../scripts/prepare-host-packages.mjs",
+    "preinit": "node ../../scripts/prepare-host-packages.mjs"
   },
   "dependencies": {
     "@agent-ui/react": "workspace:^",
@@ -40,6 +45,7 @@
     "vite": "^8.2.2",
     "@agent-ui/bootstrap": "workspace:^",
     "@agent-ui/project-control": "workspace:^",
-    "@agent-ui/mock-agent": "workspace:^"
+    "@agent-ui/mock-agent": "workspace:^",
+    "@agent-ui/creator": "workspace:^"
   }
 }

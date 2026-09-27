@@ -49,6 +49,9 @@
       ],
       "@agent-ui/runtime-core/testing": [
         "../../packages/runtime-core/src/testing/index.ts"
+      ],
+      "@agent-ui/creator/host-preview": [
+        "../../packages/creator/src/host-preview/hostPreviewWorkbench.ts"
       ]
     }
   },

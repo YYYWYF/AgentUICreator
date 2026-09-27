@@ -5,3 +5,4 @@ export { verifyUIProject, runUIProjectVerificationCli } from "./verify-ui";
 export { installDemoPlugin } from "./project/install-demo-plugin";
 export { installMockResource, inspectScenarioResources } from "./project/install-scenario-resources";
 export { mergeOptionalResourceInspection } from "./project/optional-resource-paths";
+export type { AgentUISourceInspection, UICompositionInspection } from "./project/types";

@@ -1,3 +1,4 @@
+import { createAgentUIInitializationHost } from "@agent-ui/project-control/dev";
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { mkdtemp, mkdir, readFile, readdir, rm, stat, symlink, writeFile } from "node:fs/promises";
@@ -15,8 +16,10 @@ import { initializeAgentUIProject } from "@agent-ui/bootstrap";
 import { inspectCreatorProject } from "@agent-ui/project-control/dev";
 import { handleUIProjectControlRequest } from "@agent-ui/project-control/dev";
 import { verifyUIProject } from "@agent-ui/project-control/dev";
-import { runtimeAliases } from "../vite.config";
+import { runtimeAliases } from "../vite-runtime-aliases";
 import { installDemoPlugin } from "@agent-ui/project-control/dev";
+
+const initializationHost = createAgentUIInitializationHost();
 
 const sandboxRoot = fileURLToPath(new URL("..", import.meta.url));
 const hostSourceRoots = [
@@ -64,7 +67,7 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
         'import { createRoot } from "react-dom/client";\nimport { Agent } from "./agent-ui";\ncreateRoot(document.getElementById("root")!).render(<Agent />);\n');
 
       assert.equal((await inspectCreatorProject(projectRoot)).status, "uninitialized");
-      await initializeAgentUIProject({ projectRoot, mode, sourceRoot: "src/agent-ui" });
+      await initializeAgentUIProject({ projectRoot, mode, sourceRoot: "src/agent-ui" }, initializationHost);
       const initializedModel = JSON.parse(await readFile(
         path.join(projectRoot, "src/agent-ui/app-ui/app-ui.json"), "utf8",
       )) as { applicationPlugins: Array<{ pluginId: string; enabled: boolean }> };

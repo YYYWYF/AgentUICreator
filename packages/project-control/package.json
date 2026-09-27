@@ -15,10 +15,6 @@
     "./dev": {
       "types": "./src/dev.ts",
       "import": "./dist/runtime/project-control-runtime.mjs"
-    },
-    "./bootstrap-host": {
-      "types": "./src/bootstrap-host.d.mts",
-      "import": "./dist/runtime/project-control-runtime.mjs"
     }
   },
   "files": [
@@ -51,10 +47,6 @@
     "vitest": "^4.1.11",
     "tsx": "4.20.6",
     "jsdom": "^27.0.0",
-    "@agent-ui/runtime-conversation": "workspace:^",
-    "@agent-ui/source-registry": "workspace:^",
-    "@agent-ui/mock-agent": "workspace:^",
-    "@agent-ui/bootstrap": "workspace:^",
     "react-test-renderer": "19.2.8",
     "@types/react-test-renderer": "19.1.0",
     "semver": "^7.7.3",

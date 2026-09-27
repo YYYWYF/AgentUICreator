@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import {
   ConversationRuntimeProvider,
   useConversationRuntimeBridge,
@@ -19,6 +19,8 @@ import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../runtime/tool
 import { PluginServiceProvider, UIPluginRuntime } from "../runtime/plugins";
 import { PluginDataMessageUIHost } from "../runtime/plugins/PluginDataMessageUIHost";
 import { ModeShell } from "../runtime/mode-shell";
+import { PluginDiagnosticProvider, type RuntimeDiagnostic, type RuntimeCompositionSnapshot as ObservedComposition } from "../runtime/diagnostics";
+import { publishAgentUIObservation, type AgentObservability } from "./observability";
 import type { RuntimeCompositionSnapshot } from "../runtime/composition";
 import {
   ConversationPresentationConfigProvider,
@@ -35,6 +37,10 @@ import { agentUIRuntimeConfig } from "./runtime-config.generated";
 
 import "../agent-ui/conversation/styles.css";
 
+// The revision descriptor is optional until the first project-control mutation.
+const revisionSources = import.meta.glob<string>("../app-ui/composition-revision.generated.json", { eager: true, query: "?raw", import: "default" });
+const revisionDescriptorSource = revisionSources["../app-ui/composition-revision.generated.json"];
+
 const appEventRegistry = new AppEventRegistry(appEventSchemas);
 const frontendToolRuntime = new AppFrontendToolRuntime(
   new AppFrontendToolRegistry(appFrontendTools),
@@ -43,10 +49,12 @@ const frontendToolRuntime = new AppFrontendToolRuntime(
 export interface AgentProps {
   /** The Host application's AG-UI endpoint. Defaults to VITE_AGENT_ENDPOINT or /agent. */
   endpoint?: string;
+  observability?: AgentObservability;
 }
 
-function AgentSurface({ composition }: {
+function AgentSurface({ composition, observability }: {
   composition: RuntimeCompositionSnapshot<AppAgentState>;
+  observability?: AgentObservability | undefined;
 }) {
   const { agentRuntime } = useConversationRuntimeBridge<AppAgentState>();
   const actions = useMemo(() => ({
@@ -56,7 +64,35 @@ function AgentSurface({ composition }: {
     abortRun: () => agentRuntime.abort(),
   }), [agentRuntime]);
 
-  return (
+  const previewRoot = useRef<HTMLDivElement>(null);
+  const observed = import.meta.env.DEV || observability !== undefined;
+  const onRuntimeDiagnostic = useCallback((diagnostic: RuntimeDiagnostic) => {
+    observability?.onRuntimeDiagnostic?.(diagnostic);
+    publishAgentUIObservation({ type: "runtime-diagnostic", diagnostic });
+  }, [observability]);
+  const onRuntimeComposition = useCallback((snapshot: ObservedComposition) => {
+    observability?.onRuntimeComposition?.(snapshot);
+    publishAgentUIObservation({ type: "runtime-composition", composition: snapshot });
+  }, [observability]);
+  useEffect(() => {
+    const element = previewRoot.current;
+    const root = agentUIRuntimeConfig.mode === "assistant" ? element?.parentElement : element;
+    if (!observed || root == null) return;
+    const previousHash = root.getAttribute("data-app-ui-model-hash");
+    const hadPreviewMarker = root.hasAttribute("data-agent-ui-preview-root");
+    root.setAttribute("data-agent-ui-preview-root", "");
+    root.setAttribute("data-app-ui-model-hash", composition.appUIModelHash);
+    observability?.onPreviewCommitted?.(composition.appUIModelHash, root);
+    publishAgentUIObservation({ type: "preview-committed", appUIModelHash: composition.appUIModelHash, root });
+    return () => {
+      if (agentUIRuntimeConfig.mode !== "assistant") return;
+      if (!hadPreviewMarker) root.removeAttribute("data-agent-ui-preview-root");
+      if (previousHash === null) root.removeAttribute("data-app-ui-model-hash");
+      else root.setAttribute("data-app-ui-model-hash", previousHash);
+    };
+  }, [observed, composition.appUIModelHash, observability]);
+
+  const content = (
     <AgentRuntimeProvider runtime={agentRuntime}>
       <PluginServiceProvider
         actions={actions}
@@ -72,6 +108,9 @@ function AgentSurface({ composition }: {
           <ModeShell mode={agentUIRuntimeConfig.mode}>
             <UIPluginRuntime
               actions={actions}
+              appUIModelHash={observed ? composition.appUIModelHash : undefined}
+              onRuntimeComposition={observed ? onRuntimeComposition : undefined}
+              onRuntimeDiagnostic={observed ? onRuntimeDiagnostic : undefined}
               className="development-preview"
               model={composition.runtimeModel}
               registry={composition.activeRegistry}
@@ -81,14 +120,49 @@ function AgentSurface({ composition }: {
       </PluginServiceProvider>
     </AgentRuntimeProvider>
   );
+  if (!observed) return content;
+  return (
+    <div ref={previewRoot}
+      {...(agentUIRuntimeConfig.mode === "assistant" ? {} : { "data-agent-ui-preview-root": "", "data-app-ui-model-hash": composition.appUIModelHash })}
+      style={agentUIRuntimeConfig.mode === "assistant" ? { display: "contents" } : { width: "100%", height: "100%", minWidth: 0, minHeight: 0, display: "grid", gridTemplateRows: "minmax(0, 1fr)" }}>
+      <PluginDiagnosticProvider
+        appUIModelHash={composition.appUIModelHash}
+        compositionRevision={composition.revision}
+        capabilityCatalogRevision={composition.capabilityCatalogRevision}
+        publishedAt={composition.publishedAt}
+        model={composition.runtimeModel}
+        registry={composition.activeRegistry}
+        onRuntimeComposition={onRuntimeComposition}
+        onRuntimeDiagnostic={onRuntimeDiagnostic}
+      >{content}</PluginDiagnosticProvider>
+    </div>
+  );
 }
 
-export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent" }: AgentProps = {}) {
+export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability }: AgentProps = {}) {
   const composition = useSyncExternalStore(
     agentCompositionStore.subscribe,
     agentCompositionStore.getSnapshot,
     agentCompositionStore.getSnapshot,
   );
+  useEffect(() => {
+    if (!import.meta.env.DEV && observability === undefined) return;
+    const report = () => {
+      const candidate = agentCompositionStore.getCandidateDiagnostic();
+      if (candidate?.appUIModelHash === undefined) return;
+      const diagnostic: RuntimeDiagnostic = {
+        schemaVersion: 1, kind: "runtime-composition", status: candidate.status,
+        appUIModelHash: candidate.appUIModelHash, compositionRevision: candidate.revision,
+        capabilityCatalogRevision: candidate.capabilityCatalogRevision, occurredAt: candidate.occurredAt,
+        ...(candidate.errorMessage === undefined ? {} : { errorMessage: candidate.errorMessage }),
+      };
+      observability?.onRuntimeDiagnostic?.(diagnostic);
+      publishAgentUIObservation({ type: "runtime-diagnostic", diagnostic });
+    };
+    const unsubscribe = agentCompositionStore.subscribeDiagnostics(report);
+    report();
+    return unsubscribe;
+  }, [observability]);
   const threadBinding = useMemo(
     () => createConversationServiceThreadBinding<AppAgentState>(),
     [],
@@ -99,10 +173,11 @@ export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
   useEffect(() => {
     agentCompositionStore.stageCandidate({
       appUIModelSource,
+      revisionDescriptorSource,
       capabilityCatalog: pluginCapabilityCatalog,
       capabilityCatalogRevision,
     });
-  }, [appUIModelSource, capabilityCatalogRevision, pluginCapabilityCatalog]);
+  }, [appUIModelSource, revisionDescriptorSource, capabilityCatalogRevision, pluginCapabilityCatalog]);
 
   return (
     <ConversationRuntimeProvider<AppAgentState>
@@ -114,7 +189,7 @@ export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
       toolkit={toolkit}
     >
       <GeneratedConversationIntegrations>
-        {composition === undefined ? null : <AgentSurface composition={composition} />}
+        {composition === undefined ? null : <AgentSurface composition={composition} observability={observability} />}
       </GeneratedConversationIntegrations>
     </ConversationRuntimeProvider>
   );

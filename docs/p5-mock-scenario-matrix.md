@@ -131,7 +131,7 @@ Therefore STEP lifecycle remains a runner primitive and is not a user-facing sce
 | Live AG-UI Sources | AG-UI profile 0.0.59 | `DEFERRED`; no private event is added |
 
 `packages/mock-agent` remains the live AG-UI simulator. Synthetic checkpoint
-fixtures live in `examples/creator-host-sandbox/dev-mock/conversations` and are
+fixtures live in `packages/mock-agent/src/conversations` and are
 enabled independently with `VITE_CONVERSATION_DATA_MODE=mock`. They remain
 separate from live Mock Agent protocols. Standard live subagents use
 `SUBAGENT_STARTED`, child events attributed by

@@ -1,4 +1,5 @@
-import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
+import { createAgentUIInitializationHost } from "../../src/project/bootstrap-host";
+import { generatedProjectFixture } from "../support/generated-project";
 import { lstat, mkdtemp, mkdir, readFile, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -11,8 +12,10 @@ import {
   suggestAgentUISourceRoot,
   validateAgentUIProjectSetup,
 } from "@agent-ui/bootstrap";
-import { inspectCreatorProject } from "../../../project-control/src/project/creator-project-inspector";
+import { inspectCreatorProject } from "../../src/project/creator-project-inspector";
 import { initializeAgentUIProject } from "@agent-ui/bootstrap";
+
+const initializationHost = createAgentUIInitializationHost();
 
 const exampleRoot = await generatedProjectFixture();
 const roots: string[] = [];
@@ -56,7 +59,7 @@ describe("Agent UI project setup", () => {
       .toBe("AGENT_UI_SOURCE_ROOT_NOT_EMPTY");
     expect((await validateAgentUIProjectSetup({ projectRoot: root, mode: "assistant", sourceRoot: "../agent-ui" })).valid)
       .toBe(false);
-    await expect(initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "src/agent-ui" }))
+    await expect(initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "src/agent-ui" }, initializationHost))
       .rejects.toMatchObject({ code: "AGENT_UI_SOURCE_ROOT_NOT_EMPTY" });
     expect(await readFile(path.join(root, "src/agent-ui/user-file.ts"), "utf8")).toBe("export const owned = true;\n");
   });
@@ -75,7 +78,7 @@ describe("Agent UI project setup", () => {
 describe("deterministic Agent UI initializer", () => {
   it("fails package preflight without creating project files or sourceRoot", async () => {
     const root = await hostProject(undefined, false);
-    await expect(initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "agent-ui" }))
+    await expect(initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "agent-ui" }, initializationHost))
       .rejects.toMatchObject({ code: "AGENT_UI_PACKAGE_REQUIREMENTS_UNMET" });
     await expect(readFile(path.join(root, ".agent-ui/project.json"))).rejects.toMatchObject({ code: "ENOENT" });
     await expect(lstat(path.join(root, "agent-ui"))).rejects.toMatchObject({ code: "ENOENT" });
@@ -88,7 +91,7 @@ describe("deterministic Agent UI initializer", () => {
     ["platform", "packages/web/agent-ui", "packages/web"],
   ] as const)("initializes %s at %s into a ready V2 project", async (mode, sourceRoot, parent) => {
     const root = await hostProject(parent);
-    const result = await initializeAgentUIProject({ projectRoot: root, mode, sourceRoot });
+    const result = await initializeAgentUIProject({ projectRoot: root, mode, sourceRoot }, initializationHost);
     expect(result.projectConfig).toEqual({ version: "2", mode, sourceRoot });
     expect(result.installedSourceItems).toContain("foundation/core");
     expect(result.installedSourceItems).toContain("foundation/conversation");
@@ -109,7 +112,7 @@ describe("deterministic Agent UI initializer", () => {
 
   it("never creates a missing source parent", async () => {
     const root = await hostProject();
-    await expect(initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "foo/bar/agent-ui" }))
+    await expect(initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "foo/bar/agent-ui" }, initializationHost))
       .rejects.toMatchObject({ code: "AGENT_UI_SOURCE_PARENT_NOT_FOUND" });
     expect((await inspectCreatorProject(root)).status).toBe("uninitialized");
   });
@@ -122,15 +125,15 @@ describe("deterministic Agent UI initializer", () => {
       status: "broken",
       issues: [{ code: "AGENT_UI_INITIALIZATION_INTERRUPTED" }],
     });
-    await expect(initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "agent-ui" }))
+    await expect(initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "agent-ui" }, initializationHost))
       .rejects.toMatchObject({ code: "AGENT_UI_PROJECT_INVALID_STATE" });
   });
 
   it("rejects a second initialization without changing the committed project", async () => {
     const root = await hostProject();
-    await initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "agent-ui" });
+    await initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "agent-ui" }, initializationHost);
     const before = await readFile(path.join(root, ".agent-ui/project.json"), "utf8");
-    await expect(initializeAgentUIProject({ projectRoot: root, mode: "platform", sourceRoot: "agent-ui" }))
+    await expect(initializeAgentUIProject({ projectRoot: root, mode: "platform", sourceRoot: "agent-ui" }, initializationHost))
       .rejects.toMatchObject({ code: "AGENT_UI_PROJECT_ALREADY_INITIALIZED" });
     expect(await readFile(path.join(root, ".agent-ui/project.json"), "utf8")).toBe(before);
   });

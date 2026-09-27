@@ -87,6 +87,9 @@ importers:
       '@agent-ui/bootstrap':
         specifier: workspace:^
         version: link:../../packages/bootstrap
+      '@agent-ui/creator':
+        specifier: workspace:^
+        version: link:../../packages/creator
       '@agent-ui/mock-agent':
         specifier: workspace:^
         version: link:../../packages/mock-agent
@@ -151,6 +154,9 @@ importers:
       '@agent-ui/bootstrap':
         specifier: workspace:^
         version: link:../../packages/bootstrap
+      '@agent-ui/creator':
+        specifier: workspace:^
+        version: link:../../packages/creator
       '@agent-ui/mock-agent':
         specifier: workspace:^
         version: link:../../packages/mock-agent
@@ -215,6 +221,9 @@ importers:
       '@agent-ui/bootstrap':
         specifier: workspace:^
         version: link:../../packages/bootstrap
+      '@agent-ui/creator':
+        specifier: workspace:^
+        version: link:../../packages/creator
       '@agent-ui/mock-agent':
         specifier: workspace:^
         version: link:../../packages/mock-agent
@@ -257,27 +266,6 @@ importers:
       '@ag-ui/core':
         specifier: 0.0.59
         version: 0.0.59
-      '@agent-ui/mock-agent':
-        specifier: workspace:^
-        version: link:../mock-agent
-      '@agent-ui/project-control':
-        specifier: workspace:^
-        version: link:../project-control
-      '@agent-ui/react':
-        specifier: workspace:^
-        version: link:../react
-      '@agent-ui/runtime-conversation':
-        specifier: workspace:^
-        version: link:../runtime-conversation
-      '@agent-ui/runtime-core':
-        specifier: workspace:^
-        version: link:../runtime-core
-      '@agent-ui/runtime-react':
-        specifier: workspace:^
-        version: link:../runtime-react
-      '@agent-ui/source-registry':
-        specifier: workspace:^
-        version: link:../source-registry
       '@assistant-ui/react-generative-ui':
         specifier: 0.0.21
         version: 0.0.21(@assistant-ui/react@0.15.22(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))(@types/react@19.3.0)(react@19.3.0)(zod@4.6.5)
@@ -437,15 +425,9 @@ importers:
       '@ag-ui/core':
         specifier: 0.0.59
         version: 0.0.59
-      '@agent-ui/mock-agent':
-        specifier: workspace:^
-        version: link:../mock-agent
       '@agent-ui/react':
         specifier: workspace:^
         version: link:../react
-      '@agent-ui/runtime-conversation':
-        specifier: workspace:^
-        version: link:../runtime-conversation
       '@agent-ui/runtime-core':
         specifier: workspace:^
         version: link:../runtime-core
@@ -552,24 +534,6 @@ importers:
       '@ag-ui/core':
         specifier: 0.0.59
         version: 0.0.59
-      '@agent-ui/bootstrap':
-        specifier: workspace:^
-        version: link:../bootstrap
-      '@agent-ui/mock-agent':
-        specifier: workspace:^
-        version: link:../mock-agent
-      '@agent-ui/runtime-conversation':
-        specifier: workspace:^
-        version: link:../runtime-conversation
-      '@agent-ui/runtime-core':
-        specifier: workspace:^
-        version: link:../runtime-core
-      '@agent-ui/runtime-react':
-        specifier: workspace:^
-        version: link:../runtime-react
-      '@agent-ui/source-registry':
-        specifier: workspace:^
-        version: link:../source-registry
       '@assistant-ui/react-generative-ui':
         specifier: 0.0.21
         version: 0.0.21(@assistant-ui/react@0.15.22(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))(@types/react@19.3.0)(react@19.3.0)(zod@4.6.5)
@@ -697,24 +661,6 @@ importers:
       '@ag-ui/core':
         specifier: 0.0.59
         version: 0.0.59
-      '@agent-ui/bootstrap':
-        specifier: workspace:^
-        version: link:../bootstrap
-      '@agent-ui/mock-agent':
-        specifier: workspace:^
-        version: link:../mock-agent
-      '@agent-ui/react':
-        specifier: workspace:^
-        version: link:../react
-      '@agent-ui/runtime-conversation':
-        specifier: workspace:^
-        version: link:../runtime-conversation
-      '@agent-ui/runtime-core':
-        specifier: workspace:^
-        version: link:../runtime-core
-      '@agent-ui/source-registry':
-        specifier: workspace:^
-        version: link:../source-registry
       '@assistant-ui/react-generative-ui':
         specifier: 0.0.21
         version: 0.0.21(@assistant-ui/react@0.15.22(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))(@types/react@19.3.0)(react@19.3.0)(zod@4.6.5)

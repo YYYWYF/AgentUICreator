@@ -7,9 +7,9 @@
     "node": ">=20"
   },
   "scripts": {
-    "predev": "node --import tsx scripts/host-project.ts ensure platform",
+    "predev": "node ../../scripts/prepare-host-packages.mjs && node --import tsx scripts/host-project.ts ensure platform",
     "dev": "vite --host 127.0.0.1 --port 5176 --strictPort",
-    "prebuild": "node --import tsx scripts/host-project.ts ensure platform",
+    "prebuild": "node ../../scripts/prepare-host-packages.mjs && node --import tsx scripts/host-project.ts ensure platform",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
@@ -18,7 +18,14 @@
     "init:assistant": "node --import tsx scripts/host-project.ts init assistant",
     "init:embedded": "node --import tsx scripts/host-project.ts init embedded",
     "init:platform": "node --import tsx scripts/host-project.ts init platform",
-    "verify:ui": "node --import tsx scripts/verify-ui.ts"
+    "verify:ui": "node --import tsx scripts/verify-ui.ts",
+    "pretest": "node ../../scripts/prepare-host-packages.mjs && node --import tsx scripts/host-project.ts ensure platform",
+    "pretypecheck": "node ../../scripts/prepare-host-packages.mjs && node --import tsx scripts/host-project.ts ensure platform",
+    "preinspect": "node ../../scripts/prepare-host-packages.mjs",
+    "preverify:ui": "node ../../scripts/prepare-host-packages.mjs",
+    "preinit:assistant": "node ../../scripts/prepare-host-packages.mjs",
+    "preinit:embedded": "node ../../scripts/prepare-host-packages.mjs",
+    "preinit:platform": "node ../../scripts/prepare-host-packages.mjs"
   },
   "dependencies": {
     "@agent-ui/react": "workspace:^",
@@ -42,6 +49,7 @@
     "vite": "^8.2.2",
     "@agent-ui/bootstrap": "workspace:^",
     "@agent-ui/project-control": "workspace:^",
-    "@agent-ui/mock-agent": "workspace:^"
+    "@agent-ui/mock-agent": "workspace:^",
+    "@agent-ui/creator": "workspace:^"
   }
 }

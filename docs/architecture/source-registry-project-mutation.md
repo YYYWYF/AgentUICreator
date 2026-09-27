@@ -26,7 +26,7 @@ Initialization retains its separate clean-install transaction.
 
 Product callers use `applyAgentUISourceProjectMutation` or
 `removeAgentUISourceProjectMutation` from
-`examples/creator-host-sandbox/scripts/ui-project/source-registry/project-mutation.ts`.
+`packages/project-control/src/project/source-registry/project-mutation.ts`.
 The architecture guard rejects direct storage apply/remove references outside the
 storage module, its compatibility exports, and this Host orchestrator. Low-level
 unit tests may continue testing storage APIs directly.
@@ -83,8 +83,10 @@ or protocol-schema changes are introduced.
 
 Legacy optional resources pass their existing `resourcePaths().config` unchanged,
 including provided foundations, `sourceRoot: "."`, and scenario-resource metadata.
-The ProjectControl legacy config split and extraction into a formal Host package
-remain separate work.
+The shared implementation now belongs to `@agent-ui/project-control`. Hosts and
+the Workbench consume its development APIs; they do not own storage or mutation
+implementations. `@agent-ui/bootstrap` owns initialization transactions and receives
+the Project Control adapter explicitly from the composition root.
 
 Regression coverage lives in `source-project-mutation.test.ts` and
 `source-project-mutation-architecture.test.ts`. Failure injection uses module mocks

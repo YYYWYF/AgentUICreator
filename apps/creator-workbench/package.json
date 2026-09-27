@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "predev": "node ../../scripts/prepare-host-packages.mjs"
   },
   "dependencies": {
     "@agent-ui/creator": "workspace:*",

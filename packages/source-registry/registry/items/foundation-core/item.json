@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "foundation/core",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "kind": "foundation",
   "description": "Public Agent UI entry and generated Plugin Registry entry",
   "requires": [
@@ -27,6 +27,10 @@
     {
       "source": "files/agent-ui/conversation/integrations.generated.tsx",
       "target": "agent-ui/conversation/integrations.generated.tsx"
+    },
+    {
+      "source": "files/application/observability.ts",
+      "target": "application/observability.ts"
     }
   ]
 }

@@ -1,8 +1,11 @@
+import { createAgentUIInitializationHost } from "@agent-ui/project-control/dev";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { inspectCreatorProject } from "@agent-ui/project-control/dev";
+import { handleUIProjectControlRequest, inspectCreatorProject } from "@agent-ui/project-control/dev";
 import { initializeAgentUIProject } from "@agent-ui/bootstrap";
+
+const initializationHost = createAgentUIInitializationHost();
 
 const examplesRoot = fileURLToPath(new URL("../..", import.meta.url));
 const sourceRoot = "src/agent-ui";
@@ -44,13 +47,26 @@ async function main() {
     if (before.projectConfig.mode !== mode || before.projectConfig.version !== "2" || before.projectConfig.sourceRoot !== sourceRoot) {
       throw new Error(`Project is already initialized with a different configuration: ${JSON.stringify(describeState(before))}`);
     }
+    const sources = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_agent_ui_sources", input: {} }, projectRoot);
+    if (!sources.ok) throw new Error("Could not inspect managed Host sources");
+    const inspection = sources.result as import("@agent-ui/project-control/dev").AgentUISourceInspection;
+    const core = inspection.items.find(item => item.id === "foundation/core");
+    if (core && core.installedVersion !== core.availableVersion) {
+      if (core.status === "customized" || core.status === "blocked") {
+        throw new Error("The Host's customized foundation needs an explicit source upgrade before using preview observations.");
+      }
+      const upgraded = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "apply_agent_ui_source_item", input: {
+        itemId: "foundation/core", expectedStateHash: inspection.stateHash,
+      } }, projectRoot);
+      if (!upgraded.ok) throw new Error("Could not upgrade the managed Host foundation");
+    }
     return;
   }
   if (before.status !== "uninitialized") {
     throw new Error(`Project status is ${before.status}. Run this Host project's reset script before initializing again.`);
   }
 
-  await initializeAgentUIProject({ projectRoot, mode, sourceRoot });
+  await initializeAgentUIProject({ projectRoot, mode, sourceRoot }, initializationHost);
   const after = await inspectCreatorProject(projectRoot);
   if (after.status !== "ready" || after.projectConfig.version !== "2" ||
       after.projectConfig.mode !== mode || after.projectConfig.sourceRoot !== sourceRoot) {

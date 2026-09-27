@@ -16,7 +16,7 @@ import { defineConfig } from "vite";
 import { createCreatorDevServerPlugin } from "../../packages/creator/src/vitePlugin.js";
 import { CreatorWorkspaceManager } from "../../packages/creator/src/workspace/CreatorWorkspaceManager.js";
 import { PythonCreatorProcessManager } from "../../packages/creator/src/PythonCreatorProcessManager.js";
-import { inspectCreatorProject } from "@agent-ui/project-control/dev";
+import { createAgentUIInitializationHost, inspectCreatorProject } from "@agent-ui/project-control/dev";
 import { initializeAgentUIProject } from "@agent-ui/bootstrap";
 import { handleUIProjectControlRequest } from "@agent-ui/project-control/dev";
 import type { MockProjectInspector } from "../../packages/creator/src/mock/demo-compatibility";
@@ -30,9 +30,10 @@ const workspaceRoot = path.resolve(
   "../..",
 );
 const hostProjectRoot = path.join(workspaceRoot, "examples/creator-host-sandbox");
+const initializationHost = createAgentUIInitializationHost();
 const workspaceManager = new CreatorWorkspaceManager({
   inspectProject: inspectCreatorProject,
-  initializeProject: initializeAgentUIProject,
+  initializeProject: input => initializeAgentUIProject(input, initializationHost),
   validateProjectSetup: validateAgentUIProjectSetup,
   suggestSourceRoot: suggestAgentUISourceRoot,
   createPythonManager: (projectRoot) => new PythonCreatorProcessManager({
@@ -88,6 +89,7 @@ export default defineConfig({
         workspaceRoot,
         "packages/react/src/styles.css",
       ),
+      "@agent-ui/creator/host-preview": path.join(workspaceRoot, "packages/creator/src/host-preview/hostPreviewWorkbench.ts"),
       "@agent-ui/creator/ui": path.join(
         workspaceRoot,
         "packages/creator/src/ui/CreatorWorkbench.tsx",

@@ -1,4 +1,5 @@
-import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
+import { createAgentUIInitializationHost } from "../../src/project/bootstrap-host";
+import { generatedProjectFixture } from "../support/generated-project";
 import { spawn } from "node:child_process";
 import { build } from "vite";
 import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
@@ -7,18 +8,20 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { initializeAgentUIProject } from "@agent-ui/bootstrap";
-import { inspectCreatorProject } from "../../../project-control/src/project/creator-project-inspector";
-import type { UIProjectControlResponse } from "../../../project-control/src/handler";
-import type { AgentUISourceInspection, UICompositionInspection } from "../../../project-control/src/project/types";
-import { compileAppUIModel } from "../../../project-control/src/framework/contracts/app-ui-compiler";
-import { parseAppUIModelJson } from "../../../project-control/src/framework/contracts/app-ui-model";
-import { generatePluginRegistry } from "../../../project-control/src/project/registry-generator";
-import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "../../../project-control/src/project/agent-ui-project-paths";
+import { inspectCreatorProject } from "../../src/project/creator-project-inspector";
+import type { UIProjectControlResponse } from "../../src/handler";
+import type { AgentUISourceInspection, UICompositionInspection } from "../../src/project/types";
+import { compileAppUIModel } from "../../src/framework/contracts/app-ui-compiler";
+import { parseAppUIModelJson } from "../../src/framework/contracts/app-ui-model";
+import { generatePluginRegistry } from "../../src/project/registry-generator";
+import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "../../src/project/agent-ui-project-paths";
 import { inspectMockDemoCompatibility } from "../../../creator/src/mock/demo-compatibility";
-import { installDemoPlugin } from "../../../project-control/src/project/install-demo-plugin";
-import { verifyUIProject } from "../../../project-control/src/verify-ui";
+import { installDemoPlugin } from "../../src/project/install-demo-plugin";
+import { verifyUIProject } from "../../src/verify-ui";
 import { loadAgentUISourceRegistry } from "@agent-ui/source-registry";
-import { readAgentUISourceLock, serializeAgentUISourceLock, sha256 } from "../../../project-control/src/project/source-registry/lock";
+import { readAgentUISourceLock, serializeAgentUISourceLock, sha256 } from "../../src/project/source-registry/lock";
+
+const initializationHost = createAgentUIInitializationHost();
 
 const exampleRoot = await generatedProjectFixture();
 const roots: string[] = [];
@@ -55,7 +58,7 @@ describe("fresh user Host architecture regression", () => {
     await expect(readFile(path.join(root, "scripts/ui-project-control.ts"))).rejects.toMatchObject({ code: "ENOENT" });
     await expect(readFile(path.join(root, ".agent-ui/project.json"))).rejects.toMatchObject({ code: "ENOENT" });
     expect((await inspectCreatorProject(root)).status).toBe("uninitialized");
-    await initializeAgentUIProject({ projectRoot: root, mode, sourceRoot });
+    await initializeAgentUIProject({ projectRoot: root, mode, sourceRoot }, initializationHost);
     expect((await inspectCreatorProject(root)).status).toBe("ready");
     expect(await readFile(path.join(root, sourceRoot, "index.ts"), "utf8")).toContain("Agent");
     expect((await verifyUIProject(root)).status).toBe("passed");
@@ -138,7 +141,7 @@ describe("fresh user Host architecture regression", () => {
 
 it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIModel", async () => {
   const root = await freshUserHost("src/agent-ui");
-  await initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "src/agent-ui" });
+  await initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "src/agent-ui" }, initializationHost);
   const paths = resolveAgentUIProjectPaths(root, { version: "2", mode: "assistant", sourceRoot: "src/agent-ui" });
   const config = projectControlConfigForPaths(paths);
   const { applyAgentUISourceItem } = await import("../scripts/ui-project/source-registry/installer");

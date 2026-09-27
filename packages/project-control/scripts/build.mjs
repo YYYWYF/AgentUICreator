@@ -10,7 +10,7 @@ await build({
   bundle: true, platform: "node", format: "esm", target: "node20",
   // TypeScript 7's parser uses its native executable. Resolve it from this
   // tool package, never from the user's Host or production dependencies.
-  external: ["typescript", "typescript/*", "@agent-ui/project-control/bootstrap-host"],
+  external: ["typescript", "typescript/*"],
   alias: {
     "@agent-ui/bootstrap": `${root}packages/bootstrap/src/index.ts`,
     "@agent-ui/source-registry": `${root}packages/source-registry/src/index.ts`,

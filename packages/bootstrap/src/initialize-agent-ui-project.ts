@@ -93,11 +93,10 @@ async function pathExists(filePath: string): Promise<boolean> {
 /** Host bootstrap transaction. Generated-project parsing and verification stay in the Host adapter. */
 export async function initializeAgentUIProject<TModel>(
   input: InitializeAgentUIProjectInput,
-  host?: AgentUIInitializationHost<TModel>,
+  host: AgentUIInitializationHost<TModel>,
 ): Promise<InitializeAgentUIProjectResult> {
-  const projectHost = host ?? (await import("@agent-ui/project-control/bootstrap-host")).createAgentUIInitializationHost() as AgentUIInitializationHost<TModel>;
   const projectRoot = path.resolve(input.projectRoot);
-  const initial = await projectHost.inspectProject(projectRoot);
+  const initial = await host.inspectProject(projectRoot);
   if (initial.status !== "uninitialized") {
     throw new AgentUIInitializationError(
       initial.status === "ready" || initial.status === "legacy"
@@ -113,16 +112,16 @@ export async function initializeAgentUIProject<TModel>(
   const projectConfig: AgentUIProjectConfigV2 = {
     version: "2", mode: input.mode, sourceRoot: setup.sourceRoot.normalized,
   };
-  const preset = createDefaultAgentUIPresetRegistry(projectHost.parseAppUIModel)
+  const preset = createDefaultAgentUIPresetRegistry(host.parseAppUIModel)
     .getDefaultForMode(input.mode, agentUIModeRegistry);
   const model = preset.createAppUIModel();
   const itemIds = preset.sourceItems ?? [];
-  const preflight = await projectHost.preflightSources(projectRoot, itemIds, projectConfig);
+  const preflight = await host.preflightSources(projectRoot, itemIds, projectConfig);
   const metadataRoot = path.join(projectRoot, ".agent-ui");
   const metadataRootWasMissing = !(await pathExists(metadataRoot));
   const projectConfigPath = path.join(metadataRoot, "project.json");
   const journalPath = path.join(metadataRoot, "init-transaction.json");
-  const persistJournal = projectHost.writeInitializationJournal ?? writeJournal;
+  const persistJournal = host.writeInitializationJournal ?? writeJournal;
   const createdPaths = new Set<string>();
   let journalCreated = false;
   const journal: AgentUIInitializationJournal = {
@@ -130,7 +129,7 @@ export async function initializeAgentUIProject<TModel>(
     sourceRoot: projectConfig.sourceRoot,
     plannedPaths: [...preflight.plannedPaths].sort(), createdPaths: [], phase: "preparing",
   };
-  let installed: Awaited<ReturnType<typeof projectHost.installSources>>;
+  let installed: Awaited<ReturnType<typeof host.installSources>>;
   // Before project.json is created, this transaction may roll back its own files.
   // Once the create-only write succeeds, the project is committed; later failures
   // require recovery and must never trigger automatic rollback.
@@ -138,13 +137,13 @@ export async function initializeAgentUIProject<TModel>(
     await mkdir(metadataRoot, { recursive: true });
     await persistJournal(journalPath, journal, true);
     journalCreated = true;
-    installed = await projectHost.installSources(projectRoot, itemIds, projectConfig);
+    installed = await host.installSources(projectRoot, itemIds, projectConfig);
     for (const createdPath of installed.createdPaths) createdPaths.add(createdPath);
     await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "sources-installed" }, false);
-    createdPaths.add(await projectHost.writeAppUIModel(projectRoot, model, projectConfig));
+    createdPaths.add(await host.writeAppUIModel(projectRoot, model, projectConfig));
     try {
-      createdPaths.add(await projectHost.writeGeneratedRuntimeConfig(projectRoot, projectConfig));
-      createdPaths.add(await projectHost.writeGeneratedRegistry(projectRoot, projectConfig));
+      createdPaths.add(await host.writeGeneratedRuntimeConfig(projectRoot, projectConfig));
+      createdPaths.add(await host.writeGeneratedRegistry(projectRoot, projectConfig));
     } catch (error) {
       throw new AgentUIInitializationError(
         "AGENT_UI_INITIALIZATION_VERIFICATION_FAILED",
@@ -152,9 +151,9 @@ export async function initializeAgentUIProject<TModel>(
       );
     }
     await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "model-written" }, false);
-    let verification: Awaited<ReturnType<typeof projectHost.verifyProject>>;
+    let verification: Awaited<ReturnType<typeof host.verifyProject>>;
     try {
-      verification = await projectHost.verifyProject(projectRoot, projectConfig);
+      verification = await host.verifyProject(projectRoot, projectConfig);
     } catch (error) {
       throw new AgentUIInitializationError(
         "AGENT_UI_INITIALIZATION_VERIFICATION_FAILED",
@@ -168,7 +167,7 @@ export async function initializeAgentUIProject<TModel>(
         verification.errors,
       );
     }
-    for (const controlPath of await projectHost.installControlPlane(projectRoot)) createdPaths.add(controlPath);
+    for (const controlPath of await host.installControlPlane(projectRoot)) createdPaths.add(controlPath);
     await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "verified" }, false);
     try {
       await writeFile(projectConfigPath, `${JSON.stringify(projectConfig, null, 2)}\n`, { flag: "wx" });
@@ -184,7 +183,7 @@ export async function initializeAgentUIProject<TModel>(
   } catch (error) {
     if (!journalCreated) throw error;
     try {
-      await projectHost.rollbackCreatedPaths(projectRoot, [...createdPaths], projectConfig, preflight.plannedPaths, setup.sourceRoot.targetState === "missing");
+      await host.rollbackCreatedPaths(projectRoot, [...createdPaths], projectConfig, preflight.plannedPaths, setup.sourceRoot.targetState === "missing");
       await unlink(journalPath);
       if (metadataRootWasMissing) {
         await rmdir(metadataRoot).catch((cleanupError: NodeJS.ErrnoException) => {
@@ -204,7 +203,7 @@ export async function initializeAgentUIProject<TModel>(
   // The project.json write above is the only commit point. Everything below is post-commit.
   try {
     await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "committed" }, false);
-    const finalState = await projectHost.inspectProject(projectRoot);
+    const finalState = await host.inspectProject(projectRoot);
     if (finalState.status !== "ready") {
       throw new AgentUIInitializationError(
         "AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED",

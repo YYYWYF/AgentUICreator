@@ -7,10 +7,10 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "pnpm --filter @agent-ui/project-control build && pnpm --filter @agent-ui/bootstrap build && pnpm --filter @agent-ui/mock-agent build && pnpm --filter @agent-ui/creator-host-sandbox exec node --import tsx scripts/host-project.ts ensure platform && node scripts/dev-workbench.mjs",
-    "dev:host-sandbox": "pnpm --filter @agent-ui/project-control build && pnpm --filter @agent-ui/bootstrap build && pnpm --filter @agent-ui/mock-agent build && pnpm --filter @agent-ui/creator-host-sandbox dev",
-    "dev:assistant-host": "pnpm --filter @agent-ui/project-control build && pnpm --filter @agent-ui/bootstrap build && pnpm --filter @agent-ui/mock-agent build && pnpm --filter @agent-ui/creator-assistant-host dev",
-    "dev:embedded-host": "pnpm --filter @agent-ui/project-control build && pnpm --filter @agent-ui/bootstrap build && pnpm --filter @agent-ui/mock-agent build && pnpm --filter @agent-ui/creator-embedded-host dev",
+    "dev": "node scripts/dev-workbench.mjs",
+    "dev:host-sandbox": "pnpm --filter @agent-ui/creator-host-sandbox dev",
+    "dev:assistant-host": "pnpm --filter @agent-ui/creator-assistant-host dev",
+    "dev:embedded-host": "pnpm --filter @agent-ui/creator-embedded-host dev",
     "reset:host-sandbox": "pnpm --filter @agent-ui/creator-host-sandbox reset",
     "inspect:host-sandbox": "pnpm --filter @agent-ui/creator-host-sandbox inspect",
     "init:host-sandbox:assistant": "pnpm --filter @agent-ui/creator-host-sandbox init:assistant",
