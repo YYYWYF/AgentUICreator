@@ -28,7 +28,7 @@
     "assistant-ui:report": "node scripts/generate-assistant-ui-upgrade-report.mjs",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm test:python && pnpm test:ts",
-    "test:ts": "pnpm --filter @agent-ui/project-control build && pnpm --filter @agent-ui/bootstrap build && pnpm check:project-control-contract && node --test scripts/run-python-tests.test.mjs && pnpm -r --if-present test",
+    "test:ts": "node scripts/test-workspace-ts.mjs",
     "test:python:setup": "node scripts/run-python-tests.mjs --setup-only",
     "test:python": "node scripts/run-python-tests.mjs",
     "test:python-live-model": "node scripts/run-python-tests.mjs --live-model",
