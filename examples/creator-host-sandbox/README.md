@@ -14,7 +14,7 @@ Each Host's command lifecycle prepares the required workspace development packag
 
 Creator is injected only by the Host's Vite dev configuration. It loads `http://localhost:5174/dock.html` in an iframe and never controls the Host's HMR. `VITE_CREATOR_DOCK_URL` overrides the Creator URL. Production builds omit the Creator dock. The generated Agent app has no Creator runtime dependency and does not read `.agent-ui/**` at runtime.
 
-The same dev configuration installs the shared Host Preview Bridge. Inside Workbench's real Host iframe, the adapter consumes generic Agent observations, captures screenshots in the Host document, and forwards existing reporter uploads over a workspace/thread-bound MessageChannel. Workbench reconnects after iframe reload. Outside the preview iframe, the adapter does not connect or require a Creator server. The bridge is omitted from production builds.
+Workbench owns the optional Host Preview overlay and adapter injection; the ordinary Host Vite configuration does not load it. Inside Workbench's real Host iframe, the adapter consumes generic Agent observations, captures screenshots in the Host document, and forwards existing reporter uploads over a workspace/thread-bound MessageChannel. Workbench reconnects after iframe reload. Standalone Host commands do not depend on the Creator package or build its distribution. The preview bridge belongs exclusively to the Workbench development layer and is omitted from production builds.
 
 ## 配置用户工程的 AG-UI 地址（`.env.local`）
 

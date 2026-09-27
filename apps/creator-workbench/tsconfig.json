@@ -59,6 +59,7 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "vite.config.ts",
+    "host-preview.vite.config.ts",
     "../../packages/creator/src/ui/**/*.tsx",
     "../../packages/creator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts",
     "../../packages/creator/src/visual-observation/VisualObservationReporter.ts",

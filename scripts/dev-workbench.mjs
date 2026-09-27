@@ -1,6 +1,6 @@
 import { spawn, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { prepareHostPackages } from "./prepare-host-packages.mjs";
+import { prepareWorkbench } from "./prepare-workbench.mjs";
 
 const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
 const args = process.argv.slice(2);
@@ -12,10 +12,11 @@ function port(option, fallback) {
 }
 const hostPort = port("--host-port", 5176);
 const workbenchPort = port("--workbench-port", 5174);
-prepareHostPackages();
+prepareWorkbench();
 const environment = {
   ...process.env,
   AGENT_UI_HOST_PACKAGES_PREPARED: "1",
+  AGENT_UI_WORKBENCH_PREPARED: "1",
   VITE_CREATOR_HOST_PREVIEW_URL: process.env.VITE_CREATOR_HOST_PREVIEW_URL || `http://127.0.0.1:${hostPort}/?creator-preview`,
 };
 const ensure = spawnSync("pnpm", ["--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "scripts/host-project.ts", "ensure", "platform"], {
@@ -24,9 +25,9 @@ const ensure = spawnSync("pnpm", ["--filter", "@agent-ui/creator-host-sandbox", 
 if (ensure.error) throw ensure.error;
 if (ensure.status !== 0) throw new Error("Could not prepare the platform Host");
 const children = [
-  ["@agent-ui/creator-host-sandbox", hostPort],
-  ["@agent-ui/creator-workbench", workbenchPort],
-].map(([name, listenPort]) => spawn("pnpm", ["--filter", String(name), "dev", "--host", "127.0.0.1", "--port", String(listenPort), "--strictPort"], {
+  ["@agent-ui/creator-host-sandbox", hostPort, ["--config", fileURLToPath(new URL("../apps/creator-workbench/host-preview.vite.config.ts", import.meta.url))]],
+  ["@agent-ui/creator-workbench", workbenchPort, []],
+].map(([name, listenPort, configArgs]) => spawn("pnpm", ["--filter", String(name), "dev", ...configArgs, "--host", "127.0.0.1", "--port", String(listenPort), "--strictPort"], {
   cwd: workspaceRoot, env: environment, stdio: "inherit",
 }));
 let stopping = false;

@@ -87,9 +87,6 @@ importers:
       '@agent-ui/bootstrap':
         specifier: workspace:^
         version: link:../../packages/bootstrap
-      '@agent-ui/creator':
-        specifier: workspace:^
-        version: link:../../packages/creator
       '@agent-ui/mock-agent':
         specifier: workspace:^
         version: link:../../packages/mock-agent
@@ -154,9 +151,6 @@ importers:
       '@agent-ui/bootstrap':
         specifier: workspace:^
         version: link:../../packages/bootstrap
-      '@agent-ui/creator':
-        specifier: workspace:^
-        version: link:../../packages/creator
       '@agent-ui/mock-agent':
         specifier: workspace:^
         version: link:../../packages/mock-agent
@@ -221,9 +215,6 @@ importers:
       '@agent-ui/bootstrap':
         specifier: workspace:^
         version: link:../../packages/bootstrap
-      '@agent-ui/creator':
-        specifier: workspace:^
-        version: link:../../packages/creator
       '@agent-ui/mock-agent':
         specifier: workspace:^
         version: link:../../packages/mock-agent

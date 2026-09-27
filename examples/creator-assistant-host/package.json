@@ -45,7 +45,6 @@
     "vite": "^8.2.2",
     "@agent-ui/bootstrap": "workspace:^",
     "@agent-ui/project-control": "workspace:^",
-    "@agent-ui/mock-agent": "workspace:^",
-    "@agent-ui/creator": "workspace:^"
+    "@agent-ui/mock-agent": "workspace:^"
   }
 }
