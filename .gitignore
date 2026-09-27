@@ -1,4 +1,6 @@
 node_modules/
+.pnpm-store/
+packages/react/.tmp-upstream-*/
 dist/
 coverage/
 *.tsbuildinfo
