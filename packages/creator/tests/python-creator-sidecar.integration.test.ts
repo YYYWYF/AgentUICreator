@@ -358,7 +358,7 @@ async function createDomainWriteMockChatCompletionsServer(
 }
 
 async function copyTargetProject(label: string): Promise<string> {
-  execFileSync("pnpm", ["--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "scripts/host-project.ts", "ensure", "platform"], { cwd: repositoryRoot, stdio: "pipe" });
+  execFileSync("pnpm", ["--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"], { cwd: repositoryRoot, stdio: "pipe" });
   const root = await mkdtemp(path.join(tmpdir(), `creator-${label}-`));
   temporaryDirectories.push(root);
   await cp(projectRoot, root, {

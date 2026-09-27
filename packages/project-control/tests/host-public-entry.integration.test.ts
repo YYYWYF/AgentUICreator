@@ -1,11 +1,12 @@
-import { createAgentUIInitializationHost } from "@agent-ui/project-control/dev";
+// @vitest-environment node
+import { createAgentUIInitializationHost } from "../src/dev";
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { mkdtemp, mkdir, readFile, readdir, rm, stat, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import test from "node:test";
+import { test } from "vitest";
 import { promisify } from "node:util";
 
 import react from "@vitejs/plugin-react";
@@ -13,20 +14,26 @@ import tailwindcss from "@tailwindcss/vite";
 import { build } from "vite";
 
 import { initializeAgentUIProject } from "@agent-ui/bootstrap";
-import { inspectCreatorProject } from "@agent-ui/project-control/dev";
-import { handleUIProjectControlRequest } from "@agent-ui/project-control/dev";
-import { verifyUIProject } from "@agent-ui/project-control/dev";
-import { runtimeAliases } from "../vite-runtime-aliases";
-import { installDemoPlugin } from "@agent-ui/project-control/dev";
+import { inspectCreatorProject } from "../src/dev";
+import { handleUIProjectControlRequest } from "../src/dev";
+import { verifyUIProject } from "../src/dev";
+
+import { installDemoPlugin } from "../src/dev";
 
 const initializationHost = createAgentUIInitializationHost();
 
-const sandboxRoot = fileURLToPath(new URL("..", import.meta.url));
-const hostSourceRoots = [
-  sandboxRoot,
-  path.join(sandboxRoot, "..", "creator-assistant-host"),
-  path.join(sandboxRoot, "..", "creator-embedded-host"),
-].map((root) => path.join(root, "src"));
+const workspaceRoot = fileURLToPath(new URL("../../../", import.meta.url));
+const hostProjects = {
+  platform: path.join(workspaceRoot, "examples/creator-host-sandbox"),
+  assistant: path.join(workspaceRoot, "examples/creator-assistant-host"),
+  embedded: path.join(workspaceRoot, "examples/creator-embedded-host"),
+};
+const hostSourceRoots = Object.values(hostProjects).map(root => path.join(root, "src"));
+const runtimeAliases = {
+  "@agent-ui/react/styles.css": path.join(workspaceRoot, "packages/react/src/styles.css"),
+  ...Object.fromEntries(["react", "runtime-conversation", "runtime-core", "runtime-react"].map(name =>
+    [`@agent-ui/${name}`, path.join(workspaceRoot, `packages/${name}/src/index.ts`)])),
+};
 const prohibited = /(?:\/|\\)agent-ui(?:\/|\\)(?:runtime|framework|plugins|app-ui)(?:\/|\\)/u;
 const execFileAsync = promisify(execFile);
 
@@ -52,13 +59,14 @@ test("Host-owned source imports only the public Agent UI entry", async () => {
 
 for (const mode of ["assistant", "embedded", "platform"] as const) {
   test(`a plain temporary Host can initialize ${mode} and bundle the public Agent entry without metadata`, async () => {
+    const hostRoot = hostProjects[mode];
     const projectRoot = await mkdtemp(path.join(os.tmpdir(), "creator-host-entry-"));
     try {
-      await writeFile(path.join(projectRoot, "package.json"), await readFile(path.join(sandboxRoot, "package.json")));
-      await symlink(path.join(sandboxRoot, "node_modules"), path.join(projectRoot, "node_modules"), "dir");
+      await writeFile(path.join(projectRoot, "package.json"), await readFile(path.join(hostRoot, "package.json")));
+      await symlink(path.join(hostRoot, "node_modules"), path.join(projectRoot, "node_modules"), "dir");
       await mkdir(path.join(projectRoot, "src"));
       await writeFile(path.join(projectRoot, "tsconfig.json"), JSON.stringify({
-        extends: path.join(sandboxRoot, "tsconfig.json"),
+        extends: path.join(hostRoot, "tsconfig.json"),
         include: ["src"],
       }));
       await writeFile(path.join(projectRoot, "index.html"),
@@ -167,11 +175,11 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
       await rm(path.join(projectRoot, ".agent-ui"), { recursive: true });
 
       await writeFile(path.join(projectRoot, "tsconfig.json"), JSON.stringify({
-        extends: path.join(sandboxRoot, "tsconfig.json"),
+        extends: path.join(hostRoot, "tsconfig.json"),
         include: ["src"],
       }));
       await execFileAsync(process.execPath, [
-        path.join(sandboxRoot, "node_modules/typescript/bin/tsc"),
+        path.join(hostRoot, "node_modules/typescript/bin/tsc"),
         "--project", path.join(projectRoot, "tsconfig.json"),
         "--noEmit",
       ]);
@@ -187,5 +195,5 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
     } finally {
       await rm(projectRoot, { recursive: true, force: true });
     }
-  });
+  }, 120_000);
 }

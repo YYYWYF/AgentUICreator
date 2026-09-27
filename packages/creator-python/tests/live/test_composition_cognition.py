@@ -39,7 +39,7 @@ def _ensure_real_host_project():
         ["pnpm", "--filter", "@agent-ui/bootstrap", "build"], cwd=REPOSITORY_ROOT, check=True,
     )
     subprocess.run(
-        ["pnpm", "--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "scripts/host-project.ts", "ensure", "platform"],
+        ["pnpm", "--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"],
         cwd=REPOSITORY_ROOT, check=True,
     )
 

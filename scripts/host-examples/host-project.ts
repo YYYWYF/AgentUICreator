@@ -1,13 +1,13 @@
-import { createAgentUIInitializationHost } from "@agent-ui/project-control/dev";
+import { createAgentUIInitializationHost } from "../../packages/project-control/dist/runtime/project-control-runtime.mjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { handleUIProjectControlRequest, inspectCreatorProject } from "@agent-ui/project-control/dev";
-import { initializeAgentUIProject } from "@agent-ui/bootstrap";
+import { handleUIProjectControlRequest, inspectCreatorProject } from "../../packages/project-control/dist/runtime/project-control-runtime.mjs";
+import { initializeAgentUIProject } from "../../packages/bootstrap/dist/index.js";
 
 const initializationHost = createAgentUIInitializationHost();
 
-const examplesRoot = fileURLToPath(new URL("../..", import.meta.url));
+const examplesRoot = fileURLToPath(new URL("../../examples/", import.meta.url));
 const sourceRoot = "src/agent-ui";
 const command = process.argv[2];
 const mode = command === "inspect" ? undefined : process.argv[3];
@@ -17,10 +17,10 @@ const allowedProjects = new Set([
   "creator-assistant-host",
   "creator-embedded-host",
 ]);
-if (projectName !== undefined && !allowedProjects.has(projectName)) {
+if (projectName === undefined || !allowedProjects.has(projectName)) {
   throw new Error(`Unknown Host project: ${projectName}`);
 }
-const projectRoot = path.join(examplesRoot, projectName ?? "creator-host-sandbox");
+const projectRoot = path.join(examplesRoot, projectName);
 
 function describeState(state: Awaited<ReturnType<typeof inspectCreatorProject>>) {
   if (state.status === "ready") {
@@ -40,7 +40,7 @@ async function main() {
   }
 
   if ((command !== "init" && command !== "ensure") || (mode !== "assistant" && mode !== "embedded" && mode !== "platform")) {
-    throw new Error("Usage: host-project.ts inspect [project] | init|ensure assistant|embedded|platform [project]");
+    throw new Error("Usage: host-project.ts inspect project | init|ensure assistant|embedded|platform project");
   }
   const before = await inspectCreatorProject(projectRoot);
   if (command === "ensure" && before.status === "ready") {
@@ -49,7 +49,7 @@ async function main() {
     }
     const sources = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_agent_ui_sources", input: {} }, projectRoot);
     if (!sources.ok) throw new Error("Could not inspect managed Host sources");
-    const inspection = sources.result as import("@agent-ui/project-control/dev").AgentUISourceInspection;
+    const inspection = sources.result as import("../../packages/project-control/src/dev").AgentUISourceInspection;
     const core = inspection.items.find(item => item.id === "foundation/core");
     if (core && core.installedVersion !== core.availableVersion) {
       if (core.status === "customized" || core.status === "blocked") {

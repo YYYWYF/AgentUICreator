@@ -1,6 +1,6 @@
 # Three independent Host examples
 
-These ordinary React/Vite projects show the three Agent UI Modes inside user-owned applications. Each starts its own Vite server and imports only the generated `src/agent-ui` public entry. On first `dev`, `build`, `test`, or `typecheck`, the matching Source Registry preset is initialized into that Host if it is still uninitialized. Startup upgrades an unchanged managed foundation through Project Control when its registry version changes; customized or blocked foundations require an explicit upgrade.
+These ordinary React/Vite projects show the three Agent UI Modes inside user-owned applications. Each starts its own Vite server and imports only the generated `src/agent-ui` public entry. On first `dev`, `build`, or `typecheck`, the matching Source Registry preset is initialized into that Host if it is still uninitialized. Startup upgrades an unchanged managed foundation through Project Control when its registry version changes; customized or blocked foundations require an explicit upgrade.
 
 | Project | Mode | Host layout | URL | Start |
 | --- | --- | --- | --- | --- |
@@ -56,8 +56,10 @@ Each Host owns its `src/App.tsx`, `src/AgentMount.tsx`, `src/main.tsx`, `src/hos
 
 The fixed `scripts/ui-project-control.ts` entry is used by the development-only Creator sidecar. These three workspace examples delegate to the shared `@agent-ui/project-control` package; the entry supplies each Host's own project root. It is outside `src/` and is not included in the Host's production bundle. Initialization is owned by `@agent-ui/bootstrap`. Run `pnpm install` at the workspace root before using Creator so each Host has its local `node_modules/.bin/tsx` executable.
 
-The shared helper scripts under this project's `scripts/` initialize or inspect one named Host and reset only its `.agent-ui` and `src/agent-ui` directories. They reject symlinks and unsafe paths. After reset, the next `dev` or `build` initializes that Host's default Mode again. The Platform Host also keeps its explicit `init:assistant`, `init:embedded`, and `init:platform` scripts for Source Registry experiments; using a different Mode requires reset first and the matching Host layout is only guaranteed in its named example.
+The shared helper scripts under workspace `scripts/host-examples/` initialize or inspect one named Host and reset only its `.agent-ui` and `src/agent-ui` directories. They reject symlinks and unsafe paths. After reset, the next `dev` or `build` initializes that Host's default Mode again. The Platform Host also keeps its explicit `init:assistant`, `init:embedded`, and `init:platform` scripts for Source Registry experiments; using a different Mode requires reset first and the matching Host layout is only guaranteed in its named example.
 
 Each Host also provides `pnpm verify:ui`, backed by the shared target verifier with that Host's own project root. Creator runs it together with `pnpm typecheck` after edits; it validates the managed model, capability catalog, composition, and Service contracts without writing generated files.
 
-The public-entry test in this project initializes temporary Hosts for all three Modes, executes add/remove actions, reads back composition and verifies the UI, then builds after removing `.agent-ui/**`, covering deployment without Creator metadata.
+The public-entry integration test in `packages/project-control/tests/host-public-entry.integration.test.ts`, run by the Project Control test suite, initializes temporary Hosts for all three Modes, executes add/remove actions, reads back composition and verifies the UI, then builds after removing `.agent-ui/**`, covering deployment without Creator metadata.
+
+Root `pnpm build` prepares shared workspace packages once, then builds Creator and the three Hosts with `AGENT_UI_HOST_PACKAGES_PREPARED=1`. Direct Host commands still prepare their own dependencies. This flag applies only to the current orchestration; no persistent build cache is used. Shared harness commands require an explicit Host project name.

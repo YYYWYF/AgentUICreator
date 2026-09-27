@@ -2,8 +2,8 @@ import { lstat, readdir, realpath, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const examplesRoot = fileURLToPath(new URL("../..", import.meta.url));
-const projectName = process.argv[2] ?? "creator-host-sandbox";
+const examplesRoot = fileURLToPath(new URL("../../examples/", import.meta.url));
+const projectName = process.argv[2];
 if (!["creator-host-sandbox", "creator-assistant-host", "creator-embedded-host"].includes(projectName)) {
   throw new Error(`Unknown Host project: ${projectName}`);
 }
@@ -23,6 +23,7 @@ async function rejectLinksRecursively(directory) {
 
 async function main() {
   const root = await realpath(sandboxRoot);
+  if (root !== sandboxRoot) throw new Error(`Reset refused unsafe Host root: ${sandboxRoot}`);
   const targets = [];
   for (const relativePath of allowedTargets) {
     const target = path.join(root, relativePath);
@@ -46,7 +47,7 @@ async function main() {
     targets.push(target);
   }
   for (const target of targets) await rm(target, { recursive: true });
-  console.log("Removed sandbox Agent UI source and metadata. Host-owned files were preserved.");
+  console.log("Removed Host Agent UI source and metadata. Host-owned files were preserved.");
 }
 
 main().catch((error) => {
