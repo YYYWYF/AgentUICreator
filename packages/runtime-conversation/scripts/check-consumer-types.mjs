@@ -28,7 +28,7 @@ async function run(command, args, cwd = consumerRoot) {
 try {
   const manifest = JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8"));
   if (!manifest.dependencies?.["@assistant-ui/core"]) {
-    throw new Error("The AttachmentAdapter defining-module seam requires a declared @assistant-ui/core dependency.");
+    throw new Error("The upstream adapter type seams require a declared @assistant-ui/core dependency.");
   }
   const archives = path.join(consumerRoot, "archives");
   await mkdir(archives);
@@ -60,11 +60,11 @@ try {
   const installedRequire = createRequire(path.join(installedRealPath, "package.json"));
   const coreEntry = await realpath(installedRequire.resolve("@assistant-ui/core"));
   if (!coreEntry.startsWith(consumerRoot + path.sep)) {
-    throw new Error("The published AttachmentAdapter dependency must resolve within the isolated install.");
+    throw new Error("The published upstream adapter dependency must resolve within the isolated install.");
   }
   const installedManifest = JSON.parse(await readFile(path.join(installedRoot, "package.json"), "utf8"));
   if (installedManifest.dependencies?.["@assistant-ui/core"] !== manifest.dependencies["@assistant-ui/core"]) {
-    throw new Error("Packed Runtime manifest lost its declared AttachmentAdapter dependency.");
+    throw new Error("Packed Runtime manifest lost its declared upstream adapter dependency.");
   }
   await writeFile(path.join(consumerRoot, "tsconfig.json"), JSON.stringify({
     compilerOptions: {
@@ -91,13 +91,23 @@ const adapter: NonNullable<ConversationRuntimeProviderProps["attachmentAdapter"]
       content: [{ type: "image", image: "https://example.test/image.png" }] };
   },
 };
+const dictationAdapter: NonNullable<ConversationRuntimeProviderProps["dictationAdapter"]> = {
+  listen() {
+    return {
+      status: { type: "running" }, stop: async () => {}, cancel: () => {},
+      onSpeechStart: () => () => {}, onSpeechEnd: () => () => {}, onSpeech: () => () => {},
+    };
+  },
+};
 const props: ConversationRuntimeProviderProps = {
   endpoint: "https://example.test/agent", threadBinding: binding,
-  attachmentAdapter: adapter, children: null,
+  attachmentAdapter: adapter, dictationAdapter, children: null,
 };
 // @ts-expect-error upstream adapter contract must not become an untyped seam
 const invalid: ConversationRuntimeProviderProps["attachmentAdapter"] = { accept: "image/*" };
-void [AgentUiRuntimeBusyError, ConversationRuntimeProvider, UnsupportedAgentInputError, props, invalid];
+// @ts-expect-error dictation must provide the official listen method
+const invalidDictation: ConversationRuntimeProviderProps["dictationAdapter"] = { accept: "audio/*" };
+void [AgentUiRuntimeBusyError, ConversationRuntimeProvider, UnsupportedAgentInputError, props, invalid, invalidDictation];
 `);
   await access(tscPath);
   await run(process.execPath, [tscPath, "--project", path.join(consumerRoot, "tsconfig.json")]);

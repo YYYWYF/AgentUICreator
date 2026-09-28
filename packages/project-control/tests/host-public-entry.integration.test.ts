@@ -72,7 +72,7 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
       await writeFile(path.join(projectRoot, "index.html"),
         '<div id="root"></div><script type="module" src="/src/main.tsx"></script>\n');
       await writeFile(path.join(projectRoot, "src/main.tsx"),
-        'import { createRoot } from "react-dom/client";\nimport { Agent } from "./agent-ui";\ncreateRoot(document.getElementById("root")!).render(<Agent />);\n');
+        'import { createRoot } from "react-dom/client";\nimport { Agent, type AgentProps } from "./agent-ui";\nconst dictationAdapter: NonNullable<AgentProps["dictationAdapter"]> = { listen() { return { status: { type: "running" }, stop: async () => {}, cancel: () => {}, onSpeechStart: () => () => {}, onSpeechEnd: () => () => {}, onSpeech: () => () => {} }; } };\ncreateRoot(document.getElementById("root")!).render(<Agent dictationAdapter={dictationAdapter} />);\n');
 
       assert.equal((await inspectCreatorProject(projectRoot)).status, "uninitialized");
       await initializeAgentUIProject({ projectRoot, mode, sourceRoot: "src/agent-ui" }, initializationHost);

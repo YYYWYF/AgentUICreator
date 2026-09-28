@@ -8,7 +8,7 @@ import type {
   AgentUserInput,
 } from "@agent-ui/runtime-core";
 import type { AbstractAgent } from "@ag-ui/client";
-import type { AttachmentAdapter } from "@assistant-ui/core";
+import type { AttachmentAdapter, DictationAdapter } from "@assistant-ui/core";
 import {
   ConversationRuntimeProvider as InternalConversationRuntimeProvider,
   type ConversationAgentFactory as InternalConversationAgentFactory,
@@ -58,6 +58,8 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   suggestions?: readonly ConversationStarterSuggestion[] | undefined;
   /** Official assistant-ui adapter; the application owns file preparation and storage. */
   attachmentAdapter?: AttachmentAdapter | undefined;
+  /** Official assistant-ui adapter; the application owns speech-to-text. */
+  dictationAdapter?: DictationAdapter | undefined;
   children: ReactNode;
   onError?: ((error: Error) => void) | undefined;
   unstable_agentFactory?: ConversationAgentFactory | undefined;

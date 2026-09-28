@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 
 import { compileAppUIModel } from "../../../project-control/src/framework/contracts/app-ui-compiler";
 import {
+  collectAppUIPluginLocations,
   parseAppUIModel,
   parseAppUIModelJson,
 } from "../../../project-control/src/framework/contracts/app-ui-model";
@@ -42,8 +43,24 @@ describe("Agent UI Preset", () => {
       expect(preset.mode).toBe(mode);
       expect(preset.id).toBe(agentUIModeRegistry.get(mode).defaultPresetId);
       expect(preset.sourceItems).toContain("foundation/conversation");
+      expect(preset.sourceItems).toContain("plugin/assistant-ui-dictation-action");
     }
   });
+
+  it.each(["assistant", "embedded", "platform"] as const)(
+    "%s keeps dictation presentation in the Composer trailing actions",
+    (mode) => {
+      const model = agentUIPresetRegistry.getDefaultForMode(mode, agentUIModeRegistry).createAppUIModel();
+      const locations = collectAppUIPluginLocations(model);
+      expect(locations.find(({ plugin }) => plugin.pluginId === "assistant-ui-dictation-action"))
+        ?.toMatchObject({
+          plugin: { enabled: true },
+          target: { type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "trailingActions" },
+        });
+      expect(locations.find(({ plugin }) => plugin.pluginId === "assistant-ui-composer"))
+        ?.toMatchObject({ target: { type: "plugin_slot", parentInstanceId: "agent-conversation-surface-main", slot: "composer" } });
+    },
+  );
 
   it("rejects duplicate, missing, and mismatched default presets", () => {
     const registry = new AgentUIPresetRegistry();

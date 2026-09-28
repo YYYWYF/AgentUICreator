@@ -7,17 +7,21 @@ describe("public declaration upstream type allowlist", () => {
     "import type {\n  AttachmentAdapter,\n} from '@assistant-ui/react';",
     'import type { AttachmentAdapter } from "@assistant-ui/core";',
     "import\ntype\n{\n AttachmentAdapter\n}\nfrom\n'@assistant-ui/react';",
-  ])("allows the official AttachmentAdapter independent of formatting", source => {
-    expect(policy(`${source}\nexport interface Props { attachmentAdapter?: AttachmentAdapter; }`)).toEqual([]);
+    'import type { DictationAdapter } from "@assistant-ui/react";',
+    'import type { AttachmentAdapter, DictationAdapter } from "@assistant-ui/core";',
+  ])("allows official adapter types independent of formatting", source => {
+    expect(policy(source)).toEqual([]);
   });
 
   it.each([
     'import type { AssistantRuntime } from "@assistant-ui/react";',
     'import type { AssistantRuntime } from "@assistant-ui/core";',
     'import type { AttachmentAdapter, ThreadMessage } from "@assistant-ui/core";',
+    'import type { DictationAdapter, ThreadMessage } from "@assistant-ui/core";',
     'import type { AttachmentAdapter, ThreadMessage } from "@assistant-ui/react";',
     'import type {\n AttachmentAdapter,\n ThreadMessage\n} from "@assistant-ui/react";',
     'import { AttachmentAdapter } from "@assistant-ui/react";',
+    'import { DictationAdapter } from "@assistant-ui/react";',
     'import type * as Upstream from "@assistant-ui/react";',
     'import type { AttachmentAdapter as Renamed } from "@assistant-ui/react";',
     'import type { AttachmentAdapter } from "@assistant-ui/react-ag-ui";',

@@ -58,6 +58,8 @@ export interface AgentProps {
   observability?: AgentObservability;
   /** Application-owned official assistant-ui attachment adapter. */
   attachmentAdapter?: ConversationRuntimeProviderProps["attachmentAdapter"];
+  /** Application-owned official assistant-ui speech-to-text adapter. */
+  dictationAdapter?: ConversationRuntimeProviderProps["dictationAdapter"];
 }
 
 function AgentUIStyleSurface({ children }: { children: ReactNode }) {
@@ -154,7 +156,7 @@ function AgentSurface({ composition, observability }: {
   );
 }
 
-export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter }: AgentProps = {}) {
+export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter }: AgentProps = {}) {
   const composition = useSyncExternalStore(
     agentCompositionStore.subscribe,
     agentCompositionStore.getSnapshot,
@@ -198,6 +200,7 @@ export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
     <ConversationRuntimeProvider<AppAgentState>
       endpoint={endpoint}
       attachmentAdapter={attachmentAdapter}
+      dictationAdapter={dictationAdapter}
       frontendTools={frontendToolRuntime}
       frontendToolUIs={generatedFrontendToolUIs}
       suggestions={conversationStarterSuggestions}

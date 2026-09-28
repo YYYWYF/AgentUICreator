@@ -8,6 +8,7 @@ import {
   useLocalRuntime,
   type AssistantRuntime,
   type ChatModelAdapter,
+  type DictationAdapter,
 } from "@assistant-ui/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -97,6 +98,7 @@ interface CompositionOptions {
   dictation?: boolean;
   submit?: boolean;
   autoFocus?: boolean;
+  dictationAdapter?: DictationAdapter;
 }
 
 function createCompositionModel({
@@ -168,15 +170,19 @@ function createCompositionModel({
 function RuntimeFixture({
   autoFocus,
   chatModel,
+  dictationAdapter,
   model,
   onRuntime,
 }: {
   autoFocus: boolean;
   chatModel: ChatModelAdapter;
+  dictationAdapter?: DictationAdapter | undefined;
   model: AppUIRuntimeModel;
   onRuntime(runtime: AssistantRuntime): void;
 }) {
-  const runtime = useLocalRuntime(chatModel);
+  const runtime = useLocalRuntime(chatModel, {
+    ...(dictationAdapter === undefined ? {} : { adapters: { dictation: dictationAdapter } }),
+  });
   useEffect(() => onRuntime(runtime), [onRuntime, runtime]);
 
   return (
@@ -214,6 +220,7 @@ async function mount(
       <RuntimeFixture
         autoFocus={options.autoFocus ?? false}
         chatModel={chatModel}
+        dictationAdapter={options.dictationAdapter}
         model={createCompositionModel(options)}
         onRuntime={(value) => {
           runtime = value;
@@ -378,6 +385,29 @@ describe("assistant-ui Composer action Plugins", () => {
     expect(
       findActionButton(container, "assistant-ui-submit-action", ".aui-composer-send"),
     ).toBeInstanceOf(HTMLButtonElement);
+  });
+
+  it("shows the dictation action only when an upstream adapter is supplied", async () => {
+    const chatModel: ChatModelAdapter = { run: async () => ({ content: [] }) };
+    const withoutAdapter = await mount(chatModel);
+    expect(withoutAdapter.container.querySelector('button[aria-label="Start voice input"]')).toBeNull();
+
+    const session: DictationAdapter.Session = {
+      status: { type: "running" },
+      stop: vi.fn(async () => {}),
+      cancel: vi.fn(),
+      onSpeechStart: () => () => {},
+      onSpeechEnd: () => () => {},
+      onSpeech: () => () => {},
+    };
+    const listen = vi.fn(() => session);
+    const withAdapter = await mount(chatModel, { dictationAdapter: { listen } });
+    const start = withAdapter.container.querySelector('button[aria-label="Start voice input"]');
+    expect(start).toBeInstanceOf(HTMLButtonElement);
+    await act(async () => { (start as HTMLButtonElement).click(); });
+    expect(listen).toHaveBeenCalledOnce();
+    expect(withAdapter.container.querySelector('button[aria-label="Stop voice input"]'))
+      .toBeInstanceOf(HTMLButtonElement);
   });
 
   it("does not restore an upstream Composer when the Composer Slot is empty", async () => {

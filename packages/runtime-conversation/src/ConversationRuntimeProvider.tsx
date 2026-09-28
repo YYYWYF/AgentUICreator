@@ -11,6 +11,7 @@ import {
   useRemoteThreadListRuntime,
   type AssistantRuntime,
   type AttachmentAdapter,
+  type DictationAdapter,
   type ThreadHistoryAdapter,
   type ThreadMessage,
 } from "@assistant-ui/react";
@@ -65,6 +66,8 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   suggestions?: readonly ConversationStarterSuggestion[] | undefined;
   /** File preparation/storage belongs to the application-provided upstream adapter. */
   attachmentAdapter?: AttachmentAdapter | undefined;
+  /** Speech-to-text belongs to the application-provided upstream adapter. */
+  dictationAdapter?: DictationAdapter | undefined;
   children: ReactNode;
   onError?: ((error: Error) => void) | undefined;
   /** Test seam; production callers should use the default per-thread HttpAgent. */
@@ -86,6 +89,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
   toolkit,
   suggestions,
   attachmentAdapter,
+  dictationAdapter,
   children,
   onError,
   unstable_agentFactory = defaultAgentFactory,
@@ -166,6 +170,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
       adapters: {
         history,
         ...(attachmentAdapter === undefined ? {} : { attachments: attachmentAdapter }),
+        ...(dictationAdapter === undefined ? {} : { dictation: dictationAdapter }),
       },
       onCancel: () => bridgeRef.current?.recordCancellation(),
       onError: error => {
@@ -195,7 +200,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
       };
     }, [agentRuntime, applicationEvents, bridge, item.id]);
     return runtime;
-  }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, frontendTools, onError, attachmentAdapter]);
+  }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, frontendTools, onError, attachmentAdapter, dictationAdapter]);
   const [controlledThreadId, setControlledThreadId] = useState<string | undefined>(persistence.initialId);
   const assistantRuntime = useRemoteThreadListRuntime({
     adapter: persistence.adapter, runtimeHook,
