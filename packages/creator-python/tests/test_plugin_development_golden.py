@@ -43,6 +43,27 @@ TASK_PLUGIN_FILES = {
     ),
     "/plugins/task-status/styles.css": ".status { padding: 8px; }\n",
 }
+SKILL_PANEL_SOURCE = (
+    "export function SkillPanel() {\n"
+    "  return <section>Skill Manager <button>Install</button></section>;\n"
+    "}\n"
+)
+SKILL_PLUGIN_FILES = {
+    "/plugins/skill-manager/manifest.json": (
+        '{"id":"skill-manager","name":"Skill Manager","version":"1.0.0",'
+        '"description":"Displays the existing Skill panel"}\n'
+    ),
+    "/plugins/skill-manager/definition.ts": (
+        'import { defineUIPlugin } from "../../framework/contracts/ui-plugin";\n'
+        'import manifest from "./manifest.json";\n'
+        'import { SkillManagerPlugin } from "./index";\n'
+        'export default defineUIPlugin({ manifest, component: SkillManagerPlugin });\n'
+    ),
+    "/plugins/skill-manager/index.tsx": (
+        'import { SkillPanel } from "../../components/skill-panel";\n'
+        'export function SkillManagerPlugin() { return <SkillPanel />; }\n'
+    ),
+}
 GATE_PLUGIN_FILES = {
     "/plugins/auth-gate/manifest.json": (
         '{"id":"auth-gate","name":"Authentication Gate","version":"1.0.0",'
@@ -220,12 +241,12 @@ class PluginProjectControl:
         self.record("inspect_ui_services")
         return {"appUIModelHash": self.hash(), **self.service_topology}
 
-    async def inspect_ui_slots(self, *, root=None):
+    async def inspect_ui_slots(self, *, target=None, app_ui_model_hash=None):
         self.record("inspect_ui_slots")
         return {
             "appUIModelHash": self.hash(),
             "slots": [{
-                "target": {"type": "layout_slot", "slotNodeId": "right-status"},
+                "target": {"type": "layout_slot", "slotRef": "l0"},
                 "description": "Right-side status content.",
                 "cardinality": "many",
                 "optional": True,
@@ -243,6 +264,10 @@ class PluginProjectControl:
             "appUIModel": {"hash": self.hash(), "model": self.model()},
             "plugins": model_plugins(self.model()),
         }
+
+    async def verify_runtime_composition(self, **_kwargs):
+        self.record("verify_runtime_composition")
+        return {"verified": True, "checks": []}
 
     async def inspect_ui_plugin_source_references(self, plugin_id):
         self.record("inspect_ui_plugin_source_references")
@@ -281,15 +306,17 @@ class PluginProjectControl:
             }
         assert operation["target"] == {
             "type": "layout_slot",
-            "slotNodeId": "right-status",
+            "slotRef": "l0",
         }
         model["root"]["plugins"].append(plugin)
         (self.root / APP_UI_MODEL_PATH).write_text(
             json.dumps(model, indent=2) + "\n", encoding="utf-8"
         )
+        plugin_id = plugin["pluginId"]
+        binding = "skillManager" if plugin_id == "skill-manager" else "taskStatus"
         (self.root / REGISTRY_PATH).write_text(
-            'import taskStatus from "./task-status/definition";\n'
-            "export const pluginDefinitions = [taskStatus];\n",
+            f'import {binding} from "./{plugin_id}/definition";\n'
+            f"export const pluginDefinitions = [{binding}];\n",
             encoding="utf-8",
         )
         after_hash = self.hash()
@@ -454,6 +481,23 @@ def create_files_message(content_by_path=TASK_PLUGIN_FILES):
     )
 
 
+def skill_create_files_message():
+    return call(
+        "create_ui_plugin",
+        {
+            "pluginId": "skill-manager",
+            "files": [
+                {
+                    "relativePath": path.removeprefix("/plugins/skill-manager/"),
+                    "content": content,
+                }
+                for path, content in SKILL_PLUGIN_FILES.items()
+            ],
+        },
+        "create-skill-adapter",
+    )
+
+
 def mutation_message():
     return call(
         "mutate_app_ui_model",
@@ -468,12 +512,35 @@ def mutation_message():
                     },
                     "target": {
                         "type": "layout_slot",
-                        "slotNodeId": "right-status",
+                        "slotRef": "l0",
                     },
                 }
             ]
         },
         "compose",
+    )
+
+
+def skill_mutation_message():
+    return call(
+        "mutate_app_ui_model",
+        {
+            "operations": [
+                {
+                    "type": "insert_plugin",
+                    "plugin": {
+                        "id": "skill-manager-main",
+                        "pluginId": "skill-manager",
+                        "enabled": True,
+                    },
+                    "target": {
+                        "type": "layout_slot",
+                        "slotRef": "l0",
+                    },
+                }
+            ]
+        },
+        "compose-skill",
     )
 
 
@@ -531,7 +598,11 @@ def discovery_messages():
 def composition_inspection_message():
     return batch(
         call("inspect_app_ui_model", {}, "inspect-model"),
-        call("inspect_ui_slots", {"root": "right-status"}, "inspect-slot"),
+        call(
+            "inspect_ui_slots",
+            {"target": {"type": "layout_slot", "slotRef": "l0"}},
+            "inspect-slot",
+        ),
     )
 
 
@@ -542,8 +613,15 @@ def make_agent(
     runtime_error=False,
     runner=None,
     already_satisfied=False,
+    existing_component=None,
 ):
     root = make_project(tmp_path)
+    if existing_component is not None:
+        components = root / "components"
+        components.mkdir()
+        (components / "skill-panel.tsx").write_text(
+            existing_component, encoding="utf-8"
+        )
     if already_satisfied:
         plugin_root = root / "plugins/task-status"
         plugin_root.mkdir()
@@ -575,12 +653,10 @@ def make_agent(
         if (
             command == "pnpm typecheck"
             and result.exit_code == 0
-            and any(
-                plugin["id"] == "task-status-main"
-                for plugin in model_plugins(client.model())
-            )
+            and client.model()["root"]["plugins"]
         ):
             current_hash = client.hash()
+            plugin = client.model()["root"]["plugins"][-1]
             diagnostics.record(
                 RuntimeDiagnosticEnvelope.model_validate(
                     {
@@ -591,8 +667,8 @@ def make_agent(
                             "observedAt": datetime.now(timezone.utc).isoformat(),
                             "instances": [
                                 {
-                                    "instanceId": "task-status-main",
-                                    "pluginId": "task-status",
+                                    "instanceId": plugin["id"],
+                                    "pluginId": plugin["pluginId"],
                                     "slotId": "layout:right-status",
                                 }
                             ],
@@ -615,6 +691,7 @@ def make_agent(
         thread_id="golden-thread",
         validation_runner=validation,
         automatic_completion_repair=True,
+        verification_mode="static_and_runtime",
     )
     agent.activity.begin("plugin-development-golden")
     return agent, client, diagnostics, validation
@@ -673,6 +750,7 @@ def make_gate_agent(tmp_path, responses):
         thread_id="golden-thread",
         validation_runner=validation,
         automatic_completion_repair=True,
+        verification_mode="static_and_runtime",
     )
     agent.activity.begin("application-gate-golden")
     return agent, client
@@ -715,6 +793,7 @@ def make_service_agent(
         thread_id="golden-thread",
         validation_runner=validation,
         automatic_completion_repair=automatic_completion_repair,
+        verification_mode="static_and_runtime",
     )
     agent.activity.begin(run_id)
     return agent, validation
@@ -753,6 +832,69 @@ def test_full_plugin_creation_golden_scenario(tmp_path):
         "plugin-development-golden"
     ).validation_revision == agent.activity.revision
     assert result.text == "Task Status Plugin created and verified."
+
+
+def test_existing_component_is_adopted_through_thin_plugin_adapter(tmp_path):
+    responses = [
+        *discovery_messages(),
+        call("ls", {"path": "/components"}, "locate-skill-panel"),
+        call(
+            "read_file",
+            {"file_path": "/components/skill-panel.tsx"},
+            "read-skill-panel",
+        ),
+        skill_create_files_message(),
+        call("validate_creator_changes", {}, "validate-skill-source"),
+        composition_inspection_message(),
+        skill_mutation_message(),
+        call("validate_creator_changes", {}, "validate-skill-final"),
+        call("inspect_runtime_errors", {}, "runtime-skill-final"),
+        AIMessage(content="Existing SkillPanel adopted and verified."),
+    ]
+    agent, client, _diagnostics, _validation = make_agent(
+        tmp_path, responses, existing_component=SKILL_PANEL_SOURCE
+    )
+
+    result = asyncio.run(
+        agent.run("把现有 SkillPanel 做成 Agent UI 插件，UI 不要重新实现。")
+    )
+    receipt = agent.activity.finish()
+    activities = agent.runtime.activities
+    names = [item.name for item in activities]
+    component_read = next(
+        item for item in activities
+        if item.name == "read_file"
+        and "skill-panel.tsx" in item.arguments["file_path"]
+    )
+    wrapper = (tmp_path / "plugins/skill-manager/index.tsx").read_text(
+        encoding="utf-8"
+    )
+
+    assert "<button>Install</button>" in component_read.result
+    assert names.index("read_file", names.index("ls")) < names.index("create_ui_plugin")
+    assert names.count("create_ui_plugin") == 1
+    assert not set(names) & {
+        "create_ui_service_contract",
+        "mutate_ui_service_contract",
+        "edit_file",
+    }
+    assert all((tmp_path / path.lstrip("/")).is_file() for path in SKILL_PLUGIN_FILES)
+    assert 'import { SkillPanel } from "../../components/skill-panel"' in wrapper
+    assert "<SkillPanel />" in wrapper
+    assert "<section>" not in wrapper and "<button>" not in wrapper
+    assert (tmp_path / "components/skill-panel.tsx").read_text(
+        encoding="utf-8"
+    ) == SKILL_PANEL_SOURCE
+    assert model_plugins(client.model()) == [
+        {"id": "skill-manager-main", "pluginId": "skill-manager", "enabled": True}
+    ]
+    assert "skillManager" in (tmp_path / REGISTRY_PATH).read_text(encoding="utf-8")
+    assert names.count("validate_creator_changes") == 2
+    assert names.count("inspect_runtime_errors") == 1
+    assert agent.validation.current_result().status == "passed"
+    assert agent.runtime_inspection.current_result()["runtimeStatus"] == "passed"
+    assert receipt["verification"]["status"] == "changed-and-verified"
+    assert result.text == "Existing SkillPanel adopted and verified."
 
 
 def test_application_gate_creation_golden_keeps_layout_unchanged(tmp_path):

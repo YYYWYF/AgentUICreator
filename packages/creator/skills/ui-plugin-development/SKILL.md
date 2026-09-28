@@ -11,7 +11,7 @@ Inspect project conventions before deciding that Plugin source must change:
 
 - `/plugins/*/manifest.json` declares identity, purpose, capabilities, and data needs.
 - `/plugins/*/definition.ts` joins a validated manifest to a React component.
-- `/plugins/*/index.tsx` implements the component.
+- `/plugins/*/index.tsx` implements the component or adapts an existing project component.
 - `/plugins/*/styles.css` owns Plugin-specific presentation when that stack uses CSS.
 - Scope every Plugin CSS selector under a stable Plugin-owned class or `data-ui-plugin` root. Never use bare element selectors, `html`, `body`, `:root`, `*`, global resets, CSS imports, or Host DOM ancestors. Inherit theme tokens from AgentUIRoot.
 - Use the `@agent-ui/react` Agent UI Tooltip, Popover, and Dialog facades for overlays; do not import Base UI Portal primitives or create body-level Portals.
@@ -24,10 +24,23 @@ Inspect project conventions before deciding that Plugin source must change:
 ## Reuse decision
 
 1. List and inspect existing Plugins.
-2. If one already supplies the requested behavior, reuse its `manifest.id` in an AppUIPluginNode and change only AppUIModel.
-3. If behavior is missing, create the smallest Plugin that follows the project's existing directory and registration conventions.
-4. For an ordinary Plugin, insert its node into a Layout Slot or parent plugin's local Slot through AppUIModel. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
-5. When the user requires login, License, organization selection, onboarding, or initialization before the Workspace can be used, prefer a first-class `manifest.application.gate` Plugin in `applicationPlugins`; it is an Application lifecycle surface, not visual Slot composition.
+2. Locate and inspect matching UI components elsewhere in project source, especially when the user says the UI already exists. An absent Plugin does not mean the UI is absent.
+3. If a Plugin already supplies the requested behavior, reuse its `manifest.id` in an AppUIPluginNode and change only AppUIModel.
+4. If no Plugin does but a reusable component exists, adopt it through the smallest Plugin adapter. If neither exists, create a new Plugin implementation following project conventions.
+5. For an ordinary Plugin, insert its node into a Layout Slot or parent plugin's local Slot through AppUIModel. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
+6. When the user requires login, License, organization selection, onboarding, or initialization before the Workspace can be used, prefer a first-class `manifest.application.gate` Plugin in `applicationPlugins`; it is an Application lifecycle surface, not visual Slot composition.
+
+## Existing component adoption
+
+When the user identifies an existing UI, Component, or Widget, or project inspection finds a close match, locate and read its source and direct dependencies before choosing an import path or writing Plugin source. Inspect the closest Plugin convention, then choose the smallest ownership change. Do not reimplement an existing UI merely to satisfy the Plugin directory convention.
+
+- Prefer a thin Plugin adapter that imports and composes the existing project-owned component. Do not copy its JSX, styles, state, or business logic into `/plugins/<plugin-id>/index.tsx` just to make that file exist.
+- Keep Agent Runtime, Plugin Context, Agent data, service, event, and action adaptation in the Plugin layer. Pass derived data and callbacks into a reusable component through its existing interface where practical. A shared product component must not import Plugin Runtime internals solely for adoption.
+- Move implementation into the Plugin only when it is Agent UI-specific with no other consumers, the user requests a self-contained Plugin, project ownership conventions require it, or a thin wrapper would create a reverse cross-layer dependency. The required `index.tsx` file alone is not a reason to migrate source.
+- Preserve the component's UI, interaction, state model, and styling. Add only integration required by the request. Do not use Plugin adoption as a reason to refactor, restyle, replace the UI library, rename behavior, or implement backend capabilities. If an existing Install button is mock, keep it mock unless the user asks for installation behavior. Do not invent a Service, AG-UI event, Frontend Tool, or persistence layer for it.
+- Use the same manifest authoring, placement, size, and child Slot contracts as any other Plugin. Component reuse is a Creator development choice, not a new Runtime or manifest field.
+
+For this branch: inspect the project and component source, inspect the closest Plugin, decide ownership, create the thin adapter, run `validate_creator_changes`, compose through AppUIModel, validate the final revision, then call `inspect_runtime_errors`. Existing UI does not waive either validation step or fresh Runtime verification.
 
 ## Creator Authoring Contract
 
@@ -113,7 +126,7 @@ Plugin needs capability X
 1. Classify the Plugin, decide whether it should be Creator-operable, and define its Runtime, Composition, and optional Creator Authoring contracts.
 2. Read `/framework/contracts/ui-plugin.ts` and one closest existing Plugin end to end.
 3. Create `/plugins/<plugin-id>/manifest.json` with a unique id, useful description, version, capabilities when applicable, accurate `data.messages`, `data.state`, or `data.events` declarations, and the authoring contract when Add/Restore is intended.
-4. Create `index.tsx` with a named React component. Accept `UIPluginComponentProps` only when it needs `renderSlot`; read Agent and instance data through Runtime Context hooks and narrow unknown state safely.
+4. Create `index.tsx` with a named React component. When an existing project component implements the requested UI, this may be a thin adapter importing it; do not recreate that UI for Plugin self-containment. Accept `UIPluginComponentProps` only when it needs `renderSlot`; read Agent and instance data through Runtime Context hooks in the adapter and narrow unknown state safely.
 5. Create `definition.ts` that validates the manifest and exports a `UIPluginDefinition`.
 6. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
 7. Default-export the definition so the target-owned generator can include it in the static Registry. Do not spread a template catalog into the production registry.
