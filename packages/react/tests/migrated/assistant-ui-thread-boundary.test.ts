@@ -1,4 +1,4 @@
-import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
+import { generatedProjectFixture, repositoryRoot } from "../../../project-control/tests/support/generated-project";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -44,7 +44,7 @@ describe("assistant-ui Thread composition boundary", () => {
 
   it("keeps Thread API and history policy at public seams", async () => {
     const thread = await readFile(
-      path.join(projectRoot, "../../packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"),
+      path.join(repositoryRoot, "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"),
       "utf8",
     );
     const surface = await readFile(
@@ -52,7 +52,7 @@ describe("assistant-ui Thread composition boundary", () => {
       "utf8",
     );
     const runtime = await readFile(
-      path.join(projectRoot, "../../packages/runtime-conversation/src/ConversationRuntimeProvider.tsx"),
+      path.join(repositoryRoot, "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx"),
       "utf8",
     );
 

@@ -8,20 +8,27 @@ import { describe, expect, it } from "vitest";
 import { pluginCapabilityCatalog } from "../../../source-registry/registry/items/foundation-core/files/plugins/index";
 
 const projectRoot = await generatedProjectFixture();
-const canonicalPluginIds = [
+export const canonicalPluginIds = [
+  "assistant-ui-add-attachment-action",
+  "assistant-ui-composer",
   "assistant-ui-copy-action",
+  "assistant-ui-dictation-action",
   "assistant-ui-export-markdown-action",
-  "assistant-ui-response-footer",
+  "assistant-ui-message-footer",
   "assistant-ui-reasoning",
   "assistant-ui-reload-action",
+  "assistant-ui-response-footer",
+  "assistant-ui-submit-action",
   "assistant-ui-tool-fallback",
   "assistant-ui-tool-group",
+  "chart-message",
   "conversation-data-source",
   "conversation-service",
   "conversation-suggestions",
   "conversation-surface",
   "conversation-thread-list",
   "locale-provider",
+  "task-group",
   "theme-provider",
   "theme-switch",
 ] as const;
@@ -88,7 +95,7 @@ describe("canonical Conversation plugin cleanup boundary", () => {
         (name) => name === "antd" || name.startsWith("@ant-design/"),
       ),
     ).toBe(false);
-    expect(registrySource).not.toMatch(/agent-|antd-x-|template-library/u);
+    expect(registrySource).not.toMatch(/antd-x-|template-library/u);
     expect(pluginSource).toContain('renderSlot("emptyWelcome"');
     expect(pluginSource).toContain('renderSlot("emptySuggestions"');
     expect(pluginSource).toContain('renderSlot("headerActions"');

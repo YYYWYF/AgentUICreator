@@ -127,7 +127,8 @@ describe("Mock Agent HTTP endpoint", () => {
     expect(aborted).toBe(true);
     expect(events.some((event) => event.type === EventType.TEXT_MESSAGE_CONTENT))
       .toBe(true);
-    expect(events.some((event) => event.type === EventType.RUN_ERROR)).toBe(false);
+    const recorded = await (await fetch(`${endpoint}/events`)).json() as { events: BaseEvent[] };
+    expect(recorded.events.some(event => event.type === EventType.RUN_ERROR)).toBe(false);
   });
 
   it("uses the default scenario when the query parameter is absent", async () => {

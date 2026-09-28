@@ -16,13 +16,13 @@ describe("conversation navigation policy", () => {
     const appUI = await readFile(path.join(projectRoot, "app-ui/app-ui.json"), "utf8");
 
     expect(threadList).toContain("ThreadList");
-    expect(appUI).toContain('"id": "conversation-navigation"');
-    expect(appUI).toContain('"id": "conversation-surface"');
+    expect(appUI).toContain('"pluginId": "conversation-thread-list"');
+    expect(appUI).toContain('"pluginId": "conversation-surface"');
   });
 
   it("does not reintroduce a second conversation runtime", async () => {
     const service = await readFile(
-      path.join(projectRoot, "plugins/conversation-service/index.ts"),
+      path.join(projectRoot, "plugins/conversation-service/index.tsx"),
       "utf8",
     );
     expect(service).not.toMatch(/new\s+AgentRuntime|create.*Runtime/u);

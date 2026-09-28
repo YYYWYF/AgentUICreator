@@ -23,3 +23,7 @@ minimumReleaseAgeExclude:
 # a fallback pnpm rewrite an existing node_modules tree automatically.
 pmOnFail: warn
 verifyDepsBeforeRun: warn
+
+# Keep assistant-ui model context and its AG-UI adapter on one peer instance.
+overrides:
+  assistant-cloud: 0.2.3

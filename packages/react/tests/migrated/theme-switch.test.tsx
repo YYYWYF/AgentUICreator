@@ -126,14 +126,14 @@ describe("theme-switch plugin", () => {
     const root = () => renderer!.root.findByProps({ "data-ui-plugin": "theme-switch" });
 
     expect(control().props).toMatchObject({
-      "aria-label": "切换到浅色模式",
-      "aria-pressed": true,
-      title: "切换到浅色模式",
+      "aria-label": "切换到深色模式",
+      "aria-pressed": false,
+      title: "切换到深色模式",
     });
     expect(root().props["aria-label"]).toBe("主题设置");
     expect(root().props).toMatchObject({
-      className: "theme-switch-plugin agent-ui-conversation dark",
-      "data-theme": "dark",
+      className: "theme-switch-plugin agent-ui-conversation",
+      "data-theme": "light",
     });
 
     await act(async () => {
@@ -142,13 +142,13 @@ describe("theme-switch plugin", () => {
     });
 
     expect(control().props).toMatchObject({
-      "aria-label": "切换到深色模式",
-      "aria-pressed": false,
-      title: "切换到深色模式",
+      "aria-label": "切换到浅色模式",
+      "aria-pressed": true,
+      title: "切换到浅色模式",
     });
     expect(root().props).toMatchObject({
-      className: "theme-switch-plugin agent-ui-conversation",
-      "data-theme": "light",
+      className: "theme-switch-plugin agent-ui-conversation dark",
+      "data-theme": "dark",
     });
 
     await act(async () => {
@@ -156,16 +156,16 @@ describe("theme-switch plugin", () => {
     });
     expect(root().props["aria-label"]).toBe("Theme settings");
     expect(control().props).toMatchObject({
-      "aria-label": "Switch to dark mode",
-      title: "Switch to dark mode",
+      "aria-label": "Switch to light mode",
+      title: "Switch to light mode",
     });
 
     await act(async () => {
       control().props.onClick();
     });
     expect(control().props).toMatchObject({
-      "aria-label": "Switch to light mode",
-      title: "Switch to light mode",
+      "aria-label": "Switch to dark mode",
+      title: "Switch to dark mode",
     });
   });
 
@@ -186,7 +186,7 @@ describe("theme-switch plugin", () => {
           id: "theme-provider-main",
           pluginId: "theme-provider",
           enabled: true,
-        },
+            },
       ],
       root: {
         type: "slot",
@@ -255,7 +255,7 @@ describe("theme-switch plugin", () => {
     );
     const control = header?.querySelector("button") as HTMLButtonElement | null;
     expect(control).not.toBeNull();
-    expect(control?.getAttribute("aria-pressed")).toBe("true");
+    expect(control?.getAttribute("aria-pressed")).toBe("false");
     expect(header?.querySelector('[data-ui-plugin="theme-switch"]')).not.toBeNull();
 
     await act(async () => {
@@ -263,8 +263,8 @@ describe("theme-switch plugin", () => {
       await Promise.resolve();
     });
 
-    expect(control?.getAttribute("aria-pressed")).toBe("false");
+    expect(control?.getAttribute("aria-pressed")).toBe("true");
     expect(header?.querySelector('[data-ui-plugin="theme-switch"]')?.getAttribute("data-theme"))
-      .toBe("light");
+      .toBe("dark");
   });
 });

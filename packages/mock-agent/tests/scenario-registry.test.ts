@@ -163,7 +163,10 @@ describe("createScenarioRegistry", () => {
 
     expect(scenario).toMatchObject({
       id: "reasoning-long-preview",
-      steps: [expect.objectContaining({ type: "reasoning", durationMs: 10_000 })],
+      steps: [
+        expect.objectContaining({ type: "reasoning", durationMs: 10_000 }),
+        expect.objectContaining({ type: "message" }),
+      ],
     });
     expect(scenario?.steps[0]?.type === "reasoning"
       ? scenario.steps[0].text.length

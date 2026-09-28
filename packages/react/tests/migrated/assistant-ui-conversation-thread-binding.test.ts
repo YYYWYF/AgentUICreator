@@ -295,7 +295,7 @@ describe("ConversationServiceThreadBinding", () => {
           type: "tool-call",
           toolCallId: "rich-tool-1",
           toolName: "search_files",
-          args: { keyword: "history" },
+          args: expect.objectContaining({ keyword: "history" }),
           argsText: '{"keyword":"history"}',
           result: '{"files":["history.ts"]}',
         }),

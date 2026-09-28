@@ -1,4 +1,4 @@
-import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
+import { generatedProjectFixture, repositoryRoot } from "../../../project-control/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,7 +10,7 @@ const projectRoot = await generatedProjectFixture();
 describe("assistant-ui message composition", () => {
   it("uses the upstream Thread message and part composition", async () => {
     const thread = await readFile(
-      path.join(projectRoot, "../../packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"),
+      path.join(repositoryRoot, "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"),
       "utf8",
     );
 
@@ -31,7 +31,7 @@ describe("assistant-ui message composition", () => {
       "utf8",
     );
     const composableThread = await readFile(
-      path.join(projectRoot, "../../packages/react/src/internal/composable-thread.tsx"),
+      path.join(repositoryRoot, "packages/react/src/internal/composable-thread.tsx"),
       "utf8",
     );
 

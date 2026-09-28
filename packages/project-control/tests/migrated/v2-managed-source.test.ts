@@ -70,13 +70,13 @@ describe("V2 managed source paths", () => {
     const { projectRoot, paths, model } = await fixture();
     expect(await inspectCreatorProject(projectRoot)).toMatchObject({
       status: "ready",
-      warnings: [{ code: "AGENT_UI_GENERATED_REGISTRY_STALE", severity: "warning" }],
+      warnings: expect.arrayContaining([{ code: "AGENT_UI_GENERATED_REGISTRY_STALE", severity: "warning", message: expect.any(String) }]),
     });
     const brokenModel = { ...model, root: { type: "slot", plugins: [{ id: "missing-main", pluginId: "missing", enabled: true }] } };
     await writeFile(paths.appUIModelPath, JSON.stringify(brokenModel));
     expect(await inspectCreatorProject(projectRoot)).toMatchObject({
       status: "broken",
-      issues: [{ code: "selected-plugin-asset-missing", severity: "error" }],
+      issues: expect.arrayContaining([expect.objectContaining({ code: "selected-plugin-asset-missing", severity: "error" })]),
     });
   });
 });

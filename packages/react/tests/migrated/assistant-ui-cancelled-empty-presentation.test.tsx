@@ -108,12 +108,13 @@ describe("empty cancelled assistant presentation", () => {
     expect(container.querySelector(fallbackSelector)).toBeNull();
   });
 
-  it("counts an empty text part as content", async () => {
-    const { container } = await mount({
+  it("shows cancellation when upstream normalizes an empty text part", async () => {
+    const { container, runtime } = await mount({
       role: "assistant", content: [{ type: "text", text: "" }],
       status: { type: "incomplete", reason: "cancelled" },
     });
-    expect(container.querySelector(fallbackSelector)).toBeNull();
+    expect(runtime.thread.getState().messages[0]?.content).toEqual([]);
+    expect(container.querySelector(fallbackSelector)).not.toBeNull();
   });
 
   it("counts a started tool call as content", async () => {

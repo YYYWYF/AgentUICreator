@@ -40,7 +40,8 @@ describe("theme plugin boundary", () => {
 
     expect(themeSwitch).toMatchObject({ id: "theme-switch" });
     expect(switchDefinition).toContain("inject: [AGENT_UI_THEME_SERVICE]");
-    expect(switchSource).toContain("components/ui/button");
+    expect(switchSource).toContain('from "@agent-ui/react"');
+    expect(switchSource).toContain("<Button");
     expect(switchSource).toContain('from "lucide-react"');
     expect(switchSource).toContain("theme.toggle()");
     expect(switchSource).toContain("aria-pressed");

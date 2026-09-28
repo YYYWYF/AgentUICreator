@@ -2,7 +2,7 @@
 
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import type { ToolCallMessagePartProps } from "@assistant-ui/react";
+import { AssistantRuntimeProvider, useLocalRuntime, type ToolCallMessagePartProps } from "@assistant-ui/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
@@ -36,12 +36,17 @@ function createSearchFilesToolProps(
   };
 }
 
+function ToolHost({ props }: { props: SearchFilesToolProps }) {
+  const runtime = useLocalRuntime({ async *run() {} });
+  return <AssistantRuntimeProvider runtime={runtime}><SearchFilesToolUI {...props} /></AssistantRuntimeProvider>;
+}
+
 async function renderSearchFilesTool(props: SearchFilesToolProps) {
   const container = document.createElement("div");
   document.body.append(container);
   const root = createRoot(container);
   mountedRoots.push(root);
-  await act(async () => root.render(<SearchFilesToolUI {...props} />));
+  await act(async () => root.render(<ToolHost props={props} />));
   return container;
 }
 

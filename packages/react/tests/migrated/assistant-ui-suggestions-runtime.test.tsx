@@ -142,8 +142,9 @@ async function createProductizedFixtureProject(): Promise<string> {
       JSON.stringify(capability.manifest),
     );
     const renderSlots = pluginId === "conversation-surface"
-      ? ["emptyWelcome", "emptySuggestions", "headerActions"]
+      ? Object.entries(capability.manifest.slots?.children ?? {}).filter(([, slot]) => slot.mode !== "renderer").map(([name]) => name)
       : [];
+    const renderScopedSource = Object.entries(capability.manifest.slots?.children ?? {}).filter(([, slot]) => slot.mode === "renderer").map(([name]) => `renderScopedSlot(${JSON.stringify(name)}, { type: "test" });`).join(" ");
     const renderSource = renderSlots
       .map((slot) => `renderSlot(${JSON.stringify(slot)});`)
       .join(" ");
@@ -155,7 +156,7 @@ async function createProductizedFixtureProject(): Promise<string> {
         `  provides: ${JSON.stringify(contract.provides)},`,
         `  inject: ${JSON.stringify(contract.inject)},`,
         `  optionalInject: ${JSON.stringify(contract.optionalInject ?? [])},`,
-        `  Component: ({ renderSlot }) => { ${renderSource} return null; },`,
+        `  Component: ({ renderSlot, renderScopedSlot }) => { ${renderSource} ${renderScopedSource} return null; },`,
         "};",
         "export default definition;",
         "",

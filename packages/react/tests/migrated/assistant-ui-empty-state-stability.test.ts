@@ -1,4 +1,4 @@
-import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
+import { generatedProjectFixture, repositoryRoot } from "../../../project-control/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -33,7 +33,7 @@ describe("assistant-ui empty-state stability", () => {
 
   it("suppresses only the upstream starter-suggestions wrapper", async () => {
     const globals = await readFile(
-      path.join(projectRoot, "../../packages/react/src/styles.css"),
+      path.join(repositoryRoot, "packages/react/src/styles.css"),
       "utf8",
     );
     expect(globals).toContain(".agent-ui-conversation .aui-thread-welcome-suggestions");
@@ -43,7 +43,7 @@ describe("assistant-ui empty-state stability", () => {
 
   it("separates populated Suggestions from Composer at the adapter seam", async () => {
     const globals = await readFile(
-      path.join(projectRoot, "../../packages/react/src/styles.css"),
+      path.join(repositoryRoot, "packages/react/src/styles.css"),
       "utf8",
     );
     expect(globals).toContain(".conversation-empty-state-suggestions");

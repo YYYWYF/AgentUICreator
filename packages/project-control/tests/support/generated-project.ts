@@ -1,10 +1,10 @@
-import { cp, mkdir, mkdtemp, readFile, symlink } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { writeGeneratedPluginRegistry } from "../../src/generate-plugin-registry";
 const supportRoot = path.dirname(fileURLToPath(import.meta.url));
-const repositoryRoot = path.resolve(supportRoot, "../../../..");
+export const repositoryRoot = path.resolve(supportRoot, "../../../..");
 const fixtureRoot = path.resolve(supportRoot, "../fixtures/project");
 let generated: Promise<string> | undefined;
 /** Materialize a disposable legacy contract fixture from Source Registry templates. */
@@ -18,6 +18,10 @@ export function generatedProjectFixture(): Promise<string> {
       await cp(path.join(repositoryRoot, source), path.join(root, target));
     }
     await mkdir(path.join(root, "src"), { recursive: true });
+    await cp(path.join(root, "application/Agent.tsx"), path.join(root, "src/App.tsx"));
+    await cp(path.join(repositoryRoot, "examples/creator-host-sandbox/src/host.css"), path.join(root, "src/preview-shell.css"));
+    await cp(path.join(repositoryRoot, "packages/bootstrap/presets"), path.join(root, "presets"), { recursive: true });
+    await writeFile(path.join(root, "application/runtime-config.generated.ts"), 'export const agentUIRuntimeConfig = { mode: "platform" } as const;\n');
     await mkdir(path.join(root, "node_modules"), { recursive: true });
     const pkg = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
     for (const name of Object.keys({ ...pkg.dependencies, ...pkg.devDependencies })) {

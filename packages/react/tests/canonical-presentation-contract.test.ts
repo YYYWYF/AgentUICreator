@@ -131,6 +131,6 @@ describe("assistant-ui canonical presentation contract", () => {
     expect(upstream).toContain('aria-label="Message input"');
     expect(upstream).toContain('tooltip="Send message"');
     expect(upstream).toContain('aria-label="Send message"');
-    expect(upstream).toContain('aria-label="Stop generating"');
+    expect(upstream).toContain('aria-label={isSending ? "Cancel sending" : "Stop generating"}');
   });
 });
