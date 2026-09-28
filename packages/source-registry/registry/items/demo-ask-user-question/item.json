@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "demo/ask-user-question",
+  "version": "0.1.0",
+  "kind": "demo",
+  "description": "Optional assistant-ui Human Tool question flow",
+  "requires": ["foundation/core"],
+  "files": [
+    { "source": "files/agent-contract/human-tools/ask-user-question.ts", "target": "agent-contract/human-tools/ask-user-question.ts" },
+    { "source": "files/agent-ui/conversation/human-tool-uis/ask-user-question.tsx", "target": "agent-ui/conversation/human-tool-uis/ask-user-question.tsx" },
+    { "source": "files/agent-ui/conversation/human-tool-uis/question-flow.css", "target": "agent-ui/conversation/human-tool-uis/question-flow.css" },
+    { "source": "files/plugins/ask-user-question-demo/definition.ts", "target": "plugins/ask-user-question-demo/definition.ts" },
+    { "source": "files/plugins/ask-user-question-demo/manifest.json", "target": "plugins/ask-user-question-demo/manifest.json" }
+  ]
+}

@@ -1,11 +1,32 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass
 from typing import Any
 
 from ..model_protocol.errors import DeepAgentEventStreamUnavailableError
 from .deepagent_tool_stream import DeepAgentToolStreamAdapter
 from .runtime_events import CreatorEventSink
+
+
+@dataclass(frozen=True, slots=True)
+class DeepAgentCompleted:
+    state: dict[str, Any] | None
+
+
+@dataclass(frozen=True, slots=True)
+class DeepAgentInterrupted:
+    interrupts: tuple[dict[str, Any], ...]
+
+
+def _project_interrupt(value: Any) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return {"id": str(value.get("id", "")), "value": value.get("value")}
+    payload = getattr(value, "value", None)
+    return {
+        "id": str(getattr(value, "id", "")),
+        "value": payload,
+    }
 
 
 class DeepAgentV3Runner:
@@ -15,7 +36,7 @@ class DeepAgentV3Runner:
         self,
         *,
         graph: Any,
-        input: dict[str, Any],
+        input: Any,
         config: dict[str, Any],
         event_sink: CreatorEventSink | None,
     ) -> dict[str, Any] | None:
@@ -63,3 +84,24 @@ class DeepAgentV3Runner:
                 if not task.done():
                     task.cancel()
             await asyncio.gather(*tasks, return_exceptions=True)
+
+    async def run_result(
+        self,
+        *,
+        graph: Any,
+        input: Any,
+        config: dict[str, Any],
+        event_sink: CreatorEventSink | None,
+    ) -> DeepAgentCompleted | DeepAgentInterrupted:
+        state = await self.run(graph=graph, input=input, config=config, event_sink=event_sink)
+        raw = state.get("__interrupt__", ()) if isinstance(state, dict) else ()
+        if not raw and getattr(graph, "checkpointer", None) is not None and callable(getattr(graph, "aget_state", None)):
+            snapshot = await graph.aget_state(config)
+            raw = tuple(
+                interrupt
+                for task in getattr(snapshot, "tasks", ())
+                for interrupt in getattr(task, "interrupts", ())
+            )
+        if raw:
+            return DeepAgentInterrupted(tuple(_project_interrupt(item) for item in raw))
+        return DeepAgentCompleted(state)

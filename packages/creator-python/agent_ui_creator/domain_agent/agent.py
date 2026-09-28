@@ -11,6 +11,7 @@ from deepagents.middleware.filesystem import FilesystemMiddleware
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.errors import GraphRecursionError
+from langgraph.types import Command
 
 from ..activity import CreatorActivityRecorder
 from ..app_ui_model import (
@@ -39,6 +40,7 @@ from ..model_protocol.reliability import create_creator_model_retry_middleware
 from ..model_protocol.tool_protocol_guard import ToolProtocolMiddleware
 from ..model_protocol.trace import ToolProtocolMetrics
 from ..model_settings import DEFAULT_CREATOR_MODEL_MAX_RETRIES
+from ..human_input import ask_user_question
 from ..observability import CreatorRunTelemetry
 from ..project_control import ProjectControlClient, ProjectControlMetrics
 from ..repair import CreatorRepairState
@@ -68,7 +70,7 @@ from ..source_tools import (
     create_ui_plugin_tool,
     mutate_ui_plugin_source_tool,
 )
-from ..streaming.deepagent_v3_runner import DeepAgentV3Runner
+from ..streaming.deepagent_v3_runner import DeepAgentCompleted, DeepAgentInterrupted, DeepAgentV3Runner
 from ..streaming.runtime_events import CreatorEventSink
 from ..validation import (
     CreatorValidationService,
@@ -134,6 +136,7 @@ class CreatorDomainReadAgent:
         service_contract_authorizations: ServiceContractAuthorizationStore | None = None,
         scope_guard: ScopeAwareRecoveryGuard | None = None,
         run_control: CreatorRunControlState | None = None,
+        thread_id: str | None = None,
     ) -> None:
         self.graph = graph
         self.protocol = protocol
@@ -149,13 +152,14 @@ class CreatorDomainReadAgent:
         self.service_contract_authorizations = service_contract_authorizations
         self.scope_guard = scope_guard
         self.run_control = run_control or CreatorRunControlState()
+        self.thread_id = thread_id
 
     async def run(self, prompt: str) -> DomainReadAgentResult:
         return await self.run_messages([{"role": "user", "content": prompt}])
 
     async def run_messages(
-        self, messages: list[dict[str, str]]
-    ) -> DomainReadAgentResult:
+        self, messages: list[dict[str, str]], *, resume: dict[str, Any] | None = None
+    ) -> DomainReadAgentResult | DeepAgentInterrupted:
         if self.service_contract_authorizations is not None:
             current_user_message = next(
                 (
@@ -169,11 +173,11 @@ class CreatorDomainReadAgent:
                 current_user_message=current_user_message,
                 run_id=self.activity.run_id,
             )
-        async def invoke(input_messages: list[Any]) -> Any:
-            return await DeepAgentV3Runner().run(
+        async def invoke(input_messages: list[Any] | Command) -> DeepAgentCompleted | DeepAgentInterrupted:
+            return await DeepAgentV3Runner().run_result(
                 graph=self.graph,
-                input={"messages": input_messages},
-                config={"recursion_limit": 60},
+                input=input_messages if isinstance(input_messages, Command) else {"messages": input_messages},
+                config={"recursion_limit": 60, **({"configurable": {"thread_id": self.thread_id}} if self.thread_id else {})},
                 event_sink=self.runtime.event_sink,
             )
 
@@ -181,7 +185,10 @@ class CreatorDomainReadAgent:
         state: Any = None
         terminal_blocked = False
         try:
-            state = await invoke(messages)
+            outcome = await invoke(Command(resume=resume) if resume is not None else messages)
+            if isinstance(outcome, DeepAgentInterrupted):
+                return outcome
+            state = outcome.state
             await self._run_composition_verification_tail()
             for _attempt in range(3):
                 if (
@@ -207,12 +214,15 @@ class CreatorDomainReadAgent:
                 if self.run_control.blocked:
                     terminal_blocked = True
                     break
-                state = await invoke(
+                outcome = await invoke(
                     [
                         *state_messages,
                         HumanMessage(content=completion_decision.feedback),
                     ]
                 )
+                if isinstance(outcome, DeepAgentInterrupted):
+                    return outcome
+                state = outcome.state
                 await self._run_composition_verification_tail()
         except TerminalBlockerStop:
             terminal_blocked = True
@@ -349,6 +359,7 @@ def create_domain_read_creator_agent(
     telemetry: CreatorRunTelemetry | None = None,
     diagnostics: RuntimeDiagnosticStore | None = None,
     thread_id: str | None = None,
+    checkpointer: Any = None,
     max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES,
     recovery_factory: Callable[[], BaseChatModel] | None = None,
     verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
@@ -369,11 +380,11 @@ def create_domain_read_creator_agent(
         observations=observations,
         activity=backend.activity,
     )
-    domain_tools = create_project_control_tools(
+    domain_tools = (*create_project_control_tools(
         client,
         observations=observations,
         activity=backend.activity,
-    )
+    ), ask_user_question)
     if verification_mode == "static_and_runtime":
         domain_tools = (*domain_tools, create_runtime_layout_tool(runtime_inspection))
     metrics = ToolProtocolMetrics()
@@ -415,6 +426,7 @@ def create_domain_read_creator_agent(
     graph = create_deep_agent(
         model=model,
         tools=list(domain_tools),
+        checkpointer=checkpointer,
         system_prompt=creator_verification_prompt(
             DOMAIN_READ_AGENT_PROMPT, verification_mode
         ),
@@ -441,6 +453,7 @@ def create_domain_read_creator_agent(
         project_control=client,
         observations=observations,
         run_control=run_control,
+        thread_id=thread_id,
     )
 
 
@@ -462,6 +475,7 @@ def create_domain_write_creator_agent(
     skills_root: str | Path | None = None,
     diagnostics: RuntimeDiagnosticStore | None = None,
     thread_id: str | None = None,
+    checkpointer: Any = None,
     validation_runner: ValidationCommandRunner | None = None,
     automatic_completion_repair: bool = False,
     telemetry: CreatorRunTelemetry | None = None,
@@ -596,6 +610,7 @@ def create_domain_write_creator_agent(
         verification_mode=verification_mode,
     )
     domain_tools = [
+        ask_user_question,
         *create_project_control_tools(
             client,
             observations=observations,
@@ -664,6 +679,7 @@ def create_domain_write_creator_agent(
     graph = create_deep_agent(
         model=model,
         tools=domain_tools,
+        checkpointer=checkpointer,
         system_prompt=creator_verification_prompt(
             DOMAIN_WRITE_AGENT_PROMPT, verification_mode
         ),
@@ -716,6 +732,7 @@ def create_domain_write_creator_agent(
         service_contract_authorizations=service_authorizations,
         scope_guard=scope_guard,
         run_control=run_control,
+        thread_id=thread_id,
     )
     agent.source_creation = source_creation
     agent.plugin_mutation = plugin_mutation

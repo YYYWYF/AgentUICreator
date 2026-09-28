@@ -13,7 +13,8 @@ export function resolvePluginConversationToolkit<TState>(
     if (!instance.enabled) continue;
     const plugin = registry.get(instance.pluginId);
     for (const [name, entry] of Object.entries(plugin?.toolkit ?? {})) {
-      if (!name || name.trim() !== name || entry.type !== "backend" || entry.display !== "standalone" || !entry.render) {
+      if (!name || name.trim() !== name || (entry.type !== "backend" && entry.type !== "human") || entry.display !== "standalone" || !entry.render ||
+          (entry.type === "human" && (!entry.description || !entry.parameters))) {
         throw new Error(`Invalid named Tool UI in plugin ${instance.pluginId}`);
       }
       if (Object.hasOwn(result, name)) throw new Error(`Named Tool UI conflict: ${name}`);

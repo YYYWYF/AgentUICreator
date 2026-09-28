@@ -16,11 +16,13 @@ ALLOWED_DOMAIN_READ_TOOLS = (
     *ALLOWED_MINIMAL_TOOLS,
     *DOMAIN_READ_TOOL_NAMES,
     "inspect_runtime_layout",
+    "ask_user_question",
 )
 _ALLOWED_DOMAIN_READ_TOOL_SET = frozenset(ALLOWED_DOMAIN_READ_TOOLS)
 DOMAIN_WRITE_TOOL_NAMES = (
     *DOMAIN_READ_TOOL_NAMES,
     "inspect_runtime_layout",
+    "ask_user_question",
     "create_ui_plugin",
     "mutate_ui_plugin_source",
     "prepare_ui_service_contract_change",

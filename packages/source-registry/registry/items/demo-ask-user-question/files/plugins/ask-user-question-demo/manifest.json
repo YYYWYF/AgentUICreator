@@ -1,0 +1,7 @@
+{
+  "id": "ask-user-question-demo",
+  "name": "Ask User Question Demo",
+  "description": "Optional assistant-ui Human Tool question flow",
+  "version": "1.0.0",
+  "capabilities": ["human-input"]
+}

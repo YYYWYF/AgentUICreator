@@ -9,7 +9,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
-import { HttpAgent, MessageSchema, type Message } from "@ag-ui/client";
+import { MessageSchema, type Message } from "@ag-ui/client";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -21,8 +21,10 @@ import type {
   CreatorVerificationCheck,
   CreatorValidationReceipt,
 } from "../receiptTypes.js";
-import { CREATOR_API_PATH } from "../shared.js";
-import { CREATOR_WORKSPACE_ID_HEADER, type CreatorProjectMode, type CreatorWorkspacePublicState } from "../workspace/types.js";
+import { CreatorAgentClient } from "../agent/CreatorAgentClient.js";
+import { parseCreatorQuestion, type CreatorQuestionActivity } from "../agent/creatorInterruptTypes.js";
+import { CreatorQuestionCard } from "./CreatorQuestionCard.js";
+import { type CreatorProjectMode, type CreatorWorkspacePublicState } from "../workspace/types.js";
 import { resolveCreatorDebugMode } from "./creatorDebug.js";
 import { CreatorProjectSetup, type CreatorSetupDraft, type CreatorSetupError, type CreatorSetupInfoState, setupIssueMessage } from "./setup/CreatorProjectSetup.js";
 import { CreatorProjectIntegrationGuide } from "./setup/CreatorProjectIntegrationGuide.js";
@@ -123,7 +125,8 @@ interface CreatorToolActivity {
 type CreatorConversationItem =
   | CreatorMessage
   | CreatorToolActivity
-  | CreatorStageActivity;
+  | CreatorStageActivity
+  | CreatorQuestionActivity;
 
 interface StoredCreatorConversation {
   threadId: string;
@@ -304,6 +307,7 @@ function storedItem(value: unknown): CreatorConversationItem | undefined {
   if (!isRecord(value) || typeof value.id !== "string") {
     return undefined;
   }
+  if (value.kind === "question") return parseCreatorQuestion(value);
 
   if (
     value.kind === "stage" &&
@@ -342,6 +346,7 @@ function storedItem(value: unknown): CreatorConversationItem | undefined {
   ) {
     const interrupted =
       value.status === "preparing" || value.status === "running";
+    const waitingForAnswer = interrupted && value.name === "ask_user_question";
     return {
       kind: "tool",
       id: value.id,
@@ -350,10 +355,10 @@ function storedItem(value: unknown): CreatorConversationItem | undefined {
       ...(typeof value.result === "string" ? { result: value.result } : {}),
       ...(typeof value.error === "string"
         ? { error: value.error }
-        : interrupted
+        : interrupted && !waitingForAnswer
           ? { error: "页面刷新时该工具调用尚未结束。" }
           : {}),
-      status: interrupted ? "failed" : value.status,
+      status: interrupted && !waitingForAnswer ? "failed" : value.status,
     };
   }
 
@@ -433,7 +438,7 @@ function storedConversation(workspaceId: string): StoredCreatorConversation {
 }
 
 function saveConversation(
-  agent: HttpAgent,
+  agent: CreatorAgentClient,
   items: CreatorConversationItem[],
   workspaceId: string,
 ): void {
@@ -929,7 +934,8 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     width: number;
   } | null>(null);
   const itemsRef = useRef(items);
-  const agentRef = useRef<HttpAgent | null>(null);
+  const agentRef = useRef<CreatorAgentClient | null>(null);
+  const runInFlightRef = useRef(false);
   const workspaceIdRef = useRef<string | undefined>(undefined);
   const sessionRef = useRef(0);
   const setupValidationRef = useRef<{ generation: number; controller: AbortController | undefined }>({ generation: 0, controller: undefined });
@@ -951,16 +957,14 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   const updateItems = (
     updater: (current: CreatorConversationItem[]) => CreatorConversationItem[],
   ) => {
-    setItems((current) => {
-      const next = updater(current);
-      itemsRef.current = next;
-      return next;
-    });
+    const next = updater(itemsRef.current);
+    itemsRef.current = next;
+    setItems(next);
   };
 
   const installWorkspace = (next: CreatorWorkspacePublicState) => {
     sessionRef.current += 1;
-    agentRef.current?.abortRun();
+    agentRef.current?.abort();
     const oldId = workspaceIdRef.current;
     if (oldId !== undefined && agentRef.current !== null) {
       saveConversation(agentRef.current, itemsRef.current, oldId);
@@ -977,7 +981,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     const conversation = id === undefined || next.status === "uninitialized" || next.status === "broken"
       ? emptyConversation() : storedConversation(id);
     agentRef.current = (next.status === "ready" || next.status === "legacy") && next.runtime.status === "ready"
-      ? new HttpAgent({ url: CREATOR_API_PATH, headers: { [CREATOR_WORKSPACE_ID_HEADER]: id! }, threadId: conversation.threadId, initialMessages: conversation.agentMessages })
+      ? new CreatorAgentClient(id!, conversation.threadId, conversation.agentMessages)
       : null;
     itemsRef.current = conversation.items;
     setItems(conversation.items);
@@ -1106,7 +1110,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
 
   useEffect(
     () => () => {
-      agentRef.current?.abortRun();
+      agentRef.current?.abort();
     },
     [],
   );
@@ -1144,12 +1148,14 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     };
   }, []);
 
-  const submit = async (event?: FormEvent<HTMLFormElement>) => {
+  const submit = async (event?: FormEvent<HTMLFormElement>, response?: { question: CreatorQuestionActivity; answers: Record<string, string[]> }) => {
     event?.preventDefault();
     const request = input.trim();
-    if (request === "" || isRunning || !((workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "ready")) {
+    if ((response === undefined && (request === "" || itemsRef.current.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting")))) ||
+      isRunning || runInFlightRef.current || !((workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "ready")) {
       return;
     }
+    if (response !== undefined && !itemsRef.current.some(item => item.kind === "question" && item.id === response.question.id && item.status === "pending")) return;
     const agent = agentRef.current;
     if (agent === null) {
       return;
@@ -1157,29 +1163,24 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     const runSession = sessionRef.current;
     const runWorkspaceId = workspaceIdRef.current;
     if (runWorkspaceId === undefined) return;
+    runInFlightRef.current = true;
     const updateRunItems = (updater: (current: CreatorConversationItem[]) => CreatorConversationItem[]) => {
       if (sessionRef.current === runSession) updateItems(updater);
     };
 
-    setInput("");
+    if (response === undefined) setInput("");
     setIsRunning(true);
-    const userMessageId = crypto.randomUUID();
-    updateItems((current) => [
-      ...current,
-      {
-        kind: "message",
-        id: userMessageId,
-        role: "user",
-        content: request,
-      },
-    ]);
-    agent.addMessage({
-      id: userMessageId,
-      role: "user",
-      content: request,
-    });
+    if (response === undefined) {
+      const userMessageId = crypto.randomUUID();
+      updateItems((current) => [...current, { kind: "message", id: userMessageId, role: "user", content: request }]);
+      agent.addMessage({ id: userMessageId, role: "user", content: request });
+    } else {
+      updateItems(current => current.map(item => item.kind === "question" && item.id === response.question.id
+        ? { ...item, status: "submitting" as const, answers: response.answers } : item));
+    }
     let latestAssistantMessageId: string | undefined;
     let runErrorHandled = false;
+    let runErrorCode: string | undefined;
 
     const projectStep = (
       kind: "started" | "finished",
@@ -1221,7 +1222,10 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     };
 
     try {
-      const result = await agent.runAgent({}, {
+      const subscriber = {
+        onQuestion(question: CreatorQuestionActivity) {
+          updateRunItems(current => current.some(item => item.id === question.id) ? current : [...current, question]);
+        },
         onTextMessageStartEvent({ event }) {
           latestAssistantMessageId = event.messageId;
           updateRunItems((current) =>
@@ -1279,7 +1283,9 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
           updateRunItems((current) =>
             current.map((item) =>
               item.kind === "tool" && item.id === event.toolCallId
-                ? { ...item, arguments: `${item.arguments}${event.delta}` }
+                ? item.name === "ask_user_question" && item.arguments === event.delta
+                  ? item
+                  : { ...item, arguments: `${item.arguments}${event.delta}` }
                 : item,
             ),
           );
@@ -1320,6 +1326,11 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
         },
         onRunErrorEvent({ event }) {
           runErrorHandled = true;
+          runErrorCode = event.code;
+          if (response !== undefined) {
+            updateRunItems(current => current.map(item => item.kind === "question" && item.id === response.question.id
+              ? { ...item, status: (event.code === "CREATOR_INTERRUPT_NOT_FOUND" ? "stale" : "pending") as CreatorQuestionActivity["status"] } : item));
+          }
           updateRunItems((current) => [
             ...current.map((item) =>
               item.kind === "message" && item.streaming === true
@@ -1339,7 +1350,13 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
             },
           ]);
         },
-      });
+      } satisfies Parameters<CreatorAgentClient["run"]>[0];
+      const result = response === undefined ? await agent.run(subscriber)
+        : await agent.resumeInterrupt(response.question.interruptId, response.answers, subscriber);
+      if (response !== undefined && !runErrorHandled) {
+        updateRunItems(current => current.map(item => item.kind === "question" && item.id === response.question.id
+          ? { ...item, status: "resolved" as const } : item));
+      }
       updateRunItems((current) => {
         const stageItems = current.filter(
           (item): item is CreatorStageActivity => item.kind === "stage",
@@ -1385,6 +1402,10 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
         }
       }
     } catch (error) {
+      if (response !== undefined) {
+        updateRunItems(current => current.map(item => item.kind === "question" && item.id === response.question.id
+          ? { ...item, status: (runErrorCode === "CREATOR_INTERRUPT_NOT_FOUND" ? "stale" : "pending") as CreatorQuestionActivity["status"] } : item));
+      }
       if (!runErrorHandled) {
         const message = error instanceof Error ? error.message : String(error);
         updateRunItems((current) => [
@@ -1407,6 +1428,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
         ]);
       }
     } finally {
+      runInFlightRef.current = false;
       if (sessionRef.current === runSession) {
         saveConversation(agent, itemsRef.current, runWorkspaceId);
         setIsRunning(false);
@@ -1419,12 +1441,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
       return;
     }
     const nextThreadId = crypto.randomUUID();
-    const agent = new HttpAgent({
-      url: CREATOR_API_PATH,
-      headers: { [CREATOR_WORKSPACE_ID_HEADER]: workspaceIdRef.current! },
-      threadId: nextThreadId,
-      initialMessages: [],
-    });
+    const agent = new CreatorAgentClient(workspaceIdRef.current!, nextThreadId);
     agentRef.current = agent;
     itemsRef.current = [];
     setItems([]);
@@ -1473,7 +1490,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     setWorkspaceBusy(true);
     setWorkspaceError(null);
     sessionRef.current += 1;
-    agentRef.current?.abortRun();
+    agentRef.current?.abort();
     try {
       installWorkspace(await clearWorkspaceProject());
       setWorkspacePath("");
@@ -1494,7 +1511,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
       setSetupDraft((current) => ({ ...current, validation: { status: "idle" } }));
     }
     sessionRef.current += 1;
-    agentRef.current?.abortRun();
+    agentRef.current?.abort();
     try {
       const refreshed = await refreshWorkspaceProject();
       installWorkspace(refreshed);
@@ -1741,6 +1758,9 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                     />
                   ) : item.kind === "tool" ? (
                     <CreatorToolActivityCard activity={item} key={item.id} />
+                  ) : item.kind === "question" ? (
+                    <CreatorQuestionCard activity={item} key={item.id}
+                      onAnswer={answers => { void submit(undefined, { question: item, answers }); }} />
                   ) : (
                     <article
                       className={`creator-panel-message creator-panel-message--${item.role}`}
@@ -1857,7 +1877,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
             {workspaceState?.status === "ready" || workspaceState?.status === "legacy" ? <form className="creator-panel-composer" onSubmit={submit}>
               <label htmlFor="creator-request">修改需求</label>
               <textarea
-                disabled={isRunning || !creatorRuntimeReady}
+                disabled={isRunning || !creatorRuntimeReady || items.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting"))}
                 id="creator-request"
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={handleKeyDown}
@@ -1867,7 +1887,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
               />
               <div>
                 <small>Enter 发送 · Shift+Enter 换行</small>
-                <button disabled={isRunning || input.trim() === "" || !creatorRuntimeReady} type="submit">
+                <button disabled={isRunning || input.trim() === "" || !creatorRuntimeReady || items.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting"))} type="submit">
                   {isRunning ? "处理中…" : "发送"}
                 </button>
               </div>

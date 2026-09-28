@@ -43,6 +43,7 @@ export {
   a2uiInteractiveOrderScenario,
   frontendToolOpenDialogScenario,
   frontendToolFillFormScenario,
+  askUserQuestionScenario,
   concurrentConversationsScenario,
   agentPlanScenario,
   agentStatusScenario,

@@ -3,6 +3,7 @@ import { fileOutputScenario } from "./file-output.js";
 import { a2uiFormControlsScenario } from "./a2ui-form-controls.js";
 import { a2uiInteractiveOrderScenario } from "./a2ui-interactive-order.js";
 import { frontendToolFillFormScenario } from "./frontend-tool-fill-form.js";
+import { askUserQuestionScenario } from "./ask-user-question.js";
 import { frontendToolOpenDialogScenario } from "./frontend-tool-open-dialog.js";
 import { concurrentConversationsScenario } from "./concurrent-conversations.js";
 import { multiMessageResponseScenario } from "./multi-message-response.js";
@@ -36,6 +37,7 @@ export {
   a2uiInteractiveOrderScenario,
   frontendToolOpenDialogScenario,
   frontendToolFillFormScenario,
+  askUserQuestionScenario,
   concurrentConversationsScenario,
   multiMessageResponseScenario,
   agentPlanScenario,
@@ -80,6 +82,7 @@ export const frontendPresentationMockScenarios: MockScenario[] = [
   a2uiInteractiveOrderScenario,
   frontendToolOpenDialogScenario,
   frontendToolFillFormScenario,
+  askUserQuestionScenario,
   multiMessageResponseScenario,
   dataMessageChartScenario,
   nestedSubagentTaskGroupScenario,

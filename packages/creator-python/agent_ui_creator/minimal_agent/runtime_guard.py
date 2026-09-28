@@ -102,6 +102,8 @@ class MinimalAgentRuntimeGuard(AgentMiddleware):
         status: str,
         content: str,
     ) -> None:
+        if call.get("name") == "ask_user_question":
+            return
         revision = self.backend.mutation_revision
         if signature == self._last_signature and revision == self._last_revision:
             self._repeat_count += 1

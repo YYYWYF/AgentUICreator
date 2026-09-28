@@ -1,6 +1,12 @@
 import type { AgentUILocaleMessages } from "../locale-types";
 
 export const zhCN = {
+  humanQuestion: {
+    submit: "确认选择",
+    submitting: "正在提交选择…",
+    answered: "已选择",
+    unavailable: "此问题暂时无法回答",
+  },
   conversation: {
     generationStopped: "已停止生成",
   },

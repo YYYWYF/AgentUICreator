@@ -69,6 +69,10 @@ class DeepAgentToolStreamAdapter:
         if duplicate:
             return
         if not bool(getattr(call, "completed", False)):
+            # A Human Tool deliberately ends this wire run while its LangGraph
+            # tool call stays open in the checkpoint. Its result arrives on resume.
+            if getattr(call, "tool_name", None) == "ask_user_question":
+                return
             raise RuntimeError(
                 f"DeepAgents tool stream closed before {call_id!r} completed."
             )

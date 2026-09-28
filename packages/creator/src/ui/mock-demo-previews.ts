@@ -15,8 +15,10 @@ const file = preview(text(38, 54, "generate_file") + text(38, 110, "PDF") + text
 const reasoning = preview(text(38, 54, "Reasoning") + line(38, 82, 350) + line(38, 110, 280) + text(38, 166, "Assistant answer") + line(38, 188, 330));
 const tools = preview(text(38, 52, "Tool calls") + ["✓ Search files", "✓ Read document", "✓ Compare results"].map((label, n) => text(38, 98 + n * 48, label)).join(""));
 const approval = preview(text(38, 54, "Tool execution / Approval") + text(38, 98, "Allow this operation?") + text(38, 155, "Allow", "#027a48") + text(168, 155, "Deny", "#b42318"));
+const question = preview(text(38, 52, "Choose a homepage layout") + text(48, 105, "○ Dashboard") + text(48, 157, "● Sidebar", "#175cd3") + text(48, 207, "Confirm selection"));
 
 export const mockResourcePreviews: Readonly<Record<string, string>> = {
+  "ask-user-question-demo": question,
   "generated-file-message": file,
   "reasoning": reasoning,
   "tool-group": tools,

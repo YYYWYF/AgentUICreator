@@ -98,6 +98,7 @@ export interface MockScenario {
   resumeSteps?: MockScenarioResumeSteps | undefined;
   a2uiActions?: { branches: Record<string, MockScenarioStep[]>; fallback?: MockScenarioStep[] } | undefined;
   frontendContinuation?: { toolName: string; successText: string; errorText: string } | undefined;
+  humanQuestionContinuation?: { toolName: string; stepId: string; answerText: Record<string, string>; errorText: string } | undefined;
 }
 
 /** Resume branches keep an explicit denial distinct from steer-away cancellation. */
@@ -123,6 +124,8 @@ export type MockScenarioStep =
       type: "tool";
       /** Browser owns the result; backend emits only TOOL_CALL frames. */
       frontend?: boolean | undefined;
+      /** Human Tool waits for addResult instead of browser capability execution. */
+      human?: boolean | undefined;
       name: string;
       args: Record<string, unknown>;
       result: unknown;
@@ -246,7 +249,7 @@ function validateSteps(
     }
 
     if (step.type === "tool") {
-      if (step.frontend && context.subagentRunId !== undefined) {
+      if ((step.frontend || step.human) && context.subagentRunId !== undefined) {
         throw new Error(`Scenario "${scenarioId}" cannot invoke a root-only Frontend Tool from a subagent.`);
       }
       validateToolArgs(scenarioId, step.args, `tool "${step.name}"`);

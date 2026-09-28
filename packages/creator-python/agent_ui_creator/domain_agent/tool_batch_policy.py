@@ -25,6 +25,8 @@ def is_valid_domain_tool_batch(response: ModelResponse) -> bool:
         None,
     )
     calls = [] if message is None else message.tool_calls
+    if any(call["name"] == "ask_user_question" for call in calls):
+        return len(calls) == 1
     if len(calls) <= 1:
         return True
     if len(calls) > MAX_READ_BATCH_SIZE:

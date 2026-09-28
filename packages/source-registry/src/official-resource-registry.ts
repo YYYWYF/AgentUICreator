@@ -34,6 +34,7 @@ export function createOfficialResourceRegistry(resources: readonly OfficialAgent
 
 export const officialResourceRegistry = createOfficialResourceRegistry([
   { id: "a2ui", label: "A2UI", description: "A2UI declarative interactive surfaces", implementation: { type: "source", sourceItemId: "integration/a2ui" } },
+  { id: "ask-user-question-demo", label: "询问用户偏好 Demo", implementation: { type: "source-plugin", sourceItemId: "demo/ask-user-question", pluginId: "ask-user-question-demo", layoutSize: "0px" } },
   { id: "frontend-tool-form-demo", label: "表单 Frontend Tool Demo", implementation: { type: "source-plugin", sourceItemId: "demo/frontend-tool-form", pluginId: "frontend-tool-form-demo", layoutSize: "320px" } },
   { id: "frontend-tool-dialog-demo", label: "弹窗 Frontend Tool Demo", implementation: { type: "source-plugin", sourceItemId: "demo/frontend-tool-dialog", pluginId: "frontend-tool-dialog-demo", layoutSize: "0px" } },
   { id: "generated-file-message", label: "文件输出", implementation: { type: "plugin", pluginId: "generated-file-message" } },

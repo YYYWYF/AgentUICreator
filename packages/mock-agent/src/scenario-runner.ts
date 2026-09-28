@@ -286,7 +286,7 @@ async function* runSteps(
         });
         return;
       }
-      if (step.frontend) continue;
+      if (step.frontend || step.human) continue;
       yield attributedEvent({
         type: EventType.TOOL_CALL_RESULT,
         messageId: resultMessageId,
@@ -607,6 +607,28 @@ function selectSteps(
     return typeof name === "string" && Object.hasOwn(scenario.a2uiActions.branches, name)
       ? scenario.a2uiActions.branches[name]!
       : scenario.a2uiActions.fallback ?? [];
+  }
+  if (scenario.humanQuestionContinuation !== undefined) {
+    const continuation = scenario.humanQuestionContinuation;
+    let lastUserIndex = -1;
+    input.messages.forEach((message, index) => { if (message.role === "user") lastUserIndex = index; });
+    const turn = input.messages.slice(lastUserIndex + 1);
+    const call = turn.flatMap(message => message.role === "assistant" ? message.toolCalls ?? [] : [])
+      .find(item => item.function.name === continuation.toolName);
+    if (call !== undefined) {
+      const result = turn.find(message => message.role === "tool" && message.toolCallId === call.id);
+      if (result === undefined) return [];
+      let answer: string | undefined;
+      try {
+        const parsed = JSON.parse(result.content) as { answers?: Record<string, string[]> };
+        answer = parsed.answers?.[continuation.stepId]?.[0];
+      } catch { /* An invalid Tool Result uses the scenario error response. */ }
+      return [{ type: "message", text: answer === undefined
+        ? continuation.errorText : continuation.answerText[answer] ?? continuation.errorText }];
+    }
+    if (!input.tools.some(tool => tool.name === continuation.toolName)) {
+      return [{ type: "message", text: continuation.errorText }];
+    }
   }
   if (scenario.frontendContinuation !== undefined) {
     const continuation = scenario.frontendContinuation;

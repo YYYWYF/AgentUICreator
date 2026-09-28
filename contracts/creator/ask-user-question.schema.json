@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-ui.dev/contracts/creator/ask-user-question.schema.json",
+  "title": "Creator ask_user_question request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "steps"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "steps": {
+      "type": "array", "minItems": 1, "maxItems": 3,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "question", "options", "selectionMode", "minSelections", "maxSelections"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "question": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" },
+          "options": {
+            "type": "array", "minItems": 2, "maxItems": 7,
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["id", "label"],
+              "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "label": { "type": "string", "minLength": 1 },
+                "description": { "type": "string" }
+              }
+            }
+          },
+          "selectionMode": { "enum": ["single", "multiple"] },
+          "minSelections": { "type": "integer", "minimum": 0 },
+          "maxSelections": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  }
+}

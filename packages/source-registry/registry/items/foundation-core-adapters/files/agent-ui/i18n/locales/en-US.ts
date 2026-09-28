@@ -1,6 +1,12 @@
 import type { AgentUILocaleMessages } from "../locale-types";
 
 export const enUS = {
+  humanQuestion: {
+    submit: "Confirm selection",
+    submitting: "Submitting selection…",
+    answered: "Selected",
+    unavailable: "This question cannot be answered right now",
+  },
   conversation: {
     generationStopped: "Generation stopped",
   },

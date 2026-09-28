@@ -416,6 +416,7 @@ export interface ConversationToolCallProps {
   messages?: readonly ConversationMessage[];
   isError?: boolean | undefined;
   status: ConversationToolCallStatus;
+  addResult?: ((result: unknown) => void) | undefined;
   /** Preserve assistant-ui extension fields and callbacks at the facade seam. */
   readonly [key: string]: unknown;
 }
@@ -423,9 +424,11 @@ export interface ConversationToolCallProps {
 export type ConversationToolCallComponent = ComponentType<ConversationToolCallProps>;
 
 export interface ConversationToolkitEntry {
-  type: "backend";
+  type: "backend" | "human";
   display: "standalone";
   render: ComponentType<any>;
+  description?: string | undefined;
+  parameters?: Record<string, unknown> | undefined;
 }
 
 export type ConversationToolkit = Readonly<Record<string, ConversationToolkitEntry>>;

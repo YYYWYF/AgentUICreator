@@ -14,6 +14,7 @@ from uuid import uuid4
 
 import uvicorn
 from ag_ui.core import (
+    CustomEvent,
     EventType,
     RunErrorEvent,
     RunFinishedEvent,
@@ -26,6 +27,7 @@ from ag_ui.core import (
 from ag_ui.encoder import EventEncoder
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, StreamingResponse
+from langgraph.checkpoint.memory import InMemorySaver
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from .config import CREATOR_PYTHON_PROTOCOL_VERSION, CreatorServerSettings
@@ -54,6 +56,8 @@ from .operations import (
 )
 from .project_control import ProjectControlClient
 from .streaming import CreatorEventBus, CreatorEventSink, map_runtime_event
+from .streaming.deepagent_v3_runner import DeepAgentInterrupted
+from .human_input.models import QuestionAnswers, QuestionRequest
 from .verification_policy import (
     CreatorVerificationMode,
     DEFAULT_CREATOR_VERIFICATION_MODE,
@@ -73,6 +77,35 @@ class AgUiRunInput(BaseModel):
     tools: list[Any] = Field(default_factory=list)
     context: list[Any] = Field(default_factory=list)
     state: Any = None
+    forwardedProps: dict[str, Any] = Field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class CreatorInterruptEnvelope:
+    id: str
+    reason: str
+    metadata: dict[str, Any]
+    toolCallId: str | None = None
+
+    def to_wire(self) -> dict[str, Any]:
+        return {
+            "id": self.id, "reason": self.reason, "metadata": self.metadata,
+            **({"toolCallId": self.toolCallId} if self.toolCallId else {}),
+        }
+
+
+def _question_envelope(interrupted: DeepAgentInterrupted) -> CreatorInterruptEnvelope:
+    if len(interrupted.interrupts) != 1:
+        raise ValueError("Creator supports one pending question at a time.")
+    raw = interrupted.interrupts[0]
+    value = raw.get("value")
+    if not isinstance(value, dict) or value.get("kind") != "ask_user_question":
+        raise ValueError("Unsupported Creator interrupt kind.")
+    request = QuestionRequest.model_validate({key: item for key, item in value.items() if key != "kind"})
+    return CreatorInterruptEnvelope(
+        id=str(raw["id"]), reason="human_input",
+        metadata={"kind": "ask_user_question", **request.model_dump(mode="json", exclude_none=True)},
+    )
 
 
 async def _json_body(request: Request, maximum_bytes: int) -> Any:
@@ -152,6 +185,20 @@ def _authoring_handoff_messages(
     return [{"role": "system", "content": instruction}, *messages]
 
 
+async def _checkpoint_input_messages(
+    checkpointer: Any, thread_id: str, messages: list[dict[str, str]]
+) -> list[dict[str, str]]:
+    """A live graph already has its transcript; append only the new user turn."""
+    if checkpointer is None or not callable(getattr(checkpointer, "aget_tuple", None)):
+        return messages
+    checkpoint = await checkpointer.aget_tuple({"configurable": {"thread_id": thread_id}})
+    if checkpoint is None:
+        return messages
+    latest_user = next((message for message in reversed(messages) if message.get("role") == "user"), None)
+    system_messages = [message for message in messages if message.get("role") == "system"]
+    return [*system_messages, *([latest_user] if latest_user is not None else [])]
+
+
 async def _minimal_agent_result(
     settings: CreatorServerSettings,
     prompt: str,
@@ -207,6 +254,8 @@ async def _domain_read_agent_result(
     event_sink: CreatorEventSink,
     telemetry: CreatorRunTelemetry | None = None,
     diagnostics: RuntimeDiagnosticStore | None = None,
+    checkpointer: Any = None,
+    resume: dict[str, Any] | None = None,
 ):
     from .domain_agent import create_domain_read_creator_agent
     from .model_factory import create_creator_chat_model
@@ -233,6 +282,7 @@ async def _domain_read_agent_result(
 
     agent = create_domain_read_creator_agent(
         model=model,
+        checkpointer=checkpointer,
         workspace=settings.project_root,
         mode="development",
         raw_trace=model_settings.raw_trace,
@@ -246,7 +296,8 @@ async def _domain_read_agent_result(
         recovery_factory=recovery_factory,
         verification_mode=settings.verification_mode,
     )
-    return await agent.run_messages(messages)
+    graph_messages = await _checkpoint_input_messages(checkpointer, thread_id, messages) if resume is None else messages
+    return await agent.run_messages(graph_messages) if resume is None else await agent.run_messages(messages, resume=resume)
 
 
 async def _domain_write_agent_result(
@@ -259,6 +310,7 @@ async def _domain_write_agent_result(
     event_sink: CreatorEventSink,
     telemetry: CreatorRunTelemetry | None = None,
     visual_observations: VisualObservationStore | None = None,
+    checkpointer: Any = None,
 ):
     from .model_factory import create_creator_chat_model
     from .model_protocol.provider_trace import ProviderResponseTraceCollector
@@ -318,6 +370,7 @@ async def _domain_write_agent_result(
         event_sink,
         telemetry,
         handoff=productized_result.handoff,
+        checkpointer=checkpointer,
     )
 
 
@@ -331,6 +384,8 @@ async def _general_domain_write_agent_result(
     event_sink: CreatorEventSink,
     telemetry: CreatorRunTelemetry | None = None,
     handoff: CreatorAuthoringHandoff | None = None,
+    checkpointer: Any = None,
+    resume: dict[str, Any] | None = None,
 ):
     from .domain_agent import create_domain_write_creator_agent
     from .model_factory import create_creator_chat_model
@@ -357,6 +412,7 @@ async def _general_domain_write_agent_result(
 
     agent = create_domain_write_creator_agent(
         model=model,
+        checkpointer=checkpointer,
         workspace=settings.project_root,
         mode="development",
         raw_trace=model_settings.raw_trace,
@@ -373,7 +429,9 @@ async def _general_domain_write_agent_result(
         recovery_factory=recovery_factory,
         verification_mode=settings.verification_mode,
     )
-    return await agent.run_messages(_authoring_handoff_messages(messages, handoff))
+    input_messages = _authoring_handoff_messages(messages, handoff)
+    graph_messages = await _checkpoint_input_messages(checkpointer, thread_id, input_messages) if resume is None else input_messages
+    return await agent.run_messages(graph_messages) if resume is None else await agent.run_messages(input_messages, resume=resume)
 
 
 def _error_code(error: Exception) -> str:
@@ -439,6 +497,10 @@ async def _execute_agent_run(
     try:
         result = await agent_result
         receipt = activity.finish()
+        if isinstance(result, DeepAgentInterrupted):
+            logger.finish("interrupted", verification_mode=verification_mode,
+                          runtime_verification_status="not-run")
+            return _AgentExecution(result=result, receipt=receipt)
         completion = str(getattr(result, "completion", "success"))
         outcome = (
             completion
@@ -568,6 +630,10 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
     app.state.pending_creator_clarifications = pending_clarifications
     writing_run_lock = asyncio.Lock()
     mutation_coordinator = ProjectMutationCoordinator()
+    checkpointer = InMemorySaver()
+    pending_questions: dict[str, tuple[CreatorInterruptEnvelope, list[dict[str, str]], str]] = {}
+    app.state.creator_checkpointer = checkpointer
+    app.state.pending_creator_questions = pending_questions
 
     @app.middleware("http")
     async def authorize(request: Request, call_next: Any):
@@ -647,6 +713,14 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                         settings.project_root, logger=logger
                     )
                     activity.begin(run_input.runId)
+
+                def reject_interrupt(code: str, message: str) -> RunErrorEvent:
+                    if activity is not None and logger is not None:
+                        activity.finish()
+                        logger.finish("error", verification_mode=settings.verification_mode,
+                                      runtime_verification_status="not-run")
+                    return RunErrorEvent(type=EventType.RUN_ERROR, code=code, message=message)
+
                 yield encode(
                     RunStartedEvent(
                         type=EventType.RUN_STARTED,
@@ -654,6 +728,28 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                         run_id=run_input.runId,
                     )
                 )
+                command = run_input.forwardedProps.get("command")
+                resume_requested = isinstance(command, dict) and "resume" in command
+                pending = pending_questions.get(run_input.threadId)
+                resume_answers: dict[str, Any] | None = None
+                if resume_requested:
+                    if pending is None or pending[2] != agent_mode:
+                        yield encode(reject_interrupt("CREATOR_INTERRUPT_NOT_FOUND",
+                            "这个问题对应的 Agent 执行状态已经失效，请重新发起请求。"))
+                        return
+                    payload = command["resume"]
+                    try:
+                        if not isinstance(payload, dict) or payload.get("interruptId") != pending[0].id:
+                            raise ValueError("interruptId does not match the pending question")
+                        request = QuestionRequest.model_validate({key: value for key, value in pending[0].metadata.items() if key != "kind"})
+                        resume_answers = QuestionAnswers.model_validate({"answers": payload.get("answers")}).validate_for(request).model_dump(mode="json")
+                    except (ValueError, ValidationError) as error:
+                        yield encode(reject_interrupt("CREATOR_INTERRUPT_INVALID_ANSWER", str(error)))
+                        return
+                elif pending is not None:
+                    yield encode(reject_interrupt("CREATOR_INTERRUPT_PENDING",
+                        "请先回答当前问题，再继续 Creator 会话。"))
+                    return
                 if agent_mode in {"minimal", "domain-read", "domain-write"}:
                     assert activity is not None
                     assert logger is not None
@@ -661,26 +757,29 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                     telemetry = CreatorRunTelemetry(activity=activity)
                     with use_pending_creator_clarifications(pending_clarifications):
                         if agent_mode == "domain-write":
-                            agent_result = _domain_write_agent_result(
+                            agent_result = (_general_domain_write_agent_result if resume_requested else _domain_write_agent_result)(
                                 settings,
-                                _conversation_messages(run_input),
+                                pending[1] if pending is not None else _conversation_messages(run_input),
                                 activity,
                                 mutation_coordinator,
                                 diagnostics,
                                 run_input.threadId,
                                 event_bus,
                                 telemetry,
-                                visual_observations=visual_observations,
+                                **({"resume": resume_answers} if resume_requested else {"visual_observations": visual_observations}),
+                                checkpointer=checkpointer,
                             )
                         elif agent_mode == "domain-read":
                             agent_result = _domain_read_agent_result(
                                 settings,
-                                _conversation_messages(run_input),
+                                pending[1] if pending is not None else _conversation_messages(run_input),
                                 activity,
                                 run_input.threadId,
                                 event_bus,
                                 telemetry,
                                 diagnostics=diagnostics,
+                                checkpointer=checkpointer,
+                                resume=resume_answers,
                             )
                         else:
                             agent_result = _minimal_agent_result(
@@ -737,6 +836,25 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             if not event_bus.has_active_tools:
                                 agent_task.cancel()
                     result = execution.result
+                    if isinstance(result, DeepAgentInterrupted):
+                        try:
+                            envelope = _question_envelope(result)
+                        except (ValueError, ValidationError) as error:
+                            yield encode(RunErrorEvent(type=EventType.RUN_ERROR,
+                                code="CREATOR_INTERRUPT_UNSUPPORTED", message=str(error)))
+                            return
+                        pending_questions[run_input.threadId] = (
+                            envelope,
+                            pending[1] if pending is not None else _conversation_messages(run_input),
+                            agent_mode,
+                        )
+                        yield encode(CustomEvent(type=EventType.CUSTOM,
+                            name="on_interrupt", value=envelope.to_wire()))
+                        yield encode(RunFinishedEvent(type=EventType.RUN_FINISHED,
+                            thread_id=run_input.threadId, run_id=run_input.runId))
+                        return
+                    if resume_requested:
+                        pending_questions.pop(run_input.threadId, None)
                     response_text = result.text
                     if agent_mode in {"domain-read", "domain-write"}:
                         tool_protocol_metrics = result.metrics.to_dict()
