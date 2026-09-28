@@ -12,6 +12,7 @@ import {
   checkAssistantUiLangGraphSourceCompatibility,
 } from "./check-assistant-ui-langgraph-compat.mjs";
 import { checkAgUiLockfile } from "./check-ag-ui-lockfile.mjs";
+import { checkGenerativeUiResource } from "./check-generative-ui-resource.mjs";
 import { updatePackageManifests } from "./assistant-ui-workspace-packages.mjs";
 
 const execFile = promisify(execFileCallback);
@@ -387,6 +388,8 @@ export async function main({
         cwd: repoRoot,
         stdio: "inherit",
       });
+      const resourceErrors = await checkGenerativeUiResource({ repoRoot, target: nextTarget, baseGitSha });
+      if (resourceErrors.length) throw new Error(`Generative UI Source Resource guard failed:\n${resourceErrors.join("\n")}`);
     }
 
     const generated = {

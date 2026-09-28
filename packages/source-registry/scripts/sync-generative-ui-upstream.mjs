@@ -11,6 +11,29 @@ const componentPath = "packages/ui/src/components/react/assistant-ui/elements/ge
 const cssPath = "packages/ui/src/lib/generative-ui-vocabulary-css.ts";
 const tscPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../node_modules/.bin/tsc");
 
+function nextPatch(version) {
+  const match = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u.exec(version ?? "");
+  if (!match || !Number.isSafeInteger(Number(match[3])) || Number(match[3]) === Number.MAX_SAFE_INTEGER) {
+    throw new Error(`Generative UI Source Item requires a stable patch version; got ${version}.`);
+  }
+  return `${match[1]}.${match[2]}.${Number(match[3]) + 1}`;
+}
+
+async function previousContent(filename) {
+  return readFile(filename).catch(error => {
+    if (error.code === "ENOENT") return undefined;
+    throw error;
+  });
+}
+
+async function writeChanged(filename, content) {
+  const bytes = Buffer.from(content);
+  if ((await previousContent(filename))?.equals(bytes)) return false;
+  await mkdir(path.dirname(filename), { recursive: true });
+  await writeFile(filename, bytes);
+  return true;
+}
+
 function option(name, args) {
   const index = args.indexOf(name);
   return index >= 0 ? args[index + 1] : undefined;
@@ -61,25 +84,35 @@ export async function main({
 
   const itemRoot = path.join(root, "packages/source-registry/registry/items");
   const directory = path.join(itemRoot, "agent-component-assistant-ui-generative-ui/files/agent-ui/vendor/assistant-ui/generative-ui");
-  await mkdir(directory, { recursive: true });
-  await writeFile(path.join(directory, "styled-generative-ui.tsx"), component);
-  await writeFile(path.join(directory, "generative-ui.css"), css);
   const hash = value => createHash("sha256").update(value).digest("hex");
-  await writeFile(path.join(directory, "UPSTREAM.json"), JSON.stringify({
+  const provenance = JSON.stringify({
     schemaVersion: 1, project: "assistant-ui/assistant-ui", revision, license: "MIT",
     packages: { [packageName]: version },
     files: [
       { upstreamPath: componentPath, localPath: "styled-generative-ui.tsx", upstreamSha256: hash(component), installedSha256: hash(component), adaptations: [] },
       { upstreamPath: cssPath, localPath: "generative-ui.css", upstreamSha256: hash(cssSource), installedSha256: hash(css), adaptations: ["official vocabulary CSS serialization", "mechanical selector scoping only: .agent-ui-conversation"] },
     ], patches: [],
-  }, null, 2) + "\n");
-  for (const id of ["agent-component-assistant-ui-generative-ui", "integration-generative-ui"]) {
+  }, null, 2) + "\n";
+  const generated = new Map([
+    [path.join(directory, "styled-generative-ui.tsx"), component],
+    [path.join(directory, "generative-ui.css"), css],
+    [path.join(directory, "UPSTREAM.json"), provenance],
+  ]);
+  const items = await Promise.all(["agent-component-assistant-ui-generative-ui", "integration-generative-ui"].map(async id => {
     const itemPath = path.join(itemRoot, id, "item.json");
-    const item = JSON.parse(await readFile(itemPath, "utf8"));
+    return { id, itemPath, item: JSON.parse(await readFile(itemPath, "utf8")) };
+  }));
+  const generatedChanged = (await Promise.all([...generated].map(async ([filename, content]) =>
+    !(await previousContent(filename))?.equals(Buffer.from(content))))).some(Boolean);
+  for (const { id, itemPath, item } of items) {
+    const changed = item.packages?.[packageName] !== version || item.upstream?.revision !== revision ||
+      (id === "agent-component-assistant-ui-generative-ui" && generatedChanged);
+    if (changed) item.version = nextPatch(item.version);
     item.packages[packageName] = version;
     item.upstream.revision = revision;
-    await writeFile(itemPath, JSON.stringify(item, null, 2) + "\n");
+    await writeChanged(itemPath, JSON.stringify(item, null, 2) + "\n");
   }
+  for (const [filename, content] of generated) await writeChanged(filename, content);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
