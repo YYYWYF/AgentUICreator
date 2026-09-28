@@ -233,6 +233,72 @@ def _pseudo_tool_names(content: Any) -> tuple[str, ...]:
     )
 
 
+def _stream_payload(body: bytes) -> dict[str, Any] | None:
+    """Reassemble the first Chat Completion choice for bounded trace inspection."""
+    content: list[str] = []
+    calls: dict[int, dict[str, Any]] = {}
+    finish_reason: str | None = None
+    model: str | None = None
+    usage: dict[str, Any] = {}
+    saw_chunk = False
+    for line in body.splitlines():
+        if not line.startswith(b"data:"):
+            continue
+        data = line[5:].strip()
+        if data == b"[DONE]":
+            break
+        try:
+            chunk = json.loads(data)
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            continue
+        if not isinstance(chunk, Mapping):
+            continue
+        saw_chunk = True
+        if isinstance(chunk.get("model"), str):
+            model = chunk["model"]
+        if isinstance(chunk.get("usage"), Mapping):
+            usage = dict(chunk["usage"])
+        choices = chunk.get("choices")
+        if not isinstance(choices, list) or not choices or not isinstance(choices[0], Mapping):
+            continue
+        choice = choices[0]
+        if isinstance(choice.get("finish_reason"), str):
+            finish_reason = choice["finish_reason"]
+        delta = choice.get("delta")
+        if not isinstance(delta, Mapping):
+            continue
+        if isinstance(delta.get("content"), str):
+            content.append(delta["content"])
+        raw_calls = delta.get("tool_calls")
+        if not isinstance(raw_calls, list):
+            continue
+        for position, raw_call in enumerate(raw_calls):
+            if not isinstance(raw_call, Mapping):
+                continue
+            index = raw_call.get("index")
+            index = index if isinstance(index, int) else position
+            call = calls.setdefault(index, {"type": "function", "function": {"name": "", "arguments": ""}})
+            for key in ("id", "type"):
+                if isinstance(raw_call.get(key), str):
+                    call[key] = raw_call[key]
+            function = raw_call.get("function")
+            if isinstance(function, Mapping):
+                for key in ("name", "arguments"):
+                    if isinstance(function.get(key), str):
+                        call["function"][key] += function[key]
+    if not saw_chunk:
+        return None
+    return {
+        "model": model,
+        "choices": [{
+            "message": {"content": "".join(content) if content else None,
+                        "tool_calls": [calls[index] for index in sorted(calls)]},
+            "finish_reason": finish_reason,
+        }],
+        "usage": usage,
+    }
+
+
 class ProviderResponseTraceCollector:
     """Collect bounded Chat Completions response structure before SDK parsing."""
 
@@ -287,7 +353,7 @@ class ProviderResponseTraceCollector:
         try:
             payload: Any = json.loads(body)
         except (UnicodeDecodeError, json.JSONDecodeError):
-            payload = None
+            payload = _stream_payload(body) if "text/event-stream" in response.headers.get("content-type", "") else None
         status_code = response.status_code
         with self._lock:
             self._pending_attempts.append((status_code, _error_type(payload)))
