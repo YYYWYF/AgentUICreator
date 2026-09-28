@@ -62,7 +62,21 @@
   }
 }
 
-.agent-ui-conversation[data-theme="light"] {
+/* An unlayered Host reset otherwise wins over Tailwind's layered utilities and
+ * Preflight regardless of selector specificity. Revert only inside AgentUIRoot
+ * to the values supplied by Agent UI's own layers. Plugin and shell rules can
+ * still override this with their later, more specific selectors. */
+.agent-ui-root,
+.agent-ui-root * {
+  all: revert-layer;
+}
+
+/* Layered Tailwind radii outrank an unlayered Host !important reset. */
+.agent-ui-root :where(button) {
+  border-radius: revert-layer !important;
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="light"] {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
@@ -93,7 +107,7 @@
   color-scheme: light;
 }
 
-.agent-ui-conversation[data-theme="dark"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="dark"] {
   --radius: 0.625rem;
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
@@ -126,7 +140,7 @@
 
 /* DevStudio uses the project-local diagnostic token vocabulary. Keep that
  * development-only surface on the canonical assistant-ui theme variables. */
-.agent-ui-conversation[data-theme] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] {
   --aui-bg: var(--background);
   --aui-bg-elevated: var(--card);
   --aui-bg-subtle: var(--muted);
@@ -167,6 +181,21 @@
   --aui-shadow-lg: 0 16px 40px rgb(0 0 0 / 18%);
   --aui-duration-fast: 120ms;
   --aui-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+.agent-ui-root {
+  color: var(--foreground);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  isolation: isolate;
+}
+
+.agent-ui-portal-root {
+  position: relative;
+  z-index: 0;
 }
 
 .agent-ui-conversation {

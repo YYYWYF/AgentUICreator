@@ -1,4 +1,4 @@
-import { Dialog } from "@base-ui/react/dialog";
+import { AgentUIDialog as Dialog } from "@agent-ui/react";
 import { usePluginService, usePluginServiceSnapshot } from "../../runtime/plugins";
 import { DEMO_DIALOG_SERVICE, type DemoDialogService, type DemoDialogSnapshot } from "../../services/demo-dialog";
 import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
@@ -8,7 +8,7 @@ export function FrontendToolDialogDemoPlugin() {
   const dialog = usePluginService<DemoDialogService>(DEMO_DIALOG_SERVICE);
   const snapshot = usePluginServiceSnapshot(dialog, closed);
   const locale = useAgentUILocale("frontendTools");
-  return <Dialog.Root open={snapshot.open} onOpenChange={open => { if (!open) dialog?.close(); }}>
+  return <Dialog.Root open={snapshot.open} onOpenChange={(open: boolean) => { if (!open) dialog?.close(); }}>
     <Dialog.Portal>
       <Dialog.Backdrop className="frontend-tool-dialog-backdrop" />
       <Dialog.Popup className="frontend-tool-dialog-popup">

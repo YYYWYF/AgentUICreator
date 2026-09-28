@@ -1,5 +1,6 @@
 import type { ConversationRuntimeProviderProps } from "@agent-ui/runtime-conversation";
-import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { AgentUIRoot } from "@agent-ui/react";
+import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import {
   ConversationRuntimeProvider,
   useConversationRuntimeBridge,
@@ -32,6 +33,7 @@ import { ConversationThreadBindingConnector } from "../agent-ui/conversation/thr
 import { createConversationServiceThreadBinding } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
 import { GeneratedConversationIntegrations } from "../agent-ui/conversation/integrations.generated";
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
+import { useAgentUIThemeMode } from "../agent-ui/theme/useAgentUITheme";
 import { resolvePluginConversationToolkit } from "../runtime/plugins/plugin-conversation-toolkit";
 import { agentCompositionStore } from "./composition-store";
 import { agentUIRuntimeConfig as generatedAgentUIRuntimeConfig } from "./runtime-config.generated";
@@ -56,6 +58,11 @@ export interface AgentProps {
   observability?: AgentObservability;
   /** Application-owned official assistant-ui attachment adapter. */
   attachmentAdapter?: ConversationRuntimeProviderProps["attachmentAdapter"];
+}
+
+function AgentUIStyleSurface({ children }: { children: ReactNode }) {
+  const theme = useAgentUIThemeMode();
+  return <AgentUIRoot theme={theme}>{children}</AgentUIRoot>;
 }
 
 function AgentSurface({ composition, observability }: {
@@ -108,21 +115,23 @@ function AgentSurface({ composition, observability }: {
         model={composition.runtimeModel}
         registry={composition.activeRegistry}
       >
-        <PluginDataMessageUIHost model={composition.runtimeModel} registry={composition.activeRegistry} />
-        <ConversationThreadBindingConnector />
-        <ConversationPresentationConfigProvider value={conversationPresentationConfig}>
-          <ModeShell mode={agentUIRuntimeConfig.mode}>
-            <UIPluginRuntime
-              actions={actions}
-              appUIModelHash={observed ? composition.appUIModelHash : undefined}
-              onRuntimeComposition={observed ? onRuntimeComposition : undefined}
-              onRuntimeDiagnostic={observed ? onRuntimeDiagnostic : undefined}
-              className="development-preview"
-              model={composition.runtimeModel}
-              registry={composition.activeRegistry}
-            />
-          </ModeShell>
-        </ConversationPresentationConfigProvider>
+        <AgentUIStyleSurface>
+          <PluginDataMessageUIHost model={composition.runtimeModel} registry={composition.activeRegistry} />
+          <ConversationThreadBindingConnector />
+          <ConversationPresentationConfigProvider value={conversationPresentationConfig}>
+            <ModeShell mode={agentUIRuntimeConfig.mode}>
+              <UIPluginRuntime
+                actions={actions}
+                appUIModelHash={observed ? composition.appUIModelHash : undefined}
+                onRuntimeComposition={observed ? onRuntimeComposition : undefined}
+                onRuntimeDiagnostic={observed ? onRuntimeDiagnostic : undefined}
+                className="development-preview"
+                model={composition.runtimeModel}
+                registry={composition.activeRegistry}
+              />
+            </ModeShell>
+          </ConversationPresentationConfigProvider>
+        </AgentUIStyleSurface>
       </PluginServiceProvider>
     </AgentRuntimeProvider>
   );

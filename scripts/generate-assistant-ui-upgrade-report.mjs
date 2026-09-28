@@ -15,6 +15,9 @@ const CANCELLATION_UPSTREAM_PATTERNS = [
   /(^|\/)packages\/react-ag-ui\/src\/useAgUiRuntime\./u,
   /(^|\/)(?:run[-/]?http[-/]?request|transform[-/]?http|httpagent|cancell?ation)/iu,
 ];
+const PORTAL_BRIDGE_FILES = ["dialog", "popover", "sheet", "tooltip"]
+  .map((name) => `packages/react/src/internal/vendor/assistant-ui/components/ui/${name}.tsx`)
+  .concat("packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/image.tsx");
 
 function option(name, args) {
   const index = args.indexOf(name);
@@ -80,6 +83,19 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
   const upstreamChangedFiles = Array.isArray(session?.upstreamChangedFiles)
     ? session.upstreamChangedFiles
     : [];
+  const portalChangedFiles = PORTAL_BRIDGE_FILES.filter((file) => files.includes(file));
+  const portalUpstreamChangedFiles = upstreamChangedFiles.filter((file) =>
+    /(?:^|\/)(?:dialog|popover|sheet|tooltip|image)\.tsx$/u.test(file));
+  const portalIntegration = {
+    status: session?.upstreamChangedFiles === null
+      ? "REVIEW REQUIRED: upstream change set unavailable"
+      : portalChangedFiles.length > 0 || portalUpstreamChangedFiles.length > 0
+        ? "CHANGED: recheck Portal container bridge"
+        : "UNCHANGED",
+    seamFiles: PORTAL_BRIDGE_FILES,
+    changedFiles: portalChangedFiles,
+    upstreamChangedFiles: portalUpstreamChangedFiles,
+  };
   const cancellationRelevantUpstreamChanges = upstreamChangedFiles.filter((file) =>
     CANCELLATION_UPSTREAM_PATTERNS.some((pattern) => pattern.test(file)),
   );
@@ -222,6 +238,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     removedUpstreamElements,
     changedUpstreamElements,
     ignoredUpstreamElements,
+    portalIntegration,
     cancellationCompatibility,
     historyCompatibility,
     capabilityAudit,
@@ -312,6 +329,10 @@ ${langGraphReasons.length === 0 ? "" : `\nReasons:\n${langGraphReasons.map((reas
 - added ${current.vendorFilesAdded.length} files
 - removed ${current.vendorFilesRemoved.length} files
 - new transitive dependencies: ${current.newTransitiveDependencies.length}
+
+Portal integration seam: ${portalIntegration.status}
+- local bridge files changed: ${portalChangedFiles.join(", ") || "none"}
+- upstream Portal files changed: ${portalUpstreamChangedFiles.join(", ") || "none"}
 
 ## Upstream Element discovery
 

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Agent UI style isolation</title></head>
+  <body>
+    <div id="host-probes">
+      <button data-host-probe="button" type="button">Host button</button>
+      <input data-host-probe="input" aria-label="Host input" />
+      <ul data-host-probe="list"><li>Host list</li></ul>
+      <h1 data-host-probe="heading">Host heading</h1>
+      <svg data-host-probe="svg" width="20" height="20" aria-label="Host icon"></svg>
+    </div>
+    <div class="agent-pane" id="agent-isolation-mount"></div>
+    <div id="portal-isolation-mount"></div>
+    <script type="module" src="/src/style-isolation-test.tsx"></script>
+  </body>
+</html>

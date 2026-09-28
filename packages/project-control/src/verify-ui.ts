@@ -13,6 +13,7 @@ import { resolveAgentUIProjectPaths, projectControlConfigForPaths, projectRelati
 import { readAgentUIProjectConfig } from "./project/project-mode";
 import type { AgentUIProjectConfig } from "./framework/contracts/agent-ui-project";
 import { verifyPluginChildSlots } from "./project/plugin-child-slot-verifier";
+import { verifyPluginStyles } from "./project/plugin-style-verifier";
 import {
   generatePluginRegistry,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
@@ -162,6 +163,7 @@ export async function verifyUIProject(
     const registry = await generatePluginRegistry(projectRoot, model, { config: effectiveConfig, paths });
     errors.push(...registry.errors);
     errors.push(...(await verifyPluginChildSlots(projectRoot, registry.assets)));
+    errors.push(...(await verifyPluginStyles(projectRoot, paths.pluginsRoot, registry.assets)));
     const authoringReadiness = analyzePluginAuthoringReadiness(registry.assets);
     creatorReadiness = authoringReadiness.plugins;
     errors.push(...authoringReadiness.errors);

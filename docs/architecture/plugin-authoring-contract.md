@@ -124,6 +124,23 @@ Plugin declared authoring intent but did not provide enough information for a
 deterministic Creator operation. A declared but false placement is a blocking
 contract error.
 
+## Style Isolation Contract
+
+Visual Plugins own a stable root selector for their presentation. Every Plugin
+CSS selector must begin with a Plugin-owned class or a `data-ui-plugin` /
+`data-plugin-id` attribute. Descendants such as `.my-plugin button` are valid;
+bare `button`, `body`, `html`, `:root`, `*`, and global reset selectors are not.
+Plugin CSS must not depend on Host DOM or define theme tokens on `:root`.
+Theme tokens are inherited from `AgentUIRoot`.
+
+Plugins use the `@agent-ui/react` Agent UI Tooltip, Popover, and Dialog
+facades for overlays. They must not import Base UI Portal primitives directly
+or mount overlays on `document.body`.
+
+The Host checks CSS during `verify:ui` without changing the authoring manifest.
+An unsafe selector or CSS import produces the blocking diagnostic
+`PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED`; Creator must repair the CSS source.
+
 ## Validation boundary
 
 `pnpm verify:ui` is the single Host entry point. It reports readiness records

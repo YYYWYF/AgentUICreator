@@ -29,7 +29,8 @@ export function InternalConversationToolkitProvider({ toolkit, children }: {
 }) {
   const aui = useAui();
   const inherited = useAuiState(state => state.tools.toolUIs);
-  const config = useMemo(() => AuiConfig({ tools: Tools({ toolkit }) }), [toolkit]);
+  // The public render-only Toolkit is normalized through defineToolkit at the facade.
+  const config = useMemo(() => AuiConfig({ tools: Tools({ toolkit: toolkit as never }) }), [toolkit]);
   return <AuiProvider extends={aui} config={config}>
     <InheritedRenderers inherited={inherited} toolkit={toolkit} />
     {children}

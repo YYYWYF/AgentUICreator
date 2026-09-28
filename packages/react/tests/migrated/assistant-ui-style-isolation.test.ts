@@ -85,9 +85,9 @@ describe("formal assistant-ui adapter style isolation", () => {
     const preflight = await readFile(scopedPreflightUrl, "utf8");
 
     for (const control of ["button", "input", "textarea", "select"]) {
-      expect(preflight).toContain(`.agent-ui-conversation ${control}`);
+      expect(preflight).toContain(`:is(.agent-ui-root, .agent-ui-conversation) ${control}`);
     }
-    expect(preflight).toContain(".agent-ui-conversation ::file-selector-button");
+    expect(preflight).toContain(":is(.agent-ui-root, .agent-ui-conversation) ::file-selector-button");
     expect(preflight).toContain("font: inherit;");
     expect(preflight).toContain("background-color: transparent;");
     expect(preflight).toContain("appearance: button;");

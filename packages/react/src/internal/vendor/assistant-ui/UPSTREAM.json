@@ -84,10 +84,11 @@
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/image.tsx",
       "localPath": "components/assistant-ui/elements/image.tsx",
       "upstreamSha256": "3e88d0dbc830f10f2ac67fe3e404896a7ea7fd7b65cc827ef4b2ede9e16638b3",
-      "installedSha256": "89f7ef2a9a3ab0608045834cd27c0854e9ce41489bed4b80b2709a58ed8cf56e",
+      "installedSha256": "2200e0efc898b710fac7c0639ea1fd729c7cc98ac0cb854e60205d1029ed1724",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative"
+        "import-alias-to-relative",
+        "agent-ui-portal-container-bridge"
       ]
     },
     {
@@ -299,10 +300,11 @@
       "upstreamPath": "templates/minimal/components/ui/dialog.tsx",
       "localPath": "components/ui/dialog.tsx",
       "upstreamSha256": "662c25e6d4873ba41c12db62a378a1cb873d6c3846e855fc85039793823cd903",
-      "installedSha256": "dffa485c6923cced66a12bcfa893ed8432cee6b017d50316ab02b7f336111aba",
+      "installedSha256": "9e5bd270838e41ee768dc58e69a2673761130222b40bd3054278b323b42cb6cb",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative"
+        "import-alias-to-relative",
+        "agent-ui-portal-container-bridge"
       ]
     },
     {
@@ -319,10 +321,11 @@
       "upstreamPath": "packages/ui/src/components/react/ui/base/popover.tsx",
       "localPath": "components/ui/popover.tsx",
       "upstreamSha256": "4b4603f4df884f389e2659a1b74c04a3e1e055724a2202d16732959b31f3af74",
-      "installedSha256": "95665f5c30dcfd46ee49034c4b3cee8e6f08c26d14930223b56efce505967f34",
+      "installedSha256": "9bd007a28f548eb1b59ec61b3484a4e6c80c2757a2e46bc0de434b59377d1e41",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative"
+        "import-alias-to-relative",
+        "agent-ui-portal-container-bridge"
       ]
     },
     {
@@ -339,10 +342,11 @@
       "upstreamPath": "packages/ui/src/components/react/ui/base/sheet.tsx",
       "localPath": "components/ui/sheet.tsx",
       "upstreamSha256": "89748ad1285f6d3ad44185e4ca4d4bf8b9fa878559cc0ffa492f81be4cb1f832",
-      "installedSha256": "56d09016b4d57fb14b3a0dbdfdb57d9920b6ef8737b4229c39a7ec27dab5b6da",
+      "installedSha256": "a71868a0c98ca3a1abced67ac9784573a8c99ffd98b0b18d8a51a047be02eb36",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative"
+        "import-alias-to-relative",
+        "agent-ui-portal-container-bridge"
       ]
     },
     {
@@ -379,10 +383,11 @@
       "upstreamPath": "templates/minimal/components/ui/tooltip.tsx",
       "localPath": "components/ui/tooltip.tsx",
       "upstreamSha256": "43cf8405ec5856165c2e7543d9e07c7bdf186c0b9f39270141a42de3dc11d0cc",
-      "installedSha256": "cdbf8fa744fe61171e1d7bc9224e04f45dc7c1d3119eaacd434c603a11e789ec",
+      "installedSha256": "db242dd9487682e8a46a85f9d926b4aff858893991d974648faf9551cb971751",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative"
+        "import-alias-to-relative",
+        "agent-ui-portal-container-bridge"
       ]
     },
     {
@@ -414,5 +419,17 @@
       "adaptations": []
     }
   ],
-  "patches": []
+  "patches": [
+    {
+      "id": "agent-ui-portal-container-bridge",
+      "reason": "Mount Base UI overlays inside AgentUIRoot without changing presentation or runtime behavior.",
+      "files": [
+        "components/assistant-ui/elements/image.tsx",
+        "components/ui/dialog.tsx",
+        "components/ui/popover.tsx",
+        "components/ui/sheet.tsx",
+        "components/ui/tooltip.tsx"
+      ]
+    }
+  ]
 }

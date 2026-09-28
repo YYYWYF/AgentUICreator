@@ -19,6 +19,8 @@ const EXPECTED_SOURCE = "https://r.assistant-ui.com";
 const EXPECTED_STYLE = "base-nova";
 const ELEMENTS_DIRECTORY = "components/assistant-ui/elements";
 const ELEMENT_PATH_PREFIX = `${ELEMENTS_DIRECTORY}/`;
+const IMAGE_ZOOM_PORTAL_PATH = "components/assistant-ui/elements/image.tsx";
+const IMAGE_ZOOM_BRIDGE_IMPORT = 'import { useAgentUIPortalContainer } from "../../../../../style-boundary/AgentUIRoot";\n';
 const FORBIDDEN_ELEMENT_TOKENS = [
   "ThreadListPresentationPolicy",
   "agentUiDisabled",
@@ -76,6 +78,21 @@ async function readJson(filePath, label) {
 
 function sha256(content) {
   return createHash("sha256").update(content).digest("hex");
+}
+
+function normalizedApprovedPortalBridge(relativePath, content) {
+  if (relativePath !== IMAGE_ZOOM_PORTAL_PATH) return content;
+  const source = content.toString("utf8");
+  const importCount = source.split(IMAGE_ZOOM_BRIDGE_IMPORT).length - 1;
+  const hookLine = "  const portalContainer = useAgentUIPortalContainer();\n";
+  const hookCount = source.split(hookLine).length - 1;
+  const targetCount = source.split("          portalContainer ?? document.body,").length - 1;
+  const openCount = source.split("      {isOpen && portalContainer !== null &&").length - 1;
+  if (importCount !== 1 || hookCount !== 1 || targetCount !== 1 || openCount !== 1) return content;
+  return source.replace(IMAGE_ZOOM_BRIDGE_IMPORT, "")
+    .replace(hookLine, "")
+    .replace("      {isOpen && portalContainer !== null &&", "      {isOpen &&")
+    .replace("          portalContainer ?? document.body,", "          document.body,");
 }
 
 function sortedDifference(left, right) {
@@ -233,7 +250,8 @@ export async function collectAssistantUiUpstreamErrors(
       const patchFiles = isRecord(patch) && Array.isArray(patch.files)
         ? patch.files
         : [];
-      if (patchFiles.some((file) => typeof file === "string" && file.startsWith(ELEMENT_PATH_PREFIX))) {
+      if (patchFiles.some((file) => typeof file === "string" && file.startsWith(ELEMENT_PATH_PREFIX) &&
+        !(patch.id === "agent-ui-portal-container-bridge" && file === IMAGE_ZOOM_PORTAL_PATH))) {
         errors.push(`${PROVENANCE_FILE} must not contain Element-targeted product patches.`);
       }
       if (JSON.stringify(patch).includes("p3r4d-thread-list-policy-seam")) {
@@ -294,7 +312,7 @@ export async function collectAssistantUiUpstreamErrors(
       }
       throw error;
     }
-    if (sha256(content) !== expectedHash) modified.push(relativePath);
+    if (sha256(normalizedApprovedPortalBridge(relativePath, content)) !== expectedHash) modified.push(relativePath);
   }
 
   for (const relativePath of modified) {

@@ -409,6 +409,9 @@ importers:
       '@agent-ui/source-registry':
         specifier: workspace:^
         version: link:../source-registry
+      postcss:
+        specifier: 8.5.28
+        version: 8.5.28
       typescript:
         specifier: 7.0.2
         version: 7.0.2

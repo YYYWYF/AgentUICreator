@@ -4,6 +4,7 @@ import * as React from "react";
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 
 import { cn } from "../../lib/utils";
+import { useAgentUIPortalContainer } from "../../../../style-boundary/AgentUIRoot";
 
 function Popover({ ...props }: PopoverPrimitive.Root.Props) {
   return <PopoverPrimitive.Root data-slot="popover" {...props} />;
@@ -31,8 +32,10 @@ const PopoverContent = React.forwardRef<
   },
   ref,
 ) {
+  const portalContainer = useAgentUIPortalContainer();
+  if (portalContainer === null) return null;
   return (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal {...(portalContainer === undefined ? {} : { container: portalContainer })}>
       <PopoverPrimitive.Positioner
         align={align}
         alignOffset={alignOffset}

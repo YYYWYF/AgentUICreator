@@ -1,0 +1,8 @@
+* { box-sizing: content-box; }
+button { font-size: 31px; border: 9px solid red; border-radius: 0 !important; }
+input { background: yellow; }
+ul { list-style: square; }
+h1 { font-size: 72px; }
+svg { display: inline; }
+#host-probes { padding: 1rem; }
+.agent-pane { width: 28rem; height: 32rem; }

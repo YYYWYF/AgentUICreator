@@ -1,4 +1,12 @@
 import { InternalConversationToolkitProvider } from "./internal/conversation-toolkit-provider.js";
+import { AgentUIRoot as InternalAgentUIRoot, useAgentUIPortalContainer as useInternalAgentUIPortalContainer } from "./internal/style-boundary/AgentUIRoot.js";
+import { AgentUIDialog as InternalAgentUIDialog } from "./internal/style-boundary/AgentUIDialog.js";
+import { DialogContent as InternalAgentUIDialogContent } from "./internal/vendor/assistant-ui/components/ui/dialog.js";
+import { Tooltip as InternalAgentUITooltip, TooltipTrigger as InternalAgentUITooltipTrigger, TooltipContent as InternalAgentUITooltipContent, TooltipProvider as InternalAgentUITooltipProvider } from "./internal/vendor/assistant-ui/components/ui/tooltip.js";
+import { Popover as InternalAgentUIPopover, PopoverTrigger as InternalAgentUIPopoverTrigger, PopoverContent as InternalAgentUIPopoverContent } from "./internal/vendor/assistant-ui/components/ui/popover.js";
+import type { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
+import type { Popover as PopoverPrimitive } from "@base-ui/react/popover";
+import type { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 import {
   ConversationThreadListItemComposition,
 } from "./internal/conversation-thread-list-item.js";
@@ -93,6 +101,30 @@ import type {
   ReactElement,
   ReactNode,
 } from "react";
+export function AgentUIRoot({ theme, children }: { theme: "light" | "dark"; children: ReactNode }): ReactElement {
+  return <InternalAgentUIRoot theme={theme}>{children}</InternalAgentUIRoot>;
+}
+export function useAgentUIPortalContainer(): HTMLElement | null {
+  return useInternalAgentUIPortalContainer() ?? null;
+}
+export const AgentUITooltip: ComponentType<TooltipPrimitive.Root.Props> = InternalAgentUITooltip;
+export const AgentUITooltipTrigger: ComponentType<TooltipPrimitive.Trigger.Props> = InternalAgentUITooltipTrigger;
+export const AgentUITooltipContent: ComponentType<TooltipPrimitive.Popup.Props & Pick<TooltipPrimitive.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset">> = InternalAgentUITooltipContent;
+export const AgentUITooltipProvider: ComponentType<TooltipPrimitive.Provider.Props> = InternalAgentUITooltipProvider;
+export const AgentUIPopover: ComponentType<PopoverPrimitive.Root.Props> = InternalAgentUIPopover;
+export const AgentUIPopoverTrigger: ComponentType<PopoverPrimitive.Trigger.Props> = InternalAgentUIPopoverTrigger;
+export const AgentUIPopoverContent: ComponentType<PopoverPrimitive.Popup.Props & Pick<PopoverPrimitive.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset">> = InternalAgentUIPopoverContent;
+export const AgentUIDialog: Readonly<{
+  Root: ComponentType<DialogPrimitive.Root.Props>;
+  Trigger: ComponentType<DialogPrimitive.Trigger.Props>;
+  Portal: ComponentType<DialogPrimitive.Portal.Props>;
+  Backdrop: ComponentType<DialogPrimitive.Backdrop.Props>;
+  Popup: ComponentType<DialogPrimitive.Popup.Props>;
+  Title: ComponentType<DialogPrimitive.Title.Props>;
+  Description: ComponentType<DialogPrimitive.Description.Props>;
+  Close: ComponentType<DialogPrimitive.Close.Props>;
+}> = InternalAgentUIDialog;
+export const AgentUIDialogContent: ComponentType<DialogPrimitive.Popup.Props & { showCloseButton?: boolean }> = InternalAgentUIDialogContent;
 import { useMemo } from "react";
 import {
   ChevronLeftIcon,

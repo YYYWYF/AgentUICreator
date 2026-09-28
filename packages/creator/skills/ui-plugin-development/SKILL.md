@@ -13,6 +13,8 @@ Inspect project conventions before deciding that Plugin source must change:
 - `/plugins/*/definition.ts` joins a validated manifest to a React component.
 - `/plugins/*/index.tsx` implements the component.
 - `/plugins/*/styles.css` owns Plugin-specific presentation when that stack uses CSS.
+- Scope every Plugin CSS selector under a stable Plugin-owned class or `data-ui-plugin` root. Never use bare element selectors, `html`, `body`, `:root`, `*`, global resets, CSS imports, or Host DOM ancestors. Inherit theme tokens from AgentUIRoot.
+- Use the `@agent-ui/react` Agent UI Tooltip, Popover, and Dialog facades for overlays; do not import Base UI Portal primitives or create body-level Portals.
 - `/plugins/registry.generated.ts` is the generated capability catalog: manifest metadata plus lazy definition loaders for available Plugins. AppUIModel selection resolves the published Active Registry at runtime; never edit this file or `/plugins/index.ts` by hand.
 - `/framework/contracts/ui-plugin.ts` is the Plugin Contract.
 - `/agent-contract/agent-events.ts` is the application-owned registry for backend Application Event names and payload schemas.

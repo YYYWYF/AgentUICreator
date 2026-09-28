@@ -25,6 +25,7 @@ import type {
   ImageMessagePartComponent,
 } from "@assistant-ui/react";
 import { cn } from "../../../lib/utils";
+import { useAgentUIPortalContainer } from "../../../../../style-boundary/AgentUIRoot";
 
 const extensionForMimeType = (mimeType?: string): string => {
   switch (mimeType) {
@@ -286,6 +287,7 @@ type ImageZoomProps = PropsWithChildren<{
 
 function ImageZoom({ src, alt = "Image preview", children }: ImageZoomProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const portalContainer = useAgentUIPortalContainer();
   const triggerRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -358,7 +360,7 @@ function ImageZoom({ src, alt = "Image preview", children }: ImageZoomProps) {
       >
         {children}
       </div>
-      {isOpen &&
+      {isOpen && portalContainer !== null &&
         createPortal(
           <div
             ref={overlayRef}
@@ -392,7 +394,7 @@ function ImageZoom({ src, alt = "Image preview", children }: ImageZoomProps) {
               <XIcon className="size-5" />
             </button>
           </div>,
-          document.body,
+          portalContainer ?? document.body,
         )}
     </>
   );

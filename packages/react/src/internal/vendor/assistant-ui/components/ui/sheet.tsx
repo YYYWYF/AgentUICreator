@@ -6,6 +6,7 @@ import { XIcon } from "lucide-react";
 
 import { Button } from "./button";
 import { cn } from "../../lib/utils";
+import { useAgentUIPortalContainer } from "../../../../style-boundary/AgentUIRoot";
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />;
@@ -20,7 +21,9 @@ function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
 }
 
 function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
-  return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />;
+  const portalContainer = useAgentUIPortalContainer();
+  if (portalContainer === null) return null;
+  return <SheetPrimitive.Portal data-slot="sheet-portal" {...(portalContainer === undefined ? {} : { container: portalContainer })} {...props} />;
 }
 
 function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {

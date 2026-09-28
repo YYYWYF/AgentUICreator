@@ -186,6 +186,19 @@ afterEach(async () => {
 });
 
 describe("verifyUIProject", () => {
+  it("blocks global Plugin CSS and accepts the same Plugin after scoping", async () => {
+    const projectRoot = await createProject({ instancePluginId: "sample", mounted: true });
+    const stylesheet = path.join(projectRoot, "plugins", "sample", "styles.css");
+    await writeFile(stylesheet, "button { color: red; }\n:root { --primary: red; }\n");
+    const unsafe = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(unsafe.status).toBe("failed");
+    expect(unsafe.errors.filter((issue) => issue.code === "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED")).toHaveLength(2);
+
+    await writeFile(stylesheet, ".sample button { color: var(--primary); }\n");
+    const scoped = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(scoped.status).toBe("passed");
+  });
+
   it("accepts an enabled Data Message UI without a mount or headless classification", async () => {
     const projectRoot = await createProject({
       instancePluginId: "sample", mounted: false,
