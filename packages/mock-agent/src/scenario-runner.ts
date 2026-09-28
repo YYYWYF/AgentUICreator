@@ -620,7 +620,7 @@ function selectSteps(
       if (result === undefined) return [];
       let answer: string | undefined;
       try {
-        const parsed = JSON.parse(serializeToolValue(result.content)) as { answers?: Record<string, string[]> };
+        const parsed = JSON.parse(result.content) as { answers?: Record<string, string[]> };
         answer = parsed.answers?.[continuation.stepId]?.[0];
       } catch { /* An invalid Tool Result uses the scenario error response. */ }
       return [{ type: "message", text: answer === undefined
