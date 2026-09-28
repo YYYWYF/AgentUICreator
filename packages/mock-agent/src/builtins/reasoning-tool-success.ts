@@ -2,6 +2,7 @@ import { defineScenario } from "../scenario.js";
 
 export const reasoningToolSuccessScenario = defineScenario({
   id: "reasoning-tool-success",
+  resources: ["reasoning", "tool-group", "tool-approval"],
   title: "Reasoning → Tool → Answer",
   description: "模拟一次思考、工具调用、再次思考和最终回复。",
   category: "basics",

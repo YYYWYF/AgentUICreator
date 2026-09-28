@@ -2,6 +2,7 @@ import { defineScenario } from "../scenario.js";
 
 export const agentStatusScenario = defineScenario({
   id: "agent-status",
+  resources: ["tool-group", "tool-approval", "agent-status-message"],
   title: "Application-defined Tool Args → AgentStatus",
   description: "用 application-defined tool args 提供 AgentStatus 文案；state 由前端 ToolCall 状态推导。",
   category: "presentation",

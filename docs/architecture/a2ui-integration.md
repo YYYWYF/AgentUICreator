@@ -162,3 +162,14 @@ uses Resource IDs exclusively. Generated applications gain no Creator runtime de
 
 The product onboarding guide is [A2UI resource](../resources/a2ui.md); this architecture
 document intentionally retains the pinned assistant-ui implementation details.
+
+## Scenario resource authority
+
+Every required presentation Resource is declared in the owning Mock Scenario's
+`resources` array, including chart, reasoning, Tool, file, progress, plan, status
+and nested-task presentation. `mockDemoRequirements` is collected solely from
+`showcaseMockScenarios`; there is no separate Scenario-to-Resource mapping in
+Creator. These are required resources under the existing product compatibility
+policy, not optional presentation enhancements. The Scenario summary carries
+the same IDs used by Compatibility, the installation API, the UI Run gate and
+`POST /select`. A chart scenario cannot be selected until `chart-message` is ready.

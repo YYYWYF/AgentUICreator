@@ -92,17 +92,25 @@ describe("createScenarioRegistry", () => {
 
     expect(registry.list()).toHaveLength(builtinMockScenarios.length);
     expect(registry.list()).toEqual(builtinMockScenarios.map(
-      ({ id, title, description, category, capabilities, reference }) => ({
+      ({ id, title, description, category, capabilities, reference, resources }) => ({
         id,
         title,
+        ...(resources === undefined ? {} : { resources: [...resources] }),
         ...(description === undefined ? {} : { description }),
         ...(category === undefined ? {} : { category }),
         ...(capabilities === undefined ? {} : { capabilities }),
         ...(reference === undefined ? {} : { reference }),
       }),
     ));
-    expect(registry.list()[0]).not.toHaveProperty("steps");
-    expect(registry.list()[0]).not.toHaveProperty("initialState");
+    for (const summary of registry.list()) {
+      expect(summary).not.toHaveProperty("steps");
+      expect(summary).not.toHaveProperty("initialState");
+      for (const resourceId of summary.resources ?? []) {
+        expect(resourceId).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+        expect(resourceId).not.toMatch(/assistant-ui|sourceItemId|packages/);
+      }
+      expect(JSON.stringify(summary.resources ?? [])).not.toMatch(/sourceItemId|package|@assistant-ui/);
+    }
   });
 
   it("exposes reference documentation without exposing scenario execution data", () => {

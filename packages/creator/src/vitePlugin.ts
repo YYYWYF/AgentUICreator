@@ -13,7 +13,7 @@ import { CreatorMockService } from "./mock/CreatorMockService.js";
 import { CREATOR_MOCK_API_PATH } from "./mock/types.js";
 import type { MockProjectInspector } from "./mock/demo-compatibility.js";
 import { handleCreatorMockRequest } from "./mock/mock-api.js";
-import { resolveOfficialResource } from "@agent-ui/project-control/dev";
+import { resolveOfficialResource } from "@agent-ui/project-control/resources";
 import {
   resolveCreatorPythonAgentMode,
   resolveCreatorVerificationMode,
