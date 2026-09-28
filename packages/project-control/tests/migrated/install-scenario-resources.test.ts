@@ -3,22 +3,22 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
 import { installScenarioResources, installMockResource } from "../../src/project/install-scenario-resources";
-vi.mock("../../src/verify-ui", () => ({ verifyUIProject: vi.fn(async () => ({ status: "passed" })) }));
-vi.mock("../../src/project/project-mode", () => ({ readAgentUIProjectConfig: vi.fn(async () => ({ config: { version: "2" } })) }));
-vi.mock("../../src/project/agent-ui-project-paths", () => ({
+vi.mock("../scripts/verify-ui", () => ({ verifyUIProject: vi.fn(async () => ({ status: "passed" })) }));
+vi.mock("../scripts/ui-project/project-mode", () => ({ readAgentUIProjectConfig: vi.fn(async () => ({ config: { version: "2" } })) }));
+vi.mock("../scripts/ui-project/agent-ui-project-paths", () => ({
   resolveAgentUIProjectPaths: (root: string) => ({ appUIModelPath: path.join(root, "model.json") }),
   projectControlConfigForPaths: () => ({}),
 }));
-vi.mock("../../src/project/source-registry/index", () => ({
+vi.mock("../scripts/ui-project/source-registry", () => ({
   inspectAgentUISources: vi.fn(async () => ({ stateHash: "hash", items: [{ id: "demo/frontend-tool-form", status: "not-installed", dependencies: [], dependencyIssues: [], resolvedRequirements: [{ name: "react-hook-form", required: "^7", compatible: true }] }] })),
 }));
-vi.mock("../../src/project/source-registry/project-mutation", () => ({
+vi.mock("../scripts/ui-project/source-registry/project-mutation", () => ({
   recoverPendingAgentUISourceProjectMutation: vi.fn(),
   applyAgentUISourceProjectMutation: vi.fn(async () => {
     vi.mocked(inspectAgentUISources).mockResolvedValueOnce({ stateHash: "after", items: [{ id: "demo/frontend-tool-form", status: "managed", dependencies: [], dependencyIssues: [], resolvedRequirements: [] }] } as unknown as Awaited<ReturnType<typeof inspectAgentUISources>>);
   }),
 }));
-vi.mock("../../src/project/app-ui-transaction", () => ({ mutateAppUIModel: vi.fn() }));
+vi.mock("../scripts/ui-project/app-ui-transaction", () => ({ mutateAppUIModel: vi.fn() }));
 import { verifyUIProject } from "../../src/verify-ui";
 import { mutateAppUIModel } from "../../src/project/app-ui-transaction";
 import { inspectAgentUISources } from "../../src/project/source-registry/index";

@@ -7,7 +7,6 @@ import { defineScenario } from "../scenario.js";
  */
 export const nestedSubagentTaskGroupScenario = defineScenario({
   id: "nested-subagent-task-group",
-  resources: ["reasoning", "tool-group", "tool-approval", "task-group"],
   title: "AG-UI Subagent Task Group",
   description: "多个 sibling nested Subagent 通过标准 AG-UI 事件自然组成 official TaskGroup。",
   category: "multi-agent",

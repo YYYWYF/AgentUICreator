@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { resolveOfficialResource } from "@agent-ui/project-control/resources";
+import { resolveOfficialResource } from "@agent-ui/project-control/dev";
 import { inspectMockDemoCompatibility, inspectMockProjectCompatibility, mockDemoRequirements, type ProjectCompositionInspection } from "../src/mock/demo-compatibility.js";
 const empty: ProjectCompositionInspection = { pluginSources: [], pluginInstances: [] };
 const sources = { items: mockDemoRequirements.map(requirement => {

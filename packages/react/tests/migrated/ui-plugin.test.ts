@@ -45,7 +45,7 @@ describe("UIPluginManifest", () => {
       slots: { children: { entity: {
         description: "Invalid renderer", cardinality: "many", mode: "renderer",
       } } },
-    })).toThrow(/cardinality.*one/u);
+    })).toThrow(/cardinality "one"/u);
   });
   it.each(["narrow", "wide"] as const)(
     "accepts the %s width requirement",

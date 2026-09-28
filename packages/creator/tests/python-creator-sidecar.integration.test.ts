@@ -12,7 +12,7 @@ import {
   symlink,
   writeFile,
 } from "node:fs/promises";
-import { createServer, type Server, type ServerResponse } from "node:http";
+import { createServer, type Server } from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { AddressInfo } from "node:net";
@@ -132,28 +132,6 @@ async function createProxyServer(
   return `http://127.0.0.1:${address.port}`;
 }
 
-function sendMockChatCompletion(
-  response: ServerResponse,
-  id: string,
-  toolCall: { id: string; type: string; function: { name: string; arguments: string } } | undefined,
-  content: string,
-): void {
-  const chunk = (delta: Record<string, unknown>, finishReason: string | null) => ({
-    id,
-    object: "chat.completion.chunk",
-    created: 1,
-    model: "mimo-v2.5-pro",
-    choices: [{ index: 0, delta, finish_reason: finishReason }],
-  });
-  response.statusCode = 200;
-  response.setHeader("Content-Type", "text/event-stream");
-  response.write(`data: ${JSON.stringify(chunk(toolCall === undefined
-    ? { role: "assistant", content }
-    : { role: "assistant", tool_calls: [{ index: 0, ...toolCall }] }, null))}\n\n`);
-  response.write(`data: ${JSON.stringify(chunk({}, toolCall === undefined ? "stop" : "tool_calls"))}\n\n`);
-  response.end("data: [DONE]\n\n");
-}
-
 async function createMockChatCompletionsServer(): Promise<string> {
   let call = 0;
   const server = createServer((request, response) => {
@@ -196,7 +174,26 @@ async function createMockChatCompletionsServer(): Promise<string> {
         },
       ];
       const selected = toolCalls[call - 1];
-      sendMockChatCompletion(response, `completion-${call}`, selected, "Updated and verified activity.ts.");
+      const body = JSON.stringify({
+        id: `completion-${call}`,
+        object: "chat.completion",
+        created: 1,
+        model: "mimo-v2.5-pro",
+        choices: [
+          {
+            index: 0,
+            message:
+              selected === undefined
+                ? { role: "assistant", content: "Updated and verified activity.ts." }
+                : { role: "assistant", content: null, tool_calls: [selected] },
+            finish_reason: selected === undefined ? "stop" : "tool_calls",
+          },
+        ],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      });
+      response.statusCode = 200;
+      response.setHeader("Content-Type", "application/json");
+      response.end(body);
     });
   });
   servers.push(server);
@@ -226,14 +223,14 @@ async function createDomainReadMockChatCompletionsServer(): Promise<string> {
         {
           id: "call-inspect-project",
           type: "function",
-          function: { name: "inspect_app_ui_model", arguments: "{}" },
+          function: { name: "inspect_ui_project", arguments: "{}" },
         },
         {
           id: "call-inspect-plugin",
           type: "function",
           function: {
             name: "inspect_ui_plugin",
-            arguments: JSON.stringify({ pluginId: "conversation-surface" }),
+            arguments: JSON.stringify({ pluginId: "workspace-inspector" }),
           },
         },
         {
@@ -242,13 +239,32 @@ async function createDomainReadMockChatCompletionsServer(): Promise<string> {
           function: {
             name: "read_file",
             arguments: JSON.stringify({
-              file_path: "/src/agent-ui/plugins/conversation-surface/manifest.json",
+              file_path: "/src/agent-ui/plugins/workspace-inspector/manifest.json",
             }),
           },
         },
       ];
       const selected = toolCalls[call - 1];
-      sendMockChatCompletion(response, `domain-completion-${call}`, selected, "Inspected authoritative plugin state.");
+      const body = JSON.stringify({
+        id: `domain-completion-${call}`,
+        object: "chat.completion",
+        created: 1,
+        model: "mimo-v2.5-pro",
+        choices: [
+          {
+            index: 0,
+            message:
+              selected === undefined
+                ? { role: "assistant", content: "Inspected authoritative plugin state." }
+                : { role: "assistant", content: null, tool_calls: [selected] },
+            finish_reason: selected === undefined ? "stop" : "tool_calls",
+          },
+        ],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      });
+      response.statusCode = 200;
+      response.setHeader("Content-Type", "application/json");
+      response.end(body);
     });
   });
   servers.push(server);
@@ -274,20 +290,8 @@ async function createDomainWriteMockChatCompletionsServer(
       response.end();
       return;
     }
-    const requestChunks: Buffer[] = [];
-    request.on("data", chunk => requestChunks.push(Buffer.from(chunk)));
+    request.resume();
     request.once("end", () => {
-      const requestBody = JSON.parse(Buffer.concat(requestChunks).toString("utf8")) as Record<string, unknown>;
-      if (requestBody.stream !== true) {
-        response.statusCode = 200;
-        response.setHeader("Content-Type", "application/json");
-        response.end(JSON.stringify({
-          id: "selector-completion", object: "chat.completion", created: 1,
-          model: "mimo-v2.5-pro",
-          choices: [{ index: 0, message: { role: "assistant", content: "GENERAL" }, finish_reason: "stop" }],
-        }));
-        return;
-      }
       call += 1;
       const toolCalls = [
         {
@@ -314,8 +318,31 @@ async function createDomainWriteMockChatCompletionsServer(
         },
       ];
       const selected = toolCalls[call - 1];
-      sendMockChatCompletion(response, `domain-write-completion-${call}`, selected,
-        "AppUIModel static composition committed; runtime verification was not run.");
+      response.statusCode = 200;
+      response.setHeader("Content-Type", "application/json");
+      response.end(
+        JSON.stringify({
+          id: `domain-write-completion-${call}`,
+          object: "chat.completion",
+          created: 1,
+          model: "mimo-v2.5-pro",
+          choices: [
+            {
+              index: 0,
+              message:
+                selected === undefined
+                  ? {
+                      role: "assistant",
+                      content:
+                        "AppUIModel static composition committed; runtime verification was not run.",
+                    }
+                  : { role: "assistant", content: null, tool_calls: [selected] },
+              finish_reason: selected === undefined ? "stop" : "tool_calls",
+            },
+          ],
+          usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+        }),
+      );
     });
   });
   servers.push(server);
@@ -753,7 +780,6 @@ server.serve_forever()
     });
     const { events } = await readSseEvents(response);
 
-
     for (const event of events) {
       expect(() => EventSchemas.parse(event)).not.toThrow();
     }
@@ -820,7 +846,7 @@ server.serve_forever()
         messages: [
           {
             role: "user",
-            content: "Inspect the conversation-surface plugin and its manifest.",
+            content: "Inspect the workspace-inspector plugin and its manifest.",
           },
         ],
       }),
@@ -831,7 +857,7 @@ server.serve_forever()
       .map((event) => event.toolCallName);
 
     expect(toolStarts).toEqual([
-      "inspect_app_ui_model",
+      "inspect_ui_project",
       "inspect_ui_plugin",
       "read_file",
     ]);
@@ -842,7 +868,7 @@ server.serve_forever()
       projectControl: {
         requests: 2,
         byOperation: {
-          inspect_app_ui_model: 1,
+          inspect_ui_project: 1,
           inspect_ui_plugin: 1,
         },
         failures: 0,
@@ -913,9 +939,12 @@ server.serve_forever()
     const appUIModelHash = createHash("sha256")
       .update(beforeSource)
       .digest("hex");
-    const instanceId = "conversation-suggestions-main";
-    if (!beforeSource.includes(`"id": "${instanceId}"`)) {
-      throw new Error("Domain-write fixture requires the optional conversation suggestions Plugin.");
+    const model = JSON.parse(beforeSource) as {
+      applicationPlugins?: Array<{ id?: string }>;
+    };
+    const instanceId = model.applicationPlugins?.[0]?.id;
+    if (!instanceId) {
+      throw new Error("Domain-write fixture requires one application plugin.");
     }
     const modelBaseUrl = await createDomainWriteMockChatCompletionsServer(
       appUIModelHash,
@@ -963,7 +992,7 @@ server.serve_forever()
       runtime: "python",
       agentMode: "domain-write",
       phase: "domain-write-agent",
-      toolProtocol: { modelCalls: expect.any(Number), toolCalls: 2, validToolCalls: 2 },
+      toolProtocol: { modelCalls: 3, toolCalls: 2, validToolCalls: 2 },
       projectControl: {
         requests: 2,
         byOperation: {
@@ -979,7 +1008,7 @@ server.serve_forever()
         resultMismatches: 0,
       },
       receipt: {
-        verification: { status: "failed", projectRevision: 1 },
+        verification: { status: "not-run", projectRevision: 1 },
         transaction: { runId: "domain-write-run", undoable: true },
       },
     });

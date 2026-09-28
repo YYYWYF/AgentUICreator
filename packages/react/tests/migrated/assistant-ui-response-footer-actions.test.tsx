@@ -91,15 +91,7 @@ const conversationActionHostPlugin: UIPluginDefinition = {
   Component: ConversationActionHost,
 };
 
-import { AGENT_UI_CONVERSATION_SERVICE, createConversationService } from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
-const conversationFixtureProvider: UIPluginDefinition = {
-  manifest: { id: "test-conversation-service", name: "Fixture", description: "Fixture", version: "1.0.0", capabilities: ["headless"] },
-  provides: [AGENT_UI_CONVERSATION_SERVICE],
-  setup: ({ services }) => services.provide(AGENT_UI_CONVERSATION_SERVICE, createConversationService({ dataSource: { list: async () => [], get: async id => ({ id, title: id, history: { format: "langchain", messages: [] } }), delete: async () => {} } })),
-  Component: () => null,
-};
 const registry = createPluginRegistry([
-  conversationFixtureProvider,
   conversationActionHostPlugin,
   conversationSurfacePlugin,
   assistantUiMessageFooterPlugin,
@@ -116,7 +108,6 @@ const model: AppUIRuntimeModel = parseAppUIRuntimeModel({
     slotId: "conversation-action-root-slot",
   },
   pluginInstances: {
-    service: { id: "service", pluginId: "test-conversation-service", enabled: true },
     host: {
       id: "host",
       pluginId: "conversation-action-test-host",
@@ -162,7 +153,7 @@ const pluginActions = {
   abortRun: vi.fn(),
 };
 
-function assistantMessage(text = "Answer", id = "assistant-action-message"): Extract<ThreadMessage, { role: "assistant" }> {
+function assistantMessage(text = "Answer", id = "assistant-action-message"): ThreadMessage {
   return {
     id,
     role: "assistant",
@@ -382,11 +373,7 @@ describe("assistant-ui response footer action Plugins", () => {
 });
 
 function userMessage(id: string): ThreadMessage {
-  return {
-    id, createdAt: new Date(0), role: "user",
-    content: [{ type: "text", text: "Question" }],
-    attachments: [], metadata: { custom: {} },
-  };
+  return { ...assistantMessage("Question", id), role: "user" } as ThreadMessage;
 }
 
 async function hydrate(runtime: AssistantRuntime, messages: ThreadMessage[]) {
@@ -400,7 +387,7 @@ async function hydrate(runtime: AssistantRuntime, messages: ThreadMessage[]) {
 
 const responseMessages = () => [
   userMessage("u"), assistantMessage("Hello", "a"),
-  { id: "s", createdAt: new Date(0), role: "system", content: [{ type: "text", text: "Internal" }], metadata: { custom: {} } } satisfies ThreadMessage,
+  { ...assistantMessage("Internal", "s"), role: "system" } as ThreadMessage,
   assistantMessage("World", "b"), assistantMessage("Summary", "c"),
 ];
 

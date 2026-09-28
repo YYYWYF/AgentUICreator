@@ -2,7 +2,6 @@ import { defineScenario } from "../scenario.js";
 
 export const toolErrorScenario = defineScenario({
   id: "tool-error",
-  resources: ["tool-group", "tool-approval"],
   title: "Run Error During Tool",
   description: "Tool call 已建立但尚未产生结果时，Agent Run 通过标准 RUN_ERROR 失败。",
   category: "tools",

@@ -6,19 +6,19 @@ import { promisify } from "node:util";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { checkAssistantUiAgUiCompatibility } from "../../../scripts/check-assistant-ui-agui-compat.mjs";
+import { checkAssistantUiAgUiCompatibility } from "../../scripts/check-assistant-ui-agui-compat.mjs";
 import {
   checkAssistantUiLangGraphInstalledCompatibility,
   checkAssistantUiLangGraphPackageCompatibility,
   checkAssistantUiLangGraphSourceCompatibility,
-} from "../../../scripts/check-assistant-ui-langgraph-compat.mjs";
-import { checkAgUiLockfile } from "../../../scripts/check-ag-ui-lockfile.mjs";
-import { main as generateReport } from "../../../scripts/generate-assistant-ui-upgrade-report.mjs";
+} from "../../scripts/check-assistant-ui-langgraph-compat.mjs";
+import { checkAgUiLockfile } from "../../scripts/check-ag-ui-lockfile.mjs";
+import { main as generateReport } from "../../scripts/generate-assistant-ui-upgrade-report.mjs";
 import {
   ensureSourceCache,
   main as updateAssistantUi,
   remoteMainRevision,
-} from "../../../scripts/update-assistant-ui.mjs";
+} from "../../scripts/update-assistant-ui.mjs";
 
 const execFileAsync = promisify(execFileCallback);
 const packageRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
@@ -505,14 +505,6 @@ describe("assistant-ui upgrade drill", () => {
     await writeFile(
       path.join(fakeBin, "git"),
       `#!/bin/sh
-if [ "$1" = "-C" ] && [ "$3" = "rev-parse" ]; then
-  case "$4" in
-    @assistant-ui/react@0.15.22*) printf '%s\\n' 'f008537f39f0936992b0f6d2433c092935df5faf'; exit 0 ;;
-    @assistant-ui/react-ag-ui@0.0.62*) printf '%s\\n' 'da9a624496ae97864ae30e90f85c7533092a228d'; exit 0 ;;
-    @assistant-ui/react-generative-ui@0.0.21*) printf '%s\\n' 'da9a624496ae97864ae30e90f85c7533092a228d'; exit 0 ;;
-  esac
-fi
-if [ "$1" = "-C" ] && [ "$3" = "cat-file" ]; then exit 0; fi
 if [ "$1" = "ls-remote" ]; then
   printf '%s\\trefs/heads/main\\n' '${target.revision}'
   exit 0

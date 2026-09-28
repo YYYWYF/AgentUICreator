@@ -134,8 +134,8 @@ describe("generated app AG-UI dependency boundary", () => {
     expect(conversationPackage.dependencies).toMatchObject({
       "@ag-ui/client": "0.0.59",
       "@agent-ui/react": "workspace:^",
-      "@assistant-ui/react": "0.15.22",
-      "@assistant-ui/react-ag-ui": "0.0.62",
+      "@assistant-ui/react": "0.15.21",
+      "@assistant-ui/react-ag-ui": "0.0.60",
       "@assistant-ui/react-langgraph": "0.14.29",
     });
     expect(conversationPackage.peerDependencies).toMatchObject({

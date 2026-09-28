@@ -221,11 +221,11 @@ describe("ConversationThreadListPlugin", () => {
     async (status) => {
       const mounted = await renderPlugin(EMPTY_CONVERSATION_SNAPSHOT, status);
       try {
-        const newThread = mounted.renderer.root.findAll(
-          node => node.type === "button" && node.props["data-slot"] === "aui_thread-list-new",
+        const newThread = mounted.renderer.root.findAllByType(Button).find(
+          (button) => textContent(button) === "New Thread",
         );
-        expect(newThread).toHaveLength(1);
-        expect(newThread[0]?.props.disabled).toBeFalsy();
+        expect(newThread).toBeDefined();
+        expect(newThread?.props.disabled).toBeFalsy();
       } finally {
         await act(async () => mounted.renderer.unmount());
       }

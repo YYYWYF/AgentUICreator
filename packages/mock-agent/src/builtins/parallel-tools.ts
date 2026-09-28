@@ -2,7 +2,6 @@ import { defineScenario } from "../scenario.js";
 
 export const parallelToolsScenario = defineScenario({
   id: "parallel-tools",
-  resources: ["tool-group", "tool-approval"],
   title: "Parallel Tools",
   description: "三个工具以确定性的交错顺序并行执行。",
   category: "tools",

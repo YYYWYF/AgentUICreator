@@ -1,4 +1,4 @@
-import { generatedProjectFixture, repositoryRoot } from "../../../project-control/tests/support/generated-project";
+import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -222,8 +222,8 @@ describe("assistant-ui default composition", () => {
   });
 
   it("retains upstream ThreadList and conversation data Slot surfaces", async () => {
-    const threadList = await readFile(path.join(repositoryRoot, "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx"), "utf8");
-    const thread = await readFile(path.join(repositoryRoot, "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"), "utf8");
+    const threadList = await readFile(path.join(projectRoot, "../../packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx"), "utf8");
+    const thread = await readFile(path.join(projectRoot, "../../packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"), "utf8");
     const conversationAdapter = await readFile(path.join(projectRoot, "agent-ui/conversation/ConversationAdapter.tsx"), "utf8");
 
     for (const slot of [

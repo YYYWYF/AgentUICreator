@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { resolveOfficialResource, inspectOfficialResourceImplementation, OfficialResourceError } from "@agent-ui/project-control/resources";
+import { resolveOfficialResource, inspectOfficialResourceImplementation, OfficialResourceError } from "@agent-ui/project-control/dev";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { inspectMockProjectThroughControl } from "./project-inspector.js";
 import { CreatorMockService, isLocalMockOrigin } from "./CreatorMockService.js";

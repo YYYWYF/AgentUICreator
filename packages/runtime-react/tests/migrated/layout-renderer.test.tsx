@@ -2,9 +2,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { LayoutRenderer } from "@agent-ui/runtime-react";
 
-import type { AppUIModel } from "../../../project-control/src/framework/contracts/app-ui-model";
-import { compileAppUIModel } from "../../../project-control/src/framework/contracts/app-ui-compiler";
-import { pluginCapabilityCatalog } from "../../../source-registry/registry/items/foundation-core/files/plugins/index";
 import appUIJson from "../../../project-control/tests/fixtures/project/app-ui/app-ui.json";
 import {
   parseAppUIRuntimeModel,
@@ -13,12 +10,7 @@ import {
 
 describe("LayoutRenderer integration", () => {
   it("renders the checked-in Conversation layout through the official Runtime", () => {
-    const catalog = Object.fromEntries(pluginCapabilityCatalog.list().map(entry => [entry.manifest.id, {
-      manifest: entry.manifest,
-      ...(entry.manifest.capabilities === undefined ? {} : { capabilities: entry.manifest.capabilities }),
-      ...(entry.manifest.slots?.children === undefined ? {} : { childSlots: entry.manifest.slots.children }),
-    }]));
-    const model = compileAppUIModel(appUIJson as AppUIModel, catalog);
+    const model = parseAppUIRuntimeModel(appUIJson);
     expect(model.root.type).toBe("row");
     if (model.root.type !== "row") {
       throw new Error("Expected the default root to be a Conversation row");
@@ -35,12 +27,12 @@ describe("LayoutRenderer integration", () => {
     );
 
     expect(html).toContain('data-layout-type="slot"');
-    expect(html).toContain('data-slot-id="layout-slot:root.children%5B0%5D.child"');
-    expect(html).toContain('data-slot-id="layout-slot:root.children%5B1%5D.child"');
+    expect(html).toContain('data-slot-id="conversation.navigation"');
+    expect(html).toContain('data-slot-id="conversation.surface"');
     expect(html).not.toContain('data-slot-id="workspace.shell"');
     expect(html).not.toContain('data-slot-id="workspace.inspector"');
-    expect(html).toContain("<article>layout-slot:root.children%5B0%5D.child</article>");
-    expect(html).toContain("<article>layout-slot:root.children%5B1%5D.child</article>");
+    expect(html).toContain("<article>conversation.navigation</article>");
+    expect(html).toContain("<article>conversation.surface</article>");
     expect(html).not.toContain('data-slot-id="agent-welcome"');
     expect(html).not.toContain('data-slot-id="legacy-messages"');
     expect(html).not.toContain('data-slot-id="agent-prompts"');
@@ -57,12 +49,12 @@ describe("LayoutRenderer integration", () => {
           {
             type: "slot",
             id: "fixture-conversations-slot-node",
-            slotId: "layout-slot:root.children%5B0%5D.child",
+            slotId: "conversation.navigation",
           },
           {
             type: "slot",
             id: "fixture-conversation-slot-node",
-            slotId: "layout-slot:root.children%5B1%5D.child",
+            slotId: "conversation.surface",
           },
         ],
         sizes: ["16rem", "minmax(0, 1fr)"],
@@ -76,8 +68,8 @@ describe("LayoutRenderer integration", () => {
       />,
     );
 
-    expect(html).toContain('data-slot-id="layout-slot:root.children%5B0%5D.child"');
-    expect(html).toContain('data-slot-id="layout-slot:root.children%5B1%5D.child"');
+    expect(html).toContain('data-slot-id="conversation.navigation"');
+    expect(html).toContain('data-slot-id="conversation.surface"');
     expect(html).not.toContain('data-slot-id="workspace.inspector"');
   });
 

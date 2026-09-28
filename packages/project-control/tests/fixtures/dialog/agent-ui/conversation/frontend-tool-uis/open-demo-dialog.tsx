@@ -1,6 +1,6 @@
 import type { ConversationToolCallProps } from "@agent-ui/react";
 import type { ConversationFrontendToolUIRegistry } from "@agent-ui/runtime-conversation";
-import { useAgentUILocale } from "../../i18n/useAgentUILocale";
+import { useAgentUILocale } from "../../../../../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/useAgentUILocale";
 function titleOf(value: unknown): string {
   if (value === null || typeof value !== "object") return "";
   const title = (value as Record<string, unknown>).title;

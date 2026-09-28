@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { defineFrontendTool, type AppFrontendToolDefinition, type AppFrontendToolExecutionContext } from "../../runtime/tools";
+import { defineFrontendTool, type AppFrontendToolDefinition, type AppFrontendToolExecutionContext } from "../../runtime/tools/index";
 import { reactHookFormToolContracts, type ReactHookFormToolName } from "./form-tool-contract";
 
 export interface ReactHookFormCapability<TField extends string = string> {

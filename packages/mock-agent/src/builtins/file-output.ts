@@ -2,7 +2,6 @@ import { defineScenario } from "../scenario.js";
 
 export const fileOutputScenario = defineScenario({
   id: "file-output",
-  resources: ["generated-file-message", "tool-group", "tool-approval"],
   title: "Tool Result：File Output",
   description: "Backend generate_file 返回虚拟 PDF URL，由 named Tool UI 展示官方文件卡片和下载入口。",
   category: "presentation",

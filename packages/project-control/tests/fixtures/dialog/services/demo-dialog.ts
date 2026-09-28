@@ -7,6 +7,6 @@ export interface DemoDialogService {
   getSnapshot(): DemoDialogSnapshot;
   subscribe(listener: () => void): () => void;
 }
-declare module "../framework/contracts/ui-plugin" {
+declare module "../../../../src/framework/contracts/ui-plugin" {
   interface UIPluginServiceMap { [DEMO_DIALOG_SERVICE]: DemoDialogService }
 }

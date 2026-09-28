@@ -84,7 +84,7 @@ async function createPlugin(
     path.join(pluginRoot, "definition.ts"),
     options.defaultExport === false
       ? "export const plugin = {};\n"
-      : "const plugin = { manifest: {}, Component: () => null };\nexport default plugin;\n",
+      : "const plugin = {};\nexport { plugin as default };\n",
   );
 }
 

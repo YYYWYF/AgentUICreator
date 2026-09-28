@@ -12,10 +12,6 @@
       "import": "./src/install.mjs"
     },
     "./protocol": "./dist/runtime/project-control-runtime.mjs",
-    "./resources": {
-      "types": "./src/resources.d.mts",
-      "import": "./dist/runtime/project-control-runtime.mjs"
-    },
     "./dev": {
       "types": "./src/dev.ts",
       "import": "./dist/runtime/project-control-runtime.mjs"

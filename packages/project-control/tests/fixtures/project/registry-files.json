@@ -177,9 +177,5 @@
   "plugins/conversation-surface/index.tsx": "packages/source-registry/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/index.tsx",
   "plugins/conversation-surface/styles.css": "packages/source-registry/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/styles.css",
   "plugins/conversation-surface/definition.ts": "packages/source-registry/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/definition.ts",
-  "plugins/conversation-surface/manifest.json": "packages/source-registry/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/manifest.json",
-  "index.ts": "packages/source-registry/registry/items/foundation-core/files/index.ts",
-  "application/Agent.tsx": "packages/source-registry/registry/items/foundation-core/files/application/Agent.tsx",
-  "application/composition-store.ts": "packages/source-registry/registry/items/foundation-core/files/application/composition-store.ts",
-  "application/observability.ts": "packages/source-registry/registry/items/foundation-core/files/application/observability.ts"
+  "plugins/conversation-surface/manifest.json": "packages/source-registry/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/manifest.json"
 }

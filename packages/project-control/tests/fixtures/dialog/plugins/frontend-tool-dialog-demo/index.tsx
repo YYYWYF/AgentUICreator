@@ -1,7 +1,7 @@
 import { Dialog } from "@base-ui/react/dialog";
-import { usePluginService, usePluginServiceSnapshot } from "../../runtime/plugins";
+import { usePluginService, usePluginServiceSnapshot } from "../../../../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 import { DEMO_DIALOG_SERVICE, type DemoDialogService, type DemoDialogSnapshot } from "../../services/demo-dialog";
-import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
+import { useAgentUILocale } from "../../../../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/useAgentUILocale";
 import "./styles.css";
 const closed: DemoDialogSnapshot = { open: false, title: "", message: "" };
 export function FrontendToolDialogDemoPlugin() {

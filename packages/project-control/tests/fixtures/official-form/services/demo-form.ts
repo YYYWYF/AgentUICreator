@@ -1,4 +1,4 @@
-import type { ReactHookFormCapability } from "../integrations/react-hook-form";
+import type { ReactHookFormCapability } from "../integrations/react-hook-form/index";
 
 export const DEMO_FORM_SERVICE = "demo.form" as const;
 export const DEMO_FORM_FIELDS = ["firstName", "lastName", "email", "projectIdea"] as const;

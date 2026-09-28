@@ -102,17 +102,17 @@ describe("compileAppUIModel", () => {
     expect(runtime.root).toEqual({
       type: "stack",
       id: "layout-node:root",
-      active: "layout-node:root.children%5B1%5D",
+      active: "layout-node:root.children[1]",
       children: [
         {
           type: "slot",
-          id: "layout-node:root.children%5B0%5D",
-          slotId: "layout-slot:root.children%5B0%5D",
+          id: "layout-node:root.children[0]",
+          slotId: "layout-slot:root.children[0]",
         },
         {
           type: "slot",
-          id: "layout-node:root.children%5B1%5D",
-          slotId: "layout-slot:root.children%5B1%5D",
+          id: "layout-node:root.children[1]",
+          slotId: "layout-slot:root.children[1]",
         },
       ],
     });

@@ -682,7 +682,7 @@ describe("ui-project-control", () => {
             publishedAt: "2026-09-15T00:00:00.000Z",
             observedAt: "2026-09-15T00:00:00.000Z",
             instances: [{
-              instanceId: "sample-main",
+              instanceId: "child-main",
               pluginId: "sample",
               slotId: resolveRuntimePluginSlotId("sample-main", "other"),
             }],
@@ -795,7 +795,7 @@ describe("ui-project-control", () => {
             capabilityCatalogRevision,
             publishedAt: "2026-09-15T00:00:00.000Z",
             observedAt: "2026-09-15T00:00:00.000Z",
-            instances: [{ instanceId: "sample-main", pluginId: "sample", slotId: resolveRuntimeLayoutSlotId("root") }, {
+            instances: [{
               instanceId: "child-main",
               pluginId: "sample",
               slotId: resolveRuntimePluginSlotId("sample-main", "content"),
@@ -811,7 +811,7 @@ describe("ui-project-control", () => {
       ok: true,
       result: {
         verified: true,
-        checks: [expect.objectContaining({ status: "passed", instanceId: "sample-main" }), {
+        checks: [{
           instanceId: "child-main",
           expected: {
             target: {
@@ -905,11 +905,11 @@ describe("ui-project-control", () => {
     });
     expect(
       await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
-    ).toContain('"enabled": false');
+    ).toContain("Updated through control");
   });
 
   it("bounds plugin source while preserving precise asset and instance metadata", async () => {
-    const source = `export default {manifest:{},Component:()=>null};\n${"// detail\n".repeat(
+    const source = `export default {};\n${"// detail\n".repeat(
       MAX_PLUGIN_SOURCE_CHARACTERS,
     )}`;
     const { projectRoot } = await createProject(source);
@@ -1001,8 +1001,6 @@ describe("ui-project-control", () => {
   it("routes target-owned plugin source reference analysis", async () => {
     const { projectRoot } = await createProject();
     await mkdir(path.join(projectRoot, "plugins", "consumer"));
-    await writeFile(path.join(projectRoot, "plugins/consumer/manifest.json"), JSON.stringify({ id: "consumer", name: "Consumer", description: "Fixture", version: "1.0.0" }));
-    await writeFile(path.join(projectRoot, "plugins/consumer/definition.ts"), "export default { manifest: {}, Component: () => null };\n");
     await writeFile(
       path.join(projectRoot, "plugins", "consumer", "index.ts"),
       'import sample from "../sample/definition";\nexport { sample };\n',

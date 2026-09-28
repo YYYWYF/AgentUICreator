@@ -263,7 +263,7 @@ const ThreadRoot: FC<{
             <ThreadFollowupSuggestions />
             {composer}
             <AuiIf condition={(s) => isNewChatView(s) && s.composer.isEmpty}>
-              {Welcome === ThreadWelcome ? <ThreadSuggestions /> : null}
+              <ThreadSuggestions />
             </AuiIf>
           </ThreadPrimitive.ViewportFooter>
         </div>
@@ -280,7 +280,6 @@ const ThreadMessage: FC = () => {
 
   if (isEditing) return <EditComposer />;
   if (role === "user") return <UserMessage />;
-  if (role !== "assistant") return null;
   return <AssistantMessageComponent />;
 };
 

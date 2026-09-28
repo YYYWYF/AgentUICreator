@@ -44,7 +44,7 @@ describe("Creator Project Inspector", () => {
     await writeFile(path.join(root, "plugins/foo/manifest.json"), JSON.stringify({
       id: "foo", name: "Foo", description: "Fixture", version: "1.0.0",
     }));
-    await writeFile(path.join(root, "plugins/foo/definition.ts"), "export default { manifest: {}, Component: () => null };\n");
+    await writeFile(path.join(root, "plugins/foo/definition.ts"), "export default {};\n");
     await writeFile(path.join(root, "tsconfig.json"), JSON.stringify({
       compilerOptions: { module: "ESNext", moduleResolution: "Bundler", target: "ES2022" },
       include: ["plugins/**/*.ts"],

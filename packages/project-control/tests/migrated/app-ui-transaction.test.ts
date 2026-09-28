@@ -39,7 +39,7 @@ async function createPlugin(
   }));
   await writeFile(
     path.join(pluginRoot, "definition.ts"),
-    `const definition = { manifest: {}, Component: ({renderSlot, renderScopedSlot}) => { ${Object.entries((manifestOverrides.slots as {children?:Record<string,{mode?:string}>})?.children ?? {}).map(([name, slot]) => `${slot.mode === "renderer" ? "renderScopedSlot" : "renderSlot"}(${JSON.stringify(name)}${slot.mode === "renderer" ? ", {type: \"test\"}" : ""});`).join(" ")} return null; } };\nexport default definition;\n`,
+    "const definition = {};\nexport default definition;\n",
   );
 }
 
@@ -64,7 +64,10 @@ async function createProject(
         include: ["plugins/**/*.ts"],
       }),
     );
-
+    const definition = "const definition = { manifest: {}, Component: () => null };\nexport default definition;\n";
+    for (const pluginId of ["sample", ...additionalPlugins.map(([id]) => id)]) {
+      await writeFile(path.join(projectRoot, "plugins", pluginId, "definition.ts"), definition);
+    }
   }
   const model: AppUIModel = modelOverride ?? {
     root: {
@@ -600,7 +603,6 @@ describe("AppUIModel transaction", () => {
             plugins: [{ id: "conversation-thread-list-main" }],
           },
         },
-        model.root,
       ],
     });
     if (written.root.type !== "row") throw new Error("fixture");
@@ -663,7 +665,7 @@ describe("AppUIModel transaction", () => {
       type: "row",
       sizes: ["280px", "minmax(0, 1fr)"],
       children: [
-        { type: "panel" },
+        { type: "panel", width: "280px" },
         { type: "slot", plugins: [{ id: "conversation-surface-main" }] },
       ],
     });
@@ -1816,11 +1818,8 @@ describe("AppUIModel transaction", () => {
       "utf8",
     ))).toEqual({
       root: {
-        type: "row",
-        sizes: ["minmax(0, 1fr)"],
-        children: [{
-          type: "panel",
-          child: {
+        type: "panel",
+        child: {
           type: "slot",
           plugins: [{
             id: "composer-main",
@@ -1830,8 +1829,7 @@ describe("AppUIModel transaction", () => {
               actions: [{ id: "button-main", pluginId: "button", enabled: true }],
             },
           }],
-          },
-        }],
+        },
       },
     });
   });

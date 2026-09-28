@@ -104,11 +104,7 @@ async function fixture(itemId = "integration/a2ui", legacy = false) {
     const directory = path.join(root, "node_modules", name); await mkdir(directory, { recursive: true });
     await writeFile(path.join(directory, "package.json"), JSON.stringify({ name, version: minVersion(required)!.version }));
   }
-  const seededFoundation = legacy
-    ? closure.filter(item => item.kind === "foundation")
-    : resolveAgentUISourceItemClosure(registry, "foundation/core")
-      .filter(item => item.kind === "foundation" && !closure.some(selected => selected.id === item.id));
-  for (const file of seededFoundation.flatMap(item => item.loadedFiles)) {
+  if (legacy) for (const file of closure.filter(item => item.kind === "foundation").flatMap(item => item.loadedFiles)) {
     const target = path.join(sourceRoot, file.target); await mkdir(path.dirname(target), { recursive: true }); await writeFile(target, file.content);
   }
   const modelPath = path.join(sourceRoot, "app-ui/app-ui.json");
@@ -143,11 +139,7 @@ async function writeOwnerJournal(f: Fixture, originals: Awaited<ReturnType<typeo
 }
 async function childMessage(child: ChildProcess, message: Record<string, unknown>) {
   const response = once(child, "message"); child.send!(message);
-  const timer = setTimeout(() => child.kill(), 15_000);
-  const [value] = await Promise.race([
-    response,
-    once(child, "exit").then(([code, signal]) => { throw new Error(`Child exited before replying: code=${code}, signal=${signal}`); }),
-  ]).finally(() => clearTimeout(timer));
+  const [value] = await response;
   if (value.type === "error") throw new Error(value.message);
   return value;
 }

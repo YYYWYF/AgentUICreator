@@ -1,5 +1,5 @@
 import { showcaseMockScenarios, type MockScenario } from "@agent-ui/mock-agent";
-import { resolveOfficialResource, inspectOfficialResourceImplementation, type ResourceCompositionInspection, type ResourceSourceInspection } from "@agent-ui/project-control/resources";
+import { resolveOfficialResource, inspectOfficialResourceImplementation, type ResourceCompositionInspection, type ResourceSourceInspection } from "@agent-ui/project-control/dev";
 
 export interface MockProjectTarget { id: string; projectRoot: string; sourceRoot?: string }
 export interface MockDemoCompatibility {
@@ -30,7 +30,21 @@ export function collectScenarioResourceRequirements(scenarios: readonly MockScen
   }
   return [...byId.values()];
 }
-export const mockDemoRequirements: readonly MockDemoResource[] = collectScenarioResourceRequirements(showcaseMockScenarios);
+export const scenarioResources: readonly MockDemoResource[] = collectScenarioResourceRequirements(showcaseMockScenarios);
+
+const toolScenarios = ["file-output", "reasoning-tool-success", "parallel-tools", "tool-error", "approval-resume", "agent-state-sync", "agent-plan", "agent-status", "nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error"];
+const reasoningScenarios = ["reasoning-chat", "reasoning-tool-success", "approval-resume", "agent-plan", "nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive"];
+const presentationScenarios: readonly [string, string[]][] = [
+  ["generated-file-message", ["file-output"]], ["reasoning", reasoningScenarios],
+  ["tool-group", toolScenarios], ["tool-approval", toolScenarios],
+  ["chart-message", ["data-message-chart"]], ["job-progress-message", ["agent-state-sync"]],
+  ["agent-plan-message", ["agent-plan"]], ["agent-status-message", ["agent-status"]],
+  ["task-group", ["nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error"]],
+];
+export const mockDemoRequirements: readonly MockDemoResource[] = [
+  ...scenarioResources,
+  ...presentationScenarios.map(([id, scenarioIds]) => ({ id, name: resolveOfficialResource(id).label, scenarioIds })),
+];
 export const installableMockResourceIds: ReadonlySet<string> = new Set(mockDemoRequirements.map(resource => resource.id));
 
 export type ProjectCompositionInspection = ResourceCompositionInspection;

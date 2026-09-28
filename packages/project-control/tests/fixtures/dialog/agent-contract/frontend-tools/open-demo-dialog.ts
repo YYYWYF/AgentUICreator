@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { defineFrontendTool } from "../../runtime/tools";
+import { defineFrontendTool } from "../../../../../../source-registry/registry/items/foundation-core-runtime/files/runtime/tools/index";
 import { DEMO_DIALOG_SERVICE, type DemoDialogService } from "../../services/demo-dialog";
 
 /** Application-owned allowlist; capability existence alone grants no permission. */

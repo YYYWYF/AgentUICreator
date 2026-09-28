@@ -87,31 +87,6 @@ def test_collects_bounded_structured_tool_call_summary():
     assert trace.reasoningTokens is None
 
 
-def test_collects_streamed_tool_call_fragments_without_retaining_arguments():
-    collector = ProviderResponseTraceCollector(enabled=True)
-    request = httpx.Request("POST", "https://model.example/v1/chat/completions")
-    chunks = [
-        {"model": "mimo-v2.5-pro", "choices": [{"delta": {"tool_calls": [{
-            "index": 0, "id": "call-1", "type": "function",
-            "function": {"name": "read_file", "arguments": '{"file_path":'},
-        }]}, "finish_reason": None}]},
-        {"choices": [{"delta": {"tool_calls": [{
-            "index": 0, "function": {"arguments": '"/private/secret"}'},
-        }]}, "finish_reason": None}]},
-        {"choices": [{"delta": {}, "finish_reason": "tool_calls"}]},
-    ]
-    body = "".join(f"data: {json.dumps(chunk)}\n\n" for chunk in chunks) + "data: [DONE]\n\n"
-    collector.on_response(httpx.Response(200, request=request,
-                                         headers={"content-type": "text/event-stream"}, content=body))
-    trace = collector.pop_successful_completion()
-
-    assert trace is not None
-    assert trace.finishReason == "tool_calls"
-    assert trace.toolCallNames == ("read_file",)
-    assert trace.toolCalls[0].argumentsJsonValid is True
-    assert "/private/secret" not in json.dumps(trace.to_dict())
-
-
 def test_request_summary_and_explicit_reasoning_usage_exclude_prompt_and_key():
     collector = ProviderResponseTraceCollector(enabled=True)
     request = httpx.Request(

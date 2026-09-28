@@ -580,7 +580,7 @@ describe("verifyUIProject", () => {
       expect.objectContaining({ code: "selected-plugin-asset-missing" }),
     );
     expect(result.errors).toContainEqual(
-      expect.objectContaining({ code: "plugin-not-found" }),
+      expect.objectContaining({ code: "unresolved-plugin" }),
     );
   });
 

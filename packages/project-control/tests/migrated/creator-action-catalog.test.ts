@@ -73,9 +73,6 @@ async function createFixtureProject(
         version: "1.0.0",
         capabilities: ["visual"],
         ...overrides,
-        ...(overrides.authoring === undefined ? {} : {
-          authoring: { intents: ["configure fixture plugin"], ...(overrides.authoring as Record<string, unknown>) },
-        }),
       }),
     );
     await writeFile(
@@ -105,7 +102,7 @@ function fixtureDefinitionSource(overrides: Record<string, unknown>): string {
   }
   const renderCalls = Object.keys(children)
     .sort()
-    .map((slotId) => `${(children as Record<string, { mode?: string }>)[slotId]?.mode === "renderer" ? "renderScopedSlot" : "renderSlot"}(${JSON.stringify(slotId)});`)
+    .map((slotId) => `renderSlot(${JSON.stringify(slotId)});`)
     .join(" ");
   return `const definition = { manifest: {}, Component: () => { ${renderCalls} return null; } };\nexport default definition;\n`;
 }
@@ -395,8 +392,22 @@ describe("Creator Action Catalog", () => {
     const absentModel = JSON.parse(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")) as AppUIModel;
     expect(collectAppUIPluginLocations(absentModel).some(({ plugin }) => plugin.pluginId === "conversation-suggestions")).toBe(false);
     const afterRemove = await buildCatalog(projectRoot, absentModel);
-    expect(afterRemove.projectFacts.assets.find(asset => asset.pluginId === "conversation-suggestions")).toMatchObject({
-      authoring: { defaultPlacement: { type: "plugin_slot", parentPluginId: "conversation-surface", slot: "emptySuggestions" } },
+    expect(afterRemove.projectFacts.assets.find(
+      (asset) => asset.pluginId === "assistant-ui-reasoning",
+    )).toMatchObject({
+      authoring: {
+        intents: [
+          "show the reasoning process",
+          "restore reasoning presentation",
+          "show deep thinking",
+        ],
+        visualRole: "assistant reasoning presentation",
+        defaultPlacement: {
+          type: "plugin_slot",
+          parentPluginId: "conversation-surface",
+          slot: "reasoningGroup",
+        },
+      },
     });
     const add = afterRemove.catalog.candidates.find((candidate) =>
       candidate.kind === "add_existing_plugin" && candidate.target.pluginId === "conversation-suggestions" && candidate.status === "ready");
@@ -612,7 +623,7 @@ describe("Creator Action Catalog", () => {
       status: "ready",
       effect: { type: "add_default", placementDomain: "plugin_slot" },
     });
-    expect(add?.description).toContain("headerActions");
+    expect(add?.description).toContain("top-right control area");
     expect(before.catalog.candidates.filter((candidate) =>
       candidate.target.pluginId === "theme-switch" &&
       candidate.effect.type === "workspace_region",
@@ -987,7 +998,7 @@ describe("Creator Action Catalog", () => {
     ]);
     const collectedFacts = await collectPluginProjectFacts(projectRoot, fixtureConfig);
     const brokenAsset = collectedFacts.assets.find((asset) => asset.pluginId === "broken");
-    if (brokenAsset === undefined) throw new Error(`fixture did not produce broken asset: ${JSON.stringify({ assets: collectedFacts.assets.map(asset => asset.pluginId) })}`);
+    if (brokenAsset === undefined) throw new Error("fixture did not produce broken asset");
     const definitionIssuesByPath = new Map(collectedFacts.definitionIssuesByPath);
     definitionIssuesByPath.set(brokenAsset.definitionPath, [{
       code: "selected-plugin-definition-missing",
@@ -1008,8 +1019,8 @@ describe("Creator Action Catalog", () => {
     });
 
     expect(catalog.candidates).toContainEqual(expect.objectContaining({
-      kind: "move_plugin",
-      status: "already_satisfied",
+      kind: "remove_plugin",
+      status: "ready",
       target: expect.objectContaining({
         pluginId: "conversation",
         instanceId: "conversation-main",
@@ -1095,7 +1106,6 @@ describe("Creator Action Catalog", () => {
       ["history", {}],
       ["conversation", {}],
       ["parent", {
-        capabilities: ["headless"],
         slots: {
           children: {
             content: {
@@ -1153,15 +1163,12 @@ describe("Creator Action Catalog", () => {
   });
 
   it("surfaces unexpected simulation failures as Catalog build errors", async () => {
-    const model = rowModel(["history", "conversation"]);
-    const projectRoot = await createFixtureProject(model, [["history", {}], ["conversation", {}]]);
-    const baselineFacts = await collectPluginProjectFacts(projectRoot, fixtureConfig);
-    const generation = generatePluginRegistryFromFacts(model, baselineFacts);
-    const projectFacts = new Proxy(baselineFacts, {
-      get(target, property, receiver) {
-        if (property === "assets") throw new TypeError("synthetic AST analyzer crash");
-        return Reflect.get(target, property, receiver);
-      },
+    const model = rowModel(["conversation"]);
+    const projectRoot = await createFixtureProject(model, [["conversation", {}]]);
+    const projectFacts = await collectPluginProjectFacts(projectRoot, fixtureConfig);
+    const generation = generatePluginRegistryFromFacts(model, projectFacts);
+    vi.spyOn(registryGenerator, "generatePluginRegistryFromFacts").mockImplementation(() => {
+      throw new TypeError("synthetic AST analyzer crash");
     });
 
     await expect(buildCreatorActionCatalog({

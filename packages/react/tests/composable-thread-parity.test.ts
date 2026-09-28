@@ -69,9 +69,8 @@ describe("ComposableThread upstream parity", () => {
     // An upstream sizing change needs review; do not silently keep an old copy.
     expect(footerSizing(upstreamMessage)).toBeDefined();
     expect(footerPadding(upstreamMessage)).toBeDefined();
-    expect(source).toContain('"min-h-7.5 pt-1.5"');
-    expect(footerSizing(upstreamMessage)).toBe("min-h-7.5 ${ACTION_BAR_PT}");
-    expect(footerPadding(upstreamMessage)).toBe("pt-1.5");
+    expect(footerSizing(productMessage)).toBe(footerSizing(upstreamMessage));
+    expect(footerPadding(productMessage)).toBe(footerPadding(upstreamMessage));
 
     // Intentional host policy: unlike upstream's fixed-height compensation,
     // reserve the complete height of arbitrary semantic Footer Renderers.

@@ -6,14 +6,13 @@ import type { AgentRuntime } from "@agent-ui/runtime-core";
 import { ConversationRuntimeProvider } from "../src/ConversationRuntimeProvider.js";
 import { useConversationRuntimeBridge } from "../src/ConversationRuntimeBridgeContext.js";
 import { CancellationAwareHttpAgent } from "../src/compatibility/cancellation-aware-http-agent.js";
-import { ConversationAgentRuntimeBridge } from "../src/compatibility/conversation-runtime-bridge.js";
 import type {
   ConversationLoadedThread,
   ConversationThreadBinding,
   ConversationThreadListSnapshot,
 } from "../src/threads/types.js";
 
-async function tick() { await new Promise<void>(resolve => setTimeout(resolve, 10)); }
+async function tick() { await new Promise<void>(resolve => setImmediate(resolve)); }
 async function until(predicate: () => boolean) {
   for (let n = 0; n < 100; n++) { if (predicate()) return; await tick(); }
   throw new Error("Timed out waiting for thread runtime");
@@ -82,7 +81,7 @@ function createPersistenceFixture() {
   };
 }
 
-type Stream = { emit(event: Record<string, unknown>): void; finish(outcome?: Record<string, unknown>): void; input: { threadId: string; runId: string; resume?: unknown[] } };
+type Stream = { emit(event: Record<string, unknown>): void; finish(outcome?: Record<string, unknown>): void; fail(): void; input: { threadId: string; runId: string; resume?: unknown[] } };
 async function fixture(failFirstBHistory = false, providedBinding?: ConversationThreadBinding) {
   const agents = new Map<string, CancellationAwareHttpAgent>();
   const streams = new Map<string, Stream>();
@@ -127,13 +126,13 @@ async function fixture(failFirstBHistory = false, providedBinding?: Conversation
             const body = new ReadableStream<Uint8Array>({ start(c) { controller = c; } });
             const emit = (event: Record<string, unknown>) => controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
             const finish = (outcome?: Record<string, unknown>) => {
-              emit({ type: "TEXT_MESSAGE_END", messageId: `${threadId}-live-answer` });
+              emit({ type: "TEXT_MESSAGE_END", messageId: `${threadId}-answer` });
               emit({ type: "RUN_FINISHED", threadId, runId: input.runId, ...(outcome === undefined ? {} : { outcome }) });
               controller.close();
             };
-            streams.set(threadId, { input, emit, finish });
+            streams.set(threadId, { input, emit, finish, fail() { emit({ type: "RUN_ERROR", message: "A failed" }); controller.close(); } });
             emit({ type: "RUN_STARTED", threadId, runId: input.runId });
-            emit({ type: "TEXT_MESSAGE_START", messageId: `${threadId}-live-answer`, role: "assistant" });
+            emit({ type: "TEXT_MESSAGE_START", messageId: `${threadId}-answer`, role: "assistant" });
             init.signal?.addEventListener("abort", () => controller.error(new Error("BodyStreamBuffer was aborted")), { once: true });
             return new Response(body, { headers: { "Content-Type": "text/event-stream" } });
           },
@@ -163,7 +162,7 @@ async function fixture(failFirstBHistory = false, providedBinding?: Conversation
   return { agents, streams, bridges, runtime, load, switchTo, start, emit, text,
     get navigation() { return navigation; },
     get currentBridge() { return currentBridge; },
-    async dispose() { await act(async () => { for (const id of agents.keys()) { try { if (runtime.threads.getById(id).getState().isRunning) runtime.threads.getById(id).cancelRun(); } catch {} } renderer.unmount(); await tick(); }); },
+    async dispose() { await act(async () => { for (const agent of agents.values()) agent.abortRun(); renderer.unmount(); await tick(); }); },
   };
 }
 
@@ -191,7 +190,7 @@ describe("upstream-owned concurrent AG-UI threads", () => {
       expect(persistence.loadThread).toHaveBeenCalledTimes(loadCount);
       await act(async () => { await f.runtime.threads.reload(); });
       expect(f.runtime.threads.getState().threadIds).not.toContain("B");
-      await f.emit("A", { type: "TEXT_MESSAGE_CONTENT", messageId: "A-live-answer", delta: "after B deletion" });
+      await f.emit("A", { type: "TEXT_MESSAGE_CONTENT", messageId: "A-answer", delta: "after B deletion" });
       expect(f.text("A")).toContain("after B deletion");
       expect(f.runtime.thread.getState().isRunning).toBe(true);
     } finally { await f.dispose(); }
@@ -214,7 +213,7 @@ describe("upstream-owned concurrent AG-UI threads", () => {
       expect(persistence.ephemeralIds.has(idC)).toBe(true);
       expect(persistence.persistedIds.has(idC)).toBe(false);
       expect(readHistory.mock.calls.filter(([id]) => id === idC)).toHaveLength(0);
-      await f.emit(idC, { type: "TEXT_MESSAGE_CONTENT", messageId: `${idC}-live-answer`, delta: `complete ${idC}` });
+      await f.emit(idC, { type: "TEXT_MESSAGE_CONTENT", messageId: `${idC}-answer`, delta: `complete ${idC}` });
       await act(async () => { persistence.persistThread(idC); });
       expect(persistence.persistedIds.has(idC)).toBe(true);
       expect(persistence.ephemeralIds.has(idC)).toBe(false);
@@ -240,7 +239,7 @@ describe("upstream-owned concurrent AG-UI threads", () => {
       expect(agentA!.abortRun).not.toHaveBeenCalled();
       expect(f.runtime.threads.getById("A").getState().messages).toEqual(messagesA);
       expect(f.runtime.threads.getById("A").getState().isRunning).toBe(true);
-      await f.emit("A", { type: "TEXT_MESSAGE_CONTENT", messageId: "A-live-answer", delta: "after C reload" });
+      await f.emit("A", { type: "TEXT_MESSAGE_CONTENT", messageId: "A-answer", delta: "after C reload" });
       expect(f.text("A")).toContain("after C reload");
       expect(f.text(idC)).not.toContain("after C reload");
     } finally { await f.dispose(); }
@@ -279,9 +278,9 @@ describe("upstream-owned concurrent AG-UI threads", () => {
     const f = await fixture();
     try {
       await f.start("A"); await f.start("B");
-      await f.emit("A", { type: "TEXT_MESSAGE_CONTENT", messageId: "A-live-answer", delta: "A-background" });
+      await f.emit("A", { type: "TEXT_MESSAGE_CONTENT", messageId: "A-answer", delta: "A-background" });
       expect(f.text("A")).toContain("A-background"); expect(f.text("B")).not.toContain("A-background");
-      await f.emit("B", { type: "TEXT_MESSAGE_CONTENT", messageId: "B-live-answer", delta: "B-foreground" });
+      await f.emit("B", { type: "TEXT_MESSAGE_CONTENT", messageId: "B-answer", delta: "B-foreground" });
       expect(f.text("B")).toContain("B-foreground"); expect(f.text("A")).not.toContain("B-foreground");
       const loads = f.load.mock.calls.length;
       await f.switchTo("A");
@@ -295,7 +294,7 @@ describe("upstream-owned concurrent AG-UI threads", () => {
       await act(async () => { f.runtime.thread.cancelRun(); await tick(); });
       expect(f.agents.get("B")!.abortRun).toHaveBeenCalledOnce();
       expect(f.agents.get("A")!.abortRun).not.toHaveBeenCalled();
-      await f.emit("A", { type: "TEXT_MESSAGE_CONTENT", messageId: "A-live-answer", delta: "still alive" });
+      await f.emit("A", { type: "TEXT_MESSAGE_CONTENT", messageId: "A-answer", delta: "still alive" });
       expect(f.text("A")).toContain("still alive"); expect(f.runtime.threads.getById("A").getState().isRunning).toBe(true);
     } finally { await f.dispose(); }
   });
@@ -303,7 +302,7 @@ describe("upstream-owned concurrent AG-UI threads", () => {
     const f = await fixture();
     try {
       await f.start("A"); await f.start("B");
-      await act(async () => { (f.bridges.get("A") as ConversationAgentRuntimeBridge).recordError(new Error("A failed")); await tick(); });
+      await act(async () => { f.streams.get("A")!.fail(); await tick(); });
       expect(f.bridges.get("A")!.getSnapshot().run.status).toBe("error");
       expect(f.bridges.get("B")!.getSnapshot().run.status).toBe("running");
     } finally { await f.dispose(); }
@@ -377,7 +376,7 @@ describe("upstream-owned concurrent AG-UI threads", () => {
       expect(f.runtime.thread.getState().isDisabled).toBe(false);
       expect(f.text("B")).toContain("history B");
       expect(f.agents.get("A")!.abortRun).not.toHaveBeenCalled();
-      await f.emit("A", { type: "TEXT_MESSAGE_CONTENT", messageId: "A-live-answer", delta: "after retry" });
+      await f.emit("A", { type: "TEXT_MESSAGE_CONTENT", messageId: "A-answer", delta: "after retry" });
       expect(f.text("A")).toContain("after retry");
     } finally { await f.dispose(); }
   });

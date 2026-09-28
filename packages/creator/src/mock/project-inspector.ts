@@ -1,4 +1,4 @@
-import { inspectScenarioResources, mergeOptionalResourceInspection } from "@agent-ui/project-control/resources";
+import { inspectScenarioResources, mergeOptionalResourceInspection } from "@agent-ui/project-control/dev";
 import { spawn } from "node:child_process";
 import { access } from "node:fs/promises";
 import path from "node:path";

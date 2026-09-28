@@ -33,8 +33,6 @@ describe("runtime-assistant-ui package policy", () => {
       "@ag-ui/client",
       "@agent-ui/react",
       "@agent-ui/runtime-core",
-      "@assistant-ui/core",
-      "rxjs",
       "@assistant-ui/react",
       "@assistant-ui/react-ag-ui",
       "@assistant-ui/react-langgraph",
@@ -61,28 +59,25 @@ describe("runtime-assistant-ui package policy", () => {
     ]);
   });
 
-  it("keeps transport delegation inside the compatibility shim", async () => {
+  it("does not deep import or directly drive runAgent", async () => {
     const sources = await Promise.all(
       (await collectSourceFiles(path.join(packageRoot, "src")))
         .map((file) => readFile(file, "utf8")),
     );
     const combined = sources.join("\n");
     expect(combined).not.toMatch(/@assistant-ui\/[^"']+\/dist\/|AgUiThreadRuntimeCore|@assistant-ui\/core\/internal/u);
-    const callers = (await collectSourceFiles(path.join(packageRoot, "src"))).filter(async () => true);
-    for (const file of callers) {
-      if (!file.endsWith("cancellation-aware-http-agent.ts")) expect(await readFile(file, "utf8")).not.toMatch(/\.runAgent\s*\(/u);
-    }
+    expect(combined).not.toMatch(/\.runAgent\s*\(/u);
     expect(combined).not.toMatch(/AppUIModel|PluginRegistry|SlotRegistry|@agent-ui\/creator/u);
   });
 
-  it("passes native tool and suggestion config through to the Runtime provider", async () => {
+  it("passes generic assistant-ui config through to the Runtime provider", async () => {
     const provider = await readFile(
       path.join(packageRoot, "src/ConversationRuntimeProvider.tsx"),
       "utf8",
     );
 
     expect(provider).toContain(
-      "return AuiConfig({",
+      'config?: ComponentProps<typeof AssistantRuntimeProvider>["config"]',
     );
     expect(provider).toContain("<AssistantRuntimeProvider");
     expect(provider).toContain("runtime={assistantRuntime}");

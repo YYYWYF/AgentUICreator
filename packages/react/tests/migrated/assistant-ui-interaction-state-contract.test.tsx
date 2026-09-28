@@ -1,4 +1,4 @@
-import { generatedProjectFixture, repositoryRoot } from "../../../project-control/tests/support/generated-project";
+import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,7 +14,7 @@ describe("assistant-ui interaction state contract", () => {
       "utf8",
     );
     const thread = await readFile(
-      path.join(repositoryRoot, "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"),
+      path.join(projectRoot, "../../packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"),
       "utf8",
     );
 

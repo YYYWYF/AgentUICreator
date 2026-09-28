@@ -5,8 +5,13 @@ import { intersects, validRange, Range } from "semver";
 import { OfficialResourceError, type LoadedAgentUISourceItem } from "@agent-ui/source-registry";
 import { inspectAgentUIPackages } from "./source-registry/inspector";
 
-import type { ResourcePackageRequirement, ResourcePackageRunner } from "../resources.mjs";
-export type { ResourcePackageRequirement, ResourcePackageCommand, ResourcePackageRunner } from "../resources.mjs";
+export interface ResourcePackageRequirement {
+  name: string;
+  required: string;
+  declared?: string;
+  installed?: string;
+  compatible: boolean;
+}
 
 /** A compatible declaration with absent node_modules is repairable, not a conflict. */
 export function resourcePackageConflicts(packages: readonly ResourcePackageRequirement[]): ResourcePackageRequirement[] {
@@ -16,6 +21,9 @@ export function resourcePackageConflicts(packages: readonly ResourcePackageRequi
     // Preserve them verbatim rather than misclassifying them as semver conflicts.
     (item.declared !== undefined && validRange(item.declared) !== null && !intersects(item.declared, item.required)));
 }
+
+export interface ResourcePackageCommand { command: string; args: string[] }
+export type ResourcePackageRunner = (projectRoot: string, command: ResourcePackageCommand) => Promise<void>;
 
 export async function detectResourcePackageManager(projectRoot: string): Promise<"pnpm" | "yarn" | "npm" | "bun"> {
   return await packageManagerAt(path.resolve(projectRoot)) ?? "npm";

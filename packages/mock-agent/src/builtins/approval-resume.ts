@@ -4,7 +4,6 @@ const approvalToolCallId = "approval-dangerous-tool";
 
 export const approvalResumeScenario = defineScenario({
   id: "approval-resume",
-  resources: ["reasoning", "tool-group", "tool-approval"],
   title: "AG-UI Tool Approval",
   description: "Human in the Loop · Allow / Deny → Resume",
   category: "human-in-loop",

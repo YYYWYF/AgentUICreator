@@ -5,6 +5,7 @@ import { installOptionalAgentUIResource } from "./install-optional-agent-ui-reso
 import { activateOfficialResourcePlugin, inspectScenarioResources } from "./install-scenario-resources";
 import { installDemoPlugin } from "./install-demo-plugin";
 import { inspectUIComposition } from "./project-inspector";
+import { resourcePaths } from "./optional-resource-paths";
 import { inspectOfficialResourceImplementation } from "./official-resource-inspection";
 import { verifyUIProject } from "../verify-ui";
 
@@ -24,10 +25,11 @@ async function install(projectRoot: string, resourceId: string, runPackages?: Re
     await installOptionalAgentUIResource(projectRoot, implementation.sourceItemId);
     if (implementation.type === "source-plugin") await activateOfficialResourcePlugin(projectRoot, implementation);
   }
+  const { config } = await resourcePaths(projectRoot);
   const verification = await verifyUIProject(projectRoot);
   if (verification.status !== "passed") throw new OfficialResourceError("RESOURCE_INSTALL_FAILED", "Resource project verification failed.", verification.errors);
   const sources = await inspectScenarioResources(projectRoot);
-  const composition = await inspectUIComposition(projectRoot);
+  const composition = await inspectUIComposition(projectRoot, config);
   const inspection = inspectOfficialResourceImplementation(resource, composition, sources);
   if (inspection.status !== "ready") throw new OfficialResourceError(inspection.status === "conflict" ? "RESOURCE_CONFLICT" : "RESOURCE_INSTALL_FAILED", "Installed resource is not ready.", inspection);
 }

@@ -1,10 +1,17 @@
 import type { OfficialAgentUIResource } from "@agent-ui/source-registry";
-import { resourcePackageConflicts } from "./ensure-resource-packages";
-import type { ResourceCompositionInspection, ResourceSourceInspection, ResourceImplementationInspection } from "../resources.mjs";
-export type { ResourceCompositionInspection, ResourceSourceInspection } from "../resources.mjs";
+import { resourcePackageConflicts, type ResourcePackageRequirement } from "./ensure-resource-packages";
+
+export interface ResourceCompositionInspection {
+  pluginSources: readonly { pluginId: string; status: "available" | "missing"; dataMessageUINames: readonly string[] }[];
+  pluginInstances: readonly { id: string; pluginId: string; enabled: boolean; effectiveEnabled: boolean; target: { type: string; parentInstanceId?: string; slot?: string } }[];
+}
+export interface ResourceSourceInspection {
+  integrationRegistryReady?: boolean;
+  items: readonly { id: string; status: string; installedVersion?: string; resolvedRequirements?: readonly ResourcePackageRequirement[]; dependencies?: readonly string[]; dependencyIssues?: readonly { code: string }[]; issues?: readonly { code: string }[] }[];
+}
 
 /** Only the caller's explicit diagnostics endpoint may serialize this internal result. */
-export function inspectOfficialResourceImplementation(resource: OfficialAgentUIResource, composition: ResourceCompositionInspection, sources: ResourceSourceInspection): ResourceImplementationInspection {
+export function inspectOfficialResourceImplementation(resource: OfficialAgentUIResource, composition: ResourceCompositionInspection, sources: ResourceSourceInspection) {
   const implementation = resource.implementation;
   const itemId = "sourceItemId" in implementation ? implementation.sourceItemId : `plugin/${implementation.pluginId}`;
   const item = sources.items.find(item => item.id === itemId);

@@ -17,14 +17,7 @@ export function projectLangChainHistory(
 ): ConversationMessage[] {
   return convertExternalMessages(
     [...messages] as LangChainMessage[],
-    (message, metadata) => {
-      const converted = convertLangChainMessages(message, metadata);
-      // Preserve persisted assistant message identities; the Conversation turn
-      // layer groups response actions without merging the underlying messages.
-      const preserve = (part: Exclude<ReturnType<typeof convertLangChainMessages>, unknown[]>) =>
-        part.role === "assistant" ? { ...part, convertConfig: { joinStrategy: "none" as const } } : part;
-      return Array.isArray(converted) ? converted.map(preserve) : preserve(converted);
-    },
+    convertLangChainMessages,
     false,
     {},
   ) as ConversationMessage[];

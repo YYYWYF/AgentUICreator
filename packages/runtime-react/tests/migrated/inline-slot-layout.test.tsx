@@ -37,19 +37,19 @@ function createModel(includeChildren: boolean) {
               id: "copy-main",
               pluginId: "copy-plugin",
               enabled: true,
-              mount: { slotId: "plugin:owner-main:actions", order: 0 },
+              mount: { slotId: "plugin:owner-main:actions" },
             },
             "reload-main": {
               id: "reload-main",
               pluginId: "reload-plugin",
               enabled: true,
-              mount: { slotId: "plugin:owner-main:actions", order: 1 },
+              mount: { slotId: "plugin:owner-main:actions" },
             },
             "export-main": {
               id: "export-main",
               pluginId: "export-plugin",
               enabled: true,
-              mount: { slotId: "plugin:owner-main:actions", order: 2 },
+              mount: { slotId: "plugin:owner-main:actions" },
             },
           }
         : {}),
@@ -130,11 +130,9 @@ describe("inline child Slot layout", () => {
 
     const probe = renderer!.root.findByProps({
       className: "app-ui-plugin-slot-width-probe",
-      "data-slot-id": "plugin:owner-main:actions",
     });
     const content = renderer!.root.findByProps({
       className: "app-ui-plugin-slot-content",
-      "data-slot-id": "plugin:owner-main:actions",
     });
     expect(probe.props["data-slot-layout"]).toBe("inline");
     expect(probe.props["data-slot-sizing"]).toBe("content");
@@ -168,11 +166,9 @@ describe("inline child Slot layout", () => {
 
     const inlineProbe = renderer!.root.findByProps({
       className: "app-ui-plugin-slot-width-probe",
-      "data-slot-id": "plugin:owner-main:actions",
     });
     expect(inlineProbe.props["data-slot-layout"]).toBe("inline");
-    expect(inlineProbe.findAllByType("button")).toHaveLength(0);
-    expect(inlineProbe.findAllByProps({ className: "app-ui-plugin-slot-content" })).toHaveLength(0);
+    expect(inlineProbe.props.children == null).toBe(true);
 
     await act(async () => {
       renderer?.unmount();
@@ -193,7 +189,7 @@ describe("inline child Slot layout", () => {
       await Promise.resolve();
     });
     expect(
-      renderer!.root.findByProps({ className: "app-ui-plugin-slot-width-probe", "data-slot-id": "plugin:owner-main:actions" })
+      renderer!.root.findByProps({ className: "app-ui-plugin-slot-width-probe" })
         .props["data-slot-layout"],
     ).toBe("stack");
   });

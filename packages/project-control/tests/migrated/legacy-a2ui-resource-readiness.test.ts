@@ -64,7 +64,7 @@ it("makes legacy A2UI ready through the real Workbench merge without adopting Ho
   expect(result.requirement.scenarioIds).toEqual(expect.arrayContaining(["a2ui-interactive-order", "a2ui-form-controls"]));
   const dependencyId = "agent-component/assistant-ui-generative-ui";
   // Normal inspection sees existing, unowned source. The optional lock owns it.
-  expect(result.normal.items.find(item => item.id === dependencyId)).toMatchObject({ status: "not-installed" });
+  expect(result.normal.items.find(item => item.id === dependencyId)).toMatchObject({ status: "blocked" });
   for (const id of [dependencyId, "integration/generative-ui", "integration/a2ui"]) {
     const resource = result.resources.items.find(item => item.id === id)!;
     expect(resource.installedVersion).toBeDefined();

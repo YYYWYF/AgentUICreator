@@ -1,4 +1,3 @@
-import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -248,7 +247,7 @@ describe("plugin runtime diagnostics", () => {
   });
 
   it("hashes the exact AppUIRuntimeModel source bytes used by project inspection", async () => {
-    const projectRoot = await generatedProjectFixture();
+    const projectRoot = path.resolve(import.meta.dirname, "..");
     const source = await readFile(
       path.join(projectRoot, "app-ui", "app-ui.json"),
       "utf8",
@@ -259,7 +258,7 @@ describe("plugin runtime diagnostics", () => {
   });
 
   it("keeps Creator packages and endpoints outside the standalone target source", async () => {
-    const projectRoot = await generatedProjectFixture();
+    const projectRoot = path.resolve(import.meta.dirname, "..");
     const sources = await Promise.all(
       [
         "src/App.tsx",

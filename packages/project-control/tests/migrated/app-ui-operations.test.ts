@@ -180,7 +180,6 @@ describe("AppUIModel semantic operations", () => {
     expect(() => applyAppUIOperations({
       root: { type: "row", children: [labeledSlot("A"), labeledSlot("B")] },
     }, [
-      { type: "remove_plugin", instanceId: "B" },
       { type: "remove_layout_node", nodeRef: "l2" },
       { type: "update_layout_node_props", nodeRef: "l2", set: {} },
     ])).toThrowError(expect.objectContaining({ code: "LAYOUT_REF_DETACHED" }));
@@ -190,7 +189,6 @@ describe("AppUIModel semantic operations", () => {
     expect(() => applyAppUIOperations({
       root: { type: "row", children: [labeledSlot("A"), labeledSlot("B")] },
     }, [
-      { type: "remove_plugin", instanceId: "B" },
       {
         type: "replace_layout_node",
         nodeRef: "l2",
@@ -505,14 +503,14 @@ describe("AppUIModel semantic operations", () => {
     expect(slotLabels(moved.root)).toEqual(["B", "A", "C"]);
     expect(moved.root).toMatchObject({ activeIndex: 0 });
 
-    const removedBefore = applyAppUIOperations(stackModel(), [{ type: "remove_plugin", instanceId: "A" }, {
+    const removedBefore = applyAppUIOperations(stackModel(), [{
       type: "remove_layout_node",
       nodeRef: "l1",
     }]);
     expect(slotLabels(removedBefore.root)).toEqual(["B", "C"]);
     expect(removedBefore.root).toMatchObject({ activeIndex: 0 });
 
-    const removedActive = applyAppUIOperations(stackModel(), [{ type: "remove_plugin", instanceId: "B" }, {
+    const removedActive = applyAppUIOperations(stackModel(), [{
       type: "remove_layout_node",
       nodeRef: "l2",
     }]);
@@ -521,7 +519,7 @@ describe("AppUIModel semantic operations", () => {
 
     const emptied = applyAppUIOperations({
       root: { type: "stack", activeIndex: 0, children: [labeledSlot("A")] },
-    }, [{ type: "remove_plugin", instanceId: "A" }, { type: "remove_layout_node", nodeRef: "l1" }]);
+    }, [{ type: "remove_layout_node", nodeRef: "l1" }]);
     expect(emptied.root).toMatchObject({ type: "stack", children: [] });
     if (emptied.root.type !== "stack") throw new Error("fixture");
     expect(emptied.root.activeIndex).toBeUndefined();

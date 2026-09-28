@@ -4,22 +4,22 @@ import path from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
 import { installDemoPlugin } from "../../src/project/install-demo-plugin";
 
-vi.mock("../../src/project/project-mode", () => ({ readAgentUIProjectConfig: vi.fn(async () => ({ config: {} })) }));
-vi.mock("../../src/project/agent-ui-project-paths", () => ({
+vi.mock("../scripts/ui-project/project-mode", () => ({ readAgentUIProjectConfig: vi.fn(async () => ({ config: {} })) }));
+vi.mock("../scripts/ui-project/agent-ui-project-paths", () => ({
   resolveAgentUIProjectPaths: (root: string) => ({ appUIModelPath: path.join(root, "model.json") }),
   projectControlConfigForPaths: () => ({}),
 }));
-vi.mock("../../src/project/source-registry/index", () => ({
+vi.mock("../scripts/ui-project/source-registry", () => ({
   inspectAgentUISources: vi.fn(async () => ({ stateHash: "hash", items: [
     { id: "plugin/assistant-ui-reasoning", status: "missing" },
     { id: "plugin/assistant-ui-tool-fallback", status: "customized" },
   ] })),
 }));
-vi.mock("../../src/project/source-registry/project-mutation", () => ({
+vi.mock("../scripts/ui-project/source-registry/project-mutation", () => ({
   applyAgentUISourceProjectMutation: vi.fn(),
   recoverPendingAgentUISourceProjectMutation: vi.fn(),
 }));
-vi.mock("../../src/project/app-ui-transaction", () => ({ mutateAppUIModel: vi.fn() }));
+vi.mock("../scripts/ui-project/app-ui-transaction", () => ({ mutateAppUIModel: vi.fn() }));
 import { mutateAppUIModel } from "../../src/project/app-ui-transaction";
 import { applyAgentUISourceProjectMutation } from "../../src/project/source-registry/project-mutation";
 
