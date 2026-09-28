@@ -16,7 +16,8 @@ describe("Official Resource readiness projection", () => {
     expect(status(empty, requirement.id)).toBe("missing");
     expect(status(snapshot, requirement.id)).toBe("disabled");
     const parent = { id: "surface", pluginId: "conversation-surface", enabled: true, effectiveEnabled: true, target: { type: "application" } };
-    const instance = { id: "demo", pluginId: implementation.pluginId, enabled: true, effectiveEnabled: false, target: { type: implementation.slot ? "plugin_slot" : "layout_slot", parentInstanceId: "surface", slot: implementation.slot ?? "body" } };
+    const expectedTarget = implementation.type === "source-plugin" ? implementation.placement : implementation.slot ? "plugin-slot" : "layout";
+    const instance = { id: "demo", pluginId: implementation.pluginId, enabled: true, effectiveEnabled: false, target: { type: expectedTarget === "application" ? "application" : expectedTarget === "plugin-slot" ? "plugin_slot" : "layout_slot", parentInstanceId: "surface", slot: implementation.slot ?? "body" } };
     snapshot.pluginInstances = [parent, instance];
     expect(status(snapshot, requirement.id)).toBe("disabled");
     instance.effectiveEnabled = true;
@@ -26,7 +27,8 @@ describe("Official Resource readiness projection", () => {
       instance.target.slot = implementation.slot; parent.pluginId = "other";
       expect(status(snapshot, requirement.id)).toBe("disabled");
     } else if (implementation.type === "source-plugin") {
-      instance.target.type = "application"; expect(status(snapshot, requirement.id)).toBe("disabled");
+      instance.target.type = implementation.placement === "application" ? "layout_slot" : "application";
+      expect(status(snapshot, requirement.id)).toBe("disabled");
     }
   });
   it("requires real chart registration and rejects partial Plugin source", () => {

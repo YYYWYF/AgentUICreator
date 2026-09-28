@@ -12,6 +12,11 @@ export function createOfficialResourceRegistry(resources: readonly OfficialAgent
     if (!["source", "plugin", "source-plugin"].includes(implementation.type)) throw new Error(`Invalid resource implementation: ${resource.id}`);
     if (implementation.type !== "plugin" && (!("sourceItemId" in implementation) || !/^[a-z0-9-]+\/[a-z0-9-]+$/.test(implementation.sourceItemId))) throw new Error(`Invalid resource source: ${resource.id}`);
     if (implementation.type !== "source" && (!("pluginId" in implementation) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(implementation.pluginId) || (implementation.slot !== undefined && !implementation.slot.trim()))) throw new Error(`Invalid resource Plugin: ${resource.id}`);
+    if (implementation.type === "source-plugin" && (
+      !["application", "layout", "plugin-slot"].includes(implementation.placement) ||
+      (implementation.placement === "plugin-slot") !== (implementation.slot !== undefined) ||
+      (implementation.placement !== "layout" && implementation.layoutSize !== undefined)
+    )) throw new Error(`Invalid resource placement: ${resource.id}`);
     const keys = [
       `source:${"sourceItemId" in implementation ? implementation.sourceItemId : `plugin/${implementation.pluginId}`}`,
       ...("pluginId" in implementation ? [`plugin:${implementation.pluginId}`] : []),
@@ -34,9 +39,9 @@ export function createOfficialResourceRegistry(resources: readonly OfficialAgent
 
 export const officialResourceRegistry = createOfficialResourceRegistry([
   { id: "a2ui", label: "A2UI", description: "A2UI declarative interactive surfaces", implementation: { type: "source", sourceItemId: "integration/a2ui" } },
-  { id: "ask-user-question-demo", label: "询问用户偏好 Demo", implementation: { type: "source-plugin", sourceItemId: "demo/ask-user-question", pluginId: "ask-user-question-demo", layoutSize: "0px" } },
-  { id: "frontend-tool-form-demo", label: "表单 Frontend Tool Demo", implementation: { type: "source-plugin", sourceItemId: "demo/frontend-tool-form", pluginId: "frontend-tool-form-demo", layoutSize: "320px" } },
-  { id: "frontend-tool-dialog-demo", label: "弹窗 Frontend Tool Demo", implementation: { type: "source-plugin", sourceItemId: "demo/frontend-tool-dialog", pluginId: "frontend-tool-dialog-demo", layoutSize: "0px" } },
+  { id: "ask-user-question-demo", label: "询问用户偏好 Demo", implementation: { type: "source-plugin", sourceItemId: "demo/ask-user-question", pluginId: "ask-user-question-demo", placement: "application" } },
+  { id: "frontend-tool-form-demo", label: "表单 Frontend Tool Demo", implementation: { type: "source-plugin", sourceItemId: "demo/frontend-tool-form", pluginId: "frontend-tool-form-demo", placement: "layout", layoutSize: "320px" } },
+  { id: "frontend-tool-dialog-demo", label: "弹窗 Frontend Tool Demo", implementation: { type: "source-plugin", sourceItemId: "demo/frontend-tool-dialog", pluginId: "frontend-tool-dialog-demo", placement: "layout", layoutSize: "0px" } },
   { id: "generated-file-message", label: "文件输出", implementation: { type: "plugin", pluginId: "generated-file-message" } },
   { id: "reasoning", label: "推理展示", implementation: { type: "plugin", pluginId: "assistant-ui-reasoning", slot: "reasoningGroup" } },
   { id: "tool-group", label: "工具分组", implementation: { type: "plugin", pluginId: "assistant-ui-tool-group", slot: "toolGroup" } },

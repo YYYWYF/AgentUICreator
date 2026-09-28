@@ -138,6 +138,10 @@
       "path": "items/demo-frontend-tool-form/item.json"
     },
     {
+      "id": "demo/ask-user-question",
+      "path": "items/demo-ask-user-question/item.json"
+    },
+    {
       "id": "integration/react-hook-form",
       "path": "items/integration-react-hook-form/item.json"
     },

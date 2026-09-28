@@ -4,6 +4,7 @@ describe("Official Resource Catalog", () => {
   it("keeps stable product IDs above implementation metadata", () => {
     expect(resolveOfficialResource("a2ui")).toMatchObject({ id: "a2ui", label: "A2UI", implementation: { type: "source", sourceItemId: "integration/a2ui" } });
     expect(resolveOfficialResource("frontend-tool-form-demo").implementation).toMatchObject({ type: "source-plugin", sourceItemId: "demo/frontend-tool-form", pluginId: "frontend-tool-form-demo" });
+    expect(resolveOfficialResource("ask-user-question-demo").implementation).toMatchObject({ type: "source-plugin", sourceItemId: "demo/ask-user-question", placement: "application" });
     expect(new Set(officialResourceRegistry.resources.map(resource => resource.id)).size).toBe(officialResourceRegistry.resources.length);
     expect(() => resolveOfficialResource("integration/a2ui")).toThrow(/Unknown official/);
   });
@@ -19,6 +20,8 @@ describe("Official Resource Catalog", () => {
     expect(() => createOfficialResourceRegistry([a2ui, { ...a2ui, id: "other" }])).toThrow(/Conflicting/);
     const bad = { id: "bad", label: "Bad", implementation: { type: "plugin", pluginId: "", slot: "body" } } as OfficialAgentUIResource;
     expect(() => createOfficialResourceRegistry([bad])).toThrow(/Invalid/);
+    const wrongPlacement = { id: "bad", label: "Bad", implementation: { type: "source-plugin", sourceItemId: "demo/ask-user-question", pluginId: "ask-user-question-demo", placement: "application", layoutSize: "0px" } } as OfficialAgentUIResource;
+    expect(() => createOfficialResourceRegistry([wrongPlacement])).toThrow(/placement/);
   });
   it("prevents callers from redefining resource metadata", () => {
     expect(Object.isFrozen(resolveOfficialResource("a2ui"))).toBe(true);

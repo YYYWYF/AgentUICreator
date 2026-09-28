@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import json
+from types import SimpleNamespace
 
 import pytest
 from deepagents import create_deep_agent
@@ -17,6 +19,8 @@ from agent_ui_creator.server import _checkpoint_input_messages, create_app
 from agent_ui_creator.streaming.deepagent_v3_runner import (
     DeepAgentCompleted, DeepAgentInterrupted, DeepAgentV3Runner,
 )
+from agent_ui_creator.model_protocol.trace import ToolProtocolMetrics
+from agent_ui_creator.domain_state.observation_context import DomainObservationMetrics
 
 
 REQUEST = {"schemaVersion": 1, "steps": [{
@@ -99,3 +103,79 @@ def test_fresh_turn_uses_only_new_user_message_after_checkpoint():
     messages = [{"role": "user", "content": "old"}, {"role": "assistant", "content": "answer"},
                 {"role": "user", "content": "new"}]
     assert asyncio.run(_checkpoint_input_messages(ExistingCheckpoint(), "thread", messages)) == [messages[-1]]
+
+
+def test_http_interrupt_resume_and_pending_guards(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("CREATOR_PYTHON_AGENT_MODE", "domain-read")
+    settings = CreatorServerSettings(project_root=tmp_path, skills_root=tmp_path, auth_token="x" * 32)
+    changed: list[str] = []
+    checkpoints: list[object] = []
+    graph = None
+
+    @tool
+    def record_choice(choice: str) -> str:
+        """Record the chosen layout."""
+        changed.append(choice)
+        return choice
+
+    model = ToolCallingModel(responses=[
+        AIMessage(content="", tool_calls=[{"name": "ask_user_question", "args": REQUEST, "id": "ask-1"}]),
+        AIMessage(content="", tool_calls=[{"name": "record_choice", "args": {"choice": "sidebar"}, "id": "write-1"}]),
+        AIMessage(content="Done"),
+    ])
+
+    async def fake_result(_settings, messages, _activity, thread_id, event_sink, _telemetry, *, checkpointer, resume, **_kwargs):
+        nonlocal graph
+        checkpoints.append(checkpointer)
+        if graph is None:
+            graph = create_deep_agent(model=model, tools=[ask_user_question, record_choice],
+                checkpointer=checkpointer, subagents=[])
+        result = await DeepAgentV3Runner().run_result(graph=graph,
+            input=Command(resume=resume) if resume is not None else {"messages": messages},
+            config={"recursion_limit": 30, "configurable": {"thread_id": thread_id}}, event_sink=event_sink)
+        if isinstance(result, DeepAgentInterrupted):
+            return result
+        return SimpleNamespace(text="Done", metrics=ToolProtocolMetrics(),
+            project_control=SimpleNamespace(to_dict=lambda: {}), repeated_project_control_reads=0,
+            domain_observations=DomainObservationMetrics())
+
+    monkeypatch.setattr("agent_ui_creator.server._domain_read_agent_result", fake_result)
+    app = create_app(settings)
+    client = TestClient(app, headers={"Authorization": f"Bearer {settings.auth_token}"})
+
+    def events(thread: str, run: str, *, command=None, messages=None):
+        response = client.post("/creator", json={"threadId": thread, "runId": run,
+            "messages": messages if messages is not None else [],
+            **({"forwardedProps": {"command": command}} if command is not None else {})})
+        assert response.status_code == 200
+        return [json.loads(line.removeprefix("data: ")) for line in response.text.splitlines() if line.startswith("data: ")]
+
+    initial = events("thread-1", "run-1", messages=[{"id": "user-1", "role": "user", "content": "Design"}])
+    assert [event["type"] for event in initial if event["type"] in {"CUSTOM", "RUN_FINISHED"}] == ["CUSTOM", "RUN_FINISHED"]
+    interrupt = next(event["value"] for event in initial if event.get("name") == "on_interrupt")
+    assert interrupt["metadata"]["kind"] == "ask_user_question"
+    assert changed == []
+    answer = {"interruptId": interrupt["id"], "answers": {"layout": ["sidebar"]}}
+    restarted = TestClient(create_app(settings), headers={"Authorization": f"Bearer {settings.auth_token}"})
+    stale = restarted.post("/creator", json={"threadId": "thread-1", "runId": "after-restart",
+        "messages": [], "forwardedProps": {"command": {"resume": answer}}})
+    assert "CREATOR_INTERRUPT_NOT_FOUND" in stale.text
+
+    for thread, resume, expected in [
+        ("wrong-thread", answer, "CREATOR_INTERRUPT_NOT_FOUND"),
+        ("thread-1", {**answer, "interruptId": "wrong-id"}, "CREATOR_INTERRUPT_INVALID_ANSWER"),
+        ("thread-1", {**answer, "answers": {"layout": ["missing"]}}, "CREATOR_INTERRUPT_INVALID_ANSWER"),
+    ]:
+        assert any(event.get("code") == expected for event in events(thread, "bad-run", command={"resume": resume}))
+    assert any(event.get("code") == "CREATOR_INTERRUPT_PENDING" for event in events("thread-1", "normal-run",
+        messages=[{"role": "user", "content": "Continue without answering"}]))
+    assert changed == []
+
+    completed = events("thread-1", "run-2", command={"resume": answer})
+    assert changed == ["sidebar"]
+    assert checkpoints == [app.state.creator_checkpointer, app.state.creator_checkpointer]
+    assert any(event["type"] == "TEXT_MESSAGE_CONTENT" and event["delta"] == "Done" for event in completed)
+    assert completed[-1]["type"] == "RUN_FINISHED"
+    assert "thread-1" not in app.state.pending_creator_questions

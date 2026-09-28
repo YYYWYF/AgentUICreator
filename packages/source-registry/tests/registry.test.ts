@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { loadAgentUISourceRegistry, parseSourceItem } from "../src/index.js";
+import { loadAgentUISourceRegistry, parseSourceItem, resolveAgentUISourceItemClosure, validateOfficialResourceSources } from "../src/index.js";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const forbiddenPublicTokens = [
@@ -20,9 +20,10 @@ describe("Agent UI Source Registry public conversation contract", () => {
     const registry = await loadAgentUISourceRegistry();
 
     expect(registry.items.map((entry) => entry.id)).toEqual(expect.arrayContaining([
-      "foundation/conversation", "demo/frontend-tool-dialog", "demo/frontend-tool-form",
+      "foundation/conversation", "demo/frontend-tool-dialog", "demo/frontend-tool-form", "demo/ask-user-question",
     ]));
-    expect(registry.items.filter(entry => entry.kind === "demo")).toHaveLength(2);
+    expect(registry.items.filter(entry => entry.kind === "demo")).toHaveLength(3);
+    expect(() => validateOfficialResourceSources(registry)).not.toThrow();
     expect(registry.byId.get("foundation/conversation")?.kind).toBe("foundation");
     expect(registry.items.filter((entry) => entry.kind === "primitive")).toHaveLength(0);
     expect(registry.items.filter((entry) => entry.kind === "agent-component").map(entry => entry.id)).toEqual(expect.arrayContaining([
@@ -32,6 +33,19 @@ describe("Agent UI Source Registry public conversation contract", () => {
     expect(registry.byId.get("plugin/assistant-ui-response-footer")?.requires).toContain("plugin/conversation-surface");
     for (const action of ["copy", "reload", "export-markdown"]) {
       expect(registry.byId.get(`plugin/assistant-ui-${action}-action`)?.requires).toContain("plugin/assistant-ui-response-footer");
+    }
+  });
+
+  it("resolves the Human Tool Demo through its real foundation without optional integration leakage", async () => {
+    const registry = await loadAgentUISourceRegistry();
+    const core = resolveAgentUISourceItemClosure(registry, "foundation/core").map(item => item.id);
+    const demo = resolveAgentUISourceItemClosure(registry, "demo/ask-user-question").map(item => item.id);
+    expect(demo).toEqual([...core, "demo/ask-user-question"]);
+    expect(demo).toContain("foundation/core");
+    expect(demo).not.toContain("integration/react-hook-form");
+    expect(demo.some(id => id.startsWith("integration/"))).toBe(false);
+    for (const foundation of registry.items.filter(item => item.kind === "foundation")) {
+      expect(resolveAgentUISourceItemClosure(registry, foundation.id).map(item => item.id)).not.toContain("demo/ask-user-question");
     }
   });
 
@@ -72,6 +86,8 @@ describe("Agent UI Source Registry public conversation contract", () => {
       id: "demo/frontend-tool-dialog", path: "items/demo-frontend-tool-dialog/item.json",
     }, {
       id: "demo/frontend-tool-form", path: "items/demo-frontend-tool-form/item.json",
+    }, {
+      id: "demo/ask-user-question", path: "items/demo-ask-user-question/item.json",
     }]));
     expect(parseSourceItem({
       schemaVersion: 1,

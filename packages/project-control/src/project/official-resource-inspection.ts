@@ -26,7 +26,10 @@ export function inspectOfficialResourceImplementation(resource: OfficialAgentUIR
     const parents = new Map(composition.pluginInstances.map(instance => [instance.id, instance]));
     const enabled = !pluginId || composition.pluginInstances.some(instance => instance.pluginId === pluginId && instance.effectiveEnabled &&
       (!("slot" in implementation) || implementation.slot === undefined || (instance.target.type === "plugin_slot" && instance.target.slot === implementation.slot && parents.get(instance.target.parentInstanceId ?? "")?.pluginId === "conversation-surface")) &&
-      (implementation.type !== "source-plugin" || implementation.slot !== undefined || instance.target.type === "layout_slot"));
+      (implementation.type !== "source-plugin" || (
+        implementation.placement === "application" ? instance.target.type === "application" :
+        implementation.placement === "layout" ? instance.target.type === "layout_slot" : instance.target.type === "plugin_slot"
+      )));
     status = !sourceReady || !pluginReady ? "missing" : enabled ? "ready" : "disabled";
   }
   return { status, implementation, source: item, closure, packages, conflicts };

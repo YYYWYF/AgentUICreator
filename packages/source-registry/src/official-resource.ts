@@ -7,7 +7,9 @@ export interface OfficialAgentUIResource {
   readonly implementation:
     | { readonly type: "source"; readonly sourceItemId: string }
     | { readonly type: "plugin"; readonly pluginId: string; readonly slot?: string; readonly dataMessageUIName?: string }
-    | { readonly type: "source-plugin"; readonly sourceItemId: string; readonly pluginId: string; readonly slot?: string; readonly layoutSize?: string };
+    | { readonly type: "source-plugin"; readonly sourceItemId: string; readonly pluginId: string;
+        /** Explicit AppUIModel activation target; never inferred from the Plugin component or size. */
+        readonly placement: "application" | "layout" | "plugin-slot"; readonly slot?: string; readonly layoutSize?: string };
 }
 
 export class OfficialResourceError extends Error {

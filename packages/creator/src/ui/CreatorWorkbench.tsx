@@ -128,6 +128,9 @@ type CreatorConversationItem =
   | CreatorStageActivity
   | CreatorQuestionActivity;
 
+const hasPendingCreatorQuestion = (items: CreatorConversationItem[]) =>
+  items.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting"));
+
 interface StoredCreatorConversation {
   threadId: string;
   items: CreatorConversationItem[];
@@ -1151,7 +1154,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   const submit = async (event?: FormEvent<HTMLFormElement>, response?: { question: CreatorQuestionActivity; answers: Record<string, string[]> }) => {
     event?.preventDefault();
     const request = input.trim();
-    if ((response === undefined && (request === "" || itemsRef.current.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting")))) ||
+    if ((response === undefined && (request === "" || hasPendingCreatorQuestion(itemsRef.current))) ||
       isRunning || runInFlightRef.current || !((workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "ready")) {
       return;
     }
@@ -1437,7 +1440,8 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   };
 
   const startNewConversation = () => {
-    if (isRunning || !((workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "ready")) {
+    if (isRunning || hasPendingCreatorQuestion(itemsRef.current) ||
+      !((workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "ready")) {
       return;
     }
     const nextThreadId = crypto.randomUUID();
@@ -1452,7 +1456,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
 
   const selectWorkspace = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (workspaceBusy || initializingRef.current || workspacePath.trim() === "") return;
+    if (workspaceBusy || initializingRef.current || workspacePath.trim() === "" || hasPendingCreatorQuestion(itemsRef.current)) return;
     setWorkspaceBusy(true);
     setWorkspaceError(null);
     try {
@@ -1466,7 +1470,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   };
 
   const chooseWorkspace = async () => {
-    if (workspaceState === null || workspaceBusy || initializingRef.current) return;
+    if (workspaceState === null || workspaceBusy || initializingRef.current || hasPendingCreatorQuestion(itemsRef.current)) return;
     setWorkspaceBusy(true);
     setWorkspacePicking(true);
     setWorkspaceError(null);
@@ -1486,7 +1490,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   };
 
   const clearWorkspace = async () => {
-    if (workspaceBusy || initializingRef.current) return;
+    if (workspaceBusy || initializingRef.current || hasPendingCreatorQuestion(itemsRef.current)) return;
     setWorkspaceBusy(true);
     setWorkspaceError(null);
     sessionRef.current += 1;
@@ -1503,7 +1507,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   };
 
   const refreshWorkspace = async () => {
-    if (workspaceBusy || initializingRef.current) return;
+    if (workspaceBusy || initializingRef.current || hasPendingCreatorQuestion(itemsRef.current)) return;
     setWorkspaceBusy(true);
     setWorkspaceError(null);
     if (workspaceState?.status === "uninitialized") {
@@ -1630,6 +1634,8 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   };
 
   const creatorRuntimeReady = (workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "ready";
+  const questionPending = hasPendingCreatorQuestion(items);
+  const pendingQuestionHint = "请先回答当前问题";
 
   return (
     <div
@@ -1693,16 +1699,16 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                 Mock Agent
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
               </button>
-              <button
+              <span title={questionPending ? pendingQuestionHint : undefined}><button
                 aria-label="新建 Creator 会话"
                 className="creator-panel-new-conversation"
-                disabled={isRunning || !creatorRuntimeReady}
+                disabled={isRunning || !creatorRuntimeReady || questionPending}
                 onClick={startNewConversation}
-                title="清空上下文并新建会话"
+                title={questionPending ? pendingQuestionHint : "清空上下文并新建会话"}
                 type="button"
               >
                 新建会话
-              </button>
+              </button></span>
               <div
                 className="creator-panel-dev-studio-dock"
                 data-slot="agent-ui-dev-studio-dock"
@@ -1801,14 +1807,14 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                 aria-label={workspaceState !== null && workspaceState.status !== "none"
                   ? `当前项目：${workspaceState.workspace.name}，点击切换项目` : "选择项目文件夹"}
                 className="creator-workspace-trigger"
-                disabled={workspaceBusy || setupDraft.initializing}
+                disabled={workspaceBusy || setupDraft.initializing || questionPending}
                 onClick={() => {
                   if (workspaceState !== null && workspaceState.status !== "none") {
                     setWorkspacePath(workspaceState.workspace.displayPath);
                   }
                   setShowWorkspaceSelector((current) => !current);
                 }}
-                title={workspaceState !== null && workspaceState.status !== "none"
+                title={questionPending ? pendingQuestionHint : workspaceState !== null && workspaceState.status !== "none"
                   ? workspaceState.workspace.displayPath : "选择项目文件夹"}
                 type="button"
               >
@@ -1846,8 +1852,8 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                         </div>
                       ) : null}
                       <div className="creator-workspace-actions">
-                        <button type="button" disabled={workspaceBusy || setupDraft.initializing} onClick={() => void refreshWorkspace()}>刷新</button>
-                        <button type="button" disabled={workspaceBusy || setupDraft.initializing} onClick={() => void clearWorkspace()}>移除选择</button>
+                        <button type="button" disabled={workspaceBusy || setupDraft.initializing || questionPending} title={questionPending ? pendingQuestionHint : undefined} onClick={() => void refreshWorkspace()}>刷新</button>
+                        <button type="button" disabled={workspaceBusy || setupDraft.initializing || questionPending} title={questionPending ? pendingQuestionHint : undefined} onClick={() => void clearWorkspace()}>移除选择</button>
                       </div>
                     </div>
                   ) : null}
@@ -1855,7 +1861,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                     <strong>{workspaceState !== null && workspaceState.status !== "none" ? "切换项目" : "选择前端项目文件夹"}</strong>
                     <span>在系统文件夹窗口中选择已有项目。</span>
                     <button className="creator-workspace-browse" type="button"
-                      disabled={workspaceState === null || workspaceBusy || setupDraft.initializing}
+                      disabled={workspaceState === null || workspaceBusy || setupDraft.initializing || questionPending}
                       onClick={() => void chooseWorkspace()}>
                       {workspacePicking ? "等待文件夹选择…" : "打开系统文件夹窗口…"}
                     </button>
@@ -1864,9 +1870,9 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                       <summary>手动输入项目路径</summary>
                       <form onSubmit={selectWorkspace}>
                         <label htmlFor="creator-workspace-path">项目文件夹的绝对路径</label>
-                        <input id="creator-workspace-path" value={workspacePath} disabled={workspaceBusy || setupDraft.initializing}
+                        <input id="creator-workspace-path" value={workspacePath} disabled={workspaceBusy || setupDraft.initializing || questionPending}
                           onChange={(event) => setWorkspacePath(event.target.value)} placeholder="/path/to/project" />
-                        <button type="submit" disabled={workspaceBusy || setupDraft.initializing || workspacePath.trim() === ""}>使用这个文件夹</button>
+                        <button type="submit" disabled={workspaceBusy || setupDraft.initializing || questionPending || workspacePath.trim() === ""}>使用这个文件夹</button>
                       </form>
                     </details>
                   </div>
@@ -1877,7 +1883,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
             {workspaceState?.status === "ready" || workspaceState?.status === "legacy" ? <form className="creator-panel-composer" onSubmit={submit}>
               <label htmlFor="creator-request">修改需求</label>
               <textarea
-                disabled={isRunning || !creatorRuntimeReady || items.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting"))}
+                disabled={isRunning || !creatorRuntimeReady || questionPending}
                 id="creator-request"
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={handleKeyDown}
