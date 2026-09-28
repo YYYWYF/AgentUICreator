@@ -169,7 +169,7 @@ const actions = {
   startNewConversation: async () => undefined,
   abortRun: () => undefined,
 };
-const config = AuiConfig({ tools: Tools({ toolkit: createConversationToolkit() }) });
+const config = AuiConfig({ tools: Tools({ toolkit: createConversationToolkit() as never }) });
 
 function RuntimeFixture({ chatModel, initialMessages, model, onRuntime, onRuntimeDiagnostic }: {
   chatModel: ChatModelAdapter;

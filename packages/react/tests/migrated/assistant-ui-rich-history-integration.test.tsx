@@ -46,7 +46,7 @@ function HistoryFixture({ conversationId }: { conversationId: string }) {
     ) as never,
   });
   const config = AuiConfig({
-    tools: Tools({ toolkit: createConversationToolkit() }),
+    tools: Tools({ toolkit: createConversationToolkit() as never }),
   });
   return (
     <AssistantRuntimeProvider config={config} runtime={runtime}>
