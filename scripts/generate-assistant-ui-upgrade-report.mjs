@@ -208,6 +208,11 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     packagesChanged: select((file) => file === "pnpm-lock.yaml" || file === "pnpm-workspace.yaml" || file.endsWith("/package.json") || file === "package.json"),
     localFacadeFilesChanged: select((file) => file.startsWith("packages/react/src/") && !file.startsWith("packages/react/src/internal/vendor/")),
     runtimeAdapterFilesChanged: select((file) => file.startsWith("packages/runtime-conversation/")),
+    sourceRegistryAssistantUiFilesChanged: select((file) => [
+      "packages/source-registry/registry/items/agent-component-assistant-ui-generative-ui/",
+      "packages/source-registry/registry/items/integration-generative-ui/",
+      "packages/source-registry/registry/items/integration-a2ui/",
+    ].some((prefix) => file.startsWith(prefix))),
     pluginFilesChanged: select((file) => file.startsWith("examples/creator-host-sandbox/plugins/")),
     appUIModelFilesChanged: select((file) => file.startsWith("examples/creator-host-sandbox/app-ui/")),
     creatorFilesChanged: select((file) => file.startsWith("packages/creator/")),
@@ -231,7 +236,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     !file.endsWith("/task-group") && !file.endsWith("/subagent-conversation"),
   );
   const highRisk = current.creatorFilesChanged.length > 0 || current.appUIModelFilesChanged.length > 1 || existingPluginDirectories.length > 3;
-  const mediumRisk = current.runtimeAdapterFilesChanged.length > 0 || current.localFacadeFilesChanged.length > 4 || existingPluginDirectories.length > 1;
+  const mediumRisk = current.runtimeAdapterFilesChanged.length > 0 || current.localFacadeFilesChanged.length > 4 || existingPluginDirectories.length > 1 || current.sourceRegistryAssistantUiFilesChanged.length > 0;
   const cost = highRisk ? "High" : mediumRisk ? "Medium" : "Low";
 
   const markdown = `# assistant-ui Upgrade Impact Report
@@ -245,7 +250,9 @@ To:
 - @assistant-ui/react-ag-ui ${target.packages["@assistant-ui/react-ag-ui"]}
 - @assistant-ui/react-langgraph ${target.packages["@assistant-ui/react-langgraph"]}
 - @assistant-ui/react-markdown ${target.packages["@assistant-ui/react-markdown"]}
+- @assistant-ui/react-generative-ui ${target.packages["@assistant-ui/react-generative-ui"] ?? "not targeted"}
 - upstream revision: ${current.toRevision}
+- Generative UI release revision: ${target.generativeUiReleaseRevision ?? "not targeted"}
 
 ## AG-UI transport compatibility
 
@@ -332,6 +339,10 @@ ${current.ignoredUpstreamElements.length === 0
 
 - ${current.runtimeAdapterFilesChanged.length} files: ${current.runtimeAdapterFilesChanged.join(", ") || "none"}
 
+## Source Registry assistant-ui Resources
+
+- ${current.sourceRegistryAssistantUiFilesChanged.length} files: ${current.sourceRegistryAssistantUiFilesChanged.join(", ") || "none"}
+
 ## Plugin changes
 
 - ${current.pluginFilesChanged.length} files across ${changedPluginDirectories.size} Plugin directories
@@ -367,7 +378,7 @@ ${capabilityAudit.map(({ capability, status }) => `| ${capability} | ${status} |
 
 ${cost}
 
-Reason: vendor changes are expected; the assessment tracks whether the public facade, runtime adapter, existing Plugins, AppUIModel, or Creator expanded beyond the intended seam.
+Reason: vendor changes are expected; the assessment tracks whether the public facade, runtime adapter, Source Registry assistant-ui Resources, existing Plugins, AppUIModel, or Creator changed.
 `;
 
   await writeFile(reportPath, `${JSON.stringify(current, null, 2)}\n`, "utf8");

@@ -12,6 +12,7 @@ import {
   checkAssistantUiLangGraphSourceCompatibility,
 } from "./check-assistant-ui-langgraph-compat.mjs";
 import { checkAgUiLockfile } from "./check-ag-ui-lockfile.mjs";
+import { updatePackageManifests } from "./assistant-ui-workspace-packages.mjs";
 
 const execFile = promisify(execFileCallback);
 const defaultRepoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -136,6 +137,27 @@ export async function remoteMainRevision({
   return revision;
 }
 
+export async function generativeUiReleaseRevision({
+  repoRoot = defaultRepoRoot,
+  version,
+  gitRunner = git,
+} = {}) {
+  const tag = `@assistant-ui/react-generative-ui@${version}`;
+  const output = await gitRunner(repoRoot, [
+    "ls-remote", "--tags", UPSTREAM_REPOSITORY,
+    `refs/tags/${tag}`, `refs/tags/${tag}^{}`,
+  ], repoRoot);
+  const refs = new Map(output.split("\n").filter(Boolean).map((line) => {
+    const [sha, ref] = line.split(/\s+/u);
+    return [ref, sha];
+  }));
+  const revision = refs.get(`refs/tags/${tag}^{}`) ?? refs.get(`refs/tags/${tag}`);
+  if (!/^[a-f0-9]{40}$/u.test(revision ?? "")) {
+    throw new Error(`Unable to resolve assistant-ui release tag ${tag}.`);
+  }
+  return revision;
+}
+
 async function hasCommit(repo, revision, { repoRoot = defaultRepoRoot, gitRunner = git } = {}) {
   try {
     await gitRunner(repo, ["cat-file", "-e", `${revision}^{commit}`], repoRoot);
@@ -200,6 +222,7 @@ export async function main({
   repoRoot = defaultRepoRoot,
   args = process.argv.slice(2),
   remoteRevisionResolver = remoteMainRevision,
+  generativeUiRevisionResolver = generativeUiReleaseRevision,
   sourceCacheEnsurer = ensureSourceCache,
   langGraphSourceResolver = langGraphSourceAtRevision,
   latestVersionResolver = latest,
@@ -223,10 +246,6 @@ export async function main({
   const targetPath = path.join(repoRoot, "assistant-ui-upgrade-target.json");
   const provenancePath = path.join(repoRoot, "packages/react/src/internal/vendor/assistant-ui/UPSTREAM.json");
   const sessionPath = path.join(repoRoot, SESSION_FILE);
-  const packagePaths = [
-    path.join(repoRoot, "packages/react/package.json"),
-    path.join(repoRoot, "packages/runtime-conversation/package.json"),
-  ];
 
   try {
     const baseGitSha = await git(repoRoot, ["rev-parse", "HEAD"], repoRoot);
@@ -252,11 +271,25 @@ export async function main({
       : Object.fromEntries(await Promise.all(
         Object.keys(target.packages).map(async (name) => [name, await latestVersionResolver(repoRoot, name)]),
       ));
+    const generativeUiVersion = packages["@assistant-ui/react-generative-ui"];
+    const generativeUiRevision = generativeUiVersion
+      ? await generativeUiRevisionResolver({ repoRoot, version: generativeUiVersion })
+      : undefined;
+    if (generativeUiRevision) {
+      await sourceCacheEnsurer(repo, generativeUiRevision, { repoRoot });
+      const releaseManifest = JSON.parse(await git(repo, [
+        "show", `${generativeUiRevision}:packages/react-generative-ui/package.json`,
+      ], repoRoot));
+      if (releaseManifest.name !== "@assistant-ui/react-generative-ui" || releaseManifest.version !== generativeUiVersion) {
+        throw new Error(`Release tag for @assistant-ui/react-generative-ui@${generativeUiVersion} points to ${releaseManifest.name}@${releaseManifest.version}.`);
+      }
+    }
     const nextTarget = {
       ...target,
       source: `${UPSTREAM_REPOSITORY}#${UPSTREAM_REF}`,
       revision,
       packages,
+      ...(generativeUiRevision ? { generativeUiReleaseRevision: generativeUiRevision } : {}),
     };
     // A normal latest upgrade leaves the explicitly frozen release policy.
     delete nextTarget.releasePinned;
@@ -310,15 +343,7 @@ export async function main({
       ),
     };
     await writeFile(sessionPath, `${JSON.stringify(session, null, 2)}\n`, "utf8");
-    for (const packagePath of packagePaths) {
-      const manifest = JSON.parse(await readFile(packagePath, "utf8"));
-      for (const [name, version] of Object.entries(packages)) {
-        for (const dependencyField of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) {
-          if (manifest[dependencyField]?.[name] !== undefined) manifest[dependencyField][name] = version;
-        }
-      }
-      await writeFile(packagePath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
-    }
+    await updatePackageManifests(repoRoot, packages);
 
     const workspacePath = path.join(repoRoot, "pnpm-workspace.yaml");
     let workspace = await readFile(workspacePath, "utf8");
@@ -357,6 +382,12 @@ export async function main({
       cwd: repoRoot,
       stdio: "inherit",
     });
+    if (generativeUiRevision) {
+      await commandRunner("pnpm", ["--filter", "@agent-ui/source-registry", "sync:generative-ui-upstream", "--", "--revision", generativeUiRevision, "--repo", repo], {
+        cwd: repoRoot,
+        stdio: "inherit",
+      });
+    }
 
     const generated = {
       ...session,

@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { checkGenerativeUiResource } from "../../../scripts/check-generative-ui-resource.mjs";
+import { generativeUiReleaseRevision } from "../../../scripts/update-assistant-ui.mjs";
 
 const execFile = promisify(execFileCallback);
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -22,6 +24,20 @@ const revisions = [
   ["assistant-ui-upstream.lock.json", lock.revision],
 ];
 const errors = [];
+errors.push(...await checkGenerativeUiResource({ repoRoot, target }));
+if (target.packages["@assistant-ui/react-generative-ui"]) {
+  try {
+    const releaseRevision = await generativeUiReleaseRevision({
+      repoRoot,
+      version: target.packages["@assistant-ui/react-generative-ui"],
+    });
+    if (releaseRevision !== target.generativeUiReleaseRevision) {
+      errors.push(`Generative UI release tag resolves to ${releaseRevision}; target records ${target.generativeUiReleaseRevision}`);
+    }
+  } catch (error) {
+    errors.push(`cannot resolve Generative UI release tag: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
 for (const [name, revision] of revisions) {
   if (revision !== target.revision) errors.push(`${name} revision is ${revision}; expected ${target.revision}`);
 }

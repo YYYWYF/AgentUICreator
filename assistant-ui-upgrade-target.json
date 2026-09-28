@@ -3,6 +3,7 @@
   "project": "assistant-ui/assistant-ui",
   "source": "https://github.com/assistant-ui/assistant-ui.git#da9a624496ae97864ae30e90f85c7533092a228d",
   "revision": "da9a624496ae97864ae30e90f85c7533092a228d",
+  "generativeUiReleaseRevision": "da9a624496ae97864ae30e90f85c7533092a228d",
   "packages": {
     "@assistant-ui/react": "0.15.22",
     "@assistant-ui/react-ag-ui": "0.0.62",

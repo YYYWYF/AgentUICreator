@@ -56,14 +56,18 @@ only the `.agent-ui-conversation` prefix, including media and comma-separated
 selectors. Canonical assistant-ui theme variables come from
 `@agent-ui/react/styles.css`. There is no local A2UI stylesheet.
 
-Regenerate source with
-`pnpm --filter @agent-ui/source-registry sync:generative-ui-upstream`, using the
-local assistant-ui repository and the fixed release revision. Installed
+Regenerate source through `pnpm assistant-ui:update`. It resolves the package's
+release tag commit and passes it explicitly to the Source Registry sync. A
+manual sync requires `--revision <release-sha>`. Installed
 `UPSTREAM.json` records original paths, original/installed hashes and mechanical
 adaptations; the styled element has no source patches. Existing vendor source
 continues through `sync:assistant-ui-upstream`. Release-pinned revision and
 package guards verify the frozen release rather than requiring remote main or
 npm latest; ordinary unpinned upgrade targets retain the previous latest checks.
+The two Generative UI Source items follow the package release revision.
+`integration/a2ui` records the release last reviewed for its wrapper and is
+updated only after a wrapper review, even when its transitive Generative UI
+dependency is upgraded.
 
 ## Capability and permission
 

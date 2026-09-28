@@ -1,27 +1,15 @@
 import { execFile as execFileCallback } from "node:child_process";
-import { readFile, readdir } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { packageManifestMismatches } from "../../../scripts/assistant-ui-workspace-packages.mjs";
+import { checkGenerativeUiResource } from "../../../scripts/check-generative-ui-resource.mjs";
 
 const execFile = promisify(execFileCallback);
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const repoRoot = path.resolve(packageRoot, "../..");
 const target = JSON.parse(await readFile(path.join(repoRoot, "assistant-ui-upgrade-target.json"), "utf8"));
-
-async function packageFiles(current) {
-  const entries = await readdir(current, { withFileTypes: true });
-  const result = [];
-  for (const entry of entries) {
-    const entryPath = path.join(current, entry.name);
-    if (entry.isDirectory() && entry.name !== "node_modules") {
-      result.push(...await packageFiles(entryPath));
-    } else if (entry.isFile() && entry.name === "package.json") {
-      result.push(entryPath);
-    }
-  }
-  return result;
-}
 
 async function npmLatest(name, version = "latest") {
   const result = await execFile("npm", ["view", `${name}@${version}`, "version", "--json"], {
@@ -34,20 +22,8 @@ async function npmLatest(name, version = "latest") {
 }
 
 const expected = target.packages;
-const manifests = await packageFiles(repoRoot);
-const mismatches = [];
-for (const manifestPath of manifests) {
-  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-  for (const [name, version] of Object.entries(expected)) {
-    const declared = manifest.dependencies?.[name] ??
-      manifest.devDependencies?.[name] ??
-      manifest.peerDependencies?.[name] ??
-      manifest.optionalDependencies?.[name];
-    if (declared !== undefined && declared !== version) {
-      mismatches.push(`${path.relative(repoRoot, manifestPath)} declares ${name}=${declared}; expected ${version}`);
-    }
-  }
-}
+const mismatches = await packageManifestMismatches(repoRoot, expected);
+mismatches.push(...await checkGenerativeUiResource({ repoRoot, target }));
 
 for (const [name, expectedVersion] of Object.entries(expected)) {
   let latest;

@@ -25,11 +25,25 @@ complete:
 
 ## Official Generative UI source
 
-Run `pnpm --filter @agent-ui/source-registry sync:generative-ui-upstream` to
-regenerate the styled element, CSS and provenance from the exact release revision
-in `assistant-ui-upgrade-target.json`, using the local assistant-ui repository.
+`pnpm assistant-ui:update` resolves the `@assistant-ui/react-generative-ui`
+release tag, records its commit in `assistant-ui-upgrade-target.json`, and runs
+`sync:generative-ui-upstream --revision <release-sha>` automatically. For a
+manual regeneration, pass that exact `--revision` and optionally `--repo` to
+`pnpm --filter @agent-ui/source-registry sync:generative-ui-upstream`.
+The sync updates the styled element, CSS, provenance, and the package/version
+metadata of the Generative UI agent-component and integration items.
 The styled source is unchanged. Official vocabulary CSS declarations are unchanged;
 each selector is mechanically prefixed with `.agent-ui-conversation`, including
 comma-separated selectors and rules within media queries. No theme translation,
 visual redesign or local vocabulary is introduced. The installed `UPSTREAM.json`
 is Registry-managed alongside both source files.
+`integration/a2ui` has no direct Generative UI package requirement. Its
+`upstream.revision` identifies the release reviewed when its wrapper was last
+implemented; it changes only with an A2UI wrapper review, not with each
+Generative UI source sync.
+
+The upgrade scans package manifests for every package named in the target.
+Dependency, devDependency and optionalDependency declarations use the exact
+target version. Peer dependencies keep their declared policy: exact stays
+exact, `^` stays `^`, and `~` stays `~`, with the floor raised to the target
+version. Other peer range forms fail the update for an explicit review.
