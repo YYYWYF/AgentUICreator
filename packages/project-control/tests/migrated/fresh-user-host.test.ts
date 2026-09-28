@@ -194,6 +194,9 @@ it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIM
   await expect(ensureManagedHostPlugins(request => handleUIProjectControlRequest({
     schemaVersion: 3, ...request,
   } as Parameters<typeof handleUIProjectControlRequest>[0], root))).rejects.toThrow("AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY");
+  await expect(ensureManagedHostPlugins(request => handleUIProjectControlRequest({
+    schemaVersion: 3, ...request,
+  } as Parameters<typeof handleUIProjectControlRequest>[0], root), { preserveCustomized: true })).resolves.toEqual([]);
   expect(await readFile(surfaceEntry, "utf8")).toBe(customizedSurface);
   expect(await readAgentUISourceLock(root, config)).toMatchObject({ lock });
   await writeFile(surfaceEntry, originalSurface);

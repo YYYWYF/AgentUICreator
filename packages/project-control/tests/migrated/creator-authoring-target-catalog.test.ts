@@ -70,21 +70,28 @@ describe("Creator Authoring Target Catalog", () => {
       await mkdir(path.dirname(ownerPath), { recursive: true });
       await writeFile(ownerPath, "export const value = true;\n");
     }
+    const pluginIds = ["conversation-suggestions", "conversation-surface", "theme-provider", "theme-switch"];
+    for (const pluginId of pluginIds) {
+      const pluginRoot = path.join(root, "plugins", pluginId);
+      await mkdir(pluginRoot, { recursive: true });
+      await writeFile(path.join(pluginRoot, "manifest.json"), JSON.stringify({ id: pluginId, name: pluginId, version: "1.0.0" }));
+      await writeFile(path.join(pluginRoot, "definition.ts"), "export default {};\n");
+    }
 
     const catalog = await buildCreatorAuthoringTargetCatalog({
       projectRoot: root,
       config,
       paths: legacyProjectPaths(root, config),
-      projectFacts: emptyFacts(),
+      projectFacts: emptyFacts(pluginIds.map(pluginId => ({ pluginId, manifestPath: `plugins/${pluginId}/manifest.json`, definitionPath: `plugins/${pluginId}/definition.ts` }) as PluginAsset)),
     });
 
-    expect(catalog.candidates.map((candidate) => candidate.id)).toEqual([
+    expect(catalog.candidates.filter(candidate => candidate.kind === "application_config").map((candidate) => candidate.id)).toEqual([
       "conversation.starter-suggestions",
       "conversation.welcome",
       "theme.default-mode",
     ]);
-    expect(catalog.candidates.every((candidate) => candidate.kind === "application_config")).toBe(true);
-    expect(catalog.bindings.every((binding) => binding.ownerPath?.startsWith("agent-ui/") === true)).toBe(true);
+    expect(catalog.candidates.filter(candidate => candidate.kind === "application_config").every((candidate) => candidate.kind === "application_config")).toBe(true);
+    expect(catalog.bindings.filter(binding => binding.kind === "application_config").every((binding) => binding.ownerPath?.startsWith("agent-ui/") === true)).toBe(true);
   });
 
   it("creates Plugin Source targets with implementation-only intents and bounded plugin ownership", async () => {

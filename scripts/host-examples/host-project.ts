@@ -54,14 +54,18 @@ async function main() {
     const core = inspection.items.find(item => item.id === "foundation/core");
     if (core && core.installedVersion !== core.availableVersion) {
       if (core.status === "customized" || core.status === "blocked") {
-        throw new Error("The Host's customized foundation needs an explicit source upgrade before using preview observations.");
+        console.warn("Preserving the Host's customized foundation; automatic source upgrades are skipped.");
+      } else {
+        const upgraded = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "apply_agent_ui_source_item", input: {
+          itemId: "foundation/core", expectedStateHash: inspection.stateHash,
+        } }, projectRoot);
+        if (!upgraded.ok) {
+          if (upgraded.error.code === "AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY") console.warn(`Preserving the Host foundation: ${upgraded.error.message}`);
+          else throw new Error(`Could not upgrade the managed Host foundation: ${upgraded.error.code}: ${upgraded.error.message}`);
+        }
       }
-      const upgraded = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "apply_agent_ui_source_item", input: {
-        itemId: "foundation/core", expectedStateHash: inspection.stateHash,
-      } }, projectRoot);
-      if (!upgraded.ok) throw new Error(`Could not upgrade the managed Host foundation: ${upgraded.error.code}: ${upgraded.error.message}`);
     }
-    await ensureManagedHostPlugins(request => handleUIProjectControlRequest({ schemaVersion: 3, ...request }, projectRoot));
+    await ensureManagedHostPlugins(request => handleUIProjectControlRequest({ schemaVersion: 3, ...request }, projectRoot), { preserveCustomized: true });
     return;
   }
   if (before.status !== "uninitialized") {

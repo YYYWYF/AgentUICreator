@@ -8,14 +8,14 @@ import { HttpAgent } from "@ag-ui/client";
 import type { RunAgentInput } from "@ag-ui/core";
 import { runMockScenario } from "../../../mock-agent/src/scenario-runner";
 import { frontendToolOpenDialogScenario } from "../../../mock-agent/src/builtins/frontend-tool-open-dialog";
-import { frontendTools as appFrontendTools } from "../../../project-control/tests/fixtures/dialog/agent-contract/frontend-tools/open-demo-dialog";
-import { frontendToolUIs } from "../../../project-control/tests/fixtures/dialog/agent-ui/conversation/frontend-tool-uis/open-demo-dialog";
+import { frontendTools as appFrontendTools } from "../../../source-registry/registry/items/demo-frontend-tool-dialog/files/agent-contract/frontend-tools/open-demo-dialog";
+import { frontendToolUIs } from "../../../source-registry/registry/items/demo-frontend-tool-dialog/files/agent-ui/conversation/frontend-tool-uis/open-demo-dialog";
 import { ConversationSurface } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
 import { parseAppUIRuntimeModel } from "../../../project-control/src/framework/contracts/app-ui-runtime-model";
-import { frontendToolDialogDemoPlugin } from "../../../project-control/tests/fixtures/dialog/plugins/frontend-tool-dialog-demo/definition";
+import { frontendToolDialogDemoPlugin } from "../../../source-registry/registry/items/demo-frontend-tool-dialog/files/plugins/frontend-tool-dialog-demo/definition";
 import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/tools/index";
 import { PluginServiceProvider, PluginServiceRuntime, PluginServiceRuntimeContext, createPluginRegistry, UIPluginRuntime } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { DEMO_DIALOG_SERVICE, type DemoDialogService } from "../../../project-control/tests/fixtures/dialog/services/demo-dialog";
+import { DEMO_DIALOG_SERVICE, type DemoDialogService } from "../../../source-registry/registry/items/demo-frontend-tool-dialog/files/services/demo-dialog";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 class ResizeObserverMock { observe() {} unobserve() {} disconnect() {} }

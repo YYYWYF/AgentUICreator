@@ -26,7 +26,7 @@
     "check:assistant-ui-langgraph-compat": "node scripts/check-assistant-ui-langgraph-compat.mjs",
     "check:assistant-ui-agui-lockfile": "node scripts/check-ag-ui-lockfile.mjs",
     "assistant-ui:report": "node scripts/generate-assistant-ui-upgrade-report.mjs",
-    "typecheck": "pnpm -r --if-present typecheck",
+    "typecheck": "node scripts/typecheck-workspace.mjs",
     "test": "pnpm test:python && pnpm test:ts",
     "test:ts": "node scripts/test-workspace-ts.mjs",
     "test:python:setup": "node scripts/run-python-tests.mjs --setup-only",

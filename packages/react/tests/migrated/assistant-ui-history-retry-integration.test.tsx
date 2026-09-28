@@ -238,6 +238,7 @@ describe("assistant-ui history and new-thread integration", () => {
     const service = createConversationService({ dataSource: { delete: async () => { throw new Error("Delete is not configured in this fixture."); }, list: async () => [], get: async id => ({ id, title: id, history: { format: "langchain", messages: [] } }) } });
     const f = await mount(service);
     try {
+      await act(async () => { f.runtime.thread.reset([threadMessage("first-user", "user")]); await flush(); });
       const first = f.binding.getThreadId();
       await act(async () => { void f.runtime.threads.switchToNewThread(); await flush(); });
       const second = f.binding.getThreadId();
@@ -245,6 +246,7 @@ describe("assistant-ui history and new-thread integration", () => {
       expect(f.runtime.thread.getState().messages).toEqual([]);
       expect(f.bridge.getSnapshot().conversation.id).toBe(second);
       expect(f.runtime.threads.mainItem.getState().remoteId).toBeUndefined();
+      await act(async () => { f.runtime.thread.reset([threadMessage("second-user", "user")]); await flush(); });
       await act(async () => { void f.bridge.startNewConversation(); await flush(); });
       expect(f.binding.getThreadId()).not.toBe(second);
       expect(f.bridge.getSnapshot().conversation.id).toBe(f.binding.getThreadId());

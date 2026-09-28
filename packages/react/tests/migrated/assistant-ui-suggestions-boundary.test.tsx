@@ -1,4 +1,4 @@
-import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
+import { generatedProjectFixture, repositoryRoot } from "../../../project-control/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -28,11 +28,11 @@ describe("Conversation Suggestions boundary", () => {
         "utf8",
       ),
       readFile(
-        path.join(projectRoot, "../../packages/runtime-conversation/src/ConversationRuntimeProvider.tsx"),
+        path.join(repositoryRoot, "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx"),
         "utf8",
       ),
       readFile(
-        path.join(projectRoot, "../../packages/react/src/public.tsx"),
+        path.join(repositoryRoot, "packages/react/src/public.tsx"),
         "utf8",
       ),
     ]);

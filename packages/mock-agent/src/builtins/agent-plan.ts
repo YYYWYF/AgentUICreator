@@ -2,6 +2,7 @@ import { defineScenario } from "../scenario.js";
 
 export const agentPlanScenario = defineScenario({
   id: "agent-plan",
+  resources: ["reasoning", "tool-group", "tool-approval", "agent-plan-message"],
   title: "Application-defined Tool Args → AgentPlan",
   description: "用 application-defined tool args 驱动 assistant-ui AgentPlan；Tool Result 只确认应用已应用。",
   category: "presentation",

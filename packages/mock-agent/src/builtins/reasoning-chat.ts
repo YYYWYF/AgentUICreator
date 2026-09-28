@@ -2,6 +2,7 @@ import { defineScenario } from "../scenario.js";
 
 export const reasoningChatScenario = defineScenario({
   id: "reasoning-chat",
+  resources: ["reasoning"],
   title: "Reasoning + Message",
   description: "模拟一次思考和最终回复。",
   category: "basics",

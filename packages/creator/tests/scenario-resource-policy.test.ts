@@ -1,6 +1,6 @@
 import { showcaseMockScenarios, type MockScenario } from "@agent-ui/mock-agent";
 import { describe, expect, it } from "vitest";
-import { collectScenarioResourceRequirements, installableMockResourceIds, mockDemoRequirements, scenarioResources } from "../src/mock/demo-compatibility.js";
+import { collectScenarioResourceRequirements, installableMockResourceIds, mockDemoRequirements } from "../src/mock/demo-compatibility.js";
 
 function scenario(id: string, resources: string[] = ["a2ui"]): MockScenario { return { id, title: id, steps: [], resources }; }
 describe("Scenario → Official Resource policy", () => {
@@ -18,11 +18,12 @@ describe("Scenario → Official Resource policy", () => {
     expect(() => collectScenarioResourceRequirements([scenario("bad", ["unknown-resource"])] )).toThrow(/Unknown official/);
   });
   it("covers every declared Resource with the same catalog-backed requirement", () => {
-    for (const resource of scenarioResources) {
+    for (const resource of mockDemoRequirements) {
       expect(resource.scenarioIds).toEqual(showcaseMockScenarios.filter(scenario => scenario.resources?.includes(resource.id)).map(scenario => scenario.id));
       expect(Object.keys(resource).sort()).toEqual(["id", "name", "scenarioIds"]);
     }
-    expect(scenarioResources.map(resource => resource.id)).toEqual(["a2ui", "frontend-tool-dialog-demo", "frontend-tool-form-demo"]);
+    expect(mockDemoRequirements).toEqual(collectScenarioResourceRequirements(showcaseMockScenarios));
+    expect(new Set(mockDemoRequirements.map(resource => resource.id))).toEqual(new Set(showcaseMockScenarios.flatMap(scenario => scenario.resources ?? [])));
     expect(JSON.stringify(mockDemoRequirements)).not.toMatch(/sourceItemId|@assistant-ui|assistant-ui-/);
   });
 });

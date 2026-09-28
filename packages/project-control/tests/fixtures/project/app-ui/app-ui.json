@@ -19,11 +19,6 @@
       "id": "locale-provider-main",
       "pluginId": "locale-provider",
       "enabled": true
-    },
-    {
-      "id": "chart-message-main",
-      "pluginId": "chart-message",
-      "enabled": true
     }
   ],
   "root": {

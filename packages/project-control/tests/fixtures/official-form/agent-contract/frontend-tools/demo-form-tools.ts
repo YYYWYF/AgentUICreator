@@ -1,4 +1,4 @@
-import { createReactHookFormFrontendTools } from "../../integrations/react-hook-form/index";
+import { createReactHookFormFrontendTools } from "../../integrations/react-hook-form";
 import { DEMO_FORM_SERVICE, DEMO_FORM_FIELDS } from "../../services/demo-form";
 
 export const frontendTools = createReactHookFormFrontendTools({

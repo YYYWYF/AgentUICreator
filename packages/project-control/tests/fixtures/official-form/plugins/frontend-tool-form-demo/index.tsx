@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { usePluginService } from "../../runtime/plugins/index";
+import { usePluginService } from "../../runtime/plugins";
 import { DEMO_FORM_SERVICE, DEMO_FORM_FIELDS, type DemoFormValues, type DemoFormService, type DemoFormSubmitResult } from "../../services/demo-form";
 import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 import "./styles.css";

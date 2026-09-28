@@ -92,6 +92,7 @@ const runCiJobArgs = {
 
 export const agentStateSyncScenario = defineScenario({
   id: "agent-state-sync",
+  resources: ["tool-group", "tool-approval", "job-progress-message"],
   title: "AG-UI State → Job Progress",
   description: "使用 ToolCall 锚定 CI Job，再通过 STATE_DELTA 实时推进 transcript 中的 assistant-ui JobProgress。",
   category: "state",

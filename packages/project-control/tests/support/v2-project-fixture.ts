@@ -26,11 +26,11 @@ export async function createV2ProjectFixture() {
     writeFile(path.join(paths.pluginsRoot, "foo", "manifest.json"), JSON.stringify({
       id: "foo", name: "Foo", description: "V2 fixture plugin", version: "1.0.0", capabilities: ["visual"],
     })),
-    writeFile(path.join(paths.pluginsRoot, "foo", "definition.ts"), "const definition = {};\nexport default definition;\n"),
+    writeFile(path.join(paths.pluginsRoot, "foo", "definition.ts"), "const definition = { manifest: {}, Component: () => null };\nexport default definition;\n"),
     writeFile(path.join(projectRoot, "plugins", "root-only", "manifest.json"), JSON.stringify({
       id: "root-only", name: "Root only", description: "Must not be discovered", version: "1.0.0",
     })),
-    writeFile(path.join(projectRoot, "plugins", "root-only", "definition.ts"), "export default {};\n"),
+    writeFile(path.join(projectRoot, "plugins", "root-only", "definition.ts"), "export default { manifest: {}, Component: () => null };\n"),
     writeFile(path.join(projectRoot, "package.json"), JSON.stringify({ dependencies: { react: "19.2.8" } })),
     writeFile(path.join(projectRoot, "tsconfig.json"), JSON.stringify({
       compilerOptions: { module: "ESNext", moduleResolution: "Bundler", target: "ES2022" },

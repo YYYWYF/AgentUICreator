@@ -137,8 +137,8 @@ describe("A2UI Official Integration (active native runtime)", () => {
     await act(async () => {
       f.streams[0]!.emit({ type: "ACTIVITY_SNAPSHOT", messageId: "a2ui-order-message", activityType: "a2ui-surface", replace: true,
         content: { a2ui_operations: [{ version: "v0.9", deleteSurface: { surfaceId: "order" } }] } });
-      await until(() => f.container.querySelector('[data-aui="card"]') === null);
     });
+    await until(() => f.container.querySelector('[data-aui="card"]') === null);
     expect(f.parts()).toHaveLength(0); await f.finish();
   });
   it("sends a native action continuation with no new user message, resume or synthetic tool result", async () => {

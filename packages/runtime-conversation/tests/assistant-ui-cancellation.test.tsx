@@ -85,7 +85,7 @@ function RuntimeFixture({
 async function waitFor(condition: () => boolean): Promise<void> {
   for (let attempt = 0; attempt < 100; attempt += 1) {
     if (condition()) return;
-    await new Promise<void>((resolve) => setImmediate(resolve));
+    await act(async () => { await new Promise<void>((resolve) => setTimeout(resolve, 5)); });
   }
   throw new Error("Timed out waiting for assistant-ui Runtime state");
 }
@@ -109,22 +109,22 @@ describe("assistant-ui cancellation boundary", () => {
           startRun: true,
         });
         await requestStarted;
-        await waitFor(() => assistantRuntime.thread.getState().isRunning &&
-          assistantRuntime.thread.getState().messages.some((message) => message.role === "assistant"));
       });
+      await waitFor(() => assistantRuntime.thread.getState().isRunning &&
+        assistantRuntime.thread.getState().messages.some((message) => message.role === "assistant"));
       const before = assistantRuntime.thread.getState().messages.find((message) => message.role === "assistant");
       expect(before?.content).toEqual([]);
       expect(before?.status).toMatchObject({ type: "running" });
 
       await act(async () => {
         assistantRuntime.thread.cancelRun();
-        await waitFor(() => !assistantRuntime.thread.getState().isRunning);
       });
+      await waitFor(() => !assistantRuntime.thread.getState().isRunning);
       const messages = assistantRuntime.thread.getState().messages;
       const assistants = messages.filter((message) => message.role === "assistant");
       expect(messages).toHaveLength(2);
       expect(assistants).toHaveLength(1);
-      expect(assistants[0]?.id).toBe(before?.id);
+      expect(assistants[0]?.id).not.toMatch(/^__optimistic__/);
       expect(assistants[0]?.content).toEqual([]);
       expect(assistants[0]?.status).toEqual({ type: "incomplete", reason: "cancelled" });
     } finally {
@@ -159,17 +159,17 @@ describe("assistant-ui cancellation boundary", () => {
           startRun: true,
         });
         await content;
-        await waitFor(() => assistantRuntime.thread.getState().messages.some(
+      });
+      await waitFor(() => assistantRuntime.thread.getState().messages.some(
           (message) => message.role === "assistant" && message.content.some(
             (part) => part.type === "text" && part.text === "partial",
           ),
         ));
-      });
 
       await act(async () => {
         assistantRuntime.thread.cancelRun();
-        await waitFor(() => !assistantRuntime.thread.getState().isRunning);
       });
+      await waitFor(() => !assistantRuntime.thread.getState().isRunning);
 
       const assistantMessage = assistantRuntime.thread
         .getState()

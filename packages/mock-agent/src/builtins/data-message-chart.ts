@@ -2,6 +2,7 @@ import { defineScenario } from "../scenario.js";
 
 export const dataMessageChartScenario = defineScenario({
   id: "data-message-chart",
+  resources: ["chart-message"],
   title: "Data Message / Custom Chart",
   description: "标准 AG-UI CUSTOM 在 assistant 消息中渲染图表。",
   category: "presentation",

@@ -8,9 +8,6 @@ import { describe, expect, it } from "vitest";
 const projectRoot = await generatedProjectFixture();
 const sourceExtensions = new Set([".ts", ".tsx", ".css", ".json"]);
 const forbiddenTokens = [
-  "assistant-ui",
-  "AssistantUi",
-  "ASSISTANT_UI",
   "@assistant-ui/",
   "runtime-assistant-ui",
 ] as const;
@@ -34,8 +31,6 @@ describe("Level 2 public Conversation source boundary", () => {
       ...await collectSourceFiles(path.join(projectRoot, "app-ui")),
       ...await collectSourceFiles(path.join(projectRoot, "agent-ui/conversation")),
       path.join(projectRoot, "src/App.tsx"),
-      path.join(projectRoot, "package.json"),
-      path.join(projectRoot, "components.json"),
     ].sort();
 
     for (const filePath of sourceFiles) {

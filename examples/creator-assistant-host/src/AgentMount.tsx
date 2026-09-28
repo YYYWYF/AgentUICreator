@@ -5,5 +5,8 @@ import { Agent } from "./agent-ui";
 const demoAttachmentAdapter = import.meta.env.DEV ? new DemoAttachmentAdapter() : undefined;
 
 export function AgentMount() {
-  return <Agent attachmentAdapter={demoAttachmentAdapter} />;
+  const props = { endpoint: import.meta.env.VITE_AGENT_ENDPOINT || "/agent",
+    ...(demoAttachmentAdapter === undefined ? {} : { attachmentAdapter: demoAttachmentAdapter }),
+  };
+  return <Agent {...props} />;
 }

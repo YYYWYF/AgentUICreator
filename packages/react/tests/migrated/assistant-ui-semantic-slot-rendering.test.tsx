@@ -1,4 +1,4 @@
-import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
+import { generatedProjectFixture, repositoryRoot } from "../../../project-control/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 const projectRoot = await generatedProjectFixture();
 
 async function read(relativePath: string): Promise<string> {
-  return readFile(path.join(projectRoot, relativePath), "utf8");
+  return readFile(relativePath.startsWith("../../") ? path.join(repositoryRoot, relativePath.slice(6)) : path.join(projectRoot, relativePath), "utf8");
 }
 
 describe("assistant-ui semantic Slot rendering", () => {

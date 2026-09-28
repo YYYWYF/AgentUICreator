@@ -89,7 +89,7 @@ describe("assistant-ui conversation visual contract", () => {
     expect(globals).not.toContain("  background: var(--background);");
 
     expect(thread).toContain('["--thread-max-width" as string]: "44rem"');
-    expect(thread).toContain('["--composer-radius" as string]: "1.5rem"');
+    expect(thread).toContain('["--composer-radius" as string]: "1rem"');
     expect(thread).toContain('["--composer-padding" as string]: "8px"');
     for (const className of [
       "aui-thread-root",
@@ -172,8 +172,8 @@ describe("assistant-ui conversation visual contract", () => {
       ]);
 
       expect(surface).toContain('"bg-background"');
-      expect(appUI).toContain('"id": "conversation-navigation"');
-      expect(appUI).toContain('"id": "conversation-surface"');
+      expect(appUI).toContain('"pluginId": "conversation-thread-list"');
+      expect(appUI).toContain('"pluginId": "conversation-surface"');
       expect(appUI).not.toContain("assistant-ui-workspace-shell");
       expect(appUI).not.toMatch(
         /bg-sidebar|text-sidebar-foreground|padding-inline/u,

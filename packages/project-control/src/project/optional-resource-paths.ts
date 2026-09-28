@@ -1,7 +1,7 @@
 import path from "node:path";
 import { access } from "node:fs/promises";
 import { loadAgentUISourceRegistry } from "@agent-ui/source-registry";
-import type { AgentUISourceInspection } from "./types";
+import type { ResourceSourceInspection } from "../resources.mjs";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./agent-ui-project-paths";
 import { readAgentUIProjectConfig } from "./project-mode";
 
@@ -36,7 +36,7 @@ export async function resourcePaths(projectRoot: string) {
 }
 
 /** Use the same ownership projection for the Workbench and its regression tests. */
-export async function mergeOptionalResourceInspection<T extends { items: readonly { id: string; status: string; installedVersion?: string }[] }>(normal: T, resources: AgentUISourceInspection & { integrationRegistryReady?: boolean }): Promise<T> {
+export async function mergeOptionalResourceInspection<T extends ResourceSourceInspection>(normal: T, resources: ResourceSourceInspection): Promise<T> {
   // installedVersion identifies resource-lock ownership or a provided Host item.
   // Dependency ownership is independent of the allowlist for installation roots
   // and remains authoritative even when owned source is customized or incomplete.

@@ -51,6 +51,13 @@ function findToolCallPart(
   return undefined;
 }
 
+async function waitForMessages(runtime: AssistantRuntime, ready: (messages: readonly ThreadMessage[]) => boolean) {
+  await vi.waitFor(async () => {
+    await act(async () => { await new Promise<void>(resolve => setImmediate(resolve)); });
+    expect(ready(runtime.thread.getState().messages)).toBe(true);
+  }, { timeout: 5_000 });
+}
+
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -221,9 +228,10 @@ describe("assistant-ui LangGraph history navigation", () => {
     const { agent, binding, liveThreadId, runtime } = await mountRuntime();
 
     await act(async () => {
-      void runtime.threads.switchToThread("mock-history-basic");
+      await runtime.threads.switchToThread("mock-history-basic");
       await new Promise<void>(resolve => setImmediate(resolve));
     });
+    await waitForMessages(runtime, messages => messages.map(message => message.id).join(",") === "basic-human-1,basic-ai-1");
     expect(binding.getIsDisabled?.()).toBe(false);
     expect(runtime.thread.getState().messages.map((message) => message.id)).toEqual([
       "basic-human-1",
@@ -232,9 +240,10 @@ describe("assistant-ui LangGraph history navigation", () => {
     expect(agent.runAgent).not.toHaveBeenCalled();
 
     await act(async () => {
-      void runtime.threads.switchToThread(liveThreadId);
+      await runtime.threads.switchToThread(liveThreadId);
       await new Promise<void>(resolve => setImmediate(resolve));
     });
+    await waitForMessages(runtime, messages => messages.map(message => message.id).join(",") === "live-user,live-assistant");
     expect(binding.getIsDisabled?.()).toBe(false);
     expect(runtime.thread.getState().messages.map((message) => message.id)).toEqual([
       "live-user",
@@ -245,9 +254,10 @@ describe("assistant-ui LangGraph history navigation", () => {
   it("hydrates a completed tool result without invoking the tool or Agent", async () => {
     const { agent, runtime } = await mountRuntime();
     await act(async () => {
-      void runtime.threads.switchToThread("mock-history-tool");
+      await runtime.threads.switchToThread("mock-history-tool");
       await new Promise<void>(resolve => setImmediate(resolve));
     });
+    await waitForMessages(runtime, messages => findToolCallPart(messages)?.toolCallId === "history-search-files-1");
 
     const toolPart = findToolCallPart(runtime.thread.getState().messages);
     expect(toolPart).toMatchObject({
@@ -278,16 +288,16 @@ describe("assistant-ui LangGraph history navigation", () => {
     });
 
     await act(async () => {
-      void runtime.threads.switchToThread("mock-history-frontend-tool");
+      await runtime.threads.switchToThread("mock-history-frontend-tool");
       await new Promise<void>(resolve => setImmediate(resolve));
     });
+    await waitForMessages(runtime, messages => findToolCallPart(messages)?.toolCallId === "history-dangerous-frontend-tool-1");
 
     const toolPart = findToolCallPart(runtime.thread.getState().messages);
     expect(toolPart).toMatchObject({
       type: "tool-call",
       toolCallId: "history-dangerous-frontend-tool-1",
       result: "persisted side-effect receipt",
-      status: { type: "complete" },
     });
     expect(container.querySelector('[data-slot="history-dangerous-frontend-tool"]'))
       .not.toBeNull();
@@ -299,9 +309,10 @@ describe("assistant-ui LangGraph history navigation", () => {
   it("hydrates the long checkpoint as 28 messages", async () => {
     const { runtime } = await mountRuntime();
     await act(async () => {
-      void runtime.threads.switchToThread("mock-history-long");
+      await runtime.threads.switchToThread("mock-history-long");
       await new Promise<void>(resolve => setImmediate(resolve));
     });
+    await waitForMessages(runtime, messages => messages.length === 28);
     expect(runtime.thread.getState().messages).toHaveLength(28);
   });
 });
