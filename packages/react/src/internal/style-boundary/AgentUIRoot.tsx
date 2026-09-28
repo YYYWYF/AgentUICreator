@@ -9,7 +9,7 @@ export function AgentUIRoot({ theme, children }: {
 }) {
   const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(null);
   return (
-    <div className="agent-ui-root" data-agent-ui-root="" data-theme={theme}>
+    <div className={theme === "dark" ? "agent-ui-root dark" : "agent-ui-root"} data-agent-ui-root="" data-theme={theme}>
       <AgentUIPortalContext.Provider value={portalContainer}>
         {children}
       </AgentUIPortalContext.Provider>

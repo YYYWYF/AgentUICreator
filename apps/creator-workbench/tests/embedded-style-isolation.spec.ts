@@ -24,6 +24,10 @@ test("keeps ordinary Host globals outside Agent UI and preserves Host probes", a
   expect(style.fontSize).not.toBe("31px");
   expect(style.borderWidth).not.toBe("9px");
   expect(style.boxSizing).toBe("border-box");
+  const controls = page.locator("#portal-isolation-mount [data-agent-ui-root]");
+  expect(await controls.locator("[data-test-agent-heading]").evaluate((element) => getComputedStyle(element).fontSize)).not.toBe("72px");
+  expect(await controls.locator("[data-test-agent-input]").evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe("rgb(255, 255, 0)");
+  expect(await controls.locator("[data-test-agent-list]").evaluate((element) => getComputedStyle(element).listStyleType)).not.toBe("square");
   const composerSend = agent.locator(".aui-composer-send");
   await expect(composerSend).toHaveCount(1);
   expect(await composerSend.evaluate((button) => getComputedStyle(button).borderRadius)).not.toBe("0px");
@@ -33,13 +37,17 @@ test("mounts Tooltip, Popover and Dialog within the themed Portal boundary", asy
   await page.goto("/style-isolation.html");
   const root = page.locator("#portal-isolation-mount [data-agent-ui-root]");
   await expect(root.locator("[data-agent-ui-portal-root]")).toHaveCount(1);
+  const buttonBackgrounds: string[] = [];
   for (const theme of ["light", "dark"] as const) {
     if (theme === "dark") await root.locator("[data-test-theme]").click();
     await expect(root).toHaveAttribute("data-theme", theme);
+    await expect(root).toHaveClass(theme === "dark" ? /\bdark\b/u : /\bagent-ui-root\b/u);
+    expect(await root.locator("[data-agent-ui-portal-root]").evaluate((node) => node.closest(".dark") === node.closest("[data-agent-ui-root]"))).toBe(theme === "dark");
     for (const [kind, selector] of [
       ["tooltip", "[data-slot=tooltip-content]"],
       ["popover", "[data-slot=popover-content]"],
       ["dialog", "[data-test-dialog]"],
+      ["facade-dialog", "[data-test-facade-dialog]"],
     ] as const) {
       await root.locator(`[data-test-open=${kind}]`).click();
       const portal = root.locator(`[data-agent-ui-portal-root] ${selector}`);
@@ -54,7 +62,12 @@ test("mounts Tooltip, Popover and Dialog within the themed Portal boundary", asy
         expect(token.portal).toBe(token.root);
       }
       expect(await portal.evaluate((node) => node.parentElement === document.body)).toBe(false);
-      if (kind === "dialog") await page.keyboard.press("Escape");
+      if (kind === "facade-dialog") {
+        buttonBackgrounds.push(await portal.locator("[data-test-dark-button]").evaluate((button) => getComputedStyle(button).backgroundColor));
+      }
+      if (kind === "dialog" || kind === "facade-dialog") await page.keyboard.press("Escape");
     }
   }
+  expect(buttonBackgrounds).toHaveLength(2);
+  expect(buttonBackgrounds[0]).not.toBe(buttonBackgrounds[1]);
 });

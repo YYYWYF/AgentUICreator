@@ -11,7 +11,7 @@
     "components/assistant-ui/elements/composer-trigger-popover.aui.tsx": "06c9b2b6fa021bbfe58ba226d4d5c6a46e448369aebf362d02f8b56032c69ba2",
     "components/assistant-ui/elements/file.tsx": "0d91bcd9a468b0d62c19ee325c53682cc509243685ba27d50dea33ead1e58d61",
     "components/assistant-ui/elements/follow-up-suggestions.aui.tsx": "f0db1e9cfc5f648adeb57c8ac61fbeca4ebbb4d55267a9c107709af01b73abb4",
-    "components/assistant-ui/elements/image.tsx": "89f7ef2a9a3ab0608045834cd27c0854e9ce41489bed4b80b2709a58ed8cf56e",
+    "components/assistant-ui/elements/image.tsx": "2200e0efc898b710fac7c0639ea1fd729c7cc98ac0cb854e60205d1029ed1724",
     "components/assistant-ui/elements/job-progress.tsx": "5c88f5c20239cf6cd8758311b66aa22a931c8d3223cfd699ec23f97a967c28a7",
     "components/assistant-ui/elements/markdown-text.tsx": "b041132faa98790395e4161329249eb1a38642ce7a5603042a67e7ab7ff72808",
     "components/assistant-ui/elements/reasoning.aui.tsx": "32c3b000370561900797a633d606a7172f6d465a2c06f3e39b6e820535dcd79f",

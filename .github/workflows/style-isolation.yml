@@ -1,0 +1,42 @@
+name: Agent UI style isolation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'packages/react/**'
+      - 'packages/project-control/**'
+      - 'packages/source-registry/**'
+      - 'examples/creator-embedded-host/**'
+      - 'apps/creator-workbench/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/style-isolation.yml'
+  push:
+    branches: [dev]
+    paths:
+      - 'packages/react/**'
+      - 'packages/project-control/**'
+      - 'packages/source-registry/**'
+      - 'examples/creator-embedded-host/**'
+      - 'apps/creator-workbench/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/style-isolation.yml'
+
+jobs:
+  style-isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @agent-ui/creator-workbench exec playwright install --with-deps chromium
+      - run: pnpm verify:style-isolation

@@ -97,6 +97,19 @@ describe("assistant-ui upstream ownership guard", () => {
     });
   });
 
+  it("fails when an approved non-Element Portal bridge drifts from its installed hash", async () => {
+    const temporaryRoot = await mkdtemp(path.join(packageRoot, ".tmp-upstream-portal-guard-"));
+    temporaryRoots.push(temporaryRoot);
+    await cp(vendorRoot, temporaryRoot, { recursive: true });
+    const target = path.join(temporaryRoot, "components/ui/dialog.tsx");
+    await writeFile(target, `${await readFile(target, "utf8")}\n// product drift\n`);
+    await expect(execFileAsync("node", [guardScript, "--vendor-root", temporaryRoot]))
+      .rejects.toMatchObject({
+        code: 1,
+        stderr: expect.stringContaining("assistant-ui tracked vendor file modified: components/ui/dialog.tsx"),
+      });
+  });
+
   it("keeps the vendored Thread imports mechanically adapted", async () => {
     const thread = await readFile(
       path.join(vendorRoot, "components/assistant-ui/elements/thread.aui.tsx"),

@@ -20,7 +20,13 @@ const EXPECTED_STYLE = "base-nova";
 const ELEMENTS_DIRECTORY = "components/assistant-ui/elements";
 const ELEMENT_PATH_PREFIX = `${ELEMENTS_DIRECTORY}/`;
 const IMAGE_ZOOM_PORTAL_PATH = "components/assistant-ui/elements/image.tsx";
-const IMAGE_ZOOM_BRIDGE_IMPORT = 'import { useAgentUIPortalContainer } from "../../../../../style-boundary/AgentUIRoot";\n';
+const PORTAL_BRIDGE_FILES = [
+  IMAGE_ZOOM_PORTAL_PATH,
+  "components/ui/dialog.tsx",
+  "components/ui/popover.tsx",
+  "components/ui/sheet.tsx",
+  "components/ui/tooltip.tsx",
+];
 const FORBIDDEN_ELEMENT_TOKENS = [
   "ThreadListPresentationPolicy",
   "agentUiDisabled",
@@ -78,21 +84,6 @@ async function readJson(filePath, label) {
 
 function sha256(content) {
   return createHash("sha256").update(content).digest("hex");
-}
-
-function normalizedApprovedPortalBridge(relativePath, content) {
-  if (relativePath !== IMAGE_ZOOM_PORTAL_PATH) return content;
-  const source = content.toString("utf8");
-  const importCount = source.split(IMAGE_ZOOM_BRIDGE_IMPORT).length - 1;
-  const hookLine = "  const portalContainer = useAgentUIPortalContainer();\n";
-  const hookCount = source.split(hookLine).length - 1;
-  const targetCount = source.split("          portalContainer ?? document.body,").length - 1;
-  const openCount = source.split("      {isOpen && portalContainer !== null &&").length - 1;
-  if (importCount !== 1 || hookCount !== 1 || targetCount !== 1 || openCount !== 1) return content;
-  return source.replace(IMAGE_ZOOM_BRIDGE_IMPORT, "")
-    .replace(hookLine, "")
-    .replace("      {isOpen && portalContainer !== null &&", "      {isOpen &&")
-    .replace("          portalContainer ?? document.body,", "          document.body,");
 }
 
 function sortedDifference(left, right) {
@@ -218,6 +209,12 @@ export async function collectAssistantUiUpstreamErrors(
     errors.push(`${PROVENANCE_FILE}.revision must be a 40-character commit hash.`);
   }
   const provenanceElementPaths = elementPathsFromProvenance(provenance, errors);
+  for (const entry of Array.isArray(provenance.files) ? provenance.files : []) {
+    if ((Array.isArray(entry?.adaptations) && entry.adaptations.includes("agent-ui-portal-container-bridge")) !==
+        PORTAL_BRIDGE_FILES.includes(entry?.localPath)) {
+      errors.push(`${PROVENANCE_FILE} Portal bridge adaptation is allowed only for the five approved files: ${entry?.localPath}.`);
+    }
+  }
 
   const actualElementPaths = await collectElementInventory(vendorRoot, errors);
   const declaredElementPaths = [...new Set([...owned, ...legacyExceptions])].sort();
@@ -246,6 +243,11 @@ export async function collectAssistantUiUpstreamErrors(
   if (!Array.isArray(provenance?.patches)) {
     errors.push(`${PROVENANCE_FILE}.patches must be an array.`);
   } else {
+    const portalPatches = provenance.patches.filter((patch) => patch?.id === "agent-ui-portal-container-bridge");
+    if (portalPatches.length !== 1 ||
+        JSON.stringify(portalPatches[0]?.files) !== JSON.stringify(PORTAL_BRIDGE_FILES)) {
+      errors.push(`${PROVENANCE_FILE} must declare exactly the five approved Portal bridge files.`);
+    }
     for (const patch of provenance.patches) {
       const patchFiles = isRecord(patch) && Array.isArray(patch.files)
         ? patch.files
@@ -312,11 +314,33 @@ export async function collectAssistantUiUpstreamErrors(
       }
       throw error;
     }
-    if (sha256(normalizedApprovedPortalBridge(relativePath, content)) !== expectedHash) modified.push(relativePath);
+    const entry = provenance.files.find((file) => file.localPath === relativePath);
+    if (sha256(content) !== expectedHash || entry?.installedSha256 !== expectedHash) {
+      modified.push(relativePath);
+    }
   }
 
   for (const relativePath of modified) {
     errors.push(`assistant-ui upstream-owned Element modified: ${relativePath}`);
+  }
+  for (const entry of Array.isArray(provenance.files) ? provenance.files : []) {
+    if (typeof entry?.localPath !== "string" || entry.localPath.startsWith(ELEMENT_PATH_PREFIX)) continue;
+    let localPath;
+    try {
+      localPath = safeRelativePath(entry.localPath, `${PROVENANCE_FILE}.files.localPath`);
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error));
+      continue;
+    }
+    try {
+      const content = await readFile(path.join(vendorRoot, localPath));
+      if (sha256(content) !== entry.installedSha256) {
+        errors.push(`assistant-ui tracked vendor file modified: ${localPath}`);
+      }
+    } catch (error) {
+      if (error?.code === "ENOENT") errors.push(`assistant-ui tracked vendor file missing: ${localPath}`);
+      else throw error;
+    }
   }
   return errors;
 }

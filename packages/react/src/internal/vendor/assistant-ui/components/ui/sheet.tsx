@@ -20,10 +20,10 @@ function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
   return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
 }
 
-function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
+function SheetPortal({ ...props }: Omit<SheetPrimitive.Portal.Props, "container">) {
   const portalContainer = useAgentUIPortalContainer();
   if (portalContainer === null) return null;
-  return <SheetPrimitive.Portal data-slot="sheet-portal" {...(portalContainer === undefined ? {} : { container: portalContainer })} {...props} />;
+  return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} {...(portalContainer === undefined ? {} : { container: portalContainer })} />;
 }
 
 function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {

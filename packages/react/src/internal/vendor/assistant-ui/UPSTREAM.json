@@ -300,7 +300,7 @@
       "upstreamPath": "templates/minimal/components/ui/dialog.tsx",
       "localPath": "components/ui/dialog.tsx",
       "upstreamSha256": "662c25e6d4873ba41c12db62a378a1cb873d6c3846e855fc85039793823cd903",
-      "installedSha256": "9e5bd270838e41ee768dc58e69a2673761130222b40bd3054278b323b42cb6cb",
+      "installedSha256": "85e26134bdca61c06a76307d073edc9e508fcdd8488628b7eba00bf93f869b8f",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative",
@@ -342,7 +342,7 @@
       "upstreamPath": "packages/ui/src/components/react/ui/base/sheet.tsx",
       "localPath": "components/ui/sheet.tsx",
       "upstreamSha256": "89748ad1285f6d3ad44185e4ca4d4bf8b9fa878559cc0ffa492f81be4cb1f832",
-      "installedSha256": "a71868a0c98ca3a1abced67ac9784573a8c99ffd98b0b18d8a51a047be02eb36",
+      "installedSha256": "e79b8a2705bc33d50470a1424a1b08340d7d9a7d74259a4fd0d30d7e095b9673",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative",

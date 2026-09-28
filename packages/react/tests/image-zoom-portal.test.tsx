@@ -19,9 +19,11 @@ it("keeps the upstream image zoom Portal inside the Agent UI boundary", async ()
       host.querySelector<HTMLElement>('[role="button"][aria-label="Click to zoom image"]')?.click();
     });
     const overlay = document.querySelector('[data-slot="image-zoom-overlay"]');
+    expect(host.querySelector("[data-agent-ui-root]")?.classList.contains("dark")).toBe(true);
     expect(overlay).not.toBeNull();
     expect(overlay?.closest("[data-agent-ui-portal-root]")).not.toBeNull();
     expect(overlay?.closest("[data-agent-ui-root]")?.getAttribute("data-theme")).toBe("dark");
+    expect(overlay?.closest(".dark")).toBe(host.querySelector("[data-agent-ui-root]"));
   } finally {
     await act(async () => root.unmount());
     host.remove();

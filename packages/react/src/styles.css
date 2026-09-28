@@ -71,11 +71,6 @@
   all: revert-layer;
 }
 
-/* Layered Tailwind radii outrank an unlayered Host !important reset. */
-.agent-ui-root :where(button) {
-  border-radius: revert-layer !important;
-}
-
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="light"] {
   --radius: 0.625rem;
   --background: oklch(1 0 0);

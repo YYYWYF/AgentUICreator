@@ -25,6 +25,14 @@ const ELEMENT_FILE_PATTERN = /\.(?:tsx)$/u;
 const TEST_FILE_PATTERN = /\.(?:test|spec)\.tsx$/u;
 const UNADOPTED_ELEMENT_RATIONALE =
   "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.";
+const PORTAL_BRIDGE_ID = "agent-ui-portal-container-bridge";
+const PORTAL_BRIDGE_FILES = [
+  "components/assistant-ui/elements/image.tsx",
+  "components/ui/dialog.tsx",
+  "components/ui/popover.tsx",
+  "components/ui/sheet.tsx",
+  "components/ui/tooltip.tsx",
+];
 
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
@@ -226,7 +234,7 @@ function resolveSpecifier({
 }
 
 function adaptationsFor({ localPath, source, previous }) {
-  const adaptations = new Set(previous?.adaptations ?? []);
+  const adaptations = new Set((previous?.adaptations ?? []).filter((id) => id !== PORTAL_BRIDGE_ID));
   if (isElementPath(localPath)) adaptations.add("official-registry-base-ui-rendering");
   if (source.includes("@/")) adaptations.add("import-alias-to-relative");
   return [...adaptations];
@@ -244,6 +252,79 @@ function adaptImports(source, localPath) {
     (_match, prefix, quote, aliasPath) =>
       `${prefix}${quote}${toRelativeImport(aliasPath, localPath)}${quote}`,
   );
+}
+
+function replaceExactlyOnce(source, before, after, localPath) {
+  if (source.split(before).length !== 2) {
+    throw new Error(`${PORTAL_BRIDGE_ID}: cannot safely adapt ${localPath}; expected exactly one ${JSON.stringify(before)}. Review the changed upstream Portal structure.`);
+  }
+  return source.replace(before, after);
+}
+
+function applyAgentUIPortalContainerBridge(source, localPath) {
+  if (!PORTAL_BRIDGE_FILES.includes(localPath)) return source;
+  const hookImport = localPath.startsWith("components/ui/")
+    ? 'import { useAgentUIPortalContainer } from "../../../../style-boundary/AgentUIRoot";\n'
+    : 'import { useAgentUIPortalContainer } from "../../../../../style-boundary/AgentUIRoot";\n';
+  const utilsImport = localPath.startsWith("components/ui/")
+    ? 'import { cn } from "../../lib/utils";\n'
+    : 'import { cn } from "../../../lib/utils";\n';
+  let installed = replaceExactlyOnce(source, utilsImport, utilsImport + hookImport, localPath);
+  if (localPath === "components/assistant-ui/elements/image.tsx") {
+    installed = replaceExactlyOnce(installed,
+      '  const [isOpen, setIsOpen] = useState(false);\n',
+      '  const [isOpen, setIsOpen] = useState(false);\n  const portalContainer = useAgentUIPortalContainer();\n', localPath);
+    installed = replaceExactlyOnce(installed, '      {isOpen &&\n',
+      '      {isOpen && portalContainer !== null &&\n', localPath);
+    return replaceExactlyOnce(installed, '          document.body,\n',
+      '          portalContainer ?? document.body,\n', localPath);
+  }
+  if (localPath === "components/ui/dialog.tsx" || localPath === "components/ui/sheet.tsx") {
+    const name = localPath.includes("dialog") ? "Dialog" : "Sheet";
+    const primitive = `${name}Primitive`;
+    installed = replaceExactlyOnce(installed,
+      `function ${name}Portal({ ...props }: ${primitive}.Portal.Props) {\n  return <${primitive}.Portal data-slot="${name.toLowerCase()}-portal" {...props} />;\n}`,
+      `function ${name}Portal({ ...props }: Omit<${primitive}.Portal.Props, "container">) {\n  const portalContainer = useAgentUIPortalContainer();\n  if (portalContainer === null) return null;\n  return <${primitive}.Portal data-slot="${name.toLowerCase()}-portal" {...props} {...(portalContainer === undefined ? {} : { container: portalContainer })} />;\n}`, localPath);
+    return installed;
+  }
+  const primitive = localPath.includes("popover") ? "PopoverPrimitive" : "TooltipPrimitive";
+  installed = replaceExactlyOnce(installed,
+    `) {\n  return (\n    <${primitive}.Portal>`,
+    `) {\n  const portalContainer = useAgentUIPortalContainer();\n  if (portalContainer === null) return null;\n  return (\n    <${primitive}.Portal {...(portalContainer === undefined ? {} : { container: portalContainer })}>`, localPath);
+  return installed;
+}
+
+export function applyApprovedAdaptations(source, localPath) {
+  return applyAgentUIPortalContainerBridge(adaptImports(source, localPath), localPath);
+}
+
+export function portalBridgePatch(files) {
+  const present = PORTAL_BRIDGE_FILES.filter((localPath) => files.some((file) => file.localPath === localPath));
+  if (present.length !== PORTAL_BRIDGE_FILES.length) {
+    throw new Error(`${PORTAL_BRIDGE_ID}: expected all five approved Portal files in the vendor set; missing ${PORTAL_BRIDGE_FILES.filter((file) => !present.includes(file)).join(", ")}.`);
+  }
+  return {
+    id: PORTAL_BRIDGE_ID,
+    reason: "Mount Base UI overlays inside AgentUIRoot without changing presentation or runtime behavior.",
+    files: [...PORTAL_BRIDGE_FILES],
+  };
+}
+
+export function installedVendorEntry({ source, localPath, upstreamPath, previous }) {
+  const installed = applyApprovedAdaptations(source, localPath);
+  return {
+    installed,
+    provenance: {
+      upstreamPath,
+      localPath,
+      upstreamSha256: sha256(source),
+      installedSha256: sha256(installed),
+      adaptations: [...new Set([
+        ...adaptationsFor({ localPath, source, previous }),
+        ...(PORTAL_BRIDGE_FILES.includes(localPath) ? [PORTAL_BRIDGE_ID] : []),
+      ])],
+    },
+  };
 }
 
 function packageMetadata(target) {
@@ -281,7 +362,8 @@ function upstreamMarkdown({ revision, oldRevision, target, files, inventory, new
     Object.entries(packageVersions).map(([name, version]) => `- \`${name}\` = \`${version}\``).join("\n") +
     `\n\n## Ownership\n\n` +
     `The files below are copied from the frozen revision above. Vendor sync may adapt ` +
-    `only upstream import aliases and the registry's base-ui relative paths. Product ` +
+    `only upstream import aliases, registry base-ui relative paths, and the five ` +
+    `recorded Agent UI Portal container bridges. Product ` +
     `presentation and policy stay in the Agent UI facade and Plugin layers.\n\n` +
     `- ${files.length} tracked vendor files\n` +
     `- ${files.filter((file) => file.localPath.startsWith(ELEMENT_PREFIX)).length} tracked official Element files\n` +
@@ -387,20 +469,21 @@ async function main() {
   }
 
   const files = [];
+  const installations = [];
   for (const localPath of [...mappings.keys()].sort()) {
     const mapping = mappings.get(localPath);
     const source = await gitShow(repo, revision, mapping.upstreamPath);
-    const installed = adaptImports(source, localPath);
-    const destination = vendorDestination(localPath);
+    const { installed, provenance } = installedVendorEntry({
+      source, localPath, upstreamPath: mapping.upstreamPath,
+      previous: previousByLocalPath.get(localPath),
+    });
+    installations.push({ destination: vendorDestination(localPath), installed });
+    files.push(provenance);
+  }
+  const portalPatch = portalBridgePatch(files);
+  for (const { destination, installed } of installations) {
     await mkdir(path.dirname(destination), { recursive: true });
     await writeFile(destination, installed, "utf8");
-    files.push({
-      upstreamPath: mapping.upstreamPath,
-      localPath,
-      upstreamSha256: sha256(source),
-      installedSha256: sha256(installed),
-      adaptations: adaptationsFor({ localPath, source, previous: previousByLocalPath.get(localPath) }),
-    });
   }
 
   const currentPaths = new Set(files.map((entry) => entry.localPath));
@@ -428,7 +511,7 @@ async function main() {
     sourceForm: "official Base UI registry output",
     packages: packageVersions,
     files,
-    patches: [],
+    patches: [portalPatch],
   };
   const nextLock = {
     schemaVersion: 1,
@@ -515,4 +598,6 @@ async function main() {
   }, null, 2));
 }
 
-await main();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await main();
+}

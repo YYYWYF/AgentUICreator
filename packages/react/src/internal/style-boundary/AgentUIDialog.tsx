@@ -2,10 +2,10 @@ import { Dialog } from "@base-ui/react/dialog";
 
 import { useAgentUIPortalContainer } from "./AgentUIRoot.js";
 
-function AgentUIDialogPortal(props: Dialog.Portal.Props) {
+function AgentUIDialogPortal(props: Omit<Dialog.Portal.Props, "container">) {
   const container = useAgentUIPortalContainer();
   if (container === null) return null;
-  return <Dialog.Portal {...(container === undefined ? {} : { container })} {...props} />;
+  return <Dialog.Portal {...props} {...(container === undefined ? {} : { container })} />;
 }
 
 /** Portal-aware primitives for Plugin-owned Dialog presentation. */

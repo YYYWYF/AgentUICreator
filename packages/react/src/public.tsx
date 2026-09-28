@@ -117,7 +117,7 @@ export const AgentUIPopoverContent: ComponentType<PopoverPrimitive.Popup.Props &
 export const AgentUIDialog: Readonly<{
   Root: ComponentType<DialogPrimitive.Root.Props>;
   Trigger: ComponentType<DialogPrimitive.Trigger.Props>;
-  Portal: ComponentType<DialogPrimitive.Portal.Props>;
+  Portal: ComponentType<Omit<DialogPrimitive.Portal.Props, "container">>;
   Backdrop: ComponentType<DialogPrimitive.Backdrop.Props>;
   Popup: ComponentType<DialogPrimitive.Popup.Props>;
   Title: ComponentType<DialogPrimitive.Title.Props>;

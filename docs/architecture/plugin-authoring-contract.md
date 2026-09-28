@@ -131,7 +131,9 @@ CSS selector must begin with a Plugin-owned class or a `data-ui-plugin` /
 `data-plugin-id` attribute. Descendants such as `.my-plugin button` are valid;
 bare `button`, `body`, `html`, `:root`, `*`, and global reset selectors are not.
 Plugin CSS must not depend on Host DOM or define theme tokens on `:root`.
-Theme tokens are inherited from `AgentUIRoot`.
+Theme tokens and dark variants are inherited from `AgentUIRoot`. Isolation covers
+ordinary Host global and reset CSS; Host rules that explicitly target Agent UI
+with `!important` are outside this contract.
 
 Plugins use the `@agent-ui/react` Agent UI Tooltip, Popover, and Dialog
 facades for overlays. They must not import Base UI Portal primitives directly
@@ -140,6 +142,14 @@ or mount overlays on `document.body`.
 The Host checks CSS during `verify:ui` without changing the authoring manifest.
 An unsafe selector or CSS import produces the blocking diagnostic
 `PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED`; Creator must repair the CSS source.
+Direct Base UI Dialog, Popover, Tooltip, or Sheet imports in Plugin source
+produce `PLUGIN_PORTAL_PRIMITIVE_IMPORT_NOT_ALLOWED`; use the corresponding
+`@agent-ui/react` facade.
+
+The browser acceptance gate is `pnpm verify:style-isolation` (also available as
+`pnpm test:style-isolation`). CI runs it for Agent UI changes. It checks Host
+probe stability, ordinary Host reset isolation, themed Tooltip/Popover/Dialog
+Portals, dark variants, and the public Dialog container boundary.
 
 ## Validation boundary
 

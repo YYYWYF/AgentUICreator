@@ -186,6 +186,20 @@ afterEach(async () => {
 });
 
 describe("verifyUIProject", () => {
+  it("blocks direct Portal primitive imports in a generated user Plugin and accepts the public facade", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: true,
+      pluginSource: `import { Dialog } from "@base-ui/react/dialog";\nimport type { Popover } from "@base-ui/react/popover";\nexport { Tooltip } from "@base-ui/react/tooltip";\nconst loadSheet = () => import("@base-ui/react/sheet");\n`,
+    });
+    const unsafe = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(unsafe.status).toBe("failed");
+    expect(unsafe.errors.filter((issue) => issue.code === "PLUGIN_PORTAL_PRIMITIVE_IMPORT_NOT_ALLOWED")).toHaveLength(4);
+    await writeFile(path.join(projectRoot, "plugins", "sample", "index.tsx"),
+      'import { AgentUIDialog, AgentUIPopover, AgentUITooltip } from "@agent-ui/react";\n');
+    const safe = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(safe.status).toBe("passed");
+  });
+
   it("blocks global Plugin CSS and accepts the same Plugin after scoping", async () => {
     const projectRoot = await createProject({ instancePluginId: "sample", mounted: true });
     const stylesheet = path.join(projectRoot, "plugins", "sample", "styles.css");

@@ -16,7 +16,7 @@ Source form: official Base UI registry output plus declared mechanical import ad
 
 ## Ownership
 
-The files below are copied from the frozen revision above. Vendor sync may adapt only upstream import aliases and the registry's base-ui relative paths. Product presentation and policy stay in the Agent UI facade and Plugin layers.
+The files below are copied from the frozen revision above. Vendor sync may adapt only upstream import aliases, registry base-ui relative paths, and the five recorded Agent UI Portal container bridges. Product presentation and policy stay in the Agent UI facade and Plugin layers.
 
 - 42 tracked vendor files
 - 23 tracked official Element files

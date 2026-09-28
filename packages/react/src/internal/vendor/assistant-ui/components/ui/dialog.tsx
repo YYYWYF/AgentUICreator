@@ -16,10 +16,10 @@ function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
 }
 
-function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
+function DialogPortal({ ...props }: Omit<DialogPrimitive.Portal.Props, "container">) {
   const portalContainer = useAgentUIPortalContainer();
   if (portalContainer === null) return null;
-  return <DialogPrimitive.Portal data-slot="dialog-portal" {...(portalContainer === undefined ? {} : { container: portalContainer })} {...props} />;
+  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} {...(portalContainer === undefined ? {} : { container: portalContainer })} />;
 }
 
 function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
