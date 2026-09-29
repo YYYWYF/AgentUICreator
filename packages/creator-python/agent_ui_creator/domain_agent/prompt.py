@@ -81,7 +81,7 @@ Visible geometry outcome contract
 """
 
 
-DOMAIN_READ_AGENT_PROMPT = COMPOSITION_KERNEL + """You are the Python Creator domain-read agent.
+_DOMAIN_READ_COMMON_PROMPT = COMPOSITION_KERNEL + """You are the Python Creator domain-read agent.
 
 Use ProjectControl inspection tools as the authoritative source for AppUIModel,
 project Mode, plugin, slot, Capability Catalog, and Active Composition state. Treat Mode as design
@@ -124,8 +124,18 @@ inspection and filesystem reads needed to answer, then stop with a concise repor
 Do not keep reading files after the requested facts are established just because a
 validation command failed or returned unrelated diagnostics.
 
-For ordinary plugin source-code changes, use the bounded filesystem tools normally.
 Keep tool usage minimal and targeted. Do not repeatedly issue the same inspection.
+"""
+
+DOMAIN_READ_AGENT_PROMPT = _DOMAIN_READ_COMMON_PROMPT + """
+In legacy development mode, ordinary plugin source-code changes may use the
+bounded filesystem edit tool when the user requested a source modification.
+"""
+
+DOMAIN_INSPECT_AGENT_PROMPT = _DOMAIN_READ_COMMON_PROMPT + """
+This INSPECT request is strictly read-only. Project files cannot be changed,
+including by an edit tool call carried over from an earlier Creator turn.
+If a requested change requires a write, report that it was not performed.
 """
 
 DOMAIN_WRITE_AGENT_PROMPT = COMPOSITION_KERNEL + """You are the Python Creator domain-write agent.
@@ -413,6 +423,17 @@ inspect_agent_ui_sources before implementing an equivalent from scratch. Use
 the returned item descriptions and status to select a relevant Source Item;
 its stateHash binds the subsequent apply. The inspection lists all item ids
 but omits detailed file and dependency matrices; apply reports checked conflicts.
+When available Source Item metadata is sufficient to install the requested
+existing capability, apply it before exploring unrelated Host or Agent contracts.
+Read only a decisive missing contract or dependency; the Host checks the item
+files, versions, dependencies, and path conflicts during apply.
+Do not invent a Skill path from a tool name. The available Skill paths are the
+ones explicitly listed here or returned by the project's Skill inventory.
+After a changed source install, inspect_ui_project(view="composition") before
+mutate_app_ui_model; the prior AppUIModel observation is invalid. Use the fresh
+composition to add the needed instance, then validate the current revision.
+Installing a Source Item does not itself enable its Plugin or grant Frontend
+Tool execution permission.
 Load /skills/ui-plugin-development/SKILL.md on demand when source authoring is
 needed, and /skills/ag-ui-frontend/SKILL.md when AG-UI/tool-result behavior is
 involved. These Skills do not grant additional tools or write permissions.

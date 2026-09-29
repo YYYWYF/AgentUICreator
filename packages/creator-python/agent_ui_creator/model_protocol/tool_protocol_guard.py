@@ -20,6 +20,7 @@ from .errors import (
     AgentNoProgressError,
     ModelResponseTruncatedError,
     ModelToolProtocolError,
+    ToolPermissionDeniedError,
 )
 from .provider_trace import ProviderResponseTrace, ProviderResponseTraceCollector
 from .request_shape import request_shape
@@ -610,6 +611,7 @@ class ToolProtocolMiddleware(AgentMiddleware):
         raw_trace: bool = False,
         provider_trace_collector: ProviderResponseTraceCollector | None = None,
         run_control: CreatorRunControlState | None = None,
+        forbidden_tool_names: frozenset[str] = frozenset(),
     ) -> None:
         self.metrics = metrics or ToolProtocolMetrics()
         self.guard = ToolProtocolGuard(self.metrics)
@@ -617,6 +619,7 @@ class ToolProtocolMiddleware(AgentMiddleware):
         self.raw_trace = raw_trace
         self.provider_trace_collector = provider_trace_collector
         self.run_control = run_control
+        self.forbidden_tool_names = forbidden_tool_names
 
     def _before_call(self) -> None:
         if self.run_control is not None:
@@ -713,6 +716,12 @@ class ToolProtocolMiddleware(AgentMiddleware):
                 **request_shape_data,
             )
         )
+        for call in (*message.tool_calls, *message.invalid_tool_calls):
+            name = _call_tool_name(call)
+            if name in self.forbidden_tool_names:
+                raise ToolPermissionDeniedError(
+                    f"TOOL_PERMISSION_DENIED: {name} cannot run in a read-only Creator inspection."
+                )
 
     def _repair_request(
         self, request: ModelRequest, expected_tool_name: str | None

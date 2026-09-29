@@ -40,8 +40,8 @@ def test_selector_inspect_route_uses_actual_read_only_agent(tmp_path, monkeypatc
         async def run(self, _messages):
             return resolved
 
-    async def fake_read(*_args, **_kwargs):
-        calls.append("read")
+    async def fake_read(*_args, **kwargs):
+        calls.append(("read", kwargs.get("inspect_read_only")))
         return "project facts"
 
     async def fake_write(*_args, **_kwargs):
@@ -61,7 +61,7 @@ def test_selector_inspect_route_uses_actual_read_only_agent(tmp_path, monkeypatc
         ProjectMutationCoordinator(), RuntimeDiagnosticStore(), "thread-1", None,
     ))
     assert result == "project facts"
-    assert calls == ["read"]
+    assert calls == [("read", True)]
 
 
 def test_conversation_messages_keeps_only_nonempty_user_and_assistant_text():

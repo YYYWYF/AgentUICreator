@@ -308,7 +308,7 @@ def test_current_screen_hide_preserving_source_does_not_remove_instance():
     assert result.decision == "general_change"
 
 
-def test_unified_selector_fails_closed_for_explicit_unavailable_workspace_region():
+def test_unified_selector_routes_unavailable_workspace_action_to_general():
     model = StaticChatModel(["SELECT A1"])
 
     result = asyncio.run(
@@ -318,11 +318,11 @@ def test_unified_selector_fails_closed_for_explicit_unavailable_workspace_region
         )
     )
 
-    assert result.decision == "unsupported_product_action"
+    assert result.decision == "general_change"
     assert len(model.messages) == 1
 
 
-def test_plugin_slot_theme_control_does_not_fallback_to_explicit_workspace_region():
+def test_plugin_slot_theme_control_routes_explicit_workspace_region_to_general():
     context = _unified_context(include_right=True)
     model = StaticChatModel(["SELECT A2"])
 
@@ -333,7 +333,7 @@ def test_plugin_slot_theme_control_does_not_fallback_to_explicit_workspace_regio
         )
     )
 
-    assert result.decision == "unsupported_product_action"
+    assert result.decision == "general_change"
 
 
 def test_domain_snapshot_binds_action_and_authoring_revisions_into_one_catalog():
@@ -383,12 +383,12 @@ def test_domain_snapshot_binds_action_and_authoring_revisions_into_one_catalog()
     )
 
 
-def test_explicit_unavailable_region_cannot_fall_back_to_default():
+def test_explicit_unavailable_region_cannot_select_default_action():
     model = StaticChatModel(["SELECT A1"])
     selection = asyncio.run(CreatorActionSelector(model=model).select(
         "我想在右边加入一个历史会话管理的面板", _add_context(include_right=False),
     ))
-    assert selection.decision == "unsupported_product_action"
+    assert selection.decision == "general_change"
 
 
 def test_explicit_region_action_and_unplaced_default_have_distinct_selection():
@@ -458,7 +458,7 @@ def test_explicit_relative_placement_cannot_fall_back_to_default(message):
         CreatorActionSelector(model=model).select(message, _add_context(include_right=False))
     )
 
-    assert selection.decision == "unsupported_product_action"
+    assert selection.decision == "general_change"
 
 
 def test_clarification_follow_up_carries_bounded_state_without_question_mark():
@@ -766,6 +766,11 @@ def test_selector_has_project_read_route_and_keeps_multistep_work_general():
     assert "project-related read-only" in _SELECTOR_SYSTEM_PROMPT
     assert "related implementation steps" in _SELECTOR_SYSTEM_PROMPT
     assert "no matching atomic Action" in _SELECTOR_SYSTEM_PROMPT
+
+
+def test_preserving_source_does_not_authorize_reverting_earlier_changes():
+    assert "restore any source changed by an earlier turn" not in _SELECTOR_SYSTEM_PROMPT
+    assert "preserve currently authorized source changes" in _SELECTOR_SYSTEM_PROMPT
 
 
 def test_selector_keeps_atomic_disable_and_real_out_of_scope_routes():

@@ -103,17 +103,20 @@ Minimal Agent 仅作为工具协议诊断模式保留：
 CREATOR_PYTHON_AGENT_MODE=minimal
 ```
 
-只读领域模式使用相同模型配置，并设置：
+历史领域诊断模式使用相同模型配置，并设置：
 
 ```env
 CREATOR_PYTHON_AGENT_MODE=domain-read
 ```
 
-该模式在 Minimal Agent 的 `ls`、`read_file`、`glob`、`grep`、`edit_file` 之外，
+该显式诊断模式仍允许受限的 `edit_file`，不能作为只读权限边界。它在 Minimal Agent
+的 `ls`、`read_file`、`glob`、`grep`、`edit_file` 之外，
 新增 `inspect_ui_project`、`inspect_app_ui_model`、`list_ui_plugins`、
 `inspect_ui_slots`、`inspect_ui_plugin`、`inspect_ui_services` 和
 `inspect_ui_plugin_source_references`。领域事实只通过目标工程固定的
 `scripts/ui-project-control.ts` 获取；不会自动向每轮模型调用注入全量 snapshot。
+默认领域写模式中 Selector 选择 `INSPECT` 时，单独构造只读执行作用域：模型看不到
+修改工具，文件系统执行侧也拒绝项目写入；之前会话的写任务不会扩大该轮权限。
 
 默认的可写领域模式在上述工具面上增加受限的领域写入口：
 

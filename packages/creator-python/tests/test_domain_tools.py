@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import pytest
 from agent_ui_creator.domain_tools import (
     DOMAIN_READ_TOOL_NAMES,
     MAX_DOMAIN_TOOL_RESULT_CHARS,
@@ -9,8 +10,10 @@ from agent_ui_creator.domain_tools import (
 )
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.domain_state import DomainObservationContext
+from agent_ui_creator.domain_state import DomainObservationError
 from agent_ui_creator.project_control import ProjectControlError
-from agent_ui_creator.domain_agent.prompt import DOMAIN_READ_AGENT_PROMPT
+from agent_ui_creator.domain_agent.prompt import DOMAIN_READ_AGENT_PROMPT, DOMAIN_WRITE_AGENT_PROMPT
+from agent_ui_creator.app_ui_model.mutation_tool import create_app_ui_model_mutation_tool
 
 
 class StubClient:
@@ -120,6 +123,43 @@ def test_read_inventory_stops_after_evidence_and_reports_unverified_connection()
     assert "do not search for proof of an unobserved live connection" in DOMAIN_READ_AGENT_PROMPT
 
 
+@pytest.mark.parametrize("source_item_id", ["plugin/reusable", "agent-component/secondary"])
+def test_existing_source_install_returns_explicit_observation_handoff(tmp_path, source_item_id):
+    client = StubClient()
+
+    async def installed(*, item_id, expected_state_hash):
+        return {
+            "itemId": item_id, "changed": True,
+            "changedPaths": ["agent-ui/plugins/reusable/definition.ts"],
+            "stateHash": expected_state_hash,
+        }
+
+    client.apply_agent_ui_source_item = installed
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("source-install")
+    observations = DomainObservationContext()
+    observations.observe_app_ui_model(
+        hash="a" * 64, revision=activity.revision, source="inspect_app_ui_model",
+    )
+    tool = create_project_control_tools(
+        client, observations=observations, activity=activity,
+    )[-1]
+    result = json.loads(asyncio.run(tool.ainvoke({
+        "itemId": source_item_id, "expectedStateHash": "f" * 64,
+    })))
+    assert result["result"]["observationHandoff"] == {
+        "appUIModelObservation": "invalidated_by_source_change",
+        "nextReadBeforeComposition": "inspect_ui_project(view=composition)",
+    }
+    assert observations.current_hash(current_revision=activity.revision) is None
+
+
+def test_source_reuse_guidance_precedes_unneeded_host_exploration():
+    assert "available Source Item metadata is sufficient to install" in DOMAIN_WRITE_AGENT_PROMPT
+    assert "Do not invent a Skill path from a tool name" in DOMAIN_WRITE_AGENT_PROMPT
+    assert "After a changed source install, inspect_ui_project(view=\"composition\")" in DOMAIN_WRITE_AGENT_PROMPT
+
+
 def test_domain_slot_tool_forwards_layout_hash_binding():
     tool = create_project_control_tools(StubClient())[3]
 
@@ -151,7 +191,7 @@ def test_oversized_project_result_pages_complete_snapshot_without_truncation():
         rendered = asyncio.run(tool.ainvoke({"cursor": cursor} if cursor else {}))
         assert len(rendered) < MAX_DOMAIN_TOOL_RESULT_CHARS
         page = json.loads(rendered)["result"]
-        assert page["pageComplete"] is False
+        assert page["pageComplete"] is (page["nextCursor"] is None)
         chunks.append(page["pageText"])
         cursor = page["nextCursor"]
         if cursor is None:
@@ -175,6 +215,156 @@ def test_project_page_cursor_rejects_changed_snapshot():
     response = json.loads(asyncio.run(tool.ainvoke({"cursor": first["result"]["nextCursor"]})))
 
     assert response["error"]["code"] == "PROJECT_CONTROL_SNAPSHOT_STALE"
+
+
+def test_skipped_project_page_cannot_authorize_mutation(tmp_path):
+    client = StubClient()
+    snapshot = {
+        "appUIModel": {"hash": "a" * 64},
+        "observationCoverage": [
+            "composition.model", "composition.layout", "composition.slots",
+            "composition.instances", "capability.inventory",
+            "capability.composition-summary",
+        ],
+        "padding": "x" * 70_000,
+    }
+
+    async def huge(*, view=None):
+        return snapshot
+
+    client.inspect_ui_project = huge
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("paging-run")
+    observations = DomainObservationContext()
+    tool = create_project_control_tools(
+        client, observations=observations, activity=activity,
+    )[0]
+    first = json.loads(asyncio.run(tool.ainvoke({"view": "composition"})))
+    assert observations.current_hash(current_revision=0) is None
+    page = first["result"]
+    last_offset = ((page["totalChars"] - 1) // 20_000) * 20_000
+    cursor_prefix = page["nextCursor"].rsplit(":", 1)[0]
+    skipped = json.loads(asyncio.run(tool.ainvoke({
+        "view": "composition", "cursor": f"{cursor_prefix}:{last_offset}",
+    })))
+    assert skipped["error"]["code"] == "PROJECT_CONTROL_CURSOR_OUT_OF_ORDER"
+    assert observations.current_hash(current_revision=0) is None
+    try:
+        observations.require_app_ui_model_hash(current_revision=0)
+    except DomainObservationError as error:
+        assert error.code == "APP_UI_MODEL_OBSERVATION_REQUIRED"
+    else:
+        raise AssertionError("Skipped pages authorized an AppUIModel mutation")
+
+    class RejectingMutationService:
+        def __init__(self):
+            self.activity = activity
+            self.calls = 0
+
+        def record_observation_failure(self, **_kwargs):
+            pass
+
+        async def mutate(self, **_kwargs):
+            self.calls += 1
+            raise AssertionError("Mutation reached the target without full observation")
+
+    service = RejectingMutationService()
+    mutation_tool = create_app_ui_model_mutation_tool(service, observations)
+    rejected = json.loads(asyncio.run(mutation_tool.ainvoke({
+        "operations": [{"type": "set_plugin_enabled", "instanceId": "sample", "enabled": False}],
+    })))
+    assert rejected["error"]["code"] == "APP_UI_MODEL_OBSERVATION_REQUIRED"
+    assert service.calls == 0
+
+    cursor = page["nextCursor"]
+    while cursor is not None:
+        response = json.loads(asyncio.run(tool.ainvoke({
+            "view": "composition", "cursor": cursor,
+        })))
+        assert response["ok"] is True
+        cursor = response["result"]["nextCursor"]
+    assert observations.current_hash(current_revision=activity.revision) == "a" * 64
+
+
+def test_project_cursor_is_scoped_to_view_run_and_revision(tmp_path):
+    client = StubClient()
+    snapshot = {"appUIModel": {"hash": "a" * 64}, "padding": "x" * 70_000}
+
+    async def huge(*, view=None):
+        return snapshot
+
+    client.inspect_ui_project = huge
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("first-run")
+    first_tool = create_project_control_tools(client, activity=activity)[0]
+    first = json.loads(asyncio.run(first_tool.ainvoke({"view": "composition"})))
+    cursor = first["result"]["nextCursor"]
+
+    wrong_view = json.loads(asyncio.run(first_tool.ainvoke({"cursor": cursor})))
+    assert wrong_view["error"]["code"] == "PROJECT_CONTROL_CURSOR_INVALID"
+
+    other_run = create_project_control_tools(client, activity=activity)[0]
+    wrong_run = json.loads(asyncio.run(other_run.ainvoke({
+        "view": "composition", "cursor": cursor,
+    })))
+    assert wrong_run["error"]["code"] == "PROJECT_CONTROL_CURSOR_INVALID"
+
+    other_first = json.loads(asyncio.run(other_run.ainvoke({"view": "composition"})))
+    assert other_first["result"]["nextCursor"] != cursor
+    still_wrong_run = json.loads(asyncio.run(other_run.ainvoke({
+        "view": "composition", "cursor": cursor,
+    })))
+    assert still_wrong_run["error"]["code"] == "PROJECT_CONTROL_CURSOR_INVALID"
+
+    hash_part, nonce, offset = cursor.split(":")
+    forged_nonce = "0" * 32 if nonce != "0" * 32 else "1" * 32
+    forged = json.loads(asyncio.run(first_tool.ainvoke({
+        "view": "composition", "cursor": f"{hash_part}:{forged_nonce}:{offset}",
+    })))
+    assert forged["error"]["code"] == "PROJECT_CONTROL_CURSOR_INVALID"
+
+    activity.touch("src/agent-ui/plugins/changed.ts")
+    changed_revision = json.loads(asyncio.run(first_tool.ainvoke({
+        "view": "composition", "cursor": cursor,
+    })))
+    assert changed_revision["error"]["code"] == "PROJECT_CONTROL_SNAPSHOT_STALE"
+
+
+def test_project_page_retry_does_not_skip_missing_middle_pages(tmp_path):
+    client = StubClient()
+    snapshot = {"appUIModel": {"hash": "a" * 64}, "padding": "x" * 70_000}
+
+    async def huge(*, view=None):
+        return snapshot
+
+    client.inspect_ui_project = huge
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("retry-run")
+    tool = create_project_control_tools(client, activity=activity)[0]
+    first = json.loads(asyncio.run(tool.ainvoke({"view": "composition"})))
+    cursor = first["result"]["nextCursor"]
+    middle = json.loads(asyncio.run(tool.ainvoke({
+        "view": "composition", "cursor": cursor,
+    })))
+    repeat = json.loads(asyncio.run(tool.ainvoke({
+        "view": "composition", "cursor": cursor,
+    })))
+    assert repeat["result"]["pageText"] == middle["result"]["pageText"]
+    assert repeat["result"]["nextCursor"] == middle["result"]["nextCursor"]
+
+
+def test_project_inspection_bounds_utf8_bytes_as_well_as_characters():
+    client = StubClient()
+
+    async def unicode_snapshot():
+        return {"appUIModel": {"hash": "a" * 64}, "text": "😀" * 15_000}
+
+    client.inspect_ui_project = unicode_snapshot
+    tool = create_project_control_tools(client)[0]
+    first = asyncio.run(tool.ainvoke({}))
+    assert len(first) <= MAX_DOMAIN_TOOL_RESULT_CHARS
+    assert len(first.encode("utf-8")) <= MAX_DOMAIN_TOOL_RESULT_CHARS
+    assert json.loads(first)["result"]["nextCursor"] is not None
 
 
 def test_authoritative_domain_reads_update_shared_observation(tmp_path):

@@ -125,8 +125,10 @@ Select an application_config or plugin_source choice when the requested change
 is a supplied, scoped authoring target. Use GENERAL for broader or unscoped
 implementation changes, such as a new capability with no supplied owner. Use
 GENERAL when the user explicitly preserves Plugin source but a plugin_source
-choice appears relevant; inspect Composition and restore any source changed by
-an earlier turn before finishing. Hiding a current visual instance while
+choice appears relevant; inspect Composition and preserve currently authorized source changes.
+Only restore earlier source when the user explicitly requests restoration, or
+when a change introduced in this run is proven to violate the authorized request.
+Hiding a current visual instance while
 preserving its implementation is a Composition change.
 When restoring Plugin source and changing Composition are both requested,
 choose GENERAL so both changes are handled together.
@@ -557,9 +559,7 @@ class CreatorIntentSelector:
                         if selected.kind == "add_existing_plugin" and requested_region is not None:
                             if selected.effect.type == "workspace_region":
                                 if selected.effect.region != requested_region:
-                                    return CreatorActionSelection(
-                                        decision="unsupported_product_action"
-                                    )
+                                    return CreatorActionSelection(decision="general_change")
                             elif selected.effect.type == "add_default":
                                 placement_domain = selected.effect.placementDomain
                                 explicit_workspace = _EXPLICIT_WORKSPACE_PLACEMENT.search(
@@ -575,21 +575,15 @@ class CreatorIntentSelector:
                                 ) is not None
                                 if (explicit_workspace or placement_domain != "plugin_slot"
                                         or not described_region):
-                                    return CreatorActionSelection(
-                                        decision="unsupported_product_action"
-                                    )
+                                    return CreatorActionSelection(decision="general_change")
                             else:
-                                return CreatorActionSelection(
-                                    decision="unsupported_product_action"
-                                )
+                                return CreatorActionSelection(decision="general_change")
                         if (
                             selected.kind == "add_existing_plugin"
                             and selected.effect.type == "add_default"
                             and _EXPLICIT_RELATIVE_PLACEMENT.search(user_message)
                         ):
-                            return CreatorActionSelection(
-                                decision="unsupported_product_action"
-                            )
+                            return CreatorActionSelection(decision="general_change")
                     return selection
                 except _InvalidActionSelection as error:
                     if (

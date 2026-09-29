@@ -89,6 +89,7 @@ from .change_scope import (
     build_change_layer_run_metrics,
 )
 from .prompt import (
+    DOMAIN_INSPECT_AGENT_PROMPT,
     DOMAIN_READ_AGENT_PROMPT,
     DOMAIN_WRITE_AGENT_PROMPT,
     creator_verification_prompt,
@@ -96,7 +97,7 @@ from .prompt import (
 from .runtime_guard import RepeatedProjectControlReadGuard
 from .skills import create_domain_skills_backend, default_creator_skills_root
 from .tool_batch_policy import DomainToolBatchPolicyMiddleware
-from .tool_policy import DomainReadToolPolicyMiddleware, DomainWriteToolPolicyMiddleware
+from .tool_policy import ALLOWED_INSPECT_READ_ONLY_TOOLS, SIDE_EFFECT_TOOL_NAMES, DomainReadToolPolicyMiddleware, DomainWriteToolPolicyMiddleware
 
 
 @dataclass(frozen=True, slots=True)
@@ -351,6 +352,7 @@ def create_domain_read_creator_agent(
     model: BaseChatModel,
     workspace: str | Path,
     mode: Literal["development", "conformance"] = "development",
+    permission_scope: Literal["legacy", "inspect_read_only"] = "legacy",
     raw_trace: bool = False,
     provider_trace_collector: ProviderResponseTraceCollector | None = None,
     project_control: ProjectControlClient | None = None,
@@ -366,7 +368,9 @@ def create_domain_read_creator_agent(
 ) -> CreatorDomainReadAgent:
     _register_minimal_harness_profile(model)
     policy = (
-        MinimalAgentPathPolicy.development()
+        MinimalAgentPathPolicy.inspect_read_only()
+        if permission_scope == "inspect_read_only"
+        else MinimalAgentPathPolicy.development()
         if mode == "development"
         else MinimalAgentPathPolicy.conformance()
     )
@@ -387,6 +391,11 @@ def create_domain_read_creator_agent(
     ), ask_user_question)
     if verification_mode == "static_and_runtime":
         domain_tools = (*domain_tools, create_runtime_layout_tool(runtime_inspection))
+    if permission_scope == "inspect_read_only":
+        domain_tools = tuple(
+            item for item in domain_tools
+            if item.name in ALLOWED_INSPECT_READ_ONLY_TOOLS
+        )
     metrics = ToolProtocolMetrics()
     run_control = CreatorRunControlState()
     protocol = ToolProtocolMiddleware(
@@ -394,6 +403,10 @@ def create_domain_read_creator_agent(
         raw_trace=raw_trace,
         provider_trace_collector=provider_trace_collector,
         run_control=run_control,
+        forbidden_tool_names=(
+            SIDE_EFFECT_TOOL_NAMES if permission_scope == "inspect_read_only"
+            else frozenset()
+        ),
     )
     if telemetry is not None:
         telemetry.bind(
@@ -419,7 +432,10 @@ def create_domain_read_creator_agent(
     )
     filesystem = FilesystemMiddleware(
         backend=backend,
-        tools=list(ALLOWED_MINIMAL_TOOLS),
+        tools=[
+            name for name in ALLOWED_MINIMAL_TOOLS
+            if permission_scope != "inspect_read_only" or name != "edit_file"
+        ],
         tool_token_limit_before_evict=None,
         human_message_token_limit_before_evict=None,
     )
@@ -428,7 +444,10 @@ def create_domain_read_creator_agent(
         tools=list(domain_tools),
         checkpointer=checkpointer,
         system_prompt=creator_verification_prompt(
-            DOMAIN_READ_AGENT_PROMPT, verification_mode
+            DOMAIN_INSPECT_AGENT_PROMPT
+            if permission_scope == "inspect_read_only"
+            else DOMAIN_READ_AGENT_PROMPT,
+            verification_mode,
         ),
         backend=backend,
         subagents=[],
@@ -436,7 +455,10 @@ def create_domain_read_creator_agent(
         memory=None,
         middleware=[
             filesystem,
-            DomainReadToolPolicyMiddleware(verification_mode),
+            DomainReadToolPolicyMiddleware(
+                verification_mode,
+                inspect_read_only=permission_scope == "inspect_read_only",
+            ),
             repeated_read_guard,
             runtime,
             model_retry,

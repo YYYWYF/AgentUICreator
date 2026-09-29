@@ -256,6 +256,7 @@ async def _domain_read_agent_result(
     diagnostics: RuntimeDiagnosticStore | None = None,
     checkpointer: Any = None,
     resume: dict[str, Any] | None = None,
+    inspect_read_only: bool = False,
 ):
     from .domain_agent import create_domain_read_creator_agent
     from .model_factory import create_creator_chat_model
@@ -285,6 +286,7 @@ async def _domain_read_agent_result(
         checkpointer=checkpointer,
         workspace=settings.project_root,
         mode="development",
+        permission_scope="inspect_read_only" if inspect_read_only else "legacy",
         raw_trace=model_settings.raw_trace,
         provider_trace_collector=provider_trace_collector,
         activity=activity,
@@ -370,6 +372,7 @@ async def _domain_write_agent_result(
             telemetry,
             diagnostics=diagnostics,
             checkpointer=checkpointer,
+            inspect_read_only=True,
         )
     return await _general_domain_write_agent_result(
         settings,

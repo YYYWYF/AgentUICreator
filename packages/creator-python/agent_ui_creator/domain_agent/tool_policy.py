@@ -52,6 +52,10 @@ SIDE_EFFECT_TOOL_NAMES = frozenset(
         "apply_agent_ui_source_item",
     }
 )
+ALLOWED_INSPECT_READ_ONLY_TOOLS = tuple(
+    name for name in ALLOWED_DOMAIN_READ_TOOLS
+    if name not in SIDE_EFFECT_TOOL_NAMES
+)
 READ_ONLY_TOOL_NAMES = _ALLOWED_DOMAIN_WRITE_TOOL_SET - SIDE_EFFECT_TOOL_NAMES
 
 
@@ -63,11 +67,16 @@ def filter_domain_read_tools(
     tools: Sequence[Any],
     *,
     verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
+    inspect_read_only: bool = False,
 ) -> list[Any]:
+    allowed = (
+        frozenset(ALLOWED_INSPECT_READ_ONLY_TOOLS)
+        if inspect_read_only else _ALLOWED_DOMAIN_READ_TOOL_SET
+    )
     return [
         tool
         for tool in tools
-        if tool_name(tool) in _ALLOWED_DOMAIN_READ_TOOL_SET
+        if tool_name(tool) in allowed
         and (
             _runtime_tools_enabled(verification_mode)
             or tool_name(tool) not in RUNTIME_VERIFICATION_TOOL_NAMES
@@ -97,8 +106,11 @@ class DomainReadToolPolicyMiddleware(AgentMiddleware):
     def __init__(
         self,
         verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
+        *,
+        inspect_read_only: bool = False,
     ) -> None:
         self.verification_mode = verification_mode
+        self.inspect_read_only = inspect_read_only
 
     def wrap_model_call(
         self,
@@ -110,6 +122,7 @@ class DomainReadToolPolicyMiddleware(AgentMiddleware):
                 tools=filter_domain_read_tools(
                     request.tools,
                     verification_mode=self.verification_mode,
+                    inspect_read_only=self.inspect_read_only,
                 )
             )
         )
@@ -124,6 +137,7 @@ class DomainReadToolPolicyMiddleware(AgentMiddleware):
                 tools=filter_domain_read_tools(
                     request.tools,
                     verification_mode=self.verification_mode,
+                    inspect_read_only=self.inspect_read_only,
                 )
             )
         )

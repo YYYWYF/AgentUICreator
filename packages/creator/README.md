@@ -133,14 +133,15 @@ CREATOR_MODEL_API_KEY=your-key
 ```
 
 该模式只验证受限的 read/edit/grep 工具协议，不包含 AppUIModel、Project Control、
-Fast Path、Validation 或 Completion 业务能力。Phase 3A 的实验性只读领域模式改用：
+Fast Path、Validation 或 Completion 业务能力。Phase 3A 的历史领域诊断模式改用：
 
 ```env
 CREATOR_PYTHON_AGENT_MODE=domain-read
 ```
 
 Domain Read 模式复用相同模型栈，并通过正式 ProjectControl v2 入口开放六个只读领域工具；
-不会开放 `mutate_app_ui_model`。
+不会开放 `mutate_app_ui_model`，但仍保留受限 `edit_file`，不能据此认定该显式模式是只读执行边界。
+默认模式的 `INSPECT` 请求使用单独的只读权限作用域，模型工具与文件系统执行侧均禁止写入。
 
 默认的静态组合写模式也可以显式写成：
 

@@ -49,10 +49,15 @@ class MinimalAgentPathPolicy:
     mode: Literal["development", "conformance"] = "development"
     generic_service_writes: bool = False
     source_root: str | None = None
+    read_only: bool = False
 
     @classmethod
     def development(cls) -> "MinimalAgentPathPolicy":
         return cls(mode="development")
+
+    @classmethod
+    def inspect_read_only(cls) -> "MinimalAgentPathPolicy":
+        return cls(mode="development", read_only=True)
 
     @classmethod
     def internal_source(cls) -> "MinimalAgentPathPolicy":
@@ -88,6 +93,10 @@ class MinimalAgentPathPolicy:
 
     def assert_write(self, path: str) -> str:
         normalized = self.assert_read(path)
+        if self.read_only:
+            raise PathPolicyViolation(
+                "TOOL_PERMISSION_DENIED: this Creator inspection cannot modify project files."
+            )
         if self.mode == "development":
             if normalized == "/.agent-ui" or normalized.startswith("/.agent-ui/"):
                 raise PathPolicyViolation(

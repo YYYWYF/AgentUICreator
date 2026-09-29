@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import hashlib
 import re
+import secrets
+from dataclasses import dataclass, field
 from typing import Any, Literal
 
 from langchain_core.tools import BaseTool, tool
@@ -19,8 +21,9 @@ from ..domain_state import (
 from ..project_control import ProjectControlClient, ProjectControlError
 
 MAX_DOMAIN_TOOL_RESULT_CHARS = 48_000
+MAX_DOMAIN_TOOL_RESULT_BYTES = 48_000
 PROJECT_INSPECTION_PAGE_CHARS = 20_000
-_PROJECT_CURSOR = re.compile(r"([0-9a-f]{64}):([1-9][0-9]*)\Z")
+_PROJECT_CURSOR = re.compile(r"([0-9a-f]{64}):([0-9a-f]{32}):([1-9][0-9]*)\Z")
 DOMAIN_READ_TOOL_NAMES = (
     "inspect_ui_project",
     "inspect_app_ui_model",
@@ -117,9 +120,16 @@ def _render_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"), default=str)
 
 
+def _within_result_limit(rendered: str) -> bool:
+    return (
+        len(rendered) <= MAX_DOMAIN_TOOL_RESULT_CHARS
+        and len(rendered.encode("utf-8")) <= MAX_DOMAIN_TOOL_RESULT_BYTES
+    )
+
+
 def _render_result(result: Any) -> str:
     rendered = _render_json({"ok": True, "result": result})
-    if len(rendered) <= MAX_DOMAIN_TOOL_RESULT_CHARS:
+    if _within_result_limit(rendered):
         return rendered
     return _render_json(
         {
@@ -133,46 +143,98 @@ def _render_result(result: Any) -> str:
                 "details": {
                     "limitChars": MAX_DOMAIN_TOOL_RESULT_CHARS,
                     "resultChars": len(rendered),
+                    "limitUtf8Bytes": MAX_DOMAIN_TOOL_RESULT_BYTES,
+                    "resultUtf8Bytes": len(rendered.encode("utf-8")),
                 },
             },
         },
     )
 
 
-def _render_project_inspection(result: Any, cursor: str | None) -> tuple[str, bool]:
-    """Page an oversized authoritative snapshot without treating a prefix as complete."""
+@dataclass(slots=True)
+class _ProjectInspectionPages:
+    snapshot_hash: str
+    nonce: str
+    revision: int
+    next_offset: int = 0
+    delivered_offsets: set[int] = field(default_factory=set)
+    complete: bool = False
+    coverage_recorded: bool = False
+
+
+def _project_cursor_error(code: str, message: str) -> str:
+    return _render_json({"ok": False, "error": {"code": code, "message": message}})
+
+
+def _render_project_inspection(
+    result: Any,
+    cursor: str | None,
+    *,
+    state: _ProjectInspectionPages | None,
+    revision: int,
+) -> tuple[str, bool, _ProjectInspectionPages | None]:
+    """Deliver only contiguous pages from one run-scoped snapshot and view."""
     complete = _render_json({"ok": True, "result": result})
     snapshot_hash = hashlib.sha256(complete.encode("utf-8")).hexdigest()
-    if cursor is None and len(complete) <= MAX_DOMAIN_TOOL_RESULT_CHARS:
-        return complete, True
+    if cursor is None and _within_result_limit(complete):
+        return complete, True, None
 
     offset = 0
     if cursor is not None:
         match = _PROJECT_CURSOR.fullmatch(cursor)
-        if match is None or int(match.group(2)) >= len(complete):
-            return _render_json({"ok": False, "error": {
-                "code": "PROJECT_CONTROL_CURSOR_INVALID",
-                "message": "The project inspection cursor is invalid.",
-            }}), False
+        if match is None or int(match.group(3)) >= len(complete):
+            return _project_cursor_error(
+                "PROJECT_CONTROL_CURSOR_INVALID", "The project inspection cursor is invalid."
+            ), False, state
         if match.group(1) != snapshot_hash:
-            return _render_json({"ok": False, "error": {
-                "code": "PROJECT_CONTROL_SNAPSHOT_STALE",
-                "message": "Project inspection changed between pages; restart from the first page.",
-            }}), False
-        offset = int(match.group(2))
+            return _project_cursor_error(
+                "PROJECT_CONTROL_SNAPSHOT_STALE",
+                "Project inspection changed between pages; restart from the first page.",
+            ), False, None
+        if state is None or state.nonce != match.group(2):
+            return _project_cursor_error(
+                "PROJECT_CONTROL_CURSOR_INVALID", "The cursor belongs to another inspection."
+            ), False, state
+        if state.snapshot_hash != snapshot_hash or state.revision != revision:
+            return _project_cursor_error(
+                "PROJECT_CONTROL_SNAPSHOT_STALE",
+                "Project inspection revision changed between pages; restart from the first page.",
+            ), False, None
+        offset = int(match.group(3))
+        if offset != state.next_offset and offset not in state.delivered_offsets:
+            return _project_cursor_error(
+                "PROJECT_CONTROL_CURSOR_OUT_OF_ORDER",
+                "Read the next cursor in order before using later pages.",
+            ), False, state
+    elif state is None or state.snapshot_hash != snapshot_hash or state.revision != revision:
+        state = _ProjectInspectionPages(
+            snapshot_hash=snapshot_hash,
+            nonce=secrets.token_hex(16),
+            revision=revision,
+        )
 
+    assert state is not None
     end = min(offset + PROJECT_INSPECTION_PAGE_CHARS, len(complete))
-    rendered = _render_json({"ok": True, "result": {
-        "pageComplete": False,
-        "snapshotHash": snapshot_hash,
-        "appUIModelHash": result.get("appUIModel", {}).get("hash") if isinstance(result, dict) else None,
-        "pageOffset": offset,
-        "totalChars": len(complete),
-        "pageText": complete[offset:end],
-        "nextCursor": f"{snapshot_hash}:{end}" if end < len(complete) else None,
-    }})
-    assert len(rendered) < MAX_DOMAIN_TOOL_RESULT_CHARS
-    return rendered, end == len(complete)
+    while True:
+        rendered = _render_json({"ok": True, "result": {
+            "pageComplete": end == len(complete),
+            "snapshotHash": snapshot_hash,
+            "appUIModelHash": result.get("appUIModel", {}).get("hash") if isinstance(result, dict) else None,
+            "pageOffset": offset,
+            "totalChars": len(complete),
+            "pageText": complete[offset:end],
+            "nextCursor": f"{snapshot_hash}:{state.nonce}:{end}" if end < len(complete) else None,
+        }})
+        if _within_result_limit(rendered):
+            break
+        if end - offset <= 1:
+            raise ValueError("A project inspection page cannot fit the tool result limit.")
+        end = offset + (end - offset) // 2
+    if offset == state.next_offset:
+        state.delivered_offsets.add(offset)
+        state.next_offset = end
+        state.complete = end == len(complete)
+    return rendered, state.complete, state
 
 
 def _render_error(error: ProjectControlError | DomainObservationError) -> str:
@@ -186,7 +248,7 @@ def _render_error(error: ProjectControlError | DomainObservationError) -> str:
             },
         }
     )
-    if len(rendered) <= MAX_DOMAIN_TOOL_RESULT_CHARS:
+    if _within_result_limit(rendered):
         return rendered
     return _render_json(
         {
@@ -197,6 +259,8 @@ def _render_error(error: ProjectControlError | DomainObservationError) -> str:
                 "details": {
                     "limitChars": MAX_DOMAIN_TOOL_RESULT_CHARS,
                     "resultChars": len(rendered),
+                    "limitUtf8Bytes": MAX_DOMAIN_TOOL_RESULT_BYTES,
+                    "resultUtf8Bytes": len(rendered.encode("utf-8")),
                 },
             },
         }
@@ -209,6 +273,8 @@ def create_project_control_tools(
     observations: DomainObservationContext | None = None,
     activity: CreatorActivityRecorder | None = None,
 ) -> tuple[BaseTool, ...]:
+    paging_states: dict[str, _ProjectInspectionPages] = {}
+
     def observe(hash: Any, source: ObservationSource) -> None:
         if observations is None or activity is None:
             return
@@ -264,6 +330,7 @@ def create_project_control_tools(
             if covered is not None:
                 return covered
         try:
+            view_key = view or "project"
             result = (
                 await client.inspect_ui_project(view="composition")
                 if view == "composition"
@@ -274,10 +341,28 @@ def create_project_control_tools(
                 if view == "composition"
                 else _project_navigation(result)
             )
-            rendered, complete = _render_project_inspection(result, cursor)
+            current_revision = activity.revision if activity is not None else 0
+            current_hash = (
+                observations.current_hash(current_revision=current_revision)
+                if observations is not None else None
+            )
+            result_hash = result.get("appUIModel", {}).get("hash")
+            if current_hash is not None and current_hash != result_hash:
+                observations.invalidate_app_ui_model(reason="project_inspection_changed")
+            rendered, complete, state = _render_project_inspection(
+                result, cursor,
+                state=paging_states.get(view_key),
+                revision=current_revision,
+            )
+            if state is None:
+                paging_states.pop(view_key, None)
+            else:
+                paging_states[view_key] = state
             if json.loads(rendered).get("ok") is not True:
                 return rendered
             if not complete:
+                return rendered
+            if state is not None and state.coverage_recorded:
                 return rendered
             app_ui_model_hash = result.get("appUIModel", {}).get("hash")
             if view == "composition":
@@ -294,6 +379,8 @@ def create_project_control_tools(
                         reason="full_project_navigation",
                         current_revision=activity.revision,
                     )
+            if state is not None:
+                state.coverage_recorded = True
             return rendered
         except (ProjectControlError, DomainObservationError) as error:
             return _render_error(error)
@@ -416,7 +503,7 @@ def create_project_control_tools(
     async def apply_agent_ui_source_item(
         itemId: str, expectedStateHash: str
     ) -> str:
-        """Install or safely synchronize one source-registry item without overwriting customized or untracked user files."""
+        """Install an available Source Item by id and stateHash; after a changed install inspect_ui_project(view='composition') before composing."""
         candidate_paths: set[str] = set()
         if activity is not None:
             try:
@@ -456,6 +543,18 @@ def create_project_control_tools(
                         source="apply_agent_ui_source_item",
                         reason="already-managed",
                     )
+            if result.get("changed") is True:
+                if observations is not None:
+                    observations.invalidate_app_ui_model(
+                        reason="agent_ui_source_install_changed_project"
+                    )
+                result = {
+                    **result,
+                    "observationHandoff": {
+                        "appUIModelObservation": "invalidated_by_source_change",
+                        "nextReadBeforeComposition": "inspect_ui_project(view=composition)",
+                    },
+                }
             return _render_result(result)
         except ProjectControlError as error:
             return _render_error(error)
