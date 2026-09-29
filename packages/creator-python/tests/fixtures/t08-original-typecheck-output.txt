@@ -1,0 +1,24 @@
+TypeScript differential unavailable: an unrecognized TypeScript diagnostic was present.
+[WARN] Your node_modules are out of sync with your lockfile. The value of the enableGlobalVirtualStore setting has changed
+@agent-ui/react public declaration boundary: OK (2 declarations)
+@agent-ui/runtime-conversation public declaration boundary: OK (8 reachable declarations)
+@agent-ui/runtime-conversation published-package consumer typecheck: OK (isolated tarball install, skipLibCheck: false)
+[96msrc/unrelated-type-error.ts[0m:[93m2[0m:[93m14[0m - [91merror[0m[90m TS2322: [0mType 'string' is not assignable to type 'number'.
+
+[7m2[0m export const unrelatedFixtureNumber: number = "known-baseline-error";
+[7m [0m [91m             ~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+Found 1 error in src/unrelated-type-error.ts[90m:2[0m
+
+[ELIFECYCLE] Command failed with exit code 1.
+$ node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure platform creator-host-sandbox
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json
+$ node scripts/build.mjs
+$ tsc --noEmit

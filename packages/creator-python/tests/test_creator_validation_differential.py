@@ -437,6 +437,69 @@ def test_parser_ignores_line_columns_for_fingerprint_and_normalizes_paths(tmp_pa
     assert first.diagnostics[0].fingerprint == second.diagnostics[0].fingerprint
 
 
+def test_t08_original_pretty_typecheck_matches_plain_diagnostic(tmp_path):
+    raw = (Path(__file__).parent / "fixtures/t08-original-typecheck-output.txt").read_text()
+    pretty = parse_typescript_diagnostics(raw, project_root=tmp_path, exit_code=1)
+    plain = parse_typescript_diagnostics(
+        "src/unrelated-type-error.ts(2,14): error TS2322: Type 'string' is not assignable to type 'number'.",
+        project_root=tmp_path,
+        exit_code=1,
+    )
+    assert pretty.available is True
+    assert pretty.diagnostics == plain.diagnostics
+
+    service, _activity, _runner = _service(
+        tmp_path,
+        [
+            CommandExecutionResult(raw, 1, False),
+            CommandExecutionResult("verify ok", 0, False),
+            CommandExecutionResult(
+                "src/unrelated-type-error.ts(2,14): error TS2322: Type 'string' is not assignable to type 'number'.",
+                1,
+                False,
+            ),
+        ],
+    )
+    result = asyncio.run(service.validate(mode="delta"))
+    assert result.status == "passed"
+    assert result.differential.to_dict()["unchangedDiagnosticCount"] == 1
+    assert result.workspace_warning["diagnosticCount"] == 1
+
+
+def test_pretty_code_frame_does_not_hide_later_unknown_error():
+    output = (
+        "src/example.ts:1:1 - error TS2322: Wrong type\n\n"
+        "1 export const label = 'error';\n"
+        "  ~~~~~\n\n"
+        "error from another compiler that cannot be attributed"
+    )
+    parsed = parse_typescript_diagnostics(output, exit_code=1)
+    assert parsed.available is False
+    assert parsed.reason == "an unrecognized TypeScript diagnostic was present"
+
+
+def test_windows_pretty_and_plain_paths_share_identity():
+    pretty = parse_typescript_diagnostics(
+        "C:\\work\\app\\src\\widget.ts:3:2 - error TS2322: Wrong type",
+        exit_code=1,
+    )
+    plain = parse_typescript_diagnostics(
+        "C:\\work\\app\\src\\widget.ts(7,9): error TS2322: Wrong type",
+        exit_code=1,
+    )
+    assert pretty.available is True
+    assert pretty.diagnostics == plain.diagnostics
+    assert pretty.diagnostics[0].path == "C:/work/app/src/widget.ts"
+
+
+def test_malformed_located_typescript_error_is_not_global_success():
+    parsed = parse_typescript_diagnostics(
+        "src/example.ts:unknown - error TS2322: Wrong type",
+        exit_code=1,
+    )
+    assert parsed.available is False
+
+
 def test_duplicate_diagnostic_occurrence_is_new_delta_and_fails(tmp_path):
     baseline = (
         "foo.ts(10,2): error TS2322: Type 'string' is not assignable to type 'number'"

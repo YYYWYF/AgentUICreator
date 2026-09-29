@@ -8,20 +8,21 @@ from pathlib import Path
 _ANSI_ESCAPE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 _TS_EXTENSION = r"(?:d\.)?(?:[cm]?tsx?|[cm]?jsx?)"
 _TS_PAREN_DIAGNOSTIC = re.compile(
-    rf"(?P<path>[^():\n]+?\.{_TS_EXTENSION})\(\d+,\s*\d+\)\s*:\s*"
+    rf"(?P<path>(?:[A-Za-z]:)?[^():\n]+?\.{_TS_EXTENSION})\(\d+,\s*\d+\)\s*:\s*"
     r"error\s+TS(?P<code>\d+)\s*:\s*(?P<message>.*)$",
     re.IGNORECASE,
 )
 _TS_COLON_DIAGNOSTIC = re.compile(
-    rf"(?P<path>[^():\n]+?\.{_TS_EXTENSION}):\d+:\d+\s*(?::|-)+\s*"
+    rf"(?P<path>(?:[A-Za-z]:)?[^():\n]+?\.{_TS_EXTENSION}):\d+:\d+\s*(?::|-)+\s*"
     r"error\s+TS(?P<code>\d+)\s*:\s*(?P<message>.*)$",
     re.IGNORECASE,
 )
 _TS_GLOBAL_DIAGNOSTIC = re.compile(
-    r"^(?:.*?[:\s])?error\s+TS(?P<code>\d+)\s*:\s*(?P<message>.*)$",
+    r"^(?:>\s*)?error\s+TS(?P<code>\d+)\s*:\s*(?P<message>.*)$",
     re.IGNORECASE,
 )
 _TS_ERROR_MARKER = re.compile(r"\berror\s+TS\d+\b", re.IGNORECASE)
+_TS_PRETTY_SOURCE_LINE = re.compile(r"^\d+\s+\S")
 _NON_DIAGNOSTIC_FAILURE_MARKER = re.compile(
     r"(?:ERR_PNPM_|ELIFECYCLE|command failed|\bfailed\b|\bscope:\b|"
     r"\bfound\s+\d+\s+errors?\b|\bno\s+errors?\b)",
@@ -115,6 +116,7 @@ def parse_typescript_diagnostics(
 
     diagnostics: list[TypeScriptDiagnostic] = []
     saw_unparsed_typescript_error = False
+    in_pretty_frame = False
     for raw_line in output.splitlines():
         line = _ANSI_ESCAPE.sub("", raw_line).strip()
         if not line:
@@ -124,6 +126,7 @@ def parse_typescript_diagnostics(
             match = _TS_COLON_DIAGNOSTIC.search(line)
         if match is not None:
             diagnostics.append(_diagnostic_from_match(match, project_root))
+            in_pretty_frame = True
             continue
         global_match = _TS_GLOBAL_DIAGNOSTIC.match(line)
         if global_match is not None:
@@ -136,7 +139,13 @@ def parse_typescript_diagnostics(
                     ),
                 )
             )
+            in_pretty_frame = True
             continue
+        # Pretty tsc output includes numbered source lines. Their source text may
+        # itself contain the word "error"; it is not a second compiler diagnostic.
+        if in_pretty_frame and _TS_PRETTY_SOURCE_LINE.match(line):
+            continue
+        in_pretty_frame = False
         if _TS_ERROR_MARKER.search(line):
             saw_unparsed_typescript_error = True
         elif re.search(r"\berror\b", line, re.IGNORECASE) and not _NON_DIAGNOSTIC_FAILURE_MARKER.search(line):
