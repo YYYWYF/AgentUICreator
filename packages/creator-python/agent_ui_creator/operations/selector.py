@@ -63,6 +63,10 @@ _RESTORE_PLUGIN_SOURCE = re.compile(
     r"|\brestore\s+(?:the\s+)?(?:plugin\s+)?(?:source|implementation)\b",
     re.I,
 )
+_RESTORE_VISUAL_STATE = re.compile(
+    r"恢复|还原|重新显示|显示回来|\brestore\b|\bshow\s+again\b|\bbring\s+back\b",
+    re.I,
+)
 _CURRENT_VISUAL_SCOPE = re.compile(
     r"只在\s*(?:当前|这个|本)\s*(?:界面|页面)"
     r"|\bonly\s+(?:on|in)\s+(?:the\s+)?(?:current|this)\s+(?:screen|view|interface)\b",
@@ -100,6 +104,10 @@ related implementation steps such as inspecting an existing component, adapting
 it, and composing it. Having no matching atomic Action is not a reason
 to reject legitimate frontend work: choose GENERAL for authorized source work.
 An already_satisfied Action may still be selected.
+Moving an instance changes placement only. When the user asks to restore a
+hidden visual instance, a Move Action cannot make it visible even if its
+placement is already satisfied; choose GENERAL to inspect and restore the
+current Composition state.
 Use a Workspace Region choice for top-level Left, Center, or Right semantics
 when the supplied Action effect has placementDomain workspace, including a
 position described as after the main Conversation surface. A plugin_slot
@@ -551,6 +559,9 @@ class CreatorIntentSelector:
                             for candidate in normalized_context.actions
                             if candidate.actionId == selection.actionId
                         )
+                        if (selected.kind == "move_plugin"
+                                and _RESTORE_VISUAL_STATE.search(user_message)):
+                            return CreatorActionSelection(decision="general_change")
                         if (selected.kind == "remove_plugin"
                                 and _CURRENT_VISUAL_SCOPE.search(user_message)
                                 and _PRESERVE_PLUGIN_SOURCE.search(user_message)):

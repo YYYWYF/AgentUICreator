@@ -789,6 +789,17 @@ def test_selector_accepts_already_satisfied_action():
     assert result.actionId == "act_history_right"
 
 
+def test_restoring_hidden_entry_does_not_accept_placement_only_action():
+    selector = CreatorActionSelector(model=StaticChatModel(["SELECT A1"]))
+    result = asyncio.run(
+        selector.select(
+            "把刚才隐藏的历史会话入口恢复到原来的右侧位置",
+            _context(right_status="already_satisfied"),
+        )
+    )
+    assert result.decision == "general_change"
+
+
 def test_selector_message_excludes_execution_details():
     model = StaticChatModel(["GENERAL"])
     asyncio.run(CreatorActionSelector(model=model).select("模糊搜索", _context()))
