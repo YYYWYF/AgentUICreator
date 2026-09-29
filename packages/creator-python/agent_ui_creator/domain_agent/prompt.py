@@ -106,6 +106,9 @@ resolved in the current composition. It does not prove a backend endpoint is
 configured or that a request succeeded. In a capability inventory, label UI
 present, configuration present, and live integration verified separately.
 If no request/response evidence was observed, say live integration is unverified.
+Once ProjectControl and the relevant endpoint configuration establish the
+requested inventory, answer from those facts; do not search for proof of an unobserved live connection.
+Do not inspect each plugin implementation to prove that its declared UI exists.
 
 ProjectControl mutation is intentionally unavailable in this phase. Do not manually
 edit app-ui/app-ui.json, app-ui/composition-revision.generated.json, or

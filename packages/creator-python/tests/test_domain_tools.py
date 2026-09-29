@@ -10,6 +10,7 @@ from agent_ui_creator.domain_tools import (
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.domain_state import DomainObservationContext
 from agent_ui_creator.project_control import ProjectControlError
+from agent_ui_creator.domain_agent.prompt import DOMAIN_READ_AGENT_PROMPT
 
 
 class StubClient:
@@ -113,6 +114,10 @@ def test_service_inspection_distinguishes_resolved_provider_from_live_backend():
         "statusScope": "project composition and declared provider dependencies",
         "liveBackendConnection": "not tested by this inspection",
     }
+
+
+def test_read_inventory_stops_after_evidence_and_reports_unverified_connection():
+    assert "do not search for proof of an unobserved live connection" in DOMAIN_READ_AGENT_PROMPT
 
 
 def test_domain_slot_tool_forwards_layout_hash_binding():
