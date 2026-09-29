@@ -17,6 +17,7 @@ from .models import (
 CreatorIntentRoute: TypeAlias = Literal[
     "productized",
     "general-agent",
+    "read_only_general",
     "unscoped_general",
     "scoped_general_handoff",
     "application_config",
@@ -103,6 +104,8 @@ def _label_for_action_selection(
         return "当前没有可安全执行的对应操作"
     if selection.decision == "general_change":
         return "执行需要进一步实现的修改"
+    if selection.decision == "read_only_analysis":
+        return "读取工程并分析现状"
     if selection.decision == "select_intent" and target is not None:
         return f"修改 {target.name}"
     if action is None:
@@ -154,6 +157,7 @@ def present_creator_action_selection(
         "select_intent": target.kind if target is not None else "scoped_general_handoff",
         "needs_clarification": "clarification",
         "general_change": "general-agent",
+        "read_only_analysis": "read_only_general",
         "unsupported_product_action": "unsupported",
     }[selection.decision]
     target_plugin_ids = (

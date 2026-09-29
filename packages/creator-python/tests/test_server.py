@@ -9,7 +9,59 @@ from agent_ui_creator.model_protocol.errors import ModelToolProtocolError
 from agent_ui_creator.app_ui_model import AppUIModelMutationMetrics
 from agent_ui_creator.domain_state import DomainObservationMetrics
 from agent_ui_creator.server import AgUiRunInput, _conversation_messages, create_app
+from agent_ui_creator.operations import CreatorActionSelection, CreatorResolveResult, CreatorIntentPresentation
 from agent_ui_creator.streaming import ToolInvocationFinished, ToolInvocationStarted
+
+
+def test_selector_inspect_route_uses_actual_read_only_agent(tmp_path, monkeypatch):
+    from agent_ui_creator.activity import CreatorActivityRecorder
+    from agent_ui_creator.app_ui_model import ProjectMutationCoordinator
+    from agent_ui_creator.runtime_diagnostics import RuntimeDiagnosticStore
+    from agent_ui_creator.server import _domain_write_agent_result
+
+    selection = CreatorActionSelection(decision="read_only_analysis")
+    resolved = CreatorResolveResult(
+        route="read_only_general",
+        selection=selection,
+        presentation=CreatorIntentPresentation(
+            label="读取工程并分析现状",
+            kind="read_only_analysis",
+            target_plugin_ids=(),
+            target_instance_ids=(),
+            route="read_only_general",
+        ),
+    )
+    calls = []
+
+    class FakeEngine:
+        def __init__(self, **_kwargs):
+            pass
+
+        async def run(self, _messages):
+            return resolved
+
+    async def fake_read(*_args, **_kwargs):
+        calls.append("read")
+        return "project facts"
+
+    async def fake_write(*_args, **_kwargs):
+        calls.append("write")
+
+    monkeypatch.setenv("CREATOR_MODEL_BASE_URL", "http://127.0.0.1:9/v1")
+    monkeypatch.setenv("CREATOR_MODEL_API_KEY", "test-only")
+    monkeypatch.setattr("agent_ui_creator.model_factory.create_creator_chat_model", lambda *_args, **_kwargs: object())
+    monkeypatch.setattr("agent_ui_creator.server.ProductizedOperationEngine", FakeEngine)
+    monkeypatch.setattr("agent_ui_creator.server._domain_read_agent_result", fake_read)
+    monkeypatch.setattr("agent_ui_creator.server._general_domain_write_agent_result", fake_write)
+    settings = CreatorServerSettings(project_root=tmp_path, skills_root=tmp_path, auth_token="x" * 32)
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("read-only-route")
+    result = asyncio.run(_domain_write_agent_result(
+        settings, [{"role": "user", "content": "只分析当前界面"}], activity,
+        ProjectMutationCoordinator(), RuntimeDiagnosticStore(), "thread-1", None,
+    ))
+    assert result == "project facts"
+    assert calls == ["read"]
 
 
 def test_conversation_messages_keeps_only_nonempty_user_and_assistant_text():

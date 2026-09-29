@@ -24,6 +24,7 @@ from agent_ui_creator.operations import (
 )
 from agent_ui_creator.operations.selector import (
     _InvalidActionSelection,
+    _SELECTOR_SYSTEM_PROMPT,
     _parse_selector_response,
 )
 from agent_ui_creator.model_settings import CreatorSelectorModelSettings
@@ -704,6 +705,22 @@ def test_selector_normalizes_terminal_routes(response, decision):
     result = asyncio.run(selector.select("更改会话管理", _context()))
     assert result.decision == decision
     assert result.actionId is None
+
+
+def test_selector_has_project_read_route_and_keeps_multistep_work_general():
+    selection = _parse_selector_response("INSPECT", {})
+    assert selection.decision == "read_only_analysis"
+    assert "project-related read-only" in _SELECTOR_SYSTEM_PROMPT
+    assert "related implementation steps" in _SELECTOR_SYSTEM_PROMPT
+    assert "no matching atomic Action" in _SELECTOR_SYSTEM_PROMPT
+
+
+def test_selector_keeps_atomic_disable_and_real_out_of_scope_routes():
+    action = _unified_context().intentCatalog.candidates[0]
+    selected = _parse_selector_response("SELECT A1", {"A1": action})
+    unsupported = _parse_selector_response("UNSUPPORTED", {})
+    assert selected.decision == "select_action"
+    assert unsupported.decision == "unsupported_product_action"
 
 
 def test_selector_accepts_already_satisfied_action():

@@ -70,15 +70,20 @@ operations, invent ownership, or execute changes.
 
 Return exactly ONE line in one of these forms:
 SELECT A<n>
+INSPECT
 GENERAL
 UNSUPPORTED
 CLARIFY <question>
 
-Never invent a choice, target, owner, placement, or mutation. Never select only
-one part of a multi-layer request; use GENERAL when the complete desired state
-spans Composition and source/config ownership. Use UNSUPPORTED for multiple
-independent requests that have no single safe supplied route. An already_satisfied
-Action may still be selected.
+Never invent a choice, target, owner, placement, or mutation. Use INSPECT for a
+project-related read-only request (analysis, inventory, diagnosis, or an
+evidence-based answer). It routes to an agent whose actual tools are read-only.
+Never select only one part of a multi-layer request; use GENERAL when the
+complete desired state spans Composition and source/config ownership, or has
+related implementation steps such as inspecting an existing component, adapting
+it, and composing it. Having no matching atomic Action is not a reason
+to reject legitimate frontend work: choose GENERAL for authorized source work.
+An already_satisfied Action may still be selected.
 Use a Workspace Region choice for top-level Left, Center, or Right semantics
 when the supplied Action effect has placementDomain workspace, including a
 position described as after the main Conversation surface. A plugin_slot
@@ -90,21 +95,25 @@ precedence over a Plugin defaultPlacement. For workspace placement, choose
 add_default only when the user did not request a location; a canonical
 plugin_slot control may still be selected for a plain directional phrase when
 its supplied semantic description matches that control. If an exact requested
-placement is unavailable, return UNSUPPORTED or CLARIFY; never select another
+placement is unavailable, return GENERAL or CLARIFY; never select another
 placement or add_default as a fallback.
 Visual Remove Actions remove only UI Plugin instances. If the user clearly asks
 to remove a visible panel or list, select its visual Remove Action. If the user
-clearly asks to disable the underlying capability, services, or data, return
-UNSUPPORTED. If their wording could mean either visual UI removal or underlying
+clearly asks to change an authorized frontend capability or Service, use GENERAL
+to inspect its owner and authorization. Backend work remains UNSUPPORTED. If
+their wording could mean either visual UI removal or underlying
 capability removal, use CLARIFY to ask which scope they mean. A brief answer to
 a previous Creator clarification may resolve the target using the bounded
 previous request and clarification supplied in context.
 Select an application_config or plugin_source choice when the requested change
-is a supplied, scoped authoring target. Use GENERAL only for broader or
-unscoped implementation changes, such as a new capability with no supplied
-owner. Use CLARIFY when the supplied semantics cannot identify one target or
-removal scope without guessing. Use UNSUPPORTED when a simple request has no
-supplied valid choice. Return no JSON, Markdown, or explanation.
+is a supplied, scoped authoring target. Use GENERAL for broader or unscoped
+implementation changes, such as a new capability with no supplied owner. Use
+CLARIFY only when a user-owned business decision materially changes the result
+and project inspection cannot resolve it; ordinary implementation choices
+belong to Creator. Use UNSUPPORTED only for a request clearly outside Agent
+frontend product scope or a forbidden authorization boundary, not for an empty
+candidate list or a compound but related task. Return no JSON, Markdown, or
+explanation.
 
 Semantic highways:
 - Composition: add or remove a Plugin, Plugin existence, enable or disable,
@@ -264,14 +273,14 @@ def _repair_feedback(
             "Your previous SELECT referenced a choice that does not exist in the "
             "current request.\n\n"
             f"Select exactly one of: {valid}.\n"
-            "Return exactly SELECT <valid-choice>, or use GENERAL / UNSUPPORTED / "
+            "Return exactly SELECT <valid-choice>, or use INSPECT / GENERAL / UNSUPPORTED / "
             "CLARIFY if semantically correct.\n"
             "Do not reinterpret the user's request."
         )
     return (
         "Your previous response did not match the Creator Action Selector protocol.\n\n"
         "Return exactly ONE line in one of these forms:\n"
-        "SELECT <choice>\nGENERAL\nUNSUPPORTED\nCLARIFY <question>\n\n"
+        "SELECT <choice>\nINSPECT\nGENERAL\nUNSUPPORTED\nCLARIFY <question>\n\n"
         "When using CLARIFY, write the question in Simplified Chinese by default.\n"
         f"Valid choices are: {valid}.\n"
         "Do not return JSON, Markdown, or explanation.\n"
@@ -344,6 +353,8 @@ def _parse_selector_response(
         return CreatorActionSelection(decision="select_intent", targetId=target_id)
     if line == "GENERAL":
         return CreatorActionSelection(decision="general_change")
+    if line == "INSPECT":
+        return CreatorActionSelection(decision="read_only_analysis")
     if line == "UNSUPPORTED":
         return CreatorActionSelection(decision="unsupported_product_action")
     clarification = _CLARIFY_PATTERN.fullmatch(line)
@@ -515,7 +526,16 @@ class CreatorIntentSelector:
                                 explicit_workspace = _EXPLICIT_WORKSPACE_PLACEMENT.search(
                                     user_message
                                 ) is not None
-                                if explicit_workspace or placement_domain != "plugin_slot":
+                                region_word = {"left": "左", "center": "中", "right": "右"}[
+                                    requested_region
+                                ]
+                                described_region = re.search(
+                                    rf"\b{requested_region}\b|{region_word}",
+                                    selected.description,
+                                    re.I,
+                                ) is not None
+                                if (explicit_workspace or placement_domain != "plugin_slot"
+                                        or not described_region):
                                     return CreatorActionSelection(
                                         decision="unsupported_product_action"
                                     )

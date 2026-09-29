@@ -360,6 +360,17 @@ async def _domain_write_agent_result(
         return productized_result
     if not isinstance(productized_result, CreatorResolveResult):
         raise TypeError("Productized Operation Engine returned an unknown result.")
+    if productized_result.route == "read_only_general":
+        return await _domain_read_agent_result(
+            settings,
+            messages,
+            activity,
+            thread_id,
+            event_sink,
+            telemetry,
+            diagnostics=diagnostics,
+            checkpointer=checkpointer,
+        )
     return await _general_domain_write_agent_result(
         settings,
         messages,
@@ -887,7 +898,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             "domainObservations": result.domain_observations.to_dict(),
                             "streaming": event_bus.metrics().to_dict(),
                         }
-                        if agent_mode == "domain-write":
+                        if agent_mode == "domain-write" and hasattr(result, "app_ui_model_mutations"):
                             run_result["appUIModelMutations"] = (
                                 result.app_ui_model_mutations.to_dict()
                             )
@@ -936,50 +947,28 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                     run_result["clarificationQuestion"] = (
                                         result.selection.clarificationQuestion
                                     )
+                        elif agent_mode == "domain-write":
+                            run_result["phase"] = "domain-read-agent"
+                            run_result["executionPolicy"] = "read-only"
+                        if agent_mode == "domain-write":
                             operation_route = getattr(telemetry, "operation_route", None)
                             if isinstance(operation_route, dict):
                                 run_result["productizedRoute"] = operation_route
-                            operation_presentation = getattr(
-                                result,
-                                "intent_presentation",
-                                None,
-                            )
+                            operation_presentation = getattr(result, "intent_presentation", None)
                             if operation_presentation is not None:
-                                run_result["creatorIntent"] = (
-                                    operation_presentation.to_dict()
-                                )
-                            elif isinstance(
-                                getattr(telemetry, "operation_presentation", None),
-                                dict,
+                                run_result["creatorIntent"] = operation_presentation.to_dict()
+                            elif isinstance(getattr(telemetry, "operation_presentation", None), dict):
+                                run_result["creatorIntent"] = telemetry.operation_presentation
+                            for field, telemetry_field in (
+                                ("actionSelector", "action_selector"),
+                                ("actionSelection", "action_selection"),
+                                ("selectedCreatorAction", "selected_creator_action"),
+                                ("selectedCreatorIntent", "selected_creator_intent"),
+                                ("authoringHandoff", "authoring_handoff"),
                             ):
-                                run_result["creatorIntent"] = (
-                                    telemetry.operation_presentation
-                                )
-                            action_selector = getattr(
-                                telemetry, "action_selector", None
-                            )
-                            if isinstance(action_selector, dict):
-                                run_result["actionSelector"] = action_selector
-                            action_selection = getattr(
-                                telemetry, "action_selection", None
-                            )
-                            if isinstance(action_selection, dict):
-                                run_result["actionSelection"] = action_selection
-                            selected_creator_action = getattr(
-                                telemetry, "selected_creator_action", None
-                            )
-                            if isinstance(selected_creator_action, dict):
-                                run_result["selectedCreatorAction"] = selected_creator_action
-                            selected_creator_intent = getattr(
-                                telemetry, "selected_creator_intent", None
-                            )
-                            if isinstance(selected_creator_intent, dict):
-                                run_result["selectedCreatorIntent"] = selected_creator_intent
-                            authoring_handoff = getattr(
-                                telemetry, "authoring_handoff", None
-                            )
-                            if isinstance(authoring_handoff, dict):
-                                run_result["authoringHandoff"] = authoring_handoff
+                                value = getattr(telemetry, telemetry_field, None)
+                                if isinstance(value, dict):
+                                    run_result[field] = value
                     else:
                         run_result = {
                             "runtime": "python",

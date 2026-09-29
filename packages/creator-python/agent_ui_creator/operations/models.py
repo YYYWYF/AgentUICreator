@@ -605,6 +605,7 @@ CreatorActionDecision: TypeAlias = Literal[
     "select_action",
     "select_intent",
     "needs_clarification",
+    "read_only_analysis",
     "general_change",
     "unsupported_product_action",
 ]
