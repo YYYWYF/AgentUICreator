@@ -26,6 +26,7 @@ from .tool_policy import READ_ONLY_TOOL_NAMES, RUNTIME_VERIFICATION_TOOL_NAMES
 COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
     "read_file",
     "inspect_ui_project",
+    "inspect_agent_ui_sources",
     "mutate_app_ui_model",
     "inspect_runtime_layout",
 )
@@ -45,8 +46,9 @@ Slots and current instances, available Plugin capability summaries, and Active
 Composition. For a pure Composition change, the next side effect should be
 mutate_app_ui_model. Do not read Plugin source, CSS, Services, or generated files.
 If another authoring layer is genuinely required, issue the smallest targeted
-cross-layer read. The Host treats that rejected read as an explicit exit signal
-and restores the full tool surface on the next model call; retry the read then.
+cross-layer read. For a missing reusable capability, inspect_agent_ui_sources
+is available and exits the Composition fast path in one read. Other cross-layer
+reads are rejected as explicit exit signals; retry them on the next model call.
 Expand grounding for a missing decisive fact or another-layer requirement."""
 
 
@@ -213,6 +215,8 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 reason="cross_layer_read",
                 current_revision=self.backend.mutation_revision,
             )
+            if name == "inspect_agent_ui_sources":
+                prohibited = False
         return call, name, arguments, prohibited
 
     def _after_tool_call(

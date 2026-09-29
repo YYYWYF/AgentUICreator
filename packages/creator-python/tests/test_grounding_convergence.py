@@ -162,6 +162,33 @@ def test_source_discovery_before_composition_keeps_install_tool_available(tmp_pa
     assert "apply_agent_ui_source_item" in [tool.name for tool in seen[0].tools]
 
 
+def test_source_discovery_after_composition_exits_fast_path_in_one_read(tmp_path):
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    observations = DomainObservationContext()
+    observations.observe_composition_snapshot(
+        hash="a" * 64, revision=0, coverage=COMPOSITION_COVERAGE,
+    )
+    middleware = CompositionGroundingConvergenceMiddleware(observations, backend)
+    offered = []
+    tools = [SimpleNamespace(name=name) for name in ALLOWED_DOMAIN_WRITE_TOOLS]
+    middleware.wrap_model_call(
+        ModelRequest(model=Mock(), messages=[], tools=tools),
+        lambda candidate: (offered.extend(tool.name for tool in candidate.tools), ModelResponse(result=[AIMessage(content="done")]))[1],
+    )
+    assert "inspect_agent_ui_sources" in offered
+    executed = []
+    result = middleware.wrap_tool_call(
+        _tool_request("inspect_agent_ui_sources", {}),
+        lambda request: (executed.append(request.tool_call), ToolMessage(
+            content='{"ok":true}', tool_call_id=request.tool_call["id"],
+            name=request.tool_call["name"], status="success",
+        ))[1],
+    )
+    assert result.status == "success"
+    assert len(executed) == 1
+    assert observations.composition_grounding_status(current_revision=0) == "unobserved"
+
+
 def _tool_request(name, arguments, call_id="call-1"):
     return SimpleNamespace(
         tool_call={"name": name, "args": arguments, "id": call_id}
