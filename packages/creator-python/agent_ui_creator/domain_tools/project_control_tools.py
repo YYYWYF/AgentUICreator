@@ -369,14 +369,20 @@ def create_project_control_tools(
 
     @tool("inspect_ui_services")
     async def inspect_ui_services() -> str:
-        """Inspect declared Service providers, required consumers, optional consumers, and current availability."""
+        """Inspect declared Service providers and composition availability; this does not test a live backend connection."""
         prohibited = cross_layer_read_prohibited("inspect_ui_services")
         if prohibited is not None:
             return prohibited
         try:
             result = await client.inspect_ui_services()
             observe(result.get("appUIModelHash"), "inspect_ui_services")
-            return _render_result(result)
+            return _render_result({
+                **result,
+                "availabilityEvidence": {
+                    "statusScope": "project composition and declared provider dependencies",
+                    "liveBackendConnection": "not tested by this inspection",
+                },
+            })
         except ProjectControlError as error:
             return _render_error(error)
 

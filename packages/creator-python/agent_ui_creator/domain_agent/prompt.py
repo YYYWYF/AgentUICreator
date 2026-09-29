@@ -100,7 +100,12 @@ available source, configured composition, and externally connected behavior.
 Read individual implementation files only to resolve a material uncertainty;
 stop once the requested distinction can be made.
 Use inspect_ui_services for Service providers, required consumers, optional
-consumers, and availability; do not infer capability ownership from Plugin names.
+consumers, and composition availability; do not infer capability ownership from
+Plugin names. A Service status of available means a declared Provider is
+resolved in the current composition. It does not prove a backend endpoint is
+configured or that a request succeeded. In a capability inventory, label UI
+present, configuration present, and live integration verified separately.
+If no request/response evidence was observed, say live integration is unverified.
 
 ProjectControl mutation is intentionally unavailable in this phase. Do not manually
 edit app-ui/app-ui.json, app-ui/composition-revision.generated.json, or

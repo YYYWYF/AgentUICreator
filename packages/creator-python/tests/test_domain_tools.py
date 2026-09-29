@@ -105,6 +105,16 @@ def test_domain_tool_preserves_project_control_error_code():
     assert result["error"]["code"] == "CONTROL_ENTRY_TIMEOUT"
 
 
+def test_service_inspection_distinguishes_resolved_provider_from_live_backend():
+    tool = create_project_control_tools(StubClient())[5]
+    response = json.loads(asyncio.run(tool.ainvoke({})))
+
+    assert response["result"]["availabilityEvidence"] == {
+        "statusScope": "project composition and declared provider dependencies",
+        "liveBackendConnection": "not tested by this inspection",
+    }
+
+
 def test_domain_slot_tool_forwards_layout_hash_binding():
     tool = create_project_control_tools(StubClient())[3]
 
