@@ -25,7 +25,7 @@ Inspect project conventions before deciding that Plugin source must change:
 
 1. List and inspect existing Plugins.
 2. If a Plugin already supplies the requested behavior, reuse its `manifest.id` in an AppUIPluginNode and change only AppUIModel as needed. Stop source discovery when no source change is required.
-3. Otherwise, locate and inspect matching UI components elsewhere in project source, especially when the user says the UI already exists. An absent Plugin does not mean the UI is absent.
+3. Otherwise, locate and inspect matching UI components elsewhere in project source, especially when the user says the UI already exists. If its path is unknown, `glob` the component name across the project root (a basename pattern such as `*Name*.tsx`), then `grep` for its declaration or imports when needed. A guessed conventional path or an absent Plugin entry is not evidence that the component is missing. Ask for a path only after a bounded project-wide search found no match.
 4. If a reusable component exists, adopt it through the smallest Plugin adapter.
    For a project-owned Composer view, use `useConversationComposer()` from
    `@agent-ui/react` in that adapter. It exposes the active Thread's draft,

@@ -458,6 +458,10 @@ Tool execution permission.
 Load /skills/ui-plugin-development/SKILL.md on demand when source authoring is
 needed, and /skills/ag-ui-frontend/SKILL.md when AG-UI/tool-result behavior is
 involved. These Skills do not grant additional tools or write permissions.
+When the user names an existing project component but omits its path, locate it
+with a project-wide filename glob or symbol grep before concluding it is absent.
+An absent Plugin registry entry or one missing guessed path does not establish
+that ordinary Host component source is absent.
 
 Installed Agent UI primitives are reusable local project source. Inspect the
 existing primitive before using or modifying it rather than guessing its API.
