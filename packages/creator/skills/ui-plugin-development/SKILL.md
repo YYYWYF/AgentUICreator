@@ -27,6 +27,13 @@ Inspect project conventions before deciding that Plugin source must change:
 2. If a Plugin already supplies the requested behavior, reuse its `manifest.id` in an AppUIPluginNode and change only AppUIModel as needed. Stop source discovery when no source change is required.
 3. Otherwise, locate and inspect matching UI components elsewhere in project source, especially when the user says the UI already exists. An absent Plugin does not mean the UI is absent.
 4. If a reusable component exists, adopt it through the smallest Plugin adapter.
+   For a project-owned Composer view, use `useConversationComposer()` from
+   `@agent-ui/react` in that adapter. It exposes the active Thread's draft,
+   attachments, running/disabled state, and send/cancel/add/remove actions;
+   it does not create another Runtime. Connect only capabilities already enabled
+   in the project. A component's attachment callback can open a local file input
+   and pass selected files to `addAttachment`; honor `attachmentsEnabled` and
+   `attachmentAccept`. Keep the component implementation unchanged.
 5. If neither a Plugin nor a reusable component exists, create a new Plugin implementation following project conventions.
 6. For an ordinary Plugin, insert its node into a Layout Slot or parent plugin's local Slot through AppUIModel. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
 7. When the user requires login, License, organization selection, onboarding, or initialization before the Workspace can be used, prefer a first-class `manifest.application.gate` Plugin in `applicationPlugins`; it is an Application lifecycle surface, not visual Slot composition.
