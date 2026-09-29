@@ -63,6 +63,11 @@ _RESTORE_PLUGIN_SOURCE = re.compile(
     r"|\brestore\s+(?:the\s+)?(?:plugin\s+)?(?:source|implementation)\b",
     re.I,
 )
+_CURRENT_VISUAL_SCOPE = re.compile(
+    r"只在\s*(?:当前|这个|本)\s*(?:界面|页面)"
+    r"|\bonly\s+(?:on|in)\s+(?:the\s+)?(?:current|this)\s+(?:screen|view|interface)\b",
+    re.I,
+)
 
 
 def _explicit_workspace_region(message: str) -> str | None:
@@ -125,6 +130,8 @@ an earlier turn before finishing. Hiding a current visual instance while
 preserving its implementation is a Composition change.
 When restoring Plugin source and changing Composition are both requested,
 choose GENERAL so both changes are handled together.
+For a current-screen-only hide that preserves Plugin source, choose GENERAL
+instead of a Remove Action: the instance can be disabled in Composition.
 CLARIFY only when a user-owned business decision materially changes the result
 and project inspection cannot resolve it; ordinary implementation choices
 belong to Creator. Use UNSUPPORTED only for a request clearly outside Agent
@@ -542,6 +549,10 @@ class CreatorIntentSelector:
                             for candidate in normalized_context.actions
                             if candidate.actionId == selection.actionId
                         )
+                        if (selected.kind == "remove_plugin"
+                                and _CURRENT_VISUAL_SCOPE.search(user_message)
+                                and _PRESERVE_PLUGIN_SOURCE.search(user_message)):
+                            return CreatorActionSelection(decision="general_change")
                         requested_region = _explicit_workspace_region(user_message)
                         if selected.kind == "add_existing_plugin" and requested_region is not None:
                             if selected.effect.type == "workspace_region":

@@ -284,6 +284,30 @@ def test_restoring_source_and_changing_composition_cannot_select_one_atomic_acti
     assert result.decision == "general_change"
 
 
+def test_current_screen_hide_preserving_source_does_not_remove_instance():
+    context = CreatorActionSelectorContext(
+        catalogRevision="c" * 64,
+        actions=[{
+            "actionId": "act_remove_suggestions",
+            "kind": "remove_plugin",
+            "status": "ready",
+            "label": "Remove Suggestions",
+            "description": "Remove the Suggestions visual instance from Composition.",
+            "target": {"pluginId": "suggestions", "pluginName": "Suggestions", "instanceId": "suggestions-main"},
+            "effect": {"type": "remove"},
+        }],
+        pluginSemantics=[],
+    )
+    selector = CreatorActionSelector(model=StaticChatModel(["SELECT A1"]))
+
+    result = asyncio.run(selector.select(
+        "只在当前界面隐藏建议展示，保留插件源码和其他功能。",
+        context,
+    ))
+
+    assert result.decision == "general_change"
+
+
 def test_unified_selector_fails_closed_for_explicit_unavailable_workspace_region():
     model = StaticChatModel(["SELECT A1"])
 
