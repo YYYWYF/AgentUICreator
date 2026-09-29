@@ -107,7 +107,6 @@ def test_real_target_project_read_operations_execute_through_tsx():
     services = asyncio.run(client.inspect_ui_services())
     references = asyncio.run(client.inspect_ui_plugin_source_references(plugin_id))
     sources = asyncio.run(client.inspect_agent_ui_sources())
-
     assert project["schemaVersion"] == 3
     assert composition["view"] == "composition"
     assert composition["appUIModel"]["hash"] == project["appUIModel"]["hash"]
@@ -126,6 +125,94 @@ def test_real_target_project_read_operations_execute_through_tsx():
     assert references["pluginId"] == plugin_id
     assert sources["sourceRoot"] == "agent-ui"
     assert sources["metadataRoot"] == ".agent-ui"
+
+
+def test_real_composition_tool_returns_usable_bounded_navigation():
+    client = ProjectControlClient(project_root=TARGET_PROJECT)
+    tool = next(
+        tool for tool in create_project_control_tools(client)
+        if tool.name == "inspect_ui_project"
+    )
+    result = json.loads(asyncio.run(tool.ainvoke({"view": "composition"})))
+    assert result["ok"] is True
+    snapshot = result["result"]
+    assert snapshot["appUIModel"]["hash"]
+    assert snapshot["appUIModel"]["layout"]
+    assert snapshot["pluginInstances"]
+    assert snapshot["capabilitySummaries"]
+
+
+def test_real_source_tool_lists_uninstalled_resources_with_current_state_hash():
+    client = ProjectControlClient(project_root=TARGET_PROJECT)
+    full = asyncio.run(client.inspect_agent_ui_sources())
+    tool = next(
+        tool for tool in create_project_control_tools(client)
+        if tool.name == "inspect_agent_ui_sources"
+    )
+    result = json.loads(asyncio.run(tool.ainvoke({})))
+    assert result["ok"] is True
+    inventory = result["result"]
+    assert inventory["stateHash"] == full["stateHash"]
+    assert {item["id"] for item in inventory["items"]} == {
+        item["id"] for item in full["items"]
+    }
+    assert any(item["status"] == "not-installed" for item in inventory["items"])
+    assert all(item["description"] for item in inventory["items"])
+
+
+@pytest.mark.parametrize(
+    ("host_name", "mode"),
+    [
+        ("creator-host-sandbox", "platform"),
+        ("creator-assistant-host", "assistant"),
+        ("creator-embedded-host", "embedded"),
+    ],
+)
+def test_current_host_modes_have_complete_bounded_inspection(host_name, mode):
+    import subprocess
+
+    host = REPOSITORY_ROOT / "examples" / host_name
+    subprocess.run(
+        ["node", "--import", "tsx", "../../scripts/host-examples/host-project.ts",
+         "ensure", mode, host_name],
+        cwd=host,
+        check=True,
+    )
+    client = ProjectControlClient(project_root=host)
+    tools = {tool.name: tool for tool in create_project_control_tools(client)}
+    full = asyncio.run(client.inspect_ui_project(view="composition"))
+    response = json.loads(asyncio.run(tools["inspect_ui_project"].ainvoke({"view": "composition"})))
+    assert response["ok"] is True
+    result = response["result"]
+    assert result["appUIModel"] == full["appUIModel"]
+    assert result["pluginInstances"] == full["pluginInstances"]
+    assert result["activeComposition"] == full["activeComposition"]
+    assert result["capabilityCatalogRevision"] == full["capabilityCatalogRevision"]
+    assert {item["pluginId"] for item in result["capabilitySummaries"]} == {
+        item["pluginId"] for item in full["capabilitySummaries"]
+    }
+    assert "creator.actions" not in result["observationCoverage"]
+    assert result["catalogNavigation"]["creatorActions"]["count"] == len(full["creatorActions"]["candidates"])
+
+    source_response = json.loads(asyncio.run(tools["inspect_agent_ui_sources"].ainvoke({})))
+    assert source_response["ok"] is True
+    assert len(source_response["result"]["items"]) == len(asyncio.run(client.inspect_agent_ui_sources())["items"])
+
+
+def test_expanded_host_source_inventory_and_composition_stay_bounded(tmp_path):
+    project_root = _copy_target(tmp_path, "expanded-host")
+    client = ProjectControlClient(project_root=project_root)
+    before = asyncio.run(client.inspect_agent_ui_sources())
+    asyncio.run(client.apply_agent_ui_source_item(
+        item_id="plugin/theme-switch", expected_state_hash=before["stateHash"]
+    ))
+    tools = {tool.name: tool for tool in create_project_control_tools(client)}
+    composition = json.loads(asyncio.run(tools["inspect_ui_project"].ainvoke({"view": "composition"})))
+    sources = json.loads(asyncio.run(tools["inspect_agent_ui_sources"].ainvoke({})))
+    assert composition["ok"] is True
+    assert sources["ok"] is True
+    assert any(item["pluginId"] == "theme-switch" for item in composition["result"]["capabilitySummaries"])
+    assert next(item for item in sources["result"]["items"] if item["id"] == "plugin/theme-switch")["status"] == "managed"
 
 
 def test_real_target_mutation_uses_temp_copy_and_python_transaction(tmp_path):

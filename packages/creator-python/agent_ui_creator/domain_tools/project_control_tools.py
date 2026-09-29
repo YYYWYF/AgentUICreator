@@ -34,8 +34,79 @@ COMPOSITION_SNAPSHOT_COVERAGE: tuple[ObservationCoverage, ...] = (
     "composition.instances",
     "capability.inventory",
     "capability.composition-summary",
-    "creator.actions",
 )
+
+
+def _composition_navigation(result: dict[str, Any]) -> dict[str, Any]:
+    """Keep the facts needed for a composition decision without catalog duplication.
+
+    The Selector already receives the complete Action and Authoring Target
+    catalogs from ProjectControl. Their revision/count remain visible here;
+    exact source and service details have dedicated inspection tools.
+    """
+    if not {"creatorActions", "authoringTargetCatalog", "capabilitySummaries", "observationCoverage"}.issubset(result):
+        return result
+    actions = result["creatorActions"]
+    targets = result["authoringTargetCatalog"]
+    return {
+        **{key: value for key, value in result.items()
+           if key not in {"creatorActions", "authoringTargetCatalog"}},
+        "observationCoverage": [
+            item for item in result["observationCoverage"]
+            if item not in {"creator.actions", "creator.authoring-targets"}
+        ],
+        "capabilitySummaries": [
+            {key: value for key, value in summary.items() if key != "currentInstances"}
+            for summary in result["capabilitySummaries"]
+        ],
+        "catalogNavigation": {
+            "creatorActions": {"revision": actions["revision"], "count": len(actions["candidates"]), "detailsIn": "Selector"},
+            "authoringTargets": {"revision": targets["revision"], "count": len(targets["candidates"]), "detailsIn": "Selector"},
+        },
+        "sourceDiscovery": {
+            "availableVia": "inspect_agent_ui_sources",
+            "note": "Plugin inventory covers installed project plugins; inspect available Source Items before implementing a missing reusable capability.",
+        },
+    }
+
+
+def _project_navigation(result: dict[str, Any]) -> dict[str, Any]:
+    if "authoringTargetCatalog" not in result:
+        return result
+    targets = result["authoringTargetCatalog"]
+    return {
+        **{key: value for key, value in result.items() if key != "authoringTargetCatalog"},
+        "authoringTargetNavigation": {
+            "revision": targets["revision"],
+            "count": len(targets["candidates"]),
+            "detailsIn": "Selector",
+        },
+        "sourceDiscovery": {"availableVia": "inspect_agent_ui_sources"},
+    }
+
+
+def _source_inventory(result: dict[str, Any]) -> dict[str, Any]:
+    if "items" not in result:
+        return result
+    return {
+        **{key: value for key, value in result.items() if key != "items"},
+        "items": [
+            {
+                "id": item["id"],
+                **({"description": item["description"]} if "description" in item else {}),
+                "status": item["status"],
+                "availableVersion": item["availableVersion"],
+                **({"installedVersion": item["installedVersion"]} if "installedVersion" in item else {}),
+                "fileCount": len(item.get("files", [])),
+                "dependencyIssueCodes": sorted({issue["code"] for issue in item.get("dependencyIssues", [])}),
+                "issueCodes": sorted({issue["code"] for issue in item.get("issues", [])}),
+            }
+            for item in result["items"]
+        ],
+        "inventoryComplete": True,
+        "itemDetailsIncluded": False,
+        "applyReportsDependencyAndPathConflicts": True,
+    }
 
 
 def _render_json(value: Any) -> str:
@@ -144,7 +215,7 @@ def create_project_control_tools(
     async def inspect_ui_project(
         view: Literal["composition"] | None = None,
     ) -> str:
-        """Inspect current authoritative workspace facts. For a pure Composition request, use view='composition' to get one compact snapshot containing the AppUIModel hash, Layout refs and sizes, Slots and instances, capability authoring semantics, the Creator Action and Authoring Target Catalogs, Service readiness, Active Composition, deterministic Layout constraints, and Host mutation guarantees. Omit view only when another layer's broader project navigation facts are genuinely required."""
+        """Inspect current authoritative workspace facts. For a pure Composition request, use view='composition' to get the AppUIModel hash, Layout refs and sizes, Slots and instances, capability authoring semantics, Service readiness, Active Composition, deterministic Layout constraints, and Host mutation guarantees. Selector-only Action and Authoring Target details are omitted; their revisions and counts remain. Omit view only when another layer's broader project navigation facts are genuinely required."""
         if view == "composition":
             if observations is not None:
                 observations.record_composition_snapshot_attempt()
@@ -156,6 +227,11 @@ def create_project_control_tools(
                 await client.inspect_ui_project(view="composition")
                 if view == "composition"
                 else await client.inspect_ui_project()
+            )
+            result = (
+                _composition_navigation(result)
+                if view == "composition"
+                else _project_navigation(result)
             )
             rendered = _render_result(result)
             if json.loads(rendered).get("ok") is not True:
@@ -278,12 +354,12 @@ def create_project_control_tools(
 
     @tool("inspect_agent_ui_sources")
     async def inspect_agent_ui_sources() -> str:
-        """Inspect Agent UI source-registry ownership, versions, dependencies, and safe apply state."""
+        """List all available and installed Agent UI Source Items with current stateHash, status, versions, and issue codes. The inventory is complete; file and dependency details are omitted. apply_agent_ui_source_item reports checked dependency and path conflicts without overwriting user files."""
         prohibited = cross_layer_read_prohibited("inspect_agent_ui_sources")
         if prohibited is not None:
             return prohibited
         try:
-            return _render_result(await client.inspect_agent_ui_sources())
+            return _render_result(_source_inventory(await client.inspect_agent_ui_sources()))
         except ProjectControlError as error:
             return _render_error(error)
 

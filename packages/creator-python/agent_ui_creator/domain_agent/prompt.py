@@ -380,6 +380,15 @@ primitive, call inspect_agent_ui_sources and then install it with exactly one
 apply_agent_ui_source_item call using the returned stateHash. The Host resolves
 declared source-item dependencies and performs the copy transaction. Never read
 the development Registry and manually reproduce its templates.
+The installed Plugin inventory is not the complete Source Item inventory. When
+the requested frontend behavior has no installed Plugin or local component,
+inspect_agent_ui_sources before implementing an equivalent from scratch. Use
+the returned item descriptions and status to select a relevant Source Item;
+its stateHash binds the subsequent apply. The inspection lists all item ids
+but omits detailed file and dependency matrices; apply reports checked conflicts.
+Load /skills/ui-plugin-development/SKILL.md on demand when source authoring is
+needed, and /skills/ag-ui-frontend/SKILL.md when AG-UI/tool-result behavior is
+involved. These Skills do not grant additional tools or write permissions.
 
 Installed Agent UI primitives are reusable local project source. Inspect the
 existing primitive before using or modifying it rather than guessing its API.

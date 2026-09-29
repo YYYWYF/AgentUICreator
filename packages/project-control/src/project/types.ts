@@ -389,6 +389,7 @@ export interface AgentUISourceFileInspection {
 
 export interface AgentUISourceItemInspection {
   id: string;
+  description?: string;
   installedVersion?: string;
   availableVersion: string;
   status: AgentUISourceStatus;

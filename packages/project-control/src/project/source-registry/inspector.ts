@@ -230,6 +230,7 @@ export async function inspectAgentUISources(
     }
     items.push({
       id: item.id,
+      description: item.description,
       ...(locked === undefined ? (provided ? { installedVersion: item.version } : {}) : { installedVersion: locked.version }),
       availableVersion: item.version,
       status,

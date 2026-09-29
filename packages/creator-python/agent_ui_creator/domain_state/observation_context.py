@@ -45,6 +45,10 @@ _OBSERVATION_COVERAGE = {
     "creator.actions",
     "creator.authoring-targets",
 }
+_REQUIRED_COMPOSITION_COVERAGE = _OBSERVATION_COVERAGE - {
+    "creator.actions",
+    "creator.authoring-targets",
+}
 
 
 class DomainObservationError(RuntimeError):
@@ -146,7 +150,7 @@ class DomainObservationContext:
         normalized_values = frozenset(coverage)
         if (
             not normalized_values.issubset(_OBSERVATION_COVERAGE)
-            or not _OBSERVATION_COVERAGE.issubset(normalized_values)
+            or not _REQUIRED_COMPOSITION_COVERAGE.issubset(normalized_values)
         ):
             raise DomainObservationError(
                 "COMPOSITION_OBSERVATION_INVALID",
