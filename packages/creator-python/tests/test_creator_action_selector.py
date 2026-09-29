@@ -272,6 +272,18 @@ def test_preserving_plugin_source_cannot_route_to_plugin_source_handoff(message)
     assert selector.metrics.modelCalls == 1
 
 
+def test_restoring_source_and_changing_composition_cannot_select_one_atomic_action():
+    model = StaticChatModel(["SELECT A1"])
+    selector = CreatorActionSelector(model=model)
+
+    result = asyncio.run(selector.select(
+        "恢复插件源码，并在当前界面禁用该展示实例，其他功能不变。",
+        _unified_context(),
+    ))
+
+    assert result.decision == "general_change"
+
+
 def test_unified_selector_fails_closed_for_explicit_unavailable_workspace_region():
     model = StaticChatModel(["SELECT A1"])
 

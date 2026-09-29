@@ -58,6 +58,11 @@ _PRESERVE_PLUGIN_SOURCE = re.compile(
     r"|\bdo\s+not\s+(?:modify|change|delete)\s+(?:the\s+)?(?:plugin\s+)?(?:source|implementation)\b",
     re.I,
 )
+_RESTORE_PLUGIN_SOURCE = re.compile(
+    r"(?:恢复|还原)\s*(?:此前|之前|原有|原始)?\s*(?:UI\s*)?(?:Plugin|插件)?(?:的)?\s*(?:源代码|源码|实现)"
+    r"|\brestore\s+(?:the\s+)?(?:plugin\s+)?(?:source|implementation)\b",
+    re.I,
+)
 
 
 def _explicit_workspace_region(message: str) -> str | None:
@@ -118,6 +123,8 @@ GENERAL when the user explicitly preserves Plugin source but a plugin_source
 choice appears relevant; inspect Composition and restore any source changed by
 an earlier turn before finishing. Hiding a current visual instance while
 preserving its implementation is a Composition change.
+When restoring Plugin source and changing Composition are both requested,
+choose GENERAL so both changes are handled together.
 CLARIFY only when a user-owned business decision materially changes the result
 and project inspection cannot resolve it; ordinary implementation choices
 belong to Creator. Use UNSUPPORTED only for a request clearly outside Agent
@@ -518,6 +525,9 @@ class CreatorIntentSelector:
                         )
                     selection = _parse_selector_response(response.text, choices)
                     self.validate_selection(selection, normalized_context)
+                    if (selection.decision in {"select_action", "select_intent"}
+                            and _RESTORE_PLUGIN_SOURCE.search(user_message)):
+                        return CreatorActionSelection(decision="general_change")
                     if selection.decision == "select_intent" and _PRESERVE_PLUGIN_SOURCE.search(user_message):
                         selected_intent = next(
                             (candidate for candidate in intent_candidates
