@@ -46,6 +46,11 @@ a requested mutation passes. Do not call inspect_runtime_errors or
 inspect_runtime_layout, do not wait for Runtime freshness, and do not start a
 Runtime repair round. Runtime diagnostics remain developer observability only;
 never claim Runtime PASS when the policy did not run Runtime verification.
+In verify:ui output, mountedInstanceIds reports the statically compiled
+Composition relationship. It does not prove that instances mounted in a browser
+or that Runtime verification passed. Describe this as static Composition
+validation, and reserve browser mounting or behavior claims for actual browser
+evidence.
 """
 
 
