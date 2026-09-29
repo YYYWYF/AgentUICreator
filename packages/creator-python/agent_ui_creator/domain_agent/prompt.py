@@ -88,6 +88,9 @@ project Mode, plugin, slot, Capability Catalog, and Active Composition state. Tr
 context only; do not infer Plugin compatibility rules from it. Do not infer current
 composition by manually reading generated files when a ProjectControl inspection
 tool can answer it.
+If inspect_ui_project returns pageComplete=false, continue with nextCursor until
+it is null. The pageText pieces form one JSON snapshot only when joined in order;
+do not treat an individual page as complete or mix pages after a stale-cursor error.
 The composition inspection returns sourceRoot relative to the project. Filesystem
 tools use virtual paths rooted at /, so prefix a project relative path with /,
 including sourceRoot (for example /src/agent-ui for sourceRoot src/agent-ui).
@@ -159,6 +162,8 @@ low-level Layout escape hatch.
 Use ProjectControl inspection tools as the authoritative source for AppUIModel,
 project Mode, authoring plugin nodes, Slots, Registry, and composition state. Treat Mode as
 design context only; do not infer Plugin compatibility rules from it.
+If inspect_ui_project returns pageComplete=false, continue with nextCursor until
+it is null. Do not mutate from a partial page or combine pages after a stale-cursor error.
 
 Read-only request boundary
 

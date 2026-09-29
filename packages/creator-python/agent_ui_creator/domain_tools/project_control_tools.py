@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import re
 from typing import Any, Literal
 
 from langchain_core.tools import BaseTool, tool
@@ -17,6 +19,8 @@ from ..domain_state import (
 from ..project_control import ProjectControlClient, ProjectControlError
 
 MAX_DOMAIN_TOOL_RESULT_CHARS = 48_000
+PROJECT_INSPECTION_PAGE_CHARS = 20_000
+_PROJECT_CURSOR = re.compile(r"([0-9a-f]{64}):([1-9][0-9]*)\Z")
 DOMAIN_READ_TOOL_NAMES = (
     "inspect_ui_project",
     "inspect_app_ui_model",
@@ -135,6 +139,42 @@ def _render_result(result: Any) -> str:
     )
 
 
+def _render_project_inspection(result: Any, cursor: str | None) -> tuple[str, bool]:
+    """Page an oversized authoritative snapshot without treating a prefix as complete."""
+    complete = _render_json({"ok": True, "result": result})
+    snapshot_hash = hashlib.sha256(complete.encode("utf-8")).hexdigest()
+    if cursor is None and len(complete) <= MAX_DOMAIN_TOOL_RESULT_CHARS:
+        return complete, True
+
+    offset = 0
+    if cursor is not None:
+        match = _PROJECT_CURSOR.fullmatch(cursor)
+        if match is None or int(match.group(2)) >= len(complete):
+            return _render_json({"ok": False, "error": {
+                "code": "PROJECT_CONTROL_CURSOR_INVALID",
+                "message": "The project inspection cursor is invalid.",
+            }}), False
+        if match.group(1) != snapshot_hash:
+            return _render_json({"ok": False, "error": {
+                "code": "PROJECT_CONTROL_SNAPSHOT_STALE",
+                "message": "Project inspection changed between pages; restart from the first page.",
+            }}), False
+        offset = int(match.group(2))
+
+    end = min(offset + PROJECT_INSPECTION_PAGE_CHARS, len(complete))
+    rendered = _render_json({"ok": True, "result": {
+        "pageComplete": False,
+        "snapshotHash": snapshot_hash,
+        "appUIModelHash": result.get("appUIModel", {}).get("hash") if isinstance(result, dict) else None,
+        "pageOffset": offset,
+        "totalChars": len(complete),
+        "pageText": complete[offset:end],
+        "nextCursor": f"{snapshot_hash}:{end}" if end < len(complete) else None,
+    }})
+    assert len(rendered) < MAX_DOMAIN_TOOL_RESULT_CHARS
+    return rendered, end == len(complete)
+
+
 def _render_error(error: ProjectControlError | DomainObservationError) -> str:
     rendered = _render_json(
         {
@@ -214,12 +254,13 @@ def create_project_control_tools(
     @tool("inspect_ui_project")
     async def inspect_ui_project(
         view: Literal["composition"] | None = None,
+        cursor: str | None = None,
     ) -> str:
-        """Inspect current authoritative workspace facts. For a pure Composition request, use view='composition' to get the AppUIModel hash, Layout refs and sizes, Slots and instances, capability authoring semantics, Service readiness, Active Composition, deterministic Layout constraints, and Host mutation guarantees. Selector-only Action and Authoring Target details are omitted; their revisions and counts remain. Omit view only when another layer's broader project navigation facts are genuinely required."""
+        """Inspect current authoritative workspace facts. For a pure Composition request, use view='composition' to get the AppUIModel hash, Layout refs and sizes, Slots and instances, capability authoring semantics, Service readiness, Active Composition, deterministic Layout constraints, and Host mutation guarantees. Selector-only Action and Authoring Target details are omitted; their revisions and counts remain. Omit view only when another layer's broader project navigation facts are genuinely required. Oversized results return explicit pageText and nextCursor; read every page under one snapshotHash before treating it as complete."""
         if view == "composition":
             if observations is not None:
                 observations.record_composition_snapshot_attempt()
-            covered = already_covered(COMPOSITION_SNAPSHOT_COVERAGE)
+            covered = already_covered(COMPOSITION_SNAPSHOT_COVERAGE) if cursor is None else None
             if covered is not None:
                 return covered
         try:
@@ -233,8 +274,10 @@ def create_project_control_tools(
                 if view == "composition"
                 else _project_navigation(result)
             )
-            rendered = _render_result(result)
+            rendered, complete = _render_project_inspection(result, cursor)
             if json.loads(rendered).get("ok") is not True:
+                return rendered
+            if not complete:
                 return rendered
             app_ui_model_hash = result.get("appUIModel", {}).get("hash")
             if view == "composition":

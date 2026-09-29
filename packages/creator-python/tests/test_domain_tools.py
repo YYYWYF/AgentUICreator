@@ -120,19 +120,46 @@ def test_domain_slot_tool_forwards_layout_hash_binding():
     }
 
 
-def test_domain_tool_rejects_oversized_result_without_truncating_json():
+def test_oversized_project_result_pages_complete_snapshot_without_truncation():
     client = StubClient()
+    snapshot = {"source": "x" * (MAX_DOMAIN_TOOL_RESULT_CHARS + 1)}
 
     async def huge():
-        return {"source": "x" * (MAX_DOMAIN_TOOL_RESULT_CHARS + 1)}
+        return snapshot
 
     client.inspect_ui_project = huge
     tool = create_project_control_tools(client)[0]
 
-    rendered = asyncio.run(tool.ainvoke({}))
-    result = json.loads(rendered)
-    assert len(rendered) < MAX_DOMAIN_TOOL_RESULT_CHARS
-    assert result["error"]["code"] == "PROJECT_CONTROL_RESULT_TOO_LARGE"
+    cursor = None
+    chunks = []
+    while True:
+        rendered = asyncio.run(tool.ainvoke({"cursor": cursor} if cursor else {}))
+        assert len(rendered) < MAX_DOMAIN_TOOL_RESULT_CHARS
+        page = json.loads(rendered)["result"]
+        assert page["pageComplete"] is False
+        chunks.append(page["pageText"])
+        cursor = page["nextCursor"]
+        if cursor is None:
+            break
+
+    assert json.loads("".join(chunks)) == {"ok": True, "result": snapshot}
+
+
+def test_project_page_cursor_rejects_changed_snapshot():
+    client = StubClient()
+    snapshot = {"source": "x" * (MAX_DOMAIN_TOOL_RESULT_CHARS + 1)}
+
+    async def huge():
+        return snapshot
+
+    client.inspect_ui_project = huge
+    tool = create_project_control_tools(client)[0]
+    first = json.loads(asyncio.run(tool.ainvoke({})))
+    snapshot["source"] += "y"
+
+    response = json.loads(asyncio.run(tool.ainvoke({"cursor": first["result"]["nextCursor"]})))
+
+    assert response["error"]["code"] == "PROJECT_CONTROL_SNAPSHOT_STALE"
 
 
 def test_authoritative_domain_reads_update_shared_observation(tmp_path):
