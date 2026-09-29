@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
+import { LayoutRenderer } from "@agent-ui/runtime-react";
 
 import {
   AgentUIRoot,
@@ -28,6 +29,12 @@ function PortalProbes() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [kind, setKind] = useState<"tooltip" | "popover" | "dialog" | "facade-dialog" | null>(null);
   return <AgentUIRoot theme={theme}>
+    <div data-test-layout-probe style={{ width: 900, height: 400 }}>
+      <LayoutRenderer root={{ type: "row", id: "style-isolation-row", sizes: ["280px", "minmax(0, 1fr)"], children: [
+        { type: "panel", id: "style-isolation-list", child: { type: "slot", id: "style-isolation-list-slot", slotId: "list" } },
+        { type: "panel", id: "style-isolation-chat", child: { type: "slot", id: "style-isolation-chat-slot", slotId: "chat" } },
+      ] }} renderSlot={(slot) => <div data-test-layout-region={slot.slotId} />} />
+    </div>
     <h1 data-test-agent-heading>Agent heading</h1>
     <input data-test-agent-input aria-label="Agent input probe" />
     <ul data-test-agent-list><li>Agent list</li></ul>

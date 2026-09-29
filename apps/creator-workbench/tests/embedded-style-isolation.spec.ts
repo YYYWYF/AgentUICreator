@@ -33,6 +33,20 @@ test("keeps ordinary Host globals outside Agent UI and preserves Host probes", a
   expect(await composerSend.evaluate((button) => getComputedStyle(button).borderRadius)).not.toBe("0px");
 });
 
+test("preserves runtime Row tracks inside the Agent UI style boundary", async ({ page }) => {
+  await page.goto("/style-isolation.html");
+  const root = page.locator("#portal-isolation-mount [data-agent-ui-root]");
+  const row = root.locator("[data-layout-node-id=style-isolation-row]");
+  await expect(row).toHaveCSS("display", "grid");
+  const list = await root.locator("[data-test-layout-region=list]").boundingBox();
+  const chat = await root.locator("[data-test-layout-region=chat]").boundingBox();
+  expect(list).not.toBeNull();
+  expect(chat).not.toBeNull();
+  expect(list!.width).toBeCloseTo(280, 0);
+  expect(chat!.x).toBeCloseTo(list!.x + list!.width, 0);
+  expect(chat!.width).toBeCloseTo(620, 0);
+});
+
 test("mounts Tooltip, Popover and Dialog within the themed Portal boundary", async ({ page }) => {
   await page.goto("/style-isolation.html");
   const root = page.locator("#portal-isolation-mount [data-agent-ui-root]");

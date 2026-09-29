@@ -1,3 +1,7 @@
+/* AgentUIRoot's unlayered revert-layer reset must retain these structural rules. */
+@layer theme, base, components, utilities;
+
+@layer components {
 .app-ui-layout-root,
 .app-ui-layout-node {
   box-sizing: border-box;
@@ -57,4 +61,5 @@
 .app-ui-layout-slot-placeholder strong {
   color: var(--app-ui-placeholder-heading, #344054);
   font-size: 0.95rem;
+}
 }
