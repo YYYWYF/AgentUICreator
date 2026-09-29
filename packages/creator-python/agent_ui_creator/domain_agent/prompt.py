@@ -178,6 +178,10 @@ authoring-default placement and safe recommended size, has a uniquely resolved
 visual anchor, and its required Services are resolved or not required. This
 semantic fast path is Host-lowered and must not load `/skills/app-ui-model/` or
 `/skills/ui-layout/` merely to construct deterministic Layout mechanics.
+When restoring a removed visual instance to its original layout, compare the
+requested position with the Plugin's authoring default placement and size. If
+they match, use `insert_plugin_default` so the original dimensions are restored;
+a Workspace Region Add only specifies the region and may use a different width.
 Load `/skills/app-ui-model/SKILL.md` for low-level Composition operations,
 custom placement/resize, or when the semantic operation is unavailable or
 explicitly fails closed. Load `/skills/ui-layout/SKILL.md` only for the
@@ -547,6 +551,11 @@ For a genuinely read-only answer that needs no project change, start the final
 response with [creator-verification:read-only]. The Host removes this marker.
 A concise clarification question may finish normally without the marker. Never
 use the read-only marker for a request that requires source or composition changes.
+When the user explicitly asks to keep the current state or avoid adding another
+copy, inspect the relevant current Composition first. If it already satisfies the
+request, report that fact as a read-only result; do not ask for confirmation or
+create a no-op file change. If the current state requires a change, make the
+smallest justified mutation instead.
 
 For any Composition change, ground current authoring state, derive the complete
 desired state and semantic delta, then submit the smallest determinable atomic

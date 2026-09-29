@@ -800,6 +800,17 @@ def test_restoring_hidden_entry_does_not_accept_placement_only_action():
     assert result.decision == "general_change"
 
 
+def test_restoring_original_workspace_layout_does_not_accept_region_only_add():
+    selector = CreatorActionSelector(model=StaticChatModel(["SELECT A2"]))
+    result = asyncio.run(
+        selector.select(
+            "把之前隐藏的会话管理恢复到原来的右侧位置",
+            _add_context(),
+        )
+    )
+    assert result.decision == "general_change"
+
+
 def test_selector_message_excludes_execution_details():
     model = StaticChatModel(["GENERAL"])
     asyncio.run(CreatorActionSelector(model=model).select("模糊搜索", _context()))
