@@ -442,6 +442,12 @@ def run_script(client, prompt, responses):
     return result, receipt, model
 
 
+def test_uninstalled_source_discovery_and_directory_navigation_are_explicit():
+    prompt = " ".join(DOMAIN_WRITE_AGENT_PROMPT.split())
+    assert "Use inspect_agent_ui_sources before browsing Plugin directories when the requested capability is not installed" in prompt
+    assert "read_file accepts files, not directories" in prompt
+
+
 def test_grounding_prompt_preserves_decision_and_write_boundaries():
     prompt = " ".join(DOMAIN_WRITE_AGENT_PROMPT.split())
     for rule in (

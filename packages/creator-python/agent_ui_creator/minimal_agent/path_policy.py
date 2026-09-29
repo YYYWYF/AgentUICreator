@@ -211,6 +211,11 @@ class PolicyFilesystemBackend(FilesystemBackend):
             authorized = self._authorize(file_path, "read")
         except PathPolicyViolation as error:
             return ReadResult(error=self._denied(error))
+        if (self.cwd / authorized.lstrip("/")).is_dir():
+            return ReadResult(
+                error=f"{authorized} is a directory; use ls for its entries. "
+                "Use inspect_agent_ui_sources for available Agent UI Source Items."
+            )
         if not self.enforce_observations:
             return super().read(authorized, offset=offset, limit=limit)
         try:

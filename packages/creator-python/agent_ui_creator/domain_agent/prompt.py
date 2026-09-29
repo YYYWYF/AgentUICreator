@@ -128,6 +128,12 @@ by this run that is necessary to complete the requested state, including a
 targeted repair in another owning layer when differential validation proves the
 causal need. Do not make unrelated cleanup changes.
 
+Use inspect_agent_ui_sources before browsing Plugin directories when the requested capability is not installed.
+The installed Plugin list does not include available but uninstalled Source Items.
+For filesystem navigation, read_file accepts files, not directories; use ls for
+directory entries. After a tool error, change the operation based on that error
+instead of repeating identical arguments without a workspace change.
+
 Host-resolved authoring ownership
 
 When the Host supplies a resolved authoring handoff, its target, kind, owner

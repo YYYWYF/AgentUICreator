@@ -29,6 +29,18 @@ def test_v2_project_writes_stay_inside_declared_source_root(tmp_path):
     assert host.read_text(encoding="utf-8") == "before\n"
 
 
+def test_reading_directory_returns_actionable_inventory_hint(tmp_path):
+    plugins = tmp_path / "plugins"
+    plugins.mkdir()
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+
+    result = backend.read("/plugins")
+
+    assert result.error is not None
+    assert "directory" in result.error.lower()
+    assert "ls" in result.error
+
+
 def test_development_path_policy_allows_frontend_capability_contract_edits(tmp_path):
     plugins = tmp_path / "plugins"
     plugins.mkdir()
