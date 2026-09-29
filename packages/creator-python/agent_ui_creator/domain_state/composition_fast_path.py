@@ -120,6 +120,7 @@ class CompositionFastPathMetrics:
     _first_mutation_started: bool = field(default=False, init=False, repr=False)
     _first_mutation_finished: bool = field(default=False, init=False, repr=False)
     _first_mutation_revision: int | None = field(default=None, init=False, repr=False)
+    _latest_successful_mutation_revision: int | None = field(default=None, init=False, repr=False)
 
     @property
     def first_mutation_started(self) -> bool:
@@ -132,6 +133,10 @@ class CompositionFastPathMetrics:
         """Revision recorded when the first successful mutation returned."""
 
         return self._first_mutation_revision
+
+    @property
+    def latest_successful_mutation_revision(self) -> int | None:
+        return self._latest_successful_mutation_revision
 
     def record_snapshot_attempt(self) -> None:
         self.attempted = True
@@ -198,10 +203,12 @@ class CompositionFastPathMetrics:
     def record_first_mutation_result(
         self, result: Any, *, revision: int | None = None
     ) -> None:
+        payload = _result_payload(result)
+        if payload is not None and payload.get("ok") is True:
+            self._latest_successful_mutation_revision = revision
         if not self._first_mutation_started or self._first_mutation_finished:
             return
         self._first_mutation_finished = True
-        payload = _result_payload(result)
         if payload is not None and payload.get("ok") is True:
             self.firstMutationSucceeded = True
             self.firstMutationErrorCode = None

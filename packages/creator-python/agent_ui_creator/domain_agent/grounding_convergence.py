@@ -51,6 +51,13 @@ is available and exits the Composition fast path in one read. Other cross-layer
 reads are rejected as explicit exit signals; retry them on the next model call.
 Expand grounding for a missing decisive fact or another-layer requirement."""
 
+COMPOSITION_POST_MUTATION_CONTROL = """The AppUIModel mutation succeeded on the
+current revision. If the requested implementation is complete, call
+validate_creator_changes now and finish when current-revision validation
+passes. Do not browse unrelated source files, Host internals, or Mock scenario
+implementations to repeat facts already established. If a decisive requested
+change is still missing, use the smallest available targeted read or mutation."""
+
 
 class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
     """Inject execution control while the authoritative Composition snapshot is fresh."""
@@ -106,10 +113,9 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
             current_revision=current_revision
         )
         metrics = self.observations.composition_fast_path_metrics
-        successful_mutation_revision = metrics.first_mutation_revision
+        successful_mutation_revision = metrics.latest_successful_mutation_revision
         post_mutation_revision_change = (
             status == "stale"
-            and metrics.firstMutationSucceeded is True
             and successful_mutation_revision == current_revision
         )
         if status != "grounded" and not post_mutation_revision_change:
@@ -118,7 +124,11 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         return request.override(
             messages=[
                 *request.messages,
-                SystemMessage(content=COMPOSITION_GROUNDING_CONTROL),
+                SystemMessage(content=(
+                    COMPOSITION_POST_MUTATION_CONTROL
+                    if post_mutation_revision_change
+                    else COMPOSITION_GROUNDING_CONTROL
+                )),
             ],
             tools=self._composition_lane_tools(
                 request.tools,

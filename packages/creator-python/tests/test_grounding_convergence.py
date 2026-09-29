@@ -360,6 +360,52 @@ def test_first_mutation_metrics_capture_host_error_code(tmp_path):
     assert metrics["firstMutationErrorCode"] == "LAYOUT_SIZE_REQUIRED"
 
 
+def test_success_after_rejected_mutation_restores_post_mutation_validation_lane(tmp_path):
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    observations = DomainObservationContext()
+    observations.observe_composition_snapshot(
+        hash="a" * 64, revision=0, coverage=COMPOSITION_COVERAGE,
+    )
+    middleware = CompositionGroundingConvergenceMiddleware(observations, backend)
+    middleware.wrap_tool_call(
+        _tool_request("mutate_app_ui_model", {"operations": []}),
+        lambda request: ToolMessage(
+            content='{"ok":false,"error":{"code":"PLACEMENT_REJECTED"}}',
+            tool_call_id=request.tool_call["id"], name=request.tool_call["name"],
+        ),
+    )
+
+    def successful_retry(request):
+        backend.activity.touch("app-ui/app-ui.json")
+        return ToolMessage(
+            content='{"ok":true,"result":{"changed":true}}',
+            tool_call_id=request.tool_call["id"], name=request.tool_call["name"],
+        )
+
+    middleware.wrap_tool_call(
+        _tool_request("mutate_app_ui_model", {"operations": []}, "retry"),
+        successful_retry,
+    )
+    seen = []
+    middleware.wrap_model_call(
+        ModelRequest(
+            model=Mock(), messages=[],
+            tools=[SimpleNamespace(name=name) for name in ALLOWED_DOMAIN_WRITE_TOOLS],
+        ),
+        lambda candidate: (seen.append(candidate), ModelResponse(result=[AIMessage(content="done")]))[1],
+    )
+    names = [tool.name for tool in seen[0].tools]
+    assert "validate_creator_changes" in names
+    assert "grep" not in names
+    assert any(
+        isinstance(message, SystemMessage)
+        and "validate_creator_changes" in message.content
+        and "current revision" in message.content
+        for message in seen[0].messages
+    )
+    assert observations.composition_fast_path_metrics.firstMutationSucceeded is False
+
+
 def test_grounding_middleware_emits_bounded_tool_trajectory(tmp_path):
     logger = CreatorRunLogger(tmp_path)
     logger.begin(run_id="trajectory-run")
