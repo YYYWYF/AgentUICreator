@@ -307,6 +307,7 @@ async function inspectUICompositionData(
   return {
     schemaVersion: 3,
     view: "composition",
+    sourceRoot: effectiveConfig.agentUI.sourceRoot,
     observationCoverage: [...COMPOSITION_OBSERVATION_COVERAGE],
     appUIModel: {
       hash: appUIModelHash,

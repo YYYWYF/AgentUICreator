@@ -181,6 +181,7 @@ def test_current_host_modes_have_complete_bounded_inspection(host_name, mode):
     client = ProjectControlClient(project_root=host)
     tools = {tool.name: tool for tool in create_project_control_tools(client)}
     full = asyncio.run(client.inspect_ui_project(view="composition"))
+    assert full["sourceRoot"] == "src/agent-ui"
     response = json.loads(asyncio.run(tools["inspect_ui_project"].ainvoke({"view": "composition"})))
     assert response["ok"] is True
     result = response["result"]

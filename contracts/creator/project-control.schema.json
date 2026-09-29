@@ -1996,6 +1996,7 @@
       "additionalProperties": false,
       "required": [
         "schemaVersion",
+        "sourceRoot",
         "appUIModel",
         "activeComposition",
         "authoringTargetCatalog",
@@ -2012,6 +2013,9 @@
       "properties": {
         "schemaVersion": {
           "const": 3
+        },
+        "sourceRoot": {
+          "$ref": "#/$defs/path"
         },
         "appUIModel": {
           "$ref": "#/$defs/appUIModelSnapshot"

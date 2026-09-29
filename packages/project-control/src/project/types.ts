@@ -322,6 +322,7 @@ export interface CompositionPluginCapabilitySummary {
 export interface UICompositionInspection {
   schemaVersion: 3;
   view: "composition";
+  sourceRoot: string;
   observationCoverage: CompositionObservationCoverage[];
   appUIModel: {
     hash: string;

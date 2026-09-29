@@ -1,5 +1,6 @@
 {
   "schemaVersion": 3,
+  "sourceRoot": "src/agent-ui",
   "appUIModel": {
     "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "layout": {},

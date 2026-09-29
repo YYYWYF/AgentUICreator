@@ -88,6 +88,14 @@ project Mode, plugin, slot, Capability Catalog, and Active Composition state. Tr
 context only; do not infer Plugin compatibility rules from it. Do not infer current
 composition by manually reading generated files when a ProjectControl inspection
 tool can answer it.
+The composition inspection returns sourceRoot relative to the project. Filesystem
+tools use virtual paths rooted at /, so prefix a project relative path with /,
+including sourceRoot (for example /src/agent-ui for sourceRoot src/agent-ui).
+Never guess /root/project or assume a legacy /agent-ui path. For a broad
+capability inventory, use the Plugin and Service inspections to distinguish
+available source, configured composition, and externally connected behavior.
+Read individual implementation files only to resolve a material uncertainty;
+stop once the requested distinction can be made.
 Use inspect_ui_services for Service providers, required consumers, optional
 consumers, and availability; do not infer capability ownership from Plugin names.
 
