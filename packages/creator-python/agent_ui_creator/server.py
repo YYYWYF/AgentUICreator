@@ -9,7 +9,7 @@ import sys
 from collections.abc import Awaitable
 from contextlib import closing
 from dataclasses import dataclass
-from typing import Any, AsyncIterator
+from typing import Any, AsyncIterator, Literal
 from uuid import uuid4
 
 import uvicorn
@@ -92,6 +92,26 @@ class CreatorInterruptEnvelope:
             "id": self.id, "reason": self.reason, "metadata": self.metadata,
             **({"toolCallId": self.toolCallId} if self.toolCallId else {}),
         }
+
+
+CreatorExecutionPermission = Literal[
+    "inspect_read_only", "domain_write", "domain_read_legacy"
+]
+
+
+@dataclass(slots=True)
+class CreatorExecutionContext:
+    permission: CreatorExecutionPermission | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class PendingCreatorQuestion:
+    envelope: CreatorInterruptEnvelope
+    messages: list[dict[str, str]]
+    thread_id: str
+    agent_mode: str
+    permission: CreatorExecutionPermission
+    checkpoint_id: str
 
 
 def _question_envelope(interrupted: DeepAgentInterrupted) -> CreatorInterruptEnvelope:
@@ -197,6 +217,27 @@ async def _checkpoint_input_messages(
     latest_user = next((message for message in reversed(messages) if message.get("role") == "user"), None)
     system_messages = [message for message in messages if message.get("role") == "system"]
     return [*system_messages, *([latest_user] if latest_user is not None else [])]
+
+
+async def _checkpoint_id(checkpointer: Any, thread_id: str) -> str | None:
+    if not callable(getattr(checkpointer, "aget_tuple", None)):
+        return None
+    try:
+        saved = await checkpointer.aget_tuple(
+            {"configurable": {"thread_id": thread_id}}
+        )
+    except Exception:
+        return None
+    checkpoint = getattr(saved, "checkpoint", None)
+    value = checkpoint.get("id") if isinstance(checkpoint, dict) else None
+    return value if isinstance(value, str) and value else None
+
+
+def _permission_matches(agent_mode: str, permission: str | None) -> bool:
+    return (
+        (agent_mode == "domain-write" and permission in {"inspect_read_only", "domain_write"})
+        or (agent_mode == "domain-read" and permission == "domain_read_legacy")
+    )
 
 
 async def _minimal_agent_result(
@@ -313,6 +354,7 @@ async def _domain_write_agent_result(
     telemetry: CreatorRunTelemetry | None = None,
     visual_observations: VisualObservationStore | None = None,
     checkpointer: Any = None,
+    execution_context: CreatorExecutionContext | None = None,
 ):
     from .model_factory import create_creator_chat_model
     from .model_protocol.provider_trace import ProviderResponseTraceCollector
@@ -363,6 +405,8 @@ async def _domain_write_agent_result(
     if not isinstance(productized_result, CreatorResolveResult):
         raise TypeError("Productized Operation Engine returned an unknown result.")
     if productized_result.route == "read_only_general":
+        if execution_context is not None:
+            execution_context.permission = "inspect_read_only"
         return await _domain_read_agent_result(
             settings,
             messages,
@@ -374,6 +418,8 @@ async def _domain_write_agent_result(
             checkpointer=checkpointer,
             inspect_read_only=True,
         )
+    if execution_context is not None:
+        execution_context.permission = "domain_write"
     return await _general_domain_write_agent_result(
         settings,
         messages,
@@ -645,7 +691,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
     writing_run_lock = asyncio.Lock()
     mutation_coordinator = ProjectMutationCoordinator()
     checkpointer = InMemorySaver()
-    pending_questions: dict[str, tuple[CreatorInterruptEnvelope, list[dict[str, str]], str]] = {}
+    pending_questions: dict[str, PendingCreatorQuestion] = {}
     app.state.creator_checkpointer = checkpointer
     app.state.pending_creator_questions = pending_questions
 
@@ -747,15 +793,30 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                 pending = pending_questions.get(run_input.threadId)
                 resume_answers: dict[str, Any] | None = None
                 if resume_requested:
-                    if pending is None or pending[2] != agent_mode:
+                    if pending is None:
                         yield encode(reject_interrupt("CREATOR_INTERRUPT_NOT_FOUND",
                             "这个问题对应的 Agent 执行状态已经失效，请重新发起请求。"))
                         return
+                    if (
+                        not isinstance(pending, PendingCreatorQuestion)
+                        or pending.thread_id != run_input.threadId
+                        or pending.agent_mode != agent_mode
+                        or not _permission_matches(agent_mode, pending.permission)
+                        or not isinstance(pending.checkpoint_id, str)
+                        or not pending.checkpoint_id
+                        or await _checkpoint_id(checkpointer, run_input.threadId)
+                        != pending.checkpoint_id
+                    ):
+                        pending_questions.pop(run_input.threadId, None)
+                        await checkpointer.adelete_thread(run_input.threadId)
+                        yield encode(reject_interrupt("CREATOR_INTERRUPT_CONTEXT_INVALID",
+                            "这个问题的执行权限或检查点已经失效，请重新发起请求。"))
+                        return
                     payload = command["resume"]
                     try:
-                        if not isinstance(payload, dict) or payload.get("interruptId") != pending[0].id:
+                        if not isinstance(payload, dict) or payload.get("interruptId") != pending.envelope.id:
                             raise ValueError("interruptId does not match the pending question")
-                        request = QuestionRequest.model_validate({key: value for key, value in pending[0].metadata.items() if key != "kind"})
+                        request = QuestionRequest.model_validate({key: value for key, value in pending.envelope.metadata.items() if key != "kind"})
                         resume_answers = QuestionAnswers.model_validate({"answers": payload.get("answers")}).validate_for(request).model_dump(mode="json")
                     except (ValueError, ValidationError) as error:
                         yield encode(reject_interrupt("CREATOR_INTERRUPT_INVALID_ANSWER", str(error)))
@@ -769,24 +830,38 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                     assert logger is not None
                     event_bus = CreatorEventBus()
                     telemetry = CreatorRunTelemetry(activity=activity)
+                    execution_context = CreatorExecutionContext()
                     with use_pending_creator_clarifications(pending_clarifications):
                         if agent_mode == "domain-write":
-                            agent_result = (_general_domain_write_agent_result if resume_requested else _domain_write_agent_result)(
-                                settings,
-                                pending[1] if pending is not None else _conversation_messages(run_input),
-                                activity,
-                                mutation_coordinator,
-                                diagnostics,
-                                run_input.threadId,
-                                event_bus,
-                                telemetry,
-                                **({"resume": resume_answers} if resume_requested else {"visual_observations": visual_observations}),
-                                checkpointer=checkpointer,
-                            )
+                            messages = pending.messages if pending is not None else _conversation_messages(run_input)
+                            if resume_requested:
+                                execution_context.permission = pending.permission
+                                if pending.permission == "inspect_read_only":
+                                    agent_result = _domain_read_agent_result(
+                                        settings, messages, activity, run_input.threadId,
+                                        event_bus, telemetry, diagnostics=diagnostics,
+                                        checkpointer=checkpointer, resume=resume_answers,
+                                        inspect_read_only=True,
+                                    )
+                                else:
+                                    agent_result = _general_domain_write_agent_result(
+                                        settings, messages, activity, mutation_coordinator,
+                                        diagnostics, run_input.threadId, event_bus, telemetry,
+                                        checkpointer=checkpointer, resume=resume_answers,
+                                    )
+                            else:
+                                agent_result = _domain_write_agent_result(
+                                    settings, messages, activity, mutation_coordinator,
+                                    diagnostics, run_input.threadId, event_bus, telemetry,
+                                    visual_observations=visual_observations,
+                                    checkpointer=checkpointer,
+                                    execution_context=execution_context,
+                                )
                         elif agent_mode == "domain-read":
+                            execution_context.permission = "domain_read_legacy"
                             agent_result = _domain_read_agent_result(
                                 settings,
-                                pending[1] if pending is not None else _conversation_messages(run_input),
+                                pending.messages if pending is not None else _conversation_messages(run_input),
                                 activity,
                                 run_input.threadId,
                                 event_bus,
@@ -857,10 +932,24 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             yield encode(RunErrorEvent(type=EventType.RUN_ERROR,
                                 code="CREATOR_INTERRUPT_UNSUPPORTED", message=str(error)))
                             return
-                        pending_questions[run_input.threadId] = (
-                            envelope,
-                            pending[1] if pending is not None else _conversation_messages(run_input),
-                            agent_mode,
+                        checkpoint_id = await _checkpoint_id(checkpointer, run_input.threadId)
+                        if (
+                            checkpoint_id is None
+                            or not _permission_matches(agent_mode, execution_context.permission)
+                        ):
+                            pending_questions.pop(run_input.threadId, None)
+                            await checkpointer.adelete_thread(run_input.threadId)
+                            yield encode(RunErrorEvent(type=EventType.RUN_ERROR,
+                                code="CREATOR_INTERRUPT_CONTEXT_INVALID",
+                                message="无法保存这个问题的执行权限或检查点，请重新发起请求。"))
+                            return
+                        pending_questions[run_input.threadId] = PendingCreatorQuestion(
+                            envelope=envelope,
+                            messages=pending.messages if pending is not None else _conversation_messages(run_input),
+                            thread_id=run_input.threadId,
+                            agent_mode=agent_mode,
+                            permission=execution_context.permission,
+                            checkpoint_id=checkpoint_id,
                         )
                         yield encode(CustomEvent(type=EventType.CUSTOM,
                             name="on_interrupt", value=envelope.to_wire()))
@@ -950,7 +1039,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                     run_result["clarificationQuestion"] = (
                                         result.selection.clarificationQuestion
                                     )
-                        elif agent_mode == "domain-write":
+                        elif execution_context.permission == "inspect_read_only":
                             run_result["phase"] = "domain-read-agent"
                             run_result["executionPolicy"] = "read-only"
                         if agent_mode == "domain-write":
