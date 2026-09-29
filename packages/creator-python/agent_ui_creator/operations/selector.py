@@ -52,6 +52,12 @@ _EXPLICIT_RELATIVE_PLACEMENT = re.compile(
     r"\bbefore\b|\bafter\b|\babove\b|\bbelow\b|\bnext to\b|前面|后面|上方|下方|之前|之后",
     re.I,
 )
+_PRESERVE_PLUGIN_SOURCE = re.compile(
+    r"(?:保留|不(?:要|再)?(?:修改|改动|删除|触碰))\s*(?:UI\s*)?(?:Plugin|插件)?(?:的)?\s*(?:源代码|源码|实现)"
+    r"|\b(?:leave|keep)\s+(?:the\s+)?(?:plugin\s+)?(?:source|implementation)\s+(?:unchanged|intact)\b"
+    r"|\bdo\s+not\s+(?:modify|change|delete)\s+(?:the\s+)?(?:plugin\s+)?(?:source|implementation)\b",
+    re.I,
+)
 
 
 def _explicit_workspace_region(message: str) -> str | None:
@@ -108,6 +114,10 @@ previous request and clarification supplied in context.
 Select an application_config or plugin_source choice when the requested change
 is a supplied, scoped authoring target. Use GENERAL for broader or unscoped
 implementation changes, such as a new capability with no supplied owner. Use
+GENERAL when the user explicitly preserves Plugin source but a plugin_source
+choice appears relevant; inspect Composition and restore any source changed by
+an earlier turn before finishing. Hiding a current visual instance while
+preserving its implementation is a Composition change.
 CLARIFY only when a user-owned business decision materially changes the result
 and project inspection cannot resolve it; ordinary implementation choices
 belong to Creator. Use UNSUPPORTED only for a request clearly outside Agent
@@ -508,6 +518,14 @@ class CreatorIntentSelector:
                         )
                     selection = _parse_selector_response(response.text, choices)
                     self.validate_selection(selection, normalized_context)
+                    if selection.decision == "select_intent" and _PRESERVE_PLUGIN_SOURCE.search(user_message):
+                        selected_intent = next(
+                            (candidate for candidate in intent_candidates
+                             if getattr(getattr(candidate, "target", None), "targetId", None) == selection.targetId),
+                            None,
+                        )
+                        if getattr(selected_intent, "type", None) == "plugin_source":
+                            return CreatorActionSelection(decision="general_change")
                     if selection.decision == "select_action":
                         selected = next(
                             candidate

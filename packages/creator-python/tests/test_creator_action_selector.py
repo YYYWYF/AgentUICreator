@@ -255,6 +255,23 @@ def test_unified_selector_routes_each_semantic_highway(
     assert selector.metrics.repairCalls == 0
 
 
+@pytest.mark.parametrize(
+    "message",
+    [
+        "只在当前界面隐藏示例问题，保留插件源码和其他功能。",
+        "Hide the suggestions on this screen; leave the plugin source unchanged.",
+    ],
+)
+def test_preserving_plugin_source_cannot_route_to_plugin_source_handoff(message):
+    model = StaticChatModel(["SELECT A6"])
+    selector = CreatorActionSelector(model=model)
+
+    result = asyncio.run(selector.select(message, _unified_context()))
+
+    assert result.decision == "general_change"
+    assert selector.metrics.modelCalls == 1
+
+
 def test_unified_selector_fails_closed_for_explicit_unavailable_workspace_region():
     model = StaticChatModel(["SELECT A1"])
 
