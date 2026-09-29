@@ -95,6 +95,7 @@ def test_grounded_composition_narrows_and_restores_tool_surface(tmp_path):
     middleware.wrap_model_call(request, handler)
     assert [tool.name for tool in seen[-1].tools] == [tool.name for tool in all_tools]
 
+
     observations.observe_composition_snapshot(
         hash="a" * 64,
         revision=0,
@@ -139,6 +140,26 @@ def test_grounded_composition_narrows_and_restores_tool_surface(tmp_path):
     )
     middleware.wrap_model_call(request, handler)
     assert [tool.name for tool in seen[-1].tools] == [tool.name for tool in all_tools]
+
+
+def test_source_discovery_before_composition_keeps_install_tool_available(tmp_path):
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    observations = DomainObservationContext()
+    observations.record_source_inventory()
+    observations.observe_composition_snapshot(
+        hash="a" * 64, revision=0, coverage=COMPOSITION_COVERAGE,
+    )
+    tools = [SimpleNamespace(name=name) for name in ALLOWED_DOMAIN_WRITE_TOOLS]
+    request = ModelRequest(model=Mock(), messages=[], tools=tools)
+    seen = []
+    middleware = CompositionGroundingConvergenceMiddleware(observations, backend)
+
+    def handler(candidate):
+        seen.append(candidate)
+        return ModelResponse(result=[AIMessage(content="done")])
+
+    middleware.wrap_model_call(request, handler)
+    assert "apply_agent_ui_source_item" in [tool.name for tool in seen[0].tools]
 
 
 def _tool_request(name, arguments, call_id="call-1"):

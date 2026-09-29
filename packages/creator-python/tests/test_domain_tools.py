@@ -123,6 +123,25 @@ def test_read_inventory_stops_after_evidence_and_reports_unverified_connection()
     assert "do not search for proof of an unobserved live connection" in DOMAIN_READ_AGENT_PROMPT
 
 
+def test_source_inventory_marks_current_run_for_available_install_tool(tmp_path):
+    observations = DomainObservationContext()
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("source-inventory")
+    tool = create_project_control_tools(
+        StubClient(), observations=observations, activity=activity,
+    )[7]
+    assert observations.source_inventory_observed is False
+    response = json.loads(asyncio.run(tool.ainvoke({})))
+    assert response['ok'] is True
+    assert response['result']['sourceInstallNavigation'] == {
+        'tool': 'apply_agent_ui_source_item',
+        'itemIdFrom': 'items[].id',
+        'expectedStateHashFrom': 'stateHash',
+        'filesystemSourceRoot': '/agent-ui',
+    }
+    assert observations.source_inventory_observed is True
+
+
 @pytest.mark.parametrize("source_item_id", ["plugin/reusable", "agent-component/secondary"])
 def test_existing_source_install_returns_explicit_observation_handoff(tmp_path, source_item_id):
     client = StubClient()

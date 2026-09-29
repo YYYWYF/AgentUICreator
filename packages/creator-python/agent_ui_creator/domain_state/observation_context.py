@@ -107,8 +107,12 @@ class DomainObservationContext:
         self._composition_grounding_invalidated = False
         self._composition_grounding_exit_reason: str | None = None
         self._invalidation_reason: str | None = None
+        self.source_inventory_observed = False
         self.metrics = DomainObservationMetrics()
         self.composition_fast_path_metrics = CompositionFastPathMetrics()
+
+    def record_source_inventory(self) -> None:
+        self.source_inventory_observed = True
 
     def observe_app_ui_model(
         self,

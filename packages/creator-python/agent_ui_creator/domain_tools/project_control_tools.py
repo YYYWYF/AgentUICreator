@@ -95,8 +95,15 @@ def _project_navigation(result: dict[str, Any]) -> dict[str, Any]:
 def _source_inventory(result: dict[str, Any]) -> dict[str, Any]:
     if "items" not in result:
         return result
+    source_root = result.get("sourceRoot")
     return {
         **{key: value for key, value in result.items() if key != "items"},
+        "sourceInstallNavigation": {
+            "tool": "apply_agent_ui_source_item",
+            "itemIdFrom": "items[].id",
+            "expectedStateHashFrom": "stateHash",
+            "filesystemSourceRoot": "/" + source_root.strip("/") if isinstance(source_root, str) else None,
+        },
         "items": [
             {
                 "id": item["id"],
@@ -495,7 +502,10 @@ def create_project_control_tools(
         if prohibited is not None:
             return prohibited
         try:
-            return _render_result(_source_inventory(await client.inspect_agent_ui_sources()))
+            rendered = _render_result(_source_inventory(await client.inspect_agent_ui_sources()))
+            if observations is not None and json.loads(rendered).get("ok") is True:
+                observations.record_source_inventory()
+            return rendered
         except ProjectControlError as error:
             return _render_error(error)
 

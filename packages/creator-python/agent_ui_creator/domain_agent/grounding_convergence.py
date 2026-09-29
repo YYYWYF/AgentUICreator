@@ -71,12 +71,13 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         *,
         after_mutation: bool,
         verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
+        source_inventory_observed: bool = False,
     ) -> list[Any]:
-        allowed_names = frozenset(
+        allowed_names = frozenset((
             COMPOSITION_POST_MUTATION_TOOL_NAMES
             if after_mutation
             else COMPOSITION_PRE_MUTATION_TOOL_NAMES
-        )
+        )) | ({"apply_agent_ui_source_item"} if source_inventory_observed and not after_mutation else set())
         by_name = {
             tool_name(candidate): candidate
             for candidate in tools
@@ -93,6 +94,8 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 for name in names
                 if name not in RUNTIME_VERIFICATION_TOOL_NAMES
             )
+        if source_inventory_observed and not after_mutation:
+            names = (*names, "apply_agent_ui_source_item")
         return [by_name[name] for name in names if name in by_name]
 
     def _request(self, request: ModelRequest) -> ModelRequest:
@@ -119,6 +122,7 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 request.tools,
                 after_mutation=after_mutation,
                 verification_mode=self.verification_mode,
+                source_inventory_observed=self.observations.source_inventory_observed,
             ),
         )
 

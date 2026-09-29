@@ -151,6 +151,12 @@ causal need. Do not make unrelated cleanup changes.
 
 Use inspect_agent_ui_sources before browsing Plugin directories when the requested capability is not installed.
 The installed Plugin list does not include available but uninstalled Source Items.
+For reuse of an available Source Item, use its id and stateHash with
+apply_agent_ui_source_item as soon as its metadata resolves the capability.
+Do not read the Plugin registry or load a source-authoring Skill before that
+install merely to confirm the same metadata; read a missing decisive contract
+only when the inventory does not settle the choice. Use the returned sourceRoot
+for later filesystem reads, never a guessed host path.
 For filesystem navigation, read_file accepts files, not directories; use ls for
 directory entries. After a tool error, change the operation based on that error
 instead of repeating identical arguments without a workspace change.
