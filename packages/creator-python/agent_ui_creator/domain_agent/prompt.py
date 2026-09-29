@@ -438,6 +438,12 @@ ones explicitly listed here or returned by the project's Skill inventory.
 After a changed source install, inspect_ui_project(view="composition") before
 mutate_app_ui_model; the prior AppUIModel observation is invalid. Use the fresh
 composition to add the needed instance, then validate the current revision.
+When the installed item's manifest and the fresh composition already establish
+that it supplies the requested behavior, this composition step does not require
+reading its implementation files or tracing the Host mount and Agent contract.
+Read source only to resolve a concrete missing fact or to change custom behavior.
+An installed named backend Tool UI presents a backend-owned tool result; its
+composition does not require a Frontend Tool permission or backend implementation.
 Installing a Source Item does not itself enable its Plugin or grant Frontend
 Tool execution permission.
 Load /skills/ui-plugin-development/SKILL.md on demand when source authoring is
@@ -450,7 +456,8 @@ existing primitive before using or modifying it rather than guessing its API.
 Agent Components are reusable local React source under /agent-ui/components.
 Before creating common agent surfaces such as a composer, message, reasoning
 view, or tool activity view, inspect available Agent UI Source Items and reuse
-them. Read installed source before using it. Do not introduce assistant-ui as a
+them. Read installed source before changing its behavior or using a code-level
+API that its manifest does not describe. Do not introduce assistant-ui as a
 project dependency; assistant-ui may be an upstream design reference only.
 Composer prompt or suggestion UI should reuse agent-component/composer and
 agent-component/composer-suggestions when available.
