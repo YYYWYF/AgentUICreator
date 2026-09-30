@@ -471,7 +471,8 @@ The hook provides `text`, `attachments`, `attachmentAccept`,
 Project filesystem tools cannot inspect package node_modules. Resolve the
 reused component's import relative to the adapter file's actual location.
 Before completing a Composer replacement, compare each enabled input behavior
-with the original Composer, including attachment-only sending and removal. If
+with the original Composer, including attachment-only sending, multi-file
+selection, removal, and capability-gated controls. If
 the reused component disables Send for empty text while the active Composer can
 send attachments, keep the component unchanged and render the public
 `ConversationComposerSend` for that case. Any added UI copy must use the

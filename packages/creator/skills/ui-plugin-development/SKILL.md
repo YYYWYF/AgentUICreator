@@ -47,11 +47,16 @@ Inspect project conventions before deciding that Plugin source must change:
    active input remains.
    Map every relevant callback exposed by the reused component, including
    attachment removal; a visible control with an undefined callback is not
-   preserved behavior. Match the prior file picker's single/multiple selection
-   and the prior Composer's send conditions. If the component disables its own
+   preserved behavior. The current canonical Composer's attachment picker
+   permits multiple files: keep `multiple` on a replacement file input and
+   pass every selected file to `addAttachment`. Show the add control only when
+   `attachmentsEnabled` is true. Match the prior Composer's send conditions.
+   If the component disables its own
    Send control for empty text but the active Composer can send attachments
    alone, render the public `ConversationComposerSend` only for that case;
    never insert placeholder text into the draft to force the component button.
+   If that control adds a label, use the Agent UI conversation locale namespace
+   and declare `AGENT_UI_LOCALE_SERVICE` in the Plugin definition.
    Static validation cannot establish these interaction claims.
 5. If neither a Plugin nor a reusable component exists, create a new Plugin implementation following project conventions.
 6. For an ordinary Plugin, insert its node into a Layout Slot or parent plugin's local Slot through AppUIModel. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
