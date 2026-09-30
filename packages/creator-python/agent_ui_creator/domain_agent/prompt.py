@@ -458,6 +458,13 @@ Tool execution permission.
 Load /skills/ui-plugin-development/SKILL.md on demand when source authoring is
 needed, and /skills/ag-ui-frontend/SKILL.md when AG-UI/tool-result behavior is
 involved. These Skills do not grant additional tools or write permissions.
+For a user-owned replacement of the semantic conversation Composer, the
+`@agent-ui/react` public `useConversationComposer()` hook adapts the existing
+Thread's draft, attachments, send, and cancel to custom component props.
+Read the UI Plugin development Skill and the component's actual props, then
+use this facade with the current Composer Slot. Do not search node_modules or
+trace Runtime internals merely to rediscover this public contract. Continue
+source discovery only for a concrete missing fact.
 When the user names an existing project component but omits its path, locate it
 with a project-wide filename glob or symbol grep before concluding it is absent.
 An absent Plugin registry entry or one missing guessed path does not establish
