@@ -465,6 +465,11 @@ Read the UI Plugin development Skill and the component's actual props, then
 use this facade with the current Composer Slot. Do not search node_modules or
 trace Runtime internals merely to rediscover this public contract. Continue
 source discovery only for a concrete missing fact.
+The hook provides `text`, `attachments`, `attachmentAccept`,
+`attachmentsEnabled`, `isRunning`, `disabled`, `canSend`, `canCancel`,
+`setText`, `send`, `cancel`, `addAttachment`, and `removeAttachment`.
+Project filesystem tools cannot inspect package node_modules. Resolve the
+reused component's import relative to the adapter file's actual location.
 Before completing a Composer replacement, compare each enabled input behavior
 with the original Composer, including attachment-only sending and removal. If
 the reused component disables Send for empty text while the active Composer can
