@@ -34,6 +34,17 @@ Inspect project conventions before deciding that Plugin source must change:
    in the project. A component's attachment callback can open a local file input
    and pass selected files to `addAttachment`; honor `attachmentsEnabled` and
    `attachmentAccept`. Keep the component implementation unchanged.
+   The public hook returns `text: string`,
+   `attachments: readonly { id: string; name: string }[]`,
+   `attachmentAccept: string`, `attachmentsEnabled: boolean`,
+   `isRunning: boolean`, `disabled: boolean`, `canSend: boolean`,
+   `canCancel: boolean`, `setText(text): void`, `send(): void`,
+   `cancel(): void`, `addAttachment(file: File): Promise<void>`, and
+   `removeAttachment(id: string): Promise<void>`. Check `canSend` and
+   `canCancel` before dispatch. This contract is exported at the package root;
+   project filesystem tools cannot inspect `node_modules`. Replace the
+   existing occupant of the semantic `composer` child Slot so that only one
+   active input remains.
 5. If neither a Plugin nor a reusable component exists, create a new Plugin implementation following project conventions.
 6. For an ordinary Plugin, insert its node into a Layout Slot or parent plugin's local Slot through AppUIModel. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
 7. When the user requires login, License, organization selection, onboarding, or initialization before the Workspace can be used, prefer a first-class `manifest.application.gate` Plugin in `applicationPlugins`; it is an Application lifecycle surface, not visual Slot composition.
