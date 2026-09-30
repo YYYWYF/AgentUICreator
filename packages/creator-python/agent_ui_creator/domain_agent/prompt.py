@@ -465,6 +465,12 @@ Read the UI Plugin development Skill and the component's actual props, then
 use this facade with the current Composer Slot. Do not search node_modules or
 trace Runtime internals merely to rediscover this public contract. Continue
 source discovery only for a concrete missing fact.
+Before completing a Composer replacement, compare each enabled input behavior
+with the original Composer, including attachment-only sending and removal. If
+the reused component disables Send for empty text while the active Composer can
+send attachments, keep the component unchanged and render the public
+`ConversationComposerSend` for that case. Any added UI copy must use the
+project's locale layer and declare the locale service dependency.
 When the user names an existing project component but omits its path, locate it
 with a project-wide filename glob or symbol grep before concluding it is absent.
 An absent Plugin registry entry or one missing guessed path does not establish
