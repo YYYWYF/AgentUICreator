@@ -50,6 +50,12 @@ revision. A static check before composition does not prove that the Plugin is
 mounted. Keep this sequence within the existing model-call budget by batching
 independent reads and using short exact anchors for locale `edit_file` calls.
 
+If the user asks Creator to hide or restore a whole panel while keeping its
+source, change AppUIModel composition so the Layout track reflows. Hiding a
+Plugin's inner content with local React state leaves its Panel track occupied;
+do not describe that as freeing chat space. A Plugin-local disclosure control
+is appropriate only when retaining its allocated panel width is intended.
+
 Before implementation, inspect `references/default-ui-composition.md` for the
 project's public component and style discovery path. Use actual exported APIs,
 not guessed Button, Checkbox, Dialog, or overlay names. If the user did not
