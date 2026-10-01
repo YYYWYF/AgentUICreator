@@ -522,6 +522,54 @@ describe("AppUIModel transaction", () => {
     });
   });
 
+  it("caps both side tracks when a default insertion joins a narrow root Row", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        gap: 0,
+        sizes: ["280px", "minmax(0, 1fr)"],
+        children: [
+          { type: "panel", child: { type: "slot", plugins: [
+            { id: "history-main", pluginId: "history", enabled: true },
+          ] } },
+          { type: "panel", child: { type: "slot", plugins: [
+            { id: "conversation-main", pluginId: "conversation-surface", enabled: true },
+          ] } },
+        ],
+      },
+    };
+    const { projectRoot, source } = await createProject({}, model, [
+      ["history", {}],
+      ["conversation-surface", { authoring: {
+        intents: ["show the primary conversation"],
+        recommendedSize: { width: "minmax(0, 1fr)" },
+      } }],
+      ["task-checklist", { authoring: {
+        intents: ["show a local checklist"],
+        defaultPlacement: { type: "relative", relation: "after", anchorPluginId: "conversation-surface" },
+        recommendedSize: { width: "280px" },
+      } }],
+    ]);
+
+    const result = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "insert_plugin_default",
+        plugin: { id: "task-checklist-main", pluginId: "task-checklist", enabled: true },
+      }],
+    });
+
+    expect(result.changed).toBe(true);
+    expect(result.semanticComposition?.expectedGeometry?.size).toBe("min(280px, 25%)");
+    const written = JSON.parse(await readFile(
+      path.join(projectRoot, "app-ui", "app-ui.json"), "utf8",
+    )) as AppUIModel;
+    expect(written.root).toMatchObject({
+      type: "row",
+      sizes: ["min(280px, 25%)", "minmax(0, 1fr)", "min(280px, 25%)"],
+    });
+  });
+
   it("lowers an authoring-default insertion when the anchor is a root Panel", async () => {
     const model: AppUIModel = {
       root: {

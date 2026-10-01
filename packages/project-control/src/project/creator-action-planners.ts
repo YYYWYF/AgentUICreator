@@ -531,7 +531,7 @@ function planRelativeInsertion(
   const axis = placement.relation === "above" || placement.relation === "below"
     ? "height"
     : "width";
-  const trackSize = normalizeAuthoringTrackSize(
+  let trackSize = normalizeAuthoringTrackSize(
     asset.authoring?.recommendedSize?.[axis],
     { pluginId: asset.pluginId, axis },
   );
@@ -566,6 +566,38 @@ function planRelativeInsertion(
     },
   };
   const loweredOperations: AppUIOperation[] = [];
+  if (
+    axis === "width" && region.mode === "existing-axis-parent" &&
+    region.parent === model.root && region.parent.children.length === 2 &&
+    region.parent.sizes?.length === 2 && (region.parent.gap ?? 0) === 0
+  ) {
+    const refs = buildLayoutRefIndex(model.root);
+    const anchorIndex = region.parent.children.findIndex(
+      (child) => refs.byNode.get(child) === region.anchorRef,
+    );
+    const sideIndex = 1 - anchorIndex;
+    const anchorSize = region.parent.sizes[anchorIndex];
+    const sideSize = region.parent.sizes[sideIndex];
+    const sidePixels = typeof sideSize === "string"
+      ? sideSize.trim().match(/^(\d+(?:\.\d+)?)px$/)
+      : null;
+    const newPixels = trackSize.match(/^(\d+(?:\.\d+)?)px$/);
+    if (anchorIndex >= 0 && typeof anchorSize === "string" &&
+        /^(?:1fr|minmax\(0,\s*1fr\))$/.test(anchorSize.trim()) &&
+        sidePixels !== null && newPixels !== null &&
+        Number(sidePixels[1]) + Number(newPixels[1]) > 280) {
+      loweredOperations.push({
+        type: "update_layout_node_props",
+        nodeRef: region.parentRef,
+        set: {
+          sizes: region.parent.sizes.map((size, index) =>
+            index === sideIndex ? `min(${String(size).trim()}, 25%)` : String(size)
+          ),
+        },
+      });
+      trackSize = `min(${trackSize}, 25%)`;
+    }
+  }
   if (
     region.mode === "root-anchor" &&
     region.anchor.type === "panel" &&
