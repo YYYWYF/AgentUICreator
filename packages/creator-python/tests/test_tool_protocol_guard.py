@@ -81,6 +81,34 @@ def test_invalid_tool_call_requests_repair():
     assert metrics.toolArgumentParseFailures == 1
 
 
+def test_output_limited_invalid_tool_call_repair_requests_compact_same_tool():
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    responses = iter([
+        ModelResponse(result=[AIMessage(
+            content="", response_metadata={"finish_reason": "length"},
+            invalid_tool_calls=[{"name": "read_file", "args": "{", "id": "partial"}],
+        )]),
+        ModelResponse(result=[AIMessage(
+            content="", tool_calls=[{
+                "name": "read_file", "args": {"file_path": "/src/a.ts"}, "id": "repaired",
+            }],
+        )]),
+    ])
+    requests = []
+
+    def handler(current_request):
+        requests.append(current_request)
+        return next(responses)
+
+    result = middleware.wrap_model_call(request, handler)
+
+    assert result.result[0].tool_calls[0]["id"] == "repaired"
+    assert "`read_file` call was cut off by the output limit" in requests[1].messages[-1].content
+    assert "shorter valid arguments" in requests[1].messages[-1].content
+    assert middleware.metrics.protocolRepairSuccesses == 1
+
+
 def test_pydantic_argument_failure_records_bounded_shape():
     metrics = ToolProtocolMetrics(modelCalls=5)
     decision = ToolProtocolGuard(metrics).inspect(

@@ -724,25 +724,36 @@ class ToolProtocolMiddleware(AgentMiddleware):
                 )
 
     def _repair_request(
-        self, request: ModelRequest, expected_tool_name: str | None
+        self, request: ModelRequest, response: ModelResponse[Any],
+        expected_tool_name: str | None,
     ) -> ModelRequest:
         prompt = PROTOCOL_REPAIR_PROMPT
         if expected_tool_name is not None:
-            validation_hint = _repair_validation_hint(
-                self.metrics,
-                model_call_sequence=self.metrics.modelCalls,
-                expected_tool_name=expected_tool_name,
-            )
-            if validation_hint is not None:
-                prompt = f"""Your previous call to `{expected_tool_name}` had an invalid argument shape.
+            response_message = _ai_message(response)
+            if (response_message is not None
+                    and response_message.invalid_tool_calls
+                    and _response_finish_reason(response_message) == "length"):
+                prompt = f"""Your previous `{expected_tool_name}` call was cut off by the output limit.
+
+Re-issue only that same structured tool call with shorter valid arguments.
+Keep all required files and behavior, but remove unnecessary prose, comments,
+and whitespace from generated source. Do not switch tools or explain in prose."""
+            else:
+                validation_hint = _repair_validation_hint(
+                    self.metrics,
+                    model_call_sequence=self.metrics.modelCalls,
+                    expected_tool_name=expected_tool_name,
+                )
+                if validation_hint is not None:
+                    prompt = f"""Your previous call to `{expected_tool_name}` had an invalid argument shape.
 
 {validation_hint}
 
 Re-issue only that same tool call using valid structured arguments.
 Do not switch to another tool.
 Do not explain the error in prose."""
-            else:
-                prompt = f"""Your previous response attempted an invalid structured call to
+                else:
+                    prompt = f"""Your previous response attempted an invalid structured call to
 `{expected_tool_name}`.
 
 Re-issue only that intended action using the provided structured tool interface.
@@ -821,7 +832,7 @@ Do not explain the error in prose."""
         self.metrics.protocolRepairAttempts += 1
         expected_tool_name = _single_tool_intent_name(response)
         self._before_call()
-        repaired_request = self._repair_request(request, expected_tool_name)
+        repaired_request = self._repair_request(request, response, expected_tool_name)
         started_at = time.monotonic()
         repaired = handler(repaired_request)
         self._record(repaired, repaired_request, started_at)
@@ -864,7 +875,7 @@ Do not explain the error in prose."""
         self.metrics.protocolRepairAttempts += 1
         expected_tool_name = _single_tool_intent_name(response)
         self._before_call()
-        repaired_request = self._repair_request(request, expected_tool_name)
+        repaired_request = self._repair_request(request, response, expected_tool_name)
         started_at = time.monotonic()
         repaired = await handler(repaired_request)
         self._record(repaired, repaired_request, started_at)
