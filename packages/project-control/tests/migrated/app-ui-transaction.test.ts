@@ -1426,6 +1426,32 @@ describe("AppUIModel transaction", () => {
       }],
     });
     expect(accepted.changed).toBe(true);
+
+    const rightPrimary: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["min(200px, 20%)", "min(200px, 20%)", "minmax(0, 1fr)"],
+        children: model.root.type === "row" ? model.root.children : [],
+      },
+    };
+    const { projectRoot: rightRoot, source: rightSource } = await createProject({
+      authoring: { intents: ["show flexible conversation"], recommendedSize: { width: "minmax(0, 1fr)" } },
+    }, rightPrimary);
+    const rightError = await mutateAppUIModel(rightRoot, {
+      appUIModelHash: hash(rightSource),
+      operations: [{
+        type: "update_layout_node_props",
+        nodeRef: "l0",
+        set: { sizes: ["280px", "minmax(240px, 320px)", "minmax(0, 1fr)"] },
+        removeKeys: [],
+      }],
+    }).catch((value: unknown) => value);
+    expect(rightError).toMatchObject({
+      code: "LAYOUT_NARROW_CENTER_UNUSABLE",
+      details: { referenceWidth: 560, primaryTrackIndex: 2, fixedSideWidth: 520, centerWidthAtReference: 40 },
+    });
+    expect(await readFile(path.join(rightRoot, "app-ui", "app-ui.json"), "utf8"))
+      .toBe(rightSource);
   });
 
   it("rejects a stale source hash before changing either transaction file", async () => {

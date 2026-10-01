@@ -1051,11 +1051,9 @@ function reservedPixelTrack(size: number | string | undefined, referenceWidth: n
 function assertNarrowCenterSpace(model: AppUIModel, assets: readonly PluginAsset[]): void {
   const row = model.root;
   if (row.type !== "row" || row.children.length !== 3 || row.sizes?.length !== 3) return;
-  if (!/^(?:1fr|minmax\(0,\s*1fr\))$/.test(String(row.sizes[1]).trim())) return;
   const flexiblePluginIds = new Set(assets.filter(
     (asset) => asset.authoring?.recommendedSize?.width === "minmax(0, 1fr)",
   ).map((asset) => asset.pluginId));
-  const center = row.children[1];
   const hasFlexiblePrimary = (node: AppUILayoutNode): boolean => {
     if (node.type === "slot") {
       return node.plugins.some((plugin) => plugin.enabled && flexiblePluginIds.has(plugin.pluginId));
@@ -1063,18 +1061,26 @@ function assertNarrowCenterSpace(model: AppUIModel, assets: readonly PluginAsset
     if (node.type === "panel") return hasFlexiblePrimary(node.child);
     return node.children.some(hasFlexiblePrimary);
   };
-  if (center === undefined || !hasFlexiblePrimary(center)) return;
-  const left = reservedPixelTrack(row.sizes[0], 560);
-  const right = reservedPixelTrack(row.sizes[2], 560);
-  if (left === undefined || right === undefined || left + right <= 280) return;
+  const primaryIndex = row.children.findIndex((child, index) =>
+    /^(?:1fr|minmax\(0,\s*1fr\))$/.test(String(row.sizes?.[index]).trim())
+    && hasFlexiblePrimary(child)
+  );
+  if (primaryIndex < 0) return;
+  const sideWidths = row.sizes.flatMap((size, index) =>
+    index === primaryIndex ? [] : [reservedPixelTrack(size, 560)]
+  );
+  if (sideWidths.length !== 2 || sideWidths.some(width => width === undefined)) return;
+  const fixedSideWidth = (sideWidths[0] ?? 0) + (sideWidths[1] ?? 0);
+  if (fixedSideWidth <= 280) return;
   throw new AppUITransactionError(
     "LAYOUT_NARROW_CENTER_UNUSABLE",
-    "Side tracks reserve too much width for the center in a 560px Agent container. Use flexible side tracks such as min(280px, 25%).",
+    "Side tracks reserve too much width for the primary conversation in a 560px Agent container. Use flexible side tracks such as min(280px, 25%).",
     {
       referenceWidth: 560,
       minimumCenterWidth: 280,
-      fixedSideWidth: left + right,
-      centerWidthAtReference: Math.max(0, 560 - left - right),
+      primaryTrackIndex: primaryIndex,
+      fixedSideWidth,
+      centerWidthAtReference: Math.max(0, 560 - fixedSideWidth),
     },
   );
 }
