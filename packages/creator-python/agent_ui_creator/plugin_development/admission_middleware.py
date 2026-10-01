@@ -64,7 +64,7 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
 
     def _complete_composition(self, value: Mapping[str, Any]) -> Mapping[str, Any] | None:
         if "pageText" not in value:
-            return value
+            return value if _inventory_complete(value) else None
         snapshot_hash = value.get("snapshotHash")
         offset = value.get("pageOffset")
         page_text = value.get("pageText")
@@ -218,7 +218,10 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
             composition = self._complete_composition(value)
             if (composition is not None
                     and "capability.inventory" in composition.get("observationCoverage", ())
-                    and isinstance(composition.get("capabilitySummaries"), list)):
+                    and isinstance(composition.get("capabilitySummaries"), list)
+                    and all(isinstance(summary, Mapping)
+                            and isinstance(summary.get("pluginId"), str)
+                            for summary in composition["capabilitySummaries"])):
                 ids = [summary["pluginId"] for summary in composition["capabilitySummaries"]
                        if isinstance(summary, Mapping)
                        and isinstance(summary.get("pluginId"), str)]

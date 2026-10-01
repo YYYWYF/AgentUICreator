@@ -80,6 +80,19 @@ def test_complete_composition_snapshot_counts_as_installed_plugin_inventory(tmp_
     assert state.can_expose_prepare
 
 
+def test_incomplete_composition_snapshot_cannot_activate_inventory_grant(tmp_path):
+    state = authority(tmp_path, "conditional")
+    middleware = PluginDevelopmentAdmissionMiddleware(state)
+    middleware._observe("inspect_ui_project", {"view": "composition"}, json.dumps({
+        "ok": True, "result": {
+            "pageComplete": False, "nextCursor": "next",
+            "observationCoverage": ["capability.inventory"],
+            "capabilitySummaries": [{"pluginId": "task-list"}],
+        },
+    }))
+    assert not state._plugin_inventory_complete
+
+
 def test_paged_composition_requires_every_page_before_inventory_grant(tmp_path):
     state = authority(tmp_path, "conditional")
     middleware = PluginDevelopmentAdmissionMiddleware(state)
