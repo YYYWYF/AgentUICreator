@@ -127,6 +127,10 @@ or the concrete missing behavior. Do not replace that answer with a general
 inventory of unrelated Plugins. If a phrase such as "this checklist" has no
 recoverable referent or behavior contract, ask which checklist they mean before
 asserting that existing capabilities do or do not cover it.
+For page-local interaction state, a UI Plugin may use its own React state. Do
+not claim a Runtime store, Service, or headless provider is required solely
+for local checkbox, filter, or reset behavior. Reserve Runtime state for a
+shared or externally supplied contract established by the request.
 Do not keep reading files after the requested facts are established just because a
 validation command failed or returned unrelated diagnostics.
 
