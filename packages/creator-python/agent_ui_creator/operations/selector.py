@@ -67,6 +67,16 @@ _RESTORE_VISUAL_STATE = re.compile(
     r"恢复|还原|重新显示|显示回来|\brestore\b|\bshow\s+again\b|\bbring\s+back\b",
     re.I,
 )
+_SHOW_DEFAULT_VISUAL_STATE = re.compile(
+    r"(?:显示出来|显示回来|重新显示|恢复显示|启用|打开)"
+    r"|\b(?:show|enable|turn\s+on|bring\s+back)\b",
+    re.I,
+)
+_PRESERVE_DEFAULT_PRESENTATION = re.compile(
+    r"(?:保持|沿用|使用|保留).{0,24}(?:默认|现有|当前).{0,12}(?:展示|样式|外观|呈现)"
+    r"|\b(?:keep|use|preserve).{0,40}(?:default|existing|current).{0,24}(?:presentation|style|appearance)\b",
+    re.I,
+)
 _CURRENT_VISUAL_SCOPE = re.compile(
     r"只在\s*(?:当前|这个|本)\s*(?:界面|页面)"
     r"|\bonly\s+(?:on|in)\s+(?:the\s+)?(?:current|this)\s+(?:screen|view|interface)\b",
@@ -126,6 +136,10 @@ Moving an instance changes placement only. When the user asks to restore a
 hidden visual instance, a Move Action cannot make it visible even if its
 placement is already satisfied; choose GENERAL to inspect and restore the
 current Composition state.
+Showing an existing visual capability with its current/default presentation is
+a Composition visibility request. If there is no supplied enable Action, choose
+GENERAL to inspect its instance state; do not select a plugin_source target just
+because the user says "show" or "display".
 Use a Workspace Region choice for top-level Left, Center, or Right semantics
 when the supplied Action effect has placementDomain workspace, including a
 position described as after the main Conversation surface. A plugin_slot
@@ -574,6 +588,16 @@ class CreatorIntentSelector:
                             and _RESTORE_PLUGIN_SOURCE.search(user_message)):
                         return CreatorActionSelection(decision="general_change")
                     if selection.decision == "select_intent" and _PRESERVE_PLUGIN_SOURCE.search(user_message):
+                        selected_intent = next(
+                            (candidate for candidate in intent_candidates
+                             if getattr(getattr(candidate, "target", None), "targetId", None) == selection.targetId),
+                            None,
+                        )
+                        if getattr(selected_intent, "type", None) == "plugin_source":
+                            return CreatorActionSelection(decision="general_change")
+                    if (selection.decision == "select_intent"
+                            and _SHOW_DEFAULT_VISUAL_STATE.search(user_message)
+                            and _PRESERVE_DEFAULT_PRESENTATION.search(user_message)):
                         selected_intent = next(
                             (candidate for candidate in intent_candidates
                              if getattr(getattr(candidate, "target", None), "targetId", None) == selection.targetId),

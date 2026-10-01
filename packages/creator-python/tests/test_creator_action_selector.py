@@ -292,6 +292,17 @@ def test_preserving_plugin_source_cannot_route_to_plugin_source_handoff(message)
     assert selector.metrics.modelCalls == 1
 
 
+def test_show_existing_default_presentation_does_not_edit_plugin_source():
+    selector = CreatorActionSelector(model=StaticChatModel(["SELECT A6"]))
+
+    result = asyncio.run(selector.select(
+        "把示例问题显示出来，保持我们现在的默认展示方式，其他功能不变。",
+        _unified_context(),
+    ))
+
+    assert result.decision == "general_change"
+
+
 def test_restoring_source_and_changing_composition_cannot_select_one_atomic_action():
     model = StaticChatModel(["SELECT A1"])
     selector = CreatorActionSelector(model=model)
