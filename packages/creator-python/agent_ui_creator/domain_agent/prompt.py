@@ -121,6 +121,12 @@ When the user asks only to inspect, diagnose, summarize, or report the current
 project, do not call validate_creator_changes unless the user explicitly asks for
 validation or this run has already performed a mutation. Use only the targeted
 inspection and filesystem reads needed to answer, then stop with a concise report.
+When the user asks whether a specific UI capability can be met with existing
+Plugins, answer that capability directly: identify a matching reusable Plugin
+or the concrete missing behavior. Do not replace that answer with a general
+inventory of unrelated Plugins. If a phrase such as "this checklist" has no
+recoverable referent or behavior contract, ask which checklist they mean before
+asserting that existing capabilities do or do not cover it.
 Do not keep reading files after the requested facts are established just because a
 validation command failed or returned unrelated diagnostics.
 
