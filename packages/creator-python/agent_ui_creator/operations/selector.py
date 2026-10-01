@@ -120,6 +120,10 @@ CLARIFY <question>
 Never invent a choice, target, owner, placement, or mutation. Use INSPECT for a
 project-related read-only request (analysis, inventory, diagnosis, or an
 evidence-based answer). It routes to an agent whose actual tools are read-only.
+If the User forbids development or all modifications but asks whether existing
+capabilities cover a specific feature or what gap remains, use INSPECT. The
+absence of an authorized write is not grounds for UNSUPPORTED when a read-only
+answer is requested.
 For a broad frontend request that may need new Plugin source or new business
 behavior, use GENERAL DEVELOPMENT_DECISION unless the current real User request
 explicitly commissions development. Use GENERAL DEVELOPMENT_EXPLICIT for a
