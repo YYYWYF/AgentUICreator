@@ -525,6 +525,27 @@ def _error_code(error: Exception) -> str:
     return "CREATOR_PYTHON_AGENT_ERROR"
 
 
+def _failed_run_change_summary(activity: CreatorActivityRecorder) -> str:
+    try:
+        receipt = activity.finish()
+    except Exception:
+        return ""
+    files = receipt.get("files")
+    if not isinstance(files, list) or not files:
+        return ""
+    paths = [
+        path.replace("\n", " ").replace("\r", " ")[:120]
+        for file in files
+        if isinstance(file, dict) and isinstance(path := file.get("path"), str)
+    ]
+    if not paths:
+        return ""
+    visible = "、".join(paths[:6])
+    if len(paths) > 6:
+        visible += f" 等共 {len(paths)} 个文件"
+    return f"本次已有未验证的目标工程修改：{visible}。请检查这些文件后再继续。"
+
+
 @dataclass(frozen=True, slots=True)
 class _AgentExecution:
     result: Any
@@ -957,11 +978,15 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                         event_bus.request_cancel()
                         if not event_bus.has_active_tools and not agent_task.done():
                             agent_task.cancel()
+                        changed_summary = (
+                            _failed_run_change_summary(activity) if agent_task.done() else ""
+                        )
                         yield encode(
                             RunErrorEvent(
                                 type=EventType.RUN_ERROR,
                                 code=_error_code(error),
-                                message=f"Creator Agent 执行失败：{error}",
+                                message=(f"Creator Agent 执行失败：{error}"
+                                         + (f" {changed_summary}" if changed_summary else "")),
                             )
                         )
                         return

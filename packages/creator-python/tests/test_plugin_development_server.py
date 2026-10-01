@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
@@ -171,6 +173,51 @@ def test_approved_resume_loads_skill_before_create_becomes_visible(tmp_path, mon
     assert not any(event["type"] == "RUN_ERROR" for event in resumed)
 
 
+def test_concurrent_approval_resume_applies_only_once(tmp_path, monkeypatch):
+    model = TrackingModel(responses=[
+        AIMessage(content="", tool_calls=[{
+            "name": "prepare_ui_plugin_development", "args": PREPARE, "id": "prepare-concurrent",
+        }]),
+        AIMessage(content="已收到一次开发批准，尚未实施。"),
+    ])
+    app, _client = _app(tmp_path, monkeypatch, model)
+
+    async def run_requests():
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver",
+            headers={"Authorization": "Bearer " + "x" * 32},
+        ) as client:
+            async def post(run_id, *, text=None, resume=None):
+                response = await client.post("/creator", json={
+                    "threadId": "thread-a", "runId": run_id,
+                    "messages": [{"role": "user", "content": text}] if text else [],
+                    **({"forwardedProps": {"command": {"resume": resume}}} if resume else {}),
+                })
+                assert response.status_code == 200
+                return [json.loads(line.removeprefix("data: "))
+                        for line in response.text.splitlines() if line.startswith("data: ")]
+
+            first = await post("request-a", text="在聊天旁边做一个任务核对清单")
+            question = next(event["value"] for event in first if event.get("name") == "on_interrupt")
+            resume = {
+                "interruptId": question["id"],
+                "answers": {"plugin-development-decision": ["start"]},
+            }
+            return await asyncio.gather(
+                post("request-b", resume=resume), post("request-c", resume=resume),
+            )
+
+    responses = asyncio.run(run_requests())
+
+    assert sum(any(event["type"] == "RUN_FINISHED" for event in response)
+               for response in responses) == 1
+    assert sum(any(event.get("code") == "CREATOR_INTERRUPT_NOT_FOUND"
+                   for event in response) for response in responses) == 1
+    assert app.state.plugin_development_authorities["thread-a"].active.status == "authorized"
+    assert not (tmp_path / "plugins").exists()
+
+
 def test_approved_resume_can_create_bound_plugin_after_skill_and_validation(tmp_path, monkeypatch):
     async def successful_command(_self, _command):
         return CommandExecutionResult("", 0, False)
@@ -278,3 +325,30 @@ def test_sidecar_restart_does_not_resume_or_authorize_pending_plan(tmp_path, mon
     assert any(event.get("code") == "CREATOR_INTERRUPT_NOT_FOUND" for event in resumed)
     assert new_app.state.plugin_development_authorities["thread-a"].active is None
     assert not (tmp_path / "plugins").exists()
+
+
+def test_failed_run_reports_persisted_changes_without_claiming_validation(tmp_path, monkeypatch):
+    async def fail_after_write(activity):
+        path = "/plugins/generated-file-message/index.tsx"
+        activity.capture_before(path)
+        target = tmp_path / path.lstrip("/")
+        target.parent.mkdir(parents=True)
+        target.write_text("export {};", encoding="utf-8")
+        activity.touch(path)
+        raise RuntimeError("model transport unavailable")
+
+    monkeypatch.setattr(
+        "agent_ui_creator.server._general_domain_write_agent_result",
+        lambda _settings, _messages, activity, *_args, **_kwargs: fail_after_write(activity),
+    )
+    _app_instance, client = _app(
+        tmp_path, monkeypatch, TrackingModel(responses=[]), intent="none",
+    )
+
+    events = _events(client, run_id="failed-after-install", text="显示文件结果")
+
+    error = next(event for event in events if event["type"] == "RUN_ERROR")
+    assert "未验证" in error["message"]
+    assert "plugins/generated-file-message/index.tsx" in error["message"]
+    assert "export {};" not in error["message"]
+    assert (tmp_path / "plugins/generated-file-message/index.tsx").exists()
