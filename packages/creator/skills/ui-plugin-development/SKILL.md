@@ -104,6 +104,12 @@ able to ask Creator to add or restore it:
   `recommendedSize.width`.
 - A relative `above`/`below` `defaultPlacement` requires
   `recommendedSize.height`.
+- Before choosing a relative placement, inspect the anchor's current Layout
+  parent. `before`/`after` require an existing Row or root anchor;
+  `above`/`below` require an existing Column or root anchor. An anchor inside
+  a root Row cannot use `below` through `insert_plugin_default`. If no
+  supported default fits the requested UI, use the low-level AppUIModel path
+  after reading its Skill instead of declaring an unusable default.
 - A `plugin_slot` placement points at an existing parent child Slot, matches
   one of that Slot's accepted capabilities, and matches renderer mode.
 - A Plugin with `requiresRenderScope: true` uses a renderer child Slot; a
@@ -171,6 +177,8 @@ Plugin needs capability X
    Import the component with `from "./index"` when it lives in the required `index.tsx`. Do not also create `index.ts` as a barrel: TypeScript resolves `./index` to that file first and can make the component import circular. Do not add a `.tsx` extension to the import; the Host TypeScript configuration does not enable that syntax.
    Declare every service a built-in hook consumes. `useAgentUILocale` needs `AGENT_UI_LOCALE_SERVICE`; `useAgentUIThemeMode` needs `AGENT_UI_THEME_SERVICE`, each in `inject` or `optionalInject` as appropriate. Theme CSS tokens alone do not need the theme hook.
 6. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
+   Import a Plugin stylesheet once. For ordinary action buttons, use the
+   project's inspected public Button facade when one exists.
 7. Default-export the definition so the target-owned generator can include it in the static Registry. Do not spread a template catalog into the production registry.
 8. Submit `pluginId` and all currently known new Plugin files together in one `create_ui_plugin` call, using `relativePath` values inside that Plugin directory. It requires `manifest.json`, `definition.ts`, and `index.tsx`, is create-only, and transactionally rolls back the whole call on failure. Never use it to replace an existing Plugin directory or file.
 9. Run `validate_creator_changes`. Fix returned diagnostics with `read_file` plus `edit_file`, then validate the new revision again.
