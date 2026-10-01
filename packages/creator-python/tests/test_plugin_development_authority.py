@@ -63,6 +63,50 @@ def test_conditional_prepare_is_offered_only_after_both_complete_inventories(tmp
     assert "prepare_ui_plugin_development" in offered()
 
 
+def test_complete_composition_snapshot_counts_as_installed_plugin_inventory(tmp_path):
+    state = authority(tmp_path, "conditional")
+    middleware = PluginDevelopmentAdmissionMiddleware(state)
+    middleware._observe("inspect_ui_project", {"view": "composition"}, json.dumps({
+        "ok": True, "result": {
+            "observationCoverage": ["capability.inventory"],
+            "capabilitySummaries": [{"pluginId": "task-list"}],
+        },
+    }))
+    assert state._plugin_inventory_complete
+    assert state._existing_plugin_ids == {"task-list"}
+    middleware._observe("inspect_agent_ui_sources", {}, json.dumps({
+        "ok": True, "result": {"items": []},
+    }))
+    assert state.can_expose_prepare
+
+
+def test_paged_composition_requires_every_page_before_inventory_grant(tmp_path):
+    state = authority(tmp_path, "conditional")
+    middleware = PluginDevelopmentAdmissionMiddleware(state)
+    full = json.dumps({"ok": True, "result": {
+        "observationCoverage": ["capability.inventory"],
+        "capabilitySummaries": [{"pluginId": "task-list"}],
+    }})
+    split = len(full) // 2
+    for index, (offset, part, complete) in enumerate((
+        (split, full[split:], True),
+        (0, full[:split], False),
+        (split, full[split:], True),
+    )):
+        middleware._observe("inspect_ui_project", {"view": "composition"}, json.dumps({
+            "ok": True, "result": {
+                "snapshotHash": "snapshot-a", "pageOffset": offset,
+                "pageText": part, "totalChars": len(full),
+                "pageComplete": complete,
+                "nextCursor": None if complete else "next",
+            },
+        }))
+        if index < 2:
+            assert not state._plugin_inventory_complete
+    assert state._plugin_inventory_complete
+    assert state._existing_plugin_ids == {"task-list"}
+
+
 def test_direct_grant_is_task_and_identity_scoped(tmp_path):
     state = authority(tmp_path, "explicit")
     prepared = state.prepare(

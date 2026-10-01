@@ -59,6 +59,41 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
 
     def __init__(self, authority: PluginDevelopmentAuthority) -> None:
         self.authority = authority
+        self._composition_snapshot_hash: str | None = None
+        self._composition_pages: dict[int, str] = {}
+
+    def _complete_composition(self, value: Mapping[str, Any]) -> Mapping[str, Any] | None:
+        if "pageText" not in value:
+            return value
+        snapshot_hash = value.get("snapshotHash")
+        offset = value.get("pageOffset")
+        page_text = value.get("pageText")
+        total_chars = value.get("totalChars")
+        if (not isinstance(snapshot_hash, str) or not isinstance(offset, int)
+                or not isinstance(page_text, str) or not isinstance(total_chars, int)):
+            return None
+        if snapshot_hash != self._composition_snapshot_hash:
+            self._composition_snapshot_hash = snapshot_hash
+            self._composition_pages.clear()
+        self._composition_pages[offset] = page_text
+        if value.get("pageComplete") is not True or value.get("nextCursor") is not None:
+            return None
+        position = 0
+        parts: list[str] = []
+        for page_offset, part in sorted(self._composition_pages.items()):
+            if page_offset != position:
+                return None
+            parts.append(part)
+            position += len(part)
+        if position != total_chars:
+            return None
+        try:
+            payload = json.loads("".join(parts))
+        except (TypeError, ValueError):
+            return None
+        self._composition_pages.clear()
+        result = payload.get("result") if isinstance(payload, Mapping) and payload.get("ok") is True else None
+        return result if isinstance(result, Mapping) else None
 
     def _visible_tools(self, tools: Sequence[Any]) -> list[Any]:
         if self.authority.needs_plugin_inventory and any(
@@ -179,6 +214,17 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
         value = payload.get("result")
         if not isinstance(value, Mapping):
             return
+        if name == "inspect_ui_project" and args.get("view") == "composition":
+            composition = self._complete_composition(value)
+            if (composition is not None
+                    and "capability.inventory" in composition.get("observationCoverage", ())
+                    and isinstance(composition.get("capabilitySummaries"), list)):
+                ids = [summary["pluginId"] for summary in composition["capabilitySummaries"]
+                       if isinstance(summary, Mapping)
+                       and isinstance(summary.get("pluginId"), str)]
+                self.authority.record_discovery(
+                    plugin_inventory_complete=True, plugin_ids=ids,
+                )
         if name == "apply_agent_ui_source_item":
             item_id = args.get("itemId")
             changed_items = value.get("changedItems")
