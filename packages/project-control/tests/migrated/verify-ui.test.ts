@@ -1,4 +1,5 @@
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -6,6 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import type { AppUIModel } from "../../src/framework/contracts/app-ui-model";
 import { verifyUIProject } from "../../src/verify-ui";
+import { handleUIProjectControlRequest } from "../../src/handler";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_PATH,
@@ -627,6 +629,32 @@ describe("verifyUIProject", () => {
       expect.objectContaining({ code: "plugin-registry-generated-stale" }),
     );
     expect(await readFile(registryPath, "utf8")).toBe("// stale\n");
+  });
+
+  it("synchronizes a changed Plugin declaration through the internal Host operation", async () => {
+    const projectRoot = await createProject({ instancePluginId: "sample", mounted: true });
+    const definitionPath = path.join(projectRoot, "plugins/sample/definition.ts");
+    const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
+    const original = await readFile(registryPath, "utf8");
+    await writeFile(definitionPath,
+      'const Component = () => null;\nconst samplePlugin = { manifest: {}, Component, optionalInject: ["agent-ui.locale"] };\nexport default samplePlugin;\n');
+    expect((await verifyUIProject(projectRoot, fixtureConfig)).capabilityCatalog.generatedFileFresh).toBe(false);
+
+    const input = { expectedSourceHash: createHash("sha256").update(original).digest("hex") };
+    const first = await handleUIProjectControlRequest({
+      schemaVersion: 3, operation: "synchronize_plugin_registry", input,
+    }, projectRoot);
+    expect(first).toMatchObject({ ok: true, result: { changed: true, path: GENERATED_PLUGIN_REGISTRY_PATH } });
+    expect((await verifyUIProject(projectRoot, fixtureConfig)).capabilityCatalog.generatedFileFresh).toBe(true);
+    const second = await handleUIProjectControlRequest({
+      schemaVersion: 3, operation: "synchronize_plugin_registry",
+      input: { expectedSourceHash: createHash("sha256").update(await readFile(registryPath)).digest("hex") },
+    }, projectRoot);
+    expect(second).toMatchObject({ ok: true, result: { changed: false } });
+    const stale = await handleUIProjectControlRequest({
+      schemaVersion: 3, operation: "synchronize_plugin_registry", input,
+    }, projectRoot);
+    expect(stale).toMatchObject({ ok: false, error: { code: "PLUGIN_REGISTRY_HASH_CONFLICT" } });
   });
 
   it("rejects mount targets unreachable from the Layout-rooted composition", async () => {
