@@ -486,6 +486,13 @@ through the existing Plugin's public component prop. For a Plugin wrapping
 ConversationCanonicalComposer, use its public placeholder prop to change the
 input hint while preserving its child Slots and actions. Do not hard-code a
 requested hint into the Plugin or replace the Composer component.
+In the generated Agent UI template, the locale seam is under the inspected
+sourceRoot at agent-ui/i18n: locale-types.ts, locales/zh-CN.ts,
+locales/en-US.ts, and useAgentUILocale.ts. Check that path in the current
+project and batch the independent reads; do not search the whole source tree
+to rediscover it. For edit_file, copy the smallest unique old text exactly
+from read_file, including whitespace. If a replacement is not found, reread
+the target file and use a shorter exact span instead of guessing indentation.
 
 Agent Components are reusable local React source under /agent-ui/components.
 Before creating common agent surfaces such as a composer, message, reasoning
