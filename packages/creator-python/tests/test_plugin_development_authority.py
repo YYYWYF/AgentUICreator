@@ -353,6 +353,7 @@ def test_unselected_customized_source_cannot_be_directly_edited_for_capability_r
     state.begin_task(task_id="a11b", request_id="request-a11b", intent="none",
                      user_message="把 generate_file 结果显示为文件卡片")
     middleware = PluginDevelopmentAdmissionMiddleware(state)
+    assert middleware.customized_source_decision_required("generated-file-message")
     for name, args in (
         ("edit_file", {"file_path": "/src/agent-ui/" + relative}),
         ("mutate_ui_plugin_source", {"pluginId": "generated-file-message"}),
@@ -376,6 +377,7 @@ def test_unselected_customized_source_cannot_be_directly_edited_for_capability_r
     state.begin_task(task_id="direct-edit", request_id="direct-edit", intent="none",
                      user_message="请修改已定制的 generated-file-message 插件实现")
     assert state.blocked_customized_source_plugin_id is None
+    assert not middleware.customized_source_decision_required("generated-file-message")
     assert _call(middleware, "edit_file", {"file_path": "/src/agent-ui/" + relative}) == "allowed"
 
     state.begin_task(task_id="selected-edit", request_id="selected-edit", intent="none",
@@ -383,6 +385,7 @@ def test_unselected_customized_source_cannot_be_directly_edited_for_capability_r
     model_path.write_text(json.dumps({"applicationPlugins": [{
         "id": "file-main", "pluginId": "generated-file-message", "enabled": True,
     }], "root": {"type": "slot", "plugins": []}}), encoding="utf-8")
+    assert not middleware.customized_source_decision_required("generated-file-message")
     assert _call(middleware, "edit_file", {"file_path": "/src/agent-ui/" + relative}) == "allowed"
 
 

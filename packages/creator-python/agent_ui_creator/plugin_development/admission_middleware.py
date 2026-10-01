@@ -192,14 +192,17 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                 return True
         return False
 
-    def _require_customized_source_decision(self, plugin_id: str, logical: str | None = None) -> None:
+    def customized_source_decision_required(self, plugin_id: str, logical: str | None = None) -> bool:
         message = self.authority.user_message.lower()
         explicit_path = logical is not None and logical.lstrip("/").lower() in message
         explicit_plugin = (plugin_id.lower() in message and any(
             term in message for term in ("修改", "定制", "修复", "edit", "customize", "modify")
         ))
-        if (not explicit_path and not explicit_plugin
-                and self._unselected_customized_source(plugin_id)):
+        return (not explicit_path and not explicit_plugin
+                and self._unselected_customized_source(plugin_id))
+
+    def _require_customized_source_decision(self, plugin_id: str, logical: str | None = None) -> None:
+        if self.customized_source_decision_required(plugin_id, logical):
             self.authority.blocked_customized_source_plugin_id = plugin_id
             raise PluginCustomizedSourceDecisionRequired(
                 f"正式 Source Item plugin/{plugin_id} 已定制且尚未选用；当前请求未明确要求改写其源码。"

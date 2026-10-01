@@ -56,6 +56,7 @@ from .operations import (
 )
 from .project_control import ProjectControlClient
 from .plugin_development.authority import PluginDevelopmentAuthority, PluginDevelopmentError
+from .plugin_development.admission_middleware import PluginDevelopmentAdmissionMiddleware
 from .plugin_development.prepare_tool import (
     DEVELOPMENT_DECISION_STEP_ID,
     is_development_decision_question,
@@ -511,6 +512,21 @@ async def _general_domain_write_agent_result(
         verification_mode=settings.verification_mode,
         plugin_development_authority=development_authority,
     )
+    if (resume is None and handoff is not None and handoff.kind == "plugin_source"
+            and handoff.pluginId is not None and development_authority is not None
+            and PluginDevelopmentAdmissionMiddleware(
+                development_authority
+            ).customized_source_decision_required(handoff.pluginId)):
+        development_authority.blocked_customized_source_plugin_id = handoff.pluginId
+        if activity.logger is not None:
+            activity.logger.record("creator_source_boundary", {
+                "itemId": f"plugin/{handoff.pluginId}",
+                "code": "PLUGIN_CUSTOMIZED_SOURCE_DECISION_REQUIRED",
+                "projectChanged": False,
+            })
+        assert agent.completion_gate is not None
+        decision = agent.completion_gate.review("")
+        return agent._build_result(text=decision.text, completion="success")
     input_messages = _authoring_handoff_messages(messages, handoff)
     graph_messages = await _checkpoint_input_messages(checkpointer, thread_id, input_messages) if resume is None else input_messages
     return await agent.run_messages(graph_messages) if resume is None else await agent.run_messages(input_messages, resume=resume)
