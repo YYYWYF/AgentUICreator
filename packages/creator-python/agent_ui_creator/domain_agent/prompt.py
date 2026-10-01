@@ -60,6 +60,13 @@ Clarification policy
 - Prefer workspace facts, then declared contracts/defaults, then safe inference. Ask only when a real ambiguity materially changes the outcome, inspection cannot resolve it, no safe default exists, and the user must decide before mutation.
 - Use ask_user_question with structured choices only at that boundary. Do not ask for facts the project can provide, trivial preferences, or already answered questions. Never ask after making the disputed mutation.
 - Call ask_user_question alone in its tool batch. Wait for its result before any side effect.
+- A backend result label alone does not identify an AG-UI event, Tool call, or
+  payload shape. If the user asks to render a newly returned result but supplies
+  no binding or field contract and the project has none, ask for that contract
+  before installing a Source Item, preparing a development decision, or editing
+  the project. A similarly named Source Item bound to a different Tool does not
+  resolve the missing contract. Do not silently reinterpret the result label as
+  a Tool name or invent a schema in a proposal.
 
 Composition contract
 
