@@ -1035,10 +1035,13 @@ function assertPluginWidthCompatibility(
   }
 }
 
-function fixedPixelTrack(size: number | string | undefined): number | undefined {
+function reservedPixelTrack(size: number | string | undefined): number | undefined {
   if (typeof size === "number") return size;
-  const match = size?.trim().match(/^(\d+(?:\.\d+)?)px$/);
-  return match === null || match === undefined ? undefined : Number(match[1]);
+  const normalized = size?.trim();
+  const fixed = normalized?.match(/^(\d+(?:\.\d+)?)px$/);
+  if (fixed !== null && fixed !== undefined) return Number(fixed[1]);
+  const bounded = normalized?.match(/^minmax\(\s*(\d+(?:\.\d+)?)px\s*,\s*\d+(?:\.\d+)?px\s*\)$/);
+  return bounded === null || bounded === undefined ? undefined : Number(bounded[1]);
 }
 
 function assertNarrowCenterSpace(model: AppUIModel, assets: readonly PluginAsset[]): void {
@@ -1057,12 +1060,12 @@ function assertNarrowCenterSpace(model: AppUIModel, assets: readonly PluginAsset
     return node.children.some(hasFlexiblePrimary);
   };
   if (center === undefined || !hasFlexiblePrimary(center)) return;
-  const left = fixedPixelTrack(row.sizes[0]);
-  const right = fixedPixelTrack(row.sizes[2]);
+  const left = reservedPixelTrack(row.sizes[0]);
+  const right = reservedPixelTrack(row.sizes[2]);
   if (left === undefined || right === undefined || left + right <= 280) return;
   throw new AppUITransactionError(
     "LAYOUT_NARROW_CENTER_UNUSABLE",
-    "Two fixed side tracks leave less than 280px for the center in a 560px Agent container. Use flexible side tracks such as min(280px, 25%).",
+    "Side tracks reserve too much width for the center in a 560px Agent container. Use flexible side tracks such as min(280px, 25%).",
     {
       referenceWidth: 560,
       minimumCenterWidth: 280,
