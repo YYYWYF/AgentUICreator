@@ -89,6 +89,7 @@ class PluginDevelopmentAuthority:
         self.task_id: str | None = None
         self.request_id: str | None = None
         self.user_message = ""
+        self.blocked_customized_source_plugin_id: str | None = None
         self.intent: DevelopmentIntent = "none"
         self._proposals: dict[str, PluginDevelopmentProposal] = {}
         self._active_proposal_id: str | None = None
@@ -116,6 +117,7 @@ class PluginDevelopmentAuthority:
         self.task_id = task_id
         self.request_id = request_id
         self.user_message = user_message
+        self.blocked_customized_source_plugin_id = None
         self.intent = intent
         self._active_proposal_id = None
         self._plugin_inventory_complete = False

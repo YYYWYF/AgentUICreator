@@ -200,6 +200,7 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
         ))
         if (not explicit_path and not explicit_plugin
                 and self._unselected_customized_source(plugin_id)):
+            self.authority.blocked_customized_source_plugin_id = plugin_id
             raise PluginCustomizedSourceDecisionRequired(
                 f"正式 Source Item plugin/{plugin_id} 已定制且尚未选用；当前请求未明确要求改写其源码。"
                 "请先用 inspect_agent_ui_sources 确认冲突并说明继续路径，不要直接改写或声称功能已完成。"

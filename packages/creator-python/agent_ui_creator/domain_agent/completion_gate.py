@@ -154,6 +154,27 @@ class CreatorDevelopmentCompletionGate:
                     "checks": [self._check("development-decision", True, development.status)],
                 })
                 return CompletionDecision(True, text)
+            customized_source_id = (
+                self.plugin_development_authority.blocked_customized_source_plugin_id
+                if self.plugin_development_authority is not None else None
+            )
+            if customized_source_id is not None:
+                self.activity.record_verification({
+                    "status": "no-project-change",
+                    "verificationMode": self.verification_mode,
+                    "projectRevision": self.activity.revision,
+                    "auditAttempts": self.repair_state.repair_rounds,
+                    "checks": [self._check(
+                        "customized-source-boundary", True,
+                        f"plugin/{customized_source_id} is customized and unselected; no project files changed.",
+                    )],
+                })
+                return CompletionDecision(
+                    True,
+                    f"正式 Source Item plugin/{customized_source_id} 已安装，但源码已有定制且尚未选用。"
+                    "本次请求没有授权覆盖这份定制，目标工程未修改；文件卡片尚未挂载，也未运行 Mock 或浏览器验证。"
+                    "如需继续，请明确选择保留定制并修改该 Plugin，或先恢复正式 Source 版本再组合使用。",
+                )
             if self.activity.semantic_noop_satisfied:
                 if (
                     self.service_authorization_finalizer is not None

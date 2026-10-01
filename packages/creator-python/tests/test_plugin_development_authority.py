@@ -8,6 +8,8 @@ from dataclasses import replace
 from types import SimpleNamespace
 from pydantic import ValidationError
 from agent_ui_creator.activity import CreatorActivityRecorder
+from agent_ui_creator.domain_agent.completion_gate import CreatorDevelopmentCompletionGate
+from agent_ui_creator.repair import CreatorRepairState
 from agent_ui_creator.app_ui_model import ProjectMutationCoordinator
 from agent_ui_creator.source_tools import (
     UIPluginCreationService, UIPluginSourceFile, UISourceCreationService,
@@ -359,8 +361,21 @@ def test_unselected_customized_source_cannot_be_directly_edited_for_capability_r
         assert blocked["error"]["code"] == "PLUGIN_CUSTOMIZED_SOURCE_DECISION_REQUIRED"
         assert blocked["error"]["stateChanged"] is False
 
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("a11b-run")
+    completion = CreatorDevelopmentCompletionGate(
+        activity=activity, validation=object(), runtime=object(),
+        repair_state=CreatorRepairState(), plugin_development_authority=state,
+    ).review("已完成文件卡片")
+    assert completion.accepted
+    assert "plugin/generated-file-message" in completion.text
+    assert "未运行 Mock" in completion.text
+    assert activity.snapshot()["verification"]["status"] == "no-project-change"
+    assert activity.snapshot()["verification"]["checks"][0]["id"] == "customized-source-boundary"
+
     state.begin_task(task_id="direct-edit", request_id="direct-edit", intent="none",
                      user_message="请修改已定制的 generated-file-message 插件实现")
+    assert state.blocked_customized_source_plugin_id is None
     assert _call(middleware, "edit_file", {"file_path": "/src/agent-ui/" + relative}) == "allowed"
 
     state.begin_task(task_id="selected-edit", request_id="selected-edit", intent="none",

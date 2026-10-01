@@ -190,7 +190,7 @@ const verificationStatusLabels: Record<
   "changed-and-statically-verified": "修改已通过静态验证",
   "changed-and-verified": "修改已验证",
   "changed-unverified": "修改已提交，但完成验证未确认",
-  "no-project-change": "无需项目修改",
+  "no-project-change": "项目未修改",
   "decision-no-project-change": "已按用户决定结束，项目未修改",
   failed: "完成验证失败",
 };
