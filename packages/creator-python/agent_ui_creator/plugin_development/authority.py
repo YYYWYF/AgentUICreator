@@ -364,6 +364,12 @@ class PluginDevelopmentAuthority:
         return record if record is not None and record.task_id == self.task_id else None
 
     @property
+    def can_expose_prepare(self) -> bool:
+        return self.intent != "conditional" or (
+            self._plugin_inventory_complete and self._source_inventory_complete
+        )
+
+    @property
     def can_expose_create(self) -> bool:
         record = self.active
         return (

@@ -40,6 +40,29 @@ def test_no_grant_or_skill_cannot_create(tmp_path):
         state.require_create("task-list")
 
 
+def test_conditional_prepare_is_offered_only_after_both_complete_inventories(tmp_path):
+    state = authority(tmp_path, "conditional")
+    middleware = PluginDevelopmentAdmissionMiddleware(state)
+    tools = [SimpleNamespace(name=name) for name in (
+        "inspect_agent_ui_sources", "list_ui_plugins", "prepare_ui_plugin_development",
+    )]
+    offered = lambda: [tool.name for tool in middleware._visible_tools(tools)]
+
+    assert "prepare_ui_plugin_development" not in offered()
+    middleware._observe("inspect_agent_ui_sources", {}, json.dumps({
+        "ok": True, "result": {"items": [], "nextCursor": None},
+    }))
+    assert "prepare_ui_plugin_development" not in offered()
+    middleware._observe("list_ui_plugins", {}, json.dumps({
+        "ok": True, "result": {"pluginAssets": [], "pageComplete": False, "nextCursor": "next"},
+    }))
+    assert "prepare_ui_plugin_development" not in offered()
+    middleware._observe("list_ui_plugins", {}, json.dumps({
+        "ok": True, "result": {"pluginAssets": [], "pageComplete": True, "nextCursor": None},
+    }))
+    assert "prepare_ui_plugin_development" in offered()
+
+
 def test_direct_grant_is_task_and_identity_scoped(tmp_path):
     state = authority(tmp_path, "explicit")
     prepared = state.prepare(

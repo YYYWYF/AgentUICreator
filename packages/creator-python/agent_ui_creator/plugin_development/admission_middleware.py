@@ -63,6 +63,9 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
     def _visible_tools(self, tools: Sequence[Any]) -> list[Any]:
         return [tool for tool in tools if (
             tool_name(tool) != "create_ui_plugin" or self.authority.can_expose_create
+        ) and (
+            tool_name(tool) != "prepare_ui_plugin_development"
+            or self.authority.can_expose_prepare
         )]
 
     def wrap_model_call(
