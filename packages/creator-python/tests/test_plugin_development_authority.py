@@ -290,6 +290,21 @@ def test_related_plugin_change_invalidates_plan_but_own_write_can_continue(tmp_p
     state.require_skill()
 
 
+def test_unrelated_project_change_does_not_invalidate_bound_plan(tmp_path):
+    state = authority(tmp_path, "explicit")
+    state.prepare(
+        work_kind="create-plugin", target_plugin_id="task-list",
+        desired_outcome="本地任务清单", missing_capabilities=["清单交互"],
+        reuse_evidence_refs=[],
+    )
+    state.mark_skill_loaded()
+    unrelated = tmp_path / "plugins" / "other" / "index.tsx"
+    unrelated.parent.mkdir(parents=True)
+    unrelated.write_text("export const Other = () => null;", encoding="utf-8")
+
+    state.require_create("task-list")
+
+
 def test_conditional_existing_source_item_returns_reuse_without_grant(tmp_path):
     state = authority(tmp_path, "conditional")
     state.record_discovery(
