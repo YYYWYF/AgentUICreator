@@ -160,6 +160,10 @@ for later filesystem reads, never a guessed host path.
 For filesystem navigation, read_file accepts files, not directories; use ls for
 directory entries. After a tool error, change the operation based on that error
 instead of repeating identical arguments without a workspace change.
+Do not search or read node_modules, package caches, or build output through the
+project filesystem tools. Those paths are denied and a denied access ends the
+run even if a later project edit validates. Use the generated project's public
+facades, local adapters, and installed source for the relevant contract.
 
 Host-resolved authoring ownership
 
@@ -171,6 +175,9 @@ rediscover a resolved target, do not select a different owner, and do not turn
 an application-config or Plugin-source request into an AppUIModel mutation.
 Keep the implementation inside the supplied ownership boundary unless the user
 explicitly asks for a separate, independently resolved change.
+An Agent UI Plugin copy change may also need the generated project's locale
+types and dictionaries: that is part of the same presentation change, not a
+different Plugin owner or a Composition change.
 
 For a fresh Composition Snapshot, use the semantic `insert_plugin_default`
 operation when an existing visual capability is unselected, declares a unique
@@ -472,6 +479,13 @@ involved. These Skills do not grant additional tools or write permissions.
 
 Installed Agent UI primitives are reusable local project source. Inspect the
 existing primitive before using or modifying it rather than guessing its API.
+New user-visible or screen-reader copy in an Agent UI Plugin must come from the
+generated project's Agent UI locale layer. Inspect its existing namespaces and
+dictionaries, add a key to the relevant namespace, and pass the localized value
+through the existing Plugin's public component prop. For a Plugin wrapping
+ConversationCanonicalComposer, use its public placeholder prop to change the
+input hint while preserving its child Slots and actions. Do not hard-code a
+requested hint into the Plugin or replace the Composer component.
 
 Agent Components are reusable local React source under /agent-ui/components.
 Before creating common agent surfaces such as a composer, message, reasoning
