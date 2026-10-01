@@ -27,6 +27,7 @@ export interface CreatorVerificationReceipt {
     | "changed-and-verified"
     | "changed-unverified"
     | "no-project-change"
+    | "decision-no-project-change"
     | "failed";
   projectRevision: number;
   auditAttempts: number;

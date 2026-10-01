@@ -94,3 +94,25 @@ it("marks a restarted sidecar question stale and permits a fresh thread", async 
   await act(async () => newConversation.click());
   expect(container.textContent).not.toContain("Layout?");
 });
+
+it("renders a deferred development decision receipt without a false error", async () => {
+  vi.stubGlobal("fetch", vi.fn(async (_url: string, init: RequestInit) => {
+    const body = JSON.parse(String(init.body));
+    return stream([
+      { type: "RUN_STARTED", threadId: "thread-1", runId: body.runId },
+      { type: "RUN_FINISHED", threadId: "thread-1", runId: body.runId, result: {
+        receipt: { files: [], validations: [], verification: {
+          status: "decision-no-project-change", projectRevision: 0,
+          auditAttempts: 0, checks: [{ id: "development-decision", status: "passed", evidence: "defer" }],
+        } },
+      } },
+    ]);
+  }));
+  const { container } = await mount();
+  await act(async () => { (container.querySelector('.creator-question-card input') as HTMLInputElement).click(); });
+  await act(async () => { (container.querySelector('.creator-question-card button') as HTMLButtonElement).click(); });
+
+  expect(container.textContent).toContain("已按用户决定结束，项目未修改");
+  expect(container.textContent).toContain("0 个文件");
+  expect(container.textContent).not.toContain("无效的修改回执");
+});

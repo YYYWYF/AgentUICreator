@@ -188,6 +188,7 @@ const verificationStatusLabels: Record<
   "changed-and-verified": "修改已验证",
   "changed-unverified": "修改已提交，但完成验证未确认",
   "no-project-change": "无需项目修改",
+  "decision-no-project-change": "已按用户决定结束，项目未修改",
   failed: "完成验证失败",
 };
 
@@ -249,6 +250,7 @@ function isCreatorRunReceipt(value: unknown): value is CreatorRunReceipt {
           value.verification.status === "changed-and-verified" ||
           value.verification.status === "changed-unverified" ||
           value.verification.status === "no-project-change" ||
+          value.verification.status === "decision-no-project-change" ||
           value.verification.status === "failed") &&
         typeof value.verification.projectRevision === "number" &&
         typeof value.verification.auditAttempts === "number" &&
@@ -468,7 +470,8 @@ function CreatorReceipt({ receipt }: { receipt: CreatorRunReceipt }) {
   const verificationPassed =
     verification?.status === "changed-and-statically-verified" ||
     verification?.status === "changed-and-verified" ||
-    verification?.status === "no-project-change";
+    verification?.status === "no-project-change" ||
+    verification?.status === "decision-no-project-change";
   const verificationTone =
     verification?.status === "changed-unverified"
       ? "unavailable"
