@@ -83,6 +83,25 @@ def test_explicit_development_requires_real_commission(message, expected):
     assert result.developmentIntent == expected
 
 
+@pytest.mark.parametrize("message,expected", [
+    ("请新建一个会议纪要插件，沿用工程现有按钮。", "explicit"),
+    ("把已有的库存表组件适配成 UI Plugin，保留它的交互。", "explicit"),
+    ("请单独实现一个新的搜索过滤 Plugin，不复用已有成品。", "explicit"),
+    ("请不要新建天气卡片插件，先盘点现成能力。", "needs_decision"),
+    ("评估一下是否要开发客服转接插件，先给判断。", "needs_decision"),
+    ("需求文档引用“创建一个考勤插件”，现在只调整既有文案。", "needs_decision"),
+    ("若已有日历插件就直接用；没有才开发一个日历插件。", "needs_decision"),
+])
+def test_unseen_commission_phrasing_cannot_forge_explicit_grant(message, expected):
+    selector = CreatorActionSelector(model=StaticChatModel([
+        "GENERAL DEVELOPMENT_EXPLICIT",
+    ]))
+
+    result = asyncio.run(selector.select(message, _unified_context()))
+
+    assert result.developmentIntent == expected
+
+
 def test_development_intent_cannot_be_attached_to_read_only_selection():
     with pytest.raises(ValidationError):
         CreatorActionSelection(
