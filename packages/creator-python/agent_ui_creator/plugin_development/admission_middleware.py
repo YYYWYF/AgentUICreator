@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from typing import Any
@@ -33,6 +34,10 @@ _LITERAL_PLACEHOLDER = re.compile(
 
 class PluginLiteralPresentationCopyError(PluginDevelopmentError):
     code = "PLUGIN_LITERAL_PRESENTATION_COPY"
+
+
+class PluginCustomizedSourceDecisionRequired(PluginDevelopmentError):
+    code = "PLUGIN_CUSTOMIZED_SOURCE_DECISION_REQUIRED"
 
 
 def _result_payload(result: Any) -> Mapping[str, Any] | None:
@@ -130,6 +135,76 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
         ).lstrip("/")
         return plugin_id if not physical.exists() else None
 
+    def _selected_plugin_ids(self) -> set[str]:
+        model_path = self.authority.project_root / agent_ui_source_path(
+            self.authority.project_root, "app-ui/app-ui.json"
+        ).lstrip("/")
+        try:
+            model = json.loads(model_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return set()
+        selected: set[str] = set()
+
+        def visit(value: Any) -> None:
+            if isinstance(value, dict):
+                plugin_id = value.get("pluginId")
+                if isinstance(plugin_id, str):
+                    selected.add(plugin_id)
+                for child in value.values():
+                    visit(child)
+            elif isinstance(value, list):
+                for child in value:
+                    visit(child)
+
+        visit(model)
+        return selected
+
+    def _unselected_customized_source(self, plugin_id: str) -> bool:
+        if plugin_id in self._selected_plugin_ids():
+            return False
+        lock_path = self.authority.project_root / ".agent-ui/source-lock.json"
+        try:
+            lock = json.loads(lock_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return False
+        items = lock.get("items") if isinstance(lock, dict) else None
+        item = items.get(f"plugin/{plugin_id}") if isinstance(items, dict) else None
+        files = item.get("files") if isinstance(item, dict) else None
+        if not isinstance(files, dict):
+            return False
+        prefix = f"plugins/{plugin_id}/"
+        for relative, record in files.items():
+            if not isinstance(relative, str) or not relative.startswith(prefix):
+                continue
+            if ".." in relative.split("/") or not isinstance(record, dict):
+                continue
+            recorded_hash = record.get("sha256")
+            if not isinstance(recorded_hash, str):
+                continue
+            path = self.authority.project_root / agent_ui_source_path(
+                self.authority.project_root, relative
+            ).lstrip("/")
+            try:
+                current_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+            except OSError:
+                return True
+            if current_hash != recorded_hash:
+                return True
+        return False
+
+    def _require_customized_source_decision(self, plugin_id: str, logical: str | None = None) -> None:
+        message = self.authority.user_message.lower()
+        explicit_path = logical is not None and logical.lstrip("/").lower() in message
+        explicit_plugin = (plugin_id.lower() in message and any(
+            term in message for term in ("修改", "定制", "修复", "edit", "customize", "modify")
+        ))
+        if (not explicit_path and not explicit_plugin
+                and self._unselected_customized_source(plugin_id)):
+            raise PluginCustomizedSourceDecisionRequired(
+                f"正式 Source Item plugin/{plugin_id} 已定制且尚未选用；当前请求未明确要求改写其源码。"
+                "请先用 inspect_agent_ui_sources 确认冲突并说明继续路径，不要直接改写或声称功能已完成。"
+            )
+
     def _admit(self, name: str, args: Mapping[str, Any]) -> None:
         active = self.authority.active
         if name in _WRITES and active is not None and active.status in {"pending", "adjust", "defer"}:
@@ -166,6 +241,9 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                     if (not logical.startswith(f"/plugins/{active.target_plugin_id}/")
                             and logical not in _PLUGIN_LOCALE_PATHS):
                         raise PluginDevelopmentError("源码写入超出了已批准的 Plugin 目标。")
+                parts = logical.strip("/").split("/")
+                if len(parts) >= 3 and parts[0] == "plugins":
+                    self._require_customized_source_decision(parts[1], logical)
                 new_id = self._new_plugin_identity(path)
                 if new_id is not None:
                     self.authority.require_create(new_id)
@@ -175,6 +253,9 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                 elif self.authority.intent in {"needs_decision", "explicit", "conditional"} and active is None:
                     raise PluginDevelopmentError("新增能力的源码写入前需要完成开发方案和授权。")
         if name == "mutate_ui_plugin_source":
+            plugin_id = args.get("pluginId")
+            if isinstance(plugin_id, str):
+                self._require_customized_source_decision(plugin_id)
             if active is not None and active.status == "authorized":
                 if args.get("pluginId") != active.target_plugin_id:
                     raise PluginDevelopmentError("源码修改超出了已批准的 Plugin 目标。")

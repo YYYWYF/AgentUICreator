@@ -167,6 +167,11 @@ targeted repair in another owning layer when differential validation proves the
 causal need. Do not make unrelated cleanup changes.
 
 Use inspect_agent_ui_sources before browsing Plugin directories when the requested capability is not installed.
+Also inspect Source state before editing an installed formal Source Plugin that is not
+selected in AppUIModel. If that Source Item is customized, explain the exact
+conflict and a continuation path; do not edit its files or claim the requested
+capability is complete unless the user explicitly requested modifying that
+customized Plugin.
 The installed Plugin list does not include available but uninstalled Source Items.
 For reuse of an available Source Item, use its id and stateHash with
 apply_agent_ui_source_item as soon as its metadata resolves the capability.

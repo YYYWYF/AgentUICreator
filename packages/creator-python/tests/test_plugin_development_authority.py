@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 import asyncio
+import hashlib
 import json
 from dataclasses import replace
 from types import SimpleNamespace
@@ -323,6 +324,51 @@ def test_existing_plugin_placeholder_copy_requires_locale_value(tmp_path):
         "old_string": "<ConversationCanonicalComposer",
         "new_string": '<ConversationCanonicalComposer placeholder={t("startHint")}',
     }) == "allowed"
+
+
+def test_unselected_customized_source_cannot_be_directly_edited_for_capability_request(tmp_path):
+    metadata = tmp_path / ".agent-ui"
+    metadata.mkdir()
+    (metadata / "project.json").write_text(json.dumps({
+        "version": "2", "mode": "platform", "sourceRoot": "src/agent-ui",
+    }), encoding="utf-8")
+    source = tmp_path / "src/agent-ui"
+    plugin_file = source / "plugins/generated-file-message/generated-file-result.ts"
+    plugin_file.parent.mkdir(parents=True)
+    plugin_file.write_text("customized", encoding="utf-8")
+    model_path = source / "app-ui/app-ui.json"
+    model_path.parent.mkdir(parents=True)
+    model_path.write_text(json.dumps({"applicationPlugins": [], "root": {"type": "slot", "plugins": []}}), encoding="utf-8")
+    relative = "plugins/generated-file-message/generated-file-result.ts"
+    (metadata / "source-lock.json").write_text(json.dumps({
+        "schemaVersion": 1, "sourceRoot": "src/agent-ui", "items": {
+            "plugin/generated-file-message": {"version": "0.1.0", "files": {
+                relative: {"sha256": hashlib.sha256(b"official").hexdigest()},
+            }},
+        },
+    }), encoding="utf-8")
+    state = authority(tmp_path)
+    state.begin_task(task_id="a11b", request_id="request-a11b", intent="none",
+                     user_message="把 generate_file 结果显示为文件卡片")
+    middleware = PluginDevelopmentAdmissionMiddleware(state)
+    for name, args in (
+        ("edit_file", {"file_path": "/src/agent-ui/" + relative}),
+        ("mutate_ui_plugin_source", {"pluginId": "generated-file-message"}),
+    ):
+        blocked = json.loads(_call(middleware, name, args).content)
+        assert blocked["error"]["code"] == "PLUGIN_CUSTOMIZED_SOURCE_DECISION_REQUIRED"
+        assert blocked["error"]["stateChanged"] is False
+
+    state.begin_task(task_id="direct-edit", request_id="direct-edit", intent="none",
+                     user_message="请修改已定制的 generated-file-message 插件实现")
+    assert _call(middleware, "edit_file", {"file_path": "/src/agent-ui/" + relative}) == "allowed"
+
+    state.begin_task(task_id="selected-edit", request_id="selected-edit", intent="none",
+                     user_message="调整当前文件卡片")
+    model_path.write_text(json.dumps({"applicationPlugins": [{
+        "id": "file-main", "pluginId": "generated-file-message", "enabled": True,
+    }], "root": {"type": "slot", "plugins": []}}), encoding="utf-8")
+    assert _call(middleware, "edit_file", {"file_path": "/src/agent-ui/" + relative}) == "allowed"
 
 
 def test_predecision_composition_only_reuses_observed_plugin(tmp_path):
