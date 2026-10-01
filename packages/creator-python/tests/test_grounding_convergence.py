@@ -160,6 +160,49 @@ def test_source_discovery_before_composition_keeps_install_tool_available(tmp_pa
 
     middleware.wrap_model_call(request, handler)
     assert "apply_agent_ui_source_item" in [tool.name for tool in seen[0].tools]
+    assert "prepare_ui_plugin_development" in [tool.name for tool in seen[0].tools]
+
+
+def test_source_inventory_can_leave_composition_lane_for_development(tmp_path):
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    observations = DomainObservationContext()
+    observations.record_source_inventory()
+    observations.observe_composition_snapshot(
+        hash="a" * 64, revision=0, coverage=COMPOSITION_COVERAGE,
+    )
+    middleware = CompositionGroundingConvergenceMiddleware(observations, backend)
+    tools = [SimpleNamespace(name=name) for name in ALLOWED_DOMAIN_WRITE_TOOLS]
+    request = ModelRequest(model=Mock(), messages=[], tools=tools)
+    offered = []
+
+    middleware.wrap_model_call(
+        request,
+        lambda candidate: (
+            offered.extend(tool.name for tool in candidate.tools),
+            ModelResponse(result=[AIMessage(content="done")]),
+        )[1],
+    )
+    assert "prepare_ui_plugin_development" in offered
+    result = middleware.wrap_tool_call(
+        _tool_request("prepare_ui_plugin_development", {}),
+        lambda candidate: ToolMessage(
+            content='{"ok":true}',
+            tool_call_id=candidate.tool_call["id"],
+            name=candidate.tool_call["name"],
+            status="success",
+        ),
+    )
+    assert result.status == "success"
+    assert observations.composition_grounding_status(current_revision=0) == "unobserved"
+    offered.clear()
+    middleware.wrap_model_call(
+        request,
+        lambda candidate: (
+            offered.extend(tool.name for tool in candidate.tools),
+            ModelResponse(result=[AIMessage(content="done")]),
+        )[1],
+    )
+    assert "create_ui_plugin" in offered
 
 
 def test_source_discovery_after_composition_exits_fast_path_in_one_read(tmp_path):

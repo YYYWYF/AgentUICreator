@@ -49,6 +49,8 @@ If another authoring layer is genuinely required, issue the smallest targeted
 cross-layer read. For a missing reusable capability, inspect_agent_ui_sources
 is available and exits the Composition fast path in one read. Other cross-layer
 reads are rejected as explicit exit signals; retry them on the next model call.
+After source inventory confirms a development gap, prepare_ui_plugin_development
+is available to make the required authorization decision and exit this lane.
 Expand grounding for a missing decisive fact or another-layer requirement."""
 
 COMPOSITION_POST_MUTATION_CONTROL = """The AppUIModel mutation succeeded on the
@@ -82,11 +84,15 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
         source_inventory_observed: bool = False,
     ) -> list[Any]:
+        source_inventory_tools = (
+            {"apply_agent_ui_source_item", "prepare_ui_plugin_development"}
+            if source_inventory_observed and not after_mutation else set()
+        )
         allowed_names = frozenset((
             COMPOSITION_POST_MUTATION_TOOL_NAMES
             if after_mutation
             else COMPOSITION_PRE_MUTATION_TOOL_NAMES
-        )) | ({"apply_agent_ui_source_item"} if source_inventory_observed and not after_mutation else set())
+        )) | source_inventory_tools
         by_name = {
             tool_name(candidate): candidate
             for candidate in tools
@@ -104,7 +110,7 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 if name not in RUNTIME_VERIFICATION_TOOL_NAMES
             )
         if source_inventory_observed and not after_mutation:
-            names = (*names, "apply_agent_ui_source_item")
+            names = (*names, "apply_agent_ui_source_item", "prepare_ui_plugin_development")
         return [by_name[name] for name in names if name in by_name]
 
     def _request(self, request: ModelRequest) -> ModelRequest:
@@ -217,6 +223,17 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
             == "grounded"
             and is_cross_layer_read(name, arguments, project_root=str(self.backend.cwd))
         )
+        if (
+            name == "prepare_ui_plugin_development"
+            and self.observations.source_inventory_observed
+            and self.observations.composition_grounding_status(
+                current_revision=self.backend.mutation_revision
+            ) == "grounded"
+        ):
+            self.observations.clear_composition_grounding(
+                reason="development_gap",
+                current_revision=self.backend.mutation_revision,
+            )
         if prohibited:
             metrics.record_cross_layer_read_attempt()
             if filesystem_source_read_path(name, arguments, project_root=str(self.backend.cwd)) is not None:
