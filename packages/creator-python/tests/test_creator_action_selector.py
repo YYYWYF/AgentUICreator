@@ -58,6 +58,31 @@ def test_conditional_development_requires_actual_fallback_commission(message, ex
     assert result.developmentIntent == expected
 
 
+@pytest.mark.parametrize("message,expected", [
+    (
+        "在聊天区旁边给我一个任务核对清单，显示三项。每项可以勾选完成，"
+        "可以筛选未完成，也可以重置。只在当前页面保存状态，不接后端。",
+        "needs_decision",
+    ),
+    ("请开发一个独立的任务核对清单插件，使用项目现有组件。", "explicit"),
+    ("请扩展现有插件，增加本地筛选交互。", "explicit"),
+    ("把已有的任务清单组件封装成 UI 插件，保留原实现。", "explicit"),
+    ("先分析一下是否需要开发插件，不要修改项目。", "needs_decision"),
+    ("这个是不是需要开发插件？先告诉我你的判断。", "needs_decision"),
+    ("我们先讨论开发插件的可能性，不要动代码。", "needs_decision"),
+    ("任务清单有现成的就用现成的，没有就开发一个插件。", "needs_decision"),
+    ("文档里写着“开发一个新插件”，现在只调整按钮文案。", "needs_decision"),
+])
+def test_explicit_development_requires_real_commission(message, expected):
+    selector = CreatorActionSelector(model=StaticChatModel([
+        "GENERAL DEVELOPMENT_EXPLICIT",
+    ]))
+
+    result = asyncio.run(selector.select(message, _unified_context()))
+
+    assert result.developmentIntent == expected
+
+
 def test_development_intent_cannot_be_attached_to_read_only_selection():
     with pytest.raises(ValidationError):
         CreatorActionSelection(

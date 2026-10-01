@@ -14,6 +14,7 @@ from pydantic import ValidationError
 from ..model_protocol.reliability import create_creator_model_invocation_reliability
 from ..model_protocol.provider_trace import ProviderResponseTrace, ProviderResponseTraceCollector
 from ..model_settings import CreatorSelectorModelSettings, DEFAULT_CREATOR_MODEL_MAX_RETRIES
+from ..plugin_development.commission import explicitly_commissions_plugin_development
 from .models import (
     CreatorActionSelection,
     CreatorActionSelectorMetrics,
@@ -592,6 +593,12 @@ class CreatorIntentSelector:
                         )
                     selection = _parse_selector_response(response.text, choices)
                     self.validate_selection(selection, normalized_context)
+                    if (selection.decision == "general_change"
+                            and selection.developmentIntent == "explicit"
+                            and not explicitly_commissions_plugin_development(user_message)):
+                        return CreatorActionSelection(
+                            decision="general_change", developmentIntent="needs_decision",
+                        )
                     if (selection.decision == "general_change"
                             and selection.developmentIntent == "conditional"
                             and not _CONDITIONAL_DEVELOPMENT_COMMISSION.search(user_message)):

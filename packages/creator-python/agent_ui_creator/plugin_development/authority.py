@@ -10,6 +10,7 @@ from typing import Literal
 from uuid import uuid4
 
 from ..project_paths import agent_ui_source_path
+from .commission import explicitly_commissions_plugin_development
 
 
 DevelopmentIntent = Literal["none", "needs_decision", "explicit", "conditional", "prohibited"]
@@ -107,6 +108,8 @@ class PluginDevelopmentAuthority:
             raise PluginDevelopmentError("开发授权必须绑定真实的非空用户请求。")
         if intent not in {"none", "needs_decision", "explicit", "conditional", "prohibited"}:
             raise PluginDevelopmentError("未知开发意图。")
+        if intent == "explicit" and not explicitly_commissions_plugin_development(user_message):
+            intent = "needs_decision"
         for key, proposal in tuple(self._proposals.items()):
             if proposal.status in {"pending", "authorized"}:
                 self._proposals[key] = replace(proposal, status="superseded")

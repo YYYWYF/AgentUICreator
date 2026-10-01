@@ -64,6 +64,27 @@ def test_direct_grant_is_task_and_identity_scoped(tmp_path):
         state.require_create("task-list")
 
 
+def test_model_explicit_label_cannot_authorize_plain_feature_request(tmp_path):
+    state = PluginDevelopmentAuthority(tmp_path, thread_id="thread-a")
+    state.begin_task(
+        task_id="task-a", request_id="request-a",
+        user_message="在聊天区旁边给我一个任务核对清单，可勾选、筛选和重置。",
+        intent="explicit",
+    )
+
+    prepared = state.prepare(
+        work_kind="create-plugin", target_plugin_id="task-list",
+        desired_outcome="本地任务清单", missing_capabilities=["清单交互"],
+        reuse_evidence_refs=[],
+    )
+
+    assert state.intent == "needs_decision"
+    assert prepared["status"] == "pending"
+    with pytest.raises(PluginDevelopmentError, match="授权"):
+        state.require_create("task-list")
+    assert list(tmp_path.iterdir()) == []
+
+
 def test_pending_requires_bound_question_and_explicit_choice(tmp_path):
     state = authority(tmp_path)
     prepared = state.prepare(
