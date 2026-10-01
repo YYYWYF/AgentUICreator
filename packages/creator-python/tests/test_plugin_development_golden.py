@@ -39,6 +39,7 @@ TASK_PLUGIN_FILES = {
         'export default defineUIPlugin({ manifest, component: TaskStatus });\n'
     ),
     "/plugins/task-status/index.tsx": (
+        'import "./styles.css";\n'
         'export function TaskStatus() { return <section>Ready</section>; }\n'
     ),
     "/plugins/task-status/styles.css": ".status { padding: 8px; }\n",
@@ -210,6 +211,30 @@ class PluginProjectControl:
 
     def record(self, name: str) -> None:
         self.metrics.record(name, 1, False)
+
+    async def synchronize_plugin_registry(self, *, expected_source_hash):
+        self.record("synchronize_plugin_registry")
+        registry = self.root / REGISTRY_PATH
+        assert read_creator_file_state(self.root, REGISTRY_PATH).hash == expected_source_hash
+        plugin_ids = sorted(
+            path.parent.name
+            for path in (self.root / "plugins").glob("*/definition.ts")
+        )
+        bindings = {
+            plugin_id: "".join(
+                part.capitalize() if index else part
+                for index, part in enumerate(plugin_id.split("-"))
+            )
+            for plugin_id in plugin_ids
+        }
+        content = "".join(
+            f'import {bindings[plugin_id]} from "./{plugin_id}/definition";\n'
+            for plugin_id in plugin_ids
+        ) + "export const pluginDefinitions = [" + ", ".join(bindings.values()) + "];\n"
+        changed = registry.read_text(encoding="utf-8") != content
+        if changed:
+            registry.write_text(content, encoding="utf-8")
+        return {"changed": changed, "path": REGISTRY_PATH, "pluginIds": plugin_ids}
 
     async def list_ui_plugins(self):
         self.record("list_ui_plugins")

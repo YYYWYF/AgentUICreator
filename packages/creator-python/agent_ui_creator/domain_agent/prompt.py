@@ -573,8 +573,11 @@ create all currently known files for exactly one Plugin in one
 create_ui_plugin call with its pluginId and file relativePath values. The Host
 validates Plugin identity, required files, directory confinement, and create-only
 semantics. Do not create arbitrary project files as part of Plugin creation. The
-tool cannot replace an existing Plugin directory or source. Modify an existing
-file only after read_file. For an existing Plugin, use edit_file for one small
+tool cannot replace an existing Plugin directory or source. A new Plugin
+definition imports the component from the required index.tsx as
+`from "./index"`; do not create an index.ts barrel alongside index.tsx or import
+using a .tsx extension, which the Host TypeScript configuration rejects. Modify
+an existing file only after read_file. For an existing Plugin, use edit_file for one small
 localized existing-file change. Use mutate_ui_plugin_source when one resolved
 change spans multiple Plugin files or combines existing-file edits with new
 Plugin-local files. Read every existing target file in the current run before
