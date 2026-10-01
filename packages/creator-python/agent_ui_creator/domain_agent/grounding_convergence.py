@@ -51,6 +51,9 @@ is available and exits the Composition fast path in one read. Other cross-layer
 reads are rejected as explicit exit signals; retry them on the next model call.
 After source inventory confirms a development gap, prepare_ui_plugin_development
 is available to make the required authorization decision and exit this lane.
+For conditional development, list_ui_plugins must also complete the installed
+Plugin inventory before preparation; a Composition summary does not substitute
+for that inventory.
 Expand grounding for a missing decisive fact or another-layer requirement."""
 
 COMPOSITION_POST_MUTATION_CONTROL = """The AppUIModel mutation succeeded on the
@@ -85,7 +88,7 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         source_inventory_observed: bool = False,
     ) -> list[Any]:
         source_inventory_tools = (
-            {"apply_agent_ui_source_item", "prepare_ui_plugin_development"}
+            {"apply_agent_ui_source_item", "list_ui_plugins", "prepare_ui_plugin_development"}
             if source_inventory_observed and not after_mutation else set()
         )
         allowed_names = frozenset((
@@ -110,7 +113,7 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 if name not in RUNTIME_VERIFICATION_TOOL_NAMES
             )
         if source_inventory_observed and not after_mutation:
-            names = (*names, "apply_agent_ui_source_item", "prepare_ui_plugin_development")
+            names = (*names, "apply_agent_ui_source_item", "list_ui_plugins", "prepare_ui_plugin_development")
         return [by_name[name] for name in names if name in by_name]
 
     def _request(self, request: ModelRequest) -> ModelRequest:

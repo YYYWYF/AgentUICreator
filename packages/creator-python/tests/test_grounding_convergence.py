@@ -160,6 +160,7 @@ def test_source_discovery_before_composition_keeps_install_tool_available(tmp_pa
 
     middleware.wrap_model_call(request, handler)
     assert "apply_agent_ui_source_item" in [tool.name for tool in seen[0].tools]
+    assert "list_ui_plugins" in [tool.name for tool in seen[0].tools]
     assert "prepare_ui_plugin_development" in [tool.name for tool in seen[0].tools]
 
 
@@ -183,6 +184,7 @@ def test_source_inventory_can_leave_composition_lane_for_development(tmp_path):
         )[1],
     )
     assert "prepare_ui_plugin_development" in offered
+    assert "list_ui_plugins" in offered
     result = middleware.wrap_tool_call(
         _tool_request("prepare_ui_plugin_development", {}),
         lambda candidate: ToolMessage(
