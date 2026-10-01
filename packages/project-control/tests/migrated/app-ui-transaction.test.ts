@@ -1352,6 +1352,50 @@ describe("AppUIModel transaction", () => {
       .toBe(source);
   });
 
+  it("rejects fixed side tracks that erase the flexible center at 560px", async () => {
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["min(280px, 25%)", "minmax(0, 1fr)", "min(280px, 25%)"],
+        children: [
+          { type: "slot", plugins: [{ id: "left-main", pluginId: "sample", enabled: true }] },
+          { type: "slot", plugins: [{ id: "center-main", pluginId: "sample", enabled: true }] },
+          { type: "slot", plugins: [{ id: "right-main", pluginId: "sample", enabled: true }] },
+        ],
+      },
+    };
+    const { projectRoot, source } = await createProject({
+      authoring: { intents: ["show flexible center"], recommendedSize: { width: "minmax(0, 1fr)" } },
+    }, model);
+    const error = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "update_layout_node_props",
+        nodeRef: "l0",
+        set: { sizes: ["280px", "minmax(0, 1fr)", "280px"] },
+        removeKeys: [],
+      }],
+    }).catch((value: unknown) => value);
+
+    expect(error).toMatchObject({
+      code: "LAYOUT_NARROW_CENTER_UNUSABLE",
+      details: { referenceWidth: 560, fixedSideWidth: 560, centerWidthAtReference: 0 },
+    });
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
+      .toBe(source);
+
+    const accepted = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "update_layout_node_props",
+        nodeRef: "l0",
+        set: { sizes: ["min(240px, 25%)", "minmax(0, 1fr)", "min(280px, 25%)"] },
+        removeKeys: [],
+      }],
+    });
+    expect(accepted.changed).toBe(true);
+  });
+
   it("rejects a stale source hash before changing either transaction file", async () => {
     const { projectRoot, source } = await createProject();
     const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);

@@ -576,8 +576,12 @@ semantics. Do not create arbitrary project files as part of Plugin creation. The
 tool cannot replace an existing Plugin directory or source. A new Plugin
 definition imports the component from the required index.tsx as
 `from "./index"`; do not create an index.ts barrel alongside index.tsx or import
-using a .tsx extension, which the Host TypeScript configuration rejects. Modify
-an existing file only after read_file. For an existing Plugin, use edit_file for one small
+using a .tsx extension, which the Host TypeScript configuration rejects. The
+definition must declare services consumed by built-in hooks: useAgentUILocale
+requires AGENT_UI_LOCALE_SERVICE and useAgentUIThemeMode requires
+AGENT_UI_THEME_SERVICE in inject or optionalInject. CSS theme tokens alone do
+not require the theme hook. Modify an existing file only after read_file. For an
+existing Plugin, use edit_file for one small
 localized existing-file change. Use mutate_ui_plugin_source when one resolved
 change spans multiple Plugin files or combines existing-file edits with new
 Plugin-local files. Read every existing target file in the current run before

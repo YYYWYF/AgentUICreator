@@ -20,6 +20,10 @@ from .source_creation_service import UISourceCreationService
 _PLUGIN_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]{0,99}$")
 _REQUIRED_PLUGIN_FILES = frozenset({"manifest.json", "definition.ts", "index.tsx"})
 _STYLESHEET_IMPORT = re.compile(r"\bimport\s*(?:\(\s*)?['\"]\./styles\.css['\"]")
+_BUILTIN_HOOK_SERVICES = {
+    "useAgentUILocale": "AGENT_UI_LOCALE_SERVICE",
+    "useAgentUIThemeMode": "AGENT_UI_THEME_SERVICE",
+}
 
 
 class UIPluginCreationService:
@@ -154,6 +158,27 @@ class UIPluginCreationService:
                 "Plugin styles.css must be imported by Plugin source so its styles reach the Host.",
                 {"relativePath": "styles.css"},
             )
+
+        definition = normalized_files["definition.ts"]
+        plugin_source = "\n".join(
+            content for name, content in normalized_files.items()
+            if name.endswith((".ts", ".tsx", ".js", ".jsx"))
+            and name != "definition.ts"
+        )
+        for hook, service in _BUILTIN_HOOK_SERVICES.items():
+            if not re.search(rf"\b{hook}\s*\(", plugin_source):
+                continue
+            declared = re.search(
+                rf"\b(?:inject|optionalInject)\s*:\s*\[[^\]]*\b{service}\b",
+                definition,
+                re.DOTALL,
+            )
+            if declared is None:
+                raise SourceCreationError(
+                    "PLUGIN_BUILTIN_SERVICE_UNDECLARED",
+                    f"A Plugin using {hook} must declare {service} in definition.ts inject or optionalInject.",
+                    {"relativePath": "definition.ts", "hook": hook, "service": service},
+                )
 
         source_files = [
             UISourceFile(

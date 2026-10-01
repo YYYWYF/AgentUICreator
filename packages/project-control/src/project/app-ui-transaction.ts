@@ -55,6 +55,7 @@ import { resolveAgentUIProjectPaths, projectControlConfigForPaths, projectRelati
 import { verifyPluginChildSlots } from "./plugin-child-slot-verifier";
 import type {
   GeneratePluginCatalogResult,
+  PluginAsset,
   PluginProjectFacts,
   ProjectIssue,
   UIProjectControlConfig,
@@ -1034,6 +1035,43 @@ function assertPluginWidthCompatibility(
   }
 }
 
+function fixedPixelTrack(size: number | string | undefined): number | undefined {
+  if (typeof size === "number") return size;
+  const match = size?.trim().match(/^(\d+(?:\.\d+)?)px$/);
+  return match === null || match === undefined ? undefined : Number(match[1]);
+}
+
+function assertNarrowCenterSpace(model: AppUIModel, assets: readonly PluginAsset[]): void {
+  const row = model.root;
+  if (row.type !== "row" || row.children.length !== 3 || row.sizes?.length !== 3) return;
+  if (!/^(?:1fr|minmax\(0,\s*1fr\))$/.test(String(row.sizes[1]).trim())) return;
+  const flexiblePluginIds = new Set(assets.filter(
+    (asset) => asset.authoring?.recommendedSize?.width === "minmax(0, 1fr)",
+  ).map((asset) => asset.pluginId));
+  const center = row.children[1];
+  const hasFlexiblePrimary = (node: AppUILayoutNode): boolean => {
+    if (node.type === "slot") {
+      return node.plugins.some((plugin) => plugin.enabled && flexiblePluginIds.has(plugin.pluginId));
+    }
+    if (node.type === "panel") return hasFlexiblePrimary(node.child);
+    return node.children.some(hasFlexiblePrimary);
+  };
+  if (center === undefined || !hasFlexiblePrimary(center)) return;
+  const left = fixedPixelTrack(row.sizes[0]);
+  const right = fixedPixelTrack(row.sizes[2]);
+  if (left === undefined || right === undefined || left + right <= 280) return;
+  throw new AppUITransactionError(
+    "LAYOUT_NARROW_CENTER_UNUSABLE",
+    "Two fixed side tracks leave less than 280px for the center in a 560px Agent container. Use flexible side tracks such as min(280px, 25%).",
+    {
+      referenceWidth: 560,
+      minimumCenterWidth: 280,
+      fixedSideWidth: left + right,
+      centerWidthAtReference: Math.max(0, 560 - left - right),
+    },
+  );
+}
+
 async function runTransaction(
   projectRoot: string,
   input: AppUITransactionInput,
@@ -1268,6 +1306,7 @@ async function runTransaction(
       { issues: generation.errors },
     );
   }
+  assertNarrowCenterSpace(afterModel, generation.assets);
   const runtimeModel = compileAppUIModel(
     afterModel,
     generation.activeComposition.compositionCatalog,

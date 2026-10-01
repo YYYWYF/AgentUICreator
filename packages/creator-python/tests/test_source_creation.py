@@ -189,6 +189,31 @@ def test_create_ui_plugin_rejects_local_state_as_ag_ui_data(tmp_path):
     assert asyncio.run(creation.create("task-status", files)).plugin_id == "task-status"
 
 
+def test_create_ui_plugin_declares_builtin_hook_services_before_writing(tmp_path):
+    creation, activity = plugin_service(tmp_path)
+    files = plugin_sources()
+    files[2] = plugin_source(
+        "index.tsx",
+        'import { useAgentUIThemeMode } from "../../agent-ui/theme/useAgentUITheme";\n'
+        'export function TaskStatus() { useAgentUIThemeMode(); return null; }\n',
+    )
+
+    with pytest.raises(SourceCreationError) as captured:
+        asyncio.run(creation.create("task-status", files))
+
+    assert captured.value.code == "PLUGIN_BUILTIN_SERVICE_UNDECLARED"
+    assert captured.value.details["service"] == "AGENT_UI_THEME_SERVICE"
+    assert activity.revision == 0
+    assert not (tmp_path / "plugins/task-status").exists()
+
+    files[1] = plugin_source(
+        "definition.ts",
+        'import { AGENT_UI_THEME_SERVICE } from "../../services/agent-ui-theme";\n'
+        'export default { optionalInject: [AGENT_UI_THEME_SERVICE] };\n',
+    )
+    assert asyncio.run(creation.create("task-status", files)).plugin_id == "task-status"
+
+
 @pytest.mark.parametrize(
     ("plugin_id", "files", "expected_code"),
     [
