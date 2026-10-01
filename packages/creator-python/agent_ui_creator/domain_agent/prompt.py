@@ -495,8 +495,13 @@ src/agent-ui/agent-ui/i18n, not src/agent-ui/i18n. For a Composer placeholder
 copy request, read the Composer Plugin's index.tsx and definition.ts, these
 three locale files, useAgentUILocale.ts, and the existing
 plugins/conversation-surface/definition.ts service pattern. Then make the
-localized copy edits and validate; the public Composer placeholder prop is
-already known. Do not search upstream assistant-ui, node_modules, the whole
+localized copy edits in the existing conversation namespace and validate;
+the public Composer placeholder prop is already known. Use edit_file for each
+small edit to these existing files, including the Plugin files; this request
+does not need a multi-file Plugin source mutation. Reuse the exact import and
+indentation shown by read_file; never invent an oldText line. Do not create a
+separate composer locale namespace. Do not search upstream assistant-ui,
+node_modules, the whole
 conversation tree, or framework contracts for this bounded copy change.
 For edit_file, copy the smallest unique old text exactly
 from read_file, including whitespace. If a replacement is not found, reread
