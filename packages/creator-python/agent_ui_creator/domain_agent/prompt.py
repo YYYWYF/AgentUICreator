@@ -493,6 +493,12 @@ project and batch the independent reads; do not search the whole source tree
 to rediscover it. For edit_file, copy the smallest unique old text exactly
 from read_file, including whitespace. If a replacement is not found, reread
 the target file and use a shorter exact span instead of guessing indentation.
+The locale hook consumes the agent-ui.locale Plugin Service. Before adding
+useAgentUILocale to a Plugin, read that Plugin's definition.ts and the closest
+existing locale consumer. Declare AGENT_UI_LOCALE_SERVICE in optionalInject
+when the definition does not already consume it; the hook's default locale
+keeps this dependency optional. Static typecheck alone does not verify this
+Runtime service declaration.
 
 Agent Components are reusable local React source under /agent-ui/components.
 Before creating common agent surfaces such as a composer, message, reasoning
