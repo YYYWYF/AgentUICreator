@@ -163,6 +163,13 @@ Use inspect_agent_ui_sources before browsing Plugin directories when the request
 The installed Plugin list does not include available but uninstalled Source Items.
 For reuse of an available Source Item, use its id and stateHash with
 apply_agent_ui_source_item as soon as its metadata resolves the capability.
+For a newly named backend result with no supplied payload contract, a similar
+Source Item name is not a resolved capability match. Before installing or
+composing a named Tool UI, establish the actual AG-UI event or Tool name, the
+payload shape, and the binding from the user's result name to that contract
+from the request or current project. If those facts are unavailable, ask for
+the missing contract before any mutation. Do not claim the requested backend
+result will render merely because a different named Tool UI was installed.
 Do not read the Plugin registry or load a source-authoring Skill before that
 install merely to confirm the same metadata; read a missing decisive contract
 only when the inventory does not settle the choice. Use the returned sourceRoot
