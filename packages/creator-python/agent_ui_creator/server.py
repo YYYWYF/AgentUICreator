@@ -55,6 +55,11 @@ from .operations import (
     use_pending_creator_clarifications,
 )
 from .project_control import ProjectControlClient
+from .plugin_development.authority import PluginDevelopmentAuthority, PluginDevelopmentError
+from .plugin_development.prepare_tool import (
+    DEVELOPMENT_DECISION_STEP_ID,
+    is_development_decision_question,
+)
 from .streaming import CreatorEventBus, CreatorEventSink, map_runtime_event
 from .streaming.deepagent_v3_runner import DeepAgentInterrupted
 from .human_input.models import QuestionAnswers, QuestionRequest
@@ -355,6 +360,7 @@ async def _domain_write_agent_result(
     visual_observations: VisualObservationStore | None = None,
     checkpointer: Any = None,
     execution_context: CreatorExecutionContext | None = None,
+    development_authority: PluginDevelopmentAuthority | None = None,
 ):
     from .model_factory import create_creator_chat_model
     from .model_protocol.provider_trace import ProviderResponseTraceCollector
@@ -399,11 +405,24 @@ async def _domain_write_agent_result(
         event_sink=event_sink,
         verification_mode=settings.verification_mode,
     )
+    current_user_message = next((item["content"] for item in reversed(messages)
+                                 if item.get("role") == "user"), "")
+    if development_authority is not None:
+        development_authority.begin_task(
+            task_id=activity.run_id, request_id=activity.run_id,
+            user_message=current_user_message, intent="none",
+        )
     productized_result = await engine.run(messages)
     if isinstance(productized_result, ProductizedOperationRun):
         return productized_result
     if not isinstance(productized_result, CreatorResolveResult):
         raise TypeError("Productized Operation Engine returned an unknown result.")
+    if development_authority is not None:
+        development_authority.begin_task(
+            task_id=activity.run_id, request_id=activity.run_id,
+            user_message=current_user_message,
+            intent=productized_result.selection.developmentIntent,
+        )
     if productized_result.route == "read_only_general":
         if execution_context is not None:
             execution_context.permission = "inspect_read_only"
@@ -431,6 +450,7 @@ async def _domain_write_agent_result(
         telemetry,
         handoff=productized_result.handoff,
         checkpointer=checkpointer,
+        development_authority=development_authority,
     )
 
 
@@ -446,6 +466,7 @@ async def _general_domain_write_agent_result(
     handoff: CreatorAuthoringHandoff | None = None,
     checkpointer: Any = None,
     resume: dict[str, Any] | None = None,
+    development_authority: PluginDevelopmentAuthority | None = None,
 ):
     from .domain_agent import create_domain_write_creator_agent
     from .model_factory import create_creator_chat_model
@@ -488,6 +509,7 @@ async def _general_domain_write_agent_result(
         max_retries=model_settings.max_retries,
         recovery_factory=recovery_factory,
         verification_mode=settings.verification_mode,
+        plugin_development_authority=development_authority,
     )
     input_messages = _authoring_handoff_messages(messages, handoff)
     graph_messages = await _checkpoint_input_messages(checkpointer, thread_id, input_messages) if resume is None else input_messages
@@ -692,6 +714,18 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
     mutation_coordinator = ProjectMutationCoordinator()
     checkpointer = InMemorySaver()
     pending_questions: dict[str, PendingCreatorQuestion] = {}
+    development_authorities: dict[str, PluginDevelopmentAuthority] = {}
+    app.state.plugin_development_authorities = development_authorities
+
+    def development_authority_for(thread_id: str) -> PluginDevelopmentAuthority:
+        current = development_authorities.get(thread_id)
+        if current is None:
+            current = PluginDevelopmentAuthority(
+                settings.project_root, thread_id=thread_id,
+                skills_root=settings.skills_root,
+            )
+            development_authorities[thread_id] = current
+        return current
     app.state.creator_checkpointer = checkpointer
     app.state.pending_creator_questions = pending_questions
 
@@ -791,6 +825,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                 command = run_input.forwardedProps.get("command")
                 resume_requested = isinstance(command, dict) and "resume" in command
                 pending = pending_questions.get(run_input.threadId)
+                development_authority = development_authority_for(run_input.threadId)
                 resume_answers: dict[str, Any] | None = None
                 if resume_requested:
                     if pending is None:
@@ -818,6 +853,15 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             raise ValueError("interruptId does not match the pending question")
                         request = QuestionRequest.model_validate({key: value for key, value in pending.envelope.metadata.items() if key != "kind"})
                         resume_answers = QuestionAnswers.model_validate({"answers": payload.get("answers")}).validate_for(request).model_dump(mode="json")
+                        active = development_authority.active
+                        if active is not None and active.status == "pending" and active.question_id is not None:
+                            if not is_development_decision_question(pending.envelope.metadata):
+                                raise PluginDevelopmentError("开发决策问题类型不匹配。")
+                            selected = resume_answers["answers"][DEVELOPMENT_DECISION_STEP_ID]
+                            development_authority.decide(
+                                active.proposal_id, question_id=pending.envelope.id,
+                                checkpoint_id=pending.checkpoint_id, choice=selected[0],
+                            )
                     except (ValueError, ValidationError) as error:
                         yield encode(reject_interrupt("CREATOR_INTERRUPT_INVALID_ANSWER", str(error)))
                         return
@@ -848,6 +892,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                         settings, messages, activity, mutation_coordinator,
                                         diagnostics, run_input.threadId, event_bus, telemetry,
                                         checkpointer=checkpointer, resume=resume_answers,
+                                        development_authority=development_authority,
                                     )
                             else:
                                 agent_result = _domain_write_agent_result(
@@ -856,6 +901,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                     visual_observations=visual_observations,
                                     checkpointer=checkpointer,
                                     execution_context=execution_context,
+                                    development_authority=development_authority,
                                 )
                         elif agent_mode == "domain-read":
                             execution_context.permission = "domain_read_legacy"
@@ -951,6 +997,25 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             permission=execution_context.permission,
                             checkpoint_id=checkpoint_id,
                         )
+                        active = development_authority.active
+                        if (agent_mode == "domain-write" and execution_context.permission == "domain_write"
+                                and active is not None and active.status == "pending"
+                                and active.question_id is None
+                                and is_development_decision_question(envelope.metadata)):
+                            try:
+                                development_authority.bind_question(
+                                    active.proposal_id, question_id=envelope.id,
+                                    checkpoint_id=checkpoint_id,
+                                    question={key: value for key, value in envelope.metadata.items()
+                                              if key != "kind"},
+                                )
+                            except PluginDevelopmentError as error:
+                                pending_questions.pop(run_input.threadId, None)
+                                await checkpointer.adelete_thread(run_input.threadId)
+                                development_authority.revoke_active()
+                                yield encode(RunErrorEvent(type=EventType.RUN_ERROR,
+                                    code="CREATOR_INTERRUPT_CONTEXT_INVALID", message=str(error)))
+                                return
                         yield encode(CustomEvent(type=EventType.CUSTOM,
                             name="on_interrupt", value=envelope.to_wire()))
                         yield encode(RunFinishedEvent(type=EventType.RUN_FINISHED,
@@ -959,6 +1024,11 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                     if resume_requested:
                         pending_questions.pop(run_input.threadId, None)
                     response_text = result.text
+                    decision = development_authority.active
+                    if decision is not None and decision.status == "defer":
+                        response_text = "已按你的选择暂不开发；目标工程未因该方案修改。"
+                    elif decision is not None and decision.status == "adjust":
+                        response_text = "已结束当前开发方案；请说明调整后的需求。目标工程未因该方案修改。"
                     if agent_mode in {"domain-read", "domain-write"}:
                         tool_protocol_metrics = result.metrics.to_dict()
                         if (
@@ -990,6 +1060,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             "domainObservations": result.domain_observations.to_dict(),
                             "streaming": event_bus.metrics().to_dict(),
                         }
+                        if decision is not None:
+                            run_result["pluginDevelopment"] = decision.public_result()
                         if agent_mode == "domain-write" and hasattr(result, "app_ui_model_mutations"):
                             run_result["appUIModelMutations"] = (
                                 result.app_ui_model_mutations.to_dict()

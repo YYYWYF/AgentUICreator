@@ -42,6 +42,9 @@ from ..model_protocol.trace import ToolProtocolMetrics
 from ..model_settings import DEFAULT_CREATOR_MODEL_MAX_RETRIES
 from ..human_input import ask_user_question
 from ..observability import CreatorRunTelemetry
+from ..plugin_development.authority import PluginDevelopmentAuthority
+from ..plugin_development.prepare_tool import create_prepare_ui_plugin_development_tool
+from ..plugin_development.admission_middleware import PluginDevelopmentAdmissionMiddleware
 from ..project_control import ProjectControlClient, ProjectControlMetrics
 from ..repair import CreatorRepairState
 from ..run_control import (
@@ -135,6 +138,7 @@ class CreatorDomainReadAgent:
         completion_verification_tail: CompositionVerificationTail | None = None,
         automatic_completion_repair: bool = False,
         service_contract_authorizations: ServiceContractAuthorizationStore | None = None,
+        plugin_development_authority: PluginDevelopmentAuthority | None = None,
         scope_guard: ScopeAwareRecoveryGuard | None = None,
         run_control: CreatorRunControlState | None = None,
         thread_id: str | None = None,
@@ -151,6 +155,7 @@ class CreatorDomainReadAgent:
         self.automatic_completion_repair = automatic_completion_repair
         self.activity = runtime.backend.activity
         self.service_contract_authorizations = service_contract_authorizations
+        self.plugin_development_authority = plugin_development_authority
         self.scope_guard = scope_guard
         self.run_control = run_control or CreatorRunControlState()
         self.thread_id = thread_id
@@ -161,6 +166,13 @@ class CreatorDomainReadAgent:
     async def run_messages(
         self, messages: list[dict[str, str]], *, resume: dict[str, Any] | None = None
     ) -> DomainReadAgentResult | DeepAgentInterrupted:
+        if self.plugin_development_authority is not None and self.plugin_development_authority.task_id is None:
+            current_user_message = next((message["content"] for message in reversed(messages)
+                                         if message.get("role") == "user"), "")
+            self.plugin_development_authority.begin_task(
+                task_id=self.activity.run_id, request_id=self.activity.run_id,
+                user_message=current_user_message, intent="none",
+            )
         if self.service_contract_authorizations is not None:
             current_user_message = next(
                 (
@@ -504,6 +516,7 @@ def create_domain_write_creator_agent(
     max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES,
     recovery_factory: Callable[[], BaseChatModel] | None = None,
     verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
+    plugin_development_authority: PluginDevelopmentAuthority | None = None,
 ) -> CreatorDomainWriteAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -517,6 +530,9 @@ def create_domain_write_creator_agent(
     )
     client = project_control or ProjectControlClient(project_root=Path(workspace))
     coordinator = mutation_coordinator or ProjectMutationCoordinator()
+    development_authority = plugin_development_authority or PluginDevelopmentAuthority(
+        workspace, thread_id=thread_id or "local", skills_root=skills_root,
+    )
     diagnostic_store = diagnostics or RuntimeDiagnosticStore()
     service = AppUIModelMutationService(
         project_root=workspace,
@@ -543,11 +559,13 @@ def create_domain_write_creator_agent(
         project_root=workspace,
         source_creation=source_creation,
         activity=backend.activity,
+        development_authority=development_authority,
     )
     plugin_mutation = UIPluginSourceMutationService(
         project_root=workspace,
         activity=backend.activity,
         mutation_coordinator=coordinator,
+        development_authority=development_authority,
     )
     service_authorizations = ServiceContractAuthorizationStore(
         workspace, thread_id=thread_id
@@ -639,6 +657,7 @@ def create_domain_write_creator_agent(
             activity=backend.activity,
         ),
         create_ui_plugin_tool(plugin_creation),
+        create_prepare_ui_plugin_development_tool(development_authority),
         mutate_ui_plugin_source_tool(plugin_mutation),
         *create_service_contract_tools(
             service_authorization,
@@ -712,6 +731,7 @@ def create_domain_write_creator_agent(
         middleware=[
             filesystem,
             DomainWriteToolPolicyMiddleware(verification_mode),
+            PluginDevelopmentAdmissionMiddleware(development_authority),
             CompositionGroundingConvergenceMiddleware(
                 observations,
                 backend,
@@ -749,9 +769,11 @@ def create_domain_write_creator_agent(
             service_authorization_finalizer=service_verifier,
             run_control=run_control,
             verification_mode=verification_mode,
+            plugin_development_authority=development_authority,
         ),
         automatic_completion_repair=automatic_completion_repair,
         service_contract_authorizations=service_authorizations,
+        plugin_development_authority=development_authority,
         scope_guard=scope_guard,
         run_control=run_control,
         thread_id=thread_id,

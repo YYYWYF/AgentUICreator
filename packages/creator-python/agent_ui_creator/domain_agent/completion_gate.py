@@ -10,6 +10,7 @@ from ..runtime_diagnostics import RuntimeDiagnosticInspectionService
 from ..run_control import CreatorRunControlState
 from ..validation import CREATOR_COMPLETION_VALIDATIONS, CreatorValidationService
 from ..repair import CreatorRepairState
+from ..plugin_development.authority import PluginDevelopmentAuthority
 from ..verification_policy import (
     CreatorVerificationMode,
     DEFAULT_CREATOR_VERIFICATION_MODE,
@@ -43,6 +44,7 @@ class CreatorDevelopmentCompletionGate:
         service_authorization_finalizer: ServiceAuthorizationFinalizer | None = None,
         run_control: CreatorRunControlState | None = None,
         verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
+        plugin_development_authority: PluginDevelopmentAuthority | None = None,
     ) -> None:
         self.activity = activity
         self.validation = validation
@@ -51,6 +53,7 @@ class CreatorDevelopmentCompletionGate:
         self.service_authorization_finalizer = service_authorization_finalizer
         self.run_control = run_control
         self.verification_mode = verification_mode
+        self.plugin_development_authority = plugin_development_authority
 
     @staticmethod
     def _check(identifier: str, passed: bool, evidence: str) -> dict[str, str]:
@@ -133,6 +136,24 @@ class CreatorDevelopmentCompletionGate:
             )
         receipt = self.activity.snapshot()
         if not receipt["files"]:
+            development = (
+                self.plugin_development_authority.active
+                if self.plugin_development_authority is not None else None
+            )
+            if development is not None and development.status in {"adjust", "defer"}:
+                text = (
+                    "已结束当前开发方案；请说明调整后的需求。目标工程未因该方案修改。"
+                    if development.status == "adjust" else
+                    "已按你的选择暂不开发；目标工程未因该方案修改。"
+                )
+                self.activity.record_verification({
+                    "status": "decision-no-project-change",
+                    "verificationMode": self.verification_mode,
+                    "projectRevision": self.activity.revision,
+                    "auditAttempts": self.repair_state.repair_rounds,
+                    "checks": [self._check("development-decision", True, development.status)],
+                })
+                return CompletionDecision(True, text)
             if self.activity.semantic_noop_satisfied:
                 if (
                     self.service_authorization_finalizer is not None

@@ -7,6 +7,7 @@ from pathlib import Path, PurePosixPath
 from ..activity import CreatorActivityRecorder
 from ..files import resolve_creator_project_file
 from ..project_paths import agent_ui_source_path
+from ..plugin_development.authority import PluginDevelopmentAuthority, PluginDevelopmentError
 from .models import (
     PluginCreationResult,
     SourceCreationError,
@@ -29,10 +30,14 @@ class UIPluginCreationService:
         project_root: str | Path,
         source_creation: UISourceCreationService,
         activity: CreatorActivityRecorder,
+        development_authority: PluginDevelopmentAuthority | None = None,
+        internal_trusted: bool = False,
     ) -> None:
         self.project_root = Path(project_root).resolve()
         self.source_creation = source_creation
         self.activity = activity
+        self.development_authority = development_authority
+        self.internal_trusted = internal_trusted
 
     @staticmethod
     def _normalize_relative_path(relative_path: str) -> str:
@@ -129,9 +134,20 @@ class UIPluginCreationService:
             for relative_path, content in normalized_files.items()
         ]
         try:
+            async def admission() -> None:
+                if self.internal_trusted:
+                    return
+                try:
+                    if self.development_authority is None:
+                        raise PluginDevelopmentError("新 Plugin 开发缺少服务端授权。")
+                    self.development_authority.require_create(plugin_id)
+                except PluginDevelopmentError as error:
+                    raise SourceCreationError(error.code, str(error)) from error
+
             result = await self.source_creation.create(
                 source_files,
                 require_absent_directory=plugin_directory,
+                preflight=admission,
             )
         except SourceCreationError as error:
             if error.code == "SOURCE_DIRECTORY_ALREADY_EXISTS":
@@ -141,6 +157,9 @@ class UIPluginCreationService:
                     {"pluginId": plugin_id, "path": f"plugins/{plugin_id}"},
                 ) from error
             raise
+        if not self.internal_trusted:
+            assert self.development_authority is not None
+            self.development_authority.mark_created(plugin_id)
         self.activity.record_created_directory(
             agent_ui_source_path(self.project_root, plugin_directory[1:]).lstrip("/")
         )

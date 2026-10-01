@@ -620,9 +620,12 @@ class CreatorActionSelection(BaseModel):
     actionId: BoundedActionId | None = None
     targetId: BoundedAuthoringTargetId | None = None
     clarificationQuestion: BoundedClarificationQuestion | None = None
+    developmentIntent: Literal["none", "needs_decision", "explicit", "conditional", "prohibited"] = "none"
 
     @model_validator(mode="after")
     def validate_decision_fields(self) -> "CreatorActionSelection":
+        if self.decision != "general_change" and self.developmentIntent != "none":
+            raise ValueError("developmentIntent is only valid for a General handoff.")
         if self.decision == "select_action":
             if self.actionId is None:
                 raise ValueError("actionId is required for select_action.")

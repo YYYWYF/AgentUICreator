@@ -30,6 +30,26 @@ from agent_ui_creator.operations.selector import (
 from agent_ui_creator.model_settings import CreatorSelectorModelSettings
 
 
+@pytest.mark.parametrize("line,intent", [
+    ("GENERAL", "none"),
+    ("GENERAL DEVELOPMENT_DECISION", "needs_decision"),
+    ("GENERAL DEVELOPMENT_EXPLICIT", "explicit"),
+    ("GENERAL DEVELOPMENT_CONDITIONAL", "conditional"),
+    ("GENERAL DEVELOPMENT_PROHIBITED", "prohibited"),
+])
+def test_selector_development_intent_protocol(line, intent):
+    selection = _parse_selector_response(line, {})
+    assert selection.decision == "general_change"
+    assert selection.developmentIntent == intent
+
+
+def test_development_intent_cannot_be_attached_to_read_only_selection():
+    with pytest.raises(ValidationError):
+        CreatorActionSelection(
+            decision="read_only_analysis", developmentIntent="explicit",
+        )
+
+
 class StaticChatModel:
     def __init__(self, responses: list[str | BaseException]):
         self.responses = list(responses)

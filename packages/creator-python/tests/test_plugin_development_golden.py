@@ -799,6 +799,39 @@ def make_service_agent(
     return agent, validation
 
 
+def authorize_golden_development(agent, *, plugin_id, work_kind, intent="explicit"):
+    """Provision a Host decision for legacy source/composition golden scripts.
+
+    Server/checkpoint decision behavior is exercised in test_plugin_development_server.
+    These scripts remain focused on the authorized implementation sequence.
+    """
+    authority = agent.plugin_development_authority
+    authority.begin_task(
+        task_id=agent.activity.run_id, request_id=agent.activity.run_id,
+        user_message="明确委托开发测试" if intent == "explicit" else "普通功能需求测试",
+        intent=intent,
+    )
+    plan = authority.prepare(
+        work_kind=work_kind, target_plugin_id=plugin_id,
+        desired_outcome=f"实现 {plugin_id} 的既定前端行为",
+        missing_capabilities=[f"{plugin_id} 的既定交互"],
+        reuse_evidence_refs=["golden-fixture"],
+        component_basis_refs=(
+            ["/components/skill-panel.tsx"] if work_kind == "adapt-component" else []
+        ),
+    )
+    if plan["status"] == "pending":
+        question = {"schemaVersion": 1, "steps": [{"id": "development-decision"}]}
+        authority.register_decision_question(plan["proposalId"], question)
+        authority.bind_question(plan["proposalId"], question_id="golden-q", checkpoint_id="golden-c",
+                                question=question)
+        authority.decide(
+            plan["proposalId"], question_id="golden-q",
+            checkpoint_id="golden-c", choice="start",
+        )
+    authority.mark_skill_loaded()
+
+
 def test_full_plugin_creation_golden_scenario(tmp_path):
     responses = [
         *discovery_messages(),
@@ -811,6 +844,7 @@ def test_full_plugin_creation_golden_scenario(tmp_path):
         AIMessage(content="Task Status Plugin created and verified."),
     ]
     agent, client, _diagnostics, _validation = make_agent(tmp_path, responses)
+    authorize_golden_development(agent, plugin_id="task-status", work_kind="create-plugin")
 
     result = asyncio.run(agent.run("Create Task Status and mount it in right.status."))
     receipt = agent.activity.finish()
@@ -854,6 +888,7 @@ def test_existing_component_is_adopted_through_thin_plugin_adapter(tmp_path):
     agent, client, _diagnostics, _validation = make_agent(
         tmp_path, responses, existing_component=SKILL_PANEL_SOURCE
     )
+    authorize_golden_development(agent, plugin_id="skill-manager", work_kind="adapt-component")
 
     result = asyncio.run(
         agent.run("把现有 SkillPanel 做成 Agent UI 插件，UI 不要重新实现。")
@@ -909,6 +944,9 @@ def test_application_gate_creation_golden_keeps_layout_unchanged(tmp_path):
         AIMessage(content="Authentication Gate created and verified."),
     ]
     agent, client = make_gate_agent(tmp_path, responses)
+    authorize_golden_development(
+        agent, plugin_id="auth-gate", work_kind="create-plugin", intent="none",
+    )
     layout_before = copy.deepcopy(client.model()["root"])
 
     result = asyncio.run(agent.run("不登录不能进入应用。"))

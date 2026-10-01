@@ -1,0 +1,8 @@
+# Default UI composition
+
+1. Read the generated project's `package.json`, style entry and nearest official Plugin source. Confirm the installed UI stack and current package versions.
+2. Inspect installed `/agent-ui/components`, `/agent-ui/primitives`, Source Item descriptions and public `@agent-ui/react` exports. Use `inspect_agent_ui_sources` for missing formal resources; install with returned `itemId` and `stateHash` when appropriate.
+3. In this workspace, the public `@agent-ui/react` boundary currently exports `Button`, `Input`, `Badge`, `Skeleton`, `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent`, and the Agent UI Tooltip/Popover/Dialog facades. Recheck the target's installed version and declaration before importing. A Checkbox export is not established by this list.
+4. Reuse the target's theme tokens, typography, spacing, focus states and overlay boundary. Native semantic elements are fine for structure and accessibility; when a control has no public default component, style it to the project's existing control conventions and document that basis.
+5. Derive the Plugin's `authoring.intents`, `defaultPlacement` and axis-specific `recommendedSize` from the actual target Slot and Agent container. Renderer, application and headless Plugin placement follows their own contracts. Use existing responsive rules and keep chat usable in a narrow Agent container.
+6. Confirm current-revision static validation after source and composition writes. Only `static_and_runtime` permits Creator Runtime verification; independent browser interaction remains separate acceptance evidence.

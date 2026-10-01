@@ -246,6 +246,35 @@ def test_real_target_mutation_uses_temp_copy_and_python_transaction(tmp_path):
     assert restored["hash"] == inspection["hash"]
 
 
+def test_hide_restore_keeps_custom_plugin_source_and_single_instance(tmp_path):
+    project_root = _copy_target(tmp_path, "hide-restore-source")
+    source = project_root / "src/agent-ui/plugins/assistant-ui-reasoning/index.tsx"
+    source.write_text(source.read_text(encoding="utf-8") + "\n// user customization\n",
+                      encoding="utf-8")
+    preserved = source.read_bytes()
+    client, _activity, service = _mutation_service(project_root, "hide-restore")
+    before = asyncio.run(client.inspect_app_ui_model())
+    instance = next(item for item in _authoring_plugins(before["model"])
+                    if item["pluginId"] == "assistant-ui-reasoning")
+    assert instance["enabled"] is True
+
+    asyncio.run(service.mutate(app_ui_model_hash=before["hash"], operations=[{
+        "type": "set_plugin_enabled", "instanceId": instance["id"], "enabled": False,
+    }]))
+    hidden = asyncio.run(client.inspect_app_ui_model())
+    assert _find_plugin(hidden["model"], instance["id"])["enabled"] is False
+    assert source.read_bytes() == preserved
+
+    asyncio.run(service.mutate(app_ui_model_hash=hidden["hash"], operations=[{
+        "type": "set_plugin_enabled", "instanceId": instance["id"], "enabled": True,
+    }]))
+    restored = asyncio.run(client.inspect_app_ui_model())
+    matches = [item for item in _authoring_plugins(restored["model"])
+               if item["id"] == instance["id"]]
+    assert len(matches) == 1 and matches[0]["enabled"] is True
+    assert source.read_bytes() == preserved
+
+
 def test_real_agent_tools_inspect_once_then_mutate_with_host_owned_hash(tmp_path):
     project_root = _copy_target(tmp_path, "host-owned-hash")
     client, activity, service = _mutation_service(

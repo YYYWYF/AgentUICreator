@@ -1,0 +1,189 @@
+from __future__ import annotations
+
+import json
+from collections.abc import Awaitable, Callable, Mapping, Sequence
+from typing import Any
+
+from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResponse
+from langchain_core.messages import ToolMessage
+
+from ..resource_scope import project_logical_path
+from ..minimal_agent.tool_policy import tool_name
+from ..project_paths import agent_ui_source_path
+from .authority import PluginDevelopmentAuthority, PluginDevelopmentError
+
+
+_SKILL_PATH = "/skills/ui-plugin-development/SKILL.md"
+_WRITES = frozenset({
+    "edit_file", "create_ui_plugin", "mutate_ui_plugin_source",
+    "mutate_app_ui_model", "apply_agent_ui_source_item",
+    "prepare_ui_service_contract_change", "create_ui_service_contract",
+    "mutate_ui_service_contract",
+})
+
+
+def _result_payload(result: Any) -> Mapping[str, Any] | None:
+    value = getattr(result, "content", result)
+    if not isinstance(value, str):
+        return value if isinstance(value, Mapping) else None
+    try:
+        parsed = json.loads(value)
+    except (ValueError, TypeError):
+        return None
+    return parsed if isinstance(parsed, Mapping) else None
+
+
+def _inventory_complete(value: Mapping[str, Any]) -> bool:
+    return value.get("pageComplete") is not False and value.get("nextCursor") is None
+
+
+class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
+    """Dynamic tool visibility and actual-call protection for Creator authoring.
+
+    Source installation remains on its existing installer path. This middleware
+    never treats an installed Source Item as an authored new Plugin identity.
+    """
+
+    def __init__(self, authority: PluginDevelopmentAuthority) -> None:
+        self.authority = authority
+
+    def _visible_tools(self, tools: Sequence[Any]) -> list[Any]:
+        return [tool for tool in tools if (
+            tool_name(tool) != "create_ui_plugin" or self.authority.can_expose_create
+        )]
+
+    def wrap_model_call(
+        self, request: ModelRequest,
+        handler: Callable[[ModelRequest], ModelResponse],
+    ) -> ModelResponse:
+        return handler(request.override(tools=self._visible_tools(request.tools)))
+
+    async def awrap_model_call(
+        self, request: ModelRequest,
+        handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
+    ) -> ModelResponse:
+        return await handler(request.override(tools=self._visible_tools(request.tools)))
+
+    def _new_plugin_identity(self, path: str) -> str | None:
+        logical = project_logical_path(path, self.authority.project_root)
+        parts = logical.strip("/").split("/")
+        if len(parts) < 3 or parts[0] != "plugins":
+            return None
+        plugin_id = parts[1]
+        physical = self.authority.project_root / agent_ui_source_path(
+            self.authority.project_root, f"plugins/{plugin_id}"
+        ).lstrip("/")
+        return plugin_id if not physical.exists() else None
+
+    def _admit(self, name: str, args: Mapping[str, Any]) -> None:
+        active = self.authority.active
+        if name in _WRITES and active is not None and active.status in {"pending", "adjust", "defer"}:
+            raise PluginDevelopmentError("开发方案等待决定或已结束，不能写入目标工程。")
+        if (name == "mutate_app_ui_model" and active is None
+                and self.authority.intent in {"needs_decision", "explicit", "conditional"}
+                and (self.authority.intent == "explicit"
+                     or not self.authority.can_compose_existing(args.get("operations")))):
+            raise PluginDevelopmentError("新开发方案未授权；当前只允许组合已检查的现有 Plugin。")
+        if name in _WRITES and active is not None and active.status == "authorized":
+            self.authority.require_skill()
+        if name == "create_ui_plugin":
+            plugin_id = args.get("pluginId")
+            if not isinstance(plugin_id, str):
+                raise PluginDevelopmentError("创建目标 Plugin ID 无效。")
+            self.authority.require_create(plugin_id)
+        if name == "edit_file":
+            path = args.get("file_path")
+            if isinstance(path, str):
+                logical = project_logical_path(path, self.authority.project_root)
+                if active is not None and active.status == "authorized":
+                    if not logical.startswith(f"/plugins/{active.target_plugin_id}/"):
+                        raise PluginDevelopmentError("源码写入超出了已批准的 Plugin 目标。")
+                new_id = self._new_plugin_identity(path)
+                if new_id is not None:
+                    self.authority.require_create(new_id)
+                    raise PluginDevelopmentError(
+                        "新 Plugin 身份必须通过 create_ui_plugin 原子创建。"
+                    )
+                elif self.authority.intent in {"needs_decision", "explicit", "conditional"} and active is None:
+                    raise PluginDevelopmentError("新增能力的源码写入前需要完成开发方案和授权。")
+        if name == "mutate_ui_plugin_source":
+            if active is not None and active.status == "authorized":
+                if args.get("pluginId") != active.target_plugin_id:
+                    raise PluginDevelopmentError("源码修改超出了已批准的 Plugin 目标。")
+            elif self.authority.intent in {"needs_decision", "explicit", "conditional"}:
+                raise PluginDevelopmentError("新增能力的源码写入前需要完成开发方案和授权。")
+
+    @staticmethod
+    def _blocked(call: Mapping[str, Any], error: PluginDevelopmentError) -> ToolMessage:
+        return ToolMessage(
+            content=json.dumps({"ok": False, "error": {
+                "code": error.code, "message": str(error), "stateChanged": False,
+            }}, ensure_ascii=False),
+            tool_call_id=str(call.get("id") or "plugin-development-admission"),
+            name=str(call.get("name") or ""),
+        )
+
+    def _observe(self, name: str, args: Mapping[str, Any], result: Any) -> None:
+        if getattr(result, "status", None) == "error":
+            return
+        if name == "edit_file" and getattr(result, "status", None) == "success":
+            path = args.get("file_path")
+            if isinstance(path, str):
+                logical = project_logical_path(path, self.authority.project_root)
+                active = self.authority.active
+                if (active is not None and active.status == "authorized"
+                        and logical.startswith(f"/plugins/{active.target_plugin_id}/")):
+                    self.authority.note_authorized_target_write(active.target_plugin_id)
+            return
+        if name == "read_file" and args.get("file_path") == _SKILL_PATH:
+            content = getattr(result, "content", result)
+            if isinstance(content, str) and "# UI Plugin Development" in content:
+                self.authority.mark_skill_loaded()
+            return
+        payload = _result_payload(result)
+        if payload is None or payload.get("ok") is not True:
+            return
+        value = payload.get("result")
+        if not isinstance(value, Mapping):
+            return
+        if (name == "list_ui_plugins" and _inventory_complete(value)
+                and isinstance(value.get("pluginAssets"), list)):
+            ids = [plugin.get("id") for plugin in value["pluginAssets"]
+                   if isinstance(plugin, Mapping) and isinstance(plugin.get("id"), str)]
+            self.authority.record_discovery(
+                plugin_inventory_complete=True, plugin_ids=ids,
+            )
+        if (name == "inspect_agent_ui_sources" and _inventory_complete(value)
+                and isinstance(value.get("items"), list)):
+            ids = [item["id"].removeprefix("plugin/") for item in value["items"]
+                   if isinstance(item, Mapping) and isinstance(item.get("id"), str)
+                   and item["id"].startswith("plugin/")]
+            self.authority.record_discovery(
+                source_inventory_complete=True, source_plugin_ids=ids,
+            )
+
+    def wrap_tool_call(self, request: Any, handler: Callable[[Any], Any]) -> Any:
+        call = request.tool_call
+        name = str(call.get("name") or "")
+        args = call.get("args") if isinstance(call.get("args"), Mapping) else {}
+        try:
+            self._admit(name, args)
+        except PluginDevelopmentError as error:
+            return self._blocked(call, error)
+        result = handler(request)
+        self._observe(name, args, result)
+        return result
+
+    async def awrap_tool_call(
+        self, request: Any, handler: Callable[[Any], Awaitable[Any]],
+    ) -> Any:
+        call = request.tool_call
+        name = str(call.get("name") or "")
+        args = call.get("args") if isinstance(call.get("args"), Mapping) else {}
+        try:
+            self._admit(name, args)
+        except PluginDevelopmentError as error:
+            return self._blocked(call, error)
+        result = await handler(request)
+        self._observe(name, args, result)
+        return result

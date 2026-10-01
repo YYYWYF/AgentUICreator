@@ -1,3 +1,4 @@
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -11,6 +12,30 @@ from agent_ui_creator.domain_agent import (
     DomainWriteToolPolicyMiddleware,
 )
 from agent_ui_creator.domain_agent.tool_policy import RUNTIME_VERIFICATION_TOOL_NAMES
+from agent_ui_creator.domain_agent.prompt import DOMAIN_WRITE_AGENT_PROMPT
+
+
+SKILLS_ROOT = Path(__file__).resolve().parents[2] / "creator" / "skills"
+
+
+def test_conversation_ownership_prompt_reuses_project_runtime():
+    assert "assistant-ui may be an upstream design reference only" not in DOMAIN_WRITE_AGENT_PROMPT
+    assert "Reuse the project's existing\nConversation Runtime" in DOMAIN_WRITE_AGENT_PROMPT
+    assert "Plugins must not create another Runtime" in DOMAIN_WRITE_AGENT_PROMPT
+
+
+def test_ag_ui_skill_declares_only_available_tools():
+    skill = (SKILLS_ROOT / "ag-ui-frontend" / "SKILL.md").read_text()
+    allowed_line = next(line for line in skill.splitlines() if line.startswith("allowed-tools:"))
+    declared = set(allowed_line.partition(":")[2].split())
+    assert declared <= set(ALLOWED_DOMAIN_WRITE_TOOLS)
+    assert not {"write_file", "execute"}.intersection(declared)
+
+
+def test_plugin_skill_runtime_instructions_follow_verification_mode():
+    skill = (SKILLS_ROOT / "ui-plugin-development" / "SKILL.md").read_text()
+    assert "In `static_and_runtime` mode, call `inspect_runtime_errors`" in skill
+    assert "In `static_only` mode, stop after current-revision static validation" in skill
 
 
 def test_domain_read_policy_exposes_only_filesystem_and_read_domain_tools():

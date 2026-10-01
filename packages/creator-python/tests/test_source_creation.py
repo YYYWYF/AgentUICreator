@@ -71,6 +71,7 @@ def plugin_service(tmp_path: Path, run_id: str = "source-create"):
             project_root=tmp_path,
             source_creation=source_creation,
             activity=activity,
+            internal_trusted=True,
         ),
         activity,
     )
@@ -425,7 +426,7 @@ def call(name, arguments, call_id):
     )
 
 
-def test_domain_write_exposes_create_ui_plugin(tmp_path):
+def test_domain_write_hides_create_until_development_is_authorized(tmp_path):
     model = CapturingModel(responses=[AIMessage(content="No change needed.")])
     agent = create_domain_write_creator_agent(
         model=model,
@@ -435,8 +436,11 @@ def test_domain_write_exposes_create_ui_plugin(tmp_path):
 
     asyncio.run(agent.run("Inspect whether a change is needed."))
 
-    assert set(model.bound_tool_names) == set(ALLOWED_DOMAIN_WRITE_TOOLS)
-    assert "create_ui_plugin" in model.bound_tool_names
+    assert set(model.bound_tool_names) == set(ALLOWED_DOMAIN_WRITE_TOOLS) - {
+        "create_ui_plugin", "inspect_runtime_errors", "inspect_runtime_layout",
+    }
+    assert "create_ui_plugin" not in model.bound_tool_names
+    assert "prepare_ui_plugin_development" in model.bound_tool_names
     assert "create_ui_source_files" not in model.bound_tool_names
     assert "write_file" not in model.bound_tool_names
     assert "execute" not in model.bound_tool_names

@@ -1,11 +1,20 @@
 ---
 name: ui-plugin-development
-description: Use to inspect, create, or modify UI Plugin manifests, definitions, React components, styles, contexts, and registration when existing Plugins cannot provide the requested frontend behavior.
+description: Inspect or customize UI Plugins; implement a new Plugin or new behavior only after a direct user commission, satisfied conditional commission, or approval of a bound development proposal.
 compatibility: Agent UI Plugin Creator Phase 8 permits writes under project plugins and AppUIModel composition.
-allowed-tools: read_file ls glob grep edit_file create_ui_plugin mutate_ui_plugin_source prepare_ui_service_contract_change create_ui_service_contract mutate_ui_service_contract inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin inspect_ui_services inspect_ui_plugin_source_references inspect_agent_ui_sources apply_agent_ui_source_item mutate_app_ui_model validate_creator_changes inspect_runtime_errors
+allowed-tools: read_file ls glob grep edit_file prepare_ui_plugin_development create_ui_plugin mutate_ui_plugin_source prepare_ui_service_contract_change create_ui_service_contract mutate_ui_service_contract inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin inspect_ui_services inspect_ui_plugin_source_references inspect_agent_ui_sources apply_agent_ui_source_item mutate_app_ui_model validate_creator_changes
 ---
 
 # UI Plugin Development
+
+The decision semantics are in `docs/creator-plugin-development-decision-contract.md`.
+Reading this Skill never grants development permission. Before first new Plugin
+source or new business behavior, `prepare_ui_plugin_development` must return a
+Host-authorized plan bound to this user task. Legitimate entry sources are a
+direct development commission, a conditional commission after complete discovery
+proves the gap, or approval of the exact pending proposal. Ordinary clarification
+and a prior task's grant cannot authorize development. A normal existing Plugin
+customization does not need a new development approval.
 
 Inspect project conventions before deciding that Plugin source must change:
 
@@ -25,11 +34,18 @@ Inspect project conventions before deciding that Plugin source must change:
 
 1. List and inspect existing Plugins.
 2. If a Plugin already supplies the requested behavior, reuse its `manifest.id` in an AppUIPluginNode and change only AppUIModel as needed. Stop source discovery when no source change is required.
-3. Otherwise, locate and inspect matching UI components elsewhere in project source, especially when the user says the UI already exists. An absent Plugin does not mean the UI is absent.
-4. If a reusable component exists, adopt it through the smallest Plugin adapter.
-5. If neither a Plugin nor a reusable component exists, create a new Plugin implementation following project conventions.
-6. For an ordinary Plugin, insert its node into a Layout Slot or parent plugin's local Slot through AppUIModel. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
-7. When the user requires login, License, organization selection, onboarding, or initialization before the Workspace can be used, prefer a first-class `manifest.application.gate` Plugin in `applicationPlugins`; it is an Application lifecycle surface, not visual Slot composition.
+3. If no installed Plugin matches, inspect relevant installable Source Items. Installation through `apply_agent_ui_source_item` is reuse, not new development. A failed install or incomplete inventory is not permission to handwrite a substitute.
+4. Otherwise, locate and inspect matching UI components elsewhere in project source, especially when the user says the UI already exists. An absent Plugin does not mean the UI is absent.
+5. If a reusable component exists and the user commissioned adaptation, adopt it through the smallest Plugin adapter. If a normal request has a material gap, prepare the development decision before authoring.
+6. If no reusable implementation exists, create a Plugin only after direct, satisfied conditional, or approved proposal authorization.
+7. For an ordinary Plugin, insert its node into a Layout Slot or parent plugin's local Slot through AppUIModel. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
+8. When the user requires login, License, organization selection, onboarding, or initialization before the Workspace can be used, prefer a first-class `manifest.application.gate` Plugin in `applicationPlugins`; it is an Application lifecycle surface, not visual Slot composition.
+
+Before implementation, inspect `references/default-ui-composition.md` for the
+project's public component and style discovery path. Use actual exported APIs,
+not guessed Button, Checkbox, Dialog, or overlay names. If the user did not
+specify a component, use the project's mature default controls and tokens; do
+not make an unstyled native form or placeholder panel the product result.
 
 ## Existing component adoption
 
@@ -41,7 +57,7 @@ When the user identifies an existing UI, Component, or Widget, or project inspec
 - Preserve the component's UI, interaction, state model, and styling. Add only integration required by the request. Do not use Plugin adoption as a reason to refactor, restyle, replace the UI library, rename behavior, or implement backend capabilities. If an existing Install button is mock, keep it mock unless the user asks for installation behavior. Do not invent a Service, AG-UI event, Frontend Tool, or persistence layer for it.
 - Use the same manifest authoring, placement, size, and child Slot contracts as any other Plugin. Component reuse is a Creator development choice, not a new Runtime or manifest field.
 
-For this branch: inspect the project and component source, inspect the closest Plugin, decide ownership, create the thin adapter, run `validate_creator_changes`, compose through AppUIModel, validate the final revision, then call `inspect_runtime_errors`. Existing UI does not waive either validation step or fresh Runtime verification.
+For this branch: inspect the project and component source, inspect the closest Plugin, decide ownership, create the thin adapter, run `validate_creator_changes`, compose through AppUIModel, and validate the final revision. In `static_and_runtime` mode, also call `inspect_runtime_errors` after source changes; in `static_only` mode, do not call Runtime verification tools. Existing UI does not waive current-revision static validation.
 
 ## Creator Authoring Contract
 
@@ -99,7 +115,7 @@ Plugin needs capability X
               -> confirmation-required: ask the User and stop project writes
               -> authorized: create_ui_service_contract
                  -> wire Provider and Consumers
-                 -> validate, then Runtime verify
+                 -> validate, then Runtime verify only in static_and_runtime mode
 ```
 
 - `inject` is only for a capability without which the Plugin's core behavior cannot work.
@@ -135,7 +151,7 @@ Plugin needs capability X
 9. Run `validate_creator_changes`. Fix returned diagnostics with `read_file` plus `edit_file`, then validate the new revision again.
 10. Add exactly one AppUIPluginNode through `mutate_app_ui_model`; target an ordinary Plugin at the intended authoring Slot, or target an Application Gate at application scope. That transaction updates the generated Registry in both cases.
 11. Because composition changes the Activity revision, run `validate_creator_changes` again for the final revision.
-12. Call `inspect_runtime_errors`. Fresh current-hash evidence with zero current errors is required before claiming Runtime success.
+12. In `static_and_runtime` mode, call `inspect_runtime_errors`. Fresh current-hash evidence with zero current errors is required before claiming Runtime success. In `static_only` mode, stop after current-revision static validation and do not claim Runtime success.
 
 ## Development completion loop
 
@@ -147,13 +163,13 @@ Reuse
 -> Static Validation
 -> Composition
 -> Static Validation for the final revision
--> Runtime Verification
+-> Runtime Verification (static_and_runtime only)
 -> Repair when needed
 -> Completion
 ```
 
 - A static validation failure is normal development evidence, not a Tool failure. Read its bounded diagnostics, repair the relevant source, and validate the new revision.
-- A current Runtime error requires source inspection, repair, another current-revision static validation, and fresh Runtime verification.
+- In `static_and_runtime` mode, a current Runtime error requires source inspection, repair, another current-revision static validation, and fresh Runtime verification.
 - Runtime evidence received before the latest source mutation is stale even when the AppUIModel hash did not change.
 - Stop after two unsuccessful automatic repair rounds and report passed checks plus remaining diagnostics.
 - When Runtime is unavailable in a headless or CLI session, state exactly that static validation passed but no Runtime verification evidence is available. Never claim Runtime success without fresh evidence.

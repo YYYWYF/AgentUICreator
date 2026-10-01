@@ -19,6 +19,7 @@ from ..files import (
 )
 from ..minimal_agent.path_policy import MinimalAgentPathPolicy, PathPolicyViolation
 from ..project_paths import agent_ui_source_path, v2_source_root
+from ..plugin_development.authority import PluginDevelopmentAuthority, PluginDevelopmentError
 from ..transactions import CreatorTransactionError
 from .models import (
     MAX_PLUGIN_MUTATION_EDITS_PER_CALL,
@@ -63,10 +64,12 @@ class UIPluginSourceMutationService:
         project_root: str | Path,
         activity: CreatorActivityRecorder,
         mutation_coordinator: ProjectMutationCoordinator,
+        development_authority: PluginDevelopmentAuthority | None = None,
     ) -> None:
         self.project_root = Path(project_root).resolve()
         self.activity = activity
         self.mutation_coordinator = mutation_coordinator
+        self.development_authority = development_authority
         source_root = v2_source_root(self.project_root)
         self.policy = MinimalAgentPathPolicy(source_root=source_root)
 
@@ -480,10 +483,26 @@ class UIPluginSourceMutationService:
     ) -> PluginSourceMutationResult:
         plugin_root, prepared = self._prepare(plugin_id, changes)
         async with self.mutation_coordinator.transaction(self.project_root):
+            authority = self.development_authority
+            if authority is not None:
+                active = authority.active
+                try:
+                    if active is not None and active.status in {"pending", "adjust", "defer"}:
+                        raise PluginDevelopmentError("开发方案等待决定或已结束，不能修改 Plugin 源码。")
+                    if active is not None and active.status == "authorized":
+                        if active.target_plugin_id != plugin_id:
+                            raise PluginDevelopmentError("源码修改超出了已批准的 Plugin 目标。")
+                        authority.require_skill()
+                    elif authority.intent in {"needs_decision", "explicit", "conditional"}:
+                        raise PluginDevelopmentError("新增业务能力需要先完成开发方案和授权。")
+                except PluginDevelopmentError as error:
+                    raise PluginSourceMutationError(error.code, str(error)) from error
             self._assert_plugin_exists(plugin_id, plugin_root)
             commits, directories = self._preflight(plugin_root, prepared)
             if commits:
                 self._commit(plugin_root, commits, directories)
+                if authority is not None:
+                    authority.note_authorized_target_write(plugin_id)
 
         changed_paths = tuple(commit.prepared.receipt_path for commit in commits)
         modified_paths = tuple(

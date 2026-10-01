@@ -2,7 +2,7 @@
 name: ag-ui-frontend
 description: Use for frontend consumption of AG-UI messages, shared state, run status, executions, interrupts, and controlled Application Events, Frontend Tools, Agent-controlled frontend capabilities, and browser/client tool execution through project Runtime hooks.
 compatibility: One AG-UI Agent Runtime per generated frontend; Phase 8 permits Plugin source writes while Runtime remains read-only.
-allowed-tools: read_file ls glob grep edit_file write_file execute
+allowed-tools: read_file ls glob grep edit_file
 ---
 
 # AG-UI Frontend

@@ -24,6 +24,7 @@ DOMAIN_WRITE_TOOL_NAMES = (
     "inspect_runtime_layout",
     "ask_user_question",
     "create_ui_plugin",
+    "prepare_ui_plugin_development",
     "mutate_ui_plugin_source",
     "prepare_ui_service_contract_change",
     "create_ui_service_contract",
@@ -44,6 +45,7 @@ SIDE_EFFECT_TOOL_NAMES = frozenset(
     {
         "edit_file",
         "create_ui_plugin",
+        "prepare_ui_plugin_development",
         "mutate_ui_plugin_source",
         "prepare_ui_service_contract_change",
         "create_ui_service_contract",
