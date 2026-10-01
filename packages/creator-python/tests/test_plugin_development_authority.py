@@ -407,3 +407,33 @@ def test_formal_source_installer_is_not_a_new_plugin_creation(tmp_path):
     }) == "allowed"
     with pytest.raises(PluginDevelopmentError):
         state.require_create("generated-file-message")
+
+
+def test_formal_source_install_allows_only_its_plugin_composition_without_new_grant(tmp_path):
+    state = authority(tmp_path, "needs_decision")
+    middleware = PluginDevelopmentAdmissionMiddleware(state)
+    def insert(plugin_id):
+        return {"operations": [{"type": "insert_plugin", "plugin": {
+            "id": plugin_id + "-main", "pluginId": plugin_id, "enabled": True,
+        }}]}
+    assert json.loads(_call(middleware, "mutate_app_ui_model",
+                            insert("generated-file-message")).content)["ok"] is False
+
+    response = middleware.wrap_tool_call(
+        SimpleNamespace(tool_call={"name": "apply_agent_ui_source_item", "args": {
+            "itemId": "plugin/generated-file-message", "expectedStateHash": "host-hash",
+        }, "id": "install"}),
+        lambda _request: json.dumps({"ok": True, "result": {
+            "operation": "apply", "changed": True,
+            "changedItems": ["plugin/generated-file-message"],
+            "stateHash": "new-host-hash",
+        }}),
+    )
+    assert json.loads(response)["result"]["changed"] is True
+    assert _call(middleware, "mutate_app_ui_model",
+                 insert("generated-file-message")) == "allowed"
+    assert json.loads(_call(middleware, "mutate_app_ui_model",
+                            insert("unrelated-plugin")).content)["ok"] is False
+    assert json.loads(_call(middleware, "mutate_app_ui_model", {
+        "operations": [{"type": "insert_layout_node", "node": {"id": "empty"}}],
+    }).content)["ok"] is False

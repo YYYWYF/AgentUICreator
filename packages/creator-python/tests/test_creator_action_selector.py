@@ -43,6 +43,21 @@ def test_selector_development_intent_protocol(line, intent):
     assert selection.developmentIntent == intent
 
 
+@pytest.mark.parametrize("message,expected", [
+    ("优先用项目已有能力来显示文件卡片，先用 Mock 验证。", "needs_decision"),
+    ("文件卡片有现成的就用现成的，没有才开发一个。", "conditional"),
+    ("Reuse the existing file card if possible; otherwise build one.", "conditional"),
+])
+def test_conditional_development_requires_actual_fallback_commission(message, expected):
+    selector = CreatorActionSelector(model=StaticChatModel([
+        "GENERAL DEVELOPMENT_CONDITIONAL",
+    ]))
+
+    result = asyncio.run(selector.select(message, _unified_context()))
+
+    assert result.developmentIntent == expected
+
+
 def test_development_intent_cannot_be_attached_to_read_only_selection():
     with pytest.raises(ValidationError):
         CreatorActionSelection(

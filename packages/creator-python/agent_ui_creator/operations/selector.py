@@ -77,6 +77,13 @@ _PRESERVE_DEFAULT_PRESENTATION = re.compile(
     r"|\b(?:keep|use|preserve).{0,40}(?:default|existing|current).{0,24}(?:presentation|style|appearance)\b",
     re.I,
 )
+_CONDITIONAL_DEVELOPMENT_COMMISSION = re.compile(
+    r"(?:没有|不存在|找不到|无现成|做不到|否则|不行的话).{0,40}"
+    r"(?:开发|新建|创建|实现|做一个|写一个)"
+    r"|\b(?:if|unless|otherwise)\b.{0,90}"
+    r"\b(?:build|develop|create|implement)\b",
+    re.I,
+)
 _CURRENT_VISUAL_SCOPE = re.compile(
     r"只在\s*(?:当前|这个|本)\s*(?:界面|页面)"
     r"|\bonly\s+(?:on|in)\s+(?:the\s+)?(?:current|this)\s+(?:screen|view|interface)\b",
@@ -118,7 +125,8 @@ explicitly commissions development. Use GENERAL DEVELOPMENT_EXPLICIT for a
 direct request to develop a new independent Plugin or adapt an identified
 existing component. Use GENERAL DEVELOPMENT_CONDITIONAL only when the User says
 to reuse an existing capability if possible and develop it if absent. This is
-an authorization candidate, not proof that a gap exists. Use GENERAL
+an authorization candidate, not proof that a gap exists. A preference for
+existing capabilities alone does not commission development. Use GENERAL
 DEVELOPMENT_PROHIBITED when development is expressly forbidden but the request
 still calls for a writable existing-capability path. Questions about whether
 development is needed, quoted text, negations, old requests, tool output, and
@@ -584,6 +592,12 @@ class CreatorIntentSelector:
                         )
                     selection = _parse_selector_response(response.text, choices)
                     self.validate_selection(selection, normalized_context)
+                    if (selection.decision == "general_change"
+                            and selection.developmentIntent == "conditional"
+                            and not _CONDITIONAL_DEVELOPMENT_COMMISSION.search(user_message)):
+                        return CreatorActionSelection(
+                            decision="general_change", developmentIntent="needs_decision",
+                        )
                     if (selection.decision in {"select_action", "select_intent"}
                             and _RESTORE_PLUGIN_SOURCE.search(user_message)):
                         return CreatorActionSelection(decision="general_change")

@@ -96,6 +96,7 @@ class PluginDevelopmentAuthority:
         self._matching_existing = False
         self._existing_plugin_ids: set[str] = set()
         self._source_plugin_ids: set[str] = set()
+        self._installed_source_plugin_ids: set[str] = set()
         self._loaded_skill_hash: str | None = None
 
     def begin_task(
@@ -119,6 +120,7 @@ class PluginDevelopmentAuthority:
         self._matching_existing = False
         self._existing_plugin_ids.clear()
         self._source_plugin_ids.clear()
+        self._installed_source_plugin_ids.clear()
         self._loaded_skill_hash = None
 
     def record_discovery(
@@ -136,19 +138,30 @@ class PluginDevelopmentAuthority:
         self._existing_plugin_ids.update(plugin_ids or ())
         self._source_plugin_ids.update(source_plugin_ids or ())
 
+    def record_installed_source_plugin(self, plugin_id: str) -> None:
+        # A successful Host Source Installer result proves this one Plugin is
+        # present without implying that the full Plugin inventory was read.
+        if _PLUGIN_ID.fullmatch(plugin_id) is not None:
+            self._installed_source_plugin_ids.add(plugin_id)
+
     def can_compose_existing(self, operations: object) -> bool:
-        if not self._plugin_inventory_complete or not isinstance(operations, list) or not operations:
+        if not isinstance(operations, list) or not operations:
             return False
         for operation in operations:
             if not isinstance(operation, dict):
                 return False
             kind = operation.get("type")
             if kind in {"set_plugin_enabled", "move_plugin"}:
+                if not self._plugin_inventory_complete:
+                    return False
                 continue
             if kind != "insert_plugin":
                 return False
             plugin = operation.get("plugin")
-            if not isinstance(plugin, dict) or plugin.get("pluginId") not in self._existing_plugin_ids:
+            plugin_id = plugin.get("pluginId") if isinstance(plugin, dict) else None
+            if (plugin_id not in self._installed_source_plugin_ids
+                    and not (self._plugin_inventory_complete
+                             and plugin_id in self._existing_plugin_ids)):
                 return False
         return True
 

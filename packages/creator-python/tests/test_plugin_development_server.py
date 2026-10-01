@@ -145,6 +145,22 @@ def test_wrong_decision_answer_cannot_activate_grant(tmp_path, monkeypatch):
     assert not (tmp_path / "plugins").exists()
 
 
+def test_headless_request_without_decision_answer_cannot_continue_or_grant(tmp_path, monkeypatch):
+    model = TrackingModel(responses=[AIMessage(content="", tool_calls=[{
+        "name": "prepare_ui_plugin_development", "args": PREPARE, "id": "prepare-headless",
+    }])])
+    app, client = _app(tmp_path, monkeypatch, model)
+
+    first = _events(client, run_id="request-a", text="在聊天旁边做一个任务核对清单")
+    assert any(event.get("name") == "on_interrupt" for event in first)
+    attempted_continue = _events(client, run_id="request-b", text="继续")
+
+    assert any(event.get("code") == "CREATOR_INTERRUPT_PENDING"
+               for event in attempted_continue)
+    assert app.state.plugin_development_authorities["thread-a"].active.status == "pending"
+    assert not (tmp_path / "plugins").exists()
+
+
 def test_approved_resume_loads_skill_before_create_becomes_visible(tmp_path, monkeypatch):
     model = TrackingModel(responses=[
         AIMessage(content="", tool_calls=[{

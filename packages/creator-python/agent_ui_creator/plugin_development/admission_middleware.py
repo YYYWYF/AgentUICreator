@@ -146,6 +146,15 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
         value = payload.get("result")
         if not isinstance(value, Mapping):
             return
+        if name == "apply_agent_ui_source_item":
+            item_id = args.get("itemId")
+            changed_items = value.get("changedItems")
+            if (value.get("operation") == "apply" and value.get("changed") is True
+                    and isinstance(item_id, str) and item_id.startswith("plugin/")
+                    and isinstance(changed_items, list) and item_id in changed_items):
+                self.authority.record_installed_source_plugin(
+                    item_id.removeprefix("plugin/")
+                )
         if (name == "list_ui_plugins" and _inventory_complete(value)
                 and isinstance(value.get("pluginAssets"), list)):
             ids = [plugin.get("id") for plugin in value["pluginAssets"]
