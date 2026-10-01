@@ -1384,6 +1384,22 @@ describe("AppUIModel transaction", () => {
     expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
       .toBe(source);
 
+    const cappedSideError = await mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source),
+      operations: [{
+        type: "update_layout_node_props",
+        nodeRef: "l0",
+        set: { sizes: ["280px", "minmax(0, 1fr)", "min(240px, 30%)"] },
+        removeKeys: [],
+      }],
+    }).catch((value: unknown) => value);
+    expect(cappedSideError).toMatchObject({
+      code: "LAYOUT_NARROW_CENTER_UNUSABLE",
+      details: { referenceWidth: 560, fixedSideWidth: 448, centerWidthAtReference: 112 },
+    });
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
+      .toBe(source);
+
     const boundedSideError = await mutateAppUIModel(projectRoot, {
       appUIModelHash: hash(source),
       operations: [{

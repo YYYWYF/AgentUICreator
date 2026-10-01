@@ -1035,13 +1035,17 @@ function assertPluginWidthCompatibility(
   }
 }
 
-function reservedPixelTrack(size: number | string | undefined): number | undefined {
+function reservedPixelTrack(size: number | string | undefined, referenceWidth: number): number | undefined {
   if (typeof size === "number") return size;
   const normalized = size?.trim();
   const fixed = normalized?.match(/^(\d+(?:\.\d+)?)px$/);
   if (fixed !== null && fixed !== undefined) return Number(fixed[1]);
   const bounded = normalized?.match(/^minmax\(\s*(\d+(?:\.\d+)?)px\s*,\s*\d+(?:\.\d+)?px\s*\)$/);
-  return bounded === null || bounded === undefined ? undefined : Number(bounded[1]);
+  if (bounded !== null && bounded !== undefined) return Number(bounded[1]);
+  const percentageCap = normalized?.match(/^min\(\s*(\d+(?:\.\d+)?)px\s*,\s*(\d+(?:\.\d+)?)%\s*\)$/);
+  return percentageCap === null || percentageCap === undefined
+    ? undefined
+    : Math.min(Number(percentageCap[1]), referenceWidth * Number(percentageCap[2]) / 100);
 }
 
 function assertNarrowCenterSpace(model: AppUIModel, assets: readonly PluginAsset[]): void {
@@ -1060,8 +1064,8 @@ function assertNarrowCenterSpace(model: AppUIModel, assets: readonly PluginAsset
     return node.children.some(hasFlexiblePrimary);
   };
   if (center === undefined || !hasFlexiblePrimary(center)) return;
-  const left = reservedPixelTrack(row.sizes[0]);
-  const right = reservedPixelTrack(row.sizes[2]);
+  const left = reservedPixelTrack(row.sizes[0], 560);
+  const right = reservedPixelTrack(row.sizes[2], 560);
   if (left === undefined || right === undefined || left + right <= 280) return;
   throw new AppUITransactionError(
     "LAYOUT_NARROW_CENTER_UNUSABLE",
