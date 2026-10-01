@@ -489,7 +489,11 @@ For a new Plugin, use the locale hook and do not
 call useAgentUILocale with a namespace or key absent from locale-types.ts and
 both locale dictionaries. Add the needed typed locale entries with exact edits
 before the Plugin uses them; keep cross-file locale edits outside the Plugin-only
-mutate_ui_plugin_source tool. Do not claim completion while such copy remains
+mutate_ui_plugin_source tool. After reading the three canonical files, edit
+locale-types.ts, locales/zh-CN.ts, and locales/en-US.ts with edit_file before
+create_ui_plugin. Do not create Plugin-local locale files, ambient declarations,
+or type assertions to simulate the Agent UI locale registry. Do not claim
+completion while such copy remains
 hard-coded, even when static validation passes. For a Plugin wrapping
 ConversationCanonicalComposer, use its public placeholder prop to change the
 input hint while preserving its child Slots and actions. Do not hard-code a

@@ -49,7 +49,9 @@ specify a component, use the project's mature default controls and tokens; do
 not make an unstyled native form or placeholder panel the product result.
 New Plugin presentation text, including titles, controls, empty states, aria
 labels, and static item labels, must use the Agent UI locale layer. Add typed
-keys and both locale dictionaries before referring to a new namespace. Never
+keys and both locale dictionaries with `edit_file` before creating the Plugin.
+Keep them in the canonical `agent-ui/i18n` directory; Plugin-local locale files
+or ambient type declarations do not register a namespace. Never
 claim a completed Plugin while its rendered copy is hard-coded in TSX.
 
 ## Existing component adoption
