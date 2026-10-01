@@ -251,6 +251,10 @@ def _repair_validation_hint(
     error_type = diagnostic.get("errorType")
     if not isinstance(error_type, str):
         return None
+    if (expected_tool_name == "mutate_ui_plugin_source"
+            and error_type == "union_tag_not_found"
+            and diagnostic.get("errorPath") == ["changes", 0]):
+        return "`changes.0.type` is required: use `edit` or `create`."
     expected_type = _REPAIR_EXPECTED_TYPES.get(error_type)
     if expected_type is None:
         return None

@@ -132,6 +132,7 @@ Plugin needs capability X
 - Read every existing Plugin source file in the current run before editing it with `edit_file`.
 - For an existing Plugin, inspect it, identify the exact source files, and read all existing targets in one bounded read-only batch when their paths are already known.
 - Use `edit_file` for one small localized existing-file change. Use `mutate_ui_plugin_source` when one resolved change spans multiple Plugin files or combines existing-file edits with new Plugin-local files.
+- Every `mutate_ui_plugin_source.changes` entry needs `type: "edit"` with `relativePath` and `edits: [{oldText, newText}]`, or `type: "create"` with `relativePath` and `content`.
 - `mutate_ui_plugin_source` is one atomic, Plugin-local `edit`/`create` transaction. Never use it to delete, rename, move, cross into another Plugin, or overwrite a newly appeared file. If it reports a stale path, reread only that path, reconcile it, and resubmit the complete mutation.
 - A prior run, project snapshot, `inspect_ui_plugin` result, or remembered source is not a current file observation for generic edit tools.
 - If an edit reports `stale-version`, read the file again and reconcile the concurrent content; do not retry the old replacement unchanged.

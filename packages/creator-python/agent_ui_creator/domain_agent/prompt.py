@@ -482,7 +482,11 @@ existing primitive before using or modifying it rather than guessing its API.
 New user-visible or screen-reader copy in an Agent UI Plugin must come from the
 generated project's Agent UI locale layer. Inspect its existing namespaces and
 dictionaries, add a key to the relevant namespace, and pass the localized value
-through the existing Plugin's public component prop. For a Plugin wrapping
+through the existing Plugin's public component prop. For a new Plugin, do not
+call useAgentUILocale with a namespace or key absent from locale-types.ts and
+both locale dictionaries. Add the needed typed locale entries with exact edits
+before the Plugin uses them; keep cross-file locale edits outside the Plugin-only
+mutate_ui_plugin_source tool. For a Plugin wrapping
 ConversationCanonicalComposer, use its public placeholder prop to change the
 input hint while preserving its child Slots and actions. Do not hard-code a
 requested hint into the Plugin or replace the Composer component.

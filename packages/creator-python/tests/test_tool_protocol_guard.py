@@ -16,6 +16,7 @@ from agent_ui_creator.model_protocol import (
     ToolProtocolMetrics,
     ToolProtocolMiddleware,
 )
+from agent_ui_creator.source_tools.models import MutateUIPluginSourceInput
 
 
 @tool
@@ -750,6 +751,43 @@ def test_repair_prompt_uses_current_sanitized_validation_hint():
     assert middleware.metrics.protocolRepairAttempts == 1
     assert middleware.metrics.protocolRepairSuccesses == 1
     assert middleware.metrics.protocolRepairFailures == 0
+
+
+def test_repair_prompt_names_missing_plugin_change_type():
+    mutation_tool = StructuredTool.from_function(
+        lambda pluginId, changes: "ok",
+        name="mutate_ui_plugin_source",
+        description="Mutate Plugin source.",
+        args_schema=MutateUIPluginSourceInput,
+    )
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[mutation_tool])
+    responses = iter([
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_ui_plugin_source", "id": "bad",
+            "args": {"pluginId": "task-list", "changes": [{
+                "relativePath": "index.tsx", "edits": [{"oldText": "a", "newText": "b"}],
+            }]},
+        }])]),
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_ui_plugin_source", "id": "fixed",
+            "args": {"pluginId": "task-list", "changes": [{
+                "type": "edit", "relativePath": "index.tsx",
+                "edits": [{"oldText": "a", "newText": "b"}],
+            }]},
+        }])]),
+    ])
+    requests = []
+
+    def handler(current_request):
+        requests.append(current_request)
+        return next(responses)
+
+    result = middleware.wrap_model_call(request, handler)
+
+    assert result.result[0].tool_calls[0]["id"] == "fixed"
+    assert "`changes.0.type` is required" in requests[1].messages[-1].content
+    assert middleware.metrics.protocolRepairSuccesses == 1
 
 
 def test_repair_cannot_switch_away_from_the_original_structured_tool():

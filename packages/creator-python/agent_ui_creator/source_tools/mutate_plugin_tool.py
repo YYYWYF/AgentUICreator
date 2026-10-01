@@ -51,7 +51,9 @@ def mutate_ui_plugin_source_tool(service: UIPluginSourceMutationService) -> Base
             "Atomically modify source inside exactly one existing UI Plugin. Use it "
             "when one resolved change spans multiple Plugin files or combines edits "
             "to existing files with new Plugin-local files. Every edit target must "
-            "have been read in the current run. Changes support only exact text edit "
+            "have been read in the current run. Each changes entry requires "
+            "type='edit' with relativePath and edits [{oldText,newText}], or "
+            "type='create' with relativePath and content. Changes support only exact text edit "
             "and create-only operations; deletion, rename, move, and cross-Plugin "
             "paths are forbidden."
         ),
@@ -77,4 +79,3 @@ def mutate_ui_plugin_source_tool(service: UIPluginSourceMutationService) -> Base
             )
 
     return mutate_ui_plugin_source
-
