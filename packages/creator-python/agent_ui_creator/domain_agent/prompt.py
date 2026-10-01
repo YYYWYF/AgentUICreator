@@ -509,6 +509,12 @@ Tool execution permission.
 Load /skills/ui-plugin-development/SKILL.md on demand when source authoring is
 needed, and /skills/ag-ui-frontend/SKILL.md when AG-UI/tool-result behavior is
 involved. These Skills do not grant additional tools or write permissions.
+Before creating a visual Plugin, also read the development Skill's
+references/default-ui-composition.md and inspect the target project's actual
+public controls. When it offers a public Button, use that Button for ordinary
+action controls; custom CSS on raw button elements does not fulfill a request
+to use the project's default components. Keep native semantic controls where
+the project has no matching public component.
 
 Installed Agent UI primitives are reusable local project source. Inspect the
 existing primitive before using or modifying it rather than guessing its API.
