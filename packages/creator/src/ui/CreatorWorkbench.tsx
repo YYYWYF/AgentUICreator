@@ -131,6 +131,9 @@ type CreatorConversationItem =
 const hasPendingCreatorQuestion = (items: CreatorConversationItem[]) =>
   items.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting"));
 
+const questionContextIsGone = (code: string | undefined) =>
+  code === "CREATOR_INTERRUPT_NOT_FOUND" || code === "CREATOR_INTERRUPT_CONTEXT_INVALID";
+
 interface StoredCreatorConversation {
   threadId: string;
   items: CreatorConversationItem[];
@@ -1335,7 +1338,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
           runErrorCode = event.code;
           if (response !== undefined) {
             updateRunItems(current => current.map(item => item.kind === "question" && item.id === response.question.id
-              ? { ...item, status: (event.code === "CREATOR_INTERRUPT_NOT_FOUND" ? "stale" : "pending") as CreatorQuestionActivity["status"] } : item));
+              ? { ...item, status: (questionContextIsGone(event.code) ? "stale" : "pending") as CreatorQuestionActivity["status"] } : item));
           }
           updateRunItems((current) => [
             ...current.map((item) =>
@@ -1410,7 +1413,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     } catch (error) {
       if (response !== undefined) {
         updateRunItems(current => current.map(item => item.kind === "question" && item.id === response.question.id
-          ? { ...item, status: (runErrorCode === "CREATOR_INTERRUPT_NOT_FOUND" ? "stale" : "pending") as CreatorQuestionActivity["status"] } : item));
+          ? { ...item, status: (questionContextIsGone(runErrorCode) ? "stale" : "pending") as CreatorQuestionActivity["status"] } : item));
       }
       if (!runErrorHandled) {
         const message = error instanceof Error ? error.message : String(error);

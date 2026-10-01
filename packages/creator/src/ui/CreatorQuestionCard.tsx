@@ -21,7 +21,7 @@ export function CreatorQuestionCard({ activity, onAnswer }: {
         const shown = activity.status === "resolved" ? (activity.answers?.[step.id] ?? []).includes(option.id) : checked;
         if (activity.status === "resolved" && !shown) return null;
         return <label key={option.id} className="creator-question-option">
-          {activity.status === "resolved" ? <span aria-hidden="true">✓</span> : <input
+          {activity.status === "resolved" ? <span aria-hidden="true">✓</span> : activity.status === "stale" ? null : <input
             type={step.selectionMode === "single" ? "radio" : "checkbox"}
             name={`${activity.id}-${step.id}`}
             checked={checked}

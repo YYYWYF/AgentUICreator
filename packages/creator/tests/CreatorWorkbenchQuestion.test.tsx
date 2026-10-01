@@ -78,11 +78,11 @@ it("keeps the pending thread across reload, blocks abandon actions and resumes o
   expect((container.querySelector('[aria-label="新建 Creator 会话"]') as HTMLButtonElement).disabled).toBe(false);
 });
 
-it("marks a restarted sidecar question stale and permits a fresh thread", async () => {
+it.each(["CREATOR_INTERRUPT_NOT_FOUND", "CREATOR_INTERRUPT_CONTEXT_INVALID"])("marks a lost question stale and permits a fresh thread for %s", async code => {
   vi.stubGlobal("fetch", vi.fn(async (_url: string, init: RequestInit) => {
     const body = JSON.parse(String(init.body));
     return stream([{ type: "RUN_STARTED", threadId: "thread-1", runId: body.runId },
-      { type: "RUN_ERROR", code: "CREATOR_INTERRUPT_NOT_FOUND", message: "Expired" }]);
+      { type: "RUN_ERROR", code, message: "Expired" }]);
   }));
   const { container } = await mount();
   await act(async () => { (container.querySelector('.creator-question-card input') as HTMLInputElement).click(); });
