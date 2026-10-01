@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from typing import Any
 
@@ -25,6 +26,13 @@ _WRITES = frozenset({
     "prepare_ui_service_contract_change", "create_ui_service_contract",
     "mutate_ui_service_contract",
 })
+_LITERAL_PLACEHOLDER = re.compile(
+    r"\bplaceholder\s*=\s*(?:\{\s*)?([\"'])([^\"']+)\1(?:\s*\})?"
+)
+
+
+class PluginLiteralPresentationCopyError(PluginDevelopmentError):
+    code = "PLUGIN_LITERAL_PRESENTATION_COPY"
 
 
 def _result_payload(result: Any) -> Mapping[str, Any] | None:
@@ -100,6 +108,18 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
             path = args.get("file_path")
             if isinstance(path, str):
                 logical = project_logical_path(path, self.authority.project_root)
+                old_string = args.get("old_string")
+                new_string = args.get("new_string")
+                if (logical.startswith("/plugins/") and logical.endswith(".tsx")
+                        and isinstance(old_string, str) and isinstance(new_string, str)):
+                    added = set(_LITERAL_PLACEHOLDER.findall(new_string)) - set(
+                        _LITERAL_PLACEHOLDER.findall(old_string)
+                    )
+                    if added:
+                        raise PluginLiteralPresentationCopyError(
+                            "Plugin placeholder 是用户可见文案；请先在 Agent UI locale 层添加翻译键，"
+                            "再把本地化值传给组件的 placeholder prop。"
+                        )
                 if active is not None and active.status == "authorized":
                     if (not logical.startswith(f"/plugins/{active.target_plugin_id}/")
                             and logical not in _PLUGIN_LOCALE_PATHS):

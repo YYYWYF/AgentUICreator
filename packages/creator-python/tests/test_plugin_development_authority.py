@@ -226,6 +226,25 @@ def test_pending_blocks_every_target_write_but_ordinary_edit_stays_available(tmp
         assert json.loads(_call(middleware, name, args).content)["ok"] is False
 
 
+def test_existing_plugin_placeholder_copy_requires_locale_value(tmp_path):
+    state = authority(tmp_path)
+    (tmp_path / "plugins" / "assistant-ui-composer").mkdir(parents=True)
+    middleware = PluginDevelopmentAdmissionMiddleware(state)
+    path = "/plugins/assistant-ui-composer/index.tsx"
+    blocked = _call(middleware, "edit_file", {
+        "file_path": path,
+        "old_string": "<ConversationCanonicalComposer",
+        "new_string": '<ConversationCanonicalComposer placeholder="从任务开始"',
+    })
+    payload = json.loads(blocked.content)
+    assert payload["error"]["code"] == "PLUGIN_LITERAL_PRESENTATION_COPY"
+    assert _call(middleware, "edit_file", {
+        "file_path": path,
+        "old_string": "<ConversationCanonicalComposer",
+        "new_string": '<ConversationCanonicalComposer placeholder={t("startHint")}',
+    }) == "allowed"
+
+
 def test_predecision_composition_only_reuses_observed_plugin(tmp_path):
     state = authority(tmp_path, "needs_decision")
     middleware = PluginDevelopmentAdmissionMiddleware(state)
