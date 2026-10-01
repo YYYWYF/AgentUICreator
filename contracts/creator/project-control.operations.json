@@ -85,6 +85,13 @@
       "inputDef": "removeAgentUISourceItemsInput",
       "resultDef": "removeAgentUISourceItemsResult",
       "agentExposed": false
+    },
+    {
+      "name": "synchronize_plugin_registry",
+      "kind": "mutation",
+      "inputDef": "synchronizePluginRegistryInput",
+      "resultDef": "synchronizePluginRegistryResult",
+      "agentExposed": false
     }
   ]
 }

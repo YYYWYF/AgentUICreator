@@ -630,6 +630,8 @@ def create_domain_write_creator_agent(
         repair_state=repair_state,
         host_verifier=service_verifier,
         scope=scope_guard.metrics,
+        project_control=client,
+        mutation_coordinator=coordinator,
     )
     scope_guard.set_baseline_capture(validation.ensure_baseline)
     if telemetry is not None:

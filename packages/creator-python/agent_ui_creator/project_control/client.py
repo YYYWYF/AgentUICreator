@@ -147,6 +147,15 @@ class ProjectControlClient:
         """Internal transport used only by AppUIModelMutationService."""
         return await self._request("mutate_app_ui_model", input)
 
+    async def synchronize_plugin_registry(
+        self, *, expected_source_hash: str
+    ) -> dict[str, Any]:
+        """Internal Host operation for registry changes caused by Plugin declarations."""
+        return await self._request(
+            "synchronize_plugin_registry",
+            {"expectedSourceHash": expected_source_hash},
+        )
+
     async def _request(
         self,
         operation: ProjectControlOperation,

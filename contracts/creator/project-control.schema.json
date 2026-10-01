@@ -607,6 +607,16 @@
               "$ref": "#/$defs/removeAgentUISourceItemsInput"
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schemaVersion", "operation", "input"],
+          "properties": {
+            "schemaVersion": { "const": 3 },
+            "operation": { "const": "synchronize_plugin_registry" },
+            "input": { "$ref": "#/$defs/synchronizePluginRegistryInput" }
+          }
         }
       ]
     },
@@ -664,6 +674,9 @@
                 },
                 {
                   "$ref": "#/$defs/removeAgentUISourceItemsResult"
+                },
+                {
+                  "$ref": "#/$defs/synchronizePluginRegistryResult"
                 }
               ]
             }
@@ -1074,6 +1087,20 @@
           }
         }
       ]
+    },
+    "synchronizePluginRegistryResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["changed", "path", "pluginIds"],
+      "properties": {
+        "changed": { "type": "boolean" },
+        "path": { "$ref": "#/$defs/path" },
+        "pluginIds": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "type": "string" }
+        }
+      }
     },
     "removeAgentUISourceItemsResult": {
       "allOf": [
@@ -2306,6 +2333,14 @@
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
         }
+      }
+    },
+    "synchronizePluginRegistryInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expectedSourceHash"],
+      "properties": {
+        "expectedSourceHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }
     },
     "removeAgentUISourceItemsInput": {

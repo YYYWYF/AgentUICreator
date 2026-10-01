@@ -16,6 +16,7 @@ import { inspectPluginSourceReferences } from "./project/plugin-source-reference
 import { collectPluginAssets } from "./project/plugin-assets";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./project/agent-ui-project-paths";
 import { readAgentUIProjectConfig } from "./project/project-mode";
+import { writeGeneratedPluginRegistry } from "./generate-plugin-registry";
 import { inspectUIServiceDependencies } from "./project/service-dependency-inspector";
 import {
   inspectAgentUISources,
@@ -126,6 +127,11 @@ export const requestSchema = z.discriminatedUnion("operation", [
       itemIds: z.array(z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim())).min(1).max(100),
       expectedStateHash: z.string().regex(/^[a-f0-9]{64}$/),
     }),
+  }),
+  z.strictObject({
+    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
+    operation: z.literal("synchronize_plugin_registry"),
+    input: z.strictObject({ expectedSourceHash: appUIModelHashSchema }),
   }),
 ]);
 
@@ -422,6 +428,18 @@ async function executeRequest(
       return applyAgentUISourceProjectMutation(projectRoot, request.input, { config: effectiveConfig });
     case "remove_agent_ui_source_items":
       return removeAgentUISourceProjectMutation(projectRoot, request.input, { config: effectiveConfig });
+    case "synchronize_plugin_registry": {
+      const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config);
+      const current = await readFile(paths.generatedPluginRegistryPath, "utf8");
+      const actualHash = createHash("sha256").update(current).digest("hex");
+      if (actualHash !== request.input.expectedSourceHash) {
+        throw new UIProjectControlError(
+          "PLUGIN_REGISTRY_HASH_CONFLICT",
+          "Generated Plugin Registry changed before synchronization.",
+        );
+      }
+      return writeGeneratedPluginRegistry(projectRoot);
+    }
   }
 }
 
@@ -546,4 +564,3 @@ export async function runUIProjectControlCli(projectRoot = defaultProjectRoot): 
     process.exitCode = 1;
   }
 }
-

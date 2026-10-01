@@ -4,6 +4,7 @@ import asyncio
 import json
 
 from agent_ui_creator.activity import CreatorActivityRecorder
+from agent_ui_creator.app_ui_model import ProjectMutationCoordinator
 from agent_ui_creator.domain_agent.change_scope import ChangeScopeMetrics
 from agent_ui_creator.observability import CreatorRunLogger
 import agent_ui_creator.validation.attribution as validation_attribution
@@ -84,6 +85,46 @@ def test_source_edit_invalidates_validation(tmp_path):
         *CREATOR_COMPLETION_VALIDATIONS,
         *CREATOR_COMPLETION_VALIDATIONS,
     ]
+
+
+def test_plugin_declaration_edit_synchronizes_generated_registry_before_validation(tmp_path):
+    plugin = tmp_path / "plugins/example"
+    plugin.mkdir(parents=True)
+    (plugin / "definition.ts").write_text("updated", encoding="utf-8")
+    registry = tmp_path / "plugins/registry.generated.ts"
+    registry.write_text("old registry", encoding="utf-8")
+
+    class RegistryControl:
+        calls = []
+
+        async def synchronize_plugin_registry(self, *, expected_source_hash):
+            self.calls.append(expected_source_hash)
+            registry.write_text("new registry", encoding="utf-8")
+            return {"changed": True, "path": "plugins/registry.generated.ts", "pluginIds": ["example"]}
+
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("registry-sync")
+    control = RegistryControl()
+    runner = FakeValidationRunner()
+    service = CreatorValidationService(
+        project_root=tmp_path,
+        activity=activity,
+        runner=runner,
+        project_control=control,
+        mutation_coordinator=ProjectMutationCoordinator(),
+    )
+    asyncio.run(service.ensure_baseline())
+    activity.capture_before_content("plugins/example/definition.ts", "original")
+    activity.touch("plugins/example/definition.ts")
+
+    result = asyncio.run(service.validate())
+    assert result.status == "passed"
+    assert result.revision == 2
+    assert len(control.calls) == 1
+    assert activity.mutation_paths[-1] == "plugins/registry.generated.ts"
+    assert registry.read_text(encoding="utf-8") == "new registry"
+    asyncio.run(service.validate())
+    assert len(control.calls) == 1
 
 
 def test_failed_validation_returns_diagnostics_not_run_error(tmp_path):

@@ -6,6 +6,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Protocol
 
 from ..activity import CreatorActivityRecorder
+from ..app_ui_model import ProjectMutationCoordinator
+from ..files import read_creator_file_state
+from ..project_control import ProjectControlClient
+from ..project_paths import agent_ui_source_path
+from ..resource_scope import project_logical_path
 from ..repair import CreatorRepairState
 from ..service_contracts.verification import ServiceContractAuthorizationVerifier
 from . import attribution
@@ -50,6 +55,8 @@ class CreatorValidationService:
         repair_state: CreatorRepairState | None = None,
         host_verifier: ServiceContractAuthorizationVerifier | None = None,
         scope: ChangeScopeMetrics | None = None,
+        project_control: ProjectControlClient | None = None,
+        mutation_coordinator: ProjectMutationCoordinator | None = None,
     ) -> None:
         self.project_root = Path(project_root).resolve()
         self.activity = activity
@@ -59,6 +66,9 @@ class CreatorValidationService:
         self.latest_result: CreatorValidationResult | None = None
         self.host_verifier = host_verifier
         self.scope = scope
+        self.project_control = project_control
+        self.mutation_coordinator = mutation_coordinator
+        self._registry_sync_mutation_index = 0
         self._baseline_run_id: str | None = None
         self._baseline_capture_started = False
         self._baseline: TypeScriptDiagnosticParseResult | None = None
@@ -78,6 +88,39 @@ class CreatorValidationService:
         self._latest_differential = None
         self._latest_mode = None
         self._latest_revision = None
+        self._registry_sync_mutation_index = 0
+
+    async def _synchronize_plugin_registry(self) -> None:
+        if self.project_control is None or self.mutation_coordinator is None:
+            return
+        changes = self.activity.mutation_paths[self._registry_sync_mutation_index:]
+        if not any(
+            (logical := project_logical_path(path, self.project_root)).startswith("/plugins/")
+            and logical.rsplit("/", 1)[-1] in {"manifest.json", "definition.ts"}
+            for path in changes
+        ):
+            self._registry_sync_mutation_index = len(self.activity.mutation_paths)
+            return
+        registry_path = agent_ui_source_path(self.project_root, "plugins/registry.generated.ts")
+        async with self.mutation_coordinator.transaction(self.project_root):
+            before = read_creator_file_state(self.project_root, registry_path)
+            if not before.exists:
+                self._registry_sync_mutation_index = len(self.activity.mutation_paths)
+                return
+            self.activity.capture_before_content(registry_path, before.content)
+            result = await self.project_control.synchronize_plugin_registry(
+                expected_source_hash=before.hash
+            )
+            after = read_creator_file_state(self.project_root, registry_path)
+            expected_path = registry_path.lstrip("/")
+            if result.get("path") != expected_path or result.get("changed") != (
+                after.hash != before.hash
+            ):
+                raise ValueError("Host Plugin Registry synchronization result disagrees with disk state.")
+            if result.get("changed") is True and after.hash != before.hash:
+                self.activity.file_observations.observe(registry_path)
+                self.activity.touch(registry_path)
+        self._registry_sync_mutation_index = len(self.activity.mutation_paths)
 
     @staticmethod
     def _bounded(output: str, truncated: bool) -> tuple[str, bool]:
@@ -344,6 +387,7 @@ class CreatorValidationService:
             raise ValueError("Validation mode must be 'delta' or 'clean'.")
         self._synchronize_run_state()
         await self.ensure_baseline()
+        await self._synchronize_plugin_registry()
         target_revision = self.activity.revision
         self.repair_state.begin_verification(target_revision)
         checks: list[CreatorValidationCheck] = []
