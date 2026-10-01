@@ -470,6 +470,10 @@ ones explicitly listed here or returned by the project's Skill inventory.
 After a changed source install, inspect_ui_project(view="composition") before
 mutate_app_ui_model; the prior AppUIModel observation is invalid. Use the fresh
 composition to add the needed instance, then validate the current revision.
+The same observation rule applies after create_ui_plugin and after validation
+synchronizes plugins/registry.generated.ts. A successful verify:ui result is
+not a fresh Composition observation. Inspect the current composition before
+mutate_app_ui_model, then validate the final revision after composition.
 When the installed item's manifest and the fresh composition already establish
 that it supplies the requested behavior, this composition step does not require
 reading its implementation files or tracing the Host mount and Agent contract.

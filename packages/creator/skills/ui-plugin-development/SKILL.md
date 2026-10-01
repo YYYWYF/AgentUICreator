@@ -42,6 +42,14 @@ Inspect project conventions before deciding that Plugin source must change:
 7. For an ordinary Plugin, insert its node into a Layout Slot or parent plugin's local Slot through AppUIModel. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
 8. When the user requires login, License, organization selection, onboarding, or initialization before the Workspace can be used, prefer a first-class `manifest.application.gate` Plugin in `applicationPlugins`; it is an Application lifecycle surface, not visual Slot composition.
 
+After `create_ui_plugin`, run static validation to synchronize the generated
+Plugin registry. Then call `inspect_ui_project(view="composition")` again before
+`mutate_app_ui_model`: the earlier observation is stale even if the AppUIModel
+file itself did not change. Compose the new Plugin and validate that final
+revision. A static check before composition does not prove that the Plugin is
+mounted. Keep this sequence within the existing model-call budget by batching
+independent reads and using short exact anchors for locale `edit_file` calls.
+
 Before implementation, inspect `references/default-ui-composition.md` for the
 project's public component and style discovery path. Use actual exported APIs,
 not guessed Button, Checkbox, Dialog, or overlay names. If the user did not
