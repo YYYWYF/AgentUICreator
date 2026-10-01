@@ -370,6 +370,13 @@ class PluginDevelopmentAuthority:
         )
 
     @property
+    def needs_plugin_inventory(self) -> bool:
+        return (
+            self.intent == "conditional" and self._source_inventory_complete
+            and not self._plugin_inventory_complete
+        )
+
+    @property
     def can_expose_create(self) -> bool:
         record = self.active
         return (

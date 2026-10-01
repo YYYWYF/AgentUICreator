@@ -61,6 +61,10 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
         self.authority = authority
 
     def _visible_tools(self, tools: Sequence[Any]) -> list[Any]:
+        if self.authority.needs_plugin_inventory and any(
+            tool_name(candidate) == "list_ui_plugins" for candidate in tools
+        ):
+            return [candidate for candidate in tools if tool_name(candidate) == "list_ui_plugins"]
         return [tool for tool in tools if (
             tool_name(tool) != "create_ui_plugin" or self.authority.can_expose_create
         ) and (

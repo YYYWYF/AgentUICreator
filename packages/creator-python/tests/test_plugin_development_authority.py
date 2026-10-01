@@ -52,11 +52,11 @@ def test_conditional_prepare_is_offered_only_after_both_complete_inventories(tmp
     middleware._observe("inspect_agent_ui_sources", {}, json.dumps({
         "ok": True, "result": {"items": [], "nextCursor": None},
     }))
-    assert "prepare_ui_plugin_development" not in offered()
+    assert offered() == ["list_ui_plugins"]
     middleware._observe("list_ui_plugins", {}, json.dumps({
         "ok": True, "result": {"pluginAssets": [], "pageComplete": False, "nextCursor": "next"},
     }))
-    assert "prepare_ui_plugin_development" not in offered()
+    assert offered() == ["list_ui_plugins"]
     middleware._observe("list_ui_plugins", {}, json.dumps({
         "ok": True, "result": {"pluginAssets": [], "pageComplete": True, "nextCursor": None},
     }))
