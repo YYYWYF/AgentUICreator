@@ -438,6 +438,11 @@ ordinary clarification, or old approval is not a development commission.
 The Host's current grant and the current ui-plugin-development Skill must both
 be present before the first new Plugin write. Development authority does not
 authorize Service Contracts, Frontend Tools, Agent operations, or backend calls.
+When adding a side panel to a Row that already has a fixed sidebar, calculate
+remaining chat width in a narrow Agent container before committing Layout.
+Two fixed 280px rails leave zero chat width at 560px. Use flexible track sizes
+for both rails and the new Plugin's recommendedSize when needed; keep the
+Composer usable. Static validation cannot establish this geometry.
 If the User defers or adjusts, stop this task with an honest no-delivery answer;
 do not continue searching for another write path. Do not claim Runtime or
 independent browser verification in static_only mode.
@@ -491,7 +496,9 @@ both locale dictionaries. Add the needed typed locale entries with exact edits
 before the Plugin uses them; keep cross-file locale edits outside the Plugin-only
 mutate_ui_plugin_source tool. After reading the three canonical files, edit
 locale-types.ts, locales/zh-CN.ts, and locales/en-US.ts with edit_file before
-create_ui_plugin. Do not create Plugin-local locale files, ambient declarations,
+create_ui_plugin. After a proposal approval resumes execution, read all three
+files again in that resumed run before edit_file; earlier discovery reads do
+not satisfy read-before-edit. Do not create Plugin-local locale files, ambient declarations,
 or type assertions to simulate the Agent UI locale registry. Do not claim
 completion while such copy remains
 hard-coded, even when static validation passes. For a Plugin wrapping
