@@ -14,6 +14,11 @@ from .authority import PluginDevelopmentAuthority, PluginDevelopmentError
 
 
 _SKILL_PATH = "/skills/ui-plugin-development/SKILL.md"
+_PLUGIN_LOCALE_PATHS = frozenset({
+    "/agent-ui/i18n/locale-types.ts",
+    "/agent-ui/i18n/locales/zh-CN.ts",
+    "/agent-ui/i18n/locales/en-US.ts",
+})
 _WRITES = frozenset({
     "edit_file", "create_ui_plugin", "mutate_ui_plugin_source",
     "mutate_app_ui_model", "apply_agent_ui_source_item",
@@ -96,7 +101,8 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
             if isinstance(path, str):
                 logical = project_logical_path(path, self.authority.project_root)
                 if active is not None and active.status == "authorized":
-                    if not logical.startswith(f"/plugins/{active.target_plugin_id}/"):
+                    if (not logical.startswith(f"/plugins/{active.target_plugin_id}/")
+                            and logical not in _PLUGIN_LOCALE_PATHS):
                         raise PluginDevelopmentError("源码写入超出了已批准的 Plugin 目标。")
                 new_id = self._new_plugin_identity(path)
                 if new_id is not None:

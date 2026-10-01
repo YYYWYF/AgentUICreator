@@ -261,6 +261,35 @@ def test_approved_grant_cannot_edit_other_plugin_or_agent_contract(tmp_path):
         assert json.loads(_call(middleware, name, args).content)["ok"] is False
 
 
+@pytest.mark.parametrize("source_root", [None, "src/agent-ui"])
+def test_approved_plugin_grant_allows_only_canonical_locale_edits(tmp_path, source_root):
+    if source_root is not None:
+        config = tmp_path / ".agent-ui"
+        config.mkdir()
+        (config / "project.json").write_text(json.dumps({
+            "version": "2", "mode": "platform", "sourceRoot": source_root,
+        }), encoding="utf-8")
+    state = authority(tmp_path, "explicit")
+    state.prepare(
+        work_kind="create-plugin", target_plugin_id="task-list",
+        desired_outcome="本地任务清单", missing_capabilities=["清单交互"],
+        reuse_evidence_refs=[],
+    )
+    state.mark_skill_loaded()
+    middleware = PluginDevelopmentAdmissionMiddleware(state)
+    prefix = f"/{source_root}" if source_root else ""
+    for path in (
+        "/agent-ui/i18n/locale-types.ts",
+        "/agent-ui/i18n/locales/zh-CN.ts",
+        "/agent-ui/i18n/locales/en-US.ts",
+    ):
+        assert _call(middleware, "edit_file", {"file_path": prefix + path}) == "allowed"
+    blocked = _call(middleware, "edit_file", {
+        "file_path": prefix + "/agent-ui/i18n/useAgentUILocale.ts",
+    })
+    assert json.loads(blocked.content)["ok"] is False
+
+
 def test_adapted_component_change_invalidates_bound_grant(tmp_path):
     component = tmp_path / "components" / "existing.tsx"
     component.parent.mkdir()

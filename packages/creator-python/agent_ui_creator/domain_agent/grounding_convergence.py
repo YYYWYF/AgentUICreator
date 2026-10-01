@@ -215,11 +215,11 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 current_revision=self.backend.mutation_revision
             )
             == "grounded"
-            and is_cross_layer_read(name, arguments)
+            and is_cross_layer_read(name, arguments, project_root=str(self.backend.cwd))
         )
         if prohibited:
             metrics.record_cross_layer_read_attempt()
-            if filesystem_source_read_path(name, arguments) is not None:
+            if filesystem_source_read_path(name, arguments, project_root=str(self.backend.cwd)) is not None:
                 metrics.record_filesystem_source_read()
             self.observations.clear_composition_grounding(
                 reason="cross_layer_read",
@@ -242,7 +242,7 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 revision=self.backend.mutation_revision,
             )
         elif (
-            filesystem_source_read_path(name, arguments) is not None
+            filesystem_source_read_path(name, arguments, project_root=str(self.backend.cwd)) is not None
             and self._filesystem_read_succeeded(result)
         ):
             metrics.record_filesystem_source_read()

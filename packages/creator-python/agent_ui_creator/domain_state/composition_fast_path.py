@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from pathlib import PurePosixPath
 from typing import Any, Mapping
 
+from ..project_paths import agent_ui_relative_source_path
+
 
 COMPOSITION_FAST_PATH_CROSS_LAYER_READ_PROHIBITED = (
     "COMPOSITION_FAST_PATH_CROSS_LAYER_READ_PROHIBITED"
@@ -57,7 +59,7 @@ def _normalized_root(value: Any) -> str | None:
 
 
 def filesystem_source_read_path(
-    name: str, arguments: Mapping[str, Any]
+    name: str, arguments: Mapping[str, Any], *, project_root: str | None = None
 ) -> str | None:
     """Return an explicit generated-project source path, without guessing patterns."""
 
@@ -69,15 +71,23 @@ def filesystem_source_read_path(
         path = arguments.get("pattern")
     else:
         return None
-    if _normalized_root(path) not in _SOURCE_ROOTS:
+    normalized = path if isinstance(path, str) and path.startswith("/") else f"/{path}"
+    logical = (
+        agent_ui_relative_source_path(project_root, normalized)
+        if project_root is not None and isinstance(path, str)
+        else None
+    )
+    if _normalized_root(logical or path) not in _SOURCE_ROOTS:
         return None
     return path if isinstance(path, str) else None
 
 
-def is_cross_layer_read(name: str, arguments: Mapping[str, Any]) -> bool:
+def is_cross_layer_read(
+    name: str, arguments: Mapping[str, Any], *, project_root: str | None = None
+) -> bool:
     return name in CROSS_LAYER_DOMAIN_READ_NAMES or (
         name in _FILESYSTEM_SOURCE_READ_NAMES
-        and filesystem_source_read_path(name, arguments) is not None
+        and filesystem_source_read_path(name, arguments, project_root=project_root) is not None
     )
 
 

@@ -189,6 +189,39 @@ def test_source_discovery_after_composition_exits_fast_path_in_one_read(tmp_path
     assert observations.composition_grounding_status(current_revision=0) == "unobserved"
 
 
+def test_v2_managed_source_read_exits_composition_lane(tmp_path):
+    config = tmp_path / ".agent-ui"
+    config.mkdir()
+    (config / "project.json").write_text(
+        '{"version":"2","mode":"platform","sourceRoot":"src/agent-ui"}',
+        encoding="utf-8",
+    )
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    observations = DomainObservationContext()
+    observations.record_source_inventory()
+    observations.observe_composition_snapshot(
+        hash="a" * 64, revision=0, coverage=COMPOSITION_COVERAGE,
+    )
+    middleware = CompositionGroundingConvergenceMiddleware(observations, backend)
+    request = _tool_request(
+        "read_file", {"file_path": "/src/agent-ui/plugins/conversation-thread-list/index.tsx"},
+    )
+
+    result = middleware.wrap_tool_call(request, lambda _: pytest.fail("read should signal lane exit"))
+
+    assert "COMPOSITION_FAST_PATH_CROSS_LAYER_READ_PROHIBITED" in result.content
+    assert observations.composition_grounding_status(current_revision=0) == "unobserved"
+    offered = []
+    middleware.wrap_model_call(
+        ModelRequest(model=Mock(), messages=[], tools=[
+            SimpleNamespace(name=name) for name in ALLOWED_DOMAIN_WRITE_TOOLS
+        ]),
+        lambda candidate: (offered.extend(tool.name for tool in candidate.tools),
+                           ModelResponse(result=[AIMessage(content="done")]))[1],
+    )
+    assert "prepare_ui_plugin_development" in offered
+
+
 def _tool_request(name, arguments, call_id="call-1"):
     return SimpleNamespace(
         tool_call={"name": name, "args": arguments, "id": call_id}
