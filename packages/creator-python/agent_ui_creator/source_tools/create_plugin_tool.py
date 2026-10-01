@@ -53,6 +53,8 @@ def create_ui_plugin_tool(service: UIPluginCreationService) -> BaseTool:
             "must include manifest.json, definition.ts, and index.tsx; manifest.id "
             "must equal pluginId; and the Plugin directory must not exist. If "
             "styles.css is included, import it from Plugin source. Use "
+            "manifest.data only for AG-UI subscriptions: messages/state/messageUI "
+            "are booleans, events is string[]; local React useState needs none. Use "
             "edit_file for one small existing-file change and "
             "mutate_ui_plugin_source for an existing Plugin change spanning files."
         ),

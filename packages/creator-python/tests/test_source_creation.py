@@ -169,6 +169,26 @@ def test_create_ui_plugin_requires_its_stylesheet_to_be_loaded(tmp_path):
     assert result.plugin_id == "task-status"
 
 
+def test_create_ui_plugin_rejects_local_state_as_ag_ui_data(tmp_path):
+    creation, activity = plugin_service(tmp_path)
+    files = plugin_sources()
+    files[0] = plugin_source("manifest.json", json.dumps({
+        "id": "task-status", "data": {"state": {"checked": "boolean[]"}},
+    }))
+
+    with pytest.raises(SourceCreationError) as captured:
+        asyncio.run(creation.create("task-status", files))
+
+    assert captured.value.code == "PLUGIN_MANIFEST_DATA_INVALID"
+    assert activity.revision == 0
+    assert not (tmp_path / "plugins/task-status").exists()
+
+    files[0] = plugin_source("manifest.json", json.dumps({
+        "id": "task-status", "data": {"state": False},
+    }))
+    assert asyncio.run(creation.create("task-status", files)).plugin_id == "task-status"
+
+
 @pytest.mark.parametrize(
     ("plugin_id", "files", "expected_code"),
     [

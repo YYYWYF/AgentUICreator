@@ -127,6 +127,23 @@ class UIPluginCreationService:
                 },
             )
 
+        data = manifest.get("data")
+        if "data" in manifest and (
+            not isinstance(data, dict)
+            or any(key not in {"messages", "state", "messageUI", "events"} for key in data)
+            or any(type(data[key]) is not bool for key in ("messages", "state", "messageUI") if key in data)
+            or ("events" in data and not (
+                isinstance(data["events"], list)
+                and all(isinstance(item, str) for item in data["events"])
+            ))
+        ):
+            raise SourceCreationError(
+                "PLUGIN_MANIFEST_DATA_INVALID",
+                "Plugin manifest.data accepts boolean messages/state/messageUI and a string[] events. "
+                "React-local useState does not require data.state.",
+                {"relativePath": "manifest.json"},
+            )
+
         if "styles.css" in normalized_files and not any(
             _STYLESHEET_IMPORT.search(content)
             for relative_path, content in normalized_files.items()

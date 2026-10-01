@@ -7,6 +7,7 @@ from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.app_ui_model import ProjectMutationCoordinator
 from agent_ui_creator.domain_agent.change_scope import ChangeScopeMetrics
 from agent_ui_creator.observability import CreatorRunLogger
+from agent_ui_creator.project_control.errors import ProjectControlError
 import agent_ui_creator.validation.attribution as validation_attribution
 from agent_ui_creator.validation import (
     CREATOR_COMPLETION_VALIDATIONS,
@@ -29,6 +30,24 @@ class FakeValidationRunner:
         if self.results:
             return self.results.pop(0)
         return CommandExecutionResult("", 0, False)
+
+
+def test_registry_sync_error_is_recoverable_tool_diagnostic():
+    class BrokenRegistryService:
+        async def validate(self, mode="delta"):
+            raise ProjectControlError(
+                "CONTROL_OPERATION_FAILED", "Plugin manifest is invalid",
+                {"cause": "data.state must be boolean"},
+            )
+
+    tool = create_validation_tool(BrokenRegistryService())
+    payload = json.loads(asyncio.run(tool.ainvoke({})))
+
+    assert payload == {"ok": False, "error": {
+        "code": "CONTROL_OPERATION_FAILED",
+        "message": "Plugin manifest is invalid",
+        "details": {"cause": "data.state must be boolean"},
+    }}
 
 
 def validation_service(tmp_path, runner, *, logger=None, scope=None):

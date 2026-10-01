@@ -151,6 +151,7 @@ Plugin needs capability X
 1. Classify the Plugin, decide whether it should be Creator-operable, and define its Runtime, Composition, and optional Creator Authoring contracts.
 2. Read `/framework/contracts/ui-plugin.ts` and one closest existing Plugin end to end.
 3. Create `/plugins/<plugin-id>/manifest.json` with a unique id, useful description, version, capabilities when applicable, accurate `data.messages`, `data.state`, or `data.events` declarations, and the authoring contract when Add/Restore is intended.
+   `data.messages`, `data.state`, and `data.messageUI` are booleans for AG-UI subscriptions; `data.events` is an array of event names. Local React `useState` is private Plugin state and does not belong in `manifest.data`.
 4. Create `index.tsx` with a named React component. When an existing project component implements the requested UI, this may be a thin adapter importing it; do not recreate that UI for Plugin self-containment. Accept `UIPluginComponentProps` only when it needs `renderSlot`; read Agent and instance data through Runtime Context hooks in the adapter and narrow unknown state safely.
 5. Create `definition.ts` that validates the manifest and exports a `UIPluginDefinition`.
 6. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
