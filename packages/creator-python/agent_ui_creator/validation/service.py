@@ -127,6 +127,21 @@ class CreatorValidationService:
         normalized = output.strip()
         if len(normalized) <= MAX_VALIDATION_FAILURE_OUTPUT_CHARACTERS:
             return normalized, truncated
+        marker = normalized.find("\n{")
+        json_start = 0 if normalized.startswith("{") else marker + 1 if marker >= 0 else -1
+        if json_start >= 0:
+            try:
+                report, _ = json.JSONDecoder().raw_decode(normalized[json_start:])
+            except ValueError:
+                report = None
+            if isinstance(report, dict) and isinstance(report.get("errors"), list):
+                errors = [
+                    f"{item.get('code', 'ERROR')}: {item.get('message', '')}"
+                    for item in report["errors"][:MAX_DIAGNOSTIC_SAMPLE_COUNT]
+                    if isinstance(item, dict)
+                ]
+                if errors:
+                    normalized = "Validation errors:\n" + "\n".join(errors) + "\n\n" + normalized
         return (
             normalized[:MAX_VALIDATION_FAILURE_OUTPUT_CHARACTERS]
             + "\n… Host validation output truncated",

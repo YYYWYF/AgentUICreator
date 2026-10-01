@@ -20,6 +20,21 @@ from agent_ui_creator.validation import (
 )
 
 
+def test_long_verify_ui_output_keeps_late_structured_errors_visible():
+    output = "pnpm verify:ui\n" + json.dumps({
+        "status": "failed",
+        "model": {"details": "x" * 13_000},
+        "errors": [{
+            "code": "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED",
+            "message": "Plugin stylesheet selector must be scoped.",
+        }],
+    })
+    bounded, truncated = CreatorValidationService._bounded(output, False)
+    assert truncated is True
+    assert "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED" in bounded
+    assert "Plugin stylesheet selector must be scoped." in bounded
+
+
 class QueueRunner:
     def __init__(self, results: list[CommandExecutionResult]):
         self.results = list(results)
