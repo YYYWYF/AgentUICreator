@@ -22,6 +22,7 @@ Inspect project conventions before deciding that Plugin source must change:
 - `/plugins/*/definition.ts` joins a validated manifest to a React component.
 - `/plugins/*/index.tsx` implements the component or adapts an existing project component.
 - `/plugins/*/styles.css` owns Plugin-specific presentation when that stack uses CSS.
+- If creating `styles.css`, import it from Plugin source (usually `index.tsx`); an unimported stylesheet is absent from the Host even when TypeScript and CSS syntax checks pass.
 - Scope every Plugin CSS selector under a stable Plugin-owned class or `data-ui-plugin` root. Never use bare element selectors, `html`, `body`, `:root`, `*`, global resets, CSS imports, or Host DOM ancestors. Inherit theme tokens from AgentUIRoot.
 - Use the `@agent-ui/react` Agent UI Tooltip, Popover, and Dialog facades for overlays; do not import Base UI Portal primitives or create body-level Portals.
 - `/plugins/registry.generated.ts` is the generated capability catalog: manifest metadata plus lazy definition loaders for available Plugins. AppUIModel selection resolves the published Active Registry at runtime; never edit this file or `/plugins/index.ts` by hand.
@@ -46,6 +47,10 @@ project's public component and style discovery path. Use actual exported APIs,
 not guessed Button, Checkbox, Dialog, or overlay names. If the user did not
 specify a component, use the project's mature default controls and tokens; do
 not make an unstyled native form or placeholder panel the product result.
+New Plugin presentation text, including titles, controls, empty states, aria
+labels, and static item labels, must use the Agent UI locale layer. Add typed
+keys and both locale dictionaries before referring to a new namespace. Never
+claim a completed Plugin while its rendered copy is hard-coded in TSX.
 
 ## Existing component adoption
 

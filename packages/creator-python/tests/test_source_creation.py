@@ -153,6 +153,22 @@ def test_create_ui_plugin_enforces_plugin_domain_and_creates_atomically(tmp_path
     assert (tmp_path / "plugins/task-status/manifest.json").is_file()
 
 
+def test_create_ui_plugin_requires_its_stylesheet_to_be_loaded(tmp_path):
+    creation, activity = plugin_service(tmp_path)
+    files = [*plugin_sources(), plugin_source("styles.css", ".task-status { color: red; }\n")]
+
+    with pytest.raises(SourceCreationError) as captured:
+        asyncio.run(creation.create("task-status", files))
+
+    assert captured.value.code == "PLUGIN_STYLESHEET_NOT_IMPORTED"
+    assert activity.revision == 0
+    assert not (tmp_path / "plugins/task-status").exists()
+
+    files[2] = plugin_source("index.tsx", 'import "./styles.css";\nexport {};\n')
+    result = asyncio.run(creation.create("task-status", files))
+    assert result.plugin_id == "task-status"
+
+
 @pytest.mark.parametrize(
     ("plugin_id", "files", "expected_code"),
     [

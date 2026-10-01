@@ -51,7 +51,8 @@ def create_ui_plugin_tool(service: UIPluginCreationService) -> BaseTool:
             "Create exactly one new UI Plugin in a create-only atomic operation. "
             "Each file uses a relativePath inside /plugins/<pluginId>/. The request "
             "must include manifest.json, definition.ts, and index.tsx; manifest.id "
-            "must equal pluginId; and the Plugin directory must not exist. Use "
+            "must equal pluginId; and the Plugin directory must not exist. If "
+            "styles.css is included, import it from Plugin source. Use "
             "edit_file for one small existing-file change and "
             "mutate_ui_plugin_source for an existing Plugin change spanning files."
         ),

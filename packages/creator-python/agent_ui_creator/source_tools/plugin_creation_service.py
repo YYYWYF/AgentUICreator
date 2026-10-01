@@ -19,6 +19,7 @@ from .source_creation_service import UISourceCreationService
 
 _PLUGIN_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]{0,99}$")
 _REQUIRED_PLUGIN_FILES = frozenset({"manifest.json", "definition.ts", "index.tsx"})
+_STYLESHEET_IMPORT = re.compile(r"\bimport\s*(?:\(\s*)?['\"]\./styles\.css['\"]")
 
 
 class UIPluginCreationService:
@@ -124,6 +125,17 @@ class UIPluginCreationService:
                     "pluginId": plugin_id,
                     "manifestId": manifest.get("id"),
                 },
+            )
+
+        if "styles.css" in normalized_files and not any(
+            _STYLESHEET_IMPORT.search(content)
+            for relative_path, content in normalized_files.items()
+            if relative_path.endswith((".ts", ".tsx", ".js", ".jsx"))
+        ):
+            raise SourceCreationError(
+                "PLUGIN_STYLESHEET_NOT_IMPORTED",
+                "Plugin styles.css must be imported by Plugin source so its styles reach the Host.",
+                {"relativePath": "styles.css"},
             )
 
         source_files = [
