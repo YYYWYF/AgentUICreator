@@ -1,3 +1,7 @@
+import asyncio
+
+import pytest
+
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.minimal_agent.path_policy import (
     MinimalAgentPathPolicy,
@@ -7,6 +11,7 @@ from agent_ui_creator.transactions import (
     MAX_CREATOR_TRANSACTION_BYTES,
     TRANSACTION_CONTENT_RESERVE_BYTES,
 )
+from agent_ui_creator.run_cancellation import bind_run_cancellation
 
 
 def backend_for(tmp_path, run_id="run-1"):
@@ -15,6 +20,19 @@ def backend_for(tmp_path, run_id="run-1"):
     return activity, PolicyFilesystemBackend(
         tmp_path, MinimalAgentPathPolicy.development(), activity=activity
     )
+
+
+def test_generic_edit_rechecks_stop_before_commit(tmp_path):
+    target = tmp_path / "plugins" / "foo.ts"
+    target.parent.mkdir()
+    target.write_text("old\n", encoding="utf-8")
+    activity, backend = backend_for(tmp_path)
+    backend.read("/plugins/foo.ts")
+    with bind_run_cancellation(lambda: True, tmp_path / ".agentuicreator/control/cancel-test"):
+        with pytest.raises(asyncio.CancelledError):
+            backend.edit("/plugins/foo.ts", "old", "new")
+    assert target.read_text(encoding="utf-8") == "old\n"
+    assert activity.revision == 0
 
 
 def test_single_edit_finish_is_idempotent_and_undo_restores_file(tmp_path):

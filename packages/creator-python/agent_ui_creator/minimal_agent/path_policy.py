@@ -26,6 +26,7 @@ from ..files import (
 )
 from ..transactions import CreatorTransactionError
 from ..project_paths import v2_source_root
+from ..run_cancellation import assert_run_writable
 
 _DENIED_DIRECTORY_NAMES = frozenset(
     {
@@ -267,6 +268,7 @@ class PolicyFilesystemBackend(FilesystemBackend):
             if new_content == content:
                 return EditResult(path=file_path, occurrences=int(occurrences))
             self.activity.capture_before_content(authorized, content)
+            assert_run_writable()
             replace_creator_file_atomically(
                 self.cwd, authorized, new_content, expected=current
             )
@@ -296,6 +298,7 @@ class PolicyFilesystemBackend(FilesystemBackend):
             if current.exists and current.content == content:
                 return WriteResult(path=file_path)
             self.activity.capture_before_content(authorized, current.content)
+            assert_run_writable()
             if current.exists:
                 replace_creator_file_atomically(
                     self.cwd, authorized, content, expected=current
