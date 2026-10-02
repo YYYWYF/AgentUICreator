@@ -48,7 +48,7 @@ export interface CreatorPluginDeliveryReceipt {
   decision: { type: string };
   authorization: { status: string; grantSource?: string | null };
   delivery: {
-    status: "planning" | "created" | "registered" | "composed" | "verified" | "completed" | "blocked";
+    status: "planning" | "created" | "registered" | "composed" | "verified" | "statically-verified" | "completed" | "blocked";
     lastSuccessfulStage: string;
     stages: Record<string, boolean>;
     blockers: string[];

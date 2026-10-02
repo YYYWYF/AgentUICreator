@@ -284,7 +284,7 @@ function isCreatorRunReceipt(value: unknown): value is CreatorRunReceipt {
         isRecord(report.decision) && typeof report.decision.type === "string" &&
         isRecord(report.authorization) && typeof report.authorization.status === "string" &&
         isRecord(report.delivery) &&
-        (typeof report.delivery.status === "string" && ["planning", "created", "registered", "composed", "verified", "completed", "blocked"].includes(report.delivery.status)) &&
+        (typeof report.delivery.status === "string" && ["planning", "created", "registered", "composed", "verified", "statically-verified", "completed", "blocked"].includes(report.delivery.status)) &&
         typeof report.delivery.lastSuccessfulStage === "string" &&
         Array.isArray(report.delivery.blockers) && report.delivery.blockers.every((item) => typeof item === "string") &&
         Array.isArray(report.delivery.instanceIds) && report.delivery.instanceIds.every((item) => typeof item === "string") &&
@@ -524,7 +524,7 @@ function CreatorReceipt({ receipt }: { receipt: CreatorRunReceipt }) {
       {receipt.pluginDeliveries?.map((report) => (
         <div className="creator-receipt-section" key={report.pluginId}>
           <h2>插件交付：{report.pluginId}</h2>
-          <p>{report.delivery.status === "completed" ? "交付完成" : report.delivery.status === "blocked" ? "交付阻塞" : "交付进行中"} · {report.delivery.lastSuccessfulStage}</p>
+          <p>{report.delivery.status === "completed" ? "交付完成" : report.delivery.status === "statically-verified" ? "静态检查通过，Runtime 与浏览器未验证" : report.delivery.status === "blocked" ? "交付阻塞" : "交付进行中"} · {report.delivery.lastSuccessfulStage}</p>
           <p>方案：{report.decision.type} · 授权：{report.authorization.status}</p>
           {Object.entries(report.verification).map(([name, status]) => (
             <span key={name}>{name}: {status}{" "}</span>

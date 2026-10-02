@@ -142,3 +142,28 @@ it("renders incomplete plugin delivery separately from successful static checks"
   expect(container.textContent).toContain("static: pass");
   expect(container.textContent).not.toContain("交付完成");
 });
+
+it("accepts a statically verified plugin receipt without calling it Runtime complete", async () => {
+  vi.stubGlobal("fetch", vi.fn(async (_url: string, init: RequestInit) => {
+    const body = JSON.parse(String(init.body));
+    return stream([
+      { type: "RUN_STARTED", threadId: "thread-1", runId: body.runId },
+      { type: "RUN_FINISHED", threadId: "thread-1", runId: body.runId, result: {
+        receipt: { files: [], validations: [], pluginDeliveries: [{
+          pluginId: "checklist", projectRevision: 3,
+          decision: { type: "create-plugin" }, authorization: { status: "authorized" },
+          delivery: { status: "statically-verified", lastSuccessfulStage: "composed",
+            stages: { created: true, registered: true, composed: true, verified: false },
+            blockers: [], instanceIds: ["checklist-main"] },
+          verification: { static: "pass", runtime: "not-run", geometry: "not-run" },
+        }] },
+      } },
+    ]);
+  }));
+  const { container } = await mount();
+  await act(async () => { (container.querySelector('.creator-question-card input') as HTMLInputElement).click(); });
+  await act(async () => { (container.querySelector('.creator-question-card button') as HTMLButtonElement).click(); });
+  expect(container.textContent).toContain("静态检查通过，Runtime 与浏览器未验证");
+  expect(container.textContent).not.toContain("无效的修改回执");
+  expect(container.textContent).not.toContain("交付完成");
+});
