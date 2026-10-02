@@ -61,3 +61,5 @@ D01–D04 回归覆盖 Source 优先发现与权限、完整生命周期、组�
 本次整合全量 Python：795 passed / 109 failed，失败用例 ID 与上述基线完全相同，没有新增失败。后续固定轨道位置断言使用相关测试单独复核。
 
 相关验证：Creator、ProjectControl、React typecheck；Creator build；ProjectControl contract inventory；ProjectControl 布局/verify-ui 75 项；Composer action/history 9 项；Creator 完成状态/回执 UI 12 项。真实生成的 embedded Host 能力索引已检查到 18 个 Plugin、39 个 Source Item、16 个 Slot。未运行真实模型的 D01–D04 自主产品验收。
+
+最后一次相关 Python 回归：181 passed，包含真实 Chrome 的 3 个交互测试。其他工作区未跟踪的 dictation 测试已对照：主干版本正确传递 endpoint/threadId，比旧测试工作区完整，因此保留主干版本。

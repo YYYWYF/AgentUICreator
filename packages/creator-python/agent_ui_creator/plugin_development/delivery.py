@@ -46,7 +46,8 @@ def _instances(model: dict) -> list[dict]:
     result: list[dict] = []
     def plugins(items: list) -> None:
         for instance in items:
-            if not isinstance(instance, dict) or instance.get("enabled") is False:
+            if (not isinstance(instance, dict) or instance.get("enabled") is False
+                    or not isinstance(instance.get("id"), str) or not isinstance(instance.get("pluginId"), str)):
                 continue
             result.append(instance)
             for children in instance.get("slots", {}).values():
@@ -161,6 +162,8 @@ def source_delivery_contract(root: Path, plugin_id: str) -> dict | None:
     try:
         manifest = json.loads(_read(root, f"plugins/{plugin_id}/manifest.json"))
     except (OSError, ValueError):
+        return None
+    if not isinstance(manifest, dict):
         return None
     return {
         "capability": manifest.get("description", plugin_id),

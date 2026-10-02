@@ -28,8 +28,11 @@ def parse_behavior_result(output: str, *, plugin_id: str, interactions: list[str
                 failed = True
         for child in suite.get("suites", []):
             visit(child)
-    for suite in report.get("suites", []):
-        visit(suite)
+    try:
+        for suite in report.get("suites", []):
+            visit(suite)
+    except (TypeError, AttributeError, KeyError):
+        return {"status": "failed", "reason": "Malformed browser test report"}
     required = {f"[delivery:{plugin_id}] {interaction}" for interaction in interactions}
     if not required:
         required = {f"[delivery:{plugin_id}] runtime"}
