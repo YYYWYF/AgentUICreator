@@ -566,6 +566,7 @@ def create_domain_write_creator_agent(
         source_creation=source_creation,
         activity=backend.activity,
         development_authority=development_authority,
+        project_control=client,
     )
     plugin_mutation = UIPluginSourceMutationService(
         project_root=workspace,

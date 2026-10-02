@@ -38,6 +38,10 @@ if [[ ! -x "${PYTHON_BIN}" ]]; then
   exit 1
 fi
 
+# The sidecar calls the fixed compiled ProjectControl entry. A standalone
+# restart must not keep using an older operation catalog after source changes.
+pnpm --dir "${WORKSPACE_ROOT}" --filter @agent-ui/project-control build
+
 cd "${PYTHON_ROOT}"
 SERVER_ARGS=(
   -m agent_ui_creator.server

@@ -169,6 +169,60 @@ def test_create_ui_plugin_requires_its_stylesheet_to_be_loaded(tmp_path):
     assert result.plugin_id == "task-status"
 
 
+def test_create_ui_plugin_preflights_declared_placement_before_source_commit(tmp_path):
+    source_creation, activity = service(tmp_path)
+
+    class Authority:
+        def require_create(self, plugin_id):
+            assert plugin_id == "task-status"
+
+        def mark_created(self, plugin_id):
+            assert plugin_id == "task-status"
+
+    class ProjectControl:
+        eligible = False
+        calls = []
+
+        async def inspect_ui_project(self):
+            return {"appUIModel": {"hash": "model"}, "capabilityCatalog": {"revision": "catalog"}}
+
+        async def preflight_ui_plugin_placement(self, **kwargs):
+            self.calls.append(kwargs)
+            return {"eligible": self.eligible, "diagnostic": {"code": "NO_MATCHING_SLOT"}}
+
+    control = ProjectControl()
+    creation = UIPluginCreationService(
+        project_root=tmp_path,
+        source_creation=source_creation,
+        activity=activity,
+        development_authority=Authority(),
+        project_control=control,
+    )
+    files = plugin_sources()
+    manifest = {"id": "task-status", "authoring": {"defaultPlacement": {
+        "type": "relative", "relation": "after", "anchorPluginId": "conversation-surface",
+    }}}
+    files[0] = plugin_source("manifest.json", json.dumps(manifest))
+
+    with pytest.raises(SourceCreationError) as captured:
+        asyncio.run(creation.create("task-status", files))
+    assert captured.value.code == "PLUGIN_PLACEMENT_INELIGIBLE"
+    assert captured.value.details["diagnostic"]["code"] == "NO_MATCHING_SLOT"
+    assert activity.revision == 0
+    assert not (tmp_path / "plugins/task-status").exists()
+    assert control.calls == [{
+        "app_ui_model_hash": "model",
+        "capability_catalog_revision": "catalog",
+        "instance_id": "task-status-main",
+        "manifest": manifest,
+    }]
+
+    control.eligible = True
+    result = asyncio.run(creation.create("task-status", files))
+    assert result.plugin_id == "task-status"
+    assert (tmp_path / "plugins/task-status/manifest.json").exists()
+
+
 def test_create_ui_plugin_rejects_local_state_as_ag_ui_data(tmp_path):
     creation, activity = plugin_service(tmp_path)
     files = plugin_sources()

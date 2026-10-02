@@ -52,6 +52,8 @@ def create_ui_plugin_tool(service: UIPluginCreationService) -> BaseTool:
             "Each file uses a relativePath inside /plugins/<pluginId>/. The request "
             "must include manifest.json, definition.ts, and index.tsx; manifest.id "
             "must equal pluginId; and the Plugin directory must not exist. If "
+            "manifest.authoring.defaultPlacement is declared, the Host checks it "
+            "against current composition before committing any source. If "
             "styles.css is included, import it from Plugin source. Use "
             "manifest.data only for AG-UI subscriptions: messages/state/messageUI "
             "are booleans, events is string[]; local React useState needs none. Use "
