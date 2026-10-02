@@ -15,6 +15,8 @@ from agent_ui_creator.operations import (
     CreatorActionSelection, CreatorIntentPresentation, CreatorResolveResult,
 )
 from agent_ui_creator.server import create_app
+from agent_ui_creator.source_tools import UISourceCreationService, UISourceFile
+from agent_ui_creator.minimal_agent.path_policy import MinimalAgentPathPolicy
 from agent_ui_creator.validation.models import CommandExecutionResult
 
 
@@ -212,6 +214,55 @@ def test_stop_request_reaches_server_during_active_run(tmp_path, monkeypatch):
             events = [json.loads(line.removeprefix("data: ")) for line in response.text.splitlines()
                       if line.startswith("data: ")]
             assert any(event.get("code") == "CREATOR_RUN_STOPPED" for event in events)
+
+    asyncio.run(exercise())
+
+
+def test_stop_after_source_commit_reports_retained_file_and_blocks_next_commit(tmp_path, monkeypatch):
+    model = TrackingModel(responses=[AIMessage(content="unused")])
+    app, _client = _app(tmp_path, monkeypatch, model)
+    committed = asyncio.Event()
+    release = asyncio.Event()
+
+    async def held_run(settings, _messages, activity, coordinator, _diagnostics,
+                       _thread_id, event_sink, _telemetry, **_kwargs):
+        source = UISourceCreationService(
+            project_root=settings.project_root, activity=activity,
+            mutation_coordinator=coordinator,
+            path_policy=MinimalAgentPathPolicy.internal_source(),
+        )
+        await source.create([UISourceFile(path="/plugins/task-list/manifest.json", content='{"id":"task-list"}\n')])
+        committed.set()
+        await release.wait()
+        assert event_sink.cancel_requested
+        with pytest.raises(asyncio.CancelledError):
+            await source.create([UISourceFile(path="/plugins/task-list/late.ts", content="export {};\n")])
+        raise asyncio.CancelledError
+
+    monkeypatch.setattr("agent_ui_creator.server._domain_write_agent_result", held_run)
+
+    async def exercise():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),
+                                     base_url="http://testserver",
+                                     headers={"Authorization": "Bearer " + "x" * 32}) as client:
+            run = asyncio.create_task(client.post("/creator", json={
+                "threadId": "thread-a", "runId": "committed-run",
+                "messages": [{"role": "user", "content": "请开发任务清单插件"}],
+            }))
+            await asyncio.wait_for(committed.wait(), timeout=5)
+            stop = await client.post("/creator-control", json={
+                "action": "stop", "threadId": "thread-a", "runId": "committed-run",
+            })
+            assert stop.status_code == 202
+            assert stop.json()["status"] == "stopping"
+            release.set()
+            response = await run
+            events = [json.loads(line.removeprefix("data: ")) for line in response.text.splitlines()
+                      if line.startswith("data: ")]
+            terminal = next(event for event in events if event.get("code") == "CREATOR_RUN_STOPPED")
+            assert "plugins/task-list/manifest.json" in terminal["message"]
+            assert (tmp_path / "plugins/task-list/manifest.json").is_file()
+            assert not (tmp_path / "plugins/task-list/late.ts").exists()
 
     asyncio.run(exercise())
 
