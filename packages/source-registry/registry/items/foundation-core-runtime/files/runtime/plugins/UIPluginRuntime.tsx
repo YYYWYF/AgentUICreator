@@ -11,6 +11,7 @@ import {
   LayoutRenderer,
   type SlotNode,
 } from "@agent-ui/runtime-react";
+import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
 import { resolveRuntimePluginSlotId } from "../../framework/contracts/app-ui-composition";
@@ -495,10 +496,12 @@ function UIPluginRuntimeContent<TState = unknown>({
     );
   }, [diagnostics, model, pluginFailures]);
 
+  const drawerLabels = useAgentUILocale("layout");
   const applicationSurface = application.phase === "ready" ? (
     <LayoutRenderer
       className={className}
       root={model.root}
+      drawerLabels={drawerLabels}
       renderSlot={(slot: SlotNode) => (
         <LayoutSlotOutlet
           actions={actions}

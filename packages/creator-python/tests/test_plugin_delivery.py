@@ -140,6 +140,31 @@ def test_static_only_reports_scope_without_runtime_or_browser_claims(tmp_path):
                   verification_mode="static_and_runtime")["delivery"]["status"] == "blocked"
 
 
+def test_explicit_source_only_finishes_without_instance_but_requires_current_static(tmp_path):
+    artifacts(tmp_path)
+    write(tmp_path, "plugins/registry.generated.ts", 'import("./checklist/definition")')
+    authorization = {"status": "authorized", "workKind": "create-plugin", "deliveryScope": "source-only"}
+    result = report(tmp_path, authorization=authorization, runtime=None, layout=None,
+                    verification_mode="static_only")
+    assert result["delivery"]["status"] == "statically-verified"
+    assert result["delivery"]["stages"] == {
+        "created": True, "registered": True, "composed": False, "verified": False,
+    }
+    assert result["delivery"]["instanceIds"] == []
+    assert report(tmp_path, authorization=authorization, static_passed=False)["delivery"]["status"] == "blocked"
+    assert report(tmp_path, authorization=authorization, runtime=None, layout=None)["delivery"]["status"] == "completed"
+
+
+def test_full_delivery_and_model_claim_of_source_only_cannot_skip_composition(tmp_path):
+    artifacts(tmp_path)
+    write(tmp_path, "plugins/registry.generated.ts", 'import("./checklist/definition")')
+    full = report(tmp_path, authorization={"status": "authorized", "workKind": "create-plugin",
+                                            "deliveryScope": "full", "modelClaim": "source-only"},
+                  runtime=None, layout=None, verification_mode="static_only")
+    assert full["delivery"]["status"] == "blocked"
+    assert "插件尚未启用并挂载到 AppUIModel" in full["delivery"]["blockers"]
+
+
 def test_unmatched_message_renderer_needs_runtime_but_not_a_dom_rectangle(tmp_path):
     artifacts(tmp_path)
     write(tmp_path, "plugins/checklist/manifest.json", {"id": "checklist", "requiresRenderScope": True,

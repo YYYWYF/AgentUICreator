@@ -37,6 +37,26 @@ def authority(tmp_path, intent: str = "none") -> PluginDevelopmentAuthority:
     return result
 
 
+def test_delivery_scope_is_bound_to_user_request_and_resets_for_new_mount_task(tmp_path):
+    state = PluginDevelopmentAuthority(tmp_path, thread_id="thread-a")
+    state.begin_task(task_id="source", request_id="source", user_message="请开发一个任务清单插件源码，先不要接入界面", intent="explicit")
+    assert state.delivery_scope == "source-only"
+    state.begin_task(task_id="mount", request_id="mount", user_message="把已有任务清单插件挂到右侧", intent="none")
+    assert state.delivery_scope == "full"
+    state.record_discovery(plugin_inventory_complete=True, plugin_ids=["task-list"])
+    assert state.can_compose_existing([{"type": "insert_plugin", "plugin": {"pluginId": "task-list"}}])
+    assert state.active is None
+
+
+def test_model_plan_cannot_reduce_full_user_delivery_scope(tmp_path):
+    state = PluginDevelopmentAuthority(tmp_path, thread_id="thread-a")
+    state.begin_task(task_id="full", request_id="full", user_message="请开发并接入一个任务清单插件", intent="explicit")
+    prepared = state.prepare(work_kind="create-plugin", target_plugin_id="task-list",
+                             desired_outcome="只开发源码，不接入界面", missing_capabilities=["任务清单"],
+                             reuse_evidence_refs=[], ui_scope="只写源码")
+    assert prepared["deliveryScope"] == "full"
+
+
 def test_no_grant_or_skill_cannot_create(tmp_path):
     state = authority(tmp_path)
     with pytest.raises(PluginDevelopmentError, match="授权"):

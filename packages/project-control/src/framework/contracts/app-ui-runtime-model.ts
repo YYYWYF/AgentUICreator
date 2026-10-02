@@ -1,4 +1,4 @@
-import type { LayoutNode, LayoutTrackSize, PanelDimension } from "@agent-ui/runtime-react";
+import type { LayoutNode, LayoutTrackSize, PanelDimension, RowDrawerPolicy } from "@agent-ui/runtime-react";
 import { z } from "zod";
 import { isGridTrackOnlyDimension } from "./panel-dimension";
 
@@ -30,6 +30,12 @@ const nonBlankStringSchema = z.string().refine(
   "Must not be blank",
 );
 const nonNegativeNumberSchema = z.number().nonnegative();
+const rowDrawerPolicySchema: z.ZodType<RowDrawerPolicy> = z.strictObject({
+  type: z.literal("trailing-drawer"),
+  primaryIndex: z.number().int().nonnegative(),
+  drawerIndex: z.number().int().nonnegative(),
+  minPrimaryWidth: z.number().positive().finite(),
+});
 
 export const runtimeLayoutTrackSizeSchema: z.ZodType<LayoutTrackSize> = z.union([
   nonNegativeNumberSchema,
@@ -51,6 +57,7 @@ export const runtimeLayoutNodeSchema: z.ZodType<LayoutNode> = z.lazy(() =>
       children: z.array(runtimeLayoutNodeSchema),
       gap: nonNegativeNumberSchema.optional(),
       sizes: z.array(runtimeLayoutTrackSizeSchema).optional(),
+      responsive: rowDrawerPolicySchema.optional(),
     }),
     z.strictObject({
       type: z.literal("column"), id: nonBlankStringSchema,
@@ -117,6 +124,10 @@ export const appUIRuntimeModelSchema = appUIRuntimeModelShapeSchema.superRefine(
       if (node.type === "row" || node.type === "column") {
         if (node.sizes !== undefined && node.sizes.length !== node.children.length) {
           context.addIssue({ code: "custom", path: [...path, "sizes"], message: "sizes must contain exactly one entry for each child", input: node.sizes });
+        }
+        if (node.type === "row" && node.responsive !== undefined &&
+            node.responsive.drawerIndex <= node.responsive.primaryIndex) {
+          context.addIssue({ code: "custom", path: [...path, "responsive"], message: "Row drawer index must follow the primary index", input: node.responsive });
         }
         node.children.forEach((child, index) => visit(child, [...path, "children", index]));
       } else if (node.type === "stack") {

@@ -71,6 +71,7 @@ def delivery_report(*, root: Path, plugin_id: str, contract: dict | None,
                     behavior: dict | None = None, final: bool = True,
                     verification_mode: Literal["static_only", "static_and_runtime"] = "static_and_runtime") -> dict:
     stages = {name: False for name in ("created", "registered", "composed", "verified")}
+    source_only = authorization.get("deliveryScope") == "source-only"
     blockers: list[str] = []
     instances: list[dict] = []
     application_delivery = False
@@ -86,21 +87,24 @@ def delivery_report(*, root: Path, plugin_id: str, contract: dict | None,
         if authorization.get("workKind") == "reuse-source":
             lock = json.loads((root / ".agent-ui/source-lock.json").read_text())
             stages["registered"] = stages["registered"] and isinstance(lock.get("items", {}).get(f"plugin/{plugin_id}"), dict)
-        model = json.loads(_read(root, "app-ui/app-ui.json"))
-        instances = [item for item in _instances(model) if item.get("pluginId") == plugin_id]
-        stages["composed"] = stages["registered"] and bool(instances)
-        application_ids = {item.get("id") for item in model.get("applicationPlugins", []) if isinstance(item, dict)}
-        application_delivery = bool(instances) and all(item.get("id") in application_ids for item in instances)
-        renderer_delivery = bool(instances) and not application_delivery and bool(
-            manifest.get("requiresRenderScope") or (manifest.get("data") or {}).get("messageUI")
-        ) and contract is not None and contract.get("renderingCategory") == "semantic-slot"
-        if contract and contract.get("renderingCategory") == "application" and not application_delivery:
-            blockers.append("application 交付契约与实际挂载位置不一致")
+        if not source_only:
+            model = json.loads(_read(root, "app-ui/app-ui.json"))
+            instances = [item for item in _instances(model) if item.get("pluginId") == plugin_id]
+            stages["composed"] = stages["registered"] and bool(instances)
+            application_ids = {item.get("id") for item in model.get("applicationPlugins", []) if isinstance(item, dict)}
+            application_delivery = bool(instances) and all(item.get("id") in application_ids for item in instances)
+            renderer_delivery = bool(instances) and not application_delivery and bool(
+                manifest.get("requiresRenderScope") or (manifest.get("data") or {}).get("messageUI")
+            ) and contract is not None and contract.get("renderingCategory") == "semantic-slot"
+            if contract and contract.get("renderingCategory") == "application" and not application_delivery:
+                blockers.append("application 交付契约与实际挂载位置不一致")
     except (OSError, ValueError, TypeError, AttributeError):
         # Missing/malformed artifacts are incomplete delivery, never a successful fallback.
         pass
     for stage, message in (("created", "插件文件尚不完整"), ("registered", "插件尚未注册"),
                            ("composed", "插件尚未启用并挂载到 AppUIModel")):
+        if source_only and stage == "composed":
+            continue
         if not stages[stage]:
             blockers.append(message)
     if authorization.get("status") != "authorized":
@@ -111,11 +115,11 @@ def delivery_report(*, root: Path, plugin_id: str, contract: dict | None,
         blockers.append("当前版本 verify:ui / typecheck 尚未通过")
     runtime_passed = bool(runtime and runtime.get("runtimeStatus") == "passed"
                           and runtime.get("compositionVerified") is True)
-    if not runtime_passed and verification_mode == "static_and_runtime":
+    if not source_only and not runtime_passed and verification_mode == "static_and_runtime":
         blockers.append("当前版本运行验证尚未通过")
     geometry_passed = (application_delivery and contract is not None and contract.get("renderingCategory") == "application"
                        or renderer_delivery and not (contract or {}).get("geometry"))
-    if not geometry_passed:
+    if not source_only and not geometry_passed:
         observed = {item.get("instanceId"): item.get("rect") for item in (layout or {}).get("instances", [])}
         geometry_passed = bool(instances) and bool(layout and layout.get("compositionFresh") is True) and all(
             isinstance(observed.get(item.get("id")), dict)
@@ -130,19 +134,22 @@ def delivery_report(*, root: Path, plugin_id: str, contract: dict | None,
             blockers.append("缺少当前版本插件的可见 Runtime 几何证据")
     needs_behavior = bool(contract and (contract.get("interactions") or contract.get("verificationMethod") == "browser-test"))
     behavior_passed = bool(behavior and behavior.get("revision") == revision and behavior.get("status") == "passed")
-    if needs_behavior and not behavior_passed and verification_mode == "static_and_runtime":
+    if not source_only and needs_behavior and not behavior_passed and verification_mode == "static_and_runtime":
         blockers.append("声明的交互尚未通过项目浏览器测试")
-    stages["verified"] = bool(stages["composed"] and not blockers and verification_mode == "static_and_runtime")
-    static_complete = bool(stages["composed"] and not blockers and static_passed
+    stages["verified"] = bool((stages["registered"] if source_only else stages["composed"]) and not blockers and verification_mode == "static_and_runtime")
+    static_complete = bool((stages["registered"] if source_only else stages["composed"]) and not blockers and static_passed
                            and verification_mode == "static_only")
     reached = "planning"
     for stage, passed in stages.items():
         if not passed:
+            if source_only and stage == "composed":
+                continue
             break
         reached = stage
     return {
         "pluginId": plugin_id, "projectRevision": revision,
         "decision": {"type": authorization.get("workKind", "create-plugin")},
+        "deliveryScope": "source-only" if source_only else "full",
         "authorization": {"status": authorization.get("status", "unknown"),
                           "grantSource": authorization.get("grantSource")},
         "contract": contract,
@@ -150,9 +157,9 @@ def delivery_report(*, root: Path, plugin_id: str, contract: dict | None,
                      "lastSuccessfulStage": reached, "stages": stages, "blockers": blockers,
                      "instanceIds": [item["id"] for item in instances]},
         "verification": {"static": "pass" if static_passed else "not-passed",
-                         "runtime": "not-run" if verification_mode == "static_only" else "pass" if runtime_passed else "not-passed",
-                         "geometry": "not-run" if verification_mode == "static_only" else "not-applicable" if geometry_passed and (application_delivery or renderer_delivery) else "pass" if geometry_passed else "not-passed",
-                         "interaction": "not-run" if verification_mode == "static_only" and needs_behavior else "pass" if behavior_passed else "not-passed" if needs_behavior else "not-required"},
+                         "runtime": "not-required" if source_only else "not-run" if verification_mode == "static_only" else "pass" if runtime_passed else "not-passed",
+                         "geometry": "not-required" if source_only else "not-run" if verification_mode == "static_only" else "not-applicable" if geometry_passed and (application_delivery or renderer_delivery) else "pass" if geometry_passed else "not-passed",
+                         "interaction": "not-required" if source_only else "not-run" if verification_mode == "static_only" and needs_behavior else "pass" if behavior_passed else "not-passed" if needs_behavior else "not-required"},
     }
 
 

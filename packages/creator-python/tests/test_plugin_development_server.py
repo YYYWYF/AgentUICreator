@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -263,6 +264,152 @@ def test_stop_after_source_commit_reports_retained_file_and_blocks_next_commit(t
             assert "plugins/task-list/manifest.json" in terminal["message"]
             assert (tmp_path / "plugins/task-list/manifest.json").is_file()
             assert not (tmp_path / "plugins/task-list/late.ts").exists()
+
+    asyncio.run(exercise())
+
+
+def test_stop_before_atomic_plugin_source_commit_leaves_no_target_files(tmp_path, monkeypatch):
+    model = TrackingModel(responses=[AIMessage(content="unused")])
+    app, _client = _app(tmp_path, monkeypatch, model)
+    before_commit = asyncio.Event()
+    release = asyncio.Event()
+
+    async def held_run(settings, _messages, activity, coordinator, _diagnostics,
+                       _thread_id, _event_sink, _telemetry, **_kwargs):
+        source = UISourceCreationService(
+            project_root=settings.project_root, activity=activity,
+            mutation_coordinator=coordinator,
+            path_policy=MinimalAgentPathPolicy.internal_source(),
+        )
+        async def preflight():
+            before_commit.set()
+            await release.wait()
+        await source.create([
+            UISourceFile(path="/plugins/task-list/manifest.json", content='{"id":"task-list"}\n'),
+            UISourceFile(path="/plugins/task-list/definition.ts", content="export default {};\n"),
+            UISourceFile(path="/plugins/task-list/index.tsx", content="export const App = () => null;\n"),
+        ], require_absent_directory="/plugins/task-list", preflight=preflight)
+        raise AssertionError("Cancel must prevent the whole source commit")
+
+    monkeypatch.setattr("agent_ui_creator.server._domain_write_agent_result", held_run)
+
+    async def exercise():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),
+                                     base_url="http://testserver",
+                                     headers={"Authorization": "Bearer " + "x" * 32}) as client:
+            run = asyncio.create_task(client.post("/creator", json={
+                "threadId": "thread-a", "runId": "before-commit",
+                "messages": [{"role": "user", "content": "请开发独立任务清单插件"}],
+            }))
+            await asyncio.wait_for(before_commit.wait(), timeout=5)
+            assert (await client.post("/creator-control", json={
+                "action": "stop", "threadId": "thread-a", "runId": "before-commit",
+            })).status_code == 202
+            release.set()
+            response = await run
+            events = [json.loads(line.removeprefix("data: ")) for line in response.text.splitlines()
+                      if line.startswith("data: ")]
+            assert any(event.get("code") == "CREATOR_RUN_STOPPED" for event in events)
+            assert not any(event.get("name") == "on_interrupt" for event in events)
+            assert not (tmp_path / "plugins/task-list").exists()
+            assert (await client.post("/creator-control", json={
+                "action": "stop", "threadId": "thread-a", "runId": "before-commit",
+            })).json()["status"] == "stopped"
+
+    asyncio.run(exercise())
+
+
+def test_cancelled_run_transaction_undo_is_explicit_idempotent_and_conflict_safe(tmp_path, monkeypatch):
+    model = TrackingModel(responses=[AIMessage(content="unused")])
+    app, _client = _app(tmp_path, monkeypatch, model)
+    committed = asyncio.Event()
+    release = asyncio.Event()
+
+    async def held_run(settings, messages, activity, coordinator, _diagnostics,
+                       _thread_id, event_sink, _telemetry, **_kwargs):
+        source = UISourceCreationService(
+            project_root=settings.project_root, activity=activity,
+            mutation_coordinator=coordinator,
+            path_policy=MinimalAgentPathPolicy.internal_source(),
+        )
+        if "新任务" in str(messages):
+            await source.create([UISourceFile(path="/plugins/new-task/manifest.json", content='{"id":"new-task"}\n')])
+            empty_metrics = SimpleNamespace(to_dict=lambda: {})
+            return SimpleNamespace(
+                text="新任务已写入", completion="committed_unverified",
+                metrics=empty_metrics, project_control=empty_metrics,
+                repeated_project_control_reads=0, domain_observations=empty_metrics,
+            )
+        await source.create([
+            UISourceFile(path="/plugins/task-list/manifest.json", content='{"id":"task-list"}\n'),
+            UISourceFile(path="/plugins/task-list/definition.ts", content="export default {};\n"),
+            UISourceFile(path="/plugins/task-list/index.tsx", content="export const App = () => null;\n"),
+        ], require_absent_directory="/plugins/task-list")
+        committed.set()
+        await release.wait()
+        assert event_sink.cancel_requested
+        raise asyncio.CancelledError
+
+    monkeypatch.setattr("agent_ui_creator.server._domain_write_agent_result", held_run)
+
+    async def request(client, run_id, message):
+        response = await client.post("/creator", json={
+            "threadId": "thread-a", "runId": run_id,
+            "messages": [{"role": "user", "content": message}],
+        })
+        return [json.loads(line.removeprefix("data: ")) for line in response.text.splitlines()
+                if line.startswith("data: ")]
+
+    async def exercise():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),
+                                     base_url="http://testserver",
+                                     headers={"Authorization": "Bearer " + "x" * 32}) as client:
+            run = asyncio.create_task(request(client, "cancel-undo", "请开发独立任务清单插件"))
+            await asyncio.wait_for(committed.wait(), timeout=5)
+            assert (await client.post("/creator-control", json={
+                "action": "undo", "threadId": "thread-a", "runId": "cancel-undo",
+            })).status_code == 409
+            await client.post("/creator-control", json={
+                "action": "stop", "threadId": "thread-a", "runId": "cancel-undo",
+            })
+            release.set()
+            events = await run
+            terminal = next(event for event in events if event.get("code") == "CREATOR_RUN_STOPPED")
+            for path in ("manifest.json", "definition.ts", "index.tsx"):
+                assert path in terminal["message"]
+            assert not any(event.get("name") == "on_interrupt" for event in events)
+            target = tmp_path / "plugins/task-list/manifest.json"
+            assert target.is_file()
+            original_after = target.read_text(encoding="utf-8")
+            target.write_text("another task changed this file", encoding="utf-8")
+            conflict_before_undo = await client.post("/creator-control", json={
+                "action": "undo", "threadId": "thread-a", "runId": "cancel-undo",
+            })
+            assert conflict_before_undo.status_code == 409
+            assert conflict_before_undo.json()["code"] == "CREATOR_UNDO_CONFLICT"
+            assert target.read_text() == "another task changed this file"
+            target.write_text(original_after, encoding="utf-8")
+            undo = await client.post("/creator-control", json={
+                "action": "undo", "threadId": "thread-a", "runId": "cancel-undo",
+            })
+            assert undo.status_code == 200
+            assert undo.json()["status"] == "undone"
+            assert not target.exists()
+            repeated = await client.post("/creator-control", json={
+                "action": "undo", "threadId": "thread-a", "runId": "cancel-undo",
+            })
+            assert repeated.status_code == 200 and repeated.json() == undo.json()
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("another task changed this file", encoding="utf-8")
+            conflict = await client.post("/creator-control", json={
+                "action": "undo", "threadId": "thread-a", "runId": "cancel-undo",
+            })
+            assert conflict.status_code == 409
+            assert conflict.json()["code"] == "CREATOR_UNDO_CONFLICT"
+            assert target.read_text() == "another task changed this file"
+            fresh = await request(client, "new-task", "新任务：请开发独立插件")
+            assert not any(event.get("code") == "CREATOR_RUN_STOPPED" for event in fresh)
+            assert (tmp_path / "plugins/new-task/manifest.json").is_file()
 
     asyncio.run(exercise())
 

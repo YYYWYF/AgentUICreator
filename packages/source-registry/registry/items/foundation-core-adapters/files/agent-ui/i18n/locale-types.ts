@@ -3,6 +3,12 @@ export type AgentUILocaleCode = "zh-CN" | "en-US";
 export type AgentUIDirection = "ltr" | "rtl";
 
 export interface AgentUILocaleMessages {
+  layout: {
+    open: string;
+    close: string;
+    collapse: string;
+    restore: string;
+  };
   humanQuestion: {
     submit: string;
     submitting: string;

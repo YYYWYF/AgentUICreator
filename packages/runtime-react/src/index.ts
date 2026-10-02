@@ -7,6 +7,7 @@ export type {
   PanelDimension,
   PanelNode,
   RowNode,
+  RowDrawerPolicy,
   SlotNode,
   StackNode,
 } from "./layout/types.js";

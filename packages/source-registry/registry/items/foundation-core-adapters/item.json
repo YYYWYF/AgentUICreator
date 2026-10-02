@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "foundation/core-adapters",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "kind": "foundation",
   "description": "Managed Agent UI foundation-core-adapters source",
   "files": [

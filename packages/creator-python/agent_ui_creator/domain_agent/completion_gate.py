@@ -197,7 +197,7 @@ class CreatorDevelopmentCompletionGate:
         terminal = (
             any(token in candidate.lower() for token in ("blocked", "尚未", "未完成", "无法完成"))
             or (self.verification_mode == "static_only" and all(
-                report["delivery"]["stages"]["composed"] and report["verification"]["static"] == "pass"
+                (report["deliveryScope"] == "source-only" or report["delivery"]["stages"]["composed"]) and report["verification"]["static"] == "pass"
                 for report in reports))
             or self.repair_state.limit_reached
             or (self.run_control is not None and self.run_control.blocked)

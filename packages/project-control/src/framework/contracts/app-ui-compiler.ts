@@ -99,6 +99,7 @@ function compileLayout(
     children,
     ...(node.gap === undefined ? {} : { gap: node.gap }),
     ...(node.sizes === undefined ? {} : { sizes: [...node.sizes] }),
+    ...(node.type === "row" && node.responsive !== undefined ? { responsive: { ...node.responsive } } : {}),
   };
 }
 

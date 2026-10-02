@@ -17,7 +17,16 @@ from .commission import explicitly_commissions_plugin_development
 DevelopmentIntent = Literal["none", "needs_decision", "explicit", "conditional", "prohibited"]
 WorkKind = Literal["create-plugin", "adapt-component", "extend-capability"]
 ProposalStatus = Literal["pending", "authorized", "adjust", "defer", "superseded", "completed"]
+DeliveryScope = Literal["full", "source-only"]
 _PLUGIN_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,99}$")
+
+
+def _requested_delivery_scope(user_message: str) -> DeliveryScope:
+    """Only the Host-bound user request can reduce the default delivery obligation."""
+    message = user_message.lower()
+    source_requested = bool(re.search(r"(?:开发|编写|实现).{0,20}(?:插件)?源码|source[- ]only", message))
+    defer_mount = bool(re.search(r"(?:先|暂|目前|现在)?.{0,3}(?:不|不要|无需|暂缓).{0,8}(?:挂载|接入|加入).{0,4}(?:界面|页面)?|do not (?:mount|compose|integrate)", message))
+    return "source-only" if source_requested and defer_mount else "full"
 
 
 class PluginDevelopmentError(ValueError):
@@ -43,6 +52,7 @@ class PluginDevelopmentProposal:
     component_basis_hashes: tuple[tuple[str, str], ...]
     target_fingerprint: str | None
     scope_hash: str
+    delivery_scope: DeliveryScope
     status: ProposalStatus
     grant_source: Literal["explicit-request", "conditional-request", "proposal-approval"] | None = None
     question_id: str | None = None
@@ -68,6 +78,7 @@ class PluginDevelopmentProposal:
             "componentBasisRefs": list(self.component_basis_refs),
             "grantSource": self.grant_source,
             "deliveryContract": self.delivery_contract,
+            "deliveryScope": self.delivery_scope,
         }
 
 
@@ -92,6 +103,7 @@ class PluginDevelopmentAuthority:
         self.task_id: str | None = None
         self.request_id: str | None = None
         self.user_message = ""
+        self.delivery_scope: DeliveryScope = "full"
         self.blocked_customized_source_plugin_id: str | None = None
         self.intent: DevelopmentIntent = "none"
         self._proposals: dict[str, PluginDevelopmentProposal] = {}
@@ -120,6 +132,7 @@ class PluginDevelopmentAuthority:
         self.task_id = task_id
         self.request_id = request_id
         self.user_message = user_message
+        self.delivery_scope = _requested_delivery_scope(user_message)
         self.blocked_customized_source_plugin_id = None
         self.intent = intent
         self._active_proposal_id = None
@@ -271,6 +284,7 @@ class PluginDevelopmentAuthority:
             delivery_contract = PluginAuthoringContract.model_validate(delivery_contract).model_dump()
         values: dict[str, object] = {
             "deliveryContract": delivery_contract,
+            "deliveryScope": self.delivery_scope,
             "projectKey": self.project_key,
             "threadId": self.thread_id,
             "taskId": self.task_id,
@@ -316,6 +330,7 @@ class PluginDevelopmentAuthority:
             component_basis_hashes=component_hashes,
             target_fingerprint=self._target_fingerprint(target_root),
             scope_hash=scope_hash,
+            delivery_scope=self.delivery_scope,
             delivery_contract=delivery_contract,
             status="authorized" if grant_source else "pending",
             grant_source=grant_source,

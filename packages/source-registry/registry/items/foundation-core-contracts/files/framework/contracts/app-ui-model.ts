@@ -1,4 +1,4 @@
-import type { LayoutTrackSize, PanelDimension } from "@agent-ui/runtime-react";
+import type { LayoutTrackSize, PanelDimension, RowDrawerPolicy } from "@agent-ui/runtime-react";
 import { z } from "zod";
 import { isGridTrackOnlyDimension } from "./panel-dimension";
 
@@ -18,6 +18,7 @@ export interface AppUIRowNode {
   children: AppUILayoutNode[];
   gap?: number | undefined;
   sizes?: AppUILayoutTrackSize[] | undefined;
+  responsive?: RowDrawerPolicy | undefined;
 }
 
 export interface AppUIColumnNode {
@@ -90,6 +91,12 @@ const nonBlankStringSchema = z.string().refine(
   "Must not be blank",
 );
 const nonNegativeNumberSchema = z.number().nonnegative();
+export const rowDrawerPolicySchema: z.ZodType<RowDrawerPolicy> = z.strictObject({
+  type: z.literal("trailing-drawer"),
+  primaryIndex: z.number().int().nonnegative(),
+  drawerIndex: z.number().int().nonnegative(),
+  minPrimaryWidth: z.number().positive().finite(),
+});
 
 export const layoutTrackSizeSchema: z.ZodType<AppUILayoutTrackSize> = z.union([
   nonNegativeNumberSchema,
@@ -120,6 +127,7 @@ export const layoutNodeSchema: z.ZodType<AppUILayoutNode> = z.lazy(() =>
       children: z.array(layoutNodeSchema),
       gap: nonNegativeNumberSchema.optional(),
       sizes: z.array(layoutTrackSizeSchema).optional(),
+      responsive: rowDrawerPolicySchema.optional(),
     }),
     z.strictObject({
       type: z.literal("column"),
@@ -232,6 +240,10 @@ export const appUIModelSchema = appUIModelShapeSchema.superRefine((model, contex
     if (node.type === "row" || node.type === "column") {
       if (node.sizes !== undefined && node.sizes.length !== node.children.length) {
         context.addIssue({ code: "custom", path: [...path, "sizes"], message: "sizes must contain exactly one entry for each child", input: node.sizes });
+      }
+      if (node.type === "row" && node.responsive !== undefined &&
+          node.responsive.drawerIndex <= node.responsive.primaryIndex) {
+        context.addIssue({ code: "custom", path: [...path, "responsive"], message: "Row drawer index must follow the primary index", input: node.responsive });
       }
       node.children.forEach((child, index) => visitLayout(child, [...path, "children", index]));
     } else if (node.type === "stack") {

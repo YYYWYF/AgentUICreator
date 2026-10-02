@@ -386,11 +386,12 @@ def test_created_plugin_is_undoable(tmp_path):
         "undoable": True,
     }
     assert activity.transactions.load("source-create").created_directories == (
+        "plugins",
         "plugins/task-status",
     )
     activity.transactions.undo("source-create")
     assert not (tmp_path / "plugins/task-status").exists()
-    assert (tmp_path / "plugins").is_dir()
+    assert not (tmp_path / "plugins").exists()
 
 
 def test_created_plugin_undo_restores_absent_plugin_directory(tmp_path):
@@ -517,7 +518,7 @@ def test_created_source_is_undoable(tmp_path):
         "runId": "source-create",
         "undoable": True,
     }
-    assert activity.transactions.load("source-create").created_directories == ()
+    assert activity.transactions.load("source-create").created_directories == ("services",)
     activity.transactions.undo("source-create")
     assert not target.exists()
 

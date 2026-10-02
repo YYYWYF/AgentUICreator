@@ -5,6 +5,7 @@ import {
   buildLayoutRefIndex,
   collectAppUIPluginLocations,
   panelDimensionSchema,
+  rowDrawerPolicySchema,
   walkAppUILayout,
   type AppUIColumnNode,
   type AppUILayoutNode,
@@ -58,7 +59,8 @@ const pluginMovePlacementSchema = z.discriminatedUnion("type", [
 ]);
 
 type AppUILayoutMutationNode =
-  | ({ type: "row" | "column"; children: AppUILayoutMutationNode[]; gap?: number | undefined; sizes?: string[] | undefined } & { localRef?: string | undefined })
+  | ({ type: "row"; children: AppUILayoutMutationNode[]; gap?: number | undefined; sizes?: string[] | undefined; responsive?: AppUIRowNode["responsive"] } & { localRef?: string | undefined })
+  | ({ type: "column"; children: AppUILayoutMutationNode[]; gap?: number | undefined; sizes?: string[] | undefined } & { localRef?: string | undefined })
   | ({ type: "stack"; children: AppUILayoutMutationNode[]; activeIndex?: number | undefined } & { localRef?: string | undefined })
   | ({ type: "panel"; child: AppUILayoutMutationNode; width?: AppUIPanelDimension | undefined; height?: AppUIPanelDimension | undefined; minWidth?: number | undefined; maxWidth?: number | undefined; resizable?: boolean | undefined } & { localRef?: string | undefined })
   | ({ type: "slot"; plugins: AppUIPluginNode[] } & { localRef?: string | undefined });
@@ -66,6 +68,7 @@ type AppUILayoutMutationNode =
 type LayoutNodeProps = {
   gap?: number | undefined;
   sizes?: string[] | undefined;
+  responsive?: AppUIRowNode["responsive"];
   activeIndex?: number | undefined;
   width?: AppUIPanelDimension | undefined;
   height?: AppUIPanelDimension | undefined;
@@ -77,6 +80,7 @@ type LayoutNodeProps = {
 const layoutNodePropsSchema: z.ZodType<LayoutNodeProps> = z.strictObject({
   gap: z.number().nonnegative().optional(),
   sizes: z.array(layoutTrackSizeSchema).optional(),
+  responsive: rowDrawerPolicySchema.optional(),
   activeIndex: z.number().int().nonnegative().optional(),
   width: panelDimensionSchema.optional(),
   height: panelDimensionSchema.optional(),
@@ -88,7 +92,15 @@ const layoutNodePropsSchema: z.ZodType<LayoutNodeProps> = z.strictObject({
 const mutationLayoutNodeSchema: z.ZodType<AppUILayoutMutationNode> = z.lazy(() =>
   z.union([
     z.strictObject({
-      type: z.union([z.literal("row"), z.literal("column")]),
+      type: z.literal("row"),
+      localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(),
+      children: z.array(mutationLayoutNodeSchema),
+      gap: z.number().nonnegative().optional(),
+      sizes: z.array(layoutTrackSizeSchema).optional(),
+      responsive: rowDrawerPolicySchema.optional(),
+    }),
+    z.strictObject({
+      type: z.literal("column"),
       localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(),
       children: z.array(mutationLayoutNodeSchema),
       gap: z.number().nonnegative().optional(),
@@ -384,6 +396,7 @@ function materializeMutationNode(
       children: input.children.map((child) => materializeMutationNode(child, context)),
       ...(input.gap === undefined ? {} : { gap: input.gap }),
       ...(input.sizes === undefined ? {} : { sizes: [...input.sizes] }),
+      ...(input.type === "row" && input.responsive !== undefined ? { responsive: input.responsive } : {}),
     };
   } else if (input.type === "stack") {
     node = {
@@ -404,10 +417,7 @@ function materializeMutationNode(
   } else if (input.type === "slot") {
     node = { type: "slot", plugins: structuredClone(input.plugins) };
   } else {
-    operationError(
-      "INVALID_LAYOUT_NODE",
-      `Unsupported mutation Layout node type "${input.type}".`,
-    );
+    operationError("INVALID_LAYOUT_NODE", "Unsupported mutation Layout node type.");
   }
   if (localRef !== undefined) context.localRefs.set(localRef, node);
   return node;
@@ -1462,7 +1472,7 @@ function replaceNode(context: MutationContext, oldNode: AppUILayoutNode, replace
 }
 
 const layoutPropKeys: Record<AppUILayoutNode["type"], ReadonlySet<string>> = {
-  row: new Set(["gap", "sizes"]),
+  row: new Set(["gap", "sizes", "responsive"]),
   column: new Set(["gap", "sizes"]),
   stack: new Set(["activeIndex"]),
   panel: new Set(["width", "height", "minWidth", "maxWidth", "resizable"]),

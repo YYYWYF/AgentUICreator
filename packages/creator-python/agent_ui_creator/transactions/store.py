@@ -341,6 +341,8 @@ class CreatorTransactionStore:
 
     def status(self, run_id: str) -> CreatorTransactionStatus:
         record = self.load(run_id)
+        if read_creator_file_state(self.project_root, self._undo_marker_path(run_id)).exists:
+            return CreatorTransactionStatus(run_id, False, ())
         conflicts: list[CreatorTransactionConflict] = []
         for file in record.files:
             current = read_creator_file_state(self.project_root, file.path)
@@ -405,6 +407,20 @@ class CreatorTransactionStore:
                 if requested_run_id is None
                 else self.load(requested_run_id)
             )
+            if read_creator_file_state(self.project_root, self._undo_marker_path(record.run_id)).exists:
+                conflicts = tuple(
+                    CreatorTransactionConflict(file.path, file.before.hash,
+                        read_creator_file_state(self.project_root, file.path).hash)
+                    for file in record.files
+                    if read_creator_file_state(self.project_root, file.path).hash != file.before.hash
+                )
+                if conflicts:
+                    raise CreatorTransactionError(
+                        "CREATOR_UNDO_CONFLICT",
+                        f'Creator run "{record.run_id}" changed after undo.',
+                        {"conflicts": [conflict.to_dict() for conflict in conflicts]},
+                    )
+                return CreatorUndoResult(record.run_id, tuple(sorted(file.path for file in record.files)), record)
             current_states, conflicts = self._preflight(record)
             if conflicts:
                 raise CreatorTransactionError(
@@ -465,6 +481,9 @@ class CreatorTransactionStore:
                 raise
             self._cleanup_created_directories(record.created_directories)
             changed_paths = tuple(sorted(file.path for file in record.files))
+            create_creator_file_atomically(
+                self.project_root, self._undo_marker_path(record.run_id), "undone\n"
+            )
             self._record(
                 "undo", {"runId": record.run_id, "changedPaths": list(changed_paths)}
             )
@@ -490,6 +509,9 @@ class CreatorTransactionStore:
 
     def _relative_path(self, run_id: str) -> str:
         return f"{CREATOR_TRANSACTION_DIRECTORY}/{self._file_name(run_id)}"
+
+    def _undo_marker_path(self, run_id: str) -> str:
+        return f"{CREATOR_TRANSACTION_DIRECTORY}/{self._file_name(run_id)}.undone"
 
     def _ensure_directory(self) -> None:
         try:

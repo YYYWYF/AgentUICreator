@@ -482,7 +482,7 @@ function CreatorMarkdown({ content }: { content: string }) {
   );
 }
 
-function CreatorReceipt({ receipt }: { receipt: CreatorRunReceipt }) {
+function CreatorReceipt({ receipt, onUndo, undoBusy }: { receipt: CreatorRunReceipt; onUndo?: ((runId: string) => void) | undefined; undoBusy?: boolean }) {
   const verification = receipt.verification;
   const verificationPassed =
     verification?.status === "changed-and-statically-verified" ||
@@ -548,6 +548,11 @@ function CreatorReceipt({ receipt }: { receipt: CreatorRunReceipt }) {
           <div className="creator-receipt-note">
             撤销执行时会再次检查所有文件；后续人工修改不会被覆盖。
           </div>
+          {receipt.transaction.undoable && onUndo !== undefined ? (
+            <button type="button" disabled={undoBusy} onClick={() => onUndo(receipt.transaction!.runId)}>
+              {undoBusy ? "正在撤销…" : "撤销本次修改"}
+            </button>
+          ) : null}
         </div>
       )}
 
@@ -954,6 +959,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
   const [workspaceBusy, setWorkspaceBusy] = useState(false);
   const [stopBusy, setStopBusy] = useState(false);
+  const [undoRunId, setUndoRunId] = useState<string | null>(null);
   const [runAccepted, setRunAccepted] = useState(false);
   const [workspacePicking, setWorkspacePicking] = useState(false);
   const [showWorkspaceSelector, setShowWorkspaceSelector] = useState(true);
@@ -1506,6 +1512,25 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     }
   };
 
+  const undoCreatorRun = async (runId: string) => {
+    const agent = agentRef.current;
+    if (agent === null || isRunning || undoRunId !== null || hasPendingCreatorQuestion(itemsRef.current)) return;
+    setUndoRunId(runId);
+    try {
+      const changedPaths = await agent.undo(runId);
+      updateItems(current => [...current.map(item => item.kind === "message" && item.receipt?.transaction?.runId === runId
+        ? { ...item, receipt: { ...item.receipt, transaction: { ...item.receipt.transaction, undoable: false } } }
+        : item), { kind: "message", id: crypto.randomUUID(), role: "assistant",
+          content: `已撤销本次修改：${changedPaths.join("、") || "没有文件变更"}。` }]);
+      setSetupValidationEpoch(current => current + 1);
+    } catch (error) {
+      updateItems(current => [...current, { kind: "message", id: crypto.randomUUID(), role: "error",
+        content: error instanceof Error ? error.message : String(error) }]);
+    } finally {
+      setUndoRunId(null);
+    }
+  };
+
   const startNewConversation = () => {
     if (isRunning || hasPendingCreatorQuestion(itemsRef.current) ||
       !((workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "ready")) {
@@ -1855,7 +1880,9 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                         />
                       ) : null}
                       {item.receipt === undefined ? null : (
-                        <CreatorReceipt receipt={item.receipt} />
+                        <CreatorReceipt receipt={item.receipt}
+                          onUndo={!isRunning && !hasPendingCreatorQuestion(items) ? (runId) => { void undoCreatorRun(runId); } : undefined}
+                          undoBusy={undoRunId === item.receipt.transaction?.runId} />
                       )}
                     </article>
                   ),

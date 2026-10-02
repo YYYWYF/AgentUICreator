@@ -1,12 +1,21 @@
 export type LayoutTrackSize = number | string;
 export type PanelDimension = number | string;
 
+/** A row-owned presentation policy; the authoring layout still owns its tracks. */
+export interface RowDrawerPolicy {
+  type: "trailing-drawer";
+  primaryIndex: number;
+  drawerIndex: number;
+  minPrimaryWidth: number;
+}
+
 export interface RowNode {
   type: "row";
   id: string;
   children: LayoutNode[];
   gap?: number | undefined;
   sizes?: LayoutTrackSize[] | undefined;
+  responsive?: RowDrawerPolicy | undefined;
 }
 
 export interface ColumnNode {

@@ -17,6 +17,22 @@ function stream(events: Record<string, unknown>[]): Response {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Creator AG-UI 0.0.59 compatibility", () => {
+  it("sends an explicit Undo for one run and reports conflicting paths", async () => {
+    const requests: Record<string, unknown>[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (_url: string, init: RequestInit) => {
+      requests.push(JSON.parse(String(init.body)) as Record<string, unknown>);
+      return requests.length === 1
+        ? Response.json({ status: "undone", runId: "run-a", changedPaths: ["plugins/a/index.tsx"] })
+        : Response.json({ code: "CREATOR_UNDO_CONFLICT", error: "File changed", details: {
+          conflicts: [{ path: "plugins/a/index.tsx" }],
+        } }, { status: 409 });
+    }));
+    const client = new CreatorAgentClient("workspace-1", "thread-1");
+    expect(await client.undo("run-a")).toEqual(["plugins/a/index.tsx"]);
+    await expect(client.undo("run-a")).rejects.toThrow("plugins/a/index.tsx");
+    expect(requests[0]).toEqual({ action: "undo", threadId: "thread-1", runId: "run-a" });
+  });
+
   it("projects on_interrupt and sends resume only through forwardedProps.command.resume", async () => {
     const inputs: Record<string, unknown>[] = [];
     vi.stubGlobal("fetch", vi.fn(async (_url: string, init: RequestInit) => {

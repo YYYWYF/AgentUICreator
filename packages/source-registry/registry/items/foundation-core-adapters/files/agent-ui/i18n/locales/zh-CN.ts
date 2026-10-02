@@ -1,6 +1,12 @@
 import type { AgentUILocaleMessages } from "../locale-types";
 
 export const zhCN = {
+  layout: {
+    open: "打开业务面板",
+    close: "关闭业务面板",
+    collapse: "收起业务面板",
+    restore: "恢复业务面板",
+  },
   humanQuestion: {
     submit: "确认选择",
     submitting: "正在提交选择…",

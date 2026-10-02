@@ -1,6 +1,12 @@
 import type { AgentUILocaleMessages } from "../locale-types";
 
 export const enUS = {
+  layout: {
+    open: "Open panel",
+    close: "Close panel",
+    collapse: "Collapse panel",
+    restore: "Restore panel",
+  },
   humanQuestion: {
     submit: "Confirm selection",
     submitting: "Submitting selection…",

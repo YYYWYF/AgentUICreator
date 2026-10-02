@@ -308,6 +308,16 @@ describe("AppUIModel semantic operations", () => {
     expect(result.root.children.every((child) => child.type !== "row")).toBe(true);
   });
 
+  it("retains the reserved Platform drawer policy when inserting a trailing business region", () => {
+    const responsive = { type: "trailing-drawer" as const, primaryIndex: 1, drawerIndex: 2, minPrimaryWidth: 320 };
+    const result = applyAppUIOperations({ root: {
+      type: "row", responsive, sizes: ["280px", "minmax(0, 1fr)"],
+      children: [labeledSlot("nav"), labeledSlot("chat")],
+    } }, [{ type: "insert_layout_relative", anchorRef: "l2", direction: "right",
+      node: labeledSlot("business") as Extract<AppUILayoutNode, { type: "slot" }>, size: "260px" }]);
+    expect(result.root).toMatchObject({ responsive, sizes: ["280px", "minmax(0, 1fr)", "260px"] });
+  });
+
   it("enforces deterministic relative sizing", () => {
     const sized = { root: {
       type: "row" as const,

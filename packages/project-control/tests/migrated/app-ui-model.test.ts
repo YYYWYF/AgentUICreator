@@ -7,6 +7,15 @@ import {
 } from "../../src/framework/contracts/app-ui-model";
 
 describe("AppUIModel", () => {
+  it("reserves the trailing Platform drawer without imposing it on Embedded", () => {
+    const row = { type: "row", children: [
+      { type: "slot", plugins: [] }, { type: "slot", plugins: [] },
+    ], sizes: ["280px", "minmax(0, 1fr)"],
+      responsive: { type: "trailing-drawer", primaryIndex: 1, drawerIndex: 2, minPrimaryWidth: 320 } };
+    expect(parseAppUIModel({ root: row }).root).toMatchObject(row);
+    expect(() => parseAppUIModel({ root: { ...row, responsive: { ...row.responsive, drawerIndex: 0 } } })).toThrow();
+    expect(parseAppUIModel({ root: { type: "slot", plugins: [] } }).root).not.toHaveProperty("responsive");
+  });
   it("keeps Grid tracks separate from Panel dimensions", () => {
     for (const width of ["1fr", "0.5fr", "minmax(0, 1fr)", "repeat(2, 1fr)", "subgrid"]) {
       expect(() => parseAppUIModel({ root: {

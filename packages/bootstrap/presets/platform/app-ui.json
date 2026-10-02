@@ -23,6 +23,12 @@
   ],
   "root": {
     "type": "row",
+    "responsive": {
+      "type": "trailing-drawer",
+      "primaryIndex": 1,
+      "drawerIndex": 2,
+      "minPrimaryWidth": 320
+    },
     "children": [
       {
         "type": "panel",
