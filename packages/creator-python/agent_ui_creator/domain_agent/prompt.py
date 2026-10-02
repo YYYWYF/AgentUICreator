@@ -794,6 +794,10 @@ interactions, and optional geometry expectations (instanceId/property/expected/t
 Use a placement actually supported by the current authoring snapshot; never invent
 relative-below or assume an application Plugin is a visual Slot. This plan records
 obligations; it neither grants permission nor prescribes one fixed execution sequence.
+Before writing a new visible Plugin, preflight its drafted manifest and intended
+instance against the current model and capability revision. A compatible result
+does not reserve the position or verify source, Services, or container geometry;
+the final Composition mutation rechecks. Preserve the user's side and lifecycle.
 
 Creation is not delivery. The Host derives created, registered, composed and verified
 from current artifacts and evidence. After creation, validate to synchronize the

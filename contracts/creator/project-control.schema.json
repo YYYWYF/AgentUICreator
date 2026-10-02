@@ -47,6 +47,17 @@
         }
       }
     },
+    "preflightUIPluginPlacementInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["appUIModelHash", "capabilityCatalogRevision", "instanceId", "manifest"],
+      "properties": {
+        "appUIModelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "capabilityCatalogRevision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "instanceId": { "$ref": "#/$defs/nonBlankString" },
+        "manifest": { "$ref": "#/$defs/opaqueHostObject" }
+      }
+    },
     "layoutSlotTarget": {
       "type": "object",
       "additionalProperties": false,
@@ -511,6 +522,16 @@
         {
           "type": "object",
           "additionalProperties": false,
+          "required": ["schemaVersion", "operation", "input"],
+          "properties": {
+            "schemaVersion": { "const": 3 },
+            "operation": { "const": "preflight_ui_plugin_placement" },
+            "input": { "$ref": "#/$defs/preflightUIPluginPlacementInput" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
           "required": [
             "schemaVersion",
             "operation",
@@ -653,6 +674,9 @@
                 },
                 {
                   "$ref": "#/$defs/inspectUIPluginResult"
+                },
+                {
+                  "$ref": "#/$defs/preflightUIPluginPlacementResult"
                 },
                 {
                   "$ref": "#/$defs/inspectUIServicesResult"
@@ -1578,6 +1602,21 @@
         "selected": {
           "$ref": "#/$defs/opaqueHostObject"
         }
+      }
+    },
+    "preflightUIPluginPlacementResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eligible", "appUIModelHash"],
+      "properties": {
+        "eligible": { "type": "boolean" },
+        "appUIModelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "capabilityCatalogRevision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "pluginId": { "$ref": "#/$defs/nonBlankString" },
+        "instanceId": { "$ref": "#/$defs/nonBlankString" },
+        "expectedPlacement": { "$ref": "#/$defs/opaqueHostObject" },
+        "unverified": { "type": "array", "items": { "type": "string" }, "maxItems": 10 },
+        "diagnostic": { "$ref": "#/$defs/opaqueHostObject" }
       }
     },
     "inspectUIPluginResult": {

@@ -17,6 +17,8 @@ import {
   planWorkspaceRegionMove,
 } from "../../src/project/app-ui-operations";
 import { mutateAppUIModel } from "../../src/project/app-ui-transaction";
+import { preflightCreatorPluginPlacement } from "../../src/project/creator-placement-preflight";
+import { validateProjectControlResult } from "../../src/result-contract.mjs";
 import {
   actionIdFor,
   buildCreatorActionCatalog,
@@ -163,6 +165,91 @@ afterEach(async () => {
       rm(projectRoot, { recursive: true, force: true }),
     ),
   );
+});
+
+describe("new Plugin placement preflight", () => {
+  it("plans a right-side Plugin without writing source or changing authored tracks", async () => {
+    const model = rowModel(["conversation"]);
+    const projectRoot = await createFixtureProject(model, [["conversation", {
+      capabilities: ["conversation"],
+      authoring: { recommendedSize: { width: "minmax(0, 1fr)" } },
+    }]]);
+    const source = await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8");
+    const generation = generatePluginRegistryFromFacts(
+      model, await collectPluginProjectFacts(projectRoot, fixtureConfig),
+    );
+    const result = await preflightCreatorPluginPlacement(projectRoot, {
+      appUIModelHash: hash(source),
+      capabilityCatalogRevision: generation.capabilityCatalog.revision,
+      instanceId: "checklist-main",
+      manifest: {
+        id: "checklist", name: "Checklist", description: "A persistent checklist panel.", version: "1.0.0",
+        capabilities: ["visual"],
+        authoring: {
+          intents: ["show a checklist"],
+          defaultPlacement: { type: "relative", relation: "after", anchorPluginId: "conversation" },
+          recommendedSize: { width: "280px" },
+        },
+      },
+    });
+    expect(result).toMatchObject({
+      eligible: true,
+      expectedPlacement: { relation: "after", size: "280px" },
+      unverified: ["source-and-service-dependencies", "runtime-container-geometry"],
+    });
+    expect(() => validateProjectControlResult("preflight_ui_plugin_placement", result)).not.toThrow();
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")).toBe(source);
+    await expect(readFile(path.join(projectRoot, "plugins", "checklist", "manifest.json"))).rejects.toThrow();
+  });
+
+  it("rejects a mismatched child Slot before source creation", async () => {
+    const model: AppUIModel = { root: { type: "slot", plugins: [{ id: "parent-main", pluginId: "parent", enabled: true }] } };
+    const projectRoot = await createFixtureProject(model, [["parent", {
+      capabilities: ["parent"],
+      slots: { children: { footer: {
+        description: "Footer", cardinality: "one", mode: "content",
+        accepts: { anyOfCapabilities: ["action"] },
+      } } },
+    }]]);
+    const source = await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8");
+    const generation = generatePluginRegistryFromFacts(
+      model, await collectPluginProjectFacts(projectRoot, fixtureConfig),
+    );
+    const result = await preflightCreatorPluginPlacement(projectRoot, {
+      appUIModelHash: hash(source),
+      capabilityCatalogRevision: generation.capabilityCatalog.revision,
+      instanceId: "card-main",
+      manifest: {
+        id: "card", name: "Card", description: "Visible card", version: "1.0.0",
+        capabilities: ["visual"],
+        authoring: { intents: ["show card"], defaultPlacement: {
+          type: "plugin_slot", parentPluginId: "parent", slot: "footer",
+        } },
+      },
+    });
+    expect(result).toMatchObject({ eligible: false, diagnostic: {
+      code: "AUTHORING_MOVE_INCOMPATIBLE",
+      details: { reason: "slot-capability-mismatch" },
+    } });
+    expect(() => validateProjectControlResult("preflight_ui_plugin_placement", result)).not.toThrow();
+    const wrongScope = await preflightCreatorPluginPlacement(projectRoot, {
+      appUIModelHash: hash(source),
+      capabilityCatalogRevision: generation.capabilityCatalog.revision,
+      instanceId: "renderer-main",
+      manifest: {
+        id: "renderer", name: "Renderer", description: "Scoped renderer", version: "1.0.0",
+        capabilities: ["action"], requiresRenderScope: true,
+        authoring: { intents: ["render result"], defaultPlacement: {
+          type: "plugin_slot", parentPluginId: "parent", slot: "footer",
+        } },
+      },
+    });
+    expect(wrongScope).toMatchObject({ eligible: false, diagnostic: {
+      code: "AUTHORING_MOVE_INCOMPATIBLE",
+      details: { reason: "slot-render-scope-mismatch" },
+    } });
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")).toBe(source);
+  });
 });
 
 describe("Creator Action semantic identity", () => {

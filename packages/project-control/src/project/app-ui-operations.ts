@@ -256,6 +256,7 @@ export interface LayoutReflowPlan {
 
 export interface AppUIPluginMoveContracts {
   readonly pluginCapabilities: ReadonlyMap<string, readonly string[]>;
+  readonly pluginRequiresRenderScope?: ReadonlyMap<string, boolean>;
   readonly pluginSlots: PluginSlotCatalog;
 }
 
@@ -1154,6 +1155,11 @@ export function assertPluginSlotDestination(
   if (!targetCapabilities.some((capability) => acceptedCapabilities.includes(capability))) {
     moveIncompatible("slot-capability-mismatch", `Plugin "${pluginId}" is incompatible with child Slot "${slot}".`,
       { instanceId, parentInstanceId: parent.id, targetCapabilities: [...targetCapabilities], acceptedCapabilities: [...acceptedCapabilities] });
+  }
+  const requiresRenderScope = contracts.pluginRequiresRenderScope?.get(pluginId);
+  if (requiresRenderScope !== undefined && (destinationSlot.mode === "renderer") !== requiresRenderScope) {
+    moveIncompatible("slot-render-scope-mismatch", `Plugin "${pluginId}" and child Slot "${slot}" disagree about renderer mode.`,
+      { instanceId, parentInstanceId: parent.id, slot, requiresRenderScope, slotMode: destinationSlot.mode ?? "content" });
   }
   if (checkCardinality && destinationSlot.cardinality === "one" && (parent.slots?.[slot]?.length ?? 0) > 0) {
     moveIncompatible("slot-cardinality-full", `Destination child Slot "${slot}" already contains a Plugin.`,

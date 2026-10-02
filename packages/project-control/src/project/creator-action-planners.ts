@@ -388,6 +388,7 @@ export function planDefaultPluginInsertion(
   model: AppUIModel,
   operation: Extract<AppUIOperation, { type: "insert_plugin_default" }>,
   generation: GeneratePluginCatalogResult,
+  options: { skipServiceReadiness?: boolean } = {},
 ): DefaultPluginInsertionPlan {
   const assetMatches = generation.assets.filter(
     (asset) => asset.pluginId === operation.plugin.pluginId,
@@ -438,7 +439,7 @@ export function planDefaultPluginInsertion(
     );
   }
   const readiness = serviceReadinessForAsset(asset, generation);
-  if (readiness.status === "unresolved") {
+  if (!options.skipServiceReadiness && readiness.status === "unresolved") {
     semanticPlacementError(
       "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
       `UI Plugin "${asset.pluginId}" has unresolved required Services.`,
@@ -613,6 +614,9 @@ export function pluginMoveContractsForGeneration(
   return {
     pluginCapabilities: new Map(
       generation.assets.map((asset) => [asset.pluginId, asset.capabilities] as const),
+    ),
+    pluginRequiresRenderScope: new Map(
+      generation.assets.map((asset) => [asset.pluginId, asset.manifest.requiresRenderScope === true] as const),
     ),
     pluginSlots: generation.activeComposition.slotCatalog,
   };

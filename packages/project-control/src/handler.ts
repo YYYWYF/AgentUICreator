@@ -14,6 +14,7 @@ import {
 import { inspectUIComposition, inspectUIProject } from "./project/project-inspector";
 import { inspectPluginSourceReferences } from "./project/plugin-source-references";
 import { collectPluginAssets } from "./project/plugin-assets";
+import { preflightCreatorPluginPlacement } from "./project/creator-placement-preflight";
 import { creatorCancelMarkerSchemaPattern } from "./project/creator-cancel-marker";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./project/agent-ui-project-paths";
 import { readAgentUIProjectConfig } from "./project/project-mode";
@@ -92,6 +93,16 @@ export const requestSchema = z.discriminatedUnion("operation", [
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_ui_plugin"),
     input: z.strictObject({ pluginId: z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim()) }),
+  }),
+  z.strictObject({
+    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
+    operation: z.literal("preflight_ui_plugin_placement"),
+    input: z.strictObject({
+      appUIModelHash: appUIModelHashSchema,
+      capabilityCatalogRevision: appUIModelHashSchema,
+      instanceId: z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim()),
+      manifest: z.record(z.string(), z.unknown()),
+    }),
   }),
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
@@ -417,6 +428,8 @@ async function executeRequest(
       return inspectUIServices(projectRoot);
     case "inspect_ui_plugin":
       return inspectUIPlugin(projectRoot, request.input.pluginId);
+    case "preflight_ui_plugin_placement":
+      return preflightCreatorPluginPlacement(projectRoot, request.input);
     case "inspect_ui_plugin_source_references":
       return inspectUIPluginSourceReferences(
         projectRoot,

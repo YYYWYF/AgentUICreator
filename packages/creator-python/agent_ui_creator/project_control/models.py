@@ -16,6 +16,7 @@ ReadProjectControlOperation: TypeAlias = Literal[
     "list_ui_plugins",
     "inspect_ui_slots",
     "inspect_ui_plugin",
+    "preflight_ui_plugin_placement",
     "inspect_ui_services",
     "inspect_ui_plugin_source_references",
     "inspect_agent_ui_sources",

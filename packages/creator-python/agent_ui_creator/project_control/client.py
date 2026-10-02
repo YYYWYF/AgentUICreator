@@ -100,6 +100,17 @@ class ProjectControlClient:
     async def inspect_ui_plugin(self, plugin_id: str) -> dict[str, Any]:
         return await self._request("inspect_ui_plugin", {"pluginId": plugin_id})
 
+    async def preflight_ui_plugin_placement(
+        self, *, app_ui_model_hash: str, capability_catalog_revision: str,
+        instance_id: str, manifest: dict[str, Any],
+    ) -> dict[str, Any]:
+        return await self._request("preflight_ui_plugin_placement", {
+            "appUIModelHash": app_ui_model_hash,
+            "capabilityCatalogRevision": capability_catalog_revision,
+            "instanceId": instance_id,
+            "manifest": manifest,
+        })
+
     async def inspect_ui_services(self) -> dict[str, Any]:
         return await self._request("inspect_ui_services", {})
 

@@ -31,6 +31,7 @@ DOMAIN_READ_TOOL_NAMES = (
     "list_ui_plugins",
     "inspect_ui_slots",
     "inspect_ui_plugin",
+    "preflight_ui_plugin_placement",
     "inspect_ui_services",
     "inspect_ui_plugin_source_references",
     "inspect_agent_ui_sources",
@@ -484,6 +485,22 @@ def create_project_control_tools(
         except ProjectControlError as error:
             return _render_error(error)
 
+    @tool("preflight_ui_plugin_placement")
+    async def preflight_ui_plugin_placement(
+        appUIModelHash: str, capabilityCatalogRevision: str,
+        instanceId: str, manifest: dict[str, Any],
+    ) -> str:
+        """Check a proposed visual Plugin's canonical position against the current AppUIModel and Slot contract before creating source. This read does not reserve the Slot, verify Services or geometry, or grant development permission. Use current hashes; commit rechecks all constraints."""
+        try:
+            return _render_result(await client.preflight_ui_plugin_placement(
+                app_ui_model_hash=appUIModelHash,
+                capability_catalog_revision=capabilityCatalogRevision,
+                instance_id=instanceId,
+                manifest=manifest,
+            ))
+        except ProjectControlError as error:
+            return _render_error(error)
+
     @tool("inspect_ui_services")
     async def inspect_ui_services() -> str:
         """Inspect declared Service providers and composition availability; this does not test a live backend connection."""
@@ -598,6 +615,7 @@ def create_project_control_tools(
         list_ui_plugins,
         inspect_ui_slots,
         inspect_ui_plugin,
+        preflight_ui_plugin_placement,
         inspect_ui_services,
         inspect_ui_plugin_source_references,
         inspect_agent_ui_sources,

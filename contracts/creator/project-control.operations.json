@@ -52,6 +52,13 @@
       "agentExposed": true
     },
     {
+      "name": "preflight_ui_plugin_placement",
+      "kind": "read",
+      "inputDef": "preflightUIPluginPlacementInput",
+      "resultDef": "preflightUIPluginPlacementResult",
+      "agentExposed": true
+    },
+    {
       "name": "inspect_ui_plugin_source_references",
       "kind": "read",
       "inputDef": "pluginInput",
