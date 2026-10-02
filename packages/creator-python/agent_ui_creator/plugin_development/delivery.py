@@ -68,7 +68,8 @@ def _instances(model: dict) -> list[dict]:
 def delivery_report(*, root: Path, plugin_id: str, contract: dict | None,
                     authorization: dict, revision: int, static_passed: bool,
                     runtime: dict | None, layout: dict | None,
-                    behavior: dict | None = None, final: bool = True) -> dict:
+                    behavior: dict | None = None, final: bool = True,
+                    verification_mode: Literal["static_only", "static_and_runtime"] = "static_and_runtime") -> dict:
     stages = {name: False for name in ("created", "registered", "composed", "verified")}
     blockers: list[str] = []
     instances: list[dict] = []
@@ -106,7 +107,7 @@ def delivery_report(*, root: Path, plugin_id: str, contract: dict | None,
         blockers.append("当前版本 verify:ui / typecheck 尚未通过")
     runtime_passed = bool(runtime and runtime.get("runtimeStatus") == "passed"
                           and runtime.get("compositionVerified") is True)
-    if not runtime_passed:
+    if not runtime_passed and verification_mode == "static_and_runtime":
         blockers.append("当前版本运行验证尚未通过")
     geometry_passed = application_delivery and contract is not None and contract.get("renderingCategory") == "application"
     if not geometry_passed:
@@ -120,13 +121,15 @@ def delivery_report(*, root: Path, plugin_id: str, contract: dict | None,
             actual = rect.get(expectation["property"]) if isinstance(rect, dict) else None
             if not isinstance(actual, (int, float)) or abs(actual - expectation["expected"]) > expectation.get("tolerance", 1):
                 geometry_passed = False
-        if not geometry_passed:
+        if not geometry_passed and verification_mode == "static_and_runtime":
             blockers.append("缺少当前版本插件的可见 Runtime 几何证据")
     needs_behavior = bool(contract and (contract.get("interactions") or contract.get("verificationMethod") == "browser-test"))
     behavior_passed = bool(behavior and behavior.get("revision") == revision and behavior.get("status") == "passed")
-    if needs_behavior and not behavior_passed:
+    if needs_behavior and not behavior_passed and verification_mode == "static_and_runtime":
         blockers.append("声明的交互尚未通过项目浏览器测试")
-    stages["verified"] = bool(stages["composed"] and not blockers)
+    stages["verified"] = bool(stages["composed"] and not blockers and verification_mode == "static_and_runtime")
+    static_complete = bool(stages["composed"] and not blockers and static_passed
+                           and verification_mode == "static_only")
     reached = "planning"
     for stage, passed in stages.items():
         if not passed:
@@ -138,13 +141,13 @@ def delivery_report(*, root: Path, plugin_id: str, contract: dict | None,
         "authorization": {"status": authorization.get("status", "unknown"),
                           "grantSource": authorization.get("grantSource")},
         "contract": contract,
-        "delivery": {"status": "completed" if stages["verified"] else "blocked" if final else reached,
+        "delivery": {"status": "completed" if stages["verified"] else "statically-verified" if static_complete else "blocked" if final else reached,
                      "lastSuccessfulStage": reached, "stages": stages, "blockers": blockers,
                      "instanceIds": [item["id"] for item in instances]},
         "verification": {"static": "pass" if static_passed else "not-passed",
-                         "runtime": "pass" if runtime_passed else "not-passed",
-                         "geometry": "pass" if geometry_passed else "not-passed",
-                         "interaction": "pass" if behavior_passed else "not-passed" if needs_behavior else "not-required"},
+                         "runtime": "not-run" if verification_mode == "static_only" else "pass" if runtime_passed else "not-passed",
+                         "geometry": "not-run" if verification_mode == "static_only" else "pass" if geometry_passed else "not-passed",
+                         "interaction": "not-run" if verification_mode == "static_only" and needs_behavior else "pass" if behavior_passed else "not-passed" if needs_behavior else "not-required"},
     }
 
 

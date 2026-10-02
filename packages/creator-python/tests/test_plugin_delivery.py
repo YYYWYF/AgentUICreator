@@ -124,6 +124,22 @@ def test_runtime_geometry_contradiction_and_stale_observation(tmp_path):
     assert report(tmp_path, layout={"compositionFresh": False})["delivery"]["status"] == "blocked"
 
 
+def test_static_only_reports_scope_without_runtime_or_browser_claims(tmp_path):
+    artifacts(tmp_path)
+    write(tmp_path, "plugins/registry.generated.ts", 'import("./checklist/definition")')
+    compose(tmp_path)
+    contract = {**CONTRACT, "verificationMethod": "browser-test", "interactions": ["check"]}
+    result = report(tmp_path, contract=contract, runtime=None, layout=None,
+                    verification_mode="static_only")
+    assert result["delivery"]["status"] == "statically-verified"
+    assert result["delivery"]["stages"]["verified"] is False
+    assert result["verification"] == {
+        "static": "pass", "runtime": "not-run", "geometry": "not-run", "interaction": "not-run",
+    }
+    assert report(tmp_path, contract=contract, runtime=None, layout=None,
+                  verification_mode="static_and_runtime")["delivery"]["status"] == "blocked"
+
+
 @pytest.mark.parametrize("status", ["skipped", "failed", "timedOut"])
 def test_browser_report_never_accepts_skips_or_failures(status):
     output = json.dumps({"suites": [{"specs": [{"title": "[delivery:checklist] send", "tests": [

@@ -162,6 +162,7 @@ class CreatorDevelopmentCompletionGate:
                 static_passed=static_passed, runtime=self.runtime.current_result(),
                 layout=self.runtime.current_layout(), behavior=behavior,
                 final=self._delivery_review_run_id == self.activity.run_id or self.activity.finishing,
+                verification_mode=self.verification_mode,
             ))
         return reports
 
@@ -172,8 +173,11 @@ class CreatorDevelopmentCompletionGate:
         if not reports:
             return decision
         self.activity.record_plugin_deliveries(reports)
-        incomplete = [report for report in reports if report["delivery"]["status"] != "completed"]
+        acceptable = {"completed"} if self.verification_mode == "static_and_runtime" else {"statically-verified"}
+        incomplete = [report for report in reports if report["delivery"]["status"] not in acceptable]
         if not incomplete:
+            if self.verification_mode == "static_only" and decision.accepted:
+                return CompletionDecision(True, decision.text.rstrip() + "\n\n本轮仅通过静态检查；Runtime 与浏览器行为未验证。")
             return decision
         blockers = "；".join(
             f"{report['pluginId']}: " + "；".join(report["delivery"]["blockers"])
