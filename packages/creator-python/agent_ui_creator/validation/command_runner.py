@@ -25,7 +25,11 @@ class CreatorValidationCommandRunner:
     async def execute_known_command(
         self, command: CreatorValidationCommand
     ) -> CommandExecutionResult:
-        executable, *arguments = _COMMANDS[command]
+        return await self.execute_arguments(_COMMANDS[command])
+
+    async def execute_arguments(self, arguments_: tuple[str, ...]) -> CommandExecutionResult:
+        """Host-only argv entry; never exposed as a model command tool."""
+        executable, *arguments = arguments_
         try:
             process = await asyncio.create_subprocess_exec(
                 executable,

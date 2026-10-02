@@ -14,6 +14,7 @@ from ..domain_state import DomainObservationContext
 from ..project_control import ProjectControlClient, ProjectControlError
 from ..repair import CreatorRepairState
 from .store import RuntimeDiagnosticStore
+from .layout_intent import layout_intent_checks
 
 
 logger = logging.getLogger(__name__)
@@ -58,6 +59,9 @@ class RuntimeDiagnosticInspectionService:
         self.observations = observations
         self.activity = activity
         self.repair_state = repair_state or CreatorRepairState()
+        self.latest_layout: dict[str, Any] | None = None
+        self.layout_revision: int | None = None
+        self.layout_run_id: str | None = None
         self.latest_result: dict[str, Any] | None = None
         self.last_inspected_revision: int | None = None
 
@@ -254,6 +258,9 @@ class RuntimeDiagnosticInspectionService:
             )
         return result
 
+    def current_layout(self) -> dict[str, Any] | None:
+        return self.latest_layout if self.layout_revision == self.activity.revision and self.layout_run_id == self.activity.run_id else None
+
     def current_result(self) -> dict[str, Any] | None:
         result = self.latest_result
         if (
@@ -272,6 +279,14 @@ class RuntimeDiagnosticInspectionService:
         """Attach Host-owned tail evidence to the current-revision Runtime result."""
 
         result = deepcopy(runtime_result or self.latest_result or {})
+        if runtime_result and isinstance(runtime_result.get("runtimeInstances"), list):
+            self.latest_layout = {
+                "compositionFresh": runtime_result.get("compositionFresh"),
+                "instances": deepcopy(runtime_result["runtimeInstances"]),
+                "currentHash": runtime_result.get("currentHash"),
+            }
+            self.layout_revision = self.activity.revision
+            self.layout_run_id = self.activity.run_id
         result["verificationTail"] = deepcopy(verification_tail)
         self.latest_result = result
         self.last_inspected_revision = self.activity.revision
@@ -433,6 +448,12 @@ class RuntimeDiagnosticInspectionService:
                 path_to_node_ref=path_to_node_ref,
             )
         )
+        result["intentChecks"] = layout_intent_checks(
+            project.get("appUIModel", {}).get("layout", {}), result["layoutNodes"],
+        )
+        self.latest_layout = deepcopy(result)
+        self.layout_revision = self.activity.revision
+        self.layout_run_id = self.activity.run_id
         if node_refs is not None:
             result["layoutNodes"] = [
                 item

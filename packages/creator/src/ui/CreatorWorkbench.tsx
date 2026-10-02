@@ -277,6 +277,20 @@ function isCreatorRunReceipt(value: unknown): value is CreatorRunReceipt {
               check.status === "unavailable") &&
             typeof check.evidence === "string",
         ))) &&
+    (value.pluginDeliveries === undefined ||
+      (Array.isArray(value.pluginDeliveries) && value.pluginDeliveries.every((report) =>
+        isRecord(report) && typeof report.pluginId === "string" &&
+        typeof report.projectRevision === "number" &&
+        isRecord(report.decision) && typeof report.decision.type === "string" &&
+        isRecord(report.authorization) && typeof report.authorization.status === "string" &&
+        isRecord(report.delivery) &&
+        (typeof report.delivery.status === "string" && ["planning", "created", "registered", "composed", "verified", "completed", "blocked"].includes(report.delivery.status)) &&
+        typeof report.delivery.lastSuccessfulStage === "string" &&
+        Array.isArray(report.delivery.blockers) && report.delivery.blockers.every((item) => typeof item === "string") &&
+        Array.isArray(report.delivery.instanceIds) && report.delivery.instanceIds.every((item) => typeof item === "string") &&
+        isRecord(report.delivery.stages) && Object.values(report.delivery.stages).every((item) => typeof item === "boolean") &&
+        isRecord(report.verification) && Object.values(report.verification).every((item) => typeof item === "string")
+      ))) &&
     (value.diagnosticLog === undefined ||
       (isRecord(value.diagnosticLog) &&
         value.diagnosticLog.format === "jsonl" &&
@@ -507,6 +521,17 @@ function CreatorReceipt({ receipt }: { receipt: CreatorRunReceipt }) {
         </span>
       </header>
 
+      {receipt.pluginDeliveries?.map((report) => (
+        <div className="creator-receipt-section" key={report.pluginId}>
+          <h2>插件交付：{report.pluginId}</h2>
+          <p>{report.delivery.status === "completed" ? "交付完成" : report.delivery.status === "blocked" ? "交付阻塞" : "交付进行中"} · {report.delivery.lastSuccessfulStage}</p>
+          <p>方案：{report.decision.type} · 授权：{report.authorization.status}</p>
+          {Object.entries(report.verification).map(([name, status]) => (
+            <span key={name}>{name}: {status}{" "}</span>
+          ))}
+          {report.delivery.blockers.map((blocker) => <p key={blocker}>{blocker}</p>)}
+        </div>
+      ))}
       {receipt.transaction === undefined ? null : (
         <div className="creator-receipt-section">
           <h2>安全撤销</h2>

@@ -8,6 +8,7 @@ from langgraph.types import interrupt
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..human_input.models import QuestionRequest
+from .delivery import PluginAuthoringContract
 from .authority import PluginDevelopmentAuthority, PluginDevelopmentError
 
 
@@ -17,6 +18,7 @@ DEVELOPMENT_DECISION_OPTIONS = frozenset({"start", "adjust", "defer"})
 
 class PrepareUIPluginDevelopmentInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    deliveryContract: PluginAuthoringContract
     workKind: Literal["create-plugin", "adapt-component", "extend-capability"]
     targetPluginId: str = Field(min_length=1, max_length=100)
     desiredOutcome: str = Field(min_length=1, max_length=1200)
@@ -57,6 +59,7 @@ def create_prepare_ui_plugin_development_tool(
     )
     def prepare_ui_plugin_development(
         workKind: str, targetPluginId: str, desiredOutcome: str,
+        deliveryContract: dict,
         missingCapabilities: list[str], reuseEvidenceRefs: list[str] | None = None,
         uiScope: str = "", dataScope: str = "",
         excludedOperations: list[str] | None = None,
@@ -64,6 +67,7 @@ def create_prepare_ui_plugin_development_tool(
     ) -> str:
         try:
             result = authority.prepare(
+                delivery_contract=deliveryContract,
                 work_kind=workKind,
                 target_plugin_id=targetPluginId,
                 desired_outcome=desiredOutcome,
@@ -87,6 +91,7 @@ def create_prepare_ui_plugin_development_tool(
                             f"界面范围：{uiScope or '所述前端交互'}；"
                             f"数据范围：{dataScope or '以用户请求为准'}；"
                             f"不包括：{exclusions}。"
+                            f"交付契约：{json.dumps(result.get('deliveryContract'), ensure_ascii=False)}。"
                         ),
                         "options": [
                             {"id": "start", "label": "开始开发", "description": "仅批准显示的开发范围。"},

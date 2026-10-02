@@ -6,10 +6,13 @@ from typing import Protocol
 
 from ..activity import CreatorActivityRecorder
 from ..resource_scope import change_layers_for_paths
+from ..project_paths import agent_ui_source_path
+from ..runtime_diagnostics.layout_intent import has_fixed_geometry
 from ..runtime_diagnostics import RuntimeDiagnosticInspectionService
 from ..run_control import CreatorRunControlState
 from ..validation import CREATOR_COMPLETION_VALIDATIONS, CreatorValidationService
 from ..repair import CreatorRepairState
+from ..plugin_development.delivery import delivery_report, source_delivery_contract
 from ..plugin_development.authority import PluginDevelopmentAuthority
 from ..verification_policy import (
     CreatorVerificationMode,
@@ -54,6 +57,7 @@ class CreatorDevelopmentCompletionGate:
         self.run_control = run_control
         self.verification_mode = verification_mode
         self.plugin_development_authority = plugin_development_authority
+        self._delivery_review_run_id: str | None = None
 
     @staticmethod
     def _check(identifier: str, passed: bool, evidence: str) -> dict[str, str]:
@@ -128,7 +132,80 @@ class CreatorDevelopmentCompletionGate:
     def finalize(self, candidate: str) -> str:
         return self.review(candidate).text
 
+    def inspect_deliveries(self) -> list[dict]:
+        authority = self.plugin_development_authority
+        if authority is None:
+            return []
+        active = authority.active
+        targets = []
+        if active is not None and active.status == "authorized":
+            targets.append((active.target_plugin_id, active.delivery_contract, active.public_result(), active.scope_hash))
+        for plugin_id in getattr(authority, "installed_source_plugin_ids", ()):
+            if not any(target[0] == plugin_id for target in targets):
+                targets.append((plugin_id, source_delivery_contract(self.activity.project_root, plugin_id),
+                                {"status": "authorized", "workKind": "reuse-source", "grantSource": "source-install"}, None))
+        if not targets:
+            return []
+        validation = self.validation.current_result()
+        static_passed = validation is not None and validation.status == "passed" and all(
+            any(check.command == command and check.status == "passed" for check in validation.checks)
+            for command in CREATOR_COMPLETION_VALIDATIONS
+        )
+        reports = []
+        for plugin_id, contract, authorization, scope_hash in targets:
+            behavior = self.activity.current_plugin_behavior()
+            if behavior and (behavior.get("pluginId") != plugin_id or behavior.get("scopeHash") != scope_hash):
+                behavior = None
+            reports.append(delivery_report(
+                root=self.activity.project_root, plugin_id=plugin_id, contract=contract,
+                authorization=authorization, revision=self.activity.revision,
+                static_passed=static_passed, runtime=self.runtime.current_result(),
+                layout=self.runtime.current_layout(), behavior=behavior,
+                final=self._delivery_review_run_id == self.activity.run_id or self.activity.finishing,
+            ))
+        return reports
+
     def review(self, candidate: str) -> CompletionDecision:
+        decision = self._review(candidate)
+        self._delivery_review_run_id = self.activity.run_id
+        reports = self.inspect_deliveries()
+        if not reports:
+            return decision
+        self.activity.record_plugin_deliveries(reports)
+        incomplete = [report for report in reports if report["delivery"]["status"] != "completed"]
+        if not incomplete:
+            return decision
+        blockers = "；".join(
+            f"{report['pluginId']}: " + "；".join(report["delivery"]["blockers"])
+            for report in incomplete
+        )
+        text = "插件尚未交付完成。状态：blocked。" + "；".join(
+            f"{report['pluginId']} 已达到 {report['delivery']['lastSuccessfulStage']}"
+            for report in incomplete
+        ) + f"。{blockers}。已写入的修改已保留。"
+        self.activity.record_verification({
+            "status": "changed-unverified", "projectRevision": self.activity.revision,
+            "runtimeStatus": "not-run" if self.verification_mode == "static_only" else (self.runtime.current_result() or {}).get("runtimeStatus", "unavailable"),
+            "verificationMode": self.verification_mode, "auditAttempts": self.repair_state.repair_rounds,
+            "checks": [self._check("plugin-delivery", False, blockers)],
+        })
+        # Ending a blocked run is not a successful delivery (the result reads this receipt).
+        terminal = (
+            any(token in candidate.lower() for token in ("blocked", "尚未", "未完成", "无法完成"))
+            or (self.verification_mode == "static_only" and all(
+                report["delivery"]["stages"]["composed"] and report["verification"]["static"] == "pass"
+                for report in reports))
+            or self.repair_state.limit_reached
+            or (self.run_control is not None and self.run_control.blocked)
+        )
+        return CompletionDecision(terminal, text, None if terminal else (
+            "Finish only the missing delivery obligations within current authorization. "
+            "Inspect fresh composition, compose the Plugin, validate, inspect_runtime_errors and "
+            "inspect_runtime_layout; run verify_ui_plugin_behavior for declared interactions. "
+            "Do not repeat successful work or invent placement types. Evidence: " + json.dumps(reports, ensure_ascii=False)
+        ))
+
+    def _review(self, candidate: str) -> CompletionDecision:
         if self.run_control is not None and self.run_control.blocked:
             return CompletionDecision(
                 True,
@@ -470,6 +547,25 @@ class CreatorDevelopmentCompletionGate:
                 ),
             }
         )
+        if runtime_passed and any(item.get("path", "").endswith("app-ui/app-ui.json") for item in receipt["files"]):
+            try:
+                model_path = self.activity.project_root / agent_ui_source_path(self.activity.project_root, "app-ui/app-ui.json").lstrip("/")
+                fixed_geometry = has_fixed_geometry(json.loads(model_path.read_text()).get("root", {}))
+            except (OSError, ValueError):
+                fixed_geometry = False
+            layout = self.runtime.current_layout()
+            intent_checks = (layout or {}).get("intentChecks", [])
+            tail_geometry = (runtime.get("verificationTail") or {}).get("geometryVerification", {})
+            if fixed_geometry and tail_geometry.get("status") != "passed" and (not layout or layout.get("compositionFresh") is not True or not intent_checks
+                                   or any(check.get("status") != "passed" for check in intent_checks)):
+                self.activity.record_verification({
+                    "status": "changed-unverified", "verificationMode": self.verification_mode,
+                    "runtimeStatus": "failed" if any(check.get("status") == "failed" for check in intent_checks) else "unavailable",
+                    "projectRevision": self.activity.revision, "auditAttempts": self.repair_state.repair_rounds,
+                    "checks": [*checks, self._check("runtime-layout-intent", False, json.dumps(intent_checks))],
+                })
+                return CompletionDecision(False, "布局修改已保留，但固定尺寸尚未通过当前 Runtime 几何验证，任务未完成。",
+                    None if self.repair_state.limit_reached else "Call inspect_runtime_layout and compare intentChecks with measured rectangles. Repair fresh contradictions; do not claim completion from AppUIModel sizes alone.")
         if runtime_passed:
             if self.service_authorization_finalizer is not None:
                 self.service_authorization_finalizer.complete_current_applied()

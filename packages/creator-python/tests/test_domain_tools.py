@@ -540,7 +540,7 @@ def test_agent_ui_source_tools_keep_inspection_read_only_and_apply_is_a_noop(tmp
     inspected = json.loads(asyncio.run(tools[7].ainvoke({})))
     applied = json.loads(
         asyncio.run(
-            tools[8].ainvoke(
+            next(tool for tool in tools if tool.name == "apply_agent_ui_source_item").ainvoke(
                 {"itemId": "primitive/button", "expectedStateHash": "f" * 64}
             )
         )

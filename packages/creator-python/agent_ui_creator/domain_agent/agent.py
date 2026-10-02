@@ -43,6 +43,8 @@ from ..model_settings import DEFAULT_CREATOR_MODEL_MAX_RETRIES
 from ..human_input import ask_user_question
 from ..observability import CreatorRunTelemetry
 from ..plugin_development.authority import PluginDevelopmentAuthority
+from ..plugin_development.delivery import create_plugin_delivery_tool
+from ..plugin_development.behavior import create_plugin_behavior_tool
 from ..plugin_development.prepare_tool import create_prepare_ui_plugin_development_tool
 from ..plugin_development.admission_middleware import PluginDevelopmentAdmissionMiddleware
 from ..project_control import ProjectControlClient, ProjectControlMetrics
@@ -277,6 +279,10 @@ class CreatorDomainReadAgent:
             if self.activity.semantic_noop_satisfied
             else "success"
         )
+        if completion_decision is not None and not completion_decision.accepted:
+            completion = "blocked"
+        if any(report["delivery"]["status"] != "completed" for report in self.activity.snapshot().get("pluginDeliveries", [])):
+            completion = "blocked"
         values = dict(
             text=text,
             metrics=self.protocol.metrics,
@@ -651,6 +657,13 @@ def create_domain_write_creator_agent(
         metrics=observations.composition_fast_path_metrics,
         verification_mode=verification_mode,
     )
+    completion_gate = CreatorDevelopmentCompletionGate(
+        activity=backend.activity, validation=validation, runtime=runtime_inspection,
+        repair_state=repair_state, service_authorization_finalizer=service_verifier,
+        run_control=run_control, verification_mode=verification_mode,
+        plugin_development_authority=development_authority,
+    )
+    backend.activity.plugin_delivery_provider = completion_gate.inspect_deliveries
     domain_tools = [
         ask_user_question,
         *create_project_control_tools(
@@ -660,6 +673,8 @@ def create_domain_write_creator_agent(
         ),
         create_ui_plugin_tool(plugin_creation),
         create_prepare_ui_plugin_development_tool(development_authority),
+        create_plugin_behavior_tool(authority=development_authority, activity=backend.activity),
+        create_plugin_delivery_tool(completion_gate.inspect_deliveries),
         mutate_ui_plugin_source_tool(plugin_mutation),
         *create_service_contract_tools(
             service_authorization,
@@ -763,16 +778,7 @@ def create_domain_write_creator_agent(
         observations=observations,
         mutation_service=service,
         completion_verification_tail=completion_verification_tail,
-        completion_gate=CreatorDevelopmentCompletionGate(
-            activity=backend.activity,
-            validation=validation,
-            runtime=runtime_inspection,
-            repair_state=repair_state,
-            service_authorization_finalizer=service_verifier,
-            run_control=run_control,
-            verification_mode=verification_mode,
-            plugin_development_authority=development_authority,
-        ),
+        completion_gate=completion_gate,
         automatic_completion_repair=automatic_completion_repair,
         service_contract_authorizations=service_authorizations,
         plugin_development_authority=development_authority,

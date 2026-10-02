@@ -283,7 +283,7 @@ class PluginProjectControl:
         self.record("inspect_app_ui_model")
         return {"hash": self.hash(), "model": self.model()}
 
-    async def inspect_ui_project(self):
+    async def inspect_ui_project(self, *, view=None):
         self.record("inspect_ui_project")
         return {
             "appUIModel": {"hash": self.hash(), "model": self.model()},
@@ -695,6 +695,7 @@ def make_agent(
                                     "instanceId": plugin["id"],
                                     "pluginId": plugin["pluginId"],
                                     "slotId": "layout:right-status",
+                                    "rect": {"x": 0, "y": 0, "width": 280, "height": 300},
                                 }
                             ],
                         },
@@ -837,6 +838,11 @@ def authorize_golden_development(agent, *, plugin_id, work_kind, intent="explici
         intent=intent,
     )
     plan = authority.prepare(
+        delivery_contract={
+            "capability": plugin_id, "renderingCategory": "application" if plugin_id == "auth-gate" else "panel",
+            "placement": "application" if plugin_id == "auth-gate" else "layout slot",
+            "lifecycle": "local-ui-only", "dependencies": [], "verificationMethod": "runtime",
+        },
         work_kind=work_kind, target_plugin_id=plugin_id,
         desired_outcome=f"实现 {plugin_id} 的既定前端行为",
         missing_capabilities=[f"{plugin_id} 的既定交互"],
@@ -866,6 +872,7 @@ def test_full_plugin_creation_golden_scenario(tmp_path):
         mutation_message(),
         call("validate_creator_changes", {}, "validate-final"),
         call("inspect_runtime_errors", {}, "runtime-final"),
+        call("inspect_runtime_layout", {}, "layout-task-final"),
         AIMessage(content="Task Status Plugin created and verified."),
     ]
     agent, client, _diagnostics, _validation = make_agent(tmp_path, responses)
@@ -908,6 +915,7 @@ def test_existing_component_is_adopted_through_thin_plugin_adapter(tmp_path):
         skill_mutation_message(),
         call("validate_creator_changes", {}, "validate-skill-final"),
         call("inspect_runtime_errors", {}, "runtime-skill-final"),
+        call("inspect_runtime_layout", {}, "layout-skill-final"),
         AIMessage(content="Existing SkillPanel adopted and verified."),
     ]
     agent, client, _diagnostics, _validation = make_agent(

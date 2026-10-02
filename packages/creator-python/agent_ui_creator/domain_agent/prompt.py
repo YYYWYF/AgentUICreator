@@ -536,8 +536,14 @@ Read the UI Plugin development Skill and the component's actual props, then
 use this facade with the current Composer Slot. Do not search node_modules or
 trace Runtime internals merely to rediscover this public contract. Continue
 source discovery only for a concrete missing fact.
+The hook provides `text`, `attachments`, `attachmentAccept`,
+`attachmentsEnabled`, `isRunning`, `disabled`, `canSend`, `canCancel`,
+`setText`, `send`, `cancel`, `addAttachment`, and `removeAttachment`.
+Project filesystem tools cannot inspect package node_modules. Resolve the
+reused component's import relative to the adapter file's actual location.
 Before completing a Composer replacement, compare each enabled input behavior
-with the original Composer, including attachment-only sending and removal. If
+with the original Composer, including attachment-only sending, multi-file
+selection, removal, and capability-gated controls. If
 the reused component disables Send for empty text while the active Composer can
 send attachments, keep the component unchanged and render the public
 `ConversationComposerSend` for that case. Any added UI copy must use the
@@ -770,3 +776,35 @@ def creator_verification_prompt(
     if verification_mode == "static_only":
         return f"{prompt}\n\n{STATIC_ONLY_VERIFICATION_POLICY_PROMPT}"
     return prompt
+
+
+PLUGIN_DELIVERY_GUIDANCE = """
+For capability discovery use inspect_ui_capabilities first. It combines installed
+Plugins, formal Source Items, project component paths and supported authoring
+choices. Read all pages; incomplete component discovery is not proof of absence.
+Use the catalog to locate source, not to replace inspecting the selected contract.
+Reuse matching Plugins/Source Items before planning new source. A component
+adapter must preserve enabled send/stop/attachment/draft behavior.
+
+For new Plugin work, prepare_ui_plugin_development requires deliveryContract:
+capability, renderingCategory (panel/semantic-slot/application), placement,
+lifecycle, dependencies, reusedComponents, verificationMethod (runtime/browser-test),
+interactions, and optional geometry expectations (instanceId/property/expected/tolerance).
+Use a placement actually supported by the current authoring snapshot; never invent
+relative-below or assume an application Plugin is a visual Slot. This plan records
+obligations; it neither grants permission nor prescribes one fixed execution sequence.
+
+Creation is not delivery. The Host derives created, registered, composed and verified
+from current artifacts and evidence. After creation, validate to synchronize the
+catalog, refresh composition, compose, and validate the final revision. Visual
+Plugins also need current inspect_runtime_errors and inspect_runtime_layout evidence.
+For declared interactions use verify_ui_plugin_behavior: it runs the project's
+installed Playwright configuration and requires exact tests named
+'[delivery:<pluginId>] <interaction>'. It cannot install tools, run arbitrary commands,
+or accept your own assertion of PASS. Missing infrastructure is a delivery blocker.
+Static-only mode remains static-only and cannot complete runtime delivery. Report
+what is saved, the last successful stage, and the missing evidence. Never call
+created-but-unmounted, stale, unavailable or untested interaction behavior completed.
+"""
+DOMAIN_READ_AGENT_PROMPT += "\nUse inspect_ui_capabilities for a bounded combined capability index before targeted source inspection.\n"
+DOMAIN_WRITE_AGENT_PROMPT += PLUGIN_DELIVERY_GUIDANCE

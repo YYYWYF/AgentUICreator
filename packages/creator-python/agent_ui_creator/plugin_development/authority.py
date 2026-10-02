@@ -10,6 +10,7 @@ from typing import Literal
 from uuid import uuid4
 
 from ..project_paths import agent_ui_source_path
+from .delivery import PluginAuthoringContract
 from .commission import explicitly_commissions_plugin_development
 
 
@@ -48,6 +49,7 @@ class PluginDevelopmentProposal:
     checkpoint_id: str | None = None
     question_fingerprint: str | None = None
     created_plugin_id: str | None = None
+    delivery_contract: dict | None = None
     expires_at: float = 0
 
     def public_result(self) -> dict[str, object]:
@@ -65,6 +67,7 @@ class PluginDevelopmentProposal:
             "excludedOperations": list(self.excluded_operations),
             "componentBasisRefs": list(self.component_basis_refs),
             "grantSource": self.grant_source,
+            "deliveryContract": self.delivery_contract,
         }
 
 
@@ -142,6 +145,10 @@ class PluginDevelopmentAuthority:
         self._matching_existing |= matching_existing
         self._existing_plugin_ids.update(plugin_ids or ())
         self._source_plugin_ids.update(source_plugin_ids or ())
+
+    @property
+    def installed_source_plugin_ids(self) -> tuple[str, ...]:
+        return tuple(sorted(self._installed_source_plugin_ids))
 
     def record_installed_source_plugin(self, plugin_id: str) -> None:
         # A successful Host Source Installer result proves this one Plugin is
@@ -227,6 +234,7 @@ class PluginDevelopmentAuthority:
         ui_scope: str = "", data_scope: str = "",
         excluded_operations: list[str] | None = None,
         component_basis_refs: list[str] | None = None,
+        delivery_contract: dict | None = None,
     ) -> dict[str, object]:
         if self.task_id is None or self.request_id is None:
             raise PluginDevelopmentError("开发方案缺少真实用户任务绑定。")
@@ -259,7 +267,10 @@ class PluginDevelopmentAuthority:
             if (self._matching_existing or target_plugin_id in self._existing_plugin_ids
                     or target_plugin_id in self._source_plugin_ids):
                 return {"status": "reuse-existing", "targetPluginId": target_plugin_id}
+        if delivery_contract is not None:
+            delivery_contract = PluginAuthoringContract.model_validate(delivery_contract).model_dump()
         values: dict[str, object] = {
+            "deliveryContract": delivery_contract,
             "projectKey": self.project_key,
             "threadId": self.thread_id,
             "taskId": self.task_id,
@@ -305,6 +316,7 @@ class PluginDevelopmentAuthority:
             component_basis_hashes=component_hashes,
             target_fingerprint=self._target_fingerprint(target_root),
             scope_hash=scope_hash,
+            delivery_contract=delivery_contract,
             status="authorized" if grant_source else "pending",
             grant_source=grant_source,
             expires_at=time.time() + 24 * 60 * 60,

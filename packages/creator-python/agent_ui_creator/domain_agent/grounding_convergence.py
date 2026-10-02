@@ -27,6 +27,8 @@ COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
     "read_file",
     "inspect_ui_project",
     "inspect_agent_ui_sources",
+    "inspect_ui_capabilities",
+    "inspect_ui_plugin_delivery",
     "mutate_app_ui_model",
     "inspect_runtime_layout",
 )
@@ -37,6 +39,8 @@ COMPOSITION_POST_MUTATION_TOOL_NAMES = (
     "inspect_runtime_layout",
     "validate_creator_changes",
     "inspect_runtime_errors",
+    "inspect_ui_plugin_delivery",
+    "verify_ui_plugin_behavior",
 )
 
 

@@ -5,7 +5,7 @@ import difflib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from uuid import uuid4
 
 from ..files import CreatorFileObservationStore, read_creator_file_state, resolve_creator_project_file
@@ -37,6 +37,7 @@ class CreatorActivityRecorder:
     def __init__(
         self, project_root: str | Path, *, logger: CreatorRunLogger | None = None
     ) -> None:
+        self.plugin_delivery_provider: Callable[[], list[dict[str, Any]]] | None = None
         self.project_root = Path(project_root).resolve()
         self.logger = logger
         self.file_observations = CreatorFileObservationStore(self.project_root)
@@ -49,6 +50,9 @@ class CreatorActivityRecorder:
         self._mutation_paths: list[str] = []
         self._created_directories: set[str] = set()
         self._validations: list[dict[str, Any]] = []
+        self._plugin_deliveries: list[dict[str, Any]] = []
+        self._plugin_behavior: dict[str, Any] | None = None
+        self._finishing = False
         self._revision = 0
         self._run_id = "unstarted"
         self._before_content_bytes = 0
@@ -68,6 +72,9 @@ class CreatorActivityRecorder:
         self._mutation_paths.clear()
         self._created_directories.clear()
         self._validations.clear()
+        self._plugin_deliveries: list[dict[str, Any]] = []
+        self._plugin_behavior: dict[str, Any] | None = None
+        self._finishing = False
         self._revision = 0
         self._before_content_bytes = 0
         self._completed_receipt = None
@@ -81,6 +88,10 @@ class CreatorActivityRecorder:
         }
         self._run_id = run_id or str(uuid4())
         self.file_observations.begin(self._run_id)
+
+    @property
+    def finishing(self) -> bool:
+        return self._finishing
 
     @property
     def run_id(self) -> str:
@@ -211,6 +222,15 @@ class CreatorActivityRecorder:
                 return copy.deepcopy(validation)
         return None
 
+    def record_plugin_deliveries(self, reports: list[dict[str, Any]]) -> None:
+        self._plugin_deliveries = copy.deepcopy(reports)
+
+    def record_plugin_behavior(self, evidence: dict[str, Any]) -> None:
+        self._plugin_behavior = copy.deepcopy(evidence)
+
+    def current_plugin_behavior(self) -> dict[str, Any] | None:
+        return copy.deepcopy(self._plugin_behavior)
+
     def record_verification(self, verification: dict[str, Any]) -> None:
         self._verification = copy.deepcopy(verification)
 
@@ -221,6 +241,7 @@ class CreatorActivityRecorder:
     def finish(self) -> dict[str, Any]:
         if self._completed_receipt is not None:
             return copy.deepcopy(self._completed_receipt)
+        self._finishing = True
         receipt, transaction_files = self._collect_receipt()
         transaction = self.transactions.persist_run(
             run_id=self._run_id,
@@ -274,6 +295,10 @@ class CreatorActivityRecorder:
             "validations": copy.deepcopy(self._validations),
             "verification": verification,
         }
+        if self.plugin_delivery_provider is not None:
+            self._plugin_deliveries = self.plugin_delivery_provider()
+        if self._plugin_deliveries:
+            receipt["pluginDeliveries"] = copy.deepcopy(self._plugin_deliveries)
         if self._semantic_noop is not None:
             receipt["semanticNoop"] = copy.deepcopy(self._semantic_noop)
         return receipt, tuple(transaction_files)

@@ -313,6 +313,21 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                 self.authority.record_discovery(
                     plugin_inventory_complete=True, plugin_ids=ids,
                 )
+        if name == "inspect_ui_capabilities":
+            catalog = self._complete_composition(value)
+            if catalog is not None:
+                if catalog.get("pluginInventoryComplete") is True:
+                    self.authority.record_discovery(
+                        plugin_inventory_complete=True, plugin_ids=catalog.get("pluginIds", []),
+                    )
+                sources = catalog.get("sources", {})
+                if sources.get("inventoryComplete") is True:
+                    self.authority.record_discovery(
+                        source_inventory_complete=True,
+                        source_plugin_ids=[item["id"].removeprefix("plugin/")
+                                           for item in sources.get("items", [])
+                                           if item.get("id", "").startswith("plugin/")],
+                    )
         if name == "apply_agent_ui_source_item":
             item_id = args.get("itemId")
             changed_items = value.get("changedItems")
@@ -324,10 +339,10 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                 )
         if (name == "list_ui_plugins" and _inventory_complete(value)
                 and isinstance(value.get("pluginAssets"), list)):
-            ids = [plugin.get("id") for plugin in value["pluginAssets"]
-                   if isinstance(plugin, Mapping) and isinstance(plugin.get("id"), str)]
+            ids = [plugin.get("pluginId", plugin.get("id")) for plugin in value["pluginAssets"]
+                   if isinstance(plugin, Mapping) and isinstance(plugin.get("pluginId", plugin.get("id")), str)]
             self.authority.record_discovery(
-                plugin_inventory_complete=True, plugin_ids=ids,
+                plugin_inventory_complete=len(ids) == len(value["pluginAssets"]), plugin_ids=ids,
             )
         if (name == "inspect_agent_ui_sources" and _inventory_complete(value)
                 and isinstance(value.get("items"), list)):

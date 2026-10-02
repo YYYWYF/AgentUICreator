@@ -498,7 +498,7 @@ def test_domain_write_hides_create_until_development_is_authorized(tmp_path):
     asyncio.run(agent.run("Inspect whether a change is needed."))
 
     assert set(model.bound_tool_names) == set(ALLOWED_DOMAIN_WRITE_TOOLS) - {
-        "create_ui_plugin", "inspect_runtime_errors", "inspect_runtime_layout",
+        "create_ui_plugin", "inspect_runtime_errors", "inspect_runtime_layout", "verify_ui_plugin_behavior",
     }
     assert "create_ui_plugin" not in model.bound_tool_names
     assert "prepare_ui_plugin_development" in model.bound_tool_names

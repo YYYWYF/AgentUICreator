@@ -42,7 +42,23 @@ export interface CreatorDiagnosticLogReceipt {
   schemaVersion: 1;
 }
 
+export interface CreatorPluginDeliveryReceipt {
+  pluginId: string;
+  projectRevision: number;
+  decision: { type: string };
+  authorization: { status: string; grantSource?: string | null };
+  delivery: {
+    status: "planning" | "created" | "registered" | "composed" | "verified" | "completed" | "blocked";
+    lastSuccessfulStage: string;
+    stages: Record<string, boolean>;
+    blockers: string[];
+    instanceIds: string[];
+  };
+  verification: Record<string, string>;
+}
+
 export interface CreatorRunReceipt {
+  pluginDeliveries?: CreatorPluginDeliveryReceipt[];
   files: CreatorFileChangeReceipt[];
   validations: CreatorValidationReceipt[];
   verification?: CreatorVerificationReceipt | undefined;

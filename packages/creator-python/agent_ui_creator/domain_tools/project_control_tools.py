@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 from langchain_core.tools import BaseTool, tool
 
+from .capabilities import capability_navigation
 from ..activity import CreatorActivityRecorder
 from ..domain_state import (
     CROSS_LAYER_DOMAIN_READ_NAMES,
@@ -33,6 +34,7 @@ DOMAIN_READ_TOOL_NAMES = (
     "inspect_ui_services",
     "inspect_ui_plugin_source_references",
     "inspect_agent_ui_sources",
+    "inspect_ui_capabilities",
 )
 COMPOSITION_SNAPSHOT_COVERAGE: tuple[ObservationCoverage, ...] = (
     "composition.model",
@@ -324,6 +326,27 @@ def create_project_control_tools(
         observations.composition_fast_path_metrics.record_cross_layer_read_attempt()
         return _render_json(composition_fast_path_error())
 
+    @tool("inspect_ui_capabilities")
+    async def inspect_ui_capabilities(cursor: str | None = None) -> str:
+        """Discover installed Plugins, formal Source Items, project component paths, UI stack and legal authoring targets together. This live navigation index is not source truth. Read every page before concluding absence; then inspect only the selected implementation. It never grants development permission."""
+        try:
+            project = await client.inspect_ui_project()
+            sources = _source_inventory(await client.inspect_agent_ui_sources())
+            result = capability_navigation(project, sources, activity.project_root if activity else None)
+            rendered, complete, state = _render_project_inspection(
+                result, cursor, state=paging_states.get("capabilities"),
+                revision=activity.revision if activity else 0,
+            )
+            if state is not None:
+                paging_states["capabilities"] = state
+            if complete and observations is not None and activity is not None:
+                observations.clear_composition_grounding(
+                    reason="capability_navigation", current_revision=activity.revision,
+                )
+            return rendered
+        except (ProjectControlError, DomainObservationError) as error:
+            return _render_error(error)
+
     @tool("inspect_ui_project")
     async def inspect_ui_project(
         view: Literal["composition"] | None = None,
@@ -578,5 +601,6 @@ def create_project_control_tools(
         inspect_ui_services,
         inspect_ui_plugin_source_references,
         inspect_agent_ui_sources,
+        inspect_ui_capabilities,
         apply_agent_ui_source_item,
     )

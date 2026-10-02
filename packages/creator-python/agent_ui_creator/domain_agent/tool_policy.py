@@ -33,11 +33,13 @@ DOMAIN_WRITE_TOOL_NAMES = (
     "apply_agent_ui_source_item",
     "validate_creator_changes",
     "inspect_runtime_errors",
+    "verify_ui_plugin_behavior",
+    "inspect_ui_plugin_delivery",
 )
 ALLOWED_DOMAIN_WRITE_TOOLS = (*ALLOWED_MINIMAL_TOOLS, *DOMAIN_WRITE_TOOL_NAMES)
 _ALLOWED_DOMAIN_WRITE_TOOL_SET = frozenset(ALLOWED_DOMAIN_WRITE_TOOLS)
 RUNTIME_VERIFICATION_TOOL_NAMES = frozenset(
-    {"inspect_runtime_errors", "inspect_runtime_layout"}
+    {"inspect_runtime_errors", "inspect_runtime_layout", "verify_ui_plugin_behavior"}
 )
 
 # Every future side-effecting domain tool must be explicitly classified here.
@@ -52,6 +54,7 @@ SIDE_EFFECT_TOOL_NAMES = frozenset(
         "mutate_ui_service_contract",
         "mutate_app_ui_model",
         "apply_agent_ui_source_item",
+        "verify_ui_plugin_behavior",
     }
 )
 ALLOWED_INSPECT_READ_ONLY_TOOLS = tuple(

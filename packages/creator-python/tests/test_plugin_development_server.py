@@ -20,6 +20,11 @@ from agent_ui_creator.validation.models import CommandExecutionResult
 
 SKILLS_ROOT = Path(__file__).resolve().parents[2] / "creator" / "skills"
 PREPARE = {
+    "deliveryContract": {
+        "capability": "local checklist", "renderingCategory": "panel",
+        "placement": "declared default placement", "lifecycle": "local-ui-only",
+        "dependencies": [], "verificationMethod": "runtime", "interactions": [],
+    },
     "workKind": "create-plugin", "targetPluginId": "task-list",
     "desiredOutcome": "仅当前页面可勾选、筛选和重置的三项任务清单",
     "missingCapabilities": ["本地任务清单交互"],
@@ -263,7 +268,7 @@ def test_approved_resume_can_create_bound_plugin_after_skill_and_validation(tmp_
         AIMessage(content="", tool_calls=[{
             "name": "validate_creator_changes", "args": {}, "id": "validate-bound-plugin",
         }]),
-        AIMessage(content="任务清单插件源码已创建并完成当前 revision 静态验证。"),
+        AIMessage(content="任务清单插件源码已创建并完成当前 revision 静态验证，但尚未挂载，交付未完成。"),
     ])
     app, client = _app(tmp_path, monkeypatch, model)
     first = _events(client, run_id="request-a", text="在聊天旁边做一个任务核对清单")
@@ -276,6 +281,7 @@ def test_approved_resume_can_create_bound_plugin_after_skill_and_validation(tmp_
     assert (tmp_path / "plugins/task-list/manifest.json").exists()
     assert app.state.plugin_development_authorities["thread-a"].active.created_plugin_id == "task-list"
     finished = next(event for event in resumed if event["type"] == "RUN_FINISHED")
+    assert finished["result"]["receipt"]["pluginDeliveries"][0]["delivery"]["status"] == "blocked"
     assert finished["result"]["staticValidationStatus"] == "passed"
     assert finished["result"]["runtimeVerificationStatus"] == "not-run"
     assert "create_ui_plugin" not in model.offered_tools[1]

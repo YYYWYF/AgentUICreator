@@ -116,3 +116,29 @@ it("renders a deferred development decision receipt without a false error", asyn
   expect(container.textContent).toContain("0 个文件");
   expect(container.textContent).not.toContain("无效的修改回执");
 });
+
+it("renders incomplete plugin delivery separately from successful static checks", async () => {
+  vi.stubGlobal("fetch", vi.fn(async (_url: string, init: RequestInit) => {
+    const body = JSON.parse(String(init.body));
+    return stream([
+      { type: "RUN_STARTED", threadId: "thread-1", runId: body.runId },
+      { type: "RUN_FINISHED", threadId: "thread-1", runId: body.runId, result: {
+        receipt: { files: [], validations: [], pluginDeliveries: [{
+          pluginId: "checklist", projectRevision: 3,
+          decision: { type: "create-plugin" }, authorization: { status: "authorized" },
+          delivery: { status: "blocked", lastSuccessfulStage: "registered",
+            stages: { created: true, registered: true, composed: false, verified: false },
+            blockers: ["插件尚未启用并挂载到 AppUIModel"], instanceIds: [] },
+          verification: { static: "pass", runtime: "not-passed" },
+        }] },
+      } },
+    ]);
+  }));
+  const { container } = await mount();
+  await act(async () => { (container.querySelector('.creator-question-card input') as HTMLInputElement).click(); });
+  await act(async () => { (container.querySelector('.creator-question-card button') as HTMLButtonElement).click(); });
+  expect(container.textContent).toContain("交付阻塞");
+  expect(container.textContent).toContain("插件尚未启用并挂载到 AppUIModel");
+  expect(container.textContent).toContain("static: pass");
+  expect(container.textContent).not.toContain("交付完成");
+});
