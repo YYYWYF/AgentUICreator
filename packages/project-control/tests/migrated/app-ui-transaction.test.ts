@@ -560,17 +560,17 @@ describe("AppUIModel transaction", () => {
     });
 
     expect(result.changed).toBe(true);
-    expect(result.semanticComposition?.expectedGeometry?.size).toBe("min(280px, 25%)");
+    expect(result.semanticComposition?.expectedGeometry?.size).toBe("280px");
     const written = JSON.parse(await readFile(
       path.join(projectRoot, "app-ui", "app-ui.json"), "utf8",
     )) as AppUIModel;
     expect(written.root).toMatchObject({
       type: "row",
-      sizes: ["min(280px, 25%)", "minmax(0, 1fr)", "min(280px, 25%)"],
+      sizes: ["280px", "minmax(0, 1fr)", "280px"],
     });
   });
 
-  it("caps a bounded side panel inserted beside the navigation rail", async () => {
+  it("preserves an existing navigation rail when inserting a bounded side panel", async () => {
     const model: AppUIModel = {
       root: {
         type: "row", gap: 0, sizes: ["280px", "minmax(0, 1fr)"],
@@ -606,13 +606,13 @@ describe("AppUIModel transaction", () => {
     });
 
     expect(result.changed).toBe(true);
-    expect(result.semanticComposition?.expectedGeometry?.size).toBe("min(280px, 25%)");
+    expect(result.semanticComposition?.expectedGeometry?.size).toBe("minmax(220px, 280px)");
     const written = JSON.parse(await readFile(
       path.join(projectRoot, "app-ui", "app-ui.json"), "utf8",
     )) as AppUIModel;
     expect(written.root).toMatchObject({
       type: "row",
-      sizes: ["min(280px, 25%)", "min(280px, 25%)", "minmax(0, 1fr)"],
+      sizes: ["280px", "minmax(220px, 280px)", "minmax(0, 1fr)"],
     });
   });
 
@@ -1446,11 +1446,10 @@ describe("AppUIModel transaction", () => {
       .toBe(source);
   });
 
-  it("rejects fixed side tracks that erase the flexible center at 560px", async () => {
+  it("does not apply a fabricated 560px container to unrelated three-column edits", async () => {
     const model: AppUIModel = {
       root: {
-        type: "row",
-        sizes: ["min(280px, 25%)", "minmax(0, 1fr)", "min(280px, 25%)"],
+        type: "row", sizes: ["280px", "minmax(0, 1fr)", "280px"],
         children: [
           { type: "slot", plugins: [{ id: "left-main", pluginId: "sample", enabled: true }] },
           { type: "slot", plugins: [{ id: "center-main", pluginId: "sample", enabled: true }] },
@@ -1461,91 +1460,15 @@ describe("AppUIModel transaction", () => {
     const { projectRoot, source } = await createProject({
       authoring: { intents: ["show flexible center"], recommendedSize: { width: "minmax(0, 1fr)" } },
     }, model);
-    const error = await mutateAppUIModel(projectRoot, {
+    const result = await mutateAppUIModel(projectRoot, {
       appUIModelHash: hash(source),
       operations: [{
-        type: "update_layout_node_props",
-        nodeRef: "l0",
-        set: { sizes: ["280px", "minmax(0, 1fr)", "280px"] },
-        removeKeys: [],
-      }],
-    }).catch((value: unknown) => value);
-
-    expect(error).toMatchObject({
-      code: "LAYOUT_NARROW_CENTER_UNUSABLE",
-      details: { referenceWidth: 560, fixedSideWidth: 560, centerWidthAtReference: 0 },
-    });
-    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
-      .toBe(source);
-
-    const cappedSideError = await mutateAppUIModel(projectRoot, {
-      appUIModelHash: hash(source),
-      operations: [{
-        type: "update_layout_node_props",
-        nodeRef: "l0",
-        set: { sizes: ["280px", "minmax(0, 1fr)", "min(240px, 30%)"] },
-        removeKeys: [],
-      }],
-    }).catch((value: unknown) => value);
-    expect(cappedSideError).toMatchObject({
-      code: "LAYOUT_NARROW_CENTER_UNUSABLE",
-      details: { referenceWidth: 560, fixedSideWidth: 448, centerWidthAtReference: 112 },
-    });
-    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
-      .toBe(source);
-
-    const boundedSideError = await mutateAppUIModel(projectRoot, {
-      appUIModelHash: hash(source),
-      operations: [{
-        type: "update_layout_node_props",
-        nodeRef: "l0",
-        set: { sizes: ["280px", "minmax(0, 1fr)", "minmax(220px, 280px)"] },
-        removeKeys: [],
-      }],
-    }).catch((value: unknown) => value);
-    expect(boundedSideError).toMatchObject({
-      code: "LAYOUT_NARROW_CENTER_UNUSABLE",
-      details: { referenceWidth: 560, fixedSideWidth: 500, centerWidthAtReference: 60 },
-    });
-    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"))
-      .toBe(source);
-
-    const accepted = await mutateAppUIModel(projectRoot, {
-      appUIModelHash: hash(source),
-      operations: [{
-        type: "update_layout_node_props",
-        nodeRef: "l0",
-        set: { sizes: ["min(240px, 25%)", "minmax(0, 1fr)", "min(280px, 25%)"] },
-        removeKeys: [],
+        type: "update_layout_node_props", nodeRef: "l0", set: { gap: 8 }, removeKeys: [],
       }],
     });
-    expect(accepted.changed).toBe(true);
-
-    const rightPrimary: AppUIModel = {
-      root: {
-        type: "row",
-        sizes: ["min(200px, 20%)", "min(200px, 20%)", "minmax(0, 1fr)"],
-        children: model.root.type === "row" ? model.root.children : [],
-      },
-    };
-    const { projectRoot: rightRoot, source: rightSource } = await createProject({
-      authoring: { intents: ["show flexible conversation"], recommendedSize: { width: "minmax(0, 1fr)" } },
-    }, rightPrimary);
-    const rightError = await mutateAppUIModel(rightRoot, {
-      appUIModelHash: hash(rightSource),
-      operations: [{
-        type: "update_layout_node_props",
-        nodeRef: "l0",
-        set: { sizes: ["280px", "minmax(240px, 320px)", "minmax(0, 1fr)"] },
-        removeKeys: [],
-      }],
-    }).catch((value: unknown) => value);
-    expect(rightError).toMatchObject({
-      code: "LAYOUT_NARROW_CENTER_UNUSABLE",
-      details: { referenceWidth: 560, primaryTrackIndex: 2, fixedSideWidth: 520, centerWidthAtReference: 40 },
-    });
-    expect(await readFile(path.join(rightRoot, "app-ui", "app-ui.json"), "utf8"))
-      .toBe(rightSource);
+    expect(result.changed).toBe(true);
+    expect(JSON.parse(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")))
+      .toMatchObject({ root: { gap: 8, sizes: ["280px", "minmax(0, 1fr)", "280px"] } });
   });
 
   it("rejects a stale source hash before changing either transaction file", async () => {

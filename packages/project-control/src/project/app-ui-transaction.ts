@@ -1035,56 +1035,6 @@ function assertPluginWidthCompatibility(
   }
 }
 
-function reservedPixelTrack(size: number | string | undefined, referenceWidth: number): number | undefined {
-  if (typeof size === "number") return size;
-  const normalized = size?.trim();
-  const fixed = normalized?.match(/^(\d+(?:\.\d+)?)px$/);
-  if (fixed !== null && fixed !== undefined) return Number(fixed[1]);
-  const bounded = normalized?.match(/^minmax\(\s*(\d+(?:\.\d+)?)px\s*,\s*\d+(?:\.\d+)?px\s*\)$/);
-  if (bounded !== null && bounded !== undefined) return Number(bounded[1]);
-  const percentageCap = normalized?.match(/^min\(\s*(\d+(?:\.\d+)?)px\s*,\s*(\d+(?:\.\d+)?)%\s*\)$/);
-  return percentageCap === null || percentageCap === undefined
-    ? undefined
-    : Math.min(Number(percentageCap[1]), referenceWidth * Number(percentageCap[2]) / 100);
-}
-
-function assertNarrowCenterSpace(model: AppUIModel, assets: readonly PluginAsset[]): void {
-  const row = model.root;
-  if (row.type !== "row" || row.children.length !== 3 || row.sizes?.length !== 3) return;
-  const flexiblePluginIds = new Set(assets.filter(
-    (asset) => asset.authoring?.recommendedSize?.width === "minmax(0, 1fr)",
-  ).map((asset) => asset.pluginId));
-  const hasFlexiblePrimary = (node: AppUILayoutNode): boolean => {
-    if (node.type === "slot") {
-      return node.plugins.some((plugin) => plugin.enabled && flexiblePluginIds.has(plugin.pluginId));
-    }
-    if (node.type === "panel") return hasFlexiblePrimary(node.child);
-    return node.children.some(hasFlexiblePrimary);
-  };
-  const primaryIndex = row.children.findIndex((child, index) =>
-    /^(?:1fr|minmax\(0,\s*1fr\))$/.test(String(row.sizes?.[index]).trim())
-    && hasFlexiblePrimary(child)
-  );
-  if (primaryIndex < 0) return;
-  const sideWidths = row.sizes.flatMap((size, index) =>
-    index === primaryIndex ? [] : [reservedPixelTrack(size, 560)]
-  );
-  if (sideWidths.length !== 2 || sideWidths.some(width => width === undefined)) return;
-  const fixedSideWidth = (sideWidths[0] ?? 0) + (sideWidths[1] ?? 0);
-  if (fixedSideWidth <= 280) return;
-  throw new AppUITransactionError(
-    "LAYOUT_NARROW_CENTER_UNUSABLE",
-    "Side tracks reserve too much width for the primary conversation in a 560px Agent container. Use flexible side tracks such as min(280px, 25%).",
-    {
-      referenceWidth: 560,
-      minimumCenterWidth: 280,
-      primaryTrackIndex: primaryIndex,
-      fixedSideWidth,
-      centerWidthAtReference: Math.max(0, 560 - fixedSideWidth),
-    },
-  );
-}
-
 async function runTransaction(
   projectRoot: string,
   input: AppUITransactionInput,
@@ -1319,7 +1269,6 @@ async function runTransaction(
       { issues: generation.errors },
     );
   }
-  assertNarrowCenterSpace(afterModel, generation.assets);
   const runtimeModel = compileAppUIModel(
     afterModel,
     generation.activeComposition.compositionCatalog,

@@ -219,32 +219,6 @@ function normalizeAuthoringTrackSize(
   return normalized;
 }
 
-function sideTrackAtNarrowWidth(size: string): { reserved: number; maximum: number } | undefined {
-  const fixed = size.trim().match(/^(\d+(?:\.\d+)?)px$/);
-  if (fixed !== null) {
-    const pixels = Number(fixed[1]);
-    return { reserved: pixels, maximum: pixels };
-  }
-  const bounded = size.trim().match(/^minmax\(\s*(\d+(?:\.\d+)?)px\s*,\s*(\d+(?:\.\d+)?)px\s*\)$/);
-  if (bounded !== null) {
-    return { reserved: Number(bounded[1]), maximum: Number(bounded[2]) };
-  }
-  const capped = size.trim().match(/^min\(\s*(\d+(?:\.\d+)?)px\s*,\s*(\d+(?:\.\d+)?)%\s*\)$/);
-  if (capped !== null) {
-    const maximum = Number(capped[1]);
-    return { reserved: Math.min(maximum, 560 * Number(capped[2]) / 100), maximum };
-  }
-  return undefined;
-}
-
-function containsFlexiblePrimary(node: AppUILayoutNode, pluginIds: ReadonlySet<string>): boolean {
-  if (node.type === "slot") {
-    return node.plugins.some((plugin) => plugin.enabled && pluginIds.has(plugin.pluginId));
-  }
-  if (node.type === "panel") return containsFlexiblePrimary(node.child, pluginIds);
-  return node.children.some((child) => containsFlexiblePrimary(child, pluginIds));
-}
-
 function resolveRootAnchorTrackSize(
   branch: AppUILayoutNode,
   anchorAsset: PluginAsset,
@@ -557,7 +531,7 @@ function planRelativeInsertion(
   const axis = placement.relation === "above" || placement.relation === "below"
     ? "height"
     : "width";
-  let trackSize = normalizeAuthoringTrackSize(
+  const trackSize = normalizeAuthoringTrackSize(
     asset.authoring?.recommendedSize?.[axis],
     { pluginId: asset.pluginId, axis },
   );
@@ -592,38 +566,6 @@ function planRelativeInsertion(
     },
   };
   const loweredOperations: AppUIOperation[] = [];
-  if (
-    axis === "width" && region.mode === "existing-axis-parent" &&
-    region.parent === model.root && region.parent.children.length === 2 &&
-    region.parent.sizes?.length === 2 && (region.parent.gap ?? 0) === 0
-  ) {
-    const flexiblePluginIds = new Set(generation.assets.filter(
-      (candidate) => candidate.authoring?.recommendedSize?.width === "minmax(0, 1fr)",
-    ).map((candidate) => candidate.pluginId));
-    const primaryIndex = region.parent.children.findIndex((child, index) =>
-      /^(?:1fr|minmax\(0,\s*1fr\))$/.test(String(region.parent.sizes?.[index]).trim()) &&
-      containsFlexiblePrimary(child, flexiblePluginIds)
-    );
-    const sideIndex = 1 - primaryIndex;
-    const sideSize = region.parent.sizes[sideIndex];
-    const sideTrack = typeof sideSize === "string" ? sideTrackAtNarrowWidth(sideSize) : undefined;
-    const newTrack = sideTrackAtNarrowWidth(trackSize);
-    if (primaryIndex >= 0 && sideTrack !== undefined && newTrack !== undefined &&
-        sideTrack.reserved + newTrack.reserved > 280) {
-      loweredOperations.push({
-        type: "update_layout_node_props",
-        nodeRef: region.parentRef,
-        set: {
-          sizes: region.parent.sizes.map((size, index) =>
-            index === sideIndex && sideTrack.reserved > 140
-              ? `min(${sideTrack.maximum}px, 25%)`
-              : String(size)
-          ),
-        },
-      });
-      if (newTrack.reserved > 140) trackSize = `min(${newTrack.maximum}px, 25%)`;
-    }
-  }
   if (
     region.mode === "root-anchor" &&
     region.anchor.type === "panel" &&

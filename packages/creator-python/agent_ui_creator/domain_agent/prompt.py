@@ -476,11 +476,12 @@ ordinary clarification, or old approval is not a development commission.
 The Host's current grant and the current ui-plugin-development Skill must both
 be present before the first new Plugin write. Development authority does not
 authorize Service Contracts, Frontend Tools, Agent operations, or backend calls.
-When adding a side panel to a Row that already has a fixed sidebar, calculate
-remaining chat width in a narrow Agent container before committing Layout.
-Two fixed 280px rails leave zero chat width at 560px. Use flexible track sizes
-for both rails and the new Plugin's recommendedSize when needed; keep the
-Composer usable. Static validation cannot establish this geometry.
+When adding a side panel, inspect the actual Row, existing fixed sizes, gap,
+container constraints and the new panel's usable minimum. Preserve the user's
+explicit sizes and existing tracks. If the current template has no responsive
+placement that keeps both the panel and Composer usable, ask for a layout
+decision instead of silently shrinking existing panels or changing Plugin scope.
+Static validation cannot establish this geometry without measured evidence.
 If the User defers or adjusts, stop this task with an honest no-delivery answer;
 do not continue searching for another write path. Do not claim Runtime or
 independent browser verification in static_only mode.
@@ -802,7 +803,8 @@ For declared interactions use verify_ui_plugin_behavior: it runs the project's
 installed Playwright configuration and requires exact tests named
 '[delivery:<pluginId>] <interaction>'. It cannot install tools, run arbitrary commands,
 or accept your own assertion of PASS. Missing infrastructure is a delivery blocker.
-Static-only mode remains static-only and cannot complete runtime delivery. Report
+Static-only mode can report completed changes after current static validation,
+but must state that Runtime and browser behavior remain unverified. Report
 what is saved, the last successful stage, and the missing evidence. Never call
 created-but-unmounted, stale, unavailable or untested interaction behavior completed.
 """
