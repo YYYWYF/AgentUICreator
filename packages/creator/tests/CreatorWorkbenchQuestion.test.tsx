@@ -78,6 +78,22 @@ it("keeps the pending thread across reload, blocks abandon actions and resumes o
   expect((container.querySelector('[aria-label="新建 Creator 会话"]') as HTMLButtonElement).disabled).toBe(false);
 });
 
+it("sends pending-question abandon through the control route and releases the workbench", async () => {
+  const fetch = vi.fn(async () => new Response(JSON.stringify({ status: "abandoned" }), {
+    headers: { "Content-Type": "application/json" },
+  }));
+  vi.stubGlobal("fetch", fetch);
+  const { container } = await mount();
+  const abandon = [...container.querySelectorAll('.creator-question-card button')]
+    .find(button => button.textContent === "放弃本次任务") as HTMLButtonElement;
+  await act(async () => { abandon.click(); });
+  const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
+  expect(url).toBe("/__creator/control");
+  expect(JSON.parse(String(init.body))).toEqual({ action: "abandon", threadId: "thread-1", interruptId: "interrupt-1" });
+  expect(container.textContent).toContain("已放弃本次开发任务");
+  expect((container.querySelector('[aria-label="新建 Creator 会话"]') as HTMLButtonElement).disabled).toBe(false);
+});
+
 it.each(["CREATOR_INTERRUPT_NOT_FOUND", "CREATOR_INTERRUPT_CONTEXT_INVALID"])("marks a lost question stale and permits a fresh thread for %s", async code => {
   vi.stubGlobal("fetch", vi.fn(async (_url: string, init: RequestInit) => {
     const body = JSON.parse(String(init.body));
