@@ -291,6 +291,7 @@ export async function removeAgentUISourceItems(
   input: RemoveAgentUISourceItemsInput,
   config: UIProjectControlConfig = uiProjectControlConfig,
   registry?: LoadedAgentUISourceRegistry,
+  testOptions: AgentUISourceTransactionTestOptions = {},
 ): Promise<AgentUISourceApplyResult> {
   await recoverPendingAgentUISourceTransaction(projectRoot, config);
   const { loadedRegistry, lock, removeIds } = await preflightAgentUISourceRemove(projectRoot, input, config, registry);
@@ -323,6 +324,7 @@ export async function removeAgentUISourceItems(
     "0.0.0",
     mutations,
     serializeAgentUISourceLock(nextLock),
+    testOptions,
   );
   const after = await inspectAgentUISources(projectRoot, config, loadedRegistry);
   return {

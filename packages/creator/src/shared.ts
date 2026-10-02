@@ -1,4 +1,5 @@
 export const CREATOR_API_PATH = "/__creator/run";
+export const CREATOR_CONTROL_API_PATH = "/__creator/control";
 export const CREATOR_RUNTIME_DIAGNOSTICS_API_PATH =
   "/__creator/runtime-diagnostics";
 export const CREATOR_VISUAL_OBSERVATION_API_PATH =

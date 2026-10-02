@@ -2312,6 +2312,10 @@
               "wide"
             ]
           }
+        },
+        "cancelMarker": {
+          "type": "string",
+          "pattern": "^\\.agentuicreator/control/cancel-[a-f0-9-]{36}$"
         }
       }
     },
@@ -2332,6 +2336,10 @@
         "expectedStateHash": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
+        },
+        "cancelMarker": {
+          "type": "string",
+          "pattern": "^\\.agentuicreator/control/cancel-[a-f0-9-]{36}$"
         }
       }
     },
@@ -2340,7 +2348,8 @@
       "additionalProperties": false,
       "required": ["expectedSourceHash"],
       "properties": {
-        "expectedSourceHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        "expectedSourceHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "cancelMarker": { "type": "string", "pattern": "^\\.agentuicreator/control/cancel-[a-f0-9-]{36}$" }
       }
     },
     "removeAgentUISourceItemsInput": {
@@ -2365,6 +2374,10 @@
         "expectedStateHash": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
+        },
+        "cancelMarker": {
+          "type": "string",
+          "pattern": "^\\.agentuicreator/control/cancel-[a-f0-9-]{36}$"
         }
       }
     }

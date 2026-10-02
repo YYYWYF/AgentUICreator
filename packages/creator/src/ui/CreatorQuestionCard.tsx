@@ -1,9 +1,10 @@
 import { useState } from "react";
 import type { CreatorQuestionActivity } from "../agent/creatorInterruptTypes.js";
 
-export function CreatorQuestionCard({ activity, onAnswer }: {
+export function CreatorQuestionCard({ activity, onAnswer, onAbandon }: {
   activity: CreatorQuestionActivity;
   onAnswer: (answers: Record<string, string[]>) => void;
+  onAbandon: () => void;
 }) {
   const [answers, setAnswers] = useState<Record<string, string[]>>(activity.answers ?? {});
   const ready = activity.steps.every(step => {
@@ -36,10 +37,10 @@ export function CreatorQuestionCard({ activity, onAnswer }: {
         </label>;
       })}
     </fieldset>)}
-    {activity.status === "pending" ? <button type="button" disabled={!ready}
+    {activity.status === "pending" ? <><button type="button" disabled={!ready}
       onClick={() => onAnswer(Object.fromEntries(activity.steps.map(step => [step.id, answers[step.id] ?? []])))}>
       确认选择
-    </button> : null}
+    </button><button type="button" onClick={onAbandon}>放弃本次任务</button></> : null}
     {activity.status === "submitting" ? <p role="status">正在继续 Creator 任务…</p> : null}
     {activity.status === "stale" ? <p role="alert">这个问题对应的 Agent 执行状态已经失效，请重新发起请求。</p> : null}
   </article>;

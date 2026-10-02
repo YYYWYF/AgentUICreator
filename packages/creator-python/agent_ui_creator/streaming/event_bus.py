@@ -41,6 +41,7 @@ class CreatorEventBus:
         )
         self._closed = asyncio.Event()
         self._cancel_requested = False
+        self._stop_requested = False
         self._active_tool_calls: set[str] = set()
         self._started_at = monotonic()
         self._tool_events_published = 0
@@ -52,6 +53,10 @@ class CreatorEventBus:
         return self._cancel_requested
 
     @property
+    def stop_requested(self) -> bool:
+        return self._stop_requested
+
+    @property
     def has_active_tools(self) -> bool:
         return bool(self._active_tool_calls)
 
@@ -61,6 +66,10 @@ class CreatorEventBus:
 
     def request_cancel(self) -> None:
         self._cancel_requested = True
+
+    def request_stop(self) -> None:
+        self._stop_requested = True
+        self.request_cancel()
 
     def close(self) -> None:
         self._closed.set()

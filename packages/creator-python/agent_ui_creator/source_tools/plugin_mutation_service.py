@@ -19,6 +19,7 @@ from ..files import (
 )
 from ..minimal_agent.path_policy import MinimalAgentPathPolicy, PathPolicyViolation
 from ..project_paths import agent_ui_source_path, v2_source_root
+from ..run_cancellation import assert_run_writable
 from ..plugin_development.authority import PluginDevelopmentAuthority, PluginDevelopmentError
 from ..transactions import CreatorTransactionError
 from .models import (
@@ -500,6 +501,7 @@ class UIPluginSourceMutationService:
             self._assert_plugin_exists(plugin_id, plugin_root)
             commits, directories = self._preflight(plugin_root, prepared)
             if commits:
+                assert_run_writable()
                 self._commit(plugin_root, commits, directories)
                 if authority is not None:
                     authority.note_authorized_target_write(plugin_id)

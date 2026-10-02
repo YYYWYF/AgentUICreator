@@ -5,6 +5,8 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncIterator
 
+from ..run_cancellation import assert_run_writable
+
 
 class ProjectMutationCoordinator:
     """Sidecar-owned serialization for complete per-project mutation windows."""
@@ -22,4 +24,5 @@ class ProjectMutationCoordinator:
                 lock = asyncio.Lock()
                 self._locks[resolved] = lock
         async with lock:
+            assert_run_writable()
             yield

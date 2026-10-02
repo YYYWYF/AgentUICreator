@@ -953,6 +953,8 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   const [workspacePath, setWorkspacePath] = useState("");
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
   const [workspaceBusy, setWorkspaceBusy] = useState(false);
+  const [stopBusy, setStopBusy] = useState(false);
+  const [runAccepted, setRunAccepted] = useState(false);
   const [workspacePicking, setWorkspacePicking] = useState(false);
   const [showWorkspaceSelector, setShowWorkspaceSelector] = useState(true);
   const [setupInfo, setSetupInfo] = useState<CreatorSetupInfoState>({ status: "idle" });
@@ -1204,6 +1206,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
 
     if (response === undefined) setInput("");
     setIsRunning(true);
+    setRunAccepted(false);
     if (response === undefined) {
       const userMessageId = crypto.randomUUID();
       updateItems((current) => [...current, { kind: "message", id: userMessageId, role: "user", content: request }]);
@@ -1257,6 +1260,9 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
 
     try {
       const subscriber = {
+        onRunStartedEvent() {
+          setRunAccepted(true);
+        },
         onQuestion(question: CreatorQuestionActivity) {
           updateRunItems(current => current.some(item => item.id === question.id) ? current : [...current, question]);
         },
@@ -1466,7 +1472,37 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
       if (sessionRef.current === runSession) {
         saveConversation(agent, itemsRef.current, runWorkspaceId);
         setIsRunning(false);
+        setRunAccepted(false);
+        setStopBusy(false);
       }
+    }
+  };
+
+  const stopCurrentRun = async () => {
+    const agent = agentRef.current;
+    if (agent === null || !isRunning || !runAccepted || stopBusy) return;
+    setStopBusy(true);
+    try {
+      await agent.control("stop");
+    } catch (error) {
+      setStopBusy(false);
+      updateItems(current => [...current, { kind: "message", id: crypto.randomUUID(), role: "error",
+        content: error instanceof Error ? error.message : String(error) }]);
+    }
+  };
+
+  const abandonQuestion = async (question: CreatorQuestionActivity) => {
+    const agent = agentRef.current;
+    if (agent === null || isRunning || question.status !== "pending") return;
+    try {
+      await agent.control("abandon", question.interruptId);
+      updateItems(current => [...current.map(item => item.kind === "question" && item.id === question.id
+        ? { ...item, status: "stale" as const } : item),
+        { kind: "message", id: crypto.randomUUID(), role: "assistant",
+          content: "已放弃本次开发任务。此前已提交的修改仍保留；如需撤销，请单独提出。" }]);
+    } catch (error) {
+      updateItems(current => [...current, { kind: "message", id: crypto.randomUUID(), role: "error",
+        content: error instanceof Error ? error.message : String(error) }]);
     }
   };
 
@@ -1718,6 +1754,8 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
               </h1>
             </div>
             <div className="creator-panel-header-actions">
+              {isRunning ? <button type="button" disabled={!runAccepted || stopBusy}
+                onClick={() => void stopCurrentRun()}>{stopBusy ? "正在停止…" : "停止执行"}</button> : null}
               <button
                 className="creator-panel-mock-toggle"
                 data-creator-mock-entry=""
@@ -1797,7 +1835,8 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                     <CreatorToolActivityCard activity={item} key={item.id} />
                   ) : item.kind === "question" ? (
                     <CreatorQuestionCard activity={item} key={item.id}
-                      onAnswer={answers => { void submit(undefined, { question: item, answers }); }} />
+                      onAnswer={answers => { void submit(undefined, { question: item, answers }); }}
+                      onAbandon={() => { void abandonQuestion(item); }} />
                   ) : (
                     <article
                       className={`creator-panel-message creator-panel-message--${item.role}`}

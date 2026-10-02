@@ -8,6 +8,7 @@ import { writeGeneratedFrontendToolRegistries } from "../../generate-frontend-to
 import { writeGeneratedConversationIntegrationRegistry } from "../../generate-conversation-integration-registry";
 import { verifyUIProject } from "../../verify-ui";
 import { collectPluginAssets } from "../plugin-assets";
+import { assertCreatorCommitAllowed } from "../creator-cancel-marker";
 import { readAgentUIProjectConfig } from "../project-mode";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths, projectRelativePath } from "../agent-ui-project-paths";
 import type { UIProjectControlConfig } from "../types";
@@ -17,7 +18,7 @@ import { readAgentUISourceLock, readOptionalBuffer } from "./lock";
 import { AgentUISourceError, assertNoSymbolicLinkTraversal, assertSafeProjectRelativePath, resolveAgentUISourceRoots } from "./path-policy";
 import { recoverPendingAgentUISourceTransaction } from "./transaction";
 
-export interface AgentUISourceProjectMutationOptions { config?: UIProjectControlConfig }
+export interface AgentUISourceProjectMutationOptions { config?: UIProjectControlConfig; cancelMarker?: string | undefined }
 export interface AgentUISourceProjectMutationResult {
   schemaVersion: 1;
   operation: "apply" | "remove";
@@ -226,9 +227,10 @@ async function mutateAttempt(projectRoot: string, operation: "apply" | "remove",
     throw error;
   }
   try {
+    await assertCreatorCommitAllowed(projectRoot, options.cancelMarker);
     const result = operation === "apply"
-      ? await applyAgentUISourceItem(projectRoot, input as ApplyAgentUISourceItemInput, ctx.config, registry)
-      : await removeAgentUISourceItems(projectRoot, input as RemoveAgentUISourceItemsInput, ctx.config, registry);
+      ? await applyAgentUISourceItem(projectRoot, input as ApplyAgentUISourceItemInput, ctx.config, registry, { cancelMarker: options.cancelMarker })
+      : await removeAgentUISourceItems(projectRoot, input as RemoveAgentUISourceItemsInput, ctx.config, registry, { cancelMarker: options.cancelMarker });
     if (operation === "remove") await pruneEmptySourceDirectories(projectRoot, ctx.sourceRoot, result.changedPaths);
     const plugin = await writeGeneratedPluginRegistry(projectRoot);
     const tools = await writeGeneratedFrontendToolRegistries(projectRoot);

@@ -17,6 +17,7 @@ from ..files import (
 )
 from ..minimal_agent.path_policy import MinimalAgentPathPolicy, PathPolicyViolation
 from ..project_paths import agent_ui_source_path, v2_source_root
+from ..run_cancellation import assert_run_writable
 from ..transactions import CreatorTransactionError
 from .models import (
     MAX_SOURCE_TOTAL_BYTES,
@@ -133,6 +134,7 @@ class UISourceCreationService:
             try:
                 if preflight is not None:
                     await preflight()
+                assert_run_writable()
                 result = self._create_authorized(authorized)
             except BaseException:
                 if absent_directory is not None:

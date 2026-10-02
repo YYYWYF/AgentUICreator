@@ -7,6 +7,7 @@ import { parseAppUIModelJson } from "./framework/contracts/app-ui-model";
 import { readAgentUIProjectConfig } from "./project/project-mode";
 import type { AgentUIProjectConfig } from "./framework/contracts/agent-ui-project";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths, projectRelativePath } from "./project/agent-ui-project-paths";
+import { assertCreatorCommitAllowed } from "./project/creator-cancel-marker";
 import {
   generatePluginRegistry,
 } from "./project/registry-generator";
@@ -26,7 +27,7 @@ async function readOptional(filePath: string): Promise<string | undefined> {
 
 export async function writeGeneratedPluginRegistry(
   projectRoot: string,
-  options: { projectConfigOverride?: AgentUIProjectConfig } = {},
+  options: { projectConfigOverride?: AgentUIProjectConfig; cancelMarker?: string | undefined } = {},
 ): Promise<{
   changed: boolean;
   path: string;
@@ -59,6 +60,7 @@ export async function writeGeneratedPluginRegistry(
   }
 
   if (options.projectConfigOverride !== undefined) {
+    await assertCreatorCommitAllowed(projectRoot, options.cancelMarker);
     await writeFile(registryPath, generation.capabilityCatalog.source, { flag: "wx" });
     return {
       changed: true,
@@ -74,6 +76,7 @@ export async function writeGeneratedPluginRegistry(
       generation.capabilityCatalog.source,
       "utf8",
     );
+    await assertCreatorCommitAllowed(projectRoot, options.cancelMarker);
     await rename(temporaryPath, registryPath);
   } catch (error) {
     await unlink(temporaryPath).catch(() => undefined);

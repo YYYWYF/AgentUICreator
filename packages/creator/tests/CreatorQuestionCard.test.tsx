@@ -26,7 +26,10 @@ describe("CreatorQuestionCard", () => {
     const root = createRoot(container);
     roots.push(root);
     const onAnswer = vi.fn();
-    await act(async () => root.render(<CreatorQuestionCard activity={question} onAnswer={onAnswer} />));
+    const onAbandon = vi.fn();
+    await act(async () => root.render(<CreatorQuestionCard activity={question} onAnswer={onAnswer} onAbandon={onAbandon} />));
+    await act(async () => container.querySelectorAll("button")[1]?.click());
+    expect(onAbandon).toHaveBeenCalledOnce();
     const submit = container.querySelector("button")!;
     expect(submit.disabled).toBe(true);
     await act(async () => { container.querySelectorAll("input")[0]?.click(); });
@@ -35,7 +38,7 @@ describe("CreatorQuestionCard", () => {
     await act(async () => submit.click());
     expect(onAnswer).toHaveBeenCalledWith({ layout: ["dashboard"], features: ["search"] });
     await act(async () => root.render(<CreatorQuestionCard activity={{ ...question, status: "resolved",
-      answers: { layout: ["dashboard"], features: ["search"] } }} onAnswer={onAnswer} />));
+      answers: { layout: ["dashboard"], features: ["search"] } }} onAnswer={onAnswer} onAbandon={onAbandon} />));
     expect(container.querySelectorAll("input")).toHaveLength(0);
     expect(container.textContent).toContain("Dashboard");
     expect(container.textContent).not.toContain("Sidebar");

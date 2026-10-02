@@ -21,6 +21,7 @@ import {
 } from "./creatorRuntimeConfig.js";
 import {
   CREATOR_API_PATH,
+  CREATOR_CONTROL_API_PATH,
   CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
   CREATOR_VISUAL_OBSERVATION_API_PATH,
 } from "./shared.js";
@@ -198,6 +199,12 @@ export function createCreatorDevServerPlugin({
         CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
         async (request, response) => {
           await proxy(request, response, "/runtime-diagnostics");
+        },
+      );
+      server.middlewares.use(
+        CREATOR_CONTROL_API_PATH,
+        async (request, response) => {
+          await proxy(request, response, "/creator-control");
         },
       );
       server.middlewares.use(

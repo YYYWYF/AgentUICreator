@@ -13,6 +13,7 @@ from ..files import (
     resolve_creator_project_file,
 )
 from ..project_control import ProjectControlClient
+from ..run_cancellation import assert_run_writable
 from ..source_tools.models import PluginSourceEdit
 from ..transactions import CreatorTransactionError
 from .authorization_store import ServiceContractAuthorizationStore
@@ -154,6 +155,7 @@ class UIServiceContractMutationService:
                 self.store.mark_applied(record)
             try:
                 self.activity.capture_before_content(virtual_path, current.content)
+                assert_run_writable()
                 replace_creator_file_atomically(
                     self.project_root, virtual_path, content, expected=current
                 )

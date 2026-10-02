@@ -61,6 +61,7 @@ import type {
   UIProjectControlConfig,
 } from "./types";
 import { projectWorkspaceTopology, WorkspaceTopologyError } from "./workspace-topology";
+import { assertCreatorCommitAllowed, creatorCancelMarkerSchemaPattern } from "./creator-cancel-marker";
 
 export const COMPOSITION_REVISION_PATH =
   "app-ui/composition-revision.generated.json";
@@ -87,6 +88,7 @@ export const appUITransactionInputSchema = z.strictObject({
       z.enum(["unknown", "narrow", "wide"]),
     )
     .optional(),
+  cancelMarker: z.string().regex(creatorCancelMarkerSchemaPattern).optional(),
 });
 
 export type AppUITransactionInput = z.infer<typeof appUITransactionInputSchema>;
@@ -112,6 +114,8 @@ interface AppUITransactionJournal {
 
 export interface AppUITransactionTestOptions {
   simulateCrashAfterRename?: number | undefined;
+  beforeCommit?: (() => Promise<void>) | undefined;
+  afterCommitStarted?: (() => Promise<void>) | undefined;
 }
 
 export interface AppUITransactionResult {
@@ -558,6 +562,7 @@ async function commitFiles(
   transactionId: string,
   changes: Array<{ relativePath: string; before: string | undefined; after: string }>,
   options: AppUITransactionTestOptions,
+  cancelMarker?: string,
 ): Promise<void> {
   const files: JournalFile[] = changes.map((change) => ({
     relativePath: change.relativePath,
@@ -581,10 +586,13 @@ async function commitFiles(
     for (const file of files) {
       await writeFile(file.temporaryPath, file.after.source!, "utf8");
     }
+    await options.beforeCommit?.();
+    await assertCreatorCommitAllowed(projectRoot, cancelMarker);
     let renameCount = 0;
     for (const file of files) {
       await rename(file.temporaryPath, path.join(projectRoot, file.relativePath));
       renameCount += 1;
+      if (renameCount === 1) await options.afterCommitStarted?.();
       if (options.simulateCrashAfterRename === renameCount) {
         throw new SimulatedTransactionCrash("Simulated AppUI transaction crash");
       }
@@ -1339,7 +1347,7 @@ async function runTransaction(
     },
   ].filter((change) => change.before !== change.after);
   if (changes.length > 0) {
-    await commitFiles(projectRoot, transactionId, changes, options);
+    await commitFiles(projectRoot, transactionId, changes, options, input.cancelMarker);
   }
 
   const beforeCapabilityPluginIds = generatedCapabilityPluginIds(

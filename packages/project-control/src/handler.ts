@@ -14,6 +14,7 @@ import {
 import { inspectUIComposition, inspectUIProject } from "./project/project-inspector";
 import { inspectPluginSourceReferences } from "./project/plugin-source-references";
 import { collectPluginAssets } from "./project/plugin-assets";
+import { creatorCancelMarkerSchemaPattern } from "./project/creator-cancel-marker";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./project/agent-ui-project-paths";
 import { readAgentUIProjectConfig } from "./project/project-mode";
 import { writeGeneratedPluginRegistry } from "./generate-plugin-registry";
@@ -118,6 +119,7 @@ export const requestSchema = z.discriminatedUnion("operation", [
     input: z.strictObject({
       itemId: z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim()),
       expectedStateHash: z.string().regex(/^[a-f0-9]{64}$/),
+      cancelMarker: z.string().regex(creatorCancelMarkerSchemaPattern).optional(),
     }),
   }),
   z.strictObject({
@@ -126,12 +128,14 @@ export const requestSchema = z.discriminatedUnion("operation", [
     input: z.strictObject({
       itemIds: z.array(z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim())).min(1).max(100),
       expectedStateHash: z.string().regex(/^[a-f0-9]{64}$/),
+      cancelMarker: z.string().regex(creatorCancelMarkerSchemaPattern).optional(),
     }),
   }),
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("synchronize_plugin_registry"),
-    input: z.strictObject({ expectedSourceHash: appUIModelHashSchema }),
+    input: z.strictObject({ expectedSourceHash: appUIModelHashSchema,
+      cancelMarker: z.string().regex(creatorCancelMarkerSchemaPattern).optional() }),
   }),
 ]);
 
@@ -425,9 +429,9 @@ async function executeRequest(
     case "inspect_agent_ui_sources":
       return inspectAgentUISources(projectRoot, effectiveConfig);
     case "apply_agent_ui_source_item":
-      return applyAgentUISourceProjectMutation(projectRoot, request.input, { config: effectiveConfig });
+      return applyAgentUISourceProjectMutation(projectRoot, request.input, { config: effectiveConfig, cancelMarker: request.input.cancelMarker });
     case "remove_agent_ui_source_items":
-      return removeAgentUISourceProjectMutation(projectRoot, request.input, { config: effectiveConfig });
+      return removeAgentUISourceProjectMutation(projectRoot, request.input, { config: effectiveConfig, cancelMarker: request.input.cancelMarker });
     case "synchronize_plugin_registry": {
       const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config);
       const current = await readFile(paths.generatedPluginRegistryPath, "utf8");
@@ -438,7 +442,7 @@ async function executeRequest(
           "Generated Plugin Registry changed before synchronization.",
         );
       }
-      return writeGeneratedPluginRegistry(projectRoot);
+      return writeGeneratedPluginRegistry(projectRoot, { cancelMarker: request.input.cancelMarker });
     }
   }
 }

@@ -197,6 +197,17 @@ it("installs Tool resources without inserting a Demo Plugin instance", async () 
   for (const relative of generated.slice(1, 3)) expect(await readFile(path.join(f.sourceRoot, relative), "utf8")).toContain("demo-form-tools");
   expect(await readFile(f.modelPath)).toEqual(before);
 });
+it("leaves source files untouched when a Creator stop marker precedes commit", async () => {
+  const f = await fixture("demo/frontend-tool-form");
+  const marker = ".agentuicreator/control/cancel-11111111-1111-4111-8111-111111111111";
+  await mkdir(path.dirname(path.join(f.root, marker)), { recursive: true });
+  await writeFile(path.join(f.root, marker), "stop\n");
+  const before = await snapshot(f);
+  await expect(applyAgentUISourceProjectMutation(f.root, {
+    itemId: f.itemId, expectedStateHash: (await inspectAgentUISources(f.root, f.config)).stateHash,
+  }, { config: f.config, cancelMarker: marker })).rejects.toMatchObject({ code: "CREATOR_RUN_CANCELLED" });
+  expect(await snapshot(f)).toEqual(before);
+});
 it("rejects removal while a disabled AppUIModel instance still references an owned asset", async () => {
   const f = await fixture("demo/frontend-tool-form"); await apply(f);
   await writeFile(f.modelPath, JSON.stringify({ root: { type: "slot", plugins: [] }, applicationPlugins: [{ id: "form-instance", pluginId: "frontend-tool-form-demo", enabled: false }] }));

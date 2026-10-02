@@ -61,6 +61,7 @@ from .plugin_development.prepare_tool import (
     DEVELOPMENT_DECISION_STEP_ID,
     is_development_decision_question,
 )
+from .run_cancellation import bind_run_cancellation
 from .streaming import CreatorEventBus, CreatorEventSink, map_runtime_event
 from .streaming.deepagent_v3_runner import DeepAgentInterrupted
 from .human_input.models import QuestionAnswers, QuestionRequest
@@ -118,6 +119,7 @@ class PendingCreatorQuestion:
     agent_mode: str
     permission: CreatorExecutionPermission
     checkpoint_id: str
+    run_id: str
 
 
 def _question_envelope(interrupted: DeepAgentInterrupted) -> CreatorInterruptEnvelope:
@@ -559,7 +561,14 @@ def _failed_run_change_summary(activity: CreatorActivityRecorder) -> str:
     visible = "、".join(paths[:6])
     if len(paths) > 6:
         visible += f" 等共 {len(paths)} 个文件"
-    return f"本次已有未验证的目标工程修改：{visible}。请检查这些文件后再继续。"
+    verification = receipt.get("verification")
+    status = verification.get("status") if isinstance(verification, dict) else None
+    scope = {
+        "changed-and-statically-verified": "当前版本静态检查已通过，Runtime 与浏览器未验证",
+        "changed-and-verified": "当前版本的配置模式验证已通过",
+        "not-run": "尚未验证",
+    }.get(status, "尚未确认当前版本通过验证")
+    return f"本次已提交并保留目标工程修改：{visible}。{scope}。"
 
 
 @dataclass(frozen=True, slots=True)
@@ -751,6 +760,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
     mutation_coordinator = ProjectMutationCoordinator()
     checkpointer = InMemorySaver()
     pending_questions: dict[str, PendingCreatorQuestion] = {}
+    active_runs: dict[str, tuple[str, CreatorEventBus, asyncio.Task[Any], Path]] = {}
+    stopped_requests: dict[tuple[str, str], str] = {}
     development_authorities: dict[str, PluginDevelopmentAuthority] = {}
     app.state.plugin_development_authorities = development_authorities
 
@@ -765,6 +776,47 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
         return current
     app.state.creator_checkpointer = checkpointer
     app.state.pending_creator_questions = pending_questions
+
+    @app.post("/creator-control")
+    async def creator_control(request: Request) -> JSONResponse:
+        try:
+            payload = await _json_body(request, 4096)
+            if not isinstance(payload, dict) or payload.get("action") not in {"stop", "abandon"}:
+                raise ValueError("Expected a stop or abandon action.")
+            thread_id = payload.get("threadId")
+            run_id = payload.get("runId")
+            interrupt_id = payload.get("interruptId")
+            if not isinstance(thread_id, str) or not thread_id:
+                raise ValueError("threadId is required.")
+            active = active_runs.get(thread_id)
+            pending = pending_questions.get(thread_id)
+            request_key = (thread_id, run_id if isinstance(run_id, str) else interrupt_id)
+            if isinstance(request_key[1], str) and request_key in stopped_requests:
+                return JSONResponse(status_code=200, content={"status": stopped_requests[request_key]})
+            if active is not None and isinstance(run_id, str) and active[0] == run_id and not active[2].done():
+                if (active[3].parents[1].is_symlink() or active[3].parent.is_symlink()):
+                    raise ValueError("Creator control directory cannot be a symbolic link.")
+                active[3].parent.mkdir(parents=True, exist_ok=True)
+                active[3].write_text("stop\n", encoding="utf-8")
+                active[1].request_stop()
+                development_authority_for(thread_id).revoke_active()
+                stopped_requests[request_key] = "stopping"
+                if len(stopped_requests) > 128:
+                    stopped_requests.pop(next(iter(stopped_requests)))
+                return JSONResponse(status_code=202, content={"status": "stopping", "runId": run_id})
+            if (payload["action"] == "abandon" and pending is not None
+                    and isinstance(interrupt_id, str)
+                    and pending.envelope.id == interrupt_id):
+                pending_questions.pop(thread_id, None)
+                development_authority_for(thread_id).revoke_active()
+                await checkpointer.adelete_thread(thread_id)
+                stopped_requests[request_key] = "abandoned"
+                if len(stopped_requests) > 128:
+                    stopped_requests.pop(next(iter(stopped_requests)))
+                return JSONResponse(status_code=200, content={"status": "abandoned", "runId": pending.run_id})
+            return JSONResponse(status_code=404, content={"error": "Creator run or question is no longer active."})
+        except ValueError as error:
+            return JSONResponse(status_code=400, content={"error": str(error)})
 
     @app.middleware("http")
     async def authorize(request: Request, call_next: Any):
@@ -962,16 +1014,19 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                 event_bus,
                                 telemetry,
                             )
-                        agent_task = asyncio.create_task(
-                            _execute_agent_run(
-                                agent_result,
-                                activity=activity,
-                                logger=logger,
-                                event_bus=event_bus,
-                                telemetry=telemetry,
-                                verification_mode=settings.verification_mode,
+                        cancel_marker = settings.project_root.resolve() / ".agentuicreator" / "control" / f"cancel-{uuid4()}"
+                        with bind_run_cancellation(lambda: event_bus.cancel_requested, cancel_marker):
+                            agent_task = asyncio.create_task(
+                                _execute_agent_run(
+                                    agent_result,
+                                    activity=activity,
+                                    logger=logger,
+                                    event_bus=event_bus,
+                                    telemetry=telemetry,
+                                    verification_mode=settings.verification_mode,
+                                )
                             )
-                        )
+                        active_runs[run_input.threadId] = (run_input.runId, event_bus, agent_task, cancel_marker)
 
                     def consume_background_result(task: asyncio.Task[Any]) -> None:
                         try:
@@ -980,12 +1035,25 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             pass
 
                     agent_task.add_done_callback(consume_background_result)
+                    agent_task.add_done_callback(lambda _task: cancel_marker.unlink(missing_ok=True))
                     try:
                         async for runtime_event in event_bus.events():
                             for ag_ui_event in map_runtime_event(runtime_event):
                                 yield encode(ag_ui_event)
                         execution = await agent_task
                     except asyncio.CancelledError:
+                        if event_bus.stop_requested:
+                            development_authority.revoke_active()
+                            pending_questions.pop(run_input.threadId, None)
+                            await checkpointer.adelete_thread(run_input.threadId)
+                            stopped_requests[(run_input.threadId, run_input.runId)] = "stopped"
+                            changed_summary = _failed_run_change_summary(activity)
+                            yield encode(RunErrorEvent(
+                                type=EventType.RUN_ERROR, code="CREATOR_RUN_STOPPED",
+                                message="已停止本次 Creator 执行；已提交的修改保留。"
+                                        + (f" {changed_summary}" if changed_summary else " 本轮没有项目文件修改。"),
+                            ))
+                            return
                         event_bus.request_cancel()
                         if not event_bus.has_active_tools and not agent_task.done():
                             agent_task.cancel()
@@ -994,24 +1062,45 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                         event_bus.request_cancel()
                         if not event_bus.has_active_tools and not agent_task.done():
                             agent_task.cancel()
+                        if event_bus.stop_requested and not agent_task.done():
+                            await asyncio.gather(agent_task, return_exceptions=True)
                         changed_summary = (
                             _failed_run_change_summary(activity) if agent_task.done() else ""
                         )
+                        if event_bus.stop_requested:
+                            pending_questions.pop(run_input.threadId, None)
+                            development_authority.revoke_active()
+                            await checkpointer.adelete_thread(run_input.threadId)
+                            stopped_requests[(run_input.threadId, run_input.runId)] = "stopped"
                         yield encode(
                             RunErrorEvent(
                                 type=EventType.RUN_ERROR,
-                                code=_error_code(error),
-                                message=(f"Creator Agent 执行失败：{error}"
+                                code="CREATOR_RUN_STOPPED" if event_bus.stop_requested else _error_code(error),
+                                message=(("已停止本次 Creator 执行；已提交的修改保留。" if event_bus.stop_requested
+                                          else f"Creator Agent 执行失败：{error}")
                                          + (f" {changed_summary}" if changed_summary else "")),
                             )
                         )
                         return
                     finally:
+                        active_runs.pop(run_input.threadId, None)
                         if not agent_task.done():
                             event_bus.request_cancel()
                             if not event_bus.has_active_tools:
                                 agent_task.cancel()
                     result = execution.result
+                    if event_bus.cancel_requested:
+                        pending_questions.pop(run_input.threadId, None)
+                        development_authority.revoke_active()
+                        await checkpointer.adelete_thread(run_input.threadId)
+                        stopped_requests[(run_input.threadId, run_input.runId)] = "stopped"
+                        changed_summary = _failed_run_change_summary(activity)
+                        yield encode(RunErrorEvent(
+                            type=EventType.RUN_ERROR, code="CREATOR_RUN_STOPPED",
+                            message="已停止本次 Creator 执行；已提交的修改保留。"
+                                    + (f" {changed_summary}" if changed_summary else " 本轮没有项目文件修改。"),
+                        ))
+                        return
                     if isinstance(result, DeepAgentInterrupted):
                         try:
                             envelope = _question_envelope(result)
@@ -1037,6 +1126,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             agent_mode=agent_mode,
                             permission=execution_context.permission,
                             checkpoint_id=checkpoint_id,
+                            run_id=run_input.runId,
                         )
                         active = development_authority.active
                         if (agent_mode == "domain-write" and execution_context.permission == "domain_write"

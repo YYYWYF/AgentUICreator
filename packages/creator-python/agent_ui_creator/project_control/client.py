@@ -13,6 +13,7 @@ from jsonschema.exceptions import ValidationError
 from referencing import Registry, Resource
 
 from ..contract_resources import read_creator_contract
+from ..run_cancellation import assert_run_writable, current_cancel_marker
 
 from .errors import ProjectControlError
 from .models import (
@@ -165,6 +166,12 @@ class ProjectControlClient:
         failed = True
         try:
             self._ensure_fixed_runtime()
+            if operation in {"mutate_app_ui_model", "apply_agent_ui_source_item",
+                             "remove_agent_ui_source_items", "synchronize_plugin_registry"}:
+                assert_run_writable()
+                marker = current_cancel_marker(self.project_root)
+                if marker is not None:
+                    input = {**input, "cancelMarker": marker}
             request = {
                 "schemaVersion": PROJECT_CONTROL_SCHEMA_VERSION,
                 "operation": operation,

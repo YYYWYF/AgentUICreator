@@ -1471,6 +1471,46 @@ describe("AppUIModel transaction", () => {
       .toMatchObject({ root: { gap: 8, sizes: ["280px", "minmax(0, 1fr)", "280px"] } });
   });
 
+  it("rejects cancellation at the transaction commit boundary without changing the model", async () => {
+    const { projectRoot, source } = await createProject();
+    const marker = ".agentuicreator/control/cancel-11111111-1111-4111-8111-111111111111";
+    let release!: () => void;
+    let reached!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const atCommit = new Promise<void>((resolve) => { reached = resolve; });
+    const transaction = mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source), cancelMarker: marker,
+      operations: [{ type: "set_plugin_enabled", instanceId: "sample-main", enabled: false }],
+    }, { beforeCommit: async () => { reached(); await gate; } });
+    await atCommit;
+    await writeFile(path.join(projectRoot, marker), "stop\n");
+    release();
+    await expect(transaction).rejects.toMatchObject({ code: "CREATOR_RUN_CANCELLED" });
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")).toBe(source);
+  });
+
+  it("finishes an atomic transaction after cancellation arrives past the commit point", async () => {
+    const { projectRoot, source } = await createProject();
+    const marker = ".agentuicreator/control/cancel-22222222-2222-4222-8222-222222222222";
+    await writeFile(path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH), "// stale generated registry\n");
+    let release!: () => void;
+    let reached!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const committing = new Promise<void>((resolve) => { reached = resolve; });
+    const transaction = mutateAppUIModel(projectRoot, {
+      appUIModelHash: hash(source), cancelMarker: marker,
+      operations: [{ type: "set_plugin_enabled", instanceId: "sample-main", enabled: false }],
+    }, { afterCommitStarted: async () => { reached(); await gate; } });
+    await committing;
+    await writeFile(path.join(projectRoot, marker), "stop\n");
+    release();
+    const result = await transaction;
+    expect(result.changedPaths).toContain("app-ui/app-ui.json");
+    expect(result.changedPaths).toContain(GENERATED_PLUGIN_REGISTRY_PATH);
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")).not.toBe(source);
+    expect(await readFile(path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH), "utf8")).not.toBe("// stale generated registry\n");
+  });
+
   it("rejects a stale source hash before changing either transaction file", async () => {
     const { projectRoot, source } = await createProject();
     const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);

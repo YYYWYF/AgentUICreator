@@ -1,5 +1,5 @@
 import { HttpAgent, type AgentSubscriber, type Message, type RunAgentResult } from "@ag-ui/client";
-import { CREATOR_API_PATH } from "../shared.js";
+import { CREATOR_API_PATH, CREATOR_CONTROL_API_PATH } from "../shared.js";
 import { CREATOR_WORKSPACE_ID_HEADER } from "../workspace/types.js";
 import { questionFromInterrupt, type CreatorQuestionActivity } from "./creatorInterruptTypes.js";
 
@@ -10,23 +10,46 @@ export type CreatorRunSubscriber = Omit<AgentSubscriber, "onCustomEvent"> & {
 /** The only Creator boundary that knows AG-UI 0.0.59 interrupt wire fields. */
 export class CreatorAgentClient {
   readonly #agent: HttpAgent;
+  readonly #workspaceId: string;
+  #currentRunId: string | undefined;
 
   constructor(workspaceId: string, threadId: string, initialMessages: Message[] = []) {
+    this.#workspaceId = workspaceId;
     this.#agent = new HttpAgent({ url: CREATOR_API_PATH,
       headers: { [CREATOR_WORKSPACE_ID_HEADER]: workspaceId }, threadId, initialMessages });
   }
 
   get threadId(): string { return this.#agent.threadId; }
   get messages(): Message[] { return this.#agent.messages; }
+  get currentRunId(): string | undefined { return this.#currentRunId; }
   addMessage(message: Message): void { this.#agent.addMessage(message); }
   abort(): void { this.#agent.abortRun(); }
 
   run(subscriber: CreatorRunSubscriber): Promise<RunAgentResult> {
-    return this.#agent.runAgent({}, this.#subscriber(subscriber));
+    const runId = crypto.randomUUID();
+    this.#currentRunId = runId;
+    return this.#agent.runAgent({ runId }, this.#subscriber(subscriber));
   }
 
   resumeInterrupt(interruptId: string, answers: Record<string, string[]>, subscriber: CreatorRunSubscriber): Promise<RunAgentResult> {
-    return this.#agent.runAgent({ forwardedProps: { command: { resume: { interruptId, answers } } } }, this.#subscriber(subscriber));
+    const runId = crypto.randomUUID();
+    this.#currentRunId = runId;
+    return this.#agent.runAgent({ runId, forwardedProps: { command: { resume: { interruptId, answers } } } }, this.#subscriber(subscriber));
+  }
+
+  async control(action: "stop" | "abandon", interruptId?: string): Promise<"stopping" | "abandoned"> {
+    const response = await fetch(CREATOR_CONTROL_API_PATH, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", [CREATOR_WORKSPACE_ID_HEADER]: this.#workspaceId },
+      body: JSON.stringify({ action, threadId: this.threadId,
+        ...(interruptId === undefined ? { runId: this.#currentRunId } : { interruptId }) }),
+    });
+    const body: unknown = await response.json();
+    if (!response.ok || typeof body !== "object" || body === null || !("status" in body)) {
+      throw new Error(typeof body === "object" && body !== null && "error" in body && typeof body.error === "string"
+        ? body.error : "Creator 停止请求未被接受。");
+    }
+    return body.status === "abandoned" ? "abandoned" : "stopping";
   }
 
   #subscriber({ onQuestion, ...subscriber }: CreatorRunSubscriber): AgentSubscriber {

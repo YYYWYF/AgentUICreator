@@ -150,6 +150,72 @@ def test_wrong_decision_answer_cannot_activate_grant(tmp_path, monkeypatch):
     assert not (tmp_path / "plugins").exists()
 
 
+def test_abandon_pending_question_revokes_grant_and_invalidates_resume(tmp_path, monkeypatch):
+    model = TrackingModel(responses=[AIMessage(content="", tool_calls=[{
+        "name": "prepare_ui_plugin_development", "args": PREPARE, "id": "prepare-abandon",
+    }])])
+    app, client = _app(tmp_path, monkeypatch, model)
+    first = _events(client, run_id="request-a", text="在聊天旁边做一个任务核对清单")
+    question = next(event["value"] for event in first if event.get("name") == "on_interrupt")
+    response = client.post("/creator-control", json={
+        "action": "abandon", "threadId": "thread-a", "interruptId": question["id"],
+    })
+    assert response.status_code == 200
+    assert response.json()["status"] == "abandoned"
+    assert app.state.plugin_development_authorities["thread-a"].active.status == "superseded"
+    assert not (tmp_path / "plugins").exists()
+    assert client.post("/creator-control", json={
+        "action": "abandon", "threadId": "thread-a", "interruptId": question["id"],
+    }).json()["status"] == "abandoned"
+    resumed = _events(client, run_id="request-b", resume={
+        "interruptId": question["id"],
+        "answers": {"plugin-development-decision": ["start"]},
+    })
+    assert any(event.get("code") == "CREATOR_INTERRUPT_NOT_FOUND" for event in resumed)
+
+
+def test_stop_request_reaches_server_during_active_run(tmp_path, monkeypatch):
+    model = TrackingModel(responses=[AIMessage(content="unused")])
+    app, _client = _app(tmp_path, monkeypatch, model)
+    entered = asyncio.Event()
+    release = asyncio.Event()
+
+    async def held_run(_settings, _messages, _activity, _coordinator, _diagnostics,
+                       _thread_id, event_sink, _telemetry, **_kwargs):
+        entered.set()
+        await release.wait()
+        if event_sink.cancel_requested:
+            raise asyncio.CancelledError
+        raise AssertionError("The held run should have been stopped.")
+
+    monkeypatch.setattr("agent_ui_creator.server._domain_write_agent_result", held_run)
+
+    async def exercise():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),
+                                     base_url="http://testserver",
+                                     headers={"Authorization": "Bearer " + "x" * 32}) as client:
+            run = asyncio.create_task(client.post("/creator", json={
+                "threadId": "thread-a", "runId": "active-run",
+                "messages": [{"role": "user", "content": "请开发一个独立任务清单插件"}],
+            }))
+            await asyncio.wait_for(entered.wait(), timeout=5)
+            stop = await client.post("/creator-control", json={
+                "action": "stop", "threadId": "thread-a", "runId": "active-run",
+            })
+            assert stop.status_code == 202
+            assert stop.json()["status"] == "stopping"
+            assert (await client.post("/creator-control", json={
+                "action": "stop", "threadId": "thread-a", "runId": "active-run",
+            })).json()["status"] == "stopping"
+            release.set()
+            response = await run
+            events = [json.loads(line.removeprefix("data: ")) for line in response.text.splitlines()
+                      if line.startswith("data: ")]
+            assert any(event.get("code") == "CREATOR_RUN_STOPPED" for event in events)
+
+    asyncio.run(exercise())
+
+
 def test_headless_request_without_decision_answer_cannot_continue_or_grant(tmp_path, monkeypatch):
     model = TrackingModel(responses=[AIMessage(content="", tool_calls=[{
         "name": "prepare_ui_plugin_development", "args": PREPARE, "id": "prepare-headless",

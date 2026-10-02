@@ -3,6 +3,7 @@ import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import type { UIProjectControlConfig } from "../types";
+import { assertCreatorCommitAllowed } from "../creator-cancel-marker";
 import {
   AGENT_UI_SOURCE_LOCK_FILE,
   AGENT_UI_SOURCE_TRANSACTION_FILE,
@@ -23,6 +24,7 @@ export interface AgentUISourceFileMutation {
 
 export interface AgentUISourceTransactionTestOptions {
   simulateCrashAfterMutation?: number;
+  cancelMarker?: string | undefined;
 }
 
 class SimulatedAgentUISourceCrash extends Error {}
@@ -170,6 +172,7 @@ export async function commitAgentUISourceTransaction(
   await atomicWrite(journalPath, Buffer.from(`${JSON.stringify(journal, null, 2)}\n`));
 
   try {
+    await assertCreatorCommitAllowed(projectRoot, options.cancelMarker);
     let mutationCount = 0;
     for (const mutation of mutations) {
       const targetPath = path.join(sourceRoot, mutation.target);

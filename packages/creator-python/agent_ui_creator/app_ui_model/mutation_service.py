@@ -9,6 +9,7 @@ from ..activity import CreatorActivityRecorder
 from ..domain_state import DomainObservationError
 from ..files import CreatorFileState, read_creator_file_state
 from ..project_control import ProjectControlClient, ProjectControlError
+from ..run_cancellation import assert_run_writable, current_cancel_marker
 from .mutation_lock import ProjectMutationCoordinator
 from .mutation_models import (
     resolve_mutable_paths,
@@ -383,10 +384,13 @@ class AppUIModelMutationService:
                         app_ui_model_hash=app_ui_model_hash,
                     )
                 )
+                assert_run_writable()
+                cancel_marker = current_cancel_marker(self.project_root)
                 raw_result = await self.project_control.request_app_ui_model_mutation(
                     {
                         "appUIModelHash": app_ui_model_hash,
                         "operations": operations,
+                        **({"cancelMarker": cancel_marker} if cancel_marker is not None else {}),
                         **(
                             {"runtimeSlotWidths": runtime_slot_widths}
                             if runtime_slot_widths
