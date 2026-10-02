@@ -61,6 +61,8 @@ project's public component and style discovery path. Use actual exported APIs,
 not guessed Button, Checkbox, Dialog, or overlay names. If the user did not
 specify a component, use the project's mature default controls and tokens; do
 not make an unstyled native form or placeholder panel the product result.
+Do not inspect `node_modules` with Creator filesystem tools. Use a target Plugin
+already importing the public control, then check new imports with typecheck.
 New Plugin presentation text, including titles, controls, empty states, aria
 labels, and static item labels, must use the Agent UI locale layer. Add typed
 keys and both locale dictionaries with `edit_file` before creating the Plugin.
