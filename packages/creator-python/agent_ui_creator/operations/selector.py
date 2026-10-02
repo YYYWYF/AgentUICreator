@@ -85,6 +85,10 @@ _CONDITIONAL_DEVELOPMENT_COMMISSION = re.compile(
     r"\b(?:build|develop|create|implement)\b",
     re.I,
 )
+_ORIGINAL_VISUAL_STATE = re.compile(
+    r"原来|原有|原位置|之前|此前|\b(?:original|previous|prior)\b",
+    re.I,
+)
 _CURRENT_VISUAL_SCOPE = re.compile(
     r"只在\s*(?:当前|这个|本)\s*(?:界面|页面)"
     r"|\bonly\s+(?:on|in)\s+(?:the\s+)?(?:current|this)\s+(?:screen|view|interface)\b",
@@ -139,6 +143,10 @@ assistant proposals do not constitute a direct commission. A copy, style,
 configuration, or existing interaction change uses its supplied Action/Target
 or plain GENERAL; it needs no development decision. Do not reject a legitimate
 frontend request merely because no atomic Action exists.
+An explicit request to keep the current UI as it is and avoid adding another
+copy is an evidence-based read-only check; use INSPECT to confirm the current
+Composition. Do not ask whether the user wants to keep the current state when
+they have already said so.
 Never select only one part of a multi-layer request; use GENERAL when the
 complete desired state spans Composition and source/config ownership, or has
 related implementation steps such as inspecting an existing component, adapting
@@ -153,6 +161,9 @@ Showing an existing visual capability with its current/default presentation is
 a Composition visibility request. If there is no supplied enable Action, choose
 GENERAL to inspect its instance state; do not select a plugin_source target just
 because the user says "show" or "display".
+An explicit Workspace Region Add only chooses a region. When the user asks to
+restore the original placement or size of a removed visual instance, choose
+GENERAL so the prior layout and the Plugin authoring defaults can be considered.
 Use a Workspace Region choice for top-level Left, Center, or Right semantics
 when the supplied Action effect has placementDomain workspace, including a
 position described as after the main Conversation surface. A plugin_slot
@@ -638,6 +649,11 @@ class CreatorIntentSelector:
                         )
                         if (selected.kind == "move_plugin"
                                 and _RESTORE_VISUAL_STATE.search(user_message)):
+                            return CreatorActionSelection(decision="general_change")
+                        if (selected.kind == "add_existing_plugin"
+                                and selected.effect.type == "workspace_region"
+                                and _RESTORE_VISUAL_STATE.search(user_message)
+                                and _ORIGINAL_VISUAL_STATE.search(user_message)):
                             return CreatorActionSelection(decision="general_change")
                         if (selected.kind == "remove_plugin"
                                 and _CURRENT_VISUAL_SCOPE.search(user_message)

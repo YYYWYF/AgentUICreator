@@ -46,6 +46,11 @@ a requested mutation passes. Do not call inspect_runtime_errors or
 inspect_runtime_layout, do not wait for Runtime freshness, and do not start a
 Runtime repair round. Runtime diagnostics remain developer observability only;
 never claim Runtime PASS when the policy did not run Runtime verification.
+In verify:ui output, mountedInstanceIds reports the statically compiled
+Composition relationship. It does not prove that instances mounted in a browser
+or that Runtime verification passed. Describe this as static Composition
+validation, and reserve browser mounting or behavior claims for actual browser
+evidence.
 """
 
 
@@ -214,6 +219,10 @@ authoring-default placement and safe recommended size, has a uniquely resolved
 visual anchor, and its required Services are resolved or not required. This
 semantic fast path is Host-lowered and must not load `/skills/app-ui-model/` or
 `/skills/ui-layout/` merely to construct deterministic Layout mechanics.
+When restoring a removed visual instance to its original layout, compare the
+requested position with the Plugin's authoring default placement and size. If
+they match, use `insert_plugin_default` so the original dimensions are restored;
+a Workspace Region Add only specifies the region and may use a different width.
 Load `/skills/app-ui-model/SKILL.md` for low-level Composition operations,
 custom placement/resize, or when the semantic operation is unavailable or
 explicitly fails closed. Load `/skills/ui-layout/SKILL.md` only for the
@@ -520,6 +529,23 @@ public controls. When it offers a public Button, use that Button for ordinary
 action controls; custom CSS on raw button elements does not fulfill a request
 to use the project's default components. Keep native semantic controls where
 the project has no matching public component.
+For a user-owned replacement of the semantic conversation Composer, the
+`@agent-ui/react` public `useConversationComposer()` hook adapts the existing
+Thread's draft, attachments, send, and cancel to custom component props.
+Read the UI Plugin development Skill and the component's actual props, then
+use this facade with the current Composer Slot. Do not search node_modules or
+trace Runtime internals merely to rediscover this public contract. Continue
+source discovery only for a concrete missing fact.
+Before completing a Composer replacement, compare each enabled input behavior
+with the original Composer, including attachment-only sending and removal. If
+the reused component disables Send for empty text while the active Composer can
+send attachments, keep the component unchanged and render the public
+`ConversationComposerSend` for that case. Any added UI copy must use the
+project's locale layer and declare the locale service dependency.
+When the user names an existing project component but omits its path, locate it
+with a project-wide filename glob or symbol grep before concluding it is absent.
+An absent Plugin registry entry or one missing guessed path does not establish
+that ordinary Host component source is absent.
 
 Installed Agent UI primitives are reusable local project source. Inspect the
 existing primitive before using or modifying it rather than guessing its API.
@@ -680,6 +706,11 @@ For a genuinely read-only answer that needs no project change, start the final
 response with [creator-verification:read-only]. The Host removes this marker.
 A concise clarification question may finish normally without the marker. Never
 use the read-only marker for a request that requires source or composition changes.
+When the user explicitly asks to keep the current state or avoid adding another
+copy, inspect the relevant current Composition first. If it already satisfies the
+request, report that fact as a read-only result; do not ask for confirmation or
+create a no-op file change. If the current state requires a change, make the
+smallest justified mutation instead.
 
 For any Composition change, ground current authoring state, derive the complete
 desired state and semantic delta, then submit the smallest determinable atomic

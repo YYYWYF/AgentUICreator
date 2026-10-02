@@ -298,6 +298,60 @@ export function ConversationCanonicalComposer({
   );
 }
 
+export interface ConversationComposerAttachment {
+  readonly id: string;
+  readonly name: string;
+}
+
+/** State and actions for adapting a project-owned Composer view to the active Thread. */
+export interface ConversationComposerController {
+  readonly text: string;
+  readonly attachments: readonly ConversationComposerAttachment[];
+  readonly attachmentAccept: string;
+  readonly attachmentsEnabled: boolean;
+  readonly isRunning: boolean;
+  readonly disabled: boolean;
+  readonly canSend: boolean;
+  readonly canCancel: boolean;
+  setText(text: string): void;
+  send(): void;
+  cancel(): void;
+  addAttachment(file: File): Promise<void>;
+  removeAttachment(id: string): Promise<void>;
+}
+
+/** Connect a custom Composer UI to the existing assistant-ui Thread Composer. */
+export function useConversationComposer(): ConversationComposerController {
+  const runtime = useAui();
+  const text = useInternalConversationState((state) => state.composer.text);
+  const sourceAttachments = useInternalConversationState((state) => state.composer.attachments);
+  const attachmentAccept = useInternalConversationState((state) => state.composer.attachmentAccept);
+  const attachmentsEnabled = useInternalConversationState((state) => state.thread.capabilities.attachments);
+  const isRunning = useInternalConversationState((state) => state.thread.isRunning);
+  const disabled = useInternalConversationState((state) =>
+    state.thread.isDisabled || state.composer.dictation?.inputDisabled === true,
+  );
+  const canSend = useInternalConversationState((state) =>
+    state.composer.canSend && (!state.thread.isRunning || state.thread.capabilities.queue),
+  );
+  const canCancel = useInternalConversationState((state) => state.composer.canCancel);
+  const attachments = useMemo(
+    () => sourceAttachments.map(({ id, name }) => ({ id, name })),
+    [sourceAttachments],
+  );
+  const actions = useMemo(() => ({
+    setText: (value: string) => runtime.composer.setText(value),
+    send: () => runtime.composer.send(),
+    cancel: () => runtime.composer.cancel(),
+    addAttachment: (file: File) => runtime.composer.addAttachment(file),
+    removeAttachment: (id: string) => runtime.composer.attachment({ id }).remove(),
+  }), [runtime]);
+  return {
+    text, attachments, attachmentAccept, attachmentsEnabled,
+    isRunning, disabled, canSend, canCancel, ...actions,
+  };
+}
+
 export function ConversationComposerAddAttachment({ label = "Add Attachment" }: Readonly<{ label?: string }> = {}) {
   return <InternalConversationComposerAddAttachment label={label} />;
 }
