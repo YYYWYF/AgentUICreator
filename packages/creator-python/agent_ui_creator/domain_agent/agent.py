@@ -248,6 +248,9 @@ class CreatorDomainReadAgent:
             ) from error
         except AgentNoProgressError:
             self.protocol.metrics.repeatedToolLoops += 1
+            completed = await self._complete_after_composition_budget()
+            if completed is not None:
+                return completed
             raise
         except (httpx.TimeoutException, openai.APITimeoutError, TimeoutError) as error:
             raise ModelTimeoutError("Creator Agent 等待模型响应超时，请稍后重试。") from error
@@ -327,6 +330,36 @@ class CreatorDomainReadAgent:
         await self.completion_verification_tail.run_if_needed(
             self.mutation_service
         )
+
+    async def _complete_after_composition_budget(self) -> DomainReadAgentResult | None:
+        authority = self.plugin_development_authority
+        if (
+            authority is None or authority.active is None
+            or authority.active.status != "authorized"
+            or self.completion_gate is None
+            or self.completion_verification_tail is None
+            or self.mutation_service is None
+            or self.run_control.blocked
+        ):
+            return None
+        tail = await self.completion_verification_tail.run_if_needed(
+            self.mutation_service
+        )
+        if tail is None or tail.get("staticValidationStatus") != "passed":
+            return None
+        self.runtime.raise_terminal_error()
+        decision = self.completion_gate.review(
+            "已按授权完成插件源码、组合及当前修订版的静态验证。"
+        )
+        reports = self.activity.snapshot().get("pluginDeliveries", [])
+        if not decision.accepted or not reports or any(
+            not delivery_status_satisfies_mode(
+                report["delivery"]["status"], self.completion_gate.verification_mode,
+            )
+            for report in reports
+        ):
+            return None
+        return self._build_result(text=decision.text, completion="success")
 
     def _build_result(
         self,

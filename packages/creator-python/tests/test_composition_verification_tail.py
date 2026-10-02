@@ -12,7 +12,7 @@ from agent_ui_creator.app_ui_model import (
 )
 from agent_ui_creator.domain_agent import CreatorDomainWriteAgent
 from agent_ui_creator.domain_agent.completion_gate import (
-    CreatorDevelopmentCompletionGate,
+    CompletionDecision, CreatorDevelopmentCompletionGate,
 )
 from agent_ui_creator.domain_agent.composition_verification_tail import (
     CompositionVerificationTail,
@@ -22,6 +22,7 @@ from agent_ui_creator.domain_state import (
     DomainObservationContext,
 )
 from agent_ui_creator.model_protocol.trace import ToolProtocolMetrics
+from agent_ui_creator.model_protocol.errors import AgentNoProgressError
 from agent_ui_creator.project_control import ProjectControlMetrics
 from agent_ui_creator.repair import CreatorRepairState
 from agent_ui_creator.run_control import CreatorRunControlState
@@ -451,3 +452,56 @@ async def test_agent_lifecycle_accepts_stale_then_fresh_without_second_graph_inv
     assert runtime_diagnostics.latest_result["verificationTail"][
         "freshnessExhausted"
     ] is False
+
+
+@pytest.mark.parametrize("delivery_status,completes", [
+    ("statically-verified", True), ("blocked", False),
+])
+def test_model_budget_after_composition_uses_current_revision_evidence_only(
+    tmp_path, monkeypatch, delivery_status, completes,
+):
+    activity = mutated_activity_for_revision(tmp_path)
+    validation = FakeValidation()
+    tail = CompositionVerificationTail(
+        activity=activity, validation=validation, runtime=FakeRuntime([]),
+        metrics=CompositionFastPathMetrics(), verification_mode="static_only",
+    )
+    mutation_service = SimpleNamespace(
+        last_result=mutation_result().last_result,
+        metrics=AppUIModelMutationMetrics(),
+    )
+
+    async def exhausted(*_args, **_kwargs):
+        raise AgentNoProgressError("Minimal agent exceeded 24 model calls.")
+
+    monkeypatch.setattr(
+        "agent_ui_creator.domain_agent.agent.DeepAgentV3Runner.run_result", exhausted,
+    )
+
+    def review(candidate):
+        activity.record_plugin_deliveries([{"delivery": {"status": delivery_status}}])
+        return CompletionDecision(True, candidate)
+
+    agent = CreatorDomainWriteAgent(
+        graph=object(), protocol=SimpleNamespace(metrics=ToolProtocolMetrics()),
+        runtime=SimpleNamespace(
+            backend=SimpleNamespace(activity=activity), activities=[],
+            raise_terminal_error=lambda: None, event_sink=None,
+        ),
+        repeated_read_guard=SimpleNamespace(repeated_reads=0),
+        project_control=SimpleNamespace(metrics=ProjectControlMetrics()),
+        observations=DomainObservationContext(),
+        mutation_service=mutation_service,
+        completion_gate=SimpleNamespace(review=review, verification_mode="static_only"),
+        completion_verification_tail=tail,
+        plugin_development_authority=SimpleNamespace(
+            task_id="task", active=SimpleNamespace(status="authorized"),
+        ),
+    )
+    if completes:
+        result = asyncio.run(agent.run("创建并挂载插件"))
+        assert result.completion == "success"
+        assert validation.current_result().revision == activity.revision
+    else:
+        with pytest.raises(AgentNoProgressError):
+            asyncio.run(agent.run("创建并挂载插件"))
